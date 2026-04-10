@@ -73,12 +73,12 @@ class PartReader:
                     f"PartReader: found indices before any block header at line {line_num} in {resolved_path}"
                 )
 
-            try:
-                indices = [int(token) for token in stripped.split()]
-            except ValueError:
-                raise ValueError(
-                    f"PartReader: invalid atom index at line {line_num}: {stripped}"
-                )
+            indices = []
+            for token in stripped.split():
+                try:
+                    indices.extend(cls._expand_index_token(token))
+                except ValueError as e:
+                    raise ValueError(f"PartReader: {e} at line {line_num}")
 
             for index in indices:
                 if index < 1 or index > natoms:
@@ -122,6 +122,29 @@ class PartReader:
             "core_indices": core_indices,
             "env_indices": env_indices,
         }
+
+    @staticmethod
+    def _expand_index_token(token: str) -> List[int]:
+        if "-" not in token:
+            try:
+                return [int(token)]
+            except ValueError:
+                raise ValueError(f"invalid atom index token '{token}'")
+
+        parts = token.split("-")
+        if len(parts) != 2:
+            raise ValueError(f"invalid atom index token '{token}'")
+
+        try:
+            start = int(parts[0])
+            end = int(parts[1])
+        except ValueError:
+            raise ValueError(f"invalid atom index token '{token}'")
+
+        if start > end:
+            raise ValueError(f"invalid range '{token}'")
+
+        return list(range(start, end + 1))
 
     @staticmethod
     def _normalize_indices(indices: List[int], block_name: str) -> List[int]:

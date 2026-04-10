@@ -123,8 +123,26 @@ class Dispatcher():
             else:
                 raise ValueError(f"Unknown MD ensemble: '{ensemble}'")
             md.run()
-            
-            
+
+        elif jobtype == 'mlml':
+            from .mlml import MLMLSinglePoint, MLMLOptimization, MLMLMolecularDynamics
+
+            if isinstance(atoms, (list, Molecules)):
+                raise NotImplementedError('For MLML job, only one Atoms object is allowed.')
+
+            method = commandcontrol.params.get('method', 'sp').lower()
+            if method == 'sp':
+                sp = MLMLSinglePoint(output=output, atoms=atoms)
+                sp.run()
+            elif method == 'opt':
+                opt = MLMLOptimization(output=output, atoms=atoms, paras=commandcontrol.params)
+                opt.run()
+            elif method == 'md':
+                mlml_md = MLMLMolecularDynamics(output=output, atoms=atoms, paras=commandcontrol.params)
+                mlml_md.run()
+            else:
+                raise ValueError(f"[MLML] method '{method}' is not enabled in phase-2. Supported methods: sp, opt, md.")
+
         else:
             try:
                 raise NotImplementedError('Job type not implemented')

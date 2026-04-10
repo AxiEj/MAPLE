@@ -106,6 +106,7 @@ class engine():
         """
         with timer("MLP Initialization"):
             from .calculator import SetClaculator
+            from .calculator.mlml_calculator import MLMLCalculator
 
             implicit_method = self.commandcontrol.get('solv', {}).get('method', None)
             solvent = self.commandcontrol.get('solv', {}).get('implicit', None)
@@ -118,6 +119,33 @@ class engine():
                 atoms_list = self.atoms.multiatoms if isinstance(self.atoms, Molecules) else self.atoms
                 if atoms_list:
                     atoms_for_check = atoms_list[0]
+
+            if self.jobtype == 'mlml':
+                if not isinstance(self.atoms, Atoms):
+                    raise NotImplementedError('For MLML job, only one Atoms object is allowed.')
+
+                mlml_cfg = self.commandcontrol.get('mlml_config', {})
+                high_model = mlml_cfg.get('high_model')
+                low_model = mlml_cfg.get('low_model')
+                partition_file = mlml_cfg.get('partition_file')
+
+                high_model_options = self.commandcontrol.get('high_model_options', self.commandcontrol.get('high_model_paras', {}))
+                low_model_options = self.commandcontrol.get('low_model_options', self.commandcontrol.get('low_model_paras', {}))
+
+                self.calulator = MLMLCalculator(
+                    output=self.output,
+                    device=device,
+                    full_atoms=self.atoms,
+                    high_model=high_model,
+                    low_model=low_model,
+                    partition_file=partition_file,
+                    high_model_options=high_model_options,
+                    low_model_options=low_model_options,
+                    d4=self.d4,
+                    implicit=implicit_method,
+                    solvent=solvent,
+                )
+                return
 
             setcalculator = SetClaculator(device, model, self.output, atoms=atoms_for_check,
                             d4=self.d4, implicit=implicit_method, solvent=solvent,

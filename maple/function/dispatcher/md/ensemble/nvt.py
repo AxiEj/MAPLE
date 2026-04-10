@@ -599,6 +599,17 @@ class NVT(JobABC):
             # Conserved energy: H̃ = H − Σ ΔW (V-rescale only)
             conserved = (kinetic_energy + potential_energy - w_bath) if is_vrescale else None
 
+            calc_results = getattr(getattr(self.atoms, 'calc', None), 'results', {})
+            mlml_e_low_full = calc_results.get('mlml_energy_low_full')
+            if mlml_e_low_full is not None:
+                self.logger.log_main([
+                    f"MLML components | step={abs_step} "
+                    f"E_low_full={float(mlml_e_low_full):.10f} "
+                    f"E_high_core={float(calc_results.get('mlml_energy_high_core', 0.0)):.10f} "
+                    f"E_low_core={float(calc_results.get('mlml_energy_low_core', 0.0)):.10f} "
+                    f"E_correction={float(calc_results.get('mlml_energy_correction', 0.0)):.10f}\n"
+                ])
+
             self.logger.log_step(
                 step=abs_step,
                 time=current_time,

@@ -1,3 +1,4 @@
+import os
 import re
 from typing import Any, Dict, List, Optional
 
@@ -5,7 +6,7 @@ from typing import Any, Dict, List, Optional
 class CommandControl:
     """
     Parse and validate input settings.
-    One task only: sp/opt/ts/scan/freq/irc/md.
+    One task only: sp/opt/ts/scan/freq/irc/md/mlml.
     All other settings are global parameters.
     """
 
@@ -27,7 +28,7 @@ class CommandControl:
         "macepoll",
     }
 
-    SUPPORTED_TASKS = {"sp", "opt", "ts", "scan", "freq", "irc", "md"}
+    SUPPORTED_TASKS = {"sp", "opt", "ts", "scan", "freq", "irc", "md", "mlml"}
 
     SUPPORTED_UMA_TASKS = {"omol", "omat", "oc20", "odac", "omc", "oc22", "oc25"}
     SUPPORTED_UMA_SIZES = {"uma-s-1p1", "uma-s-1p2", "uma-m-1p1"}
@@ -79,6 +80,10 @@ class CommandControl:
             "traj_format": "xyz",
             "debug": False,
         },
+        "mlml": {
+            "method": "sp",
+            "opt_method": "lbfgs",
+        },
         "solv": {"solvent": "water", "explicit": None},
     }
 
@@ -90,6 +95,7 @@ class CommandControl:
         "sp": set(),
         "irc": {"gs", "hpc", "eulerpc", "lqa"},
         "md": {"nve", "nvt", "npt"},
+        "mlml": {"sp", "opt", "md"},
     }
 
     def __init__(self, params: Dict[str, Any], task: str, output_path: Optional[str] = None):
@@ -136,14 +142,14 @@ class CommandControl:
                 inline_md_keys = set()
                 if paren_val:
                     cls._parse_nested(params, paren_val)
-                    if task == "md":
+                    if task == "md" or (task == "mlml" and str(params.get("method", "")).lower() == "md"):
                         inline_md_keys = {
                             kv.split("=", 1)[0].strip().lower()
                             for kv in paren_val.split(",")
                             if "=" in kv
                         }
 
-                if task == "md" and params.get("mdp"):
+                if (task == "md" or (task == "mlml" and str(params.get("method", "")).lower() == "md")) and params.get("mdp"):
                     cls._load_mdp(params, inline_md_keys, output_path)
 
                 continue
@@ -188,6 +194,10 @@ class CommandControl:
             log_lines.append("No task specified. Defaulting to 'sp'.\n")
 
         cls._normalize_params(params)
+
+        if (task == "md" or (task == "mlml" and str(params.get("method", "")).lower() == "md")) and params.get("mdp"):
+            cls._load_mdp(params, inline_md_keys, output_path)
+
         cls._validate(params, task, output_path)
         cls._log_info(output_path, log_lines)
 
@@ -295,6 +305,12 @@ class CommandControl:
         if "ensemble" in params and isinstance(params["ensemble"], str):
             params["ensemble"] = params["ensemble"].lower()
 
+        mlml_cfg = params.get("mlml_config")
+        if isinstance(mlml_cfg, dict):
+            for key in ("high_model", "low_model"):
+                if key in mlml_cfg and mlml_cfg[key] is not None:
+                    mlml_cfg[key] = str(mlml_cfg[key]).strip().lower()
+
     @classmethod
     def _validate(cls, params: Dict[str, Any], task: str, output_path: Optional[str]) -> None:
         model = params.get("model")
@@ -320,7 +336,94 @@ class CommandControl:
                 cls._log_error(output_path, f"Method '{params['method']}' not implemented for task '{task}'.")
                 raise ValueError(f"Method '{params['method']}' not implemented for task '{task}'.")
 
-        if task == "md":
+        if task == "mlml":
+            mlml_cfg = params.get("mlml_config")
+            if not isinstance(mlml_cfg, dict):
+                cls._log_error(
+                    output_path,
+                    "[MLML] missing required block 'mlml_config'. Please set # mlml_config(high_model=..., low_model=..., partition_file=...).",
+                )
+                raise ValueError(
+                    "[MLML] missing required block 'mlml_config'. Please set # mlml_config(high_model=..., low_model=..., partition_file=...)."
+                )
+
+            required_keys = ("high_model", "low_model", "partition_file")
+            for req in required_keys:
+                if req not in mlml_cfg or mlml_cfg[req] in (None, ""):
+                    cls._log_error(
+                        output_path,
+                        f"[MLML] missing required key '{req}' in mlml_config. Please set # mlml_config(high_model=..., low_model=..., partition_file=...).",
+                    )
+                    raise ValueError(
+                        f"[MLML] missing required key '{req}' in mlml_config. Please set # mlml_config(high_model=..., low_model=..., partition_file=...)."
+                    )
+
+            high_model = str(mlml_cfg["high_model"]).strip().lower()
+            low_model = str(mlml_cfg["low_model"]).strip().lower()
+            if high_model not in cls.SUPPORTED_MODELS:
+                cls._log_error(output_path, f"[MLML] unsupported high_model: '{high_model}'.")
+                raise ValueError(f"[MLML] unsupported high_model: '{high_model}'.")
+            if low_model not in cls.SUPPORTED_MODELS:
+                cls._log_error(output_path, f"[MLML] unsupported low_model: '{low_model}'.")
+                raise ValueError(f"[MLML] unsupported low_model: '{low_model}'.")
+
+            partition_file = str(mlml_cfg["partition_file"])
+            if not os.path.isabs(partition_file):
+                cls._log_error(
+                    output_path,
+                    f"[MLML] partition_file must be an absolute path: got '{partition_file}'. Please provide an absolute path.",
+                )
+                raise ValueError(
+                    f"[MLML] partition_file must be an absolute path: got '{partition_file}'. Please provide an absolute path."
+                )
+
+            if "pbc" in params and params.get("pbc") not in (None, False):
+                cls._log_error(
+                    output_path,
+                    "[MLML] pbc=True is not supported in phase-1 MLML. Please disable pbc or use non-MLML workflow.",
+                )
+                raise ValueError(
+                    "[MLML] pbc=True is not supported in phase-1 MLML. Please disable pbc or use non-MLML workflow."
+                )
+
+            mlml_method = str(params.get("method", "sp")).lower()
+            if mlml_method == "opt":
+                opt_method = str(params.get("opt_method", "lbfgs")).lower()
+                allowed_opt_methods = {"lbfgs", "sd", "cg", "sdcg"}
+                if opt_method == "rfo":
+                    cls._log_error(
+                        output_path,
+                        "[MLML] opt_method 'rfo' is not supported in phase-1 MLML because Hessian is unavailable.",
+                    )
+                    raise ValueError(
+                        "[MLML] opt_method 'rfo' is not supported in phase-1 MLML because Hessian is unavailable."
+                    )
+                if opt_method not in allowed_opt_methods:
+                    cls._log_error(
+                        output_path,
+                        f"[MLML] unsupported opt_method '{opt_method}'. Supported: {sorted(allowed_opt_methods)}",
+                    )
+                    raise ValueError(
+                        f"[MLML] unsupported opt_method '{opt_method}'. Supported: {sorted(allowed_opt_methods)}"
+                    )
+
+            if mlml_method == "md":
+                ensemble = str(params.get("ensemble", "nve")).lower()
+                if ensemble not in {"nve", "nvt", "npt"}:
+                    cls._log_error(output_path, f"[MLML] MD ensemble '{ensemble}' not supported.")
+                    raise ValueError(f"[MLML] MD ensemble '{ensemble}' not supported. Choose from: ['npt', 'nve', 'nvt']")
+                if ensemble == "npt":
+                    cls._log_error(
+                        output_path,
+                        "[MLML] mlml(method=md, ensemble=npt) is not enabled yet. Phase-2 currently supports nve/nvt only.",
+                    )
+                    raise ValueError(
+                        "[MLML] mlml(method=md, ensemble=npt) is not enabled yet. Phase-2 currently supports nve/nvt only."
+                    )
+
+        is_mlml_md = task == "mlml" and str(params.get("method", "")).lower() == "md"
+
+        if task == "md" or is_mlml_md:
             ensemble = params.get("ensemble", "nve")
             allowed = cls.IMPLEMENTATION_MAP["md"]
             if ensemble not in allowed:

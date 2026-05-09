@@ -26,7 +26,7 @@ from typing import List, Optional
 import numpy as np
 from ase import Atoms
 
-from .logger import log_info
+from ._common import compute_metrics, is_converged, write_xyz
 from .DIIS import DIISAccelerator, DIISParams
 from .xyz_io import write_xyz
 from ...jobABC import JobABC
@@ -38,8 +38,6 @@ class SDCGParams:
     # General
     max_step: float = 0.2           # Maximum step size (Angstrom)
     max_iter: int = 256             # Maximum number of iterations
-    write_traj: bool = False        # Write trajectory file
-    traj_every: int = 1             # Trajectory write interval
     verbose: int = 1                # Verbosity level (0=silent, 1=detailed)
 
     # Phase control
@@ -155,12 +153,10 @@ class SDCG(JobABC):
             f"diis_enabled:      {self.params.diis_enabled}\n",
             f"diis_store_every:  {self.params.diis_store_every}\n",
             f"diis_memory:       {self.params.diis_memory}\n",
-            f"write_traj:        {self.params.write_traj}\n",
-            f"traj_every:        {self.params.traj_every}\n",
             f"verbose:           {self.params.verbose}\n",
             "=" * 70 + "\n\n",
         ]
-        log_info(param_info, self.output)
+        self.log_info(param_info)
 
     # ----------------------------------------------------------
     # Step computation
@@ -259,12 +255,12 @@ class SDCG(JobABC):
             self._sd_step_counter = 0
 
         if self.params.verbose == 1:
-            log_info([
+            self.log_info([
                 f"\n{'=' * 70}\n",
                 f"Phase transition: SD -> CG at iteration {iteration}\n",
                 f"  SD iterations completed: {self._sd_iter_count}\n",
                 f"{'=' * 70}\n\n",
-            ], self.output)
+            ])
 
     # ----------------------------------------------------------
     # GDIIS acceleration
@@ -321,11 +317,11 @@ class SDCG(JobABC):
         if result is None:
             if self.params.verbose == 1:
                 reason = getattr(self.diis, '_last_reject_reason', 'unknown')
-                log_info([
+                self.log_info([
                     f"  GDIIS extrapolation failed (iter {iteration}, "
                     f"nvec={len(self.diis.error_vectors)}, "
                     f"step_scale={step_scale:.4f}, reason={reason}). Skipping.\n"
-                ], self.output)
+                ])
             return None
 
         new_pos, coeffs = result
@@ -335,10 +331,10 @@ class SDCG(JobABC):
         max_disp = np.abs(step).max()
         if max_disp > self.params.max_step * 5.0:
             if self.params.verbose == 1:
-                log_info([
+                self.log_info([
                     f"  GDIIS step too large (max_disp={max_disp:.4f}, "
                     f"limit={self.params.max_step * 5.0:.4f}). Dropping oldest.\n"
-                ], self.output)
+                ])
             self.diis.drop_oldest()
             return None
 
@@ -354,10 +350,7 @@ class SDCG(JobABC):
         """Build per-iteration info message."""
         atoms = self.atoms
 
-        atoms.max_dp = np.abs(step).max()
-        atoms.rms_dp = np.sqrt((step ** 2).sum() / step.size * 3)
-        atoms.max_f = np.abs(forces).max()
-        atoms.rms_f = np.sqrt((forces ** 2).sum() / step.size * 3)
+        compute_metrics(atoms, step, forces)
 
         if self.params.verbose == 1:
             title = f"Iteration: {iteration} [{self._phase.upper()}]"
@@ -407,17 +400,7 @@ class SDCG(JobABC):
     def _log_iter(self, info_message: List[str]) -> None:
         """Print iteration info only if verbose=1."""
         if self.params.verbose == 1:
-            log_info(info_message, self.output)
-
-    def _check_convergence(self) -> bool:
-        """Check convergence criteria."""
-        atoms = self.atoms
-        return (
-            atoms.max_f <= atoms.f_max_th
-            and atoms.rms_f <= atoms.f_rms_th
-            and atoms.max_dp <= atoms.dp_max_th
-            and atoms.rms_dp <= atoms.dp_rms_th
-        )
+            self.log_info(info_message)
 
     # ----------------------------------------------------------
     # Main optimization loop
@@ -431,24 +414,14 @@ class SDCG(JobABC):
             Optimized Atoms object
         """
         base, _ = os.path.splitext(self.output)
-        traj_file = base + "_opt_traj.xyz"
-        final_traj_file = base + "_traj.xyz"
+        opt_traj_file = base + "_opt_traj.xyz"
 
         atoms = self.atoms
 
-        # Initialize trajectory collection
-        traj_atoms_list: List[Atoms] = []
-        traj_energies_list: List[float] = []
-
         # Get initial state
         energy = float(atoms.get_potential_energy(force_consistent=True))
+        write_xyz(opt_traj_file, [atoms.copy()], energies=[energy])
         forces = atoms.get_forces()
-
-        traj_atoms_list.append(atoms.copy())
-        traj_energies_list.append(energy)
-
-        if self.params.verbose == 1 and self.params.write_traj:
-            write_xyz(traj_file, [atoms.copy()], energies=[energy])
 
         # Auto cg_switch_fmax: 0.5 * initial max force
         initial_max_f = np.abs(forces).max()
@@ -456,10 +429,10 @@ class SDCG(JobABC):
         if cg_switch_threshold <= 0.0 and self.params.sd_enabled and self.params.cg_enabled:
             cg_switch_threshold = 0.5 * initial_max_f
             if self.params.verbose == 1:
-                log_info([
+                self.log_info([
                     f"  Auto cg_switch_fmax = {cg_switch_threshold:.6f} "
                     f"(0.5 * initial max_f = {initial_max_f:.6f})\n"
-                ], self.output)
+                ])
 
         iteration = 0
 
@@ -501,10 +474,10 @@ class SDCG(JobABC):
                     atoms.set_positions(saved_positions)
                     self.diis.drop_oldest()
                     if self.params.verbose == 1:
-                        log_info([
+                        self.log_info([
                             f"  GDIIS step rejected (dE={new_energy - saved_energy:+.6f}, "
                             f"fmax ratio={new_max_f / old_max_f:.2f}). Falling back to {self._phase.upper()}.\n"
-                        ], self.output)
+                        ])
                 else:
                     energy = new_energy
                     forces = new_forces
@@ -532,10 +505,6 @@ class SDCG(JobABC):
 
             iteration += 1
 
-            # Collect trajectory
-            traj_atoms_list.append(atoms.copy())
-            traj_energies_list.append(energy)
-
             # Build and log iteration info
             last_info = self._build_iter_message(
                 iteration, energy, step, forces, diis_step
@@ -543,54 +512,55 @@ class SDCG(JobABC):
             self._last_iter_info = last_info
             self._log_iter(last_info)
 
-            # Write trajectory
-            if (self.params.verbose == 1 and self.params.write_traj
-                    and iteration % self.params.traj_every == 0):
-                write_xyz(traj_file, [atoms.copy()], energies=[energy])
+            converged = is_converged(atoms)
+            write_xyz(
+                opt_traj_file,
+                [atoms.copy()],
+                energies=[energy],
+                mode="a",
+                start_index=iteration,
+            )
 
             # Convergence check
-            if self._check_convergence():
-                write_xyz(final_traj_file, traj_atoms_list,
-                          energies=traj_energies_list)
+            if converged:
                 opt_file = base + "_opt.xyz"
                 write_xyz(opt_file, [atoms], energies=[energy])
 
                 if self.params.verbose == 1:
-                    log_info([
+                    self.log_info([
                         f"\nSDCG converged at iteration {iteration} "
                         f"(phase: {self._phase.upper()}). "
                         f"Final frame written to {opt_file}\n"
-                        f"Complete trajectory written to {final_traj_file}\n"
-                    ], self.output)
+                        f"Optimization trajectory written to {opt_traj_file}\n"
+                    ])
                 else:
-                    log_info(self._last_iter_info, self.output)
-                    log_info([
+                    self.log_info(self._last_iter_info)
+                    self.log_info([
                         f"\nSDCG converged at iteration {iteration}.\n"
                         f"Final frame written to {opt_file}\n"
-                        f"Complete trajectory written to {final_traj_file}\n"
-                    ], self.output)
+                        f"Optimization trajectory written to {opt_traj_file}\n"
+                    ])
 
                 return atoms
 
         # Not converged
-        write_xyz(final_traj_file, traj_atoms_list, energies=traj_energies_list)
         opt_file = base + "_opt.xyz"
         write_xyz(opt_file, [atoms], energies=[energy])
 
         if self.params.verbose == 1:
-            log_info(self._last_iter_info, self.output)
-            log_info([
+            self.log_info(self._last_iter_info)
+            self.log_info([
                 f"\nSDCG did NOT converge after {self.params.max_iter} iterations "
                 f"(final phase: {self._phase.upper()}). "
                 f"Final frame written to {opt_file}\n"
-                f"Complete trajectory written to {final_traj_file}\n"
-            ], self.output)
+                f"Optimization trajectory written to {opt_traj_file}\n"
+            ])
         else:
-            log_info(self._last_iter_info, self.output)
-            log_info([
+            self.log_info(self._last_iter_info)
+            self.log_info([
                 f"\nSDCG did NOT converge after {self.params.max_iter} iterations.\n"
                 f"Final frame written to {opt_file}\n"
-                f"Complete trajectory written to {final_traj_file}\n"
-            ], self.output)
+                f"Optimization trajectory written to {opt_traj_file}\n"
+            ])
 
         return atoms

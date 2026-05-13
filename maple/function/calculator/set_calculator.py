@@ -13,6 +13,9 @@ from .aimnet.options import (
     AIMNET_LEGACY_COULOMB_METHODS,
     AIMNET_LEGACY_MODELS,
     AIMNET_LEGACY_OPTION_KEYS,
+    AIMNET_PBC_COULOMB_METHODS,
+    AIMNET_PBC_MODELS,
+    AIMNET_PBC_OPTION_KEYS,
 )
 from .mace._mace_calculator import MACECalculator
 
@@ -28,6 +31,8 @@ IMPLEMENTATION_MODELS = [
     "egret",
     "aimnet2",
     "aimnet2nse",
+    "aimnet2-pbc",
+    "aimnet2nse-pbc",
     "uma",
     "maceomol",
     "macepols",
@@ -66,6 +71,8 @@ MODEL_HESSIAN_SUPPORT = {
     "egret": ("analytic", "numerical"),
     "aimnet2": ("analytic", "numerical"),
     "aimnet2nse": ("analytic", "numerical"),
+    "aimnet2-pbc": (),
+    "aimnet2nse-pbc": (),
     "uma": ("numerical",),
     "maceomol": ("analytic", "numerical"),
     "macepols": ("analytic", "numerical"),
@@ -84,6 +91,8 @@ MODEL_PBC_MD_SUPPORT = {
     "egret": False,
     "aimnet2": False,
     "aimnet2nse": False,
+    "aimnet2-pbc": True,
+    "aimnet2nse-pbc": True,
     "uma": True,
     "maceomol": False,
     "macepols": False,
@@ -102,6 +111,8 @@ MODEL_STRESS_SUPPORT = {
     "egret": False,
     "aimnet2": False,
     "aimnet2nse": False,
+    "aimnet2-pbc": True,
+    "aimnet2nse-pbc": True,
     "uma": True,
     "maceomol": False,
     "macepols": False,
@@ -161,6 +172,8 @@ class SetClaculator:
         mode = str(mode).lower()
         declared = MODEL_HESSIAN_SUPPORT.get(self.model)
         if declared is not None and mode not in declared:
+            if not declared:
+                raise ValueError(f"Model '{self.model}' does not support Hessian modes.")
             supported_text = ", ".join(sorted(declared))
             raise ValueError(
                 f"Model '{self.model}' does not support hessian='{mode}'. "
@@ -175,6 +188,8 @@ class SetClaculator:
         mode = str(mode).lower()
         supported = getattr(calculator, "supported_hessian_modes", None)
         if supported is not None and mode not in supported:
+            if not supported:
+                raise ValueError(f"Model '{self.model}' does not support Hessian modes.")
             supported_text = ", ".join(sorted(supported))
             raise ValueError(
                 f"Model '{self.model}' does not support hessian='{mode}'. "
@@ -187,25 +202,35 @@ class SetClaculator:
         calculator.hessian = mode
 
     def _validated_aimnet_options(self) -> dict:
-        if self.model not in AIMNET_LEGACY_MODELS:
+        if self.model in AIMNET_LEGACY_MODELS:
+            allowed_keys = AIMNET_LEGACY_OPTION_KEYS
+            allowed_coulomb = AIMNET_LEGACY_COULOMB_METHODS
+            default_coulomb = "simple"
+            label = "AIMNet2"
+        elif self.model in AIMNET_PBC_MODELS:
+            allowed_keys = AIMNET_PBC_OPTION_KEYS
+            allowed_coulomb = AIMNET_PBC_COULOMB_METHODS
+            default_coulomb = "dsf"
+            label = "AIMNet2 PBC"
+        else:
             return {}
 
-        unknown = sorted(set(self.model_options) - AIMNET_LEGACY_OPTION_KEYS)
+        unknown = sorted(set(self.model_options) - allowed_keys)
         if unknown:
             unknown_text = ", ".join(unknown)
-            supported_text = ", ".join(sorted(AIMNET_LEGACY_OPTION_KEYS))
+            supported_text = ", ".join(sorted(allowed_keys))
             raise ValueError(
-                f"Unsupported AIMNet2 option(s): {unknown_text}. "
+                f"Unsupported {label} option(s): {unknown_text}. "
                 f"Supported options: {supported_text}"
             )
 
         options = {}
-        coulomb = self.model_options.get("coulomb", "simple")
+        coulomb = self.model_options.get("coulomb", default_coulomb)
         coulomb = str(coulomb).lower()
-        if coulomb not in AIMNET_LEGACY_COULOMB_METHODS:
-            supported_text = ", ".join(sorted(AIMNET_LEGACY_COULOMB_METHODS))
+        if coulomb not in allowed_coulomb:
+            supported_text = ", ".join(sorted(allowed_coulomb))
             raise ValueError(
-                f"Unsupported AIMNet2 Coulomb method: '{coulomb}'. "
+                f"Unsupported {label} Coulomb method: '{coulomb}'. "
                 f"Supported methods: {supported_text}"
             )
         options["coulomb"] = coulomb
@@ -213,14 +238,20 @@ class SetClaculator:
         if "cutoff" in self.model_options:
             cutoff = float(self.model_options["cutoff"])
             if cutoff <= 0:
-                raise ValueError("AIMNet2 option 'cutoff' must be positive.")
+                raise ValueError(f"{label} option 'cutoff' must be positive.")
             options["cutoff"] = cutoff
 
         if "dsf_alpha" in self.model_options:
             dsf_alpha = float(self.model_options["dsf_alpha"])
             if dsf_alpha <= 0:
-                raise ValueError("AIMNet2 option 'dsf_alpha' must be positive.")
+                raise ValueError(f"{label} option 'dsf_alpha' must be positive.")
             options["dsf_alpha"] = dsf_alpha
+
+        if "ewald_accuracy" in self.model_options:
+            ewald_accuracy = float(self.model_options["ewald_accuracy"])
+            if ewald_accuracy <= 0:
+                raise ValueError("AIMNet2 PBC option 'ewald_accuracy' must be positive.")
+            options["ewald_accuracy"] = ewald_accuracy
 
         return options
 
@@ -276,7 +307,7 @@ class SetClaculator:
                     f"\n [WARNING] Model '{self.model}' does not support charge/multiplicity.\n",
                     f"           charge={self.atoms.info.get('charge', 0)}, ",
                     f"mult={self.atoms.info.get('mult', 1)} will be IGNORED.\n",
-                    "           Models with charge/mult support: aimnet2, aimnet2nse, uma, macepols/m/l\n",
+                    "           Models with charge/mult support: aimnet2, aimnet2nse, aimnet2-pbc, aimnet2nse-pbc, uma, macepols/m/l\n",
                 ]
             )
 
@@ -334,6 +365,20 @@ class SetClaculator:
                 coulomb_method=aimnet_options.get("coulomb", "simple"),
                 cutoff=aimnet_options.get("cutoff", 15.0),
                 dsf_alpha=aimnet_options.get("dsf_alpha", 0.2),
+                implicit=self.implicit,
+                solvent=self.solvent,
+            )
+        elif model in AIMNET_PBC_MODELS:
+            from .aimnet._aimnet2_official_pbc_calculator import AIMNet2OfficialPBCCalculator
+
+            aimnet_options = self._validated_aimnet_options()
+            calculator = AIMNet2OfficialPBCCalculator(
+                model=model,
+                device=self.device,
+                coulomb_method=aimnet_options.get("coulomb", "dsf"),
+                cutoff=aimnet_options.get("cutoff", 15.0),
+                dsf_alpha=aimnet_options.get("dsf_alpha", 0.2),
+                ewald_accuracy=aimnet_options.get("ewald_accuracy", 1e-6),
                 implicit=self.implicit,
                 solvent=self.solvent,
             )

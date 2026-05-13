@@ -23,6 +23,15 @@ full = [
     "fairchem-core>=1.0",
 ]
 
+# Periodic-boundary AIMNet2 backend (PBC, stress, DSF/Ewald/PME)
+pbc-aimnet = [
+    "aimnet[ase]>=0.2,<0.3",
+]
+
+pbc = [
+    "aimnet[ase]>=0.2,<0.3",
+]
+
 # Minimal scientific computing
 minimal = [
     "numpy>=1.20",

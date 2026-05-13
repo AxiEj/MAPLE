@@ -5,6 +5,9 @@ from maple.function.calculator.aimnet.options import (
     AIMNET_LEGACY_COULOMB_METHODS,
     AIMNET_LEGACY_MODELS,
     AIMNET_LEGACY_OPTION_KEYS,
+    AIMNET_PBC_COULOMB_METHODS,
+    AIMNET_PBC_MODELS,
+    AIMNET_PBC_OPTION_KEYS,
 )
 
 
@@ -26,6 +29,8 @@ class CommandControl:
         "egret",
         "aimnet2",
         "aimnet2nse",
+        "aimnet2-pbc",
+        "aimnet2nse-pbc",
         "uma",
         "maceomol",
         "macepols",
@@ -282,15 +287,18 @@ class CommandControl:
             params["remove_com"] = True
 
         if "model" in params and params["model"] is not None:
-            params["model"] = (
+            model_value = (
                 str(params["model"])
                 .lower()
                 .replace("_", "")
-                .replace("-", "")
                 .replace(" ", "")
                 .replace("(", "")
                 .replace(")", "")
             )
+            if model_value in AIMNET_PBC_MODELS:
+                params["model"] = model_value
+            else:
+                params["model"] = model_value.replace("-", "")
 
         model_options = params.get("model_options")
         if isinstance(model_options, dict):
@@ -349,22 +357,31 @@ class CommandControl:
                 raise ValueError("PBC angles must be in range (0, 180).")
 
         model_options = params.get("model_options", {})
-        if model in AIMNET_LEGACY_MODELS:
-            unknown = sorted(set(model_options) - AIMNET_LEGACY_OPTION_KEYS)
+        if model in AIMNET_LEGACY_MODELS or model in AIMNET_PBC_MODELS:
+            if model in AIMNET_PBC_MODELS:
+                allowed_keys = AIMNET_PBC_OPTION_KEYS
+                allowed_coulomb = AIMNET_PBC_COULOMB_METHODS
+                label = "AIMNet2 PBC"
+            else:
+                allowed_keys = AIMNET_LEGACY_OPTION_KEYS
+                allowed_coulomb = AIMNET_LEGACY_COULOMB_METHODS
+                label = "AIMNet2"
+
+            unknown = sorted(set(model_options) - allowed_keys)
             if unknown:
-                supported_text = ", ".join(sorted(AIMNET_LEGACY_OPTION_KEYS))
+                supported_text = ", ".join(sorted(allowed_keys))
                 msg = (
-                    f"Unsupported AIMNet2 option(s): {', '.join(unknown)}. "
+                    f"Unsupported {label} option(s): {', '.join(unknown)}. "
                     f"Supported options: {supported_text}"
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
             coulomb = model_options.get("coulomb")
-            if coulomb is not None and coulomb not in AIMNET_LEGACY_COULOMB_METHODS:
-                supported_text = ", ".join(sorted(AIMNET_LEGACY_COULOMB_METHODS))
+            if coulomb is not None and coulomb not in allowed_coulomb:
+                supported_text = ", ".join(sorted(allowed_coulomb))
                 msg = (
-                    f"Unsupported AIMNet2 Coulomb method: '{coulomb}'. "
+                    f"Unsupported {label} Coulomb method: '{coulomb}'. "
                     f"Supported methods: {supported_text}"
                 )
                 cls._log_error(output_path, msg)
@@ -372,13 +389,21 @@ class CommandControl:
 
             cutoff = model_options.get("cutoff")
             if cutoff is not None and (not isinstance(cutoff, (int, float)) or cutoff <= 0):
-                msg = "AIMNet2 option 'cutoff' must be a positive number."
+                msg = f"{label} option 'cutoff' must be a positive number."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
             dsf_alpha = model_options.get("dsf_alpha")
             if dsf_alpha is not None and (not isinstance(dsf_alpha, (int, float)) or dsf_alpha <= 0):
-                msg = "AIMNet2 option 'dsf_alpha' must be a positive number."
+                msg = f"{label} option 'dsf_alpha' must be a positive number."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            ewald_accuracy = model_options.get("ewald_accuracy")
+            if ewald_accuracy is not None and (
+                not isinstance(ewald_accuracy, (int, float)) or ewald_accuracy <= 0
+            ):
+                msg = "AIMNet2 PBC option 'ewald_accuracy' must be a positive number."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 

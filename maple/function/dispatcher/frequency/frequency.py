@@ -314,7 +314,17 @@ class FrequencyBase(JobABC):
             ValueError: If the Hessian shape does not match (3N, 3N).
         """
         calc = self.atoms.calc
-        if calc is None or not hasattr(calc, "get_hessian"):
+        if calc is None:
+            raise RuntimeError("Atom calculator must implement get_hessian method")
+
+        supported_hessian_modes = getattr(calc, "supported_hessian_modes", None)
+        if supported_hessian_modes is not None and len(tuple(supported_hessian_modes)) == 0:
+            model_name = getattr(calc, "maple_model_name", calc.__class__.__name__)
+            raise RuntimeError(
+                f"Model '{model_name}' does not support Hessian/frequency workflows yet."
+            )
+
+        if not hasattr(calc, "get_hessian"):
             raise RuntimeError("Atom calculator must implement get_hessian method")
 
         hessian = calc.get_hessian(self.atoms)

@@ -50,5 +50,5 @@ dev = [
     "black>=23.0",
 ]
 
-[tool.setuptools]
-packages = ["maple"]
+[tool.setuptools.packages.find]
+include = ["maple", "maple.*"]

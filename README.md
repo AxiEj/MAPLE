@@ -46,8 +46,13 @@ pip install torch --index-url https://download.pytorch.org/whl/cu118
 # CPU-only PyTorch
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-# ML potentials
+# UMA / FAIR-Chem models
 pip install fairchem-core
+
+# Optional periodic-boundary backends
+pip install -e ".[pbc-aimnet]"   # AIMNet2 PBC, stress, DSF/Ewald/PME
+pip install -e ".[pbc-mace]"     # official MACE foundation PBC + stress
+pip install -e ".[pbc]"          # both PBC backend families
 ```
 
 ## Quick Start
@@ -100,6 +105,38 @@ H    0.802   0.842   1.742
 | `#irc(method=gs)` | Intrinsic reaction coordinate |
 | `#scan(method=lbfgs)` | PES scan |
 | `#md(ensemble=nvt,mdp=nvt.mdp)` | Molecular dynamics |
+
+### Periodic Boundary Conditions
+
+Use `#pbc(...)` to define a cell. MAPLE accepts 2, 3, or 6 values:
+
+```text
+#pbc(a,b)                         # 2D slab: c defaults to 1000 Å
+#pbc(a,b,c)                       # orthorhombic cell
+#pbc(a,b,c,alpha,beta,gamma)      # full cell parameters
+```
+
+PBC backend selection is explicit. The non-PBC model names keep their original
+local `.pt` behavior and are not automatically switched when `#pbc` is present.
+
+| Backend family | Model names | Extra | Notes |
+|----------------|-------------|-------|-------|
+| UMA | `uma(task=omat)` or `uma` | `fairchem-core` | Main built-in PBC/NPT route; `task=omol` rejects PBC. |
+| AIMNet2 official PBC | `aimnet2-pbc`, `aimnet2nse-pbc` | `pbc-aimnet` | Supports PBC/stress and `coulomb=dsf|ewald|pme`. |
+| MACE official PBC | `mace-mp-pbc`, `mace-omat-pbc`, `mace-matpes-pbc`, `mace-mh-pbc` | `pbc-mace` | Supports PBC/stress through official MACE foundation calculators. |
+
+PBC backends are intended for MD/SP workflows. They currently fail fast for
+frequency/Hessian requests instead of silently falling back to a different
+backend. Stress is kept in ASE-native `eV/Å³` for the NPT pressure path.
+
+Example NPT header:
+
+```text
+#model=mace-omat-pbc(default_dtype=float32)
+#md(ensemble=npt,steps=1000,timestep=0.5,temperature=300,pressure=1.0)
+#device=gpu0
+#pbc(10.0,10.0,10.0)
+```
 
 ### Coordinates
 

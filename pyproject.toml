@@ -28,8 +28,14 @@ pbc-aimnet = [
     "aimnet[ase]>=0.2,<0.3",
 ]
 
+# Periodic-boundary MACE foundation backends (PBC, stress)
+pbc-mace = [
+    "mace-torch>=0.3.14,<0.4",
+]
+
 pbc = [
     "aimnet[ase]>=0.2,<0.3",
+    "mace-torch>=0.3.14,<0.4",
 ]
 
 # Minimal scientific computing

@@ -9,6 +9,11 @@ from maple.function.calculator.aimnet.options import (
     AIMNET_PBC_MODELS,
     AIMNET_PBC_OPTION_KEYS,
 )
+from maple.function.calculator.mace.options import (
+    MACE_PBC_DTYPES,
+    MACE_PBC_MODELS,
+    MACE_PBC_OPTION_KEYS,
+)
 
 
 class CommandControl:
@@ -31,6 +36,10 @@ class CommandControl:
         "aimnet2nse",
         "aimnet2-pbc",
         "aimnet2nse-pbc",
+        "mace-mp-pbc",
+        "mace-omat-pbc",
+        "mace-matpes-pbc",
+        "mace-mh-pbc",
         "uma",
         "maceomol",
         "macepols",
@@ -295,14 +304,14 @@ class CommandControl:
                 .replace("(", "")
                 .replace(")", "")
             )
-            if model_value in AIMNET_PBC_MODELS:
+            if model_value in AIMNET_PBC_MODELS or model_value in MACE_PBC_MODELS:
                 params["model"] = model_value
             else:
                 params["model"] = model_value.replace("-", "")
 
         model_options = params.get("model_options")
         if isinstance(model_options, dict):
-            for key in ("task", "size", "hessian", "coulomb"):
+            for key in ("task", "size", "hessian", "coulomb", "default_dtype", "head"):
                 if key in model_options and isinstance(model_options[key], str):
                     model_options[key] = model_options[key].lower()
 
@@ -404,6 +413,45 @@ class CommandControl:
                 not isinstance(ewald_accuracy, (int, float)) or ewald_accuracy <= 0
             ):
                 msg = "AIMNet2 PBC option 'ewald_accuracy' must be a positive number."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        if model in MACE_PBC_MODELS:
+            unknown = sorted(set(model_options) - MACE_PBC_OPTION_KEYS)
+            if unknown:
+                supported_text = ", ".join(sorted(MACE_PBC_OPTION_KEYS))
+                msg = (
+                    f"Unsupported MACE PBC option(s): {', '.join(unknown)}. "
+                    f"Supported options: {supported_text}"
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            default_dtype = model_options.get("default_dtype")
+            if default_dtype is not None and default_dtype not in MACE_PBC_DTYPES:
+                supported_text = ", ".join(sorted(MACE_PBC_DTYPES))
+                msg = (
+                    f"Unsupported MACE PBC default_dtype: '{default_dtype}'. "
+                    f"Supported values: {supported_text}"
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            dispersion = model_options.get("dispersion")
+            if dispersion is not None and not isinstance(dispersion, bool):
+                msg = "MACE PBC option 'dispersion' must be true or false."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            foundation = model_options.get("foundation")
+            if foundation is not None and not str(foundation):
+                msg = "MACE PBC option 'foundation' must be non-empty."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            head = model_options.get("head")
+            if head is not None and not str(head):
+                msg = "MACE PBC option 'head' must be non-empty."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 

@@ -18,6 +18,12 @@ from .aimnet.options import (
     AIMNET_PBC_OPTION_KEYS,
 )
 from .mace._mace_calculator import MACECalculator
+from .mace.options import (
+    MACE_PBC_DEFAULT_HEADS,
+    MACE_PBC_DTYPES,
+    MACE_PBC_MODELS,
+    MACE_PBC_OPTION_KEYS,
+)
 
 
 IMPLEMENTATION_MODELS = [
@@ -33,6 +39,10 @@ IMPLEMENTATION_MODELS = [
     "aimnet2nse",
     "aimnet2-pbc",
     "aimnet2nse-pbc",
+    "mace-mp-pbc",
+    "mace-omat-pbc",
+    "mace-matpes-pbc",
+    "mace-mh-pbc",
     "uma",
     "maceomol",
     "macepols",
@@ -73,6 +83,10 @@ MODEL_HESSIAN_SUPPORT = {
     "aimnet2nse": ("analytic", "numerical"),
     "aimnet2-pbc": (),
     "aimnet2nse-pbc": (),
+    "mace-mp-pbc": (),
+    "mace-omat-pbc": (),
+    "mace-matpes-pbc": (),
+    "mace-mh-pbc": (),
     "uma": ("numerical",),
     "maceomol": ("analytic", "numerical"),
     "macepols": ("analytic", "numerical"),
@@ -93,6 +107,10 @@ MODEL_PBC_MD_SUPPORT = {
     "aimnet2nse": False,
     "aimnet2-pbc": True,
     "aimnet2nse-pbc": True,
+    "mace-mp-pbc": True,
+    "mace-omat-pbc": True,
+    "mace-matpes-pbc": True,
+    "mace-mh-pbc": True,
     "uma": True,
     "maceomol": False,
     "macepols": False,
@@ -113,6 +131,10 @@ MODEL_STRESS_SUPPORT = {
     "aimnet2nse": False,
     "aimnet2-pbc": True,
     "aimnet2nse-pbc": True,
+    "mace-mp-pbc": True,
+    "mace-omat-pbc": True,
+    "mace-matpes-pbc": True,
+    "mace-mh-pbc": True,
     "uma": True,
     "maceomol": False,
     "macepols": False,
@@ -130,6 +152,10 @@ UNSUPPORTED_CHARGE_MULT_MODELS = {
     "maceoff23l",
     "egret",
     "maceomol",
+    "mace-mp-pbc",
+    "mace-omat-pbc",
+    "mace-matpes-pbc",
+    "mace-mh-pbc",
 }
 
 
@@ -252,6 +278,50 @@ class SetClaculator:
             if ewald_accuracy <= 0:
                 raise ValueError("AIMNet2 PBC option 'ewald_accuracy' must be positive.")
             options["ewald_accuracy"] = ewald_accuracy
+
+        return options
+
+    def _validated_mace_pbc_options(self) -> dict:
+        if self.model not in MACE_PBC_MODELS:
+            return {}
+
+        unknown = sorted(set(self.model_options) - MACE_PBC_OPTION_KEYS)
+        if unknown:
+            unknown_text = ", ".join(unknown)
+            supported_text = ", ".join(sorted(MACE_PBC_OPTION_KEYS))
+            raise ValueError(
+                f"Unsupported MACE PBC option(s): {unknown_text}. "
+                f"Supported options: {supported_text}"
+            )
+
+        options = {}
+        foundation = self.model_options.get("foundation")
+        if foundation is not None:
+            foundation = str(foundation)
+            if not foundation:
+                raise ValueError("MACE PBC option 'foundation' must be non-empty.")
+            options["foundation"] = foundation
+
+        default_dtype = str(self.model_options.get("default_dtype", "float32")).lower()
+        if default_dtype not in MACE_PBC_DTYPES:
+            supported_text = ", ".join(sorted(MACE_PBC_DTYPES))
+            raise ValueError(
+                f"Unsupported MACE PBC default_dtype: '{default_dtype}'. "
+                f"Supported values: {supported_text}"
+            )
+        options["default_dtype"] = default_dtype
+
+        dispersion = self.model_options.get("dispersion", False)
+        if not isinstance(dispersion, bool):
+            raise ValueError("MACE PBC option 'dispersion' must be true or false.")
+        options["dispersion"] = dispersion
+
+        head = self.model_options.get("head", MACE_PBC_DEFAULT_HEADS.get(self.model))
+        if head is not None:
+            head = str(head)
+            if not head:
+                raise ValueError("MACE PBC option 'head' must be non-empty.")
+            options["head"] = head
 
         return options
 
@@ -382,6 +452,20 @@ class SetClaculator:
                 implicit=self.implicit,
                 solvent=self.solvent,
             )
+        elif model in MACE_PBC_MODELS:
+            from .mace._mace_official_pbc_calculator import MACEOfficialPBCCalculator
+
+            mace_options = self._validated_mace_pbc_options()
+            calculator = MACEOfficialPBCCalculator(
+                model=model,
+                device=self.device,
+                foundation=mace_options.get("foundation"),
+                default_dtype=mace_options.get("default_dtype", "float32"),
+                dispersion=mace_options.get("dispersion", False),
+                head=mace_options.get("head"),
+                implicit=self.implicit,
+                solvent=self.solvent,
+            )
         elif model == "uma":
             from .uma._uma_calculator import (
                 UMACalculator,
@@ -443,6 +527,7 @@ class SetClaculator:
             raise ValueError(f"Unsupported model: '{self.model}'.")
 
         self._validated_aimnet_options()
+        self._validated_mace_pbc_options()
         self._validate_requested_hessian_mode()
         self._validate_uma_task_against_atoms()
 

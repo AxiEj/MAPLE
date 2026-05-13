@@ -3,27 +3,9 @@ import os
 import numpy as np
 from ase import Atoms
 from .logger import *
+from maple.function.utility.xyz_io import write_xyz
 
 g_au = 27.211386024367243
-
-
-def write_xyz(filename: str, atoms_list: list, energies: list = None):
-	"""
-	写出 XYZ 文件（单帧或多帧），和 Dimer 用法完全一致。
-	atoms_list: [Atoms, Atoms, ...]
-	energies:   [float, float, ...] 可选
-	"""
-	with open(filename, "w") as f:
-		for i, at in enumerate(atoms_list):
-			pos = at.get_positions()
-			symbols = at.get_chemical_symbols()
-			f.write(f"{len(symbols)}\n")
-			if energies is not None:
-				f.write(f"Image {i}  Energy = {energies[i]:.10f}\n")
-			else:
-				f.write(f"Image {i}\n")
-			for s, (x, y, z) in zip(symbols, pos):
-				f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
 
 
 def LBFGS(

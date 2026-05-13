@@ -18,6 +18,7 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
+from maple.function.utility.xyz_io import write_xyz as _write_xyz_extxyz
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
@@ -45,42 +46,18 @@ def vec1d(x, n_expected=None):
         raise ValueError(f"Expected size {n_expected}, got {v.size}")
     return v
 
-def write_xyz(filename: str, atoms: Atoms, energy: Optional[float] = None, 
+def write_xyz(filename: str, atoms: Atoms, energy: Optional[float] = None,
               iteration: Optional[int] = None):
+    """Write a single geometry in extxyz format.
+
+    Wraps the shared writer so cell/pbc are preserved. ``iteration`` is
+    placed in ``atoms.info`` so it round-trips through ``ase.io.read``.
     """
-    Write a single geometry to XYZ file.
-    
-    Parameters
-    ----------
-    filename : str
-        Output file path
-    atoms : Atoms
-        ASE Atoms object
-    energy : float, optional
-        Energy value to include in comment line
-    iteration : int, optional
-        Iteration number to include in comment line
-    """
-    pos = to_numpy_f64(atoms.get_positions())
-    symbols = atoms.get_chemical_symbols()
-    
-    with open(filename, "w") as f:
-        f.write(f"{len(symbols)}\n")
-        
-        # Build comment line
-        comment_parts = []
-        if iteration is not None:
-            comment_parts.append(f"Iteration {iteration}")
-        if energy is not None:
-            comment_parts.append(f"Energy = {energy:.10f}")
-        
-        if comment_parts:
-            f.write("  ".join(comment_parts) + "\n")
-        else:
-            f.write("TS optimization\n")
-        
-        for s, (x, y, z) in zip(symbols, pos):
-            f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
+    frame = atoms.copy()
+    if iteration is not None:
+        frame.info['iteration'] = int(iteration)
+    energies = [float(energy)] if energy is not None else None
+    _write_xyz_extxyz(filename, [frame], energies=energies)
 
 def append_xyz_trajectory(filename: str, atoms: Atoms, energy: Optional[float] = None,
                          iteration: int = 0):

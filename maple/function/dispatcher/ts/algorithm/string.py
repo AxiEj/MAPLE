@@ -27,6 +27,7 @@ from ase import Atoms
 # You already have these utilities / mixins in your codebase:
 from .logger import log_info
 from ...jobABC import JobABC
+from maple.function.utility.xyz_io import write_xyz
 
 
 # =============================================================================
@@ -71,21 +72,6 @@ def kabsch_align(P: np.ndarray, Q: np.ndarray) -> Tuple[np.ndarray, float, np.nd
     return Q_aligned, rmsd, R, t
 
 
-def write_xyz(filename: str, images: List[Atoms], energies: Optional[List[float]] = None):
-    """
-    Write a multi-frame XYZ trajectory. If energies given, write in comment line.
-    """
-    with open(filename, "w") as f:
-        for i, at in enumerate(images):
-            pos = to_numpy_f64(at.get_positions())
-            symbols = at.get_chemical_symbols()
-            f.write(f"{len(symbols)}\n")
-            if energies is not None:
-                f.write(f"Image {i}  Energy = {energies[i]:.8f}\n")
-            else:
-                f.write(f"Image {i}\n")
-            for s, (x, y, z) in zip(symbols, pos):
-                f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
 
 
 def inherit_attrs(src: Atoms, dst: Atoms):

@@ -20,6 +20,7 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
+from maple.function.utility.xyz_io import write_xyz
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
@@ -47,21 +48,6 @@ def vec1d(x, n_expected=None):
         raise ValueError(f"Expected size {n_expected}, got {v.size}")
     return v
 
-def write_xyz(filename: str, images: List[Atoms], energies: Optional[List[float]] = None):
-    """
-    Write a multi-frame XYZ trajectory. If energies given, write in comment line.
-    """
-    with open(filename, "w") as f:
-        for i, at in enumerate(images):
-            pos = to_numpy_f64(at.get_positions())
-            symbols = at.get_chemical_symbols()
-            f.write(f"{len(symbols)}\n")
-            if energies is not None:
-                f.write(f"Image {i}  Energy = {energies[i]:.10f}\n")
-            else:
-                f.write(f"Image {i}\n")
-            for s, (x, y, z) in zip(symbols, pos):
-                f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
 
 def write_all_images_xyz(filename: str, atoms: Atoms, energy: Optional[float] = None, iteration: int = 0):
     """

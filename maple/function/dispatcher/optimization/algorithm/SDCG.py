@@ -28,23 +28,8 @@ from ase import Atoms
 
 from .logger import log_info
 from .DIIS import DIISAccelerator, DIISParams
+from .xyz_io import write_xyz
 from ...jobABC import JobABC
-
-
-def write_xyz(filename: str, atoms_list: List[Atoms],
-              energies: Optional[List[float]] = None):
-    """Write one or more structures in XYZ format."""
-    with open(filename, "w") as f:
-        for i, at in enumerate(atoms_list):
-            pos = at.get_positions()
-            symbols = at.get_chemical_symbols()
-            f.write(f"{len(symbols)}\n")
-            if energies is not None:
-                f.write(f"Image {i}  Energy = {energies[i]:.10f}\n")
-            else:
-                f.write(f"Image {i}\n")
-            for s, (x, y, z) in zip(symbols, pos):
-                f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
 
 
 @dataclass

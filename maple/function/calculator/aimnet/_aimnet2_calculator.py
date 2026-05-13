@@ -65,9 +65,11 @@ class AIMNet2Calculator(CalcABC):
     implemented_properties = ["energy", "forces", "hessian", "free_energy"]
     supported_hessian_modes = ("analytic", "numerical")
 
-    def __init__(self, device: torch.device, 
-                model: str = "aimnet2", 
+    def __init__(self, device: torch.device,
+                model: str = "aimnet2",
                 coulomb_method: str = "simple",
+                cutoff: float = 15.0,
+                dsf_alpha: float = 0.2,
                 implicit: Literal["gbsa", "none"] = "gbsa",
                 solvent: str = 'none',
                 ):
@@ -88,7 +90,7 @@ class AIMNet2Calculator(CalcABC):
         self.hessian: str = 'analytic'  # 'analytic' or 'numerical'
 
         # Coulomb settings (keep original behavior)
-        self._set_lrcoulomb_method(coulomb_method)
+        self._set_lrcoulomb_method(coulomb_method, cutoff=cutoff, dsf_alpha=dsf_alpha)
 
         # Initialize implicit solvent
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
@@ -100,7 +102,9 @@ class AIMNet2Calculator(CalcABC):
             cutoff: cutoff distance for long-range interactions
             dsf_alpha: DSF damping parameter (if used)
             """
-            assert method in ("simple", "dsf", "ewald"), f"Invalid method: {method}"
+            method = str(method).lower()
+            if method not in ("simple", "dsf", "ewald"):
+                raise ValueError(f"Invalid AIMNet2 Coulomb method: {method}")
 
             # recursively look for 'lrcoulomb' submodules
             def _iter_lrcoulomb_mods(model):

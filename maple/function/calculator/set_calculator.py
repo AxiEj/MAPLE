@@ -9,6 +9,11 @@ import torch
 from ase import Atoms
 
 from .ani._ani_calculator import ANICalculator
+from .aimnet.options import (
+    AIMNET_LEGACY_COULOMB_METHODS,
+    AIMNET_LEGACY_MODELS,
+    AIMNET_LEGACY_OPTION_KEYS,
+)
 from .mace._mace_calculator import MACECalculator
 
 
@@ -181,6 +186,44 @@ class SetClaculator:
 
         calculator.hessian = mode
 
+    def _validated_aimnet_options(self) -> dict:
+        if self.model not in AIMNET_LEGACY_MODELS:
+            return {}
+
+        unknown = sorted(set(self.model_options) - AIMNET_LEGACY_OPTION_KEYS)
+        if unknown:
+            unknown_text = ", ".join(unknown)
+            supported_text = ", ".join(sorted(AIMNET_LEGACY_OPTION_KEYS))
+            raise ValueError(
+                f"Unsupported AIMNet2 option(s): {unknown_text}. "
+                f"Supported options: {supported_text}"
+            )
+
+        options = {}
+        coulomb = self.model_options.get("coulomb", "simple")
+        coulomb = str(coulomb).lower()
+        if coulomb not in AIMNET_LEGACY_COULOMB_METHODS:
+            supported_text = ", ".join(sorted(AIMNET_LEGACY_COULOMB_METHODS))
+            raise ValueError(
+                f"Unsupported AIMNet2 Coulomb method: '{coulomb}'. "
+                f"Supported methods: {supported_text}"
+            )
+        options["coulomb"] = coulomb
+
+        if "cutoff" in self.model_options:
+            cutoff = float(self.model_options["cutoff"])
+            if cutoff <= 0:
+                raise ValueError("AIMNet2 option 'cutoff' must be positive.")
+            options["cutoff"] = cutoff
+
+        if "dsf_alpha" in self.model_options:
+            dsf_alpha = float(self.model_options["dsf_alpha"])
+            if dsf_alpha <= 0:
+                raise ValueError("AIMNet2 option 'dsf_alpha' must be positive.")
+            options["dsf_alpha"] = dsf_alpha
+
+        return options
+
     def _ensure_model_file(self, model_name: str) -> Optional[Path]:
         filename = MODEL_NAME_TO_FILE.get(model_name)
         if filename is None:
@@ -280,13 +323,17 @@ class SetClaculator:
                 implicit=self.implicit,
                 solvent=self.solvent,
             )
-        elif model in {"aimnet2", "aimnet2nse"}:
+        elif model in AIMNET_LEGACY_MODELS:
             self._ensure_model_file(model)
             from .aimnet._aimnet2_calculator import AIMNet2Calculator
 
+            aimnet_options = self._validated_aimnet_options()
             calculator = AIMNet2Calculator(
                 model=model,
                 device=self.device,
+                coulomb_method=aimnet_options.get("coulomb", "simple"),
+                cutoff=aimnet_options.get("cutoff", 15.0),
+                dsf_alpha=aimnet_options.get("dsf_alpha", 0.2),
                 implicit=self.implicit,
                 solvent=self.solvent,
             )
@@ -350,6 +397,7 @@ class SetClaculator:
             self.log_error(f"\n [ERROR] Unsupported model: {self.model}\n")
             raise ValueError(f"Unsupported model: '{self.model}'.")
 
+        self._validated_aimnet_options()
         self._validate_requested_hessian_mode()
         self._validate_uma_task_against_atoms()
 

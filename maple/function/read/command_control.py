@@ -1,6 +1,12 @@
 import re
 from typing import Any, Dict, List, Optional
 
+from maple.function.calculator.aimnet.options import (
+    AIMNET_LEGACY_COULOMB_METHODS,
+    AIMNET_LEGACY_MODELS,
+    AIMNET_LEGACY_OPTION_KEYS,
+)
+
 
 class CommandControl:
     """
@@ -288,7 +294,7 @@ class CommandControl:
 
         model_options = params.get("model_options")
         if isinstance(model_options, dict):
-            for key in ("task", "size", "hessian"):
+            for key in ("task", "size", "hessian", "coulomb"):
                 if key in model_options and isinstance(model_options[key], str):
                     model_options[key] = model_options[key].lower()
 
@@ -343,6 +349,39 @@ class CommandControl:
                 raise ValueError("PBC angles must be in range (0, 180).")
 
         model_options = params.get("model_options", {})
+        if model in AIMNET_LEGACY_MODELS:
+            unknown = sorted(set(model_options) - AIMNET_LEGACY_OPTION_KEYS)
+            if unknown:
+                supported_text = ", ".join(sorted(AIMNET_LEGACY_OPTION_KEYS))
+                msg = (
+                    f"Unsupported AIMNet2 option(s): {', '.join(unknown)}. "
+                    f"Supported options: {supported_text}"
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            coulomb = model_options.get("coulomb")
+            if coulomb is not None and coulomb not in AIMNET_LEGACY_COULOMB_METHODS:
+                supported_text = ", ".join(sorted(AIMNET_LEGACY_COULOMB_METHODS))
+                msg = (
+                    f"Unsupported AIMNet2 Coulomb method: '{coulomb}'. "
+                    f"Supported methods: {supported_text}"
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            cutoff = model_options.get("cutoff")
+            if cutoff is not None and (not isinstance(cutoff, (int, float)) or cutoff <= 0):
+                msg = "AIMNet2 option 'cutoff' must be a positive number."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            dsf_alpha = model_options.get("dsf_alpha")
+            if dsf_alpha is not None and (not isinstance(dsf_alpha, (int, float)) or dsf_alpha <= 0):
+                msg = "AIMNet2 option 'dsf_alpha' must be a positive number."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
         if model == "uma":
             task_opt = model_options.get("task")
             if task_opt is not None and task_opt not in cls.SUPPORTED_UMA_TASKS:

@@ -61,6 +61,8 @@ def test_apply_projection_with_work_tracks_angular_projection_energy_change():
 
 class ZeroCalculator(Calculator):
     implemented_properties = ["energy", "forces"]
+    maple_pbc_md_supported = True
+    maple_stress_supported = False
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)

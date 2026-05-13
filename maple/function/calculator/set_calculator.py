@@ -68,6 +68,42 @@ MODEL_HESSIAN_SUPPORT = {
     "macepoll": ("analytic", "numerical"),
 }
 
+MODEL_PBC_MD_SUPPORT = {
+    "ani2x": False,
+    "ani1x": False,
+    "ani1ccx": False,
+    "ani1xnr": False,
+    "maceoff23s": False,
+    "maceoff23m": False,
+    "maceoff23l": False,
+    "egret": False,
+    "aimnet2": False,
+    "aimnet2nse": False,
+    "uma": True,
+    "maceomol": False,
+    "macepols": False,
+    "macepolm": False,
+    "macepoll": False,
+}
+
+MODEL_STRESS_SUPPORT = {
+    "ani2x": False,
+    "ani1x": False,
+    "ani1ccx": False,
+    "ani1xnr": False,
+    "maceoff23s": False,
+    "maceoff23m": False,
+    "maceoff23l": False,
+    "egret": False,
+    "aimnet2": False,
+    "aimnet2nse": False,
+    "uma": True,
+    "maceomol": False,
+    "macepols": False,
+    "macepolm": False,
+    "macepoll": False,
+}
+
 UNSUPPORTED_CHARGE_MULT_MODELS = {
     "ani2x",
     "ani1x",
@@ -79,6 +115,16 @@ UNSUPPORTED_CHARGE_MULT_MODELS = {
     "egret",
     "maceomol",
 }
+
+
+def model_supports_pbc_md(model: str) -> bool:
+    """Return whether a MAPLE model has real periodic MD support."""
+    return bool(MODEL_PBC_MD_SUPPORT.get(model, False))
+
+
+def model_supports_stress(model: str) -> bool:
+    """Return whether a MAPLE model exposes a usable stress tensor."""
+    return bool(MODEL_STRESS_SUPPORT.get(model, False))
 
 
 class SetClaculator:
@@ -191,6 +237,29 @@ class SetClaculator:
                 ]
             )
 
+    def _validate_uma_task_against_atoms(self) -> None:
+        if self.model != "uma" or self.atoms is None:
+            return
+
+        task = self.model_options.get("task")
+        if task is None:
+            return
+
+        task = str(task).lower()
+        if task == "omol" and any(self.atoms.pbc):
+            message = (
+                "PBC is incompatible with UMA task='omol'. "
+                "Omit task= so MAPLE can select a periodic UMA task, or set task='omat'."
+            )
+            self.log_error(f"\n [ERROR] {message}\n")
+            raise ValueError(message)
+
+    def _annotate_calculator_capabilities(self, calculator) -> None:
+        calculator.maple_model_name = self.model
+        calculator.maple_model_options = dict(self.model_options)
+        calculator.maple_pbc_md_supported = model_supports_pbc_md(self.model)
+        calculator.maple_stress_supported = model_supports_stress(self.model)
+
     def _build_calculator(self) -> ase.calculators.calculator.Calculator:
         model = self.model
 
@@ -282,11 +351,13 @@ class SetClaculator:
             raise ValueError(f"Unsupported model: '{self.model}'.")
 
         self._validate_requested_hessian_mode()
+        self._validate_uma_task_against_atoms()
 
         if self.d4 and self.model not in {"ani2x", "ani1x", "ani1ccx", "ani1xnr"}:
             self.log_info([f"\n [WARNING] D4 is not supported for model '{self.model}'. D4 will be ignored.\n"])
 
         calculator = self._build_calculator()
+        self._annotate_calculator_capabilities(calculator)
         self._warn_charge_mult()
         return calculator
 

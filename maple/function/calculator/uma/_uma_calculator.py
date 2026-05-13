@@ -217,6 +217,13 @@ class UMACalculator(FAIRChemCalculator):
             return
 
         self._task = UMATask(task)
+        self._task_name = task
+        self.implemented_properties = [
+            task_obj.property for task_obj in self._predictor_unit.dataset_to_tasks[self.task_name]
+        ]
+        if "energy" in self.implemented_properties and "free_energy" not in self.implemented_properties:
+            self.implemented_properties.append("free_energy")
+
         if self._predictor_unit.inference_settings.external_graph_gen:
             r_edges, max_neigh = True, 300
         else:
@@ -229,8 +236,8 @@ class UMACalculator(FAIRChemCalculator):
             r_data_keys=["spin", "charge"],
             max_neigh=max_neigh,
             radius=6.0,
+            target_dtype=self._predictor_unit.inference_settings.base_precision_dtype,
         )
-        self.task_name = task
 
     def get_energy(self, atoms: Atoms) -> torch.Tensor:
         self.calculate(atoms, properties=["energy"], system_changes=all_changes)

@@ -24,7 +24,7 @@ Notes:
     - Pressure is computed from the virial theorem. In this implementation,
       calculator stress is treated as the configurational/virial contribution,
       and the kinetic term is computed explicitly from current velocities.
-      If stress is unavailable, the ideal-gas approximation (W=0) is used.
+      If stress is unavailable, NPT fails instead of using a kinetic-only fallback.
 
 Reference:
     Bernetti & Bussi, J. Chem. Phys. 153, 114107 (2020).
@@ -87,9 +87,6 @@ class CRescaleBarostat:
         self.compressibility = compressibility   # 1/bar
         self.rng = rng if rng is not None else np.random.default_rng()
 
-        # Warning flag: emit stress-unavailable warning at most once per instance
-        self._stress_warned = False
-
         # Deterministic prefactor: β * dt / τ_P  (dimensionless)
         self._det_prefactor = compressibility * timestep / tau_p
 
@@ -122,10 +119,7 @@ class CRescaleBarostat:
         float
             Instantaneous pressure in bar
         """
-        pressure, self._stress_warned = compute_instantaneous_pressure(
-            self.atoms, velocities, self._stress_warned, self.__class__.__name__
-        )
-        return pressure
+        return compute_instantaneous_pressure(self.atoms, velocities)
 
     def apply(self, velocities: np.ndarray) -> float:
         """

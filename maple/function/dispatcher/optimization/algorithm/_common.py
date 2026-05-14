@@ -31,8 +31,6 @@ def write_xyz(filename: str, atoms_list: List[Atoms],
 
     with open(filename, mode) as f:
         f.writelines(blocks)
-        f.flush()
-        os.fsync(f.fileno())
 
 
 def to_numpy_f64(x):

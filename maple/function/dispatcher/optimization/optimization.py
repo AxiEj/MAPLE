@@ -33,5 +33,8 @@ class Optimization(JobABC):
                     f"Supported: lbfgs, rfo, sd, sdcg, cg.")
 
 
-# Backward compatibility for the historical misspelling.
+# Deprecated misspelling kept for backward compatibility with existing
+# callers (engine.py and external scripts). New code should use the
+# correctly-spelled `Optimization`. Remove once all in-tree call sites
+# have been migrated and a major-version bump is acceptable.
 Optmization = Optimization

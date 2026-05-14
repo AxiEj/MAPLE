@@ -404,6 +404,26 @@ class SetClaculator:
         calculator.maple_pbc_md_supported = model_supports_pbc_md(self.model)
         calculator.maple_stress_supported = model_supports_stress(self.model)
 
+    def _validate_pbc_neighbor_cutoff(self, calculator) -> None:
+        if self.atoms is None or not any(self.atoms.pbc):
+            return
+        cutoff = getattr(calculator, "maple_neighbor_cutoff", None)
+        if cutoff is None:
+            return
+        import numpy as np
+        if not np.isfinite(cutoff) or cutoff <= 0:
+            return
+        cell = np.asarray(self.atoms.get_cell())
+        min_L = float(np.min(np.linalg.norm(cell, axis=1)))
+        if cutoff >= 0.5 * min_L:
+            msg = (
+                f"Backend neighbor cutoff {cutoff:.3f} \u00c5 \u2265 L/2 = {0.5 * min_L:.3f} \u00c5 "
+                f"(min cell edge = {min_L:.3f} \u00c5). Minimum-image convention is violated; "
+                "enlarge the cell or reduce the cutoff."
+            )
+            self.log_error(f"\n [ERROR] {msg}\n")
+            raise ValueError(msg)
+
     def _build_calculator(self) -> ase.calculators.calculator.Calculator:
         model = self.model
 
@@ -536,6 +556,7 @@ class SetClaculator:
 
         calculator = self._build_calculator()
         self._annotate_calculator_capabilities(calculator)
+        self._validate_pbc_neighbor_cutoff(calculator)
         self._warn_charge_mult()
         return calculator
 

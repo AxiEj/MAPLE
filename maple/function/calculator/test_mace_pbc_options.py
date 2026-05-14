@@ -210,3 +210,52 @@ def test_frequency_fails_fast_for_mace_pbc_when_hessian_modes_empty(tmp_path):
 
     with pytest.raises(RuntimeError, match="does not support Hessian/frequency workflows yet"):
         job.get_hessian()
+
+
+def test_mace_pbc_cutoff_minimum_image_violation_is_rejected(tmp_path):
+    """MACE backend with extracted cutoff > L/2 must be rejected."""
+    import maple.function.calculator.set_calculator as sc
+
+    atoms = Atoms("H", positions=[[0, 0, 0]], cell=[10, 10, 10], pbc=True)
+
+    class FakeBackend:
+        supported_hessian_modes = ()
+        maple_neighbor_cutoff = 6.0  # >= 10/2
+
+    orig = sc.SetClaculator._build_calculator
+
+    def fake_build(self):
+        return FakeBackend()
+
+    sc.SetClaculator._build_calculator = fake_build
+    try:
+        with pytest.raises(ValueError, match="Minimum-image"):
+            sc.SetClaculator(
+                torch.device("cpu"), "mace-mp-pbc", str(tmp_path / "out"), atoms=atoms
+            ).set_calculator()
+    finally:
+        sc.SetClaculator._build_calculator = orig
+
+
+def test_mace_pbc_cutoff_none_does_not_raise(tmp_path):
+    """When maple_neighbor_cutoff is None (introspection failed), gate is silently skipped."""
+    import maple.function.calculator.set_calculator as sc
+
+    atoms = Atoms("H", positions=[[0, 0, 0]], cell=[5, 5, 5], pbc=True)
+
+    class FakeBackend:
+        supported_hessian_modes = ()
+        maple_neighbor_cutoff = None
+
+    orig = sc.SetClaculator._build_calculator
+
+    def fake_build(self):
+        return FakeBackend()
+
+    sc.SetClaculator._build_calculator = fake_build
+    try:
+        sc.SetClaculator(
+            torch.device("cpu"), "mace-mp-pbc", str(tmp_path / "out"), atoms=atoms
+        ).set_calculator()
+    finally:
+        sc.SetClaculator._build_calculator = orig

@@ -72,6 +72,20 @@ class MACEOfficialPBCCalculator(CalcABC):
             factory_kwargs["head"] = effective_head
 
         self._official_calculator = mace_mp_factory(**factory_kwargs)
+        self.maple_neighbor_cutoff = self._extract_neighbor_cutoff()
+
+    def _extract_neighbor_cutoff(self) -> "Optional[float]":
+        calc = self._official_calculator
+        models = getattr(calc, "models", None)
+        if not models:
+            return getattr(calc, "r_max", None)
+        rmax = getattr(models[0], "r_max", None)
+        if rmax is None:
+            return None
+        try:
+            return float(rmax.item() if hasattr(rmax, "item") else rmax)
+        except Exception:
+            return None
 
     def calculate(self, atoms=None, properties=None, system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)

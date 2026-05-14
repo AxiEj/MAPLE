@@ -232,3 +232,76 @@ def test_frequency_fails_fast_when_hessian_modes_empty(tmp_path):
 
     with pytest.raises(RuntimeError, match="does not support Hessian/frequency workflows yet"):
         job.get_hessian()
+
+
+def test_aimnet_pbc_cutoff_minimum_image_violation_is_rejected(tmp_path):
+    """cutoff 15 Å in a 10 Å cell violates minimum-image convention."""
+    import maple.function.calculator.set_calculator as sc
+
+    atoms = Atoms("H", positions=[[0, 0, 0]], cell=[10, 10, 10], pbc=True)
+
+    class FakeBackend:
+        supported_hessian_modes = ()
+        maple_neighbor_cutoff = 15.0
+
+    orig = sc.SetClaculator._build_calculator
+
+    def fake_build(self):
+        return FakeBackend()
+
+    sc.SetClaculator._build_calculator = fake_build
+    try:
+        with pytest.raises(ValueError, match="Minimum-image"):
+            sc.SetClaculator(
+                torch.device("cpu"), "aimnet2-pbc", str(tmp_path / "out"), atoms=atoms
+            ).set_calculator()
+    finally:
+        sc.SetClaculator._build_calculator = orig
+
+
+def test_aimnet_pbc_cutoff_within_minimum_image_passes(tmp_path):
+    """cutoff 4 Å in a 30 Å cell is fine."""
+    import maple.function.calculator.set_calculator as sc
+
+    atoms = Atoms("H", positions=[[0, 0, 0]], cell=[30, 30, 30], pbc=True)
+
+    class FakeBackend:
+        supported_hessian_modes = ()
+        maple_neighbor_cutoff = 4.0
+
+    orig = sc.SetClaculator._build_calculator
+
+    def fake_build(self):
+        return FakeBackend()
+
+    sc.SetClaculator._build_calculator = fake_build
+    try:
+        sc.SetClaculator(
+            torch.device("cpu"), "aimnet2-pbc", str(tmp_path / "out"), atoms=atoms
+        ).set_calculator()
+    finally:
+        sc.SetClaculator._build_calculator = orig
+
+
+def test_pbc_cutoff_gate_skipped_for_nonperiodic_atoms(tmp_path):
+    """Gate must not fire for non-PBC atoms even if cutoff > L/2."""
+    import maple.function.calculator.set_calculator as sc
+
+    atoms = Atoms("H", positions=[[0, 0, 0]], cell=[10, 10, 10], pbc=False)
+
+    class FakeBackend:
+        supported_hessian_modes = ()
+        maple_neighbor_cutoff = 15.0
+
+    orig = sc.SetClaculator._build_calculator
+
+    def fake_build(self):
+        return FakeBackend()
+
+    sc.SetClaculator._build_calculator = fake_build
+    try:
+        sc.SetClaculator(
+            torch.device("cpu"), "aimnet2-pbc", str(tmp_path / "out"), atoms=atoms
+        ).set_calculator()
+    finally:
+        sc.SetClaculator._build_calculator = orig

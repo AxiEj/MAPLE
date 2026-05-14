@@ -4,9 +4,8 @@ import numpy as np
 from typing import Dict, Union, Sequence, Optional
 from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC
+from .._ase_unit_contract import EV2HARTREE
 from typing import Literal
-
-EV2HARTREE = 1.0 / 27.211386245988
 
 # ------------------------ 基础辅助函数 ------------------------
 

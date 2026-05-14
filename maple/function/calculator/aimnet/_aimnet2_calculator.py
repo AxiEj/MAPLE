@@ -4,9 +4,7 @@ import numpy as np
 from typing import Dict, Literal
 from ase.calculators.calculator import Calculator, all_changes
 from ..calculator_base import CalcABC
-
-
-EV2HARTREE = 1.0 / 27.211386245988
+from .._ase_unit_contract import EV2HARTREE
 
 # --------------------------------------------
 # Build dense neighbor list (N+1, M) sentinel padded

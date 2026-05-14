@@ -20,7 +20,7 @@ except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
 
-EV2HARTREE = 1.0 / 27.211386245988
+from .._ase_unit_contract import EV2HARTREE
 
 UMA_DEFAULT_SIZE = "uma-s-1p1"
 UMA_MODELS_MAP = {

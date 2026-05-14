@@ -267,8 +267,15 @@ class SDCG(JobABC):
 
     def _estimate_step_scale(self, forces: np.ndarray) -> float:
         """
-        Estimate step_scale (approximate H^{-1}) using Barzilai-Borwein method.
-        BB1: alpha = (dx . df) / (df . df)
+        Estimate step_scale (approximate H^{-1}) using the Barzilai-Borwein
+        short-step (BB2) magnitude.
+
+        With s = x_{k+1} - x_k and y = g_{k+1} - g_k = -(f_{k+1} - f_k),
+        BB2 = (s . y) / (y . y). Using df = f_{k+1} - f_k = -y, the algebraically
+        equivalent form (s . df)/(df . df) = -BB2 is computed and abs() is
+        applied so the result is |BB2| regardless of the local force-vs-gradient
+        sign convention. References: Barzilai & Borwein, IMA J. Numer. Anal.
+        8, 141 (1988).
         """
         if self._prev_positions is None or self._prev_forces is None:
             return self.params.max_step

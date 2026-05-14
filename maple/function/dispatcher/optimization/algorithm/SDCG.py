@@ -28,7 +28,6 @@ from ase import Atoms
 
 from ._common import compute_metrics, is_converged, write_xyz
 from .DIIS import DIISAccelerator, DIISParams
-from .xyz_io import write_xyz
 from ...jobABC import JobABC
 
 

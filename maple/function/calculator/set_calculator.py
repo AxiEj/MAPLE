@@ -568,3 +568,35 @@ class SetClaculator:
         with open(self.output, "a") as handle:
             for line in info_message:
                 handle.write(line)
+
+
+def validate_pbc_capabilities(atoms, task: str) -> None:
+    """Reject PBC + non-PBC-capable calculator combinations for any force-consuming task."""
+    if atoms.calc is None or not any(atoms.pbc):
+        return
+
+    from maple.function.dispatcher.md.utils import (
+        _calc_capability,
+        _calc_label,
+        _calc_model_name,
+    )
+
+    calc = atoms.calc
+    model_label = _calc_label(calc)
+
+    if (
+        _calc_model_name(calc) == "uma"
+        and getattr(calc, "_auto_task", True) is False
+        and str(getattr(calc, "task_name", "")).lower() == "omol"
+    ):
+        raise ValueError(
+            "PBC is incompatible with UMA task='omol'. "
+            "Omit task= so MAPLE can select a periodic UMA task, or set task='omat'."
+        )
+
+    if not _calc_capability(calc, "maple_pbc_md_supported", MODEL_PBC_MD_SUPPORT):
+        raise ValueError(
+            f"{task.upper()} with PBC requires a calculator with real periodic MD support. "
+            f"Model/calculator '{model_label}' is not declared PBC-MD capable."
+        )
+

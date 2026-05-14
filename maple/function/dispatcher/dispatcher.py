@@ -24,6 +24,12 @@ class Dispatcher():
         self.output = output
         self.commandcontrol = commandcontrol
         self.set_throshould(atoms)
+        if jobtype in {'opt', 'scan', 'ts', 'irc'}:
+            from maple.function.calculator.set_calculator import validate_pbc_capabilities
+            from ..utility import Molecules
+            _atoms_iter = atoms.multiatoms if isinstance(atoms, Molecules) else (atoms if isinstance(atoms, list) else [atoms])
+            for _a in _atoms_iter:
+                validate_pbc_capabilities(_a, jobtype)
         if jobtype == 'opt':
             from .optimization import Optimization
 

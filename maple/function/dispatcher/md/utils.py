@@ -123,21 +123,8 @@ def validate_md_capabilities(atoms: Atoms, ensemble: str) -> None:
     calc = atoms.calc
     model_label = _calc_label(calc)
 
-    if (
-        _calc_model_name(calc) == "uma"
-        and getattr(calc, "_auto_task", True) is False
-        and str(getattr(calc, "task_name", "")).lower() == "omol"
-    ):
-        raise ValueError(
-            "PBC is incompatible with UMA task='omol'. "
-            "Omit task= so MAPLE can select a periodic UMA task, or set task='omat'."
-        )
-
-    if not _calc_capability(calc, "maple_pbc_md_supported", MODEL_PBC_MD_SUPPORT):
-        raise ValueError(
-            f"{ensemble_name.upper()} with PBC requires a calculator with real periodic MD support. "
-            f"Model/calculator '{model_label}' is not declared PBC-MD capable."
-        )
+    from maple.function.calculator.set_calculator import validate_pbc_capabilities
+    validate_pbc_capabilities(atoms, ensemble_name)
 
     if ensemble_name == "npt" and not _calc_capability(
         calc,

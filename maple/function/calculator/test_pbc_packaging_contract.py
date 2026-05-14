@@ -30,3 +30,6 @@ def test_readme_documents_explicit_pbc_backends():
     assert "aimnet2-pbc" in text
     assert "mace-omat-pbc" in text
     assert 'pip install -e ".[pbc]"' in text
+    assert "long-range" in text.lower()
+    assert "short-range materials potentials" in text
+    assert "PBC is baked into" in text

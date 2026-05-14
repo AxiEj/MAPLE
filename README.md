@@ -119,11 +119,15 @@ Use `#pbc(...)` to define a cell. MAPLE accepts 2, 3, or 6 values:
 PBC backend selection is explicit. The non-PBC model names keep their original
 local `.pt` behavior and are not automatically switched when `#pbc` is present.
 
-| Backend family | Model names | Extra | Notes |
-|----------------|-------------|-------|-------|
-| UMA | `uma(task=omat)` or `uma` | `fairchem-core` | Main built-in PBC/NPT route; `task=omol` rejects PBC. |
-| AIMNet2 official PBC | `aimnet2-pbc`, `aimnet2nse-pbc` | `pbc-aimnet` | Supports PBC/stress and `coulomb=dsf|ewald|pme`. |
-| MACE official PBC | `mace-mp-pbc`, `mace-omat-pbc`, `mace-matpes-pbc`, `mace-mh-pbc` | `pbc-mace` | Supports PBC/stress through official MACE foundation calculators. |
+| Backend family | Model names | Extra | Range / Long-range Coulomb | Notes |
+|----------------|-------------|-------|---------------------------|-------|
+| UMA | `uma(task=omat)` or `uma` | `fairchem-core` | Short-range + learned long-range | Main built-in PBC/NPT route; `task=omol` rejects PBC. |
+| AIMNet2 official PBC | `aimnet2-pbc`, `aimnet2nse-pbc` | `pbc-aimnet` | **Explicit long-range Coulomb** (`dsf`/`ewald`/`pme`) | For polar/charged periodic systems (electrolytes, charged interfaces). |
+| MACE official PBC | `mace-mp-pbc`, `mace-omat-pbc`, `mace-matpes-pbc`, `mace-mh-pbc` | `pbc-mace` | Short-range materials potential (no explicit long-range) | For metals/alloys/solid-state; not for long-range polar systems. |
+
+**Physics note.** AIMNet2-PBC includes an explicit long-range Coulomb sum (`coulomb=dsf|ewald|pme`) and is appropriate for polar or charged periodic systems (electrolytes, polar fluids, charged interfaces). The MACE PBC foundation backends (`mace-mp-pbc`, `mace-omat-pbc`, `mace-matpes-pbc`, `mace-mh-pbc`) are short-range materials potentials — they add a periodic neighbor list and stress to MACE but do not include explicit long-range electrostatics, and are intended for metals/alloys/solid-state materials, not for long-range polar systems.
+
+**Why two model names instead of one flag?** `aimnet2` and `aimnet2-pbc` (or `maceoff23m` vs `mace-mp-pbc`) are exposed as distinct models because PBC is baked into the upstream foundation model's architecture — long-range Coulomb summation, periodic neighbor lists, and stress derivatives are not orthogonal flags on top of a single network. Each backend is a different calculator with different physics; selecting a model name encodes that choice explicitly.
 
 PBC backends are intended for MD/SP workflows. They currently fail fast for
 frequency/Hessian requests instead of silently falling back to a different

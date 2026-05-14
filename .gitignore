@@ -175,6 +175,11 @@ example/md/**/*.out
 example/md/**/*.dat
 example/md/**/*.xyz
 
-# Local automation/session artifacts
+# Local automation/session artifacts (root + any nested copy)
 /.omc/
 /docs/
+**/.omc/
+**/.claude/
+
+# Auto-downloaded ML model checkpoints
+maple/function/calculator/model/*.pt

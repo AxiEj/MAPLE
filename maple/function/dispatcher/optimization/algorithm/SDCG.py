@@ -26,7 +26,7 @@ from typing import List, Optional
 import numpy as np
 from ase import Atoms
 
-from ._common import compute_metrics, is_converged, write_xyz
+from ._common import compute_metrics, finalize_optimization_output, is_converged, write_xyz
 from .DIIS import DIISAccelerator, DIISParams
 from ...jobABC import JobABC
 
@@ -403,16 +403,7 @@ class SDCG(JobABC):
 
     def _finalize_run(self, energy: float, summary: str, opt_traj_file: str) -> None:
         """Write final _opt.xyz and log the closing summary."""
-        base, _ = os.path.splitext(self.output)
-        opt_file = base + "_opt.xyz"
-        write_xyz(opt_file, [self.atoms], energies=[energy])
-        if self.params.verbose != 1 and self._last_iter_info is not None:
-            self.log_info(self._last_iter_info)
-        self.log_info([
-            f"\n{summary}\n"
-            f"Final frame written to {opt_file}\n"
-            f"Optimization trajectory written to {opt_traj_file}\n"
-        ])
+        finalize_optimization_output(self, energy=energy, summary=summary, opt_traj_file=opt_traj_file)
 
     # ----------------------------------------------------------
     # Main optimization loop

@@ -33,6 +33,32 @@ def write_xyz(filename: str, atoms_list: List[Atoms],
         f.writelines(blocks)
 
 
+
+def finalize_optimization_output(
+    job,
+    *,
+    energy: float,
+    summary: str,
+    opt_traj_file: str,
+) -> None:
+    """Write ``<output_stem>_opt.xyz``, dump last iteration info if silent, and log summary.
+
+    Shared by LBFGS / SDCG / any future OPT algorithm. The ``job`` argument is
+    a JobABC subclass exposing ``self.output``, ``self.atoms``, ``self.log_info``,
+    ``self.params.verbose``, and ``self._last_iter_info``.
+    """
+    base, _ = os.path.splitext(job.output)
+    opt_file = base + "_opt.xyz"
+    write_xyz(opt_file, [job.atoms], energies=[energy])
+    if job.params.verbose != 1 and job._last_iter_info is not None:
+        job.log_info(job._last_iter_info)
+    job.log_info([
+        f"\n{summary}\n"
+        f"Final frame written to {opt_file}\n"
+        f"Optimization trajectory written to {opt_traj_file}\n"
+    ])
+
+
 def to_numpy_f64(x):
     """Convert input to float64 numpy array or float."""
     if isinstance(x, np.ndarray):

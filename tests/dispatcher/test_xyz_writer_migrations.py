@@ -68,3 +68,57 @@ def test_prfo_wrapper_keeps_signature_and_round_trips_metadata(tmp_path):
     np.testing.assert_allclose(round_trip.get_cell().array, atoms.get_cell().array)
     assert int(round_trip.info["image"]) == 9
     np.testing.assert_allclose(round_trip.get_potential_energy(), -1.25)
+
+
+neb_module = importlib.import_module("maple.function.dispatcher.ts.algorithm.neb")
+dimer_module = importlib.import_module("maple.function.dispatcher.ts.algorithm.dimer")
+
+
+def test_prfo_append_trajectory_overwrites_then_appends_with_periodic_cell(tmp_path):
+    path = tmp_path / "prfo_traj.xyz"
+    prfo_module.append_xyz_trajectory(str(path), _periodic_cu(), energy=-1.0, iteration=0)
+    prfo_module.append_xyz_trajectory(str(path), _periodic_cu(), energy=-2.0, iteration=1)
+    prfo_module.append_xyz_trajectory(str(path), _periodic_cu(), energy=-3.0, iteration=2)
+
+    frames = read(str(path), ":")
+    assert [int(at.info["image"]) for at in frames] == [0, 1, 2]
+    for frame in frames:
+        assert all(frame.pbc)
+        np.testing.assert_allclose(frame.get_cell().array, _periodic_cu().get_cell().array)
+    np.testing.assert_allclose(
+        [frame.get_potential_energy() for frame in frames], [-1.0, -2.0, -3.0]
+    )
+
+
+def test_neb_write_all_images_appends_iterations_with_periodic_cell(tmp_path):
+    path = tmp_path / "neb_traj.xyz"
+    images = [_periodic_cu(), _periodic_cu(), _periodic_cu()]
+    energies_iter0 = [-1.0, -1.1, -1.2]
+    energies_iter1 = [-1.5, -1.6, -1.7]
+
+    neb_module.write_all_images_xyz(str(path), images, energies=energies_iter0, iteration=0)
+    neb_module.write_all_images_xyz(str(path), images, energies=energies_iter1, iteration=1)
+
+    frames = read(str(path), ":")
+    assert len(frames) == 6
+    assert [int(frame.info["image"]) for frame in frames] == [0, 1, 2, 0, 1, 2]
+    assert [int(frame.info["iteration"]) for frame in frames] == [0, 0, 0, 1, 1, 1]
+    for frame in frames:
+        assert all(frame.pbc)
+        np.testing.assert_allclose(frame.get_cell().array, _periodic_cu().get_cell().array)
+
+
+def test_dimer_write_all_images_appends_iterations_with_periodic_cell(tmp_path):
+    path = tmp_path / "dimer_traj.xyz"
+    dimer_module.write_all_images_xyz(str(path), _periodic_cu(), energy=-1.0, iteration=0)
+    dimer_module.write_all_images_xyz(str(path), _periodic_cu(), energy=-2.0, iteration=1)
+
+    frames = read(str(path), ":")
+    assert len(frames) == 2
+    assert [int(frame.info["iteration"]) for frame in frames] == [0, 1]
+    for frame in frames:
+        assert all(frame.pbc)
+        np.testing.assert_allclose(frame.get_cell().array, _periodic_cu().get_cell().array)
+    np.testing.assert_allclose(
+        [frame.get_potential_energy() for frame in frames], [-1.0, -2.0]
+    )

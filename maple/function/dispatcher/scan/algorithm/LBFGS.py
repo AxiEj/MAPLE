@@ -142,7 +142,7 @@ def LBFGS(
 
 			opt_file = base + "_opt.xyz"
 			e_final = atoms.get_potential_energy(force_consistent=True)
-			write_xyz(opt_file, [atoms], energies=[e_final])   # ✅ 改为自定义 write_xyz
+			write_xyz(opt_file, [atoms], energies=[e_final])
 			log_info([
 				f"\nLBFGS optimization converged at iteration {iteration}.",
 				f"Final optimized structure written to: {opt_file}\n"
@@ -152,7 +152,7 @@ def LBFGS(
 	base, _ = os.path.splitext(output)
 	opt_file = base + "_opt.xyz"
 	e_final = atoms.get_potential_energy(force_consistent=True)
-	write_xyz(opt_file, [atoms], energies=[e_final])  # ✅ 用相同函数
+	write_xyz(opt_file, [atoms], energies=[e_final])
 	log_info([
 		f"\nLBFGS optimization reached max iterations ({maxiteration}).",
 		f"Last optimized structure written to: {opt_file}\n"

@@ -81,24 +81,21 @@ def kabsch_align(P: np.ndarray, Q: np.ndarray) -> Tuple[np.ndarray, float, np.nd
     return Q_aligned, rmsd, R, t
 
 def write_all_images_xyz(filename: str, images: List[Atoms], energies: Optional[List[float]] = None, iteration: int = 0):
+    """Append all NEB images for one iteration via the shared extxyz writer.
+
+    Routes through maple.function.utility.xyz_io.write_xyz so the periodic
+    cell and pbc flags survive re-read. Iteration 0 overwrites the file;
+    later iterations append. The NEB iteration counter rides on each
+    frame's info["iteration"] so the produced extxyz is self-describing.
     """
-    Append all current images to an xyz trajectory file (for NEB debug).
-    Each block corresponds to one iteration of NEB optimization.
-    """
-    if iteration == 0 and os.path.exists(filename):
-        os.remove(filename)
-    with open(filename, "a") as f:
-        for i, at in enumerate(images):
-            pos = to_numpy_f64(at.get_positions())
-            symbols = at.get_chemical_symbols()
-            E = None if energies is None else energies[i]
-            f.write(f"{len(symbols)}\n")
-            if E is not None:
-                f.write(f"Iter {iteration} Image {i}  Energy = {E:.10f}\n")
-            else:
-                f.write(f"Iter {iteration} Image {i}\n")
-            for s, (x, y, z) in zip(symbols, pos):
-                f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
+    frames = []
+    for i, at in enumerate(images):
+        frame = at.copy()
+        frame.info["image"] = i
+        frame.info["iteration"] = int(iteration)
+        frames.append(frame)
+    mode = "w" if iteration == 0 else "a"
+    write_xyz(filename, frames, energies=energies, mode=mode)
 
 
 

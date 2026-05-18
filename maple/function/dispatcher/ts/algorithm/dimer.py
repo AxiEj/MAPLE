@@ -49,22 +49,18 @@ def vec1d(x, n_expected=None):
     return v
 
 def write_all_images_xyz(filename: str, atoms: Atoms, energy: Optional[float] = None, iteration: int = 0):
+    """Append a single Dimer frame to a trajectory file via the shared extxyz writer.
+
+    Routes through maple.function.utility.xyz_io.write_xyz so the periodic
+    cell and pbc flags survive re-read. Iteration 0 overwrites the file;
+    later iterations append. The Dimer iteration counter rides on the
+    frame's info["iteration"] so the produced extxyz is self-describing.
     """
-    Append current single structure to an xyz trajectory file (for Dimer debug).
-    Each block corresponds to one iteration of Dimer optimization.
-    """
-    if iteration == 0 and os.path.exists(filename):
-        os.remove(filename)
-    pos = to_numpy_f64(atoms.get_positions())
-    symbols = atoms.get_chemical_symbols()
-    with open(filename, "a") as f:
-        f.write(f"{len(symbols)}\n")
-        if energy is not None:
-            f.write(f"Iter {iteration}  Energy = {energy:.10f}\n")
-        else:
-            f.write(f"Iter {iteration}\n")
-        for s, (x, y, z) in zip(symbols, pos):
-            f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
+    frame = atoms.copy()
+    frame.info["iteration"] = int(iteration)
+    energies = [float(energy)] if energy is not None else None
+    mode = "w" if iteration == 0 else "a"
+    write_xyz(filename, [frame], energies=energies, mode=mode)
 
 # =============================================================================
 # ------------------------------ Dimer Params ---------------------------------

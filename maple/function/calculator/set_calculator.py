@@ -9,6 +9,11 @@ import torch
 from ase import Atoms
 
 from .ani._ani_calculator import ANICalculator
+from .aimnet.options import (
+    AIMNET_LEGACY_MODELS,
+    AIMNET_PBC_MODELS,
+    validate_aimnet_options,
+)
 from .mace._mace_calculator import MACECalculator
 
 
@@ -23,6 +28,8 @@ IMPLEMENTATION_MODELS = [
     "egret",
     "aimnet2",
     "aimnet2nse",
+    "aimnet2-pbc",
+    "aimnet2nse-pbc",
     "uma",
     "maceomol",
     "macepols",
@@ -61,6 +68,8 @@ MODEL_HESSIAN_SUPPORT = {
     "egret": ("analytic", "numerical"),
     "aimnet2": ("analytic", "numerical"),
     "aimnet2nse": ("analytic", "numerical"),
+    "aimnet2-pbc": (),
+    "aimnet2nse-pbc": (),
     "uma": ("numerical",),
     "maceomol": ("analytic", "numerical"),
     "macepols": ("analytic", "numerical"),
@@ -110,6 +119,8 @@ class SetClaculator:
         mode = str(mode).lower()
         declared = MODEL_HESSIAN_SUPPORT.get(self.model)
         if declared is not None and mode not in declared:
+            if not declared:
+                raise ValueError(f"Model '{self.model}' does not support Hessian modes.")
             supported_text = ", ".join(sorted(declared))
             raise ValueError(
                 f"Model '{self.model}' does not support hessian='{mode}'. "
@@ -124,6 +135,8 @@ class SetClaculator:
         mode = str(mode).lower()
         supported = getattr(calculator, "supported_hessian_modes", None)
         if supported is not None and mode not in supported:
+            if not supported:
+                raise ValueError(f"Model '{self.model}' does not support Hessian modes.")
             supported_text = ", ".join(sorted(supported))
             raise ValueError(
                 f"Model '{self.model}' does not support hessian='{mode}'. "
@@ -134,6 +147,13 @@ class SetClaculator:
             raise ValueError(f"Model '{self.model}' does not expose configurable Hessian modes.")
 
         calculator.hessian = mode
+
+    def _validated_aimnet_options(self) -> dict:
+        if self.model in AIMNET_LEGACY_MODELS:
+            return validate_aimnet_options(self.model_options)
+        if self.model in AIMNET_PBC_MODELS:
+            return validate_aimnet_options(self.model_options, pbc=True)
+        return {}
 
     def _coerce_uma_inference_for_device(
         self, inference: Optional[str], device_name: str
@@ -222,13 +242,33 @@ class SetClaculator:
                 implicit=self.implicit,
                 solvent=self.solvent,
             )
-        elif model in {"aimnet2", "aimnet2nse"}:
+        elif model in AIMNET_LEGACY_MODELS:
+            aimnet_options = self._validated_aimnet_options()
             self._ensure_model_file(model)
             from .aimnet._aimnet2_calculator import AIMNet2Calculator
 
             calculator = AIMNet2Calculator(
                 model=model,
                 device=self.device,
+                coulomb_method=aimnet_options.get("coulomb", "simple"),
+                cutoff=aimnet_options.get("cutoff", 15.0),
+                dsf_alpha=aimnet_options.get("dsf_alpha", 0.2),
+                implicit=self.implicit,
+                solvent=self.solvent,
+                model_options=aimnet_options,
+            )
+        elif model in AIMNET_PBC_MODELS:
+            from .aimnet._aimnet2_official_pbc_calculator import AIMNet2OfficialPBCCalculator
+
+            aimnet_options = self._validated_aimnet_options()
+            calculator = AIMNet2OfficialPBCCalculator(
+                model=model,
+                device=self.device,
+                coulomb_method=aimnet_options.get("coulomb", "dsf"),
+                cutoff=aimnet_options.get("cutoff", 15.0),
+                dsf_alpha=aimnet_options.get("dsf_alpha", 0.2),
+                ewald_accuracy=aimnet_options.get("ewald_accuracy", 1e-6),
+                pme_cutoff=aimnet_options.get("pme_cutoff"),
                 implicit=self.implicit,
                 solvent=self.solvent,
             )

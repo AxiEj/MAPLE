@@ -2,6 +2,13 @@ import re
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
+from maple.function.calculator.aimnet.options import (
+    AIMNET_LEGACY_MODELS,
+    AIMNET_LEGACY_OPTION_KEYS,
+    AIMNET_PBC_MODELS,
+    AIMNET_PBC_OPTION_KEYS,
+)
+
 
 class CommandControl:
     """
@@ -21,6 +28,8 @@ class CommandControl:
         "egret",
         "aimnet2",
         "aimnet2nse",
+        "aimnet2-pbc",
+        "aimnet2nse-pbc",
         "uma",
         "maceomol",
         "macepols",
@@ -151,6 +160,10 @@ class CommandControl:
     SCAN_PARAMS = {"method", "mode"}
     SOLV_PARAMS = {"method", "implicit", "explicit", "radius", "clash_cutoff", "fix_dis"}
     MODEL_OPTION_PARAMS = {
+        "aimnet2": AIMNET_LEGACY_OPTION_KEYS,
+        "aimnet2nse": AIMNET_LEGACY_OPTION_KEYS,
+        "aimnet2-pbc": AIMNET_PBC_OPTION_KEYS,
+        "aimnet2nse-pbc": AIMNET_PBC_OPTION_KEYS,
         "uma": {"task", "size", "hessian", "inference"},
         "macepols": {"model_path", "hessian"},
         "macepolm": {"model_path", "hessian"},
@@ -343,19 +356,23 @@ class CommandControl:
             params["remove_com"] = True
 
         if "model" in params and params["model"] is not None:
-            params["model"] = (
+            model_value = (
                 str(params["model"])
                 .lower()
                 .replace("_", "")
-                .replace("-", "")
                 .replace(" ", "")
                 .replace("(", "")
                 .replace(")", "")
             )
+            params["model"] = (
+                model_value
+                if model_value in AIMNET_PBC_MODELS
+                else model_value.replace("-", "")
+            )
 
         model_options = params.get("model_options")
         if isinstance(model_options, dict):
-            for key in ("task", "size", "hessian", "inference"):
+            for key in ("task", "size", "hessian", "inference", "coulomb"):
                 if key in model_options and isinstance(model_options[key], str):
                     model_options[key] = model_options[key].lower()
 
@@ -547,6 +564,15 @@ class CommandControl:
             )
             cls._log_error(output_path, msg)
             raise ValueError(msg)
+
+        if model in AIMNET_LEGACY_MODELS or model in AIMNET_PBC_MODELS:
+            from maple.function.calculator.aimnet.options import validate_aimnet_options
+
+            try:
+                validate_aimnet_options(model_options, pbc=model in AIMNET_PBC_MODELS)
+            except ValueError as exc:
+                cls._log_error(output_path, str(exc))
+                raise
 
     @staticmethod
     def _log_info(output_path: Optional[str], lines: List[str]) -> None:

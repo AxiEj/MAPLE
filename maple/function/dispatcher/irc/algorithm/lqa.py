@@ -25,6 +25,7 @@ import numpy as np
 from ase import Atoms
 
 from .logger import log_info, log_error
+from maple.function.utility.xyz_io import write_xyz
 
 # =============================== Utilities ===============================
 BOHR_TO_ANG = 0.529177210903
@@ -74,21 +75,6 @@ def masses_D(atoms: Atoms) -> np.ndarray:
     m = to_f64(atoms.get_masses())
     m = np.where(m > 0.0, m, 1.0)
     return v1(1.0 / np.sqrt(np.repeat(m, 3)))
-
-
-def write_xyz(path: str, atoms_list: List[Atoms], energies: Optional[List[float]] = None):
-    """Write a list of structures to an XYZ file."""
-    with open(path, "w") as f:
-        for i, at in enumerate(atoms_list):
-            pos = at.get_positions()
-            symbols = at.get_chemical_symbols()
-            f.write(f"{len(symbols)}\n")
-            if energies is not None and i < len(energies):
-                f.write(f"Image {i}  Energy = {energies[i]:.10f}\n")
-            else:
-                f.write(f"Image {i}\n")
-            for s, (x, y, z) in zip(symbols, pos):
-                f.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
 
 
 def _norm(v: np.ndarray) -> float:

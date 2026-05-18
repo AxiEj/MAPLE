@@ -8,6 +8,7 @@ from ase.neighborlist import NeighborList, natural_cutoffs
 from ..jobABC import JobABC
 
 from maple.function.timer import timer
+from maple.function.utility.xyz_io import write_xyz
 
 class Scan(JobABC):
     """
@@ -37,7 +38,7 @@ class Scan(JobABC):
         for attr in self._threshold_attrs:
             self._initial_thresholds[attr] = getattr(self.atoms, attr, 1e10)
         
-        # Initialize XYZ file handle
+        # Initialize XYZ output path
         self.xyz_file = None
 
     def _convert_constraints(self, original_constraints: list) -> list:
@@ -195,21 +196,19 @@ class Scan(JobABC):
     def _record_result(self, atoms: Atoms, coord: List[float],
                        coords_list: list, energies: list):
         """Record a scan point result by streaming to file."""
-        # Get energy and structure info
         e = float(atoms.get_potential_energy(force_consistent=True))
-        pos = atoms.get_positions()
-        symbols = atoms.get_chemical_symbols()
-        
-        # Write to XYZ file immediately
-        self.xyz_file.write(f"{len(symbols)}\n")
         coord_str = "[" + ", ".join(f"{v:.4f}" for v in coord) + "]"
-        self.xyz_file.write(
-            f"Scanning combination {self._current_index}/{self._total_combinations}: "
-            f"{coord_str}  Energy = {e:.10f}\n"
+        frame = atoms.copy()
+        frame.info["scan_coord"] = coord_str
+        frame.info["scan_step"] = self._current_index
+        frame.info["scan_total"] = self._total_combinations
+        write_xyz(
+            self.xyz_file,
+            [frame],
+            energies=[e],
+            mode="a",
+            start_index=self._current_index,
         )
-        for s, (x, y, z) in zip(symbols, pos):
-            self.xyz_file.write(f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n")
-        self.xyz_file.flush()  # Ensure data is written
         
         # Store lightweight data
         coords_list.append(coord[:])
@@ -363,12 +362,13 @@ class Scan(JobABC):
         self._total_combinations = total
         self._current_index = 0
 
-        # Open output XYZ file for streaming
+        # Seed output XYZ file for streaming appends
         base, _ = os.path.splitext(self.output)
         xyz_filename = base + "_scan_final.xyz"
         
         try:
-            self.xyz_file = open(xyz_filename, "w")
+            self.xyz_file = xyz_filename
+            write_xyz(self.xyz_file, [])
             
             if dim == 1:
                 coords_list, energies = self._scan_1d(scan_values)
@@ -387,7 +387,7 @@ class Scan(JobABC):
             
         finally:
             if self.xyz_file is not None:
-                self.xyz_file.close()
+                self.xyz_file = None
 
     def run(self):
         """JobABC interface."""

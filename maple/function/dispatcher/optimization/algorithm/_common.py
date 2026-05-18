@@ -7,33 +7,21 @@ import numpy as np
 from ase import Atoms
 
 from maple.function.utility.numeric import to_numpy_f64, vec1d
+from maple.function.utility.xyz_io import write_xyz as _write_xyz
 
 
 def write_xyz(filename: str, atoms_list: List[Atoms],
               energies: Optional[List[float]] = None,
               mode: str = "w",
               start_index: int = 0) -> None:
-    """Write one or more structures in XYZ format."""
-    blocks = []
-    for i, at in enumerate(atoms_list):
-        pos = at.get_positions()
-        symbols = at.get_chemical_symbols()
-        image_index = start_index + i
-
-        lines = [f"{len(symbols)}\n"]
-        if energies is not None:
-            lines.append(f"Image {image_index}  Energy = {energies[i]:.10f}\n")
-        else:
-            lines.append(f"Image {image_index}\n")
-        lines.extend(
-            f"{s:2s} {x: .10f} {y: .10f} {z: .10f}\n"
-            for s, (x, y, z) in zip(symbols, pos)
-        )
-        blocks.append("".join(lines))
-
-    with open(filename, mode) as f:
-        # OS buffering is enough here; fsync forced a disk round-trip per frame.
-        f.writelines(blocks)
+    """Write one or more structures through the shared extxyz writer."""
+    _write_xyz(
+        filename,
+        atoms_list,
+        energies=energies,
+        mode=mode,
+        start_index=start_index,
+    )
 
 
 def finalize_optimization_output(

@@ -30,9 +30,8 @@ def write_xyz(filename: str, atoms_list: List[Atoms],
         blocks.append("".join(lines))
 
     with open(filename, mode) as f:
+        # OS buffering is enough here; fsync forced a disk round-trip per frame.
         f.writelines(blocks)
-        f.flush()
-        os.fsync(f.fileno())
 
 
 def finalize_optimization_output(

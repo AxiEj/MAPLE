@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 import ase
+import numpy as np
 import torch
 from ase import Atoms
 
@@ -84,6 +85,52 @@ MODEL_HESSIAN_SUPPORT = {
     "macepoll": ("analytic", "numerical"),
 }
 
+MODEL_PBC_MD_SUPPORT = {
+    "ani2x": False,
+    "ani1x": False,
+    "ani1ccx": False,
+    "ani1xnr": False,
+    "maceoff23s": False,
+    "maceoff23m": False,
+    "maceoff23l": False,
+    "egret": False,
+    "aimnet2": False,
+    "aimnet2nse": False,
+    "aimnet2-pbc": True,
+    "aimnet2nse-pbc": True,
+    "mace-mp-pbc-small": True,
+    "mace-mp-pbc-medium": True,
+    "mace-mp-pbc-large": True,
+    "uma": True,
+    "maceomol": False,
+    "macepols": False,
+    "macepolm": False,
+    "macepoll": False,
+}
+
+MODEL_STRESS_SUPPORT = {
+    "ani2x": False,
+    "ani1x": False,
+    "ani1ccx": False,
+    "ani1xnr": False,
+    "maceoff23s": False,
+    "maceoff23m": False,
+    "maceoff23l": False,
+    "egret": False,
+    "aimnet2": False,
+    "aimnet2nse": False,
+    "aimnet2-pbc": True,
+    "aimnet2nse-pbc": True,
+    "mace-mp-pbc-small": True,
+    "mace-mp-pbc-medium": True,
+    "mace-mp-pbc-large": True,
+    "uma": True,
+    "maceomol": False,
+    "macepols": False,
+    "macepolm": False,
+    "macepoll": False,
+}
+
 UNSUPPORTED_CHARGE_MULT_MODELS = {
     "ani2x",
     "ani1x",
@@ -98,6 +145,54 @@ UNSUPPORTED_CHARGE_MULT_MODELS = {
     "mace-mp-pbc-medium",
     "mace-mp-pbc-large",
 }
+
+
+def model_supports_pbc_md(model: str) -> bool:
+    """Return whether a MAPLE model has declared periodic MD support."""
+    return bool(MODEL_PBC_MD_SUPPORT.get(model, False))
+
+
+def model_supports_stress(model: str) -> bool:
+    """Return whether a MAPLE model has declared calculator stress support."""
+    return bool(MODEL_STRESS_SUPPORT.get(model, False))
+
+
+def _calculator_neighbor_cutoff_A(calculator) -> Optional[float]:
+    for attr in ("neighbor_cutoff_A", "cutoff_A", "maple_neighbor_cutoff"):
+        cutoff = getattr(calculator, attr, None)
+        if cutoff is None:
+            continue
+        try:
+            return float(cutoff)
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+def _validate_pbc_neighbor_cutoff(atoms, calculator) -> None:
+    """Validate cutoff < min(|a|, |b|, |c|) / 2 for the minimum-image convention.
+
+    The cutoff bound follows Allen & Tildesley, Computer Simulation of Liquids,
+    2nd ed. (Oxford University Press, 2017), section 1.5.
+    """
+    if atoms is None or not any(atoms.pbc):
+        return
+    if not getattr(calculator, "maple_pbc_md_supported", False):
+        return
+
+    cutoff = _calculator_neighbor_cutoff_A(calculator)
+    if cutoff is None or not np.isfinite(cutoff) or cutoff <= 0.0:
+        return
+
+    cell = np.asarray(atoms.get_cell(), dtype=float)
+    min_edge = float(np.min(np.linalg.norm(cell, axis=1)))
+    radius = 0.5 * min_edge
+    if cutoff >= radius:
+        raise ValueError(
+            f"Backend neighbor cutoff {cutoff:.3f} A >= minimum-image radius "
+            f"{radius:.3f} A (min cell edge = {min_edge:.3f} A). "
+            "Minimum-image convention is violated; enlarge the cell or reduce the cutoff."
+        )
 
 
 class SetClaculator:
@@ -237,6 +332,12 @@ class SetClaculator:
                 ]
             )
 
+    def _annotate_calculator_capabilities(self, calculator) -> None:
+        calculator.maple_model_name = self.model
+        calculator.maple_model_options = dict(self.model_options)
+        calculator.maple_pbc_md_supported = model_supports_pbc_md(self.model)
+        calculator.maple_stress_supported = model_supports_stress(self.model)
+
     def _build_calculator(self) -> ase.calculators.calculator.Calculator:
         model = self.model
 
@@ -375,6 +476,8 @@ class SetClaculator:
             self.log_info([f"\n [WARNING] D4 is not supported for model '{self.model}'. D4 will be ignored.\n"])
 
         calculator = self._build_calculator()
+        self._annotate_calculator_capabilities(calculator)
+        _validate_pbc_neighbor_cutoff(self.atoms, calculator)
         self._warn_charge_mult()
         return calculator
 
@@ -386,3 +489,34 @@ class SetClaculator:
         with open(self.output, "a") as handle:
             for line in info_message:
                 handle.write(line)
+
+
+def validate_pbc_capabilities(atoms, task: str) -> None:
+    """Reject PBC inputs when the attached calculator lacks real periodic support."""
+    if atoms is None or not any(atoms.pbc):
+        return
+
+    from maple.function.dispatcher.md.utils import (
+        _calc_capability,
+        _calc_label,
+        _calc_model_name,
+    )
+
+    calc = getattr(atoms, "calc", None)
+    model_label = _calc_label(calc)
+
+    if (
+        _calc_model_name(calc) == "uma"
+        and getattr(calc, "_auto_task", True) is False
+        and str(getattr(calc, "task_name", "")).lower() == "omol"
+    ):
+        raise ValueError(
+            "PBC is incompatible with UMA task='omol'. "
+            "Omit task= so MAPLE can select a periodic UMA task, or set task='omat'."
+        )
+
+    if not _calc_capability(calc, "maple_pbc_md_supported"):
+        raise ValueError(
+            f"{task.upper()} with PBC requires a calculator with real periodic support. "
+            f"Model/calculator '{model_label}' is not declared PBC capable."
+        )

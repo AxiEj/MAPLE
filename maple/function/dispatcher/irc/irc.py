@@ -2,11 +2,13 @@ from ase import Atoms
 
 from ..jobABC import JobABC
 
+from maple.function.calculator.set_calculator import validate_pbc_capabilities
 from maple.function.timer import timer
 
 class IRC(JobABC):
     def __init__(self, params: dict, output:str, atoms:Atoms, method:str='hpc'):
         super().__init__(output)
+        validate_pbc_capabilities(atoms, "irc")
         self.atoms = atoms
         self.method = method
         self.output = output

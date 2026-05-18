@@ -7,6 +7,7 @@ from ase.neighborlist import NeighborList, natural_cutoffs
 
 from ..jobABC import JobABC
 
+from maple.function.calculator.set_calculator import validate_pbc_capabilities
 from maple.function.timer import timer
 from maple.function.utility.xyz_io import write_xyz
 
@@ -19,6 +20,7 @@ class Scan(JobABC):
     def __init__(self, output: str, atoms: Atoms, method: str = "lbfgs", 
                  constraints: Optional[list] = None, params: Optional[dict] = None):
         super().__init__(output)
+        validate_pbc_capabilities(atoms, "scan")
         self.atoms = atoms
         self.output = output
         self.params = params if params is not None else {}

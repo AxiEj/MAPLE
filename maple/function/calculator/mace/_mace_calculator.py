@@ -113,6 +113,8 @@ class MACECalculator(CalcABC):
 
     implemented_properties = ['energy', 'forces', 'free_energy']
     supported_hessian_modes = ("analytic", "numerical")
+    maple_pbc_md_supported = False
+    maple_stress_supported = False
 
     def __init__(self, 
         device: torch.device, 

@@ -82,6 +82,7 @@ class AIMNet2OfficialPBCCalculator(CalcABC):
 
         base_calculator.set_lrcoulomb_method(str(coulomb_method).lower(), **lrcoulomb_kwargs)
         self._official_calculator = ase_calculator_cls(base_calculator)
+        self.neighbor_cutoff_A = float(cutoff)
 
         if implicit == "gbsa" and solvent != "none":
             raise NotImplementedError("Implicit solvent is not supported for AIMNet2 PBC backends.")

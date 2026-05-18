@@ -74,6 +74,35 @@ _VALID_VELOCITY_REPRESENTATIONS = {
 
 # ========== Core MD Calculations ==========
 
+def _calc_model_name(calc) -> Optional[str]:
+    """Return a normalized MAPLE model name attached to a calculator."""
+    if calc is None:
+        return None
+
+    for attr in ("maple_model_name", "model_name", "model"):
+        candidate = getattr(calc, attr, None)
+        if isinstance(candidate, str):
+            return candidate.lower()
+    return None
+
+
+def _calc_capability(calc, explicit_attr: str) -> bool:
+    """Return a calculator-declared MAPLE capability, defaulting to False."""
+    if calc is None:
+        return False
+    return bool(getattr(calc, explicit_attr, False))
+
+
+def _calc_label(calc) -> str:
+    """Return a stable model/calculator label for capability errors."""
+    model_name = _calc_model_name(calc)
+    if model_name:
+        return model_name
+    if calc is None:
+        return "<none>"
+    return calc.__class__.__name__
+
+
 def is_linear_molecule(atoms: Atoms, tol: float = 1e-8) -> bool:
     """Return True if a non-periodic system is effectively linear."""
     if any(atoms.pbc):

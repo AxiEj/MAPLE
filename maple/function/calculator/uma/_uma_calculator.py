@@ -53,6 +53,8 @@ class UMACalculator(FAIRChemCalculator):
     """
 
     supported_hessian_modes = ("numerical",)
+    maple_pbc_md_supported = True
+    maple_stress_supported = True
 
     @staticmethod
     def _normalize_device(device: torch.device | str | None) -> str:

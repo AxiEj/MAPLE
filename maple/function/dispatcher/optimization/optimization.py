@@ -3,12 +3,14 @@ from ase import Atoms
 
 from ..jobABC import JobABC
 
+from maple.function.calculator.set_calculator import validate_pbc_capabilities
 from maple.function.timer import timer
 
 
 class Optimization(JobABC):
     def __init__(self, params: dict, output: str, atoms: Atoms):
         super().__init__(output)
+        validate_pbc_capabilities(atoms, "opt")
         self.atoms = atoms
         self.commandcontrol = params
 

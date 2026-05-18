@@ -6,13 +6,25 @@ from ase import Atoms
 
 from ..jobABC import JobABC
 
+from maple.function.calculator.set_calculator import validate_pbc_capabilities
 from maple.function.utility import Molecules
 from maple.function.timer import timer
+
+
+def _iter_atoms_for_pbc_gate(atoms):
+    if isinstance(atoms, Molecules):
+        return atoms.multiatoms
+    if isinstance(atoms, list):
+        return atoms
+    return [atoms]
+
 
 class TransitionState(JobABC):
 
     def __init__(self, output: str, atoms: Union[Atoms, Molecules, List[Atoms]], params: dict, method:str=None):
         super().__init__(output)
+        for image in _iter_atoms_for_pbc_gate(atoms):
+            validate_pbc_capabilities(image, "ts")
         self.atoms = atoms
         self.params = params
         self.method = method

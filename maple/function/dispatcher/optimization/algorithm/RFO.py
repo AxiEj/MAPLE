@@ -8,6 +8,7 @@ from ase import Atoms
 
 from ._common import (
     compute_metrics,
+    finalize_optimization_output,
     is_converged,
     to_numpy_f64,
     vec1d,
@@ -313,19 +314,13 @@ class RFO(JobABC):
         final_path_label: str,
     ) -> None:
         """Write final _opt.xyz and log the closing summary."""
-        base, _ = os.path.splitext(self.output)
-        opt_file = base + "_opt.xyz"
-        write_xyz(opt_file, [self.atoms], energies=[energy])
-        if self.params.verbose != 1 and self._last_iter_info is not None:
-            self.log_info(self._last_iter_info)
-
-        info = [f"\n{summary}\n"]
-        if self.params.log_final_paths:
-            info.extend([
-                f"\n{final_path_label} {opt_file}\n",
-                f"Optimization trajectory written to: {opt_traj_file}\n",
-            ])
-        self.log_info(info)
+        finalize_optimization_output(
+            self,
+            energy=energy,
+            summary=summary,
+            opt_traj_file=opt_traj_file,
+            final_path_label=final_path_label,
+        )
 
     def _log_iteration(self, iteration: int, energy: float, s_cart: np.ndarray,
                     forces: np.ndarray, rho: Optional[float],

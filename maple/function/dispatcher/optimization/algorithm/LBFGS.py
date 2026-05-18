@@ -6,7 +6,7 @@ from typing import List, Optional
 import numpy as np
 from ase import Atoms
 
-from ._common import compute_metrics, is_converged, write_xyz
+from ._common import compute_metrics, finalize_optimization_output, is_converged, write_xyz
 from ...jobABC import JobABC
 
 
@@ -147,18 +147,7 @@ class LBFGS(JobABC):
 
     def _finalize_run(self, e: float, summary: str, opt_traj_file: str) -> None:
         """Write final _opt.xyz and log the closing summary."""
-        base, _ = os.path.splitext(self.output)
-        opt_file = base + "_opt.xyz"
-        write_xyz(opt_file, [self.atoms], energies=[e])
-        if self.params.verbose != 1 and self._last_iter_info is not None:
-            self.log_info(self._last_iter_info)
-        info = [f"\n{summary}\n"]
-        if self.params.log_final_paths:
-            info.extend([
-                f"Final frame written to {opt_file}\n",
-                f"Optimization trajectory written to {opt_traj_file}\n",
-            ])
-        self.log_info(info)
+        finalize_optimization_output(self, energy=e, summary=summary, opt_traj_file=opt_traj_file)
 
     # ----------------------------------------------------------
     def run(self) -> Atoms:

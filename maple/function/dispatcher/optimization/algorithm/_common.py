@@ -35,6 +35,36 @@ def write_xyz(filename: str, atoms_list: List[Atoms],
         os.fsync(f.fileno())
 
 
+def finalize_optimization_output(
+    job,
+    *,
+    energy: float,
+    summary: str,
+    opt_traj_file: str,
+    final_path_label: Optional[str] = None,
+) -> None:
+    """Write the final optimizer XYZ frame and closing summary."""
+    base, _ = os.path.splitext(job.output)
+    opt_file = base + "_opt.xyz"
+    write_xyz(opt_file, [job.atoms], energies=[energy])
+    if job.params.verbose != 1 and job._last_iter_info is not None:
+        job.log_info(job._last_iter_info)
+
+    info = [f"\n{summary}\n"]
+    if job.params.log_final_paths:
+        if final_path_label is None:
+            info.extend([
+                f"Final frame written to {opt_file}\n",
+                f"Optimization trajectory written to {opt_traj_file}\n",
+            ])
+        else:
+            info.extend([
+                f"\n{final_path_label} {opt_file}\n",
+                f"Optimization trajectory written to: {opt_traj_file}\n",
+            ])
+    job.log_info(info)
+
+
 def to_numpy_f64(x):
     """Convert input to float64 numpy array or float."""
     if isinstance(x, np.ndarray):

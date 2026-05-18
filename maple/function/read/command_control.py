@@ -8,6 +8,11 @@ from maple.function.calculator.aimnet.options import (
     AIMNET_PBC_MODELS,
     AIMNET_PBC_OPTION_KEYS,
 )
+from maple.function.calculator.mace.options import (
+    MACE_PBC_MODELS,
+    MACE_PBC_OPTION_KEYS,
+    validate_mace_pbc_options,
+)
 
 
 class CommandControl:
@@ -30,6 +35,9 @@ class CommandControl:
         "aimnet2nse",
         "aimnet2-pbc",
         "aimnet2nse-pbc",
+        "mace-mp-pbc-small",
+        "mace-mp-pbc-medium",
+        "mace-mp-pbc-large",
         "uma",
         "maceomol",
         "macepols",
@@ -164,6 +172,9 @@ class CommandControl:
         "aimnet2nse": AIMNET_LEGACY_OPTION_KEYS,
         "aimnet2-pbc": AIMNET_PBC_OPTION_KEYS,
         "aimnet2nse-pbc": AIMNET_PBC_OPTION_KEYS,
+        "mace-mp-pbc-small": MACE_PBC_OPTION_KEYS,
+        "mace-mp-pbc-medium": MACE_PBC_OPTION_KEYS,
+        "mace-mp-pbc-large": MACE_PBC_OPTION_KEYS,
         "uma": {"task", "size", "hessian", "inference"},
         "macepols": {"model_path", "hessian"},
         "macepolm": {"model_path", "hessian"},
@@ -366,13 +377,22 @@ class CommandControl:
             )
             params["model"] = (
                 model_value
-                if model_value in AIMNET_PBC_MODELS
+                if model_value in AIMNET_PBC_MODELS or model_value in MACE_PBC_MODELS
                 else model_value.replace("-", "")
             )
 
         model_options = params.get("model_options")
         if isinstance(model_options, dict):
-            for key in ("task", "size", "hessian", "inference", "coulomb"):
+            for key in (
+                "task",
+                "size",
+                "hessian",
+                "inference",
+                "coulomb",
+                "default_dtype",
+                "foundation",
+                "head",
+            ):
                 if key in model_options and isinstance(model_options[key], str):
                     model_options[key] = model_options[key].lower()
 
@@ -570,6 +590,13 @@ class CommandControl:
 
             try:
                 validate_aimnet_options(model_options, pbc=model in AIMNET_PBC_MODELS)
+            except ValueError as exc:
+                cls._log_error(output_path, str(exc))
+                raise
+
+        if model in MACE_PBC_MODELS:
+            try:
+                validate_mace_pbc_options(model_options)
             except ValueError as exc:
                 cls._log_error(output_path, str(exc))
                 raise

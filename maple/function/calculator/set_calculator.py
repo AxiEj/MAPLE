@@ -15,6 +15,7 @@ from .aimnet.options import (
     validate_aimnet_options,
 )
 from .mace._mace_calculator import MACECalculator
+from .mace.options import MACE_PBC_MODELS, validate_mace_pbc_options
 
 
 IMPLEMENTATION_MODELS = [
@@ -30,6 +31,9 @@ IMPLEMENTATION_MODELS = [
     "aimnet2nse",
     "aimnet2-pbc",
     "aimnet2nse-pbc",
+    "mace-mp-pbc-small",
+    "mace-mp-pbc-medium",
+    "mace-mp-pbc-large",
     "uma",
     "maceomol",
     "macepols",
@@ -70,6 +74,9 @@ MODEL_HESSIAN_SUPPORT = {
     "aimnet2nse": ("analytic", "numerical"),
     "aimnet2-pbc": (),
     "aimnet2nse-pbc": (),
+    "mace-mp-pbc-small": (),
+    "mace-mp-pbc-medium": (),
+    "mace-mp-pbc-large": (),
     "uma": ("numerical",),
     "maceomol": ("analytic", "numerical"),
     "macepols": ("analytic", "numerical"),
@@ -87,6 +94,9 @@ UNSUPPORTED_CHARGE_MULT_MODELS = {
     "maceoff23l",
     "egret",
     "maceomol",
+    "mace-mp-pbc-small",
+    "mace-mp-pbc-medium",
+    "mace-mp-pbc-large",
 }
 
 
@@ -154,6 +164,11 @@ class SetClaculator:
         if self.model in AIMNET_PBC_MODELS:
             return validate_aimnet_options(self.model_options, pbc=True)
         return {}
+
+    def _validated_mace_pbc_options(self) -> dict:
+        if self.model not in MACE_PBC_MODELS:
+            return {}
+        return validate_mace_pbc_options(self.model_options)
 
     def _coerce_uma_inference_for_device(
         self, inference: Optional[str], device_name: str
@@ -272,6 +287,20 @@ class SetClaculator:
                 implicit=self.implicit,
                 solvent=self.solvent,
             )
+        elif model in MACE_PBC_MODELS:
+            from .mace._mace_official_pbc_calculator import MACEOfficialPBCCalculator
+
+            mace_options = self._validated_mace_pbc_options()
+            calculator = MACEOfficialPBCCalculator(
+                model=model,
+                device=self.device,
+                foundation=mace_options.get("foundation"),
+                default_dtype=mace_options.get("default_dtype", "float32"),
+                dispersion=mace_options.get("dispersion", False),
+                head=mace_options.get("head"),
+                implicit=self.implicit,
+                solvent=self.solvent,
+            )
         elif model == "uma":
             from .uma._uma_calculator import (
                 UMACalculator,
@@ -338,6 +367,8 @@ class SetClaculator:
             self.log_error(f"\n [ERROR] Unsupported model: {self.model}\n")
             raise ValueError(f"Unsupported model: '{self.model}'.")
 
+        self._validated_aimnet_options()
+        self._validated_mace_pbc_options()
         self._validate_requested_hessian_mode()
 
         if self.d4 and self.model not in {"ani2x", "ani1x", "ani1ccx", "ani1xnr"}:

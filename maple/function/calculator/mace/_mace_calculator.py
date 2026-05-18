@@ -5,7 +5,7 @@ from typing import Dict, Union, Sequence, Optional
 from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC
 from typing import Literal
-EV2HARTREE = 1.0 / 27.211386245988
+from maple.function.calculator._ase_unit_contract import EV2HARTREE
 
 # ------------------------ Basic helpers ------------------------
 

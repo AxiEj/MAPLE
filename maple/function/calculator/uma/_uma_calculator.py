@@ -10,6 +10,8 @@ import torch
 from ase import Atoms
 from ase.calculators.calculator import all_changes
 
+from maple.function.calculator._ase_unit_contract import EV2HARTREE
+
 try:
     from fairchem.core import pretrained_mlip
     from fairchem.core._config import CACHE_DIR
@@ -19,9 +21,6 @@ try:
     from omegaconf import OmegaConf
 except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
-
-
-EV2HARTREE = 1.0 / 27.211386245988
 
 UMA_DEFAULT_SIZE = "uma-s-1p1"
 UMA_MODELS_MAP = {

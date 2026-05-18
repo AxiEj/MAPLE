@@ -111,6 +111,38 @@ H    0.802   0.842   1.742
 | `task` | `omol`, `omat`, `oc20`, `odac`, `omc`, `oc22`, `oc25` | inferred from PBC | `omol` for molecules, `omat` for periodic |
 | `inference` | `default`, `turbo` | `default` | `turbo` accelerates fixed-composition GPU workloads (NEB / TS / freq); ignored on CPU |
 
+### PBC Backends
+
+For periodic workloads (PBC OPT / SCAN / TS / IRC / MD), choose an explicit
+backend rather than relying on a legacy local wrapper:
+
+| Model name | Range | Long-range Coulomb | Optional extra | Reference |
+|------------|-------|--------------------|----------------|-----------|
+| `aimnet2-pbc`        | short + long | yes (Ewald / DSF) | `pbc-aimnet` | Anstine et al., ChemSci 2025, DOI 10.1039/D4SC08572H |
+| `aimnet2nse-pbc`     | short + long | yes (Ewald / DSF) | `pbc-aimnet` | (no-self-energy variant of the same backend)            |
+| `mace-mp-pbc-small`  | short-range  | no                | `pbc-mace`   | MACE-MP-0, Batatia et al., arXiv:2401.00096 (2023)      |
+| `mace-mp-pbc-medium` | short-range  | no                | `pbc-mace`   | MACE-MP-0, Batatia et al., arXiv:2401.00096 (2023)      |
+| `mace-mp-pbc-large`  | short-range  | no                | `pbc-mace`   | MACE-MP-0, Batatia et al., arXiv:2401.00096 (2023)      |
+
+Install the optional extras as needed:
+
+```bash
+pip install -e .[pbc-aimnet]   # pulls aimnet[ase]
+pip install -e .[pbc-mace]     # pulls mace-torch>=0.3.14,<0.4
+```
+
+**Physics note.** Use `aimnet2-pbc` / `aimnet2nse-pbc` for polar or charged
+periodic systems where the long-range Coulomb sum matters (electrolytes,
+zeolites with explicit charges, polar surfaces). Use `mace-mp-pbc-*` for
+solid-state foundation-model coverage where the short-range materials
+potential is sufficient (metals, semiconductors, neutral oxides).
+
+**Design note.** Backend choice is encoded in the model name, not in a flag.
+`#model=aimnet2` always means the legacy local wrapper; `#model=aimnet2-pbc`
+always means the official ASE-backed PBC adapter. MAPLE does not implicitly
+switch between the two based on whether `#pbc(...)` is present, so absolute
+energies and reproducibility provenance stay tied to the input.
+
 ### Coordinates
 
 Inline coordinates:

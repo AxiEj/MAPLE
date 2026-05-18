@@ -90,6 +90,13 @@ class LBFGS(JobABC):
         return step_cart
 
     def _update_history(self, s_vec: np.ndarray, y_vec: np.ndarray):
+        """Store only finite positive-curvature BFGS pairs.
+
+        The y dot s > 0 filter preserves the descent condition expected by
+        Wolfe-consistent BFGS updates; see Nocedal, J. & Wright, S. J.
+        Numerical Optimization, 2nd ed. (Springer, 2006), section 6.1,
+        DOI 10.1007/978-0-387-40065-5.
+        """
         curvature = np.dot(y_vec, s_vec)
         if not np.isfinite(curvature) or curvature <= 1e-12:
             return

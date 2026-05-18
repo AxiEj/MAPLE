@@ -23,7 +23,7 @@ The instantaneous pressure is computed from the virial theorem:
 where W = -dU/dV is the virial. In this implementation, the stress tensor
 returned by the calculator is treated as the configurational/virial contribution,
 while the kinetic term is computed explicitly from the current velocities.
-If stress is unavailable, W is set to zero (ideal-gas fallback).
+If stress is unavailable, NPT fails instead of using a kinetic-only fallback.
 
 Note:
     The Berendsen barostat does NOT generate a rigorously correct NPT
@@ -84,17 +84,13 @@ class BerendsenBarostat:
         # Scaling prefactor (constant): β * dt / τ_P
         self._scale_prefactor = compressibility * timestep / tau_p
 
-        # Warning flag: emit stress-unavailable warning at most once per instance
-        self._stress_warned = False
-
     def get_pressure(self, velocities: np.ndarray) -> float:
         """
         Compute instantaneous pressure in bar via the virial theorem.
 
         P = (2*KE + W) / (3*V)
 
-        The virial W is read from the calculator stress tensor if available,
-        otherwise the ideal-gas (W=0) approximation is used.
+        The virial W is read from the calculator stress tensor.
 
         Parameters
         ----------
@@ -106,10 +102,7 @@ class BerendsenBarostat:
         float
             Instantaneous pressure in bar
         """
-        pressure, self._stress_warned = compute_instantaneous_pressure(
-            self.atoms, velocities, self._stress_warned, self.__class__.__name__
-        )
-        return pressure
+        return compute_instantaneous_pressure(self.atoms, velocities)
 
     def apply(self, velocities: np.ndarray) -> np.ndarray:
         """

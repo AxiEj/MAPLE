@@ -42,6 +42,7 @@ from ..utils import (
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
     FS_TO_AU,
+    validate_md_capabilities,
 )
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
 from ..logger import MDLogger
@@ -219,6 +220,7 @@ class NVT(JobABC):
 
         if atoms.calc is None:
             raise ValueError("Atoms object must have a calculator attached")
+        validate_md_capabilities(atoms, "nvt")
 
         self.atoms = atoms
         self.params = self._init_params(NVTParams, paras, ("md", "MD", "nvt", "NVT"))

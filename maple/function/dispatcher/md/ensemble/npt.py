@@ -57,6 +57,8 @@ from ..utils import (
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
     FS_TO_AU,
+    validate_md_capabilities,
+    validate_stress_tensor,
 )
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
 from ..logger import MDLogger
@@ -200,11 +202,13 @@ class NPT(JobABC):
 
         if atoms.calc is None:
             raise ValueError("Atoms object must have a calculator attached")
+        validate_md_capabilities(atoms, "npt")
         if not any(atoms.pbc):
             raise ValueError(
                 "NPT ensemble requires a periodic cell (atoms.pbc must be True). "
                 "Use NVT or NVE for non-periodic systems."
             )
+        validate_stress_tensor(atoms)
 
         self.atoms = atoms
         self.params = self._init_params(NPTParams, paras, ("md", "MD", "npt", "NPT"))
@@ -544,8 +548,6 @@ class NPT(JobABC):
         forces = force_for_conversion if force_for_conversion is not None else (
             self.atoms.get_forces() * HA_PER_ANG_TO_AU
         )  # Ha/Å → a.u.
-        pressure_stress_warned = False
-
         for step in range(1, n_steps + 1):
             if is_langevin:
                 # LFMiddle sequence with carried velocities, then barostat.
@@ -576,12 +578,7 @@ class NPT(JobABC):
                 remove_angular_every=self.params.remove_angular_every,
             )
             forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU
-            pressure, pressure_stress_warned = compute_instantaneous_pressure(
-                self.atoms,
-                v,
-                stress_warned=pressure_stress_warned,
-                class_name=type(self.barostat).__name__,
-            )
+            pressure = compute_instantaneous_pressure(self.atoms, v)
 
             abs_step         = step_offset + step
             current_time     = abs_step * self.params.timestep

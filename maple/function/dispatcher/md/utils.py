@@ -9,12 +9,10 @@ This module provides essential calculations for MD:
 - XYZ trajectory writing utilities
 """
 
-import warnings
-
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 
 # ========== Physical Constants and Unit Conversions ==========
@@ -101,6 +99,54 @@ def _calc_label(calc) -> str:
     if calc is None:
         return "<none>"
     return calc.__class__.__name__
+
+
+class MDStressUnavailableError(ValueError):
+    """Raised when NPT pressure needs stress but the calculator cannot provide it."""
+
+
+def validate_stress_tensor(atoms: Atoms) -> np.ndarray:
+    """Return a finite Voigt stress tensor or raise a hard NPT startup error."""
+    try:
+        stress = atoms.get_stress(voigt=True)
+    except (PropertyNotImplementedError, NotImplementedError, RuntimeError) as exc:
+        raise MDStressUnavailableError(
+            "Calculator does not provide a stress tensor; NPT pressure cannot be "
+            "computed without real calculator stress."
+        ) from exc
+
+    stress = np.asarray(stress, dtype=float).reshape(-1)
+    if stress.shape != (6,):
+        raise MDStressUnavailableError(
+            f"Calculator returned invalid stress shape {stress.shape}; expected Voigt length 6."
+        )
+    if not np.all(np.isfinite(stress)):
+        raise MDStressUnavailableError("Calculator returned non-finite stress values.")
+    return stress
+
+
+def validate_md_capabilities(atoms: Atoms, ensemble: str) -> None:
+    """Validate calculator capabilities needed by the requested MD ensemble."""
+    if atoms is None or atoms.calc is None:
+        raise ValueError("Atoms object must have a calculator attached")
+
+    ensemble_name = str(ensemble).lower()
+
+    from maple.function.calculator.set_calculator import validate_pbc_capabilities
+
+    validate_pbc_capabilities(atoms, ensemble_name)
+
+    if ensemble_name != "npt" or not any(atoms.pbc):
+        return
+
+    calc = atoms.calc
+    model_label = _calc_label(calc)
+    if not _calc_capability(calc, "maple_stress_supported"):
+        raise MDStressUnavailableError(
+            "NPT requires a calculator with real stress support. "
+            f"Model/calculator '{model_label}' is not declared stress capable."
+        )
+    validate_stress_tensor(atoms)
 
 
 def is_linear_molecule(atoms: Atoms, tol: float = 1e-8) -> bool:
@@ -306,9 +352,7 @@ def calculate_kinetic_energy(atoms: Atoms, velocities: np.ndarray) -> float:
 def compute_instantaneous_pressure(
     atoms: Atoms,
     velocities: np.ndarray,
-    stress_warned: bool = False,
-    class_name: str = "Barostat",
-) -> Tuple[float, bool]:
+) -> float:
     """
     Compute instantaneous pressure from the virial theorem.
 
@@ -322,30 +366,19 @@ def compute_instantaneous_pressure(
         Atomic system with attached calculator.
     velocities : np.ndarray
         Current velocities in atomic units (Bohr/a.u. time), shape (N_atoms, 3).
-    stress_warned : bool, default=False
-        Flag indicating whether stress-unavailable warning has already been issued.
-        If False and stress is unavailable, a warning is emitted and the flag is
-        set to True in the return value.
-    class_name : str, default="Barostat"
-        Class name to include in warning message.
 
     Returns
     -------
-    tuple of (float, bool)
-        (pressure_in_bar, new_stress_warned_flag)
-        pressure_in_bar: Instantaneous pressure in bar.
-        new_stress_warned_flag: Updated warning flag (True if warning was issued).
-
-    Notes
-    -----
-    If the calculator does not support stress tensor, the ideal-gas approximation
-    (W=0) is used, which underestimates pressure for dense systems.
+    float
+        Instantaneous pressure in bar.
 
     References
     ----------
     Allen & Tildesley, Computer Simulation of Liquids, 2nd ed. (2017), §3.3.
     """
     volume = atoms.get_volume()   # Å³
+    if volume <= 0.0 or not np.isfinite(volume):
+        raise ValueError(f"Pressure calculation requires a finite positive volume, got {volume!r}.")
 
     # Kinetic contribution (in eV)
     masses_amu = atoms.get_masses()
@@ -355,27 +388,13 @@ def compute_instantaneous_pressure(
     ke_ev = 0.5 * np.sum(masses_amu[:, np.newaxis] * v_ang_per_fs**2) * AMU_ANG2_PER_FS2_TO_EV
 
     # Virial contribution from stress tensor (eV)
-    virial_ev = 0.0
-    new_stress_warned = stress_warned
-    try:
-        stress = atoms.get_stress(voigt=True)   # eV/Å³, Voigt: xx,yy,zz,yz,xz,xy
-        # Hydrostatic virial: W = -V * (σ_xx + σ_yy + σ_zz)
-        virial_ev = -volume * (stress[0] + stress[1] + stress[2])
-    except (PropertyNotImplementedError, RuntimeError):
-        # Calculator does not support stress; fall back to ideal-gas pressure (virial = 0).
-        # Warn once per barostat instance so the user is aware.
-        if not stress_warned:
-            warnings.warn(
-                f"{class_name}: calculator does not provide a stress tensor; "
-                "pressure estimated from kinetic term only (ideal-gas approximation). "
-                "For accurate NPT simulations, use a calculator that supports stress.",
-                UserWarning, stacklevel=2
-            )
-            new_stress_warned = True
+    stress = validate_stress_tensor(atoms)   # eV/Å³, Voigt: xx,yy,zz,yz,xz,xy
+    # Hydrostatic virial: W = -V * (σ_xx + σ_yy + σ_zz)
+    virial_ev = -volume * (stress[0] + stress[1] + stress[2])
 
     # P = (2*KE + W) / (3*V)  in eV/Å³, then convert to bar
     pressure_ev_ang3 = (2.0 * ke_ev + virial_ev) / (3.0 * volume)
-    return pressure_ev_ang3 * EV_PER_ANG3_TO_BAR, new_stress_warned
+    return pressure_ev_ang3 * EV_PER_ANG3_TO_BAR
 
 
 def initialize_velocities(

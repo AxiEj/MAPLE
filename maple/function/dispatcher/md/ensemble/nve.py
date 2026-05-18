@@ -28,6 +28,7 @@ from ..utils import (
     get_runtime_dof_policy,
     initialize_velocities,
     HA_PER_ANG_TO_AU,
+    validate_md_capabilities,
 )
 from ..logger import MDLogger
 
@@ -191,6 +192,7 @@ class NVE(JobABC):
 
         if atoms.calc is None:
             raise ValueError("Atoms object must have a calculator attached")
+        validate_md_capabilities(atoms, "nve")
 
         self.atoms = atoms
 

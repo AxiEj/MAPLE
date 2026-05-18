@@ -35,5 +35,8 @@ class Optimization(JobABC):
                     f"Supported: lbfgs, rfo, sd, sdcg, cg.")
 
 
-# Backward compatibility for the historical misspelling.
+# Deprecated misspelling: kept as a non-warning alias until in-tree callers
+# are migrated to `Optimization`. New code MUST use `Optimization`; do not
+# add a runtime DeprecationWarning until the call sites are cleaned up
+# (warning every existing caller before the migration is noise, not signal).
 Optmization = Optimization

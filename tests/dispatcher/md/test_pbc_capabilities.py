@@ -14,6 +14,7 @@ from maple.function.dispatcher.md.utils import (
     EV_PER_ANG3_TO_BAR,
     FS_TO_AU,
     HA_PER_ANG_TO_AU,
+    VELOCITY_REPR_LFMIDDLE_CARRIED,
     VELOCITY_REPR_STANDARD,
     compute_instantaneous_pressure,
     get_atoms_velocity_representation,
@@ -29,9 +30,12 @@ class EnergyForcesCalculator(Calculator):
         self.maple_pbc_md_supported = pbc_capable
         self.maple_stress_supported = stress_capable
         self._forces = forces
+        self.force_call_volumes = []
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)
+        volume = atoms.get_volume() if atoms is not None and any(atoms.pbc) else None
+        self.force_call_volumes.append(volume)
         self.results["energy"] = 0.0
         if self._forces is None:
             self.results["forces"] = np.zeros((len(atoms), 3))
@@ -169,7 +173,7 @@ def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
         return velocities, 0.0
 
     npt.thermostat.apply = thermostat_apply
-    npt.barostat.apply = lambda velocities: (0.0, velocities)
+    npt.barostat.apply = lambda velocities, pressure_velocities=None: (0.0, velocities)
 
     npt.run()
 
@@ -178,8 +182,12 @@ def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
     np.testing.assert_allclose(seen["velocities"], expected)
 
 
-def test_npt_uses_barostat_pressure_once_and_logs_pre_rescale_volume(monkeypatch, tmp_path):
-    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+def test_npt_uses_barostat_pressure_once_logs_pre_rescale_volume_and_refreshes_forces(
+    monkeypatch,
+    tmp_path,
+):
+    calc = StressCalculator(np.zeros(6))
+    atoms = _periodic_atoms(calc)
     atoms.arrays["velocities"] = np.zeros((1, 3))
     npt = NPT(
         output=str(tmp_path / "npt.out"),
@@ -198,7 +206,7 @@ def test_npt_uses_barostat_pressure_once_and_logs_pre_rescale_volume(monkeypatch
     )
     calls = []
 
-    def apply_barostat(velocities):
+    def apply_barostat(velocities, pressure_velocities=None):
         calls.append(velocities.copy())
         atoms.set_cell(atoms.get_cell() * 2.0, scale_atoms=True)
         return 123.0, velocities
@@ -223,6 +231,48 @@ def test_npt_uses_barostat_pressure_once_and_logs_pre_rescale_volume(monkeypatch
     assert len(calls) == 1
     assert records["pressure"] == pytest.approx(123.0)
     assert records["volume"] == pytest.approx(1000.0)
+    assert calc.force_call_volumes[-1] == pytest.approx(8000.0)
+
+
+def test_npt_langevin_barostat_pressure_uses_synchronized_standard_velocity(tmp_path):
+    force = np.array([[1.0, 0.0, 0.0]])
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6), forces=force))
+    atoms.arrays["velocities"] = np.zeros((1, 3))
+    timestep_fs = 0.1
+    npt = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "timestep": timestep_fs,
+            "thermostat": "langevin",
+            "barostat": "c-rescale",
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 0,
+        },
+    )
+    seen = {}
+
+    npt.thermostat.apply = lambda velocities: velocities
+
+    def barostat_apply(velocities, pressure_velocities=None):
+        seen["state_velocities"] = velocities.copy()
+        seen["pressure_velocities"] = pressure_velocities.copy()
+        return 0.0, velocities
+
+    npt.barostat.apply = barostat_apply
+
+    npt.run()
+
+    mass = atoms.get_masses()[0] * AMU_TO_AU
+    velocity_increment = force * HA_PER_ANG_TO_AU / mass * (timestep_fs * FS_TO_AU)
+    np.testing.assert_allclose(seen["state_velocities"], 0.5 * velocity_increment)
+    np.testing.assert_allclose(seen["pressure_velocities"], velocity_increment)
+    assert get_atoms_velocity_representation(npt.atoms) == VELOCITY_REPR_LFMIDDLE_CARRIED
 
 
 def test_npt_vrescale_load_state_keeps_standard_velocity_representation(tmp_path):

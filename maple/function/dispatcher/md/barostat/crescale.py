@@ -31,9 +31,10 @@ Reference:
     Bernetti & Bussi, J. Chem. Phys. 153, 114107 (2020).
 """
 
+from typing import Optional
+
 import numpy as np
 from ase import Atoms
-from typing import Optional
 
 from ..utils import (
     KELVIN_TO_HARTREE,
@@ -122,7 +123,11 @@ class CRescaleBarostat:
         """
         return compute_instantaneous_pressure(self.atoms, velocities)
 
-    def apply(self, velocities: np.ndarray) -> tuple[float, np.ndarray]:
+    def apply(
+        self,
+        velocities: np.ndarray,
+        pressure_velocities: Optional[np.ndarray] = None,
+    ) -> tuple[float, np.ndarray]:
         """
         Apply one C-rescale barostat step: stochastically rescale cell.
 
@@ -139,6 +144,10 @@ class CRescaleBarostat:
         ----------
         velocities : np.ndarray
             Current velocities in atomic units
+        pressure_velocities : np.ndarray, optional
+            Velocities to use for the kinetic pressure term when they differ
+            from the propagated velocity state (for example LF-Middle carried
+            velocities in Langevin paths).
 
         Returns
         -------
@@ -146,7 +155,8 @@ class CRescaleBarostat:
             ``(pressure, rescaled_velocities)`` where pressure is the
             instantaneous pre-rescaling pressure in bar.
         """
-        pressure = self.get_pressure(velocities)
+        pressure_input = velocities if pressure_velocities is None else pressure_velocities
+        pressure = self.get_pressure(pressure_input)
         volume = self.atoms.get_volume()   # Å³
 
         # Deterministic part (Berendsen-like): β*(dt/τ_P)*(P - P_target)

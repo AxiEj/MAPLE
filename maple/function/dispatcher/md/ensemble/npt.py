@@ -7,13 +7,15 @@ Supports two combinations:
 
 Recommended combination for production MLP runs:
     thermostat=v-rescale + barostat=c-rescale
-    → both produce the correct NPT ensemble.
+    → full-step Velocity Verlet + stochastic temperature/cell rescaling is the
+      reference-aligned production path in this module.
 
 Berendsen variants are suitable for rapid pre-equilibration but suppress
 pressure/temperature fluctuations and do not generate correct ensemble averages.
 
 Integration order each step:
-    - Langevin: LFMiddle carried-velocity sequence, then barostat.
+    - Langevin: LFMiddle carried-velocity sequence, barostat pressure from
+      synchronized standard velocity, then barostat scaling of carried state.
     - V-rescale: full Velocity Verlet step, then thermostat, then barostat.
 
 Requirements:
@@ -75,9 +77,13 @@ class NPTParams:
     Thermostat default: v-rescale (Bussi et al. 2007 JCP 126, 014101)
       — correct canonical ensemble; less perturbative than Langevin.
     Barostat default: c-rescale (Bernetti & Bussi 2020 JCP 153, 114107)
-      — correct isothermal-isobaric ensemble; analogue of v-rescale for pressure.
+      — stochastic isotropic cell rescaling; analogue of v-rescale for pressure.
 
     Recommended production combination: thermostat=v-rescale + barostat=c-rescale.
+    Langevin remains available as an explicitly requested damped-equilibration
+    path with synchronized pressure velocities, but MAPLE does not implement
+    the Monte Carlo/Langevin-piston/MTTK barostats used by older MD engines for
+    formally stronger Langevin-NPT treatments.
     Berendsen variants are suitable for rapid pre-equilibration only.
     """
     # ------------------------------------------------------------------
@@ -488,7 +494,9 @@ class NPT(JobABC):
         """
         Run NPT simulation.
 
-        Langevin uses LF-Middle carried velocities followed by the barostat.
+        Langevin uses LF-Middle carried velocities internally; the barostat
+        pressure decision uses a synchronized standard velocity so the kinetic
+        pressure term is not computed from the half-step carried state.
         V-rescale applies the thermostat to the full-step Velocity Verlet
         velocity before the barostat.  This NPT path does not report the Bussi
         conserved quantity because barostat work is not accumulated here.
@@ -556,6 +564,16 @@ class NPT(JobABC):
                 integrator.half_step_r(v)
                 v = self.thermostat.apply(v)
                 v, forces = integrator.lfmiddle_post_thermostat(v)
+                # LFMiddle stores half-step/carried velocities.  Following the
+                # pressure-control lesson from mature MD engines, keep that
+                # propagated state intact but compute the kinetic pressure term
+                # from a velocity synchronized to the current coordinates.
+                pressure_velocities = lfmiddle_carried_to_standard(
+                    self.atoms,
+                    v,
+                    forces,
+                    integrator.timestep,
+                )
             else:
                 # Full Velocity Verlet step first, then V-rescale the full-step
                 # velocity.  Thermostat work is intentionally not accumulated:
@@ -563,10 +581,14 @@ class NPT(JobABC):
                 # the barostat work is tracked too.
                 v, forces = integrator.step(v, forces)
                 v, _delta_w = self.thermostat.apply(v)
+                pressure_velocities = None
 
             # Barostat: use the pre-rescale pressure/volume pair for logging.
             volume_pre = self.atoms.get_volume()
-            pressure_pre, v = self.barostat.apply(v)
+            pressure_pre, v = self.barostat.apply(
+                v,
+                pressure_velocities=pressure_velocities,
+            )
             v, _projection = apply_runtime_motion_projection(
                 self.atoms,
                 v,

@@ -18,7 +18,7 @@ Typical usage
 Components
 ----------
 Integrator  : VelocityVerlet (symplectic, second-order)
-Thermostats : LangevinThermostat (BAOAB), VRescaleThermostat (Bussi 2007)
+Thermostats : LangevinThermostat (LF-Middle), VRescaleThermostat (Bussi 2007)
 Barostats   : BerendsenBarostat, CRescaleBarostat (Bernetti & Bussi 2020)
 Logger      : MDLogger
 """

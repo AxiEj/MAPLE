@@ -36,6 +36,8 @@ Reference:
     Berendsen et al., J. Chem. Phys. 81, 3684 (1984).
 """
 
+from typing import Optional
+
 import numpy as np
 from ase import Atoms
 
@@ -104,7 +106,11 @@ class BerendsenBarostat:
         """
         return compute_instantaneous_pressure(self.atoms, velocities)
 
-    def apply(self, velocities: np.ndarray) -> tuple[float, np.ndarray]:
+    def apply(
+        self,
+        velocities: np.ndarray,
+        pressure_velocities: Optional[np.ndarray] = None,
+    ) -> tuple[float, np.ndarray]:
         """
         Apply one Berendsen barostat step: rescale cell and positions.
 
@@ -118,6 +124,10 @@ class BerendsenBarostat:
         ----------
         velocities : np.ndarray
             Current velocities in atomic units (unchanged, returned as-is)
+        pressure_velocities : np.ndarray, optional
+            Velocities to use for the kinetic pressure term when they differ
+            from the propagated velocity state (for example LF-Middle carried
+            velocities in Langevin paths).
 
         Returns
         -------
@@ -125,7 +135,8 @@ class BerendsenBarostat:
             ``(pressure, velocities)`` where pressure is the instantaneous
             pre-scaling pressure in bar.  Berendsen leaves velocities unchanged.
         """
-        pressure = self.get_pressure(velocities)
+        pressure_input = velocities if pressure_velocities is None else pressure_velocities
+        pressure = self.get_pressure(pressure_input)
         mu3 = 1.0 - self._scale_prefactor * (self.pressure_target - pressure)
         # Clamp to avoid instability
         mu3 = float(np.clip(mu3, 0.5**3, 2.0**3))

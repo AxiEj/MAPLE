@@ -14,7 +14,7 @@ pressure/temperature fluctuations and do not generate correct ensemble averages.
 
 Integration order each step:
     - Langevin: LFMiddle carried-velocity sequence, then barostat.
-    - V-rescale: existing split Velocity Verlet sequence, then barostat.
+    - V-rescale: full Velocity Verlet step, then thermostat, then barostat.
 
 Requirements:
     - Atoms object must have a periodic cell (atoms.pbc must be True)
@@ -45,7 +45,6 @@ from ..utils import (
     apply_runtime_motion_projection,
     calculate_temperature,
     calculate_kinetic_energy,
-    compute_instantaneous_pressure,
     describe_dof_policy,
     get_atoms_velocity_representation,
     get_initialization_dof_policy,
@@ -490,7 +489,9 @@ class NPT(JobABC):
         Run NPT simulation.
 
         Langevin uses LF-Middle carried velocities followed by the barostat.
-        V-rescale keeps the existing split Velocity Verlet + barostat path.
+        V-rescale applies the thermostat to the full-step Velocity Verlet
+        velocity before the barostat.  This NPT path does not report the Bussi
+        conserved quantity because barostat work is not accumulated here.
         """
         if n_steps is None:
             n_steps = self.params.steps
@@ -556,20 +557,16 @@ class NPT(JobABC):
                 v = self.thermostat.apply(v)
                 v, forces = integrator.lfmiddle_post_thermostat(v)
             else:
-                # Keep the existing V-rescale split chain unchanged.
-                v_half = integrator.split_step(v, forces)
+                # Full Velocity Verlet step first, then V-rescale the full-step
+                # velocity.  Thermostat work is intentionally not accumulated:
+                # the NVT Bussi conserved quantity is incomplete for NPT unless
+                # the barostat work is tracked too.
+                v, forces = integrator.step(v, forces)
+                v, _delta_w = self.thermostat.apply(v)
 
-                # O: thermostat (V-rescale)
-                # Note: V-rescale returns (velocities, delta_w) but the thermostat
-                # work is not tracked here — Bussi 2007 Eq. 15 conserved quantity
-                # is only valid for NVT, not NPT where the barostat also does work.
-                v, _delta_w = self.thermostat.apply(v_half)
-
-                # A(half)-B: half-position + force eval + half-kick; returns cached forces
-                v, forces = integrator.complete_split_step(v)
-
-            # Barostat: rescale cell after the thermostat/integrator cycle.
-            self.barostat.apply(v)
+            # Barostat: use the pre-rescale pressure/volume pair for logging.
+            volume_pre = self.atoms.get_volume()
+            pressure_pre, v = self.barostat.apply(v)
             v, _projection = apply_runtime_motion_projection(
                 self.atoms,
                 v,
@@ -578,14 +575,12 @@ class NPT(JobABC):
                 remove_angular_every=self.params.remove_angular_every,
             )
             forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU
-            pressure = compute_instantaneous_pressure(self.atoms, v)
 
             abs_step         = step_offset + step
             current_time     = abs_step * self.params.timestep
             temperature      = calculate_temperature(self.atoms, v, n_dof=self._runtime_n_dof)
             kinetic_energy   = calculate_kinetic_energy(self.atoms, v)
             potential_energy = self.atoms.get_potential_energy()  # Ha
-            volume           = self.atoms.get_volume()
 
             temperature_sync = None
             kinetic_energy_sync = None
@@ -614,8 +609,8 @@ class NPT(JobABC):
                 total_energy=kinetic_energy + potential_energy,
                 atoms=self.atoms,
                 velocities=v,
-                pressure=pressure,
-                volume=volume,
+                pressure=pressure_pre,
+                volume=volume_pre,
                 rng_state=get_rng_state_hex(self._rng),
                 rst_every=self.params.rst_every,
                 velocity_representation=velocity_representation,

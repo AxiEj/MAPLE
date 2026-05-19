@@ -3,31 +3,47 @@ import pytest
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
+import maple.function.dispatcher.md.ensemble.npt as npt_module
+from maple.function.dispatcher.md.barostat.berendsen import BerendsenBarostat
+from maple.function.dispatcher.md.barostat.crescale import CRescaleBarostat
 from maple.function.dispatcher.md.ensemble.npt import NPT
 from maple.function.dispatcher.md.ensemble.nve import NVE
 from maple.function.dispatcher.md.ensemble.nvt import NVT
+from maple.function.dispatcher.md.utils import (
+    AMU_TO_AU,
+    EV_PER_ANG3_TO_BAR,
+    FS_TO_AU,
+    HA_PER_ANG_TO_AU,
+    VELOCITY_REPR_STANDARD,
+    compute_instantaneous_pressure,
+    get_atoms_velocity_representation,
+)
 
 
 class EnergyForcesCalculator(Calculator):
     implemented_properties = ["energy", "forces"]
 
-    def __init__(self, *, pbc_capable: bool, stress_capable: bool = False):
+    def __init__(self, *, pbc_capable: bool, stress_capable: bool = False, forces=None):
         super().__init__()
         self.maple_model_name = "fake-pbc" if pbc_capable else "fake-cluster"
         self.maple_pbc_md_supported = pbc_capable
         self.maple_stress_supported = stress_capable
+        self._forces = forces
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)
         self.results["energy"] = 0.0
-        self.results["forces"] = np.zeros((len(atoms), 3))
+        if self._forces is None:
+            self.results["forces"] = np.zeros((len(atoms), 3))
+        else:
+            self.results["forces"] = np.asarray(self._forces, dtype=float).copy()
 
 
 class StressCalculator(EnergyForcesCalculator):
     implemented_properties = ["energy", "forces", "stress"]
 
-    def __init__(self, stress):
-        super().__init__(pbc_capable=True, stress_capable=True)
+    def __init__(self, stress, forces=None):
+        super().__init__(pbc_capable=True, stress_capable=True, forces=forces)
         self._stress = np.asarray(stress, dtype=float)
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
@@ -71,6 +87,185 @@ def test_npt_accepts_finite_stress_at_startup(tmp_path):
     atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
 
     NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
+
+
+def test_pressure_sign_follows_ase_stress_convention():
+    velocities = np.zeros((1, 3))
+
+    compressed = _periodic_atoms(StressCalculator([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]))
+    stretched = _periodic_atoms(StressCalculator([1.0, 1.0, 1.0, 0.0, 0.0, 0.0]))
+
+    assert compute_instantaneous_pressure(compressed, velocities) == pytest.approx(EV_PER_ANG3_TO_BAR)
+    assert compute_instantaneous_pressure(stretched, velocities) == pytest.approx(-EV_PER_ANG3_TO_BAR)
+
+
+def test_berendsen_barostat_returns_pressure_and_original_velocity():
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    velocities = np.array([[0.01, -0.02, 0.03]])
+    original = velocities.copy()
+    barostat = BerendsenBarostat(
+        atoms,
+        pressure=0.0,
+        tau_p=100.0,
+        timestep=1.0,
+        compressibility=0.0,
+    )
+
+    pressure, returned = barostat.apply(velocities)
+
+    assert pressure == pytest.approx(compute_instantaneous_pressure(atoms, velocities))
+    assert returned is velocities
+    np.testing.assert_allclose(velocities, original)
+
+
+def test_crescale_barostat_returns_velocity_scaled_by_mu_without_mutating_input():
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    velocities = np.array([[0.03, -0.06, 0.09]])
+    original = velocities.copy()
+    barostat = CRescaleBarostat(
+        atoms,
+        pressure=1.0,
+        temperature=0.0,
+        tau_p=10.0,
+        timestep=1.0,
+        compressibility=0.5,
+        rng=np.random.default_rng(7),
+    )
+    barostat.get_pressure = lambda _velocities: 2.0
+
+    pressure, returned = barostat.apply(velocities)
+
+    mu3 = 1.0 + 0.5 * 1.0 / 10.0 * (2.0 - 1.0)
+    mu = mu3 ** (1.0 / 3.0)
+    assert pressure == pytest.approx(2.0)
+    np.testing.assert_allclose(velocities, original)
+    np.testing.assert_allclose(returned, original / mu)
+
+
+def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
+    force = np.array([[1.0, 0.0, 0.0]])
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6), forces=force))
+    atoms.arrays["velocities"] = np.zeros((1, 3))
+    npt = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "timestep": 0.1,
+            "thermostat": "v-rescale",
+            "barostat": "berendsen",
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 0,
+        },
+    )
+    seen = {}
+
+    def thermostat_apply(velocities):
+        seen["velocities"] = velocities.copy()
+        return velocities, 0.0
+
+    npt.thermostat.apply = thermostat_apply
+    npt.barostat.apply = lambda velocities: (0.0, velocities)
+
+    npt.run()
+
+    mass = atoms.get_masses()[0] * AMU_TO_AU
+    expected = force * HA_PER_ANG_TO_AU / mass * (0.1 * FS_TO_AU)
+    np.testing.assert_allclose(seen["velocities"], expected)
+
+
+def test_npt_uses_barostat_pressure_once_and_logs_pre_rescale_volume(monkeypatch, tmp_path):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    atoms.arrays["velocities"] = np.zeros((1, 3))
+    npt = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "thermostat": "v-rescale",
+            "barostat": "berendsen",
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 0,
+        },
+    )
+    calls = []
+
+    def apply_barostat(velocities):
+        calls.append(velocities.copy())
+        atoms.set_cell(atoms.get_cell() * 2.0, scale_atoms=True)
+        return 123.0, velocities
+
+    def forbid_second_pressure_eval(*_args, **_kwargs):
+        raise AssertionError("NPT should log the pressure returned by the barostat")
+
+    records = {}
+    original_log_step = npt.logger.log_step
+
+    def log_step_spy(**kwargs):
+        records["pressure"] = kwargs["pressure"]
+        records["volume"] = kwargs["volume"]
+        return original_log_step(**kwargs)
+
+    npt.barostat.apply = apply_barostat
+    npt.logger.log_step = log_step_spy
+    monkeypatch.setattr(npt_module, "compute_instantaneous_pressure", forbid_second_pressure_eval, raising=False)
+
+    npt.run()
+
+    assert len(calls) == 1
+    assert records["pressure"] == pytest.approx(123.0)
+    assert records["volume"] == pytest.approx(1000.0)
+
+
+def test_npt_vrescale_load_state_keeps_standard_velocity_representation(tmp_path):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    atoms.arrays["velocities"] = np.zeros((1, 3))
+    first = NPT(
+        output=str(tmp_path / "first.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "thermostat": "v-rescale",
+            "barostat": "berendsen",
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 1,
+        },
+    )
+    first.run()
+    assert get_atoms_velocity_representation(first.atoms) == VELOCITY_REPR_STANDARD
+
+    loaded_atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    second = NPT(
+        output=str(tmp_path / "second.out"),
+        atoms=loaded_atoms,
+        paras={
+            "steps": 1,
+            "load_state": True,
+            "rst_file": str(tmp_path / "first_md.rst"),
+            "thermostat": "v-rescale",
+            "barostat": "berendsen",
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 0,
+        },
+    )
+    second.run()
+
+    assert get_atoms_velocity_representation(second.atoms) == VELOCITY_REPR_STANDARD
 
 
 @pytest.mark.parametrize("ensemble_cls", [NVE, NVT])

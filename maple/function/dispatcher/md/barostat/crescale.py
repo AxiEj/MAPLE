@@ -16,7 +16,8 @@ Algorithm (Bernetti & Bussi, 2020):
     distribution of V follows the correct Gibbs distribution.
 
     Positions and cell are scaled isotropically by μ = (V_new / V)^(1/3).
-    Velocities are left unchanged (Berendsen convention).
+    Velocities are returned as ``v / μ`` following the Trotter-splitting
+    correction described by Bernetti & Bussi.
 
 Notes:
     - Produces the correct NPT ensemble, unlike plain Berendsen barostat.
@@ -121,7 +122,7 @@ class CRescaleBarostat:
         """
         return compute_instantaneous_pressure(self.atoms, velocities)
 
-    def apply(self, velocities: np.ndarray) -> float:
+    def apply(self, velocities: np.ndarray) -> tuple[float, np.ndarray]:
         """
         Apply one C-rescale barostat step: stochastically rescale cell.
 
@@ -131,7 +132,8 @@ class CRescaleBarostat:
             dV/V = β*(dt/τ_P)*(P - P_target)  +  noise * W / sqrt(V)
 
         Cell and positions are scaled isotropically by μ = (V_new/V)^(1/3).
-        Velocities are not modified.
+        Velocities are returned as a new ``velocities / μ`` array; the input
+        array is not modified in-place.
 
         Parameters
         ----------
@@ -140,8 +142,9 @@ class CRescaleBarostat:
 
         Returns
         -------
-        float
-            Instantaneous pressure before rescaling (bar), for logging
+        tuple[float, np.ndarray]
+            ``(pressure, rescaled_velocities)`` where pressure is the
+            instantaneous pre-rescaling pressure in bar.
         """
         pressure = self.get_pressure(velocities)
         volume = self.atoms.get_volume()   # Å³
@@ -164,4 +167,4 @@ class CRescaleBarostat:
         # Rescale cell and positions isotropically
         self.atoms.set_cell(self.atoms.get_cell() * mu, scale_atoms=True)
 
-        return pressure
+        return pressure, velocities / mu

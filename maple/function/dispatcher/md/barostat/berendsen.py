@@ -104,7 +104,7 @@ class BerendsenBarostat:
         """
         return compute_instantaneous_pressure(self.atoms, velocities)
 
-    def apply(self, velocities: np.ndarray) -> np.ndarray:
+    def apply(self, velocities: np.ndarray) -> tuple[float, np.ndarray]:
         """
         Apply one Berendsen barostat step: rescale cell and positions.
 
@@ -121,8 +121,9 @@ class BerendsenBarostat:
 
         Returns
         -------
-        float
-            Instantaneous pressure before scaling (bar), for logging
+        tuple[float, np.ndarray]
+            ``(pressure, velocities)`` where pressure is the instantaneous
+            pre-scaling pressure in bar.  Berendsen leaves velocities unchanged.
         """
         pressure = self.get_pressure(velocities)
         mu3 = 1.0 - self._scale_prefactor * (self.pressure_target - pressure)
@@ -133,4 +134,4 @@ class BerendsenBarostat:
         # Rescale cell and positions isotropically
         self.atoms.set_cell(self.atoms.get_cell() * mu, scale_atoms=True)
 
-        return pressure
+        return pressure, velocities

@@ -331,6 +331,10 @@ class MDLogger:
             self.thermo_file.write(f"# Timestep: {timestep} fs\n")
             if self._ensemble == 'npt':
                 self.thermo_file.write(
+                    "# Press(bar) and Vol(A^3) are the pre-barostat-rescale "
+                    "pair used for the barostat decision.\n"
+                )
+                self.thermo_file.write(
                     f"# {'Step':>8} {'Time(fs)':>12} {'Temp(K)':>12} "
                     f"{'KE(Ha)':>15} {'PE(Ha)':>15} {'TE(Ha)':>15} "
                     f"{'Press(bar)':>12} {'Vol(A^3)':>12}\n"
@@ -410,8 +414,11 @@ class MDLogger:
             total_energy: Total energy (Hartree)
             atoms: Current ASE Atoms object
             velocities: Current velocities (atomic units: Bohr/a.u. time)
-            pressure: Instantaneous pressure in bar (NPT only)
-            volume: Cell volume in Å³ (NPT only)
+            pressure: Instantaneous pressure in bar (NPT only). For NPT
+                barostat paths this is the pre-rescale value used for the
+                barostat decision.
+            volume: Cell volume in Å³ (NPT only). For NPT barostat paths this
+                is paired with ``pressure`` before cell rescaling.
             rng_state: Hex-encoded RNG state to embed in trajectory frame (NVT/NPT only)
             conserved_energy: V-rescale conserved-energy bookkeeping value
                 H̃ = H − ΣΔW_external (Hartree). For pure thermostat dynamics this

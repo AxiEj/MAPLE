@@ -11,7 +11,10 @@ from maple.function.calculator.aimnet.options import (
 from maple.function.calculator.mace.options import (
     MACE_PBC_MODELS,
     MACE_PBC_OPTION_KEYS,
+    MACEPOL_PBC_MODELS,
+    MACEPOL_PBC_OPTION_KEYS,
     validate_mace_pbc_options,
+    validate_macepol_pbc_options,
 )
 
 
@@ -38,6 +41,9 @@ class CommandControl:
         "mace-mp-pbc-small",
         "mace-mp-pbc-medium",
         "mace-mp-pbc-large",
+        "macepol-pbc-small",
+        "macepol-pbc-medium",
+        "macepol-pbc-large",
         "uma",
         "maceomol",
         "macepols",
@@ -175,6 +181,9 @@ class CommandControl:
         "mace-mp-pbc-small": MACE_PBC_OPTION_KEYS,
         "mace-mp-pbc-medium": MACE_PBC_OPTION_KEYS,
         "mace-mp-pbc-large": MACE_PBC_OPTION_KEYS,
+        "macepol-pbc-small": MACEPOL_PBC_OPTION_KEYS,
+        "macepol-pbc-medium": MACEPOL_PBC_OPTION_KEYS,
+        "macepol-pbc-large": MACEPOL_PBC_OPTION_KEYS,
         "uma": {"task", "size", "hessian", "inference"},
         "macepols": {"model_path", "hessian"},
         "macepolm": {"model_path", "hessian"},
@@ -377,7 +386,11 @@ class CommandControl:
             )
             params["model"] = (
                 model_value
-                if model_value in AIMNET_PBC_MODELS or model_value in MACE_PBC_MODELS
+                if (
+                    model_value in AIMNET_PBC_MODELS
+                    or model_value in MACE_PBC_MODELS
+                    or model_value in MACEPOL_PBC_MODELS
+                )
                 else model_value.replace("-", "")
             )
 
@@ -597,6 +610,13 @@ class CommandControl:
         if model in MACE_PBC_MODELS:
             try:
                 validate_mace_pbc_options(model_options)
+            except ValueError as exc:
+                cls._log_error(output_path, str(exc))
+                raise
+
+        if model in MACEPOL_PBC_MODELS:
+            try:
+                validate_macepol_pbc_options(model_options)
             except ValueError as exc:
                 cls._log_error(output_path, str(exc))
                 raise

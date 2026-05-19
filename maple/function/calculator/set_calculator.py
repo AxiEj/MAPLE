@@ -16,7 +16,12 @@ from .aimnet.options import (
     validate_aimnet_options,
 )
 from .mace._mace_calculator import MACECalculator
-from .mace.options import MACE_PBC_MODELS, validate_mace_pbc_options
+from .mace.options import (
+    MACE_PBC_MODELS,
+    MACEPOL_PBC_MODELS,
+    validate_mace_pbc_options,
+    validate_macepol_pbc_options,
+)
 
 
 IMPLEMENTATION_MODELS = [
@@ -35,6 +40,9 @@ IMPLEMENTATION_MODELS = [
     "mace-mp-pbc-small",
     "mace-mp-pbc-medium",
     "mace-mp-pbc-large",
+    "macepol-pbc-small",
+    "macepol-pbc-medium",
+    "macepol-pbc-large",
     "uma",
     "maceomol",
     "macepols",
@@ -78,6 +86,9 @@ MODEL_HESSIAN_SUPPORT = {
     "mace-mp-pbc-small": (),
     "mace-mp-pbc-medium": (),
     "mace-mp-pbc-large": (),
+    "macepol-pbc-small": (),
+    "macepol-pbc-medium": (),
+    "macepol-pbc-large": (),
     "uma": ("numerical",),
     "maceomol": ("analytic", "numerical"),
     "macepols": ("analytic", "numerical"),
@@ -101,6 +112,9 @@ MODEL_PBC_MD_SUPPORT = {
     "mace-mp-pbc-small": True,
     "mace-mp-pbc-medium": True,
     "mace-mp-pbc-large": True,
+    "macepol-pbc-small": True,
+    "macepol-pbc-medium": True,
+    "macepol-pbc-large": True,
     "uma": True,
     "maceomol": False,
     "macepols": False,
@@ -124,6 +138,9 @@ MODEL_STRESS_SUPPORT = {
     "mace-mp-pbc-small": True,
     "mace-mp-pbc-medium": True,
     "mace-mp-pbc-large": True,
+    "macepol-pbc-small": True,
+    "macepol-pbc-medium": True,
+    "macepol-pbc-large": True,
     "uma": True,
     "maceomol": False,
     "macepols": False,
@@ -265,6 +282,11 @@ class SetClaculator:
             return {}
         return validate_mace_pbc_options(self.model_options)
 
+    def _validated_macepol_pbc_options(self) -> dict:
+        if self.model not in MACEPOL_PBC_MODELS:
+            return {}
+        return validate_macepol_pbc_options(self.model_options)
+
     def _coerce_uma_inference_for_device(
         self, inference: Optional[str], device_name: str
     ) -> Optional[str]:
@@ -328,7 +350,7 @@ class SetClaculator:
                     f"\n [WARNING] Model '{self.model}' does not support charge/multiplicity.\n",
                     f"           charge={self.atoms.info.get('charge', 0)}, ",
                     f"mult={self.atoms.info.get('mult', 1)} will be IGNORED.\n",
-                    "           Models with charge/mult support: aimnet2, aimnet2nse, uma, macepols/m/l\n",
+                    "           Models with charge/mult support: aimnet2, aimnet2nse, uma, macepols/m/l, macepol-pbc-small/medium/large\n",
                 ]
             )
 
@@ -402,6 +424,17 @@ class SetClaculator:
                 implicit=self.implicit,
                 solvent=self.solvent,
             )
+        elif model in MACEPOL_PBC_MODELS:
+            from .mace._macepol_official_pbc_calculator import MACEPolOfficialPBCCalculator
+
+            macepol_options = self._validated_macepol_pbc_options()
+            calculator = MACEPolOfficialPBCCalculator(
+                model=model,
+                device=self.device,
+                default_dtype=macepol_options.get("default_dtype", "float32"),
+                implicit=self.implicit,
+                solvent=self.solvent,
+            )
         elif model == "uma":
             from .uma._uma_calculator import (
                 UMACalculator,
@@ -470,6 +503,7 @@ class SetClaculator:
 
         self._validated_aimnet_options()
         self._validated_mace_pbc_options()
+        self._validated_macepol_pbc_options()
         self._validate_requested_hessian_mode()
 
         if self.d4 and self.model not in {"ani2x", "ani1x", "ani1ccx", "ani1xnr"}:

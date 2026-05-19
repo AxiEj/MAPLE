@@ -27,11 +27,29 @@ PBC_CLASS_CONTRACT = {
         "maple.function.calculator.mace._mace_official_pbc_calculator",
         "MACEOfficialPBCCalculator",
     ),
+    "macepol-pbc-small": (
+        "maple.function.calculator.mace._macepol_official_pbc_calculator",
+        "MACEPolOfficialPBCCalculator",
+    ),
+    "macepol-pbc-medium": (
+        "maple.function.calculator.mace._macepol_official_pbc_calculator",
+        "MACEPolOfficialPBCCalculator",
+    ),
+    "macepol-pbc-large": (
+        "maple.function.calculator.mace._macepol_official_pbc_calculator",
+        "MACEPolOfficialPBCCalculator",
+    ),
 }
 
 
 def test_pbc_calculator_classes_import_without_optional_extras(monkeypatch):
-    for optional_name in ("aimnet", "aimnet.calculators", "mace", "mace.calculators"):
+    for optional_name in (
+        "aimnet",
+        "aimnet.calculators",
+        "mace",
+        "mace.calculators",
+        "graph_longrange",
+    ):
         monkeypatch.delitem(sys.modules, optional_name, raising=False)
 
     for module_name, class_name in PBC_CLASS_CONTRACT.values():
@@ -46,6 +64,10 @@ def test_pyproject_declares_pbc_optional_extras():
     extras = pyproject["project"]["optional-dependencies"]
     assert extras["pbc-aimnet"] == ["aimnet[ase]"]
     assert extras["pbc-mace"] == ["mace-torch>=0.3.14,<0.4"]
+    assert extras["pbc-macepol"] == [
+        "mace-torch>=0.3.16,<0.4",
+        "graph_longrange @ git+https://github.com/WillBaldwin0/graph_electrostatics.git",
+    ]
     assert "full" in extras
     assert "minimal" in extras
 

@@ -123,17 +123,23 @@ backend rather than relying on a legacy local wrapper:
 | `mace-mp-pbc-small`  | short-range  | no                | `pbc-mace`   | MACE-MP-0, Batatia et al., arXiv:2401.00096 (2023)      |
 | `mace-mp-pbc-medium` | short-range  | no                | `pbc-mace`   | MACE-MP-0, Batatia et al., arXiv:2401.00096 (2023)      |
 | `mace-mp-pbc-large`  | short-range  | no                | `pbc-mace`   | MACE-MP-0, Batatia et al., arXiv:2401.00096 (2023)      |
+| `macepol-pbc-small`  | short + long | yes (Ewald + real-space erf) | `pbc-macepol` | MACE-POLAR-1, Baldwin et al., arXiv:2602.19411 (2026) |
+| `macepol-pbc-medium` | short + long | yes (Ewald + real-space erf) | `pbc-macepol` | MACE-POLAR-1, Baldwin et al., arXiv:2602.19411 (2026) |
+| `macepol-pbc-large`  | short + long | yes (Ewald + real-space erf) | `pbc-macepol` | MACE-POLAR-1, Baldwin et al., arXiv:2602.19411 (2026) |
 
 Install the optional extras as needed:
 
 ```bash
 pip install -e .[pbc-aimnet]   # pulls aimnet[ase]
 pip install -e .[pbc-mace]     # pulls mace-torch>=0.3.14,<0.4
+pip install -e .[pbc-macepol]  # pulls mace-torch>=0.3.16 plus graph_longrange from git
 ```
 
 **Physics note.** Use `aimnet2-pbc` / `aimnet2nse-pbc` for polar or charged
 periodic systems where the long-range Coulomb sum matters (electrolytes,
-zeolites with explicit charges, polar surfaces). Use `mace-mp-pbc-*` for
+zeolites with explicit charges, polar surfaces). Use `macepol-pbc-*` as an
+additional periodic polar-molecular option with charge/spin support via
+`atoms.info["charge"]` and `atoms.info["mult"]`. Use `mace-mp-pbc-*` for
 solid-state foundation-model coverage where the short-range materials
 potential is sufficient (metals, semiconductors, neutral oxides).
 
@@ -142,6 +148,8 @@ potential is sufficient (metals, semiconductors, neutral oxides).
 always means the official ASE-backed PBC adapter. MAPLE does not implicitly
 switch between the two based on whether `#pbc(...)` is present, so absolute
 energies and reproducibility provenance stay tied to the input.
+`#model=macepols/m/l` stays the legacy local-wrapper non-PBC path;
+`#model=macepol-pbc-*` selects the official ASE-backed PolarMACE PBC adapter.
 
 ### Coordinates
 

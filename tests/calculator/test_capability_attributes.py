@@ -10,12 +10,15 @@ from maple.function.calculator.mace._mace_general_calculator import MACEModelCal
 from maple.function.calculator.mace._mace_official_pbc_calculator import (
     MACEOfficialPBCCalculator,
 )
+from maple.function.calculator.mace._macepol_official_pbc_calculator import (
+    MACEPolOfficialPBCCalculator,
+)
 from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
 
 
 @pytest.mark.parametrize(
     "calculator_cls",
-    [AIMNet2OfficialPBCCalculator, MACEOfficialPBCCalculator],
+    [AIMNet2OfficialPBCCalculator, MACEOfficialPBCCalculator, MACEPolOfficialPBCCalculator],
 )
 def test_pbc_backends_declare_periodic_stress_capability(calculator_cls):
     assert calculator_cls.maple_pbc_md_supported is True

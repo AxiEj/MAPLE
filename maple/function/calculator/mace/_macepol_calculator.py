@@ -123,7 +123,11 @@ class MACEPolCalculator(CalcABC):
         ptr = torch.tensor([0, N], dtype=torch.int64, device=device)
         cell = torch.zeros(3, 3, dtype=dtype, device=device)
 
-        # Charge and spin from atoms.info (default: 0, singlet)
+        # Charge and spin from atoms.info (default: 0, singlet).
+        # Keep the legacy traced-model convention (`spin = mult - 1`): a local
+        # macepols.pt water check gave a ~1.8e-2 Ha spin0-vs-spin1 energy
+        # difference, so this path is not numerically interchangeable with the
+        # official PolarMACE PBC adapter's `spin = mult` metadata convention.
         charge = float(atoms.info.get('charge', 0))
         mult = int(atoms.info.get('mult', 1))
         spin = float(mult - 1)

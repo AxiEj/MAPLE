@@ -19,6 +19,14 @@ MACE_PBC_OPTION_KEYS = frozenset(
 )
 MACE_PBC_DTYPES = frozenset({"float32", "float64"})
 
+MACEPOL_PBC_MODELS = {
+    "macepol-pbc-small": "polar-1-s",
+    "macepol-pbc-medium": "polar-1-m",
+    "macepol-pbc-large": "polar-1-l",
+}
+MACEPOL_PBC_OPTION_KEYS = frozenset({"hessian", "default_dtype"})
+MACEPOL_PBC_DTYPES = frozenset({"float32", "float64"})
+
 
 def validate_mace_pbc_options(model_options: Optional[Mapping[str, object]]) -> dict[str, object]:
     """Validate official MACE PBC options and return normalized values."""
@@ -70,5 +78,36 @@ def validate_mace_pbc_options(model_options: Optional[Mapping[str, object]]) -> 
         if not head:
             raise ValueError("MACE PBC option 'head' must be non-empty.")
         options["head"] = head
+
+    return options
+
+
+def validate_macepol_pbc_options(model_options: Optional[Mapping[str, object]]) -> dict[str, object]:
+    """Validate official MACE-Polar PBC options and return normalized values."""
+
+    if not model_options:
+        return {}
+
+    unknown = sorted(set(model_options) - MACEPOL_PBC_OPTION_KEYS)
+    if unknown:
+        unknown_text = ", ".join(unknown)
+        supported_text = ", ".join(sorted(MACEPOL_PBC_OPTION_KEYS))
+        raise ValueError(
+            f"Unsupported MACE-Polar PBC option(s): {unknown_text}. "
+            f"Supported options: {supported_text}"
+        )
+
+    options: dict[str, object] = {}
+    if "hessian" in model_options:
+        options["hessian"] = model_options["hessian"]
+
+    default_dtype = str(model_options.get("default_dtype", "float32")).lower()
+    if default_dtype not in MACEPOL_PBC_DTYPES:
+        supported_text = ", ".join(sorted(MACEPOL_PBC_DTYPES))
+        raise ValueError(
+            f"Unsupported MACE-Polar PBC default_dtype: '{default_dtype}'. "
+            f"Supported values: {supported_text}"
+        )
+    options["default_dtype"] = default_dtype
 
     return options

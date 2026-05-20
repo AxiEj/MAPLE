@@ -23,8 +23,8 @@ from ase import Atoms
 from ..utils import (
     FS_TO_AU,
     AMU_TO_AU,
-    HA_PER_ANG_TO_AU,
     BOHR_TO_ANGSTROM,
+    forces_au,
     wrap_positions_with_image_flags,
 )
 
@@ -73,7 +73,7 @@ class VelocityVerlet:
         call with the forces cached from the previous step so that only one
         force evaluation is needed per step (standard Velocity Verlet caching):
 
-            forces = atoms.get_forces() * HA_PER_ANG_TO_AU  # t=0
+            forces = forces_au(atoms)  # t=0
             for each step:
                 velocities, forces = integrator.step(velocities, forces)
 
@@ -99,7 +99,7 @@ class VelocityVerlet:
 
         # B1: Half-step velocity update with current forces
         if forces is None:
-            forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU  # Ha/Å → Ha/Bohr
+            forces = forces_au(self.atoms)  # Ha/Å → Ha/Bohr
         velocities = velocities + 0.5 * forces / masses * dt
 
         # A: Full-step position update (v in a.u., dt in a.u. → displacement in Bohr → Å)
@@ -110,7 +110,7 @@ class VelocityVerlet:
             wrap_positions_with_image_flags(self.atoms)
 
         # Compute forces at new positions
-        forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU  # Ha/Å → Ha/Bohr
+        forces = forces_au(self.atoms)  # Ha/Å → Ha/Bohr
 
         # B2: Final half-step velocity update
         velocities = velocities + 0.5 * forces / masses * dt
@@ -136,7 +136,7 @@ class VelocityVerlet:
         dt = self.timestep
         masses = self.masses[:, np.newaxis]
 
-        forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU  # Ha/Å → Ha/Bohr (a.u.)
+        forces = forces_au(self.atoms)  # Ha/Å → Ha/Bohr (a.u.)
         velocities += 0.5 * forces / masses * dt
 
         return velocities
@@ -222,7 +222,7 @@ class VelocityVerlet:
         dt = self.timestep
         masses = self.masses[:, np.newaxis]
 
-        forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU  # Ha/Å → Ha/Bohr (a.u.)
+        forces = forces_au(self.atoms)  # Ha/Å → Ha/Bohr (a.u.)
         velocities += 0.5 * forces / masses * dt
 
         return velocities
@@ -277,7 +277,7 @@ class VelocityVerlet:
             positions to cache for the next step)
         """
         self.half_step_r(velocities)
-        forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU   # Ha/Å → Ha/Bohr (a.u.)
+        forces = forces_au(self.atoms)   # Ha/Å → Ha/Bohr (a.u.)
         return velocities, forces
 
     def complete_split_step(self, velocities: np.ndarray) -> tuple:

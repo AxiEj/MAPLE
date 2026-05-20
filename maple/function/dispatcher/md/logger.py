@@ -757,8 +757,11 @@ class MDLogger:
                 # the checkpoint so the user always has the last-frame file.
                 if not self.final_path.exists():
                     atoms.set_positions(state["positions"])
-                    if state["cell"] is not None:
-                        atoms.set_cell(Cell.fromcellpar(state["cell"]))
+                    restored_cell = state.get("cell_matrix")
+                    if restored_cell is None and state["cell"] is not None:
+                        restored_cell = Cell.fromcellpar(state["cell"])
+                    if restored_cell is not None:
+                        atoms.set_cell(restored_cell)
                     if state["pbc"] is not None:
                         atoms.set_pbc(state["pbc"])
                     if state.get("image_flags") is not None:
@@ -796,10 +799,14 @@ class MDLogger:
                 ])
             step_offset = state["step"]
 
-        # Restore atoms state
+        # Restore atoms state.  Prefer the exact full cell matrix (oriented
+        # triclinic round-trip); fall back to cellpar for pre-cell_matrix files.
         atoms.set_positions(state["positions"])
-        if state["cell"] is not None:
-            atoms.set_cell(Cell.fromcellpar(state["cell"]))
+        restored_cell = state.get("cell_matrix")
+        if restored_cell is None and state["cell"] is not None:
+            restored_cell = Cell.fromcellpar(state["cell"])
+        if restored_cell is not None:
+            atoms.set_cell(restored_cell)
         if state["pbc"] is not None:
             atoms.set_pbc(state["pbc"])
         if state.get("image_flags") is not None:

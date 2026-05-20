@@ -23,6 +23,7 @@ from ...jobABC import JobABC
 from maple.function.timer import timer
 
 from ..integrator.velocity_verlet import VelocityVerlet
+from ..evaluator import evaluate_md_properties
 from ..thermostat.langevin import LangevinThermostat
 from ..thermostat.vrescale import VRescaleThermostat
 from ..utils import (
@@ -33,7 +34,7 @@ from ..utils import (
     calculate_kinetic_energy,
     get_atoms_velocity_representation,
     initialize_velocities,
-    HA_PER_ANG_TO_AU,
+    forces_au,
     lfmiddle_carried_to_standard,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
@@ -504,7 +505,7 @@ class NVT(JobABC):
         is_langevin = self.params.thermostat == 'langevin'
         force_for_conversion = None
         if velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED or is_langevin:
-            force_for_conversion = self.atoms.get_forces() * HA_PER_ANG_TO_AU
+            force_for_conversion = forces_au(self.atoms)
         conversion_timestep_au = source_timestep_au if source_timestep_au is not None else self.thermostat.timestep
         if is_langevin:
             velocities, velocity_representation = self._prepare_langevin_velocities(
@@ -555,7 +556,7 @@ class NVT(JobABC):
 
         # Cache forces at t=0; reused as first B-step forces each cycle.
         forces = force_for_conversion if force_for_conversion is not None else (
-            self.atoms.get_forces() * HA_PER_ANG_TO_AU
+            forces_au(self.atoms)
         )  # Ha/Å → a.u.
 
         # V-rescale conserved-energy bookkeeping.
@@ -598,7 +599,9 @@ class NVT(JobABC):
             current_time     = abs_step * self.params.timestep
             temperature      = calculate_temperature(self.atoms, v, n_dof=self._runtime_n_dof)
             kinetic_energy   = calculate_kinetic_energy(self.atoms, v)
-            potential_energy = self.atoms.get_potential_energy()  # Ha
+            # Single property entry point; reads the integrator's cached forward
+            # pass at these coordinates (no extra backend call).
+            potential_energy = evaluate_md_properties(self.atoms).energy_ha  # Ha
 
             temperature_sync = None
             kinetic_energy_sync = None

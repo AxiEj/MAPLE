@@ -18,12 +18,13 @@ from ...jobABC import JobABC
 from maple.function.timer import timer
 
 from ..integrator.velocity_verlet import VelocityVerlet
+from ..evaluator import evaluate_md_properties
 from ..utils import (
     apply_runtime_motion_projection,
     calculate_temperature,
     calculate_kinetic_energy,
     initialize_velocities,
-    HA_PER_ANG_TO_AU,
+    forces_au,
     validate_md_capabilities,
     validate_md_parameter_ranges,
 )
@@ -494,7 +495,7 @@ class NVE(JobABC):
         v = velocities.copy()
 
         # Cache forces at t=0; reused as first B-step forces each cycle.
-        forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU  # Ha/Å → a.u.
+        forces = forces_au(self.atoms)
 
         # Main MD loop (Velocity Verlet with force caching)
         for step in range(1, n_steps + 1):
@@ -519,7 +520,9 @@ class NVE(JobABC):
             current_time  = abs_step * self.params.timestep
             temperature   = calculate_temperature(self.atoms, v, n_dof=runtime_n_dof)
             kinetic_energy   = calculate_kinetic_energy(self.atoms, v)
-            potential_energy = self.atoms.get_potential_energy()  # Ha
+            # Single property entry point.  The integrator just evaluated forces
+            # at these coordinates, so this reads the cache (no extra backend pass).
+            potential_energy = evaluate_md_properties(self.atoms).energy_ha  # Ha
             total_energy     = kinetic_energy + potential_energy
 
             # Log data

@@ -5,6 +5,7 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
 import maple.function.dispatcher.md.ensemble.npt as npt_module
+import maple.function.dispatcher.md.evaluator as evaluator_module
 from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT
 from maple.function.dispatcher.md.barostat.berendsen import BerendsenBarostat
 from maple.function.dispatcher.md.barostat.crescale import CRescaleBarostat
@@ -606,7 +607,9 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
         return 123.0, velocities
 
     post_eval_volumes = []
-    real_pressure = npt_module.compute_instantaneous_pressure
+    # WS2: NPT's post-rescale pressure now flows through evaluate_md_properties,
+    # which calls compute_instantaneous_pressure; spy at the evaluator boundary.
+    real_pressure = evaluator_module.compute_instantaneous_pressure
 
     def record_pressure(a, v):
         post_eval_volumes.append(a.get_volume())
@@ -621,7 +624,7 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
 
     npt.barostat.apply = apply_barostat
     npt.logger.log_step = log_step_spy
-    monkeypatch.setattr(npt_module, "compute_instantaneous_pressure", record_pressure)
+    monkeypatch.setattr(evaluator_module, "compute_instantaneous_pressure", record_pressure)
 
     npt.run()
 
@@ -669,13 +672,15 @@ def test_npt_langevin_post_rescale_pressure_uses_synchronized_velocity(monkeypat
     npt.barostat.apply = lambda velocities, pressure_velocities=None: (0.0, velocities)
 
     seen = {}
-    real_pressure = npt_module.compute_instantaneous_pressure
+    # WS2: NPT's post-rescale pressure now flows through evaluate_md_properties,
+    # which calls compute_instantaneous_pressure; spy at the evaluator boundary.
+    real_pressure = evaluator_module.compute_instantaneous_pressure
 
     def record_pressure(a, v):
         seen["pressure_velocity"] = v.copy()
         return real_pressure(a, v)
 
-    monkeypatch.setattr(npt_module, "compute_instantaneous_pressure", record_pressure)
+    monkeypatch.setattr(evaluator_module, "compute_instantaneous_pressure", record_pressure)
 
     npt.run()
 

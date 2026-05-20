@@ -38,6 +38,7 @@ from ...jobABC import JobABC
 from maple.function.timer import timer
 
 from ..integrator.velocity_verlet import VelocityVerlet
+from ..evaluator import evaluate_md_properties
 from ..thermostat.langevin import LangevinThermostat
 from ..thermostat.vrescale import VRescaleThermostat
 from ..barostat.berendsen import BerendsenBarostat
@@ -48,10 +49,9 @@ from ..utils import (
     apply_runtime_motion_projection,
     calculate_temperature,
     calculate_kinetic_energy,
-    compute_instantaneous_pressure,
     get_atoms_velocity_representation,
     initialize_velocities,
-    HA_PER_ANG_TO_AU,
+    forces_au,
     lfmiddle_carried_to_standard,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
@@ -217,11 +217,8 @@ class NPT(JobABC):
                 "(atoms.pbc must be [True, True, True]). "
                 "Use NVT/NVE for non-periodic or slab/partial-PBC systems."
             )
-        volume = float(atoms.get_volume())
-        if not np.isfinite(volume) or volume <= 0.0 or atoms.cell.rank != 3:
-            raise ValueError(
-                "NPT ensemble requires a finite, positive, rank-3 cell volume."
-            )
+        # Finite / rank-3 / positive-volume is enforced once on the shared path
+        # (validate_md_capabilities -> validate_pbc_cell_geometry).
         validate_md_capabilities(atoms, "npt")
         validate_stress_tensor(atoms)
 
@@ -535,7 +532,7 @@ class NPT(JobABC):
         is_langevin = self.params.thermostat == 'langevin'
         force_for_conversion = None
         if velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED or is_langevin:
-            force_for_conversion = self.atoms.get_forces() * HA_PER_ANG_TO_AU
+            force_for_conversion = forces_au(self.atoms)
         conversion_timestep_au = source_timestep_au if source_timestep_au is not None else self.thermostat.timestep
         if is_langevin:
             velocities, velocity_representation = self._prepare_langevin_velocities(
@@ -587,7 +584,7 @@ class NPT(JobABC):
         # Cache forces at t=0; the Langevin LFMiddle path reuses the same initial
         # forces for the standard→carried conversion and for the first kick.
         forces = force_for_conversion if force_for_conversion is not None else (
-            self.atoms.get_forces() * HA_PER_ANG_TO_AU
+            forces_au(self.atoms)
         )  # Ha/Å → a.u.
         for step in range(1, n_steps + 1):
             if is_langevin:
@@ -631,15 +628,17 @@ class NPT(JobABC):
                 remove_com_every=self.params.remove_com_every,
                 remove_angular_every=self.params.remove_angular_every,
             )
-            forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU
+            forces = forces_au(self.atoms)
 
             abs_step         = step_offset + step
             current_time     = abs_step * self.params.timestep
             volume_post      = self.atoms.get_volume()
             temperature      = calculate_temperature(self.atoms, v, n_dof=self._runtime_n_dof)
             kinetic_energy   = calculate_kinetic_energy(self.atoms, v)
-            potential_energy = self.atoms.get_potential_energy()  # Ha
-
+            # Determine the velocity used for the post-rescale kinetic pressure
+            # term.  Langevin carries half-step velocities, so synchronize them to
+            # the current coordinates first (matching the pre-rescale barostat
+            # decision and the sync-corrected T/KE); v-rescale uses v directly.
             temperature_sync = None
             kinetic_energy_sync = None
             total_energy_sync = None
@@ -656,19 +655,24 @@ class NPT(JobABC):
                     n_dof=self._runtime_n_dof,
                 )
                 kinetic_energy_sync = calculate_kinetic_energy(self.atoms, v_sync)
-                total_energy_sync = kinetic_energy_sync + potential_energy
-                # Langevin: the post-rescale pressure kinetic term must use the
-                # synchronized standard velocity, matching the pre-rescale
-                # decision (pressure_velocities) and the sync-corrected T/KE —
-                # not the half-step carried velocity.
                 pressure_velocity_post = v_sync
             else:
                 pressure_velocity_post = v
 
-            # Fresh post-rescale pressure evaluated at the post-rescale cell.
-            # This is a real stress evaluation, never a cached/pre-rescale reuse,
-            # so the primary pressure is physically paired with volume_post.
-            pressure_post = compute_instantaneous_pressure(self.atoms, pressure_velocity_post)
+            # Single property entry point for the logged post-rescale state: the
+            # potential energy and the fresh post-rescale pressure (a real stress
+            # evaluation at the post-rescale cell, paired with volume_post) come
+            # from one evaluator call.  The forces_au() read above already
+            # populated energy+forces at this geometry, so this adds only the
+            # stress pass — matching the previous separate get_potential_energy()
+            # and compute_instantaneous_pressure() reads (no extra backend call).
+            props = evaluate_md_properties(
+                self.atoms, need_stress=True, velocities_au=pressure_velocity_post
+            )
+            potential_energy = props.energy_ha   # Ha
+            pressure_post = props.pressure_bar
+            if write_sync_thermo:
+                total_energy_sync = kinetic_energy_sync + potential_energy
 
             self.logger.log_step(
                 step=abs_step,

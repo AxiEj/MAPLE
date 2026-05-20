@@ -49,6 +49,17 @@ HA_PER_ANG_TO_AU = BOHR_TO_ANGSTROM  # Ha/Å → Ha/Bohr ≈ 0.5292
 # Legacy alias kept for backward compatibility (was used when forces were assumed eV/Å)
 EV_PER_ANG_TO_AU = 1.0 / (27.211386245988 * BOHR_TO_ANGSTROM)  # ≈ 0.019447
 
+
+def forces_au(atoms: Atoms) -> np.ndarray:
+    """Return calculator forces in atomic units (Ha/Bohr).
+
+    Single definition of the ``get_forces() * HA_PER_ANG_TO_AU`` conversion that
+    the integrator and the ensemble loops use, so the conversion constant is not
+    duplicated at every force read.  This only reads (and caches via ASE) forces;
+    it does not alter integration semantics.
+    """
+    return np.asarray(atoms.get_forces(), dtype=float) * HA_PER_ANG_TO_AU
+
 # Pressure unit conversions
 # Derivation: 1 eV = 1.6021766208e-19 J, 1 Å³ = 1e-30 m³ → 1 eV/Å³ = 1.6021766208e11 Pa = 1.6021766208e6 bar
 EV_PER_ANG3_TO_BAR = 1.6021766208e-19 / 1e-30 * 1e-5   # eV/Å³ → bar
@@ -153,9 +164,16 @@ def validate_md_capabilities(atoms: Atoms, ensemble: str) -> None:
 
     ensemble_name = str(ensemble).lower()
 
-    from maple.function.calculator.set_calculator import validate_pbc_capabilities
+    from maple.function.calculator.set_calculator import (
+        validate_pbc_capabilities,
+        validate_pbc_cell_geometry,
+    )
 
     validate_pbc_capabilities(atoms, ensemble_name)
+    # Shared periodic-cell geometry gate for every ensemble (NVE/NVT/NPT), so
+    # the wrap/unwrap reconstruction never runs on a rank-deficient or
+    # degenerate cell.  NPT's full-3-D-PBC requirement stays in NPT.__init__.
+    validate_pbc_cell_geometry(atoms)
 
     if ensemble_name != "npt" or not any(atoms.pbc):
         return

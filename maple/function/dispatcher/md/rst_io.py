@@ -19,7 +19,8 @@ File format
     timestep = dt  (fs)
     energy = E  (Hartree)
     [rng_state = hex_string]  (NVT/NPT only)
-    [cell = a b c alpha beta gamma]  (PBC only)
+    [cell = a b c alpha beta gamma]  (PBC only; back-compat)
+    [cell_matrix = ax ay az bx by bz cx cy cz]  (PBC only; exact orientation)
     [pbc = T/F T/F T/F]  (PBC only)
     Symbol  x  y  z  vx  vy  vz  [ix iy iz]
     ...
@@ -127,6 +128,7 @@ def write_rst(
         )
     time_fs = step * timestep
     cell_line = ""
+    cell_matrix_line = ""
     pbc_line = ""
     if any(atoms.pbc):
         cell = atoms.cell.cellpar()
@@ -134,6 +136,12 @@ def write_rst(
             f"cell = {cell[0]:.10f} {cell[1]:.10f} {cell[2]:.10f} "
             f"{cell[3]:.10f} {cell[4]:.10f} {cell[5]:.10f}\n"
         )
+        # Full 3x3 cell matrix at :.17g (exact IEEE-754 double round-trip).
+        # cellpar() alone loses the cell *orientation*, which an oriented
+        # triclinic restart needs to reproduce scaled coords / image flags /
+        # unwrapped positions.  The cellpar line is kept for back-compat.
+        matrix = np.asarray(atoms.cell.array, dtype=float).reshape(-1)
+        cell_matrix_line = "cell_matrix = " + " ".join(f"{x:.17g}" for x in matrix) + "\n"
         pbc_flags = ["T" if flag else "F" for flag in atoms.pbc]
         pbc_line = f"pbc = {' '.join(pbc_flags)}\n"
 
@@ -152,6 +160,8 @@ def write_rst(
         lines.append(f"rng_state = {rng_state}\n")
     if cell_line:
         lines.append(cell_line)
+    if cell_matrix_line:
+        lines.append(cell_matrix_line)
     if pbc_line:
         lines.append(pbc_line)
 
@@ -163,9 +173,12 @@ def write_rst(
         if image_flags is not None:
             ix, iy, iz = image_flags[idx]
             image_suffix = f" {int(ix):d} {int(iy):d} {int(iz):d}"
+        # :.17g — exact IEEE-754 double round-trip for positions/velocities so
+        # the whole checkpoint reproduces the run state on restart (not just the
+        # cell).  Image flags are integers and already exact.
         lines.append(
-            f"{symbol:<2s} {pos[0]: .10f} {pos[1]: .10f} {pos[2]: .10f}"
-            f" {vel[0]: .10e} {vel[1]: .10e} {vel[2]: .10e}{image_suffix}\n"
+            f"{symbol:<2s} {pos[0]:.17g} {pos[1]:.17g} {pos[2]:.17g}"
+            f" {vel[0]:.17g} {vel[1]:.17g} {vel[2]:.17g}{image_suffix}\n"
         )
     lines.append("END_RST\n")
     path.write_text("".join(lines))
@@ -197,6 +210,8 @@ def read_rst(path):
         - ``positions`` : np.ndarray — Positions in Angstrom, shape (N, 3)
         - ``velocities`` : np.ndarray — Velocities in a.u., shape (N, 3)
         - ``cell`` : list or None — Cell parameters [a,b,c,alpha,beta,gamma]
+        - ``cell_matrix`` : np.ndarray or None — full 3x3 cell matrix in Å
+          (exact triclinic orientation; ``None`` for pre-cell_matrix files)
         - ``pbc`` : list or None — Periodic boundary flags
 
     Raises
@@ -255,6 +270,13 @@ def read_rst(path):
         if len(cell) != 6:
             raise ValueError(f"Invalid cell line in {path}")
 
+    cell_matrix = None
+    if "cell_matrix" in header:
+        values = [float(x) for x in header["cell_matrix"].split()]
+        if len(values) != 9:
+            raise ValueError(f"Invalid cell_matrix line in {path}")
+        cell_matrix = np.array(values, dtype=float).reshape(3, 3)
+
     pbc = None
     if "pbc" in header:
         pbc = [flag == "T" for flag in header["pbc"].split()]
@@ -280,6 +302,7 @@ def read_rst(path):
         "positions": np.array(positions),
         "velocities": np.array(velocities),
         "cell": cell,
+        "cell_matrix": cell_matrix,
         "pbc": pbc,
         "image_flags": parsed_image_flags,
     }

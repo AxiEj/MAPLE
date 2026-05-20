@@ -223,6 +223,51 @@ def _minimum_image_radius_A(atoms) -> tuple[float, float]:
     return 0.5 * shortest_lattice_vector, shortest_lattice_vector
 
 
+def validate_pbc_cell_geometry(atoms) -> None:
+    """Validate the periodic cell geometry on the shared MD admission path.
+
+    MAPLE's wrap/unwrap (``get_unwrapped_positions`` and the
+    ``dot(scaled + image_flags, cell.array)`` reconstruction) goes through the
+    *full* 3x3 cell matrix.  A rank-deficient full cell — e.g. ``pbc=[T,T,F]``
+    paired with a zero z lattice vector — would silently drop the non-periodic
+    coordinate even when the active 2-D sublattice is itself valid.  So any
+    periodic MD system must carry a finite, rank-3 full cell matrix; full 3-D
+    PBC must additionally enclose a positive volume.  The active-sublattice
+    finiteness/independence and the minimum-image sanity check are delegated to
+    :func:`_minimum_image_radius_A` (which Minkowski-reduces the active lattice),
+    so this validator does not duplicate that logic.
+
+    Note this requires ``rank == 3`` for *all* periodic systems, not
+    ``rank == sum(pbc)``: a real slab keeps a finite (vacuum) third lattice
+    vector and so is rank 3 and accepted, while a genuinely 2-D cell with a zero
+    third vector is rank 2 and rejected.
+    """
+    if atoms is None or not any(atoms.pbc):
+        return
+
+    cell = np.asarray(atoms.get_cell(), dtype=float)
+    if not np.all(np.isfinite(cell)):
+        raise ValueError("PBC MD requires finite cell vectors.")
+    if atoms.cell.rank != 3:
+        raise ValueError(
+            "PBC MD requires a full rank-3 cell matrix. MAPLE reconstructs "
+            "unwrapped coordinates through the full 3x3 cell, so a rank-deficient "
+            "cell (a periodic axis paired with a zero lattice vector) would "
+            "silently drop a coordinate. Provide three independent lattice "
+            "vectors (a slab's vacuum direction still needs a finite vector)."
+        )
+
+    if all(atoms.pbc):
+        volume = float(atoms.get_volume())
+        if not np.isfinite(volume) or volume <= 0.0:
+            raise ValueError(
+                f"Full 3-D PBC MD requires a finite, positive cell volume, got {volume!r}."
+            )
+
+    # Active-sublattice finiteness/independence + minimum-image sanity.
+    _minimum_image_radius_A(atoms)
+
+
 def _validate_pbc_neighbor_cutoff(atoms, calculator) -> None:
     """Validate cutoff against the true minimum-image radius.
 

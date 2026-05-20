@@ -1,10 +1,13 @@
 """Single backend property-request entry point for MD (WS3, follows WS2).
 
 ``evaluate_md_properties`` is the one place that asks a calculator for
-energy/forces/(stress) during a step.  It requests every needed property in a
-*single* backend evaluation, so a property-selective adapter (one that computes
-only the properties named in ``properties=``) does not pay multiple forward
-passes when the step needs energy, forces and stress together.
+energy/forces/(stress) during a step.  It is cache-aware: it triggers a backend
+forward pass only when the geometry changed or a required property is missing
+for the current configuration, and when it does it requests every required
+property together so a property-selective adapter (one that computes only the
+properties named in ``properties=``) does not pay a second pass for stress.  In
+the loops this means routing the per-step logged reads through here adds no
+backend call beyond the force evaluation the integrator already performed.
 
 It returns a frozen result object whose field names carry their units, so the
 central evaluator does not itself become a unit-confusion entry point:
@@ -47,7 +50,7 @@ def evaluate_md_properties(
     need_stress: bool = False,
     velocities_au: Optional[np.ndarray] = None,
 ) -> MDProperties:
-    """Evaluate energy/forces/(stress) for ``atoms`` in a single backend call.
+    """Evaluate energy/forces/(stress) for ``atoms`` with at most one backend pass.
 
     Parameters
     ----------
@@ -64,13 +67,20 @@ def evaluate_md_properties(
     if calc is None:
         raise ValueError("evaluate_md_properties requires an attached calculator")
 
-    properties = ["energy", "forces"]
+    required = ["energy", "forces"]
     if need_stress:
-        properties.append("stress")
+        required.append("stress")
 
-    # One backend evaluation for every requested property.  Subsequent accessors
-    # read the populated result cache rather than triggering new forward passes.
-    calc.calculate(atoms, properties=properties, system_changes=all_changes)
+    # Cache-aware single entry point.  Only request a backend forward pass when
+    # the geometry actually changed or a required property is not already cached
+    # for the current configuration; otherwise read the existing cache.  When a
+    # pass *is* needed, request every required property together so a
+    # property-selective adapter does not pay a second pass for stress.  This is
+    # what keeps routing the per-step logged reads through here free of extra
+    # backend calls (the integrator has usually just evaluated forces).
+    system_changes = calc.check_state(atoms)
+    if system_changes or any(prop not in calc.results for prop in required):
+        calc.calculate(atoms, properties=required, system_changes=system_changes or all_changes)
 
     energy_ha = float(atoms.get_potential_energy())
     forces_ha_per_ang = np.asarray(atoms.get_forces(), dtype=float)

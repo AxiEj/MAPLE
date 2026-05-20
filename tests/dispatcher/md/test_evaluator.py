@@ -75,6 +75,33 @@ def test_single_backend_evaluation_for_energy_forces_stress():
     assert calc.n_calculate == 1
 
 
+def test_reuses_cache_when_geometry_unchanged():
+    # The integrator typically just evaluated forces; routing the logged energy
+    # read through the evaluator at the same geometry must not recompute.
+    calc = _CountingCalc(np.array([[1.0, 0.0, 0.0]]), np.zeros(6))
+    atoms = _periodic(calc)
+    atoms.get_forces()  # one backend pass (energy + forces)
+    assert calc.n_calculate == 1
+    props = evaluate_md_properties(atoms, need_stress=False)
+    assert calc.n_calculate == 1  # no extra backend pass
+    np.testing.assert_allclose(props.forces_ha_per_ang, [[1.0, 0.0, 0.0]])
+
+
+def test_recomputes_once_when_only_stress_missing():
+    # energy+forces cached but stress not yet computed (property-selective calc):
+    # need_stress must trigger exactly one more pass, and a second need_stress
+    # call at the same geometry must reuse the now-cached stress.
+    calc = _CountingCalc(np.zeros((1, 3)), np.array([-0.01, -0.01, -0.01, 0.0, 0.0, 0.0]))
+    atoms = _periodic(calc)
+    atoms.get_forces()
+    assert calc.n_calculate == 1
+    props = evaluate_md_properties(atoms, need_stress=True, velocities_au=np.zeros((1, 3)))
+    assert calc.n_calculate == 2
+    assert props.stress_ev_per_ang3 is not None
+    evaluate_md_properties(atoms, need_stress=True, velocities_au=np.zeros((1, 3)))
+    assert calc.n_calculate == 2  # stress now cached -> no further pass
+
+
 def test_md_properties_is_frozen():
     atoms = _periodic(_CountingCalc(np.zeros((1, 3)), np.zeros(6)))
     props = evaluate_md_properties(atoms)

@@ -21,7 +21,7 @@ File format
     [rng_state = hex_string]  (NVT/NPT only)
     [cell = a b c alpha beta gamma]  (PBC only)
     [pbc = T/F T/F T/F]  (PBC only)
-    Symbol  x  y  z  vx  vy  vz
+    Symbol  x  y  z  vx  vy  vz  [ix iy iz]
     ...
     END_RST
 
@@ -36,6 +36,8 @@ from pathlib import Path
 
 import numpy as np
 from ase.cell import Cell
+
+from .utils import ensure_image_flags
 
 
 RST_HEADER = "MAPLE_RST_V1"
@@ -153,10 +155,17 @@ def write_rst(
     if pbc_line:
         lines.append(pbc_line)
 
-    for symbol, pos, vel in zip(atoms.get_chemical_symbols(), atoms.get_positions(), velocities):
+    image_flags = ensure_image_flags(atoms) if any(atoms.pbc) else None
+    for idx, (symbol, pos, vel) in enumerate(
+        zip(atoms.get_chemical_symbols(), atoms.get_positions(), velocities)
+    ):
+        image_suffix = ""
+        if image_flags is not None:
+            ix, iy, iz = image_flags[idx]
+            image_suffix = f" {int(ix):d} {int(iy):d} {int(iz):d}"
         lines.append(
             f"{symbol:<2s} {pos[0]: .10f} {pos[1]: .10f} {pos[2]: .10f}"
-            f" {vel[0]: .10e} {vel[1]: .10e} {vel[2]: .10e}\n"
+            f" {vel[0]: .10e} {vel[1]: .10e} {vel[2]: .10e}{image_suffix}\n"
         )
     lines.append("END_RST\n")
     path.write_text("".join(lines))
@@ -226,9 +235,10 @@ def read_rst(path):
     symbols = []
     positions = []
     velocities = []
+    image_flags = []
     for idx, line in enumerate(atom_lines, 1):
         parts = line.split()
-        if len(parts) != 7:
+        if len(parts) not in (7, 10):
             raise ValueError(f"Invalid atom line {idx} in {path}: {line!r}")
         symbol = parts[0]
         xyz = [float(x) for x in parts[1:4]]
@@ -236,6 +246,8 @@ def read_rst(path):
         symbols.append(symbol)
         positions.append(xyz)
         velocities.append(vel)
+        if len(parts) == 10:
+            image_flags.append([int(x) for x in parts[7:10]])
 
     cell = None
     if "cell" in header:
@@ -248,6 +260,12 @@ def read_rst(path):
         pbc = [flag == "T" for flag in header["pbc"].split()]
         if len(pbc) != 3:
             raise ValueError(f"Invalid pbc line in {path}")
+
+    parsed_image_flags = None
+    if image_flags:
+        if len(image_flags) != natoms:
+            raise ValueError(f"Incomplete image flags in {path}")
+        parsed_image_flags = np.array(image_flags, dtype=np.int64)
 
     return {
         "natoms": natoms,
@@ -263,6 +281,7 @@ def read_rst(path):
         "velocities": np.array(velocities),
         "cell": cell,
         "pbc": pbc,
+        "image_flags": parsed_image_flags,
     }
 
 

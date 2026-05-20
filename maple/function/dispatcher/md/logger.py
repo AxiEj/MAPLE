@@ -16,6 +16,8 @@ from ase import Atoms
 
 from .utils import (
     VELOCITY_REPR_STANDARD,
+    copy_with_unwrapped_positions,
+    ensure_image_flags,
     normalize_velocity_representation,
     set_atoms_velocity_representation,
     write_xyz_frame,
@@ -125,6 +127,7 @@ class MDLogger:
 
         self.thermo_path   = parent / f"{base}_md_thermo.dat"
         self.traj_path     = parent / f"{base}_md_traj.{self.traj_format}"
+        self.unwrapped_traj_path = parent / f"{base}_md_traj_unwrapped.xyz"
         self.summary_path  = parent / f"{base}_md_summary.txt"
         self.final_path    = parent / f"{base}_final.xyz"   # GROMACS confout.gro equivalent
         self.rst_path      = parent / f"{base}_md.rst"
@@ -133,6 +136,7 @@ class MDLogger:
         # File handles (opened in start_simulation)
         self.thermo_file: Optional[TextIO] = None
         self.traj_file:   Any = None  # TextIO for XYZ, DCDWriter for DCD
+        self.unwrapped_traj_file: Optional[TextIO] = None
 
         # Statistics tracking
         self.energies            = []
@@ -169,6 +173,25 @@ class MDLogger:
         # Fresh-start backup should not archive checkpoint files that are being
         # used as explicit rst_file inputs for the current run.
         self._protected_restart_inputs: set[Path] = set()
+
+    def _write_unwrapped_frame(
+        self,
+        atoms: Atoms,
+        energy: float,
+        frame_number: int,
+        velocity_representation: Optional[str] = None,
+    ) -> None:
+        if self.unwrapped_traj_file is None:
+            return
+        write_xyz_frame(
+            self.unwrapped_traj_file,
+            copy_with_unwrapped_positions(atoms),
+            energy=energy,
+            frame_number=frame_number,
+            coordinate_mode="unwrapped",
+            velocity_representation=velocity_representation,
+        )
+        self.unwrapped_traj_file.flush()
 
     def log_debug_initial_state(self, atoms: Atoms, velocities: np.ndarray,
                                 mode: str, effective_step: int,
@@ -247,6 +270,8 @@ class MDLogger:
         self._dof_description = dof_description
         self._write_sync_thermo = bool(write_sync_thermo)
         self._write_conserved_energy = bool(write_conserved_energy)
+        if self._is_pbc:
+            ensure_image_flags(atoms)
         # Total steps across the full run (for progress %)
         self._n_steps     = n_steps + step_offset
 
@@ -258,14 +283,16 @@ class MDLogger:
         if step_offset == 0:
             # Open files (back up any pre-existing files first, GROMACS-style)
             backup_msgs = []
-            for p in (
+            backup_paths = (
                 self.thermo_path,
                 self.traj_path,
+                *([self.unwrapped_traj_path] if self._is_pbc else []),
                 self.summary_path,
                 self.final_path,
                 self.rst_path,
                 self.rst_prev_path,
-            ):
+            )
+            for p in backup_paths:
                 if p in self._protected_restart_inputs:
                     continue
                 backup = _backup_file(p)
@@ -284,6 +311,8 @@ class MDLogger:
                 )
             else:  # xyz
                 self.traj_file = open(self.traj_path, 'w')
+            if self._is_pbc:
+                self.unwrapped_traj_file = open(self.unwrapped_traj_path, 'w')
         # else: files already opened in append mode by restart_simulation()
 
         # Write main output header
@@ -310,6 +339,13 @@ class MDLogger:
             self.log_main([f"Target temp:     {temperature:.2f} K\n"])
         if self._ensemble == 'npt' and pressure is not None:
             self.log_main([f"Target pressure: {pressure:.2f} bar\n"])
+        if self._is_pbc:
+            self.log_main([
+                f"Wrapped traj:     {self.traj_path.name}\n",
+                f"Unwrapped traj:   {self.unwrapped_traj_path.name}\n",
+                "NOTE: Wrapped PBC coordinates are for visualization/restart handoff; "
+                "use the unwrapped trajectory for MSD/diffusion or boundary-crossing analysis.\n",
+            ])
 
         self.log_main([
             f"\nSystem:\n",
@@ -574,6 +610,12 @@ class MDLogger:
                     velocity_representation=velocity_representation,
                 )
                 self.traj_file.flush()
+            self._write_unwrapped_frame(
+                atoms,
+                energy=total_energy_hartree,
+                frame_number=step,
+                velocity_representation=velocity_representation,
+            )
 
         # Write restart checkpoint at rst_every frequency
         if rst_every and step % rst_every == 0:
@@ -705,6 +747,8 @@ class MDLogger:
                         atoms.set_cell(Cell.fromcellpar(state["cell"]))
                     if state["pbc"] is not None:
                         atoms.set_pbc(state["pbc"])
+                    if state.get("image_flags") is not None:
+                        ensure_image_flags(atoms)[:] = state["image_flags"]
                     with open(self.final_path, 'w') as f:
                         write_xyz_frame(
                             f,
@@ -744,6 +788,10 @@ class MDLogger:
             atoms.set_cell(Cell.fromcellpar(state["cell"]))
         if state["pbc"] is not None:
             atoms.set_pbc(state["pbc"])
+        if state.get("image_flags") is not None:
+            ensure_image_flags(atoms)[:] = state["image_flags"]
+        elif any(atoms.pbc):
+            ensure_image_flags(atoms)
 
         # Store RNG state for ensemble drivers (NVT/NPT) to restore
         self.resumed_rng_state = state.get("rng_state")
@@ -787,6 +835,12 @@ class MDLogger:
             else:
                 self.traj_file = (open(self.traj_path, "a") if self.traj_path.exists()
                                   else open(self.traj_path, "w"))
+            if any(atoms.pbc):
+                self.unwrapped_traj_file = (
+                    open(self.unwrapped_traj_path, "a")
+                    if self.unwrapped_traj_path.exists()
+                    else open(self.unwrapped_traj_path, "w")
+                )
             self.thermo_file.write(
                 f"\n# --- RESTARTED from {used_path.name} step {state['step']} ---\n"
             )
@@ -1093,6 +1147,8 @@ class MDLogger:
             f"\n{'── Output Files ──':^80}\n",
             f"  Thermodynamics:             {self.thermo_path.name}\n",
             f"  Trajectory:                 {self.traj_path.name}\n",
+            *([f"  Unwrapped trajectory:       {self.unwrapped_traj_path.name}\n"]
+              if self.unwrapped_traj_file is not None else []),
             f"  Summary:                    {self.summary_path.name}\n",
             *([f"  Final structure:           {self.final_path.name}\n"
                f"    (Structure handoff only; strict restart state is in {self.rst_path.name})\n"]
@@ -1108,6 +1164,8 @@ class MDLogger:
             self.thermo_file.close()
         if self.traj_file:
             self.traj_file.close()
+        if self.unwrapped_traj_file:
+            self.unwrapped_traj_file.close()
 
     def log_main(self, messages: list, echo: bool = False):
         """

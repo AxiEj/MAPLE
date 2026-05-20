@@ -311,18 +311,17 @@ class CommandControl:
             cls._log_error(output_path, f"Invalid PBC values: {inner} - {exc}")
             raise ValueError(f"Invalid PBC values: {inner}") from exc
 
-        if len(values) == 2:
-            a, b = values
-            cellpar = [a, b, 1000.0, 90.0, 90.0, 90.0]
-        elif len(values) == 3:
+        if len(values) == 3:
             a, b, c = values
             cellpar = [a, b, c, 90.0, 90.0, 90.0]
         elif len(values) == 6:
             cellpar = values
         else:
-            cls._log_error(output_path, f"PBC requires 2, 3, or 6 values, got {len(values)}.")
+            cls._log_error(output_path, f"PBC requires 3 or 6 values, got {len(values)}.")
             raise ValueError(
-                f"PBC requires 2, 3, or 6 values (a,b[,c][,alpha,beta,gamma]), got {len(values)}."
+                "PBC requires 3 or 6 values "
+                "(a,b,c[,alpha,beta,gamma]); 2-value slab syntax is not supported "
+                "because it is not equivalent to 2D PBC."
             )
 
         return cellpar

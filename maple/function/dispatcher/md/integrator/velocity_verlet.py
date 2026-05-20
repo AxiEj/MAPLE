@@ -20,7 +20,13 @@ import numpy as np
 from ase import Atoms
 
 # Import unit conversions from utils
-from ..utils import FS_TO_AU, AMU_TO_AU, HA_PER_ANG_TO_AU, BOHR_TO_ANGSTROM
+from ..utils import (
+    FS_TO_AU,
+    AMU_TO_AU,
+    HA_PER_ANG_TO_AU,
+    BOHR_TO_ANGSTROM,
+    wrap_positions_with_image_flags,
+)
 
 
 class VelocityVerlet:
@@ -101,7 +107,7 @@ class VelocityVerlet:
         positions += velocities * dt * BOHR_TO_ANGSTROM
         self.atoms.set_positions(positions)
         if any(self.atoms.pbc):
-            self.atoms.wrap()
+            wrap_positions_with_image_flags(self.atoms)
 
         # Compute forces at new positions
         forces = self.atoms.get_forces() * HA_PER_ANG_TO_AU  # Ha/Å → Ha/Bohr
@@ -153,7 +159,7 @@ class VelocityVerlet:
         positions += velocities * (0.5 * self.timestep) * BOHR_TO_ANGSTROM
         self.atoms.set_positions(positions)
         if any(self.atoms.pbc):
-            self.atoms.wrap()
+            wrap_positions_with_image_flags(self.atoms)
 
     def lfmiddle_full_kick(self, velocities: np.ndarray,
                            forces: np.ndarray) -> np.ndarray:
@@ -195,7 +201,7 @@ class VelocityVerlet:
         positions += velocities * self.timestep * BOHR_TO_ANGSTROM
         self.atoms.set_positions(positions)
         if any(self.atoms.pbc):
-            self.atoms.wrap()
+            wrap_positions_with_image_flags(self.atoms)
 
     def complete_step_v(self, velocities: np.ndarray) -> np.ndarray:
         """

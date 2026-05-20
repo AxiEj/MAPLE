@@ -69,6 +69,12 @@ _VALID_VELOCITY_REPRESENTATIONS = {
     VELOCITY_REPR_LFMIDDLE_CARRIED,
 }
 
+# Per-atom integer periodic image counters.  Wrapped coordinates remain in
+# ``atoms.positions`` for calculator compatibility; this array records how many
+# lattice vectors each atom has crossed so analysis trajectories can be
+# reconstructed as continuous/unwrapped coordinates.
+IMAGE_FLAGS_ARRAY = "maple_image_flags"
+
 
 # ========== Core MD Calculations ==========
 
@@ -237,7 +243,66 @@ def validate_md_parameter_ranges(params, ensemble: str) -> None:
     if ensemble_name == "npt":
         finite_float("pressure")
         positive_float("tau_p")
-        nonnegative_float("compressibility")
+        positive_float("compressibility")
+
+
+def ensure_image_flags(atoms: Atoms) -> np.ndarray:
+    """Return MAPLE per-atom image counters, creating zero counters if absent."""
+    expected_shape = (len(atoms), 3)
+    flags = atoms.arrays.get(IMAGE_FLAGS_ARRAY)
+    if flags is None:
+        flags = np.zeros(expected_shape, dtype=np.int64)
+        atoms.new_array(IMAGE_FLAGS_ARRAY, flags)
+        return atoms.arrays[IMAGE_FLAGS_ARRAY]
+
+    flags = np.asarray(flags)
+    if flags.shape != expected_shape:
+        raise ValueError(
+            f"{IMAGE_FLAGS_ARRAY!r} must have shape {expected_shape}, got {flags.shape}."
+        )
+    if not np.issubdtype(flags.dtype, np.integer):
+        atoms.arrays[IMAGE_FLAGS_ARRAY] = flags.astype(np.int64)
+    return atoms.arrays[IMAGE_FLAGS_ARRAY]
+
+
+def wrap_positions_with_image_flags(atoms: Atoms) -> None:
+    """Wrap periodic coordinates and increment image counters consistently.
+
+    Call this after setting positions to the drifted coordinates.  The current
+    positions may be outside the primary unit cell; after the call,
+    ``atoms.positions`` are wrapped and ``IMAGE_FLAGS_ARRAY`` stores the lattice
+    crossings needed to reconstruct continuous coordinates.
+    """
+    if not any(atoms.pbc):
+        return
+
+    pbc = np.asarray(atoms.pbc, dtype=bool)
+    scaled = atoms.cell.scaled_positions(atoms.get_positions())
+    image_increment = np.floor(scaled).astype(np.int64)
+    image_increment[:, ~pbc] = 0
+
+    flags = ensure_image_flags(atoms)
+    flags[:] = flags + image_increment
+    atoms.wrap()
+
+
+def get_unwrapped_positions(atoms: Atoms) -> np.ndarray:
+    """Return continuous Cartesian coordinates reconstructed from image flags."""
+    positions = np.asarray(atoms.get_positions(), dtype=float)
+    if not any(atoms.pbc):
+        return positions.copy()
+
+    flags = ensure_image_flags(atoms).astype(float)
+    scaled = atoms.cell.scaled_positions(positions)
+    return np.dot(scaled + flags, np.asarray(atoms.cell.array, dtype=float))
+
+
+def copy_with_unwrapped_positions(atoms: Atoms) -> Atoms:
+    """Return an Atoms copy whose positions are continuous/unwrapped."""
+    out = atoms.copy()
+    out.set_positions(get_unwrapped_positions(atoms))
+    out.info["coordinate_mode"] = "unwrapped"
+    return out
 
 
 def is_linear_molecule(atoms: Atoms, tol: float = 1e-8) -> bool:
@@ -643,6 +708,7 @@ def write_xyz_frame(
     include_velocities: bool = False,
     rng_state: Optional[str] = None,
     velocity_representation: Optional[str] = None,
+    coordinate_mode: str = "wrapped",
 ):
     """
     Write a single frame to XYZ file.
@@ -673,6 +739,8 @@ def write_xyz_frame(
     velocity_representation : str, optional
         Reserved for API compatibility. Velocity representation metadata is
         stored only in RST checkpoints, never in XYZ comment lines.
+    coordinate_mode : str, default="wrapped"
+        Human-readable coordinate semantics for the XYZ comment line.
     """
     positions = atoms.get_positions()
     symbols = atoms.get_chemical_symbols()
@@ -690,7 +758,7 @@ def write_xyz_frame(
     # resume_simulation() can recover the exact step offset without knowing traj_every.
     file_handle.write(
         f"Frame {frame_number}  Energy = {energy:.10f} Hartree"
-        f"{cell_str}\n"
+        f"  CoordinateMode = {coordinate_mode}{cell_str}\n"
     )
     # NOTE: frame_number is the MD *step* number (passed as `step` from the ensemble loop).
     # The regex _TRAJ_COMMENT_RE parses this as frame_num; resume_simulation uses it

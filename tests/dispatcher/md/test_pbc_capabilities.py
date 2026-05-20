@@ -9,17 +9,23 @@ from maple.function.dispatcher.md.barostat.crescale import CRescaleBarostat
 from maple.function.dispatcher.md.ensemble.npt import NPT
 from maple.function.dispatcher.md.ensemble.nve import NVE
 from maple.function.dispatcher.md.ensemble.nvt import NVT
+from maple.function.dispatcher.md.integrator.velocity_verlet import VelocityVerlet
+from maple.function.dispatcher.md.logger import MDLogger
+from maple.function.dispatcher.md.rst_io import read_rst
 from maple.function.dispatcher.md.utils import (
     AMU_TO_AU,
+    BOHR_TO_ANGSTROM,
     EV_PER_ANG3_TO_BAR,
     FS_TO_AU,
     HA_PER_ANG_TO_AU,
     HARTREE_TO_EV,
+    IMAGE_FLAGS_ARRAY,
     KELVIN_TO_HARTREE,
     VELOCITY_REPR_LFMIDDLE_CARRIED,
     VELOCITY_REPR_STANDARD,
     compute_instantaneous_pressure,
     get_atoms_velocity_representation,
+    get_unwrapped_positions,
 )
 
 
@@ -98,6 +104,19 @@ def test_npt_accepts_finite_stress_at_startup(tmp_path):
     atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
 
     NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
+
+
+def test_npt_rejects_partial_pbc_even_with_stress(tmp_path):
+    atoms = Atoms(
+        "He",
+        positions=[[0.0, 0.0, 0.0]],
+        cell=[10.0, 10.0, 30.0],
+        pbc=[True, True, False],
+    )
+    atoms.calc = StressCalculator(np.zeros(6))
+
+    with pytest.raises(ValueError, match="full three-dimensional PBC"):
+        NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
 
 
 def test_pressure_sign_follows_ase_stress_convention():
@@ -215,6 +234,7 @@ def test_md_parameter_validation_rejects_invalid_common_ranges(
     [
         ({"tau_p": 0.0}, "tau_p"),
         ({"compressibility": -1.0}, "compressibility"),
+        ({"compressibility": 0.0}, "compressibility"),
     ],
 )
 def test_npt_parameter_validation_rejects_invalid_barostat_ranges(
@@ -227,6 +247,58 @@ def test_npt_parameter_validation_rejects_invalid_barostat_ranges(
 
     with pytest.raises(ValueError, match=message):
         NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras=full_paras)
+
+
+def test_pbc_image_flags_reconstruct_unwrapped_boundary_crossing(tmp_path):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    atoms.set_cell([2.0, 2.0, 2.0])
+    atoms.set_positions([[1.9, 0.0, 0.0]])
+    displacement_a = 0.3
+    dt_fs = 1.0
+    velocities = np.array([[displacement_a / (dt_fs * FS_TO_AU * BOHR_TO_ANGSTROM), 0.0, 0.0]])
+
+    VelocityVerlet(atoms, timestep=dt_fs).full_step_r(velocities)
+
+    assert atoms.positions[0, 0] == pytest.approx(0.2)
+    np.testing.assert_array_equal(atoms.arrays[IMAGE_FLAGS_ARRAY], np.array([[1, 0, 0]]))
+    assert get_unwrapped_positions(atoms)[0, 0] == pytest.approx(2.2)
+
+    logger = MDLogger(
+        output_path=str(tmp_path / "md.out"),
+        log_every=999,
+        traj_every=1,
+        verbose=0,
+    )
+    logger.start_simulation(
+        ensemble="nve",
+        timestep=dt_fs,
+        n_steps=1,
+        temperature=300.0,
+        atoms=atoms,
+    )
+    logger.log_step(
+        step=1,
+        time=dt_fs,
+        temperature=0.0,
+        kinetic_energy=0.0,
+        potential_energy=0.0,
+        total_energy=0.0,
+        atoms=atoms,
+        velocities=np.zeros((1, 3)),
+        rst_every=1,
+    )
+    logger.thermo_file.close()
+    logger.traj_file.close()
+    logger.unwrapped_traj_file.close()
+
+    wrapped_text = (tmp_path / "md_md_traj.xyz").read_text()
+    unwrapped_text = (tmp_path / "md_md_traj_unwrapped.xyz").read_text()
+    assert "CoordinateMode = wrapped" in wrapped_text
+    assert "CoordinateMode = unwrapped" in unwrapped_text
+    assert "He      0.20000000" in wrapped_text
+    assert "He      2.20000000" in unwrapped_text
+    state = read_rst(tmp_path / "md_md.rst")
+    np.testing.assert_array_equal(state["image_flags"], np.array([[1, 0, 0]]))
 
 
 def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):

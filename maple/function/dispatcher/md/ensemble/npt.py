@@ -19,7 +19,8 @@ Integration order each step:
     - V-rescale: full Velocity Verlet step, then thermostat, then barostat.
 
 Requirements:
-    - Atoms object must have a periodic cell (atoms.pbc must be True)
+    - Atoms object must have a full three-dimensional periodic cell
+      (atoms.pbc must be [True, True, True])
     - Calculator should support stress tensor evaluation for accurate pressure
 
 References:
@@ -210,12 +211,18 @@ class NPT(JobABC):
 
         if atoms.calc is None:
             raise ValueError("Atoms object must have a calculator attached")
-        validate_md_capabilities(atoms, "npt")
-        if not any(atoms.pbc):
+        if not all(atoms.pbc):
             raise ValueError(
-                "NPT ensemble requires a periodic cell (atoms.pbc must be True). "
-                "Use NVT or NVE for non-periodic systems."
+                "NPT ensemble requires full three-dimensional PBC "
+                "(atoms.pbc must be [True, True, True]). "
+                "Use NVT/NVE for non-periodic or slab/partial-PBC systems."
             )
+        volume = float(atoms.get_volume())
+        if not np.isfinite(volume) or volume <= 0.0 or atoms.cell.rank != 3:
+            raise ValueError(
+                "NPT ensemble requires a finite, positive, rank-3 cell volume."
+            )
+        validate_md_capabilities(atoms, "npt")
         validate_stress_tensor(atoms)
 
         self.atoms = atoms

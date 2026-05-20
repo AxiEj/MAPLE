@@ -142,6 +142,10 @@ class NVEParams:
     # ------------------------------------------------------------------
     allow_partial_pbc: bool = False
 
+    # Acceptance artifact id: set by the release harness so this run's manifest
+    # can be traced back to the acceptance report that vetted the configuration.
+    validation_artifact_id: str = ""
+
     # ------------------------------------------------------------------
     # Random seed
     # Set for reproducible velocity initialization; None = system entropy.

@@ -205,6 +205,7 @@ class NVTParams:
     remove_com_every: int   = 100    # runtime-only COM removal
     remove_angular_every: int = 0    # runtime-only COM + rotation; parallel to remove_com_every
     allow_partial_pbc: bool = False  # WS0-C: EXPERIMENTAL slab/partial-PBC opt-in; not production-validated
+    validation_artifact_id: str = ""  # release-harness acceptance artifact id (manifest traceability)
     random_seed: Optional[int] = None
 
 

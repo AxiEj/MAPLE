@@ -198,6 +198,7 @@ class NPTParams:
     # ensemble).  It is hard-rejected for production unless this escape hatch is
     # set, mirroring the allow_partial_pbc per-concern opt-in idiom.
     allow_equilibration_only_barostat: bool = False
+    validation_artifact_id: str = ""  # release-harness acceptance artifact id (manifest traceability)
     random_seed: Optional[int] = None
 
 

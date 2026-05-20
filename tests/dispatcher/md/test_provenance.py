@@ -126,6 +126,72 @@ def test_nve_run_writes_manifest(tmp_path):
     assert manifest["run"]["dof_policy"]["init_n_dof"] >= 1
 
 
+def test_long_range_method_from_coulomb_option():
+    calc = _Calc()
+    calc.maple_model_options = {"coulomb": "ewald", "foundation": "test"}
+    prov = collect_calculator_provenance(calc)
+    assert prov["capabilities"]["long_range_method"] == "ewald"
+
+
+def test_long_range_method_defaults_to_none():
+    prov = collect_calculator_provenance(_Calc())
+    assert prov["capabilities"]["long_range_method"] == "none"
+
+
+def test_validation_artifact_id_surfaces_at_manifest_top_level():
+    from maple.function.dispatcher.md.provenance import build_run_context
+
+    atoms = _periodic(_Calc())
+
+    class _ParamsWithId(_Params):
+        validation_artifact_id = "md_acceptance_TEST_123"
+
+    params = _ParamsWithId()
+    run_context = build_run_context(
+        params=params, dof_policy=resolve_md_dof_policy(atoms, params, "nve"), ensemble="nve"
+    )
+    manifest = build_md_manifest(atoms=atoms, run_context=run_context, calc_provenance=None)
+    assert manifest["validation_artifact_id"] == "md_acceptance_TEST_123"
+    # Surfaced once at the top level, not duplicated inside the run block.
+    assert "validation_artifact_id" not in manifest["run"]
+
+
+def test_nve_run_surfaces_validation_artifact_id(tmp_path):
+    atoms = _periodic(_Calc(pbc_capable=True))
+    atoms.calc.maple_provenance = collect_calculator_provenance(atoms.calc, model="fake-pbc")
+    atoms.arrays["velocities"] = np.zeros((1, 3))
+    NVE(output=str(tmp_path / "nve.out"), atoms=atoms, paras={
+        "steps": 1, "timestep": 0.5, "init_velocities": False, "remove_com_every": 0,
+        "verbose": 0, "log_every": 1, "traj_every": 1, "rst_every": 1,
+        "validation_artifact_id": "md_acceptance_TEST_123",
+    }).run()
+    manifest = json.loads((tmp_path / "nve_md_manifest.json").read_text())
+    assert manifest["validation_artifact_id"] == "md_acceptance_TEST_123"
+    # Banner records it too (start_simulation writes to the main output file).
+    assert "md_acceptance_TEST_123" in (tmp_path / "nve.out").read_text()
+
+
+def test_calc_provenance_falls_back_when_no_maple_provenance(tmp_path):
+    from ase.build import bulk
+    from maple.function.dispatcher.md.validation import MapleLJReferenceCalculator
+
+    atoms = bulk("Ar", "fcc", a=5.26, cubic=True) * (2, 2, 2)
+    atoms.calc = MapleLJReferenceCalculator(rc=4.0)
+    assert not hasattr(atoms.calc, "maple_provenance")  # engine never annotated it
+    atoms.arrays["velocities"] = np.zeros((len(atoms), 3))
+    NVE(output=str(tmp_path / "nve.out"), atoms=atoms, paras={
+        "steps": 1, "timestep": 0.5, "init_velocities": False, "remove_com_every": 0,
+        "verbose": 0, "log_every": 1, "traj_every": 1, "rst_every": 1,
+    }).run()
+    manifest = json.loads((tmp_path / "nve_md_manifest.json").read_text())
+    block = manifest["calculator"]
+    assert block is not None and block["model"] == "lj-reference"
+    caps = block["capabilities"]
+    assert caps["neighbor_cutoff_A"] == pytest.approx(4.0)
+    assert caps["stress_unit"] is not None
+    assert caps["long_range_method"] == "none"
+
+
 class _Params:
     remove_com = True
     remove_rotation = False
@@ -135,4 +201,5 @@ class _Params:
     thermostat = ""
     barostat = ""
     allow_partial_pbc = False
+    validation_artifact_id = ""
     random_seed = 7

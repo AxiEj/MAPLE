@@ -335,6 +335,10 @@ class MDLogger:
             f"Velocity repr:   {self.velocity_representation}\n",
         ])
 
+        artifact_id = (self._manifest_context or {}).get("validation_artifact_id")
+        if artifact_id:
+            self.log_main([f"Validation id:   {artifact_id}\n"])
+
         if step_offset > 0:
             self.log_main([
                 f"Resuming from:   step {step_offset} "
@@ -347,9 +351,19 @@ class MDLogger:
         if self._ensemble == 'npt' and pressure is not None:
             self.log_main([f"Target pressure: {pressure:.2f} bar\n"])
         if self._is_pbc:
+            from .provenance import _calc_cutoff
+
+            pbc_calc = getattr(atoms, "calc", None)
+            pbc_cutoff = _calc_cutoff(pbc_calc) if pbc_calc is not None else None
+            _opts = getattr(pbc_calc, "maple_model_options", None)
+            pbc_long_range = (_opts.get("coulomb") or "none") if isinstance(_opts, dict) else "none"
             self.log_main([
                 f"Wrapped traj:     {self.traj_path.name}\n",
                 f"Unwrapped traj:   {self.unwrapped_traj_path.name}\n",
+                f"PBC model:        {getattr(pbc_calc, 'maple_model_name', None)}\n",
+                f"Neighbor cutoff:  {f'{pbc_cutoff:.3f} A' if pbc_cutoff is not None else 'n/a'}\n",
+                f"Long-range:       {pbc_long_range}\n",
+                f"Stress unit:      {getattr(pbc_calc, 'maple_stress_unit', None) or 'n/a'}\n",
                 "NOTE: Wrapped PBC coordinates are for visualization/restart handoff; "
                 "use the unwrapped trajectory for MSD/diffusion or boundary-crossing analysis.\n",
             ])
@@ -1170,9 +1184,21 @@ class MDLogger:
         manifest_written = False
         if self._manifest_context is not None and atoms is not None:
             try:
-                from .provenance import build_md_manifest, write_md_manifest
+                from .provenance import (
+                    build_md_manifest,
+                    collect_calculator_provenance,
+                    write_md_manifest,
+                )
 
-                calc_provenance = getattr(getattr(atoms, "calc", None), "maple_provenance", None)
+                calc = getattr(atoms, "calc", None)
+                calc_provenance = getattr(calc, "maple_provenance", None)
+                if calc_provenance is None and calc is not None:
+                    # The engine normally attaches maple_provenance; when it is
+                    # absent (e.g. a reference calculator), fall back to the
+                    # calculator's declared maple_* attributes so model, neighbor
+                    # cutoff, stress unit and long-range method still land in the
+                    # manifest instead of a null calculator block.
+                    calc_provenance = collect_calculator_provenance(calc)
                 manifest = build_md_manifest(
                     atoms=atoms,
                     run_context=self._manifest_context,

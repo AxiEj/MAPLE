@@ -107,6 +107,12 @@ def collect_calculator_provenance(
     if options is None:
         options = getattr(calc, "maple_model_options", None)
 
+    # First-class long-range/electrostatics method: MAPLE encodes it in the
+    # model options under "coulomb"; "none" when absent (short-range only).
+    long_range_method = "none"
+    if isinstance(options, dict):
+        long_range_method = options.get("coulomb") or "none"
+
     return {
         "model": model if model is not None else getattr(calc, "maple_model_name", None),
         "backend_class": backend_class,
@@ -119,6 +125,7 @@ def collect_calculator_provenance(
             "stress_supported": bool(getattr(calc, "maple_stress_supported", False)),
             "stress_unit": getattr(calc, "maple_stress_unit", None),
             "neighbor_cutoff_A": _safe(lambda: _calc_cutoff(calc)),
+            "long_range_method": long_range_method,
         },
     }
 
@@ -199,6 +206,9 @@ def build_run_context(
         "params": _params_snapshot(params),
         "seed": _jsonable(getattr(params, "random_seed", None)),
         "rng_state_hex": rng_state_hex,
+        # Surfaced to the manifest top level by build_md_manifest (popped there
+        # so it is not duplicated inside the "run" block).
+        "validation_artifact_id": getattr(params, "validation_artifact_id", "") or None,
         "dof_policy": {
             "init_n_dof": dof_policy.init_n_dof,
             "runtime_n_dof": dof_policy.runtime_n_dof,
@@ -225,6 +235,11 @@ def build_md_manifest(
 ) -> Dict[str, Any]:
     """Assemble the full MD provenance manifest dict."""
     run_context = dict(run_context or {})
+    # The id is surfaced once at the manifest top level; prefer an explicit
+    # argument, else take the one captured into the run context at run start.
+    ctx_artifact_id = run_context.pop("validation_artifact_id", None)
+    if validation_artifact_id is None:
+        validation_artifact_id = ctx_artifact_id
     partial = run_context.get("partial_pbc") or {}
     pbc = [bool(flag) for flag in atoms.pbc]
     partial["is_partial"] = any(pbc) and not all(pbc)

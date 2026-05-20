@@ -36,11 +36,13 @@ pbc-aimnet = [
 pbc-mace = [
     "mace-torch>=0.3.14,<0.4",
 ]
-# graph_longrange is required by PolarMACE at runtime and is not yet on PyPI;
-# pinned to git per upstream docs.
+# graph_longrange is required by PolarMACE at runtime and is not yet on PyPI; it
+# is pinned to the exact git commit matching the validated install
+# (graph_longrange 0.4.0) so reinstalls are reproducible. Bump the SHA together
+# with the version recorded in the MD provenance manifest when upgrading.
 pbc-macepol = [
     "mace-torch>=0.3.16,<0.4",
-    "graph_longrange @ git+https://github.com/WillBaldwin0/graph_electrostatics.git",
+    "graph_longrange @ git+https://github.com/WillBaldwin0/graph_electrostatics.git@0e21d5546c482d08388a08eb4d948e833227ce47",
 ]
 
 # Development tools

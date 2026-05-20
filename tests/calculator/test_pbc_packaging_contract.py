@@ -64,10 +64,16 @@ def test_pyproject_declares_pbc_optional_extras():
     extras = pyproject["project"]["optional-dependencies"]
     assert extras["pbc-aimnet"] == ["aimnet[ase]"]
     assert extras["pbc-mace"] == ["mace-torch>=0.3.14,<0.4"]
-    assert extras["pbc-macepol"] == [
-        "mace-torch>=0.3.16,<0.4",
-        "graph_longrange @ git+https://github.com/WillBaldwin0/graph_electrostatics.git",
-    ]
+    # graph_longrange must be pinned to an exact commit for reproducible installs
+    # (WS4-D), not left at a floating branch tip.
+    macepol = extras["pbc-macepol"]
+    assert macepol[0] == "mace-torch>=0.3.16,<0.4"
+    graph_longrange_req = macepol[1]
+    assert graph_longrange_req.startswith(
+        "graph_longrange @ git+https://github.com/WillBaldwin0/graph_electrostatics.git@"
+    )
+    pinned_sha = graph_longrange_req.rsplit("@", 1)[1]
+    assert len(pinned_sha) == 40 and all(c in "0123456789abcdef" for c in pinned_sha)
     assert "full" in extras
     assert "minimal" in extras
 

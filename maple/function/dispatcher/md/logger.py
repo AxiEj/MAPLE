@@ -1107,9 +1107,10 @@ class MDLogger:
         # Contains final coordinates + velocities + simulation state
         # so that a subsequent NVE/NVT/NPT run can restart from the exact end state.
         # ------------------------------------------------------------------
-        # Also write final structure file (GROMACS confout.gro equivalent)
-        # Contains final coordinates + velocities in XYZ format for easy inspection
-        # and use as input for the next simulation stage.
+        # Also write a final structure XYZ (GROMACS confout.gro equivalent) with
+        # the final coordinates and cell for easy inspection.  It is NOT the
+        # restart source: strict restart/continuation reads the RST checkpoint
+        # above only.
         # ------------------------------------------------------------------
         final_written = False
         final_xyz_written = False
@@ -1133,11 +1134,12 @@ class MDLogger:
             )
             final_written = True
 
-            # Write final structure XYZ (confout.gro equivalent)
-            # This file contains:
-            #   - Coordinates (can be used as input for next stage)
-            #   - Velocities (embedded in XYZ, read by InputReader)
-            #   - Cell parameters (if PBC)
+            # Write final structure XYZ (confout.gro equivalent): coordinates and
+            # cell only.  Velocities are embedded here ONLY in debug mode, as a
+            # human-readable diagnostic — they are not the restart source.  The
+            # authoritative strict-restart state (velocities, RNG state, velocity
+            # representation, image flags) lives solely in the RST checkpoint
+            # written above, never in the XYZ comment line.
             with open(self.final_path, 'w') as f:
                 write_xyz_frame(
                     f,

@@ -49,11 +49,7 @@ from ..utils import (
     calculate_temperature,
     calculate_kinetic_energy,
     compute_instantaneous_pressure,
-    describe_dof_policy,
     get_atoms_velocity_representation,
-    get_initialization_dof_policy,
-    get_n_dof_from_policy,
-    get_runtime_dof_policy,
     initialize_velocities,
     HA_PER_ANG_TO_AU,
     lfmiddle_carried_to_standard,
@@ -64,7 +60,7 @@ from ..utils import (
     validate_md_parameter_ranges,
     validate_stress_tensor,
 )
-from ..semantics import validate_md_semantics
+from ..semantics import resolve_md_dof_policy, validate_md_semantics
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
 from ..logger import MDLogger
 
@@ -269,17 +265,13 @@ class NPT(JobABC):
                      if self.params.random_seed is not None
                      else np.random.default_rng())
 
-        runtime_policy = get_runtime_dof_policy(
-            atoms,
-            remove_com_every=self.params.remove_com_every,
-            remove_angular_every=self.params.remove_angular_every,
-        )
-        for warning in runtime_policy["warnings"]:
+        self._dof_policy = resolve_md_dof_policy(self.atoms, self.params, "npt")
+        for warning in self._dof_policy.warnings:
             self.log_info([f"\n*** WARNING: {warning}\n"])
         if self.params.remove_angular:
             self.log_info(["\n*** WARNING: remove_angular is ignored for NPT/PBC systems; only initialization COM removal remains active.\n"])
-        self._runtime_n_dof = get_n_dof_from_policy(runtime_policy)
-        self._runtime_dof_description = describe_dof_policy(runtime_policy)
+        self._runtime_n_dof = self._dof_policy.runtime_n_dof
+        self._runtime_dof_description = self._dof_policy.runtime_description
 
         if self.params.thermostat == 'langevin':
             self.thermostat = LangevinThermostat(
@@ -493,21 +485,33 @@ class NPT(JobABC):
     def _initialize_velocities(self) -> np.ndarray:
         """Initialize velocities from Maxwell-Boltzmann distribution."""
         self.log_info([f"\nInitializing velocities at {self.params.temperature:.2f} K...\n"])
+        # PBC: rotation is undefined, so initialization projects COM only; the
+        # rescale target is the init basis (init_n_dof), not the runtime basis.
         velocities = initialize_velocities(
             atoms=self.atoms,
             temperature=self.params.temperature,
             remove_com=self.params.remove_com,
             remove_rotation=self.params.remove_rotation,
             remove_angular=False,
-            target_n_dof=self._runtime_n_dof,
+            target_n_dof=self._dof_policy.init_n_dof,
             rng=self._rng,
         )
-        actual_temp = calculate_temperature(
-            self.atoms,
-            velocities,
-            n_dof=self._runtime_n_dof,
+        t_init = calculate_temperature(
+            self.atoms, velocities, n_dof=self._dof_policy.init_n_dof
         )
-        self.log_info([f"Initial temperature: {actual_temp:.2f} K\n"])
+        self.log_info([
+            f"Initial temperature: {t_init:.2f} K "
+            f"({self._dof_policy.init_description})\n"
+        ])
+        if self._dof_policy.runtime_n_dof != self._dof_policy.init_n_dof:
+            t_runtime = calculate_temperature(
+                self.atoms, velocities, n_dof=self._dof_policy.runtime_n_dof
+            )
+            self.log_info([
+                f"  Runtime basis: {t_runtime:.2f} K "
+                f"({self._dof_policy.runtime_description}); the thermostat "
+                f"repopulates the init-projected COM during the run.\n"
+            ])
         return velocities
 
     def _run_simulation(self, velocities: np.ndarray,

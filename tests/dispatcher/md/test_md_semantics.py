@@ -22,6 +22,11 @@ from maple.function.dispatcher.md.semantics import (
     resolve_md_dof_policy,
     validate_md_semantics,
 )
+from maple.function.dispatcher.md.utils import (
+    calculate_angular_momentum,
+    calculate_momentum,
+    calculate_temperature,
+)
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -142,6 +147,31 @@ def test_every_step_com_removal_subtracts_three():
     assert policy.runtime_n_dof == 6
 
 
+def test_vrescale_intermittent_com_still_subtracts_operator_aware():
+    # Operator-aware (NOT operator-blind): under v-rescale (global scalar) an
+    # init-projected COM stays at zero regardless of the intermittent removal
+    # cadence, so it is subtracted.  This is the bare-NPT default case.
+    policy = resolve_md_dof_policy(
+        _water(pbc=True),
+        _params(remove_com=True, remove_com_every=100, thermostat="v-rescale"),
+        "npt",
+    )
+    assert policy.runtime_n_dof == 6   # 9 - 3 (COM stays at zero under v-rescale)
+
+
+def test_langevin_vs_vrescale_intermittent_com_differ():
+    # The same intermittent cadence yields different runtime DOF depending on the
+    # operator: Langevin repopulates COM (no subtract), v-rescale does not.
+    langevin = resolve_md_dof_policy(
+        _water(pbc=True), _params(remove_com_every=100, thermostat="langevin"), "nvt"
+    )
+    vrescale = resolve_md_dof_policy(
+        _water(pbc=True), _params(remove_com_every=100, thermostat="v-rescale"), "nvt"
+    )
+    assert langevin.runtime_n_dof == 9
+    assert vrescale.runtime_n_dof == 6
+
+
 def test_pbc_never_subtracts_rotation():
     # Even with remove_angular / remove_angular_every set, rotation is undefined
     # under PBC and must never be subtracted; only COM may be.
@@ -247,3 +277,68 @@ def test_full_pbc_is_not_flagged_partial(tmp_path):
     NVE(output=str(out), atoms=atoms, paras={"steps": 0, "verbose": 0, "remove_com_every": 0})
     # No advisory is logged for full 3-D PBC; the .out may not be created at all.
     assert "EXPERIMENTAL" not in (out.read_text() if out.exists() else "")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# WS0-A consumed by WS1 — ensemble-level DOF behavior (the headline fix)
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_nve_bare_water_init_temperature_uses_active_subspace(tmp_path):
+    # Bare NVE on isolated water now projects COM + rotation (dataclass default
+    # remove_angular=True, remove_com_every=0) and rescales the initial draw to
+    # the *active* 3N-6 = 3 DOF, not the 3N = 9 runtime count.  The latter is the
+    # latent 3x over-heating bug the defaults flip would otherwise activate.
+    atoms = _water()
+    atoms.calc = _FakeCalc(pbc_capable=False)
+    nve = NVE(
+        output=str(tmp_path / "nve.out"),
+        atoms=atoms,
+        paras={"steps": 0, "verbose": 0, "random_seed": 1234},
+    )
+    assert nve._dof_policy.init_n_dof == 3
+    assert nve._dof_policy.runtime_n_dof == 3
+    v = nve._initialize_velocities()
+    # Energy distributed over the 3 active DOF == target; over 9 it would be 100 K.
+    assert calculate_temperature(atoms, v, n_dof=3) == pytest.approx(300.0, rel=1e-6)
+    assert calculate_temperature(atoms, v, n_dof=9) == pytest.approx(100.0, rel=1e-6)
+    # COM and rotation were actually projected out.
+    np.testing.assert_allclose(calculate_momentum(atoms, v), 0.0, atol=1e-10)
+    np.testing.assert_allclose(calculate_angular_momentum(atoms, v), 0.0, atol=1e-8)
+
+
+def test_vrescale_nvt_water_runtime_equals_init_basis(tmp_path):
+    atoms = _water()
+    atoms.calc = _FakeCalc(pbc_capable=False)
+    nvt = NVT(
+        output=str(tmp_path / "nvt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 0, "verbose": 0, "thermostat": "v-rescale", "tau_t": 100.0,
+            "remove_angular": True, "remove_com_every": 0, "random_seed": 3,
+        },
+    )
+    assert nvt._dof_policy.init_n_dof == 3
+    assert nvt._dof_policy.runtime_n_dof == 3   # v-rescale keeps projected modes at zero
+    v = nvt._initialize_velocities()
+    assert calculate_temperature(atoms, v, n_dof=3) == pytest.approx(300.0, rel=1e-6)
+
+
+def test_langevin_nvt_water_init_runtime_basis_differ(tmp_path):
+    # Langevin re-excites the init-projected COM/rotation: init basis 3, runtime 9.
+    # The initial draw is at target in the init basis; over the runtime basis it
+    # reads (3/9)*target at t=0 (a basis difference, not over-heating).
+    atoms = _water()
+    atoms.calc = _FakeCalc(pbc_capable=False)
+    nvt = NVT(
+        output=str(tmp_path / "nvt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 0, "verbose": 0, "thermostat": "langevin",
+            "remove_angular": True, "remove_com_every": 0, "random_seed": 7,
+        },
+    )
+    assert nvt._dof_policy.init_n_dof == 3
+    assert nvt._dof_policy.runtime_n_dof == 9
+    v = nvt._initialize_velocities()
+    assert calculate_temperature(atoms, v, n_dof=3) == pytest.approx(300.0, rel=1e-6)
+    assert calculate_temperature(atoms, v, n_dof=9) == pytest.approx(100.0, rel=1e-6)

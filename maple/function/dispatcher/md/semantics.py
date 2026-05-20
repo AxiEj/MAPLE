@@ -17,14 +17,17 @@ Three concerns live here:
   Operator (per step)     Re-excites init-projected     DOF rule for that mode
                           COM/rotation mode?
   ======================  ============================  ===========================
-  NVE deterministic VV    No (P, L conserved)           subtract
-  v-rescale (alpha*v)     No (global scalar)            subtract
-  c-rescale (v/mu)        No (global scalar)            subtract
-  Langevin (per-atom OU)  Yes (repopulates COM/rot)     don't subtract for
-                                                        init-only projection
-  remove_*_every == 1     permanent constraint subspace subtract
-  remove_*_every  > 1     mode lives between resets     don't subtract
+  NVE deterministic VV    No (P, L conserved)           subtract if projected or
+  v-rescale (alpha*v)     No (global scalar)            removed at any cadence
+  c-rescale (v/mu)        No (global scalar)            (it stays at zero)
+  Langevin + every>1      Yes, repopulated betw. resets don't subtract
+  Langevin + init-only    Yes, repopulated every step   don't subtract
+  Langevin + every==1     pinned at zero each step      subtract
   ======================  ============================  ===========================
+
+  Re-excitation is the deciding question, not the cadence alone: a non-re-exciting
+  operator cannot move a zero mode off zero, so projecting/removing it subtracts;
+  Langevin repopulates it, so only an every-step runtime projection subtracts.
 
   ``init_n_dof`` (the basis the initial velocity draw was projected onto) and
   ``runtime_n_dof`` (the basis temperature/thermostat/summary use during
@@ -75,23 +78,23 @@ class MDDOFPolicy:
 def _mode_subtracted(*, init_projected: bool, runtime_every: int, operator_reexcites: bool) -> bool:
     """Decide whether one COM/rotation mode is held at ~zero kinetic energy.
 
-    The decision is taken at the moment temperature is measured (after any
-    runtime projection):
+    Re-excitation by the per-step operator is the deciding question (the old
+    cadence-only rule was both too coarse and operator-blind — it treated
+    v-rescale like Langevin).  The decision is taken at the moment temperature is
+    measured (after any runtime projection):
 
-    * removed every step (``== 1``) → zeroed just before logging → subtract,
-      regardless of operator (a permanent constraint subspace);
-    * removed intermittently (``> 1``) → the mode lives between resets, so at a
-      generic logging step it carries energy → don't subtract;
-    * not removed at runtime (``== 0``) → it is held at zero only if it was
-      projected at init *and* the per-step operator cannot repopulate it.
+    * Re-exciting operator (Langevin, per-atom noise): the mode is repopulated
+      every step, so only an every-step runtime projection (``== 1``) pins it at
+      zero by logging time.  An init-only projection or an intermittent
+      (``> 1``) removal does not reduce the active DOF.
+    * Non-re-exciting operator (NVE deterministic VV, v-rescale / c-rescale
+      global scalars): the operator cannot move a zero mode off zero, so once the
+      mode is projected at init *or* removed at runtime (any cadence) it stays at
+      zero and is a genuine constraint → subtract.
     """
-    if runtime_every == 1:
-        return True
-    if runtime_every > 1:
-        return False
     if operator_reexcites:
-        return False
-    return bool(init_projected)
+        return runtime_every == 1
+    return bool(init_projected) or runtime_every > 0
 
 
 def _operator_reexcites(params) -> bool:

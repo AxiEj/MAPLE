@@ -76,34 +76,13 @@ class CommandControl:
             "treat_imag_as_real": False,
             "device": "cpu",
         },
+        # The MD ensemble dataclasses (NVEParams/NVTParams/NPTParams) are the
+        # single source of truth for every physics default.  DEFAULTS["md"] only
+        # selects the ensemble; all other defaults are resolved by _init_params
+        # so that explicit inline > MDP > dataclass precedence holds and no
+        # physics default is ever silently duplicated here. See _md_param_keys().
         "md": {
             "ensemble": "nve",
-            "timestep": 0.25,
-            "steps": 400000,
-            "temperature": 300.0,
-            "traj_every": 100,
-            "log_every": 100,
-            "init_velocities": True,
-            "restart": False,
-            "load_state": False,
-            "rst_file": "",
-            "rst_every": 1000,
-            "remove_com": True,
-            "remove_com_every": 100,
-            "remove_rotation": False,
-            "remove_angular": False,
-            "remove_angular_every": 0,
-            "random_seed": None,
-            "thermostat": "langevin",
-            "friction": 0.001,
-            "tau_t": 100.0,
-            "barostat": "c-rescale",
-            "pressure": 1.0,
-            "tau_p": 2000.0,
-            "compressibility": 4.5e-5,
-            "mdp": None,
-            "traj_format": "xyz",
-            "debug": False,
         },
         "solv": {"solvent": "water", "explicit": None},
     }
@@ -359,9 +338,13 @@ class CommandControl:
             cls._log_error(output_path, str(exc))
             raise
 
-        defaults = cls.DEFAULTS.get("md", {})
+        # Filter by the full accepted MD key set (dataclass union), NOT by
+        # DEFAULTS["md"] — that now contains only "ensemble", so filtering on it
+        # would silently drop every MDP physics key. inline_keys win over MDP
+        # (explicit inline > MDP > dataclass).
+        md_keys = cls._md_param_keys()
         for key, mdp_val in mdp_params.items():
-            if key in defaults and key not in inline_keys:
+            if key in md_keys and key not in inline_keys:
                 params[key] = mdp_val
 
         if "remove_rotation" in mdp_params and "remove_angular" not in mdp_params:
@@ -453,13 +436,38 @@ class CommandControl:
         raise ValueError(msg)
 
     @classmethod
+    def _md_param_keys(cls) -> set[str]:
+        """Return every accepted MD parameter key.
+
+        The MD ensemble dataclasses are the single source of truth: the accepted
+        keys are the union of their fields plus the two CLI-only keys
+        (``ensemble`` selects the ensemble; ``mdp`` points at an MDP file). This
+        is used both as the #md validation whitelist and as the MDP import
+        filter, so a physics key cannot be accepted in one place and silently
+        dropped in the other. Cached because the dataclasses are fixed at import.
+        """
+        cached = cls.__dict__.get("_MD_PARAM_KEYS_CACHE")
+        if cached is not None:
+            return cached
+        from dataclasses import fields
+        from ..dispatcher.md.ensemble.nve import NVEParams
+        from ..dispatcher.md.ensemble.nvt import NVTParams
+        from ..dispatcher.md.ensemble.npt import NPTParams
+
+        keys: set[str] = {"ensemble", "mdp"}
+        for dataclass_type in (NVEParams, NVTParams, NPTParams):
+            keys.update(field.name for field in fields(dataclass_type))
+        cls._MD_PARAM_KEYS_CACHE = keys
+        return keys
+
+    @classmethod
     def _allowed_task_params(cls, task: str, params: Dict[str, Any]) -> Optional[set[str]]:
         if task not in cls.VALIDATED_TASK_PARAMS:
             return None
 
         allowed = set(cls.GLOBAL_PARAMS)
         if task == "md":
-            allowed.update(cls.DEFAULTS["md"])
+            allowed.update(cls._md_param_keys())
             return allowed
 
         method = str(params.get("method") or "lbfgs").lower()

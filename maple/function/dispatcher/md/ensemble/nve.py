@@ -22,16 +22,12 @@ from ..utils import (
     apply_runtime_motion_projection,
     calculate_temperature,
     calculate_kinetic_energy,
-    describe_dof_policy,
-    get_initialization_dof_policy,
-    get_n_dof_from_policy,
-    get_runtime_dof_policy,
     initialize_velocities,
     HA_PER_ANG_TO_AU,
     validate_md_capabilities,
     validate_md_parameter_ranges,
 )
-from ..semantics import validate_md_semantics
+from ..semantics import resolve_md_dof_policy, validate_md_semantics
 from ..logger import MDLogger
 
 
@@ -191,12 +187,8 @@ class NVE(JobABC):
             verbose=self.params.verbose,
             debug=self.params.debug,
         )
-        runtime_policy = get_runtime_dof_policy(
-            atoms,
-            remove_com_every=self.params.remove_com_every,
-            remove_angular_every=self.params.remove_angular_every,
-        )
-        for warning in runtime_policy["warnings"]:
+        self._dof_policy = resolve_md_dof_policy(self.atoms, self.params, "nve")
+        for warning in self._dof_policy.warnings:
             self.log_info([f"\n*** WARNING: {warning}\n"])
 
     def run(self):
@@ -418,33 +410,38 @@ class NVE(JobABC):
             self.log_info([msg])
             print(msg, end='', flush=True)
 
-        # Initialize velocities
-        runtime_policy = get_runtime_dof_policy(
-            self.atoms,
-            remove_com_every=self.params.remove_com_every,
-            remove_angular_every=self.params.remove_angular_every,
-        )
-        runtime_n_dof = get_n_dof_from_policy(runtime_policy)
-
+        # The initial velocity rescale target MUST match the projection actually
+        # applied at init (init_n_dof), not the runtime DOF.  Using the runtime
+        # basis here is what over-heats an isolated molecule by 3N/(3N-6).
         velocities = initialize_velocities(
             atoms=self.atoms,
             temperature=self.params.temperature,
             remove_com=self.params.remove_com,
             remove_rotation=self.params.remove_rotation,
             remove_angular=self.params.remove_angular,
-            target_n_dof=runtime_n_dof,
+            target_n_dof=self._dof_policy.init_n_dof,
             rng=rng
         )
 
-        # Verify temperature against the runtime DOF policy.
-        actual_temp = calculate_temperature(
-            self.atoms,
-            velocities,
-            n_dof=runtime_n_dof,
+        # Report the initial temperature in the basis it was generated in. When
+        # the runtime basis differs (a re-exciting thermostat repopulates an
+        # init-projected mode), also report it so the two are not conflated.
+        t_init = calculate_temperature(
+            self.atoms, velocities, n_dof=self._dof_policy.init_n_dof
         )
         self.log_info([
-            f"Initial temperature: {actual_temp:.2f} K\n"
+            f"Initial temperature: {t_init:.2f} K "
+            f"({self._dof_policy.init_description})\n"
         ])
+        if self._dof_policy.runtime_n_dof != self._dof_policy.init_n_dof:
+            t_runtime = calculate_temperature(
+                self.atoms, velocities, n_dof=self._dof_policy.runtime_n_dof
+            )
+            self.log_info([
+                f"  Runtime basis: {t_runtime:.2f} K "
+                f"({self._dof_policy.runtime_description}); the thermostat "
+                f"repopulates the init-projected modes during the run.\n"
+            ])
 
         return velocities
 
@@ -482,27 +479,14 @@ class NVE(JobABC):
             temperature=self.params.temperature,
             atoms=self.atoms,
             step_offset=step_offset,
-            n_dof=get_n_dof_from_policy(get_runtime_dof_policy(
-                self.atoms,
-                remove_com_every=self.params.remove_com_every,
-                remove_angular_every=self.params.remove_angular_every,
-            )),
-            dof_description=describe_dof_policy(get_runtime_dof_policy(
-                self.atoms,
-                remove_com_every=self.params.remove_com_every,
-                remove_angular_every=self.params.remove_angular_every,
-            )),
+            n_dof=self._dof_policy.runtime_n_dof,
+            dof_description=self._dof_policy.runtime_description,
         )
 
         self.logger.log_main(["\nStarting NVE simulation...\n\n"])
 
         integrator = VelocityVerlet(self.atoms, self.params.timestep)
-        runtime_policy = get_runtime_dof_policy(
-            self.atoms,
-            remove_com_every=self.params.remove_com_every,
-            remove_angular_every=self.params.remove_angular_every,
-        )
-        runtime_n_dof = get_n_dof_from_policy(runtime_policy)
+        runtime_n_dof = self._dof_policy.runtime_n_dof
         v = velocities.copy()
 
         # Cache forces at t=0; reused as first B-step forces each cycle.

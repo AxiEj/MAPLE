@@ -10,7 +10,7 @@ import torch
 from ase import Atoms
 from ase.calculators.calculator import all_changes
 
-from maple.function.calculator._ase_unit_contract import EV2HARTREE
+from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
 
 try:
     from fairchem.core import pretrained_mlip
@@ -55,6 +55,7 @@ class UMACalculator(FAIRChemCalculator):
     supported_hessian_modes = ("numerical",)
     maple_pbc_md_supported = True
     maple_stress_supported = True
+    maple_stress_unit = ASE_STRESS_UNIT
 
     @staticmethod
     def _normalize_device(device: torch.device | str | None) -> str:

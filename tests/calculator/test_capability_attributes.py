@@ -1,5 +1,6 @@
 import pytest
 
+from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT
 from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
 from maple.function.calculator.aimnet._aimnet2_official_pbc_calculator import (
     AIMNet2OfficialPBCCalculator,
@@ -23,6 +24,7 @@ from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
 def test_pbc_backends_declare_periodic_stress_capability(calculator_cls):
     assert calculator_cls.maple_pbc_md_supported is True
     assert calculator_cls.maple_stress_supported is True
+    assert calculator_cls.maple_stress_unit == ASE_STRESS_UNIT
 
 
 @pytest.mark.parametrize(

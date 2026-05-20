@@ -3,7 +3,7 @@ import math
 import sys
 import types
 
-from maple.function.calculator._ase_unit_contract import EV2HARTREE
+from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
 
 
 HARTREE_TO_EV = 27.211386245988
@@ -20,6 +20,10 @@ def test_ev2hartree_uses_codata_value():
     assert math.isclose(EV2HARTREE, 1.0 / HARTREE_TO_EV, rel_tol=0.0, abs_tol=1e-18)
 
 
+def test_ase_stress_unit_contract_is_explicit():
+    assert ASE_STRESS_UNIT == "eV/A^3"
+
+
 def test_ev_hartree_round_trip_is_stable():
     for value_ev in (1.0, 13.37, HARTREE_TO_EV):
         value_hartree = value_ev * EV2HARTREE
@@ -31,6 +35,14 @@ def test_legacy_calculators_share_ev2hartree_object(monkeypatch):
 
     modules = [importlib.import_module(module_name) for module_name in LEGACY_EV2HARTREE_MODULES]
     assert all(module.EV2HARTREE is EV2HARTREE for module in modules)
+
+
+def test_uma_declares_ase_stress_unit(monkeypatch):
+    _install_uma_optional_import_stubs(monkeypatch)
+
+    module = importlib.import_module("maple.function.calculator.uma._uma_calculator")
+
+    assert module.UMACalculator.maple_stress_unit == ASE_STRESS_UNIT
 
 
 def _install_uma_optional_import_stubs(monkeypatch):

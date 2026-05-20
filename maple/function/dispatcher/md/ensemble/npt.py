@@ -252,6 +252,12 @@ class NPT(JobABC):
                 "\n*** WARNING: 'tau_t' parameter was specified but thermostat is 'langevin'.\n"
                 "    The tau_t parameter is only used by the V-rescale thermostat.\n\n"
             ])
+        if self.params.barostat == 'berendsen':
+            self.log_info([
+                "\n*** WARNING: barostat=berendsen is equilibration-only.\n"
+                "    It suppresses volume fluctuations and does not generate a correct production NPT ensemble.\n"
+                "    Use barostat=c-rescale for production-style isotropic NPT.\n\n"
+            ])
 
         self._rng = (np.random.default_rng(self.params.random_seed)
                      if self.params.random_seed is not None

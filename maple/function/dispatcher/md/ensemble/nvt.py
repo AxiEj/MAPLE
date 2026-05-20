@@ -255,6 +255,8 @@ class NVT(JobABC):
             remove_com_every=self.params.remove_com_every,
             remove_angular_every=self.params.remove_angular_every,
         )
+        for warning in runtime_policy["warnings"]:
+            self.log_info([f"\n*** WARNING: {warning}\n"])
         self._runtime_n_dof = get_n_dof_from_policy(runtime_policy)
         self._runtime_dof_description = describe_dof_policy(runtime_policy)
 

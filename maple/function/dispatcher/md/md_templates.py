@@ -29,7 +29,7 @@ traj_format = xyz        ; xyz (text) or dcd (binary)
 
 remove_com = yes         ; initialization-only: remove COM
 remove_angular = no      ; initialization-only: remove COM + rigid-body rotation (parallel to remove_com, not a switch)
-remove_com_every = 100   ; runtime-only: remove COM every N steps
+remove_com_every = 100   ; runtime COM removal; use 0 for transport/diffusion analysis
 remove_angular_every = 0 ; runtime-only: remove COM + rigid-body rotation every N steps (parallel to remove_com_every, not a switch)
 
 init_velocities = no
@@ -62,7 +62,7 @@ traj_format = xyz
 
 remove_com = yes         ; initialization-only: remove COM
 remove_angular = no      ; initialization-only: remove COM + rigid-body rotation (parallel to remove_com, not a switch)
-remove_com_every = 100   ; runtime-only: remove COM every N steps
+remove_com_every = 100   ; runtime COM removal; use 0 for transport/diffusion analysis
 remove_angular_every = 0 ; runtime-only: remove COM + rigid-body rotation every N steps (parallel to remove_com_every, not a switch)
 
 init_velocities = yes
@@ -87,9 +87,9 @@ thermostat  = v-rescale  ; langevin or v-rescale
 ; tau_t     = 100.0      ; fs (V-rescale only)
 
 pressure    = 1.0        ; bar
-barostat    = c-rescale  ; berendsen or c-rescale
+barostat    = c-rescale  ; c-rescale for production; berendsen is equilibration-only
 tau_p       = 2000.0     ; fs
-compressibility = 4.5e-5 ; 1/bar
+compressibility = 4.5e-5 ; 1/bar; must be > 0
 
 traj_every  = 100
 log_every   = 100
@@ -97,7 +97,7 @@ traj_format = xyz
 
 remove_com = yes         ; initialization-only: remove COM
 remove_angular = no      ; initialization-only: remove COM + rigid-body rotation (parallel to remove_com, ignored under PBC)
-remove_com_every = 100   ; runtime-only: remove COM every N steps
+remove_com_every = 100   ; runtime COM removal; use 0 for transport/diffusion analysis
 remove_angular_every = 0 ; runtime-only: remove COM + rigid-body rotation every N steps (parallel to remove_com_every, ignored under PBC)
 
 init_velocities = yes

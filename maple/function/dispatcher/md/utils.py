@@ -14,6 +14,8 @@ from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 from typing import Dict, Optional
 
+from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT
+
 
 # ========== Physical Constants and Unit Conversions ==========
 
@@ -128,6 +130,12 @@ def validate_stress_tensor(atoms: Atoms) -> np.ndarray:
         )
     if not np.all(np.isfinite(stress)):
         raise MDStressUnavailableError("Calculator returned non-finite stress values.")
+    stress_unit = getattr(atoms.calc, "maple_stress_unit", ASE_STRESS_UNIT)
+    if stress_unit != ASE_STRESS_UNIT:
+        raise MDStressUnavailableError(
+            "Calculator stress unit contract mismatch: expected "
+            f"{ASE_STRESS_UNIT!r}, got {stress_unit!r}."
+        )
     return stress
 
 
@@ -387,6 +395,12 @@ def get_runtime_dof_policy(
             "remove_angular_every is ignored for periodic systems because global rigid-body rotation is not well-defined under PBC. remove_com_every remains an independent optional runtime COM-drift removal under PBC."
         )
         angular_requested = False
+    if is_pbc and linear_requested:
+        warnings_list.append(
+            "remove_com_every under PBC removes total momentum during dynamics. "
+            "This can affect diffusion, velocity autocorrelation, and other transport analyses; "
+            "set remove_com_every=0 for transport/strict dynamics."
+        )
 
     angular_active = bool(angular_requested)
     linear_active = bool(angular_active or linear_requested)
@@ -715,7 +729,8 @@ def write_xyz_frame(
 
     Format:
         N_atoms
-        Frame <number>  Energy = <energy> Hartree[  Cell = ...]
+        Frame=<number> maple_energy_hartree=<energy> CoordinateMode=<mode>
+        Lattice="..." Properties=species:S:1:pos:R:3[...]
         Symbol  x  y  z  [vx  vy  vz]
 
     Parameters
@@ -747,19 +762,23 @@ def write_xyz_frame(
 
     # Header lines
     file_handle.write(f"{len(symbols)}\n")
-    cell_str = ""
+    comment_fields = [
+        f"Frame={frame_number}",
+        f"maple_energy_hartree={energy:.10f}",
+        f"CoordinateMode={coordinate_mode}",
+    ]
+    properties = "species:S:1:pos:R:3"
+    if include_velocities and velocity is not None:
+        properties += ":vel:R:3"
     if any(atoms.pbc):
-        cp = atoms.cell.cellpar()  # [a, b, c, alpha, beta, gamma]
+        lattice = " ".join(f"{value:.10f}" for value in np.asarray(atoms.cell.array).reshape(-1))
         pbc_tokens = ["T" if periodic else "F" for periodic in atoms.pbc]
-        cell_str = (f"  Cell = {cp[0]:.6f} {cp[1]:.6f} {cp[2]:.6f}"
-                    f" {cp[3]:.6f} {cp[4]:.6f} {cp[5]:.6f}"
-                    f"  PBC = {' '.join(pbc_tokens)}")
+        comment_fields.append(f'Lattice="{lattice}"')
+        comment_fields.append(f'pbc="{" ".join(pbc_tokens)}"')
+    comment_fields.append(f"Properties={properties}")
     # frame_number stores the MD step number (not sequential frame index) so that
     # resume_simulation() can recover the exact step offset without knowing traj_every.
-    file_handle.write(
-        f"Frame {frame_number}  Energy = {energy:.10f} Hartree"
-        f"  CoordinateMode = {coordinate_mode}{cell_str}\n"
-    )
+    file_handle.write(" ".join(comment_fields) + "\n")
     # NOTE: frame_number is the MD *step* number (passed as `step` from the ensemble loop).
     # The regex _TRAJ_COMMENT_RE parses this as frame_num; resume_simulation uses it
     # directly as step_offset (no multiplication by traj_every needed).

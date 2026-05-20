@@ -210,6 +210,13 @@ class NVE(JobABC):
             verbose=self.params.verbose,
             debug=self.params.debug,
         )
+        runtime_policy = get_runtime_dof_policy(
+            atoms,
+            remove_com_every=self.params.remove_com_every,
+            remove_angular_every=self.params.remove_angular_every,
+        )
+        for warning in runtime_policy["warnings"]:
+            self.log_info([f"\n*** WARNING: {warning}\n"])
 
     def run(self):
         """

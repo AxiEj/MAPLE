@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from ase.io import read
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
@@ -293,12 +294,57 @@ def test_pbc_image_flags_reconstruct_unwrapped_boundary_crossing(tmp_path):
 
     wrapped_text = (tmp_path / "md_md_traj.xyz").read_text()
     unwrapped_text = (tmp_path / "md_md_traj_unwrapped.xyz").read_text()
-    assert "CoordinateMode = wrapped" in wrapped_text
-    assert "CoordinateMode = unwrapped" in unwrapped_text
+    assert "CoordinateMode=wrapped" in wrapped_text
+    assert "CoordinateMode=unwrapped" in unwrapped_text
+    assert "Lattice=" in wrapped_text
+    assert "Properties=species:S:1:pos:R:3" in wrapped_text
+    assert 'pbc="T T T"' in wrapped_text
     assert "He      0.20000000" in wrapped_text
     assert "He      2.20000000" in unwrapped_text
     state = read_rst(tmp_path / "md_md.rst")
     np.testing.assert_array_equal(state["image_flags"], np.array([[1, 0, 0]]))
+    reread = read(str(tmp_path / "md_md_traj.xyz"))
+    assert list(reread.pbc) == [True, True, True]
+    np.testing.assert_allclose(reread.cell.lengths(), [2.0, 2.0, 2.0])
+
+
+def test_npt_rejects_calculator_with_wrong_stress_unit(tmp_path):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    atoms.calc.maple_stress_unit = "GPa"
+
+    with pytest.raises(ValueError, match="eV/A"):
+        NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
+
+
+def test_npt_berendsen_logs_equilibration_only_warning(tmp_path):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+
+    NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 0,
+            "barostat": "berendsen",
+            "remove_com_every": 0,
+            "verbose": 0,
+        },
+    )
+
+    assert "barostat=berendsen is equilibration-only" in (tmp_path / "npt.out").read_text()
+
+
+def test_pbc_runtime_com_warning_mentions_transport_analysis(tmp_path):
+    atoms = _periodic_atoms(EnergyForcesCalculator(pbc_capable=True))
+
+    NVT(
+        output=str(tmp_path / "nvt.out"),
+        atoms=atoms,
+        paras={"steps": 0, "remove_com_every": 100, "verbose": 0},
+    )
+
+    text = (tmp_path / "nvt.out").read_text()
+    assert "remove_com_every under PBC removes total momentum" in text
+    assert "transport" in text
 
 
 def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):

@@ -6,6 +6,7 @@ import pytest
 import torch
 from ase import Atoms
 
+from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT
 from maple.function.calculator.mace._macepol_official_pbc_calculator import (
     MACEPolOfficialPBCCalculator,
 )
@@ -130,6 +131,7 @@ def test_unknown_macepol_pbc_dtype_raises():
 def test_macepol_pbc_capability_true_and_hessian_false():
     assert MACEPolOfficialPBCCalculator.maple_pbc_md_supported is True
     assert MACEPolOfficialPBCCalculator.maple_stress_supported is True
+    assert MACEPolOfficialPBCCalculator.maple_stress_unit == ASE_STRESS_UNIT
     assert MACEPolOfficialPBCCalculator.supported_hessian_modes == ()
 
 

@@ -6,7 +6,7 @@ import pytest
 import torch
 from ase import Atoms
 
-from maple.function.calculator._ase_unit_contract import EV2HARTREE
+from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
 from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
 from maple.function.calculator.aimnet._aimnet2_official_pbc_calculator import (
     AIMNet2OfficialPBCCalculator,
@@ -56,6 +56,7 @@ def test_aimnet_pbc_factory_dispatches_to_official_class(monkeypatch, tmp_path):
 
 def test_aimnet_pbc_capability_declared_without_changing_legacy_class():
     assert AIMNet2OfficialPBCCalculator.maple_pbc_md_supported is True
+    assert AIMNet2OfficialPBCCalculator.maple_stress_unit == ASE_STRESS_UNIT
     assert getattr(AIMNet2Calculator, "maple_pbc_md_supported", False) is False
 
 

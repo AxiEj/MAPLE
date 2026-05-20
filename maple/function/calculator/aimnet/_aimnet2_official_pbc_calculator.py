@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from ase.calculators.calculator import all_changes
 
-from maple.function.calculator._ase_unit_contract import EV2HARTREE
+from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
 from ..calculator_base import CalcABC
 from .options import AIMNET_PBC_MODELS
 
@@ -40,6 +40,7 @@ class AIMNet2OfficialPBCCalculator(CalcABC):
     supported_hessian_modes = ()
     maple_pbc_md_supported = True
     maple_stress_supported = True
+    maple_stress_unit = ASE_STRESS_UNIT
     supported_maple_properties = frozenset({"energy", "forces", "stress", "MD"})
 
     def __init__(

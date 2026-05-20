@@ -78,7 +78,7 @@ def test_nonperiodic_tasks_skip_pbc_capability_gate(task, tmp_path):
     _construct_task(task, atoms, str(tmp_path / f"{task}.out"))
 
 
-def _set_fake_pbc_calculator(monkeypatch, tmp_path, cutoff):
+def _set_fake_pbc_calculator(monkeypatch, tmp_path, cutoff, cell=None):
     class FakePBCBackend:
         supported_hessian_modes = ()
         neighbor_cutoff_A = cutoff
@@ -90,7 +90,7 @@ def _set_fake_pbc_calculator(monkeypatch, tmp_path, cutoff):
     atoms = Atoms(
         "Cu",
         positions=[[0.0, 0.0, 0.0]],
-        cell=[3.6, 3.6, 3.6],
+        cell=cell if cell is not None else [3.6, 3.6, 3.6],
         pbc=True,
     )
     return SetClaculator(
@@ -108,6 +108,17 @@ def test_pbc_neighbor_cutoff_inside_minimum_image_radius_passes(monkeypatch, tmp
 def test_pbc_neighbor_cutoff_beyond_minimum_image_radius_raises(monkeypatch, tmp_path):
     with pytest.raises(ValueError, match="Minimum-image convention"):
         _set_fake_pbc_calculator(monkeypatch, tmp_path, 5.0)
+
+
+def test_pbc_neighbor_cutoff_uses_triclinic_shortest_lattice_vector(monkeypatch, tmp_path):
+    skew_cell = [
+        [10.0, 0.0, 0.0],
+        [9.0, 1.0, 0.0],
+        [0.0, 0.0, 10.0],
+    ]
+
+    with pytest.raises(ValueError, match="shortest periodic lattice vector = 1.414 A"):
+        _set_fake_pbc_calculator(monkeypatch, tmp_path, 1.0, cell=skew_cell)
 
 
 def test_pbc_neighbor_cutoff_none_is_silent_skip(monkeypatch, tmp_path):

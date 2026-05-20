@@ -186,11 +186,51 @@ def _calculator_neighbor_cutoff_A(calculator) -> Optional[float]:
     return None
 
 
+def _minimum_image_radius_A(atoms) -> tuple[float, float]:
+    """Return the Wigner-Seitz inradius for the active periodic lattice.
+
+    The minimum-image cutoff must be smaller than half the shortest non-zero
+    periodic lattice vector, not merely half the shortest stored cell edge.  For
+    skew triclinic cells, the shortest periodic image can be a linear
+    combination such as ``a - b``.  ASE's Minkowski reduction gives a reduced
+    basis whose first active vector is the lattice shortest vector, following
+    Nguyen & Stehlé, ACM Trans. Algorithms 5, 46 (2009).
+    """
+    pbc = np.asarray(atoms.pbc, dtype=bool)
+    if not np.any(pbc):
+        raise ValueError("minimum-image radius requires at least one periodic direction")
+
+    cell = np.asarray(atoms.get_cell(), dtype=float)
+    active_cell = cell[pbc]
+    if not np.all(np.isfinite(active_cell)):
+        raise ValueError("PBC cell vectors must be finite for minimum-image validation.")
+
+    dim = int(np.sum(pbc))
+    if np.linalg.matrix_rank(active_cell) < dim:
+        raise ValueError(
+            "PBC cell vectors must be linearly independent for minimum-image validation."
+        )
+
+    from ase.geometry import minkowski_reduce
+
+    reduced_cell, _ = minkowski_reduce(cell, pbc=pbc)
+    reduced_lengths = np.linalg.norm(np.asarray(reduced_cell, dtype=float)[pbc], axis=1)
+    finite_lengths = reduced_lengths[np.isfinite(reduced_lengths) & (reduced_lengths > 0.0)]
+    if finite_lengths.size == 0:
+        raise ValueError("Could not determine a finite periodic lattice vector length.")
+
+    shortest_lattice_vector = float(np.min(finite_lengths))
+    return 0.5 * shortest_lattice_vector, shortest_lattice_vector
+
+
 def _validate_pbc_neighbor_cutoff(atoms, calculator) -> None:
-    """Validate cutoff < min(|a|, |b|, |c|) / 2 for the minimum-image convention.
+    """Validate cutoff against the true minimum-image radius.
 
     The cutoff bound follows Allen & Tildesley, Computer Simulation of Liquids,
-    2nd ed. (Oxford University Press, 2017), section 1.5.
+    2nd ed. (Oxford University Press, 2017), section 1.5: each pair interaction
+    should see at most one periodic image.  For skew cells this requires the
+    Wigner-Seitz inradius, i.e. half the shortest non-zero periodic lattice
+    vector, rather than half the shortest stored cell edge.
     """
     if atoms is None or not any(atoms.pbc):
         return
@@ -201,13 +241,12 @@ def _validate_pbc_neighbor_cutoff(atoms, calculator) -> None:
     if cutoff is None or not np.isfinite(cutoff) or cutoff <= 0.0:
         return
 
-    cell = np.asarray(atoms.get_cell(), dtype=float)
-    min_edge = float(np.min(np.linalg.norm(cell, axis=1)))
-    radius = 0.5 * min_edge
+    radius, shortest_lattice_vector = _minimum_image_radius_A(atoms)
     if cutoff >= radius:
         raise ValueError(
             f"Backend neighbor cutoff {cutoff:.3f} A >= minimum-image radius "
-            f"{radius:.3f} A (min cell edge = {min_edge:.3f} A). "
+            f"{radius:.3f} A (shortest periodic lattice vector = "
+            f"{shortest_lattice_vector:.3f} A). "
             "Minimum-image convention is violated; enlarge the cell or reduce the cutoff."
         )
 

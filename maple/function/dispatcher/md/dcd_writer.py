@@ -120,7 +120,6 @@ class DCDWriter:
         #   80 bytes of header data (20 int32, NOT 22!)
         #   4-byte marker (84)
         #
-        # Wait, that's confusing. Let me look at the actual working code.
         # From MDTraj which works:
         #   They write 84 bytes between markers, which is 21 int32s.
         #   The positions are:

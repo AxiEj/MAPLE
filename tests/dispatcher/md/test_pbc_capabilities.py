@@ -315,6 +315,9 @@ def test_npt_uses_barostat_pressure_once_logs_pre_rescale_volume_and_refreshes_f
     assert records["pressure"] == pytest.approx(123.0)
     assert records["volume"] == pytest.approx(1000.0)
     assert calc.force_call_volumes[-1] == pytest.approx(8000.0)
+    thermo_text = (tmp_path / "npt_md_thermo.dat").read_text()
+    assert "Press_pre(bar)" in thermo_text
+    assert "Vol_pre(A^3)" in thermo_text
 
 
 def test_npt_langevin_barostat_pressure_uses_synchronized_standard_velocity(tmp_path):

@@ -331,13 +331,13 @@ class MDLogger:
             self.thermo_file.write(f"# Timestep: {timestep} fs\n")
             if self._ensemble == 'npt':
                 self.thermo_file.write(
-                    "# Press(bar) and Vol(A^3) are the pre-barostat-rescale "
+                    "# Press_pre(bar) and Vol_pre(A^3) are the pre-barostat-rescale "
                     "pair used for the barostat decision.\n"
                 )
                 self.thermo_file.write(
                     f"# {'Step':>8} {'Time(fs)':>12} {'Temp(K)':>12} "
                     f"{'KE(Ha)':>15} {'PE(Ha)':>15} {'TE(Ha)':>15} "
-                    f"{'Press(bar)':>12} {'Vol(A^3)':>12}\n"
+                    f"{'Press_pre(bar)':>15} {'Vol_pre(A^3)':>15}\n"
                 )
             elif self._ensemble == 'nvt':
                 header = (
@@ -373,7 +373,7 @@ class MDLogger:
                 f"{'T(K)':>8}  {'E_total(Ha)':>15}"
                 + (f"  {'H_cons_ext(Ha)':>15}" if self._write_conserved_energy else "")
                 + f"  {'Speed(ns/day)':>13}  {'ETA':>10}"
-                + (f"  {'P(bar)':>10}" if is_npt else "")
+                + (f"  {'P_pre(bar)':>10}" if is_npt else "")
             )
             sep = (
                 f"  {'-'*9}  {'-'*_time_col_w}  {'-'*8}  "

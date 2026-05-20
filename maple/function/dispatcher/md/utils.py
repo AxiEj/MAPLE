@@ -280,25 +280,51 @@ def ensure_image_flags(atoms: Atoms) -> np.ndarray:
     return atoms.arrays[IMAGE_FLAGS_ARRAY]
 
 
-def wrap_positions_with_image_flags(atoms: Atoms) -> None:
+# Fractional tolerance for snapping a coordinate that sits on a cell boundary to
+# the exact integer before flooring.  A coordinate within this distance of an
+# integer is treated as being *on* that boundary, so floating-point noise around
+# a true boundary cannot flip the integer crossing count between n-1 and n.
+WRAP_BOUNDARY_EPS = 1e-9
+
+
+def wrap_positions_with_image_flags(atoms: Atoms, eps: float = WRAP_BOUNDARY_EPS) -> None:
     """Wrap periodic coordinates and increment image counters consistently.
 
     Call this after setting positions to the drifted coordinates.  The current
     positions may be outside the primary unit cell; after the call,
     ``atoms.positions`` are wrapped and ``IMAGE_FLAGS_ARRAY`` stores the lattice
     crossings needed to reconstruct continuous coordinates.
+
+    The image-flag increment and the wrapped position are both derived from the
+    *same* integer crossing count, so continuous reconstruction is exact at cell
+    boundaries.  A symmetric near-integer snap is applied before flooring so a
+    coordinate at a true boundary (read back as ``1 ± fp_noise``) always counts
+    the same crossing instead of flipping with the sign of the noise.  This
+    avoids the off-by-one (sawtooth) error that arose when the increment used
+    ``floor()`` while the wrap used ``ase.wrap()``'s independent epsilon.
     """
     if not any(atoms.pbc):
         return
 
     pbc = np.asarray(atoms.pbc, dtype=bool)
     scaled = atoms.cell.scaled_positions(atoms.get_positions())
-    image_increment = np.floor(scaled).astype(np.int64)
+
+    # Symmetric integer-boundary snap (handles values just below AND just above
+    # an integer); do NOT use the asymmetric floor(scaled + eps) form.
+    nearest = np.round(scaled)
+    snapped = np.where(np.isclose(scaled, nearest, atol=eps, rtol=0.0), nearest, scaled)
+    image_increment = np.floor(snapped).astype(np.int64)
     image_increment[:, ~pbc] = 0
 
     flags = ensure_image_flags(atoms)
     flags[:] = flags + image_increment
-    atoms.wrap()
+
+    # Wrap with the exact integer count we just recorded so the wrapped position
+    # and the image flags stay consistent (independent of ase.wrap()'s epsilon).
+    # Use the original (un-snapped) fractional value so reconstruction is exact.
+    wrapped_scaled = scaled.copy()
+    wrapped_scaled[:, pbc] = scaled[:, pbc] - image_increment[:, pbc]
+    atoms.set_scaled_positions(wrapped_scaled)
 
 
 def get_unwrapped_positions(atoms: Atoms) -> np.ndarray:

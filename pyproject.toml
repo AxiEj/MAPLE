@@ -54,3 +54,17 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["maple*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Three-layer MD validation taxonomy (WS3):
+#   (default)     unit tests — fake calculators, always run, never skip.
+#   integration   real-backend smoke — importorskip + skip on weight/auth/CUDA flakiness.
+#   production    non-skippable release acceptance matrix — emits a dated artifact.
+# The default run (and CI) excludes the real-backend layers; run them explicitly
+# with e.g. `pytest tests/integration -m integration`.
+markers = [
+    "integration: real ML-backend smoke tests (may skip on missing weights/CUDA/auth)",
+    "production: non-skippable release acceptance-matrix validation",
+]
+addopts = "-m 'not integration and not production'"

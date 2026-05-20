@@ -5,6 +5,7 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
 import maple.function.dispatcher.md.ensemble.npt as npt_module
+from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT
 from maple.function.dispatcher.md.barostat.berendsen import BerendsenBarostat
 from maple.function.dispatcher.md.barostat.crescale import CRescaleBarostat
 from maple.function.dispatcher.md.ensemble.npt import NPT
@@ -25,6 +26,7 @@ from maple.function.dispatcher.md.utils import (
     VELOCITY_REPR_LFMIDDLE_CARRIED,
     VELOCITY_REPR_STANDARD,
     compute_instantaneous_pressure,
+    ensure_image_flags,
     get_atoms_velocity_representation,
     get_unwrapped_positions,
 )
@@ -38,6 +40,8 @@ class EnergyForcesCalculator(Calculator):
         self.maple_model_name = "fake-pbc" if pbc_capable else "fake-cluster"
         self.maple_pbc_md_supported = pbc_capable
         self.maple_stress_supported = stress_capable
+        if stress_capable:
+            self.maple_stress_unit = ASE_STRESS_UNIT
         self._forces = forces
         self.force_call_volumes = []
 
@@ -58,10 +62,17 @@ class StressCalculator(EnergyForcesCalculator):
     def __init__(self, stress, forces=None):
         super().__init__(pbc_capable=True, stress_capable=True, forces=forces)
         self._stress = np.asarray(stress, dtype=float)
+        self.maple_stress_unit = ASE_STRESS_UNIT
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)
         self.results["stress"] = self._stress.copy()
+
+
+class MissingStressUnitCalculator(StressCalculator):
+    def __init__(self, stress, forces=None):
+        super().__init__(stress, forces=forces)
+        del self.maple_stress_unit
 
 
 def _periodic_atoms(calc: Calculator) -> Atoms:
@@ -73,6 +84,11 @@ def _periodic_atoms(calc: Calculator) -> Atoms:
     )
     atoms.calc = calc
     return atoms
+
+
+def _velocity_for_displacement(displacement_angstrom, dt_fs: float) -> np.ndarray:
+    displacement = np.asarray(displacement_angstrom, dtype=float)
+    return displacement / (dt_fs * FS_TO_AU * BOHR_TO_ANGSTROM)
 
 
 class UnitNormalRNG:
@@ -308,11 +324,183 @@ def test_pbc_image_flags_reconstruct_unwrapped_boundary_crossing(tmp_path):
     np.testing.assert_allclose(reread.cell.lengths(), [2.0, 2.0, 2.0])
 
 
+def test_pbc_image_flags_track_negative_boundary_crossing():
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    atoms.set_cell([2.0, 2.0, 2.0])
+    atoms.set_positions([[0.1, 0.0, 0.0]])
+    dt_fs = 1.0
+    velocities = np.array([_velocity_for_displacement([-0.3, 0.0, 0.0], dt_fs)])
+
+    VelocityVerlet(atoms, timestep=dt_fs).full_step_r(velocities)
+
+    assert atoms.positions[0, 0] == pytest.approx(1.8)
+    np.testing.assert_array_equal(atoms.arrays[IMAGE_FLAGS_ARRAY], np.array([[-1, 0, 0]]))
+    assert get_unwrapped_positions(atoms)[0, 0] == pytest.approx(-0.2)
+
+
+def test_pbc_image_flags_accumulate_multi_step_crossings():
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    atoms.set_cell([2.0, 2.0, 2.0])
+    atoms.set_positions([[1.9, 0.0, 0.0]])
+    dt_fs = 1.0
+    velocities = np.array([_velocity_for_displacement([2.3, 0.0, 0.0], dt_fs)])
+    integrator = VelocityVerlet(atoms, timestep=dt_fs)
+
+    integrator.full_step_r(velocities)
+    np.testing.assert_array_equal(atoms.arrays[IMAGE_FLAGS_ARRAY], np.array([[2, 0, 0]]))
+    assert get_unwrapped_positions(atoms)[0, 0] == pytest.approx(4.2)
+
+    integrator.full_step_r(velocities)
+    np.testing.assert_array_equal(atoms.arrays[IMAGE_FLAGS_ARRAY], np.array([[3, 0, 0]]))
+    assert atoms.positions[0, 0] == pytest.approx(0.5)
+    assert get_unwrapped_positions(atoms)[0, 0] == pytest.approx(6.5)
+
+
+def test_unwrapped_reconstruction_works_for_triclinic_cells():
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    cell = np.array(
+        [
+            [2.0, 0.0, 0.0],
+            [0.4, 2.1, 0.0],
+            [0.2, 0.3, 2.2],
+        ]
+    )
+    start_scaled = np.array([0.9, 0.1, 0.2])
+    delta_scaled = np.array([0.4, -0.3, 1.2])
+    atoms.set_cell(cell)
+    atoms.set_scaled_positions([start_scaled])
+    dt_fs = 1.0
+    displacement = delta_scaled @ cell
+    velocities = np.array([_velocity_for_displacement(displacement, dt_fs)])
+
+    VelocityVerlet(atoms, timestep=dt_fs).full_step_r(velocities)
+
+    expected_scaled = start_scaled + delta_scaled
+    expected_flags = np.floor(expected_scaled).astype(np.int64)
+    expected_wrapped = expected_scaled - expected_flags
+    np.testing.assert_array_equal(atoms.arrays[IMAGE_FLAGS_ARRAY], np.array([expected_flags]))
+    np.testing.assert_allclose(atoms.positions[0], expected_wrapped @ cell, atol=1e-12)
+    np.testing.assert_allclose(get_unwrapped_positions(atoms)[0], expected_scaled @ cell, atol=1e-12)
+
+
+def test_barostat_cell_scaling_preserves_image_flags_and_affine_unwrapped_position():
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    atoms.set_cell([2.0, 2.0, 2.0])
+    atoms.set_positions([[0.2, 0.0, 0.0]])
+    ensure_image_flags(atoms)[:] = np.array([[1, 0, 0]])
+    initial_unwrapped = get_unwrapped_positions(atoms).copy()
+    barostat = CRescaleBarostat(
+        atoms,
+        pressure=1.0,
+        temperature=0.0,
+        tau_p=10.0,
+        timestep=1.0,
+        compressibility=0.5,
+        rng=np.random.default_rng(7),
+    )
+    barostat.get_pressure = lambda _velocities: 2.0
+
+    _, returned = barostat.apply(np.zeros((1, 3)))
+
+    mu = np.exp((0.5 * 1.0 / 10.0 * (2.0 - 1.0)) / 3.0)
+    np.testing.assert_array_equal(atoms.arrays[IMAGE_FLAGS_ARRAY], np.array([[1, 0, 0]]))
+    np.testing.assert_allclose(get_unwrapped_positions(atoms), initial_unwrapped * mu)
+    np.testing.assert_allclose(returned, np.zeros((1, 3)))
+
+
+def test_restart_continuation_preserves_image_flags_for_next_crossing(tmp_path):
+    atoms = _periodic_atoms(EnergyForcesCalculator(pbc_capable=True))
+    atoms.set_cell([2.0, 2.0, 2.0])
+    atoms.set_positions([[1.9, 0.0, 0.0]])
+    dt_fs = 1.0
+    atoms.arrays["velocities"] = np.array([_velocity_for_displacement([1.3, 0.0, 0.0], dt_fs)])
+
+    first = NVE(
+        output=str(tmp_path / "first.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "timestep": dt_fs,
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 1,
+            "rst_every": 1,
+        },
+    )
+    first.run()
+    np.testing.assert_array_equal(read_rst(tmp_path / "first_md.rst")["image_flags"], np.array([[1, 0, 0]]))
+
+    restarted_atoms = _periodic_atoms(EnergyForcesCalculator(pbc_capable=True))
+    second = NVE(
+        output=str(tmp_path / "second.out"),
+        atoms=restarted_atoms,
+        paras={
+            "steps": 1,
+            "timestep": dt_fs,
+            "load_state": True,
+            "rst_file": str(tmp_path / "first_md.rst"),
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 1,
+            "rst_every": 1,
+        },
+    )
+    second.run()
+
+    state = read_rst(tmp_path / "second_md.rst")
+    np.testing.assert_array_equal(state["image_flags"], np.array([[2, 0, 0]]))
+    assert state["positions"][0, 0] == pytest.approx(0.5)
+    assert "He      4.50000000" in (tmp_path / "second_md_traj_unwrapped.xyz").read_text()
+
+
+def test_pbc_dcd_restart_keeps_unwrapped_xyz_sidecar_open(tmp_path):
+    atoms = _periodic_atoms(EnergyForcesCalculator(pbc_capable=True))
+    atoms.set_cell([2.0, 2.0, 2.0])
+    atoms.set_positions([[1.9, 0.0, 0.0]])
+    dt_fs = 1.0
+    atoms.arrays["velocities"] = np.array([_velocity_for_displacement([1.3, 0.0, 0.0], dt_fs)])
+    output = str(tmp_path / "dcd.out")
+    paras = {
+        "steps": 1,
+        "timestep": dt_fs,
+        "traj_format": "dcd",
+        "init_velocities": False,
+        "remove_com_every": 0,
+        "verbose": 0,
+        "log_every": 999,
+        "traj_every": 1,
+        "rst_every": 1,
+    }
+
+    NVE(output=output, atoms=atoms, paras=paras).run()
+    NVE(
+        output=output,
+        atoms=_periodic_atoms(EnergyForcesCalculator(pbc_capable=True)),
+        paras={**paras, "steps": 2, "restart": True},
+    ).run()
+
+    assert (tmp_path / "dcd_md_traj.dcd").stat().st_size > 0
+    unwrapped_text = (tmp_path / "dcd_md_traj_unwrapped.xyz").read_text()
+    assert unwrapped_text.count("CoordinateMode=unwrapped") == 2
+    assert "He      4.50000000" in unwrapped_text
+
+
 def test_npt_rejects_calculator_with_wrong_stress_unit(tmp_path):
     atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
     atoms.calc.maple_stress_unit = "GPa"
 
     with pytest.raises(ValueError, match="eV/A"):
+        NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
+
+
+def test_npt_rejects_stress_capable_calculator_missing_stress_unit(tmp_path):
+    atoms = _periodic_atoms(MissingStressUnitCalculator(np.zeros(6)))
+
+    with pytest.raises(ValueError, match="maple_stress_unit"):
         NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
 
 

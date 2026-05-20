@@ -107,18 +107,25 @@ class MACEPolOfficialPBCCalculator(CalcABC):
         charge = proxy.info.get("charge", 0)
         proxy.info["spin"] = float(spin)
         proxy.info["charge"] = float(charge)
-        # Upstream PolarMACE examples and the local legacy traced wrapper use a
-        # per-atom external-field array.  Supplying explicit zeros keeps the ASE
-        # adapter contract stable when inputs omit an external field.
+        # The current official PolarMACE ASE adapter expects a single global
+        # external-field vector and reshapes it to (1, 3).  MAPLE accepts that
+        # representation directly; for compatibility with older per-atom zero
+        # placeholders, identical per-atom rows are reduced to one vector.
         if "external_field" in proxy.info:
             external_field = np.asarray(proxy.info["external_field"], dtype=float)
-            if external_field.shape != (len(proxy), 3):
+            if external_field.shape == (3,):
+                pass
+            elif external_field.shape == (1, 3):
+                external_field = external_field.reshape(3)
+            elif external_field.shape == (len(proxy), 3) and np.allclose(external_field, external_field[0]):
+                external_field = external_field[0].copy()
+            else:
                 raise ValueError(
                     "MACE-Polar PBC external_field must have shape "
-                    f"({len(proxy)}, 3); got {external_field.shape}."
+                    f"(3,) or a uniform ({len(proxy)}, 3); got {external_field.shape}."
                 )
         else:
-            external_field = np.zeros((len(proxy), 3), dtype=float)
+            external_field = np.zeros(3, dtype=float)
         proxy.info["external_field"] = external_field
         return proxy
 

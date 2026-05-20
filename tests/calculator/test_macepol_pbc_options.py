@@ -74,9 +74,47 @@ def test_macepol_pbc_spin_charge_and_external_field_normalization():
     assert official.seen_atoms is not atoms
     assert official.seen_atoms.info["spin"] == 3.0
     assert official.seen_atoms.info["charge"] == -1.0
-    np.testing.assert_allclose(official.seen_atoms.info["external_field"], np.zeros((len(atoms), 3)))
+    np.testing.assert_allclose(official.seen_atoms.info["external_field"], np.zeros(3))
     assert atoms.info.get("spin") is None
     assert "external_field" not in atoms.info
+
+
+def test_macepol_pbc_accepts_uniform_legacy_per_atom_external_field():
+    official = DummyMACECalculator()
+    calculator = MACEPolOfficialPBCCalculator(
+        device=torch.device("cpu"),
+        model="macepol-pbc-small",
+        mace_polar_factory=lambda **kwargs: official,
+    )
+    atoms = Atoms(
+        "OH",
+        positions=[[0.0, 0.0, 0.0], [0.9, 0.0, 0.0]],
+        cell=[14.0, 14.0, 14.0],
+        pbc=True,
+    )
+    atoms.info["external_field"] = np.array([[0.0, 0.0, 0.1], [0.0, 0.0, 0.1]])
+
+    calculator.calculate(atoms, properties=["energy", "forces"])
+
+    np.testing.assert_allclose(official.seen_atoms.info["external_field"], [0.0, 0.0, 0.1])
+
+
+def test_macepol_pbc_rejects_nonuniform_per_atom_external_field():
+    calculator = MACEPolOfficialPBCCalculator(
+        device=torch.device("cpu"),
+        model="macepol-pbc-small",
+        mace_polar_factory=lambda **kwargs: DummyMACECalculator(),
+    )
+    atoms = Atoms(
+        "OH",
+        positions=[[0.0, 0.0, 0.0], [0.9, 0.0, 0.0]],
+        cell=[14.0, 14.0, 14.0],
+        pbc=True,
+    )
+    atoms.info["external_field"] = np.array([[0.0, 0.0, 0.1], [0.0, 0.0, 0.2]])
+
+    with pytest.raises(ValueError, match="external_field"):
+        calculator.calculate(atoms, properties=["energy", "forces"])
 
 
 def test_macepol_pbc_reader_spin_does_not_override_multiplicity():

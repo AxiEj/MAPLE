@@ -120,48 +120,17 @@ class NVEParams:
     # ------------------------------------------------------------------
     # Periodic COM-momentum removal: remove_com_every
     #
-    # Even in NVE (where total linear momentum P = Σ m_i v_i is formally
-    # conserved), floating-point rounding in the Velocity Verlet update
-    # accumulates a small residual drift in P over thousands of steps.
-    # For non-periodic (gas-phase) systems this causes a slow rigid-body
-    # translation of the entire cluster that
-    #   (a) contributes spurious kinetic energy to the temperature estimate,
-    #   (b) can carry atoms toward PE-surface regions outside the ML model's
-    #       training distribution, triggering energy spikes (as observed
-    #       around step 48 000 in the Ala-Glu NVE test run).
+    # Runtime COM removal is a common numerical stabilization option. It can
+    # suppress slow center-of-mass drift caused by numerical noise, but it is
+    # also a projection applied during dynamics and therefore changes the
+    # strict Hamiltonian trajectory.  For strict NVE benchmarks or transport
+    # observables such as diffusion/VACF, keep the default
+    # ``remove_com_every = 0``.  Users can opt in when COM-drift control is
+    # more important than preserving the unprojected trajectory.
     #
-    # The standard remedy used by every major MD code is to reproject the
-    # COM velocity to zero at a fixed interval.  This operation is exact
-    # (linear momentum is re-zeroed, not rescaled) and conserves KE of all
-    # internal modes; it does NOT break the microcanonical ensemble because
-    # the three COM translational DOF carry zero internal information.
-    #
-    # Runtime COM removal is optional. For strict NVE, the default is disabled
-    # (`remove_com_every = 0`) so the trajectory remains a pure Hamiltonian
-    # evolution after initialization. Users can still opt in to periodic COM
-    # drift removal (for example every 100 steps, as in GROMACS/AMBER/LAMMPS/
-    # OpenMM) when they want numerical COM-drift control rather than a strict
-    # integrator benchmark.
-    #
-    # Refs:
-    #   GROMACS Reference Manual 2024, §3.4.4 "Removal of COM motion":
-    #     "Even in NVE we recommend nstcomm=100 to prevent artificial
-    #      accumulation of numerical COM drift."
-    #   AMBER 2023 Reference Manual, §3.1 (nscm parameter):
-    #     "nscm=100 is the default; skipping COM removal in long NVE runs
-    #      leads to slow numerical heating of the COM modes."
-    #   LAMMPS documentation, fix momentum command:
-    #     "Recommended for all long NVE runs to eliminate integrator noise
-    #      in center-of-mass velocity."
-    #   Harvey et al. (1998) J. Comput. Chem. 19, 726:
-    #     Quantitative analysis showing that without periodic COM removal,
-    #     rotational-translational coupling gradually leaks energy into
-    #     internal modes, inflating σ(TE) by 10–20 % over nanosecond runs.
-    #
-    # Set to 0 to disable. Under PBC, remove_com_every remains an optional
-    # numerical COM-drift control; wrap() handles cell imaging, but it does
-    # not zero the total momentum. In contrast, remove_angular_every is
-    # ignored under PBC because global rigid-body rotation is not well-defined.
+    # Under PBC, wrap() handles cell imaging but does not zero total momentum.
+    # remove_angular_every is ignored under PBC because global rigid-body
+    # rotation is not well-defined.
     # ------------------------------------------------------------------
     remove_com_every: int = 0       # runtime-only COM projection cadence; default disabled for strict NVE
     remove_angular_every: int = 0   # runtime-only angular projection cadence (includes COM first)

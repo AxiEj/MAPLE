@@ -115,6 +115,13 @@ class MDStressUnavailableError(ValueError):
 
 def validate_stress_tensor(atoms: Atoms) -> np.ndarray:
     """Return a finite Voigt stress tensor or raise a hard NPT startup error."""
+    calc = atoms.calc
+    if _calc_capability(calc, "maple_stress_supported") and not hasattr(calc, "maple_stress_unit"):
+        raise MDStressUnavailableError(
+            "Calculator declares MAPLE stress support but does not declare "
+            f"the required maple_stress_unit contract ({ASE_STRESS_UNIT!r})."
+        )
+
     try:
         stress = atoms.get_stress(voigt=True)
     except (PropertyNotImplementedError, NotImplementedError, RuntimeError) as exc:
@@ -130,7 +137,7 @@ def validate_stress_tensor(atoms: Atoms) -> np.ndarray:
         )
     if not np.all(np.isfinite(stress)):
         raise MDStressUnavailableError("Calculator returned non-finite stress values.")
-    stress_unit = getattr(atoms.calc, "maple_stress_unit", ASE_STRESS_UNIT)
+    stress_unit = getattr(calc, "maple_stress_unit", ASE_STRESS_UNIT)
     if stress_unit != ASE_STRESS_UNIT:
         raise MDStressUnavailableError(
             "Calculator stress unit contract mismatch: expected "

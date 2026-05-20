@@ -265,13 +265,14 @@ class XYZReader:
                 atoms.set_cell(cell)
                 atoms.set_pbc(pbc if pbc is not None else True)
 
-        # Store charge and multiplicity in atoms.info for UMA
+        # Store charge and multiplicity as MAPLE's user-facing electronic
+        # state.  Do not also synthesize atoms.info["spin"]: different
+        # backends use that key for different API-level encodings.
         if charge is not None:
             atoms.info['charge'] = charge
         if mult is not None:
             if mult < 1:
                 raise ValueError(f"Invalid multiplicity: {mult}. Must be >= 1")
             atoms.info['mult'] = mult
-            atoms.info['spin'] = (mult -1)/2
 
         return atoms

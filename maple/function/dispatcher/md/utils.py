@@ -279,6 +279,27 @@ def validate_md_parameter_ranges(params, ensemble: str) -> None:
         positive_float("compressibility")
 
 
+def pbc_com_default_note(atoms: Atoms, params, user_set_remove_com_every: bool) -> Optional[str]:
+    """Default runtime COM removal off under PBC unless the user set it (WS4b).
+
+    Runtime COM removal under PBC subtracts total momentum during dynamics, which
+    changes diffusion/VACF and other transport observables, so it must be an
+    explicit opt-in rather than a silent default.  Mutates ``params`` in place and
+    returns a one-line note when the default was applied (value forced to 0); the
+    non-PBC default and any explicit user value are left untouched.
+    """
+    if not any(atoms.pbc) or user_set_remove_com_every:
+        return None
+    if int(getattr(params, "remove_com_every", 0) or 0) == 0:
+        return None
+    params.remove_com_every = 0
+    return (
+        "PBC default: runtime COM removal disabled (remove_com_every=0); it "
+        "subtracts total momentum and perturbs diffusion/VACF under PBC. Pass "
+        "remove_com_every explicitly to override."
+    )
+
+
 def ensure_image_flags(atoms: Atoms) -> np.ndarray:
     """Return MAPLE per-atom image counters, creating zero counters if absent."""
     expected_shape = (len(atoms), 3)
@@ -320,6 +341,13 @@ def wrap_positions_with_image_flags(atoms: Atoms, eps: float = WRAP_BOUNDARY_EPS
     the same crossing instead of flipping with the sign of the noise.  This
     avoids the off-by-one (sawtooth) error that arose when the increment used
     ``floor()`` while the wrap used ``ase.wrap()``'s independent epsilon.
+
+    Boundary invariant: after the call the wrapped fractional coordinates lie in
+    ``[0, 1)`` up to round-off.  ``WRAP_BOUNDARY_EPS`` (1e-9) is the near-integer
+    snap tolerance that makes the *image-flag* crossing count deterministic under
+    floating-point noise; downstream consumers reading back
+    ``set_scaled_positions`` round-off should allow a looser +/-1e-7 slack on the
+    ``[0, 1)`` bound (asserted in ``tests/dispatcher/md/test_wrap_boundary.py``).
     """
     if not any(atoms.pbc):
         return

@@ -514,6 +514,7 @@ def test_npt_berendsen_logs_equilibration_only_warning(tmp_path):
         paras={
             "steps": 0,
             "barostat": "berendsen",
+            "allow_equilibration_only_barostat": True,
             "remove_com_every": 0,
             "verbose": 0,
         },
@@ -547,7 +548,7 @@ def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
             "steps": 1,
             "timestep": 0.1,
             "thermostat": "v-rescale",
-            "barostat": "berendsen",
+            "barostat": "c-rescale",
             "init_velocities": False,
             "remove_com_every": 0,
             "verbose": 0,
@@ -590,7 +591,7 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
         paras={
             "steps": 1,
             "thermostat": "v-rescale",
-            "barostat": "berendsen",
+            "barostat": "c-rescale",
             "init_velocities": False,
             "remove_com_every": 0,
             "verbose": 0,
@@ -740,7 +741,7 @@ def test_npt_vrescale_load_state_keeps_standard_velocity_representation(tmp_path
         paras={
             "steps": 1,
             "thermostat": "v-rescale",
-            "barostat": "berendsen",
+            "barostat": "c-rescale",
             "init_velocities": False,
             "remove_com_every": 0,
             "verbose": 0,
@@ -761,7 +762,7 @@ def test_npt_vrescale_load_state_keeps_standard_velocity_representation(tmp_path
             "load_state": True,
             "rst_file": str(tmp_path / "first_md.rst"),
             "thermostat": "v-rescale",
-            "barostat": "berendsen",
+            "barostat": "c-rescale",
             "remove_com_every": 0,
             "verbose": 0,
             "log_every": 999,

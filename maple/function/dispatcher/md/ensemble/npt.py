@@ -53,6 +53,7 @@ from ..utils import (
     initialize_velocities,
     forces_au,
     lfmiddle_carried_to_standard,
+    pbc_com_default_note,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
     FS_TO_AU,
@@ -193,6 +194,10 @@ class NPTParams:
     remove_com_every: int   = 100    # runtime-only COM removal
     remove_angular_every: int = 0    # runtime-only COM + rotation; parallel to remove_com_every
     allow_partial_pbc: bool = False  # WS0-C: NPT requires full 3-D PBC; field kept for param-key uniformity
+    # Berendsen is equilibration-only (suppresses volume fluctuations -> wrong
+    # ensemble).  It is hard-rejected for production unless this escape hatch is
+    # set, mirroring the allow_partial_pbc per-concern opt-in idiom.
+    allow_equilibration_only_barostat: bool = False
     random_seed: Optional[int] = None
 
 
@@ -224,6 +229,14 @@ class NPT(JobABC):
 
         self.atoms = atoms
         self.params = self._init_params(NPTParams, paras, ("md", "MD", "npt", "NPT"))
+        _com_note = pbc_com_default_note(
+            self.atoms, self.params,
+            "remove_com_every" in self._lower_keys(
+                self._select_subdict(paras or {}, ("md", "MD", "npt", "NPT"))
+            ),
+        )
+        if _com_note:
+            self.log_info([f"\nNOTE: {_com_note}\n"])
 
         if self.params.thermostat not in self._THERMOSTAT_CHOICES:
             raise ValueError(
@@ -253,6 +266,14 @@ class NPT(JobABC):
                 "    The tau_t parameter is only used by the V-rescale thermostat.\n\n"
             ])
         if self.params.barostat == 'berendsen':
+            if not self.params.allow_equilibration_only_barostat:
+                raise ValueError(
+                    "barostat=berendsen is equilibration-only: it suppresses volume "
+                    "fluctuations and does not generate a correct production NPT "
+                    "ensemble. Use barostat=c-rescale for production-style isotropic "
+                    "NPT, or set allow_equilibration_only_barostat=true to run an "
+                    "EXPERIMENTAL (non-production) Berendsen equilibration."
+                )
             self.log_info([
                 "\n*** WARNING: barostat=berendsen is equilibration-only.\n"
                 "    It suppresses volume fluctuations and does not generate a correct production NPT ensemble.\n"

@@ -36,6 +36,7 @@ from ..utils import (
     initialize_velocities,
     forces_au,
     lfmiddle_carried_to_standard,
+    pbc_com_default_note,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
     FS_TO_AU,
@@ -225,6 +226,14 @@ class NVT(JobABC):
 
         self.atoms = atoms
         self.params = self._init_params(NVTParams, paras, ("md", "MD", "nvt", "NVT"))
+        _com_note = pbc_com_default_note(
+            self.atoms, self.params,
+            "remove_com_every" in self._lower_keys(
+                self._select_subdict(paras or {}, ("md", "MD", "nvt", "NVT"))
+            ),
+        )
+        if _com_note:
+            self.log_info([f"\nNOTE: {_com_note}\n"])
 
         if self.params.thermostat not in self._THERMOSTAT_CHOICES:
             raise ValueError(

@@ -97,7 +97,12 @@ class MACEPolOfficialPBCCalculator(CalcABC):
             return None
 
         proxy = atoms.copy()
-        spin = proxy.info.get("spin", proxy.info.get("mult", 1))
+        # MAPLE readers use atoms.info["spin"] for the theoretical total
+        # spin S=(mult-1)/2.  The upstream PolarMACE ASE adapter expects its
+        # own spin label, which follows the multiplicity-style convention used
+        # in the official examples.  Keep the conversion local to this adapter
+        # and reserve ``macepol_spin`` for deliberate upstream-label overrides.
+        spin = proxy.info.pop("macepol_spin", proxy.info.get("mult", 1))
         charge = proxy.info.get("charge", 0)
         proxy.info["spin"] = float(spin)
         proxy.info["charge"] = float(charge)

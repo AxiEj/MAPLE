@@ -78,7 +78,7 @@ def test_macepol_pbc_spin_charge_and_external_field_normalization():
     assert "external_field" not in atoms.info
 
 
-def test_macepol_pbc_explicit_spin_takes_precedence():
+def test_macepol_pbc_reader_spin_does_not_override_multiplicity():
     official = DummyMACECalculator()
     calculator = MACEPolOfficialPBCCalculator(
         device=torch.device("cpu"),
@@ -92,11 +92,34 @@ def test_macepol_pbc_explicit_spin_takes_precedence():
         pbc=True,
     )
     atoms.info["mult"] = 3
-    atoms.info["spin"] = 0.5
+    atoms.info["spin"] = 1.0
+
+    calculator.calculate(atoms, properties=["energy", "forces"])
+
+    assert official.seen_atoms.info["spin"] == 3.0
+
+
+def test_macepol_pbc_adapter_specific_spin_override_takes_precedence():
+    official = DummyMACECalculator()
+    calculator = MACEPolOfficialPBCCalculator(
+        device=torch.device("cpu"),
+        model="macepol-pbc-small",
+        mace_polar_factory=lambda **kwargs: official,
+    )
+    atoms = Atoms(
+        "OH",
+        positions=[[0.0, 0.0, 0.0], [0.9, 0.0, 0.0]],
+        cell=[14.0, 14.0, 14.0],
+        pbc=True,
+    )
+    atoms.info["mult"] = 3
+    atoms.info["spin"] = 1.0
+    atoms.info["macepol_spin"] = 0.5
 
     calculator.calculate(atoms, properties=["energy", "forces"])
 
     assert official.seen_atoms.info["spin"] == 0.5
+    assert "macepol_spin" not in official.seen_atoms.info
 
 
 def test_unknown_macepol_pbc_dtype_raises():

@@ -178,3 +178,8 @@ example/md/**/*.xyz
 # Local automation/session artifacts
 /.omc/
 /docs/
+
+# Generated MD validation reports (per-run artifacts; thresholds.toml is tracked)
+/validation/reports/
+# Per-run MD provenance manifests
+*_md_manifest.json

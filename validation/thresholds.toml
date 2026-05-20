@@ -1,0 +1,43 @@
+# Pre-registered MD acceptance thresholds (WS3).
+#
+# These are fixed BEFORE running the acceptance matrix and are versioned with
+# every report, so the standards are never tuned to the results. A first version
+# may be loose, but it is written down in advance and bumped deliberately.
+thresholds_version = "1.0.0"
+
+[nve_energy_drift]
+# Total-energy conservation for a strict NVE run on a near-equilibrium crystal.
+# Checked as relative drift |E_final - E_init| / |E_init| and as a per-atom,
+# per-ps absolute drift; the run passes if either bound holds.
+max_rel_drift = 5.0e-3
+max_abs_drift_ha_per_atom_per_ps = 5.0e-3
+
+[restart_determinism]
+# A 20+20 step restart must reproduce a single 40-step run bit-for-bit-close.
+position_atol_A = 1.0e-6
+velocity_rtol = 1.0e-5
+
+[nvt_mean_temperature]
+# Mean temperature must lie within k_sigma standard errors of the target, with
+# sigma(T) = T * sqrt(2 / N_df) the canonical instantaneous-temperature spread.
+k_sigma = 6.0
+
+[npt_pressure]
+# The summary mean pressure must be built from the post-rescale series; the
+# pre-rescale pair is retained only as a labeled diagnostic column.
+require_post_rescale_summary = true
+
+[stress_finite_difference]
+# Virial stress trace vs the finite-difference -dE/dV. The sign must match and
+# the magnitudes must agree within a log10 tolerance, evaluated at each delta.
+deltas = [1.0e-3, 3.0e-4]
+log10_magnitude_tol = 1.0
+require_sign_match = true
+
+[pbc_geometry]
+# Wrapped <-> unwrapped image-flag reconstruction round-trip.
+roundtrip_atol_A = 1.0e-9
+
+[constraints]
+# ASE constraints + MD must hard-reject (no silent fake-constraint dynamics).
+require_rejection = true

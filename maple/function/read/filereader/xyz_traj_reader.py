@@ -272,6 +272,7 @@ class XYZTrajReader:
                     atoms.info['charge'] = charge
                 if mult is not None:
                     atoms.info['mult'] = mult
+                    atoms.info['spin'] = (mult - 1) / 2
                 
                 frames.append(atoms)
         

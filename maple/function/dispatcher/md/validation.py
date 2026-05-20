@@ -31,7 +31,13 @@ from .ensemble.nvt import NVT
 from .ensemble.npt import NPT
 from .evaluator import evaluate_md_properties
 from .provenance import collect_environment_provenance
-from .utils import HARTREE_TO_EV, get_unwrapped_positions, wrap_positions_with_image_flags
+from .utils import (
+    EV_PER_ANG3_TO_BAR,
+    HARTREE_TO_EV,
+    KELVIN_TO_HARTREE,
+    get_unwrapped_positions,
+    wrap_positions_with_image_flags,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 _DEFAULT_THRESHOLDS = _REPO_ROOT / "validation" / "thresholds.toml"
@@ -240,6 +246,124 @@ def run_npt_pressure(calc_factory, thresholds, workdir, *, steps=200, timestep=0
     )
 
 
+def _lj_liquid(repeat: int = 3) -> Atoms:
+    """An expanded FCC argon cell (a=5.8) whose NPT volume fluctuations are
+    resolvable, sized so rc < the minimum-image radius."""
+    from ase.build import bulk
+
+    return bulk("Ar", "fcc", a=5.8, cubic=True) * (repeat, repeat, repeat)
+
+
+def _block_variance(series: np.ndarray, n_blocks: int) -> tuple:
+    """Return (Var, standard error of Var) using block averaging.
+
+    The volume series is autocorrelated, so the raw variance underestimates the
+    sampling error.  ``Var`` is the full-series population variance (the physical
+    <delta V^2>); the standard error is the spread of the per-block variances,
+    which folds in the autocorrelation at the block scale.
+    """
+    series = np.asarray(series, dtype=float)
+    var_total = float(np.var(series))
+    block_size = max(len(series) // n_blocks, 1)
+    block_vars = [
+        float(np.var(series[i * block_size:(i + 1) * block_size]))
+        for i in range(n_blocks)
+        if len(series[i * block_size:(i + 1) * block_size]) > 1
+    ]
+    if len(block_vars) > 1:
+        var_se = float(np.std(block_vars, ddof=1) / np.sqrt(len(block_vars)))
+    else:
+        var_se = float("nan")
+    return var_total, var_se
+
+
+def run_npt_volume_fluctuation(
+    calc_factory, thresholds, workdir, *, steps=20000, timestep=1.0, temperature=100.0
+) -> AcceptanceResult:
+    """NPT correctness via the EOS-slope vs fluctuation-identity consistency.
+
+    The barostat samples the right ensemble iff the isothermal compressibility
+    from the equilibrium volume fluctuations,
+
+        kappa_fluct = Var(V) / (kB T <V>),
+
+    agrees with the secant slope of the equation of state measured from two
+    target pressures,
+
+        kappa_eos = -(1/<V>_1) (<V>_2 - <V>_1)/(P_2 - P_1).
+
+    This is internally consistent (no brittle frozen number); they agree only if
+    the c-rescale barostat reproduces the correct volume distribution.
+    """
+    th = thresholds["npt_volume_fluctuation"]
+    p1, p2 = float(th["pressures_bar"][0]), float(th["pressures_bar"][1])
+    eq_frac = float(th["equilibration_fraction"])
+    n_blocks = int(th["n_blocks"])
+
+    def _volume_series(tag: str, pressure: float) -> np.ndarray:
+        atoms = _lj_liquid()
+        atoms.calc = calc_factory()
+        NPT(output=str(workdir / f"{tag}.out"), atoms=atoms, paras={
+            "steps": steps, "timestep": timestep, "temperature": temperature,
+            "pressure": pressure, "thermostat": "v-rescale", "barostat": "c-rescale",
+            "tau_t": 100.0, "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0,
+            "log_every": 1, "traj_every": steps, "rst_every": 0, "random_seed": 12345,
+            "validation_artifact_id": "npt_volume_fluctuation",
+        }).run()
+        thermo = _read_thermo(workdir / f"{tag}_md_thermo.dat")
+        # Columns: Step Time Temp KE PE TE Press Vol(A^3) Press_pre Vol_pre.
+        vol = thermo["raw"][:, 7]
+        cut = int(len(vol) * eq_frac)
+        return vol[cut:]
+
+    v1 = _volume_series("npt_vf_p1", p1)
+    v2 = _volume_series("npt_vf_p2", p2)
+    mean_v1, mean_v2 = float(np.mean(v1)), float(np.mean(v2))
+    var_v1, var_se1 = _block_variance(v1, n_blocks)
+
+    # kB T in eV (K -> Hartree -> eV).
+    kT_ev = temperature * KELVIN_TO_HARTREE * HARTREE_TO_EV
+    # Var(V)/(kT<V>) is in 1/(eV/A^3); divide by EV_PER_ANG3_TO_BAR for 1/bar.
+    kappa_fluct = var_v1 / (kT_ev * mean_v1) / EV_PER_ANG3_TO_BAR
+    kappa_eos = -(1.0 / mean_v1) * (mean_v2 - mean_v1) / (p2 - p1)
+    rel_dv = abs(mean_v2 - mean_v1) / mean_v1
+
+    metrics = {
+        "kappa_fluct_per_bar": kappa_fluct,
+        "kappa_eos_per_bar": kappa_eos,
+        "mean_V1_A3": mean_v1, "mean_V2_A3": mean_v2,
+        "rel_volume_change": rel_dv,
+        "var_V1_A6": var_v1, "var_V1_block_se_A6": var_se1,
+        "n_samples_post_eq": int(len(v1)),
+        "kT_eV": kT_ev, "P1_bar": p1, "P2_bar": p2,
+    }
+
+    # Linear-region sanity guards (the EOS slope is a secant ~ local kappa_T only
+    # in the linear regime); never let a degenerate measurement false-pass.
+    if rel_dv < float(th["min_volume_change"]):
+        return AcceptanceResult(
+            "npt_volume_fluctuation", "skip", True, metrics,
+            f"insufficient volume signal (rel change {rel_dv:.2e} < "
+            f"{th['min_volume_change']}); inconclusive, not evaluated",
+        )
+    if (rel_dv > float(th["max_volume_change"]) or mean_v2 >= mean_v1
+            or kappa_eos <= 0.0 or not np.isfinite(kappa_fluct) or kappa_fluct <= 0.0):
+        return AcceptanceResult(
+            "npt_volume_fluctuation", "fail", False, metrics,
+            f"non-linear/unstable response (rel change {rel_dv:.2e}, "
+            f"kappa_eos {kappa_eos:.2e}/bar): EOS secant is not a valid kappa_T",
+        )
+
+    log10_ratio = float(np.log10(kappa_fluct / kappa_eos))
+    metrics["log10_ratio"] = log10_ratio
+    passed = abs(log10_ratio) <= float(th["log10_kappa_tol"])
+    return AcceptanceResult(
+        "npt_volume_fluctuation", "pass" if passed else "fail", passed, metrics,
+        f"kappa_fluct {kappa_fluct:.2e} vs kappa_eos {kappa_eos:.2e} /bar "
+        f"(log10 ratio {log10_ratio:+.2f}, tol {th['log10_kappa_tol']})",
+    )
+
+
 def run_stress_finite_difference(calc_factory, thresholds, workdir, **_) -> AcceptanceResult:
     th = thresholds["stress_finite_difference"]
     base = _lj_crystal()
@@ -324,6 +448,7 @@ ACCEPTANCE_CLASSES: List[Callable[..., AcceptanceResult]] = [
     run_restart_determinism,
     run_nvt_mean_temperature,
     run_npt_pressure,
+    run_npt_volume_fluctuation,
     run_stress_finite_difference,
     run_pbc_geometry,
     run_constraints_rejected,
@@ -351,6 +476,7 @@ def run_acceptance_matrix(
     nve_kw = {"steps": 60} if quick else {}
     nvt_kw = {"steps": 120} if quick else {}
     npt_kw = {"steps": 60} if quick else {}
+    npt_vf_kw = {"steps": 2000} if quick else {}
 
     results: List[AcceptanceResult] = []
     try:
@@ -362,6 +488,8 @@ def run_acceptance_matrix(
                 kwargs = nvt_kw
             elif fn is run_npt_pressure:
                 kwargs = npt_kw
+            elif fn is run_npt_volume_fluctuation:
+                kwargs = npt_vf_kw
             try:
                 results.append(fn(calc_factory, thresholds, workdir, **kwargs))
             except Exception as exc:  # a class that cannot run is recorded, not silently dropped

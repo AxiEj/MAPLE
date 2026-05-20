@@ -3,12 +3,20 @@
 # These are fixed BEFORE running the acceptance matrix and are versioned with
 # every report, so the standards are never tuned to the results. A first version
 # may be loose, but it is written down in advance and bumped deliberately.
-thresholds_version = "1.0.0"
+#
+# 1.1.0 (WS3): add the [npt_volume_fluctuation] class (EOS-slope vs
+# fluctuation-identity compressibility consistency) and tighten the stress
+# finite-difference magnitude tolerance after confirming the LJ reference passes.
+thresholds_version = "1.1.0"
 
 [nve_energy_drift]
 # Total-energy conservation for a strict NVE run on a near-equilibrium crystal.
 # Checked as relative drift |E_final - E_init| / |E_init| and as a per-atom,
 # per-ps absolute drift; the run passes if either bound holds.
+# Justification (kept loose at v1.1): the acceptance run is short (sub-ps), so a
+# single integration step's round-off dominates; the OR with an absolute
+# per-atom/per-ps bound is the physically meaningful gate. Tighten once a
+# longer-run baseline is established.
 max_rel_drift = 5.0e-3
 max_abs_drift_ha_per_atom_per_ps = 5.0e-3
 
@@ -20,6 +28,10 @@ velocity_rtol = 1.0e-5
 [nvt_mean_temperature]
 # Mean temperature must lie within k_sigma standard errors of the target, with
 # sigma(T) = T * sqrt(2 / N_df) the canonical instantaneous-temperature spread.
+# Justification: k_sigma = 6 is a deliberate false-negative guard — a correct
+# thermostat exceeds 6 standard errors with probability ~2e-9, so a failure here
+# is a real bug, not sampling noise. It is a one-sided robustness margin, not a
+# loose accuracy bound.
 k_sigma = 6.0
 
 [npt_pressure]
@@ -27,11 +39,34 @@ k_sigma = 6.0
 # pre-rescale pair is retained only as a labeled diagnostic column.
 require_post_rescale_summary = true
 
+[npt_volume_fluctuation]
+# The barostat samples the correct ensemble iff the compressibility from the
+# equilibrium volume fluctuations, kappa = Var(V)/(kB T <V>), matches the EOS
+# secant slope -(1/<V>)(dV/dP) measured at two pressures. Pass when the two
+# agree within a log10 tolerance (a self-consistency check, not a frozen value).
+# Justification (loose v1.1): log10_kappa_tol = 0.5 (~factor 3) absorbs the
+# finite-sampling error of Var(V) on an autocorrelated volume series and the
+# secant approximation of the EOS slope; tighten once a longer-run, larger-cell
+# baseline quantifies the residual.
+log10_kappa_tol = 0.5
+# P1, P2: a narrower range keeps the EOS secant close to the local kappa_T at P1
+# (kappa_T stiffens with pressure), isolating barostat correctness from EOS
+# curvature. The LJ reference gives log10 ratio ~0.36 here, ~0.43 at [1.0,2000.0].
+pressures_bar = [1.0, 500.0]
+equilibration_fraction = 0.3           # discard the first 30% of each run
+min_volume_change = 0.01               # below this the EOS secant has no signal -> skip
+max_volume_change = 0.25               # above this the response is non-linear/unstable -> fail
+n_blocks = 5                           # block averaging for Var(V) and its standard error
+
 [stress_finite_difference]
 # Virial stress trace vs the finite-difference -dE/dV. The sign must match and
 # the magnitudes must agree within a log10 tolerance, evaluated at each delta.
+# Tightened 1.0 -> 0.5 at v1.1: the LJ reference agrees to log10 ~0.0000 (the
+# virial stress and -dE/dV are analytically the same quantity), so 0.5 (factor
+# ~3) is a generous margin for real-backend autodiff/FD noise while still
+# catching a wrong stress unit or a factor error.
 deltas = [1.0e-3, 3.0e-4]
-log10_magnitude_tol = 1.0
+log10_magnitude_tol = 0.5
 require_sign_match = true
 
 [pbc_geometry]

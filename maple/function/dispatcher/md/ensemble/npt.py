@@ -7,8 +7,8 @@ Supports two combinations:
 
 Recommended combination for production MLP runs:
     thermostat=v-rescale + barostat=c-rescale
-    → full-step Velocity Verlet + stochastic temperature/cell rescaling is the
-      reference-aligned production path in this module.
+    → full-step Velocity Verlet + stochastic temperature/log-volume cell
+      rescaling is the reference-aligned NPT path in this module.
 
 Berendsen variants are suitable for rapid pre-equilibration but suppress
 pressure/temperature fluctuations and do not generate correct ensemble averages.
@@ -59,6 +59,7 @@ from ..utils import (
     standard_to_lfmiddle_carried,
     FS_TO_AU,
     validate_md_capabilities,
+    validate_md_parameter_ranges,
     validate_stress_tensor,
 )
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
@@ -77,7 +78,8 @@ class NPTParams:
     Thermostat default: v-rescale (Bussi et al. 2007 JCP 126, 014101)
       — correct canonical ensemble; less perturbative than Langevin.
     Barostat default: c-rescale (Bernetti & Bussi 2020 JCP 153, 114107)
-      — stochastic isotropic cell rescaling; analogue of v-rescale for pressure.
+      — stochastic isotropic log-volume cell rescaling; pressure analogue of
+        v-rescale and preferred over Berendsen for volume fluctuations.
 
     Recommended production combination: thermostat=v-rescale + barostat=c-rescale.
     Langevin remains available as an explicitly requested damped-equilibration
@@ -115,8 +117,9 @@ class NPTParams:
 
     # ------------------------------------------------------------------
     # Barostat: c-rescale (default for NPT)
-    # C-rescale is the correct NPT barostat (Bernetti & Bussi 2020).
-    # Unlike Berendsen, it produces the full Gibbs (N,P,T) distribution.
+    # C-rescale advances the log-volume strain with a stochastic term
+    # (Bernetti & Bussi 2020). Unlike Berendsen, it preserves volume
+    # fluctuations and is suitable for production-style NPT in this module.
     # ------------------------------------------------------------------
     barostat:        str   = 'c-rescale'  # [Bernetti & Bussi 2020 JCP 153, 114107]
 
@@ -228,6 +231,7 @@ class NPT(JobABC):
                 f"Unknown barostat '{self.params.barostat}'. "
                 f"Choose from: {self._BAROSTAT_CHOICES}"
             )
+        validate_md_parameter_ranges(self.params, "npt")
 
         # Warn if user set Langevin-specific params but chose v-rescale (or vice versa)
         if self.params.thermostat == 'v-rescale' and paras and 'friction' in (paras or {}):

@@ -29,6 +29,7 @@ from ..utils import (
     initialize_velocities,
     HA_PER_ANG_TO_AU,
     validate_md_capabilities,
+    validate_md_parameter_ranges,
 )
 from ..logger import MDLogger
 
@@ -198,6 +199,7 @@ class NVE(JobABC):
 
         # Initialize params from dict
         self.params = self._init_params(NVEParams, paras, ("md", "MD", "nve", "NVE"))
+        validate_md_parameter_ranges(self.params, "nve")
 
         # Initialize components
         self.logger = MDLogger(

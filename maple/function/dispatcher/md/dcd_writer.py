@@ -41,6 +41,18 @@ _CHARMM_VERSION = 24  # CHARMM version flag at position 49
 _REC_MARKER_SIZE = 4
 
 
+def _dcd_delta_fs(header_data: bytes) -> float:
+    """Decode the DCD DELTA field as picoseconds and return femtoseconds."""
+    delta_ps = struct.unpack_from('<f', header_data, 9 * 4)[0]
+    if np.isfinite(delta_ps) and delta_ps >= 1e-12:
+        return float(delta_ps) * 1000.0
+
+    # Backward compatibility for old MAPLE DCD files that incorrectly wrote
+    # DELTA as an integer number of picoseconds.
+    legacy_delta_ps = np.frombuffer(header_data, dtype=np.int32)[9]
+    return float(legacy_delta_ps) * 1000.0
+
+
 class DCDWriter:
     """
     Write CHARMM/NAMD compatible DCD binary trajectory files.
@@ -119,7 +131,12 @@ class DCDWriter:
         #     [20] = CHARMM_VERSION (24)
         #   That's 21 elements * 4 = 84 bytes. Perfect.
         #
-        # The 21-element header is:
+        # The 84-byte header is interpreted mostly as 21 int32 fields, except
+        # DELTA at byte offset 9*4, which CHARMM/NAMD-style readers interpret
+        # as a 32-bit float in picoseconds.  Keeping DELTA as float matters for
+        # ML-MD timesteps such as 0.1 fs; rounding it to int ps would store 0.
+        #
+        # The 21-field layout is:
         #   0: 84 (CORD magic)
         #   1: NPRIV (0)
         #   2: NSAVC (1)
@@ -127,31 +144,30 @@ class DCDWriter:
         #   4-5: 0
         #   6: NATOMS
         #   7-8: 0
-        #   9: DELTA (timestep in ps)
+        #   9: DELTA (float32 timestep in ps)
         #   10-19: 0
         #   20: 24 (CHARMM_VERSION)
 
-        delta_ps = int(round(self.timestep / 1000.0))
+        hdr = bytearray(np.zeros(21, dtype=np.int32).tobytes())
 
-        # 21-element header (84 bytes)
-        hdr = np.zeros(21, dtype=np.int32)
-        hdr[0] = 84              # CORD magic
-        hdr[1] = 0               # NPRIV
-        hdr[2] = 1               # NSAVC
-        hdr[3] = 1               # NSEL
-        hdr[4] = 0
-        hdr[5] = 0
-        hdr[6] = self.natoms
-        hdr[7] = 0
-        hdr[8] = 0
-        hdr[9] = delta_ps
-        # hdr[10] through hdr[19] are already 0
-        hdr[20] = 24             # CHARMM_VERSION
+        def write_int(index: int, value: int) -> None:
+            struct.pack_into('<i', hdr, index * 4, int(value))
+
+        def write_float(index: int, value: float) -> None:
+            struct.pack_into('<f', hdr, index * 4, float(value))
+
+        write_int(0, 84)                  # CORD magic
+        write_int(1, 0)                   # NPRIV
+        write_int(2, 1)                   # NSAVC
+        write_int(3, 1)                   # NSEL
+        write_int(6, self.natoms)
+        write_float(9, self.timestep / 1000.0)  # DELTA: fs -> ps
+        write_int(20, _CHARMM_VERSION)
 
         # Write as FORTRAN unformatted record: marker, data, marker
         marker = struct.pack('<i', 84)  # 84 bytes of header data
         self._file.write(marker)
-        self._file.write(hdr.tobytes())
+        self._file.write(hdr)
         self._file.write(marker)
 
         # Title block (2 x 80-character strings)
@@ -342,9 +358,7 @@ class DCDWriter:
                 raise ValueError(f"Invalid DCD file: expected 21 header elements, got {len(hdr)}")
 
             natoms = hdr[6]
-            # DELTA at hdr[9]
-            delta_ps = hdr[9]
-            timestep = delta_ps * 1000.0  # ps -> fs
+            timestep = _dcd_delta_fs(header_data)
 
             # Read title block (skip)
             f.read(4)  # marker

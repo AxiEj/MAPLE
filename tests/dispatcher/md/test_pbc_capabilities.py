@@ -14,6 +14,8 @@ from maple.function.dispatcher.md.utils import (
     EV_PER_ANG3_TO_BAR,
     FS_TO_AU,
     HA_PER_ANG_TO_AU,
+    HARTREE_TO_EV,
+    KELVIN_TO_HARTREE,
     VELOCITY_REPR_LFMIDDLE_CARRIED,
     VELOCITY_REPR_STANDARD,
     compute_instantaneous_pressure,
@@ -64,6 +66,11 @@ def _periodic_atoms(calc: Calculator) -> Atoms:
     )
     atoms.calc = calc
     return atoms
+
+
+class UnitNormalRNG:
+    def standard_normal(self):
+        return 1.0
 
 
 def test_npt_rejects_missing_stress_at_startup(tmp_path):
@@ -124,6 +131,7 @@ def test_berendsen_barostat_returns_pressure_and_original_velocity():
 
 def test_crescale_barostat_returns_velocity_scaled_by_mu_without_mutating_input():
     atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    initial_volume = atoms.get_volume()
     velocities = np.array([[0.03, -0.06, 0.09]])
     original = velocities.copy()
     barostat = CRescaleBarostat(
@@ -139,11 +147,86 @@ def test_crescale_barostat_returns_velocity_scaled_by_mu_without_mutating_input(
 
     pressure, returned = barostat.apply(velocities)
 
-    mu3 = 1.0 + 0.5 * 1.0 / 10.0 * (2.0 - 1.0)
-    mu = mu3 ** (1.0 / 3.0)
+    d_epsilon = 0.5 * 1.0 / 10.0 * (2.0 - 1.0)
+    mu = np.exp(d_epsilon / 3.0)
     assert pressure == pytest.approx(2.0)
+    assert atoms.get_volume() == pytest.approx(initial_volume * np.exp(d_epsilon))
     np.testing.assert_allclose(velocities, original)
     np.testing.assert_allclose(returned, original / mu)
+
+
+def test_crescale_stochastic_term_uses_inverse_pressure_units():
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    initial_volume = atoms.get_volume()
+    velocities = np.zeros((1, 3))
+    temperature = 300.0
+    compressibility = 4.5e-5
+    timestep = 1.0
+    tau_p = 1000.0
+    barostat = CRescaleBarostat(
+        atoms,
+        pressure=1.0,
+        temperature=temperature,
+        tau_p=tau_p,
+        timestep=timestep,
+        compressibility=compressibility,
+        rng=UnitNormalRNG(),
+    )
+    barostat.get_pressure = lambda _velocities: 1.0
+
+    _, returned = barostat.apply(velocities)
+
+    kT_ev = temperature * KELVIN_TO_HARTREE * HARTREE_TO_EV
+    beta_ang3_per_ev = compressibility * EV_PER_ANG3_TO_BAR
+    d_epsilon = np.sqrt(
+        2.0 * kT_ev * beta_ang3_per_ev * (timestep / tau_p) / initial_volume
+    )
+    mu = np.exp(d_epsilon / 3.0)
+    assert atoms.get_volume() == pytest.approx(initial_volume * np.exp(d_epsilon))
+    np.testing.assert_allclose(returned, velocities / mu)
+
+
+@pytest.mark.parametrize(
+    ("ensemble_class", "paras", "message"),
+    [
+        (NVE, {"timestep": 0.0}, "timestep"),
+        (NVE, {"log_every": 0}, "log_every"),
+        (NVT, {"temperature": 0.0}, "temperature"),
+        (NVT, {"thermostat": "v-rescale", "tau_t": 0.0}, "tau_t"),
+        (NVT, {"thermostat": "langevin", "friction": -1.0}, "friction"),
+    ],
+)
+def test_md_parameter_validation_rejects_invalid_common_ranges(
+    ensemble_class,
+    paras,
+    message,
+    tmp_path,
+):
+    atoms = Atoms("He", positions=[[0.0, 0.0, 0.0]])
+    atoms.calc = EnergyForcesCalculator(pbc_capable=False)
+    full_paras = {"steps": 0, "verbose": 0, **paras}
+
+    with pytest.raises(ValueError, match=message):
+        ensemble_class(output=str(tmp_path / "md.out"), atoms=atoms, paras=full_paras)
+
+
+@pytest.mark.parametrize(
+    ("paras", "message"),
+    [
+        ({"tau_p": 0.0}, "tau_p"),
+        ({"compressibility": -1.0}, "compressibility"),
+    ],
+)
+def test_npt_parameter_validation_rejects_invalid_barostat_ranges(
+    paras,
+    message,
+    tmp_path,
+):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    full_paras = {"steps": 0, "verbose": 0, **paras}
+
+    with pytest.raises(ValueError, match=message):
+        NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras=full_paras)
 
 
 def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):

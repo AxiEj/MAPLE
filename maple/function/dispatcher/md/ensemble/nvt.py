@@ -43,6 +43,7 @@ from ..utils import (
     standard_to_lfmiddle_carried,
     FS_TO_AU,
     validate_md_capabilities,
+    validate_md_parameter_ranges,
 )
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
 from ..logger import MDLogger
@@ -230,6 +231,7 @@ class NVT(JobABC):
                 f"Unknown thermostat '{self.params.thermostat}'. "
                 f"Choose from: {self._THERMOSTAT_CHOICES}"
             )
+        validate_md_parameter_ranges(self.params, "nvt")
 
         # Warn if user set Langevin-specific params but chose v-rescale (or vice versa)
         if self.params.thermostat == 'v-rescale' and paras and 'friction' in (paras or {}):

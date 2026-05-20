@@ -149,6 +149,97 @@ def validate_md_capabilities(atoms: Atoms, ensemble: str) -> None:
     validate_stress_tensor(atoms)
 
 
+def validate_md_parameter_ranges(params, ensemble: str) -> None:
+    """Validate common MD dataclass parameter ranges before components start.
+
+    The dispatcher accepts user dictionaries and updates dataclasses directly.
+    Centralizing the physical/numerical range checks keeps NVE/NVT/NPT startup
+    failures deterministic instead of letting invalid values fail later inside
+    a thermostat, barostat, logger, or trajectory writer.
+    """
+
+    ensemble_name = str(ensemble).lower()
+
+    def finite_float(name: str) -> float:
+        value = getattr(params, name)
+        try:
+            out = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"MD parameter '{name}' must be a finite number, got {value!r}.") from exc
+        if not np.isfinite(out):
+            raise ValueError(f"MD parameter '{name}' must be finite, got {value!r}.")
+        return out
+
+    def positive_float(name: str) -> float:
+        value = finite_float(name)
+        if value <= 0.0:
+            raise ValueError(f"MD parameter '{name}' must be > 0, got {value!r}.")
+        return value
+
+    def nonnegative_float(name: str) -> float:
+        value = finite_float(name)
+        if value < 0.0:
+            raise ValueError(f"MD parameter '{name}' must be >= 0, got {value!r}.")
+        return value
+
+    def integer_value(name: str) -> int:
+        value = getattr(params, name)
+        if isinstance(value, bool):
+            raise ValueError(f"MD parameter '{name}' must be an integer, got {value!r}.")
+        try:
+            out = int(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"MD parameter '{name}' must be an integer, got {value!r}.") from exc
+        if out != value and not (isinstance(value, float) and value.is_integer()):
+            raise ValueError(f"MD parameter '{name}' must be an integer, got {value!r}.")
+        return out
+
+    def positive_int(name: str) -> int:
+        value = integer_value(name)
+        if value <= 0:
+            raise ValueError(f"MD parameter '{name}' must be > 0, got {value!r}.")
+        return value
+
+    def nonnegative_int(name: str) -> int:
+        value = integer_value(name)
+        if value < 0:
+            raise ValueError(f"MD parameter '{name}' must be >= 0, got {value!r}.")
+        return value
+
+    positive_float("timestep")
+    nonnegative_int("steps")
+    positive_int("traj_every")
+    positive_int("log_every")
+    nonnegative_int("rst_every")
+    nonnegative_int("remove_com_every")
+    nonnegative_int("remove_angular_every")
+    nonnegative_int("verbose")
+    if getattr(params, "random_seed", None) is not None:
+        integer_value("random_seed")
+
+    if str(getattr(params, "traj_format", "")).lower() not in {"xyz", "dcd"}:
+        raise ValueError(
+            f"MD parameter 'traj_format' must be 'xyz' or 'dcd', got {getattr(params, 'traj_format')!r}."
+        )
+
+    temperature = nonnegative_float("temperature")
+    if ensemble_name in {"nvt", "npt"} and temperature <= 0.0:
+        raise ValueError(
+            f"MD parameter 'temperature' must be > 0 for {ensemble_name.upper()}, got {temperature!r}."
+        )
+
+    thermostat = str(getattr(params, "thermostat", "")).lower()
+    if thermostat == "langevin":
+        nonnegative_float("friction")
+    elif thermostat == "v-rescale":
+        positive_float("tau_t")
+
+    if ensemble_name == "npt":
+        finite_float("pressure")
+        positive_float("tau_p")
+        nonnegative_float("compressibility")
+
+
 def is_linear_molecule(atoms: Atoms, tol: float = 1e-8) -> bool:
     """Return True if a non-periodic system is effectively linear."""
     if any(atoms.pbc):

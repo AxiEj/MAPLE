@@ -26,6 +26,11 @@ def test_full_lj_acceptance_matrix_passes(tmp_path):
     assert report.exists()
     failed = [r.name for r in results if not r.passed]
     assert not failed, f"acceptance classes failed: {failed}"
+    # Non-skippable contract: every class must genuinely PASS. A "skip"
+    # (inconclusive, e.g. insufficient NPT volume signal) is not a pass and must
+    # not let the release matrix green on an unvalidated class.
+    skipped = [r.name for r in results if r.status == "skip"]
+    assert not skipped, f"acceptance classes inconclusive (skipped): {skipped}"
     # Every declared class ran.
     assert {r.name for r in results} == {
         "nve_energy_drift", "restart_determinism", "nvt_mean_temperature",

@@ -3,7 +3,8 @@
 The former single ``utils`` module mixed ~9 concerns; it has been split into
 focused, single-concern sibling modules.  This module re-exports every name that
 ``utils`` previously exposed so existing ``from ...md.utils import X`` call sites
-keep working unchanged.  New code should import from the concern module directly:
+keep working unchanged.  The concern modules below are the source of truth;
+import from them directly when a module wants an explicit, narrow dependency:
 
 * :mod:`.units`             — physical constants, unit conversions, ``forces_au``
 * :mod:`.pbc`               — image flags, wrap/unwrap reconstruction

@@ -149,10 +149,13 @@ def write_rst(
         f"{RST_HEADER}\n",
         f"natoms = {len(atoms)}\n",
         f"step = {step}\n",
-        f"time = {time_fs:.10f}\n",
+        # :.17g for the scalar float fields too — timestep especially: restart
+        # validation rejects a >1e-12 timestep mismatch, which .10f would trip
+        # for a non-round dt. Keeps the whole checkpoint an exact double round-trip.
+        f"time = {time_fs:.17g}\n",
         f"ensemble = {ensemble}\n",
-        f"timestep = {timestep:.10f}\n",
-        f"energy = {energy:.10f}\n",
+        f"timestep = {timestep:.17g}\n",
+        f"energy = {energy:.17g}\n",
     ]
     if velocity_representation is not None:
         lines.append(f"velocity_representation = {velocity_representation}\n")

@@ -107,11 +107,7 @@ def collect_calculator_provenance(
     if options is None:
         options = getattr(calc, "maple_model_options", None)
 
-    # First-class long-range/electrostatics method: MAPLE encodes it in the
-    # model options under "coulomb"; "none" when absent (short-range only).
-    long_range_method = "none"
-    if isinstance(options, dict):
-        long_range_method = options.get("coulomb") or "none"
+    long_range_method = _long_range_method(options)
 
     return {
         "model": model if model is not None else getattr(calc, "maple_model_name", None),
@@ -136,6 +132,19 @@ def _calc_cutoff(calc) -> Optional[float]:
         if value is not None:
             return float(value)
     return None
+
+
+def _long_range_method(model_options) -> str:
+    """Long-range/electrostatics method from MAPLE model options.
+
+    MAPLE encodes it under ``model_options["coulomb"]``; ``"none"`` when absent
+    (short-range only).  Single definition shared by the manifest
+    (``collect_calculator_provenance``) and the MD start banner so the two stay
+    in sync.
+    """
+    if isinstance(model_options, dict):
+        return model_options.get("coulomb") or "none"
+    return "none"
 
 
 def system_provenance(atoms: Atoms) -> Dict[str, Any]:

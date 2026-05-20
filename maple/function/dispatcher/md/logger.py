@@ -351,12 +351,11 @@ class MDLogger:
         if self._ensemble == 'npt' and pressure is not None:
             self.log_main([f"Target pressure: {pressure:.2f} bar\n"])
         if self._is_pbc:
-            from .provenance import _calc_cutoff
+            from .provenance import _calc_cutoff, _long_range_method
 
             pbc_calc = getattr(atoms, "calc", None)
             pbc_cutoff = _calc_cutoff(pbc_calc) if pbc_calc is not None else None
-            _opts = getattr(pbc_calc, "maple_model_options", None)
-            pbc_long_range = (_opts.get("coulomb") or "none") if isinstance(_opts, dict) else "none"
+            pbc_long_range = _long_range_method(getattr(pbc_calc, "maple_model_options", None))
             self.log_main([
                 f"Wrapped traj:     {self.traj_path.name}\n",
                 f"Unwrapped traj:   {self.unwrapped_traj_path.name}\n",
@@ -475,11 +474,13 @@ class MDLogger:
             total_energy: Total energy (Hartree)
             atoms: Current ASE Atoms object
             velocities: Current velocities (atomic units: Bohr/a.u. time)
-            pressure: Instantaneous pressure in bar (NPT only). For NPT
-                barostat paths this is the pre-rescale value used for the
-                barostat decision.
-            volume: Cell volume in Å³ (NPT only). For NPT barostat paths this
-                is paired with ``pressure`` before cell rescaling.
+            pressure: Instantaneous pressure in bar (NPT only). For NPT barostat
+                paths this is the post-rescale primary value, paired with the
+                post-rescale ``volume``; the pre-rescale pair that drove the
+                barostat decision is passed separately as ``pressure_pre`` /
+                ``volume_pre`` and kept only as a diagnostic.
+            volume: Cell volume in Å³ (NPT only). For NPT barostat paths this is
+                the post-rescale primary volume paired with ``pressure``.
             rng_state: Hex-encoded RNG state to embed in trajectory frame (NVT/NPT only)
             conserved_energy: V-rescale conserved-energy bookkeeping value
                 H̃ = H − ΣΔW_external (Hartree). For pure thermostat dynamics this

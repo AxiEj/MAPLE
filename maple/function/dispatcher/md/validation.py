@@ -247,8 +247,11 @@ def run_npt_pressure(calc_factory, thresholds, workdir, *, steps=200, timestep=0
 
 
 def _lj_liquid(repeat: int = 3) -> Atoms:
-    """An expanded FCC argon cell (a=5.8) whose NPT volume fluctuations are
-    resolvable, sized so rc < the minimum-image radius."""
+    """A soft, low-density FCC argon cell (expanded to a=5.8 Å) used as a highly
+    compressible proxy: its large equilibrium volume fluctuations make the NPT
+    compressibility resolvable in a short run, and rc < the minimum-image radius.
+    Named for its liquid-like fluctuation magnitude, not its (FCC) lattice.
+    """
     from ase.build import bulk
 
     return bulk("Ar", "fcc", a=5.8, cubic=True) * (repeat, repeat, repeat)
@@ -280,20 +283,30 @@ def _block_variance(series: np.ndarray, n_blocks: int) -> tuple:
 def run_npt_volume_fluctuation(
     calc_factory, thresholds, workdir, *, steps=20000, timestep=1.0, temperature=100.0
 ) -> AcceptanceResult:
-    """NPT correctness via the EOS-slope vs fluctuation-identity consistency.
+    """NPT volume-fluctuation self-consistency for the production c-rescale path.
 
-    The barostat samples the right ensemble iff the isothermal compressibility
-    from the equilibrium volume fluctuations,
+    The isothermal compressibility from the equilibrium volume fluctuations,
 
         kappa_fluct = Var(V) / (kB T <V>),
 
-    agrees with the secant slope of the equation of state measured from two
-    target pressures,
+    is compared against the secant slope of the equation of state measured from
+    two target pressures,
 
         kappa_eos = -(1/<V>_1) (<V>_2 - <V>_1)/(P_2 - P_1).
 
-    This is internally consistent (no brittle frozen number); they agree only if
-    the c-rescale barostat reproduces the correct volume distribution.
+    Both are computed from the same c-rescale run, so this is an internally
+    consistent check with no brittle frozen number: a barostat that fails to
+    sample a physical volume distribution (no fluctuation, or wild fluctuation)
+    drives kappa_fluct far from kappa_eos and fails the pre-registered band.
+
+    Scope and limits (deliberate): this is a loose v1 *consistency* gate, not a
+    fine barostat-type discriminator. The barostat-type guard — rejecting the
+    equilibration-only Berendsen barostat that merely suppresses fluctuations —
+    is enforced earlier, at NPT admission (NPT.__init__, WS4); a Berendsen run
+    cannot reach this class without the explicit experimental escape hatch. The
+    EOS secant sits slightly below the local kappa_T because compressibility
+    stiffens with pressure, so a correct c-rescale run shows a small positive
+    log10 ratio rather than zero.
     """
     th = thresholds["npt_volume_fluctuation"]
     p1, p2 = float(th["pressures_bar"][0]), float(th["pressures_bar"][1])
@@ -341,10 +354,14 @@ def run_npt_volume_fluctuation(
     # Linear-region sanity guards (the EOS slope is a secant ~ local kappa_T only
     # in the linear regime); never let a degenerate measurement false-pass.
     if rel_dv < float(th["min_volume_change"]):
+        # Inconclusive is NOT a pass: a release gate must not green on a class it
+        # never actually validated.  Reported as status "skip" (distinct from a
+        # physics "fail") with passed=False so the acceptance matrix flags it.
         return AcceptanceResult(
-            "npt_volume_fluctuation", "skip", True, metrics,
+            "npt_volume_fluctuation", "skip", False, metrics,
             f"insufficient volume signal (rel change {rel_dv:.2e} < "
-            f"{th['min_volume_change']}); inconclusive, not evaluated",
+            f"{th['min_volume_change']}); inconclusive — widen the pressure range "
+            "or use a more compressible system so kappa_T is resolvable",
         )
     if (rel_dv > float(th["max_volume_change"]) or mean_v2 >= mean_v1
             or kappa_eos <= 0.0 or not np.isfinite(kappa_fluct) or kappa_fluct <= 0.0):

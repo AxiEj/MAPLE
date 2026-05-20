@@ -684,10 +684,9 @@ class NPT(JobABC):
             # Single property entry point for the logged post-rescale state: the
             # potential energy and the fresh post-rescale pressure (a real stress
             # evaluation at the post-rescale cell, paired with volume_post) come
-            # from one evaluator call.  The forces_au() read above already
-            # populated energy+forces at this geometry, so this adds only the
-            # stress pass — matching the previous separate get_potential_energy()
-            # and compute_instantaneous_pressure() reads (no extra backend call).
+            # from one evaluator call.  forces_au() above already populated
+            # energy+forces at this geometry, so this adds only the stress pass
+            # (no extra backend call; the loop-routing test pins the per-step count).
             props = evaluate_md_properties(
                 self.atoms, need_stress=True, velocities_au=pressure_velocity_post
             )

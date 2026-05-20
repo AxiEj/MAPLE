@@ -45,6 +45,7 @@ from ..utils import (
     validate_md_capabilities,
     validate_md_parameter_ranges,
 )
+from ..semantics import validate_md_semantics
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
 from ..logger import MDLogger
 
@@ -204,6 +205,7 @@ class NVTParams:
     remove_angular:   bool  = False  # initialization-only COM + rotation; parallel to remove_com
     remove_com_every: int   = 100    # runtime-only COM removal
     remove_angular_every: int = 0    # runtime-only COM + rotation; parallel to remove_com_every
+    allow_partial_pbc: bool = False  # WS0-C: EXPERIMENTAL slab/partial-PBC opt-in; not production-validated
     random_seed: Optional[int] = None
 
 
@@ -232,6 +234,9 @@ class NVT(JobABC):
                 f"Choose from: {self._THERMOSTAT_CHOICES}"
             )
         validate_md_parameter_ranges(self.params, "nvt")
+        for advisory in validate_md_semantics(self.atoms, self.params, "nvt"):
+            self.log_info([advisory])
+            print(advisory, end="", flush=True)
 
         # Warn if user set Langevin-specific params but chose v-rescale (or vice versa)
         if self.params.thermostat == 'v-rescale' and paras and 'friction' in (paras or {}):

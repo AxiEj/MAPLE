@@ -31,6 +31,7 @@ from ..utils import (
     validate_md_capabilities,
     validate_md_parameter_ranges,
 )
+from ..semantics import validate_md_semantics
 from ..logger import MDLogger
 
 
@@ -136,6 +137,14 @@ class NVEParams:
     remove_angular_every: int = 0   # runtime-only angular projection cadence (includes COM first)
 
     # ------------------------------------------------------------------
+    # Partial-PBC escape hatch (WS0-C)
+    # Production MD supports full three-dimensional PBC only.  This flag opts
+    # into an EXPERIMENTAL (non-production) slab/partial-PBC trajectory and is
+    # rejected by production validation.
+    # ------------------------------------------------------------------
+    allow_partial_pbc: bool = False
+
+    # ------------------------------------------------------------------
     # Random seed
     # Set for reproducible velocity initialization; None = system entropy.
     # ------------------------------------------------------------------
@@ -169,6 +178,9 @@ class NVE(JobABC):
         # Initialize params from dict
         self.params = self._init_params(NVEParams, paras, ("md", "MD", "nve", "NVE"))
         validate_md_parameter_ranges(self.params, "nve")
+        for advisory in validate_md_semantics(self.atoms, self.params, "nve"):
+            self.log_info([advisory])
+            print(advisory, end="", flush=True)
 
         # Initialize components
         self.logger = MDLogger(

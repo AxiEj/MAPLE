@@ -1,0 +1,249 @@
+"""WS0 — MD physics-semantics audit.
+
+Covers the operator-aware DOF resolver (WS0-A), the MD constraints gate
+(WS0-B), and the partial-PBC production policy (WS0-C).  The resolver is
+unit-tested directly against the operator-aware degree-of-freedom table; the
+gates are tested through real ensemble construction so the two-phase
+validation wiring (G2) is exercised end to end.
+"""
+
+from types import SimpleNamespace
+
+import numpy as np
+import pytest
+from ase import Atoms
+from ase.calculators.calculator import Calculator, all_changes
+from ase.constraints import FixAtoms, FixInternals
+
+from maple.function.dispatcher.md.ensemble.nve import NVE
+from maple.function.dispatcher.md.ensemble.nvt import NVT
+from maple.function.dispatcher.md.semantics import (
+    MDDOFPolicy,
+    resolve_md_dof_policy,
+    validate_md_semantics,
+)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Fixtures / helpers
+# ──────────────────────────────────────────────────────────────────────────
+
+class _FakeCalc(Calculator):
+    """Minimal energy/forces calculator with declarable PBC capability."""
+
+    implemented_properties = ["energy", "forces"]
+
+    def __init__(self, pbc_capable: bool = True):
+        super().__init__()
+        self.maple_model_name = "fake-pbc" if pbc_capable else "fake-cluster"
+        self.maple_pbc_md_supported = pbc_capable
+        self.maple_stress_supported = False
+
+    def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+        super().calculate(atoms, properties, system_changes)
+        self.results["energy"] = 0.0
+        self.results["forces"] = np.zeros((len(atoms), 3))
+
+
+def _water(pbc: bool = False) -> Atoms:
+    """A bent (non-linear) water molecule; periodic when requested."""
+    atoms = Atoms(
+        "OH2",
+        positions=[[0.0, 0.0, 0.0], [0.757, 0.586, 0.0], [-0.757, 0.586, 0.0]],
+    )
+    if pbc:
+        atoms.set_cell([12.0, 12.0, 12.0])
+        atoms.set_pbc(True)
+    return atoms
+
+
+def _diatomic() -> Atoms:
+    """A linear (2-atom) isolated molecule."""
+    return Atoms("N2", positions=[[0.0, 0.0, 0.0], [0.0, 0.0, 1.10]])
+
+
+def _params(**kw) -> SimpleNamespace:
+    base = dict(
+        remove_com=True,
+        remove_rotation=False,
+        remove_angular=False,
+        remove_com_every=0,
+        remove_angular_every=0,
+        thermostat="",
+        barostat="",
+        allow_partial_pbc=False,
+    )
+    base.update(kw)
+    return SimpleNamespace(**base)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# WS0-A — operator-aware DOF resolution
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_resolver_returns_frozen_policy():
+    policy = resolve_md_dof_policy(_water(), _params(remove_angular=True), "nve")
+    assert isinstance(policy, MDDOFPolicy)
+    with pytest.raises(Exception):
+        policy.runtime_n_dof = 999  # frozen dataclass
+
+
+def test_nve_isolated_water_uses_3n_minus_6():
+    # NVE deterministic VV conserves total momentum and angular momentum, so
+    # an init projection of COM + rotation is permanent: 3N - 6 = 3.
+    policy = resolve_md_dof_policy(_water(), _params(remove_angular=True), "nve")
+    assert policy.init_n_dof == 3
+    assert policy.runtime_n_dof == 3
+
+
+def test_vrescale_nvt_water_matches_nve_3n_minus_6():
+    # v-rescale is a global scalar (alpha * v): it cannot create new velocity
+    # directions, so an init-projected COM/rotation mode stays at zero.
+    policy = resolve_md_dof_policy(
+        _water(), _params(remove_angular=True, thermostat="v-rescale"), "nvt"
+    )
+    assert policy.runtime_n_dof == 3
+
+
+def test_langevin_nvt_water_keeps_all_3n_dof():
+    # Per-atom OU noise re-excites COM and rotation, so init-only projection is
+    # not a permanent constraint: runtime DOF = 3N = 9.  init basis is still
+    # 3N - 6 because the initial draw was projected onto it.
+    policy = resolve_md_dof_policy(
+        _water(), _params(remove_angular=True, thermostat="langevin"), "nvt"
+    )
+    assert policy.init_n_dof == 3
+    assert policy.runtime_n_dof == 9
+
+
+def test_linear_diatomic_nve_uses_3n_minus_5():
+    policy = resolve_md_dof_policy(_diatomic(), _params(remove_angular=True), "nve")
+    assert policy.init_n_dof == 1   # 3*2 - 3 - 2
+    assert policy.runtime_n_dof == 1
+
+
+def test_intermittent_com_removal_does_not_subtract():
+    # remove_com_every = 100 is drift control, not a permanent constraint.
+    policy = resolve_md_dof_policy(
+        _water(pbc=True),
+        _params(remove_com_every=100, thermostat="langevin"),
+        "nvt",
+    )
+    assert policy.runtime_n_dof == 9
+
+
+def test_every_step_com_removal_subtracts_three():
+    # remove_com_every = 1 zeroes COM every step ≈ permanent constraint subspace.
+    policy = resolve_md_dof_policy(
+        _water(pbc=True),
+        _params(remove_com_every=1, thermostat="langevin"),
+        "nvt",
+    )
+    assert policy.runtime_n_dof == 6
+
+
+def test_pbc_never_subtracts_rotation():
+    # Even with remove_angular / remove_angular_every set, rotation is undefined
+    # under PBC and must never be subtracted; only COM may be.
+    policy = resolve_md_dof_policy(
+        _water(pbc=True),
+        _params(remove_angular=True, remove_angular_every=1, thermostat="v-rescale"),
+        "nvt",
+    )
+    assert policy.runtime_n_dof == 6   # 9 - 3 (COM only), rotation untouched
+
+
+def test_unprojected_isolated_nve_keeps_all_dof():
+    # No init projection, no runtime removal, no re-exciting operator: every mode
+    # carries fixed initial kinetic energy → 3N.
+    policy = resolve_md_dof_policy(
+        _water(), _params(remove_com=False, remove_angular=False), "nve"
+    )
+    assert policy.runtime_n_dof == 9
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# WS0-B — constraints gate (hard reject, no escape hatch)
+# ──────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize(
+    "constraint",
+    [
+        FixAtoms(indices=[0]),
+        FixInternals(bonds=[[1.10, [0, 1]]]),
+    ],
+    ids=["FixAtoms", "FixInternals"],
+)
+def test_validate_md_semantics_rejects_constraints(constraint):
+    atoms = _diatomic()
+    atoms.set_constraint(constraint)
+    with pytest.raises(ValueError, match="constraint"):
+        validate_md_semantics(atoms, _params(), "nve")
+
+
+def test_nve_construction_rejects_constrained_atoms(tmp_path):
+    atoms = _water()
+    atoms.calc = _FakeCalc(pbc_capable=False)
+    atoms.set_constraint(FixAtoms(indices=[0]))
+    with pytest.raises(ValueError, match="constraint"):
+        NVE(output=str(tmp_path / "nve.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
+
+
+def test_constraint_rejection_message_points_at_roadmap(tmp_path):
+    atoms = _water()
+    atoms.calc = _FakeCalc(pbc_capable=False)
+    atoms.set_constraint(FixInternals(bonds=[[1.0, [0, 1]]]))
+    with pytest.raises(ValueError) as exc:
+        NVT(output=str(tmp_path / "nvt.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
+    message = str(exc.value).lower()
+    assert "constraint" in message
+    assert "not" in message and ("support" in message or "implement" in message)
+
+
+def test_unconstrained_md_is_unaffected(tmp_path):
+    atoms = _water()
+    atoms.calc = _FakeCalc(pbc_capable=False)
+    NVE(output=str(tmp_path / "nve.out"), atoms=atoms, paras={"steps": 0, "verbose": 0})
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# WS0-C — partial-PBC production policy
+# ──────────────────────────────────────────────────────────────────────────
+
+def _slab(calc_pbc_capable: bool = True) -> Atoms:
+    atoms = Atoms("He", positions=[[0.0, 0.0, 0.0]], cell=[10.0, 10.0, 30.0], pbc=[True, True, False])
+    atoms.calc = _FakeCalc(pbc_capable=calc_pbc_capable)
+    return atoms
+
+
+@pytest.mark.parametrize("ensemble_cls", [NVE, NVT])
+def test_partial_pbc_rejected_by_default(ensemble_cls, tmp_path):
+    atoms = _slab()
+    with pytest.raises(ValueError, match="partial"):
+        ensemble_cls(
+            output=str(tmp_path / "md.out"),
+            atoms=atoms,
+            paras={"steps": 0, "verbose": 0, "remove_com_every": 0},
+        )
+
+
+def test_partial_pbc_allowed_with_flag_emits_experimental_banner(tmp_path):
+    atoms = _slab()
+    out = str(tmp_path / "nve.out")
+    NVE(
+        output=out,
+        atoms=atoms,
+        paras={"steps": 0, "verbose": 0, "remove_com_every": 0, "allow_partial_pbc": True},
+    )
+    text = open(out).read()
+    assert "EXPERIMENTAL" in text
+    assert "NOT PRODUCTION VALIDATED" in text
+
+
+def test_full_pbc_is_not_flagged_partial(tmp_path):
+    atoms = Atoms("He", positions=[[0.0, 0.0, 0.0]], cell=[10.0, 10.0, 10.0], pbc=True)
+    atoms.calc = _FakeCalc(pbc_capable=True)
+    out = tmp_path / "nve.out"
+    NVE(output=str(out), atoms=atoms, paras={"steps": 0, "verbose": 0, "remove_com_every": 0})
+    # No advisory is logged for full 3-D PBC; the .out may not be created at all.
+    assert "EXPERIMENTAL" not in (out.read_text() if out.exists() else "")

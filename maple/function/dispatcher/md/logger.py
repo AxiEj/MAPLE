@@ -367,12 +367,15 @@ class MDLogger:
             self.thermo_file.write(f"# Timestep: {timestep} fs\n")
             if self._ensemble == 'npt':
                 self.thermo_file.write(
-                    "# Press_pre(bar) and Vol_pre(A^3) are the pre-barostat-rescale "
-                    "pair used for the barostat decision.\n"
+                    "# Press(bar)/Vol(A^3) are the post-barostat-rescale primary state "
+                    "(paired with the post-rescale Temp/KE/PE/TE on this row). "
+                    "Press_pre(bar)/Vol_pre(A^3) are the pre-rescale pair that drove the "
+                    "barostat decision and are kept only as a diagnostic.\n"
                 )
                 self.thermo_file.write(
                     f"# {'Step':>8} {'Time(fs)':>12} {'Temp(K)':>12} "
                     f"{'KE(Ha)':>15} {'PE(Ha)':>15} {'TE(Ha)':>15} "
+                    f"{'Press(bar)':>15} {'Vol(A^3)':>15} "
                     f"{'Press_pre(bar)':>15} {'Vol_pre(A^3)':>15}\n"
                 )
             elif self._ensemble == 'nvt':
@@ -409,7 +412,7 @@ class MDLogger:
                 f"{'T(K)':>8}  {'E_total(Ha)':>15}"
                 + (f"  {'H_cons_ext(Ha)':>15}" if self._write_conserved_energy else "")
                 + f"  {'Speed(ns/day)':>13}  {'ETA':>10}"
-                + (f"  {'P_pre(bar)':>10}" if is_npt else "")
+                + (f"  {'P(bar)':>10}" if is_npt else "")
             )
             sep = (
                 f"  {'-'*9}  {'-'*_time_col_w}  {'-'*8}  "
@@ -431,6 +434,7 @@ class MDLogger:
                  kinetic_energy: float, potential_energy: float,
                  total_energy: float, atoms: Atoms, velocities: np.ndarray,
                  pressure: float = None, volume: float = None,
+                 pressure_pre: float = None, volume_pre: float = None,
                  rng_state: Optional[str] = None,
                  rst_every: Optional[int] = None,
                  conserved_energy: Optional[float] = None,
@@ -500,10 +504,13 @@ class MDLogger:
         # Write thermodynamic data every step
         # H_cons column is included only for NVT with V-rescale (Bussi 2007 Eq. 15)
         if self._ensemble == 'npt' and pressure is not None and volume is not None:
+            pre_pressure = pressure_pre if pressure_pre is not None else float('nan')
+            pre_volume = volume_pre if volume_pre is not None else float('nan')
             self.thermo_file.write(
                 f"{step:>10} {time:>12.3f} {temperature:>12.2f} "
                 f"{kinetic_energy_hartree:>15.8f} {potential_energy_hartree:>15.8f} "
-                f"{total_energy_hartree:>15.8f} {pressure:>12.3f} {volume:>12.4f}\n"
+                f"{total_energy_hartree:>15.8f} {pressure:>15.3f} {volume:>15.4f} "
+                f"{pre_pressure:>15.3f} {pre_volume:>15.4f}\n"
             )
         elif conserved_energy is not None:
             self.thermo_file.write(
@@ -1077,7 +1084,7 @@ class MDLogger:
 
             if self.pressures:
                 pressures_arr = np.array(self.pressures)
-                f.write(f"\nPressure Statistics:\n")
+                f.write(f"\nPressure Statistics (post-rescale):\n")
                 f.write(f"  Mean pressure:            {np.mean(pressures_arr):.3f} bar\n")
                 f.write(f"  Std deviation:            {np.std(pressures_arr):.3f} bar\n")
 
@@ -1090,7 +1097,7 @@ class MDLogger:
         if self.pressures:
             pressures_log = np.array(self.pressures)
             self.log_main([
-                f"\n{'── Pressure Statistics ──':^80}\n",
+                f"\n{'── Pressure Statistics (post-rescale) ──':^80}\n",
                 f"  Mean pressure:              {np.mean(pressures_log):>18.3f}  bar\n",
                 f"  Std deviation:              {np.std(pressures_log):>18.3f}  bar\n",
             ], echo=True)

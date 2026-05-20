@@ -48,6 +48,7 @@ from ..utils import (
     apply_runtime_motion_projection,
     calculate_temperature,
     calculate_kinetic_energy,
+    compute_instantaneous_pressure,
     describe_dof_policy,
     get_atoms_velocity_representation,
     get_initialization_dof_policy,
@@ -605,7 +606,10 @@ class NPT(JobABC):
                 v, _delta_w = self.thermostat.apply(v)
                 pressure_velocities = None
 
-            # Barostat: use the pre-rescale pressure/volume pair for logging.
+            # Barostat decision uses the pre-rescale pressure/volume pair; keep
+            # them only as a labeled diagnostic.  The primary thermodynamic
+            # record below is the post-rescale state, so logged pressure/volume
+            # stay consistent with the post-rescale T/KE/PE.
             volume_pre = self.atoms.get_volume()
             pressure_pre, v = self.barostat.apply(
                 v,
@@ -622,6 +626,7 @@ class NPT(JobABC):
 
             abs_step         = step_offset + step
             current_time     = abs_step * self.params.timestep
+            volume_post      = self.atoms.get_volume()
             temperature      = calculate_temperature(self.atoms, v, n_dof=self._runtime_n_dof)
             kinetic_energy   = calculate_kinetic_energy(self.atoms, v)
             potential_energy = self.atoms.get_potential_energy()  # Ha
@@ -643,6 +648,18 @@ class NPT(JobABC):
                 )
                 kinetic_energy_sync = calculate_kinetic_energy(self.atoms, v_sync)
                 total_energy_sync = kinetic_energy_sync + potential_energy
+                # Langevin: the post-rescale pressure kinetic term must use the
+                # synchronized standard velocity, matching the pre-rescale
+                # decision (pressure_velocities) and the sync-corrected T/KE —
+                # not the half-step carried velocity.
+                pressure_velocity_post = v_sync
+            else:
+                pressure_velocity_post = v
+
+            # Fresh post-rescale pressure evaluated at the post-rescale cell.
+            # This is a real stress evaluation, never a cached/pre-rescale reuse,
+            # so the primary pressure is physically paired with volume_post.
+            pressure_post = compute_instantaneous_pressure(self.atoms, pressure_velocity_post)
 
             self.logger.log_step(
                 step=abs_step,
@@ -653,8 +670,10 @@ class NPT(JobABC):
                 total_energy=kinetic_energy + potential_energy,
                 atoms=self.atoms,
                 velocities=v,
-                pressure=pressure_pre,
-                volume=volume_pre,
+                pressure=pressure_post,
+                volume=volume_post,
+                pressure_pre=pressure_pre,
+                volume_pre=volume_pre,
                 rng_state=get_rng_state_hex(self._rng),
                 rst_every=self.params.rst_every,
                 velocity_representation=velocity_representation,

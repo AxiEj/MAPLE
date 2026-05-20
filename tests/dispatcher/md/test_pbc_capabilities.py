@@ -571,10 +571,15 @@ def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
     np.testing.assert_allclose(seen["velocities"], expected)
 
 
-def test_npt_uses_barostat_pressure_once_logs_pre_rescale_volume_and_refreshes_forces(
+def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
     monkeypatch,
     tmp_path,
 ):
+    # WS2 correctness-first (HR-2/G6): the primary logged pressure/volume are the
+    # post-rescale state (paired with the post-rescale T/KE/PE), evaluated with a
+    # fresh stress at the post-rescale cell; the barostat's pre-rescale pair is
+    # kept only as a labeled diagnostic.  We record (not forbid) the fresh
+    # post-rescale pressure evaluation and the volume it sees.
     calc = StressCalculator(np.zeros(6))
     atoms = _periodic_atoms(calc)
     atoms.arrays["velocities"] = np.zeros((1, 3))
@@ -597,33 +602,87 @@ def test_npt_uses_barostat_pressure_once_logs_pre_rescale_volume_and_refreshes_f
 
     def apply_barostat(velocities, pressure_velocities=None):
         calls.append(velocities.copy())
-        atoms.set_cell(atoms.get_cell() * 2.0, scale_atoms=True)
+        atoms.set_cell(atoms.get_cell() * 2.0, scale_atoms=True)  # volume 1000 -> 8000
         return 123.0, velocities
 
-    def forbid_second_pressure_eval(*_args, **_kwargs):
-        raise AssertionError("NPT should log the pressure returned by the barostat")
+    post_eval_volumes = []
+    real_pressure = npt_module.compute_instantaneous_pressure
+
+    def record_pressure(a, v):
+        post_eval_volumes.append(a.get_volume())
+        return real_pressure(a, v)
 
     records = {}
     original_log_step = npt.logger.log_step
 
     def log_step_spy(**kwargs):
-        records["pressure"] = kwargs["pressure"]
-        records["volume"] = kwargs["volume"]
+        records.update(kwargs)
         return original_log_step(**kwargs)
 
     npt.barostat.apply = apply_barostat
     npt.logger.log_step = log_step_spy
-    monkeypatch.setattr(npt_module, "compute_instantaneous_pressure", forbid_second_pressure_eval, raising=False)
+    monkeypatch.setattr(npt_module, "compute_instantaneous_pressure", record_pressure)
 
     npt.run()
 
     assert len(calls) == 1
-    assert records["pressure"] == pytest.approx(123.0)
-    assert records["volume"] == pytest.approx(1000.0)
+    # primary = post-rescale state
+    assert records["volume"] == pytest.approx(8000.0)
+    assert records["pressure"] == pytest.approx(0.0)   # zero velocity + zero stress
+    # diagnostic = pre-rescale pair that drove the barostat decision
+    assert records["pressure_pre"] == pytest.approx(123.0)
+    assert records["volume_pre"] == pytest.approx(1000.0)
+    # the fresh pressure was evaluated at the post-rescale cell, not the pre cell
+    assert post_eval_volumes and post_eval_volumes[-1] == pytest.approx(8000.0)
     assert calc.force_call_volumes[-1] == pytest.approx(8000.0)
     thermo_text = (tmp_path / "npt_md_thermo.dat").read_text()
-    assert "Press_pre(bar)" in thermo_text
-    assert "Vol_pre(A^3)" in thermo_text
+    assert "Press(bar)" in thermo_text and "Vol(A^3)" in thermo_text
+    assert "Press_pre(bar)" in thermo_text and "Vol_pre(A^3)" in thermo_text
+
+
+def test_npt_langevin_post_rescale_pressure_uses_synchronized_velocity(monkeypatch, tmp_path):
+    # WS2 refinement: for LF-Middle Langevin NPT the post-rescale pressure kinetic
+    # term must use the synchronized standard velocity (full increment), not the
+    # half-step carried velocity, matching the pre-rescale decision and the
+    # sync-corrected T/KE.
+    force = np.array([[1.0, 0.0, 0.0]])
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6), forces=force))
+    atoms.arrays["velocities"] = np.zeros((1, 3))
+    timestep_fs = 0.1
+    npt = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "timestep": timestep_fs,
+            "thermostat": "langevin",
+            "barostat": "c-rescale",
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 0,
+        },
+    )
+    npt.thermostat.apply = lambda velocities: velocities
+    npt.barostat.apply = lambda velocities, pressure_velocities=None: (0.0, velocities)
+
+    seen = {}
+    real_pressure = npt_module.compute_instantaneous_pressure
+
+    def record_pressure(a, v):
+        seen["pressure_velocity"] = v.copy()
+        return real_pressure(a, v)
+
+    monkeypatch.setattr(npt_module, "compute_instantaneous_pressure", record_pressure)
+
+    npt.run()
+
+    mass = atoms.get_masses()[0] * AMU_TO_AU
+    velocity_increment = force * HA_PER_ANG_TO_AU / mass * (timestep_fs * FS_TO_AU)
+    # Synchronized standard velocity == full increment (carried half-step == 0.5x).
+    np.testing.assert_allclose(seen["pressure_velocity"], velocity_increment)
 
 
 def test_npt_langevin_barostat_pressure_uses_synchronized_standard_velocity(tmp_path):

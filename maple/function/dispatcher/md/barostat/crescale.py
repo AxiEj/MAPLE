@@ -18,9 +18,15 @@ Algorithm (Bernetti & Bussi, 2020):
     Velocities are returned as ``v / μ`` following the Trotter-splitting
     correction described by Bernetti & Bussi.
 
-Notes:
-    - Includes stochastic volume fluctuations, unlike plain Berendsen.
-    - Isotropic scaling only; anisotropic tensors not yet supported.
+Scope / honesty:
+    - Production-style isotropic stochastic pressure coupling: it generates
+      genuine volume fluctuations (unlike Berendsen) and is suitable for density
+      equilibration and approximate isotropic NPT averages.
+    - Isotropic (hydrostatic) scaling ONLY.  This is not a Parrinello-Rahman /
+      MTTK / Nosé-Hoover anisotropic-cell barostat: it scales the cell by a
+      single scalar μ and cannot relax non-hydrostatic stress, cell shape, or
+      lattice angles.  Do not use it where anisotropic cell response matters
+      (e.g. solids under shear or non-cubic stress); that is a roadmap item.
     - Pressure is computed from the virial theorem. In this implementation,
       calculator stress is treated as the configurational/virial contribution,
       and the kinetic term is computed explicitly from current velocities.

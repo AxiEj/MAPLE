@@ -42,6 +42,7 @@ from ..utils import (
     validate_md_parameter_ranges,
 )
 from ..semantics import resolve_md_dof_policy, validate_md_semantics
+from ..provenance import build_run_context
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
 from ..logger import MDLogger
 
@@ -540,6 +541,10 @@ class NVT(JobABC):
             dof_description=self._runtime_dof_description,
             write_sync_thermo=write_sync_thermo,
             write_conserved_energy=is_vrescale,
+            manifest_context=build_run_context(
+                params=self.params, dof_policy=self._dof_policy, ensemble="nvt",
+                rng_state_hex=get_rng_state_hex(self._rng),
+            ),
         )
         self.logger.log_main([
             f"\nStarting NVT simulation ({self.params.thermostat})...\n\n"

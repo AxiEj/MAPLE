@@ -28,6 +28,7 @@ from ..utils import (
     validate_md_parameter_ranges,
 )
 from ..semantics import resolve_md_dof_policy, validate_md_semantics
+from ..provenance import build_run_context
 from ..logger import MDLogger
 
 
@@ -481,6 +482,9 @@ class NVE(JobABC):
             step_offset=step_offset,
             n_dof=self._dof_policy.runtime_n_dof,
             dof_description=self._dof_policy.runtime_description,
+            manifest_context=build_run_context(
+                params=self.params, dof_policy=self._dof_policy, ensemble="nve"
+            ),
         )
 
         self.logger.log_main(["\nStarting NVE simulation...\n\n"])

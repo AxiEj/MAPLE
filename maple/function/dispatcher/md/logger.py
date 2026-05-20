@@ -132,6 +132,7 @@ class MDLogger:
         self.final_path    = parent / f"{base}_final.xyz"   # GROMACS confout.gro equivalent
         self.rst_path      = parent / f"{base}_md.rst"
         self.rst_prev_path = parent / f"{base}_md_prev.rst"
+        self.manifest_path = parent / f"{base}_md_manifest.json"
 
         # File handles (opened in start_simulation)
         self.thermo_file: Optional[TextIO] = None
@@ -154,6 +155,9 @@ class MDLogger:
         self._is_pbc             = False  # set in start_simulation; affects fallback N_dof
         self._n_dof_override: Optional[int] = None
         self._dof_description: Optional[str] = None
+        # Run-specific provenance context (set in start_simulation; written as the
+        # MD manifest in end_simulation). None means "no manifest for this run".
+        self._manifest_context: Optional[dict] = None
 
         # Performance / progress tracking (set in start_simulation)
         self._n_steps:    int   = 0
@@ -241,7 +245,8 @@ class MDLogger:
                         n_dof: Optional[int] = None,
                         dof_description: Optional[str] = None,
                         write_sync_thermo: bool = False,
-                        write_conserved_energy: bool = False):
+                        write_conserved_energy: bool = False,
+                        manifest_context: Optional[dict] = None):
         """
         Initialize output files and write headers.
 
@@ -270,6 +275,8 @@ class MDLogger:
         self._dof_description = dof_description
         self._write_sync_thermo = bool(write_sync_thermo)
         self._write_conserved_energy = bool(write_conserved_energy)
+        if manifest_context is not None:
+            self._manifest_context = manifest_context
         if self._is_pbc:
             ensure_image_flags(atoms)
         # Total steps across the full run (for progress %)
@@ -1152,6 +1159,25 @@ class MDLogger:
                 )
             final_xyz_written = True
 
+        # Provenance manifest (best-effort; provenance must never abort a run).
+        manifest_written = False
+        if self._manifest_context is not None and atoms is not None:
+            try:
+                from .provenance import build_md_manifest, write_md_manifest
+
+                calc_provenance = getattr(getattr(atoms, "calc", None), "maple_provenance", None)
+                manifest = build_md_manifest(
+                    atoms=atoms,
+                    run_context=self._manifest_context,
+                    calc_provenance=calc_provenance,
+                    rst_path=str(self.rst_path) if final_written else None,
+                    final_velocities=final_velocities,
+                )
+                write_md_manifest(self.manifest_path, manifest)
+                manifest_written = True
+            except Exception as exc:  # pragma: no cover - defensive
+                self.log_main([f"\n*** WARNING: failed to write MD provenance manifest: {exc}\n"])
+
         self.log_main([
             f"\n{'── Output Files ──':^80}\n",
             f"  Thermodynamics:             {self.thermo_path.name}\n",
@@ -1159,6 +1185,8 @@ class MDLogger:
             *([f"  Unwrapped trajectory:       {self.unwrapped_traj_path.name}\n"]
               if self.unwrapped_traj_file is not None else []),
             f"  Summary:                    {self.summary_path.name}\n",
+            *([f"  Provenance manifest:        {self.manifest_path.name}\n"]
+              if manifest_written else []),
             *([f"  Final structure:           {self.final_path.name}\n"
                f"    (Structure handoff only; strict restart state is in {self.rst_path.name})\n"]
               if final_xyz_written else []),

@@ -61,6 +61,7 @@ from ..utils import (
     validate_stress_tensor,
 )
 from ..semantics import resolve_md_dof_policy, validate_md_semantics
+from ..provenance import build_run_context
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
 from ..logger import MDLogger
 
@@ -570,6 +571,10 @@ class NPT(JobABC):
             n_dof=self._runtime_n_dof,
             dof_description=self._runtime_dof_description,
             write_sync_thermo=write_sync_thermo,
+            manifest_context=build_run_context(
+                params=self.params, dof_policy=self._dof_policy, ensemble="npt",
+                rng_state_hex=get_rng_state_hex(self._rng),
+            ),
         )
         self.logger.log_main([
             f"\nStarting NPT simulation "

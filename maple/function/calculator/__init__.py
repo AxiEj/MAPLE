@@ -1,1 +1,1 @@
-from .set_calculator import SetClaculator
+from .set_calculator import SetCalculator, SetClaculator

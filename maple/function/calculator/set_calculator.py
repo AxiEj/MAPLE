@@ -564,6 +564,12 @@ class SetClaculator:
                 handle.write(line)
 
 
+# Correctly-spelled alias for the (historically misspelled) public class name.
+# ``SetClaculator`` stays the canonical definition so existing call sites are not
+# churned; ``SetCalculator`` is the preferred spelling for new code.
+SetCalculator = SetClaculator
+
+
 def validate_pbc_capabilities(atoms, task: str) -> None:
     """Reject PBC inputs when the attached calculator lacks real periodic support."""
     if atoms is None or not any(atoms.pbc):

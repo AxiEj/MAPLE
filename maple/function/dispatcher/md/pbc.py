@@ -91,7 +91,23 @@ def wrap_positions_with_image_flags(atoms: Atoms, eps: float = WRAP_BOUNDARY_EPS
 
 
 def get_unwrapped_positions(atoms: Atoms) -> np.ndarray:
-    """Return continuous Cartesian coordinates reconstructed from image flags."""
+    """Return continuous Cartesian coordinates reconstructed from image flags.
+
+    Scope and limits (read before using for transport analysis):
+
+    * This is a *per-atom* continuous reconstruction: each atom's wrapped
+      position is shifted by its own integer image flags.  It is NOT a
+      molecule-whole unwrap — bonded atoms straddling a boundary are not kept
+      together, so it is not suitable for whole-molecule visualization or a
+      molecular centre-of-mass trajectory (that needs bond/topology info).
+    * Reconstruction uses the *current* cell, i.e. ``scaled + flags`` mapped
+      through ``atoms.cell``.  Under a variable cell (NPT) this is the correct
+      affine image reconstruction at the current step, but it is NOT a
+      fixed-cell lab-frame coordinate: MSD/diffusion from a variable-cell run
+      mixes real displacement with the affine cell strain and must account for
+      the cell change separately.  For fixed-cell (NVE/NVT) runs it is the
+      lab-frame continuous coordinate suitable for MSD/VACF.
+    """
     positions = np.asarray(atoms.get_positions(), dtype=float)
     if not any(atoms.pbc):
         return positions.copy()

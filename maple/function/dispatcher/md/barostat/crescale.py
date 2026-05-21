@@ -4,24 +4,40 @@ C-rescale (stochastic cell rescaling) barostat for NPT molecular dynamics.
 C-rescale is the pressure analogue of V-rescale: it corrects the Berendsen
 barostat by adding a stochastic term to the cell update.
 
-Algorithm (Bernetti & Bussi, 2020):
-    The isotropic strain ε = log(V/V0) is advanced stochastically:
+Algorithm — reversible λ = √V integrator (Bernetti & Bussi, 2020, §II.B):
+    Stochastic cell rescaling can be propagated either as the volume logarithm
+    ε = log(V/V0) (a simple Euler scheme, NOT time-reversible) or as the
+    square-root-volume variable λ = √V.  We propagate λ, the reversible form the
+    paper recommends for production: its noise amplitude is *constant* (it does
+    not depend on V), which removes the multiplicative-noise discretization bias
+    of the ε form and lets the run define a conserved "effective energy" whose
+    drift diagnoses integration quality (the NPT analogue of NVE energy drift).
 
-        dε = β * (dt/τ_P) * (P - P_target)
-           + sqrt(2 * k_B * T * β * dt / (V * τ_P)) * W
+        dλ = -(β λ)/(2 τ_P) · (P_0 - P_int - k_B T/(2V)) dt
+           + sqrt(k_B T β / (2 τ_P)) · dW
 
-    where W ~ N(0, 1) is the discrete Wiener increment. This is the
-    log-volume/strain form used by stochastic cell rescaling; the old
-    first-order volume-fraction update is not used here.
+    The -k_B T/(2V) term is the Itô correction from the V → √V change of
+    variable (it follows exactly from applying Itô's lemma to the ε-form SDE;
+    verified analytically).  ``W ~ N(0, 1)`` is the discrete Wiener increment.
 
-    Positions and cell are scaled isotropically by μ = exp(dε / 3).
-    Velocities are returned as ``v / μ`` following the Trotter-splitting
-    correction described by Bernetti & Bussi.
+    Per step λ is re-derived from the current volume, advanced by the equation
+    above, and the cell + positions are scaled isotropically by
+    μ = (V_new/V)^{1/3} = (λ_new/λ)^{2/3}; velocities are returned as ``v / μ``
+    (Bernetti & Bussi "Formulation A", scaled momenta).  Because λ is recomputed
+    from the actual volume each step, the per-step stability clamp on μ cannot
+    make the strain variable drift away from the true log-volume.
+
+Effective-energy monitoring:
+    The energy the barostat injects each step (the change in K + U + P_0·V it
+    causes) is accumulated by the NPT driver into the same external-work ledger
+    as the thermostat, so the reported conserved quantity
+    H̃ = K + U + P_0·V − Σ ΔW_ext is constant under exact dynamics and its
+    residual drift is the integrator-quality diagnostic.
 
 Scope / honesty:
-    - Production-style isotropic stochastic pressure coupling: it generates
-      genuine volume fluctuations (unlike Berendsen) and is suitable for density
-      equilibration and approximate isotropic NPT averages.
+    - Production isotropic stochastic pressure coupling: it generates genuine
+      volume fluctuations (unlike Berendsen) and, in the reversible λ form with
+      effective-energy monitoring, is suitable for production NPT averages.
     - Isotropic (hydrostatic) scaling ONLY.  This is not a Parrinello-Rahman /
       MTTK / Nosé-Hoover anisotropic-cell barostat: it scales the cell by a
       single scalar μ and cannot relax non-hydrostatic stress, cell shape, or
@@ -33,7 +49,7 @@ Scope / honesty:
       If stress is unavailable, NPT fails instead of using a kinetic-only fallback.
 
 Reference:
-    Bernetti & Bussi, J. Chem. Phys. 153, 114107 (2020).
+    Bernetti & Bussi, J. Chem. Phys. 153, 114107 (2020); arXiv:2006.09250.
 """
 
 from typing import Optional
@@ -51,10 +67,11 @@ from ..utils import (
 
 class CRescaleBarostat:
     """
-    Stochastic cell rescaling barostat (C-rescale).
+    Stochastic cell rescaling barostat (C-rescale), reversible λ = √V form.
 
     Isotropically rescales cell and atomic positions by advancing the
-    log-volume strain variable ε = log(V/V0).
+    square-root-volume variable λ = √V (Bernetti & Bussi 2020, §II.B), the
+    reversible integrator with constant noise amplitude.
     """
 
     def __init__(
@@ -94,21 +111,24 @@ class CRescaleBarostat:
         self.compressibility = compressibility   # 1/bar
         self.rng = rng if rng is not None else np.random.default_rng()
 
-        # Deterministic prefactor: β * dt / τ_P  (dimensionless)
-        self._det_prefactor = compressibility * timestep / tau_p
-
-        # Stochastic noise prefactor (dimensionless, multiplied by 1/√V later):
-        #   dε_noise = sqrt(2 k_B T β dt / (τ_P V)) * W
-        # We precompute sqrt(2 k_B T β dt / τ_P) in units of √Å³:
-        #   k_B T in eV = T * KELVIN_TO_HARTREE * HARTREE_TO_EV
-        #   β in Å³/eV  = compressibility * EV_PER_ANG3_TO_BAR
-        #   → product: [eV * Å³/eV * 1] = Å³  ✓
+        # Reversible λ = √V integrator prefactors (Bernetti & Bussi 2020, §II.B):
+        #   dλ = _lam_det_prefactor · λ · (P_int + k_BT/(2V) − P_0)   [√Å³]
+        #      + _lam_noise_prefactor · W                            [√Å³, V-independent]
+        # k_B T in eV; β re-expressed in Å³/eV so the pressure terms cancel to bar.
         HARTREE_TO_EV = 27.211386245988
         kT_ev = temperature * KELVIN_TO_HARTREE * HARTREE_TO_EV      # eV
         beta_ang3_per_ev = compressibility * EV_PER_ANG3_TO_BAR      # Å³/eV
-        self._noise_prefactor = np.sqrt(
-            2.0 * kT_ev * beta_ang3_per_ev * (timestep / tau_p)
-        )   # units: √Å³
+
+        # Deterministic: β·dt/(2 τ_P) [1/bar]; × λ [√Å³] × ΔP [bar] → √Å³.
+        self._lam_det_prefactor = compressibility * timestep / (2.0 * tau_p)
+        # Stochastic: sqrt(k_B T β dt / (2 τ_P)) [√Å³]; CONSTANT (no 1/√V) — the
+        # reversibility advantage of the √V form over the ε (log-volume) form.
+        self._lam_noise_prefactor = np.sqrt(
+            kT_ev * beta_ang3_per_ev * timestep / (2.0 * tau_p)
+        )
+        # Half of k_B T in eV; the Itô correction term k_BT/(2V) is formed in bar
+        # inside apply() as (_half_kT_ev / V) * EV_PER_ANG3_TO_BAR.
+        self._half_kT_ev = 0.5 * kT_ev
 
     def get_pressure(self, velocities: np.ndarray) -> float:
         """
@@ -134,16 +154,17 @@ class CRescaleBarostat:
         pressure_velocities: Optional[np.ndarray] = None,
     ) -> tuple[float, np.ndarray]:
         """
-        Apply one C-rescale barostat step: stochastically rescale cell.
+        Apply one C-rescale barostat step: stochastically rescale the cell.
 
-        The log-volume strain increment has both a deterministic
-        Berendsen-like part and a stochastic part:
+        Advances λ = √V by the reversible Bernetti & Bussi update
 
-            dε = β*(dt/τ_P)*(P - P_target)  +  noise * W / sqrt(V)
+            dλ = (β·dt/2τ_P)·λ·(P_int + k_BT/(2V) − P_0)
+               + sqrt(k_BT·β·dt/2τ_P)·W
 
-        Cell and positions are scaled isotropically by μ = exp(dε/3).
-        Velocities are returned as a new ``velocities / μ`` array; the input
-        array is not modified in-place.
+        then scales cell and positions isotropically by μ = (λ_new/λ)^{2/3} and
+        returns a new ``velocities / μ`` array (the input array is not modified
+        in-place).  The NPT driver recomputes forces at the rescaled geometry,
+        completing the reversible step.
 
         Parameters
         ----------
@@ -166,21 +187,28 @@ class CRescaleBarostat:
         if volume <= 0.0 or not np.isfinite(volume):
             raise ValueError(f"C-rescale requires a finite positive cell volume, got {volume!r}.")
 
-        # Deterministic strain part (Berendsen-like): β*(dt/τ_P)*(P - P_target)
-        # so that P < P_target shrinks the cell and P > P_target expands it.
-        d_epsilon_det = self._det_prefactor * (pressure - self.pressure_target)
-
-        # Stochastic part: _noise_prefactor [√Å³] / sqrt(V [Å³]) * W
-        #                = sqrt(2 k_B T β dt / (τ_P V)) * W  (dimensionless strain)
+        # Reversible λ = √V update (Bernetti & Bussi 2020, §II.B):
+        #   dλ = (β·dt/2τ_P)·λ·(P_int + k_BT/(2V) − P_0) + sqrt(k_BT β dt/2τ_P)·W
+        # The k_BT/(2V) term is the Itô correction from the V → √V change of
+        # variable, formed in bar to combine with the pressures.  Sign: P_int >
+        # P_0 expands the cell, P_int < P_0 shrinks it.
+        lam = np.sqrt(volume)
+        kT_over_2v_bar = (self._half_kT_ev / volume) * EV_PER_ANG3_TO_BAR
+        d_lam_det = (
+            self._lam_det_prefactor * lam
+            * (pressure + kT_over_2v_bar - self.pressure_target)
+        )
         w = self.rng.standard_normal()
-        d_epsilon_stoch = self._noise_prefactor / np.sqrt(volume) * w
+        d_lam_stoch = self._lam_noise_prefactor * w
+        lam_new = lam + d_lam_det + d_lam_stoch
 
-        # New log-volume increment.  Clamp to the same per-step position
-        # scaling bounds used by Berendsen, but apply the bound in log-space so
-        # the C-rescale variable remains ε = log(V/V0).
-        d_epsilon = d_epsilon_det + d_epsilon_stoch
-        d_epsilon = float(np.clip(d_epsilon, 3.0 * np.log(0.5), 3.0 * np.log(2.0)))
-        mu = float(np.exp(d_epsilon / 3.0))
+        # Isotropic length scale μ = (V_new/V)^{1/3} = (λ_new/λ)^{2/3}, clamped to
+        # the Berendsen-style per-step [0.5, 2.0] bound for stability.  The
+        # squared ratio keeps μ real and positive even for a pathological step,
+        # and λ is re-derived from the actual volume next step so the clamp never
+        # makes the strain variable drift from the true log-volume.
+        vol_ratio = float(np.clip((lam_new / lam) ** 2, 0.125, 8.0))
+        mu = vol_ratio ** (1.0 / 3.0)
 
         # Rescale cell and positions isotropically
         self.atoms.set_cell(self.atoms.get_cell() * mu, scale_atoms=True)

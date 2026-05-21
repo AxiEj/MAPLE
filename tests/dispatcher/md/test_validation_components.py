@@ -7,6 +7,7 @@ from ase.calculators.lj import LennardJones
 from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
 from maple.function.dispatcher.md.validation import (
     MapleLJReferenceCalculator,
+    _block_mean_stderr,
     _lj_crystal,
     load_thresholds,
     run_constraints_rejected,
@@ -21,9 +22,14 @@ def test_thresholds_are_versioned_and_complete():
     assert "thresholds_version" in th
     for section in (
         "nve_energy_drift", "restart_determinism", "nvt_mean_temperature",
-        "npt_pressure", "stress_finite_difference", "pbc_geometry", "constraints",
+        "npt_pressure", "npt_volume_fluctuation", "npt_effective_energy_drift",
+        "stress_finite_difference", "pbc_geometry", "constraints",
     ):
         assert section in th
+    # The NVT gate uses the standard error of the mean (block averaging with an
+    # i.i.d. floor), not the instantaneous spread; its block count is registered.
+    assert th["nvt_mean_temperature"]["n_blocks"] >= 2
+    assert 0.0 < th["nvt_mean_temperature"]["equilibration_fraction"] < 1.0
 
 
 def test_lj_reference_calculator_honours_maple_unit_contract():
@@ -54,6 +60,36 @@ def test_constraints_class_passes(tmp_path):
     result = run_constraints_rejected(lj_reference_factory(), th, tmp_path)
     assert result.passed
     assert result.metrics["rejected"] is True
+
+
+def test_block_mean_stderr_matches_iid_for_independent_series():
+    rng = np.random.default_rng(0)
+    n = 2000
+    iid = rng.standard_normal(n)
+    block = _block_mean_stderr(iid, 10)
+    analytic = float(np.std(iid) / np.sqrt(n))
+    # For independent samples the block SE and the i.i.d. SE agree to within the
+    # noise of a 10-block estimate (same order of magnitude).
+    assert block == pytest.approx(analytic, rel=0.6)
+
+
+def test_block_mean_stderr_exceeds_iid_for_autocorrelated_series():
+    rng = np.random.default_rng(1)
+    n = 4000
+    phi = 0.95  # AR(1): integrated autocorrelation time ~ (1+phi)/(1-phi) ~ 39
+    ar = np.empty(n)
+    ar[0] = rng.standard_normal()
+    for i in range(1, n):
+        ar[i] = phi * ar[i - 1] + rng.standard_normal()
+    block = _block_mean_stderr(ar, 10)
+    iid = float(np.std(ar) / np.sqrt(n))
+    # The autocorrelation-aware block SE must be well above the naive i.i.d. one,
+    # which is the whole reason the NVT gate cannot use sqrt(n).
+    assert block > 3.0 * iid
+
+
+def test_block_mean_stderr_nan_with_too_few_blocks():
+    assert np.isnan(_block_mean_stderr(np.arange(3.0), 1))
 
 
 def test_write_report_emits_markdown_and_json(tmp_path):

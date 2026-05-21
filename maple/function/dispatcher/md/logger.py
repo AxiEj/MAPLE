@@ -392,12 +392,21 @@ class MDLogger:
                     "Press_pre(bar)/Vol_pre(A^3) are the pre-rescale pair that drove the "
                     "barostat decision and are kept only as a diagnostic.\n"
                 )
-                self.thermo_file.write(
+                if self._write_conserved_energy:
+                    self.thermo_file.write(
+                        "# H_cons(Ha) is the reversible c-rescale conserved quantity "
+                        "H~ = KE + PE + P0*V - sum(thermostat+barostat+projection work); "
+                        "its drift is the effective-energy integration diagnostic.\n"
+                    )
+                npt_header = (
                     f"# {'Step':>8} {'Time(fs)':>12} {'Temp(K)':>12} "
                     f"{'KE(Ha)':>15} {'PE(Ha)':>15} {'TE(Ha)':>15} "
                     f"{'Press(bar)':>15} {'Vol(A^3)':>15} "
-                    f"{'Press_pre(bar)':>15} {'Vol_pre(A^3)':>15}\n"
+                    f"{'Press_pre(bar)':>15} {'Vol_pre(A^3)':>15}"
                 )
+                if self._write_conserved_energy:
+                    npt_header += f" {'H_cons(Ha)':>15}"
+                self.thermo_file.write(npt_header + "\n")
             elif self._ensemble == 'nvt':
                 header = (
                     f"# {'Step':>8} {'Time(fs)':>12} {'Temp(K)':>12} "
@@ -528,12 +537,17 @@ class MDLogger:
         if self._ensemble == 'npt' and pressure is not None and volume is not None:
             pre_pressure = pressure_pre if pressure_pre is not None else float('nan')
             pre_volume = volume_pre if volume_pre is not None else float('nan')
-            self.thermo_file.write(
+            npt_row = (
                 f"{step:>10} {time:>12.3f} {temperature:>12.2f} "
                 f"{kinetic_energy_hartree:>15.8f} {potential_energy_hartree:>15.8f} "
                 f"{total_energy_hartree:>15.8f} {pressure:>15.3f} {volume:>15.4f} "
-                f"{pre_pressure:>15.3f} {pre_volume:>15.4f}\n"
+                f"{pre_pressure:>15.3f} {pre_volume:>15.4f}"
             )
+            # Append the conserved-energy column (last, so the fixed Press/Vol
+            # column indices used by downstream parsers are unaffected).
+            if self._write_conserved_energy and conserved_energy is not None:
+                npt_row += f" {conserved_energy:>15.8f}"
+            self.thermo_file.write(npt_row + "\n")
         elif conserved_energy is not None:
             self.thermo_file.write(
                 f"{step:>10} {time:>12.3f} {temperature:>12.2f} "

@@ -166,6 +166,32 @@ def test_berendsen_barostat_returns_pressure_and_original_velocity():
     np.testing.assert_allclose(velocities, original)
 
 
+def test_kinetic_pressure_is_additive_in_com_motion():
+    """The kinetic pressure uses the full kinetic energy (all velocities), so a
+    net COM velocity adds a separable 2*KE_com/(3V) term (~k_B T/V in
+    expectation: negligible for a large cell, resolvable for a small validation
+    cell).  MAPLE projects the COM at initialization and the non-re-exciting
+    v-rescale / c-rescale operators leave it at zero, so the production pressure
+    is DOF-consistent; this pins that behaviour so a future COM-in-pressure
+    change is a conscious one (see compute_instantaneous_pressure)."""
+    atoms = Atoms("Ar2", positions=[[0.0, 0.0, 0.0], [3.0, 0.0, 0.0]],
+                  cell=np.diag([6.0, 6.0, 6.0]), pbc=True)
+    atoms.calc = StressCalculator(np.zeros(6))   # zero virial -> purely kinetic pressure
+
+    v_internal = np.array([[0.01, 0.0, 0.0], [-0.01, 0.0, 0.0]])  # equal mass -> zero COM
+    v_com = np.array([0.004, -0.002, 0.001])
+    v_boosted = v_internal + v_com
+
+    p_internal = compute_instantaneous_pressure(atoms, v_internal)
+    p_boosted = compute_instantaneous_pressure(atoms, v_boosted)
+    p_com_only = compute_instantaneous_pressure(atoms, np.tile(v_com, (len(atoms), 1)))
+
+    # The COM drift adds exactly its own 2*KE_com/(3V) to the kinetic pressure;
+    # the v_internal·v_com cross term vanishes because v_internal is zero-COM.
+    assert p_com_only > 0.0
+    assert (p_boosted - p_internal) == pytest.approx(p_com_only, rel=1e-9, abs=1e-9)
+
+
 def test_crescale_barostat_returns_velocity_scaled_by_mu_without_mutating_input():
     atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
     initial_volume = atoms.get_volume()
@@ -184,10 +210,13 @@ def test_crescale_barostat_returns_velocity_scaled_by_mu_without_mutating_input(
 
     pressure, returned = barostat.apply(velocities)
 
-    d_epsilon = 0.5 * 1.0 / 10.0 * (2.0 - 1.0)
-    mu = np.exp(d_epsilon / 3.0)
+    # Reversible λ=√V step at T=0 (no noise, no Itô correction):
+    #   λ_new/λ = 1 + (β·dt/2τ_P)(P_int − P_0);  V_new = V0·(λ_new/λ)²
+    lam_ratio = 1.0 + (0.5 * 1.0 / (2.0 * 10.0)) * (2.0 - 1.0)
+    vol_ratio = lam_ratio ** 2
+    mu = vol_ratio ** (1.0 / 3.0)
     assert pressure == pytest.approx(2.0)
-    assert atoms.get_volume() == pytest.approx(initial_volume * np.exp(d_epsilon))
+    assert atoms.get_volume() == pytest.approx(initial_volume * vol_ratio)
     np.testing.assert_allclose(velocities, original)
     np.testing.assert_allclose(returned, original / mu)
 
@@ -213,13 +242,19 @@ def test_crescale_stochastic_term_uses_inverse_pressure_units():
 
     _, returned = barostat.apply(velocities)
 
+    # Reversible λ=√V step with P_int == P_0 and W == 1 (UnitNormalRNG): only the
+    # Itô-correction drift k_BT/(2V) and the CONSTANT-amplitude noise survive.
+    # The noise prefactor sqrt(k_BT·β·dt/2τ_P) carries no 1/√V — the property
+    # that distinguishes the reversible √V form from the ε (log-volume) form.
     kT_ev = temperature * KELVIN_TO_HARTREE * HARTREE_TO_EV
     beta_ang3_per_ev = compressibility * EV_PER_ANG3_TO_BAR
-    d_epsilon = np.sqrt(
-        2.0 * kT_ev * beta_ang3_per_ev * (timestep / tau_p) / initial_volume
-    )
-    mu = np.exp(d_epsilon / 3.0)
-    assert atoms.get_volume() == pytest.approx(initial_volume * np.exp(d_epsilon))
+    lam = np.sqrt(initial_volume)
+    kT_over_2v_bar = (0.5 * kT_ev / initial_volume) * EV_PER_ANG3_TO_BAR
+    d_lam_det = (compressibility * timestep / (2.0 * tau_p)) * lam * kT_over_2v_bar
+    d_lam_stoch = np.sqrt(kT_ev * beta_ang3_per_ev * timestep / (2.0 * tau_p))
+    vol_ratio = ((lam + d_lam_det + d_lam_stoch) / lam) ** 2
+    mu = vol_ratio ** (1.0 / 3.0)
+    assert atoms.get_volume() == pytest.approx(initial_volume * vol_ratio)
     np.testing.assert_allclose(returned, velocities / mu)
 
 
@@ -403,7 +438,10 @@ def test_barostat_cell_scaling_preserves_image_flags_and_affine_unwrapped_positi
 
     _, returned = barostat.apply(np.zeros((1, 3)))
 
-    mu = np.exp((0.5 * 1.0 / 10.0 * (2.0 - 1.0)) / 3.0)
+    # Reversible λ=√V step at T=0: length scale μ = (λ_new/λ)^{2/3}, and the
+    # affine unwrapped position scales by the same μ as the cell.
+    lam_ratio = 1.0 + (0.5 * 1.0 / (2.0 * 10.0)) * (2.0 - 1.0)
+    mu = lam_ratio ** (2.0 / 3.0)
     np.testing.assert_array_equal(atoms.arrays[IMAGE_FLAGS_ARRAY], np.array([[1, 0, 0]]))
     np.testing.assert_allclose(get_unwrapped_positions(atoms), initial_unwrapped * mu)
     np.testing.assert_allclose(returned, np.zeros((1, 3)))

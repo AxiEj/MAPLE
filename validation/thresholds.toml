@@ -7,7 +7,11 @@
 # 1.1.0 (WS3): add the [npt_volume_fluctuation] class (EOS-slope vs
 # fluctuation-identity compressibility consistency) and tighten the stress
 # finite-difference magnitude tolerance after confirming the LJ reference passes.
-thresholds_version = "1.1.0"
+# 1.2.0 (WS7): fix the [nvt_mean_temperature] gate to use the standard error of
+# the MEAN (block-averaged, i.i.d.-floored) instead of the instantaneous spread,
+# and add the [npt_effective_energy_drift] class for the reversible c-rescale
+# conserved-quantity (effective-energy) drift.
+thresholds_version = "1.2.0"
 
 [nve_energy_drift]
 # Total-energy conservation for a strict NVE run on a near-equilibrium crystal.
@@ -26,13 +30,24 @@ position_atol_A = 1.0e-6
 velocity_rtol = 1.0e-5
 
 [nvt_mean_temperature]
-# Mean temperature must lie within k_sigma standard errors of the target, with
-# sigma(T) = T * sqrt(2 / N_df) the canonical instantaneous-temperature spread.
+# Mean temperature must lie within k_sigma standard errors of the MEAN of the
+# target. The canonical per-sample spread is sigma_inst = T*sqrt(2/N_df); the
+# standard error of the mean is sigma_inst/sqrt(N_eff). Because the thermostatted
+# series is autocorrelated, N_eff is estimated by block averaging (n_blocks
+# blocks) with the i.i.d. sqrt(n) value as a floor, so the window is never
+# tighter than independent sampling would allow (which would false-fail) nor as
+# loose as the raw instantaneous spread (which would false-pass).
 # Justification: k_sigma = 6 is a deliberate false-negative guard — a correct
-# thermostat exceeds 6 standard errors with probability ~2e-9, so a failure here
-# is a real bug, not sampling noise. It is a one-sided robustness margin, not a
-# loose accuracy bound.
+# thermostat sits within 6 standard errors of the target with overwhelming
+# probability, so a failure is a real bias, not sampling noise. One-sided
+# robustness margin, not a loose accuracy bound.
+# Run length / discard / n_blocks are calibrated against the LJ reference so a
+# correct v-rescale thermostat stays < 4 sigma over many seeds (12-seed max
+# ~3.9) while the ~2 K standard error keeps the window (~12 K) sensitive enough
+# to catch a real >12 K mean-temperature bias.
 k_sigma = 6.0
+n_blocks = 10
+equilibration_fraction = 0.4           # discard the first 40% (initial transient)
 
 [npt_pressure]
 # The summary mean pressure must be built from the post-rescale series; the
@@ -57,6 +72,22 @@ equilibration_fraction = 0.3           # discard the first 30% of each run
 min_volume_change = 0.01               # below this the EOS secant has no signal -> skip
 max_volume_change = 0.25               # above this the response is non-linear/unstable -> fail
 n_blocks = 5                           # block averaging for Var(V) and its standard error
+
+[npt_effective_energy_drift]
+# Reversible c-rescale conserved-quantity (effective-energy) drift. The NPT
+# conserved quantity H̃ = K + U + P0·V − Σ ΔW_ext (thermostat + barostat +
+# projection work) is constant under exact dynamics; its residual slope measures
+# the finite-timestep integration error — the NPT analogue of the NVE energy
+# drift, and the diagnostic a non-reversible/mis-scaled barostat fails even when
+# instantaneous pressure looks fine. Bounded as a per-atom, per-ps |dH̃/dt|.
+# Justification: calibrated against the LJ reference at dt=1 fs. A correct
+# reversible integrator with complete work accounting holds |dH̃/dt| ~ 4e-10
+# Ha/atom/ps; the bare K+U+P0·V (i.e. broken/absent work accounting) drifts
+# ~1.2e-5 here, so 1e-6 passes the correct path with ~2000x margin while still
+# catching a barostat that fails to account for its energy injection by >10x.
+# Loose v1.2 for real ML backends (whose intrinsic NVE-style drift is larger);
+# revisit with a real-backend baseline before tightening further.
+max_abs_drift_ha_per_atom_per_ps = 1.0e-6
 
 [stress_finite_difference]
 # Virial stress trace vs the finite-difference -dE/dV. The sign must match and

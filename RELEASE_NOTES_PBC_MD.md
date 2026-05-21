@@ -70,3 +70,54 @@ term uses the synchronized standard velocity.
 - **Partial periodicity + MD → rejected for production.** `allow_partial_pbc=true`
   opts into an EXPERIMENTAL (non-production) slab/partial-PBC trajectory and prints
   a banner; it does not pass production validation. `#pbc` still emits full 3-D PBC.
+
+## Reversible c-rescale + effective-energy monitoring (WS7)
+
+The stochastic cell-rescaling (c-rescale) barostat now uses the **reversible
+λ = √V integrator** of Bernetti & Bussi (2020, §II.B) instead of the simpler
+Euler scheme on the log-volume ε. Propagating λ = √V makes the noise amplitude
+`sqrt(k_B T β / 2τ_P)` *constant* (V-independent), removing the multiplicative-
+noise discretization bias of the ε form and adding the exact Itô correction
+`−k_B T/(2V)` to the drift (derived analytically from the ε-form SDE). Per-step
+the cell scales by `μ = (λ_new/λ)^{2/3}` and velocities by `1/μ`; λ is re-derived
+from the actual volume each step so the stability clamp cannot make the strain
+variable drift from log V. Isotropic-only scope is unchanged (no shear / cell
+shape; not a Parrinello–Rahman / MTTK replacement).
+
+- **NPT conserved quantity is now reported (v-rescale + c-rescale).** The driver
+  accumulates the thermostat, barostat and runtime-projection work into one
+  external-work ledger, so the conserved quantity
+  `H̃ = KE + PE + P_0·V − Σ ΔW_ext` is logged as the `H_cons(Ha)` thermo column
+  (appended last, so existing column indices are unchanged) and its drift is the
+  summary "H̃ drift". This closes the gap noted previously in the NPT loop, where
+  the Bussi conserved quantity was not reported because the barostat work was not
+  accumulated. For the LJ reference, H̃ holds to ~5e-7 Ha while the bare energy
+  swings ~0.08 Ha. Langevin NPT (no conserved energy) and Berendsen
+  (equilibration-only) do not report H̃.
+
+## Release acceptance matrix: NVT gate fix + effective-energy class (WS7)
+
+- **`nvt_mean_temperature` gate corrected.** The window is now `k_sigma` × the
+  standard error of the **mean** temperature (block-averaged, with the i.i.d.
+  `sqrt(n)` value as a floor), not `k_sigma` × the instantaneous spread. The
+  previous form multiplied the standard error back by `sqrt(n)`, widening the
+  window ~`sqrt(n)`× into a near-instantaneous-fluctuation band that could not
+  catch a real mean-temperature bias. The run length, equilibration discard
+  (0.4) and block count (10) are calibrated against the LJ reference so a correct
+  thermostat stays < 4σ over many seeds while the ~2 K standard error keeps the
+  ~12 K window sensitive to a real >12 K bias.
+- **New `npt_effective_energy_drift` acceptance class.** Bounds the reversible
+  c-rescale H̃ drift as a per-atom, per-ps slope (the NPT analogue of the NVE
+  energy-drift check); pre-registered at 1e-6 Ha/atom/ps (LJ reference passes at
+  ~4e-10, ~2000× margin; broken/absent work accounting drifts ~1.2e-5 and fails).
+- Thresholds bumped to **1.2.0** (gate change + new class are versioned with the
+  report, never tuned to results).
+
+## Trajectory analysis caveat (WS7)
+
+`get_unwrapped_positions` (and the unwrapped XYZ sidecar) is documented as a
+**per-atom** image reconstruction using the **current** cell: it is not a
+molecule-whole unwrap, and for a variable-cell (NPT) run it is not a fixed-cell
+lab-frame coordinate, so variable-cell MSD/diffusion must account for the cell
+strain separately. Fixed-cell (NVE/NVT) unwrapped coordinates are lab-frame and
+suitable for MSD/VACF.

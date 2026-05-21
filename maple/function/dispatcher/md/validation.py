@@ -195,7 +195,7 @@ def run_restart_determinism(calc_factory, thresholds, workdir, *, timestep=0.5) 
     )
 
 
-def run_nvt_mean_temperature(calc_factory, thresholds, workdir, *, steps=600, timestep=0.5) -> AcceptanceResult:
+def run_nvt_mean_temperature(calc_factory, thresholds, workdir, *, steps=6000, timestep=0.5) -> AcceptanceResult:
     th = thresholds["nvt_mean_temperature"]
     target = 80.0
     atoms = _lj_crystal()
@@ -208,17 +208,36 @@ def run_nvt_mean_temperature(calc_factory, thresholds, workdir, *, steps=600, ti
     })
     nvt.run()
     thermo = _read_thermo(workdir / "nvt_md_thermo.dat")
-    # Discard the first 20% as equilibration.
-    temps = thermo["temp"][len(thermo["temp"]) // 5:]
+    # Discard the initial transient (pre-registered equilibration fraction); the
+    # short-run mean is transient-biased, so the run length and discard are
+    # calibrated together with the block-SE gate below.
+    eq_frac = float(th.get("equilibration_fraction", 0.4))
+    all_temps = thermo["temp"]
+    temps = all_temps[int(len(all_temps) * eq_frac):]
     mean_t = float(np.mean(temps))
     n_df = nvt._dof_policy.runtime_n_dof
-    sigma_mean = target * np.sqrt(2.0 / n_df) / np.sqrt(len(temps))
-    within = abs(mean_t - target) <= th["k_sigma"] * sigma_mean * np.sqrt(len(temps))
+
+    # Gate on the standard error of the *mean* temperature, not the instantaneous
+    # spread.  The canonical per-sample spread is sigma_inst = T*sqrt(2/N_df); the
+    # standard error of the mean is sigma_inst/sqrt(N_eff).  The thermostatted
+    # series is autocorrelated (correlation time ~ tau_t), so the i.i.d.
+    # sqrt(n) estimate *understates* the true error and would false-fail a
+    # correct thermostat on this short run; use the block-averaged SE with the
+    # i.i.d. value as a floor (the true SE is never below the i.i.d. one).
+    n_blocks = int(th.get("n_blocks", 5))
+    sigma_inst = target * np.sqrt(2.0 / n_df)
+    sem_iid = sigma_inst / np.sqrt(len(temps))
+    sem_block = _block_mean_stderr(temps, n_blocks)
+    sem = max(sem_block, sem_iid) if np.isfinite(sem_block) else sem_iid
+    window = float(th["k_sigma"] * sem)
+    within = abs(mean_t - target) <= window
     return AcceptanceResult(
         "nvt_mean_temperature", "pass" if within else "fail", within,
-        {"mean_T": mean_t, "target_T": target, "n_df": n_df,
-         "k_sigma_window": float(th["k_sigma"] * target * np.sqrt(2.0 / n_df))},
-        f"mean T {mean_t:.1f} K vs target {target} K",
+        {"mean_T": mean_t, "target_T": target, "n_df": n_df, "n_samples": int(len(temps)),
+         "sem_iid_K": float(sem_iid), "sem_block_K": float(sem_block),
+         "sem_K": float(sem), "k_sigma_window_K": window},
+        f"mean T {mean_t:.2f} K vs {target} K "
+        f"(|Δ|={abs(mean_t - target):.2f} <= {window:.2f} K = {th['k_sigma']:g}·SE_mean)",
     )
 
 
@@ -278,6 +297,28 @@ def _block_variance(series: np.ndarray, n_blocks: int) -> tuple:
     else:
         var_se = float("nan")
     return var_total, var_se
+
+
+def _block_mean_stderr(series: np.ndarray, n_blocks: int) -> float:
+    """Standard error of the mean via block averaging (folds in autocorrelation).
+
+    The series is split into ``n_blocks`` contiguous blocks; the standard error
+    of the overall mean is the spread of the per-block means, std(means)/sqrt(n).
+    When the block size exceeds the correlation time the blocks are effectively
+    independent, so this is the autocorrelation-aware standard error that the
+    i.i.d. sqrt(n) estimate cannot provide.  Returns NaN with fewer than two
+    usable blocks (the caller falls back to the i.i.d. estimate).
+    """
+    series = np.asarray(series, dtype=float)
+    block_size = max(len(series) // n_blocks, 1)
+    means = [
+        float(np.mean(series[i * block_size:(i + 1) * block_size]))
+        for i in range(n_blocks)
+        if len(series[i * block_size:(i + 1) * block_size]) > 0
+    ]
+    if len(means) > 1:
+        return float(np.std(means, ddof=1) / np.sqrt(len(means)))
+    return float("nan")
 
 
 def run_npt_volume_fluctuation(
@@ -381,6 +422,55 @@ def run_npt_volume_fluctuation(
     )
 
 
+def run_npt_effective_energy_drift(
+    calc_factory, thresholds, workdir, *, steps=4000, timestep=1.0, temperature=100.0
+) -> AcceptanceResult:
+    """Reversible c-rescale conserved-quantity (effective-energy) drift.
+
+    The NPT conserved quantity H̃ = K + U + P_0·V − Σ ΔW_ext (thermostat +
+    barostat + projection work) is constant under exact dynamics; its residual
+    slope measures the finite-timestep integration error — the NPT analogue of
+    the NVE energy-drift check.  A non-reversible/mis-scaled barostat, or
+    incomplete work accounting, drifts H̃ systematically even when the
+    instantaneous pressure looks correct.  Runs on the compressible cell so the
+    barostat genuinely moves the volume (a frozen volume would not exercise it).
+    """
+    th = thresholds["npt_effective_energy_drift"]
+    atoms = _lj_liquid()
+    atoms.calc = calc_factory()
+    NPT(output=str(workdir / "npt_eff.out"), atoms=atoms, paras={
+        "steps": steps, "timestep": timestep, "temperature": temperature, "pressure": 1.0,
+        "thermostat": "v-rescale", "barostat": "c-rescale", "tau_t": 100.0,
+        "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0, "log_every": 1,
+        "traj_every": steps, "rst_every": 0, "random_seed": 2024,
+        "validation_artifact_id": "npt_effective_energy_drift",
+    }).run()
+    thermo = _read_thermo(workdir / "npt_eff_md_thermo.dat")
+    raw = thermo["raw"]
+    # Columns: Step Time Temp KE PE TE Press Vol Press_pre Vol_pre H_cons.
+    if raw.shape[1] <= 10:
+        return AcceptanceResult(
+            "npt_effective_energy_drift", "fail", False,
+            {"error": "H_cons column missing", "n_columns": int(raw.shape[1])},
+            "conserved-energy column (H_cons) absent — bookkeeping did not run",
+        )
+    h_cons, times_fs = raw[:, 10], thermo["time"]
+    cut = len(h_cons) // 5
+    h, t = h_cons[cut:], times_fs[cut:]
+    ps = (t[-1] - t[0]) / 1000.0 if len(t) >= 2 else 0.0
+    slope = float(np.polyfit(t, h, 1)[0]) if (len(t) >= 2 and ps > 0) else float("nan")  # Ha/fs
+    drift = abs(slope) * 1000.0 / len(atoms) if np.isfinite(slope) else float("inf")
+    h_range = float(np.max(h) - np.min(h)) if len(h) else float("nan")
+    passed = drift <= th["max_abs_drift_ha_per_atom_per_ps"]
+    return AcceptanceResult(
+        "npt_effective_energy_drift", "pass" if passed else "fail", passed,
+        {"h_cons_drift_ha_per_atom_per_ps": drift, "h_cons_range_ha": h_range,
+         "n_atoms": len(atoms), "fit_window_ps": ps},
+        f"H̃ drift {drift:.2e} Ha/atom/ps "
+        f"(<= {th['max_abs_drift_ha_per_atom_per_ps']:.0e})",
+    )
+
+
 def run_stress_finite_difference(calc_factory, thresholds, workdir, **_) -> AcceptanceResult:
     th = thresholds["stress_finite_difference"]
     base = _lj_crystal()
@@ -466,6 +556,7 @@ ACCEPTANCE_CLASSES: List[Callable[..., AcceptanceResult]] = [
     run_nvt_mean_temperature,
     run_npt_pressure,
     run_npt_volume_fluctuation,
+    run_npt_effective_energy_drift,
     run_stress_finite_difference,
     run_pbc_geometry,
     run_constraints_rejected,
@@ -494,6 +585,7 @@ def run_acceptance_matrix(
     nvt_kw = {"steps": 120} if quick else {}
     npt_kw = {"steps": 60} if quick else {}
     npt_vf_kw = {"steps": 2000} if quick else {}
+    npt_eff_kw = {"steps": 1000} if quick else {}
 
     results: List[AcceptanceResult] = []
     try:
@@ -507,6 +599,8 @@ def run_acceptance_matrix(
                 kwargs = npt_kw
             elif fn is run_npt_volume_fluctuation:
                 kwargs = npt_vf_kw
+            elif fn is run_npt_effective_energy_drift:
+                kwargs = npt_eff_kw
             try:
                 results.append(fn(calc_factory, thresholds, workdir, **kwargs))
             except Exception as exc:  # a class that cannot run is recorded, not silently dropped

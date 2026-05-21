@@ -42,7 +42,17 @@ def compute_instantaneous_pressure(
     if volume <= 0.0 or not np.isfinite(volume):
         raise ValueError(f"Pressure calculation requires a finite positive volume, got {volume!r}.")
 
-    # Kinetic contribution (in eV)
+    # Kinetic contribution (in eV).
+    #
+    # The kinetic term uses the FULL kinetic energy from all velocities.  A net
+    # centre-of-mass (COM) velocity therefore contributes an extra 2*KE_com/(3V)
+    # ~ k_B T/V to the pressure — O(1/N) and negligible for a large cell, but
+    # resolvable for a small validation cell.  This is DOF-consistent in MAPLE
+    # because the COM is projected at initialization and the non-re-exciting
+    # v-rescale / c-rescale operators leave it at zero, so KE_com stays ~0 (see
+    # the operator-aware DOF policy in semantics.py and the additivity test in
+    # tests/dispatcher/md/test_pbc_capabilities.py).  A caller that runs with a
+    # deliberately non-zero COM should project it before reading the pressure.
     masses_amu = atoms.get_masses()
     # v in a.u. (Bohr/a.u.time) → convert to Å/fs
     v_ang_per_fs = velocities * BOHR_TO_ANGSTROM / AU_TO_FS

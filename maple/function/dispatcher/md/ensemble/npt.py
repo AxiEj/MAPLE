@@ -44,6 +44,8 @@ from ..thermostat.vrescale import VRescaleThermostat
 from ..barostat.berendsen import BerendsenBarostat
 from ..barostat.crescale import CRescaleBarostat
 from ..utils import (
+    EV_PER_ANG3_TO_BAR,
+    HARTREE_TO_EV,
     VELOCITY_REPR_LFMIDDLE_CARRIED,
     VELOCITY_REPR_STANDARD,
     apply_runtime_motion_projection,
@@ -545,8 +547,10 @@ class NPT(JobABC):
         pressure decision uses a synchronized standard velocity so the kinetic
         pressure term is not computed from the half-step carried state.
         V-rescale applies the thermostat to the full-step Velocity Verlet
-        velocity before the barostat.  This NPT path does not report the Bussi
-        conserved quantity because barostat work is not accumulated here.
+        velocity before the barostat.  For the v-rescale + reversible c-rescale
+        pair this path reports the NPT conserved quantity H̃ = K + U + P_0·V −
+        Σ ΔW_ext (thermostat + barostat + projection work); its drift is the
+        effective-energy integration diagnostic.
         """
         if n_steps is None:
             n_steps = self.params.steps
@@ -577,6 +581,13 @@ class NPT(JobABC):
         write_sync_thermo = bool(
             is_langevin and velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED
         )
+        # Reversible c-rescale defines a conserved "effective energy"
+        # H̃ = K + U + P_0·V − Σ ΔW_ext.  It is only meaningful for the stochastic
+        # v-rescale + c-rescale pair (Langevin has no conserved energy; Berendsen
+        # is equilibration-only), so the bookkeeping below is gated on that pair.
+        track_conserved = (not is_langevin) and self.params.barostat == 'c-rescale'
+        # Target-pressure work term P_0·V wants P_0 in Ha/Å³ (bar → eV/Å³ → Ha/Å³).
+        p0_ha_per_a3 = self.params.pressure / EV_PER_ANG3_TO_BAR / HARTREE_TO_EV
 
         self.logger.start_simulation(
             ensemble='npt',
@@ -590,6 +601,7 @@ class NPT(JobABC):
             n_dof=self._runtime_n_dof,
             dof_description=self._runtime_dof_description,
             write_sync_thermo=write_sync_thermo,
+            write_conserved_energy=track_conserved,
             manifest_context=build_run_context(
                 params=self.params, dof_policy=self._dof_policy, ensemble="npt",
                 rng_state_hex=get_rng_state_hex(self._rng),
@@ -602,6 +614,10 @@ class NPT(JobABC):
 
         integrator = VelocityVerlet(self.atoms, self.params.timestep)
         v = velocities.copy()
+
+        # Running external-work ledger for the conserved quantity (v-rescale +
+        # c-rescale only); accumulates thermostat, barostat and projection work.
+        w_bath = 0.0
 
         # Cache forces at t=0; the Langevin LFMiddle path reuses the same initial
         # forces for the standard→carried conversion and for the first kick.
@@ -627,11 +643,13 @@ class NPT(JobABC):
                 )
             else:
                 # Full Velocity Verlet step first, then V-rescale the full-step
-                # velocity.  Thermostat work is intentionally not accumulated:
-                # the NVT Bussi conserved quantity is incomplete for NPT unless
-                # the barostat work is tracked too.
+                # velocity.  The thermostat work joins the external-work ledger
+                # so the conserved quantity is complete once the barostat work
+                # (below) is added too.
                 v, forces = integrator.step(v, forces)
-                v, _delta_w = self.thermostat.apply(v)
+                v, delta_w = self.thermostat.apply(v)
+                if track_conserved:
+                    w_bath += delta_w
                 pressure_velocities = None
 
             # Barostat decision uses the pre-rescale pressure/volume pair; keep
@@ -639,10 +657,19 @@ class NPT(JobABC):
             # record below is the post-rescale state, so logged pressure/volume
             # stay consistent with the post-rescale T/KE/PE.
             volume_pre = self.atoms.get_volume()
+            # Conserved-energy ledger: capture pre-barostat KE and PE.  The
+            # need_stress evaluation here only warms the cache the barostat reads
+            # for its pressure (no extra backend pass — the per-step count test
+            # pins this), and supplies U_pre for the barostat-work term.
+            if track_conserved:
+                ke_pre_baro = calculate_kinetic_energy(self.atoms, v)
+                u_pre_baro = evaluate_md_properties(self.atoms, need_stress=True).energy_ha
             pressure_pre, v = self.barostat.apply(
                 v,
                 pressure_velocities=pressure_velocities,
             )
+            if track_conserved:
+                ke_post_baro = calculate_kinetic_energy(self.atoms, v)
             v, _projection = apply_runtime_motion_projection(
                 self.atoms,
                 v,
@@ -695,6 +722,25 @@ class NPT(JobABC):
             if write_sync_thermo:
                 total_energy_sync = kinetic_energy_sync + potential_energy
 
+            # Conserved quantity H̃ = K + U + P_0·V − Σ ΔW_ext.  The barostat
+            # injects ΔW_baro = Δ(K + U + P_0·V) across its volume/momentum
+            # rescale; the runtime projection injects ΔW_proj = ΔK.  Both join
+            # the same ledger as the thermostat work, so H̃ is constant under
+            # exact dynamics and its drift is the integration diagnostic.
+            conserved = None
+            if track_conserved:
+                baro_work = (
+                    (ke_post_baro - ke_pre_baro)
+                    + (potential_energy - u_pre_baro)
+                    + p0_ha_per_a3 * (volume_post - volume_pre)
+                )
+                proj_work = kinetic_energy - ke_post_baro
+                w_bath += baro_work + proj_work
+                conserved = (
+                    kinetic_energy + potential_energy
+                    + p0_ha_per_a3 * volume_post - w_bath
+                )
+
             self.logger.log_step(
                 step=abs_step,
                 time=current_time,
@@ -710,6 +756,7 @@ class NPT(JobABC):
                 volume_pre=volume_pre,
                 rng_state=get_rng_state_hex(self._rng),
                 rst_every=self.params.rst_every,
+                conserved_energy=conserved,
                 velocity_representation=velocity_representation,
                 temperature_sync=temperature_sync,
                 kinetic_energy_sync=kinetic_energy_sync,

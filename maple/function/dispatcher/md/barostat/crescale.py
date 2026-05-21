@@ -4,7 +4,7 @@ C-rescale (stochastic cell rescaling) barostat for NPT molecular dynamics.
 C-rescale is the pressure analogue of V-rescale: it corrects the Berendsen
 barostat by adding a stochastic term to the cell update.
 
-Algorithm — reversible λ = √V integrator (Bernetti & Bussi, 2020, §II.B):
+Algorithm — reversible λ = √V integrator (Bernetti & Bussi, 2020, Eq. 7):
     Stochastic cell rescaling can be propagated either as the volume logarithm
     ε = log(V/V0) (a simple Euler scheme, NOT time-reversible) or as the
     square-root-volume variable λ = √V.  We propagate λ, the reversible form the
@@ -12,6 +12,12 @@ Algorithm — reversible λ = √V integrator (Bernetti & Bussi, 2020, §II.B):
     not depend on V), which removes the multiplicative-noise discretization bias
     of the ε form and lets the run define a conserved "effective energy" whose
     drift diagnoses integration quality (the NPT analogue of NVE energy drift).
+
+    Scheme boundary (honest): this is the paper's "reversible Euler integrator"
+    (their Table I) — propagate √V by a finite-difference of Eq. 7, then a full
+    Velocity Verlet step, recomputing forces after the volume change.  It is NOT
+    the paper's symmetric "Trotter integrator", which interleaves the volume move
+    with velocity Verlet; that is a heavier scheme and is not used here.
 
         dλ = -(β λ)/(2 τ_P) · (P_0 - P_int - k_B T/(2V)) dt
            + sqrt(k_B T β / (2 τ_P)) · dW
@@ -70,7 +76,7 @@ class CRescaleBarostat:
     Stochastic cell rescaling barostat (C-rescale), reversible λ = √V form.
 
     Isotropically rescales cell and atomic positions by advancing the
-    square-root-volume variable λ = √V (Bernetti & Bussi 2020, §II.B), the
+    square-root-volume variable λ = √V (Bernetti & Bussi 2020), the
     reversible integrator with constant noise amplitude.
     """
 
@@ -111,7 +117,7 @@ class CRescaleBarostat:
         self.compressibility = compressibility   # 1/bar
         self.rng = rng if rng is not None else np.random.default_rng()
 
-        # Reversible λ = √V integrator prefactors (Bernetti & Bussi 2020, §II.B):
+        # Reversible λ = √V integrator prefactors (Bernetti & Bussi 2020):
         #   dλ = _lam_det_prefactor · λ · (P_int + k_BT/(2V) − P_0)   [√Å³]
         #      + _lam_noise_prefactor · W                            [√Å³, V-independent]
         # k_B T in eV; β re-expressed in Å³/eV so the pressure terms cancel to bar.
@@ -187,7 +193,7 @@ class CRescaleBarostat:
         if volume <= 0.0 or not np.isfinite(volume):
             raise ValueError(f"C-rescale requires a finite positive cell volume, got {volume!r}.")
 
-        # Reversible λ = √V update (Bernetti & Bussi 2020, §II.B):
+        # Reversible λ = √V update (Bernetti & Bussi 2020, Eq. 7):
         #   dλ = (β·dt/2τ_P)·λ·(P_int + k_BT/(2V) − P_0) + sqrt(k_BT β dt/2τ_P)·W
         # The k_BT/(2V) term is the Itô correction from the V → √V change of
         # variable, formed in bar to combine with the pressures.  Sign: P_int >

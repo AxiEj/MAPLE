@@ -74,8 +74,10 @@ term uses the synchronized standard velocity.
 ## Reversible c-rescale + effective-energy monitoring (WS7)
 
 The stochastic cell-rescaling (c-rescale) barostat now uses the **reversible
-λ = √V integrator** of Bernetti & Bussi (2020, §II.B) instead of the simpler
-Euler scheme on the log-volume ε. Propagating λ = √V makes the noise amplitude
+λ = √V integrator** of Bernetti & Bussi (2020) — their Eq. 7, the "reversible
+Euler integrator" of their Table I — instead of the simpler Euler scheme on the
+log-volume ε. (This is the reversible √V scheme applied as a sequential sub-step,
+not the heavier symmetric Trotter integrator.) Propagating λ = √V makes the noise amplitude
 `sqrt(k_B T β / 2τ_P)` *constant* (V-independent), removing the multiplicative-
 noise discretization bias of the ε form and adding the exact Itô correction
 `−k_B T/(2V)` to the drift (derived analytically from the ε-form SDE). Per-step

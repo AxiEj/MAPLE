@@ -2,8 +2,11 @@
 LFMiddle Langevin thermostat for NVT molecular dynamics.
 
 This module implements the thermostat-only Ornstein-Uhlenbeck (OU) velocity
-update used in the LFMiddle formulation discussed by Leimkuhler & Matthews,
-J. Chem. Phys. 138, 174102 (2013), and by Zhang et al., J. Phys. Chem. A 123,
+update used in the LFMiddle formulation. The update is the EXACT solution of the
+OU ("O") piece of the Langevin splitting given by Leimkuhler & Matthews,
+J. Chem. Phys. 138, 174102 (2013), Eq. (6): p(t) = e^{-γt} p(0) +
+(σ/√(2γ))√(1 − e^{-2γt}) M^{1/2} R with σ = √(2γ/β); in velocity form (p = m v)
+this is exactly c1, c2 below.  Also used by Zhang et al., J. Phys. Chem. A 123,
 6056-6079 (2019):
 
     v' = c1 * v + c2 * xi

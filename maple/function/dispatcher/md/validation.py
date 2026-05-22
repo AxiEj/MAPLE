@@ -560,6 +560,37 @@ def _energy_at_scaled_volume(base: Atoms, calc_factory, volume_factor: float) ->
     return evaluate_md_properties(scaled, need_stress=False).energy_ha
 
 
+def run_barostat_clamp_free(calc_factory, thresholds, workdir, *, steps=200, timestep=0.5) -> AcceptanceResult:
+    """A production c-rescale NPT run must not trigger the per-step stability clamp.
+
+    A fired clamp truncates the stochastic-cell-rescaling ensemble, so for the LJ
+    reference near equilibrium the clamp count must be zero.  The NPT driver makes a
+    clamp fatal in production; this class confirms it never silently fired and records
+    the largest log-volume excursion that had to be clipped (0 when none).
+    """
+    th = thresholds["barostat_clamp"]
+    atoms = _lj_crystal()
+    atoms.calc = calc_factory()
+    sim = NPT(output=str(workdir / "npt_clamp.out"), atoms=atoms, paras={
+        "steps": steps, "timestep": timestep, "temperature": 80.0, "pressure": 1.0,
+        "thermostat": "v-rescale", "barostat": "c-rescale", "tau_t": 50.0,
+        "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0, "log_every": steps,
+        "traj_every": steps, "rst_every": 0, "random_seed": 5,
+    })
+    sim.run()
+    clamp_count = int(getattr(sim.barostat, "clamp_count", 0))
+    max_excursion = float(getattr(sim.barostat, "max_abs_log_excursion", 0.0))
+    max_clamps = int(th["max_clamps"])
+    passed = clamp_count <= max_clamps
+    return AcceptanceResult(
+        "barostat_clamp_free", "pass" if passed else "fail", passed,
+        {"clamp_count": clamp_count, "max_abs_log_excursion": max_excursion,
+         "max_clamps": max_clamps},
+        f"c-rescale clamp count {clamp_count} <= {max_clamps} "
+        f"(max |Δlog V| clipped = {max_excursion:.3g})",
+    )
+
+
 ACCEPTANCE_CLASSES: List[Callable[..., AcceptanceResult]] = [
     run_nve_energy_drift,
     run_restart_determinism,
@@ -567,6 +598,7 @@ ACCEPTANCE_CLASSES: List[Callable[..., AcceptanceResult]] = [
     run_npt_pressure,
     run_npt_volume_fluctuation,
     run_npt_effective_energy_drift,
+    run_barostat_clamp_free,
     run_stress_finite_difference,
     run_pbc_geometry,
     run_constraints_rejected,

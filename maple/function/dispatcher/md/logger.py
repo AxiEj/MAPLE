@@ -1245,12 +1245,31 @@ class MDLogger:
         ], echo=True)
 
         # Close files
+        self._close_output_files()
+
+    def _close_output_files(self):
+        """Close any open thermo/trajectory file handles."""
         if self.thermo_file:
             self.thermo_file.close()
         if self.traj_file:
             self.traj_file.close()
         if self.unwrapped_traj_file:
             self.unwrapped_traj_file.close()
+
+    def abort_simulation(self, reason: str = ""):
+        """Close output files after a fatal mid-run error.
+
+        Unlike :meth:`end_simulation` this writes NO provenance manifest and NO
+        "completed" banner — an aborted run must not look successful.  The partial
+        thermo/trajectory outputs are left on disk for diagnosis.
+        """
+        self.log_main([
+            "\n" + "=" * 80 + "\n",
+            f"{'MD ABORTED (no manifest written)':^80}\n",
+            "=" * 80 + "\n",
+            *([f"  Reason: {reason}\n"] if reason else []),
+        ], echo=True)
+        self._close_output_files()
 
     def log_main(self, messages: list, echo: bool = False):
         """

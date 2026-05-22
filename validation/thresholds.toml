@@ -100,6 +100,12 @@ deltas = [1.0e-3, 3.0e-4]
 log10_magnitude_tol = 0.5
 require_sign_match = true
 
+[barostat_clamp]
+# A production c-rescale NPT run must not trigger the per-step stability clamp: a
+# fired clamp truncates the stochastic-cell-rescaling ensemble. The LJ reference near
+# equilibrium clamps zero times, so the bound is exact (not a tolerance).
+max_clamps = 0
+
 [pbc_geometry]
 # Wrapped <-> unwrapped image-flag reconstruction round-trip.
 roundtrip_atol_A = 1.0e-9

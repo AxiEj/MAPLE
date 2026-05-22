@@ -42,7 +42,7 @@ from ..evaluator import evaluate_md_properties
 from ..thermostat.langevin import LangevinThermostat
 from ..thermostat.vrescale import VRescaleThermostat
 from ..barostat.berendsen import BerendsenBarostat
-from ..barostat.crescale import CRescaleBarostat
+from ..barostat.crescale import CRescaleBarostat, MDBarostatClampError
 from ..utils import (
     EV_PER_ANG3_TO_BAR,
     HARTREE_TO_EV,
@@ -202,6 +202,7 @@ class NPTParams:
     # set, mirroring the allow_partial_pbc per-concern opt-in idiom.
     allow_equilibration_only_barostat: bool = False
     allow_unknown_cutoff: bool = False  # run PBC MD without a declared neighbor cutoff (manifest-recorded)
+    allow_barostat_clamp: bool = False  # continue an EXPERIMENTAL run when the c-rescale stability clamp fires (manifest-recorded)
     validation_artifact_id: str = ""  # release-harness acceptance artifact id (manifest traceability)
     random_seed: Optional[int] = None
 
@@ -565,6 +566,10 @@ class NPT(JobABC):
         # Target-pressure work term P_0·V wants P_0 in Ha/Å³ (bar → eV/Å³ → Ha/Å³).
         p0_ha_per_a3 = self.params.pressure / EV_PER_ANG3_TO_BAR / HARTREE_TO_EV
 
+        manifest_context = build_run_context(
+            params=self.params, dof_policy=self._dof_policy, ensemble="npt",
+            rng_state_hex=get_rng_state_hex(self._rng),
+        )
         self.logger.start_simulation(
             ensemble='npt',
             timestep=self.params.timestep,
@@ -578,10 +583,7 @@ class NPT(JobABC):
             dof_description=self._runtime_dof_description,
             write_sync_thermo=write_sync_thermo,
             write_conserved_energy=track_conserved,
-            manifest_context=build_run_context(
-                params=self.params, dof_policy=self._dof_policy, ensemble="npt",
-                rng_state_hex=get_rng_state_hex(self._rng),
-            ),
+            manifest_context=manifest_context,
         )
         self.logger.log_main([
             f"\nStarting NPT simulation "
@@ -644,6 +646,20 @@ class NPT(JobABC):
                 v,
                 pressure_velocities=pressure_velocities,
             )
+            # Fail fast: a fired stability clamp means this step's volume move was
+            # truncated, so the trajectory from here on is no longer the target NPT
+            # ensemble.  Abort immediately (closing files, writing no manifest) rather
+            # than finishing thousands more steps and reporting success.
+            if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
+                msg = (
+                    f"C-rescale stability clamp fired at step {step_offset + step}: the "
+                    "per-step volume ratio left the [0.125, 8.0] bound, so the stochastic-"
+                    "cell-rescaling NPT ensemble is truncated. Aborting now (set "
+                    "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
+                    "the clamp count is recorded in the run manifest)."
+                )
+                self.logger.abort_simulation(reason=msg)
+                raise MDBarostatClampError(msg)
             if track_conserved:
                 ke_post_baro = calculate_kinetic_energy(self.atoms, v)
             v, _projection = apply_runtime_motion_projection(
@@ -739,6 +755,15 @@ class NPT(JobABC):
                 total_energy_sync=total_energy_sync,
             )
 
+        # Record the barostat stability-clamp summary into the manifest run block
+        # before it is written. This is the same dict the logger holds; build_md_manifest
+        # snapshots it at end_simulation. count=0 (the production expectation) is recorded
+        # too, so the manifest always states the clamp status of a c-rescale run.
+        manifest_context["barostat_clamps"] = {
+            "count": int(getattr(self.barostat, "clamp_count", 0)),
+            "max_abs_log_excursion": float(getattr(self.barostat, "max_abs_log_excursion", 0.0)),
+            "allowed": bool(self.params.allow_barostat_clamp),
+        }
         self.logger.end_simulation(
             atoms=self.atoms,
             final_velocities=v,

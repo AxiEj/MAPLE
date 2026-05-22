@@ -71,6 +71,16 @@ from ..utils import (
 )
 
 
+class MDBarostatClampError(RuntimeError):
+    """Raised when the c-rescale per-step stability clamp fires in a production run.
+
+    A fired clamp means the per-step volume ratio left the Berendsen-style bound, so the
+    stochastic-cell-rescaling ensemble is truncated and no longer samples NPT.  The NPT
+    driver raises this immediately (rather than after the run) unless the run opted into
+    ``allow_barostat_clamp`` for an EXPERIMENTAL equilibration.
+    """
+
+
 class CRescaleBarostat:
     """
     Stochastic cell rescaling barostat (C-rescale), reversible λ = √V form.
@@ -116,6 +126,14 @@ class CRescaleBarostat:
         self.timestep = timestep                 # fs
         self.compressibility = compressibility   # 1/bar
         self.rng = rng if rng is not None else np.random.default_rng()
+
+        # Per-step stability-clamp accounting (WS-C).  The μ clamp is a Berendsen-style
+        # guard; if it ever fires the stochastic-cell-rescaling ensemble is truncated, so
+        # the NPT driver treats a clamp as fatal in production and records the count and
+        # the largest log-volume excursion it had to clip in the run manifest.
+        self.last_clamped = False
+        self.clamp_count = 0
+        self.max_abs_log_excursion = 0.0
 
         # Reversible λ = √V integrator prefactors (Bernetti & Bussi 2020):
         #   dλ = _lam_det_prefactor · λ · (P_int + k_BT/(2V) − P_0)   [√Å³]
@@ -213,7 +231,17 @@ class CRescaleBarostat:
         # squared ratio keeps μ real and positive even for a pathological step,
         # and λ is re-derived from the actual volume next step so the clamp never
         # makes the strain variable drift from the true log-volume.
-        vol_ratio = float(np.clip((lam_new / lam) ** 2, 0.125, 8.0))
+        raw_ratio = float((lam_new / lam) ** 2)
+        vol_ratio = min(max(raw_ratio, 0.125), 8.0)
+        # Record whether the stability bound actually clipped this step.  raw_ratio is a
+        # square, hence strictly positive, so the log excursion is always well defined.
+        self.last_clamped = raw_ratio < 0.125 or raw_ratio > 8.0
+        if self.last_clamped:
+            self.clamp_count += 1
+            self.max_abs_log_excursion = max(
+                self.max_abs_log_excursion,
+                abs(float(np.log(raw_ratio)) - float(np.log(vol_ratio))),
+            )
         mu = vol_ratio ** (1.0 / 3.0)
 
         # Rescale cell and positions isotropically

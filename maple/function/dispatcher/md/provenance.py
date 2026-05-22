@@ -216,9 +216,22 @@ def build_run_context(
 ) -> Dict[str, Any]:
     """Assemble the run-specific manifest context an ensemble passes to the logger."""
     pbc = None  # filled in by the logger from atoms; kept here for completeness
+    is_npt = str(ensemble).lower() == "npt"
     thermo_basis = (
         {"pressure": "post-rescale", "diagnostic_columns": "pre-rescale"}
-        if str(ensemble).lower() == "npt"
+        if is_npt
+        else None
+    )
+    # NPT barostats here scale the cell by a single scalar: machine-visible isotropic-only
+    # flag so a consumer never mistakes this for anisotropic (Parrinello-Rahman / MTTK)
+    # cell relaxation. Clamp counts are appended by the NPT driver after the run.
+    barostat = (
+        {
+            "type": getattr(params, "barostat", None),
+            "mode": "isotropic",
+            "note": "isotropic hydrostatic scaling only; no shear / cell-shape / surface tension",
+        }
+        if is_npt
         else None
     )
     return {
@@ -252,6 +265,7 @@ def build_run_context(
             "stress": ASE_STRESS_UNIT,
         },
         "thermo_basis": thermo_basis,
+        "barostat": barostat,
     }
 
 

@@ -407,7 +407,7 @@ class NPT(JobABC):
                 if 'velocities' in self.atoms.arrays and self.params.init_velocities:
                     velocities = self.atoms.arrays['velocities']
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
-                    t_check = calculate_temperature(self.atoms, velocities)
+                    t_check = calculate_temperature(self.atoms, velocities, n_dof=self._dof_policy.init_n_dof)
                     self.log_info([
                         f"\nVelocities loaded from input file "
                         f"(T = {t_check:.2f} K); skipping random initialisation.\n"

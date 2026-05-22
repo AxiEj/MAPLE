@@ -46,6 +46,9 @@ from .utils import (
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 _DEFAULT_THRESHOLDS = _REPO_ROOT / "validation" / "thresholds.toml"
+# Loose short-run profile for the default unit layer; the production ship gate uses
+# _DEFAULT_THRESHOLDS (see validation/thresholds.smoke.toml, WS-D).
+_SMOKE_THRESHOLDS = _REPO_ROOT / "validation" / "thresholds.smoke.toml"
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -117,6 +120,11 @@ def load_thresholds(path: Optional[Path] = None) -> Dict[str, Any]:
     path = Path(path) if path is not None else _DEFAULT_THRESHOLDS
     with open(path, "rb") as handle:
         return tomllib.load(handle)
+
+
+def load_smoke_thresholds() -> Dict[str, Any]:
+    """Loose short-run thresholds for the default unit layer (NOT the ship gate)."""
+    return load_thresholds(_SMOKE_THRESHOLDS)
 
 
 def _read_thermo(path: Path) -> Dict[str, np.ndarray]:
@@ -662,8 +670,13 @@ def write_report(
     outdir: Path,
     *,
     calculator_label: str = "lj-reference",
+    extra: Optional[Dict[str, Any]] = None,
 ) -> Path:
-    """Write a dated markdown + JSON acceptance report; return the markdown path."""
+    """Write a dated markdown + JSON acceptance report; return the markdown path.
+
+    ``extra`` is merged into the JSON payload (the release runner passes the
+    calculator's declared unit contract and cutoff policy so the report states them).
+    """
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     env = collect_environment_provenance()
@@ -673,6 +686,18 @@ def write_report(
     artifact_id = f"md_acceptance_{stamp}_thr{version}_{commit}"
 
     all_passed = all(r.passed for r in results)
+    n_skip = sum(1 for r in results if r.status == "skip")
+    clamp_count = next(
+        (r.metrics.get("clamp_count") for r in results if r.name == "barostat_clamp_free"),
+        None,
+    )
+    summary = {
+        "all_passed": all_passed,
+        "n_pass": sum(1 for r in results if r.passed),
+        "n_fail": sum(1 for r in results if not r.passed and r.status != "skip"),
+        "n_skip": n_skip,
+        "barostat_clamp_count": clamp_count,
+    }
     payload = {
         "artifact_id": artifact_id,
         "generated_utc": stamp,
@@ -680,8 +705,11 @@ def write_report(
         "calculator": calculator_label,
         "environment": env,
         "overall": "PASS" if all_passed else "FAIL",
+        "summary": summary,
         "results": [r.__dict__ for r in results],
     }
+    if extra:
+        payload.update(extra)
     (outdir / f"{artifact_id}.json").write_text(json.dumps(payload, indent=2, default=str) + "\n")
 
     lines = [

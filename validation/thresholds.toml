@@ -11,6 +11,12 @@
 # the MEAN (block-averaged, i.i.d.-floored) instead of the instantaneous spread,
 # and add the [npt_effective_energy_drift] class for the reversible c-rescale
 # conserved-quantity (effective-energy) drift.
+#
+# This is the PRODUCTION (ship-gate) profile, used by `pytest tests/production
+# -m production` and scripts/production_validation.py. WS-D split the loose,
+# short-run unit-layer thresholds into validation/thresholds.smoke.toml so this
+# profile can be tightened against a longer-run baseline without false-failing the
+# default short unit runs. Production values are unchanged by that split.
 thresholds_version = "1.2.0"
 
 [nve_energy_drift]

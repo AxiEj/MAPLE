@@ -11,13 +11,13 @@ import numpy as np
 
 from maple.function.dispatcher.md.validation import (
     lj_reference_factory,
-    load_thresholds,
+    load_smoke_thresholds,
     run_npt_volume_fluctuation,
 )
 
 
 def test_npt_volume_fluctuation_runs_and_reports_metrics(tmp_path):
-    thresholds = load_thresholds()
+    thresholds = load_smoke_thresholds()
     result = run_npt_volume_fluctuation(
         lj_reference_factory(), thresholds, tmp_path, steps=200, timestep=1.0, temperature=100.0
     )
@@ -40,7 +40,7 @@ def test_npt_volume_fluctuation_runs_and_reports_metrics(tmp_path):
 
 
 def test_npt_volume_fluctuation_thresholds_present():
-    th = load_thresholds()["npt_volume_fluctuation"]
+    th = load_smoke_thresholds()["npt_volume_fluctuation"]
     assert th["log10_kappa_tol"] > 0.0
     assert len(th["pressures_bar"]) == 2 and th["pressures_bar"][1] > th["pressures_bar"][0]
     assert 0.0 < th["equilibration_fraction"] < 1.0

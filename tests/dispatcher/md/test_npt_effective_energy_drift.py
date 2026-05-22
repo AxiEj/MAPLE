@@ -12,13 +12,13 @@ import numpy as np
 
 from maple.function.dispatcher.md.validation import (
     lj_reference_factory,
-    load_thresholds,
+    load_smoke_thresholds,
     run_npt_effective_energy_drift,
 )
 
 
 def test_npt_effective_energy_drift_runs_and_reports_metrics(tmp_path):
-    thresholds = load_thresholds()
+    thresholds = load_smoke_thresholds()
     result = run_npt_effective_energy_drift(
         lj_reference_factory(), thresholds, tmp_path, steps=800, timestep=1.0, temperature=100.0
     )
@@ -40,5 +40,5 @@ def test_npt_effective_energy_drift_runs_and_reports_metrics(tmp_path):
 
 
 def test_npt_effective_energy_drift_threshold_present():
-    th = load_thresholds()["npt_effective_energy_drift"]
+    th = load_smoke_thresholds()["npt_effective_energy_drift"]
     assert th["max_abs_drift_ha_per_atom_per_ps"] > 0.0

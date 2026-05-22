@@ -1,0 +1,53 @@
+# Smoke (default unit-layer) MD acceptance thresholds.
+#
+# Loose, short-run thresholds for the DEFAULT test layer (tests/dispatcher/md), which
+# exercises the acceptance classes at shrunk step counts. This is NOT a ship gate: the
+# release gate uses the production profile validation/thresholds.toml via
+# `pytest tests/production -m production` / scripts/production_validation.py.
+#
+# Split from the production profile (WS-D) so the production thresholds can be tightened
+# against a longer-run baseline WITHOUT false-failing the short unit runs. Values track
+# the production profile's loose v1 defaults; see thresholds.toml for the per-class
+# calibration rationale.
+thresholds_version = "smoke-1.0.0"
+
+[nve_energy_drift]
+max_rel_drift = 5.0e-3
+max_abs_drift_ha_per_atom_per_ps = 5.0e-3
+
+[restart_determinism]
+position_atol_A = 1.0e-6
+velocity_rtol = 1.0e-5
+
+[nvt_mean_temperature]
+k_sigma = 6.0
+n_blocks = 10
+equilibration_fraction = 0.4
+
+[npt_pressure]
+require_post_rescale_summary = true
+
+[npt_volume_fluctuation]
+log10_kappa_tol = 0.5
+pressures_bar = [1.0, 500.0]
+equilibration_fraction = 0.3
+min_volume_change = 0.01
+max_volume_change = 0.25
+n_blocks = 5
+
+[npt_effective_energy_drift]
+max_abs_drift_ha_per_atom_per_ps = 1.0e-6
+
+[stress_finite_difference]
+deltas = [1.0e-3, 3.0e-4]
+log10_magnitude_tol = 0.5
+require_sign_match = true
+
+[barostat_clamp]
+max_clamps = 0
+
+[pbc_geometry]
+roundtrip_atol_A = 1.0e-9
+
+[constraints]
+require_rejection = true

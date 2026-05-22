@@ -268,7 +268,7 @@ class NVE(JobABC):
                     # this allows "run NVT, save inp with velocities, run NVE" without
                     # any extra flags.
                     velocities = self.atoms.arrays['velocities']
-                    t_check = calculate_temperature(self.atoms, velocities)
+                    t_check = calculate_temperature(self.atoms, velocities, n_dof=self._dof_policy.init_n_dof)
                     self.log_info([
                         f"\nVelocities loaded from input file "
                         f"(T = {t_check:.2f} K); skipping random initialisation.\n"

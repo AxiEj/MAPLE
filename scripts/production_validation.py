@@ -14,8 +14,11 @@ Examples
     python scripts/production_validation.py --model mace-mp-pbc-small --device cuda
 
 The report (markdown + JSON) and per-run provenance manifests are written under
-validation/reports/ (override with --outdir). Exit code is 0 only if every
-acceptance class passes.
+validation/reports/ (override with --outdir). This is the single release gate: the
+exit code is 0 only if every acceptance class passes AND none is skipped
+(inconclusive). A fired barostat clamp or an unknown neighbor cutoff already fails the
+matrix (via the barostat_clamp_free class and the MD cutoff-admission gate), and the
+per-run provenance manifests record the unit contract and cutoff policy.
 """
 
 import argparse
@@ -78,14 +81,45 @@ def main(argv=None) -> int:
         label = "lj-reference"
 
     results = run_acceptance_matrix(factory, thresholds, quick=args.quick)
-    report = write_report(results, thresholds, outdir, calculator_label=label)
 
-    all_passed = all(r.passed for r in results)
-    print(f"\nMD acceptance matrix ({label}): {'PASS' if all_passed else 'FAIL'}")
+    sample_calc = factory()
+    calc_contract = {
+        "energy_unit": getattr(sample_calc, "maple_energy_unit", None),
+        "force_unit": getattr(sample_calc, "maple_force_unit", None),
+        "stress_unit": getattr(sample_calc, "maple_stress_unit", None),
+        "neighbor_cutoff_A": (
+            getattr(sample_calc, "neighbor_cutoff_A", None)
+            or getattr(sample_calc, "maple_neighbor_cutoff", None)
+        ),
+    }
+    extra = {
+        "calculator_contract": calc_contract,
+        # The release gate runs strict: an unknown cutoff is rejected at MD admission.
+        "cutoff_policy": {"allow_unknown_cutoff": False},
+    }
+    report = write_report(results, thresholds, outdir, calculator_label=label, extra=extra)
+
+    n_pass = sum(1 for r in results if r.passed)
+    n_skip = sum(1 for r in results if r.status == "skip")
+    n_fail = sum(1 for r in results if not r.passed and r.status != "skip")
+    clamp_count = next(
+        (r.metrics.get("clamp_count") for r in results if r.name == "barostat_clamp_free"),
+        None,
+    )
+    # Ship gate: every class passes AND none is inconclusive (a skip is not a pass).
+    ok = n_fail == 0 and n_skip == 0 and all(r.passed for r in results)
+
+    print(f"\nMD acceptance matrix ({label}): {'PASS' if ok else 'FAIL'}")
     for r in results:
-        print(f"  [{'PASS' if r.passed else 'FAIL'}] {r.name}: {r.detail}")
-    print(f"\nReport: {report}")
-    return 0 if all_passed else 1
+        print(f"  [{r.status.upper():4}] {r.name}: {r.detail}")
+    print(
+        f"\nsummary: {n_pass} pass, {n_fail} fail, {n_skip} skip; "
+        f"barostat clamps={clamp_count}; "
+        f"units={calc_contract['energy_unit']}/{calc_contract['force_unit']}/"
+        f"{calc_contract['stress_unit']}"
+    )
+    print(f"Report: {report}")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

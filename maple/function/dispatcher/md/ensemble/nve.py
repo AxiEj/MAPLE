@@ -142,6 +142,11 @@ class NVEParams:
     # ------------------------------------------------------------------
     allow_partial_pbc: bool = False
 
+    # Per-gate escape hatch: run PBC MD with a calculator that does not declare its
+    # neighbor cutoff (minimum-image convention then unverifiable).  Recorded in the
+    # manifest when used.  Default off = strict admission.
+    allow_unknown_cutoff: bool = False
+
     # Acceptance artifact id: set by the release harness so this run's manifest
     # can be traced back to the acceptance report that vetted the configuration.
     validation_artifact_id: str = ""
@@ -173,13 +178,14 @@ class NVE(JobABC):
 
         if atoms.calc is None:
             raise ValueError("Atoms object must have a calculator attached")
-        validate_md_capabilities(atoms, "nve")
 
         self.atoms = atoms
 
-        # Initialize params from dict
+        # Resolve params before the capability gate so per-gate overrides
+        # (e.g. allow_unknown_cutoff) reach validate_md_capabilities.
         self.params = self._init_params(NVEParams, paras, ("md", "MD", "nve", "NVE"))
         validate_md_parameter_ranges(self.params, "nve")
+        validate_md_capabilities(self.atoms, "nve", self.params)
         for advisory in validate_md_semantics(self.atoms, self.params, "nve"):
             self.log_info([advisory])
             print(advisory, end="", flush=True)

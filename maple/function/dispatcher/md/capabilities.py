@@ -13,7 +13,11 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 
-from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT
+from maple.function.calculator._ase_unit_contract import (
+    ASE_STRESS_UNIT,
+    MAPLE_ENERGY_UNIT,
+    MAPLE_FORCE_UNIT,
+)
 
 
 def _calc_model_name(calc) -> Optional[str]:
@@ -49,6 +53,40 @@ class MDStressUnavailableError(ValueError):
     """Raised when NPT pressure needs stress but the calculator cannot provide it."""
 
 
+class MDUnitContractError(ValueError):
+    """Raised when a calculator entering MD does not declare the Ha/Ha·Å contract."""
+
+
+def validate_energy_force_units(atoms: Atoms) -> None:
+    """Require the MAPLE MD energy/force unit contract before any ensemble runs.
+
+    The MD layer reads ``get_potential_energy()`` as Hartree and ``get_forces()`` as
+    Hartree/Å (``units.forces_au`` multiplies by ``HA_PER_ANG_TO_AU`` unconditionally).
+    A raw ASE calculator returns eV / eV·Å and would be silently mis-scaled, so every
+    calculator must *declare* the contract (MAPLE-native calculators inherit it from
+    ``CalcABC``; a raw ASE calculator must be wrapped by ``wrap_ase_calculator`` which
+    converts and then declares it).  Mirrors :func:`validate_stress_tensor`.
+    """
+    calc = atoms.calc
+    energy_unit = getattr(calc, "maple_energy_unit", None)
+    force_unit = getattr(calc, "maple_force_unit", None)
+    if energy_unit is None or force_unit is None:
+        raise MDUnitContractError(
+            f"Calculator '{_calc_label(calc)}' does not declare the MAPLE MD unit "
+            "contract (maple_energy_unit / maple_force_unit). MD consumes energy as "
+            f"{MAPLE_ENERGY_UNIT!r} and forces as {MAPLE_FORCE_UNIT!r}; a raw ASE "
+            "calculator (eV / eV·Å) would be silently mis-scaled. Wrap it with "
+            "maple.function.calculator.wrap_ase_calculator(...) to convert and declare "
+            "its units explicitly."
+        )
+    if energy_unit != MAPLE_ENERGY_UNIT or force_unit != MAPLE_FORCE_UNIT:
+        raise MDUnitContractError(
+            f"Calculator '{_calc_label(calc)}' unit contract mismatch: MD requires "
+            f"energy={MAPLE_ENERGY_UNIT!r}, force={MAPLE_FORCE_UNIT!r}; got "
+            f"energy={energy_unit!r}, force={force_unit!r}."
+        )
+
+
 def validate_stress_tensor(atoms: Atoms) -> np.ndarray:
     """Return a finite Voigt stress tensor or raise a hard NPT startup error."""
     calc = atoms.calc
@@ -82,8 +120,14 @@ def validate_stress_tensor(atoms: Atoms) -> np.ndarray:
     return stress
 
 
-def validate_md_capabilities(atoms: Atoms, ensemble: str) -> None:
-    """Validate calculator capabilities needed by the requested MD ensemble."""
+def validate_md_capabilities(atoms: Atoms, ensemble: str, params=None) -> None:
+    """Validate calculator capabilities needed by the requested MD ensemble.
+
+    ``params`` carries the per-gate overrides (e.g. ``allow_unknown_cutoff``) and is
+    optional: capability-only callers/tests may omit it and get the strict default.
+    Must be called *after* the ensemble resolves ``params`` so the overrides reach
+    the gate.
+    """
     if atoms is None or atoms.calc is None:
         raise ValueError("Atoms object must have a calculator attached")
 
@@ -92,13 +136,30 @@ def validate_md_capabilities(atoms: Atoms, ensemble: str) -> None:
     from maple.function.calculator.set_calculator import (
         validate_pbc_capabilities,
         validate_pbc_cell_geometry,
+        validate_pbc_neighbor_cutoff,
     )
+
+    # Energy/force unit contract for every ensemble (PBC or not): the MD layer
+    # consumes energy/forces as Ha / Ha·Å⁻¹ and would silently mis-scale a raw
+    # eV/eV·Å calculator that does not declare the contract.
+    validate_energy_force_units(atoms)
 
     validate_pbc_capabilities(atoms, ensemble_name)
     # Shared periodic-cell geometry gate for every ensemble (NVE/NVT/NPT), so
     # the wrap/unwrap reconstruction never runs on a rank-deficient or
     # degenerate cell.  NPT's full-3-D-PBC requirement stays in NPT.__init__.
     validate_pbc_cell_geometry(atoms)
+
+    # Minimum-image neighbor-cutoff gate on the MD admission path itself (not only
+    # when MAPLE builds the calculator via SetCalculator), so a user-supplied
+    # calculator is gated too.  Unknown cutoff is rejected for PBC MD unless the
+    # caller opts in via params.allow_unknown_cutoff.
+    validate_pbc_neighbor_cutoff(
+        atoms,
+        atoms.calc,
+        allow_unknown_cutoff=bool(getattr(params, "allow_unknown_cutoff", False)),
+        require_known_cutoff=True,
+    )
 
     if ensemble_name != "npt" or not any(atoms.pbc):
         return

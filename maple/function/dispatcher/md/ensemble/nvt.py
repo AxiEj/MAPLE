@@ -205,6 +205,7 @@ class NVTParams:
     remove_com_every: int   = 100    # runtime-only COM removal
     remove_angular_every: int = 0    # runtime-only COM + rotation; parallel to remove_com_every
     allow_partial_pbc: bool = False  # WS0-C: EXPERIMENTAL slab/partial-PBC opt-in; not production-validated
+    allow_unknown_cutoff: bool = False  # run PBC MD without a declared neighbor cutoff (manifest-recorded)
     validation_artifact_id: str = ""  # release-harness acceptance artifact id (manifest traceability)
     random_seed: Optional[int] = None
 
@@ -223,7 +224,6 @@ class NVT(JobABC):
 
         if atoms.calc is None:
             raise ValueError("Atoms object must have a calculator attached")
-        validate_md_capabilities(atoms, "nvt")
 
         self.atoms = atoms
         self.params = self._init_params(NVTParams, paras, ("md", "MD", "nvt", "NVT"))
@@ -242,6 +242,7 @@ class NVT(JobABC):
                 f"Choose from: {self._THERMOSTAT_CHOICES}"
             )
         validate_md_parameter_ranges(self.params, "nvt")
+        validate_md_capabilities(self.atoms, "nvt", self.params)
         for advisory in validate_md_semantics(self.atoms, self.params, "nvt"):
             self.log_info([advisory])
             print(advisory, end="", flush=True)

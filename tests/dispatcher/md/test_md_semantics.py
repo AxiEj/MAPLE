@@ -15,6 +15,8 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import FixAtoms, FixInternals
 
+from maple.function.calculator._ase_unit_contract import MAPLE_ENERGY_UNIT, MAPLE_FORCE_UNIT
+
 from maple.function.dispatcher.md.ensemble.nve import NVE
 from maple.function.dispatcher.md.ensemble.nvt import NVT
 from maple.function.dispatcher.md.semantics import (
@@ -43,6 +45,9 @@ class _FakeCalc(Calculator):
         self.maple_model_name = "fake-pbc" if pbc_capable else "fake-cluster"
         self.maple_pbc_md_supported = pbc_capable
         self.maple_stress_supported = False
+        self.maple_energy_unit = MAPLE_ENERGY_UNIT
+        self.maple_force_unit = MAPLE_FORCE_UNIT
+        self.maple_neighbor_cutoff = 2.0  # < min-image radius of the test cells
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)

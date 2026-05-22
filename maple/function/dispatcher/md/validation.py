@@ -25,7 +25,12 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import FixAtoms
 
-from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
+from maple.function.calculator._ase_unit_contract import (
+    ASE_STRESS_UNIT,
+    EV2HARTREE,
+    MAPLE_ENERGY_UNIT,
+    MAPLE_FORCE_UNIT,
+)
 from .ensemble.nve import NVE
 from .ensemble.nvt import NVT
 from .ensemble.npt import NPT
@@ -66,6 +71,8 @@ class MapleLJReferenceCalculator(Calculator):
         self.maple_model_name = "lj-reference"
         self.maple_pbc_md_supported = True
         self.maple_stress_supported = True
+        self.maple_energy_unit = MAPLE_ENERGY_UNIT
+        self.maple_force_unit = MAPLE_FORCE_UNIT
         self.maple_stress_unit = ASE_STRESS_UNIT
         self.maple_model_options = {"epsilon_eV": epsilon, "sigma_A": sigma, "rc_A": rc}
         self.maple_neighbor_cutoff = rc
@@ -82,8 +89,11 @@ def lj_reference_factory() -> Callable[[], Calculator]:
     return lambda: MapleLJReferenceCalculator()
 
 
-def _lj_crystal(repeat: int = 2) -> Atoms:
-    """A near-equilibrium FCC argon crystal sized so rc < the minimum-image radius."""
+def _lj_crystal(repeat: int = 3) -> Atoms:
+    """Near-equilibrium FCC argon crystal sized so the LJ rc (6.5 Å) stays below the
+    minimum-image radius.  repeat=3 -> 15.78 Å cell (radius 7.89 Å > 6.5); repeat=2
+    (10.52 Å, radius 5.26 Å) would violate the minimum-image convention and be
+    rejected by the MD neighbor-cutoff admission gate."""
     from ase.build import bulk
 
     atoms = bulk("Ar", "fcc", a=5.26, cubic=True) * (repeat, repeat, repeat)

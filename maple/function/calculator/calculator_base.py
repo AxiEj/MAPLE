@@ -3,7 +3,21 @@ import numpy as np
 
 import ase.calculators.calculator
 
+from maple.function.calculator._ase_unit_contract import (
+    MAPLE_ENERGY_UNIT,
+    MAPLE_FORCE_UNIT,
+)
+
+
 class CalcABC(ase.calculators.calculator.Calculator):
+    # MAPLE MD unit contract (single source for every native calculator): energy in
+    # Hartree, forces in Hartree/Å.  Model output is converted via EV2HARTREE, or is
+    # Hartree-native (ANI).  Declared here so the MD admission gate
+    # (validate_energy_force_units) can reject any calculator that does not carry the
+    # contract instead of silently mis-scaling raw eV/eV·Å output.
+    maple_energy_unit = MAPLE_ENERGY_UNIT
+    maple_force_unit = MAPLE_FORCE_UNIT
+
     def __init__(self):
         super().__init__()
 

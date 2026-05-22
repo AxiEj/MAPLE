@@ -28,6 +28,12 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import numpy as np
+
+from maple.function.calculator._ase_unit_contract import (
+    ASE_STRESS_UNIT,
+    MAPLE_ENERGY_UNIT,
+    MAPLE_FORCE_UNIT,
+)
 from ase import Atoms
 
 from .rst_io import RST_HEADER
@@ -119,6 +125,11 @@ def collect_calculator_provenance(
         "capabilities": {
             "pbc_md_supported": bool(getattr(calc, "maple_pbc_md_supported", False)),
             "stress_supported": bool(getattr(calc, "maple_stress_supported", False)),
+            # Calculator's self-declared MD unit contract (the values the admission
+            # gate checked against); the units the MD layer enforced are recorded in
+            # the run context under "unit_contract".
+            "energy_unit": getattr(calc, "maple_energy_unit", None),
+            "force_unit": getattr(calc, "maple_force_unit", None),
             "stress_unit": getattr(calc, "maple_stress_unit", None),
             "neighbor_cutoff_A": _safe(lambda: _calc_cutoff(calc)),
             "long_range_method": long_range_method,
@@ -228,6 +239,17 @@ def build_run_context(
         "constraints_status": "none (rejected before MD; not supported)",
         "partial_pbc": {
             "allowed": bool(getattr(params, "allow_partial_pbc", False)),
+        },
+        "cutoff_policy": {
+            # Whether this run opted out of the minimum-image neighbor-cutoff gate.
+            "allow_unknown_cutoff": bool(getattr(params, "allow_unknown_cutoff", False)),
+        },
+        "unit_contract": {
+            # Units the MD layer enforced at admission; the calculator's own declared
+            # units are under calculator.capabilities.{energy,force,stress}_unit.
+            "energy": MAPLE_ENERGY_UNIT,
+            "force": MAPLE_FORCE_UNIT,
+            "stress": ASE_STRESS_UNIT,
         },
         "thermo_basis": thermo_basis,
     }

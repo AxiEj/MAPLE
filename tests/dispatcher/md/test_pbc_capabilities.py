@@ -6,7 +6,11 @@ from ase.calculators.calculator import Calculator, all_changes
 
 import maple.function.dispatcher.md.ensemble.npt as npt_module
 import maple.function.dispatcher.md.evaluator as evaluator_module
-from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT
+from maple.function.calculator._ase_unit_contract import (
+    ASE_STRESS_UNIT,
+    MAPLE_ENERGY_UNIT,
+    MAPLE_FORCE_UNIT,
+)
 from maple.function.dispatcher.md.barostat.berendsen import BerendsenBarostat
 from maple.function.dispatcher.md.barostat.crescale import CRescaleBarostat
 from maple.function.dispatcher.md.ensemble.npt import NPT
@@ -41,6 +45,11 @@ class EnergyForcesCalculator(Calculator):
         self.maple_model_name = "fake-pbc" if pbc_capable else "fake-cluster"
         self.maple_pbc_md_supported = pbc_capable
         self.maple_stress_supported = stress_capable
+        self.maple_energy_unit = MAPLE_ENERGY_UNIT
+        self.maple_force_unit = MAPLE_FORCE_UNIT
+        # Below the min-image radius of the smallest test cell here: the image-flag /
+        # restart tests use a 2 Å micro-cell (radius 1.0 Å) to force boundary crossings.
+        self.maple_neighbor_cutoff = 0.5
         if stress_capable:
             self.maple_stress_unit = ASE_STRESS_UNIT
         self._forces = forces

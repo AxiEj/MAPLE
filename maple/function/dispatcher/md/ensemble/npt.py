@@ -200,6 +200,7 @@ class NPTParams:
     # ensemble).  It is hard-rejected for production unless this escape hatch is
     # set, mirroring the allow_partial_pbc per-concern opt-in idiom.
     allow_equilibration_only_barostat: bool = False
+    allow_unknown_cutoff: bool = False  # run PBC MD without a declared neighbor cutoff (manifest-recorded)
     validation_artifact_id: str = ""  # release-harness acceptance artifact id (manifest traceability)
     random_seed: Optional[int] = None
 
@@ -225,10 +226,6 @@ class NPT(JobABC):
                 "(atoms.pbc must be [True, True, True]). "
                 "Use NVT/NVE for non-periodic or slab/partial-PBC systems."
             )
-        # Finite / rank-3 / positive-volume is enforced once on the shared path
-        # (validate_md_capabilities -> validate_pbc_cell_geometry).
-        validate_md_capabilities(atoms, "npt")
-        validate_stress_tensor(atoms)
 
         self.atoms = atoms
         self.params = self._init_params(NPTParams, paras, ("md", "MD", "npt", "NPT"))
@@ -252,6 +249,11 @@ class NPT(JobABC):
                 f"Choose from: {self._BAROSTAT_CHOICES}"
             )
         validate_md_parameter_ranges(self.params, "npt")
+        # Capability gate after params so allow_unknown_cutoff reaches it; the
+        # finite / rank-3 / positive-volume cell check runs inside it
+        # (validate_md_capabilities -> validate_pbc_cell_geometry).
+        validate_md_capabilities(self.atoms, "npt", self.params)
+        validate_stress_tensor(self.atoms)
         for advisory in validate_md_semantics(self.atoms, self.params, "npt"):
             self.log_info([advisory])
             print(advisory, end="", flush=True)

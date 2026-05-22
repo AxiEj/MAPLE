@@ -274,7 +274,13 @@ def validate_pbc_cell_geometry(atoms) -> None:
     _minimum_image_radius_A(atoms)
 
 
-def _validate_pbc_neighbor_cutoff(atoms, calculator) -> None:
+def validate_pbc_neighbor_cutoff(
+    atoms,
+    calculator,
+    *,
+    allow_unknown_cutoff: bool = False,
+    require_known_cutoff: bool = True,
+) -> None:
     """Validate cutoff against the true minimum-image radius.
 
     The cutoff bound follows Allen & Tildesley, Computer Simulation of Liquids,
@@ -282,6 +288,13 @@ def _validate_pbc_neighbor_cutoff(atoms, calculator) -> None:
     should see at most one periodic image.  For skew cells this requires the
     Wigner-Seitz inradius, i.e. half the shortest non-zero periodic lattice
     vector, rather than half the shortest stored cell edge.
+
+    ``require_known_cutoff`` (the MD admission path) rejects a PBC calculator that
+    does not expose a cutoff, because the minimum-image convention then cannot be
+    verified; ``allow_unknown_cutoff`` is the explicit per-gate escape hatch.  The
+    general ``SetCalculator`` build path passes ``require_known_cutoff=False`` so
+    non-MD periodic tasks (single point / OPT / SCAN / TS) keep their prior
+    behaviour and are not blocked on an undeclared cutoff.
     """
     if atoms is None or not any(atoms.pbc):
         return
@@ -290,6 +303,16 @@ def _validate_pbc_neighbor_cutoff(atoms, calculator) -> None:
 
     cutoff = _calculator_neighbor_cutoff_A(calculator)
     if cutoff is None or not np.isfinite(cutoff) or cutoff <= 0.0:
+        if require_known_cutoff and not allow_unknown_cutoff:
+            raise ValueError(
+                "PBC MD calculator does not expose a neighbor cutoff "
+                "(neighbor_cutoff_A / cutoff_A / maple_neighbor_cutoff), so the "
+                "minimum-image convention cannot be verified: a cutoff larger than "
+                "half the shortest periodic lattice vector would let pair "
+                "interactions see multiple periodic images. Use a calculator that "
+                "declares its cutoff, or set allow_unknown_cutoff=true to run anyway "
+                "(recorded in the run manifest)."
+            )
         return
 
     radius, shortest_lattice_vector = _minimum_image_radius_A(atoms)
@@ -601,7 +624,11 @@ class SetClaculator:
 
         calculator = self._build_calculator()
         self._annotate_calculator_capabilities(calculator)
-        _validate_pbc_neighbor_cutoff(self.atoms, calculator)
+        # General build path serves MD and non-MD (SP/OPT/SCAN/TS) tasks: keep the
+        # known-cutoff minimum-image check, but do not block a calculator that does
+        # not declare a cutoff here.  The strict unknown-cutoff rejection lives on
+        # the MD admission path (validate_md_capabilities).
+        validate_pbc_neighbor_cutoff(self.atoms, calculator, require_known_cutoff=False)
         self._warn_charge_mult()
         return calculator
 

@@ -55,6 +55,7 @@ from ..utils import (
     initialize_velocities,
     forces_au,
     lfmiddle_carried_to_standard,
+    normalize_velocities_to_standard,
     pbc_com_default_note,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
@@ -343,36 +344,6 @@ class NPT(JobABC):
             debug=self.params.debug,
         )
 
-    def _prepare_langevin_velocities(
-        self,
-        velocities: np.ndarray,
-        representation: str,
-        forces: np.ndarray,
-        source_timestep_au: Optional[float] = None,
-    ) -> tuple[np.ndarray, str]:
-        """Return LF-Middle carried velocities for the Langevin path."""
-        if representation == VELOCITY_REPR_LFMIDDLE_CARRIED:
-            standard_velocities = lfmiddle_carried_to_standard(
-                self.atoms,
-                velocities,
-                forces,
-                source_timestep_au if source_timestep_au is not None else self.thermostat.timestep,
-            )
-            carried = standard_to_lfmiddle_carried(
-                self.atoms,
-                standard_velocities,
-                forces,
-                self.thermostat.timestep,
-            )
-            return carried, VELOCITY_REPR_LFMIDDLE_CARRIED
-        carried = standard_to_lfmiddle_carried(
-            self.atoms,
-            velocities,
-            forces,
-            self.thermostat.timestep,
-        )
-        return carried, VELOCITY_REPR_LFMIDDLE_CARRIED
-
     def run(self):
         """Execute NPT simulation."""
         with timer("MD Simulation (NPT)"):
@@ -421,7 +392,12 @@ class NPT(JobABC):
                     return
                 self.atoms, velocities, step_offset = result
                 velocity_representation = self.logger.resumed_velocity_representation
-                resumed_timestep_au = None
+                # Resume continues at the same timestep; pass the RST's own recorded
+                # timestep (not None) so the shared normalize gate never has to guess.
+                resumed_timestep_au = (
+                    self.logger.resumed_timestep * FS_TO_AU
+                    if self.logger.resumed_timestep is not None else None
+                )
                 # Restore RNG state for deterministic continuation
                 if self.logger.resumed_rng_state is not None:
                     restore_rng_from_hex(self._rng, self.logger.resumed_rng_state)
@@ -558,27 +534,25 @@ class NPT(JobABC):
             n_steps = self.params.steps
 
         is_langevin = self.params.thermostat == 'langevin'
-        force_for_conversion = None
-        if velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED or is_langevin:
-            force_for_conversion = forces_au(self.atoms)
-        conversion_timestep_au = source_timestep_au if source_timestep_au is not None else self.thermostat.timestep
+        # Two-step restart-velocity contract (shared across ensembles): (1) normalize
+        # any checkpoint representation to standard with the source-geometry forces and
+        # the RST's own timestep — an unknown label or a carried checkpoint with no
+        # source timestep is rejected, not guessed; (2) re-derive the LF-Middle carried
+        # velocity the Langevin integrator carries internally, at the *current* timestep.
+        force_for_conversion = (
+            forces_au(self.atoms)
+            if velocity_representation != VELOCITY_REPR_STANDARD or is_langevin
+            else None
+        )
+        velocities, velocity_representation = normalize_velocities_to_standard(
+            self.atoms, velocities, velocity_representation,
+            force_for_conversion, source_timestep_au,
+        )
         if is_langevin:
-            velocities, velocity_representation = self._prepare_langevin_velocities(
-                velocities,
-                velocity_representation,
-                force_for_conversion,
-                source_timestep_au=conversion_timestep_au,
+            velocities = standard_to_lfmiddle_carried(
+                self.atoms, velocities, force_for_conversion, self.thermostat.timestep,
             )
-        elif velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED:
-            velocities = lfmiddle_carried_to_standard(
-                self.atoms,
-                velocities,
-                force_for_conversion,
-                conversion_timestep_au,
-            )
-            velocity_representation = VELOCITY_REPR_STANDARD
-        else:
-            velocity_representation = VELOCITY_REPR_STANDARD
+            velocity_representation = VELOCITY_REPR_LFMIDDLE_CARRIED
 
         write_sync_thermo = bool(
             is_langevin and velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED

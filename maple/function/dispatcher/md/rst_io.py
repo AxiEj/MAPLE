@@ -38,6 +38,7 @@ from pathlib import Path
 import numpy as np
 from ase.cell import Cell
 
+from .units import _VALID_VELOCITY_REPRESENTATIONS
 from .utils import ensure_image_flags
 
 
@@ -243,6 +244,20 @@ def read_rst(path):
     if missing_fields:
         missing_list = ", ".join(missing_fields)
         raise ValueError(f"Missing required RST header fields: {missing_list}")
+
+    # Reject an unrecognized velocity-representation label at the I/O boundary rather
+    # than silently coercing it to "standard": a wrong label would make the velocity
+    # conversion on resume meaningless. Absent is allowed (defaults to "standard").
+    rst_velocity_representation = header.get("velocity_representation")
+    if (
+        rst_velocity_representation is not None
+        and rst_velocity_representation not in _VALID_VELOCITY_REPRESENTATIONS
+    ):
+        raise ValueError(
+            f"Unrecognized velocity_representation {rst_velocity_representation!r} in "
+            f"{path}; expected one of {sorted(_VALID_VELOCITY_REPRESENTATIONS)} "
+            "(or omit the field for standard)."
+        )
 
     natoms = int(header["natoms"])
     if len(atom_lines) != natoms:

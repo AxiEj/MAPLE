@@ -25,8 +25,12 @@ from ..utils import (
     calculate_kinetic_energy,
     initialize_velocities,
     forces_au,
+    get_atoms_velocity_representation,
+    normalize_velocities_to_standard,
     validate_md_capabilities,
     validate_md_parameter_ranges,
+    VELOCITY_REPR_STANDARD,
+    FS_TO_AU,
 )
 from ..semantics import resolve_md_dof_policy, validate_md_semantics
 from ..provenance import build_run_context
@@ -226,6 +230,11 @@ class NVE(JobABC):
                     load_state=True,
                 )
                 self.atoms, velocities, step_offset = result
+                velocity_representation = self.logger.resumed_velocity_representation
+                source_timestep_au = (
+                    self.logger.resumed_timestep * FS_TO_AU
+                    if self.logger.resumed_timestep is not None else None
+                )
                 remaining = self.params.steps
             elif self.params.restart:
                 if self.params.init_velocities and self.params.debug:
@@ -244,6 +253,11 @@ class NVE(JobABC):
                 if result is None:   # already completed
                     return
                 self.atoms, velocities, step_offset = result
+                velocity_representation = self.logger.resumed_velocity_representation
+                source_timestep_au = (
+                    self.logger.resumed_timestep * FS_TO_AU
+                    if self.logger.resumed_timestep is not None else None
+                )
                 remaining = self.params.steps - step_offset
             else:
                 # ── Velocity initialisation ───────────────────────────────
@@ -268,10 +282,22 @@ class NVE(JobABC):
                             "but no velocities found in atoms.arrays"
                         )
                     velocities = self.atoms.arrays['velocities']
+                velocity_representation = get_atoms_velocity_representation(self.atoms)
+                source_timestep_au = None
                 step_offset = 0
                 remaining   = self.params.steps
                 source = "input_xyz" if 'velocities' in self.atoms.arrays and not self.params.init_velocities else ("input_xyz" if 'velocities' in self.atoms.arrays and self.params.init_velocities else "init_velocities")
                 self.logger.log_debug_initial_state(self.atoms, velocities, mode=source, effective_step=step_offset)
+
+            # NVE integrates standard velocities: convert any carried checkpoint
+            # (e.g. a Langevin LF-Middle RST loaded into NVE) back to standard before
+            # integrating. A missing source timestep or an unknown representation is
+            # rejected, not consumed as a full-step velocity.
+            if velocity_representation != VELOCITY_REPR_STANDARD:
+                velocities, velocity_representation = normalize_velocities_to_standard(
+                    self.atoms, velocities, velocity_representation,
+                    forces_au(self.atoms), source_timestep_au,
+                )
 
             # Run simulation
             final_velocities = self._run_simulation(velocities,

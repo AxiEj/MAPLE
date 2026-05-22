@@ -75,6 +75,7 @@ from .motion_projection import (  # noqa: F401
     calculate_momentum,
     get_atoms_velocity_representation,
     lfmiddle_carried_to_standard,
+    normalize_velocities_to_standard,
     normalize_velocity_representation,
     remove_center_of_mass_motion,
     remove_rigid_body_rotation,
@@ -111,7 +112,8 @@ __all__ = [
     # motion_projection
     "apply_runtime_motion_projection", "calculate_angular_momentum", "calculate_momentum",
     "get_atoms_velocity_representation", "lfmiddle_carried_to_standard",
-    "normalize_velocity_representation", "remove_center_of_mass_motion",
+    "normalize_velocities_to_standard", "normalize_velocity_representation",
+    "remove_center_of_mass_motion",
     "remove_rigid_body_rotation", "set_atoms_velocity_representation",
     "standard_to_lfmiddle_carried",
     # trajectory_xyz

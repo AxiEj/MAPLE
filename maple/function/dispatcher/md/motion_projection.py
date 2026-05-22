@@ -11,6 +11,7 @@ from ase import Atoms
 from .units import (
     AMU_TO_AU,
     ANGSTROM_TO_BOHR,
+    VELOCITY_REPR_LFMIDDLE_CARRIED,
     VELOCITY_REPR_STANDARD,
     _VALID_VELOCITY_REPRESENTATIONS,
 )
@@ -165,6 +166,42 @@ def lfmiddle_carried_to_standard(
     """
     masses = atoms.get_masses() * AMU_TO_AU
     return velocities + 0.5 * timestep_au * forces / masses[:, np.newaxis]
+
+
+def normalize_velocities_to_standard(
+    atoms: Atoms,
+    velocities: np.ndarray,
+    representation: str,
+    forces: np.ndarray,
+    timestep_au: Optional[float],
+) -> tuple[np.ndarray, str]:
+    """Normalize restart/checkpoint velocities to the standard representation.
+
+    The single gate every ensemble (NVE/NVT/NPT) routes its loaded velocities
+    through.  A ``standard`` checkpoint is returned unchanged; an LF-Middle
+    ``lfmiddle_carried`` checkpoint is converted back with the source-geometry
+    ``forces`` and the *source* ``timestep_au`` recorded in the RST (Zhang et al.,
+    JPCA 2019, Eq. 16/19).  A missing source timestep or an unrecognized
+    representation is rejected, not guessed — so a half-kicked carried velocity can
+    never be silently consumed as a full-step velocity (the NVE cross-ensemble
+    hazard).  After this call the caller is free to re-derive a carried velocity for
+    a Langevin integrator at the *current* timestep via
+    :func:`standard_to_lfmiddle_carried`.
+    """
+    if representation == VELOCITY_REPR_STANDARD:
+        return velocities, VELOCITY_REPR_STANDARD
+    if representation == VELOCITY_REPR_LFMIDDLE_CARRIED:
+        if timestep_au is None or not np.isfinite(timestep_au):
+            raise ValueError(
+                "Cannot convert lfmiddle_carried checkpoint velocities to standard "
+                "without the source timestep from the RST checkpoint; refusing to guess."
+            )
+        standard = lfmiddle_carried_to_standard(atoms, velocities, forces, timestep_au)
+        return standard, VELOCITY_REPR_STANDARD
+    raise ValueError(
+        f"Unrecognized velocity_representation {representation!r} in checkpoint; "
+        f"expected one of {sorted(_VALID_VELOCITY_REPRESENTATIONS)}."
+    )
 
 
 def calculate_momentum(atoms: Atoms, velocities: np.ndarray) -> np.ndarray:

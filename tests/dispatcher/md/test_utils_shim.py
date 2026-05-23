@@ -11,6 +11,7 @@ from maple.function.dispatcher.md import (
     motion_projection,
     pbc,
     pressure,
+    semantics,
     thermo,
     trajectory_xyz,
     units,
@@ -52,6 +53,8 @@ EXPECTED_NAMES = [
     "standard_to_lfmiddle_carried",
     # trajectory_xyz
     "write_xyz_frame", "write_xyz_trajectory",
+    # semantics
+    "validate_md_admission_state",
 ]
 
 
@@ -81,6 +84,7 @@ def test_shim_reexports_are_the_concern_module_objects():
     assert utils.initialize_velocities is velocity_init.initialize_velocities
     assert utils.apply_runtime_motion_projection is motion_projection.apply_runtime_motion_projection
     assert utils.write_xyz_frame is trajectory_xyz.write_xyz_frame
+    assert utils.validate_md_admission_state is semantics.validate_md_admission_state
 
 
 def test_all_is_complete():

@@ -35,6 +35,9 @@ from typing import Optional
 from ..utils import AMU_TO_AU, FS_TO_AU, KELVIN_TO_HARTREE
 
 
+ZERO_KE_THRESHOLD_HA = 1.0e-30
+
+
 class VRescaleThermostat:
     """
     Stochastic velocity rescaling thermostat (V-rescale).
@@ -134,7 +137,7 @@ class VRescaleThermostat:
         """
         ke = 0.5 * np.sum(self.masses[:, np.newaxis] * velocities ** 2)
 
-        if ke < 1e-30:
+        if ke < ZERO_KE_THRESHOLD_HA:
             return velocities, 0.0
 
         f = self._decay                     # e^{-Δt/τ}

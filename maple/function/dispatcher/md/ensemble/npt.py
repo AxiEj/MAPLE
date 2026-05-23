@@ -40,7 +40,7 @@ from maple.function.timer import timer
 from ..integrator.velocity_verlet import VelocityVerlet
 from ..evaluator import evaluate_md_properties
 from ..thermostat.langevin import LangevinThermostat
-from ..thermostat.vrescale import VRescaleThermostat
+from ..thermostat.vrescale import VRescaleThermostat, ZERO_KE_THRESHOLD_HA
 from ..barostat.berendsen import BerendsenBarostat
 from ..barostat.crescale import CRescaleBarostat, MDBarostatClampError
 from ..utils import (
@@ -60,11 +60,9 @@ from ..utils import (
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
     FS_TO_AU,
-    validate_md_capabilities,
     validate_md_parameter_ranges,
-    validate_stress_tensor,
 )
-from ..semantics import resolve_md_dof_policy, validate_md_semantics
+from ..semantics import resolve_md_dof_policy, validate_md_admission_state
 from ..provenance import build_run_context
 from ..rst_io import get_rng_state_hex, restore_rng_from_hex
 from ..logger import MDLogger
@@ -222,12 +220,6 @@ class NPT(JobABC):
 
         if atoms.calc is None:
             raise ValueError("Atoms object must have a calculator attached")
-        if not all(atoms.pbc):
-            raise ValueError(
-                "NPT ensemble requires full three-dimensional PBC "
-                "(atoms.pbc must be [True, True, True]). "
-                "Use NVT/NVE for non-periodic or slab/partial-PBC systems."
-            )
 
         self.atoms = atoms
         self.params = self._init_params(NPTParams, paras, ("md", "MD", "npt", "NPT"))
@@ -251,14 +243,7 @@ class NPT(JobABC):
                 f"Choose from: {self._BAROSTAT_CHOICES}"
             )
         validate_md_parameter_ranges(self.params, "npt")
-        # Capability gate after params so allow_unknown_cutoff reaches it; the
-        # finite / rank-3 / positive-volume cell check runs inside it
-        # (validate_md_capabilities -> validate_pbc_cell_geometry).
-        validate_md_capabilities(self.atoms, "npt", self.params)
-        validate_stress_tensor(self.atoms)
-        for advisory in validate_md_semantics(self.atoms, self.params, "npt"):
-            self.log_info([advisory])
-            print(advisory, end="", flush=True)
+        self._validate_admission_state("startup")
 
         # Warn if user set Langevin-specific params but chose v-rescale (or vice versa)
         if self.params.thermostat == 'v-rescale' and paras and 'friction' in (paras or {}):
@@ -345,6 +330,13 @@ class NPT(JobABC):
             debug=self.params.debug,
         )
 
+    def _validate_admission_state(self, context: str) -> None:
+        for advisory in validate_md_admission_state(
+            self.atoms, "npt", self.params, context=context
+        ):
+            self.log_info([advisory])
+            print(advisory, end="", flush=True)
+
     def run(self):
         """Execute NPT simulation."""
         with timer("MD Simulation (NPT)"):
@@ -365,7 +357,10 @@ class NPT(JobABC):
                     rst_file=self.params.rst_file if self.params.rst_file else None,
                     load_state=True,
                 )
+                if result is None:
+                    return
                 self.atoms, velocities, step_offset = result
+                self._validate_admission_state("load_state")
                 velocity_representation = self.logger.resumed_velocity_representation
                 resumed_timestep_au = (
                     self.logger.resumed_timestep * FS_TO_AU
@@ -392,6 +387,7 @@ class NPT(JobABC):
                 if result is None:   # already completed
                     return
                 self.atoms, velocities, step_offset = result
+                self._validate_admission_state("restart")
                 velocity_representation = self.logger.resumed_velocity_representation
                 # Resume continues at the same timestep; pass the RST's own recorded
                 # timestep (not None) so the shared normalize gate never has to guess.
@@ -549,6 +545,15 @@ class NPT(JobABC):
             self.atoms, velocities, velocity_representation,
             force_for_conversion, source_timestep_au,
         )
+        if not is_langevin:
+            active_ke = calculate_kinetic_energy(self.atoms, velocities)
+            if active_ke <= ZERO_KE_THRESHOLD_HA:
+                raise ValueError(
+                    "NPT with thermostat=v-rescale requires non-zero active kinetic "
+                    f"energy after restart/load_state velocity normalization; got "
+                    f"{active_ke:.3e} Ha. Provide finite initial velocities or use "
+                    "thermostat=langevin for zero-velocity heating."
+                )
         if is_langevin:
             velocities = standard_to_lfmiddle_carried(
                 self.atoms, velocities, force_for_conversion, self.thermostat.timestep,

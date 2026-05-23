@@ -22,6 +22,7 @@ per-run provenance manifests record the unit contract and cutoff policy.
 """
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -31,13 +32,49 @@ if str(_REPO_ROOT) not in sys.path:
 
 from maple.function.dispatcher.md.validation import (  # noqa: E402
     lj_reference_factory,
+    load_smoke_thresholds,
     load_thresholds,
     run_acceptance_matrix,
     write_report,
 )
 
 
-def _real_model_factory(model: str, device: str | None, output: str):
+_INT_RE = re.compile(r"^[+-]?\d+$")
+_FLOAT_RE = re.compile(
+    r"^[+-]?(?:(?:\d+\.\d*)|(?:\.\d+)|(?:\d+))(?:[eE][+-]?\d+)?$"
+)
+
+
+def _coerce_model_option_value(value: str):
+    text = value.strip()
+    lowered = text.lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+    if _INT_RE.match(text):
+        return int(text)
+    if _FLOAT_RE.match(text) and any(char in text for char in ".eE"):
+        return float(text)
+    return value
+
+
+def _parse_model_options(items: list[str] | None) -> dict:
+    parsed = {}
+    for item in items or []:
+        if "=" not in item:
+            raise ValueError(f"--model-option must be key=value, got {item!r}")
+        key, value = item.split("=", 1)
+        key = key.strip()
+        if not key:
+            raise ValueError(f"--model-option key must be non-empty, got {item!r}")
+        if key in parsed:
+            raise ValueError(f"duplicate --model-option key: {key}")
+        parsed[key] = _coerce_model_option_value(value)
+    return parsed
+
+
+def _real_model_factory(model: str, device: str | None, output: str, model_options: dict):
     """Build a real MAPLE calculator once and reuse it across acceptance classes."""
     import torch
 
@@ -47,10 +84,12 @@ def _real_model_factory(model: str, device: str | None, output: str):
     resolved_device = torch.device(
         device or ("cuda" if torch.cuda.is_available() else "cpu")
     )
-    calc = SetCalculator(resolved_device, model, output, model_options={}).set_calculator()
+    calc = SetCalculator(
+        resolved_device, model, output, model_options=model_options
+    ).set_calculator()
     try:
         calc.maple_provenance = collect_calculator_provenance(
-            calc, model=model, device=resolved_device
+            calc, model=model, device=resolved_device, model_options=model_options
         )
     except Exception:
         pass
@@ -67,14 +106,34 @@ def main(argv=None) -> int:
                         help="report output directory")
     parser.add_argument("--quick", action="store_true",
                         help="shorter runs (smoke; not for a real ship gate)")
+    parser.add_argument(
+        "--model-option",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help=(
+            "repeatable calculator option; true/false -> bool, integer -> int, "
+            "float/scientific -> float, otherwise string"
+        ),
+    )
     args = parser.parse_args(argv)
 
-    thresholds = load_thresholds(args.thresholds)
+    try:
+        model_options = _parse_model_options(args.model_option)
+    except ValueError as exc:
+        parser.error(str(exc))
+
+    if args.thresholds:
+        thresholds = load_thresholds(args.thresholds)
+    else:
+        thresholds = load_smoke_thresholds() if args.quick else load_thresholds()
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
     if args.model:
-        factory = _real_model_factory(args.model, args.device, str(outdir / "calc.out"))
+        factory = _real_model_factory(
+            args.model, args.device, str(outdir / "calc.out"), model_options
+        )
         label = args.model
     else:
         factory = lj_reference_factory()
@@ -96,6 +155,9 @@ def main(argv=None) -> int:
         "calculator_contract": calc_contract,
         # The release gate runs strict: an unknown cutoff is rejected at MD admission.
         "cutoff_policy": {"allow_unknown_cutoff": False},
+        "validation_mode": "quick-smoke" if args.quick else "production-validation",
+        "production_validated": not args.quick,
+        "model_options": model_options,
     }
     report = write_report(results, thresholds, outdir, calculator_label=label, extra=extra)
 
@@ -109,7 +171,10 @@ def main(argv=None) -> int:
     # Ship gate: every class passes AND none is inconclusive (a skip is not a pass).
     ok = n_fail == 0 and n_skip == 0 and all(r.passed for r in results)
 
-    print(f"\nMD acceptance matrix ({label}): {'PASS' if ok else 'FAIL'}")
+    mode = "quick smoke" if args.quick else "production validation"
+    print(f"\nMD acceptance matrix ({label}, {mode}): {'PASS' if ok else 'FAIL'}")
+    if args.quick:
+        print("  NOTE: --quick is compatibility smoke only; it is not production-validated.")
     for r in results:
         print(f"  [{r.status.upper():4}] {r.name}: {r.detail}")
     print(
@@ -118,7 +183,11 @@ def main(argv=None) -> int:
         f"units={calc_contract['energy_unit']}/{calc_contract['force_unit']}/"
         f"{calc_contract['stress_unit']}"
     )
+    import json
+
+    report_payload = json.loads(report.with_suffix(".json").read_text())
     print(f"Report: {report}")
+    print(f"Report SHA256: {report_payload.get('markdown_report_sha256')}")
     return 0 if ok else 1
 
 

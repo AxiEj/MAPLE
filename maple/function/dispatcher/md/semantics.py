@@ -48,9 +48,10 @@ Three concerns live here:
 from dataclasses import dataclass
 from typing import List, Tuple
 
+import numpy as np
 from ase import Atoms
 
-from .utils import (
+from .dof import (
     get_initialization_dof_policy,
     get_n_dof_from_policy,
     get_runtime_dof_policy,
@@ -249,3 +250,60 @@ def validate_md_semantics(atoms: Atoms, params, ensemble: str) -> List[str]:
         advisories.append(_PARTIAL_PBC_BANNER)
 
     return advisories
+
+
+def _validate_md_masses(atoms: Atoms, *, context: str) -> None:
+    """Hard-gate atomic masses before any velocity/force integration path.
+
+    ASE can carry zero, NaN, or shape-corrupt mass arrays (especially in synthetic
+    tests or manually edited inputs).  The MD integrator divides by mass and the
+    thermostat/barostat interpret kinetic energy from those masses, so admission
+    must reject impossible masses both at startup and after RST/load_state restore.
+    """
+    prefix = f"{context} admission"
+    masses = np.asarray(atoms.get_masses(), dtype=float)
+    expected_shape = (len(atoms),)
+    if masses.shape != expected_shape:
+        raise ValueError(
+            f"{prefix}: atomic masses must have shape {expected_shape}, got {masses.shape}."
+        )
+    if not np.all(np.isfinite(masses)):
+        bad = np.where(~np.isfinite(masses))[0].tolist()
+        raise ValueError(f"{prefix}: atomic masses must be finite; bad atom indices={bad}.")
+    if np.any(masses <= 0.0):
+        bad = np.where(masses <= 0.0)[0].tolist()
+        raise ValueError(f"{prefix}: atomic masses must be > 0; bad atom indices={bad}.")
+
+
+def validate_md_admission_state(
+    atoms: Atoms,
+    ensemble: str,
+    params,
+    *,
+    context: str,
+) -> List[str]:
+    """Validate the complete MD admission state and return log advisories.
+
+    This is the single startup/restart/load_state gate.  ``context`` is only used
+    to make failures identify where admission happened (``startup``,
+    ``restart``, or ``load_state``); the caller remains responsible for logging
+    returned advisories.
+    """
+    ensemble_name = str(ensemble).lower()
+    context_label = f"{ensemble_name.upper()} {context}"
+    _validate_md_masses(atoms, context=context_label)
+
+    if ensemble_name == "npt" and not all(atoms.pbc):
+        raise ValueError(
+            f"{context_label} admission: NPT ensemble requires full "
+            "three-dimensional PBC (atoms.pbc must be [True, True, True]). "
+            "Use NVT/NVE for non-periodic or slab/partial-PBC systems."
+        )
+
+    # Import here to keep semantics.py independent at module-import time; utils.py
+    # re-exports capability helpers and itself imports this module in some legacy
+    # call paths.
+    from .capabilities import validate_md_capabilities
+
+    validate_md_capabilities(atoms, ensemble_name, params)
+    return validate_md_semantics(atoms, params, ensemble_name)

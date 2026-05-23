@@ -587,7 +587,8 @@ def test_pbc_runtime_com_warning_mentions_transport_analysis(tmp_path):
 def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
     force = np.array([[1.0, 0.0, 0.0]])
     atoms = _periodic_atoms(StressCalculator(np.zeros(6), forces=force))
-    atoms.arrays["velocities"] = np.zeros((1, 3))
+    initial_velocity = np.array([[1.0e-4, 0.0, 0.0]])
+    atoms.arrays["velocities"] = initial_velocity.copy()
     npt = NPT(
         output=str(tmp_path / "npt.out"),
         atoms=atoms,
@@ -616,7 +617,7 @@ def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
     npt.run()
 
     mass = atoms.get_masses()[0] * AMU_TO_AU
-    expected = force * HA_PER_ANG_TO_AU / mass * (0.1 * FS_TO_AU)
+    expected = initial_velocity + force * HA_PER_ANG_TO_AU / mass * (0.1 * FS_TO_AU)
     np.testing.assert_allclose(seen["velocities"], expected)
 
 
@@ -631,7 +632,7 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
     # post-rescale pressure evaluation and the volume it sees.
     calc = StressCalculator(np.zeros(6))
     atoms = _periodic_atoms(calc)
-    atoms.arrays["velocities"] = np.zeros((1, 3))
+    atoms.arrays["velocities"] = np.array([[1.0e-4, 0.0, 0.0]])
     npt = NPT(
         output=str(tmp_path / "npt.out"),
         atoms=atoms,
@@ -671,6 +672,7 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
         return original_log_step(**kwargs)
 
     npt.barostat.apply = apply_barostat
+    npt.thermostat.apply = lambda velocities: (np.zeros_like(velocities), 0.0)
     npt.logger.log_step = log_step_spy
     monkeypatch.setattr(evaluator_module, "compute_instantaneous_pressure", record_pressure)
 
@@ -781,7 +783,7 @@ def test_npt_langevin_barostat_pressure_uses_synchronized_standard_velocity(tmp_
 
 def test_npt_vrescale_load_state_keeps_standard_velocity_representation(tmp_path):
     atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
-    atoms.arrays["velocities"] = np.zeros((1, 3))
+    atoms.arrays["velocities"] = np.array([[1.0e-4, 0.0, 0.0]])
     first = NPT(
         output=str(tmp_path / "first.out"),
         atoms=atoms,

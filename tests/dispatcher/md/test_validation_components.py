@@ -10,6 +10,7 @@ from maple.function.dispatcher.md.validation import (
     _block_mean_stderr,
     _lj_crystal,
     load_thresholds,
+    run_stress_finite_difference,
     run_constraints_rejected,
     run_pbc_geometry,
     write_report,
@@ -53,6 +54,20 @@ def test_pbc_geometry_class_passes(tmp_path):
     th = load_thresholds()
     result = run_pbc_geometry(lj_reference_factory(), th, tmp_path)
     assert result.passed and result.status == "pass"
+
+
+def test_stress_finite_difference_reports_full_voigt_components(tmp_path):
+    th = load_thresholds()
+    result = run_stress_finite_difference(lj_reference_factory(), th, tmp_path)
+    assert result.passed and result.status == "pass"
+    components = result.metrics["components"]
+    assert [item["component"] for item in components] == ["xx", "yy", "zz", "yz", "xz", "xy"]
+    assert any(abs(item["stress_ev_per_ang3"]) > 1e-6 for item in components if item["component"] in {"xy", "xz", "yz"})
+    for item in components:
+        for delta in item["per_delta"]:
+            assert "abs_error_ev_per_ang3" in delta
+            assert "rel_error" in delta
+            assert "log10_abs_ratio_error" in delta
 
 
 def test_constraints_class_passes(tmp_path):
@@ -102,3 +117,6 @@ def test_write_report_emits_markdown_and_json(tmp_path):
     text = md_path.read_text()
     assert "MD acceptance matrix" in text
     assert th["thresholds_version"] in text
+    payload = __import__("json").loads(json_path.read_text())
+    assert payload["markdown_report_path"] == str(md_path)
+    assert len(payload["markdown_report_sha256"]) == 64

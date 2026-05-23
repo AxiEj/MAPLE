@@ -27,12 +27,11 @@ from ..utils import (
     forces_au,
     get_atoms_velocity_representation,
     normalize_velocities_to_standard,
-    validate_md_capabilities,
     validate_md_parameter_ranges,
     VELOCITY_REPR_STANDARD,
     FS_TO_AU,
 )
-from ..semantics import resolve_md_dof_policy, validate_md_semantics
+from ..semantics import resolve_md_dof_policy, validate_md_admission_state
 from ..provenance import build_run_context
 from ..logger import MDLogger
 
@@ -189,10 +188,7 @@ class NVE(JobABC):
         # (e.g. allow_unknown_cutoff) reach validate_md_capabilities.
         self.params = self._init_params(NVEParams, paras, ("md", "MD", "nve", "NVE"))
         validate_md_parameter_ranges(self.params, "nve")
-        validate_md_capabilities(self.atoms, "nve", self.params)
-        for advisory in validate_md_semantics(self.atoms, self.params, "nve"):
-            self.log_info([advisory])
-            print(advisory, end="", flush=True)
+        self._validate_admission_state("startup")
 
         # Initialize components
         self.logger = MDLogger(
@@ -206,6 +202,13 @@ class NVE(JobABC):
         self._dof_policy = resolve_md_dof_policy(self.atoms, self.params, "nve")
         for warning in self._dof_policy.warnings:
             self.log_info([f"\n*** WARNING: {warning}\n"])
+
+    def _validate_admission_state(self, context: str) -> None:
+        for advisory in validate_md_admission_state(
+            self.atoms, "nve", self.params, context=context
+        ):
+            self.log_info([advisory])
+            print(advisory, end="", flush=True)
 
     def run(self):
         """
@@ -229,7 +232,10 @@ class NVE(JobABC):
                     rst_file=self.params.rst_file if self.params.rst_file else None,
                     load_state=True,
                 )
+                if result is None:
+                    return
                 self.atoms, velocities, step_offset = result
+                self._validate_admission_state("load_state")
                 velocity_representation = self.logger.resumed_velocity_representation
                 source_timestep_au = (
                     self.logger.resumed_timestep * FS_TO_AU
@@ -253,6 +259,7 @@ class NVE(JobABC):
                 if result is None:   # already completed
                     return
                 self.atoms, velocities, step_offset = result
+                self._validate_admission_state("restart")
                 velocity_representation = self.logger.resumed_velocity_representation
                 source_timestep_au = (
                     self.logger.resumed_timestep * FS_TO_AU

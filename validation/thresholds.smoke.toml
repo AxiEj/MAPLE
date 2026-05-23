@@ -8,8 +8,9 @@
 # Split from the production profile (WS-D) so the production thresholds can be tightened
 # against a longer-run baseline WITHOUT false-failing the short unit runs. Values track
 # the production profile's loose v1 defaults; see thresholds.toml for the per-class
-# calibration rationale.
-thresholds_version = "smoke-1.0.0"
+# calibration rationale. Smoke may be looser for sampling-heavy classes because
+# --quick is compatibility evidence only, not production validation.
+thresholds_version = "smoke-1.3.0"
 
 [nve_energy_drift]
 max_rel_drift = 5.0e-3
@@ -28,7 +29,7 @@ equilibration_fraction = 0.4
 require_post_rescale_summary = true
 
 [npt_volume_fluctuation]
-log10_kappa_tol = 0.5
+log10_kappa_tol = 0.8
 pressures_bar = [1.0, 500.0]
 equilibration_fraction = 0.3
 min_volume_change = 0.01
@@ -39,7 +40,14 @@ n_blocks = 5
 max_abs_drift_ha_per_atom_per_ps = 1.0e-6
 
 [stress_finite_difference]
+# Smoke-only mirror of the production full-tensor stress section.  The default
+# unit layer keeps the same per-component tolerances but runs inside the shorter
+# smoke matrix, so a quick pass is compatibility evidence, not production
+# validation.
 deltas = [1.0e-3, 3.0e-4]
+abs_tol_ev_per_ang3 = 1.0e-5
+rel_tol = 5.0e-2
+relative_error_floor_ev_per_ang3 = 1.0e-8
 log10_magnitude_tol = 0.5
 require_sign_match = true
 

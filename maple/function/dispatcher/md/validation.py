@@ -14,6 +14,7 @@ report, so the standards are never tuned to the results.
 from __future__ import annotations
 
 import datetime as _dt
+import hashlib
 import json
 import tomllib
 from dataclasses import dataclass, field
@@ -492,29 +493,102 @@ def run_npt_effective_energy_drift(
 def run_stress_finite_difference(calc_factory, thresholds, workdir, **_) -> AcceptanceResult:
     th = thresholds["stress_finite_difference"]
     base = _lj_crystal()
+    # Deform the cell so the finite-difference matrix exercises both diagonal
+    # stress and non-zero shear components rather than only the hydrostatic trace.
+    deformation = np.array(
+        [
+            [1.03, 0.10, 0.04],
+            [0.02, 0.97, 0.08],
+            [0.05, 0.03, 1.01],
+        ],
+        dtype=float,
+    )
+    base.set_cell(np.asarray(base.cell.array) @ deformation, scale_atoms=True)
     base.calc = calc_factory()
     props = evaluate_md_properties(base, need_stress=True, velocities_au=np.zeros((len(base), 3)))
-    # Configurational pressure from the stress trace (eV/Å³): P = -tr(sigma)/3.
-    p_stress = -float(np.sum(props.stress_ev_per_ang3[:3])) / 3.0
-    v0 = base.get_volume()
+    stress = np.asarray(props.stress_ev_per_ang3, dtype=float)
+    v0 = float(base.get_volume())
 
-    per_delta = []
-    for delta in th["deltas"]:
-        e_plus = _energy_at_scaled_volume(base, calc_factory, 1.0 + delta)
-        e_minus = _energy_at_scaled_volume(base, calc_factory, 1.0 - delta)
-        # dE/dV in Ha/Å³ -> configurational pressure -dE/dV, converted to eV/Å³.
-        dedv = (e_plus - e_minus) / ((1.0 + delta) * v0 - (1.0 - delta) * v0)
-        p_fd = -dedv * HARTREE_TO_EV
-        sign_ok = (np.sign(p_fd) == np.sign(p_stress)) or abs(p_stress) < 1e-12
-        mag_ok = abs(p_stress) < 1e-12 or abs(np.log10(abs(p_fd) / abs(p_stress) + 1e-30)) <= th["log10_magnitude_tol"]
-        per_delta.append({"delta": delta, "p_fd": p_fd, "sign_ok": bool(sign_ok), "mag_ok": bool(mag_ok)})
-    passed = all(
-        (d["sign_ok"] or not th["require_sign_match"]) and d["mag_ok"] for d in per_delta
+    components = ["xx", "yy", "zz", "yz", "xz", "xy"]
+    component_mats = {
+        "xx": np.array([[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+        "yy": np.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]]),
+        "zz": np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]]),
+        # ASE Voigt order is [xx, yy, zz, yz, xz, xy].  For shear, the scalar
+        # finite-difference parameter is the engineering strain gamma, so each
+        # symmetric off-diagonal tensor entry receives gamma/2; then
+        # dE/dgamma / V equals the matching Voigt shear stress.
+        "yz": np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.5], [0.0, 0.5, 0.0]]),
+        "xz": np.array([[0.0, 0.0, 0.5], [0.0, 0.0, 0.0], [0.5, 0.0, 0.0]]),
+        "xy": np.array([[0.0, 0.5, 0.0], [0.5, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+    }
+
+    per_component = []
+    failing = []
+    for index, name in enumerate(components):
+        stress_ref = float(stress[index])
+        per_delta = []
+        for delta in th["deltas"]:
+            e_plus = _energy_at_strain(base, calc_factory, component_mats[name], float(delta))
+            e_minus = _energy_at_strain(base, calc_factory, component_mats[name], -float(delta))
+            fd = (e_plus - e_minus) / (2.0 * float(delta) * v0) * HARTREE_TO_EV
+            abs_error = abs(fd - stress_ref)
+            denom = max(abs(stress_ref), float(th.get("relative_error_floor_ev_per_ang3", 1e-12)))
+            rel_error = abs_error / denom
+            log_error = (
+                abs(np.log10(abs(fd) / abs(stress_ref)))
+                if abs(stress_ref) > 0.0 and abs(fd) > 0.0 else 0.0
+                if abs_error <= float(th["abs_tol_ev_per_ang3"]) else float("inf")
+            )
+            sign_ok = (np.sign(fd) == np.sign(stress_ref)) or abs(stress_ref) < float(th["abs_tol_ev_per_ang3"])
+            abs_ok = abs_error <= float(th["abs_tol_ev_per_ang3"])
+            rel_ok = rel_error <= float(th["rel_tol"])
+            log_ok = log_error <= float(th["log10_magnitude_tol"])
+            ok = (sign_ok or not th["require_sign_match"]) and (abs_ok or rel_ok or log_ok)
+            per_delta.append(
+                {
+                    "delta": float(delta),
+                    "fd_ev_per_ang3": float(fd),
+                    "stress_ev_per_ang3": stress_ref,
+                    "abs_error_ev_per_ang3": float(abs_error),
+                    "rel_error": float(rel_error),
+                    "log10_abs_ratio_error": float(log_error),
+                    "sign_ok": bool(sign_ok),
+                    "abs_ok": bool(abs_ok),
+                    "rel_ok": bool(rel_ok),
+                    "log_ok": bool(log_ok),
+                    "ok": bool(ok),
+                }
+            )
+        component_ok = all(d["ok"] for d in per_delta)
+        if not component_ok:
+            failing.append(name)
+        per_component.append(
+            {
+                "component": name,
+                "stress_ev_per_ang3": stress_ref,
+                "per_delta": per_delta,
+                "passed": bool(component_ok),
+            }
+        )
+
+    passed = not failing
+    worst = max(
+        (
+            (d["abs_error_ev_per_ang3"], item["component"], d)
+            for item in per_component
+            for d in item["per_delta"]
+        ),
+        key=lambda row: row[0],
     )
+    fail_text = f"; failing components: {', '.join(failing)}" if failing else ""
     return AcceptanceResult(
         "stress_finite_difference", "pass" if passed else "fail", passed,
-        {"p_stress_ev_per_ang3": p_stress, "per_delta": per_delta},
-        f"P_stress {p_stress:.3e} eV/A^3 vs -dE/dV finite difference",
+        {"components": per_component, "worst_abs_error": worst[0], "worst_component": worst[1]},
+        "full Voigt stress FD [xx, yy, zz, yz, xz, xy]; "
+        f"worst {worst[1]} abs error {worst[0]:.3e}, "
+        f"rel {worst[2]['rel_error']:.3e}, log {worst[2]['log10_abs_ratio_error']:.3e}"
+        f"{fail_text}",
     )
 
 
@@ -566,6 +640,14 @@ def _energy_at_scaled_volume(base: Atoms, calc_factory, volume_factor: float) ->
     scaled.calc = calc_factory()
     scaled.set_cell(base.cell.array * (volume_factor ** (1.0 / 3.0)), scale_atoms=True)
     return evaluate_md_properties(scaled, need_stress=False).energy_ha
+
+
+def _energy_at_strain(base: Atoms, calc_factory, strain_matrix: np.ndarray, amplitude: float) -> float:
+    strained = base.copy()
+    strained.calc = calc_factory()
+    transform = np.eye(3) + amplitude * np.asarray(strain_matrix, dtype=float)
+    strained.set_cell(np.asarray(base.cell.array, dtype=float) @ transform, scale_atoms=True)
+    return evaluate_md_properties(strained, need_stress=False).energy_ha
 
 
 def run_barostat_clamp_free(calc_factory, thresholds, workdir, *, steps=200, timestep=0.5) -> AcceptanceResult:
@@ -684,6 +766,8 @@ def write_report(
     version = thresholds.get("thresholds_version", "?")
     commit = (env.get("maple_git_commit") or "nogit")[:12]
     artifact_id = f"md_acceptance_{stamp}_thr{version}_{commit}"
+    md_path = outdir / f"{artifact_id}.md"
+    json_path = outdir / f"{artifact_id}.json"
 
     all_passed = all(r.passed for r in results)
     n_skip = sum(1 for r in results if r.status == "skip")
@@ -707,10 +791,11 @@ def write_report(
         "overall": "PASS" if all_passed else "FAIL",
         "summary": summary,
         "results": [r.__dict__ for r in results],
+        "markdown_report_path": str(md_path),
+        "json_report_path": str(json_path),
     }
     if extra:
         payload.update(extra)
-    (outdir / f"{artifact_id}.json").write_text(json.dumps(payload, indent=2, default=str) + "\n")
 
     lines = [
         f"# MD acceptance matrix — {payload['overall']}",
@@ -720,12 +805,16 @@ def write_report(
         f"- thresholds version: {version}",
         f"- calculator: {calculator_label}",
         f"- MAPLE commit: {env.get('maple_git_commit')} (dirty={env.get('maple_git_dirty')})",
+        f"- report path: `{md_path}`",
+        f"- validation mode: {payload.get('validation_mode', 'production-validation')}",
+        f"- production validated: {payload.get('production_validated', True)}",
         "",
         "| class | status | detail |",
         "|-------|--------|--------|",
     ]
     for r in results:
         lines.append(f"| {r.name} | {'✅ ' + r.status if r.passed else '❌ ' + r.status} | {r.detail} |")
-    md_path = outdir / f"{artifact_id}.md"
     md_path.write_text("\n".join(lines) + "\n")
+    payload["markdown_report_sha256"] = hashlib.sha256(md_path.read_bytes()).hexdigest()
+    json_path.write_text(json.dumps(payload, indent=2, default=str) + "\n")
     return md_path

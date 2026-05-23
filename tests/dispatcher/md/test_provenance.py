@@ -16,7 +16,9 @@ from maple.function.dispatcher.md.ensemble.nve import NVE
 from maple.function.dispatcher.md.provenance import (
     MANIFEST_SCHEMA_VERSION,
     RST_SCHEMA_VERSION,
+    _normalize_long_range_method,
     build_md_manifest,
+    companion_manifest_for_rst,
     collect_calculator_provenance,
     collect_environment_provenance,
     final_state_hash,
@@ -143,6 +145,17 @@ def test_long_range_method_from_coulomb_option():
 def test_long_range_method_defaults_to_none():
     prov = collect_calculator_provenance(_Calc())
     assert prov["capabilities"]["long_range_method"] == "none"
+
+
+def test_long_range_method_normalization_aliases_absent_to_none():
+    for value in (None, "None", "none", "n/a", "N/A", ""):
+        assert _normalize_long_range_method(value) == "none"
+
+
+def test_companion_manifest_for_explicit_rst_paths():
+    assert companion_manifest_for_rst("/x/y/run_md.rst").as_posix() == "/x/y/run_md_manifest.json"
+    assert companion_manifest_for_rst("/x/y/run_md_prev.rst").as_posix() == "/x/y/run_md_manifest.json"
+    assert companion_manifest_for_rst("/x/y/custom.rst").as_posix() == "/x/y/custom_manifest.json"
 
 
 def test_validation_artifact_id_surfaces_at_manifest_top_level():

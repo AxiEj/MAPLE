@@ -238,6 +238,70 @@ class MDLogger:
 
         self.log_main(lines)
 
+    def _validate_restart_manifest(
+        self,
+        used_path: Path,
+        *,
+        atoms: Atoms,
+        state: dict,
+        load_state: bool,
+    ) -> None:
+        """Check the companion provenance manifest for a restored RST source."""
+        import json
+
+        from .provenance import (
+            companion_manifest_for_rst,
+            restart_manifest_consistency_issues,
+        )
+
+        manifest_path = companion_manifest_for_rst(used_path)
+        mode = "load_state" if load_state else "restart"
+        strict = not load_state
+        if not manifest_path.exists():
+            self.log_main([
+                f"\n*** WARNING: no companion MD provenance manifest found for {used_path.name} "
+                f"(expected {manifest_path}). Treating this as a legacy/incomplete RST "
+                "and re-running admission checks.\n"
+            ])
+            return
+
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except Exception as exc:
+            msg = f"{mode} companion manifest {manifest_path} could not be read: {exc}"
+            if strict:
+                raise RuntimeError(msg) from exc
+            self.log_main([f"\n*** WARNING: {msg}; continuing with fresh admission checks.\n"])
+            return
+
+        missing, mismatches, legacy = restart_manifest_consistency_issues(
+            manifest, atoms=atoms, state=state
+        )
+        if legacy:
+            self.log_main([
+                f"\n*** WARNING: companion manifest {manifest_path.name} is marked "
+                "legacy/incomplete; continuing with fresh admission checks.\n"
+            ])
+            return
+
+        problems = []
+        if missing:
+            problems.append("missing required fields: " + ", ".join(missing))
+        if mismatches:
+            problems.append("mismatches: " + "; ".join(mismatches))
+        if not problems:
+            return
+
+        detail = " | ".join(problems)
+        if strict:
+            raise RuntimeError(
+                f"Strict restart manifest consistency failed for {used_path}: {detail}"
+            )
+        self.log_main([
+            f"\n*** WARNING: load_state companion manifest consistency issue for "
+            f"{used_path.name}: {detail}; continuing with fresh admission checks.\n"
+        ])
+
     def start_simulation(self, ensemble: str, timestep: float, n_steps: int,
                         temperature: float, atoms: Atoms,
                         pressure: float = None, step_offset: int = 0,
@@ -363,8 +427,10 @@ class MDLogger:
                 f"Neighbor cutoff:  {f'{pbc_cutoff:.3f} A' if pbc_cutoff is not None else 'n/a'}\n",
                 f"Long-range:       {pbc_long_range}\n",
                 f"Stress unit:      {getattr(pbc_calc, 'maple_stress_unit', None) or 'n/a'}\n",
-                "NOTE: Wrapped PBC coordinates are for visualization/restart handoff; "
-                "use the unwrapped trajectory for MSD/diffusion or boundary-crossing analysis.\n",
+                "NOTE: Wrapped PBC coordinates are for visualization/restart handoff. "
+                "For fixed-cell NVE/NVT, the unwrapped trajectory is suitable for "
+                "MSD/diffusion. For variable-cell NPT, MSD/diffusion must use "
+                "fractional displacements or remove affine cell deformation first.\n",
             ])
 
         self.log_main([
@@ -842,6 +908,10 @@ class MDLogger:
             ensure_image_flags(atoms)[:] = state["image_flags"]
         elif any(atoms.pbc):
             ensure_image_flags(atoms)
+
+        self._validate_restart_manifest(
+            used_path, atoms=atoms, state=state, load_state=load_state
+        )
 
         # Store RNG state for ensemble drivers (NVT/NPT) to restore
         self.resumed_rng_state = state.get("rng_state")

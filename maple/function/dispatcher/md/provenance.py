@@ -154,8 +154,154 @@ def _long_range_method(model_options) -> str:
     in sync.
     """
     if isinstance(model_options, dict):
-        return model_options.get("coulomb") or "none"
+        return _normalize_long_range_method(model_options.get("coulomb"))
     return "none"
+
+
+def _normalize_long_range_method(value) -> str:
+    """Normalize absent/short-range long-range-method labels for comparisons."""
+    if value is None:
+        return "none"
+    text = str(value).strip().lower()
+    if text in {"", "none", "n/a", "na", "null"}:
+        return "none"
+    return text
+
+
+def companion_manifest_for_rst(used_path) -> Path:
+    """Return the provenance manifest path that lives next to an RST source.
+
+    ``MDLogger`` writes ``<base>_md.rst``, ``<base>_md_prev.rst`` and
+    ``<base>_md_manifest.json``.  An explicit ``rst_file`` may point to a
+    different directory, so derive the companion from the actual RST path rather
+    than from the current output prefix.
+    """
+    path = Path(used_path)
+    stem = path.stem
+    if stem.endswith("_md_prev"):
+        manifest_stem = stem[:-5]  # strip "_prev", keep the canonical "_md"
+    elif stem.endswith("_md"):
+        manifest_stem = stem
+    else:
+        manifest_stem = stem
+    return path.with_name(f"{manifest_stem}_manifest.json")
+
+
+def _manifest_marked_legacy_or_incomplete(manifest: Dict[str, Any]) -> bool:
+    markers = [
+        manifest.get("manifest_status"),
+        manifest.get("status"),
+        manifest.get("schema_status"),
+        (manifest.get("run") or {}).get("manifest_status"),
+    ]
+    if any(str(marker).strip().lower() in {"legacy", "incomplete"} for marker in markers if marker is not None):
+        return True
+    return bool(manifest.get("legacy") or manifest.get("incomplete"))
+
+
+def _path_get(mapping: Optional[Dict[str, Any]], dotted: str, default=None):
+    current: Any = mapping
+    for part in dotted.split("."):
+        if not isinstance(current, dict) or part not in current:
+            return default
+        current = current[part]
+    return current
+
+
+def restart_manifest_consistency_issues(
+    manifest: Dict[str, Any],
+    *,
+    atoms: Atoms,
+    state: Dict[str, Any],
+) -> tuple[list[str], list[str], bool]:
+    """Return (missing_fields, mismatches, legacy_or_incomplete)."""
+    if _manifest_marked_legacy_or_incomplete(manifest):
+        return [], [], True
+
+    pbc = [bool(flag) for flag in atoms.pbc]
+    calc = getattr(atoms, "calc", None)
+    is_pbc = any(pbc)
+    required = [
+        "system.n_atoms",
+        "system.pbc",
+        "system.cell",
+        "run.ensemble",
+        "run.params.timestep",
+        "calculator.model",
+        "calculator.capabilities.energy_unit",
+        "calculator.capabilities.force_unit",
+    ]
+    if is_pbc:
+        required += [
+            "calculator.capabilities.neighbor_cutoff_A",
+            "calculator.capabilities.long_range_method",
+        ]
+    if bool(getattr(calc, "maple_stress_supported", False)):
+        required.append("calculator.capabilities.stress_unit")
+
+    missing = [field for field in required if _path_get(manifest, field) is None]
+    mismatches: list[str] = []
+    if missing:
+        return missing, mismatches, False
+
+    def add_mismatch(field: str, got, expected) -> None:
+        mismatches.append(f"{field}: manifest={got!r}, current={expected!r}")
+
+    if int(_path_get(manifest, "system.n_atoms")) != int(state["natoms"]):
+        add_mismatch("system.n_atoms", _path_get(manifest, "system.n_atoms"), state["natoms"])
+
+    manifest_pbc = [bool(flag) for flag in _path_get(manifest, "system.pbc")]
+    if manifest_pbc != pbc:
+        add_mismatch("system.pbc", manifest_pbc, pbc)
+
+    manifest_cell = np.asarray(_path_get(manifest, "system.cell"), dtype=float)
+    current_cell = np.asarray(atoms.cell.array, dtype=float)
+    if manifest_cell.shape != (3, 3) or not np.allclose(
+        manifest_cell, current_cell, rtol=1e-9, atol=1e-9
+    ):
+        add_mismatch("system.cell", manifest_cell.tolist(), current_cell.tolist())
+
+    manifest_ensemble = str(_path_get(manifest, "run.ensemble")).lower()
+    if manifest_ensemble != str(state["ensemble"]).lower():
+        add_mismatch("run.ensemble", manifest_ensemble, state["ensemble"])
+
+    manifest_timestep = float(_path_get(manifest, "run.params.timestep"))
+    if not np.isclose(manifest_timestep, float(state["timestep"]), rtol=0.0, atol=1e-12):
+        add_mismatch("run.params.timestep", manifest_timestep, state["timestep"])
+
+    current_model = getattr(calc, "maple_model_name", None)
+    manifest_model = _path_get(manifest, "calculator.model")
+    if current_model is not None and str(manifest_model).lower() != str(current_model).lower():
+        add_mismatch("calculator.model", manifest_model, current_model)
+
+    for cap_name, attr in (
+        ("energy_unit", "maple_energy_unit"),
+        ("force_unit", "maple_force_unit"),
+        ("stress_unit", "maple_stress_unit"),
+    ):
+        current_value = getattr(calc, attr, None)
+        manifest_value = _path_get(manifest, f"calculator.capabilities.{cap_name}")
+        if current_value is not None and manifest_value != current_value:
+            add_mismatch(f"calculator.capabilities.{cap_name}", manifest_value, current_value)
+
+    if is_pbc:
+        manifest_cutoff = float(_path_get(manifest, "calculator.capabilities.neighbor_cutoff_A"))
+        current_cutoff = _calc_cutoff(calc)
+        if current_cutoff is not None and not np.isclose(
+            manifest_cutoff, float(current_cutoff), rtol=1e-7, atol=1e-9
+        ):
+            add_mismatch("calculator.capabilities.neighbor_cutoff_A", manifest_cutoff, current_cutoff)
+
+        manifest_lr = _normalize_long_range_method(
+            _path_get(manifest, "calculator.capabilities.long_range_method")
+        )
+        current_lr = _normalize_long_range_method(
+            _long_range_method(getattr(calc, "maple_model_options", None))
+        )
+        if manifest_lr != current_lr:
+            add_mismatch("calculator.capabilities.long_range_method", manifest_lr, current_lr)
+
+    return missing, mismatches, False
 
 
 def system_provenance(atoms: Atoms) -> Dict[str, Any]:

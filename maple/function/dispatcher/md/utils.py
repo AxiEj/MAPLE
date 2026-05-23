@@ -15,6 +15,7 @@ import from them directly when a module wants an explicit, narrow dependency:
 * :mod:`.velocity_init`     — Maxwell-Boltzmann init, temperature rescaling
 * :mod:`.motion_projection` — COM/angular projection, velocity reprs, momenta
 * :mod:`.trajectory_xyz`    — extended-XYZ frame writers
+* :mod:`.semantics`         — cross-cutting MD admission helper
 """
 
 from .units import (  # noqa: F401
@@ -83,6 +84,7 @@ from .motion_projection import (  # noqa: F401
     standard_to_lfmiddle_carried,
 )
 from .trajectory_xyz import write_xyz_frame, write_xyz_trajectory  # noqa: F401
+from .semantics import validate_md_admission_state  # noqa: F401
 
 
 __all__ = [
@@ -118,4 +120,6 @@ __all__ = [
     "standard_to_lfmiddle_carried",
     # trajectory_xyz
     "write_xyz_frame", "write_xyz_trajectory",
+    # semantics
+    "validate_md_admission_state",
 ]

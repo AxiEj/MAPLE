@@ -10,7 +10,12 @@ import torch
 from ase import Atoms
 from ase.calculators.calculator import all_changes
 
-from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
+from maple.function.calculator._ase_unit_contract import (
+    ASE_STRESS_UNIT,
+    EV2HARTREE,
+    MAPLE_ENERGY_UNIT,
+    MAPLE_FORCE_UNIT,
+)
 
 try:
     from fairchem.core import pretrained_mlip
@@ -42,6 +47,13 @@ SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
 UMA_INFERENCE_SETTINGS = "default"
 UMA_CPU_INFERENCE_SETTINGS = "default"
 
+# UMA's graph generator uses a fixed 6.0 Å radius for the per-atom local
+# environment (see FAIRChemCalculator and ``_set_task_from_atoms`` below, where
+# ``AtomicData.from_ase(..., radius=...)`` is the only neighbor list UMA reads).
+# That fixed radius is the calculator's effective neighbor cutoff, so the MAPLE
+# MD admission gate (``validate_pbc_neighbor_cutoff``) reads it from here.
+UMA_NEIGHBOR_CUTOFF_A = 6.0
+
 
 class UMACalculator(FAIRChemCalculator):
     """
@@ -56,6 +68,18 @@ class UMACalculator(FAIRChemCalculator):
     maple_pbc_md_supported = True
     maple_stress_supported = True
     maple_stress_unit = ASE_STRESS_UNIT
+    # MAPLE MD unit contract: ``calculate()`` below converts eV / eV·Å outputs
+    # from FAIRChem to Hartree / Hartree·Å⁻¹ in place, so MD reads them in the
+    # MAPLE units. ``CalcABC`` is the source of this contract for native
+    # backends; UMA extends ``FAIRChemCalculator`` instead, so it must declare
+    # the contract explicitly or the admission gate (``validate_energy_force_units``)
+    # would reject it.
+    maple_energy_unit = MAPLE_ENERGY_UNIT
+    maple_force_unit = MAPLE_FORCE_UNIT
+    # See ``UMA_NEIGHBOR_CUTOFF_A``: UMA's graph generator uses a fixed 6.0 Å
+    # neighbor radius and ignores any user override, so this is the effective
+    # cutoff every MD admission check needs to compare against the MIC radius.
+    neighbor_cutoff_A = UMA_NEIGHBOR_CUTOFF_A
 
     @staticmethod
     def _normalize_device(device: torch.device | str | None) -> str:
@@ -255,9 +279,23 @@ class UMACalculator(FAIRChemCalculator):
             r_edges=r_edges,
             r_data_keys=["spin", "charge"],
             max_neigh=max_neigh,
-            radius=6.0,
+            radius=UMA_NEIGHBOR_CUTOFF_A,
         )
-        self.task_name = task
+        # ``task_name`` is a read-only property on ``FAIRChemCalculator`` (only
+        # the ``_task_name`` backing attribute is writable); assigning to the
+        # public name would AttributeError on the very first PBC auto-switch.
+        # ``implemented_properties`` derives from the task, so refresh it the
+        # same way the parent ``__init__`` builds it.
+        self._task_name = task
+        self.implemented_properties = [
+            entry.property
+            for entry in self._predictor_unit.dataset_to_tasks[self.task_name]
+        ]
+        if (
+            "energy" in self.implemented_properties
+            and "free_energy" not in self.implemented_properties
+        ):
+            self.implemented_properties.append("free_energy")
 
     def get_energy(self, atoms: Atoms) -> torch.Tensor:
         self.calculate(atoms, properties=["energy"], system_changes=all_changes)

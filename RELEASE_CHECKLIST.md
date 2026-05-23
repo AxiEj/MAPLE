@@ -51,3 +51,26 @@ Each run's provenance manifest (`*_md_manifest.json`) must record:
   conversion that then declares the contract), never by attribute-stamping.
 - The smoke thresholds (`validation/thresholds.smoke.toml`) are for the unit layer only;
   the ship gate uses the production profile `validation/thresholds.toml`.
+
+## 4. PBC neighbor-cutoff policy (per backend)
+
+MAPLE gates PBC MD on `neighbor_cutoff_A < minimum_image_radius_A` (Allen &
+Tildesley 2017, §1.5). Equality is rejected deliberately — a box with
+`L = 2 * cutoff` places an atom exactly at its periodic image's interaction
+surface and float rounding (or barostat shrinkage) flips the comparison
+silently. Enlarge the cell or reduce the cutoff; the gate is not relaxed.
+
+Per-backend effective cutoff used by the gate:
+
+| Backend                         | Effective neighbor cutoff                              | Notes |
+|---------------------------------|--------------------------------------------------------|-------|
+| `aimnet2-pbc` / `aimnet2nse-pbc` (DSF)   | `max(5.0, public_cutoff_A)` (default 15.0)    | DSF's public cutoff participates; AEV short range (5 Å) is the floor |
+| `aimnet2-pbc` / `aimnet2nse-pbc` (Ewald / PME) | `5.0` (AEV short range)                  | Ewald/PME ignore the public cutoff at runtime |
+| `mace-mp-pbc-*`                 | `models[0].r_max` (typically ~6 Å)                     | Read from the loaded MACE committee, not hard-coded |
+| `macepol-pbc-*`                 | `models[0].r_max`                                      | Same logic as MACE-MP |
+| `uma`                           | `6.0` (FAIR Chemistry graph radius)                    | Fixed: FAIRChem's `AtomicData.from_ase(radius=6.0)` is the only neighbor list UMA reads |
+
+For real-backend release validation, copy each backend's reported
+`calculator.capabilities.neighbor_cutoff_A` from its provenance manifest into
+the release log. The numbers must be finite and match the table; an unknown
+cutoff is rejected at the MD admission gate and cannot reach the report.

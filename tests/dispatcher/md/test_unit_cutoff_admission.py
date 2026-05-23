@@ -111,6 +111,22 @@ def test_unknown_cutoff_allowed_with_explicit_override(tmp_path):
     assert sim is not None
 
 
+# ── MD admission: equality boundary (cutoff == minimum-image radius) ────────
+
+def test_cutoff_equal_to_mic_radius_is_rejected(tmp_path):
+    """Equality is rejected deliberately: a cell with L = 2 * cutoff places an
+    atom exactly at its periodic image's interaction surface, where float
+    rounding (and any barostat shrinkage) flips the comparison silently. The
+    safer rule is strict ``cutoff < radius``; this test pins that boundary so a
+    future relaxation to ``<=`` cannot land without breaking this contract.
+    """
+    # 10 Å orthorhombic cell -> MIC radius 5.0 Å; declare cutoff 5.0 Å.
+    calc = wrap_ase_calculator(_lj(rc=2.0), pbc_md_supported=True, neighbor_cutoff_A=5.0)
+    with pytest.raises(ValueError, match=">= minimum-image radius"):
+        NVE(output=str(tmp_path / "boundary.out"), atoms=_pbc_atoms(calc),
+            paras={"steps": 0, "verbose": 0})
+
+
 # ── provenance: contract + policy recorded ──────────────────────────────────
 
 def test_run_context_records_unit_contract_and_cutoff_policy():

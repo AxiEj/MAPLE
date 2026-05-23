@@ -9,6 +9,7 @@ from ase import Atoms
 from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
 from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
 from maple.function.calculator.aimnet._aimnet2_official_pbc_calculator import (
+    AIMNET2_SHORT_RANGE_CUTOFF_A,
     AIMNet2OfficialPBCCalculator,
 )
 from maple.function.calculator.aimnet.options import validate_aimnet_options
@@ -58,6 +59,47 @@ def test_aimnet_pbc_capability_declared_without_changing_legacy_class():
     assert AIMNet2OfficialPBCCalculator.maple_pbc_md_supported is True
     assert AIMNet2OfficialPBCCalculator.maple_stress_unit == ASE_STRESS_UNIT
     assert getattr(AIMNet2Calculator, "maple_pbc_md_supported", False) is False
+
+
+def _build_pbc_calc(coulomb_method, cutoff, pme_cutoff=None):
+    return AIMNet2OfficialPBCCalculator(
+        device=torch.device("cpu"),
+        coulomb_method=coulomb_method,
+        cutoff=cutoff,
+        pme_cutoff=pme_cutoff,
+        base_calculator_cls=DummyAIMNetBase,
+        ase_calculator_cls=lambda base: DummyOfficialASECalculator(base),
+    )
+
+
+@pytest.mark.parametrize(
+    ("coulomb_method", "cutoff", "expected_neighbor_cutoff"),
+    [
+        # DSF is a real cutoff-based method: the public cutoff participates in
+        # the MIC bound, but the 5 Å AEV short-range descriptor is the floor.
+        ("dsf", 15.0, 15.0),
+        ("dsf", 12.0, 12.0),
+        ("dsf", 3.0, AIMNET2_SHORT_RANGE_CUTOFF_A),
+        # Ewald / PME ignore the public ``cutoff`` argument at runtime, so the
+        # only cutoff MAPLE can honestly gate against is the AEV short range.
+        ("ewald", 15.0, AIMNET2_SHORT_RANGE_CUTOFF_A),
+        ("pme", 15.0, AIMNET2_SHORT_RANGE_CUTOFF_A),
+    ],
+)
+def test_aimnet_pbc_effective_cutoff_matches_coulomb_method(
+    coulomb_method, cutoff, expected_neighbor_cutoff
+):
+    calc = _build_pbc_calc(coulomb_method, cutoff)
+    assert calc.neighbor_cutoff_A == pytest.approx(expected_neighbor_cutoff)
+    # The long-range method's public cutoff is preserved verbatim for the
+    # manifest, separate from the effective local cutoff used at admission.
+    assert calc.lrcoulomb_method == coulomb_method
+    assert calc.lrcoulomb_cutoff_A == pytest.approx(cutoff)
+
+
+def test_aimnet_pbc_rejects_unsupported_coulomb_method():
+    with pytest.raises(ValueError, match="Unsupported AIMNet2 PBC Coulomb method"):
+        _build_pbc_calc("simple", 15.0)
 
 
 def test_aimnet_pbc_converts_energy_and_forces_but_not_stress():

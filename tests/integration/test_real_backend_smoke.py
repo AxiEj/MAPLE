@@ -29,14 +29,19 @@ _BACKENDS = [
 
 def _small_periodic_water() -> Atoms:
     # A loose periodic water box: small enough to be cheap, large enough for the
-    # minimum-image convention against typical ML cutoffs.
+    # minimum-image convention against every real PBC backend in this smoke set.
+    # The 32 Å cubic cell yields an MIC radius of 16 Å, which clears the largest
+    # declared neighbor cutoff in the matrix (AIMNet2 DSF defaults to 15 Å) while
+    # leaving the six-atom locality unchanged. A smaller box (e.g. 10 Å, radius
+    # 5 Å) would be hard-rejected by the MD admission gate before any backend
+    # forces are evaluated.
     return Atoms(
         "OH2OH2",
         positions=[
             [1.0, 1.0, 1.0], [1.96, 1.0, 1.0], [0.7, 1.9, 1.0],
             [5.0, 5.0, 5.0], [5.96, 5.0, 5.0], [4.7, 5.9, 5.0],
         ],
-        cell=[10.0, 10.0, 10.0],
+        cell=[32.0, 32.0, 32.0],
         pbc=True,
     )
 

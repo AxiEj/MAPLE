@@ -35,6 +35,7 @@ from maple.function.dispatcher.md.validation import (  # noqa: E402
     load_smoke_thresholds,
     load_thresholds,
     run_acceptance_matrix,
+    validation_system_summary,
     write_report,
 )
 
@@ -158,6 +159,7 @@ def main(argv=None) -> int:
         "validation_mode": "quick-smoke" if args.quick else "production-validation",
         "production_validated": not args.quick,
         "model_options": model_options,
+        "validation_system": validation_system_summary(factory),
     }
     report = write_report(results, thresholds, outdir, calculator_label=label, extra=extra)
 

@@ -15,6 +15,7 @@ from maple.function.dispatcher.md.validation import (
     run_pbc_geometry,
     write_report,
     lj_reference_factory,
+    validation_system_summary,
 )
 
 
@@ -48,6 +49,17 @@ def test_lj_reference_calculator_honours_maple_unit_contract():
     assert crystal.calc.maple_pbc_md_supported is True
     assert crystal.calc.maple_stress_supported is True
     assert crystal.calc.maple_stress_unit == ASE_STRESS_UNIT
+
+
+def test_real_backend_validation_system_avoids_argon_species_gate():
+    class RealBackendLikeCalc:
+        maple_model_name = "aimnet2-pbc"
+
+    summary = validation_system_summary(lambda: RealBackendLikeCalc())
+    assert summary["formula"] == "H16O8"
+    assert summary["n_atoms"] == 24
+    assert summary["pbc"] == [True, True, True]
+    assert min(np.linalg.norm(row) for row in summary["cell_A"]) > 12.0
 
 
 def test_pbc_geometry_class_passes(tmp_path):

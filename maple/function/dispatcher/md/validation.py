@@ -104,6 +104,59 @@ def _lj_crystal(repeat: int = 3) -> Atoms:
     return atoms
 
 
+def _water_validation_box() -> Atoms:
+    """Small neutral H/O periodic validation box for real ML backends.
+
+    The backend-free acceptance matrix is calibrated on the LJ argon reference,
+    but some real MAPLE PBC backends (notably AIMNet2) deliberately reject argon
+    because it is outside their trained species set.  Use a compact H/O box for
+    non-LJ calculators so real-backend validation exercises the same MD/PBC
+    machinery without disabling each model's species guard.
+    """
+    cell_length = 13.2  # MIC radius 6.6 Å, safely above 5–6 Å backend cutoffs.
+    spacing = 5.5
+    origin = 0.5 * (cell_length - spacing)
+    oh1 = np.array([0.9572, 0.0, 0.0])
+    oh2 = np.array([-0.2399872, 0.927297, 0.0])
+    symbols: list[str] = []
+    positions: list[np.ndarray] = []
+    for ix in range(2):
+        for iy in range(2):
+            for iz in range(2):
+                o = np.array([origin + ix * spacing, origin + iy * spacing, origin + iz * spacing])
+                symbols.extend(["O", "H", "H"])
+                positions.extend([o, o + oh1, o + oh2])
+    atoms = Atoms(symbols, positions=np.asarray(positions), cell=np.eye(3) * cell_length, pbc=True)
+    atoms.info["charge"] = 0
+    atoms.info["mult"] = 1
+    return atoms
+
+
+def _uses_lj_reference_system(calc_factory) -> bool:
+    try:
+        model = getattr(calc_factory(), "maple_model_name", None)
+    except Exception:
+        return True
+    return model in (None, "", "lj-reference")
+
+
+def _validation_crystal(calc_factory, repeat: int = 3) -> Atoms:
+    if _uses_lj_reference_system(calc_factory):
+        return _lj_crystal(repeat)
+    return _water_validation_box()
+
+
+def validation_system_summary(calc_factory) -> Dict[str, Any]:
+    """Machine-readable summary of the primary acceptance-matrix system."""
+    atoms = _validation_crystal(calc_factory)
+    return {
+        "formula": atoms.get_chemical_formula(),
+        "n_atoms": len(atoms),
+        "pbc": [bool(flag) for flag in atoms.pbc],
+        "cell_A": np.asarray(atoms.cell.array, dtype=float).tolist(),
+    }
+
+
 # ──────────────────────────────────────────────────────────────────────────
 # Result model
 # ──────────────────────────────────────────────────────────────────────────
@@ -150,7 +203,7 @@ def _read_thermo(path: Path) -> Dict[str, np.ndarray]:
 
 def run_nve_energy_drift(calc_factory, thresholds, workdir, *, steps=300, timestep=0.5) -> AcceptanceResult:
     th = thresholds["nve_energy_drift"]
-    atoms = _lj_crystal()
+    atoms = _validation_crystal(calc_factory)
     atoms.calc = calc_factory()
     out = str(workdir / "nve_drift.out")
     NVE(output=out, atoms=atoms, paras={
@@ -181,7 +234,7 @@ def run_restart_determinism(calc_factory, thresholds, workdir, *, timestep=0.5) 
     th = thresholds["restart_determinism"]
 
     def _run(tag, steps, **extra):
-        atoms = _lj_crystal()
+        atoms = _validation_crystal(calc_factory)
         atoms.calc = calc_factory()
         atoms.arrays["velocities"] = _seeded_velocities(atoms)
         NVE(output=str(workdir / f"{tag}.out"), atoms=atoms, paras={
@@ -193,7 +246,7 @@ def run_restart_determinism(calc_factory, thresholds, workdir, *, timestep=0.5) 
 
     full = _run("restart_full", 40)
     _run("restart_part1", 20)
-    cont = _lj_crystal()
+    cont = _validation_crystal(calc_factory)
     cont.calc = calc_factory()
     NVE(output=str(workdir / "restart_part2.out"), atoms=cont, paras={
         "steps": 40, "timestep": timestep, "restart": True,
@@ -217,7 +270,7 @@ def run_restart_determinism(calc_factory, thresholds, workdir, *, timestep=0.5) 
 def run_nvt_mean_temperature(calc_factory, thresholds, workdir, *, steps=6000, timestep=0.5) -> AcceptanceResult:
     th = thresholds["nvt_mean_temperature"]
     target = 80.0
-    atoms = _lj_crystal()
+    atoms = _validation_crystal(calc_factory)
     atoms.calc = calc_factory()
     nvt = NVT(output=str(workdir / "nvt.out"), atoms=atoms, paras={
         "steps": steps, "timestep": timestep, "temperature": target,
@@ -262,7 +315,7 @@ def run_nvt_mean_temperature(calc_factory, thresholds, workdir, *, steps=6000, t
 
 def run_npt_pressure(calc_factory, thresholds, workdir, *, steps=200, timestep=0.5) -> AcceptanceResult:
     th = thresholds["npt_pressure"]
-    atoms = _lj_crystal()
+    atoms = _validation_crystal(calc_factory)
     atoms.calc = calc_factory()
     NPT(output=str(workdir / "npt.out"), atoms=atoms, paras={
         "steps": steps, "timestep": timestep, "temperature": 80.0, "pressure": 1.0,
@@ -293,6 +346,12 @@ def _lj_liquid(repeat: int = 3) -> Atoms:
     from ase.build import bulk
 
     return bulk("Ar", "fcc", a=5.8, cubic=True) * (repeat, repeat, repeat)
+
+
+def _validation_liquid(calc_factory) -> Atoms:
+    if _uses_lj_reference_system(calc_factory):
+        return _lj_liquid()
+    return _water_validation_box()
 
 
 def _block_variance(series: np.ndarray, n_blocks: int) -> tuple:
@@ -374,7 +433,7 @@ def run_npt_volume_fluctuation(
     n_blocks = int(th["n_blocks"])
 
     def _volume_series(tag: str, pressure: float) -> np.ndarray:
-        atoms = _lj_liquid()
+        atoms = _validation_liquid(calc_factory)
         atoms.calc = calc_factory()
         NPT(output=str(workdir / f"{tag}.out"), atoms=atoms, paras={
             "steps": steps, "timestep": timestep, "temperature": temperature,
@@ -455,7 +514,7 @@ def run_npt_effective_energy_drift(
     barostat genuinely moves the volume (a frozen volume would not exercise it).
     """
     th = thresholds["npt_effective_energy_drift"]
-    atoms = _lj_liquid()
+    atoms = _validation_liquid(calc_factory)
     atoms.calc = calc_factory()
     NPT(output=str(workdir / "npt_eff.out"), atoms=atoms, paras={
         "steps": steps, "timestep": timestep, "temperature": temperature, "pressure": 1.0,
@@ -492,7 +551,7 @@ def run_npt_effective_energy_drift(
 
 def run_stress_finite_difference(calc_factory, thresholds, workdir, **_) -> AcceptanceResult:
     th = thresholds["stress_finite_difference"]
-    base = _lj_crystal()
+    base = _validation_crystal(calc_factory)
     # Deform the cell so the finite-difference matrix exercises both diagonal
     # stress and non-zero shear components rather than only the hydrostatic trace.
     deformation = np.array(
@@ -614,7 +673,7 @@ def run_pbc_geometry(calc_factory, thresholds, workdir, **_) -> AcceptanceResult
 
 
 def run_constraints_rejected(calc_factory, thresholds, workdir, **_) -> AcceptanceResult:
-    atoms = _lj_crystal()
+    atoms = _validation_crystal(calc_factory)
     atoms.calc = calc_factory()
     atoms.set_constraint(FixAtoms(indices=[0]))
     rejected = False
@@ -659,7 +718,7 @@ def run_barostat_clamp_free(calc_factory, thresholds, workdir, *, steps=200, tim
     the largest log-volume excursion that had to be clipped (0 when none).
     """
     th = thresholds["barostat_clamp"]
-    atoms = _lj_crystal()
+    atoms = _validation_crystal(calc_factory)
     atoms.calc = calc_factory()
     sim = NPT(output=str(workdir / "npt_clamp.out"), atoms=atoms, paras={
         "steps": steps, "timestep": timestep, "temperature": 80.0, "pressure": 1.0,

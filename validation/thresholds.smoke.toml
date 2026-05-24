@@ -10,7 +10,10 @@
 # the production profile's loose v1 defaults; see thresholds.toml for the per-class
 # calibration rationale. Smoke may be looser for sampling-heavy classes because
 # --quick is compatibility evidence only, not production validation.
-thresholds_version = "smoke-1.3.0"
+#
+# smoke-1.3.1: production keeps the H̃ drift gate at 1e-6; quick smoke uses
+# 5e-6 because its ~0.16 ps fit window shows float32/GPU ML-backend slope noise.
+thresholds_version = "smoke-1.3.1"
 
 [nve_energy_drift]
 max_rel_drift = 5.0e-3
@@ -37,7 +40,11 @@ max_volume_change = 0.25
 n_blocks = 5
 
 [npt_effective_energy_drift]
-max_abs_drift_ha_per_atom_per_ps = 1.0e-6
+# Quick smoke fits H̃ over only ~0.16 ps for real ML backends, where float32/GPU
+# evaluation noise can move the fitted slope by a few 1e-6 without indicating a
+# broken restart or barostat.  Keep production at 1e-6 in thresholds.toml; smoke
+# remains compatibility-only and must not be reported as production-validated.
+max_abs_drift_ha_per_atom_per_ps = 5.0e-6
 
 [stress_finite_difference]
 # Smoke-only mirror of the production full-tensor stress section.  The default

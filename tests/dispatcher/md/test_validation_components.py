@@ -56,10 +56,12 @@ def test_real_backend_validation_system_avoids_argon_species_gate():
         maple_model_name = "aimnet2-pbc"
 
     summary = validation_system_summary(lambda: RealBackendLikeCalc())
-    assert summary["formula"] == "H16O8"
-    assert summary["n_atoms"] == 24
-    assert summary["pbc"] == [True, True, True]
-    assert min(np.linalg.norm(row) for row in summary["cell_A"]) > 12.0
+    assert summary["dynamics"]["formula"] == "C8O16"
+    assert summary["dynamics"]["n_atoms"] == 24
+    assert summary["dynamics"]["pbc"] == [True, True, True]
+    assert min(np.linalg.norm(row) for row in summary["dynamics"]["cell_A"]) > 12.0
+    assert summary["stress_finite_difference"]["formula"] == "H16O8"
+    assert summary["stress_finite_difference"]["n_atoms"] == 24
 
 
 def test_pbc_geometry_class_passes(tmp_path):

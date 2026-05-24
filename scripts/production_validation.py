@@ -75,6 +75,20 @@ def _parse_model_options(items: list[str] | None) -> dict:
     return parsed
 
 
+def _apply_validation_model_defaults(model: str | None, model_options: dict) -> dict:
+    """Return model options appropriate for production validation.
+
+    The MAPLE runtime default for MACE/MACE-Polar PBC remains float32 for speed.
+    MACE-Polar's finite-difference stress gate is precision-sensitive enough
+    that float32 can quantize small strain-energy differences to zero, so
+    validate PolarMACE in float64 unless the caller explicitly chooses a dtype.
+    """
+    options = dict(model_options)
+    if model in {"macepol-pbc-small", "macepol-pbc-medium", "macepol-pbc-large"}:
+        options.setdefault("default_dtype", "float64")
+    return options
+
+
 def _real_model_factory(model: str, device: str | None, output: str, model_options: dict):
     """Build a real MAPLE calculator once and reuse it across acceptance classes."""
     import torch
@@ -123,6 +137,7 @@ def main(argv=None) -> int:
         model_options = _parse_model_options(args.model_option)
     except ValueError as exc:
         parser.error(str(exc))
+    model_options = _apply_validation_model_defaults(args.model, model_options)
 
     if args.thresholds:
         thresholds = load_thresholds(args.thresholds)

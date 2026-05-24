@@ -107,11 +107,10 @@ def _lj_crystal(repeat: int = 3) -> Atoms:
 def _water_validation_box() -> Atoms:
     """Small neutral H/O periodic validation box for real ML backends.
 
-    The backend-free acceptance matrix is calibrated on the LJ argon reference,
-    but some real MAPLE PBC backends (notably AIMNet2) deliberately reject argon
-    because it is outside their trained species set.  Use a compact H/O box for
-    non-LJ calculators so real-backend validation exercises the same MD/PBC
-    machinery without disabling each model's species guard.
+    This is retained as the real-backend *stress* reference: it provides a
+    molecular H/O chemistry surface all supported real PBC backends can evaluate,
+    but it is not used for the dynamic NVE/NVT/NPT gates because unconstrained
+    O-H stretches require a much smaller timestep than the LJ reference.
     """
     cell_length = 13.2  # MIC radius 6.6 Å, safely above 5–6 Å backend cutoffs.
     spacing = 5.5
@@ -132,6 +131,45 @@ def _water_validation_box() -> Atoms:
     return atoms
 
 
+def _co2_validation_box() -> Atoms:
+    """Small neutral H-free periodic CO2 box for real-backend dynamics.
+
+    The backend-free matrix is calibrated on an LJ argon crystal.  Real MAPLE
+    PBC backends must not be tested on Ar because AIMNet2 correctly rejects it
+    as out-of-domain.  A compact C/O molecular box keeps the species set common
+    to AIMNet2, MACE, MACE-Polar and UMA while avoiding the unconstrained O-H
+    high-frequency modes that made the previous H/O dynamic gate timestep-bound
+    rather than backend-bound.
+    """
+    cell_length = 13.2  # MIC radius 6.6 Å, safely above 5–6 Å backend cutoffs.
+    spacing = 5.5
+    origin = 0.5 * (cell_length - spacing)
+    co_bond = 1.16
+    axes = [
+        np.array([1.0, 0.0, 0.0]),
+        np.array([0.0, 1.0, 0.0]),
+        np.array([0.0, 0.0, 1.0]),
+        np.array([1.0, 1.0, 0.0]) / np.sqrt(2.0),
+    ]
+    symbols: list[str] = []
+    positions: list[np.ndarray] = []
+    index = 0
+    for ix in range(2):
+        for iy in range(2):
+            for iz in range(2):
+                center = np.array(
+                    [origin + ix * spacing, origin + iy * spacing, origin + iz * spacing]
+                )
+                axis = axes[index % len(axes)]
+                index += 1
+                symbols.extend(["O", "C", "O"])
+                positions.extend([center - co_bond * axis, center, center + co_bond * axis])
+    atoms = Atoms(symbols, positions=np.asarray(positions), cell=np.eye(3) * cell_length, pbc=True)
+    atoms.info["charge"] = 0
+    atoms.info["mult"] = 1
+    return atoms
+
+
 def _uses_lj_reference_system(calc_factory) -> bool:
     try:
         model = getattr(calc_factory(), "maple_model_name", None)
@@ -143,17 +181,31 @@ def _uses_lj_reference_system(calc_factory) -> bool:
 def _validation_crystal(calc_factory, repeat: int = 3) -> Atoms:
     if _uses_lj_reference_system(calc_factory):
         return _lj_crystal(repeat)
+    return _co2_validation_box()
+
+
+def _validation_stress_reference(calc_factory, repeat: int = 3) -> Atoms:
+    if _uses_lj_reference_system(calc_factory):
+        return _lj_crystal(repeat)
     return _water_validation_box()
 
 
 def validation_system_summary(calc_factory) -> Dict[str, Any]:
     """Machine-readable summary of the primary acceptance-matrix system."""
-    atoms = _validation_crystal(calc_factory)
+    dynamic = _validation_crystal(calc_factory)
+    stress = _validation_stress_reference(calc_factory)
+
+    def summarize(atoms: Atoms) -> Dict[str, Any]:
+        return {
+            "formula": atoms.get_chemical_formula(),
+            "n_atoms": len(atoms),
+            "pbc": [bool(flag) for flag in atoms.pbc],
+            "cell_A": np.asarray(atoms.cell.array, dtype=float).tolist(),
+        }
+
     return {
-        "formula": atoms.get_chemical_formula(),
-        "n_atoms": len(atoms),
-        "pbc": [bool(flag) for flag in atoms.pbc],
-        "cell_A": np.asarray(atoms.cell.array, dtype=float).tolist(),
+        "dynamics": summarize(dynamic),
+        "stress_finite_difference": summarize(stress),
     }
 
 
@@ -351,7 +403,7 @@ def _lj_liquid(repeat: int = 3) -> Atoms:
 def _validation_liquid(calc_factory) -> Atoms:
     if _uses_lj_reference_system(calc_factory):
         return _lj_liquid()
-    return _water_validation_box()
+    return _co2_validation_box()
 
 
 def _block_variance(series: np.ndarray, n_blocks: int) -> tuple:
@@ -551,7 +603,7 @@ def run_npt_effective_energy_drift(
 
 def run_stress_finite_difference(calc_factory, thresholds, workdir, **_) -> AcceptanceResult:
     th = thresholds["stress_finite_difference"]
-    base = _validation_crystal(calc_factory)
+    base = _validation_stress_reference(calc_factory)
     # Deform the cell so the finite-difference matrix exercises both diagonal
     # stress and non-zero shear components rather than only the hydrostatic trace.
     deformation = np.array(
@@ -773,10 +825,29 @@ def run_acceptance_matrix(
     workdir.mkdir(parents=True, exist_ok=True)
 
     nve_kw = {"steps": 60} if quick else {}
+    restart_kw = {}
     nvt_kw = {"steps": 120} if quick else {}
     npt_kw = {"steps": 60} if quick else {}
     npt_vf_kw = {"steps": 2000} if quick else {}
     npt_eff_kw = {"steps": 1000} if quick else {}
+    real_backend = not _uses_lj_reference_system(calc_factory)
+    if real_backend:
+        # The restart gate is an equality check on two trajectories that should
+        # see the same RST state.  For real GPU ML backends, tiny force rounding
+        # differences can be amplified by the NVE stepper over 40 steps; use the
+        # same conservative timestep as the NPT H-cons gate so the class remains
+        # a restart-state test rather than a finite-timestep noise test.
+        restart_kw = {"timestep": 0.25}
+        # Real-backend dynamics use the species-safe CO2 box.  Its C/O modes do
+        # not need the tiny timestep that H/O does, but real ML potentials still
+        # show visible finite-step noise in the reversible NPT conserved
+        # quantity at 0.25–1 fs.  Use 0.125 fs and keep the quick physical
+        # window at ~0.2 ps (full: ~1 ps) so a failure indicates backend/
+        # integrator inconsistency rather than an aggressive timestep artifact.
+        npt_eff_kw = (
+            {"steps": 1600, "timestep": 0.125}
+            if quick else {"steps": 8000, "timestep": 0.125}
+        )
 
     results: List[AcceptanceResult] = []
     try:
@@ -784,6 +855,8 @@ def run_acceptance_matrix(
             kwargs = {}
             if fn is run_nve_energy_drift:
                 kwargs = nve_kw
+            elif fn is run_restart_determinism:
+                kwargs = restart_kw
             elif fn is run_nvt_mean_temperature:
                 kwargs = nvt_kw
             elif fn is run_npt_pressure:

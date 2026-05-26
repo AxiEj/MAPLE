@@ -133,4 +133,8 @@ def test_write_report_emits_markdown_and_json(tmp_path):
     assert th["thresholds_version"] in text
     payload = __import__("json").loads(json_path.read_text())
     assert payload["markdown_report_path"] == str(md_path)
+    assert md_path.name == "report.md"
+    assert md_path.parent.name == payload["artifact_id"]
+    assert payload["run_workdir"] is None
+    assert payload["manifest_files"] == []
     assert len(payload["markdown_report_sha256"]) == 64

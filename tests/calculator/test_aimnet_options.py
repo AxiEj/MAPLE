@@ -13,7 +13,8 @@ from maple.function.calculator.aimnet._aimnet2_official_pbc_calculator import (
     AIMNet2OfficialPBCCalculator,
 )
 from maple.function.calculator.aimnet.options import validate_aimnet_options
-from maple.function.calculator.set_calculator import SetClaculator
+from maple.function.calculator.set_calculator import SetClaculator, validate_pbc_neighbor_cutoff
+from maple.function.dispatcher.md.validation import _co2_validation_box
 
 
 def _setter(tmp_path, model_options=None):
@@ -106,6 +107,13 @@ def test_aimnet_pbc_effective_cutoff_matches_coulomb_method(
 def test_aimnet_pbc_rejects_unsupported_coulomb_method():
     with pytest.raises(ValueError, match="Unsupported AIMNet2 PBC Coulomb method"):
         _build_pbc_calc("simple", 15.0)
+
+
+def test_aimnet_pbc_default_dsf_cutoff_is_not_claimed_for_current_validation_cell():
+    calc = _build_pbc_calc("dsf", 15.0)
+
+    with pytest.raises(ValueError, match="15.000 A >= minimum-image radius 6.600 A"):
+        validate_pbc_neighbor_cutoff(_co2_validation_box(), calc)
 
 
 def test_aimnet_pbc_converts_energy_and_forces_but_not_stress():

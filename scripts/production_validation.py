@@ -14,11 +14,13 @@ Examples
     python scripts/production_validation.py --model mace-mp-pbc-small --device cuda
 
 The report (markdown + JSON) and per-run provenance manifests are written under
-validation/reports/ (override with --outdir). This is the single release gate: the
-exit code is 0 only if every acceptance class passes AND none is skipped
-(inconclusive). A fired barostat clamp or an unknown neighbor cutoff already fails the
-matrix (via the barostat_clamp_free class and the MD cutoff-admission gate), and the
-per-run provenance manifests record the unit contract and cutoff policy.
+validation/reports/<artifact_id>/ (override with --outdir/--workdir):
+report.md, report.json, and runs/*_md_{manifest.json,summary.txt,thermo.dat}. This
+is the single release gate: the exit code is 0 only if every acceptance class passes,
+none is skipped (inconclusive), the report is from the current clean git commit, and
+no barostat clamp fired. An unknown neighbor cutoff already fails the matrix (via the
+MD cutoff-admission gate), and the per-run provenance manifests record the unit
+contract and cutoff policy.
 """
 
 import argparse
@@ -34,6 +36,7 @@ from maple.function.dispatcher.md.validation import (  # noqa: E402
     lj_reference_factory,
     load_smoke_thresholds,
     load_thresholds,
+    make_report_context,
     run_acceptance_matrix,
     validation_system_summary,
     write_report,
@@ -111,6 +114,26 @@ def _real_model_factory(model: str, device: str | None, output: str, model_optio
     return lambda: calc
 
 
+def _validation_target(label: str, model_options: dict, calc_contract: dict) -> dict:
+    """Describe the exact model+options scope covered by this report."""
+    options = dict(model_options)
+    method = calc_contract.get("long_range_method")
+    if label.startswith("aimnet2") and method:
+        options.setdefault("coulomb", method)
+        if method == "dsf" and calc_contract.get("long_range_coulomb_cutoff_A") is not None:
+            options.setdefault("cutoff", calc_contract["long_range_coulomb_cutoff_A"])
+    if options:
+        opts = ", ".join(f"{key}={options[key]!r}" for key in sorted(options))
+        target = f"{label} ({opts})"
+    else:
+        target = label
+    return {
+        "model": label,
+        "model_options": options,
+        "target": target,
+    }
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default=None,
@@ -119,6 +142,14 @@ def main(argv=None) -> int:
     parser.add_argument("--thresholds", default=None, help="path to thresholds.toml")
     parser.add_argument("--outdir", default=str(_REPO_ROOT / "validation" / "reports"),
                         help="report output directory")
+    parser.add_argument(
+        "--workdir",
+        default=None,
+        help=(
+            "persistent directory for per-run MD artifacts; default is "
+            "<outdir>/<artifact_id>/runs"
+        ),
+    )
     parser.add_argument("--quick", action="store_true",
                         help="shorter runs (smoke; not for a real ship gate)")
     parser.add_argument(
@@ -145,17 +176,28 @@ def main(argv=None) -> int:
         thresholds = load_smoke_thresholds() if args.quick else load_thresholds()
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
+    report_context = make_report_context(thresholds)
+    artifact_id = report_context["artifact_id"]
+    artifact_dir = outdir / artifact_id
+    run_workdir = Path(args.workdir) if args.workdir else artifact_dir / "runs"
+    run_workdir.mkdir(parents=True, exist_ok=True)
 
     if args.model:
         factory = _real_model_factory(
-            args.model, args.device, str(outdir / "calc.out"), model_options
+            args.model, args.device, str(run_workdir / "calc.out"), model_options
         )
         label = args.model
     else:
         factory = lj_reference_factory()
         label = "lj-reference"
 
-    results = run_acceptance_matrix(factory, thresholds, quick=args.quick)
+    results = run_acceptance_matrix(
+        factory,
+        thresholds,
+        run_workdir,
+        quick=args.quick,
+        validation_artifact_id=artifact_id,
+    )
 
     sample_calc = factory()
     calc_contract = {
@@ -185,11 +227,23 @@ def main(argv=None) -> int:
         # The release gate runs strict: an unknown cutoff is rejected at MD admission.
         "cutoff_policy": {"allow_unknown_cutoff": False},
         "validation_mode": "quick-smoke" if args.quick else "production-validation",
-        "production_validated": not args.quick,
+        "production_validation_candidate": not args.quick,
         "model_options": model_options,
+        "validation_target": _validation_target(label, model_options, calc_contract),
         "validation_system": validation_system_summary(factory),
     }
-    report = write_report(results, thresholds, outdir, calculator_label=label, extra=extra)
+    report = write_report(
+        results,
+        thresholds,
+        outdir,
+        calculator_label=label,
+        extra=extra,
+        artifact_id=artifact_id,
+        generated_utc=report_context["generated_utc"],
+        environment=report_context["environment"],
+        run_workdir=run_workdir,
+        artifact_dir=artifact_dir,
+    )
 
     n_pass = sum(1 for r in results if r.passed)
     n_skip = sum(1 for r in results if r.status == "skip")
@@ -218,7 +272,13 @@ def main(argv=None) -> int:
     report_payload = json.loads(report.with_suffix(".json").read_text())
     print(f"Report: {report}")
     print(f"Report SHA256: {report_payload.get('markdown_report_sha256')}")
-    return 0 if ok else 1
+    if not args.quick and not report_payload.get("production_validated", False):
+        failed = report_payload.get("release_gate", {}).get("failed_criteria", [])
+        if failed:
+            print("Release gate failed criteria:")
+            for criterion in failed:
+                print(f"  - {criterion}")
+    return 0 if (ok if args.quick else report_payload.get("production_validated", False)) else 1
 
 
 if __name__ == "__main__":

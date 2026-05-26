@@ -16,6 +16,7 @@ from __future__ import annotations
 import datetime as _dt
 import hashlib
 import json
+import subprocess
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -50,6 +51,84 @@ _DEFAULT_THRESHOLDS = _REPO_ROOT / "validation" / "thresholds.toml"
 # Loose short-run profile for the default unit layer; the production ship gate uses
 # _DEFAULT_THRESHOLDS (see validation/thresholds.smoke.toml, WS-D).
 _SMOKE_THRESHOLDS = _REPO_ROOT / "validation" / "thresholds.smoke.toml"
+
+
+def _utc_stamp() -> str:
+    return _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+def _sha256_file(path: Path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _git_head_commit() -> Optional[str]:
+    try:
+        return subprocess.run(
+            ["git", "-C", str(_REPO_ROOT), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=True,
+        ).stdout.strip()
+    except Exception:
+        return None
+
+
+def make_report_context(
+    thresholds: Dict[str, Any],
+    *,
+    environment: Optional[Dict[str, Any]] = None,
+    generated_utc: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Return the immutable report identity before the acceptance matrix runs."""
+    env = dict(environment) if environment is not None else collect_environment_provenance()
+    stamp = generated_utc or _utc_stamp()
+    version = thresholds.get("thresholds_version", "?")
+    commit = (env.get("maple_git_commit") or "nogit")[:12]
+    return {
+        "artifact_id": f"md_acceptance_{stamp}_thr{version}_{commit}",
+        "generated_utc": stamp,
+        "environment": env,
+    }
+
+
+def _manifest_records(run_workdir: Optional[Path]) -> List[Dict[str, Any]]:
+    if run_workdir is None:
+        return []
+    root = Path(run_workdir)
+    if not root.exists():
+        return []
+    records: List[Dict[str, Any]] = []
+    for path in sorted(root.glob("*_md_manifest.json")):
+        records.append({"path": str(path), "sha256": _sha256_file(path)})
+    return records
+
+
+def _artifact_release_criteria(
+    payload: Dict[str, Any],
+    *,
+    production_candidate: bool,
+) -> Dict[str, bool]:
+    env = payload.get("environment") or {}
+    summary = payload.get("summary") or {}
+    return {
+        "environment.maple_git_commit == git rev-parse HEAD": (
+            env.get("maple_git_commit") is not None
+            and env.get("maple_git_commit") == _git_head_commit()
+        ),
+        "environment.maple_git_dirty == false": env.get("maple_git_dirty") is False,
+        "production_validation_run == true": bool(production_candidate),
+        "overall == PASS": payload.get("overall") == "PASS",
+        "summary.n_fail == 0": summary.get("n_fail") == 0,
+        "summary.n_skip == 0": summary.get("n_skip") == 0,
+        "summary.barostat_clamp_count == 0": summary.get("barostat_clamp_count") == 0,
+    }
+
+
+def _validation_artifact_paras(validation_artifact_id: Optional[str]) -> Dict[str, str]:
+    if not validation_artifact_id:
+        return {}
+    return {"validation_artifact_id": validation_artifact_id}
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -253,7 +332,15 @@ def _read_thermo(path: Path) -> Dict[str, np.ndarray]:
 # Acceptance classes
 # ──────────────────────────────────────────────────────────────────────────
 
-def run_nve_energy_drift(calc_factory, thresholds, workdir, *, steps=300, timestep=0.5) -> AcceptanceResult:
+def run_nve_energy_drift(
+    calc_factory,
+    thresholds,
+    workdir,
+    *,
+    steps=300,
+    timestep=0.5,
+    validation_artifact_id: Optional[str] = None,
+) -> AcceptanceResult:
     th = thresholds["nve_energy_drift"]
     atoms = _validation_crystal(calc_factory)
     atoms.calc = calc_factory()
@@ -262,6 +349,7 @@ def run_nve_energy_drift(calc_factory, thresholds, workdir, *, steps=300, timest
         "steps": steps, "timestep": timestep, "temperature": 80.0,
         "remove_com_every": 0, "verbose": 0, "log_every": 1, "traj_every": steps,
         "rst_every": 0, "random_seed": 1,
+        **_validation_artifact_paras(validation_artifact_id),
     }).run()
     thermo = _read_thermo(workdir / "nve_drift_md_thermo.dat")
     te = thermo["te"]
@@ -282,7 +370,14 @@ def run_nve_energy_drift(calc_factory, thresholds, workdir, *, steps=300, timest
     )
 
 
-def run_restart_determinism(calc_factory, thresholds, workdir, *, timestep=0.5) -> AcceptanceResult:
+def run_restart_determinism(
+    calc_factory,
+    thresholds,
+    workdir,
+    *,
+    timestep=0.5,
+    validation_artifact_id: Optional[str] = None,
+) -> AcceptanceResult:
     th = thresholds["restart_determinism"]
 
     def _run(tag, steps, **extra):
@@ -292,7 +387,8 @@ def run_restart_determinism(calc_factory, thresholds, workdir, *, timestep=0.5) 
         NVE(output=str(workdir / f"{tag}.out"), atoms=atoms, paras={
             "steps": steps, "timestep": timestep, "init_velocities": False,
             "remove_com_every": 0, "verbose": 0, "log_every": steps,
-            "traj_every": steps, "rst_every": steps, **extra,
+            "traj_every": steps, "rst_every": steps,
+            **_validation_artifact_paras(validation_artifact_id), **extra,
         }).run()
         return atoms
 
@@ -305,6 +401,7 @@ def run_restart_determinism(calc_factory, thresholds, workdir, *, timestep=0.5) 
         "rst_file": str(workdir / "restart_part1_md.rst"),
         "init_velocities": False, "remove_com_every": 0, "verbose": 0,
         "log_every": 40, "traj_every": 40, "rst_every": 40,
+        **_validation_artifact_paras(validation_artifact_id),
     }).run()
 
     dpos = float(np.max(np.abs(get_unwrapped_positions(full) - get_unwrapped_positions(cont))))
@@ -319,7 +416,15 @@ def run_restart_determinism(calc_factory, thresholds, workdir, *, timestep=0.5) 
     )
 
 
-def run_nvt_mean_temperature(calc_factory, thresholds, workdir, *, steps=6000, timestep=0.5) -> AcceptanceResult:
+def run_nvt_mean_temperature(
+    calc_factory,
+    thresholds,
+    workdir,
+    *,
+    steps=6000,
+    timestep=0.5,
+    validation_artifact_id: Optional[str] = None,
+) -> AcceptanceResult:
     th = thresholds["nvt_mean_temperature"]
     target = 80.0
     atoms = _validation_crystal(calc_factory)
@@ -329,6 +434,7 @@ def run_nvt_mean_temperature(calc_factory, thresholds, workdir, *, steps=6000, t
         "thermostat": "v-rescale", "tau_t": 50.0, "remove_com_every": 0,
         "verbose": 0, "log_every": 1, "traj_every": steps, "rst_every": 0,
         "random_seed": 2,
+        **_validation_artifact_paras(validation_artifact_id),
     })
     nvt.run()
     thermo = _read_thermo(workdir / "nvt_md_thermo.dat")
@@ -365,7 +471,15 @@ def run_nvt_mean_temperature(calc_factory, thresholds, workdir, *, steps=6000, t
     )
 
 
-def run_npt_pressure(calc_factory, thresholds, workdir, *, steps=200, timestep=0.5) -> AcceptanceResult:
+def run_npt_pressure(
+    calc_factory,
+    thresholds,
+    workdir,
+    *,
+    steps=200,
+    timestep=0.5,
+    validation_artifact_id: Optional[str] = None,
+) -> AcceptanceResult:
     th = thresholds["npt_pressure"]
     atoms = _validation_crystal(calc_factory)
     atoms.calc = calc_factory()
@@ -374,6 +488,7 @@ def run_npt_pressure(calc_factory, thresholds, workdir, *, steps=200, timestep=0
         "thermostat": "v-rescale", "barostat": "c-rescale", "tau_t": 50.0,
         "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0, "log_every": 1,
         "traj_every": steps, "rst_every": 0, "random_seed": 3,
+        **_validation_artifact_paras(validation_artifact_id),
     }).run()
     thermo_text = (workdir / "npt_md_thermo.dat").read_text()
     summary_text = (workdir / "npt_md_summary.txt").read_text()
@@ -452,7 +567,14 @@ def _block_mean_stderr(series: np.ndarray, n_blocks: int) -> float:
 
 
 def run_npt_volume_fluctuation(
-    calc_factory, thresholds, workdir, *, steps=20000, timestep=1.0, temperature=100.0
+    calc_factory,
+    thresholds,
+    workdir,
+    *,
+    steps=20000,
+    timestep=1.0,
+    temperature=100.0,
+    validation_artifact_id: Optional[str] = None,
 ) -> AcceptanceResult:
     """NPT volume-fluctuation self-consistency for the production c-rescale path.
 
@@ -492,7 +614,7 @@ def run_npt_volume_fluctuation(
             "pressure": pressure, "thermostat": "v-rescale", "barostat": "c-rescale",
             "tau_t": 100.0, "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0,
             "log_every": 1, "traj_every": steps, "rst_every": 0, "random_seed": 12345,
-            "validation_artifact_id": "npt_volume_fluctuation",
+            "validation_artifact_id": validation_artifact_id or "npt_volume_fluctuation",
         }).run()
         thermo = _read_thermo(workdir / f"{tag}_md_thermo.dat")
         # Columns: Step Time Temp KE PE TE Press Vol(A^3) Press_pre Vol_pre.
@@ -553,7 +675,14 @@ def run_npt_volume_fluctuation(
 
 
 def run_npt_effective_energy_drift(
-    calc_factory, thresholds, workdir, *, steps=4000, timestep=1.0, temperature=100.0
+    calc_factory,
+    thresholds,
+    workdir,
+    *,
+    steps=4000,
+    timestep=1.0,
+    temperature=100.0,
+    validation_artifact_id: Optional[str] = None,
 ) -> AcceptanceResult:
     """Reversible c-rescale effective-energy diagnostic drift.
 
@@ -573,7 +702,7 @@ def run_npt_effective_energy_drift(
         "thermostat": "v-rescale", "barostat": "c-rescale", "tau_t": 100.0,
         "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0, "log_every": 1,
         "traj_every": steps, "rst_every": 0, "random_seed": 2024,
-        "validation_artifact_id": "npt_effective_energy_drift",
+        "validation_artifact_id": validation_artifact_id or "npt_effective_energy_drift",
     }).run()
     thermo = _read_thermo(workdir / "npt_eff_md_thermo.dat")
     raw = thermo["raw"]
@@ -761,7 +890,15 @@ def _energy_at_strain(base: Atoms, calc_factory, strain_matrix: np.ndarray, ampl
     return evaluate_md_properties(strained, need_stress=False).energy_ha
 
 
-def run_barostat_clamp_free(calc_factory, thresholds, workdir, *, steps=200, timestep=0.5) -> AcceptanceResult:
+def run_barostat_clamp_free(
+    calc_factory,
+    thresholds,
+    workdir,
+    *,
+    steps=200,
+    timestep=0.5,
+    validation_artifact_id: Optional[str] = None,
+) -> AcceptanceResult:
     """A production c-rescale NPT run must not trigger the per-step stability clamp.
 
     A fired clamp truncates the stochastic-cell-rescaling ensemble, so for the LJ
@@ -777,6 +914,7 @@ def run_barostat_clamp_free(calc_factory, thresholds, workdir, *, steps=200, tim
         "thermostat": "v-rescale", "barostat": "c-rescale", "tau_t": 50.0,
         "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0, "log_every": steps,
         "traj_every": steps, "rst_every": 0, "random_seed": 5,
+        **_validation_artifact_paras(validation_artifact_id),
     })
     sim.run()
     clamp_count = int(getattr(sim.barostat, "clamp_count", 0))
@@ -812,6 +950,7 @@ def run_acceptance_matrix(
     workdir: Optional[Path] = None,
     *,
     quick: bool = False,
+    validation_artifact_id: Optional[str] = None,
 ) -> List[AcceptanceResult]:
     """Run every acceptance class; return the per-class results."""
     import tempfile
@@ -866,6 +1005,8 @@ def run_acceptance_matrix(
             elif fn is run_npt_effective_energy_drift:
                 kwargs = npt_eff_kw
             try:
+                if validation_artifact_id is not None:
+                    kwargs = {**kwargs, "validation_artifact_id": validation_artifact_id}
                 results.append(fn(calc_factory, thresholds, workdir, **kwargs))
             except Exception as exc:  # a class that cannot run is recorded, not silently dropped
                 results.append(AcceptanceResult(
@@ -885,6 +1026,11 @@ def write_report(
     *,
     calculator_label: str = "lj-reference",
     extra: Optional[Dict[str, Any]] = None,
+    artifact_id: Optional[str] = None,
+    generated_utc: Optional[str] = None,
+    environment: Optional[Dict[str, Any]] = None,
+    run_workdir: Optional[Path] = None,
+    artifact_dir: Optional[Path] = None,
 ) -> Path:
     """Write a dated markdown + JSON acceptance report; return the markdown path.
 
@@ -892,14 +1038,17 @@ def write_report(
     calculator's declared unit contract and cutoff policy so the report states them).
     """
     outdir = Path(outdir)
-    outdir.mkdir(parents=True, exist_ok=True)
-    env = collect_environment_provenance()
-    stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    env = dict(environment) if environment is not None else collect_environment_provenance()
+    stamp = generated_utc or _utc_stamp()
     version = thresholds.get("thresholds_version", "?")
-    commit = (env.get("maple_git_commit") or "nogit")[:12]
-    artifact_id = f"md_acceptance_{stamp}_thr{version}_{commit}"
-    md_path = outdir / f"{artifact_id}.md"
-    json_path = outdir / f"{artifact_id}.json"
+    if artifact_id is None:
+        artifact_id = make_report_context(
+            thresholds, environment=env, generated_utc=stamp
+        )["artifact_id"]
+    artifact_root = Path(artifact_dir) if artifact_dir is not None else outdir / artifact_id
+    artifact_root.mkdir(parents=True, exist_ok=True)
+    md_path = artifact_root / "report.md"
+    json_path = artifact_root / "report.json"
 
     all_passed = all(r.passed for r in results)
     n_skip = sum(1 for r in results if r.status == "skip")
@@ -923,11 +1072,24 @@ def write_report(
         "overall": "PASS" if all_passed else "FAIL",
         "summary": summary,
         "results": [r.__dict__ for r in results],
+        "artifact_dir": str(artifact_root),
+        "run_workdir": str(run_workdir) if run_workdir is not None else None,
+        "manifest_files": _manifest_records(run_workdir),
         "markdown_report_path": str(md_path),
         "json_report_path": str(json_path),
     }
     if extra:
         payload.update(extra)
+
+    production_candidate = bool(payload.pop("production_validation_candidate", False))
+    criteria = _artifact_release_criteria(payload, production_candidate=production_candidate)
+    failed_criteria = [name for name, passed in criteria.items() if not passed]
+    payload["release_gate"] = {
+        "criteria": criteria,
+        "failed_criteria": failed_criteria,
+        "ready": not failed_criteria,
+    }
+    payload["production_validated"] = payload["release_gate"]["ready"]
 
     lines = [
         f"# MD acceptance matrix — {payload['overall']}",
@@ -938,8 +1100,9 @@ def write_report(
         f"- calculator: {calculator_label}",
         f"- MAPLE commit: {env.get('maple_git_commit')} (dirty={env.get('maple_git_dirty')})",
         f"- report path: `{md_path}`",
+        f"- run workdir: `{payload['run_workdir']}`",
         f"- validation mode: {payload.get('validation_mode', 'production-validation')}",
-        f"- production validated: {payload.get('production_validated', True)}",
+        f"- production validated: {payload['production_validated']}",
         "",
         "| class | status | detail |",
         "|-------|--------|--------|",
@@ -947,6 +1110,12 @@ def write_report(
     for r in results:
         lines.append(f"| {r.name} | {'✅ ' + r.status if r.passed else '❌ ' + r.status} | {r.detail} |")
     md_path.write_text("\n".join(lines) + "\n")
-    payload["markdown_report_sha256"] = hashlib.sha256(md_path.read_bytes()).hexdigest()
+    payload["markdown_report_sha256"] = _sha256_file(md_path)
+    payload["artifact_sha256"] = {
+        "report.md": payload["markdown_report_sha256"],
+        "manifests": {
+            record["path"]: record["sha256"] for record in payload["manifest_files"]
+        },
+    }
     json_path.write_text(json.dumps(payload, indent=2, default=str) + "\n")
     return md_path

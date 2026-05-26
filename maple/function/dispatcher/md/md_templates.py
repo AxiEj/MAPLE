@@ -89,6 +89,7 @@ thermostat  = v-rescale  ; langevin or v-rescale
 pressure    = 1.0        ; bar
 barostat    = c-rescale  ; c-rescale for production; berendsen is equilibration-only
 tau_p       = 2000.0     ; fs
+barostat_stride = 1      ; Bernetti-Bussi N_P; λ update uses N_P*dt on scheduled steps
 compressibility = 4.5e-5 ; 1/bar; must be > 0
 
 traj_every  = 100

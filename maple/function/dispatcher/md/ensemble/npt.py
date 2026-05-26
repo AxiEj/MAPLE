@@ -7,8 +7,9 @@ Supports two combinations:
 
 Recommended combination for production MLP runs:
     thermostat=v-rescale + barostat=c-rescale
-    → reversible-Euler stochastic cell rescaling (√V first), force refresh,
-      full-step Velocity Verlet, then stochastic velocity rescaling.
+    → Bernetti-Bussi reversible-Euler stochastic cell rescaling with explicit
+      N_P multiple-time-step barostat propagation, split V-rescale thermostat,
+      and force refresh after every volume move.
 
 Berendsen variants are suitable for rapid pre-equilibration but suppress
 pressure/temperature fluctuations and do not generate correct ensemble averages.
@@ -16,8 +17,10 @@ pressure/temperature fluctuations and do not generate correct ensemble averages.
 Integration order each step:
     - Langevin: LFMiddle carried-velocity sequence, barostat pressure from
       synchronized standard velocity, then barostat scaling of carried state.
-    - V-rescale + c-rescale: barostat scaling, force refresh, full Velocity
-      Verlet step, then thermostat.
+    - V-rescale + c-rescale: on steps divisible by N_P, advance √V over
+      N_P·dt and scale positions/momenta; then refresh forces, apply a
+      V-rescale half step, run full Velocity Verlet, and apply the second
+      V-rescale half step.
     - V-rescale + Berendsen: full Velocity Verlet step, thermostat, then weak
       pressure scaling (equilibration-only).
 
@@ -152,6 +155,17 @@ class NPTParams:
     tau_p:           float = 2000.0       # fs  [GROMACS Lemkul; Bernetti 2020]
 
     # ------------------------------------------------------------------
+    # Barostat multiple-time-step stride N_P (Bernetti & Bussi 2020).
+    #
+    # When N_P > 1, the reversible-Euler c-rescale operator is applied only on
+    # MD steps divisible by N_P, but its λ = √V SDE is advanced over the full
+    # N_P·dt interval.  This is not a skipped one-step update; it matches the
+    # paper's multiple-time-step barostat cost model (1 + 1/N_P force refreshes
+    # on average).  Keep N_P=1 for the tightest coupling/validation default.
+    # ------------------------------------------------------------------
+    barostat_stride: int = 1
+
+    # ------------------------------------------------------------------
     # Isothermal compressibility: 4.5e-5 1/bar (liquid water, 300 K, 1 bar)
     # Used by both Berendsen and C-rescale barostats as a scaling prefactor.
     # The barostat dynamics are not very sensitive to this value; using water
@@ -227,6 +241,7 @@ class NPT(JobABC):
 
         self.atoms = atoms
         self.params = self._init_params(NPTParams, paras, ("md", "MD", "npt", "NPT"))
+        self._apply_barostat_stride_aliases(paras or {})
         _com_note = pbc_com_default_note(
             self.atoms, self.params,
             "remove_com_every" in self._lower_keys(
@@ -247,6 +262,7 @@ class NPT(JobABC):
                 f"Choose from: {self._BAROSTAT_CHOICES}"
             )
         validate_md_parameter_ranges(self.params, "npt")
+        self.params.barostat_stride = int(self.params.barostat_stride)
         self._validate_admission_state("startup")
 
         # Warn if user set Langevin-specific params but chose v-rescale (or vice versa)
@@ -275,6 +291,14 @@ class NPT(JobABC):
                 "    It suppresses volume fluctuations and does not generate a correct production NPT ensemble.\n"
                 "    Use barostat=c-rescale for production-style isotropic NPT.\n\n"
             ])
+        if self.params.barostat_stride != 1 and not (
+            self.params.thermostat == 'v-rescale' and self.params.barostat == 'c-rescale'
+        ):
+            raise ValueError(
+                "barostat_stride (Bernetti-Bussi N_P) is implemented only for the "
+                "thermostat=v-rescale + barostat=c-rescale reversible-Euler path. "
+                "Use barostat_stride=1 for Langevin or Berendsen paths."
+            )
 
         self._rng = (np.random.default_rng(self.params.random_seed)
                      if self.params.random_seed is not None
@@ -333,6 +357,29 @@ class NPT(JobABC):
             verbose=self.params.verbose,
             debug=self.params.debug,
         )
+
+    def _apply_barostat_stride_aliases(self, paras: dict) -> None:
+        """Accept explicit N_P spelling without making a broad parser feature.
+
+        ``barostat_stride`` is the canonical MAPLE parameter name; ``barostat_np``
+        and ``barostat_n_p`` are narrow aliases for users following the notation
+        in Bernetti & Bussi.  Ambiguous conflicting aliases fail at startup.
+        """
+        sub = self._lower_keys(self._select_subdict(paras, ("md", "MD", "npt", "NPT")))
+        aliases = {
+            key: sub[key]
+            for key in ("barostat_stride", "barostat_np", "barostat_n_p")
+            if key in sub
+        }
+        if not aliases:
+            return
+        values = {str(value) for value in aliases.values()}
+        if len(values) > 1:
+            raise ValueError(
+                "Conflicting C-rescale N_P aliases supplied: "
+                + ", ".join(f"{key}={value!r}" for key, value in aliases.items())
+            )
+        self.params.barostat_stride = next(iter(aliases.values()))
 
     def _validate_admission_state(self, context: str) -> None:
         for advisory in validate_md_admission_state(
@@ -515,6 +562,7 @@ class NPT(JobABC):
             lines.append(f"τ_T:                   {self.params.tau_t:.1f} fs\n")
         lines += [
             f"τ_P:                   {self.params.tau_p:.1f} fs\n",
+            f"Barostat stride N_P:   {self.params.barostat_stride} step(s)\n",
             f"Compressibility:       {self.params.compressibility:.2e} 1/bar\n",
             f"\nOutput frequencies:\n",
             f"  Log every:           {self.params.log_every} steps\n",
@@ -576,11 +624,15 @@ class NPT(JobABC):
         pressure decision uses a synchronized standard velocity so the kinetic
         pressure term is not computed from the half-step carried state.
         For the v-rescale + c-rescale production path, the driver follows the
-        Bernetti-Bussi reversible-Euler ordering: propagate √V first, refresh
-        forces at the scaled geometry, then run full Velocity Verlet and apply
-        stochastic velocity rescaling to the full-step velocity.  This path
-        reports H̃ = K + U + P_0·V − Σ ΔW_ext (thermostat + barostat +
-        projection work) as an effective-energy integration diagnostic.
+        Bernetti-Bussi reversible-Euler ordering with explicit N_P support:
+        on absolute steps divisible by N_P, propagate √V over the full N_P·dt
+        interval, scale positions/momenta, refresh forces at the scaled
+        geometry, then run a split V-rescale half step / full Velocity Verlet /
+        V-rescale half step.  Non-barostat steps still use the same split
+        thermostat + Hamiltonian ordering; they do not perform a hidden one-step
+        pressure update.  This path reports H̃ = K + U + P_0·V − Σ ΔW_ext
+        (thermostat + barostat + projection work) as an effective-energy
+        integration diagnostic.
         """
         if n_steps is None:
             n_steps = self.params.steps
@@ -665,47 +717,66 @@ class NPT(JobABC):
         )  # Ha/Å → a.u.
         for step in range(1, n_steps + 1):
             abs_step = step_offset + step
-            reversible_crescale_step = (
+            reversible_crescale_path = (
                 (not is_langevin) and self.params.barostat == 'c-rescale'
             )
+            barostat_due = (
+                reversible_crescale_path
+                and abs_step % int(self.params.barostat_stride) == 0
+            )
+            pressure_pre = None
+            volume_pre = None
+            baro_work = 0.0
 
-            if reversible_crescale_step:
-                # Bernetti-Bussi reversible Euler ordering for the production
-                # v-rescale + c-rescale path: propagate sqrt(V), scale
-                # positions/momenta, recompute forces at the scaled geometry,
-                # then perform a full Velocity Verlet step and thermostat the
-                # resulting full-step velocity.  This avoids claiming that a
-                # post-Verlet sequential barostat is equivalent to the published
-                # reversible ordering.
-                volume_pre = self.atoms.get_volume()
-                ke_pre_baro = calculate_kinetic_energy(self.atoms, v)
-                u_pre_baro = evaluate_md_properties(
-                    self.atoms, need_stress=True
-                ).energy_ha
-                try:
-                    pressure_pre, v = self.barostat.apply(v)
-                except MDBarostatClampError as exc:
-                    msg = f"C-rescale barostat failed at step {abs_step}: {exc}"
-                    self.logger.abort_simulation(reason=msg)
-                    raise
-                if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
-                    msg = (
-                        f"C-rescale stability clamp fired at step {abs_step}: the "
-                        "per-step volume ratio left the [0.125, 8.0] bound, so the stochastic-"
-                        "cell-rescaling NPT ensemble is truncated. Aborting now (set "
-                        "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
-                        "the clamp count is recorded in the run manifest)."
-                    )
-                    self.logger.abort_simulation(reason=msg)
-                    raise MDBarostatClampError(msg)
-                self._validate_runtime_cutoff_after_barostat(abs_step)
-                volume_after_baro = self.atoms.get_volume()
-                forces = forces_au(self.atoms)
-                ke_post_baro = calculate_kinetic_energy(self.atoms, v)
-                u_post_baro = evaluate_md_properties(self.atoms).energy_ha
+            if reversible_crescale_path:
+                if barostat_due:
+                    # Bernetti-Bussi Reversible Euler, N_P stride:
+                    # 1. At the scheduled barostat step, propagate sqrt(V) over
+                    #    Δt_barostat = N_P·dt and scale positions/momenta.
+                    # 2. Immediately refresh forces at the scaled geometry.
+                    # 3. Continue every MD step with split thermostat +
+                    #    Velocity-Verlet + split thermostat.
+                    volume_pre = self.atoms.get_volume()
+                    ke_pre_baro = calculate_kinetic_energy(self.atoms, v)
+                    u_pre_baro = evaluate_md_properties(
+                        self.atoms, need_stress=True
+                    ).energy_ha
+                    try:
+                        pressure_pre, v = self.barostat.apply(
+                            v,
+                            timestep_multiplier=float(self.params.barostat_stride),
+                        )
+                    except MDBarostatClampError as exc:
+                        msg = f"C-rescale barostat failed at step {abs_step}: {exc}"
+                        self.logger.abort_simulation(reason=msg)
+                        raise
+                    if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
+                        msg = (
+                            f"C-rescale stability clamp fired at step {abs_step}: the "
+                            "per-step volume ratio left the [0.125, 8.0] bound, so the stochastic-"
+                            "cell-rescaling NPT ensemble is truncated. Aborting now (set "
+                            "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
+                            "the clamp count is recorded in the run manifest)."
+                        )
+                        self.logger.abort_simulation(reason=msg)
+                        raise MDBarostatClampError(msg)
+                    self._validate_runtime_cutoff_after_barostat(abs_step)
+                    volume_after_baro = self.atoms.get_volume()
+                    forces = forces_au(self.atoms)
+                    ke_post_baro = calculate_kinetic_energy(self.atoms, v)
+                    u_post_baro = evaluate_md_properties(self.atoms).energy_ha
+                    if track_conserved:
+                        baro_work = (
+                            (ke_post_baro - ke_pre_baro)
+                            + (u_post_baro - u_pre_baro)
+                            + p0_ha_per_a3 * (volume_after_baro - volume_pre)
+                        )
 
+                v, delta_w = self.thermostat.apply(v, timestep_fraction=0.5)
+                if track_conserved:
+                    w_bath += delta_w
                 v, forces = integrator.step(v, forces)
-                v, delta_w = self.thermostat.apply(v)
+                v, delta_w = self.thermostat.apply(v, timestep_fraction=0.5)
                 if track_conserved:
                     w_bath += delta_w
                 pressure_velocities = None
@@ -734,7 +805,7 @@ class NPT(JobABC):
                 v, delta_w = self.thermostat.apply(v)
                 pressure_velocities = None
 
-            if not reversible_crescale_step:
+            if not reversible_crescale_path:
                 # Barostat decision uses the pre-rescale pressure/volume pair;
                 # keep them only as a labeled diagnostic.  The primary
                 # thermodynamic record below is the post-rescale state.
@@ -774,12 +845,10 @@ class NPT(JobABC):
                 remove_com_every=self.params.remove_com_every,
                 remove_angular_every=self.params.remove_angular_every,
             )
-            if not reversible_crescale_step:
+            if not reversible_crescale_path:
                 # Sequential paths scale the cell after dynamics, so refresh the
-                # force cache once at the post-rescale geometry.  Reversible
-                # c-rescale already refreshed forces immediately after the
-                # pre-Verlet volume move and the integrator returned forces at
-                # the final coordinates.
+                # force cache once at the post-rescale geometry.  The reversible
+                # path keeps its returned Velocity-Verlet force cache instead.
                 forces = forces_au(self.atoms)
 
             current_time     = abs_step * self.params.timestep
@@ -831,11 +900,6 @@ class NPT(JobABC):
             # an integration-quality diagnostic.
             conserved = None
             if track_conserved:
-                baro_work = (
-                    (ke_post_baro - ke_pre_baro)
-                    + (u_post_baro - u_pre_baro)
-                    + p0_ha_per_a3 * (volume_after_baro - volume_pre)
-                )
                 proj_work = kinetic_energy - ke_pre_projection
                 w_bath += baro_work + proj_work
                 conserved = (

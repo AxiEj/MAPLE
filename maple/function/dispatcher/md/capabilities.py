@@ -263,6 +263,8 @@ def validate_md_parameter_ranges(params, ensemble: str) -> None:
         finite_float("pressure")
         positive_float("tau_p")
         positive_float("compressibility")
+        if hasattr(params, "barostat_stride"):
+            positive_int("barostat_stride")
 
 
 def pbc_com_default_note(atoms: Atoms, params, user_set_remove_com_every: bool) -> Optional[str]:

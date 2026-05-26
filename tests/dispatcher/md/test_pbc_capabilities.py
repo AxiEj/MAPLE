@@ -267,6 +267,33 @@ def test_crescale_stochastic_term_uses_inverse_pressure_units():
     np.testing.assert_allclose(returned, velocities / mu)
 
 
+def test_crescale_np_stride_advances_full_barostat_interval():
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    initial_volume = atoms.get_volume()
+    velocities = np.array([[0.03, 0.0, 0.0]])
+    barostat = CRescaleBarostat(
+        atoms,
+        pressure=1.0,
+        temperature=0.0,
+        tau_p=10.0,
+        timestep=1.0,
+        compressibility=0.5,
+        rng=np.random.default_rng(7),
+    )
+    barostat.get_pressure = lambda _velocities: 2.0
+
+    _, returned = barostat.apply(velocities, timestep_multiplier=4)
+
+    # Literature N_P propagation: the λ SDE advances over N_P·dt.  This must be
+    # a four-step interval update, not a one-step update after simply skipping
+    # three pressure-control steps.
+    lam_ratio = 1.0 + (0.5 * 4.0 / (2.0 * 10.0)) * (2.0 - 1.0)
+    vol_ratio = lam_ratio ** 2
+    mu = vol_ratio ** (1.0 / 3.0)
+    assert atoms.get_volume() == pytest.approx(initial_volume * vol_ratio)
+    np.testing.assert_allclose(returned, velocities / mu)
+
+
 @pytest.mark.parametrize(
     ("ensemble_class", "paras", "message"),
     [
@@ -297,6 +324,7 @@ def test_md_parameter_validation_rejects_invalid_common_ranges(
         ({"tau_p": 0.0}, "tau_p"),
         ({"compressibility": -1.0}, "compressibility"),
         ({"compressibility": 0.0}, "compressibility"),
+        ({"barostat_stride": 0}, "barostat_stride"),
     ],
 )
 def test_npt_parameter_validation_rejects_invalid_barostat_ranges(
@@ -309,6 +337,29 @@ def test_npt_parameter_validation_rejects_invalid_barostat_ranges(
 
     with pytest.raises(ValueError, match=message):
         NPT(output=str(tmp_path / "npt.out"), atoms=atoms, paras=full_paras)
+
+
+def test_npt_accepts_literature_np_alias_for_barostat_stride(tmp_path):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+
+    sim = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={"steps": 0, "verbose": 0, "barostat_np": 4},
+    )
+
+    assert sim.params.barostat_stride == 4
+
+
+def test_npt_rejects_conflicting_barostat_stride_aliases(tmp_path):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+
+    with pytest.raises(ValueError, match="Conflicting C-rescale N_P aliases"):
+        NPT(
+            output=str(tmp_path / "npt.out"),
+            atoms=atoms,
+            paras={"steps": 0, "verbose": 0, "barostat_stride": 2, "barostat_np": 3},
+        )
 
 
 def test_pbc_image_flags_reconstruct_unwrapped_boundary_crossing(tmp_path):
@@ -584,7 +635,7 @@ def test_pbc_runtime_com_warning_mentions_transport_analysis(tmp_path):
     assert "transport" in text
 
 
-def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
+def test_npt_vrescale_thermostat_is_split_around_verlet(tmp_path):
     force = np.array([[1.0, 0.0, 0.0]])
     atoms = _periodic_atoms(StressCalculator(np.zeros(6), forces=force))
     initial_velocity = np.array([[1.0e-4, 0.0, 0.0]])
@@ -605,27 +656,31 @@ def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
             "rst_every": 0,
         },
     )
-    seen = {}
+    seen = []
 
-    def thermostat_apply(velocities):
-        seen["velocities"] = velocities.copy()
+    def thermostat_apply(velocities, timestep_fraction=1.0):
+        seen.append((timestep_fraction, atoms.get_positions().copy(), velocities.copy()))
         return velocities, 0.0
 
     npt.thermostat.apply = thermostat_apply
-    npt.barostat.apply = lambda velocities, pressure_velocities=None: (0.0, velocities)
+    npt.barostat.apply = lambda velocities, pressure_velocities=None, timestep_multiplier=1.0: (0.0, velocities)
 
     npt.run()
 
     mass = atoms.get_masses()[0] * AMU_TO_AU
     expected = initial_velocity + force * HA_PER_ANG_TO_AU / mass * (0.1 * FS_TO_AU)
-    np.testing.assert_allclose(seen["velocities"], expected)
+    assert [call[0] for call in seen] == [0.5, 0.5]
+    np.testing.assert_allclose(seen[0][2], initial_velocity)
+    np.testing.assert_allclose(seen[1][2], expected)
 
 
 def test_npt_vrescale_crescale_barostat_runs_before_verlet(tmp_path):
     # Bernetti-Bussi reversible-Euler ordering propagates sqrt(V), scales the
-    # cell/coordinates, refreshes forces, then performs full Velocity Verlet.
+    # cell/coordinates, refreshes forces, then performs split thermostat +
+    # full Velocity Verlet + split thermostat.
     # The barostat must therefore see the pre-Verlet coordinates, while the
-    # thermostat sees the post-Verlet coordinates/velocity.
+    # first thermostat half-step still sees the pre-Verlet coordinates/velocity
+    # and the second sees the post-Verlet coordinates/velocity.
     force = np.array([[1.0, 0.0, 0.0]])
     atoms = _periodic_atoms(StressCalculator(np.zeros(6), forces=force))
     initial_position = atoms.get_positions().copy()
@@ -647,16 +702,18 @@ def test_npt_vrescale_crescale_barostat_runs_before_verlet(tmp_path):
             "rst_every": 0,
         },
     )
-    seen = {}
+    seen = {"thermostat": []}
 
-    def barostat_apply(velocities, pressure_velocities=None):
+    def barostat_apply(velocities, pressure_velocities=None, timestep_multiplier=1.0):
         seen["barostat_position"] = atoms.get_positions().copy()
         seen["barostat_velocity"] = velocities.copy()
+        seen["timestep_multiplier"] = timestep_multiplier
         return 0.0, velocities
 
-    def thermostat_apply(velocities):
-        seen["thermostat_position"] = atoms.get_positions().copy()
-        seen["thermostat_velocity"] = velocities.copy()
+    def thermostat_apply(velocities, timestep_fraction=1.0):
+        seen["thermostat"].append(
+            (timestep_fraction, atoms.get_positions().copy(), velocities.copy())
+        )
         return velocities, 0.0
 
     npt.barostat.apply = barostat_apply
@@ -668,8 +725,54 @@ def test_npt_vrescale_crescale_barostat_runs_before_verlet(tmp_path):
     expected_velocity = initial_velocity + force * HA_PER_ANG_TO_AU / mass * (0.1 * FS_TO_AU)
     np.testing.assert_allclose(seen["barostat_position"], initial_position)
     np.testing.assert_allclose(seen["barostat_velocity"], initial_velocity)
-    assert not np.allclose(seen["thermostat_position"], initial_position)
-    np.testing.assert_allclose(seen["thermostat_velocity"], expected_velocity)
+    assert seen["timestep_multiplier"] == pytest.approx(1.0)
+    assert [call[0] for call in seen["thermostat"]] == [0.5, 0.5]
+    np.testing.assert_allclose(seen["thermostat"][0][1], initial_position)
+    np.testing.assert_allclose(seen["thermostat"][0][2], initial_velocity)
+    assert not np.allclose(seen["thermostat"][1][1], initial_position)
+    np.testing.assert_allclose(seen["thermostat"][1][2], expected_velocity)
+
+
+def test_npt_crescale_np_stride_is_full_interval_not_single_step_skip(tmp_path):
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6)))
+    atoms.arrays["velocities"] = np.array([[1.0e-4, 0.0, 0.0]])
+    npt = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 5,
+            "timestep": 0.1,
+            "thermostat": "v-rescale",
+            "barostat": "c-rescale",
+            "barostat_stride": 3,
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 0,
+        },
+    )
+    calls = []
+
+    def barostat_apply(velocities, pressure_velocities=None, timestep_multiplier=1.0):
+        calls.append(timestep_multiplier)
+        return 123.0, velocities
+
+    npt.barostat.apply = barostat_apply
+    npt.thermostat.apply = lambda velocities, timestep_fraction=1.0: (velocities, 0.0)
+
+    npt.run()
+
+    assert calls == [pytest.approx(3.0)]
+    thermo = np.loadtxt(tmp_path / "npt_md_thermo.dat", comments="#")
+    # Step 3 is the only scheduled N_P barostat step in a five-step run; all
+    # other rows intentionally carry NaN pre-rescale diagnostics rather than a
+    # fake one-step pressure update.
+    assert thermo[:, 0].tolist() == [1, 2, 3, 4, 5]
+    assert np.isnan(thermo[0, 8]) and np.isnan(thermo[1, 8])
+    assert thermo[2, 8] == pytest.approx(123.0)
+    assert np.isnan(thermo[3, 8]) and np.isnan(thermo[4, 8])
 
 
 def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
@@ -701,7 +804,7 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
     )
     calls = []
 
-    def apply_barostat(velocities, pressure_velocities=None):
+    def apply_barostat(velocities, pressure_velocities=None, timestep_multiplier=1.0):
         calls.append(velocities.copy())
         atoms.set_cell(atoms.get_cell() * 2.0, scale_atoms=True)  # volume 1000 -> 8000
         return 123.0, velocities
@@ -723,7 +826,7 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
         return original_log_step(**kwargs)
 
     npt.barostat.apply = apply_barostat
-    npt.thermostat.apply = lambda velocities: (np.zeros_like(velocities), 0.0)
+    npt.thermostat.apply = lambda velocities, timestep_fraction=1.0: (np.zeros_like(velocities), 0.0)
     npt.logger.log_step = log_step_spy
     monkeypatch.setattr(evaluator_module, "compute_instantaneous_pressure", record_pressure)
 
@@ -766,12 +869,12 @@ def test_npt_runtime_mic_guard_after_barostat_shrink(tmp_path):
         },
     )
 
-    def shrink_below_minimum_image(velocities, pressure_velocities=None):
+    def shrink_below_minimum_image(velocities, pressure_velocities=None, timestep_multiplier=1.0):
         atoms.set_cell([10.0, 10.0, 10.0], scale_atoms=True)  # MIC radius 5 Å < cutoff 6 Å.
         return 0.0, velocities
 
     npt.barostat.apply = shrink_below_minimum_image
-    npt.thermostat.apply = lambda velocities: (velocities, 0.0)
+    npt.thermostat.apply = lambda velocities, timestep_fraction=1.0: (velocities, 0.0)
 
     with pytest.raises(ValueError, match="runtime cutoff/MIC guard.*step 1"):
         npt.run()

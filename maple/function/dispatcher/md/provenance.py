@@ -399,6 +399,12 @@ def build_run_context(
         {
             "type": getattr(params, "barostat", None),
             "mode": "isotropic",
+            "integrator": (
+                "bernetti-bussi-reversible-euler"
+                if getattr(params, "barostat", None) == "c-rescale"
+                else "sequential-equilibration"
+            ),
+            "stride_NP": int(getattr(params, "barostat_stride", 1) or 1),
             "note": "isotropic hydrostatic scaling only; no shear / cell-shape / surface tension",
         }
         if is_npt

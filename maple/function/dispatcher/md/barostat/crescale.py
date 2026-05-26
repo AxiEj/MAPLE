@@ -28,17 +28,18 @@ Algorithm — reversible λ = √V integrator (Bernetti & Bussi, 2020, Eq. 7):
     variable (it follows exactly from applying Itô's lemma to the ε-form SDE;
     verified analytically).  ``W ~ N(0, 1)`` is the discrete Wiener increment.
 
-    Per step λ is re-derived from the current volume, advanced by the equation
-    above, and the cell + positions are scaled isotropically by
+    Per scheduled barostat propagation (every N_P MD steps in the production
+    driver) λ is re-derived from the current volume, advanced by the equation
+    above over N_P·dt, and the cell + positions are scaled isotropically by
     μ = (V_new/V)^{1/3} = (λ_new/λ)^{2/3}; velocities are returned as ``v / μ``
     (Bernetti & Bussi "Formulation A", scaled momenta).  Because λ is recomputed
     from the actual volume each step, the per-step stability clamp on μ cannot
     make the strain variable drift away from the true log-volume.
 
 Effective-energy diagnostic:
-    The energy the barostat injects each step (the change in K + U + P_0·V it
-    causes) is accumulated by the NPT driver into the same external-work ledger
-    as the thermostat.  MAPLE reports
+    The energy the barostat injects on scheduled N_P propagation steps (the
+    change in K + U + P_0·V it causes) is accumulated by the NPT driver into the
+    same external-work ledger as the thermostat.  MAPLE reports
     H̃ = K + U + P_0·V − Σ ΔW_ext as an effective-energy diagnostic; its residual
     drift is an integration-quality check, not a standalone proof that the NPT
     ensemble implementation is production-ready.
@@ -180,14 +181,21 @@ class CRescaleBarostat:
         self,
         velocities: np.ndarray,
         pressure_velocities: Optional[np.ndarray] = None,
+        timestep_multiplier: float = 1.0,
     ) -> tuple[float, np.ndarray]:
         """
         Apply one C-rescale barostat step: stochastically rescale the cell.
 
         Advances λ = √V by the reversible Bernetti & Bussi update
 
-            dλ = (β·dt/2τ_P)·λ·(P_int + k_BT/(2V) − P_0)
-               + sqrt(k_BT·β·dt/2τ_P)·W
+            dλ = (β·Δt/2τ_P)·λ·(P_int + k_BT/(2V) − P_0)
+               + sqrt(k_BT·β·Δt/2τ_P)·W
+
+        where ``Δt = timestep_multiplier × timestep``.  ``timestep_multiplier``
+        is the Bernetti-Bussi ``N_P`` multiple-time-step stride: if the barostat
+        is only propagated every ``N_P`` MD steps, the SDE is advanced over the
+        whole ``N_P·dt`` interval rather than doing a one-step update after simply
+        skipping the intervening pressure-control steps.
 
         then scales cell and positions isotropically by μ = (λ_new/λ)^{2/3} and
         returns a new ``velocities / μ`` array (the input array is not modified
@@ -202,6 +210,10 @@ class CRescaleBarostat:
             Velocities to use for the kinetic pressure term when they differ
             from the propagated velocity state (for example LF-Middle carried
             velocities in Langevin paths).
+        timestep_multiplier : float, optional
+            Multiple of the base MD timestep used for this barostat propagation.
+            For the Reversible-Euler ``N_P`` scheme this is exactly ``N_P`` on a
+            barostat step.  Must be positive.
 
         Returns
         -------
@@ -209,6 +221,17 @@ class CRescaleBarostat:
             ``(pressure, rescaled_velocities)`` where pressure is the
             instantaneous pre-rescaling pressure in bar.
         """
+        try:
+            timestep_multiplier = float(timestep_multiplier)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"C-rescale timestep_multiplier must be a positive finite number, got {timestep_multiplier!r}."
+            ) from exc
+        if timestep_multiplier <= 0.0 or not np.isfinite(timestep_multiplier):
+            raise ValueError(
+                f"C-rescale timestep_multiplier must be a positive finite number, got {timestep_multiplier!r}."
+            )
+
         pressure_input = velocities if pressure_velocities is None else pressure_velocities
         pressure = self.get_pressure(pressure_input)
         volume = self.atoms.get_volume()   # Å³
@@ -216,18 +239,20 @@ class CRescaleBarostat:
             raise ValueError(f"C-rescale requires a finite positive cell volume, got {volume!r}.")
 
         # Reversible λ = √V update (Bernetti & Bussi 2020, Eq. 7):
-        #   dλ = (β·dt/2τ_P)·λ·(P_int + k_BT/(2V) − P_0) + sqrt(k_BT β dt/2τ_P)·W
+        #   dλ = (β·Δt/2τ_P)·λ·(P_int + k_BT/(2V) − P_0) + sqrt(k_BT β Δt/2τ_P)·W
+        # with Δt = timestep_multiplier × base timestep.  This is the N_P
+        # multiple-time-step propagation interval, not a skipped single-step update.
         # The k_BT/(2V) term is the Itô correction from the V → √V change of
         # variable, formed in bar to combine with the pressures.  Sign: P_int >
         # P_0 expands the cell, P_int < P_0 shrinks it.
         lam = np.sqrt(volume)
         kT_over_2v_bar = (self._half_kT_ev / volume) * EV_PER_ANG3_TO_BAR
         d_lam_det = (
-            self._lam_det_prefactor * lam
+            self._lam_det_prefactor * timestep_multiplier * lam
             * (pressure + kT_over_2v_bar - self.pressure_target)
         )
         w = self.rng.standard_normal()
-        d_lam_stoch = self._lam_noise_prefactor * w
+        d_lam_stoch = self._lam_noise_prefactor * np.sqrt(timestep_multiplier) * w
         lam_new = lam + d_lam_det + d_lam_stoch
 
         if (not np.isfinite(lam_new)) or lam_new <= 0.0:

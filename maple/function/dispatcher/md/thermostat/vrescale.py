@@ -108,12 +108,18 @@ class VRescaleThermostat:
         w = self.rng.standard_normal(n)
         return float(np.dot(w, w))
 
-    def apply(self, velocities: np.ndarray) -> tuple[np.ndarray, float]:
+    def apply(
+        self,
+        velocities: np.ndarray,
+        timestep_fraction: float = 1.0,
+    ) -> tuple[np.ndarray, float]:
         """
-        Apply one V-rescale step: globally rescale velocities.
+        Apply one V-rescale step, or a fractional split step, by globally
+        rescaling velocities.
 
         Implements Eq. A7 of Bussi, Donadio & Parrinello, J. Chem. Phys.
-        126, 014101 (2007):
+        126, 014101 (2007), with ``Δt`` replaced by
+        ``timestep_fraction × timestep`` for reversible split schemes:
 
             α² = e^{-Δt/τ} + (K̄/(N_f·K))·(1 - e^{-Δt/τ})·(R₁² + Σᵢ₌₂^{N_f} Rᵢ²)
                + 2·e^{-Δt/(2τ)}·sqrt(K̄/(N_f·K)·(1 - e^{-Δt/τ}))·R₁
@@ -128,6 +134,11 @@ class VRescaleThermostat:
         ----------
         velocities : np.ndarray
             Current velocities in atomic units, shape (N_atoms, 3)
+        timestep_fraction : float, optional
+            Fraction of the configured thermostat timestep to propagate.  The
+            Reversible-Euler NPT driver uses two half steps around the Hamiltonian
+            velocity-Verlet propagation, matching the split thermostat scheme in
+            Bernetti-Bussi's finite-time-step integrator.
 
         Returns
         -------
@@ -135,12 +146,23 @@ class VRescaleThermostat:
             (rescaled_velocities, delta_w) where delta_w = (α² − 1)·K
             is the energy injected by the thermostat this step (Hartree).
         """
+        try:
+            timestep_fraction = float(timestep_fraction)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"V-rescale timestep_fraction must be a positive finite number, got {timestep_fraction!r}."
+            ) from exc
+        if timestep_fraction <= 0.0 or not np.isfinite(timestep_fraction):
+            raise ValueError(
+                f"V-rescale timestep_fraction must be a positive finite number, got {timestep_fraction!r}."
+            )
+
         ke = 0.5 * np.sum(self.masses[:, np.newaxis] * velocities ** 2)
 
         if ke < ZERO_KE_THRESHOLD_HA:
             return velocities, 0.0
 
-        f = self._decay                     # e^{-Δt/τ}
+        f = np.exp(-(self.timestep * timestep_fraction) / self.tau_t)  # e^{-Δt/τ}
         ke_ref = self._ke_target            # K̄ = N_f/2 · kT
         n_dof = self._n_dof                 # N_f
 

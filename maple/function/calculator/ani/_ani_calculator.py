@@ -157,10 +157,16 @@ class ANICalculator(CalcABC):
         return energy
 
     @staticmethod
-    def compute_hessian(coords, energy):
+    def compute_hessian(coords, energy, batch_size=None):
     
         num_atoms = coords.shape[1]
-        return hessian_loop(energy, coords, output_dof=3 * num_atoms, input_dof=3 * num_atoms)
+        return hessian_loop(
+            energy,
+            coords,
+            output_dof=3 * num_atoms,
+            input_dof=3 * num_atoms,
+            batch_size=batch_size,
+        )
 
     def get_hessian(
         self,
@@ -210,7 +216,11 @@ class ANICalculator(CalcABC):
             ).unsqueeze(0)
             energy = self.model(species, coordinates)[0]
         
-        return self.compute_hessian(coordinates, energy)
+        return self.compute_hessian(
+            coordinates,
+            energy,
+            batch_size=getattr(self, "hessian_batch_size", getattr(self, "batch_size", None)),
+        )
 
 
     def _get_hessian_numerical(

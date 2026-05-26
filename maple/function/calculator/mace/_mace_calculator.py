@@ -415,7 +415,11 @@ class MACECalculator(CalcABC):
         return total_energy_local.sum()
 
     @staticmethod
-    def compute_hessian(coords: torch.Tensor, energy: torch.Tensor) -> torch.Tensor:
+    def compute_hessian(
+        coords: torch.Tensor,
+        energy: torch.Tensor,
+        batch_size=None,
+    ) -> torch.Tensor:
         """Compute the Hessian matrix (3N x 3N) by second derivatives."""
         num_atoms = coords.shape[0]
         return hessian_loop(
@@ -423,6 +427,7 @@ class MACECalculator(CalcABC):
             coords,
             output_dof=3 * num_atoms,
             input_dof=3 * num_atoms,
+            batch_size=batch_size,
         )
 
     def _build_graph_inputs(self, atoms, positions: Optional[torch.Tensor] = None):
@@ -476,7 +481,8 @@ class MACECalculator(CalcABC):
 
     def _get_hessian_analytic(self, atoms=None) -> np.ndarray:
         """Compute the Hessian matrix for an ASE Atoms object."""
-        if self._raw_mace_model:
+        batch_size = getattr(self, "hessian_batch_size", getattr(self, "batch_size", None))
+        if self._raw_mace_model and batch_size is None:
             data_dict, _ = self._build_graph_inputs(atoms)
             self._augment_raw_data_dict(data_dict, [atoms])
             out = self._forward_raw_model(data_dict, compute_hessian=True)
@@ -491,10 +497,20 @@ class MACECalculator(CalcABC):
         )
 
         data_dict, local_or_ghost = self._build_graph_inputs(atoms, positions=positions)
-        total_energy_local = self._forward_script_model(data_dict, local_or_ghost)
-        energy = total_energy_local.sum() * EV2HARTREE
+        if self._raw_mace_model:
+            self._augment_raw_data_dict(data_dict, [atoms])
+            out = self._forward_raw_model(data_dict)
+            energy = self._energy_vector(
+                out["energy"],
+                batch_size=1,
+                n_atoms_total=data_dict["positions"].shape[0],
+                batch=data_dict["batch"],
+            ).sum() * EV2HARTREE
+        else:
+            total_energy_local = self._forward_script_model(data_dict, local_or_ghost)
+            energy = total_energy_local.sum() * EV2HARTREE
 
-        hessian = self.compute_hessian(positions, energy)
+        hessian = self.compute_hessian(positions, energy, batch_size=batch_size)
         return hessian.detach().cpu().numpy()
 
     def _get_hessian_numerical(self, atoms, delta: float = 0.002) -> np.ndarray:

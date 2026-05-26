@@ -353,6 +353,7 @@ class AIMNet2Calculator(CalcABC):
                 data["coord"],
                 energy,
                 n_atoms=n_atoms,
+                batch_size=getattr(self, "hessian_batch_size", getattr(self, "batch_size", None)),
             )
         except (RuntimeError, TypeError):
             # Some PyTorch/TorchScript operator combinations do not support
@@ -407,6 +408,7 @@ class AIMNet2Calculator(CalcABC):
         energy: torch.Tensor,
         *,
         n_atoms: int,
+        batch_size=None,
     ) -> torch.Tensor:
         """Analytic Hessian via one batched vector-Jacobian product.
 
@@ -421,6 +423,7 @@ class AIMNet2Calculator(CalcABC):
             coord_padded,
             output_dof=n3,
             input_dof=n3,
+            batch_size=batch_size,
         )
 
     @staticmethod

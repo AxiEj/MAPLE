@@ -79,24 +79,32 @@ or equivalently:
 ```
 
 The parser stores this as `model_options["batch_size"]`; calculator
-initialization attaches `batch_size`, `path_batch_size`, and `fd_batch_size` to
-the calculator.  Evaluation surfaces that support chunking consume it
-(PathEvaluator for NEB/CINEB path snapshots, FDHessianEvaluator for numerical
-Hessians such as UMA frequency Hessians, and the finite-difference HVP fallback).
-Tasks that do not support batching ignore the attribute.  The knob is therefore
-an OOM guard, not a request to change physics or Hessian precision.
+initialization attaches `batch_size`, `path_batch_size`, `fd_batch_size`, and
+`hessian_batch_size` to the calculator. Evaluation surfaces that support
+chunking consume it: PathEvaluator for NEB/CINEB path snapshots,
+FDHessianEvaluator for numerical Hessians such as UMA frequency Hessians, exact
+analytic-Hessian row-block VJPs for ANI/AIMNet2/MACE/MACEPol where applicable,
+and the finite-difference HVP fallback. Tasks that do not support batching
+ignore the attribute. The knob is therefore an OOM guard, not a request to
+change physics or Hessian precision.
+
+For analytic Hessians, `batch_size` means "maximum Hessian rows per exact
+autograd VJP block". `batch_size=1` is the lowest-memory exact row loop; larger
+values can improve speed when the backend supports batched VJPs, while keeping
+the same Hessian definition.
 
 ## Current model decisions
 
-- ANI: keep analytic Hessian. Batched VJP / `torch.func.hessian` is not stable
-  for the current TorchScript ANI model on the 7-atom TS case (`Cannot access
-  data pointer of Tensor that doesn't have storage`), so the Hessian stays on
-  the exact row-wise autograd loop. ANI acceleration is applied to safe outer
-  layers: same-composition `calculate_many` and NEB/CINEB path E/F batching.
-- AIMNet2: use exact batched VJP analytic Hessian with exact row-loop fallback.
-- MACE/MACEGeneral/MACEPol: keep current analytic Hessian loop until batched VJP
-  or a backend-native route proves stable and trajectory-equivalent on real
-  cases. Energy+forces calls now reuse one model forward where the traced model
+- ANI: keep analytic Hessian. `batch_size` now caps exact autograd Hessian
+  row-blocks; unsupported TorchScript batched-VJP operators fall back to the
+  exact row loop rather than finite differences. ANI acceleration is applied to
+  safe outer layers: same-composition `calculate_many` and NEB/CINEB path E/F
+  batching.
+- AIMNet2: use exact batched VJP analytic Hessian with `batch_size` row-block
+  capping and exact row-loop fallback.
+- MACE/MACEGeneral/MACEPol: keep analytic Hessians exact while allowing
+  `batch_size` to cap autograd Hessian row-blocks where the generic path is
+  used. Energy+forces calls now reuse one model forward where the traced model
   supports autograd, avoiding a redundant E-only pass without changing the
   Hessian or force definition. MACE-OFF23S/L and MACE-OMOL now use the official
   upstream raw MACE checkpoints when MAPLE-local TorchScript files are absent;

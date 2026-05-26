@@ -151,6 +151,8 @@ class SetClaculator:
         calculator.batch_size = batch_size
         calculator.path_batch_size = batch_size
         calculator.fd_batch_size = batch_size
+        calculator.hessian_batch_size = batch_size
+        calculator.analytic_hessian_batch_size = batch_size
 
     def _apply_hessian_mode(self, calculator) -> None:
         mode = self.model_options.get("hessian")

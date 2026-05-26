@@ -240,7 +240,11 @@ class MACEModelCalculator(CalcABC):
         return total_energy.sum()
 
     @staticmethod
-    def compute_hessian(coords: torch.Tensor, energy: torch.Tensor) -> torch.Tensor:
+    def compute_hessian(
+        coords: torch.Tensor,
+        energy: torch.Tensor,
+        batch_size=None,
+    ) -> torch.Tensor:
         """计算Hessian矩阵 (3N x 3N)"""
         num_atoms = coords.shape[0]
         return hessian_loop(
@@ -248,6 +252,7 @@ class MACEModelCalculator(CalcABC):
             coords,
             output_dof=3 * num_atoms,
             input_dof=3 * num_atoms,
+            batch_size=batch_size,
         )
 
     def _get_hessian_analytic(self, atoms=None) -> np.ndarray:
@@ -272,7 +277,11 @@ class MACEModelCalculator(CalcABC):
         total_energy = self.model(positions, node_attrs, edge_index, shifts, batch, ptr)
         energy = total_energy.sum() * EV2HARTREE
 
-        hessian = self.compute_hessian(positions, energy)
+        hessian = self.compute_hessian(
+            positions,
+            energy,
+            batch_size=getattr(self, "hessian_batch_size", getattr(self, "batch_size", None)),
+        )
         return hessian.detach().cpu().numpy()
 
     def _get_hessian_numerical(self, atoms, delta: float = 0.002) -> np.ndarray:

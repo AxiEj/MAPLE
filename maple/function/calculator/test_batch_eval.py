@@ -29,6 +29,10 @@ from ase import Atoms
 from ase.calculators.calculator import all_changes
 from ase.constraints import FixAtoms
 
+from maple.function.calculator._autograd_hessian import (
+    hessian_batched_vjp,
+    hessian_loop,
+)
 from maple.function.calculator._batch_eval import (
     FDHessianContext,
     FDHessianEvaluator,
@@ -198,6 +202,45 @@ def test_setcalculator_applies_model_batch_size_aliases():
     assert calc.batch_size == 4
     assert calc.path_batch_size == 4
     assert calc.fd_batch_size == 4
+    assert calc.hessian_batch_size == 4
+    assert calc.analytic_hessian_batch_size == 4
+
+
+def _quadratic_hessian(batch_size=None, *, batched=False):
+    coords = torch.tensor(
+        [[0.1, -0.2, 0.3], [0.4, -0.5, 0.6]],
+        dtype=torch.float64,
+        requires_grad=True,
+    )
+    weights = torch.arange(1, 7, dtype=torch.float64).reshape(2, 3)
+    energy = 0.5 * torch.sum(weights * coords * coords)
+    helper = hessian_batched_vjp if batched else hessian_loop
+    return helper(
+        energy,
+        coords,
+        output_dof=6,
+        input_dof=6,
+        batch_size=batch_size,
+    )
+
+
+def test_exact_autograd_hessian_respects_row_batch_size():
+    expected = torch.diag(torch.arange(1, 7, dtype=torch.float64))
+
+    loop = _quadratic_hessian(batch_size=1)
+    chunked = _quadratic_hessian(batch_size=2)
+    full_vjp = _quadratic_hessian(batch_size=None, batched=True)
+    chunked_vjp = _quadratic_hessian(batch_size=3, batched=True)
+
+    torch.testing.assert_close(loop, expected)
+    torch.testing.assert_close(chunked, expected)
+    torch.testing.assert_close(full_vjp, expected)
+    torch.testing.assert_close(chunked_vjp, expected)
+
+
+def test_exact_autograd_hessian_rejects_invalid_batch_size():
+    with pytest.raises(ValueError, match="batch_size"):
+        _quadratic_hessian(batch_size=0)
 
 
 # ---------------------------------------------------------------------------

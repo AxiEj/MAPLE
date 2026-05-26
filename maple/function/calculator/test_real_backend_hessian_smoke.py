@@ -115,6 +115,7 @@ def test_ani_analytic_hessian_matches_reference_autograd_loop():
         for component in grad.unbind()
     ]).detach().cpu().numpy()
 
+    calc.hessian_batch_size = 2
     actual = calc._get_hessian_analytic(atoms).detach().cpu().numpy()
     np.testing.assert_allclose(actual, expected, rtol=1e-5, atol=5e-5)
 
@@ -159,6 +160,7 @@ def test_aimnet2_analytic_hessian_batched_vjp_matches_loop():
         n_atoms=n_atoms,
     ).detach().cpu().numpy()
 
+    calc.hessian_batch_size = 2
     actual = calc._get_hessian_analytic(atoms)
     np.testing.assert_allclose(actual, expected, rtol=1e-5, atol=5e-5)
 

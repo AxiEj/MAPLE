@@ -1,0 +1,88 @@
+# Required real-backend acceptance reports before MAPLE may claim production PBC-MD.
+#
+# LJ/reference reports validate the MAPLE MD engine. They do not validate ML backend
+# stress sign/unit/magnitude, long-range Coulomb options, or per-model NPT behavior.
+# Each target below must have a non-smoke production_validation.py report from the
+# current clean commit, with full Voigt stress finite-difference passing and zero
+# c-rescale clamp events. The checker script enforces this file:
+#
+#   python scripts/check_production_backend_matrix.py
+
+minimum_thresholds_version = "1.4.0"
+required_classes = [
+  "nve_energy_drift",
+  "restart_determinism",
+  "nvt_mean_temperature",
+  "npt_pressure",
+  "npt_volume_fluctuation",
+  "npt_effective_energy_drift",
+  "barostat_clamp_free",
+  "stress_finite_difference",
+  "pbc_geometry",
+  "constraints_rejected",
+]
+
+[[targets]]
+id = "aimnet2-pbc-dsf"
+model = "aimnet2-pbc"
+model_options = { coulomb = "dsf" }
+
+[[targets]]
+id = "aimnet2-pbc-ewald"
+model = "aimnet2-pbc"
+model_options = { coulomb = "ewald" }
+
+[[targets]]
+id = "aimnet2-pbc-pme"
+model = "aimnet2-pbc"
+model_options = { coulomb = "pme" }
+
+[[targets]]
+id = "aimnet2nse-pbc-dsf"
+model = "aimnet2nse-pbc"
+model_options = { coulomb = "dsf" }
+
+[[targets]]
+id = "aimnet2nse-pbc-ewald"
+model = "aimnet2nse-pbc"
+model_options = { coulomb = "ewald" }
+
+[[targets]]
+id = "aimnet2nse-pbc-pme"
+model = "aimnet2nse-pbc"
+model_options = { coulomb = "pme" }
+
+[[targets]]
+id = "mace-mp-pbc-small"
+model = "mace-mp-pbc-small"
+model_options = {}
+
+[[targets]]
+id = "mace-mp-pbc-medium"
+model = "mace-mp-pbc-medium"
+model_options = {}
+
+[[targets]]
+id = "mace-mp-pbc-large"
+model = "mace-mp-pbc-large"
+model_options = {}
+
+[[targets]]
+id = "macepol-pbc-small"
+model = "macepol-pbc-small"
+model_options = { default_dtype = "float64" }
+
+[[targets]]
+id = "macepol-pbc-medium"
+model = "macepol-pbc-medium"
+model_options = { default_dtype = "float64" }
+
+[[targets]]
+id = "macepol-pbc-large"
+model = "macepol-pbc-large"
+model_options = { default_dtype = "float64" }
+
+[[targets]]
+id = "uma-omat-default"
+model = "uma"
+model_options = { task = "omat", size = "uma-s-1p1" }

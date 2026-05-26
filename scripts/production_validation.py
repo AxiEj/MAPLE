@@ -10,8 +10,11 @@ Examples
     # Backend-free harness self-validation:
     python scripts/production_validation.py
 
-    # Validate a real periodic backend:
+    # Validate one real periodic backend target:
     python scripts/production_validation.py --model mace-mp-pbc-small --device cuda
+
+    # After all real-backend targets have reports, verify the aggregate claim:
+    python scripts/check_production_backend_matrix.py
 
 The report (markdown + JSON) and per-run provenance manifests are written under
 validation/reports/<artifact_id>/ (override with --outdir/--workdir):

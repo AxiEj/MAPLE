@@ -149,3 +149,23 @@ long-range real-space/reciprocal-space parameterization; MAPLE records those
 settings in provenance and gates only the fixed 5 Å local AEV descriptor cutoff.
 Production validation reports must therefore include each Coulomb mode they
 intend to claim, not just a DSF or local-cutoff smoke.
+
+## Real-backend production matrix is now an aggregate gate
+
+`scripts/production_validation.py` validates one calculator target at a time.
+Before MAPLE can claim production PBC-MD for real ML backends, the report bundle
+must also pass:
+
+```bash
+python scripts/check_production_backend_matrix.py
+```
+
+The required matrix lives in `validation/required_pbc_backends.toml` and covers
+`aimnet2-pbc` / `aimnet2nse-pbc` in DSF, Ewald and PME modes, every
+`mace-mp-pbc-*` and `macepol-pbc-*` size, and the UMA `omat` PBC task. The
+checker rejects LJ-only evidence, quick-smoke reports, dirty or old-commit
+reports, skipped acceptance classes, c-rescale clamp events, missing manifests,
+missing calculator unit/cutoff contracts, and any stress report that is not a
+full ASE-Voigt `[xx, yy, zz, yz, xz, xy]` finite-difference pass with matching
+signs. This makes the previous review requirement machine-checkable: LJ proves
+the MD engine; real backend reports prove the production backend claim.

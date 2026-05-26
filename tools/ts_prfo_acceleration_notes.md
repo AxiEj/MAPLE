@@ -59,6 +59,33 @@ reports exactly one non-trivial imaginary frequency.
   same-composition FD batches) until a backend-native CUDA AEV route is adopted:
   https://chemrxiv.org/engage/api-gateway/chemrxiv/assets/orp/resource/item/6890d92523be8e43d6b9bbba/original/torch-ani-2-0-an-extensible-high-performance-library-for-the-design-training-and-use-of-nn-i-ps.pdf
 
+
+## Memory-safe batch-size control
+
+Users can cap model-level batch chunks in input files without changing task
+syntax:
+
+```text
+#model=uma(task=omol,batch_size=2)
+#freq
+```
+
+or equivalently:
+
+```text
+#model=aimnet2
+#batch_size=2
+#ts(method=neb)
+```
+
+The parser stores this as `model_options["batch_size"]`; calculator
+initialization attaches `batch_size`, `path_batch_size`, and `fd_batch_size` to
+the calculator.  Evaluation surfaces that support chunking consume it
+(PathEvaluator for NEB/CINEB path snapshots, FDHessianEvaluator for numerical
+Hessians such as UMA frequency Hessians, and the finite-difference HVP fallback).
+Tasks that do not support batching ignore the attribute.  The knob is therefore
+an OOM guard, not a request to change physics or Hessian precision.
+
 ## Current model decisions
 
 - ANI: keep analytic Hessian. Batched VJP / `torch.func.hessian` is not stable

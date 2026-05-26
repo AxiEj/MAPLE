@@ -35,6 +35,7 @@ class CommandControl:
     SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
     UMA_DEFAULT_SIZE = "uma-s-1p1"  # keep in sync with _uma_calculator.UMA_DEFAULT_SIZE
     SUPPORTED_HESSIAN_MODES = {"analytic", "numerical"}
+    COMMON_MODEL_OPTION_PARAMS = {"hessian", "batch_size"}
 
     DEFAULTS = {
         "model": None,
@@ -103,6 +104,7 @@ class CommandControl:
         "pbc",
         "solv",
         "level",
+        "batch_size",
     }
     LBFGS_PARAMS = {
         "memory",
@@ -151,10 +153,10 @@ class CommandControl:
     SCAN_PARAMS = {"method", "mode"}
     SOLV_PARAMS = {"method", "implicit", "explicit", "radius", "clash_cutoff", "fix_dis"}
     MODEL_OPTION_PARAMS = {
-        "uma": {"task", "size", "hessian", "inference"},
-        "macepols": {"model_path", "hessian"},
-        "macepolm": {"model_path", "hessian"},
-        "macepoll": {"model_path", "hessian"},
+        "uma": {"task", "size", "hessian", "inference", "batch_size"},
+        "macepols": {"model_path", "hessian", "batch_size"},
+        "macepolm": {"model_path", "hessian", "batch_size"},
+        "macepoll": {"model_path", "hessian", "batch_size"},
     }
     VALIDATED_TASK_PARAMS = {"opt", "scan", "md"}
 
@@ -363,6 +365,12 @@ class CommandControl:
             )
 
         model_options = params.get("model_options")
+        if "batch_size" in params:
+            if not isinstance(model_options, dict):
+                model_options = {}
+            model_options.setdefault("batch_size", params.pop("batch_size"))
+            params["model_options"] = model_options
+
         if isinstance(model_options, dict):
             for key in ("task", "size", "hessian", "inference"):
                 if key in model_options and isinstance(model_options[key], str):
@@ -447,7 +455,9 @@ class CommandControl:
         model = params.get("model")
         model_options = params.get("model_options")
         if isinstance(model_options, dict):
-            allowed_model_options = cls.MODEL_OPTION_PARAMS.get(model, {"hessian"})
+            allowed_model_options = cls.MODEL_OPTION_PARAMS.get(
+                model, cls.COMMON_MODEL_OPTION_PARAMS
+            )
             context = f"{model or 'model'} option"
             for key in model_options:
                 if key not in allowed_model_options:
@@ -567,6 +577,13 @@ class CommandControl:
             if "pbc" in params and task_opt == "omol":
                 cls._log_error(output_path, "PBC is incompatible with UMA task='omol'.")
                 raise ValueError("PBC is incompatible with UMA task='omol'.")
+
+        batch_size = model_options.get("batch_size")
+        if batch_size is not None:
+            if type(batch_size) is not int or batch_size <= 0:
+                msg = "model batch_size must be a positive integer."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
 
         hessian_mode = model_options.get("hessian")
         if hessian_mode is not None and hessian_mode not in cls.SUPPORTED_HESSIAN_MODES:

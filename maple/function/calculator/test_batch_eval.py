@@ -152,6 +152,54 @@ def _set_thresholds(atoms: Atoms, val: float = 1e-5) -> None:
         setattr(atoms, t, val)
 
 
+def test_command_control_accepts_model_level_batch_size():
+    from maple.function.read.command_control import CommandControl
+
+    cc = CommandControl.from_settings([
+        "#model=uma(task=omol,batch_size=2)",
+        "#freq",
+        "#device=gpu0",
+    ])
+
+    assert cc.params["model"] == "uma"
+    assert cc.params["model_options"]["task"] == "omol"
+    assert cc.params["model_options"]["batch_size"] == 2
+
+
+def test_command_control_promotes_global_batch_size_to_model_option():
+    from maple.function.read.command_control import CommandControl
+
+    cc = CommandControl.from_settings([
+        "#model=aimnet2",
+        "#batch_size=3",
+        "#freq",
+    ])
+
+    assert "batch_size" not in cc.params
+    assert cc.params["model_options"]["batch_size"] == 3
+
+
+def test_command_control_rejects_invalid_model_batch_size():
+    from maple.function.read.command_control import CommandControl
+
+    with pytest.raises(ValueError, match="batch_size"):
+        CommandControl.from_settings(["#model=uma(batch_size=0)", "#freq"])
+
+
+def test_setcalculator_applies_model_batch_size_aliases():
+    from maple.function.calculator.set_calculator import SetClaculator
+
+    setter = object.__new__(SetClaculator)
+    setter.model_options = {"batch_size": 4}
+    calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+
+    setter._apply_batch_size(calc)
+
+    assert calc.batch_size == 4
+    assert calc.path_batch_size == 4
+    assert calc.fd_batch_size == 4
+
+
 # ---------------------------------------------------------------------------
 # CalcABC.calculate_many fallback
 # ---------------------------------------------------------------------------
@@ -348,6 +396,52 @@ def test_fd_hessian_uses_make_fd_context_when_available():
     assert atoms.calc.context_modes == ["fast"]
 
 
+def test_fd_hessian_reads_calculator_level_batch_size_for_freq():
+    """Frequency calls calc.get_hessian(); model batch_size must still chunk FD.
+
+    This covers the user-facing OOM guard for numerical Hessians: setting
+    ``#model(..., batch_size=N)`` attaches ``calc.batch_size`` and
+    FDHessianEvaluator consumes it even when a freq job does not pass an
+    algorithm-specific fd_batch_size.
+    """
+
+    from maple.function.dispatcher.frequency.frequency import MWFrequency
+
+    class ChunkRecordingCalc(HarmonicCalc):
+        supported_hessian_modes = ("numerical",)
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.chunk_sizes = []
+
+        def calculate_many(self, atoms_list, properties=("forces",)):
+            self.chunk_sizes.append(len(atoms_list))
+            forces = []
+            for at in atoms_list:
+                R = at.get_positions().astype(np.float64)
+                forces.append(-self.k * (R - self.ref))
+            return BatchResult(forces=forces)
+
+        def get_hessian(self, atoms, delta: float = 1e-4):
+            return FDHessianEvaluator(self).hessian(atoms, delta=delta)
+
+    ref = np.zeros((3, 3))
+    atoms = Atoms("HHH", positions=ref + 0.02)
+    calc = ChunkRecordingCalc(k=1.0, ref_positions=ref)
+    calc.batch_size = 5
+    atoms.calc = calc
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        H = MWFrequency(output=out, atoms=atoms).get_hessian()
+    finally:
+        os.unlink(out)
+
+    np.testing.assert_allclose(H, np.eye(9), atol=1e-8)
+    assert calc.chunk_sizes == [5, 5, 5, 3]
+
+
 def test_fd_hessian_invalid_context_mode_fails_fast():
     calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
     calc.fd_context_mode = "unsafe"
@@ -474,6 +568,39 @@ def test_hvp_evaluator_fd_fallback_when_no_get_hvp():
     # H = k I, so Hn along x of atom 0 should be (k, 0, 0, 0, 0, 0).
     expected = np.zeros(6); expected[0] = 1.5
     np.testing.assert_allclose(Hn, expected, atol=1e-6)
+
+
+def test_hvp_evaluator_fd_fallback_reads_calculator_level_batch_size():
+    class ChunkRecordingNoHVPCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.chunk_sizes = []
+
+        def calculate_many(self, atoms_list, properties=("energy", "forces")):
+            self.chunk_sizes.append(len(atoms_list))
+            energies = []
+            forces = []
+            for at in atoms_list:
+                R = at.get_positions().astype(np.float64)
+                d = R - self.ref
+                energies.append(0.5 * self.k * float(np.sum(d * d)))
+                forces.append(-self.k * d)
+            return BatchResult(energies=np.asarray(energies), forces=forces)
+
+    ref = np.zeros((2, 3))
+    atoms = Atoms("HH", positions=ref + 0.1)
+    calc = ChunkRecordingNoHVPCalc(k=1.5, ref_positions=ref)
+    calc.batch_size = 1
+    atoms.calc = calc
+
+    n_vec = np.zeros(6)
+    n_vec[0] = 1.0
+    Hn, _, _ = HVPEvaluator(atoms.calc).hn(atoms, n_vec, delta=1e-4)
+
+    expected = np.zeros(6)
+    expected[0] = 1.5
+    np.testing.assert_allclose(Hn, expected, atol=1e-6)
+    assert calc.chunk_sizes == [1, 1]
 
 
 # ---------------------------------------------------------------------------
@@ -736,6 +863,35 @@ def test_nebts_candidate_indices_try_barrier_neighbors():
         3,
         4,
     ]
+
+
+def test_path_evaluator_reads_calculator_level_batch_size():
+    class ChunkRecordingCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.chunk_sizes = []
+
+        def calculate_many(self, atoms_list, properties=("energy", "forces")):
+            self.chunk_sizes.append(len(atoms_list))
+            energies = []
+            forces = []
+            for at in atoms_list:
+                R = at.get_positions().astype(np.float64)
+                d = R - self.ref
+                energies.append(0.5 * self.k * float(np.sum(d * d)))
+                forces.append(-self.k * d)
+            return BatchResult(energies=np.asarray(energies), forces=forces)
+
+    ref = np.zeros((1, 3))
+    images = [Atoms("H", positions=ref + i * 0.01) for i in range(5)]
+    calc = ChunkRecordingCalc(k=1.0, ref_positions=ref)
+    calc.batch_size = 2
+
+    es, fs = PathEvaluator(calc).energy_forces(images)
+
+    assert es.shape == (5,)
+    assert len(fs) == 5
+    assert calc.chunk_sizes == [2, 2, 1]
 
 
 def test_path_evaluator_rejects_invalid_batch_size():

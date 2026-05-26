@@ -73,6 +73,33 @@ def reset_calculator_cache(calc) -> None:
         results.clear()
 
 
+def _positive_int_or_none(value, name: str) -> Optional[int]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise ValueError(
+            f"{name} must be a positive integer or None, got {value!r}"
+        )
+    try:
+        coerced = operator.index(value)
+    except TypeError as exc:
+        raise ValueError(
+            f"{name} must be a positive integer or None, got {value!r}"
+        ) from exc
+    if coerced <= 0:
+        raise ValueError(
+            f"{name} must be a positive integer or None, got {value!r}"
+        )
+    return coerced
+
+
+def _calculator_batch_size(calc, specific: str) -> Optional[int]:
+    value = getattr(calc, specific, None)
+    if value is None:
+        value = getattr(calc, "batch_size", None)
+    return _positive_int_or_none(value, specific)
+
+
 # ---------------------------------------------------------------------------
 # Numerical Hessian via batched central difference / optional FD context
 # ---------------------------------------------------------------------------
@@ -181,19 +208,10 @@ class FDHessianEvaluator:
         fd_context_mode: Optional[str] = None,
     ) -> None:
         self.calc = calc
-        if fd_batch_size is not None:
-            try:
-                fd_batch_size = operator.index(fd_batch_size)
-            except TypeError as exc:
-                raise ValueError(
-                    "fd_batch_size must be a positive integer or None, "
-                    f"got {fd_batch_size!r}"
-                ) from exc
-            if fd_batch_size <= 0:
-                raise ValueError(
-                    "fd_batch_size must be a positive integer or None, "
-                    f"got {fd_batch_size!r}"
-                )
+        if fd_batch_size is None:
+            fd_batch_size = _calculator_batch_size(calc, "fd_batch_size")
+        else:
+            fd_batch_size = _positive_int_or_none(fd_batch_size, "fd_batch_size")
         self.fd_batch_size = fd_batch_size
         self.respect_fixatoms = respect_fixatoms
         self.fd_context_mode = fd_context_mode
@@ -368,19 +386,10 @@ class PathEvaluator:
 
     def __init__(self, calc, batch_size: Optional[int] = None) -> None:
         self.calc = calc
-        if batch_size is not None:
-            try:
-                batch_size = operator.index(batch_size)
-            except TypeError as exc:
-                raise ValueError(
-                    "batch_size must be a positive integer or None, "
-                    f"got {batch_size!r}"
-                ) from exc
-            if batch_size <= 0:
-                raise ValueError(
-                    "batch_size must be a positive integer or None, "
-                    f"got {batch_size!r}"
-                )
+        if batch_size is None:
+            batch_size = _calculator_batch_size(calc, "path_batch_size")
+        else:
+            batch_size = _positive_int_or_none(batch_size, "batch_size")
         self.batch_size = batch_size
 
     def energy_forces(self, images: Sequence[Atoms]) -> Tuple[np.ndarray, List[np.ndarray]]:
@@ -411,8 +420,13 @@ class HVPEvaluator:
     `calculate_many` for calculators that cannot expose HVP.
     """
 
-    def __init__(self, calc) -> None:
+    def __init__(self, calc, batch_size: Optional[int] = None) -> None:
         self.calc = calc
+        if batch_size is None:
+            batch_size = _calculator_batch_size(calc, "hvp_batch_size")
+        else:
+            batch_size = _positive_int_or_none(batch_size, "batch_size")
+        self.batch_size = batch_size
 
     def hn(
         self,
@@ -441,20 +455,22 @@ class HVPEvaluator:
         at_p = _copy_with_positions(atoms, pos0 + delta * n_arr)
         at_m = _copy_with_positions(atoms, pos0 - delta * n_arr)
 
-        result = self.calc.calculate_many(
-            [at_p, at_m], properties=("energy", "forces")
-        )
-        atoms.set_positions(pos0)
+        try:
+            energies, forces = PathEvaluator(
+                self.calc, batch_size=self.batch_size
+            ).energy_forces([at_p, at_m])
+        finally:
+            atoms.set_positions(pos0)
 
-        if result.forces is None or result.energies is None:
+        if len(forces) != 2 or len(energies) != 2:
             raise RuntimeError(
                 "calculate_many must return both energies and forces for "
                 "HVPEvaluator finite-difference fallback."
             )
-        F_p = np.asarray(result.forces[0], dtype=np.float64).reshape(-1)
-        F_m = np.asarray(result.forces[1], dtype=np.float64).reshape(-1)
-        E_p = float(result.energies[0])
-        E_m = float(result.energies[1])
+        F_p = np.asarray(forces[0], dtype=np.float64).reshape(-1)
+        F_m = np.asarray(forces[1], dtype=np.float64).reshape(-1)
+        E_p = float(energies[0])
+        E_m = float(energies[1])
 
         Hn = -(F_p - F_m) / (2.0 * delta)
         F_mid = 0.5 * (F_p + F_m)

@@ -128,6 +128,30 @@ class SetClaculator:
                 f"Supported modes: {supported_text}"
             )
 
+    def _apply_batch_size(self, calculator) -> None:
+        """Attach user-requested model-level batch chunk size to calculators.
+
+        The value is deliberately generic: evaluators that can batch read it
+        through their task-specific aliases, while unsupported tasks simply
+        ignore the attribute.
+        """
+        batch_size = self.model_options.get("batch_size")
+        if batch_size is None:
+            return
+
+        if isinstance(batch_size, bool):
+            raise ValueError("model batch_size must be a positive integer.")
+        try:
+            batch_size = int(batch_size)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("model batch_size must be a positive integer.") from exc
+        if batch_size <= 0:
+            raise ValueError("model batch_size must be a positive integer.")
+
+        calculator.batch_size = batch_size
+        calculator.path_batch_size = batch_size
+        calculator.fd_batch_size = batch_size
+
     def _apply_hessian_mode(self, calculator) -> None:
         mode = self.model_options.get("hessian")
         if mode is None:
@@ -342,6 +366,7 @@ class SetClaculator:
             raise ValueError(f"Model '{model}' is not implemented yet.")
 
         self._apply_hessian_mode(calculator)
+        self._apply_batch_size(calculator)
         return calculator
 
     def set_calculator(self) -> ase.calculators.calculator.Calculator:

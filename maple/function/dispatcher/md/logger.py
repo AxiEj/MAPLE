@@ -415,17 +415,31 @@ class MDLogger:
         if self._ensemble == 'npt' and pressure is not None:
             self.log_main([f"Target pressure: {pressure:.2f} bar\n"])
         if self._is_pbc:
-            from .provenance import _calc_cutoff, _long_range_method
+            from .provenance import _calc_cutoff, _calc_long_range_method, _calc_optional_float
 
             pbc_calc = getattr(atoms, "calc", None)
             pbc_cutoff = _calc_cutoff(pbc_calc) if pbc_calc is not None else None
-            pbc_long_range = _long_range_method(getattr(pbc_calc, "maple_model_options", None))
+            pbc_local_cutoff = _calc_optional_float(
+                pbc_calc, "local_descriptor_cutoff_A"
+            ) if pbc_calc is not None else None
+            pbc_short_cutoff = _calc_optional_float(
+                pbc_calc, "short_range_realspace_cutoff_A"
+            ) if pbc_calc is not None else None
+            pbc_lr_cutoff = _calc_optional_float(
+                pbc_calc, "long_range_coulomb_cutoff_A", "lrcoulomb_cutoff_A"
+            ) if pbc_calc is not None else None
+            pbc_long_range = _calc_long_range_method(
+                pbc_calc, getattr(pbc_calc, "maple_model_options", None)
+            )
             self.log_main([
                 f"Wrapped traj:     {self.traj_path.name}\n",
                 f"Unwrapped traj:   {self.unwrapped_traj_path.name}\n",
                 f"PBC model:        {getattr(pbc_calc, 'maple_model_name', None)}\n",
-                f"Neighbor cutoff:  {f'{pbc_cutoff:.3f} A' if pbc_cutoff is not None else 'n/a'}\n",
-                f"Long-range:       {pbc_long_range}\n",
+                f"MIC-gated cutoff: {f'{pbc_cutoff:.3f} A' if pbc_cutoff is not None else 'n/a'}\n",
+                f"Local descriptor: {f'{pbc_local_cutoff:.3f} A' if pbc_local_cutoff is not None else 'n/a'}\n",
+                f"Short-range real: {f'{pbc_short_cutoff:.3f} A' if pbc_short_cutoff is not None else 'n/a'}\n",
+                f"Long-range:       {pbc_long_range}"
+                f"{f' (cutoff {pbc_lr_cutoff:.3f} A)' if pbc_lr_cutoff is not None else ''}\n",
                 f"Stress unit:      {getattr(pbc_calc, 'maple_stress_unit', None) or 'n/a'}\n",
                 "NOTE: Wrapped PBC coordinates are for visualization/restart handoff. "
                 "For fixed-cell NVE/NVT, the unwrapped trajectory is suitable for "
@@ -460,9 +474,10 @@ class MDLogger:
                 )
                 if self._write_conserved_energy:
                     self.thermo_file.write(
-                        "# H_cons(Ha) is the reversible c-rescale conserved quantity "
+                        "# H_cons(Ha) is the c-rescale effective-energy diagnostic "
                         "H~ = KE + PE + P0*V - sum(thermostat+barostat+projection work); "
-                        "its drift is the effective-energy integration diagnostic.\n"
+                        "its drift is an integration-quality check, not a standalone "
+                        "production-readiness proof.\n"
                     )
                 npt_header = (
                     f"# {'Step':>8} {'Time(fs)':>12} {'Temp(K)':>12} "
@@ -557,11 +572,11 @@ class MDLogger:
             volume: Cell volume in Å³ (NPT only). For NPT barostat paths this is
                 the post-rescale primary volume paired with ``pressure``.
             rng_state: Hex-encoded RNG state to embed in trajectory frame (NVT/NPT only)
-            conserved_energy: V-rescale conserved-energy bookkeeping value
-                H̃ = H − ΣΔW_external (Hartree). For pure thermostat dynamics this
-                reduces to the Bussi 2007 Eq. 15 form; when runtime COM/angular
-                projection is enabled it also includes the projection KE change.
-                None for NVE or Langevin thermostat.
+            conserved_energy: Effective-energy / conserved-energy bookkeeping
+                value H̃ = H − ΣΔW_external (Hartree). For pure V-rescale
+                thermostat dynamics this reduces to the Bussi 2007 Eq. 15 form;
+                for NPT c-rescale it is reported as an effective-energy
+                diagnostic. None for NVE or Langevin thermostat.
             velocity_representation: Label describing the semantics of ``velocities``.
             temperature_sync: Sync-corrected temperature (K) for optional thermo output.
             kinetic_energy_sync: Sync-corrected kinetic energy (Hartree).
@@ -599,7 +614,8 @@ class MDLogger:
             self.pressures.append(pressure)
 
         # Write thermodynamic data every step
-        # H_cons column is included only for NVT with V-rescale (Bussi 2007 Eq. 15)
+        # H_cons is appended only when the active ensemble requested external-work
+        # bookkeeping (NVT V-rescale conserved energy or NPT c-rescale diagnostic).
         if self._ensemble == 'npt' and pressure is not None and volume is not None:
             pre_pressure = pressure_pre if pressure_pre is not None else float('nan')
             pre_volume = volume_pre if volume_pre is not None else float('nan')
@@ -609,7 +625,7 @@ class MDLogger:
                 f"{total_energy_hartree:>15.8f} {pressure:>15.3f} {volume:>15.4f} "
                 f"{pre_pressure:>15.3f} {pre_volume:>15.4f}"
             )
-            # Append the conserved-energy column (last, so the fixed Press/Vol
+            # Append the H_cons diagnostic column (last, so the fixed Press/Vol
             # column indices used by downstream parsers are unaffected).
             if self._write_conserved_energy and conserved_energy is not None:
                 npt_row += f" {conserved_energy:>15.8f}"

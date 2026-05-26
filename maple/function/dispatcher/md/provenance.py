@@ -113,7 +113,7 @@ def collect_calculator_provenance(
     if options is None:
         options = getattr(calc, "maple_model_options", None)
 
-    long_range_method = _long_range_method(options)
+    long_range_method = _calc_long_range_method(calc, options)
 
     return {
         "model": model if model is not None else getattr(calc, "maple_model_name", None),
@@ -132,6 +132,17 @@ def collect_calculator_provenance(
             "force_unit": getattr(calc, "maple_force_unit", None),
             "stress_unit": getattr(calc, "maple_stress_unit", None),
             "neighbor_cutoff_A": _safe(lambda: _calc_cutoff(calc)),
+            "local_descriptor_cutoff_A": _safe(
+                lambda: _calc_optional_float(calc, "local_descriptor_cutoff_A")
+            ),
+            "short_range_realspace_cutoff_A": _safe(
+                lambda: _calc_optional_float(calc, "short_range_realspace_cutoff_A")
+            ),
+            "long_range_coulomb_cutoff_A": _safe(
+                lambda: _calc_optional_float(
+                    calc, "long_range_coulomb_cutoff_A", "lrcoulomb_cutoff_A"
+                )
+            ),
             "long_range_method": long_range_method,
         },
     }
@@ -143,6 +154,21 @@ def _calc_cutoff(calc) -> Optional[float]:
         if value is not None:
             return float(value)
     return None
+
+
+def _calc_optional_float(calc, *attrs: str) -> Optional[float]:
+    for attr in attrs:
+        value = getattr(calc, attr, None)
+        if value is not None:
+            return float(value)
+    return None
+
+
+def _calc_long_range_method(calc, model_options=None) -> str:
+    method = _long_range_method(model_options)
+    if method == "none" and calc is not None:
+        method = _normalize_long_range_method(getattr(calc, "lrcoulomb_method", None))
+    return method
 
 
 def _long_range_method(model_options) -> str:
@@ -295,9 +321,7 @@ def restart_manifest_consistency_issues(
         manifest_lr = _normalize_long_range_method(
             _path_get(manifest, "calculator.capabilities.long_range_method")
         )
-        current_lr = _normalize_long_range_method(
-            _long_range_method(getattr(calc, "maple_model_options", None))
-        )
+        current_lr = _calc_long_range_method(calc, getattr(calc, "maple_model_options", None))
         if manifest_lr != current_lr:
             add_mismatch("calculator.capabilities.long_range_method", manifest_lr, current_lr)
 

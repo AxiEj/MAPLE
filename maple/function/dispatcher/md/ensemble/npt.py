@@ -337,6 +337,44 @@ class NPT(JobABC):
             self.log_info([advisory])
             print(advisory, end="", flush=True)
 
+    def _validate_runtime_cutoff_after_barostat(self, abs_step: int) -> None:
+        """Fail before force/stress evaluation if NPT shrinkage breaks MIC cutoff."""
+        if not any(self.atoms.pbc):
+            return
+
+        from maple.function.calculator.set_calculator import (
+            _calculator_neighbor_cutoff_A,
+            _minimum_image_radius_A,
+            validate_pbc_neighbor_cutoff,
+        )
+
+        try:
+            validate_pbc_neighbor_cutoff(
+                self.atoms,
+                self.atoms.calc,
+                allow_unknown_cutoff=bool(self.params.allow_unknown_cutoff),
+                require_known_cutoff=True,
+            )
+        except ValueError as exc:
+            cutoff = _calculator_neighbor_cutoff_A(self.atoms.calc)
+            try:
+                radius, shortest = _minimum_image_radius_A(self.atoms)
+            except ValueError:
+                radius, shortest = float("nan"), float("nan")
+            cell = np.asarray(self.atoms.get_cell(), dtype=float)
+            volume = float(self.atoms.get_volume()) if all(self.atoms.pbc) else float("nan")
+            msg = (
+                f"NPT runtime cutoff/MIC guard failed after barostat scaling at step "
+                f"{abs_step}: neighbor_cutoff_A={cutoff!r}, "
+                f"minimum_image_radius_A={radius:.8g}, "
+                f"shortest_lattice_vector_A={shortest:.8g}, volume_A3={volume:.8g}, "
+                f"cell_A={cell.tolist()}. The current cell no longer satisfies the "
+                "minimum-image convention before the next force/stress evaluation. "
+                f"Original error: {exc}"
+            )
+            self.logger.abort_simulation(reason=msg)
+            raise ValueError(msg) from exc
+
     def run(self):
         """Execute NPT simulation."""
         with timer("MD Simulation (NPT)"):
@@ -523,9 +561,9 @@ class NPT(JobABC):
         pressure term is not computed from the half-step carried state.
         V-rescale applies the thermostat to the full-step Velocity Verlet
         velocity before the barostat.  For the v-rescale + reversible c-rescale
-        pair this path reports the NPT conserved quantity H̃ = K + U + P_0·V −
-        Σ ΔW_ext (thermostat + barostat + projection work); its drift is the
-        effective-energy integration diagnostic.
+        pair this path reports H̃ = K + U + P_0·V − Σ ΔW_ext (thermostat +
+        barostat + projection work) as an effective-energy integration
+        diagnostic.
         """
         if n_steps is None:
             n_steps = self.params.steps
@@ -563,7 +601,7 @@ class NPT(JobABC):
         write_sync_thermo = bool(
             is_langevin and velocity_representation == VELOCITY_REPR_LFMIDDLE_CARRIED
         )
-        # Reversible c-rescale defines a conserved "effective energy"
+        # Reversible c-rescale reports an effective-energy diagnostic
         # H̃ = K + U + P_0·V − Σ ΔW_ext.  It is only meaningful for the stochastic
         # v-rescale + c-rescale pair (Langevin has no conserved energy; Berendsen
         # is equilibration-only), so the bookkeeping below is gated on that pair.
@@ -598,8 +636,9 @@ class NPT(JobABC):
         integrator = VelocityVerlet(self.atoms, self.params.timestep)
         v = velocities.copy()
 
-        # Running external-work ledger for the conserved quantity (v-rescale +
-        # c-rescale only); accumulates thermostat, barostat and projection work.
+        # Running external-work ledger for the effective-energy diagnostic
+        # (v-rescale + c-rescale only); accumulates thermostat, barostat and
+        # projection work.
         w_bath = 0.0
 
         # Cache forces at t=0; the Langevin LFMiddle path reuses the same initial
@@ -627,8 +666,8 @@ class NPT(JobABC):
             else:
                 # Full Velocity Verlet step first, then V-rescale the full-step
                 # velocity.  The thermostat work joins the external-work ledger
-                # so the conserved quantity is complete once the barostat work
-                # (below) is added too.
+                # so the effective-energy ledger includes it once the barostat
+                # work (below) is added too.
                 v, forces = integrator.step(v, forces)
                 v, delta_w = self.thermostat.apply(v)
                 if track_conserved:
@@ -647,10 +686,16 @@ class NPT(JobABC):
             if track_conserved:
                 ke_pre_baro = calculate_kinetic_energy(self.atoms, v)
                 u_pre_baro = evaluate_md_properties(self.atoms, need_stress=True).energy_ha
-            pressure_pre, v = self.barostat.apply(
-                v,
-                pressure_velocities=pressure_velocities,
-            )
+            abs_step = step_offset + step
+            try:
+                pressure_pre, v = self.barostat.apply(
+                    v,
+                    pressure_velocities=pressure_velocities,
+                )
+            except MDBarostatClampError as exc:
+                msg = f"C-rescale barostat failed at step {abs_step}: {exc}"
+                self.logger.abort_simulation(reason=msg)
+                raise
             # Fail fast: a fired stability clamp means this step's volume move was
             # truncated, so the trajectory from here on is no longer the target NPT
             # ensemble.  Abort immediately (closing files, writing no manifest) rather
@@ -665,6 +710,7 @@ class NPT(JobABC):
                 )
                 self.logger.abort_simulation(reason=msg)
                 raise MDBarostatClampError(msg)
+            self._validate_runtime_cutoff_after_barostat(abs_step)
             if track_conserved:
                 ke_post_baro = calculate_kinetic_energy(self.atoms, v)
             v, _projection = apply_runtime_motion_projection(
@@ -676,7 +722,6 @@ class NPT(JobABC):
             )
             forces = forces_au(self.atoms)
 
-            abs_step         = step_offset + step
             current_time     = abs_step * self.params.timestep
             volume_post      = self.atoms.get_volume()
             temperature      = calculate_temperature(self.atoms, v, n_dof=self._runtime_n_dof)
@@ -719,11 +764,11 @@ class NPT(JobABC):
             if write_sync_thermo:
                 total_energy_sync = kinetic_energy_sync + potential_energy
 
-            # Conserved quantity H̃ = K + U + P_0·V − Σ ΔW_ext.  The barostat
+            # Effective-energy diagnostic H̃ = K + U + P_0·V − Σ ΔW_ext.  The barostat
             # injects ΔW_baro = Δ(K + U + P_0·V) across its volume/momentum
             # rescale; the runtime projection injects ΔW_proj = ΔK.  Both join
-            # the same ledger as the thermostat work, so H̃ is constant under
-            # exact dynamics and its drift is the integration diagnostic.
+            # the same ledger as the thermostat work, so H̃ drift is tracked as
+            # an integration-quality diagnostic.
             conserved = None
             if track_conserved:
                 baro_work = (

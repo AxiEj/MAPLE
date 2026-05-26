@@ -23,21 +23,26 @@ def _ar():
     return atoms
 
 
-# Extreme but range-valid coupling that drives a pathological one-step volume move so
-# the [0.125, 8.0] clamp is forced to clip (huge pressure target, tiny tau_p).
+# Extreme but range-valid coupling that drives a pathological one-step volume expansion
+# so the [0.125, 8.0] clamp is forced to clip without crossing λ <= 0.
 _CLAMP_PARAS = {
-    "pressure": 1.0e6, "tau_p": 1.0, "compressibility": 0.1, "timestep": 10.0,
+    "pressure": -1.0e6, "tau_p": 1.0, "compressibility": 0.1, "timestep": 10.0,
     "thermostat": "v-rescale", "barostat": "c-rescale", "tau_t": 50.0,
     "temperature": 80.0, "remove_com_every": 0, "verbose": 0,
     "log_every": 1, "traj_every": 1, "rst_every": 0, "random_seed": 5,
 }
 
 
+class NegativeLambdaRNG:
+    def standard_normal(self):
+        return -1.5
+
+
 # ── barostat unit: clamp counter ────────────────────────────────────────────
 
 def test_crescale_counts_and_records_clamp():
     atoms = _ar()
-    baro = CRescaleBarostat(atoms, pressure=1.0e6, temperature=80.0, tau_p=1.0,
+    baro = CRescaleBarostat(atoms, pressure=-1.0e6, temperature=80.0, tau_p=1.0,
                             timestep=10.0, compressibility=0.1,
                             rng=np.random.default_rng(0))
     assert baro.clamp_count == 0 and baro.last_clamped is False
@@ -56,6 +61,25 @@ def test_crescale_no_clamp_near_equilibrium():
         baro.apply(np.zeros((len(atoms), 3)))
     assert baro.clamp_count == 0
     assert baro.last_clamped is False
+
+
+def test_crescale_negative_lambda_is_fatal(tmp_path):
+    out = tmp_path / "negative_lambda.out"
+    sim = NPT(output=str(out), atoms=_ar(), paras={**_CLAMP_PARAS, "steps": 1})
+    # Force λ_new = λ - 1.5λ = -0.5λ without relying on extreme pressure.
+    sim.barostat._lam_det_prefactor = 0.0
+    sim.barostat._lam_noise_prefactor = np.sqrt(sim.atoms.get_volume())
+    sim.barostat.rng = NegativeLambdaRNG()
+
+    with pytest.raises(MDBarostatClampError, match="sqrt-volume lambda became non-positive"):
+        sim.run()
+
+    assert sim.barostat.last_clamped is True
+    assert sim.barostat.clamp_count == 1
+    text = out.read_text()
+    assert "completed successfully" not in text
+    assert "ABORTED" in text
+    assert not (tmp_path / "negative_lambda_md_manifest.json").exists()
 
 
 # ── NPT end-to-end: immediate-fatal vs explicit override ────────────────────

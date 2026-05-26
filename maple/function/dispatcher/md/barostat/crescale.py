@@ -10,8 +10,8 @@ Algorithm — reversible λ = √V integrator (Bernetti & Bussi, 2020, Eq. 7):
     square-root-volume variable λ = √V.  We propagate λ, the reversible form the
     paper recommends for production: its noise amplitude is *constant* (it does
     not depend on V), which removes the multiplicative-noise discretization bias
-    of the ε form and lets the run define a conserved "effective energy" whose
-    drift diagnoses integration quality (the NPT analogue of NVE energy drift).
+    of the ε form and lets the run track an effective-energy diagnostic whose
+    drift monitors integration quality (the NPT analogue of NVE energy drift).
 
     Scheme boundary (honest): this is the paper's "reversible Euler integrator"
     (their Table I) — propagate √V by a finite-difference of Eq. 7, then a full
@@ -33,17 +33,19 @@ Algorithm — reversible λ = √V integrator (Bernetti & Bussi, 2020, Eq. 7):
     from the actual volume each step, the per-step stability clamp on μ cannot
     make the strain variable drift away from the true log-volume.
 
-Effective-energy monitoring:
+Effective-energy diagnostic:
     The energy the barostat injects each step (the change in K + U + P_0·V it
     causes) is accumulated by the NPT driver into the same external-work ledger
-    as the thermostat, so the reported conserved quantity
-    H̃ = K + U + P_0·V − Σ ΔW_ext is constant under exact dynamics and its
-    residual drift is the integrator-quality diagnostic.
+    as the thermostat.  MAPLE reports
+    H̃ = K + U + P_0·V − Σ ΔW_ext as an effective-energy diagnostic; its residual
+    drift is an integration-quality check, not a standalone proof that the NPT
+    ensemble implementation is production-ready.
 
 Scope / honesty:
     - Production isotropic stochastic pressure coupling: it generates genuine
-      volume fluctuations (unlike Berendsen) and, in the reversible λ form with
-      effective-energy monitoring, is suitable for production NPT averages.
+      volume fluctuations (unlike Berendsen) and is the reference-aligned
+      stochastic isotropic NPT path that must pass MAPLE's production acceptance
+      gates before production use.
     - Isotropic (hydrostatic) scaling ONLY.  This is not a Parrinello-Rahman /
       MTTK / Nosé-Hoover anisotropic-cell barostat: it scales the cell by a
       single scalar μ and cannot relax non-hydrostatic stress, cell shape, or
@@ -226,11 +228,19 @@ class CRescaleBarostat:
         d_lam_stoch = self._lam_noise_prefactor * w
         lam_new = lam + d_lam_det + d_lam_stoch
 
+        if (not np.isfinite(lam_new)) or lam_new <= 0.0:
+            self.last_clamped = True
+            self.clamp_count += 1
+            self.max_abs_log_excursion = float("inf")
+            raise MDBarostatClampError(
+                "C-rescale sqrt-volume lambda became non-positive or non-finite "
+                f"(lambda={lam:.8e}, lambda_new={lam_new:.8e}, volume={volume:.8e} A^3, "
+                f"pressure={pressure:.8e} bar). A λ sign crossing is not a physical "
+                "volume state and must not be reflected into a positive volume ratio."
+            )
+
         # Isotropic length scale μ = (V_new/V)^{1/3} = (λ_new/λ)^{2/3}, clamped to
-        # the Berendsen-style per-step [0.5, 2.0] bound for stability.  The
-        # squared ratio keeps μ real and positive even for a pathological step,
-        # and λ is re-derived from the actual volume next step so the clamp never
-        # makes the strain variable drift from the true log-volume.
+        # the Berendsen-style per-step [0.5, 2.0] bound for stability.
         raw_ratio = float((lam_new / lam) ** 2)
         vol_ratio = min(max(raw_ratio, 0.125), 8.0)
         # Record whether the stability bound actually clipped this step.  raw_ratio is a

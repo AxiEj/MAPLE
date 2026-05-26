@@ -1,11 +1,11 @@
 """WS7 — fast smoke of the NPT effective-energy-drift acceptance class.
 
-Exercises the reversible c-rescale conserved-quantity path (H̃ = K + U + P_0·V −
-Σ ΔW_ext) in the default test layer with a small step override; the full
+Exercises the reversible c-rescale effective-energy diagnostic path (H̃ = K + U +
+P_0·V − Σ ΔW_ext) in the default test layer with a small step override; the full
 statistical run lives in the opt-in production acceptance matrix.  It asserts the
-class runs end to end, that the conserved-energy (H_cons) thermo column is wired
-through the logger, and that the LJ reference — a conservative potential — keeps
-the effective-energy drift far below the gate even on a short run.
+class runs end to end, that the H_cons diagnostic thermo column is wired through
+the logger, and that the LJ reference — a conservative potential — keeps the
+effective-energy drift far below the gate even on a short run.
 """
 
 import numpy as np
@@ -28,8 +28,9 @@ def test_npt_effective_energy_drift_runs_and_reports_metrics(tmp_path):
     for key in ("h_cons_drift_ha_per_atom_per_ps", "h_cons_range_ha", "n_atoms", "fit_window_ps"):
         assert key in result.metrics, f"missing reported metric: {key}"
 
-    # The conserved-energy column must have been wired through (a missing H_cons
-    # column is reported as an explicit failure, never silently treated as zero).
+    # The effective-energy diagnostic column must have been wired through (a
+    # missing H_cons column is reported as an explicit failure, never silently
+    # treated as zero).
     assert "error" not in result.metrics, result.detail
     # A conservative potential keeps H̃ essentially flat: the drift sits orders of
     # magnitude under the gate, and the absolute H̃ range is tiny.

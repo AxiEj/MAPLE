@@ -693,6 +693,47 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
     assert "Press_pre(bar)" in thermo_text and "Vol_pre(A^3)" in thermo_text
 
 
+def test_npt_runtime_mic_guard_after_barostat_shrink(tmp_path):
+    calc = StressCalculator(np.zeros(6))
+    calc.maple_neighbor_cutoff = 6.0
+    atoms = _periodic_atoms(calc)
+    atoms.set_cell([14.0, 14.0, 14.0], scale_atoms=False)  # MIC radius 7 Å: startup passes.
+    atoms.arrays["velocities"] = np.array([[1.0e-4, 0.0, 0.0]])
+    npt = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "thermostat": "v-rescale",
+            "barostat": "c-rescale",
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 0,
+        },
+    )
+
+    def shrink_below_minimum_image(velocities, pressure_velocities=None):
+        atoms.set_cell([10.0, 10.0, 10.0], scale_atoms=True)  # MIC radius 5 Å < cutoff 6 Å.
+        return 0.0, velocities
+
+    npt.barostat.apply = shrink_below_minimum_image
+    npt.thermostat.apply = lambda velocities: (velocities, 0.0)
+
+    with pytest.raises(ValueError, match="runtime cutoff/MIC guard.*step 1"):
+        npt.run()
+
+    text = (tmp_path / "npt.out").read_text()
+    assert "ABORTED" in text
+    assert not (tmp_path / "npt_md_manifest.json").exists()
+    assert not any(
+        volume is not None and np.isclose(volume, 1000.0)
+        for volume in calc.force_call_volumes
+    )
+
+
 def test_npt_langevin_post_rescale_pressure_uses_synchronized_velocity(monkeypatch, tmp_path):
     # WS2 refinement: for LF-Middle Langevin NPT the post-rescale pressure kinetic
     # term must use the synchronized standard velocity (full increment), not the

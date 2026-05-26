@@ -102,6 +102,8 @@ class AIMNet2OfficialPBCCalculator(CalcABC):
         # neighbor cutoff the MD admission gate compares against the MIC radius.
         self.lrcoulomb_method = method
         self.lrcoulomb_cutoff_A = float(cutoff)
+        self.long_range_coulomb_cutoff_A = float(cutoff)
+        self.local_descriptor_cutoff_A = AIMNET2_SHORT_RANGE_CUTOFF_A
         # Effective neighbor cutoff for MD admission.  DSF is a real cutoff-based
         # method, so its public ``cutoff`` participates in the MIC bound (but the
         # 5 Å AEV short-range descriptor is always present).  Ewald and PME
@@ -109,8 +111,10 @@ class AIMNet2OfficialPBCCalculator(CalcABC):
         # cutoff from accuracy + cell geometry — so the only cutoff MAPLE can
         # honestly gate against is the AEV short-range descriptor.
         if method == "dsf":
+            self.short_range_realspace_cutoff_A = float(cutoff)
             self.neighbor_cutoff_A = max(AIMNET2_SHORT_RANGE_CUTOFF_A, float(cutoff))
         else:  # "ewald" / "pme"
+            self.short_range_realspace_cutoff_A = None
             self.neighbor_cutoff_A = AIMNET2_SHORT_RANGE_CUTOFF_A
 
         if implicit == "gbsa" and solvent != "none":

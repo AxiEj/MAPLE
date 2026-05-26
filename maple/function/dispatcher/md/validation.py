@@ -555,15 +555,15 @@ def run_npt_volume_fluctuation(
 def run_npt_effective_energy_drift(
     calc_factory, thresholds, workdir, *, steps=4000, timestep=1.0, temperature=100.0
 ) -> AcceptanceResult:
-    """Reversible c-rescale conserved-quantity (effective-energy) drift.
+    """Reversible c-rescale effective-energy diagnostic drift.
 
-    The NPT conserved quantity H̃ = K + U + P_0·V − Σ ΔW_ext (thermostat +
-    barostat + projection work) is constant under exact dynamics; its residual
-    slope measures the finite-timestep integration error — the NPT analogue of
-    the NVE energy-drift check.  A non-reversible/mis-scaled barostat, or
-    incomplete work accounting, drifts H̃ systematically even when the
-    instantaneous pressure looks correct.  Runs on the compressible cell so the
-    barostat genuinely moves the volume (a frozen volume would not exercise it).
+    H̃ = K + U + P_0·V − Σ ΔW_ext (thermostat + barostat + projection work) is
+    logged as an integration-quality diagnostic; its residual slope measures
+    finite-timestep error — the NPT analogue of the NVE energy-drift check.  A
+    non-reversible/mis-scaled barostat, or incomplete work accounting, drifts H̃
+    systematically even when the instantaneous pressure looks correct.  Runs on
+    the compressible cell so the barostat genuinely moves the volume (a frozen
+    volume would not exercise it).
     """
     th = thresholds["npt_effective_energy_drift"]
     atoms = _validation_liquid(calc_factory)
@@ -582,7 +582,7 @@ def run_npt_effective_energy_drift(
         return AcceptanceResult(
             "npt_effective_energy_drift", "fail", False,
             {"error": "H_cons column missing", "n_columns": int(raw.shape[1])},
-            "conserved-energy column (H_cons) absent — bookkeeping did not run",
+            "effective-energy diagnostic column (H_cons) absent — bookkeeping did not run",
         )
     h_cons, times_fs = raw[:, 10], thermo["time"]
     cut = len(h_cons) // 5
@@ -840,8 +840,8 @@ def run_acceptance_matrix(
         restart_kw = {"timestep": 0.25}
         # Real-backend dynamics use the species-safe CO2 box.  Its C/O modes do
         # not need the tiny timestep that H/O does, but real ML potentials still
-        # show visible finite-step noise in the reversible NPT conserved
-        # quantity at 0.25–1 fs.  Use 0.125 fs and keep the quick physical
+        # show visible finite-step noise in the reversible NPT effective-energy
+        # diagnostic at 0.25–1 fs.  Use 0.125 fs and keep the quick physical
         # window at ~0.2 ps (full: ~1 ps) so a failure indicates backend/
         # integrator inconsistency rather than an aggressive timestep artifact.
         npt_eff_kw = (

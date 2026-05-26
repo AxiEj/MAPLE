@@ -166,6 +166,19 @@ def main(argv=None) -> int:
             getattr(sample_calc, "neighbor_cutoff_A", None)
             or getattr(sample_calc, "maple_neighbor_cutoff", None)
         ),
+        "local_descriptor_cutoff_A": getattr(sample_calc, "local_descriptor_cutoff_A", None),
+        "short_range_realspace_cutoff_A": getattr(
+            sample_calc, "short_range_realspace_cutoff_A", None
+        ),
+        "long_range_coulomb_cutoff_A": (
+            getattr(sample_calc, "long_range_coulomb_cutoff_A", None)
+            or getattr(sample_calc, "lrcoulomb_cutoff_A", None)
+        ),
+        "long_range_method": (
+            getattr(sample_calc, "lrcoulomb_method", None)
+            or (getattr(sample_calc, "maple_model_options", {}) or {}).get("coulomb")
+            or "none"
+        ),
     }
     extra = {
         "calculator_contract": calc_contract,

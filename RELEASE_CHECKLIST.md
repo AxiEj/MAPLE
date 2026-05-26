@@ -40,7 +40,9 @@ python scripts/production_validation.py --model uma               --device cuda
 
 Each run's provenance manifest (`*_md_manifest.json`) must record:
 - `calculator.capabilities`: `energy_unit=Ha`, `force_unit=Ha/A`, `stress_unit=eV/A^3`,
-  and a finite `neighbor_cutoff_A`;
+  a finite `neighbor_cutoff_A`, and when applicable separate
+  `local_descriptor_cutoff_A`, `short_range_realspace_cutoff_A`, and
+  `long_range_coulomb_cutoff_A` fields;
 - `run.unit_contract` and `run.cutoff_policy.allow_unknown_cutoff == false`;
 - for NPT: `run.barostat.mode == "isotropic"` and `run.barostat_clamps.count == 0`.
 
@@ -71,6 +73,7 @@ Per-backend effective cutoff used by the gate:
 | `uma`                           | `6.0` (FAIR Chemistry graph radius)                    | Fixed: FAIRChem's `AtomicData.from_ase(radius=6.0)` is the only neighbor list UMA reads |
 
 For real-backend release validation, copy each backend's reported
-`calculator.capabilities.neighbor_cutoff_A` from its provenance manifest into
-the release log. The numbers must be finite and match the table; an unknown
-cutoff is rejected at the MD admission gate and cannot reach the report.
+`calculator.capabilities.neighbor_cutoff_A` plus any backend-specific local /
+real-space / long-range cutoff fields from its provenance manifest into the
+release log. The MIC-gated neighbor cutoff must be finite and match the table;
+an unknown cutoff is rejected at the MD admission gate and cannot reach the report.

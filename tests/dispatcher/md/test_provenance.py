@@ -59,9 +59,16 @@ def test_environment_provenance_keys():
 
 def test_calculator_provenance_records_capabilities():
     calc = _Calc(pbc_capable=True)
+    calc.local_descriptor_cutoff_A = 5.0
+    calc.short_range_realspace_cutoff_A = 12.0
+    calc.long_range_coulomb_cutoff_A = 15.0
     prov = collect_calculator_provenance(calc, model="fake-pbc", device="cpu")
     assert prov["model"] == "fake-pbc"
     assert prov["capabilities"]["pbc_md_supported"] is True
+    assert prov["capabilities"]["neighbor_cutoff_A"] == pytest.approx(2.0)
+    assert prov["capabilities"]["local_descriptor_cutoff_A"] == pytest.approx(5.0)
+    assert prov["capabilities"]["short_range_realspace_cutoff_A"] == pytest.approx(12.0)
+    assert prov["capabilities"]["long_range_coulomb_cutoff_A"] == pytest.approx(15.0)
     assert prov["model_options"] == {"foundation": "test", "default_dtype": "float64"}
     assert prov["device"] == "cpu"
 
@@ -140,6 +147,14 @@ def test_long_range_method_from_coulomb_option():
     calc.maple_model_options = {"coulomb": "ewald", "foundation": "test"}
     prov = collect_calculator_provenance(calc)
     assert prov["capabilities"]["long_range_method"] == "ewald"
+
+
+def test_long_range_method_falls_back_to_calculator_attr():
+    calc = _Calc()
+    calc.maple_model_options = {}
+    calc.lrcoulomb_method = "pme"
+    prov = collect_calculator_provenance(calc)
+    assert prov["capabilities"]["long_range_method"] == "pme"
 
 
 def test_long_range_method_defaults_to_none():

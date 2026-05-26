@@ -560,6 +560,8 @@ class NEB(JobABC):
         else:
             raise ValueError("Please provide Molecules object containing all images")
 
+        self.raw_paras = paras if isinstance(paras, dict) else {}
+
         # Initialize params from paras dict
         self.params = self._init_params(NEBParams, paras, ("neb", "NEB", "ts"))
 
@@ -1128,7 +1130,7 @@ class NEB(JobABC):
                         f"{cand_idx} (E={Es[cand_idx]: .8f} Eh).\n"
                     ], self.output)
 
-                prfo = PRFO(output=self.output, atoms=ts_guess)
+                prfo = PRFO(output=self.output, atoms=ts_guess, paras=self.raw_paras)
                 try:
                     candidate_ts = prfo.run()
                     if not getattr(prfo, "normal_termination", False):

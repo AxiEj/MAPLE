@@ -333,6 +333,65 @@ def prfo_step(H, g, is_ts=False, target_mode=None, trust_radius=0.2,
 
     return V @ s_p
 
+def bofill_hessian_update(
+    H: np.ndarray,
+    step: np.ndarray,
+    grad_old: np.ndarray,
+    grad_new: np.ndarray,
+    *,
+    eps: float = 1e-12,
+) -> Tuple[np.ndarray, bool, str]:
+    """Return a Bofill-updated Hessian satisfying the secant condition.
+
+    The update follows the TS quasi-Newton form used in established
+    RS-P-RFO implementations: a convex combination of the Murtagh-Sargent
+    (SR1) and Powell symmetric Broyden (PSB) updates.  It is coordinate-system
+    agnostic; MAPLE applies it in the mass-weighted coordinate system used by
+    this PRFO implementation, then transforms the updated matrix back to
+    Cartesian form for logging and model-change evaluation.
+    """
+    H0 = np.asarray(H, dtype=np.float64)
+    s = vec1d(step, H0.shape[0])
+    g0 = vec1d(grad_old, H0.shape[0])
+    g1 = vec1d(grad_new, H0.shape[0])
+
+    if H0.ndim != 2 or H0.shape[0] != H0.shape[1]:
+        raise ValueError(f"Hessian must be square, got {H0.shape}")
+
+    y = g1 - g0
+    Hs = H0 @ s
+    xi = y - Hs
+
+    s2 = float(np.dot(s, s))
+    xi2 = float(np.dot(xi, xi))
+    if s2 <= eps:
+        return H0.copy(), False, "skip: step too small"
+    if xi2 <= eps:
+        return H0.copy(), False, "skip: predicted gradient change already matches"
+
+    s_dot_xi = float(np.dot(s, xi))
+    psb = (
+        H0
+        - (s_dot_xi / (s2 * s2)) * np.outer(s, s)
+        + (np.outer(s, xi) + np.outer(xi, s)) / s2
+    )
+
+    denom_scale = max(eps, eps * np.sqrt(max(s2 * xi2, eps)))
+    if abs(s_dot_xi) <= denom_scale:
+        H_new = psb
+        source = "psb fallback"
+    else:
+        ms = H0 + np.outer(xi, xi) / s_dot_xi
+        phi = 1.0 - (s_dot_xi * s_dot_xi) / (s2 * xi2)
+        phi = float(np.clip(phi, 0.0, 1.0))
+        H_new = (1.0 - phi) * ms + phi * psb
+        source = f"bofill(phi={phi:.3f})"
+
+    H_new = 0.5 * (H_new + H_new.T)
+    if not np.all(np.isfinite(H_new)):
+        return H0.copy(), False, "skip: non-finite update"
+    return H_new, True, source
+
 def calculate_Hessian(atoms: Atoms):
     """
     Calculate Hessian matrix from calculator.
@@ -386,6 +445,13 @@ class PRFOParams:
     # FDHessianEvaluator via the calculator. None = single batch.
     fd_batch_size: Optional[int] = None
 
+    # Exact-Hessian recomputation interval. 1 preserves the historical MAPLE
+    # behavior (exact Hessian every PRFO step). Values >1 compute an exact
+    # Hessian initially and every N accepted PRFO iterations, using the selected
+    # quasi-Newton Hessian update in between.
+    hessian_recalc: int = 1
+    hessian_update: str = "bofill"
+
     # A converged TS search must have exactly one non-trivial imaginary mode.
     # This catches cases where force/displacement criteria converge to a
     # minimum because a noisy numerical Hessian supplied a spurious uphill mode.
@@ -419,6 +485,13 @@ class PRFO(JobABC):
         for attr in ('f_max_th', 'f_rms_th', 'dp_max_th', 'dp_rms_th'):
             if hasattr(atoms, attr):
                 setattr(self.params, attr, getattr(atoms, attr))
+
+        self.params.hessian_recalc = int(self.params.hessian_recalc)
+        if self.params.hessian_recalc < 1:
+            raise ValueError("hessian_recalc must be a positive integer")
+        self.params.hessian_update = str(self.params.hessian_update).lower()
+        if self.params.hessian_update != "bofill":
+            raise ValueError("hessian_update must be 'bofill'")
 
         # Mode tracking
         self.tracked_mode_vec_mw = None
@@ -522,7 +595,8 @@ class PRFO(JobABC):
     def log_iteration(self, iteration: int, atoms: Atoms, E: float,
                      model_change: float, actual_change: float,
                      rho: Optional[float], trust_radius: float,
-                     norm_mw: float, on_boundary: bool):
+                     norm_mw: float, on_boundary: bool,
+                     hessian_source: Optional[str] = None):
         """
         Log detailed information for current iteration.
         
@@ -625,6 +699,8 @@ class PRFO(JobABC):
             f"Step norm (MW): {norm_mw: .6f}  "
             f"On boundary: {on_boundary}\n"
         )
+        if hessian_source:
+            info_message.append(f"Hessian source: {hessian_source}\n")
         
         log_info(info_message, self.output)
 
@@ -703,6 +779,14 @@ class PRFO(JobABC):
             f"dp_max={self.params.dp_max_th:.6f}, "
             f"dp_rms={self.params.dp_rms_th:.6f}\n"
         ]
+        if self.params.hessian_recalc == 1:
+            info_message.append("Hessian policy: exact Hessian every PRFO step\n")
+        else:
+            info_message.append(
+                "Hessian policy: exact Hessian initially and every "
+                f"{self.params.hessian_recalc} accepted PRFO steps; "
+                f"{self.params.hessian_update} updates between recalculations\n"
+            )
         log_info(info_message, self.output)
 
         calc_mode = getattr(atoms.calc, "hessian", None)
@@ -732,6 +816,10 @@ class PRFO(JobABC):
         E_carry = to_numpy_f64(e_init)
         F_carry = to_numpy_f64(f_init)
 
+        H_cart_cached = None
+        H_cart_cached_source = None
+        force_exact_hessian = True
+
         # Main optimization loop
         while iteration < self.params.max_iter:
             # Current geometry and reference E/F (carried from the previous
@@ -741,8 +829,23 @@ class PRFO(JobABC):
             F_cart = to_numpy_f64(F_carry)
             g_cart = vec1d(-F_cart)
             
-            # Get Hessian in Cartesian
-            H_cart = to_numpy_f64(calculate_Hessian(atoms))
+            # Get or update Hessian in Cartesian.  Exact recalculation is
+            # always used for the first step and at the requested interval;
+            # accepted intermediate steps can carry a Bofill-updated Hessian.
+            need_exact_hessian = (
+                H_cart_cached is None
+                or self.params.hessian_recalc == 1
+                or force_exact_hessian
+                or (iteration % self.params.hessian_recalc == 0)
+            )
+            if need_exact_hessian:
+                H_cart = to_numpy_f64(calculate_Hessian(atoms))
+                hessian_source = "exact"
+                force_exact_hessian = False
+            else:
+                H_cart = H_cart_cached.copy()
+                hessian_source = H_cart_cached_source or self.params.hessian_update
+
             if H_cart.ndim == 3 and H_cart.shape[0] == 1:
                 H_cart = H_cart[0]
             if H_cart.ndim != 2 or H_cart.shape[0] != H_cart.shape[1]:
@@ -783,6 +886,7 @@ class PRFO(JobABC):
             accepted = False
             max_attempts = 8
             attempts = 0
+            had_reject = False
             
             while not accepted and attempts < max_attempts:
                 attempts += 1
@@ -835,6 +939,7 @@ class PRFO(JobABC):
                     # Reject: rollback geometry, shrink radius, retry
                     atoms.set_positions(X)
                     reset_calculator_cache(atoms.calc)
+                    had_reject = True
                     trust_radius = max(self.params.trust_min,
                                      0.5 * trust_radius)
                     continue
@@ -864,10 +969,38 @@ class PRFO(JobABC):
                     atoms.max_f = abs(F_new).max()
                     atoms.rms_f = np.sqrt((F_new**2).sum() / dof)
 
+                    next_hessian_source = None
+                    if self.params.hessian_recalc == 1:
+                        H_cart_cached = None
+                        H_cart_cached_source = None
+                    else:
+                        g_new_cart = vec1d(-F_new, n3)
+                        g_new_mw = vec1d(D * g_new_cart, n3)
+                        H_updated, update_ok, update_source = bofill_hessian_update(
+                            H_mw, s_mw, g_mw, g_new_mw
+                        )
+                        S = 1.0 / D
+                        H_cart_cached = (S[:, None] * H_updated) * S[None, :]
+                        H_cart_cached_source = update_source
+                        next_hessian_source = update_source
+                        if not update_ok:
+                            force_exact_hessian = True
+
+                    if had_reject:
+                        # A rejected trial is a local signal that the quadratic
+                        # model was poor; refresh the exact Hessian next step
+                        # rather than blindly trusting an update.
+                        force_exact_hessian = True
+
+                    hessian_log = hessian_source
+                    if next_hessian_source:
+                        hessian_log += f"; next={next_hessian_source}"
+
                     # Log iteration
                     self.log_iteration(iteration + 1, atoms, E_new,
                                      model_change, actual_change, rho,
-                                     trust_radius, norm_mw, on_boundary)
+                                     trust_radius, norm_mw, on_boundary,
+                                     hessian_source=hessian_log)
 
                     # Write to trajectory
                     append_xyz_trajectory(traj_file, atoms, energy=E_new,

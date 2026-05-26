@@ -345,6 +345,7 @@ class GSM(JobABC):
         super().__init__(output)
         self.atoms_R = atoms_R
         self.atoms_P = atoms_P
+        self.raw_paras = paras if isinstance(paras, dict) else {}
         self.atoms_R.calc = atoms_R.calc
         self.atoms_P.calc = atoms_P.calc
 
@@ -525,7 +526,7 @@ class GSM(JobABC):
         inherit_attrs(images[0], ts_guess)
 
         # Run PRFO to refine TS
-        prfo = PRFO(output=self.output, atoms=ts_guess)
+        prfo = PRFO(output=self.output, atoms=ts_guess, paras=self.raw_paras)
         ts_opt = prfo.run()
         E_TS   = float(ts_opt.get_potential_energy(force_consistent=True))
 
@@ -944,4 +945,3 @@ class GSM(JobABC):
 
         # --- Direct TS refinement via PRFO/RFO on HEI (no CI-STRING / no full relax)
         self.restart_run(images, hei, base)
-

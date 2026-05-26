@@ -28,6 +28,16 @@ reports exactly one non-trivial imaginary frequency.
   notes also emphasize close TS guesses, final one-imaginary-mode validation,
   RS-P-RFO, conservative trust radii, and Bofill Hessian updates:
   https://geometric.readthedocs.io/en/latest/transition.html
+- Classical TS optimizers do not require an exact Hessian at every PRFO step.
+  ORCA exposes `Recalc_Hess` (for example every 5 cycles) and uses Bofill as
+  the TS default update; pysisyphus exposes `hessian_recalc` and recommends
+  Bofill for Hessian-based TS optimizers; the original Bofill update paper is
+  "Updated Hessian matrix and the restricted step method for locating
+  transition structures" (J. Comput. Chem. 1994, DOI:
+  10.1002/jcc.540150102). MAPLE therefore adds the same pattern as an opt-in
+  PRFO policy while keeping exact-Hessian-every-step as the default:
+  https://www.faccts.de/docs/orca/6.0/manual/contents/detailed/geomopt.html
+  https://pysisyphus.readthedocs.io/en/latest/tsoptimization.html
 - UMA true batch should follow FAIR-Chem's native pattern: convert ASE `Atoms`
   to `AtomicData`, combine with `atomicdata_list_to_batch`, run one predictor
   call, then split system-level energies and atom-level forces by the batch
@@ -92,6 +102,52 @@ For analytic Hessians, `batch_size` means "maximum Hessian rows per exact
 autograd VJP block". `batch_size=1` is the lowest-memory exact row loop; larger
 values can improve speed when the backend supports batched VJPs, while keeping
 the same Hessian definition.
+
+## PRFO Hessian recalculation interval
+
+By default MAPLE keeps the previous precision-first behavior:
+
+```text
+#ts(method=prfo)
+```
+
+means exact Hessian at every PRFO outer step, followed by the existing final
+one-imaginary-mode validation. To trade fewer expensive Hessian builds for the
+standard TS quasi-Newton update path used by mature optimizers, set:
+
+```text
+#ts(method=prfo,hessian_recalc=5,hessian_update=bofill)
+```
+
+or for path methods that hand off to PRFO refinement:
+
+```text
+#ts(method=neb,refine=nebts,hessian_recalc=5,hessian_update=bofill)
+#ts(method=string,refine=stringts,hessian_recalc=5,hessian_update=bofill)
+```
+
+Semantics:
+
+- `hessian_recalc=1` (default): exact Hessian every PRFO step.
+- `hessian_recalc=N>1`: exact Hessian initially and every N accepted PRFO
+  steps; accepted intermediate steps use a symmetric Bofill update from the
+  accepted mass-weighted displacement and gradient change, matching the
+  coordinate system used by MAPLE's PRFO step.
+- Any rejected PRFO trial forces an exact Hessian refresh on the next outer
+  step, because rejection indicates that the local quadratic model was poor.
+- Degenerate Bofill updates (for example negligible step or no new secant
+  information) are skipped and also force the next step back to an exact
+  Hessian.
+- Final TS validation still computes the validation Hessian normally; the
+  feature changes the optimization Hessian schedule, not the acceptance gate.
+
+This knob is algorithmic acceleration, not a change of the model, force, or
+Hessian definition. For publication-grade runs, record both the value and the
+final frequency validation; if the path is fragile, lower the interval or use
+the default exact-every-step policy. It is intended first for close NEBTS /
+STRING-TS handoff geometries; direct PRFO from a loose guess can still require
+`hessian_recalc=1` because the Cartesian/MW optimizer lacks the redundant
+internal-coordinate safeguards used by some quantum-chemistry optimizers.
 
 ## Current model decisions
 

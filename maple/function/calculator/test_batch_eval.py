@@ -190,6 +190,19 @@ def test_command_control_rejects_invalid_model_batch_size():
         CommandControl.from_settings(["#model=uma(batch_size=0)", "#freq"])
 
 
+def test_command_control_accepts_prfo_hessian_recalc_options():
+    from maple.function.read.command_control import CommandControl
+
+    cc = CommandControl.from_settings([
+        "#ts(method=prfo,hessian_recalc=5,hessian_update=bofill)",
+    ])
+
+    assert cc.task == "ts"
+    assert cc.params["method"] == "prfo"
+    assert cc.params["hessian_recalc"] == 5
+    assert cc.params["hessian_update"] == "bofill"
+
+
 def test_setcalculator_applies_model_batch_size_aliases():
     from maple.function.calculator.set_calculator import SetClaculator
 
@@ -737,6 +750,109 @@ def test_opt_rfo_runs_end_to_end_with_forced_reject():
 # ---------------------------------------------------------------------------
 # TS-PRFO outer loop no longer refetches E/F between iterations
 # ---------------------------------------------------------------------------
+def test_bofill_hessian_update_satisfies_secant_and_symmetry():
+    from maple.function.dispatcher.ts.algorithm.PRFO import bofill_hessian_update
+
+    H0 = np.diag([0.7, 1.2, -0.4]).astype(np.float64)
+    H_true = np.array(
+        [
+            [2.0, 0.2, 0.0],
+            [0.2, 1.5, -0.1],
+            [0.0, -0.1, -0.8],
+        ],
+        dtype=np.float64,
+    )
+    q0 = np.array([0.1, -0.2, 0.3], dtype=np.float64)
+    step = np.array([0.05, -0.03, 0.04], dtype=np.float64)
+    grad_old = H_true @ q0
+    grad_new = H_true @ (q0 + step)
+
+    H_new, ok, source = bofill_hessian_update(H0, step, grad_old, grad_new)
+
+    assert ok
+    assert "bofill" in source or "psb" in source
+    np.testing.assert_allclose(H_new, H_new.T, atol=1e-12)
+    np.testing.assert_allclose(
+        H_new @ step,
+        grad_new - grad_old,
+        atol=1e-11,
+        rtol=1e-11,
+    )
+
+
+def test_ts_prfo_validates_hessian_recalc_parameters():
+    from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+
+    with pytest.raises(ValueError, match="hessian_recalc"):
+        PRFO(output=os.devnull, atoms=atoms, paras={"prfo": {"hessian_recalc": 0}})
+
+    with pytest.raises(ValueError, match="hessian_update"):
+        PRFO(output=os.devnull, atoms=atoms, paras={"prfo": {"hessian_update": "bfgs"}})
+
+
+def test_ts_prfo_hessian_recalc_reuses_updated_hessian(monkeypatch):
+    import importlib
+
+    prfo_mod = importlib.import_module("maple.function.dispatcher.ts.algorithm.PRFO")
+
+    atoms = Atoms(
+        "CHHH",
+        positions=[[0.3, -0.2, 0.05], [10, 0, 0], [0, 10, 0], [0, 0, 10]],
+    )
+    atoms.calc = SaddleCalc()
+
+    exact_calls = 0
+    update_calls = 0
+
+    def fake_hessian(_atoms):
+        nonlocal exact_calls
+        exact_calls += 1
+        H = np.eye(12, dtype=np.float64)
+        H[0, 0] = -2.0
+        return H
+
+    def fake_update(H, step, grad_old, grad_new, *, eps=1e-12):
+        nonlocal update_calls
+        update_calls += 1
+        return H.copy(), True, "fake-bofill"
+
+    monkeypatch.setattr(prfo_mod, "calculate_Hessian", fake_hessian)
+    monkeypatch.setattr(prfo_mod, "bofill_hessian_update", fake_update)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        prfo_mod.PRFO(
+            output=out,
+            atoms=atoms,
+            paras={
+                "prfo": {
+                    "max_iter": 3,
+                    "trust_radius": 0.05,
+                    "hessian_recalc": 99,
+                    "validate_ts_mode": False,
+                    "f_max_th": -1.0,
+                    "f_rms_th": -1.0,
+                    "dp_max_th": -1.0,
+                    "dp_rms_th": -1.0,
+                }
+            },
+        ).run()
+
+        assert exact_calls == 1
+        assert update_calls >= 2
+        text = open(out, "r", encoding="utf-8").read()
+        assert "Hessian policy: exact Hessian initially" in text
+        assert "Hessian source: fake-bofill" in text
+    finally:
+        for ext in ("", "_prfo_traj.xyz", "_prfo_ts.xyz"):
+            p = os.path.splitext(out)[0] + ext if ext else out
+            if os.path.exists(p):
+                os.remove(p)
+
+
 def test_ts_prfo_reject_branch_resets_calculator_cache():
     import inspect
     from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
@@ -906,6 +1022,18 @@ def test_nebts_candidate_indices_try_barrier_neighbors():
         3,
         4,
     ]
+
+
+def test_path_refinement_prfo_handoff_preserves_user_prfo_options():
+    import inspect
+
+    from maple.function.dispatcher.ts.algorithm.neb import NEB
+    from maple.function.dispatcher.ts.algorithm.string import GSM
+
+    assert "self.raw_paras" in inspect.getsource(NEB.__init__)
+    assert "paras=self.raw_paras" in inspect.getsource(NEB.restart_run)
+    assert "self.raw_paras" in inspect.getsource(GSM.__init__)
+    assert "paras=self.raw_paras" in inspect.getsource(GSM.restart_run)
 
 
 def test_path_evaluator_reads_calculator_level_batch_size():

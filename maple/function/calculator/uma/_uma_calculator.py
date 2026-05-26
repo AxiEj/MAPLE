@@ -19,6 +19,8 @@ try:
 except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
+from .._batch_types import BatchResult
+
 
 EV2HARTREE = 1.0 / 27.211386245988
 
@@ -49,6 +51,9 @@ class UMACalculator(FAIRChemCalculator):
     """
 
     supported_hessian_modes = ("numerical",)
+    supports_batch_energy_forces = False
+    supports_analytic_hessian = False
+    supports_hvp = False
 
     @staticmethod
     def _normalize_device(device: torch.device | str | None) -> str:
@@ -264,6 +269,46 @@ class UMACalculator(FAIRChemCalculator):
             fd_batch_size=getattr(self, "fd_batch_size", None),
         ).hessian(atoms, delta=delta)
         return torch.as_tensor(H_np, dtype=dtype, device=self.device)
+
+    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
+        """Sequential batch-contract fallback for UMA.
+
+        UMA inherits from FAIR-Chem's calculator rather than MAPLE's
+        ``CalcABC``, so it cannot pick up ``CalcABC.calculate_many`` via
+        inheritance. Keep the same return-value-driven contract here so the
+        shared evaluators can drive UMA numerical Hessians without touching
+        ``self.results`` after each structure has been captured.
+        """
+        props = tuple(properties)
+        if "hessian" in props:
+            raise NotImplementedError(
+                "UMACalculator.calculate_many does not assemble Hessians; "
+                "use FDHessianEvaluator for numerical Hessians."
+            )
+
+        want_energy = "energy" in props
+        want_forces = "forces" in props
+        request = [p for p in props if p in ("energy", "forces")]
+        if not request:
+            return BatchResult()
+
+        energies = [] if want_energy else None
+        forces_list = [] if want_forces else None
+
+        for at in atoms_list:
+            self.calculate(at, properties=list(request), system_changes=all_changes)
+            if want_energy:
+                if "free_energy" in self.results:
+                    energies.append(float(self.results["free_energy"]))
+                else:
+                    energies.append(float(self.results["energy"]))
+            if want_forces:
+                forces_list.append(np.asarray(self.results["forces"], dtype=np.float64))
+
+        return BatchResult(
+            energies=np.asarray(energies, dtype=np.float64) if energies is not None else None,
+            forces=forces_list,
+        )
 
     def calculate(self, atoms, properties=None, system_changes=None):
         self._set_task_from_atoms(atoms)

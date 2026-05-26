@@ -1,0 +1,5 @@
+#model=ANI-1xnr
+#freq
+#device=gpu0
+
+XYZ inp1.xyz

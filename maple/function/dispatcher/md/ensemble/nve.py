@@ -23,6 +23,7 @@ from ..utils import (
     apply_runtime_motion_projection,
     calculate_temperature,
     calculate_kinetic_energy,
+    condition_input_velocities,
     initialize_velocities,
     forces_au,
     get_atoms_velocity_representation,
@@ -271,14 +272,28 @@ class NVE(JobABC):
                 if 'velocities' in self.atoms.arrays and self.params.init_velocities:
                     # Velocities were embedded in the input file (7-column XYZ) and
                     # parsed by InputReader into atoms.arrays['velocities'].
-                    # Honour them instead of discarding with a fresh MB draw —
-                    # this allows "run NVT, save inp with velocities, run NVE" without
-                    # any extra flags.
-                    velocities = self.atoms.arrays['velocities']
-                    t_check = calculate_temperature(self.atoms, velocities, n_dof=self._dof_policy.init_n_dof)
+                    # Treat them as the initialization draw: apply the same
+                    # COM/angular projection and target-temperature rescale that a
+                    # random Maxwell-Boltzmann draw would receive.  This preserves
+                    # convenient input-velocity workflows without letting raw COM or
+                    # rotation modes silently disagree with the resolved DOF policy.
+                    velocities, summary = condition_input_velocities(
+                        atoms=self.atoms,
+                        velocities=self.atoms.arrays['velocities'],
+                        temperature=self.params.temperature,
+                        remove_com=self.params.remove_com,
+                        remove_rotation=self.params.remove_rotation,
+                        remove_angular=self.params.remove_angular,
+                        target_n_dof=self._dof_policy.init_n_dof,
+                    )
                     self.log_info([
-                        f"\nVelocities loaded from input file "
-                        f"(T = {t_check:.2f} K); skipping random initialisation.\n"
+                        "\nVelocities loaded from input file and conditioned as "
+                        "the initialization state: "
+                        f"T {summary['temperature_before']:.2f} -> "
+                        f"{summary['temperature_after']:.2f} K "
+                        f"({self._dof_policy.init_description}); "
+                        f"projected_com={summary['projected_com']}, "
+                        f"projected_angular={summary['projected_angular']}.\n"
                     ])
                 elif self.params.init_velocities:
                     velocities = self._initialize_velocities()
@@ -288,7 +303,7 @@ class NVE(JobABC):
                             "init_velocities=False, "
                             "but no velocities found in atoms.arrays"
                         )
-                    velocities = self.atoms.arrays['velocities']
+                    velocities = np.asarray(self.atoms.arrays['velocities'], dtype=float).copy()
                 velocity_representation = get_atoms_velocity_representation(self.atoms)
                 source_timestep_au = None
                 step_offset = 0

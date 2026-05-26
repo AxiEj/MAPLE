@@ -10,6 +10,7 @@ import numpy as np
 from ase import Atoms
 
 from .dof import get_initialization_dof_policy, get_n_dof_from_policy
+from .motion_projection import remove_center_of_mass_motion, remove_rigid_body_rotation
 from .thermo import calculate_temperature
 from .units import AMU_TO_AU, ANGSTROM_TO_BOHR, KELVIN_TO_HARTREE
 
@@ -156,6 +157,91 @@ def initialize_velocities(
         velocities *= np.sqrt(temperature / actual_temp)
 
     return velocities
+
+
+def _coerce_velocity_array(atoms: Atoms, velocities: np.ndarray) -> np.ndarray:
+    """Return a finite ``(N, 3)`` velocity array copy in atomic units."""
+    array = np.asarray(velocities, dtype=float)
+    expected_shape = (len(atoms), 3)
+    if array.shape != expected_shape:
+        raise ValueError(
+            f"Input velocities must have shape {expected_shape}, got {array.shape}."
+        )
+    if not np.all(np.isfinite(array)):
+        bad = np.argwhere(~np.isfinite(array)).tolist()
+        raise ValueError(f"Input velocities must be finite; bad indices={bad}.")
+    return array.copy()
+
+
+def condition_input_velocities(
+    atoms: Atoms,
+    velocities: np.ndarray,
+    temperature: float,
+    remove_com: bool = True,
+    remove_rotation: bool = False,
+    remove_angular: Optional[bool] = None,
+    target_n_dof: Optional[int] = None,
+) -> tuple[np.ndarray, dict[str, object]]:
+    """Project and rescale user-supplied velocities as an initialization draw.
+
+    ``init_velocities=True`` means the fresh-run velocity state must satisfy the
+    same initialization policy whether it came from a Maxwell-Boltzmann draw or
+    from ``atoms.arrays["velocities"]``.  This helper applies the same
+    initialization-only COM / angular projection as :func:`initialize_velocities`
+    and then rescales the projected velocities to the requested target
+    temperature in the initialization DOF basis.
+
+    Callers that explicitly set ``init_velocities=False`` should *not* use this
+    helper: those velocities are intentionally consumed as provided, and the DOF
+    resolver treats them as unprojected input unless runtime projection is
+    requested.
+    """
+    out = _coerce_velocity_array(atoms, velocities)
+
+    if remove_angular is None:
+        remove_angular = bool(remove_rotation)
+    if remove_angular:
+        remove_com = True
+        remove_rotation = True
+
+    if target_n_dof is None:
+        init_policy = get_initialization_dof_policy(
+            atoms,
+            remove_com=bool(remove_com),
+            remove_angular=bool(remove_angular),
+        )
+        n_dof = get_n_dof_from_policy(init_policy, n_atoms=len(atoms))
+    else:
+        n_dof = target_n_dof
+
+    temperature_before = calculate_temperature(atoms, out, n_dof=n_dof)
+
+    projected_com = False
+    projected_angular = False
+    if remove_com:
+        out = remove_center_of_mass_motion(atoms, out)
+        projected_com = True
+    if remove_rotation and not any(atoms.pbc):
+        out = remove_rigid_body_rotation(atoms, out)
+        projected_angular = True
+
+    masses = atoms.get_masses() * AMU_TO_AU
+    current_ke2 = np.sum(masses[:, np.newaxis] * out**2)
+    rescaled = False
+    if n_dof > 0 and current_ke2 > 0:
+        actual_temp = current_ke2 / (n_dof * KELVIN_TO_HARTREE)
+        out *= np.sqrt(temperature / actual_temp)
+        rescaled = True
+
+    temperature_after = calculate_temperature(atoms, out, n_dof=n_dof)
+    return out, {
+        "n_dof": n_dof,
+        "temperature_before": temperature_before,
+        "temperature_after": temperature_after,
+        "projected_com": projected_com,
+        "projected_angular": projected_angular,
+        "rescaled": rescaled,
+    }
 
 
 def scale_velocities_to_temperature(

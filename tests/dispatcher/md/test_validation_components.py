@@ -13,6 +13,7 @@ from maple.function.dispatcher.md.validation import (
     run_stress_finite_difference,
     run_constraints_rejected,
     run_pbc_geometry,
+    run_restart_determinism,
     write_report,
     lj_reference_factory,
     validation_system_summary,
@@ -89,6 +90,13 @@ def test_constraints_class_passes(tmp_path):
     result = run_constraints_rejected(lj_reference_factory(), th, tmp_path)
     assert result.passed
     assert result.metrics["rejected"] is True
+
+
+def test_restart_determinism_accepts_relative_workdir(tmp_path, monkeypatch):
+    th = load_thresholds()
+    monkeypatch.chdir(tmp_path)
+    result = run_restart_determinism(lj_reference_factory(), th, "relative-runs")
+    assert result.passed and result.status == "pass"
 
 
 def test_block_mean_stderr_matches_iid_for_independent_series():

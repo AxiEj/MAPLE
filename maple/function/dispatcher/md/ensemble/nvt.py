@@ -32,6 +32,7 @@ from ..utils import (
     apply_runtime_motion_projection,
     calculate_temperature,
     calculate_kinetic_energy,
+    condition_input_velocities,
     get_atoms_velocity_representation,
     initialize_velocities,
     forces_au,
@@ -363,12 +364,24 @@ class NVT(JobABC):
                 remaining = self.params.steps - step_offset
             else:
                 if 'velocities' in self.atoms.arrays and self.params.init_velocities:
-                    velocities = self.atoms.arrays['velocities']
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
-                    t_check = calculate_temperature(self.atoms, velocities, n_dof=self._dof_policy.init_n_dof)
+                    velocities, summary = condition_input_velocities(
+                        atoms=self.atoms,
+                        velocities=self.atoms.arrays['velocities'],
+                        temperature=self.params.temperature,
+                        remove_com=self.params.remove_com,
+                        remove_rotation=self.params.remove_rotation,
+                        remove_angular=self.params.remove_angular,
+                        target_n_dof=self._dof_policy.init_n_dof,
+                    )
                     self.log_info([
-                        f"\nVelocities loaded from input file "
-                        f"(T = {t_check:.2f} K); skipping random initialisation.\n"
+                        "\nVelocities loaded from input file and conditioned as "
+                        "the initialization state: "
+                        f"T {summary['temperature_before']:.2f} -> "
+                        f"{summary['temperature_after']:.2f} K "
+                        f"({self._dof_policy.init_description}); "
+                        f"projected_com={summary['projected_com']}, "
+                        f"projected_angular={summary['projected_angular']}.\n"
                     ])
                 elif self.params.init_velocities:
                     velocities = self._initialize_velocities()
@@ -379,7 +392,7 @@ class NVT(JobABC):
                             "init_velocities=False, "
                             "but no velocities found in atoms.arrays"
                         )
-                    velocities = self.atoms.arrays['velocities']
+                    velocities = np.asarray(self.atoms.arrays['velocities'], dtype=float).copy()
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
                 resumed_timestep_au = None
                 step_offset = 0

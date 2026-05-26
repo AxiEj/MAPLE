@@ -621,6 +621,57 @@ def test_npt_vrescale_thermostat_receives_full_step_velocity(tmp_path):
     np.testing.assert_allclose(seen["velocities"], expected)
 
 
+def test_npt_vrescale_crescale_barostat_runs_before_verlet(tmp_path):
+    # Bernetti-Bussi reversible-Euler ordering propagates sqrt(V), scales the
+    # cell/coordinates, refreshes forces, then performs full Velocity Verlet.
+    # The barostat must therefore see the pre-Verlet coordinates, while the
+    # thermostat sees the post-Verlet coordinates/velocity.
+    force = np.array([[1.0, 0.0, 0.0]])
+    atoms = _periodic_atoms(StressCalculator(np.zeros(6), forces=force))
+    initial_position = atoms.get_positions().copy()
+    initial_velocity = np.array([[1.0e-4, 0.0, 0.0]])
+    atoms.arrays["velocities"] = initial_velocity.copy()
+    npt = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "timestep": 0.1,
+            "thermostat": "v-rescale",
+            "barostat": "c-rescale",
+            "init_velocities": False,
+            "remove_com_every": 0,
+            "verbose": 0,
+            "log_every": 999,
+            "traj_every": 999,
+            "rst_every": 0,
+        },
+    )
+    seen = {}
+
+    def barostat_apply(velocities, pressure_velocities=None):
+        seen["barostat_position"] = atoms.get_positions().copy()
+        seen["barostat_velocity"] = velocities.copy()
+        return 0.0, velocities
+
+    def thermostat_apply(velocities):
+        seen["thermostat_position"] = atoms.get_positions().copy()
+        seen["thermostat_velocity"] = velocities.copy()
+        return velocities, 0.0
+
+    npt.barostat.apply = barostat_apply
+    npt.thermostat.apply = thermostat_apply
+
+    npt.run()
+
+    mass = atoms.get_masses()[0] * AMU_TO_AU
+    expected_velocity = initial_velocity + force * HA_PER_ANG_TO_AU / mass * (0.1 * FS_TO_AU)
+    np.testing.assert_allclose(seen["barostat_position"], initial_position)
+    np.testing.assert_allclose(seen["barostat_velocity"], initial_velocity)
+    assert not np.allclose(seen["thermostat_position"], initial_position)
+    np.testing.assert_allclose(seen["thermostat_velocity"], expected_velocity)
+
+
 def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
     monkeypatch,
     tmp_path,

@@ -7,10 +7,9 @@ pre-WS2 behaviour:
 
 * NVE / NVT(v-rescale):  K + 1   (one t=0 force cache + one force eval/step;
   the logged PE read hits the integrator's cache)
-* NPT(v-rescale + c-rescale):  4K + 1   (per step: integrator force eval +
-  barostat pre-rescale pressure + post-rescale force cache + post-rescale
-  stress; identical to the old get_forces()+compute_instantaneous_pressure()
-  pattern, with the logged PE folded into the stress pass for free)
+* NPT(v-rescale + c-rescale):  3K + 1   (per step: pre-barostat pressure,
+  post-barostat force refresh, and the final Velocity-Verlet force/stress
+  evaluation; logged PE is folded into cached evaluator reads)
 """
 
 import numpy as np
@@ -87,7 +86,7 @@ def test_npt_routing_adds_no_backend_call(tmp_path):
         "tau_p": 1000.0, "random_seed": 3, "remove_com_every": 0, "verbose": 0,
         "log_every": 1, "traj_every": steps, "rst_every": 0,
     }).run()
-    assert atoms.calc.n_calculate == 4 * steps + 1
+    assert atoms.calc.n_calculate == 3 * steps + 1
 
 
 def test_nve_logged_energy_equals_evaluator_field(tmp_path):

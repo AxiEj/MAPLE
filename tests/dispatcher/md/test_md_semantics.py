@@ -15,9 +15,14 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import FixAtoms, FixInternals
 
-from maple.function.calculator._ase_unit_contract import MAPLE_ENERGY_UNIT, MAPLE_FORCE_UNIT
+from maple.function.calculator._ase_unit_contract import (
+    ASE_STRESS_UNIT,
+    MAPLE_ENERGY_UNIT,
+    MAPLE_FORCE_UNIT,
+)
 
 from maple.function.dispatcher.md.ensemble.nve import NVE
+from maple.function.dispatcher.md.ensemble.npt import NPT
 from maple.function.dispatcher.md.ensemble.nvt import NVT
 from maple.function.dispatcher.md.semantics import (
     MDDOFPolicy,
@@ -53,6 +58,19 @@ class _FakeCalc(Calculator):
         super().calculate(atoms, properties, system_changes)
         self.results["energy"] = 0.0
         self.results["forces"] = np.zeros((len(atoms), 3))
+
+
+class _FakeStressCalc(_FakeCalc):
+    implemented_properties = ["energy", "forces", "stress"]
+
+    def __init__(self):
+        super().__init__(pbc_capable=True)
+        self.maple_stress_supported = True
+        self.maple_stress_unit = ASE_STRESS_UNIT
+
+    def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+        super().calculate(atoms, properties, system_changes)
+        self.results["stress"] = np.zeros(6)
 
 
 def _water(pbc: bool = False) -> Atoms:
@@ -347,3 +365,125 @@ def test_langevin_nvt_water_init_runtime_basis_differ(tmp_path):
     v = nvt._initialize_velocities()
     assert calculate_temperature(atoms, v, n_dof=3) == pytest.approx(300.0, rel=1e-6)
     assert calculate_temperature(atoms, v, n_dof=9) == pytest.approx(100.0, rel=1e-6)
+
+
+def test_init_true_input_velocities_are_conditioned_for_pbc_nvt(tmp_path):
+    atoms = _water(pbc=True)
+    atoms.calc = _FakeCalc(pbc_capable=True)
+    raw = np.array([
+        [0.012, -0.004, 0.003],
+        [0.006, 0.009, -0.002],
+        [-0.005, 0.003, 0.007],
+    ]) + np.array([0.02, -0.01, 0.004])
+    atoms.arrays["velocities"] = raw.copy()
+
+    nvt = NVT(
+        output=str(tmp_path / "nvt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 0,
+            "verbose": 0,
+            "thermostat": "v-rescale",
+            "remove_com_every": 0,
+        },
+    )
+    nvt._run_simulation = lambda velocities, velocity_representation, **kwargs: (
+        velocities,
+        velocity_representation,
+    )
+    nvt.run()
+    v = atoms.arrays["velocities"]
+
+    assert nvt._dof_policy.init_n_dof == 6
+    np.testing.assert_allclose(calculate_momentum(atoms, v), 0.0, atol=1e-10)
+    assert calculate_temperature(atoms, v, n_dof=6) == pytest.approx(300.0, rel=1e-6)
+    assert "conditioned as the initialization state" in (tmp_path / "nvt.out").read_text()
+
+
+def test_init_true_input_velocities_are_conditioned_for_pbc_npt(tmp_path):
+    atoms = _water(pbc=True)
+    atoms.calc = _FakeStressCalc()
+    raw = np.array([
+        [0.010, 0.006, -0.001],
+        [-0.002, 0.005, 0.004],
+        [0.004, -0.007, 0.003],
+    ]) + np.array([-0.015, 0.012, 0.002])
+    atoms.arrays["velocities"] = raw.copy()
+
+    npt = NPT(
+        output=str(tmp_path / "npt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 0,
+            "verbose": 0,
+            "thermostat": "v-rescale",
+            "barostat": "c-rescale",
+            "remove_com_every": 0,
+        },
+    )
+    npt._run_simulation = lambda velocities, velocity_representation, **kwargs: (
+        velocities,
+        velocity_representation,
+    )
+    npt.run()
+    v = atoms.arrays["velocities"]
+
+    assert npt._dof_policy.init_n_dof == 6
+    np.testing.assert_allclose(calculate_momentum(atoms, v), 0.0, atol=1e-10)
+    assert calculate_temperature(atoms, v, n_dof=6) == pytest.approx(300.0, rel=1e-6)
+
+
+def test_init_true_input_velocities_are_conditioned_for_isolated_angular_nve(tmp_path):
+    atoms = _water()
+    atoms.calc = _FakeCalc(pbc_capable=False)
+    atoms.arrays["velocities"] = np.array([
+        [0.015, -0.020, 0.010],
+        [0.040, 0.010, -0.030],
+        [-0.010, 0.030, 0.020],
+    ])
+
+    nve = NVE(
+        output=str(tmp_path / "nve.out"),
+        atoms=atoms,
+        paras={"steps": 0, "verbose": 0},
+    )
+    nve._run_simulation = lambda velocities, **kwargs: velocities
+    nve.run()
+    v = atoms.arrays["velocities"]
+
+    assert nve._dof_policy.init_n_dof == 3
+    np.testing.assert_allclose(calculate_momentum(atoms, v), 0.0, atol=1e-10)
+    np.testing.assert_allclose(calculate_angular_momentum(atoms, v), 0.0, atol=1e-8)
+    assert calculate_temperature(atoms, v, n_dof=3) == pytest.approx(300.0, rel=1e-6)
+
+
+def test_init_false_input_velocities_keep_unprojected_dof_semantics(tmp_path):
+    atoms = _water(pbc=True)
+    atoms.calc = _FakeCalc(pbc_capable=True)
+    raw = np.tile(np.array([0.01, -0.02, 0.03]), (len(atoms), 1))
+    atoms.arrays["velocities"] = raw.copy()
+
+    nvt = NVT(
+        output=str(tmp_path / "nvt.out"),
+        atoms=atoms,
+        paras={
+            "steps": 0,
+            "verbose": 0,
+            "thermostat": "v-rescale",
+            "init_velocities": False,
+            "remove_com_every": 0,
+        },
+    )
+    assert nvt._dof_policy.init_n_dof == 9
+    assert nvt._dof_policy.runtime_n_dof == 9
+
+    nvt._run_simulation = lambda velocities, velocity_representation, **kwargs: (
+        velocities,
+        velocity_representation,
+    )
+    nvt.run()
+
+    np.testing.assert_allclose(atoms.arrays["velocities"], raw)
+    assert np.linalg.norm(calculate_momentum(atoms, atoms.arrays["velocities"])) > 0.0
+    text = (tmp_path / "nvt.out").read_text()
+    assert "init_velocities=False consumes input velocities as provided" in text

@@ -379,6 +379,8 @@ def run_restart_determinism(
     validation_artifact_id: Optional[str] = None,
 ) -> AcceptanceResult:
     th = thresholds["restart_determinism"]
+    workdir = Path(workdir).resolve()
+    workdir.mkdir(parents=True, exist_ok=True)
 
     def _run(tag, steps, **extra):
         atoms = _validation_crystal(calc_factory)
@@ -960,7 +962,7 @@ def run_acceptance_matrix(
     if workdir is None:
         cleanup = tempfile.TemporaryDirectory()
         workdir = Path(cleanup.name)
-    workdir = Path(workdir)
+    workdir = Path(workdir).resolve()
     workdir.mkdir(parents=True, exist_ok=True)
 
     nve_kw = {"steps": 60} if quick else {}

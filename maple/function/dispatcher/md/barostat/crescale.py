@@ -13,11 +13,13 @@ Algorithm — reversible λ = √V integrator (Bernetti & Bussi, 2020, Eq. 7):
     of the ε form and lets the run track an effective-energy diagnostic whose
     drift monitors integration quality (the NPT analogue of NVE energy drift).
 
-    Scheme boundary (honest): this is the paper's "reversible Euler integrator"
-    (their Table I) — propagate √V by a finite-difference of Eq. 7, then a full
-    Velocity Verlet step, recomputing forces after the volume change.  It is NOT
-    the paper's symmetric "Trotter integrator", which interleaves the volume move
-    with velocity Verlet; that is a heavier scheme and is not used here.
+    Scheme boundary (honest): when used through the production NPT driver
+    (v-rescale + c-rescale), this implements the paper's "reversible Euler
+    integrator" (their Table I): propagate √V by a finite-difference of Eq. 7,
+    then perform a full Velocity Verlet step after recomputing forces at the
+    volume-changed geometry.  It is NOT the paper's symmetric "Trotter
+    integrator", which interleaves the volume move with velocity Verlet; that is
+    a heavier scheme and is not used here.
 
         dλ = -(β λ)/(2 τ_P) · (P_0 - P_int - k_B T/(2V)) dt
            + sqrt(k_B T β / (2 τ_P)) · dW

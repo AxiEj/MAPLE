@@ -67,6 +67,7 @@ from .dof import (  # noqa: F401
 )
 from .pressure import compute_instantaneous_pressure  # noqa: F401
 from .velocity_init import (  # noqa: F401
+    condition_input_velocities,
     initialize_velocities,
     scale_velocities_to_temperature,
 )
@@ -110,7 +111,8 @@ __all__ = [
     # pressure
     "compute_instantaneous_pressure",
     # velocity_init
-    "initialize_velocities", "scale_velocities_to_temperature",
+    "condition_input_velocities", "initialize_velocities",
+    "scale_velocities_to_temperature",
     # motion_projection
     "apply_runtime_motion_projection", "calculate_angular_momentum", "calculate_momentum",
     "get_atoms_velocity_representation", "lfmiddle_carried_to_standard",

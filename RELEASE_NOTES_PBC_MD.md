@@ -51,6 +51,14 @@ while runtime temperature, the thermostat target, and the summary use an
   For Langevin a second line reports the runtime basis, which reads (init/runtime)
   × T at t = 0 because the thermostat has not yet repopulated the projected modes
   — a basis difference, not an error.
+- **Input velocities now have explicit semantics.** If a fresh run has
+  `atoms.arrays["velocities"]` and `init_velocities=true`, MAPLE treats those
+  velocities as the initialization state: it applies the same COM/angular
+  projection policy as a random Maxwell-Boltzmann draw and rescales to the
+  init-DOF target temperature. If `init_velocities=false`, MAPLE consumes input
+  velocities as provided and the DOF policy no longer silently assumes the
+  initialization-only projection was applied; runtime projection still requires
+  `remove_com_every` / `remove_angular_every`.
 
 ## NPT logging thermodynamic consistency (WS2)
 
@@ -76,8 +84,12 @@ term uses the synchronized standard velocity.
 The stochastic cell-rescaling (c-rescale) barostat now uses the **reversible
 λ = √V integrator** of Bernetti & Bussi (2020) — their Eq. 7, the "reversible
 Euler integrator" of their Table I — instead of the simpler Euler scheme on the
-log-volume ε. (This is the reversible √V scheme applied as a sequential sub-step,
-not the heavier symmetric Trotter integrator.) Propagating λ = √V makes the noise amplitude
+log-volume ε. In the production `v-rescale + c-rescale` NPT driver this is now
+ordered as the paper's reversible Euler scheme: propagate √V and scale
+positions/momenta first, recompute forces at the scaled geometry, then perform a
+full Velocity Verlet step and apply the stochastic velocity-rescale thermostat
+to the full-step velocity. This is **not** the heavier symmetric Trotter
+integrator. Propagating λ = √V makes the noise amplitude
 `sqrt(k_B T β / 2τ_P)` *constant* (V-independent), removing the multiplicative-
 noise discretization bias of the ε form and adding the exact Itô correction
 `−k_B T/(2V)` to the drift (derived analytically from the ε-form SDE). Per-step
@@ -123,3 +135,17 @@ molecule-whole unwrap, and for a variable-cell (NPT) run it is not a fixed-cell
 lab-frame coordinate, so variable-cell MSD/diffusion must account for the cell
 strain separately. Fixed-cell (NVE/NVT) unwrapped coordinates are lab-frame and
 suitable for MSD/VACF.
+
+When `traj_format=dcd`, the DCD trajectory is a wrapped visualization trajectory:
+it stores wrapped coordinates and the cell, but not MAPLE image flags. For
+transport/MSD/continuous-coordinate analysis use the unwrapped XYZ sidecar or
+reconstruct from RST/image flags, not the DCD alone.
+
+## AIMNet2 long-range Coulomb admission boundary
+
+For `aimnet2-pbc` / `aimnet2nse-pbc`, MAPLE can fully MIC-gate the DSF
+real-space cutoff. For Ewald/PME modes the official AIMNet2 backend owns the
+long-range real-space/reciprocal-space parameterization; MAPLE records those
+settings in provenance and gates only the fixed 5 Å local AEV descriptor cutoff.
+Production validation reports must therefore include each Coulomb mode they
+intend to claim, not just a DSF or local-cutoff smoke.

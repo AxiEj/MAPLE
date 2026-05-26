@@ -7,8 +7,8 @@ Supports two combinations:
 
 Recommended combination for production MLP runs:
     thermostat=v-rescale + barostat=c-rescale
-    → full-step Velocity Verlet + stochastic temperature/log-volume cell
-      rescaling is the reference-aligned NPT path in this module.
+    → reversible-Euler stochastic cell rescaling (√V first), force refresh,
+      full-step Velocity Verlet, then stochastic velocity rescaling.
 
 Berendsen variants are suitable for rapid pre-equilibration but suppress
 pressure/temperature fluctuations and do not generate correct ensemble averages.
@@ -16,7 +16,10 @@ pressure/temperature fluctuations and do not generate correct ensemble averages.
 Integration order each step:
     - Langevin: LFMiddle carried-velocity sequence, barostat pressure from
       synchronized standard velocity, then barostat scaling of carried state.
-    - V-rescale: full Velocity Verlet step, then thermostat, then barostat.
+    - V-rescale + c-rescale: barostat scaling, force refresh, full Velocity
+      Verlet step, then thermostat.
+    - V-rescale + Berendsen: full Velocity Verlet step, thermostat, then weak
+      pressure scaling (equilibration-only).
 
 Requirements:
     - Atoms object must have a full three-dimensional periodic cell
@@ -51,6 +54,7 @@ from ..utils import (
     apply_runtime_motion_projection,
     calculate_temperature,
     calculate_kinetic_energy,
+    condition_input_velocities,
     get_atoms_velocity_representation,
     initialize_velocities,
     forces_au,
@@ -439,12 +443,24 @@ class NPT(JobABC):
                 remaining = self.params.steps - step_offset
             else:
                 if 'velocities' in self.atoms.arrays and self.params.init_velocities:
-                    velocities = self.atoms.arrays['velocities']
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
-                    t_check = calculate_temperature(self.atoms, velocities, n_dof=self._dof_policy.init_n_dof)
+                    velocities, summary = condition_input_velocities(
+                        atoms=self.atoms,
+                        velocities=self.atoms.arrays['velocities'],
+                        temperature=self.params.temperature,
+                        remove_com=self.params.remove_com,
+                        remove_rotation=self.params.remove_rotation,
+                        # NPT requires full PBC; rigid-body rotation is undefined.
+                        remove_angular=False,
+                        target_n_dof=self._dof_policy.init_n_dof,
+                    )
                     self.log_info([
-                        f"\nVelocities loaded from input file "
-                        f"(T = {t_check:.2f} K); skipping random initialisation.\n"
+                        "\nVelocities loaded from input file and conditioned as "
+                        "the initialization state: "
+                        f"T {summary['temperature_before']:.2f} -> "
+                        f"{summary['temperature_after']:.2f} K "
+                        f"({self._dof_policy.init_description}); "
+                        f"projected_com={summary['projected_com']}.\n"
                     ])
                 elif self.params.init_velocities:
                     velocities = self._initialize_velocities()
@@ -455,7 +471,7 @@ class NPT(JobABC):
                             "init_velocities=False, "
                             "but no velocities found in atoms.arrays"
                         )
-                    velocities = self.atoms.arrays['velocities']
+                    velocities = np.asarray(self.atoms.arrays['velocities'], dtype=float).copy()
                     velocity_representation = get_atoms_velocity_representation(self.atoms)
                 resumed_timestep_au = None
                 step_offset = 0
@@ -559,11 +575,12 @@ class NPT(JobABC):
         Langevin uses LF-Middle carried velocities internally; the barostat
         pressure decision uses a synchronized standard velocity so the kinetic
         pressure term is not computed from the half-step carried state.
-        V-rescale applies the thermostat to the full-step Velocity Verlet
-        velocity before the barostat.  For the v-rescale + reversible c-rescale
-        pair this path reports H̃ = K + U + P_0·V − Σ ΔW_ext (thermostat +
-        barostat + projection work) as an effective-energy integration
-        diagnostic.
+        For the v-rescale + c-rescale production path, the driver follows the
+        Bernetti-Bussi reversible-Euler ordering: propagate √V first, refresh
+        forces at the scaled geometry, then run full Velocity Verlet and apply
+        stochastic velocity rescaling to the full-step velocity.  This path
+        reports H̃ = K + U + P_0·V − Σ ΔW_ext (thermostat + barostat +
+        projection work) as an effective-energy integration diagnostic.
         """
         if n_steps is None:
             n_steps = self.params.steps
@@ -647,7 +664,53 @@ class NPT(JobABC):
             forces_au(self.atoms)
         )  # Ha/Å → a.u.
         for step in range(1, n_steps + 1):
-            if is_langevin:
+            abs_step = step_offset + step
+            reversible_crescale_step = (
+                (not is_langevin) and self.params.barostat == 'c-rescale'
+            )
+
+            if reversible_crescale_step:
+                # Bernetti-Bussi reversible Euler ordering for the production
+                # v-rescale + c-rescale path: propagate sqrt(V), scale
+                # positions/momenta, recompute forces at the scaled geometry,
+                # then perform a full Velocity Verlet step and thermostat the
+                # resulting full-step velocity.  This avoids claiming that a
+                # post-Verlet sequential barostat is equivalent to the published
+                # reversible ordering.
+                volume_pre = self.atoms.get_volume()
+                ke_pre_baro = calculate_kinetic_energy(self.atoms, v)
+                u_pre_baro = evaluate_md_properties(
+                    self.atoms, need_stress=True
+                ).energy_ha
+                try:
+                    pressure_pre, v = self.barostat.apply(v)
+                except MDBarostatClampError as exc:
+                    msg = f"C-rescale barostat failed at step {abs_step}: {exc}"
+                    self.logger.abort_simulation(reason=msg)
+                    raise
+                if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
+                    msg = (
+                        f"C-rescale stability clamp fired at step {abs_step}: the "
+                        "per-step volume ratio left the [0.125, 8.0] bound, so the stochastic-"
+                        "cell-rescaling NPT ensemble is truncated. Aborting now (set "
+                        "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
+                        "the clamp count is recorded in the run manifest)."
+                    )
+                    self.logger.abort_simulation(reason=msg)
+                    raise MDBarostatClampError(msg)
+                self._validate_runtime_cutoff_after_barostat(abs_step)
+                volume_after_baro = self.atoms.get_volume()
+                forces = forces_au(self.atoms)
+                ke_post_baro = calculate_kinetic_energy(self.atoms, v)
+                u_post_baro = evaluate_md_properties(self.atoms).energy_ha
+
+                v, forces = integrator.step(v, forces)
+                v, delta_w = self.thermostat.apply(v)
+                if track_conserved:
+                    w_bath += delta_w
+                pressure_velocities = None
+
+            elif is_langevin:
                 # LFMiddle sequence with carried velocities, then barostat.
                 v = integrator.lfmiddle_full_kick(v, forces)
                 integrator.half_step_r(v)
@@ -664,55 +727,46 @@ class NPT(JobABC):
                     integrator.timestep,
                 )
             else:
-                # Full Velocity Verlet step first, then V-rescale the full-step
-                # velocity.  The thermostat work joins the external-work ledger
-                # so the effective-energy ledger includes it once the barostat
-                # work (below) is added too.
+                # Berendsen remains a sequential equilibration-only coupling:
+                # full Velocity Verlet first, then V-rescale, then weak pressure
+                # scaling.  It is not advertised as a production NPT integrator.
                 v, forces = integrator.step(v, forces)
                 v, delta_w = self.thermostat.apply(v)
-                if track_conserved:
-                    w_bath += delta_w
                 pressure_velocities = None
 
-            # Barostat decision uses the pre-rescale pressure/volume pair; keep
-            # them only as a labeled diagnostic.  The primary thermodynamic
-            # record below is the post-rescale state, so logged pressure/volume
-            # stay consistent with the post-rescale T/KE/PE.
-            volume_pre = self.atoms.get_volume()
-            # Conserved-energy ledger: capture pre-barostat KE and PE.  The
-            # need_stress evaluation here only warms the cache the barostat reads
-            # for its pressure (no extra backend pass — the per-step count test
-            # pins this), and supplies U_pre for the barostat-work term.
-            if track_conserved:
-                ke_pre_baro = calculate_kinetic_energy(self.atoms, v)
-                u_pre_baro = evaluate_md_properties(self.atoms, need_stress=True).energy_ha
-            abs_step = step_offset + step
-            try:
-                pressure_pre, v = self.barostat.apply(
-                    v,
-                    pressure_velocities=pressure_velocities,
-                )
-            except MDBarostatClampError as exc:
-                msg = f"C-rescale barostat failed at step {abs_step}: {exc}"
-                self.logger.abort_simulation(reason=msg)
-                raise
-            # Fail fast: a fired stability clamp means this step's volume move was
-            # truncated, so the trajectory from here on is no longer the target NPT
-            # ensemble.  Abort immediately (closing files, writing no manifest) rather
-            # than finishing thousands more steps and reporting success.
-            if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
-                msg = (
-                    f"C-rescale stability clamp fired at step {step_offset + step}: the "
-                    "per-step volume ratio left the [0.125, 8.0] bound, so the stochastic-"
-                    "cell-rescaling NPT ensemble is truncated. Aborting now (set "
-                    "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
-                    "the clamp count is recorded in the run manifest)."
-                )
-                self.logger.abort_simulation(reason=msg)
-                raise MDBarostatClampError(msg)
-            self._validate_runtime_cutoff_after_barostat(abs_step)
-            if track_conserved:
-                ke_post_baro = calculate_kinetic_energy(self.atoms, v)
+            if not reversible_crescale_step:
+                # Barostat decision uses the pre-rescale pressure/volume pair;
+                # keep them only as a labeled diagnostic.  The primary
+                # thermodynamic record below is the post-rescale state.
+                volume_pre = self.atoms.get_volume()
+                try:
+                    pressure_pre, v = self.barostat.apply(
+                        v,
+                        pressure_velocities=pressure_velocities,
+                    )
+                except MDBarostatClampError as exc:
+                    msg = f"C-rescale barostat failed at step {abs_step}: {exc}"
+                    self.logger.abort_simulation(reason=msg)
+                    raise
+                if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
+                    msg = (
+                        f"C-rescale stability clamp fired at step {abs_step}: the "
+                        "per-step volume ratio left the [0.125, 8.0] bound, so the stochastic-"
+                        "cell-rescaling NPT ensemble is truncated. Aborting now (set "
+                        "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
+                        "the clamp count is recorded in the run manifest)."
+                    )
+                    self.logger.abort_simulation(reason=msg)
+                    raise MDBarostatClampError(msg)
+                self._validate_runtime_cutoff_after_barostat(abs_step)
+                forces = forces_au(self.atoms)
+                if track_conserved:
+                    w_bath += delta_w
+                    ke_post_baro = calculate_kinetic_energy(self.atoms, v)
+                    u_post_baro = evaluate_md_properties(self.atoms).energy_ha
+                    volume_after_baro = self.atoms.get_volume()
+
+            ke_pre_projection = calculate_kinetic_energy(self.atoms, v)
             v, _projection = apply_runtime_motion_projection(
                 self.atoms,
                 v,
@@ -720,7 +774,13 @@ class NPT(JobABC):
                 remove_com_every=self.params.remove_com_every,
                 remove_angular_every=self.params.remove_angular_every,
             )
-            forces = forces_au(self.atoms)
+            if not reversible_crescale_step:
+                # Sequential paths scale the cell after dynamics, so refresh the
+                # force cache once at the post-rescale geometry.  Reversible
+                # c-rescale already refreshed forces immediately after the
+                # pre-Verlet volume move and the integrator returned forces at
+                # the final coordinates.
+                forces = forces_au(self.atoms)
 
             current_time     = abs_step * self.params.timestep
             volume_post      = self.atoms.get_volume()
@@ -773,10 +833,10 @@ class NPT(JobABC):
             if track_conserved:
                 baro_work = (
                     (ke_post_baro - ke_pre_baro)
-                    + (potential_energy - u_pre_baro)
-                    + p0_ha_per_a3 * (volume_post - volume_pre)
+                    + (u_post_baro - u_pre_baro)
+                    + p0_ha_per_a3 * (volume_after_baro - volume_pre)
                 )
-                proj_work = kinetic_energy - ke_post_baro
+                proj_work = kinetic_energy - ke_pre_projection
                 w_bath += baro_work + proj_work
                 conserved = (
                     kinetic_energy + potential_energy

@@ -115,10 +115,23 @@ def resolve_md_dof_policy(atoms: Atoms, params, ensemble: str) -> MDDOFPolicy:
     is_pbc = any(atoms.pbc)
 
     # Initialization projection flags, mirroring ``initialize_velocities``:
-    # remove_angular (or the legacy remove_rotation) implies remove_com.
+    # remove_angular (or the legacy remove_rotation) implies remove_com.  When a
+    # fresh run explicitly consumes input velocities (init_velocities=False), no
+    # initialization projection is performed; the DOF basis must therefore treat
+    # those velocities as unprojected instead of silently subtracting COM/rotation
+    # because the default remove_* knobs are initialization-only.
     remove_rotation = bool(getattr(params, "remove_rotation", False))
     remove_angular = bool(getattr(params, "remove_angular", False)) or remove_rotation
     remove_com = bool(getattr(params, "remove_com", True)) or remove_angular
+    explicit_input_velocities = (
+        not bool(getattr(params, "init_velocities", True))
+        and not bool(getattr(params, "restart", False))
+        and not bool(getattr(params, "load_state", False))
+    )
+    requested_init_projection = bool(remove_com or remove_angular)
+    if explicit_input_velocities:
+        remove_com = False
+        remove_angular = False
     remove_com_every = int(getattr(params, "remove_com_every", 0) or 0)
     remove_angular_every = int(getattr(params, "remove_angular_every", 0) or 0)
     operator_reexcites = _operator_reexcites(params)
@@ -165,6 +178,13 @@ def resolve_md_dof_policy(atoms: Atoms, params, ensemble: str) -> MDDOFPolicy:
     runtime_n_dof = max(runtime_n_dof, 1)
 
     warnings: List[str] = []
+    if explicit_input_velocities and requested_init_projection:
+        warnings.append(
+            "init_velocities=False consumes input velocities as provided; "
+            "initialization-only remove_com/remove_angular do not subtract DOF. "
+            "Use init_velocities=True to condition/rescale input velocities, or "
+            "remove_com_every/remove_angular_every for runtime projection."
+        )
     for warning in list(init_policy["warnings"]) + list(runtime_warn_policy["warnings"]):
         if warning not in warnings:
             warnings.append(warning)

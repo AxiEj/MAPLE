@@ -18,6 +18,7 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
+from ....calculator._batch_eval import energy_forces_one
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
@@ -381,6 +382,10 @@ class PRFOParams:
     dp_max_th: float = 1.8e-3              # Maximum displacement threshold (Angstrom)
     dp_rms_th: float = 1.2e-3              # RMS displacement threshold (Angstrom)
 
+    # Batched finite-difference Hessian chunk size, forwarded to
+    # FDHessianEvaluator via the calculator. None = single batch.
+    fd_batch_size: Optional[int] = None
+
 # =============================================================================
 # ------------------------------- PRFO Class ----------------------------------
 # =============================================================================
@@ -626,16 +631,27 @@ class PRFO(JobABC):
             f"dp_rms={self.params.dp_rms_th:.6f}\n"
         ]
         log_info(info_message, self.output)
-        
+
+        # Propagate fd_batch_size so FDHessianEvaluator picks it up when
+        # calc.get_hessian dispatches to the numerical (FD-batched) path.
+        # Harmless for analytic Hessian calculators.
+        if self.params.fd_batch_size is not None:
+            atoms.calc.fd_batch_size = self.params.fd_batch_size
+
+        # Initial energy/forces — single calculator invocation, then carried
+        # across outer iterations so the top-of-loop is not a redundant
+        # forward pass on already-evaluated geometry.
+        e_init, f_init = energy_forces_one(atoms.calc, atoms)
+        E_carry = to_numpy_f64(e_init)
+        F_carry = to_numpy_f64(f_init)
+
         # Main optimization loop
         while iteration < self.params.max_iter:
-            # Get current geometry and energy/forces
+            # Current geometry and reference E/F (carried from the previous
+            # iteration's accepted trial, or from the initial evaluation).
             X = atoms.get_positions().reshape(-1, 3)
-            E_old = to_numpy_f64(
-                atoms.get_potential_energy(force_consistent=True)
-            )
-            
-            F_cart = to_numpy_f64(atoms.get_forces())
+            E_old = to_numpy_f64(E_carry)
+            F_cart = to_numpy_f64(F_carry)
             g_cart = vec1d(-F_cart)
             
             # Get Hessian in Cartesian
@@ -711,10 +727,13 @@ class PRFO(JobABC):
                 X_new = X.reshape(-1, 3) + s_cart.reshape(-1, 3)
                 atoms.set_positions(X_new)
                 
-                # New energy
-                E_new = to_numpy_f64(
-                    atoms.get_potential_energy(force_consistent=True)
-                )
+                # Trial energy/forces in one calculator invocation. Forces
+                # are carried forward if the trial is accepted; rejected
+                # trials roll back geometry and discard them without any
+                # second refetch.
+                e_new, f_new = energy_forces_one(atoms.calc, atoms)
+                E_new = to_numpy_f64(e_new)
+                F_new_trial = to_numpy_f64(f_new)
                 
                 actual_change = float(E_new - E_old)
                 rho = None
@@ -734,32 +753,38 @@ class PRFO(JobABC):
                 else:
                     # Accept the step
                     accepted = True
-                    
+
                     # Radius adaptation after acceptance
                     if (rho is not None and rho > self.params.eta_expand and
                         on_boundary):
                         trust_radius = min(self.params.trust_max,
                                          2.0 * trust_radius)
-                    
-                    # Get new forces for convergence check
-                    F_new = to_numpy_f64(atoms.get_forces())
-                    
+
+                    # Reuse the forces already evaluated at the accepted
+                    # trial geometry.
+                    F_new = F_new_trial
+
+                    # Carry the accepted-trial (E, F) into the next outer
+                    # iteration to avoid a redundant top-of-loop forward.
+                    E_carry = E_new
+                    F_carry = F_new
+
                     # Compute convergence metrics (per DOF RMS)
                     dof = s_cart.size
                     atoms.max_dp = abs(s_cart).max()
                     atoms.rms_dp = np.sqrt((s_cart**2).sum() / dof)
                     atoms.max_f = abs(F_new).max()
                     atoms.rms_f = np.sqrt((F_new**2).sum() / dof)
-                    
+
                     # Log iteration
                     self.log_iteration(iteration + 1, atoms, E_new,
                                      model_change, actual_change, rho,
                                      trust_radius, norm_mw, on_boundary)
-                    
+
                     # Write to trajectory
                     append_xyz_trajectory(traj_file, atoms, energy=E_new,
                                         iteration=iteration + 1)
-                    
+
                     # Check convergence
                     if self.check_convergence(atoms):
                         converged = True
@@ -768,21 +793,23 @@ class PRFO(JobABC):
                             f'{"Normal Termination".center(70)}\n\n'
                         ]
                         log_info(info_message, self.output)
-                        
+
                         # Write final TS structure
                         write_xyz(ts_file, atoms, energy=E_new,
                                 iteration=iteration + 1)
-                        
+
                         return atoms
-            
+
             iteration += 1
         
         # Maximum iterations reached
         log_info([f'\n\n{"Maximum Iterations Reached".center(70)}\n\n'],
                 self.output)
         
-        # Write final structure even if not converged
-        E_final = atoms.get_potential_energy(force_consistent=True)
+        # Write final structure even if not converged. atoms is at the
+        # geometry corresponding to E_carry (last accepted trial or initial
+        # evaluation), so reuse it instead of triggering a redundant forward.
+        E_final = float(E_carry)
         write_xyz(ts_file, atoms, energy=E_final, iteration=iteration)
         
         log_info([

@@ -29,6 +29,7 @@ from ase import Atoms
 from .logger import log_info
 from .DIIS import DIISAccelerator, DIISParams
 from ...jobABC import JobABC
+from ....calculator._batch_eval import energy_forces_one
 
 
 def write_xyz(filename: str, atoms_list: List[Atoms],
@@ -456,8 +457,7 @@ class SDCG(JobABC):
         traj_energies_list: List[float] = []
 
         # Get initial state
-        energy = float(atoms.get_potential_energy(force_consistent=True))
-        forces = atoms.get_forces()
+        energy, forces = energy_forces_one(atoms.calc, atoms)
 
         traj_atoms_list.append(atoms.copy())
         traj_energies_list.append(energy)
@@ -479,7 +479,9 @@ class SDCG(JobABC):
         iteration = 0
 
         while iteration < self.params.max_iter:
-            forces = atoms.get_forces()
+            # `forces` is loop-carried from the previous iteration's accepted
+            # step (or from the initial energy_forces_one call before the
+            # loop), so a top-of-loop refetch is a redundant forward pass.
 
             # Check SD -> CG phase transition
             if self._phase == "sd" and self.params.cg_enabled:
@@ -506,8 +508,7 @@ class SDCG(JobABC):
                 step = self._clip_step(step)
                 atoms.set_positions(saved_positions + step)
 
-                new_energy = float(atoms.get_potential_energy(force_consistent=True))
-                new_forces = atoms.get_forces()
+                new_energy, new_forces = energy_forces_one(atoms.calc, atoms)
                 new_max_f = np.abs(new_forces).max()
                 old_max_f = np.abs(forces).max()
 
@@ -534,8 +535,7 @@ class SDCG(JobABC):
 
                 atoms.set_positions(atoms.get_positions() + step)
 
-                energy = float(atoms.get_potential_energy(force_consistent=True))
-                forces = atoms.get_forces()
+                energy, forces = energy_forces_one(atoms.calc, atoms)
 
             # Update BB history
             self._prev_positions = saved_positions

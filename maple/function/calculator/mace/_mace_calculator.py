@@ -299,43 +299,19 @@ class MACECalculator(CalcABC):
         return hessian.detach().cpu().numpy()
 
     def _get_hessian_numerical(self, atoms, delta: float = 0.002) -> np.ndarray:
-        from ase.constraints import FixAtoms
+        """Central-difference numerical Hessian via batched displacement.
 
-        N = len(atoms)
-        pos0 = atoms.get_positions().copy()
-        fixed = {
-            i for c in getattr(atoms, "constraints", [])
-            if isinstance(c, FixAtoms)
-            for i in c.get_indices()
-        }
-        movable = [i for i in range(N) if i not in fixed]
-        H = np.zeros((3 * N, 3 * N), dtype=np.float64)
+        Delegates the 2 * 3 * N_movable force evaluations to
+        ``FDHessianEvaluator``, which routes through ``calc.calculate_many``
+        (sequential fallback in ``CalcABC`` by default; subclasses can
+        override for true batched evaluation). FixAtoms respected upstream.
+        """
+        from .._batch_eval import FDHessianEvaluator
 
-        if len(movable) == 0:
-            return H
-
-        def force_at(positions: np.ndarray) -> np.ndarray:
-            atoms_tmp = atoms.copy()
-            atoms_tmp.set_positions(positions)
-            if getattr(atoms, "constraints", None):
-                atoms_tmp.set_constraint(atoms.constraints)
-            self.calculate(atoms_tmp, properties=["forces"], system_changes=all_changes)
-            return np.asarray(self.results["forces"], dtype=np.float64)
-
-        for a in movable:
-            for k in range(3):
-                row = 3 * a + k
-                pos_p = pos0.copy()
-                pos_p[a, k] += delta
-                Fp = force_at(pos_p)
-
-                pos_m = pos0.copy()
-                pos_m[a, k] -= delta
-                Fm = force_at(pos_m)
-
-                H[row, :] = (-(Fp - Fm) / (2.0 * delta)).reshape(-1)
-
-        return H
+        return FDHessianEvaluator(
+            self,
+            fd_batch_size=getattr(self, "fd_batch_size", None),
+        ).hessian(atoms, delta=delta)
 
     def get_hessian(self, atoms=None, delta: float = 0.002) -> np.ndarray:
         if self.hessian == "analytic":

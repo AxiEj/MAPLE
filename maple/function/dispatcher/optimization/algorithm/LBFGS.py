@@ -7,6 +7,7 @@ import numpy as np
 from ase import Atoms
 from .logger import log_info
 from ...jobABC import JobABC
+from ....calculator._batch_eval import energy_forces_one
 
 
 # ==============================================
@@ -163,8 +164,7 @@ class LBFGS(JobABC):
 
         atoms = self.atoms
         r = atoms.get_positions()
-        e = float(atoms.get_potential_energy(force_consistent=True))
-        f = atoms.get_forces()
+        e, f = energy_forces_one(atoms.calc, atoms)
 
         iteration = 0
         
@@ -188,8 +188,7 @@ class LBFGS(JobABC):
             atoms.set_positions(r + step)
 
             r = atoms.get_positions()
-            f = atoms.get_forces()
-            e = float(atoms.get_potential_energy(force_consistent=True))
+            e, f = energy_forces_one(atoms.calc, atoms)
 
             s_vec = (r - r_old).reshape(-1)
             y_vec = (f - f_old).reshape(-1)

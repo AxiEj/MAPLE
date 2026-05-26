@@ -247,43 +247,23 @@ class UMACalculator(FAIRChemCalculator):
         delta: float = 0.002,
         dtype: torch.dtype = torch.float64,
     ) -> torch.Tensor:
-        from ase.constraints import FixAtoms
+        """Central-difference numerical Hessian via batched displacement.
 
-        n_atoms = len(atoms)
-        pos0 = atoms.get_positions()
-        fixed = {
-            i
-            for constraint in atoms.constraints
-            if isinstance(constraint, FixAtoms)
-            for i in constraint.get_indices()
-        }
-        movable = [i for i in range(n_atoms) if i not in fixed]
+        UMA exposes no analytic Hessian (``supported_hessian_modes = ('numerical',)``),
+        so this is the only Hessian path. The 2 * 3 * N_movable force
+        evaluations are delegated to ``FDHessianEvaluator``, which dispatches
+        through ``calc.calculate_many`` — sequential fallback today, ready
+        to pick up a true batched backend when fairchem-core exposes one.
+        FixAtoms is respected upstream. Returns a ``(3N, 3N)`` tensor on
+        ``self.device`` to preserve the original return-type contract.
+        """
+        from .._batch_eval import FDHessianEvaluator
 
-        if not movable:
-            return torch.zeros((3 * n_atoms, 3 * n_atoms), dtype=dtype, device=self.device)
-
-        hessian = torch.zeros((3 * n_atoms, 3 * n_atoms), dtype=dtype, device=self.device)
-
-        def eval_force(positions: np.ndarray) -> torch.Tensor:
-            atoms_tmp = atoms.copy()
-            atoms_tmp.set_positions(positions)
-            self.calculate(atoms_tmp, properties=["forces"], system_changes=all_changes)
-            return torch.tensor(self.results["forces"], dtype=dtype, device=self.device)
-
-        for atom_index in movable:
-            for axis in range(3):
-                pos_p = pos0.copy()
-                pos_p[atom_index, axis] += delta
-                force_p = eval_force(pos_p)
-
-                pos_m = pos0.copy()
-                pos_m[atom_index, axis] -= delta
-                force_m = eval_force(pos_m)
-
-                row = 3 * atom_index + axis
-                hessian[row, :] = (-(force_p - force_m) / (2.0 * delta)).reshape(-1)
-
-        return hessian
+        H_np = FDHessianEvaluator(
+            self,
+            fd_batch_size=getattr(self, "fd_batch_size", None),
+        ).hessian(atoms, delta=delta)
+        return torch.as_tensor(H_np, dtype=dtype, device=self.device)
 
     def calculate(self, atoms, properties=None, system_changes=None):
         self._set_task_from_atoms(atoms)

@@ -258,83 +258,20 @@ class AIMNet2Calculator(CalcABC):
 
 
     def _get_hessian_numerical(
-        self, 
-        atoms, 
-        delta: float = 0.002
+        self,
+        atoms,
+        delta: float = 0.002,
     ) -> np.ndarray:
+        """Central-difference numerical Hessian via batched displacement.
+
+        Delegates the 2 * 3 * N_movable force evaluations to
+        ``FDHessianEvaluator``, which routes through ``calc.calculate_many``
+        (sequential fallback in ``CalcABC`` by default; subclasses can
+        override for true batched evaluation). FixAtoms respected upstream.
         """
-        Compute Hessian using finite-difference forces.
-        Hessian is defined as: H = d²E/dx_i dx_j = -∂F_i/∂x_j
-        
-        Args:
-            atoms: ASE Atoms object
-            delta: Step size for finite difference
-        """
-        import numpy as np
-        from ase.constraints import FixAtoms
-        from ase.calculators.calculator import all_changes
+        from .._batch_eval import FDHessianEvaluator
 
-        # Basic geometry setup
-        N = len(atoms)
-        pos0 = atoms.get_positions().copy()  # (N, 3) numpy array
-
-        # Identify frozen atoms from FixAtoms constraint
-        fixed = {
-            i for c in getattr(atoms, "constraints", [])
-            if isinstance(c, FixAtoms)
-            for i in c.get_indices()
-        }
-        movable = [i for i in range(N) if i not in fixed]
-
-        # Allocate Hessian as numpy array
-        H = np.zeros((3 * N, 3 * N), dtype=np.float64)
-
-        # If everything is frozen, return zero Hessian
-        if len(movable) == 0:
-            return H
-
-        # Helper function: evaluate AIMNet forces at a displaced geometry
-        def aimnet_force_at(pos_numpy: np.ndarray) -> np.ndarray:
-            """
-            Evaluate AIMNet forces at the given coordinates.
-            Returns a numpy array of shape (N, 3).
-            """
-            at = atoms.copy()
-            at.set_positions(pos_numpy)
-
-            # Preserve constraints if present
-            if getattr(atoms, "constraints", None):
-                at.set_constraint(atoms.constraints)
-
-            # Compute forces with the internal AIMNet calculator
-            self.calculate(at, properties=["forces"], system_changes=all_changes)
-            F_np = self.results["forces"]  # numpy (N, 3)
-            return F_np
-
-        # Finite-difference second derivatives:
-        # H_ij = -∂F_i/∂x_j ≈ -(F(+δ) - F(-δ)) / (2δ)
-        for a in movable:      # iterate over movable atoms
-            for k in range(3):  # iterate over x, y, z directions
-                row = 3 * a + k
-
-                # +delta displacement
-                pos_p = pos0.copy()
-                pos_p[a, k] += delta
-                Fp = aimnet_force_at(pos_p)
-
-                # -delta displacement
-                pos_m = pos0.copy()
-                pos_m[a, k] -= delta
-                Fm = aimnet_force_at(pos_m)
-
-                # Central difference derivative of force
-                # ∂F/∂x ≈ (F(+δ) - F(-δ)) / (2δ)
-                dF = (Fp - Fm) / (2.0 * delta)
-
-                # Hessian uses: H = -∂F/∂x
-                H[row, :] = (-dF).reshape(-1)
-
-        # Optional: symmetrize to reduce numerical noise
-        # H = 0.5 * (H + H.T)
-
-        return H
+        return FDHessianEvaluator(
+            self,
+            fd_batch_size=getattr(self, "fd_batch_size", None),
+        ).hessian(atoms, delta=delta)

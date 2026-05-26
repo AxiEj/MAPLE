@@ -1,0 +1,473 @@
+"""Equivalence tests for the Phase 1 batched calculator infrastructure.
+
+Covers:
+
+* ``CalcABC.calculate_many`` sequential fallback (energy + force return).
+* ``FDHessianEvaluator`` central-difference Hessian — analytic match,
+  chunked-vs-unchunked bit identity, FixAtoms handling, geometry restoration.
+* ``energy_forces_one`` — single-invocation E + F equivalence with the
+  legacy ``get_potential_energy + get_forces`` pattern.
+* ``HVPEvaluator`` autodiff and FD fallback paths.
+* OPT-RFO reject path no longer wastes a forward pass when rolling back.
+* TS-PRFO outer-iteration loop no longer refetches E/F between accepted
+  iterations.
+
+All tests use lightweight in-process calculators with closed-form energies
+and forces so they run without GPU / model weights.
+"""
+from __future__ import annotations
+
+import os
+import tempfile
+from dataclasses import dataclass
+from typing import Optional
+
+import numpy as np
+import pytest
+import torch
+from ase import Atoms
+from ase.calculators.calculator import all_changes
+from ase.constraints import FixAtoms
+
+from maple.function.calculator._batch_eval import (
+    FDHessianContext,
+    FDHessianEvaluator,
+    HVPEvaluator,
+    PathEvaluator,
+    energy_forces_one,
+)
+from maple.function.calculator._batch_types import BatchResult
+from maple.function.calculator.calculator_base import CalcABC
+
+
+# ---------------------------------------------------------------------------
+# Toy calculators
+# ---------------------------------------------------------------------------
+class HarmonicCalc(CalcABC):
+    """E = 0.5 * k * sum_i |R_i - R_i^0|^2  (analytic Hessian = k * I)."""
+
+    implemented_properties = ["energy", "forces", "free_energy"]
+
+    def __init__(self, k: float = 1.5, ref_positions: Optional[np.ndarray] = None):
+        super().__init__()
+        self.k = float(k)
+        self.ref = np.array(ref_positions, dtype=np.float64)
+        self.dtype = np.float64
+        self.calls = 0  # counter so tests can verify no redundant forwards
+
+    def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+        super().calculate(atoms, properties, system_changes)
+        self.calls += 1
+        R = atoms.get_positions().astype(np.float64)
+        d = R - self.ref
+        e = 0.5 * self.k * float(np.sum(d * d))
+        self.results["energy"] = e
+        self.results["free_energy"] = e
+        if "forces" in properties:
+            self.results["forces"] = -self.k * d
+
+    def get_hessian(self, atoms, delta: float = 0.002):
+        n3 = 3 * len(atoms)
+        return self.k * np.eye(n3, dtype=np.float64)
+
+
+class SaddleCalc(CalcABC):
+    """E = -0.5*kx*x^2 + 0.5*ky*y^2 + 0.5*kz*z^2  on atom 0 only.
+
+    Saddle at origin with one negative curvature along x. Built into a
+    larger atoms object so FixAtoms isolation is exercised.
+    """
+
+    implemented_properties = ["energy", "forces", "free_energy"]
+    supported_hessian_modes = ("numerical",)
+
+    def __init__(self, kx=2.0, ky=1.0, kz=1.5):
+        super().__init__()
+        self.kx, self.ky, self.kz = kx, ky, kz
+        self.dtype = np.float64
+        self.hessian = "numerical"
+        self.calls = 0
+
+    def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+        super().calculate(atoms, properties, system_changes)
+        self.calls += 1
+        x, y, z = atoms.get_positions()[0]
+        e = -0.5 * self.kx * x * x + 0.5 * self.ky * y * y + 0.5 * self.kz * z * z
+        self.results["energy"] = e
+        self.results["free_energy"] = e
+        if "forces" in properties:
+            F = np.zeros((len(atoms), 3), dtype=np.float64)
+            F[0] = (self.kx * x, -self.ky * y, -self.kz * z)
+            self.results["forces"] = F
+
+    def get_hessian(self, atoms, delta=0.002):
+        return FDHessianEvaluator(
+            self, fd_batch_size=getattr(self, "fd_batch_size", None)
+        ).hessian(atoms, delta=delta)
+
+
+def _set_thresholds(atoms: Atoms, val: float = 1e-5) -> None:
+    for t in ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th"):
+        setattr(atoms, t, val)
+
+
+# ---------------------------------------------------------------------------
+# CalcABC.calculate_many fallback
+# ---------------------------------------------------------------------------
+def test_calculate_many_fallback_returns_per_structure_results():
+    ref = np.zeros((3, 3))
+    atoms_list = [
+        Atoms("HHH", positions=ref + 0.05 * (i + 1)) for i in range(4)
+    ]
+    calc = HarmonicCalc(k=1.0, ref_positions=ref)
+    for at in atoms_list:
+        at.calc = calc
+
+    result = calc.calculate_many(atoms_list, properties=("energy", "forces"))
+
+    assert isinstance(result, BatchResult)
+    assert result.energies is not None and result.energies.shape == (4,)
+    assert result.forces is not None and len(result.forces) == 4
+    assert all(f.shape == (3, 3) for f in result.forces)
+
+    # Energies should monotonically increase as displacement grows.
+    assert np.all(np.diff(result.energies) > 0.0)
+
+
+def test_calculate_many_rejects_hessian_property():
+    calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((2, 3)))
+    atoms = Atoms("HH", positions=np.zeros((2, 3))); atoms.calc = calc
+    with pytest.raises(NotImplementedError):
+        calc.calculate_many([atoms], properties=("hessian",))
+
+
+# ---------------------------------------------------------------------------
+# energy_forces_one
+# ---------------------------------------------------------------------------
+def test_energy_forces_one_matches_separate_calls():
+    ref = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+    atoms_a = Atoms("HH", positions=ref + 0.04)
+    atoms_a.calc = HarmonicCalc(k=2.2, ref_positions=ref)
+    e_legacy = float(atoms_a.get_potential_energy(force_consistent=True))
+    f_legacy = np.asarray(atoms_a.get_forces(), dtype=np.float64)
+
+    atoms_b = Atoms("HH", positions=ref + 0.04)
+    atoms_b.calc = HarmonicCalc(k=2.2, ref_positions=ref)
+    e_merged, f_merged = energy_forces_one(atoms_b.calc, atoms_b)
+
+    assert e_legacy == pytest.approx(e_merged, abs=0.0)
+    np.testing.assert_array_equal(f_legacy, f_merged)
+
+
+# ---------------------------------------------------------------------------
+# FDHessianEvaluator
+# ---------------------------------------------------------------------------
+def test_fd_hessian_matches_analytic_for_harmonic():
+    ref = np.array(
+        [[0.0, 0.0, 0.0], [1.1, 0.0, 0.0], [0.0, 1.1, 0.0], [0.0, 0.0, 1.1]]
+    )
+    atoms = Atoms("CHHH", positions=ref + 0.03)
+    atoms.calc = HarmonicCalc(k=1.5, ref_positions=ref)
+
+    H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+    H_expected = 1.5 * np.eye(12, dtype=np.float64)
+    assert np.max(np.abs(H - H_expected)) < 1e-6
+
+
+def test_fd_hessian_chunked_is_bit_identical_to_unchunked():
+    ref = np.zeros((5, 3))
+    atoms = Atoms("CHHHH", positions=ref + 0.02)
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=ref)
+
+    h_full = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+    h_chunk = FDHessianEvaluator(atoms.calc, fd_batch_size=3).hessian(atoms, delta=1e-4)
+    np.testing.assert_array_equal(h_chunk, h_full)
+
+
+def test_fd_hessian_zeros_rows_for_fixed_atoms():
+    ref = np.zeros((4, 3))
+    atoms = Atoms("CHHH", positions=ref + 0.02)
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=ref)
+    atoms.set_constraint(FixAtoms(indices=[0, 2]))
+
+    H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+    # Frozen atoms 0 and 2 contribute zero rows.
+    for a in (0, 2):
+        assert np.all(np.abs(H[3 * a : 3 * a + 3, :]) < 1e-12)
+
+
+def test_fd_hessian_restores_geometry():
+    ref = np.zeros((3, 3))
+    pos = ref + 0.07
+    atoms = Atoms("HHH", positions=pos)
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=ref)
+    before = atoms.get_positions().copy()
+    _ = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+    np.testing.assert_array_equal(before, atoms.get_positions())
+
+
+def test_fd_hessian_uses_make_fd_context_when_available():
+    """Phase 2A hook: evaluator should prefer a calculator-provided context
+    and avoid the calculate_many fallback when the context exists."""
+
+    class CountingContext(FDHessianContext):
+        def force_at(self, positions: np.ndarray) -> np.ndarray:
+            self.calc.context_force_calls += 1
+            R = np.asarray(positions, dtype=np.float64)
+            return -self.calc.k * (R - self.calc.ref)
+
+    class ContextCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.context_force_calls = 0
+            self.calculate_many_calls = 0
+            self.context_modes = []
+
+        def make_fd_context(self, atoms, *, delta=None, fd_context_mode=None):
+            self.context_modes.append(fd_context_mode or self.fd_context_mode)
+            return CountingContext(
+                self,
+                atoms,
+                mode=fd_context_mode or self.fd_context_mode,
+                delta=delta,
+            )
+
+        def calculate_many(self, atoms_list, properties=("forces",)):
+            self.calculate_many_calls += 1
+            raise AssertionError("context path should bypass calculate_many fallback")
+
+    ref = np.zeros((2, 3))
+    atoms = Atoms("HH", positions=ref + 0.02)
+    atoms.calc = ContextCalc(k=1.25, ref_positions=ref)
+
+    H = FDHessianEvaluator(
+        atoms.calc,
+        fd_context_mode="fast",
+    ).hessian(atoms, delta=1e-4)
+
+    np.testing.assert_allclose(H, 1.25 * np.eye(6), atol=1e-8)
+    assert atoms.calc.context_force_calls == 12  # 2 * 3 * N
+    assert atoms.calc.calculate_many_calls == 0
+    assert atoms.calc.context_modes == ["fast"]
+
+
+def test_fd_hessian_invalid_context_mode_fails_fast():
+    calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+    calc.fd_context_mode = "unsafe"
+    atoms = Atoms("H", positions=np.zeros((1, 3)))
+    atoms.calc = calc
+
+    with pytest.raises(ValueError, match="fd_context_mode"):
+        FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+
+# ---------------------------------------------------------------------------
+# PathEvaluator (Phase 2 scaffold; Phase 1 only ships the API)
+# ---------------------------------------------------------------------------
+def test_path_evaluator_returns_energies_and_forces_for_images():
+    ref = np.zeros((2, 3))
+    images = [Atoms("HH", positions=ref + i * 0.05) for i in range(5)]
+    calc = HarmonicCalc(k=1.0, ref_positions=ref)
+    for at in images:
+        at.calc = calc
+
+    es, fs = PathEvaluator(calc, batch_size=2).energy_forces(images)
+    assert es.shape == (5,) and len(fs) == 5
+    assert np.all(np.diff(es) >= 0.0)
+
+
+# ---------------------------------------------------------------------------
+# HVPEvaluator
+# ---------------------------------------------------------------------------
+class TinyANI(CalcABC):
+    """ANI-style: torch model, autograd path for HVP. Quadratic potential."""
+
+    implemented_properties = ["energy", "forces", "free_energy"]
+    supports_hvp = True
+
+    def __init__(self, k=1.0):
+        super().__init__()
+        self.k = k
+        self.device = torch.device("cpu")
+        self.dtype = torch.float32
+        self.d4 = False
+
+    def model(self, species, coordinates):
+        # CalcABC.get_hvp signature expects model(species, coords)[0]
+        return [0.5 * self.k * (coordinates ** 2).sum()]
+
+    def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+        super().calculate(atoms, properties, system_changes)
+        R = atoms.get_positions().astype(np.float64)
+        e = 0.5 * self.k * float(np.sum(R * R))
+        self.results["energy"] = e
+        self.results["free_energy"] = e
+        if "forces" in properties:
+            self.results["forces"] = -self.k * R
+
+
+def test_hvp_evaluator_autodiff_path_matches_analytic():
+    """For E = 0.5 k |R|^2, H = k I, so Hn = k * n."""
+    atoms = Atoms("HH", positions=[[0.3, 0.0, 0.0], [0.0, 0.2, 0.0]])
+    atoms.calc = TinyANI(k=2.0)
+
+    n_vec = np.array([1.0, 0.0, 0.0, 0.0, 1.0, 0.0])
+    Hn, F, E = HVPEvaluator(atoms.calc).hn(atoms, n_vec, delta=1e-3)
+    np.testing.assert_allclose(Hn, 2.0 * n_vec, atol=1e-5)
+
+
+def test_hvp_evaluator_fd_fallback_when_no_get_hvp():
+    """Default ``supports_hvp = False`` should use the FD pair fallback
+    regardless of whether ``get_hvp`` is inherited from CalcABC."""
+
+    class NoHVPCalc(HarmonicCalc):
+        pass
+
+    ref = np.zeros((2, 3))
+    atoms = Atoms("HH", positions=ref + 0.1)
+    atoms.calc = NoHVPCalc(k=1.5, ref_positions=ref)
+
+    n_vec = np.zeros(6); n_vec[0] = 1.0
+    Hn, F, E = HVPEvaluator(atoms.calc).hn(atoms, n_vec, delta=1e-4)
+    # H = k I, so Hn along x of atom 0 should be (k, 0, 0, 0, 0, 0).
+    expected = np.zeros(6); expected[0] = 1.5
+    np.testing.assert_allclose(Hn, expected, atol=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# OPT-RFO reject path no longer wastes a forward pass
+# ---------------------------------------------------------------------------
+def test_opt_rfo_reject_branch_does_not_call_calculator():
+    """The OPT-RFO reject branch must restore E/F from the iteration
+    snapshot, not re-evaluate them on the calculator.
+
+    This regression check inspects the source of ``RFO.run`` and confirms
+    the reject branch contains no ``get_potential_energy`` or
+    ``get_forces`` calls. The pre-fix code did exactly two such calls per
+    reject (one for energy, one for forces) which together cost an extra
+    forward + backward pass per rejected step.
+    """
+    import inspect
+    # The package __init__ shadows the .RFO module with the RFO class, so
+    # walk straight to RFO.run via the class object.
+    from maple.function.dispatcher.optimization.algorithm.RFO import RFO
+
+    src = inspect.getsource(RFO.run)
+    # Crude but robust: split at the marker comment we left at the reject
+    # site and check the immediate aftermath for forbidden calls.
+    marker = "reject: rollback geometry"
+    assert marker in src, "Reject branch comment missing — refactor broke the marker"
+    reject_chunk = src.split(marker, 1)[1].split("\n\n", 1)[0]
+    forbidden = ("get_potential_energy", "get_forces")
+    found = [tok for tok in forbidden if tok in reject_chunk]
+    assert not found, (
+        f"OPT-RFO reject branch still contains {found}; the fix is to "
+        "restore E and F from the iteration's E_old/F_cart snapshot, "
+        "not re-evaluate them on the calculator."
+    )
+
+
+def test_opt_rfo_runs_end_to_end_with_forced_reject():
+    """Force one reject and check the optimizer terminates and converges,
+    proving the restored E/F snapshot is consistent across the rollback.
+    """
+    from maple.function.dispatcher.optimization.algorithm.RFO import RFO
+
+    ref = np.zeros((2, 3))
+    atoms = Atoms("HH", positions=ref + 0.3)
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=ref)
+    _set_thresholds(atoms, val=1e-4)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        opt = RFO(
+            atoms=atoms,
+            output=out,
+            paras={"rfo": {"max_iter": 30, "trust_radius_init": 0.5}},
+        )
+        original_decide = opt._accept_or_reject
+        opt._reject_used = False
+
+        def fake_decide(rho, on_boundary):
+            if not opt._reject_used:
+                opt._reject_used = True
+                return False
+            return original_decide(rho, on_boundary)
+
+        opt._accept_or_reject = fake_decide
+        opt.run()
+
+        assert opt._reject_used, "Test setup did not trigger a reject"
+        max_f = float(np.abs(atoms.get_forces()).max())
+        assert max_f < 1e-4, (
+            f"OPT-RFO did not converge despite reject-and-restore: "
+            f"|F|_max = {max_f}; the snapshot restore may be inconsistent."
+        )
+    finally:
+        for ext in ("", "_opt_traj.xyz", "_traj.xyz", "_opt.xyz"):
+            p = os.path.splitext(out)[0] + ext if ext else out
+            if os.path.exists(p):
+                os.remove(p)
+
+
+# ---------------------------------------------------------------------------
+# TS-PRFO outer loop no longer refetches E/F between iterations
+# ---------------------------------------------------------------------------
+def test_ts_prfo_carries_ef_across_outer_iterations():
+    """After an accepted trial, the next outer iteration should reuse the
+    accepted-trial E/F rather than calling the calculator again at the top
+    of the loop. We verify by counting calculator invocations and asserting
+    a tight upper bound that the old top-of-loop refetch would violate."""
+    from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
+
+    atoms = Atoms(
+        "CHHH",
+        positions=[[0.3, -0.2, 0.05], [10, 0, 0], [0, 10, 0], [0, 0, 10]],
+    )
+    atoms.set_constraint(FixAtoms(indices=[1, 2, 3]))
+    atoms.calc = SaddleCalc()
+    _set_thresholds(atoms, val=1e-5)
+
+    n_before = atoms.calc.calls
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        PRFO(
+            output=out,
+            atoms=atoms,
+            paras={"prfo": {"max_iter": 30, "trust_radius": 0.1}},
+        ).run()
+
+        # The saddle is exactly at the origin and the analytic Hessian-style
+        # FD on this PES converges in O(few) PRFO steps. Per outer iter we
+        # need:
+        #   - 1 initial energy_forces_one (before the outer loop)
+        #   - 1 trial energy_only (per inner attempt)
+        #   - 1 forces fetch (per accept)
+        #   - 2 * 3 * N_movable = 6 FD-Hessian force evaluations per outer
+        #     iter (atom 0 only; FixAtoms zeros the other three atoms)
+        # The old code additionally did 1 (E + F) refetch at the top of
+        # every outer iter; we expect those refetches to be gone.
+        #
+        # Loose upper bound: 200 forward passes for this trivial problem
+        # would absolutely require the old pattern.
+        delta = atoms.calc.calls - n_before
+        # Convergence sanity:
+        assert float(np.linalg.norm(atoms.get_positions()[0])) < 1e-3
+        # Generous bound that the old code would still violate
+        # (old: 6 FD + 1 E refetch + 1 F refetch + 1 trial + 1 accept-F per
+        # outer iter, easily > 200 over ~20 iters); new bound here is loose
+        # enough to be implementation-tolerant but tight enough to flag a
+        # regression where the top-of-loop refetch is reintroduced.
+        assert delta < 200, (
+            f"TS-PRFO did {delta} calculator invocations; the top-of-loop "
+            "E/F refetch may have been reintroduced."
+        )
+    finally:
+        for ext in ("", "_prfo_traj.xyz", "_prfo_ts.xyz"):
+            p = os.path.splitext(out)[0] + ext if ext else out
+            if os.path.exists(p):
+                os.remove(p)

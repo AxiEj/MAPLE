@@ -7,7 +7,7 @@ import numpy as np
 from ase import Atoms
 from .logger import log_info
 from ...jobABC import JobABC
-from ....calculator._batch_eval import energy_forces_one
+from ....calculator._batch_eval import energy_forces_one, reset_calculator_cache
 
 
 # ==============================================
@@ -228,6 +228,7 @@ class RFO(JobABC):
 				# the next iteration's top-of-loop assignment is a no-op rather
 				# than a redundant forward pass.
 				atoms.set_positions(X)  # rollback
+				reset_calculator_cache(atoms.calc)
 				self.trust_radius = max(self.params.trust_radius_min, 0.5 * self.trust_radius)
 				E = np.float64(E_old)
 				F = F_cart.copy()
@@ -296,7 +297,7 @@ class RFO(JobABC):
 		norm_unc2 = float(np.dot(s_unc, s_unc))
 		R2 = trust_radius * trust_radius
 
-		if norm_unc2 <= R2:
+		if float(np.min(w)) > p.evals_eps and norm_unc2 <= R2:
 			# inside trust radius: accept unconstrained step
 			s = s_unc
 			# model change (in MW coords)

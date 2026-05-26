@@ -108,7 +108,10 @@ class LBFGS(JobABC):
         return step_cart
 
     def _update_history(self, s_vec: np.ndarray, y_vec: np.ndarray):
-        rho_val = 1.0 / (np.dot(y_vec, s_vec) + 1e-20)
+        ys = float(np.dot(y_vec, s_vec))
+        if ys <= 1e-20:
+            return
+        rho_val = 1.0 / ys
         if np.isfinite(rho_val):
             self.S.append(s_vec.copy())
             self.Y.append(y_vec.copy())
@@ -179,7 +182,9 @@ class LBFGS(JobABC):
             write_xyz(traj_file, [atoms.copy()], energies=[e])
 
         while iteration < self.params.max_iter:
-            grad = f.reshape(-1)
+            # ASE forces are ``-grad(E)``. L-BFGS needs the gradient so that
+            # the two-loop recursion returns a downhill ``-H^{-1} grad`` step.
+            grad = (-f).reshape(-1)
             step_flat = self._two_loop(grad)
             step = self._clip_step(step_flat.reshape(f.shape))
 
@@ -191,7 +196,7 @@ class LBFGS(JobABC):
             e, f = energy_forces_one(atoms.calc, atoms)
 
             s_vec = (r - r_old).reshape(-1)
-            y_vec = (f - f_old).reshape(-1)
+            y_vec = (f_old - f).reshape(-1)
             self._update_history(s_vec, y_vec)
 
             iteration += 1

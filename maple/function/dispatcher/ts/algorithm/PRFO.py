@@ -18,7 +18,7 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
-from ....calculator._batch_eval import energy_forces_one
+from ....calculator._batch_eval import energy_forces_one, reset_calculator_cache
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
@@ -747,6 +747,7 @@ class PRFO(JobABC):
                 if bad_model and trust_radius > self.params.trust_min * (1.0 + 1e-12):
                     # Reject: rollback geometry, shrink radius, retry
                     atoms.set_positions(X)
+                    reset_calculator_cache(atoms.calc)
                     trust_radius = max(self.params.trust_min,
                                      0.5 * trust_radius)
                     continue

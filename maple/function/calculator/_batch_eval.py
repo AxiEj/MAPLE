@@ -21,6 +21,7 @@ land without redesigning the interface.
 """
 from __future__ import annotations
 
+import operator
 from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -37,7 +38,8 @@ def energy_forces_one(calc, atoms: Atoms, force_consistent: bool = True
 
     Equivalent to ``atoms.get_potential_energy() + atoms.get_forces()`` but
     asks the calculator for both properties in a single ``calculate(...)``
-    call so the underlying ML model does at most one forward pass.
+    call. This guarantees one calculator invocation; true model-level forward
+    count still depends on the subclass implementation.
 
     Returns
     -------
@@ -59,6 +61,17 @@ def energy_forces_one(calc, atoms: Atoms, force_consistent: bool = True
     return energy, forces
 
 
+def reset_calculator_cache(calc) -> None:
+    """Clear ASE calculator cache after rolling atoms back to an old geometry."""
+    reset = getattr(calc, "reset", None)
+    if callable(reset):
+        reset()
+        return
+    results = getattr(calc, "results", None)
+    if hasattr(results, "clear"):
+        results.clear()
+
+
 # ---------------------------------------------------------------------------
 # Numerical Hessian via batched central difference / optional FD context
 # ---------------------------------------------------------------------------
@@ -72,6 +85,15 @@ def _movable_indices(atoms: Atoms, respect_fixatoms: bool) -> List[int]:
         for i in c.get_indices()
     }
     return [i for i in range(len(atoms)) if i not in fixed]
+
+
+def _fixed_dofs(n_atoms: int, movable: Sequence[int]) -> np.ndarray:
+    movable_set = set(movable)
+    frozen = [i for i in range(n_atoms) if i not in movable_set]
+    return np.asarray(
+        [3 * a + k for a in frozen for k in range(3)],
+        dtype=np.int64,
+    )
 
 
 def _copy_with_positions(template: Atoms, positions: np.ndarray) -> Atoms:
@@ -158,11 +180,26 @@ class FDHessianEvaluator:
         fd_context_mode: Optional[str] = None,
     ) -> None:
         self.calc = calc
+        if fd_batch_size is not None:
+            try:
+                fd_batch_size = operator.index(fd_batch_size)
+            except TypeError as exc:
+                raise ValueError(
+                    "fd_batch_size must be a positive integer or None, "
+                    f"got {fd_batch_size!r}"
+                ) from exc
+            if fd_batch_size <= 0:
+                raise ValueError(
+                    "fd_batch_size must be a positive integer or None, "
+                    f"got {fd_batch_size!r}"
+                )
         self.fd_batch_size = fd_batch_size
         self.respect_fixatoms = respect_fixatoms
         self.fd_context_mode = fd_context_mode
 
     def hessian(self, atoms: Atoms, delta: float = 0.002) -> np.ndarray:
+        if delta <= 0.0:
+            raise ValueError(f"delta must be positive, got {delta!r}")
         N = len(atoms)
         pos0 = atoms.get_positions().copy()
 
@@ -208,6 +245,7 @@ class FDHessianEvaluator:
             atoms.set_positions(pos0)
 
         self._fill_rows_from_forces(H, rows, forces, delta)
+        self._project_fixed_dofs(H, N, movable)
 
         return H
 
@@ -248,28 +286,59 @@ class FDHessianEvaluator:
                 forces.append(np.asarray(context.force_at(pos_m), dtype=np.float64))
 
         self._fill_rows_from_forces(H, rows, forces, delta)
+        self._project_fixed_dofs(H, len(atoms), movable)
         atoms.set_positions(pos0)
         return H
 
-    @staticmethod
     def _fill_rows_from_forces(
+        self,
         H: np.ndarray,
         rows: Sequence[int],
         forces: Sequence[np.ndarray],
         delta: float,
     ) -> None:
+        if len(forces) != 2 * len(rows):
+            raise ValueError(
+                "calculate_many returned the wrong number of force arrays: "
+                f"expected {2 * len(rows)}, got {len(forces)}"
+            )
+        n_atoms = H.shape[0] // 3
         inv_2delta = 1.0 / (2.0 * delta)
         for j, row in enumerate(rows):
-            F_plus = forces[2 * j]
-            F_minus = forces[2 * j + 1]
+            F_plus = self._validated_force(forces[2 * j], n_atoms, 2 * j)
+            F_minus = self._validated_force(forces[2 * j + 1], n_atoms, 2 * j + 1)
             H[row, :] = (-(F_plus - F_minus) * inv_2delta).reshape(-1)
+
+    @staticmethod
+    def _validated_force(force: np.ndarray, n_atoms: int, index: int) -> np.ndarray:
+        arr = np.asarray(force, dtype=np.float64)
+        if arr.shape != (n_atoms, 3):
+            raise ValueError(
+                "calculate_many returned a force array with invalid shape: "
+                f"forces[{index}].shape={arr.shape}, expected {(n_atoms, 3)}"
+            )
+        return arr
+
+    def _project_fixed_dofs(
+        self,
+        H: np.ndarray,
+        n_atoms: int,
+        movable: Sequence[int],
+    ) -> None:
+        if not self.respect_fixatoms:
+            return
+        frozen_dofs = _fixed_dofs(n_atoms, movable)
+        if frozen_dofs.size == 0:
+            return
+        H[frozen_dofs, :] = 0.0
+        H[:, frozen_dofs] = 0.0
 
     def _chunked_forces(self, atoms_list: Sequence[Atoms]) -> List[np.ndarray]:
         n_total = len(atoms_list)
         if n_total == 0:
             return []
 
-        chunk = self.fd_batch_size if self.fd_batch_size else n_total
+        chunk = self.fd_batch_size if self.fd_batch_size is not None else n_total
         out: List[np.ndarray] = []
         for start in range(0, n_total, chunk):
             sub = list(atoms_list[start : start + chunk])

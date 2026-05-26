@@ -43,3 +43,50 @@ class BatchResult:
     forces: Optional[List[np.ndarray]] = None
     hessians: Optional[List[np.ndarray]] = None
     padding_counts: Optional[np.ndarray] = None
+
+    def __post_init__(self) -> None:
+        lengths = []
+        if self.energies is not None:
+            energies = np.asarray(self.energies)
+            if energies.ndim != 1:
+                raise ValueError(
+                    f"BatchResult.energies must be a 1D array, got shape "
+                    f"{energies.shape}"
+                )
+            lengths.append(("energies", len(energies)))
+        if self.forces is not None:
+            lengths.append(("forces", len(self.forces)))
+            for i, forces in enumerate(self.forces):
+                arr = np.asarray(forces)
+                if arr.ndim != 2 or arr.shape[1] != 3:
+                    raise ValueError(
+                        "BatchResult.forces entries must have shape (N, 3), "
+                        f"got forces[{i}].shape={arr.shape}"
+                    )
+        if self.hessians is not None:
+            lengths.append(("hessians", len(self.hessians)))
+            for i, hessian in enumerate(self.hessians):
+                arr = np.asarray(hessian)
+                if arr.ndim != 2 or arr.shape[0] != arr.shape[1]:
+                    raise ValueError(
+                        "BatchResult.hessians entries must be square 2D "
+                        f"arrays, got hessians[{i}].shape={arr.shape}"
+                    )
+        if self.padding_counts is not None:
+            padding_counts = np.asarray(self.padding_counts)
+            if padding_counts.ndim != 1:
+                raise ValueError(
+                    "BatchResult.padding_counts must be a 1D array, got "
+                    f"shape {padding_counts.shape}"
+                )
+            lengths.append(("padding_counts", len(padding_counts)))
+
+        if lengths:
+            expected_name, expected_len = lengths[0]
+            for name, got_len in lengths[1:]:
+                if got_len != expected_len:
+                    raise ValueError(
+                        "BatchResult field lengths must match: "
+                        f"{expected_name} has length {expected_len}, "
+                        f"{name} has length {got_len}"
+                    )

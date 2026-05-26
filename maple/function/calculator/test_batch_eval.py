@@ -71,6 +71,29 @@ class HarmonicCalc(CalcABC):
         return self.k * np.eye(n3, dtype=np.float64)
 
 
+class CoupledPairCalc(CalcABC):
+    """E = 0.5 * k * |R1 - R0 - d0|^2, with off-diagonal Hessian blocks."""
+
+    implemented_properties = ["energy", "forces", "free_energy"]
+
+    def __init__(self, k: float = 1.0, d0: Optional[np.ndarray] = None):
+        super().__init__()
+        self.k = float(k)
+        self.d0 = np.zeros(3, dtype=np.float64) if d0 is None else np.asarray(d0, dtype=np.float64)
+
+    def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+        super().calculate(atoms, properties, system_changes)
+        d = atoms.get_positions()[1] - atoms.get_positions()[0] - self.d0
+        e = 0.5 * self.k * float(np.dot(d, d))
+        self.results["energy"] = e
+        self.results["free_energy"] = e
+        if "forces" in properties:
+            F = np.zeros((len(atoms), 3), dtype=np.float64)
+            F[0] = self.k * d
+            F[1] = -self.k * d
+            self.results["forces"] = F
+
+
 class SaddleCalc(CalcABC):
     """E = -0.5*kx*x^2 + 0.5*ky*y^2 + 0.5*kz*z^2  on atom 0 only.
 
@@ -141,6 +164,17 @@ def test_calculate_many_rejects_hessian_property():
         calc.calculate_many([atoms], properties=("hessian",))
 
 
+def test_batch_result_validates_lengths_and_shapes():
+    with pytest.raises(ValueError, match="lengths"):
+        BatchResult(
+            energies=np.zeros(2),
+            forces=[np.zeros((1, 3))],
+        )
+
+    with pytest.raises(ValueError, match="shape"):
+        BatchResult(forces=[np.zeros((3,))])
+
+
 # ---------------------------------------------------------------------------
 # energy_forces_one
 # ---------------------------------------------------------------------------
@@ -184,7 +218,7 @@ def test_fd_hessian_chunked_is_bit_identical_to_unchunked():
     np.testing.assert_array_equal(h_chunk, h_full)
 
 
-def test_fd_hessian_zeros_rows_for_fixed_atoms():
+def test_fd_hessian_zeros_rows_and_columns_for_fixed_atoms():
     ref = np.zeros((4, 3))
     atoms = Atoms("CHHH", positions=ref + 0.02)
     atoms.calc = HarmonicCalc(k=1.0, ref_positions=ref)
@@ -192,9 +226,53 @@ def test_fd_hessian_zeros_rows_for_fixed_atoms():
 
     H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
 
-    # Frozen atoms 0 and 2 contribute zero rows.
+    # Frozen atoms 0 and 2 are projected out as both rows and columns.
     for a in (0, 2):
         assert np.all(np.abs(H[3 * a : 3 * a + 3, :]) < 1e-12)
+        assert np.all(np.abs(H[:, 3 * a : 3 * a + 3]) < 1e-12)
+
+
+def test_fd_hessian_fixatoms_projection_is_symmetric_for_coupled_pes():
+    atoms = Atoms("HH", positions=[[0.0, 0.0, 0.0], [1.2, 0.1, 0.0]])
+    atoms.calc = CoupledPairCalc(k=2.0, d0=np.array([1.0, 0.0, 0.0]))
+    atoms.set_constraint(FixAtoms(indices=[0]))
+
+    H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+    assert np.all(np.abs(H[:3, :]) < 1e-12)
+    assert np.all(np.abs(H[:, :3]) < 1e-12)
+    np.testing.assert_allclose(H, H.T, atol=1e-10)
+    np.testing.assert_allclose(H[3:, 3:], 2.0 * np.eye(3), atol=1e-8)
+
+
+def test_fd_hessian_rejects_invalid_delta_and_batch_size():
+    atoms = Atoms("H", positions=np.zeros((1, 3)))
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+
+    with pytest.raises(ValueError, match="delta"):
+        FDHessianEvaluator(atoms.calc).hessian(atoms, delta=0.0)
+
+    with pytest.raises(ValueError, match="fd_batch_size"):
+        FDHessianEvaluator(atoms.calc, fd_batch_size=0)
+
+
+def test_fd_hessian_validates_force_count_and_shape():
+    class WrongCountCalc(HarmonicCalc):
+        def calculate_many(self, atoms_list, properties=("forces",)):
+            return BatchResult(forces=[np.zeros((1, 3))])
+
+    class WrongShapeCalc(HarmonicCalc):
+        def calculate_many(self, atoms_list, properties=("forces",)):
+            return BatchResult(forces=[np.zeros((1, 2)) for _ in atoms_list])
+
+    atoms = Atoms("H", positions=np.zeros((1, 3)))
+    atoms.calc = WrongCountCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+    with pytest.raises(ValueError, match="wrong number"):
+        FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+    atoms.calc = WrongShapeCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+    with pytest.raises(ValueError, match="shape"):
+        FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
 
 
 def test_fd_hessian_restores_geometry():
@@ -366,6 +444,7 @@ def test_opt_rfo_reject_branch_does_not_call_calculator():
         "restore E and F from the iteration's E_old/F_cart snapshot, "
         "not re-evaluate them on the calculator."
     )
+    assert "reset_calculator_cache" in reject_chunk
 
 
 def test_opt_rfo_runs_end_to_end_with_forced_reject():
@@ -374,9 +453,18 @@ def test_opt_rfo_runs_end_to_end_with_forced_reject():
     """
     from maple.function.dispatcher.optimization.algorithm.RFO import RFO
 
+    class ResetCountingCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.reset_calls = 0
+
+        def reset(self):
+            self.reset_calls += 1
+            return super().reset()
+
     ref = np.zeros((2, 3))
     atoms = Atoms("HH", positions=ref + 0.3)
-    atoms.calc = HarmonicCalc(k=1.0, ref_positions=ref)
+    atoms.calc = ResetCountingCalc(k=1.0, ref_positions=ref)
     _set_thresholds(atoms, val=1e-4)
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
@@ -400,6 +488,7 @@ def test_opt_rfo_runs_end_to_end_with_forced_reject():
         opt.run()
 
         assert opt._reject_used, "Test setup did not trigger a reject"
+        assert atoms.calc.reset_calls >= 1
         max_f = float(np.abs(atoms.get_forces()).max())
         assert max_f < 1e-4, (
             f"OPT-RFO did not converge despite reject-and-restore: "
@@ -415,6 +504,17 @@ def test_opt_rfo_runs_end_to_end_with_forced_reject():
 # ---------------------------------------------------------------------------
 # TS-PRFO outer loop no longer refetches E/F between iterations
 # ---------------------------------------------------------------------------
+def test_ts_prfo_reject_branch_resets_calculator_cache():
+    import inspect
+    from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
+
+    src = inspect.getsource(PRFO.run)
+    marker = "Reject: rollback geometry"
+    assert marker in src
+    reject_chunk = src.split(marker, 1)[1].split("continue", 1)[0]
+    assert "reset_calculator_cache" in reject_chunk
+
+
 def test_ts_prfo_carries_ef_across_outer_iterations():
     """After an accepted trial, the next outer iteration should reuse the
     accepted-trial E/F rather than calling the calculator again at the top
@@ -471,3 +571,53 @@ def test_ts_prfo_carries_ef_across_outer_iterations():
             p = os.path.splitext(out)[0] + ext if ext else out
             if os.path.exists(p):
                 os.remove(p)
+
+
+def test_opt_lbfgs_first_step_is_downhill_for_harmonic():
+    from maple.function.dispatcher.optimization.algorithm.LBFGS import LBFGS
+
+    ref = np.zeros((1, 3))
+    atoms = Atoms("H", positions=[[1.0, 0.0, 0.0]])
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=ref)
+    _set_thresholds(atoms, val=0.0)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        start_x = float(atoms.positions[0, 0])
+        LBFGS(
+            atoms=atoms,
+            output=out,
+            paras={"lbfgs": {"max_iter": 1, "verbose": 0, "max_step": 0.5}},
+        ).run()
+        assert abs(float(atoms.positions[0, 0])) < abs(start_x)
+        assert float(atoms.get_potential_energy()) < 0.5
+    finally:
+        for ext in ("", "_opt_traj.xyz", "_traj.xyz", "_opt.xyz"):
+            p = os.path.splitext(out)[0] + ext if ext else out
+            if os.path.exists(p):
+                os.remove(p)
+
+
+def test_sdcg_bb_scale_uses_previous_forces_not_current_forces():
+    from maple.function.dispatcher.optimization.algorithm.SDCG import SDCG
+
+    atoms = Atoms("H", positions=[[0.8, 0.0, 0.0]])
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        opt = SDCG(
+            atoms=atoms,
+            output=out,
+            paras={"sdcg": {"max_step": 0.2, "verbose": 0}},
+        )
+        opt._prev_positions = np.array([[1.0, 0.0, 0.0]])
+        opt._prev_forces = np.array([[-1.0, 0.0, 0.0]])
+
+        scale = opt._estimate_step_scale(np.array([[-0.8, 0.0, 0.0]]))
+        assert scale == pytest.approx(1.0)
+    finally:
+        if os.path.exists(out):
+            os.remove(out)

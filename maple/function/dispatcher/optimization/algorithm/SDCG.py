@@ -29,7 +29,7 @@ from ase import Atoms
 from .logger import log_info
 from .DIIS import DIISAccelerator, DIISParams
 from ...jobABC import JobABC
-from ....calculator._batch_eval import energy_forces_one
+from ....calculator._batch_eval import energy_forces_one, reset_calculator_cache
 
 
 def write_xyz(filename: str, atoms_list: List[Atoms],
@@ -497,6 +497,7 @@ class SDCG(JobABC):
             # Save state for BB estimation and GDIIS validation
             saved_positions = atoms.get_positions().copy()
             saved_energy = energy
+            saved_forces = forces.copy()
 
             # Try GDIIS acceleration
             diis_step = False
@@ -515,6 +516,7 @@ class SDCG(JobABC):
                 # Validate: reject if energy rises significantly AND force increases
                 if new_energy > saved_energy + 0.05 and new_max_f > old_max_f * 1.5:
                     atoms.set_positions(saved_positions)
+                    reset_calculator_cache(atoms.calc)
                     self.diis.drop_oldest()
                     if self.params.verbose == 1:
                         log_info([
@@ -539,7 +541,7 @@ class SDCG(JobABC):
 
             # Update BB history
             self._prev_positions = saved_positions
-            self._prev_forces = forces.copy()
+            self._prev_forces = saved_forces
 
             # Track SD iterations for phase transition
             if self._phase == "sd":

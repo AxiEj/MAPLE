@@ -2,15 +2,24 @@
 import os
 
 import torch
+import numpy as np
 
 import ase
 
 from ..calculator_base import CalcABC
+from .._batch_types import BatchResult
+from .._batch_utils import (
+    empty_batch_result,
+    grouped_indices_by_numbers,
+    normalize_energy_forces_request,
+    sequential_calculate_many,
+)
 
 
 class ANICalculator(CalcABC):
     implemented_properties = ['energy', 'forces', 'stress', 'free_energy']
     supported_hessian_modes = ("analytic", "numerical")
+    supports_batch_energy_forces = True
 
     def __init__(self, device: torch.device,
         model:str = 'ani2x',
@@ -75,6 +84,65 @@ class ANICalculator(CalcABC):
                 forces += solvent_force
                 
             self.results['forces'] = forces.squeeze(0).cpu().numpy()
+
+    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
+        """Evaluate same-composition ANI structures in native torch batches.
+
+        The scripted ANI wrapper accepts ``species`` as ``(B, N)`` and
+        coordinates as ``(B, N, 3)``.  Finite-difference Hessian displacements
+        are exactly this case, so grouping by atomic-number sequence turns
+        ``2 * 3N`` calculator calls into one model call per composition.
+        D4 and implicit-solvent corrections remain on the sequential path
+        until their batched force semantics are validated.
+        """
+        _, want_energy, want_forces, request = normalize_energy_forces_request(properties)
+        if not request:
+            return BatchResult()
+
+        atoms_list = list(atoms_list)
+        if not atoms_list:
+            return empty_batch_result(want_energy, want_forces)
+
+        if self.d4 or self.solvent_correction:
+            return sequential_calculate_many(self, atoms_list, request, want_energy, want_forces)
+
+        energies = np.empty(len(atoms_list), dtype=np.float64) if want_energy else None
+        forces_out = [None] * len(atoms_list) if want_forces else None
+
+        for numbers, indices in grouped_indices_by_numbers(atoms_list):
+            group_atoms = [atoms_list[i] for i in indices]
+            species = torch.tensor(
+                [numbers] * len(group_atoms),
+                dtype=torch.long,
+                device=self.device,
+            )
+            coords_np = np.stack([at.get_positions() for at in group_atoms], axis=0)
+            coordinates = torch.tensor(
+                coords_np,
+                dtype=self.dtype,
+                device=self.device,
+                requires_grad=want_forces,
+            )
+
+            if want_forces:
+                energy_vec = self.model(species, coordinates)[0].reshape(-1)
+                force_tensor = -torch.autograd.grad(energy_vec.sum(), coordinates)[0]
+            else:
+                with torch.no_grad():
+                    energy_vec = self.model(species, coordinates)[0].reshape(-1)
+                force_tensor = None
+
+            if want_energy:
+                energy_np = energy_vec.detach().cpu().numpy().astype(np.float64)
+                for out_i, val in zip(indices, energy_np):
+                    energies[out_i] = float(val)
+
+            if want_forces:
+                force_np = force_tensor.detach().cpu().numpy().astype(np.float64)
+                for out_i, val in zip(indices, force_np):
+                    forces_out[out_i] = val
+
+        return BatchResult(energies=energies, forces=forces_out)
 
     def get_energy(self, atoms, coordinates):
         

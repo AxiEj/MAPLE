@@ -4,6 +4,8 @@ import numpy as np
 from typing import Sequence, Union
 from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC
+from .._batch_types import BatchResult
+from .._batch_utils import normalize_energy_forces_request, sequential_calculate_many
 from typing import Literal
 
 EV2HARTREE = 1.0 / 27.211386245988
@@ -64,6 +66,7 @@ class MACEPolCalculator(CalcABC):
 
     implemented_properties = ['energy', 'forces', 'free_energy']
     supported_hessian_modes = ("analytic", "numerical")
+    supports_batch_energy_forces = False
 
     def __init__(self,
         device: torch.device,
@@ -177,6 +180,22 @@ class MACEPolCalculator(CalcABC):
             if self.solvent_correction:
                 raise NotImplementedError("Hessian calculation with implicit solvent is not implemented yet.")
             self.results['hessian'] = self.get_hessian(atoms)
+
+    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
+        """Cache-safe sequential contract for MACE-Polar.
+
+        The current traced MACE-Polar checkpoints specialize a scatter
+        reduction to one graph; passing a real multi-graph ``batch`` tensor
+        raises in TorchScript, while collapsing structures into one graph
+        changes the physics. Keep the shared ``calculate_many`` contract for
+        FDHessianEvaluator, but do not advertise true batching until the
+        checkpoint is exported with a polymorphic graph-batch dimension.
+        """
+        _, want_energy, want_forces, request = normalize_energy_forces_request(properties)
+        if not request:
+            return BatchResult()
+        atoms_list = list(atoms_list)
+        return sequential_calculate_many(self, atoms_list, request, want_energy, want_forces)
 
     def get_energy(self, atoms) -> torch.Tensor:
         """Compute total energy as a torch scalar (eV)."""

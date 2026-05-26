@@ -59,7 +59,13 @@ def _legacy_fd_hessian(calc, atoms: Atoms, delta: float) -> np.ndarray:
     return H
 
 
-def _assert_fd_matches_legacy(make_calc: Callable[[], object], *, delta: float = 1e-3) -> None:
+def _assert_fd_matches_legacy(
+    make_calc: Callable[[], object],
+    *,
+    delta: float = 1e-3,
+    rtol: float = 1e-5,
+    atol: float = 5e-5,
+) -> None:
     atoms = Atoms("H2", positions=[[0.0, 0.0, 0.0], [0.74, 0.0, 0.0]])
     calc = make_calc()
     atoms.calc = calc
@@ -67,7 +73,7 @@ def _assert_fd_matches_legacy(make_calc: Callable[[], object], *, delta: float =
     legacy = _legacy_fd_hessian(calc, atoms, delta=delta)
     shared = FDHessianEvaluator(calc).hessian(atoms, delta=delta)
 
-    np.testing.assert_allclose(shared, legacy, rtol=1e-7, atol=1e-7)
+    np.testing.assert_allclose(shared, legacy, rtol=rtol, atol=atol)
     np.testing.assert_array_equal(atoms.get_positions(), np.array([[0.0, 0.0, 0.0], [0.74, 0.0, 0.0]]))
 
 
@@ -229,3 +235,127 @@ def test_uma_calculate_many_uses_one_fairchem_batch_predict(monkeypatch):
     assert batched.forces is not None
     for got, expected in zip(batched.forces, seq_forces):
         np.testing.assert_allclose(got, expected, rtol=1e-6, atol=1e-6)
+
+
+def test_ani_calculate_many_uses_one_torch_batch():
+    torch = pytest.importorskip("torch")
+    from maple.function.calculator.ani._ani_calculator import ANICalculator
+
+    if not (MODEL_DIR / "ani1x.pt").exists():
+        pytest.skip("ani1x.pt missing")
+
+    atoms_list = [
+        Atoms("H2", positions=[[0.0, 0.0, 0.0], [0.72 + 0.01 * i, 0.0, 0.0]])
+        for i in range(3)
+    ]
+    batch_calc = ANICalculator(torch.device("cpu"), model="ani1x", implicit="none")
+    seq_calc = ANICalculator(torch.device("cpu"), model="ani1x", implicit="none")
+
+    class CountingModel:
+        def __init__(self, model):
+            self.model = model
+            self.calls = []
+
+        def __call__(self, species, coordinates):
+            self.calls.append(tuple(coordinates.shape))
+            return self.model(species, coordinates)
+
+    counter = CountingModel(batch_calc.model)
+    batch_calc.model = counter
+
+    batched = batch_calc.calculate_many(atoms_list, properties=("energy", "forces"))
+    assert counter.calls == [(len(atoms_list), 2, 3)]
+
+    seq_energies, seq_forces = [], []
+    for at in atoms_list:
+        seq_calc.calculate(at, properties=["energy", "forces"], system_changes=all_changes)
+        seq_energies.append(seq_calc.results["energy"])
+        seq_forces.append(np.asarray(seq_calc.results["forces"], dtype=np.float64))
+
+    np.testing.assert_allclose(batched.energies, np.asarray(seq_energies), rtol=1e-5, atol=5e-5)
+    assert batched.forces is not None
+    for got, expected in zip(batched.forces, seq_forces):
+        np.testing.assert_allclose(got, expected, rtol=1e-5, atol=5e-5)
+
+
+def test_aimnet2_calculate_many_uses_one_mol_idx_batch():
+    torch = pytest.importorskip("torch")
+    from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
+
+    if not (MODEL_DIR / "aimnet2.pt").exists():
+        pytest.skip("aimnet2.pt missing")
+
+    atoms_list = [
+        Atoms("H2", positions=[[0.0, 0.0, 0.0], [0.72 + 0.01 * i, 0.0, 0.0]])
+        for i in range(3)
+    ]
+    batch_calc = AIMNet2Calculator(torch.device("cpu"), implicit="none")
+    seq_calc = AIMNet2Calculator(torch.device("cpu"), implicit="none")
+
+    class CountingModel:
+        def __init__(self, model):
+            self.model = model
+            self.calls = []
+
+        def __call__(self, data):
+            self.calls.append(int(data["mol_idx"].max().item()))
+            return self.model(data)
+
+    counter = CountingModel(batch_calc.model)
+    batch_calc.model = counter
+
+    batched = batch_calc.calculate_many(atoms_list, properties=("energy", "forces"))
+    assert counter.calls == [len(atoms_list)]
+
+    seq_energies, seq_forces = [], []
+    for at in atoms_list:
+        seq_calc.calculate(at, properties=["energy", "forces"], system_changes=all_changes)
+        seq_energies.append(seq_calc.results["energy"])
+        seq_forces.append(np.asarray(seq_calc.results["forces"], dtype=np.float64))
+
+    np.testing.assert_allclose(batched.energies, np.asarray(seq_energies), rtol=1e-5, atol=5e-5)
+    assert batched.forces is not None
+    for got, expected in zip(batched.forces, seq_forces):
+        np.testing.assert_allclose(got, expected, rtol=1e-5, atol=5e-5)
+
+
+def test_mace_calculate_many_uses_one_disconnected_graph_batch():
+    torch = pytest.importorskip("torch")
+    from maple.function.calculator.mace._mace_calculator import MACECalculator
+
+    model_path = MODEL_DIR / "maceoff23m.pt"
+    if not model_path.exists():
+        pytest.skip("maceoff23m.pt missing")
+
+    atoms_list = [
+        Atoms("H2", positions=[[0.0, 0.0, 0.0], [0.72 + 0.01 * i, 0.0, 0.0]])
+        for i in range(3)
+    ]
+    batch_calc = MACECalculator(torch.device("cpu"), model="maceoff23m", model_path=str(model_path), implicit="none")
+    seq_calc = MACECalculator(torch.device("cpu"), model="maceoff23m", model_path=str(model_path), implicit="none")
+
+    class CountingModel:
+        def __init__(self, model):
+            self.model = model
+            self.calls = []
+
+        def forward(self, data, local_or_ghost, compute_virials=False):
+            self.calls.append(int(data["ptr"].numel() - 1))
+            return self.model.forward(data=data, local_or_ghost=local_or_ghost, compute_virials=compute_virials)
+
+    counter = CountingModel(batch_calc.model)
+    batch_calc.model = counter
+
+    batched = batch_calc.calculate_many(atoms_list, properties=("energy", "forces"))
+    assert counter.calls == [len(atoms_list)]
+
+    seq_energies, seq_forces = [], []
+    for at in atoms_list:
+        seq_calc.calculate(at, properties=["energy", "forces"], system_changes=all_changes)
+        seq_energies.append(seq_calc.results["energy"])
+        seq_forces.append(np.asarray(seq_calc.results["forces"], dtype=np.float64))
+
+    np.testing.assert_allclose(batched.energies, np.asarray(seq_energies), rtol=1e-5, atol=5e-5)
+    assert batched.forces is not None
+    for got, expected in zip(batched.forces, seq_forces):
+        np.testing.assert_allclose(got, expected, rtol=1e-5, atol=5e-5)

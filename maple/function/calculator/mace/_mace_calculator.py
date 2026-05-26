@@ -4,6 +4,14 @@ import numpy as np
 from typing import Dict, Union, Sequence, Optional
 from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC
+from .._batch_types import BatchResult
+from .._batch_utils import (
+    empty_batch_result,
+    normalize_energy_forces_request,
+    sequential_calculate_many,
+    split_atomwise_array,
+)
+from ._batch_graph import build_mace_data_dict_batch, energy_vector_from_output
 from typing import Literal
 EV2HARTREE = 1.0 / 27.211386245988
 
@@ -113,6 +121,7 @@ class MACECalculator(CalcABC):
 
     implemented_properties = ['energy', 'forces', 'free_energy']
     supported_hessian_modes = ("analytic", "numerical")
+    supports_batch_energy_forces = True
 
     def __init__(self, 
         device: torch.device, 
@@ -205,6 +214,69 @@ class MACECalculator(CalcABC):
             if self.solvent_correction:
                 raise NotImplementedError("Hessian calculation with implicit solvent is not implemented yet.")
             self.results["hessian"] = self.get_hessian(atoms)
+
+    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
+        """Evaluate independent MACE structures as one disconnected graph batch."""
+        _, want_energy, want_forces, request = normalize_energy_forces_request(properties)
+        if not request:
+            return BatchResult()
+
+        atoms_list = list(atoms_list)
+        if not atoms_list:
+            return empty_batch_result(want_energy, want_forces)
+
+        if self.solvent_correction:
+            return sequential_calculate_many(self, atoms_list, request, want_energy, want_forces)
+
+        data_dict, local_or_ghost, counts = build_mace_data_dict_batch(
+            atoms_list,
+            atomic_numbers=self.atomic_numbers,
+            r_max=self.r_max,
+            device=self.device,
+            dtype=self.dtype,
+            requires_grad=want_forces,
+        )
+
+        if want_forces:
+            total_energy_local = self.model.forward(
+                data=data_dict,
+                local_or_ghost=local_or_ghost,
+                compute_virials=False,
+            )
+        else:
+            with torch.no_grad():
+                total_energy_local = self.model.forward(
+                    data=data_dict,
+                    local_or_ghost=local_or_ghost,
+                    compute_virials=False,
+                )
+
+        energy_vec = energy_vector_from_output(
+            total_energy_local,
+            batch_size=len(atoms_list),
+            n_atoms_total=data_dict["positions"].shape[0],
+            batch=data_dict["batch"],
+        ) * EV2HARTREE
+
+        energies = (
+            energy_vec.detach().cpu().numpy().astype(np.float64)
+            if want_energy else None
+        )
+
+        forces_list = None
+        if want_forces:
+            forces = -torch.autograd.grad(
+                energy_vec.sum(),
+                data_dict["positions"],
+                create_graph=False,
+                retain_graph=False,
+            )[0]
+            forces_list = split_atomwise_array(
+                forces.detach().cpu().numpy().astype(np.float64),
+                counts,
+            )
+
+        return BatchResult(energies=energies, forces=forces_list)
 
     def get_energy(self, atoms) -> torch.Tensor:
         """Compute total energy as a torch scalar."""

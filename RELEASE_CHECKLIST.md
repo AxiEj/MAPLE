@@ -1,9 +1,11 @@
 # PBC-MD release checklist
 
 The MD-validation CI workflow was removed (single-developer fork; the ~10 min/push
-Actions run was overhead without a matching benefit). The release gate is therefore a
-manual command, documented here. Run it before tagging a release or proposing
-`fix/pbc` upstream.
+Actions run was overhead without a matching benefit). The release gate is therefore
+this manual checklist / command sequence, documented here. Run the backend-free
+engine gate in §1 before tagging or proposing `fix/pbc` upstream; a production
+claim for real PBC backends also requires the per-target reports and aggregate
+checker in §2.
 
 ## 1. Unit + acceptance (backend-free, required)
 
@@ -11,7 +13,7 @@ manual command, documented here. Run it before tagging a release or proposing
 # Unit layer (fake / LJ-reference calculators; default markers, never skipped)
 pytest tests/dispatcher/md tests/calculator tests/read -q
 
-# Production acceptance matrix (LJ reference, 10 non-skippable classes) — the sole gate
+# Production acceptance matrix (LJ reference, 10 non-skippable classes) — the backend-free MD-engine/LJ-contract gate
 python scripts/production_validation.py; echo "exit=$?"
 ```
 
@@ -28,14 +30,51 @@ Ship only when the report / exit code shows:
 - `barostat clamps == 0`
 - units `Ha / Ha/A / eV/A^3`
 
+The 10 non-skippable engine classes are:
+
+- `nve_energy_drift`
+- `restart_determinism`
+- `nvt_mean_temperature`
+- `npt_pressure`
+- `npt_volume_fluctuation`
+- `npt_effective_energy_drift`
+- `barostat_clamp_free`
+- `stress_finite_difference`
+- `pbc_geometry`
+- `constraints_rejected`
+
+The unit layer must also keep the admission/failure contracts green: raw ASE
+calculators are rejected unless wrapped by `wrap_ase_calculator(...)`; declared
+cutoff / minimum-image / rank-3 cell failures are hard errors; the NPT runtime
+MIC guard fails after barostat shrinkage before the next force/stress evaluation;
+Berendsen is rejected by default; and c-rescale clamp continuation remains
+experimental-only.
+
 ## 2. Real-backend validation (per production backend; needs weights / CUDA)
 
 ```bash
 pytest tests/integration -m integration -q          # NVE / NVT / NPT / stress smoke per backend
-python scripts/production_validation.py --model aimnet2-pbc      --device cuda
+```
+
+Run `production_validation.py` once for every target listed in
+`validation/required_pbc_backends.toml`, including every AIMNet2/AIMNet2-NSE
+Coulomb mode (`dsf`, `ewald`, `pme`), every declared MACE-MP / MACEPol PBC size,
+and the UMA `omat` task. The examples below are representative only; the TOML
+file is the exhaustive target list, and the aggregate checker enforces it.
+
+```bash
+python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=dsf
+python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=ewald
+python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=pme
 python scripts/production_validation.py --model mace-mp-pbc-small --device cuda
 python scripts/production_validation.py --model macepol-pbc-small --device cuda
-python scripts/production_validation.py --model uma               --device cuda
+python scripts/production_validation.py --model uma --device cuda --model-option task=omat --model-option size=uma-s-1p1
+```
+
+After all target reports exist, the aggregate checker is mandatory:
+
+```bash
+python scripts/check_production_backend_matrix.py
 ```
 
 Each run's provenance manifest (`*_md_manifest.json`) must record:
@@ -47,8 +86,16 @@ Each run's provenance manifest (`*_md_manifest.json`) must record:
 - for NPT: `run.barostat.mode == "isotropic"` and `run.barostat_clamps.count == 0`.
 
 ## 3. Scope reminders (do not over-claim)
+- `barostat=berendsen` is **equilibration-only**. It suppresses volume
+  fluctuations and is rejected by default; setting
+  `allow_equilibration_only_barostat=true` opts into an experimental,
+  non-production equilibration run.
 - NPT is **isotropic hydrostatic only** — no shear, cell-shape, or surface-tension
   control; it is not a Parrinello-Rahman / MTTK barostat.
+- The unwrapped XYZ sidecar / `get_unwrapped_positions()` is a **per-atom**
+  image-flag reconstruction, not a molecule-whole unwrap. In variable-cell NPT it
+  mixes continuous atom motion with affine cell strain; do not use it as a
+  fixed-cell MSD/diffusion coordinate without additional cell-strain handling.
 - A raw ASE calculator enters MD only through `wrap_ase_calculator(...)` (a real unit
   conversion that then declares the contract), never by attribute-stamping.
 - The smoke thresholds (`validation/thresholds.smoke.toml`) are for the unit layer only;

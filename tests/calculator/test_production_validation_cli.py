@@ -89,6 +89,22 @@ def test_validation_defaults_use_float64_for_macepol_precision_gates():
     assert _apply_validation_model_defaults("aimnet2-pbc", {}) == {}
 
 
+def test_help_text_preserves_single_target_gate_examples():
+    completed = subprocess.run(
+        ["python", str(_SCRIPT), "--help"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert "single-target production-validation gate" in completed.stdout
+    assert "one passing report for every" in completed.stdout
+    assert "validation/required_pbc_backends.toml" in completed.stdout
+    assert "python scripts/production_validation.py --model mace-mp-pbc-small --device cuda" in completed.stdout
+    assert "python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=ewald" in completed.stdout
+    assert "python scripts/check_production_backend_matrix.py" in completed.stdout
+
+
 def test_main_auto_artifact_dir_preserves_manifests_and_hashes(monkeypatch, tmp_path):
     _patch_passing_matrix(monkeypatch)
 

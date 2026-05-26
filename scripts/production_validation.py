@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 """Run the PBC-MD release acceptance matrix and emit a dated report (WS3).
 
-This is the non-skippable production-validation ship gate. By default it runs
-backend-free against a Lennard-Jones reference calculator (a real conservative
-potential with stress); pass --model to validate a real MAPLE ML backend.
+This is the non-skippable, single-target production-validation gate. By default
+it runs backend-free against a Lennard-Jones reference calculator (a real
+conservative potential with stress); pass --model to validate one real MAPLE ML
+backend target. A production backend claim requires one passing report for every
+target in validation/required_pbc_backends.toml, followed by the aggregate
+checker.
 
 Examples
 --------
@@ -13,16 +16,19 @@ Examples
     # Validate one real periodic backend target:
     python scripts/production_validation.py --model mace-mp-pbc-small --device cuda
 
+    # Validate one AIMNet2 long-range mode target:
+    python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=ewald
+
     # After all real-backend targets have reports, verify the aggregate claim:
     python scripts/check_production_backend_matrix.py
 
 The report (markdown + JSON) and per-run provenance manifests are written under
 validation/reports/<artifact_id>/ (override with --outdir/--workdir):
 report.md, report.json, and runs/*_md_{manifest.json,summary.txt,thermo.dat}. This
-is the single release gate: the exit code is 0 only if every acceptance class passes,
-none is skipped (inconclusive), the report is from the current clean git commit, and
-no barostat clamp fired. An unknown neighbor cutoff already fails the matrix (via the
-MD cutoff-admission gate), and the per-run provenance manifests record the unit
+single-target gate exits 0 only if every acceptance class passes, none is skipped
+(inconclusive), the report is from the current clean git commit, and no barostat
+clamp fired. An unknown neighbor cutoff already fails the matrix (via the MD
+cutoff-admission gate), and the per-run provenance manifests record the unit
 contract and cutoff policy.
 """
 
@@ -138,7 +144,10 @@ def _validation_target(label: str, model_options: dict, calc_contract: dict) -> 
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--model", default=None,
                         help="MAPLE model name (default: built-in LJ reference calculator)")
     parser.add_argument("--device", default=None, help="torch device (cpu/cuda)")

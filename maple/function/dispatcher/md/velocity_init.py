@@ -33,9 +33,12 @@ def initialize_velocities(
     Initialization projection and runtime projection are intentionally distinct:
     `remove_com` / `remove_angular` act only on the initial velocity draw,
     whereas `remove_com_every` / `remove_angular_every` act during dynamics in
-    the ensemble loops. To keep initialization and runtime thermodynamic targets
-    consistent, callers should pass `target_n_dof` from the runtime DOF policy.
-    If `target_n_dof` is omitted, a legacy fallback based on the initialization
+    the ensemble loops. A fresh initialization must be rescaled in the
+    initialization DOF basis (``dof_policy.init_n_dof``): those are the active
+    modes after the initialization-only projection has removed COM / rotation.
+    Runtime temperature reporting and thermostat coupling use
+    ``dof_policy.runtime_n_dof`` later, inside the ensemble loop. If
+    `target_n_dof` is omitted, a legacy fallback based on the initialization
     projection is used.
 
     Parameters
@@ -55,9 +58,10 @@ def initialize_velocities(
         applied first and rigid-body rotation is projected out for non-periodic
         systems.
     target_n_dof : int, optional
-        DOF used for the final temperature rescaling. In migrated MD paths this
-        should come from the runtime policy so initialization and thermostat
-        targets remain consistent.
+        DOF used for the final temperature rescaling of this fresh initialization
+        state. Migrated MD paths pass ``dof_policy.init_n_dof``. Runtime DOF
+        belongs to later temperature / thermostat bookkeeping and must not be
+        used here for the initial rescale.
     rng : np.random.Generator, optional
         Random number generator for reproducibility.
 
@@ -135,13 +139,14 @@ def initialize_velocities(
         # Step 5 — Subtract rigid rotation from each atom
         velocities -= np.cross(omega, r)  # v_i -= ω × r_i
 
-    # Rescale to exact target temperature using the runtime DOF policy.
+    # Rescale to exact target temperature using the initialization DOF policy.
     # Initialization projection (`remove_com` / `remove_angular`) and runtime
     # projection (`remove_com_every` / `remove_angular_every`) are parallel
-    # concepts. To keep initialization and thermostat targets consistent, the
-    # target DOF for velocity scaling is provided explicitly by the caller and
-    # should match the runtime policy. Fall back to the initialization policy only
-    # for legacy callers that do not pass target_n_dof.
+    # concepts. The target DOF for this fresh velocity state is provided
+    # explicitly by the caller and should match dof_policy.init_n_dof; runtime
+    # temperature/thermostat accounting uses dof_policy.runtime_n_dof later in
+    # the ensemble loop. Fall back to the initialization policy only for legacy
+    # callers that do not pass target_n_dof.
     if target_n_dof is None:
         init_policy = get_initialization_dof_policy(
             atoms,
@@ -190,6 +195,10 @@ def condition_input_velocities(
     initialization-only COM / angular projection as :func:`initialize_velocities`
     and then rescales the projected velocities to the requested target
     temperature in the initialization DOF basis.
+
+    ``target_n_dof`` is therefore an initialization-basis target.  Ensemble
+    call sites pass ``dof_policy.init_n_dof`` here; ``runtime_n_dof`` is used
+    later for runtime temperature reporting and thermostat coupling.
 
     Callers that explicitly set ``init_velocities=False`` should *not* use this
     helper: those velocities are intentionally consumed as provided, and the DOF

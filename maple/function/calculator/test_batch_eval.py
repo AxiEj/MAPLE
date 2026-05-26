@@ -129,6 +129,24 @@ class SaddleCalc(CalcABC):
         ).hessian(atoms, delta=delta)
 
 
+class FakeNumericalTSCalc(HarmonicCalc):
+    """Harmonic minimum whose numerical Hessian lies about one negative mode."""
+
+    supported_hessian_modes = ("analytic", "numerical")
+    supports_analytic_hessian = True
+
+    def __init__(self):
+        super().__init__(k=1.0, ref_positions=np.zeros((4, 3)))
+        self.hessian = "numerical"
+
+    def get_hessian(self, atoms, delta: float = 0.002):
+        n3 = 3 * len(atoms)
+        H = np.eye(n3, dtype=np.float64)
+        if self.hessian == "numerical":
+            H[0, 0] = -1.0
+        return H
+
+
 def _set_thresholds(atoms: Atoms, val: float = 1e-5) -> None:
     for t in ("f_max_th", "f_rms_th", "dp_max_th", "dp_rms_th"):
         setattr(atoms, t, val)
@@ -355,6 +373,51 @@ def test_path_evaluator_returns_energies_and_forces_for_images():
     assert np.all(np.diff(es) >= 0.0)
 
 
+def test_neb_path_energy_forces_uses_native_batch_snapshot():
+    """NEB/CINEB should consume one batched E/F snapshot for a path.
+
+    This guards the TS path acceleration without touching the NEB force
+    formula itself: model calls are consolidated through calculate_many, and
+    projected-force assembly receives the returned forces directly.
+    """
+    from maple.function.dispatcher.ts.algorithm.neb import NEB, neb_forces
+
+    class NativeBatchHarmonicCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.batch_calls = 0
+
+        def calculate_many(self, atoms_list, properties=("energy", "forces")):
+            self.batch_calls += 1
+            energies = []
+            forces = []
+            for at in atoms_list:
+                R = at.get_positions().astype(np.float64)
+                d = R - self.ref
+                energies.append(0.5 * self.k * float(np.sum(d * d)))
+                forces.append(-self.k * d)
+            return BatchResult(
+                energies=np.asarray(energies, dtype=np.float64),
+                forces=forces,
+            )
+
+    ref = np.zeros((2, 3))
+    images = [Atoms("HH", positions=ref + i * 0.02) for i in range(4)]
+    calc = NativeBatchHarmonicCalc(k=1.0, ref_positions=ref)
+    for img in images:
+        img.calc = calc
+
+    neb = object.__new__(NEB)
+    energies, forces = neb._path_energy_forces(images)
+    projected, _, _ = neb_forces(images, energies, k_spring=0.1, raw_forces=forces)
+
+    assert calc.batch_calls == 1
+    assert calc.calls == 0
+    assert len(energies) == len(images)
+    assert len(forces) == len(images)
+    assert all(f.shape == (2, 3) for f in projected)
+
+
 # ---------------------------------------------------------------------------
 # HVPEvaluator
 # ---------------------------------------------------------------------------
@@ -573,6 +636,37 @@ def test_ts_prfo_carries_ef_across_outer_iterations():
                 os.remove(p)
 
 
+def test_ts_prfo_rejects_numerical_hessian_when_analytic_is_available():
+    """Precision-first TS searches must not replace analytic Hessians with FD."""
+    from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
+
+    atoms = Atoms(
+        "CHHH",
+        positions=np.zeros((4, 3)),
+    )
+    atoms.calc = FakeNumericalTSCalc()
+    _set_thresholds(atoms, val=1e-8)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        with pytest.raises(ValueError, match="requires the analytic Hessian"):
+            PRFO(
+                output=out,
+                atoms=atoms,
+                paras={"prfo": {"max_iter": 2, "trust_radius": 0.1}},
+            ).run()
+
+        text = open(out, "r", encoding="utf-8").read()
+        assert "requires the analytic Hessian" in text
+        assert "Normal Termination" not in text
+    finally:
+        for ext in ("", "_prfo_traj.xyz", "_prfo_ts.xyz"):
+            p = os.path.splitext(out)[0] + ext if ext else out
+            if os.path.exists(p):
+                os.remove(p)
+
+
 def test_opt_lbfgs_first_step_is_downhill_for_harmonic():
     from maple.function.dispatcher.optimization.algorithm.LBFGS import LBFGS
 
@@ -621,3 +715,29 @@ def test_sdcg_bb_scale_uses_previous_forces_not_current_forces():
     finally:
         if os.path.exists(out):
             os.remove(out)
+
+
+def test_nebts_candidate_indices_try_barrier_neighbors():
+    from types import SimpleNamespace
+
+    from maple.function.dispatcher.ts.algorithm.neb import NEB
+
+    neb = object.__new__(NEB)
+    neb.params = SimpleNamespace(nebts_candidates=4)
+    images = [Atoms("H", positions=[[float(i), 0.0, 0.0]]) for i in range(6)]
+    energies = [0.0, 1.0, 5.0, 4.5, 4.0, 0.0]
+
+    # Primary highest image stays first; adjacent and next-highest internal
+    # images are tried before lower-energy path regions. This locks the
+    # NEB-TS handoff fallback without touching NEB/CINEB/PRFO equations.
+    assert neb._nebts_candidate_indices(images, energies, primary_idx=2) == [
+        2,
+        1,
+        3,
+        4,
+    ]
+
+
+def test_path_evaluator_rejects_invalid_batch_size():
+    with pytest.raises(ValueError, match="batch_size"):
+        PathEvaluator(HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3))), batch_size=0)

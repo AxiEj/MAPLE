@@ -12,6 +12,7 @@ from .._batch_utils import (
     sequential_calculate_many,
     split_atomwise_array,
 )
+from .._autograd_hessian import hessian_batched_vjp, hessian_loop
 
 
 EV2HARTREE = 1.0 / 27.211386245988
@@ -342,6 +343,34 @@ class AIMNet2Calculator(CalcABC):
         Compute Hessian using automatic differentiation.
         Fast and exact, but requires energy to be differentiable w.r.t. coordinates.
         """
+        data, n_atoms = self._build_single_molecule_hessian_data(atoms)
+
+        energy = self.get_energy(data)
+        energy = energy * EV2HARTREE
+
+        try:
+            hessian = self._hessian_from_energy_batched(
+                data["coord"],
+                energy,
+                n_atoms=n_atoms,
+            )
+        except (RuntimeError, TypeError):
+            # Some PyTorch/TorchScript operator combinations do not support
+            # batched VJPs. Keep the original row-by-row path as the exact
+            # compatibility fallback rather than silently switching to FD.
+            data, n_atoms = self._build_single_molecule_hessian_data(atoms)
+            energy = self.get_energy(data)
+            energy = energy * EV2HARTREE
+            hessian = self._hessian_from_energy_loop(
+                data["coord"],
+                energy,
+                n_atoms=n_atoms,
+            )
+
+        return hessian.detach().cpu().numpy().reshape(3 * n_atoms, 3 * n_atoms)
+
+    def _build_single_molecule_hessian_data(self, atoms) -> tuple[Dict[str, torch.Tensor], int]:
+        """Build AIMNet2 padded input tensors for one-molecule analytic Hessian."""
         coord = torch.tensor(
             atoms.get_positions(),
             dtype=torch.float32,
@@ -370,19 +399,45 @@ class AIMNet2Calculator(CalcABC):
         data["nbmat_lr"] = nblist_dense_padded(coord, lr_cutoff)
         data["cutoff_lr"] = torch.tensor(lr_cutoff, device=self.device)
 
-        energy = self.get_energy(data)
-        energy = energy * EV2HARTREE
+        return data, N
 
-        forces_full = torch.autograd.grad(energy, data["coord"], create_graph=True)[0]  # (N+1, 3)
-        forces = -forces_full[:N]  # (N, 3)
+    @staticmethod
+    def _hessian_from_energy_batched(
+        coord_padded: torch.Tensor,
+        energy: torch.Tensor,
+        *,
+        n_atoms: int,
+    ) -> torch.Tensor:
+        """Analytic Hessian via one batched vector-Jacobian product.
 
-        # Use original-style assembly to stay consistent with AIMNet2 padding
-        hessian = - torch.stack([
-            torch.autograd.grad(f, data["coord"], retain_graph=True)[0]
-            for f in forces.flatten().unbind()
-        ]).view(-1, 3, N + 1, 3)[:, :, :N, :]  # slice out the padded row on atom-axis
+        This keeps the exact autograd Hessian but avoids the Python loop over
+        3N force components on PyTorch builds where batched VJPs are supported.
+        AIMNet2 has one sentinel-padded coordinate row; the physical Hessian is
+        the top-left 3N x 3N block.
+        """
+        n3 = 3 * n_atoms
+        return hessian_batched_vjp(
+            energy,
+            coord_padded,
+            output_dof=n3,
+            input_dof=n3,
+        )
 
-        return hessian.detach().cpu().numpy().reshape(3 * N, 3 * N)
+    @staticmethod
+    def _hessian_from_energy_loop(
+        coord_padded: torch.Tensor,
+        energy: torch.Tensor,
+        *,
+        n_atoms: int,
+    ) -> torch.Tensor:
+        """Original row-by-row analytic Hessian assembly."""
+        n3 = 3 * n_atoms
+        return hessian_loop(
+            energy,
+            coord_padded,
+            output_dof=n3,
+            input_dof=n3,
+        )
 
 
     def _get_hessian_numerical(

@@ -22,6 +22,7 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
+from ....calculator._batch_eval import PathEvaluator, energy_forces_one
 
 from maple.function.utility import Molecules
 
@@ -189,6 +190,7 @@ class NEBParams:
     cineb_f_rms_th: float = 1e-2 #2e-03          # RMS(Fp) threshold for CINEB
     cilbfgs_m: int = 20                    # memory size for L-BFGS in CINEB
     cistep0: float = 5e-3                  # initial step length for CINEB
+    nebts_candidates: int = 5              # max final-path candidates to try in NEB-TS handoff
 
 
 def compute_dynamic_k(energies: List[float], k_min: float, k_max: float, k_decay: float = 0.5) -> List[float]:
@@ -352,7 +354,8 @@ def cineb_tangent(Rm1, R, Rp1, Em1, E, Ep1):
 def neb_forces(images: List[Atoms], energies: List[float], 
                k_spring: float = None, k_springs: List[float] = None,
                use_dynamic_k: bool = False, k_min: float = 0.03, 
-               k_max: float = 0.3, k_decay: float = 0.5) -> Tuple[List[np.ndarray], float, int]:
+               k_max: float = 0.3, k_decay: float = 0.5,
+               raw_forces: Optional[List[np.ndarray]] = None) -> Tuple[List[np.ndarray], float, int]:
     """
     Compute NEB projected forces for internal images:
     F_NEB = F_true_perp + F_spring_parallel  (per image)
@@ -387,7 +390,10 @@ def neb_forces(images: List[Atoms], energies: List[float],
     hei_idx = 1
 
     # get raw forces and flatten
-    raw_forces = [to_numpy_f64(at.get_forces()) for at in images]
+    if raw_forces is None:
+        raw_forces = [to_numpy_f64(at.get_forces()) for at in images]
+    else:
+        raw_forces = [to_numpy_f64(f) for f in raw_forces]
     coords = [to_numpy_f64(at.get_positions()) for at in images]
     Es = [float(e) for e in energies]
 
@@ -663,6 +669,84 @@ class NEB(JobABC):
 
     def get_energies(self, imgs): 
         return [float(at.get_potential_energy(force_consistent=True)) for at in imgs]
+
+    def _path_energy_forces(self, imgs: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
+        """Evaluate all path images with one calculator invocation per batch.
+
+        This is an evaluation-only optimization for NEB/CINEB paths: it does
+        not change tangents, spring forces, L-BFGS updates, or convergence
+        criteria.  Calculators with a native ``calculate_many`` use their
+        model-level batch path; other calculators fall back to one combined
+        energy+force calculator call per image.
+        """
+        images = list(imgs)
+        if not images:
+            return [], []
+
+        calc = images[0].calc
+        same_calc = calc is not None and all(img.calc is calc for img in images)
+        if same_calc and hasattr(calc, "calculate_many"):
+            energies, forces = PathEvaluator(
+                calc,
+                batch_size=getattr(calc, "path_batch_size", None),
+            ).energy_forces(images)
+            if len(energies) != len(images) or len(forces) != len(images):
+                raise ValueError(
+                    "calculate_many returned an incomplete path E/F batch: "
+                    f"{len(energies)} energies and {len(forces)} force arrays "
+                    f"for {len(images)} images"
+                )
+            return (
+                [float(e) for e in energies],
+                [to_numpy_f64(f) for f in forces],
+            )
+
+        energies: List[float] = []
+        forces: List[np.ndarray] = []
+        for img in images:
+            if img.calc is None:
+                energies.append(float(img.get_potential_energy(force_consistent=True)))
+                forces.append(to_numpy_f64(img.get_forces()))
+            else:
+                E, F = energy_forces_one(img.calc, img, force_consistent=True)
+                energies.append(float(E))
+                forces.append(to_numpy_f64(F))
+        return energies, forces
+
+    def _nebts_candidate_indices(
+        self,
+        images: List[Atoms],
+        energies: List[float],
+        primary_idx: int,
+    ) -> List[int]:
+        """Rank final-path barrier candidates for NEB-TS PRFO refinement.
+
+        CI-NEB supplies a TS guess near the barrier, but the initially fixed
+        climbing image is not guaranteed to be the only usable saddle guess at
+        the end of CINEB.  Keep the path equations untouched and make only the
+        handoff robust: try the final highest-energy image first, then nearby
+        and next-highest internal images until a strict PRFO TS validation
+        accepts one candidate.
+        """
+        internal = list(range(1, len(images) - 1))
+        if not internal:
+            return [primary_idx]
+
+        limit = max(1, int(getattr(self.params, "nebts_candidates", 5)))
+        candidates: List[int] = []
+
+        def add(idx: int) -> None:
+            if idx in internal and idx not in candidates and len(candidates) < limit:
+                candidates.append(idx)
+
+        add(primary_idx)
+        for idx in sorted(internal, key=lambda i: energies[i], reverse=True):
+            add(idx)
+            add(idx - 1)
+            add(idx + 1)
+            if len(candidates) >= limit:
+                break
+        return candidates
     
     def _compute_distances(self, images: List[Atoms]) -> List[float]:
         """
@@ -765,7 +849,13 @@ class NEB(JobABC):
         return new_images
     
     # ---------------- Climbing Image NEB (CINEB) -------------------------------
-    def cineb_forces(self, images: List[Atoms], energies: List[float], k_spring: float) -> Tuple[List[np.ndarray], float, int]:
+    def cineb_forces(
+        self,
+        images: List[Atoms],
+        energies: List[float],
+        k_spring: float,
+        raw_forces: Optional[List[np.ndarray]] = None,
+    ) -> Tuple[List[np.ndarray], float, int]:
             """
             Climbing Image NEB projected forces:
             - normal NEB force for all non-endpoints except HEI
@@ -779,7 +869,10 @@ class NEB(JobABC):
             forces_proj = [None] * n_img
             max_fp = 0.0
 
-            raw_forces = [to_numpy_f64(at.get_forces()) for at in images]
+            if raw_forces is None:
+                raw_forces = [to_numpy_f64(at.get_forces()) for at in images]
+            else:
+                raw_forces = [to_numpy_f64(f) for f in raw_forces]
             coords = [to_numpy_f64(at.get_positions()) for at in images]
             Es = [float(e) for e in energies]
 
@@ -857,11 +950,21 @@ class NEB(JobABC):
         driver.fmax_ci  = self.params.cineb_f_max_th
         driver.frms_ci  = self.params.cineb_f_rms_th
 
+        eval_cache = {}
+
         def eval_grad(x_flat: np.ndarray) -> np.ndarray:
             """Return gradient dE/dx (flattened) for all internal images using CINEB forces."""
             self._unpack_internal(x_flat, images)
-            Es_local = [float(at.get_potential_energy(force_consistent=True)) for at in images]
-            Fp_list_local, _, _ = self.cineb_forces(images, Es_local, self.params.k_max)
+            Es_local, raw_forces_local = self._path_energy_forces(images)
+            Fp_list_local, _, _ = self.cineb_forces(
+                images,
+                Es_local,
+                self.params.k_max,
+                raw_forces=raw_forces_local,
+            )
+            eval_cache["energies"] = Es_local
+            eval_cache["forces"] = raw_forces_local
+            eval_cache["projected"] = Fp_list_local
             grads = [(-Fp_list_local[i]).reshape(-1) for i in range(1, len(images) - 1)]
             return np.concatenate(grads) if grads else np.zeros_like(x_flat)
 
@@ -871,14 +974,20 @@ class NEB(JobABC):
         iteration = 0
 
         # initial energies / forces for logging & to freeze HEI
-        Es = [float(at.get_potential_energy(force_consistent=True)) for at in images]
-        Fp_list, maxfp, hei = self.cineb_forces(images, Es, self.params.k_max)
+        Es = eval_cache["energies"]
+        raw_forces = eval_cache["forces"]
+        Fp_list, maxfp, hei = self.cineb_forces(
+            images,
+            Es,
+            self.params.k_max,
+            raw_forces=raw_forces,
+        )
 
         # freeze HEI index for the whole CINEB run
         self._cineb_fixed_hei = hei
 
 
-        F_CI_vec = to_numpy_f64(images[hei].get_forces())
+        F_CI_vec = to_numpy_f64(raw_forces[hei])
         maxF_CI = float(np.max(np.linalg.norm(F_CI_vec, axis=1)))
         rmsF_CI = float(np.sqrt(np.mean(np.linalg.norm(F_CI_vec, axis=1) ** 2)))
 
@@ -901,7 +1010,7 @@ class NEB(JobABC):
             Fp_all = np.concatenate(regular_flat) if regular_flat else np.zeros(0, dtype=np.float64)
 
             # true forces on CI (no projection)
-            F_CI = to_numpy_f64(images[hei].get_forces()).reshape(-1)
+            F_CI = to_numpy_f64(raw_forces[hei]).reshape(-1)
 
             if driver.ci_should_stop(Fp_all, F_CI):
                 log_info([f"\nCINEB converged after {iteration} iterations.\n"], self.output)
@@ -924,10 +1033,16 @@ class NEB(JobABC):
             g = g_new
 
             # ===== recompute energies / forces for next iteration & logging =====
-            Es = [float(at.get_potential_energy(force_consistent=True)) for at in images]
-            Fp_list, maxfp, _ = self.cineb_forces(images, Es, self.params.k_max)
+            Es = eval_cache["energies"]
+            raw_forces = eval_cache["forces"]
+            Fp_list, maxfp, _ = self.cineb_forces(
+                images,
+                Es,
+                self.params.k_max,
+                raw_forces=raw_forces,
+            )
 
-            F_CI_vec = to_numpy_f64(images[hei].get_forces())
+            F_CI_vec = to_numpy_f64(raw_forces[hei])
             maxF_CI = float(np.max(np.linalg.norm(F_CI_vec, axis=1)))
             rmsF_CI = float(np.sqrt(np.mean(np.linalg.norm(F_CI_vec, axis=1) ** 2)))
             rmsfp = rms_force(Fp_list)
@@ -943,6 +1058,24 @@ class NEB(JobABC):
 
         # Clean up fixed HEI
         self._cineb_fixed_hei = None
+
+        # Use the final highest-energy internal image as the TS candidate.  The
+        # climbing image is frozen during CINEB for optimizer stability, but a
+        # neighboring image can overtake it in energy before convergence.  The
+        # NEB-TS handoff should follow the final barrier-top image, not a stale
+        # initial CI index.
+        internal = range(1, len(images) - 1)
+        final_hei = max(internal, key=lambda idx: Es[idx]) if len(images) > 2 else hei
+        if final_hei != hei:
+            log_info([
+                "\nFinal highest-energy image differs from fixed CINEB image: "
+                f"{hei} -> {final_hei}. Using final highest-energy image for "
+                "NEB-TS PRFO refinement.\n"
+            ], self.output)
+            hei = final_hei
+            F_CI_vec = to_numpy_f64(raw_forces[hei])
+            maxF_CI = float(np.max(np.linalg.norm(F_CI_vec, axis=1)))
+            rmsF_CI = float(np.sqrt(np.mean(np.linalg.norm(F_CI_vec, axis=1) ** 2)))
 
         # --- Stage 1 summary: CI part ---
         base, _ = os.path.splitext(self.output)
@@ -968,24 +1101,78 @@ class NEB(JobABC):
         if self.params.refine == 'nebts':
             from .PRFO import PRFO
 
-            # Use CI geometry as TS guess
-            ts_guess = images[hei].copy()
-            ts_guess.calc = self.atoms_R.calc
-            ts_guess.f_max_th = images[0].f_max_th
-            ts_guess.f_rms_th = images[0].f_rms_th
-            ts_guess.dp_max_th = images[0].dp_max_th
-            ts_guess.dp_rms_th = images[0].dp_rms_th
+            candidate_indices = self._nebts_candidate_indices(images, Es, hei)
+            if len(candidate_indices) > 1:
+                log_info([
+                    "\nNEB-TS PRFO candidate order: "
+                    + ", ".join(
+                        f"{idx}(E={Es[idx]: .8f})" for idx in candidate_indices
+                    )
+                    + "\n"
+                ], self.output)
 
-            prfo = PRFO(output=self.output, atoms=ts_guess)
-            ts_opt = prfo.run()
+            ts_opt = None
+            accepted_hei = None
+            last_error: Optional[RuntimeError] = None
+            for cand_idx in candidate_indices:
+                ts_guess = images[cand_idx].copy()
+                ts_guess.calc = self.atoms_R.calc
+                ts_guess.f_max_th = images[0].f_max_th
+                ts_guess.f_rms_th = images[0].f_rms_th
+                ts_guess.dp_max_th = images[0].dp_max_th
+                ts_guess.dp_rms_th = images[0].dp_rms_th
+
+                if cand_idx != hei:
+                    log_info([
+                        "\nTrying alternate NEB-TS PRFO candidate image "
+                        f"{cand_idx} (E={Es[cand_idx]: .8f} Eh).\n"
+                    ], self.output)
+
+                prfo = PRFO(output=self.output, atoms=ts_guess)
+                try:
+                    candidate_ts = prfo.run()
+                    if not getattr(prfo, "normal_termination", False):
+                        raise RuntimeError(
+                            "PRFO candidate did not reach Normal Termination."
+                        )
+                except RuntimeError as exc:
+                    msg = str(exc)
+                    retryable = (
+                        "first-order transition state" in msg
+                        or "Normal Termination" in msg
+                    )
+                    if not retryable:
+                        raise
+                    last_error = exc
+                    log_info([
+                        "\nRejected NEB-TS PRFO candidate image "
+                        f"{cand_idx}: {msg}\n"
+                    ], self.output)
+                    continue
+
+                ts_opt = candidate_ts
+                accepted_hei = cand_idx
+                if accepted_hei != hei:
+                    log_info([
+                        "\nAccepted alternate NEB-TS PRFO candidate image "
+                        f"{accepted_hei}.\n"
+                    ], self.output)
+                    write_xyz(cineb_hei, [images[accepted_hei]], energies=[Es[accepted_hei]])
+                break
+
+            if ts_opt is None or accepted_hei is None:
+                raise RuntimeError(
+                    "NEB-TS PRFO refinement failed for all final-path "
+                    "barrier candidates."
+                ) from last_error
 
             E_TS = ts_opt.get_potential_energy(force_consistent=True)
             maxF_TS = np.max(np.linalg.norm(ts_opt.get_forces(), axis=1))
             rmsF_TS = np.sqrt(np.mean(np.linalg.norm(ts_opt.get_forces(), axis=1) ** 2))
 
             # Insert TS right after CI
-            images.insert(hei + 1, ts_opt)
-            Es.insert(hei + 1, E_TS)
+            images.insert(accepted_hei + 1, ts_opt)
+            Es.insert(accepted_hei + 1, E_TS)
 
             nebts_mep = base + "_nebts_mep.xyz"
             nebts_ts = base + "_nebts_ts.xyz"
@@ -1003,8 +1190,8 @@ class NEB(JobABC):
             kcal_per_Eh = 627.509
             for i, E in enumerate(Es):
                 dE = (E - Es[0]) * kcal_per_Eh
-                label = " TS" if i == hei + 1 else f"{i:3d}"
-                marker = " <= TS" if i == hei + 1 else (" <= CI" if i == hei else "")
+                label = " TS" if i == accepted_hei + 1 else f"{i:3d}"
+                marker = " <= TS" if i == accepted_hei + 1 else (" <= CI" if i == accepted_hei else "")
                 maxF = np.max(np.linalg.norm(images[i].get_forces(), axis=1))
                 rmsF = np.sqrt(np.mean(np.linalg.norm(images[i].get_forces(), axis=1) ** 2))
                 log_info([
@@ -1341,9 +1528,11 @@ class NEB(JobABC):
         
         self._k_springs_history = []
         
+        eval_cache = {}
+
         def eval_grad(x_flat):
             self._unpack_internal(x_flat, images)
-            Es = self.get_energies(images)
+            Es, raw_forces = self._path_energy_forces(images)
             
             Fp_list, _, _ = neb_forces(
                 images, Es,
@@ -1352,8 +1541,12 @@ class NEB(JobABC):
                 use_dynamic_k=self.params.use_dynamic_k,
                 k_min=self.params.k_min,
                 k_max=self.params.k_max,
-                k_decay=self.params.k_decay
+                k_decay=self.params.k_decay,
+                raw_forces=raw_forces,
             )
+            eval_cache["energies"] = Es
+            eval_cache["forces"] = raw_forces
+            eval_cache["projected"] = Fp_list
             
             grads = [(-Fp_list[i]).reshape(-1) for i in range(1, len(images) - 1)]
             return np.concatenate(grads) if grads else np.zeros_like(x_flat)
@@ -1362,7 +1555,8 @@ class NEB(JobABC):
         g = eval_grad(x)
         iteration = 0
         
-        Es = self.get_energies(images)
+        Es = eval_cache["energies"]
+        raw_forces = eval_cache["forces"]
         
         if self.params.use_dynamic_k:
             k_springs = compute_dynamic_k(Es, self.params.k_min, self.params.k_max, self.params.k_decay)
@@ -1374,7 +1568,8 @@ class NEB(JobABC):
             images, Es,
             k_spring=None,
             k_springs=k_springs,
-            use_dynamic_k=False
+            use_dynamic_k=False,
+            raw_forces=raw_forces,
         )
         rmsfp = rms_force(Fp_list)
         dE_hei = Es[hei] - Es[0]
@@ -1417,8 +1612,9 @@ class NEB(JobABC):
             x = x_new
             g = g_new
             
-            # Compute forces and energies for logging
-            Es = self.get_energies(images)
+            # Use the energy/force batch just computed by eval_grad(x_new)
+            Es = eval_cache["energies"]
+            raw_forces = eval_cache["forces"]
             
             if self.params.use_dynamic_k:
                 k_springs = compute_dynamic_k(Es, self.params.k_min, self.params.k_max, self.params.k_decay)
@@ -1430,7 +1626,8 @@ class NEB(JobABC):
                 images, Es,
                 k_spring=None,
                 k_springs=k_springs,
-                use_dynamic_k=False
+                use_dynamic_k=False,
+                raw_forces=raw_forces,
             )
             
             rmsfp = rms_force(Fp_list)

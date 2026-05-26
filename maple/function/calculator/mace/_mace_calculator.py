@@ -11,6 +11,7 @@ from .._batch_utils import (
     sequential_calculate_many,
     split_atomwise_array,
 )
+from .._autograd_hessian import hessian_loop
 from ._batch_graph import build_mace_data_dict_batch, energy_vector_from_output
 from typing import Literal
 EV2HARTREE = 1.0 / 27.211386245988
@@ -60,10 +61,29 @@ def _radius_graph_no_pbc(positions: torch.Tensor, r_max: float):
     shifts = torch.zeros((edge_index.size(1), 3), dtype=positions.dtype, device=positions.device)
     return edge_index, shifts
 
-def build_data_from_atoms(atoms, model, device="cpu"):
+def _model_float_dtype(model) -> torch.dtype:
+    """Return the floating dtype used by a scripted MACE wrapper."""
+    for tensor in list(model.parameters()) + list(model.buffers()):
+        if tensor.is_floating_point():
+            return tensor.dtype
+    return torch.float64
+
+
+_MACE_OFF_SIZE = {
+    "maceoff23s": "small",
+    "maceoff23m": "medium",
+    "maceoff23l": "large",
+}
+
+_RAW_UPSTREAM_MODELS = {"maceoff23s", "maceoff23l", "maceomol"}
+
+
+def build_data_from_atoms(atoms, model, device="cpu", dtype: torch.dtype | None = None):
     """Build a data_dict for Wrapper.forward() from an ASE Atoms object."""
     device = torch.device(device)
-    pos = torch.tensor(atoms.get_positions(), dtype=torch.float64, device=device)
+    if dtype is None:
+        dtype = _model_float_dtype(model)
+    pos = torch.tensor(atoms.get_positions(), dtype=dtype, device=device)
     Z = torch.tensor(atoms.get_atomic_numbers(), dtype=torch.long, device=device)
     r_max = float(model.r_max)
     atomic_number_table = [int(z) for z in model.atomic_numbers]
@@ -73,20 +93,20 @@ def build_data_from_atoms(atoms, model, device="cpu"):
 
     N = pos.size(0)
     batch = torch.zeros(N, dtype=torch.int64, device=device)
-    cell = torch.zeros(3, 3, dtype=torch.float64, device=device)
-    charge = torch.zeros(N, dtype=torch.float64, device=device)
-    dipole = torch.zeros(1, 3, dtype=torch.float64, device=device)
-    energy = torch.tensor([0.0], dtype=torch.float64, device=device)
-    energy_weight = torch.tensor([0.0], dtype=torch.float64, device=device)
-    force = torch.zeros(N, 3, dtype=torch.float64, device=device)
-    forces_weight = torch.tensor([0.0], dtype=torch.float64, device=device)
+    cell = torch.zeros(3, 3, dtype=dtype, device=device)
+    charge = torch.zeros(N, dtype=dtype, device=device)
+    dipole = torch.zeros(1, 3, dtype=dtype, device=device)
+    energy = torch.tensor([0.0], dtype=dtype, device=device)
+    energy_weight = torch.tensor([0.0], dtype=dtype, device=device)
+    force = torch.zeros(N, 3, dtype=dtype, device=device)
+    forces_weight = torch.tensor([0.0], dtype=dtype, device=device)
     ptr = torch.tensor([0, N], dtype=torch.int64, device=device)
-    stress = torch.zeros(1, 3, 3, dtype=torch.float64, device=device)
-    stress_weight = torch.tensor([0.0], dtype=torch.float64, device=device)
-    unit_shifts = torch.zeros(edge_index.size(1), 3, dtype=torch.float64, device=device)
-    virials = torch.zeros(1, 3, 3, dtype=torch.float64, device=device)
-    virials_weight = torch.tensor([0.0], dtype=torch.float64, device=device)
-    weight = torch.tensor([1.0], dtype=torch.float64, device=device)
+    stress = torch.zeros(1, 3, 3, dtype=dtype, device=device)
+    stress_weight = torch.tensor([0.0], dtype=dtype, device=device)
+    unit_shifts = torch.zeros(edge_index.size(1), 3, dtype=dtype, device=device)
+    virials = torch.zeros(1, 3, 3, dtype=dtype, device=device)
+    virials_weight = torch.tensor([0.0], dtype=dtype, device=device)
+    weight = torch.tensor([1.0], dtype=dtype, device=device)
 
     data_dict = {
         'batch': batch,
@@ -110,7 +130,7 @@ def build_data_from_atoms(atoms, model, device="cpu"):
         'weight': weight
     }
 
-    local_or_ghost = torch.ones(N, dtype=torch.float64, device=device)
+    local_or_ghost = torch.ones(N, dtype=dtype, device=device)
     return data_dict, local_or_ghost
 
 
@@ -140,20 +160,50 @@ class MACECalculator(CalcABC):
             overwrite (bool): Whether to overwrite existing models (unused).
         """
         super().__init__()
-        if model_path is None:
-            model_dir = os.path.dirname(os.path.realpath(__file__))
-            model_dir = os.path.dirname(model_dir)
-            model_path = os.path.join(model_dir, 'model', f'{model}.pt')
+        self._raw_mace_model = False
+        if model in _RAW_UPSTREAM_MODELS and (
+            model_path is None or model == "maceomol"
+        ):
+            # MACE-OFF23 small/large and MACE-OMOL are not shipped as MAPLE
+            # TorchScript wrappers in the HF bundle.  Use the official
+            # upstream raw checkpoints for those variants while preserving the
+            # existing MAPLE TorchScript paths where they exist.
+            if model == "maceomol":
+                from mace.calculators import mace_omol
 
-        # Load the scripted wrapper model
-        self.model = torch.jit.load(model_path, map_location=device)
+                self.model = mace_omol(
+                    model=model_path or "extra_large",
+                    device=str(device),
+                    default_dtype="float64",
+                    return_raw_model=True,
+                )
+            else:
+                from mace.calculators import mace_off
+
+                self.model = mace_off(
+                    model=_MACE_OFF_SIZE[model],
+                    device=str(device),
+                    default_dtype="float64",
+                    return_raw_model=True,
+                )
+            self.model = self.model.to(device)
+            self._raw_mace_model = True
+        else:
+            if model_path is None:
+                model_dir = os.path.dirname(os.path.realpath(__file__))
+                model_dir = os.path.dirname(model_dir)
+                model_path = os.path.join(model_dir, 'model', f'{model}.pt')
+
+            # Load the scripted wrapper model
+            self.model = torch.jit.load(model_path, map_location=device)
+
         self.model.eval()
 
         for p in self.model.parameters():
             p.requires_grad_(False)
 
         self.device = device
-        self.dtype = torch.float64
+        self.dtype = _model_float_dtype(self.model)
         self.overwrite = overwrite
 
         self.r_max = float(self.model.r_max)
@@ -163,49 +213,118 @@ class MACECalculator(CalcABC):
         # Initialize implicit solvent
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
+    def _augment_raw_data_dict(self, data_dict, atoms_list) -> None:
+        """Populate optional graph-level fields expected by raw MACE models."""
+        if not self._raw_mace_model:
+            return
+
+        atoms_list = list(atoms_list)
+        n_graphs = len(atoms_list)
+        data_dict["head"] = torch.zeros(
+            n_graphs,
+            dtype=torch.long,
+            device=self.device,
+        )
+
+        embedding_specs = getattr(self.model, "embedding_specs", {})
+        if "total_charge" in embedding_specs:
+            data_dict["total_charge"] = torch.tensor(
+                [float(at.info.get("charge", 0.0)) for at in atoms_list],
+                dtype=self.dtype,
+                device=self.device,
+            )
+        if "total_spin" in embedding_specs:
+            data_dict["total_spin"] = torch.tensor(
+                [
+                    float(at.info.get("spin", at.info.get("mult", 1.0)))
+                    for at in atoms_list
+                ],
+                dtype=self.dtype,
+                device=self.device,
+            )
+
+    def _forward_raw_model(self, data_dict, *, compute_force: bool = False, compute_hessian: bool = False):
+        return self.model(
+            data_dict,
+            training=False,
+            compute_force=compute_force or compute_hessian,
+            compute_virials=False,
+            compute_stress=False,
+            compute_hessian=compute_hessian,
+        )
+
+    def _forward_script_model(self, data_dict, local_or_ghost):
+        return self.model.forward(
+            data=data_dict,
+            local_or_ghost=local_or_ghost,
+            compute_virials=False,
+        )
+
+    def _energy_vector(self, energy_out, *, batch_size: int, n_atoms_total: int, batch: torch.Tensor) -> torch.Tensor:
+        return energy_vector_from_output(
+            energy_out,
+            batch_size=batch_size,
+            n_atoms_total=n_atoms_total,
+            batch=batch,
+        )
+
     def calculate(self, atoms=None, properties=['energy','forces'], system_changes=all_changes):
         """Main ASE calculation entry point."""
         super().calculate(atoms, properties, system_changes)
 
-        data_dict, local_or_ghost = build_data_from_atoms(
-            atoms, self.model, device=self.device
+        want_forces = 'forces' in properties
+        positions = torch.tensor(
+            atoms.get_positions(),
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=want_forces and not self._raw_mace_model,
         )
-
-        # Forward pass (Wrapper returns total_energy_local tensor)
-        total_energy_local = self.model.forward(
-            data=data_dict,
-            local_or_ghost=local_or_ghost,
-            compute_virials=False
+        data_dict, local_or_ghost = self._build_graph_inputs(
+            atoms, positions=positions
         )
+        self._augment_raw_data_dict(data_dict, [atoms])
 
-        energy = total_energy_local.sum()
-        energy = energy * EV2HARTREE  # Convert eV to Hartree
+        # Forward pass. Raw upstream MACE models can return forces directly;
+        # the MAPLE scripted wrapper returns energy only, so keep its original
+        # exact autograd force path.
+        if self._raw_mace_model:
+            out = self._forward_raw_model(data_dict, compute_force=want_forces)
+            energy_vec = self._energy_vector(
+                out["energy"],
+                batch_size=1,
+                n_atoms_total=data_dict["positions"].shape[0],
+                batch=data_dict["batch"],
+            )
+            ml_energy = energy_vec.sum() * EV2HARTREE
+        else:
+            total_energy_local = self._forward_script_model(data_dict, local_or_ghost)
+            ml_energy = total_energy_local.sum() * EV2HARTREE
+        energy = ml_energy
 
+        solvent_force = None
         if self.solvent_correction:
-            solvent_energy = self.implicit_solv_energy(atoms)
+            if want_forces:
+                solvent_energy, solvent_force = self.implicit_solv_energy_and_force(atoms)
+            else:
+                solvent_energy = self.implicit_solv_energy(atoms)
             energy += solvent_energy
 
         self.results['energy'] = energy.item()
         self.results['free_energy'] = energy.item()
 
-        # Compute forces by autograd if requested
-        if 'forces' in properties:
-            data_dict['positions'].requires_grad_(True)
-            total_energy_local = self.model.forward(
-                data=data_dict,
-                local_or_ghost=local_or_ghost,
-                compute_virials=False
-            )
-            forces = -torch.autograd.grad(
-                total_energy_local.sum(),
-                data_dict['positions'],
-                create_graph=False,
-                retain_graph=False
-            )[0]
-            forces = forces * EV2HARTREE
+        # Compute forces if requested
+        if want_forces:
+            if self._raw_mace_model:
+                forces = out["forces"] * EV2HARTREE
+            else:
+                forces = -torch.autograd.grad(
+                    ml_energy,
+                    data_dict['positions'],
+                    create_graph=False,
+                    retain_graph=False
+                )[0]
 
             if self.solvent_correction:
-                solvent_energy, solvent_force = self.implicit_solv_energy_and_force(atoms)
                 forces += solvent_force
 
             self.results['forces'] = forces.detach().cpu().numpy()
@@ -234,24 +353,20 @@ class MACECalculator(CalcABC):
             r_max=self.r_max,
             device=self.device,
             dtype=self.dtype,
-            requires_grad=want_forces,
+            requires_grad=want_forces and not self._raw_mace_model,
         )
+        self._augment_raw_data_dict(data_dict, atoms_list)
 
-        if want_forces:
-            total_energy_local = self.model.forward(
-                data=data_dict,
-                local_or_ghost=local_or_ghost,
-                compute_virials=False,
-            )
+        if self._raw_mace_model:
+            out = self._forward_raw_model(data_dict, compute_force=want_forces)
+            total_energy_local = out["energy"]
+        elif want_forces:
+            total_energy_local = self._forward_script_model(data_dict, local_or_ghost)
         else:
             with torch.no_grad():
-                total_energy_local = self.model.forward(
-                    data=data_dict,
-                    local_or_ghost=local_or_ghost,
-                    compute_virials=False,
-                )
+                total_energy_local = self._forward_script_model(data_dict, local_or_ghost)
 
-        energy_vec = energy_vector_from_output(
+        energy_vec = self._energy_vector(
             total_energy_local,
             batch_size=len(atoms_list),
             n_atoms_total=data_dict["positions"].shape[0],
@@ -265,12 +380,15 @@ class MACECalculator(CalcABC):
 
         forces_list = None
         if want_forces:
-            forces = -torch.autograd.grad(
-                energy_vec.sum(),
-                data_dict["positions"],
-                create_graph=False,
-                retain_graph=False,
-            )[0]
+            if self._raw_mace_model:
+                forces = out["forces"] * EV2HARTREE
+            else:
+                forces = -torch.autograd.grad(
+                    energy_vec.sum(),
+                    data_dict["positions"],
+                    create_graph=False,
+                    retain_graph=False,
+                )[0]
             forces_list = split_atomwise_array(
                 forces.detach().cpu().numpy().astype(np.float64),
                 counts,
@@ -279,27 +397,33 @@ class MACECalculator(CalcABC):
         return BatchResult(energies=energies, forces=forces_list)
 
     def get_energy(self, atoms) -> torch.Tensor:
-        """Compute total energy as a torch scalar."""
+        """Compute total energy as a torch scalar in eV."""
         data_dict, local_or_ghost = build_data_from_atoms(
-            atoms, self.model, device=self.device
+            atoms, self.model, device=self.device, dtype=self.dtype
         )
-        total_energy_local = self.model.forward(
-            data=data_dict,
-            local_or_ghost=local_or_ghost,
-            compute_virials=False
-        )
+        if self._raw_mace_model:
+            self._augment_raw_data_dict(data_dict, [atoms])
+            out = self._forward_raw_model(data_dict)
+            energy = self._energy_vector(
+                out["energy"],
+                batch_size=1,
+                n_atoms_total=data_dict["positions"].shape[0],
+                batch=data_dict["batch"],
+            )
+            return energy.sum()
+        total_energy_local = self._forward_script_model(data_dict, local_or_ghost)
         return total_energy_local.sum()
 
     @staticmethod
     def compute_hessian(coords: torch.Tensor, energy: torch.Tensor) -> torch.Tensor:
         """Compute the Hessian matrix (3N x 3N) by second derivatives."""
         num_atoms = coords.shape[0]
-        hessian = torch.zeros((3 * num_atoms, 3 * num_atoms), dtype=coords.dtype, device=coords.device)
-        grad = torch.autograd.grad(energy, coords, create_graph=True)[0].view(-1)
-        for i in range(3 * num_atoms):
-            grad2 = torch.autograd.grad(grad[i], coords, retain_graph=True)[0].view(-1)
-            hessian[i, :] = grad2
-        return hessian
+        return hessian_loop(
+            energy,
+            coords,
+            output_dof=3 * num_atoms,
+            input_dof=3 * num_atoms,
+        )
 
     def _build_graph_inputs(self, atoms, positions: Optional[torch.Tensor] = None):
         if positions is None:
@@ -352,6 +476,13 @@ class MACECalculator(CalcABC):
 
     def _get_hessian_analytic(self, atoms=None) -> np.ndarray:
         """Compute the Hessian matrix for an ASE Atoms object."""
+        if self._raw_mace_model:
+            data_dict, _ = self._build_graph_inputs(atoms)
+            self._augment_raw_data_dict(data_dict, [atoms])
+            out = self._forward_raw_model(data_dict, compute_hessian=True)
+            hessian = out["hessian"].reshape(3 * len(atoms), 3 * len(atoms))
+            return (hessian * EV2HARTREE).detach().cpu().numpy()
+
         positions = torch.tensor(
             atoms.get_positions(),
             dtype=self.dtype,
@@ -360,11 +491,7 @@ class MACECalculator(CalcABC):
         )
 
         data_dict, local_or_ghost = self._build_graph_inputs(atoms, positions=positions)
-        total_energy_local = self.model.forward(
-            data=data_dict,
-            local_or_ghost=local_or_ghost,
-            compute_virials=False
-        )
+        total_energy_local = self._forward_script_model(data_dict, local_or_ghost)
         energy = total_energy_local.sum() * EV2HARTREE
 
         hessian = self.compute_hessian(positions, energy)

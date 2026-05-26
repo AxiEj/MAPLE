@@ -386,6 +386,12 @@ class PRFOParams:
     # FDHessianEvaluator via the calculator. None = single batch.
     fd_batch_size: Optional[int] = None
 
+    # A converged TS search must have exactly one non-trivial imaginary mode.
+    # This catches cases where force/displacement criteria converge to a
+    # minimum because a noisy numerical Hessian supplied a spurious uphill mode.
+    validate_ts_mode: bool = True
+    ts_imag_tol_cm1: float = 5.0
+
 # =============================================================================
 # ------------------------------- PRFO Class ----------------------------------
 # =============================================================================
@@ -417,6 +423,73 @@ class PRFO(JobABC):
         # Mode tracking
         self.tracked_mode_vec_mw = None
         self.tracked_mode_idx = None
+        self.normal_termination = False
+        self.ts_mode_validated = False
+
+    @staticmethod
+    def _calculator_has_analytic_hessian(calc) -> bool:
+        """Return True when a calculator advertises an analytic Hessian mode."""
+        modes = getattr(calc, "supported_hessian_modes", ())
+        return bool(
+            getattr(calc, "supports_analytic_hessian", False)
+            or "analytic" in modes
+        )
+
+    def _validation_hessian(self, atoms: Atoms) -> Tuple[np.ndarray, str]:
+        """Fetch the Hessian used only for final TS-mode validation.
+
+        If the active PRFO run used a finite-difference Hessian but the backend
+        can compute an analytic Hessian, validate with the analytic Hessian.
+        The user's selected Hessian mode is restored immediately afterward.
+        """
+        calc = atoms.calc
+        old_mode = getattr(calc, "hessian", None)
+        use_analytic = (
+            old_mode == "numerical"
+            and self._calculator_has_analytic_hessian(calc)
+        )
+
+        if use_analytic:
+            calc.hessian = "analytic"
+            try:
+                H = calculate_Hessian(atoms)
+            finally:
+                calc.hessian = old_mode
+                reset_calculator_cache(calc)
+            return to_numpy_f64(H), "analytic"
+
+        return to_numpy_f64(calculate_Hessian(atoms)), str(old_mode or "current")
+
+    def _validate_ts_mode(self, atoms: Atoms) -> Tuple[bool, List[str]]:
+        """Check that the final stationary point has one imaginary mode."""
+        if not self.params.validate_ts_mode:
+            return True, ["TS mode validation: disabled by parameter\n"]
+
+        from ...frequency.frequency import MWFrequency
+
+        H_cart, source = self._validation_hessian(atoms)
+        freq_job = MWFrequency(output=self.output, atoms=atoms, device="cpu")
+        freq_job.verbosity = 0
+        freqs_cm1, _ = freq_job.compute_frequencies(H_cart)
+
+        tol = abs(float(self.params.ts_imag_tol_cm1))
+        imag = freqs_cm1[freqs_cm1 < -tol]
+        n_imag = int(imag.size)
+        lowest = float(np.min(freqs_cm1)) if freqs_cm1.size else float("nan")
+        ok = (n_imag == 1)
+
+        lines = [
+            "\nTS mode validation:\n",
+            f"  Hessian source: {source}\n",
+            f"  Imaginary frequencies (< -{tol:.2f} cm^-1): {n_imag}\n",
+            f"  Lowest frequency: {lowest:.2f} cm^-1\n",
+        ]
+        if not ok:
+            lines.append(
+                "  Expected exactly one non-trivial imaginary frequency for "
+                "a first-order transition state.\n"
+            )
+        return ok, lines
     
     def atoms_to_xyz(self, atoms: Atoms) -> str:
         """Convert Atoms object to XYZ format string."""
@@ -632,6 +705,20 @@ class PRFO(JobABC):
         ]
         log_info(info_message, self.output)
 
+        calc_mode = getattr(atoms.calc, "hessian", None)
+        if (
+            calc_mode == "numerical"
+            and self._calculator_has_analytic_hessian(atoms.calc)
+        ):
+            msg = (
+                "PRFO requires the analytic Hessian for calculators that "
+                "provide one. Remove hessian=numerical for this TS search; "
+                "finite-difference Hessians are only allowed here for "
+                "backends without an analytic Hessian."
+            )
+            log_info([f"\nERROR: {msg}\n"], self.output)
+            raise ValueError(msg)
+
         # Propagate fd_batch_size so FDHessianEvaluator picks it up when
         # calc.get_hessian dispatches to the numerical (FD-batched) path.
         # Harmless for analytic Hessian calculators.
@@ -788,7 +875,27 @@ class PRFO(JobABC):
 
                     # Check convergence
                     if self.check_convergence(atoms):
+                        ts_ok, ts_lines = self._validate_ts_mode(atoms)
+                        log_info(ts_lines, self.output)
+                        if not ts_ok:
+                            write_xyz(ts_file, atoms, energy=E_new,
+                                      iteration=iteration + 1)
+                            info_message = [
+                                '\n\n' + '-' * 70 + '\n',
+                                f'{"TS Mode Validation Failed".center(70)}\n\n',
+                                f"Wrote stationary structure to: {ts_file}\n",
+                            ]
+                            log_info(info_message, self.output)
+                            raise RuntimeError(
+                                "PRFO force/displacement criteria converged, "
+                                "but TS validation did not find exactly one "
+                                "imaginary mode. The structure is not a "
+                                "first-order transition state."
+                            )
+
                         converged = True
+                        self.normal_termination = True
+                        self.ts_mode_validated = True
                         info_message = [
                             '\n\n' + '-' * 70 + '\n',
                             f'{"Normal Termination".center(70)}\n\n'
@@ -812,10 +919,25 @@ class PRFO(JobABC):
         # evaluation), so reuse it instead of triggering a redundant forward.
         E_final = float(E_carry)
         write_xyz(ts_file, atoms, energy=E_final, iteration=iteration)
+
+        try:
+            ts_ok, ts_lines = self._validate_ts_mode(atoms)
+            log_info(ts_lines, self.output)
+        except Exception as exc:
+            ts_ok = False
+            log_info([
+                "\nTS mode validation after maximum iterations failed to run: "
+                f"{exc}\n",
+            ], self.output)
         
+        final_label = (
+            "final structure (not converged; TS mode present)"
+            if ts_ok and self.params.validate_ts_mode
+            else "final structure (not a confirmed TS)"
+        )
         log_info([
             f"\nWrote trajectory to: {traj_file}\n",
-            f"Wrote final TS structure to: {ts_file}\n"
+            f"Wrote {final_label} to: {ts_file}\n"
         ], self.output)
         
         return atoms

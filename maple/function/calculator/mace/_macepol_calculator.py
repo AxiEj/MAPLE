@@ -6,6 +6,7 @@ from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC
 from .._batch_types import BatchResult
 from .._batch_utils import normalize_energy_forces_request, sequential_calculate_many
+from .._autograd_hessian import hessian_loop
 from typing import Literal
 
 EV2HARTREE = 1.0 / 27.211386245988
@@ -143,35 +144,38 @@ class MACEPolCalculator(CalcABC):
         """Main ASE calculation entry point."""
         super().calculate(atoms, properties, system_changes)
 
-        # Energy (no grad needed)
-        inputs = self._build_inputs(atoms, requires_grad=False)
-        with torch.no_grad():
+        want_forces = 'forces' in properties
+        inputs = self._build_inputs(atoms, requires_grad=want_forces)
+        if want_forces:
             total_energy, node_energy, density_coef = self.model(*inputs)
+        else:
+            with torch.no_grad():
+                total_energy, node_energy, density_coef = self.model(*inputs)
 
-        energy = total_energy.sum().double() * EV2HARTREE
+        ml_energy = total_energy.sum().double() * EV2HARTREE
+        energy = ml_energy
 
+        solvent_force = None
         if self.solvent_correction:
-            solvent_energy = self.implicit_solv_energy(atoms)
+            if want_forces:
+                solvent_energy, solvent_force = self.implicit_solv_energy_and_force(atoms)
+            else:
+                solvent_energy = self.implicit_solv_energy(atoms)
             energy += solvent_energy
 
         self.results['energy'] = energy.item()
         self.results['free_energy'] = energy.item()
 
         # Forces via autograd
-        if 'forces' in properties:
-            inputs_grad = self._build_inputs(atoms, requires_grad=True)
-            total_energy_grad, _, _ = self.model(*inputs_grad)
-
+        if want_forces:
             forces = -torch.autograd.grad(
-                total_energy_grad.sum(),
-                inputs_grad[0],  # positions
+                ml_energy,
+                inputs[0],  # positions
                 create_graph=False,
                 retain_graph=False
             )[0]
-            forces = forces.double() * EV2HARTREE
 
             if self.solvent_correction:
-                _, solvent_force = self.implicit_solv_energy_and_force(atoms)
                 forces = forces + solvent_force
 
             self.results['forces'] = forces.detach().cpu().numpy()
@@ -208,12 +212,12 @@ class MACEPolCalculator(CalcABC):
     def compute_hessian(coords: torch.Tensor, energy: torch.Tensor) -> torch.Tensor:
         """Compute the Cartesian Hessian matrix (3N x 3N)."""
         num_atoms = coords.shape[0]
-        hessian = torch.zeros((3 * num_atoms, 3 * num_atoms), dtype=coords.dtype, device=coords.device)
-        grad = torch.autograd.grad(energy, coords, create_graph=True)[0].view(-1)
-        for i in range(3 * num_atoms):
-            grad2 = torch.autograd.grad(grad[i], coords, retain_graph=True)[0].view(-1)
-            hessian[i, :] = grad2
-        return hessian
+        return hessian_loop(
+            energy,
+            coords,
+            output_dof=3 * num_atoms,
+            input_dof=3 * num_atoms,
+        )
 
     def _get_hessian_analytic(self, atoms) -> np.ndarray:
         if atoms is None:

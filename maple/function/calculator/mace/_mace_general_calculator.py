@@ -11,6 +11,7 @@ from .._batch_utils import (
     sequential_calculate_many,
     split_atomwise_array,
 )
+from .._autograd_hessian import hessian_loop
 from ._batch_graph import build_mace_tuple_batch, energy_vector_from_output
 from typing import Literal
 
@@ -48,7 +49,7 @@ def _radius_graph_no_pbc(positions: torch.Tensor, r_max: float):
     shifts = torch.zeros((edge_index.size(1), 3), dtype=positions.dtype, device=positions.device)
     return edge_index, shifts
 
-def build_inputs_from_atoms(atoms, model, device="cpu"):
+def build_inputs_from_atoms(atoms, model, device="cpu", *, requires_grad=False):
     """
     从ASE Atoms对象构建模型输入
     返回: (positions, node_attrs, edge_index, shifts, batch, ptr)
@@ -56,7 +57,12 @@ def build_inputs_from_atoms(atoms, model, device="cpu"):
     注意: 新版MACE可能需要total_charge和total_spin,但这些在wrapper内部已经处理
     """
     device = torch.device(device)
-    pos = torch.tensor(atoms.get_positions(), dtype=torch.float64, device=device)
+    pos = torch.tensor(
+        atoms.get_positions(),
+        dtype=torch.float64,
+        device=device,
+        requires_grad=requires_grad,
+    )
     Z = torch.tensor(atoms.get_atomic_numbers(), dtype=torch.long, device=device)
     r_max = float(model.r_max)
     atomic_number_table = [int(z) for z in model.atomic_numbers]
@@ -122,56 +128,45 @@ class MACEModelCalculator(CalcABC):
         """主计算入口"""
         super().calculate(atoms, properties, system_changes)
 
-        # 构建输入
-        inputs = build_inputs_from_atoms(atoms, self.model, device=self.device)
-        
-        # 前向传播计算能量
-        with torch.no_grad():
+        want_forces = 'forces' in properties
+        inputs = build_inputs_from_atoms(
+            atoms,
+            self.model,
+            device=self.device,
+            requires_grad=want_forces,
+        )
+
+        if want_forces:
             total_energy = self.model(*inputs)  # 返回 [num_graphs] 的tensor
+        else:
+            with torch.no_grad():
+                total_energy = self.model(*inputs)
 
-        energy = total_energy.sum()
-        energy = energy * EV2HARTREE  # eV转Hartree
+        ml_energy = total_energy.sum() * EV2HARTREE  # eV转Hartree
+        energy = ml_energy
 
+        solvent_force = None
         if self.solvent_correction:
-            solvent_energy = self.implicit_solv_energy(atoms)
+            if want_forces:
+                solvent_energy, solvent_force = self.implicit_solv_energy_and_force(atoms)
+            else:
+                solvent_energy = self.implicit_solv_energy(atoms)
             energy += solvent_energy
 
         self.results['energy'] = energy.item()
         self.results['free_energy'] = energy.item()
 
         # 如果需要计算力
-        if 'forces' in properties:
-            # 重新构建输入,positions需要梯度
-            positions_grad = torch.tensor(
-                atoms.get_positions(), 
-                dtype=torch.float64, 
-                device=self.device,
-                requires_grad=True
-            )
-            
-            # 重建其他输入
-            Z = torch.tensor(atoms.get_atomic_numbers(), dtype=torch.long, device=self.device)
-            atomic_number_table = [int(z) for z in self.model.atomic_numbers]
-            node_attrs = _one_hot_node_attrs(Z, atomic_number_table)
-            edge_index, shifts = _radius_graph_no_pbc(positions_grad, self.r_max)
-            N = positions_grad.size(0)
-            batch = torch.zeros(N, dtype=torch.int64, device=self.device)
-            ptr = torch.tensor([0, N], dtype=torch.int64, device=self.device)
-            
-            # 前向传播
-            total_energy = self.model(positions_grad, node_attrs, edge_index, shifts, batch, ptr)
-            
+        if want_forces:
             # 计算梯度
             forces = -torch.autograd.grad(
-                total_energy.sum(),
-                positions_grad,
+                ml_energy,
+                inputs[0],
                 create_graph=False,
                 retain_graph=False
             )[0]
-            forces = forces * EV2HARTREE
 
             if self.solvent_correction:
-                solvent_energy, solvent_force = self.implicit_solv_energy_and_force(atoms)
                 forces += solvent_force
 
             self.results['forces'] = forces.detach().cpu().numpy()
@@ -248,12 +243,12 @@ class MACEModelCalculator(CalcABC):
     def compute_hessian(coords: torch.Tensor, energy: torch.Tensor) -> torch.Tensor:
         """计算Hessian矩阵 (3N x 3N)"""
         num_atoms = coords.shape[0]
-        hessian = torch.zeros((3 * num_atoms, 3 * num_atoms), dtype=coords.dtype, device=coords.device)
-        grad = torch.autograd.grad(energy, coords, create_graph=True)[0].view(-1)
-        for i in range(3 * num_atoms):
-            grad2 = torch.autograd.grad(grad[i], coords, retain_graph=True)[0].view(-1)
-            hessian[i, :] = grad2
-        return hessian
+        return hessian_loop(
+            energy,
+            coords,
+            output_dof=3 * num_atoms,
+            input_dof=3 * num_atoms,
+        )
 
     def _get_hessian_analytic(self, atoms=None) -> np.ndarray:
         """使用自动微分计算Hessian矩阵"""

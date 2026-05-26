@@ -15,9 +15,10 @@ Phase 1 uses:
   `_get_hessian_numerical` loops in ANI / MACE / MACEPol / MACEOMol /
   AIMNet2 / UMA.
 
-`PathEvaluator` and `HVPEvaluator` are scaffolded with the same contract so
-Phase 2 (NEB image batching) and Phase 3 (Dimer HVP capability dispatch) can
-land without redesigning the interface.
+`PathEvaluator` applies the same contract to NEB/CINEB path snapshots:
+all image energies and true forces are collected together, while the
+optimizer keeps the original tangent, spring-force, and trust-region logic.
+`HVPEvaluator` is scaffolded for Dimer HVP capability dispatch.
 """
 from __future__ import annotations
 
@@ -354,19 +355,32 @@ class FDHessianEvaluator:
 
 
 # ---------------------------------------------------------------------------
-# Scaffolding for Phase 2 (paths) and Phase 3 (HVP)
+# Path snapshots and HVP scaffolding
 # ---------------------------------------------------------------------------
 class PathEvaluator:
     """Batch energy + force over a list of images (NEB / AutoNEB / GSM).
 
-    Phase 1 ships the API only; algorithm-level integration is Phase 2.
     The implementation deliberately mirrors `FDHessianEvaluator._chunked_forces`
     so both routes degrade gracefully on the sequential `calculate_many`
-    fallback.
+    fallback.  The evaluator is deliberately model-agnostic: it only changes
+    how E/F values are fetched, not how a path optimizer uses those values.
     """
 
     def __init__(self, calc, batch_size: Optional[int] = None) -> None:
         self.calc = calc
+        if batch_size is not None:
+            try:
+                batch_size = operator.index(batch_size)
+            except TypeError as exc:
+                raise ValueError(
+                    "batch_size must be a positive integer or None, "
+                    f"got {batch_size!r}"
+                ) from exc
+            if batch_size <= 0:
+                raise ValueError(
+                    "batch_size must be a positive integer or None, "
+                    f"got {batch_size!r}"
+                )
         self.batch_size = batch_size
 
     def energy_forces(self, images: Sequence[Atoms]) -> Tuple[np.ndarray, List[np.ndarray]]:

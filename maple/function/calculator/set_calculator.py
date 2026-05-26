@@ -255,10 +255,14 @@ class SetClaculator:
         elif model in {"maceoff23s", "maceoff23m", "maceoff23l", "egret"}:
             model_path = self._ensure_model_file(model)
             if model_path is None:
-                model_path = self._require_local_model_file(model)
+                local_model = self._local_model_file(f"{model}.pt")
+                if local_model is not None:
+                    model_path = local_model
+                elif model not in {"maceoff23s", "maceoff23l"}:
+                    model_path = self._require_local_model_file(model)
             calculator = MACECalculator(
                 model=model,
-                model_path=str(model_path),
+                model_path=str(model_path) if model_path is not None else None,
                 device=self.device,
                 implicit=self.implicit,
                 solvent=self.solvent,
@@ -302,15 +306,24 @@ class SetClaculator:
                 inference_settings=uma_inference,
             )
         elif model == "maceomol":
-            self._require_local_model_file(model)
-            from .mace._mace_general_calculator import MACEModelCalculator
+            local_model = self._local_model_file("maceomol.pt")
+            if local_model is not None:
+                from .mace._mace_general_calculator import MACEModelCalculator
 
-            calculator = MACEModelCalculator(
-                model=model,
-                device=self.device,
-                implicit=self.implicit,
-                solvent=self.solvent,
-            )
+                calculator = MACEModelCalculator(
+                    model=model,
+                    device=self.device,
+                    implicit=self.implicit,
+                    solvent=self.solvent,
+                )
+            else:
+                calculator = MACECalculator(
+                    model=model,
+                    model_path=self.model_options.get("model_path"),
+                    device=self.device,
+                    implicit=self.implicit,
+                    solvent=self.solvent,
+                )
         elif model in {"macepols", "macepolm", "macepoll"}:
             from .mace._macepol_calculator import MACEPolCalculator
 

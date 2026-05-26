@@ -14,12 +14,14 @@ from .._batch_utils import (
     normalize_energy_forces_request,
     sequential_calculate_many,
 )
+from .._autograd_hessian import hessian_loop
 
 
 class ANICalculator(CalcABC):
     implemented_properties = ['energy', 'forces', 'stress', 'free_energy']
     supported_hessian_modes = ("analytic", "numerical")
     supports_batch_energy_forces = True
+    supports_analytic_hessian = True
 
     def __init__(self, device: torch.device,
         model:str = 'ani2x',
@@ -158,12 +160,7 @@ class ANICalculator(CalcABC):
     def compute_hessian(coords, energy):
     
         num_atoms = coords.shape[1]
-        hessian = torch.zeros((3 * num_atoms, 3 * num_atoms), dtype=coords.dtype, device=coords.device)
-        grad = torch.autograd.grad(energy, coords, create_graph=True)[0].view(-1)
-        for i in range(3 * num_atoms):
-            grad2 = torch.autograd.grad(grad[i], coords, retain_graph=True)[0].view(-1)
-            hessian[i, :] = grad2
-        return hessian
+        return hessian_loop(energy, coords, output_dof=3 * num_atoms, input_dof=3 * num_atoms)
 
     def get_hessian(
         self,
@@ -203,7 +200,15 @@ class ANICalculator(CalcABC):
             requires_grad=True
         ).unsqueeze(0)
         
-        energy = self.get_energy(atoms, coordinates)
+        if self.d4:
+            energy = self.get_energy(atoms, coordinates)
+        else:
+            species = torch.tensor(
+                atoms.get_atomic_numbers(),
+                dtype=torch.long,
+                device=self.device,
+            ).unsqueeze(0)
+            energy = self.model(species, coordinates)[0]
         
         return self.compute_hessian(coordinates, energy)
 

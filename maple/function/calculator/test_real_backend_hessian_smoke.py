@@ -162,6 +162,10 @@ def test_uma_calculate_many_contract_and_hessian_match_legacy_fd_loop():
         )
 
     calc = make_calc()
+    settings = calc._predictor_unit.inference_settings
+    assert not getattr(settings, "merge_mole", False)
+    assert not getattr(settings, "compile", False)
+
     atoms = Atoms("H2", positions=[[0.0, 0.0, 0.0], [0.74, 0.0, 0.0]])
     result = calc.calculate_many([atoms], properties=("energy", "forces"))
     assert result.energies is not None and result.energies.shape == (1,)
@@ -171,3 +175,57 @@ def test_uma_calculate_many_contract_and_hessian_match_legacy_fd_loop():
     legacy = _legacy_fd_hessian(calc, atoms, delta=1e-3)
     shared = FDHessianEvaluator(calc).hessian(atoms, delta=1e-3)
     np.testing.assert_allclose(shared, legacy, rtol=1e-5, atol=5e-5)
+
+
+def test_uma_calculate_many_uses_one_fairchem_batch_predict(monkeypatch):
+    torch = pytest.importorskip("torch")
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    model_path = MODEL_DIR / "uma-s-1p1.pt"
+    if not model_path.exists():
+        pytest.skip("uma-s-1p1.pt missing")
+
+    atoms_list = [
+        Atoms("H2", positions=[[0.0, 0.0, 0.0], [0.72 + 0.01 * i, 0.0, 0.0]])
+        for i in range(3)
+    ]
+
+    batch_calc = UMACalculator(
+        torch.device("cpu"),
+        model="uma-s-1p1",
+        checkpoint_path=str(model_path),
+        implicit="none",
+        task="omol",
+    )
+    seq_calc = UMACalculator(
+        torch.device("cpu"),
+        model="uma-s-1p1",
+        checkpoint_path=str(model_path),
+        implicit="none",
+        task="omol",
+    )
+
+    predict_calls = []
+    original_predict = batch_calc._predictor_unit.predict
+
+    def counted_predict(data, *args, **kwargs):
+        predict_calls.append(int(data.num_graphs))
+        return original_predict(data, *args, **kwargs)
+
+    monkeypatch.setattr(batch_calc._predictor_unit, "predict", counted_predict)
+
+    batched = batch_calc.calculate_many(atoms_list, properties=("energy", "forces"))
+    assert predict_calls == [len(atoms_list)]
+
+    seq_energies = []
+    seq_forces = []
+    for at in atoms_list:
+        seq_calc.calculate(at, properties=["energy", "forces"], system_changes=all_changes)
+        seq_energies.append(seq_calc.results["energy"])
+        seq_forces.append(np.asarray(seq_calc.results["forces"], dtype=np.float64))
+
+    np.testing.assert_allclose(batched.energies, np.asarray(seq_energies), rtol=1e-6, atol=1e-6)
+    assert batched.forces is not None
+    for got, expected in zip(batched.forces, seq_forces):
+        np.testing.assert_allclose(got, expected, rtol=1e-6, atol=1e-6)

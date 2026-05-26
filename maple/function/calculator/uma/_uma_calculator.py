@@ -13,7 +13,8 @@ from ase.calculators.calculator import all_changes
 try:
     from fairchem.core import pretrained_mlip
     from fairchem.core._config import CACHE_DIR
-    from fairchem.core.calculate.ase_calculator import AtomicData, FAIRChemCalculator, UMATask
+    from fairchem.core.calculate.ase_calculator import FAIRChemCalculator, UMATask
+    from fairchem.core.datasets.atomic_data import AtomicData, atomicdata_list_to_batch
     from fairchem.core.units.mlip_unit import load_predict_unit
     from huggingface_hub import hf_hub_download
     from omegaconf import OmegaConf
@@ -44,6 +45,7 @@ SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
 # default regardless.
 UMA_INFERENCE_SETTINGS = "default"
 UMA_CPU_INFERENCE_SETTINGS = "default"
+UMA_BATCH_INFERENCE_SETTINGS = "default"
 
 
 class UMACalculator(FAIRChemCalculator):
@@ -56,7 +58,7 @@ class UMACalculator(FAIRChemCalculator):
     """
 
     supported_hessian_modes = ("numerical",)
-    supports_batch_energy_forces = False
+    supports_batch_energy_forces = True
     supports_analytic_hessian = False
     supports_hvp = False
 
@@ -79,8 +81,9 @@ class UMACalculator(FAIRChemCalculator):
         inference_settings: str | None = None,
     ):
         device = UMACalculator._normalize_device(device)
-        # Turbo selects FAIR Chemistry's fast GPU execution path; CPU uses the
-        # general-purpose backend to avoid Triton GPU kernels on CPU tensors.
+        # Turbo selects FAIR Chemistry's fast GPU execution path only when the
+        # user explicitly asks for it; CPU uses the general-purpose backend to
+        # avoid Triton GPU kernels on CPU tensors.
         if device == "cpu":
             if inference_settings == "turbo":
                 warnings.warn(
@@ -227,6 +230,10 @@ class UMACalculator(FAIRChemCalculator):
 
         self.device = torch.device(device)
         self._predictor_unit = predictor
+        self._batch_predictor_unit = None
+        self._checkpoint = checkpoint
+        self._checkpoint_path = checkpoint_path
+        self._overrides = overrides
         self._auto_task = task is None
         self.hessian = "numerical"
 
@@ -242,25 +249,79 @@ class UMACalculator(FAIRChemCalculator):
         if not self._auto_task:
             return
 
-        task = "omat" if any(atoms.pbc) else "omol"
+        task = self._task_for_atoms(atoms)
         if task == self.task_name:
             return
 
+        self._set_current_task(task)
+
+    def _task_for_atoms(self, atoms: Atoms) -> str:
+        if not self._auto_task:
+            return self.task_name
+        return "omat" if any(atoms.pbc) else "omol"
+
+    def _set_current_task(self, task: str) -> None:
         self._task = UMATask(task)
-        if self._predictor_unit.inference_settings.external_graph_gen:
+        self.a2g = partial(AtomicData.from_ase, **self._a2g_kwargs(task, self._predictor_unit))
+        self._task_name = task
+        self.implemented_properties = [
+            t.property for t in self._predictor_unit.dataset_to_tasks[self.task_name]
+        ]
+        if "energy" in self.implemented_properties:
+            self.implemented_properties.append("free_energy")
+
+    @staticmethod
+    def _a2g_kwargs(task: str, predictor) -> dict:
+        settings = predictor.inference_settings
+        if settings.external_graph_gen:
             r_edges, max_neigh = True, 300
         else:
             r_edges, max_neigh = False, None
 
-        self.a2g = partial(
-            AtomicData.from_ase,
+        return dict(
             task_name=task,
             r_edges=r_edges,
             r_data_keys=["spin", "charge"],
             max_neigh=max_neigh,
             radius=6.0,
+            target_dtype=settings.base_precision_dtype,
         )
-        self.task_name = task
+
+    @staticmethod
+    def _prepare_atoms_metadata(atoms: Atoms) -> None:
+        atoms.info["spin"] = int(atoms.info.get("mult", 1))
+        atoms.info["charge"] = int(atoms.info.get("charge", 0))
+
+    @staticmethod
+    def _predictor_supports_batch(predictor) -> bool:
+        settings = predictor.inference_settings
+        # FAIR-Chem documents default mode as batch-capable and turbo mode as
+        # single-system-only. In current fairchem-core, turbo is identified by
+        # merged MoLE weights / compile settings and raises on multi-system
+        # AtomicData batches.
+        return not (
+            getattr(settings, "merge_mole", False)
+            or getattr(settings, "compile", False)
+        )
+
+    def _batch_predictor(self):
+        if self._predictor_supports_batch(self._predictor_unit):
+            return self._predictor_unit
+
+        if self.device.type != "cuda":
+            return None
+
+        if self._batch_predictor_unit is None:
+            self._batch_predictor_unit = self._build_predictor(
+                self._checkpoint,
+                self._overrides,
+                str(self.device),
+                checkpoint_path=self._checkpoint_path,
+                inference_settings=UMA_BATCH_INFERENCE_SETTINGS,
+            )
+        if not self._predictor_supports_batch(self._batch_predictor_unit):
+            return None
+        return self._batch_predictor_unit
 
     def get_energy(self, atoms: Atoms) -> torch.Tensor:
         self.calculate(atoms, properties=["energy"], system_changes=all_changes)
@@ -282,8 +343,8 @@ class UMACalculator(FAIRChemCalculator):
         UMA exposes no analytic Hessian (``supported_hessian_modes = ('numerical',)``),
         so this is the only Hessian path. The 2 * 3 * N_movable force
         evaluations are delegated to ``FDHessianEvaluator``, which dispatches
-        through ``calc.calculate_many`` — sequential fallback today, ready
-        to pick up a true batched backend when fairchem-core exposes one.
+        through ``calc.calculate_many`` and uses FAIR-Chem's AtomicData batch
+        predictor when the active inference mode supports batching.
         FixAtoms is respected upstream. Returns a ``(3N, 3N)`` tensor on
         ``self.device`` to preserve the original return-type contract.
         """
@@ -296,13 +357,19 @@ class UMACalculator(FAIRChemCalculator):
         return torch.as_tensor(H_np, dtype=dtype, device=self.device)
 
     def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
-        """Sequential batch-contract fallback for UMA.
+        """Evaluate multiple structures through FAIR-Chem's batch predictor.
 
         UMA inherits from FAIR-Chem's calculator rather than MAPLE's
-        ``CalcABC``, so it cannot pick up ``CalcABC.calculate_many`` via
-        inheritance. Keep the same return-value-driven contract here so the
-        shared evaluators can drive UMA numerical Hessians without touching
-        ``self.results`` after each structure has been captured.
+        ``CalcABC``. FAIR-Chem's documented batch route is
+        ``AtomicData.from_ase`` -> ``atomicdata_list_to_batch`` ->
+        ``predictor.predict``; use that route when the active predictor
+        supports batching. CUDA turbo mode is optimized for single fixed
+        composition rollouts and does not accept multi-system batches, so
+        ``calculate_many`` lazily creates a default-mode predictor for batch
+        calls while leaving single-structure ``calculate`` on turbo.
+
+        Solvent corrections remain single-structure and therefore use the
+        sequential fallback.
         """
         props = tuple(properties)
         if "hessian" in props:
@@ -316,7 +383,65 @@ class UMACalculator(FAIRChemCalculator):
         request = [p for p in props if p in ("energy", "forces")]
         if not request:
             return BatchResult()
+        atoms_list = list(atoms_list)
+        if not atoms_list:
+            return BatchResult(
+                energies=np.zeros(0, dtype=np.float64) if want_energy else None,
+                forces=[] if want_forces else None,
+            )
 
+        if self.solvent_correction:
+            return self._calculate_many_sequential(atoms_list, request, want_energy, want_forces)
+
+        predictor = self._batch_predictor()
+        if predictor is None:
+            return self._calculate_many_sequential(atoms_list, request, want_energy, want_forces)
+
+        data_list = []
+        for at in atoms_list:
+            task = self._task_for_atoms(at)
+            self._prepare_atoms_metadata(at)
+            self._check_atoms_pbc(at)
+            predictor.validate_atoms_data(at, task)
+            data_list.append(
+                AtomicData.from_ase(at, **self._a2g_kwargs(task, predictor))
+            )
+
+        batch = atomicdata_list_to_batch(data_list)
+        pred = predictor.predict(batch)
+
+        energies = None
+        if want_energy:
+            energies = (
+                pred["energy"].detach().cpu().numpy().astype(np.float64)
+                * EV2HARTREE
+            )
+
+        forces_list = None
+        if want_forces:
+            forces_all = (
+                pred["forces"].detach().cpu().numpy().astype(np.float64)
+                * EV2HARTREE
+            )
+            batch_index = batch.batch.detach().cpu().numpy()
+            forces_list = [
+                forces_all[batch_index == i]
+                for i in range(len(atoms_list))
+            ]
+
+        first_task = self._task_for_atoms(atoms_list[0])
+        if all(self._task_for_atoms(at) == first_task for at in atoms_list):
+            self._set_current_task(first_task)
+
+        return BatchResult(energies=energies, forces=forces_list)
+
+    def _calculate_many_sequential(
+        self,
+        atoms_list,
+        request,
+        want_energy: bool,
+        want_forces: bool,
+    ) -> BatchResult:
         energies = [] if want_energy else None
         forces_list = [] if want_forces else None
 
@@ -338,8 +463,7 @@ class UMACalculator(FAIRChemCalculator):
     def calculate(self, atoms, properties=None, system_changes=None):
         self._set_task_from_atoms(atoms)
 
-        atoms.info["spin"] = int(atoms.info.get("mult", 1))
-        atoms.info["charge"] = int(atoms.info.get("charge", 0))
+        self._prepare_atoms_metadata(atoms)
 
         super().calculate(atoms, properties, system_changes)
 

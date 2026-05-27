@@ -35,6 +35,7 @@ remove_angular_every = 0 ; runtime-only: remove COM + rigid-body rotation every 
 init_velocities = no
 restart     = no
 load_state  = yes        ; read rst and start from step 0
+condition_loaded_velocities = no ; if yes, project/rescale loaded RST velocities as a new initialization state
 rst_file    = nvt_md.rst
 rst_every   = 1000       ; checkpoint frequency
 ; random_seed = 12345    ; uncomment for reproducibility
@@ -68,6 +69,7 @@ remove_angular_every = 0 ; runtime-only: remove COM + rigid-body rotation every 
 init_velocities = yes
 restart     = no         ; resume from checkpoint step
 load_state  = no         ; read rst and start from step 0
+condition_loaded_velocities = no ; load_state default consumes velocities unconditioned
 ; rst_file  =
 rst_every   = 1000
 """,
@@ -104,6 +106,7 @@ remove_angular_every = 0 ; runtime-only: remove COM + rigid-body rotation every 
 init_velocities = yes
 restart     = no         ; resume from checkpoint step
 load_state  = no         ; read rst and start from step 0
+condition_loaded_velocities = no ; load_state default consumes velocities unconditioned
 ; rst_file  =
 rst_every   = 1000
 """,

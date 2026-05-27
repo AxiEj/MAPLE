@@ -424,6 +424,20 @@ def build_run_context(
             "init_description": dof_policy.init_description,
             "runtime_description": dof_policy.runtime_description,
         },
+        "velocity_state_policy": {
+            "restart": bool(getattr(params, "restart", False)),
+            "load_state": bool(getattr(params, "load_state", False)),
+            "condition_loaded_velocities": bool(
+                getattr(params, "condition_loaded_velocities", False)
+            ),
+            "load_state_default": (
+                "unconditioned; initialization-only remove_com/remove_angular "
+                "do not subtract DOF"
+                if bool(getattr(params, "load_state", False))
+                and not bool(getattr(params, "condition_loaded_velocities", False))
+                else None
+            ),
+        },
         # MD rejects ASE constraints up front (WS0-B); a run that got this far has none.
         "constraints_status": "none (rejected before MD; not supported)",
         "partial_pbc": {

@@ -26,13 +26,14 @@ def test_thresholds_are_versioned_and_complete():
     for section in (
         "nve_energy_drift", "restart_determinism", "nvt_mean_temperature",
         "npt_pressure", "npt_volume_fluctuation", "npt_effective_energy_drift",
-        "stress_finite_difference", "pbc_geometry", "constraints",
+        "barostat_clamp", "stress_finite_difference", "pbc_geometry", "constraints",
     ):
         assert section in th
     # The NVT gate uses the standard error of the mean (block averaging with an
     # i.i.d. floor), not the instantaneous spread; its block count is registered.
     assert th["nvt_mean_temperature"]["n_blocks"] >= 2
     assert 0.0 < th["nvt_mean_temperature"]["equilibration_fraction"] < 1.0
+    assert th["npt_volume_fluctuation"]["barostat_stride"] > 1
 
 
 def test_lj_reference_calculator_honours_maple_unit_contract():

@@ -83,6 +83,9 @@ Each run's provenance manifest (`*_md_manifest.json`) must record:
   `local_descriptor_cutoff_A`, `short_range_realspace_cutoff_A`, and
   `long_range_coulomb_cutoff_A` fields;
 - `run.unit_contract` and `run.cutoff_policy.allow_unknown_cutoff == false`;
+- `run.velocity_state_policy`: `load_state=true` must either be recorded as
+  unconditioned (initialization-only COM/angular removal does not subtract DOF)
+  or `condition_loaded_velocities=true` must record explicit projection/rescale;
 - for NPT: `run.barostat.mode == "isotropic"` and `run.barostat_clamps.count == 0`.
 
 ## 3. Scope reminders (do not over-claim)
@@ -96,6 +99,9 @@ Each run's provenance manifest (`*_md_manifest.json`) must record:
   image-flag reconstruction, not a molecule-whole unwrap. In variable-cell NPT it
   mixes continuous atom motion with affine cell strain; do not use it as a
   fixed-cell MSD/diffusion coordinate without additional cell-strain handling.
+- Periodic restart/load-state requires RST image flags. Legacy PBC checkpoints
+  without image counters are rejected rather than silently zero-filled because
+  unwrapped continuity across the handoff is unknowable.
 - A raw ASE calculator enters MD only through `wrap_ase_calculator(...)` (a real unit
   conversion that then declares the contract), never by attribute-stamping.
 - The smoke thresholds (`validation/thresholds.smoke.toml`) are for the unit layer only;

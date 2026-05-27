@@ -13,7 +13,9 @@
 #
 # smoke-1.3.1: production keeps the H̃ drift gate at 1e-6; quick smoke uses
 # 5e-6 because its ~0.16 ps fit window shows float32/GPU ML-backend slope noise.
-thresholds_version = "smoke-1.3.1"
+# smoke-1.5.0: mirror production's distribution-level N_P stride coverage in
+# the short smoke profile; smoke remains compatibility evidence only.
+thresholds_version = "smoke-1.5.0"
 
 [nve_energy_drift]
 max_rel_drift = 5.0e-3
@@ -38,6 +40,7 @@ equilibration_fraction = 0.3
 min_volume_change = 0.01
 max_volume_change = 0.25
 n_blocks = 5
+barostat_stride = 5
 
 [npt_effective_energy_drift]
 # Quick smoke fits H̃ over only ~0.16 ps for real ML backends, where float32/GPU

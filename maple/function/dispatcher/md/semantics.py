@@ -115,18 +115,33 @@ def resolve_md_dof_policy(atoms: Atoms, params, ensemble: str) -> MDDOFPolicy:
     is_pbc = any(atoms.pbc)
 
     # Initialization projection flags, mirroring ``initialize_velocities``:
-    # remove_angular (or the legacy remove_rotation) implies remove_com.  When a
-    # fresh run explicitly consumes input velocities (init_velocities=False), no
-    # initialization projection is performed; the DOF basis must therefore treat
-    # those velocities as unprojected instead of silently subtracting COM/rotation
-    # because the default remove_* knobs are initialization-only.
+    # remove_angular (or the legacy remove_rotation) implies remove_com.
+    #
+    # Initialization-only projection flags may subtract DOF only when this MAPLE
+    # run actually applies that projection.  Two entry points consume velocities
+    # as already-existing state rather than as a fresh initialization draw:
+    #
+    # * ``init_velocities=False`` fresh runs consume input-file velocities as-is.
+    # * ``load_state=True`` starts a new run from RST coordinates/velocities.  A
+    #   load-state handoff is not a strict continuation, and old checkpoints do
+    #   not prove that their velocities were projected under the current
+    #   remove_com/remove_angular policy.  Treat them as unconditioned unless the
+    #   caller explicitly opts into ``condition_loaded_velocities``.
+    #
+    # In both cases, initialization-only remove_* knobs must not silently subtract
+    # COM/rotation DOF.  Runtime projection cadence remains a separate policy.
     remove_rotation = bool(getattr(params, "remove_rotation", False))
     remove_angular = bool(getattr(params, "remove_angular", False)) or remove_rotation
     remove_com = bool(getattr(params, "remove_com", True)) or remove_angular
+    load_state = bool(getattr(params, "load_state", False))
+    condition_loaded = bool(getattr(params, "condition_loaded_velocities", False))
     explicit_input_velocities = (
-        not bool(getattr(params, "init_velocities", True))
-        and not bool(getattr(params, "restart", False))
-        and not bool(getattr(params, "load_state", False))
+        (
+            not bool(getattr(params, "init_velocities", True))
+            and not bool(getattr(params, "restart", False))
+            and not load_state
+        )
+        or (load_state and not condition_loaded)
     )
     requested_init_projection = bool(remove_com or remove_angular)
     if explicit_input_velocities:
@@ -178,7 +193,14 @@ def resolve_md_dof_policy(atoms: Atoms, params, ensemble: str) -> MDDOFPolicy:
     runtime_n_dof = max(runtime_n_dof, 1)
 
     warnings: List[str] = []
-    if explicit_input_velocities and requested_init_projection:
+    if load_state and not condition_loaded and requested_init_projection:
+        warnings.append(
+            "load_state=True consumes RST velocities as an unconditioned state; "
+            "initialization-only remove_com/remove_angular do not subtract DOF. "
+            "Use condition_loaded_velocities=True to explicitly project/rescale "
+            "loaded velocities for a new run, or restart=True for strict continuation."
+        )
+    elif explicit_input_velocities and requested_init_projection:
         warnings.append(
             "init_velocities=False consumes input velocities as provided; "
             "initialization-only remove_com/remove_angular do not subtract DOF. "

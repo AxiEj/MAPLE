@@ -16,7 +16,11 @@ from maple.function.dispatcher.md.ensemble.nve import NVE
 from maple.function.dispatcher.md.ensemble.nvt import NVT
 from maple.function.dispatcher.md.provenance import companion_manifest_for_rst
 from maple.function.dispatcher.md.rst_io import write_rst
-from maple.function.dispatcher.md.utils import VELOCITY_REPR_STANDARD
+from maple.function.dispatcher.md.utils import (
+    VELOCITY_REPR_STANDARD,
+    calculate_momentum,
+    calculate_temperature,
+)
 
 
 class _AdmissionCalc(Calculator):
@@ -121,6 +125,18 @@ def _write_companion_manifest(rst_path: Path, manifest: dict):
     return path
 
 
+def _strip_rst_image_flags(path: Path) -> None:
+    """Emulate a legacy PBC RST that stored wrapped coords but no image flags."""
+    stripped = []
+    for line in path.read_text().splitlines():
+        parts = line.split()
+        if len(parts) == 10 and parts[0].isalpha():
+            stripped.append(" ".join(parts[:7]))
+        else:
+            stripped.append(line)
+    path.write_text("\n".join(stripped) + "\n")
+
+
 def test_startup_mass_validation_rejects_zero_mass(tmp_path):
     atoms = _cluster_atoms()
     atoms.set_masses([0.0, 39.948])
@@ -141,6 +157,123 @@ def test_load_state_revalidates_mass_after_rst_restore(tmp_path):
     atoms.set_masses([0.0, 39.948])
     with pytest.raises(ValueError, match="NVE load_state admission: atomic masses"):
         sim.run()
+
+
+@pytest.mark.parametrize("mode", ["restart", "load_state"])
+def test_pbc_legacy_rst_without_image_flags_is_rejected(tmp_path, mode):
+    source = _pbc_atoms(_AdmissionCalc(cutoff=1.0, stress=False), cell=10.0)
+    rst = _write_rst(
+        tmp_path / f"legacy_flags_{mode}_md.rst",
+        source,
+        ensemble="nve",
+        step=1,
+    )
+    _strip_rst_image_flags(rst)
+
+    atoms = _pbc_atoms(_AdmissionCalc(cutoff=1.0, stress=False), cell=10.0)
+    paras = {
+        "steps": 2,
+        "verbose": 0,
+        "rst_file": str(rst),
+        mode: True,
+    }
+    with pytest.raises(RuntimeError, match="requires per-atom MAPLE image flags"):
+        NVE(output=str(tmp_path / f"{mode}.out"), atoms=atoms, paras=paras).run()
+
+
+@pytest.mark.parametrize("ensemble_cls,ensemble,extra", [
+    (NVE, "nve", {}),
+    (NVT, "nvt", {"thermostat": "v-rescale"}),
+    (NPT, "npt", {"thermostat": "v-rescale", "barostat": "c-rescale"}),
+])
+def test_load_state_treats_rst_velocities_as_unconditioned_by_default(
+    tmp_path, ensemble_cls, ensemble, extra
+):
+    source = _pbc_atoms(_AdmissionCalc(cutoff=1.0, stress=(ensemble == "npt")), cell=10.0)
+    drift = np.tile(np.array([1.0e-4, -2.0e-4, 3.0e-4]), (len(source), 1))
+    rst = _write_rst(
+        tmp_path / f"drift_{ensemble}_md.rst",
+        source,
+        ensemble=ensemble,
+        velocities=drift,
+    )
+
+    atoms = _pbc_atoms(_AdmissionCalc(cutoff=1.0, stress=(ensemble == "npt")), cell=10.0)
+    sim = ensemble_cls(
+        output=str(tmp_path / f"{ensemble}.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "verbose": 0,
+            "load_state": True,
+            "rst_file": str(rst),
+            "remove_com_every": 0,
+            **extra,
+        },
+    )
+    assert sim._dof_policy.runtime_n_dof == 3 * len(source)
+
+    captured = {}
+    if ensemble_cls is NVE:
+        def _stub(velocities, **_kwargs):
+            captured["velocities"] = velocities.copy()
+            return velocities
+    else:
+        def _stub(velocities, velocity_representation, **_kwargs):
+            captured["velocities"] = velocities.copy()
+            return velocities, velocity_representation
+    sim._run_simulation = _stub
+    sim.run()
+
+    np.testing.assert_allclose(captured["velocities"], drift)
+    assert np.linalg.norm(calculate_momentum(sim.atoms, captured["velocities"])) > 0.0
+    assert "load_state=True consumes RST velocities as an unconditioned state" in (
+        tmp_path / f"{ensemble}.out"
+    ).read_text()
+
+
+def test_condition_loaded_velocities_explicitly_projects_and_rescales(tmp_path):
+    source = _pbc_atoms(_AdmissionCalc(cutoff=1.0, stress=False), cell=10.0)
+    drift = np.array([[1.0e-4, 0.0, 0.0], [3.0e-4, 0.0, 0.0]])
+    rst = _write_rst(
+        tmp_path / "condition_loaded_md.rst",
+        source,
+        ensemble="nvt",
+        velocities=drift,
+    )
+
+    atoms = _pbc_atoms(_AdmissionCalc(cutoff=1.0, stress=False), cell=10.0)
+    sim = NVT(
+        output=str(tmp_path / "condition.out"),
+        atoms=atoms,
+        paras={
+            "steps": 1,
+            "verbose": 0,
+            "load_state": True,
+            "condition_loaded_velocities": True,
+            "rst_file": str(rst),
+            "thermostat": "v-rescale",
+            "remove_com_every": 0,
+        },
+    )
+    assert sim._dof_policy.runtime_n_dof == 3 * len(source) - 3
+
+    captured = {}
+    def _stub(velocities, velocity_representation, **_kwargs):
+        captured["velocities"] = velocities.copy()
+        return velocities, velocity_representation
+    sim._run_simulation = _stub
+    sim.run()
+
+    np.testing.assert_allclose(
+        calculate_momentum(sim.atoms, captured["velocities"]),
+        0.0,
+        atol=1e-12,
+    )
+    assert calculate_temperature(
+        sim.atoms, captured["velocities"], n_dof=sim._dof_policy.init_n_dof
+    ) == pytest.approx(sim.params.temperature, rel=1e-6)
+    assert "Loaded RST velocities explicitly conditioned" in (tmp_path / "condition.out").read_text()
 
 
 @pytest.mark.parametrize("ensemble_cls,ensemble,extra", [

@@ -58,6 +58,7 @@ from ..utils import (
     calculate_temperature,
     calculate_kinetic_energy,
     condition_input_velocities,
+    condition_loaded_velocities,
     get_atoms_velocity_representation,
     initialize_velocities,
     forces_au,
@@ -205,6 +206,7 @@ class NPTParams:
     init_velocities: bool  = True
     restart:          bool  = False
     load_state:       bool  = False
+    condition_loaded_velocities: bool = False  # load_state-only: explicitly project/rescale loaded velocities for a new run
     rst_file:         str   = ""           # Path to RST checkpoint file (explicit source for restart/load_state)
     rst_every:        int   = 1000
     remove_com:       bool  = True   # initialization-only COM removal
@@ -457,6 +459,12 @@ class NPT(JobABC):
                 )
                 if self.logger.resumed_rng_state is not None:
                     restore_rng_from_hex(self._rng, self.logger.resumed_rng_state)
+                if self.params.condition_loaded_velocities:
+                    velocities, velocity_representation = self._condition_loaded_velocities(
+                        velocities,
+                        velocity_representation,
+                        resumed_timestep_au,
+                    )
                 remaining = self.params.steps
             elif self.params.restart:
                 if self.params.init_velocities and self.params.debug:
@@ -570,6 +578,7 @@ class NPT(JobABC):
             f"\nVelocity init:         {self.params.init_velocities}\n",
             f"Restart mode:          {self.params.restart}\n",
             f"Load-state mode:       {self.params.load_state}\n",
+            f"Condition loaded v:    {self.params.condition_loaded_velocities}\n",
             f"RST every:             {self.params.rst_every} steps\n",
             f"Remove COM:            {self.params.remove_com} (initialization-only)\n",
             f"Remove angular:        {self.params.remove_angular} (initialization-only; ignored under PBC)\n",
@@ -612,6 +621,35 @@ class NPT(JobABC):
                 f"repopulates the init-projected COM during the run.\n"
             ])
         return velocities
+
+    def _condition_loaded_velocities(
+        self,
+        velocities: np.ndarray,
+        velocity_representation: str,
+        source_timestep_au: Optional[float],
+    ) -> tuple[np.ndarray, str]:
+        """Explicitly condition a load_state velocity field as a new-run init state."""
+        conditioned, representation, summary = condition_loaded_velocities(
+            atoms=self.atoms,
+            velocities=velocities,
+            velocity_representation=velocity_representation,
+            source_timestep_au=source_timestep_au,
+            temperature=self.params.temperature,
+            remove_com=self.params.remove_com,
+            remove_rotation=self.params.remove_rotation,
+            # NPT requires full PBC; rigid-body rotation is undefined.
+            remove_angular=False,
+            target_n_dof=self._dof_policy.init_n_dof,
+        )
+        self.log_info([
+            "\nLoaded RST velocities explicitly conditioned as the new-run "
+            "initialization state: "
+            f"T {summary['temperature_before']:.2f} -> "
+            f"{summary['temperature_after']:.2f} K "
+            f"({self._dof_policy.init_description}); "
+            f"projected_com={summary['projected_com']}.\n"
+        ])
+        return conditioned, representation
 
     def _run_simulation(self, velocities: np.ndarray,
                         velocity_representation: str,

@@ -576,6 +576,7 @@ def run_npt_volume_fluctuation(
     steps=20000,
     timestep=1.0,
     temperature=100.0,
+    barostat_stride: Optional[int] = None,
     validation_artifact_id: Optional[str] = None,
 ) -> AcceptanceResult:
     """NPT volume-fluctuation self-consistency for the production c-rescale path.
@@ -607,6 +608,9 @@ def run_npt_volume_fluctuation(
     p1, p2 = float(th["pressures_bar"][0]), float(th["pressures_bar"][1])
     eq_frac = float(th["equilibration_fraction"])
     n_blocks = int(th["n_blocks"])
+    stride_np = int(
+        barostat_stride if barostat_stride is not None else th.get("barostat_stride", 1)
+    )
 
     def _volume_series(tag: str, pressure: float) -> np.ndarray:
         atoms = _validation_liquid(calc_factory)
@@ -615,7 +619,8 @@ def run_npt_volume_fluctuation(
             "steps": steps, "timestep": timestep, "temperature": temperature,
             "pressure": pressure, "thermostat": "v-rescale", "barostat": "c-rescale",
             "tau_t": 100.0, "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0,
-            "log_every": 1, "traj_every": steps, "rst_every": 0, "random_seed": 12345,
+            "barostat_stride": stride_np, "log_every": 1, "traj_every": steps,
+            "rst_every": 0, "random_seed": 12345,
             "validation_artifact_id": validation_artifact_id or "npt_volume_fluctuation",
         }).run()
         thermo = _read_thermo(workdir / f"{tag}_md_thermo.dat")
@@ -644,6 +649,7 @@ def run_npt_volume_fluctuation(
         "var_V1_A6": var_v1, "var_V1_block_se_A6": var_se1,
         "n_samples_post_eq": int(len(v1)),
         "kT_eV": kT_ev, "P1_bar": p1, "P2_bar": p2,
+        "barostat_stride_NP": stride_np,
     }
 
     # Linear-region sanity guards (the EOS slope is a secant ~ local kappa_T only

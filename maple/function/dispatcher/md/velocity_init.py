@@ -10,9 +10,19 @@ import numpy as np
 from ase import Atoms
 
 from .dof import get_initialization_dof_policy, get_n_dof_from_policy
-from .motion_projection import remove_center_of_mass_motion, remove_rigid_body_rotation
+from .motion_projection import (
+    normalize_velocities_to_standard,
+    remove_center_of_mass_motion,
+    remove_rigid_body_rotation,
+)
 from .thermo import calculate_temperature
-from .units import AMU_TO_AU, ANGSTROM_TO_BOHR, KELVIN_TO_HARTREE
+from .units import (
+    AMU_TO_AU,
+    ANGSTROM_TO_BOHR,
+    KELVIN_TO_HARTREE,
+    VELOCITY_REPR_STANDARD,
+    forces_au,
+)
 
 
 def initialize_velocities(
@@ -251,6 +261,46 @@ def condition_input_velocities(
         "projected_angular": projected_angular,
         "rescaled": rescaled,
     }
+
+
+def condition_loaded_velocities(
+    atoms: Atoms,
+    velocities: np.ndarray,
+    velocity_representation: str,
+    source_timestep_au: Optional[float],
+    *,
+    temperature: float,
+    remove_com: bool,
+    remove_rotation: bool,
+    remove_angular: Optional[bool],
+    target_n_dof: int,
+) -> tuple[np.ndarray, str, dict[str, object]]:
+    """Normalize and condition RST-loaded velocities as a new-run init state.
+
+    ``load_state=True`` normally consumes checkpoint velocities as an
+    unconditioned handoff.  When the caller explicitly opts into
+    ``condition_loaded_velocities=True``, the stored velocity representation is
+    first converted to standard full-step velocities and then the same
+    initialization projection/rescale path used for input velocities is applied.
+    """
+    if velocity_representation != VELOCITY_REPR_STANDARD:
+        velocities, velocity_representation = normalize_velocities_to_standard(
+            atoms,
+            velocities,
+            velocity_representation,
+            forces_au(atoms),
+            source_timestep_au,
+        )
+    conditioned, summary = condition_input_velocities(
+        atoms=atoms,
+        velocities=velocities,
+        temperature=temperature,
+        remove_com=remove_com,
+        remove_rotation=remove_rotation,
+        remove_angular=remove_angular,
+        target_n_dof=target_n_dof,
+    )
+    return conditioned, VELOCITY_REPR_STANDARD, summary
 
 
 def scale_velocities_to_temperature(

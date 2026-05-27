@@ -43,7 +43,7 @@ EXPECTED_NAMES = [
     # pressure
     "compute_instantaneous_pressure",
     # velocity_init
-    "condition_input_velocities", "initialize_velocities",
+    "condition_input_velocities", "condition_loaded_velocities", "initialize_velocities",
     "scale_velocities_to_temperature",
     # motion_projection
     "apply_runtime_motion_projection", "calculate_angular_momentum", "calculate_momentum",
@@ -83,6 +83,7 @@ def test_shim_reexports_are_the_concern_module_objects():
     assert utils.get_n_dof_from_policy is dof.get_n_dof_from_policy
     assert utils.compute_instantaneous_pressure is pressure.compute_instantaneous_pressure
     assert utils.condition_input_velocities is velocity_init.condition_input_velocities
+    assert utils.condition_loaded_velocities is velocity_init.condition_loaded_velocities
     assert utils.initialize_velocities is velocity_init.initialize_velocities
     assert utils.apply_runtime_motion_projection is motion_projection.apply_runtime_motion_projection
     assert utils.write_xyz_frame is trajectory_xyz.write_xyz_frame

@@ -29,6 +29,7 @@ def test_npt_volume_fluctuation_runs_and_reports_metrics(tmp_path):
     for key in (
         "kappa_fluct_per_bar", "kappa_eos_per_bar", "mean_V1_A3", "mean_V2_A3",
         "var_V1_A6", "var_V1_block_se_A6", "n_samples_post_eq", "rel_volume_change",
+        "barostat_stride_NP",
     ):
         assert key in metrics, f"missing reported metric: {key}"
 
@@ -45,3 +46,4 @@ def test_npt_volume_fluctuation_thresholds_present():
     assert len(th["pressures_bar"]) == 2 and th["pressures_bar"][1] > th["pressures_bar"][0]
     assert 0.0 < th["equilibration_fraction"] < 1.0
     assert th["min_volume_change"] < th["max_volume_change"]
+    assert th["barostat_stride"] > 1

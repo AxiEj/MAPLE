@@ -18,13 +18,17 @@
 # ordering (sqrt-volume scaling before Velocity Verlet).  The effective-energy
 # drift gate remains tight; the volume-fluctuation/EOS consistency band is kept
 # as a loose finite-sampling sanity check under the new ordering.
+# 1.5.0 (WS10): make the NPT volume-fluctuation gate exercise the Bernetti-Bussi
+# N_P stride path (barostat_stride>1), so production validation covers a
+# distribution-level strided c-rescale run instead of only single-step N_P=1
+# propagation plus separate white-box stride tests.
 #
 # This is the PRODUCTION (ship-gate) profile, used by `pytest tests/production
 # -m production` and scripts/production_validation.py. WS-D split the loose,
 # short-run unit-layer thresholds into validation/thresholds.smoke.toml so this
 # profile can be tightened against a longer-run baseline without false-failing the
 # default short unit runs. Production values are unchanged by that split.
-thresholds_version = "1.4.0"
+thresholds_version = "1.5.0"
 
 [nve_energy_drift]
 # Total-energy conservation for a strict NVE run on a near-equilibrium crystal.
@@ -87,6 +91,7 @@ equilibration_fraction = 0.3           # discard the first 30% of each run
 min_volume_change = 0.01               # below this the EOS secant has no signal -> skip
 max_volume_change = 0.25               # above this the response is non-linear/unstable -> fail
 n_blocks = 5                           # block averaging for Var(V) and its standard error
+barostat_stride = 5                    # distribution-level validation of Bernetti-Bussi N_P stride
 
 [npt_effective_energy_drift]
 # Reversible c-rescale conserved-quantity (effective-energy) drift. The NPT

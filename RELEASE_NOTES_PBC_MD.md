@@ -109,6 +109,24 @@ shape; not a Parrinello–Rahman / MTTK replacement).
   swings ~0.08 Ha. Langevin NPT (no conserved energy) and Berendsen
   (equilibration-only) do not report H̃.
 
+## Restart/load-state velocity and image-flag safety (WS10)
+
+- **`load_state=true` no longer assumes initialization projection.** Loaded RST
+  velocities are treated as an unconditioned new-run state by default, so
+  initialization-only `remove_com` / `remove_angular` do not silently subtract
+  DOF unless the user explicitly sets `condition_loaded_velocities=true`. That
+  opt-in converts any stored velocity representation to standard velocities,
+  applies the same COM/angular projection and temperature rescale as a fresh
+  initialization, and records the policy in the run manifest.
+- **PBC legacy RST files without image flags are rejected.** Current RST files
+  carry per-atom image counters. If a periodic checkpoint lacks those counters,
+  MAPLE now hard-fails restart/load-state instead of zero-filling them, because
+  unwrapped trajectory continuity across the handoff cannot be reconstructed.
+- **The NPT volume-fluctuation acceptance gate exercises `barostat_stride=N_P`.**
+  The production threshold profile now validates a strided c-rescale
+  distribution-level run (`N_P>1`) in addition to the H̃ drift and zero-clamp
+  gates, keeping the stride path out of the "white-box only" category.
+
 ## Release acceptance matrix: NVT gate fix + effective-energy class (WS7)
 
 - **`nvt_mean_temperature` gate corrected.** The window is now `k_sigma` × the

@@ -302,6 +302,39 @@ class MDLogger:
             f"{used_path.name}: {detail}; continuing with fresh admission checks.\n"
         ])
 
+    @staticmethod
+    def _state_is_periodic(atoms: Atoms, state: dict) -> bool:
+        """Return whether the restored checkpoint represents a periodic system."""
+        if state.get("pbc") is not None:
+            return any(bool(flag) for flag in state["pbc"])
+        return bool(
+            any(atoms.pbc)
+            or state.get("cell_matrix") is not None
+            or state.get("cell") is not None
+        )
+
+    def _validate_restart_image_flags(
+        self,
+        used_path: Path,
+        *,
+        atoms: Atoms,
+        state: dict,
+        load_state: bool,
+    ) -> None:
+        """Reject periodic legacy RST files that cannot preserve unwrapped continuity."""
+        if not self._state_is_periodic(atoms, state):
+            return
+        if state.get("image_flags") is not None:
+            return
+        mode = "load_state" if load_state else "restart"
+        raise RuntimeError(
+            f"PBC {mode} requires per-atom MAPLE image flags in {used_path.name}. "
+            "This legacy RST has wrapped coordinates but no image counters, so "
+            "unwrapped trajectory continuity across the checkpoint cannot be "
+            "guaranteed. Start from a checkpoint written by the current MD engine "
+            "or regenerate the handoff with image flags."
+        )
+
     def start_simulation(self, ensemble: str, timestep: float, n_steps: int,
                         temperature: float, atoms: Atoms,
                         pressure: float = None, step_offset: int = 0,
@@ -848,6 +881,10 @@ class MDLogger:
                     f"Element mismatch between rst and input at position {idx}"
                 )
 
+        self._validate_restart_image_flags(
+            used_path, atoms=atoms, state=state, load_state=load_state
+        )
+
         if not load_state:
             if state["ensemble"] != ensemble:
                 raise RuntimeError(
@@ -922,8 +959,6 @@ class MDLogger:
             atoms.set_pbc(state["pbc"])
         if state.get("image_flags") is not None:
             ensure_image_flags(atoms)[:] = state["image_flags"]
-        elif any(atoms.pbc):
-            ensure_image_flags(atoms)
 
         self._validate_restart_manifest(
             used_path, atoms=atoms, state=state, load_state=load_state

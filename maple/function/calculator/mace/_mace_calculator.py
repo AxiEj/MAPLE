@@ -6,6 +6,7 @@ from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC
 from .._batch_types import BatchResult
 from .._batch_utils import (
+    atoms_list_has_pbc,
     empty_batch_result,
     normalize_energy_forces_request,
     sequential_calculate_many,
@@ -343,6 +344,9 @@ class MACECalculator(CalcABC):
         atoms_list = list(atoms_list)
         if not atoms_list:
             return empty_batch_result(want_energy, want_forces)
+
+        if atoms_list_has_pbc(atoms_list):
+            return sequential_calculate_many(self, atoms_list, request, want_energy, want_forces)
 
         if self.solvent_correction:
             return sequential_calculate_many(self, atoms_list, request, want_energy, want_forces)

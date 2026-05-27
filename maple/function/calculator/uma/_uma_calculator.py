@@ -22,6 +22,7 @@ except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
 from .._batch_types import BatchResult
+from .._batch_utils import atoms_list_has_pbc
 
 
 EV2HARTREE = 1.0 / 27.211386245988
@@ -389,6 +390,9 @@ class UMACalculator(FAIRChemCalculator):
                 energies=np.zeros(0, dtype=np.float64) if want_energy else None,
                 forces=[] if want_forces else None,
             )
+
+        if atoms_list_has_pbc(atoms_list):
+            return self._calculate_many_sequential(atoms_list, request, want_energy, want_forces)
 
         if self.solvent_correction:
             return self._calculate_many_sequential(atoms_list, request, want_energy, want_forces)

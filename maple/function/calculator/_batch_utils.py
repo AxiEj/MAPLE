@@ -19,6 +19,18 @@ from ase.calculators.calculator import all_changes
 from ._batch_types import BatchResult
 
 
+def atoms_has_pbc(atoms) -> bool:
+    """Return True when an ASE Atoms object has any periodic axis enabled."""
+    if atoms is None:
+        return False
+    return bool(np.any(getattr(atoms, "pbc", False)))
+
+
+def atoms_list_has_pbc(atoms_list: Sequence) -> bool:
+    """Return True when any structure in a candidate batch is periodic."""
+    return any(atoms_has_pbc(at) for at in atoms_list)
+
+
 def normalize_energy_forces_request(properties) -> tuple[tuple[str, ...], bool, bool, list[str]]:
     """Return ``(props, want_energy, want_forces, request)``.
 

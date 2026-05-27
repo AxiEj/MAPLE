@@ -30,6 +30,37 @@ from ase import Atoms
 from ase.calculators.calculator import all_changes
 from ase.constraints import FixAtoms
 
+from ._batch_types import BatchResult
+from ._batch_utils import (
+    atoms_list_has_pbc,
+    normalize_energy_forces_request,
+    sequential_calculate_many,
+)
+
+
+def _calculate_many_nonperiodic_batch_only(calc, atoms_list, properties) -> BatchResult:
+    """Route PBC structures through single-structure calculate calls.
+
+    MAPLE's current batch acceleration contract is validated for non-periodic
+    structures only.  Periodic systems must not enter model-native
+    multi-structure batch paths until each backend has a PBC-aware batch
+    implementation and parity tests, so this helper disables batch acceleration
+    by falling back to sequential single-structure evaluation whenever any
+    candidate structure has PBC enabled.
+    """
+    atoms_list = list(atoms_list)
+    if atoms_list_has_pbc(atoms_list):
+        _, want_energy, want_forces, request = normalize_energy_forces_request(
+            properties
+        )
+        if not request:
+            return BatchResult()
+        return sequential_calculate_many(
+            calc, atoms_list, request, want_energy, want_forces
+        )
+    return calc.calculate_many(atoms_list, properties=properties)
+
+
 # ---------------------------------------------------------------------------
 # Single-structure E + F merge
 # ---------------------------------------------------------------------------
@@ -361,7 +392,9 @@ class FDHessianEvaluator:
         out: List[np.ndarray] = []
         for start in range(0, n_total, chunk):
             sub = list(atoms_list[start : start + chunk])
-            result = self.calc.calculate_many(sub, properties=("forces",))
+            result = _calculate_many_nonperiodic_batch_only(
+                self.calc, sub, properties=("forces",)
+            )
             if result.forces is None:
                 raise RuntimeError(
                     "calculate_many returned no forces; required for "
@@ -402,7 +435,8 @@ class PathEvaluator:
         forces: List[np.ndarray] = []
         for start in range(0, n_total, chunk):
             sub = list(images[start : start + chunk])
-            result = self.calc.calculate_many(
+            result = _calculate_many_nonperiodic_batch_only(
+                self.calc,
                 sub, properties=("energy", "forces")
             )
             if result.energies is not None:

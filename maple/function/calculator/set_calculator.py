@@ -10,6 +10,7 @@ from ase import Atoms
 
 from .ani._ani_calculator import ANICalculator
 from .mace._mace_calculator import MACECalculator
+from ._batch_utils import atoms_has_pbc
 
 
 IMPLEMENTATION_MODELS = [
@@ -138,6 +139,12 @@ class SetClaculator:
         batch_size = self.model_options.get("batch_size")
         if batch_size is None:
             return
+
+        if atoms_has_pbc(getattr(self, "atoms", None)):
+            raise ValueError(
+                "PBC and batch_size cannot be combined yet; "
+                "PBC batch acceleration is not supported."
+            )
 
         if isinstance(batch_size, bool):
             raise ValueError("model batch_size must be a positive integer.")

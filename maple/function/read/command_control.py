@@ -584,6 +584,13 @@ class CommandControl:
                 msg = "model batch_size must be a positive integer."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
+            if "pbc" in params:
+                msg = (
+                    "PBC and batch_size cannot be combined yet; "
+                    "PBC batch acceleration is not supported."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
 
         hessian_mode = model_options.get("hessian")
         if hessian_mode is not None and hessian_mode not in cls.SUPPORTED_HESSIAN_MODES:

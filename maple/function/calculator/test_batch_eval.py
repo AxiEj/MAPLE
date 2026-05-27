@@ -190,6 +190,18 @@ def test_command_control_rejects_invalid_model_batch_size():
         CommandControl.from_settings(["#model=uma(batch_size=0)", "#freq"])
 
 
+def test_command_control_rejects_pbc_with_batch_size():
+    from maple.function.read.command_control import CommandControl
+
+    with pytest.raises(ValueError, match="PBC and batch_size"):
+        CommandControl.from_settings([
+            "#model=aimnet2",
+            "#pbc(10,10,10)",
+            "#batch_size=2",
+            "#freq",
+        ])
+
+
 def test_command_control_accepts_prfo_hessian_recalc_options():
     from maple.function.read.command_control import CommandControl
 
@@ -217,6 +229,18 @@ def test_setcalculator_applies_model_batch_size_aliases():
     assert calc.fd_batch_size == 4
     assert calc.hessian_batch_size == 4
     assert calc.analytic_hessian_batch_size == 4
+
+
+def test_setcalculator_rejects_batch_size_for_periodic_atoms():
+    from maple.function.calculator.set_calculator import SetClaculator
+
+    setter = object.__new__(SetClaculator)
+    setter.model_options = {"batch_size": 4}
+    setter.atoms = Atoms("H", positions=np.zeros((1, 3)), cell=np.eye(3) * 8.0, pbc=True)
+    calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+
+    with pytest.raises(ValueError, match="PBC and batch_size"):
+        setter._apply_batch_size(calc)
 
 
 def _quadratic_hessian(batch_size=None, *, batched=False):
@@ -498,6 +522,27 @@ def test_fd_hessian_reads_calculator_level_batch_size_for_freq():
     assert calc.chunk_sizes == [5, 5, 5, 3]
 
 
+def test_fd_hessian_disables_batch_path_for_pbc():
+    class NoBatchWhenPBCCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.calculate_many_calls = 0
+
+        def calculate_many(self, atoms_list, properties=("forces",)):
+            self.calculate_many_calls += 1
+            raise AssertionError("PBC Hessian must use sequential calculate, not batch")
+
+    ref = np.zeros((1, 3))
+    atoms = Atoms("H", positions=ref + 0.02, cell=np.eye(3) * 8.0, pbc=True)
+    atoms.calc = NoBatchWhenPBCCalc(k=1.0, ref_positions=ref)
+
+    H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+    np.testing.assert_allclose(H, np.eye(3), atol=1e-8)
+    assert atoms.calc.calculate_many_calls == 0
+    assert atoms.calc.calls == 6
+
+
 def test_fd_hessian_invalid_context_mode_fails_fast():
     calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
     calc.fd_context_mode = "unsafe"
@@ -521,6 +566,31 @@ def test_path_evaluator_returns_energies_and_forces_for_images():
     es, fs = PathEvaluator(calc, batch_size=2).energy_forces(images)
     assert es.shape == (5,) and len(fs) == 5
     assert np.all(np.diff(es) >= 0.0)
+
+
+def test_path_evaluator_disables_batch_path_for_pbc_images():
+    class NoBatchWhenPBCCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.calculate_many_calls = 0
+
+        def calculate_many(self, atoms_list, properties=("energy", "forces")):
+            self.calculate_many_calls += 1
+            raise AssertionError("PBC path evaluation must use sequential calculate, not batch")
+
+    ref = np.zeros((1, 3))
+    images = [
+        Atoms("H", positions=ref + i * 0.01, cell=np.eye(3) * 8.0, pbc=True)
+        for i in range(3)
+    ]
+    calc = NoBatchWhenPBCCalc(k=1.0, ref_positions=ref)
+
+    es, fs = PathEvaluator(calc, batch_size=2).energy_forces(images)
+
+    assert es.shape == (3,)
+    assert len(fs) == 3
+    assert calc.calculate_many_calls == 0
+    assert calc.calls == 3
 
 
 def test_neb_path_energy_forces_uses_native_batch_snapshot():

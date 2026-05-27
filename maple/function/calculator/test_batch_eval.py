@@ -38,6 +38,7 @@ from maple.function.calculator._batch_eval import (
     FDHessianEvaluator,
     HVPEvaluator,
     PathEvaluator,
+    _estimate_auto_batch_size_from_item_bytes,
     energy_forces_one,
 )
 from maple.function.calculator._batch_types import BatchResult
@@ -169,6 +170,13 @@ def test_command_control_accepts_model_level_batch_size():
     assert cc.params["model_options"]["task"] == "omol"
     assert cc.params["model_options"]["batch_size"] == 2
 
+    cc_auto = CommandControl.from_settings([
+        "#model=uma(task=omol,batch_size=auto)",
+        "#freq",
+    ])
+
+    assert cc_auto.params["model_options"]["batch_size"] == "auto"
+
 
 def test_command_control_promotes_global_batch_size_to_model_option():
     from maple.function.read.command_control import CommandControl
@@ -201,6 +209,14 @@ def test_command_control_rejects_pbc_with_batch_size():
             "#freq",
         ])
 
+    with pytest.raises(ValueError, match="PBC and batch_size"):
+        CommandControl.from_settings([
+            "#model=aimnet2",
+            "#pbc(10,10,10)",
+            "#batch_size=auto",
+            "#freq",
+        ])
+
 
 def test_command_control_accepts_rfo_fd_batch_size_option():
     from maple.function.read.command_control import CommandControl
@@ -213,6 +229,12 @@ def test_command_control_accepts_rfo_fd_batch_size_option():
     assert cc.task == "opt"
     assert cc.params["method"] == "rfo"
     assert cc.params["fd_batch_size"] == 2
+
+    cc_auto = CommandControl.from_settings([
+        "#model=ani2x",
+        "#opt(method=rfo,fd_batch_size=auto)",
+    ])
+    assert cc_auto.params["fd_batch_size"] == "auto"
 
     with pytest.raises(ValueError, match="fd_batch_size"):
         CommandControl.from_settings([
@@ -249,6 +271,15 @@ def test_setcalculator_applies_model_batch_size_aliases():
     assert calc.hessian_batch_size == 4
     assert calc.analytic_hessian_batch_size == 4
 
+    setter.model_options = {"batch_size": "auto"}
+    auto_calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+    setter._apply_batch_size(auto_calc)
+    assert auto_calc.batch_size == "auto"
+    assert auto_calc.path_batch_size == "auto"
+    assert auto_calc.fd_batch_size == "auto"
+    assert auto_calc.hessian_batch_size == "auto"
+    assert auto_calc.analytic_hessian_batch_size == "auto"
+
 
 def test_setcalculator_rejects_batch_size_for_periodic_atoms():
     from maple.function.calculator.set_calculator import SetClaculator
@@ -258,6 +289,10 @@ def test_setcalculator_rejects_batch_size_for_periodic_atoms():
     setter.atoms = Atoms("H", positions=np.zeros((1, 3)), cell=np.eye(3) * 8.0, pbc=True)
     calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
 
+    with pytest.raises(ValueError, match="PBC and batch_size"):
+        setter._apply_batch_size(calc)
+
+    setter.model_options = {"batch_size": "auto"}
     with pytest.raises(ValueError, match="PBC and batch_size"):
         setter._apply_batch_size(calc)
 
@@ -291,13 +326,17 @@ def test_exact_autograd_hessian_respects_row_batch_size():
 
     loop = _quadratic_hessian(batch_size=1)
     chunked = _quadratic_hessian(batch_size=2)
+    auto = _quadratic_hessian(batch_size="auto")
     full_vjp = _quadratic_hessian(batch_size=None, batched=True)
     chunked_vjp = _quadratic_hessian(batch_size=3, batched=True)
+    auto_vjp = _quadratic_hessian(batch_size="auto", batched=True)
 
     torch.testing.assert_close(loop, expected)
     torch.testing.assert_close(chunked, expected)
+    torch.testing.assert_close(auto, expected)
     torch.testing.assert_close(full_vjp, expected)
     torch.testing.assert_close(chunked_vjp, expected)
+    torch.testing.assert_close(auto_vjp, expected)
 
 
 def test_exact_autograd_hessian_rejects_invalid_batch_size():
@@ -333,6 +372,21 @@ def test_exact_autograd_batched_vjp_can_warn_on_fallback(monkeypatch):
 
     expected = torch.diag(torch.arange(1, 7, dtype=torch.float64))
     torch.testing.assert_close(H, expected)
+
+
+def test_auto_batch_estimate_targets_seventy_five_percent_free_memory():
+    assert _estimate_auto_batch_size_from_item_bytes(
+        n_total=100,
+        item_bytes=10,
+        free_bytes=100,
+        target_fraction=0.75,
+    ) == 7
+    assert _estimate_auto_batch_size_from_item_bytes(
+        n_total=4,
+        item_bytes=0,
+        free_bytes=100,
+        target_fraction=0.75,
+    ) == 4
 
 
 # ---------------------------------------------------------------------------
@@ -635,6 +689,29 @@ def test_fd_hessian_disables_batch_path_for_pbc():
     np.testing.assert_allclose(H, np.eye(3), atol=1e-8)
     assert atoms.calc.calculate_many_calls == 0
     assert atoms.calc.calls == 6
+
+
+def test_fd_hessian_accepts_auto_batch_size():
+    class ChunkRecordingCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.chunk_sizes = []
+
+        def calculate_many(self, atoms_list, properties=("forces",)):
+            self.chunk_sizes.append(len(atoms_list))
+            return super().calculate_many(atoms_list, properties=properties)
+
+    ref = np.zeros((2, 3))
+    atoms = Atoms("HH", positions=ref + 0.02)
+    calc = ChunkRecordingCalc(k=1.0, ref_positions=ref)
+    calc.device = "cpu"
+    calc.batch_size = "auto"
+    atoms.calc = calc
+
+    H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+    np.testing.assert_allclose(H, np.eye(6), atol=1e-8)
+    assert calc.chunk_sizes == [12]
 
 
 def test_fd_hessian_invalid_context_mode_fails_fast():
@@ -1257,6 +1334,64 @@ def test_path_evaluator_reads_calculator_level_batch_size():
     assert es.shape == (5,)
     assert len(fs) == 5
     assert calc.chunk_sizes == [2, 2, 1]
+
+
+def test_path_evaluator_auto_batch_size_backs_off_after_oom():
+    class OOMAboveTwoCalc(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.chunk_sizes = []
+
+        def calculate_many(self, atoms_list, properties=("energy", "forces")):
+            self.chunk_sizes.append(len(atoms_list))
+            if len(atoms_list) > 2:
+                raise RuntimeError("CUDA out of memory")
+            energies = []
+            forces = []
+            for at in atoms_list:
+                R = at.get_positions().astype(np.float64)
+                d = R - self.ref
+                energies.append(0.5 * self.k * float(np.sum(d * d)))
+                forces.append(-self.k * d)
+            return BatchResult(energies=np.asarray(energies), forces=forces)
+
+    ref = np.zeros((1, 3))
+    images = [Atoms("H", positions=ref + i * 0.01) for i in range(5)]
+    calc = OOMAboveTwoCalc(k=1.0, ref_positions=ref)
+    calc.device = "cpu"
+    calc.batch_size = "auto"
+
+    es, fs = PathEvaluator(calc).energy_forces(images)
+
+    assert es.shape == (5,)
+    assert len(fs) == 5
+    assert calc.chunk_sizes == [5, 2, 2, 1]
+    assert calc._auto_batch_size_last == 2
+
+
+def test_path_evaluator_auto_caps_ani_and_mace_path_batches():
+    class FakeANICalculator(HarmonicCalc):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.device = "cuda"
+            self.dtype = np.float32
+            self.chunk_sizes = []
+
+        def calculate_many(self, atoms_list, properties=("energy", "forces")):
+            self.chunk_sizes.append(len(atoms_list))
+            return super().calculate_many(atoms_list, properties=properties)
+
+    ref = np.zeros((1, 3))
+    images = [Atoms("H", positions=ref + i * 0.01) for i in range(20)]
+    calc = FakeANICalculator(k=1.0, ref_positions=ref)
+    calc.batch_size = "auto"
+
+    es, fs = PathEvaluator(calc).energy_forces(images)
+
+    assert es.shape == (20,)
+    assert len(fs) == 20
+    assert calc.chunk_sizes == [8, 8, 4]
+    assert calc._auto_batch_size_last == 8
 
 
 def test_path_evaluator_rejects_invalid_batch_size():

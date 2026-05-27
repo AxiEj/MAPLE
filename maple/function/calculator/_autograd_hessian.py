@@ -11,17 +11,33 @@ import warnings
 
 import torch
 
+AUTO_BATCH_SIZE = "auto"
+AUTO_BATCH_TARGET_FRACTION = 0.75
 
-def _positive_int_or_none(value, name: str) -> int | None:
+
+def _is_auto_batch_size(value) -> bool:
+    return isinstance(value, str) and value.strip().lower() == AUTO_BATCH_SIZE
+
+
+def _positive_int_auto_or_none(value, name: str):
     if value is None:
         return None
+    if _is_auto_batch_size(value):
+        return AUTO_BATCH_SIZE
     if isinstance(value, bool):
-        raise ValueError(f"{name} must be a positive integer or None, got {value!r}")
+        raise ValueError(f"{name} must be a positive integer, 'auto', or None, got {value!r}")
     try:
         value = operator.index(value)
     except TypeError as exc:
-        raise ValueError(f"{name} must be a positive integer or None, got {value!r}") from exc
+        raise ValueError(f"{name} must be a positive integer, 'auto', or None, got {value!r}") from exc
     if value <= 0:
+        raise ValueError(f"{name} must be a positive integer, 'auto', or None, got {value!r}")
+    return value
+
+
+def _positive_int_or_none(value, name: str) -> int | None:
+    value = _positive_int_auto_or_none(value, name)
+    if value == AUTO_BATCH_SIZE:
         raise ValueError(f"{name} must be a positive integer or None, got {value!r}")
     return value
 
@@ -36,6 +52,30 @@ def _physical_dof(grad: torch.Tensor, output_dof: int | None, input_dof: int | N
             f"output_dof={output_dof}, input_dof={input_dof}, available={n_all}"
         )
     return n_all, n_rows, n_cols
+
+
+def _auto_hessian_batch_size(
+    coordinates: torch.Tensor,
+    *,
+    n_rows: int,
+    n_cols: int,
+    n_all: int,
+    target_fraction: float = AUTO_BATCH_TARGET_FRACTION,
+) -> int:
+    """Estimate rows per batched VJP using about 75% of free CUDA memory."""
+    if n_rows <= 1:
+        return max(1, n_rows)
+    if not getattr(coordinates, "is_cuda", False) or not torch.cuda.is_available():
+        return n_rows
+    try:
+        free_bytes, _ = torch.cuda.mem_get_info(coordinates.device)
+    except Exception:
+        return n_rows
+    # grad_outputs + returned block + autograd/vmap temporaries. This is a
+    # heuristic, not a physics change; OOM still falls back to exact row loop.
+    bytes_per_row = max(n_all, n_cols, 1) * coordinates.element_size() * 8
+    target_bytes = max(1.0, float(free_bytes) * float(target_fraction))
+    return max(1, min(n_rows, int(target_bytes // bytes_per_row)))
 
 
 def _row_loop_from_grad(
@@ -112,7 +152,14 @@ def hessian_loop(
     """
     grad = torch.autograd.grad(energy, coordinates, create_graph=True)[0].reshape(-1)
     _, n_rows, n_cols = _physical_dof(grad, output_dof, input_dof)
-    batch_size = _positive_int_or_none(batch_size, "batch_size")
+    batch_size = _positive_int_auto_or_none(batch_size, "batch_size")
+    if batch_size == AUTO_BATCH_SIZE:
+        batch_size = _auto_hessian_batch_size(
+            coordinates,
+            n_rows=n_rows,
+            n_cols=n_cols,
+            n_all=grad.numel(),
+        )
 
     if batch_size is None or batch_size <= 1:
         return _row_loop_from_grad(grad, coordinates, n_rows=n_rows, n_cols=n_cols)
@@ -148,7 +195,7 @@ def hessian_batched_vjp(
     support batched VJPs, the helper falls back to the exact row loop; set
     ``warn_on_fallback=True`` to make that performance fallback visible.
     """
-    batch_size = _positive_int_or_none(batch_size, "batch_size")
+    batch_size = _positive_int_auto_or_none(batch_size, "batch_size")
     if batch_size == 1:
         return hessian_loop(
             energy,
@@ -160,6 +207,13 @@ def hessian_batched_vjp(
 
     grad = torch.autograd.grad(energy, coordinates, create_graph=True)[0].reshape(-1)
     n_all, n_rows, n_cols = _physical_dof(grad, output_dof, input_dof)
+    if batch_size == AUTO_BATCH_SIZE:
+        batch_size = _auto_hessian_batch_size(
+            coordinates,
+            n_rows=n_rows,
+            n_cols=n_cols,
+            n_all=n_all,
+        )
 
     try:
         if batch_size is None:

@@ -37,6 +37,9 @@ from ._batch_utils import (
     sequential_calculate_many,
 )
 
+AUTO_BATCH_SIZE = "auto"
+AUTO_BATCH_TARGET_FRACTION = 0.75
+
 
 def _calculate_many_nonperiodic_batch_only(calc, atoms_list, properties) -> BatchResult:
     """Route PBC structures through single-structure calculate calls.
@@ -104,31 +107,240 @@ def reset_calculator_cache(calc) -> None:
         results.clear()
 
 
-def _positive_int_or_none(value, name: str) -> Optional[int]:
+def _is_auto_batch_size(value) -> bool:
+    return isinstance(value, str) and value.strip().lower() == AUTO_BATCH_SIZE
+
+
+def _positive_int_auto_or_none(value, name: str):
     if value is None:
         return None
+    if _is_auto_batch_size(value):
+        return AUTO_BATCH_SIZE
     if isinstance(value, bool):
         raise ValueError(
-            f"{name} must be a positive integer or None, got {value!r}"
+            f"{name} must be a positive integer, 'auto', or None, got {value!r}"
         )
     try:
         coerced = operator.index(value)
     except TypeError as exc:
         raise ValueError(
-            f"{name} must be a positive integer or None, got {value!r}"
+            f"{name} must be a positive integer, 'auto', or None, got {value!r}"
         ) from exc
     if coerced <= 0:
         raise ValueError(
-            f"{name} must be a positive integer or None, got {value!r}"
+            f"{name} must be a positive integer, 'auto', or None, got {value!r}"
         )
     return coerced
 
 
-def _calculator_batch_size(calc, specific: str) -> Optional[int]:
+def _positive_int_or_none(value, name: str) -> Optional[int]:
+    value = _positive_int_auto_or_none(value, name)
+    if value == AUTO_BATCH_SIZE:
+        raise ValueError(
+            f"{name} must be a positive integer or None, got {value!r}"
+        )
+    return value
+
+
+def _calculator_batch_size(calc, specific: str):
     value = getattr(calc, specific, None)
     if value is None:
         value = getattr(calc, "batch_size", None)
-    return _positive_int_or_none(value, specific)
+    return _positive_int_auto_or_none(value, specific)
+
+
+def _is_cuda_oom(exc: BaseException) -> bool:
+    text = str(exc).lower()
+    return (
+        "out of memory" in text
+        or "cublas_status_alloc_failed" in text
+        or "cuda error: out of memory" in text
+    )
+
+
+def _clear_cuda_cache(calc) -> None:
+    try:
+        import torch
+    except Exception:
+        return
+    if not torch.cuda.is_available():
+        return
+    device = getattr(calc, "device", None)
+    try:
+        if device is not None and getattr(torch.device(device), "type", None) == "cuda":
+            torch.cuda.empty_cache()
+        else:
+            torch.cuda.empty_cache()
+    except Exception:
+        return
+
+
+def _cuda_device(calc):
+    try:
+        import torch
+    except Exception:
+        return None, None
+    if not torch.cuda.is_available():
+        return torch, None
+    device = getattr(calc, "device", None)
+    try:
+        device = torch.device(device) if device is not None else torch.cuda.current_device()
+    except Exception:
+        device = torch.cuda.current_device()
+    if getattr(device, "type", "cuda") != "cuda":
+        return torch, None
+    return torch, device
+
+
+def _auto_batch_target_fraction(calc) -> float:
+    value = getattr(calc, "auto_batch_target_fraction", AUTO_BATCH_TARGET_FRACTION)
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return AUTO_BATCH_TARGET_FRACTION
+    if not (0.1 <= value <= 0.95):
+        return AUTO_BATCH_TARGET_FRACTION
+    return value
+
+
+def _torch_dtype_itemsize(dtype) -> int:
+    try:
+        import torch
+    except Exception:
+        torch = None
+    if torch is not None and isinstance(dtype, torch.dtype):
+        try:
+            return torch.empty((), dtype=dtype).element_size()
+        except Exception:
+            return 4
+    try:
+        return np.dtype(dtype).itemsize
+    except Exception:
+        return 4
+
+
+def _estimate_batch_item_bytes(calc, atoms: Atoms, properties) -> int:
+    """Math-only memory estimate for one structure in a batch.
+
+    This intentionally does not run a probe calculation.  It uses atom count,
+    a conservative no-PBC graph edge estimate, dtype width, and whether forces
+    are requested to size a chunk against free CUDA memory.  Backoff on CUDA
+    OOM remains as a safety net for models whose hidden activations exceed the
+    generic estimate.
+    """
+    custom = getattr(calc, "estimate_batch_item_bytes", None)
+    if callable(custom):
+        try:
+            value = int(custom(atoms, properties=properties))
+            if value > 0:
+                return value
+        except Exception:
+            pass
+
+    n_atoms = max(1, len(atoms))
+    dtype_bytes = _torch_dtype_itemsize(getattr(calc, "dtype", np.float32))
+    props = tuple(properties)
+    force_factor = 2.5 if "forces" in props else 1.0
+
+    # Graph backends roughly scale with nodes plus neighbor edges.  Without
+    # evaluating a real neighbor list, use a bounded dense-ish edge estimate:
+    # small systems get enough overhead, large systems avoid N^2 explosion.
+    edge_count = min(n_atoms * max(n_atoms - 1, 1), max(n_atoms * 96, n_atoms))
+    node_bytes = n_atoms * dtype_bytes * 4096
+    edge_bytes = edge_count * dtype_bytes * 256
+    base_bytes = 1 * 1024 * 1024
+
+    return int((base_bytes + node_bytes + edge_bytes) * force_factor)
+
+
+def _estimate_auto_batch_size_from_item_bytes(
+    *,
+    n_total: int,
+    item_bytes: int,
+    free_bytes: int,
+    target_fraction: float = AUTO_BATCH_TARGET_FRACTION,
+) -> int:
+    """Estimate chunk size from a direct per-item memory model."""
+    if n_total <= 0:
+        return 0
+    if item_bytes <= 0 or free_bytes <= 0:
+        return n_total
+    target_bytes = max(1.0, float(free_bytes) * float(target_fraction))
+    chunk = max(1, min(n_total, int(target_bytes // float(item_bytes))))
+    if chunk >= int(0.9 * n_total):
+        return n_total
+    return chunk
+
+
+class _AutoBatchSizer:
+    def __init__(
+        self,
+        calc,
+        atoms_list: Sequence[Atoms],
+        properties,
+        *,
+        kind: str,
+    ) -> None:
+        self.calc = calc
+        self.atoms_list = list(atoms_list)
+        self.properties = tuple(properties)
+        self.kind = kind
+        self.n_total = len(self.atoms_list)
+        self.chunk = self._initial_chunk()
+
+    def _initial_chunk(self) -> int:
+        torch, device = _cuda_device(self.calc)
+        if torch is None or device is None:
+            return self.n_total
+        try:
+            free_bytes, _ = torch.cuda.mem_get_info(device)
+        except Exception:
+            return self.n_total
+        item_bytes = max(
+            _estimate_batch_item_bytes(self.calc, atoms, self.properties)
+            for atoms in self.atoms_list
+        )
+        chunk = _estimate_auto_batch_size_from_item_bytes(
+            n_total=self.n_total,
+            item_bytes=item_bytes,
+            free_bytes=int(free_bytes),
+            target_fraction=_auto_batch_target_fraction(self.calc),
+        )
+        chunk = self._apply_math_cap(chunk)
+        setattr(self.calc, "_auto_batch_size_last", chunk)
+        return chunk
+
+    def _apply_math_cap(self, chunk: int) -> int:
+        if self.kind != "path":
+            return chunk
+
+        explicit_cap = getattr(self.calc, "auto_path_batch_cap", None)
+        if explicit_cap is not None:
+            try:
+                cap = int(explicit_cap)
+                if cap > 0:
+                    return max(1, min(chunk, cap, self.n_total))
+            except (TypeError, ValueError):
+                pass
+
+        name = type(self.calc).__name__.lower()
+        module = type(self.calc).__module__.lower()
+        # Path E/F batching has a different performance shape from FD Hessian:
+        # for ANI and MACE, very large image batches can be slower even when
+        # they fit easily in memory.  Keep this a direct math/backend cap, not
+        # a probe run.
+        if "ani" in name or ".ani" in module or "mace" in name or ".mace" in module:
+            return max(1, min(chunk, 8, self.n_total))
+
+        return chunk
+
+    def backoff_after_oom(self) -> bool:
+        if self.chunk <= 1:
+            return False
+        self.chunk = max(1, self.chunk // 2)
+        setattr(self.calc, "_auto_batch_size_last", self.chunk)
+        _clear_cuda_cache(self.calc)
+        return True
 
 
 # ---------------------------------------------------------------------------
@@ -242,7 +454,7 @@ class FDHessianEvaluator:
         if fd_batch_size is None:
             fd_batch_size = _calculator_batch_size(calc, "fd_batch_size")
         else:
-            fd_batch_size = _positive_int_or_none(fd_batch_size, "fd_batch_size")
+            fd_batch_size = _positive_int_auto_or_none(fd_batch_size, "fd_batch_size")
         self.fd_batch_size = fd_batch_size
         self.respect_fixatoms = respect_fixatoms
         self.fd_context_mode = fd_context_mode
@@ -395,13 +607,28 @@ class FDHessianEvaluator:
         if n_total == 0:
             return []
 
-        chunk = self.fd_batch_size if self.fd_batch_size is not None else n_total
+        auto = self.fd_batch_size == AUTO_BATCH_SIZE
+        sizer = _AutoBatchSizer(
+            self.calc, atoms_list, ("forces",), kind="fd"
+        ) if auto else None
+        chunk = (
+            sizer.chunk if sizer is not None
+            else self.fd_batch_size if self.fd_batch_size is not None
+            else n_total
+        )
         out: List[np.ndarray] = []
-        for start in range(0, n_total, chunk):
+        start = 0
+        while start < n_total:
             sub = list(atoms_list[start : start + chunk])
-            result = _calculate_many_nonperiodic_batch_only(
-                self.calc, sub, properties=("forces",)
-            )
+            try:
+                result = _calculate_many_nonperiodic_batch_only(
+                    self.calc, sub, properties=("forces",)
+                )
+            except RuntimeError as exc:
+                if sizer is None or not _is_cuda_oom(exc) or not sizer.backoff_after_oom():
+                    raise
+                chunk = sizer.chunk
+                continue
             if result.forces is None:
                 raise RuntimeError(
                     "calculate_many returned no forces; required for "
@@ -409,6 +636,9 @@ class FDHessianEvaluator:
                 )
             for f in result.forces:
                 out.append(np.asarray(f, dtype=np.float64))
+            start += len(sub)
+            if sizer is not None:
+                chunk = max(1, min(sizer.chunk, n_total - start or sizer.chunk))
         return out
 
 
@@ -429,7 +659,7 @@ class PathEvaluator:
         if batch_size is None:
             batch_size = _calculator_batch_size(calc, "path_batch_size")
         else:
-            batch_size = _positive_int_or_none(batch_size, "batch_size")
+            batch_size = _positive_int_auto_or_none(batch_size, "batch_size")
         self.batch_size = batch_size
 
     def energy_forces(self, images: Sequence[Atoms]) -> Tuple[np.ndarray, List[np.ndarray]]:
@@ -437,15 +667,29 @@ class PathEvaluator:
         if n_total == 0:
             return np.zeros(0, dtype=np.float64), []
 
-        chunk = self.batch_size if self.batch_size else n_total
+        auto = self.batch_size == AUTO_BATCH_SIZE
+        sizer = _AutoBatchSizer(
+            self.calc, images, ("energy", "forces"), kind="path"
+        ) if auto else None
+        chunk = (
+            sizer.chunk if sizer is not None
+            else self.batch_size if self.batch_size else n_total
+        )
         energies: List[float] = []
         forces: List[np.ndarray] = []
-        for start in range(0, n_total, chunk):
+        start = 0
+        while start < n_total:
             sub = list(images[start : start + chunk])
-            result = _calculate_many_nonperiodic_batch_only(
-                self.calc,
-                sub, properties=("energy", "forces")
-            )
+            try:
+                result = _calculate_many_nonperiodic_batch_only(
+                    self.calc,
+                    sub, properties=("energy", "forces")
+                )
+            except RuntimeError as exc:
+                if sizer is None or not _is_cuda_oom(exc) or not sizer.backoff_after_oom():
+                    raise
+                chunk = sizer.chunk
+                continue
             if result.energies is None or len(result.energies) != len(sub):
                 got = None if result.energies is None else len(result.energies)
                 raise RuntimeError(
@@ -460,6 +704,9 @@ class PathEvaluator:
                 )
             energies.extend(float(e) for e in result.energies.tolist())
             forces.extend(np.asarray(f, dtype=np.float64) for f in result.forces)
+            start += len(sub)
+            if sizer is not None:
+                chunk = max(1, min(sizer.chunk, n_total - start or sizer.chunk))
         return np.asarray(energies, dtype=np.float64), forces
 
 
@@ -476,7 +723,7 @@ class HVPEvaluator:
         if batch_size is None:
             batch_size = _calculator_batch_size(calc, "hvp_batch_size")
         else:
-            batch_size = _positive_int_or_none(batch_size, "batch_size")
+            batch_size = _positive_int_auto_or_none(batch_size, "batch_size")
         self.batch_size = batch_size
 
     def hn(

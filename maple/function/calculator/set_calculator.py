@@ -148,12 +148,15 @@ class SetClaculator:
 
         if isinstance(batch_size, bool):
             raise ValueError("model batch_size must be a positive integer.")
-        try:
-            batch_size = int(batch_size)
-        except (TypeError, ValueError) as exc:
-            raise ValueError("model batch_size must be a positive integer.") from exc
-        if batch_size <= 0:
-            raise ValueError("model batch_size must be a positive integer.")
+        if isinstance(batch_size, str) and batch_size.lower() == "auto":
+            batch_size = "auto"
+        else:
+            try:
+                batch_size = int(batch_size)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("model batch_size must be a positive integer or 'auto'.") from exc
+            if batch_size <= 0:
+                raise ValueError("model batch_size must be a positive integer or 'auto'.")
 
         calculator.batch_size = batch_size
         calculator.path_batch_size = batch_size

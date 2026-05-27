@@ -581,8 +581,9 @@ class CommandControl:
 
         batch_size = model_options.get("batch_size")
         if batch_size is not None:
-            if type(batch_size) is not int or batch_size <= 0:
-                msg = "model batch_size must be a positive integer."
+            batch_auto = isinstance(batch_size, str) and batch_size.lower() == "auto"
+            if not batch_auto and (type(batch_size) is not int or batch_size <= 0):
+                msg = "model batch_size must be a positive integer or 'auto'."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if "pbc" in params:
@@ -594,8 +595,10 @@ class CommandControl:
                 raise ValueError(msg)
 
         if "fd_batch_size" in params:
-            if type(params["fd_batch_size"]) is not int or params["fd_batch_size"] <= 0:
-                msg = "fd_batch_size must be a positive integer."
+            fd_batch_size = params["fd_batch_size"]
+            fd_auto = isinstance(fd_batch_size, str) and fd_batch_size.lower() == "auto"
+            if not fd_auto and (type(fd_batch_size) is not int or fd_batch_size <= 0):
+                msg = "fd_batch_size must be a positive integer or 'auto'."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 

@@ -7,6 +7,7 @@ critical TS optimizers without changing the Hessian definition.
 from __future__ import annotations
 
 import operator
+import warnings
 
 import torch
 
@@ -135,6 +136,7 @@ def hessian_batched_vjp(
     output_dof: int | None = None,
     input_dof: int | None = None,
     batch_size: int | None = None,
+    warn_on_fallback: bool = False,
 ) -> torch.Tensor:
     """Assemble an exact Hessian with PyTorch batched VJPs.
 
@@ -142,7 +144,9 @@ def hessian_batched_vjp(
     backend to compute vector-Jacobian products.  ``batch_size`` caps how many
     Hessian rows are requested per autograd call; ``None`` preserves the old
     full-matrix batched VJP behavior.  ``batch_size=1`` delegates to the exact
-    row loop to minimize memory.
+    row loop to minimize memory.  If the PyTorch operator stack does not
+    support batched VJPs, the helper falls back to the exact row loop; set
+    ``warn_on_fallback=True`` to make that performance fallback visible.
     """
     batch_size = _positive_int_or_none(batch_size, "batch_size")
     if batch_size == 1:
@@ -157,25 +161,35 @@ def hessian_batched_vjp(
     grad = torch.autograd.grad(energy, coordinates, create_graph=True)[0].reshape(-1)
     n_all, n_rows, n_cols = _physical_dof(grad, output_dof, input_dof)
 
-    if batch_size is None:
-        grad_outputs = torch.eye(
-            n_all,
-            dtype=coordinates.dtype,
-            device=coordinates.device,
-        )[:n_rows]
-        hessian = torch.autograd.grad(
+    try:
+        if batch_size is None:
+            grad_outputs = torch.eye(
+                n_all,
+                dtype=coordinates.dtype,
+                device=coordinates.device,
+            )[:n_rows]
+            hessian = torch.autograd.grad(
+                grad,
+                coordinates,
+                grad_outputs=grad_outputs,
+                retain_graph=True,
+                is_grads_batched=True,
+            )[0].reshape(n_rows, n_all)
+            return hessian[:, :n_cols]
+
+        return _batched_vjp_from_grad(
             grad,
             coordinates,
-            grad_outputs=grad_outputs,
-            retain_graph=True,
-            is_grads_batched=True,
-        )[0].reshape(n_rows, n_all)
-        return hessian[:, :n_cols]
-
-    return _batched_vjp_from_grad(
-        grad,
-        coordinates,
-        n_rows=n_rows,
-        n_cols=n_cols,
-        batch_size=batch_size,
-    )
+            n_rows=n_rows,
+            n_cols=n_cols,
+            batch_size=batch_size,
+        )
+    except (RuntimeError, TypeError) as exc:
+        if warn_on_fallback:
+            warnings.warn(
+                "Batched VJP Hessian fell back to the exact row loop: "
+                f"{type(exc).__name__}: {exc}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        return _row_loop_from_grad(grad, coordinates, n_rows=n_rows, n_cols=n_cols)

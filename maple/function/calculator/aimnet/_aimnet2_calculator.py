@@ -97,6 +97,7 @@ class AIMNet2Calculator(CalcABC):
     implemented_properties = ["energy", "forces", "hessian", "free_energy"]
     supported_hessian_modes = ("analytic", "numerical")
     supports_batch_energy_forces = True
+    supports_analytic_hessian = True
 
     def __init__(self, device: torch.device, 
                 model: str = "aimnet2", 

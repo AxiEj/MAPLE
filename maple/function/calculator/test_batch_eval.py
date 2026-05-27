@@ -202,6 +202,25 @@ def test_command_control_rejects_pbc_with_batch_size():
         ])
 
 
+def test_command_control_accepts_rfo_fd_batch_size_option():
+    from maple.function.read.command_control import CommandControl
+
+    cc = CommandControl.from_settings([
+        "#model=ani2x",
+        "#opt(method=rfo,fd_batch_size=2)",
+    ])
+
+    assert cc.task == "opt"
+    assert cc.params["method"] == "rfo"
+    assert cc.params["fd_batch_size"] == 2
+
+    with pytest.raises(ValueError, match="fd_batch_size"):
+        CommandControl.from_settings([
+            "#model=ani2x",
+            "#opt(method=rfo,fd_batch_size=0)",
+        ])
+
+
 def test_command_control_accepts_prfo_hessian_recalc_options():
     from maple.function.read.command_control import CommandControl
 
@@ -243,6 +262,12 @@ def test_setcalculator_rejects_batch_size_for_periodic_atoms():
         setter._apply_batch_size(calc)
 
 
+def test_aimnet2_advertises_analytic_hessian_support():
+    from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
+
+    assert AIMNet2Calculator.supports_analytic_hessian is True
+
+
 def _quadratic_hessian(batch_size=None, *, batched=False):
     coords = torch.tensor(
         [[0.1, -0.2, 0.3], [0.4, -0.5, 0.6]],
@@ -278,6 +303,36 @@ def test_exact_autograd_hessian_respects_row_batch_size():
 def test_exact_autograd_hessian_rejects_invalid_batch_size():
     with pytest.raises(ValueError, match="batch_size"):
         _quadratic_hessian(batch_size=0)
+
+
+def test_exact_autograd_batched_vjp_can_warn_on_fallback(monkeypatch):
+    import maple.function.calculator._autograd_hessian as ah
+
+    def fail_batched_vjp(*args, **kwargs):
+        raise RuntimeError("vmap unavailable")
+
+    monkeypatch.setattr(ah, "_batched_vjp_from_grad", fail_batched_vjp)
+
+    coords = torch.tensor(
+        [[0.1, -0.2, 0.3], [0.4, -0.5, 0.6]],
+        dtype=torch.float64,
+        requires_grad=True,
+    )
+    weights = torch.arange(1, 7, dtype=torch.float64).reshape(2, 3)
+    energy = 0.5 * torch.sum(weights * coords * coords)
+
+    with pytest.warns(RuntimeWarning, match="fell back"):
+        H = ah.hessian_batched_vjp(
+            energy,
+            coords,
+            output_dof=6,
+            input_dof=6,
+            batch_size=2,
+            warn_on_fallback=True,
+        )
+
+    expected = torch.diag(torch.arange(1, 7, dtype=torch.float64))
+    torch.testing.assert_close(H, expected)
 
 
 # ---------------------------------------------------------------------------
@@ -319,6 +374,12 @@ def test_batch_result_validates_lengths_and_shapes():
 
     with pytest.raises(ValueError, match="shape"):
         BatchResult(forces=[np.zeros((3,))])
+
+    with pytest.raises(ValueError, match="corresponding force atom count"):
+        BatchResult(
+            forces=[np.zeros((2, 3))],
+            hessians=[np.zeros((3, 3))],
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -389,6 +450,39 @@ def test_fd_hessian_fixatoms_projection_is_symmetric_for_coupled_pes():
     assert np.all(np.abs(H[:, :3]) < 1e-12)
     np.testing.assert_allclose(H, H.T, atol=1e-10)
     np.testing.assert_allclose(H[3:, 3:], 2.0 * np.eye(3), atol=1e-8)
+
+
+def test_fd_hessian_symmetrizes_force_derivative_noise():
+    class AsymmetricLinearForceCalc(CalcABC):
+        implemented_properties = ["energy", "forces", "free_energy"]
+
+        def __init__(self, matrix):
+            super().__init__()
+            self.matrix = np.asarray(matrix, dtype=np.float64)
+
+        def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+            super().calculate(atoms, properties, system_changes)
+            pos = atoms.get_positions().reshape(-1)
+            self.results["energy"] = 0.0
+            self.results["free_energy"] = 0.0
+            if "forces" in properties:
+                self.results["forces"] = (-(self.matrix @ pos)).reshape(-1, 3)
+
+    A = np.array(
+        [
+            [1.0, 0.2, 0.0],
+            [0.0, 2.0, 0.3],
+            [0.1, 0.0, 3.0],
+        ],
+        dtype=np.float64,
+    )
+    atoms = Atoms("H", positions=[[0.1, -0.2, 0.3]])
+    atoms.calc = AsymmetricLinearForceCalc(A)
+
+    H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+    np.testing.assert_allclose(H, 0.5 * (A + A.T), atol=1e-10)
+    np.testing.assert_allclose(H, H.T, atol=0.0)
 
 
 def test_fd_hessian_rejects_invalid_delta_and_batch_size():
@@ -591,6 +685,36 @@ def test_path_evaluator_disables_batch_path_for_pbc_images():
     assert len(fs) == 3
     assert calc.calculate_many_calls == 0
     assert calc.calls == 3
+
+
+def test_path_evaluator_validates_energy_and_force_counts():
+    from types import SimpleNamespace
+
+    class WrongEnergyCountCalc(HarmonicCalc):
+        def calculate_many(self, atoms_list, properties=("energy", "forces")):
+            return SimpleNamespace(
+                energies=np.zeros(len(atoms_list) - 1, dtype=np.float64),
+                forces=[np.zeros((1, 3)) for _ in atoms_list],
+            )
+
+    class WrongForceCountCalc(HarmonicCalc):
+        def calculate_many(self, atoms_list, properties=("energy", "forces")):
+            return SimpleNamespace(
+                energies=np.zeros(len(atoms_list), dtype=np.float64),
+                forces=[np.zeros((1, 3)) for _ in atoms_list[:-1]],
+            )
+
+    images = [Atoms("H", positions=[[i * 0.01, 0.0, 0.0]]) for i in range(3)]
+
+    with pytest.raises(RuntimeError, match="wrong number of energies"):
+        PathEvaluator(
+            WrongEnergyCountCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+        ).energy_forces(images)
+
+    with pytest.raises(RuntimeError, match="wrong number of force arrays"):
+        PathEvaluator(
+            WrongForceCountCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+        ).energy_forces(images)
 
 
 def test_neb_path_energy_forces_uses_native_batch_snapshot():

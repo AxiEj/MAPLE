@@ -296,6 +296,7 @@ class FDHessianEvaluator:
 
         self._fill_rows_from_forces(H, rows, forces, delta)
         self._project_fixed_dofs(H, N, movable)
+        self._symmetrize(H)
 
         return H
 
@@ -337,6 +338,7 @@ class FDHessianEvaluator:
 
         self._fill_rows_from_forces(H, rows, forces, delta)
         self._project_fixed_dofs(H, len(atoms), movable)
+        self._symmetrize(H)
         atoms.set_positions(pos0)
         return H
 
@@ -382,6 +384,11 @@ class FDHessianEvaluator:
             return
         H[frozen_dofs, :] = 0.0
         H[:, frozen_dofs] = 0.0
+
+    @staticmethod
+    def _symmetrize(H: np.ndarray) -> None:
+        """Remove finite-difference/autograd noise that breaks H = H.T."""
+        H[:] = 0.5 * (H + H.T)
 
     def _chunked_forces(self, atoms_list: Sequence[Atoms]) -> List[np.ndarray]:
         n_total = len(atoms_list)
@@ -439,10 +446,20 @@ class PathEvaluator:
                 self.calc,
                 sub, properties=("energy", "forces")
             )
-            if result.energies is not None:
-                energies.extend(float(e) for e in result.energies.tolist())
-            if result.forces is not None:
-                forces.extend(np.asarray(f, dtype=np.float64) for f in result.forces)
+            if result.energies is None or len(result.energies) != len(sub):
+                got = None if result.energies is None else len(result.energies)
+                raise RuntimeError(
+                    "calculate_many returned the wrong number of energies "
+                    f"for PathEvaluator: expected {len(sub)}, got {got}"
+                )
+            if result.forces is None or len(result.forces) != len(sub):
+                got = None if result.forces is None else len(result.forces)
+                raise RuntimeError(
+                    "calculate_many returned the wrong number of force arrays "
+                    f"for PathEvaluator: expected {len(sub)}, got {got}"
+                )
+            energies.extend(float(e) for e in result.energies.tolist())
+            forces.extend(np.asarray(f, dtype=np.float64) for f in result.forces)
         return np.asarray(energies, dtype=np.float64), forces
 
 

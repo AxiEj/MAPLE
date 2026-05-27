@@ -90,3 +90,15 @@ class BatchResult:
                         f"{expected_name} has length {expected_len}, "
                         f"{name} has length {got_len}"
                     )
+
+        if self.forces is not None and self.hessians is not None:
+            for i, (forces, hessian) in enumerate(zip(self.forces, self.hessians)):
+                n_atoms = np.asarray(forces).shape[0]
+                expected = (3 * n_atoms, 3 * n_atoms)
+                arr = np.asarray(hessian)
+                if arr.shape != expected:
+                    raise ValueError(
+                        "BatchResult.hessians entries must match the "
+                        "corresponding force atom count: "
+                        f"hessians[{i}].shape={arr.shape}, expected {expected}"
+                    )

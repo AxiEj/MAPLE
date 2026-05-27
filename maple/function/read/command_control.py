@@ -124,6 +124,7 @@ class CommandControl:
         "evals_eps",
         "mu_margin",
         "max_bisect_it",
+        "fd_batch_size",
         "verbose",
         "log_final_paths",
     }
@@ -589,6 +590,12 @@ class CommandControl:
                     "PBC and batch_size cannot be combined yet; "
                     "PBC batch acceleration is not supported."
                 )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        if "fd_batch_size" in params:
+            if type(params["fd_batch_size"]) is not int or params["fd_batch_size"] <= 0:
+                msg = "fd_batch_size must be a positive integer."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 

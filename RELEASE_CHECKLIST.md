@@ -7,6 +7,17 @@ engine gate in §1 before tagging or proposing `fix/pbc` upstream; a production
 claim for real PBC backends also requires the per-target reports and aggregate
 checker in §2.
 
+Allowed approval wording before §1 and §2 are complete:
+
+> Static code review passed; `fix/pbc` is acceptable as a release-candidate /
+> production-validation branch. It is **not** production-validated until the
+> current clean commit has non-smoke PASS artifacts for every required target
+> backend and `scripts/check_production_backend_matrix.py` passes over that
+> report bundle.
+
+Do not write "production-ready", "production validated", or "safe to roll out"
+from static review, `--quick`, LJ-only evidence, or stale artifacts.
+
 ## 1. Unit + acceptance (backend-free, required)
 
 ```bash
@@ -24,7 +35,7 @@ fails the matrix. The dated JSON/markdown report under `validation/reports/` rec
 thresholds version, git commit, per-class status, the pass/fail/skip summary, the
 barostat clamp count, and the calculator unit contract + cutoff policy.
 
-Ship only when the report / exit code shows:
+Treat the backend-free engine gate as passed only when the report / exit code shows:
 - exit code `0`
 - summary `n_fail == 0` and `n_skip == 0`
 - `barostat clamps == 0`

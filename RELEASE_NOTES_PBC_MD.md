@@ -1,5 +1,65 @@
 # PBC-MD production-hardening — release notes
 
+## Conclusion first: release-candidate boundary
+
+Do **not** treat `fix/pbc` as already production-validated or ready for direct
+rollout. The code-level review, algorithm check, and comparison against the
+literature / mature MD software did **not** find a blocking MD/PBC core defect
+that would by itself fabricate dynamics or corrupt PBC trajectories. That is a
+release-candidate finding, not a production claim.
+
+The implementation is not a patch pile: MD concerns that were previously mixed in
+`utils.py` are now separated into focused units / PBC / DOF / pressure / velocity
+initialization / motion projection / capabilities / semantics / provenance /
+validation modules, while `utils.py` remains a compatibility re-export shim with
+the module responsibilities documented explicitly.
+
+Review boundary: this statement is based on static code review plus
+literature/documentation cross-checks. It does **not** say that the full
+acceptance matrix was run in the current environment, and it does **not** replace
+real-backend production report artifacts. The correct release statement is:
+static review passed; `fix/pbc` may enter controlled production validation; final
+production enablement must cite same clean commit, target backend, target hardware
+non-smoke PASS reports plus the aggregate backend-matrix checker.
+
+| Area | Review conclusion / boundary |
+|------|------------------------------|
+| Fixed-cell PBC + NVE/NVT | Aligned with standard MD design; no core theory error found. |
+| Image flags / wrapped-unwrapped coordinates | Correct per-atom image-counter direction, restartable, triclinic-aware; not a molecule-whole unwrap. |
+| Velocity-Verlet | Standard kick-drift-wrap-force-kick shape; PBC wrapping occurs after drift, not only at output. |
+| V-rescale thermostat | Consistent with Bussi-Donadio-Parrinello / GROMACS-style stochastic velocity rescaling. |
+| Langevin-middle | Uses LF-middle / BAOAB-style half-step velocity semantics and records the velocity representation. |
+| NPT c-rescale | Acceptable as isotropic hydrostatic stochastic cell rescaling; not Parrinello-Rahman / MTTK, shear, surface-tension, or anisotropic cell-shape sampling. |
+| Berendsen barostat | Correctly scoped as equilibration-only and rejected by default for production-style NPT. |
+| Pressure / stress | ASE Voigt stress sign and kinetic/configurational pressure split are handled explicitly. |
+| PBC admission gates | Unit, PBC support, cutoff/MIC, full-rank cell, stress, and constraint gates fail closed instead of fabricating plausible output. |
+| Restart / trajectory / provenance | Image flags, full cell matrix, velocity representation, RNG/provenance, cutoff policy, and barostat mode are persisted or checked. |
+| Validation | Acceptance design is suitable, but production status requires actually running the non-smoke matrix for every required target. |
+
+Non-blocking follow-ups from the review:
+
+- Avoid unnecessary `Atoms.info` side effects in the UMA adapter when setting
+  default spin / charge metadata.
+- Keep AIMNet2 Ewald/PME claims tied to official backend behavior plus stress-FD
+  and acceptance artifacts; the MIC gate only proves the local descriptor cutoff.
+- Treat the NPT volume-fluctuation check as a loose sanity class, not a high-
+  precision ensemble proof by itself.
+
+External alignment anchors used for the review:
+
+- LAMMPS wrapped/unwrapped coordinates and image flags:
+  <https://docs.lammps.org/dump.html>
+- Bussi-Donadio-Parrinello stochastic velocity rescaling:
+  <https://arxiv.org/abs/0803.4060>
+- GROMACS thermostat / barostat guidance:
+  <https://manual.gromacs.org/current/reference-manual/algorithms/molecular-dynamics.html>
+- OpenMM `LangevinMiddleIntegrator` half-step / BAOAB semantics:
+  <https://docs.openmm.org/latest/api-python/generated/openmm.openmm.LangevinMiddleIntegrator.html>
+- Bernetti-Bussi stochastic cell rescaling:
+  <https://arxiv.org/abs/2006.09250>
+- ASE `Atoms.get_stress(voigt=True, include_ideal_gas=False)` semantics:
+  <https://ase-lib.org/ase/atoms.html>
+
 This pass makes the PBC molecular-dynamics path production-honest: correct where
 supported, hard-reject where not. The user-visible behavior changes below are
 grouped by the workstream that introduced them.

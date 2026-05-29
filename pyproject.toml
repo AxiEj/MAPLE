@@ -56,7 +56,6 @@ pbc-macepol = [
 # Development tools
 dev = [
     "pytest>=7.0",
-    "black>=23.0",
 ]
 
 [tool.setuptools.packages.find]

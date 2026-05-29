@@ -152,9 +152,10 @@ term uses the synchronized standard velocity.
 - **DCD PBC output has a triclinic round-trip regression.** The DCD test now
   writes/reads a triclinic PBC trajectory, checks frame count, `cellpar`,
   coordinate RMSD, and append header frame count.
-- Thresholds bumped to **1.6.0** (the smoke profile mirrors this as
-  `smoke-1.6.0`) so real-backend production reports must include the imposed-COM
-  NPT pressure class.
+- Thresholds bumped to **1.6.1** (the smoke profile mirrors this as
+  `smoke-1.6.1`) so real-backend production reports must include the imposed-COM
+  NPT pressure class while allowing only 1e-7 Å³ of backend floating-point noise
+  in the deterministic volume-response equality check.
 
 ## Hard rejects (WS0-B, WS0-C)
 

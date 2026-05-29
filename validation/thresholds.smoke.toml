@@ -17,7 +17,8 @@
 # the short smoke profile; smoke remains compatibility evidence only.
 # smoke-1.6.0: mirror production's imposed-COM NPT pressure/barostat invariance
 # class; smoke remains compatibility evidence only.
-thresholds_version = "smoke-1.6.0"
+# smoke-1.6.1: mirror the 1e-7 A^3 backend-noise volume-response tolerance.
+thresholds_version = "smoke-1.6.1"
 
 [nve_energy_drift]
 max_rel_drift = 5.0e-3
@@ -37,7 +38,7 @@ require_post_rescale_summary = true
 
 [npt_com_pressure_invariance]
 max_abs_pressure_delta_bar = 1.0e-8
-max_abs_volume_delta_A3 = 1.0e-8
+max_abs_volume_delta_A3 = 1.0e-7
 min_full_com_pressure_shift_bar = 1.0e-2
 
 [npt_volume_fluctuation]

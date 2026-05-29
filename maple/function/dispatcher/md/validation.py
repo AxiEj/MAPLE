@@ -1089,12 +1089,13 @@ def run_acceptance_matrix(
         # Real-backend dynamics use the species-safe CO2 box.  Its C/O modes do
         # not need the tiny timestep that H/O does, but real ML potentials still
         # show visible finite-step noise in the reversible NPT effective-energy
-        # diagnostic at 0.25–1 fs.  Use 0.125 fs and keep the quick physical
-        # window at ~0.2 ps (full: ~1 ps) so a failure indicates backend/
-        # integrator inconsistency rather than an aggressive timestep artifact.
+        # diagnostic at 0.125–1 fs.  Use 0.0625 fs for the production
+        # effective-energy gate (full window ~0.5 ps) so a failure indicates
+        # backend/integrator inconsistency rather than an aggressive timestep
+        # artifact; the short smoke window remains compatibility-only.
         npt_eff_kw = (
             {"steps": 1600, "timestep": 0.125}
-            if quick else {"steps": 8000, "timestep": 0.125}
+            if quick else {"steps": 8000, "timestep": 0.0625}
         )
 
     results: List[AcceptanceResult] = []

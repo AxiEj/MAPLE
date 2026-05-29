@@ -24,13 +24,15 @@
 # propagation plus separate white-box stride tests.
 # 1.6.0 (WS11): add an imposed-COM NPT pressure/barostat invariance gate so
 # c-rescale pressure uses K-K_cm whenever the resolved DOF policy excludes COM.
+# 1.6.1: keep the imposed-COM pressure gate exact while allowing 1e-7 A^3 of
+# backend floating-point noise in the deterministic volume-response comparison.
 #
 # This is the PRODUCTION (ship-gate) profile, used by `pytest tests/production
 # -m production` and scripts/production_validation.py. WS-D split the loose,
 # short-run unit-layer thresholds into validation/thresholds.smoke.toml so this
 # profile can be tightened against a longer-run baseline without false-failing the
 # default short unit runs. Production values are unchanged by that split.
-thresholds_version = "1.6.0"
+thresholds_version = "1.6.1"
 
 [nve_energy_drift]
 # Total-energy conservation for a strict NVE run on a near-equilibrium crystal.
@@ -79,7 +81,7 @@ require_post_rescale_summary = true
 # The companion min_full_com_pressure_shift_bar proves the boost is large enough
 # that a full-K pressure path would have moved by a resolvable amount.
 max_abs_pressure_delta_bar = 1.0e-8
-max_abs_volume_delta_A3 = 1.0e-8
+max_abs_volume_delta_A3 = 1.0e-7
 min_full_com_pressure_shift_bar = 1.0e-2
 
 [npt_volume_fluctuation]

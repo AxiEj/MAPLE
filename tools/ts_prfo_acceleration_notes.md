@@ -223,11 +223,16 @@ analytic Hessian when available.
 
 The `/tmp/...` paths below are historical local-run notes from 2026-05-26. They
 are useful for debugging provenance but are **not** production evidence unless
-the same checks are reproduced by CI artifacts. The release-blocking CI surface
-is `.github/workflows/real-backend-smoke.yml`, which runs
-`MAPLE_REAL_BACKEND_SMOKE=1 MAPLE_REAL_BACKEND_REQUIRED=1 python -m pytest -q
-maple/function/calculator/test_real_backend_hessian_smoke.py` on a provisioned
-`self-hosted` runner with model weights and backend caches.
+the same checks are reproduced by the local release gate. The release-blocking
+local command is:
+
+```bash
+python tools/real_backend_release_gate.py
+```
+
+It expands to `MAPLE_REAL_BACKEND_SMOKE=1 MAPLE_REAL_BACKEND_REQUIRED=1 python -m pytest -q
+maple/function/calculator/test_real_backend_hessian_smoke.py`, so missing model
+weights/backend caches fail instead of being skipped.
 
 Representative PRFO runs from existing NEBTS-quality small-molecule guesses pass
 the strict gate (Normal Termination + exactly one imaginary frequency):

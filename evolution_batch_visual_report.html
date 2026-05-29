@@ -573,11 +573,11 @@ symmetrize(H)
             <td>新：<span class="mono">_batch_types.py:47-88</span>；<span class="mono">uma/_uma_calculator.py:239-242,323-333</span>；<span class="mono">test_batch_eval.py:643-665</span></td>
           </tr>
           <tr>
-            <td>Real backend CI gate</td>
-            <td>新增 self-hosted release gate workflow；required 模式下缺模型/依赖会 fail 而不是 skip。</td>
+            <td>Real backend local gate</td>
+            <td>新增本地 release gate 脚本；required 模式下缺模型/依赖会 fail 而不是 skip。</td>
             <td>旧 real-backend smoke 默认 opt-in skip，只能作为手动工具。</td>
-            <td>真实模型 shape/单位/图 batch contract 必须在 CI artifact 里复现。</td>
-            <td>新：<span class="mono">.github/workflows/real-backend-smoke.yml</span>；<span class="mono">test_real_backend_hessian_smoke.py:26-62</span></td>
+            <td>真实模型 shape/单位/图 batch contract 必须由本地 release gate 复现。</td>
+            <td>新：<span class="mono">tools/real_backend_release_gate.py</span>；<span class="mono">test_real_backend_hessian_smoke.py:27-70</span></td>
           </tr>
         </tbody>
       </table>
@@ -637,8 +637,8 @@ symmetrize(H)
         <div class="event"><div class="event-card"><b>Parser tests</b><p><span class="mono">test_batch_eval.py:160-305</span> 覆盖 batch_size、PBC 拒绝、PRFO 参数 typo、NEBTS 参数透传。</p></div></div>
         <div class="event"><div class="event-card"><b>Scientific acceptance tool</b><p><span class="mono">tools/ts_prfo_acceptance.py:1-7</span> 明确：速度不算成功，除非 Normal Termination + exactly one imaginary frequency。</p></div></div>
         <div class="event"><div class="event-card"><b>Path benchmark tool</b><p><span class="mono">tools/path_batch_benchmark.py</span> 同时报 E/F 差异和速度；<span class="mono">--require-parity</span> 超阈值时非零退出，避免只看 wall time。</p></div></div>
-        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：73 passed，17 real-backend smoke skipped；release runner 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
-        <div class="event"><div class="event-card"><b>Release-blocking CI</b><p><span class="mono">.github/workflows/real-backend-smoke.yml</span> 要求 provisioned self-hosted runner 跑真实后端 smoke；HTML 和 <span class="mono">/tmp</span> notes 不作为生产证明。</p></div></div>
+        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：73 passed，17 real-backend smoke skipped；本地 release gate 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
+        <div class="event"><div class="event-card"><b>Local release gate</b><p><span class="mono">python tools/real_backend_release_gate.py</span> 本地跑真实后端 smoke；HTML 和 <span class="mono">/tmp</span> notes 不作为生产证明。</p></div></div>
       </div>
       <p class="footnote">页面本身为自包含静态 HTML，无外部依赖；适合用浏览器直接打开，也可提交到 docs/static host。</p>
     </section>

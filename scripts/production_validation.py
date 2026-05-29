@@ -102,7 +102,7 @@ def _apply_validation_model_defaults(model: str | None, model_options: dict) -> 
 
 
 def _real_model_factory(model: str, device: str | None, output: str, model_options: dict):
-    """Build a real MAPLE calculator once and reuse it across acceptance classes."""
+    """Build a fresh real MAPLE calculator for each independent validation probe."""
     import torch
 
     from maple.function.calculator import SetCalculator
@@ -111,25 +111,21 @@ def _real_model_factory(model: str, device: str | None, output: str, model_optio
     resolved_device = torch.device(
         device or ("cuda" if torch.cuda.is_available() else "cpu")
     )
-    calc = SetCalculator(
-        resolved_device, model, output, model_options=model_options
-    ).set_calculator()
-    try:
-        calc.maple_provenance = collect_calculator_provenance(
-            calc, model=model, device=resolved_device, model_options=model_options
-        )
-    except Exception:
-        pass
-
     def factory():
-        # Reuse the loaded model weights, but clear ASE calculator state between
-        # independent acceptance classes and finite-difference probes.  Some
-        # official periodic backends cache cell/neighbor-list state internally;
-        # a long NPT trajectory must not contaminate a later stress-FD probe.
-        for candidate in (calc, getattr(calc, "_official_calculator", None)):
-            reset = getattr(candidate, "reset", None)
-            if callable(reset):
-                reset()
+        # Official periodic backends may cache cell/neighbor-list/long-range
+        # state below ASE's reset boundary.  Production validation is an
+        # evidence artifact, so isolate every independent acceptance class and
+        # finite-difference probe with a fresh calculator instead of letting a
+        # long NPT trajectory contaminate a later stress or H-cons check.
+        calc = SetCalculator(
+            resolved_device, model, output, model_options=model_options
+        ).set_calculator()
+        try:
+            calc.maple_provenance = collect_calculator_provenance(
+                calc, model=model, device=resolved_device, model_options=model_options
+            )
+        except Exception:
+            pass
         return calc
 
     return factory

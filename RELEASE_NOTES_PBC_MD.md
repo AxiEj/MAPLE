@@ -146,7 +146,9 @@ term uses the synchronized standard velocity.
   declare `maple_periodic_neighborlist_multi_image_safe=true` and
   `maple_requires_single_image_mic=false`, so MAPLE records their effective
   cutoff without rejecting valid primitive-cell periodic neighbor-list runs
-  solely because the cutoff exceeds the Wigner-Seitz inradius.
+  solely because the cutoff exceeds the Wigner-Seitz inradius. AIMNet2 DSF is
+  the explicit exception: because it is a finite real-space cutoff mode, it
+  remains MIC-scoped while AIMNet2 Ewald/PME use the multi-image-safe scope.
 - **DCD PBC output has a triclinic round-trip regression.** The DCD test now
   writes/reads a triclinic PBC trajectory, checks frame count, `cellpar`,
   coordinate RMSD, and append header frame count.

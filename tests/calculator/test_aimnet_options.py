@@ -111,12 +111,29 @@ def test_aimnet_pbc_rejects_unsupported_coulomb_method():
         _build_pbc_calc("simple", 15.0)
 
 
-def test_aimnet_pbc_default_dsf_cutoff_uses_multi_image_backend_scope():
+def test_aimnet_pbc_default_dsf_cutoff_requires_mic_safe_cell():
     calc = _build_pbc_calc("dsf", 15.0)
 
+    with pytest.raises(ValueError, match="minimum-image"):
+        validate_pbc_neighbor_cutoff(_co2_validation_box(), calc)
+    assert calc.maple_requires_single_image_mic is True
+    assert calc.maple_periodic_neighborlist_multi_image_safe is False
+
+
+def test_aimnet_pbc_dsf_validation_cutoff_is_mic_safe():
+    calc = _build_pbc_calc("dsf", 5.0)
+
     validate_pbc_neighbor_cutoff(_co2_validation_box(), calc)
-    assert calc.maple_requires_single_image_mic is False
-    assert calc.maple_periodic_neighborlist_multi_image_safe is True
+    assert calc.maple_requires_single_image_mic is True
+    assert calc.maple_periodic_neighborlist_multi_image_safe is False
+
+
+def test_aimnet_pbc_ewald_and_pme_use_multi_image_backend_scope():
+    for method in ("ewald", "pme"):
+        calc = _build_pbc_calc(method, 15.0)
+        validate_pbc_neighbor_cutoff(_co2_validation_box(), calc)
+        assert calc.maple_requires_single_image_mic is False
+        assert calc.maple_periodic_neighborlist_multi_image_safe is True
 
 
 def test_aimnet_pbc_converts_energy_and_forces_but_not_stress():

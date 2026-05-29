@@ -77,7 +77,7 @@ and the UMA `omat` task. The examples below are representative only; the TOML
 file is the exhaustive target list, and the aggregate checker enforces it.
 
 ```bash
-python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=dsf
+python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=dsf --model-option cutoff=5.0
 python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=ewald
 python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=pme
 python scripts/production_validation.py --model mace-mp-pbc-small --device cuda
@@ -142,7 +142,7 @@ Per-backend effective cutoff recorded in provenance:
 
 | Backend                         | Effective neighbor cutoff                              | Notes |
 |---------------------------------|--------------------------------------------------------|-------|
-| `aimnet2-pbc` / `aimnet2nse-pbc` (DSF)   | `max(5.0, public_cutoff_A)` (default 15.0)    | DSF's public cutoff is recorded; official AIMNet PBC declares multi-image-safe scope |
+| `aimnet2-pbc` / `aimnet2nse-pbc` (DSF)   | `max(5.0, public_cutoff_A)` (default 15.0)    | DSF is finite real-space and remains single-image MIC scoped; the required validation target uses `cutoff=5.0` for the 13.2 Å validation cell |
 | `aimnet2-pbc` / `aimnet2nse-pbc` (Ewald / PME) | `5.0` (AEV short range)                  | Ewald/PME ignore the public cutoff at runtime |
 | `mace-mp-pbc-*`                 | `models[0].r_max` (typically ~6 Å)                     | Official MACE PBC declares multi-image-safe scope |
 | `macepol-pbc-*`                 | `models[0].r_max`                                      | Same logic as MACE-MP |

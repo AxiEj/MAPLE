@@ -149,6 +149,9 @@ def test_required_backend_matrix_declares_review_scope():
         "macepol-pbc-small", "macepol-pbc-medium", "macepol-pbc-large",
         "uma-omat-default",
     }
+    by_id = {target.id: target for target in targets}
+    assert by_id["aimnet2-pbc-dsf"].model_options == {"coulomb": "dsf", "cutoff": 5.0}
+    assert by_id["aimnet2nse-pbc-dsf"].model_options == {"coulomb": "dsf", "cutoff": 5.0}
 
 
 def test_backend_matrix_accepts_complete_current_non_smoke_reports(tmp_path):

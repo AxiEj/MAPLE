@@ -19,7 +19,7 @@ from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
 
 @pytest.mark.parametrize(
     "calculator_cls",
-    [AIMNet2OfficialPBCCalculator, MACEOfficialPBCCalculator, MACEPolOfficialPBCCalculator],
+    [MACEOfficialPBCCalculator, MACEPolOfficialPBCCalculator],
 )
 def test_pbc_backends_declare_periodic_stress_capability(calculator_cls):
     assert calculator_cls.maple_pbc_md_supported is True
@@ -27,6 +27,14 @@ def test_pbc_backends_declare_periodic_stress_capability(calculator_cls):
     assert calculator_cls.maple_stress_unit == ASE_STRESS_UNIT
     assert calculator_cls.maple_requires_single_image_mic is False
     assert calculator_cls.maple_periodic_neighborlist_multi_image_safe is True
+
+
+def test_aimnet_pbc_declares_periodic_stress_capability_class_defaults():
+    # AIMNet2 PBC supports stress for all long-range modes, but DSF vs Ewald/PME
+    # chooses its MIC scope at instance construction time.
+    assert AIMNet2OfficialPBCCalculator.maple_pbc_md_supported is True
+    assert AIMNet2OfficialPBCCalculator.maple_stress_supported is True
+    assert AIMNet2OfficialPBCCalculator.maple_stress_unit == ASE_STRESS_UNIT
 
 
 @pytest.mark.parametrize(

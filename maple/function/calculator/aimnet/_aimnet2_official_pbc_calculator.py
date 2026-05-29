@@ -106,9 +106,17 @@ class AIMNet2OfficialPBCCalculator(OfficialPBCAdapterBase):
         if method == "dsf":
             self.short_range_realspace_cutoff_A = float(cutoff)
             self.neighbor_cutoff_A = max(AIMNET2_SHORT_RANGE_CUTOFF_A, float(cutoff))
+            # DSF is a finite real-space cutoff method.  MAPLE's production
+            # admission therefore treats it as single-image MIC scoped; using a
+            # cutoff longer than half the shortest periodic vector can introduce
+            # discontinuous image-shell changes in stress/volume validation.
+            self.maple_requires_single_image_mic = True
+            self.maple_periodic_neighborlist_multi_image_safe = False
         else:  # "ewald" / "pme"
             self.short_range_realspace_cutoff_A = None
             self.neighbor_cutoff_A = AIMNET2_SHORT_RANGE_CUTOFF_A
+            self.maple_requires_single_image_mic = False
+            self.maple_periodic_neighborlist_multi_image_safe = True
 
         if implicit == "gbsa" and solvent != "none":
             raise NotImplementedError("Implicit solvent is not supported for AIMNet2 PBC backends.")

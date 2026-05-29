@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MAPLE fix/pbc 变更审计与科学验证报告</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(15, 29, 52, 0.92);
+      --panel2: rgba(20, 40, 72, 0.86);
+      --ink: #eef6ff;
+      --muted: #a9bfdc;
+      --cyan: #55d9ff;
+      --blue: #6aa7ff;
+      --green: #61e5a8;
+      --amber: #ffd166;
+      --red: #ff6b7a;
+      --purple: #b99cff;
+      --line: rgba(146, 180, 220, 0.24);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 22px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 6%, rgba(85,217,255,.23), transparent 32rem),
+        radial-gradient(circle at 82% 0%, rgba(185,156,255,.20), transparent 34rem),
+        linear-gradient(135deg, #060b14 0%, #07111f 48%, #09172a 100%);
+      min-height: 100vh;
+    }
+    a { color: var(--cyan); text-decoration: none; }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .wrap { width: min(1380px, calc(100vw - 40px)); margin: 0 auto; }
+    header.hero {
+      padding: 54px 0 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kicker { color: var(--green); letter-spacing: .16em; text-transform: uppercase; font-weight: 800; font-size: 13px; }
+    h1 { margin: 12px 0 10px; font-size: clamp(34px, 6vw, 74px); line-height: .95; letter-spacing: -0.05em; }
+    .subtitle { max-width: 980px; color: var(--muted); font-size: clamp(16px, 2vw, 21px); line-height: 1.65; }
+    .chips { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 4px; }
+    .chip {
+      border: 1px solid var(--line); background: rgba(255,255,255,.055); border-radius: 999px;
+      padding: 10px 14px; color: var(--muted); backdrop-filter: blur(10px);
+    }
+    .chip b { color: var(--ink); }
+    .grid { display: grid; gap: 18px; }
+    .grid.stats { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 24px 0; }
+    .stat {
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035));
+      border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow);
+      min-height: 138px;
+    }
+    .stat .num { font-size: 38px; font-weight: 900; letter-spacing: -0.04em; }
+    .stat .label { color: var(--muted); margin-top: 6px; line-height: 1.45; }
+    .stat.good .num { color: var(--green); }
+    .stat.warn .num { color: var(--amber); }
+    .stat.info .num { color: var(--cyan); }
+    .panel {
+      border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius);
+      padding: 24px; box-shadow: var(--shadow); overflow: hidden;
+    }
+    .panel h2, .panel h3 { margin-top: 0; letter-spacing: -0.03em; }
+    .panel h2 { font-size: 30px; }
+    .panel h3 { font-size: 21px; }
+    .caption { color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .two { grid-template-columns: 1.05fr .95fr; }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .flow svg, .bigsvg { width: 100%; height: auto; display: block; }
+    .legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; color:var(--muted); }
+    .dot { width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:6px; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 13px 12px; vertical-align: top; }
+    th { text-align: left; color: var(--cyan); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; background: rgba(85,217,255,.06); }
+    td { color: #e8f1ff; line-height: 1.55; }
+    tr:hover td { background: rgba(255,255,255,.035); }
+    .tag { display:inline-block; padding:3px 8px; border-radius:999px; font-size:12px; font-weight:800; margin-right:6px; }
+    .tag.add { background:rgba(97,229,168,.15); color:var(--green); border:1px solid rgba(97,229,168,.28); }
+    .tag.mod { background:rgba(85,217,255,.12); color:var(--cyan); border:1px solid rgba(85,217,255,.26); }
+    .tag.fail { background:rgba(255,107,122,.13); color:var(--red); border:1px solid rgba(255,107,122,.28); }
+    .tag.bound { background:rgba(255,209,102,.13); color:var(--amber); border:1px solid rgba(255,209,102,.28); }
+    .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card {
+      border: 1px solid var(--line); border-radius: 18px; background: var(--panel2); padding: 18px;
+      min-height: 190px;
+    }
+    .card h3 { margin: 0 0 8px; }
+    .card p { color: var(--muted); line-height: 1.58; margin: 8px 0 0; }
+    .evidence { margin-top: 10px; color: var(--cyan); font-size: 12px; line-height: 1.55; }
+    .equation {
+      font-family: Georgia, 'Times New Roman', serif; font-size: 20px; padding: 16px;
+      background: rgba(0,0,0,.22); border: 1px solid var(--line); border-radius: 16px; color: #fff7d6;
+      overflow-x: auto;
+    }
+    .barrow { display:grid; grid-template-columns: 180px 1fr 48px; gap: 12px; align-items:center; margin: 13px 0; }
+    .barlabel { color: var(--muted); }
+    .bar { height: 20px; background: rgba(255,255,255,.08); border-radius: 999px; overflow:hidden; border: 1px solid var(--line); }
+    .fill { height:100%; border-radius:999px; background: linear-gradient(90deg, var(--cyan), var(--green)); }
+    .ladder { display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; }
+    .rung { position: relative; padding: 18px; border:1px solid var(--line); border-radius: 18px; background:rgba(255,255,255,.045); }
+    .rung:after { content:"→"; position:absolute; right:-18px; top:42%; color:var(--cyan); font-size:26px; }
+    .rung:last-child:after { content:""; }
+    .rung .lvl { color: var(--green); font-weight: 900; }
+    .rung p { color: var(--muted); line-height:1.55; }
+    .callout { border-left: 4px solid var(--amber); padding: 14px 16px; background: rgba(255,209,102,.08); border-radius: 12px; color: #fff3c4; line-height:1.65; }
+    footer { padding: 30px 0 50px; color: var(--muted); }
+    @media (max-width: 980px) {
+      .grid.stats, .two, .three, .four, .cards, .ladder { grid-template-columns: 1fr; }
+      .rung:after { display:none; }
+      table { font-size: 13px; }
+      .wrap { width: min(100vw - 24px, 1380px); }
+    }
+    @media print {
+      body { background:#fff; color:#111; }
+      .panel, .stat, .card, .rung { box-shadow:none; break-inside: avoid; background:#fff; color:#111; }
+      .subtitle, .caption, .card p, td, .barlabel { color:#333; }
+      a { color:#0645ad; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <div class="kicker">MAPLE / fix-pbc audit visualization</div>
+      <h1>PBC-MD 变更审计<br/>与科学验证地图</h1>
+      <p class="subtitle">
+        本页把 <span class="mono">enhance</span> 到 <span class="mono">fix/pbc</span> 的分支差异整理成可视化审计报告：
+        每个结论都对应“改了什么、原来是什么、为什么这样改、代码证据”。核心边界：这是
+        <b>release-candidate / production-validation branch</b>，不是无条件 production-ready 声明。
+      </p>
+      <div class="chips">
+        <div class="chip"><b>base</b> <span class="mono">enhance@c277aec8b227</span></div>
+        <div class="chip"><b>head</b> <span class="mono">fix/pbc@1cc52e7c0ee9</span></div>
+        <div class="chip"><b>ahead/behind</b> <span class="mono">0 / 72</span></div>
+        <div class="chip"><b>remote</b> <span class="mono">origin/fix/pbc == HEAD</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="grid stats" aria-label="diff summary">
+      <div class="stat info"><div class="num">133</div><div class="label">变更文件，相对 <span class="mono">enhance...HEAD</span></div></div>
+      <div class="stat good"><div class="num">+14,212</div><div class="label">新增行：PBC backend、MD gates、validation、tests</div></div>
+      <div class="stat warn"><div class="num">−1,857</div><div class="label">删除/替换行：旧 fallback、重复默认、大杂烩 utils</div></div>
+      <div class="stat good"><div class="num">0 / 0</div><div class="label">push 后本地与 <span class="mono">origin/fix/pbc</span> ahead/behind</div></div>
+    </section>
+
+    <section class="grid two">
+      <div class="panel flow">
+        <h2>因果链：为什么不是“加 PBC 开关”</h2>
+        <p class="caption">变更按科学依赖排序：backend contract 是根，MD admission 是门，NPT integrator 是物理核心，provenance/validation 是 claim 边界。</p>
+        <svg viewBox="0 0 980 470" role="img" aria-label="causal flow diagram">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#55d9ff"/><stop offset="1" stop-color="#61e5a8"/></linearGradient>
+            <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#61e5a8"/></marker>
+          </defs>
+          <rect x="20" y="35" width="210" height="92" rx="20" fill="#122342" stroke="#55d9ff"/>
+          <text x="125" y="70" text-anchor="middle" fill="#eef6ff" font-size="18" font-weight="800">官方 PBC backend</text>
+          <text x="125" y="98" text-anchor="middle" fill="#a9bfdc" font-size="13">AIMNet2 / MACE / MACEPol / UMA</text>
+
+          <rect x="385" y="35" width="210" height="92" rx="20" fill="#122342" stroke="#61e5a8"/>
+          <text x="490" y="70" text-anchor="middle" fill="#eef6ff" font-size="18" font-weight="800">Admission gates</text>
+          <text x="490" y="98" text-anchor="middle" fill="#a9bfdc" font-size="13">units / stress / MIC / cell</text>
+
+          <rect x="750" y="35" width="210" height="92" rx="20" fill="#122342" stroke="#ffd166"/>
+          <text x="855" y="70" text-anchor="middle" fill="#eef6ff" font-size="18" font-weight="800">NPT physics</text>
+          <text x="855" y="98" text-anchor="middle" fill="#a9bfdc" font-size="13">λ=√V c-rescale + H̃</text>
+
+          <rect x="120" y="250" width="240" height="100" rx="22" fill="#101f39" stroke="#b99cff"/>
+          <text x="240" y="286" text-anchor="middle" fill="#eef6ff" font-size="18" font-weight="800">State & trajectory</text>
+          <text x="240" y="315" text-anchor="middle" fill="#a9bfdc" font-size="13">RST cell matrix / image flags / repr</text>
+
+          <rect x="620" y="250" width="240" height="100" rx="22" fill="#101f39" stroke="#ff6b7a"/>
+          <text x="740" y="286" text-anchor="middle" fill="#eef6ff" font-size="18" font-weight="800">Release claim gate</text>
+          <text x="740" y="315" text-anchor="middle" fill="#a9bfdc" font-size="13">non-smoke reports + matrix checker</text>
+
+          <path d="M230 81 C290 81 325 81 385 81" stroke="url(#g1)" stroke-width="5" fill="none" marker-end="url(#arrow)"/>
+          <path d="M595 81 C655 81 690 81 750 81" stroke="url(#g1)" stroke-width="5" fill="none"/>
+          <path d="M855 127 C850 200 810 225 740 250" stroke="#ffd166" stroke-width="4" fill="none"/>
+          <path d="M490 127 C455 220 355 230 285 250" stroke="#b99cff" stroke-width="4" fill="none"/>
+          <path d="M360 300 C450 395 610 395 700 350" stroke="#55d9ff" stroke-width="4" fill="none"/>
+          <circle cx="490" cy="400" r="46" fill="#07111f" stroke="#61e5a8" stroke-width="3" filter="url(#glow)"/>
+          <text x="490" y="394" text-anchor="middle" fill="#61e5a8" font-size="15" font-weight="900">FAIL</text>
+          <text x="490" y="414" text-anchor="middle" fill="#61e5a8" font-size="15" font-weight="900">CLOSED</text>
+          <text x="490" y="452" text-anchor="middle" fill="#a9bfdc" font-size="13">不满足科学前提则拒绝运行，而非生成貌似合理的轨迹</text>
+        </svg>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--cyan)"></i>工程 contract</span>
+          <span><i class="dot" style="background:var(--amber)"></i>物理算法</span>
+          <span><i class="dot" style="background:var(--red)"></i>claim 边界</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>文件变更热力图</h2>
+        <p class="caption">按功能域统计变更文件数；测试是最大单类之一，说明这不是只改运行代码，还锁住了 admission/physics/release contract。</p>
+        <div class="barrow"><div class="barlabel">Tests</div><div class="bar"><div class="fill" style="width:100%"></div></div><div class="mono">43</div></div>
+        <div class="barrow"><div class="barlabel">MD core</div><div class="bar"><div class="fill" style="width:67%"></div></div><div class="mono">29</div></div>
+        <div class="barrow"><div class="barlabel">Other dispatch/read</div><div class="bar"><div class="fill" style="width:53%"></div></div><div class="mono">23</div></div>
+        <div class="barrow"><div class="barlabel">Calculator/PBC</div><div class="bar"><div class="fill" style="width:47%"></div></div><div class="mono">20</div></div>
+        <div class="barrow"><div class="barlabel">Examples/docs/config</div><div class="bar"><div class="fill" style="width:26%"></div></div><div class="mono">11</div></div>
+        <div class="barrow"><div class="barlabel">Validation/release</div><div class="bar"><div class="fill" style="width:16%"></div></div><div class="mono">7</div></div>
+        <div class="callout" style="margin-top:18px">
+          审计边界：本页描述的是 <span class="mono">enhance@c277aec8b227 → fix/pbc@1cc52e7c0ee9</span>；
+          不是和 <span class="mono">upstream/enhance</span> 的比较。
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px">
+      <h2>Before / After 审计表</h2>
+      <table>
+        <thead>
+          <tr><th>主题</th><th>改了什么</th><th>原来是什么</th><th>为什么这样改</th><th>代码证据</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag add">PBC backends</span></td>
+            <td>加入 <span class="mono">aimnet2-pbc</span>、<span class="mono">mace-mp-pbc-*</span>、<span class="mono">macepol-pbc-*</span> 并声明 stress/PBC 能力。</td>
+            <td><span class="mono">enhance</span> 模型表只有非周期模型和 UMA 等，没有官方周期 backend。</td>
+            <td>PBC/NPT 需要真实周期边界和 stress；非周期 backend 不能冒充支持。</td>
+            <td>原 <span class="mono">enhance:calculator/set_calculator.py:15-74</span><br/>现 <span class="mono">calculator/set_calculator.py:25-147</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag add">unit adapter</span></td>
+            <td>新增 official PBC adapter 与 raw ASE unit adapter，energy/forces 实际转换到 MAPLE contract。</td>
+            <td>缺少统一 PBC adapter；raw ASE eV/eVÅ 直接进 MD 会被静默错量级。</td>
+            <td>MD 内部消费 Ha / Ha·Å，必须转换而不是贴属性标签。</td>
+            <td><span class="mono">calculator/_official_pbc_base.py:12-54</span><br/><span class="mono">calculator/ase_unit_adapter.py:1-13,37-106</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag fail">stress gate</span></td>
+            <td>NPT pressure 必须有 finite Voigt stress 和 stress unit contract；缺 stress 直接拒绝。</td>
+            <td>旧 pressure 计算在 stress 不可用时用 ideal-gas fallback，只 warning。</td>
+            <td>dense/PBC NPT 不能用 kinetic-only pressure 冒充真实 pressure coupling。</td>
+            <td>原 <span class="mono">md/utils.py:277-349</span><br/>现 <span class="mono">md/capabilities.py:90-174</span>, <span class="mono">md/pressure.py:15-66</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag fail">MIC gate</span></td>
+            <td>检查 neighbor cutoff 必须小于真实 minimum-image radius；rank-deficient cell 拒绝。</td>
+            <td>没有统一 admission gate 覆盖用户自带 calculator 与 skew/triclinic 情况。</td>
+            <td>cutoff ≥ Wigner-Seitz inradius 会让 pair interaction 看见多重周期像。</td>
+            <td><span class="mono">calculator/set_calculator.py:228-327</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag fail">semantics</span></td>
+            <td>constraints hard-reject；partial-PBC 默认拒绝或显式 experimental；NPT 要求 full 3D PBC。</td>
+            <td>约束、partial-PBC、质量异常没有集中在 startup/restart/load_state gate。</td>
+            <td>没有 SHAKE/RATTLE/SETTLE 就不能做 constrained MD；slab/partial-PBC 没有 production policy。</td>
+            <td><span class="mono">md/semantics.py:242-357</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag mod">C-rescale</span></td>
+            <td>从 volume/log-like Euler 改成 λ=√V reversible-Euler；barostat 返回 <span class="mono">v/μ</span>；记录 H̃。</td>
+            <td>旧注释写 dV/V 噪声、速度不变、stress 缺失可 fallback。</td>
+            <td>对齐 Bernetti-Bussi 可审计形式；避免 multiplicative-noise bias 和动量缩放缺失。</td>
+            <td>原 <span class="mono">md/barostat/crescale.py:4-27,93-107,130-173</span><br/>现 <span class="mono">md/barostat/crescale.py:1-63,250-293</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag mod">NPT ordering</span></td>
+            <td>scheduled barostat step：先 λ propagation + cell/position/momentum scale，再 force refresh，再 split V-rescale/VV。</td>
+            <td>旧 V-rescale 路径是 thermostat/integrator 后统一 <span class="mono">barostat.apply(v)</span>。</td>
+            <td>保证 barostat work accounting、force geometry、effective-energy drift 可解释。</td>
+            <td>原 <span class="mono">md/ensemble/npt.py:481-586</span><br/>现 <span class="mono">md/ensemble/npt.py:683-821</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag mod">defaults</span></td>
+            <td><span class="mono">DEFAULTS['md']</span> 只保留 ensemble，物理默认来自 dataclass。</td>
+            <td>parser 里重复写 timestep、steps、thermostat、barostat、COM 等默认值。</td>
+            <td>避免 parser 与 NVE/NVT/NPT dataclass 默认互相覆盖、漂移。</td>
+            <td>原 <span class="mono">read/command_control.py:56-84</span><br/>现 <span class="mono">read/command_control.py:78-85</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag mod">utils split</span></td>
+            <td><span class="mono">md/utils.py</span> 拆成 units/pbc/capabilities/thermo/dof/pressure/velocity/provenance 等模块。</td>
+            <td>851 行单文件混合多个物理和 IO concern。</td>
+            <td>降低耦合；保留 re-export shim，避免旧 import 破坏。</td>
+            <td>原 <span class="mono">md/utils.py:1-15</span><br/>现 <span class="mono">md/utils.py:1-18</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag bound">release gate</span></td>
+            <td>新增 single-target production validation 和 aggregate backend matrix checker。</td>
+            <td>没有同级别 release gate，容易把 quick/static/LJ-only 过度解读。</td>
+            <td>真实 backend production claim 必须 current clean commit、non-smoke PASS、无 skip、无 clamp、矩阵齐全。</td>
+            <td><span class="mono">scripts/production_validation.py:1-32</span><br/><span class="mono">scripts/check_production_backend_matrix.py:1-16</span></td>
+          </tr>
+          <tr>
+            <td><span class="tag bound">claim wording</span></td>
+            <td>release checklist 明确禁止把 static review / quick / stale artifacts 写成 production-ready。</td>
+            <td>原来没有网页/文档级别的 claim truth ladder。</td>
+            <td>科学结论必须绑定验证证据，不用模糊措辞扩大有效性。</td>
+            <td><span class="mono">RELEASE_CHECKLIST.md:1-19</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="grid two" style="margin-top:18px">
+      <div class="panel">
+        <h2>C-rescale 科学边界</h2>
+        <div class="equation">dλ = −(βλ)/(2τ<sub>P</sub>) · (P<sub>0</sub> − P<sub>int</sub> − k<sub>B</sub>T/(2V)) dt + √(k<sub>B</sub>Tβ/(2τ<sub>P</sub>)) dW</div>
+        <div class="grid three" style="margin-top:16px">
+          <div class="card"><h3>变量选择</h3><p>使用 λ=√V，噪声幅度不依赖 V；比简单 log/volume Euler 更适合做可审计 production path。</p><div class="evidence">md/barostat/crescale.py:7-29</div></div>
+          <div class="card"><h3>速度缩放</h3><p>cell 与 positions 按 μ 缩放，velocities 返回 v/μ，对齐 scaled momenta form。</p><div class="evidence">md/barostat/crescale.py:31-35,287-290</div></div>
+          <div class="card"><h3>诚实边界</h3><p>这是 isotropic hydrostatic barostat，不是 Parrinello-Rahman/MTTK/shear/anisotropic cell sampler。</p><div class="evidence">md/barostat/crescale.py:47-60</div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Release truth ladder</h2>
+        <div class="ladder">
+          <div class="rung"><div class="lvl">L1 Static</div><p>代码/文献审阅：可进入 validation，但不能 claim production.</p></div>
+          <div class="rung"><div class="lvl">L2 Unit</div><p>fake/LJ 层：admission、semantics、restart、C-rescale gates.</p></div>
+          <div class="rung"><div class="lvl">L3 Engine</div><p>non-smoke LJ acceptance matrix：10 classes，0 fail，0 skip。</p></div>
+          <div class="rung"><div class="lvl">L4 Backend</div><p>每个 required backend current clean commit PASS，并通过 aggregate checker。</p></div>
+        </div>
+        <p class="caption" style="margin-top:18px">Checklist 明确：static review、quick smoke、LJ-only、stale artifacts 都不能写成 “production validated”。</p>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px">
+      <h2>验证矩阵：每类风险怎么被锁住</h2>
+      <div class="grid cards">
+        <div class="card"><h3>单位错配</h3><p>raw ASE calculator 无 MAPLE unit contract 时拒绝；adapter 做真实 eV→Ha 转换。</p><div class="evidence">tests/dispatcher/md/test_unit_cutoff_admission.py</div></div>
+        <div class="card"><h3>MIC / cutoff</h3><p>cutoff unknown 或 cutoff ≥ minimum-image radius 默认拒绝；skew cell 用 shortest lattice vector。</p><div class="evidence">tests/dispatcher/test_pbc_task_gate.py; tests/dispatcher/md/test_cell_admission.py</div></div>
+        <div class="card"><h3>constraints / partial PBC</h3><p>constraints hard-reject；partial-PBC 需要显式 opt-in 且标为 NOT PRODUCTION VALIDATED。</p><div class="evidence">tests/dispatcher/md/test_md_semantics.py</div></div>
+        <div class="card"><h3>Berendsen 边界</h3><p>Berendsen NPT 默认拒绝，仅允许 explicit equilibration-only escape hatch。</p><div class="evidence">tests/dispatcher/md/test_barostat_policy.py</div></div>
+        <div class="card"><h3>C-rescale 单位</h3><p>compressibility 的 bar → Å³/eV 转换被 regression test 锁住，防止 variance 错 12 个数量级。</p><div class="evidence">tests/dispatcher/md/test_crescale_volume_fluctuation.py</div></div>
+        <div class="card"><h3>Production claim</h3><p>production_validation.py 与 matrix checker 拒绝 dirty commit、quick-smoke、skip、旧 commit、缺 manifest。</p><div class="evidence">tests/calculator/test_production_validation_cli.py; tests/calculator/test_production_backend_matrix.py</div></div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px">
+      <h2>结论</h2>
+      <div class="callout">
+        当前分支的科学目标是：PBC-MD 路径在已支持范围内更严格、更可审计；不支持或未验证的状态明确拒绝或标记 experimental；
+        release 声明必须绑定同一 clean commit 的验证 artifact。换句话说：这次改动把“能跑”提升为“前提清楚、失败封闭、证据可追踪”。
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    Generated for MAPLE <span class="mono">fix/pbc</span>. Evidence source: local git diff and line-number inspection against <span class="mono">enhance@c277aec8b227</span> and <span class="mono">HEAD@1cc52e7c0ee9</span>.
+  </footer>
+</body>
+</html>

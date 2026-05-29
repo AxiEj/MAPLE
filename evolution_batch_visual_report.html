@@ -634,10 +634,10 @@ symmetrize(H)
       <p class="section-subtitle">本网页创建时没有重新跑全量 real-backend benchmark；这里列的是仓库中新增/锁定的验证形态和本次静态页面校验边界。</p>
       <div class="timeline">
         <div class="event"><div class="event-card"><b>Contract tests</b><p><span class="mono">maple/function/calculator/test_batch_eval.py:1-17</span> 覆盖 BatchResult、FDHessianEvaluator、PathEvaluator、HVP、RFO/PRFO 调用节省。</p></div></div>
-        <div class="event"><div class="event-card"><b>Parser tests</b><p><span class="mono">test_batch_eval.py:160-305</span> 覆盖 batch_size、PBC 拒绝、PRFO 参数 typo、NEBTS 参数透传。</p></div></div>
+        <div class="event"><div class="event-card"><b>Parser tests</b><p><span class="mono">test_batch_eval.py:160-336</span> 覆盖 batch_size、PBC 拒绝、PRFO 参数 typo、NEBTS 参数透传。</p></div></div>
         <div class="event"><div class="event-card"><b>Scientific acceptance tool</b><p><span class="mono">tools/ts_prfo_acceptance.py:1-7</span> 明确：速度不算成功，除非 Normal Termination + exactly one imaginary frequency。</p></div></div>
-        <div class="event"><div class="event-card"><b>Path benchmark tool</b><p><span class="mono">tools/path_batch_benchmark.py</span> 同时报 E/F 差异和速度；<span class="mono">--require-parity</span> 超阈值时非零退出，避免只看 wall time。</p></div></div>
-        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：73 passed，17 real-backend smoke skipped；本地 release gate 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
+        <div class="event"><div class="event-card"><b>Path benchmark tool</b><p><span class="mono">tools/path_batch_benchmark.py</span> 同时报 E/F 差异和速度；<span class="mono">--require-parity</span> 默认用 <span class="mono">1e-7 Eh</span>/<span class="mono">1e-6 Eh/Å</span> 阈值，超阈值时非零退出。</p></div></div>
+        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：76 passed，17 real-backend smoke skipped；本地 release gate 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
         <div class="event"><div class="event-card"><b>Local release gate</b><p><span class="mono">python tools/real_backend_release_gate.py</span> 本地跑真实后端 smoke；HTML 和 <span class="mono">/tmp</span> notes 不作为生产证明。</p></div></div>
       </div>
       <p class="footnote">页面本身为自包含静态 HTML，无外部依赖；适合用浏览器直接打开，也可提交到 docs/static host。</p>

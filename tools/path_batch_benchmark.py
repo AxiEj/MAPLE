@@ -26,7 +26,7 @@ from ase import Atoms
 
 
 MODEL_DIR = Path("maple/function/calculator/model")
-DEFAULT_MAX_ENERGY_DIFF_EH = 1e-8
+DEFAULT_MAX_ENERGY_DIFF_EH = 1e-7
 DEFAULT_MAX_FORCE_DIFF_EH_PER_A = 1e-6
 
 SYMBOLS = ["C", "H", "O", "C", "H", "H", "H"]

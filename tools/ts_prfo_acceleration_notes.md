@@ -358,8 +358,12 @@ outliers are excluded by the median:
 This benchmark is reproducible with:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python tools/path_batch_benchmark.py --device cuda:0 --reps 3 --warmups 2
+CUDA_VISIBLE_DEVICES=0 python tools/path_batch_benchmark.py --device cuda:0 --reps 3 --warmups 2 --require-parity
 ```
+
+`--require-parity` defaults to `max_energy_diff=1e-7 Eh` and
+`max_force_diff=1e-6 Eh/Angstrom`, matching the observed fp32/reduction-order
+energy differences above while still catching shape/unit/force routing errors.
 
 ANI direct PRFO note: the stale repository example output
 `example/ts/prfo/inp1.out` predates strict TS-mode validation.  A current

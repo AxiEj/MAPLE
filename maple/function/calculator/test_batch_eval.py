@@ -219,6 +219,37 @@ def test_command_control_rejects_duplicate_nested_batch_size_option():
         ])
 
 
+def test_command_control_task_options_override_defaults():
+    from maple.function.read.command_control import CommandControl
+
+    cc = CommandControl.from_settings(["#freq(method=both)"])
+    assert cc.task == "freq"
+    assert cc.params["method"] == "both"
+
+    cc = CommandControl.from_settings(["#md(steps=1000,temperature=350)"])
+    assert cc.task == "md"
+    assert cc.params["steps"] == 1000
+    assert cc.params["temperature"] == 350
+
+
+def test_command_control_mdp_option_overrides_default_without_duplicate_error():
+    from maple.function.read.command_control import CommandControl
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".mdp", delete=False) as fh:
+        fh.write("steps = 25\n")
+        mdp_path = fh.name
+    try:
+        cc = CommandControl.from_settings([f"#md(mdp={mdp_path},temperature=350)"])
+
+        assert cc.task == "md"
+        assert cc.params["mdp"] == mdp_path
+        assert cc.params["steps"] == 25
+        assert cc.params["temperature"] == 350
+    finally:
+        if os.path.exists(mdp_path):
+            os.remove(mdp_path)
+
+
 def test_command_control_rejects_pbc_with_batch_size():
     from maple.function.read.command_control import CommandControl
 
@@ -585,6 +616,28 @@ def test_path_batch_benchmark_parity_gate_is_opt_in():
         == []
     )
     assert "parity_pass" not in results[0]
+
+
+def test_path_batch_benchmark_default_energy_tolerance_matches_recorded_fp32_diff():
+    from tools import path_batch_benchmark
+
+    results = [
+        {
+            "backend": "aimnet2-recorded",
+            "max_energy_diff_Eh": 5.09e-8,
+            "max_force_diff_Eh_per_A": 1.32e-7,
+        }
+    ]
+
+    assert (
+        path_batch_benchmark._apply_parity_gate(
+            results,
+            max_energy_diff=path_batch_benchmark.DEFAULT_MAX_ENERGY_DIFF_EH,
+            max_force_diff=path_batch_benchmark.DEFAULT_MAX_FORCE_DIFF_EH_PER_A,
+        )
+        == []
+    )
+    assert results[0]["parity_pass"] is True
 
 
 def test_setcalculator_applies_model_batch_size_aliases():

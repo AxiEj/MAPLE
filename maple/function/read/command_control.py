@@ -292,18 +292,21 @@ class CommandControl:
 
     @staticmethod
     def _parse_nested(target: Dict[str, Any], inner: str) -> None:
+        seen = set()
         for kv in inner.split(","):
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
                 norm_key = CommandControl._normalize_key(k)
-                if norm_key in target:
+                if norm_key in seen:
                     raise ValueError(f"Duplicate nested parameter: '{norm_key}'.")
+                seen.add(norm_key)
                 target[norm_key] = CommandControl._auto_cast(v.strip())
             else:
                 norm_key = CommandControl._normalize_key(kv)
-                if norm_key in target:
+                if norm_key in seen:
                     raise ValueError(f"Duplicate nested parameter: '{norm_key}'.")
+                seen.add(norm_key)
                 target[norm_key] = True
 
     @classmethod

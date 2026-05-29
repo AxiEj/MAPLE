@@ -8,12 +8,9 @@ AIMNet2 (long-range Coulomb framing):
 import importlib
 from typing import Literal, Optional
 
-import numpy as np
 import torch
-from ase.calculators.calculator import all_changes
 
-from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
-from ..calculator_base import CalcABC
+from maple.function.calculator._official_pbc_base import OfficialPBCAdapterBase
 from .options import AIMNET_PBC_COULOMB_METHODS, AIMNET_PBC_MODELS
 
 # AIMNet2's short-range AEV descriptor uses a fixed 5.0 Å cutoff for the local
@@ -39,15 +36,8 @@ def _load_aimnet2_classes(model: str):
         ) from exc
 
 
-class AIMNet2OfficialPBCCalculator(CalcABC):
+class AIMNet2OfficialPBCCalculator(OfficialPBCAdapterBase):
     """MAPLE unit adapter around the official AIMNet2 ASE PBC calculator."""
-
-    implemented_properties = ["energy", "forces", "stress", "free_energy"]
-    supported_hessian_modes = ()
-    maple_pbc_md_supported = True
-    maple_stress_supported = True
-    maple_stress_unit = ASE_STRESS_UNIT
-    supported_maple_properties = frozenset({"energy", "forces", "stress", "MD"})
 
     def __init__(
         self,
@@ -95,7 +85,10 @@ class AIMNet2OfficialPBCCalculator(CalcABC):
             lrcoulomb_kwargs["pme_cutoff"] = float(pme_cutoff)
 
         base_calculator.set_lrcoulomb_method(method, **lrcoulomb_kwargs)
-        self._official_calculator = ase_calculator_cls(base_calculator)
+        self._official_calculator = self._build_official_calculator(
+            base_calculator,
+            ase_calculator_cls,
+        )
 
         # Record the long-range method and its public cutoff verbatim for the
         # provenance manifest; do not conflate them with the *effective* local
@@ -120,30 +113,5 @@ class AIMNet2OfficialPBCCalculator(CalcABC):
         if implicit == "gbsa" and solvent != "none":
             raise NotImplementedError("Implicit solvent is not supported for AIMNet2 PBC backends.")
 
-    def calculate(self, atoms=None, properties=None, system_changes=all_changes):
-        super().calculate(atoms, properties, system_changes)
-        requested = set(properties or ["energy"])
-
-        official_properties = ["energy"]
-        if "forces" in requested:
-            official_properties.append("forces")
-        if "stress" in requested:
-            official_properties.append("stress")
-
-        self._official_calculator.calculate(
-            atoms=atoms,
-            properties=official_properties,
-            system_changes=system_changes,
-        )
-
-        official_results = self._official_calculator.results
-        if "energy" in official_results:
-            energy = float(official_results["energy"]) * EV2HARTREE
-            self.results["energy"] = energy
-            self.results["free_energy"] = energy
-        if "free_energy" in official_results:
-            self.results["free_energy"] = float(official_results["free_energy"]) * EV2HARTREE
-        if "forces" in official_results:
-            self.results["forces"] = np.asarray(official_results["forces"], dtype=float) * EV2HARTREE
-        if "stress" in official_results:
-            self.results["stress"] = np.asarray(official_results["stress"], dtype=float)
+    def _build_official_calculator(self, base_calculator, ase_calculator_cls):
+        return ase_calculator_cls(base_calculator)

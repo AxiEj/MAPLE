@@ -13,15 +13,13 @@ from .ani._ani_calculator import ANICalculator
 from .aimnet.options import (
     AIMNET_LEGACY_MODELS,
     AIMNET_PBC_MODELS,
-    validate_aimnet_options,
 )
 from .mace._mace_calculator import MACECalculator
 from .mace.options import (
     MACE_PBC_MODELS,
     MACEPOL_PBC_MODELS,
-    validate_mace_pbc_options,
-    validate_macepol_pbc_options,
 )
+from .pbc_option_registry import validate_model_pbc_options
 
 
 IMPLEMENTATION_MODELS = [
@@ -403,21 +401,22 @@ class SetClaculator:
         calculator.hessian = mode
 
     def _validated_aimnet_options(self) -> dict:
-        if self.model in AIMNET_LEGACY_MODELS:
-            return validate_aimnet_options(self.model_options)
-        if self.model in AIMNET_PBC_MODELS:
-            return validate_aimnet_options(self.model_options, pbc=True)
+        if self.model in AIMNET_LEGACY_MODELS or self.model in AIMNET_PBC_MODELS:
+            return validate_model_pbc_options(self.model, self.model_options)
         return {}
 
     def _validated_mace_pbc_options(self) -> dict:
         if self.model not in MACE_PBC_MODELS:
             return {}
-        return validate_mace_pbc_options(self.model_options)
+        return validate_model_pbc_options(self.model, self.model_options)
 
     def _validated_macepol_pbc_options(self) -> dict:
         if self.model not in MACEPOL_PBC_MODELS:
             return {}
-        return validate_macepol_pbc_options(self.model_options)
+        return validate_model_pbc_options(self.model, self.model_options)
+
+    def _validated_model_pbc_options(self) -> dict:
+        return validate_model_pbc_options(self.model, self.model_options)
 
     def _coerce_uma_inference_for_device(
         self, inference: Optional[str], device_name: str
@@ -663,9 +662,7 @@ class SetClaculator:
                 self._log_model_error(f"Unsupported model: {self.model}")
                 raise ValueError(f"Unsupported model: '{self.model}'.")
 
-            self._validated_aimnet_options()
-            self._validated_mace_pbc_options()
-            self._validated_macepol_pbc_options()
+            self._validated_model_pbc_options()
             self._validate_requested_hessian_mode()
 
             if self.d4 and self.model not in {"ani2x", "ani1x", "ani1ccx", "ani1xnr"}:

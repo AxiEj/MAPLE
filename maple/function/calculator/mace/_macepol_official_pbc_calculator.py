@@ -12,10 +12,9 @@ from typing import Literal, Optional
 
 import numpy as np
 import torch
-from ase.calculators.calculator import all_changes
 
-from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
-from ..calculator_base import CalcABC
+from maple.function.calculator._official_pbc_base import OfficialPBCAdapterBase
+from ._official_pbc_common import extract_mace_r_max
 from .options import MACEPOL_PBC_MODELS
 
 
@@ -37,15 +36,8 @@ def _load_mace_polar(model: str):
         ) from exc
 
 
-class MACEPolOfficialPBCCalculator(CalcABC):
+class MACEPolOfficialPBCCalculator(OfficialPBCAdapterBase):
     """MAPLE unit adapter around official PolarMACE ASE calculators."""
-
-    implemented_properties = ["energy", "forces", "stress", "free_energy"]
-    supported_hessian_modes = ()
-    maple_pbc_md_supported = True
-    maple_stress_supported = True
-    maple_stress_unit = ASE_STRESS_UNIT
-    supported_maple_properties = frozenset({"energy", "forces", "stress", "MD"})
 
     def __init__(
         self,
@@ -71,27 +63,18 @@ class MACEPolOfficialPBCCalculator(CalcABC):
         if mace_polar_factory is None:
             mace_polar_factory = _load_mace_polar(model)
 
-        self._official_calculator = mace_polar_factory(
-            model=upstream_model,
-            device=str(self.device),
-            default_dtype=str(default_dtype),
+        self._official_calculator = self._build_official_calculator(
+            mace_polar_factory,
+            {
+                "model": upstream_model,
+                "device": str(self.device),
+                "default_dtype": str(default_dtype),
+            },
         )
-        self.neighbor_cutoff_A = self._extract_neighbor_cutoff()
+        self.neighbor_cutoff_A = extract_mace_r_max(self._official_calculator)
 
-    def _extract_neighbor_cutoff(self) -> Optional[float]:
-        calc = self._official_calculator
-        models = getattr(calc, "models", None)
-        if not models:
-            r_max = getattr(calc, "r_max", None)
-        else:
-            r_max = getattr(models[0], "r_max", None)
-
-        if r_max is None:
-            return None
-        try:
-            return float(r_max.item() if hasattr(r_max, "item") else r_max)
-        except Exception:
-            return None
+    def _build_official_calculator(self, mace_polar_factory, factory_kwargs):
+        return mace_polar_factory(**factory_kwargs)
 
     def _normalized_polar_atoms(self, atoms):
         if atoms is None:
@@ -129,31 +112,5 @@ class MACEPolOfficialPBCCalculator(CalcABC):
         proxy.info["external_field"] = external_field
         return proxy
 
-    def calculate(self, atoms=None, properties=None, system_changes=all_changes):
-        super().calculate(atoms, properties, system_changes)
-        requested = set(properties or ["energy"])
-
-        official_properties = ["energy"]
-        if "forces" in requested:
-            official_properties.append("forces")
-        if "stress" in requested:
-            official_properties.append("stress")
-
-        polar_atoms = self._normalized_polar_atoms(atoms)
-        self._official_calculator.calculate(
-            atoms=polar_atoms,
-            properties=official_properties,
-            system_changes=system_changes,
-        )
-
-        official_results = self._official_calculator.results
-        if "energy" in official_results:
-            energy = float(official_results["energy"]) * EV2HARTREE
-            self.results["energy"] = energy
-            self.results["free_energy"] = energy
-        if "free_energy" in official_results:
-            self.results["free_energy"] = float(official_results["free_energy"]) * EV2HARTREE
-        if "forces" in official_results:
-            self.results["forces"] = np.asarray(official_results["forces"], dtype=float) * EV2HARTREE
-        if "stress" in official_results:
-            self.results["stress"] = np.asarray(official_results["stress"], dtype=float)
+    def _prepare_atoms(self, atoms):
+        return self._normalized_polar_atoms(atoms)

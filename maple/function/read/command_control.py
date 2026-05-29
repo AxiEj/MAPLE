@@ -13,9 +13,8 @@ from maple.function.calculator.mace.options import (
     MACE_PBC_OPTION_KEYS,
     MACEPOL_PBC_MODELS,
     MACEPOL_PBC_OPTION_KEYS,
-    validate_mace_pbc_options,
-    validate_macepol_pbc_options,
 )
+from maple.function.calculator.pbc_option_registry import validate_model_pbc_options
 
 
 class CommandControl:
@@ -634,28 +633,11 @@ class CommandControl:
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 
-        if model in AIMNET_LEGACY_MODELS or model in AIMNET_PBC_MODELS:
-            from maple.function.calculator.aimnet.options import validate_aimnet_options
-
-            try:
-                validate_aimnet_options(model_options, pbc=model in AIMNET_PBC_MODELS)
-            except ValueError as exc:
-                cls._log_error(output_path, str(exc))
-                raise
-
-        if model in MACE_PBC_MODELS:
-            try:
-                validate_mace_pbc_options(model_options)
-            except ValueError as exc:
-                cls._log_error(output_path, str(exc))
-                raise
-
-        if model in MACEPOL_PBC_MODELS:
-            try:
-                validate_macepol_pbc_options(model_options)
-            except ValueError as exc:
-                cls._log_error(output_path, str(exc))
-                raise
+        try:
+            validate_model_pbc_options(model, model_options)
+        except ValueError as exc:
+            cls._log_error(output_path, str(exc))
+            raise
 
     @staticmethod
     def _log_info(output_path: Optional[str], lines: List[str]) -> None:

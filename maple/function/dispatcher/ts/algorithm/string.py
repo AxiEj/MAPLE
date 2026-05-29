@@ -27,27 +27,13 @@ from ase import Atoms
 # You already have these utilities / mixins in your codebase:
 from .logger import log_info
 from ...jobABC import JobABC
+from maple.function.utility.numeric import to_numpy_f64
 from maple.function.utility.xyz_io import write_xyz
 
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
 # =============================================================================
-
-def to_numpy_f64(x):
-    """Convert input (numpy/torch/list/scalar) to float64 numpy array or float."""
-    if isinstance(x, np.ndarray):
-        return x.astype(np.float64, copy=False)
-    try:
-        import torch
-        if isinstance(x, torch.Tensor):
-            arr = x.detach().cpu().numpy()
-            return arr.astype(np.float64, copy=False)
-    except Exception:
-        pass
-    if np.isscalar(x):
-        return float(x)
-    return np.asarray(x, dtype=np.float64)
 
 
 def kabsch_align(P: np.ndarray, Q: np.ndarray) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray]:

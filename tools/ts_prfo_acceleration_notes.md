@@ -4,6 +4,28 @@ Success gate: a speed result is valid only when the same model and same analytic
 Hessian definition still reach PRFO normal termination and final TS validation
 reports exactly one non-trivial imaginary frequency.
 
+This branch ships **two distinct categories of acceleration** that should not
+be conflated:
+
+1. **Batch evaluator acceleration (always-on, physics-preserving).**
+   `calculate_many` / `PathEvaluator` / `FDHessianEvaluator` and the per-backend
+   `(B, N, 3)` / mol_idx / disconnected-graph batch paths.  These only change
+   *how* energies and forces are dispatched to the same model; the NEB
+   tangent, spring force, CINEB climbing image, PRFO equations, analytic
+   Hessian definition, and convergence criteria are byte-for-byte unchanged.
+   No user opt-in is required; auto chunk sizing degrades gracefully and
+   PBC/solvent paths fail closed to sequential evaluation.
+
+2. **Opt-in algorithmic acceleration (off by default).**
+   PRFO `hessian_recalc>1` + Bofill quasi-Newton secant update, and the
+   NEB-TS multi-candidate hand-off.  These change the TS optimization
+   policy, not the batch evaluator.  `hessian_recalc=1` (the default) keeps
+   the historical exact-Hessian-every-step behavior; the Bofill path is only
+   taken when the user explicitly requests it.  Treat published references
+   (ORCA `Recalc_Hess`, pysisyphus `hessian_recalc`, Bofill 1994) as the
+   provenance, and require model-specific TS acceptance evidence before
+   defaulting any of these on.
+
 ## Evidence and allowed acceleration classes
 
 - NEB/CINEB core force definitions are kept unchanged. The path evaluator only
@@ -102,6 +124,16 @@ For analytic Hessians, `batch_size` means "maximum Hessian rows per exact
 autograd VJP block". `batch_size=1` is the lowest-memory exact row loop; larger
 values can improve speed when the backend supports batched VJPs, while keeping
 the same Hessian definition.
+
+The generic auto-sizer estimates one structure's memory cost in isolation, so
+calculators whose batch path concatenates structures into a single dense
+neighbor mask need an additional cap.  AIMNet2 in particular constructs
+``nblist_dense_padded_multi`` over the concatenated coordinate stack, which is
+``O((sum N_i)^2)`` in memory rather than ``sum O(N_i^2)``.
+``_AutoBatchSizer._apply_math_cap`` therefore caps AIMNet2 auto-chunks at 8 for
+both path E/F and FD Hessian, in addition to the existing ANI/MACE
+path-throughput cap.  Users wanting larger AIMNet2 batches must set
+``batch_size`` explicitly and accept the quadratic memory growth.
 
 ## PRFO Hessian recalculation interval
 

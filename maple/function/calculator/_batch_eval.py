@@ -289,48 +289,73 @@ class _AutoBatchSizer:
         self.chunk = self._initial_chunk()
 
     def _initial_chunk(self) -> int:
+        # Memory-headroom sizing is GPU-specific (relies on
+        # torch.cuda.mem_get_info), but the math/backend caps in
+        # ``_apply_math_cap`` are algorithmic — they bound chunk size to
+        # avoid pathological concat-dense neighbor masks and observed
+        # throughput cliffs.  Apply them regardless of device so the same
+        # safety bounds hold on CPU and on CUDA without mem-get-info.
+        chunk = self.n_total
         torch, device = _cuda_device(self.calc)
-        if torch is None or device is None:
-            return self.n_total
-        try:
-            free_bytes, _ = torch.cuda.mem_get_info(device)
-        except Exception:
-            return self.n_total
-        item_bytes = max(
-            _estimate_batch_item_bytes(self.calc, atoms, self.properties)
-            for atoms in self.atoms_list
-        )
-        chunk = _estimate_auto_batch_size_from_item_bytes(
-            n_total=self.n_total,
-            item_bytes=item_bytes,
-            free_bytes=int(free_bytes),
-            target_fraction=_auto_batch_target_fraction(self.calc),
-        )
+        if torch is not None and device is not None:
+            try:
+                free_bytes, _ = torch.cuda.mem_get_info(device)
+                item_bytes = max(
+                    _estimate_batch_item_bytes(self.calc, atoms, self.properties)
+                    for atoms in self.atoms_list
+                )
+                chunk = _estimate_auto_batch_size_from_item_bytes(
+                    n_total=self.n_total,
+                    item_bytes=item_bytes,
+                    free_bytes=int(free_bytes),
+                    target_fraction=_auto_batch_target_fraction(self.calc),
+                )
+            except Exception:
+                chunk = self.n_total
         chunk = self._apply_math_cap(chunk)
         setattr(self.calc, "_auto_batch_size_last", chunk)
         return chunk
 
     def _apply_math_cap(self, chunk: int) -> int:
-        if self.kind != "path":
-            return chunk
+        name = type(self.calc).__name__.lower()
+        module = type(self.calc).__module__.lower()
+        is_aimnet = "aimnet" in name or ".aimnet" in module
+        is_ani = "ani" in name or ".ani" in module
+        is_mace = "mace" in name or ".mace" in module
 
+        # AIMNet2 batches via concatenated ``mol_idx`` and builds an
+        # O((sum N_i)^2) dense neighbor mask, so the cap must apply across
+        # path E/F, FD Hessian, *and* HVP.  Apply this hard cap first so
+        # it is the strict minimum: any subsequent ``auto_path_batch_cap``
+        # override can only tighten further, never loosen below 8.  The
+        # generic per-item byte estimate only models per-structure cost,
+        # so without this hard cap the auto-sizer underestimates AIMNet2
+        # memory by roughly the chunk size.
+        if is_aimnet:
+            chunk = max(1, min(chunk, 8, self.n_total))
+
+        # ``auto_path_batch_cap`` is documented as a path-throughput knob.
+        # Keep it path-only for non-AIMNet backends so FD Hessian and HVP
+        # workloads stay unconstrained by this user override (preserves the
+        # pre-fix scope where the cap was strictly path-only).  For AIMNet2
+        # the explicit cap is allowed to tighten the hard cap further on
+        # any kind.
         explicit_cap = getattr(self.calc, "auto_path_batch_cap", None)
-        if explicit_cap is not None:
+        if explicit_cap is not None and (is_aimnet or self.kind == "path"):
             try:
                 cap = int(explicit_cap)
                 if cap > 0:
-                    return max(1, min(chunk, cap, self.n_total))
+                    chunk = max(1, min(chunk, cap, self.n_total))
             except (TypeError, ValueError):
                 pass
 
-        name = type(self.calc).__name__.lower()
-        module = type(self.calc).__module__.lower()
-        # Path E/F batching has a different performance shape from FD Hessian:
-        # for ANI and MACE, very large image batches can be slower even when
-        # they fit easily in memory.  Keep this a direct math/backend cap, not
-        # a probe run.
-        if "ani" in name or ".ani" in module or "mace" in name or ".mace" in module:
-            return max(1, min(chunk, 8, self.n_total))
+        # Path E/F throughput cliff for ANI and MACE — observed slower
+        # throughput above ~8 images even when memory allows.  FD Hessian
+        # per-structure forwards do not share this cliff, so this cap
+        # stays path-only.  AIMNet2 already capped above; do not let it
+        # widen via this branch.
+        if self.kind == "path" and not is_aimnet and (is_ani or is_mace):
+            chunk = max(1, min(chunk, 8, self.n_total))
 
         return chunk
 

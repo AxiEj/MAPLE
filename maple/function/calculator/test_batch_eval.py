@@ -256,6 +256,175 @@ def test_command_control_accepts_prfo_hessian_recalc_options():
     assert cc.params["hessian_update"] == "bofill"
 
 
+def test_command_control_rejects_misspelled_prfo_hessian_recalc():
+    """Typos in TS-method parameters must be caught by the unknown-param gate.
+
+    Before the TS allow-set was wired into VALIDATED_TASK_PARAMS, a misspelled
+    ``hessian_recalcc`` was silently stored under that wrong key, so the
+    user's intended Bofill reuse interval was never applied.  The gate must
+    raise and, where possible, suggest the closest known field.
+    """
+    import pytest
+    from maple.function.read.command_control import CommandControl
+
+    with pytest.raises(ValueError, match="hessian_recalc"):
+        CommandControl.from_settings([
+            "#ts(method=prfo,hessian_recalcc=5)",
+        ])
+
+
+def test_command_control_rejects_unknown_ts_param():
+    import pytest
+    from maple.function.read.command_control import CommandControl
+
+    with pytest.raises(ValueError, match="not_a_field"):
+        CommandControl.from_settings([
+            "#ts(method=neb,not_a_field=true)",
+        ])
+
+
+def test_command_control_allows_prfo_options_under_nebts_refine():
+    """NEB(refine=nebts) hands off to PRFO via ``raw_paras``, so PRFO fields
+    must be accepted at the TS task layer when refine triggers that pipeline.
+    """
+    from maple.function.read.command_control import CommandControl
+
+    cc = CommandControl.from_settings([
+        "#ts(method=neb,refine=nebts,hessian_recalc=5,hessian_update=bofill)",
+    ])
+    assert cc.task == "ts"
+    assert cc.params["method"] == "neb"
+    assert cc.params["refine"] == "nebts"
+    assert cc.params["hessian_recalc"] == 5
+
+
+def test_auto_batch_sizer_caps_aimnet2_on_path_fd_and_hvp():
+    """AIMNet2's batch path concatenates structures into a single dense
+    neighbor mask whose memory is ``O((sum N_i)^2)``.  The generic per-item
+    memory estimate underestimates this, so ``_AutoBatchSizer._apply_math_cap``
+    must clamp AIMNet2 chunks for *every* batch kind, not just path E/F.
+
+    ANI's cap, in contrast, is only the path-throughput cliff and stays
+    kind='path' only.
+    """
+    import torch
+    from ase import Atoms
+    from maple.function.calculator._batch_eval import _AutoBatchSizer
+
+    class _MockAIMNet:
+        device = "cpu"
+        dtype = torch.float32
+
+    _MockAIMNet.__module__ = "maple.function.calculator.aimnet._aimnet2_calculator"
+    _MockAIMNet.__name__ = "AIMNet2Calculator"
+
+    class _MockANI:
+        device = "cpu"
+        dtype = torch.float32
+
+    _MockANI.__module__ = "maple.function.calculator.ani._ani_calculator"
+    _MockANI.__name__ = "ANICalculator"
+
+    atoms_list = [Atoms("H" * 16) for _ in range(32)]
+    for kind in ("path", "fd", "hvp"):
+        chunk = _AutoBatchSizer(
+            _MockAIMNet(), atoms_list, ("energy", "forces"), kind=kind
+        ).chunk
+        assert chunk <= 8, f"AIMNet2 kind={kind!r} should cap to <=8, got {chunk}"
+
+    assert (
+        _AutoBatchSizer(_MockANI(), atoms_list, ("energy", "forces"), kind="path").chunk
+        <= 8
+    )
+    # ANI FD/HVP run per-structure forwards, so their math cap is intentionally
+    # not engaged; this guards against an over-eager future widening of the cap.
+    assert (
+        _AutoBatchSizer(_MockANI(), atoms_list, ("energy", "forces"), kind="fd").chunk
+        == len(atoms_list)
+    )
+
+
+def test_auto_batch_sizer_aimnet2_hard_cap_beats_user_override():
+    """An over-permissive ``auto_path_batch_cap`` must not lift AIMNet2 above 8.
+
+    Regression caught by codex review: the previous ordering returned from the
+    explicit-cap branch before reaching the AIMNet2 hard cap, so a user-set
+    ``calc.auto_path_batch_cap=32`` would bypass the 8-image safety bound and
+    re-introduce the concat-mask OOM risk this commit is supposed to close.
+    """
+    import torch
+    from ase import Atoms
+    from maple.function.calculator._batch_eval import _AutoBatchSizer
+
+    class _MockAIMNet:
+        device = "cpu"
+        dtype = torch.float32
+        auto_path_batch_cap = 32
+
+    _MockAIMNet.__module__ = "maple.function.calculator.aimnet._aimnet2_calculator"
+    _MockAIMNet.__name__ = "AIMNet2Calculator"
+
+    atoms_list = [Atoms("H" * 16) for _ in range(32)]
+    for kind in ("path", "fd", "hvp"):
+        chunk = _AutoBatchSizer(
+            _MockAIMNet(), atoms_list, ("energy", "forces"), kind=kind
+        ).chunk
+        assert chunk <= 8, (
+            f"AIMNet2 + auto_path_batch_cap=32 kind={kind!r}: hard cap should "
+            f"still floor chunk at <=8, got {chunk}"
+        )
+
+    # User tightening below 8 must still take effect.
+    class _MockAIMNetTight(_MockAIMNet):
+        auto_path_batch_cap = 4
+
+    for kind in ("path", "fd", "hvp"):
+        chunk = _AutoBatchSizer(
+            _MockAIMNetTight(), atoms_list, ("energy", "forces"), kind=kind
+        ).chunk
+        assert chunk == 4, (
+            f"AIMNet2 + auto_path_batch_cap=4 kind={kind!r}: explicit cap "
+            f"should tighten further, got {chunk}"
+        )
+
+
+def test_auto_batch_sizer_auto_path_batch_cap_stays_path_only_for_ani_mace():
+    """For non-AIMNet backends, ``auto_path_batch_cap`` is a path-throughput
+    knob and must not constrain FD Hessian or HVP workloads.
+
+    Regression caught by codex review: the previous edit dropped the
+    ``kind != "path"`` early-return and so widened the cap to fd/hvp.
+    """
+    import torch
+    from ase import Atoms
+    from maple.function.calculator._batch_eval import _AutoBatchSizer
+
+    class _MockANI:
+        device = "cpu"
+        dtype = torch.float32
+        auto_path_batch_cap = 4
+
+    _MockANI.__module__ = "maple.function.calculator.ani._ani_calculator"
+    _MockANI.__name__ = "ANICalculator"
+
+    atoms_list = [Atoms("H" * 16) for _ in range(32)]
+
+    # Path is capped by the user override.
+    assert (
+        _AutoBatchSizer(_MockANI(), atoms_list, ("energy", "forces"), kind="path").chunk
+        == 4
+    )
+    # FD and HVP must remain at n_total — auto_path_batch_cap is path-only.
+    assert (
+        _AutoBatchSizer(_MockANI(), atoms_list, ("energy", "forces"), kind="fd").chunk
+        == len(atoms_list)
+    )
+    assert (
+        _AutoBatchSizer(_MockANI(), atoms_list, ("energy", "forces"), kind="hvp").chunk
+        == len(atoms_list)
+    )
+
+
 def test_setcalculator_applies_model_batch_size_aliases():
     from maple.function.calculator.set_calculator import SetClaculator
 

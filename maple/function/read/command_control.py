@@ -151,6 +151,24 @@ class CommandControl:
         "cg": SDCG_PARAMS,
         "sdcg": SDCG_PARAMS,
     }
+    # TS method allowed-params are introspected lazily from the dataclasses in
+    # maple.function.dispatcher.ts.algorithm. Keeping this list as fully-qualified
+    # (module, class) pairs avoids drift between command_control's accept set and
+    # the actual *Params dataclass each algorithm consumes. Importing the
+    # dispatcher modules is deferred until validation is actually run so the
+    # parser keeps its lightweight import cost.
+    _TS_METHOD_PARAM_SOURCES = {
+        "prfo":    ("maple.function.dispatcher.ts.algorithm.PRFO",    "PRFOParams"),
+        "neb":     ("maple.function.dispatcher.ts.algorithm.neb",     "NEBParams"),
+        "string":  ("maple.function.dispatcher.ts.algorithm.string",  "GSMParams"),
+        "dimer":   ("maple.function.dispatcher.ts.algorithm.dimer",   "DimerParams"),
+        "autoneb": ("maple.function.dispatcher.ts.algorithm.autoneb", "AutoNEBParams"),
+    }
+    _TS_REFINE_PARAM_SOURCES = {
+        "nebts":    ("maple.function.dispatcher.ts.algorithm.PRFO", "PRFOParams"),
+        "stringts": ("maple.function.dispatcher.ts.algorithm.PRFO", "PRFOParams"),
+    }
+    _ts_method_param_cache: Dict[str, set[str]] = {}
     SCAN_PARAMS = {"method", "mode"}
     SOLV_PARAMS = {"method", "implicit", "explicit", "radius", "clash_cutoff", "fix_dis"}
     MODEL_OPTION_PARAMS = {
@@ -159,7 +177,7 @@ class CommandControl:
         "macepolm": {"model_path", "hessian", "batch_size"},
         "macepoll": {"model_path", "hessian", "batch_size"},
     }
-    VALIDATED_TASK_PARAMS = {"opt", "scan", "md"}
+    VALIDATED_TASK_PARAMS = {"opt", "scan", "md", "ts"}
 
     TS_REFINE_MAP = {
         "neb": {"cineb", "nebts"},
@@ -422,6 +440,27 @@ class CommandControl:
         raise ValueError(msg)
 
     @classmethod
+    def _ts_method_param_names(cls, source_key: str, sources: Dict[str, tuple]) -> set[str]:
+        """Lazy-load TS dataclass fields keyed by ``source_key``.
+
+        Sources are introspected the first time a TS validation runs, so the
+        parser does not pay the dispatcher import cost on non-TS tasks. The
+        cached set is the single source of truth for accepted TS parameter
+        names; the dataclass itself is the authoritative list.
+        """
+        cached = cls._ts_method_param_cache.get(source_key)
+        if cached is not None:
+            return cached
+        module_path, class_name = sources[source_key]
+        import importlib
+        import dataclasses
+        module = importlib.import_module(module_path)
+        params_cls = getattr(module, class_name)
+        names = {f.name for f in dataclasses.fields(params_cls)}
+        cls._ts_method_param_cache[source_key] = names
+        return names
+
+    @classmethod
     def _allowed_task_params(cls, task: str, params: Dict[str, Any]) -> Optional[set[str]]:
         if task not in cls.VALIDATED_TASK_PARAMS:
             return None
@@ -429,6 +468,37 @@ class CommandControl:
         allowed = set(cls.GLOBAL_PARAMS)
         if task == "md":
             allowed.update(cls.DEFAULTS["md"])
+            return allowed
+
+        if task == "ts":
+            allowed.add("method")
+            allowed.add("refine")
+            method = str(params.get("method") or "").lower()
+            if method in cls._TS_METHOD_PARAM_SOURCES:
+                allowed.update(
+                    cls._ts_method_param_names(method, cls._TS_METHOD_PARAM_SOURCES)
+                )
+            else:
+                # Unknown method falls through to method-conflict checks downstream;
+                # accept the union of all TS method params so the unknown-param
+                # gate cannot fire on legitimate fields before that check.
+                for key in cls._TS_METHOD_PARAM_SOURCES:
+                    allowed.update(
+                        cls._ts_method_param_names(key, cls._TS_METHOD_PARAM_SOURCES)
+                    )
+
+            refine = params.get("refine")
+            if isinstance(refine, str):
+                refine_key = refine.lower()
+                if refine_key in cls._TS_REFINE_PARAM_SOURCES:
+                    allowed.update(
+                        cls._ts_method_param_names(refine_key, cls._TS_REFINE_PARAM_SOURCES)
+                    )
+
+            # Method aliases participate in `_resolve_method_alias` upstream;
+            # accept them at this layer so the unknown-param gate does not fire
+            # before the alias is collapsed into `method`.
+            allowed.update(cls.IMPLEMENTATION_MAP["ts"])
             return allowed
 
         method = str(params.get("method") or "lbfgs").lower()

@@ -63,7 +63,11 @@ class UMACalculator(FAIRChemCalculator):
     supports_analytic_hessian = False
     supports_hvp = False
     batch_memory_model = "disconnected_graph"
-    auto_batch_hard_cap = None
+    # FAIR-Chem UMA graph memory depends on atom count, edge count, task head,
+    # and predictor settings.  Keep auto batching conservative by default; users
+    # can still choose an explicit integer batch_size after local parity/OOM
+    # testing, but "auto" should not discover the cap by crashing workers.
+    auto_batch_hard_cap = 8
     auto_path_batch_cap = None
     auto_fd_batch_cap = None
     auto_hvp_batch_cap = None

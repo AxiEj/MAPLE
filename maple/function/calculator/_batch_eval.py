@@ -10,7 +10,7 @@ Phase 1 uses:
   Replaces the `get_potential_energy()` + `get_forces()` double-call pattern
   scattered throughout the OPT/TS algorithm files.
 * `FDHessianEvaluator.hessian` — central-difference numerical Hessian that
-  evaluates the `2 * 3 * N_movable` displaced geometries through
+  evaluates the `2 * N_movable_dof` displaced geometries through
   `calculate_many`. This is the unified replacement for the per-calculator
   `_get_hessian_numerical` loops in ANI / MACE / MACEPol / MACEOMol /
   AIMNet2 / UMA.
@@ -29,7 +29,7 @@ from typing import List, Optional, Sequence, Tuple
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import all_changes
-from ase.constraints import FixAtoms
+from ase.constraints import FixAtoms, FixCartesian
 
 from ._batch_types import BatchResult
 from ._batch_utils import (
@@ -366,30 +366,51 @@ class _AutoBatchSizer:
 # ---------------------------------------------------------------------------
 # Numerical Hessian via batched central difference / optional FD context
 # ---------------------------------------------------------------------------
-def _movable_indices(atoms: Atoms, respect_fixatoms: bool) -> List[int]:
-    if not respect_fixatoms:
-        return list(range(len(atoms)))
-    fixed = {
-        i
-        for c in getattr(atoms, "constraints", []) or []
-        if isinstance(c, FixAtoms)
-        for i in c.get_indices()
-    }
-    return [i for i in range(len(atoms)) if i not in fixed]
+def _movable_dofs(atoms: Atoms, respect_constraints: bool) -> List[int]:
+    """Return unconstrained Cartesian DOF indices in a 3N Hessian.
+
+    ASE's vibrational analysis officially handles ``FixAtoms`` and
+    ``FixCartesian``.  ``FixAtoms`` removes all three Cartesian directions for
+    an atom; ``FixCartesian`` removes only the masked directions.  Keeping this
+    as a 3N DOF mask avoids displacing partially frozen coordinates and keeps
+    the projected Hessian rows/columns aligned with frequency/RFO consumers.
+    """
+    n_atoms = len(atoms)
+    if not respect_constraints:
+        return list(range(3 * n_atoms))
+
+    mask = np.ones(3 * n_atoms, dtype=bool)
+    for constraint in getattr(atoms, "constraints", []) or []:
+        if isinstance(constraint, FixAtoms):
+            for atom_idx in constraint.get_indices():
+                mask[3 * int(atom_idx) : 3 * int(atom_idx) + 3] = False
+        elif isinstance(constraint, FixCartesian):
+            fixed_axes = np.asarray(constraint.mask, dtype=bool).reshape(3)
+            for atom_idx in constraint.get_indices():
+                base = 3 * int(atom_idx)
+                for axis, fixed in enumerate(fixed_axes):
+                    if fixed:
+                        mask[base + axis] = False
+
+    return np.flatnonzero(mask).astype(np.int64).tolist()
 
 
-def _fixed_dofs(n_atoms: int, movable: Sequence[int]) -> np.ndarray:
-    movable_set = set(movable)
-    frozen = [i for i in range(n_atoms) if i not in movable_set]
+def _fixed_dofs(n_atoms: int, movable_dofs: Sequence[int]) -> np.ndarray:
+    movable_set = {int(dof) for dof in movable_dofs}
     return np.asarray(
-        [3 * a + k for a in frozen for k in range(3)],
+        [dof for dof in range(3 * n_atoms) if dof not in movable_set],
         dtype=np.int64,
     )
 
 
-def _copy_with_positions(template: Atoms, positions: np.ndarray) -> Atoms:
+def _copy_with_positions(
+    template: Atoms,
+    positions: np.ndarray,
+    *,
+    apply_constraints: bool = True,
+) -> Atoms:
     at = template.copy()
-    at.set_positions(positions)
+    at.set_positions(positions, apply_constraint=apply_constraints)
     if getattr(template, "constraints", None):
         at.set_constraint(template.constraints)
     return at
@@ -458,9 +479,10 @@ class FDHessianEvaluator:
     per-model calculators ship today; only the force evaluations are routed
     through ``calc.calculate_many`` so a true-batch backend (or a sequential
     fallback) can evaluate them with a single Python-level dispatch instead
-    of ``2·3·N_movable`` Python-level calls.
+    of ``2·N_movable_dof`` Python-level calls.
 
-    FixAtoms is respected by default — frozen atoms contribute zero rows.
+    ``FixAtoms`` and ``FixCartesian`` are respected by default — frozen DOFs
+    contribute zero rows and columns.
     """
 
     def __init__(
@@ -485,15 +507,17 @@ class FDHessianEvaluator:
         N = len(atoms)
         pos0 = atoms.get_positions().copy()
 
-        movable = _movable_indices(atoms, self.respect_fixatoms)
+        movable_dofs = _movable_dofs(atoms, self.respect_fixatoms)
         H = np.zeros((3 * N, 3 * N), dtype=np.float64)
-        if not movable:
+        if not movable_dofs:
             return H
 
         context = self._make_fd_context(atoms, delta)
         if context is not None:
             try:
-                return self._hessian_from_context(context, atoms, pos0, movable, H, delta)
+                return self._hessian_from_context(
+                    context, atoms, pos0, movable_dofs, H, delta
+                )
             finally:
                 atoms.set_positions(pos0)
                 close = getattr(context, "close", None)
@@ -501,20 +525,32 @@ class FDHessianEvaluator:
                     close()
 
         # Build the displaced-geometry list. Entries come in (plus, minus)
-        # pairs per (atom, axis) DOF so the central-difference reduction is
+        # pairs per 3N Cartesian DOF so the central-difference reduction is
         # a simple zip over the resulting force list.
         displaced: List[Atoms] = []
         rows: List[int] = []
-        for a in movable:
-            for k in range(3):
-                rows.append(3 * a + k)
-                pos_p = pos0.copy()
-                pos_p[a, k] += delta
-                displaced.append(_copy_with_positions(atoms, pos_p))
+        for dof in movable_dofs:
+            atom_idx, axis = divmod(int(dof), 3)
+            rows.append(int(dof))
+            pos_p = pos0.copy()
+            pos_p[atom_idx, axis] += delta
+            displaced.append(
+                _copy_with_positions(
+                    atoms,
+                    pos_p,
+                    apply_constraints=self.respect_fixatoms,
+                )
+            )
 
-                pos_m = pos0.copy()
-                pos_m[a, k] -= delta
-                displaced.append(_copy_with_positions(atoms, pos_m))
+            pos_m = pos0.copy()
+            pos_m[atom_idx, axis] -= delta
+            displaced.append(
+                _copy_with_positions(
+                    atoms,
+                    pos_m,
+                    apply_constraints=self.respect_fixatoms,
+                )
+            )
 
         try:
             # Evaluate forces. We do not request energies — the central
@@ -527,7 +563,7 @@ class FDHessianEvaluator:
             atoms.set_positions(pos0)
 
         self._fill_rows_from_forces(H, rows, forces, delta)
-        self._project_fixed_dofs(H, N, movable)
+        self._project_fixed_dofs(H, N, movable_dofs)
         self._symmetrize(H)
 
         return H
@@ -551,25 +587,25 @@ class FDHessianEvaluator:
         context: FDHessianContext,
         atoms: Atoms,
         pos0: np.ndarray,
-        movable: Sequence[int],
+        movable_dofs: Sequence[int],
         H: np.ndarray,
         delta: float,
     ) -> np.ndarray:
         rows: List[int] = []
         forces: List[np.ndarray] = []
-        for a in movable:
-            for k in range(3):
-                rows.append(3 * a + k)
-                pos_p = pos0.copy()
-                pos_p[a, k] += delta
-                forces.append(np.asarray(context.force_at(pos_p), dtype=np.float64))
+        for dof in movable_dofs:
+            atom_idx, axis = divmod(int(dof), 3)
+            rows.append(int(dof))
+            pos_p = pos0.copy()
+            pos_p[atom_idx, axis] += delta
+            forces.append(np.asarray(context.force_at(pos_p), dtype=np.float64))
 
-                pos_m = pos0.copy()
-                pos_m[a, k] -= delta
-                forces.append(np.asarray(context.force_at(pos_m), dtype=np.float64))
+            pos_m = pos0.copy()
+            pos_m[atom_idx, axis] -= delta
+            forces.append(np.asarray(context.force_at(pos_m), dtype=np.float64))
 
         self._fill_rows_from_forces(H, rows, forces, delta)
-        self._project_fixed_dofs(H, len(atoms), movable)
+        self._project_fixed_dofs(H, len(atoms), movable_dofs)
         self._symmetrize(H)
         atoms.set_positions(pos0)
         return H
@@ -607,11 +643,11 @@ class FDHessianEvaluator:
         self,
         H: np.ndarray,
         n_atoms: int,
-        movable: Sequence[int],
+        movable_dofs: Sequence[int],
     ) -> None:
         if not self.respect_fixatoms:
             return
-        frozen_dofs = _fixed_dofs(n_atoms, movable)
+        frozen_dofs = _fixed_dofs(n_atoms, movable_dofs)
         if frozen_dofs.size == 0:
             return
         H[frozen_dofs, :] = 0.0

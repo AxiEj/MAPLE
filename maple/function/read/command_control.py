@@ -296,9 +296,15 @@ class CommandControl:
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
-                target[CommandControl._normalize_key(k)] = CommandControl._auto_cast(v.strip())
+                norm_key = CommandControl._normalize_key(k)
+                if norm_key in target:
+                    raise ValueError(f"Duplicate nested parameter: '{norm_key}'.")
+                target[norm_key] = CommandControl._auto_cast(v.strip())
             else:
-                target[CommandControl._normalize_key(kv)] = True
+                norm_key = CommandControl._normalize_key(kv)
+                if norm_key in target:
+                    raise ValueError(f"Duplicate nested parameter: '{norm_key}'.")
+                target[norm_key] = True
 
     @classmethod
     def _parse_pbc(cls, inner: str, output_path: Optional[str]) -> List[float]:
@@ -337,6 +343,14 @@ class CommandControl:
         except Exception:
             pass
         return value
+
+    @staticmethod
+    def _batch_size_equivalent(left: Any, right: Any) -> bool:
+        def norm(value: Any) -> Any:
+            if isinstance(value, str):
+                return value.strip().lower()
+            return value
+        return norm(left) == norm(right)
 
     @classmethod
     def _load_mdp(
@@ -385,9 +399,18 @@ class CommandControl:
 
         model_options = params.get("model_options")
         if "batch_size" in params:
+            batch_size = params.pop("batch_size")
             if not isinstance(model_options, dict):
                 model_options = {}
-            model_options.setdefault("batch_size", params.pop("batch_size"))
+            elif (
+                "batch_size" in model_options
+                and not cls._batch_size_equivalent(model_options["batch_size"], batch_size)
+            ):
+                raise ValueError(
+                    "Conflicting batch_size values: use either #batch_size or "
+                    "#model(...batch_size=...), not both with different values."
+                )
+            model_options.setdefault("batch_size", batch_size)
             params["model_options"] = model_options
 
         if isinstance(model_options, dict):

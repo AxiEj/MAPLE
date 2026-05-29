@@ -1,0 +1,46 @@
+name: real-backend-smoke
+
+on:
+  pull_request:
+    branches:
+      - main
+      - enhance
+      - evolution/batch
+  push:
+    branches:
+      - evolution/batch
+  workflow_dispatch:
+
+jobs:
+  real-backend-smoke:
+    name: MAPLE real backend smoke (release gate)
+    # This job is intentionally self-hosted: production gating requires model
+    # weights, upstream MACE cache files, and backend runtimes that are too large
+    # for a generic hosted runner. Branch protection should require this check.
+    runs-on: [self-hosted, maple-real-backend]
+    timeout-minutes: 120
+    env:
+      MAPLE_REAL_BACKEND_SMOKE: "1"
+      MAPLE_REAL_BACKEND_REQUIRED: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show runtime provenance
+        run: |
+          python --version
+          python - <<'PY'
+          import importlib.util, pathlib
+          for module in ('torch', 'fairchem', 'mace'):
+              print(f'{module}:', importlib.util.find_spec(module) is not None)
+          model_dir = pathlib.Path('maple/function/calculator/model')
+          print('model_dir:', model_dir.resolve())
+          for path in sorted(model_dir.glob('*.pt')):
+              print('model:', path.name, path.stat().st_size)
+          PY
+      - name: Install MAPLE and pytest in runner environment
+        run: |
+          python -m pip install -U pip pytest
+          python -m pip install -e .
+      - name: Run release-blocking real backend smoke tests
+        run: |
+          python -m pytest -q maple/function/calculator/test_real_backend_hessian_smoke.py

@@ -518,10 +518,10 @@ symmetrize(H)
           </tr>
           <tr>
             <td>PRFO Hessian reuse</td>
-            <td>新增 opt-in <span class="mono">hessian_recalc=N</span> + Bofill update；默认仍 exact-every-step。</td>
+            <td>新增 expert-gated <span class="mono">expert_prfo_hessian_recalc=N</span> + Bofill update；默认仍 exact-every-step。</td>
             <td>旧 PRFO 每个 outer iteration 都算 exact Hessian，不能复用。</td>
-            <td>close NEBTS/STRINGTS handoff 可加速；默认保持保守，reject/update 失败强制 exact refresh。</td>
-            <td>新：<span class="mono">PRFO.py:336-393</span>；<span class="mono">PRFO.py:444-459</span>；<span class="mono">PRFO.py:835-847,973-993</span></td>
+            <td>close NEBTS/STRINGTS handoff 可加速；但这是算法策略，不是 batch evaluator 加速，必须显式 expert gate。</td>
+            <td>新：<span class="mono">PRFO.py:336-393</span>；<span class="mono">PRFO.py:448-468,489-507</span>；<span class="mono">PRFO.py:835-847,973-993</span></td>
           </tr>
           <tr>
             <td>TS 验收</td>
@@ -539,24 +539,24 @@ symmetrize(H)
           </tr>
           <tr>
             <td>参数校验</td>
-            <td>TS 进入 unknown-param gate；合法参数从 dataclass 动态 introspect。</td>
+            <td>TS 进入 unknown-param gate；合法参数从 dataclass 动态 introspect；冲突/重复 batch_size fail fast。</td>
             <td>旧 <span class="mono">VALIDATED_TASK_PARAMS</span> 只有 opt/scan/md，TS typo 可漏过。</td>
-            <td>防止 <span class="mono">hessian_recalcc</span> 这类拼写错误被静默忽略。</td>
-            <td>旧：<span class="mono">command_control.py:159,415-450</span><br>新：<span class="mono">command_control.py:154-180,443-502,516-538</span></td>
+            <td>防止 <span class="mono">hessian_recalcc</span> 或两个不同 <span class="mono">batch_size</span> 被静默忽略。</td>
+            <td>旧：<span class="mono">command_control.py:159,415-450</span><br>新：<span class="mono">command_control.py:294-301,348-355,386-397,443-502</span></td>
           </tr>
           <tr>
             <td>FD Hessian hardening</td>
-            <td>symmetrize 前记录/检查 anti-symmetric residual；可 warn/raise。</td>
-            <td>旧实现直接 <span class="mono">0.5*(H+H.T)</span>，可能把 batch force 错位、单位漂移或非保守力场信号平均掉。</td>
-            <td>保留数值稳定性，同时把真实后端异常变成可观测 release gate。</td>
-            <td>新：<span class="mono">calculator_base.py:34-39</span>；<span class="mono">_batch_eval.py:620-689</span>；<span class="mono">test_batch_eval.py:734-789</span></td>
+            <td>3N DOF mask 支持 <span class="mono">FixAtoms</span>/<span class="mono">FixCartesian</span>；symmetrize 前记录/检查 anti-symmetric residual。</td>
+            <td>旧实现只按 atom 识别 <span class="mono">FixAtoms</span>，且直接 <span class="mono">0.5*(H+H.T)</span>。</td>
+            <td>避免部分坐标冻结体系被错误 displacement；同时把真实后端异常变成可观测 release gate。</td>
+            <td>新：<span class="mono">_batch_eval.py:369-389,620-689</span>；<span class="mono">test_batch_eval.py:721-794</span></td>
           </tr>
           <tr>
             <td>Auto batch sizing hardening</td>
-            <td>用 capability 字段描述 memory model / hard cap / path cap。</td>
+            <td>用 capability 字段描述 memory model / hard cap / path cap；UMA auto cap 保守设为 8。</td>
             <td>旧 hard cap 依赖 class/module 名称包含 AIMNet/ANI/MACE。</td>
-            <td>后端重命名或子类化时仍保留安全边界；不再靠字符串猜内存复杂度。</td>
-            <td>新：<span class="mono">calculator_base.py:24-32</span>；<span class="mono">_batch_eval.py:332-355</span>；<span class="mono">test_batch_eval.py:301-460</span></td>
+            <td>后端重命名或子类化时仍保留安全边界；UMA auto 不靠 OOM 才发现 chunk 过大。</td>
+            <td>新：<span class="mono">calculator_base.py:24-32</span>；<span class="mono">_batch_eval.py:332-355</span>；<span class="mono">uma/_uma_calculator.py:65-72</span>；<span class="mono">test_batch_eval.py:301-500</span></td>
           </tr>
           <tr>
             <td>PRFO all-reject hardening</td>
@@ -571,6 +571,13 @@ symmetrize(H)
             <td>旧 consumer 假设 energies 是 ndarray；UMA fallback 对用户可见性不足。</td>
             <td>减少第三方 calculator 返回 list 时的隐性错误；提醒 release smoke 必须做 turbo/default parity。</td>
             <td>新：<span class="mono">_batch_types.py:47-88</span>；<span class="mono">uma/_uma_calculator.py:239-242,323-333</span>；<span class="mono">test_batch_eval.py:643-665</span></td>
+          </tr>
+          <tr>
+            <td>Real backend CI gate</td>
+            <td>新增 self-hosted release gate workflow；required 模式下缺模型/依赖会 fail 而不是 skip。</td>
+            <td>旧 real-backend smoke 默认 opt-in skip，只能作为手动工具。</td>
+            <td>真实模型 shape/单位/图 batch contract 必须在 CI artifact 里复现。</td>
+            <td>新：<span class="mono">.github/workflows/real-backend-smoke.yml</span>；<span class="mono">test_real_backend_hessian_smoke.py:26-62</span></td>
           </tr>
         </tbody>
       </table>
@@ -595,9 +602,9 @@ symmetrize(H)
           <p>没有后端级 PBC batch parity 前，显式 batch_size + PBC 报错，evaluator 顺序 fallback。</p>
         </div>
         <div class="risk caution">
-          <h3>Opt-in：PRFO hessian_recalc</h3>
+          <h3>Expert gate：PRFO Hessian strategy</h3>
           <div class="severity">Risk: medium · default remains exact</div>
-          <p>Bofill reuse 适合 close handoff；direct loose PRFO 仍建议默认 exact-every-step。</p>
+          <p><span class="mono">expert_prfo_hessian_recalc&gt;1</span> 才启用 Bofill reuse；旧 alias 必须配 <span class="mono">allow_prfo_hessian_update=true</span>。</p>
         </div>
         <div class="risk safe">
           <h3>必须：TS mode validation</h3>
@@ -614,6 +621,11 @@ symmetrize(H)
           <div class="severity">Risk detector · warn by default, raise optional</div>
           <p>中心差分 Hessian 仍会 symmetrize，但先检查 <span class="mono">max|H-Hᵀ|/scale</span>，防止真实后端错误被平均掩盖。</p>
         </div>
+        <div class="risk safe">
+          <h3>新增：FixCartesian DOF gate</h3>
+          <div class="severity">Constraint correctness · 3N mask</div>
+          <p>FD Hessian displacement 现在按 Cartesian DOF mask 生成，部分固定坐标的行列被投影为零。</p>
+        </div>
       </div>
     </section>
 
@@ -624,8 +636,9 @@ symmetrize(H)
         <div class="event"><div class="event-card"><b>Contract tests</b><p><span class="mono">maple/function/calculator/test_batch_eval.py:1-17</span> 覆盖 BatchResult、FDHessianEvaluator、PathEvaluator、HVP、RFO/PRFO 调用节省。</p></div></div>
         <div class="event"><div class="event-card"><b>Parser tests</b><p><span class="mono">test_batch_eval.py:160-305</span> 覆盖 batch_size、PBC 拒绝、PRFO 参数 typo、NEBTS 参数透传。</p></div></div>
         <div class="event"><div class="event-card"><b>Scientific acceptance tool</b><p><span class="mono">tools/ts_prfo_acceptance.py:1-7</span> 明确：速度不算成功，除非 Normal Termination + exactly one imaginary frequency。</p></div></div>
-        <div class="event"><div class="event-card"><b>Path benchmark tool</b><p><span class="mono">tools/path_batch_benchmark.py:1-10</span> 同时报 E/F 差异和速度，避免只看 wall time。</p></div></div>
-        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：63 passed，16 real-backend smoke skipped（需 <span class="mono">MAPLE_REAL_BACKEND_SMOKE=1</span> 的 release runner）。</p></div></div>
+        <div class="event"><div class="event-card"><b>Path benchmark tool</b><p><span class="mono">tools/path_batch_benchmark.py</span> 同时报 E/F 差异和速度；<span class="mono">--require-parity</span> 超阈值时非零退出，避免只看 wall time。</p></div></div>
+        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：73 passed，17 real-backend smoke skipped；release runner 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
+        <div class="event"><div class="event-card"><b>Release-blocking CI</b><p><span class="mono">.github/workflows/real-backend-smoke.yml</span> 要求 provisioned self-hosted runner 跑真实后端 smoke；HTML 和 <span class="mono">/tmp</span> notes 不作为生产证明。</p></div></div>
       </div>
       <p class="footnote">页面本身为自包含静态 HTML，无外部依赖；适合用浏览器直接打开，也可提交到 docs/static host。</p>
     </section>

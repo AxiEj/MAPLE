@@ -16,12 +16,13 @@ be conflated:
    No user opt-in is required; auto chunk sizing degrades gracefully and
    PBC/solvent paths fail closed to sequential evaluation.
 
-2. **Opt-in algorithmic acceleration (off by default).**
-   PRFO `hessian_recalc>1` + Bofill quasi-Newton secant update, and the
+2. **Expert-gated algorithmic acceleration (off by default).**
+   PRFO `expert_prfo_hessian_recalc>1` + Bofill quasi-Newton secant update, and the
    NEB-TS multi-candidate hand-off.  These change the TS optimization
    policy, not the batch evaluator.  `hessian_recalc=1` (the default) keeps
    the historical exact-Hessian-every-step behavior; the Bofill path is only
-   taken when the user explicitly requests it.  Treat published references
+   taken when the user explicitly requests the expert PRFO strategy gate.
+   Treat published references
    (ORCA `Recalc_Hess`, pysisyphus `hessian_recalc`, Bofill 1994) as the
    provenance, and require model-specific TS acceptance evidence before
    defaulting any of these on.
@@ -120,6 +121,10 @@ and the finite-difference HVP fallback. Tasks that do not support batching
 ignore the attribute. The knob is therefore an OOM guard, not a request to
 change physics or Hessian precision.
 
+Do not specify both `#batch_size=...` and `#model(...batch_size=...)` with
+different values. MAPLE now fails fast on conflicting values rather than
+silently choosing one, because this knob is often used for OOM triage.
+
 For analytic Hessians, `batch_size` means "maximum Hessian rows per exact
 autograd VJP block". `batch_size=1` is the lowest-memory exact row loop; larger
 values can improve speed when the backend supports batched VJPs, while keeping
@@ -130,12 +135,16 @@ calculators whose batch path concatenates structures into a single dense
 neighbor mask need an additional cap.  AIMNet2 in particular constructs
 ``nblist_dense_padded_multi`` over the concatenated coordinate stack, which is
 ``O((sum N_i)^2)`` in memory rather than ``sum O(N_i^2)``.
-``_AutoBatchSizer._apply_math_cap`` therefore caps AIMNet2 auto-chunks at 8 for
-both path E/F and FD Hessian, in addition to the existing ANI/MACE
-path-throughput cap.  Users wanting larger AIMNet2 batches must set
-``batch_size`` explicitly and accept the quadratic memory growth.
+``_AutoBatchSizer._apply_math_cap`` therefore uses explicit calculator
+capability metadata instead of backend-name strings. AIMNet2 auto-chunks are
+capped at 8 for path E/F, FD Hessian, and HVP. UMA auto-chunks are also capped
+conservatively at 8 because FAIR-Chem graph memory depends on atom count, edge
+count, task head, and predictor settings. ANI/MACE keep their path-throughput
+cap while leaving FD/HVP unconstrained unless a backend capability cap says
+otherwise. Users wanting larger AIMNet2/UMA batches must set ``batch_size``
+explicitly after local parity/OOM testing.
 
-## PRFO Hessian recalculation interval
+## Expert PRFO Hessian recalculation interval
 
 By default MAPLE keeps the previous precision-first behavior:
 
@@ -145,26 +154,29 @@ By default MAPLE keeps the previous precision-first behavior:
 
 means exact Hessian at every PRFO outer step, followed by the existing final
 one-imaginary-mode validation. To trade fewer expensive Hessian builds for the
-standard TS quasi-Newton update path used by mature optimizers, set:
+standard TS quasi-Newton update path used by mature optimizers, use the expert
+PRFO strategy knob:
 
 ```text
-#ts(method=prfo,hessian_recalc=5,hessian_update=bofill)
+#ts(method=prfo,expert_prfo_hessian_recalc=5,expert_prfo_hessian_update=bofill)
 ```
 
 or for path methods that hand off to PRFO refinement:
 
 ```text
-#ts(method=neb,refine=nebts,hessian_recalc=5,hessian_update=bofill)
-#ts(method=string,refine=stringts,hessian_recalc=5,hessian_update=bofill)
+#ts(method=neb,refine=nebts,expert_prfo_hessian_recalc=5,expert_prfo_hessian_update=bofill)
+#ts(method=string,refine=stringts,expert_prfo_hessian_recalc=5,expert_prfo_hessian_update=bofill)
 ```
 
 Semantics:
 
 - `hessian_recalc=1` (default): exact Hessian every PRFO step.
-- `hessian_recalc=N>1`: exact Hessian initially and every N accepted PRFO
+- `expert_prfo_hessian_recalc=N>1`: exact Hessian initially and every N accepted PRFO
   steps; accepted intermediate steps use a symmetric Bofill update from the
   accepted mass-weighted displacement and gradient change, matching the
   coordinate system used by MAPLE's PRFO step.
+- Compatibility aliases `hessian_recalc=N>1` / `hessian_update=bofill` require
+  `allow_prfo_hessian_update=true`; without that explicit gate PRFO raises.
 - Any rejected PRFO trial forces an exact Hessian refresh on the next outer
   step, because rejection indicates that the local quadratic model was poor.
 - Degenerate Bofill updates (for example negligible step or no new secant
@@ -180,6 +192,12 @@ the default exact-every-step policy. It is intended first for close NEBTS /
 STRING-TS handoff geometries; direct PRFO from a loose guess can still require
 `hessian_recalc=1` because the Cartesian/MW optimizer lacks the redundant
 internal-coordinate safeguards used by some quantum-chemistry optimizers.
+
+Similarly, PRFO refuses `hessian=numerical` when a backend advertises an
+analytic Hessian. Expert debugging can set
+`expert_prfo_allow_numerical_hessian=true`; this is a precision downgrade for
+diagnostics, not batch acceleration, and final TS validation still prefers the
+analytic Hessian when available.
 
 ## Current model decisions
 
@@ -202,6 +220,14 @@ internal-coordinate safeguards used by some quantum-chemistry optimizers.
   strict final one-imaginary-mode validation and model-specific acceptance cases.
 
 ## Current validation snapshot
+
+The `/tmp/...` paths below are historical local-run notes from 2026-05-26. They
+are useful for debugging provenance but are **not** production evidence unless
+the same checks are reproduced by CI artifacts. The release-blocking CI surface
+is `.github/workflows/real-backend-smoke.yml`, which runs
+`MAPLE_REAL_BACKEND_SMOKE=1 MAPLE_REAL_BACKEND_REQUIRED=1 python -m pytest -q
+maple/function/calculator/test_real_backend_hessian_smoke.py` on a provisioned
+`self-hosted` runner with model weights and backend caches.
 
 Representative PRFO runs from existing NEBTS-quality small-molecule guesses pass
 the strict gate (Normal Termination + exactly one imaginary frequency):

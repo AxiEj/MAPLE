@@ -27,7 +27,7 @@ import pytest
 import torch
 from ase import Atoms
 from ase.calculators.calculator import all_changes
-from ase.constraints import FixAtoms
+from ase.constraints import FixAtoms, FixCartesian
 
 from maple.function.calculator._autograd_hessian import (
     hessian_batched_vjp,
@@ -198,6 +198,27 @@ def test_command_control_rejects_invalid_model_batch_size():
         CommandControl.from_settings(["#model=uma(batch_size=0)", "#freq"])
 
 
+def test_command_control_rejects_conflicting_global_and_model_batch_size():
+    from maple.function.read.command_control import CommandControl
+
+    with pytest.raises(ValueError, match="Conflicting batch_size"):
+        CommandControl.from_settings([
+            "#model=uma(task=omol,batch_size=2)",
+            "#batch_size=4",
+            "#freq",
+        ])
+
+
+def test_command_control_rejects_duplicate_nested_batch_size_option():
+    from maple.function.read.command_control import CommandControl
+
+    with pytest.raises(ValueError, match="Duplicate nested parameter: 'batch_size'"):
+        CommandControl.from_settings([
+            "#model=uma(batch_size=2,batch_size=4)",
+            "#freq",
+        ])
+
+
 def test_command_control_rejects_pbc_with_batch_size():
     from maple.function.read.command_control import CommandControl
 
@@ -254,6 +275,22 @@ def test_command_control_accepts_prfo_hessian_recalc_options():
     assert cc.params["method"] == "prfo"
     assert cc.params["hessian_recalc"] == 5
     assert cc.params["hessian_update"] == "bofill"
+
+
+def test_command_control_accepts_prfo_strategy_gate_options():
+    from maple.function.read.command_control import CommandControl
+
+    cc = CommandControl.from_settings([
+        "#ts(method=prfo,allow_prfo_hessian_update=true,allow_numerical_hessian=true,"
+        "expert_prfo_hessian_recalc=5,expert_prfo_hessian_update=bofill,"
+        "expert_prfo_allow_numerical_hessian=true)",
+    ])
+
+    assert cc.params["allow_prfo_hessian_update"] is True
+    assert cc.params["allow_numerical_hessian"] is True
+    assert cc.params["expert_prfo_hessian_recalc"] == 5
+    assert cc.params["expert_prfo_hessian_update"] == "bofill"
+    assert cc.params["expert_prfo_allow_numerical_hessian"] is True
 
 
 def test_command_control_rejects_misspelled_prfo_hessian_recalc():
@@ -458,6 +495,96 @@ def test_auto_batch_sizer_uses_explicit_capability_fields_not_names():
         ).chunk
         == len(atoms_list)
     )
+
+
+def test_auto_batch_sizer_caps_uma_auto_workloads_via_metadata():
+    import torch
+    from ase import Atoms
+    from maple.function.calculator._batch_eval import _AutoBatchSizer
+
+    class RenamedUMAGraphBackend:
+        device = "cpu"
+        dtype = torch.float32
+        batch_memory_model = "disconnected_graph"
+        auto_batch_hard_cap = 8
+
+    class NameOnlyUMABackend:
+        device = "cpu"
+        dtype = torch.float32
+
+    NameOnlyUMABackend.__name__ = "UMACalculator"
+    NameOnlyUMABackend.__module__ = "maple.function.calculator.uma._uma_calculator"
+
+    atoms_list = [Atoms("H" * 16) for _ in range(32)]
+
+    for kind in ("path", "fd", "hvp"):
+        assert (
+            _AutoBatchSizer(
+                RenamedUMAGraphBackend(),
+                atoms_list,
+                ("energy", "forces"),
+                kind=kind,
+            ).chunk
+            == 8
+        )
+        assert (
+            _AutoBatchSizer(
+                NameOnlyUMABackend(),
+                atoms_list,
+                ("energy", "forces"),
+                kind=kind,
+            ).chunk
+            == len(atoms_list)
+        )
+
+
+def test_path_batch_benchmark_parity_gate_marks_failures():
+    from tools import path_batch_benchmark
+
+    results = [
+        {
+            "backend": "ok",
+            "max_energy_diff_Eh": 1e-9,
+            "max_force_diff_Eh_per_A": 1e-9,
+        },
+        {
+            "backend": "bad",
+            "max_energy_diff_Eh": 1e-3,
+            "max_force_diff_Eh_per_A": 1e-9,
+        },
+    ]
+
+    failures = path_batch_benchmark._apply_parity_gate(
+        results,
+        max_energy_diff=1e-6,
+        max_force_diff=1e-6,
+    )
+
+    assert failures == ["bad"]
+    assert results[0]["parity_pass"] is True
+    assert results[1]["parity_pass"] is False
+
+
+def test_path_batch_benchmark_parity_gate_is_opt_in():
+    from tools import path_batch_benchmark
+
+    results = [
+        {
+            "backend": "unchecked",
+            "max_energy_diff_Eh": 1.0,
+            "max_force_diff_Eh_per_A": 1.0,
+        }
+    ]
+
+    assert (
+        path_batch_benchmark._apply_parity_gate(
+            results,
+            max_energy_diff=None,
+            max_force_diff=None,
+        )
+        == []
+    )
+    assert "parity_pass" not in results[0]
 
 
 def test_setcalculator_applies_model_batch_size_aliases():
@@ -729,6 +856,50 @@ def test_fd_hessian_fixatoms_projection_is_symmetric_for_coupled_pes():
     assert np.all(np.abs(H[:, :3]) < 1e-12)
     np.testing.assert_allclose(H, H.T, atol=1e-10)
     np.testing.assert_allclose(H[3:, 3:], 2.0 * np.eye(3), atol=1e-8)
+
+
+def test_fd_hessian_respects_fixcartesian_partial_dof_mask():
+    atoms = Atoms("HH", positions=[[0.0, 0.0, 0.0], [1.2, 0.1, 0.0]])
+    atoms.calc = CoupledPairCalc(k=2.0, d0=np.array([1.0, 0.0, 0.0]))
+    atoms.set_constraint(FixCartesian([0], mask=(True, False, True)))
+
+    H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+    frozen = [0, 2]
+    movable = [1, 3, 4, 5]
+    expected = np.zeros((6, 6), dtype=np.float64)
+    block = 2.0 * np.eye(3)
+    expected[:3, :3] = block
+    expected[:3, 3:] = -block
+    expected[3:, :3] = -block
+    expected[3:, 3:] = block
+    expected[frozen, :] = 0.0
+    expected[:, frozen] = 0.0
+
+    np.testing.assert_allclose(H[frozen, :], 0.0, atol=1e-12)
+    np.testing.assert_allclose(H[:, frozen], 0.0, atol=1e-12)
+    np.testing.assert_allclose(H[np.ix_(movable, movable)], expected[np.ix_(movable, movable)], atol=1e-8)
+    np.testing.assert_allclose(H, H.T, atol=1e-10)
+
+
+def test_fd_hessian_skips_fixcartesian_frozen_displacements():
+    class CountingCalc(HarmonicCalc):
+        def __init__(self):
+            super().__init__(k=1.0, ref_positions=np.zeros((2, 3)))
+            self.batch_sizes = []
+
+        def calculate_many(self, atoms_list, properties=("forces",)):
+            self.batch_sizes.append(len(atoms_list))
+            return super().calculate_many(atoms_list, properties=properties)
+
+    atoms = Atoms("HH", positions=np.zeros((2, 3)))
+    atoms.calc = CountingCalc()
+    atoms.set_constraint(FixCartesian([0], mask=(True, False, True)))
+
+    FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+    # 6 Cartesian DOFs minus atom0 x/z = 4 movable DOFs, each with +/- displacement.
+    assert atoms.calc.batch_sizes == [8]
 
 
 def test_fd_hessian_symmetrizes_force_derivative_noise():
@@ -1327,6 +1498,9 @@ def test_ts_prfo_validates_hessian_recalc_parameters():
     with pytest.raises(ValueError, match="hessian_update"):
         PRFO(output=os.devnull, atoms=atoms, paras={"prfo": {"hessian_update": "bfgs"}})
 
+    with pytest.raises(ValueError, match="allow_prfo_hessian_update"):
+        PRFO(output=os.devnull, atoms=atoms, paras={"prfo": {"hessian_recalc": 2}})
+
 
 def test_ts_prfo_hessian_recalc_reuses_updated_hessian(monkeypatch):
     import importlib
@@ -1367,7 +1541,7 @@ def test_ts_prfo_hessian_recalc_reuses_updated_hessian(monkeypatch):
                 "prfo": {
                     "max_iter": 3,
                     "trust_radius": 0.05,
-                    "hessian_recalc": 99,
+                    "expert_prfo_hessian_recalc": 99,
                     "validate_ts_mode": False,
                     "f_max_th": -1.0,
                     "f_rms_th": -1.0,
@@ -1381,6 +1555,7 @@ def test_ts_prfo_hessian_recalc_reuses_updated_hessian(monkeypatch):
         assert update_calls >= 2
         text = open(out, "r", encoding="utf-8").read()
         assert "Hessian policy: exact Hessian initially" in text
+        assert "allow_prfo_hessian_update gate enabled" in text
         assert "Hessian source: fake-bofill" in text
     finally:
         for ext in ("", "_prfo_traj.xyz", "_prfo_ts.xyz"):
@@ -1547,6 +1722,57 @@ def test_ts_prfo_rejects_numerical_hessian_when_analytic_is_available():
             p = os.path.splitext(out)[0] + ext if ext else out
             if os.path.exists(p):
                 os.remove(p)
+
+
+def test_ts_prfo_numerical_hessian_expert_override_allows_run():
+    from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
+
+    atoms = Atoms("CHHH", positions=np.zeros((4, 3)))
+    atoms.calc = FakeNumericalTSCalc()
+    _set_thresholds(atoms, val=1e-8)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        PRFO(
+            output=out,
+            atoms=atoms,
+            paras={
+                "prfo": {
+                    "max_iter": 0,
+                    "validate_ts_mode": False,
+                    "expert_prfo_allow_numerical_hessian": True,
+                }
+            },
+        ).run()
+
+        text = open(out, "r", encoding="utf-8").read()
+        assert "allow_numerical_hessian=true" in text
+        assert "WARNING" in text
+    finally:
+        for ext in ("", "_prfo_traj.xyz", "_prfo_ts.xyz"):
+            p = os.path.splitext(out)[0] + ext if ext else out
+            if os.path.exists(p):
+                os.remove(p)
+
+
+def test_ts_prfo_override_validation_still_prefers_analytic_hessian():
+    from maple.function.dispatcher.ts.algorithm.PRFO import PRFO
+
+    atoms = Atoms("CHHH", positions=np.zeros((4, 3)))
+    atoms.calc = FakeNumericalTSCalc()
+
+    prfo = PRFO(
+        output=os.devnull,
+        atoms=atoms,
+        paras={"prfo": {"allow_numerical_hessian": True}},
+    )
+
+    H, source = prfo._validation_hessian(atoms)
+
+    assert source == "analytic"
+    assert atoms.calc.hessian == "numerical"
+    assert H[0, 0] == pytest.approx(1.0)
 
 
 def test_opt_lbfgs_first_step_is_downhill_for_harmonic():

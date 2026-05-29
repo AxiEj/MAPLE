@@ -24,15 +24,10 @@ import numpy as np
 import torch
 from ase import Atoms
 
-from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
-from maple.function.calculator.ani._ani_calculator import ANICalculator
-from maple.function.calculator.mace._mace_calculator import MACECalculator
-from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
-from maple.function.calculator.uma._uma_calculator import UMACalculator
-from maple.function.dispatcher.ts.algorithm.neb import NEB
-
 
 MODEL_DIR = Path("maple/function/calculator/model")
+DEFAULT_MAX_ENERGY_DIFF_EH = 1e-8
+DEFAULT_MAX_FORCE_DIFF_EH_PER_A = 1e-6
 
 SYMBOLS = ["C", "H", "O", "C", "H", "H", "H"]
 BASE_POSITIONS = np.array(
@@ -76,6 +71,8 @@ def _legacy_energy_forces(images: list[Atoms]) -> tuple[np.ndarray, list[np.ndar
 
 
 def _path_batch_energy_forces(images: list[Atoms]) -> tuple[np.ndarray, list[np.ndarray]]:
+    from maple.function.dispatcher.ts.algorithm.neb import NEB
+
     neb = object.__new__(NEB)
     energies, forces = neb._path_energy_forces(images)
     _sync()
@@ -101,12 +98,20 @@ def _time_call(
 
 def _make_calculator(name: str, device: torch.device):
     if name == "ani":
+        from maple.function.calculator.ani._ani_calculator import ANICalculator
+
         return ANICalculator(device, model="ani1xnr", implicit="none")
     if name == "aimnet2":
+        from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
+
         return AIMNet2Calculator(device, model="aimnet2", implicit="none")
     if name == "aimnet2nse":
+        from maple.function.calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
+
         return AIMNet2Calculator(device, model="aimnet2nse", implicit="none")
     if name == "mace":
+        from maple.function.calculator.mace._mace_calculator import MACECalculator
+
         return MACECalculator(
             device,
             model="maceoff23m",
@@ -114,6 +119,8 @@ def _make_calculator(name: str, device: torch.device):
             implicit="none",
         )
     if name == "maceomol":
+        from maple.function.calculator.mace._mace_calculator import MACECalculator
+
         return MACECalculator(
             device,
             model="maceomol",
@@ -121,6 +128,8 @@ def _make_calculator(name: str, device: torch.device):
             implicit="none",
         )
     if name == "macepol":
+        from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
+
         return MACEPolCalculator(
             device,
             model="macepols",
@@ -128,6 +137,8 @@ def _make_calculator(name: str, device: torch.device):
             implicit="none",
         )
     if name == "uma":
+        from maple.function.calculator.uma._uma_calculator import UMACalculator
+
         return UMACalculator(
             device,
             model="uma-s-1p1",
@@ -136,6 +147,8 @@ def _make_calculator(name: str, device: torch.device):
             task="omol",
         )
     if name == "egret":
+        from maple.function.calculator.mace._mace_calculator import MACECalculator
+
         return MACECalculator(
             device,
             model="egret",
@@ -143,6 +156,32 @@ def _make_calculator(name: str, device: torch.device):
             implicit="none",
         )
     raise ValueError(f"unknown backend: {name}")
+
+
+def _apply_parity_gate(
+    results: list[dict],
+    *,
+    max_energy_diff: float | None,
+    max_force_diff: float | None,
+) -> list[str]:
+    """Annotate benchmark results and return backend names that fail parity."""
+    failures = []
+    if max_energy_diff is None and max_force_diff is None:
+        return failures
+
+    for result in results:
+        energy_ok = (
+            max_energy_diff is None
+            or float(result["max_energy_diff_Eh"]) <= float(max_energy_diff)
+        )
+        force_ok = (
+            max_force_diff is None
+            or float(result["max_force_diff_Eh_per_A"]) <= float(max_force_diff)
+        )
+        result["parity_pass"] = bool(energy_ok and force_ok)
+        if not result["parity_pass"]:
+            failures.append(str(result["backend"]))
+    return failures
 
 
 def _benchmark_one(
@@ -195,6 +234,27 @@ def main() -> int:
     parser.add_argument("--n-images", type=int, default=12)
     parser.add_argument("--reps", type=int, default=5)
     parser.add_argument("--warmups", type=int, default=2)
+    parser.add_argument(
+        "--require-parity",
+        action="store_true",
+        help=(
+            "Fail with a non-zero exit code when path-batch E/F differs from "
+            "legacy E/F beyond the configured tolerances. If tolerances are not "
+            "provided, defaults are used."
+        ),
+    )
+    parser.add_argument(
+        "--max-energy-diff",
+        type=float,
+        default=None,
+        help="Maximum allowed |legacy-batch| energy difference in Hartree.",
+    )
+    parser.add_argument(
+        "--max-force-diff",
+        type=float,
+        default=None,
+        help="Maximum allowed |legacy-batch| force component difference in Hartree/Angstrom.",
+    )
     args = parser.parse_args()
 
     if args.n_images < 2:
@@ -206,6 +266,14 @@ def main() -> int:
 
     device = torch.device(args.device)
     backends = args.backend or ["ani", "aimnet2", "aimnet2nse", "mace", "maceomol", "macepol", "uma", "egret"]
+    max_energy_diff = args.max_energy_diff
+    max_force_diff = args.max_force_diff
+    if args.require_parity:
+        if max_energy_diff is None:
+            max_energy_diff = DEFAULT_MAX_ENERGY_DIFF_EH
+        if max_force_diff is None:
+            max_force_diff = DEFAULT_MAX_FORCE_DIFF_EH_PER_A
+
     # Keep stdout machine-readable.  Some backend loaders print optional-kernel
     # notices (for example cuequivariance availability) to stdout; route those
     # notices to stderr so callers can safely redirect stdout to a JSON file.
@@ -214,7 +282,27 @@ def main() -> int:
             _benchmark_one(name, device, args.n_images, args.reps, args.warmups)
             for name in backends
         ]
-    print(json.dumps({"device": str(device), "n_images": args.n_images, "results": results}, indent=2))
+    failures = _apply_parity_gate(
+        results,
+        max_energy_diff=max_energy_diff,
+        max_force_diff=max_force_diff,
+    )
+    payload = {
+        "device": str(device),
+        "n_images": args.n_images,
+        "parity_thresholds": {
+            "max_energy_diff_Eh": max_energy_diff,
+            "max_force_diff_Eh_per_A": max_force_diff,
+        },
+        "results": results,
+    }
+    print(json.dumps(payload, indent=2))
+    if failures:
+        print(
+            "Path-batch parity failed for backend(s): " + ", ".join(failures),
+            file=sys.stderr,
+        )
+        return 1
     return 0
 
 

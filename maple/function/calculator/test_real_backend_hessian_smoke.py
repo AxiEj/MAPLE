@@ -12,6 +12,7 @@ Run explicitly with:
 from __future__ import annotations
 
 import os
+import importlib.util
 from pathlib import Path
 from typing import Callable
 
@@ -30,6 +31,43 @@ pytestmark = pytest.mark.skipif(
 
 
 MODEL_DIR = Path(__file__).resolve().parent / "model"
+REQUIRED_GATE = os.environ.get("MAPLE_REAL_BACKEND_REQUIRED") == "1"
+
+
+def test_real_backend_smoke_required_assets_available():
+    """Fail, rather than skip, when this suite is used as a release gate."""
+    if not REQUIRED_GATE:
+        return
+
+    missing = []
+    for module in ("torch", "fairchem", "mace"):
+        if importlib.util.find_spec(module) is None:
+            missing.append(f"python module {module!r}")
+
+    for filename in (
+        "ani1x.pt",
+        "aimnet2.pt",
+        "maceoff23m.pt",
+        "macepols.pt",
+        "uma-s-1p1.pt",
+        "egret1s.pt",
+    ):
+        if not (MODEL_DIR / filename).exists():
+            missing.append(str(MODEL_DIR / filename))
+
+    for cache_path in (
+        Path.home() / ".cache" / "mace" / "MACE-OFF23_small.model",
+        Path.home() / ".cache" / "mace" / "MACE-omol-0-extra-large-1024.model",
+    ):
+        if not cache_path.exists():
+            missing.append(str(cache_path))
+
+    if missing:
+        pytest.fail(
+            "MAPLE_REAL_BACKEND_REQUIRED=1 makes real-backend smoke "
+            "release-blocking; missing required assets: "
+            + ", ".join(missing)
+        )
 
 
 def _legacy_fd_hessian(calc, atoms: Atoms, delta: float) -> np.ndarray:

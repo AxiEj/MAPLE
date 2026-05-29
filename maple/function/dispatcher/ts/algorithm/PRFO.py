@@ -448,9 +448,21 @@ class PRFOParams:
     # Exact-Hessian recomputation interval. 1 preserves the historical MAPLE
     # behavior (exact Hessian every PRFO step). Values >1 compute an exact
     # Hessian initially and every N accepted PRFO iterations, using the selected
-    # quasi-Newton Hessian update in between.
+    # quasi-Newton Hessian update in between.  Because this is an algorithmic
+    # TS-search strategy rather than a batch-evaluation acceleration, values >1
+    # require ``allow_prfo_hessian_update=True``.
     hessian_recalc: int = 1
     hessian_update: str = "bofill"
+    allow_prfo_hessian_update: bool = False
+    expert_prfo_hessian_recalc: Optional[int] = None
+    expert_prfo_hessian_update: Optional[str] = None
+
+    # Expert-only escape hatch.  By default PRFO refuses numerical Hessians when
+    # the calculator provides an analytic Hessian.  Setting this flag keeps
+    # debugging/regression workflows possible without weakening the production
+    # default; final TS-mode validation still prefers the analytic Hessian.
+    allow_numerical_hessian: bool = False
+    expert_prfo_allow_numerical_hessian: bool = False
 
     # A converged TS search must have exactly one non-trivial imaginary mode.
     # This catches cases where force/displacement criteria converge to a
@@ -486,12 +498,28 @@ class PRFO(JobABC):
             if hasattr(atoms, attr):
                 setattr(self.params, attr, getattr(atoms, attr))
 
+        if self.params.expert_prfo_hessian_recalc is not None:
+            self.params.hessian_recalc = self.params.expert_prfo_hessian_recalc
+            self.params.allow_prfo_hessian_update = True
+        if self.params.expert_prfo_hessian_update is not None:
+            self.params.hessian_update = self.params.expert_prfo_hessian_update
+        if self.params.expert_prfo_allow_numerical_hessian:
+            self.params.allow_numerical_hessian = True
+
         self.params.hessian_recalc = int(self.params.hessian_recalc)
         if self.params.hessian_recalc < 1:
             raise ValueError("hessian_recalc must be a positive integer")
         self.params.hessian_update = str(self.params.hessian_update).lower()
         if self.params.hessian_update != "bofill":
             raise ValueError("hessian_update must be 'bofill'")
+        if (
+            self.params.hessian_recalc != 1
+            and not bool(self.params.allow_prfo_hessian_update)
+        ):
+            raise ValueError(
+                "hessian_recalc > 1 enables an opt-in PRFO quasi-Newton "
+                "strategy and requires allow_prfo_hessian_update=true."
+            )
 
         # Mode tracking
         self.tracked_mode_vec_mw = None
@@ -785,7 +813,8 @@ class PRFO(JobABC):
             info_message.append(
                 "Hessian policy: exact Hessian initially and every "
                 f"{self.params.hessian_recalc} accepted PRFO steps; "
-                f"{self.params.hessian_update} updates between recalculations\n"
+                f"{self.params.hessian_update} updates between recalculations "
+                "(explicit allow_prfo_hessian_update gate enabled)\n"
             )
         log_info(info_message, self.output)
 
@@ -793,15 +822,29 @@ class PRFO(JobABC):
         if (
             calc_mode == "numerical"
             and self._calculator_has_analytic_hessian(atoms.calc)
+            and not bool(self.params.allow_numerical_hessian)
         ):
             msg = (
                 "PRFO requires the analytic Hessian for calculators that "
                 "provide one. Remove hessian=numerical for this TS search; "
                 "finite-difference Hessians are only allowed here for "
-                "backends without an analytic Hessian."
+                "backends without an analytic Hessian. Expert debugging can "
+                "set allow_numerical_hessian=true."
             )
             log_info([f"\nERROR: {msg}\n"], self.output)
             raise ValueError(msg)
+        if (
+            calc_mode == "numerical"
+            and self._calculator_has_analytic_hessian(atoms.calc)
+            and bool(self.params.allow_numerical_hessian)
+        ):
+            log_info([
+                "\nWARNING: allow_numerical_hessian=true is forcing PRFO to "
+                "use a numerical Hessian even though this calculator provides "
+                "an analytic Hessian. Use only for expert debugging/regression "
+                "workflows; final TS validation will still prefer the analytic "
+                "Hessian when validate_ts_mode=true.\n"
+            ], self.output)
 
         # Propagate fd_batch_size so FDHessianEvaluator picks it up when
         # calc.get_hessian dispatches to the numerical (FD-batched) path.

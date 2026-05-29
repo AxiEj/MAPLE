@@ -120,7 +120,19 @@ def _real_model_factory(model: str, device: str | None, output: str, model_optio
         )
     except Exception:
         pass
-    return lambda: calc
+
+    def factory():
+        # Reuse the loaded model weights, but clear ASE calculator state between
+        # independent acceptance classes and finite-difference probes.  Some
+        # official periodic backends cache cell/neighbor-list state internally;
+        # a long NPT trajectory must not contaminate a later stress-FD probe.
+        for candidate in (calc, getattr(calc, "_official_calculator", None)):
+            reset = getattr(candidate, "reset", None)
+            if callable(reset):
+                reset()
+        return calc
+
+    return factory
 
 
 def _validation_target(label: str, model_options: dict, calc_contract: dict) -> dict:

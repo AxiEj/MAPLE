@@ -60,6 +60,7 @@ class BerendsenBarostat:
         tau_p: float,
         timestep: float,
         compressibility: float = DEFAULT_COMPRESSIBILITY,
+        exclude_com_kinetic: bool = False,
     ):
         """
         Parameters
@@ -74,12 +75,16 @@ class BerendsenBarostat:
             MD timestep in fs
         compressibility : float
             Isothermal compressibility in 1/bar (default: water ~4.5e-5)
+        exclude_com_kinetic : bool, default=False
+            Exclude net COM kinetic energy from the kinetic pressure term when
+            the resolved DOF policy treats COM translation as projected.
         """
         self.atoms = atoms
         self.pressure_target = pressure          # bar
         self.tau_p = tau_p                       # fs
         self.timestep = timestep                 # fs
         self.compressibility = compressibility   # 1/bar
+        self.exclude_com_kinetic = bool(exclude_com_kinetic)
 
         # Scaling prefactor (constant): β * dt / τ_P
         self._scale_prefactor = compressibility * timestep / tau_p
@@ -102,7 +107,11 @@ class BerendsenBarostat:
         float
             Instantaneous pressure in bar
         """
-        return compute_instantaneous_pressure(self.atoms, velocities)
+        return compute_instantaneous_pressure(
+            self.atoms,
+            velocities,
+            exclude_com_kinetic=self.exclude_com_kinetic,
+        )
 
     def apply(
         self,

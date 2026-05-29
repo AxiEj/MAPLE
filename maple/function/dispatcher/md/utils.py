@@ -57,7 +57,11 @@ from .capabilities import (  # noqa: F401
     validate_md_parameter_ranges,
     validate_stress_tensor,
 )
-from .thermo import calculate_kinetic_energy, calculate_temperature  # noqa: F401
+from .thermo import (  # noqa: F401
+    calculate_center_of_mass_kinetic_energy,
+    calculate_kinetic_energy,
+    calculate_temperature,
+)
 from .dof import (  # noqa: F401
     describe_dof_policy,
     get_initialization_dof_policy,
@@ -105,7 +109,8 @@ __all__ = [
     "pbc_com_default_note", "validate_md_capabilities", "validate_md_parameter_ranges",
     "validate_stress_tensor",
     # thermo
-    "calculate_kinetic_energy", "calculate_temperature",
+    "calculate_center_of_mass_kinetic_energy", "calculate_kinetic_energy",
+    "calculate_temperature",
     # dof
     "describe_dof_policy", "get_initialization_dof_policy", "get_n_dof_from_policy",
     "get_runtime_dof_policy", "is_linear_molecule",

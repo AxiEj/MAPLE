@@ -37,6 +37,7 @@ from .ensemble.nve import NVE
 from .ensemble.nvt import NVT
 from .ensemble.npt import NPT
 from .evaluator import evaluate_md_properties
+from .barostat.crescale import CRescaleBarostat
 from .pbc import get_unwrapped_positions, wrap_positions_with_image_flags
 from .provenance import collect_environment_provenance
 from .units import (
@@ -505,6 +506,106 @@ def run_npt_pressure(
     )
 
 
+def run_npt_com_pressure_invariance(
+    calc_factory,
+    thresholds,
+    workdir,
+    *,
+    validation_artifact_id: Optional[str] = None,
+) -> AcceptanceResult:
+    """NPT kinetic pressure must be invariant to pure COM drift when policy excludes COM.
+
+    This is a fast white-box acceptance class for the Bernetti-Bussi c-rescale
+    pressure input: a velocity field and the same field plus a pure COM boost
+    must produce the same active-subspace pressure and the same deterministic
+    c-rescale volume response when ``exclude_com_kinetic=True``.  The full
+    kinetic pressure is also checked to move by a resolvable amount so the test
+    cannot pass vacuously.
+    """
+    th = thresholds["npt_com_pressure_invariance"]
+    atoms = _validation_crystal(calc_factory)
+    atoms.calc = calc_factory()
+    velocities = _seeded_velocities(atoms)
+    masses = atoms.get_masses()
+    total_mass = float(np.sum(masses))
+    com_v = np.sum(masses[:, np.newaxis] * velocities, axis=0) / total_mass
+    velocities_internal = velocities - com_v
+    boost = np.array([5.0e-5, -3.0e-5, 2.0e-5], dtype=float)
+    velocities_boosted = velocities_internal + boost
+
+    p_internal = evaluate_md_properties(
+        atoms,
+        need_stress=True,
+        velocities_au=velocities_internal,
+        exclude_com_kinetic=True,
+    ).pressure_bar
+    p_boosted = evaluate_md_properties(
+        atoms,
+        need_stress=True,
+        velocities_au=velocities_boosted,
+        exclude_com_kinetic=True,
+    ).pressure_bar
+    p_full_internal = evaluate_md_properties(
+        atoms,
+        need_stress=True,
+        velocities_au=velocities_internal,
+        exclude_com_kinetic=False,
+    ).pressure_bar
+    p_full_boosted = evaluate_md_properties(
+        atoms,
+        need_stress=True,
+        velocities_au=velocities_boosted,
+        exclude_com_kinetic=False,
+    ).pressure_bar
+
+    def _volume_after_barostat(velocities_au: np.ndarray) -> float:
+        trial = atoms.copy()
+        trial.calc = calc_factory()
+        # Deterministic algebraic c-rescale check: T=0 disables stochastic
+        # noise so two otherwise-identical COM-boosted pressure inputs must
+        # produce exactly the same volume response.  The separate
+        # npt_volume_fluctuation class exercises finite-temperature sampling.
+        barostat = CRescaleBarostat(
+            trial,
+            pressure=1.0,
+            temperature=0.0,
+            tau_p=1000.0,
+            timestep=0.5,
+            compressibility=4.5e-5,
+            rng=np.random.default_rng(101),
+            exclude_com_kinetic=True,
+        )
+        barostat.apply(velocities_au)
+        return float(trial.get_volume())
+
+    volume_internal = _volume_after_barostat(velocities_internal)
+    volume_boosted = _volume_after_barostat(velocities_boosted)
+
+    pressure_delta = abs(float(p_boosted) - float(p_internal))
+    volume_delta = abs(volume_boosted - volume_internal)
+    full_shift = abs(float(p_full_boosted) - float(p_full_internal))
+    passed = (
+        pressure_delta <= float(th["max_abs_pressure_delta_bar"])
+        and volume_delta <= float(th["max_abs_volume_delta_A3"])
+        and full_shift >= float(th["min_full_com_pressure_shift_bar"])
+    )
+    return AcceptanceResult(
+        "npt_com_pressure_invariance",
+        "pass" if passed else "fail",
+        passed,
+        {
+            "active_pressure_delta_bar": pressure_delta,
+            "volume_response_delta_A3": volume_delta,
+            "full_pressure_shift_bar": full_shift,
+            "boost_au": boost.tolist(),
+            "validation_artifact_id": validation_artifact_id,
+        },
+        f"COM boost leaves active pressure Δ={pressure_delta:.2e} bar and "
+        f"c-rescale volume Δ={volume_delta:.2e} A^3; full-pressure shift "
+        f"{full_shift:.2e} bar",
+    )
+
+
 def _lj_liquid(repeat: int = 3) -> Atoms:
     """A soft, low-density FCC argon cell (expanded to a=5.8 Å) used as a highly
     compressible proxy: its large equilibrium volume fluctuations make the NPT
@@ -942,6 +1043,7 @@ ACCEPTANCE_CLASSES: List[Callable[..., AcceptanceResult]] = [
     run_restart_determinism,
     run_nvt_mean_temperature,
     run_npt_pressure,
+    run_npt_com_pressure_invariance,
     run_npt_volume_fluctuation,
     run_npt_effective_energy_drift,
     run_barostat_clamp_free,

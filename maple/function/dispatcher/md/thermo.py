@@ -58,11 +58,35 @@ def calculate_temperature(atoms: Atoms, velocities: np.ndarray, n_dof: Optional[
     return temperature
 
 
-def calculate_kinetic_energy(atoms: Atoms, velocities: np.ndarray) -> float:
+def calculate_center_of_mass_kinetic_energy(atoms: Atoms, velocities: np.ndarray) -> float:
+    """Return the kinetic energy in net centre-of-mass translation.
+
+    The velocity unit convention matches :func:`calculate_kinetic_energy`
+    (atomic units, Bohr/a.u. time), and the returned energy is Hartree.
     """
-    Calculate total kinetic energy.
+    masses = atoms.get_masses() * AMU_TO_AU
+    total_mass = float(np.sum(masses))
+    if total_mass <= 0.0:
+        return 0.0
+    total_momentum = np.sum(masses[:, np.newaxis] * velocities, axis=0)
+    return float(0.5 * np.dot(total_momentum, total_momentum) / total_mass)
+
+
+def calculate_kinetic_energy(
+    atoms: Atoms,
+    velocities: np.ndarray,
+    *,
+    exclude_com_kinetic: bool = False,
+) -> float:
+    """
+    Calculate kinetic energy.
 
     KE = 0.5 * sum(m_i * v_i^2)
+
+    When ``exclude_com_kinetic`` is true, the net centre-of-mass translational
+    kinetic energy is subtracted.  This is the kinetic subspace needed by NPT
+    pressure/barostat paths when the resolved DOF policy says COM translation
+    is projected/constrained rather than part of the active thermostat bath.
 
     Parameters
     ----------
@@ -78,5 +102,8 @@ def calculate_kinetic_energy(atoms: Atoms, velocities: np.ndarray) -> float:
         Kinetic energy in Hartree
     """
     masses = atoms.get_masses() * AMU_TO_AU
-    kinetic = 0.5 * np.sum(masses[:, np.newaxis] * velocities**2)
+    kinetic = float(0.5 * np.sum(masses[:, np.newaxis] * velocities**2))
+    if exclude_com_kinetic:
+        kinetic -= calculate_center_of_mass_kinetic_energy(atoms, velocities)
+        kinetic = max(kinetic, 0.0)
     return kinetic

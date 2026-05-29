@@ -115,6 +115,12 @@ def collect_calculator_provenance(
 
     long_range_method = _calc_long_range_method(calc, options)
 
+    multi_image_safe = bool(getattr(calc, "maple_periodic_neighborlist_multi_image_safe", False))
+    requires_mic_attr = getattr(calc, "maple_requires_single_image_mic", None)
+    requires_single_image_mic = (
+        bool(requires_mic_attr) if requires_mic_attr is not None else not multi_image_safe
+    )
+
     return {
         "model": model if model is not None else getattr(calc, "maple_model_name", None),
         "backend_class": backend_class,
@@ -144,6 +150,8 @@ def collect_calculator_provenance(
                 )
             ),
             "long_range_method": long_range_method,
+            "requires_single_image_mic": requires_single_image_mic,
+            "periodic_neighborlist_multi_image_safe": multi_image_safe,
         },
     }
 
@@ -423,6 +431,9 @@ def build_run_context(
             "runtime_n_dof": dof_policy.runtime_n_dof,
             "init_description": dof_policy.init_description,
             "runtime_description": dof_policy.runtime_description,
+            "pressure_excludes_com_kinetic": bool(
+                getattr(dof_policy, "pressure_excludes_com_kinetic", False)
+            ),
         },
         "velocity_state_policy": {
             "restart": bool(getattr(params, "restart", False)),
@@ -444,8 +455,12 @@ def build_run_context(
             "allowed": bool(getattr(params, "allow_partial_pbc", False)),
         },
         "cutoff_policy": {
-            # Whether this run opted out of the minimum-image neighbor-cutoff gate.
+            # Whether this run opted out of the single-image MIC cutoff gate.
             "allow_unknown_cutoff": bool(getattr(params, "allow_unknown_cutoff", False)),
+            "scope": (
+                "single-image MIC enforced unless the calculator declares a "
+                "multi-image-safe periodic neighbor list"
+            ),
         },
         "unit_contract": {
             # Units the MD layer enforced at admission; the calculator's own declared

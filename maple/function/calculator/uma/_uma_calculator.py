@@ -68,6 +68,8 @@ class UMACalculator(FAIRChemCalculator):
     maple_pbc_md_supported = True
     maple_stress_supported = True
     maple_stress_unit = ASE_STRESS_UNIT
+    maple_requires_single_image_mic = False
+    maple_periodic_neighborlist_multi_image_safe = True
     # MAPLE MD unit contract: ``calculate()`` below converts eV / eV·Å outputs
     # from FAIRChem to Hartree / Hartree·Å⁻¹ in place, so MD reads them in the
     # MAPLE units. ``CalcABC`` is the source of this contract for native

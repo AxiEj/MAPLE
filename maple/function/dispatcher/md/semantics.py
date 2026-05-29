@@ -67,6 +67,9 @@ class MDDOFPolicy:
     projection actually applied at initialization).  ``runtime_n_dof`` drives
     runtime temperature, the thermostat target, and the summary/report.  They
     differ when an init-only projection is later re-excited (Langevin).
+    ``pressure_excludes_com_kinetic`` mirrors the COM part of the same policy
+    for NPT kinetic pressure: when COM translation is not an active bath mode,
+    the virial pressure must use ``K - K_cm`` rather than full-system ``K``.
     """
 
     init_n_dof: int
@@ -74,6 +77,7 @@ class MDDOFPolicy:
     init_description: str
     runtime_description: str
     warnings: Tuple[str, ...]
+    pressure_excludes_com_kinetic: bool = False
 
 
 def _mode_subtracted(*, init_projected: bool, runtime_every: int, operator_reexcites: bool) -> bool:
@@ -219,6 +223,7 @@ def resolve_md_dof_policy(atoms: Atoms, params, ensemble: str) -> MDDOFPolicy:
             is_pbc, runtime_n_dof, n_atoms, basis=_runtime_reason(ensemble, params, operator_reexcites)
         ),
         warnings=tuple(warnings),
+        pressure_excludes_com_kinetic=bool(com_subtracted),
     )
 
 

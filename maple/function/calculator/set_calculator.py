@@ -188,6 +188,21 @@ def _calculator_neighbor_cutoff_A(calculator) -> Optional[float]:
     return None
 
 
+def _calculator_requires_single_image_mic(calculator) -> bool:
+    """Return whether MAPLE must enforce cutoff < Wigner-Seitz inradius.
+
+    The strict MIC gate is mandatory for calculators whose periodic semantics
+    are a single-image/local pair graph.  Official periodic backends can instead
+    declare ``maple_periodic_neighborlist_multi_image_safe=True`` (or explicitly
+    ``maple_requires_single_image_mic=False``) to state that their own periodic
+    neighbor list handles replicated images in primitive cells.
+    """
+    explicit = getattr(calculator, "maple_requires_single_image_mic", None)
+    if explicit is not None:
+        return bool(explicit)
+    return not bool(getattr(calculator, "maple_periodic_neighborlist_multi_image_safe", False))
+
+
 def _minimum_image_radius_A(atoms) -> tuple[float, float]:
     """Return the Wigner-Seitz inradius for the active periodic lattice.
 
@@ -292,20 +307,25 @@ def validate_pbc_neighbor_cutoff(
     vector, rather than half the shortest stored cell edge.
 
     ``require_known_cutoff`` (the MD admission path) rejects a PBC calculator that
-    does not expose a cutoff, because the minimum-image convention then cannot be
-    verified; ``allow_unknown_cutoff`` is the explicit per-gate escape hatch.  The
-    general ``SetCalculator`` build path passes ``require_known_cutoff=False`` so
-    non-MD periodic tasks (single point / OPT / SCAN / TS) keep their prior
-    behaviour and are not blocked on an undeclared cutoff.
+    does not expose a cutoff when MAPLE must enforce the single-image MIC
+    contract, because the minimum-image convention then cannot be verified;
+    ``allow_unknown_cutoff`` is the explicit per-gate escape hatch.  Calculators
+    that declare a multi-image-safe periodic neighbor list are outside this MIC
+    supercell-only scope and are not rejected merely because their cutoff reaches
+    beyond the Wigner-Seitz inradius.  The general ``SetCalculator`` build path
+    passes ``require_known_cutoff=False`` so non-MD periodic tasks (single point /
+    OPT / SCAN / TS) keep their prior behaviour and are not blocked on an
+    undeclared cutoff.
     """
     if atoms is None or not any(atoms.pbc):
         return
     if not getattr(calculator, "maple_pbc_md_supported", False):
         return
 
+    requires_single_image_mic = _calculator_requires_single_image_mic(calculator)
     cutoff = _calculator_neighbor_cutoff_A(calculator)
     if cutoff is None or not np.isfinite(cutoff) or cutoff <= 0.0:
-        if require_known_cutoff and not allow_unknown_cutoff:
+        if require_known_cutoff and requires_single_image_mic and not allow_unknown_cutoff:
             raise ValueError(
                 "PBC MD calculator does not expose a neighbor cutoff "
                 "(neighbor_cutoff_A / cutoff_A / maple_neighbor_cutoff), so the "
@@ -315,6 +335,9 @@ def validate_pbc_neighbor_cutoff(
                 "declares its cutoff, or set allow_unknown_cutoff=true to run anyway "
                 "(recorded in the run manifest)."
             )
+        return
+
+    if not requires_single_image_mic:
         return
 
     radius, shortest_lattice_vector = _minimum_image_radius_A(atoms)

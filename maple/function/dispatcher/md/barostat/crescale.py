@@ -104,6 +104,7 @@ class CRescaleBarostat:
         timestep: float,
         compressibility: float = DEFAULT_COMPRESSIBILITY,
         rng: Optional[np.random.Generator] = None,
+        exclude_com_kinetic: bool = False,
     ):
         """
         Parameters
@@ -123,6 +124,10 @@ class CRescaleBarostat:
             Isothermal compressibility in 1/bar (default: water ~4.5e-5)
         rng : np.random.Generator, optional
             Random number generator for reproducibility
+        exclude_com_kinetic : bool, default=False
+            Exclude net COM kinetic energy from the kinetic pressure term.  The
+            NPT driver sets this from the resolved DOF policy so c-rescale does
+            not couple the volume to a projected/constrained COM drift.
         """
         self.atoms = atoms
         self.pressure_target = pressure          # bar
@@ -131,6 +136,7 @@ class CRescaleBarostat:
         self.timestep = timestep                 # fs
         self.compressibility = compressibility   # 1/bar
         self.rng = rng if rng is not None else np.random.default_rng()
+        self.exclude_com_kinetic = bool(exclude_com_kinetic)
 
         # Per-step stability-clamp accounting (WS-C).  The μ clamp is a Berendsen-style
         # guard; if it ever fires the stochastic-cell-rescaling ensemble is truncated, so
@@ -175,7 +181,11 @@ class CRescaleBarostat:
         float
             Instantaneous pressure in bar
         """
-        return compute_instantaneous_pressure(self.atoms, velocities)
+        return compute_instantaneous_pressure(
+            self.atoms,
+            velocities,
+            exclude_com_kinetic=self.exclude_com_kinetic,
+        )
 
     def apply(
         self,

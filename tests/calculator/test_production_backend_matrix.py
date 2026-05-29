@@ -139,8 +139,9 @@ def test_required_backend_matrix_declares_review_scope():
         Path(__file__).resolve().parents[2] / "validation" / "required_pbc_backends.toml"
     )
     ids = {target.id for target in targets}
-    assert minimum == "1.4.0"
+    assert minimum == "1.6.0"
     assert "stress_finite_difference" in classes
+    assert "npt_com_pressure_invariance" in classes
     assert ids == {
         "aimnet2-pbc-dsf", "aimnet2-pbc-ewald", "aimnet2-pbc-pme",
         "aimnet2nse-pbc-dsf", "aimnet2nse-pbc-ewald", "aimnet2nse-pbc-pme",

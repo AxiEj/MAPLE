@@ -47,6 +47,7 @@ def evaluate_md_properties(
     *,
     need_stress: bool = False,
     velocities_au: Optional[np.ndarray] = None,
+    exclude_com_kinetic: bool = False,
 ) -> MDProperties:
     """Evaluate energy/forces/(stress) for ``atoms`` with at most one backend pass.
 
@@ -60,6 +61,10 @@ def evaluate_md_properties(
     velocities_au:
         Velocities in atomic units (Bohr/a.u. time).  When provided together
         with ``need_stress``, the instantaneous pressure (bar) is also returned.
+    exclude_com_kinetic:
+        Exclude net centre-of-mass kinetic energy from the kinetic pressure term
+        when computing ``pressure_bar``.  This should mirror the resolved NPT
+        DOF policy for COM-constrained global-thermostat/barostat paths.
     """
     calc = getattr(atoms, "calc", None)
     if calc is None:
@@ -89,7 +94,12 @@ def evaluate_md_properties(
     if need_stress:
         stress_ev_per_ang3 = validate_stress_tensor(atoms)
         if velocities_au is not None:
-            pressure_bar = compute_instantaneous_pressure(atoms, velocities_au)
+            pressure_bar = compute_instantaneous_pressure(
+                atoms,
+                velocities_au,
+                exclude_com_kinetic=exclude_com_kinetic,
+                stress_ev_per_ang3=stress_ev_per_ang3,
+            )
 
     return MDProperties(
         energy_ha=energy_ha,

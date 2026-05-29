@@ -66,6 +66,38 @@ def test_returns_stress_and_pressure_when_requested():
     )
 
 
+def test_pressure_request_can_exclude_com_kinetic_term():
+    atoms = Atoms(
+        "Ar2",
+        positions=[[0.0, 0.0, 0.0], [3.0, 0.0, 0.0]],
+        cell=[10.0, 10.0, 10.0],
+        pbc=True,
+    )
+    atoms.calc = _CountingCalc(np.zeros((2, 3)), np.zeros(6))
+    velocities = np.tile([0.01, 0.0, 0.0], (2, 1))
+
+    props = evaluate_md_properties(
+        atoms,
+        need_stress=True,
+        velocities_au=velocities,
+        exclude_com_kinetic=True,
+    )
+
+    assert props.pressure_bar == pytest.approx(0.0, abs=1e-12)
+
+
+def test_pressure_with_prevalidated_stress_still_checks_unit_contract():
+    atoms = _periodic(_CountingCalc(np.zeros((1, 3)), np.zeros(6)))
+    atoms.calc.maple_stress_unit = "GPa"
+
+    with pytest.raises(ValueError, match="stress unit contract mismatch"):
+        compute_instantaneous_pressure(
+            atoms,
+            np.zeros((1, 3)),
+            stress_ev_per_ang3=np.zeros(6),
+        )
+
+
 def test_single_backend_evaluation_for_energy_forces_stress():
     # Perf regression: requesting energy + forces + stress (+ pressure) must cost
     # exactly one backend evaluation, even for a property-selective calculator.

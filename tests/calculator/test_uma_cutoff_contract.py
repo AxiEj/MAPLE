@@ -78,6 +78,8 @@ def _build_stub_calculator(monkeypatch, *, task=None):
 
 def test_uma_class_declares_neighbor_cutoff_constant():
     assert UMACalculator.neighbor_cutoff_A == UMA_NEIGHBOR_CUTOFF_A == 6.0
+    assert UMACalculator.maple_requires_single_image_mic is False
+    assert UMACalculator.maple_periodic_neighborlist_multi_image_safe is True
 
 
 def test_uma_class_declares_maple_md_unit_contract():

@@ -127,6 +127,21 @@ def test_cutoff_equal_to_mic_radius_is_rejected(tmp_path):
             paras={"steps": 0, "verbose": 0})
 
 
+def test_multi_image_safe_calculator_is_not_forced_into_mic_supercell_scope(tmp_path):
+    # Official periodic neighbor-list backends can evaluate replicated images in
+    # primitive cells.  They still advertise a cutoff for provenance, but MAPLE
+    # must not reject them solely because that radius exceeds half the shortest
+    # lattice vector.
+    calc = wrap_ase_calculator(_lj(rc=2.0), pbc_md_supported=True, neighbor_cutoff_A=6.0)
+    calc.maple_requires_single_image_mic = False
+    calc.maple_periodic_neighborlist_multi_image_safe = True
+
+    sim = NVE(output=str(tmp_path / "multi_image.out"), atoms=_pbc_atoms(calc),
+              paras={"steps": 0, "verbose": 0})
+
+    assert sim is not None
+
+
 # ── provenance: contract + policy recorded ──────────────────────────────────
 
 def test_run_context_records_unit_contract_and_cutoff_policy():
@@ -138,6 +153,7 @@ def test_run_context_records_unit_contract_and_cutoff_policy():
     ctx = build_run_context(params=NVEParams(), dof_policy=dof, ensemble="nve")
     assert ctx["unit_contract"] == {"energy": "Ha", "force": "Ha/A", "stress": "eV/A^3"}
     assert ctx["cutoff_policy"]["allow_unknown_cutoff"] is False
+    assert "single-image MIC" in ctx["cutoff_policy"]["scope"]
 
     ctx_override = build_run_context(
         params=NVEParams(allow_unknown_cutoff=True), dof_policy=dof, ensemble="nve"
@@ -151,3 +167,5 @@ def test_calculator_provenance_records_declared_units():
     assert caps["energy_unit"] == "Ha"
     assert caps["force_unit"] == "Ha/A"
     assert caps["neighbor_cutoff_A"] == 2.0
+    assert caps["requires_single_image_mic"] is True
+    assert caps["periodic_neighborlist_multi_image_safe"] is False

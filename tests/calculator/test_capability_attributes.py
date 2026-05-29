@@ -25,6 +25,8 @@ def test_pbc_backends_declare_periodic_stress_capability(calculator_cls):
     assert calculator_cls.maple_pbc_md_supported is True
     assert calculator_cls.maple_stress_supported is True
     assert calculator_cls.maple_stress_unit == ASE_STRESS_UNIT
+    assert calculator_cls.maple_requires_single_image_mic is False
+    assert calculator_cls.maple_periodic_neighborlist_multi_image_safe is True
 
 
 @pytest.mark.parametrize(

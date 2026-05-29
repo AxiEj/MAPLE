@@ -15,7 +15,9 @@
 # 5e-6 because its ~0.16 ps fit window shows float32/GPU ML-backend slope noise.
 # smoke-1.5.0: mirror production's distribution-level N_P stride coverage in
 # the short smoke profile; smoke remains compatibility evidence only.
-thresholds_version = "smoke-1.5.0"
+# smoke-1.6.0: mirror production's imposed-COM NPT pressure/barostat invariance
+# class; smoke remains compatibility evidence only.
+thresholds_version = "smoke-1.6.0"
 
 [nve_energy_drift]
 max_rel_drift = 5.0e-3
@@ -32,6 +34,11 @@ equilibration_fraction = 0.4
 
 [npt_pressure]
 require_post_rescale_summary = true
+
+[npt_com_pressure_invariance]
+max_abs_pressure_delta_bar = 1.0e-8
+max_abs_volume_delta_A3 = 1.0e-8
+min_full_com_pressure_shift_bar = 1.0e-2
 
 [npt_volume_fluctuation]
 log10_kappa_tol = 0.8

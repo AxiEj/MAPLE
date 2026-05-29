@@ -24,16 +24,17 @@ from static review, `--quick`, LJ-only evidence, or stale artifacts.
 # Unit layer (fake / LJ-reference calculators; default markers, never skipped)
 pytest tests/dispatcher/md tests/calculator tests/read -q
 
-# Production acceptance matrix (LJ reference, 10 non-skippable classes) — the backend-free MD-engine/LJ-contract gate
+# Production acceptance matrix (LJ reference, 11 non-skippable classes) — the backend-free MD-engine/LJ-contract gate
 python scripts/production_validation.py; echo "exit=$?"
 ```
 
 `production_validation.py` exits 0 **only if** every acceptance class PASSes **and**
 none is skipped (a skip is inconclusive, not a pass). A fired barostat clamp
-(`barostat_clamp_free`) or an unknown neighbor cutoff (the MD admission gate) already
-fails the matrix. The dated JSON/markdown report under `validation/reports/` records the
-thresholds version, git commit, per-class status, the pass/fail/skip summary, the
-barostat clamp count, and the calculator unit contract + cutoff policy.
+(`barostat_clamp_free`) fails the matrix; an unknown neighbor cutoff also fails
+for calculators in the single-image MIC scope. The dated JSON/markdown report
+under `validation/reports/` records the thresholds version, git commit,
+per-class status, the pass/fail/skip summary, the barostat clamp count, and the
+calculator unit contract + cutoff policy.
 
 Treat the backend-free engine gate as passed only when the report / exit code shows:
 - exit code `0`
@@ -41,12 +42,13 @@ Treat the backend-free engine gate as passed only when the report / exit code sh
 - `barostat clamps == 0`
 - units `Ha / Ha/A / eV/A^3`
 
-The 10 non-skippable engine classes are:
+The 11 non-skippable engine classes are:
 
 - `nve_energy_drift`
 - `restart_determinism`
 - `nvt_mean_temperature`
 - `npt_pressure`
+- `npt_com_pressure_invariance`
 - `npt_volume_fluctuation`
 - `npt_effective_energy_drift`
 - `barostat_clamp_free`
@@ -56,8 +58,9 @@ The 10 non-skippable engine classes are:
 
 The unit layer must also keep the admission/failure contracts green: raw ASE
 calculators are rejected unless wrapped by `wrap_ase_calculator(...)`; declared
-cutoff / minimum-image / rank-3 cell failures are hard errors; the NPT runtime
-MIC guard fails after barostat shrinkage before the next force/stress evaluation;
+single-image cutoff / minimum-image / rank-3 cell failures are hard errors; the
+NPT runtime MIC guard fails after barostat shrinkage before the next force/stress
+evaluation for calculators in the single-image MIC scope;
 Berendsen is rejected by default; and c-rescale clamp continuation remains
 experimental-only.
 
@@ -92,7 +95,8 @@ Each run's provenance manifest (`*_md_manifest.json`) must record:
 - `calculator.capabilities`: `energy_unit=Ha`, `force_unit=Ha/A`, `stress_unit=eV/A^3`,
   a finite `neighbor_cutoff_A`, and when applicable separate
   `local_descriptor_cutoff_A`, `short_range_realspace_cutoff_A`, and
-  `long_range_coulomb_cutoff_A` fields;
+  `long_range_coulomb_cutoff_A` fields, plus the cutoff scope flags
+  `requires_single_image_mic` and `periodic_neighborlist_multi_image_safe`;
 - `run.unit_contract` and `run.cutoff_policy.allow_unknown_cutoff == false`;
 - `run.velocity_state_policy`: `load_state=true` must either be recorded as
   unconditioned (initialization-only COM/angular removal does not subtract DOF)
@@ -120,24 +124,33 @@ Each run's provenance manifest (`*_md_manifest.json`) must record:
 
 ## 4. PBC neighbor-cutoff policy (per backend)
 
-MAPLE gates PBC MD on `neighbor_cutoff_A < minimum_image_radius_A` (Allen &
-Tildesley 2017, §1.5). Equality is rejected deliberately — a box with
-`L = 2 * cutoff` places an atom exactly at its periodic image's interaction
-surface and float rounding (or barostat shrinkage) flips the comparison
-silently. Enlarge the cell or reduce the cutoff; the gate is not relaxed.
+MAPLE has two explicit PBC cutoff scopes:
 
-Per-backend effective cutoff used by the gate:
+1. **Single-image MIC / safe-supercell scope** (default for user-supplied and
+   wrapped calculators): MAPLE gates PBC MD on
+   `neighbor_cutoff_A < minimum_image_radius_A` (Allen & Tildesley 2017, §1.5).
+   Equality is rejected deliberately — a box with `L = 2 * cutoff` places an atom
+   exactly at its periodic image's interaction surface and float rounding (or
+   barostat shrinkage) flips the comparison silently.
+2. **Multi-image-safe periodic-backend scope**: official periodic backends may
+   declare `maple_periodic_neighborlist_multi_image_safe=true` and
+   `maple_requires_single_image_mic=false`. For those calculators, MAPLE records
+   the effective cutoff for provenance but does not force primitive-cell runs
+   into the single-image supercell gate.
+
+Per-backend effective cutoff recorded in provenance:
 
 | Backend                         | Effective neighbor cutoff                              | Notes |
 |---------------------------------|--------------------------------------------------------|-------|
-| `aimnet2-pbc` / `aimnet2nse-pbc` (DSF)   | `max(5.0, public_cutoff_A)` (default 15.0)    | DSF's public cutoff participates; AEV short range (5 Å) is the floor |
+| `aimnet2-pbc` / `aimnet2nse-pbc` (DSF)   | `max(5.0, public_cutoff_A)` (default 15.0)    | DSF's public cutoff is recorded; official AIMNet PBC declares multi-image-safe scope |
 | `aimnet2-pbc` / `aimnet2nse-pbc` (Ewald / PME) | `5.0` (AEV short range)                  | Ewald/PME ignore the public cutoff at runtime |
-| `mace-mp-pbc-*`                 | `models[0].r_max` (typically ~6 Å)                     | Read from the loaded MACE committee, not hard-coded |
+| `mace-mp-pbc-*`                 | `models[0].r_max` (typically ~6 Å)                     | Official MACE PBC declares multi-image-safe scope |
 | `macepol-pbc-*`                 | `models[0].r_max`                                      | Same logic as MACE-MP |
-| `uma`                           | `6.0` (FAIR Chemistry graph radius)                    | Fixed: FAIRChem's `AtomicData.from_ase(radius=6.0)` is the only neighbor list UMA reads |
+| `uma`                           | `6.0` (FAIR Chemistry graph radius)                    | UMA declares multi-image-safe scope |
 
 For real-backend release validation, copy each backend's reported
 `calculator.capabilities.neighbor_cutoff_A` plus any backend-specific local /
 real-space / long-range cutoff fields from its provenance manifest into the
 release log. The MIC-gated neighbor cutoff must be finite and match the table;
-an unknown cutoff is rejected at the MD admission gate and cannot reach the report.
+for single-image MIC calculators, an unknown cutoff is rejected at the MD
+admission gate and cannot reach the report.

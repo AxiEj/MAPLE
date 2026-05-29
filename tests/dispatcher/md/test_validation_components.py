@@ -12,6 +12,7 @@ from maple.function.dispatcher.md.validation import (
     load_thresholds,
     run_stress_finite_difference,
     run_constraints_rejected,
+    run_npt_com_pressure_invariance,
     run_pbc_geometry,
     run_restart_determinism,
     write_report,
@@ -25,7 +26,8 @@ def test_thresholds_are_versioned_and_complete():
     assert "thresholds_version" in th
     for section in (
         "nve_energy_drift", "restart_determinism", "nvt_mean_temperature",
-        "npt_pressure", "npt_volume_fluctuation", "npt_effective_energy_drift",
+        "npt_pressure", "npt_com_pressure_invariance", "npt_volume_fluctuation",
+        "npt_effective_energy_drift",
         "barostat_clamp", "stress_finite_difference", "pbc_geometry", "constraints",
     ):
         assert section in th
@@ -70,6 +72,13 @@ def test_pbc_geometry_class_passes(tmp_path):
     th = load_thresholds()
     result = run_pbc_geometry(lj_reference_factory(), th, tmp_path)
     assert result.passed and result.status == "pass"
+
+
+def test_npt_com_pressure_invariance_class_passes(tmp_path):
+    th = load_thresholds()
+    result = run_npt_com_pressure_invariance(lj_reference_factory(), th, tmp_path)
+    assert result.passed and result.status == "pass"
+    assert result.metrics["full_pressure_shift_bar"] >= th["npt_com_pressure_invariance"]["min_full_com_pressure_shift_bar"]
 
 
 def test_stress_finite_difference_reports_full_voigt_components(tmp_path):

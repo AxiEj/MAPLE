@@ -31,8 +31,8 @@ non-smoke PASS reports plus the aggregate backend-matrix checker.
 | Langevin-middle | Uses LF-middle / BAOAB-style half-step velocity semantics and records the velocity representation. |
 | NPT c-rescale | Acceptable as isotropic hydrostatic stochastic cell rescaling; not Parrinello-Rahman / MTTK, shear, surface-tension, or anisotropic cell-shape sampling. |
 | Berendsen barostat | Correctly scoped as equilibration-only and rejected by default for production-style NPT. |
-| Pressure / stress | ASE Voigt stress sign and kinetic/configurational pressure split are handled explicitly. |
-| PBC admission gates | Unit, PBC support, cutoff/MIC, full-rank cell, stress, and constraint gates fail closed instead of fabricating plausible output. |
+| Pressure / stress | ASE Voigt stress sign, kinetic/configurational pressure split, and DOF-policy COM kinetic exclusion are handled explicitly. |
+| PBC admission gates | Unit, PBC support, single-image cutoff/MIC scope, multi-image-safe backend scope, full-rank cell, stress, and constraint gates fail closed instead of fabricating plausible output. |
 | Restart / trajectory / provenance | Image flags, full cell matrix, velocity representation, RNG/provenance, cutoff policy, and barostat mode are persisted or checked. |
 | Validation | Acceptance design is suitable, but production status requires actually running the non-smoke matrix for every required target. |
 
@@ -128,6 +128,31 @@ the pre-rescale pair that drove the barostat decision is kept as labeled
 `Press_pre(bar)` / `Vol_pre(A^3)` diagnostic columns. The summary mean pressure
 uses the post-rescale series. For Langevin NPT the post-rescale pressure kinetic
 term uses the synchronized standard velocity.
+
+## NPT COM kinetic pressure closure + backend cutoff scope (WS11)
+
+- **NPT pressure now follows the resolved COM DOF policy.** When COM translation
+  is projected/constrained by the operator-aware DOF policy (the default
+  v-rescale/c-rescale fresh PBC path), the kinetic pressure term uses
+  `K - K_cm`; unconditioned input/load-state velocities keep COM active and use
+  full `K`. The same flag is threaded through post-rescale logging and both
+  c-rescale / Berendsen barostat pressure decisions. The acceptance matrix adds
+  `npt_com_pressure_invariance`, an imposed-COM white-box gate proving a pure
+  COM boost leaves active pressure and deterministic c-rescale volume response
+  unchanged while the full-kinetic pressure would shift.
+- **Cutoff/MIC support is explicit about scope.** User/wrapped calculators remain
+  in the conservative single-image MIC-safe supercell scope and must satisfy
+  `neighbor_cutoff_A < minimum_image_radius_A`. Official periodic backends can
+  declare `maple_periodic_neighborlist_multi_image_safe=true` and
+  `maple_requires_single_image_mic=false`, so MAPLE records their effective
+  cutoff without rejecting valid primitive-cell periodic neighbor-list runs
+  solely because the cutoff exceeds the Wigner-Seitz inradius.
+- **DCD PBC output has a triclinic round-trip regression.** The DCD test now
+  writes/reads a triclinic PBC trajectory, checks frame count, `cellpar`,
+  coordinate RMSD, and append header frame count.
+- Thresholds bumped to **1.6.0** (the smoke profile mirrors this as
+  `smoke-1.6.0`) so real-backend production reports must include the imposed-COM
+  NPT pressure class.
 
 ## Hard rejects (WS0-B, WS0-C)
 

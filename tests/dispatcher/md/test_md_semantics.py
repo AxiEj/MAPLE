@@ -180,6 +180,7 @@ def test_vrescale_intermittent_com_still_subtracts_operator_aware():
         "npt",
     )
     assert policy.runtime_n_dof == 6   # 9 - 3 (COM stays at zero under v-rescale)
+    assert policy.pressure_excludes_com_kinetic is True
 
 
 def test_langevin_vs_vrescale_intermittent_com_differ():
@@ -213,6 +214,21 @@ def test_unprojected_isolated_nve_keeps_all_dof():
         _water(), _params(remove_com=False, remove_angular=False), "nve"
     )
     assert policy.runtime_n_dof == 9
+
+
+def test_input_velocities_keep_com_active_for_pressure_policy():
+    policy = resolve_md_dof_policy(
+        _water(pbc=True),
+        _params(
+            init_velocities=False,
+            remove_com=True,
+            remove_com_every=0,
+            thermostat="v-rescale",
+        ),
+        "npt",
+    )
+    assert policy.runtime_n_dof == 9
+    assert policy.pressure_excludes_com_kinetic is False
 
 
 # ──────────────────────────────────────────────────────────────────────────

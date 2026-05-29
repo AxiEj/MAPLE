@@ -345,6 +345,7 @@ class NPT(JobABC):
                 tau_p=self.params.tau_p,
                 timestep=self.params.timestep,
                 compressibility=self.params.compressibility,
+                exclude_com_kinetic=self._dof_policy.pressure_excludes_com_kinetic,
             )
         else:  # c-rescale
             self.barostat = CRescaleBarostat(
@@ -355,6 +356,7 @@ class NPT(JobABC):
                 timestep=self.params.timestep,
                 compressibility=self.params.compressibility,
                 rng=self._rng,
+                exclude_com_kinetic=self._dof_policy.pressure_excludes_com_kinetic,
             )
 
         self.logger = MDLogger(
@@ -925,7 +927,10 @@ class NPT(JobABC):
             # energy+forces at this geometry, so this adds only the stress pass
             # (no extra backend call; the loop-routing test pins the per-step count).
             props = evaluate_md_properties(
-                self.atoms, need_stress=True, velocities_au=pressure_velocity_post
+                self.atoms,
+                need_stress=True,
+                velocities_au=pressure_velocity_post,
+                exclude_com_kinetic=self._dof_policy.pressure_excludes_com_kinetic,
             )
             potential_energy = props.energy_ha   # Ha
             pressure_post = props.pressure_bar

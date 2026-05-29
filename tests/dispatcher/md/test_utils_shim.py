@@ -36,7 +36,8 @@ EXPECTED_NAMES = [
     "pbc_com_default_note", "validate_md_capabilities", "validate_md_parameter_ranges",
     "validate_stress_tensor",
     # thermo
-    "calculate_kinetic_energy", "calculate_temperature",
+    "calculate_center_of_mass_kinetic_energy", "calculate_kinetic_energy",
+    "calculate_temperature",
     # dof
     "describe_dof_policy", "get_initialization_dof_policy", "get_n_dof_from_policy",
     "get_runtime_dof_policy", "is_linear_molecule",
@@ -80,6 +81,7 @@ def test_shim_reexports_are_the_concern_module_objects():
     assert utils.wrap_positions_with_image_flags is pbc.wrap_positions_with_image_flags
     assert utils.validate_stress_tensor is capabilities.validate_stress_tensor
     assert utils.calculate_temperature is thermo.calculate_temperature
+    assert utils.calculate_center_of_mass_kinetic_energy is thermo.calculate_center_of_mass_kinetic_energy
     assert utils.get_n_dof_from_policy is dof.get_n_dof_from_policy
     assert utils.compute_instantaneous_pressure is pressure.compute_instantaneous_pressure
     assert utils.condition_input_velocities is velocity_init.condition_input_velocities

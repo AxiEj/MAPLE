@@ -76,8 +76,10 @@ def _build_pbc_calc(coulomb_method, cutoff, pme_cutoff=None):
 @pytest.mark.parametrize(
     ("coulomb_method", "cutoff", "expected_neighbor_cutoff", "expected_short_range_cutoff"),
     [
-        # DSF is a real cutoff-based method: the public cutoff participates in
-        # the MIC bound, but the 5 Å AEV short-range descriptor is the floor.
+        # DSF is a real cutoff-based method: the public cutoff remains the
+        # effective neighbor radius for provenance, but official AIMNet PBC owns
+        # a multi-image periodic neighbor list so MAPLE does not force it into
+        # single-image MIC supercell scope.
         ("dsf", 15.0, 15.0, 15.0),
         ("dsf", 12.0, 12.0, 12.0),
         ("dsf", 3.0, AIMNET2_SHORT_RANGE_CUTOFF_A, 3.0),
@@ -109,11 +111,12 @@ def test_aimnet_pbc_rejects_unsupported_coulomb_method():
         _build_pbc_calc("simple", 15.0)
 
 
-def test_aimnet_pbc_default_dsf_cutoff_is_not_claimed_for_current_validation_cell():
+def test_aimnet_pbc_default_dsf_cutoff_uses_multi_image_backend_scope():
     calc = _build_pbc_calc("dsf", 15.0)
 
-    with pytest.raises(ValueError, match="15.000 A >= minimum-image radius 6.600 A"):
-        validate_pbc_neighbor_cutoff(_co2_validation_box(), calc)
+    validate_pbc_neighbor_cutoff(_co2_validation_box(), calc)
+    assert calc.maple_requires_single_image_mic is False
+    assert calc.maple_periodic_neighborlist_multi_image_safe is True
 
 
 def test_aimnet_pbc_converts_energy_and_forces_but_not_stress():

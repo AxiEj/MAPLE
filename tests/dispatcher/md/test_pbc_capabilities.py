@@ -175,14 +175,11 @@ def test_berendsen_barostat_returns_pressure_and_original_velocity():
     np.testing.assert_allclose(velocities, original)
 
 
-def test_kinetic_pressure_is_additive_in_com_motion():
-    """The kinetic pressure uses the full kinetic energy (all velocities), so a
-    net COM velocity adds a separable 2*KE_com/(3V) term (~k_B T/V in
-    expectation: negligible for a large cell, resolvable for a small validation
-    cell).  MAPLE projects the COM at initialization and the non-re-exciting
-    v-rescale / c-rescale operators leave it at zero, so the production pressure
-    is DOF-consistent; this pins that behaviour so a future COM-in-pressure
-    change is a conscious one (see compute_instantaneous_pressure)."""
+def test_kinetic_pressure_can_exclude_com_motion_for_projected_dof_policy():
+    """Full kinetic pressure remains available, but NPT production paths can
+    switch to K-K_cm when the resolved DOF policy treats COM translation as a
+    projected/constrained mode.  A pure COM boost must not change that active
+    pressure subspace."""
     atoms = Atoms("Ar2", positions=[[0.0, 0.0, 0.0], [3.0, 0.0, 0.0]],
                   cell=np.diag([6.0, 6.0, 6.0]), pbc=True)
     atoms.calc = StressCalculator(np.zeros(6))   # zero virial -> purely kinetic pressure
@@ -194,11 +191,58 @@ def test_kinetic_pressure_is_additive_in_com_motion():
     p_internal = compute_instantaneous_pressure(atoms, v_internal)
     p_boosted = compute_instantaneous_pressure(atoms, v_boosted)
     p_com_only = compute_instantaneous_pressure(atoms, np.tile(v_com, (len(atoms), 1)))
+    p_internal_active = compute_instantaneous_pressure(
+        atoms, v_internal, exclude_com_kinetic=True
+    )
+    p_boosted_active = compute_instantaneous_pressure(
+        atoms, v_boosted, exclude_com_kinetic=True
+    )
+    p_com_only_active = compute_instantaneous_pressure(
+        atoms, np.tile(v_com, (len(atoms), 1)), exclude_com_kinetic=True
+    )
 
     # The COM drift adds exactly its own 2*KE_com/(3V) to the kinetic pressure;
     # the v_internal·v_com cross term vanishes because v_internal is zero-COM.
     assert p_com_only > 0.0
     assert (p_boosted - p_internal) == pytest.approx(p_com_only, rel=1e-9, abs=1e-9)
+    assert p_boosted_active == pytest.approx(p_internal_active, rel=1e-9, abs=1e-9)
+    assert p_com_only_active == pytest.approx(0.0, abs=1e-12)
+
+
+def test_crescale_barostat_volume_response_ignores_imposed_com_when_policy_excludes_it():
+    atoms = Atoms("Ar2", positions=[[0.0, 0.0, 0.0], [3.0, 0.0, 0.0]],
+                  cell=np.diag([6.0, 6.0, 6.0]), pbc=True)
+    atoms.calc = StressCalculator(np.zeros(6))
+    boosted = atoms.copy()
+    boosted.calc = StressCalculator(np.zeros(6))
+
+    v_internal = np.array([[0.01, 0.0, 0.0], [-0.01, 0.0, 0.0]])
+    v_boosted = v_internal + np.array([0.004, -0.002, 0.001])
+    initial_volume = atoms.get_volume()
+
+    kwargs = dict(
+        pressure=0.0,
+        temperature=0.0,
+        tau_p=10.0,
+        timestep=1.0,
+        compressibility=0.5,
+        exclude_com_kinetic=True,
+    )
+    barostat = CRescaleBarostat(atoms, rng=np.random.default_rng(1), **kwargs)
+    boosted_barostat = CRescaleBarostat(boosted, rng=np.random.default_rng(1), **kwargs)
+
+    pressure, returned = barostat.apply(v_internal)
+    pressure_boosted, returned_boosted = boosted_barostat.apply(v_boosted)
+
+    assert pressure_boosted == pytest.approx(pressure, rel=1e-9, abs=1e-9)
+    assert boosted.get_volume() == pytest.approx(atoms.get_volume(), rel=1e-12, abs=1e-12)
+    mu = (atoms.get_volume() / initial_volume) ** (1.0 / 3.0)
+    np.testing.assert_allclose(
+        returned_boosted - returned,
+        (v_boosted - v_internal) / mu,
+        rtol=1e-12,
+        atol=1e-12,
+    )
 
 
 def test_crescale_barostat_returns_velocity_scaled_by_mu_without_mutating_input():
@@ -814,9 +858,9 @@ def test_npt_logs_post_rescale_primary_with_pre_rescale_diagnostic(
     # which calls compute_instantaneous_pressure; spy at the evaluator boundary.
     real_pressure = evaluator_module.compute_instantaneous_pressure
 
-    def record_pressure(a, v):
+    def record_pressure(a, v, **kwargs):
         post_eval_volumes.append(a.get_volume())
-        return real_pressure(a, v)
+        return real_pressure(a, v, **kwargs)
 
     records = {}
     original_log_step = npt.logger.log_step
@@ -921,9 +965,9 @@ def test_npt_langevin_post_rescale_pressure_uses_synchronized_velocity(monkeypat
     # which calls compute_instantaneous_pressure; spy at the evaluator boundary.
     real_pressure = evaluator_module.compute_instantaneous_pressure
 
-    def record_pressure(a, v):
+    def record_pressure(a, v, **kwargs):
         seen["pressure_velocity"] = v.copy()
-        return real_pressure(a, v)
+        return real_pressure(a, v, **kwargs)
 
     monkeypatch.setattr(evaluator_module, "compute_instantaneous_pressure", record_pressure)
 

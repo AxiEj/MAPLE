@@ -17,6 +17,10 @@ class OfficialPBCAdapterBase(CalcABC):
     maple_pbc_md_supported = True
     maple_stress_supported = True
     maple_stress_unit = ASE_STRESS_UNIT
+    # Official periodic ASE backends own their replicated-image neighbor graph;
+    # MAPLE should not force them into the supercell-only single-image MIC scope.
+    maple_requires_single_image_mic = False
+    maple_periodic_neighborlist_multi_image_safe = True
 
     @abstractmethod
     def _build_official_calculator(self, *args, **kwargs):

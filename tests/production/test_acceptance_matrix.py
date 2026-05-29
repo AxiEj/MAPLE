@@ -34,7 +34,7 @@ def test_full_lj_acceptance_matrix_passes(tmp_path):
     # Every declared class ran.
     assert {r.name for r in results} == {
         "nve_energy_drift", "restart_determinism", "nvt_mean_temperature",
-        "npt_pressure", "npt_volume_fluctuation", "npt_effective_energy_drift",
-        "barostat_clamp_free", "stress_finite_difference", "pbc_geometry",
-        "constraints_rejected",
+        "npt_pressure", "npt_com_pressure_invariance", "npt_volume_fluctuation",
+        "npt_effective_energy_drift", "barostat_clamp_free",
+        "stress_finite_difference", "pbc_geometry", "constraints_rejected",
     }

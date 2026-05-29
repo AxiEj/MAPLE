@@ -208,8 +208,7 @@ class AIMNet2Calculator(CalcABC):
             self.results["forces"] = forces.detach().cpu().numpy()
             
         if "hessian" in properties:
-            if self.solvent_correction:
-                raise NotImplementedError("Hessian calculation with implicit solvent is not implemented yet.")
+            self._raise_if_implicit_solvent_hessian()
             self.results["hessian"] = self.get_hessian(atoms)
 
     def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
@@ -337,6 +336,7 @@ class AIMNet2Calculator(CalcABC):
             atoms: ASE Atoms object
             delta: Step size for numerical differentiation (only used if method='numerical')
         """
+        self._raise_if_implicit_solvent_hessian()
         if self.hessian == 'analytic':
             return self._get_hessian_analytic(atoms)
         elif self.hessian == 'numerical':

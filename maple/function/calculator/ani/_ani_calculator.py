@@ -192,6 +192,7 @@ class ANICalculator(CalcABC):
             atoms: ASE Atoms object
             delta: Step size for numerical differentiation (only used if method='numerical')
         """
+        self._raise_if_implicit_solvent_hessian()
         if self.hessian == 'analytic':
             return self._get_hessian_analytic(atoms)
         elif self.hessian == 'numerical':

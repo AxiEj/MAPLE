@@ -133,6 +133,20 @@ class CalcABC(ase.calculators.calculator.Calculator):
             )
         return None
 
+    def _raise_if_implicit_solvent_hessian(self) -> None:
+        """Fail closed for Hessians when implicit solvent corrections are active.
+
+        Energy/force solvent corrections are applied outside the ML model graph.
+        Analytic model Hessians would therefore omit solvent curvature, and FD
+        solvent Hessians have not been validated as a production contract.  Keep
+        all direct ``get_hessian`` call paths aligned with
+        ``calculate(properties=['hessian'])``.
+        """
+        if getattr(self, "solvent_correction", None):
+            raise NotImplementedError(
+                "Hessian calculation with implicit solvent is not implemented yet."
+            )
+
     def log_error(self, error_message: str) -> None:
         """
         Logs error messages to the output file.

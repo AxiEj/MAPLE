@@ -373,6 +373,10 @@ class UMACalculator(FAIRChemCalculator):
         FixAtoms is respected upstream. Returns a ``(3N, 3N)`` tensor on
         ``self.device`` to preserve the original return-type contract.
         """
+        if getattr(self, "solvent_correction", None):
+            raise NotImplementedError(
+                "Hessian calculation with implicit solvent is not implemented yet."
+            )
         from .._batch_eval import FDHessianEvaluator
 
         H_np = FDHessianEvaluator(

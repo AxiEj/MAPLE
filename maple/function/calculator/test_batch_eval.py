@@ -722,6 +722,47 @@ def test_aimnet2_advertises_analytic_hessian_support():
     assert AIMNet2Calculator.supports_analytic_hessian is True
 
 
+@pytest.mark.parametrize(
+    ("module_name", "class_name"),
+    [
+        ("maple.function.calculator.ani._ani_calculator", "ANICalculator"),
+        ("maple.function.calculator.aimnet._aimnet2_calculator", "AIMNet2Calculator"),
+        ("maple.function.calculator.mace._mace_calculator", "MACECalculator"),
+        ("maple.function.calculator.mace._mace_general_calculator", "MACEModelCalculator"),
+        ("maple.function.calculator.mace._macepol_calculator", "MACEPolCalculator"),
+    ],
+)
+@pytest.mark.parametrize("mode", ["analytic", "numerical"])
+def test_direct_get_hessian_rejects_implicit_solvent_for_calcabc_backends(
+    module_name,
+    class_name,
+    mode,
+):
+    import importlib
+
+    module = importlib.import_module(module_name)
+    cls = getattr(module, class_name)
+    calc = object.__new__(cls)
+    calc.hessian = mode
+    calc.solvent_correction = object()
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+
+    with pytest.raises(NotImplementedError, match="implicit solvent"):
+        calc.get_hessian(atoms)
+
+
+def test_direct_get_hessian_rejects_implicit_solvent_for_uma_when_available():
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    calc = object.__new__(UMACalculator)
+    calc.solvent_correction = object()
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+
+    with pytest.raises(NotImplementedError, match="implicit solvent"):
+        calc.get_hessian(atoms)
+
+
 def _quadratic_hessian(batch_size=None, *, batched=False):
     coords = torch.tensor(
         [[0.1, -0.2, 0.3], [0.4, -0.5, 0.6]],

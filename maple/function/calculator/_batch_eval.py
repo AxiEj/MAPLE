@@ -739,8 +739,10 @@ class HVPEvaluator:
     """Hessian-vector product for Dimer (Phase 3).
 
     Prefers the calculator's autograd HVP (`CalcABC.get_hvp`) and falls back
-    to a finite-difference pair (`R + δn`, `R - δn`) batched through
-    `calculate_many` for calculators that cannot expose HVP.
+    to a finite-difference pair (`R + δn`, `R - δn`) plus the unperturbed
+    geometry `R`, batched through `calculate_many` for calculators that cannot
+    expose HVP.  Hn comes from the +-delta pair; forces/energy are reported at
+    `R` so the fallback matches the autograd contract exactly.
     """
 
     def __init__(self, calc, batch_size: Optional[int] = None) -> None:
@@ -777,25 +779,26 @@ class HVPEvaluator:
         pos0 = atoms.get_positions().copy()
         at_p = _copy_with_positions(atoms, pos0 + delta * n_arr)
         at_m = _copy_with_positions(atoms, pos0 - delta * n_arr)
+        at_0 = _copy_with_positions(atoms, pos0)
 
         try:
             energies, forces = PathEvaluator(
                 self.calc, batch_size=self.batch_size
-            ).energy_forces([at_p, at_m])
+            ).energy_forces([at_p, at_m, at_0])
         finally:
             atoms.set_positions(pos0)
 
-        if len(forces) != 2 or len(energies) != 2:
+        if len(forces) != 3 or len(energies) != 3:
             raise RuntimeError(
                 "calculate_many must return both energies and forces for "
                 "HVPEvaluator finite-difference fallback."
             )
         F_p = np.asarray(forces[0], dtype=np.float64).reshape(-1)
         F_m = np.asarray(forces[1], dtype=np.float64).reshape(-1)
-        E_p = float(energies[0])
-        E_m = float(energies[1])
+        F_0 = np.asarray(forces[2], dtype=np.float64).reshape(-1)
+        E_0 = float(energies[2])
 
+        # Match CalcABC.get_hvp: forces/energy are reported AT the unperturbed
+        # geometry R, while Hn comes from the +-delta force pair.
         Hn = -(F_p - F_m) / (2.0 * delta)
-        F_mid = 0.5 * (F_p + F_m)
-        E_mid = 0.5 * (E_p + E_m)
-        return Hn, F_mid, E_mid
+        return Hn, F_0, E_0

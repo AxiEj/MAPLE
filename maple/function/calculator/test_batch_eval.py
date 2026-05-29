@@ -1065,6 +1065,14 @@ def test_hvp_evaluator_fd_fallback_when_no_get_hvp():
     expected = np.zeros(6); expected[0] = 1.5
     np.testing.assert_allclose(Hn, expected, atol=1e-6)
 
+    # F and E must be the CURRENT-point values at R (matching CalcABC.get_hvp),
+    # not the +-delta midpoint average. At R = ref + 0.1 the analytic harmonic
+    # forces are -k*d = -0.15 and the energy is 0.5*k*sum(d^2) = 0.045. The old
+    # midpoint code returned E = 0.045 + 0.5*k*delta^2 (= +7.5e-9 here), so the
+    # tight atol below fails on the midpoint bug and passes on the current-point fix.
+    np.testing.assert_allclose(F, np.full(6, -1.5 * 0.1), atol=1e-10)
+    np.testing.assert_allclose(E, 0.5 * 1.5 * 6 * 0.1 ** 2, atol=1e-10)
+
 
 def test_hvp_evaluator_fd_fallback_reads_calculator_level_batch_size():
     class ChunkRecordingNoHVPCalc(HarmonicCalc):
@@ -1096,7 +1104,9 @@ def test_hvp_evaluator_fd_fallback_reads_calculator_level_batch_size():
     expected = np.zeros(6)
     expected[0] = 1.5
     np.testing.assert_allclose(Hn, expected, atol=1e-6)
-    assert calc.chunk_sizes == [1, 1]
+    # FD batch is [R+dn, R-dn, R]: three structures, so batch_size=1 chunks
+    # the single calculate_many call into three single-structure evaluations.
+    assert calc.chunk_sizes == [1, 1, 1]
 
 
 # ---------------------------------------------------------------------------

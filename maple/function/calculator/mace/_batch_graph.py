@@ -81,6 +81,17 @@ def batched_radius_graph_no_pbc(
     counts: Sequence[int],
     r_max: float,
 ) -> tuple[torch.Tensor, torch.Tensor]:
+    """Build a disconnected-graph batch by stacking per-structure graphs.
+
+    Each structure's graph is built independently (no cross-structure edges)
+    and its edge indices are offset into the concatenated node range.  The
+    dense ``(n, n)`` all-pairs distance tensors in ``radius_graph_no_pbc`` are
+    allocated per structure inside the loop and freed each iteration, so peak
+    memory is ``O(max_i N_i^2)`` for the largest structure in the chunk, not
+    ``O((sum_i N_i)^2)`` over the whole concatenated stack.  Chunk size on the
+    MACE path is bounded by the auto batch sizer's image cap
+    (``_AutoBatchSizer._apply_math_cap``).
+    """
     edge_parts = []
     shift_parts = []
     offset = 0

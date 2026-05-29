@@ -429,6 +429,7 @@ class AIMNet2Calculator(CalcABC):
             output_dof=n3,
             input_dof=n3,
             batch_size=batch_size,
+            warn_on_fallback=True,
         )
 
     @staticmethod

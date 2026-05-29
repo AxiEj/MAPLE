@@ -23,6 +23,8 @@ class ANICalculator(CalcABC):
     supported_hessian_modes = ("analytic", "numerical")
     supports_batch_energy_forces = True
     supports_analytic_hessian = True
+    batch_memory_model = "dense_same_shape"
+    auto_path_batch_cap = 8
 
     def __init__(self, device: torch.device,
         model:str = 'ani2x',

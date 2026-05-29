@@ -303,12 +303,13 @@
   <header class="hero page">
     <div class="eyebrow">MAPLE evolution/batch · Visual scientific change report</div>
     <h1>从单结构调用到安全批量评估：MAPLE batch acceleration 变更图谱</h1>
-    <p class="lead">本页面把 <span class="mono">enhance/origin/enhance@c277aec</span> 到 <span class="mono">evolution/batch@e129e61</span> 的 20 个提交整理成可视化、证据化的网页报告：改了什么、原来是什么、为什么这样改、代码落点在哪里。</p>
+    <p class="lead">本页面把 <span class="mono">enhance/origin/enhance@c277aec</span> 到 <span class="mono">evolution/batch</span> 的 batch 实现与后续 P1 hardening 整理成可视化、证据化的网页报告：改了什么、原来是什么、为什么这样改、代码落点在哪里。</p>
     <div class="hero-grid">
       <section class="card">
         <h2 style="margin:0 0 8px;font-size:28px;">核心结论</h2>
         <p class="tagline">这次改动的科学边界是：<b>不改变 OPT/TS/NEB/PRFO 的方程和验收定义</b>，只把模型评估层从分散的单结构调用升级为可批量、可回退、可限内存的统一 contract。</p>
-        <span class="status-badge">分析代码快照已 push：e129e61</span>
+        <span class="status-badge">初版实现快照：e129e61</span>
+        <span class="status-badge">P1 hardening 已补入当前分支</span>
         <span class="status-badge">工作目录干净</span>
         <span class="status-badge warn">PRFO Hessian reuse 默认关闭</span>
         <span class="status-badge lock">PBC batch fail-closed</span>
@@ -360,8 +361,8 @@
 
   <main class="page">
     <section id="scope" class="section">
-      <h2>1. 差异范围：20 个提交，31 个文件</h2>
-      <p class="section-subtitle">对比基准是 <span class="mono">enhance/origin/enhance@c277aec</span>，当前报告对象是 <span class="mono">evolution/batch@e129e61</span>。本页只报告仓库证据；没有把未跑过的性能结果写成事实。</p>
+      <h2>1. 差异范围：20 个实现提交 + 后续 review hardening</h2>
+      <p class="section-subtitle">对比基准是 <span class="mono">enhance/origin/enhance@c277aec</span>，初版 batch 实现快照是 <span class="mono">evolution/batch@e129e61</span>；当前页面还包含评审后新增的 P1/P2 硬化。没有把未跑过的性能结果写成事实。</p>
       <div class="kpi-grid">
         <div class="kpi"><div class="num">20</div><div class="label">commits ahead of enhance</div></div>
         <div class="kpi"><div class="num">31</div><div class="label">changed files</div></div>
@@ -374,7 +375,7 @@
         <div class="bar-row"><div class="bar-label">parser / setup knobs</div><div class="bar-track"><div class="bar-fill" style="width:37%"></div></div><div class="bar-value">中等</div></div>
         <div class="bar-row"><div class="bar-label">tools / acceptance reports</div><div class="bar-track"><div class="bar-fill" style="width:49%"></div></div><div class="bar-value">支撑</div></div>
       </div>
-      <p class="footnote">Git evidence at report generation: <span class="mono">enhance...e129e61 = 0 20</span>，代码快照 <span class="mono">e129e61</span> 已与 <span class="mono">origin/evolution/batch</span> 对齐；本报告文件作为文档 artifact 可位于后续提交。</p>
+      <p class="footnote">Git evidence for the initial implementation: <span class="mono">enhance...e129e61 = 0 20</span>。后续 hardening 只加强门控/诊断/测试，不改变 batch 数学公式。</p>
     </section>
 
     <section id="architecture" class="section">
@@ -543,6 +544,34 @@ symmetrize(H)
             <td>防止 <span class="mono">hessian_recalcc</span> 这类拼写错误被静默忽略。</td>
             <td>旧：<span class="mono">command_control.py:159,415-450</span><br>新：<span class="mono">command_control.py:154-180,443-502,516-538</span></td>
           </tr>
+          <tr>
+            <td>FD Hessian hardening</td>
+            <td>symmetrize 前记录/检查 anti-symmetric residual；可 warn/raise。</td>
+            <td>旧实现直接 <span class="mono">0.5*(H+H.T)</span>，可能把 batch force 错位、单位漂移或非保守力场信号平均掉。</td>
+            <td>保留数值稳定性，同时把真实后端异常变成可观测 release gate。</td>
+            <td>新：<span class="mono">calculator_base.py:34-39</span>；<span class="mono">_batch_eval.py:620-689</span>；<span class="mono">test_batch_eval.py:734-789</span></td>
+          </tr>
+          <tr>
+            <td>Auto batch sizing hardening</td>
+            <td>用 capability 字段描述 memory model / hard cap / path cap。</td>
+            <td>旧 hard cap 依赖 class/module 名称包含 AIMNet/ANI/MACE。</td>
+            <td>后端重命名或子类化时仍保留安全边界；不再靠字符串猜内存复杂度。</td>
+            <td>新：<span class="mono">calculator_base.py:24-32</span>；<span class="mono">_batch_eval.py:332-355</span>；<span class="mono">test_batch_eval.py:301-460</span></td>
+          </tr>
+          <tr>
+            <td>PRFO all-reject hardening</td>
+            <td>inner trust loop 全部 reject 时显式 rollback、reset cache、强制 exact Hessian refresh；到 trust_min 直接受控失败。</td>
+            <td>旧逻辑可能 silent fallthrough 到下一 outer iteration，排障信息不足。</td>
+            <td>避免把无法接受的 trial 当作普通迭代推进；失败边界可追踪。</td>
+            <td>新：<span class="mono">PRFO.py:1044-1061</span>；<span class="mono">test_batch_eval.py:1403-1461</span></td>
+          </tr>
+          <tr>
+            <td>BatchResult / UMA hardening</td>
+            <td><span class="mono">BatchResult</span> 规范化 ndarray dtype；UMA turbo→default batch fallback 发一次显式 warning。</td>
+            <td>旧 consumer 假设 energies 是 ndarray；UMA fallback 对用户可见性不足。</td>
+            <td>减少第三方 calculator 返回 list 时的隐性错误；提醒 release smoke 必须做 turbo/default parity。</td>
+            <td>新：<span class="mono">_batch_types.py:47-88</span>；<span class="mono">uma/_uma_calculator.py:239-242,323-333</span>；<span class="mono">test_batch_eval.py:643-665</span></td>
+          </tr>
         </tbody>
       </table>
     </section>
@@ -580,6 +609,11 @@ symmetrize(H)
           <div class="severity">Risk: high · MACEPol example</div>
           <p>MACEPol traced checkpoint 多图 batch 不稳定；保留 contract，但不宣称 true batch。</p>
         </div>
+        <div class="risk caution">
+          <h3>新增：FD Hessian anti-symmetry gate</h3>
+          <div class="severity">Risk detector · warn by default, raise optional</div>
+          <p>中心差分 Hessian 仍会 symmetrize，但先检查 <span class="mono">max|H-Hᵀ|/scale</span>，防止真实后端错误被平均掩盖。</p>
+        </div>
       </div>
     </section>
 
@@ -591,6 +625,7 @@ symmetrize(H)
         <div class="event"><div class="event-card"><b>Parser tests</b><p><span class="mono">test_batch_eval.py:160-305</span> 覆盖 batch_size、PBC 拒绝、PRFO 参数 typo、NEBTS 参数透传。</p></div></div>
         <div class="event"><div class="event-card"><b>Scientific acceptance tool</b><p><span class="mono">tools/ts_prfo_acceptance.py:1-7</span> 明确：速度不算成功，除非 Normal Termination + exactly one imaginary frequency。</p></div></div>
         <div class="event"><div class="event-card"><b>Path benchmark tool</b><p><span class="mono">tools/path_batch_benchmark.py:1-10</span> 同时报 E/F 差异和速度，避免只看 wall time。</p></div></div>
+        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：63 passed，16 real-backend smoke skipped（需 <span class="mono">MAPLE_REAL_BACKEND_SMOKE=1</span> 的 release runner）。</p></div></div>
       </div>
       <p class="footnote">页面本身为自包含静态 HTML，无外部依赖；适合用浏览器直接打开，也可提交到 docs/static host。</p>
     </section>

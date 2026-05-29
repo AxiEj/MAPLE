@@ -21,6 +21,23 @@ class CalcABC(ase.calculators.calculator.Calculator):
     # validation.
     supports_hvp: bool = False
 
+    # Auto batch sizing metadata.  Backends set these explicit capability
+    # fields so the generic evaluator does not infer memory behavior from class
+    # names.  Supported memory models are documented, not enforced, because
+    # third-party calculators may use their own strings.
+    batch_memory_model: str | None = None
+    auto_batch_hard_cap: int | None = None
+    auto_path_batch_cap: int | None = None
+    auto_fd_batch_cap: int | None = None
+    auto_hvp_batch_cap: int | None = None
+
+    # FD Hessian symmetrization guard.  The final Hessian is still symmetrized
+    # for numerical stability, but a large anti-symmetric residual is surfaced
+    # before averaging can hide force ordering, unit, or non-conservative-field
+    # problems.  Set action to "raise" in stricter release gates.
+    fd_hessian_antisymmetry_threshold: float | None = 1e-5
+    fd_hessian_antisymmetry_action: str = "warn"
+
     # FD Hessian context mode for calculators that override
     # `make_fd_context`. The base class has no reusable graph/neighbor
     # context, so it validates the knob and returns None.

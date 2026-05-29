@@ -98,6 +98,8 @@ class AIMNet2Calculator(CalcABC):
     supported_hessian_modes = ("analytic", "numerical")
     supports_batch_energy_forces = True
     supports_analytic_hessian = True
+    batch_memory_model = "concat_dense_neighbor"
+    auto_batch_hard_cap = 8
 
     def __init__(self, device: torch.device, 
                 model: str = "aimnet2", 

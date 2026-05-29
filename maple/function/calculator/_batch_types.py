@@ -47,38 +47,45 @@ class BatchResult:
     def __post_init__(self) -> None:
         lengths = []
         if self.energies is not None:
-            energies = np.asarray(self.energies)
+            energies = np.asarray(self.energies, dtype=np.float64)
             if energies.ndim != 1:
                 raise ValueError(
                     f"BatchResult.energies must be a 1D array, got shape "
                     f"{energies.shape}"
                 )
+            object.__setattr__(self, "energies", energies)
             lengths.append(("energies", len(energies)))
         if self.forces is not None:
-            lengths.append(("forces", len(self.forces)))
-            for i, forces in enumerate(self.forces):
-                arr = np.asarray(forces)
+            force_arrays = [np.asarray(forces, dtype=np.float64) for forces in self.forces]
+            object.__setattr__(self, "forces", force_arrays)
+            lengths.append(("forces", len(force_arrays)))
+            for i, arr in enumerate(force_arrays):
                 if arr.ndim != 2 or arr.shape[1] != 3:
                     raise ValueError(
                         "BatchResult.forces entries must have shape (N, 3), "
                         f"got forces[{i}].shape={arr.shape}"
                     )
         if self.hessians is not None:
-            lengths.append(("hessians", len(self.hessians)))
-            for i, hessian in enumerate(self.hessians):
-                arr = np.asarray(hessian)
+            hessian_arrays = [
+                np.asarray(hessian, dtype=np.float64)
+                for hessian in self.hessians
+            ]
+            object.__setattr__(self, "hessians", hessian_arrays)
+            lengths.append(("hessians", len(hessian_arrays)))
+            for i, arr in enumerate(hessian_arrays):
                 if arr.ndim != 2 or arr.shape[0] != arr.shape[1]:
                     raise ValueError(
                         "BatchResult.hessians entries must be square 2D "
                         f"arrays, got hessians[{i}].shape={arr.shape}"
                     )
         if self.padding_counts is not None:
-            padding_counts = np.asarray(self.padding_counts)
+            padding_counts = np.asarray(self.padding_counts, dtype=np.int64)
             if padding_counts.ndim != 1:
                 raise ValueError(
                     "BatchResult.padding_counts must be a 1D array, got "
                     f"shape {padding_counts.shape}"
                 )
+            object.__setattr__(self, "padding_counts", padding_counts)
             lengths.append(("padding_counts", len(padding_counts)))
 
         if lengths:

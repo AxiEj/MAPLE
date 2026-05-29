@@ -1041,6 +1041,25 @@ class PRFO(JobABC):
 
                         return atoms
 
+            if not accepted:
+                atoms.set_positions(X)
+                reset_calculator_cache(atoms.calc)
+                force_exact_hessian = True
+                H_cart_cached = None
+                H_cart_cached_source = None
+                msg = (
+                    "PRFO failed to accept a step after "
+                    f"{max_attempts} trust-region attempts; geometry was "
+                    "rolled back and the exact Hessian will be refreshed."
+                )
+                log_info([f"\n{msg}\n"], self.output)
+                if trust_radius <= self.params.trust_min * (1.0 + 1e-12):
+                    raise RuntimeError(
+                        "PRFO failed to find an acceptable trust-region "
+                        "step at the minimum trust radius."
+                    )
+                continue
+
             iteration += 1
         
         # Maximum iterations reached

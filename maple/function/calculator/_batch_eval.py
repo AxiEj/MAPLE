@@ -23,6 +23,7 @@ optimizer keeps the original tangent, spring-force, and trust-region logic.
 from __future__ import annotations
 
 import operator
+import warnings
 from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -39,6 +40,7 @@ from ._batch_utils import (
 
 AUTO_BATCH_SIZE = "auto"
 AUTO_BATCH_TARGET_FRACTION = 0.75
+FD_HESSIAN_ANTISYMMETRY_THRESHOLD = 1e-5
 
 
 def _calculate_many_nonperiodic_batch_only(calc, atoms_list, properties) -> BatchResult:
@@ -272,6 +274,17 @@ def _estimate_auto_batch_size_from_item_bytes(
     return chunk
 
 
+def _positive_cap(value) -> Optional[int]:
+    """Return a positive integer cap, or ``None`` when unset/invalid."""
+    if value is None:
+        return None
+    try:
+        cap = int(value)
+    except (TypeError, ValueError):
+        return None
+    return cap if cap > 0 else None
+
+
 class _AutoBatchSizer:
     def __init__(
         self,
@@ -317,45 +330,27 @@ class _AutoBatchSizer:
         return chunk
 
     def _apply_math_cap(self, chunk: int) -> int:
-        name = type(self.calc).__name__.lower()
-        module = type(self.calc).__module__.lower()
-        is_aimnet = "aimnet" in name or ".aimnet" in module
-        is_ani = "ani" in name or ".ani" in module
-        is_mace = "mace" in name or ".mace" in module
+        memory_model = getattr(self.calc, "batch_memory_model", None)
 
-        # AIMNet2 batches via concatenated ``mol_idx`` and builds an
-        # O((sum N_i)^2) dense neighbor mask, so the cap must apply across
-        # path E/F, FD Hessian, *and* HVP.  Apply this hard cap first so
-        # it is the strict minimum: any subsequent ``auto_path_batch_cap``
-        # override can only tighten further, never loosen below 8.  The
-        # generic per-item byte estimate only models per-structure cost,
-        # so without this hard cap the auto-sizer underestimates AIMNet2
-        # memory by roughly the chunk size.
-        if is_aimnet:
-            chunk = max(1, min(chunk, 8, self.n_total))
+        # Backends with concat+dense-neighbor batch construction (AIMNet2) have
+        # an O((sum N_i)^2) memory term that the per-item estimate cannot see.
+        # Use explicit calculator metadata rather than class/module strings so
+        # renamed subclasses keep the same safety contract.
+        hard_cap = _positive_cap(getattr(self.calc, "auto_batch_hard_cap", None))
+        if hard_cap is not None:
+            chunk = max(1, min(chunk, hard_cap, self.n_total))
 
-        # ``auto_path_batch_cap`` is documented as a path-throughput knob.
-        # Keep it path-only for non-AIMNet backends so FD Hessian and HVP
-        # workloads stay unconstrained by this user override (preserves the
-        # pre-fix scope where the cap was strictly path-only).  For AIMNet2
-        # the explicit cap is allowed to tighten the hard cap further on
-        # any kind.
-        explicit_cap = getattr(self.calc, "auto_path_batch_cap", None)
-        if explicit_cap is not None and (is_aimnet or self.kind == "path"):
-            try:
-                cap = int(explicit_cap)
-                if cap > 0:
-                    chunk = max(1, min(chunk, cap, self.n_total))
-            except (TypeError, ValueError):
-                pass
-
-        # Path E/F throughput cliff for ANI and MACE — observed slower
-        # throughput above ~8 images even when memory allows.  FD Hessian
-        # per-structure forwards do not share this cliff, so this cap
-        # stays path-only.  AIMNet2 already capped above; do not let it
-        # widen via this branch.
-        if self.kind == "path" and not is_aimnet and (is_ani or is_mace):
-            chunk = max(1, min(chunk, 8, self.n_total))
+        # Kind-specific caps are capability fields too.  ``auto_path_batch_cap``
+        # remains a path-throughput knob for normal backends; for concat-dense
+        # memory models it is also allowed to tighten FD/HVP chunks because the
+        # same dense mask risk exists for every batched workload.
+        kind_cap = _positive_cap(getattr(self.calc, f"auto_{self.kind}_batch_cap", None))
+        if kind_cap is None and (
+            self.kind == "path" or memory_model == "concat_dense_neighbor"
+        ):
+            kind_cap = _positive_cap(getattr(self.calc, "auto_path_batch_cap", None))
+        if kind_cap is not None:
+            chunk = max(1, min(chunk, kind_cap, self.n_total))
 
         return chunk
 
@@ -622,10 +617,76 @@ class FDHessianEvaluator:
         H[frozen_dofs, :] = 0.0
         H[:, frozen_dofs] = 0.0
 
-    @staticmethod
-    def _symmetrize(H: np.ndarray) -> None:
-        """Remove finite-difference/autograd noise that breaks H = H.T."""
+    def _symmetrize(self, H: np.ndarray) -> None:
+        """Remove finite-difference noise only after surfacing large residuals."""
+        abs_resid, rel_resid = self._antisymmetry_residual(H)
+        setattr(
+            self.calc,
+            "_fd_hessian_last_antisymmetry",
+            {
+                "absolute": abs_resid,
+                "relative": rel_resid,
+                "threshold": self._antisymmetry_threshold(),
+            },
+        )
+        self._handle_antisymmetry_residual(abs_resid, rel_resid)
         H[:] = 0.5 * (H + H.T)
+
+    @staticmethod
+    def _antisymmetry_residual(H: np.ndarray) -> Tuple[float, float]:
+        if H.size == 0:
+            return 0.0, 0.0
+        abs_resid = float(np.max(np.abs(H - H.T)))
+        scale = max(1.0, float(np.max(np.abs(H))))
+        return abs_resid, abs_resid / scale
+
+    def _antisymmetry_threshold(self) -> Optional[float]:
+        threshold = getattr(
+            self.calc,
+            "fd_hessian_antisymmetry_threshold",
+            FD_HESSIAN_ANTISYMMETRY_THRESHOLD,
+        )
+        if threshold is None:
+            return None
+        threshold = float(threshold)
+        if threshold < 0.0:
+            raise ValueError(
+                "fd_hessian_antisymmetry_threshold must be non-negative "
+                f"or None, got {threshold!r}"
+            )
+        return threshold
+
+    def _handle_antisymmetry_residual(
+        self,
+        abs_resid: float,
+        rel_resid: float,
+    ) -> None:
+        threshold = self._antisymmetry_threshold()
+        if threshold is None or rel_resid <= threshold:
+            return
+
+        msg = (
+            "FD Hessian central-difference force derivative has a large "
+            "antisymmetric residual before symmetrization: "
+            f"abs={abs_resid:.6e}, rel={rel_resid:.6e}, "
+            f"threshold={threshold:.6e}. This can indicate non-conservative "
+            "forces, unit drift, or batch force-order/shape mismatch; the "
+            "matrix will be symmetrized only after this diagnostic is surfaced."
+        )
+        action = str(
+            getattr(self.calc, "fd_hessian_antisymmetry_action", "warn")
+        ).lower()
+        if action == "ignore":
+            return
+        if action == "warn":
+            warnings.warn(msg, RuntimeWarning, stacklevel=3)
+            return
+        if action == "raise":
+            raise RuntimeError(msg)
+        raise ValueError(
+            "fd_hessian_antisymmetry_action must be 'ignore', 'warn', or "
+            f"'raise', got {action!r}"
+        )
 
     def _chunked_forces(self, atoms_list: Sequence[Atoms]) -> List[np.ndarray]:
         n_total = len(atoms_list)

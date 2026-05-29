@@ -62,6 +62,13 @@ class UMACalculator(FAIRChemCalculator):
     supports_batch_energy_forces = True
     supports_analytic_hessian = False
     supports_hvp = False
+    batch_memory_model = "disconnected_graph"
+    auto_batch_hard_cap = None
+    auto_path_batch_cap = None
+    auto_fd_batch_cap = None
+    auto_hvp_batch_cap = None
+    fd_hessian_antisymmetry_threshold = 1e-5
+    fd_hessian_antisymmetry_action = "warn"
 
     @staticmethod
     def _normalize_device(device: torch.device | str | None) -> str:
@@ -232,6 +239,7 @@ class UMACalculator(FAIRChemCalculator):
         self.device = torch.device(device)
         self._predictor_unit = predictor
         self._batch_predictor_unit = None
+        self._warned_batch_predictor_fallback = False
         self._checkpoint = checkpoint
         self._checkpoint_path = checkpoint_path
         self._overrides = overrides
@@ -311,6 +319,18 @@ class UMACalculator(FAIRChemCalculator):
 
         if self.device.type != "cuda":
             return None
+
+        if not self._warned_batch_predictor_fallback:
+            warnings.warn(
+                "UMA batch evaluation is using a default-inference predictor "
+                "because the active predictor does not support multi-system "
+                "batches (for example CUDA turbo mode). Single-structure "
+                "calculate() remains on the active predictor; validate "
+                "turbo-vs-default parity in release smoke tests.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            self._warned_batch_predictor_fallback = True
 
         if self._batch_predictor_unit is None:
             self._batch_predictor_unit = self._build_predictor(

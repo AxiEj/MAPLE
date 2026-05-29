@@ -143,6 +143,8 @@ class MACECalculator(CalcABC):
     implemented_properties = ['energy', 'forces', 'free_energy']
     supported_hessian_modes = ("analytic", "numerical")
     supports_batch_energy_forces = True
+    batch_memory_model = "disconnected_graph"
+    auto_path_batch_cap = 8
 
     def __init__(self, 
         device: torch.device, 

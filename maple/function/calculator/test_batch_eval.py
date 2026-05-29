@@ -314,16 +314,14 @@ def test_auto_batch_sizer_caps_aimnet2_on_path_fd_and_hvp():
     class _MockAIMNet:
         device = "cpu"
         dtype = torch.float32
-
-    _MockAIMNet.__module__ = "maple.function.calculator.aimnet._aimnet2_calculator"
-    _MockAIMNet.__name__ = "AIMNet2Calculator"
+        batch_memory_model = "concat_dense_neighbor"
+        auto_batch_hard_cap = 8
 
     class _MockANI:
         device = "cpu"
         dtype = torch.float32
-
-    _MockANI.__module__ = "maple.function.calculator.ani._ani_calculator"
-    _MockANI.__name__ = "ANICalculator"
+        batch_memory_model = "dense_same_shape"
+        auto_path_batch_cap = 8
 
     atoms_list = [Atoms("H" * 16) for _ in range(32)]
     for kind in ("path", "fd", "hvp"):
@@ -359,10 +357,9 @@ def test_auto_batch_sizer_aimnet2_hard_cap_beats_user_override():
     class _MockAIMNet:
         device = "cpu"
         dtype = torch.float32
+        batch_memory_model = "concat_dense_neighbor"
+        auto_batch_hard_cap = 8
         auto_path_batch_cap = 32
-
-    _MockAIMNet.__module__ = "maple.function.calculator.aimnet._aimnet2_calculator"
-    _MockAIMNet.__name__ = "AIMNet2Calculator"
 
     atoms_list = [Atoms("H" * 16) for _ in range(32)]
     for kind in ("path", "fd", "hvp"):
@@ -402,10 +399,8 @@ def test_auto_batch_sizer_auto_path_batch_cap_stays_path_only_for_ani_mace():
     class _MockANI:
         device = "cpu"
         dtype = torch.float32
+        batch_memory_model = "dense_same_shape"
         auto_path_batch_cap = 4
-
-    _MockANI.__module__ = "maple.function.calculator.ani._ani_calculator"
-    _MockANI.__name__ = "ANICalculator"
 
     atoms_list = [Atoms("H" * 16) for _ in range(32)]
 
@@ -421,6 +416,46 @@ def test_auto_batch_sizer_auto_path_batch_cap_stays_path_only_for_ani_mace():
     )
     assert (
         _AutoBatchSizer(_MockANI(), atoms_list, ("energy", "forces"), kind="hvp").chunk
+        == len(atoms_list)
+    )
+
+
+def test_auto_batch_sizer_uses_explicit_capability_fields_not_names():
+    import torch
+    from ase import Atoms
+    from maple.function.calculator._batch_eval import _AutoBatchSizer
+
+    class RenamedDenseConcatBackend:
+        device = "cpu"
+        dtype = torch.float32
+        batch_memory_model = "concat_dense_neighbor"
+        auto_batch_hard_cap = 8
+
+    class NameOnlyAIMNetLikeBackend:
+        device = "cpu"
+        dtype = torch.float32
+
+    NameOnlyAIMNetLikeBackend.__name__ = "AIMNet2Calculator"
+    NameOnlyAIMNetLikeBackend.__module__ = "maple.function.calculator.aimnet.fake"
+
+    atoms_list = [Atoms("H" * 16) for _ in range(32)]
+
+    assert (
+        _AutoBatchSizer(
+            RenamedDenseConcatBackend(),
+            atoms_list,
+            ("energy", "forces"),
+            kind="fd",
+        ).chunk
+        == 8
+    )
+    assert (
+        _AutoBatchSizer(
+            NameOnlyAIMNetLikeBackend(),
+            atoms_list,
+            ("energy", "forces"),
+            kind="fd",
+        ).chunk
         == len(atoms_list)
     )
 
@@ -605,6 +640,27 @@ def test_batch_result_validates_lengths_and_shapes():
         )
 
 
+def test_batch_result_normalizes_arrays_for_consumers():
+    result = BatchResult(
+        energies=[1, 2],
+        forces=[
+            [[0, 1, 2]],
+            np.asarray([[3, 4, 5]], dtype=np.float32),
+        ],
+        hessians=[
+            [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+            np.eye(3, dtype=np.float32),
+        ],
+        padding_counts=[0, 1],
+    )
+
+    assert isinstance(result.energies, np.ndarray)
+    assert result.energies.dtype == np.float64
+    assert all(force.dtype == np.float64 for force in result.forces)
+    assert all(hessian.dtype == np.float64 for hessian in result.hessians)
+    assert result.padding_counts.dtype == np.int64
+
+
 # ---------------------------------------------------------------------------
 # energy_forces_one
 # ---------------------------------------------------------------------------
@@ -702,10 +758,40 @@ def test_fd_hessian_symmetrizes_force_derivative_noise():
     atoms = Atoms("H", positions=[[0.1, -0.2, 0.3]])
     atoms.calc = AsymmetricLinearForceCalc(A)
 
-    H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+    with pytest.warns(RuntimeWarning, match="antisymmetric residual"):
+        H = FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
 
     np.testing.assert_allclose(H, 0.5 * (A + A.T), atol=1e-10)
     np.testing.assert_allclose(H, H.T, atol=0.0)
+    assert atoms.calc._fd_hessian_last_antisymmetry["relative"] > 1e-5
+
+
+def test_fd_hessian_can_raise_on_large_antisymmetric_residual():
+    class AsymmetricLinearForceCalc(CalcABC):
+        implemented_properties = ["energy", "forces", "free_energy"]
+        fd_hessian_antisymmetry_action = "raise"
+
+        def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
+            super().calculate(atoms, properties, system_changes)
+            pos = atoms.get_positions().reshape(-1)
+            matrix = np.array(
+                [
+                    [1.0, 0.3, 0.0],
+                    [0.0, 2.0, 0.0],
+                    [0.0, 0.0, 3.0],
+                ],
+                dtype=np.float64,
+            )
+            self.results["energy"] = 0.0
+            self.results["free_energy"] = 0.0
+            if "forces" in properties:
+                self.results["forces"] = (-(matrix @ pos)).reshape(-1, 3)
+
+    atoms = Atoms("H", positions=[[0.1, -0.2, 0.3]])
+    atoms.calc = AsymmetricLinearForceCalc()
+
+    with pytest.raises(RuntimeError, match="antisymmetric residual"):
+        FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
 
 
 def test_fd_hessian_rejects_invalid_delta_and_batch_size():
@@ -1314,6 +1400,66 @@ def test_ts_prfo_reject_branch_resets_calculator_cache():
     assert "reset_calculator_cache" in reject_chunk
 
 
+def test_ts_prfo_all_reject_rolls_back_and_fails_at_trust_min(monkeypatch):
+    import importlib
+
+    prfo_mod = importlib.import_module("maple.function.dispatcher.ts.algorithm.PRFO")
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((1, 3)))
+
+    def fake_hessian(_atoms):
+        return np.eye(3, dtype=np.float64)
+
+    def fake_prfo_step(**kwargs):
+        step = np.zeros(3, dtype=np.float64)
+        step[0] = kwargs["trust_radius"]
+        return step
+
+    calls = 0
+
+    def fake_energy_forces_one(_calc, _atoms):
+        nonlocal calls
+        calls += 1
+        # Initial E/F gives a negative model_change for the positive-x trial.
+        # Every trial then raises the true energy, so rho stays bad until the
+        # trust-radius attempt budget is exhausted.
+        if calls == 1:
+            return 0.0, np.array([[1.0, 0.0, 0.0]], dtype=np.float64)
+        return 1.0, np.array([[1.0, 0.0, 0.0]], dtype=np.float64)
+
+    monkeypatch.setattr(prfo_mod, "calculate_Hessian", fake_hessian)
+    monkeypatch.setattr(prfo_mod, "prfo_step", fake_prfo_step)
+    monkeypatch.setattr(prfo_mod, "energy_forces_one", fake_energy_forces_one)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".out", delete=False) as fh:
+        out = fh.name
+    try:
+        with pytest.raises(RuntimeError, match="minimum trust radius"):
+            prfo_mod.PRFO(
+                output=out,
+                atoms=atoms,
+                paras={
+                    "prfo": {
+                        "max_iter": 1,
+                        "trust_radius": 0.2,
+                        "trust_min": 0.001,
+                        "validate_ts_mode": False,
+                    }
+                },
+            ).run()
+
+        np.testing.assert_allclose(atoms.get_positions(), np.zeros((1, 3)))
+        text = open(out, "r", encoding="utf-8").read()
+        assert "failed to accept a step after 8 trust-region attempts" in text
+        assert "exact Hessian will be refreshed" in text
+    finally:
+        for ext in ("", "_prfo_traj.xyz", "_prfo_ts.xyz"):
+            p = os.path.splitext(out)[0] + ext if ext else out
+            if os.path.exists(p):
+                os.remove(p)
+
+
 def test_ts_prfo_carries_ef_across_outer_iterations():
     """After an accepted trial, the next outer iteration should reuse the
     accepted-trial E/F rather than calling the calculator again at the top
@@ -1550,6 +1696,9 @@ def test_path_evaluator_auto_batch_size_backs_off_after_oom():
 
 def test_path_evaluator_auto_caps_ani_and_mace_path_batches():
     class FakeANICalculator(HarmonicCalc):
+        batch_memory_model = "dense_same_shape"
+        auto_path_batch_cap = 8
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.device = "cuda"

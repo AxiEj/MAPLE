@@ -27,7 +27,7 @@ import pytest
 import torch
 from ase import Atoms
 from ase.calculators.calculator import all_changes
-from ase.constraints import FixAtoms, FixCartesian
+from ase.constraints import FixAtoms, FixBondLength, FixCartesian
 
 from maple.function.calculator._autograd_hessian import (
     hessian_batched_vjp,
@@ -640,6 +640,41 @@ def test_path_batch_benchmark_default_energy_tolerance_matches_recorded_fp32_dif
     assert results[0]["parity_pass"] is True
 
 
+def test_path_batch_benchmark_bootstraps_repo_root_outside_cwd(tmp_path, monkeypatch):
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[3]
+    script = repo_root / "tools" / "path_batch_benchmark.py"
+    monkeypatch.chdir(tmp_path)
+
+    filtered_path = []
+    for entry in sys.path:
+        if not entry:
+            continue
+        try:
+            if Path(entry).resolve() == repo_root:
+                continue
+        except OSError:
+            pass
+        filtered_path.append(entry)
+    monkeypatch.setattr(sys, "path", filtered_path)
+
+    spec = importlib.util.spec_from_file_location(
+        "path_batch_benchmark_outside_cwd",
+        script,
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert module.REPO_ROOT == repo_root
+    assert module.MODEL_DIR == repo_root / "maple/function/calculator/model"
+    assert str(repo_root) in sys.path
+
+
 def test_setcalculator_applies_model_batch_size_aliases():
     from maple.function.calculator.set_calculator import SetClaculator
 
@@ -953,6 +988,44 @@ def test_fd_hessian_skips_fixcartesian_frozen_displacements():
 
     # 6 Cartesian DOFs minus atom0 x/z = 4 movable DOFs, each with +/- displacement.
     assert atoms.calc.batch_sizes == [8]
+
+
+def test_fd_hessian_rejects_unsupported_constraints_when_respecting_constraints():
+    atoms = Atoms("HH", positions=[[0.0, 0.0, 0.0], [0.8, 0.0, 0.0]])
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((2, 3)))
+    atoms.set_constraint(FixBondLength(0, 1))
+
+    with pytest.raises(
+        NotImplementedError,
+        match="FD Hessian only supports FixAtoms/FixCartesian constraints",
+    ):
+        FDHessianEvaluator(atoms.calc).hessian(atoms, delta=1e-4)
+
+
+def test_fd_hessian_can_ignore_unsupported_constraints_explicitly():
+    atoms = Atoms("HH", positions=[[0.0, 0.0, 0.0], [0.8, 0.0, 0.0]])
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((2, 3)))
+    atoms.set_constraint(FixBondLength(0, 1))
+
+    H = FDHessianEvaluator(
+        atoms.calc,
+        respect_constraints=False,
+    ).hessian(atoms, delta=1e-4)
+
+    np.testing.assert_allclose(H, np.eye(6), atol=1e-8)
+
+
+def test_fd_hessian_legacy_respect_fixatoms_false_ignores_unsupported_constraints():
+    atoms = Atoms("HH", positions=[[0.0, 0.0, 0.0], [0.8, 0.0, 0.0]])
+    atoms.calc = HarmonicCalc(k=1.0, ref_positions=np.zeros((2, 3)))
+    atoms.set_constraint(FixBondLength(0, 1))
+
+    evaluator = FDHessianEvaluator(atoms.calc, respect_fixatoms=False)
+    H = evaluator.hessian(atoms, delta=1e-4)
+
+    assert evaluator.respect_constraints is False
+    assert evaluator.respect_fixatoms is False
+    np.testing.assert_allclose(H, np.eye(6), atol=1e-8)
 
 
 def test_fd_hessian_symmetrizes_force_derivative_noise():

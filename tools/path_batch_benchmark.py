@@ -25,7 +25,11 @@ import torch
 from ase import Atoms
 
 
-MODEL_DIR = Path("maple/function/calculator/model")
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+MODEL_DIR = REPO_ROOT / "maple/function/calculator/model"
 DEFAULT_MAX_ENERGY_DIFF_EH = 1e-7
 DEFAULT_MAX_FORCE_DIFF_EH_PER_A = 1e-6
 

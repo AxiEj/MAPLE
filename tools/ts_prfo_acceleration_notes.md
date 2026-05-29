@@ -144,6 +144,19 @@ cap while leaving FD/HVP unconstrained unless a backend capability cap says
 otherwise. Users wanting larger AIMNet2/UMA batches must set ``batch_size``
 explicitly after local parity/OOM testing.
 
+
+## FD Hessian constraint boundary
+
+`FDHessianEvaluator` respects Cartesian constraints that can be represented as a
+3N degree-of-freedom mask: `FixAtoms` freezes all three axes of selected atoms,
+and `FixCartesian` freezes only the selected axes. Other ASE constraints such as
+`FixBondLength`, `FixInternals`, `FixedLine`, or `FixedPlane` are not equivalent
+to zeroing Cartesian Hessian rows/columns, so MAPLE fails fast by default instead
+of producing a constrained Hessian with unclear physical meaning. Expert callers
+that intentionally want an unconstrained Cartesian FD Hessian can construct the
+evaluator with `respect_constraints=False`; the legacy `respect_fixatoms=False`
+spelling remains a backward-compatible alias.
+
 ## Expert PRFO Hessian recalculation interval
 
 By default MAPLE keeps the previous precision-first behavior:

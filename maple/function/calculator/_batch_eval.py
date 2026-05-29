@@ -366,6 +366,9 @@ class _AutoBatchSizer:
 # ---------------------------------------------------------------------------
 # Numerical Hessian via batched central difference / optional FD context
 # ---------------------------------------------------------------------------
+_SUPPORTED_FD_HESSIAN_CONSTRAINTS = (FixAtoms, FixCartesian)
+
+
 def _movable_dofs(atoms: Atoms, respect_constraints: bool) -> List[int]:
     """Return unconstrained Cartesian DOF indices in a 3N Hessian.
 
@@ -374,6 +377,9 @@ def _movable_dofs(atoms: Atoms, respect_constraints: bool) -> List[int]:
     an atom; ``FixCartesian`` removes only the masked directions.  Keeping this
     as a 3N DOF mask avoids displacing partially frozen coordinates and keeps
     the projected Hessian rows/columns aligned with frequency/RFO consumers.
+    Other ASE constraints are deliberately rejected when constraints are
+    respected, because their constrained Hessian is not representable as simple
+    Cartesian rows/columns set to zero.
     """
     n_atoms = len(atoms)
     if not respect_constraints:
@@ -381,6 +387,13 @@ def _movable_dofs(atoms: Atoms, respect_constraints: bool) -> List[int]:
 
     mask = np.ones(3 * n_atoms, dtype=bool)
     for constraint in getattr(atoms, "constraints", []) or []:
+        if not isinstance(constraint, _SUPPORTED_FD_HESSIAN_CONSTRAINTS):
+            raise NotImplementedError(
+                "FD Hessian only supports FixAtoms/FixCartesian constraints; "
+                f"got {type(constraint).__name__}. Disable constraint handling "
+                "explicitly if you want an unconstrained Cartesian FD Hessian."
+            )
+
         if isinstance(constraint, FixAtoms):
             for atom_idx in constraint.get_indices():
                 mask[3 * int(atom_idx) : 3 * int(atom_idx) + 3] = False
@@ -482,7 +495,8 @@ class FDHessianEvaluator:
     of ``2·N_movable_dof`` Python-level calls.
 
     ``FixAtoms`` and ``FixCartesian`` are respected by default — frozen DOFs
-    contribute zero rows and columns.
+    contribute zero rows and columns.  Other ASE constraints fail fast because
+    they cannot be represented by this Cartesian DOF projection.
     """
 
     def __init__(
@@ -490,6 +504,7 @@ class FDHessianEvaluator:
         calc,
         fd_batch_size: Optional[int] = None,
         respect_fixatoms: bool = True,
+        respect_constraints: Optional[bool] = None,
         fd_context_mode: Optional[str] = None,
     ) -> None:
         self.calc = calc
@@ -498,7 +513,12 @@ class FDHessianEvaluator:
         else:
             fd_batch_size = _positive_int_auto_or_none(fd_batch_size, "fd_batch_size")
         self.fd_batch_size = fd_batch_size
-        self.respect_fixatoms = respect_fixatoms
+        if respect_constraints is None:
+            respect_constraints = respect_fixatoms
+        self.respect_constraints = bool(respect_constraints)
+        # Backward-compatible alias for callers/tests that still use the old
+        # name from the FixAtoms-only implementation.
+        self.respect_fixatoms = self.respect_constraints
         self.fd_context_mode = fd_context_mode
 
     def hessian(self, atoms: Atoms, delta: float = 0.002) -> np.ndarray:
@@ -507,7 +527,7 @@ class FDHessianEvaluator:
         N = len(atoms)
         pos0 = atoms.get_positions().copy()
 
-        movable_dofs = _movable_dofs(atoms, self.respect_fixatoms)
+        movable_dofs = _movable_dofs(atoms, self.respect_constraints)
         H = np.zeros((3 * N, 3 * N), dtype=np.float64)
         if not movable_dofs:
             return H
@@ -538,7 +558,7 @@ class FDHessianEvaluator:
                 _copy_with_positions(
                     atoms,
                     pos_p,
-                    apply_constraints=self.respect_fixatoms,
+                    apply_constraints=self.respect_constraints,
                 )
             )
 
@@ -548,7 +568,7 @@ class FDHessianEvaluator:
                 _copy_with_positions(
                     atoms,
                     pos_m,
-                    apply_constraints=self.respect_fixatoms,
+                    apply_constraints=self.respect_constraints,
                 )
             )
 
@@ -645,7 +665,7 @@ class FDHessianEvaluator:
         n_atoms: int,
         movable_dofs: Sequence[int],
     ) -> None:
-        if not self.respect_fixatoms:
+        if not self.respect_constraints:
             return
         frozen_dofs = _fixed_dofs(n_atoms, movable_dofs)
         if frozen_dofs.size == 0:

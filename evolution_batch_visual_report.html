@@ -416,7 +416,7 @@
           <pre class="codebox"><span class="green">displaced = build_plus_minus_geometries(atoms)</span>
 <span class="green">forces = chunked_calculate_many(displaced)</span>
 fill_H_rows_from_forces(H, rows, forces, delta)
-project_FixAtoms_dofs(H)
+project_supported_constraint_dofs(H)
 symmetrize(H)
 
 # current evidence:
@@ -478,7 +478,7 @@ symmetrize(H)
             <td>FD Hessian</td>
             <td>用 <span class="mono">FDHessianEvaluator</span> 统一 central-difference Hessian。</td>
             <td>ANI/AIMNet2/MACE/UMA 各自写双层位移循环。</td>
-            <td>公式不变，调度统一；支持 chunk、FixAtoms、shape validation、geometry restore。</td>
+            <td>公式不变，调度统一；支持 chunk、FixAtoms/FixCartesian、shape validation、geometry restore。</td>
             <td>旧：<span class="mono">ani:_ani_calculator.py:143-226</span>；<span class="mono">aimnet:_aimnet2_calculator.py:260-340</span><br>新：<span class="mono">_batch_eval.py:455-667</span></td>
           </tr>
           <tr>
@@ -546,10 +546,10 @@ symmetrize(H)
           </tr>
           <tr>
             <td>FD Hessian hardening</td>
-            <td>3N DOF mask 支持 <span class="mono">FixAtoms</span>/<span class="mono">FixCartesian</span>；symmetrize 前记录/检查 anti-symmetric residual。</td>
+            <td>3N DOF mask 支持 <span class="mono">FixAtoms</span>/<span class="mono">FixCartesian</span>；其它 ASE constraints fail fast；symmetrize 前记录/检查 anti-symmetric residual。</td>
             <td>旧实现只按 atom 识别 <span class="mono">FixAtoms</span>，且直接 <span class="mono">0.5*(H+H.T)</span>。</td>
-            <td>避免部分坐标冻结体系被错误 displacement；同时把真实后端异常变成可观测 release gate。</td>
-            <td>新：<span class="mono">_batch_eval.py:369-389,620-689</span>；<span class="mono">test_batch_eval.py:721-794</span></td>
+            <td>避免部分坐标冻结体系被错误 displacement；对 FixBondLength/FixInternals 等非 Cartesian mask 约束拒绝静默产生物理含义不清的 Hessian。</td>
+            <td>新：<span class="mono">_batch_eval.py:369-408,662-674</span>；<span class="mono">test_batch_eval.py:949-1029</span></td>
           </tr>
           <tr>
             <td>Auto batch sizing hardening</td>
@@ -622,22 +622,22 @@ symmetrize(H)
           <p>中心差分 Hessian 仍会 symmetrize，但先检查 <span class="mono">max|H-Hᵀ|/scale</span>，防止真实后端错误被平均掩盖。</p>
         </div>
         <div class="risk safe">
-          <h3>新增：FixCartesian DOF gate</h3>
-          <div class="severity">Constraint correctness · 3N mask</div>
-          <p>FD Hessian displacement 现在按 Cartesian DOF mask 生成，部分固定坐标的行列被投影为零。</p>
+          <h3>新增：Constraint DOF gate</h3>
+          <div class="severity">Constraint correctness · 3N mask + fail fast</div>
+          <p>FD Hessian displacement 现在按 Cartesian DOF mask 生成；仅支持 FixAtoms/FixCartesian，其它约束显式报错。</p>
         </div>
       </div>
     </section>
 
     <section id="validation" class="section">
       <h2>7. 验证证据与当前限制</h2>
-      <p class="section-subtitle">本网页创建时没有重新跑全量 real-backend benchmark；这里列的是仓库中新增/锁定的验证形态和本次静态页面校验边界。</p>
+      <p class="section-subtitle">本轮已重新跑本地 real-backend release gate 与 CUDA path parity gate；这里列的是仓库中新增/锁定的验证形态和当前限制。</p>
       <div class="timeline">
         <div class="event"><div class="event-card"><b>Contract tests</b><p><span class="mono">maple/function/calculator/test_batch_eval.py:1-17</span> 覆盖 BatchResult、FDHessianEvaluator、PathEvaluator、HVP、RFO/PRFO 调用节省。</p></div></div>
         <div class="event"><div class="event-card"><b>Parser tests</b><p><span class="mono">test_batch_eval.py:160-336</span> 覆盖 batch_size、PBC 拒绝、PRFO 参数 typo、NEBTS 参数透传。</p></div></div>
         <div class="event"><div class="event-card"><b>Scientific acceptance tool</b><p><span class="mono">tools/ts_prfo_acceptance.py:1-7</span> 明确：速度不算成功，除非 Normal Termination + exactly one imaginary frequency。</p></div></div>
         <div class="event"><div class="event-card"><b>Path benchmark tool</b><p><span class="mono">tools/path_batch_benchmark.py</span> 同时报 E/F 差异和速度；<span class="mono">--require-parity</span> 默认用 <span class="mono">1e-7 Eh</span>/<span class="mono">1e-6 Eh/Å</span> 阈值，超阈值时非零退出。</p></div></div>
-        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：76 passed，17 real-backend smoke skipped；本地 release gate 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
+        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：80 passed，17 real-backend smoke skipped；本地 release gate 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
         <div class="event"><div class="event-card"><b>Local release gate</b><p><span class="mono">python tools/real_backend_release_gate.py</span> 本地跑真实后端 smoke；HTML 和 <span class="mono">/tmp</span> notes 不作为生产证明。</p></div></div>
       </div>
       <p class="footnote">页面本身为自包含静态 HTML，无外部依赖；适合用浏览器直接打开，也可提交到 docs/static host。</p>

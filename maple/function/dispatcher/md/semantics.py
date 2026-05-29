@@ -46,7 +46,7 @@ Three concerns live here:
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from ase import Atoms
@@ -258,7 +258,12 @@ _PARTIAL_PBC_BANNER = (
 )
 
 
-def validate_md_semantics(atoms: Atoms, params, ensemble: str) -> List[str]:
+def validate_md_semantics(
+    atoms: Atoms,
+    params,
+    ensemble: str,
+    context_label: Optional[str] = None,
+) -> List[str]:
     """Parameter-dependent MD admission checks (WS0-B, WS0-C).
 
     Returns a list of advisory messages (e.g. the partial-PBC experimental
@@ -278,8 +283,16 @@ def validate_md_semantics(atoms: Atoms, params, ensemble: str) -> List[str]:
             "for constrained workflows."
         )
 
-    # WS0-C — partial periodicity has no production policy.
     pbc = [bool(flag) for flag in atoms.pbc]
+    if str(ensemble).lower() == "npt" and not all(pbc):
+        label = context_label or f"{str(ensemble).upper()} MD"
+        raise ValueError(
+            f"{label} admission: NPT ensemble requires full "
+            "three-dimensional PBC (atoms.pbc must be [True, True, True]). "
+            "Use NVT/NVE for non-periodic or slab/partial-PBC systems."
+        )
+
+    # WS0-C — partial periodicity has no production policy.
     if any(pbc) and not all(pbc):
         if not bool(getattr(params, "allow_partial_pbc", False)):
             raise ValueError(
@@ -335,17 +348,10 @@ def validate_md_admission_state(
     context_label = f"{ensemble_name.upper()} {context}"
     _validate_md_masses(atoms, context=context_label)
 
-    if ensemble_name == "npt" and not all(atoms.pbc):
-        raise ValueError(
-            f"{context_label} admission: NPT ensemble requires full "
-            "three-dimensional PBC (atoms.pbc must be [True, True, True]). "
-            "Use NVT/NVE for non-periodic or slab/partial-PBC systems."
-        )
-
     # Import here to keep semantics.py independent at module-import time; utils.py
     # re-exports capability helpers and itself imports this module in some legacy
     # call paths.
     from .capabilities import validate_md_capabilities
 
     validate_md_capabilities(atoms, ensemble_name, params)
-    return validate_md_semantics(atoms, params, ensemble_name)
+    return validate_md_semantics(atoms, params, ensemble_name, context_label=context_label)

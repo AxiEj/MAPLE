@@ -41,10 +41,8 @@ from typing import Optional
 import numpy as np
 from ase import Atoms
 
-from ..utils import (
-    DEFAULT_COMPRESSIBILITY,
-    compute_instantaneous_pressure,
-)
+from ..pressure import compute_instantaneous_pressure
+from ..units import DEFAULT_COMPRESSIBILITY
 
 
 class BerendsenBarostat:

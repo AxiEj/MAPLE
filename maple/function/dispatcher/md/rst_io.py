@@ -38,8 +38,8 @@ from pathlib import Path
 import numpy as np
 from ase.cell import Cell
 
+from .pbc import ensure_image_flags
 from .units import _VALID_VELOCITY_REPRESENTATIONS
-from .utils import ensure_image_flags
 
 
 RST_HEADER = "MAPLE_RST_V1"

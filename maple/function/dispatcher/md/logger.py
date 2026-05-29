@@ -14,14 +14,13 @@ from pathlib import Path
 from typing import Optional, TextIO, Any
 from ase import Atoms
 
-from .utils import (
-    VELOCITY_REPR_STANDARD,
-    copy_with_unwrapped_positions,
-    ensure_image_flags,
+from .motion_projection import (
     normalize_velocity_representation,
     set_atoms_velocity_representation,
-    write_xyz_frame,
 )
+from .pbc import copy_with_unwrapped_positions, ensure_image_flags
+from .trajectory_xyz import write_xyz_frame
+from .units import VELOCITY_REPR_STANDARD
 from .rst_io import read_rst, rotate_rst_checkpoint
 from .dcd_writer import DCDWriter
 
@@ -205,7 +204,7 @@ class MDLogger:
         if not self.debug:
             return
 
-        from .utils import calculate_kinetic_energy, calculate_temperature
+        from .thermo import calculate_kinetic_energy, calculate_temperature
 
         forces = atoms.get_forces()
         kinetic_energy = calculate_kinetic_energy(atoms, velocities)

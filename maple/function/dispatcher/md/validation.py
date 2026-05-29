@@ -37,13 +37,12 @@ from .ensemble.nve import NVE
 from .ensemble.nvt import NVT
 from .ensemble.npt import NPT
 from .evaluator import evaluate_md_properties
+from .pbc import get_unwrapped_positions, wrap_positions_with_image_flags
 from .provenance import collect_environment_provenance
-from .utils import (
+from .units import (
     EV_PER_ANG3_TO_BAR,
     HARTREE_TO_EV,
     KELVIN_TO_HARTREE,
-    get_unwrapped_positions,
-    wrap_positions_with_image_flags,
 )
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]

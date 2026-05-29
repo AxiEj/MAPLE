@@ -26,11 +26,9 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import all_changes
 
-from .utils import (
-    HA_PER_ANG_TO_AU,
-    compute_instantaneous_pressure,
-    validate_stress_tensor,
-)
+from .capabilities import validate_stress_tensor
+from .pressure import compute_instantaneous_pressure
+from .units import HA_PER_ANG_TO_AU
 
 
 @dataclass(frozen=True)

@@ -26,24 +26,26 @@ from ..integrator.velocity_verlet import VelocityVerlet
 from ..evaluator import evaluate_md_properties
 from ..thermostat.langevin import LangevinThermostat
 from ..thermostat.vrescale import VRescaleThermostat, ZERO_KE_THRESHOLD_HA
-from ..utils import (
-    VELOCITY_REPR_LFMIDDLE_CARRIED,
-    VELOCITY_REPR_STANDARD,
+from ..capabilities import pbc_com_default_note, validate_md_parameter_ranges
+from ..motion_projection import (
     apply_runtime_motion_projection,
-    calculate_temperature,
-    calculate_kinetic_energy,
-    condition_input_velocities,
-    condition_loaded_velocities,
     get_atoms_velocity_representation,
-    initialize_velocities,
-    forces_au,
     lfmiddle_carried_to_standard,
     normalize_velocities_to_standard,
-    pbc_com_default_note,
     set_atoms_velocity_representation,
     standard_to_lfmiddle_carried,
+)
+from ..thermo import calculate_kinetic_energy, calculate_temperature
+from ..units import (
     FS_TO_AU,
-    validate_md_parameter_ranges,
+    VELOCITY_REPR_LFMIDDLE_CARRIED,
+    VELOCITY_REPR_STANDARD,
+    forces_au,
+)
+from ..velocity_init import (
+    condition_input_velocities,
+    condition_loaded_velocities,
+    initialize_velocities,
 )
 from ..semantics import resolve_md_dof_policy, validate_md_admission_state
 from ..provenance import build_run_context

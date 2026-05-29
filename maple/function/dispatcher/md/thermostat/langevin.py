@@ -31,7 +31,7 @@ import numpy as np
 from ase import Atoms
 from typing import Optional
 
-from ..utils import AMU_TO_AU, FS_TO_AU, KELVIN_TO_HARTREE
+from ..units import AMU_TO_AU, FS_TO_AU, KELVIN_TO_HARTREE
 
 
 class LangevinThermostat:

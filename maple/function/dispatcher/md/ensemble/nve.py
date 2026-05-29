@@ -19,19 +19,18 @@ from maple.function.timer import timer
 
 from ..integrator.velocity_verlet import VelocityVerlet
 from ..evaluator import evaluate_md_properties
-from ..utils import (
+from ..capabilities import pbc_com_default_note, validate_md_parameter_ranges
+from ..motion_projection import (
     apply_runtime_motion_projection,
-    calculate_temperature,
-    calculate_kinetic_energy,
+    get_atoms_velocity_representation,
+    normalize_velocities_to_standard,
+)
+from ..thermo import calculate_kinetic_energy, calculate_temperature
+from ..units import FS_TO_AU, VELOCITY_REPR_STANDARD, forces_au
+from ..velocity_init import (
     condition_input_velocities,
     condition_loaded_velocities,
     initialize_velocities,
-    forces_au,
-    get_atoms_velocity_representation,
-    normalize_velocities_to_standard,
-    validate_md_parameter_ranges,
-    VELOCITY_REPR_STANDARD,
-    FS_TO_AU,
 )
 from ..semantics import resolve_md_dof_policy, validate_md_admission_state
 from ..provenance import build_run_context

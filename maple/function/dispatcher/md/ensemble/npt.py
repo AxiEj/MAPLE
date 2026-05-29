@@ -48,27 +48,33 @@ from ..evaluator import evaluate_md_properties
 from ..thermostat.langevin import LangevinThermostat
 from ..thermostat.vrescale import VRescaleThermostat, ZERO_KE_THRESHOLD_HA
 from ..barostat.berendsen import BerendsenBarostat
-from ..barostat.crescale import CRescaleBarostat, MDBarostatClampError
-from ..utils import (
+from ..barostat.crescale import (
+    CRESCALE_VOLUME_RATIO_BOUNDS,
+    CRescaleBarostat,
+    MDBarostatClampError,
+)
+from ..capabilities import pbc_com_default_note, validate_md_parameter_ranges
+from ..motion_projection import (
+    apply_runtime_motion_projection,
+    get_atoms_velocity_representation,
+    lfmiddle_carried_to_standard,
+    normalize_velocities_to_standard,
+    set_atoms_velocity_representation,
+    standard_to_lfmiddle_carried,
+)
+from ..thermo import calculate_kinetic_energy, calculate_temperature
+from ..units import (
     EV_PER_ANG3_TO_BAR,
+    FS_TO_AU,
     HARTREE_TO_EV,
     VELOCITY_REPR_LFMIDDLE_CARRIED,
     VELOCITY_REPR_STANDARD,
-    apply_runtime_motion_projection,
-    calculate_temperature,
-    calculate_kinetic_energy,
+    forces_au,
+)
+from ..velocity_init import (
     condition_input_velocities,
     condition_loaded_velocities,
-    get_atoms_velocity_representation,
     initialize_velocities,
-    forces_au,
-    lfmiddle_carried_to_standard,
-    normalize_velocities_to_standard,
-    pbc_com_default_note,
-    set_atoms_velocity_representation,
-    standard_to_lfmiddle_carried,
-    FS_TO_AU,
-    validate_md_parameter_ranges,
 )
 from ..semantics import resolve_md_dof_policy, validate_md_admission_state
 from ..provenance import build_run_context
@@ -427,6 +433,19 @@ class NPT(JobABC):
             )
             self.logger.abort_simulation(reason=msg)
             raise ValueError(msg) from exc
+
+    def _abort_if_clamp_fired(self, abs_step: int) -> None:
+        if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
+            lower, upper = CRESCALE_VOLUME_RATIO_BOUNDS
+            msg = (
+                f"C-rescale stability clamp fired at step {abs_step}: the "
+                f"per-step volume ratio left the [{lower}, {upper}] bound, so the stochastic-"
+                "cell-rescaling NPT ensemble is truncated. Aborting now (set "
+                "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
+                "the clamp count is recorded in the run manifest)."
+            )
+            self.logger.abort_simulation(reason=msg)
+            raise MDBarostatClampError(msg)
 
     def run(self):
         """Execute NPT simulation."""
@@ -788,16 +807,7 @@ class NPT(JobABC):
                         msg = f"C-rescale barostat failed at step {abs_step}: {exc}"
                         self.logger.abort_simulation(reason=msg)
                         raise
-                    if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
-                        msg = (
-                            f"C-rescale stability clamp fired at step {abs_step}: the "
-                            "per-step volume ratio left the [0.125, 8.0] bound, so the stochastic-"
-                            "cell-rescaling NPT ensemble is truncated. Aborting now (set "
-                            "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
-                            "the clamp count is recorded in the run manifest)."
-                        )
-                        self.logger.abort_simulation(reason=msg)
-                        raise MDBarostatClampError(msg)
+                    self._abort_if_clamp_fired(abs_step)
                     self._validate_runtime_cutoff_after_barostat(abs_step)
                     volume_after_baro = self.atoms.get_volume()
                     forces = forces_au(self.atoms)
@@ -857,16 +867,7 @@ class NPT(JobABC):
                     msg = f"C-rescale barostat failed at step {abs_step}: {exc}"
                     self.logger.abort_simulation(reason=msg)
                     raise
-                if getattr(self.barostat, "last_clamped", False) and not self.params.allow_barostat_clamp:
-                    msg = (
-                        f"C-rescale stability clamp fired at step {abs_step}: the "
-                        "per-step volume ratio left the [0.125, 8.0] bound, so the stochastic-"
-                        "cell-rescaling NPT ensemble is truncated. Aborting now (set "
-                        "allow_barostat_clamp=true to continue an EXPERIMENTAL equilibration; "
-                        "the clamp count is recorded in the run manifest)."
-                    )
-                    self.logger.abort_simulation(reason=msg)
-                    raise MDBarostatClampError(msg)
+                self._abort_if_clamp_fired(abs_step)
                 self._validate_runtime_cutoff_after_barostat(abs_step)
                 forces = forces_au(self.atoms)
                 if track_conserved:

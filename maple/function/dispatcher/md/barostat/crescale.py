@@ -68,11 +68,11 @@ from typing import Optional
 import numpy as np
 from ase import Atoms
 
-from ..utils import (
+from ..pressure import compute_instantaneous_pressure
+from ..units import (
     KELVIN_TO_HARTREE,
     EV_PER_ANG3_TO_BAR,
     DEFAULT_COMPRESSIBILITY,
-    compute_instantaneous_pressure,
 )
 
 
@@ -269,10 +269,13 @@ class CRescaleBarostat:
         # Isotropic length scale μ = (V_new/V)^{1/3} = (λ_new/λ)^{2/3}, clamped to
         # the Berendsen-style per-step [0.5, 2.0] bound for stability.
         raw_ratio = float((lam_new / lam) ** 2)
-        vol_ratio = min(max(raw_ratio, 0.125), 8.0)
+        vol_ratio = min(max(raw_ratio, CRESCALE_VOLUME_RATIO_BOUNDS[0]), CRESCALE_VOLUME_RATIO_BOUNDS[1])
         # Record whether the stability bound actually clipped this step.  raw_ratio is a
         # square, hence strictly positive, so the log excursion is always well defined.
-        self.last_clamped = raw_ratio < 0.125 or raw_ratio > 8.0
+        self.last_clamped = (
+            raw_ratio < CRESCALE_VOLUME_RATIO_BOUNDS[0]
+            or raw_ratio > CRESCALE_VOLUME_RATIO_BOUNDS[1]
+        )
         if self.last_clamped:
             self.clamp_count += 1
             self.max_abs_log_excursion = max(
@@ -285,3 +288,6 @@ class CRescaleBarostat:
         self.atoms.set_cell(self.atoms.get_cell() * mu, scale_atoms=True)
 
         return pressure, velocities / mu
+
+
+CRESCALE_VOLUME_RATIO_BOUNDS = (0.125, 8.0)

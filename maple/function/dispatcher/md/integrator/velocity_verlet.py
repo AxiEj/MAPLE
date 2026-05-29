@@ -19,13 +19,12 @@ Advantages:
 import numpy as np
 from ase import Atoms
 
-# Import unit conversions from utils
-from ..utils import (
+from ..pbc import wrap_positions_with_image_flags
+from ..units import (
     FS_TO_AU,
     AMU_TO_AU,
     BOHR_TO_ANGSTROM,
     forces_au,
-    wrap_positions_with_image_flags,
 )
 
 

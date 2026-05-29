@@ -8,7 +8,8 @@ import numpy as np
 from ase import Atoms
 
 from .capabilities import validate_stress_tensor
-from .units import AMU_ANG2_PER_FS2_TO_EV, AU_TO_FS, BOHR_TO_ANGSTROM, EV_PER_ANG3_TO_BAR
+from .thermo import calculate_kinetic_energy
+from .units import EV_PER_ANG3_TO_BAR, HARTREE_TO_EV
 
 
 def compute_instantaneous_pressure(
@@ -53,11 +54,7 @@ def compute_instantaneous_pressure(
     # the operator-aware DOF policy in semantics.py and the additivity test in
     # tests/dispatcher/md/test_pbc_capabilities.py).  A caller that runs with a
     # deliberately non-zero COM should project it before reading the pressure.
-    masses_amu = atoms.get_masses()
-    # v in a.u. (Bohr/a.u.time) → convert to Å/fs
-    v_ang_per_fs = velocities * BOHR_TO_ANGSTROM / AU_TO_FS
-    # KE in eV: 0.5 * m[amu] * v²[Å²/fs²] * (amu·Å²/fs² → eV)
-    ke_ev = 0.5 * np.sum(masses_amu[:, np.newaxis] * v_ang_per_fs**2) * AMU_ANG2_PER_FS2_TO_EV
+    ke_ev = calculate_kinetic_energy(atoms, velocities) * HARTREE_TO_EV
 
     # Virial contribution from stress tensor (eV)
     stress = validate_stress_tensor(atoms)   # eV/Å³, Voigt: xx,yy,zz,yz,xz,xy

@@ -127,8 +127,9 @@
       </p>
       <div class="chips">
         <div class="chip"><b>代码审计基准</b> <span class="mono">enhance@c277aec8b227 → fix/pbc core@1cc52e7c0ee9</span></div>
-        <div class="chip"><b>审查类型</b> 静态 diff + 测试设计 + 文献路径核对</div>
-        <div class="chip"><b>未宣称</b> 未在本页证明真实 ML 后端全量 production-validated</div>
+        <div class="chip"><b>审查类型</b> 静态 diff + 实测 pytest + 文献路径核对</div>
+        <div class="chip"><b>已跑测试</b> 316 unit + 8 real-smoke + 1 LJ-production PASS</div>
+        <div class="chip"><b>未宣称</b> 未在本页证明 required real-backend matrix 全量 production-validated</div>
       </div>
     </div>
   </header>
@@ -139,6 +140,20 @@
       <div class="stat good"><div class="num">+14,212</div><div class="label">新增行：PBC backend、MD gates、validation、tests</div></div>
       <div class="stat warn"><div class="num">P0</div><div class="label">release blocker：缺真实后端 production acceptance artifact</div></div>
       <div class="stat bad"><div class="num">No</div><div class="label">不能写成“所有 PBC-MD 后端已 production-ready”</div></div>
+    </section>
+
+    <section class="panel" style="margin-bottom:18px">
+      <h2>实际测试证据：代码层已跑，production claim 仍被矩阵 gate 拦住</h2>
+      <p class="caption">测试在 2026-05-29 的当前分支上实际执行；下面区分“代码/真实 smoke 已通过”和“全量 production 后端矩阵仍未满足”。</p>
+      <table>
+        <thead><tr><th>命令</th><th>结果</th><th>证明了什么</th><th>不能证明什么</th></tr></thead>
+        <tbody>
+          <tr><td><span class="mono">python -m pytest</span></td><td><b>316 passed</b>, 9 deselected, 2 warnings, 29.30s</td><td>默认 unit / non-production suite 全绿；覆盖 calculator contracts、MD semantics、PBC gates、RST/DCD、validation components。</td><td>默认 addopts 排除了 integration 与 production marker。</td></tr>
+          <tr><td><span class="mono">python -m pytest tests/production -m production -vv</span></td><td><b>1 passed</b>, 455.76s</td><td>backend-free LJ conservative reference acceptance matrix 全量通过；证明 MAPLE MD engine/harness 自身可跑完整 gate。</td><td>它不是 AIMNet2/MACE/MACEPol/UMA 的真实后端 production artifact。</td></tr>
+          <tr><td><span class="mono">python -m pytest tests/integration -m integration -vv</span></td><td><b>8 passed</b>, 5 warnings, 19.91s</td><td>真实 <span class="mono">aimnet2-pbc</span> 与 <span class="mono">mace-mp-pbc-small</span> smoke：NVE、NVT、NPT、finite stress 路径都实际跑通。</td><td>smoke 不等于 full statistical / finite-difference production acceptance。</td></tr>
+          <tr><td><span class="mono">python scripts/check_production_backend_matrix.py</span></td><td><b>FAIL</b>, exit=1</td><td>矩阵 checker 现实地挡住 release claim：required targets 缺 current clean non-smoke production reports。</td><td>不能忽略 P0；必须补齐 <span class="mono">validation/required_pbc_backends.toml</span> 所列目标。</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <section class="panel">
@@ -198,7 +213,7 @@
         <div class="barrow"><div class="barlabel">Calculator/PBC</div><div class="bar"><div class="fill" style="width:47%"></div></div><div class="mono">20</div></div>
         <div class="barrow"><div class="barlabel">Examples/docs/config</div><div class="bar"><div class="fill" style="width:26%"></div></div><div class="mono">11</div></div>
         <div class="barrow"><div class="barlabel">Validation/release</div><div class="bar"><div class="fill warn" style="width:16%"></div></div><div class="mono">7</div></div>
-        <div class="callout" style="margin-top:18px">本报告没有在本地执行 pytest 或真实 ML 后端跑数；它是静态代码审查、测试审查和文献/老牌软件实现路径核对。</div>
+        <div class="callout" style="margin-top:18px">本报告已实际执行默认 pytest、LJ production acceptance matrix、AIMNet2/MACE real-backend smoke；但 full required real-backend production matrix checker 仍 FAIL，所以 P0 release blocker 保持成立。</div>
       </div>
     </section>
 
@@ -293,7 +308,7 @@
   </main>
 
   <footer class="wrap">
-    Report scope: local repository evidence plus official/reference documentation checked on 2026-05-29. Code evidence is pinned to <span class="mono">enhance@c277aec8b227 → fix/pbc core@1cc52e7c0ee9</span>; later HTML commits are documentation-only.
+    Report scope: local repository evidence, actual pytest runs, and official/reference documentation checked on 2026-05-29. Code evidence is pinned to <span class="mono">enhance@c277aec8b227 → fix/pbc core@1cc52e7c0ee9</span>; later HTML commits are documentation-only.
   </footer>
 </body>
 </html>

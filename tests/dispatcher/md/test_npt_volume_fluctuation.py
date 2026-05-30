@@ -30,7 +30,7 @@ def test_npt_volume_fluctuation_runs_and_reports_metrics(tmp_path):
         "kappa_fluct_per_bar", "kappa_eos_per_bar", "mean_V1_A3", "mean_V2_A3",
         "var_V1_A6", "var_V1_block_se_A6", "n_samples_post_eq", "rel_volume_change",
         "barostat_stride_NP", "volume_drift_sigma_P1", "volume_drift_sigma_P2",
-        "max_volume_drift_sigma",
+        "max_volume_drift_sigma", "tau_p_fs",
     ):
         assert key in metrics, f"missing reported metric: {key}"
 
@@ -49,3 +49,4 @@ def test_npt_volume_fluctuation_thresholds_present():
     assert th["min_volume_change"] < th["max_volume_change"]
     assert th["barostat_stride"] > 1
     assert th["max_volume_drift_sigma"] > 0.0
+    assert th["tau_p_fs"] > 0.0

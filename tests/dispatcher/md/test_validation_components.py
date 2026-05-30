@@ -38,6 +38,7 @@ def test_thresholds_are_versioned_and_complete():
     assert 0.0 < th["nvt_mean_temperature"]["equilibration_fraction"] < 1.0
     assert th["npt_volume_fluctuation"]["barostat_stride"] > 1
     assert th["npt_volume_fluctuation"]["max_volume_drift_sigma"] > 0.0
+    assert th["npt_volume_fluctuation"]["tau_p_fs"] > 0.0
 
 
 def test_lj_reference_calculator_honours_maple_unit_contract():

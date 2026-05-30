@@ -780,6 +780,7 @@ def run_npt_volume_fluctuation(
     p1, p2 = float(th["pressures_bar"][0]), float(th["pressures_bar"][1])
     eq_frac = float(th["equilibration_fraction"])
     n_blocks = int(th["n_blocks"])
+    tau_p = float(th.get("tau_p_fs", 1000.0))
     stride_np = int(
         barostat_stride if barostat_stride is not None else th.get("barostat_stride", 1)
     )
@@ -790,7 +791,7 @@ def run_npt_volume_fluctuation(
         NPT(output=str(workdir / f"{tag}.out"), atoms=atoms, paras={
             "steps": steps, "timestep": timestep, "temperature": temperature,
             "pressure": pressure, "thermostat": "v-rescale", "barostat": "c-rescale",
-            "tau_t": 100.0, "tau_p": 1000.0, "remove_com_every": 0, "verbose": 0,
+            "tau_t": 100.0, "tau_p": tau_p, "remove_com_every": 0, "verbose": 0,
             "barostat_stride": stride_np, "log_every": 1, "traj_every": steps,
             "rst_every": 0, "random_seed": 12345,
             "validation_artifact_id": validation_artifact_id or "npt_volume_fluctuation",
@@ -832,7 +833,7 @@ def run_npt_volume_fluctuation(
         "var_V1_A6": var_v1, "var_V1_block_se_A6": var_se1,
         "n_samples_post_eq": int(len(v1)),
         "kT_eV": kT_ev, "P1_bar": p1, "P2_bar": p2,
-        "barostat_stride_NP": stride_np,
+        "barostat_stride_NP": stride_np, "tau_p_fs": tau_p,
         "mean_P1_bar": mean_p1, "mean_P2_bar": mean_p2,
         "sem_P1_block_bar": float(sem_p1), "sem_P2_block_bar": float(sem_p2),
         "volume_slope_P1_A3_per_ps": drift1["slope_per_ps"],
@@ -1192,13 +1193,13 @@ def run_acceptance_matrix(
         # Real-backend dynamics use the species-safe CO2 box.  Its C/O modes do
         # not need the tiny timestep that H/O does, but real ML potentials still
         # show visible finite-step noise in the reversible NPT effective-energy
-        # diagnostic at 0.125–1 fs.  Use 0.0625 fs for the production
+        # diagnostic at 0.125–1 fs.  Use 0.05 fs for the production
         # effective-energy gate (full window ~0.5 ps) so a failure indicates
         # backend/integrator inconsistency rather than an aggressive timestep
         # artifact; the short smoke window remains compatibility-only.
         npt_eff_kw = (
             {"steps": 1600, "timestep": 0.125}
-            if quick else {"steps": 8000, "timestep": 0.0625}
+            if quick else {"steps": 10000, "timestep": 0.05}
         )
 
     results: List[AcceptanceResult] = []

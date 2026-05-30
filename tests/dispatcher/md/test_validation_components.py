@@ -8,6 +8,7 @@ from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HAR
 from maple.function.dispatcher.md.validation import (
     MapleLJReferenceCalculator,
     _block_mean_stderr,
+    _linear_drift_metrics,
     _lj_crystal,
     load_thresholds,
     run_stress_finite_difference,
@@ -36,6 +37,7 @@ def test_thresholds_are_versioned_and_complete():
     assert th["nvt_mean_temperature"]["n_blocks"] >= 2
     assert 0.0 < th["nvt_mean_temperature"]["equilibration_fraction"] < 1.0
     assert th["npt_volume_fluctuation"]["barostat_stride"] > 1
+    assert th["npt_volume_fluctuation"]["max_volume_drift_sigma"] > 0.0
 
 
 def test_lj_reference_calculator_honours_maple_unit_contract():
@@ -63,9 +65,24 @@ def test_real_backend_validation_system_avoids_argon_species_gate():
     assert summary["dynamics"]["formula"] == "C8O16"
     assert summary["dynamics"]["n_atoms"] == 24
     assert summary["dynamics"]["pbc"] == [True, True, True]
-    assert min(np.linalg.norm(row) for row in summary["dynamics"]["cell_A"]) > 12.0
+    cell_lengths = [np.linalg.norm(row) for row in summary["dynamics"]["cell_A"]]
+    assert min(cell_lengths) == pytest.approx(10.55)
+    assert 0.5 * min(cell_lengths) > 5.0
     assert summary["stress_finite_difference"]["formula"] == "H16O8"
     assert summary["stress_finite_difference"]["n_atoms"] == 24
+
+
+def test_dsf_validation_system_uses_method_conditioned_density():
+    def factory():
+        raise AssertionError("factory metadata should avoid constructing calculator")
+
+    factory.maple_model_name = "aimnet2-pbc"
+    factory.maple_model_options = {"coulomb": "dsf", "cutoff": 5.0}
+
+    summary = validation_system_summary(factory)
+    cell_lengths = [np.linalg.norm(row) for row in summary["dynamics"]["cell_A"]]
+    assert min(cell_lengths) == pytest.approx(12.4)
+    assert 0.5 * min(cell_lengths) > 5.0
 
 
 def test_pbc_geometry_class_passes(tmp_path):
@@ -137,6 +154,21 @@ def test_block_mean_stderr_exceeds_iid_for_autocorrelated_series():
 
 def test_block_mean_stderr_nan_with_too_few_blocks():
     assert np.isnan(_block_mean_stderr(np.arange(3.0), 1))
+
+
+def test_linear_drift_metrics_flags_monotonic_relaxation():
+    series = np.linspace(100.0, 200.0, 1001)
+    metrics = _linear_drift_metrics(series, timestep_fs=1.0)
+    assert metrics["slope_per_ps"] == pytest.approx(100.0)
+    assert metrics["drift_sigma"] > 3.0
+
+
+def test_linear_drift_metrics_accepts_flat_equilibrium_window():
+    rng = np.random.default_rng(123)
+    series = 100.0 + rng.normal(scale=5.0, size=2000)
+    metrics = _linear_drift_metrics(series, timestep_fs=1.0)
+    assert abs(metrics["slope_per_ps"]) < 500.0
+    assert metrics["drift_sigma"] < 3.0
 
 
 def test_write_report_emits_markdown_and_json(tmp_path):

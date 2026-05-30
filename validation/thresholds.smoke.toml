@@ -18,7 +18,9 @@
 # smoke-1.6.0: mirror production's imposed-COM NPT pressure/barostat invariance
 # class; smoke remains compatibility evidence only.
 # smoke-1.6.1: mirror the 1e-7 A^3 backend-noise volume-response tolerance.
-thresholds_version = "smoke-1.6.1"
+# smoke-1.7.0: mirror production's volume-stationarity metrics while keeping the
+# short smoke window looser; smoke remains compatibility evidence only.
+thresholds_version = "smoke-1.7.0"
 
 [nve_energy_drift]
 max_rel_drift = 5.0e-3
@@ -49,6 +51,7 @@ min_volume_change = 0.01
 max_volume_change = 0.25
 n_blocks = 5
 barostat_stride = 5
+max_volume_drift_sigma = 10.0
 
 [npt_effective_energy_drift]
 # Quick smoke fits H̃ over only ~0.16 ps for real ML backends, where float32/GPU

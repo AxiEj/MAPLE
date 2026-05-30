@@ -26,13 +26,17 @@
 # c-rescale pressure uses K-K_cm whenever the resolved DOF policy excludes COM.
 # 1.6.1: keep the imposed-COM pressure gate exact while allowing 1e-7 A^3 of
 # backend floating-point noise in the deterministic volume-response comparison.
+# 1.7.0: require the NPT volume-fluctuation analysis window to be stationary
+# before using Var(V) as an equilibrium compressibility estimator.  This prevents
+# non-equilibrated monotonic volume relaxation from false-passing or false-failing
+# the kappa consistency check.
 #
 # This is the PRODUCTION (ship-gate) profile, used by `pytest tests/production
 # -m production` and scripts/production_validation.py. WS-D split the loose,
 # short-run unit-layer thresholds into validation/thresholds.smoke.toml so this
 # profile can be tightened against a longer-run baseline without false-failing the
 # default short unit runs. Production values are unchanged by that split.
-thresholds_version = "1.6.1"
+thresholds_version = "1.7.0"
 
 [nve_energy_drift]
 # Total-energy conservation for a strict NVE run on a near-equilibrium crystal.
@@ -105,6 +109,7 @@ min_volume_change = 0.01               # below this the EOS secant has no signal
 max_volume_change = 0.25               # above this the response is non-linear/unstable -> fail
 n_blocks = 5                           # block averaging for Var(V) and its standard error
 barostat_stride = 5                    # distribution-level validation of Bernetti-Bussi N_P stride
+max_volume_drift_sigma = 3.0           # reject non-equilibrium relaxation windows before kappa
 
 [npt_effective_energy_drift]
 # Reversible c-rescale conserved-quantity (effective-energy) drift. The NPT

@@ -169,7 +169,12 @@ class MapleLJReferenceCalculator(Calculator):
 
 
 def lj_reference_factory() -> Callable[[], Calculator]:
-    return lambda: MapleLJReferenceCalculator()
+    def factory() -> Calculator:
+        return MapleLJReferenceCalculator()
+
+    factory.maple_model_name = "lj-reference"  # type: ignore[attr-defined]
+    factory.maple_model_options = {}  # type: ignore[attr-defined]
+    return factory
 
 
 def _lj_crystal(repeat: int = 3) -> Atoms:
@@ -210,7 +215,7 @@ def _water_validation_box() -> Atoms:
     return atoms
 
 
-def _co2_validation_box() -> Atoms:
+def _co2_validation_box(*, cell_length: float = 10.55, spacing: float = 4.7) -> Atoms:
     """Small neutral H-free periodic CO2 box for real-backend dynamics.
 
     The backend-free matrix is calibrated on an LJ argon crystal.  Real MAPLE
@@ -220,8 +225,12 @@ def _co2_validation_box() -> Atoms:
     high-frequency modes that made the previous H/O dynamic gate timestep-bound
     rather than backend-bound.
     """
-    cell_length = 13.2  # MIC radius 6.6 Å, safely above 5–6 Å backend cutoffs.
-    spacing = 5.5
+    # The default Ewald/PME validation cell stays inside the MIC-safe DSF scope
+    # (radius 5.275 Å > 5.0 Å) while starting much closer to the AIMNet2 C/O NPT
+    # working volume than the earlier 13.2 Å dilute gas box.  The old box spent
+    # most of the 20 ps "production" volume-fluctuation window monotonically
+    # relaxing, so Var(V) measured non-equilibrium drift rather than equilibrium
+    # volume fluctuations.
     origin = 0.5 * (cell_length - spacing)
     co_bond = 1.16
     axes = [
@@ -250,6 +259,9 @@ def _co2_validation_box() -> Atoms:
 
 
 def _uses_lj_reference_system(calc_factory) -> bool:
+    model = getattr(calc_factory, "maple_model_name", None)
+    if model is not None:
+        return model in ("", "lj-reference")
     try:
         model = getattr(calc_factory(), "maple_model_name", None)
     except Exception:
@@ -257,10 +269,36 @@ def _uses_lj_reference_system(calc_factory) -> bool:
     return model in (None, "", "lj-reference")
 
 
+def _validation_coulomb_method(calc_factory) -> Optional[str]:
+    options = getattr(calc_factory, "maple_model_options", None)
+    if isinstance(options, dict) and options.get("coulomb"):
+        return str(options["coulomb"]).lower()
+    try:
+        calc = calc_factory()
+    except Exception:
+        return None
+    method = (
+        getattr(calc, "lrcoulomb_method", None)
+        or (getattr(calc, "maple_model_options", {}) or {}).get("coulomb")
+    )
+    return str(method).lower() if method else None
+
+
+def _real_backend_dynamic_box(calc_factory) -> Atoms:
+    method = _validation_coulomb_method(calc_factory)
+    if method == "dsf":
+        # DSF truncates the long-range term and has a different C/O EOS from the
+        # Ewald/PME target.  Use a pre-registered DSF-conditioned box rather
+        # than forcing the DSF validation through an Ewald-near-equilibrium
+        # density and measuring the resulting expansion transient.
+        return _co2_validation_box(cell_length=12.4, spacing=5.1)
+    return _co2_validation_box()
+
+
 def _validation_crystal(calc_factory, repeat: int = 3) -> Atoms:
     if _uses_lj_reference_system(calc_factory):
         return _lj_crystal(repeat)
-    return _co2_validation_box()
+    return _real_backend_dynamic_box(calc_factory)
 
 
 def _validation_stress_reference(calc_factory, repeat: int = 3) -> Atoms:
@@ -620,7 +658,7 @@ def _lj_liquid(repeat: int = 3) -> Atoms:
 def _validation_liquid(calc_factory) -> Atoms:
     if _uses_lj_reference_system(calc_factory):
         return _lj_liquid()
-    return _co2_validation_box()
+    return _real_backend_dynamic_box(calc_factory)
 
 
 def _block_variance(series: np.ndarray, n_blocks: int) -> tuple:
@@ -668,6 +706,40 @@ def _block_mean_stderr(series: np.ndarray, n_blocks: int) -> float:
     return float("nan")
 
 
+def _linear_drift_metrics(series: np.ndarray, timestep_fs: float) -> Dict[str, float]:
+    """Return a simple stationarity diagnostic for an analyzed time series.
+
+    ``drift_sigma`` is the fitted end-to-end linear drift over the analysis
+    window divided by the window's standard deviation.  It is deliberately
+    scale-free: a monotonic relaxation spanning several observed sigmas is not
+    an equilibrium fluctuation window and must not be used to validate
+    compressibility from Var(V).
+    """
+    series = np.asarray(series, dtype=float)
+    if len(series) < 2:
+        return {
+            "slope_per_ps": float("nan"),
+            "drift_over_window": float("nan"),
+            "std": float("nan"),
+            "drift_sigma": float("inf"),
+        }
+    times_ps = np.arange(len(series), dtype=float) * float(timestep_fs) / 1000.0
+    span_ps = float(times_ps[-1] - times_ps[0])
+    slope = float(np.polyfit(times_ps, series, 1)[0]) if span_ps > 0.0 else float("nan")
+    drift = abs(slope) * span_ps if np.isfinite(slope) else float("inf")
+    std = float(np.std(series))
+    if std > 0.0 and np.isfinite(std):
+        drift_sigma = drift / std
+    else:
+        drift_sigma = 0.0 if drift == 0.0 else float("inf")
+    return {
+        "slope_per_ps": slope,
+        "drift_over_window": drift,
+        "std": std,
+        "drift_sigma": float(drift_sigma),
+    }
+
+
 def run_npt_volume_fluctuation(
     calc_factory,
     thresholds,
@@ -712,7 +784,7 @@ def run_npt_volume_fluctuation(
         barostat_stride if barostat_stride is not None else th.get("barostat_stride", 1)
     )
 
-    def _volume_series(tag: str, pressure: float) -> np.ndarray:
+    def _volume_series(tag: str, pressure: float) -> Dict[str, np.ndarray]:
         atoms = _validation_liquid(calc_factory)
         atoms.calc = calc_factory()
         NPT(output=str(workdir / f"{tag}.out"), atoms=atoms, paras={
@@ -725,14 +797,25 @@ def run_npt_volume_fluctuation(
         }).run()
         thermo = _read_thermo(workdir / f"{tag}_md_thermo.dat")
         # Columns: Step Time Temp KE PE TE Press Vol(A^3) Press_pre Vol_pre.
-        vol = thermo["raw"][:, 7]
-        cut = int(len(vol) * eq_frac)
-        return vol[cut:]
+        raw = thermo["raw"]
+        cut = int(len(raw) * eq_frac)
+        return {"volume": raw[cut:, 7], "pressure": raw[cut:, 6]}
 
-    v1 = _volume_series("npt_vf_p1", p1)
-    v2 = _volume_series("npt_vf_p2", p2)
+    series1 = _volume_series("npt_vf_p1", p1)
+    series2 = _volume_series("npt_vf_p2", p2)
+    v1 = series1["volume"]
+    v2 = series2["volume"]
+    pressure1 = series1["pressure"]
+    pressure2 = series2["pressure"]
     mean_v1, mean_v2 = float(np.mean(v1)), float(np.mean(v2))
     var_v1, var_se1 = _block_variance(v1, n_blocks)
+    drift1 = _linear_drift_metrics(v1, timestep)
+    drift2 = _linear_drift_metrics(v2, timestep)
+    max_drift_sigma = float(th.get("max_volume_drift_sigma", float("inf")))
+    mean_p1 = float(np.mean(pressure1))
+    mean_p2 = float(np.mean(pressure2))
+    sem_p1 = _block_mean_stderr(pressure1, n_blocks)
+    sem_p2 = _block_mean_stderr(pressure2, n_blocks)
 
     # kB T in eV (K -> Hartree -> eV).
     kT_ev = temperature * KELVIN_TO_HARTREE * HARTREE_TO_EV
@@ -750,7 +833,27 @@ def run_npt_volume_fluctuation(
         "n_samples_post_eq": int(len(v1)),
         "kT_eV": kT_ev, "P1_bar": p1, "P2_bar": p2,
         "barostat_stride_NP": stride_np,
+        "mean_P1_bar": mean_p1, "mean_P2_bar": mean_p2,
+        "sem_P1_block_bar": float(sem_p1), "sem_P2_block_bar": float(sem_p2),
+        "volume_slope_P1_A3_per_ps": drift1["slope_per_ps"],
+        "volume_slope_P2_A3_per_ps": drift2["slope_per_ps"],
+        "volume_drift_sigma_P1": drift1["drift_sigma"],
+        "volume_drift_sigma_P2": drift2["drift_sigma"],
+        "max_volume_drift_sigma": max_drift_sigma,
     }
+
+    if (
+        not np.isfinite(drift1["drift_sigma"])
+        or not np.isfinite(drift2["drift_sigma"])
+        or drift1["drift_sigma"] > max_drift_sigma
+        or drift2["drift_sigma"] > max_drift_sigma
+    ):
+        return AcceptanceResult(
+            "npt_volume_fluctuation", "fail", False, metrics,
+            "non-stationary volume window: "
+            f"drift {drift1['drift_sigma']:.2f}/{drift2['drift_sigma']:.2f} sigma "
+            f"(max {max_drift_sigma:.2f}); fluctuation kappa would measure relaxation",
+        )
 
     # Linear-region sanity guards (the EOS slope is a secant ~ local kappa_T only
     # in the linear regime); never let a degenerate measurement false-pass.

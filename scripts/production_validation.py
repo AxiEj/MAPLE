@@ -128,6 +128,8 @@ def _real_model_factory(model: str, device: str | None, output: str, model_optio
             pass
         return calc
 
+    factory.maple_model_name = model
+    factory.maple_model_options = dict(model_options)
     return factory
 
 

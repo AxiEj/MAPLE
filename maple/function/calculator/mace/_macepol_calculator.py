@@ -6,6 +6,7 @@ from ase.calculators.calculator import all_changes
 from ..calculator_base import CalcABC
 from .._batch_types import BatchResult
 from .._batch_utils import normalize_energy_forces_request, sequential_calculate_many
+from .._metadata import integer_info
 from .._autograd_hessian import hessian_loop
 from typing import Literal
 
@@ -126,8 +127,8 @@ class MACEPolCalculator(CalcABC):
         cell = torch.zeros(3, 3, dtype=dtype, device=device)
 
         # Charge and spin from atoms.info (default: 0, singlet)
-        charge = float(atoms.info.get('charge', 0))
-        mult = int(atoms.info.get('mult', 1))
+        charge = float(integer_info(atoms, 'charge', 0))
+        mult = integer_info(atoms, 'mult', 1, min_value=1)
         spin = float(mult - 1)
         total_charge = torch.tensor([charge], dtype=dtype, device=device)
         total_spin = torch.tensor([spin], dtype=dtype, device=device)

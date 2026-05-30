@@ -567,10 +567,10 @@ symmetrize(H)
           </tr>
           <tr>
             <td>BatchResult / UMA hardening</td>
-            <td><span class="mono">BatchResult</span> 规范化 ndarray dtype；UMA turbo→default batch fallback 发一次显式 warning。</td>
-            <td>旧 consumer 假设 energies 是 ndarray；UMA fallback 对用户可见性不足。</td>
-            <td>减少第三方 calculator 返回 list 时的隐性错误；提醒 release smoke 必须做 turbo/default parity。</td>
-            <td>新：<span class="mono">_batch_types.py:47-88</span>；<span class="mono">uma/_uma_calculator.py:239-242,323-333</span>；<span class="mono">test_batch_eval.py:643-665</span></td>
+            <td><span class="mono">BatchResult</span> 规范化 ndarray dtype；UMA turbo→default batch fallback 发 warning；UMA charge/spin 只允许在 omol 语义下生效。</td>
+            <td>旧 consumer 假设 energies 是 ndarray；UMA fallback 对用户可见性不足；非 omol charge/spin 容易造成科学语义误读。</td>
+            <td>减少第三方 calculator 返回 list 时的隐性错误；提醒 release smoke 必须做 turbo/default parity；防止 charged/open-shell 输入被材料 task 静默吞掉。</td>
+            <td>新：<span class="mono">_batch_types.py:47-88</span>；<span class="mono">uma/_uma_calculator.py</span> metadata guards；<span class="mono">test_batch_eval.py</span> UMA edge tests</td>
           </tr>
           <tr>
             <td>Real backend local gate</td>
@@ -624,7 +624,7 @@ symmetrize(H)
         <div class="risk safe">
           <h3>新增：Constraint DOF gate</h3>
           <div class="severity">Constraint correctness · 3N mask + fail fast</div>
-          <p>FD Hessian displacement 现在按 Cartesian DOF mask 生成；仅支持 FixAtoms/FixCartesian，其它约束显式报错；implicit-solvent Hessian 也在 get_hessian 层 fail closed。</p>
+          <p>FD Hessian displacement 现在按 Cartesian DOF mask 生成；仅支持 FixAtoms/FixCartesian，其它约束显式报错；implicit-solvent Hessian 在 get_hessian 层 fail closed；UMA 非 omol charge/spin 也 fail loud。</p>
         </div>
       </div>
     </section>
@@ -637,7 +637,7 @@ symmetrize(H)
         <div class="event"><div class="event-card"><b>Parser tests</b><p><span class="mono">test_batch_eval.py:160-336</span> 覆盖 batch_size、PBC 拒绝、PRFO 参数 typo、NEBTS 参数透传。</p></div></div>
         <div class="event"><div class="event-card"><b>Scientific acceptance tool</b><p><span class="mono">tools/ts_prfo_acceptance.py:1-7</span> 明确：速度不算成功，除非 Normal Termination + exactly one imaginary frequency。</p></div></div>
         <div class="event"><div class="event-card"><b>Path benchmark tool</b><p><span class="mono">tools/path_batch_benchmark.py</span> 同时报 E/F 差异和速度；<span class="mono">--require-parity</span> 默认用 <span class="mono">1e-7 Eh</span>/<span class="mono">1e-6 Eh/Å</span> 阈值，超阈值时非零退出。</p></div></div>
-        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：91 passed，17 real-backend smoke skipped；本地 release gate 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
+        <div class="event"><div class="event-card"><b>Post-review hardening tests</b><p><span class="mono">python -m pytest -q</span> 当前结果：109 passed，17 real-backend smoke skipped；本地 release gate 用 <span class="mono">MAPLE_REAL_BACKEND_REQUIRED=1</span> 禁止缺资产静默通过。</p></div></div>
         <div class="event"><div class="event-card"><b>Local release gate</b><p><span class="mono">python tools/real_backend_release_gate.py</span> 本地跑真实后端 smoke；HTML 和 <span class="mono">/tmp</span> notes 不作为生产证明。</p></div></div>
       </div>
       <p class="footnote">页面本身为自包含静态 HTML，无外部依赖；适合用浏览器直接打开，也可提交到 docs/static host。</p>

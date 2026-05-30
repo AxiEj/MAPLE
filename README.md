@@ -142,6 +142,13 @@ H    0.802   0.842   1.742
 | `task` | `omol`, `omat`, `oc20`, `odac`, `omc`, `oc22`, `oc25` | inferred from PBC | `omol` for molecules, `omat` for periodic |
 | `inference` | `default`, `turbo` | `default` | `turbo` accelerates fixed-composition GPU workloads (NEB / TS / freq); ignored on CPU |
 
+UMA follows FAIR-Chem's charge/spin contract: charge and spin multiplicity are
+honored only for the `omol` molecular head.  Non-`omol` tasks reject non-neutral
+`charge`/`mult`/`spin` metadata instead of silently ignoring charged or
+open-shell input.  As a MAPLE fail-closed policy extension, `task=omol` is
+also rejected for PBC systems; choose a periodic task such as `omat`, `oc20`,
+`odac`, `omc`, `oc22`, or `oc25` instead.
+
 ### Coordinates
 
 Inline coordinates:

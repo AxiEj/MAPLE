@@ -763,6 +763,214 @@ def test_direct_get_hessian_rejects_implicit_solvent_for_uma_when_available():
         calc.get_hessian(atoms)
 
 
+def test_uma_rejects_omol_pbc_task_when_available():
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]], cell=[5.0, 5.0, 5.0], pbc=True)
+
+    with pytest.raises(ValueError, match="task='omol'.*PBC"):
+        UMACalculator._validate_task_atoms_compatibility(atoms, "omol")
+
+    UMACalculator._validate_task_atoms_compatibility(atoms, "omat")
+
+
+@pytest.mark.parametrize(
+    "info",
+    [
+        {"charge": -1},
+        {"mult": 3},
+        {"spin": 1},
+    ],
+)
+def test_uma_rejects_non_omol_charge_spin_metadata_when_available(info):
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.info.update(info)
+
+    with pytest.raises(ValueError, match="does not use charge/spin"):
+        UMACalculator._validate_task_atoms_compatibility(atoms, "oc20")
+
+
+def test_uma_prepares_task_specific_charge_spin_metadata_when_available():
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    omol = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    omol.info.update({"charge": "-1", "mult": "3"})
+    UMACalculator._validate_task_atoms_compatibility(omol, "omol")
+    UMACalculator._prepare_atoms_metadata(omol, "omol")
+    assert omol.info["charge"] == -1
+    assert omol.info["spin"] == 3
+
+    periodic_task = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    periodic_task.info["mult"] = 1
+    UMACalculator._validate_task_atoms_compatibility(periodic_task, "oc20")
+    UMACalculator._prepare_atoms_metadata(periodic_task, "oc20")
+    assert periodic_task.info["charge"] == 0
+    assert periodic_task.info["spin"] == 0
+    assert "mult" not in periodic_task.info
+
+
+@pytest.mark.parametrize("info", [{"charge": 0.5}, {"mult": 1.5}, {"spin": "1.5"}])
+def test_uma_rejects_noninteger_charge_spin_metadata_when_available(info):
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.info.update(info)
+
+    with pytest.raises(ValueError, match="must be an integer"):
+        UMACalculator._charge_spin_metadata(atoms)
+
+
+@pytest.mark.parametrize("mult, legacy_spin", [(2, 0.5), (3, 1)])
+def test_uma_mult_takes_precedence_over_parser_spin_when_available(mult, legacy_spin):
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.info.update({"mult": mult, "spin": legacy_spin})  # MAPLE parser writes S=(mult-1)/2.
+
+    UMACalculator._validate_task_atoms_compatibility(atoms, "omol")
+    UMACalculator._prepare_atoms_metadata(atoms, "omol")
+
+    assert atoms.info["spin"] == mult
+
+
+def test_uma_spin_zero_only_defaults_to_omol_singlet_when_available():
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.info["spin"] = 0
+
+    UMACalculator._validate_task_atoms_compatibility(atoms, "omol")
+    UMACalculator._prepare_atoms_metadata(atoms, "omol")
+
+    assert atoms.info["spin"] == 1
+
+
+def test_uma_noninteger_non_omol_metadata_uses_task_contract_error_when_available():
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.info["mult"] = 1.5
+
+    with pytest.raises(ValueError) as excinfo:
+        UMACalculator._validate_task_atoms_compatibility(atoms, "oc20")
+
+    message = str(excinfo.value)
+    assert "does not use charge/spin" in message
+    assert "must be an integer" in message
+
+
+def test_uma_calculate_normalizes_properties_none_when_available(monkeypatch):
+    pytest.importorskip("fairchem")
+    from fairchem.core.calculate.ase_calculator import FAIRChemCalculator
+    from maple.function.calculator.uma._uma_calculator import EV2HARTREE, UMACalculator
+
+    captured = {}
+
+    def fake_fairchem_calculate(self, atoms, properties, system_changes):
+        captured["properties"] = properties
+        captured["system_changes"] = system_changes
+        self.results = {"energy": 1.0, "free_energy": 1.0}
+
+    monkeypatch.setattr(FAIRChemCalculator, "calculate", fake_fairchem_calculate)
+    calc = object.__new__(UMACalculator)
+    calc._auto_task = False
+    calc._task_name = "omol"
+    calc.solvent_correction = None
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+
+    result = calc.calculate(atoms, properties=None, system_changes=None)
+
+    assert captured["properties"] == ["energy"]
+    assert captured["system_changes"] is all_changes
+    assert result["energy"] == pytest.approx(EV2HARTREE)
+
+
+def test_uma_calculate_many_validates_omol_pbc_before_sequential_fallback_when_available():
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    calc = object.__new__(UMACalculator)
+    calc._auto_task = False
+    calc._task_name = "omol"
+    calc.solvent_correction = None
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]], cell=[5.0, 5.0, 5.0], pbc=True)
+
+    with pytest.raises(ValueError, match="task='omol'.*PBC"):
+        UMACalculator.calculate_many(calc, [atoms], properties=("energy",))
+
+
+def test_uma_calculate_many_normalizes_properties_none_when_available():
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    calc = object.__new__(UMACalculator)
+    seen = []
+    calc._auto_task = False
+    calc._task_name = "omol"
+    calc.solvent_correction = object()
+
+    def fake_calculate(atoms, properties=None, system_changes=None):
+        seen.append(list(properties))
+        calc.results = {"energy": 2.0, "free_energy": 2.0}
+
+    calc.calculate = fake_calculate
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+
+    result = UMACalculator.calculate_many(calc, [atoms], properties=None)
+
+    assert seen == [["energy"]]
+    np.testing.assert_allclose(result.energies, [2.0])
+    assert result.forces is None
+
+
+def test_uma_get_energy_uses_calculate_result_without_double_solvent():
+    pytest.importorskip("fairchem")
+    from maple.function.calculator.uma._uma_calculator import UMACalculator
+
+    class BombSolvent:
+        def get_energy(self, atoms):
+            raise AssertionError("get_energy must not re-apply solvent correction")
+
+    calc = object.__new__(UMACalculator)
+    calc.device = torch.device("cpu")
+    calc.solvent_correction = BombSolvent()
+
+    def fake_calculate(atoms, properties=None, system_changes=None):
+        calc.results = {"energy": 1.25}
+
+    calc.calculate = fake_calculate
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+
+    energy = UMACalculator.get_energy(calc, atoms)
+
+    assert energy.item() == pytest.approx(1.25)
+
+
+@pytest.mark.parametrize("info", [{"charge": 0.5}, {"mult": 1.5}])
+def test_macepol_rejects_noninteger_charge_mult_metadata(info):
+    from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
+
+    calc = object.__new__(MACEPolCalculator)
+    calc.device = torch.device("cpu")
+    calc.dtype = torch.float64
+    calc.r_max = 3.0
+    calc.atomic_numbers = [1]
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    atoms.info.update(info)
+
+    with pytest.raises(ValueError, match="must be an integer"):
+        calc._build_inputs(atoms)
+
+
 def _quadratic_hessian(batch_size=None, *, batched=False):
     coords = torch.tensor(
         [[0.1, -0.2, 0.3], [0.4, -0.5, 0.6]],

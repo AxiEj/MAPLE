@@ -23,6 +23,7 @@ except ImportError:
 
 from .._batch_types import BatchResult
 from .._batch_utils import atoms_list_has_pbc
+from .._metadata import coerce_int_metadata, integer_info
 
 
 EV2HARTREE = 1.0 / 27.211386245988
@@ -37,6 +38,7 @@ UMA_MODELS_MAP = {
 
 UMA_FALLBACK_HF_MODELS = {"uma-s-1p1", "uma-s-1p2", "uma-m-1p1"}
 SUPPORTED_UMA_TASKS = {"omol", "omat", "oc20", "odac", "omc", "oc22", "oc25"}
+PERIODIC_UMA_TASKS = SUPPORTED_UMA_TASKS - {"omol"}
 SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
 
 # GPU default and CPU fallback for FAIR Chemistry's inference path. "default"
@@ -301,9 +303,94 @@ class UMACalculator(FAIRChemCalculator):
         )
 
     @staticmethod
-    def _prepare_atoms_metadata(atoms: Atoms) -> None:
-        atoms.info["spin"] = int(atoms.info.get("mult", 1))
-        atoms.info["charge"] = int(atoms.info.get("charge", 0))
+    def _charge_spin_metadata(atoms: Atoms) -> tuple[int, int]:
+        charge = integer_info(atoms, "charge", 0, min_value=-100, max_value=100)
+        if "mult" in atoms.info:
+            # MAPLE readers historically store spin quantum number S as
+            # (multiplicity - 1) / 2, which can be half-integer for even
+            # multiplicities. FAIR-Chem wants spin multiplicity, so the MAPLE
+            # `mult` field is authoritative and any legacy `spin` value is
+            # overwritten in _prepare_atoms_metadata().
+            multiplicity = integer_info(atoms, "mult", 1, min_value=1, max_value=100)
+            return charge, multiplicity
+
+        if "spin" in atoms.info:
+            # FAIR-Chem uses spin multiplicity for OMol.  Preserve MAPLE's
+            # historical behavior for spin-only metadata: spin=0 means no
+            # explicit open-shell request and maps to the singlet default.
+            spin = coerce_int_metadata(
+                atoms.info["spin"],
+                "atoms.info['spin']",
+                min_value=0,
+                max_value=100,
+            )
+            multiplicity = 1 if spin == 0 else spin
+        else:
+            multiplicity = 1
+        return charge, multiplicity
+
+    @staticmethod
+    def _has_open_shell_metadata(atoms: Atoms) -> bool:
+        if "mult" in atoms.info:
+            return integer_info(atoms, "mult", 1, min_value=1, max_value=100) != 1
+        if "spin" in atoms.info:
+            # For non-OMol heads FAIR-Chem expects neutral spin=0 metadata.
+            # A positive spin value may be an OMol singlet multiplicity, but it
+            # is still the wrong head contract here, so MAPLE rejects it.
+            spin = coerce_int_metadata(
+                atoms.info["spin"],
+                "atoms.info['spin']",
+                min_value=0,
+                max_value=100,
+            )
+            return spin != 0
+        return False
+
+    @staticmethod
+    def _validate_task_atoms_compatibility(atoms: Atoms, task: str) -> None:
+        # Upstream permits this with caution; MAPLE fails closed because the
+        # OMol head is trained for aperiodic molecules, while PBC workloads have
+        # dedicated UMA domain heads.
+        if task == "omol" and any(atoms.pbc):
+            raise ValueError(
+                "UMA task='omol' is molecular and does not support PBC; "
+                f"choose one of {sorted(PERIODIC_UMA_TASKS)} for periodic systems."
+            )
+
+        try:
+            charge = integer_info(atoms, "charge", 0, min_value=-100, max_value=100)
+            open_shell = UMACalculator._has_open_shell_metadata(atoms)
+        except ValueError as exc:
+            if task != "omol":
+                raise ValueError(
+                    f"UMA task='{task}' does not use charge/spin according to "
+                    "FAIR-Chem's current calculator contract. Remove "
+                    "atoms.info['charge'/'mult'/'spin'] or use task='omol' for "
+                    "charged/open-shell molecular calculations. "
+                    f"Invalid metadata: {exc}"
+                ) from exc
+            raise
+
+        if task != "omol" and (charge != 0 or open_shell):
+            raise ValueError(
+                f"UMA task='{task}' does not use charge/spin according to "
+                "FAIR-Chem's current calculator contract. Remove "
+                "atoms.info['charge'/'mult'/'spin'] or use task='omol' for "
+                "charged/open-shell molecular calculations."
+            )
+
+    @staticmethod
+    def _prepare_atoms_metadata(atoms: Atoms, task: str) -> None:
+        if task == "omol":
+            charge, multiplicity = UMACalculator._charge_spin_metadata(atoms)
+            atoms.info["charge"] = charge
+            atoms.info["spin"] = multiplicity
+        else:
+            # FAIR-Chem documents charge/spin as OMol-only inputs.  For periodic
+            # or materials heads, keep only the neutral metadata upstream reads.
+            atoms.info["charge"] = 0
+            atoms.info["spin"] = 0
+            atoms.info.pop("mult", None)
 
     @staticmethod
     def _predictor_supports_batch(predictor) -> bool:
@@ -349,12 +436,10 @@ class UMACalculator(FAIRChemCalculator):
         return self._batch_predictor_unit
 
     def get_energy(self, atoms: Atoms) -> torch.Tensor:
+        # `calculate()` is the single source of unit conversion and optional
+        # solvent correction.  Do not add solvent again here.
         self.calculate(atoms, properties=["energy"], system_changes=all_changes)
         energy_value = self.results["energy"]
-
-        if self.solvent_correction:
-            energy_value += self.solvent_correction.get_energy(atoms)
-
         return torch.tensor(energy_value, dtype=torch.float32, device=self.device)
 
     def get_hessian(
@@ -400,7 +485,7 @@ class UMACalculator(FAIRChemCalculator):
         Solvent corrections remain single-structure and therefore use the
         sequential fallback.
         """
-        props = tuple(properties)
+        props = ("energy",) if properties is None else tuple(properties)
         if "hessian" in props:
             raise NotImplementedError(
                 "UMACalculator.calculate_many does not assemble Hessians; "
@@ -429,10 +514,13 @@ class UMACalculator(FAIRChemCalculator):
         if predictor is None:
             return self._calculate_many_sequential(atoms_list, request, want_energy, want_forces)
 
+        for at in atoms_list:
+            self._validate_task_atoms_compatibility(at, self._task_for_atoms(at))
+
         data_list = []
         for at in atoms_list:
             task = self._task_for_atoms(at)
-            self._prepare_atoms_metadata(at)
+            self._prepare_atoms_metadata(at, task)
             self._check_atoms_pbc(at)
             predictor.validate_atoms_data(at, task)
             data_list.append(
@@ -494,8 +582,14 @@ class UMACalculator(FAIRChemCalculator):
 
     def calculate(self, atoms, properties=None, system_changes=None):
         self._set_task_from_atoms(atoms)
+        task = self.task_name
+        self._validate_task_atoms_compatibility(atoms, task)
+        self._prepare_atoms_metadata(atoms, task)
 
-        self._prepare_atoms_metadata(atoms)
+        if properties is None:
+            properties = ["energy"]
+        if system_changes is None:
+            system_changes = all_changes
 
         super().calculate(atoms, properties, system_changes)
 

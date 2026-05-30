@@ -231,6 +231,11 @@ analytic Hessian when available.
   calculator semantics.
 - UMA: no analytic Hessian is exposed; FD batch acceleration is allowed only with
   strict final one-imaginary-mode validation and model-specific acceptance cases.
+- UMA charge/spin handling follows FAIR-Chem's task contract: charge and spin
+  multiplicity are honored only for `task='omol'`; non-`omol` tasks reject
+  non-neutral `charge`/`mult`/`spin` metadata instead of silently ignoring a
+  charged or open-shell scientific state. As a MAPLE fail-closed policy
+  extension, `task='omol'` is rejected for PBC.
 - Implicit-solvent Hessians fail closed at the direct `get_hessian()` layer for
   ANI/AIMNet2/MACE/MACEGeneral/MACEPol/UMA. Energy and force solvent corrections
   are supported, but solvent Hessian curvature is not a validated production

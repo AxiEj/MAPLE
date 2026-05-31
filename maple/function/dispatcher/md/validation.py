@@ -1199,8 +1199,14 @@ def run_acceptance_matrix(
         # artifact; the short smoke window remains compatibility-only.
         npt_eff_kw = (
             {"steps": 1600, "timestep": 0.125}
-            if quick else {"steps": 10000, "timestep": 0.05}
+            if quick else {"steps": 12000, "timestep": 0.05}
         )
+        # The real-backend finite CO2 box is a backend compatibility gate, not a
+        # long statistical production study.  12 ps retains a resolvable
+        # fluctuation/EOS signal under the registered stationarity guard while
+        # avoiding the late-time nonlinear relaxation seen in the 1->500 bar
+        # protocol that thresholds 1.7.2 supersedes.
+        npt_vf_kw = {"steps": 12000} if not quick else npt_vf_kw
 
     results: List[AcceptanceResult] = []
     try:

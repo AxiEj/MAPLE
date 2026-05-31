@@ -33,13 +33,17 @@
 # 1.7.1: register the pressure-coupling time used by the volume-fluctuation gate
 # so the small real-backend CO2 cell has enough deterministic pressure response
 # relative to c-rescale stochastic noise without changing the kappa tolerance.
+# 1.7.2: reduce the volume-fluctuation EOS secant to 1->200 bar for the finite
+# real-backend CO2 cell. The previous 1->500 bar run exceeded the registered
+# linear-response guard (rel_volume_change > 0.25), so it was not a valid kappa
+# secant for this validation system.
 #
 # This is the PRODUCTION (ship-gate) profile, used by `pytest tests/production
 # -m production` and scripts/production_validation.py. WS-D split the loose,
 # short-run unit-layer thresholds into validation/thresholds.smoke.toml so this
 # profile can be tightened against a longer-run baseline without false-failing the
 # default short unit runs. Production values are unchanged by that split.
-thresholds_version = "1.7.1"
+thresholds_version = "1.7.2"
 
 [nve_energy_drift]
 # Total-energy conservation for a strict NVE run on a near-equilibrium crystal.
@@ -105,8 +109,10 @@ min_full_com_pressure_shift_bar = 1.0e-2
 log10_kappa_tol = 0.8
 # P1, P2: a narrower range keeps the EOS secant close to the local kappa_T at P1
 # (kappa_T stiffens with pressure), isolating barostat correctness from EOS
-# curvature. The LJ reference gives log10 ratio ~0.36 here, ~0.43 at [1.0,2000.0].
-pressures_bar = [1.0, 500.0]
+# curvature.  For the real-backend 24-atom CO2 validation cell, 500 bar left the
+# registered linear-response range; 200 bar preserves a resolvable volume signal
+# while keeping the secant inside the max_volume_change guard.
+pressures_bar = [1.0, 200.0]
 equilibration_fraction = 0.3           # discard the first 30% of each run
 min_volume_change = 0.01               # below this the EOS secant has no signal -> skip
 max_volume_change = 0.25               # above this the response is non-linear/unstable -> fail

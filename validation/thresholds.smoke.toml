@@ -22,7 +22,8 @@
 # short smoke window looser; smoke remains compatibility evidence only.
 # smoke-1.7.1: mirror production's registered tau_p for the volume-fluctuation
 # class; smoke remains compatibility evidence only.
-thresholds_version = "smoke-1.7.1"
+# smoke-1.7.2: mirror production's 1->200 bar volume-fluctuation secant.
+thresholds_version = "smoke-1.7.2"
 
 [nve_energy_drift]
 max_rel_drift = 5.0e-3
@@ -47,7 +48,7 @@ min_full_com_pressure_shift_bar = 1.0e-2
 
 [npt_volume_fluctuation]
 log10_kappa_tol = 0.8
-pressures_bar = [1.0, 500.0]
+pressures_bar = [1.0, 200.0]
 equilibration_fraction = 0.3
 min_volume_change = 0.01
 max_volume_change = 0.25

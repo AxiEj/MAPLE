@@ -1,14 +1,26 @@
-# Required real-backend acceptance reports before MAPLE may claim production PBC-MD.
+# Required real-backend acceptance reports before MAPLE may claim PBC-MD support.
+#
+# `production_validation.py` proves one calculator target at a time.  This file is
+# the aggregate release contract checked by:
+#
+#   python scripts/check_production_backend_matrix.py
+#
+# Scope split (deliberate):
+# - production_npt targets must pass the full thermodynamic NPT sampling matrix,
+#   including c-rescale volume-fluctuation self-consistency.
+# - mic_compatibility targets are finite-real-space/MIC-safe compatibility gates.
+#   They prove unit/stress/cutoff/provenance/restart/PBC/NPT-mechanics behavior,
+#   but they explicitly do NOT certify production NPT volume sampling.  This keeps
+#   DSF from being fake-greened by deleting a hard thermodynamic gate globally.
 #
 # LJ/reference reports validate the MAPLE MD engine. They do not validate ML backend
 # stress sign/unit/magnitude, long-range Coulomb options, or per-model NPT behavior.
-# Each target below must have a non-smoke production_validation.py report from the
-# current clean commit, with full Voigt stress finite-difference passing and zero
-# c-rescale clamp events. The checker script enforces this file:
-#
-#   python scripts/check_production_backend_matrix.py
+# Each target below must have a non-smoke report from the current clean commit,
+# with full Voigt stress finite-difference passing and zero c-rescale clamp events.
 
 minimum_thresholds_version = "1.7.3"
+
+[scopes.production_npt]
 required_classes = [
   "nve_energy_drift",
   "restart_determinism",
@@ -23,10 +35,25 @@ required_classes = [
   "constraints_rejected",
 ]
 
+[scopes.mic_compatibility]
+required_classes = [
+  "nve_energy_drift",
+  "restart_determinism",
+  "nvt_mean_temperature",
+  "npt_pressure",
+  "npt_com_pressure_invariance",
+  "npt_effective_energy_drift",
+  "barostat_clamp_free",
+  "stress_finite_difference",
+  "pbc_geometry",
+  "constraints_rejected",
+]
+
 [[targets]]
 id = "aimnet2-pbc-dsf"
 model = "aimnet2-pbc"
 model_options = { coulomb = "dsf", cutoff = 5.0 }
+validation_scope = "mic_compatibility"
 
 [[targets]]
 id = "aimnet2-pbc-ewald"
@@ -42,6 +69,7 @@ model_options = { coulomb = "pme" }
 id = "aimnet2nse-pbc-dsf"
 model = "aimnet2nse-pbc"
 model_options = { coulomb = "dsf", cutoff = 5.0 }
+validation_scope = "mic_compatibility"
 
 [[targets]]
 id = "aimnet2nse-pbc-ewald"

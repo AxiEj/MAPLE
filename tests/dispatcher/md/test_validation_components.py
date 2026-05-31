@@ -7,6 +7,7 @@ from ase.calculators.lj import LennardJones
 from maple.function.calculator._ase_unit_contract import ASE_STRESS_UNIT, EV2HARTREE
 from maple.function.dispatcher.md.validation import (
     MapleLJReferenceCalculator,
+    acceptance_classes_for_scope,
     _block_mean_stderr,
     _linear_drift_metrics,
     _lj_crystal,
@@ -40,6 +41,15 @@ def test_thresholds_are_versioned_and_complete():
     assert th["npt_volume_fluctuation"]["max_volume_drift_sigma"] > 0.0
     assert th["npt_volume_fluctuation"]["tau_p_fs"] > 0.0
     assert th["npt_volume_fluctuation"]["real_backend_steps"] > 0
+
+
+def test_mic_compatibility_scope_keeps_npt_mechanics_but_not_sampling_claim():
+    names = [fn.__name__.replace("run_", "") for fn in acceptance_classes_for_scope("mic_compatibility")]
+    assert "npt_volume_fluctuation" not in names
+    assert "npt_pressure" in names
+    assert "npt_com_pressure_invariance" in names
+    assert "npt_effective_energy_drift" in names
+    assert "stress_finite_difference" in names
 
 
 def test_lj_reference_calculator_honours_maple_unit_contract():

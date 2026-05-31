@@ -26,6 +26,11 @@ def _matrix(path: Path, targets: str, required_classes: str | None = None) -> Pa
     return path
 
 
+def _scoped_matrix(path: Path, scopes: str, targets: str) -> Path:
+    path.write_text("minimum_thresholds_version = \"1.4.0\"\n\n" + scopes + "\n" + targets)
+    return path
+
+
 def _stress_result(*, full_voigt: bool = True, sign_ok: bool = True) -> dict:
     names = ["xx", "yy", "zz", "yz", "xz", "xy"]
     if not full_voigt:
@@ -68,12 +73,16 @@ def _report(
     *,
     model: str,
     model_options: dict,
+    validation_scope: str = "production_npt",
     validation_mode: str = "production-validation",
     thresholds_version: str = "1.4.0",
     production_validated: bool = True,
+    compatibility_validated: bool = False,
+    include_validation_scope: bool = True,
     dirty: bool = False,
     full_voigt: bool = True,
     sign_ok: bool = True,
+    include_npt_volume_fluctuation: bool = False,
 ) -> Path:
     contract = {
         "energy_unit": "Ha",
@@ -100,6 +109,15 @@ def _report(
         },
         _stress_result(full_voigt=full_voigt, sign_ok=sign_ok),
     ]
+    if include_npt_volume_fluctuation:
+        results.append({
+            "name": "npt_volume_fluctuation",
+            "status": "pass",
+            "passed": True,
+            "metrics": {"log10_ratio": 0.0},
+            "detail": "kappa self-consistency",
+        })
+    report_passed = production_validated or compatibility_validated
     payload = {
         "artifact_id": "md_acceptance_TEST",
         "thresholds_version": thresholds_version,
@@ -108,17 +126,19 @@ def _report(
             "maple_git_commit": _head_commit(),
             "maple_git_dirty": dirty,
         },
-        "overall": "PASS" if production_validated else "FAIL",
+        "overall": "PASS" if report_passed else "FAIL",
         "summary": {
             "n_pass": len(results),
-            "n_fail": 0 if production_validated else 1,
+            "n_fail": 0 if report_passed else 1,
             "n_skip": 0,
             "barostat_clamp_count": 0,
         },
         "results": results,
         "validation_mode": validation_mode,
         "production_validated": production_validated,
+        "compatibility_validated": compatibility_validated,
         "release_gate": {"ready": production_validated},
+        "compatibility_gate": {"ready": compatibility_validated},
         "validation_target": {
             "model": model,
             "model_options": model_options,
@@ -129,19 +149,24 @@ def _report(
         "manifest_files": [{"path": "run/nve_md_manifest.json", "sha256": "0" * 64}],
         "validation_system": {"dynamics": {"n_atoms": 24}, "stress_finite_difference": {"n_atoms": 24}},
     }
+    if include_validation_scope:
+        payload["validation_scope"] = validation_scope
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload) + "\n")
     return path
 
 
 def test_required_backend_matrix_declares_review_scope():
-    targets, minimum, classes = _MODULE._load_matrix(
+    targets, minimum, classes_by_scope = _MODULE._load_matrix(
         Path(__file__).resolve().parents[2] / "validation" / "required_pbc_backends.toml"
     )
     ids = {target.id for target in targets}
     assert minimum == "1.7.3"
-    assert "stress_finite_difference" in classes
-    assert "npt_com_pressure_invariance" in classes
+    assert "stress_finite_difference" in classes_by_scope["production_npt"]
+    assert "npt_com_pressure_invariance" in classes_by_scope["production_npt"]
+    assert "npt_volume_fluctuation" in classes_by_scope["production_npt"]
+    assert "npt_volume_fluctuation" not in classes_by_scope["mic_compatibility"]
+    assert "npt_effective_energy_drift" in classes_by_scope["mic_compatibility"]
     assert ids == {
         "aimnet2-pbc-dsf", "aimnet2-pbc-ewald", "aimnet2-pbc-pme",
         "aimnet2nse-pbc-dsf", "aimnet2nse-pbc-ewald", "aimnet2nse-pbc-pme",
@@ -151,7 +176,10 @@ def test_required_backend_matrix_declares_review_scope():
     }
     by_id = {target.id: target for target in targets}
     assert by_id["aimnet2-pbc-dsf"].model_options == {"coulomb": "dsf", "cutoff": 5.0}
+    assert by_id["aimnet2-pbc-dsf"].validation_scope == "mic_compatibility"
+    assert by_id["aimnet2-pbc-ewald"].validation_scope == "production_npt"
     assert by_id["aimnet2nse-pbc-dsf"].model_options == {"coulomb": "dsf", "cutoff": 5.0}
+    assert by_id["aimnet2nse-pbc-dsf"].validation_scope == "mic_compatibility"
 
 
 def test_backend_matrix_accepts_complete_current_non_smoke_reports(tmp_path):
@@ -262,4 +290,178 @@ model_options = {}
     text = "\n".join(messages)
 
     assert not ok
-    assert "no matching report" in text
+    assert "no matching production_npt report" in text
+
+
+def test_production_scope_still_requires_npt_sampling_classes(tmp_path):
+    matrix = _scoped_matrix(
+        tmp_path / "matrix.toml",
+        """
+[scopes.production_npt]
+required_classes = [
+  "barostat_clamp_free",
+  "stress_finite_difference",
+  "npt_volume_fluctuation",
+]
+""",
+        """
+[[targets]]
+id = "aimnet2-pbc-ewald"
+model = "aimnet2-pbc"
+model_options = { coulomb = "ewald" }
+""",
+    )
+    reports = tmp_path / "reports"
+    _report(
+        reports / "report.json",
+        model="aimnet2-pbc",
+        model_options={"coulomb": "ewald"},
+    )
+
+    ok, messages = _MODULE.check_matrix(matrix_path=matrix, reports_dir=reports)
+    text = "\n".join(messages)
+
+    assert not ok
+    assert "missing acceptance class(es): npt_volume_fluctuation" in text
+
+
+def test_mic_compatibility_scope_accepts_explicit_non_production_report(tmp_path):
+    matrix = _scoped_matrix(
+        tmp_path / "matrix.toml",
+        """
+[scopes.mic_compatibility]
+required_classes = [
+  "barostat_clamp_free",
+  "stress_finite_difference",
+]
+""",
+        """
+[[targets]]
+id = "aimnet2-pbc-dsf"
+model = "aimnet2-pbc"
+model_options = { coulomb = "dsf", cutoff = 5.0 }
+validation_scope = "mic_compatibility"
+""",
+    )
+    reports = tmp_path / "reports"
+    _report(
+        reports / "report.json",
+        model="aimnet2-pbc",
+        model_options={"coulomb": "dsf", "cutoff": 5.0},
+        validation_scope="mic_compatibility",
+        validation_mode="compatibility-validation",
+        production_validated=False,
+        compatibility_validated=True,
+    )
+
+    ok, messages = _MODULE.check_matrix(matrix_path=matrix, reports_dir=reports)
+
+    assert ok, messages
+    assert any("[PASS] aimnet2-pbc-dsf" in message for message in messages)
+
+
+def test_mic_compatibility_scope_rejects_unscoped_legacy_report(tmp_path):
+    matrix = _scoped_matrix(
+        tmp_path / "matrix.toml",
+        """
+[scopes.mic_compatibility]
+required_classes = [
+  "barostat_clamp_free",
+  "stress_finite_difference",
+]
+""",
+        """
+[[targets]]
+id = "aimnet2-pbc-dsf"
+model = "aimnet2-pbc"
+model_options = { coulomb = "dsf", cutoff = 5.0 }
+validation_scope = "mic_compatibility"
+""",
+    )
+    reports = tmp_path / "reports"
+    _report(
+        reports / "report.json",
+        model="aimnet2-pbc",
+        model_options={"coulomb": "dsf", "cutoff": 5.0},
+        include_validation_scope=False,
+    )
+
+    ok, messages = _MODULE.check_matrix(matrix_path=matrix, reports_dir=reports)
+    text = "\n".join(messages)
+
+    assert not ok
+    assert "validation_scope None does not match target scope 'mic_compatibility'" in text
+
+
+def test_mic_compatibility_scope_rejects_production_claim(tmp_path):
+    matrix = _scoped_matrix(
+        tmp_path / "matrix.toml",
+        """
+[scopes.mic_compatibility]
+required_classes = [
+  "barostat_clamp_free",
+  "stress_finite_difference",
+]
+""",
+        """
+[[targets]]
+id = "aimnet2-pbc-dsf"
+model = "aimnet2-pbc"
+model_options = { coulomb = "dsf", cutoff = 5.0 }
+validation_scope = "mic_compatibility"
+""",
+    )
+    reports = tmp_path / "reports"
+    _report(
+        reports / "report.json",
+        model="aimnet2-pbc",
+        model_options={"coulomb": "dsf", "cutoff": 5.0},
+        validation_scope="mic_compatibility",
+        validation_mode="compatibility-validation",
+        production_validated=True,
+        compatibility_validated=True,
+    )
+
+    ok, messages = _MODULE.check_matrix(matrix_path=matrix, reports_dir=reports)
+    text = "\n".join(messages)
+
+    assert not ok
+    assert "compatibility report must not claim production_validated=true" in text
+
+
+def test_mic_compatibility_scope_rejects_quick_smoke_report(tmp_path):
+    matrix = _scoped_matrix(
+        tmp_path / "matrix.toml",
+        """
+[scopes.mic_compatibility]
+required_classes = [
+  "barostat_clamp_free",
+  "stress_finite_difference",
+]
+""",
+        """
+[[targets]]
+id = "aimnet2-pbc-dsf"
+model = "aimnet2-pbc"
+model_options = { coulomb = "dsf", cutoff = 5.0 }
+validation_scope = "mic_compatibility"
+""",
+    )
+    reports = tmp_path / "reports"
+    _report(
+        reports / "report.json",
+        model="aimnet2-pbc",
+        model_options={"coulomb": "dsf", "cutoff": 5.0},
+        validation_scope="mic_compatibility",
+        validation_mode="quick-smoke",
+        thresholds_version="smoke-1.7.3",
+        production_validated=False,
+        compatibility_validated=False,
+    )
+
+    ok, messages = _MODULE.check_matrix(matrix_path=matrix, reports_dir=reports)
+    text = "\n".join(messages)
+
+    assert not ok
+    assert "validation_mode is not compatibility-validation" in text
+    assert "thresholds_version 'smoke-1.7.3'" in text

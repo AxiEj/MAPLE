@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-"""Verify that real-backend PBC-MD production reports cover the claimed matrix.
+"""Verify that real-backend PBC-MD reports cover the claimed scoped matrix.
 
 `production_validation.py` proves one calculator target at a time.  This script is
 an aggregate release gate: it rejects a production PBC-MD claim unless every
-required real backend/model-option target has a current, clean, non-smoke report
-whose full acceptance matrix genuinely passed.
+production_npt target has a current, clean, non-smoke report whose full
+acceptance matrix genuinely passed.  It may also check explicitly labeled
+mic_compatibility targets; those reports must not claim production NPT sampling.
 
 Examples
 --------
@@ -37,6 +38,7 @@ class Target:
     id: str
     model: str
     model_options: dict[str, Any]
+    validation_scope: str = "production_npt"
 
 
 @dataclass(frozen=True)
@@ -79,13 +81,25 @@ def _version_at_least(actual: Any, minimum: Any) -> bool:
     return actual_tuple >= minimum_tuple
 
 
-def _load_matrix(path: Path) -> tuple[list[Target], str, list[str]]:
+def _load_matrix(path: Path) -> tuple[list[Target], str, dict[str, list[str]]]:
     data = tomllib.loads(Path(path).read_text())
+    scopes: dict[str, list[str]] = {}
+    raw_scopes = data.get("scopes") or {}
+    for scope_name, scope_data in raw_scopes.items():
+        classes = (scope_data or {}).get("required_classes") or []
+        scopes[str(scope_name)] = [str(name) for name in classes]
+    # Compatibility with older ad-hoc test matrices and historical report audits.
+    if not scopes and data.get("required_classes") is not None:
+        scopes["production_npt"] = [str(name) for name in data.get("required_classes", [])]
+    if not scopes:
+        raise ValueError("no validation scopes declared")
+
     targets = [
         Target(
             id=str(item["id"]),
             model=str(item["model"]),
             model_options=dict(item.get("model_options") or {}),
+            validation_scope=str(item.get("validation_scope") or "production_npt"),
         )
         for item in data.get("targets", [])
     ]
@@ -93,7 +107,10 @@ def _load_matrix(path: Path) -> tuple[list[Target], str, list[str]]:
     if len(ids) != len(set(ids)):
         duplicates = sorted({item for item in ids if ids.count(item) > 1})
         raise ValueError(f"duplicate target id(s): {', '.join(duplicates)}")
-    return targets, str(data.get("minimum_thresholds_version", "")), list(data.get("required_classes", []))
+    missing_scopes = sorted({target.validation_scope for target in targets} - set(scopes))
+    if missing_scopes:
+        raise ValueError(f"target(s) reference undeclared validation scope(s): {', '.join(missing_scopes)}")
+    return targets, str(data.get("minimum_thresholds_version", "")), scopes
 
 
 def _iter_report_payloads(root: Path) -> Iterable[ReportCandidate]:
@@ -204,12 +221,31 @@ def _validate_candidate(
     release_gate = payload.get("release_gate") or {}
     results = _result_by_name(payload)
 
-    if payload.get("validation_mode") != "production-validation":
-        errors.append("validation_mode is not production-validation")
-    if payload.get("production_validated") is not True:
-        errors.append("production_validated is not true")
-    if release_gate.get("ready") is not True:
-        errors.append("release_gate.ready is not true")
+    scope = target.validation_scope
+    if payload.get("validation_scope", "production_npt") != scope:
+        errors.append(
+            f"validation_scope {payload.get('validation_scope')!r} does not match target scope {scope!r}"
+        )
+    if scope == "production_npt":
+        if payload.get("validation_mode") != "production-validation":
+            errors.append("validation_mode is not production-validation")
+        if payload.get("production_validated") is not True:
+            errors.append("production_validated is not true")
+        if release_gate.get("ready") is not True:
+            errors.append("release_gate.ready is not true")
+    elif scope == "mic_compatibility":
+        compatibility_gate = payload.get("compatibility_gate") or {}
+        if payload.get("validation_mode") != "compatibility-validation":
+            errors.append("validation_mode is not compatibility-validation")
+        if payload.get("compatibility_validated") is not True:
+            errors.append("compatibility_validated is not true")
+        if compatibility_gate.get("ready") is not True:
+            errors.append("compatibility_gate.ready is not true")
+        if payload.get("production_validated") is not False:
+            errors.append("compatibility report must not claim production_validated=true")
+    else:
+        errors.append(f"unsupported validation scope {scope!r}")
+
     if payload.get("overall") != "PASS":
         errors.append("overall is not PASS")
     if not _version_at_least(payload.get("thresholds_version"), minimum_thresholds_version):
@@ -288,7 +324,7 @@ def check_matrix(
     reports_dir: Path,
     allow_old_commit: bool = False,
 ) -> tuple[bool, list[str]]:
-    targets, minimum_version, required_classes = _load_matrix(matrix_path)
+    targets, minimum_version, required_classes_by_scope = _load_matrix(matrix_path)
     reports = list(_iter_report_payloads(reports_dir))
     head = _git_head_commit()
     messages: list[str] = []
@@ -302,7 +338,10 @@ def check_matrix(
     for target in targets:
         candidates = _find_matching_reports(target, reports)
         if not candidates:
-            messages.append(f"[FAIL] {target.id}: no matching report for {target.model} {target.model_options}")
+            messages.append(
+                f"[FAIL] {target.id}: no matching {target.validation_scope} report "
+                f"for {target.model} {target.model_options}"
+            )
             ok = False
             continue
         candidate_messages = []
@@ -312,7 +351,7 @@ def check_matrix(
                 target,
                 candidate,
                 minimum_thresholds_version=minimum_version,
-                required_classes=required_classes,
+                required_classes=required_classes_by_scope[target.validation_scope],
                 head_commit=head,
                 allow_old_commit=allow_old_commit,
             )
@@ -323,7 +362,7 @@ def check_matrix(
             candidate_messages.append(f"{candidate.path}: " + "; ".join(errors))
         if not target_ok:
             ok = False
-            messages.append(f"[FAIL] {target.id}: no valid production report")
+            messages.append(f"[FAIL] {target.id}: no valid {target.validation_scope} report")
             messages.extend(f"  - {message}" for message in candidate_messages)
     return ok, messages
 

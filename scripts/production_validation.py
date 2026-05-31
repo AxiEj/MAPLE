@@ -19,6 +19,11 @@ Examples
     # Validate one AIMNet2 long-range mode target:
     python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=ewald
 
+    # Validate a DSF/MIC-safe compatibility target without claiming NPT sampling:
+    python scripts/production_validation.py --model aimnet2-pbc --device cuda \
+        --model-option coulomb=dsf --model-option cutoff=5.0 \
+        --validation-scope mic_compatibility
+
     # After all real-backend targets have reports, verify the aggregate claim:
     python scripts/check_production_backend_matrix.py
 
@@ -175,6 +180,16 @@ def main(argv=None) -> int:
     parser.add_argument("--quick", action="store_true",
                         help="shorter runs (smoke; not for a real ship gate)")
     parser.add_argument(
+        "--validation-scope",
+        choices=("production_npt", "mic_compatibility"),
+        default="production_npt",
+        help=(
+            "production_npt runs the full production NPT sampling gate; "
+            "mic_compatibility runs the DSF/MIC-safe compatibility subset and "
+            "does not claim production NPT sampling"
+        ),
+    )
+    parser.add_argument(
         "--model-option",
         action="append",
         default=[],
@@ -219,6 +234,7 @@ def main(argv=None) -> int:
         run_workdir,
         quick=args.quick,
         validation_artifact_id=artifact_id,
+        validation_scope=args.validation_scope,
     )
 
     sample_calc = factory()
@@ -244,12 +260,23 @@ def main(argv=None) -> int:
             or "none"
         ),
     }
+    validation_mode = (
+        "quick-smoke" if args.quick
+        else "production-validation" if args.validation_scope == "production_npt"
+        else "compatibility-validation"
+    )
     extra = {
         "calculator_contract": calc_contract,
         # The release gate runs strict: an unknown cutoff is rejected at MD admission.
         "cutoff_policy": {"allow_unknown_cutoff": False},
-        "validation_mode": "quick-smoke" if args.quick else "production-validation",
-        "production_validation_candidate": not args.quick,
+        "validation_scope": args.validation_scope,
+        "validation_mode": validation_mode,
+        "production_validation_candidate": (
+            not args.quick and args.validation_scope == "production_npt"
+        ),
+        "compatibility_validation_candidate": (
+            not args.quick and args.validation_scope == "mic_compatibility"
+        ),
         "model_options": model_options,
         "validation_target": _validation_target(label, model_options, calc_contract),
         "validation_system": validation_system_summary(factory),
@@ -277,7 +304,11 @@ def main(argv=None) -> int:
     # Ship gate: every class passes AND none is inconclusive (a skip is not a pass).
     ok = n_fail == 0 and n_skip == 0 and all(r.passed for r in results)
 
-    mode = "quick smoke" if args.quick else "production validation"
+    mode = (
+        "quick smoke" if args.quick
+        else "production validation" if args.validation_scope == "production_npt"
+        else "MIC compatibility validation"
+    )
     print(f"\nMD acceptance matrix ({label}, {mode}): {'PASS' if ok else 'FAIL'}")
     if args.quick:
         print("  NOTE: --quick is compatibility smoke only; it is not production-validated.")
@@ -294,13 +325,34 @@ def main(argv=None) -> int:
     report_payload = json.loads(report.with_suffix(".json").read_text())
     print(f"Report: {report}")
     print(f"Report SHA256: {report_payload.get('markdown_report_sha256')}")
-    if not args.quick and not report_payload.get("production_validated", False):
+    if (
+        not args.quick
+        and args.validation_scope == "production_npt"
+        and not report_payload.get("production_validated", False)
+    ):
         failed = report_payload.get("release_gate", {}).get("failed_criteria", [])
         if failed:
             print("Release gate failed criteria:")
             for criterion in failed:
                 print(f"  - {criterion}")
-    return 0 if (ok if args.quick else report_payload.get("production_validated", False)) else 1
+    if (
+        not args.quick
+        and args.validation_scope == "mic_compatibility"
+        and not report_payload.get("compatibility_validated", False)
+    ):
+        failed = report_payload.get("compatibility_gate", {}).get("failed_criteria", [])
+        if failed:
+            print("Compatibility gate failed criteria:")
+            for criterion in failed:
+                print(f"  - {criterion}")
+
+    if args.quick:
+        exit_ok = ok
+    elif args.validation_scope == "production_npt":
+        exit_ok = bool(report_payload.get("production_validated", False))
+    else:
+        exit_ok = bool(report_payload.get("compatibility_validated", False))
+    return 0 if exit_ok else 1
 
 
 if __name__ == "__main__":

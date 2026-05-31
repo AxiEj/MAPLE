@@ -125,6 +125,27 @@ def _artifact_release_criteria(
     }
 
 
+def _artifact_compatibility_criteria(
+    payload: Dict[str, Any],
+    *,
+    compatibility_candidate: bool,
+) -> Dict[str, bool]:
+    env = payload.get("environment") or {}
+    summary = payload.get("summary") or {}
+    return {
+        "environment.maple_git_commit == git rev-parse HEAD": (
+            env.get("maple_git_commit") is not None
+            and env.get("maple_git_commit") == _git_head_commit()
+        ),
+        "environment.maple_git_dirty == false": env.get("maple_git_dirty") is False,
+        "compatibility_validation_run == true": bool(compatibility_candidate),
+        "overall == PASS": payload.get("overall") == "PASS",
+        "summary.n_fail == 0": summary.get("n_fail") == 0,
+        "summary.n_skip == 0": summary.get("n_skip") == 0,
+        "summary.barostat_clamp_count == 0": summary.get("barostat_clamp_count") == 0,
+    }
+
+
 def _validation_artifact_paras(validation_artifact_id: Optional[str]) -> Dict[str, str]:
     if not validation_artifact_id:
         return {}
@@ -1157,6 +1178,33 @@ ACCEPTANCE_CLASSES: List[Callable[..., AcceptanceResult]] = [
 ]
 
 
+MIC_COMPATIBILITY_ACCEPTANCE_CLASSES: List[Callable[..., AcceptanceResult]] = [
+    # DSF/MIC compatibility still proves conservative dynamics, restart
+    # determinism, thermostat behavior, c-rescale mechanics, COM pressure
+    # semantics, stress units/signs, clamp safety, image flags, and constraint
+    # rejection.  It deliberately does not claim distribution-level production
+    # NPT sampling on the tiny CO2 volume-fluctuation reference system.
+    run_nve_energy_drift,
+    run_restart_determinism,
+    run_nvt_mean_temperature,
+    run_npt_pressure,
+    run_npt_com_pressure_invariance,
+    run_npt_effective_energy_drift,
+    run_barostat_clamp_free,
+    run_stress_finite_difference,
+    run_pbc_geometry,
+    run_constraints_rejected,
+]
+
+
+def acceptance_classes_for_scope(scope: str) -> List[Callable[..., AcceptanceResult]]:
+    if scope == "production_npt":
+        return list(ACCEPTANCE_CLASSES)
+    if scope == "mic_compatibility":
+        return list(MIC_COMPATIBILITY_ACCEPTANCE_CLASSES)
+    raise ValueError(f"unknown validation scope: {scope!r}")
+
+
 def run_acceptance_matrix(
     calc_factory: Callable[[], Calculator],
     thresholds: Optional[Dict[str, Any]] = None,
@@ -1164,11 +1212,13 @@ def run_acceptance_matrix(
     *,
     quick: bool = False,
     validation_artifact_id: Optional[str] = None,
+    validation_scope: str = "production_npt",
 ) -> List[AcceptanceResult]:
     """Run every acceptance class; return the per-class results."""
     import tempfile
 
     thresholds = thresholds if thresholds is not None else load_thresholds()
+    acceptance_classes = acceptance_classes_for_scope(validation_scope)
     cleanup = None
     if workdir is None:
         cleanup = tempfile.TemporaryDirectory()
@@ -1212,7 +1262,7 @@ def run_acceptance_matrix(
 
     results: List[AcceptanceResult] = []
     try:
-        for fn in ACCEPTANCE_CLASSES:
+        for fn in acceptance_classes:
             kwargs = {}
             if fn is run_nve_energy_drift:
                 kwargs = nve_kw
@@ -1303,15 +1353,47 @@ def write_report(
     if extra:
         payload.update(extra)
 
+    validation_scope = str(payload.get("validation_scope") or "production_npt")
     production_candidate = bool(payload.pop("production_validation_candidate", False))
-    criteria = _artifact_release_criteria(payload, production_candidate=production_candidate)
-    failed_criteria = [name for name, passed in criteria.items() if not passed]
-    payload["release_gate"] = {
-        "criteria": criteria,
-        "failed_criteria": failed_criteria,
-        "ready": not failed_criteria,
-    }
-    payload["production_validated"] = payload["release_gate"]["ready"]
+    compatibility_candidate = bool(payload.pop("compatibility_validation_candidate", False))
+    if validation_scope == "production_npt":
+        criteria = _artifact_release_criteria(
+            payload, production_candidate=production_candidate
+        )
+        failed_criteria = [name for name, passed in criteria.items() if not passed]
+        payload["release_gate"] = {
+            "criteria": criteria,
+            "failed_criteria": failed_criteria,
+            "ready": not failed_criteria,
+        }
+        payload["production_validated"] = payload["release_gate"]["ready"]
+        payload["compatibility_validated"] = False
+        payload["compatibility_gate"] = {"criteria": {}, "failed_criteria": [], "ready": False}
+    elif validation_scope == "mic_compatibility":
+        criteria = _artifact_compatibility_criteria(
+            payload, compatibility_candidate=compatibility_candidate
+        )
+        failed_criteria = [name for name, passed in criteria.items() if not passed]
+        payload["compatibility_gate"] = {
+            "criteria": criteria,
+            "failed_criteria": failed_criteria,
+            "ready": not failed_criteria,
+        }
+        payload["compatibility_validated"] = payload["compatibility_gate"]["ready"]
+        payload["production_validated"] = False
+        payload["release_gate"] = {
+            "criteria": {
+                "validation_scope == production_npt": False,
+                "production_validation_run == true": False,
+            },
+            "failed_criteria": [
+                "validation_scope == production_npt",
+                "production_validation_run == true",
+            ],
+            "ready": False,
+        }
+    else:
+        raise ValueError(f"unknown validation scope: {validation_scope!r}")
 
     lines = [
         f"# MD acceptance matrix — {payload['overall']}",
@@ -1323,8 +1405,10 @@ def write_report(
         f"- MAPLE commit: {env.get('maple_git_commit')} (dirty={env.get('maple_git_dirty')})",
         f"- report path: `{md_path}`",
         f"- run workdir: `{payload['run_workdir']}`",
+        f"- validation scope: {validation_scope}",
         f"- validation mode: {payload.get('validation_mode', 'production-validation')}",
         f"- production validated: {payload['production_validated']}",
+        f"- compatibility validated: {payload['compatibility_validated']}",
         "",
         "| class | status | detail |",
         "|-------|--------|--------|",

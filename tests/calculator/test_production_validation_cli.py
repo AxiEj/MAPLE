@@ -34,9 +34,11 @@ def _fake_context(*, dirty: bool = False) -> dict:
 
 def _patch_passing_matrix(monkeypatch, *, dirty: bool = False):
     def fake_run_acceptance_matrix(
-        calc_factory, thresholds, workdir, *, quick=False, validation_artifact_id=None
+        calc_factory, thresholds, workdir, *, quick=False, validation_artifact_id=None,
+        validation_scope="production_npt",
     ):
         assert validation_artifact_id == "md_acceptance_TEST"
+        assert validation_scope in {"production_npt", "mic_compatibility"}
         workdir = Path(workdir)
         workdir.mkdir(parents=True, exist_ok=True)
         (workdir / "nve_md_manifest.json").write_text(
@@ -100,6 +102,7 @@ def test_help_text_preserves_single_target_gate_examples():
     assert "single-target production-validation gate" in completed.stdout
     assert "one passing report for every" in completed.stdout
     assert "validation/required_pbc_backends.toml" in completed.stdout
+    assert "--validation-scope" in completed.stdout
     assert "python scripts/production_validation.py --model mace-mp-pbc-small --device cuda" in completed.stdout
     assert "python scripts/production_validation.py --model aimnet2-pbc --device cuda --model-option coulomb=ewald" in completed.stdout
     assert "python scripts/check_production_backend_matrix.py" in completed.stdout
@@ -147,3 +150,21 @@ def test_main_full_release_gate_rejects_dirty_environment(monkeypatch, tmp_path)
     payload = json.loads((tmp_path / "reports" / "md_acceptance_TEST" / "report.json").read_text())
     assert payload["production_validated"] is False
     assert "environment.maple_git_dirty == false" in payload["release_gate"]["failed_criteria"]
+
+
+def test_main_mic_compatibility_scope_is_not_production_validated(monkeypatch, tmp_path):
+    _patch_passing_matrix(monkeypatch)
+
+    outdir = tmp_path / "reports"
+    assert _MODULE.main([
+        "--outdir", str(outdir),
+        "--validation-scope", "mic_compatibility",
+    ]) == 0
+
+    payload = json.loads((outdir / "md_acceptance_TEST" / "report.json").read_text())
+    assert payload["validation_scope"] == "mic_compatibility"
+    assert payload["validation_mode"] == "compatibility-validation"
+    assert payload["compatibility_validated"] is True
+    assert payload["production_validated"] is False
+    assert payload["compatibility_gate"]["ready"] is True
+    assert payload["release_gate"]["ready"] is False

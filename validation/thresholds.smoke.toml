@@ -23,7 +23,8 @@
 # smoke-1.7.1: mirror production's registered tau_p for the volume-fluctuation
 # class; smoke remains compatibility evidence only.
 # smoke-1.7.2: mirror production's 1->200 bar volume-fluctuation secant.
-thresholds_version = "smoke-1.7.2"
+# smoke-1.7.3: mirror production's tau_p=200 fs and registered real-backend step window.
+thresholds_version = "smoke-1.7.3"
 
 [nve_energy_drift]
 max_rel_drift = 5.0e-3
@@ -55,7 +56,8 @@ max_volume_change = 0.25
 n_blocks = 5
 barostat_stride = 5
 max_volume_drift_sigma = 10.0
-tau_p_fs = 500.0
+tau_p_fs = 200.0
+real_backend_steps = 6000
 
 [npt_effective_energy_drift]
 # Quick smoke fits H̃ over only ~0.16 ps for real ML backends, where float32/GPU

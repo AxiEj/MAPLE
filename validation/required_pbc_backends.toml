@@ -8,7 +8,7 @@
 #
 #   python scripts/check_production_backend_matrix.py
 
-minimum_thresholds_version = "1.7.2"
+minimum_thresholds_version = "1.7.3"
 required_classes = [
   "nve_energy_drift",
   "restart_determinism",

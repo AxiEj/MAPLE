@@ -37,13 +37,17 @@
 # real-backend CO2 cell. The previous 1->500 bar run exceeded the registered
 # linear-response guard (rel_volume_change > 0.25), so it was not a valid kappa
 # secant for this validation system.
+# 1.7.3: strengthen the volume-fluctuation pressure coupling for the finite
+# real-backend CO2 gate.  With tau_p=500 fs, c-rescale stochastic volume noise
+# could overwhelm the 200 bar secant in a single-seed 24-atom run; tau_p=200 fs
+# keeps the same kappa tolerance but improves pressure-response signal/noise.
 #
 # This is the PRODUCTION (ship-gate) profile, used by `pytest tests/production
 # -m production` and scripts/production_validation.py. WS-D split the loose,
 # short-run unit-layer thresholds into validation/thresholds.smoke.toml so this
 # profile can be tightened against a longer-run baseline without false-failing the
 # default short unit runs. Production values are unchanged by that split.
-thresholds_version = "1.7.2"
+thresholds_version = "1.7.3"
 
 [nve_energy_drift]
 # Total-energy conservation for a strict NVE run on a near-equilibrium crystal.
@@ -119,7 +123,8 @@ max_volume_change = 0.25               # above this the response is non-linear/u
 n_blocks = 5                           # block averaging for Var(V) and its standard error
 barostat_stride = 5                    # distribution-level validation of Bernetti-Bussi N_P stride
 max_volume_drift_sigma = 3.0           # reject non-equilibrium relaxation windows before kappa
-tau_p_fs = 500.0                       # pressure-coupling time for this validation class
+tau_p_fs = 200.0                       # pressure-coupling time for this validation class
+real_backend_steps = 6000              # pre-registered finite-CO2 backend window
 
 [npt_effective_energy_drift]
 # Reversible c-rescale conserved-quantity (effective-energy) drift. The NPT

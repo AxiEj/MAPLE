@@ -50,3 +50,4 @@ def test_npt_volume_fluctuation_thresholds_present():
     assert th["barostat_stride"] > 1
     assert th["max_volume_drift_sigma"] > 0.0
     assert th["tau_p_fs"] > 0.0
+    assert th["real_backend_steps"] > 0

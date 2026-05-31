@@ -1202,11 +1202,13 @@ def run_acceptance_matrix(
             if quick else {"steps": 12000, "timestep": 0.05}
         )
         # The real-backend finite CO2 box is a backend compatibility gate, not a
-        # long statistical production study.  12 ps retains a resolvable
-        # fluctuation/EOS signal under the registered stationarity guard while
-        # avoiding the late-time nonlinear relaxation seen in the 1->500 bar
-        # protocol that thresholds 1.7.2 supersedes.
-        npt_vf_kw = {"steps": 12000} if not quick else npt_vf_kw
+        # long statistical production study.  Use the pre-registered finite
+        # window from thresholds.toml: the stationarity and linear-response
+        # guards decide whether that window is valid evidence.
+        npt_vf_kw = (
+            {"steps": int(thresholds["npt_volume_fluctuation"].get("real_backend_steps", 6000))}
+            if not quick else npt_vf_kw
+        )
 
     results: List[AcceptanceResult] = []
     try:

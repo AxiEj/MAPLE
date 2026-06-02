@@ -4,6 +4,15 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      backend_scope:
+        description: "Real-backend coverage for manual runs"
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - expanded
 
 permissions:
   contents: read
@@ -12,9 +21,85 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  core-smoke:
-    name: Core install and no-backend smoke checks
+  source-hygiene:
+    name: Source hygiene and syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Compile tracked Python sources
+        run: python -m compileall -q maple scripts
+
+      - name: Reject tracked generated/cache/model artifacts
+        run: |
+          python - <<'PY'
+          import subprocess
+          import sys
+
+          tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+          forbidden_suffixes = (".pyc", ".pyo", ".pt", ".pth", ".model")
+          forbidden_parts = ("__pycache__/", ".egg-info/")
+          bad = [
+              path for path in tracked
+              if path.endswith(forbidden_suffixes) or any(part in path for part in forbidden_parts)
+          ]
+          if bad:
+              print("Forbidden tracked generated/cache/model artifacts:")
+              for path in bad:
+                  print(f"  {path}")
+              sys.exit(1)
+          print("SOURCE_OK no tracked generated/cache/model artifacts")
+          PY
+
+  core-contracts:
+    name: Core contracts (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install MAPLE
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Compile package
+        run: python -m compileall -q maple scripts
+
+      - name: Check installed dependencies
+        run: python -m pip check
+
+      - name: Run core parser/template/CLI contracts
+        run: python scripts/ci_core_contracts.py
+
+  packaging:
+    name: Build and install wheel
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -29,35 +114,30 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - name: Install MAPLE
+      - name: Build sdist and wheel
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .
+          python -m pip install --upgrade pip build
+          python -m build --sdist --wheel
 
-      - name: Compile package
-        run: python -m compileall -q maple
-
-      - name: Verify imports and CLI version
-        run: |
-          python - <<'PY'
-          import importlib.metadata
-          import maple
-          from maple.main import main
-
-          print("maple package:", maple.__file__)
-          print("maple version:", importlib.metadata.version("maple"))
-          print("maple CLI entrypoint:", main.__module__)
-          PY
-          maple --version
-
-      - name: Run no-backend CLI smoke path
+      - name: Install wheel in an isolated venv
         run: |
           tmpdir="$(mktemp -d)"
-          cd "$tmpdir"
-          maple md nve
-          test -s nve.mdp
-          grep -Eq '^ensemble[[:space:]]*=[[:space:]]*nve' nve.mdp
-          grep -Eq '^integrator[[:space:]]*=' nve.mdp
+          python -m venv "$tmpdir/venv"
+          "$tmpdir/venv/bin/python" -m pip install --upgrade pip
+          "$tmpdir/venv/bin/python" -m pip install dist/maple-*.whl
+          (
+            cd "$tmpdir"
+            "$tmpdir/venv/bin/maple" --version
+            "$tmpdir/venv/bin/maple" md nve
+            test -s nve.mdp
+            grep -Eq '^ensemble[[:space:]]*=[[:space:]]*nve' nve.mdp
+          )
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: maple-dist-${{ github.sha }}
+          path: dist/*
 
   real-backend-smoke:
     name: Real model backend smoke checks
@@ -95,4 +175,14 @@ jobs:
       - name: Run real model backend smoke checks
         env:
           MAPLE_DOWNLOAD_TIMEOUT: "120"
+          MAPLE_CI_BACKEND_SCOPE: ${{ github.event_name == 'workflow_dispatch' && inputs.backend_scope || 'smoke' }}
+          MAPLE_CI_REPORT_PATH: reports/real-backend-smoke.json
         run: python scripts/ci_real_backend_smoke.py
+
+      - name: Upload real-backend report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-backend-smoke-${{ github.sha }}
+          path: reports/real-backend-smoke.json
+          if-no-files-found: ignore

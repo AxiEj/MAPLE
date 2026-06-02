@@ -9,6 +9,7 @@ small molecule.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -33,6 +34,17 @@ MODEL_DIR = REPO_ROOT / "maple" / "function" / "calculator" / "model"
 REAL_BACKEND_CASES = (
     ("ani1ccx", "ani1ccx.pt"),
     ("aimnet2", "aimnet2.pt"),
+    ("egret", "egret1s.pt"),
+)
+
+EXPANDED_REAL_BACKEND_CASES = (
+    ("ani1x", "ani1x.pt"),
+    ("ani1ccx", "ani1ccx.pt"),
+    ("ani1xnr", "ani1xnr.pt"),
+    ("ani2x", "ani2x.pt"),
+    ("aimnet2", "aimnet2.pt"),
+    ("aimnet2nse", "aimnet2nse.pt"),
+    ("maceoff23m", "maceoff23m.pt"),
     ("egret", "egret1s.pt"),
 )
 
@@ -64,9 +76,18 @@ def _assert_checkpoint(filename: str) -> Path:
     return checkpoint
 
 
-def _run_direct_backend_smoke(tmp_path: Path) -> None:
+def _backend_cases_for_scope(scope: str) -> tuple[tuple[str, str], ...]:
+    if scope == "smoke":
+        return REAL_BACKEND_CASES
+    if scope == "expanded":
+        return EXPANDED_REAL_BACKEND_CASES
+    _fail(f"unknown backend scope: {scope!r}")
+
+
+def _run_direct_backend_smoke(tmp_path: Path, scope: str) -> list[dict]:
     device = torch.device("cpu")
-    for model_name, checkpoint_name in REAL_BACKEND_CASES:
+    results = []
+    for model_name, checkpoint_name in _backend_cases_for_scope(scope):
         output = tmp_path / f"{model_name}.out"
         output.write_text("")
 
@@ -94,6 +115,16 @@ def _run_direct_backend_smoke(tmp_path: Path) -> None:
             _fail(f"{model_name} returned all-zero forces; backend likely did not run")
 
         checkpoint = _assert_checkpoint(checkpoint_name)
+        results.append(
+            {
+                "model": model_name,
+                "calculator": type(calc).__name__,
+                "checkpoint": str(checkpoint),
+                "checkpoint_bytes": checkpoint.stat().st_size,
+                "energy_hartree": energy,
+                "max_force_hartree_per_angstrom": max_force,
+            }
+        )
         print(
             "REAL_BACKEND_OK "
             f"model={model_name} "
@@ -103,9 +134,10 @@ def _run_direct_backend_smoke(tmp_path: Path) -> None:
             f"energy_hartree={energy:.10f} "
             f"max_force_hartree_per_angstrom={max_force:.8f}"
         )
+    return results
 
 
-def _run_cli_backend_smoke(tmp_path: Path) -> None:
+def _run_cli_backend_smoke(tmp_path: Path) -> dict:
     input_path = tmp_path / "egret_sp.inp"
     output_path = tmp_path / "egret_sp.out"
     input_path.write_text(
@@ -157,18 +189,40 @@ def _run_cli_backend_smoke(tmp_path: Path) -> None:
         _fail("MAPLE CLI verbose SP output did not include gradients")
 
     print(f"REAL_BACKEND_CLI_OK model=egret energy_hartree={energy:.10f} output={output_path}")
+    return {
+        "model": "egret",
+        "energy_hartree": energy,
+        "output": str(output_path),
+    }
 
 
 def main() -> int:
+    scope = os.environ.get("MAPLE_CI_BACKEND_SCOPE", "smoke").strip().lower() or "smoke"
+    report_path = os.environ.get("MAPLE_CI_REPORT_PATH", "").strip()
     print(f"python={sys.version.split()[0]}")
     print(f"torch={torch.__version__}")
+    print(f"backend_scope={scope}")
     print(f"model_dir={MODEL_DIR}")
     os.environ.setdefault("MAPLE_DOWNLOAD_TIMEOUT", "120")
 
     with tempfile.TemporaryDirectory(prefix="maple-real-backend-") as tmp:
         tmp_path = Path(tmp)
-        _run_direct_backend_smoke(tmp_path)
-        _run_cli_backend_smoke(tmp_path)
+        backend_results = _run_direct_backend_smoke(tmp_path, scope)
+        cli_result = _run_cli_backend_smoke(tmp_path)
+
+    if report_path:
+        report = {
+            "scope": scope,
+            "python": sys.version.split()[0],
+            "torch": torch.__version__,
+            "model_dir": str(MODEL_DIR),
+            "backend_results": backend_results,
+            "cli_result": cli_result,
+        }
+        path = Path(report_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+        print(f"REAL_BACKEND_REPORT {path}")
 
     return 0
 

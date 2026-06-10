@@ -104,8 +104,10 @@ def energy_forces_one(calc, atoms: Atoms, force_consistent: bool = True
 
     Equivalent to ``atoms.get_potential_energy() + atoms.get_forces()`` but
     asks the calculator for both properties in a single ``calculate(...)``
-    call. This guarantees one calculator invocation; true model-level forward
-    count still depends on the subclass implementation.
+    call. This guarantees one calculator invocation for unconstrained
+    structures; when ASE constraints are present, the same constraint
+    projections/energy adjustments as the public ASE accessors are applied to
+    the returned values.
 
     Returns
     -------
@@ -123,7 +125,13 @@ def energy_forces_one(calc, atoms: Atoms, force_consistent: bool = True
         energy = float(calc.results["free_energy"])
     else:
         energy = float(calc.results["energy"])
-    forces = np.asarray(calc.results["forces"], dtype=np.float64)
+    forces = np.array(calc.results["forces"], dtype=np.float64, copy=True)
+
+    for constraint in getattr(atoms, "constraints", ()):
+        if hasattr(constraint, "adjust_potential_energy"):
+            energy += float(constraint.adjust_potential_energy(atoms))
+        if hasattr(constraint, "adjust_forces"):
+            constraint.adjust_forces(atoms, forces)
     return energy, forces
 
 

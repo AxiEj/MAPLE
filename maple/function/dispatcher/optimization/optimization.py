@@ -59,8 +59,13 @@ class Optimization(JobABC):
         base_calc = mols.multiatoms[0].calc
         if base_calc is None:
             raise ValueError("Batch optimization requires a calculator on the input structures.")
+        if any(at.calc is not base_calc for at in mols.multiatoms):
+            raise ValueError(
+                "Batch optimization requires all structures to share one calculator "
+                "instance; mixed calculators would silently use the first model for all.")
 
-        if type(base_calc).__name__ == 'AIMNet2Calculator':
+        from ...calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
+        if isinstance(base_calc, AIMNet2Calculator):
             from ...calculator.aimnet._aimnet2_batch_calculator import AIMNet2BatchCalc
             mols.calc = AIMNet2BatchCalc.from_ase_calculator(base_calc)
         else:

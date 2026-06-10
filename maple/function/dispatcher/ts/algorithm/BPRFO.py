@@ -307,33 +307,6 @@ class BatchPRFO:
             s, t = ptr[i], ptr[i+1]
             at.positions[:] = pos[s:t]
 
-    # ===================================================
-    # EFH with padding to fixed nmax
-    # ===================================================
-
-    def _compute_efh(self, calc):
-        """
-        EFH must be padded to the fixed nmax from the first iteration.
-        """
-        E_old, F_raw, H_raw, _ = calc.get_efh_gpu()
-
-        F_raw = F_raw.to(dtype=DTYPE)
-        H_raw = 0.5 * (H_raw + H_raw.transpose(-1, -2)).to(dtype=DTYPE)
-
-        nmax = int(self._nmax)
-        B, L = F_raw.shape
-
-        if L != nmax:
-            F_pad = torch.zeros((B, nmax), dtype=DTYPE, device=F_raw.device)
-            F_pad[:, :L] = F_raw
-            F_raw = F_pad
-
-            H_pad = torch.zeros((B, nmax, nmax), dtype=DTYPE, device=H_raw.device)
-            H_pad[:, :L, :L] = H_raw
-            H_raw = H_pad
-
-        return E_old.to(dtype=DTYPE), F_raw, H_raw
-
     def _build_cartesian_hg(self, F_raw, H_raw, real_mask):
         mask_ij = (real_mask.unsqueeze(-1) & real_mask.unsqueeze(-2)).to(DTYPE)
         H = H_raw * mask_ij

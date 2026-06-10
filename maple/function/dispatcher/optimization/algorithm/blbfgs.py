@@ -115,7 +115,7 @@ class BatchLBFGS:
 
         # === First prepare to fix nmax ===
         calc.prepare(atoms_list)
-        _, F0 = calc.get_ef_gpu()
+        E0, F0 = calc.get_ef_gpu()
         self._nmax = int(F0.shape[1])
         self._arange_n = torch.arange(self._nmax, device=device)
 
@@ -127,8 +127,6 @@ class BatchLBFGS:
         B = self._B
         self.history_valid = torch.zeros((B, self.memory), dtype=torch.bool, device=device)
 
-        # Collect initial trajectory
-        E0, F0 = calc.get_ef_gpu()
         E0 = E0.to(dtype=DTYPE)
         
         iteration = 0
@@ -177,11 +175,9 @@ class BatchLBFGS:
             # Check convergence
             done = self._check_convergence(
                 it=iteration,
-                calc=calc,
-                atoms_list=atoms_list,
+                E=E_new,
                 step_cart=step_cart,
                 F=F_new,
-                real_mask=real_mask,
             )
 
             # Dynamic batch shrinking
@@ -369,29 +365,20 @@ class BatchLBFGS:
     # ===================================================
     # CONVERGENCE CHECK
     # ===================================================
-    def _check_convergence(self, it, calc, atoms_list, step_cart, F, real_mask):
+    def _check_convergence(self, it, E, step_cart, F):
         """
         Check convergence criteria for each batch.
-        
+
+        E, F and step_cart are the values already evaluated for this
+        iteration; thresholds come from the topology rebuild.
+
         Returns:
             done: (B,) boolean tensor indicating converged batches
         """
-        device = self.device
-        B = len(atoms_list)
-
-        # Get convergence thresholds
-        f_max_th = torch.tensor(
-            [getattr(at, "f_max_th", 2e-3) for at in atoms_list],
-            dtype=DTYPE, device=device)
-        f_rms_th = torch.tensor(
-            [getattr(at, "f_rms_th", 1e-3) for at in atoms_list],
-            dtype=DTYPE, device=device)
-        dp_max_th = torch.tensor(
-            [getattr(at, "dp_max_th", 1e-3) for at in atoms_list],
-            dtype=DTYPE, device=device)
-        dp_rms_th = torch.tensor(
-            [getattr(at, "dp_rms_th", 5e-4) for at in atoms_list],
-            dtype=DTYPE, device=device)
+        f_max_th = self._f_max_th
+        f_rms_th = self._f_rms_th
+        dp_max_th = self._dp_max_th
+        dp_rms_th = self._dp_rms_th
 
         L_eff = self._L_vec.clamp(min=1).to(DTYPE)
 
@@ -410,10 +397,9 @@ class BatchLBFGS:
         )
 
         # Log convergence table
-        E_final, _ = calc.get_ef_gpu()
         self._w(self._fmt_convergence_table(
             it=it,
-            E=E_final.to(dtype=DTYPE),
+            E=E.to(dtype=DTYPE),
             max_f=max_f, rms_f=rms_f,
             max_dp=max_dp, rms_dp=rms_dp,
             f_max_th=f_max_th, f_rms_th=f_rms_th,
@@ -437,6 +423,20 @@ class BatchLBFGS:
 
         # real_mask padded to fixed nmax
         self._real_mask = (self._arange_n[None, :] < self._L_vec[:, None])
+
+        # Per-structure convergence thresholds, fixed for the batch lifetime
+        self._f_max_th = torch.tensor(
+            [getattr(at, "f_max_th", 2e-3) for at in atoms_list],
+            dtype=DTYPE, device=device)
+        self._f_rms_th = torch.tensor(
+            [getattr(at, "f_rms_th", 1e-3) for at in atoms_list],
+            dtype=DTYPE, device=device)
+        self._dp_max_th = torch.tensor(
+            [getattr(at, "dp_max_th", 1e-3) for at in atoms_list],
+            dtype=DTYPE, device=device)
+        self._dp_rms_th = torch.tensor(
+            [getattr(at, "dp_rms_th", 5e-4) for at in atoms_list],
+            dtype=DTYPE, device=device)
 
     def _sync_atoms_from_calc(self, calc, atoms_list):
         with torch.no_grad():

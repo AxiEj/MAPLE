@@ -104,6 +104,15 @@ class AIMNet2BatchCalc:
                 "AIMNet2BatchCalc does not support implicit solvation; "
                 "remove #solv(...) or run structures one at a time."
             )
+        coulomb_method = getattr(calc, "_coulomb_method", "simple")
+        if coulomb_method != "simple":
+            # The batch forward reuses the short-range neighbor list as
+            # nbmat_lr, which only matches the single-molecule wrapper when
+            # cutoff_lr is infinite (the 'simple' method).
+            raise NotImplementedError(
+                f"AIMNet2BatchCalc only supports coulomb_method='simple'; "
+                f"got '{coulomb_method}'. Run structures one at a time."
+            )
         return cls(model=calc.model, device=calc.device,
                    cutoff=calc.cutoff, dtype=dtype)
 

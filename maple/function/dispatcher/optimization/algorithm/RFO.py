@@ -14,6 +14,7 @@ from ._common import (
     write_xyz,
 )
 from ...jobABC import JobABC
+from ....calculator._batch_eval import energy_forces_one, reset_calculator_cache
 
 
 # ==============================================
@@ -39,6 +40,10 @@ class RFOParams:
     # output verbosity
     verbose: int = 1
     log_final_paths: bool = True
+
+    # batched finite-difference Hessian: chunk size passed down to
+    # FDHessianEvaluator via the calculator. None = single batch.
+    fd_batch_size: Optional[int] = None
 
 
 # ==============================================
@@ -74,10 +79,17 @@ class RFO(JobABC):
         opt_traj_file = base + "_opt_traj.xyz"
         iteration = 0
 
-        # initial energy/forces
-        E = to_numpy_f64(atoms.get_potential_energy(force_consistent=True))
+        # Propagate fd_batch_size to the calculator so FDHessianEvaluator
+        # picks it up when get_hessian dispatches to the numerical path.
+        # Harmless for analytic Hessian calculators.
+        if self.params.fd_batch_size is not None:
+            atoms.calc.fd_batch_size = self.params.fd_batch_size
+
+        # initial energy/forces (single calculator invocation)
+        e_init, f_init = energy_forces_one(atoms.calc, atoms)
+        E = to_numpy_f64(e_init)
         write_xyz(opt_traj_file, [atoms.copy()], energies=[float(E)])
-        F = to_numpy_f64(atoms.get_forces())
+        F = to_numpy_f64(f_init)
 
         # main loop
         while iteration < self.params.max_iter:
@@ -105,9 +117,10 @@ class RFO(JobABC):
             X_new = (X + s_cart.reshape(-1, 3))
             atoms.set_positions(X_new)
 
-            # Evaluate actual energy and forces at trial
-            E_new = to_numpy_f64(atoms.get_potential_energy(force_consistent=True))
-            F_new = to_numpy_f64(atoms.get_forces())
+            # Evaluate actual energy and forces at trial (single calculator invocation)
+            e_new, f_new = energy_forces_one(atoms.calc, atoms)
+            E_new = to_numpy_f64(e_new)
+            F_new = to_numpy_f64(f_new)
 
             actual_change = float(E_new - E_old)
             rho = None
@@ -167,17 +180,20 @@ class RFO(JobABC):
                 iteration += 1
 
             else:
-                # reject: rollback geometry, shrink radius, DO NOT increment iteration
+                # reject: rollback geometry, shrink radius, DO NOT increment iteration.
+                # The loop-carried E/F still describe geometry X; restore from
+                # that snapshot instead of re-evaluating after rollback.
                 atoms.set_positions(X)  # rollback
+                reset_calculator_cache(atoms.calc)
                 self.trust_radius = max(self.params.trust_radius_min, 0.5 * self.trust_radius)
-                # re-evaluate current E/F (at the old geometry)
-                E = to_numpy_f64(atoms.get_potential_energy(force_consistent=True))
-                F = to_numpy_f64(atoms.get_forces())
+                E = np.float64(E_old)
+                F = F_cart.copy()
                 # log the rejection event
                 # self._log_rejection(iteration + 1, rho)
 
-        # max iterations reached
-        e_final = float(to_numpy_f64(atoms.get_potential_energy(force_consistent=True)))
+        # max iterations reached — atoms is at the geometry whose energy is
+        # the loop-carried `E` (last accepted or initial seed).
+        e_final = float(E)
         self._finalize_run(
             e_final,
             f"RFO optimization reached max iterations ({self.params.max_iter}).",
@@ -236,7 +252,7 @@ class RFO(JobABC):
         norm_unc2 = float(np.dot(s_unc, s_unc))
         R2 = trust_radius * trust_radius
 
-        if norm_unc2 <= R2:
+        if float(np.min(w)) > p.evals_eps and norm_unc2 <= R2:
             # inside trust radius: accept unconstrained step
             s = s_unc
             # model change (in MW coords)

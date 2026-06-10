@@ -159,6 +159,13 @@ TIPS:  Charge and spin multiplicity are supported only in the **OMOL task** mode
 | `task` | `omol`, `omat`, `oc20`, `odac`, `omc`, `oc22`, `oc25` | `omol` for non-periodic systems | Periodic UMA requires an explicit periodic task such as `omat`, `oc20`, `oc22`, `oc25`, `omc`, or `odac` |
 | `inference` | `default`, `turbo` | `default` | `turbo` accelerates fixed-composition GPU workloads (NEB / TS / freq); ignored on CPU |
 
+UMA follows FAIR-Chem's charge/spin contract: charge and spin multiplicity are
+honored only for the `omol` molecular head.  Non-`omol` tasks reject non-neutral
+`charge`/`mult`/`spin` metadata instead of silently ignoring charged or
+open-shell input.  As a MAPLE fail-closed policy extension, `task=omol` is
+also rejected for PBC systems; choose a periodic task such as `omat`, `oc20`,
+`odac`, `omc`, `oc22`, or `oc25` instead.
+
 ### Coordinates
 
 Inline coordinates:

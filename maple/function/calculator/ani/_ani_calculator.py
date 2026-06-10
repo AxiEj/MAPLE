@@ -1,60 +1,65 @@
+from __future__ import annotations
 
 import os
 
-import torch
+import ase
 import numpy as np
 
-import ase
-
-from ..calculator_base import CalcABC
-from .._batch_types import BatchResult
-from .._batch_utils import (
-    atoms_list_has_pbc,
-    empty_batch_result,
-    grouped_indices_by_numbers,
-    normalize_energy_forces_request,
-    sequential_calculate_many,
+from ..calculator_base import (
+    CalcABC,
+    hessian_via_double_autograd,
+    parse_bool_option,
+    register_calculator,
 )
-from .._autograd_hessian import hessian_loop
 
 
+@register_calculator
 class ANICalculator(CalcABC):
-    implemented_properties = ['energy', 'forces', 'stress', 'free_energy']
-    supported_hessian_modes = ("analytic", "numerical")
-    supports_batch_energy_forces = True
-    supports_analytic_hessian = True
-    batch_memory_model = "dense_same_shape"
-    auto_path_batch_cap = 8
+    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
 
-    def __init__(self, device: torch.device,
-        model:str = 'ani2x',
+    MODEL_NAMES = ('ani2x', 'ani1x', 'ani1ccx', 'ani1xnr')
+    # ANI's TorchScript checkpoints already return Hartree; no eV→Ha conversion.
+    MODEL_ENERGY_UNIT = 'hartree'
+    SUPPORTED_HESSIAN_MODES = ('analytic', 'numerical')
+    SUPPORTS_CHARGE_MULT = False
+    SUPPORTS_PBC = False
+    CHECKPOINT_FILENAME = {
+        'ani2x': 'ani2x.pt',
+        'ani1x': 'ani1x.pt',
+        'ani1ccx': 'ani1ccx.pt',
+        'ani1xnr': 'ani1xnr.pt',
+    }
+    REQUIRES_LOCAL_MODEL_FILE = False
+    OPTION_KEYS = ('d4',)
+    MODEL_PATH_OPTION = 'model_path'
+
+    @classmethod
+    def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
+        kwargs = {'d4': parse_bool_option(options.get('d4', False), name='d4')}
+        if resolved_model_path is not None:
+            kwargs['model_path'] = resolved_model_path
+        return kwargs
+
+    def __init__(self, device,
+        model: str = 'ani2x',
+        model_path: str = None,
         overwrite=False,
         d4=False,
         implicit: str = 'none',
         solvent: str = 'none',
         ):
-        """
-        Initialize the ANICalculator.
+        import torch
 
-        Args:
-            device (torch.device): The device to run the model on.
-            model (str, optional): The model to use. Defaults to 'ani-2x'.
-            overwrite (bool, optional): Whether to overwrite existing models. Defaults to False.
-            d4 (bool, optional): Whether to use D4 dispersion correction. Defaults to False.
-        """
         super().__init__()
-        info_message = [f"\nLoading the Machine Learning Potential Model...\n"]
-        
-        
-        model_dir = os.path.dirname(os.path.realpath(__file__))
-        model_dir = os.path.dirname(model_dir)
-        model_path = os.path.join(model_dir, 'model', f'{model}.pt')
-        
+
+        if model_path is None:
+            model_dir = os.path.dirname(os.path.realpath(__file__))
+            model_dir = os.path.dirname(model_dir)
+            model_path = os.path.join(model_dir, 'model', f'{model}.pt')
+
         self.model = torch.jit.load(model_path, map_location=device)
         self.model.eval()
-        
-        
-        info_message.append(f'Loading model ({model}) successfully.\n')
+
         for p in self.model.parameters():
             p.requires_grad_(False)
 
@@ -62,210 +67,124 @@ class ANICalculator(CalcABC):
         self.dtype = torch.float32
         self.overwrite = overwrite
         self.d4 = d4
-        self.hessian: str = 'analytic'  # 'analytic' or 'numerical'
+        self.hessian: str = 'analytic'
 
-        # Initialize implicit solvent
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=ase.calculators.calculator.all_changes):
-        super().calculate(atoms, properties, system_changes)
+        import torch
 
-        coordinates = torch.tensor(atoms.get_positions(), dtype=self.dtype, device=self.device, requires_grad='forces' in properties).unsqueeze(0)
-        
-        energy = self.get_energy(atoms, coordinates)
+        properties = self._normalize_properties(properties)
+        atoms = super().calculate(atoms, properties, system_changes)
 
-        if self.solvent_correction:
-            solvent_energy = self.implicit_solv_energy(atoms)
-            energy += solvent_energy
+        needs_forces = 'forces' in properties
+        coordinates = torch.tensor(
+            atoms.get_positions(),
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=needs_forces,
+        ).unsqueeze(0)
 
-        self.results['energy'] = energy.item()
-        self.results['free_energy'] = energy.item()
+        energy = self._forward_energy(atoms, coordinates)
 
-        if 'forces' in properties:
-            forces = -torch.autograd.grad(energy, coordinates, retain_graph='stress' in properties)[0]
-            if self.solvent_correction:
-                solvent_energy, solvent_force = self.implicit_solv_energy_and_force(atoms)
-                forces += solvent_force
-                
-            self.results['forces'] = forces.squeeze(0).cpu().numpy()
+        if needs_forces:
+            forces = -torch.autograd.grad(energy, coordinates)[0]
+            forces_np = forces.squeeze(0).cpu().numpy()
+        else:
+            forces_np = None
 
-    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
-        """Evaluate same-composition ANI structures in native torch batches.
+        hessian = None
+        if 'hessian' in properties:
+            if self.solvent_correction is not None:
+                raise NotImplementedError(
+                    'Hessian calculation with implicit solvent is not implemented yet.'
+                )
+            hessian = self.get_hessian(atoms)
 
-        The scripted ANI wrapper accepts ``species`` as ``(B, N)`` and
-        coordinates as ``(B, N, 3)``.  Finite-difference Hessian displacements
-        are exactly this case, so grouping by atomic-number sequence turns
-        ``2 * 3N`` calculator calls into one model call per composition.
-        D4 and implicit-solvent corrections remain on the sequential path
-        until their batched force semantics are validated.
-        """
-        _, want_energy, want_forces, request = normalize_energy_forces_request(properties)
-        if not request:
-            return BatchResult()
+        self._finalize_results(atoms, energy=energy.item(), forces=forces_np, hessian=hessian)
 
-        atoms_list = list(atoms_list)
-        if not atoms_list:
-            return empty_batch_result(want_energy, want_forces)
+    def _forward_energy(self, atoms, coordinates):
+        import torch
 
-        if atoms_list_has_pbc(atoms_list):
-            return sequential_calculate_many(self, atoms_list, request, want_energy, want_forces)
-
-        if self.d4 or self.solvent_correction:
-            return sequential_calculate_many(self, atoms_list, request, want_energy, want_forces)
-
-        energies = np.empty(len(atoms_list), dtype=np.float64) if want_energy else None
-        forces_out = [None] * len(atoms_list) if want_forces else None
-
-        for numbers, indices in grouped_indices_by_numbers(atoms_list):
-            group_atoms = [atoms_list[i] for i in indices]
-            species = torch.tensor(
-                [numbers] * len(group_atoms),
-                dtype=torch.long,
-                device=self.device,
-            )
-            coords_np = np.stack([at.get_positions() for at in group_atoms], axis=0)
-            coordinates = torch.tensor(
-                coords_np,
-                dtype=self.dtype,
-                device=self.device,
-                requires_grad=want_forces,
-            )
-
-            if want_forces:
-                energy_vec = self.model(species, coordinates)[0].reshape(-1)
-                force_tensor = -torch.autograd.grad(energy_vec.sum(), coordinates)[0]
-            else:
-                with torch.no_grad():
-                    energy_vec = self.model(species, coordinates)[0].reshape(-1)
-                force_tensor = None
-
-            if want_energy:
-                energy_np = energy_vec.detach().cpu().numpy().astype(np.float64)
-                for out_i, val in zip(indices, energy_np):
-                    energies[out_i] = float(val)
-
-            if want_forces:
-                force_np = force_tensor.detach().cpu().numpy().astype(np.float64)
-                for out_i, val in zip(indices, force_np):
-                    forces_out[out_i] = val
-
-        return BatchResult(energies=energies, forces=forces_out)
-
-    def get_energy(self, atoms, coordinates):
-        
-        species = torch.tensor(atoms.get_atomic_numbers(), dtype=torch.long, device=self.device).unsqueeze(0)
+        species = torch.tensor(
+            atoms.get_atomic_numbers(),
+            dtype=torch.long,
+            device=self.device,
+        ).unsqueeze(0)
 
         energy = self.model(species, coordinates)[0]
         if self.d4:
-            energy += self.dftd4(species, coordinates)
-        
+            energy = energy + self.dftd4(species, coordinates)
+
         return energy
 
-    @staticmethod
-    def compute_hessian(coords, energy, batch_size=None):
-    
-        num_atoms = coords.shape[1]
-        return hessian_loop(
-            energy,
-            coords,
-            output_dof=3 * num_atoms,
-            input_dof=3 * num_atoms,
-            batch_size=batch_size,
-        )
+    def _analytic_hessian(self, atoms) -> np.ndarray:
+        import torch
 
-    def get_hessian(
-        self,
-        atoms: ase.Atoms,
-        delta: float = 0.002,
-    ) -> torch.Tensor:
-        """
-        Compute the Hessian matrix using either analytic or numerical method.
-        
-        Method is determined by self.hessian:
-        - 'analytic': Use automatic differentiation (faster, exact)
-        - 'numerical': Use finite-difference forces (slower, approximate)
-        
-        Returns a (3N, 3N) torch.Tensor on self.device.
-        
-        Args:
-            atoms: ASE Atoms object
-            delta: Step size for numerical differentiation (only used if method='numerical')
-        """
-        self._raise_if_implicit_solvent_hessian()
-        if self.hessian == 'analytic':
-            return self._get_hessian_analytic(atoms)
-        elif self.hessian == 'numerical':
-            return self._get_hessian_numerical(atoms, delta)
-        else:
-            raise ValueError(f"Unknown hessian method: {self.hessian}. Must be 'analytic' or 'numerical'")
-
-
-    def _get_hessian_analytic(self, atoms: ase.Atoms) -> torch.Tensor:
-        """
-        Compute Hessian using automatic differentiation.
-        Fast and exact, but requires energy to be differentiable w.r.t. coordinates.
-        """
         coordinates = torch.tensor(
-            atoms.get_positions(), 
-            dtype=self.dtype, 
-            device=self.device, 
-            requires_grad=True
+            atoms.get_positions(),
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=True,
         ).unsqueeze(0)
-        
-        if self.d4:
-            energy = self.get_energy(atoms, coordinates)
-        else:
-            species = torch.tensor(
-                atoms.get_atomic_numbers(),
-                dtype=torch.long,
-                device=self.device,
-            ).unsqueeze(0)
-            energy = self.model(species, coordinates)[0]
-        
-        return self.compute_hessian(
-            coordinates,
-            energy,
-            batch_size=getattr(self, "hessian_batch_size", getattr(self, "batch_size", None)),
+
+        # ANI's TorchScript model is Hartree-native, so energy_fn returns Hartree
+        # directly (no EV2HARTREE) and the shared helper yields Hartree/Å².
+        return hessian_via_double_autograd(
+            lambda: self._forward_energy(atoms, coordinates), coordinates
         )
-
-
-    def _get_hessian_numerical(
-        self,
-        atoms: ase.Atoms,
-        delta: float = 0.002,
-    ) -> torch.Tensor:
-        """Central-difference numerical Hessian via batched displacement.
-
-        Routes the 2 * 3 * N_movable force evaluations through
-        ``calc.calculate_many`` so a batched backend (or the sequential
-        fallback in ``CalcABC.calculate_many``) handles dispatch, instead of
-        a hand-rolled per-DOF Python loop. FixAtoms is respected upstream.
-        Returns a ``(3N, 3N)`` tensor on ``self.device`` to preserve the
-        original return-type contract.
-        """
-        from .._batch_eval import FDHessianEvaluator
-
-        H_np = FDHessianEvaluator(
-            self,
-            fd_batch_size=getattr(self, "fd_batch_size", None),
-        ).hessian(atoms, delta=delta)
-        return torch.as_tensor(H_np, dtype=self.dtype, device=self.device)
-
 
     def dftd4(self, species, coordinates):
+        import torch
         import tad_dftd4 as d4
+
         charge = torch.tensor(0.0, device=self.device)
         param = {
-            "s6": coordinates.new_tensor(1.0),
-            "s8": coordinates.new_tensor(0.34783580),
-            "s9": coordinates.new_tensor(1.0),
-            "a1": coordinates.new_tensor(0.57488291),
-            "a2": coordinates.new_tensor(6.41921802),
+            's6': coordinates.new_tensor(1.0),
+            's8': coordinates.new_tensor(0.34783580),
+            's9': coordinates.new_tensor(1.0),
+            'a1': coordinates.new_tensor(0.57488291),
+            'a2': coordinates.new_tensor(6.41921802),
         }
-        # Å → Bohr 转换
         bohr_coords = coordinates[0] * 1.8897261245864
         return torch.sum(d4.dftd4(species[0], bohr_coords, charge, param))
 
+    def get_hvp(self, atoms, n: np.ndarray):
+        """Hessian-vector product Hn via autograd for ANI's (species, coords) forward.
 
-    
+        Returns (Hn, forces, energy) as torch tensors, consumed by Dimer-mode TS.
+        """
+        if getattr(self, 'solvent_correction', None) is not None:
+            raise NotImplementedError(
+                'ANI HVP with implicit solvent is not supported; solvent HVP would be omitted.'
+            )
+
+        import torch
+
+        coords = torch.tensor(
+            atoms.get_positions(),
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=True,
+        ).unsqueeze(0)
+        species = torch.tensor(
+            atoms.get_atomic_numbers(),
+            dtype=torch.long,
+            device=self.device,
+        ).unsqueeze(0)
+
+        energy = self.model(species, coords)[0]
+        if self.d4:
+            energy = energy + self.dftd4(species, coords)
+
+        grad = torch.autograd.grad(energy, coords, create_graph=True)[0].squeeze(0)
+        grad_vec = grad.view(-1)
+
+        n_tensor = torch.tensor(n, dtype=self.dtype, device=self.device)
+        hvp = torch.autograd.grad(
+            grad_vec @ n_tensor, coords, retain_graph=True
+        )[0].squeeze(0).view(-1)
+
+        forces = -grad_vec
+        return hvp, forces, energy

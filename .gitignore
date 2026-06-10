@@ -179,5 +179,9 @@ examples/md/**/*.xyz
 /.omc/
 /docs/
 
+# Generated explicit-solvent example outputs
+examples/opt/exp-solv/*.out
+examples/opt/exp-solv/*.xyz
+
 # OMC / codex skill temp files
 .gstack/

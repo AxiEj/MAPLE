@@ -18,7 +18,6 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
-from ....calculator._batch_eval import energy_forces_one, reset_calculator_cache
 
 # =============================================================================
 # ------------------------------ Utilities ------------------------------------
@@ -333,65 +332,6 @@ def prfo_step(H, g, is_ts=False, target_mode=None, trust_radius=0.2,
 
     return V @ s_p
 
-def bofill_hessian_update(
-    H: np.ndarray,
-    step: np.ndarray,
-    grad_old: np.ndarray,
-    grad_new: np.ndarray,
-    *,
-    eps: float = 1e-12,
-) -> Tuple[np.ndarray, bool, str]:
-    """Return a Bofill-updated Hessian satisfying the secant condition.
-
-    The update follows the TS quasi-Newton form used in established
-    RS-P-RFO implementations: a convex combination of the Murtagh-Sargent
-    (SR1) and Powell symmetric Broyden (PSB) updates.  It is coordinate-system
-    agnostic; MAPLE applies it in the mass-weighted coordinate system used by
-    this PRFO implementation, then transforms the updated matrix back to
-    Cartesian form for logging and model-change evaluation.
-    """
-    H0 = np.asarray(H, dtype=np.float64)
-    s = vec1d(step, H0.shape[0])
-    g0 = vec1d(grad_old, H0.shape[0])
-    g1 = vec1d(grad_new, H0.shape[0])
-
-    if H0.ndim != 2 or H0.shape[0] != H0.shape[1]:
-        raise ValueError(f"Hessian must be square, got {H0.shape}")
-
-    y = g1 - g0
-    Hs = H0 @ s
-    xi = y - Hs
-
-    s2 = float(np.dot(s, s))
-    xi2 = float(np.dot(xi, xi))
-    if s2 <= eps:
-        return H0.copy(), False, "skip: step too small"
-    if xi2 <= eps:
-        return H0.copy(), False, "skip: predicted gradient change already matches"
-
-    s_dot_xi = float(np.dot(s, xi))
-    psb = (
-        H0
-        - (s_dot_xi / (s2 * s2)) * np.outer(s, s)
-        + (np.outer(s, xi) + np.outer(xi, s)) / s2
-    )
-
-    denom_scale = max(eps, eps * np.sqrt(max(s2 * xi2, eps)))
-    if abs(s_dot_xi) <= denom_scale:
-        H_new = psb
-        source = "psb fallback"
-    else:
-        ms = H0 + np.outer(xi, xi) / s_dot_xi
-        phi = 1.0 - (s_dot_xi * s_dot_xi) / (s2 * xi2)
-        phi = float(np.clip(phi, 0.0, 1.0))
-        H_new = (1.0 - phi) * ms + phi * psb
-        source = f"bofill(phi={phi:.3f})"
-
-    H_new = 0.5 * (H_new + H_new.T)
-    if not np.all(np.isfinite(H_new)):
-        return H0.copy(), False, "skip: non-finite update"
-    return H_new, True, source
-
 def calculate_Hessian(atoms: Atoms):
     """
     Calculate Hessian matrix from calculator.
@@ -409,6 +349,63 @@ def calculate_Hessian(atoms: Atoms):
     calc = atoms.calc
     H = calc.get_hessian(atoms)
     return to_numpy_f64(H)
+
+def _bfgs_update(H: np.ndarray, s: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """BFGS update of Hessian approximation."""
+    H = to_numpy_f64(H)
+    s = vec1d(s)
+    y = vec1d(y, s.size)
+    ys = float(y.dot(s))
+    if ys <= 1e-12:
+        return H
+    Hs = H.dot(s)
+    sHs = float(s.dot(Hs))
+    if sHs <= 1e-12:
+        return H
+    H_new = H + np.outer(y, y) / ys - np.outer(Hs, Hs) / sHs
+    return 0.5 * (H_new + H_new.T)
+
+def _bofill_update(H: np.ndarray, s: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """
+    Bofill = mixed MS/SR1 + PSB.
+    If the SR1/MS denominator is unsafe, fall back to pure PSB.
+    """
+    H = to_numpy_f64(H)
+    s = vec1d(s)
+    y = vec1d(y, s.size)
+
+    s2 = float(np.dot(s, s))
+    y2 = float(np.dot(y, y))
+    if s2 <= 1e-16 or y2 <= 1e-16:
+        return H
+
+    # Residual: z = Δg - H Δx
+    z = y - H.dot(s)
+    z2 = float(np.dot(z, z))
+    sz = float(np.dot(s, z))
+
+    # PSB term is safe as long as s2 is nonzero, already guaranteed above.
+    psb = (
+        (np.outer(z, s) + np.outer(s, z)) / s2
+        - (sz / (s2 * s2)) * np.outer(s, s)
+    )
+
+    # if s·z is too small, do NOT divide by it; use pure PSB.
+    use_sr1 = (abs(sz) > 1e-8) and (z2 > 1e-16)
+
+    if use_sr1:
+        ms = np.outer(z, z) / sz
+        if s2 > 1e-16 and z2 > 1e-16:
+            ratio = (sz * sz) / (s2 * z2)
+            phi = float(np.clip(1.0 - ratio, 0.0, 1.0))
+        else:
+            phi = 1.0
+    else:
+        ms = np.zeros_like(H)
+        phi = 1.0
+
+    H_new = H + (1.0 - phi) * ms + phi * psb
+    return 0.5 * (H_new + H_new.T)
 
 # =============================================================================
 # ------------------------------- PRFO Parameters -----------------------------
@@ -434,41 +431,14 @@ class PRFOParams:
     evals_eps: float = 1e-10               # Eigenvalue regularization threshold
     mu_margin: float = 1e-8                # Safety margin for bisection
     max_bisect_it: int = 60                # Maximum bisection iterations
+    recalc: int = 1                        # Exact Hessian recalculation interval
+    hessian_update: str = "bofill"         # Working Hessian update: bofill or bfgs
     
     # Convergence thresholds (should be set from atoms object)
     f_max_th: float = 9.5e-3               # Maximum force threshold (Eh/Angstrom)
     f_rms_th: float = 5e-3                 # RMS force threshold (Eh/Angstrom)
     dp_max_th: float = 1.8e-3              # Maximum displacement threshold (Angstrom)
     dp_rms_th: float = 1.2e-3              # RMS displacement threshold (Angstrom)
-
-    # Batched finite-difference Hessian chunk size, forwarded to
-    # FDHessianEvaluator via the calculator. None = single batch.
-    fd_batch_size: Optional[int] = None
-
-    # Exact-Hessian recomputation interval. 1 preserves the historical MAPLE
-    # behavior (exact Hessian every PRFO step). Values >1 compute an exact
-    # Hessian initially and every N accepted PRFO iterations, using the selected
-    # quasi-Newton Hessian update in between.  Because this is an algorithmic
-    # TS-search strategy rather than a batch-evaluation acceleration, values >1
-    # require ``allow_prfo_hessian_update=True``.
-    hessian_recalc: int = 1
-    hessian_update: str = "bofill"
-    allow_prfo_hessian_update: bool = False
-    expert_prfo_hessian_recalc: Optional[int] = None
-    expert_prfo_hessian_update: Optional[str] = None
-
-    # Expert-only escape hatch.  By default PRFO refuses numerical Hessians when
-    # the calculator provides an analytic Hessian.  Setting this flag keeps
-    # debugging/regression workflows possible without weakening the production
-    # default; final TS-mode validation still prefers the analytic Hessian.
-    allow_numerical_hessian: bool = False
-    expert_prfo_allow_numerical_hessian: bool = False
-
-    # A converged TS search must have exactly one non-trivial imaginary mode.
-    # This catches cases where force/displacement criteria converge to a
-    # minimum because a noisy numerical Hessian supplied a spurious uphill mode.
-    validate_ts_mode: bool = True
-    ts_imag_tol_cm1: float = 5.0
 
 # =============================================================================
 # ------------------------------- PRFO Class ----------------------------------
@@ -492,105 +462,19 @@ class PRFO(JobABC):
 
         # Initialize params from paras dict
         self.params = self._init_params(PRFOParams, paras, ("prfo", "PRFO", "ts"))
+        self.params.recalc = max(1, int(self.params.recalc))
+        self.params.hessian_update = str(self.params.hessian_update).lower()
+        if self.params.hessian_update not in {"bofill", "bfgs"}:
+            raise ValueError("Hessian update method must be 'bofill' or 'bfgs'.")
 
         # Override convergence thresholds from atoms if available
         for attr in ('f_max_th', 'f_rms_th', 'dp_max_th', 'dp_rms_th'):
             if hasattr(atoms, attr):
                 setattr(self.params, attr, getattr(atoms, attr))
 
-        if self.params.expert_prfo_hessian_recalc is not None:
-            self.params.hessian_recalc = self.params.expert_prfo_hessian_recalc
-            self.params.allow_prfo_hessian_update = True
-        if self.params.expert_prfo_hessian_update is not None:
-            self.params.hessian_update = self.params.expert_prfo_hessian_update
-        if self.params.expert_prfo_allow_numerical_hessian:
-            self.params.allow_numerical_hessian = True
-
-        self.params.hessian_recalc = int(self.params.hessian_recalc)
-        if self.params.hessian_recalc < 1:
-            raise ValueError("hessian_recalc must be a positive integer")
-        self.params.hessian_update = str(self.params.hessian_update).lower()
-        if self.params.hessian_update != "bofill":
-            raise ValueError("hessian_update must be 'bofill'")
-        if (
-            self.params.hessian_recalc != 1
-            and not bool(self.params.allow_prfo_hessian_update)
-        ):
-            raise ValueError(
-                "hessian_recalc > 1 enables an opt-in PRFO quasi-Newton "
-                "strategy and requires allow_prfo_hessian_update=true."
-            )
-
         # Mode tracking
         self.tracked_mode_vec_mw = None
         self.tracked_mode_idx = None
-        self.normal_termination = False
-        self.ts_mode_validated = False
-
-    @staticmethod
-    def _calculator_has_analytic_hessian(calc) -> bool:
-        """Return True when a calculator advertises an analytic Hessian mode."""
-        modes = getattr(calc, "supported_hessian_modes", ())
-        return bool(
-            getattr(calc, "supports_analytic_hessian", False)
-            or "analytic" in modes
-        )
-
-    def _validation_hessian(self, atoms: Atoms) -> Tuple[np.ndarray, str]:
-        """Fetch the Hessian used only for final TS-mode validation.
-
-        If the active PRFO run used a finite-difference Hessian but the backend
-        can compute an analytic Hessian, validate with the analytic Hessian.
-        The user's selected Hessian mode is restored immediately afterward.
-        """
-        calc = atoms.calc
-        old_mode = getattr(calc, "hessian", None)
-        use_analytic = (
-            old_mode == "numerical"
-            and self._calculator_has_analytic_hessian(calc)
-        )
-
-        if use_analytic:
-            calc.hessian = "analytic"
-            try:
-                H = calculate_Hessian(atoms)
-            finally:
-                calc.hessian = old_mode
-                reset_calculator_cache(calc)
-            return to_numpy_f64(H), "analytic"
-
-        return to_numpy_f64(calculate_Hessian(atoms)), str(old_mode or "current")
-
-    def _validate_ts_mode(self, atoms: Atoms) -> Tuple[bool, List[str]]:
-        """Check that the final stationary point has one imaginary mode."""
-        if not self.params.validate_ts_mode:
-            return True, ["TS mode validation: disabled by parameter\n"]
-
-        from ...frequency.frequency import MWFrequency
-
-        H_cart, source = self._validation_hessian(atoms)
-        freq_job = MWFrequency(output=self.output, atoms=atoms, device="cpu")
-        freq_job.verbosity = 0
-        freqs_cm1, _ = freq_job.compute_frequencies(H_cart)
-
-        tol = abs(float(self.params.ts_imag_tol_cm1))
-        imag = freqs_cm1[freqs_cm1 < -tol]
-        n_imag = int(imag.size)
-        lowest = float(np.min(freqs_cm1)) if freqs_cm1.size else float("nan")
-        ok = (n_imag == 1)
-
-        lines = [
-            "\nTS mode validation:\n",
-            f"  Hessian source: {source}\n",
-            f"  Imaginary frequencies (< -{tol:.2f} cm^-1): {n_imag}\n",
-            f"  Lowest frequency: {lowest:.2f} cm^-1\n",
-        ]
-        if not ok:
-            lines.append(
-                "  Expected exactly one non-trivial imaginary frequency for "
-                "a first-order transition state.\n"
-            )
-        return ok, lines
     
     def atoms_to_xyz(self, atoms: Atoms) -> str:
         """Convert Atoms object to XYZ format string."""
@@ -623,8 +507,7 @@ class PRFO(JobABC):
     def log_iteration(self, iteration: int, atoms: Atoms, E: float,
                      model_change: float, actual_change: float,
                      rho: Optional[float], trust_radius: float,
-                     norm_mw: float, on_boundary: bool,
-                     hessian_source: Optional[str] = None):
+                     norm_mw: float, on_boundary: bool):
         """
         Log detailed information for current iteration.
         
@@ -727,8 +610,6 @@ class PRFO(JobABC):
             f"Step norm (MW): {norm_mw: .6f}  "
             f"On boundary: {on_boundary}\n"
         )
-        if hessian_source:
-            info_message.append(f"Hessian source: {hessian_source}\n")
         
         log_info(info_message, self.output)
 
@@ -799,6 +680,8 @@ class PRFO(JobABC):
         # Log header
         info_message = [
             f"\nStarting Transition State Search (TS) with RS-PRFO...\n",
+            f"Hessian recalc interval: {self.params.recalc}; "
+            f"update method: {self.params.hessian_update}\n",
             f"Trust radius adaptation: eta_shrink={self.params.eta_shrink}, "
             f"eta_expand={self.params.eta_expand}\n",
             f"Convergence thresholds: "
@@ -807,92 +690,34 @@ class PRFO(JobABC):
             f"dp_max={self.params.dp_max_th:.6f}, "
             f"dp_rms={self.params.dp_rms_th:.6f}\n"
         ]
-        if self.params.hessian_recalc == 1:
-            info_message.append("Hessian policy: exact Hessian every PRFO step\n")
-        else:
-            info_message.append(
-                "Hessian policy: exact Hessian initially and every "
-                f"{self.params.hessian_recalc} accepted PRFO steps; "
-                f"{self.params.hessian_update} updates between recalculations "
-                "(explicit allow_prfo_hessian_update gate enabled)\n"
-            )
         log_info(info_message, self.output)
 
-        calc_mode = getattr(atoms.calc, "hessian", None)
-        if (
-            calc_mode == "numerical"
-            and self._calculator_has_analytic_hessian(atoms.calc)
-            and not bool(self.params.allow_numerical_hessian)
-        ):
-            msg = (
-                "PRFO requires the analytic Hessian for calculators that "
-                "provide one. Remove hessian=numerical for this TS search; "
-                "finite-difference Hessians are only allowed here for "
-                "backends without an analytic Hessian. Expert debugging can "
-                "set allow_numerical_hessian=true."
-            )
-            log_info([f"\nERROR: {msg}\n"], self.output)
-            raise ValueError(msg)
-        if (
-            calc_mode == "numerical"
-            and self._calculator_has_analytic_hessian(atoms.calc)
-            and bool(self.params.allow_numerical_hessian)
-        ):
-            log_info([
-                "\nWARNING: allow_numerical_hessian=true is forcing PRFO to "
-                "use a numerical Hessian even though this calculator provides "
-                "an analytic Hessian. Use only for expert debugging/regression "
-                "workflows; final TS validation will still prefer the analytic "
-                "Hessian when validate_ts_mode=true.\n"
-            ], self.output)
-
-        # Propagate fd_batch_size so FDHessianEvaluator picks it up when
-        # calc.get_hessian dispatches to the numerical (FD-batched) path.
-        # Harmless for analytic Hessian calculators.
-        if self.params.fd_batch_size is not None:
-            atoms.calc.fd_batch_size = self.params.fd_batch_size
-
-        # Initial energy/forces — single calculator invocation, then carried
-        # across outer iterations so the top-of-loop is not a redundant
-        # forward pass on already-evaluated geometry.
-        e_init, f_init = energy_forces_one(atoms.calc, atoms)
-        E_carry = to_numpy_f64(e_init)
-        F_carry = to_numpy_f64(f_init)
-
-        H_cart_cached = None
-        H_cart_cached_source = None
-        force_exact_hessian = True
-
+        H_work = None
+        
         # Main optimization loop
         while iteration < self.params.max_iter:
-            # Current geometry and reference E/F (carried from the previous
-            # iteration's accepted trial, or from the initial evaluation).
+            # Get current geometry and energy/forces
             X = atoms.get_positions().reshape(-1, 3)
-            E_old = to_numpy_f64(E_carry)
-            F_cart = to_numpy_f64(F_carry)
+            E_old = to_numpy_f64(
+                atoms.get_potential_energy(force_consistent=True)
+            )
+            
+            F_cart = to_numpy_f64(atoms.get_forces())
             g_cart = vec1d(-F_cart)
             
-            # Get or update Hessian in Cartesian.  Exact recalculation is
-            # always used for the first step and at the requested interval;
-            # accepted intermediate steps can carry a Bofill-updated Hessian.
-            need_exact_hessian = (
-                H_cart_cached is None
-                or self.params.hessian_recalc == 1
-                or force_exact_hessian
-                or (iteration % self.params.hessian_recalc == 0)
+            need_recalc = (
+                H_work is None
+                or (iteration % self.params.recalc == 0)
             )
-            if need_exact_hessian:
+            if need_recalc:
                 H_cart = to_numpy_f64(calculate_Hessian(atoms))
-                hessian_source = "exact"
-                force_exact_hessian = False
+                if H_cart.ndim == 3 and H_cart.shape[0] == 1:
+                    H_cart = H_cart[0]
+                if H_cart.ndim != 2 or H_cart.shape[0] != H_cart.shape[1]:
+                    raise ValueError(f"Hessian must be square, got {H_cart.shape}")
+                H_work = H_cart.copy()
             else:
-                H_cart = H_cart_cached.copy()
-                hessian_source = H_cart_cached_source or self.params.hessian_update
-
-            if H_cart.ndim == 3 and H_cart.shape[0] == 1:
-                H_cart = H_cart[0]
-            if H_cart.ndim != 2 or H_cart.shape[0] != H_cart.shape[1]:
-                raise ValueError(f"Hessian must be square, got {H_cart.shape}")
+                H_cart = H_work
             
             n3 = H_cart.shape[0]
             if g_cart.size != n3:
@@ -929,7 +754,6 @@ class PRFO(JobABC):
             accepted = False
             max_attempts = 8
             attempts = 0
-            had_reject = False
             
             while not accepted and attempts < max_attempts:
                 attempts += 1
@@ -961,13 +785,10 @@ class PRFO(JobABC):
                 X_new = X.reshape(-1, 3) + s_cart.reshape(-1, 3)
                 atoms.set_positions(X_new)
                 
-                # Trial energy/forces in one calculator invocation. Forces
-                # are carried forward if the trial is accepted; rejected
-                # trials roll back geometry and discard them without any
-                # second refetch.
-                e_new, f_new = energy_forces_one(atoms.calc, atoms)
-                E_new = to_numpy_f64(e_new)
-                F_new_trial = to_numpy_f64(f_new)
+                # New energy
+                E_new = to_numpy_f64(
+                    atoms.get_potential_energy(force_consistent=True)
+                )
                 
                 actual_change = float(E_new - E_old)
                 rho = None
@@ -981,158 +802,73 @@ class PRFO(JobABC):
                 if bad_model and trust_radius > self.params.trust_min * (1.0 + 1e-12):
                     # Reject: rollback geometry, shrink radius, retry
                     atoms.set_positions(X)
-                    reset_calculator_cache(atoms.calc)
-                    had_reject = True
                     trust_radius = max(self.params.trust_min,
                                      0.5 * trust_radius)
                     continue
                 else:
                     # Accept the step
                     accepted = True
-
+                    
                     # Radius adaptation after acceptance
                     if (rho is not None and rho > self.params.eta_expand and
                         on_boundary):
                         trust_radius = min(self.params.trust_max,
                                          2.0 * trust_radius)
-
-                    # Reuse the forces already evaluated at the accepted
-                    # trial geometry.
-                    F_new = F_new_trial
-
-                    # Carry the accepted-trial (E, F) into the next outer
-                    # iteration to avoid a redundant top-of-loop forward.
-                    E_carry = E_new
-                    F_carry = F_new
-
+                    
+                    # Get new forces for convergence check
+                    F_new = to_numpy_f64(atoms.get_forces())
+                    g_new_cart = vec1d(-F_new, n3)
+                    if not need_recalc:
+                        y_cart = g_new_cart - g_cart
+                        if self.params.hessian_update == "bfgs":
+                            H_work = _bfgs_update(H_work, s_cart, y_cart)
+                        else:
+                            H_work = _bofill_update(H_work, s_cart, y_cart)
+                    
                     # Compute convergence metrics (per DOF RMS)
                     dof = s_cart.size
                     atoms.max_dp = abs(s_cart).max()
                     atoms.rms_dp = np.sqrt((s_cart**2).sum() / dof)
                     atoms.max_f = abs(F_new).max()
                     atoms.rms_f = np.sqrt((F_new**2).sum() / dof)
-
-                    next_hessian_source = None
-                    if self.params.hessian_recalc == 1:
-                        H_cart_cached = None
-                        H_cart_cached_source = None
-                    else:
-                        g_new_cart = vec1d(-F_new, n3)
-                        g_new_mw = vec1d(D * g_new_cart, n3)
-                        H_updated, update_ok, update_source = bofill_hessian_update(
-                            H_mw, s_mw, g_mw, g_new_mw
-                        )
-                        S = 1.0 / D
-                        H_cart_cached = (S[:, None] * H_updated) * S[None, :]
-                        H_cart_cached_source = update_source
-                        next_hessian_source = update_source
-                        if not update_ok:
-                            force_exact_hessian = True
-
-                    if had_reject:
-                        # A rejected trial is a local signal that the quadratic
-                        # model was poor; refresh the exact Hessian next step
-                        # rather than blindly trusting an update.
-                        force_exact_hessian = True
-
-                    hessian_log = hessian_source
-                    if next_hessian_source:
-                        hessian_log += f"; next={next_hessian_source}"
-
+                    
                     # Log iteration
                     self.log_iteration(iteration + 1, atoms, E_new,
                                      model_change, actual_change, rho,
-                                     trust_radius, norm_mw, on_boundary,
-                                     hessian_source=hessian_log)
-
+                                     trust_radius, norm_mw, on_boundary)
+                    
                     # Write to trajectory
                     append_xyz_trajectory(traj_file, atoms, energy=E_new,
                                         iteration=iteration + 1)
-
+                    
                     # Check convergence
                     if self.check_convergence(atoms):
-                        ts_ok, ts_lines = self._validate_ts_mode(atoms)
-                        log_info(ts_lines, self.output)
-                        if not ts_ok:
-                            write_xyz(ts_file, atoms, energy=E_new,
-                                      iteration=iteration + 1)
-                            info_message = [
-                                '\n\n' + '-' * 70 + '\n',
-                                f'{"TS Mode Validation Failed".center(70)}\n\n',
-                                f"Wrote stationary structure to: {ts_file}\n",
-                            ]
-                            log_info(info_message, self.output)
-                            raise RuntimeError(
-                                "PRFO force/displacement criteria converged, "
-                                "but TS validation did not find exactly one "
-                                "imaginary mode. The structure is not a "
-                                "first-order transition state."
-                            )
-
                         converged = True
-                        self.normal_termination = True
-                        self.ts_mode_validated = True
                         info_message = [
                             '\n\n' + '-' * 70 + '\n',
                             f'{"Normal Termination".center(70)}\n\n'
                         ]
                         log_info(info_message, self.output)
-
+                        
                         # Write final TS structure
                         write_xyz(ts_file, atoms, energy=E_new,
                                 iteration=iteration + 1)
-
+                        
                         return atoms
-
-            if not accepted:
-                atoms.set_positions(X)
-                reset_calculator_cache(atoms.calc)
-                force_exact_hessian = True
-                H_cart_cached = None
-                H_cart_cached_source = None
-                msg = (
-                    "PRFO failed to accept a step after "
-                    f"{max_attempts} trust-region attempts; geometry was "
-                    "rolled back and the exact Hessian will be refreshed."
-                )
-                log_info([f"\n{msg}\n"], self.output)
-                if trust_radius <= self.params.trust_min * (1.0 + 1e-12):
-                    raise RuntimeError(
-                        "PRFO failed to find an acceptable trust-region "
-                        "step at the minimum trust radius."
-                    )
-                continue
-
+            
             iteration += 1
         
         # Maximum iterations reached
         log_info([f'\n\n{"Maximum Iterations Reached".center(70)}\n\n'],
                 self.output)
         
-        # Write final structure even if not converged. atoms is at the
-        # geometry corresponding to E_carry (last accepted trial or initial
-        # evaluation), so reuse it instead of triggering a redundant forward.
-        E_final = float(E_carry)
+        # Write final structure even if not converged
+        E_final = atoms.get_potential_energy(force_consistent=True)
         write_xyz(ts_file, atoms, energy=E_final, iteration=iteration)
-
-        try:
-            ts_ok, ts_lines = self._validate_ts_mode(atoms)
-            log_info(ts_lines, self.output)
-        except Exception as exc:
-            ts_ok = False
-            log_info([
-                "\nTS mode validation after maximum iterations failed to run: "
-                f"{exc}\n",
-            ], self.output)
         
-        final_label = (
-            "final structure (not converged; TS mode present)"
-            if ts_ok and self.params.validate_ts_mode
-            else "final structure (not a confirmed TS)"
-        )
         log_info([
             f"\nWrote trajectory to: {traj_file}\n",
-            f"Wrote {final_label} to: {ts_file}\n"
+            f"Wrote final TS structure to: {ts_file}\n"
         ], self.output)
         
         return atoms

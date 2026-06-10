@@ -10,24 +10,6 @@ class CommandControl:
     All other settings are global parameters.
     """
 
-    SUPPORTED_MODELS = {
-        "ani2x",
-        "ani1x",
-        "ani1ccx",
-        "ani1xnr",
-        "maceoff23s",
-        "maceoff23m",
-        "maceoff23l",
-        "egret",
-        "aimnet2",
-        "aimnet2nse",
-        "uma",
-        "maceomol",
-        "macepols",
-        "macepolm",
-        "macepoll",
-    }
-
     SUPPORTED_TASKS = {"sp", "opt", "ts", "scan", "freq", "irc", "md"}
 
     SUPPORTED_UMA_TASKS = {"omol", "omat", "oc20", "odac", "omc", "oc22", "oc25"}
@@ -35,7 +17,6 @@ class CommandControl:
     SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
     UMA_DEFAULT_SIZE = "uma-s-1p1"  # keep in sync with _uma_calculator.UMA_DEFAULT_SIZE
     SUPPORTED_HESSIAN_MODES = {"analytic", "numerical"}
-    COMMON_MODEL_OPTION_PARAMS = {"hessian", "batch_size"}
 
     DEFAULTS = {
         "model": None,
@@ -44,6 +25,7 @@ class CommandControl:
         "sp": {},
         "opt": {},
         "ts": {},
+        "irc": {"method": "gs"},
         "scan": {},
         "freq": {
             "method": "mw",
@@ -83,7 +65,6 @@ class CommandControl:
             "traj_format": "xyz",
             "debug": False,
         },
-        "solv": {"solvent": "water", "explicit": None},
     }
 
     IMPLEMENTATION_MAP = {
@@ -104,7 +85,6 @@ class CommandControl:
         "pbc",
         "solv",
         "level",
-        "batch_size",
     }
     LBFGS_PARAMS = {
         "memory",
@@ -124,7 +104,6 @@ class CommandControl:
         "evals_eps",
         "mu_margin",
         "max_bisect_it",
-        "fd_batch_size",
         "verbose",
         "log_final_paths",
     }
@@ -151,33 +130,43 @@ class CommandControl:
         "cg": SDCG_PARAMS,
         "sdcg": SDCG_PARAMS,
     }
-    # TS method allowed-params are introspected lazily from the dataclasses in
-    # maple.function.dispatcher.ts.algorithm. Keeping this list as fully-qualified
-    # (module, class) pairs avoids drift between command_control's accept set and
-    # the actual *Params dataclass each algorithm consumes. Importing the
-    # dispatcher modules is deferred until validation is actually run so the
-    # parser keeps its lightweight import cost.
-    _TS_METHOD_PARAM_SOURCES = {
-        "prfo":    ("maple.function.dispatcher.ts.algorithm.PRFO",    "PRFOParams"),
-        "neb":     ("maple.function.dispatcher.ts.algorithm.neb",     "NEBParams"),
-        "string":  ("maple.function.dispatcher.ts.algorithm.string",  "GSMParams"),
-        "dimer":   ("maple.function.dispatcher.ts.algorithm.dimer",   "DimerParams"),
-        "autoneb": ("maple.function.dispatcher.ts.algorithm.autoneb", "AutoNEBParams"),
-    }
-    _TS_REFINE_PARAM_SOURCES = {
-        "nebts":    ("maple.function.dispatcher.ts.algorithm.PRFO", "PRFOParams"),
-        "stringts": ("maple.function.dispatcher.ts.algorithm.PRFO", "PRFOParams"),
-    }
-    _ts_method_param_cache: Dict[str, set[str]] = {}
     SCAN_PARAMS = {"method", "mode"}
-    SOLV_PARAMS = {"method", "implicit", "explicit", "radius", "clash_cutoff", "fix_dis"}
-    MODEL_OPTION_PARAMS = {
-        "uma": {"task", "size", "hessian", "inference", "batch_size"},
-        "macepols": {"model_path", "hessian", "batch_size"},
-        "macepolm": {"model_path", "hessian", "batch_size"},
-        "macepoll": {"model_path", "hessian", "batch_size"},
+    SOLV_PARAMS = {
+        "method",
+        "implicit",
+        "explicit",
+        "solvent",
+        "radius",
+        "padding",
+        "shape",
+        "box_size",
+        "density",
+        "density_scale",
+        "number",
+        "clash_method",
+        "tolerance",
+        "vdw_scale",
+        "vdw_fallback_radius",
+        "seed",
+        "randomize",
+        "experimental",
+        "write_shell",
+        "shell_cutoff",
+        "solvent_pdb",
+        # Compatibility aliases / explicit rejections.
+        "clash_cutoff",
+        "write_cell",
     }
-    VALIDATED_TASK_PARAMS = {"opt", "scan", "md", "ts"}
+    SOLV_REMOVED_PARAMS = {
+        "fix_dis": (
+            "Explicit solvent 'fix_dis' has been removed: clusters are now "
+            "non-periodic and no atom constraints are written. Use "
+            "write_shell=true with shell_cutoff=<Å> to export a solute-centred "
+            "shell instead."
+        ),
+    }
+
+    VALIDATED_TASK_PARAMS = {"opt", "scan", "md"}
 
     TS_REFINE_MAP = {
         "neb": {"cineb", "nebts"},
@@ -292,22 +281,13 @@ class CommandControl:
 
     @staticmethod
     def _parse_nested(target: Dict[str, Any], inner: str) -> None:
-        seen = set()
         for kv in inner.split(","):
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
-                norm_key = CommandControl._normalize_key(k)
-                if norm_key in seen:
-                    raise ValueError(f"Duplicate nested parameter: '{norm_key}'.")
-                seen.add(norm_key)
-                target[norm_key] = CommandControl._auto_cast(v.strip())
+                target[CommandControl._normalize_key(k)] = CommandControl._auto_cast(v.strip())
             else:
-                norm_key = CommandControl._normalize_key(kv)
-                if norm_key in seen:
-                    raise ValueError(f"Duplicate nested parameter: '{norm_key}'.")
-                seen.add(norm_key)
-                target[norm_key] = True
+                target[CommandControl._normalize_key(kv)] = True
 
     @classmethod
     def _parse_pbc(cls, inner: str, output_path: Optional[str]) -> List[float]:
@@ -347,14 +327,6 @@ class CommandControl:
             pass
         return value
 
-    @staticmethod
-    def _batch_size_equivalent(left: Any, right: Any) -> bool:
-        def norm(value: Any) -> Any:
-            if isinstance(value, str):
-                return value.strip().lower()
-            return value
-        return norm(left) == norm(right)
-
     @classmethod
     def _load_mdp(
         cls,
@@ -390,36 +362,21 @@ class CommandControl:
             params["remove_com"] = True
 
         if "model" in params and params["model"] is not None:
-            params["model"] = (
-                str(params["model"])
-                .lower()
-                .replace("_", "")
-                .replace("-", "")
-                .replace(" ", "")
-                .replace("(", "")
-                .replace(")", "")
-            )
+            params["model"] = str(params["model"]).strip().lower()
 
         model_options = params.get("model_options")
-        if "batch_size" in params:
-            batch_size = params.pop("batch_size")
-            if not isinstance(model_options, dict):
-                model_options = {}
-            elif (
-                "batch_size" in model_options
-                and not cls._batch_size_equivalent(model_options["batch_size"], batch_size)
-            ):
-                raise ValueError(
-                    "Conflicting batch_size values: use either #batch_size or "
-                    "#model(...batch_size=...), not both with different values."
-                )
-            model_options.setdefault("batch_size", batch_size)
-            params["model_options"] = model_options
-
         if isinstance(model_options, dict):
             for key in ("task", "size", "hessian", "inference"):
                 if key in model_options and isinstance(model_options[key], str):
                     model_options[key] = model_options[key].lower()
+
+        solv_options = params.get("solv")
+        if isinstance(solv_options, dict):
+            for key in ("shape", "explicit", "method", "implicit", "solvent", "clash_method"):
+                if key in solv_options and isinstance(solv_options[key], str):
+                    solv_options[key] = solv_options[key].lower()
+            if solv_options.get("shape") == "box":
+                solv_options["shape"] = "cube"
 
         if "ensemble" in params and isinstance(params["ensemble"], str):
             params["ensemble"] = params["ensemble"].lower()
@@ -466,27 +423,6 @@ class CommandControl:
         raise ValueError(msg)
 
     @classmethod
-    def _ts_method_param_names(cls, source_key: str, sources: Dict[str, tuple]) -> set[str]:
-        """Lazy-load TS dataclass fields keyed by ``source_key``.
-
-        Sources are introspected the first time a TS validation runs, so the
-        parser does not pay the dispatcher import cost on non-TS tasks. The
-        cached set is the single source of truth for accepted TS parameter
-        names; the dataclass itself is the authoritative list.
-        """
-        cached = cls._ts_method_param_cache.get(source_key)
-        if cached is not None:
-            return cached
-        module_path, class_name = sources[source_key]
-        import importlib
-        import dataclasses
-        module = importlib.import_module(module_path)
-        params_cls = getattr(module, class_name)
-        names = {f.name for f in dataclasses.fields(params_cls)}
-        cls._ts_method_param_cache[source_key] = names
-        return names
-
-    @classmethod
     def _allowed_task_params(cls, task: str, params: Dict[str, Any]) -> Optional[set[str]]:
         if task not in cls.VALIDATED_TASK_PARAMS:
             return None
@@ -494,37 +430,6 @@ class CommandControl:
         allowed = set(cls.GLOBAL_PARAMS)
         if task == "md":
             allowed.update(cls.DEFAULTS["md"])
-            return allowed
-
-        if task == "ts":
-            allowed.add("method")
-            allowed.add("refine")
-            method = str(params.get("method") or "").lower()
-            if method in cls._TS_METHOD_PARAM_SOURCES:
-                allowed.update(
-                    cls._ts_method_param_names(method, cls._TS_METHOD_PARAM_SOURCES)
-                )
-            else:
-                # Unknown method falls through to method-conflict checks downstream;
-                # accept the union of all TS method params so the unknown-param
-                # gate cannot fire on legitimate fields before that check.
-                for key in cls._TS_METHOD_PARAM_SOURCES:
-                    allowed.update(
-                        cls._ts_method_param_names(key, cls._TS_METHOD_PARAM_SOURCES)
-                    )
-
-            refine = params.get("refine")
-            if isinstance(refine, str):
-                refine_key = refine.lower()
-                if refine_key in cls._TS_REFINE_PARAM_SOURCES:
-                    allowed.update(
-                        cls._ts_method_param_names(refine_key, cls._TS_REFINE_PARAM_SOURCES)
-                    )
-
-            # Method aliases participate in `_resolve_method_alias` upstream;
-            # accept them at this layer so the unknown-param gate does not fire
-            # before the alias is collapsed into `method`.
-            allowed.update(cls.IMPLEMENTATION_MAP["ts"])
             return allowed
 
         method = str(params.get("method") or "lbfgs").lower()
@@ -549,19 +454,6 @@ class CommandControl:
                 if key not in allowed:
                     cls._raise_unknown_param(output_path, context, key, allowed)
 
-        model = params.get("model")
-        model_options = params.get("model_options")
-        if isinstance(model_options, dict):
-            allowed_model_options = cls.MODEL_OPTION_PARAMS.get(
-                model, cls.COMMON_MODEL_OPTION_PARAMS
-            )
-            context = f"{model or 'model'} option"
-            for key in model_options:
-                if key not in allowed_model_options:
-                    cls._raise_unknown_param(
-                        output_path, context, key, allowed_model_options
-                    )
-
         if "solv" in params:
             solv_params = params["solv"]
             if not isinstance(solv_params, dict):
@@ -569,19 +461,344 @@ class CommandControl:
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             for key in solv_params:
+                if key in cls.SOLV_REMOVED_PARAMS:
+                    msg = cls.SOLV_REMOVED_PARAMS[key]
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
                 if key not in cls.SOLV_PARAMS:
                     cls._raise_unknown_param(
                         output_path, "solvation", key, cls.SOLV_PARAMS
                     )
 
     @classmethod
+    def _validate_solvation(
+        cls, params: Dict[str, Any], task: str, output_path: Optional[str]
+    ) -> None:
+        solv_params = params.get("solv")
+        if not isinstance(solv_params, dict):
+            return
+
+        solvent_alias = solv_params.pop("solvent", None)
+        if solvent_alias is not None:
+            explicit = solv_params.get("explicit")
+            implicit = solv_params.get("implicit")
+            if explicit is None and implicit is None:
+                # Backward-compatible interpretation:
+                #   #solv(method=gbsa, solvent=water) -> implicit solvent
+                #   #solv(solvent=water)              -> explicit solvent
+                target = "implicit" if solv_params.get("method") else "explicit"
+                solv_params[target] = solvent_alias
+            elif solvent_alias not in {explicit, implicit}:
+                msg = (
+                    "Conflicting solvation alias 'solvent': use explicit=<name> "
+                    "and/or implicit=<name> directly when they differ."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        for key in ("randomize", "write_shell", "experimental"):
+            if key in solv_params and not isinstance(solv_params[key], bool):
+                msg = f"Solvation {key} must be 'true' or 'false'."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        method = solv_params.get("method")
+        explicit = solv_params.get("explicit")
+        implicit = solv_params.get("implicit")
+
+        if method is not None:
+            method = str(method).lower()
+            solv_params["method"] = method
+            if method != "gbsa":
+                msg = "Implicit solvation method must be 'gbsa'."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        if explicit is not None and implicit is not None:
+            msg = "Use either explicit=<solvent> or implicit=<solvent>, not both."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if implicit is not None:
+            if method != "gbsa":
+                msg = "Implicit solvation requires method=gbsa."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if str(implicit).lower() in {"", "none"}:
+                msg = "Implicit solvation requires a real solvent name, not 'none'."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if solv_params.get("experimental") is not True:
+                msg = (
+                    "Implicit GB-polar/QEq solvation is experimental and "
+                    "energy-only; add experimental=true in #solv(...) to "
+                    "request it explicitly."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if task != "sp":
+                msg = (
+                    "Implicit GB-polar/QEq solvation is currently energy-only "
+                    "and may be used only with task 'sp'."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if params.get("verbose", 0) >= 1:
+                msg = (
+                    "Implicit GB-polar/QEq solvation is energy-only and supports "
+                    "only #sp(verbose=0); verbose=1 requests gradients/forces."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if "pbc" in params:
+                msg = "Implicit GB-polar/QEq solvation is non-periodic; remove #pbc."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            explicit_only = {
+                "radius",
+                "padding",
+                "shape",
+                "box_size",
+                "density",
+                "density_scale",
+                "number",
+                "clash_method",
+                "tolerance",
+                "vdw_scale",
+                "vdw_fallback_radius",
+                "seed",
+                "randomize",
+                "write_shell",
+                "shell_cutoff",
+                "solvent_pdb",
+                "clash_cutoff",
+                "write_cell",
+            }
+            conflicts = sorted(key for key in explicit_only if key in solv_params)
+            if conflicts:
+                msg = (
+                    "Explicit-solvent options cannot be combined with implicit "
+                    f"GB-polar solvation: {', '.join(conflicts)}."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            return
+
+        if method is not None:
+            msg = "method=gbsa requires implicit=<solvent>; omit method for explicit solvent."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if "experimental" in solv_params:
+            msg = "experimental=true is only valid with method=gbsa, implicit=<solvent>."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if explicit is None:
+            if solv_params:
+                msg = "Solvation requires either explicit=<solvent> or implicit=<solvent>."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            return
+
+        if "pbc" in params:
+            msg = (
+                "Explicit solvent clusters are non-periodic coordinate-only clusters; "
+                "remove #pbc or use a periodic solvent backend."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if "write_cell" in solv_params:
+            msg = (
+                "Explicit solvent clusters are non-periodic; "
+                "write_cell/PBC output is not supported."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        shape = str(solv_params.get("shape", "sphere")).lower()
+        if shape == "box":
+            shape = "cube"
+        solv_params["shape"] = shape
+        if shape not in {"sphere", "cube"}:
+            msg = "Explicit solvent shape must be 'sphere' or 'cube'."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if "seed" in solv_params and type(solv_params["seed"]) is not int:
+            msg = (
+                "Explicit solvent seed must be an integer; "
+                "use seed=-1 for non-reproducible sampling."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if "number" in solv_params and (
+            type(solv_params["number"]) is not int or solv_params["number"] < 0
+        ):
+            msg = "Explicit solvent number must be an integer >= 0."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        numeric_keys = (
+            "radius",
+            "padding",
+            "box_size",
+            "density",
+            "density_scale",
+            "tolerance",
+            "vdw_scale",
+            "vdw_fallback_radius",
+            "shell_cutoff",
+            "clash_cutoff",
+        )
+        for key in numeric_keys:
+            if key in solv_params and (
+                isinstance(solv_params[key], bool)
+                or not isinstance(solv_params[key], (int, float))
+            ):
+                msg = f"Explicit solvent {key} must be numeric."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        if "solvent_pdb" in solv_params:
+            if (
+                not isinstance(solv_params["solvent_pdb"], str)
+                or not solv_params["solvent_pdb"].strip()
+            ):
+                msg = "Explicit solvent solvent_pdb must be a non-empty path string."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        if "clash_method" not in solv_params:
+            if "tolerance" in solv_params or "clash_cutoff" in solv_params:
+                solv_params["clash_method"] = "distance"
+            else:
+                solv_params["clash_method"] = "vdw"
+
+        if solv_params["clash_method"] not in {"vdw", "distance"}:
+            msg = "Explicit solvent clash_method must be 'vdw' or 'distance'."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if "padding" in solv_params and solv_params["padding"] <= 0:
+            msg = "Explicit solvent padding must be > 0."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if shape == "sphere":
+            if "padding" in solv_params and "radius" in solv_params:
+                msg = (
+                    "Explicit solvent padding derives the sphere radius from the "
+                    "solute envelope; do not combine padding with radius."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            radius = solv_params.get("radius", 10.0)
+            if radius <= 0:
+                msg = "Explicit solvent radius must be > 0 for shape=sphere."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if "padding" not in solv_params:
+                solv_params.setdefault("radius", radius)
+            if "box_size" in solv_params:
+                msg = "Explicit solvent box_size is only valid for shape=cube."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        else:
+            if "radius" in solv_params:
+                msg = "Explicit solvent radius is only valid for shape=sphere."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if "padding" in solv_params and "box_size" in solv_params:
+                msg = (
+                    "Explicit solvent padding derives the cube box_size from the "
+                    "solute envelope; do not combine padding with box_size."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if "padding" not in solv_params and "box_size" not in solv_params:
+                msg = "Explicit solvent shape=cube requires box_size."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if "box_size" in solv_params and solv_params["box_size"] <= 0:
+                msg = "Explicit solvent box_size must be > 0."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+        if "density" in solv_params and solv_params["density"] <= 0:
+            msg = "Explicit solvent density must be > 0."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if "density_scale" in solv_params and solv_params["density_scale"] <= 0:
+            msg = "Explicit solvent density_scale must be > 0."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if solv_params["clash_method"] == "vdw":
+            if "tolerance" in solv_params or "clash_cutoff" in solv_params:
+                msg = (
+                    "Explicit solvent tolerance/clash_cutoff are only valid "
+                    "with clash_method=distance."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if "vdw_scale" in solv_params and solv_params["vdw_scale"] <= 0:
+                msg = "Explicit solvent vdw_scale must be > 0."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if (
+                "vdw_fallback_radius" in solv_params
+                and solv_params["vdw_fallback_radius"] <= 0
+            ):
+                msg = "Explicit solvent vdw_fallback_radius must be > 0."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        elif "tolerance" in solv_params and solv_params["tolerance"] <= 0:
+            msg = "Explicit solvent tolerance must be > 0."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if solv_params["clash_method"] == "distance" and (
+            "vdw_scale" in solv_params or "vdw_fallback_radius" in solv_params
+        ):
+            msg = (
+                "Explicit solvent vdw_scale/vdw_fallback_radius are only valid "
+                "with clash_method=vdw."
+            )
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if (
+            solv_params["clash_method"] == "distance"
+            and "clash_cutoff" in solv_params
+            and solv_params["clash_cutoff"] <= 0
+        ):
+            msg = "Explicit solvent clash_cutoff must be > 0."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+
+        if solv_params.get("write_shell", False):
+            if "shell_cutoff" not in solv_params:
+                msg = "Explicit solvent write_shell=true requires shell_cutoff."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if solv_params["shell_cutoff"] <= 0:
+                msg = "Explicit solvent shell_cutoff must be > 0."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+    @classmethod
     def _validate(cls, params: Dict[str, Any], task: str, output_path: Optional[str]) -> None:
         model = params.get("model")
-        if model is not None and model not in cls.SUPPORTED_MODELS:
-            cls._log_error(output_path, f"Unsupported model: {model}")
-            raise ValueError(f"Unsupported model: '{model}'.")
-
+        # Calculator names and class-declared model_options are registry-owned:
+        # SetCalculator imports builtins, honors module= / MAPLE_CALCULATOR_PLUGINS,
+        # and validates class OPTION_KEYS before construction.
         cls._validate_unknown_params(params, task, output_path)
+        cls._validate_solvation(params, task, output_path)
 
         if "gpuid" in params and params["gpuid"] is not None and not isinstance(params["gpuid"], int):
             cls._log_error(output_path, "GPU ID must be an integer.")
@@ -674,29 +891,6 @@ class CommandControl:
             if "pbc" in params and task_opt == "omol":
                 cls._log_error(output_path, "PBC is incompatible with UMA task='omol'.")
                 raise ValueError("PBC is incompatible with UMA task='omol'.")
-
-        batch_size = model_options.get("batch_size")
-        if batch_size is not None:
-            batch_auto = isinstance(batch_size, str) and batch_size.lower() == "auto"
-            if not batch_auto and (type(batch_size) is not int or batch_size <= 0):
-                msg = "model batch_size must be a positive integer or 'auto'."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if "pbc" in params:
-                msg = (
-                    "PBC and batch_size cannot be combined yet; "
-                    "PBC batch acceleration is not supported."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-
-        if "fd_batch_size" in params:
-            fd_batch_size = params["fd_batch_size"]
-            fd_auto = isinstance(fd_batch_size, str) and fd_batch_size.lower() == "auto"
-            if not fd_auto and (type(fd_batch_size) is not int or fd_batch_size <= 0):
-                msg = "fd_batch_size must be a positive integer or 'auto'."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
 
         hessian_mode = model_options.get("hessian")
         if hessian_mode is not None and hessian_mode not in cls.SUPPORTED_HESSIAN_MODES:

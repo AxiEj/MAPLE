@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib
 import os
 import warnings
@@ -13,20 +15,21 @@ from ase.calculators.calculator import all_changes
 try:
     from fairchem.core import pretrained_mlip
     from fairchem.core._config import CACHE_DIR
-    from fairchem.core.calculate.ase_calculator import FAIRChemCalculator, UMATask
-    from fairchem.core.datasets.atomic_data import AtomicData, atomicdata_list_to_batch
+    from fairchem.core.calculate.ase_calculator import AtomicData, FAIRChemCalculator, UMATask
     from fairchem.core.units.mlip_unit import load_predict_unit
     from huggingface_hub import hf_hub_download
     from omegaconf import OmegaConf
 except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
-from .._batch_types import BatchResult
-from .._batch_utils import atoms_list_has_pbc
-from .._metadata import coerce_int_metadata, integer_info
+from ..calculator_base import (
+    EV2HARTREE,
+    init_implicit_solvent,
+    numerical_hessian_from_atoms,
+    reject_implicit_solvent_derivatives,
+    register_calculator,
+)
 
-
-EV2HARTREE = 1.0 / 27.211386245988
 
 UMA_DEFAULT_SIZE = "uma-s-1p1"
 UMA_MODELS_MAP = {
@@ -48,36 +51,49 @@ SUPPORTED_UMA_INFERENCE = {"default", "turbo"}
 # default regardless.
 UMA_INFERENCE_SETTINGS = "default"
 UMA_CPU_INFERENCE_SETTINGS = "default"
-UMA_BATCH_INFERENCE_SETTINGS = "default"
 
 
+@register_calculator
 class UMACalculator(FAIRChemCalculator):
-    """
-    UMA calculator with MAPLE-specific unit conversion and Hessian support.
+    """UMA calculator with MAPLE-specific unit conversion and Hessian support.
 
-    Explicit `task=` is respected. When `task` is omitted, MAPLE keeps the
-    historical convenience behavior of inferring `omol` for non-periodic
-    systems and `omat` for periodic systems.
+    Does NOT inherit CalcABC — UMA already extends third-party FAIRChemCalculator.
+    Satisfies the MAPLE calculator protocol via attribute presence (class
+    capability attrs + calculate + get_hessian + get_hvp where required).
+
+    Explicit `task=` is respected. When `task` is omitted, MAPLE only infers
+    `omol` for non-periodic systems; periodic UMA requires an explicit FAIR-Chem
+    task because `pbc -> omat` is too broad for production use.
     """
 
-    supported_hessian_modes = ("numerical",)
-    supports_batch_energy_forces = True
-    supports_analytic_hessian = False
-    supports_hvp = False
-    batch_memory_model = "disconnected_graph"
-    # FAIR-Chem UMA graph memory depends on atom count, edge count, task head,
-    # and predictor settings.  Keep auto batching conservative by default; users
-    # can still choose an explicit integer batch_size after local parity/OOM
-    # testing, but "auto" should not discover the cap by crashing workers.
-    auto_batch_hard_cap = 8
-    auto_path_batch_cap = None
-    auto_fd_batch_cap = None
-    auto_hvp_batch_cap = None
-    fd_hessian_antisymmetry_threshold = 1e-5
-    fd_hessian_antisymmetry_action = "warn"
+    MODEL_NAMES = ("uma",)
+    MODEL_ENERGY_UNIT = "eV"
+    SUPPORTED_HESSIAN_MODES = ("numerical",)
+    SUPPORTS_CHARGE_MULT = True
+    SUPPORTS_PBC = True
+    CHECKPOINT_FILENAME = None
+    REQUIRES_LOCAL_MODEL_FILE = False
+    OPTION_KEYS = (
+        'task',
+        'size',
+        'checkpoint_path',
+        'inference',
+        'overrides',
+    )
+    MODEL_PATH_OPTION = 'checkpoint_path'
+
+    @classmethod
+    def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
+        return {
+            'task': options.get('task'),
+            'size': options.get('size'),
+            'checkpoint_path': options.get('checkpoint_path') or resolved_model_path,
+            'inference_settings': options.get('inference'),
+            'overrides': options.get('overrides'),
+        }
 
     @staticmethod
-    def _normalize_device(device: torch.device | str | None) -> str:
+    def _normalize_device(device):
         # FAIR Chemistry's MLIP unit accepts only "cpu" or "cuda".
         # Keep UMA's historical behavior: CUDA-like requests use the CUDA
         # backend token, while other strings fall back to CPU.
@@ -89,15 +105,14 @@ class UMACalculator(FAIRChemCalculator):
     @staticmethod
     def _build_predictor(
         checkpoint: str,
-        overrides: dict | None,
+        overrides,
         device: str,
-        checkpoint_path: str | None = None,
-        inference_settings: str | None = None,
+        checkpoint_path=None,
+        inference_settings=None,
     ):
         device = UMACalculator._normalize_device(device)
-        # Turbo selects FAIR Chemistry's fast GPU execution path only when the
-        # user explicitly asks for it; CPU uses the general-purpose backend to
-        # avoid Triton GPU kernels on CPU tensors.
+        # Turbo selects FAIR Chemistry's fast GPU execution path; CPU uses the
+        # general-purpose backend to avoid Triton GPU kernels on CPU tensors.
         if device == "cpu":
             if inference_settings == "turbo":
                 warnings.warn(
@@ -201,15 +216,15 @@ class UMACalculator(FAIRChemCalculator):
 
     def __init__(
         self,
-        device: torch.device,
+        device,
         model: str = "uma",
-        overrides: dict | None = None,
-        implicit: Literal["gbsa", "none"] = "gbsa",
+        overrides=None,
+        implicit: Literal["gbsa", "none"] = "none",
         solvent: str = "none",
-        task: str | None = None,
-        size: str | None = None,
-        checkpoint_path: str | None = None,
-        inference_settings: str | None = None,
+        task=None,
+        size=None,
+        checkpoint_path=None,
+        inference_settings=None,
     ):
         if size is not None:
             size = str(size).lower()
@@ -244,355 +259,139 @@ class UMACalculator(FAIRChemCalculator):
 
         self.device = torch.device(device)
         self._predictor_unit = predictor
-        self._batch_predictor_unit = None
-        self._warned_batch_predictor_fallback = False
-        self._checkpoint = checkpoint
-        self._checkpoint_path = checkpoint_path
-        self._overrides = overrides
         self._auto_task = task is None
         self.hessian = "numerical"
 
-        if implicit == "gbsa" and solvent != "none":
-            from ..extra_correction import GBSA, QEqTorch
-
-            self.solvent_correction = GBSA(solvent=solvent, device=self.device)
-            self.chargecalc = QEqTorch(device=self.device)
-        else:
-            self.solvent_correction = None
+        # Shared helper sets self.solvent_correction (and self.chargecalc when
+        # applicable); identical contract to CalcABC.implicit_solv_init.
+        init_implicit_solvent(self, implicit, solvent, self.device)
 
     def _set_task_from_atoms(self, atoms: Atoms) -> None:
         if not self._auto_task:
             return
 
-        task = self._task_for_atoms(atoms)
+        if any(atoms.pbc):
+            raise ValueError(
+                "UMA periodic calculations require an explicit FAIR-Chem task "
+                "(for example task=omat, oc20, oc22, oc25, omc, or odac). "
+                "MAPLE no longer silently maps every periodic system to task='omat'."
+            )
+
+        task = "omol"
         if task == self.task_name:
             return
 
-        self._set_current_task(task)
-
-    def _task_for_atoms(self, atoms: Atoms) -> str:
-        if not self._auto_task:
-            return self.task_name
-        return "omat" if any(atoms.pbc) else "omol"
-
-    def _set_current_task(self, task: str) -> None:
         self._task = UMATask(task)
-        self.a2g = partial(AtomicData.from_ase, **self._a2g_kwargs(task, self._predictor_unit))
         self._task_name = task
         self.implemented_properties = [
-            t.property for t in self._predictor_unit.dataset_to_tasks[self.task_name]
+            task_obj.property for task_obj in self.predictor.dataset_to_tasks[self.task_name]
         ]
         if "energy" in self.implemented_properties:
             self.implemented_properties.append("free_energy")
 
-    @staticmethod
-    def _a2g_kwargs(task: str, predictor) -> dict:
-        settings = predictor.inference_settings
-        if settings.external_graph_gen:
+        if self._predictor_unit.inference_settings.external_graph_gen:
             r_edges, max_neigh = True, 300
         else:
             r_edges, max_neigh = False, None
 
-        return dict(
+        self.a2g = partial(
+            AtomicData.from_ase,
             task_name=task,
             r_edges=r_edges,
             r_data_keys=["spin", "charge"],
             max_neigh=max_neigh,
             radius=6.0,
-            target_dtype=settings.base_precision_dtype,
+            target_dtype=self._predictor_unit.inference_settings.base_precision_dtype,
         )
 
-    @staticmethod
-    def _charge_spin_metadata(atoms: Atoms) -> tuple[int, int]:
-        charge = integer_info(atoms, "charge", 0, min_value=-100, max_value=100)
-        if "mult" in atoms.info:
-            # MAPLE readers historically store spin quantum number S as
-            # (multiplicity - 1) / 2, which can be half-integer for even
-            # multiplicities. FAIR-Chem wants spin multiplicity, so the MAPLE
-            # `mult` field is authoritative and any legacy `spin` value is
-            # overwritten in _prepare_atoms_metadata().
-            multiplicity = integer_info(atoms, "mult", 1, min_value=1, max_value=100)
-            return charge, multiplicity
+    def _validate_task_atoms_compatibility(self, atoms: Atoms) -> None:
+        if not any(atoms.pbc):
+            return
 
-        if "spin" in atoms.info:
-            # FAIR-Chem uses spin multiplicity for OMol.  Preserve MAPLE's
-            # historical behavior for spin-only metadata: spin=0 means no
-            # explicit open-shell request and maps to the singlet default.
-            spin = coerce_int_metadata(
-                atoms.info["spin"],
-                "atoms.info['spin']",
-                min_value=0,
-                max_value=100,
-            )
-            multiplicity = 1 if spin == 0 else spin
-        else:
-            multiplicity = 1
-        return charge, multiplicity
-
-    @staticmethod
-    def _has_open_shell_metadata(atoms: Atoms) -> bool:
-        if "mult" in atoms.info:
-            return integer_info(atoms, "mult", 1, min_value=1, max_value=100) != 1
-        if "spin" in atoms.info:
-            # For non-OMol heads FAIR-Chem expects neutral spin=0 metadata.
-            # A positive spin value may be an OMol singlet multiplicity, but it
-            # is still the wrong head contract here, so MAPLE rejects it.
-            spin = coerce_int_metadata(
-                atoms.info["spin"],
-                "atoms.info['spin']",
-                min_value=0,
-                max_value=100,
-            )
-            return spin != 0
-        return False
-
-    @staticmethod
-    def _validate_task_atoms_compatibility(atoms: Atoms, task: str) -> None:
-        # Upstream permits this with caution; MAPLE fails closed because the
-        # OMol head is trained for aperiodic molecules, while PBC workloads have
-        # dedicated UMA domain heads.
-        if task == "omol" and any(atoms.pbc):
+        if self.task_name == "omol":
             raise ValueError(
-                "UMA task='omol' is molecular and does not support PBC; "
-                f"choose one of {sorted(PERIODIC_UMA_TASKS)} for periodic systems."
+                "UMA task='omol' is molecular and must not be used with periodic atoms. "
+                "Use an explicit periodic/domain task such as task=omat, oc20, oc22, "
+                "oc25, omc, or odac after confirming the system domain."
             )
 
+        if self.task_name not in PERIODIC_UMA_TASKS:
+            raise ValueError(
+                f"UMA task='{self.task_name}' is not registered as a MAPLE periodic task; "
+                f"supported periodic tasks: {sorted(PERIODIC_UMA_TASKS)}."
+            )
+
+    def _validate_charge_spin_task_compatibility(self, atoms: Atoms) -> tuple[int, int]:
+        charge = self._integer_info(atoms, "charge", 0)
+        mult = self._integer_info(atoms, "mult", 1)
+        has_charge = charge != 0
+        has_open_shell = mult != 1
+
+        if self.task_name == "omol":
+            if has_charge or has_open_shell:
+                message = (
+                    "UMA omol charged/open-shell inputs are passed through to FAIR-Chem, "
+                    "but MAPLE has not yet accepted golden numerical tolerances for these "
+                    "states; compare against FAIR-Chem/reference calculations before "
+                    "production use."
+                )
+                warnings.warn(message, RuntimeWarning, stacklevel=2)
+            return charge, mult
+
+        if has_charge or has_open_shell:
+            raise ValueError(
+                f"UMA task='{self.task_name}' does not use charge/spin according to "
+                "FAIR-Chem's current calculator contract. Remove atoms.info['charge']/"
+                "atoms.info['mult'] or use task='omol' for molecular charged/open-shell "
+                "calculations."
+            )
+
+        return charge, mult
+
+    @staticmethod
+    def _integer_info(atoms: Atoms, key: str, default: int) -> int:
+        value = atoms.info.get(key, default)
         try:
-            charge = integer_info(atoms, "charge", 0, min_value=-100, max_value=100)
-            open_shell = UMACalculator._has_open_shell_metadata(atoms)
-        except ValueError as exc:
-            if task != "omol":
-                raise ValueError(
-                    f"UMA task='{task}' does not use charge/spin according to "
-                    "FAIR-Chem's current calculator contract. Remove "
-                    "atoms.info['charge'/'mult'/'spin'] or use task='omol' for "
-                    "charged/open-shell molecular calculations. "
-                    f"Invalid metadata: {exc}"
-                ) from exc
-            raise
+            numeric_value = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"UMA requires integer atoms.info['{key}']; got {value!r}.") from exc
+        if not numeric_value.is_integer():
+            raise ValueError(f"UMA requires integer atoms.info['{key}']; got {value!r}.")
+        return int(numeric_value)
 
-        if task != "omol" and (charge != 0 or open_shell):
-            raise ValueError(
-                f"UMA task='{task}' does not use charge/spin according to "
-                "FAIR-Chem's current calculator contract. Remove "
-                "atoms.info['charge'/'mult'/'spin'] or use task='omol' for "
-                "charged/open-shell molecular calculations."
-            )
-
-    @staticmethod
-    def _prepare_atoms_metadata(atoms: Atoms, task: str) -> None:
-        if task == "omol":
-            charge, multiplicity = UMACalculator._charge_spin_metadata(atoms)
-            atoms.info["charge"] = charge
-            atoms.info["spin"] = multiplicity
-        else:
-            # FAIR-Chem documents charge/spin as OMol-only inputs.  For periodic
-            # or materials heads, keep only the neutral metadata upstream reads.
-            atoms.info["charge"] = 0
-            atoms.info["spin"] = 0
-            atoms.info.pop("mult", None)
-
-    @staticmethod
-    def _predictor_supports_batch(predictor) -> bool:
-        settings = predictor.inference_settings
-        # FAIR-Chem documents default mode as batch-capable and turbo mode as
-        # single-system-only. In current fairchem-core, turbo is identified by
-        # merged MoLE weights / compile settings and raises on multi-system
-        # AtomicData batches.
-        return not (
-            getattr(settings, "merge_mole", False)
-            or getattr(settings, "compile", False)
-        )
-
-    def _batch_predictor(self):
-        if self._predictor_supports_batch(self._predictor_unit):
-            return self._predictor_unit
-
-        if self.device.type != "cuda":
-            return None
-
-        if not self._warned_batch_predictor_fallback:
-            warnings.warn(
-                "UMA batch evaluation is using a default-inference predictor "
-                "because the active predictor does not support multi-system "
-                "batches (for example CUDA turbo mode). Single-structure "
-                "calculate() remains on the active predictor; validate "
-                "turbo-vs-default parity in release smoke tests.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
-            self._warned_batch_predictor_fallback = True
-
-        if self._batch_predictor_unit is None:
-            self._batch_predictor_unit = self._build_predictor(
-                self._checkpoint,
-                self._overrides,
-                str(self.device),
-                checkpoint_path=self._checkpoint_path,
-                inference_settings=UMA_BATCH_INFERENCE_SETTINGS,
-            )
-        if not self._predictor_supports_batch(self._batch_predictor_unit):
-            return None
-        return self._batch_predictor_unit
-
-    def get_energy(self, atoms: Atoms) -> torch.Tensor:
-        # `calculate()` is the single source of unit conversion and optional
-        # solvent correction.  Do not add solvent again here.
-        self.calculate(atoms, properties=["energy"], system_changes=all_changes)
-        energy_value = self.results["energy"]
-        return torch.tensor(energy_value, dtype=torch.float32, device=self.device)
-
-    def get_hessian(
-        self,
-        atoms: Atoms,
-        delta: float = 0.002,
-        dtype: torch.dtype = torch.float64,
-    ) -> torch.Tensor:
-        """Central-difference numerical Hessian via batched displacement.
-
-        UMA exposes no analytic Hessian (``supported_hessian_modes = ('numerical',)``),
-        so this is the only Hessian path. The 2 * 3 * N_movable force
-        evaluations are delegated to ``FDHessianEvaluator``, which dispatches
-        through ``calc.calculate_many`` and uses FAIR-Chem's AtomicData batch
-        predictor when the active inference mode supports batching.
-        FixAtoms is respected upstream. Returns a ``(3N, 3N)`` tensor on
-        ``self.device`` to preserve the original return-type contract.
-        """
-        if getattr(self, "solvent_correction", None):
-            raise NotImplementedError(
-                "Hessian calculation with implicit solvent is not implemented yet."
-            )
-        from .._batch_eval import FDHessianEvaluator
-
-        H_np = FDHessianEvaluator(
-            self,
-            fd_batch_size=getattr(self, "fd_batch_size", None),
-        ).hessian(atoms, delta=delta)
-        return torch.as_tensor(H_np, dtype=dtype, device=self.device)
-
-    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
-        """Evaluate multiple structures through FAIR-Chem's batch predictor.
-
-        UMA inherits from FAIR-Chem's calculator rather than MAPLE's
-        ``CalcABC``. FAIR-Chem's documented batch route is
-        ``AtomicData.from_ase`` -> ``atomicdata_list_to_batch`` ->
-        ``predictor.predict``; use that route when the active predictor
-        supports batching. CUDA turbo mode is optimized for single fixed
-        composition rollouts and does not accept multi-system batches, so
-        ``calculate_many`` lazily creates a default-mode predictor for batch
-        calls while leaving single-structure ``calculate`` on turbo.
-
-        Solvent corrections remain single-structure and therefore use the
-        sequential fallback.
-        """
-        props = ("energy",) if properties is None else tuple(properties)
-        if "hessian" in props:
-            raise NotImplementedError(
-                "UMACalculator.calculate_many does not assemble Hessians; "
-                "use FDHessianEvaluator for numerical Hessians."
-            )
-
-        want_energy = "energy" in props
-        want_forces = "forces" in props
-        request = [p for p in props if p in ("energy", "forces")]
-        if not request:
-            return BatchResult()
-        atoms_list = list(atoms_list)
-        if not atoms_list:
-            return BatchResult(
-                energies=np.zeros(0, dtype=np.float64) if want_energy else None,
-                forces=[] if want_forces else None,
-            )
-
-        if atoms_list_has_pbc(atoms_list):
-            return self._calculate_many_sequential(atoms_list, request, want_energy, want_forces)
-
-        if self.solvent_correction:
-            return self._calculate_many_sequential(atoms_list, request, want_energy, want_forces)
-
-        predictor = self._batch_predictor()
-        if predictor is None:
-            return self._calculate_many_sequential(atoms_list, request, want_energy, want_forces)
-
-        for at in atoms_list:
-            self._validate_task_atoms_compatibility(at, self._task_for_atoms(at))
-
-        data_list = []
-        for at in atoms_list:
-            task = self._task_for_atoms(at)
-            self._prepare_atoms_metadata(at, task)
-            self._check_atoms_pbc(at)
-            predictor.validate_atoms_data(at, task)
-            data_list.append(
-                AtomicData.from_ase(at, **self._a2g_kwargs(task, predictor))
-            )
-
-        batch = atomicdata_list_to_batch(data_list)
-        pred = predictor.predict(batch)
-
-        energies = None
-        if want_energy:
-            energies = (
-                pred["energy"].detach().cpu().numpy().astype(np.float64)
-                * EV2HARTREE
-            )
-
-        forces_list = None
-        if want_forces:
-            forces_all = (
-                pred["forces"].detach().cpu().numpy().astype(np.float64)
-                * EV2HARTREE
-            )
-            batch_index = batch.batch.detach().cpu().numpy()
-            forces_list = [
-                forces_all[batch_index == i]
-                for i in range(len(atoms_list))
-            ]
-
-        first_task = self._task_for_atoms(atoms_list[0])
-        if all(self._task_for_atoms(at) == first_task for at in atoms_list):
-            self._set_current_task(first_task)
-
-        return BatchResult(energies=energies, forces=forces_list)
-
-    def _calculate_many_sequential(
-        self,
-        atoms_list,
-        request,
-        want_energy: bool,
-        want_forces: bool,
-    ) -> BatchResult:
-        energies = [] if want_energy else None
-        forces_list = [] if want_forces else None
-
-        for at in atoms_list:
-            self.calculate(at, properties=list(request), system_changes=all_changes)
-            if want_energy:
-                if "free_energy" in self.results:
-                    energies.append(float(self.results["free_energy"]))
-                else:
-                    energies.append(float(self.results["energy"]))
-            if want_forces:
-                forces_list.append(np.asarray(self.results["forces"], dtype=np.float64))
-
-        return BatchResult(
-            energies=np.asarray(energies, dtype=np.float64) if energies is not None else None,
-            forces=forces_list,
-        )
+    def get_hessian(self, atoms: Atoms, delta: float = 0.002) -> np.ndarray:
+        """Numerical-only Hessian via shared finite-difference helper."""
+        return numerical_hessian_from_atoms(self, atoms, delta)
 
     def calculate(self, atoms, properties=None, system_changes=None):
+        properties = reject_implicit_solvent_derivatives(self, properties)
+        system_changes = all_changes if system_changes is None else system_changes
+
+        if atoms is None:
+            atoms = getattr(self, "atoms", None)
+        if atoms is None:
+            raise ValueError("UMACalculator.calculate requires an Atoms object.")
+
+        requested = {str(prop).lower() for prop in properties}
+        if requested & {"stress", "stresses", "virial", "virials"}:
+            raise NotImplementedError(
+                "UMA stress/virial output is not unit-converted by MAPLE yet; "
+                "request energy/forces only until stress units are validated."
+            )
+
         self._set_task_from_atoms(atoms)
-        task = self.task_name
-        self._validate_task_atoms_compatibility(atoms, task)
-        self._prepare_atoms_metadata(atoms, task)
+        self._validate_task_atoms_compatibility(atoms)
+        charge, mult = self._validate_charge_spin_task_compatibility(atoms)
 
-        if properties is None:
-            properties = ["energy"]
-        if system_changes is None:
-            system_changes = all_changes
+        calc_atoms = atoms.copy()
+        calc_atoms.info["spin"] = mult
+        calc_atoms.info["charge"] = charge
 
-        super().calculate(atoms, properties, system_changes)
+        super().calculate(calc_atoms, properties, system_changes)
 
+        # eV → Hartree: UMA's MODEL_ENERGY_UNIT is 'eV'; equivalent to the
+        # _finalize_results unit step but inlined because UMA does not inherit
+        # CalcABC.
         if "energy" in self.results:
             self.results["energy"] *= EV2HARTREE
         if "free_energy" in self.results:
@@ -600,14 +399,14 @@ class UMACalculator(FAIRChemCalculator):
         if "forces" in self.results:
             self.results["forces"] *= EV2HARTREE
 
-        if self.solvent_correction:
-            atoms.atomic_charges = self.chargecalc(atoms)
-            solvent_energy, solvent_force = self.solvent_correction.get_energy_and_force(atoms)
+        # Experimental implicit solvation is energy-only. Derivative requests
+        # have already failed via reject_implicit_solvent_derivatives().
+        if self.solvent_correction is not None:
+            calc_atoms.atomic_charges = self.chargecalc(calc_atoms, total_charge=float(charge))
+            solvent_energy, _ = self.solvent_correction.get_energy(calc_atoms)
             if "energy" in self.results:
                 self.results["energy"] += solvent_energy.item()
             if "free_energy" in self.results:
                 self.results["free_energy"] += solvent_energy.item()
-            if "forces" in self.results:
-                self.results["forces"] += solvent_force.detach().cpu().numpy()
 
         return self.results

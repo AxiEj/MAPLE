@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""Out-of-scope for the unified MAPLE calculator protocol.
+
+Consumed by the batch optimizers (BatchLBFGS/BatchPRFO); does not implement
+the CalcABC protocol (`_finalize_results`, `_analytic_hessian`, `MODEL_*`
+class attrs). Build it from an already-initialized single-molecule
+AIMNet2Calculator via `from_ase_calculator` so the jit model is loaded once.
+"""
 import torch
 from typing import List
 from ase import Atoms
@@ -54,10 +61,16 @@ class AIMNet2BatchCalc:
     AIMNet2 batch calculator.
     """
 
-    def __init__(self, model_path: str, device: str = "cuda", cutoff: float = 5.0, dtype: torch.dtype = torch.float64):
+    def __init__(self, model_path: str = None, device: str = "cuda", cutoff: float = 5.0,
+                 dtype: torch.dtype = torch.float64, model=None):
         self.device = torch.device(device)
         self.dtype  = dtype
-        self.model  = torch.jit.load(model_path, map_location=self.device).eval()
+        if model is not None:
+            self.model = model
+        elif model_path is not None:
+            self.model = torch.jit.load(model_path, map_location=self.device).eval()
+        else:
+            raise ValueError("AIMNet2BatchCalc requires either model_path or a preloaded model.")
         for p in self.model.parameters():
             p.requires_grad_(False)
 
@@ -78,6 +91,31 @@ class AIMNet2BatchCalc:
 
         self._coord_backup = None
 
+    @classmethod
+    def from_ase_calculator(cls, calc, dtype: torch.dtype = torch.float64):
+        """Share the jit model already loaded by a single-molecule AIMNet2Calculator.
+
+        Implicit solvation corrections are per-molecule post-processing in the
+        ASE wrapper and are not applied on the batch path, so refuse them here
+        rather than silently dropping the correction.
+        """
+        if getattr(calc, "solvent_correction", None) is not None:
+            raise NotImplementedError(
+                "AIMNet2BatchCalc does not support implicit solvation; "
+                "remove #solv(...) or run structures one at a time."
+            )
+        coulomb_method = getattr(calc, "_coulomb_method", "simple")
+        if coulomb_method != "simple":
+            # The batch forward reuses the short-range neighbor list as
+            # nbmat_lr, which only matches the single-molecule wrapper when
+            # cutoff_lr is infinite (the 'simple' method).
+            raise NotImplementedError(
+                f"AIMNet2BatchCalc only supports coulomb_method='simple'; "
+                f"got '{coulomb_method}'. Run structures one at a time."
+            )
+        return cls(model=calc.model, device=calc.device,
+                   cutoff=calc.cutoff, dtype=dtype)
+
     # -------------------------------------------------------------------------
     # prepare() modified to accept fixed_nmax
     # -------------------------------------------------------------------------
@@ -91,6 +129,12 @@ class AIMNet2BatchCalc:
         a fixed padded size (self._nmax) across all iterations.
         """
         device, dtype = self.device, self.dtype
+        if any(bool(np.any(getattr(at, "pbc", False))) for at in atoms_list):
+            raise NotImplementedError(
+                "AIMNet2BatchCalc is a no-PBC batch wrapper; use a validated "
+                "periodic backend for periodic systems."
+            )
+
         self._atoms_B = len(atoms_list)
         self._ptr     = _ptr_from_atoms(atoms_list, device)
 
@@ -120,6 +164,16 @@ class AIMNet2BatchCalc:
         else:
             # PRFO-defined padded dimension
             self.nmax_dof = int(fixed_nmax)
+            required_dof = 3 * self.Nmax_atoms
+            if self.nmax_dof < required_dof:
+                raise ValueError(
+                    f"fixed_nmax={self.nmax_dof} is too small for the current batch; "
+                    f"need at least {required_dof} Cartesian DOFs."
+                )
+            if self.nmax_dof % 3 != 0:
+                raise ValueError(
+                    f"fixed_nmax={self.nmax_dof} is not a multiple of 3 Cartesian DOFs."
+                )
         # ----------------------------------------------------------------------
 
         if self.N_atoms > 0:
@@ -131,7 +185,17 @@ class AIMNet2BatchCalc:
         self.coord = coord0.to(device, non_blocking=True).contiguous()
 
         self.sentinel_mol = (int(self.mol_idx.max().item()) + 1) if self.N_atoms > 0 else 0
-        self.charge       = torch.zeros(self._atoms_B + 1, dtype=dtype, device=device)
+
+        # Per-molecule total charges; the trailing entry is the sentinel pad
+        # molecule. Open-shell systems are not supported on the batch path.
+        mults = [float(at.info.get("mult", 1.0)) for at in atoms_list]
+        if any(m != 1.0 for m in mults):
+            raise NotImplementedError(
+                "AIMNet2BatchCalc does not support mult != 1; "
+                "run open-shell structures one at a time."
+            )
+        charges = [float(at.info.get("charge", 0.0)) for at in atoms_list]
+        self.charge = torch.tensor(charges + [0.0], dtype=dtype, device=device)
 
         self._coord_backup = None
         self._prepared     = True

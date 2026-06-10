@@ -11,6 +11,8 @@ import numpy as np
 import torch
 from ase import Atoms
 
+from ._common import write_xyz
+
 DTYPE = torch.float64
 
 
@@ -97,6 +99,9 @@ class BatchLBFGS:
     def run(self, mols) -> None:
         device = self.device
         atoms_list = list(mols.multiatoms)
+        # Original structures in input order; positions are updated in place
+        # by _sync_atoms_from_calc, so these carry the final geometries.
+        atoms_all = list(atoms_list)
         calc = mols.calc
 
         B0 = len(atoms_list)
@@ -128,9 +133,13 @@ class BatchLBFGS:
         self.history_valid = torch.zeros((B, self.memory), dtype=torch.bool, device=device)
 
         E0 = E0.to(dtype=DTYPE)
-        
+
+        # Final energy per original structure, refreshed as batches converge
+        # out; used for the closing _opt.xyz dump.
+        final_E = E0.clone()
+
         iteration = 0
-        
+
         # Get initial energy and forces
         E_old = E0
         F_old = F0.to(dtype=DTYPE)
@@ -180,6 +189,8 @@ class BatchLBFGS:
                 F=F_new,
             )
 
+            final_E[self._orig_index] = E_new
+
             # Dynamic batch shrinking
             survive_local = (~done).nonzero(as_tuple=False).flatten()
             if survive_local.numel() < len(done):
@@ -213,6 +224,11 @@ class BatchLBFGS:
         # final coordinates of any still-unconverged structures back too.
         if len(atoms_list) > 0:
             self._sync_atoms_from_calc(calc, atoms_list)
+
+        # Final geometries, matching the single-structure _opt.xyz convention.
+        opt_file = os.path.splitext(self.output)[0] + "_opt.xyz"
+        write_xyz(opt_file, atoms_all, energies=final_E.detach().cpu().tolist())
+        self._w(f"\n# Final frames written to {opt_file}\n")
 
         self._close_log()
 

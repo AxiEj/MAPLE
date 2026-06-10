@@ -66,6 +66,30 @@ def _calculate_many_nonperiodic_batch_only(calc, atoms_list, properties) -> Batc
     return calc.calculate_many(atoms_list, properties=properties)
 
 
+def shared_calculator(atoms_list: Sequence[Atoms]):
+    """Return the common calculator for a structure list, or ``None``.
+
+    Batch evaluators are only scientifically valid when all structures are
+    evaluated by the same calculator instance.  Mixed calculators may represent
+    different models, devices, options, or solvent state, so callers should fall
+    back to their original per-structure logic in that case.
+    """
+    atoms_list = list(atoms_list)
+    if not atoms_list:
+        return None
+    calc = getattr(atoms_list[0], "calc", None)
+    if calc is None:
+        return None
+    if all(getattr(at, "calc", None) is calc for at in atoms_list):
+        return calc
+    return None
+
+
+def structures_have_constraints(atoms_list: Sequence[Atoms]) -> bool:
+    """Return True when any structure carries ASE constraints."""
+    return any(bool(getattr(at, "constraints", None)) for at in atoms_list)
+
+
 # ---------------------------------------------------------------------------
 # Single-structure E + F merge
 # ---------------------------------------------------------------------------
@@ -858,6 +882,64 @@ class PathEvaluator:
             if sizer is not None:
                 chunk = max(1, min(sizer.chunk, n_total - start or sizer.chunk))
         return np.asarray(energies, dtype=np.float64), forces
+
+
+class EnergyEvaluator:
+    """Batch energy-only evaluation for independent structures.
+
+    This is the right abstraction for SP trajectories, path-output summaries,
+    and endpoint ranking where forces are not needed.  It shares the same chunk
+    sizing and non-periodic-batch guard as :class:`PathEvaluator`, but requests
+    only ``("energy",)`` so force autograd graphs are not built unnecessarily.
+    """
+
+    def __init__(self, calc, batch_size: Optional[int] = None) -> None:
+        self.calc = calc
+        if batch_size is None:
+            batch_size = _calculator_batch_size(calc, "path_batch_size")
+        else:
+            batch_size = _positive_int_auto_or_none(batch_size, "batch_size")
+        self.batch_size = batch_size
+
+    def energies(self, images: Sequence[Atoms]) -> np.ndarray:
+        n_total = len(images)
+        if n_total == 0:
+            return np.zeros(0, dtype=np.float64)
+
+        auto = self.batch_size == AUTO_BATCH_SIZE
+        sizer = _AutoBatchSizer(
+            self.calc, images, ("energy",), kind="path"
+        ) if auto else None
+        chunk = (
+            sizer.chunk if sizer is not None
+            else self.batch_size if self.batch_size else n_total
+        )
+        energies: List[float] = []
+        start = 0
+        while start < n_total:
+            sub = list(images[start : start + chunk])
+            try:
+                result = _calculate_many_nonperiodic_batch_only(
+                    self.calc,
+                    sub,
+                    properties=("energy",),
+                )
+            except RuntimeError as exc:
+                if sizer is None or not _is_cuda_oom(exc) or not sizer.backoff_after_oom():
+                    raise
+                chunk = sizer.chunk
+                continue
+            if result.energies is None or len(result.energies) != len(sub):
+                got = None if result.energies is None else len(result.energies)
+                raise RuntimeError(
+                    "calculate_many returned the wrong number of energies "
+                    f"for EnergyEvaluator: expected {len(sub)}, got {got}"
+                )
+            energies.extend(float(e) for e in result.energies.tolist())
+            start += len(sub)
+            if sizer is not None:
+                chunk = max(1, min(sizer.chunk, n_total - start or sizer.chunk))
+        return np.asarray(energies, dtype=np.float64)
 
 
 class HVPEvaluator:

@@ -63,15 +63,30 @@ class Optimization(JobABC):
             raise ValueError(
                 "Batch optimization requires all structures to share one calculator "
                 "instance; mixed calculators would silently use the first model for all.")
+        if any(bool(getattr(at, "constraints", None)) for at in mols.multiatoms):
+            raise NotImplementedError(
+                "Batch optimization with ASE constraints is not supported because "
+                "BatchLBFGS does not project constrained Cartesian steps/forces. "
+                "Split constrained structures and optimize them one at a time.")
 
+        batch_backend = "calculate_many"
         from ...calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
         if isinstance(base_calc, AIMNet2Calculator):
             from ...calculator.aimnet._aimnet2_batch_calculator import AIMNet2BatchCalc
             mols.calc = AIMNet2BatchCalc.from_ase_calculator(base_calc)
+            batch_backend = "aimnet2-native"
         else:
-            raise NotImplementedError(
-                f"Batch optimization currently supports the AIMNet2 backend only; "
-                f"got {type(base_calc).__name__}. Run structures one at a time.")
+            if not hasattr(base_calc, "calculate_many"):
+                raise NotImplementedError(
+                    "Batch optimization requires a calculator with "
+                    f"calculate_many(); got {type(base_calc).__name__}. "
+                    "Run structures one at a time."
+                )
+            from .algorithm.calculate_many_batch import CalculateManyBatchCalc
+            mols.calc = CalculateManyBatchCalc(
+                base_calc,
+                device=getattr(base_calc, "device", "cpu"),
+            )
 
         params = self._init_params(LBFGSParams, self.commandcontrol, ("lbfgs", "LBFGS", "opt"))
         self.log_info([
@@ -83,6 +98,7 @@ class Optimization(JobABC):
             f"max_step:   {params.max_step}\n",
             f"max_iter:   {params.max_iter}\n",
             f"verbose:    {params.verbose}\n",
+            f"backend:    {batch_backend}\n",
             "=" * 70 + "\n\n",
         ])
 

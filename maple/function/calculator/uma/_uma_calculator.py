@@ -36,7 +36,6 @@ from .._batch_utils import (
 from ..calculator_base import (
     EV2HARTREE,
     init_implicit_solvent,
-    numerical_hessian_from_atoms,
     reject_implicit_solvent_derivatives,
     register_calculator,
 )
@@ -385,7 +384,12 @@ class UMACalculator(FAIRChemCalculator):
 
     def get_hessian(self, atoms: Atoms, delta: float = 0.002) -> np.ndarray:
         """Numerical-only Hessian via shared finite-difference helper."""
-        return numerical_hessian_from_atoms(self, atoms, delta)
+        from .._batch_eval import FDHessianEvaluator
+
+        return FDHessianEvaluator(
+            self,
+            fd_batch_size=getattr(self, "fd_batch_size", None),
+        ).hessian(atoms, delta)
 
     def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
         """Evaluate non-periodic UMA structures through FAIR-Chem's batch data path.

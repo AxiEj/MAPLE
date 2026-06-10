@@ -27,6 +27,13 @@ from .neb import (
 )
 from .logger import log_info
 from ...jobABC import JobABC
+from ....calculator._batch_eval import (
+    EnergyEvaluator,
+    PathEvaluator,
+    energy_forces_one,
+    shared_calculator,
+    structures_have_constraints,
+)
 from maple.function.utility import Molecules
 
 
@@ -350,8 +357,48 @@ class AutoNEB(JobABC):
         return images
 
     def _get_energies(self, images: List[Atoms]) -> List[float]:
-        """Get energies for all images."""
+        """Get energies for independent path images, batched when safe."""
+        calc = shared_calculator(images)
+        if calc is not None and hasattr(calc, "calculate_many"):
+            energies = EnergyEvaluator(
+                calc,
+                batch_size=getattr(calc, "path_batch_size", None),
+            ).energies(images)
+            return [float(e) for e in energies]
         return [float(at.get_potential_energy(force_consistent=True)) for at in images]
+
+    def _path_energy_forces(self, images: List[Atoms]) -> Tuple[List[float], Optional[List[np.ndarray]]]:
+        """Evaluate a path's true energies and forces in one safe batch.
+
+        AutoNEB's spring/tangent logic remains unchanged; this only replaces
+        independent per-image model calls with the same calculator's
+        ``calculate_many`` route when all images share that calculator.
+        """
+        if structures_have_constraints(images):
+            return self._get_energies(images), None
+
+        calc = shared_calculator(images)
+        if calc is not None and hasattr(calc, "calculate_many"):
+            energies, forces = PathEvaluator(
+                calc,
+                batch_size=getattr(calc, "path_batch_size", None),
+            ).energy_forces(images)
+            return (
+                [float(e) for e in energies],
+                [to_numpy_f64(f) for f in forces],
+            )
+
+        energies: List[float] = []
+        forces: List[np.ndarray] = []
+        for img in images:
+            if img.calc is None:
+                energies.append(float(img.get_potential_energy(force_consistent=True)))
+                forces.append(to_numpy_f64(img.get_forces()))
+            else:
+                energy, force = energy_forces_one(img.calc, img, force_consistent=True)
+                energies.append(float(energy))
+                forces.append(to_numpy_f64(force))
+        return energies, forces
 
     # =========================================================================
     # Single Path Optimization
@@ -378,7 +425,7 @@ class AutoNEB(JobABC):
         driver = node._driver
 
         # Compute energies and forces
-        energies = self._get_energies(images)
+        energies, raw_forces = self._path_energy_forces(images)
         node.energies = energies
 
         # Compute NEB forces
@@ -391,7 +438,8 @@ class AutoNEB(JobABC):
             images, energies,
             k_spring=None,
             k_springs=k_springs,
-            use_dynamic_k=False
+            use_dynamic_k=False,
+            raw_forces=raw_forces,
         )
 
         node.hei_idx = hei_idx
@@ -427,13 +475,18 @@ class AutoNEB(JobABC):
             offset += n
 
         # Compute new gradient for L-BFGS update
-        new_energies = self._get_energies(images)
+        new_energies, new_raw_forces = self._path_energy_forces(images)
         node.energies = new_energies
 
         if p.use_dynamic_k:
             k_springs = compute_dynamic_k(new_energies, p.k_min, p.k_max, p.k_decay)
 
-        new_Fp_list, _, _ = neb_forces(images, new_energies, k_springs=k_springs)
+        new_Fp_list, _, _ = neb_forces(
+            images,
+            new_energies,
+            k_springs=k_springs,
+            raw_forces=new_raw_forces,
+        )
 
         new_grads = []
         for i in range(1, len(images) - 1):
@@ -1013,8 +1066,7 @@ class AutoNEB(JobABC):
         # Intermediates
         if self.all_intermediates:
             int_file = base + "_autoneb_intermediates.xyz"
-            int_energies = [float(at.get_potential_energy(force_consistent=True))
-                          for at in self.all_intermediates]
+            int_energies = self._get_energies(self.all_intermediates)
             write_xyz(int_file, self.all_intermediates, energies=int_energies)
             log_info([f"Wrote intermediates to: {int_file}\n"], self.output)
 
@@ -1022,8 +1074,7 @@ class AutoNEB(JobABC):
         self._collect_all_ts()
         if self.all_ts:
             ts_file = base + "_autoneb_ts_list.xyz"
-            ts_energies = [float(at.get_potential_energy(force_consistent=True))
-                         for at in self.all_ts]
+            ts_energies = self._get_energies(self.all_ts)
             write_xyz(ts_file, self.all_ts, energies=ts_energies)
             log_info([f"Wrote transition states to: {ts_file}\n"], self.output)
 

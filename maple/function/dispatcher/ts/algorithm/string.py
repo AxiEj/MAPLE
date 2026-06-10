@@ -27,6 +27,12 @@ from ase import Atoms
 # You already have these utilities / mixins in your codebase:
 from .logger import log_info
 from ...jobABC import JobABC
+from ....calculator._batch_eval import (
+    EnergyEvaluator,
+    PathEvaluator,
+    shared_calculator,
+    structures_have_constraints,
+)
 
 
 # =============================================================================
@@ -112,7 +118,36 @@ def atoms_to_xyz_block(atoms: Atoms) -> str:
 
 
 def get_energies(images: List[Atoms]) -> List[float]:
+    calc = shared_calculator(images)
+    if calc is not None and hasattr(calc, "calculate_many"):
+        energies = EnergyEvaluator(
+            calc,
+            batch_size=getattr(calc, "path_batch_size", None),
+        ).energies(images)
+        return [float(e) for e in energies]
     return [float(at.get_potential_energy(force_consistent=True)) for at in images]
+
+
+def get_energy_forces(images: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
+    """Evaluate independent string/path images with a safe batch when possible."""
+    calc = shared_calculator(images)
+    if (
+        calc is not None
+        and hasattr(calc, "calculate_many")
+        and not structures_have_constraints(images)
+    ):
+        energies, forces = PathEvaluator(
+            calc,
+            batch_size=getattr(calc, "path_batch_size", None),
+        ).energy_forces(images)
+        return [float(e) for e in energies], [to_numpy_f64(f) for f in forces]
+
+    energies: List[float] = []
+    forces: List[np.ndarray] = []
+    for img in images:
+        energies.append(float(img.get_potential_energy(force_consistent=True)))
+        forces.append(to_numpy_f64(img.get_forces()))
+    return energies, forces
 
 
 def rms_force_perp(Fp_list: List[np.ndarray]) -> float:
@@ -535,7 +570,7 @@ class GSM(JobABC):
         images_ts.insert(hei_idx + 1, ts_opt)
 
         # Energies of the augmented path
-        Es_path = get_energies(images_ts)
+        Es_path, raw_forces_path = get_energy_forces(images_ts)
         kcal_per_Eh = 627.509
 
         # Helper: energy-weighted tangent for projected-perp forces
@@ -569,7 +604,7 @@ class GSM(JobABC):
                 maxFp_list.append(0.0)
                 rmsFp_list.append(0.0)
             else:
-                F_raw = to_numpy_f64(at.get_forces())
+                F_raw = raw_forces_path[i]
                 pos   = to_numpy_f64(at.get_positions())
                 masses= to_numpy_f64(at.get_masses())
                 F_rb  = project_out_rigidbody_forces(F_raw, pos, masses).reshape(-1)
@@ -636,17 +671,17 @@ class GSM(JobABC):
         2) Merge L + reversed R and equal-arc reparameterization to fixed n_images.
         3) Take HEI (on the reparameterized path) as TS guess and call PRFO via restart_run().
         """
-        def forces_info(atoms):
-            F = to_numpy_f64(atoms.get_forces())
+        def forces_info_from_array(forces):
+            F = to_numpy_f64(forces)
             maxF = np.max(np.linalg.norm(F, axis=1))
             rmsF = np.sqrt(np.mean(np.linalg.norm(F, axis=1) ** 2))
             return maxF, rmsF
 
         # --- Report endpoints
-        E_R = self.atoms_R.get_potential_energy(force_consistent=True)
-        E_P = self.atoms_P.get_potential_energy(force_consistent=True)
-        maxF_R, rmsF_R = forces_info(self.atoms_R)
-        maxF_P, rmsF_P = forces_info(self.atoms_P)
+        endpoint_energies, endpoint_forces = get_energy_forces([self.atoms_R, self.atoms_P])
+        E_R, E_P = endpoint_energies
+        maxF_R, rmsF_R = forces_info_from_array(endpoint_forces[0])
+        maxF_P, rmsF_P = forces_info_from_array(endpoint_forces[1])
 
         log_info([
             "\nProperties of fixed STRING end points:\n",
@@ -929,8 +964,8 @@ class GSM(JobABC):
 
         # Dump growth-final equal-arc path & HEI
         grow_final = base + "_gsm_grow_final.xyz"
-        write_xyz(grow_final, images, energies=get_energies(images))
         Es = get_energies(images)
+        write_xyz(grow_final, images, energies=Es)
         hei = max(range(1, len(images) - 1), key=lambda i: Es[i]) if len(images) > 2 else 0
         mep_path = base + "_gsm_mep.xyz"   # equal-arc path
         hei_path = base + "_gsm_hei.xyz"

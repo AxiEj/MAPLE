@@ -3,6 +3,12 @@ from dataclasses import dataclass
 
 from ase import Atoms
 
+from ...calculator._batch_eval import (
+    EnergyEvaluator,
+    PathEvaluator,
+    shared_calculator,
+    structures_have_constraints,
+)
 from ..jobABC import JobABC
 from maple.function.timer import timer
 
@@ -50,9 +56,10 @@ class SinglePoint(JobABC):
         mult = atoms.info.get('mult', 1)
         return [f"Charge: {charge}, Multiplicity: {mult}\n"]
 
-    def _gradient_lines(self, atoms: Atoms) -> list:
+    def _gradient_lines(self, atoms: Atoms, forces=None) -> list:
         """Return per-atom energy gradients for detailed SP output."""
-        forces = atoms.get_forces()
+        if forces is None:
+            forces = atoms.get_forces()
         gradients = -forces
         symbols = atoms.get_chemical_symbols()
         lines = [
@@ -68,7 +75,13 @@ class SinglePoint(JobABC):
             )
         return lines
 
-    def _trajectory_frame_lines(self, idx: int, atoms_frame: Atoms, energy_hartree: float) -> list:
+    def _trajectory_frame_lines(
+        self,
+        idx: int,
+        atoms_frame: Atoms,
+        energy_hartree: float,
+        forces=None,
+    ) -> list:
         """Return trajectory-frame SP result lines for the selected verbosity."""
         lines = [
             f"\n{('Frame ' + str(idx)):=^80}\n",
@@ -83,25 +96,66 @@ class SinglePoint(JobABC):
         for i, (sym, pos) in enumerate(zip(symbols, positions), start=1):
             lines.append(f"  {i:<4} {sym:<2} {pos[0]:>15.8f} {pos[1]:>15.8f} {pos[2]:>15.8f}\n")
         if self.verbose >= 1:
-            lines.extend(self._gradient_lines(atoms_frame))
+            lines.extend(self._gradient_lines(atoms_frame, forces=forces))
         lines.append("=" * 80 + "\n")
         return lines
 
+    def _trajectory_energy_forces(self):
+        """Evaluate trajectory frames with a batch path when it is safe.
+
+        SP trajectories are independent structures, so they are a natural batch
+        workload.  Mixed/no calculator inputs keep the original sequential ASE
+        behavior.
+        """
+        calc = shared_calculator(self.atoms)
+        if (
+            calc is None
+            or not hasattr(calc, "calculate_many")
+            or (self.verbose >= 1 and structures_have_constraints(self.atoms))
+        ):
+            energies = []
+            forces = [] if self.verbose >= 1 else None
+            for atoms_frame in self.atoms:
+                energies.append(float(atoms_frame.get_potential_energy()))
+                if forces is not None:
+                    forces.append(atoms_frame.get_forces())
+            return energies, forces
+
+        if self.verbose >= 1:
+            energies, forces = PathEvaluator(
+                calc,
+                batch_size=getattr(calc, "path_batch_size", None),
+            ).energy_forces(self.atoms)
+            return [float(e) for e in energies], forces
+
+        energies = EnergyEvaluator(
+            calc,
+            batch_size=getattr(calc, "path_batch_size", None),
+        ).energies(self.atoms)
+        return [float(e) for e in energies], None
+
     def _run_trajectory(self):
-        """Process multiple structures sequentially."""
+        """Process multiple independent structures."""
         with timer("Single Point Energy Calculation (Trajectory)"):
             n_frames = len(self.atoms)
             self.log_info([f"\nProcessing {n_frames} structures from trajectory...\n"])
             self.log_info(["=" * 80 + "\n"])
 
-            energies_hartree = []
+            energies_hartree, forces_list = self._trajectory_energy_forces()
 
-            for idx, atoms_frame in enumerate(self.atoms, start=1):
-                # Calculate energy
-                energy_hartree = atoms_frame.get_potential_energy()
-                energies_hartree.append(energy_hartree)
-
-                self.log_info(self._trajectory_frame_lines(idx, atoms_frame, energy_hartree))
+            for idx, (atoms_frame, energy_hartree) in enumerate(
+                zip(self.atoms, energies_hartree),
+                start=1,
+            ):
+                forces = None if forces_list is None else forces_list[idx - 1]
+                self.log_info(
+                    self._trajectory_frame_lines(
+                        idx,
+                        atoms_frame,
+                        energy_hartree,
+                        forces=forces,
+                    )
+                )
 
             # Summary (always shown)
             self.log_info([f"\n{' SUMMARY ':=^80}\n"])

@@ -432,7 +432,12 @@ class CalcABC(ase.calculators.calculator.Calculator):
         if mode == 'numerical':
             if getattr(self, 'solvent_correction', None) is not None:
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-            return numerical_hessian_from_atoms(self, atoms, delta)
+            from ._batch_eval import FDHessianEvaluator
+
+            return FDHessianEvaluator(
+                self,
+                fd_batch_size=getattr(self, "fd_batch_size", None),
+            ).hessian(atoms, delta)
         raise ValueError(f"Unknown hessian mode: {mode!r}")
 
     def _analytic_hessian(self, atoms):

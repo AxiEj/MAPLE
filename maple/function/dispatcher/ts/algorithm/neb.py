@@ -22,7 +22,12 @@ from ase import Atoms
 
 from .logger import log_info
 from ...jobABC import JobABC
-from ....calculator._batch_eval import PathEvaluator, energy_forces_one
+from ....calculator._batch_eval import (
+    EnergyEvaluator,
+    PathEvaluator,
+    energy_forces_one,
+    shared_calculator,
+)
 
 from maple.function.utility import Molecules
 
@@ -670,6 +675,13 @@ class NEB(JobABC):
 
 
     def get_energies(self, imgs): 
+        calc = shared_calculator(imgs)
+        if calc is not None and hasattr(calc, "calculate_many"):
+            energies = EnergyEvaluator(
+                calc,
+                batch_size=getattr(calc, "path_batch_size", None),
+            ).energies(imgs)
+            return [float(e) for e in energies]
         return [float(at.get_potential_energy(force_consistent=True)) for at in imgs]
 
     def _path_energy_forces(self, imgs: List[Atoms]) -> Tuple[List[float], List[np.ndarray]]:
@@ -685,9 +697,8 @@ class NEB(JobABC):
         if not images:
             return [], []
 
-        calc = images[0].calc
-        same_calc = calc is not None and all(img.calc is calc for img in images)
-        if same_calc and hasattr(calc, "calculate_many"):
+        calc = shared_calculator(images)
+        if calc is not None and hasattr(calc, "calculate_many"):
             energies, forces = PathEvaluator(
                 calc,
                 batch_size=getattr(calc, "path_batch_size", None),

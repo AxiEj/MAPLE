@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Out-of-scope for the unified MAPLE calculator protocol.
 
-Consumed by BatchLBFGS only; does not implement the CalcABC protocol
-(`_finalize_results`, `_analytic_hessian`, `MODEL_*` class attrs). Keep
-self-contained until a future commit retrofits the batch path.
+Consumed by the batch optimizers (BatchLBFGS/BatchPRFO); does not implement
+the CalcABC protocol (`_finalize_results`, `_analytic_hessian`, `MODEL_*`
+class attrs). Build it from an already-initialized single-molecule
+AIMNet2Calculator via `from_ase_calculator` so the jit model is loaded once.
 """
 import torch
 from typing import List
@@ -60,10 +61,16 @@ class AIMNet2BatchCalc:
     AIMNet2 batch calculator.
     """
 
-    def __init__(self, model_path: str, device: str = "cuda", cutoff: float = 5.0, dtype: torch.dtype = torch.float64):
+    def __init__(self, model_path: str = None, device: str = "cuda", cutoff: float = 5.0,
+                 dtype: torch.dtype = torch.float64, model=None):
         self.device = torch.device(device)
         self.dtype  = dtype
-        self.model  = torch.jit.load(model_path, map_location=self.device).eval()
+        if model is not None:
+            self.model = model
+        elif model_path is not None:
+            self.model = torch.jit.load(model_path, map_location=self.device).eval()
+        else:
+            raise ValueError("AIMNet2BatchCalc requires either model_path or a preloaded model.")
         for p in self.model.parameters():
             p.requires_grad_(False)
 
@@ -83,6 +90,22 @@ class AIMNet2BatchCalc:
         self.charge       = None
 
         self._coord_backup = None
+
+    @classmethod
+    def from_ase_calculator(cls, calc, dtype: torch.dtype = torch.float64):
+        """Share the jit model already loaded by a single-molecule AIMNet2Calculator.
+
+        Implicit solvation corrections are per-molecule post-processing in the
+        ASE wrapper and are not applied on the batch path, so refuse them here
+        rather than silently dropping the correction.
+        """
+        if getattr(calc, "solvent_correction", None) is not None:
+            raise NotImplementedError(
+                "AIMNet2BatchCalc does not support implicit solvation; "
+                "remove #solv(...) or run structures one at a time."
+            )
+        return cls(model=calc.model, device=calc.device,
+                   cutoff=calc.cutoff, dtype=dtype)
 
     # -------------------------------------------------------------------------
     # prepare() modified to accept fixed_nmax
@@ -153,7 +176,17 @@ class AIMNet2BatchCalc:
         self.coord = coord0.to(device, non_blocking=True).contiguous()
 
         self.sentinel_mol = (int(self.mol_idx.max().item()) + 1) if self.N_atoms > 0 else 0
-        self.charge       = torch.zeros(self._atoms_B + 1, dtype=dtype, device=device)
+
+        # Per-molecule total charges; the trailing entry is the sentinel pad
+        # molecule. Open-shell systems are not supported on the batch path.
+        mults = [float(at.info.get("mult", 1.0)) for at in atoms_list]
+        if any(m != 1.0 for m in mults):
+            raise NotImplementedError(
+                "AIMNet2BatchCalc does not support mult != 1; "
+                "run open-shell structures one at a time."
+            )
+        charges = [float(at.info.get("charge", 0.0)) for at in atoms_list]
+        self.charge = torch.tensor(charges + [0.0], dtype=dtype, device=device)
 
         self._coord_backup = None
         self._prepared     = True

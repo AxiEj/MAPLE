@@ -109,7 +109,6 @@ class BatchPRFO:
     # ===================================================
     # PUBLIC RUN
     # ===================================================
-    @profile
     def run(self, mols) -> None:
         device = self.device
         atoms_list = list(mols.multiatoms)
@@ -313,7 +312,6 @@ class BatchPRFO:
     # EFH with padding to fixed nmax
     # ===================================================
 
-    @profile
     def _compute_efh(self, calc):
         """
         EFH must be padded to the fixed nmax from the first iteration.
@@ -403,7 +401,6 @@ class BatchPRFO:
     # ===================================================
     # INNER RS-PRFO LOOP
     # ===================================================
-    @profile
     def _inner_rs_prfo_loop(self, it, calc, w, V, gp, H, g_cart,
                             trust_r, last_step, real_mask, E_old):
         """

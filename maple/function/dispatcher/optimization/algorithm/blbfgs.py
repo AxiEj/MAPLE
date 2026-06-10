@@ -195,8 +195,9 @@ class BatchLBFGS:
                 # Shrink history
                 self._shrink_history(survive_local)
 
-                calc.prepare(atoms_list, fixed_nmax=self._nmax)
-                self._rebuild_topology(atoms_list)
+                if atoms_list:
+                    calc.prepare(atoms_list, fixed_nmax=self._nmax)
+                    self._rebuild_topology(atoms_list)
 
                 # Update old values
                 E_old = E_new[survive_local]
@@ -211,6 +212,11 @@ class BatchLBFGS:
 
         else:
             self._w("\n# Maximum iterations reached.\n")
+
+        # Converged batches were synced when they left the batch; push the
+        # final coordinates of any still-unconverged structures back too.
+        if len(atoms_list) > 0:
+            self._sync_atoms_from_calc(calc, atoms_list)
 
         self._close_log()
 
@@ -255,9 +261,11 @@ class BatchLBFGS:
         # Initial Hessian approximation
         if num_history > 0:
             # gamma = (y^T s) / (y^T y)
+            # The newest history entry lives at column len(S_history)-1 until
+            # the buffer is full; column -1 is still all-False before that.
             s_last = self.S_history[-1]
             y_last = self.Y_history[-1]
-            valid_last = self.history_valid[:, -1]
+            valid_last = self.history_valid[:, num_history - 1]
             
             ys = (y_last * s_last).sum(dim=-1)
             yy = (y_last * y_last).sum(dim=-1)
@@ -442,7 +450,9 @@ class BatchLBFGS:
     # LOGGING
     # ===================================================
     def _open_log(self):
-        self.log_fp = open(self.output, "w", encoding="utf-8")
+        # Append: self.output is the shared job output file, already holding
+        # the input-reading and calculator-setup sections.
+        self.log_fp = open(self.output, "a", encoding="utf-8")
 
     def _close_log(self):
         if self.log_fp:

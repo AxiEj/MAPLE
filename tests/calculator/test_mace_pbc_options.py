@@ -27,6 +27,15 @@ def test_mace_pbc_factory_dispatches_to_official_class(monkeypatch, tmp_path):
         assert isinstance(setter.set_calculator(), MACEOfficialPBCCalculator)
 
 
+def test_mace_pbc_build_kwargs_uses_shared_registry_validator_for_common_options():
+    kwargs = MACEOfficialPBCCalculator.build_kwargs_from_options(
+        "mace-mp-pbc-small",
+        {"module": "custom.mace_plugin"},
+    )
+
+    assert kwargs["default_dtype"] == "float32"
+
+
 def test_unknown_mace_pbc_foundation_raises():
     with pytest.raises(ValueError, match="mace-mp-giant.*Supported foundations"):
         validate_mace_pbc_options({"foundation": "mace-mp-giant"})
@@ -36,6 +45,11 @@ def test_mace_pbc_capability_true_and_hessian_false():
     assert MACEOfficialPBCCalculator.maple_pbc_md_supported is True
     assert MACEOfficialPBCCalculator.maple_stress_unit == ASE_STRESS_UNIT
     assert MACEOfficialPBCCalculator.supported_hessian_modes == ()
+
+
+def test_mace_pbc_rejects_hessian_option_at_parser_validator_boundary():
+    with pytest.raises(ValueError, match="hessian.*Supported options"):
+        validate_mace_pbc_options({"hessian": "numerical"})
 
 
 def test_mace_pbc_converts_energy_and_forces_but_not_stress():

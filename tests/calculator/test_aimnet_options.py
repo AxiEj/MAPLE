@@ -17,20 +17,29 @@ from maple.function.calculator.set_calculator import SetClaculator, validate_pbc
 from maple.function.dispatcher.md.validation import _co2_validation_box
 
 
-def _setter(tmp_path, model_options=None):
-    return SetClaculator(
-        device=torch.device("cpu"),
-        model="aimnet2",
-        output=str(tmp_path / "maple.out"),
-        model_options=model_options,
-    )
+def test_known_aimnet_coulomb_option_passes_through():
+    options = validate_aimnet_options({"coulomb": "dsf", "cutoff": 12.5})
+
+    assert options["coulomb"] == "dsf"
+    assert options["cutoff"] == 12.5
 
 
-def test_known_aimnet_coulomb_option_passes_through(tmp_path):
-    setter = _setter(tmp_path, {"coulomb": "ewald", "cutoff": 12.5})
+def test_aimnet_coulomb_method_alias_canonicalizes():
+    options = validate_aimnet_options({"coulomb_method": "dsf", "cutoff": 12.5})
 
-    assert setter._validated_aimnet_options()["coulomb"] == "ewald"
-    assert setter._validated_aimnet_options()["cutoff"] == 12.5
+    assert options["coulomb"] == "dsf"
+    assert options["cutoff"] == 12.5
+
+
+@pytest.mark.parametrize("key", ["coulomb", "coulomb_method"])
+def test_legacy_aimnet_rejects_unvalidated_ewald(key):
+    with pytest.raises(ValueError, match="Unsupported AIMNet2 Coulomb method: 'ewald'"):
+        validate_aimnet_options({key: "ewald"})
+
+
+def test_aimnet_rejects_conflicting_coulomb_spellings():
+    with pytest.raises(ValueError, match="Conflicting AIMNet2 Coulomb options"):
+        validate_aimnet_options({"coulomb": "simple", "coulomb_method": "dsf"})
 
 
 def test_unknown_aimnet_option_raises_helpful_error():
@@ -54,6 +63,15 @@ def test_aimnet_pbc_factory_dispatches_to_official_class(monkeypatch, tmp_path):
         )
 
         assert isinstance(setter.set_calculator(), AIMNet2OfficialPBCCalculator)
+
+
+def test_aimnet_pbc_build_kwargs_uses_shared_registry_validator_for_common_options():
+    kwargs = AIMNet2OfficialPBCCalculator.build_kwargs_from_options(
+        "aimnet2-pbc",
+        {"module": "custom.aimnet_plugin", "coulomb_method": "pme"},
+    )
+
+    assert kwargs["coulomb_method"] == "pme"
 
 
 def test_aimnet_pbc_capability_declared_without_changing_legacy_class():

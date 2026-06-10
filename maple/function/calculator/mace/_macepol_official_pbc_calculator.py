@@ -14,8 +14,13 @@ import numpy as np
 import torch
 
 from maple.function.calculator._official_pbc_base import OfficialPBCAdapterBase
+from ..calculator_base import register_calculator
+from ..pbc_option_registry import validate_model_pbc_options
 from ._official_pbc_common import extract_mace_r_max
-from .options import MACEPOL_PBC_MODELS
+from .options import (
+    MACEPOL_PBC_MODELS,
+    MACEPOL_PBC_OPTION_KEYS,
+)
 
 
 def _load_mace_polar(model: str):
@@ -36,8 +41,20 @@ def _load_mace_polar(model: str):
         ) from exc
 
 
+@register_calculator
 class MACEPolOfficialPBCCalculator(OfficialPBCAdapterBase):
     """MAPLE unit adapter around official PolarMACE ASE calculators."""
+
+    MODEL_NAMES = tuple(MACEPOL_PBC_MODELS)
+    SUPPORTS_CHARGE_MULT = True
+    OPTION_KEYS = tuple(MACEPOL_PBC_OPTION_KEYS)
+
+    @classmethod
+    def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
+        macepol_options = validate_model_pbc_options(model, options)
+        return {
+            "default_dtype": macepol_options.get("default_dtype", "float32"),
+        }
 
     def __init__(
         self,

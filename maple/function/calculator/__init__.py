@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-from .set_calculator import SetCalculator, SetClaculator
-from .ase_unit_adapter import ASEUnitAdapter, wrap_ase_calculator
-=======
 from .calculator_base import (
     CalcABC,
     register_calculator,
@@ -10,4 +6,4 @@ from .calculator_base import (
     load_calculator_plugins_from_env,
 )
 from .set_calculator import SetCalculator, SetClaculator
->>>>>>> upstream/enhance
+from .ase_unit_adapter import ASEUnitAdapter, wrap_ase_calculator

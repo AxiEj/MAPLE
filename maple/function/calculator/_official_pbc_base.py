@@ -13,6 +13,11 @@ class OfficialPBCAdapterBase(CalcABC):
     """MAPLE unit adapter base for official ASE PBC calculators."""
 
     implemented_properties = ["energy", "forces", "stress", "free_energy"]
+    MODEL_ENERGY_UNIT = "eV"
+    SUPPORTED_HESSIAN_MODES = ()
+    SUPPORTS_PBC = True
+    CHECKPOINT_FILENAME = None
+    REQUIRES_LOCAL_MODEL_FILE = False
     supported_hessian_modes = ()
     maple_pbc_md_supported = True
     maple_stress_supported = True

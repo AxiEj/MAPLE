@@ -34,6 +34,15 @@ def test_macepol_pbc_factory_dispatches_to_official_class(monkeypatch, tmp_path)
         assert calculator._official_calculator.kwargs["model"] == upstream_model
 
 
+def test_macepol_pbc_build_kwargs_uses_shared_registry_validator_for_common_options():
+    kwargs = MACEPolOfficialPBCCalculator.build_kwargs_from_options(
+        "macepol-pbc-small",
+        {"module": "custom.macepol_plugin"},
+    )
+
+    assert kwargs["default_dtype"] == "float32"
+
+
 def test_macepol_pbc_default_spin_is_multiplicity_one():
     official = DummyMACECalculator()
     calculator = MACEPolOfficialPBCCalculator(
@@ -164,6 +173,11 @@ def test_macepol_pbc_adapter_specific_spin_override_takes_precedence():
 def test_unknown_macepol_pbc_dtype_raises():
     with pytest.raises(ValueError, match="bfloat16.*Supported values"):
         validate_macepol_pbc_options({"default_dtype": "bfloat16"})
+
+
+def test_macepol_pbc_rejects_hessian_option_at_parser_validator_boundary():
+    with pytest.raises(ValueError, match="hessian.*Supported options"):
+        validate_macepol_pbc_options({"hessian": "numerical"})
 
 
 def test_macepol_pbc_capability_true_and_hessian_false():

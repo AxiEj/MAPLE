@@ -11,6 +11,10 @@ from .mace.options import (
 )
 
 ModelOptionValidator = Callable[[Optional[Mapping[str, object]]], dict[str, object]]
+# Routing/path controls are class-protocol concerns owned by SetCalculator, not
+# backend scientific options.  Keep them out of strict AIMNet/MACE validators so
+# parser canonicalization does not reject documented plugin/model-path flows.
+COMMON_MODEL_OPTION_KEYS = frozenset({"module", "model_path"})
 
 
 def _validate_aimnet_legacy(model_options: Optional[Mapping[str, object]]) -> dict[str, object]:
@@ -33,7 +37,20 @@ def validate_model_pbc_options(
     model: str,
     model_options: Optional[Mapping[str, object]],
 ) -> dict[str, object]:
+    model_options = dict(model_options or {})
+    common_options = {
+        key: value
+        for key, value in model_options.items()
+        if key in COMMON_MODEL_OPTION_KEYS
+    }
+    backend_options = {
+        key: value
+        for key, value in model_options.items()
+        if key not in COMMON_MODEL_OPTION_KEYS
+    }
     for model_names, validator in PBC_OPTION_VALIDATORS:
         if model in model_names:
-            return validator(model_options)
+            options = validator(backend_options)
+            options.update(common_options)
+            return options
     return {}

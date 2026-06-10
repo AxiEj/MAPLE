@@ -1,28 +1,16 @@
 from __future__ import annotations
 
 import os
-<<<<<<< HEAD
-import torch
-import numpy as np
 from typing import Dict, Literal, Mapping, Optional
-from ase.calculators.calculator import Calculator, all_changes
-from ..calculator_base import CalcABC
-from maple.function.calculator._ase_unit_contract import EV2HARTREE
-from .options import validate_aimnet_options
-=======
-from typing import Dict, Literal
->>>>>>> upstream/enhance
 
 import numpy as np
 import torch
 from ase.calculators.calculator import all_changes
 
 from ..calculator_base import CalcABC, register_calculator
+from .options import validate_aimnet_options
 
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/enhance
 # --------------------------------------------
 # Build dense neighbor list (N+1, M) sentinel padded
 # --------------------------------------------
@@ -78,20 +66,10 @@ def maybe_pad_dim0(a: torch.Tensor, N: int, value=0.0) -> torch.Tensor:
 # ==========================================================
 @register_calculator
 class AIMNet2Calculator(CalcABC):
-<<<<<<< HEAD
-    implemented_properties = ["energy", "forces", "hessian", "free_energy"]
+    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
     supported_hessian_modes = ("analytic", "numerical")
     maple_pbc_md_supported = False
     maple_stress_supported = False
-
-    def __init__(self, device: torch.device,
-                model: str = "aimnet2",
-                coulomb_method: str = "simple",
-                cutoff: float = 15.0,
-                dsf_alpha: float = 0.2,
-                implicit: Literal["gbsa", "none"] = "gbsa",
-=======
-    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
 
     MODEL_NAMES = ('aimnet2', 'aimnet2nse')
     MODEL_ENERGY_UNIT = 'eV'
@@ -101,15 +79,21 @@ class AIMNet2Calculator(CalcABC):
     SUPPORTED_COULOMB_METHODS = ('simple', 'dsf')
     CHECKPOINT_FILENAME = {'aimnet2': 'aimnet2.pt', 'aimnet2nse': 'aimnet2nse.pt'}
     REQUIRES_LOCAL_MODEL_FILE = False
-    OPTION_KEYS = ('coulomb_method',)
+    OPTION_KEYS = ('coulomb_method', 'coulomb', 'cutoff', 'dsf_alpha')
     MODEL_PATH_OPTION = 'model_path'
 
     @classmethod
     def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
         kwargs = {}
-        coulomb_method = options.get('coulomb_method')
-        if coulomb_method is not None:
-            kwargs['coulomb_method'] = str(coulomb_method).lower()
+        # MAPLE input-header AIMNet options (validated by validate_aimnet_options
+        # inside __init__): coulomb/coulomb_method/cutoff/dsf_alpha/hessian.
+        aimnet_options = {
+            key: options[key]
+            for key in ('coulomb', 'coulomb_method', 'cutoff', 'dsf_alpha', 'hessian')
+            if options.get(key) is not None
+        }
+        if aimnet_options:
+            kwargs['model_options'] = aimnet_options
         if resolved_model_path is not None:
             kwargs['model_path'] = resolved_model_path
         return kwargs
@@ -118,8 +102,9 @@ class AIMNet2Calculator(CalcABC):
                 model: str = 'aimnet2',
                 model_path: str = None,
                 coulomb_method: str = 'simple',
+                cutoff: float = 15.0,
+                dsf_alpha: float = 0.2,
                 implicit: Literal['gbsa', 'none'] = 'none',
->>>>>>> upstream/enhance
                 solvent: str = 'none',
                 model_options: Optional[Mapping[str, object]] = None,
                 ):
@@ -141,49 +126,25 @@ class AIMNet2Calculator(CalcABC):
         self.lr = True
         self.hessian: str = 'analytic'
 
-<<<<<<< HEAD
         # Coulomb settings (keep original behavior)
         self._set_lrcoulomb_method(
             str(aimnet_options.get("coulomb", coulomb_method)),
             cutoff=float(aimnet_options.get("cutoff", cutoff)),
             dsf_alpha=float(aimnet_options.get("dsf_alpha", dsf_alpha)),
         )
-=======
-        self._set_lrcoulomb_method(coulomb_method)
->>>>>>> upstream/enhance
 
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
     def _set_lrcoulomb_method(self, method: str, cutoff: float = 15.0, dsf_alpha: float = 0.2):
-<<<<<<< HEAD
-            """
-            Configure the long-range Coulomb interaction method if the model contains a 'lrcoulomb' submodule.
-            method: 'simple', 'dsf', or 'ewald'
-            cutoff: cutoff distance for long-range interactions
-            dsf_alpha: DSF damping parameter (if used)
-            """
-            method = str(method).lower()
-            if method not in ("simple", "dsf", "ewald"):
-                raise ValueError(f"Invalid AIMNet2 Coulomb method: {method}")
-=======
         """
         Configure the long-range Coulomb interaction method if the model contains a 'lrcoulomb' submodule.
-        method: 'simple' or 'dsf'. The historical 'ewald' selector is rejected
-        until this wrapper carries validated cell/PBC/MIC inputs.
+        method: 'simple' or 'dsf'
         cutoff: cutoff distance for long-range interactions
         dsf_alpha: DSF damping parameter (if used)
         """
         method = str(method).lower()
-        if method == 'ewald':
-            raise NotImplementedError(
-                "AIMNet2 coulomb_method='ewald' requires validated PBC/cell/MIC support; "
-                "use 'simple' or 'dsf'."
-            )
         if method not in self.SUPPORTED_COULOMB_METHODS:
-            raise ValueError(
-                f"Invalid coulomb_method: {method!r}; expected one of 'simple', 'dsf'."
-            )
->>>>>>> upstream/enhance
+            raise ValueError(f"Invalid AIMNet2 Coulomb method: {method}; expected one of simple, dsf")
 
         def _iter_lrcoulomb_mods(model):
             for name, mod in model.named_modules():

@@ -4,13 +4,16 @@ from typing import Mapping, Optional
 
 
 AIMNET_LEGACY_MODELS = frozenset({"aimnet2", "aimnet2nse"})
-AIMNET_LEGACY_OPTION_KEYS = frozenset({"hessian", "coulomb", "cutoff", "dsf_alpha"})
-AIMNET_LEGACY_COULOMB_METHODS = frozenset({"simple", "dsf", "ewald"})
+AIMNET_COULOMB_OPTION_KEYS = frozenset(
+    {"coulomb", "coulomb_method", "cutoff", "dsf_alpha"}
+)
+AIMNET_LEGACY_OPTION_KEYS = AIMNET_COULOMB_OPTION_KEYS | frozenset({"hessian"})
+AIMNET_LEGACY_COULOMB_METHODS = frozenset({"simple", "dsf"})
 AIMNET_PBC_MODELS = {
     "aimnet2-pbc": "aimnet2",
     "aimnet2nse-pbc": "aimnet2-nse",
 }
-AIMNET_PBC_OPTION_KEYS = AIMNET_LEGACY_OPTION_KEYS | frozenset(
+AIMNET_PBC_OPTION_KEYS = AIMNET_COULOMB_OPTION_KEYS | frozenset(
     {"ewald_accuracy", "pme_cutoff"}
 )
 AIMNET_PBC_COULOMB_METHODS = frozenset({"dsf", "ewald", "pme"})
@@ -44,15 +47,30 @@ def validate_aimnet_options(
         options["hessian"] = model_options["hessian"]
 
     coulomb = model_options.get("coulomb")
-    if coulomb is not None:
-        coulomb = str(coulomb).lower()
-        if coulomb not in allowed_coulomb:
+    coulomb_method = model_options.get("coulomb_method")
+    if coulomb is not None or coulomb_method is not None:
+        normalized = {
+            key: str(value).lower()
+            for key, value in (
+                ("coulomb", coulomb),
+                ("coulomb_method", coulomb_method),
+            )
+            if value is not None
+        }
+        if len(set(normalized.values())) > 1:
+            raise ValueError(
+                f"Conflicting {label} Coulomb options: "
+                f"coulomb={coulomb!r}, coulomb_method={coulomb_method!r}. "
+                "Specify only one spelling or use matching values."
+            )
+        method = next(iter(normalized.values()))
+        if method not in allowed_coulomb:
             supported_text = ", ".join(sorted(allowed_coulomb))
             raise ValueError(
-                f"Unsupported {label} Coulomb method: '{coulomb}'. "
+                f"Unsupported {label} Coulomb method: '{method}'. "
                 f"Supported methods: {supported_text}"
             )
-        options["coulomb"] = coulomb
+        options["coulomb"] = method
 
     for key in ("cutoff", "dsf_alpha", "ewald_accuracy", "pme_cutoff"):
         if key in model_options:

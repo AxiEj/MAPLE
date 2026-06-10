@@ -7,12 +7,8 @@ import numpy as np
 import torch
 from ase.calculators.calculator import all_changes
 
-<<<<<<< HEAD
-from maple.function.calculator._ase_unit_contract import EV2HARTREE
-=======
 from ..calculator_base import CalcABC, hessian_via_double_autograd, register_calculator
 from ._common import model_float_dtype, one_hot_node_attrs, radius_graph_no_pbc
->>>>>>> upstream/enhance
 
 
 # ------------------------ Input builder ------------------------
@@ -50,12 +46,9 @@ class MACEModelCalculator(CalcABC):
     """ASE calculator wrapping a traced MACE model."""
 
     implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
-<<<<<<< HEAD
     supported_hessian_modes = ("analytic", "numerical")
     maple_pbc_md_supported = False
     maple_stress_supported = False
-=======
->>>>>>> upstream/enhance
 
     MODEL_NAMES = ('maceomol',)
     MODEL_ENERGY_UNIT = 'eV'

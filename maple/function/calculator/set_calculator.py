@@ -9,67 +9,7 @@ from pathlib import Path
 from typing import Optional
 
 import ase
-<<<<<<< HEAD
 import numpy as np
-import torch
-from ase import Atoms
-
-from .ani._ani_calculator import ANICalculator
-from .aimnet.options import (
-    AIMNET_LEGACY_MODELS,
-    AIMNET_PBC_MODELS,
-)
-from .mace._mace_calculator import MACECalculator
-from .mace.options import (
-    MACE_PBC_MODELS,
-    MACEPOL_PBC_MODELS,
-)
-from .pbc_option_registry import validate_model_pbc_options
-
-
-IMPLEMENTATION_MODELS = [
-    "ani2x",
-    "ani1x",
-    "ani1ccx",
-    "ani1xnr",
-    "maceoff23s",
-    "maceoff23m",
-    "maceoff23l",
-    "egret",
-    "aimnet2",
-    "aimnet2nse",
-    "aimnet2-pbc",
-    "aimnet2nse-pbc",
-    "mace-mp-pbc-small",
-    "mace-mp-pbc-medium",
-    "mace-mp-pbc-large",
-    "macepol-pbc-small",
-    "macepol-pbc-medium",
-    "macepol-pbc-large",
-    "uma",
-    "maceomol",
-    "macepols",
-    "macepolm",
-    "macepoll",
-]
-
-MODEL_NAME_TO_FILE = {
-    "ani2x": "ani2x.pt",
-    "ani1x": "ani1x.pt",
-    "ani1ccx": "ani1ccx.pt",
-    "ani1xnr": "ani1xnr.pt",
-    "aimnet2": "aimnet2.pt",
-    "aimnet2nse": "aimnet2nse.pt",
-    "maceoff23m": "maceoff23m.pt",
-    "maceomol": "maceomol.pt",
-    "egret": "egret1s.pt",
-    "uma-s-1p1": "uma-s-1p1.pt",
-    "uma-s-1p2": "uma-s-1p2.pt",
-    "uma-m-1p1": "uma-m-1p1.pt",
-    "macepols": "macepols.pt",
-    "macepolm": "macepolm.pt",
-    "macepoll": "macepoll.pt",
-=======
 from ase import Atoms
 
 from .calculator_base import (
@@ -97,45 +37,25 @@ _BUILTIN_NAME_TO_MODULE = {
     'ani1xnr': 'maple.function.calculator.ani._ani_calculator',
     'aimnet2': 'maple.function.calculator.aimnet._aimnet2_calculator',
     'aimnet2nse': 'maple.function.calculator.aimnet._aimnet2_calculator',
+    'aimnet2-pbc': 'maple.function.calculator.aimnet._aimnet2_official_pbc_calculator',
+    'aimnet2nse-pbc': 'maple.function.calculator.aimnet._aimnet2_official_pbc_calculator',
     'maceoff23s': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23m': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23l': 'maple.function.calculator.mace._mace_calculator',
     'egret': 'maple.function.calculator.mace._mace_calculator',
+    'mace-mp-pbc-small': 'maple.function.calculator.mace._mace_official_pbc_calculator',
+    'mace-mp-pbc-medium': 'maple.function.calculator.mace._mace_official_pbc_calculator',
+    'mace-mp-pbc-large': 'maple.function.calculator.mace._mace_official_pbc_calculator',
     'maceomol': 'maple.function.calculator.mace._mace_general_calculator',
+    'macepol-pbc-small': 'maple.function.calculator.mace._macepol_official_pbc_calculator',
+    'macepol-pbc-medium': 'maple.function.calculator.mace._macepol_official_pbc_calculator',
+    'macepol-pbc-large': 'maple.function.calculator.mace._macepol_official_pbc_calculator',
     'macepols': 'maple.function.calculator.mace._macepol_calculator',
     'macepolm': 'maple.function.calculator.mace._macepol_calculator',
     'macepoll': 'maple.function.calculator.mace._macepol_calculator',
     'uma': 'maple.function.calculator.uma._uma_calculator',
->>>>>>> upstream/enhance
 }
 
-
-<<<<<<< HEAD
-MODEL_HESSIAN_SUPPORT = {
-    "ani2x": ("analytic", "numerical"),
-    "ani1x": ("analytic", "numerical"),
-    "ani1ccx": ("analytic", "numerical"),
-    "ani1xnr": ("analytic", "numerical"),
-    "maceoff23s": ("analytic", "numerical"),
-    "maceoff23m": ("analytic", "numerical"),
-    "maceoff23l": ("analytic", "numerical"),
-    "egret": ("analytic", "numerical"),
-    "aimnet2": ("analytic", "numerical"),
-    "aimnet2nse": ("analytic", "numerical"),
-    "aimnet2-pbc": (),
-    "aimnet2nse-pbc": (),
-    "mace-mp-pbc-small": (),
-    "mace-mp-pbc-medium": (),
-    "mace-mp-pbc-large": (),
-    "macepol-pbc-small": (),
-    "macepol-pbc-medium": (),
-    "macepol-pbc-large": (),
-    "uma": ("numerical",),
-    "maceomol": ("analytic", "numerical"),
-    "macepols": ("analytic", "numerical"),
-    "macepolm": ("analytic", "numerical"),
-    "macepoll": ("analytic", "numerical"),
-}
 
 MODEL_PBC_MD_SUPPORT = {
     "ani2x": False,
@@ -203,7 +123,7 @@ UNSUPPORTED_CHARGE_MULT_MODELS = {
     "mace-mp-pbc-medium",
     "mace-mp-pbc-large",
 }
-=======
+
 _plugins_loaded_from_env = False
 
 
@@ -227,7 +147,6 @@ _BUILTIN_ALIAS_TO_NAME = {
 
 def _builtin_canonical_name(name: str) -> Optional[str]:
     return _BUILTIN_ALIAS_TO_NAME.get(_compact_model_name(name))
->>>>>>> upstream/enhance
 
 
 def _model_download_url(filename: str) -> str:
@@ -237,7 +156,6 @@ def _model_download_url(filename: str) -> str:
     return f'https://huggingface.co/{HF_REPO_ID}/resolve/{revision}/{filename}'
 
 
-<<<<<<< HEAD
 def model_supports_pbc_md(model: str) -> bool:
     """Return whether a MAPLE model has declared periodic MD support."""
     return bool(MODEL_PBC_MD_SUPPORT.get(model, False))
@@ -422,8 +340,7 @@ def validate_pbc_neighbor_cutoff(
         )
 
 
-class SetClaculator:
-=======
+
 def _normalize_model_options(model_options: Optional[dict]) -> dict:
     """Normalize option keys and enum-like values without touching path values."""
     options = {}
@@ -444,7 +361,6 @@ def _normalize_model_options(model_options: Optional[dict]) -> dict:
 
 
 class SetCalculator:
->>>>>>> upstream/enhance
     def __init__(
         self,
         device,
@@ -489,16 +405,7 @@ class SetCalculator:
         if self.implicit == 'none':
             return
 
-<<<<<<< HEAD
-        mode = str(mode).lower()
-        declared = MODEL_HESSIAN_SUPPORT.get(self.model)
-        if declared is not None and mode not in declared:
-            if not declared:
-                raise ValueError(f"Model '{self.model}' does not support Hessian modes.")
-            supported_text = ", ".join(sorted(declared))
-=======
         if self.implicit != 'gbsa':
->>>>>>> upstream/enhance
             raise ValueError(
                 "Unsupported implicit solvation method: "
                 f"'{self.implicit}'. Supported experimental method: gbsa."
@@ -586,18 +493,30 @@ class SetCalculator:
                     f'Supported modes: {supported_text}'
                 )
 
-        coulomb_method = self.model_options.get('coulomb_method')
         supported_coulomb = getattr(cls, 'SUPPORTED_COULOMB_METHODS', None)
-        if coulomb_method is not None and supported_coulomb is not None:
-            if coulomb_method not in supported_coulomb:
+        if supported_coulomb is not None:
+            requested_coulomb = {
+                key: str(self.model_options[key]).lower()
+                for key in ('coulomb', 'coulomb_method')
+                if self.model_options.get(key) is not None
+            }
+            if len(set(requested_coulomb.values())) > 1:
+                raise ValueError(
+                    f"Conflicting Coulomb options for '{self.model}': "
+                    f"coulomb={self.model_options.get('coulomb')!r}, "
+                    f"coulomb_method={self.model_options.get('coulomb_method')!r}. "
+                    "Specify only one spelling or use matching values."
+                )
+            coulomb_method = next(iter(requested_coulomb.values()), None)
+            if coulomb_method is not None and coulomb_method not in supported_coulomb:
                 supported_text = ', '.join(sorted(supported_coulomb))
                 if coulomb_method == 'ewald':
                     raise NotImplementedError(
-                        "AIMNet2 coulomb_method='ewald' requires validated PBC/cell/MIC support; "
+                        "AIMNet2 Coulomb method 'ewald' requires validated PBC/cell/MIC support; "
                         f"use one of: {supported_text}."
                     )
                 raise ValueError(
-                    f"Model '{self.model}' does not support coulomb_method='{coulomb_method}'. "
+                    f"Model '{self.model}' does not support Coulomb method '{coulomb_method}'. "
                     f'Supported methods: {supported_text}'
                 )
 
@@ -628,21 +547,11 @@ class SetCalculator:
         option_keys = getattr(cls, 'OPTION_KEYS', None)
         if option_keys is None:
             return
-<<<<<<< HEAD
-
-        mode = str(mode).lower()
-        supported = getattr(calculator, "supported_hessian_modes", None)
-        if supported is not None and mode not in supported:
-            if not supported:
-                raise ValueError(f"Model '{self.model}' does not support Hessian modes.")
-            supported_text = ", ".join(sorted(supported))
-=======
         allowed = set(_COMMON_MODEL_OPTION_KEYS)
         allowed.update(option_keys)
         unknown = sorted(key for key in self.model_options if key not in allowed)
         if unknown:
             allowed_text = ', '.join(sorted(allowed)) or '(none)'
->>>>>>> upstream/enhance
             raise ValueError(
                 f"Unsupported model option(s) for '{self.model}': {', '.join(unknown)}. "
                 f"Supported options: {allowed_text}"
@@ -666,35 +575,6 @@ class SetCalculator:
             return 'checkpoint_path'
         return None
 
-<<<<<<< HEAD
-    def _validated_aimnet_options(self) -> dict:
-        if self.model in AIMNET_LEGACY_MODELS or self.model in AIMNET_PBC_MODELS:
-            return validate_model_pbc_options(self.model, self.model_options)
-        return {}
-
-    def _validated_mace_pbc_options(self) -> dict:
-        if self.model not in MACE_PBC_MODELS:
-            return {}
-        return validate_model_pbc_options(self.model, self.model_options)
-
-    def _validated_macepol_pbc_options(self) -> dict:
-        if self.model not in MACEPOL_PBC_MODELS:
-            return {}
-        return validate_model_pbc_options(self.model, self.model_options)
-
-    def _validated_model_pbc_options(self) -> dict:
-        return validate_model_pbc_options(self.model, self.model_options)
-
-    def _coerce_uma_inference_for_device(
-        self, inference: Optional[str], device_name: str
-    ) -> Optional[str]:
-        if inference == "turbo" and device_name == "cpu":
-            self.log_info([
-                "\n [WARNING] UMA inference='turbo' requires CUDA; "
-                "falling back to 'default' on CPU.\n"
-            ])
-            return "default"
-=======
     def _resolve_explicit_model_path(self, cls, options: dict) -> Path:
         """Validate an explicit user model_path and prevent silent ignore."""
         path_option = self._explicit_model_path_option(cls)
@@ -744,7 +624,6 @@ class SetCalculator:
                 ]
             )
             return 'default'
->>>>>>> upstream/enhance
         return inference
 
     def _ensure_model_file(self, filename: str, model_name: str) -> Path:
@@ -844,7 +723,6 @@ class SetCalculator:
         self._log_model_error(message)
         raise FileNotFoundError(message)
 
-<<<<<<< HEAD
     def _warn_charge_mult(self) -> None:
         if self.atoms is None:
             return
@@ -864,104 +742,25 @@ class SetCalculator:
     def _annotate_calculator_capabilities(self, calculator) -> None:
         calculator.maple_model_name = self.model
         calculator.maple_model_options = dict(self.model_options)
-        calculator.maple_pbc_md_supported = model_supports_pbc_md(self.model)
-        calculator.maple_stress_supported = model_supports_stress(self.model)
+        # Only annotate shipped models; registry plugins keep their own class
+        # capability attributes instead of being force-overwritten to False.
+        if self.model in MODEL_PBC_MD_SUPPORT:
+            calculator.maple_pbc_md_supported = model_supports_pbc_md(self.model)
+        if self.model in MODEL_STRESS_SUPPORT:
+            calculator.maple_stress_supported = model_supports_stress(self.model)
 
-=======
->>>>>>> upstream/enhance
     def _build_calculator(self) -> ase.calculators.calculator.Calculator:
         requested_name = self.model
         self._validate_solvent_config()
 
-<<<<<<< HEAD
-        if model in {"ani2x", "ani1x", "ani1ccx", "ani1xnr"}:
-            self._ensure_model_file(model)
-            calculator = ANICalculator(
-                model=model,
-                d4=self.d4,
-                device=self.device,
-                implicit=self.implicit,
-                solvent=self.solvent,
-            )
-        elif model in {"maceoff23s", "maceoff23m", "maceoff23l", "egret"}:
-            model_path = self._ensure_model_file(model)
-            if model_path is None:
-                model_path = self._require_local_model_file(model)
-            calculator = MACECalculator(
-                model=model,
-                model_path=str(model_path),
-                device=self.device,
-                implicit=self.implicit,
-                solvent=self.solvent,
-            )
-        elif model in AIMNET_LEGACY_MODELS:
-            aimnet_options = self._validated_aimnet_options()
-            self._ensure_model_file(model)
-            from .aimnet._aimnet2_calculator import AIMNet2Calculator
-
-            calculator = AIMNet2Calculator(
-                model=model,
-                device=self.device,
-                coulomb_method=aimnet_options.get("coulomb", "simple"),
-                cutoff=aimnet_options.get("cutoff", 15.0),
-                dsf_alpha=aimnet_options.get("dsf_alpha", 0.2),
-                implicit=self.implicit,
-                solvent=self.solvent,
-                model_options=aimnet_options,
-            )
-        elif model in AIMNET_PBC_MODELS:
-            from .aimnet._aimnet2_official_pbc_calculator import AIMNet2OfficialPBCCalculator
-
-            aimnet_options = self._validated_aimnet_options()
-            calculator = AIMNet2OfficialPBCCalculator(
-                model=model,
-                device=self.device,
-                coulomb_method=aimnet_options.get("coulomb", "dsf"),
-                cutoff=aimnet_options.get("cutoff", 15.0),
-                dsf_alpha=aimnet_options.get("dsf_alpha", 0.2),
-                ewald_accuracy=aimnet_options.get("ewald_accuracy", 1e-6),
-                pme_cutoff=aimnet_options.get("pme_cutoff"),
-                implicit=self.implicit,
-                solvent=self.solvent,
-            )
-        elif model in MACE_PBC_MODELS:
-            from .mace._mace_official_pbc_calculator import MACEOfficialPBCCalculator
-
-            mace_options = self._validated_mace_pbc_options()
-            calculator = MACEOfficialPBCCalculator(
-                model=model,
-                device=self.device,
-                foundation=mace_options.get("foundation"),
-                default_dtype=mace_options.get("default_dtype", "float32"),
-                dispersion=mace_options.get("dispersion", False),
-                head=mace_options.get("head"),
-                implicit=self.implicit,
-                solvent=self.solvent,
-            )
-        elif model in MACEPOL_PBC_MODELS:
-            from .mace._macepol_official_pbc_calculator import MACEPolOfficialPBCCalculator
-
-            macepol_options = self._validated_macepol_pbc_options()
-            calculator = MACEPolOfficialPBCCalculator(
-                model=model,
-                device=self.device,
-                default_dtype=macepol_options.get("default_dtype", "float32"),
-                implicit=self.implicit,
-                solvent=self.solvent,
-            )
-        elif model == "uma":
-            from .uma._uma_calculator import (
-                UMACalculator,
-                UMA_DEFAULT_SIZE,
-                UMA_FALLBACK_HF_MODELS,
-            )
-=======
         cls = self._discover_calculator_class(requested_name)
         name = self.model
         self._validate_model_options(cls)
         self._validate_against_class(cls)
         options = dict(self.model_options)
-        options.setdefault('d4', self.d4)
+        option_keys = getattr(cls, 'OPTION_KEYS', None)
+        if option_keys is not None and 'd4' in option_keys:
+            options.setdefault('d4', self.d4)
         # Allow input header to override the auto-resolved model path.
         if options.get('model_path'):
             resolved_model_path = self._resolve_explicit_model_path(cls, options)
@@ -974,17 +773,9 @@ class SetCalculator:
         # UMACalculator only receives clean kwargs.
         if cls.__name__ == 'UMACalculator':
             from .uma._uma_calculator import UMACalculator, UMA_DEFAULT_SIZE, UMA_FALLBACK_HF_MODELS
->>>>>>> upstream/enhance
 
             inference = options.get('inference')
             effective_device = UMACalculator._normalize_device(self.device)
-<<<<<<< HEAD
-            uma_inference = self._coerce_uma_inference_for_device(
-                uma_inference, effective_device
-            )
-            checkpoint_path = self.model_options.get("checkpoint_path") or self.model_options.get("model_path")
-            effective_size = str(uma_size).lower() if uma_size else UMA_DEFAULT_SIZE
-=======
             options['inference'] = self._coerce_uma_inference_for_device(inference, effective_device)
 
             checkpoint_path = options.get('checkpoint_path')
@@ -999,7 +790,6 @@ class SetCalculator:
             elif resolved_model_path is not None:
                 checkpoint_path = str(resolved_model_path)
             effective_size = str(options.get('size')).lower() if options.get('size') else UMA_DEFAULT_SIZE
->>>>>>> upstream/enhance
             if checkpoint_path is None and effective_size in UMA_FALLBACK_HF_MODELS:
                 local_checkpoint = self._local_model_file(f'{effective_size}.pt')
                 if local_checkpoint is not None:
@@ -1025,8 +815,15 @@ class SetCalculator:
         if mode is None:
             return
 
-        supported = type(calculator).SUPPORTED_HESSIAN_MODES
+        # Instance/MAPLE capability attr wins over the class protocol constant:
+        # the official PBC adapters declare an empty ``supported_hessian_modes``
+        # while inheriting CalcABC's non-empty default constant.
+        supported = getattr(calculator, 'supported_hessian_modes', None)
+        if supported is None:
+            supported = type(calculator).SUPPORTED_HESSIAN_MODES
         if mode not in supported:
+            if not supported:
+                raise ValueError(f"Model '{self.model}' does not support Hessian modes.")
             supported_text = ', '.join(sorted(supported))
             raise ValueError(
                 f"Model '{self.model}' does not support hessian='{mode}'. "
@@ -1040,17 +837,6 @@ class SetCalculator:
 
     def set_calculator(self) -> ase.calculators.calculator.Calculator:
         try:
-<<<<<<< HEAD
-            if self.model not in IMPLEMENTATION_MODELS:
-                self._log_model_error(f"Unsupported model: {self.model}")
-                raise ValueError(f"Unsupported model: '{self.model}'.")
-
-            self._validated_model_pbc_options()
-            self._validate_requested_hessian_mode()
-
-            if self.d4 and self.model not in {"ani2x", "ani1x", "ani1ccx", "ani1xnr"}:
-                self.log_info([f"\n [WARNING] D4 is not supported for model '{self.model}'. D4 will be ignored.\n"])
-
             calculator = self._build_calculator()
             self._annotate_calculator_capabilities(calculator)
             # General build path serves MD and non-MD (SP/OPT/SCAN/TS) tasks: keep the
@@ -1058,10 +844,6 @@ class SetCalculator:
             # not declare a cutoff here.  The strict unknown-cutoff rejection lives on
             # the MD admission path (validate_md_capabilities).
             validate_pbc_neighbor_cutoff(self.atoms, calculator, require_known_cutoff=False)
-            self._warn_charge_mult()
-=======
-            calculator = self._build_calculator()
->>>>>>> upstream/enhance
             return calculator
         except Exception as exc:
             if not self._model_error_logged:
@@ -1082,11 +864,8 @@ class SetCalculator:
                 handle.write(line)
 
 
-<<<<<<< HEAD
-# Correctly-spelled alias for the (historically misspelled) public class name.
-# ``SetClaculator`` stays the canonical definition so existing call sites are not
-# churned; ``SetCalculator`` is the preferred spelling for new code.
-SetCalculator = SetClaculator
+# Historical misspelling kept as an alias for one release.
+SetClaculator = SetCalculator
 
 
 def validate_pbc_capabilities(atoms, task: str) -> None:
@@ -1118,7 +897,3 @@ def validate_pbc_capabilities(atoms, task: str) -> None:
             f"{task.upper()} with PBC requires a calculator with real periodic support. "
             f"Model/calculator '{model_label}' is not declared PBC capable."
         )
-=======
-# Historical misspelling kept as an alias for one release.
-SetClaculator = SetCalculator
->>>>>>> upstream/enhance

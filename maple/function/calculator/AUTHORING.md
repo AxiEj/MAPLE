@@ -44,9 +44,9 @@ instantiated):
 
 `SUPPORTED_COULOMB_METHODS` (`tuple[str, ...]`) is an additional, backend-specific
 gate that `SetCalculator` reads before instantiation: AIMNet2 declares it so an
-unsupported `coulomb_method` option is rejected before the model is built. It is
-not part of the core protocol — `SetCalculator` consults it only for the
-`coulomb_method` key — and is noted here so the capability surface is complete.
+unsupported `coulomb` / `coulomb_method` option is rejected before the model is
+built. It is not part of the core protocol and is noted here so the capability
+surface is complete.
 
 ## Minimum runnable subclass
 

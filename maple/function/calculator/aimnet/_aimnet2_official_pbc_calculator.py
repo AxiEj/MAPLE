@@ -11,7 +11,13 @@ from typing import Literal, Optional
 import torch
 
 from maple.function.calculator._official_pbc_base import OfficialPBCAdapterBase
-from .options import AIMNET_PBC_COULOMB_METHODS, AIMNET_PBC_MODELS
+from ..calculator_base import register_calculator
+from ..pbc_option_registry import validate_model_pbc_options
+from .options import (
+    AIMNET_PBC_COULOMB_METHODS,
+    AIMNET_PBC_MODELS,
+    AIMNET_PBC_OPTION_KEYS,
+)
 
 # AIMNet2's short-range AEV descriptor uses a fixed 5.0 Å cutoff for the local
 # environment graph, independent of the long-range Coulomb method.  The MD
@@ -36,8 +42,25 @@ def _load_aimnet2_classes(model: str):
         ) from exc
 
 
+@register_calculator
 class AIMNet2OfficialPBCCalculator(OfficialPBCAdapterBase):
     """MAPLE unit adapter around the official AIMNet2 ASE PBC calculator."""
+
+    MODEL_NAMES = tuple(AIMNET_PBC_MODELS)
+    SUPPORTS_CHARGE_MULT = True
+    SUPPORTED_COULOMB_METHODS = tuple(AIMNET_PBC_COULOMB_METHODS)
+    OPTION_KEYS = tuple(AIMNET_PBC_OPTION_KEYS)
+
+    @classmethod
+    def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
+        aimnet_options = validate_model_pbc_options(model, options)
+        return {
+            "coulomb_method": aimnet_options.get("coulomb", "dsf"),
+            "cutoff": aimnet_options.get("cutoff", 15.0),
+            "dsf_alpha": aimnet_options.get("dsf_alpha", 0.2),
+            "ewald_accuracy": aimnet_options.get("ewald_accuracy", 1e-6),
+            "pme_cutoff": aimnet_options.get("pme_cutoff"),
+        }
 
     def __init__(
         self,

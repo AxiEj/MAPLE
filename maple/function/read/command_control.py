@@ -4,15 +4,11 @@ from typing import Any, Dict, List, Optional
 
 from maple.function.calculator.aimnet.options import (
     AIMNET_LEGACY_MODELS,
-    AIMNET_LEGACY_OPTION_KEYS,
     AIMNET_PBC_MODELS,
-    AIMNET_PBC_OPTION_KEYS,
 )
 from maple.function.calculator.mace.options import (
     MACE_PBC_MODELS,
-    MACE_PBC_OPTION_KEYS,
     MACEPOL_PBC_MODELS,
-    MACEPOL_PBC_OPTION_KEYS,
 )
 from maple.function.calculator.pbc_option_registry import validate_model_pbc_options
 
@@ -24,35 +20,6 @@ class CommandControl:
     All other settings are global parameters.
     """
 
-<<<<<<< HEAD
-    SUPPORTED_MODELS = {
-        "ani2x",
-        "ani1x",
-        "ani1ccx",
-        "ani1xnr",
-        "maceoff23s",
-        "maceoff23m",
-        "maceoff23l",
-        "egret",
-        "aimnet2",
-        "aimnet2nse",
-        "aimnet2-pbc",
-        "aimnet2nse-pbc",
-        "mace-mp-pbc-small",
-        "mace-mp-pbc-medium",
-        "mace-mp-pbc-large",
-        "macepol-pbc-small",
-        "macepol-pbc-medium",
-        "macepol-pbc-large",
-        "uma",
-        "maceomol",
-        "macepols",
-        "macepolm",
-        "macepoll",
-    }
-
-=======
->>>>>>> upstream/enhance
     SUPPORTED_TASKS = {"sp", "opt", "ts", "scan", "freq", "irc", "md"}
 
     SUPPORTED_UMA_TASKS = {"omol", "omat", "oc20", "odac", "omc", "oc22", "oc25"}
@@ -153,24 +120,6 @@ class CommandControl:
         "sdcg": SDCG_PARAMS,
     }
     SCAN_PARAMS = {"method", "mode"}
-<<<<<<< HEAD
-    SOLV_PARAMS = {"method", "implicit", "explicit", "radius", "clash_cutoff", "fix_dis"}
-    MODEL_OPTION_PARAMS = {
-        "aimnet2": AIMNET_LEGACY_OPTION_KEYS,
-        "aimnet2nse": AIMNET_LEGACY_OPTION_KEYS,
-        "aimnet2-pbc": AIMNET_PBC_OPTION_KEYS,
-        "aimnet2nse-pbc": AIMNET_PBC_OPTION_KEYS,
-        "mace-mp-pbc-small": MACE_PBC_OPTION_KEYS,
-        "mace-mp-pbc-medium": MACE_PBC_OPTION_KEYS,
-        "mace-mp-pbc-large": MACE_PBC_OPTION_KEYS,
-        "macepol-pbc-small": MACEPOL_PBC_OPTION_KEYS,
-        "macepol-pbc-medium": MACEPOL_PBC_OPTION_KEYS,
-        "macepol-pbc-large": MACEPOL_PBC_OPTION_KEYS,
-        "uma": {"task", "size", "hessian", "inference"},
-        "macepols": {"model_path", "hessian"},
-        "macepolm": {"model_path", "hessian"},
-        "macepoll": {"model_path", "hessian"},
-=======
     SOLV_PARAMS = {
         "method",
         "implicit",
@@ -196,7 +145,6 @@ class CommandControl:
         # Compatibility aliases / explicit rejections.
         "clash_cutoff",
         "write_cell",
->>>>>>> upstream/enhance
     }
     SOLV_REMOVED_PARAMS = {
         "fix_dis": (
@@ -406,7 +354,6 @@ class CommandControl:
             params["remove_com"] = True
 
         if "model" in params and params["model"] is not None:
-<<<<<<< HEAD
             model_value = (
                 str(params["model"])
                 .lower()
@@ -424,9 +371,6 @@ class CommandControl:
                 )
                 else model_value.replace("-", "")
             )
-=======
-            params["model"] = str(params["model"]).strip().lower()
->>>>>>> upstream/enhance
 
         model_options = params.get("model_options")
         if isinstance(model_options, dict):
@@ -436,6 +380,7 @@ class CommandControl:
                 "hessian",
                 "inference",
                 "coulomb",
+                "coulomb_method",
                 "default_dtype",
                 "foundation",
                 "head",
@@ -1000,10 +945,12 @@ class CommandControl:
             raise ValueError(msg)
 
         try:
-            validate_model_pbc_options(model, model_options)
+            normalized_model_options = validate_model_pbc_options(model, model_options)
         except ValueError as exc:
             cls._log_error(output_path, str(exc))
             raise
+        if model in AIMNET_LEGACY_MODELS or model in AIMNET_PBC_MODELS:
+            params["model_options"] = normalized_model_options
 
     @staticmethod
     def _log_info(output_path: Optional[str], lines: List[str]) -> None:

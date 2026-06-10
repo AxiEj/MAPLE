@@ -6,12 +6,6 @@ from typing import Literal, Optional
 import numpy as np
 import torch
 from ase.calculators.calculator import all_changes
-<<<<<<< HEAD
-from ..calculator_base import CalcABC
-from typing import Literal
-from maple.function.calculator._ase_unit_contract import EV2HARTREE
-=======
->>>>>>> upstream/enhance
 
 from ..calculator_base import CalcABC, hessian_via_double_autograd, register_calculator
 from ._common import (
@@ -99,14 +93,10 @@ def build_data_from_atoms(
 class MACECalculator(CalcABC):
     """ASE-style calculator wrapping a scripted Wrapper MACE model."""
 
-<<<<<<< HEAD
-    implemented_properties = ['energy', 'forces', 'free_energy']
+    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
     supported_hessian_modes = ("analytic", "numerical")
     maple_pbc_md_supported = False
     maple_stress_supported = False
-=======
-    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
->>>>>>> upstream/enhance
 
     MODEL_NAMES = ('maceoff23s', 'maceoff23m', 'maceoff23l', 'egret')
     MODEL_ENERGY_UNIT = 'eV'

@@ -29,10 +29,7 @@ try:
 except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
-<<<<<<< HEAD
-=======
 from ..calculator_base import (
-    EV2HARTREE,
     init_implicit_solvent,
     numerical_hessian_from_atoms,
     reject_implicit_solvent_derivatives,
@@ -40,7 +37,7 @@ from ..calculator_base import (
 )
 
 
->>>>>>> upstream/enhance
+
 UMA_DEFAULT_SIZE = "uma-s-1p1"
 UMA_MODELS_MAP = {
     "uma": UMA_DEFAULT_SIZE,
@@ -83,7 +80,22 @@ class UMACalculator(FAIRChemCalculator):
     task because `pbc -> omat` is too broad for production use.
     """
 
-<<<<<<< HEAD
+    MODEL_NAMES = ("uma",)
+    MODEL_ENERGY_UNIT = "eV"
+    SUPPORTED_HESSIAN_MODES = ("numerical",)
+    SUPPORTS_CHARGE_MULT = True
+    SUPPORTS_PBC = True
+    CHECKPOINT_FILENAME = None
+    REQUIRES_LOCAL_MODEL_FILE = False
+    OPTION_KEYS = (
+        'task',
+        'size',
+        'checkpoint_path',
+        'inference',
+        'overrides',
+    )
+    MODEL_PATH_OPTION = 'checkpoint_path'
+
     supported_hessian_modes = ("numerical",)
     maple_pbc_md_supported = True
     maple_stress_supported = True
@@ -102,22 +114,6 @@ class UMACalculator(FAIRChemCalculator):
     # neighbor radius and ignores any user override, so this is the effective
     # cutoff every MD admission check needs to compare against the MIC radius.
     neighbor_cutoff_A = UMA_NEIGHBOR_CUTOFF_A
-=======
-    MODEL_NAMES = ("uma",)
-    MODEL_ENERGY_UNIT = "eV"
-    SUPPORTED_HESSIAN_MODES = ("numerical",)
-    SUPPORTS_CHARGE_MULT = True
-    SUPPORTS_PBC = True
-    CHECKPOINT_FILENAME = None
-    REQUIRES_LOCAL_MODEL_FILE = False
-    OPTION_KEYS = (
-        'task',
-        'size',
-        'checkpoint_path',
-        'inference',
-        'overrides',
-    )
-    MODEL_PATH_OPTION = 'checkpoint_path'
 
     @classmethod
     def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
@@ -128,7 +124,6 @@ class UMACalculator(FAIRChemCalculator):
             'inference_settings': options.get('inference'),
             'overrides': options.get('overrides'),
         }
->>>>>>> upstream/enhance
 
     @staticmethod
     def _normalize_device(device):
@@ -338,29 +333,9 @@ class UMACalculator(FAIRChemCalculator):
             r_edges=r_edges,
             r_data_keys=["spin", "charge"],
             max_neigh=max_neigh,
-<<<<<<< HEAD
             radius=UMA_NEIGHBOR_CUTOFF_A,
-        )
-        # ``task_name`` is a read-only property on ``FAIRChemCalculator`` (only
-        # the ``_task_name`` backing attribute is writable); assigning to the
-        # public name would AttributeError on the very first PBC auto-switch.
-        # ``implemented_properties`` derives from the task, so refresh it the
-        # same way the parent ``__init__`` builds it.
-        self._task_name = task
-        self.implemented_properties = [
-            entry.property
-            for entry in self._predictor_unit.dataset_to_tasks[self.task_name]
-        ]
-        if (
-            "energy" in self.implemented_properties
-            and "free_energy" not in self.implemented_properties
-        ):
-            self.implemented_properties.append("free_energy")
-=======
-            radius=6.0,
             target_dtype=self._predictor_unit.inference_settings.base_precision_dtype,
         )
->>>>>>> upstream/enhance
 
     def _validate_task_atoms_compatibility(self, atoms: Atoms) -> None:
         if not any(atoms.pbc):

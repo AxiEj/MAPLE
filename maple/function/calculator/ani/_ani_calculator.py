@@ -15,14 +15,10 @@ from ..calculator_base import (
 
 @register_calculator
 class ANICalculator(CalcABC):
-<<<<<<< HEAD
-    implemented_properties = ['energy', 'forces', 'stress', 'free_energy']
+    implemented_properties = ['energy', 'forces', 'stress', 'free_energy', 'hessian']
     supported_hessian_modes = ("analytic", "numerical")
     maple_pbc_md_supported = False
     maple_stress_supported = False
-=======
-    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
->>>>>>> upstream/enhance
 
     MODEL_NAMES = ('ani2x', 'ani1x', 'ani1ccx', 'ani1xnr')
     # ANI's TorchScript checkpoints already return Hartree; no eV→Ha conversion.

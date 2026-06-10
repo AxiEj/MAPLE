@@ -10,8 +10,14 @@ from typing import Literal, Optional
 import torch
 
 from maple.function.calculator._official_pbc_base import OfficialPBCAdapterBase
+from ..calculator_base import register_calculator
+from ..pbc_option_registry import validate_model_pbc_options
 from ._official_pbc_common import extract_mace_r_max
-from .options import MACE_PBC_MODELS, MACE_PBC_OFFICIAL_FOUNDATIONS
+from .options import (
+    MACE_PBC_MODELS,
+    MACE_PBC_OFFICIAL_FOUNDATIONS,
+    MACE_PBC_OPTION_KEYS,
+)
 
 
 def _load_mace_mp(model: str):
@@ -30,8 +36,23 @@ def _load_mace_mp(model: str):
         ) from exc
 
 
+@register_calculator
 class MACEOfficialPBCCalculator(OfficialPBCAdapterBase):
     """MAPLE unit adapter around official MACE-MP ASE calculators."""
+
+    MODEL_NAMES = tuple(MACE_PBC_MODELS)
+    SUPPORTS_CHARGE_MULT = False
+    OPTION_KEYS = tuple(MACE_PBC_OPTION_KEYS)
+
+    @classmethod
+    def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
+        mace_options = validate_model_pbc_options(model, options)
+        return {
+            "foundation": mace_options.get("foundation"),
+            "default_dtype": mace_options.get("default_dtype", "float32"),
+            "dispersion": mace_options.get("dispersion", False),
+            "head": mace_options.get("head"),
+        }
 
     def __init__(
         self,

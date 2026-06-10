@@ -3,13 +3,9 @@ from __future__ import annotations
 import os
 from typing import Literal
 
-<<<<<<< HEAD
-from maple.function.calculator._ase_unit_contract import EV2HARTREE
-=======
 import numpy as np
 import torch
 from ase.calculators.calculator import all_changes
->>>>>>> upstream/enhance
 
 from ..calculator_base import CalcABC, hessian_via_double_autograd, register_calculator
 from ._common import one_hot_node_attrs, radius_graph_no_pbc
@@ -46,13 +42,10 @@ class MACEPolCalculator(CalcABC):
     Supports total_charge and total_spin via atoms.info['charge'] and atoms.info['mult'].
     """
 
-<<<<<<< HEAD
-    implemented_properties = ['energy', 'forces', 'free_energy']
+    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
     supported_hessian_modes = ("analytic", "numerical")
     maple_pbc_md_supported = False
     maple_stress_supported = False
-=======
-    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
 
     MODEL_NAMES = ('macepols', 'macepolm', 'macepoll')
     MODEL_ENERGY_UNIT = 'eV'
@@ -70,7 +63,6 @@ class MACEPolCalculator(CalcABC):
         if resolved_model_path is not None:
             kwargs['model_path'] = resolved_model_path
         return kwargs
->>>>>>> upstream/enhance
 
     def __init__(self,
         device: torch.device,

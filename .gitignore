@@ -179,13 +179,11 @@ examples/md/**/*.xyz
 /.omc/
 /docs/
 
-<<<<<<< HEAD
 # Generated MD validation reports (per-run artifacts; thresholds.toml is tracked)
 /validation/reports/
 # Per-run MD provenance manifests
 *_md_manifest.json
-=======
+
 # Generated explicit-solvent example outputs
 examples/opt/exp-solv/*.out
 examples/opt/exp-solv/*.xyz
->>>>>>> upstream/enhance

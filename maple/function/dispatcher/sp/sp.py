@@ -8,6 +8,7 @@ from ...calculator._batch_eval import (
     PathEvaluator,
     shared_calculator,
     structures_have_constraints,
+    supports_batch_calculation,
 )
 from ..jobABC import JobABC
 from maple.function.timer import timer
@@ -110,7 +111,7 @@ class SinglePoint(JobABC):
         calc = shared_calculator(self.atoms)
         if (
             calc is None
-            or not hasattr(calc, "calculate_many")
+            or not supports_batch_calculation(calc)
             or (self.verbose >= 1 and structures_have_constraints(self.atoms))
         ):
             energies = []

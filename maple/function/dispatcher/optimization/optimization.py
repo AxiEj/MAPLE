@@ -70,17 +70,18 @@ class Optimization(JobABC):
                 "Split constrained structures and optimize them one at a time.")
 
         batch_backend = "calculate_many"
+        from ...calculator._batch_eval import supports_batch_calculation
         from ...calculator.aimnet._aimnet2_calculator import AIMNet2Calculator
         if isinstance(base_calc, AIMNet2Calculator):
             from ...calculator.aimnet._aimnet2_batch_calculator import AIMNet2BatchCalc
             mols.calc = AIMNet2BatchCalc.from_ase_calculator(base_calc)
             batch_backend = "aimnet2-native"
         else:
-            if not hasattr(base_calc, "calculate_many"):
+            if not supports_batch_calculation(base_calc):
                 raise NotImplementedError(
-                    "Batch optimization requires a calculator with "
-                    f"calculate_many(); got {type(base_calc).__name__}. "
-                    "Run structures one at a time."
+                    "Batch optimization requires a validated native "
+                    "calculate_many() path; "
+                    f"got {type(base_calc).__name__}. Run structures one at a time."
                 )
             from .algorithm.calculate_many_batch import CalculateManyBatchCalc
             mols.calc = CalculateManyBatchCalc(

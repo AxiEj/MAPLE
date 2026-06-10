@@ -33,6 +33,7 @@ from ....calculator._batch_eval import (
     energy_forces_one,
     shared_calculator,
     structures_have_constraints,
+    supports_batch_calculation,
 )
 from maple.function.utility import Molecules
 
@@ -359,7 +360,7 @@ class AutoNEB(JobABC):
     def _get_energies(self, images: List[Atoms]) -> List[float]:
         """Get energies for independent path images, batched when safe."""
         calc = shared_calculator(images)
-        if calc is not None and hasattr(calc, "calculate_many"):
+        if calc is not None and supports_batch_calculation(calc):
             energies = EnergyEvaluator(
                 calc,
                 batch_size=getattr(calc, "path_batch_size", None),
@@ -378,7 +379,7 @@ class AutoNEB(JobABC):
             return self._get_energies(images), None
 
         calc = shared_calculator(images)
-        if calc is not None and hasattr(calc, "calculate_many"):
+        if calc is not None and supports_batch_calculation(calc):
             energies, forces = PathEvaluator(
                 calc,
                 batch_size=getattr(calc, "path_batch_size", None),

@@ -85,6 +85,11 @@ def shared_calculator(atoms_list: Sequence[Atoms]):
     return None
 
 
+def supports_batch_calculation(calc) -> bool:
+    """Return True only for calculators with a validated native batch path."""
+    return bool(getattr(calc, "supports_batch_energy_forces", False))
+
+
 def structures_have_constraints(atoms_list: Sequence[Atoms]) -> bool:
     """Return True when any structure carries ASE constraints."""
     return any(bool(getattr(at, "constraints", None)) for at in atoms_list)

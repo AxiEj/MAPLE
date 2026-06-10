@@ -27,6 +27,7 @@ from ....calculator._batch_eval import (
     PathEvaluator,
     energy_forces_one,
     shared_calculator,
+    supports_batch_calculation,
 )
 
 from maple.function.utility import Molecules
@@ -676,7 +677,7 @@ class NEB(JobABC):
 
     def get_energies(self, imgs): 
         calc = shared_calculator(imgs)
-        if calc is not None and hasattr(calc, "calculate_many"):
+        if calc is not None and supports_batch_calculation(calc):
             energies = EnergyEvaluator(
                 calc,
                 batch_size=getattr(calc, "path_batch_size", None),
@@ -698,7 +699,7 @@ class NEB(JobABC):
             return [], []
 
         calc = shared_calculator(images)
-        if calc is not None and hasattr(calc, "calculate_many"):
+        if calc is not None and supports_batch_calculation(calc):
             energies, forces = PathEvaluator(
                 calc,
                 batch_size=getattr(calc, "path_batch_size", None),

@@ -28,6 +28,11 @@ class CalculateManyBatchCalc:
             raise TypeError(
                 f"{type(calc).__name__} does not implement calculate_many()."
             )
+        if not bool(getattr(calc, "supports_batch_energy_forces", False)):
+            raise NotImplementedError(
+                "CalculateManyBatchCalc requires a validated native "
+                f"calculate_many() path; got {type(calc).__name__}."
+            )
         self.calc = calc
         self.device = torch.device(
             device if device is not None else getattr(calc, "device", "cpu")

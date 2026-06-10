@@ -32,6 +32,7 @@ from ....calculator._batch_eval import (
     PathEvaluator,
     shared_calculator,
     structures_have_constraints,
+    supports_batch_calculation,
 )
 
 
@@ -119,7 +120,7 @@ def atoms_to_xyz_block(atoms: Atoms) -> str:
 
 def get_energies(images: List[Atoms]) -> List[float]:
     calc = shared_calculator(images)
-    if calc is not None and hasattr(calc, "calculate_many"):
+    if calc is not None and supports_batch_calculation(calc):
         energies = EnergyEvaluator(
             calc,
             batch_size=getattr(calc, "path_batch_size", None),
@@ -133,7 +134,7 @@ def get_energy_forces(images: List[Atoms]) -> Tuple[List[float], List[np.ndarray
     calc = shared_calculator(images)
     if (
         calc is not None
-        and hasattr(calc, "calculate_many")
+        and supports_batch_calculation(calc)
         and not structures_have_constraints(images)
     ):
         energies, forces = PathEvaluator(

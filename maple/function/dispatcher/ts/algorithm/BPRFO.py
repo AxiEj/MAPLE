@@ -103,7 +103,6 @@ class BatchPRFO:
         self._H_work = None
         self._g_cart_prev = None
         self._recent_acceptance_rate = 0.0
-        self._enable_vectorized_mu = False
 
 
     # ===================================================
@@ -459,21 +458,12 @@ class BatchPRFO:
             R2_minus = alpha * R2
             R2_plus  = (1.0 - alpha) * R2
 
-            # === Choose μ solver ===
-            if self._enable_vectorized_mu:
-                mu_minus, s_part_minus = self._solve_mu_vectorized(
-                    w, gp, minus_mask, R2_minus, sigma=-1, only=pend
-                )
-                mu_plus, s_part_plus = self._solve_mu_vectorized(
-                    w, gp, plus_mask, R2_plus, sigma=+1, only=pend
-                )
-            else:
-                mu_minus, s_part_minus = self._solve_mu_batched(
-                    w, gp, minus_mask, R2_minus, sigma=-1, only=pend
-                )
-                mu_plus, s_part_plus = self._solve_mu_batched(
-                    w, gp, plus_mask, R2_plus, sigma=+1, only=pend
-                )
+            mu_minus, s_part_minus = self._solve_mu_batched(
+                w, gp, minus_mask, R2_minus, sigma=-1, only=pend
+            )
+            mu_plus, s_part_plus = self._solve_mu_batched(
+                w, gp, plus_mask, R2_plus, sigma=+1, only=pend
+            )
 
             s_p = s_part_minus + s_part_plus
             norm_mw = torch.linalg.norm(s_p, dim=-1)

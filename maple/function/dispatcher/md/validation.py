@@ -17,7 +17,11 @@ import datetime as _dt
 import hashlib
 import json
 import subprocess
-import tomllib
+
+try:
+    import tomllib  # Python >= 3.11
+except ModuleNotFoundError:  # pragma: no cover — Python 3.10 fallback
+    import tomli as tomllib  # type: ignore[no-redef]
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional

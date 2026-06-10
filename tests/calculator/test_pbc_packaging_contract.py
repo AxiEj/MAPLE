@@ -1,6 +1,10 @@
 import importlib
 import sys
-import tomllib
+
+try:
+    import tomllib  # Python >= 3.11
+except ModuleNotFoundError:  # pragma: no cover — Python 3.10 fallback
+    import tomli as tomllib  # type: ignore[no-redef]
 from pathlib import Path
 
 from setuptools import find_packages

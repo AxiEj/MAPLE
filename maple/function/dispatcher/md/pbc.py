@@ -32,7 +32,16 @@ def ensure_image_flags(atoms: Atoms) -> np.ndarray:
             f"{IMAGE_FLAGS_ARRAY!r} must have shape {expected_shape}, got {flags.shape}."
         )
     if not np.issubdtype(flags.dtype, np.integer):
-        atoms.arrays[IMAGE_FLAGS_ARRAY] = flags.astype(np.int64)
+        # Round-to-nearest before casting: ``astype`` truncates toward zero, so a
+        # float flag read back as -0.9999999 would silently become 0 (one image
+        # off).  Non-integral values are a corrupted counter — fail closed.
+        rounded = np.rint(flags)
+        if not np.allclose(flags, rounded, rtol=0.0, atol=1e-6):
+            raise ValueError(
+                f"{IMAGE_FLAGS_ARRAY!r} must hold integer image counters; "
+                "got non-integral values."
+            )
+        atoms.arrays[IMAGE_FLAGS_ARRAY] = rounded.astype(np.int64)
     return atoms.arrays[IMAGE_FLAGS_ARRAY]
 
 

@@ -11,6 +11,10 @@ dependencies = [
     "ase>=3.22",
     "numpy>=1.20",
     "scipy>=1.7",
+    # tomllib is stdlib only since Python 3.11; the PBC acceptance harness
+    # (md/validation.py, scripts/check_production_backend_matrix.py) needs the
+    # tomli backport on 3.10.
+    "tomli>=1.1.0; python_version < '3.11'",
 ]
 # PyTorch/CUDA and fairchem-core are intentionally not declared here because
 # users must install versions that match their CUDA/CPU runtime before using

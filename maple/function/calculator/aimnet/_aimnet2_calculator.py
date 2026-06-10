@@ -7,7 +7,17 @@ import numpy as np
 import torch
 from ase.calculators.calculator import all_changes
 
+from .._batch_types import BatchResult
+from .._batch_utils import (
+    atom_counts,
+    atoms_list_has_pbc,
+    empty_batch_result,
+    normalize_energy_forces_request,
+    sequential_calculate_many,
+    split_atomwise_array,
+)
 from ..calculator_base import CalcABC, register_calculator
+from ..calculator_base import EV2HARTREE
 
 
 # --------------------------------------------
@@ -34,6 +44,38 @@ def nblist_dense_padded(coord: torch.Tensor, cutoff: float) -> torch.Tensor:
         nb_i = torch.nonzero(mask[i], as_tuple=False).flatten()
         if nb_i.numel() > 0:
             nbmat[i, :min(nb_i.numel(), M)] = nb_i[:min(nb_i.numel(), M)]
+    return nbmat
+
+
+def nblist_dense_padded_multi(
+    coord: torch.Tensor,
+    mol_idx: torch.Tensor,
+    cutoff: float,
+) -> torch.Tensor:
+    """Dense sentinel-padded neighbor list for concatenated molecules.
+
+    The same-molecule mask is the critical scientific guard: without it,
+    unrelated NEB/path images concatenated into one tensor could form artificial
+    cross-image edges whenever two atoms happen to be close in Cartesian space.
+    """
+    device = coord.device
+    N = coord.shape[0]
+    if N == 0:
+        return torch.full((1, 1), 0, dtype=torch.int32, device=device)
+
+    diff = coord[:, None, :] - coord[None, :, :]
+    dist2 = torch.sum(diff ** 2, dim=-1)
+    same = mol_idx[:, None] == mol_idx[None, :]
+    eye = torch.eye(N, dtype=torch.bool, device=device)
+    mask = (dist2 <= cutoff ** 2) & same & (~eye)
+    M = max(int(mask.sum(dim=1).max().item()), 1)
+
+    nbmat = torch.full((N + 1, M), N, dtype=torch.int32, device=device)
+    for i in range(N):
+        nb_i = torch.nonzero(mask[i], as_tuple=False).flatten()
+        if nb_i.numel() > 0:
+            k = min(nb_i.numel(), M)
+            nbmat[i, :k] = nb_i[:k].to(torch.int32)
     return nbmat
 
 # --------------------------------------------
@@ -75,8 +117,13 @@ class AIMNet2Calculator(CalcABC):
     SUPPORTED_COULOMB_METHODS = ('simple', 'dsf')
     CHECKPOINT_FILENAME = {'aimnet2': 'aimnet2.pt', 'aimnet2nse': 'aimnet2nse.pt'}
     REQUIRES_LOCAL_MODEL_FILE = False
-    OPTION_KEYS = ('coulomb_method',)
+    OPTION_KEYS = ('coulomb_method', 'batch_size', 'path_batch_size')
     MODEL_PATH_OPTION = 'model_path'
+    supports_batch_energy_forces = True
+    supports_analytic_hessian = True
+    batch_memory_model = 'concat_dense_neighbor'
+    auto_batch_hard_cap = 8
+    auto_path_batch_cap = 8
 
     @classmethod
     def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
@@ -84,6 +131,10 @@ class AIMNet2Calculator(CalcABC):
         coulomb_method = options.get('coulomb_method')
         if coulomb_method is not None:
             kwargs['coulomb_method'] = str(coulomb_method).lower()
+        if options.get('batch_size') is not None:
+            kwargs['batch_size'] = options.get('batch_size')
+        if options.get('path_batch_size') is not None:
+            kwargs['path_batch_size'] = options.get('path_batch_size')
         if resolved_model_path is not None:
             kwargs['model_path'] = resolved_model_path
         return kwargs
@@ -92,6 +143,8 @@ class AIMNet2Calculator(CalcABC):
                 model: str = 'aimnet2',
                 model_path: str = None,
                 coulomb_method: str = 'simple',
+                batch_size=None,
+                path_batch_size='auto',
                 implicit: Literal['gbsa', 'none'] = 'none',
                 solvent: str = 'none',
                 ):
@@ -111,6 +164,8 @@ class AIMNet2Calculator(CalcABC):
         # handles cutoff_lr.
         self.lr = True
         self.hessian: str = 'analytic'
+        self.batch_size = batch_size
+        self.path_batch_size = path_batch_size
 
         self._set_lrcoulomb_method(coulomb_method)
 
@@ -182,6 +237,112 @@ class AIMNet2Calculator(CalcABC):
             hessian = self.get_hessian(atoms)
 
         self._finalize_results(atoms, energy=energy_eV.item(), forces=forces_np, hessian=hessian)
+
+    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
+        """Evaluate AIMNet2 structures as one ``mol_idx``-keyed batch.
+
+        AIMNet2 can represent a batch as a concatenated atom list plus
+        per-atom molecule indices.  This preserves variable molecule sizes and
+        avoids padding the model input, while ``nblist_dense_padded_multi``
+        prevents any cross-structure neighbor edges.
+        """
+        _, want_energy, want_forces, request = normalize_energy_forces_request(
+            properties
+        )
+        if not request:
+            return BatchResult()
+
+        atoms_list = list(atoms_list)
+        if not atoms_list:
+            return empty_batch_result(want_energy, want_forces)
+
+        if atoms_list_has_pbc(atoms_list):
+            return sequential_calculate_many(
+                self, atoms_list, request, want_energy, want_forces
+            )
+
+        if getattr(self, 'solvent_correction', None) is not None:
+            return sequential_calculate_many(
+                self, atoms_list, request, want_energy, want_forces
+            )
+
+        counts = atom_counts(atoms_list)
+        batch_size = len(atoms_list)
+        coords_np = np.concatenate([at.get_positions() for at in atoms_list], axis=0)
+        numbers_np = np.concatenate([at.get_atomic_numbers() for at in atoms_list], axis=0)
+        mol_idx_np = np.concatenate(
+            [np.full(len(at), i, dtype=np.int32) for i, at in enumerate(atoms_list)],
+            axis=0,
+        )
+
+        coord = torch.tensor(
+            coords_np,
+            dtype=torch.float32,
+            device=self.device,
+            requires_grad=want_forces,
+        )
+        numbers = torch.tensor(numbers_np, dtype=torch.int32, device=self.device)
+        mol_idx = torch.tensor(mol_idx_np, dtype=torch.int32, device=self.device)
+
+        charges = [float(at.info.get('charge', 0.0)) for at in atoms_list]
+        mults = [float(at.info.get('mult', 1.0)) for at in atoms_list]
+        lr_cutoff = self.cutoff_lr if np.isfinite(self.cutoff_lr) else self.cutoff
+
+        data: Dict[str, torch.Tensor] = {
+            'coord': pad_dim0(coord, value=0.0),
+            'numbers': pad_dim0(numbers, value=0),
+            'charge': torch.tensor(charges + [0.0], dtype=torch.float32, device=self.device),
+            'mult': torch.tensor(mults + [1.0], dtype=torch.float32, device=self.device),
+            'mol_idx': pad_dim0(mol_idx, value=batch_size),
+            'nbmat': nblist_dense_padded_multi(coord, mol_idx, self.cutoff),
+            'nbmat_lr': nblist_dense_padded_multi(coord, mol_idx, lr_cutoff),
+            'cutoff_lr': torch.tensor(lr_cutoff, device=self.device),
+        }
+
+        with torch.jit.optimized_execution(False):
+            out = self.model(data)
+        energy_vec_eV = self._energy_vector_from_output(
+            out['energy'], batch_size, coord.shape[0], mol_idx
+        )
+        energy_vec_ha = energy_vec_eV * EV2HARTREE
+
+        energies = (
+            energy_vec_ha.detach().cpu().numpy().astype(np.float64)
+            if want_energy else None
+        )
+
+        forces_list = None
+        if want_forces:
+            grad_full = torch.autograd.grad(energy_vec_ha.sum(), data['coord'])[0]
+            forces_all = -grad_full[: coord.shape[0]]
+            forces_list = split_atomwise_array(
+                forces_all.detach().cpu().numpy().astype(np.float64),
+                counts,
+            )
+
+        return BatchResult(energies=energies, forces=forces_list)
+
+    @staticmethod
+    def _energy_vector_from_output(
+        energy_out: torch.Tensor,
+        batch_size: int,
+        n_atoms_total: int,
+        mol_idx: torch.Tensor,
+    ) -> torch.Tensor:
+        energy_vec = energy_out.reshape(-1)
+        if energy_vec.numel() in (batch_size + 1, n_atoms_total + 1):
+            energy_vec = energy_vec[:-1]
+
+        if energy_vec.numel() == batch_size:
+            return energy_vec
+        if energy_vec.numel() == n_atoms_total:
+            return torch.zeros(
+                batch_size,
+                dtype=energy_vec.dtype,
+                device=energy_vec.device,
+            ).scatter_add(0, mol_idx.to(torch.long), energy_vec)
+
+        raise RuntimeError(f"Unexpected AIMNet2 energy shape {tuple(energy_out.shape)}")
 
     def _build_data(self, coord: torch.Tensor, atoms) -> Dict[str, torch.Tensor]:
         Z = torch.tensor(atoms.get_atomic_numbers(), dtype=torch.int32, device=self.device)

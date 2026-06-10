@@ -16,12 +16,23 @@ try:
     from fairchem.core import pretrained_mlip
     from fairchem.core._config import CACHE_DIR
     from fairchem.core.calculate.ase_calculator import AtomicData, FAIRChemCalculator, UMATask
+    try:
+        from fairchem.core.datasets.atomic_data import atomicdata_list_to_batch
+    except ImportError:
+        atomicdata_list_to_batch = None
     from fairchem.core.units.mlip_unit import load_predict_unit
     from huggingface_hub import hf_hub_download
     from omegaconf import OmegaConf
 except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
+from .._batch_types import BatchResult
+from .._batch_utils import (
+    atoms_list_has_pbc,
+    empty_batch_result,
+    normalize_energy_forces_request,
+    sequential_calculate_many,
+)
 from ..calculator_base import (
     EV2HARTREE,
     init_implicit_solvent,
@@ -79,8 +90,14 @@ class UMACalculator(FAIRChemCalculator):
         'checkpoint_path',
         'inference',
         'overrides',
+        'batch_size',
+        'path_batch_size',
     )
     MODEL_PATH_OPTION = 'checkpoint_path'
+    supports_batch_energy_forces = True
+    batch_memory_model = 'disconnected_graph'
+    auto_batch_hard_cap = 8
+    auto_path_batch_cap = 8
 
     @classmethod
     def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
@@ -90,6 +107,8 @@ class UMACalculator(FAIRChemCalculator):
             'checkpoint_path': options.get('checkpoint_path') or resolved_model_path,
             'inference_settings': options.get('inference'),
             'overrides': options.get('overrides'),
+            'batch_size': options.get('batch_size'),
+            'path_batch_size': options.get('path_batch_size'),
         }
 
     @staticmethod
@@ -225,6 +244,8 @@ class UMACalculator(FAIRChemCalculator):
         size=None,
         checkpoint_path=None,
         inference_settings=None,
+        batch_size=None,
+        path_batch_size=None,
     ):
         if size is not None:
             size = str(size).lower()
@@ -261,6 +282,9 @@ class UMACalculator(FAIRChemCalculator):
         self._predictor_unit = predictor
         self._auto_task = task is None
         self.hessian = "numerical"
+        self.batch_size = batch_size
+        self.path_batch_size = path_batch_size
+        self._maple_inference_settings = inference_settings
 
         # Shared helper sets self.solvent_correction (and self.chargecalc when
         # applicable); identical contract to CalcABC.implicit_solv_init.
@@ -362,6 +386,73 @@ class UMACalculator(FAIRChemCalculator):
     def get_hessian(self, atoms: Atoms, delta: float = 0.002) -> np.ndarray:
         """Numerical-only Hessian via shared finite-difference helper."""
         return numerical_hessian_from_atoms(self, atoms, delta)
+
+    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
+        """Evaluate non-periodic UMA structures through FAIR-Chem's batch data path.
+
+        Native batching is limited to the validated molecular/no-solvent path.
+        Periodic structures, single atoms, unavailable FAIR-Chem batch helpers,
+        and experimental implicit solvent all fall back to ``calculate(...)`` so
+        UMA's task/PBC/charge/spin/unit semantics stay identical to the
+        single-structure calculator.
+        """
+        _, want_energy, want_forces, request = normalize_energy_forces_request(
+            properties
+        )
+        if not request:
+            return BatchResult()
+
+        atoms_list = list(atoms_list)
+        if not atoms_list:
+            return empty_batch_result(want_energy, want_forces)
+
+        if (
+            atomicdata_list_to_batch is None
+            or atoms_list_has_pbc(atoms_list)
+            or getattr(self, "solvent_correction", None) is not None
+            or any(len(at) == 1 for at in atoms_list)
+            or self._maple_inference_settings == "turbo"
+        ):
+            return sequential_calculate_many(
+                self, atoms_list, request, want_energy, want_forces
+            )
+
+        calc_atoms_list = []
+        for at in atoms_list:
+            self._set_task_from_atoms(at)
+            self._validate_task_atoms_compatibility(at)
+            charge, mult = self._validate_charge_spin_task_compatibility(at)
+
+            calc_atoms = at.copy()
+            calc_atoms.info["spin"] = mult
+            calc_atoms.info["charge"] = charge
+            self._check_atoms_pbc(calc_atoms)
+            calc_atoms_list.append(calc_atoms)
+
+        data_list = [self.a2g(at) for at in calc_atoms_list]
+        batch = atomicdata_list_to_batch(data_list)
+        pred = self.predictor.predict(batch)
+
+        energies = None
+        if want_energy:
+            energies = (
+                pred["energy"].detach().cpu().numpy().astype(np.float64)
+                * EV2HARTREE
+            )
+
+        forces_list = None
+        if want_forces:
+            forces_all = (
+                pred["forces"].detach().cpu().numpy().astype(np.float64)
+                * EV2HARTREE
+            )
+            batch_index = batch.batch.detach().cpu().numpy()
+            forces_list = [
+                forces_all[batch_index == i]
+                for i in range(len(atoms_list))
+            ]
+
+        return BatchResult(energies=energies, forces=forces_list)
 
     def calculate(self, atoms, properties=None, system_changes=None):
         properties = reject_implicit_solvent_derivatives(self, properties)

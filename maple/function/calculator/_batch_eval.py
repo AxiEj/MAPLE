@@ -122,12 +122,20 @@ def _positive_int_auto_or_none(value, name: str):
         raise ValueError(
             f"{name} must be a positive integer, 'auto', or None, got {value!r}"
         )
-    try:
-        coerced = operator.index(value)
-    except TypeError as exc:
-        raise ValueError(
-            f"{name} must be a positive integer, 'auto', or None, got {value!r}"
-        ) from exc
+    if isinstance(value, str):
+        try:
+            coerced = int(value.strip(), 10)
+        except ValueError as exc:
+            raise ValueError(
+                f"{name} must be a positive integer, 'auto', or None, got {value!r}"
+            ) from exc
+    else:
+        try:
+            coerced = operator.index(value)
+        except TypeError as exc:
+            raise ValueError(
+                f"{name} must be a positive integer, 'auto', or None, got {value!r}"
+            ) from exc
     if coerced <= 0:
         raise ValueError(
             f"{name} must be a positive integer, 'auto', or None, got {value!r}"

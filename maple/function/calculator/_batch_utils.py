@@ -39,7 +39,12 @@ def normalize_energy_forces_request(properties) -> tuple[tuple[str, ...], bool, 
     Hessians should be an explicit backend override rather than an accidental
     property side effect.
     """
-    props = tuple(properties)
+    if properties is None:
+        props = ("energy",)
+    elif isinstance(properties, str):
+        props = (properties,)
+    else:
+        props = tuple(properties)
     if "hessian" in props:
         raise NotImplementedError(
             "calculate_many does not assemble Hessians; use FDHessianEvaluator "

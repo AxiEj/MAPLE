@@ -6,6 +6,13 @@ import numpy as np
 
 import ase.calculators.calculator
 
+from ._batch_types import BatchResult
+from ._batch_utils import (
+    empty_batch_result,
+    normalize_energy_forces_request,
+    sequential_calculate_many,
+)
+
 if TYPE_CHECKING:
     import torch
 
@@ -277,6 +284,21 @@ class CalcABC(ase.calculators.calculator.Calculator):
     OPTION_KEYS: tuple | None = None
     # Constructor kwarg that accepts an explicit user model_path, if any.
     MODEL_PATH_OPTION: str | None = None
+    # Conservative default: every CalcABC backend satisfies the unified
+    # result-driven batch contract via sequential single-structure calls.
+    # Backends that implement a real model-level batch path override
+    # ``calculate_many`` and flip this capability flag.
+    supports_batch_energy_forces: bool = False
+    supports_analytic_hessian: bool = False
+    supports_hvp: bool = False
+    batch_memory_model: str | None = None
+    auto_batch_hard_cap: int | None = None
+    auto_path_batch_cap: int | None = None
+    auto_fd_batch_cap: int | None = None
+    auto_hvp_batch_cap: int | None = None
+    fd_hessian_antisymmetry_threshold: float | None = 1e-5
+    fd_hessian_antisymmetry_action: str = "warn"
+    fd_context_mode: str = "safe"
 
     def __init__(self):
         super().__init__()
@@ -313,6 +335,53 @@ class CalcABC(ase.calculators.calculator.Calculator):
         properties = reject_implicit_solvent_derivatives(self, properties)
         super().calculate(atoms, properties, system_changes)
         return target_atoms
+
+    def calculate_many(self, atoms_list, properties=("energy", "forces")) -> BatchResult:
+        """Return batched energies/forces using the safe sequential fallback.
+
+        The public batch contract is return-value driven: callers consume the
+        returned :class:`BatchResult` instead of reading ``self.results`` after a
+        multi-structure evaluation.  The base implementation deliberately
+        preserves every subclass' validated single-structure logic by looping
+        through ``calculate(...)``.  Native-batch backends override this method
+        only when they can keep exactly the same units, ordering, PBC policy,
+        and solvent/metadata semantics.
+        """
+        _, want_energy, want_forces, request = normalize_energy_forces_request(
+            properties
+        )
+        if not request:
+            return BatchResult()
+
+        atoms_list = list(atoms_list)
+        if not atoms_list:
+            return empty_batch_result(want_energy, want_forces)
+
+        return sequential_calculate_many(
+            self, atoms_list, request, want_energy, want_forces
+        )
+
+    def make_fd_context(
+        self,
+        atoms,
+        *,
+        delta: float | None = None,
+        fd_context_mode: str | None = None,
+    ):
+        """Optional fixed-topology force context for FD Hessians.
+
+        ``None`` keeps FDHessianEvaluator on the normal ``calculate_many``
+        route.  Backends can override this later only with a validated graph
+        reuse policy; the base class refuses unknown modes so misspellings do
+        not silently alter numerical Hessians.
+        """
+        mode = fd_context_mode or getattr(self, "fd_context_mode", "safe")
+        if mode not in ("safe", "fast"):
+            raise ValueError(
+                "fd_context_mode must be 'safe' or 'fast', "
+                f"got {mode!r}"
+            )
+        return None
 
     @classmethod
     def build_kwargs_from_options(cls, model, model_options, *, resolved_model_path=None):

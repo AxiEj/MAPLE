@@ -5,3 +5,629 @@ origin	git@github.com:AxiEj/MAPLE.git (push)
 upstream	git@github.com:ClickFF/MAPLE.git (fetch)
 upstream	git@github.com:ClickFF/MAPLE.git (push)
 === commit local fixes
+[fix/pbc f492f2f] fix: tomllib fallback for py3.10; harden image-flag float cast
+ 529 files changed, 42 insertions(+), 4 deletions(-)
+ create mode 100755 .claude_merge_log.txt
+ mode change 100644 => 100755 .gitignore
+ mode change 100644 => 100755 ARCHITECTURE.md
+ mode change 100644 => 100755 PBC_MD_CHANGE_REPORT.html
+ mode change 100644 => 100755 README.md
+ mode change 100644 => 100755 RELEASE_CHECKLIST.md
+ mode change 100644 => 100755 RELEASE_NOTES_PBC_MD.md
+ create mode 100755 claude_run_merge.cmd
+ mode change 100644 => 100755 examples/freq/mw/inp1.inp
+ mode change 100644 => 100755 examples/freq/mw/inp1.out
+ mode change 100644 => 100755 examples/freq/mw/inp1.xyz
+ mode change 100644 => 100755 examples/freq/mw/inp1_nebts_ts.xyz
+ mode change 100644 => 100755 examples/freq/mw/inp2.inp
+ mode change 100644 => 100755 examples/freq/mw/inp2.out
+ mode change 100644 => 100755 examples/freq/mw/inp2.sum
+ mode change 100644 => 100755 examples/freq/mw/test1_inp1_nebts_ts.inp
+ mode change 100644 => 100755 examples/freq/mw/test1_inp1_nebts_ts.out
+ mode change 100644 => 100755 examples/freq/mw/test2_inp1_nebts_ts.inp
+ mode change 100644 => 100755 examples/freq/mw/test2_inp1_nebts_ts.out
+ mode change 100644 => 100755 examples/freq/mw/test3_inp1_nebts_ts.inp
+ mode change 100644 => 100755 examples/freq/mw/test3_inp1_nebts_ts.out
+ mode change 100644 => 100755 examples/freq/mw/test4_inp1_nebts_ts.inp
+ mode change 100644 => 100755 examples/freq/mw/test4_inp1_nebts_ts.out
+ mode change 100644 => 100755 examples/irc/eulerpc/inp1.inp
+ mode change 100644 => 100755 examples/irc/eulerpc/inp1.out
+ mode change 100644 => 100755 examples/irc/eulerpc/inp1_backward.xyz
+ mode change 100644 => 100755 examples/irc/eulerpc/inp1_forward.xyz
+ mode change 100644 => 100755 examples/irc/eulerpc/inp1_full.xyz
+ mode change 100644 => 100755 examples/irc/gs/inp1.inp
+ mode change 100644 => 100755 examples/irc/gs/inp1.out
+ mode change 100644 => 100755 examples/irc/gs/inp1_backward.xyz
+ mode change 100644 => 100755 examples/irc/gs/inp1_forward.xyz
+ mode change 100644 => 100755 examples/irc/gs/inp1_full.xyz
+ mode change 100644 => 100755 examples/irc/hpc/inp1.inp
+ mode change 100644 => 100755 examples/irc/hpc/inp1.out
+ mode change 100644 => 100755 examples/irc/hpc/inp1_backward.xyz
+ mode change 100644 => 100755 examples/irc/hpc/inp1_forward.xyz
+ mode change 100644 => 100755 examples/irc/hpc/inp1_full.xyz
+ mode change 100644 => 100755 examples/irc/lqa/inp1.inp
+ mode change 100644 => 100755 examples/irc/lqa/inp1.out
+ mode change 100644 => 100755 examples/irc/lqa/inp1_backward.xyz
+ mode change 100644 => 100755 examples/irc/lqa/inp1_forward.xyz
+ mode change 100644 => 100755 examples/irc/lqa/inp1_full.xyz
+ mode change 100644 => 100755 examples/md/nve/inp1.inp
+ mode change 100644 => 100755 examples/md/nve/inp1.out
+ mode change 100644 => 100755 examples/md/nve/inp1_md_summary.txt
+ mode change 100644 => 100755 examples/md/nve/inp1_md_thermo.dat
+ mode change 100644 => 100755 examples/md/nve/inp1_md_traj.xyz
+ mode change 100644 => 100755 examples/md/nve/nve.mdp
+ mode change 100644 => 100755 examples/opt/cg/inp1.inp
+ mode change 100644 => 100755 examples/opt/cg/inp1.out
+ mode change 100644 => 100755 examples/opt/cg/inp1_opt.xyz
+ mode change 100644 => 100755 examples/opt/cg/inp1_traj.xyz
+ mode change 100644 => 100755 examples/opt/exp-solv/solv1.inp
+ mode change 100644 => 100755 examples/opt/exp-solv/solv1.out
+ mode change 100644 => 100755 examples/opt/exp-solv/solv1.xyz
+ mode change 100644 => 100755 examples/opt/exp-solv/solv1_constraint.out
+ mode change 100644 => 100755 examples/opt/exp-solv/solv1_opt.xyz
+ mode change 100644 => 100755 examples/opt/exp-solv/solv1_traj.xyz
+ mode change 100644 => 100755 examples/opt/exp-solv/solv2.inp
+ mode change 100644 => 100755 examples/opt/exp-solv/solv2.out
+ mode change 100644 => 100755 examples/opt/exp-solv/solv2.xyz
+ mode change 100644 => 100755 examples/opt/exp-solv/solv2_constraint.out
+ mode change 100644 => 100755 examples/opt/exp-solv/solv2_opt.xyz
+ mode change 100644 => 100755 examples/opt/exp-solv/solv2_traj.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/inp1.inp
+ mode change 100644 => 100755 examples/opt/lbfgs/inp1.out
+ mode change 100644 => 100755 examples/opt/lbfgs/inp1.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/inp1_opt.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/inp1_traj.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/pbc_cu.inp
+ mode change 100644 => 100755 examples/opt/lbfgs/pbc_cu.out
+ mode change 100644 => 100755 examples/opt/lbfgs/pbc_cu.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/pbc_cu_opt.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/pbc_cu_traj.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/solv1.inp
+ mode change 100644 => 100755 examples/opt/lbfgs/solv1.out
+ mode change 100644 => 100755 examples/opt/lbfgs/solv1.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/solv1_opt.xyz
+ mode change 100644 => 100755 examples/opt/lbfgs/solv1_traj.xyz
+ mode change 100644 => 100755 examples/opt/macepol/inp1.inp
+ mode change 100644 => 100755 examples/opt/macepol/inp1.out
+ mode change 100644 => 100755 examples/opt/macepol/inp1_opt.xyz
+ mode change 100644 => 100755 examples/opt/macepol/inp1_traj.xyz
+ mode change 100644 => 100755 examples/opt/macepol/inp2.inp
+ mode change 100644 => 100755 examples/opt/macepol/inp2.out
+ mode change 100644 => 100755 examples/opt/macepol/inp2_opt.xyz
+ mode change 100644 => 100755 examples/opt/macepol/inp2_traj.xyz
+ mode change 100644 => 100755 examples/opt/macepol/inp3.inp
+ mode change 100644 => 100755 examples/opt/macepol/inp3.out
+ mode change 100644 => 100755 examples/opt/macepol/inp3_opt.xyz
+ mode change 100644 => 100755 examples/opt/macepol/inp3_traj.xyz
+ mode change 100644 => 100755 examples/opt/rfo/inp1.inp
+ mode change 100644 => 100755 examples/opt/rfo/inp1.out
+ mode change 100644 => 100755 examples/opt/rfo/inp1_opt.xyz
+ mode change 100644 => 100755 examples/opt/rfo/inp1_opt_traj.xyz
+ mode change 100644 => 100755 examples/opt/sd/inp1.inp
+ mode change 100644 => 100755 examples/opt/sd/inp1.out
+ mode change 100644 => 100755 examples/opt/sd/inp1_opt.xyz
+ mode change 100644 => 100755 examples/opt/sd/inp1_traj.xyz
+ mode change 100644 => 100755 examples/opt/sd/inp_nodiis.inp
+ mode change 100644 => 100755 examples/opt/sd/inp_nodiis.out
+ mode change 100644 => 100755 examples/opt/sd/inp_nodiis_opt.xyz
+ mode change 100644 => 100755 examples/opt/sd/inp_nodiis_traj.xyz
+ mode change 100644 => 100755 examples/opt/sdcg/inp1.inp
+ mode change 100644 => 100755 examples/opt/sdcg/inp1.out
+ mode change 100644 => 100755 examples/opt/sdcg/inp1_opt.xyz
+ mode change 100644 => 100755 examples/opt/sdcg/inp1_traj.xyz
+ mode change 100644 => 100755 examples/scan/C18.inp
+ mode change 100644 => 100755 examples/scan/C18.out
+ mode change 100644 => 100755 examples/scan/C18_scan_final.xyz
+ mode change 100644 => 100755 examples/scan/cg/butane_torsion.inp
+ mode change 100644 => 100755 examples/scan/cg/butane_torsion.out
+ mode change 100644 => 100755 examples/scan/cg/butane_torsion_scan_final.xyz
+ mode change 100644 => 100755 examples/scan/da.inp
+ mode change 100644 => 100755 examples/scan/da.out
+ mode change 100644 => 100755 examples/scan/da_rigid.inp
+ mode change 100644 => 100755 examples/scan/da_rigid.out
+ mode change 100644 => 100755 examples/scan/da_rigid_scan_final.xyz
+ mode change 100644 => 100755 examples/scan/da_scan_final.xyz
+ mode change 100644 => 100755 examples/scan/lbfgs/ethanol_torsion.inp
+ mode change 100644 => 100755 examples/scan/lbfgs/ethanol_torsion.out
+ mode change 100644 => 100755 examples/scan/lbfgs/ethanol_torsion_scan_final.xyz
+ mode change 100644 => 100755 examples/scan/rfo/methanol_oh_torsion.inp
+ mode change 100644 => 100755 examples/scan/rfo/methanol_oh_torsion.out
+ mode change 100644 => 100755 examples/scan/rfo/methanol_oh_torsion_scan_final.xyz
+ mode change 100644 => 100755 examples/scan/sd/dimethyl_peroxide_torsion.inp
+ mode change 100644 => 100755 examples/scan/sd/dimethyl_peroxide_torsion.out
+ mode change 100644 => 100755 examples/scan/sd/dimethyl_peroxide_torsion_scan_final.xyz
+ mode change 100644 => 100755 examples/scan/sdcg/glycine_backbone_torsion.inp
+ mode change 100644 => 100755 examples/scan/sdcg/glycine_backbone_torsion.out
+ mode change 100644 => 100755 examples/scan/sdcg/glycine_backbone_torsion_scan_final.xyz
+ mode change 100644 => 100755 examples/sp/sp.inp
+ mode change 100644 => 100755 examples/sp/sp.out
+ mode change 100644 => 100755 examples/sp/sp2.inp
+ mode change 100644 => 100755 examples/sp/sp2.out
+ mode change 100644 => 100755 examples/sp/sp2_d4.inp
+ mode change 100644 => 100755 examples/sp/sp2_d4.out
+ mode change 100644 => 100755 examples/sp/sp3.inp
+ mode change 100644 => 100755 examples/sp/sp3.out
+ mode change 100644 => 100755 examples/sp/sp3_d4.inp
+ mode change 100644 => 100755 examples/sp/sp3_d4.out
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/im.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1.inp
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1.out
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1.png
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_global_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_intermediates.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_L_L_L_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_L_L_R_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_L_L_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_L_R_L_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_L_R_R_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_L_R_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_R_L_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_R_R_L_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_R_R_R_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_path_root_R_R_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_tree.json
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp1_autoneb_ts_list.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2.inp
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2.out
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2.png
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_global_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_intermediates.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_path_root_L_L_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_path_root_L_R_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_path_root_L_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_path_root_R_L_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_path_root_R_R_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_path_root_R_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_tree.json
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/inp2_autoneb_ts_list.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/neb_energy.png
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/plot.py
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/pr.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/aldol/rec.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/gauopt2_opt.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/gauopt_opt.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/inp1.inp
+ mode change 100644 => 100755 examples/ts/autoneb/inp1.out
+ mode change 100644 => 100755 examples/ts/autoneb/inp1_autoneb_global_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/inp1_autoneb_path_root_mep.xyz
+ mode change 100644 => 100755 examples/ts/autoneb/inp1_autoneb_tree.json
+ mode change 100644 => 100755 examples/ts/autoneb/inp1_autoneb_ts_list.xyz
+ mode change 100644 => 100755 examples/ts/dimer/inp1.inp
+ mode change 100644 => 100755 examples/ts/dimer/inp1.out
+ mode change 100644 => 100755 examples/ts/dimer/inp1_dimer_traj.xyz
+ mode change 100644 => 100755 examples/ts/dimer/inp1_dimer_ts.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1.inp
+ mode change 100644 => 100755 examples/ts/neb/inp1.out
+ mode change 100644 => 100755 examples/ts/neb/inp1_cineb_hei.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_cineb_mep.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_cineb_traj.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_hei.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_hip.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_image_traj.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_mep.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_nebts_mep.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_nebts_ts.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_prfo_traj.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_prfo_ts.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_product_min.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp1_reactant_min.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2.inp
+ mode change 100644 => 100755 examples/ts/neb/inp2.out
+ mode change 100644 => 100755 examples/ts/neb/inp2_cineb_hei.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_cineb_mep.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_cineb_traj.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_hei.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_image_traj.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_mep.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_nebts_mep.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_nebts_ts.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_prfo_traj.xyz
+ mode change 100644 => 100755 examples/ts/neb/inp2_prfo_ts.xyz
+ mode change 100644 => 100755 examples/ts/neb/prod.xyz
+ mode change 100644 => 100755 examples/ts/neb/react.xyz
+ mode change 100644 => 100755 examples/ts/prfo/inp1.inp
+ mode change 100644 => 100755 examples/ts/prfo/inp1.out
+ mode change 100644 => 100755 examples/ts/prfo/inp1_prfo_traj.xyz
+ mode change 100644 => 100755 examples/ts/prfo/inp1_prfo_ts.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1.inp
+ mode change 100644 => 100755 examples/ts/string/inp1.out
+ mode change 100644 => 100755 examples/ts/string/inp1_gsm_grow_final.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1_gsm_hei.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1_gsm_mep.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1_gsm_relax_traj.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1_prfo_traj.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1_prfo_ts.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1_stringts_mep.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1_stringts_ts.xyz
+ mode change 100644 => 100755 examples/ts/string/inp1_ts.xyz
+ mode change 100644 => 100755 examples/ts/string/prod.xyz
+ mode change 100644 => 100755 examples/ts/string/react.xyz
+ mode change 100644 => 100755 maple.jpg
+ mode change 100644 => 100755 maple/__init__.py
+ mode change 100644 => 100755 maple/function/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/_ase_unit_contract.py
+ mode change 100644 => 100755 maple/function/calculator/_official_pbc_base.py
+ mode change 100644 => 100755 maple/function/calculator/aimnet/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/aimnet/_aimnet2_batch_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/aimnet/_aimnet2_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/aimnet/_aimnet2_official_pbc_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/aimnet/options.py
+ mode change 100644 => 100755 maple/function/calculator/ani/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/ani/_ani_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/ani/_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/ani/torchani_utils
+ mode change 100644 => 100755 maple/function/calculator/ase_unit_adapter.py
+ mode change 100644 => 100755 maple/function/calculator/calculator_base.py
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/charge/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/charge/data/qeq.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/charge/qeq.py
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/acetone.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/acetonitrile.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/benzene.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/cs2.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/dichloromethane.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/dmf.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/dmso.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/ether.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/methanol.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/nhexan.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/thf.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/toluene.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/trichloromethane.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/data/water.dat
+ mode change 100644 => 100755 maple/function/calculator/extra_correction/solvent/gbsa/gbsa.py
+ mode change 100644 => 100755 maple/function/calculator/mace/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/mace/_mace_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/mace/_mace_general_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/mace/_mace_official_pbc_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/mace/_macepol_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/mace/_macepol_official_pbc_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/mace/_official_pbc_common.py
+ mode change 100644 => 100755 maple/function/calculator/mace/options.py
+ mode change 100644 => 100755 maple/function/calculator/pbc_option_registry.py
+ mode change 100644 => 100755 maple/function/calculator/set_calculator.py
+ mode change 100644 => 100755 maple/function/calculator/uma/__init__.py
+ mode change 100644 => 100755 maple/function/calculator/uma/_uma_calculator.py
+ mode change 100644 => 100755 maple/function/dispatcher/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/dispatcher.py
+ mode change 100644 => 100755 maple/function/dispatcher/frequency/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/frequency/frequency.py
+ mode change 100644 => 100755 maple/function/dispatcher/hessian/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/hessian/hessian.py
+ mode change 100644 => 100755 maple/function/dispatcher/irc/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/irc/algorithm/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/irc/algorithm/eulerpc.py
+ mode change 100644 => 100755 maple/function/dispatcher/irc/algorithm/gs.py
+ mode change 100644 => 100755 maple/function/dispatcher/irc/algorithm/hpc.py
+ mode change 100644 => 100755 maple/function/dispatcher/irc/algorithm/logger.py
+ mode change 100644 => 100755 maple/function/dispatcher/irc/algorithm/lqa.py
+ mode change 100644 => 100755 maple/function/dispatcher/irc/irc.py
+ mode change 100644 => 100755 maple/function/dispatcher/jobABC.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/barostat/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/barostat/berendsen.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/barostat/crescale.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/capabilities.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/dcd_format.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/dcd_writer.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/dof.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/ensemble/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/ensemble/npt.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/ensemble/nve.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/ensemble/nvt.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/evaluator.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/integrator/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/integrator/velocity_verlet.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/logger.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/md_templates.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/mdp_reader.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/motion_projection.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/pbc.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/pressure.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/provenance.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/rst_io.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/semantics.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/thermo.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/thermostat/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/thermostat/langevin.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/thermostat/vrescale.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/trajectory_xyz.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/units.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/utils.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/validation.py
+ mode change 100644 => 100755 maple/function/dispatcher/md/velocity_init.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/DIIS.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/LBFGS.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/RFO.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/SD.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/SDCG.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/_common.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/blbfgs.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/algorithm/xyz_io.py
+ mode change 100644 => 100755 maple/function/dispatcher/optimization/optimization.py
+ mode change 100644 => 100755 maple/function/dispatcher/scan/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/scan/algorithm/LBFGS.py
+ mode change 100644 => 100755 maple/function/dispatcher/scan/algorithm/RFO.py
+ mode change 100644 => 100755 maple/function/dispatcher/scan/algorithm/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/scan/algorithm/logger.py
+ mode change 100644 => 100755 maple/function/dispatcher/scan/scan.py
+ mode change 100644 => 100755 maple/function/dispatcher/sp/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/sp/sp.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/algorithm/BPRFO.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/algorithm/PRFO.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/algorithm/__init__.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/algorithm/autoneb.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/algorithm/dimer.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/algorithm/logger.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/algorithm/neb.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/algorithm/string.py
+ mode change 100644 => 100755 maple/function/dispatcher/ts/ts.py
+ mode change 100644 => 100755 maple/function/read/__init__.py
+ mode change 100644 => 100755 maple/function/read/command_control.py
+ mode change 100644 => 100755 maple/function/read/filereader/__init__.py
+ mode change 100644 => 100755 maple/function/read/filereader/dcd_reader.py
+ mode change 100644 => 100755 maple/function/read/filereader/post_reader.py
+ mode change 100644 => 100755 maple/function/read/filereader/xyz_reader.py
+ mode change 100644 => 100755 maple/function/read/filereader/xyz_traj_reader.py
+ mode change 100644 => 100755 maple/function/read/header/__init__.py
+ mode change 100644 => 100755 maple/function/read/header/header.py
+ mode change 100644 => 100755 maple/function/read/input_reader.py
+ mode change 100644 => 100755 maple/function/read/post_process/__init__.py
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/__init__.py
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/2methyl2propanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/2methylpyridine.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/4methyl2pentanone.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/aceticacid.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/acetone.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/acetonitrile.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/acetophenone.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/aniline.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/anisole.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/benzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/benzonitrile.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/benzylalcohol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/bromobenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/bromoethane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/bromoform.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/bromooctane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/butanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/butanone.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/butylacetate.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/butylbenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/carbontet.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/chlorobenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/chloroform.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/chlorohexane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/cyclohexane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/cyclohexanone.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/decalin.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/decane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/decanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/dibromoethane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/dibutylether.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/dichloroethane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/diethylamine.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/diisopropylether.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/dimethylacetamide.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/dimethylformamide.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/dimethylpyridine.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/dimethylsulfoxide.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/dodecane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/ethanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/ether.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/ethoxybenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/ethylacetate.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/ethylbenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/fluorobenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/fluoroctane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/heptane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/heptanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/hexadecane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/hexadecyliodide.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/hexane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/hexanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/iodobenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/isobutanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/isooctane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/isopropanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/isopropylbenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/isopropyltoluene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/mcresol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/mesitylene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/methanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/methoxyethanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/methylenechloride.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/methylformamide.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/nitrobenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/nitroethane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/nitromethane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/nonane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/nonanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/octane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/octanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/odichlorobenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/old_aceticacid.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/old_tributylphosphate.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/onitrotoluene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/pentadecane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/pentane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/pentanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/perfluorobenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/phenylether.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/propanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/pyridine.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/secbutanol.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/secbutylbenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/tbutylbenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/tetrachloroethene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/tetrahydrofuran.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/tetrahydrothiophenedioxide.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/tetralin.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/toluene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/tributylphosphate.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/triethylamine.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/trimethylbenzene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/undecane.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/water.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/data/xylene.pdb
+ mode change 100644 => 100755 maple/function/read/post_process/explicit_solvent/solvate.py
+ mode change 100644 => 100755 maple/function/timer/__init__.py
+ mode change 100644 => 100755 maple/function/timer/timer.py
+ mode change 100644 => 100755 maple/function/units/__init__.py
+ mode change 100644 => 100755 maple/function/units/units.py
+ mode change 100644 => 100755 maple/function/utility/__init__.py
+ mode change 100644 => 100755 maple/function/utility/molecules.py
+ mode change 100644 => 100755 maple/function/utility/numeric.py
+ mode change 100644 => 100755 maple/function/utility/xyz_io.py
+ mode change 100644 => 100755 maple/main.py
+ mode change 100644 => 100755 pyproject.toml
+ mode change 100644 => 100755 scripts/production_validation.py
+ mode change 100644 => 100755 tests/calculator/test_aimnet_options.py
+ mode change 100644 => 100755 tests/calculator/test_ase_unit_contract.py
+ mode change 100644 => 100755 tests/calculator/test_capability_attributes.py
+ mode change 100644 => 100755 tests/calculator/test_mace_pbc_options.py
+ mode change 100644 => 100755 tests/calculator/test_macepol_pbc_options.py
+ mode change 100644 => 100755 tests/calculator/test_pbc_packaging_contract.py
+ mode change 100644 => 100755 tests/calculator/test_production_backend_matrix.py
+ mode change 100644 => 100755 tests/calculator/test_production_validation_cli.py
+ mode change 100644 => 100755 tests/calculator/test_uma_cutoff_contract.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_admission_restart_manifest.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_barostat_clamp.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_barostat_policy.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_cell_admission.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_com_default_policy.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_crescale_volume_fluctuation.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_cross_ensemble_restart.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_dcd_writer.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_evaluator.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_loop_eval_routing.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_md_semantics.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_no_shim_internal_imports.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_npt_effective_energy_drift.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_npt_volume_fluctuation.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_pbc_capabilities.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_provenance.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_rst_roundtrip_triclinic.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_unit_cutoff_admission.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_utils_shim.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_validation_components.py
+ mode change 100644 => 100755 tests/dispatcher/md/test_wrap_boundary.py
+ mode change 100644 => 100755 tests/dispatcher/optimization/test_lbfgs_periodic_emt.py
+ mode change 100644 => 100755 tests/dispatcher/optimization/test_optimizer_gradient_semantics.py
+ mode change 100644 => 100755 tests/dispatcher/scan/test_scan_optimizer_dispatch.py
+ mode change 100644 => 100755 tests/dispatcher/test_pbc_task_gate.py
+ mode change 100644 => 100755 tests/dispatcher/test_xyz_writer_migrations.py
+ mode change 100644 => 100755 tests/integration/test_real_backend_smoke.py
+ mode change 100644 => 100755 tests/production/test_acceptance_matrix.py
+ mode change 100644 => 100755 tests/read/test_command_control_macepol_pbc.py
+ mode change 100644 => 100755 tests/read/test_md_defaults.py
+ mode change 100644 => 100755 tests/read/test_pbc_semantics.py
+ mode change 100644 => 100755 tests/read/test_spin_metadata_contract.py
+ mode change 100644 => 100755 tests/utility/test_numeric.py
+ mode change 100644 => 100755 tests/utility/test_xyz_io_extxyz.py
+ mode change 100644 => 100755 validation/required_pbc_backends.toml
+ mode change 100644 => 100755 validation/thresholds.smoke.toml
+ mode change 100644 => 100755 validation/thresholds.toml
+=== fetch upstream
+=== merge upstream/enhance
+Auto-merging .gitignore
+CONFLICT (content): Merge conflict in .gitignore
+Auto-merging README.md
+CONFLICT (content): Merge conflict in README.md
+CONFLICT (modify/delete): examples/opt/exp-solv/solv1.out deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv1.out left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv1.xyz deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv1.xyz left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv1_constraint.out deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv1_constraint.out left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv1_opt.xyz deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv1_opt.xyz left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv1_traj.xyz deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv1_traj.xyz left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv2.out deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv2.out left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv2.xyz deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv2.xyz left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv2_constraint.out deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv2_constraint.out left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv2_opt.xyz deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv2_opt.xyz left in tree.
+CONFLICT (modify/delete): examples/opt/exp-solv/solv2_traj.xyz deleted in upstream/enhance and modified in HEAD.  Version HEAD of examples/opt/exp-solv/solv2_traj.xyz left in tree.
+Auto-merging maple/function/calculator/__init__.py
+CONFLICT (content): Merge conflict in maple/function/calculator/__init__.py
+Auto-merging maple/function/calculator/aimnet/_aimnet2_calculator.py
+CONFLICT (content): Merge conflict in maple/function/calculator/aimnet/_aimnet2_calculator.py
+Auto-merging maple/function/calculator/ani/_ani_calculator.py
+CONFLICT (content): Merge conflict in maple/function/calculator/ani/_ani_calculator.py
+CONFLICT (modify/delete): maple/function/calculator/ani/_calculator.py deleted in upstream/enhance and modified in HEAD.  Version HEAD of maple/function/calculator/ani/_calculator.py left in tree.
+Auto-merging maple/function/calculator/calculator_base.py
+CONFLICT (content): Merge conflict in maple/function/calculator/calculator_base.py
+Auto-merging maple/function/calculator/mace/_mace_calculator.py
+CONFLICT (content): Merge conflict in maple/function/calculator/mace/_mace_calculator.py
+Auto-merging maple/function/calculator/mace/_mace_general_calculator.py
+CONFLICT (content): Merge conflict in maple/function/calculator/mace/_mace_general_calculator.py
+Auto-merging maple/function/calculator/mace/_macepol_calculator.py
+CONFLICT (content): Merge conflict in maple/function/calculator/mace/_macepol_calculator.py
+Auto-merging maple/function/calculator/set_calculator.py
+CONFLICT (content): Merge conflict in maple/function/calculator/set_calculator.py
+Auto-merging maple/function/calculator/uma/_uma_calculator.py
+CONFLICT (content): Merge conflict in maple/function/calculator/uma/_uma_calculator.py
+Auto-merging maple/function/dispatcher/irc/irc.py
+Auto-merging maple/function/dispatcher/md/logger.py
+Auto-merging maple/function/dispatcher/scan/algorithm/LBFGS.py
+Auto-merging maple/function/dispatcher/ts/algorithm/PRFO.py
+Auto-merging maple/function/engine.py
+Auto-merging maple/function/read/command_control.py
+CONFLICT (content): Merge conflict in maple/function/read/command_control.py
+Automatic merge failed; fix conflicts and then commit the result.
+=== status --porcelain
+ M .claude_merge_log.txt
+UU .gitignore
+UU README.md
+AM examples/calculator_plugin/README.md
+AM examples/calculator_plugin/build_toy_models.py
+AM examples/calculator_plugin/my_calculator_plugin.py
+AM examples/calculator_plugin/sp_jit.inp
+AM examples/calculator_plugin/sp_pt.inp
+M  examples/opt/exp-solv/solv1.inp
+UD examples/opt/exp-solv/solv1.out
+UD examples/opt/exp-solv/solv1.xyz
+UD examples/opt/exp-solv/solv1_constraint.out
+UD examples/opt/exp-solv/solv1_opt.xyz
+AM examples/opt/exp-solv/solv1_solvated.pdb
+UD examples/opt/exp-solv/solv1_traj.xyz
+AM examples/opt/exp-solv/solv1opt.inp
+AM examples/opt/exp-solv/solv1opt_opt.xyz
+M  examples/opt/exp-solv/solv2.inp
+UD examples/opt/exp-solv/solv2.out
+UD examples/opt/exp-solv/solv2.xyz
+UD examples/opt/exp-solv/solv2_constraint.out
+UD examples/opt/exp-solv/solv2_opt.xyz
+AM examples/opt/exp-solv/solv2_solvated.pdb
+UD examples/opt/exp-solv/solv2_traj.xyz
+AM maple/function/calculator/AUTHORING.md
+AM maple/function/calculator/CALCULATOR_REVIEW.md
+UU maple/function/calculator/__init__.py
+M  maple/function/calculator/aimnet/_aimnet2_batch_calculator.py
+UU maple/function/calculator/aimnet/_aimnet2_calculator.py
+UU maple/function/calculator/ani/_ani_calculator.py
+UD maple/function/calculator/ani/_calculator.py
+UU maple/function/calculator/calculator_base.py
+M  maple/function/calculator/extra_correction/charge/data/qeq.dat
+M  maple/function/calculator/extra_correction/charge/qeq.py
+M  maple/function/calculator/extra_correction/solvent/gbsa/gbsa.py
+AM maple/function/calculator/mace/_common.py
+UU maple/function/calculator/mace/_mace_calculator.py
+UU maple/function/calculator/mace/_mace_general_calculator.py
+UU maple/function/calculator/mace/_macepol_calculator.py
+UU maple/function/calculator/set_calculator.py
+UU maple/function/calculator/uma/_uma_calculator.py
+M  maple/function/dispatcher/irc/irc.py
+M  maple/function/dispatcher/md/logger.py
+M  maple/function/dispatcher/scan/algorithm/LBFGS.py
+M  maple/function/dispatcher/scan/algorithm/RFO.py
+M  maple/function/dispatcher/ts/algorithm/BPRFO.py
+M  maple/function/dispatcher/ts/algorithm/PRFO.py
+M  maple/function/engine.py
+UU maple/function/read/command_control.py
+M  maple/function/read/post_process/explicit_solvent/solvate.py
+M  maple/function/timer/timer.py
+=== MERGE_SCRIPT_DONE

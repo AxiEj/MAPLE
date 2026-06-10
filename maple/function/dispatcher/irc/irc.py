@@ -6,7 +6,7 @@ from maple.function.calculator.set_calculator import validate_pbc_capabilities
 from maple.function.timer import timer
 
 class IRC(JobABC):
-    def __init__(self, params: dict, output:str, atoms:Atoms, method:str='hpc'):
+    def __init__(self, params: dict, output:str, atoms:Atoms, method:str='gs'):
         super().__init__(output)
         validate_pbc_capabilities(atoms, "irc")
         self.atoms = atoms

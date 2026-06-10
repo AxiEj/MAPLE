@@ -5,8 +5,6 @@ from ase import Atoms
 from .logger import *
 from maple.function.utility.xyz_io import write_xyz
 
-g_au = 27.211386024367243
-
 
 def LBFGS(
 	atoms: Atoms,

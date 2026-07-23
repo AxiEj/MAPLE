@@ -40,9 +40,41 @@ class SinglePoint(JobABC):
         lines = ["\n"]
         lines.extend(self._charge_mult_lines(self.atoms))
         lines.append(f"Energy: {energy:.10f} Hartree\n")
+        lines.extend(self._solvation_lines(self.atoms))
         if self.verbose >= 1:
             lines.extend(self._gradient_lines(self.atoms))
         return lines
+
+    @staticmethod
+    def _solvation_lines(atoms: Atoms) -> list:
+        results = getattr(getattr(atoms, "calc", None), "results", {})
+        solvation = results.get("solvation") if isinstance(results, dict) else None
+        if not isinstance(solvation, dict):
+            return []
+        gas = solvation.get("gas_energy_hartree")
+        delta = solvation.get(
+            "delta_g_solv_hartree", solvation.get("energy_hartree")
+        )
+        combined = solvation.get("combined_energy_hartree")
+        if gas is None or delta is None or combined is None:
+            return []
+        provenance = solvation.get("provenance", {})
+        standard_state = provenance.get("standard_state", "provider-defined")
+        return [
+            f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",
+            (
+                "Solvation free-energy correction (Delta G_solv, "
+                f"{standard_state}): {float(delta):.10f} Hartree\n"
+            ),
+            (
+                "Combined E_MLIP(gas)+Delta G_solv: "
+                f"{float(combined):.10f} Hartree\n"
+            ),
+            (
+                "ASE free_energy is the combined electronic-plus-solvation "
+                "value, not a thermochemical Gibbs free energy.\n"
+            ),
+        ]
 
     def _charge_mult_lines(self, atoms: Atoms) -> list:
         """Return charge and multiplicity metadata lines for SP output."""

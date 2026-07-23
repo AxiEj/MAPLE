@@ -77,13 +77,13 @@ class CommandControl:
         "md": {"nve", "nvt", "npt"},
     }
     GLOBAL_PARAMS = {
-        "model",
         "model_options",
         "device",
         "gpuid",
         "d4",
         "pbc",
         "solv",
+        "charge",
         "level",
     }
     LBFGS_PARAMS = {
@@ -150,12 +150,23 @@ class CommandControl:
         "seed",
         "randomize",
         "experimental",
+        "provider",
+        "profile",
+        "response",
+        "standard_state",
         "write_shell",
         "shell_cutoff",
         "solvent_pdb",
         # Compatibility aliases / explicit rejections.
         "clash_cutoff",
         "write_cell",
+    }
+    CHARGE_PARAMS = {
+        "source",
+        "method",
+        "mode",
+        "label",
+        "geometry",
     }
     SOLV_REMOVED_PARAMS = {
         "fix_dis": (
@@ -372,11 +383,20 @@ class CommandControl:
 
         solv_options = params.get("solv")
         if isinstance(solv_options, dict):
-            for key in ("shape", "explicit", "method", "implicit", "solvent", "clash_method"):
+            for key in (
+                "shape", "explicit", "method", "implicit", "solvent", "clash_method",
+                "provider", "profile", "response", "standard_state",
+            ):
                 if key in solv_options and isinstance(solv_options[key], str):
                     solv_options[key] = solv_options[key].lower()
             if solv_options.get("shape") == "box":
                 solv_options["shape"] = "cube"
+
+        charge_options = params.get("charge")
+        if isinstance(charge_options, dict):
+            for key in ("source", "method", "mode", "geometry"):
+                if key in charge_options and isinstance(charge_options[key], str):
+                    charge_options[key] = charge_options[key].lower()
 
         if "ensemble" in params and isinstance(params["ensemble"], str):
             params["ensemble"] = params["ensemble"].lower()
@@ -469,6 +489,15 @@ class CommandControl:
                     cls._raise_unknown_param(
                         output_path, "solvation", key, cls.SOLV_PARAMS
                     )
+        if "charge" in params:
+            charge_params = params["charge"]
+            if not isinstance(charge_params, dict):
+                msg = "Charge settings must use '#charge(key=value,...)' syntax."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            for key in charge_params:
+                if key not in cls.CHARGE_PARAMS:
+                    cls._raise_unknown_param(output_path, "charge", key, cls.CHARGE_PARAMS)
 
     @classmethod
     def _validate_solvation(
@@ -484,7 +513,7 @@ class CommandControl:
             implicit = solv_params.get("implicit")
             if explicit is None and implicit is None:
                 # Backward-compatible interpretation:
-                #   #solv(method=gbsa, solvent=water) -> implicit solvent
+                #   #solv(method=smd, solvent=water)  -> implicit solvent
                 #   #solv(solvent=water)              -> explicit solvent
                 target = "implicit" if solv_params.get("method") else "explicit"
                 solv_params[target] = solvent_alias
@@ -509,8 +538,8 @@ class CommandControl:
         if method is not None:
             method = str(method).lower()
             solv_params["method"] = method
-            if method != "gbsa":
-                msg = "Implicit solvation method must be 'gbsa'."
+            if method != "smd":
+                msg = "The Route-2 branch supports implicit method='smd' only."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -520,38 +549,25 @@ class CommandControl:
             raise ValueError(msg)
 
         if implicit is not None:
-            if method != "gbsa":
-                msg = "Implicit solvation requires method=gbsa."
+            if method != "smd":
+                msg = "Route-2 implicit solvation requires method=smd."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            if str(implicit).lower() in {"", "none"}:
-                msg = "Implicit solvation requires a real solvent name, not 'none'."
+            implicit = str(implicit).lower()
+            if implicit != "water":
+                msg = "The first implicit-solvation release supports implicit=water only."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
+            solv_params["implicit"] = implicit
             if solv_params.get("experimental") is not True:
                 msg = (
-                    "Implicit GB-polar/QEq solvation is experimental and "
-                    "energy-only; add experimental=true in #solv(...) to "
-                    "request it explicitly."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if task != "sp":
-                msg = (
-                    "Implicit GB-polar/QEq solvation is currently energy-only "
-                    "and may be used only with task 'sp'."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if params.get("verbose", 0) >= 1:
-                msg = (
-                    "Implicit GB-polar/QEq solvation is energy-only and supports "
-                    "only #sp(verbose=0); verbose=1 requests gradients/forces."
+                    "Implicit-solvation providers are not yet scientifically certified against "
+                    "the public benchmark gate; add experimental=true to acknowledge this status."
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if "pbc" in params:
-                msg = "Implicit GB-polar/QEq solvation is non-periodic; remove #pbc."
+                msg = "Implicit solvation is non-periodic; remove #pbc."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -579,19 +595,111 @@ class CommandControl:
             if conflicts:
                 msg = (
                     "Explicit-solvent options cannot be combined with implicit "
-                    f"GB-polar solvation: {', '.join(conflicts)}."
+                    f"solvation: {', '.join(conflicts)}."
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
+
+            charge = params.get("charge", {})
+            if method == "smd":
+                if task != "sp":
+                    msg = "Route 2 SMD is single-point energy-only in the first release."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if int(params.get("verbose", 0)) >= 1:
+                    msg = (
+                        "Route 2 SMD v1 does not provide forces/gradients; "
+                        "use #sp without verbose=1."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if "charge" in params:
+                    msg = (
+                        "Route 2 obtains its charge density from MACE-POLAR; "
+                        "remove #charge(...). MOL2 partial charges are ignored."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                model_name = str(params.get("model") or "").lower()
+                compact_model = re.sub(r"[-_ ()]", "", model_name)
+                if compact_model != "macepolm":
+                    msg = (
+                        "Route 2 v1 is locked to the official MACE-POLAR-1-M "
+                        "checkpoint; use #model=macepol-m."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if params.get("model_options"):
+                    msg = (
+                        "Route 2 uses the unmodified official MACE-POLAR-1-M "
+                        "checkpoint from MACE's upstream cache; remove all "
+                        "#model(...) options, including model_path and module."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if params.get("d4") is True:
+                    msg = "Route 2 v1 does not compose D4; remove #d4."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                allowed_smd_options = {
+                    "method",
+                    "implicit",
+                    "experimental",
+                    "provider",
+                    "profile",
+                    "response",
+                    "standard_state",
+                }
+                route_conflicts = sorted(
+                    set(solv_params).difference(allowed_smd_options)
+                )
+                if route_conflicts:
+                    msg = (
+                        "Route 2 SMD does not accept PB/GB or development-backend "
+                        "options: " + ", ".join(route_conflicts) + "."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                provider = str(solv_params.get("provider", "pcmsolver")).lower()
+                if provider != "pcmsolver":
+                    msg = "Route 2 certification requires provider=pcmsolver."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                profile = str(
+                    solv_params.get("profile", "smd-iefpcm")
+                ).lower()
+                if profile != "smd-iefpcm":
+                    msg = "Route 2 requires profile=smd-iefpcm."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                response = str(solv_params.get("response", "scf")).lower()
+                if response not in {"frozen", "scf"}:
+                    msg = "SMD response must be frozen or scf."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                standard_state = str(solv_params.get("standard_state", "1m")).lower()
+                if standard_state != "1m":
+                    msg = (
+                        "Route 2 uses 1 M gas -> 1 M solution with no 1.89 kcal/mol "
+                        "correction; standard_state must be 1m."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                solv_params.update(
+                    provider=provider,
+                    profile=profile,
+                    response=response,
+                    standard_state=standard_state,
+                )
             return
 
         if method is not None:
-            msg = "method=gbsa requires implicit=<solvent>; omit method for explicit solvent."
+            msg = "method=smd requires implicit=water; omit method for explicit solvent."
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 
         if "experimental" in solv_params:
-            msg = "experimental=true is only valid with method=gbsa, implicit=<solvent>."
+            msg = "experimental is only valid with the Route-2 SMD configuration."
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 
@@ -799,6 +907,10 @@ class CommandControl:
         # and validates class OPTION_KEYS before construction.
         cls._validate_unknown_params(params, task, output_path)
         cls._validate_solvation(params, task, output_path)
+        if "charge" in params:
+            msg = "Route 2 obtains its charge density from MACE-POLAR; remove #charge(...)."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
 
         if "gpuid" in params and params["gpuid"] is not None and not isinstance(params["gpuid"], int):
             cls._log_error(output_path, "GPU ID must be an integer.")

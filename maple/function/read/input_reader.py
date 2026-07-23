@@ -10,6 +10,7 @@ import torch
 from .filereader import XYZReader
 from .filereader import PostReader
 from .filereader import XYZTrajReader
+from .filereader import MOL2Reader
 from .command_control import CommandControl
 
 from .header.header import print_banner
@@ -85,7 +86,8 @@ class InputReader():
             #   1) SETTINGS  : consecutive lines starting with '#' at the top
             #                  (blank lines allowed; they are not part of settings)
             #   2) MOLECULES : lines that are either blank, '&',
-            #                  'XYZ /abs/path', or atomic lines 'Elem x y z'
+            #                  'XYZ /abs/path', 'MOL2 /abs/path', or atomic
+            #                  lines 'Elem x y z'
             #                  (supports scientific notation). Arbitrary blank
             #                  lines INSIDE this section are allowed.
             #                  The section ends at the first non-matching, non-blank line.
@@ -117,7 +119,11 @@ class InputReader():
 
             def is_xyz_ref(s: str) -> bool:
                 upper = s.upper()
-                return upper.startswith('XYZ ') or upper.startswith('XYZTRAJ ')
+                return (
+                    upper.startswith('XYZ ')
+                    or upper.startswith('XYZTRAJ ')
+                    or upper.startswith('MOL2 ')
+                )
 
             def is_scan_postproc_line(s: str) -> bool:
                 tokens = s.split()
@@ -230,6 +236,31 @@ class InputReader():
         # === Step 2: Parse coordinate section ===
         with timer("Coordinate Section Parsing"):
             atoms_or_list = self.element_and_coordinates(molecules)
+
+        implicit_options = self.command_control.params.get("solv", {})
+        if isinstance(implicit_options, dict) and implicit_options.get("implicit") is not None:
+            if isinstance(atoms_or_list, list):
+                raise ValueError("Implicit solvation currently accepts exactly one MOL2 molecule.")
+            if "mol2" not in atoms_or_list.info:
+                raise ValueError(
+                    "Implicit solvation requires a MOL2 coordinate source; XYZ/inline coordinates "
+                    "do not contain the explicit topology/parameter identity contract."
+                )
+            if "charge" not in atoms_or_list.info or "mult" not in atoms_or_list.info:
+                raise ValueError(
+                    "Implicit solvation requires an explicit '0 1' charge/multiplicity line "
+                    "immediately before the MOL2 reference."
+                )
+            if atoms_or_list.info["charge"] != 0 or atoms_or_list.info["mult"] != 1:
+                raise ValueError(
+                    "The first implicit-solvation domain is neutral closed-shell molecules "
+                    "with charge/multiplicity '0 1'."
+                )
+            atoms_or_list.info["_maple_charge_options"] = dict(
+                self.command_control.params.get("charge", {})
+            )
+            atoms_or_list.info["_maple_solvation_options"] = dict(implicit_options)
+            atoms_or_list.info["_maple_output"] = self.output
         
         # === Step 3: Expand post-processing commands (handle POST references) ===
         with timer("Post-Processing Expansion"):
@@ -460,9 +491,29 @@ class InputReader():
                 if not tokens:
                     continue
 
-                # Case 1: the block contains only XYZ/XYZTRAJ file references
-                all_xyz = all(t.upper().startswith("XYZ ") or t.upper().startswith("XYZTRAJ ") for t in tokens)
-                any_xyz = any(t.upper().startswith("XYZ ") or t.upper().startswith("XYZTRAJ ") for t in tokens)
+                block_charge = None
+                block_mult = None
+                first_line_match = charge_mult_pattern.match(tokens[0])
+                if first_line_match:
+                    block_charge = int(first_line_match.group(1))
+                    block_mult = int(first_line_match.group(2))
+                    if block_mult < 1:
+                        raise ValueError(f"Invalid multiplicity: {block_mult}. Must be >= 1")
+                    tokens = tokens[1:]
+                if not tokens:
+                    raise ValueError("A charge/multiplicity line must be followed by coordinates or a file reference.")
+
+                # Case 1: the block contains only external structure references
+                def is_file_reference(token):
+                    upper = token.upper()
+                    return (
+                        upper.startswith("XYZ ")
+                        or upper.startswith("XYZTRAJ ")
+                        or upper.startswith("MOL2 ")
+                    )
+
+                all_xyz = all(is_file_reference(t) for t in tokens)
+                any_xyz = any(is_file_reference(t) for t in tokens)
 
                 if all_xyz:
                     for xyz_line in tokens:
@@ -476,7 +527,9 @@ class InputReader():
                         
                         if keyword == 'XYZTRAJ':
                             # Read trajectory file, returns Molecules object
-                            molecules_obj = XYZTrajReader(file_path, base_dir=input_dir)
+                            molecules_obj = XYZTrajReader(
+                                file_path, charge=block_charge, mult=block_mult, base_dir=input_dir
+                            )
 
                             # Apply PBC to all frames if specified
                             if self.pbc is not None:
@@ -496,7 +549,9 @@ class InputReader():
                             info_message.append('-' * 20 + '\n')
                         elif keyword == 'XYZ':
                             # Regular XYZ file
-                            atoms = XYZReader(file_path, base_dir=input_dir)
+                            atoms = XYZReader(
+                                file_path, charge=block_charge, mult=block_mult, base_dir=input_dir
+                            )
 
                             # Apply PBC if specified
                             if self.pbc is not None:
@@ -514,23 +569,49 @@ class InputReader():
                             poss = atoms.get_positions()
                             for i, (e, (x, y, z)) in enumerate(zip(syms, poss), start=1):
                                 info_message.append(f"{i:<4} {e:<2} {x:>20.6f} {y:>20.6f} {z:>20.6f}\n")
+                        elif keyword == 'MOL2':
+                            charge_options = self.command_control.params.get("charge", {})
+                            validate_charge = charge_options.get("source") == "mol2"
+                            atoms = MOL2Reader(
+                                file_path,
+                                charge=block_charge,
+                                mult=block_mult,
+                                base_dir=input_dir,
+                                validate_charge=validate_charge,
+                            )
+                            if self.pbc is not None:
+                                raise ValueError("MOL2 implicit-solvent input is non-periodic; remove #pbc.")
+                            atoms_list.append(atoms)
+                            group_counter += 1
+                            info_message.append(f"\nGroup {group_counter} (MOL2: {file_path})\n")
+                            if block_charge is not None:
+                                info_message.append(
+                                    f"Charge: {block_charge}, Multiplicity: {block_mult}\n"
+                                )
+                            info_message.append('-' * 20 + '\n')
+                            for i, (e, (x, y, z)) in enumerate(
+                                zip(atoms.get_chemical_symbols(), atoms.get_positions()), start=1
+                            ):
+                                info_message.append(
+                                    f"{i:<4} {e:<2} {x:>20.6f} {y:>20.6f} {z:>20.6f}\n"
+                                )
                     continue
 
                 # Case 2: mixed XYZ + inline in the same block -> force user to split
                 if any_xyz and not all_xyz:
                     raise ValueError(
-                        "Mixed inline coordinates and 'XYZ <path>' in the same group. "
+                        "Mixed inline coordinates and an external structure reference in the same group. "
                         "Please separate them with a blank line or '&'."
                     )
 
                 # Case 3: inline coordinates
                 elements: List[str] = []
                 coords: List[tuple] = []
-                charge = None
-                mult = None
+                charge = block_charge
+                mult = block_mult
 
                 # Check if first line contains charge and multiplicity
-                if tokens:
+                if tokens and charge is None:
                     first_line_match = charge_mult_pattern.match(tokens[0])
                     if first_line_match:
                         charge = int(first_line_match.group(1))

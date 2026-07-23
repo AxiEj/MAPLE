@@ -106,18 +106,17 @@ class FooCalculator(CalcABC):
 
 ## Implicit solvent
 
-- `_finalize_results` is the only place that adds the GBSA correction.
-  **Custom calculators do not call `implicit_solv_energy_and_force()`
-  directly** for the `calculate()` flow. If a backend needs special
-  handling, override `_finalize_results` rather than duplicating the
-  solvent path.
-- Solvent setup happens via `init_implicit_solvent(calc, implicit,
-  solvent, device)`. `CalcABC.__init__` does not call this for you in the
-  current release; subclasses still invoke `self.implicit_solv_init(...)`
-  inside their own `__init__`.
-- `None`, `none`, `null`, `false`, `0`, and empty strings normalize to
-  `none`. `implicit='gbsa'` requires a real solvent name such as
-  `solvent='water'`; MAPLE fails early instead of looking for `None.dat`.
+- `_finalize_results` is the only CalcABC composition point for additive
+  solvent energy. Custom calculators do not call the continuum provider
+  directly in their `calculate()` flow.
+- This branch implements only Route-2 `smd` in water. `SetCalculator` installs
+  `ImplicitSolvationCorrection` after constructing official MACE-POLAR-1-M.
+- The public contract locks float64 MACE-POLAR-1-M, external PCMSolver IEFPCM,
+  aqueous SMD radii and CDS, SCF response, fixed MOL2 conformer, and 1 M gas to
+  1 M solution. Alternate providers, checkpoints, charge models, and standard
+  states fail closed.
+- Route-2 SMD exposes energy only. Forces, Hessian/HVP, stress, PBC, and
+  unsupported task/domain combinations are rejected.
 
 ## Hessian
 
@@ -155,8 +154,9 @@ class FooCalculator(CalcABC):
   than truncating them.
 - Set `SUPPORTS_CHARGE_MULT = True` if the backend honors them; otherwise
   `SetCalculator` warns the user that the values will be ignored.
-- MACE-POLAR rejects non-integer `mult` before converting multiplicity to the
-  model's unpaired-electron `spin = mult - 1` input.
+- MACE-POLAR rejects non-integer `mult` and passes the multiplicity through the
+  upstream field named `spin`; the official MACE-POLAR-1 release uses `spin=1`
+  for a singlet.
 - UMA `omol` charged/open-shell inputs are passed through to FAIR-Chem and
   emit a warning until MAPLE has accepted golden numerical tolerances for
   those states.
@@ -205,13 +205,13 @@ backend that switches tasks for periodic input.
 | AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | yes | no | no |
 | MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | no | no |
 | MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no | no |
-| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`spin = mult − 1`) | analytic + numerical | yes | no | no |
+| MACE-POLAR (`macepols/m/l`) | no; fail-fast; Route 2 adds a per-atom local reaction potential/gradient through the pretrained GTO field projector | yes (`spin = mult`) | analytic + numerical gas phase; Route 2 SP energy only | yes; SMD is locked to `macepolm` | no | no |
 | UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | yes | no | no |
 
-`spin` semantics differ on purpose: MACE-POLAR's traced interface takes the
-number of unpaired electrons (`mult − 1`), UMA's FAIR-Chem path takes the
-spin multiplicity (`mult`). Confirm against the specific checkpoint before
-trusting open-shell results — neither encoding is verified here.
+Both MACE-POLAR and UMA use an upstream field named `spin`, but checkpoint
+contracts remain model-specific.  MAPLE passes multiplicity to
+MACE-POLAR-1 (`1` for a singlet) and to UMA's FAIR-Chem path. Route 2 rejects
+all open-shell inputs rather than extrapolating this contract.
 
 Observed on a local uma-s-1p1 checkpoint: direct FAIR-Chem and the MAPLE UMA
 wrapper agree for H₂O `q=0/+1/-1` and `mult=3`, so charge/spin reaches

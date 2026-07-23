@@ -12,10 +12,14 @@ dependencies = [
     "numpy>=1.20",
     "scipy>=1.7",
 ]
+
 # PyTorch/CUDA and fairchem-core are intentionally not declared here because
 # users must install versions that match their CUDA/CPU runtime before using
 # MAPLE's torch-backed and UMA/PBC-backed models. fairchem-core supplies its
 # own UMA runtime companions such as huggingface-hub and omegaconf.
+# Route-2 users install the contract-pinned mace-torch==0.3.16 themselves and
+# provide an external PCMSolver libpcm.so plus matching Python parser. Neither
+# the ASL model weights nor PCMSolver are redistributed by MAPLE.
 
 [project.scripts]
 maple = "maple.main:main"

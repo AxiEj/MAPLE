@@ -21,7 +21,8 @@ WORK=.omx/benchmarks/neutral-water-freesolv
 python docs/implicit-solvation/benchmarks/run_freesolv.py \
   prepare --protocol "$PROTOCOL" --work-dir "$WORK"
 python docs/implicit-solvation/benchmarks/run_freesolv.py \
-  run --protocol "$PROTOCOL" --work-dir "$WORK" --partition development
+  run --protocol "$PROTOCOL" --work-dir "$WORK" --partition development \
+  --jobs 4
 python docs/implicit-solvation/benchmarks/run_freesolv.py \
   summarize --protocol "$PROTOCOL" --work-dir "$WORK" \
   --partition development --output "$WORK/development-summary.json"
@@ -33,6 +34,37 @@ denominator, and refuses incomplete or protocol-mismatched summaries.  Summary
 JSON contains deterministic MSE, MAE, RMSE, maximum error, failure rate,
 bootstrap confidence intervals, and predeclared functional-group, element,
 size, heteroatom, and flexibility-proxy strata.
+
+`--jobs` parallelizes independent molecules while retaining the same atomic,
+per-attempt records.  Choose the count for the available memory and CPU; the
+default remains one.
+
+### Completed development partition (2026-07-23)
+
+The frozen 526-molecule development partition has been run with AmberTools
+26.0 and OpenMM 8.5.2.  The exact summary, all predeclared strata, failure
+records, and 5,260 per-attempt hashes are stored in
+[`freesolv-development-2026-07-23.json`](freesolv-development-2026-07-23.json).
+
+| charge / GB | n | MSE | MAE | RMSE | maximum absolute error | failure rate |
+|---|---:|---:|---:|---:|---:|---:|
+| ABCG2 / HCT | 526 | -1.215 | 2.044 | 3.185 | 20.038 | 0 |
+| ABCG2 / OBC-I | 526 | -0.728 | 1.778 | 2.526 | 11.205 | 0 |
+| ABCG2 / OBC-II | 526 | -0.715 | **1.652** | **2.358** | 10.429 | 0 |
+| ABCG2 / GBn | 526 | -0.586 | 1.760 | 2.398 | 11.080 | 0 |
+| ABCG2 / GBn2 | 515 | -1.083 | 1.894 | 2.797 | 15.235 | 0.0209 |
+| AM1-BCC / HCT | 526 | -0.361 | 1.855 | 2.769 | 13.127 | 0 |
+| AM1-BCC / OBC-I | 526 | 0.068 | 1.930 | 2.728 | 14.561 | 0 |
+| AM1-BCC / OBC-II | 526 | 0.044 | 1.760 | 2.537 | 13.550 | 0 |
+| AM1-BCC / GBn | 526 | 0.081 | 2.028 | 2.983 | 15.285 | 0 |
+| AM1-BCC / GBn2 | 515 | -0.301 | 1.894 | 2.827 | 20.863 | 0.0209 |
+
+All energies are in `kcal/mol`.  The 22 failures are the two charge methods
+for GBn2 on the 11 phosphorus-containing development molecules.  They are the
+predeclared OpenMM phosphorus fail-closed boundary, not missing records.
+ABCG2/OBC-II has the lowest development MAE, but this does not freeze a product
+default: conformer sensitivity and human review remain open, and the
+confirmation partition has not been opened.
 
 Confirmation is one-shot.  The proposed default and numerical pass rule must be
 frozen before any confirmation calculation:

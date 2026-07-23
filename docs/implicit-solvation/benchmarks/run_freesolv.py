@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import importlib.metadata
 import json
@@ -344,6 +345,125 @@ def _load_or_prepare_charges(
     return list(cache["charges_e"]), dict(cache["provenance"])
 
 
+def _run_candidate(
+    candidate: dict[str, Any],
+    *,
+    protocol: dict[str, Any],
+    fingerprint: str,
+    work_dir: Path,
+    partition: str,
+    executable: str,
+    environment: dict[str, Any],
+) -> tuple[int, int]:
+    charge_methods = protocol["methods"]["charge_methods"]
+    gb_models = protocol["methods"]["gb_models"]
+    completed = 0
+    skipped = 0
+    mol2_path = work_dir / candidate["mol2_relative_path"]
+    if sha256_file(mol2_path) != candidate["mol2_sha256"]:
+        raise ValueError(f"MOL2 changed after preparation: {candidate['compound_id']}")
+    atoms = MOL2Reader(str(mol2_path), charge=0, mult=1)
+    for charge_method in charge_methods:
+        pending_models = [
+            model
+            for model in gb_models
+            if not _record_path(
+                work_dir,
+                partition,
+                f"{candidate['compound_id']}__{charge_method}__{model}",
+            ).exists()
+        ]
+        skipped += len(gb_models) - len(pending_models)
+        if not pending_models:
+            continue
+        try:
+            charge_values, charge_provenance = _load_or_prepare_charges(
+                atoms,
+                candidate,
+                charge_method,
+                protocol,
+                fingerprint,
+                work_dir,
+                executable,
+            )
+        except Exception as exc:
+            for model in pending_models:
+                record = _base_record(
+                    protocol,
+                    fingerprint,
+                    candidate,
+                    charge_method,
+                    model,
+                    environment,
+                )
+                record.update(
+                    status="failure",
+                    failure={
+                        "phase": "charge",
+                        **_charge_failure_audit(
+                            work_dir, candidate["compound_id"], charge_method
+                        ),
+                        "exception_class": type(exc).__name__,
+                        "reason": str(exc),
+                    },
+                )
+                write_json_atomic(
+                    _record_path(work_dir, partition, record["attempt_id"]), record
+                )
+                completed += 1
+            continue
+
+        for model in pending_models:
+            record = _base_record(
+                protocol,
+                fingerprint,
+                candidate,
+                charge_method,
+                model,
+                environment,
+            )
+            record["charge_provenance"] = charge_provenance
+            record["charges_e"] = charge_values
+            try:
+                provider = OpenMMGB(
+                    atoms,
+                    charge_values,
+                    model=model,
+                    nonpolar=protocol["methods"]["nonpolar"],
+                    platform=protocol["methods"]["openmm_platform"],
+                )
+                result = provider.evaluate(atoms, need_forces=False)
+                polar = result.components_hartree["polar"] * KCAL_PER_HARTREE
+                nonpolar = result.components_hartree["nonpolar"] * KCAL_PER_HARTREE
+                predicted = result.energy_hartree * KCAL_PER_HARTREE
+                error = predicted - candidate["experimental_kcal_mol"]
+                record.update(
+                    status="success",
+                    provider_provenance=result.provenance,
+                    components_kcal_mol={"polar": polar, "nonpolar": nonpolar},
+                    predicted_kcal_mol=predicted,
+                    signed_error_kcal_mol=error,
+                    absolute_error_kcal_mol=abs(error),
+                )
+            except Exception as exc:
+                record.update(
+                    status="failure",
+                    failure={
+                        "phase": "gb",
+                        "provider": "openmm",
+                        "command": None,
+                        "returncode": None,
+                        "exception_class": type(exc).__name__,
+                        "reason": str(exc),
+                    },
+                )
+            write_json_atomic(
+                _record_path(work_dir, partition, record["attempt_id"]), record
+            )
+            completed += 1
+    return completed, skipped
+
+
 def run(args: argparse.Namespace) -> None:
     protocol, fingerprint = load_protocol(args.protocol)
     work_dir = Path(args.work_dir).resolve()
@@ -362,114 +482,28 @@ def run(args: argparse.Namespace) -> None:
             raise ValueError("--max-compounds must be positive.")
         candidates = candidates[: args.max_compounds]
         print("WARNING: max-compounds creates an incomplete smoke run; summarize will reject it.")
+    jobs = int(getattr(args, "jobs", 1))
+    if jobs <= 0:
+        raise ValueError("--jobs must be positive.")
 
-    charge_methods = protocol["methods"]["charge_methods"]
-    gb_models = protocol["methods"]["gb_models"]
-    completed = 0
-    skipped = 0
-    for candidate in candidates:
-        mol2_path = work_dir / candidate["mol2_relative_path"]
-        if sha256_file(mol2_path) != candidate["mol2_sha256"]:
-            raise ValueError(f"MOL2 changed after preparation: {candidate['compound_id']}")
-        atoms = MOL2Reader(str(mol2_path), charge=0, mult=1)
-        for charge_method in charge_methods:
-            pending_models = [
-                model
-                for model in gb_models
-                if not _record_path(
-                    work_dir,
-                    args.partition,
-                    f"{candidate['compound_id']}__{charge_method}__{model}",
-                ).exists()
-            ]
-            skipped += len(gb_models) - len(pending_models)
-            if not pending_models:
-                continue
-            try:
-                charge_values, charge_provenance = _load_or_prepare_charges(
-                    atoms,
-                    candidate,
-                    charge_method,
-                    protocol,
-                    fingerprint,
-                    work_dir,
-                    executable,
-                )
-            except Exception as exc:
-                for model in pending_models:
-                    record = _base_record(
-                        protocol,
-                        fingerprint,
-                        candidate,
-                        charge_method,
-                        model,
-                        environment,
-                    )
-                    record.update(
-                        status="failure",
-                        failure={
-                            "phase": "charge",
-                            **_charge_failure_audit(
-                                work_dir, candidate["compound_id"], charge_method
-                            ),
-                            "exception_class": type(exc).__name__,
-                            "reason": str(exc),
-                        },
-                    )
-                    write_json_atomic(
-                        _record_path(work_dir, args.partition, record["attempt_id"]), record
-                    )
-                    completed += 1
-                continue
+    def process(candidate: dict[str, Any]) -> tuple[int, int]:
+        return _run_candidate(
+            candidate,
+            protocol=protocol,
+            fingerprint=fingerprint,
+            work_dir=work_dir,
+            partition=args.partition,
+            executable=executable,
+            environment=environment,
+        )
 
-            for model in pending_models:
-                record = _base_record(
-                    protocol,
-                    fingerprint,
-                    candidate,
-                    charge_method,
-                    model,
-                    environment,
-                )
-                record["charge_provenance"] = charge_provenance
-                record["charges_e"] = charge_values
-                try:
-                    provider = OpenMMGB(
-                        atoms,
-                        charge_values,
-                        model=model,
-                        nonpolar=protocol["methods"]["nonpolar"],
-                        platform=protocol["methods"]["openmm_platform"],
-                    )
-                    result = provider.evaluate(atoms, need_forces=False)
-                    polar = result.components_hartree["polar"] * KCAL_PER_HARTREE
-                    nonpolar = result.components_hartree["nonpolar"] * KCAL_PER_HARTREE
-                    predicted = result.energy_hartree * KCAL_PER_HARTREE
-                    error = predicted - candidate["experimental_kcal_mol"]
-                    record.update(
-                        status="success",
-                        provider_provenance=result.provenance,
-                        components_kcal_mol={"polar": polar, "nonpolar": nonpolar},
-                        predicted_kcal_mol=predicted,
-                        signed_error_kcal_mol=error,
-                        absolute_error_kcal_mol=abs(error),
-                    )
-                except Exception as exc:
-                    record.update(
-                        status="failure",
-                        failure={
-                            "phase": "gb",
-                            "provider": "openmm",
-                            "command": None,
-                            "returncode": None,
-                            "exception_class": type(exc).__name__,
-                            "reason": str(exc),
-                        },
-                    )
-                write_json_atomic(
-                    _record_path(work_dir, args.partition, record["attempt_id"]), record
-                )
-                completed += 1
+    if jobs == 1:
+        counts = [process(candidate) for candidate in candidates]
+    else:
+        with ThreadPoolExecutor(max_workers=jobs) as executor:
+            counts = list(executor.map(process, candidates))
+    completed = sum(count[0] for count in counts)
+    skipped = sum(count[1] for count in counts)
     print(f"Wrote {completed} attempt records; resumed/skipped {skipped} existing records.")
 
 
@@ -656,6 +690,28 @@ def summarize(args: argparse.Namespace) -> None:
         for record in records
         if record["status"] == "failure"
     ]
+    environment_payloads = {
+        canonical_json_bytes(record["environment"]) for record in records
+    }
+    if len(environment_payloads) != 1:
+        raise ValueError("Benchmark records were produced by inconsistent provider environments.")
+    environment = json.loads(next(iter(environment_payloads)))
+    observed_provider_versions = {
+        "ambertools": sorted(
+            {
+                str(record["charge_provenance"]["provider_version"])
+                for record in records
+                if record.get("charge_provenance", {}).get("provider_version")
+            }
+        ),
+        "openmm": sorted(
+            {
+                str(record["provider_provenance"]["provider_version"])
+                for record in records
+                if record.get("provider_provenance", {}).get("provider_version")
+            }
+        ),
+    }
     summary = {
         "schema_version": 1,
         "protocol_id": protocol["protocol_id"],
@@ -666,6 +722,8 @@ def summarize(args: argparse.Namespace) -> None:
         "attempt_count": len(records),
         "success_count": sum(record["status"] == "success" for record in records),
         "failure_count": len(failures),
+        "environment": environment,
+        "observed_provider_versions": observed_provider_versions,
         "methods": methods,
         "strata": strata,
         "failures": failures,
@@ -703,6 +761,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--max-compounds",
         type=int,
         help="smoke-only incomplete run; summaries intentionally reject missing attempts",
+    )
+    run_parser.add_argument(
+        "--jobs",
+        type=int,
+        default=1,
+        help="number of molecules to evaluate concurrently (default: 1)",
     )
     run_parser.set_defaults(handler=run)
 

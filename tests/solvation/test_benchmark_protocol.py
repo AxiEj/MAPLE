@@ -121,6 +121,42 @@ def test_repository_protocol_is_pinned_and_schema_complete():
     ] == ["P"]
 
 
+def test_frozen_development_summary_reconciles_all_attempts():
+    protocol, fingerprint = core.load_protocol(BENCHMARK_DIR / "protocol.json")
+    summary = core.load_json(
+        BENCHMARK_DIR / "freesolv-development-2026-07-23.json"
+    )
+
+    assert summary["protocol_fingerprint"] == fingerprint
+    assert summary["partition"] == "development"
+    assert summary["candidate_count"] == 526
+    assert summary["attempt_count"] == 5260
+    assert summary["success_count"] == 5238
+    assert summary["failure_count"] == 22
+    assert len(summary["record_sha256"]) == summary["attempt_count"]
+    assert set(summary["methods"]) == {
+        f"{charge}/{model}"
+        for charge in protocol["methods"]["charge_methods"]
+        for model in protocol["methods"]["gb_models"]
+    }
+    assert summary["observed_provider_versions"] == {
+        "ambertools": ["26.0"],
+        "openmm": ["8.5.2"],
+    }
+    assert summary["confirmation_lock_sha256"] is None
+    assert summary["methods"]["abcg2/obc2"]["mae"] == pytest.approx(
+        1.6522994515889533
+    )
+    assert {
+        (failure["charge_method"], failure["gb_model"], failure["phase"])
+        for failure in summary["failures"]
+    } == {
+        ("am1bcc", "gbn2", "gb"),
+        ("abcg2", "gbn2", "gb"),
+    }
+    assert all("phosphorus" in failure["reason"] for failure in summary["failures"])
+
+
 
 
 
@@ -275,6 +311,7 @@ def test_run_resumes_without_overwriting_and_summary_is_byte_stable(
         partition="development",
         antechamber=None,
         max_compounds=None,
+        jobs=2,
     )
     runner.run(namespace)
     record_path = work / "records/development/mobley_test__am1bcc__hct.json"
@@ -308,6 +345,45 @@ def test_run_resumes_without_overwriting_and_summary_is_byte_stable(
     assert metrics["mae"] == pytest.approx(2.0)
     assert metrics["rmse"] == pytest.approx(2.0)
     assert metrics["failure_rate"] == 0.0
+    assert summary["environment"]["openmm_version"] == importlib.metadata.version(
+        "openmm"
+    )
+    assert summary["observed_provider_versions"] == {
+        "ambertools": [],
+        "openmm": [],
+    }
+
+
+def test_run_jobs_dispatches_each_candidate_once(tmp_path, monkeypatch):
+    protocol_path, work = _prepare_fixture(tmp_path)
+    prepared_path = work / "prepared.json"
+    prepared = core.load_json(prepared_path)
+    second = dict(prepared["candidates"][0])
+    second["compound_id"] = "mobley_test_2"
+    prepared["candidates"].append(second)
+    prepared["candidate_count"] = 2
+    prepared["partition_counts"]["development"] = 2
+    core.write_json_atomic(prepared_path, prepared)
+
+    seen = []
+
+    def fake_run_candidate(candidate, **_kwargs):
+        seen.append(candidate["compound_id"])
+        return 1, 0
+
+    monkeypatch.setattr(runner, "_run_candidate", fake_run_candidate)
+    runner.run(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            work_dir=str(work),
+            partition="development",
+            antechamber=None,
+            max_compounds=None,
+            jobs=2,
+        )
+    )
+
+    assert sorted(seen) == ["mobley_test", "mobley_test_2"]
 
 
 def test_provider_failure_is_retained_and_denominator_is_unchanged(tmp_path, monkeypatch):

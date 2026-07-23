@@ -23,20 +23,22 @@ require `experimental=true` until the scientific gates below are closed.
   0.680 kcal/mol; this is a pilot, not scientific certification.
 - The full-corpus harness pins FreeSolv v0.52 and freezes development and
   confirmation membership without opening a certification claim.
+- The complete 526-molecule development matrix is frozen: 5,238/5,260 attempts
+  succeeded. The only 22 failures are the predeclared GBn2 phosphorus boundary.
+  ABCG2/OBC-II has the lowest development MAE at 1.652 kcal/mol; all strata,
+  failures, and per-attempt hashes are retained in the development summary.
 
 ## Open scientific gates
 
 1. Human-review and freeze the proposed Amber/OpenMM and APBS parity bounds.
 2. Expand provider parity across more atom types, larger/flexible molecules, and
    an authoritative phosphorus-aware GBn2 provider.
-3. Run the complete AM1-BCC/ABCG2 x five-GB development matrix and report all
-   predeclared strata and failures.
-4. Complete the frozen conformer-sensitivity protocol.
-5. Freeze the proposed product default and pass rule before opening confirmation.
-6. Run the one-shot confirmation partition and record the human certification decision.
-7. Obtain and review the exact redistributable ABCG2-PBSA-2023 radii and
+3. Complete the frozen conformer-sensitivity protocol.
+4. Freeze the proposed product default and pass rule before opening confirmation.
+5. Run the one-shot confirmation partition and record the human certification decision.
+6. Obtain and review the exact redistributable ABCG2-PBSA-2023 radii and
    nonpolar parameters before enabling that profile.
-8. Keep PB energy-only until a grid-converged independent force gate passes.
+7. Keep PB energy-only until a grid-converged independent force gate passes.
 
 Fresh engineering tests are evidence of implementation correctness, not a
 claim of broad chemical accuracy.

@@ -19,6 +19,7 @@ if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 
 import benchmark_core as core
+import run_conformer_sensitivity as conformers
 import run_freesolv as runner
 import run_provider_parity as parity
 
@@ -155,6 +156,86 @@ def test_frozen_development_summary_reconciles_all_attempts():
         ("abcg2", "gbn2", "gb"),
     }
     assert all("phosphorus" in failure["reason"] for failure in summary["failures"])
+
+
+def test_conformer_protocol_is_development_only_and_base_hash_pinned():
+    protocol, fingerprint, protocol_path = conformers._load_conformer_protocol(
+        BENCHMARK_DIR / "conformer_protocol.json"
+    )
+    base_summary = BENCHMARK_DIR / protocol["base_evidence"]["development_summary"]
+
+    assert len(fingerprint) == 64
+    assert protocol["source_partition"] == "development"
+    assert len(protocol["cases"]) == 20
+    assert protocol["selection"]["per_stratum"] == {
+        "rigid": 4,
+        "limited": 8,
+        "flexible": 8,
+    }
+    assert core.sha256_file(base_summary) == protocol["base_evidence"][
+        "development_summary_sha256"
+    ]
+    assert conformers._relative_protocol_path(
+        protocol_path, protocol["base_evidence"]["protocol"]
+    ) == BENCHMARK_DIR / "protocol.json"
+    assert protocol["evaluation"]["weighting"].startswith("None.")
+
+
+def test_conformer_xyz_parser_preserves_atom_order_and_method_stats(tmp_path):
+    ensemble = tmp_path / "ensemble.xyz"
+    ensemble.write_text(
+        "2\n-1.0\nH 0 0 0\nF 0 0 1\n"
+        "2\n-0.5\nH 0 0 0\nF 0 1 0\n",
+        encoding="utf-8",
+    )
+
+    frames = conformers._read_xyz_ensemble(ensemble, ["H", "F"])
+    stats = conformers._method_stats([-2.0, 1.0], reference=-0.5)
+
+    assert [frame["crest_energy_hartree"] for frame in frames] == [-1.0, -0.5]
+    assert frames[1]["positions_angstrom"][1].tolist() == [0.0, 1.0, 0.0]
+    assert stats["range_kcal_mol"] == pytest.approx(3.0)
+    assert stats["max_abs_delta_from_reference_kcal_mol"] == pytest.approx(1.5)
+    with pytest.raises(ValueError, match="atom order"):
+        conformers._read_xyz_ensemble(ensemble, ["F", "H"])
+
+
+def test_frozen_conformer_summary_reconciles_cases_and_declared_failures():
+    protocol, fingerprint, _protocol_path = conformers._load_conformer_protocol(
+        BENCHMARK_DIR / "conformer_protocol.json"
+    )
+    summary = core.load_json(
+        BENCHMARK_DIR / "freesolv-conformer-sensitivity-2026-07-23.json"
+    )
+
+    assert summary["protocol_fingerprint"] == fingerprint
+    assert summary["source_partition"] == "development"
+    assert summary["case_count"] == 20
+    assert summary["successful_generator_case_count"] == 20
+    assert summary["generator_failure_count"] == 0
+    assert summary["total_conformer_count"] == 1294
+    assert sum(summary["conformer_count_by_case"].values()) == 1294
+    assert len(summary["record_sha256"]) == 20
+    assert summary["environment"]["crest"]["version"] == "3.0.2"
+    assert summary["environment"]["xtb"]["version"] == "6.7.1"
+    assert summary["environment"]["openmm_version"] == "8.5.2"
+    assert summary["conformer_count_by_flexibility"]["rigid"]["maximum"] == 1
+    assert summary["conformer_count_by_flexibility"]["flexible"]["median"] == pytest.approx(
+        134.5
+    )
+    assert summary["methods"]["abcg2/obc2"]["conformer_range_kcal_mol"][
+        "p90"
+    ] == pytest.approx(1.7906107608161428)
+    for key, method in summary["methods"].items():
+        expected_success = 19 if key.endswith("/gbn2") else 20
+        assert method["successful_case_count"] == expected_success
+        if key.endswith("/gbn2"):
+            assert [failure["compound_id"] for failure in method["failures"]] == [
+                "mobley_1770205"
+            ]
+            assert "phosphorus" in method["failures"][0]["reason"]
+        else:
+            assert method["failures"] == []
 
 
 

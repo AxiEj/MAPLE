@@ -66,6 +66,49 @@ ABCG2/OBC-II has the lowest development MAE, but this does not freeze a product
 default: conformer sensitivity and human review remain open, and the
 confirmation partition has not been opened.
 
+### Frozen conformer sensitivity (2026-07-23)
+
+The independent
+[`conformer_protocol.json`](conformer_protocol.json) freezes 20 development-only
+cases by SHA-256 rank within the predeclared flexibility strata: four rigid,
+eight limited, and eight flexible molecules.  CREST 3.0.2 iMTD-GC/quick with
+GFN2-xTB 6.7.1 and ALPB(water) generated 1,294 low-energy conformers; all 20
+generator cases completed.  The exact method/case statistics and record hashes
+are in
+[`freesolv-conformer-sensitivity-2026-07-23.json`](freesolv-conformer-sensitivity-2026-07-23.json).
+
+| fixed-charge method | all-case median range | all-case p90 range | all-case maximum range | flexible-case p90 range | maximum displacement from reference |
+|---|---:|---:|---:|---:|---:|
+| ABCG2 / OBC-II / ACE | 0.317 | 1.791 | 5.328 | 4.277 | 6.083 |
+| AM1-BCC / OBC-II / ACE | 0.295 | 1.390 | 5.956 | 4.278 | 5.184 |
+
+All values are `kcal/mol` changes in the fixed-charge GB/ACE correction.  The
+rigid controls each produced one conformer; the flexible cases produced a
+median of 134.5 and as many as 309 conformers.  The large flexible-tail changes
+show that the single FreeSolv geometry cannot be silently interpreted as a
+population-averaged hydration free energy.  No CREST or arithmetic weighting
+is applied, because that would require a separately frozen partition-function
+and conformational-entropy protocol.
+
+Reproduction commands:
+
+```bash
+BASE=.omx/benchmarks/neutral-water-freesolv
+CONF=.omx/benchmarks/conformer-sensitivity
+
+python docs/implicit-solvation/benchmarks/run_conformer_sensitivity.py run \
+  --protocol docs/implicit-solvation/benchmarks/conformer_protocol.json \
+  --base-work-dir "$BASE" --output-dir "$CONF" --jobs 4
+python docs/implicit-solvation/benchmarks/run_conformer_sensitivity.py summarize \
+  --protocol docs/implicit-solvation/benchmarks/conformer_protocol.json \
+  --output-dir "$CONF" \
+  --output "$CONF/conformer-sensitivity-summary.json"
+```
+
+The runner requires `crest_conformers.xyz`; a CREST return code of zero alone
+is not accepted as success.  This catches a CREST 3.0.2 CLI edge case where
+explicit `--cross/--hflip` stopped after ZSORT without producing an ensemble.
+
 Confirmation is one-shot.  The proposed default and numerical pass rule must be
 frozen before any confirmation calculation:
 

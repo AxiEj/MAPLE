@@ -27,18 +27,22 @@ require `experimental=true` until the scientific gates below are closed.
   succeeded. The only 22 failures are the predeclared GBn2 phosphorus boundary.
   ABCG2/OBC-II has the lowest development MAE at 1.652 kcal/mol; all strata,
   failures, and per-attempt hashes are retained in the development summary.
+- The frozen 20-case conformer-sensitivity protocol completed all generators
+  and evaluated 1,294 CREST conformers. For ABCG2/OBC-II, the fixed-charge
+  correction has a 1.791 kcal/mol all-case p90 range and a 4.277 kcal/mol
+  flexible-case p90 range, so the single-geometry result is not relabeled as a
+  population-averaged hydration free energy.
 
 ## Open scientific gates
 
 1. Human-review and freeze the proposed Amber/OpenMM and APBS parity bounds.
 2. Expand provider parity across more atom types, larger/flexible molecules, and
    an authoritative phosphorus-aware GBn2 provider.
-3. Complete the frozen conformer-sensitivity protocol.
-4. Freeze the proposed product default and pass rule before opening confirmation.
-5. Run the one-shot confirmation partition and record the human certification decision.
-6. Obtain and review the exact redistributable ABCG2-PBSA-2023 radii and
+3. Freeze the proposed product default and pass rule before opening confirmation.
+4. Run the one-shot confirmation partition and record the human certification decision.
+5. Obtain and review the exact redistributable ABCG2-PBSA-2023 radii and
    nonpolar parameters before enabling that profile.
-7. Keep PB energy-only until a grid-converged independent force gate passes.
+6. Keep PB energy-only until a grid-converged independent force gate passes.
 
 Fresh engineering tests are evidence of implementation correctness, not a
 claim of broad chemical accuracy.

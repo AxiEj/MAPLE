@@ -1,0 +1,29 @@
+{
+  "components_hartree": {
+    "nonpolar": 0.010724057897980737,
+    "polar": -0.013349480966008841
+  },
+  "energy_hartree": -0.002625423068028104,
+  "provenance": {
+    "bulk_solvent_density_a3": 0.0,
+    "citations": [
+      "Baker et al., PNAS 2001, DOI:10.1073/pnas.181342398",
+      "Jurrus et al., Protein Sci. 2018, DOI:10.1002/pro.3280",
+      "Wagoner and Baker, PNAS 2006, DOI:10.1073/pnas.0600118103"
+    ],
+    "executable": "/usr/bin/apbs",
+    "executable_sha256": "13b555e8a38041d80ab4a9476126f8df6ca10eb6d140c12619e5794d83b7f080",
+    "grid_points": 161,
+    "grid_spacing_angstrom": 0.2,
+    "method": "lpb",
+    "nonpolar": "sasa",
+    "pressure_kj_mol_a3": 0.0,
+    "profile": "generic-mbondi2",
+    "provider": "apbs",
+    "provider_version": "1.4.1",
+    "radii": "mbondi2",
+    "solute_dielectric": 1.0,
+    "solvent_dielectric": 78.5,
+    "surface_tension_kj_mol_a2": 0.105
+  }
+}

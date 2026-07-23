@@ -84,6 +84,7 @@ class CommandControl:
         "d4",
         "pbc",
         "solv",
+        "charge",
         "level",
     }
     LBFGS_PARAMS = {
@@ -150,12 +151,35 @@ class CommandControl:
         "seed",
         "randomize",
         "experimental",
+        "provider",
+        "profile",
+        "model",
+        "nonpolar",
+        "platform",
+        "response",
+        "standard_state",
+        "executable",
+        "grid_spacing",
+        "grid_points",
+        "probe_radius",
+        "surface_tension",
+        "pressure",
+        "timeout",
         "write_shell",
         "shell_cutoff",
         "solvent_pdb",
         # Compatibility aliases / explicit rejections.
         "clash_cutoff",
         "write_cell",
+    }
+    CHARGE_PARAMS = {
+        "source",
+        "method",
+        "mode",
+        "label",
+        "geometry",
+        "executable",
+        "timeout",
     }
     SOLV_REMOVED_PARAMS = {
         "fix_dis": (
@@ -372,11 +396,21 @@ class CommandControl:
 
         solv_options = params.get("solv")
         if isinstance(solv_options, dict):
-            for key in ("shape", "explicit", "method", "implicit", "solvent", "clash_method"):
+            for key in (
+                "shape", "explicit", "method", "implicit", "solvent", "clash_method",
+                "provider", "profile", "model", "nonpolar", "platform",
+                "response", "standard_state",
+            ):
                 if key in solv_options and isinstance(solv_options[key], str):
                     solv_options[key] = solv_options[key].lower()
             if solv_options.get("shape") == "box":
                 solv_options["shape"] = "cube"
+
+        charge_options = params.get("charge")
+        if isinstance(charge_options, dict):
+            for key in ("source", "method", "mode", "geometry"):
+                if key in charge_options and isinstance(charge_options[key], str):
+                    charge_options[key] = charge_options[key].lower()
 
         if "ensemble" in params and isinstance(params["ensemble"], str):
             params["ensemble"] = params["ensemble"].lower()
@@ -469,6 +503,117 @@ class CommandControl:
                     cls._raise_unknown_param(
                         output_path, "solvation", key, cls.SOLV_PARAMS
                     )
+        if "charge" in params:
+            charge_params = params["charge"]
+            if not isinstance(charge_params, dict):
+                msg = "Charge settings must use '#charge(key=value,...)' syntax."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            for key in charge_params:
+                if key not in cls.CHARGE_PARAMS:
+                    cls._raise_unknown_param(output_path, "charge", key, cls.CHARGE_PARAMS)
+
+    @classmethod
+    def _validate_charge(
+        cls, params: Dict[str, Any], *, required: bool, output_path: Optional[str]
+    ) -> None:
+        charge = params.get("charge")
+        if charge is None:
+            if required:
+                msg = "Implicit solvation requires an explicit #charge(...) selection."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            return
+        if not isinstance(charge, dict):
+            return
+        source = str(charge.get("source", "")).lower()
+        if source not in {"mol2", "maple"}:
+            msg = "#charge source must be 'mol2' or 'maple'."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        method = charge.get("method")
+        mode = str(charge.get("mode", "fixed")).lower()
+        geometry = str(charge.get("geometry", "keep")).lower()
+        if mode not in {"fixed", "polarizable"}:
+            msg = "#charge mode must be 'fixed' or 'polarizable'."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if geometry not in {"keep", "provider"}:
+            msg = "#charge geometry must be 'keep' or 'provider'."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        if source == "mol2":
+            if method is not None:
+                msg = "#charge(source=mol2) reads fixed charges and does not accept method=."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if mode != "fixed":
+                msg = "#charge(source=mol2) supports mode=fixed only."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if geometry != "keep":
+                msg = "#charge(source=mol2) does not run a geometry provider; use geometry=keep."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            ignored = sorted(key for key in ("executable", "timeout") if key in charge)
+            if ignored:
+                msg = (
+                    "#charge(source=mol2) does not run a charge executable; remove "
+                    + ", ".join(ignored)
+                    + "."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        else:
+            if method is None:
+                msg = "#charge(source=maple) requires method=am1bcc, abcg2, or qeq-gto."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            method = str(method).lower()
+            if method not in {"am1bcc", "abcg2", "qeq-gto"}:
+                msg = "MAPLE charge method must be am1bcc, abcg2, or qeq-gto."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            charge["method"] = method
+            if mode == "polarizable" and method != "qeq-gto":
+                msg = "mode=polarizable is available only for method=qeq-gto."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if method == "qeq-gto" and geometry != "keep":
+                msg = "QEq-GTO does not optimize geometry; use geometry=keep."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if method == "qeq-gto":
+                ignored = sorted(key for key in ("executable", "timeout") if key in charge)
+                if ignored:
+                    msg = (
+                        "QEq-GTO is native and does not use "
+                        + ", ".join(ignored)
+                        + "."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+            if "label" in charge:
+                msg = "#charge label is only valid for source=mol2 fixed-charge provenance."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        if "timeout" in charge and (
+            isinstance(charge["timeout"], bool) or not isinstance(charge["timeout"], (int, float))
+            or charge["timeout"] <= 0
+        ):
+            msg = "#charge timeout must be a positive number of seconds."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
+        for key in ("label", "executable"):
+            if key in charge and (
+                not isinstance(charge[key], str) or not charge[key].strip()
+            ):
+                msg = f"#charge {key} must be a non-empty string."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+        charge["source"] = source
+        charge["mode"] = mode
+        charge["geometry"] = geometry
 
     @classmethod
     def _validate_solvation(
@@ -509,8 +654,15 @@ class CommandControl:
         if method is not None:
             method = str(method).lower()
             solv_params["method"] = method
-            if method != "gbsa":
-                msg = "Implicit solvation method must be 'gbsa'."
+            if method == "gbsa":
+                msg = (
+                    "Legacy method=gbsa is no longer mapped silently. Migrate to "
+                    "#solv(implicit=water,method=gb,model=obc2,nonpolar=ace) and add #charge(...)."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if method not in {"gb", "pb", "smd"}:
+                msg = "Implicit solvation method must be 'gb', 'pb', or 'smd'."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -520,38 +672,25 @@ class CommandControl:
             raise ValueError(msg)
 
         if implicit is not None:
-            if method != "gbsa":
-                msg = "Implicit solvation requires method=gbsa."
+            if method not in {"gb", "pb", "smd"}:
+                msg = "Implicit solvation requires method=gb, method=pb, or method=smd."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            if str(implicit).lower() in {"", "none"}:
-                msg = "Implicit solvation requires a real solvent name, not 'none'."
+            implicit = str(implicit).lower()
+            if implicit != "water":
+                msg = "The first implicit-solvation release supports implicit=water only."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
+            solv_params["implicit"] = implicit
             if solv_params.get("experimental") is not True:
                 msg = (
-                    "Implicit GB-polar/QEq solvation is experimental and "
-                    "energy-only; add experimental=true in #solv(...) to "
-                    "request it explicitly."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if task != "sp":
-                msg = (
-                    "Implicit GB-polar/QEq solvation is currently energy-only "
-                    "and may be used only with task 'sp'."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if params.get("verbose", 0) >= 1:
-                msg = (
-                    "Implicit GB-polar/QEq solvation is energy-only and supports "
-                    "only #sp(verbose=0); verbose=1 requests gradients/forces."
+                    "Implicit-solvation providers are not yet scientifically certified against "
+                    "the public benchmark gate; add experimental=true to acknowledge this status."
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if "pbc" in params:
-                msg = "Implicit GB-polar/QEq solvation is non-periodic; remove #pbc."
+                msg = "Implicit solvation is non-periodic; remove #pbc."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -579,19 +718,256 @@ class CommandControl:
             if conflicts:
                 msg = (
                     "Explicit-solvent options cannot be combined with implicit "
-                    f"GB-polar solvation: {', '.join(conflicts)}."
+                    f"solvation: {', '.join(conflicts)}."
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
+
+            charge = params.get("charge", {})
+            if method == "smd":
+                if task != "sp":
+                    msg = "Route 2 SMD is single-point energy-only in the first release."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if int(params.get("verbose", 0)) >= 1:
+                    msg = (
+                        "Route 2 SMD v1 does not provide forces/gradients; "
+                        "use #sp without verbose=1."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if "charge" in params:
+                    msg = (
+                        "Route 2 obtains its charge density from MACE-POLAR; "
+                        "remove #charge(...). MOL2 partial charges are ignored."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                model_name = str(params.get("model") or "").lower()
+                compact_model = re.sub(r"[-_ ()]", "", model_name)
+                if compact_model != "macepolm":
+                    msg = (
+                        "Route 2 v1 is locked to the official MACE-POLAR-1-M "
+                        "checkpoint; use #model=macepol-m."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if params.get("model_options"):
+                    msg = (
+                        "Route 2 uses the unmodified official MACE-POLAR-1-M "
+                        "checkpoint from MACE's upstream cache; remove all "
+                        "#model(...) options, including model_path and module."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if params.get("d4") is True:
+                    msg = "Route 2 v1 does not compose D4; remove #d4."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                allowed_smd_options = {
+                    "method",
+                    "implicit",
+                    "experimental",
+                    "provider",
+                    "profile",
+                    "response",
+                    "standard_state",
+                }
+                route_conflicts = sorted(
+                    set(solv_params).difference(allowed_smd_options)
+                )
+                if route_conflicts:
+                    msg = (
+                        "Route 2 SMD does not accept PB/GB or development-backend "
+                        "options: " + ", ".join(route_conflicts) + "."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                provider = str(solv_params.get("provider", "pcmsolver")).lower()
+                if provider != "pcmsolver":
+                    msg = "Route 2 certification requires provider=pcmsolver."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                profile = str(
+                    solv_params.get("profile", "smd-iefpcm")
+                ).lower()
+                if profile != "smd-iefpcm":
+                    msg = "Route 2 requires profile=smd-iefpcm."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                response = str(solv_params.get("response", "scf")).lower()
+                if response not in {"frozen", "scf"}:
+                    msg = "SMD response must be frozen or scf."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                standard_state = str(solv_params.get("standard_state", "1m")).lower()
+                if standard_state != "1m":
+                    msg = (
+                        "Route 2 uses 1 M gas -> 1 M solution with no 1.89 kcal/mol "
+                        "correction; standard_state must be 1m."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                solv_params.update(
+                    provider=provider,
+                    profile=profile,
+                    response=response,
+                    standard_state=standard_state,
+                )
+            else:
+                cls._validate_charge(params, required=True, output_path=output_path)
+                charge = params["charge"]
+            if method == "gb":
+                pb_only = {
+                    "executable",
+                    "grid_spacing",
+                    "grid_points",
+                    "probe_radius",
+                    "surface_tension",
+                    "pressure",
+                    "timeout",
+                }
+                conflicts = sorted(pb_only.intersection(solv_params))
+                if conflicts:
+                    msg = "GB/OpenMM does not use PB provider options: " + ", ".join(conflicts) + "."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                model = str(solv_params.get("model", "obc2")).lower()
+                profiles = {
+                    "hct": "hct-mbondi",
+                    "obc1": "obc1-mbondi2",
+                    "obc2": "obc2-mbondi2",
+                    "gbn": "gbn-bondi",
+                    "gbn2": "gbn2-mbondi3",
+                }
+                if model not in profiles:
+                    msg = "GB model must be hct, obc1, obc2, gbn, or gbn2."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                provider = str(solv_params.get("provider", "openmm")).lower()
+                if provider != "openmm":
+                    msg = "All five supported GB models currently require provider=openmm."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                profile = str(solv_params.get("profile", profiles[model])).lower()
+                if profile != profiles[model]:
+                    msg = (
+                        f"GB profile {profile!r} does not match model={model}; expected "
+                        f"profile={profiles[model]}. Arbitrary parameter mixing is disabled."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                nonpolar = str(solv_params.get("nonpolar", "ace")).lower()
+                if nonpolar not in {"ace", "lcpo", "none"}:
+                    msg = "GB nonpolar must be ace or lcpo (none is diagnostic only)."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if nonpolar == "none" and solv_params.get("experimental") is not True:
+                    msg = "nonpolar=none is diagnostic only and requires experimental=true."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if task not in {"sp", "opt", "scan"}:
+                    msg = "GB currently supports SP, OPT, and SCAN/PES tasks only."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                solv_params.update(
+                    model=model, provider=provider, profile=profile, nonpolar=nonpolar
+                )
+            elif method == "pb":
+                if "platform" in solv_params:
+                    msg = "PB/APBS does not use the OpenMM platform option."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                model = str(solv_params.get("model", "lpb")).lower()
+                provider = str(solv_params.get("provider", "apbs")).lower()
+                if model != "lpb":
+                    msg = "PB model must be lpb in the first release."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if provider not in {"apbs", "amber-pbsa"}:
+                    msg = "PB provider must be apbs or amber-pbsa."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                expected_profile = (
+                    "generic-mbondi2" if provider == "apbs" else "abcg2-pbsa-2023"
+                )
+                profile = str(solv_params.get("profile", expected_profile)).lower()
+                if profile != expected_profile:
+                    msg = f"provider={provider} requires profile={expected_profile}."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                nonpolar = str(
+                    solv_params.get("nonpolar", "apbs" if provider == "apbs" else "amber-pbsa")
+                ).lower()
+                if nonpolar != provider:
+                    msg = "PB polar and nonpolar terms must come from the same locked provider profile."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if provider == "amber-pbsa" and charge.get("method") != "abcg2":
+                    msg = "profile=abcg2-pbsa-2023 requires #charge(source=maple,method=abcg2)."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if charge.get("mode") == "polarizable":
+                    msg = "Polarizable QEq-PB is deferred; use mode=fixed for PB."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if task != "sp" or params.get("verbose", 0) >= 1:
+                    msg = "PB is single-point energy-only until force/grid convergence is certified."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                solv_params.update(
+                    model=model, provider=provider, profile=profile, nonpolar=nonpolar
+                )
+            elif method == "smd":
+                # Route 2 is calibrated separately from the fixed-charge path; keep the
+                # command contract explicit even though charge generation is not required.
+                pass
+
+            for key in ("grid_spacing", "probe_radius", "surface_tension", "pressure", "timeout"):
+                if key in solv_params and (
+                    isinstance(solv_params[key], bool)
+                    or not isinstance(solv_params[key], (int, float))
+                ):
+                    msg = f"Implicit-solvent {key} must be numeric."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+            for key in ("grid_spacing", "timeout"):
+                if key in solv_params and solv_params[key] <= 0:
+                    msg = f"Implicit-solvent {key} must be positive."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+            for key in ("probe_radius", "surface_tension", "pressure"):
+                if key in solv_params and solv_params[key] < 0:
+                    msg = f"Implicit-solvent {key} must be non-negative."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+            if "grid_points" in solv_params and type(solv_params["grid_points"]) is not int:
+                msg = "Implicit-solvent grid_points must be an integer."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if "grid_points" in solv_params and (
+                solv_params["grid_points"] < 33
+                or (solv_params["grid_points"] - 1) % 32 != 0
+            ):
+                msg = "APBS grid_points must have the nlev=4 form c*32+1 (65, 97, 129, ...)."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            for key in ("platform", "executable"):
+                if key in solv_params and (
+                    not isinstance(solv_params[key], str) or not solv_params[key].strip()
+                ):
+                    msg = f"Implicit-solvent {key} must be a non-empty string."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
             return
 
         if method is not None:
-            msg = "method=gbsa requires implicit=<solvent>; omit method for explicit solvent."
+            msg = "method=gb/pb/smd requires implicit=water; omit method for explicit solvent."
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 
         if "experimental" in solv_params:
-            msg = "experimental=true is only valid with method=gbsa, implicit=<solvent>."
+            msg = "experimental is only valid with an implicit PB/GB/SMD configuration."
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 
@@ -799,6 +1175,7 @@ class CommandControl:
         # and validates class OPTION_KEYS before construction.
         cls._validate_unknown_params(params, task, output_path)
         cls._validate_solvation(params, task, output_path)
+        cls._validate_charge(params, required=False, output_path=output_path)
 
         if "gpuid" in params and params["gpuid"] is not None and not isinstance(params["gpuid"], int):
             cls._log_error(output_path, "GPU ID must be an integer.")

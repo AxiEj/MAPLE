@@ -12,10 +12,20 @@ dependencies = [
     "numpy>=1.20",
     "scipy>=1.7",
 ]
+
+[project.optional-dependencies]
+# OpenMM supplies the five upstream Amber GB implementations.  8.5 is the
+# supported floor because it exposes both ACE and LCPO nonpolar choices in the
+# CustomGB force family.  APBS and AmberTools remain external executables.
+implicit-gb = ["openmm>=8.5"]
+implicit = ["openmm>=8.5"]
 # PyTorch/CUDA and fairchem-core are intentionally not declared here because
 # users must install versions that match their CUDA/CPU runtime before using
 # MAPLE's torch-backed and UMA/PBC-backed models. fairchem-core supplies its
 # own UMA runtime companions such as huggingface-hub and omegaconf.
+# Route-2 users install the contract-pinned mace-torch==0.3.16 themselves and
+# provide an external PCMSolver libpcm.so plus matching Python parser. Neither
+# the ASL model weights nor PCMSolver are redistributed by MAPLE.
 
 [project.scripts]
 maple = "maple.main:main"

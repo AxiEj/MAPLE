@@ -1,0 +1,241 @@
+{
+  "benchmark": "ESE-GB-DNN external binary on MAPLE FreeSolv ten-molecule pilot",
+  "date": "2026-07-22",
+  "source": {
+    "database": "https://github.com/MobleyLab/FreeSolv/blob/master/database.txt",
+    "mol2_archive": "https://github.com/MobleyLab/FreeSolv/blob/master/mol2files_gaff.tar.gz",
+    "database_version": "0.52",
+    "git_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6"
+  },
+  "selection_policy": "Ten classes fixed before calculation: alkane, aromatic hydrocarbon, alcohol, ether, ketone, ester, nitrile, aromatic amine, haloalkane, sulfoxide.",
+  "configuration": {
+    "model": "ESE-GB-DNN",
+    "repository": "https://github.com/vyboishchikov/ESE-GB-DNN",
+    "repository_commit": "5b8cdf1f52e52b5bad5351df48a30df00b9a00bc",
+    "binary": "ESE-GB-DNN.x",
+    "binary_sha256": "18701e01b0a17edffb80462375faf08d800502589230ed31747a7e2b4bf0b317",
+    "binary_distribution_note": "Upstream says free of charge but provides no explicit software license; benchmark-only external execution, not redistributed by MAPLE.",
+    "solvent": "water",
+    "total_charge": 0,
+    "input_geometry": "same FreeSolv v0.52 GAFF MOL2 coordinates converted to headerless XYZ",
+    "citation": "S. F. Vyboishchikov, JCTC 2023, DOI:10.1021/acs.jctc.3c00858"
+  },
+  "compounds": [
+    {
+      "id": "mobley_9055303",
+      "smiles": "C",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "experimental_kcal_mol": 2.0,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "experimental_reference": "10.1039/P29900000291",
+      "mol2_archive_member": "mol2files_gaff/mobley_9055303.mol2",
+      "mol2_sha256": "d3444794acbe124f7d423a564286d58a8ad7f98e559ccd08c002f1333516662b",
+      "natoms": 5
+    },
+    {
+      "id": "mobley_3053621",
+      "smiles": "c1ccccc1",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "experimental_kcal_mol": -0.9,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "experimental_reference": "10.1039/P29900000291",
+      "mol2_archive_member": "mol2files_gaff/mobley_3053621.mol2",
+      "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "natoms": 12
+    },
+    {
+      "id": "mobley_1636752",
+      "smiles": "CO",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "experimental_kcal_mol": -5.1,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_1636752.mol2",
+      "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "natoms": 6
+    },
+    {
+      "id": "mobley_7015518",
+      "smiles": "COC",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "experimental_kcal_mol": -1.91,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_7015518.mol2",
+      "mol2_sha256": "43fc0e1859c4536b1e5c6ccddbb5b370af168cb759a17ec927aa4e77dd2aedbb",
+      "natoms": 9
+    },
+    {
+      "id": "mobley_3867265",
+      "smiles": "CC(=O)C",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "experimental_kcal_mol": -3.8,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_3867265.mol2",
+      "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+      "natoms": 10
+    },
+    {
+      "id": "mobley_6973347",
+      "smiles": "CCOC(=O)C",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "experimental_kcal_mol": -2.94,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_6973347.mol2",
+      "mol2_sha256": "4f7ff04fca2240112ead2c9cc8d94a91f79b27d44ae5b2ea3f76ddf8531f7af8",
+      "natoms": 14
+    },
+    {
+      "id": "mobley_7532833",
+      "smiles": "CC#N",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "experimental_kcal_mol": -3.88,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/jp0264477",
+      "mol2_archive_member": "mol2files_gaff/mobley_7532833.mol2",
+      "mol2_sha256": "21e4c6f42cbc2791b6fdbdaaa7a044f352503ff5675efb879ba7351265666b60",
+      "natoms": 6
+    },
+    {
+      "id": "mobley_4883284",
+      "smiles": "c1ccc(cc1)N",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "experimental_kcal_mol": -5.49,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_4883284.mol2",
+      "mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+      "natoms": 14
+    },
+    {
+      "id": "mobley_2198613",
+      "smiles": "CCCl",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "experimental_kcal_mol": -0.63,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_2198613.mol2",
+      "mol2_sha256": "8324d857045111c381fce8b3b9cf6b5c5499eebd7adc2dd2fe2a2fd2b6165a30",
+      "natoms": 8
+    },
+    {
+      "id": "mobley_8578590",
+      "smiles": "CS(=O)C",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "experimental_kcal_mol": -9.28,
+      "experimental_uncertainty_kcal_mol": 0.57,
+      "experimental_reference": "10.1080/09593338709384509 and 10.1038/313384a0",
+      "mol2_archive_member": "mol2files_gaff/mobley_8578590.mol2",
+      "mol2_sha256": "eb17e4989468f9f100a4a299960279da0c8a011c8cc5798496c9b548214fec9d",
+      "natoms": 10
+    }
+  ],
+  "summary": {
+    "n": 10,
+    "mse_kcal_mol": 0.5119999999999999,
+    "mae_kcal_mol": 1.042,
+    "rmse_kcal_mol": 1.3565470872771057,
+    "max_abs_error_kcal_mol": 3.5299999999999994
+  },
+  "results": [
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "experimental_kcal_mol": 2.0,
+      "prediction_kcal_mol": 1.14,
+      "signed_error_kcal_mol": -0.8600000000000001
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "experimental_kcal_mol": -0.9,
+      "prediction_kcal_mol": -0.49,
+      "signed_error_kcal_mol": 0.41000000000000003
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "experimental_kcal_mol": -5.1,
+      "prediction_kcal_mol": -4.31,
+      "signed_error_kcal_mol": 0.79
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "experimental_kcal_mol": -1.91,
+      "prediction_kcal_mol": -0.93,
+      "signed_error_kcal_mol": 0.9799999999999999
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "experimental_kcal_mol": -3.8,
+      "prediction_kcal_mol": -2.67,
+      "signed_error_kcal_mol": 1.13
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "experimental_kcal_mol": -2.94,
+      "prediction_kcal_mol": -3.61,
+      "signed_error_kcal_mol": -0.6699999999999999
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "experimental_kcal_mol": -3.88,
+      "prediction_kcal_mol": -3.28,
+      "signed_error_kcal_mol": 0.6000000000000001
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "experimental_kcal_mol": -5.49,
+      "prediction_kcal_mol": -6.61,
+      "signed_error_kcal_mol": -1.12
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "experimental_kcal_mol": -0.63,
+      "prediction_kcal_mol": -0.3,
+      "signed_error_kcal_mol": 0.33
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "experimental_kcal_mol": -9.28,
+      "prediction_kcal_mol": -5.75,
+      "signed_error_kcal_mol": 3.5299999999999994
+    }
+  ],
+  "interpretation": {
+    "scientific_role": "same-geometry pilot diagnostic",
+    "independent_generalization": false,
+    "training_overlap_status": "not resolved against CombiSolv-QM plus the random MNSol training half",
+    "protocol_comparability": "Same ten experimental records and geometries; ESE-GB-DNN is a complete trained scalar predictor, not the OpenMM GBSA protocol used by the fixed-charge rows.",
+    "force_capability": false
+  }
+}

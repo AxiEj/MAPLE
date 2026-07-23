@@ -16,7 +16,7 @@ dynamics, and related post-processing workflows.
 | **Dynamics** | NVE, NVT, NPT |
 | **Analysis** | Frequency, PES Scan, Single Point |
 | **ML Potentials** | ANI, AIMNet2, MACE, MACEPol, UMA |
-| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental GB-polar SP energy correction, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
+| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental MOL2-based implicit PB/GB corrections, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
 
 ## Installation
 
@@ -46,7 +46,29 @@ External runtime dependencies that users install manually:
 | Package | Version boundary | Required for | Why MAPLE does not auto-install it |
 |---------|------------------|--------------|------------------------------------|
 | `torch` | `>=2.0` | ANI, AIMNet2, MACE-OFF, MACE-O-MOL, MACE-Polar, UMA | PyTorch wheels must match the user's CUDA/CPU runtime and should be selected from the official PyTorch index. |
+| `mace-torch` | `==0.3.16` for Route 2 | Official MACE-POLAR-1-M density/field response | Route 2 pins the upstream graph-long-range API and uses the official model cache; MAPLE does not redistribute the ASL weights. |
+| PCMSolver | v1.1.12-style C API | Route-2 SMD/IEFPCM | Install `libpcm.so` and its matching official Python parser externally; MAPLE does not bundle or build PCMSolver. |
 | `fairchem-core` | FAIR-Chem release with UMA support; tested locally with `2.19.0` | UMA and FAIR-Chem-backed/PBC workflows | FAIR-Chem may impose its own compatible PyTorch/runtime constraints, so install it after the matching PyTorch wheel. |
+
+For implicit GB models, install the optional OpenMM provider:
+
+```bash
+pip install 'maple[implicit-gb]'
+```
+
+APBS LPB, AM1-BCC, and ABCG2 are executable providers rather than core Python
+dependencies. Install APBS separately for `provider=apbs`; install AmberTools24+
+for `method=am1bcc` or `method=abcg2`. See
+[`docs/implicit-solvation/README.md`](docs/implicit-solvation/README.md) for the
+MOL2 input contract, supported profiles, and evidence gates.
+
+Route-2 SMD additionally requires:
+
+```bash
+pip install 'mace-torch==0.3.16'
+export PCMSOLVER_LIBRARY=/absolute/path/to/libpcm.so
+export PCMSOLVER_PYTHON_PATH=/absolute/path/to/pcmsolver/lib/python
+```
 
 ### Install MAPLE
 
@@ -79,7 +101,8 @@ Model checkpoint boundary:
 
 - MAPLE auto-downloads only the model files hosted at https://huggingface.co/Wayne7815/MAPLE_models.
 - Auto-downloads use a pinned HuggingFace revision by default; set `MAPLE_MODEL_REVISION` only when intentionally refreshing model assets.
-- Backend-specific or local checkpoints, such as MACE-Polar `.pt` files, must be present in `maple/function/calculator/model/` or supplied through an explicit model path.
+- Route-2 MACE-POLAR-1-M uses MACE's official `polar-1-m` download/cache path in float64. MAPLE does not bundle, mirror, modify, or silently replace that checkpoint.
+- Other backend-specific or local checkpoints must be present in `maple/function/calculator/model/` or supplied through an explicit model path when that backend supports one.
 - UMA checkpoints are resolved through an explicit path, a local `maple/function/calculator/model/uma-*.pt` file, or FAIR-Chem's official model-loading path.
 
 PBC boundary:

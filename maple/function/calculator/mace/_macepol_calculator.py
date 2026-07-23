@@ -1,22 +1,102 @@
 from __future__ import annotations
 
+import ctypes
 import os
+from dataclasses import dataclass
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 from typing import Literal
+
+
+def _preload_conda_libstdcpp() -> None:
+    """Prefer the active Conda C++ runtime before importing torch/MACE.
+
+    Some Conda MACE stacks otherwise resolve the system libstdc++ first and
+    fail later while importing compiled dependencies (for example matplotlib).
+    Loading the environment copy up front is a no-op outside Linux/Conda.
+    """
+
+    prefix = os.environ.get("CONDA_PREFIX")
+    if not prefix:
+        return
+    candidate = Path(prefix) / "lib" / "libstdc++.so.6"
+    if not candidate.is_file():
+        return
+    try:
+        ctypes.CDLL(str(candidate), mode=ctypes.RTLD_GLOBAL)
+    except OSError:
+        # The subsequent torch/MACE import will emit the actionable loader
+        # error.  Do not mask it with an optional compatibility preload.
+        pass
+
+
+_preload_conda_libstdcpp()
 
 import numpy as np
 import torch
 from ase.calculators.calculator import all_changes
 
-from ..calculator_base import CalcABC, hessian_via_double_autograd, register_calculator
-from ._common import one_hot_node_attrs, radius_graph_no_pbc
+from ..calculator_base import (
+    CalcABC,
+    EV2HARTREE,
+    ROUTE2_SMD_CALCULATOR_PROFILE,
+    hessian_via_double_autograd,
+    register_calculator,
+)
 
 
-# Model name → filename mapping
-_MACEPOL_MODEL_FILES = {
-    'macepols': 'macepols.pt',
-    'macepolm': 'macepolm.pt',
-    'macepoll': 'macepoll.pt',
+_MACEPOL_FOUNDATION_NAMES = {
+    "macepols": "polar-1-s",
+    "macepolm": "polar-1-m",
+    "macepoll": "polar-1-l",
 }
+_ROUTE2_MACE_TORCH_VERSION = "0.3.16"
+
+
+@dataclass(frozen=True)
+class PolarState:
+    """One MACE-POLAR electronic state in model-native units."""
+
+    energy_ev: float
+    density_coefficients: np.ndarray
+    dipole_e_angstrom: np.ndarray
+
+
+class _LocalReactionFieldProjector(torch.nn.Module):
+    """Inject a non-uniform local potential into MACE-POLAR's field features.
+
+    Upstream MACE-POLAR exposes a uniform graph-level field.  The trained model
+    already consumes l=0/l=1 GTO projections internally, so Route 2 supplies
+    the reaction potential and its gradient at every atom through that same
+    projection matrix without changing any learned weight.
+    """
+
+    def __init__(self, upstream: torch.nn.Module):
+        super().__init__()
+        self.upstream = upstream
+        self._node_potential_gradient: torch.Tensor | None = None
+
+    def set_node_potential_gradient(self, values: torch.Tensor | None) -> None:
+        self._node_potential_gradient = values
+
+    def forward(self, batch, positions, field):
+        values = self._node_potential_gradient
+        if values is None:
+            return self.upstream(batch, positions, field)
+        if values.ndim != 2 or values.shape[1] != 4:
+            raise ValueError(
+                "MACE-POLAR local reaction field must have shape (n_atoms, 4) "
+                "for [V, dV/dx, dV/dy, dV/dz]."
+            )
+        if values.shape[0] != batch.shape[0]:
+            raise ValueError(
+                "MACE-POLAR local reaction field atom count does not match the model graph."
+            )
+        node_fields = values.to(device=positions.device, dtype=positions.dtype)
+        # Match graph_longrange.GTOInternalFieldtoFeaturesBlock and MACE's
+        # Cartesian-to-e3nn convention exactly.
+        node_fields = node_fields[:, [0, 3, 1, 2]]
+        return torch.einsum("pf,nf->np", self.upstream.matrix, node_fields)
 
 
 def _integer_info(atoms, key: str, default: int) -> int:
@@ -24,147 +104,294 @@ def _integer_info(atoms, key: str, default: int) -> int:
     try:
         numeric_value = float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"MACE-POLAR requires integer atoms.info['{key}']; got {value!r}.") from exc
+        raise ValueError(
+            f"MACE-POLAR requires integer atoms.info['{key}']; got {value!r}."
+        ) from exc
     if not numeric_value.is_integer():
-        raise ValueError(f"MACE-POLAR requires integer atoms.info['{key}']; got {value!r}.")
+        raise ValueError(
+            f"MACE-POLAR requires integer atoms.info['{key}']; got {value!r}."
+        )
     return int(numeric_value)
 
 
-# ------------------------ Calculator ------------------------
-
 @register_calculator
 class MACEPolCalculator(CalcABC):
-    """ASE calculator for MACE-POLAR models (pure MLIP, f32).
+    """ASE calculator backed by the official MACE-POLAR foundation models.
 
-    The traced model accepts flat tensor inputs and returns:
-        (total_energy, node_energy, density_coefficients)
-
-    Supports total_charge and total_spin via atoms.info['charge'] and atoms.info['mult'].
+    The official MACE cache/download path is used when ``model_path`` is not
+    provided.  In addition to ordinary gas-phase energy/force evaluation, the
+    calculator exposes the atom-centred GTO charge density and a Route-2-only
+    response hook for a non-uniform PCM reaction potential.
     """
 
-    implemented_properties = ['energy', 'forces', 'free_energy', 'hessian']
+    implemented_properties = ["energy", "forces", "free_energy", "hessian"]
 
-    MODEL_NAMES = ('macepols', 'macepolm', 'macepoll')
-    MODEL_ENERGY_UNIT = 'eV'
-    SUPPORTED_HESSIAN_MODES = ('analytic', 'numerical')
+    MODEL_NAMES = ("macepols", "macepolm", "macepoll")
+    MODEL_ENERGY_UNIT = "eV"
+    SUPPORTED_HESSIAN_MODES = ("analytic", "numerical")
     SUPPORTS_CHARGE_MULT = True
     SUPPORTS_PBC = False
     CHECKPOINT_FILENAME = None
-    REQUIRES_LOCAL_MODEL_FILE = True
+    REQUIRES_LOCAL_MODEL_FILE = False
     OPTION_KEYS = ()
-    MODEL_PATH_OPTION = 'model_path'
+    MODEL_PATH_OPTION = "model_path"
 
     @classmethod
     def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
         kwargs = {}
         if resolved_model_path is not None:
-            kwargs['model_path'] = resolved_model_path
+            kwargs["model_path"] = resolved_model_path
         return kwargs
 
-    def __init__(self,
-        device: torch.device,
-        model: str = 'macepols',
-        model_path: str = None,
-        implicit: Literal['gbsa', 'none'] = 'none',
-        solvent: str = 'none',
-        ):
-        """
-        Args:
-            device: Torch device.
-            model: Model name ('macepols', 'macepolm', 'macepoll').
-            model_path: Optional explicit path to .pt file (overrides model name lookup).
-            implicit: Implicit solvent model type.
-            solvent: Solvent type.
-        """
+    def __init__(
+        self,
+        device: torch.device | str,
+        model: str = "macepolm",
+        model_path: str | None = None,
+        implicit: Literal["smd", "gb", "pb", "none"] = "none",
+        solvent: str = "none",
+    ):
         super().__init__()
+        route2_smd = str(implicit).strip().lower() == "smd"
 
-        if model_path is None:
-            model_dir = os.path.dirname(os.path.realpath(__file__))
-            model_dir = os.path.dirname(model_dir)
-            filename = _MACEPOL_MODEL_FILES.get(model, f'{model}.pt')
-            model_path = os.path.join(model_dir, 'model', filename)
+        try:
+            mace_version = version("mace-torch")
+        except PackageNotFoundError as exc:
+            raise ImportError("MACE-POLAR requires mace-torch.") from exc
+        if mace_version != _ROUTE2_MACE_TORCH_VERSION:
+            raise RuntimeError(
+                "MAPLE Route 2 is pinned to mace-torch "
+                f"{_ROUTE2_MACE_TORCH_VERSION} because it uses the release's "
+                "MACE-POLAR graph_longrange density/field API; found "
+                f"{mace_version}."
+            )
+        self.mace_torch_version = mace_version
+        self.route2_smd_profile = (
+            ROUTE2_SMD_CALCULATOR_PROFILE if route2_smd else None
+        )
 
-        self.model = torch.jit.load(model_path, map_location=device)
+        try:
+            from mace.calculators import mace_polar
+        except Exception as exc:
+            raise ImportError(
+                "MACE-POLAR requires the official mace-torch runtime with "
+                "graph_longrange support. Install a CUDA/CPU-compatible MACE "
+                "release that provides mace.calculators.mace_polar."
+            ) from exc
+
+        if route2_smd and (model != "macepolm" or model_path is not None):
+            raise ValueError(
+                "Route 2 requires the unmodified official MACE-POLAR-1-M "
+                "checkpoint through MACE's upstream cache."
+            )
+        model_source = (
+            str(Path(model_path).expanduser())
+            if model_path is not None
+            else _MACEPOL_FOUNDATION_NAMES[model]
+        )
+        try:
+            self._mace = mace_polar(
+                model=model_source,
+                device=str(device),
+                # Route 2 subtracts large absolute MLIP energies to obtain a
+                # small polarization response.  The upstream-recommended
+                # float64 mode avoids quantizing that difference in float32.
+                # Preserve the existing float32 gas-only calculator behavior.
+                default_dtype="float64" if route2_smd else "float32",
+                return_raw_model=False,
+            )
+        except Exception as exc:
+            raise RuntimeError(
+                f"Unable to load official MACE-POLAR model {model_source!r}. "
+                "The upstream cache/download failed; no MAPLE-owned weight "
+                "fallback is permitted."
+            ) from exc
+
+        if len(self._mace.models) != 1:
+            raise ValueError("Route 2 requires exactly one MACE-POLAR model.")
+        self.model = self._mace.models[0]
         self.model.eval()
+        for parameter in self.model.parameters():
+            parameter.requires_grad_(False)
 
-        for p in self.model.parameters():
-            p.requires_grad_(False)
+        projector = getattr(self.model, "external_field_contribution", None)
+        if projector is None or not hasattr(projector, "matrix"):
+            raise RuntimeError(
+                "The loaded model is not a compatible MACE-POLAR checkpoint: "
+                "its GTO external-field projector is missing."
+            )
+        self._reaction_projector = _LocalReactionFieldProjector(projector)
+        self.model.external_field_contribution = self._reaction_projector
 
-        self.device = device
-        self.dtype = torch.float32  # MACE-POLAR traced models are f32
+        self.device = self._mace.device
+        self.dtype = next(self.model.parameters()).dtype
         self.r_max = float(self.model.r_max)
         self.atomic_numbers = [int(z) for z in self.model.atomic_numbers]
-        self.hessian = 'analytic'
+        self.hessian = "analytic"
+        self._last_polar_state: PolarState | None = None
 
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
-    def _build_inputs(self, atoms, requires_grad=False):
-        """Build the 12 flat tensor inputs for MACE-POLAR forward pass."""
-        device = self.device
-        dtype = self.dtype
+    @property
+    def last_polar_state(self) -> PolarState | None:
+        return self._last_polar_state
 
-        positions = torch.tensor(
-            atoms.get_positions(), dtype=dtype, device=device,
-            requires_grad=requires_grad,
+    @property
+    def last_density_coefficients(self) -> np.ndarray | None:
+        if self._last_polar_state is None:
+            return None
+        return self._last_polar_state.density_coefficients.copy()
+
+    @staticmethod
+    def _atoms_for_mace(atoms):
+        model_atoms = atoms.copy()
+        multiplicity = _integer_info(atoms, "mult", 1)
+        model_atoms.info["charge"] = float(atoms.info.get("charge", 0.0))
+        # Upstream MACE-POLAR names this field "spin", but its public contract
+        # uses 1 for a singlet, 2 for a doublet, i.e. the multiplicity.
+        model_atoms.info["spin"] = multiplicity
+        model_atoms.info["external_field"] = [0.0, 0.0, 0.0]
+        return model_atoms
+
+    def _batch_dict(self, atoms) -> dict[str, torch.Tensor]:
+        batch = self._mace._atoms_to_batch(self._atoms_for_mace(atoms))
+        model_dtype = next(self.model.parameters()).dtype
+        result = batch.to_dict()
+        for key, value in tuple(result.items()):
+            if torch.is_tensor(value) and torch.is_floating_point(value):
+                result[key] = value.to(dtype=model_dtype)
+        return result
+
+    @staticmethod
+    def _polar_state_from_output(output) -> PolarState:
+        density = output.get("density_coefficients")
+        dipole = output.get("dipole")
+        if density is None or dipole is None:
+            raise RuntimeError(
+                "MACE-POLAR did not return density_coefficients and dipole; "
+                "Route 2 cannot fall back to atom charges."
+            )
+        density_np = density.detach().cpu().numpy().astype(float, copy=True)
+        if density_np.ndim != 2 or density_np.shape[1] != 4:
+            raise RuntimeError(
+                "Route 2 requires the MACE-POLAR l<=1 four-coefficient GTO "
+                f"density; received shape {density_np.shape}."
+            )
+        dipole_np = np.asarray(dipole.detach().cpu(), dtype=float).reshape(-1, 3)[0]
+        energy_ev = float(output["energy"].sum().detach().cpu())
+        return PolarState(
+            energy_ev=energy_ev,
+            density_coefficients=density_np,
+            dipole_e_angstrom=dipole_np,
         )
-        Z = torch.tensor(atoms.get_atomic_numbers(), dtype=torch.long, device=device)
-        node_attrs = one_hot_node_attrs(Z, self.atomic_numbers, dtype=dtype)
-        edge_index, shifts = radius_graph_no_pbc(positions, self.r_max)
 
-        N = positions.size(0)
-        unit_shifts = torch.zeros_like(shifts)
-        batch = torch.zeros(N, dtype=torch.int64, device=device)
-        ptr = torch.tensor([0, N], dtype=torch.int64, device=device)
-        cell = torch.zeros(3, 3, dtype=dtype, device=device)
+    def polar_state(
+        self,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray | None = None,
+        node_gradient_ev_per_angstrom: np.ndarray | None = None,
+        compute_forces: bool = False,
+        compute_hessian: bool = False,
+    ) -> tuple[PolarState, dict]:
+        """Evaluate a gas or locally field-polarized MACE-POLAR state.
 
-        # Charge and spin from atoms.info (default: 0, singlet)
-        charge = float(atoms.info.get('charge', 0))
-        mult = _integer_info(atoms, 'mult', 1)
-        spin = float(mult - 1)
-        total_charge = torch.tensor([charge], dtype=dtype, device=device)
-        total_spin = torch.tensor([spin], dtype=dtype, device=device)
+        ``node_potential_ev`` is the electrostatic potential energy per unit
+        charge in eV/e; the gradient is in eV/(e Å).  The returned model energy
+        deliberately excludes the explicit ``<rho,V>`` coupling for a local
+        field. Route 2 instead takes the PCMSolver polarization work directly
+        as ``0.5*<rho,V>`` and uses the full coupling only as a reciprocity
+        diagnostic.
+        """
 
-        # No external field for pure MLIP
-        external_field = torch.zeros(N, 3, dtype=dtype, device=device)
-        local_or_ghost = torch.ones(N, dtype=dtype, device=device)
+        batch = self._batch_dict(atoms)
+        local_values = None
+        if node_potential_ev is not None or node_gradient_ev_per_angstrom is not None:
+            if node_potential_ev is None or node_gradient_ev_per_angstrom is None:
+                raise ValueError(
+                    "Both local reaction potential and gradient are required."
+                )
+            potential = np.asarray(node_potential_ev, dtype=float)
+            gradient = np.asarray(node_gradient_ev_per_angstrom, dtype=float)
+            if potential.shape != (len(atoms),) or gradient.shape != (len(atoms), 3):
+                raise ValueError(
+                    "Local reaction potential/gradient shapes must be "
+                    "(n_atoms,) and (n_atoms, 3)."
+                )
+            local_values = torch.as_tensor(
+                np.column_stack((potential, gradient)),
+                dtype=self.dtype,
+                device=self.device,
+            )
 
-        return (positions, node_attrs, edge_index, shifts, unit_shifts,
-                batch, ptr, cell, total_charge, total_spin,
-                external_field, local_or_ghost)
+        self._reaction_projector.set_node_potential_gradient(local_values)
+        try:
+            output = self.model(
+                batch,
+                compute_force=compute_forces,
+                compute_stress=False,
+                compute_hessian=compute_hessian,
+            )
+        finally:
+            self._reaction_projector.set_node_potential_gradient(None)
+        return self._polar_state_from_output(output), output
 
-    def calculate(self, atoms=None, properties=['energy'], system_changes=all_changes):
-        """Main ASE calculation entry point."""
+    def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
         properties = self._normalize_properties(properties)
         atoms = super().calculate(atoms, properties, system_changes)
 
-        # Single forward; positions carry grad only when forces are requested.
-        needs_forces = 'forces' in properties
-        inputs = self._build_inputs(atoms, requires_grad=needs_forces)
-        total_energy, _, _ = self.model(*inputs)
-        energy_eV = total_energy.sum().double()
+        needs_forces = "forces" in properties
+        needs_hessian = "hessian" in properties
+        state, output = self.polar_state(
+            atoms,
+            compute_forces=needs_forces,
+            compute_hessian=needs_hessian,
+        )
+        self._last_polar_state = state
 
         forces_np = None
         if needs_forces:
-            forces = -torch.autograd.grad(total_energy.sum(), inputs[0])[0]
-            forces_np = forces.double().detach().cpu().numpy()
+            forces = output.get("forces")
+            if forces is None:
+                raise RuntimeError("MACE-POLAR did not return requested forces.")
+            forces_np = forces.detach().cpu().numpy().astype(float, copy=False)
 
-        hessian = None
-        if 'hessian' in properties:
+        hessian_np = None
+        if needs_hessian:
             if self.solvent_correction is not None:
-                raise NotImplementedError('Hessian calculation with implicit solvent is not implemented yet.')
-            hessian = self.get_hessian(atoms)
+                raise NotImplementedError(
+                    "Hessian calculation with implicit solvent is not implemented."
+                )
+            hessian = output.get("hessian")
+            if hessian is None:
+                hessian_np = self.get_hessian(atoms)
+            else:
+                hessian_np = (
+                    hessian.detach().cpu().numpy().astype(float, copy=False)
+                    * EV2HARTREE
+                )
 
-        self._finalize_results(atoms, energy=energy_eV.item(), forces=forces_np, hessian=hessian)
+        self._finalize_results(
+            atoms,
+            energy=state.energy_ev,
+            forces=forces_np,
+            hessian=hessian_np,
+        )
 
     def _analytic_hessian(self, atoms) -> np.ndarray:
-        """Analytic Hessian via autograd. Returns (3N, 3N) np.ndarray in Hartree/Å²."""
-        from ..calculator_base import EV2HARTREE
-
-        inputs = self._build_inputs(atoms, requires_grad=True)
-        positions = inputs[0]
+        # Keep a fallback for upstream checkpoints that do not expose a Hessian
+        # tensor from their standard forward.
+        batch = self._batch_dict(atoms)
+        positions = batch["positions"]
+        positions.requires_grad_(True)
 
         def energy_fn():
-            total_energy, _, _ = self.model(*inputs)
-            return total_energy.sum() * EV2HARTREE
+            output = self.model(
+                batch,
+                compute_force=False,
+                compute_stress=False,
+                compute_hessian=False,
+            )
+            return output["energy"].sum() * EV2HARTREE
 
         return hessian_via_double_autograd(energy_fn, positions)

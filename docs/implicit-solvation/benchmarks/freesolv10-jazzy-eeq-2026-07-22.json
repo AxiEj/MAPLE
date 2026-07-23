@@ -1,0 +1,496 @@
+{
+  "benchmark": "Jazzy/Kallisto EEQ hydration free energy on MAPLE FreeSolv ten-molecule pilot",
+  "created_utc": "2026-07-22T14:29:31Z",
+  "interpretation_warning": "Seven of ten structures are confirmed exact overlaps with the official Jazzy Gerber fitting file; this pilot is not an independent generalization result.",
+  "identity_policy": {
+    "confirmed_exact_overlap": "Canonical isomeric SMILES OR full standard InChIKey matches a Gerber curated training row.",
+    "connectivity_only_possible_overlap": "No exact match, but canonical non-isomeric SMILES OR the first InChIKey connectivity block matches. These records are excluded from strict non-overlap.",
+    "strict_identifier_non_overlap": "No match by any of the four recorded exact/connectivity identifiers.",
+    "reported_overlap_group": "Union of confirmed exact and connectivity-only possible overlap."
+  },
+  "sources": {
+    "freesolv": {
+      "repository": "https://github.com/MobleyLab/FreeSolv.git",
+      "commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+      "commit_date": "2026-04-03T12:42:56-07:00",
+      "database_version": "0.52",
+      "database_json_sha256": "9133b2438af6081d4cf6ac040cb201c2e3ec953988a45248586f20f2f159c78a",
+      "mol2_archive_sha256": "15ece6114442a8eb5e720c0ad25bb48e4a6a35392da36f72b80a6f2f415fd133"
+    },
+    "jazzy": {
+      "repository": "https://github.com/AstraZeneca/jazzy.git",
+      "commit": "f088fc0d7a96e101632965ba16245ab304d863e4",
+      "commit_date": "2025-06-30T16:10:38+00:00",
+      "training_file": "/tmp/jazzy.eWtiMs/data/free_energy_gerber/03-free_energies_gerber_curated.txt",
+      "training_file_sha256": "e9eae3579f8085c95d3ad7c05b170a4a3e8edb83192c43e2d4e154fa19152b21",
+      "training_rows": 292,
+      "unique_training_structures_by_full_inchikey": 287
+    }
+  },
+  "environment": {
+    "python": "3.11.14",
+    "python_implementation": "CPython",
+    "python_executable": "/tmp/jazzy-syspkg-env.jX1g2B/bin/python",
+    "jazzy": "0.1.4",
+    "kallisto": "1.0.10",
+    "rdkit": "2024.09.2",
+    "numpy": "2.3.5",
+    "ase": "3.27.0",
+    "networkx": "3.6.1",
+    "known_deviations_from_declared_dependencies": [
+      "Jazzy 0.1.4 declares rdkit==2024.3.1; this smoke environment uses rdkit 2024.9.2.",
+      "Kallisto 1.0.10 declares numpy<2; this smoke environment uses numpy 2.3.5.",
+      "The temporary virtual environment reuses system-site packages and is not a clean locked installation."
+    ]
+  },
+  "calculation": {
+    "geometry": "FreeSolv GAFF MOL2 coordinates and bonds read by MAPLE MOL2Reader, then converted directly to an explicit-H RDKit molecule; no embedding or minimization.",
+    "formal_charge": 0,
+    "multiplicity": 1,
+    "unit_conversion": "kJ/mol / 4.184 = kcal/mol",
+    "script": "/tmp/jazzy_freesolv642_maple_overlap.py",
+    "script_sha256": "50fc4183c756343a705fee4eec9440bf0e41115c21a8bffbff55b4e548d6fe1f",
+    "elapsed_seconds": 7.555473360000178,
+    "scope": "Ten chemistry classes selected before calculation; same GAFF MOL2 geometries used by the MAPLE charge/GB pilot."
+  },
+  "summary": {
+    "n": 10,
+    "mse_kcal_mol": 0.33729050920914494,
+    "mae_kcal_mol": 1.338210190762687,
+    "rmse_kcal_mol": 2.171200375054456,
+    "max_abs_error_kcal_mol": 6.282440522032507,
+    "max_abs_error_id": "mobley_8578590"
+  },
+  "overlap_counts": {
+    "confirmed_exact_overlap": 7,
+    "connectivity_only_possible_overlap": 0,
+    "strict_identifier_non_overlap": 3
+  },
+  "failures": [],
+  "compounds": [
+    {
+      "id": "mobley_9055303",
+      "smiles": "C",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "experimental_kcal_mol": 2.0,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "experimental_reference": "10.1039/P29900000291",
+      "mol2_archive_member": "mol2files_gaff/mobley_9055303.mol2",
+      "mol2_sha256": "d3444794acbe124f7d423a564286d58a8ad7f98e559ccd08c002f1333516662b",
+      "natoms": 5
+    },
+    {
+      "id": "mobley_3053621",
+      "smiles": "c1ccccc1",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "experimental_kcal_mol": -0.9,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "experimental_reference": "10.1039/P29900000291",
+      "mol2_archive_member": "mol2files_gaff/mobley_3053621.mol2",
+      "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "natoms": 12
+    },
+    {
+      "id": "mobley_1636752",
+      "smiles": "CO",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "experimental_kcal_mol": -5.1,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_1636752.mol2",
+      "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "natoms": 6
+    },
+    {
+      "id": "mobley_7015518",
+      "smiles": "COC",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "experimental_kcal_mol": -1.91,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_7015518.mol2",
+      "mol2_sha256": "43fc0e1859c4536b1e5c6ccddbb5b370af168cb759a17ec927aa4e77dd2aedbb",
+      "natoms": 9
+    },
+    {
+      "id": "mobley_3867265",
+      "smiles": "CC(=O)C",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "experimental_kcal_mol": -3.8,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_3867265.mol2",
+      "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+      "natoms": 10
+    },
+    {
+      "id": "mobley_6973347",
+      "smiles": "CCOC(=O)C",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "experimental_kcal_mol": -2.94,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_6973347.mol2",
+      "mol2_sha256": "4f7ff04fca2240112ead2c9cc8d94a91f79b27d44ae5b2ea3f76ddf8531f7af8",
+      "natoms": 14
+    },
+    {
+      "id": "mobley_7532833",
+      "smiles": "CC#N",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "experimental_kcal_mol": -3.88,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/jp0264477",
+      "mol2_archive_member": "mol2files_gaff/mobley_7532833.mol2",
+      "mol2_sha256": "21e4c6f42cbc2791b6fdbdaaa7a044f352503ff5675efb879ba7351265666b60",
+      "natoms": 6
+    },
+    {
+      "id": "mobley_4883284",
+      "smiles": "c1ccc(cc1)N",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "experimental_kcal_mol": -5.49,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_4883284.mol2",
+      "mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+      "natoms": 14
+    },
+    {
+      "id": "mobley_2198613",
+      "smiles": "CCCl",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "experimental_kcal_mol": -0.63,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_2198613.mol2",
+      "mol2_sha256": "8324d857045111c381fce8b3b9cf6b5c5499eebd7adc2dd2fe2a2fd2b6165a30",
+      "natoms": 8
+    },
+    {
+      "id": "mobley_8578590",
+      "smiles": "CS(=O)C",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "experimental_kcal_mol": -9.28,
+      "experimental_uncertainty_kcal_mol": 0.57,
+      "experimental_reference": "10.1080/09593338709384509 and 10.1038/313384a0",
+      "mol2_archive_member": "mol2files_gaff/mobley_8578590.mol2",
+      "mol2_sha256": "eb17e4989468f9f100a4a299960279da0c8a011c8cc5798496c9b548214fec9d",
+      "natoms": 10
+    }
+  ],
+  "results": [
+    {
+      "id": "mobley_9055303",
+      "name": "methane",
+      "source_smiles": "C",
+      "canonical_isomeric_smiles": "C",
+      "canonical_nonisomeric_smiles": "C",
+      "inchikey": "VNWKTOKETHGBQD-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "VNWKTOKETHGBQD",
+      "experimental_kcal_mol": 2.0,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "prediction_kcal_mol": 0.8736716045139287,
+      "signed_error_kcal_mol": -1.1263283954860714,
+      "components_kj_mol": {
+        "dga": 3.7789753932862777,
+        "dgp": -0.1235334,
+        "dgi": 0.0,
+        "dgtot": 3.655441993286278
+      },
+      "eeq_charge_sum": 1.3877787807814457e-17,
+      "eeq_max_abs_charge": 0.34248762861780446,
+      "overlap_class": "confirmed_exact_overlap",
+      "exact_training_row_indices": [
+        0
+      ],
+      "conservative_training_row_indices": [
+        0
+      ],
+      "matched_training_names": [
+        "Methane"
+      ],
+      "seconds": 0.0026581589991110377
+    },
+    {
+      "id": "mobley_3053621",
+      "name": "benzene",
+      "source_smiles": "c1ccccc1",
+      "canonical_isomeric_smiles": "c1ccccc1",
+      "canonical_nonisomeric_smiles": "c1ccccc1",
+      "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "UHOVQNZJYSORNB",
+      "experimental_kcal_mol": -0.9,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "prediction_kcal_mol": -1.1775008224934091,
+      "signed_error_kcal_mol": -0.2775008224934091,
+      "components_kj_mol": {
+        "dga": -2.9114482413124243,
+        "dgp": -2.0152152,
+        "dgi": 0.0,
+        "dgtot": -4.926663441312424
+      },
+      "eeq_charge_sum": 5.551115123125783e-17,
+      "eeq_max_abs_charge": 0.10456149438673214,
+      "overlap_class": "confirmed_exact_overlap",
+      "exact_training_row_indices": [
+        57
+      ],
+      "conservative_training_row_indices": [
+        57
+      ],
+      "matched_training_names": [
+        "Benzene"
+      ],
+      "seconds": 0.007347052996919956
+    },
+    {
+      "id": "mobley_1636752",
+      "name": "methanol",
+      "source_smiles": "CO",
+      "canonical_isomeric_smiles": "CO",
+      "canonical_nonisomeric_smiles": "CO",
+      "inchikey": "OKKJLVBELUTLKV-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "OKKJLVBELUTLKV",
+      "experimental_kcal_mol": -5.1,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "prediction_kcal_mol": -3.8542924924918136,
+      "signed_error_kcal_mol": 1.245707507508186,
+      "components_kj_mol": {
+        "dga": 4.80825168786802,
+        "dgp": -20.934611476453767,
+        "dgi": 0.0,
+        "dgtot": -16.12635978858575
+      },
+      "eeq_charge_sum": -5.551115123125783e-17,
+      "eeq_max_abs_charge": 0.4982275801387778,
+      "overlap_class": "confirmed_exact_overlap",
+      "exact_training_row_indices": [
+        84
+      ],
+      "conservative_training_row_indices": [
+        84
+      ],
+      "matched_training_names": [
+        "Methanol"
+      ],
+      "seconds": 0.003275647002737969
+    },
+    {
+      "id": "mobley_7015518",
+      "name": "methoxymethane",
+      "source_smiles": "COC",
+      "canonical_isomeric_smiles": "COC",
+      "canonical_nonisomeric_smiles": "COC",
+      "inchikey": "LCGLNKUTAGEVQW-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "LCGLNKUTAGEVQW",
+      "experimental_kcal_mol": -1.91,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "prediction_kcal_mol": -2.998364121743178,
+      "signed_error_kcal_mol": -1.0883641217431779,
+      "components_kj_mol": {
+        "dga": 5.906678581893097,
+        "dgp": -18.451834067266553,
+        "dgi": 0.0,
+        "dgtot": -12.545155485373456
+      },
+      "eeq_charge_sum": -4.163336342344337e-17,
+      "eeq_max_abs_charge": 0.36013217522943236,
+      "overlap_class": "confirmed_exact_overlap",
+      "exact_training_row_indices": [
+        114
+      ],
+      "conservative_training_row_indices": [
+        114
+      ],
+      "matched_training_names": [
+        "Dimethyl-ether"
+      ],
+      "seconds": 0.00477165800111834
+    },
+    {
+      "id": "mobley_3867265",
+      "name": "acetone",
+      "source_smiles": "CC(=O)C",
+      "canonical_isomeric_smiles": "CC(C)=O",
+      "canonical_nonisomeric_smiles": "CC(C)=O",
+      "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "CSCPPACGZOOCGX",
+      "experimental_kcal_mol": -3.8,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "prediction_kcal_mol": -3.4672387040147803,
+      "signed_error_kcal_mol": 0.33276129598521953,
+      "components_kj_mol": {
+        "dga": 4.322656778023172,
+        "dgp": -18.829583515621014,
+        "dgi": 0.0,
+        "dgtot": -14.50692673759784
+      },
+      "eeq_charge_sum": 1.942890293094024e-16,
+      "eeq_max_abs_charge": 0.3988294585871939,
+      "overlap_class": "confirmed_exact_overlap",
+      "exact_training_row_indices": [
+        129
+      ],
+      "conservative_training_row_indices": [
+        129
+      ],
+      "matched_training_names": [
+        "Dimethyl-ketone"
+      ],
+      "seconds": 0.0048796909977681935
+    },
+    {
+      "id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "source_smiles": "CCOC(=O)C",
+      "canonical_isomeric_smiles": "CCOC(C)=O",
+      "canonical_nonisomeric_smiles": "CCOC(C)=O",
+      "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "XEKOWRVHYACXOJ",
+      "experimental_kcal_mol": -2.94,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "prediction_kcal_mol": -4.632014436743489,
+      "signed_error_kcal_mol": -1.6920144367434893,
+      "components_kj_mol": {
+        "dga": 5.123572529010209,
+        "dgp": -34.18835394039181,
+        "dgi": 9.684433008046842,
+        "dgtot": -19.38034840333476
+      },
+      "eeq_charge_sum": -6.938893903907228e-17,
+      "eeq_max_abs_charge": 0.4203263670886026,
+      "overlap_class": "confirmed_exact_overlap",
+      "exact_training_row_indices": [
+        166
+      ],
+      "conservative_training_row_indices": [
+        166
+      ],
+      "matched_training_names": [
+        "Ethyl-ethanoate"
+      ],
+      "seconds": 0.007633981003891677
+    },
+    {
+      "id": "mobley_7532833",
+      "name": "acetonitrile",
+      "source_smiles": "CC#N",
+      "canonical_isomeric_smiles": "CC#N",
+      "canonical_nonisomeric_smiles": "CC#N",
+      "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "WEVYAHXRMPXWCK",
+      "experimental_kcal_mol": -3.88,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "prediction_kcal_mol": -3.363405825666752,
+      "signed_error_kcal_mol": 0.5165941743332478,
+      "components_kj_mol": {
+        "dga": -1.1356595900606372,
+        "dgp": -12.936830384529054,
+        "dgi": 0.0,
+        "dgtot": -14.072489974589692
+      },
+      "eeq_charge_sum": 0.0,
+      "eeq_max_abs_charge": 0.36555446512903284,
+      "overlap_class": "strict_identifier_non_overlap",
+      "exact_training_row_indices": [],
+      "conservative_training_row_indices": [],
+      "matched_training_names": [],
+      "seconds": 0.0031440770035260357
+    },
+    {
+      "id": "mobley_4883284",
+      "name": "aniline",
+      "source_smiles": "c1ccc(cc1)N",
+      "canonical_isomeric_smiles": "Nc1ccccc1",
+      "canonical_nonisomeric_smiles": "Nc1ccccc1",
+      "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "PAYRUJLWNCNPSJ",
+      "experimental_kcal_mol": -5.49,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "prediction_kcal_mol": -5.981043592052783,
+      "signed_error_kcal_mol": -0.49104359205278314,
+      "components_kj_mol": {
+        "dga": -3.0930514442216266,
+        "dgp": -21.93163494492722,
+        "dgi": 0.0,
+        "dgtot": -25.024686389148847
+      },
+      "eeq_charge_sum": 5.551115123125783e-17,
+      "eeq_max_abs_charge": 0.7011245666560151,
+      "overlap_class": "confirmed_exact_overlap",
+      "exact_training_row_indices": [
+        210
+      ],
+      "conservative_training_row_indices": [
+        210
+      ],
+      "matched_training_names": [
+        "Aniline"
+      ],
+      "seconds": 0.012466685999243055
+    },
+    {
+      "id": "mobley_2198613",
+      "name": "chloroethane",
+      "source_smiles": "CCCl",
+      "canonical_isomeric_smiles": "CCCl",
+      "canonical_nonisomeric_smiles": "CCCl",
+      "inchikey": "HRYZWHHZPQKTII-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "HRYZWHHZPQKTII",
+      "experimental_kcal_mol": -0.63,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "prediction_kcal_mol": -0.9593470392487806,
+      "signed_error_kcal_mol": -0.3293470392487806,
+      "components_kj_mol": {
+        "dga": 6.523837310632047,
+        "dgp": -10.537745322848945,
+        "dgi": 0.0,
+        "dgtot": -4.013908012216898
+      },
+      "eeq_charge_sum": -2.7755575615628914e-17,
+      "eeq_max_abs_charge": 0.23038517662792665,
+      "overlap_class": "strict_identifier_non_overlap",
+      "exact_training_row_indices": [],
+      "conservative_training_row_indices": [],
+      "matched_training_names": [],
+      "seconds": 0.0041770980024011806
+    },
+    {
+      "id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "source_smiles": "CS(=O)C",
+      "canonical_isomeric_smiles": "CS(C)=O",
+      "canonical_nonisomeric_smiles": "CS(C)=O",
+      "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
+      "inchikey_connectivity_block": "IAZDPXIOMUYVGZ",
+      "experimental_kcal_mol": -9.280000000000001,
+      "experimental_uncertainty_kcal_mol": 0.5699999999999994,
+      "prediction_kcal_mol": -2.9975594779674943,
+      "signed_error_kcal_mol": 6.282440522032507,
+      "components_kj_mol": {
+        "dga": 6.095051729981121,
+        "dgp": -19.546675907072448,
+        "dgi": 0.9098353212753314,
+        "dgtot": -12.541788855815996
+      },
+      "eeq_charge_sum": 5.551115123125783e-17,
+      "eeq_max_abs_charge": 0.38689284163034543,
+      "overlap_class": "strict_identifier_non_overlap",
+      "exact_training_row_indices": [],
+      "conservative_training_row_indices": [],
+      "matched_training_names": [],
+      "seconds": 0.006572596001205966
+    }
+  ]
+}

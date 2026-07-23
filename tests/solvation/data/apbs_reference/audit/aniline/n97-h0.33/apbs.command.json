@@ -1,0 +1,9 @@
+{
+  "command": [
+    "/usr/bin/apbs",
+    "apbs.in"
+  ],
+  "returncode": 0,
+  "provider_version": "1.4.1",
+  "executable_sha256": "13b555e8a38041d80ab4a9476126f8df6ca10eb6d140c12619e5794d83b7f080"
+}

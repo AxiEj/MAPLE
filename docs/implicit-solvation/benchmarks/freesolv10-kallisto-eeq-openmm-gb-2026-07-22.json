@@ -1,0 +1,1389 @@
+{
+  "benchmark": "Kallisto EEQ charges plus MAPLE OpenMM GB on the FreeSolv ten-molecule pilot",
+  "date": "2026-07-22",
+  "source": {
+    "database": "https://github.com/MobleyLab/FreeSolv/blob/master/database.txt",
+    "mol2_archive": "https://github.com/MobleyLab/FreeSolv/blob/master/mol2files_gaff.tar.gz",
+    "database_version": "0.52",
+    "git_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6"
+  },
+  "selection_policy": "Ten classes fixed before calculation: alkane, aromatic hydrocarbon, alcohol, ether, ketone, ester, nitrile, aromatic amine, haloalkane, sulfoxide.",
+  "configuration": {
+    "charge_model": "Kallisto EEQ 1.0.10, fitted to PBE0/def2-TZVP Hirshfeld charges",
+    "geometry": "FreeSolv v0.52 GAFF MOL2",
+    "topology_mapping": "FreeSolv SMILES explicit-H graph mapped by element/degree graph isomorphism to MOL2 atom order",
+    "gb": "MAPLE OpenMM 8.4.0.post2 HCT/OBC-I/OBC-II/GBn/GBn2 with ACE on Reference platform",
+    "citation": "Caldeweyher et al., J. Chem. Phys. 2019, DOI:10.1063/1.5090222; Ghiandoni and Caldeweyher, Sci Rep 2023, DOI:10.1038/s41598-023-30089-x",
+    "license": "Kallisto Apache-2.0; RDKit BSD-3-Clause; OpenMM MIT",
+    "validation_note": "Diagnostic cross-pairing only: Kallisto EEQ was fitted to gas-phase DFT Hirshfeld charges, not jointly with Amber GB radii/nonpolar terms."
+  },
+  "summary": [
+    {
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "n": 10,
+      "mse_kcal_mol": 0.118468149739439,
+      "mae_kcal_mol": 1.8693215240665473,
+      "rmse_kcal_mol": 2.2177012297902845,
+      "max_abs_error_kcal_mol": 3.595336766904053
+    },
+    {
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "n": 10,
+      "mse_kcal_mol": -0.026883719036935583,
+      "mae_kcal_mol": 2.000216674708362,
+      "rmse_kcal_mol": 2.324321765247666,
+      "max_abs_error_kcal_mol": 3.976085621207408
+    },
+    {
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "n": 10,
+      "mse_kcal_mol": -0.06996178427510694,
+      "mae_kcal_mol": 1.9562360034117112,
+      "rmse_kcal_mol": 2.2809491292758706,
+      "max_abs_error_kcal_mol": 3.8297870934500264
+    },
+    {
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "n": 10,
+      "mse_kcal_mol": -0.02914079011259263,
+      "mae_kcal_mol": 2.2417277711727515,
+      "rmse_kcal_mol": 2.5920330193554784,
+      "max_abs_error_kcal_mol": 4.42258571841405
+    },
+    {
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "n": 10,
+      "mse_kcal_mol": -0.06049680629917944,
+      "mae_kcal_mol": 2.2073637135861555,
+      "rmse_kcal_mol": 2.619808227001966,
+      "max_abs_error_kcal_mol": 5.19545974140741
+    }
+  ],
+  "results": [
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": 2.0,
+      "prediction_kcal_mol": 1.0277121820876065,
+      "signed_error_kcal_mol": -0.9722878179123935,
+      "charge_sum_e": 1.3877787807814457e-17,
+      "charges_e": [
+        -0.34248762861780446,
+        0.08560389917509742,
+        0.0856341440443605,
+        0.0856389793484292,
+        0.08561060604991737
+      ],
+      "components_kcal_mol": {
+        "polar": -0.43121944693999165,
+        "nonpolar": 1.4589316290275982
+      }
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": 2.0,
+      "prediction_kcal_mol": 1.4025044532124442,
+      "signed_error_kcal_mol": -0.5974955467875558,
+      "charge_sum_e": 1.3877787807814457e-17,
+      "charges_e": [
+        -0.34248762861780446,
+        0.08560389917509742,
+        0.0856341440443605,
+        0.0856389793484292,
+        0.08561060604991737
+      ],
+      "components_kcal_mol": {
+        "polar": -0.3691692916630325,
+        "nonpolar": 1.7716737448754771
+      }
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": 2.0,
+      "prediction_kcal_mol": 1.2250374599362344,
+      "signed_error_kcal_mol": -0.7749625400637656,
+      "charge_sum_e": 1.3877787807814457e-17,
+      "charges_e": [
+        -0.34248762861780446,
+        0.08560389917509742,
+        0.0856341440443605,
+        0.0856389793484292,
+        0.08561060604991737
+      ],
+      "components_kcal_mol": {
+        "polar": -0.3769031025449955,
+        "nonpolar": 1.6019405624812297
+      }
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": 2.0,
+      "prediction_kcal_mol": 1.2574156474613623,
+      "signed_error_kcal_mol": -0.7425843525386377,
+      "charge_sum_e": 1.3877787807814457e-17,
+      "charges_e": [
+        -0.34248762861780446,
+        0.08560389917509742,
+        0.0856341440443605,
+        0.0856389793484292,
+        0.08561060604991737
+      ],
+      "components_kcal_mol": {
+        "polar": -0.138471722235861,
+        "nonpolar": 1.3958873696972234
+      }
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": 2.0,
+      "prediction_kcal_mol": 1.5576495140237108,
+      "signed_error_kcal_mol": -0.44235048597628923,
+      "charge_sum_e": 1.3877787807814457e-17,
+      "charges_e": [
+        -0.34248762861780446,
+        0.08560389917509742,
+        0.0856341440443605,
+        0.0856389793484292,
+        0.08561060604991737
+      ],
+      "components_kcal_mol": {
+        "polar": -0.13849418492619084,
+        "nonpolar": 1.6961436989499015
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -0.9,
+      "prediction_kcal_mol": 0.2078430699706717,
+      "signed_error_kcal_mol": 1.1078430699706718,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10441120931991216,
+        -0.10453198731984562,
+        -0.10442191085157923,
+        -0.10456149438673214,
+        -0.1045124272649473,
+        -0.10448567180343782,
+        0.10446099724273686,
+        0.1045043870585664,
+        0.10447429041480251,
+        0.10452174720438177,
+        0.10449988553420438,
+        0.10446339349176241
+      ],
+      "components_kcal_mol": {
+        "polar": -2.378658397557185,
+        "nonpolar": 2.5865014675278566
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -0.9,
+      "prediction_kcal_mol": 0.44717827906888286,
+      "signed_error_kcal_mol": 1.3471782790688829,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10441120931991216,
+        -0.10453198731984562,
+        -0.10442191085157923,
+        -0.10456149438673214,
+        -0.1045124272649473,
+        -0.10448567180343782,
+        0.10446099724273686,
+        0.1045043870585664,
+        0.10447429041480251,
+        0.10452174720438177,
+        0.10449988553420438,
+        0.10446339349176241
+      ],
+      "components_kcal_mol": {
+        "polar": -2.899159951385777,
+        "nonpolar": 3.34633823045466
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -0.9,
+      "prediction_kcal_mol": 0.20300825816129558,
+      "signed_error_kcal_mol": 1.1030082581612957,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10441120931991216,
+        -0.10453198731984562,
+        -0.10442191085157923,
+        -0.10456149438673214,
+        -0.1045124272649473,
+        -0.10448567180343782,
+        0.10446099724273686,
+        0.1045043870585664,
+        0.10447429041480251,
+        0.10452174720438177,
+        0.10449988553420438,
+        0.10446339349176241
+      ],
+      "components_kcal_mol": {
+        "polar": -2.6751212845463335,
+        "nonpolar": 2.878129542707629
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -0.9,
+      "prediction_kcal_mol": 0.780097215573452,
+      "signed_error_kcal_mol": 1.680097215573452,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10441120931991216,
+        -0.10453198731984562,
+        -0.10442191085157923,
+        -0.10456149438673214,
+        -0.1045124272649473,
+        -0.10448567180343782,
+        0.10446099724273686,
+        0.1045043870585664,
+        0.10447429041480251,
+        0.10452174720438177,
+        0.10449988553420438,
+        0.10446339349176241
+      ],
+      "components_kcal_mol": {
+        "polar": -3.0854584912833007,
+        "nonpolar": 3.8655557068567523
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -0.9,
+      "prediction_kcal_mol": 0.27450445215855146,
+      "signed_error_kcal_mol": 1.1745044521585515,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10441120931991216,
+        -0.10453198731984562,
+        -0.10442191085157923,
+        -0.10456149438673214,
+        -0.1045124272649473,
+        -0.10448567180343782,
+        0.10446099724273686,
+        0.1045043870585664,
+        0.10447429041480251,
+        0.10452174720438177,
+        0.10449988553420438,
+        0.10446339349176241
+      ],
+      "components_kcal_mol": {
+        "polar": -2.3674838978974377,
+        "nonpolar": 2.6419883500559895
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -5.1,
+      "prediction_kcal_mol": -3.9094880395269738,
+      "signed_error_kcal_mol": 1.1905119604730259,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10209653277129664,
+        -0.4982275801387778,
+        0.12335086158951065,
+        0.10845959906160611,
+        0.10880084745723066,
+        0.25971280480172704
+      ],
+      "components_kcal_mol": {
+        "polar": -5.451485064009999,
+        "nonpolar": 1.541997024483026
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -5.1,
+      "prediction_kcal_mol": -3.9418523929578706,
+      "signed_error_kcal_mol": 1.158147607042129,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10209653277129664,
+        -0.4982275801387778,
+        0.12335086158951065,
+        0.10845959906160611,
+        0.10880084745723066,
+        0.25971280480172704
+      ],
+      "components_kcal_mol": {
+        "polar": -5.8697046973343765,
+        "nonpolar": 1.927852304376506
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -5.1,
+      "prediction_kcal_mol": -3.859450541402849,
+      "signed_error_kcal_mol": 1.2405494585971506,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10209653277129664,
+        -0.4982275801387778,
+        0.12335086158951065,
+        0.10845959906160611,
+        0.10880084745723066,
+        0.25971280480172704
+      ],
+      "components_kcal_mol": {
+        "polar": -5.56564019731014,
+        "nonpolar": 1.7061896559072907
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -5.1,
+      "prediction_kcal_mol": -3.7209915428152,
+      "signed_error_kcal_mol": 1.3790084571847996,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10209653277129664,
+        -0.4982275801387778,
+        0.12335086158951065,
+        0.10845959906160611,
+        0.10880084745723066,
+        0.25971280480172704
+      ],
+      "components_kcal_mol": {
+        "polar": -5.086644828537524,
+        "nonpolar": 1.365653285722324
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -5.1,
+      "prediction_kcal_mol": -3.3418644962064867,
+      "signed_error_kcal_mol": 1.758135503793513,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.10209653277129664,
+        -0.4982275801387778,
+        0.12335086158951065,
+        0.10845959906160611,
+        0.10880084745723066,
+        0.25971280480172704
+      ],
+      "components_kcal_mol": {
+        "polar": -5.245870129922301,
+        "nonpolar": 1.9040056337158149
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -1.91,
+      "prediction_kcal_mol": -2.1446428565412186,
+      "signed_error_kcal_mol": -0.23464285654121864,
+      "charge_sum_e": 5.551115123125783e-17,
+      "charges_e": [
+        -0.12374631013684183,
+        -0.36013217522943236,
+        -0.12443726005438237,
+        0.10718836222140535,
+        0.09801754839427199,
+        0.09836897729693028,
+        0.10758200746128925,
+        0.09838686744047594,
+        0.09877198260628378
+      ],
+      "components_kcal_mol": {
+        "polar": -3.896227848471315,
+        "nonpolar": 1.751584991930096
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -1.91,
+      "prediction_kcal_mol": -2.527035682350875,
+      "signed_error_kcal_mol": -0.6170356823508751,
+      "charge_sum_e": 5.551115123125783e-17,
+      "charges_e": [
+        -0.12374631013684183,
+        -0.36013217522943236,
+        -0.12443726005438237,
+        0.10718836222140535,
+        0.09801754839427199,
+        0.09836897729693028,
+        0.10758200746128925,
+        0.09838686744047594,
+        0.09877198260628378
+      ],
+      "components_kcal_mol": {
+        "polar": -4.834631808566369,
+        "nonpolar": 2.3075961262154947
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -1.91,
+      "prediction_kcal_mol": -2.4632551422381463,
+      "signed_error_kcal_mol": -0.5532551422381464,
+      "charge_sum_e": 5.551115123125783e-17,
+      "charges_e": [
+        -0.12374631013684183,
+        -0.36013217522943236,
+        -0.12443726005438237,
+        0.10718836222140535,
+        0.09801754839427199,
+        0.09836897729693028,
+        0.10758200746128925,
+        0.09838686744047594,
+        0.09877198260628378
+      ],
+      "components_kcal_mol": {
+        "polar": -4.45216106294677,
+        "nonpolar": 1.9889059207086235
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -1.91,
+      "prediction_kcal_mol": -2.8337970026389194,
+      "signed_error_kcal_mol": -0.9237970026389195,
+      "charge_sum_e": 5.551115123125783e-17,
+      "charges_e": [
+        -0.12374631013684183,
+        -0.36013217522943236,
+        -0.12443726005438237,
+        0.10718836222140535,
+        0.09801754839427199,
+        0.09836897729693028,
+        0.10758200746128925,
+        0.09838686744047594,
+        0.09877198260628378
+      ],
+      "components_kcal_mol": {
+        "polar": -4.512367736372726,
+        "nonpolar": 1.678570733733807
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -1.91,
+      "prediction_kcal_mol": -2.5830645342830008,
+      "signed_error_kcal_mol": -0.6730645342830008,
+      "charge_sum_e": 5.551115123125783e-17,
+      "charges_e": [
+        -0.12374631013684183,
+        -0.36013217522943236,
+        -0.12443726005438237,
+        0.10718836222140535,
+        0.09801754839427199,
+        0.09836897729693028,
+        0.10758200746128925,
+        0.09838686744047594,
+        0.09877198260628378
+      ],
+      "components_kcal_mol": {
+        "polar": -4.760237667915558,
+        "nonpolar": 2.1771731336325564
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -3.8,
+      "prediction_kcal_mol": -5.895582535806662,
+      "signed_error_kcal_mol": -2.0955825358066624,
+      "charge_sum_e": 2.7755575615628914e-17,
+      "charges_e": [
+        -0.1923438538420147,
+        0.11400653296331516,
+        -0.3988294585871939,
+        -0.1921161420278335,
+        0.11119551038427426,
+        0.09802747181748152,
+        0.12548888408983644,
+        0.11086371688519563,
+        0.0978861004054856,
+        0.1258212379114534
+      ],
+      "components_kcal_mol": {
+        "polar": -7.942680424023074,
+        "nonpolar": 2.0470978882164106
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -3.8,
+      "prediction_kcal_mol": -6.2917686982114445,
+      "signed_error_kcal_mol": -2.4917686982114446,
+      "charge_sum_e": 2.7755575615628914e-17,
+      "charges_e": [
+        -0.1923438538420147,
+        0.11400653296331516,
+        -0.3988294585871939,
+        -0.1921161420278335,
+        0.11119551038427426,
+        0.09802747181748152,
+        0.12548888408983644,
+        0.11086371688519563,
+        0.0978861004054856,
+        0.1258212379114534
+      ],
+      "components_kcal_mol": {
+        "polar": -8.997867984531442,
+        "nonpolar": 2.7060992863199975
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -3.8,
+      "prediction_kcal_mol": -6.316115447981726,
+      "signed_error_kcal_mol": -2.5161154479817265,
+      "charge_sum_e": 2.7755575615628914e-17,
+      "charges_e": [
+        -0.1923438538420147,
+        0.11400653296331516,
+        -0.3988294585871939,
+        -0.1921161420278335,
+        0.11119551038427426,
+        0.09802747181748152,
+        0.12548888408983644,
+        0.11086371688519563,
+        0.0978861004054856,
+        0.1258212379114534
+      ],
+      "components_kcal_mol": {
+        "polar": -8.653083662540125,
+        "nonpolar": 2.3369682145583983
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -3.8,
+      "prediction_kcal_mol": -6.3964070350074,
+      "signed_error_kcal_mol": -2.5964070350073998,
+      "charge_sum_e": 2.7755575615628914e-17,
+      "charges_e": [
+        -0.1923438538420147,
+        0.11400653296331516,
+        -0.3988294585871939,
+        -0.1921161420278335,
+        0.11119551038427426,
+        0.09802747181748152,
+        0.12548888408983644,
+        0.11086371688519563,
+        0.0978861004054856,
+        0.1258212379114534
+      ],
+      "components_kcal_mol": {
+        "polar": -8.68370521677582,
+        "nonpolar": 2.287298181768421
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -3.8,
+      "prediction_kcal_mol": -5.9670310782874205,
+      "signed_error_kcal_mol": -2.1670310782874207,
+      "charge_sum_e": 2.7755575615628914e-17,
+      "charges_e": [
+        -0.1923438538420147,
+        0.11400653296331516,
+        -0.3988294585871939,
+        -0.1921161420278335,
+        0.11119551038427426,
+        0.09802747181748152,
+        0.12548888408983644,
+        0.11086371688519563,
+        0.0978861004054856,
+        0.1258212379114534
+      ],
+      "components_kcal_mol": {
+        "polar": -8.249230086863895,
+        "nonpolar": 2.2821990085764745
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -2.94,
+      "prediction_kcal_mol": -6.3066428701285515,
+      "signed_error_kcal_mol": -3.3666428701285516,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.21667999657234335,
+        -0.024060387868963896,
+        -0.3480945015110836,
+        0.2453982906442837,
+        -0.42032636708860216,
+        -0.1721782291917492,
+        0.09891113411125475,
+        0.1167552008188245,
+        0.11660569980994424,
+        0.1293729877904964,
+        0.1294946950170781,
+        0.11244390070290596,
+        0.11524609848436046,
+        0.11711147485359397
+      ],
+      "components_kcal_mol": {
+        "polar": -8.801501803263156,
+        "nonpolar": 2.4948589331346054
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -2.94,
+      "prediction_kcal_mol": -6.916085621207408,
+      "signed_error_kcal_mol": -3.976085621207408,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.21667999657234335,
+        -0.024060387868963896,
+        -0.3480945015110836,
+        0.2453982906442837,
+        -0.42032636708860216,
+        -0.1721782291917492,
+        0.09891113411125475,
+        0.1167552008188245,
+        0.11660569980994424,
+        0.1293729877904964,
+        0.1294946950170781,
+        0.11244390070290596,
+        0.11524609848436046,
+        0.11711147485359397
+      ],
+      "components_kcal_mol": {
+        "polar": -10.215788083492134,
+        "nonpolar": 3.2997024622847237
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -2.94,
+      "prediction_kcal_mol": -6.769787093450026,
+      "signed_error_kcal_mol": -3.8297870934500264,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.21667999657234335,
+        -0.024060387868963896,
+        -0.3480945015110836,
+        0.2453982906442837,
+        -0.42032636708860216,
+        -0.1721782291917492,
+        0.09891113411125475,
+        0.1167552008188245,
+        0.11660569980994424,
+        0.1293729877904964,
+        0.1294946950170781,
+        0.11244390070290596,
+        0.11524609848436046,
+        0.11711147485359397
+      ],
+      "components_kcal_mol": {
+        "polar": -9.574541697244445,
+        "nonpolar": 2.8047546037944175
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -2.94,
+      "prediction_kcal_mol": -7.362585718414049,
+      "signed_error_kcal_mol": -4.42258571841405,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.21667999657234335,
+        -0.024060387868963896,
+        -0.3480945015110836,
+        0.2453982906442837,
+        -0.42032636708860216,
+        -0.1721782291917492,
+        0.09891113411125475,
+        0.1167552008188245,
+        0.11660569980994424,
+        0.1293729877904964,
+        0.1294946950170781,
+        0.11244390070290596,
+        0.11524609848436046,
+        0.11711147485359397
+      ],
+      "components_kcal_mol": {
+        "polar": -10.019326226107323,
+        "nonpolar": 2.6567405076932724
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -2.94,
+      "prediction_kcal_mol": -8.13545974140741,
+      "signed_error_kcal_mol": -5.19545974140741,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.21667999657234335,
+        -0.024060387868963896,
+        -0.3480945015110836,
+        0.2453982906442837,
+        -0.42032636708860216,
+        -0.1721782291917492,
+        0.09891113411125475,
+        0.1167552008188245,
+        0.11660569980994424,
+        0.1293729877904964,
+        0.1294946950170781,
+        0.11244390070290596,
+        0.11524609848436046,
+        0.11711147485359397
+      ],
+      "components_kcal_mol": {
+        "polar": -11.165286744526615,
+        "nonpolar": 3.0298270031192054
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -3.88,
+      "prediction_kcal_mol": -5.965110791246714,
+      "signed_error_kcal_mol": -2.0851107912467137,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.16583152986175168,
+        0.14328550503906887,
+        -0.36555446512903284,
+        0.12935996168834218,
+        0.12937303346649287,
+        0.1293674947968806
+      ],
+      "components_kcal_mol": {
+        "polar": -7.9510356599792456,
+        "nonpolar": 1.9859248687325322
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -3.88,
+      "prediction_kcal_mol": -6.333116420169206,
+      "signed_error_kcal_mol": -2.4531164201692057,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.16583152986175168,
+        0.14328550503906887,
+        -0.36555446512903284,
+        0.12935996168834218,
+        0.12937303346649287,
+        0.1293674947968806
+      ],
+      "components_kcal_mol": {
+        "polar": -8.732815232462551,
+        "nonpolar": 2.399698812293346
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -3.88,
+      "prediction_kcal_mol": -6.336868714700427,
+      "signed_error_kcal_mol": -2.456868714700427,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.16583152986175168,
+        0.14328550503906887,
+        -0.36555446512903284,
+        0.12935996168834218,
+        0.12937303346649287,
+        0.1293674947968806
+      ],
+      "components_kcal_mol": {
+        "polar": -8.50551610103067,
+        "nonpolar": 2.1686473863302433
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -3.88,
+      "prediction_kcal_mol": -6.548968697827714,
+      "signed_error_kcal_mol": -2.6689686978277143,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.16583152986175168,
+        0.14328550503906887,
+        -0.36555446512903284,
+        0.12935996168834218,
+        0.12937303346649287,
+        0.1293674947968806
+      ],
+      "components_kcal_mol": {
+        "polar": -8.81096531916246,
+        "nonpolar": 2.2619966213347458
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -3.88,
+      "prediction_kcal_mol": -6.741396759472555,
+      "signed_error_kcal_mol": -2.861396759472555,
+      "charge_sum_e": 0.0,
+      "charges_e": [
+        -0.16583152986175168,
+        0.14328550503906887,
+        -0.36555446512903284,
+        0.12935996168834218,
+        0.12937303346649287,
+        0.1293674947968806
+      ],
+      "components_kcal_mol": {
+        "polar": -9.20034044088635,
+        "nonpolar": 2.4589436814137953
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -5.49,
+      "prediction_kcal_mol": -1.9917333174851948,
+      "signed_error_kcal_mol": 3.4982666825148057,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.10564377073431318,
+        -0.11207480035538024,
+        -0.08668166274522413,
+        0.12155938027003224,
+        -0.08675615617240622,
+        -0.11198226039866158,
+        -0.7011245666560151,
+        0.1086801443479283,
+        0.10834411971323048,
+        0.11036297591485399,
+        0.11039510357729808,
+        0.10831718277484699,
+        0.26839375191619425,
+        0.2682105585476161
+      ],
+      "components_kcal_mol": {
+        "polar": -4.766807369131062,
+        "nonpolar": 2.775074051645867
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -5.49,
+      "prediction_kcal_mol": -2.1536381369844926,
+      "signed_error_kcal_mol": 3.3363618630155076,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.10564377073431318,
+        -0.11207480035538024,
+        -0.08668166274522413,
+        0.12155938027003224,
+        -0.08675615617240622,
+        -0.11198226039866158,
+        -0.7011245666560151,
+        0.1086801443479283,
+        0.10834411971323048,
+        0.11036297591485399,
+        0.11039510357729808,
+        0.10831718277484699,
+        0.26839375191619425,
+        0.2682105585476161
+      ],
+      "components_kcal_mol": {
+        "polar": -5.717209908992275,
+        "nonpolar": 3.563571772007783
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -5.49,
+      "prediction_kcal_mol": -2.2630467957530302,
+      "signed_error_kcal_mol": 3.22695320424697,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.10564377073431318,
+        -0.11207480035538024,
+        -0.08668166274522413,
+        0.12155938027003224,
+        -0.08675615617240622,
+        -0.11198226039866158,
+        -0.7011245666560151,
+        0.1086801443479283,
+        0.10834411971323048,
+        0.11036297591485399,
+        0.11039510357729808,
+        0.10831718277484699,
+        0.26839375191619425,
+        0.2682105585476161
+      ],
+      "components_kcal_mol": {
+        "polar": -5.298391958865347,
+        "nonpolar": 3.035345163112316
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -5.49,
+      "prediction_kcal_mol": -1.154506444066046,
+      "signed_error_kcal_mol": 4.3354935559339545,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.10564377073431318,
+        -0.11207480035538024,
+        -0.08668166274522413,
+        0.12155938027003224,
+        -0.08675615617240622,
+        -0.11198226039866158,
+        -0.7011245666560151,
+        0.1086801443479283,
+        0.10834411971323048,
+        0.11036297591485399,
+        0.11039510357729808,
+        0.10831718277484699,
+        0.26839375191619425,
+        0.2682105585476161
+      ],
+      "components_kcal_mol": {
+        "polar": -5.1926117942902055,
+        "nonpolar": 4.038105350224161
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -5.49,
+      "prediction_kcal_mol": -1.8193991812675125,
+      "signed_error_kcal_mol": 3.6706008187324874,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.10564377073431318,
+        -0.11207480035538024,
+        -0.08668166274522413,
+        0.12155938027003224,
+        -0.08675615617240622,
+        -0.11198226039866158,
+        -0.7011245666560151,
+        0.1086801443479283,
+        0.10834411971323048,
+        0.11036297591485399,
+        0.11039510357729808,
+        0.10831718277484699,
+        0.26839375191619425,
+        0.2682105585476161
+      ],
+      "components_kcal_mol": {
+        "polar": -4.898628046523818,
+        "nonpolar": 3.079228865256306
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -0.63,
+      "prediction_kcal_mol": -0.0830101108326265,
+      "signed_error_kcal_mol": 0.5469898891673735,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.23038517662792665,
+        -0.1359800113441653,
+        -0.1525009875613659,
+        0.09446551939571254,
+        0.10672407517148749,
+        0.106713303335805,
+        0.10547323989086677,
+        0.10549003773958601
+      ],
+      "components_kcal_mol": {
+        "polar": -1.9479372033642626,
+        "nonpolar": 1.8649270925316361
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -0.63,
+      "prediction_kcal_mol": 0.185970917657601,
+      "signed_error_kcal_mol": 0.815970917657601,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.23038517662792665,
+        -0.1359800113441653,
+        -0.1525009875613659,
+        0.09446551939571254,
+        0.10672407517148749,
+        0.106713303335805,
+        0.10547323989086677,
+        0.10549003773958601
+      ],
+      "components_kcal_mol": {
+        "polar": -2.2527870845480824,
+        "nonpolar": 2.438758002205683
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -0.63,
+      "prediction_kcal_mol": -0.015697432911949954,
+      "signed_error_kcal_mol": 0.6143025670880501,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.23038517662792665,
+        -0.1359800113441653,
+        -0.1525009875613659,
+        0.09446551939571254,
+        0.10672407517148749,
+        0.106713303335805,
+        0.10547323989086677,
+        0.10549003773958601
+      ],
+      "components_kcal_mol": {
+        "polar": -2.152060861247054,
+        "nonpolar": 2.136363428335104
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -0.63,
+      "prediction_kcal_mol": 0.17745151843266269,
+      "signed_error_kcal_mol": 0.8074515184326627,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.23038517662792665,
+        -0.1359800113441653,
+        -0.1525009875613659,
+        0.09446551939571254,
+        0.10672407517148749,
+        0.106713303335805,
+        0.10547323989086677,
+        0.10549003773958601
+      ],
+      "components_kcal_mol": {
+        "polar": -2.0850174658340093,
+        "nonpolar": 2.262468984266672
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -0.63,
+      "prediction_kcal_mol": 0.5322016405476687,
+      "signed_error_kcal_mol": 1.1622016405476687,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.23038517662792665,
+        -0.1359800113441653,
+        -0.1525009875613659,
+        0.09446551939571254,
+        0.10672407517148749,
+        0.106713303335805,
+        0.10547323989086677,
+        0.10549003773958601
+      ],
+      "components_kcal_mol": {
+        "polar": -1.4319607081582824,
+        "nonpolar": 1.9641623487059514
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "hct",
+      "experimental_kcal_mol": -9.28,
+      "prediction_kcal_mol": -5.684663233095947,
+      "signed_error_kcal_mol": 3.595336766904053,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.20759149186959364,
+        0.1301166733425344,
+        -0.38689284163034543,
+        -0.20733328087311403,
+        0.100231194126889,
+        0.12183216891862096,
+        0.11400864624064497,
+        0.11858583330700834,
+        0.09949647265921617,
+        0.11754662577813936
+      ],
+      "components_kcal_mol": {
+        "polar": -7.425128405334463,
+        "nonpolar": 1.7404651722385172
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc1",
+      "experimental_kcal_mol": -9.28,
+      "prediction_kcal_mol": -6.070993888426987,
+      "signed_error_kcal_mol": 3.2090061115730126,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.20759149186959364,
+        0.1301166733425344,
+        -0.38689284163034543,
+        -0.20733328087311403,
+        0.100231194126889,
+        0.12183216891862096,
+        0.11400864624064497,
+        0.11858583330700834,
+        0.09949647265921617,
+        0.11754662577813936
+      ],
+      "components_kcal_mol": {
+        "polar": -8.350379113060566,
+        "nonpolar": 2.2793852246335784
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "obc2",
+      "experimental_kcal_mol": -9.28,
+      "prediction_kcal_mol": -6.033442392410444,
+      "signed_error_kcal_mol": 3.2465576075895557,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.20759149186959364,
+        0.1301166733425344,
+        -0.38689284163034543,
+        -0.20733328087311403,
+        0.100231194126889,
+        0.12183216891862096,
+        0.11400864624064497,
+        0.11858583330700834,
+        0.09949647265921617,
+        0.11754662577813936
+      ],
+      "components_kcal_mol": {
+        "polar": -7.962296037330685,
+        "nonpolar": 1.9288536449202403
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn",
+      "experimental_kcal_mol": -9.28,
+      "prediction_kcal_mol": -6.419115841824074,
+      "signed_error_kcal_mol": 2.8608841581759252,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.20759149186959364,
+        0.1301166733425344,
+        -0.38689284163034543,
+        -0.20733328087311403,
+        0.100231194126889,
+        0.12183216891862096,
+        0.11400864624064497,
+        0.11858583330700834,
+        0.09949647265921617,
+        0.11754662577813936
+      ],
+      "components_kcal_mol": {
+        "polar": -8.78834408986526,
+        "nonpolar": 2.3692282480411864
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "kallisto-eeq",
+      "gb_model": "gbn2",
+      "experimental_kcal_mol": -9.28,
+      "prediction_kcal_mol": -6.311107878797339,
+      "signed_error_kcal_mol": 2.9688921212026607,
+      "charge_sum_e": -5.551115123125783e-17,
+      "charges_e": [
+        -0.20759149186959364,
+        0.1301166733425344,
+        -0.38689284163034543,
+        -0.20733328087311403,
+        0.100231194126889,
+        0.12183216891862096,
+        0.11400864624064497,
+        0.11858583330700834,
+        0.09949647265921617,
+        0.11754662577813936
+      ],
+      "components_kcal_mol": {
+        "polar": -9.30207220502732,
+        "nonpolar": 2.990964326229981
+      }
+    }
+  ]
+}

@@ -18,11 +18,27 @@ WORK=.omx/benchmarks/route2-macepolar-smd
 python docs/implicit-solvation/benchmarks/run_route2_freesolv.py \
   prepare --protocol "$PROTOCOL" --work-dir "$WORK"
 python docs/implicit-solvation/benchmarks/run_route2_freesolv.py \
-  run --protocol "$PROTOCOL" --work-dir "$WORK" \
-  --partition development --device cpu
+  run-supervised --protocol "$PROTOCOL" --work-dir "$WORK" \
+  --partition development --device cuda
 python docs/implicit-solvation/benchmarks/run_route2_freesolv.py \
   summarize --protocol "$PROTOCOL" --work-dir "$WORK" \
   --partition development --output "$WORK/development-summary.json"
+```
+
+`run-supervised` keeps the normal calculator-reuse path inside one worker, but
+restarts that worker if PCMSolver terminates the process on a fatal cavity
+check. It freezes the affected compound as an audited provider failure and
+continues; unidentified worker exits are not relabelled. Long runs can also be
+split into deterministic, disjoint shards that share the same work directory:
+
+```bash
+for SHARD in 0 1 2 3; do
+  python docs/implicit-solvation/benchmarks/run_route2_freesolv.py \
+    run-supervised --protocol "$PROTOCOL" --work-dir "$WORK" \
+    --partition development --device cuda \
+    --shard-count 4 --shard-index "$SHARD" &
+done
+wait
 ```
 
 The runner parses the exact public three-line Route-2 input, initializes the

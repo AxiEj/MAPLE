@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import subprocess
 import sys
 import time
 from typing import Any
@@ -160,7 +161,12 @@ def _model_checkpoint_record() -> dict[str, Any]:
     }
 
 
-def _environment_record(protocol: dict[str, Any], device: str, calculator) -> dict[str, Any]:
+def _runtime_environment_record(
+    protocol: dict[str, Any],
+    device: str,
+    *,
+    mace_dtype: str,
+) -> dict[str, Any]:
     mace_version = importlib.metadata.version("mace-torch")
     required = str(protocol["providers"]["mace_polar"]["required_version"])
     if mace_version != required:
@@ -174,7 +180,7 @@ def _environment_record(protocol: dict[str, Any], device: str, calculator) -> di
         "platform": platform.platform(),
         "device": device,
         "mace_torch_version": mace_version,
-        "mace_dtype": str(calculator.dtype),
+        "mace_dtype": mace_dtype,
         "mace_checkpoint": _model_checkpoint_record(),
         "pcmsolver_library": (
             {
@@ -186,6 +192,16 @@ def _environment_record(protocol: dict[str, Any], device: str, calculator) -> di
         ),
         "pcmsolver_python_path": os.environ.get("PCMSOLVER_PYTHON_PATH"),
     }
+
+
+def _environment_record(
+    protocol: dict[str, Any], device: str, calculator
+) -> dict[str, Any]:
+    return _runtime_environment_record(
+        protocol,
+        device,
+        mace_dtype=str(calculator.dtype),
+    )
 
 
 def _base_record(
@@ -222,6 +238,44 @@ def _base_record(
     }
 
 
+def _select_shard(
+    candidates: list[dict[str, Any]],
+    *,
+    shard_count: int,
+    shard_index: int,
+) -> list[dict[str, Any]]:
+    if shard_count <= 0:
+        raise ValueError("--shard-count must be positive.")
+    if shard_index < 0 or shard_index >= shard_count:
+        raise ValueError("--shard-index must satisfy 0 <= index < shard-count.")
+    return candidates[shard_index::shard_count]
+
+
+def _selected_candidates(
+    manifest: dict[str, Any],
+    *,
+    partition: str,
+    shard_count: int,
+    shard_index: int,
+    max_compounds: int | None,
+) -> list[dict[str, Any]]:
+    candidates = [
+        candidate
+        for candidate in manifest["candidates"]
+        if candidate["partition"] == partition
+    ]
+    candidates = _select_shard(
+        candidates,
+        shard_count=shard_count,
+        shard_index=shard_index,
+    )
+    if max_compounds is not None:
+        if max_compounds <= 0:
+            raise ValueError("--max-compounds must be positive.")
+        candidates = candidates[:max_compounds]
+    return candidates
+
+
 def run(args: argparse.Namespace) -> None:
     protocol, fingerprint = load_protocol(args.protocol)
     if protocol.get("benchmark_kind") != "route2-macepolar-smd":
@@ -233,15 +287,21 @@ def run(args: argparse.Namespace) -> None:
     if args.partition == "confirmation":
         ensure_confirmation_lock(work_dir, fingerprint)
 
-    candidates = [
-        candidate
-        for candidate in manifest["candidates"]
-        if candidate["partition"] == args.partition
-    ]
+    shard_count = int(getattr(args, "shard_count", 1))
+    shard_index = int(getattr(args, "shard_index", 0))
+    candidates = _selected_candidates(
+        manifest,
+        partition=args.partition,
+        shard_count=shard_count,
+        shard_index=shard_index,
+        max_compounds=args.max_compounds,
+    )
+    if shard_count > 1:
+        print(
+            f"Shard {shard_index + 1}/{shard_count} owns "
+            f"{len(candidates)} deterministic candidates."
+        )
     if args.max_compounds is not None:
-        if args.max_compounds <= 0:
-            raise ValueError("--max-compounds must be positive.")
-        candidates = candidates[: args.max_compounds]
         print("WARNING: max-compounds is an incomplete smoke; summarize will reject it.")
 
     calculator = None
@@ -388,6 +448,169 @@ def run(args: argparse.Namespace) -> None:
         completed += 1
 
     print(f"Wrote {completed} Route-2 records; resumed/skipped {skipped}.")
+
+
+def _fatal_error_excerpt(log_text: str) -> str | None:
+    marker = "PCMSolver fatal error."
+    offset = log_text.rfind(marker)
+    if offset < 0:
+        return None
+    lines = log_text[offset:].splitlines()
+    return "\n".join(lines[:8])
+
+
+def _write_supervised_provider_failure(
+    *,
+    protocol: dict[str, Any],
+    fingerprint: str,
+    work_dir: Path,
+    partition: str,
+    candidate: dict[str, Any],
+    device: str,
+    returncode: int,
+    log_path: Path,
+    fatal_excerpt: str,
+) -> None:
+    record_path = _record_path(work_dir, partition, candidate["compound_id"])
+    if record_path.exists():
+        raise FileExistsError(f"Refusing to replace existing record: {record_path}.")
+    audit_dir = (
+        work_dir
+        / "provider-audit"
+        / candidate["compound_id"]
+        / "maple.out.implicit"
+    )
+    if not audit_dir.is_dir():
+        raise RuntimeError(
+            "The failed worker did not create a PCMSolver audit directory; "
+            "refusing to classify the process exit as a provider failure."
+        )
+    environment = _runtime_environment_record(
+        protocol,
+        device,
+        mace_dtype=f"torch.{protocol['methods']['mace_default_dtype']}",
+    )
+    record = _base_record(protocol, fingerprint, candidate, environment)
+    record.update(
+        status="failure",
+        failure={
+            "phase": "pcmsolver-process",
+            "exception_class": "PCMSolverFatalProcessExit",
+            "reason": (
+                f"PCMSolver terminated the isolated worker with return code "
+                f"{returncode}.\n{fatal_excerpt}"
+            ),
+            "audit_directory": str(audit_dir),
+            "supervisor_log": str(log_path),
+        },
+    )
+    write_json_atomic(record_path, record)
+
+
+def run_supervised(args: argparse.Namespace) -> None:
+    protocol_path = Path(args.protocol).resolve()
+    work_dir = Path(args.work_dir).resolve()
+    protocol, fingerprint = load_protocol(protocol_path)
+    if protocol.get("benchmark_kind") != "route2-macepolar-smd":
+        raise ValueError(
+            "run_route2_freesolv.py requires a route2-macepolar-smd protocol."
+        )
+    _validate_protocol_contract(protocol, _public_route2_contract())
+    manifest = _load_prepared(work_dir, fingerprint)
+    if args.partition == "confirmation":
+        ensure_confirmation_lock(work_dir, fingerprint)
+
+    shard_count = int(getattr(args, "shard_count", 1))
+    shard_index = int(getattr(args, "shard_index", 0))
+    candidates = _selected_candidates(
+        manifest,
+        partition=args.partition,
+        shard_count=shard_count,
+        shard_index=shard_index,
+        max_compounds=args.max_compounds,
+    )
+    logs_dir = work_dir / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    attempt = 0
+
+    while True:
+        missing = [
+            candidate
+            for candidate in candidates
+            if not _record_path(
+                work_dir, args.partition, candidate["compound_id"]
+            ).exists()
+        ]
+        if not missing:
+            print(
+                f"Supervised shard {shard_index + 1}/{shard_count} is complete."
+            )
+            return
+
+        attempt += 1
+        log_path = logs_dir / (
+            f"supervised-{args.partition}-shard-{shard_index:03d}"
+            f"-attempt-{attempt:03d}.log"
+        )
+        command = [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "run",
+            "--protocol",
+            str(protocol_path),
+            "--work-dir",
+            str(work_dir),
+            "--partition",
+            args.partition,
+            "--device",
+            args.device,
+            "--shard-count",
+            str(shard_count),
+            "--shard-index",
+            str(shard_index),
+        ]
+        if args.max_compounds is not None:
+            command.extend(["--max-compounds", str(args.max_compounds)])
+
+        with log_path.open("wb") as log_handle:
+            result = subprocess.run(
+                command,
+                stdout=log_handle,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+        if result.returncode == 0:
+            continue
+
+        log_text = log_path.read_text(encoding="utf-8", errors="replace")
+        fatal_excerpt = _fatal_error_excerpt(log_text)
+        if fatal_excerpt is None:
+            raise RuntimeError(
+                f"Route-2 worker exited with return code {result.returncode} "
+                f"without a PCMSolver fatal marker; see {log_path}."
+            )
+        candidate = next(
+            candidate
+            for candidate in candidates
+            if not _record_path(
+                work_dir, args.partition, candidate["compound_id"]
+            ).exists()
+        )
+        _write_supervised_provider_failure(
+            protocol=protocol,
+            fingerprint=fingerprint,
+            work_dir=work_dir,
+            partition=args.partition,
+            candidate=candidate,
+            device=args.device,
+            returncode=result.returncode,
+            log_path=log_path,
+            fatal_excerpt=fatal_excerpt,
+        )
+        print(
+            f"Recorded fatal PCMSolver provider failure for "
+            f"{candidate['compound_id']}; restarting the shard."
+        )
 
 
 def _seed_for(base_seed: int, key: str) -> int:
@@ -593,7 +816,21 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--partition", choices=("development", "confirmation"), required=True)
     run_parser.add_argument("--device", default="cpu")
     run_parser.add_argument("--max-compounds", type=int)
+    run_parser.add_argument("--shard-count", type=int, default=1)
+    run_parser.add_argument("--shard-index", type=int, default=0)
     run_parser.set_defaults(func=run)
+
+    supervised_parser = subparsers.add_parser("run-supervised")
+    supervised_parser.add_argument("--protocol", required=True)
+    supervised_parser.add_argument("--work-dir", required=True)
+    supervised_parser.add_argument(
+        "--partition", choices=("development", "confirmation"), required=True
+    )
+    supervised_parser.add_argument("--device", default="cpu")
+    supervised_parser.add_argument("--max-compounds", type=int)
+    supervised_parser.add_argument("--shard-count", type=int, default=1)
+    supervised_parser.add_argument("--shard-index", type=int, default=0)
+    supervised_parser.set_defaults(func=run_supervised)
 
     summary_parser = subparsers.add_parser("summarize")
     summary_parser.add_argument("--protocol", required=True)

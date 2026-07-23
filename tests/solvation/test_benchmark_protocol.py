@@ -333,27 +333,358 @@ def test_route2_summary_is_complete_reproducible_and_not_certified_on_developmen
     assert summary["predeclared_gates"]["scientifically_certified"] is False
 
 
+def test_route2_candidate_shards_are_disjoint_and_cover_the_partition():
+    candidates = [{"compound_id": f"compound-{index}"} for index in range(11)]
+
+    shards = [
+        route2_runner._select_shard(
+            candidates,
+            shard_count=4,
+            shard_index=index,
+        )
+        for index in range(4)
+    ]
+    flattened = [candidate["compound_id"] for shard in shards for candidate in shard]
+
+    assert len(flattened) == len(set(flattened)) == len(candidates)
+    assert sorted(flattened) == sorted(candidate["compound_id"] for candidate in candidates)
 
 
+@pytest.mark.parametrize(
+    ("shard_count", "shard_index", "message"),
+    [
+        (0, 0, "--shard-count must be positive"),
+        (2, -1, "--shard-index"),
+        (2, 2, "--shard-index"),
+    ],
+)
+def test_route2_candidate_shards_reject_invalid_coordinates(
+    shard_count, shard_index, message
+):
+    with pytest.raises(ValueError, match=message):
+        route2_runner._select_shard(
+            [],
+            shard_count=shard_count,
+            shard_index=shard_index,
+        )
 
 
+def test_route2_supervisor_records_audited_pcmsolver_process_exit(
+    tmp_path, monkeypatch
+):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    audit_dir = (
+        work
+        / "provider-audit"
+        / "mobley_test"
+        / "maple.out.implicit"
+    )
+
+    def fake_run(command, *, stdout, stderr, check):
+        assert command[2] == "run"
+        assert stderr is route2_runner.subprocess.STDOUT
+        assert check is False
+        audit_dir.mkdir(parents=True)
+        stdout.write(
+            b"PCMSolver fatal error.\n"
+            b"Gauss theorem check failed for the frozen cavity.\n"
+        )
+        return SimpleNamespace(returncode=1)
+
+    monkeypatch.setattr(route2_runner.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        route2_runner,
+        "_runtime_environment_record",
+        lambda protocol, device, mace_dtype: {
+            "device": device,
+            "mace_dtype": mace_dtype,
+        },
+    )
+
+    route2_runner.run_supervised(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            work_dir=str(work),
+            partition="development",
+            device="cuda",
+            max_compounds=None,
+            shard_count=1,
+            shard_index=0,
+        )
+    )
+
+    record = core.load_json(
+        work / "records" / "development" / "mobley_test.json"
+    )
+    assert record["status"] == "failure"
+    assert record["failure"]["phase"] == "pcmsolver-process"
+    assert (
+        record["failure"]["exception_class"]
+        == "PCMSolverFatalProcessExit"
+    )
+    assert "Gauss theorem check failed" in record["failure"]["reason"]
+    assert record["environment"] == {
+        "device": "cuda",
+        "mace_dtype": "torch.float64",
+    }
 
 
+def test_route2_supervisor_does_not_misclassify_an_unidentified_worker_exit(
+    tmp_path, monkeypatch
+):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+
+    def fake_run(command, *, stdout, stderr, check):
+        stdout.write(b"unexpected model initialization error\n")
+        return SimpleNamespace(returncode=9)
+
+    monkeypatch.setattr(route2_runner.subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError, match="without a PCMSolver fatal marker"):
+        route2_runner.run_supervised(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                work_dir=str(work),
+                partition="development",
+                device="cuda",
+                max_compounds=None,
+                shard_count=1,
+                shard_index=0,
+            )
+        )
+
+    assert not (
+        work / "records" / "development" / "mobley_test.json"
+    ).exists()
 
 
+def test_route2_run_rejects_protocol_and_parser_mismatch(tmp_path, monkeypatch):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    mismatch_params = {
+        "task": "sp",
+        "model": "macepol-m",
+        "solv": {
+            "implicit": "water",
+            "method": "smd",
+            "response": "frozen",
+            "standard_state": "1m",
+            "provider": "pcmsolver",
+            "profile": "smd-iefpcm",
+            "experimental": True,
+        },
+    }
+
+    monkeypatch.setattr(
+        route2_runner, "_public_route2_contract", lambda: mismatch_params
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="public Route-2 parser contract and benchmark protocol disagree",
+    ):
+        route2_runner.run(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                work_dir=str(work),
+                partition="development",
+                device="cpu",
+                max_compounds=None,
+            )
+        )
 
 
+def test_route2_run_rejects_zero_max_compounds(tmp_path):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+
+    with pytest.raises(ValueError, match="--max-compounds must be positive"):
+        route2_runner.run(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                work_dir=str(work),
+                partition="development",
+                device="cpu",
+                max_compounds=0,
+            )
+        )
 
 
+def test_route2_confirmation_run_requires_frozen_lock(tmp_path):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+
+    with pytest.raises(ValueError, match="Confirmation is locked"):
+        route2_runner.run(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                work_dir=str(work),
+                partition="confirmation",
+                device="cpu",
+                max_compounds=None,
+            )
+        )
 
 
+def test_route2_run_skips_existing_records_without_recalculating(tmp_path, monkeypatch):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    prepared = core.load_json(work / "prepared.json")
+    candidate_id = prepared["candidates"][0]["compound_id"]
+    record_dir = work / "records" / "development"
+    record_dir.mkdir(parents=True)
+    existing = {
+        "schema_version": 1,
+        "attempt_id": candidate_id,
+        "protocol_fingerprint": core.load_protocol(protocol_path)[1],
+        "partition": "development",
+        "status": "success",
+    }
+    core.write_json_atomic(record_dir / f"{candidate_id}.json", existing)
+
+    class ProhibitedCalculator:
+        def __init__(self, *args, **kwargs):
+            raise AssertionError("SetCalculator must not be called when record exists")
+
+    monkeypatch.setattr(route2_runner, "SetCalculator", ProhibitedCalculator)
+
+    route2_runner.run(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            work_dir=str(work),
+            partition="development",
+            device="cpu",
+            max_compounds=None,
+        )
+    )
 
 
+def test_route2_run_rejects_mol2_checksum_mismatch_before_solver(tmp_path, monkeypatch):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    prepared = core.load_json(work / "prepared.json")
+    candidate = prepared["candidates"][0]
+    mol2_path = work / candidate["mol2_relative_path"]
+    mol2_path.write_text("MUTATED", encoding="utf-8")
+
+    class ProhibitedCalculator:
+        def __init__(self, *args, **kwargs):
+            raise AssertionError("Computation should fail before calculator setup")
+
+    monkeypatch.setattr(route2_runner, "SetCalculator", ProhibitedCalculator)
+
+    with pytest.raises(ValueError, match="MOL2 changed after preparation"):
+        route2_runner.run(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                work_dir=str(work),
+                partition="development",
+                device="cpu",
+                max_compounds=None,
+            )
+        )
 
 
+def test_route2_summary_rejects_missing_records(tmp_path):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    output = tmp_path / "route2-summary.json"
+
+    with pytest.raises(ValueError, match="Attempt reconciliation failed"):
+        route2_runner.summarize(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                work_dir=str(work),
+                partition="development",
+                output=str(output),
+            )
+        )
 
 
+def test_route2_summary_requires_confirmation_lock_when_partition_is_confirmation(
+    tmp_path,
+):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    protocol, fingerprint = core.load_protocol(protocol_path)
+    prepared = core.load_json(work / "prepared.json")
+
+    candidates = prepared["candidates"]
+    for candidate in candidates:
+        candidate["partition"] = "confirmation"
+    manifest = prepared | {
+        "partition_counts": {
+            "development": 0,
+            "confirmation": len(candidates),
+        },
+        "candidate_count": len(candidates),
+    }
+    core.write_json_atomic(work / "prepared.json", manifest)
+
+    output = tmp_path / "route2-summary.json"
+    with pytest.raises(ValueError, match="Confirmation is locked"):
+        route2_runner.summarize(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                work_dir=str(work),
+                partition="confirmation",
+                output=str(output),
+            )
+        )
 
 
+def test_route2_summary_marks_scientifically_certified_when_gates_pass_in_confirmation(
+    tmp_path,
+):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    protocol, fingerprint = core.load_protocol(protocol_path)
+    prepared = core.load_json(work / "prepared.json")
+    candidate_id = prepared["candidates"][0]["compound_id"]
 
+    for candidate in prepared["candidates"]:
+        candidate["partition"] = "confirmation"
+    prepared["partition_counts"] = {
+        "development": 0,
+        "confirmation": len(prepared["candidates"]),
+    }
+    core.write_json_atomic(work / "prepared.json", prepared)
 
+    protocol_lock = {
+        "schema_version": 1,
+        "protocol_id": protocol["protocol_id"],
+        "protocol_fingerprint": fingerprint,
+        "proposed_default": "standard",
+        "pass_rule": "mae <= 1.5",
+        "frozen_at_utc": "2026-07-23T00:00:00+00:00",
+        "one_shot": True,
+        "failed_confirmation_must_not_trigger_tuning": True,
+    }
+    core.write_json_atomic(
+        work / protocol["confirmation"]["lock_filename"], protocol_lock
+    )
+
+    record_dir = work / "records" / "confirmation"
+    record_dir.mkdir(parents=True)
+    core.write_json_atomic(
+        record_dir / f"{candidate_id}.json",
+        {
+            "schema_version": 1,
+            "attempt_id": candidate_id,
+            "protocol_fingerprint": fingerprint,
+            "partition": "confirmation",
+            "compound_id": candidate_id,
+            "status": "success",
+            "signed_error_kcal_mol": 1.0,
+            "timing_seconds": {
+                "total_over_gas": 1.2,
+                "gas_mace": 0.5,
+                "route2_total": 0.6,
+            },
+        },
+    )
+
+    output = tmp_path / "route2-summary.json"
+    route2_runner.summarize(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            work_dir=str(work),
+            partition="confirmation",
+            output=str(output),
+        )
+    )
+
+    summary = core.load_json(output)
+    assert summary["predeclared_gates"]["scientifically_certified"] is True

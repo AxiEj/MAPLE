@@ -29,9 +29,9 @@ from ase.units import Bohr, Hartree
 
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
 from .gto_density import (
-    asc_reaction_potential_gradient,
     density_reaction_coupling,
-    gaussian_multipole_potential,
+    point_asc_reaction_potential_gradient,
+    point_multipole_potential,
 )
 from .pcmsolver import PCMSolverSession
 from .result import SolvationResult
@@ -266,6 +266,10 @@ class SMDImplicitSolvation:
             "standard_state_correction_hartree": 0.0,
             "density_source": "official MACE-POLAR-1-M l<=1 residual charge density",
             "density_interpretation": "coarse-grained net charge density, not a QM electron density",
+            "pcm_mep_projection": (
+                "cavity-exterior point monopoles and dipoles; the model-internal "
+                "1.5 A GTO smearing is not extended across the dielectric boundary"
+            ),
             "electrostatics": "IEFPCM",
             "cavity_radii": "SMD Coulomb radii with revised Br=2.60 A and I=2.74 A",
             "cds": "aqueous SMD atomic surface tensions with native NumPy SASA",
@@ -450,7 +454,7 @@ class SMDImplicitSolvation:
         atoms,
         density_coefficients: np.ndarray,
     ) -> _PCMState:
-        mep = gaussian_multipole_potential(
+        mep = point_multipole_potential(
             session.cavity_centers_bohr,
             atoms.get_positions(),
             density_coefficients,
@@ -470,7 +474,7 @@ class SMDImplicitSolvation:
                 "compute_polarization_energy must equal 0.5*dot(MEP,ASC)."
             )
 
-        reaction_potential, reaction_gradient = asc_reaction_potential_gradient(
+        reaction_potential, reaction_gradient = point_asc_reaction_potential_gradient(
             atoms.get_positions(),
             session.cavity_centers_bohr,
             asc,
@@ -484,7 +488,7 @@ class SMDImplicitSolvation:
             1.0e-10, 1.0e-8 * abs(surface_coupling)
         ):
             raise RuntimeError(
-                "MACE-POLAR GTO/ASC reciprocity check failed; the reaction-field "
+                "MACE-POLAR point-multipole/ASC reciprocity check failed; the reaction-field "
                 "projection is inconsistent with the cavity MEP."
             )
 
@@ -613,8 +617,9 @@ class SMDImplicitSolvation:
             ),
         )
         payload = {
-            "schema_version": 2,
+            "schema_version": 3,
             "response": self.response,
+            "pcm_mep_projection": "cavity-exterior-point-multipole-l<=1",
             "converged": True,
             "iterations": len(history),
             "scf": {

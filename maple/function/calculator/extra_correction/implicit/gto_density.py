@@ -35,6 +35,44 @@ def cartesian_multipoles(
     return charges, dipoles_e_angstrom
 
 
+def point_multipole_potential(
+    points_bohr: np.ndarray,
+    atom_positions_angstrom: np.ndarray,
+    density_coefficients: np.ndarray,
+) -> np.ndarray:
+    """Evaluate the cavity-exterior point-multipole MEP in atomic units.
+
+    MACE-POLAR's monopole and dipole coefficients are retained, but the
+    model-internal Gaussian smearing is not extended across the PCM dielectric
+    boundary. PCMSolver cavity points are outside the atomic centres, so the
+    exterior l<=1 multipole expansion is finite there.
+    """
+
+    points = np.asarray(points_bohr, dtype=float)
+    positions = np.asarray(atom_positions_angstrom, dtype=float)
+    if points.ndim != 2 or points.shape[1] != 3:
+        raise ValueError("MEP points must have shape (n_points, 3).")
+    if positions.ndim != 2 or positions.shape[1] != 3:
+        raise ValueError("Atom positions must have shape (n_atoms, 3).")
+    charges, dipoles_angstrom = cartesian_multipoles(density_coefficients)
+    if positions.shape[0] != charges.shape[0]:
+        raise ValueError("Density coefficient count does not match atom positions.")
+
+    positions_bohr = positions / Bohr
+    dipoles_bohr = dipoles_angstrom / Bohr
+    potential = np.zeros(points.shape[0], dtype=float)
+    for center, charge, dipole in zip(
+        positions_bohr, charges, dipoles_bohr, strict=True
+    ):
+        displacement = points - center
+        radius = np.linalg.norm(displacement, axis=1)
+        if np.any(radius <= 1.0e-14):
+            raise ValueError("A PCM surface point coincides with an atomic centre.")
+        potential += charge / radius
+        potential += np.einsum("ij,j->i", displacement, dipole) / (radius**3)
+    return potential
+
+
 def gaussian_multipole_potential(
     points_bohr: np.ndarray,
     atom_positions_angstrom: np.ndarray,
@@ -96,6 +134,43 @@ def gaussian_multipole_potential(
         potential += np.einsum("ij,j->i", displacement, dipole) * dipole_kernel
 
     return potential
+
+
+def point_asc_reaction_potential_gradient(
+    atom_positions_angstrom: np.ndarray,
+    surface_centers_bohr: np.ndarray,
+    apparent_surface_charges: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Project ASC onto atom-centred point monopoles and dipoles.
+
+    The returned potential and gradient use the same exterior Coulomb kernel as
+    :func:`point_multipole_potential`, preserving
+    ``sum(q*V + p.grad(V)) == dot(MEP, ASC)``.
+    """
+
+    positions_bohr = np.asarray(atom_positions_angstrom, dtype=float) / Bohr
+    centers = np.asarray(surface_centers_bohr, dtype=float)
+    asc = np.asarray(apparent_surface_charges, dtype=float)
+    if positions_bohr.ndim != 2 or positions_bohr.shape[1] != 3:
+        raise ValueError("Atom positions must have shape (n_atoms, 3).")
+    if centers.ndim != 2 or centers.shape[1] != 3:
+        raise ValueError("Surface centers must have shape (n_surface, 3).")
+    if asc.shape != (centers.shape[0],):
+        raise ValueError("ASC vector length does not match surface centers.")
+
+    potential = np.empty(positions_bohr.shape[0], dtype=float)
+    gradient = np.empty_like(positions_bohr)
+    for index, position in enumerate(positions_bohr):
+        displacement = centers - position
+        radius = np.linalg.norm(displacement, axis=1)
+        if np.any(radius <= 1.0e-14):
+            raise ValueError("A PCM surface point coincides with an atomic centre.")
+        potential[index] = np.dot(asc, 1.0 / radius)
+        gradient[index] = np.sum(
+            (asc / (radius**3))[:, None] * displacement,
+            axis=0,
+        )
+    return potential, gradient
 
 
 def asc_reaction_potential_gradient(

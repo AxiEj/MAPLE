@@ -28,17 +28,25 @@ permutation to obtain an atom-centred charge \(q_i\) and Cartesian dipole
 **net-charge density**, not the all-electron or valence-electron density of a
 QM wavefunction.
 
-MACE-POLAR-1 uses the common Gaussian width
-\(\sigma=1.5\,\mathring{\mathrm A}\). With
+MACE-POLAR-1 internally uses a Gaussian width
+\(\sigma=1.5\,\mathring{\mathrm A}\) for its learned long-range
+electrostatics. That smearing is comparable to the atomic SMD cavity radii and
+is therefore not extended across the dielectric boundary: doing so suppresses
+the near-field cavity MEP even when the molecular dipole is correct.
 
 \[
-K_\sigma(r)=
-\frac{\operatorname{erf}\left(r/\sqrt{2}\sigma\right)}{r},
+V_{\mathrm{solute}}(\mathbf s)
+=\sum_i\left[
+\frac{q_i}{|\mathbf s-\mathbf R_i|}
++\frac{\mathbf p_i\cdot(\mathbf s-\mathbf R_i)}
+{|\mathbf s-\mathbf R_i|^3}
+\right],
 \]
 
-MAPLE evaluates the solute MEP at each PCMSolver tessera centre from the
-Gaussian-smoothed monopole and dipole kernels. In atomic units this gives the
-surface vector \(\mathbf V_{\mathrm{solute}}\).
+MAPLE instead evaluates the cavity-exterior \(l\le 1\) point-multipole
+expansion at each PCMSolver tessera centre. In atomic units this gives the
+surface vector \(\mathbf V_{\mathrm{solute}}\). The learned coefficients and
+the MACE model itself are unchanged.
 
 PCMSolver solves aqueous IEFPCM with explicit SMD Coulomb radii and returns
 integrated apparent surface charges \(\boldsymbol\sigma_{\mathrm{ASC}}\).
@@ -51,8 +59,8 @@ U_{\mathrm{pol}}
 \]
 
 MAPLE checks that convention at runtime and does not apply another factor of
-one half. The same Gaussian kernel projects the ASC back to the atom-centred
-reaction potential and gradient. The reciprocal identity
+one half. The same exterior point-multipole kernel projects the ASC back to the
+atom-centred reaction potential and gradient. The reciprocal identity
 
 \[
 \sum_i

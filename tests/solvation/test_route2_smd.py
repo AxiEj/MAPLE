@@ -16,6 +16,8 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     asc_reaction_potential_gradient,
     density_reaction_coupling,
     gaussian_multipole_potential,
+    point_asc_reaction_potential_gradient,
+    point_multipole_potential,
 )
 from maple.function.calculator.extra_correction.implicit.smd import (
     SMDImplicitSolvation,
@@ -172,6 +174,62 @@ def test_gto_surface_and_reaction_couplings_are_reciprocal():
     ) == pytest.approx(float(np.dot(mep, asc)), abs=1.0e-12)
 
 
+def test_point_multipole_surface_potential_has_expected_coulomb_limit():
+    points = np.asarray([[2.0, 0.0, 0.0]])
+    positions = np.asarray([[0.0, 0.0, 0.0]])
+    coefficients = np.asarray([[1.0, 0.0, 0.0, 0.0]])
+
+    assert point_multipole_potential(
+        points, positions, coefficients
+    ) == pytest.approx([0.5])
+
+
+def test_point_surface_and_reaction_couplings_are_reciprocal():
+    rng = np.random.default_rng(2026)
+    positions = rng.normal(size=(4, 3))
+    surface = rng.normal(size=(80, 3)) * 4.0
+    coefficients = rng.normal(size=(4, 4))
+    asc = rng.normal(size=80) * 0.01
+
+    mep = point_multipole_potential(surface, positions, coefficients)
+    potential, gradient = point_asc_reaction_potential_gradient(
+        positions, surface, asc
+    )
+
+    assert density_reaction_coupling(
+        coefficients, potential, gradient
+    ) == pytest.approx(float(np.dot(mep, asc)), abs=1.0e-12)
+
+
+def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
+    atoms = _co_atoms()
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("frozen"), audit_dir=None
+    )
+    coefficients = np.asarray(
+        [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]]
+    )
+    session = _FakePCMSolverSession(None, None, None)
+    calls = 0
+    implementation = smd_module.point_multipole_potential
+
+    def tracked_point_multipole_potential(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return implementation(*args, **kwargs)
+
+    monkeypatch.setattr(
+        smd_module,
+        "point_multipole_potential",
+        tracked_point_multipole_potential,
+    )
+
+    state = provider._solve_pcm(session, atoms, coefficients)
+
+    assert calls == 1
+    assert state.polarization_energy_hartree < 0.0
+
+
 @pytest.mark.parametrize(
     ("symbols", "positions", "reference_kcal_mol"),
     [
@@ -303,6 +361,12 @@ def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
         + result.components_hartree["cds"]
     )
     assert result.provenance["response"] == "frozen"
+    assert result.provenance["pcm_mep_projection"].startswith(
+        "cavity-exterior point monopoles and dipoles"
+    )
+    audit = (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    assert '"schema_version": 3' in audit
+    assert '"pcm_mep_projection": "cavity-exterior-point-multipole-l<=1"' in audit
 
 
 def test_scf_route2_iterates_density_and_adds_solute_polarization(

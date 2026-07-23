@@ -6,9 +6,12 @@ contain the fixed-charge PB/GB implementation. All calculations require
 
 ## Route-2 contract: MACE-POLAR + SMD
 
-Route 2 is separate from the fixed-charge PB/GB path.  It couples the official
-pretrained MACE-POLAR-1-M coarse-grained charge density to an external
-PCMSolver IEFPCM reaction field and MAPLE's native aqueous SMD CDS term.  It
+Route 2 is separate from the fixed-charge PB/GB path. It couples the official
+pretrained MACE-POLAR-1-M coarse-grained charge moments to an external
+PCMSolver IEFPCM reaction field and MAPLE's native aqueous SMD CDS term. At the
+dielectric boundary, the moments use their cavity-exterior point-multipole
+expansion rather than extending MACE's internal 1.5 A GTO smearing across the
+cavity. It
 does not train or fine-tune a model, consume MOL2 partial charges, invoke a
 quantum-chemistry executable, or use a solvation-trained MLIP.
 
@@ -51,7 +54,7 @@ authoritative and never falls back to another soname. The parser must resolve
 under the same installation prefix as that library; mixed installations fail
 before cavity construction.
 
-The model is loaded as `polar-1-m` in float64.  MAPLE uses the pretrained
+The model is loaded as `polar-1-m` in float64. MAPLE uses the pretrained
 model's existing GTO field-response path, supplies a different reaction
 potential/gradient at each atom, and changes no learned weight.  The official
 weights remain subject to the upstream Academic Software License; MAPLE does

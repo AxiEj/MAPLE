@@ -116,6 +116,11 @@ def test_route2_protocol_locks_model_continuum_standard_state_and_gates():
     assert protocol["methods"]["density_models"] == ["official-mace-polar-1-m"]
     assert protocol["methods"]["solvation_models"] == ["smd-iefpcm-water"]
     assert protocol["methods"]["mace_default_dtype"] == "float64"
+    assert protocol["methods"]["mace_internal_density_smearing_angstrom"] == 1.5
+    assert protocol["methods"]["pcmsolver_mep_projection"] == (
+        "cavity-exterior-point-monopoles-and-dipoles-no-gto-smearing-"
+        "across-dielectric-boundary"
+    )
     assert protocol["methods"]["response"] == "scf"
     assert protocol["methods"]["standard_state"] == "1M-gas-to-1M-solution"
     assert protocol["providers"]["pcmsolver"]["bundled"] is False

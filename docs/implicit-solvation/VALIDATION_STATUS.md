@@ -11,8 +11,9 @@ PCMSolver IEFPCM and MAPLE's native aqueous SMD CDS term. It remains
 - The official MACE-POLAR-1-M checkpoint loads through the upstream cache with
   `mace-torch==0.3.16`; MAPLE changes no learned weight and requires float64.
 - The PCMSolver v1.1.12-style C binding, matching Python parser, custom SMD
-  radii, IEFPCM solve, and `0.5*dot(MEP,ASC)` convention pass fake-library and
-  real-water smoke controls.
+  radii, cavity-exterior point-multipole MEP, IEFPCM solve,
+  `0.5*dot(MEP,ASC)` convention, and reciprocal ASC projection pass
+  fake-library and real-water smoke controls.
 - Frozen and self-consistent response paths execute with the real
   MACE/PCMSolver stack; the water SCF smoke converges with a nonzero solute
   polarization response.

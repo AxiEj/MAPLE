@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "benchmark_kind": "route2-macepolar-smd",
-  "protocol_id": "maple-route2-macepolar-smd-water-freesolv-v1",
-  "claim_scope": "Route 2 only: absolute hydration free energy for one fixed FreeSolv MOL2 conformer of a neutral closed-shell 16-500 Da H/C/N/O/F/P/S/Cl/Br/I molecule in water. Official MACE-POLAR-1-M residual density plus self-consistent PCMSolver IEFPCM electrostatics and native aqueous SMD CDS; 1 M gas to 1 M solution. This is not a finite-temperature, conformer-ensemble, ionic, open-shell, broad-solvent, or QM-electron-density validation.",
+  "protocol_id": "maple-route2-macepolar-smd-water-freesolv-v2",
+  "claim_scope": "Route 2 only: absolute hydration free energy for one fixed FreeSolv MOL2 conformer of a neutral closed-shell 16-500 Da H/C/N/O/F/P/S/Cl/Br/I molecule in water. Official MACE-POLAR-1-M l<=1 charge moments projected as cavity-exterior point multipoles, self-consistent PCMSolver IEFPCM electrostatics, and native aqueous SMD CDS; 1 M gas to 1 M solution. This is not a finite-temperature, conformer-ensemble, ionic, open-shell, broad-solvent, or QM-electron-density validation.",
   "dataset": {
     "name": "FreeSolv",
     "version": "0.52",
@@ -95,6 +95,8 @@
     "mace_model_selector": "macepol-m",
     "mace_default_dtype": "float64",
     "density_interpretation": "coarse-grained-l<=1-net-charge-density-not-qm-electron-density",
+    "mace_internal_density_smearing_angstrom": 1.5,
+    "pcmsolver_mep_projection": "cavity-exterior-point-monopoles-and-dipoles-no-gto-smearing-across-dielectric-boundary",
     "response": "scf",
     "standard_state": "1M-gas-to-1M-solution",
     "standard_state_correction_kcal_mol": 0.0,
@@ -204,7 +206,7 @@
     "policy": "Failure leaves route2 experimental; no shifts, refits, or post-hoc confirmation tuning."
   },
   "provider_parity": {
-    "pcmsolver_control": "real-libpcm-water-smoke-plus-0.5-dot-convention-and-GTO-ASC-reciprocity",
+    "pcmsolver_control": "real-libpcm-water-smoke-plus-0.5-dot-convention-and-point-multipole-ASC-reciprocity",
     "smd_cds_controls": [
       "water",
       "methane",

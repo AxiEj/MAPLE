@@ -24,6 +24,7 @@ except ImportError:
 
 from ..calculator_base import (
     EV2HARTREE,
+    IMPLICIT_SOLVENT_FORCE_ERROR,
     init_implicit_solvent,
     numerical_hessian_from_atoms,
     reject_implicit_solvent_derivatives,
@@ -399,14 +400,32 @@ class UMACalculator(FAIRChemCalculator):
         if "forces" in self.results:
             self.results["forces"] *= EV2HARTREE
 
-        # Experimental implicit solvation is energy-only. Derivative requests
-        # have already failed via reject_implicit_solvent_derivatives().
         if self.solvent_correction is not None:
-            calc_atoms.atomic_charges = self.chargecalc(calc_atoms, total_charge=float(charge))
-            solvent_energy, _ = self.solvent_correction.get_energy(calc_atoms)
-            if "energy" in self.results:
-                self.results["energy"] += solvent_energy.item()
-            if "free_energy" in self.results:
-                self.results["free_energy"] += solvent_energy.item()
+            if hasattr(self.solvent_correction, "evaluate"):
+                solvent_result = self.solvent_correction.evaluate(
+                    calc_atoms, need_forces="forces" in self.results
+                )
+                if "energy" in self.results:
+                    self.results["energy"] += float(solvent_result.energy_hartree)
+                if "free_energy" in self.results:
+                    self.results["free_energy"] += float(solvent_result.energy_hartree)
+                if "forces" in self.results:
+                    if solvent_result.forces_hartree_per_angstrom is None:
+                        raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
+                    self.results["forces"] += np.asarray(
+                        solvent_result.forces_hartree_per_angstrom
+                    )
+                self.results["solvation"] = {
+                    "energy_hartree": float(solvent_result.energy_hartree),
+                    "components_hartree": dict(solvent_result.components_hartree),
+                    "provenance": dict(solvent_result.provenance),
+                }
+            else:
+                calc_atoms.atomic_charges = self.chargecalc(calc_atoms, total_charge=float(charge))
+                solvent_energy, _ = self.solvent_correction.get_energy(calc_atoms)
+                if "energy" in self.results:
+                    self.results["energy"] += solvent_energy.item()
+                if "free_energy" in self.results:
+                    self.results["free_energy"] += solvent_energy.item()
 
         return self.results

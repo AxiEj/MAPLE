@@ -17,7 +17,6 @@ from .calculator_base import (
     import_calculator_plugin,
     load_calculator_plugins_from_env,
     normalize_none_option,
-    validate_implicit_solvent_choice,
 )
 
 
@@ -111,6 +110,7 @@ class SetCalculator:
         solvent: str = 'None',
         model_options: Optional[dict] = None,
         solvation_options: Optional[dict] = None,
+        charge_options: Optional[dict] = None,
     ) -> None:
         self.output = output
         self.model = str(model).strip().lower()
@@ -120,7 +120,13 @@ class SetCalculator:
         self.implicit = normalize_none_option(implicit)
         self.solvent = normalize_none_option(solvent)
         self.model_options = _normalize_model_options(model_options)
-        self.solvation_options = solvation_options or {}
+        atom_info = getattr(atoms, 'info', {}) if atoms is not None else {}
+        if solvation_options is None:
+            solvation_options = atom_info.get('_maple_solvation_options', {})
+        if charge_options is None:
+            charge_options = atom_info.get('_maple_charge_options', {})
+        self.solvation_options = dict(solvation_options)
+        self.charge_options = dict(charge_options)
         self._model_error_logged = False
 
     def _model_dir(self) -> Path:
@@ -138,36 +144,47 @@ class SetCalculator:
         self.log_error(message)
 
     def _validate_solvent_config(self) -> None:
-        self.implicit, self.solvent = validate_implicit_solvent_choice(
-            self.implicit, self.solvent
-        )
+        self.implicit = normalize_none_option(self.implicit)
+        self.solvent = normalize_none_option(self.solvent)
         if self.implicit == 'none':
             return
 
-        if self.implicit != 'gbsa':
+        if self.implicit == 'gbsa':
             raise ValueError(
-                "Unsupported implicit solvation method: "
-                f"'{self.implicit}'. Supported experimental method: gbsa."
+                "Legacy method=gbsa is not a production implicit model. Use method=gb or method=pb "
+                "with explicit #charge(...), model, nonpolar, and profile selections."
             )
-
+        if self.implicit not in {'gb', 'pb'}:
+            raise ValueError(
+                f"Unsupported implicit solvation method: {self.implicit!r}; choose gb or pb."
+            )
+        if self.solvent != 'water':
+            raise ValueError("The first implicit-solvation release supports water only.")
         if self.solvation_options.get('experimental') is not True:
             raise ValueError(
-                "Implicit GB-polar/QEq solvation is experimental and disabled "
-                "by default. Add experimental=true in #solv(...) to request "
-                "energy-only use."
+                "Implicit-solvation providers have not passed MAPLE's public scientific benchmark gate; "
+                "set experimental=true explicitly."
             )
-
-        if self.model_options.get('hessian') is not None:
+        configured_method = str(self.solvation_options.get('method', '')).lower()
+        if configured_method != self.implicit:
             raise ValueError(
-                "Experimental implicit GB-polar solvation does not support "
-                "Hessian/HVP workflows."
+                "Implicit-solvent selector mismatch: "
+                f"implicit={self.implicit!r}, solv.method={configured_method!r}."
+            )
+        if self.model_options.get('hessian') is not None and self.implicit in {'gb', 'pb'}:
+            raise ValueError(
+                "Implicit PB/GB does not yet support Hessian/HVP workflows."
             )
 
         if self.atoms is not None and atoms_has_pbc(self.atoms):
             raise ValueError(
-                "Experimental implicit GB-polar solvation is non-periodic only; "
+                "Implicit solvation is non-periodic only; "
                 "remove #pbc or use a periodic solvent backend."
             )
+        if self.atoms is None or 'mol2' not in self.atoms.info:
+            raise ValueError("Implicit solvation requires one MOL2 molecule with explicit topology.")
+        if not self.charge_options:
+            raise ValueError("Implicit PB/GB requires an explicit #charge(...) configuration.")
 
     def _discover_calculator_class(self, name: str):
         """Resolve `name` to a registered calculator class.
@@ -505,6 +522,17 @@ class SetCalculator:
             solvent=self.solvent,
             **kwargs,
         )
+
+        if self.implicit in {'gb', 'pb'}:
+            from .extra_correction.implicit import ImplicitSolvationCorrection
+
+            calculator.solvent_correction = ImplicitSolvationCorrection(
+                self.atoms,
+                self.charge_options,
+                self.solvation_options,
+                output=self.output,
+            )
+            calculator.chargecalc = None
 
         self._apply_hessian_mode(calculator)
         return calculator

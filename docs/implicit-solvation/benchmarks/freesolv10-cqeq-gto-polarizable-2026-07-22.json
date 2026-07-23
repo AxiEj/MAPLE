@@ -1,0 +1,3045 @@
+{
+  "benchmark": "MAPLE FreeSolv 10-molecule variational CQEq-GTO/GB polarizable diagnostic",
+  "date": "2026-07-22",
+  "source": {
+    "database": "https://github.com/MobleyLab/FreeSolv/blob/master/database.txt",
+    "mol2_archive": "https://github.com/MobleyLab/FreeSolv/blob/master/mol2files_gaff.tar.gz",
+    "database_version": "0.52",
+    "git_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6"
+  },
+  "selection_policy": "Ten classes fixed before calculation: alkane, aromatic hydrocarbon, alcohol, ether, ketone, ester, nitrile, aromatic amine, haloalkane, sulfoxide.",
+  "configuration": {
+    "charge_profile": "CQEq derivative of the full hydrogen-dependent QEq-GTO energy plus OpenMM GB polar quadratic form",
+    "charge_mode": "polarizable",
+    "nonlinear_solver": "SciPy SLSQP with analytic charge gradient, total-charge constraint, KKT and local-minimum gates",
+    "fixed_charge_comparator": "freesolv10-qeq-gto-full-h-2026-07-22.json",
+    "solvent": "water",
+    "solvent_dielectric": 78.5,
+    "solute_dielectric": 1.0,
+    "nonpolar": "ace",
+    "platform": "Reference",
+    "openmm_version": "8.4.0.post2",
+    "scipy_version": "1.17.1",
+    "qeq_parameter_file": "maple/function/calculator/extra_correction/charge/data/qeq.dat",
+    "qeq_parameter_sha256": "f457378073c30c3c9370eaf33a307f764e54d4074568647bd982f4f23391332a",
+    "validation_note": "Experimental consistent-QEq continuum coupling. It is variational and force-consistent, but QEq and Amber GB parameters were not jointly fit."
+  },
+  "compounds": [
+    {
+      "id": "mobley_9055303",
+      "smiles": "C",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "experimental_kcal_mol": 2.0,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "experimental_reference": "10.1039/P29900000291",
+      "mol2_archive_member": "mol2files_gaff/mobley_9055303.mol2",
+      "mol2_sha256": "d3444794acbe124f7d423a564286d58a8ad7f98e559ccd08c002f1333516662b",
+      "natoms": 5
+    },
+    {
+      "id": "mobley_3053621",
+      "smiles": "c1ccccc1",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "experimental_kcal_mol": -0.9,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "experimental_reference": "10.1039/P29900000291",
+      "mol2_archive_member": "mol2files_gaff/mobley_3053621.mol2",
+      "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "natoms": 12
+    },
+    {
+      "id": "mobley_1636752",
+      "smiles": "CO",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "experimental_kcal_mol": -5.1,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_1636752.mol2",
+      "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "natoms": 6
+    },
+    {
+      "id": "mobley_7015518",
+      "smiles": "COC",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "experimental_kcal_mol": -1.91,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_7015518.mol2",
+      "mol2_sha256": "43fc0e1859c4536b1e5c6ccddbb5b370af168cb759a17ec927aa4e77dd2aedbb",
+      "natoms": 9
+    },
+    {
+      "id": "mobley_3867265",
+      "smiles": "CC(=O)C",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "experimental_kcal_mol": -3.8,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_3867265.mol2",
+      "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+      "natoms": 10
+    },
+    {
+      "id": "mobley_6973347",
+      "smiles": "CCOC(=O)C",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "experimental_kcal_mol": -2.94,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_6973347.mol2",
+      "mol2_sha256": "4f7ff04fca2240112ead2c9cc8d94a91f79b27d44ae5b2ea3f76ddf8531f7af8",
+      "natoms": 14
+    },
+    {
+      "id": "mobley_7532833",
+      "smiles": "CC#N",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "experimental_kcal_mol": -3.88,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/jp0264477",
+      "mol2_archive_member": "mol2files_gaff/mobley_7532833.mol2",
+      "mol2_sha256": "21e4c6f42cbc2791b6fdbdaaa7a044f352503ff5675efb879ba7351265666b60",
+      "natoms": 6
+    },
+    {
+      "id": "mobley_4883284",
+      "smiles": "c1ccc(cc1)N",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "experimental_kcal_mol": -5.49,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_4883284.mol2",
+      "mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+      "natoms": 14
+    },
+    {
+      "id": "mobley_2198613",
+      "smiles": "CCCl",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "experimental_kcal_mol": -0.63,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_2198613.mol2",
+      "mol2_sha256": "8324d857045111c381fce8b3b9cf6b5c5499eebd7adc2dd2fe2a2fd2b6165a30",
+      "natoms": 8
+    },
+    {
+      "id": "mobley_8578590",
+      "smiles": "CS(=O)C",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "experimental_kcal_mol": -9.28,
+      "experimental_uncertainty_kcal_mol": 0.57,
+      "experimental_reference": "10.1080/09593338709384509 and 10.1038/313384a0",
+      "mol2_archive_member": "mol2files_gaff/mobley_8578590.mol2",
+      "mol2_sha256": "eb17e4989468f9f100a4a299960279da0c8a011c8cc5798496c9b548214fec9d",
+      "natoms": 10
+    }
+  ],
+  "charges": [
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.1552927767412504,
+        0.03882868470992131,
+        0.03882626094134097,
+        0.03883251490686821,
+        0.03880531618311989
+      ],
+      "q_solv_e": [
+        -0.1650392699057041,
+        0.04128017649958925,
+        0.04125607517359483,
+        0.04126209601048419,
+        0.04124092222203584
+      ],
+      "q_vac_sum_e": 6.938893903907228e-18,
+      "q_solv_sum_e": -1.3877787807814457e-17,
+      "q_vac_max_abs_e": 0.1552927767412504,
+      "q_solv_max_abs_e": 0.1650392699057041,
+      "vacuum_solver": {
+        "iterations": 3,
+        "kkt_residual_ev": 1.6011637349322427e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.312072968455747
+      },
+      "solvent_solver": {
+        "iterations": 4,
+        "kkt_residual_ev": 1.3655981634386194e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.071401107784282
+      }
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.1552927767412504,
+        0.03882868470992131,
+        0.03882626094134097,
+        0.03883251490686821,
+        0.03880531618311989
+      ],
+      "q_solv_e": [
+        -0.1635640320738936,
+        0.040919700179683126,
+        0.04088399796101963,
+        0.04089049194229956,
+        0.0408698419908913
+      ],
+      "q_vac_sum_e": 6.938893903907228e-18,
+      "q_solv_sum_e": 6.938893903907228e-18,
+      "q_vac_max_abs_e": 0.1552927767412504,
+      "q_solv_max_abs_e": 0.1635640320738936,
+      "vacuum_solver": {
+        "iterations": 3,
+        "kkt_residual_ev": 1.6011637349322427e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.312072968455747
+      },
+      "solvent_solver": {
+        "iterations": 5,
+        "kkt_residual_ev": 2.1664621208117296e-08,
+        "min_projected_hessian_eigenvalue_ev": 3.4279088287933797
+      }
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.1552927767412504,
+        0.03882868470992131,
+        0.03882626094134097,
+        0.03883251490686821,
+        0.03880531618311989
+      ],
+      "q_solv_e": [
+        -0.16374627300265565,
+        0.04096314972749633,
+        0.04093038879042563,
+        0.04093678765665767,
+        0.04091594682807604
+      ],
+      "q_vac_sum_e": 6.938893903907228e-18,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.1552927767412504,
+      "q_solv_max_abs_e": 0.16374627300265565,
+      "vacuum_solver": {
+        "iterations": 3,
+        "kkt_residual_ev": 1.6011637349322427e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.312072968455747
+      },
+      "solvent_solver": {
+        "iterations": 5,
+        "kkt_residual_ev": 7.823208196811038e-07,
+        "min_projected_hessian_eigenvalue_ev": 3.625994309215398
+      }
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.1552927767412504,
+        0.03882868470992131,
+        0.03882626094134097,
+        0.03883251490686821,
+        0.03880531618311989
+      ],
+      "q_solv_e": [
+        -0.15829833169438048,
+        0.039598452662857886,
+        0.039569394523200525,
+        0.03957554211890824,
+        0.03955494238941383
+      ],
+      "q_vac_sum_e": 6.938893903907228e-18,
+      "q_solv_sum_e": -6.938893903907228e-18,
+      "q_vac_max_abs_e": 0.1552927767412504,
+      "q_solv_max_abs_e": 0.15829833169438048,
+      "vacuum_solver": {
+        "iterations": 3,
+        "kkt_residual_ev": 1.6011637349322427e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.312072968455747
+      },
+      "solvent_solver": {
+        "iterations": 4,
+        "kkt_residual_ev": 1.229371494382292e-06,
+        "min_projected_hessian_eigenvalue_ev": 3.5356123206138856
+      }
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.1552927767412504,
+        0.03882868470992131,
+        0.03882626094134097,
+        0.03883251490686821,
+        0.03880531618311989
+      ],
+      "q_solv_e": [
+        -0.15829865842948598,
+        0.03960241586566831,
+        0.03956791168132536,
+        0.039574237836004535,
+        0.03955409304648778
+      ],
+      "q_vac_sum_e": 6.938893903907228e-18,
+      "q_solv_sum_e": 1.3877787807814457e-17,
+      "q_vac_max_abs_e": 0.1552927767412504,
+      "q_solv_max_abs_e": 0.15829865842948598,
+      "vacuum_solver": {
+        "iterations": 3,
+        "kkt_residual_ev": 1.6011637349322427e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.312072968455747
+      },
+      "solvent_solver": {
+        "iterations": 4,
+        "kkt_residual_ev": 5.072780160375601e-07,
+        "min_projected_hessian_eigenvalue_ev": 3.2066679979386405
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.08384206966247659,
+        -0.08385077349446914,
+        -0.0838431417827644,
+        -0.08386097510631159,
+        -0.08386115361307375,
+        -0.08386001555497564,
+        0.08385199862049313,
+        0.08386474915401923,
+        0.08385253991100808,
+        0.08386600201501376,
+        0.08385219706260191,
+        0.08383064245093502
+      ],
+      "q_solv_e": [
+        -0.11493893327376829,
+        -0.11491100925699264,
+        -0.11492063668654297,
+        -0.1148972571857408,
+        -0.11490372663755855,
+        -0.11493295260018366,
+        0.11492430569935919,
+        0.11492718437996502,
+        0.11492094427404743,
+        0.11491987968554339,
+        0.1149102836328224,
+        0.11490191796904947
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": -1.3877787807814457e-17,
+      "q_vac_max_abs_e": 0.08386600201501376,
+      "q_solv_max_abs_e": 0.11493893327376829,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 4.01327639565352e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.173522939770266
+      },
+      "solvent_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 3.228736247251618e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.727162156465624
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.08384206966247659,
+        -0.08385077349446914,
+        -0.0838431417827644,
+        -0.08386097510631159,
+        -0.08386115361307375,
+        -0.08386001555497564,
+        0.08385199862049313,
+        0.08386474915401923,
+        0.08385253991100808,
+        0.08386600201501376,
+        0.08385219706260191,
+        0.08383064245093502
+      ],
+      "q_solv_e": [
+        -0.12426009372294067,
+        -0.1242188919951138,
+        -0.12422999051078756,
+        -0.12418768036797374,
+        -0.12419516084144458,
+        -0.12424054177615425,
+        0.12422998300403142,
+        0.12422932825354789,
+        0.12422725931812578,
+        0.12422177082397913,
+        0.12421542817217915,
+        0.12420858964255124
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": -5.551115123125783e-17,
+      "q_vac_max_abs_e": 0.08386600201501376,
+      "q_solv_max_abs_e": 0.12426009372294067,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 4.01327639565352e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.173522939770266
+      },
+      "solvent_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 2.3122210812687172e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.2756832198348755
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.08384206966247659,
+        -0.08385077349446914,
+        -0.0838431417827644,
+        -0.08386097510631159,
+        -0.08386115361307375,
+        -0.08386001555497564,
+        0.08385199862049313,
+        0.08386474915401923,
+        0.08385253991100808,
+        0.08386600201501376,
+        0.08385219706260191,
+        0.08383064245093502
+      ],
+      "q_solv_e": [
+        -0.1201104962805255,
+        -0.12007690802722963,
+        -0.12008711909679086,
+        -0.12005499835860917,
+        -0.12005971911705086,
+        -0.12009665441804233,
+        0.12008902754112578,
+        0.12008894560540867,
+        0.12008572989804078,
+        0.1200808090409427,
+        0.12007416011726342,
+        0.12006722309546698
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": -2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.08386600201501376,
+      "q_solv_max_abs_e": 0.1201104962805255,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 4.01327639565352e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.173522939770266
+      },
+      "solvent_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 2.7763515930701033e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.4929534562412345
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.08384206966247659,
+        -0.08385077349446914,
+        -0.0838431417827644,
+        -0.08386097510631159,
+        -0.08386115361307375,
+        -0.08386001555497564,
+        0.08385199862049313,
+        0.08386474915401923,
+        0.08385253991100808,
+        0.08386600201501376,
+        0.08385219706260191,
+        0.08383064245093502
+      ],
+      "q_solv_e": [
+        -0.12787849690708084,
+        -0.12782449059091208,
+        -0.12784213464927385,
+        -0.1277824308616979,
+        -0.1278013190162046,
+        -0.12785656560269196,
+        0.12783831975985888,
+        0.1278385108750954,
+        0.1278365925891235,
+        0.12783311420704163,
+        0.12782285278353514,
+        0.12781604741320668
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.08386600201501376,
+      "q_solv_max_abs_e": 0.12787849690708084,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 4.01327639565352e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.173522939770266
+      },
+      "solvent_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 1.629942936176576e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.102759550646688
+      }
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.08384206966247659,
+        -0.08385077349446914,
+        -0.0838431417827644,
+        -0.08386097510631159,
+        -0.08386115361307375,
+        -0.08386001555497564,
+        0.08385199862049313,
+        0.08386474915401923,
+        0.08385253991100808,
+        0.08386600201501376,
+        0.08385219706260191,
+        0.08383064245093502
+      ],
+      "q_solv_e": [
+        -0.11474958612984254,
+        -0.11472152623507116,
+        -0.11473692676864855,
+        -0.1147088622858486,
+        -0.1147187114104985,
+        -0.1147416369540966,
+        0.11473899036212572,
+        0.11473690171068306,
+        0.11473478915524217,
+        0.11472901556869634,
+        0.11472032605817567,
+        0.11471722692908301
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.08386600201501376,
+      "q_solv_max_abs_e": 0.11474958612984254,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 4.01327639565352e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.173522939770266
+      },
+      "solvent_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 3.623065403246528e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.8236926010557677
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.03348417424720427,
+        -0.4779910775064207,
+        0.11967878639973582,
+        0.0937545706928909,
+        0.09393522641569034,
+        0.2041066682453079
+      ],
+      "q_solv_e": [
+        0.0027751564867431445,
+        -0.6158584181017973,
+        0.14696176169234432,
+        0.14126692553962383,
+        0.14089486821680355,
+        0.18395970616628246
+      ],
+      "q_vac_sum_e": 2.7755575615628914e-17,
+      "q_solv_sum_e": -5.551115123125783e-17,
+      "q_vac_max_abs_e": 0.4779910775064207,
+      "q_solv_max_abs_e": 0.6158584181017973,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 3.0846719845101234e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.524557136848775
+      },
+      "solvent_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 1.9831620523547144e-07,
+        "min_projected_hessian_eigenvalue_ev": 3.692792272225271
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.03348417424720427,
+        -0.4779910775064207,
+        0.11967878639973582,
+        0.0937545706928909,
+        0.09393522641569034,
+        0.2041066682453079
+      ],
+      "q_solv_e": [
+        0.021352795115659896,
+        -0.6624684566893361,
+        0.16473820358315397,
+        0.15689176199186353,
+        0.15636216300251793,
+        0.16312353299614074
+      ],
+      "q_vac_sum_e": 2.7755575615628914e-17,
+      "q_solv_sum_e": -5.551115123125783e-17,
+      "q_vac_max_abs_e": 0.4779910775064207,
+      "q_solv_max_abs_e": 0.6624684566893361,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 3.0846719845101234e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.524557136848775
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 2.0305206405168974e-09,
+        "min_projected_hessian_eigenvalue_ev": 3.9330413888652713
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.03348417424720427,
+        -0.4779910775064207,
+        0.11967878639973582,
+        0.0937545706928909,
+        0.09393522641569034,
+        0.2041066682453079
+      ],
+      "q_solv_e": [
+        0.016488176830075557,
+        -0.6492293048394365,
+        0.16094553750265458,
+        0.15255176013063543,
+        0.1520411645488359,
+        0.16720266582723514
+      ],
+      "q_vac_sum_e": 2.7755575615628914e-17,
+      "q_solv_sum_e": 8.326672684688674e-17,
+      "q_vac_max_abs_e": 0.4779910775064207,
+      "q_solv_max_abs_e": 0.6492293048394365,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 3.0846719845101234e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.524557136848775
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 2.1576926911848204e-09,
+        "min_projected_hessian_eigenvalue_ev": 3.993636810493435
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.03348417424720427,
+        -0.4779910775064207,
+        0.11967878639973582,
+        0.0937545706928909,
+        0.09393522641569034,
+        0.2041066682453079
+      ],
+      "q_solv_e": [
+        0.008952430165724086,
+        -0.633236341542987,
+        0.15792034777309172,
+        0.1487074393790937,
+        0.14830726527088242,
+        0.1693488589541951
+      ],
+      "q_vac_sum_e": 2.7755575615628914e-17,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.4779910775064207,
+      "q_solv_max_abs_e": 0.633236341542987,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 3.0846719845101234e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.524557136848775
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 2.5679742776674175e-09,
+        "min_projected_hessian_eigenvalue_ev": 4.251733830110544
+      }
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.03348417424720427,
+        -0.4779910775064207,
+        0.11967878639973582,
+        0.0937545706928909,
+        0.09393522641569034,
+        0.2041066682453079
+      ],
+      "q_solv_e": [
+        0.014073253383300588,
+        -0.6406448884323033,
+        0.16096342992830773,
+        0.15333017020364673,
+        0.15291902498245863,
+        0.15935900993458962
+      ],
+      "q_vac_sum_e": 2.7755575615628914e-17,
+      "q_solv_sum_e": -5.551115123125783e-17,
+      "q_vac_max_abs_e": 0.4779910775064207,
+      "q_solv_max_abs_e": 0.6406448884323033,
+      "vacuum_solver": {
+        "iterations": 8,
+        "kkt_residual_ev": 3.0846719845101234e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.524557136848775
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 8.647713656273481e-10,
+        "min_projected_hessian_eigenvalue_ev": 4.099978923971333
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.057639008456164,
+        -0.48535209830640635,
+        -0.057782544246606025,
+        0.11891044373364523,
+        0.09026802033457,
+        0.09082048009506141,
+        0.1191520781256983,
+        0.09051318474602013,
+        0.09110944397418132
+      ],
+      "q_solv_e": [
+        -0.08050259875602299,
+        -0.6166069433245089,
+        -0.08055144872494545,
+        0.13919087317448833,
+        0.12479795053174461,
+        0.12474605138511854,
+        0.13925628609376411,
+        0.12486076494045988,
+        0.12480906467990183
+      ],
+      "q_vac_sum_e": 6.938893903907228e-17,
+      "q_solv_sum_e": 0.0,
+      "q_vac_max_abs_e": 0.48535209830640635,
+      "q_solv_max_abs_e": 0.6166069433245089,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.2913751810117446e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.189658013691802
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 3.770582690520996e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.865300259884489
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.057639008456164,
+        -0.48535209830640635,
+        -0.057782544246606025,
+        0.11891044373364523,
+        0.09026802033457,
+        0.09082048009506141,
+        0.1191520781256983,
+        0.09051318474602013,
+        0.09110944397418132
+      ],
+      "q_solv_e": [
+        -0.08497647802794896,
+        -0.6623116070175447,
+        -0.08506689860475472,
+        0.14783545896031272,
+        0.1342997973186801,
+        0.13407560401124838,
+        0.147821565540174,
+        0.13428213106447026,
+        0.13404042675536282
+      ],
+      "q_vac_sum_e": 6.938893903907228e-17,
+      "q_solv_sum_e": 5.551115123125783e-17,
+      "q_vac_max_abs_e": 0.48535209830640635,
+      "q_solv_max_abs_e": 0.6623116070175447,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.2913751810117446e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.189658013691802
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 9.547888524252812e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.4725232467495695
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.057639008456164,
+        -0.48535209830640635,
+        -0.057782544246606025,
+        0.11891044373364523,
+        0.09026802033457,
+        0.09082048009506141,
+        0.1191520781256983,
+        0.09051318474602013,
+        0.09110944397418132
+      ],
+      "q_solv_e": [
+        -0.08308439603835893,
+        -0.642989222969303,
+        -0.08319837718057893,
+        0.14418196396638164,
+        0.13032119868015873,
+        0.13014019021427745,
+        0.14418283424587888,
+        0.13031985673989774,
+        0.13012595234164645
+      ],
+      "q_vac_sum_e": 6.938893903907228e-17,
+      "q_solv_sum_e": -2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.48535209830640635,
+      "q_solv_max_abs_e": 0.642989222969303,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.2913751810117446e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.189658013691802
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 1.4860526409421482e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.6032510245135505
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.057639008456164,
+        -0.48535209830640635,
+        -0.057782544246606025,
+        0.11891044373364523,
+        0.09026802033457,
+        0.09082048009506141,
+        0.1191520781256983,
+        0.09051318474602013,
+        0.09110944397418132
+      ],
+      "q_solv_e": [
+        -0.07691031510630522,
+        -0.6553761288012183,
+        -0.07684965313022625,
+        0.14379601358540314,
+        0.13042816826432385,
+        0.13028132619915883,
+        0.14383879022940585,
+        0.13047465197184577,
+        0.13031714678761233
+      ],
+      "q_vac_sum_e": 6.938893903907228e-17,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.48535209830640635,
+      "q_solv_max_abs_e": 0.6553761288012183,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.2913751810117446e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.189658013691802
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 1.6092421795121936e-07,
+        "min_projected_hessian_eigenvalue_ev": 3.0426125199395093
+      }
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.057639008456164,
+        -0.48535209830640635,
+        -0.057782544246606025,
+        0.11891044373364523,
+        0.09026802033457,
+        0.09082048009506141,
+        0.1191520781256983,
+        0.09051318474602013,
+        0.09110944397418132
+      ],
+      "q_solv_e": [
+        -0.07751392533965816,
+        -0.6691570478839917,
+        -0.07745051981368507,
+        0.14639051494915364,
+        0.1329212281093533,
+        0.13273779608509123,
+        0.14640461220442114,
+        0.13293255570761364,
+        0.13273478598170194
+      ],
+      "q_vac_sum_e": 6.938893903907228e-17,
+      "q_solv_sum_e": -2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.48535209830640635,
+      "q_solv_max_abs_e": 0.6691570478839917,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.2913751810117446e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.189658013691802
+      },
+      "solvent_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 8.504037296575007e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.9319607508254086
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.05152914221067647,
+        0.04259644794307319,
+        -0.3866051966571702,
+        -0.051414487997657896,
+        0.07524651579405377,
+        0.043365578735731575,
+        0.10496373669442065,
+        0.07501451533953561,
+        0.043050808659621846,
+        0.1053112236990679
+      ],
+      "q_solv_e": [
+        0.018253692515251153,
+        -0.1131320674039343,
+        -0.6727663691131085,
+        0.01834153391979192,
+        0.12811829077270148,
+        0.1091289914653105,
+        0.13742999823615798,
+        0.12769111309650935,
+        0.10895055174251576,
+        0.13798426476880477
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": 1.1102230246251565e-16,
+      "q_vac_max_abs_e": 0.3866051966571702,
+      "q_solv_max_abs_e": 0.6727663691131085,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.166971943637577e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.131301610655657
+      },
+      "solvent_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 9.227552055790511e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.8716217227235097
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.05152914221067647,
+        0.04259644794307319,
+        -0.3866051966571702,
+        -0.051414487997657896,
+        0.07524651579405377,
+        0.043365578735731575,
+        0.10496373669442065,
+        0.07501451533953561,
+        0.043050808659621846,
+        0.1053112236990679
+      ],
+      "q_solv_e": [
+        0.03804468348000128,
+        -0.17127734567970226,
+        -0.75112943061059,
+        0.03813796048288002,
+        0.14454354026793328,
+        0.1280410643167783,
+        0.15052478881710196,
+        0.14407694758745213,
+        0.12789063125215308,
+        0.1511471600859923
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": 5.551115123125783e-17,
+      "q_vac_max_abs_e": 0.3866051966571702,
+      "q_solv_max_abs_e": 0.75112943061059,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.166971943637577e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.131301610655657
+      },
+      "solvent_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 8.152141184325501e-09,
+        "min_projected_hessian_eigenvalue_ev": 2.4800679167085677
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.05152914221067647,
+        0.04259644794307319,
+        -0.3866051966571702,
+        -0.051414487997657896,
+        0.07524651579405377,
+        0.043365578735731575,
+        0.10496373669442065,
+        0.07501451533953561,
+        0.043050808659621846,
+        0.1053112236990679
+      ],
+      "q_solv_e": [
+        0.02955163563637788,
+        -0.1483516570463908,
+        -0.7216657644835821,
+        0.02964606769967278,
+        0.13865629487284342,
+        0.12130108698007432,
+        0.14545528386244191,
+        0.13819278943285843,
+        0.12114048167088093,
+        0.1460737813748233
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": 1.6653345369377348e-16,
+      "q_vac_max_abs_e": 0.3866051966571702,
+      "q_solv_max_abs_e": 0.7216657644835821,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.166971943637577e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.131301610655657
+      },
+      "solvent_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 2.5706565676131277e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.6211289934749025
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.05152914221067647,
+        0.04259644794307319,
+        -0.3866051966571702,
+        -0.051414487997657896,
+        0.07524651579405377,
+        0.043365578735731575,
+        0.10496373669442065,
+        0.07501451533953561,
+        0.043050808659621846,
+        0.1053112236990679
+      ],
+      "q_solv_e": [
+        0.02246810826770589,
+        -0.14641178046788017,
+        -0.7168118281059507,
+        0.022526971018035215,
+        0.1393186661320871,
+        0.12370994539965789,
+        0.1460915650166459,
+        0.13887073860019444,
+        0.12358300247022216,
+        0.1466546116692822
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": -5.551115123125783e-17,
+      "q_vac_max_abs_e": 0.3866051966571702,
+      "q_solv_max_abs_e": 0.7168118281059507,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.166971943637577e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.131301610655657
+      },
+      "solvent_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 2.523350417504844e-10,
+        "min_projected_hessian_eigenvalue_ev": 2.902677837321686
+      }
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.05152914221067647,
+        0.04259644794307319,
+        -0.3866051966571702,
+        -0.051414487997657896,
+        0.07524651579405377,
+        0.043365578735731575,
+        0.10496373669442065,
+        0.07501451533953561,
+        0.043050808659621846,
+        0.1053112236990679
+      ],
+      "q_solv_e": [
+        0.013465445776232324,
+        -0.14038877481303905,
+        -0.6846634556855079,
+        0.013509564989831545,
+        0.13580050580067865,
+        0.118704764421043,
+        0.14455322125587677,
+        0.13539997352562028,
+        0.11853743939285784,
+        0.1450813153364065
+      ],
+      "q_vac_sum_e": -2.7755575615628914e-17,
+      "q_solv_sum_e": 0.0,
+      "q_vac_max_abs_e": 0.3866051966571702,
+      "q_solv_max_abs_e": 0.6846634556855079,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.166971943637577e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.131301610655657
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 3.670134454125673e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.995747082121006
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.08749089901043217,
+        -0.006967708849932997,
+        -0.44048904092818747,
+        0.13880523966997188,
+        -0.3681563716932159,
+        0.003868615894441032,
+        0.03334615675775051,
+        0.08650630696490189,
+        0.08609790156694942,
+        0.1409988420662428,
+        0.14124808673435088,
+        0.0872810366365571,
+        0.09559105449488531,
+        0.08936077969571764
+      ],
+      "q_solv_e": [
+        0.09807579351447585,
+        0.0010990206547863625,
+        -0.5511222772083967,
+        -0.11423811774397157,
+        -0.6367903286077421,
+        0.050593819625175354,
+        0.10999566555810192,
+        0.1294781100731435,
+        0.12935121691094437,
+        0.1659999582459849,
+        0.1660681505484255,
+        0.15007910339270597,
+        0.15273056502235435,
+        0.14867932001401205
+      ],
+      "q_vac_sum_e": -1.249000902703301e-16,
+      "q_solv_sum_e": -1.1102230246251565e-16,
+      "q_vac_max_abs_e": 0.44048904092818747,
+      "q_solv_max_abs_e": 0.6367903286077421,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.8363801501664057e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.082222644054068
+      },
+      "solvent_solver": {
+        "iterations": 16,
+        "kkt_residual_ev": 7.458169237750667e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.2824808693196466
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.08749089901043217,
+        -0.006967708849932997,
+        -0.44048904092818747,
+        0.13880523966997188,
+        -0.3681563716932159,
+        0.003868615894441032,
+        0.03334615675775051,
+        0.08650630696490189,
+        0.08609790156694942,
+        0.1409988420662428,
+        0.14124808673435088,
+        0.0872810366365571,
+        0.09559105449488531,
+        0.08936077969571764
+      ],
+      "q_solv_e": [
+        0.20363699133638644,
+        0.023405334318783534,
+        -0.5950266928072555,
+        -0.23593310645487373,
+        -0.7320939906751932,
+        0.033657880600121634,
+        0.14082565925950424,
+        0.15352533664837983,
+        0.1534304848234139,
+        0.17650061677156118,
+        0.1765492899253402,
+        0.16753412259351802,
+        0.16836796586456595,
+        0.16562010779574743
+      ],
+      "q_vac_sum_e": -1.249000902703301e-16,
+      "q_solv_sum_e": -2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.44048904092818747,
+      "q_solv_max_abs_e": 0.7320939906751932,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.8363801501664057e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.082222644054068
+      },
+      "solvent_solver": {
+        "iterations": 15,
+        "kkt_residual_ev": 1.4650703228369366e-07,
+        "min_projected_hessian_eigenvalue_ev": 1.7204192981413302
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.08749089901043217,
+        -0.006967708849932997,
+        -0.44048904092818747,
+        0.13880523966997188,
+        -0.3681563716932159,
+        0.003868615894441032,
+        0.03334615675775051,
+        0.08650630696490189,
+        0.08609790156694942,
+        0.1409988420662428,
+        0.14124808673435088,
+        0.0872810366365571,
+        0.09559105449488531,
+        0.08936077969571764
+      ],
+      "q_solv_e": [
+        0.15252012035029094,
+        0.011710960920990695,
+        -0.5675554749416243,
+        -0.17730353257877468,
+        -0.692152986061813,
+        0.04159544187522896,
+        0.12790449658035502,
+        0.14255205277553903,
+        0.1424465266033265,
+        0.1699884922730424,
+        0.17004414452034225,
+        0.15961333655299698,
+        0.16104351554536495,
+        0.1575929055847341
+      ],
+      "q_vac_sum_e": -1.249000902703301e-16,
+      "q_solv_sum_e": -1.6653345369377348e-16,
+      "q_vac_max_abs_e": 0.44048904092818747,
+      "q_solv_max_abs_e": 0.692152986061813,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.8363801501664057e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.082222644054068
+      },
+      "solvent_solver": {
+        "iterations": 16,
+        "kkt_residual_ev": 2.913781749214195e-08,
+        "min_projected_hessian_eigenvalue_ev": 1.9527613488453675
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.08749089901043217,
+        -0.006967708849932997,
+        -0.44048904092818747,
+        0.13880523966997188,
+        -0.3681563716932159,
+        0.003868615894441032,
+        0.03334615675775051,
+        0.08650630696490189,
+        0.08609790156694942,
+        0.1409988420662428,
+        0.14124808673435088,
+        0.0872810366365571,
+        0.09559105449488531,
+        0.08936077969571764
+      ],
+      "q_solv_e": [
+        0.10778105342920098,
+        -0.008839722210066427,
+        -0.6052272643011615,
+        -0.14557104206345173,
+        -0.6593639730904667,
+        0.05971122257367927,
+        0.1312780915892476,
+        0.14384909254182784,
+        0.14371810430527177,
+        0.17179097008274052,
+        0.17184986006208897,
+        0.16338123051451692,
+        0.1634547081762858,
+        0.16218766839028645
+      ],
+      "q_vac_sum_e": -1.249000902703301e-16,
+      "q_solv_sum_e": -2.7755575615628914e-16,
+      "q_vac_max_abs_e": 0.44048904092818747,
+      "q_solv_max_abs_e": 0.6593639730904667,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.8363801501664057e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.082222644054068
+      },
+      "solvent_solver": {
+        "iterations": 17,
+        "kkt_residual_ev": 5.524633444053961e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.4845572497826316
+      }
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.08749089901043217,
+        -0.006967708849932997,
+        -0.44048904092818747,
+        0.13880523966997188,
+        -0.3681563716932159,
+        0.003868615894441032,
+        0.03334615675775051,
+        0.08650630696490189,
+        0.08609790156694942,
+        0.1409988420662428,
+        0.14124808673435088,
+        0.0872810366365571,
+        0.09559105449488531,
+        0.08936077969571764
+      ],
+      "q_solv_e": [
+        0.15050685467411826,
+        0.011771532617572113,
+        -0.6178629145138996,
+        -0.20898079469781236,
+        -0.7503876112476469,
+        0.06673145776780005,
+        0.14299269911530443,
+        0.15651474591863648,
+        0.15637929609490664,
+        0.18234461262564788,
+        0.18239747390748628,
+        0.1758810828363075,
+        0.17675447164675626,
+        0.17495709325482306
+      ],
+      "q_vac_sum_e": -1.249000902703301e-16,
+      "q_solv_sum_e": 8.326672684688674e-17,
+      "q_vac_max_abs_e": 0.44048904092818747,
+      "q_solv_max_abs_e": 0.7503876112476469,
+      "vacuum_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 1.8363801501664057e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.082222644054068
+      },
+      "solvent_solver": {
+        "iterations": 16,
+        "kkt_residual_ev": 1.0772496139566101e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.355318366466602
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.05546310406281014,
+        0.04891804316907889,
+        -0.18591844523668988,
+        0.06416723254976138,
+        0.06414211038907874,
+        0.06415416319158097
+      ],
+      "q_solv_e": [
+        0.12863619353366432,
+        -0.06876195072362463,
+        -0.4495927917529921,
+        0.1299186724528121,
+        0.1298884160157056,
+        0.12991146047443478
+      ],
+      "q_vac_sum_e": -4.163336342344337e-17,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.18591844523668988,
+      "q_solv_max_abs_e": 0.4495927917529921,
+      "vacuum_solver": {
+        "iterations": 7,
+        "kkt_residual_ev": 7.890628062057203e-08,
+        "min_projected_hessian_eigenvalue_ev": 4.168222001305521
+      },
+      "solvent_solver": {
+        "iterations": 11,
+        "kkt_residual_ev": 7.579616934094702e-10,
+        "min_projected_hessian_eigenvalue_ev": 2.609201412357833
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.05546310406281014,
+        0.04891804316907889,
+        -0.18591844523668988,
+        0.06416723254976138,
+        0.06414211038907874,
+        0.06415416319158097
+      ],
+      "q_solv_e": [
+        0.18060230188059523,
+        -0.1184232081515625,
+        -0.5225178015264561,
+        0.15345630199051125,
+        0.15342878481112343,
+        0.1534536209957887
+      ],
+      "q_vac_sum_e": -4.163336342344337e-17,
+      "q_solv_sum_e": 0.0,
+      "q_vac_max_abs_e": 0.18591844523668988,
+      "q_solv_max_abs_e": 0.5225178015264561,
+      "vacuum_solver": {
+        "iterations": 7,
+        "kkt_residual_ev": 7.890628062057203e-08,
+        "min_projected_hessian_eigenvalue_ev": 4.168222001305521
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 3.29445102309478e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.315793963333353
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.05546310406281014,
+        0.04891804316907889,
+        -0.18591844523668988,
+        0.06416723254976138,
+        0.06414211038907874,
+        0.06415416319158097
+      ],
+      "q_solv_e": [
+        0.16020439591408145,
+        -0.10206335307747287,
+        -0.49623384474060234,
+        0.14604263526139238,
+        0.1460119106209829,
+        0.14603825602161843
+      ],
+      "q_vac_sum_e": -4.163336342344337e-17,
+      "q_solv_sum_e": -2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.18591844523668988,
+      "q_solv_max_abs_e": 0.49623384474060234,
+      "vacuum_solver": {
+        "iterations": 7,
+        "kkt_residual_ev": 7.890628062057203e-08,
+        "min_projected_hessian_eigenvalue_ev": 4.168222001305521
+      },
+      "solvent_solver": {
+        "iterations": 11,
+        "kkt_residual_ev": 4.7776276268507445e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.4264494295001784
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.05546310406281014,
+        0.04891804316907889,
+        -0.18591844523668988,
+        0.06416723254976138,
+        0.06414211038907874,
+        0.06415416319158097
+      ],
+      "q_solv_e": [
+        0.15576256233767752,
+        -0.10956179428771683,
+        -0.5069044088625414,
+        0.15357832390226744,
+        0.15355246342484752,
+        0.15357285348546573
+      ],
+      "q_vac_sum_e": -4.163336342344337e-17,
+      "q_solv_sum_e": 0.0,
+      "q_vac_max_abs_e": 0.18591844523668988,
+      "q_solv_max_abs_e": 0.5069044088625414,
+      "vacuum_solver": {
+        "iterations": 7,
+        "kkt_residual_ev": 7.890628062057203e-08,
+        "min_projected_hessian_eigenvalue_ev": 4.168222001305521
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 2.1984792653029217e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.4869042340370866
+      }
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.05546310406281014,
+        0.04891804316907889,
+        -0.18591844523668988,
+        0.06416723254976138,
+        0.06414211038907874,
+        0.06415416319158097
+      ],
+      "q_solv_e": [
+        0.17991672071212095,
+        -0.12217193285306266,
+        -0.5461386543620143,
+        0.16281046142138625,
+        0.16278005318045616,
+        0.16280335190111353
+      ],
+      "q_vac_sum_e": -4.163336342344337e-17,
+      "q_solv_sum_e": 0.0,
+      "q_vac_max_abs_e": 0.18591844523668988,
+      "q_solv_max_abs_e": 0.5461386543620143,
+      "vacuum_solver": {
+        "iterations": 7,
+        "kkt_residual_ev": 7.890628062057203e-08,
+        "min_projected_hessian_eigenvalue_ev": 4.168222001305521
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 5.160851301866387e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.3667660447858587
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.0759162284850629,
+        -0.07098463975697779,
+        -0.05054202580444603,
+        -0.032223329107038755,
+        -0.05055367752080625,
+        -0.07097264269196492,
+        -0.33637520221843226,
+        0.08115065590585449,
+        0.08016827393512238,
+        0.10135530947647914,
+        0.10137844650535915,
+        0.08016958346243716,
+        0.12168202576773626,
+        0.12166345053174027
+      ],
+      "q_solv_e": [
+        -0.040806964615353006,
+        -0.04668336669414531,
+        -0.07963460169807286,
+        -0.12990526176139716,
+        -0.07959660709037093,
+        -0.04669086776061365,
+        -0.4441807873279591,
+        0.12233118615747392,
+        0.12372321341001971,
+        0.13383381616655,
+        0.1338482049585387,
+        0.1237291749252181,
+        0.11500706189091775,
+        0.11502579943919394
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.33637520221843226,
+      "q_solv_max_abs_e": 0.4441807873279591,
+      "vacuum_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 1.1532522687929259e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.173558455957797
+      },
+      "solvent_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 4.244209250714448e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.6943793112483285
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.0759162284850629,
+        -0.07098463975697779,
+        -0.05054202580444603,
+        -0.032223329107038755,
+        -0.05055367752080625,
+        -0.07097264269196492,
+        -0.33637520221843226,
+        0.08115065590585449,
+        0.08016827393512238,
+        0.10135530947647914,
+        0.10137844650535915,
+        0.08016958346243716,
+        0.12168202576773626,
+        0.12166345053174027
+      ],
+      "q_solv_e": [
+        -0.019095200760803576,
+        -0.03234044751885524,
+        -0.08934600200230455,
+        -0.16429339582623678,
+        -0.0892891536457609,
+        -0.03235059201431785,
+        -0.4883878446182014,
+        0.1376155653479144,
+        0.1382151539087055,
+        0.14201810681846727,
+        0.14203180761640188,
+        0.13822127813925802,
+        0.1084852652242679,
+        0.10851545933146521
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": -2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.33637520221843226,
+      "q_solv_max_abs_e": 0.4883878446182014,
+      "vacuum_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 1.1532522687929259e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.173558455957797
+      },
+      "solvent_solver": {
+        "iterations": 15,
+        "kkt_residual_ev": 1.5436924893919013e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.240679827631724
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.0759162284850629,
+        -0.07098463975697779,
+        -0.05054202580444603,
+        -0.032223329107038755,
+        -0.05055367752080625,
+        -0.07097264269196492,
+        -0.33637520221843226,
+        0.08115065590585449,
+        0.08016827393512238,
+        0.10135530947647914,
+        0.10137844650535915,
+        0.08016958346243716,
+        0.12168202576773626,
+        0.12166345053174027
+      ],
+      "q_solv_e": [
+        -0.03265173663924889,
+        -0.041258613742594104,
+        -0.08360900690540243,
+        -0.1412881488857561,
+        -0.08356549261357524,
+        -0.04127007691627619,
+        -0.4675944751279976,
+        0.13113159926136225,
+        0.13211371009425343,
+        0.137916579708289,
+        0.13793028598035506,
+        0.1321200189010194,
+        0.11000107452531567,
+        0.11002428236025581
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": 0.0,
+      "q_vac_max_abs_e": 0.33637520221843226,
+      "q_solv_max_abs_e": 0.4675944751279976,
+      "vacuum_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 1.1532522687929259e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.173558455957797
+      },
+      "solvent_solver": {
+        "iterations": 15,
+        "kkt_residual_ev": 1.02698002102386e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.508822648515048
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.0759162284850629,
+        -0.07098463975697779,
+        -0.05054202580444603,
+        -0.032223329107038755,
+        -0.05055367752080625,
+        -0.07097264269196492,
+        -0.33637520221843226,
+        0.08115065590585449,
+        0.08016827393512238,
+        0.10135530947647914,
+        0.10137844650535915,
+        0.08016958346243716,
+        0.12168202576773626,
+        0.12166345053174027
+      ],
+      "q_solv_e": [
+        -0.013745637349904803,
+        -0.03151090802862672,
+        -0.1009911845371654,
+        -0.19654314628134123,
+        -0.10091120551578642,
+        -0.03151525314442097,
+        -0.4698203902054579,
+        0.14456311738040842,
+        0.14438519474072514,
+        0.14550048422350906,
+        0.14551490885635363,
+        0.1443940701334814,
+        0.1103202600031317,
+        0.11035968972509402
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": -1.5265566588595902e-16,
+      "q_vac_max_abs_e": 0.33637520221843226,
+      "q_solv_max_abs_e": 0.4698203902054579,
+      "vacuum_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 1.1532522687929259e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.173558455957797
+      },
+      "solvent_solver": {
+        "iterations": 15,
+        "kkt_residual_ev": 2.1860674692675275e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.018372582739543
+      }
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.0759162284850629,
+        -0.07098463975697779,
+        -0.05054202580444603,
+        -0.032223329107038755,
+        -0.05055367752080625,
+        -0.07097264269196492,
+        -0.33637520221843226,
+        0.08115065590585449,
+        0.08016827393512238,
+        0.10135530947647914,
+        0.10137844650535915,
+        0.08016958346243716,
+        0.12168202576773626,
+        0.12166345053174027
+      ],
+      "q_solv_e": [
+        -0.03222148173195449,
+        -0.039385013692585354,
+        -0.07967986106983677,
+        -0.15057943260638135,
+        -0.07963409779421551,
+        -0.03939092395253394,
+        -0.4664907914542608,
+        0.1317654310960224,
+        0.13280890575672522,
+        0.1383790044433111,
+        0.1383912577741134,
+        0.1328200789867491,
+        0.10659327146320972,
+        0.10662365278163734
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.33637520221843226,
+      "q_solv_max_abs_e": 0.4664907914542608,
+      "vacuum_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 1.1532522687929259e-06,
+        "min_projected_hessian_eigenvalue_ev": 4.173558455957797
+      },
+      "solvent_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 3.3315573766401485e-07,
+        "min_projected_hessian_eigenvalue_ev": 2.693003512540009
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.04901140737774903,
+        -0.006014017177313286,
+        -0.40385751388347385,
+        0.05592576576756024,
+        0.09357065753501594,
+        0.09355198350479106,
+        0.10790536687331555,
+        0.10792916475785341
+      ],
+      "q_solv_e": [
+        0.14821467479033967,
+        -0.046768699589311874,
+        -0.7894797839778496,
+        0.15747154071926567,
+        0.13857260695275672,
+        0.138566007675405,
+        0.12671222290098785,
+        0.12671143052840658
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": 1.1102230246251565e-16,
+      "q_vac_max_abs_e": 0.40385751388347385,
+      "q_solv_max_abs_e": 0.7894797839778496,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.058191350215679e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.178436852640045
+      },
+      "solvent_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 4.6005827858408566e-07,
+        "min_projected_hessian_eigenvalue_ev": 3.00722916938422
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.04901140737774903,
+        -0.006014017177313286,
+        -0.40385751388347385,
+        0.05592576576756024,
+        0.09357065753501594,
+        0.09355198350479106,
+        0.10790536687331555,
+        0.10792916475785341
+      ],
+      "q_solv_e": [
+        0.21319578712634646,
+        -0.07255788451988865,
+        -0.8939415500788256,
+        0.18681578590603223,
+        0.1585772629640866,
+        0.1585760750874483,
+        0.12467540210688059,
+        0.12465912140792008
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": 0.0,
+      "q_vac_max_abs_e": 0.40385751388347385,
+      "q_solv_max_abs_e": 0.8939415500788256,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.058191350215679e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.178436852640045
+      },
+      "solvent_solver": {
+        "iterations": 11,
+        "kkt_residual_ev": 3.7058058843797426e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.6569548587932914
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.04901140737774903,
+        -0.006014017177313286,
+        -0.40385751388347385,
+        0.05592576576756024,
+        0.09357065753501594,
+        0.09355198350479106,
+        0.10790536687331555,
+        0.10792916475785341
+      ],
+      "q_solv_e": [
+        0.18934438262018527,
+        -0.06431442144749053,
+        -0.858540219768616,
+        0.17812916550047636,
+        0.15218594014827058,
+        0.15218333312154092,
+        0.12551161339405079,
+        0.12550020643158266
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": 1.1102230246251565e-16,
+      "q_vac_max_abs_e": 0.40385751388347385,
+      "q_solv_max_abs_e": 0.858540219768616,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.058191350215679e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.178436852640045
+      },
+      "solvent_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 2.2168846314229995e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.776661142586909
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.04901140737774903,
+        -0.006014017177313286,
+        -0.40385751388347385,
+        0.05592576576756024,
+        0.09357065753501594,
+        0.09355198350479106,
+        0.10790536687331555,
+        0.10792916475785341
+      ],
+      "q_solv_e": [
+        0.16023962768586547,
+        -0.06347871729595919,
+        -0.8290230141116427,
+        0.17544330428996358,
+        0.15174318067681045,
+        0.151737605684034,
+        0.1266757580767329,
+        0.12666225499419553
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": 0.0,
+      "q_vac_max_abs_e": 0.40385751388347385,
+      "q_solv_max_abs_e": 0.8290230141116427,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.058191350215679e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.178436852640045
+      },
+      "solvent_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 2.1988229903513457e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.909911991350113
+      }
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.04901140737774903,
+        -0.006014017177313286,
+        -0.40385751388347385,
+        0.05592576576756024,
+        0.09357065753501594,
+        0.09355198350479106,
+        0.10790536687331555,
+        0.10792916475785341
+      ],
+      "q_solv_e": [
+        0.06392284644438662,
+        -0.050276221708604595,
+        -0.6117888539246947,
+        0.13463286802891752,
+        0.12112760272916161,
+        0.12111985596393333,
+        0.11063288730062637,
+        0.11062901516627384
+      ],
+      "q_vac_sum_e": 5.551115123125783e-17,
+      "q_solv_sum_e": -5.551115123125783e-17,
+      "q_vac_max_abs_e": 0.40385751388347385,
+      "q_solv_max_abs_e": 0.6117888539246947,
+      "vacuum_solver": {
+        "iterations": 9,
+        "kkt_residual_ev": 5.058191350215679e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.178436852640045
+      },
+      "solvent_solver": {
+        "iterations": 10,
+        "kkt_residual_ev": 3.752365991260831e-07,
+        "min_projected_hessian_eigenvalue_ev": 3.192012364976812
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "gb_model": "hct",
+      "q_vac_e": [
+        -0.010994616219007408,
+        -0.1872775354111088,
+        -0.31559501172238896,
+        -0.00921299817079923,
+        0.06396547495899758,
+        0.11552307755486788,
+        0.0811633243765198,
+        0.11183610191959817,
+        0.05951249130871753,
+        0.09107969140460344
+      ],
+      "q_solv_e": [
+        0.09167042588081321,
+        -0.37453068945865803,
+        -0.6272477072566265,
+        0.0810712634608559,
+        0.13201454048974745,
+        0.15294782986181796,
+        0.13253788358565746,
+        0.15009591903987685,
+        0.1264747123248449,
+        0.1349658220716708
+      ],
+      "q_vac_sum_e": -1.3877787807814457e-17,
+      "q_solv_sum_e": 8.326672684688674e-17,
+      "q_vac_max_abs_e": 0.31559501172238896,
+      "q_solv_max_abs_e": 0.6272477072566265,
+      "vacuum_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 5.42095494715511e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.180429006799652
+      },
+      "solvent_solver": {
+        "iterations": 16,
+        "kkt_residual_ev": 1.1008083333763352e-10,
+        "min_projected_hessian_eigenvalue_ev": 3.030679615169341
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "gb_model": "obc1",
+      "q_vac_e": [
+        -0.010994616219007408,
+        -0.1872775354111088,
+        -0.31559501172238896,
+        -0.00921299817079923,
+        0.06396547495899758,
+        0.11552307755486788,
+        0.0811633243765198,
+        0.11183610191959817,
+        0.05951249130871753,
+        0.09107969140460344
+      ],
+      "q_solv_e": [
+        0.12271539054215379,
+        -0.43662340658519116,
+        -0.7082858296920578,
+        0.10368965039907636,
+        0.15000123597405787,
+        0.1670468149226482,
+        0.1483548400959293,
+        0.1627958564851405,
+        0.14244653803562132,
+        0.14785890982262162
+      ],
+      "q_vac_sum_e": -1.3877787807814457e-17,
+      "q_solv_sum_e": 1.942890293094024e-16,
+      "q_vac_max_abs_e": 0.31559501172238896,
+      "q_solv_max_abs_e": 0.7082858296920578,
+      "vacuum_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 5.42095494715511e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.180429006799652
+      },
+      "solvent_solver": {
+        "iterations": 15,
+        "kkt_residual_ev": 2.709441560000414e-10,
+        "min_projected_hessian_eigenvalue_ev": 2.679784661574358
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "gb_model": "obc2",
+      "q_vac_e": [
+        -0.010994616219007408,
+        -0.1872775354111088,
+        -0.31559501172238896,
+        -0.00921299817079923,
+        0.06396547495899758,
+        0.11552307755486788,
+        0.0811633243765198,
+        0.11183610191959817,
+        0.05951249130871753,
+        0.09107969140460344
+      ],
+      "q_solv_e": [
+        0.10887772861925865,
+        -0.4113097318139585,
+        -0.6720894902375215,
+        0.0924876624127167,
+        0.14320809594448553,
+        0.16154216306642427,
+        0.1417660999823581,
+        0.15759798491365973,
+        0.13587748676878658,
+        0.14204200034379058
+      ],
+      "q_vac_sum_e": -1.3877787807814457e-17,
+      "q_solv_sum_e": 8.326672684688674e-17,
+      "q_vac_max_abs_e": 0.31559501172238896,
+      "q_solv_max_abs_e": 0.6720894902375215,
+      "vacuum_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 5.42095494715511e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.180429006799652
+      },
+      "solvent_solver": {
+        "iterations": 14,
+        "kkt_residual_ev": 5.557556193025448e-09,
+        "min_projected_hessian_eigenvalue_ev": 2.824632990511094
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "gb_model": "gbn",
+      "q_vac_e": [
+        -0.010994616219007408,
+        -0.1872775354111088,
+        -0.31559501172238896,
+        -0.00921299817079923,
+        0.06396547495899758,
+        0.11552307755486788,
+        0.0811633243765198,
+        0.11183610191959817,
+        0.05951249130871753,
+        0.09107969140460344
+      ],
+      "q_solv_e": [
+        0.11161175417057051,
+        -0.4212176202085178,
+        -0.7280786066602132,
+        0.10021771846194694,
+        0.15267621961166028,
+        0.1689617422869835,
+        0.15057539218618785,
+        0.16647425834331508,
+        0.1475434834149585,
+        0.15123565839310815
+      ],
+      "q_vac_sum_e": -1.3877787807814457e-17,
+      "q_solv_sum_e": -1.1102230246251565e-16,
+      "q_vac_max_abs_e": 0.31559501172238896,
+      "q_solv_max_abs_e": 0.7280786066602132,
+      "vacuum_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 5.42095494715511e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.180429006799652
+      },
+      "solvent_solver": {
+        "iterations": 13,
+        "kkt_residual_ev": 8.696167785871012e-08,
+        "min_projected_hessian_eigenvalue_ev": 2.880598046734352
+      }
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "gb_model": "gbn2",
+      "q_vac_e": [
+        -0.010994616219007408,
+        -0.1872775354111088,
+        -0.31559501172238896,
+        -0.00921299817079923,
+        0.06396547495899758,
+        0.11552307755486788,
+        0.0811633243765198,
+        0.11183610191959817,
+        0.05951249130871753,
+        0.09107969140460344
+      ],
+      "q_solv_e": [
+        0.1270893874402091,
+        -0.4467013736616816,
+        -0.7786929010564221,
+        0.11396207003614664,
+        0.16031664790966474,
+        0.17708392109579685,
+        0.15855805404097825,
+        0.1742699882249231,
+        0.15489013514288116,
+        0.15922407082750384
+      ],
+      "q_vac_sum_e": -1.3877787807814457e-17,
+      "q_solv_sum_e": 2.7755575615628914e-17,
+      "q_vac_max_abs_e": 0.31559501172238896,
+      "q_solv_max_abs_e": 0.7786929010564221,
+      "vacuum_solver": {
+        "iterations": 12,
+        "kkt_residual_ev": 5.42095494715511e-07,
+        "min_projected_hessian_eigenvalue_ev": 4.180429006799652
+      },
+      "solvent_solver": {
+        "iterations": 16,
+        "kkt_residual_ev": 3.2438052244287974e-11,
+        "min_projected_hessian_eigenvalue_ev": 2.6611895178563976
+      }
+    }
+  ],
+  "summary": [
+    {
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "n": 10,
+      "mse_kcal_mol": -4.577808258984245,
+      "mae_kcal_mol": 5.718583515031429,
+      "rmse_kcal_mol": 7.748083588328537,
+      "max_abs_error_kcal_mol": 14.67568649181088
+    },
+    {
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "n": 10,
+      "mse_kcal_mol": -7.150511301296793,
+      "mae_kcal_mol": 8.159041357911969,
+      "rmse_kcal_mol": 10.942417697011836,
+      "max_abs_error_kcal_mol": 21.03626564607073
+    },
+    {
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "n": 10,
+      "mse_kcal_mol": -6.209457821671843,
+      "mae_kcal_mol": 7.218924901626066,
+      "rmse_kcal_mol": 9.654495179780588,
+      "max_abs_error_kcal_mol": 17.840766490946027
+    },
+    {
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "n": 10,
+      "mse_kcal_mol": -6.446406528891733,
+      "mae_kcal_mol": 7.586391097036957,
+      "rmse_kcal_mol": 9.965953781059573,
+      "max_abs_error_kcal_mol": 18.461284846059897
+    },
+    {
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "n": 10,
+      "mse_kcal_mol": -6.206682180250563,
+      "mae_kcal_mol": 7.266850076001146,
+      "rmse_kcal_mol": 10.197844921813228,
+      "max_abs_error_kcal_mol": 23.619373525671712
+    }
+  ],
+  "results": [
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -0.09422396460453483,
+      "gb_polar_kcal_mol": -0.10013441655994962,
+      "qeq_polarization_kcal_mol": 0.005910451955414792,
+      "nonpolar_kcal_mol": 1.4589316290275975,
+      "prediction_kcal_mol": 1.3647076644230625,
+      "experimental_kcal_mol": 2.0,
+      "signed_error_kcal_mol": -0.6352923355769375
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -0.07994399992743431,
+      "gb_polar_kcal_mol": -0.08419997136082337,
+      "qeq_polarization_kcal_mol": 0.004255971433389069,
+      "nonpolar_kcal_mol": 1.7716737448754758,
+      "prediction_kcal_mol": 1.6917297449480413,
+      "experimental_kcal_mol": 2.0,
+      "signed_error_kcal_mol": -0.3082702550519587
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -0.08170988534188513,
+      "gb_polar_kcal_mol": -0.08615554504031772,
+      "qeq_polarization_kcal_mol": 0.004445659698432595,
+      "nonpolar_kcal_mol": 1.6019405624812288,
+      "prediction_kcal_mol": 1.520230677139344,
+      "experimental_kcal_mol": 2.0,
+      "signed_error_kcal_mol": -0.4797693228606561
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -0.029020162836344936,
+      "gb_polar_kcal_mol": -0.029581825717807816,
+      "qeq_polarization_kcal_mol": 0.0005616628814628788,
+      "nonpolar_kcal_mol": 1.3958873696972223,
+      "prediction_kcal_mol": 1.3668672068608776,
+      "experimental_kcal_mol": 2.0,
+      "signed_error_kcal_mol": -0.6331327931391224
+    },
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -0.029024968983142004,
+      "gb_polar_kcal_mol": -0.02958677198212585,
+      "qeq_polarization_kcal_mol": 0.0005618029989838477,
+      "nonpolar_kcal_mol": 1.6961436989499001,
+      "prediction_kcal_mol": 1.6671187299667583,
+      "experimental_kcal_mol": 2.0,
+      "signed_error_kcal_mol": -0.33288127003324175
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -2.111377886962962,
+      "gb_polar_kcal_mol": -2.877237325598928,
+      "qeq_polarization_kcal_mol": 0.7658594386359657,
+      "nonpolar_kcal_mol": 2.586501467527856,
+      "prediction_kcal_mol": 0.4751235805648942,
+      "experimental_kcal_mol": -0.9,
+      "signed_error_kcal_mol": 1.3751235805648943
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -2.7922811970469814,
+      "gb_polar_kcal_mol": -4.097713014157431,
+      "qeq_polarization_kcal_mol": 1.3054318171104498,
+      "nonpolar_kcal_mol": 3.34633823045466,
+      "prediction_kcal_mol": 0.5540570334076784,
+      "experimental_kcal_mol": -0.9,
+      "signed_error_kcal_mol": 1.4540570334076786
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -2.4861493849090435,
+      "gb_polar_kcal_mol": -3.5331643378888686,
+      "qeq_polarization_kcal_mol": 1.0470149529798252,
+      "nonpolar_kcal_mol": 2.8781295427076237,
+      "prediction_kcal_mol": 0.39198015779858,
+      "experimental_kcal_mol": -0.9,
+      "signed_error_kcal_mol": 1.29198015779858
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -3.0632670103233828,
+      "gb_polar_kcal_mol": -4.618100469567895,
+      "qeq_polarization_kcal_mol": 1.5548334592445119,
+      "nonpolar_kcal_mol": 3.865555706856742,
+      "prediction_kcal_mol": 0.8022886965333599,
+      "experimental_kcal_mol": -0.9,
+      "signed_error_kcal_mol": 1.70228869653336
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -2.0978833594182915,
+      "gb_polar_kcal_mol": -2.854364643006251,
+      "qeq_polarization_kcal_mol": 0.7564812835879592,
+      "nonpolar_kcal_mol": 2.641988350055991,
+      "prediction_kcal_mol": 0.5441049906376985,
+      "experimental_kcal_mol": -0.9,
+      "signed_error_kcal_mol": 1.4441049906376984
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -6.546362433263044,
+      "gb_polar_kcal_mol": -9.454427091832764,
+      "qeq_polarization_kcal_mol": 2.90806465856972,
+      "nonpolar_kcal_mol": 1.5419970244830223,
+      "prediction_kcal_mol": -5.004365408780022,
+      "experimental_kcal_mol": -5.1,
+      "signed_error_kcal_mol": 0.09563459121997742
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -8.746713452954435,
+      "gb_polar_kcal_mol": -14.488601558028336,
+      "qeq_polarization_kcal_mol": 5.7418881050739,
+      "nonpolar_kcal_mol": 1.9278523043765068,
+      "prediction_kcal_mol": -6.818861148577928,
+      "experimental_kcal_mol": -5.1,
+      "signed_error_kcal_mol": -1.7188611485779282
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -8.107133019610869,
+      "gb_polar_kcal_mol": -13.011993050392274,
+      "qeq_polarization_kcal_mol": 4.904860030781403,
+      "nonpolar_kcal_mol": 1.7061896559072898,
+      "prediction_kcal_mol": -6.40094336370358,
+      "experimental_kcal_mol": -5.1,
+      "signed_error_kcal_mol": -1.3009433637035803
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -7.3623284682198715,
+      "gb_polar_kcal_mol": -11.468467487345933,
+      "qeq_polarization_kcal_mol": 4.106139019126062,
+      "nonpolar_kcal_mol": 1.365653285722331,
+      "prediction_kcal_mol": -5.99667518249754,
+      "experimental_kcal_mol": -5.1,
+      "signed_error_kcal_mol": -0.8966751824975407
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -7.685022017070905,
+      "gb_polar_kcal_mol": -12.521921026024565,
+      "qeq_polarization_kcal_mol": 4.836899008953661,
+      "nonpolar_kcal_mol": 1.904005633715816,
+      "prediction_kcal_mol": -5.781016383355087,
+      "experimental_kcal_mol": -5.1,
+      "signed_error_kcal_mol": -0.6810163833550877
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -7.221462718976771,
+      "gb_polar_kcal_mol": -9.283895178480938,
+      "qeq_polarization_kcal_mol": 2.0624324595041674,
+      "nonpolar_kcal_mol": 1.751584991930092,
+      "prediction_kcal_mol": -5.46987772704668,
+      "experimental_kcal_mol": -1.91,
+      "signed_error_kcal_mol": -3.55987772704668
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -9.70922514675595,
+      "gb_polar_kcal_mol": -13.37030273392141,
+      "qeq_polarization_kcal_mol": 3.66107758716546,
+      "nonpolar_kcal_mol": 2.307596126215492,
+      "prediction_kcal_mol": -7.401629020540457,
+      "experimental_kcal_mol": -1.91,
+      "signed_error_kcal_mol": -5.491629020540457
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -8.654829955576101,
+      "gb_polar_kcal_mol": -11.583784942737198,
+      "qeq_polarization_kcal_mol": 2.9289549871610956,
+      "nonpolar_kcal_mol": 1.9889059207086293,
+      "prediction_kcal_mol": -6.665924034867474,
+      "experimental_kcal_mol": -1.91,
+      "signed_error_kcal_mol": -4.755924034867474
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -9.138424513738855,
+      "gb_polar_kcal_mol": -12.398881308675367,
+      "qeq_polarization_kcal_mol": 3.260456794936514,
+      "nonpolar_kcal_mol": 1.6785707337337934,
+      "prediction_kcal_mol": -7.45985378000506,
+      "experimental_kcal_mol": -1.91,
+      "signed_error_kcal_mol": -5.54985378000506
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -9.87127450918353,
+      "gb_polar_kcal_mol": -13.657949968407946,
+      "qeq_polarization_kcal_mol": 3.786675459224416,
+      "nonpolar_kcal_mol": 2.1771731336325306,
+      "prediction_kcal_mol": -7.694101375550998,
+      "experimental_kcal_mol": -1.91,
+      "signed_error_kcal_mol": -5.784101375550998
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -14.677064173105846,
+      "gb_polar_kcal_mol": -28.951730768909837,
+      "qeq_polarization_kcal_mol": 14.27466659580399,
+      "nonpolar_kcal_mol": 2.0470978882164035,
+      "prediction_kcal_mol": -12.629966284889441,
+      "experimental_kcal_mol": -3.8,
+      "signed_error_kcal_mol": -8.82996628488944
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -19.022123759517758,
+      "gb_polar_kcal_mol": -42.921646092845315,
+      "qeq_polarization_kcal_mol": 23.899522333327557,
+      "nonpolar_kcal_mol": 2.7060992863200117,
+      "prediction_kcal_mol": -16.316024473197746,
+      "experimental_kcal_mol": -3.8,
+      "signed_error_kcal_mol": -12.516024473197746
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -17.39072387799286,
+      "gb_polar_kcal_mol": -37.3558545059516,
+      "qeq_polarization_kcal_mol": 19.965130627958743,
+      "nonpolar_kcal_mol": 2.33696821455838,
+      "prediction_kcal_mol": -15.053755663434481,
+      "experimental_kcal_mol": -3.8,
+      "signed_error_kcal_mol": -11.253755663434482
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -17.29418577920019,
+      "gb_polar_kcal_mol": -36.87093815377731,
+      "qeq_polarization_kcal_mol": 19.57675237457712,
+      "nonpolar_kcal_mol": 2.287298181768396,
+      "prediction_kcal_mol": -15.006887597431799,
+      "experimental_kcal_mol": -3.8,
+      "signed_error_kcal_mol": -11.206887597431798
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -15.767655496669102,
+      "gb_polar_kcal_mol": -32.25316146148297,
+      "qeq_polarization_kcal_mol": 16.485505964813864,
+      "nonpolar_kcal_mol": 2.282199008576478,
+      "prediction_kcal_mol": -13.485456488092623,
+      "experimental_kcal_mol": -3.8,
+      "signed_error_kcal_mol": -9.685456488092623
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -19.676966985327706,
+      "gb_polar_kcal_mol": -43.99362073857354,
+      "qeq_polarization_kcal_mol": 24.316653753245838,
+      "nonpolar_kcal_mol": 2.4948589331345885,
+      "prediction_kcal_mol": -17.18210805219312,
+      "experimental_kcal_mol": -2.94,
+      "signed_error_kcal_mol": -14.24210805219312
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -27.275968108355375,
+      "gb_polar_kcal_mol": -78.27069019287713,
+      "qeq_polarization_kcal_mol": 50.994722084521754,
+      "nonpolar_kcal_mol": 3.2997024622846407,
+      "prediction_kcal_mol": -23.976265646070733,
+      "experimental_kcal_mol": -2.94,
+      "signed_error_kcal_mol": -21.03626564607073
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -23.585521094740475,
+      "gb_polar_kcal_mol": -60.90673307580777,
+      "qeq_polarization_kcal_mol": 37.32121198106729,
+      "nonpolar_kcal_mol": 2.804754603794454,
+      "prediction_kcal_mol": -20.78076649094603,
+      "experimental_kcal_mol": -2.94,
+      "signed_error_kcal_mol": -17.840766490946027
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -24.058025353753184,
+      "gb_polar_kcal_mol": -56.30709587072952,
+      "qeq_polarization_kcal_mol": 32.24907051697633,
+      "nonpolar_kcal_mol": 2.656740507693285,
+      "prediction_kcal_mol": -21.401284846059898,
+      "experimental_kcal_mol": -2.94,
+      "signed_error_kcal_mol": -18.461284846059897
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -29.58920052879094,
+      "gb_polar_kcal_mol": -78.76767574620067,
+      "qeq_polarization_kcal_mol": 49.178475217409726,
+      "nonpolar_kcal_mol": 3.029827003119217,
+      "prediction_kcal_mol": -26.559373525671713,
+      "experimental_kcal_mol": -2.94,
+      "signed_error_kcal_mol": -23.619373525671712
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -7.046983785095429,
+      "gb_polar_kcal_mol": -20.98276064836,
+      "qeq_polarization_kcal_mol": 13.93577686326457,
+      "nonpolar_kcal_mol": 1.985924868732533,
+      "prediction_kcal_mol": -5.061058916362897,
+      "experimental_kcal_mol": -3.88,
+      "signed_error_kcal_mol": -1.1810589163628968
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -9.356055317423984,
+      "gb_polar_kcal_mol": -33.31158486602158,
+      "qeq_polarization_kcal_mol": 23.955529548597603,
+      "nonpolar_kcal_mol": 2.3996988122933534,
+      "prediction_kcal_mol": -6.956356505130632,
+      "experimental_kcal_mol": -3.88,
+      "signed_error_kcal_mol": -3.076356505130632
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -8.55617535191835,
+      "gb_polar_kcal_mol": -28.695016890398247,
+      "qeq_polarization_kcal_mol": 20.138841538479898,
+      "nonpolar_kcal_mol": 2.168647386330233,
+      "prediction_kcal_mol": -6.387527965588116,
+      "experimental_kcal_mol": -3.88,
+      "signed_error_kcal_mol": -2.5075279655881157
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -9.074814260742693,
+      "gb_polar_kcal_mol": -30.91224566789835,
+      "qeq_polarization_kcal_mol": 21.83743140715566,
+      "nonpolar_kcal_mol": 2.261996621334739,
+      "prediction_kcal_mol": -6.812817639407954,
+      "experimental_kcal_mol": -3.88,
+      "signed_error_kcal_mol": -2.932817639407954
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -10.20440873584218,
+      "gb_polar_kcal_mol": -37.25887372533124,
+      "qeq_polarization_kcal_mol": 27.054464989489063,
+      "nonpolar_kcal_mol": 2.458943681413789,
+      "prediction_kcal_mol": -7.745465054428391,
+      "experimental_kcal_mol": -3.88,
+      "signed_error_kcal_mol": -3.865465054428391
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -4.031955943194789,
+      "gb_polar_kcal_mol": -8.446626347814641,
+      "qeq_polarization_kcal_mol": 4.414670404619852,
+      "nonpolar_kcal_mol": 2.7750740516458414,
+      "prediction_kcal_mol": -1.2568818915489486,
+      "experimental_kcal_mol": -5.49,
+      "signed_error_kcal_mol": 4.233118108451052
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -5.464978522339594,
+      "gb_polar_kcal_mol": -14.356728492724637,
+      "qeq_polarization_kcal_mol": 8.891749970385042,
+      "nonpolar_kcal_mol": 3.5635717720077973,
+      "prediction_kcal_mol": -1.901406750331798,
+      "experimental_kcal_mol": -5.49,
+      "signed_error_kcal_mol": 3.588593249668202
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -4.769989921139793,
+      "gb_polar_kcal_mol": -11.243988410166052,
+      "qeq_polarization_kcal_mol": 6.4739984890262585,
+      "nonpolar_kcal_mol": 3.035345163112324,
+      "prediction_kcal_mol": -1.7346447580274686,
+      "experimental_kcal_mol": -5.49,
+      "signed_error_kcal_mol": 3.7553552419725316
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -5.530471206031423,
+      "gb_polar_kcal_mol": -15.314255740100728,
+      "qeq_polarization_kcal_mol": 9.783784534069305,
+      "nonpolar_kcal_mol": 4.038105350224188,
+      "prediction_kcal_mol": -1.4923658558072357,
+      "experimental_kcal_mol": -5.49,
+      "signed_error_kcal_mol": 3.9976341441927645
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -4.71249437714109,
+      "gb_polar_kcal_mol": -11.59584151916109,
+      "qeq_polarization_kcal_mol": 6.883347142019998,
+      "nonpolar_kcal_mol": 3.079228865256309,
+      "prediction_kcal_mol": -1.6332655118847828,
+      "experimental_kcal_mol": -5.49,
+      "signed_error_kcal_mol": 3.8567344881152175
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -17.170613584342526,
+      "gb_polar_kcal_mol": -36.874151046795454,
+      "qeq_polarization_kcal_mol": 19.703537462452932,
+      "nonpolar_kcal_mol": 1.8649270925316406,
+      "prediction_kcal_mol": -15.305686491810881,
+      "experimental_kcal_mol": -0.63,
+      "signed_error_kcal_mol": -14.67568649181088
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -22.06486270932302,
+      "gb_polar_kcal_mol": -55.25178779309286,
+      "qeq_polarization_kcal_mol": 33.18692508376984,
+      "nonpolar_kcal_mol": 2.4387580022056965,
+      "prediction_kcal_mol": -19.626104707117324,
+      "experimental_kcal_mol": -0.63,
+      "signed_error_kcal_mol": -18.996104707117325
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -20.426946321887872,
+      "gb_polar_kcal_mol": -48.67112607367509,
+      "qeq_polarization_kcal_mol": 28.244179751787215,
+      "nonpolar_kcal_mol": 2.1363634283351103,
+      "prediction_kcal_mol": -18.290582893552767,
+      "experimental_kcal_mol": -0.63,
+      "signed_error_kcal_mol": -17.660582893552768
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -19.293024267514653,
+      "gb_polar_kcal_mol": -44.03680857064975,
+      "qeq_polarization_kcal_mol": 24.743784303135094,
+      "nonpolar_kcal_mol": 2.2624689842666688,
+      "prediction_kcal_mol": -17.030555283247985,
+      "experimental_kcal_mol": -0.63,
+      "signed_error_kcal_mol": -16.400555283247986
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -9.365343995096628,
+      "gb_polar_kcal_mol": -16.052123208173708,
+      "qeq_polarization_kcal_mol": 6.686779213077077,
+      "nonpolar_kcal_mol": 1.9641623487059414,
+      "prediction_kcal_mol": -7.401181646390688,
+      "experimental_kcal_mol": -0.63,
+      "signed_error_kcal_mol": -6.771181646390688
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "hct",
+      "polar_plus_polarization_kcal_mol": -19.378434234436913,
+      "gb_polar_kcal_mol": -38.385370392170294,
+      "qeq_polarization_kcal_mol": 19.00693615773338,
+      "nonpolar_kcal_mol": 1.7404651722385052,
+      "prediction_kcal_mol": -17.63796906219841,
+      "experimental_kcal_mol": -9.28,
+      "signed_error_kcal_mol": -8.357969062198412
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc1",
+      "polar_plus_polarization_kcal_mol": -24.963636764990596,
+      "gb_polar_kcal_mol": -56.00103133277297,
+      "qeq_polarization_kcal_mol": 31.03739456778237,
+      "nonpolar_kcal_mol": 2.2793852246335717,
+      "prediction_kcal_mol": -22.684251540357025,
+      "experimental_kcal_mol": -9.28,
+      "signed_error_kcal_mol": -13.404251540357025
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "obc2",
+      "polar_plus_polarization_kcal_mol": -22.55149752645671,
+      "gb_polar_kcal_mol": -48.01611354610178,
+      "qeq_polarization_kcal_mol": 25.46461601964507,
+      "nonpolar_kcal_mol": 1.9288536449202633,
+      "prediction_kcal_mol": -20.622643881536447,
+      "experimental_kcal_mol": -9.28,
+      "signed_error_kcal_mol": -11.342643881536448
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn",
+      "polar_plus_polarization_kcal_mol": -25.732009255895303,
+      "gb_polar_kcal_mol": -58.28362117863263,
+      "qeq_polarization_kcal_mol": 32.55161192273732,
+      "nonpolar_kcal_mol": 2.3692282480412006,
+      "prediction_kcal_mol": -23.3627810078541,
+      "experimental_kcal_mol": -9.28,
+      "signed_error_kcal_mol": -14.0827810078541
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "charge_method": "cqeq-gto",
+      "charge_mode": "polarizable",
+      "gb_model": "gbn2",
+      "polar_plus_polarization_kcal_mol": -28.89914986396577,
+      "gb_polar_kcal_mol": -69.61038704867337,
+      "qeq_polarization_kcal_mol": 40.7112371847076,
+      "nonpolar_kcal_mol": 2.9909643262299737,
+      "prediction_kcal_mol": -25.9081855377358,
+      "experimental_kcal_mol": -9.28,
+      "signed_error_kcal_mol": -16.628185537735803
+    }
+  ]
+}

@@ -106,18 +106,17 @@ class FooCalculator(CalcABC):
 
 ## Implicit solvent
 
-- `_finalize_results` is the only place that adds the GBSA correction.
-  **Custom calculators do not call `implicit_solv_energy_and_force()`
-  directly** for the `calculate()` flow. If a backend needs special
-  handling, override `_finalize_results` rather than duplicating the
-  solvent path.
-- Solvent setup happens via `init_implicit_solvent(calc, implicit,
-  solvent, device)`. `CalcABC.__init__` does not call this for you in the
-  current release; subclasses still invoke `self.implicit_solv_init(...)`
-  inside their own `__init__`.
-- `None`, `none`, `null`, `false`, `0`, and empty strings normalize to
-  `none`. `implicit='gbsa'` requires a real solvent name such as
-  `solvent='water'`; MAPLE fails early instead of looking for `None.dat`.
+- `_finalize_results` is the only CalcABC composition point for additive
+  solvent energy and force corrections. Custom calculators do not call a
+  provider directly in their `calculate()` flow.
+- `SetCalculator` installs one prepared `ImplicitSolvationCorrection` because
+  the provider needs the reference MOL2 topology and explicit `#charge(...)`
+  configuration.
+- Implemented route-1 methods are `gb` and `pb` in water. Legacy `gbsa` input
+  raises a migration error rather than selecting the old heuristic correction.
+- A provider advertises `supported_properties`: OpenMM GB exposes energy and
+  force; APBS LPB exposes energy only. Shared guards reject gas-only derivatives.
+- Hessian/HVP, stress, PBC, and unsupported task/domain combinations fail closed.
 
 ## Hessian
 

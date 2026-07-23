@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "dataset": "FreeSolv v0.52",
+  "dataset_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+  "dataset_citations": [
+    "Mobley and Guthrie, J. Comput.-Aided Mol. Des. 2014, DOI:10.1007/s10822-014-9747-x",
+    "Duarte Ramos Matos et al., J. Chem. Eng. Data 2017, DOI:10.1021/acs.jced.7b00104"
+  ],
+  "license_note": "FreeSolv data are CC-BY-4.0 to the extent stated by upstream; preserve the upstream caveats.",
+  "charge_policy": "Use the pinned MOL2 charges, then apply one audited uniform residual correction to exact neutral charge before both Amber and OpenMM evaluations.",
+  "cases": [
+    {
+      "case_id": "benzene",
+      "compound_id": "mobley_3053621",
+      "mol2": "mol2/mobley_3053621.mol2",
+      "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "charge": 0,
+      "multiplicity": 1,
+      "coverage": ["aromatic hydrocarbon", "C", "H"]
+    },
+    {
+      "case_id": "methanol",
+      "compound_id": "mobley_1636752",
+      "mol2": "mol2/mobley_1636752.mol2",
+      "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "charge": 0,
+      "multiplicity": 1,
+      "coverage": ["alcohol", "O"]
+    },
+    {
+      "case_id": "aniline",
+      "compound_id": "mobley_4883284",
+      "mol2": "mol2/mobley_4883284.mol2",
+      "mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+      "charge": 0,
+      "multiplicity": 1,
+      "coverage": ["aromatic amine", "N"]
+    },
+    {
+      "case_id": "fluorobenzene",
+      "compound_id": "mobley_4483973",
+      "mol2": "mol2/mobley_4483973.mol2",
+      "mol2_sha256": "1720f6b25d84cdeb71b68b73ede0eee07d1a33f58a0c7dbaf1973e100327797d",
+      "charge": 0,
+      "multiplicity": 1,
+      "coverage": ["aryl fluoride", "F"]
+    },
+    {
+      "case_id": "dimethyl-sulfide",
+      "compound_id": "mobley_9073553",
+      "mol2": "mol2/mobley_9073553.mol2",
+      "mol2_sha256": "d441452703cbb0234a6e0e9ccedf3843b131122882bc6547cd8874d71d527438",
+      "charge": 0,
+      "multiplicity": 1,
+      "coverage": ["thioether", "S"]
+    }
+  ]
+}

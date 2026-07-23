@@ -1,0 +1,6 @@
+source leaprc.gaff2
+set default PBradii bondi
+MOL = loadmol2 /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/normalized.mol2
+loadamberparams /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/frcmod.gaff2
+saveamberparm MOL /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/gbn/system.prmtop /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/gbn/system.inpcrd
+quit

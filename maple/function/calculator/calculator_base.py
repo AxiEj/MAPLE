@@ -51,10 +51,8 @@ _NONE_OPTIONS = {'', 'none', 'null', 'false', '0'}
 
 
 IMPLICIT_SOLVENT_FORCE_ERROR = (
-    "Experimental implicit GB-polar solvation is energy-only. Forces, stress, "
-    "Hessians, and HVPs are disabled because QEq charges are "
-    "geometry-dependent and are not coupled variationally to the solvent "
-    "energy."
+    "The selected implicit-solvent provider does not supply the requested "
+    "energy-consistent derivative."
 )
 IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES = {
     "forces",
@@ -66,14 +64,18 @@ IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES = {
     "hessian",
 }
 
-
 def reject_implicit_solvent_derivatives(calculator, properties):
-    """Fail fast when experimental implicit solvation is asked for derivatives."""
+    """Fail fast when a selected provider lacks the requested derivative."""
     if not getattr(calculator, "solvent_correction", None):
         return _property_list(properties)
     normalized = _property_list(properties)
     requested = {str(prop).lower() for prop in normalized}
-    if requested.intersection(IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES):
+    correction = calculator.solvent_correction
+    supported = set(getattr(correction, "supported_properties", {"energy"}))
+    unsupported = requested.intersection(IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES)
+    if "forces" in supported:
+        unsupported.difference_update({"forces", "force"})
+    if unsupported:
         raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
     return normalized
 
@@ -330,16 +332,42 @@ class CalcABC(ase.calculators.calculator.Calculator):
         energy_ha, forces_ha = _convert_energy_force_units(
             energy, forces, source_unit=source_unit
         )
+        gas_energy_ha = float(energy_ha)
+        structured_solvation_result = None
 
         if getattr(self, 'solvent_correction', None) is not None:
-            # GB-polar solvation is energy-only. Reaching here with forces under
-            # active solvent means the calculate()/get_hessian() guards were
-            # bypassed; fail loudly rather than emit a solvent-inconsistent force.
-            if forces_ha is not None:
+            if hessian is not None:
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-            solvent_energy = self.implicit_solv_energy(atoms)
-            se = solvent_energy.item() if hasattr(solvent_energy, 'item') else float(solvent_energy)
-            energy_ha = energy_ha + se
+            if hasattr(self.solvent_correction, "evaluate"):
+                try:
+                    solvent_result = self.solvent_correction.evaluate(
+                        atoms,
+                        need_forces=forces_ha is not None,
+                        calculator=self,
+                    )
+                except TypeError as exc:
+                    try:
+                        solvent_result = self.solvent_correction.evaluate(
+                            atoms,
+                            need_forces=forces_ha is not None,
+                        )
+                    except TypeError:
+                        raise exc
+                energy_ha = energy_ha + float(solvent_result.energy_hartree)
+                if forces_ha is not None:
+                    if solvent_result.forces_hartree_per_angstrom is None:
+                        raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
+                    forces_ha = np.asarray(forces_ha) + np.asarray(
+                        solvent_result.forces_hartree_per_angstrom
+                    )
+                self.solvation_result = solvent_result
+                structured_solvation_result = solvent_result
+            else:
+                if forces_ha is not None:
+                    raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
+                solvent_energy = self.implicit_solv_energy(atoms)
+                se = solvent_energy.item() if hasattr(solvent_energy, 'item') else float(solvent_energy)
+                energy_ha = energy_ha + se
 
         # Sole results-writing chokepoint for every CalcABC backend: clear first
         # so an energy-only call cannot inherit stale forces/hessian from a
@@ -351,6 +379,19 @@ class CalcABC(ase.calculators.calculator.Calculator):
             self.results['forces'] = forces_ha
         if hessian is not None:
             self.results['hessian'] = hessian
+        if structured_solvation_result is not None:
+            result = structured_solvation_result
+            self.results['solvation'] = {
+                'energy_hartree': float(result.energy_hartree),
+                'delta_g_solv_hartree': float(result.energy_hartree),
+                'gas_energy_hartree': gas_energy_ha,
+                'combined_energy_hartree': float(energy_ha),
+                'components_hartree': dict(result.components_hartree),
+                'provenance': dict(result.provenance),
+                'ase_free_energy_is_thermochemical_gibbs': False,
+            }
+        elif hasattr(self, 'solvation_result'):
+            del self.solvation_result
 
     def get_hessian(self, atoms, delta: float = 0.002):
         """Dispatch on self.hessian. Subclasses may override for backend autograd."""
@@ -423,6 +464,8 @@ class CalcABC(ase.calculators.calculator.Calculator):
         Returns:
             torch.Tensor: Implicit solvent correction energy in Hartree.
         """
+        if hasattr(self.solvent_correction, 'evaluate'):
+            return self.solvent_correction.evaluate(atoms).energy_hartree
         atoms.atomic_charges = self.chargecalc(
             atoms, total_charge=self._total_charge_from_atoms(atoms)
         )
@@ -439,4 +482,9 @@ class CalcABC(ase.calculators.calculator.Calculator):
         Returns:
             tuple[torch.Tensor, torch.Tensor]: Implicit solvent correction energy in Hartree and forces in Hartree/Å.
         """
+        if hasattr(self.solvent_correction, 'evaluate'):
+            result = self.solvent_correction.evaluate(atoms, need_forces=True)
+            if result.forces_hartree_per_angstrom is None:
+                raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
+            return result.energy_hartree, result.forces_hartree_per_angstrom
         raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)

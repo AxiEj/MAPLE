@@ -16,7 +16,7 @@ dynamics, and related post-processing workflows.
 | **Dynamics** | NVE, NVT, NPT |
 | **Analysis** | Frequency, PES Scan, Single Point |
 | **ML Potentials** | ANI, AIMNet2, MACE, MACEPol, UMA |
-| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental GB-polar SP energy correction, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
+| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental MOL2-based implicit PB/GB corrections, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
 
 ## Installation
 
@@ -47,6 +47,18 @@ External runtime dependencies that users install manually:
 |---------|------------------|--------------|------------------------------------|
 | `torch` | `>=2.0` | ANI, AIMNet2, MACE-OFF, MACE-O-MOL, MACE-Polar, UMA | PyTorch wheels must match the user's CUDA/CPU runtime and should be selected from the official PyTorch index. |
 | `fairchem-core` | FAIR-Chem release with UMA support; tested locally with `2.19.0` | UMA and FAIR-Chem-backed/PBC workflows | FAIR-Chem may impose its own compatible PyTorch/runtime constraints, so install it after the matching PyTorch wheel. |
+
+For implicit GB models, install the optional OpenMM provider:
+
+```bash
+pip install 'maple[implicit-gb]'
+```
+
+APBS LPB, AM1-BCC, and ABCG2 are executable providers rather than core Python
+dependencies. Install APBS separately for `provider=apbs`; install AmberTools24+
+for `method=am1bcc` or `method=abcg2`. See
+[`docs/implicit-solvation/README.md`](docs/implicit-solvation/README.md) for the
+MOL2 input contract, supported profiles, and evidence gates.
 
 ### Install MAPLE
 

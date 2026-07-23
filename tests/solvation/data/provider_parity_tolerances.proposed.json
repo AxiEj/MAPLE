@@ -1,0 +1,28 @@
+{
+  "amber_gb": {
+    "max_abs_nonpolar_lcpo_kcal_mol": 1e-06,
+    "max_abs_polar_force_kcal_mol_angstrom": 0.06,
+    "max_abs_polar_kcal_mol": 0.02,
+    "max_abs_total_lcpo_force_kcal_mol_angstrom": 0.06,
+    "max_abs_total_lcpo_kcal_mol": 0.02
+  },
+  "apbs": {
+    "max_abs_official_component_kcal_mol": 0.001,
+    "max_successive_grid_total_difference_kcal_mol": 0.15
+  },
+  "evidence_artifact": "tests/solvation/data/provider_parity_observations.json",
+  "evidence_artifact_sha256": "1cb6ea9120dd774d3dbebb3f3dc01bdad1cfde5bb4fff3b60dec089430210a63",
+  "freeze_instruction": "After human literature/code review, copy to provider_parity_tolerances.json and change review_status to human-reviewed-frozen without changing numerical values; revisions require a new reviewed rationale.",
+  "protocol_fingerprint": "76ed1ea6483678d113353d7371ca1e015c780a38937fa5333d7c40ec9db8c676",
+  "protocol_id": "maple-neutral-water-freesolv-v1",
+  "rationale": {
+    "amber_energy": "0.02 exceeds the observed 0.011194 maximum while remaining far below chemical-accuracy scales.",
+    "amber_force": "0.06 exceeds the observed 0.045856 maximum with explicit headroom for the pinned Reference platform.",
+    "amber_lcpo": "1e-6 treats the shared upstream LCPO implementation as a numerical identity check; observed maximum is 6.7e-16.",
+    "apbs_grid": "0.15 exceeds the measured 0.113892 finest-pair change; the non-monotone molecular-surface sequence is recorded rather than hidden.",
+    "apbs_official": "0.001 accommodates the documentation value rounded to 0.01 kJ/mol; observed difference is 0.000505 kcal/mol."
+  },
+  "review_status": "proposed-awaiting-human-review",
+  "schema_version": 1,
+  "scope": "Numerical provider parity only; these are not hydration-accuracy thresholds."
+}

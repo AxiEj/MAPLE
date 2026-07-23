@@ -178,7 +178,23 @@ examples/md/**/*.xyz
 # Local automation/session artifacts
 /.omc/
 /docs/
+!/docs/
+/docs/*
+!/docs/implicit-solvation/
+!/docs/implicit-solvation/*.md
+!/docs/implicit-solvation/benchmarks/
+!/docs/implicit-solvation/benchmarks/*.md
+!/docs/implicit-solvation/benchmarks/*.json
+!/docs/implicit-solvation/benchmarks/*.py
+
+# Frozen provider-parity evidence includes the original provider logs.
+!/tests/solvation/data/amber_gb_reference/audit/**/*.log
+!/tests/solvation/data/apbs_reference/audit/**/*.log
 
 # Generated explicit-solvent example outputs
 examples/opt/exp-solv/*.out
 examples/opt/exp-solv/*.xyz
+
+# External implicit-solvent provider scratch files written in the launch directory
+/io.mc
+/mdinfo

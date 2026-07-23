@@ -1,0 +1,130 @@
+{
+  "cases": [
+    {
+      "analytic_kj_mol": {
+        "polar": -230.62
+      },
+      "case_id": "official-born-ion",
+      "control_kind": "official-born-ion",
+      "expected_kcal_mol": {
+        "polar": -54.873326959847034
+      },
+      "expected_kj_mol": {
+        "polar": -229.59
+      },
+      "grids": [
+        {
+          "grid_points": 97,
+          "grid_spacing_angstrom": 0.33
+        }
+      ],
+      "pqr": "born.pqr",
+      "pqr_sha256": "7a6931a65db302b5026d030fbd3f24bfed6a63ba11d4715436f8dc0b1a10a5c3",
+      "settings": {
+        "boundary_condition": "mdh",
+        "charge_discretization": "spl2",
+        "equation": "lpbe",
+        "probe_radius_angstrom": 1.4,
+        "solute_dielectric": 1.0,
+        "solvent_dielectric": 78.54,
+        "surface": "mol",
+        "temperature_kelvin": 298.15
+      }
+    },
+    {
+      "case_id": "methanol",
+      "charge": 0,
+      "charge_source": "same normalized fixed-charge vector as Amber parity corpus",
+      "charges_e": [
+        0.11658333305894425,
+        -0.5985166691361683,
+        0.02848333327845552,
+        0.02848333327845552,
+        0.02848333327845552,
+        0.3964833330589443
+      ],
+      "compound_id": "mobley_1636752",
+      "control_kind": "neutral-grid-convergence",
+      "grids": [
+        {
+          "grid_points": 65,
+          "grid_spacing_angstrom": 0.5
+        },
+        {
+          "grid_points": 97,
+          "grid_spacing_angstrom": 0.33
+        },
+        {
+          "grid_points": 129,
+          "grid_spacing_angstrom": 0.25
+        },
+        {
+          "grid_points": 161,
+          "grid_spacing_angstrom": 0.2
+        },
+        {
+          "grid_points": 193,
+          "grid_spacing_angstrom": 0.1666666667
+        }
+      ],
+      "mol2": "../amber_gb_reference/mol2/mobley_1636752.mol2",
+      "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "multiplicity": 1,
+      "profile": "generic-mbondi2"
+    },
+    {
+      "case_id": "aniline",
+      "charge": 0,
+      "charge_source": "same normalized fixed-charge vector as Amber parity corpus",
+      "charges_e": [
+        -0.17292142868902388,
+        -0.0935214286890239,
+        -0.18982142868902388,
+        0.13557857131097611,
+        -0.18982142868902388,
+        -0.0935214286890239,
+        -0.8176214308841364,
+        0.12977857131097612,
+        0.12927857131097611,
+        0.1303785713109761,
+        0.1303785713109761,
+        0.12927857131097611,
+        0.3862785713109761,
+        0.3862785713109761
+      ],
+      "compound_id": "mobley_4883284",
+      "control_kind": "neutral-grid-convergence",
+      "grids": [
+        {
+          "grid_points": 65,
+          "grid_spacing_angstrom": 0.5
+        },
+        {
+          "grid_points": 97,
+          "grid_spacing_angstrom": 0.33
+        },
+        {
+          "grid_points": 129,
+          "grid_spacing_angstrom": 0.25
+        },
+        {
+          "grid_points": 161,
+          "grid_spacing_angstrom": 0.2
+        },
+        {
+          "grid_points": 193,
+          "grid_spacing_angstrom": 0.1666666667
+        }
+      ],
+      "mol2": "../amber_gb_reference/mol2/mobley_4883284.mol2",
+      "mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+      "multiplicity": 1,
+      "profile": "generic-mbondi2"
+    }
+  ],
+  "provider": "apbs",
+  "provider_version": "1.4.1",
+  "reference_source": "APBS 3.4.1 documentation: Solvation energies, Born ion example",
+  "reference_url": "https://apbs.readthedocs.io/en/latest/using/examples/solvation-energies.html",
+  "schema_version": 1
+}

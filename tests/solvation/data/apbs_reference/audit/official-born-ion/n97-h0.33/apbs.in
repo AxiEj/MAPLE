@@ -1,0 +1,45 @@
+read
+  mol pqr born.pqr
+end
+elec name solv
+  mg-manual
+  dime 97 97 97
+  nlev 4
+  grid 0.33 0.33 0.33
+  gcent mol 1
+  mol 1
+  lpbe
+  bcfl mdh
+  pdie 1.0
+  sdie 78.54
+  chgm spl2
+  srfm mol
+  srad 1.4
+  swin 0.3
+  sdens 10.0
+  temp 298.15
+  calcenergy total
+  calcforce no
+end
+elec name ref
+  mg-manual
+  dime 97 97 97
+  nlev 4
+  grid 0.33 0.33 0.33
+  gcent mol 1
+  mol 1
+  lpbe
+  bcfl mdh
+  pdie 1.0
+  sdie 1
+  chgm spl2
+  srfm mol
+  srad 1.4
+  swin 0.3
+  sdens 10.0
+  temp 298.15
+  calcenergy total
+  calcforce no
+end
+print energy solv - ref end
+quit

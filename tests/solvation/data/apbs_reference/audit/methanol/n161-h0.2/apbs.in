@@ -1,0 +1,61 @@
+read
+    mol pqr molecule.pqr
+end
+elec name solv
+    mg-manual
+    dime 161 161 161
+    nlev 4
+    grid 0.200000 0.200000 0.200000
+    gcent mol 1
+    mol 1
+    lpbe
+    bcfl mdh
+    pdie 1.0
+    chgm spl2
+    srfm mol
+    srad 1.400000
+    swin 0.3
+    sdens 10.0
+    temp 298.15
+    calcenergy total
+    calcforce no
+    sdie 78.5
+end
+elec name ref
+    mg-manual
+    dime 161 161 161
+    nlev 4
+    grid 0.200000 0.200000 0.200000
+    gcent mol 1
+    mol 1
+    lpbe
+    bcfl mdh
+    pdie 1.0
+    chgm spl2
+    srfm mol
+    srad 1.400000
+    swin 0.3
+    sdens 10.0
+    temp 298.15
+    calcenergy total
+    calcforce no
+    sdie 1.0
+end
+apolar name nonpolar
+    mol 1
+    srfm sacc
+    srad 1.400000
+    swin 0.3
+    sdens 10.0
+    gamma 0.10500000
+    press 0.00000000
+    bconc 0.0
+    dpos 0.05
+    grid 0.5 0.5 0.5
+    temp 298.15
+    calcenergy total
+    calcforce no
+end
+print elecEnergy solv - ref end
+print apolEnergy nonpolar end
+quit

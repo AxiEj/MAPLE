@@ -1,9 +1,11 @@
 # Route-2 implicit-solvation validation status
 
-This branch contains only official MACE-POLAR-1-M coupled to external
-PCMSolver IEFPCM and MAPLE's native aqueous SMD CDS term. It is a
-Research/Innovation Route and currently remains an energy proof-of-concept,
-not a complete solution-phase PES.
+The public branch contains only official MACE-POLAR-1-M coupled to external
+PCMSolver IEFPCM and MAPLE's native aqueous SMD CDS term. Separately named,
+lazy PySCF research adapters are present for same-provider SWIG/IEFPCM and the
+official SMD CDS energy/gradient pair, but neither is selectable by the public
+input language. Route 2 remains a Research/Innovation Route and an energy
+proof-of-concept, not a complete solution-phase PES.
 
 ## Passing engineering gates
 
@@ -152,7 +154,8 @@ not a complete solution-phase PES.
     algebra/interface gate only: PCMSolver still fails closed because its
     GePol/operator derivative is unavailable. The separately named optional
     PySCF smooth profile supplies its own matching moving-surface/operator terms
-    only under the narrower gate in item 17; CDS remains absent.
+    only under the narrower gate in item 17; CDS remains absent from that
+    operator-only result.
 15. A correct-unit acetone cavity scan found no warning-free `AREA` point from
     `0.3` through `1.0 bohr^2` at `MINRADIUS=0.30 A`: the fine end retained the
     native non-positive-definite-matrix warning, while the coarse end developed
@@ -228,7 +231,7 @@ not a complete solution-phase PES.
     Order 47 passed this narrow gate with a `0.001476 kcal/mol` energy span,
     `0.001678 eV/angstrom` maximum gradient-covariance error, and
     \(5.16\times10^{-4}\)-eV maximum torque. Its 2211--2245 surviving points
-    produced a 57.6-second three-orientation local run and about 3.12-GiB peak
+    produced a 54.9-second three-orientation local run and about 3.12-GiB peak
     RSS. Because covariance error was nonmonotonic from order 41 to 47, this
     does not yet establish a generally rotation-qualified order.
 
@@ -238,14 +241,40 @@ not a complete solution-phase PES.
     public parser remains PCMSolver-only. At least one more rigid molecule,
     denser orientations, and small-angle continuity remain open. The canaries
     load MACE through the public calculator plumbing but do not evaluate its
-    attached PCMSolver correction; their result-level PySCF provenance, not
-    the loader-generated PCMSolver manifest, identifies the tested continuum.
-    Local elapsed times are diagnostic metadata, not portable speed benchmarks
-    or chemical-accuracy evidence.
-18. Compare the summed analytic force with central finite differences of the
+    attached PCMSolver correction. In the corrected order-47 artifact the
+    correction is explicitly detached before PySCF-SWIG evaluation and its
+    loader-only manifest is not retained; the result-level PySCF provenance
+    identifies the tested continuum. Local elapsed times are diagnostic
+    metadata, not portable speed benchmarks or chemical-accuracy evidence.
+18. `pyscf_smd_water_cds()` now provides a separately named optional wrapper
+    around PySCF 2.13.1
+    `pyscf.solvent.smd.get_cds_legacy`. That one wrapper, backed by compiled
+    `libsolvent`, returns both the SMD CDS energy and analytic position
+    gradient; MAPLE converts the latter from hartree/bohr to hartree/angstrom
+    and does not reinterpret it as a force.
+
+    A clean one-methanol water canary at commit `b9a06f6` returned
+    `2.5924801244 kcal/mol`, within \(9.42\times10^{-8}\) kcal/mol of the frozen
+    NWChem reference. All 18 Cartesian components agreed with central finite
+    differences to \(1.87\times10^{-12}\) hartree/angstrom maximum absolute and
+    \(1.35\times10^{-9}\) relative \(L_2\) error. Translation closure was
+    \(4.03\times10^{-18}\) hartree/angstrom. Three rigid orientations had a
+    \(3.11\times10^{-15}\)-kcal/mol energy span,
+    \(2.36\times10^{-16}\)-eV/angstrom maximum gradient-covariance error, and
+    \(1.35\times10^{-16}\)-eV maximum torque.
+
+    The first call took `0.181 s`, 36 warmed displaced calls took `0.093 s`
+    wall time, warmed orientation calls were about `0.001 s` each, and the
+    complete local process took `1.92 s`; the external `/usr/bin/time` process
+    envelope reached about `0.92 GiB` peak RSS. This
+    is a CDS-only component gate: it includes no MACE-POLAR, continuum
+    electrostatics, total-force assembly, public-provider integration, broad
+    chemistry, or portable performance claim. The public PCMSolver path still
+    uses native `smd_water_cds()` and remains energy-only.
+19. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-19. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+20. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

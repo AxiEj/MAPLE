@@ -177,9 +177,12 @@ set before adoption.
 
 The audited PySCF `solvent/smd.py` and `solvent/grad/smd.py` files carry
 GPL-3.0 headers. The gradient's CDS helper calls `smd.get_cds_legacy()`, which
-in turn calls the compiled `libsolvent.mnsol_interface_`. MAPLE will not copy
-that code into its current source tree. CDS must remain an independently
-selected, license-compatible differentiable provider.
+in turn calls the compiled `libsolvent.mnsol_interface_`. MAPLE does not copy,
+vendor, or automatically install that code. The optional research bridge calls
+an independently installed PySCF runtime through its Python module boundary;
+redistribution of such a runtime remains a deployment/license concern rather
+than a reason to invent a second CDS functional. The scientific requirement is
+that CDS energy and gradient come from the same selected provider.
 
 ### Decision
 
@@ -192,6 +195,9 @@ selected, license-compatible differentiable provider.
    an optional PySCF provider; use two canaries before any broader benchmark.
 5. Never combine energy from one cavity/operator definition with derivatives
    from another.
+6. For the optional PySCF profile, reuse PySCF's production SMD CDS
+   energy/gradient pair rather than reconstructing a nominally similar area
+   model in MAPLE.
 
 ## Implementation sequence
 
@@ -406,10 +412,29 @@ selected, license-compatible differentiable provider.
     `0.001476 kcal/mol` energy span, `0.001678 eV/angstrom` maximum gradient
     covariance error, and \(5.16\times10^{-4}\)-eV maximum torque. The
     order-47 run used 2211--2245 surface points, about 3.12 GiB peak RSS, and
-    57.6 seconds for three orientations on the local host. The covariance
+    54.9 seconds for three orientations on the local host. The covariance
     metric was nonmonotonic between orders 41 and 47, so order 47 is only the
     first tested grid to pass this one-molecule discriminator, not an adopted
     production order or broad speed result.
+11. **Done for an optional official CDS component; total assembly remains
+    open:** `pyscf_smd_water_cds()` is version-locked to PySCF 2.13.1 and calls
+    `pyscf.solvent.smd.get_cds_legacy`, which returns the production SMD CDS
+    energy and analytic coordinate gradient together through compiled
+    `libsolvent`. The adapter converts hartree/bohr to a **position gradient,
+    not force**, in hartree/angstrom, freezes its result arrays/provenance, and
+    fails closed for absent `libsolvent`, untested versions, invalid geometry,
+    or non-finite upstream results.
+
+    A clean one-methanol water canary at commit `b9a06f6` matched the NWChem
+    static reference within \(9.42\times10^{-8}\) kcal/mol. Its complete
+    18-component analytic gradient had
+    \(1.87\times10^{-12}\) hartree/angstrom maximum central-difference error,
+    \(1.35\times10^{-9}\) relative \(L_2\) error, numerical translation
+    closure, and numerical rigid-rotation covariance/torque closure. The local
+    process took 1.92 seconds and its external `/usr/bin/time` process envelope
+    reached about 0.92 GiB peak RSS, but it contained CDS only. It does not
+    establish public-provider integration, a total solvent
+    force, chemical-space accuracy, or a portable speed advantage.
 
 ### Phase 2 -- coupled response
 
@@ -457,19 +482,23 @@ selected, license-compatible differentiable provider.
    optional PySCF SWIG adapter now passes the fixed-density canaries described
    in Phase 1 and real resolved-root MACE-adjoint finite differences on acetone
    and mixed-radius methyl acetate. The canaries load MACE through existing
-   public calculator plumbing but bypass the attached PCMSolver correction;
-   their result-level PySCF provenance identifies the continuum actually
-   differentiated. CDS remains absent and `supported_properties` remains
-   energy-only.
+   public calculator plumbing but bypass the attached PCMSolver correction. In
+   the corrected order-47 artifact that unused correction is detached before
+   PySCF-SWIG evaluation and its loader-only manifest is not retained; the
+   result-level PySCF provenance identifies the continuum actually
+   differentiated. CDS is absent from these continuum result objects, while the
+   separately validated optional PySCF CDS component is not yet assembled with
+   them. `supported_properties` therefore remains energy-only.
 6. **Pending:** test the provisional order-47 result on one additional rigid
    molecule plus denser and small-angle rotations, then decide whether its
    memory/time scaling is acceptable or a rotation-covariant discretization is
-   required. Add an independently valid differentiable CDS term, and sum gas
-   MLIP force plus all solvent derivatives into
+   required. Assemble the version-locked PySCF SMD CDS energy/gradient with the
+   same optional PySCF continuum profile, and sum gas MLIP force plus all
+   solvent derivatives into
    `SolvationResult.forces_hartree_per_angstrom`; only then advertise
    `supported_properties={"energy", "forces"}`. The per-atom radius and real
-   MACE fixed-point-adjoint subproblems are no longer blockers for this optional
-   provider.
+   MACE fixed-point-adjoint and CDS-component subproblems are no longer
+   blockers for this optional provider.
 
 ### Phase 3 -- verification gates
 

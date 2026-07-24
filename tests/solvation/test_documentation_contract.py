@@ -101,6 +101,11 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "three-orientation" in validation
     assert "Order 47" in validation
     assert "rotation-covariant discretization" in roadmap
+    assert "pyscf_smd_water_cds()" in formulas
+    assert "pyscf.solvent.smd.get_cds_legacy" in validation
+    assert "position gradient, not force" in formulas
+    assert "loader-only manifest is not retained" in roadmap
+    assert "CDS-only component gate" in validation
     assert "three-case MAE worsened" in normalized_validation
     assert "0.7248%" in validation
     assert "route2-protocol.json" in benchmark

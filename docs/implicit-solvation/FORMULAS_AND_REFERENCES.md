@@ -137,7 +137,9 @@ geometry-dependent switching terms and \(A_i\) is the solvent-accessible area
 from the SMD/Bondi radius plus the \(0.4\,\mathring{\mathrm A}\) SMD probe.
 Areas use a deterministic 5810-point-per-atom equal-area spherical quadrature.
 Static water, methane, and methanol values agree with NWChem `mnsol.F` within
-`0.015 kcal/mol`; NWChem and PySCF are not runtime dependencies.
+`0.015 kcal/mol`. NWChem is not a runtime dependency. PySCF is not a public
+MAPLE dependency, but a separately named optional research adapter can invoke
+its production SMD CDS energy/gradient pair as described below.
 
 Its coordinate derivative separates exactly as
 
@@ -234,6 +236,64 @@ is `0.00352 kcal/mol`; the PySCF Lebedev-SWIG span is
 \(1.67\times10^{-4}\) hartree residual torque at the reference orientation.
 These are open production-force gates: this implementation is a diagnostic
 research candidate, not a published Route-2 force component.
+
+### Optional official PySCF SMD CDS energy/gradient pair
+
+For the optional PySCF 2.13.1 research runtime, MAPLE does not construct a new
+surface-area CDS model. `pyscf_smd_water_cds()` delegates both quantities to the
+same production entry point used by PySCF SMD,
+
+\[
+\left(
+G_{\mathrm{CDS}}^{\mathrm{PySCF}},
+\nabla_{\mathbf R}G_{\mathrm{CDS}}^{\mathrm{PySCF}}
+\right)
+=
+\operatorname{get\_cds\_legacy}(\mathrm{SMD}_{\mathrm{water}}).
+\]
+
+The upstream `get_cds_legacy()` wrapper, backed by compiled `libsolvent`,
+returns energy in hartree and the **position gradient, not force**, in
+hartree/bohr. The adapter returns
+
+\[
+\nabla_{\mathbf R}G_{\mathrm{CDS}}\,[E_h/\mathring{\mathrm A}]
+=
+\frac{
+\nabla_{\mathbf R}G_{\mathrm{CDS}}\,[E_h/a_0]
+}{a_0\,[\mathring{\mathrm A}]},
+\qquad
+\mathbf F_{\mathrm{CDS}}
+=-\nabla_{\mathbf R}G_{\mathrm{CDS}}.
+\]
+
+Using one upstream call for both energy and gradient prevents the area and
+geometry-dependent atomic-tension switching derivatives from being taken from
+a different discrete functional. The bridge is lazy, requires exactly PySCF
+2.13.1 plus its compiled `libsolvent`, and fails closed for other versions or
+non-finite results. It constructs a PySCF molecule only to supply elements and
+coordinates; no electronic-structure SCF is run by this CDS call.
+
+A clean one-methanol water canary at Route-2 commit `b9a06f6` returned
+`2.5924801244 kcal/mol`, differing from the frozen NWChem static reference by
+\(9.42\times10^{-8}\) kcal/mol. All 18 analytic Cartesian components agreed
+with central finite differences to \(1.87\times10^{-12}\)
+hartree/angstrom maximum absolute error and
+\(1.35\times10^{-9}\) relative \(L_2\) error. The translation-gradient norm was
+\(4.03\times10^{-18}\) hartree/angstrom. Across three rigid orientations, the
+energy span was \(3.11\times10^{-15}\) kcal/mol, the largest gradient-covariance
+error was \(2.36\times10^{-16}\) eV/angstrom, and the largest torque norm was
+\(1.35\times10^{-16}\) eV.
+
+The first local call took `0.181 s`; 36 warmed displaced evaluations took
+`0.093 s` wall time, and warmed orientation calls were about `0.001 s` each.
+The complete process took `1.92 s`; the external `/usr/bin/time` process
+envelope peaked at about `0.92 GiB` on this host.
+These are component diagnostics, not portable speed claims. The canary contains
+CDS only: it does not include MACE-POLAR, continuum electrostatics, total-force
+assembly, public parser integration, or chemical-accuracy validation. The
+public PCMSolver profile continues to use `smd_water_cds()` and remains
+energy-only.
 
 The standard state is exactly 1 M gas to 1 M solution:
 
@@ -749,7 +809,7 @@ The same local runs expose the cost boundary. The order-17 and order-35
 single-component validation jobs used 397 and 1326 surface points, took
 27.8 and 40.3 seconds wall time, and peaked near 2.10 and 2.37 GiB,
 respectively. The three-orientation order-47 job used 2211--2245 points,
-took 57.6 seconds, and peaked near 3.12 GiB. These are local diagnostic
+took 54.9 seconds, and peaked near 3.12 GiB. These are local diagnostic
 timings, not portable speed claims.
 
 This closes only a narrow continuum-electrostatic coordinate-gradient slice.
@@ -758,10 +818,12 @@ to tested version 2.13.1, and neither the public parser nor production provider
 selects it. At least one additional rigid molecule, denser orientation
 sampling, and small-angle continuity remain required before selecting order
 47 or rejecting grid refinement in favour of a rotation-covariant
-discretization. Differentiable SMD CDS, total-force assembly, and
-chemical-space validation also remain open. SMD CDS is outside this continuum
-expression, so Route 2 still does not expose a total solvent force or
-solution-phase PES.
+discretization. Integration of differentiable SMD CDS, total-force assembly,
+and chemical-space validation remain open. A separate optional PySCF
+SMD-CDS energy/gradient pair now passes the one-methanol component gate above,
+but it is outside this continuum expression and has not been assembled with it.
+Route 2 therefore still does not expose a total solvent force or solution-phase
+PES.
 
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build
@@ -771,7 +833,9 @@ Apache-2.0, but those derivatives belong to PySCF's own smooth surface and
 operators. MAPLE therefore keeps them in a separate energy/derivative profile;
 a mixed construction with PCMSolver--GePol energy would be a new approximation,
 not an established exact derivative. The audited PySCF SMD/CDS source files
-carry GPL-3.0 headers and are not copied into MAPLE. The detailed
+carry GPL-3.0 headers and are not copied into MAPLE. The optional adapter invokes
+the installed PySCF runtime through its Python module boundary; PySCF is
+neither vendored nor installed automatically by MAPLE. The detailed
 evidence-versus-inference boundary is in `ROUTE2_FORCE_ROADMAP.md`.
 
 ### External-MEP continuum-response boundary
@@ -883,6 +947,9 @@ Route-2 references:
 - PySCF PCM implementation and analytic gradients:
   `https://github.com/pyscf/pyscf/tree/c63a953ba603a5ad8c1d65d88da72aaf05ede4d8/pyscf/solvent`;
   audited PySCF 2.14 source snapshot `c63a953`.
+- PySCF 2.13.1 production SMD CDS entry point:
+  `pyscf.solvent.smd.get_cds_legacy`, backed by
+  `libsolvent.mnsol_interface_`.
 - A. W. Lange and J. M. Herbert, “A smooth, nonsingular, and faithful
   discretization scheme for polarizable continuum models: The
   switching/Gaussian approach,” *J. Chem. Phys.* **133**, 244111 (2010),

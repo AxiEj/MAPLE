@@ -139,6 +139,29 @@ Areas use a deterministic 5810-point-per-atom equal-area spherical quadrature.
 Static water, methane, and methanol values agree with NWChem `mnsol.F` within
 `0.015 kcal/mol`; NWChem and PySCF are not runtime dependencies.
 
+Its coordinate derivative separates exactly as
+
+\[
+\frac{dG_{\mathrm{CDS}}}{d\mathbf R}
+=\frac{1}{1000}\left[
+\sum_i A_i\frac{d\gamma_i}{d\mathbf R}
++\sum_i\gamma_i\frac{dA_i}{d\mathbf R}
+\right].
+\]
+
+`aqueous_atomic_surface_tension_position_vjp()` now evaluates the first
+contraction analytically for the published H/C/N/O switching functions without
+forming a dense Jacobian. A synthetic all-branch test agrees with coordinate
+finite differences and preserves zero net translation gradient. On the
+methanol NWChem-control geometry, the six largest fixed-area
+\(\sum_i A_i\,d\gamma_i/d\mathbf R\) components over three step sizes had
+maximum absolute and relative discrepancies of
+\(5.64\times10^{-10}\) hartree/angstrom and \(9.29\times10^{-7}\);
+the net translation-gradient norm was \(1.12\times10^{-19}\)
+hartree/angstrom. The second contraction is still unavailable because the
+current hard-visibility Shrake--Rupley area is not differentiable. The
+implemented term is therefore one CDS component, not a complete CDS gradient.
+
 The standard state is exactly 1 M gas to 1 M solution:
 
 \[

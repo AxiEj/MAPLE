@@ -278,10 +278,20 @@ selected, license-compatible differentiable provider.
 4. **Provider decision made:** retain PCMSolver--GePol as energy-only and
    evaluate an explicit PySCF SWIG/ISWIG profile for smooth cavity/operator
    derivatives. Do not silently approximate missing GePol terms as zero.
-5. Replace the hard-visibility CDS area with an analytic/differentiable
-   SMD-compatible surface-area implementation and differentiate the published
-   geometry-dependent atomic tensions.
-6. Replace per-geometry warning fallback with a force-compatible cavity policy.
+5. **Done for the geometry-dependent atomic-tension component:**
+   `aqueous_atomic_surface_tension_position_vjp()` analytically contracts the
+   published H/C/N/O switching-function response
+   \(\sum_i A_i\,d\gamma_i/d\mathbf R\) without a dense Jacobian. A synthetic
+   all-branch coordinate oracle and translation-invariance check pass. On the
+   methanol NWChem-control geometry, the six largest fixed-area components over
+   three steps had at most \(5.64\times10^{-10}\) hartree/angstrom absolute and
+   \(9.29\times10^{-7}\) relative error, with a
+   \(1.12\times10^{-19}\) hartree/angstrom net translation-gradient norm.
+6. Replace the hard-visibility CDS area with an analytic/differentiable
+   SMD-compatible surface-area implementation for the still-missing
+   \(\sum_i\gamma_i\,dA_i/d\mathbf R\) contraction. Do not approximate it as
+   zero or publish the atomic-tension component as a complete CDS gradient.
+7. Replace per-geometry warning fallback with a force-compatible cavity policy.
 
 ### Phase 2 -- coupled response
 

@@ -89,7 +89,15 @@ not a complete solution-phase PES.
 8. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
    current PCMSolver--GePol energy; the current PCMSolver C ABI has no force endpoint.
    A separately named smooth PCM profile must be evaluated.
-9. Implement the geometry-dependent SMD CDS/SASA derivative.
+9. The geometry-dependent atomic-tension part of SMD CDS now has an analytic
+   coordinate VJP. A synthetic H/C/N/O all-branch finite-difference oracle and
+   translation check pass. On the methanol NWChem-control geometry, the six
+   largest fixed-area components over three steps stayed below
+   \(5.64\times10^{-10}\) hartree/angstrom absolute and
+   \(9.29\times10^{-7}\) relative error; the net translation-gradient norm was
+   \(1.12\times10^{-19}\) hartree/angstrom. The current hard-visibility SASA
+   still lacks \(\sum_i\gamma_i\,dA_i/d\mathbf R\), so this component is not a
+   complete CDS gradient and is not yet added to a published force.
 10. Compare the summed analytic force with central finite differences of the
    converged total energy, then enforce translation, rotation, and energy
    conservation checks.

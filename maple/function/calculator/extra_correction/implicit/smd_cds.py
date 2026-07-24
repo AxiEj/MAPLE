@@ -85,6 +85,17 @@ _SWITCH_PARAMETERS = {
     ("O", "P"): (2.10, 0.30),
 }
 
+_HYDROGEN_CARBON_TENSION_COEFFICIENT = -60.77
+_CARBON_CARBON_TENSION_COEFFICIENT = -72.95
+_NITROGEN_COORDINATION_TENSION_COEFFICIENT = -48.22
+_NITROGEN_COORDINATION_POWER = 1.3
+_NITROGEN_CARBONYL_TENSION_COEFFICIENT = 84.10
+_OXYGEN_TENSION_COEFFICIENTS = {
+    "C": 68.69,
+    "N": 121.98,
+    "P": 68.85,
+}
+
 
 @dataclass(frozen=True)
 class SMDCDSResult:
@@ -174,6 +185,21 @@ def _switch(distance: float, reference: float, width: float) -> float:
     return math.exp(width / (distance - width - reference))
 
 
+def _switch_with_derivative(
+    distance: float,
+    reference: float,
+    width: float,
+) -> tuple[float, float]:
+    """Return the SMD switching value and its distance derivative."""
+
+    value = _switch(distance, reference, width)
+    if value == 0.0:
+        return 0.0, 0.0
+    denominator = distance - reference - width
+    derivative = -width * value / (denominator * denominator)
+    return value, derivative
+
+
 def aqueous_atomic_surface_tensions(
     symbols,
     positions_angstrom: np.ndarray,
@@ -182,8 +208,8 @@ def aqueous_atomic_surface_tensions(
 
     symbols = _validate_symbols(tuple(symbols))
     positions = np.asarray(positions_angstrom, dtype=float)
-    if positions.shape != (len(symbols), 3):
-        raise ValueError("SMD coordinates must have shape (n_atoms, 3).")
+    if positions.shape != (len(symbols), 3) or not np.all(np.isfinite(positions)):
+        raise ValueError("SMD coordinates must be finite with shape (n_atoms, 3).")
     distances = np.linalg.norm(
         positions[:, None, :] - positions[None, :, :],
         axis=2,
@@ -209,7 +235,10 @@ def aqueous_atomic_surface_tensions(
                 for j, other in enumerate(symbols)
                 if other == "O"
             )
-            tensions[i] = tension - 60.77 * t_hc
+            tensions[i] = (
+                tension
+                + _HYDROGEN_CARBON_TENSION_COEFFICIENT * t_hc
+            )
             continue
 
         if symbol == "C":
@@ -218,7 +247,7 @@ def aqueous_atomic_surface_tensions(
                 for j, other in enumerate(symbols)
                 if j != i and other == "C"
             )
-            tensions[i] = tension - 72.95 * t_cc
+            tensions[i] = tension + _CARBON_CARBON_TENSION_COEFFICIENT * t_cc
             continue
 
         if symbol == "N":
@@ -245,8 +274,9 @@ def aqueous_atomic_surface_tensions(
                 t_nc_carbonyl += nc_coordination * carbon_oxygen_environment
             tensions[i] = (
                 tension
-                - 48.22 * t_nc**1.3
-                + 84.10 * t_nc_carbonyl
+                + _NITROGEN_COORDINATION_TENSION_COEFFICIENT
+                * t_nc**_NITROGEN_COORDINATION_POWER
+                + _NITROGEN_CARBONYL_TENSION_COEFFICIENT * t_nc_carbonyl
             )
             continue
 
@@ -266,11 +296,229 @@ def aqueous_atomic_surface_tensions(
                 for j, other in enumerate(symbols)
                 if other == "P"
             )
-            tensions[i] = tension + 68.69 * t_oc + 121.98 * t_on + 68.85 * t_op
+            tensions[i] = (
+                tension
+                + _OXYGEN_TENSION_COEFFICIENTS["C"] * t_oc
+                + _OXYGEN_TENSION_COEFFICIENTS["N"] * t_on
+                + _OXYGEN_TENSION_COEFFICIENTS["P"] * t_op
+            )
             continue
 
         tensions[i] = tension
     return tensions
+
+
+def aqueous_atomic_surface_tension_position_vjp(
+    symbols,
+    positions_angstrom: np.ndarray,
+    tension_cotangent: np.ndarray,
+) -> np.ndarray:
+    """Differentiate a pairing with the aqueous SMD atomic tensions.
+
+    This returns
+    ``d <tension_cotangent, aqueous_atomic_surface_tensions(R)> / dR``
+    without constructing a dense tension-by-coordinate Jacobian.  It is the
+    analytic coordinate response of the published geometry-dependent tension
+    functions only.  Solvent-accessible surface-area derivatives are separate
+    and deliberately absent, so this is not a complete CDS gradient.
+    """
+
+    symbols = _validate_symbols(tuple(symbols))
+    positions = np.asarray(positions_angstrom, dtype=float)
+    cotangent = np.asarray(tension_cotangent, dtype=float)
+    expected_positions_shape = (len(symbols), 3)
+    if positions.shape != expected_positions_shape or not np.all(
+        np.isfinite(positions)
+    ):
+        raise ValueError("SMD coordinates must be finite with shape (n_atoms, 3).")
+    if cotangent.shape != (len(symbols),) or not np.all(np.isfinite(cotangent)):
+        raise ValueError(
+            "SMD atomic-tension cotangent must be finite with shape (n_atoms,)."
+        )
+
+    distances = np.linalg.norm(
+        positions[:, None, :] - positions[None, :, :],
+        axis=2,
+    )
+    pair_cotangents = np.zeros((len(symbols), len(symbols)), dtype=float)
+
+    def add_pair(first: int, second: int, value: float) -> None:
+        if first == second or value == 0.0:
+            return
+        lower, upper = sorted((first, second))
+        pair_cotangents[lower, upper] += value
+
+    def switch(
+        first: int,
+        second: int,
+        pair: tuple[str, str],
+    ) -> tuple[float, float]:
+        return _switch_with_derivative(
+            float(distances[first, second]),
+            *_SWITCH_PARAMETERS[pair],
+        )
+
+    for i, symbol in enumerate(symbols):
+        objective_cotangent = float(cotangent[i])
+        if objective_cotangent == 0.0:
+            continue
+        if symbol in {"F", "S", "Cl", "Br", "I", "P"}:
+            continue
+
+        if symbol == "H":
+            for j, other in enumerate(symbols):
+                if other != "C":
+                    continue
+                _, derivative = switch(i, j, ("H", "C"))
+                add_pair(
+                    i,
+                    j,
+                    objective_cotangent
+                    * _HYDROGEN_CARBON_TENSION_COEFFICIENT
+                    * derivative,
+                )
+            continue
+
+        if symbol == "C":
+            for j, other in enumerate(symbols):
+                if j == i or other != "C":
+                    continue
+                _, derivative = switch(i, j, ("C", "C"))
+                add_pair(
+                    i,
+                    j,
+                    objective_cotangent
+                    * _CARBON_CARBON_TENSION_COEFFICIENT
+                    * derivative,
+                )
+            continue
+
+        if symbol == "N":
+            carbon_branches = []
+            t_nc = 0.0
+            t_nc_carbonyl = 0.0
+            for j, other in enumerate(symbols):
+                if other != "C":
+                    continue
+                carbon_environment = 0.0
+                carbon_oxygen_environment = 0.0
+                environment_branches = []
+                for k, neighbor in enumerate(symbols):
+                    if k in {i, j}:
+                        continue
+                    parameters = _SWITCH_PARAMETERS.get(
+                        ("C", neighbor),
+                        (0.0, 0.0),
+                    )
+                    if parameters[1] <= 0.0:
+                        continue
+                    coordination, coordination_derivative = (
+                        _switch_with_derivative(
+                            float(distances[j, k]),
+                            *parameters,
+                        )
+                    )
+                    carbon_environment += coordination
+                    is_oxygen = neighbor == "O"
+                    if is_oxygen:
+                        carbon_oxygen_environment += coordination
+                    environment_branches.append(
+                        (k, coordination_derivative, is_oxygen)
+                    )
+                nc_coordination, nc_derivative = switch(i, j, ("N", "C"))
+                t_nc += nc_coordination * carbon_environment**2
+                t_nc_carbonyl += (
+                    nc_coordination * carbon_oxygen_environment
+                )
+                carbon_branches.append(
+                    (
+                        j,
+                        nc_coordination,
+                        nc_derivative,
+                        carbon_environment,
+                        carbon_oxygen_environment,
+                        environment_branches,
+                    )
+                )
+
+            t_nc_gradient = (
+                0.0
+                if t_nc == 0.0
+                else _NITROGEN_COORDINATION_TENSION_COEFFICIENT
+                * _NITROGEN_COORDINATION_POWER
+                * t_nc ** (_NITROGEN_COORDINATION_POWER - 1.0)
+            )
+            for (
+                j,
+                nc_coordination,
+                nc_derivative,
+                carbon_environment,
+                carbon_oxygen_environment,
+                environment_branches,
+            ) in carbon_branches:
+                nc_cotangent = objective_cotangent * (
+                    t_nc_gradient * carbon_environment**2
+                    + _NITROGEN_CARBONYL_TENSION_COEFFICIENT
+                    * carbon_oxygen_environment
+                )
+                add_pair(i, j, nc_cotangent * nc_derivative)
+
+                environment_cotangent = (
+                    objective_cotangent
+                    * t_nc_gradient
+                    * nc_coordination
+                    * 2.0
+                    * carbon_environment
+                )
+                oxygen_environment_cotangent = (
+                    objective_cotangent
+                    * _NITROGEN_CARBONYL_TENSION_COEFFICIENT
+                    * nc_coordination
+                )
+                for (
+                    k,
+                    coordination_derivative,
+                    is_oxygen,
+                ) in environment_branches:
+                    branch_cotangent = environment_cotangent
+                    if is_oxygen:
+                        branch_cotangent += oxygen_environment_cotangent
+                    add_pair(
+                        j,
+                        k,
+                        branch_cotangent * coordination_derivative,
+                    )
+            continue
+
+        if symbol == "O":
+            for j, other in enumerate(symbols):
+                coefficient = _OXYGEN_TENSION_COEFFICIENTS.get(other)
+                if coefficient is None:
+                    continue
+                _, derivative = switch(i, j, ("O", other))
+                add_pair(
+                    i,
+                    j,
+                    objective_cotangent * coefficient * derivative,
+                )
+
+    position_vjp = np.zeros_like(positions)
+    for first in range(len(symbols)):
+        for second in range(first + 1, len(symbols)):
+            pair_cotangent = pair_cotangents[first, second]
+            if pair_cotangent == 0.0:
+                continue
+            distance = float(distances[first, second])
+            if distance <= 1.0e-14:
+                raise ValueError(
+                    "Distinct atoms with geometry-dependent SMD tensions "
+                    "cannot occupy the same position."
+                )
+            direction = (positions[first] - positions[second]) / distance
+            contribution = pair_cotangent * direction
+            position_vjp[first] += contribution
+            position_vjp[second] -= contribution
+    return position_vjp
 
 
 def _fibonacci_sphere(number: int) -> np.ndarray:

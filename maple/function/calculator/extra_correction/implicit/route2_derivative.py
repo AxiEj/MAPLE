@@ -1,14 +1,15 @@
 """Energy-gradient ingredients for the Route-2 fixed-point adjoint.
 
-This module owns the neutral density-space right-hand side and the composed
-fixed-surface/operator coordinate-gradient slice.  It deliberately does not
-expose a nuclear force because cavity/operator motion and SMD CDS derivatives
-remain separate, incomplete terms.
+This module owns the neutral density-space right-hand side, the diagnostic
+fixed-surface coordinate-gradient slice, and the contract for differentiating
+one complete continuum reaction-field map.  It deliberately does not expose a
+nuclear force because no production continuum provider implements that complete
+coordinate derivative and the SMD CDS derivative remains separately gated.
 """
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Callable, Protocol
 
 import numpy as np
 
@@ -23,6 +24,9 @@ from .route2_response import (
 )
 
 
+FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION = 1
+
+
 class FixedSurfaceReactionField(ReactionFieldLinearMap, Protocol):
     """Fixed-surface reaction map with a nuclear-coordinate pairing VJP."""
 
@@ -35,6 +39,30 @@ class FixedSurfaceReactionField(ReactionFieldLinearMap, Protocol):
         field_cotangent: np.ndarray,
     ) -> np.ndarray:
         """Differentiate ``<field_cotangent, P_R density>`` at fixed surface."""
+
+
+class FullReactionFieldPositionDerivative(
+    ReactionFieldLinearMap,
+    Protocol,
+):
+    """Reaction map with the exact coordinate VJP of its energy-path map."""
+
+    atom_count: int
+    reciprocal_energy_pairing: bool
+    full_position_derivative_contract_version: int
+
+    def full_position_vjp(
+        self,
+        density: np.ndarray,
+        field_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate ``<field_cotangent, P_R density>`` completely.
+
+        The same reaction-field object must own the forward/adjoint maps and
+        this derivative.  The result includes solute-MEP projection,
+        moving-surface kernels, the continuum response operator, and
+        reaction-field back-projection for the exact discrete energy path.
+        """
 
 
 def _validated_block(
@@ -122,10 +150,17 @@ def fixed_cavity_energy_density_gradient(
     )
 
 
-def fixed_surface_solvation_coordinate_gradient(
-    reaction_field: FixedSurfaceReactionField,
+def _coupled_solvation_coordinate_gradient(
+    reaction_field: ReactionFieldLinearMap,
     density_response: DensityResponseLinearization,
     *,
+    reaction_position_vjp: Callable[
+        [np.ndarray, np.ndarray],
+        np.ndarray,
+    ],
+    reaction_position_vjp_name: str,
+    reciprocity_error: str,
+    result_name: str,
     density_coefficients: np.ndarray,
     intrinsic_energy_field_gradient: np.ndarray,
     adjoint_solution: np.ndarray,
@@ -134,35 +169,10 @@ def fixed_surface_solvation_coordinate_gradient(
     gas_forces_ev_per_angstrom: np.ndarray,
     neutral_tolerance: float = 1.0e-10,
 ) -> np.ndarray:
-    """Compose the fixed-surface coupled solvation-energy coordinate gradient.
-
-    With ``f=P_R c``, residual
-    ``r=Pi0[c-M(R,f)]``, and adjoint
-    ``J_c r.T lambda = Pi0[dE/dc]``, this returns
-
-    ``d(E_intrinsic(R,f)-E_gas(R)+0.5*c.T*Q*f)/dR``
-
-    while density coefficients, tessera centres, and the PCM response operator
-    are treated according to the implicit-function/adjoint decomposition.  The
-    three field cotangents entering the single ``P_R`` position VJP are:
-
-    - ``dE_intrinsic/df``;
-    - ``0.5*Q.T*c`` from the PCM half-coupling;
-    - ``J_M.T*lambda`` from the implicit density response.
-
-    ``adjoint_density_position_vjp`` must be
-    ``(dM/dR|f).T*lambda`` with the supplied atom-indexed field samples held
-    fixed.  The returned value is an energy gradient in eV/Angstrom, not a
-    force.  Cavity/operator motion and SMD CDS derivatives are absent.
-    """
-
     if neutral_tolerance <= 0.0:
         raise ValueError("Neutral tangent tolerance must be positive.")
     if getattr(reaction_field, "reciprocal_energy_pairing", False) is not True:
-        raise ValueError(
-            "The fixed-surface coordinate gradient requires a reciprocal "
-            "reaction field with MATRIXSYMM=TRUE."
-        )
+        raise ValueError(reciprocity_error)
 
     density = _validated_block(
         density_coefficients,
@@ -207,12 +217,12 @@ def fixed_surface_solvation_coordinate_gradient(
         + response_field_cotangent
     )
     reaction_position_gradient = _validated_coordinate_block(
-        reaction_field.position_vjp(
+        reaction_position_vjp(
             density,
             combined_field_cotangent,
         ),
         atom_count=atom_count,
-        name="fixed-surface reaction-field position VJP",
+        name=reaction_position_vjp_name,
     )
     density_position_gradient = _validated_coordinate_block(
         adjoint_density_position_vjp,
@@ -239,14 +249,143 @@ def fixed_surface_solvation_coordinate_gradient(
         + density_position_gradient
     )
     if not np.all(np.isfinite(result)):
-        raise RuntimeError(
-            "Fixed-surface solvation coordinate gradient is non-finite."
-        )
+        raise RuntimeError(f"{result_name} is non-finite.")
     return result
 
 
+def fixed_surface_solvation_coordinate_gradient(
+    reaction_field: FixedSurfaceReactionField,
+    density_response: DensityResponseLinearization,
+    *,
+    density_coefficients: np.ndarray,
+    intrinsic_energy_field_gradient: np.ndarray,
+    adjoint_solution: np.ndarray,
+    adjoint_density_position_vjp: np.ndarray,
+    solvent_fixed_field_forces_ev_per_angstrom: np.ndarray,
+    gas_forces_ev_per_angstrom: np.ndarray,
+    neutral_tolerance: float = 1.0e-10,
+) -> np.ndarray:
+    """Compose the fixed-surface coupled solvation-energy coordinate gradient.
+
+    With ``f=P_R c``, residual
+    ``r=Pi0[c-M(R,f)]``, and adjoint
+    ``J_c r.T lambda = Pi0[dE/dc]``, this returns
+
+    ``d(E_intrinsic(R,f)-E_gas(R)+0.5*c.T*Q*f)/dR``
+
+    for the fixed-surface/operator derivative slice.  The three field
+    cotangents entering the single ``P_R`` position VJP are:
+
+    - ``dE_intrinsic/df``;
+    - ``0.5*Q.T*c`` from the PCM half-coupling;
+    - ``J_M.T*lambda`` from the implicit density response.
+
+    ``adjoint_density_position_vjp`` must be
+    ``(dM/dR|f).T*lambda`` with the supplied atom-indexed field samples held
+    fixed.  The returned value is an energy gradient in eV/Angstrom, not a
+    force.  Cavity/operator motion and SMD CDS derivatives are absent.
+    """
+
+    return _coupled_solvation_coordinate_gradient(
+        reaction_field,
+        density_response,
+        reaction_position_vjp=reaction_field.position_vjp,
+        reaction_position_vjp_name=(
+            "fixed-surface reaction-field position VJP"
+        ),
+        reciprocity_error=(
+            "The fixed-surface coordinate gradient requires a reciprocal "
+            "reaction field with MATRIXSYMM=TRUE."
+        ),
+        result_name="Fixed-surface solvation coordinate gradient",
+        density_coefficients=density_coefficients,
+        intrinsic_energy_field_gradient=intrinsic_energy_field_gradient,
+        adjoint_solution=adjoint_solution,
+        adjoint_density_position_vjp=adjoint_density_position_vjp,
+        solvent_fixed_field_forces_ev_per_angstrom=(
+            solvent_fixed_field_forces_ev_per_angstrom
+        ),
+        gas_forces_ev_per_angstrom=gas_forces_ev_per_angstrom,
+        neutral_tolerance=neutral_tolerance,
+    )
+
+
+def continuum_coupled_solvation_coordinate_gradient(
+    reaction_field: FullReactionFieldPositionDerivative,
+    density_response: DensityResponseLinearization,
+    *,
+    density_coefficients: np.ndarray,
+    intrinsic_energy_field_gradient: np.ndarray,
+    adjoint_solution: np.ndarray,
+    adjoint_density_position_vjp: np.ndarray,
+    solvent_fixed_field_forces_ev_per_angstrom: np.ndarray,
+    gas_forces_ev_per_angstrom: np.ndarray,
+    neutral_tolerance: float = 1.0e-10,
+) -> np.ndarray:
+    """Compose the coupled gradient with the full continuum-map derivative.
+
+    This uses the same combined adjoint cotangent as the fixed-surface
+    diagnostic but contracts it through ``reaction_field.full_position_vjp``.
+    That method must differentiate the exact same forward/adjoint reaction map,
+    including moving surface and continuum-operator response.  Passing
+    separately computed derivative arrays is intentionally unsupported.
+
+    The result is the continuum-electrostatic coupled energy gradient in
+    eV/Angstrom.  SMD CDS is absent, so this is not a total solvent force and
+    does not make Route 2 PES-capable.
+    """
+
+    derivative_version = getattr(
+        reaction_field,
+        "full_position_derivative_contract_version",
+        None,
+    )
+    if derivative_version is None:
+        raise NotImplementedError(
+            "The reaction-field backend does not provide a full reaction-field "
+            "coordinate derivative."
+        )
+    if derivative_version != (
+        FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION
+    ):
+        raise ValueError(
+            "Unsupported full reaction-field coordinate-derivative contract "
+            "version."
+        )
+    implementation = getattr(reaction_field, "full_position_vjp", None)
+    if not callable(implementation):
+        raise NotImplementedError(
+            "The reaction-field backend does not provide a full reaction-field "
+            "coordinate derivative."
+        )
+
+    return _coupled_solvation_coordinate_gradient(
+        reaction_field,
+        density_response,
+        reaction_position_vjp=implementation,
+        reaction_position_vjp_name="full reaction-field position VJP",
+        reciprocity_error=(
+            "The continuum-coupled coordinate gradient requires a reciprocal "
+            "reaction-field energy pairing."
+        ),
+        result_name="Continuum-coupled solvation coordinate gradient",
+        density_coefficients=density_coefficients,
+        intrinsic_energy_field_gradient=intrinsic_energy_field_gradient,
+        adjoint_solution=adjoint_solution,
+        adjoint_density_position_vjp=adjoint_density_position_vjp,
+        solvent_fixed_field_forces_ev_per_angstrom=(
+            solvent_fixed_field_forces_ev_per_angstrom
+        ),
+        gas_forces_ev_per_angstrom=gas_forces_ev_per_angstrom,
+        neutral_tolerance=neutral_tolerance,
+    )
+
+
 __all__ = [
+    "FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION",
     "FixedSurfaceReactionField",
+    "FullReactionFieldPositionDerivative",
+    "continuum_coupled_solvation_coordinate_gradient",
     "fixed_cavity_energy_density_gradient",
     "fixed_surface_solvation_coordinate_gradient",
 ]

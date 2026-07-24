@@ -102,6 +102,19 @@ The current energy proof-of-concept is deliberately fail-closed:
 - exact official MACE-POLAR-1-M only; `#charge`, D4, other models, and
   alternate continuum providers are rejected.
 
+The derivative capability boundary is likewise explicit:
+
+| Continuum path | Energy | Complete same-energy coordinate VJP | Public |
+| --- | --- | --- | --- |
+| PCMSolver--GePol | yes | no; fails closed | energy only |
+| synthetic contract oracle | test only | yes | no |
+| external PySCF SWIG investigation | separate canary only | incomplete Route-2 integration | no |
+
+`continuum_coupled_solvation_coordinate_gradient()` accepts the complete
+coordinate VJP only from the same reaction-field object used for its
+forward/adjoint maps. The current PCMSolver map does not implement that
+contract, CDS remains separately incomplete, and no force property is exposed.
+
 Every evaluation retains `manifest.json`, the human and parsed PCMSolver
 inputs, PCMSolver/PEDRA cavity side files, `route2-state.npz`, and
 `route2-result.json` under `<output>.implicit/`; legacy provider files are

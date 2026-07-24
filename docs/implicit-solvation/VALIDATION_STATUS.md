@@ -152,10 +152,39 @@ not a complete solution-phase PES.
     algebra/interface gate only: PCMSolver still fails closed because its
     GePol/operator derivative is unavailable, and moving-surface kernel plus CDS
     terms remain absent.
-15. Compare the summed analytic force with central finite differences of the
+15. A correct-unit acetone cavity scan found no warning-free `AREA` point from
+    `0.3` through `1.0 bohr^2` at `MINRADIUS=0.30 A`: the fine end retained the
+    native non-positive-definite-matrix warning, while the coarse end developed
+    PEDRA tessellation warnings. At fixed `AREA=1.0 bohr^2`
+    (`0.280029 A^2`), raising `MINRADIUS` to `1.0 A` removed one added sphere
+    and cleared both warning channels. The resulting cavity is therefore
+    changed, not merely quieted. Acetone, methyl acetate, and ethoxyethane then
+    completed warning-free with the same 17-iteration roots, but their
+    three-case MAE worsened from `0.451006` to `0.472175 kcal/mol`; the largest
+    single energy shift was `0.053160 kcal/mol`. The candidate is not adopted.
+    On acetone only, seven C=O displacements from `-0.02` to `+0.02 A` retained
+    508 tesserae and the same added-sphere signature with zero warnings.
+    Refining the central step from `0.01` to `0.005 A` reduced the relative
+    derivative disagreement to `0.7248%` for total solution energy,
+    `0.0719%` for hydration energy, `0.0298%` for electrostatics, and `0.366%`
+    for CDS. This passes a narrow local energy-continuity gate only; it does
+    not establish force continuity, broad transferability, or a public cavity
+    parameter.
+16. `FullReactionFieldPositionDerivative` and
+    `continuum_coupled_solvation_coordinate_gradient()` now define the
+    same-object contract for the complete coordinate VJP of one continuum
+    reaction map. A provider must differentiate the exact forward/adjoint map,
+    including solute projection, moving surface, continuum operator, and
+    reaction-field back-projection; separately injected derivative arrays are
+    not accepted. Synthetic resolved-root and split-partial tests lock the
+    adjoint assembly and prevent accidental addition of the fixed-surface and
+    full VJPs. The public PCMSolver map lacks this contract and fails closed at
+    this top-level boundary. SMD CDS remains separate, no production provider
+    implements the full contract, and Route 2 still does not expose forces.
+17. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-16. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+18. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

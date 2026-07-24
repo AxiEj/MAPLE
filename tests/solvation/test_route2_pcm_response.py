@@ -11,6 +11,9 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
 )
+from maple.function.calculator.extra_correction.implicit.route2_derivative import (
+    continuum_coupled_solvation_coordinate_gradient,
+)
 from maple.function.calculator.extra_correction.implicit.route2_pcm_response import (
     FixedCavityPCMReactionFieldLinearMap,
 )
@@ -34,6 +37,12 @@ class _FakeSymmetricPCMSolverSession:
 
     def compute_asc(self, mep: np.ndarray) -> np.ndarray:
         return self._response_matrix @ np.asarray(mep, dtype=float)
+
+
+class _ZeroDensityResponse:
+    @staticmethod
+    def vjp(density_cotangent: np.ndarray) -> np.ndarray:
+        return np.zeros_like(density_cotangent)
 
 
 def _operator(*, symmetric: bool = True):
@@ -130,6 +139,28 @@ def test_fixed_cavity_pcm_map_is_linear():
         rtol=2.0e-13,
         atol=2.0e-11,
     )
+
+
+def test_current_pcmsolver_map_fails_closed_for_full_coordinate_gradient():
+    operator, positions, _, _ = _operator()
+    atom_count = len(positions)
+    zero_density = np.zeros((atom_count, 4))
+    zero_coordinates = np.zeros((atom_count, 3))
+
+    with pytest.raises(
+        NotImplementedError,
+        match="full reaction-field coordinate derivative",
+    ):
+        continuum_coupled_solvation_coordinate_gradient(
+            operator,
+            _ZeroDensityResponse(),
+            density_coefficients=zero_density,
+            intrinsic_energy_field_gradient=zero_density,
+            adjoint_solution=zero_density,
+            adjoint_density_position_vjp=zero_coordinates,
+            solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
+            gas_forces_ev_per_angstrom=zero_coordinates,
+        )
 
 
 def test_fixed_cavity_pcm_map_can_reuse_surface_at_displaced_solute_positions():

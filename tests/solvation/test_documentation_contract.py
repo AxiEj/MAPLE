@@ -48,6 +48,8 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "cavity_policy=fixed-stability-branch" in overview
     assert "geometry-dependent **policy selection**" in overview
     assert "`PEDRA.OUT` warning lines are" in overview
+    assert "Complete same-energy coordinate VJP" in overview
+    assert "PCMSolver--GePol | yes | no; fails closed" in overview
     assert "engineering stability hyperparameters" in formulas
     assert "not SMD/PCM constants" in formulas
     assert "0.9999" in formulas
@@ -67,6 +69,9 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "density_to_external_field_order()" in formulas
     assert "fixed_cavity_energy_density_gradient()" in formulas
     assert "fixed_surface_solvation_coordinate_gradient()" in formulas
+    assert "FullReactionFieldPositionDerivative" in formulas
+    assert "continuum_coupled_solvation_coordinate_gradient()" in formulas
+    assert "same reaction-field object" in formulas
     assert "ExternalMEPCavityResponse" in formulas
     assert "SurfaceChargeState" in formulas
     assert "ExternalMEPCavityOperatorDerivative" in formulas
@@ -91,6 +96,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "not established as SWIG-equivalent" in normalized_validation
     assert "MATRIXSYMM=TRUE" in roadmap
     assert "physical energy-gradient right-hand side" in roadmap
+    assert "full-continuum assembly boundary" in roadmap
+    assert "current PCMSolver-backed map" in roadmap
+    assert "three-case MAE worsened" in normalized_validation
+    assert "0.7248%" in validation
     assert "route2-protocol.json" in benchmark
     assert "does not define Route 2" in benchmark
     assert "No Route-2 FreeSolv accuracy artifact is frozen yet" in benchmark

@@ -319,7 +319,14 @@ selected, license-compatible differentiable provider.
    This is branch-free at the policy level but is deliberately still marked
    `force_compatible=false`; validate GePol topology/rotation continuity and
    supply surface/operator coordinate derivatives before using it in a total
-   force.
+   force. A subsequent correct-unit scan found no warning-free `AREA`-only
+   point on acetone. The warning-free `AREA=1.0 bohr^2`,
+   `MINRADIUS=1.0 A` candidate removed an added sphere and slightly worsened the
+   three-canary MAE, so it is not a public replacement. Seven acetone C=O
+   displacements retained one cavity signature and showed step-refinable local
+   energy derivatives, which is enough to continue code-level derivative work
+   on that diagnostic branch but not enough for parameter adoption or a PES
+   claim.
 8. **Done for the provider-neutral energy boundary; smooth provider remains
    experimental:** `ExternalMEPCavityResponse` now makes the per-atom radii,
    reference geometry, surface, and energy-conjugate response explicit.
@@ -387,8 +394,22 @@ selected, license-compatible differentiable provider.
    energy evaluations in local canaries; exact host-specific timings remain in
    the corresponding artifact. This is still not a force because
    surface/operator motion and CDS are omitted.
-5. **Pending:** contract the adjoint with every remaining coordinate term and
-   sum gas MLIP force plus all solvent derivatives into
+5. **Done for the full-continuum assembly boundary; provider pending:**
+   `FullReactionFieldPositionDerivative` contract version 1 requires the same
+   reaction-field object that supplies the forward/adjoint maps to also supply
+   `full_position_vjp()`. That VJP owns the complete derivative of
+   \(\langle w,\mathcal P_{\mathbf R}c\rangle\), including solute projection,
+   moving-surface kernels, continuum-operator response, and reaction-field
+   back-projection. `continuum_coupled_solvation_coordinate_gradient()` reuses
+   the fixed-point adjoint cotangent and calls only that full VJP; it does not
+   sum separately supplied partials. A resolved-root synthetic oracle and a
+   split fixed-surface/full-map test pass. The current PCMSolver-backed map
+   intentionally lacks this versioned contract and fails closed, so this is an
+   architectural gate rather than a new force implementation. CDS remains
+   absent and `supported_properties` remains energy-only.
+6. **Pending:** implement the complete same-energy continuum derivative in a
+   validated smooth provider, add an independently valid differentiable CDS
+   term, and sum gas MLIP force plus all solvent derivatives into
    `SolvationResult.forces_hartree_per_angstrom`; only then advertise
    `supported_properties={"energy", "forces"}`.
 

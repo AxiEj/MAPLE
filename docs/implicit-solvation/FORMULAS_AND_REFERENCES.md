@@ -645,6 +645,36 @@ The canonical hard-area SMD CDS derivative and every
 tessera/cavity/operator-motion derivative remain absent from this composed
 path, so this is not a total solvent force or a complete solution-phase PES.
 
+The full-continuum assembly boundary does not repair those missing derivatives
+by summing unrelated arrays. Instead,
+`FullReactionFieldPositionDerivative.full_position_vjp()` is a versioned
+contract on the **same reaction-field object** used by the residual and
+adjoint. For
+
+\[
+w=g_f+\frac12Q^\mathsf Tc+J_{\mathcal M,f}^\mathsf T\lambda,
+\]
+
+the provider must return
+
+\[
+D_{\mathbf R}^{\mathrm{full}}
+\left\langle w,\mathcal P_{\mathbf R}c\right\rangle,
+\]
+
+including the solute-MEP projection, motion of its surface, the derivative of
+the energy-path continuum operator, and the ASC back-projection. The interface
+does not accept a derivative provider separately from the forward/adjoint
+reaction map, which prevents MAPLE from intentionally combining a PCMSolver
+energy with a different provider's coordinate derivative.
+`continuum_coupled_solvation_coordinate_gradient()` inserts that one full VJP
+into the already-tested fixed-point adjoint expression. Synthetic resolved-root
+and split-partial tests lock the coefficient and make sure the fixed-surface
+partial is not added again. Current PCMSolver-backed reaction maps deliberately
+do not implement this contract and therefore fail closed. SMD CDS is still
+outside this continuum expression, so the function is an architecture gate,
+not a total solvent force and not a solution-phase PES.
+
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build
 and call path. It does not provide the complete GePol/IEFPCM derivative.

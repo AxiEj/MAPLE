@@ -8,6 +8,8 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     external_field_to_density_order,
 )
 from maple.function.calculator.extra_correction.implicit.route2_derivative import (
+    FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION,
+    continuum_coupled_solvation_coordinate_gradient,
     fixed_cavity_energy_density_gradient,
     fixed_surface_solvation_coordinate_gradient,
 )
@@ -44,23 +46,52 @@ class _MatrixReactionField:
 
 
 class _CoordinateDependentMatrixReactionField(_MatrixReactionField):
+    full_position_derivative_contract_version = (
+        FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION
+    )
+
     def __init__(
         self,
         matrix: np.ndarray,
         coordinate_derivative: np.ndarray,
         atom_count: int,
+        *,
+        fixed_surface_coordinate_derivative: np.ndarray | None = None,
     ):
         super().__init__(matrix, atom_count)
         self.coordinate_derivative = np.asarray(
             coordinate_derivative,
             dtype=float,
         )
+        if fixed_surface_coordinate_derivative is None:
+            fixed_surface_coordinate_derivative = coordinate_derivative
+        self.fixed_surface_coordinate_derivative = np.asarray(
+            fixed_surface_coordinate_derivative,
+            dtype=float,
+        )
+        self.fixed_surface_position_vjp_calls = 0
+        self.full_position_vjp_calls = 0
 
     def position_vjp(
         self,
         density: np.ndarray,
         field_cotangent: np.ndarray,
     ) -> np.ndarray:
+        self.fixed_surface_position_vjp_calls += 1
+        result = np.zeros((self.atom_count, 3), dtype=float)
+        result[0, 0] = np.vdot(
+            np.asarray(field_cotangent).reshape(-1),
+            self.fixed_surface_coordinate_derivative
+            @ np.asarray(density).reshape(-1),
+        )
+        return result
+
+    def full_position_vjp(
+        self,
+        density: np.ndarray,
+        field_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        self.full_position_vjp_calls += 1
         result = np.zeros((self.atom_count, 3), dtype=float)
         result[0, 0] = np.vdot(
             np.asarray(field_cotangent).reshape(-1),
@@ -408,6 +439,24 @@ def test_fixed_surface_coupled_coordinate_gradient_matches_resolved_root_fd():
         ),
         gas_forces_ev_per_angstrom=gas_forces,
     )
+    continuum_analytic = continuum_coupled_solvation_coordinate_gradient(
+        reaction_field,
+        density_response,
+        density_coefficients=density.reshape(atom_count, 4),
+        intrinsic_energy_field_gradient=intrinsic_field_gradient,
+        adjoint_solution=adjoint,
+        adjoint_density_position_vjp=adjoint_density_position_vjp,
+        solvent_fixed_field_forces_ev_per_angstrom=(
+            solvent_fixed_field_forces
+        ),
+        gas_forces_ev_per_angstrom=gas_forces,
+    )
+    np.testing.assert_allclose(
+        continuum_analytic,
+        analytic,
+        rtol=0.0,
+        atol=0.0,
+    )
 
     for step in (1.0e-3, 3.0e-4, 1.0e-4):
         finite_difference = (
@@ -425,3 +474,139 @@ def test_fixed_surface_coupled_coordinate_gradient_matches_resolved_root_fd():
         rtol=0.0,
         atol=1.0e-14,
     )
+
+
+def test_continuum_coupled_gradient_uses_full_reaction_field_vjp():
+    atom_count = 2
+    dimension = atom_count * 4
+    rng = np.random.default_rng(20260725)
+    response = rng.normal(scale=0.04, size=(dimension, dimension))
+    full_coordinate_derivative = rng.normal(
+        scale=0.02,
+        size=(dimension, dimension),
+    )
+    reaction_field = _CoordinateDependentMatrixReactionField(
+        response,
+        full_coordinate_derivative,
+        atom_count,
+        fixed_surface_coordinate_derivative=np.zeros_like(
+            full_coordinate_derivative
+        ),
+    )
+    density_response = _MatrixDensityResponse(
+        np.zeros((dimension, dimension)),
+        atom_count,
+    )
+    density = project_neutral_density_tangent(
+        rng.normal(scale=0.1, size=(atom_count, 4))
+    )
+    field_gradient = rng.normal(scale=0.2, size=(atom_count, 4))
+    adjoint = np.zeros((atom_count, 4))
+    zero_coordinates = np.zeros((atom_count, 3))
+
+    fixed_surface = fixed_surface_solvation_coordinate_gradient(
+        reaction_field,
+        density_response,
+        density_coefficients=density,
+        intrinsic_energy_field_gradient=field_gradient,
+        adjoint_solution=adjoint,
+        adjoint_density_position_vjp=zero_coordinates,
+        solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
+        gas_forces_ev_per_angstrom=zero_coordinates,
+    )
+    continuum = continuum_coupled_solvation_coordinate_gradient(
+        reaction_field,
+        density_response,
+        density_coefficients=density,
+        intrinsic_energy_field_gradient=field_gradient,
+        adjoint_solution=adjoint,
+        adjoint_density_position_vjp=zero_coordinates,
+        solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
+        gas_forces_ev_per_angstrom=zero_coordinates,
+    )
+
+    combined_field_cotangent = (
+        field_gradient + 0.5 * density_to_external_field_order(density)
+    )
+    expected = np.zeros((atom_count, 3))
+    expected[0, 0] = np.vdot(
+        combined_field_cotangent.reshape(-1),
+        full_coordinate_derivative @ density.reshape(-1),
+    )
+    np.testing.assert_allclose(fixed_surface, zero_coordinates)
+    np.testing.assert_allclose(continuum, expected)
+    assert reaction_field.fixed_surface_position_vjp_calls == 1
+    assert reaction_field.full_position_vjp_calls == 1
+
+
+def test_continuum_coupled_gradient_fails_closed_without_full_derivative():
+    atom_count = 2
+    dimension = atom_count * 4
+    reaction_field = _MatrixReactionField(np.eye(dimension), atom_count)
+    density_response = _MatrixDensityResponse(np.eye(dimension), atom_count)
+    zero_density = np.zeros((atom_count, 4))
+    zero_coordinates = np.zeros((atom_count, 3))
+
+    with pytest.raises(
+        NotImplementedError,
+        match="full reaction-field coordinate derivative",
+    ):
+        continuum_coupled_solvation_coordinate_gradient(
+            reaction_field,
+            density_response,
+            density_coefficients=zero_density,
+            intrinsic_energy_field_gradient=zero_density,
+            adjoint_solution=zero_density,
+            adjoint_density_position_vjp=zero_coordinates,
+            solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
+            gas_forces_ev_per_angstrom=zero_coordinates,
+        )
+
+
+def test_continuum_coupled_gradient_rejects_bad_contract_or_output():
+    atom_count = 2
+    dimension = atom_count * 4
+    reaction_field = _CoordinateDependentMatrixReactionField(
+        np.eye(dimension),
+        np.zeros((dimension, dimension)),
+        atom_count,
+    )
+    density_response = _MatrixDensityResponse(np.eye(dimension), atom_count)
+    zero_density = np.zeros((atom_count, 4))
+    zero_coordinates = np.zeros((atom_count, 3))
+    arguments = {
+        "density_coefficients": zero_density,
+        "intrinsic_energy_field_gradient": zero_density,
+        "adjoint_solution": zero_density,
+        "adjoint_density_position_vjp": zero_coordinates,
+        "solvent_fixed_field_forces_ev_per_angstrom": zero_coordinates,
+        "gas_forces_ev_per_angstrom": zero_coordinates,
+    }
+
+    reaction_field.full_position_derivative_contract_version = 99
+    with pytest.raises(
+        ValueError,
+        match="full reaction-field coordinate-derivative contract version",
+    ):
+        continuum_coupled_solvation_coordinate_gradient(
+            reaction_field,
+            density_response,
+            **arguments,
+        )
+
+    reaction_field.full_position_derivative_contract_version = (
+        FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION
+    )
+    reaction_field.full_position_vjp = lambda density, cotangent: np.full(
+        (atom_count, 3),
+        np.nan,
+    )
+    with pytest.raises(
+        ValueError,
+        match="full reaction-field position VJP",
+    ):
+        continuum_coupled_solvation_coordinate_gradient(
+            reaction_field,
+            density_response,
+            **arguments,
+        )

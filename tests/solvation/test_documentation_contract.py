@@ -35,6 +35,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     validation = (
         REPOSITORY_ROOT / "docs/implicit-solvation/VALIDATION_STATUS.md"
     ).read_text(encoding="utf-8")
+    normalized_validation = " ".join(validation.split())
     assert "current PCMSolver C ABI has no force endpoint" in validation
     roadmap = (
         REPOSITORY_ROOT / "docs/implicit-solvation/ROUTE2_FORCE_ROADMAP.md"
@@ -60,6 +61,18 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "fixed_cavity_energy_density_gradient()" in formulas
     assert "fixed_surface_solvation_coordinate_gradient()" in formulas
     assert "aqueous_atomic_surface_tension_position_vjp()" in formulas
+    assert (
+        "smd_water_cds_fibonacci_swig_inspired_position_gradient()"
+        in formulas
+    )
+    assert (
+        "Neither finite quadrature is exactly rotation invariant"
+        in formulas
+    )
+    assert "PySCF 2.13.1" in formulas
+    assert "not established as equivalent" in formulas
+    assert "5.84--9.73%" in validation
+    assert "not established as SWIG-equivalent" in normalized_validation
     assert "MATRIXSYMM=TRUE" in roadmap
     assert "physical energy-gradient right-hand side" in roadmap
     assert "route2-protocol.json" in benchmark

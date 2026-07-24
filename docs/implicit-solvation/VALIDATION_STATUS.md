@@ -98,10 +98,23 @@ not a complete solution-phase PES.
    \(1.12\times10^{-19}\) hartree/angstrom. The current hard-visibility SASA
    still lacks \(\sum_i\gamma_i\,dA_i/d\mathbf R\), so this component is not a
    complete CDS gradient and is not yet added to a published force.
-10. Compare the summed analytic force with central finite differences of the
+10. A separately named Fibonacci-grid, SWIG-inspired CDS candidate supplies
+    an area VJP and combines it with the atomic-tension VJP. Its own discrete
+    energy derivative matches methanol finite differences over five step
+    sizes; the smallest-step maximum absolute discrepancy is
+    \(2.31\times10^{-12}\) hartree/angstrom, and translation closure is
+    numerical zero. Its 5810-point static water/methane/methanol errors are all
+    below `0.001 kcal/mol`, while `smd_water_cds()` remains unchanged. An
+    external PySCF 2.13.1 Lebedev-SWIG control nevertheless finds
+    `5.84--9.73%` dense-grid VJP differences that do not converge
+    monotonically. At 5810 points, Fibonacci and Lebedev methanol rotation
+    spans are `0.00352` and `0.00260 kcal/mol`; the Fibonacci residual torque
+    is \(1.67\times10^{-4}\) hartree. The candidate is not public, not
+    established as SWIG-equivalent, and not a full SWIG-PCM.
+11. Compare the summed analytic force with central finite differences of the
    converged total energy, then enforce translation, rotation, and energy
    conservation checks.
-11. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+12. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
    solution-phase PES.
 
 ## Secondary diagnostics

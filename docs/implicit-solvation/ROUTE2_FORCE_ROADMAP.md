@@ -287,10 +287,19 @@ selected, license-compatible differentiable provider.
    three steps had at most \(5.64\times10^{-10}\) hartree/angstrom absolute and
    \(9.29\times10^{-7}\) relative error, with a
    \(1.12\times10^{-19}\) hartree/angstrom net translation-gradient norm.
-6. Replace the hard-visibility CDS area with an analytic/differentiable
-   SMD-compatible surface-area implementation for the still-missing
-   \(\sum_i\gamma_i\,dA_i/d\mathbf R\) contraction. Do not approximate it as
-   zero or publish the atomic-tension component as a complete CDS gradient.
+6. **Diagnostic implemented; production replacement remains open:** a
+   separately named Fibonacci-grid, SWIG-inspired area supplies an analytic
+   \(\sum_i\gamma_i\,dA_i/d\mathbf R\) VJP. Its own discrete energy and
+   derivative agree to \(2.31\times10^{-12}\) hartree/angstrom at the smallest
+   methanol step, all three static NWChem controls are within
+   `0.001 kcal/mol`, and the canonical hard-area energy is unchanged. However,
+   an external PySCF 2.13.1 Lebedev-SWIG comparison finds dense-grid
+   coordinate-VJP differences of `5.84--9.73%`, nonmonotonic with point count.
+   At 5810 points the Fibonacci and Lebedev rigid-rotation spans are
+   `0.00352` and `0.00260 kcal/mol`, respectively, and the Fibonacci residual
+   torque is \(1.67\times10^{-4}\) hartree. The public provider does not select
+   this candidate. Resolve the invariance/equivalence gates or adopt an
+   independently validated analytic area provider before force publication.
 7. Replace per-geometry warning fallback with a force-compatible cavity policy.
 
 ### Phase 2 -- coupled response

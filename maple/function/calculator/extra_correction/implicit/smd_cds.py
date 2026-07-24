@@ -579,6 +579,206 @@ def solvent_accessible_surface_areas(
     return areas
 
 
+def _swig_switch_with_derivative(
+    coordinate: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return the Lange--Herbert SWIG switch and its first derivative."""
+
+    coordinate = np.asarray(coordinate, dtype=float)
+    values = np.empty_like(coordinate)
+    derivatives = np.zeros_like(coordinate)
+    inside = coordinate <= 0.0
+    outside = coordinate >= 1.0
+    switching = ~(inside | outside)
+    x = coordinate[switching]
+    values[inside] = 0.0
+    values[outside] = 1.0
+    values[switching] = x**3 * (10.0 - 15.0 * x + 6.0 * x**2)
+    derivatives[switching] = 30.0 * x**2 * (1.0 - x) ** 2
+    return values, derivatives
+
+
+def _fibonacci_swig_inspired_surface_areas_and_position_vjp(
+    positions_angstrom: np.ndarray,
+    radii_angstrom: np.ndarray,
+    *,
+    area_cotangent: np.ndarray | None,
+    grid_points: int,
+) -> tuple[np.ndarray, np.ndarray | None]:
+    """Evaluate Fibonacci-grid, SWIG-inspired areas and one optional VJP.
+
+    The switching function and radius parameterization follow Lange and
+    Herbert, J. Chem. Phys. 133, 244111 (2010), but are evaluated on MAPLE's
+    deterministic equal-area Fibonacci nodes instead of the published
+    Lebedev grid. This research candidate is not an implementation of the
+    original SWIG discretization and does not include Gaussian ASC
+    electrostatics.
+    """
+
+    positions = np.asarray(positions_angstrom, dtype=float)
+    radii = np.asarray(radii_angstrom, dtype=float)
+    if (
+        positions.ndim != 2
+        or positions.shape[1] != 3
+        or not np.all(np.isfinite(positions))
+    ):
+        raise ValueError(
+            "Fibonacci-SWIG-inspired coordinates must be finite with shape "
+            "(n_atoms, 3)."
+        )
+    if (
+        radii.shape != (positions.shape[0],)
+        or not np.all(np.isfinite(radii))
+        or np.any(radii <= 0.0)
+    ):
+        raise ValueError(
+            "Fibonacci-SWIG-inspired radii must be one finite positive value "
+            "per atom."
+        )
+
+    cotangent = None
+    if area_cotangent is not None:
+        cotangent = np.asarray(area_cotangent, dtype=float)
+        if (
+            cotangent.shape != (positions.shape[0],)
+            or not np.all(np.isfinite(cotangent))
+        ):
+            raise ValueError(
+                "Fibonacci-SWIG-inspired area cotangent must be finite with "
+                "shape (n_atoms,)."
+            )
+
+    number = int(grid_points)
+    directions = _fibonacci_sphere(number)
+    point_weight = 4.0 * math.pi / number
+    switching_radii = radii * math.sqrt(14.0 / number)
+    radius_ratios = radii / switching_radii
+    square_roots = np.sqrt(radius_ratios**2 - 1.0 / 28.0)
+    # This is algebraically identical to the published/PySCF expression
+    # 1/2 + ratio - sqrt(ratio**2 - 1/28), but avoids cancellation for dense
+    # surface grids.
+    alpha = 0.5 + (1.0 / 28.0) / (radius_ratios + square_roots)
+    inner_radii = radii - alpha * switching_radii
+    outer_radii = inner_radii + switching_radii
+
+    atom_count = positions.shape[0]
+    areas = np.empty(atom_count, dtype=float)
+    position_vjp = None if cotangent is None else np.zeros_like(positions)
+    center_distances = np.linalg.norm(
+        positions[:, None, :] - positions[None, :, :],
+        axis=2,
+    )
+
+    for atom_index, (center, radius) in enumerate(
+        zip(positions, radii, strict=True)
+    ):
+        surface_points = center + radius * directions
+        candidates = np.flatnonzero(
+            (np.arange(atom_count) != atom_index)
+            & (
+                center_distances[atom_index]
+                < radius + outer_radii
+            )
+        )
+        area_scale = point_weight * radius * radius
+        if candidates.size == 0:
+            areas[atom_index] = area_scale * number
+            continue
+
+        displacements = (
+            surface_points[:, None, :]
+            - positions[candidates][None, :, :]
+        )
+        distances = np.linalg.norm(displacements, axis=2)
+        switch_coordinates = (
+            distances - inner_radii[candidates][None, :]
+        ) / switching_radii[candidates][None, :]
+        switches, switch_derivatives = _swig_switch_with_derivative(
+            switch_coordinates
+        )
+        point_switches = np.prod(switches, axis=1)
+        areas[atom_index] = area_scale * float(np.sum(point_switches))
+
+        if position_vjp is None or cotangent[atom_index] == 0.0:
+            continue
+
+        prefix = np.ones((number, candidates.size + 1), dtype=float)
+        prefix[:, 1:] = np.cumprod(switches, axis=1)
+        suffix = np.ones((number, candidates.size + 1), dtype=float)
+        suffix[:, :-1] = np.cumprod(switches[:, ::-1], axis=1)[:, ::-1]
+        products_without_neighbor = prefix[:, :-1] * suffix[:, 1:]
+
+        active = switch_derivatives != 0.0
+        if np.any(active & (distances <= 1.0e-14)):
+            raise ValueError(
+                "An active Fibonacci-SWIG-inspired surface point cannot "
+                "coincide with a neighbouring atom center."
+            )
+        inverse_distances = np.zeros_like(distances)
+        inverse_distances[active] = 1.0 / distances[active]
+        derivative_coefficients = (
+            float(cotangent[atom_index])
+            * area_scale
+            * products_without_neighbor
+            * switch_derivatives
+            * inverse_distances
+            / switching_radii[candidates][None, :]
+        )
+        contributions = (
+            derivative_coefficients[:, :, None] * displacements
+        )
+        position_vjp[atom_index] += np.sum(contributions, axis=(0, 1))
+        np.add.at(
+            position_vjp,
+            candidates,
+            -np.sum(contributions, axis=0),
+        )
+
+    return areas, position_vjp
+
+
+def fibonacci_swig_inspired_solvent_accessible_surface_areas(
+    positions_angstrom: np.ndarray,
+    radii_angstrom: np.ndarray,
+    *,
+    grid_points: int = SASA_GRID_POINTS,
+) -> np.ndarray:
+    """Return Fibonacci-grid, SWIG-inspired atomwise accessible areas.
+
+    The canonical Route-2 SMD energy continues to use
+    :func:`solvent_accessible_surface_areas`.  This separately named function
+    is an experimental, internally energy-consistent candidate. It is not
+    equivalent to the published Lebedev-SWIG discretization.
+    """
+
+    areas, _ = _fibonacci_swig_inspired_surface_areas_and_position_vjp(
+        positions_angstrom,
+        radii_angstrom,
+        area_cotangent=None,
+        grid_points=grid_points,
+    )
+    return areas
+
+
+def fibonacci_swig_inspired_solvent_accessible_surface_area_position_vjp(
+    positions_angstrom: np.ndarray,
+    radii_angstrom: np.ndarray,
+    area_cotangent: np.ndarray,
+    *,
+    grid_points: int = SASA_GRID_POINTS,
+) -> np.ndarray:
+    """Differentiate a pairing with the Fibonacci/SWIG-inspired areas."""
+
+    _, position_vjp = _fibonacci_swig_inspired_surface_areas_and_position_vjp(
+        positions_angstrom,
+        radii_angstrom,
+        area_cotangent=area_cotangent,
+        grid_points=grid_points,
+    )
+    assert position_vjp is not None
+    return position_vjp
+
+
 def smd_water_cds(
     symbols,
     positions_angstrom: np.ndarray,
@@ -604,3 +804,64 @@ def smd_water_cds(
         total_area_angstrom2=float(areas.sum()),
         grid_points_per_atom=int(grid_points),
     )
+
+
+def smd_water_cds_fibonacci_swig_inspired(
+    symbols,
+    positions_angstrom: np.ndarray,
+    *,
+    grid_points: int = SASA_GRID_POINTS,
+) -> SMDCDSResult:
+    """Compute an experimental CDS term with Fibonacci/SWIG-inspired areas.
+
+    This function is deliberately separate from :func:`smd_water_cds`; it is
+    neither Lebedev-SWIG nor selected by the public Route-2 provider.
+    """
+
+    symbols = _validate_symbols(tuple(symbols))
+    positions = np.asarray(positions_angstrom, dtype=float)
+    tensions = aqueous_atomic_surface_tensions(symbols, positions)
+    areas = fibonacci_swig_inspired_solvent_accessible_surface_areas(
+        positions,
+        smd_sasa_radii(symbols),
+        grid_points=grid_points,
+    )
+    energy_kcal_mol = float(np.dot(tensions, areas) / 1000.0)
+    return SMDCDSResult(
+        energy_hartree=energy_kcal_mol / HARTREE_TO_KCAL_MOL,
+        energy_kcal_mol=energy_kcal_mol,
+        atom_areas_angstrom2=areas,
+        atom_tensions_cal_mol_angstrom2=tensions,
+        total_area_angstrom2=float(areas.sum()),
+        grid_points_per_atom=int(grid_points),
+    )
+
+
+def smd_water_cds_fibonacci_swig_inspired_position_gradient(
+    symbols,
+    positions_angstrom: np.ndarray,
+    *,
+    grid_points: int = SASA_GRID_POINTS,
+) -> np.ndarray:
+    """Return this experimental discrete CDS gradient in hartree/angstrom."""
+
+    symbols = _validate_symbols(tuple(symbols))
+    positions = np.asarray(positions_angstrom, dtype=float)
+    tensions = aqueous_atomic_surface_tensions(symbols, positions)
+    energy_scale = 1.0 / (1000.0 * HARTREE_TO_KCAL_MOL)
+    (
+        areas,
+        area_gradient,
+    ) = _fibonacci_swig_inspired_surface_areas_and_position_vjp(
+        positions,
+        smd_sasa_radii(symbols),
+        area_cotangent=tensions * energy_scale,
+        grid_points=grid_points,
+    )
+    assert area_gradient is not None
+    tension_gradient = aqueous_atomic_surface_tension_position_vjp(
+        symbols,
+        positions,
+        areas * energy_scale,
+    )
+    return area_gradient + tension_gradient

@@ -158,9 +158,81 @@ methanol NWChem-control geometry, the six largest fixed-area
 maximum absolute and relative discrepancies of
 \(5.64\times10^{-10}\) hartree/angstrom and \(9.29\times10^{-7}\);
 the net translation-gradient norm was \(1.12\times10^{-19}\)
-hartree/angstrom. The second contraction is still unavailable because the
-current hard-visibility Shrake--Rupley area is not differentiable. The
-implemented term is therefore one CDS component, not a complete CDS gradient.
+hartree/angstrom. The second contraction is unavailable for the canonical
+energy because its hard-visibility Shrake--Rupley area is not differentiable.
+The canonical atomic-tension derivative is therefore one CDS component, not a
+complete CDS gradient.
+
+A separately named experimental **Fibonacci-grid, SWIG-inspired** smooth-area
+candidate evaluates
+
+\[
+d_{in,j}
+=\frac{\lvert\mathbf R_i+r_i\mathbf u_n-\mathbf R_j\rvert
+      -R_{\mathrm{in},j}}{R_{\mathrm{sw},j}},
+\qquad
+F_{in}=\prod_{j\ne i}h(d_{in,j}),
+\qquad
+A_i^{\mathrm{Fib}}
+=\frac{4\pi r_i^2}{N}\sum_{n=1}^N F_{in},
+\]
+
+with the Lange--Herbert/York--Karplus switch
+
+\[
+h(x)=
+\begin{cases}
+0, & x\le 0,\\
+x^3(10-15x+6x^2), & 0<x<1,\\
+1, & x\ge 1,
+\end{cases}
+\quad
+R_{\mathrm{sw},j}=R_j\sqrt{14/N},
+\quad
+R_{\mathrm{in},j}=R_j-\alpha_jR_{\mathrm{sw},j}.
+\]
+
+MAPLE borrows the published/PySCF \(\alpha_j\) parameterization but applies it
+to equal-area Fibonacci nodes rather than the Lebedev nodes used by the
+published SWIG construction and PySCF. It analytically contracts
+\(dA_i^{\mathrm{Fib}}/d\mathbf R\) with a supplied cotangent; prefix/suffix
+products avoid division by a vanishing elementary switch.
+`smd_water_cds_fibonacci_swig_inspired_position_gradient()` combines that area
+VJP with `aqueous_atomic_surface_tension_position_vjp()` and is the complete
+derivative of this one **discrete research candidate**. It neither changes the
+canonical `smd_water_cds()` energy nor claims to implement Lebedev-SWIG or the
+Gaussian apparent-surface-charge electrostatics of full SWIG-PCM.
+
+At 5810 equal-area Fibonacci points per atom, static water, methane, and
+methanol errors against the existing NWChem controls are all below
+`0.001 kcal/mol`; the largest is `0.000457 kcal/mol`, versus approximately
+`0.0100 kcal/mol` for the largest canonical hard-area discrepancy. Water's
+canonical hard-area value was already closer than the smooth candidate, so
+this is a worst-case improvement, not uniform per-molecule improvement.
+Methanol's six largest complete candidate-gradient components agree with
+finite differences of the same candidate energy over five step sizes. The
+maximum absolute
+discrepancy decreasing from \(2.12\times10^{-8}\) hartree/angstrom at
+\(10^{-3}\) angstrom to \(2.31\times10^{-12}\) hartree/angstrom at
+\(10^{-5}\) angstrom. Translation closure is numerical zero.
+
+An isolated PySCF 2.13.1 validation wheel was then used as an external
+Lebedev-SWIG control; it is not a MAPLE runtime dependency. On one overlapping
+four-sphere geometry, dense-grid atom areas differ by at most
+`0.00553 angstrom^2`, but the coordinate-VJP relative \(L_2\) difference
+remains `5.84--9.73%` from 2030 through 5810 points and is nonmonotonic with
+grid size. At 5810 points, the difference is `8.85%`. Therefore the candidate
+is not established as equivalent to published/PySCF SWIG even though its own
+energy and derivative are mutually consistent.
+
+Neither finite quadrature is exactly rotation invariant. Across 25 rigid
+methanol orientations at 5810 points, the Fibonacci/SWIG-inspired energy span
+is `0.00352 kcal/mol`; the PySCF Lebedev-SWIG span is
+`0.00260 kcal/mol`, and the canonical hard-area span is
+`0.0243 kcal/mol`. The Fibonacci candidate also retains a
+\(1.67\times10^{-4}\) hartree residual torque at the reference orientation.
+These are open production-force gates: this implementation is a diagnostic
+research candidate, not a published Route-2 force component.
 
 The standard state is exactly 1 M gas to 1 M solution:
 
@@ -549,9 +621,9 @@ eV/angstrom and \(5.00\times10^{-6}\). After the base root, the analytic path
 was about 15--20 times faster than twelve root-resolved scalar energy
 evaluations in local canaries; exact host-specific timings remain in the
 corresponding artifact. These are local component/timing diagnostics only.
-The SMD CDS derivative and every tessera/cavity/operator-motion derivative
-remain absent, so this is not a total solvent force or a complete
-solution-phase PES.
+The canonical hard-area SMD CDS derivative and every
+tessera/cavity/operator-motion derivative remain absent from this composed
+path, so this is not a total solvent force or a complete solution-phase PES.
 
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build
@@ -580,6 +652,10 @@ Route-2 references:
 - PySCF PCM implementation and analytic gradients:
   `https://github.com/pyscf/pyscf/tree/c63a953ba603a5ad8c1d65d88da72aaf05ede4d8/pyscf/solvent`;
   audited PySCF 2.14 source snapshot `c63a953`.
+- A. W. Lange and J. M. Herbert, “A smooth, nonsingular, and faithful
+  discretization scheme for polarizable continuum models: The
+  switching/Gaussian approach,” *J. Chem. Phys.* **133**, 244111 (2010),
+  DOI `10.1063/1.3511297`.
 - Revised SMD Coulomb radii:
   `https://comp.chem.umn.edu/solvation/coulomb_radii.htm`.
 - D. L. Mobley and J. P. Guthrie, “FreeSolv: a database of experimental and

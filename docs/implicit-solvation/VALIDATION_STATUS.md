@@ -25,10 +25,12 @@ not a complete solution-phase PES.
 
 ## Primary next milestone: energy-consistent force
 
-1. Write and verify one total-energy functional for the converged
-   MACE-POLAR/PCM state; do not assume current fixed-point stationarity.
-2. Expose the polarized MACE partial force while retaining the computational
-   graph or an equivalent analytic response interface.
+1. Keep the documented total-energy bookkeeping and differentiate the unmixed
+   converged fixed-point residual with an adjoint solve. A real local-field
+   derivative probe rejects the shortcut
+   `dE_intrinsic/d[V,grad(V)] == [q,p]`.
+2. The MACE local-field energy/density graph is now exposed; next retain the
+   fixed-field position derivative and connect it to the coupled adjoint.
 3. Implement PCM MEP, boundary-operator, tessera-geometry, and ASC response
    derivatives. The current PCMSolver C ABI has no force endpoint.
 4. Implement the geometry-dependent SMD CDS/SASA derivative.

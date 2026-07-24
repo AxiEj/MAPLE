@@ -170,6 +170,30 @@ ASC. Therefore response terms such as \(dc^*/d\mathbf R_A\) and
 \(d\sigma^*/d\mathbf R_A\) must not be discarded merely by analogy to a
 stationary QM-SCF wavefunction.
 
+A graph-preserving MACE-POLAR probe additionally establishes that
+
+\[
+\frac{\partial E_{\mathrm{MACE,intrinsic}}}{\partial V_i}\ne q_i,
+\qquad
+\frac{\partial E_{\mathrm{MACE,intrinsic}}}
+     {\partial(\nabla V_i)}\ne\mathbf p_i
+\]
+
+for a real converged Route-2 state, after independently checking the automatic
+derivative against central finite differences. The mismatch is not described
+by one common sign or scale. Route 2 therefore uses the converged fixed-point
+residual, rather than a presumed density--field variational functional, as the
+definition of its response problem:
+
+\[
+\mathcal R(c,\mathbf R)
+=c-\mathcal M\!\left(\mathcal P(c,\mathbf R),\mathbf R\right)=0.
+\]
+
+Numerical density mixing is only a root-finding choice and is not part of this
+physical residual. The corresponding total derivative must be obtained from
+the adjoint equations documented in `ROUTE2_FORCE_ROADMAP.md`.
+
 An energy-consistent implementation must account for all of the following:
 
 1. the gas-to-polarized intrinsic MACE-POLAR force difference;

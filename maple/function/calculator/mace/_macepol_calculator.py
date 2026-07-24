@@ -285,6 +285,73 @@ class MACEPolCalculator(CalcABC):
             dipole_e_angstrom=dipole_np,
         )
 
+    def polar_output_torch(
+        self,
+        atoms,
+        *,
+        node_potential_ev: torch.Tensor | None = None,
+        node_gradient_ev_per_angstrom: torch.Tensor | None = None,
+        compute_forces: bool = False,
+        compute_hessian: bool = False,
+    ) -> dict:
+        """Return raw MACE-POLAR output without detaching the local-field graph.
+
+        This Route-2 derivative interface preserves autograd connectivity from
+        the model energy and density outputs back to the supplied atom-centred
+        reaction potential (eV/e) and gradient (eV/(e Å)).  It does not assume
+        that either derivative is conjugate to the returned density; that
+        relation must be established separately before constructing forces.
+        """
+
+        local_values = None
+        if node_potential_ev is not None or node_gradient_ev_per_angstrom is not None:
+            if node_potential_ev is None or node_gradient_ev_per_angstrom is None:
+                raise ValueError(
+                    "Both local reaction potential and gradient are required."
+                )
+            if not torch.is_tensor(node_potential_ev) or not torch.is_tensor(
+                node_gradient_ev_per_angstrom
+            ):
+                raise TypeError(
+                    "The graph-preserving local reaction potential and gradient "
+                    "must be torch tensors."
+                )
+            if node_potential_ev.shape != (len(atoms),) or (
+                node_gradient_ev_per_angstrom.shape != (len(atoms), 3)
+            ):
+                raise ValueError(
+                    "Local reaction potential/gradient shapes must be "
+                    "(n_atoms,) and (n_atoms, 3)."
+                )
+            if not torch.is_floating_point(
+                node_potential_ev
+            ) or not torch.is_floating_point(node_gradient_ev_per_angstrom):
+                raise TypeError(
+                    "The local reaction potential and gradient must use a "
+                    "floating-point torch dtype."
+                )
+            potential = node_potential_ev.to(
+                dtype=self.dtype,
+                device=self.device,
+            )
+            gradient = node_gradient_ev_per_angstrom.to(
+                dtype=self.dtype,
+                device=self.device,
+            )
+            local_values = torch.cat((potential[:, None], gradient), dim=1)
+
+        batch = self._batch_dict(atoms)
+        self._reaction_projector.set_node_potential_gradient(local_values)
+        try:
+            return self.model(
+                batch,
+                compute_force=compute_forces,
+                compute_stress=False,
+                compute_hessian=compute_hessian,
+            )
+        finally:
+            self._reaction_projector.set_node_potential_gradient(None)
+
     def polar_state(
         self,
         atoms,
@@ -304,8 +371,8 @@ class MACEPolCalculator(CalcABC):
         diagnostic.
         """
 
-        batch = self._batch_dict(atoms)
-        local_values = None
+        potential_tensor = None
+        gradient_tensor = None
         if node_potential_ev is not None or node_gradient_ev_per_angstrom is not None:
             if node_potential_ev is None or node_gradient_ev_per_angstrom is None:
                 raise ValueError(
@@ -318,22 +385,24 @@ class MACEPolCalculator(CalcABC):
                     "Local reaction potential/gradient shapes must be "
                     "(n_atoms,) and (n_atoms, 3)."
                 )
-            local_values = torch.as_tensor(
-                np.column_stack((potential, gradient)),
+            potential_tensor = torch.as_tensor(
+                potential,
+                dtype=self.dtype,
+                device=self.device,
+            )
+            gradient_tensor = torch.as_tensor(
+                gradient,
                 dtype=self.dtype,
                 device=self.device,
             )
 
-        self._reaction_projector.set_node_potential_gradient(local_values)
-        try:
-            output = self.model(
-                batch,
-                compute_force=compute_forces,
-                compute_stress=False,
-                compute_hessian=compute_hessian,
-            )
-        finally:
-            self._reaction_projector.set_node_potential_gradient(None)
+        output = self.polar_output_torch(
+            atoms,
+            node_potential_ev=potential_tensor,
+            node_gradient_ev_per_angstrom=gradient_tensor,
+            compute_forces=compute_forces,
+            compute_hessian=compute_hessian,
+        )
         return self._polar_state_from_output(output), output
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):

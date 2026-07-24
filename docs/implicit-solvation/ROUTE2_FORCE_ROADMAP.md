@@ -17,15 +17,17 @@ described as a complete solution-phase PES.
 
 ## Current force blockers
 
-1. **Stationarity is not established.** The code converges a fixed-point map
-   between learned density coefficients and PCM reaction field. It has not yet
-   proved that the reported energy is stationary with respect to both the
-   learned representation and ASC. QM-SCF Hellmann--Feynman cancellations
-   therefore cannot simply be assumed.
-2. **The MACE local-field path is detached.** `polar_state()` converts the PCM
-   potential and gradient from NumPy into a fresh tensor. MACE can return a
-   partial force at fixed local field, but the present path does not retain the
-   graph needed for the field and density response.
+1. **Stationarity is not established, and the simple conjugacy shortcut is
+   rejected.** The code converges a fixed-point map between learned density
+   coefficients and PCM reaction field. A graph-preserving probe confirms that
+   the intrinsic MACE energy derivative with respect to the injected local
+   potential/gradient is not the returned charge/dipole density. QM-SCF
+   Hellmann--Feynman cancellations therefore cannot be imported into Route 2.
+2. **Only the MACE side of the response graph is exposed.**
+   `polar_output_torch()` now retains the graph from local potential/gradient
+   to both intrinsic energy and density coefficients. The PCM solve and cavity
+   geometry still cross the NumPy/C boundary and provide no differentiable
+   Jacobian-vector or vector-Jacobian product.
 3. **The PCMSolver binding is energy-only.** The v1.1.12-style C ABI loaded by
    MAPLE exports cavity centres/areas, ASC, response ASC, and polarization
    energy, but no nuclear-gradient or boundary-operator derivative endpoint.
@@ -68,19 +70,63 @@ differentiation. For a fixed-point residual
 This avoids back-propagating through an arbitrary number of mixed SCF
 iterations while retaining the converged mutual response.
 
+## Phase-0 evidence and derivative decision
+
+A development probe used the final converged acetone reaction field from the
+two-canary cavity-preflight run and the official MACE-POLAR-1-M checkpoint in
+float64. The recomputed density agreed with the saved converged density within
+\(2.59\times10^{-6}\,e\). For six selected potential/gradient components,
+autograd and a central difference with step \(10^{-3}\) in the corresponding
+model-native field unit agreed within \(3.92\times10^{-7}\).
+
+That verified derivative does **not** equal the returned density:
+
+| comparison | relative \(L_2\) difference | cosine similarity |
+|---|---:|---:|
+| \(\partial E_{\mathrm{intrinsic}}/\partial V\) vs. \(q\) | 1.0168 | -0.8905 |
+| \(\partial E_{\mathrm{intrinsic}}/\partial\nabla V\) vs. \(\mathbf p\) | 1.1028 | -0.7788 |
+
+The least-squares scales are also different for the scalar and vector blocks
+(-0.0167 and -0.0999), so a common missing sign, unit conversion, or
+Cartesian/e3nn permutation cannot explain the mismatch. One valid state is
+sufficient to falsify a universal conjugacy identity; it is not sufficient to
+characterize the magnitude of the mismatch over chemical space.
+
+The force design decision is therefore:
+
+1. retain the published Route-2 energy bookkeeping;
+2. define the **unmixed** converged residual
+   \[
+   \mathcal R(c,\mathbf R)
+   =c-\mathcal M\!\left(\mathcal P(c,\mathbf R),\mathbf R\right)=0,
+   \]
+   where \(\mathcal P\) is the PCM reaction-field map and \(\mathcal M\) is the
+   MACE-POLAR density response;
+3. differentiate that residual with an adjoint/implicit solve, independent of
+   the numerical mixing used to reach the root; and
+4. do not add an ad hoc local \(\langle\rho,V\rangle\) term, change checkpoint
+   weights, or expose forces to make a stationary shortcut appear true.
+
+The earlier SCF grid provides limited path-independence evidence: at
+\(10^{-5}\) density/energy tolerances, mixing 0.5 versus 1.0 changed
+\(\Delta G_{\mathrm{solv}}\) by at most \(1.29\times10^{-4}\) kcal/mol over
+twelve development molecules. This supports treating mixing as a solver
+choice, but it is not force or chemical-space certification.
+
 ## Implementation sequence
 
 ### Phase 0 -- lock the energy functional
 
-1. Expose a torch-native local-field evaluation without NumPy detachment.
-2. Differentiate MACE energy with respect to local potential/gradient and test
-   its sign, units, Cartesian/e3nn permutation, and conjugacy to the returned
-   density coefficients.
-3. Verify that the reported energy is independent, within tolerance, of SCF
-   mixing and convergence path.
-4. Decide from those tests whether Route 2 has a stationary joint functional
-   or requires an adjoint fixed-point derivative. Do not implement production
-   force before this decision.
+1. **Done:** expose a torch-native local-field evaluation without NumPy
+   detachment.
+2. **Done for the stationary decision:** differentiate MACE energy with respect
+   to local potential/gradient and verify autograd against finite differences.
+   The density-conjugacy identity is rejected.
+3. **Development evidence only:** mixing/path dependence is below the current
+   energy tolerance on the twelve-molecule probe; repeat at force-gate
+   geometries before production.
+4. **Decision:** Route 2 requires an adjoint fixed-point derivative. Production
+   force remains disabled until all later phases pass.
 
 ### Phase 1 -- differentiable explicit geometry terms
 
@@ -130,4 +176,3 @@ has:
 - translation, rotation, continuity, and energy-conservation evidence; and
 - fail-closed behavior when the selected cavity loses differentiability or
   numerical validity.
-

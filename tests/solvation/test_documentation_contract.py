@@ -40,6 +40,8 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
         REPOSITORY_ROOT / "docs/implicit-solvation/ROUTE2_FORCE_ROADMAP.md"
     ).read_text(encoding="utf-8")
     assert "Stationarity is not established" in roadmap
+    assert "Route 2 requires an adjoint fixed-point derivative" in roadmap
+    assert "polar_output_torch()" in roadmap
     assert "current CDS area is not differentiable" in roadmap
     assert "Warning-triggered cavity switching is not a PES rule" in roadmap
     assert "route2-protocol.json" in benchmark

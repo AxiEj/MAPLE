@@ -187,18 +187,42 @@ not a complete solution-phase PES.
     same-energy smooth-continuum full-position VJP without changing the public
     PCMSolver route. It combines solute-centre and moving-surface
     point-multipole derivatives with PySCF's matching SWIG/IEFPCM operator
-    derivative. On one fixed-density, order-17 acetone canary with 643 surface
-    points, the three representative \(10^{-4}\)-angstrom relative errors were
+    derivative. Per-atom cavity radii are passed through PySCF's own
+    `gen_surface()` by a version-locked atom-index view; MAPLE neither copies nor
+    reimplements the SWIG construction. The adapter verifies the required
+    PySCF 2.13.1 integer-index lookup at runtime. With equal radii on repeated
+    elements, all audited surface arrays and atom slices were bitwise identical
+    to the ordinary element-table call. A mixed-radius methyl-acetate surface
+    retained distinct `o=1.70 A` and `os=1.52 A` oxygen radii.
+
+    On fixed-density order-17 acetone (643 surface points), the three
+    representative \(10^{-4}\)-angstrom relative errors were
     \(1.54\times10^{-8}\), \(6.71\times10^{-9}\), and
     \(2.00\times10^{-7}\); translation closure was below
-    \(1.9\times10^{-16}\) eV/angstrom. The tracked adapter agrees with the
-    independent formula path to \(1.9\times10^{-15}\) relative or better. This
-    is not a provider-adoption or force gate: PySCF's private gradient
-    intermediates are locked to tested version 2.13.1, mixed same-element
-    per-atom radii are rejected, order 17 previously failed the rigid-rotation
-    gate, the real MACE adjoint and CDS are not included, and the public parser
-    remains PCMSolver-only. Local elapsed times are retained only as diagnostic
-    artifact metadata and are not portable speed benchmarks.
+    \(1.9\times10^{-16}\) eV/angstrom. On fixed-density methyl acetate (695
+    points), the maximum error over a general component and one component on
+    each oxygen was \(3.50\times10^{-8}\) eV/angstrom
+    (\(1.85\times10^{-6}\) relative) at a \(3\times10^{-4}\)-angstrom step and
+    \(3.82\times10^{-9}\) eV/angstrom at \(10^{-4}\) angstrom; translation
+    closure was \(6.10\times10^{-16}\) eV/angstrom.
+
+    The real float64 MACE-POLAR fixed-point adjoint now also passes narrow
+    resolved-root canaries. For acetone, the two largest checked components at
+    \(10^{-3}\) angstrom had absolute errors \(2.15\times10^{-6}\) and
+    \(1.02\times10^{-6}\) eV/angstrom. For mixed-radius methyl acetate, the
+    checked largest component differed by \(8.51\times10^{-7}\) eV/angstrom
+    (\(1.14\times10^{-6}\) relative), with both the adjoint relative residual
+    below \(5.0\times10^{-14}\) and translation closure below
+    \(1.0\times10^{-13}\) eV/angstrom. These results close only a narrow
+    continuum-electrostatic coordinate-gradient slice. PySCF's private
+    gradient intermediates remain locked to version 2.13.1, order 17 is not
+    rotation-qualified, CDS and total-force assembly are absent, and the public
+    parser remains PCMSolver-only. The canaries load MACE through the public
+    calculator plumbing but do not evaluate its attached PCMSolver correction;
+    their result-level PySCF provenance, not the loader-generated PCMSolver
+    manifest, identifies the tested continuum. Local elapsed times are
+    diagnostic metadata, not portable speed benchmarks or chemical-accuracy
+    evidence.
 18. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.

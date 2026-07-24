@@ -348,9 +348,11 @@ selected, license-compatible differentiable provider.
    `1.53e-8` relative finite-difference error and numerical translation
    closure. These results justify continued optional-provider investigation,
    but the candidate is **not production-ready**: total derivatives,
-   mixed-oxygen per-atom radii in the candidate backend, differentiable CDS,
-   scaling, and broad speed/accuracy evidence remain open. PySCF is not a MAPLE
-   dependency and no speed claim follows from these local timings.
+   differentiable CDS, scaling, and broad speed/accuracy evidence remain open.
+   The later version-locked adapter described below resolves mixed-oxygen
+   per-atom radius assignment without copying PySCF's surface algorithm. PySCF
+   is not a MAPLE dependency and no speed claim follows from these local
+   timings.
 9. **Done for the provider-neutral operator-VJP boundary; no production
    derivative provider yet:** `ExternalMEPCavityOperatorDerivative` represents
    \(d\langle u,Q_{\mathrm{sym}}(R)v\rangle/dR\) directly, without assembling a
@@ -363,9 +365,10 @@ selected, license-compatible differentiable provider.
    passes general bilinear and energy finite differences. The real PCMSolver
    adapter has no such endpoint and intentionally raises instead of treating
    the missing GePol derivative as zero.
-10. **Done for one optional same-energy smooth-continuum canary; adoption
-    remains open:** `PySCFSWIGIEFPCMResponse` lazily uses PySCF 2.13.1 to build
-    one SWIG surface and the matching IEFPCM \(K/R\) operator.
+10. **Done for narrow optional same-energy smooth-continuum and coupled-response
+    canaries; adoption remains open:** `PySCFSWIGIEFPCMResponse` lazily uses
+    PySCF 2.13.1 to build one SWIG surface and the matching IEFPCM \(K/R\)
+    operator.
     `AtomCenteredSurfacePCMReactionFieldLinearMap.full_position_vjp()` combines
     fixed-surface solute/back-projection kernels, rigid parent-atom motion of
     every surface node, and the same PySCF operator derivative without
@@ -375,10 +378,26 @@ selected, license-compatible differentiable provider.
     \(2.00\times10^{-7}\), with translation closure below
     \(1.9\times10^{-16}\) eV/angstrom. The tracked adapter and an independent
     formula implementation agree to \(1.9\times10^{-15}\) relative or better.
-    This remains a one-molecule component canary: the private PySCF gradient
-    bridge is version-gated, mixed same-element per-atom radii fail closed,
-    order 17 is not rotation-qualified, the public parser remains PCMSolver-only,
-    and CDS plus real coupled MACE response remain outside the result.
+
+    The version-locked adapter delegates surface generation to upstream PySCF
+    using atom indices as radius-vector keys, verifies that integer lookup
+    contract at runtime, and retains the real molecule for all nuclear
+    bookkeeping. Repeated-element equal-radius surfaces are bitwise identical
+    to the ordinary PySCF path. A 695-point methyl-acetate surface retained
+    distinct `o=1.70 A` and `os=1.52 A` radii; its checked fixed-density
+    components had at most \(3.50\times10^{-8}\) eV/angstrom absolute and
+    \(1.85\times10^{-6}\) relative finite-difference error.
+
+    Real resolved-root float64 MACE-POLAR adjoint canaries now pass as well.
+    At a \(10^{-3}\)-angstrom step, the two largest checked acetone components
+    differed from whole-energy finite differences by at most
+    \(2.15\times10^{-6}\) eV/angstrom. The largest checked mixed-radius
+    methyl-acetate component differed by \(8.51\times10^{-7}\) eV/angstrom
+    (\(1.14\times10^{-6}\) relative); every displaced density root met the
+    \(2\times10^{-12}\) tolerance. These remain two-molecule canaries: the
+    private PySCF bridge is version-gated, order 17 is not rotation-qualified,
+    the public parser remains PCMSolver-only, and CDS plus total-force assembly
+    remain outside the result.
 
 ### Phase 2 -- coupled response
 
@@ -409,8 +428,9 @@ selected, license-compatible differentiable provider.
    energy evaluations in local canaries; exact host-specific timings remain in
    the corresponding artifact. This is still not a force because
    surface/operator motion and CDS are omitted.
-5. **Done for the full-continuum assembly boundary and one optional
-   fixed-density provider canary; coupled adoption pending:**
+5. **Done for the full-continuum assembly boundary and narrow optional
+   fixed-density plus real coupled-response provider canaries; adoption
+   pending:**
    `FullReactionFieldPositionDerivative` contract version 1 requires the same
    reaction-field object that supplies the forward/adjoint maps to also supply
    `full_position_vjp()`. That VJP owns the complete derivative of
@@ -422,16 +442,20 @@ selected, license-compatible differentiable provider.
    split fixed-surface/full-map test pass. The current PCMSolver-backed map
    intentionally lacks this versioned contract and fails closed, so this is an
    architectural gate rather than a new public force implementation. The
-   optional PySCF SWIG adapter now passes the fixed-density full-continuum
-   canary described in Phase 1, but it has not yet passed a real resolved-root
-   MACE-adjoint finite difference. CDS remains absent and
-   `supported_properties` remains energy-only.
-6. **Pending:** run the optional same-energy smooth continuum VJP through the
-   real converged MACE fixed-point adjoint, resolve per-atom radii and
-   rotation/continuity gates, add an independently valid differentiable CDS
-   term, and sum gas MLIP force plus all solvent derivatives into
+   optional PySCF SWIG adapter now passes the fixed-density canaries described
+   in Phase 1 and real resolved-root MACE-adjoint finite differences on acetone
+   and mixed-radius methyl acetate. The canaries load MACE through existing
+   public calculator plumbing but bypass the attached PCMSolver correction;
+   their result-level PySCF provenance identifies the continuum actually
+   differentiated. CDS remains absent and `supported_properties` remains
+   energy-only.
+6. **Pending:** resolve order-35 scaling plus rotation/continuity gates, add an
+   independently valid differentiable CDS term, and sum gas MLIP force plus all
+   solvent derivatives into
    `SolvationResult.forces_hartree_per_angstrom`; only then advertise
-   `supported_properties={"energy", "forces"}`.
+   `supported_properties={"energy", "forces"}`. The per-atom radius and real
+   MACE fixed-point-adjoint subproblems are no longer blockers for this optional
+   provider.
 
 ### Phase 3 -- verification gates
 

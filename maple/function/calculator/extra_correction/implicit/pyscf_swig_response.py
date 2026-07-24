@@ -84,37 +84,77 @@ def _validated_surface_vector(
     return vector
 
 
-def _element_radius_table(
+def _atomic_numbers(
     runtime: _PySCFRuntime,
     symbols: tuple[str, ...],
-    radii_angstrom: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Return PySCF's element table while rejecting unrepresentable radii."""
+) -> np.ndarray:
+    """Resolve real atomic numbers without coupling radii to elements."""
 
-    table = np.asarray(runtime.pcm.modified_Bondi, dtype=float).copy()
     atomic_numbers = np.empty(len(symbols), dtype=int)
-    radii_by_atomic_number: dict[int, float] = {}
-    for index, (symbol, radius) in enumerate(
-        zip(symbols, radii_angstrom, strict=True)
-    ):
-        atomic_number = int(runtime.gto.charge(symbol))
-        if atomic_number <= 0 or atomic_number >= table.size:
+    for index, symbol in enumerate(symbols):
+        try:
+            atomic_number = int(runtime.gto.charge(symbol))
+        except (KeyError, TypeError, ValueError) as exc:
             raise ValueError(
-                f"PySCF cannot assign a cavity radius to element {symbol}."
-            )
-        previous = radii_by_atomic_number.setdefault(
-            atomic_number,
-            float(radius),
-        )
-        if abs(previous - float(radius)) > 1.0e-12:
+                f"PySCF cannot resolve element {symbol}."
+            ) from exc
+        if atomic_number <= 0:
             raise ValueError(
-                "PySCF PCM currently exposes element-level rather than "
-                "atom-specific radii; one element received incompatible "
-                f"values {previous:.12g} and {float(radius):.12g} Angstrom."
+                f"PySCF cannot resolve element {symbol} to a real atom."
             )
         atomic_numbers[index] = atomic_number
-        table[atomic_number] = float(radius) / Bohr
-    return table, atomic_numbers
+    return atomic_numbers
+
+
+class _AtomIndexedSurfaceMolecule:
+    """Minimal PySCF ``gen_surface`` view for per-atom cavity radii.
+
+    PySCF 2.13.1 maps ``mol.elements`` through ``charge()`` before indexing
+    the supplied radius vector.  Integer element labels pass through that
+    function unchanged, so the labels below make the upstream routine index
+    radii by atom rather than by element.  Coordinates and all subsequent
+    surface, matrix, and gradient work remain in PySCF; the real molecule is
+    retained separately for nuclear identities and gradient bookkeeping.
+    """
+
+    def __init__(self, molecule: Any) -> None:
+        self._molecule = molecule
+        self.natm = int(molecule.natm)
+        self.elements = tuple(range(self.natm))
+
+    def atom_coords(self, unit: str = "B") -> np.ndarray:
+        return self._molecule.atom_coords(unit=unit)
+
+
+def _generate_per_atom_radius_surface(
+    runtime: _PySCFRuntime,
+    molecule: Any,
+    radii_angstrom: np.ndarray,
+    *,
+    grid_points_per_atom: int,
+) -> dict[str, Any]:
+    """Delegate SWIG construction to PySCF with one radius per atom."""
+
+    atom_indices = tuple(range(int(molecule.natm)))
+    try:
+        resolved_indices = tuple(
+            int(runtime.gto.charge(index)) for index in atom_indices
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise RuntimeError(
+            "PySCF no longer accepts atom indices in its surface-radius lookup."
+        ) from exc
+    if resolved_indices != atom_indices:
+        raise RuntimeError(
+            "PySCF no longer preserves atom indices in its surface-radius lookup."
+        )
+
+    return runtime.pcm.gen_surface(
+        _AtomIndexedSurfaceMolecule(molecule),
+        ng=grid_points_per_atom,
+        rad=np.asarray(radii_angstrom, dtype=float) / Bohr,
+        surface_discretization_method="SWIG",
+    )
 
 
 def _surface_parent_indices(
@@ -214,11 +254,7 @@ class PySCFSWIGIEFPCMResponse:
                 f"Unsupported PySCF Lebedev order: {lebedev_order}."
             ) from exc
 
-        radius_table, atomic_numbers = _element_radius_table(
-            runtime,
-            symbol_tuple,
-            radii,
-        )
+        atomic_numbers = _atomic_numbers(runtime, symbol_tuple)
         mol = runtime.gto.M(
             atom=list(zip(symbol_tuple, positions.tolist(), strict=True)),
             unit="Angstrom",
@@ -227,11 +263,11 @@ class PySCFSWIGIEFPCMResponse:
             spin=0,
             verbose=0,
         )
-        surface = runtime.pcm.gen_surface(
+        surface = _generate_per_atom_radius_surface(
+            runtime,
             mol,
-            ng=grid_points_per_atom,
-            rad=radius_table,
-            surface_discretization_method="SWIG",
+            radii,
+            grid_points_per_atom=grid_points_per_atom,
         )
         try:
             points = np.asarray(surface["grid_coords"], dtype=float)
@@ -354,6 +390,7 @@ class PySCFSWIGIEFPCMResponse:
             "pyscf_version": self._runtime.version,
             "lebedev_order": self._lebedev_order,
             "static_dielectric": self._dielectric,
+            "cavity_radius_assignment": "per-atom",
         }
 
     def _solve_components(

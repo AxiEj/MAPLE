@@ -702,21 +702,37 @@ same-provider operator VJP exactly once.
 
 The optional `PySCFSWIGIEFPCMResponse` research adapter now supplies this
 complete continuum-electrostatic map using PySCF 2.13.1 SWIG/IEFPCM energy and
-its matching analytic operator derivative. On one fixed-density, order-17
-acetone canary (643 surface points), three representative coordinate
-derivatives at \(10^{-4}\) angstrom had relative errors
+its matching analytic operator derivative. MAPLE passes one radius per atom to
+PySCF's unmodified `gen_surface()` through an atom-index molecule view and
+retains the real molecule for nuclear identities and gradient bookkeeping. A
+runtime guard checks the PySCF 2.13.1 integer-index behavior on which this
+version-locked bridge depends. Equal-radius repeated-element surfaces are
+bitwise identical to PySCF's ordinary element-radius path, while methyl acetate
+correctly retains different `o=1.70 A` and `os=1.52 A` oxygen radii.
+
+On fixed-density order-17 acetone (643 surface points), three representative
+coordinate derivatives at \(10^{-4}\) angstrom had relative errors
 \(1.54\times10^{-8}\), \(6.71\times10^{-9}\), and
 \(2.00\times10^{-7}\); the net translation-gradient components were below
 \(1.9\times10^{-16}\) eV/angstrom. The tracked implementation agrees with the
 independent formula implementation to \(1.9\times10^{-15}\) relative or better.
-This closes only the fixed-density continuum-electrostatic slice. PySCF is
-loaded lazily, its private gradient-intermediate layout is locked to tested
-version 2.13.1, mixed same-element per-atom radii are rejected, order 17 has not
-passed the earlier rotation gate, and neither the public parser nor production
-provider selects it. The real MACE fixed-point adjoint, differentiable SMD CDS,
-total-force assembly, rotation/continuity tests, and chemical-space validation
-remain open. SMD CDS is outside this continuum expression, so Route 2 still
-does not expose a total solvent force or solution-phase PES.
+The mixed-radius methyl-acetate fixed-density canary (695 points) had maximum
+absolute and relative errors \(3.50\times10^{-8}\) eV/angstrom and
+\(1.85\times10^{-6}\), respectively, across the checked components.
+
+The same map has also passed real resolved-root float64 MACE-POLAR adjoint
+canaries: two largest acetone components agreed with whole-energy central
+differences within \(2.15\times10^{-6}\) eV/angstrom, and one largest
+mixed-radius methyl-acetate component agreed within
+\(8.51\times10^{-7}\) eV/angstrom (\(1.14\times10^{-6}\) relative).
+This closes only a narrow continuum-electrostatic coordinate-gradient slice.
+PySCF is loaded lazily, its private gradient-intermediate layout remains locked
+to tested version 2.13.1, order 17 has not passed the earlier rotation gate,
+and neither the public parser nor production provider selects it.
+Differentiable SMD CDS, total-force assembly, rotation/continuity tests, and
+chemical-space validation remain open. SMD CDS is outside this continuum
+expression, so Route 2 still does not expose a total solvent force or
+solution-phase PES.
 
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build

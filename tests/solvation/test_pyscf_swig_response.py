@@ -15,7 +15,13 @@ from maple.function.calculator.extra_correction.implicit.pyscf_swig_response imp
 
 
 class _FakeMolecule:
+    natm = 2
     nao = 2
+
+    @staticmethod
+    def atom_coords(unit="B"):
+        assert unit == "B"
+        return np.asarray([[-1.0, 0.0, 0.2], [1.1, 0.3, -0.2]])
 
 
 class _FakeGTO:
@@ -27,6 +33,8 @@ class _FakeGTO:
 
     @classmethod
     def charge(cls, symbol):
+        if isinstance(symbol, int):
+            return symbol
         return cls._charges[symbol]
 
 
@@ -36,15 +44,20 @@ class _FakePCMObject:
 
 
 class _FakePCM:
-    modified_Bondi = np.linspace(1.0, 2.0, 20)
     PCM = _FakePCMObject
+    last_surface_elements = None
+    last_surface_radii = None
 
-    @staticmethod
-    def gen_surface(_mol, *, ng, rad, surface_discretization_method):
+    @classmethod
+    def gen_surface(cls, _mol, *, ng, rad, surface_discretization_method):
         assert ng == 6
         assert surface_discretization_method == "SWIG"
-        assert rad[1] == pytest.approx(1.2 / Bohr)
-        assert rad[8] == pytest.approx(1.5 / Bohr)
+        np.testing.assert_allclose(
+            _mol.atom_coords(unit="B"),
+            _FakeMolecule.atom_coords(unit="B"),
+        )
+        cls.last_surface_elements = tuple(_mol.elements)
+        cls.last_surface_radii = np.asarray(rad, dtype=float).copy()
         return {
             "grid_coords": np.asarray(
                 [
@@ -107,15 +120,20 @@ class _FakeRuntimeBundle:
 
 @pytest.fixture
 def fake_runtime():
+    class RecordingPCM(_FakePCM):
+        pass
+
+    RecordingPCM.last_surface_elements = None
+    RecordingPCM.last_surface_radii = None
     return _FakeRuntimeBundle(
         runtime=_PySCFRuntime(
             version=TESTED_PYSCF_VERSION,
             gto=_FakeGTO,
             gen_grid=types.SimpleNamespace(LEBEDEV_ORDER={17: 6}),
-            pcm=_FakePCM,
+            pcm=RecordingPCM,
             pcm_grad=_FakePCMGradient,
         ),
-        pcm=_FakePCM,
+        pcm=RecordingPCM,
         gradient=_FakePCMGradient,
     )
 
@@ -175,6 +193,15 @@ def test_pyscf_swig_response_uses_energy_conjugate_direct_and_adjoint_solve(
         response.surface_parent_atom_indices,
         np.asarray([0, 0, 1, 1]),
     )
+    assert fake_runtime.pcm.last_surface_elements == (0, 1)
+    np.testing.assert_allclose(
+        fake_runtime.pcm.last_surface_radii,
+        np.asarray([1.2, 1.5]) / Bohr,
+    )
+    assert (
+        response.runtime_provenance["cavity_radius_assignment"]
+        == "per-atom"
+    )
     assert np.issubdtype(response.atomic_numbers.dtype, np.integer)
 
 
@@ -201,15 +228,51 @@ def test_pyscf_swig_operator_bilinear_vjp_uses_polarization_identity(
     )
 
 
-def test_pyscf_swig_response_rejects_mixed_same_element_radii(fake_runtime):
-    with pytest.raises(ValueError, match="atom-specific radii"):
+def test_pyscf_swig_response_supports_mixed_same_element_radii(fake_runtime):
+    response = PySCFSWIGIEFPCMResponse(
+        ("O", "O"),
+        np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]]),
+        np.asarray([1.52, 1.70]),
+        dielectric=78.39,
+        lebedev_order=17,
+        _runtime=fake_runtime.runtime,
+    )
+
+    np.testing.assert_array_equal(response.atomic_numbers, np.asarray([8, 8]))
+    np.testing.assert_allclose(response.cavity_radii_angstrom, [1.52, 1.70])
+    assert fake_runtime.pcm.last_surface_elements == (0, 1)
+    np.testing.assert_allclose(
+        fake_runtime.pcm.last_surface_radii,
+        np.asarray([1.52, 1.70]) / Bohr,
+    )
+
+
+def test_pyscf_swig_response_rejects_changed_atom_index_lookup(fake_runtime):
+    class RemappedIndexGTO(_FakeGTO):
+        @classmethod
+        def charge(cls, symbol):
+            if isinstance(symbol, int):
+                return symbol + 1
+            return super().charge(symbol)
+
+    runtime = _PySCFRuntime(
+        version=fake_runtime.runtime.version,
+        gto=RemappedIndexGTO,
+        gen_grid=fake_runtime.runtime.gen_grid,
+        pcm=fake_runtime.runtime.pcm,
+        pcm_grad=fake_runtime.runtime.pcm_grad,
+    )
+    with pytest.raises(
+        RuntimeError,
+        match="no longer preserves atom indices",
+    ):
         PySCFSWIGIEFPCMResponse(
             ("O", "O"),
             np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]]),
             np.asarray([1.52, 1.70]),
             dielectric=78.39,
             lebedev_order=17,
-            _runtime=fake_runtime.runtime,
+            _runtime=runtime,
         )
 
 

@@ -31,13 +31,17 @@ not a complete solution-phase PES.
    `dE_intrinsic/d[V,grad(V)] == [q,p]`.
 2. The MACE local-field energy/density graph is now exposed; next retain the
    fixed-field position derivative and connect it to the coupled adjoint.
-3. Implement PCM MEP, boundary-operator, tessera-geometry, and ASC response
-   derivatives. The current PCMSolver C ABI has no force endpoint.
-4. Implement the geometry-dependent SMD CDS/SASA derivative.
-5. Compare the summed analytic force with central finite differences of the
+3. Fixed-density/ASC/surface point-kernel position VJPs now match central
+   differences and preserve the differentiated reciprocal identity without
+   dense Jacobians. This is an explicit component only, not a force capability.
+4. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
+   current PCMSolver--GePol energy; the current PCMSolver C ABI has no force endpoint.
+   A separately named smooth PCM profile must be evaluated.
+5. Implement the geometry-dependent SMD CDS/SASA derivative.
+6. Compare the summed analytic force with central finite differences of the
    converged total energy, then enforce translation, rotation, and energy
    conservation checks.
-6. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+7. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
    solution-phase PES.
 
 ## Secondary diagnostics

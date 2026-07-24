@@ -113,6 +113,73 @@ The earlier SCF grid provides limited path-independence evidence: at
 twelve development molecules. This supports treating mixing as a solver
 choice, but it is not force or chemical-space certification.
 
+## Phase-1 PCM derivative-provider audit
+
+The provider boundary was audited before adding force code.
+
+### PCMSolver/GePol
+
+The current MAPLE runtime commit and the latest published PCMSolver tag
+`v1.3.0` expose no nuclear-gradient endpoint in `api/pcmsolver.h`.
+PCMSolver contains a dormant Fortran module,
+`pedra_cavity_derivatives.F90`, for derivatives of GePol added-sphere
+centres and radii. It is not listed in the PEDRA CMake sources, its import and
+call are commented out, and the caller says that the derivative code was
+deactivated. There is no corresponding derivative of tessera centres, areas,
+normals, single/double-layer matrices, IEFPCM \(K/R\) matrices, or the final
+polarization energy in the public solver path.
+
+Therefore this is **not** a small C-ABI exposure task. Enabling the dormant
+sphere routine would still omit required terms and could produce a
+plausible-looking but incorrect force. The current
+PCMSolver--GePol profile remains energy-only.
+
+### PySCF SWIG/ISWIG PCM
+
+The audited PySCF 2.14 source snapshot (`c63a953`) provides an analytic PCM
+gradient implementation for its own smooth SWIG/ISWIG atom-centred surface.
+Its solver response follows
+
+\[
+dE_{\mathrm{PCM}}
+=\frac12 v^T K^{-1}(dR-dKq)
++q^Tdv,\qquad q=K^{-1}Rv,
+\]
+
+with explicit derivatives of the switching function, areas, and the
+single/double-layer matrices. The PCM files are Apache-2.0 licensed. This
+algebra is an established reference and its smooth surface is a viable
+force-provider candidate.
+
+This source observation implies a derivative-consistency requirement rather
+than quoting a provider restriction: a force must differentiate the same
+discrete energy. PySCF's surface points, areas, Gaussian exponents, \(S/D\)
+matrices, and \(K/R\) operators differ from the GePol objects used by the
+current energy. Attaching the former's derivatives to the latter's energy
+cannot be assumed to give \(dE_{\mathrm{GePol}}/d\mathbf R\); it would define
+a new mixed approximation requiring its own derivation and validation. MAPLE
+therefore evaluates PySCF through a separately named Route-2 profile whose
+energy and runtime are compared against the current profile on a small canary
+set before adoption.
+
+The audited PySCF `solvent/smd.py` and `solvent/grad/smd.py` files carry
+GPL-3.0 headers. The gradient's CDS helper calls `smd.get_cds_legacy()`, which
+in turn calls the compiled `libsolvent.mnsol_interface_`. MAPLE will not copy
+that code into its current source tree. CDS must remain an independently
+selected, license-compatible differentiable provider.
+
+### Decision
+
+1. Preserve the current PCMSolver--GePol energy profile and do not advertise
+   forces for it.
+2. Do not vendor or reactivate the incomplete PEDRA derivative path.
+3. Implement provider-neutral point-multipole and ASC kernel derivatives as
+   direct vector-Jacobian products, without dense molecular Jacobians.
+4. Next, evaluate a separately named smooth SWIG/ISWIG IEFPCM profile through
+   an optional PySCF provider; use two canaries before any broader benchmark.
+5. Never combine energy from one cavity/operator definition with derivatives
+   from another.
+
 ## Implementation sequence
 
 ### Phase 0 -- lock the energy functional
@@ -131,11 +198,13 @@ choice, but it is not force or chemical-space certification.
 ### Phase 1 -- differentiable explicit geometry terms
 
 1. Return the gas and polarized MACE partial forces at fixed local field.
-2. Add analytic derivatives for the point-multipole MEP and ASC back-projection
-   kernels.
-3. Select an established PCM derivative provider or extend a documented
-   upstream interface to supply boundary-operator and cavity-geometry
-   derivatives. Do not silently approximate these terms as zero.
+2. **Done for fixed density/ASC/surface:** add analytic position VJPs for the
+   point-multipole MEP and ASC back-projection kernels without materializing
+   dense Jacobians, and verify both against central differences plus the
+   differentiated reciprocal identity. These terms are not a total force.
+3. **Provider decision made:** retain PCMSolver--GePol as energy-only and
+   evaluate an explicit PySCF SWIG/ISWIG profile for smooth cavity/operator
+   derivatives. Do not silently approximate missing GePol terms as zero.
 4. Replace the hard-visibility CDS area with an analytic/differentiable
    SMD-compatible surface-area implementation and differentiate the published
    geometry-dependent atomic tensions.

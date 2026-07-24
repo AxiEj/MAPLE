@@ -73,6 +73,57 @@ def point_multipole_potential(
     return potential
 
 
+def point_multipole_potential_position_vjp(
+    points_bohr: np.ndarray,
+    atom_positions_angstrom: np.ndarray,
+    density_coefficients: np.ndarray,
+    surface_cotangent: np.ndarray,
+) -> np.ndarray:
+    """Contract the point-multipole MEP position derivative with a cotangent.
+
+    Density coefficients and surface points are held fixed.  This evaluates
+    ``(dV_surface/dR).T @ surface_cotangent`` directly, without constructing a
+    dense surface-by-coordinate Jacobian.  The returned array has shape
+    ``(n_atoms, 3)``.  With an integrated-charge cotangent, its units are
+    Hartree/Angstrom.  This is one explicit kernel term, not a total PCM or
+    self-consistent solvent derivative.
+    """
+
+    points = np.asarray(points_bohr, dtype=float)
+    positions = np.asarray(atom_positions_angstrom, dtype=float)
+    cotangent = np.asarray(surface_cotangent, dtype=float)
+    if points.ndim != 2 or points.shape[1] != 3:
+        raise ValueError("MEP points must have shape (n_points, 3).")
+    if positions.ndim != 2 or positions.shape[1] != 3:
+        raise ValueError("Atom positions must have shape (n_atoms, 3).")
+    if cotangent.shape != (points.shape[0],):
+        raise ValueError("Surface cotangent length does not match MEP points.")
+    charges, dipoles_angstrom = cartesian_multipoles(density_coefficients)
+    if positions.shape[0] != charges.shape[0]:
+        raise ValueError("Density coefficient count does not match atom positions.")
+
+    positions_bohr = positions / Bohr
+    dipoles_bohr = dipoles_angstrom / Bohr
+    position_vjp = np.empty_like(positions)
+    for atom_index, (center, charge, dipole) in enumerate(
+        zip(positions_bohr, charges, dipoles_bohr, strict=True)
+    ):
+        displacement = points - center
+        radius = np.linalg.norm(displacement, axis=1)
+        if np.any(radius <= 1.0e-14):
+            raise ValueError("A PCM surface point coincides with an atomic centre.")
+        dipole_projection = np.einsum("ij,j->i", displacement, dipole)
+        derivative_bohr = (
+            (charge / radius**3)[:, None] * displacement
+            - dipole[None, :] / radius[:, None] ** 3
+            + (3.0 * dipole_projection / radius**5)[:, None] * displacement
+        )
+        position_vjp[atom_index] = np.einsum(
+            "s,si->i", cotangent, derivative_bohr
+        ) / Bohr
+    return position_vjp
+
+
 def gaussian_multipole_potential(
     points_bohr: np.ndarray,
     atom_positions_angstrom: np.ndarray,
@@ -171,6 +222,68 @@ def point_asc_reaction_potential_gradient(
             axis=0,
         )
     return potential, gradient
+
+
+def point_asc_reaction_position_vjp(
+    atom_positions_angstrom: np.ndarray,
+    surface_centers_bohr: np.ndarray,
+    apparent_surface_charges: np.ndarray,
+    potential_cotangent: np.ndarray,
+    gradient_cotangent: np.ndarray,
+) -> np.ndarray:
+    """Contract the point-ASC reaction-field position derivative.
+
+    Surface centres and integrated ASC values are held fixed.  This evaluates
+    the vector-Jacobian product for atom-centred reaction potential and
+    gradient directly, without constructing a dense Hessian.  The returned
+    array has shape ``(n_atoms, 3)``.  Potential cotangents are in elementary
+    charge and gradient cotangents in elementary-charge bohr, giving
+    Hartree/Angstrom.  This is an explicit kernel term only.
+    """
+
+    positions_bohr = np.asarray(atom_positions_angstrom, dtype=float) / Bohr
+    centers = np.asarray(surface_centers_bohr, dtype=float)
+    asc = np.asarray(apparent_surface_charges, dtype=float)
+    potential_weights = np.asarray(potential_cotangent, dtype=float)
+    gradient_weights = np.asarray(gradient_cotangent, dtype=float)
+    if positions_bohr.ndim != 2 or positions_bohr.shape[1] != 3:
+        raise ValueError("Atom positions must have shape (n_atoms, 3).")
+    if centers.ndim != 2 or centers.shape[1] != 3:
+        raise ValueError("Surface centers must have shape (n_surface, 3).")
+    if asc.shape != (centers.shape[0],):
+        raise ValueError("ASC vector length does not match surface centers.")
+    if potential_weights.shape != (positions_bohr.shape[0],):
+        raise ValueError("Potential cotangent length does not match atom positions.")
+    if gradient_weights.shape != positions_bohr.shape:
+        raise ValueError("Gradient cotangent shape does not match atom positions.")
+
+    position_vjp = np.empty_like(positions_bohr)
+    identity = np.eye(3)
+    for atom_index, position in enumerate(positions_bohr):
+        displacement = centers - position
+        radius = np.linalg.norm(displacement, axis=1)
+        if np.any(radius <= 1.0e-14):
+            raise ValueError("A PCM surface point coincides with an atomic centre.")
+        inverse_radius_cubed = asc / radius**3
+        potential_derivative_bohr = np.sum(
+            inverse_radius_cubed[:, None] * displacement,
+            axis=0,
+        )
+        hessian_bohr = (
+            -np.sum(inverse_radius_cubed) * identity
+            + 3.0
+            * np.einsum(
+                "s,si,sj->ij",
+                asc / radius**5,
+                displacement,
+                displacement,
+            )
+        )
+        position_vjp[atom_index] = (
+            potential_weights[atom_index] * potential_derivative_bohr
+            + gradient_weights[atom_index] @ hessian_bohr
+        ) / Bohr
+    return position_vjp
 
 
 def asc_reaction_potential_gradient(

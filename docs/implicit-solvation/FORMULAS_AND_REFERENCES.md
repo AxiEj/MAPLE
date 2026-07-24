@@ -213,6 +213,60 @@ differentiable, and warning-triggered switching between two cavity definitions
 is not a valid PES rule. These must be resolved before translational/rotational
 invariance, central-difference agreement, optimization, or MD.
 
+For the provider-neutral point kernels, let
+\(\mathbf d_{sA}=\mathbf s-\mathbf R_A\), \(r=|\mathbf d_{sA}|\), and hold the
+learned multipoles, ASC, and surface geometry fixed. The explicit solute-MEP
+position derivative is
+
+\[
+\frac{\partial}{\partial\mathbf R_A}
+\left[
+\frac{q_A}{r}
++\frac{\mathbf p_A\cdot\mathbf d_{sA}}{r^3}
+\right]
+=
+\frac{q_A\mathbf d_{sA}}{r^3}
+-\frac{\mathbf p_A}{r^3}
++\frac{3(\mathbf p_A\cdot\mathbf d_{sA})\mathbf d_{sA}}{r^5}.
+\]
+
+For the ASC reaction potential,
+
+\[
+V_A=\sum_s\frac{\sigma_s}{r},\qquad
+\mathbf g_A=\frac{\partial V_A}{\partial\mathbf R_A}
+=\sum_s\frac{\sigma_s\mathbf d_{sA}}{r^3},
+\]
+
+the fixed-surface Hessian is
+
+\[
+\frac{\partial\mathbf g_A}{\partial\mathbf R_A}
+=\sum_s\sigma_s
+\left(
+-\frac{\mathbf I}{r^3}
++\frac{3\mathbf d_{sA}\mathbf d_{sA}^T}{r^5}
+\right).
+\]
+
+MAPLE contracts these expressions directly as vector-Jacobian products rather
+than materializing dense surface-by-coordinate Jacobians. It verifies them
+independently by central differences and by differentiating the discrete
+reciprocal coupling identity. They are only the explicit fixed-state kernel
+slice; \(dc/d\mathbf R\), \(d\sigma/d\mathbf R\), and cavity/operator response
+remain outside this result.
+
+The derivative-provider audit found that PCMSolver's dormant PEDRA code only
+forms added-sphere centre/radius derivatives and is disabled from its build
+and call path. It does not provide the complete GePol/IEFPCM derivative.
+The audited PySCF 2.14 PCM files supply analytic SWIG/ISWIG gradients under
+Apache-2.0, but those derivatives belong to PySCF's own smooth surface and
+operators. MAPLE therefore keeps them in a separate energy/derivative profile;
+a mixed construction with PCMSolver--GePol energy would be a new approximation,
+not an established exact derivative. The audited PySCF SMD/CDS source files
+carry GPL-3.0 headers and are not copied into MAPLE. The detailed
+evidence-versus-inference boundary is in `ROUTE2_FORCE_ROADMAP.md`.
+
 Route-2 references:
 
 - MACE-POLAR-1 release and official checkpoints:
@@ -226,6 +280,9 @@ Route-2 references:
 - PCMSolver public interface and implementation: R. Di Remigio et al.,
   *JOSS* **4**, 1190 (2019), DOI `10.21105/joss.01190`;
   `arXiv:1804.05895`.
+- PySCF PCM implementation and analytic gradients:
+  `https://github.com/pyscf/pyscf/tree/c63a953ba603a5ad8c1d65d88da72aaf05ede4d8/pyscf/solvent`;
+  audited PySCF 2.14 source snapshot `c63a953`.
 - Revised SMD Coulomb radii:
   `https://comp.chem.umn.edu/solvation/coulomb_radii.htm`.
 - D. L. Mobley and J. P. Guthrie, “FreeSolv: a database of experimental and

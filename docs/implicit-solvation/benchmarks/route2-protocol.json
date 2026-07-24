@@ -2,6 +2,9 @@
   "schema_version": 1,
   "benchmark_kind": "route2-macepolar-smd",
   "protocol_id": "maple-route2-macepolar-smd-water-freesolv-v2",
+  "benchmark_role": "secondary fixed-conformer energy diagnostic; not the Route-2 definition or a solution-phase-PES/force certification",
+  "route_development_stage": "energy-proof-of-concept",
+  "primary_next_milestone": "energy-consistent force derivative for the converged self-consistent MLIP-PCM/SMD state",
   "claim_scope": "Route 2 only: absolute hydration free energy for one fixed FreeSolv MOL2 conformer of a neutral closed-shell 16-500 Da H/C/N/O/F/P/S/Cl/Br/I molecule in water. Official MACE-POLAR-1-M l<=1 charge moments projected as cavity-exterior point multipoles, self-consistent PCMSolver IEFPCM electrostatics, and native aqueous SMD CDS; 1 M gas to 1 M solution. This is not a finite-temperature, conformer-ensemble, ionic, open-shell, broad-solvent, or QM-electron-density validation.",
   "dataset": {
     "name": "FreeSolv",
@@ -101,6 +104,13 @@
     "standard_state": "1M-gas-to-1M-solution",
     "standard_state_correction_kcal_mol": 0.0,
     "pcmsolver_cavity_area_angstrom2": 0.2,
+    "pcmsolver_cavity_stability_fallback": {
+      "trigger": "pcmsolver-warning",
+      "tessera_area_angstrom2": 0.28,
+      "minimum_added_sphere_radius_angstrom": 0.3,
+      "persistent_warning_policy": "fail-closed",
+      "force_compatible": false
+    },
     "pcmsolver_profile": "smd-iefpcm",
     "smd_cds_grid_points_per_atom": 5810
   },

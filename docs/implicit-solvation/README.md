@@ -1,19 +1,26 @@
-# MAPLE implicit solvation: Route 2
+# MAPLE implicit solvation: Route 2 research/innovation route
 
 This branch contains only the MACE-POLAR + SMD/IEFPCM route. It does not
-contain the fixed-charge PB/GB implementation. All calculations require
-`experimental=true` until the frozen scientific gates pass.
+contain the fixed-charge PB/GB implementation. Route 2 is an energy
+proof-of-concept for self-consistent polarizable MLIP--continuum coupling, not
+yet a complete MAPLE solution-phase PES. All calculations therefore require
+`experimental=true`.
 
-## Route-2 contract: MACE-POLAR + SMD
+## Route-2 contract: self-consistent polarizable MLIP--PCM/SMD coupling
 
 Route 2 is separate from the fixed-charge PB/GB path. It couples the official
 pretrained MACE-POLAR-1-M coarse-grained charge moments to an external
 PCMSolver IEFPCM reaction field and MAPLE's native aqueous SMD CDS term. At the
 dielectric boundary, the moments use their cavity-exterior point-multipole
 expansion rather than extending MACE's internal 1.5 A GTO smearing across the
-cavity. It
-does not train or fine-tune a model, consume MOL2 partial charges, invoke a
-quantum-chemistry executable, or use a solvation-trained MLIP.
+cavity. It does not train or fine-tune a model, consume MOL2 partial charges,
+invoke a quantum-chemistry executable, or use a solvation-trained MLIP.
+
+The research objective is mutual polarization: the MACE-POLAR representation
+generates the solute electrostatic potential, PCM returns a reaction field, and
+that reaction field is fed back through the unmodified MACE-POLAR field-response
+path until convergence. Fixed-charge PB/GB and post hoc one-way polarization
+are separate routes.
 
 The public v1 input is:
 
@@ -75,7 +82,7 @@ not a thermochemical Gibbs free energy with vibrational or thermal terms. The
 route uses a 1 M gas to 1 M solution convention, so it does **not** add the
 commonly used 1 atm to 1 M `1.89 kcal/mol` correction.
 
-The v1 domain is deliberately fail-closed:
+The current energy proof-of-concept is deliberately fail-closed:
 
 - one fixed Tripos MOL2 conformer; single-point energy only;
 - neutral closed-shell molecules (`0 1`), no salts, zwitterions, radicals, or
@@ -90,9 +97,18 @@ inputs, PCMSolver/PEDRA cavity side files, `route2-state.npz`, and
 `route2-result.json` under `<output>.implicit/`; legacy provider files are
 contained there rather than written into the launch directory. The provenance
 labels the model output correctly as a coarse-grained net charge density
-rather than a QM electron density and keeps `accuracy_certified=false` until
-the frozen benchmark passes.
+rather than a QM electron density.
+
+FreeSolv remains a secondary energy diagnostic; it does not define Route 2 and
+cannot certify a solution-phase PES. The next primary milestone is an
+energy-consistent force for the converged MLIP--PCM/SMD state, including the
+MLIP response, PCM electrostatic/cavity derivatives, and the SMD CDS
+derivative. Until that derivative is implemented and checked against central
+finite differences, optimization, scans, transition states, and MD remain
+out of scope.
 
 See [FORMULAS_AND_REFERENCES.md](FORMULAS_AND_REFERENCES.md) for equations and
 the literature ledger, and [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the
-passing engineering checks and still-open scientific gates.
+passing engineering checks and still-open scientific gates. The concrete
+derivation and implementation sequence is in
+[ROUTE2_FORCE_ROADMAP.md](ROUTE2_FORCE_ROADMAP.md).

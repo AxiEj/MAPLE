@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import os
 import sys
 from types import SimpleNamespace
 
@@ -24,7 +26,9 @@ from maple.function.calculator.extra_correction.implicit.smd import (
     _pcm_input_text,
 )
 from maple.function.calculator.extra_correction.implicit.smd_cds import (
+    GAFF2_CARBONYL_O_PROFILE,
     SMD_WATER_COULOMB_RADII_ANGSTROM,
+    route2_water_coulomb_radii,
     smd_sasa_radii,
     smd_water_cds,
 )
@@ -69,6 +73,19 @@ def test_route2_public_contract_accepts_only_macepolar_m_and_defaults():
         "provider": "pcmsolver",
         "profile": "smd-iefpcm",
     }
+
+
+def test_route2_public_contract_accepts_gaff2_carbonyl_oxygen_profile():
+    params = parse(
+        "#model=macepol-m",
+        "#sp",
+        (
+            "#solv(implicit=water,method=smd,"
+            "profile=smd-iefpcm-gaff2-o,experimental=true)"
+        ),
+    )
+
+    assert params["solv"]["profile"] == GAFF2_CARBONYL_O_PROFILE
 
 
 @pytest.mark.parametrize(
@@ -141,13 +158,72 @@ def test_generated_pcmsolver_input_uses_host_geometry_and_all_smd_radii():
     assert "ATOMS = [1, 2, 3]" in text
     assert "RADII = [1.8500000000, 1.5200000000, 1.2000000000]" in text
     assert "SCALING = FALSE" in text
+    assert "AREA = 0.2000000000" in text
+    assert "MINRADIUS" not in text
     assert "SOLVERTYPE = IEFPCM" in text
     assert "MOLECULE" not in text
+
+
+def test_generated_pcmsolver_fallback_input_locks_stable_gepol_settings():
+    text = _pcm_input_text(
+        2,
+        np.asarray([1.85, 1.52]),
+        tessera_area_angstrom2=0.28,
+        minimum_added_sphere_radius_angstrom=0.30,
+    )
+
+    assert "AREA = 0.2800000000" in text
+    assert "MINRADIUS = 0.3000000000" in text
 
 
 def test_smd_revised_halogen_coulomb_radii_are_locked():
     assert SMD_WATER_COULOMB_RADII_ANGSTROM["Br"] == 2.60
     assert SMD_WATER_COULOMB_RADII_ANGSTROM["I"] == 2.74
+
+
+def test_gaff2_carbonyl_oxygen_profile_changes_only_o_atom_type():
+    symbols = ["O", "O", "O", "C"]
+    atom_types = ["o", "os", "oh", "c"]
+
+    assert route2_water_coulomb_radii(
+        symbols,
+        atom_types=atom_types,
+        profile=GAFF2_CARBONYL_O_PROFILE,
+    ) == pytest.approx([1.70, 1.52, 1.52, 1.85])
+    assert route2_water_coulomb_radii(
+        symbols,
+        atom_types=atom_types,
+        profile="smd-iefpcm",
+    ) == pytest.approx([1.52, 1.52, 1.52, 1.85])
+
+
+def test_gaff2_carbonyl_oxygen_profile_requires_one_atom_type_per_atom():
+    with pytest.raises(ValueError, match="one GAFF/GAFF2 atom type per atom"):
+        route2_water_coulomb_radii(
+            ["C", "O"],
+            atom_types=["c"],
+            profile=GAFF2_CARBONYL_O_PROFILE,
+        )
+
+
+def test_route2_provider_applies_gaff2_carbonyl_oxygen_profile():
+    atoms = Atoms(
+        "COO",
+        positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0], [-1.3, 0.0, 0.0]],
+    )
+    atoms.info.update(
+        charge=0,
+        mult=1,
+        mol2={"atom_types": ["c", "o", "os"]},
+    )
+    options = _route2_options("frozen")
+    options["profile"] = GAFF2_CARBONYL_O_PROFILE
+
+    provider = SMDImplicitSolvation(atoms, options, audit_dir=None)
+
+    assert provider.coulomb_radii_angstrom == pytest.approx([1.85, 1.70, 1.52])
+    assert provider.provenance["profile"] == GAFF2_CARBONYL_O_PROFILE
+    assert "gaff2_pbsa_radii" in provider.provenance["citations"]
 
 
 def test_smd_sasa_radii_lock_vdw_table_plus_point_four_angstrom_probe():
@@ -342,6 +418,33 @@ def _install_fake_pcm(monkeypatch, provider, tmp_path):
     monkeypatch.setattr(provider, "_ensure_pcm_input", lambda: dummy)
 
 
+class _WarningThenStablePCMSolverSession(_FakePCMSolverSession):
+    def __enter__(self):
+        if "primary" in str(self.parsed_input_path):
+            os.write(2, b"PCMSolver warning. synthetic primary instability\n")
+        return super().__enter__()
+
+
+class _AlwaysWarningPCMSolverSession(_FakePCMSolverSession):
+    def __enter__(self):
+        os.write(2, b"PCMSolver warning. synthetic persistent instability\n")
+        return super().__enter__()
+
+
+def _install_fake_pcm_pair(monkeypatch, provider, tmp_path, session_type):
+    primary = tmp_path / "@primary.pcm"
+    fallback = tmp_path / "@stability-fallback.pcm"
+    primary.write_text("parsed", encoding="utf-8")
+    fallback.write_text("parsed", encoding="utf-8")
+    monkeypatch.setattr(smd_module, "PCMSolverSession", session_type)
+    monkeypatch.setattr(provider, "_ensure_pcm_input", lambda: primary)
+    monkeypatch.setattr(
+        provider,
+        "_ensure_pcm_fallback_input",
+        lambda: fallback,
+    )
+
+
 def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
     atoms = _co_atoms()
     gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
@@ -361,12 +464,83 @@ def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
         + result.components_hartree["cds"]
     )
     assert result.provenance["response"] == "frozen"
+    assert result.provenance["route_role"] == "research-innovation"
+    assert result.provenance["scientific_status"] == "energy-proof-of-concept"
+    assert result.provenance["solution_phase_pes"] is False
+    assert result.provenance["forces_available"] is False
+    assert result.provenance["cavity_stability_policy_force_compatible"] is False
     assert result.provenance["pcm_mep_projection"].startswith(
         "cavity-exterior point monopoles and dipoles"
     )
     audit = (tmp_path / "route2-result.json").read_text(encoding="utf-8")
-    assert '"schema_version": 3' in audit
+    assert '"schema_version": 4' in audit
     assert '"pcm_mep_projection": "cavity-exterior-point-multipole-l<=1"' in audit
+
+
+def test_route2_retries_warning_cavity_with_deterministic_fallback(
+    monkeypatch, tmp_path
+):
+    atoms = _co_atoms()
+    gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
+    calc = _FakePolarCalculator(gas, gas)
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("frozen"), audit_dir=tmp_path
+    )
+    _install_fake_pcm_pair(
+        monkeypatch,
+        provider,
+        tmp_path,
+        _WarningThenStablePCMSolverSession,
+    )
+
+    result = provider.evaluate(atoms, calculator=calc)
+
+    stability = result.provenance["cavity_stability"]
+    assert stability == {
+        "selected": "stability-fallback",
+        "force_compatible": False,
+        "tessera_area_angstrom2": 0.28,
+        "minimum_added_sphere_radius_angstrom": 0.30,
+        "fallback_used": True,
+        "attempt_count": 2,
+    }
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["cavity_stability"]["selected"] == "stability-fallback"
+    assert [
+        attempt["warning_detected"]
+        for attempt in audit["cavity_stability"]["attempts"]
+    ] == [True, False]
+
+
+def test_route2_fails_closed_when_fallback_still_warns(monkeypatch, tmp_path):
+    atoms = _co_atoms()
+    gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
+    calc = _FakePolarCalculator(gas, gas)
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("frozen"), audit_dir=tmp_path
+    )
+    _install_fake_pcm_pair(
+        monkeypatch,
+        provider,
+        tmp_path,
+        _AlwaysWarningPCMSolverSession,
+    )
+
+    with pytest.raises(RuntimeError, match="refuses to publish"):
+        provider.evaluate(atoms, calculator=calc)
+
+    assert not (tmp_path / "route2-result.json").exists()
+    assert not (tmp_path / "route2-state.npz").exists()
+    failure = json.loads(
+        (tmp_path / "route2-failure.json").read_text(encoding="utf-8")
+    )
+    assert failure["cavity_stability"]["selected"] is None
+    assert all(
+        attempt["warning_detected"]
+        for attempt in failure["cavity_stability"]["attempts"]
+    )
 
 
 def test_scf_route2_iterates_density_and_adds_solute_polarization(

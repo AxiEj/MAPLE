@@ -33,7 +33,7 @@ class ImplicitSolvationCorrection:
             )
         if self.solvation_options.get("experimental") is not True:
             raise ValueError(
-                "Route-2 SMD has not passed MAPLE's public scientific benchmark gate; "
+                "Route 2 is an energy-only research proof-of-concept; "
                 "set experimental=true explicitly."
             )
         method = str(self.solvation_options.get("method", "")).lower()

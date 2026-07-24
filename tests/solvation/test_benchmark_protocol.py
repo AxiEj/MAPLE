@@ -113,6 +113,13 @@ def test_route2_protocol_locks_model_continuum_standard_state_and_gates():
 
     assert len(fingerprint) == 64
     assert protocol["benchmark_kind"] == "route2-macepolar-smd"
+    assert protocol["benchmark_role"].startswith(
+        "secondary fixed-conformer energy diagnostic"
+    )
+    assert protocol["route_development_stage"] == "energy-proof-of-concept"
+    assert "energy-consistent force derivative" in protocol[
+        "primary_next_milestone"
+    ]
     assert protocol["methods"]["density_models"] == ["official-mace-polar-1-m"]
     assert protocol["methods"]["solvation_models"] == ["smd-iefpcm-water"]
     assert protocol["methods"]["mace_default_dtype"] == "float64"
@@ -123,6 +130,13 @@ def test_route2_protocol_locks_model_continuum_standard_state_and_gates():
     )
     assert protocol["methods"]["response"] == "scf"
     assert protocol["methods"]["standard_state"] == "1M-gas-to-1M-solution"
+    assert protocol["methods"]["pcmsolver_cavity_stability_fallback"] == {
+        "trigger": "pcmsolver-warning",
+        "tessera_area_angstrom2": 0.28,
+        "minimum_added_sphere_radius_angstrom": 0.3,
+        "persistent_warning_policy": "fail-closed",
+        "force_compatible": False,
+    }
     assert protocol["providers"]["pcmsolver"]["bundled"] is False
     assert "MAE <= 1.5 kcal/mol" in protocol["confirmation"][
         "predeclared_accuracy_gate"
@@ -130,6 +144,32 @@ def test_route2_protocol_locks_model_continuum_standard_state_and_gates():
     assert "median(total_route2_wall_time/gas_mace_wall_time) <= 2.0" == protocol[
         "confirmation"
     ]["predeclared_runtime_gate"]
+
+
+def test_route2_prepare_rejects_conflicting_experimental_labels(tmp_path):
+    protocol_path, source = _write_fixture_protocol(
+        tmp_path, "route2-protocol.json"
+    )
+    database_json_path = source / "database.json"
+    database_json = json.loads(database_json_path.read_text(encoding="utf-8"))
+    database_json["mobley_test"]["expt"] = -9.0
+    database_json_path.write_text(
+        json.dumps(database_json), encoding="utf-8"
+    )
+    protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+    for artifact in protocol["dataset"]["artifacts"]:
+        if artifact["name"] == "database.json":
+            artifact["sha256"] = core.sha256_file(database_json_path)
+    protocol_path.write_text(json.dumps(protocol), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Experimental free-energy mismatch"):
+        route2_runner.prepare(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                work_dir=str(tmp_path / "work"),
+                source_dir=str(source),
+            )
+        )
 
 
 def test_route2_benchmark_parses_the_exact_public_input_contract():

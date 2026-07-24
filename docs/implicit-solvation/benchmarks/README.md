@@ -1,8 +1,10 @@
-# Route-2 implicit-solvation benchmark
+# Route-2 secondary energy diagnostic
 
 ## Route 2: MACE-POLAR-1-M/SMD/IEFPCM
 
-[`route2-protocol.json`](route2-protocol.json) is the public Route-2 standard.
+[`route2-protocol.json`](route2-protocol.json) is a reproducible FreeSolv
+diagnostic for the Route-2 energy proof-of-concept. It does not define Route 2,
+certify analytic forces, or establish a complete solution-phase PES.
 It pins the same FreeSolv v0.52 source hashes as route 1 while defining a
 separate split seed, model/continuum/CDS composition, domain, standard state,
 runtime measurement, and confirmation gates. The ten structures previously
@@ -72,3 +74,7 @@ SMD-CDS controls in `VALIDATION_STATUS.md` prove execution, units, reciprocity,
 and convergence only. Until development and one-shot confirmation pass, the
 public input continues to require `experimental=true`; no constant shift,
 fine-tuning, or confirmation-set refit is allowed.
+
+The next primary Route-2 milestone is the total derivative of the converged
+MLIP--PCM/SMD energy. Running more FreeSolv records must not displace that force
+derivation and its finite-difference/invariance validation.

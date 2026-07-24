@@ -1,8 +1,9 @@
 # Route-2 implicit-solvation validation status
 
 This branch contains only official MACE-POLAR-1-M coupled to external
-PCMSolver IEFPCM and MAPLE's native aqueous SMD CDS term. It remains
-`experimental=true` until all scientific gates pass.
+PCMSolver IEFPCM and MAPLE's native aqueous SMD CDS term. It is a
+Research/Innovation Route and currently remains an energy proof-of-concept,
+not a complete solution-phase PES.
 
 ## Passing engineering gates
 
@@ -22,16 +23,29 @@ PCMSolver IEFPCM and MAPLE's native aqueous SMD CDS term. It remains
 - Structured output and audit artifacts separate gas MLIP energy,
   `Delta G_solv`, and the combined result.
 
-## Open scientific gates
+## Primary next milestone: energy-consistent force
 
-1. Run the frozen development partition in `route2-protocol.json`.
-2. Freeze the one-shot confirmation rule before opening confirmation.
-3. Require confirmation MAE <= 1.5 kcal/mol, zero provider failures, and the
-   predeclared runtime gate without post-hoc shifts or refitting.
-4. Complete Dip146 dipole MAE <= 0.25 D and HR46 polarizability MAE <= 2.0 A^3.
-5. Obtain an independently installed PCMSolver corpus across all supported
-   elements and cavity sizes.
-6. Keep forces, OPT/PES, other solvents, ions, radicals, and conformer ensembles
-   outside v1 until separately planned and validated.
+1. Write and verify one total-energy functional for the converged
+   MACE-POLAR/PCM state; do not assume current fixed-point stationarity.
+2. Expose the polarized MACE partial force while retaining the computational
+   graph or an equivalent analytic response interface.
+3. Implement PCM MEP, boundary-operator, tessera-geometry, and ASC response
+   derivatives. The current PCMSolver C ABI has no force endpoint.
+4. Implement the geometry-dependent SMD CDS/SASA derivative.
+5. Compare the summed analytic force with central finite differences of the
+   converged total energy, then enforce translation, rotation, and energy
+   conservation checks.
+6. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+   solution-phase PES.
+
+## Secondary diagnostics
+
+- FreeSolv fixed-conformer hydration errors remain useful for detecting gross
+  energy-accounting or chemistry regressions, but expanding or tuning that
+  benchmark is not the next Route-2 milestone.
+- Dipole, polarizability, provider-parity, and cavity-stability controls remain
+  mechanism diagnostics.
+- Other solvents, ions, radicals, and conformer ensembles remain separate
+  later extensions.
 
 Fresh tests establish implementation correctness, not broad chemical accuracy.

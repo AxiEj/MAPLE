@@ -15,6 +15,7 @@ fine-tune, bundle, or modify an ML model.
 from __future__ import annotations
 
 from contextlib import contextmanager
+import ctypes
 from dataclasses import dataclass
 import importlib
 import json
@@ -36,9 +37,12 @@ from .gto_density import (
 from .pcmsolver import PCMSolverSession
 from .result import SolvationResult
 from .smd_cds import (
+    CANONICAL_SMD_PROFILE,
+    GAFF2_CARBONYL_O_PROFILE,
     SASA_GRID_POINTS,
+    SUPPORTED_ROUTE2_SMD_PROFILES,
+    route2_water_coulomb_radii,
     smd_water_cds,
-    smd_water_coulomb_radii,
 )
 
 
@@ -47,6 +51,9 @@ FORMALLY_CHARGED_TRIPOS_TYPES = frozenset({"n.4", "c.cat", "o.co2"})
 MIN_MOLECULAR_MASS_DA = 16.0
 MAX_MOLECULAR_MASS_DA = 500.0
 PCM_TESSERA_AREA_ANGSTROM2 = 0.2
+PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2 = 0.28
+PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM = 0.30
+PCM_WARNING_MARKER = "PCMSolver warning."
 SCF_MAX_ITERATIONS = 50
 SCF_MIXING = 0.5
 SCF_DENSITY_TOLERANCE = 1.0e-5
@@ -83,6 +90,30 @@ def _pcmsolver_audit_working_directory(path: Path):
             yield
         finally:
             os.chdir(previous)
+
+
+@contextmanager
+def _capture_process_stderr(path: Path):
+    """Capture native-library stderr while preserving the caller's descriptor."""
+
+    destination = Path(path).resolve()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    saved_stderr = os.dup(2)
+    capture_fd = os.open(
+        destination,
+        os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+        0o600,
+    )
+    try:
+        sys.stderr.flush()
+        os.dup2(capture_fd, 2)
+        yield
+    finally:
+        ctypes.CDLL(None).fflush(None)
+        sys.stderr.flush()
+        os.dup2(saved_stderr, 2)
+        os.close(capture_fd)
+        os.close(saved_stderr)
 
 
 def _load_pcmsolver_parser():
@@ -179,7 +210,13 @@ def _load_pcmsolver_parser():
     return parser
 
 
-def _pcm_input_text(atom_count: int, radii_angstrom: np.ndarray) -> str:
+def _pcm_input_text(
+    atom_count: int,
+    radii_angstrom: np.ndarray,
+    *,
+    tessera_area_angstrom2: float = PCM_TESSERA_AREA_ANGSTROM2,
+    minimum_added_sphere_radius_angstrom: float | None = None,
+) -> str:
     """Return a human-readable PCMSolver input with explicit per-atom radii.
 
     ``MODE=ATOMS`` is intentional: it lets the C API initialize the molecular
@@ -191,16 +228,36 @@ def _pcm_input_text(atom_count: int, radii_angstrom: np.ndarray) -> str:
     radii = np.asarray(radii_angstrom, dtype=float)
     if radii.shape != (atom_count,) or not np.all(np.isfinite(radii)):
         raise ValueError("PCMSolver radii must be one finite value per atom.")
+    area = float(tessera_area_angstrom2)
+    if not np.isfinite(area) or area <= 0.0:
+        raise ValueError("PCMSolver tessera area must be finite and positive.")
+    minimum_radius = (
+        None
+        if minimum_added_sphere_radius_angstrom is None
+        else float(minimum_added_sphere_radius_angstrom)
+    )
+    if minimum_radius is not None and (
+        not np.isfinite(minimum_radius) or minimum_radius <= 0.0
+    ):
+        raise ValueError(
+            "PCMSolver minimum added-sphere radius must be finite and positive."
+        )
     atom_indices = ", ".join(str(index) for index in range(1, atom_count + 1))
     radius_values = ", ".join(f"{radius:.10f}" for radius in radii)
+    minimum_radius_line = (
+        ""
+        if minimum_radius is None
+        else f"  MINRADIUS = {minimum_radius:.10f}\n"
+    )
     return (
         "UNITS = ANGSTROM\n"
         "CODATA = 2010\n"
         "CAVITY\n"
         "{\n"
         "  TYPE = GEPOL\n"
-        f"  AREA = {PCM_TESSERA_AREA_ANGSTROM2:.10f}\n"
+        f"  AREA = {area:.10f}\n"
         "  SCALING = FALSE\n"
+        f"{minimum_radius_line}"
         "  MODE = ATOMS\n"
         f"  ATOMS = [{atom_indices}]\n"
         f"  RADII = [{radius_values}]\n"
@@ -246,10 +303,15 @@ class SMDImplicitSolvation:
         self._reference_positions = np.asarray(
             self.atoms.get_positions(), dtype=float
         ).copy()
-        self.coulomb_radii_angstrom = smd_water_coulomb_radii(
-            self.atoms.get_chemical_symbols()
+        mol2 = self.atoms.info.get("mol2")
+        atom_types = mol2.get("atom_types") if isinstance(mol2, dict) else None
+        self.coulomb_radii_angstrom = route2_water_coulomb_radii(
+            self.atoms.get_chemical_symbols(),
+            atom_types=atom_types,
+            profile=self.profile,
         )
         self._parsed_pcm_input_path: Path | None = None
+        self._parsed_pcm_input_paths: dict[str, Path] = {}
         self._pcmsolver_parser_path: Path | None = None
 
         if self.audit_dir is not None:
@@ -259,7 +321,7 @@ class SMDImplicitSolvation:
         self.provenance = {
             "provider": "pcmsolver",
             "method": "smd",
-            "profile": "smd-iefpcm",
+            "profile": self.profile,
             "solvent": "water",
             "response": self.response,
             "standard_state": "1M(gas)->1M(solution)",
@@ -271,10 +333,32 @@ class SMDImplicitSolvation:
                 "1.5 A GTO smearing is not extended across the dielectric boundary"
             ),
             "electrostatics": "IEFPCM",
-            "cavity_radii": "SMD Coulomb radii with revised Br=2.60 A and I=2.74 A",
+            "cavity_stability_policy": (
+                "Start with AREA=0.20 A^2 and no added spheres. If PCMSolver "
+                "emits a cavity warning, retry deterministically with "
+                "AREA=0.28 A^2 and MINRADIUS=0.30 A; fail closed if a warning "
+                "persists. This warning-triggered branch is fixed-conformer "
+                "energy infrastructure and is not a force/PES policy."
+            ),
+            "cavity_stability_policy_force_compatible": False,
+            "cavity_radii": (
+                "SMD Coulomb radii with revised Br=2.60 A and I=2.74 A"
+                if self.profile == CANONICAL_SMD_PROFILE
+                else (
+                    "SMD Coulomb radii with GAFF/GAFF2 carbonyl oxygen "
+                    "(atom type o) overridden to 1.70 A"
+                )
+            ),
             "cds": "aqueous SMD atomic surface tensions with native NumPy SASA",
             "cds_grid_points_per_atom": SASA_GRID_POINTS,
-            "scientific_status": "experimental",
+            "route_role": "research-innovation",
+            "scientific_status": "energy-proof-of-concept",
+            "solution_phase_pes": False,
+            "forces_available": False,
+            "next_primary_milestone": (
+                "energy-consistent force derivative for the converged "
+                "MACE-POLAR/PCM/SMD state"
+            ),
             "accuracy_certified": False,
             "default_eligible": False,
             "energy_composition": (
@@ -285,6 +369,16 @@ class SMDImplicitSolvation:
                 "smd": "Marenich, Cramer, Truhlar, JPCB 2009, DOI:10.1021/jp810292n",
                 "pcmsolver": "Di Remigio et al., JOSS 2019, DOI:10.21105/joss.01190",
                 "mace_polar": "MACE-POLAR-1, arXiv:2602.19411",
+                **(
+                    {
+                        "gaff2_pbsa_radii": (
+                            "Sun et al., J. Comput. Chem. 2023, "
+                            "DOI:10.1002/jcc.27089"
+                        )
+                    }
+                    if self.profile == GAFF2_CARBONYL_O_PROFILE
+                    else {}
+                ),
             },
         }
         self._write_manifest()
@@ -292,7 +386,7 @@ class SMDImplicitSolvation:
     def _validate_options(self) -> None:
         if self.solvation_options.get("experimental") is not True:
             raise ValueError(
-                "Route 2 SMD has not passed MAPLE's public scientific benchmark gate; "
+                "Route 2 is an energy-only research proof-of-concept; "
                 "set experimental=true explicitly."
             )
         if str(self.solvation_options.get("method", "")).lower() != "smd":
@@ -300,9 +394,12 @@ class SMDImplicitSolvation:
         if str(self.solvation_options.get("implicit", "")).lower() != "water":
             raise ValueError("Route 2 currently supports implicit=water only.")
         if self.provider != "pcmsolver":
-            raise ValueError("Route 2 certification uses provider=pcmsolver only.")
-        if self.profile != "smd-iefpcm":
-            raise ValueError("Route 2 requires profile=smd-iefpcm.")
+            raise ValueError("Route 2 research contract uses provider=pcmsolver only.")
+        if self.profile not in SUPPORTED_ROUTE2_SMD_PROFILES:
+            raise ValueError(
+                "Route 2 profile must be smd-iefpcm or "
+                "smd-iefpcm-gaff2-o."
+            )
         if self.response not in {"frozen", "scf"}:
             raise ValueError("SMD response must be frozen or scf.")
         if self.standard_state != "1m":
@@ -392,17 +489,52 @@ class SMDImplicitSolvation:
         )
 
     def _ensure_pcm_input(self) -> Path:
-        if self._parsed_pcm_input_path is not None:
-            return self._parsed_pcm_input_path
+        return self._ensure_pcm_input_variant(
+            key="primary",
+            filename="route2-smd.pcm",
+            tessera_area_angstrom2=PCM_TESSERA_AREA_ANGSTROM2,
+            minimum_added_sphere_radius_angstrom=None,
+        )
+
+    def _ensure_pcm_fallback_input(self) -> Path:
+        return self._ensure_pcm_input_variant(
+            key="stability-fallback",
+            filename="route2-smd-stability-fallback.pcm",
+            tessera_area_angstrom2=(
+                PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2
+            ),
+            minimum_added_sphere_radius_angstrom=(
+                PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM
+            ),
+        )
+
+    def _ensure_pcm_input_variant(
+        self,
+        *,
+        key: str,
+        filename: str,
+        tessera_area_angstrom2: float,
+        minimum_added_sphere_radius_angstrom: float | None,
+    ) -> Path:
+        cached = self._parsed_pcm_input_paths.get(key)
+        if cached is not None:
+            return cached
         if self.audit_dir is None:
             raise RuntimeError(
                 "Route 2 requires an audit directory so the exact PCMSolver input "
                 "and parsed machine file can be retained."
             )
 
-        raw_path = self.audit_dir / "route2-smd.pcm"
+        raw_path = self.audit_dir / filename
         raw_path.write_text(
-            _pcm_input_text(len(self.atoms), self.coulomb_radii_angstrom),
+            _pcm_input_text(
+                len(self.atoms),
+                self.coulomb_radii_angstrom,
+                tessera_area_angstrom2=tessera_area_angstrom2,
+                minimum_added_sphere_radius_angstrom=(
+                    minimum_added_sphere_radius_angstrom
+                ),
+            ),
             encoding="utf-8",
         )
         parser = _load_pcmsolver_parser()
@@ -422,7 +554,7 @@ class SMDImplicitSolvation:
                 "PCMSolver parse_pcm_input(..., write_out=True) did not create the "
                 f"expected machine input: {parsed_path}."
             )
-        self._parsed_pcm_input_path = parsed_path
+        self._parsed_pcm_input_paths[key] = parsed_path
         return parsed_path
 
     @staticmethod
@@ -617,7 +749,7 @@ class SMDImplicitSolvation:
             ),
         )
         payload = {
-            "schema_version": 3,
+            "schema_version": 4,
             "response": self.response,
             "pcm_mep_projection": "cavity-exterior-point-multipole-l<=1",
             "converged": True,
@@ -674,54 +806,144 @@ class SMDImplicitSolvation:
 
         gas_state = self._gas_state(calculator, atoms)
         self._validate_density(gas_state.density_coefficients, len(atoms))
-        parsed_input = self._ensure_pcm_input()
-
         assert self.audit_dir is not None
+        cds_result = smd_water_cds(
+            atoms.get_chemical_symbols(),
+            atoms.get_positions(),
+        )
+        cavity_attempts: list[dict[str, Any]] = []
+        selected_cavity: dict[str, Any] | None = None
         with _pcmsolver_audit_working_directory(self.audit_dir):
-            with PCMSolverSession(
-                np.asarray(atoms.numbers, dtype=float),
-                np.asarray(atoms.get_positions(), dtype=float) / Bohr,
-                parsed_input,
-            ) as session:
-                if self.response == "frozen":
-                    solvent_state = gas_state
-                    pcm_state = self._solve_pcm(
-                        session, atoms, gas_state.density_coefficients
-                    )
-                    history: list[dict[str, float | int | None]] = []
-                else:
-                    solvent_state, pcm_state, history = self._self_consistent_state(
-                        session, atoms, calculator, gas_state
-                    )
+            for (
+                attempt_name,
+                input_factory,
+                tessera_area,
+                minimum_radius,
+            ) in (
+                (
+                    "primary",
+                    self._ensure_pcm_input,
+                    PCM_TESSERA_AREA_ANGSTROM2,
+                    None,
+                ),
+                (
+                    "stability-fallback",
+                    self._ensure_pcm_fallback_input,
+                    PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2,
+                    PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM,
+                ),
+            ):
+                parsed_input = input_factory()
+                native_stderr_path = (
+                    self.audit_dir / f"pcmsolver-{attempt_name}-stderr.log"
+                )
+                with _capture_process_stderr(native_stderr_path):
+                    with PCMSolverSession(
+                        np.asarray(atoms.numbers, dtype=float),
+                        np.asarray(atoms.get_positions(), dtype=float) / Bohr,
+                        parsed_input,
+                    ) as session:
+                        if self.response == "frozen":
+                            solvent_state = gas_state
+                            pcm_state = self._solve_pcm(
+                                session, atoms, gas_state.density_coefficients
+                            )
+                            history = []
+                        else:
+                            (
+                                solvent_state,
+                                pcm_state,
+                                history,
+                            ) = self._self_consistent_state(
+                                session, atoms, calculator, gas_state
+                            )
 
-                delta_e_solute = (
-                    float(solvent_state.energy_ev) - float(gas_state.energy_ev)
-                ) / Hartree
-                pcm_polarization = pcm_state.polarization_energy_hartree
-                electrostatic = delta_e_solute + pcm_polarization
-                cds_result = smd_water_cds(
-                    atoms.get_chemical_symbols(),
-                    atoms.get_positions(),
+                        delta_e_solute = (
+                            float(solvent_state.energy_ev)
+                            - float(gas_state.energy_ev)
+                        ) / Hartree
+                        pcm_polarization = (
+                            pcm_state.polarization_energy_hartree
+                        )
+                        electrostatic = delta_e_solute + pcm_polarization
+                        total = electrostatic + cds_result.energy_hartree
+                        components = {
+                            "solute_polarization": delta_e_solute,
+                            "pcm_polarization": pcm_polarization,
+                            "electrostatic": electrostatic,
+                            "cds": cds_result.energy_hartree,
+                            "standard_state": 0.0,
+                            "delta_g_solv": total,
+                        }
+                        self._parsed_pcm_input_path = parsed_input
+                        self._write_result_audit(
+                            gas_state=gas_state,
+                            solvent_state=solvent_state,
+                            pcm_state=pcm_state,
+                            session=session,
+                            cds_result=cds_result,
+                            components=components,
+                            history=history,
+                        )
+                        pcmsolver_library = getattr(
+                            session, "library_source", None
+                        )
+
+                native_stderr = native_stderr_path.read_text(
+                    encoding="utf-8", errors="replace"
                 )
-                total = electrostatic + cds_result.energy_hartree
-                components = {
-                    "solute_polarization": delta_e_solute,
-                    "pcm_polarization": pcm_polarization,
-                    "electrostatic": electrostatic,
-                    "cds": cds_result.energy_hartree,
-                    "standard_state": 0.0,
-                    "delta_g_solv": total,
+                warning_detected = PCM_WARNING_MARKER in native_stderr
+                attempt = {
+                    "name": attempt_name,
+                    "tessera_area_angstrom2": tessera_area,
+                    "minimum_added_sphere_radius_angstrom": minimum_radius,
+                    "warning_detected": warning_detected,
+                    "stderr_log": str(native_stderr_path),
+                    "cavity_tesserae": int(pcm_state.asc_e.size),
                 }
-                self._write_result_audit(
-                    gas_state=gas_state,
-                    solvent_state=solvent_state,
-                    pcm_state=pcm_state,
-                    session=session,
-                    cds_result=cds_result,
-                    components=components,
-                    history=history,
-                )
-                pcmsolver_library = getattr(session, "library_source", None)
+                cavity_attempts.append(attempt)
+                if warning_detected:
+                    continue
+                selected_cavity = attempt
+                break
+
+        if selected_cavity is None:
+            for filename in ("route2-result.json", "route2-state.npz"):
+                (self.audit_dir / filename).unlink(missing_ok=True)
+            failure_payload = {
+                "schema_version": 1,
+                "reason": "pcmsolver-cavity-warning-after-deterministic-fallback",
+                "cavity_stability": {
+                    "policy": "warning-triggered deterministic fallback",
+                    "force_compatible": False,
+                    "selected": None,
+                    "attempts": cavity_attempts,
+                },
+            }
+            (self.audit_dir / "route2-failure.json").write_text(
+                json.dumps(failure_payload, indent=2, sort_keys=True),
+                encoding="utf-8",
+            )
+            raise RuntimeError(
+                "PCMSolver emitted warnings for both the primary and "
+                "deterministic fallback cavities; Route 2 refuses to publish "
+                "a numerically suspect result. See "
+                f"{self.audit_dir / 'pcmsolver-primary-stderr.log'} and "
+                f"{self.audit_dir / 'pcmsolver-stability-fallback-stderr.log'}."
+            )
+
+        audit_path = self.audit_dir / "route2-result.json"
+        audit_payload = json.loads(audit_path.read_text(encoding="utf-8"))
+        audit_payload["cavity_stability"] = {
+            "policy": "warning-triggered deterministic fallback",
+            "force_compatible": False,
+            "selected": selected_cavity["name"],
+            "attempts": cavity_attempts,
+        }
+        audit_path.write_text(
+            json.dumps(audit_payload, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
 
         provenance = {
             **self.provenance,
@@ -731,6 +953,20 @@ class SMDImplicitSolvation:
                 pcm_state.density_reaction_coupling_hartree
             ),
             "cavity_tesserae": int(pcm_state.asc_e.size),
+            "cavity_stability": {
+                "selected": selected_cavity["name"],
+                "force_compatible": False,
+                "tessera_area_angstrom2": selected_cavity[
+                    "tessera_area_angstrom2"
+                ],
+                "minimum_added_sphere_radius_angstrom": selected_cavity[
+                    "minimum_added_sphere_radius_angstrom"
+                ],
+                "fallback_used": (
+                    selected_cavity["name"] == "stability-fallback"
+                ),
+                "attempt_count": len(cavity_attempts),
+            },
             "audit_directory": (
                 None if self.audit_dir is None else str(self.audit_dir)
             ),
@@ -758,6 +994,8 @@ class SMDImplicitSolvation:
 __all__ = [
     "MAX_MOLECULAR_MASS_DA",
     "MIN_MOLECULAR_MASS_DA",
+    "PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM",
+    "PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2",
     "PCM_TESSERA_AREA_ANGSTROM2",
     "SCF_DENSITY_TOLERANCE",
     "SCF_ENERGY_TOLERANCE_EV",

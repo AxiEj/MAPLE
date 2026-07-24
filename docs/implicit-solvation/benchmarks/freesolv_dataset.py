@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import math
 from pathlib import Path
 from typing import Any
 
@@ -74,6 +75,41 @@ def prepare(args: argparse.Namespace) -> None:
     for compound_id in sorted(text_records):
         row = text_records[compound_id]
         full = json_records[compound_id]
+        json_name = str(full.get("iupac", "")).strip()
+        if json_name != row["name"].strip():
+            raise ValueError(
+                "Name mismatch between pinned FreeSolv files for "
+                f"{compound_id}: database.txt={row['name']!r}, "
+                f"database.json={json_name!r}."
+            )
+        json_experimental = float(full["expt"])
+        text_experimental = float(row["experimental_kcal_mol"])
+        if not math.isclose(
+            json_experimental,
+            text_experimental,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError(
+                "Experimental free-energy mismatch between pinned FreeSolv "
+                f"files for {compound_id}: database.txt={text_experimental}, "
+                f"database.json={json_experimental}."
+            )
+        json_uncertainty = float(full["d_expt"])
+        text_uncertainty = float(
+            row["experimental_uncertainty_kcal_mol"]
+        )
+        if not math.isclose(
+            json_uncertainty,
+            text_uncertainty,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError(
+                "Experimental uncertainty mismatch between pinned FreeSolv "
+                f"files for {compound_id}: database.txt={text_uncertainty}, "
+                f"database.json={json_uncertainty}."
+            )
         mol2_path = dataset_dir / "mol2files_gaff" / f"{compound_id}.mol2"
         try:
             if not mol2_path.is_file():

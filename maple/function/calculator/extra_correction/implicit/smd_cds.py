@@ -18,6 +18,12 @@ import numpy as np
 HARTREE_TO_KCAL_MOL = 627.5094740631
 SASA_PROBE_RADIUS_ANGSTROM = 0.4
 SASA_GRID_POINTS = 5810
+CANONICAL_SMD_PROFILE = "smd-iefpcm"
+GAFF2_CARBONYL_O_PROFILE = "smd-iefpcm-gaff2-o"
+GAFF2_CARBONYL_O_RADIUS_ANGSTROM = 1.70
+SUPPORTED_ROUTE2_SMD_PROFILES = frozenset(
+    {CANONICAL_SMD_PROFILE, GAFF2_CARBONYL_O_PROFILE}
+)
 
 
 SMD_WATER_COULOMB_RADII_ANGSTROM = {
@@ -107,6 +113,48 @@ def smd_water_coulomb_radii(symbols) -> np.ndarray:
         [SMD_WATER_COULOMB_RADII_ANGSTROM[symbol] for symbol in normalized],
         dtype=float,
     )
+
+
+def route2_water_coulomb_radii(
+    symbols,
+    *,
+    atom_types=None,
+    profile: str = CANONICAL_SMD_PROFILE,
+) -> np.ndarray:
+    """Return the versioned Route-2 electrostatic cavity radii."""
+
+    normalized_symbols = _validate_symbols(tuple(symbols))
+    normalized_profile = str(profile).strip().lower()
+    if normalized_profile not in SUPPORTED_ROUTE2_SMD_PROFILES:
+        raise ValueError(f"Unsupported Route 2 SMD profile: {profile}.")
+
+    radii = smd_water_coulomb_radii(normalized_symbols)
+    if normalized_profile == CANONICAL_SMD_PROFILE:
+        return radii
+
+    if atom_types is None:
+        raise ValueError(
+            f"{GAFF2_CARBONYL_O_PROFILE} requires one GAFF/GAFF2 atom type per atom."
+        )
+    normalized_atom_types = tuple(
+        str(atom_type).strip().lower() for atom_type in atom_types
+    )
+    if len(normalized_atom_types) != len(normalized_symbols):
+        raise ValueError(
+            f"{GAFF2_CARBONYL_O_PROFILE} requires one GAFF/GAFF2 atom type per atom."
+        )
+
+    carbonyl_oxygen = np.asarray(
+        [
+            symbol == "O" and atom_type == "o"
+            for symbol, atom_type in zip(
+                normalized_symbols, normalized_atom_types, strict=True
+            )
+        ],
+        dtype=bool,
+    )
+    radii[carbonyl_oxygen] = GAFF2_CARBONYL_O_RADIUS_ANGSTROM
+    return radii
 
 
 def smd_sasa_radii(symbols) -> np.ndarray:

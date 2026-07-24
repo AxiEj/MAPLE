@@ -157,7 +157,7 @@ class SetCalculator:
             raise ValueError("The first implicit-solvation release supports water only.")
         if self.solvation_options.get('experimental') is not True:
             raise ValueError(
-                "Implicit-solvation providers have not passed MAPLE's public scientific benchmark gate; "
+                "Route 2 is an energy-only research proof-of-concept; "
                 "set experimental=true explicitly."
             )
         configured_method = str(self.solvation_options.get('method', '')).lower()
@@ -193,9 +193,15 @@ class SetCalculator:
                     "MOL2 partial charges are ignored."
                 )
             if str(self.solvation_options.get('provider', 'pcmsolver')).lower() != 'pcmsolver':
-                raise ValueError("Route 2 certification requires provider=pcmsolver.")
-            if str(self.solvation_options.get('profile', 'smd-iefpcm')).lower() != 'smd-iefpcm':
-                raise ValueError("Route 2 requires profile=smd-iefpcm.")
+                raise ValueError("Route 2 research contract requires provider=pcmsolver.")
+            profile = str(
+                self.solvation_options.get('profile', 'smd-iefpcm')
+            ).lower()
+            if profile not in {'smd-iefpcm', 'smd-iefpcm-gaff2-o'}:
+                raise ValueError(
+                    "Route 2 profile must be smd-iefpcm or "
+                    "smd-iefpcm-gaff2-o."
+                )
             if str(self.solvation_options.get('standard_state', '1m')).lower() != '1m':
                 raise ValueError("Route 2 standard_state must be 1m.")
 

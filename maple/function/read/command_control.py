@@ -662,14 +662,20 @@ class CommandControl:
                     raise ValueError(msg)
                 provider = str(solv_params.get("provider", "pcmsolver")).lower()
                 if provider != "pcmsolver":
-                    msg = "Route 2 certification requires provider=pcmsolver."
+                    msg = "Route 2 research contract requires provider=pcmsolver."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 profile = str(
                     solv_params.get("profile", "smd-iefpcm")
                 ).lower()
-                if profile != "smd-iefpcm":
-                    msg = "Route 2 requires profile=smd-iefpcm."
+                if profile not in {
+                    "smd-iefpcm",
+                    "smd-iefpcm-gaff2-o",
+                }:
+                    msg = (
+                        "Route 2 profile must be smd-iefpcm or "
+                        "smd-iefpcm-gaff2-o."
+                    )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 response = str(solv_params.get("response", "scf")).lower()

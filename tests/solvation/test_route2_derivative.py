@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from ase.units import Hartree
 
 from maple.function.calculator.extra_correction.implicit.gto_density import (
     density_to_external_field_order,
@@ -9,6 +10,7 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
 )
 from maple.function.calculator.extra_correction.implicit.route2_derivative import (
     FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION,
+    assemble_total_solvation_coordinate_gradient,
     continuum_coupled_solvation_coordinate_gradient,
     fixed_cavity_energy_density_gradient,
     fixed_surface_solvation_coordinate_gradient,
@@ -610,3 +612,132 @@ def test_continuum_coupled_gradient_rejects_bad_contract_or_output():
             density_response,
             **arguments,
         )
+
+
+def test_total_solvation_gradient_assembly_converts_units_and_force_sign():
+    continuum_gradient_ev_per_angstrom = Hartree * np.asarray(
+        [
+            [1.0, -2.0, 0.5],
+            [-0.25, 0.75, 1.5],
+        ]
+    )
+    cds_gradient_hartree_per_angstrom = np.asarray(
+        [
+            [0.1, 0.2, -0.3],
+            [0.4, -0.5, 0.6],
+        ]
+    )
+
+    result = assemble_total_solvation_coordinate_gradient(
+        continuum_gradient_ev_per_angstrom,
+        cds_gradient_hartree_per_angstrom,
+    )
+
+    continuum_hartree = continuum_gradient_ev_per_angstrom / Hartree
+    total_gradient = continuum_hartree + cds_gradient_hartree_per_angstrom
+    np.testing.assert_allclose(
+        result.continuum_position_gradient_hartree_per_angstrom,
+        continuum_hartree,
+    )
+    np.testing.assert_allclose(
+        result.cds_position_gradient_hartree_per_angstrom,
+        cds_gradient_hartree_per_angstrom,
+    )
+    np.testing.assert_allclose(
+        result.total_position_gradient_hartree_per_angstrom,
+        total_gradient,
+    )
+    np.testing.assert_allclose(
+        result.solvent_correction_forces_hartree_per_angstrom,
+        -total_gradient,
+    )
+    with pytest.raises(ValueError, match="read-only"):
+        result.total_position_gradient_hartree_per_angstrom[0, 0] = 0.0
+
+    gas_forces = np.full((2, 3), 7.0)
+    solution_forces = (
+        gas_forces
+        + result.solvent_correction_forces_hartree_per_angstrom
+    )
+    np.testing.assert_allclose(
+        solution_forces,
+        gas_forces - continuum_hartree - cds_gradient_hartree_per_angstrom,
+    )
+
+
+def test_total_solvation_gradient_assembly_matches_component_energy_fd():
+    continuum_slope_ev_per_angstrom = np.asarray([[2.5, -1.5, 0.75]])
+    cds_slope_hartree_per_angstrom = np.asarray([[0.03, 0.04, -0.02]])
+    result = assemble_total_solvation_coordinate_gradient(
+        continuum_slope_ev_per_angstrom,
+        cds_slope_hartree_per_angstrom,
+    )
+
+    def energy_hartree(coordinates: np.ndarray) -> float:
+        continuum = float(
+            np.vdot(
+                continuum_slope_ev_per_angstrom,
+                coordinates,
+            )
+        ) / Hartree
+        cds = float(
+            np.vdot(
+                cds_slope_hartree_per_angstrom,
+                coordinates,
+            )
+        )
+        return continuum + cds
+
+    coordinates = np.asarray([[0.2, -0.4, 0.6]])
+    finite_difference = np.empty_like(coordinates)
+    step = 1.0e-5
+    for atom_index in range(coordinates.shape[0]):
+        for axis in range(3):
+            plus = coordinates.copy()
+            minus = coordinates.copy()
+            plus[atom_index, axis] += step
+            minus[atom_index, axis] -= step
+            finite_difference[atom_index, axis] = (
+                energy_hartree(plus) - energy_hartree(minus)
+            ) / (2.0 * step)
+
+    np.testing.assert_allclose(
+        result.total_position_gradient_hartree_per_angstrom,
+        finite_difference,
+        rtol=2.0e-11,
+        atol=2.0e-12,
+    )
+
+
+@pytest.mark.parametrize(
+    ("continuum", "cds", "message"),
+    [
+        (
+            np.zeros((0, 3)),
+            np.zeros((0, 3)),
+            "continuum_position_gradient_ev_per_angstrom",
+        ),
+        (
+            np.zeros((2, 2)),
+            np.zeros((2, 3)),
+            "continuum_position_gradient_ev_per_angstrom",
+        ),
+        (
+            np.zeros((2, 3)),
+            np.zeros((3, 3)),
+            "cds_position_gradient_hartree_per_angstrom",
+        ),
+        (
+            np.zeros((2, 3)),
+            np.full((2, 3), np.nan),
+            "cds_position_gradient_hartree_per_angstrom",
+        ),
+    ],
+)
+def test_total_solvation_gradient_assembly_rejects_invalid_components(
+    continuum,
+    cds,
+    message,
+):
+    with pytest.raises(ValueError, match=message):
+        assemble_total_solvation_coordinate_gradient(continuum, cds)

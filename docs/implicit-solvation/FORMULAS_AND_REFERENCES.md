@@ -786,6 +786,45 @@ differences within \(2.15\times10^{-6}\) eV/angstrom, and one largest
 mixed-radius methyl-acetate component agreed within
 \(8.51\times10^{-7}\) eV/angstrom (\(1.14\times10^{-6}\) relative).
 
+### Internal total-solvation gradient bookkeeping
+
+`assemble_total_solvation_coordinate_gradient()` now provides the
+provider-neutral algebraic boundary for combining the separately validated
+continuum and CDS components:
+
+\[
+\mathbf g_{\mathrm{cont}}\,[E_h/\mathring{\mathrm A}]
+=
+\frac{\mathbf g_{\mathrm{cont}}\,[\mathrm{eV}/\mathring{\mathrm A}]}
+       {E_h\,[\mathrm{eV}]},
+\qquad
+\mathbf g_{\mathrm{solv}}
+=
+\mathbf g_{\mathrm{cont}}+\mathbf g_{\mathrm{CDS}},
+\]
+
+\[
+\mathbf F_{\mathrm{solv,corr}}=-\mathbf g_{\mathrm{solv}},
+\qquad
+\mathbf F_{\mathrm{solution}}
+=
+\mathbf F_{\mathrm{gas}}+\mathbf F_{\mathrm{solv,corr}}.
+\]
+
+The continuum component already differentiates
+\(E_{\mathrm{intrinsic}}(\mathrm{solvent})-E_{\mathrm{gas}}+E_{\mathrm{PCM}}\).
+The assembly function therefore has no gas-force argument: `CalcABC` must add
+the independently returned gas force exactly once. Immutable,
+component-resolved outputs and synthetic whole-energy finite differences lock
+the eV-to-hartree conversion and gradient-to-force sign.
+
+This function does not prove that arbitrary inputs came from the same energy
+profile. The caller must still pair the optional PySCF continuum and CDS
+components selected for one declared calculation; mixing a PCMSolver energy
+with PySCF derivatives remains forbidden. No real combined MACE--PCM--CDS
+canary, public-provider integration, or force capability is claimed by this
+algebra-only gate.
+
 A controlled methanol refinement then separated local derivative correctness
 from finite-grid rotation quality. Order 17 used 397 surviving surface points
 and order 35 used 1326; their checked whole-energy derivative errors remained
@@ -818,12 +857,11 @@ to tested version 2.13.1, and neither the public parser nor production provider
 selects it. At least one additional rigid molecule, denser orientation
 sampling, and small-angle continuity remain required before selecting order
 47 or rejecting grid refinement in favour of a rotation-covariant
-discretization. Integration of differentiable SMD CDS, total-force assembly,
-and chemical-space validation remain open. A separate optional PySCF
-SMD-CDS energy/gradient pair now passes the one-methanol component gate above,
-but it is outside this continuum expression and has not been assembled with it.
-Route 2 therefore still does not expose a total solvent force or solution-phase
-PES.
+discretization. A separate optional PySCF SMD-CDS energy/gradient pair passes
+the one-methanol component gate above, and the internal algebraic assembly is
+now unit/sign tested. Evaluation of both terms in one real same-profile canary,
+provider/result integration, and chemical-space validation remain open. Route 2
+therefore still does not expose a total solvent force or solution-phase PES.
 
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build

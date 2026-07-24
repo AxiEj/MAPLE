@@ -1,17 +1,19 @@
 """Energy-gradient ingredients for the Route-2 fixed-point adjoint.
 
 This module owns the neutral density-space right-hand side, the diagnostic
-fixed-surface coordinate-gradient slice, and the contract for differentiating
-one complete continuum reaction-field map.  It deliberately does not expose a
-nuclear force because no production continuum provider implements that complete
-coordinate derivative and the SMD CDS derivative remains separately gated.
+fixed-surface coordinate-gradient slice, the contract for differentiating one
+complete continuum reaction-field map, and an internal bookkeeping boundary
+for adding a separately validated CDS gradient.  It deliberately does not
+expose forces through a production provider.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Callable, Protocol
 
 import numpy as np
+from ase.units import Hartree
 
 from .gto_density import (
     density_to_external_field_order,
@@ -89,17 +91,109 @@ def _validated_block(
 def _validated_coordinate_block(
     values: np.ndarray,
     *,
-    atom_count: int,
+    atom_count: int | None,
     name: str,
 ) -> np.ndarray:
     block = np.asarray(values, dtype=float)
-    expected_shape = (atom_count, 3)
-    if block.shape != expected_shape or not np.all(np.isfinite(block)):
+    expected_shape = None if atom_count is None else (atom_count, 3)
+    valid_shape = (
+        block.ndim == 2
+        and block.shape[0] > 0
+        and block.shape[1] == 3
+        and (expected_shape is None or block.shape == expected_shape)
+    )
+    if not valid_shape or not np.all(np.isfinite(block)):
+        shape = "(n_atoms, 3)" if expected_shape is None else str(expected_shape)
         raise ValueError(
-            f"{name} must be finite with shape {expected_shape}; "
+            f"{name} must be finite with shape {shape}; "
             f"received {block.shape}."
         )
     return block
+
+
+@dataclass(frozen=True)
+class TotalSolvationCoordinateGradient:
+    """Component-resolved total solvation gradient and correction force.
+
+    Both stored component gradients use hartree/angstrom.  The continuum
+    component is already the derivative of the solvation correction
+    ``E_intrinsic(solvent)-E_gas+E_PCM``; therefore the correction force below
+    must be added exactly once to the independently returned gas-phase force.
+    """
+
+    continuum_position_gradient_hartree_per_angstrom: np.ndarray
+    cds_position_gradient_hartree_per_angstrom: np.ndarray
+    total_position_gradient_hartree_per_angstrom: np.ndarray = field(
+        init=False
+    )
+    solvent_correction_forces_hartree_per_angstrom: np.ndarray = field(
+        init=False
+    )
+
+    def __post_init__(self) -> None:
+        continuum = _validated_coordinate_block(
+            self.continuum_position_gradient_hartree_per_angstrom,
+            atom_count=None,
+            name="continuum_position_gradient_hartree_per_angstrom",
+        ).copy()
+        cds = _validated_coordinate_block(
+            self.cds_position_gradient_hartree_per_angstrom,
+            atom_count=continuum.shape[0],
+            name="cds_position_gradient_hartree_per_angstrom",
+        ).copy()
+        total = continuum + cds
+        solvent_forces = -total
+        for values in (continuum, cds, total, solvent_forces):
+            values.setflags(write=False)
+        object.__setattr__(
+            self,
+            "continuum_position_gradient_hartree_per_angstrom",
+            continuum,
+        )
+        object.__setattr__(
+            self,
+            "cds_position_gradient_hartree_per_angstrom",
+            cds,
+        )
+        object.__setattr__(
+            self,
+            "total_position_gradient_hartree_per_angstrom",
+            total,
+        )
+        object.__setattr__(
+            self,
+            "solvent_correction_forces_hartree_per_angstrom",
+            solvent_forces,
+        )
+
+
+def assemble_total_solvation_coordinate_gradient(
+    continuum_position_gradient_ev_per_angstrom: np.ndarray,
+    cds_position_gradient_hartree_per_angstrom: np.ndarray,
+) -> TotalSolvationCoordinateGradient:
+    """Add continuum and CDS position gradients with explicit unit conversion.
+
+    This provider-neutral research boundary accepts only solvent-correction
+    components.  It intentionally has no gas-force argument: CalcABC's
+    finalizer owns the single addition of the gas-phase force.
+    """
+
+    continuum_ev = _validated_coordinate_block(
+        continuum_position_gradient_ev_per_angstrom,
+        atom_count=None,
+        name="continuum_position_gradient_ev_per_angstrom",
+    )
+    cds_hartree = _validated_coordinate_block(
+        cds_position_gradient_hartree_per_angstrom,
+        atom_count=continuum_ev.shape[0],
+        name="cds_position_gradient_hartree_per_angstrom",
+    )
+    return TotalSolvationCoordinateGradient(
+        continuum_position_gradient_hartree_per_angstrom=(
+            continuum_ev / Hartree
+        ),
+        cds_position_gradient_hartree_per_angstrom=cds_hartree,
+    )
 
 
 def fixed_cavity_energy_density_gradient(
@@ -385,6 +479,8 @@ __all__ = [
     "FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION",
     "FixedSurfaceReactionField",
     "FullReactionFieldPositionDerivative",
+    "TotalSolvationCoordinateGradient",
+    "assemble_total_solvation_coordinate_gradient",
     "continuum_coupled_solvation_coordinate_gradient",
     "fixed_cavity_energy_density_gradient",
     "fixed_surface_solvation_coordinate_gradient",

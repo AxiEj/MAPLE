@@ -271,10 +271,25 @@ proof-of-concept, not a complete solution-phase PES.
     electrostatics, total-force assembly, public-provider integration, broad
     chemistry, or portable performance claim. The public PCMSolver path still
     uses native `smd_water_cds()` and remains energy-only.
-19. Compare the summed analytic force with central finite differences of the
+19. `assemble_total_solvation_coordinate_gradient()` now locks the internal
+    bookkeeping equation
+    \(\mathbf g_{\mathrm{solv}}=\mathbf g_{\mathrm{cont}}+
+    \mathbf g_{\mathrm{CDS}}\), including the continuum eV-to-hartree
+    conversion and
+    \(\mathbf F_{\mathrm{solv,corr}}=-\mathbf g_{\mathrm{solv}}\).
+    Component-resolved immutable arrays pass a synthetic whole-energy central
+    finite-difference test. The function has no gas-force argument, so
+    `CalcABC` remains the sole owner of
+    \(\mathbf F_{\mathrm{solution}}=\mathbf F_{\mathrm{gas}}+
+    \mathbf F_{\mathrm{solv,corr}}\).
+
+    This is an algebra/interface gate only. It does not verify same-provider
+    provenance, run MACE/PySCF, populate `SolvationResult`, or enable public
+    forces.
+20. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-20. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+21. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

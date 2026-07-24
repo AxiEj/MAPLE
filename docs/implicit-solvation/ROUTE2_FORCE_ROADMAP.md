@@ -487,14 +487,24 @@ that CDS energy and gradient come from the same selected provider.
    PySCF-SWIG evaluation and its loader-only manifest is not retained; the
    result-level PySCF provenance identifies the continuum actually
    differentiated. CDS is absent from these continuum result objects, while the
-   separately validated optional PySCF CDS component is not yet assembled with
+   separately validated optional PySCF CDS component is not evaluated inside
    them. `supported_properties` therefore remains energy-only.
-6. **Pending:** test the provisional order-47 result on one additional rigid
+6. **Done for provider-neutral bookkeeping; real same-profile validation
+   remains pending:** `assemble_total_solvation_coordinate_gradient()` converts
+   the continuum correction gradient from eV/angstrom to
+   hartree/angstrom, adds the CDS position gradient, and returns the negative
+   total as the solvent correction force. Its immutable component-resolved
+   result and synthetic finite-difference tests lock the unit conversion and
+   force sign. The function deliberately accepts no gas force because
+   `CalcABC` owns the one and only addition of the independently returned gas
+   force. It also does not select providers; callers must still prove that all
+   components belong to the same declared energy profile.
+7. **Pending:** test the provisional order-47 result on one additional rigid
    molecule plus denser and small-angle rotations, then decide whether its
    memory/time scaling is acceptable or a rotation-covariant discretization is
-   required. Assemble the version-locked PySCF SMD CDS energy/gradient with the
-   same optional PySCF continuum profile, and sum gas MLIP force plus all
-   solvent derivatives into
+   required. Evaluate the version-locked PySCF SMD CDS energy/gradient with the
+   same optional PySCF continuum profile in one whole-energy canary, then expose
+   the validated solvent correction through
    `SolvationResult.forces_hartree_per_angstrom`; only then advertise
    `supported_properties={"energy", "forces"}`. The per-atom radius and real
    MACE fixed-point-adjoint and CDS-component subproblems are no longer

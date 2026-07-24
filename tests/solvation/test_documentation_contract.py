@@ -106,6 +106,9 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "position gradient, not force" in formulas
     assert "loader-only manifest is not retained" in roadmap
     assert "CDS-only component gate" in validation
+    assert "assemble_total_solvation_coordinate_gradient()" in formulas
+    assert "no gas-force argument" in formulas
+    assert "algebra/interface gate only" in validation
     assert "three-case MAE worsened" in normalized_validation
     assert "0.7248%" in validation
     assert "route2-protocol.json" in benchmark

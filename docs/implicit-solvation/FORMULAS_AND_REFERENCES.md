@@ -260,6 +260,47 @@ gradient in eV/(e angstrom). Its physical pairing with density is
 \(\sum_i(q_iV_i+\mathbf p_i\cdot\nabla V_i)\); the MACE adapter owns the exact
 Cartesian/e3nn permutation.
 
+At fixed nuclear geometry and fixed cavity, write \(f=\mathcal P_{\mathbf R}c\)
+and omit the gas reference and CDS terms because neither depends on \(c\):
+
+\[
+E_{\mathrm{fc}}(c)
+=E_{\mathrm{MACE,intrinsic}}(f(c))
++\frac12 c^\mathsf TQf(c).
+\]
+
+Let
+
+\[
+g_f=\frac{\partial E_{\mathrm{MACE,intrinsic}}}{\partial f}.
+\]
+
+This derivative is evaluated by
+`MACEPolCalculator.intrinsic_energy_field_gradient()` through the real MACE
+autograd graph; it is not replaced by the returned density coefficients.
+Direct differentiation first gives
+
+\[
+\nabla_cE_{\mathrm{fc}}
+=\mathcal P_{\mathbf R}^*g_f
++\frac12\left(Qf+\mathcal P_{\mathbf R}^*Q^\mathsf Tc\right).
+\]
+
+Under the reciprocal `MATRIXSYMM=TRUE` convention,
+\(\mathcal P_{\mathbf R}^*=Q\mathcal P_{\mathbf R}Q\) and
+\(Q^\mathsf T=Q^{-1}\), so the two half-coupling derivatives are identical:
+
+\[
+\nabla_cE_{\mathrm{fc}}
+=\mathcal P_{\mathbf R}^*g_f+Qf,
+\qquad
+b=\Pi_0\left[\mathcal P_{\mathbf R}^*g_f+Qf\right].
+\]
+
+`fixed_cavity_energy_density_gradient()` assembles this projected physical
+right-hand side. Numerical SCF mixing is absent because it is a solver choice,
+not part of the converged residual or energy functional.
+
 The adjoint equation is solved in an orthonormal Helmert basis for the
 zero-sum monopole block, with the three \(l=1\) blocks retained directly. This
 removes the forbidden uniform-charge coordinate without changing the discrete
@@ -272,10 +313,20 @@ acetone state with the saved warning-free 508-tessera fallback cavity, the PCM
 JVP/VJP pairing closes to \(6.66\times10^{-16}\) absolute error and the full
 residual pairing to \(1.24\times10^{-11}\) absolute error. A random diagnostic
 right-hand side converges in eight GMRES callbacks and ten operator
-applications to a \(2.36\times10^{-9}\) relative residual. The physical
-energy-gradient right-hand side and every cavity/coordinate derivative remain
-unimplemented, so no production force is published by this solver
-infrastructure.
+applications to a \(2.36\times10^{-9}\) relative residual.
+
+The physical fixed-cavity right-hand side was then checked on the same real
+acetone state. The three equivalent PCM energy records,
+\(c^\mathsf TQf\), \(\mathrm{MEP}^\mathsf T\mathrm{ASC}\), and
+\(2U_{\mathrm{pol}}\), agree within \(1.11\times10^{-16}\) eV. Central
+differences of \(E_{\mathrm{fc}}\) along one neutral density direction have
+relative errors no larger than \(6.54\times10^{-7}\) over three steps. The
+saved state has a \(2.59\times10^{-6}\) maximum density fixed-point residual,
+below the configured \(10^{-5}\) threshold. The resulting physical right-hand
+side converges in eight GMRES callbacks and ten operator applications to a
+\(7.65\times10^{-10}\) relative residual. Every cavity/coordinate derivative
+remains absent, so this is a density-space component validation and no
+production force is published.
 
 An energy-consistent implementation must account for all of the following:
 

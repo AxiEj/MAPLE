@@ -45,20 +45,29 @@ not a complete solution-phase PES.
 4. The neutral-subspace matrix-free GMRES adjoint solver matches a direct dense
    synthetic solution and fails closed for a singular operator. A real
    PCM-coupled acetone random right-hand side reaches \(2.36\times10^{-9}\)
-   relative residual in eight callbacks and ten operator applications. The
-   physical energy-gradient right-hand side and coordinate/cavity response are
-   not implemented yet.
-5. Fixed-density/ASC/surface point-kernel position VJPs now match central
+   relative residual in eight callbacks and ten operator applications.
+5. The physical fixed-cavity energy-gradient right-hand side is implemented as
+   \(\Pi_0[\mathcal P_{\mathbf R}^*g_f+Qf]\), where \(g_f\) comes from the
+   exact MACE intrinsic-energy autograd graph rather than the returned density.
+   A real acetone neutral-direction canary closes the PCM energy identity to
+   \(1.11\times10^{-16}\) eV, keeps all three relative finite-difference errors
+   below \(6.54\times10^{-7}\), and solves the physical adjoint to
+   \(7.65\times10^{-10}\) relative residual. The saved density fixed-point
+   residual is \(2.59\times10^{-6}\), below the configured \(10^{-5}\)
+   threshold. Warm local reruns take roughly 0.4--0.6 s for the intrinsic
+   field gradient, 0.02 s for RHS assembly, and 1.4--1.5 s for the adjoint
+   solve; these are local diagnostics, not portable performance claims.
+6. Fixed-density/ASC/surface point-kernel position VJPs now match central
    differences and preserve the differentiated reciprocal identity without
    dense Jacobians. This is an explicit component only, not a force capability.
-6. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
+7. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
    current PCMSolver--GePol energy; the current PCMSolver C ABI has no force endpoint.
    A separately named smooth PCM profile must be evaluated.
-7. Implement the geometry-dependent SMD CDS/SASA derivative.
-8. Compare the summed analytic force with central finite differences of the
+8. Implement the geometry-dependent SMD CDS/SASA derivative.
+9. Compare the summed analytic force with central finite differences of the
    converged total energy, then enforce translation, rotation, and energy
    conservation checks.
-9. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+10. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
    solution-phase PES.
 
 ## Secondary diagnostics

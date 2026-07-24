@@ -11,13 +11,11 @@ import numpy as np
 from ase.units import Bohr, Hartree
 
 from .gto_density import (
+    external_field_to_density_order,
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
 )
 from .pcmsolver import PCMSolverSession
-
-
-_EXTERNAL_TO_DENSITY_ORDER = (0, 2, 3, 1)
 
 
 def _validated_atom_block(
@@ -44,6 +42,8 @@ class FixedCavityPCMReactionFieldLinearMap:
     have been constructed with ``MATRIXSYMM=TRUE``; otherwise reciprocity is
     insufficient to identify the transpose and construction fails closed.
     """
+
+    reciprocal_energy_pairing = True
 
     def __init__(
         self,
@@ -148,9 +148,9 @@ class FixedCavityPCMReactionFieldLinearMap:
             atom_count=self.atom_count,
             name="field_cotangent",
         )
-        density_order = cotangent[:, _EXTERNAL_TO_DENSITY_ORDER]
+        density_order = external_field_to_density_order(cotangent)
         response = self.apply(density_order)
-        return response[:, _EXTERNAL_TO_DENSITY_ORDER].copy()
+        return external_field_to_density_order(response)
 
 
 __all__ = ["FixedCavityPCMReactionFieldLinearMap"]

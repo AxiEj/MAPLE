@@ -217,9 +217,24 @@ selected, license-compatible differentiable provider.
    VJP with matrix-free GMRES. A dense neutral-subspace system matches the
    direct solution, while a singular synthetic operator fails closed. One real
    acetone random right-hand side converges in eight callbacks and ten operator
-   applications to \(2.36\times10^{-9}\) relative residual. The
-   physical energy-gradient right-hand side and coordinate/cavity response are
-   still absent.
+   applications to \(2.36\times10^{-9}\) relative residual.
+7. **Done for the physical energy-gradient right-hand side at fixed cavity:**
+   `MACEPolCalculator.intrinsic_energy_field_gradient()` evaluates the exact
+   MACE intrinsic-energy derivative \(g_f\) with respect to the external node
+   field. `fixed_cavity_energy_density_gradient()` then assembles
+   \[
+   b=\Pi_0\left[\mathcal P_{\mathbf R}^*g_f+Qf\right].
+   \]
+   Synthetic neutral-direction finite differences lock the \(1/2\) PCM
+   derivative, permutation, and projection. On the real saved acetone cavity,
+   the energy identity closes to \(1.11\times10^{-16}\) eV, three density-space
+   central differences have relative errors at most \(6.54\times10^{-7}\),
+   the saved fixed-point residual is \(2.59\times10^{-6}\), below its
+   \(10^{-5}\) threshold,
+   and the physical-RHS adjoint reaches \(7.65\times10^{-10}\) relative
+   residual in eight callbacks and ten operator applications. This is still a
+   fixed-geometry/fixed-cavity density derivative, not a solvent force;
+   coordinate, boundary, and CDS derivatives remain absent.
 
 ### Phase 1 -- differentiable explicit geometry terms
 
@@ -251,12 +266,14 @@ selected, license-compatible differentiable provider.
 
 ### Phase 2 -- coupled response
 
-1. Form the converged residual for learned density plus PCM response.
-2. Implement Jacobian-vector and vector-Jacobian products without assembling a
-   dense molecular Jacobian.
-3. Solve the adjoint equation to a tolerance tighter than the energy SCF
-   tolerance.
-4. Sum gas MLIP force and every solvent derivative into
+1. **Done:** form the unmixed converged residual for learned density plus the
+   reciprocal fixed-cavity PCM response.
+2. **Done:** implement Jacobian-vector and vector-Jacobian products without
+   assembling a dense molecular Jacobian.
+3. **Done at fixed geometry/cavity:** solve the physical energy-gradient
+   adjoint equation to a tolerance tighter than the energy SCF tolerance.
+4. **Pending:** contract the adjoint with every coordinate residual term and
+   sum gas MLIP force plus all solvent derivatives into
    `SolvationResult.forces_hartree_per_angstrom`; only then advertise
    `supported_properties={"energy", "forces"}`.
 

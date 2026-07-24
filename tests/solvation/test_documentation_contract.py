@@ -53,6 +53,8 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "neutral density tangent space" in roadmap
     assert "solve_adjoint()" in formulas
     assert "FixedCavityPCMReactionFieldLinearMap" in formulas
+    assert "intrinsic_energy_field_gradient()" in formulas
+    assert "fixed_cavity_energy_density_gradient()" in formulas
     assert "MATRIXSYMM=TRUE" in roadmap
     assert "physical energy-gradient right-hand side" in roadmap
     assert "route2-protocol.json" in benchmark

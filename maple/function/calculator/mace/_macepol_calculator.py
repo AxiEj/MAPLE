@@ -425,6 +425,93 @@ class MACEPolCalculator(CalcABC):
         )
         return self._polar_state_from_output(output), output
 
+    def intrinsic_energy_field_gradient(
+        self,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray,
+        node_gradient_ev_per_angstrom: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate the intrinsic model energy with respect to node field.
+
+        The result uses external Cartesian order
+        ``[V, dV/dx, dV/dy, dV/dz]``.  Its columns are conjugate to the input
+        units eV/e and eV/(e Angstrom), respectively.  This is an exact
+        autograd derivative of the MACE-POLAR intrinsic energy; it is not
+        assumed equal to the model's returned density coefficients.
+        """
+
+        potential = np.asarray(node_potential_ev, dtype=float)
+        gradient = np.asarray(node_gradient_ev_per_angstrom, dtype=float)
+        if potential.shape != (len(atoms),) or gradient.shape != (len(atoms), 3):
+            raise ValueError(
+                "Local reaction potential/gradient shapes must be "
+                "(n_atoms,) and (n_atoms, 3)."
+            )
+        if not np.all(np.isfinite(potential)) or not np.all(np.isfinite(gradient)):
+            raise ValueError("Local reaction potential/gradient must be finite.")
+
+        potential_tensor = torch.tensor(
+            potential,
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=True,
+        )
+        gradient_tensor = torch.tensor(
+            gradient,
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=True,
+        )
+        output = self.polar_output_torch(
+            atoms,
+            node_potential_ev=potential_tensor,
+            node_gradient_ev_per_angstrom=gradient_tensor,
+        )
+        energy = output.get("energy")
+        if energy is None or not torch.is_tensor(energy):
+            raise RuntimeError(
+                "MACE-POLAR did not return a differentiable intrinsic energy."
+            )
+        if not bool(torch.isfinite(energy).all()):
+            raise RuntimeError("MACE-POLAR intrinsic energy is non-finite.")
+        if not energy.requires_grad:
+            raise RuntimeError(
+                "MACE-POLAR intrinsic energy is disconnected from the local "
+                "reaction-field autograd graph."
+            )
+        potential_gradient, spatial_gradient = torch.autograd.grad(
+            energy.sum(),
+            (potential_tensor, gradient_tensor),
+            create_graph=False,
+            allow_unused=True,
+        )
+        if potential_gradient is None or spatial_gradient is None:
+            raise RuntimeError(
+                "MACE-POLAR intrinsic energy is not differentiable with "
+                "respect to both local reaction-potential inputs."
+            )
+        result = np.concatenate(
+            (
+                np.asarray(
+                    potential_gradient.detach().cpu(),
+                    dtype=float,
+                )[:, None],
+                np.asarray(
+                    spatial_gradient.detach().cpu(),
+                    dtype=float,
+                ),
+            ),
+            axis=1,
+        )
+        expected_shape = (len(atoms), 4)
+        if result.shape != expected_shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "MACE-POLAR intrinsic-energy field gradient must be finite "
+                f"with shape {expected_shape}; received {result.shape}."
+            )
+        return result
+
     def linearize_density_response(
         self,
         atoms,

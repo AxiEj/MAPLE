@@ -46,6 +46,24 @@ class _FailingFieldModel:
         raise RuntimeError("synthetic model failure")
 
 
+class _DisconnectedFieldModel:
+    def __call__(
+        self,
+        _batch,
+        *,
+        compute_force,
+        compute_stress,
+        compute_hessian,
+    ):
+        assert compute_force is False
+        assert compute_stress is False
+        assert compute_hessian is False
+        return {
+            "energy": torch.ones(1),
+            "density_coefficients": torch.zeros((1, 4)),
+        }
+
+
 class _PositionFieldModel:
     def __init__(self, recorder: _FieldRecorder):
         self.recorder = recorder
@@ -133,6 +151,51 @@ def test_polar_output_torch_preserves_local_field_autograd_graph():
         torch.full_like(gradient, 3.0),
     )
     assert output["energy"].dtype == torch.float64
+    assert recorder.values is None
+
+
+def test_intrinsic_energy_field_gradient_matches_exact_quadratic_model():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _QuadraticFieldModel(recorder),
+        recorder,
+    )
+    atoms = Atoms("OH", positions=np.zeros((2, 3)))
+    potential = np.asarray([0.2, -0.1])
+    gradient = np.asarray(
+        [[0.3, -0.4, 0.5], [-0.6, 0.7, -0.8]],
+    )
+
+    field_gradient = calculator.intrinsic_energy_field_gradient(
+        atoms,
+        node_potential_ev=potential,
+        node_gradient_ev_per_angstrom=gradient,
+    )
+
+    np.testing.assert_allclose(
+        field_gradient,
+        2.0 * np.concatenate((potential[:, None], gradient), axis=1),
+        rtol=1.0e-13,
+        atol=1.0e-13,
+    )
+    assert recorder.values is None
+
+
+def test_intrinsic_energy_field_gradient_rejects_disconnected_model_energy():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _DisconnectedFieldModel(),
+        recorder,
+    )
+    atoms = Atoms("H")
+
+    with pytest.raises(RuntimeError, match="disconnected"):
+        calculator.intrinsic_energy_field_gradient(
+            atoms,
+            node_potential_ev=np.zeros(1),
+            node_gradient_ev_per_angstrom=np.zeros((1, 3)),
+        )
+
     assert recorder.values is None
 
 

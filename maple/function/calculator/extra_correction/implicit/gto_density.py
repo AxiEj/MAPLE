@@ -12,6 +12,24 @@ from scipy.special import erf
 MACE_POLAR_DENSITY_SIGMA_ANGSTROM = 1.5
 
 
+def external_field_to_density_order(values: np.ndarray) -> np.ndarray:
+    """Reorder a Cartesian node field into the raw density-dual convention.
+
+    MACE-POLAR stores its real-spherical ``l=1`` coefficients so that raw
+    columns ``[1, 2, 3]`` map to Cartesian ``[y, z, x]`` in the dual pairing.
+    Consequently an external field ``[V, gx, gy, gz]`` pairs with the raw
+    density as ``[V, gy, gz, gx]``.  This function changes order only; it does
+    not introduce a unit conversion.
+    """
+
+    field = np.asarray(values, dtype=float)
+    if field.ndim != 2 or field.shape[1] != 4 or not np.all(np.isfinite(field)):
+        raise ValueError(
+            "External node field must be finite with shape (n_atoms, 4)."
+        )
+    return field[:, [0, 2, 3, 1]].copy()
+
+
 def cartesian_multipoles(
     density_coefficients: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:

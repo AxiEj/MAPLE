@@ -513,16 +513,41 @@ that CDS energy and gradient come from the same selected provider.
    milliseconds, so the dense continuum dominated. The failed
    \(10^{-3}\)-angstrom topology gate and the \(10^{-4}\)-angstrom CDS
    truncation gate are retained as artifacts.
-7. **Pending:** test the provisional order-47 result on one additional rigid
-   molecule plus denser and small-angle rotations, then decide whether its
-   memory/time scaling is acceptable or a rotation-covariant discretization is
-   required. Check additional total-gradient components and a second molecule,
-   enforce declared-profile provenance at the provider boundary, and only then
-   expose the validated solvent correction through
-   `SolvationResult.forces_hartree_per_angstrom`; only then advertise
-   `supported_properties={"energy", "forces"}`. The per-atom radius and real
-   MACE fixed-point-adjoint and CDS-component subproblems are no longer
-   blockers for this optional provider.
+7. **Done as a rejection gate for fixed-order refinement; a replacement
+   discretization remains pending:** an acetone order-47 total-gradient
+   preflight used 3435 surface points. The base torque was
+   \(1.1146\times10^{-3}\) eV and failed the \(10^{-3}\)-eV gate, although one
+   extra orientation passed at \(6.60\times10^{-4}\) eV. Along the base
+   residual-torque axis, a topology-stable \(3\times10^{-5}\)-rad central
+   difference of the complete self-consistent continuum-plus-CDS energy was
+   `0.001116823 eV/rad`, versus `0.001114604 eV/rad` analytically. The
+   `0.199%` relative difference and essentially zero CDS contribution identify
+   finite-grid discrete-energy rotation anisotropy rather than a missing
+   analytic-gradient term.
+
+   A single bounded order-53 follow-up was deliberately run instead of a
+   broad order scan. Its base torque improved to \(2.94\times10^{-4}\) eV, but
+   the same extra orientation worsened to \(1.77\times10^{-3}\) eV and failed.
+   The base surface increased to 4244 points, the analytic derivative from
+   `24.79 s` to `38.39 s`, and peak RSS from `4.74 GiB` to `6.23 GiB`.
+   Therefore neither order 47 nor order 53 is a general production default,
+   and order 59 was not attempted.
+
+   The next continuum provider must use a rotation-covariant discretization
+   (or an equivalently rotation-stable construction) and must own the matching
+   scalar energy and analytic coordinate derivative.
+   Literature-backed candidates are a molecule-following atom-centred grid
+   with the complete orientation-matrix derivative, or a separately named
+   ddPCM/ddCOSMO provider with its own same-energy force derivation. ISWIG
+   alone is not a fundamental fix because it changes the switching function
+   while retaining the laboratory-frame Lebedev construction. Post-hoc torque
+   removal is nonconservative relative to the implemented scalar energy and is
+   forbidden. Only after this gate, additional total-gradient components, and
+   same-profile provenance pass may
+   `SolvationResult.forces_hartree_per_angstrom` be populated or
+   `supported_properties={"energy", "forces"}` be advertised. The per-atom
+   radius, real-MACE fixed-point adjoint, CDS component, and algebraic total
+   assembly are no longer the blockers.
 
 ### Phase 3 -- verification gates
 

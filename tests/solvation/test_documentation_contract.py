@@ -17,6 +17,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     formulas = (
         REPOSITORY_ROOT / "docs/implicit-solvation/FORMULAS_AND_REFERENCES.md"
     ).read_text(encoding="utf-8")
+    normalized_formulas = " ".join(formulas.split())
     benchmark = (
         REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks/README.md"
     ).read_text(encoding="utf-8")
@@ -112,6 +113,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "2744038" in validation
     assert "Both failed attempts remain" in validation
     assert "dense order-47 continuum" in validation
+    assert "discrete-energy rotation anisotropy" in formulas
+    assert "post-hoc torque projection is forbidden" in normalized_formulas
+    assert "order 53" in validation
+    assert "no order-59 run" in normalized_validation
     assert "three-case MAE worsened" in normalized_validation
     assert "0.7248%" in validation
     assert "route2-protocol.json" in benchmark

@@ -313,13 +313,49 @@ proof-of-concept, not a complete solution-phase PES.
     nor `primary`, and the loader-only PCMSolver correction was detached and
     not retained.
 
-    This is still one Cartesian component on one molecule. It does not populate
-    `SolvationResult`, enable public forces, establish a second-molecule or
-    broad-rotation gate, or certify chemical accuracy or portable speed.
-21. Compare the summed analytic force with central finite differences of the
+    That canary still checks one Cartesian finite-difference component on one
+    molecule. It does not populate `SolvationResult`, enable public forces, or
+    certify chemical accuracy or portable speed.
+21. The second-molecule rotation gate rejects fixed order 47 and order 53 as
+    generally rotation-qualified defaults. For acetone, order 47 used 3435
+    surviving points and gave a \(1.1146\times10^{-3}\)-eV base residual
+    torque, while one extra orientation gave \(6.60\times10^{-4}\) eV. The
+    energy span and maximum gradient-covariance error were
+    `0.001513 kcal/mol` and `0.000411 eV/angstrom`, respectively.
+
+    The analytic rigid-rotation directional derivative along the base torque
+    was `0.001114604 eV/rad`. A complete self-consistent
+    continuum-plus-CDS central difference at the largest topology-stable step,
+    \(3\times10^{-5}\) rad, was `0.001116823 eV/rad`. The absolute difference
+    was \(2.22\times10^{-6}\) eV/rad (`0.199%` relative), and the CDS
+    contribution was \(5.9\times10^{-12}\) eV/rad. This is direct evidence
+    that the analytic gradient differentiates the implemented energy and that
+    the failed torque gate reflects discrete-energy rotation anisotropy.
+
+    One bounded order-53 follow-up reduced the base torque to
+    \(2.94\times10^{-4}\) eV but increased the same rotated-orientation torque
+    to \(1.77\times10^{-3}\) eV. Its base surface contained 4244 points,
+    required `38.39 s` for the analytic derivative, and peaked at
+    `6.23 GiB`, versus 3435 points, `24.79 s`, and `4.74 GiB` at order 47.
+    The nonmonotonic orientation result stops the order scan; no order-59 run
+    was made. Neither order is adopted, the public provider remains
+    energy-only, and Route 2 still has no certified solution-phase PES.
+
+    A valid repair must alter the declared scalar discretization and carry its
+    exact derivative. ISWIG retains the same laboratory-frame Lebedev
+    construction and is not a fundamental rotation fix. A molecule-following
+    grid requires the complete orientation-matrix derivative and explicit
+    degeneracy handling; ddPCM/ddCOSMO would be a new same-energy provider.
+    Post-hoc zero-force/zero-torque projection is not accepted as a conservative
+    force.
+
+    This second molecule adds full-gradient invariance diagnostics and one
+    directional whole-energy derivative, not a broad orientation or
+    chemical-space certification.
+22. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-22. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+23. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

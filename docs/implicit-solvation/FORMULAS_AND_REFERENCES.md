@@ -883,18 +883,72 @@ respectively. The three-orientation order-47 job used 2211--2245 points,
 took 54.9 seconds, and peaked near 3.12 GiB. These are local diagnostic
 timings, not portable speed claims.
 
+An additional acetone total-gradient discriminator rejects the idea that one
+fixed Lebedev order is generally rotation-qualified. At order 47 the base
+orientation used 3435 surviving points and had a
+\(1.1146\times10^{-3}\)-eV residual torque, just above the predeclared
+\(10^{-3}\)-eV gate. A second rigid orientation passed at
+\(6.6006\times10^{-4}\) eV, with a `0.001513 kcal/mol` energy span and
+`0.000411 eV/angstrom` maximum gradient-covariance error, so the failure is
+orientation-dependent rather than a molecule-wide constant bias.
+
+For a rigid rotation about unit axis \(\hat{\mathbf n}\), the analytic
+directional derivative is
+
+\[
+\frac{dE}{d\theta}
+=
+\hat{\mathbf n}\mathbin{\cdot}
+\sum_A
+(\mathbf R_A-\mathbf R_0)\mathbin{\times}\mathbf g_A .
+\]
+
+Choosing \(\hat{\mathbf n}\) along the order-47 residual torque and the largest
+tested topology-stable step, \(3\times10^{-5}\) rad, gave
+`0.001114604 eV/rad` analytically and `0.001116823 eV/rad` from the complete
+self-consistent continuum-plus-CDS energy. The absolute and relative
+differences were \(2.22\times10^{-6}\) eV/rad and `0.199%`; the CDS
+finite-difference contribution was only \(5.9\times10^{-12}\) eV/rad. The
+gradient therefore differentiates the implemented energy: this is
+**discrete-energy rotation anisotropy**, not evidence for a missing force
+term.
+
+One deliberately bounded order-53 follow-up confirms that further grid
+refinement is nonmonotonic across orientations. Its base torque fell to
+\(2.94\times10^{-4}\) eV, but the same extra orientation rose to
+\(1.77\times10^{-3}\) eV and failed. The base surface grew from 3435 to 4244
+points; its analytic derivative grew from `24.79 s` to `38.39 s`, and peak RSS
+from `4.74 GiB` to `6.23 GiB`. No order-59 or broader scan was run. Order 53
+is therefore neither adopted nor a default, and simply increasing the
+Lebedev order is not the selected repair.
+
+This behavior is expected for the published construction: finite atom-centred
+Lebedev grids are placed in the laboratory frame, so exact rotation invariance
+is recovered only in the infinitely dense limit. ISWIG changes the elementary
+switching function but is otherwise the same construction, so it is not a
+fundamental rotational repair. A molecule-following orientation matrix with
+its complete first derivative is a literature-backed way to make a finite
+atom-centred quadrature rotation invariant, but principal-axis degeneracies
+and axis switching must be handled explicitly. Merely rotating a returned
+gradient, or projecting away its torque after evaluation, does not
+differentiate the declared scalar energy; post-hoc torque projection is
+forbidden for a Route-2 PES. Domain-decomposition PCM/COSMO methods with
+published analytic forces are an alternative provider family, not a drop-in
+derivative for the present SWIG/IEFPCM energy. Either candidate must first
+define one same-energy forward, adjoint, coordinate-VJP, and CDS profile before
+another real-MACE canary is justified.
+
 This closes only a narrow continuum-electrostatic coordinate-gradient slice.
 PySCF is loaded lazily, its private gradient-intermediate layout remains locked
 to tested version 2.13.1, and neither the public parser nor production provider
-selects it. At least one additional rigid molecule, denser orientation
-sampling, and small-angle continuity remain required before selecting order
-47 or rejecting grid refinement in favour of a rotation-covariant
-discretization. A separate optional PySCF SMD-CDS energy/gradient pair and the
-internal algebraic assembly now pass the one-component methanol gate under the
-same declared profile above. A second molecule, additional total-gradient
-components,
-provider/result integration, and chemical-space validation remain open. Route
-2 therefore still does not expose a total solvent force or solution-phase PES.
+selects it. The additional rigid molecule and small-angle test now reject
+orders 47 and 53 as generally rotation-qualified defaults. A separate optional
+PySCF SMD-CDS energy/gradient pair and the internal algebraic assembly pass the
+one-component methanol gate under the same declared profile above, but
+additional total-gradient components, a rotation-stable continuum
+discretization, provider/result integration, and chemical-space validation
+remain open. Route 2 therefore still does not expose a total solvent force or
+solution-phase PES.
 
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build
@@ -1025,6 +1079,16 @@ Route-2 references:
   discretization scheme for polarizable continuum models: The
   switching/Gaussian approach,” *J. Chem. Phys.* **133**, 244111 (2010),
   DOI `10.1063/1.3511297`.
+- B. G. Johnson, P. M. W. Gill, and J. A. Pople, “A rotationally invariant
+  procedure for density functional calculations,” *Chem. Phys. Lett.* **220**,
+  377--384 (1994),
+  DOI `10.1016/0009-2614(94)00199-5`.
+- B. Stamm, E. Cancès, F. Lipparini, and Y. Maday, “A new discretization for
+  the polarizable continuum model within the domain decomposition paradigm,”
+  *J. Chem. Phys.* **144**, 054101 (2016), DOI `10.1063/1.4940136`.
+- P. Gatto, F. Lipparini, and B. Stamm, “Computation of forces arising from
+  the polarizable continuum model within the domain-decomposition paradigm,”
+  *J. Chem. Phys.* **147**, 224108 (2017), DOI `10.1063/1.5008329`.
 - P. Su and H. Li, “Continuous and smooth potential energy surface for
   conductorlike screening solvation model using fixed points with variable
   areas,” *J. Chem. Phys.* **130**, 074109 (2009),

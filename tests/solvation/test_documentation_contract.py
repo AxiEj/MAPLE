@@ -98,6 +98,9 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "physical energy-gradient right-hand side" in roadmap
     assert "full-continuum assembly boundary" in roadmap
     assert "current PCMSolver-backed map" in roadmap
+    assert "three-orientation" in validation
+    assert "Order 47" in validation
+    assert "rotation-covariant discretization" in roadmap
     assert "three-case MAE worsened" in normalized_validation
     assert "0.7248%" in validation
     assert "route2-protocol.json" in benchmark

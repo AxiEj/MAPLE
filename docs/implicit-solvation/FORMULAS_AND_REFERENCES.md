@@ -725,12 +725,41 @@ canaries: two largest acetone components agreed with whole-energy central
 differences within \(2.15\times10^{-6}\) eV/angstrom, and one largest
 mixed-radius methyl-acetate component agreed within
 \(8.51\times10^{-7}\) eV/angstrom (\(1.14\times10^{-6}\) relative).
+
+A controlled methanol refinement then separated local derivative correctness
+from finite-grid rotation quality. Order 17 used 397 surviving surface points
+and order 35 used 1326; their checked whole-energy derivative errors remained
+similar at \(2.64\times10^{-6}\) and \(2.68\times10^{-6}\) relative,
+respectively. The unrotated residual torque fell from
+\(8.37\times10^{-3}\) to \(8.43\times10^{-4}\) eV, but a predeclared
+three-orientation test still found a maximum order-35 torque of
+\(2.09\times10^{-3}\) eV and therefore failed its \(10^{-3}\)-eV gate.
+The two unrotated norms are the Euclidean norms of
+`analytic_gradient.torque_ev` in the order-17 and order-35 coupled-gradient
+`results.json` artifacts, respectively.
+Order 41 also failed at \(1.44\times10^{-3}\) eV. Order 47 was the first
+tested grid to pass this narrow canary: its three-orientation energy span was
+`0.001476 kcal/mol`, maximum gradient-covariance error was
+`0.001678 eV/angstrom`, and maximum torque norm was
+\(5.16\times10^{-4}\) eV. The covariance error was not monotonic from order
+41 to 47, so this is a one-molecule discriminator rather than general
+rotation qualification.
+
+The same local runs expose the cost boundary. The order-17 and order-35
+single-component validation jobs used 397 and 1326 surface points, took
+27.8 and 40.3 seconds wall time, and peaked near 2.10 and 2.37 GiB,
+respectively. The three-orientation order-47 job used 2211--2245 points,
+took 57.6 seconds, and peaked near 3.12 GiB. These are local diagnostic
+timings, not portable speed claims.
+
 This closes only a narrow continuum-electrostatic coordinate-gradient slice.
 PySCF is loaded lazily, its private gradient-intermediate layout remains locked
-to tested version 2.13.1, order 17 has not passed the earlier rotation gate,
-and neither the public parser nor production provider selects it.
-Differentiable SMD CDS, total-force assembly, rotation/continuity tests, and
-chemical-space validation remain open. SMD CDS is outside this continuum
+to tested version 2.13.1, and neither the public parser nor production provider
+selects it. At least one additional rigid molecule, denser orientation
+sampling, and small-angle continuity remain required before selecting order
+47 or rejecting grid refinement in favour of a rotation-covariant
+discretization. Differentiable SMD CDS, total-force assembly, and
+chemical-space validation also remain open. SMD CDS is outside this continuum
 expression, so Route 2 still does not expose a total solvent force or
 solution-phase PES.
 

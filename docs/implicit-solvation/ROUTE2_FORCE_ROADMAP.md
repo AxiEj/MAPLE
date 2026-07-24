@@ -395,9 +395,21 @@ selected, license-compatible differentiable provider.
     methyl-acetate component differed by \(8.51\times10^{-7}\) eV/angstrom
     (\(1.14\times10^{-6}\) relative); every displaced density root met the
     \(2\times10^{-12}\) tolerance. These remain two-molecule canaries: the
-    private PySCF bridge is version-gated, order 17 is not rotation-qualified,
-    the public parser remains PCMSolver-only, and CDS plus total-force assembly
-    remain outside the result.
+    private PySCF bridge is version-gated, the public parser remains
+    PCMSolver-only, and CDS plus total-force assembly remain outside the result.
+
+    A subsequent clean methanol refinement at commit `7da54dc` compared the
+    complete self-consistent continuum gradient across three fixed
+    orientations. Orders 35 and 41 failed the predeclared
+    \(10^{-3}\)-eV torque gate at \(2.09\times10^{-3}\) and
+    \(1.44\times10^{-3}\) eV. Order 47 passed with a
+    `0.001476 kcal/mol` energy span, `0.001678 eV/angstrom` maximum gradient
+    covariance error, and \(5.16\times10^{-4}\)-eV maximum torque. The
+    order-47 run used 2211--2245 surface points, about 3.12 GiB peak RSS, and
+    57.6 seconds for three orientations on the local host. The covariance
+    metric was nonmonotonic between orders 41 and 47, so order 47 is only the
+    first tested grid to pass this one-molecule discriminator, not an adopted
+    production order or broad speed result.
 
 ### Phase 2 -- coupled response
 
@@ -449,9 +461,11 @@ selected, license-compatible differentiable provider.
    their result-level PySCF provenance identifies the continuum actually
    differentiated. CDS remains absent and `supported_properties` remains
    energy-only.
-6. **Pending:** resolve order-35 scaling plus rotation/continuity gates, add an
-   independently valid differentiable CDS term, and sum gas MLIP force plus all
-   solvent derivatives into
+6. **Pending:** test the provisional order-47 result on one additional rigid
+   molecule plus denser and small-angle rotations, then decide whether its
+   memory/time scaling is acceptable or a rotation-covariant discretization is
+   required. Add an independently valid differentiable CDS term, and sum gas
+   MLIP force plus all solvent derivatives into
    `SolvationResult.forces_hartree_per_angstrom`; only then advertise
    `supported_properties={"energy", "forces"}`. The per-atom radius and real
    MACE fixed-point-adjoint subproblems are no longer blockers for this optional

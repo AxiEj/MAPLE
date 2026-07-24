@@ -213,16 +213,35 @@ not a complete solution-phase PES.
     checked largest component differed by \(8.51\times10^{-7}\) eV/angstrom
     (\(1.14\times10^{-6}\) relative), with both the adjoint relative residual
     below \(5.0\times10^{-14}\) and translation closure below
-    \(1.0\times10^{-13}\) eV/angstrom. These results close only a narrow
-    continuum-electrostatic coordinate-gradient slice. PySCF's private
-    gradient intermediates remain locked to version 2.13.1, order 17 is not
-    rotation-qualified, CDS and total-force assembly are absent, and the public
-    parser remains PCMSolver-only. The canaries load MACE through the public
-    calculator plumbing but do not evaluate its attached PCMSolver correction;
-    their result-level PySCF provenance, not the loader-generated PCMSolver
-    manifest, identifies the tested continuum. Local elapsed times are
-    diagnostic metadata, not portable speed benchmarks or chemical-accuracy
-    evidence.
+    \(1.0\times10^{-13}\) eV/angstrom.
+
+    A clean controlled methanol grid refinement at commit `7da54dc` retained
+    derivative accuracy while exposing the finite-grid rotation/cost tradeoff.
+    The checked order-17 and order-35 whole-energy derivative errors were
+    \(2.64\times10^{-6}\) and \(2.68\times10^{-6}\) relative. Their
+    unrotated torque norms were \(8.37\times10^{-3}\) and
+    \(8.43\times10^{-4}\) eV, computed as the Euclidean norms of
+    `analytic_gradient.torque_ev` in the corresponding coupled-gradient
+    `results.json` artifacts. In the predeclared three-orientation gate,
+    order 35 and order 41 failed the \(10^{-3}\)-eV maximum-torque criterion
+    at \(2.09\times10^{-3}\) and \(1.44\times10^{-3}\) eV.
+    Order 47 passed this narrow gate with a `0.001476 kcal/mol` energy span,
+    `0.001678 eV/angstrom` maximum gradient-covariance error, and
+    \(5.16\times10^{-4}\)-eV maximum torque. Its 2211--2245 surviving points
+    produced a 57.6-second three-orientation local run and about 3.12-GiB peak
+    RSS. Because covariance error was nonmonotonic from order 41 to 47, this
+    does not yet establish a generally rotation-qualified order.
+
+    These results close only a narrow continuum-electrostatic
+    coordinate-gradient slice. PySCF's private gradient intermediates remain
+    locked to version 2.13.1, CDS and total-force assembly are absent, and the
+    public parser remains PCMSolver-only. At least one more rigid molecule,
+    denser orientations, and small-angle continuity remain open. The canaries
+    load MACE through the public calculator plumbing but do not evaluate its
+    attached PCMSolver correction; their result-level PySCF provenance, not
+    the loader-generated PCMSolver manifest, identifies the tested continuum.
+    Local elapsed times are diagnostic metadata, not portable speed benchmarks
+    or chemical-accuracy evidence.
 18. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.

@@ -101,6 +101,34 @@ class _PositionFieldModel:
         }
 
 
+class _PositionDependentDensityModel:
+    def __init__(self, recorder: _FieldRecorder):
+        self.recorder = recorder
+
+    def __call__(
+        self,
+        batch,
+        *,
+        compute_force,
+        compute_stress,
+        compute_hessian,
+    ):
+        assert compute_force is False
+        assert compute_stress is False
+        assert compute_hessian is False
+        positions = batch["positions"]
+        values = self.recorder.values
+        assert values is not None
+        position_features = torch.cat(
+            (positions[:, :1].square(), positions),
+            dim=1,
+        )
+        return {
+            "energy": positions.square().sum().reshape(1),
+            "density_coefficients": 2.0 * values + position_features,
+        }
+
+
 def _calculator_with_model(model, recorder: _FieldRecorder):
     calculator = object.__new__(MACEPolCalculator)
     calculator.device = torch.device("cpu")
@@ -299,6 +327,68 @@ def test_polar_state_returns_fixed_local_field_force_matching_energy_difference(
         rtol=1.0e-9,
         atol=1.0e-9,
     )
+
+
+def test_density_position_vjp_matches_exact_fixed_field_coordinate_derivative():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _PositionDependentDensityModel(recorder),
+        recorder,
+    )
+    atoms = Atoms(
+        "OH",
+        positions=[[0.1, -0.2, 0.3], [-0.4, 0.5, -0.6]],
+    )
+    batch_positions = torch.tensor(
+        atoms.get_positions(),
+        dtype=torch.float64,
+    )
+    calculator._batch_dict = lambda atoms: {"positions": batch_positions}
+    potential = np.asarray([0.2, -0.1])
+    gradient = np.asarray(
+        [[0.3, -0.4, 0.5], [-0.6, 0.7, -0.8]],
+    )
+    cotangent = np.asarray(
+        [[0.7, -0.2, 0.4, -0.6], [-0.3, 0.8, -0.5, 0.9]],
+    )
+
+    analytic = calculator.density_position_vjp(
+        atoms,
+        node_potential_ev=potential,
+        node_gradient_ev_per_angstrom=gradient,
+        density_cotangent=cotangent,
+    )
+    expected = cotangent[:, 1:].copy()
+    expected[:, 0] += 2.0 * atoms.positions[:, 0] * cotangent[:, 0]
+
+    np.testing.assert_allclose(analytic, expected, rtol=1.0e-13, atol=1.0e-13)
+    assert batch_positions.requires_grad is False
+    assert recorder.values is None
+
+
+def test_density_position_vjp_rejects_coordinate_disconnected_density():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _QuadraticFieldModel(recorder),
+        recorder,
+    )
+    atoms = Atoms("H")
+    batch_positions = torch.tensor(
+        atoms.get_positions(),
+        dtype=torch.float64,
+    )
+    calculator._batch_dict = lambda atoms: {"positions": batch_positions}
+
+    with pytest.raises(RuntimeError, match="disconnected"):
+        calculator.density_position_vjp(
+            atoms,
+            node_potential_ev=np.zeros(1),
+            node_gradient_ev_per_angstrom=np.zeros((1, 3)),
+            density_cotangent=np.zeros((1, 4)),
+        )
+
+    assert batch_positions.requires_grad is False
+    assert recorder.values is None
 
 
 def test_polar_output_torch_clears_local_field_after_model_failure():

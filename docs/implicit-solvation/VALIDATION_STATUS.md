@@ -32,8 +32,9 @@ not a complete solution-phase PES.
 2. The MACE local-field energy/density graph is exposed. Gas and polarized
    fixed-node-field intrinsic forces now match a real acetone central-difference
    component canary to \(4.37\times10^{-6}\) and
-   \(3.27\times10^{-6}\) eV/angstrom. They remain MACE-side partials and must
-   next be connected to the coupled adjoint.
+   \(3.27\times10^{-6}\) eV/angstrom. These MACE-side partials are now connected
+   to the fixed-surface coupled adjoint slice, while
+   cavity/operator motion and CDS remain outside it.
 3. The unmixed residual JVP/VJP is explicit on the neutral density tangent
    space and matches its dense synthetic operator. A real acetone MACE-response
    canary gives \(1.29\times10^{-7}\) maximum JVP finite-difference error and
@@ -66,14 +67,33 @@ not a complete solution-phase PES.
    0.032 s versus 0.611 s for 36 scalar evaluations (18 central differences).
    This excludes tessera/operator motion and remains an explicit component,
    not a force capability or portable performance benchmark.
-7. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
+7. The fixed-surface learned-density response is now contracted analytically.
+   `density_to_external_field_order()` supplies the required
+   \(Q^\mathsf Tc\), `density_position_vjp()` supplies
+   \((\partial_{\mathbf R}\mathcal M|_f)^\mathsf T\lambda\), and
+   `fixed_surface_solvation_coordinate_gradient()` combines those with the
+   intrinsic field gradient, PCM half-coupling, field-response adjoint, and
+   gas/polarized MACE force difference. A resolved-root synthetic
+   implicit-function oracle passes. The two largest real fixed-field density
+   position-VJP components over three steps stayed below
+   \(1.60\times10^{-6}\) eV/angstrom absolute and \(2.16\times10^{-6}\)
+   relative error. In the complete real fixed-surface acetone canary, all
+   displaced roots were below \(2.0\times10^{-11}\); the two largest coordinate
+   components over three steps stayed below \(4.02\times10^{-6}\)
+   eV/angstrom absolute and \(5.00\times10^{-6}\) relative error. After the
+   base root, the analytic derivative was about 15--20 times faster than twelve
+   root-resolved scalar energy evaluations in local canaries; exact
+   host-specific timings remain in the corresponding artifact. This still
+   excludes CDS and tessera/cavity/operator motion, so it is not a total force,
+   PES, or portable performance result.
+8. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
    current PCMSolver--GePol energy; the current PCMSolver C ABI has no force endpoint.
    A separately named smooth PCM profile must be evaluated.
-8. Implement the geometry-dependent SMD CDS/SASA derivative.
-9. Compare the summed analytic force with central finite differences of the
+9. Implement the geometry-dependent SMD CDS/SASA derivative.
+10. Compare the summed analytic force with central finite differences of the
    converged total energy, then enforce translation, rotation, and energy
    conservation checks.
-10. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+11. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
    solution-phase PES.
 
 ## Secondary diagnostics

@@ -264,13 +264,24 @@ selected, license-compatible differentiable provider.
    local canary, compared with 0.611 s for its 36 scalar evaluations
    (18 central differences). Tessera motion, PCM-operator response, and CDS are
    still missing, so this is not a total force.
-3. **Provider decision made:** retain PCMSolver--GePol as energy-only and
+3. **Done for the fixed-field MACE density coordinate VJP:**
+   `MACEPolCalculator.density_position_vjp()` contracts
+   \((\partial_{\mathbf R}\mathcal M|_f)^\mathsf T\lambda\) directly through
+   the model autograd graph while keeping the atom-indexed potential and
+   gradient samples fixed. An exact synthetic position-dependent-density model
+   locks this partial, rejects a coordinate-disconnected graph, and verifies
+   that temporary position-autograd state does not escape the call. On the real
+   fixed-surface acetone state, its two largest components over three steps had
+   at most \(1.60\times10^{-6}\) eV/angstrom absolute and
+   \(2.16\times10^{-6}\) relative error. The PCM field-position chain remains a
+   separate `position_vjp()` term to prevent double counting.
+4. **Provider decision made:** retain PCMSolver--GePol as energy-only and
    evaluate an explicit PySCF SWIG/ISWIG profile for smooth cavity/operator
    derivatives. Do not silently approximate missing GePol terms as zero.
-4. Replace the hard-visibility CDS area with an analytic/differentiable
+5. Replace the hard-visibility CDS area with an analytic/differentiable
    SMD-compatible surface-area implementation and differentiate the published
    geometry-dependent atomic tensions.
-5. Replace per-geometry warning fallback with a force-compatible cavity policy.
+6. Replace per-geometry warning fallback with a force-compatible cavity policy.
 
 ### Phase 2 -- coupled response
 
@@ -280,7 +291,28 @@ selected, license-compatible differentiable provider.
    assembling a dense molecular Jacobian.
 3. **Done at fixed geometry/cavity:** solve the physical energy-gradient
    adjoint equation to a tolerance tighter than the energy SCF tolerance.
-4. **Pending:** contract the adjoint with every coordinate residual term and
+4. **Done for the fixed-surface/operator coupled slice:**
+   `density_to_external_field_order()` distinguishes \(Q^\mathsf Tc\) from
+   \(Qc\), and `fixed_surface_solvation_coordinate_gradient()` composes
+   \[
+   \mathbf F_{\mathrm{gas}}-\mathbf F_{\mathrm{MACE,fixed\ field}}
+   +\partial_{\mathbf R}
+    \left\langle
+    g_f+\tfrac12Q^\mathsf Tc+J_{\mathcal M,f}^\mathsf T\lambda,\,
+    \mathcal P_{\mathbf R}c
+    \right\rangle
+   +(\partial_{\mathbf R}\mathcal M|_f)^\mathsf T\lambda .
+   \]
+   A resolved-root synthetic implicit-function oracle passes. On the real
+   warning-free acetone fallback surface, every displaced root was below
+   \(2.0\times10^{-11}\), and the two largest components over three steps had
+   at most \(4.02\times10^{-6}\) eV/angstrom absolute and
+   \(5.00\times10^{-6}\) relative error. After the base root, the analytic
+   derivative was about 15--20 times faster than twelve root-resolved scalar
+   energy evaluations in local canaries; exact host-specific timings remain in
+   the corresponding artifact. This is still not a force because
+   surface/operator motion and CDS are omitted.
+5. **Pending:** contract the adjoint with every remaining coordinate term and
    sum gas MLIP force plus all solvent derivatives into
    `SolvationResult.forces_hartree_per_angstrom`; only then advertise
    `supported_properties={"energy", "forces"}`.

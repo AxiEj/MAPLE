@@ -120,6 +120,62 @@ def test_fixed_cavity_pcm_map_is_linear():
     )
 
 
+def test_fixed_cavity_pcm_map_can_reuse_surface_at_displaced_solute_positions():
+    operator, positions, session = _operator()
+    density = np.asarray(
+        [
+            [0.2, -0.1, 0.3, -0.4],
+            [-0.3, 0.5, -0.2, 0.1],
+            [0.1, -0.4, 0.2, 0.3],
+        ]
+    )
+    displaced_positions = positions.copy()
+    displaced_positions[1, 2] += 0.015
+    original_field = operator.apply(density)
+
+    displaced = operator.at_solute_positions(displaced_positions)
+    applied = displaced.apply(density)
+    mep = point_multipole_potential(
+        session.cavity_centers_bohr,
+        displaced_positions,
+        density,
+    )
+    asc = session.compute_asc(mep)
+    potential, gradient = point_asc_reaction_potential_gradient(
+        displaced_positions,
+        session.cavity_centers_bohr,
+        asc,
+    )
+    expected = np.concatenate(
+        (
+            (potential * Hartree)[:, None],
+            gradient * Hartree / Bohr,
+        ),
+        axis=1,
+    )
+
+    np.testing.assert_allclose(applied, expected, rtol=2.0e-13, atol=2.0e-11)
+    np.testing.assert_allclose(
+        operator.apply(density),
+        original_field,
+        rtol=0.0,
+        atol=0.0,
+    )
+
+
+def test_fixed_cavity_pcm_map_rejects_surface_motion_beyond_readback_tolerance():
+    operator, positions, session = _operator()
+    original_centers = session.cavity_centers_bohr.copy()
+
+    session.cavity_centers_bohr[0, 0] += 0.5e-12 / Bohr
+    operator.at_solute_positions(positions)
+
+    session.cavity_centers_bohr = original_centers.copy()
+    session.cavity_centers_bohr[0, 0] += 1.0e-8 / Bohr
+    with pytest.raises(RuntimeError, match="surface changed"):
+        operator.at_solute_positions(positions)
+
+
 def test_fixed_surface_pcm_position_vjp_matches_central_difference():
     operator, positions, session = _operator()
     rng = np.random.default_rng(29)

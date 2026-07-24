@@ -30,6 +30,27 @@ def external_field_to_density_order(values: np.ndarray) -> np.ndarray:
     return field[:, [0, 2, 3, 1]].copy()
 
 
+def density_to_external_field_order(values: np.ndarray) -> np.ndarray:
+    """Reorder a raw density-dual block into external Cartesian field order.
+
+    This is the inverse/transpose of :func:`external_field_to_density_order`.
+    It maps raw MACE-POLAR coefficients ``[q, l1_0, l1_1, l1_2]`` to the
+    external dual order ``[q, x, y, z] = [q, l1_2, l1_0, l1_1]`` without
+    changing units.
+    """
+
+    density = np.asarray(values, dtype=float)
+    if (
+        density.ndim != 2
+        or density.shape[1] != 4
+        or not np.all(np.isfinite(density))
+    ):
+        raise ValueError(
+            "Raw density-dual values must be finite with shape (n_atoms, 4)."
+        )
+    return density[:, [0, 3, 1, 2]].copy()
+
+
 def cartesian_multipoles(
     density_coefficients: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:

@@ -458,6 +458,78 @@ for the 36 scalar evaluations (18 central differences) used by the
 finite-difference oracle. Surface motion, surface-operator response, and CDS
 remain absent.
 
+The learned-density implicit response can now be contracted with these same
+fixed-surface kernels. Define the fixed-surface solvation-energy slice
+
+\[
+\Delta E_{\mathrm{fs}}(c,\mathbf R)
+=E_{\mathrm{MACE,intrinsic}}(\mathbf R,\mathcal P_{\mathbf R}c)
+-E_{\mathrm{MACE,gas}}(\mathbf R)
++\frac12c^\mathsf TQ\mathcal P_{\mathbf R}c,
+\]
+
+and the neutral residual
+
+\[
+r(c,\mathbf R)
+=\Pi_0\left[c-\mathcal M(\mathbf R,\mathcal P_{\mathbf R}c)\right].
+\]
+
+For
+
+\[
+(J_cr)^\mathsf T\lambda
+=\Pi_0\nabla_c\Delta E_{\mathrm{fs}},
+\qquad
+u=J_{\mathcal M,f}^\mathsf T\lambda,
+\]
+
+the fixed-surface coordinate energy gradient is
+
+\[
+\frac{d\Delta E_{\mathrm{fs}}}{d\mathbf R}
+=\mathbf F_{\mathrm{gas}}
+-\mathbf F_{\mathrm{MACE,fixed\ field}}
++\partial_{\mathbf R}
+ \left\langle
+ g_f+\frac12Q^\mathsf Tc+u,\,
+ \mathcal P_{\mathbf R}c
+ \right\rangle
++\left(\left.\partial_{\mathbf R}\mathcal M\right|_f\right)^\mathsf T\lambda,
+\]
+
+where both \(\mathbf F\) quantities are negative intrinsic-energy gradients.
+The first two terms therefore form the coordinate gradient of
+\(E_{\mathrm{MACE,intrinsic}}-E_{\mathrm{MACE,gas}}\), not its force.
+`density_to_external_field_order()` implements the required
+\(Q^\mathsf Tc\); it is the inverse/transpose of the existing external-to-raw
+permutation and is not interchangeable with \(Qc\).
+`MACEPolCalculator.density_position_vjp()` evaluates the last term while
+holding the atom-indexed potential and gradient samples fixed. Its two largest
+real acetone components, checked at three central-difference steps, had maximum
+absolute and relative errors of \(1.60\times10^{-6}\) eV/angstrom and
+\(2.16\times10^{-6}\), respectively.
+`fixed_surface_solvation_coordinate_gradient()` combines the three field
+cotangents into one `position_vjp()` call, so the explicit MACE field chain,
+PCM half-coupling, and implicit response are not double counted. \(\Pi_0\)
+acts only in the residual/adjoint density space, not on the Cartesian energy
+gradient.
+
+An exact synthetic implicit-function test changes both \(\mathcal P_{\mathbf
+R}\) and \(\mathcal M(\mathbf R,f)\), resolves the neutral root at every
+displacement, and matches the resulting whole-energy central difference. A
+real float64 acetone canary then held the 508 tessera centres and PCM operator
+fixed, tightened every displaced density root below \(2.0\times10^{-11}\),
+and checked the two largest coordinate components over three step sizes. The
+worst absolute and relative discrepancies were \(4.02\times10^{-6}\)
+eV/angstrom and \(5.00\times10^{-6}\). After the base root, the analytic path
+was about 15--20 times faster than twelve root-resolved scalar energy
+evaluations in local canaries; exact host-specific timings remain in the
+corresponding artifact. These are local component/timing diagnostics only.
+The SMD CDS derivative and every tessera/cavity/operator-motion derivative
+remain absent, so this is not a total solvent force or a complete
+solution-phase PES.
+
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build
 and call path. It does not provide the complete GePol/IEFPCM derivative.

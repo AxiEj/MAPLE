@@ -512,6 +512,138 @@ class MACEPolCalculator(CalcABC):
             )
         return result
 
+    def density_position_vjp(
+        self,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray,
+        node_gradient_ev_per_angstrom: np.ndarray,
+        density_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate a density pairing with respect to atom positions.
+
+        The supplied atom-indexed node potential and gradient samples are held
+        fixed.  The result is
+        ``d <density_cotangent, density_coefficients> / dR`` in the
+        cotangent's units per Angstrom and contains only the direct MACE
+        coordinate response.  Any coordinate dependence of the PCM field must
+        be contracted separately.
+        """
+
+        potential = np.asarray(node_potential_ev, dtype=float)
+        gradient = np.asarray(node_gradient_ev_per_angstrom, dtype=float)
+        cotangent = np.asarray(density_cotangent, dtype=float)
+        expected_density_shape = (len(atoms), 4)
+        if potential.shape != (len(atoms),) or gradient.shape != (len(atoms), 3):
+            raise ValueError(
+                "Local reaction potential/gradient shapes must be "
+                "(n_atoms,) and (n_atoms, 3)."
+            )
+        if cotangent.shape != expected_density_shape:
+            raise ValueError(
+                "Density cotangent must have shape "
+                f"{expected_density_shape}; received {cotangent.shape}."
+            )
+        if (
+            not np.all(np.isfinite(potential))
+            or not np.all(np.isfinite(gradient))
+            or not np.all(np.isfinite(cotangent))
+        ):
+            raise ValueError(
+                "Local reaction field and density cotangent must be finite."
+            )
+
+        potential_tensor = torch.as_tensor(
+            potential,
+            dtype=self.dtype,
+            device=self.device,
+        )
+        gradient_tensor = torch.as_tensor(
+            gradient,
+            dtype=self.dtype,
+            device=self.device,
+        )
+        local_values = torch.cat(
+            (potential_tensor[:, None], gradient_tensor),
+            dim=1,
+        )
+        batch = self._batch_dict(atoms)
+        positions = batch.get("positions")
+        if (
+            not torch.is_tensor(positions)
+            or positions.shape != (len(atoms), 3)
+            or not torch.is_floating_point(positions)
+        ):
+            received = None if positions is None else tuple(positions.shape)
+            raise RuntimeError(
+                "MACE-POLAR coordinate VJP requires floating-point batch "
+                f"positions with shape ({len(atoms)}, 3); received {received}."
+            )
+        positions_required_grad = positions.requires_grad
+        positions.requires_grad_(True)
+        try:
+            self._reaction_projector.set_node_potential_gradient(local_values)
+            try:
+                output = self.model(
+                    batch,
+                    compute_force=False,
+                    compute_stress=False,
+                    compute_hessian=False,
+                )
+            finally:
+                self._reaction_projector.set_node_potential_gradient(None)
+
+            density = output.get("density_coefficients")
+            if density is None or density.shape != expected_density_shape:
+                received = None if density is None else tuple(density.shape)
+                raise RuntimeError(
+                    "MACE-POLAR density coordinate response must have shape "
+                    f"{expected_density_shape}; received {received}."
+                )
+            if not bool(torch.isfinite(density).all()):
+                raise RuntimeError(
+                    "MACE-POLAR density coordinate response is non-finite."
+                )
+            if not density.requires_grad:
+                raise RuntimeError(
+                    "MACE-POLAR density is disconnected from the coordinate "
+                    "autograd graph."
+                )
+
+            cotangent_tensor = torch.as_tensor(
+                cotangent,
+                dtype=self.dtype,
+                device=self.device,
+            )
+            (position_gradient,) = torch.autograd.grad(
+                density,
+                (positions,),
+                grad_outputs=cotangent_tensor,
+                create_graph=False,
+                allow_unused=True,
+            )
+            if position_gradient is None:
+                raise RuntimeError(
+                    "MACE-POLAR density is disconnected from the coordinate "
+                    "autograd graph."
+                )
+            result = np.asarray(
+                position_gradient.detach().cpu(),
+                dtype=float,
+            ).copy()
+            expected_position_shape = (len(atoms), 3)
+            if result.shape != expected_position_shape or not np.all(
+                np.isfinite(result)
+            ):
+                raise RuntimeError(
+                    "MACE-POLAR density position VJP must be finite with shape "
+                    f"{expected_position_shape}; received {result.shape}."
+                )
+            return result
+        finally:
+            if not positions_required_grad:
+                positions.requires_grad_(False)
+
     def linearize_density_response(
         self,
         atoms,

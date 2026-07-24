@@ -1,8 +1,9 @@
-"""Fixed-cavity PCMSolver response map for the Route-2 adjoint.
+"""Fixed-surface PCMSolver response map for the Route-2 adjoint.
 
-This module owns only the linear density-to-node-field response at one fixed
-geometry and one already-built cavity.  It is not a cavity derivative and does
-not make Route 2 force-capable by itself.
+This module owns the linear density-to-node-field response for one already-built
+cavity/operator and the explicit solute-kernel coordinate VJP with that surface
+held fixed.  It is not a cavity derivative and does not make Route 2
+force-capable by itself.
 """
 
 from __future__ import annotations
@@ -94,6 +95,9 @@ class FixedCavityPCMReactionFieldLinearMap:
         self._session = session
         self._positions_angstrom = positions.copy()
         self._centers_bohr = centers.copy()
+        self._surface_readback_tolerance_bohr = (
+            geometry_tolerance_angstrom / Bohr
+        )
         self.atom_count = positions.shape[0]
 
     def _compute_asc(self, density: np.ndarray) -> np.ndarray:
@@ -157,6 +161,56 @@ class FixedCavityPCMReactionFieldLinearMap:
         density_order = external_field_to_density_order(cotangent)
         response = self.apply(density_order)
         return external_field_to_density_order(response)
+
+    def at_solute_positions(
+        self,
+        atom_positions_angstrom: np.ndarray,
+    ) -> "FixedCavityPCMReactionFieldLinearMap":
+        """Reuse this fixed surface/operator at displaced solute positions.
+
+        This is an explicit fixed-surface derivative helper.  It changes only
+        the atom centres used by the solute-MEP and ASC-back-projection kernels;
+        the open PCMSolver session, tessera centres, and response operator are
+        shared unchanged.  It must not be used as a substitute for rebuilding
+        the physical cavity at a new geometry.
+        """
+
+        positions = np.asarray(atom_positions_angstrom, dtype=float)
+        expected_shape = (self.atom_count, 3)
+        if positions.shape != expected_shape or not np.all(np.isfinite(positions)):
+            raise ValueError(
+                "Displaced fixed-surface solute positions must be finite with "
+                f"shape {expected_shape}; received {positions.shape}."
+            )
+        current_centers = np.asarray(
+            self._session.cavity_centers_bohr,
+            dtype=float,
+        )
+        centers_unchanged = (
+            current_centers.shape == self._centers_bohr.shape
+            and np.all(np.isfinite(current_centers))
+            and np.allclose(
+                current_centers,
+                self._centers_bohr,
+                rtol=0.0,
+                atol=self._surface_readback_tolerance_bohr,
+            )
+        )
+        if not centers_unchanged:
+            raise RuntimeError(
+                "The open PCMSolver surface changed after the fixed-surface "
+                "response map was constructed."
+            )
+
+        displaced = object.__new__(type(self))
+        displaced._session = self._session
+        displaced._positions_angstrom = positions.copy()
+        displaced._centers_bohr = self._centers_bohr.copy()
+        displaced._surface_readback_tolerance_bohr = (
+            self._surface_readback_tolerance_bohr
+        )
+        displaced.atom_count = self.atom_count
+        return displaced
 
     def position_vjp(
         self,

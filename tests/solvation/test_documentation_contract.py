@@ -55,7 +55,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "FixedCavityPCMReactionFieldLinearMap" in formulas
     assert "FixedCavityPCMReactionFieldLinearMap.position_vjp()" in formulas
     assert "intrinsic_energy_field_gradient()" in formulas
+    assert "density_position_vjp()" in formulas
+    assert "density_to_external_field_order()" in formulas
     assert "fixed_cavity_energy_density_gradient()" in formulas
+    assert "fixed_surface_solvation_coordinate_gradient()" in formulas
     assert "MATRIXSYMM=TRUE" in roadmap
     assert "physical energy-gradient right-hand side" in roadmap
     assert "route2-protocol.json" in benchmark

@@ -352,10 +352,42 @@ proof-of-concept, not a complete solution-phase PES.
     This second molecule adds full-gradient invariance diagnostics and one
     directional whole-energy derivative, not a broad orientation or
     chemical-space certification.
-22. Compare the summed analytic force with central finite differences of the
+22. The optional `PyDDXPCMReactionFieldLinearMap` now supplies an independent
+    multipole-native ddPCM scalar energy, reciprocal reaction map, adjoint, and
+    complete coordinate VJP without changing the public PCMSolver path. It is
+    imported lazily, fails closed unless pyddx is exactly version 0.8.0, and
+    keeps the MACE raw \(l=1\) order while applying the documented
+    real-spherical normalization and bohr conversion. Fake-runtime contracts
+    and a real pyddx test cover order/units, energy half-coupling, reciprocity,
+    a density-component finite difference, and a coordinate finite difference.
+
+    A clean fixed-density methanol artifact at commit `facd956` used
+    `lmax=15`, 770 Lebedev points per sphere, \(\eta=0.1\), zero shift, and
+    \(10^{-12}\) solver tolerance. It passed with direct MEP error
+    \(5.55\times10^{-17}\) hartree/e, energy-identity error
+    \(2.28\times10^{-15}\) eV, reciprocity error
+    \(1.92\times10^{-13}\) eV, and coordinate finite-difference error
+    \(1.04\times10^{-9}\) eV/angstrom. Across three orientations, the energy
+    span was `0.000207 kcal/mol`; maximum field and coordinate-gradient
+    covariance errors were `0.000621` and `0.000694 eV/angstrom`.
+
+    Base provider construction, reaction-map application, forward energy,
+    separate adjoint application, and complete coordinate VJP took `0.216`,
+    `0.421`, `0.188`, `0.384`, and `0.902 s` on the local host. The full
+    three-orientation plus two-displacement process took `7.32 s`, peaked at
+    about `743 MiB` process RSS, and recorded zero warnings. The \(4N\) source
+    loop performs no additional continuum solves. This independent adapter
+    also has no PCMSolver `primary` branch; a `primary` warning from the public
+    route remains a warning-fallback cavity-policy event.
+
+    This closes only the fixed-density ddPCM physics backbone. The tested
+    grid is not a default, and the adapter is not connected to the converged
+    MACE fixed-point adjoint, SMD CDS, public result properties, flexible
+    molecules, or chemical-accuracy benchmarks.
+23. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-23. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+24. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

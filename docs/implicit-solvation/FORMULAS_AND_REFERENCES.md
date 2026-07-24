@@ -1056,6 +1056,89 @@ same-provider reaction-map VJP described above. That fixed-density continuum
 canary is not a total force: the real coupled MACE adjoint, CDS, and public
 provider/invariance gates remain separate.
 
+### Multipole-native ddPCM research boundary
+
+`PyDDXPCMReactionFieldLinearMap` is a second, independent research adapter. It
+does not translate ddPCM through the surface-MEP/ASC abstraction: ddX accepts
+the atom-centred MACE-POLAR multipoles directly. For raw MACE coefficients
+\(\mathbf c_A=[q_A,y_A,z_A,x_A]\), the version-locked conversion to ddX's
+orthonormal real-spherical convention is
+
+\[
+m_{A,0}=\frac{q_A}{\sqrt{4\pi}},\qquad
+m_{A,1k}=\frac{c_{A,1k}}
+ {a_0\sqrt{4\pi/3}}\quad(k=y,z,x).
+\]
+
+The \(l=1\) component order is unchanged here; Cartesian reordering occurs
+only at MAPLE's external node-field boundary. On a fixed geometry, write the
+reciprocal ddPCM reaction map as \(P_{\mathbf R}\) and
+
+\[
+E_{\mathrm{pol}}(\mathbf c;\mathbf R)
+=\frac12\mathbf c^\mathsf T P_{\mathbf R}\mathbf c.
+\]
+
+For raw coefficient basis vector \(\mathbf e_j\), the adapter obtains the
+reaction-field component from one forward solution \(\mathbf x\) and one
+adjoint solution \(\boldsymbol\xi\),
+
+\[
+\left(P_{\mathbf R}\mathbf c\right)_j
+=\frac12\left[
+\left\langle\psi(\mathbf e_j),\mathbf x\right\rangle
+-\left\langle\phi(\mathbf e_j),\boldsymbol\xi\right\rangle
+\right].
+\]
+
+The \(4N\) loop therefore rebuilds inexpensive source projections; it does
+not perform \(4N\) continuum solves. The implementation rejects the result if
+\(E_{\mathrm{pol}}=\mathbf c^\mathsf T P_{\mathbf R}\mathbf c/2\) fails;
+separate contract and real-runtime tests lock reciprocity.
+
+The complete coordinate VJP of a reciprocal map follows from the polarization
+identity rather than a partial moving-cavity correction:
+
+\[
+\nabla_{\mathbf R}
+\left(\mathbf a^\mathsf T P_{\mathbf R}\mathbf b\right)
+=\frac12\left[
+\nabla_{\mathbf R}E_{\mathrm{pol}}(\mathbf a+\mathbf b)
+-\nabla_{\mathbf R}E_{\mathrm{pol}}(\mathbf a-\mathbf b)
+\right].
+\]
+
+Both energy gradients on the right are supplied by the same pyddx ddPCM
+energy/derivative implementation. Although pyddx names the component routines
+`*_force_terms`, its version-0.8.0 upstream test defines their sum against
+positive central \(dE/d\mathbf R\); MAPLE preserves that convention and
+converts hartree/bohr to eV/angstrom only once.
+
+A clean fixed-density methanol canary at Route-2 commit `facd956` used pyddx
+0.8.0, `lmax=15`, 770 Lebedev points per sphere, \(\eta=0.1\), zero shift,
+and a \(10^{-12}\) solver tolerance. The direct ddX and MAPLE multipole MEPs
+agreed within \(5.55\times10^{-17}\) hartree/e, the polarization-energy
+identity within \(2.28\times10^{-15}\) eV, reciprocity within
+\(1.92\times10^{-13}\) eV, and one coordinate derivative within
+\(1.04\times10^{-9}\) eV/angstrom of central finite difference. Across three
+orientations, the energy span was `0.000207 kcal/mol`, with maximum field and
+coordinate-gradient covariance errors of `0.000621` and
+`0.000694 eV/angstrom`.
+
+The base provider build, reaction-map application, forward energy, separate
+adjoint application, and complete coordinate VJP took `0.216`, `0.421`,
+`0.188`, `0.384`, and `0.902 s`, respectively. The `7.32 s` total is the
+whole validation process—three orientations plus two displaced energies—not
+one energy evaluation. Its warning count was zero. In particular, this
+adapter neither executes nor logs the PCMSolver `primary` branch; a
+`primary` warning still seen in the public Route-2 path comes from its
+unchanged `warning-fallback` cavity policy.
+
+This is an engineering canary, not an adopted grid or a solution-phase PES.
+The adapter is lazy, hard-gated to pyddx 0.8.0, absent from the public parser,
+and not yet connected to the converged MACE fixed-point adjoint, SMD CDS,
+`SolvationResult`, or chemical-space validation.
+
 Route-2 references:
 
 - MACE-POLAR-1 release and official checkpoints:
@@ -1089,6 +1172,13 @@ Route-2 references:
 - P. Gatto, F. Lipparini, and B. Stamm, “Computation of forces arising from
   the polarizable continuum model within the domain-decomposition paradigm,”
   *J. Chem. Phys.* **147**, 224108 (2017), DOI `10.1063/1.5008329`.
+- M. Nottoli, M. F. Herbst, A. Mikhalev, A. Jha, F. Lipparini, and B. Stamm,
+  “ddX: Polarizable continuum solvation from small molecules to proteins,”
+  *WIREs Comput. Mol. Sci.* **14**, e1726 (2024),
+  DOI `10.1002/wcms.1726`.
+- A. Mikhalev, M. Nottoli, and B. Stamm, “Linearly scaling computation of
+  ddPCM solvation energy and forces using the fast multipole method,”
+  *J. Chem. Phys.* **157**, 114103 (2022), DOI `10.1063/5.0104536`.
 - P. Su and H. Li, “Continuous and smooth potential energy surface for
   conductorlike screening solvation model using fixed points with variable
   areas,” *J. Chem. Phys.* **130**, 074109 (2009),

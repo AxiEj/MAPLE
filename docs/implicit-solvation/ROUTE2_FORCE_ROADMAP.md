@@ -548,6 +548,38 @@ that CDS energy and gradient come from the same selected provider.
    `supported_properties={"energy", "forces"}` be advertised. The per-atom
    radius, real-MACE fixed-point adjoint, CDS component, and algebraic total
    assembly are no longer the blockers.
+8. **Done for an independent multipole-native ddPCM energy/derivative
+   backbone; ML-SCF integration remains pending:**
+   `PyDDXPCMReactionFieldLinearMap` lazily and exactly version-locks pyddx
+   0.8.0. It maps MACE-POLAR \(l\leq1\) atom-centred multipoles directly into
+   ddX, obtains the reciprocal reaction field from one forward and one adjoint
+   solve, and obtains the complete bilinear coordinate VJP from two
+   same-energy ddPCM gradients. It does not reuse the SWIG surface, mix
+   PCMSolver energy with ddX derivatives, or enter the public parser.
+
+   A clean fixed-density methanol canary at commit `facd956` used `lmax=15`
+   and 770 Lebedev points per sphere. Direct MEP agreement was
+   \(5.55\times10^{-17}\) hartree/e, the energy identity and reciprocity errors
+   were \(2.28\times10^{-15}\) and \(1.92\times10^{-13}\) eV, and the checked
+   coordinate derivative differed from central finite difference by
+   \(1.04\times10^{-9}\) eV/angstrom. Three orientations gave a
+   `0.000207 kcal/mol` energy span and `0.000694 eV/angstrom` maximum
+   coordinate-gradient covariance error.
+
+   On the local host, base construction, reaction-map application, and the
+   complete coordinate VJP took `0.216`, `0.421`, and `0.902 s`. The complete
+   three-orientation/two-displacement validation took `7.32 s` and emitted no
+   warnings. Those figures are diagnostic only; `lmax=15`/770 is not adopted
+   as a universal default. Because the adapter bypasses PCMSolver, it has no
+   `primary` branch. Existing public-path `primary` warnings still describe
+   the unchanged `warning-fallback` cavity probe, not this ddPCM solve.
+
+   The next bounded step is to substitute this map into the already tested
+   converged MACE fixed-point/adjoint assembly, then add the separately tested
+   SMD CDS derivative and compare the complete same-profile total gradient
+   against finite differences. Until that passes on more than one rigid
+   molecule, this is not chemical-accuracy evidence, a public force, or a
+   MAPLE solution-phase PES.
 
 ### Phase 3 -- verification gates
 

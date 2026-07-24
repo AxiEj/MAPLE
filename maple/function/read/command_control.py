@@ -154,6 +154,7 @@ class CommandControl:
         "profile",
         "response",
         "standard_state",
+        "cavity_policy",
         "write_shell",
         "shell_cutoff",
         "solvent_pdb",
@@ -386,6 +387,7 @@ class CommandControl:
             for key in (
                 "shape", "explicit", "method", "implicit", "solvent", "clash_method",
                 "provider", "profile", "response", "standard_state",
+                "cavity_policy",
             ):
                 if key in solv_options and isinstance(solv_options[key], str):
                     solv_options[key] = solv_options[key].lower()
@@ -649,6 +651,7 @@ class CommandControl:
                     "profile",
                     "response",
                     "standard_state",
+                    "cavity_policy",
                 }
                 route_conflicts = sorted(
                     set(solv_params).difference(allowed_smd_options)
@@ -683,6 +686,19 @@ class CommandControl:
                     msg = "SMD response must be frozen or scf."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
+                cavity_policy = str(
+                    solv_params.get("cavity_policy", "warning-fallback")
+                ).lower()
+                if cavity_policy not in {
+                    "warning-fallback",
+                    "fixed-stability-branch",
+                }:
+                    msg = (
+                        "Route 2 cavity_policy must be warning-fallback or "
+                        "fixed-stability-branch."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
                 standard_state = str(solv_params.get("standard_state", "1m")).lower()
                 if standard_state != "1m":
                     msg = (
@@ -697,6 +713,8 @@ class CommandControl:
                     response=response,
                     standard_state=standard_state,
                 )
+                if "cavity_policy" in solv_params:
+                    solv_params["cavity_policy"] = cavity_policy
             return
 
         if method is not None:

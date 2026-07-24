@@ -89,6 +89,19 @@ def test_route2_public_contract_accepts_gaff2_carbonyl_oxygen_profile():
     assert params["solv"]["profile"] == GAFF2_CARBONYL_O_PROFILE
 
 
+def test_route2_public_contract_accepts_fixed_stability_branch_cavity_policy():
+    params = parse(
+        "#model=macepol-m",
+        "#sp",
+        (
+            "#solv(implicit=water,method=smd,"
+            "cavity_policy=fixed-stability-branch,experimental=true)"
+        ),
+    )
+
+    assert params["solv"]["cavity_policy"] == "fixed-stability-branch"
+
+
 @pytest.mark.parametrize(
     ("extra_line", "solv", "message"),
     [
@@ -121,6 +134,18 @@ def test_route2_rejects_route1_or_development_options(extra_line, solv, message)
     lines.append(solv)
     with pytest.raises(ValueError, match=message):
         parse(*lines)
+
+
+def test_route2_rejects_unknown_cavity_policy():
+    with pytest.raises(ValueError, match="cavity_policy must be"):
+        parse(
+            "#model=macepol-m",
+            "#sp",
+            (
+                "#solv(implicit=water,method=smd,"
+                "cavity_policy=geometry-dependent,experimental=true)"
+            ),
+        )
 
 
 @pytest.mark.parametrize("model", ["ani2x", "macepol-s", "macepol-l"])
@@ -225,6 +250,14 @@ def test_route2_provider_applies_gaff2_carbonyl_oxygen_profile():
     assert provider.coulomb_radii_angstrom == pytest.approx([1.85, 1.70, 1.52])
     assert provider.provenance["profile"] == GAFF2_CARBONYL_O_PROFILE
     assert "gaff2_pbsa_radii" in provider.provenance["citations"]
+
+
+def test_route2_provider_rejects_unknown_cavity_policy():
+    options = _route2_options("frozen")
+    options["cavity_policy"] = "geometry-dependent"
+
+    with pytest.raises(ValueError, match="cavity_policy must be"):
+        SMDImplicitSolvation(_co_atoms(), options, audit_dir=None)
 
 
 def test_smd_sasa_radii_lock_vdw_table_plus_point_four_angstrom_probe():
@@ -544,8 +577,10 @@ def test_route2_retries_warning_cavity_with_deterministic_fallback(
     assert PCM_WARNING_MARKER not in capfd.readouterr().err
     stability = result.provenance["cavity_stability"]
     assert stability == {
+        "policy": "warning-fallback",
         "selected": "stability-fallback",
         "force_compatible": False,
+        "geometry_selection_branch_free": False,
         "tessera_area_angstrom2": 0.28,
         "minimum_added_sphere_radius_angstrom": 0.30,
         "fallback_used": True,
@@ -568,6 +603,102 @@ def test_route2_retries_warning_cavity_with_deterministic_fallback(
     assert fallback["response_evaluated"] is True
     assert fallback["response_evaluation_seconds"] >= 0.0
     assert fallback["pcm_initialization_seconds"] >= 0.0
+
+
+def test_route2_fixed_stability_branch_never_attempts_primary(
+    monkeypatch, tmp_path, capfd
+):
+    atoms = _co_atoms()
+    gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
+    calc = _FakePolarCalculator(gas, gas)
+    options = _route2_options("frozen")
+    options["cavity_policy"] = "fixed-stability-branch"
+    provider = SMDImplicitSolvation(atoms, options, audit_dir=tmp_path)
+    stable = tmp_path / "@stability.pcm"
+    stable.write_text("parsed", encoding="utf-8")
+    monkeypatch.setattr(
+        smd_module,
+        "PCMSolverSession",
+        _WarningThenStablePCMSolverSession,
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ensure_pcm_input",
+        lambda: (_ for _ in ()).throw(
+            AssertionError("fixed branch must not attempt primary")
+        ),
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ensure_pcm_stability_input",
+        lambda: stable,
+        raising=False,
+    )
+
+    result = provider.evaluate(atoms, calculator=calc)
+
+    assert PCM_WARNING_MARKER not in capfd.readouterr().err
+    assert result.provenance["cavity_stability"] == {
+        "policy": "fixed-stability-branch",
+        "selected": "fixed-stability-branch",
+        "force_compatible": False,
+        "geometry_selection_branch_free": True,
+        "tessera_area_angstrom2": 0.28,
+        "minimum_added_sphere_radius_angstrom": 0.30,
+        "fallback_used": False,
+        "attempt_count": 1,
+    }
+    assert result.provenance["cavity_stability_policy_force_compatible"] is False
+    assert (
+        result.provenance["cavity_policy_geometry_selection_branch_free"]
+        is True
+    )
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["cavity_stability"]["policy"] == "fixed-stability-branch"
+    assert audit["cavity_stability"]["selected"] == "fixed-stability-branch"
+    assert audit["cavity_stability"]["force_compatible"] is False
+    assert audit["cavity_stability"]["geometry_selection_branch_free"] is True
+    assert len(audit["cavity_stability"]["attempts"]) == 1
+    assert audit["cavity_stability"]["attempts"][0]["warning_detected"] is False
+
+
+def test_route2_fixed_stability_branch_fails_closed_on_warning(
+    monkeypatch, tmp_path
+):
+    atoms = _co_atoms()
+    gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
+    calc = _FakePolarCalculator(gas, gas)
+    options = _route2_options("frozen")
+    options["cavity_policy"] = "fixed-stability-branch"
+    provider = SMDImplicitSolvation(atoms, options, audit_dir=tmp_path)
+    stable = tmp_path / "@stability.pcm"
+    stable.write_text("parsed", encoding="utf-8")
+    monkeypatch.setattr(
+        smd_module,
+        "PCMSolverSession",
+        _AlwaysWarningPCMSolverSession,
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ensure_pcm_stability_input",
+        lambda: stable,
+    )
+
+    with pytest.raises(RuntimeError, match="refuses to publish"):
+        provider.evaluate(atoms, calculator=calc)
+
+    assert not (tmp_path / "route2-result.json").exists()
+    assert not (tmp_path / "route2-state.npz").exists()
+    failure = json.loads(
+        (tmp_path / "route2-failure.json").read_text(encoding="utf-8")
+    )
+    assert failure["cavity_stability"]["policy"] == "fixed-stability-branch"
+    assert failure["cavity_stability"]["geometry_selection_branch_free"] is True
+    assert failure["cavity_stability"]["selected"] is None
+    assert len(failure["cavity_stability"]["attempts"]) == 1
+    assert failure["cavity_stability"]["attempts"][0]["warning_detected"] is True
 
 
 def test_route2_retries_warning_detected_during_response(monkeypatch, tmp_path):

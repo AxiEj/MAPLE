@@ -14,6 +14,7 @@ fine-tune, bundle, or modify an ML model.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextlib import contextmanager
 import ctypes
 from dataclasses import dataclass
@@ -55,6 +56,14 @@ PCM_TESSERA_AREA_ANGSTROM2 = 0.2
 PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2 = 0.28
 PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM = 0.30
 PCM_WARNING_MARKER = "PCMSolver warning."
+CAVITY_POLICY_WARNING_FALLBACK = "warning-fallback"
+CAVITY_POLICY_FIXED_STABILITY_BRANCH = "fixed-stability-branch"
+SUPPORTED_CAVITY_POLICIES = frozenset(
+    {
+        CAVITY_POLICY_WARNING_FALLBACK,
+        CAVITY_POLICY_FIXED_STABILITY_BRANCH,
+    }
+)
 SCF_MAX_ITERATIONS = 50
 SCF_MIXING = 0.5
 SCF_DENSITY_TOLERANCE = 1.0e-5
@@ -301,6 +310,16 @@ class SMDImplicitSolvation:
         self.profile = str(
             self.solvation_options.get("profile", "smd-iefpcm")
         ).lower()
+        self.cavity_policy = str(
+            self.solvation_options.get(
+                "cavity_policy",
+                CAVITY_POLICY_WARNING_FALLBACK,
+            )
+        ).lower()
+        self._cavity_policy_geometry_selection_branch_free = (
+            self.cavity_policy
+            == CAVITY_POLICY_FIXED_STABILITY_BRANCH
+        )
 
         self._validate_options()
         self._validate_domain(self.atoms)
@@ -338,12 +357,10 @@ class SMDImplicitSolvation:
                 "1.5 A GTO smearing is not extended across the dielectric boundary"
             ),
             "electrostatics": "IEFPCM",
-            "cavity_stability_policy": (
-                "Start with AREA=0.20 A^2 and no added spheres. If PCMSolver "
-                "emits a cavity warning, retry deterministically with "
-                "AREA=0.28 A^2 and MINRADIUS=0.30 A; fail closed if a warning "
-                "persists. This warning-triggered branch is fixed-conformer "
-                "energy infrastructure and is not a force/PES policy."
+            "cavity_policy": self.cavity_policy,
+            "cavity_stability_policy": self._cavity_policy_description(),
+            "cavity_policy_geometry_selection_branch_free": (
+                self._cavity_policy_geometry_selection_branch_free
             ),
             "cavity_stability_policy_force_compatible": False,
             "cavity_radii": (
@@ -405,6 +422,11 @@ class SMDImplicitSolvation:
                 "Route 2 profile must be smd-iefpcm or "
                 "smd-iefpcm-gaff2-o."
             )
+        if self.cavity_policy not in SUPPORTED_CAVITY_POLICIES:
+            raise ValueError(
+                "Route 2 cavity_policy must be warning-fallback or "
+                "fixed-stability-branch."
+            )
         if self.response not in {"frozen", "scf"}:
             raise ValueError("SMD response must be frozen or scf.")
         if self.standard_state != "1m":
@@ -412,6 +434,24 @@ class SMDImplicitSolvation:
                 "Route 2 uses the 1 M gas -> 1 M solution convention only; "
                 "standard_state must be 1m."
             )
+
+    def _cavity_policy_description(self) -> str:
+        if self.cavity_policy == CAVITY_POLICY_FIXED_STABILITY_BRANCH:
+            return (
+                "Use AREA=0.28 A^2 and MINRADIUS=0.30 A from the first "
+                "evaluation and fail closed on any PCMSolver warning. The "
+                "discretization parameters are predetermined rather than "
+                "selected from each geometry, removing policy-level branch "
+                "switching only; GePol surface/operator derivatives and "
+                "topology continuity remain unproven."
+            )
+        return (
+            "Start with AREA=0.20 A^2 and no added spheres. If PCMSolver "
+            "emits a cavity warning, retry deterministically with "
+            "AREA=0.28 A^2 and MINRADIUS=0.30 A; fail closed if a warning "
+            "persists. This warning-triggered branch is fixed-conformer "
+            "energy infrastructure and is not a force/PES policy."
+        )
 
     @staticmethod
     def _validate_domain(atoms) -> None:
@@ -510,6 +550,36 @@ class SMDImplicitSolvation:
             ),
             minimum_added_sphere_radius_angstrom=(
                 PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM
+            ),
+        )
+
+    def _ensure_pcm_stability_input(self) -> Path:
+        """Reuse the established stability cavity without changing its audit file."""
+        return self._ensure_pcm_fallback_input()
+
+    def _cavity_attempt_specs(
+        self,
+    ) -> tuple[tuple[str, Callable[[], Path], float, float | None], ...]:
+        stability = (
+            CAVITY_POLICY_FIXED_STABILITY_BRANCH,
+            self._ensure_pcm_stability_input,
+            PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2,
+            PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM,
+        )
+        if self.cavity_policy == CAVITY_POLICY_FIXED_STABILITY_BRANCH:
+            return (stability,)
+        return (
+            (
+                "primary",
+                self._ensure_pcm_input,
+                PCM_TESSERA_AREA_ANGSTROM2,
+                None,
+            ),
+            (
+                "stability-fallback",
+                self._ensure_pcm_fallback_input,
+                PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2,
+                PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM,
             ),
         )
 
@@ -824,20 +894,7 @@ class SMDImplicitSolvation:
                 input_factory,
                 tessera_area,
                 minimum_radius,
-            ) in (
-                (
-                    "primary",
-                    self._ensure_pcm_input,
-                    PCM_TESSERA_AREA_ANGSTROM2,
-                    None,
-                ),
-                (
-                    "stability-fallback",
-                    self._ensure_pcm_fallback_input,
-                    PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2,
-                    PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM,
-                ),
-            ):
+            ) in self._cavity_attempt_specs():
                 parsed_input = input_factory()
                 native_stderr_path = (
                     self.audit_dir / f"pcmsolver-{attempt_name}-stderr.log"
@@ -979,10 +1036,13 @@ class SMDImplicitSolvation:
                 (self.audit_dir / filename).unlink(missing_ok=True)
             failure_payload = {
                 "schema_version": 1,
-                "reason": "pcmsolver-cavity-warning-after-deterministic-fallback",
+                "reason": "pcmsolver-cavity-warning-for-all-policy-attempts",
                 "cavity_stability": {
-                    "policy": "warning-triggered deterministic fallback",
+                    "policy": self.cavity_policy,
                     "force_compatible": False,
+                    "geometry_selection_branch_free": (
+                        self._cavity_policy_geometry_selection_branch_free
+                    ),
                     "selected": None,
                     "attempts": cavity_attempts,
                 },
@@ -991,19 +1051,23 @@ class SMDImplicitSolvation:
                 json.dumps(failure_payload, indent=2, sort_keys=True),
                 encoding="utf-8",
             )
+            stderr_logs = ", ".join(
+                attempt["stderr_log"] for attempt in cavity_attempts
+            )
             raise RuntimeError(
-                "PCMSolver emitted warnings for both the primary and "
-                "deterministic fallback cavities; Route 2 refuses to publish "
-                "a numerically suspect result. See "
-                f"{self.audit_dir / 'pcmsolver-primary-stderr.log'} and "
-                f"{self.audit_dir / 'pcmsolver-stability-fallback-stderr.log'}."
+                "PCMSolver emitted a warning for every cavity attempt under "
+                f"policy {self.cavity_policy!r}; Route 2 refuses to publish "
+                f"a numerically suspect result. See {stderr_logs}."
             )
 
         audit_path = self.audit_dir / "route2-result.json"
         audit_payload = json.loads(audit_path.read_text(encoding="utf-8"))
         audit_payload["cavity_stability"] = {
-            "policy": "warning-triggered deterministic fallback",
+            "policy": self.cavity_policy,
             "force_compatible": False,
+            "geometry_selection_branch_free": (
+                self._cavity_policy_geometry_selection_branch_free
+            ),
             "selected": selected_cavity["name"],
             "attempts": cavity_attempts,
         }
@@ -1021,8 +1085,12 @@ class SMDImplicitSolvation:
             ),
             "cavity_tesserae": int(pcm_state.asc_e.size),
             "cavity_stability": {
+                "policy": self.cavity_policy,
                 "selected": selected_cavity["name"],
                 "force_compatible": False,
+                "geometry_selection_branch_free": (
+                    self._cavity_policy_geometry_selection_branch_free
+                ),
                 "tessera_area_angstrom2": selected_cavity[
                     "tessera_area_angstrom2"
                 ],
@@ -1059,6 +1127,8 @@ class SMDImplicitSolvation:
 
 
 __all__ = [
+    "CAVITY_POLICY_FIXED_STABILITY_BRANCH",
+    "CAVITY_POLICY_WARNING_FALLBACK",
     "MAX_MOLECULAR_MASS_DA",
     "MIN_MOLECULAR_MASS_DA",
     "PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM",
@@ -1069,5 +1139,6 @@ __all__ = [
     "SCF_MAX_ITERATIONS",
     "SCF_MIXING",
     "SMDImplicitSolvation",
+    "SUPPORTED_CAVITY_POLICIES",
     "SUPPORTED_ELEMENTS",
 ]

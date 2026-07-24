@@ -36,7 +36,14 @@ MOL2 molecule.mol2
 The omitted locked defaults are `provider=pcmsolver` and
 `profile=smd-iefpcm`.  `response=scf` is the public default;
 `response=frozen` is retained only as a diagnostic that solves PCM once from
-the gas-phase density.  There is no public mock or ddX backend.
+the gas-phase density. The omitted cavity default is
+`cavity_policy=warning-fallback`: it may retry a warned primary GePol cavity
+and is fixed-conformer energy infrastructure only. The explicit research
+option `cavity_policy=fixed-stability-branch` instead selects
+`AREA=0.28 A^2, MINRADIUS=0.30 A` before evaluation and fails closed on any
+warning. It removes geometry-dependent **policy selection**, but does not make
+the GePol surface differentiable, prove topology continuity, or enable forces.
+There is no public mock or ddX backend.
 
 ### Route-2 runtime
 

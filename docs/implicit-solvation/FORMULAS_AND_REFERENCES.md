@@ -465,6 +465,17 @@ differentiable, and warning-triggered switching between two cavity definitions
 is not a valid PES rule. These must be resolved before translational/rotational
 invariance, central-difference agreement, optimization, or MD.
 
+`cavity_policy=fixed-stability-branch` is a narrower intermediate control. It
+uses `AREA=0.28 A^2, MINRADIUS=0.30 A` from the first evaluation, never probes
+the primary branch, and fails closed on any PCMSolver warning. “Fixed branch”
+means that the **parameter branch** is selected before evaluation; it does not
+freeze tessera coordinates as nuclei move. The two numerical values are MAPLE
+engineering stability hyperparameters, not SMD/PCM constants and not claimed
+as PCMSolver defaults. This removes only the discontinuity caused by
+warning-triggered policy selection. It does not supply the smooth
+surface/area/operator derivatives demonstrated by FIXPVA or SWIG, nor prove
+that GePol topology stays continuous along a trajectory.
+
 For the provider-neutral point kernels, let
 \(\mathbf d_{sA}=\mathbf s-\mathbf R_A\), \(r=|\mathbf d_{sA}|\), and hold the
 learned multipoles, ASC, and surface geometry fixed. The explicit solute-MEP
@@ -656,6 +667,14 @@ Route-2 references:
   discretization scheme for polarizable continuum models: The
   switching/Gaussian approach,” *J. Chem. Phys.* **133**, 244111 (2010),
   DOI `10.1063/1.3511297`.
+- P. Su and H. Li, “Continuous and smooth potential energy surface for
+  conductorlike screening solvation model using fixed points with variable
+  areas,” *J. Chem. Phys.* **130**, 074109 (2009),
+  DOI `10.1063/1.3077917`.
+- Y. Wang and H. Li, “Smooth potential energy surface for cavitation,
+  dispersion, and repulsion free energies in polarizable continuum model,”
+  *J. Chem. Phys.* **131**, 206101 (2009),
+  DOI `10.1063/1.3268921`.
 - Revised SMD Coulomb radii:
   `https://comp.chem.umn.edu/solvation/coulomb_radii.htm`.
 - D. L. Mobley and J. P. Guthrie, “FreeSolv: a database of experimental and

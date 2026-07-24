@@ -111,10 +111,20 @@ not a complete solution-phase PES.
     spans are `0.00352` and `0.00260 kcal/mol`; the Fibonacci residual torque
     is \(1.67\times10^{-4}\) hartree. The candidate is not public, not
     established as SWIG-equivalent, and not a full SWIG-PCM.
-11. Compare the summed analytic force with central finite differences of the
+11. The explicit `cavity_policy=fixed-stability-branch` public-input canary
+    selects `AREA=0.28 A^2, MINRADIUS=0.30 A` before evaluation and fails
+    closed instead of probing the primary branch. Acetone, methyl acetate, and
+    ethoxyethane completed with zero PCMSolver warnings and 17 ML--PCM
+    iterations each. Relative to the prior warning-fallback selections, the
+    largest hydration-energy change was `0.000532 kcal/mol`; the three-case
+    MAE was `0.451006 kcal/mol`. This only validates the policy wiring and
+    local energy invariance. The parameters are engineering stability
+    hyperparameters, the legacy energy default is unchanged, and GePol
+    topology continuity/derivatives remain unproven.
+12. Compare the summed analytic force with central finite differences of the
    converged total energy, then enforce translation, rotation, and energy
    conservation checks.
-12. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+13. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
    solution-phase PES.
 
 ## Secondary diagnostics

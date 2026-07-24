@@ -45,6 +45,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "polar_output_torch()" in roadmap
     assert "current CDS area is not differentiable" in roadmap
     assert "Warning-triggered cavity switching is not a PES rule" in roadmap
+    assert "cavity_policy=fixed-stability-branch" in overview
+    assert "geometry-dependent **policy selection**" in overview
+    assert "engineering stability hyperparameters" in formulas
+    assert "not SMD/PCM constants" in formulas
     assert "PCMSolver--GePol profile remains energy-only" in roadmap
     assert "Never combine energy from one cavity/operator definition" in roadmap
     assert "direct vector-Jacobian products" in roadmap

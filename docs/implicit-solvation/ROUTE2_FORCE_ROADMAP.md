@@ -39,9 +39,17 @@ described as a complete solution-phase PES.
 5. **Warning-triggered cavity switching is not a PES rule.** Retrying a single
    point with different GePol parameters removes known numerical warnings, but
    a geometry-dependent switch between primary and fallback cavities would
-   introduce an energy/force discontinuity. A force implementation needs one
-   predetermined smooth cavity policy (or a branch frozen for the entire
-   trajectory), not per-geometry warning selection.
+   introduce an energy/force discontinuity. Route 2 therefore keeps
+   `cavity_policy=warning-fallback` as the default fixed-conformer energy
+   policy and exposes a separate
+   `cavity_policy=fixed-stability-branch` research policy. The latter selects
+   `AREA=0.28 A^2, MINRADIUS=0.30 A` before the calculation and fails closed
+   on any warning, so it removes policy-level geometry branching. Those two
+   values are an engineering stability candidate, not theoretical constants;
+   GePol topology continuity and boundary/operator derivatives remain
+   unproven. A force implementation still needs one validated smooth cavity
+   construction (or a branch frozen for the entire trajectory), not merely a
+   predetermined parameter pair.
 
 ## Required total derivative
 
@@ -300,7 +308,13 @@ selected, license-compatible differentiable provider.
    torque is \(1.67\times10^{-4}\) hartree. The public provider does not select
    this candidate. Resolve the invariance/equivalence gates or adopt an
    independently validated analytic area provider before force publication.
-7. Replace per-geometry warning fallback with a force-compatible cavity policy.
+7. **Policy branch removed for research canaries; derivative gate remains
+   open:** `cavity_policy=fixed-stability-branch` selects the stability
+   discretization before evaluation and never probes the primary cavity.
+   This is branch-free at the policy level but is deliberately still marked
+   `force_compatible=false`; validate GePol topology/rotation continuity and
+   supply surface/operator coordinate derivatives before using it in a total
+   force.
 
 ### Phase 2 -- coupled response
 

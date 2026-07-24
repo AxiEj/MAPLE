@@ -295,8 +295,9 @@ selected, license-compatible differentiable provider.
    three steps had at most \(5.64\times10^{-10}\) hartree/angstrom absolute and
    \(9.29\times10^{-7}\) relative error, with a
    \(1.12\times10^{-19}\) hartree/angstrom net translation-gradient norm.
-6. **Diagnostic implemented; production replacement remains open:** a
-   separately named Fibonacci-grid, SWIG-inspired area supplies an analytic
+6. **Diagnostic implemented; production replacement remains open:** the clean
+   artifact at Route-2 commit `54cd781` evaluates a separately named
+   Fibonacci-grid, SWIG-inspired area that supplies an analytic
    \(\sum_i\gamma_i\,dA_i/d\mathbf R\) VJP. Its own discrete energy and
    derivative agree to \(2.31\times10^{-12}\) hartree/angstrom at the smallest
    methanol step, all three static NWChem controls are within
@@ -315,6 +316,30 @@ selected, license-compatible differentiable provider.
    `force_compatible=false`; validate GePol topology/rotation continuity and
    supply surface/operator coordinate derivatives before using it in a total
    force.
+8. **Done for the provider-neutral energy boundary; smooth provider remains
+   experimental:** `ExternalMEPCavityResponse` now makes the per-atom radii,
+   reference geometry, surface, and energy-conjugate response explicit.
+   `SurfaceChargeState` enforces
+   \(q_{\mathrm{sym}}=(q+q^\dagger)/2\) and
+   \(E_{\mathrm{pol}}=v^\mathsf Tq_{\mathrm{sym}}/2\).
+   The current PCMSolver adapter admits only `MATRIXSYMM=TRUE`; the public
+   parser and calculator still accept only `provider=pcmsolver`.
+
+   A clean staged artifact at Route-2 commit `3bd6a31` used isolated PySCF
+   2.13.1 SWIG/IEFPCM to test two molecules, not a broad benchmark. Orders 17
+   and 29 passed energy/convergence gates but
+   failed the predeclared rigid-rotation gate. On fixed ethoxyethane density,
+   order 35 reduced the twelve-orientation span to `0.007734 kcal/mol`, below
+   `0.01 kcal/mol`. Full order-35 ML--PCM calculations converged in 18
+   iterations for acetone and 17 for ethoxyethane; their differences from the
+   fixed PCMSolver profile were `0.042540` and `0.001338 kcal/mol`, respectively.
+   A fixed-surface-potential operator-gradient canary reached
+   `1.53e-8` relative finite-difference error and numerical translation
+   closure. These results justify continued optional-provider investigation,
+   but the candidate is **not production-ready**: total derivatives,
+   mixed-oxygen per-atom radii in the candidate backend, differentiable CDS,
+   scaling, and broad speed/accuracy evidence remain open. PySCF is not a MAPLE
+   dependency and no speed claim follows from these local timings.
 
 ### Phase 2 -- coupled response
 

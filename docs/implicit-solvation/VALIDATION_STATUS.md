@@ -98,7 +98,8 @@ not a complete solution-phase PES.
    \(1.12\times10^{-19}\) hartree/angstrom. The current hard-visibility SASA
    still lacks \(\sum_i\gamma_i\,dA_i/d\mathbf R\), so this component is not a
    complete CDS gradient and is not yet added to a published force.
-10. A separately named Fibonacci-grid, SWIG-inspired CDS candidate supplies
+10. A clean diagnostic artifact at Route-2 commit `54cd781` evaluates a
+    separately named Fibonacci-grid, SWIG-inspired CDS candidate. It supplies
     an area VJP and combines it with the atomic-tension VJP. Its own discrete
     energy derivative matches methanol finite differences over five step
     sizes; the smallest-step maximum absolute discrepancy is
@@ -121,11 +122,27 @@ not a complete solution-phase PES.
     local energy invariance. The parameters are engineering stability
     hyperparameters, the legacy energy default is unchanged, and GePol
     topology continuity/derivatives remain unproven.
-12. Compare the summed analytic force with central finite differences of the
-   converged total energy, then enforce translation, rotation, and energy
-   conservation checks.
-13. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
-   solution-phase PES.
+12. The clean staged artifact at Route-2 commit `3bd6a31` used external PySCF
+    2.13.1 SWIG/IEFPCM and remains an investigation rather than an adopted
+    provider. Orders 17/29 failed the predeclared rigid-rotation gate; order 35
+    passed a one-molecule fixed-density discriminator with a
+    `0.007734 kcal/mol` span. Full order-35 acetone and ethoxyethane ML--PCM
+    runs converged in 18 and 17 iterations and differed from the fixed
+    PCMSolver energies by `0.042540` and `0.001338 kcal/mol`. The fixed-potential
+    operator-gradient canary reached `1.53e-8` relative finite-difference error.
+    This supports continued optional-provider research only; it does not
+    establish a total force, production provider, chemical-space accuracy, or
+    speed advantage.
+13. `ExternalMEPCavityResponse` and `SurfaceChargeState` now lock the common
+    external-MEP energy boundary, including per-atom radii and the
+    energy-conjugate \(q_{\mathrm{sym}}\). The current energy and fixed-cavity
+    derivative paths share this contract, while the public provider remains
+    PCMSolver-only.
+14. Compare the summed analytic force with central finite differences of the
+    converged total energy, then enforce translation, rotation, and energy
+    conservation checks.
+15. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+    solution-phase PES.
 
 ## Secondary diagnostics
 

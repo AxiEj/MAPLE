@@ -216,8 +216,9 @@ discrepancy decreasing from \(2.12\times10^{-8}\) hartree/angstrom at
 \(10^{-3}\) angstrom to \(2.31\times10^{-12}\) hartree/angstrom at
 \(10^{-5}\) angstrom. Translation closure is numerical zero.
 
-An isolated PySCF 2.13.1 validation wheel was then used as an external
-Lebedev-SWIG control; it is not a MAPLE runtime dependency. On one overlapping
+The clean diagnostic artifact at Route-2 commit `54cd781` used an isolated
+PySCF 2.13.1 validation wheel as an external Lebedev-SWIG control; it is not a
+MAPLE runtime dependency. On one overlapping
 four-sphere geometry, dense-grid atom areas differ by at most
 `0.00553 angstrom^2`, but the coordinate-VJP relative \(L_2\) difference
 remains `5.84--9.73%` from 2030 through 5810 points and is nonmonotonic with
@@ -646,6 +647,42 @@ a mixed construction with PCMSolver--GePol energy would be a new approximation,
 not an established exact derivative. The audited PySCF SMD/CDS source files
 carry GPL-3.0 headers and are not copied into MAPLE. The detailed
 evidence-versus-inference boundary is in `ROUTE2_FORCE_ROADMAP.md`.
+
+### External-MEP continuum-response boundary
+
+Route 2 now represents the fixed continuum electrostatic solve through
+`ExternalMEPCavityResponse` contract version 1. The contract fixes the atomic
+numbers, reference geometry, **per-atom** cavity radii, surface points, and
+surface areas, and accepts the MACE point-multipole MEP evaluated on that
+surface. It does not own
+the ML density response, CDS, or nuclear-force assembly.
+
+For a general nonsymmetric IEFPCM discretization, define
+
+\[
+\mathbf q = \mathbf K^{-1}\mathbf R\mathbf v,\qquad
+\mathbf q^\dagger = \mathbf R^\mathsf T\mathbf K^{-\mathsf T}\mathbf v,
+\qquad
+\mathbf q_{\mathrm{sym}} =
+\frac12\left(\mathbf q+\mathbf q^\dagger\right).
+\]
+
+The energy and reaction field must use the same energy-conjugate response,
+
+\[
+E_{\mathrm{pol}}
+=\frac12\mathbf v^\mathsf T\mathbf q_{\mathrm{sym}}.
+\]
+
+`SurfaceChargeState` records \(\mathbf q\), \(\mathbf q^\dagger\),
+\(\mathbf q_{\mathrm{sym}}\), and \(E_{\mathrm{pol}}\), and fails closed if the
+symmetrization or half-coupling identity is inconsistent. The current
+`PCMSolverExternalMEPCavityResponse` accepts only `MATRIXSYMM=TRUE`, for which
+all three charges coincide. Both the existing energy path and
+`FixedCavityPCMReactionFieldLinearMap` consume this energy-conjugate contract.
+This is an architectural boundary, not a new public provider: PCMSolver remains
+the only accepted runtime backend and PySCF remains an external validation
+environment.
 
 Route-2 references:
 

@@ -4,6 +4,9 @@ import numpy as np
 import pytest
 from ase.units import Bohr, Hartree
 
+from maple.function.calculator.extra_correction.implicit.continuum_response import (
+    PCMSolverExternalMEPCavityResponse,
+)
 from maple.function.calculator.extra_correction.implicit.gto_density import (
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
@@ -25,6 +28,7 @@ class _FakeSymmetricPCMSolverSession:
         self.atomic_numbers = np.ones(len(atom_positions_angstrom))
         self.coordinates_bohr = np.asarray(atom_positions_angstrom) / Bohr
         self.cavity_centers_bohr = np.asarray(cavity_centers_bohr, dtype=float)
+        self.cavity_areas_bohr2 = np.ones(len(cavity_centers_bohr))
         self.response_operator_is_symmetric = symmetric
         self._response_matrix = np.asarray(response_matrix, dtype=float)
 
@@ -58,15 +62,23 @@ def _operator(*, symmetric: bool = True):
         response,
         symmetric=symmetric,
     )
+    continuum_response = PCMSolverExternalMEPCavityResponse(
+        session,
+        cavity_radii_angstrom=np.full(len(positions), 1.5),
+    )
     return (
-        FixedCavityPCMReactionFieldLinearMap(session, positions),
+        FixedCavityPCMReactionFieldLinearMap(
+            continuum_response,
+            positions,
+        ),
         positions,
         session,
+        continuum_response,
     )
 
 
 def test_fixed_cavity_pcm_apply_and_adjoint_obey_discrete_pairing():
-    operator, positions, _ = _operator()
+    operator, positions, _, _ = _operator()
     rng = np.random.default_rng(19)
     density_direction = rng.normal(size=(len(positions), 4))
     field_cotangent = rng.normal(size=(len(positions), 4))
@@ -82,7 +94,7 @@ def test_fixed_cavity_pcm_apply_and_adjoint_obey_discrete_pairing():
 
 
 def test_fixed_cavity_pcm_adjoint_matches_the_full_discrete_transpose():
-    operator, positions, _ = _operator()
+    operator, positions, _, _ = _operator()
     dimension = 4 * len(positions)
     basis = np.eye(dimension)
     forward_matrix = np.column_stack(
@@ -107,7 +119,7 @@ def test_fixed_cavity_pcm_adjoint_matches_the_full_discrete_transpose():
 
 
 def test_fixed_cavity_pcm_map_is_linear():
-    operator, positions, _ = _operator()
+    operator, positions, _, _ = _operator()
     rng = np.random.default_rng(23)
     first = rng.normal(size=(len(positions), 4))
     second = rng.normal(size=(len(positions), 4))
@@ -121,7 +133,7 @@ def test_fixed_cavity_pcm_map_is_linear():
 
 
 def test_fixed_cavity_pcm_map_can_reuse_surface_at_displaced_solute_positions():
-    operator, positions, session = _operator()
+    operator, positions, session, _ = _operator()
     density = np.asarray(
         [
             [0.2, -0.1, 0.3, -0.4],
@@ -164,7 +176,7 @@ def test_fixed_cavity_pcm_map_can_reuse_surface_at_displaced_solute_positions():
 
 
 def test_fixed_cavity_pcm_map_rejects_surface_motion_beyond_readback_tolerance():
-    operator, positions, session = _operator()
+    operator, positions, session, _ = _operator()
     original_centers = session.cavity_centers_bohr.copy()
 
     session.cavity_centers_bohr[0, 0] += 0.5e-12 / Bohr
@@ -177,7 +189,7 @@ def test_fixed_cavity_pcm_map_rejects_surface_motion_beyond_readback_tolerance()
 
 
 def test_fixed_surface_pcm_position_vjp_matches_central_difference():
-    operator, positions, session = _operator()
+    operator, positions, session, _ = _operator()
     rng = np.random.default_rng(29)
     density = rng.normal(size=(len(positions), 4))
     field_cotangent = rng.normal(size=(len(positions), 4))
@@ -230,13 +242,21 @@ def test_fixed_cavity_pcm_map_requires_hermitivized_response():
         _operator(symmetric=False)
 
 
+def test_fixed_cavity_pcm_map_rejects_unknown_continuum_contract_version():
+    _, positions, _, response = _operator()
+    response.contract_version = 2
+
+    with pytest.raises(ValueError, match="contract version"):
+        FixedCavityPCMReactionFieldLinearMap(response, positions)
+
+
 def test_fixed_cavity_pcm_map_rejects_geometry_mismatch():
-    _, positions, session = _operator()
+    _, positions, _, response = _operator()
     shifted = positions.copy()
     shifted[0, 0] += 1.0e-5
 
     with pytest.raises(ValueError, match="does not match"):
-        FixedCavityPCMReactionFieldLinearMap(session, shifted)
+        FixedCavityPCMReactionFieldLinearMap(response, shifted)
 
 
 @pytest.mark.parametrize(
@@ -247,7 +267,7 @@ def test_fixed_cavity_pcm_map_rejects_geometry_mismatch():
     ],
 )
 def test_fixed_cavity_pcm_map_rejects_invalid_blocks(bad_values):
-    operator, _, _ = _operator()
+    operator, _, _, _ = _operator()
 
     with pytest.raises(ValueError, match="finite with shape"):
         operator.apply(bad_values)

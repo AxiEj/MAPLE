@@ -14,6 +14,11 @@ from maple.function.calculator.calculator_base import (
     ROUTE2_SMD_CALCULATOR_PROFILE,
 )
 import maple.function.calculator.extra_correction.implicit.smd as smd_module
+from maple.function.calculator.extra_correction.implicit.continuum_response import (
+    EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
+    PCMSolverExternalMEPCavityResponse,
+    SurfaceChargeState,
+)
 from maple.function.calculator.extra_correction.implicit.gto_density import (
     asc_reaction_potential_gradient,
     density_reaction_coupling,
@@ -319,7 +324,11 @@ def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
     coefficients = np.asarray(
         [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]]
     )
-    session = _FakePCMSolverSession(None, None, None).open()
+    session = _FakePCMSolverSession(
+        atoms.numbers,
+        atoms.get_positions() / Bohr,
+        None,
+    ).open()
     calls = 0
     implementation = smd_module.point_multipole_potential
 
@@ -334,10 +343,58 @@ def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
         tracked_point_multipole_potential,
     )
 
-    state = provider._solve_pcm(session, atoms, coefficients)
+    response = PCMSolverExternalMEPCavityResponse(
+        session,
+        cavity_radii_angstrom=provider.coulomb_radii_angstrom,
+    )
+    state = provider._solve_pcm(response, atoms, coefficients)
 
     assert calls == 1
     assert state.polarization_energy_hartree < 0.0
+
+
+def test_route2_pcm_rejects_response_state_for_a_different_surface_potential():
+    atoms = _co_atoms()
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("frozen"), audit_dir=None
+    )
+    coefficients = np.asarray(
+        [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]]
+    )
+
+    class _MismatchedResponse:
+        contract_version = EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
+        surface_points_bohr = np.asarray(
+            [
+                [4.0, 0.0, 0.0],
+                [-4.0, 0.0, 0.0],
+                [0.0, 4.0, 0.0],
+                [0.0, -4.0, 0.0],
+            ]
+        )
+
+        def solve(self, surface_potential_hartree_per_e):
+            potential = np.asarray(
+                surface_potential_hartree_per_e,
+                dtype=float,
+            ).copy()
+            potential[0] += 1.0e-6
+            charge = -0.1 * potential
+            return SurfaceChargeState(
+                surface_potential_hartree_per_e=potential,
+                direct_surface_charge_e=charge,
+                adjoint_surface_charge_e=charge,
+                energy_conjugate_surface_charge_e=charge,
+                polarization_energy_hartree=0.5
+                * float(np.dot(potential, charge)),
+            )
+
+    with pytest.raises(RuntimeError, match="different surface potential"):
+        provider._solve_pcm(
+            _MismatchedResponse(),
+            atoms,
+            coefficients,
+        )
 
 
 @pytest.mark.parametrize(
@@ -418,6 +475,10 @@ class _FakePCMSolverSession:
     def library_source(self):
         assert self._is_open
         return "fake-pcmsolver"
+
+    @property
+    def response_operator_is_symmetric(self):
+        return True
 
     @property
     def cavity_centers_bohr(self):

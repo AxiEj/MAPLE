@@ -1,4 +1,4 @@
-"""Fixed-surface PCMSolver response map for the Route-2 adjoint.
+"""Fixed-surface energy-conjugate PCM response map for the Route-2 adjoint.
 
 This module owns the linear density-to-node-field response for one already-built
 cavity/operator and the explicit solute-kernel coordinate VJP with that surface
@@ -11,6 +11,10 @@ from __future__ import annotations
 import numpy as np
 from ase.units import Bohr, Hartree
 
+from .continuum_response import (
+    EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
+    ExternalMEPCavityResponse,
+)
 from .gto_density import (
     external_field_to_density_order,
     point_asc_reaction_position_vjp,
@@ -18,7 +22,6 @@ from .gto_density import (
     point_multipole_potential,
     point_multipole_potential_position_vjp,
 )
-from .pcmsolver import PCMSolverSession
 
 
 def _validated_atom_block(
@@ -41,58 +44,68 @@ class FixedCavityPCMReactionFieldLinearMap:
     """Apply a hermitivized fixed-cavity PCM response and its adjoint.
 
     Density blocks use MACE-POLAR's raw real-spherical order.  Node fields use
-    ``[V, dV/dx, dV/dy, dV/dz]`` in eV/e and eV/(e Angstrom).  PCMSolver must
-    have been constructed with ``MATRIXSYMM=TRUE``; otherwise reciprocity is
-    insufficient to identify the transpose and construction fails closed.
+    ``[V, dV/dx, dV/dy, dV/dz]`` in eV/e and eV/(e Angstrom).  The continuum
+    adapter must expose a reciprocal energy-conjugate surface response.  The
+    current PCMSolver adapter admits only ``MATRIXSYMM=TRUE`` sessions.
     """
 
     reciprocal_energy_pairing = True
 
     def __init__(
         self,
-        session: PCMSolverSession,
+        response: ExternalMEPCavityResponse,
         atom_positions_angstrom: np.ndarray,
         *,
         geometry_tolerance_angstrom: float = 1.0e-12,
     ):
         if geometry_tolerance_angstrom < 0.0:
             raise ValueError("Geometry tolerance cannot be negative.")
-        if not session.response_operator_is_symmetric:
+        if (
+            getattr(response, "contract_version", None)
+            != EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
+        ):
             raise ValueError(
-                "Route-2 PCM adjoints require a parsed PCMSolver input with "
-                "MATRIXSYMM=TRUE."
+                "Unsupported external-MEP continuum-response contract version."
+            )
+        if not response.energy_response_is_reciprocal:
+            raise ValueError(
+                "Route-2 PCM adjoints require a reciprocal energy-conjugate "
+                "surface response."
             )
 
         positions = np.asarray(atom_positions_angstrom, dtype=float)
-        expected_shape = (session.atomic_numbers.size, 3)
+        atomic_numbers = np.asarray(response.atomic_numbers, dtype=float)
+        expected_shape = (atomic_numbers.size, 3)
         if positions.shape != expected_shape or not np.all(np.isfinite(positions)):
             raise ValueError(
                 "Fixed-cavity atom positions must be finite with shape "
                 f"{expected_shape}; received {positions.shape}."
             )
-        session_positions = np.asarray(session.coordinates_bohr, dtype=float) * Bohr
+        response_positions = (
+            np.asarray(response.reference_positions_bohr, dtype=float) * Bohr
+        )
         if not np.allclose(
             positions,
-            session_positions,
+            response_positions,
             rtol=0.0,
             atol=geometry_tolerance_angstrom,
         ):
             raise ValueError(
                 "Fixed-cavity PCM response geometry does not match the open "
-                "PCMSolver session geometry."
+                "continuum-response geometry."
             )
 
-        # Access through the public property both verifies that the session is
-        # open and snapshots the fixed surface used by every Krylov application.
-        centers = np.asarray(session.cavity_centers_bohr, dtype=float)
+        # Access through the response contract snapshots the fixed surface used
+        # by every Krylov application.
+        centers = np.asarray(response.surface_points_bohr, dtype=float)
         if centers.ndim != 2 or centers.shape[1] != 3 or not np.all(
             np.isfinite(centers)
         ):
             raise RuntimeError(
-                "PCMSolver cavity centers must be finite with shape "
+                "Continuum surface points must be finite with shape "
                 "(n_surface, 3)."
             )
-        self._session = session
+        self._response = response
         self._positions_angstrom = positions.copy()
         self._centers_bohr = centers.copy()
         self._surface_readback_tolerance_bohr = (
@@ -106,12 +119,15 @@ class FixedCavityPCMReactionFieldLinearMap:
             self._positions_angstrom,
             density,
         )
-        asc = np.asarray(self._session.compute_asc(mep), dtype=float)
+        asc = np.asarray(
+            self._response.apply_energy_conjugate(mep),
+            dtype=float,
+        )
         if asc.shape != (self._centers_bohr.shape[0],) or not np.all(
             np.isfinite(asc)
         ):
             raise RuntimeError(
-                "PCMSolver ASC response must be finite with one value per "
+                "Continuum surface-charge response must be finite with one value per "
                 "fixed cavity point."
             )
         return asc
@@ -147,8 +163,8 @@ class FixedCavityPCMReactionFieldLinearMap:
         """Apply the discrete transpose of the fixed-cavity response map.
 
         The MACE ``l=1`` order maps to Cartesian ``x/y/z`` as ``[2, 0, 1]``.
-        With a symmetric PCMSolver surface response, the numeric transpose is
-        therefore the same forward response bracketed by the inverse
+        With a reciprocal energy-conjugate surface response, the numeric
+        transpose is therefore the same forward response bracketed by the inverse
         permutation ``[0, 2, 3, 1]``.  The Hartree and Bohr conversion factors
         cancel between the two brackets; no empirical scaling is introduced.
         """
@@ -170,9 +186,9 @@ class FixedCavityPCMReactionFieldLinearMap:
 
         This is an explicit fixed-surface derivative helper.  It changes only
         the atom centres used by the solute-MEP and ASC-back-projection kernels;
-        the open PCMSolver session, tessera centres, and response operator are
-        shared unchanged.  It must not be used as a substitute for rebuilding
-        the physical cavity at a new geometry.
+        the continuum surface points and response operator are shared unchanged.
+        It must not be used as a substitute for rebuilding the physical cavity
+        at a new geometry.
         """
 
         positions = np.asarray(atom_positions_angstrom, dtype=float)
@@ -183,7 +199,7 @@ class FixedCavityPCMReactionFieldLinearMap:
                 f"shape {expected_shape}; received {positions.shape}."
             )
         current_centers = np.asarray(
-            self._session.cavity_centers_bohr,
+            self._response.surface_points_bohr,
             dtype=float,
         )
         centers_unchanged = (
@@ -198,12 +214,12 @@ class FixedCavityPCMReactionFieldLinearMap:
         )
         if not centers_unchanged:
             raise RuntimeError(
-                "The open PCMSolver surface changed after the fixed-surface "
+                "The open continuum surface changed after the fixed-surface "
                 "response map was constructed."
             )
 
         displaced = object.__new__(type(self))
-        displaced._session = self._session
+        displaced._response = self._response
         displaced._positions_angstrom = positions.copy()
         displaced._centers_bohr = self._centers_bohr.copy()
         displaced._surface_readback_tolerance_bohr = (

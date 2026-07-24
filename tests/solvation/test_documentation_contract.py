@@ -64,6 +64,12 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "density_to_external_field_order()" in formulas
     assert "fixed_cavity_energy_density_gradient()" in formulas
     assert "fixed_surface_solvation_coordinate_gradient()" in formulas
+    assert "ExternalMEPCavityResponse" in formulas
+    assert "SurfaceChargeState" in formulas
+    assert "q_{\\mathrm{sym}}" in formulas
+    assert "not production-ready" in roadmap
+    assert "54cd781" in formulas
+    assert "3bd6a31" in roadmap
     assert "aqueous_atomic_surface_tension_position_vjp()" in formulas
     assert (
         "smd_water_cds_fibonacci_swig_inspired_position_gradient()"

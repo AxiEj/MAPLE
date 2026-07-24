@@ -1,0 +1,319 @@
+"""Provider-neutral external-MEP continuum response for Route 2.
+
+The contract in this module is deliberately smaller than a complete implicit
+solvent provider.  It owns one fixed cavity/operator and maps an externally
+supplied molecular electrostatic potential (MEP) to the surface charge that is
+conjugate to the polarization energy.  Solute projection, ML density response,
+CDS, and nuclear derivatives remain separate Route-2 components.
+
+For a nonsymmetric IEFPCM discretization the direct and transpose solves need
+not agree.  The energy-conjugate charge is therefore
+
+``q_sym = 0.5 * (q_direct + q_adjoint)``
+
+and the discrete polarization energy is
+
+``E_pol = 0.5 * dot(v_surface, q_sym)``.
+
+The current PCMSolver profile requests ``MATRIXSYMM=TRUE``, so all three
+charges coincide.  Keeping the distinction explicit prevents a future smooth
+SWIG provider from silently using the wrong energy or reaction field.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Protocol
+
+import numpy as np
+
+from .pcmsolver import PCMSolverSession
+
+
+EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION = 1
+
+
+def _immutable_vector(
+    values: np.ndarray,
+    *,
+    name: str,
+    length: int | None = None,
+    positive: bool = False,
+) -> np.ndarray:
+    array = np.asarray(values, dtype=float)
+    valid_length = length is None or array.shape == (length,)
+    if array.ndim != 1 or array.size == 0 or not valid_length:
+        expected = "(n,)" if length is None else f"({length},)"
+        raise ValueError(
+            f"{name} must have shape {expected}; received {array.shape}."
+        )
+    if not np.all(np.isfinite(array)):
+        raise ValueError(f"{name} must contain only finite values.")
+    if positive and np.any(array <= 0.0):
+        raise ValueError(f"{name} must contain only positive values.")
+    result = np.array(array, dtype=float, copy=True)
+    result.setflags(write=False)
+    return result
+
+
+def _immutable_matrix(
+    values: np.ndarray,
+    *,
+    name: str,
+    rows: int | None = None,
+) -> np.ndarray:
+    array = np.asarray(values, dtype=float)
+    expected_shape = None if rows is None else (rows, 3)
+    valid_shape = (
+        array.ndim == 2
+        and array.shape[0] > 0
+        and array.shape[1] == 3
+        and (expected_shape is None or array.shape == expected_shape)
+    )
+    if not valid_shape or not np.all(np.isfinite(array)):
+        expected = "(n, 3)" if rows is None else str(expected_shape)
+        raise ValueError(
+            f"{name} must be finite with shape {expected}; "
+            f"received {array.shape}."
+        )
+    result = np.array(array, dtype=float, copy=True)
+    result.setflags(write=False)
+    return result
+
+
+@dataclass(frozen=True)
+class SurfaceChargeState:
+    """Validated external-MEP response for one fixed continuum operator."""
+
+    surface_potential_hartree_per_e: np.ndarray
+    direct_surface_charge_e: np.ndarray
+    adjoint_surface_charge_e: np.ndarray
+    energy_conjugate_surface_charge_e: np.ndarray
+    polarization_energy_hartree: float
+
+    def __post_init__(self) -> None:
+        potential = _immutable_vector(
+            self.surface_potential_hartree_per_e,
+            name="surface_potential_hartree_per_e",
+        )
+        direct = _immutable_vector(
+            self.direct_surface_charge_e,
+            name="direct_surface_charge_e",
+            length=potential.size,
+        )
+        adjoint = _immutable_vector(
+            self.adjoint_surface_charge_e,
+            name="adjoint_surface_charge_e",
+            length=potential.size,
+        )
+        conjugate = _immutable_vector(
+            self.energy_conjugate_surface_charge_e,
+            name="energy_conjugate_surface_charge_e",
+            length=potential.size,
+        )
+        expected_conjugate = 0.5 * (direct + adjoint)
+        if not np.allclose(
+            conjugate,
+            expected_conjugate,
+            rtol=1.0e-12,
+            atol=1.0e-14,
+        ):
+            raise ValueError(
+                "energy_conjugate_surface_charge_e must be the arithmetic "
+                "mean of the direct and adjoint surface charges."
+            )
+
+        energy = float(self.polarization_energy_hartree)
+        if not np.isfinite(energy):
+            raise ValueError("polarization_energy_hartree must be finite.")
+        expected_energy = 0.5 * float(np.dot(potential, conjugate))
+        tolerance = max(1.0e-10, 1.0e-8 * abs(expected_energy))
+        if abs(energy - expected_energy) > tolerance:
+            raise ValueError(
+                "polarization_energy_hartree must equal "
+                "0.5*dot(surface_potential, energy_conjugate_surface_charge)."
+            )
+
+        object.__setattr__(self, "surface_potential_hartree_per_e", potential)
+        object.__setattr__(self, "direct_surface_charge_e", direct)
+        object.__setattr__(self, "adjoint_surface_charge_e", adjoint)
+        object.__setattr__(
+            self,
+            "energy_conjugate_surface_charge_e",
+            conjugate,
+        )
+        object.__setattr__(self, "polarization_energy_hartree", energy)
+
+
+class ExternalMEPCavityResponse(Protocol):
+    """Fixed continuum cavity/operator driven by an external surface MEP."""
+
+    contract_version: int
+    energy_response_is_reciprocal: bool
+
+    @property
+    def atomic_numbers(self) -> np.ndarray:
+        """Atomic numbers defining the fixed cavity."""
+
+    @property
+    def reference_positions_bohr(self) -> np.ndarray:
+        """Solute geometry at which the cavity/operator was built."""
+
+    @property
+    def cavity_radii_angstrom(self) -> np.ndarray:
+        """Per-atom radii used to define the cavity."""
+
+    @property
+    def surface_points_bohr(self) -> np.ndarray:
+        """Current fixed surface points."""
+
+    @property
+    def surface_areas_bohr2(self) -> np.ndarray:
+        """Current fixed surface areas."""
+
+    def apply_energy_conjugate(
+        self,
+        surface_potential_hartree_per_e: np.ndarray,
+    ) -> np.ndarray:
+        """Apply the reciprocal energy-conjugate surface response."""
+
+    def solve(
+        self,
+        surface_potential_hartree_per_e: np.ndarray,
+    ) -> SurfaceChargeState:
+        """Return direct, adjoint, conjugate charge, and polarization energy."""
+
+
+class PCMSolverExternalMEPCavityResponse:
+    """Adapt one open symmetric PCMSolver session to the external-MEP contract."""
+
+    contract_version = EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
+    energy_response_is_reciprocal = True
+
+    def __init__(
+        self,
+        session: PCMSolverSession,
+        *,
+        cavity_radii_angstrom: np.ndarray,
+    ) -> None:
+        if not session.response_operator_is_symmetric:
+            raise ValueError(
+                "Route-2 external-MEP response requires PCMSolver "
+                "MATRIXSYMM=TRUE."
+            )
+        atomic_numbers = _immutable_vector(
+            session.atomic_numbers,
+            name="atomic_numbers",
+            positive=True,
+        )
+        positions = _immutable_matrix(
+            session.coordinates_bohr,
+            name="reference_positions_bohr",
+            rows=atomic_numbers.size,
+        )
+        radii = _immutable_vector(
+            cavity_radii_angstrom,
+            name="cavity_radii_angstrom",
+            length=atomic_numbers.size,
+            positive=True,
+        )
+        points = _immutable_matrix(
+            session.cavity_centers_bohr,
+            name="surface_points_bohr",
+        )
+        _immutable_vector(
+            session.cavity_areas_bohr2,
+            name="surface_areas_bohr2",
+            length=points.shape[0],
+            positive=True,
+        )
+
+        self._session = session
+        self._atomic_numbers = atomic_numbers
+        self._reference_positions_bohr = positions
+        self._cavity_radii_angstrom = radii
+        self._surface_size = points.shape[0]
+
+    @property
+    def atomic_numbers(self) -> np.ndarray:
+        return self._atomic_numbers.copy()
+
+    @property
+    def reference_positions_bohr(self) -> np.ndarray:
+        return self._reference_positions_bohr.copy()
+
+    @property
+    def cavity_radii_angstrom(self) -> np.ndarray:
+        return self._cavity_radii_angstrom.copy()
+
+    @property
+    def surface_points_bohr(self) -> np.ndarray:
+        return _immutable_matrix(
+            self._session.cavity_centers_bohr,
+            name="surface_points_bohr",
+        ).copy()
+
+    @property
+    def surface_areas_bohr2(self) -> np.ndarray:
+        points = self.surface_points_bohr
+        return _immutable_vector(
+            self._session.cavity_areas_bohr2,
+            name="surface_areas_bohr2",
+            length=points.shape[0],
+            positive=True,
+        ).copy()
+
+    def _validated_surface_potential(
+        self,
+        values: np.ndarray,
+    ) -> np.ndarray:
+        return _immutable_vector(
+            values,
+            name="surface_potential_hartree_per_e",
+            length=self._surface_size,
+        )
+
+    def apply_energy_conjugate(
+        self,
+        surface_potential_hartree_per_e: np.ndarray,
+    ) -> np.ndarray:
+        potential = self._validated_surface_potential(
+            surface_potential_hartree_per_e
+        )
+        charge = _immutable_vector(
+            self._session.compute_asc(potential),
+            name="energy_conjugate_surface_charge_e",
+            length=potential.size,
+        )
+        return charge.copy()
+
+    def solve(
+        self,
+        surface_potential_hartree_per_e: np.ndarray,
+    ) -> SurfaceChargeState:
+        potential = self._validated_surface_potential(
+            surface_potential_hartree_per_e
+        )
+        solved = self._session.solve(potential)
+        try:
+            direct = solved["asc"]
+            energy = solved["polarization_energy"]
+        except (KeyError, TypeError) as exc:
+            raise RuntimeError(
+                "PCMSolver solve() must return asc and polarization_energy."
+            ) from exc
+        return SurfaceChargeState(
+            surface_potential_hartree_per_e=potential,
+            direct_surface_charge_e=direct,
+            adjoint_surface_charge_e=direct,
+            energy_conjugate_surface_charge_e=direct,
+            polarization_energy_hartree=float(energy),
+        )
+
+
+__all__ = [
+    "EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION",
+    "ExternalMEPCavityResponse",
+    "PCMSolverExternalMEPCavityResponse",
+    "SurfaceChargeState",
+]

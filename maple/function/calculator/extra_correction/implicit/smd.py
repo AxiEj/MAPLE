@@ -31,6 +31,11 @@ import numpy as np
 from ase.units import Bohr, Hartree
 
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
+from .continuum_response import (
+    EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
+    ExternalMEPCavityResponse,
+    PCMSolverExternalMEPCavityResponse,
+)
 from .gto_density import (
     density_reaction_coupling,
     point_asc_reaction_potential_gradient,
@@ -657,33 +662,58 @@ class SMDImplicitSolvation:
 
     def _solve_pcm(
         self,
-        session: PCMSolverSession,
+        response: ExternalMEPCavityResponse,
         atoms,
         density_coefficients: np.ndarray,
     ) -> _PCMState:
+        if (
+            getattr(response, "contract_version", None)
+            != EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
+        ):
+            raise ValueError(
+                "Unsupported external-MEP continuum-response contract version."
+            )
+        surface_points_bohr = np.asarray(
+            response.surface_points_bohr,
+            dtype=float,
+        )
         mep = point_multipole_potential(
-            session.cavity_centers_bohr,
+            surface_points_bohr,
             atoms.get_positions(),
             density_coefficients,
         )
-        solved = session.solve(mep)
-        asc = np.asarray(solved["asc"], dtype=float)
-        polarization_energy = float(solved["polarization_energy"])
+        solved = response.solve(mep)
+        solved_mep = np.asarray(
+            solved.surface_potential_hartree_per_e,
+            dtype=float,
+        )
+        if solved_mep.shape != mep.shape or not np.array_equal(solved_mep, mep):
+            raise RuntimeError(
+                "Continuum response returned a state for a different surface "
+                "potential."
+            )
+        asc = np.asarray(
+            solved.energy_conjugate_surface_charge_e,
+            dtype=float,
+        )
+        polarization_energy = float(solved.polarization_energy_hartree)
         if not np.all(np.isfinite(asc)) or not np.isfinite(polarization_energy):
-            raise RuntimeError("PCMSolver returned non-finite ASC/energy values.")
+            raise RuntimeError(
+                "Continuum response returned non-finite ASC/energy values."
+            )
 
         surface_coupling = float(np.dot(mep, asc))
         expected_coupling = 2.0 * polarization_energy
         tolerance = max(1.0e-10, 1.0e-8 * abs(expected_coupling))
         if abs(surface_coupling - expected_coupling) > tolerance:
             raise RuntimeError(
-                "PCMSolver polarization-energy convention check failed: "
-                "compute_polarization_energy must equal 0.5*dot(MEP,ASC)."
+                "Continuum polarization-energy convention check failed: "
+                "E_pol must equal 0.5*dot(MEP,q_energy)."
             )
 
         reaction_potential, reaction_gradient = point_asc_reaction_potential_gradient(
             atoms.get_positions(),
-            session.cavity_centers_bohr,
+            surface_points_bohr,
             asc,
         )
         multipole_coupling = density_reaction_coupling(
@@ -723,7 +753,7 @@ class SMDImplicitSolvation:
 
     def _self_consistent_state(
         self,
-        session: PCMSolverSession,
+        response: ExternalMEPCavityResponse,
         atoms,
         calculator,
         gas_state,
@@ -736,7 +766,7 @@ class SMDImplicitSolvation:
         final_state = None
 
         for iteration in range(1, SCF_MAX_ITERATIONS + 1):
-            pcm_state = self._solve_pcm(session, atoms, density)
+            pcm_state = self._solve_pcm(response, atoms, density)
             response_state = self._polarize(calculator, atoms, pcm_state)
             response_density = self._validate_density(
                 response_state.density_coefficients, len(atoms)
@@ -786,7 +816,7 @@ class SMDImplicitSolvation:
         final_density = self._validate_density(
             final_state.density_coefficients, len(atoms)
         )
-        final_pcm = self._solve_pcm(session, atoms, final_density)
+        final_pcm = self._solve_pcm(response, atoms, final_density)
         return final_state, final_pcm, history
 
     def _write_result_audit(
@@ -912,6 +942,14 @@ class SMDImplicitSolvation:
                         initialization_seconds = (
                             time.perf_counter() - initialization_started
                         )
+                        continuum_response = (
+                            PCMSolverExternalMEPCavityResponse(
+                                session,
+                                cavity_radii_angstrom=(
+                                    self.coulomb_radii_angstrom
+                                ),
+                            )
+                        )
                         _flush_process_stderr()
                         native_stderr = native_stderr_path.read_text(
                             encoding="utf-8", errors="replace"
@@ -941,7 +979,7 @@ class SMDImplicitSolvation:
                             if self.response == "frozen":
                                 solvent_state = gas_state
                                 pcm_state = self._solve_pcm(
-                                    session,
+                                    continuum_response,
                                     atoms,
                                     gas_state.density_coefficients,
                                 )
@@ -952,7 +990,7 @@ class SMDImplicitSolvation:
                                     pcm_state,
                                     history,
                                 ) = self._self_consistent_state(
-                                    session,
+                                    continuum_response,
                                     atoms,
                                     calculator,
                                     gas_state,

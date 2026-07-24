@@ -1166,13 +1166,42 @@ These are cold validation timings, not production throughput: model loading,
 finite-difference oracles, and independent process startup are reported
 separately.
 
+On clean baseline `c63f78f`, one further canary added the separately validated
+PySCF 2.13.1 water-SMD CDS energy/gradient pair to the 1202-point pyddx
+continuum contribution. For the largest total-gradient component (C0-y), a
+predeclared \(3\times10^{-5}\)-angstrom fully reconverged central difference
+gave continuum, CDS, and total absolute errors of
+\(6.00\times10^{-6}\), \(1.67\times10^{-7}\), and
+\(6.17\times10^{-6}\) eV/angstrom. The total relative error was
+\(1.80\times10^{-5}\), below but close to the predeclared
+\(2\times10^{-5}\) gate. Translation and torque norms were
+\(1.26\times10^{-14}\) eV/angstrom and \(6.38\times10^{-4}\) eV.
+The density root, adjoint, energy identity, component, total, translation, and
+torque gates all passed.
+
+The recorded base density root and post-root analytic derivative took `14.82`
+and `15.73 s`; the positive/negative fully reconverged finite-difference oracle
+took `32.24 s`. The first CDS call took `0.0615 s`, and the two displaced CDS
+calls together took about `0.0051 s`, so CDS is not the reason that this
+gradient-validation command is longer than an energy-only calculation. The
+extra cost is the analytic response/adjoint plus two additional ML-SCF roots.
+The structured PCMSolver/`primary` warning count was zero. The
+`no_pcmsolver_primary_warning=true` field is a passed gate, not a warning; old
+public-path records named `primary` identify the first cavity attempt, whose
+actual warning state is recorded separately. The current artifact records 73
+other Python warnings; earlier same-configuration, same-count energy canaries
+classify them as MACE/Torch deprecation and SWIG metadata warnings rather than
+continuum-cavity instability.
+
 This remains an engineering canary, not an adopted grid or a solution-phase
 PES. The adapter is lazy, hard-gated to pyddx 0.8.0, and absent from the
 public parser. The real coupled continuum-electrostatic gradient is now
 checked against one largest-component whole-energy finite difference and one
-additional rigid orientation for methanol, but SMD CDS assembly,
-`SolvationResult` force publication, broader rotation, a second molecule,
-flexible geometries, and chemical-space accuracy remain open.
+additional rigid orientation for methanol; the total continuum-plus-CDS
+gradient is checked against one largest-component whole-energy finite
+difference. `SolvationResult` force publication, a total-gradient second
+orientation, broader rotation, a second molecule, flexible geometries, and
+chemical-space accuracy remain open.
 
 Route-2 references:
 

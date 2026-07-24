@@ -417,9 +417,39 @@ proof-of-concept, not a complete solution-phase PES.
     result with a fully reconverged scalar-energy finite difference. This
     locks the dispatch-independent algebra but does not replace the real-MACE
     evidence.
-24. Compare the summed analytic force with central finite differences of the
-    converged total energy, then enforce translation, rotation, and energy
-    conservation checks.
+24. A clean methanol canary at baseline `c63f78f` combines the 1202-point
+    pyddx ddPCM/MACE-POLAR continuum gradient with the separately validated
+    PySCF 2.13.1 water-SMD CDS energy/gradient pair. On the largest total
+    component (C0-y), the predeclared \(3\times10^{-5}\)-angstrom fully
+    reconverged central difference had continuum, CDS, and total absolute
+    errors of \(6.00\times10^{-6}\), \(1.67\times10^{-7}\), and
+    \(6.17\times10^{-6}\) eV/angstrom. The total relative error was
+    \(1.80\times10^{-5}\), below but close to the predeclared
+    \(2\times10^{-5}\) limit. Translation and torque norms were
+    \(1.26\times10^{-14}\) eV/angstrom and \(6.38\times10^{-4}\) eV.
+
+    The density root converged in 18 iterations to
+    \(7.12\times10^{-13}\); the adjoint relative residual and
+    polarization-energy identity error were \(1.83\times10^{-13}\) and
+    \(1.11\times10^{-15}\) eV. Every predeclared root, adjoint, identity,
+    assembly, component, total, translation, torque, and warning gate passed.
+
+    The base root, post-root analytic derivative, and two-displacement
+    fully-reconverged oracle took `14.82`, `15.73`, and `32.24 s`. The base CDS
+    call took only `0.0615 s`, with about `0.0051 s` for both displaced CDS
+    calls; the analytic response and two additional ML-SCF roots explain the
+    longer gradient-validation command. The structured
+    PCMSolver/`primary` warning count was zero. The
+    `no_pcmsolver_primary_warning=true` key is a passed gate. The current
+    artifact records 73 other Python warnings; earlier same-configuration,
+    same-count energy canaries classify them as existing MACE/Torch
+    deprecation and SWIG metadata warnings rather than a PCM cavity warning.
+
+    This checks one total-gradient component for one molecule. Its relative
+    error is close to the gate, 1202 points remains a candidate rather than a
+    default, and no total-gradient second orientation, second molecule,
+    public force, flexible-geometry conservation, portable speed, or chemical
+    accuracy is established.
 25. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 

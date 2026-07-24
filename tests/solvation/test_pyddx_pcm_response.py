@@ -19,6 +19,7 @@ from maple.function.calculator.extra_correction.implicit.pyddx_pcm_response impo
     mace_polar_density_to_pyddx_multipoles,
 )
 from maple.function.calculator.extra_correction.implicit.route2_derivative import (
+    assemble_total_solvation_coordinate_gradient,
     continuum_coupled_solvation_coordinate_gradient,
     fixed_cavity_energy_density_gradient,
 )
@@ -216,7 +217,7 @@ def test_pyddx_full_position_vjp_uses_complete_energy_polarization_identity(
     )
 
 
-def test_pyddx_map_composes_with_fixed_point_adjoint_and_full_gradient(
+def test_pyddx_map_composes_with_fixed_point_adjoint_and_total_cds_gradient(
     fake_runtime,
 ):
     atom_count = 2
@@ -255,6 +256,9 @@ def test_pyddx_map_composes_with_fixed_point_adjoint_and_full_gradient(
     )
     positions = np.asarray([[-0.7, 0.1, 0.2], [0.8, -0.2, -0.1]])
     radii = np.asarray([1.2, 1.5])
+    cds_gradient_hartree_per_angstrom = np.asarray(
+        [[0.001, -0.002, 0.003], [-0.001, 0.002, -0.003]]
+    )
 
     def state_at(displaced_positions):
         reaction = PyDDXPCMReactionFieldLinearMap(
@@ -292,9 +296,22 @@ def test_pyddx_map_composes_with_fixed_point_adjoint_and_full_gradient(
         polarization_energy = (
             reaction.polarization_energy_hartree(density) * Hartree
         )
-        return reaction, density, field, intrinsic_energy + polarization_energy
+        continuum_energy = intrinsic_energy + polarization_energy
+        cds_energy = float(
+            np.vdot(
+                cds_gradient_hartree_per_angstrom,
+                displaced_positions - positions,
+            )
+        )
+        return (
+            reaction,
+            density,
+            field,
+            continuum_energy,
+            continuum_energy + cds_energy * Hartree,
+        )
 
-    reaction, density, field, _ = state_at(positions)
+    reaction, density, field, _, _ = state_at(positions)
     np.testing.assert_allclose(
         density,
         base_density + density_response.jvp(field),
@@ -322,7 +339,7 @@ def test_pyddx_map_composes_with_fixed_point_adjoint_and_full_gradient(
         absolute_tolerance=1.0e-13,
     )
     zero_coordinates = np.zeros((atom_count, 3))
-    analytic = continuum_coupled_solvation_coordinate_gradient(
+    continuum_analytic = continuum_coupled_solvation_coordinate_gradient(
         reaction,
         density_response,
         density_coefficients=density,
@@ -332,20 +349,38 @@ def test_pyddx_map_composes_with_fixed_point_adjoint_and_full_gradient(
         solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
         gas_forces_ev_per_angstrom=zero_coordinates,
     )
+    total_analytic = assemble_total_solvation_coordinate_gradient(
+        continuum_analytic,
+        cds_gradient_hartree_per_angstrom,
+    )
 
     step = 1.0e-5
-    displaced_energies = []
+    displaced_continuum_energies = []
+    displaced_total_energies = []
     for sign in (-1.0, 1.0):
         displaced = positions.copy()
         displaced[0, 0] += sign * step
-        displaced_energies.append(state_at(displaced)[-1])
-    finite_difference = (
-        displaced_energies[1] - displaced_energies[0]
+        displaced_state = state_at(displaced)
+        displaced_continuum_energies.append(displaced_state[-2])
+        displaced_total_energies.append(displaced_state[-1])
+    continuum_finite_difference = (
+        displaced_continuum_energies[1] - displaced_continuum_energies[0]
+    ) / (2.0 * step)
+    total_finite_difference = (
+        displaced_total_energies[1] - displaced_total_energies[0]
     ) / (2.0 * step)
 
     assert adjoint.relative_residual <= 1.0e-12
-    assert analytic[0, 0] == pytest.approx(
-        finite_difference,
+    assert continuum_analytic[0, 0] == pytest.approx(
+        continuum_finite_difference,
+        abs=2.0e-8,
+        rel=2.0e-7,
+    )
+    assert (
+        total_analytic.total_position_gradient_hartree_per_angstrom[0, 0]
+        * Hartree
+    ) == pytest.approx(
+        total_finite_difference,
         abs=2.0e-8,
         rel=2.0e-7,
     )

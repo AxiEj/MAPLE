@@ -150,8 +150,9 @@ not a complete solution-phase PES.
     nonsymmetric, coordinate-dependent IEFPCM \(K/R\) system passes energy,
     bilinear, symmetry, and atom-field-pairing finite differences. This is an
     algebra/interface gate only: PCMSolver still fails closed because its
-    GePol/operator derivative is unavailable, and moving-surface kernel plus CDS
-    terms remain absent.
+    GePol/operator derivative is unavailable. The separately named optional
+    PySCF smooth profile supplies its own matching moving-surface/operator terms
+    only under the narrower gate in item 17; CDS remains absent.
 15. A correct-unit acetone cavity scan found no warning-free `AREA` point from
     `0.3` through `1.0 bohr^2` at `MINRADIUS=0.30 A`: the fine end retained the
     native non-positive-definite-matrix warning, while the coarse end developed
@@ -179,12 +180,29 @@ not a complete solution-phase PES.
     not accepted. Synthetic resolved-root and split-partial tests lock the
     adjoint assembly and prevent accidental addition of the fixed-surface and
     full VJPs. The public PCMSolver map lacks this contract and fails closed at
-    this top-level boundary. SMD CDS remains separate, no production provider
-    implements the full contract, and Route 2 still does not expose forces.
-17. Compare the summed analytic force with central finite differences of the
+    this top-level boundary. SMD CDS remains separate, no public production
+    provider implements the full contract, and Route 2 still does not expose
+    forces.
+17. The optional, lazily imported `PySCFSWIGIEFPCMResponse` now implements one
+    same-energy smooth-continuum full-position VJP without changing the public
+    PCMSolver route. It combines solute-centre and moving-surface
+    point-multipole derivatives with PySCF's matching SWIG/IEFPCM operator
+    derivative. On one fixed-density, order-17 acetone canary with 643 surface
+    points, the three representative \(10^{-4}\)-angstrom relative errors were
+    \(1.54\times10^{-8}\), \(6.71\times10^{-9}\), and
+    \(2.00\times10^{-7}\); translation closure was below
+    \(1.9\times10^{-16}\) eV/angstrom. The tracked adapter agrees with the
+    independent formula path to \(1.9\times10^{-15}\) relative or better. This
+    is not a provider-adoption or force gate: PySCF's private gradient
+    intermediates are locked to tested version 2.13.1, mixed same-element
+    per-atom radii are rejected, order 17 previously failed the rigid-rotation
+    gate, the real MACE adjoint and CDS are not included, and the public parser
+    remains PCMSolver-only. Local elapsed times are retained only as diagnostic
+    artifact metadata and are not portable speed benchmarks.
+18. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-18. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+19. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

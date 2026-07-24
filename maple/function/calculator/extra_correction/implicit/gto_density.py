@@ -163,6 +163,70 @@ def point_multipole_potential_position_vjp(
     return position_vjp
 
 
+def point_multipole_potential_surface_position_vjp(
+    points_bohr: np.ndarray,
+    atom_positions_angstrom: np.ndarray,
+    density_coefficients: np.ndarray,
+    surface_cotangent: np.ndarray,
+) -> np.ndarray:
+    """Contract the point-multipole MEP derivative over surface coordinates.
+
+    Atom positions and density coefficients are held fixed.  This evaluates
+    ``(dV_surface/dS).T @ surface_cotangent`` directly for the surface-point
+    coordinates ``S`` supplied in bohr.  The returned array therefore has shape
+    ``(n_surface, 3)`` and is differentiated per bohr.  It is the moving-node
+    counterpart of :func:`point_multipole_potential_position_vjp`, not a
+    continuum-operator or total solvent derivative.
+    """
+
+    points = np.asarray(points_bohr, dtype=float)
+    positions = np.asarray(atom_positions_angstrom, dtype=float)
+    cotangent = np.asarray(surface_cotangent, dtype=float)
+    if (
+        points.ndim != 2
+        or points.shape[1] != 3
+        or not np.all(np.isfinite(points))
+    ):
+        raise ValueError("MEP points must be finite with shape (n_points, 3).")
+    if (
+        positions.ndim != 2
+        or positions.shape[1] != 3
+        or not np.all(np.isfinite(positions))
+    ):
+        raise ValueError("Atom positions must be finite with shape (n_atoms, 3).")
+    if cotangent.shape != (points.shape[0],):
+        raise ValueError("Surface cotangent length does not match MEP points.")
+    if not np.all(np.isfinite(cotangent)):
+        raise ValueError("Surface cotangent must be finite.")
+    charges, dipoles_angstrom = cartesian_multipoles(density_coefficients)
+    if positions.shape[0] != charges.shape[0]:
+        raise ValueError("Density coefficient count does not match atom positions.")
+
+    positions_bohr = positions / Bohr
+    dipoles_bohr = dipoles_angstrom / Bohr
+    surface_position_vjp = np.zeros_like(points)
+    for center, charge, dipole in zip(
+        positions_bohr,
+        charges,
+        dipoles_bohr,
+        strict=True,
+    ):
+        displacement = points - center
+        radius = np.linalg.norm(displacement, axis=1)
+        if np.any(radius <= 1.0e-14):
+            raise ValueError("A PCM surface point coincides with an atomic centre.")
+        dipole_projection = np.einsum("ij,j->i", displacement, dipole)
+        atom_position_derivative_bohr = (
+            (charge / radius**3)[:, None] * displacement
+            - dipole[None, :] / radius[:, None] ** 3
+            + (3.0 * dipole_projection / radius**5)[:, None] * displacement
+        )
+        surface_position_vjp -= (
+            cotangent[:, None] * atom_position_derivative_bohr
+        )
+    return surface_position_vjp
+
+
 def gaussian_multipole_potential(
     points_bohr: np.ndarray,
     atom_positions_angstrom: np.ndarray,

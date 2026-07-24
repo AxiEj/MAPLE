@@ -5,7 +5,9 @@ import pytest
 from ase.units import Bohr, Hartree
 
 from maple.function.calculator.extra_correction.implicit.continuum_response import (
+    EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
     PCMSolverExternalMEPCavityResponse,
+    SurfaceChargeState,
 )
 from maple.function.calculator.extra_correction.implicit.gto_density import (
     point_asc_reaction_potential_gradient,
@@ -15,6 +17,8 @@ from maple.function.calculator.extra_correction.implicit.route2_derivative impor
     continuum_coupled_solvation_coordinate_gradient,
 )
 from maple.function.calculator.extra_correction.implicit.route2_pcm_response import (
+    ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION,
+    AtomCenteredSurfacePCMReactionFieldLinearMap,
     FixedCavityPCMReactionFieldLinearMap,
 )
 
@@ -43,6 +47,96 @@ class _ZeroDensityResponse:
     @staticmethod
     def vjp(density_cotangent: np.ndarray) -> np.ndarray:
         return np.zeros_like(density_cotangent)
+
+
+class _AtomCenteredMovingResponse:
+    contract_version = EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
+    operator_derivative_contract_version = 1
+    surface_motion_contract_version = (
+        ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION
+    )
+    energy_response_is_reciprocal = True
+
+    def __init__(self, atom_positions_angstrom: np.ndarray):
+        positions = np.asarray(atom_positions_angstrom, dtype=float)
+        self._positions = positions.copy()
+        self._atomic_numbers = np.ones(len(positions))
+        self._parents = np.asarray([0, 0, 1, 1, 2, 2], dtype=int)
+        self._offsets_bohr = np.asarray(
+            [
+                [-2.1, 0.4, 0.2],
+                [1.8, -0.5, 0.7],
+                [-1.7, 1.3, -0.4],
+                [2.2, 0.6, -0.8],
+                [0.5, -2.0, 1.1],
+                [-0.9, 1.8, -1.4],
+            ]
+        )
+        rng = np.random.default_rng(20260725)
+        base = rng.normal(scale=0.05, size=(6, 6))
+        self._base_response = base + base.T
+        derivative = rng.normal(scale=0.002, size=(3, 3, 6, 6))
+        self._response_derivative = derivative + derivative.swapaxes(-1, -2)
+        self._response_matrix = self._base_response + np.einsum(
+            "ak,akij->ij",
+            positions,
+            self._response_derivative,
+        )
+
+    @property
+    def atomic_numbers(self):
+        return self._atomic_numbers.copy()
+
+    @property
+    def reference_positions_bohr(self):
+        return self._positions.copy() / Bohr
+
+    @property
+    def cavity_radii_angstrom(self):
+        return np.full(len(self._positions), 1.5)
+
+    @property
+    def surface_points_bohr(self):
+        return (
+            self._positions[self._parents] / Bohr
+            + self._offsets_bohr
+        )
+
+    @property
+    def surface_areas_bohr2(self):
+        return np.ones(len(self._parents))
+
+    @property
+    def surface_parent_atom_indices(self):
+        return self._parents.copy()
+
+    def apply_energy_conjugate(self, surface_potential_hartree_per_e):
+        return self._response_matrix @ np.asarray(
+            surface_potential_hartree_per_e,
+            dtype=float,
+        )
+
+    def solve(self, surface_potential_hartree_per_e):
+        potential = np.asarray(
+            surface_potential_hartree_per_e,
+            dtype=float,
+        )
+        charge = self.apply_energy_conjugate(potential)
+        return SurfaceChargeState(
+            surface_potential_hartree_per_e=potential,
+            direct_surface_charge_e=charge,
+            adjoint_surface_charge_e=charge,
+            energy_conjugate_surface_charge_e=charge,
+            polarization_energy_hartree=0.5 * float(np.dot(potential, charge)),
+        )
+
+    def operator_position_vjp(self, left, right):
+        return np.einsum(
+            "i,akij,j->ak",
+            np.asarray(left, dtype=float),
+            self._response_derivative,
+            np.asarray(right, dtype=float),
+        )
 
 
 def _operator(*, symmetric: bool = True):
@@ -83,6 +177,14 @@ def _operator(*, symmetric: bool = True):
         positions,
         session,
         continuum_response,
+    )
+
+
+def _moving_operator(atom_positions_angstrom: np.ndarray):
+    response = _AtomCenteredMovingResponse(atom_positions_angstrom)
+    return AtomCenteredSurfacePCMReactionFieldLinearMap(
+        response,
+        atom_positions_angstrom,
     )
 
 
@@ -161,6 +263,69 @@ def test_current_pcmsolver_map_fails_closed_for_full_coordinate_gradient():
             solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
             gas_forces_ev_per_angstrom=zero_coordinates,
         )
+
+
+def test_atom_centered_surface_pcm_full_position_vjp_matches_rebuilt_energy_fd():
+    positions = np.asarray(
+        [
+            [-0.7, 0.1, 0.2],
+            [0.8, -0.2, 0.3],
+            [0.2, 0.9, -0.4],
+        ]
+    )
+    rng = np.random.default_rng(20260725)
+    density = rng.normal(size=(len(positions), 4))
+    field_cotangent = rng.normal(size=(len(positions), 4))
+    operator = _moving_operator(positions)
+
+    analytic = operator.full_position_vjp(density, field_cotangent)
+    finite_difference = np.empty_like(positions)
+    step_angstrom = 1.0e-6
+
+    def scalar(position_values: np.ndarray) -> float:
+        displaced = _moving_operator(position_values)
+        return float(np.vdot(field_cotangent, displaced.apply(density)))
+
+    for atom_index in range(len(positions)):
+        for coordinate in range(3):
+            plus = positions.copy()
+            minus = positions.copy()
+            plus[atom_index, coordinate] += step_angstrom
+            minus[atom_index, coordinate] -= step_angstrom
+            finite_difference[atom_index, coordinate] = (
+                scalar(plus) - scalar(minus)
+            ) / (2.0 * step_angstrom)
+
+    np.testing.assert_allclose(
+        analytic,
+        finite_difference,
+        rtol=3.0e-7,
+        atol=3.0e-7,
+    )
+
+
+def test_atom_centered_surface_pcm_map_rejects_missing_or_invalid_motion_contract():
+    positions = np.asarray(
+        [
+            [-0.7, 0.1, 0.2],
+            [0.8, -0.2, 0.3],
+            [0.2, 0.9, -0.4],
+        ]
+    )
+    response = _AtomCenteredMovingResponse(positions)
+    response.surface_motion_contract_version = None
+    with pytest.raises(NotImplementedError, match="surface-motion"):
+        AtomCenteredSurfacePCMReactionFieldLinearMap(response, positions)
+
+    response = _AtomCenteredMovingResponse(positions)
+    response.surface_motion_contract_version = 2
+    with pytest.raises(ValueError, match="surface-motion"):
+        AtomCenteredSurfacePCMReactionFieldLinearMap(response, positions)
+
+    response = _AtomCenteredMovingResponse(positions)
+    response._parents[-1] = -1
+    with pytest.raises(ValueError, match="parent"):
+        AtomCenteredSurfacePCMReactionFieldLinearMap(response, positions)
 
 
 def test_fixed_cavity_pcm_map_can_reuse_surface_at_displaced_solute_positions():

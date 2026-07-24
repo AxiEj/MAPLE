@@ -10,6 +10,7 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
     point_multipole_potential_position_vjp,
+    point_multipole_potential_surface_position_vjp,
 )
 
 
@@ -70,6 +71,93 @@ def test_point_multipole_position_vjp_matches_central_difference():
         rel=2.0e-8,
         abs=2.0e-9,
     )
+
+
+def test_point_multipole_surface_position_vjp_matches_central_difference():
+    positions_angstrom, surface_bohr, coefficients, asc = _fixed_kernel_inputs()
+    analytic = point_multipole_potential_surface_position_vjp(
+        surface_bohr,
+        positions_angstrom,
+        coefficients,
+        asc,
+    )
+    finite_difference = np.empty_like(surface_bohr)
+    step_bohr = 1.0e-6
+
+    for point_index in range(surface_bohr.shape[0]):
+        for coordinate in range(3):
+            plus = surface_bohr.copy()
+            minus = surface_bohr.copy()
+            plus[point_index, coordinate] += step_bohr
+            minus[point_index, coordinate] -= step_bohr
+            finite_difference[point_index, coordinate] = (
+                np.dot(
+                    asc,
+                    point_multipole_potential(plus, positions_angstrom, coefficients),
+                )
+                - np.dot(
+                    asc,
+                    point_multipole_potential(minus, positions_angstrom, coefficients),
+                )
+            ) / (2.0 * step_bohr)
+
+    assert analytic == pytest.approx(
+        finite_difference,
+        rel=2.0e-8,
+        abs=2.0e-9,
+    )
+
+
+def test_point_multipole_position_vjps_close_under_rigid_translation():
+    positions_angstrom, surface_bohr, coefficients, asc = _fixed_kernel_inputs()
+    atom_vjp_per_angstrom = point_multipole_potential_position_vjp(
+        surface_bohr,
+        positions_angstrom,
+        coefficients,
+        asc,
+    )
+    surface_vjp_per_bohr = point_multipole_potential_surface_position_vjp(
+        surface_bohr,
+        positions_angstrom,
+        coefficients,
+        asc,
+    )
+
+    total_vjp_per_angstrom = np.sum(
+        atom_vjp_per_angstrom,
+        axis=0,
+    ) + np.sum(surface_vjp_per_bohr, axis=0) / Bohr
+
+    assert total_vjp_per_angstrom == pytest.approx(
+        np.zeros(3),
+        rel=0.0,
+        abs=2.0e-12,
+    )
+
+
+@pytest.mark.parametrize(
+    ("surface_bohr", "surface_cotangent", "message"),
+    [
+        (np.zeros(3), np.zeros(1), "shape"),
+        (np.full((1, 3), np.nan), np.zeros(1), "finite"),
+        (np.zeros((1, 3)), np.full(1, np.inf), "finite"),
+        (np.zeros((2, 3)), np.zeros(1), "length"),
+    ],
+)
+def test_point_multipole_surface_position_vjp_rejects_invalid_inputs(
+    surface_bohr,
+    surface_cotangent,
+    message,
+):
+    positions_angstrom, _, coefficients, _ = _fixed_kernel_inputs()
+
+    with pytest.raises(ValueError, match=message):
+        point_multipole_potential_surface_position_vjp(
+            surface_bohr,
+            positions_angstrom,
+            coefficients,
+            surface_cotangent,
+        )
 
 
 def test_point_asc_position_vjp_matches_central_difference():

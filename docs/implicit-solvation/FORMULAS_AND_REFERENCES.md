@@ -671,9 +671,52 @@ energy with a different provider's coordinate derivative.
 into the already-tested fixed-point adjoint expression. Synthetic resolved-root
 and split-partial tests lock the coefficient and make sure the fixed-surface
 partial is not added again. Current PCMSolver-backed reaction maps deliberately
-do not implement this contract and therefore fail closed. SMD CDS is still
-outside this continuum expression, so the function is an architecture gate,
-not a total solvent force and not a solution-phase PES.
+do not implement this contract and therefore fail closed.
+
+For an atom-centred smooth surface,
+\(\mathbf s_j=\mathbf R_{p(j)}+a_{p(j)}\mathbf u_j\), the full continuum VJP
+must additionally move every surface node with its parent atom. If
+\(\mathbf a=A_{\mathbf R}c\),
+\(\mathbf b=A_{\mathbf R}\widetilde w\), and
+\(\mathbf q_{\mathbf a}=Q_{\mathrm{sym}}\mathbf a\),
+\(\mathbf q_{\mathbf b}=Q_{\mathrm{sym}}\mathbf b\), the moving-node terms are
+
+\[
+\left\langle\mathbf q_{\mathbf b},
+  (\partial_{\mathbf s}A_{\mathbf R})c\right\rangle
++
+\left\langle\mathbf q_{\mathbf a},
+  (\partial_{\mathbf s}A_{\mathbf R})\widetilde w\right\rangle,
+\qquad
+\frac{\partial\mathbf s_j}{\partial\mathbf R_A}
+=\delta_{A,p(j)}\mathbf I.
+\]
+
+They are distinct from
+\(\mathbf b^\mathsf T(dQ_{\mathrm{sym}})\mathbf a\): surface-potential
+projection owns node motion, while the continuum backend owns switching
+weights, areas, and \(S/D/K/R\) response. MAPLE's
+`AtomCenteredSurfacePCMReactionFieldLinearMap.full_position_vjp()` sums those
+terms with the fixed-surface solute/back-projection kernels and the
+same-provider operator VJP exactly once.
+
+The optional `PySCFSWIGIEFPCMResponse` research adapter now supplies this
+complete continuum-electrostatic map using PySCF 2.13.1 SWIG/IEFPCM energy and
+its matching analytic operator derivative. On one fixed-density, order-17
+acetone canary (643 surface points), three representative coordinate
+derivatives at \(10^{-4}\) angstrom had relative errors
+\(1.54\times10^{-8}\), \(6.71\times10^{-9}\), and
+\(2.00\times10^{-7}\); the net translation-gradient components were below
+\(1.9\times10^{-16}\) eV/angstrom. The tracked implementation agrees with the
+independent formula implementation to \(1.9\times10^{-15}\) relative or better.
+This closes only the fixed-density continuum-electrostatic slice. PySCF is
+loaded lazily, its private gradient-intermediate layout is locked to tested
+version 2.13.1, mixed same-element per-atom radii are rejected, order 17 has not
+passed the earlier rotation gate, and neither the public parser nor production
+provider selects it. The real MACE fixed-point adjoint, differentiable SMD CDS,
+total-force assembly, rotation/continuity tests, and chemical-space validation
+remain open. SMD CDS is outside this continuum expression, so Route 2 still
+does not expose a total solvent force or solution-phase PES.
 
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build
@@ -718,9 +761,10 @@ symmetrization or half-coupling identity is inconsistent. The current
 `PCMSolverExternalMEPCavityResponse` accepts only `MATRIXSYMM=TRUE`, for which
 all three charges coincide. Both the existing energy path and
 `FixedCavityPCMReactionFieldLinearMap` consume this energy-conjugate contract.
-This is an architectural boundary, not a new public provider: PCMSolver remains
-the only accepted runtime backend and PySCF remains an external validation
-environment.
+PCMSolver remains the only public parser/calculator backend.
+`PySCFSWIGIEFPCMResponse` is a separately named, optional research adapter:
+importing MAPLE does not require PySCF, and the adapter cannot be selected by
+the public input language.
 
 The corresponding provider-neutral operator-derivative boundary is
 `ExternalMEPCavityOperatorDerivative` contract version 1. It does not expose a
@@ -770,11 +814,13 @@ term is one half of this VJP:
 constructs the left and right surface potentials with the same point-multipole
 projection used by the energy path. A coordinate-dependent nonsymmetric
 synthetic \(K/R\) system locks both the energy and general bilinear identities
-against central finite differences. This is still not a total force:
-moving-surface derivatives of the solute-MEP and ASC-back-projection kernels,
-CDS, and a real differentiable continuum provider remain separate. The
-PCMSolver adapter deliberately does not implement the derivative contract and
-therefore fails closed.
+against central finite differences. The PCMSolver adapter deliberately does
+not implement the derivative contract and therefore fails closed. The optional
+PySCF SWIG/IEFPCM adapter combines this operator term with the matching
+moving-surface projection and back-projection derivatives in the full
+same-provider reaction-map VJP described above. That fixed-density continuum
+canary is not a total force: the real coupled MACE adjoint, CDS, and public
+provider/invariance gates remain separate.
 
 Route-2 references:
 

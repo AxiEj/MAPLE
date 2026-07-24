@@ -12,6 +12,7 @@ import numpy as np
 from ase.units import Bohr, Hartree
 
 from .continuum_derivative import (
+    EXTERNAL_MEP_OPERATOR_DERIVATIVE_CONTRACT_VERSION,
     continuum_operator_position_vjp as _continuum_operator_position_vjp,
 )
 from .continuum_response import (
@@ -24,7 +25,14 @@ from .gto_density import (
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
     point_multipole_potential_position_vjp,
+    point_multipole_potential_surface_position_vjp,
 )
+from .route2_derivative import (
+    FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION,
+)
+
+
+ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION = 1
 
 
 def _validated_atom_block(
@@ -258,6 +266,22 @@ class FixedCavityPCMReactionFieldLinearMap:
         )
 
         asc = self._compute_asc(coefficients)
+        adjoint_density = external_field_to_density_order(cotangent)
+        adjoint_asc = self._compute_asc(adjoint_density)
+        return self._fixed_surface_position_vjp_from_asc(
+            coefficients,
+            cotangent,
+            asc,
+            adjoint_asc,
+        )
+
+    def _fixed_surface_position_vjp_from_asc(
+        self,
+        coefficients: np.ndarray,
+        cotangent: np.ndarray,
+        asc: np.ndarray,
+        adjoint_asc: np.ndarray,
+    ) -> np.ndarray:
         # The stored field gradient is eV/(e Angstrom), whereas the kernel VJP
         # pairs its gradient with dipoles in e*bohr. Convert that cotangent by
         # 1/Bohr here, then convert both Hartree/Angstrom kernel terms to
@@ -270,8 +294,6 @@ class FixedCavityPCMReactionFieldLinearMap:
             cotangent[:, 1:] / Bohr,
         )
 
-        adjoint_density = external_field_to_density_order(cotangent)
-        adjoint_asc = self._compute_asc(adjoint_density)
         solute_mep_vjp = point_multipole_potential_position_vjp(
             self._centers_bohr,
             self._positions_angstrom,
@@ -339,4 +361,150 @@ class FixedCavityPCMReactionFieldLinearMap:
         return result
 
 
-__all__ = ["FixedCavityPCMReactionFieldLinearMap"]
+class AtomCenteredSurfacePCMReactionFieldLinearMap(
+    FixedCavityPCMReactionFieldLinearMap
+):
+    """Reaction map with an exact atom-centred surface-coordinate VJP.
+
+    The continuum response must own the exact operator derivative used by its
+    energy and expose one parent atom for every surface point.  Surface nodes are
+    assumed to translate rigidly with that parent at fixed angular quadrature;
+    switching weights, areas, and response matrices remain the backend's
+    operator-derivative responsibility.
+    """
+
+    full_position_derivative_contract_version = (
+        FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION
+    )
+
+    def __init__(
+        self,
+        response: ExternalMEPCavityResponse,
+        atom_positions_angstrom: np.ndarray,
+        *,
+        geometry_tolerance_angstrom: float = 1.0e-12,
+    ):
+        super().__init__(
+            response,
+            atom_positions_angstrom,
+            geometry_tolerance_angstrom=geometry_tolerance_angstrom,
+        )
+        motion_version = getattr(
+            response,
+            "surface_motion_contract_version",
+            None,
+        )
+        if motion_version is None:
+            raise NotImplementedError(
+                "The continuum backend does not provide an atom-centered "
+                "surface-motion derivative."
+            )
+        if motion_version != ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION:
+            raise ValueError(
+                "Unsupported atom-centered surface-motion contract version."
+            )
+        operator_version = getattr(
+            response,
+            "operator_derivative_contract_version",
+            None,
+        )
+        if operator_version is None:
+            raise NotImplementedError(
+                "The continuum backend does not provide an operator derivative."
+            )
+        if operator_version != (
+            EXTERNAL_MEP_OPERATOR_DERIVATIVE_CONTRACT_VERSION
+        ):
+            raise ValueError(
+                "Unsupported external-MEP operator-derivative contract version."
+            )
+
+        parents = np.asarray(
+            getattr(response, "surface_parent_atom_indices", None)
+        )
+        expected_shape = (self._centers_bohr.shape[0],)
+        valid_parent_indices = (
+            parents.shape == expected_shape
+            and np.issubdtype(parents.dtype, np.integer)
+            and np.all(parents >= 0)
+            and np.all(parents < self.atom_count)
+        )
+        if not valid_parent_indices:
+            raise ValueError(
+                "Surface parent atom indices must be integers with shape "
+                f"{expected_shape} and values in [0, {self.atom_count})."
+            )
+        self._surface_parent_atom_indices = np.array(
+            parents,
+            dtype=int,
+            copy=True,
+        )
+
+    def full_position_vjp(
+        self,
+        density: np.ndarray,
+        field_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate the complete same-provider reaction-field pairing."""
+
+        coefficients = _validated_atom_block(
+            density,
+            atom_count=self.atom_count,
+            name="density",
+        )
+        cotangent = _validated_atom_block(
+            field_cotangent,
+            atom_count=self.atom_count,
+            name="field_cotangent",
+        )
+        adjoint_density = external_field_to_density_order(cotangent)
+        asc = self._compute_asc(coefficients)
+        adjoint_asc = self._compute_asc(adjoint_density)
+
+        fixed_surface = self._fixed_surface_position_vjp_from_asc(
+            coefficients,
+            cotangent,
+            asc,
+            adjoint_asc,
+        )
+        surface_point_vjp = (
+            point_multipole_potential_surface_position_vjp(
+                self._centers_bohr,
+                self._positions_angstrom,
+                adjoint_density,
+                asc,
+            )
+            + point_multipole_potential_surface_position_vjp(
+                self._centers_bohr,
+                self._positions_angstrom,
+                coefficients,
+                adjoint_asc,
+            )
+        )
+        moving_surface = np.zeros((self.atom_count, 3), dtype=float)
+        np.add.at(
+            moving_surface,
+            self._surface_parent_atom_indices,
+            surface_point_vjp,
+        )
+        moving_surface *= Hartree / Bohr
+
+        continuum_operator = self.continuum_operator_position_vjp(
+            coefficients,
+            cotangent,
+        )
+        result = fixed_surface + moving_surface + continuum_operator
+        expected_shape = (self.atom_count, 3)
+        if result.shape != expected_shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "Full reaction-field position VJP must be finite with shape "
+                f"{expected_shape}; received {result.shape}."
+            )
+        return result
+
+
+__all__ = [
+    "ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION",
+    "AtomCenteredSurfacePCMReactionFieldLinearMap",
+    "FixedCavityPCMReactionFieldLinearMap",
+]

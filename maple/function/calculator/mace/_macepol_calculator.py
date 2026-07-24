@@ -60,6 +60,7 @@ class PolarState:
     energy_ev: float
     density_coefficients: np.ndarray
     dipole_e_angstrom: np.ndarray
+    fixed_field_forces_ev_per_angstrom: np.ndarray | None = None
 
 
 class _LocalReactionFieldProjector(torch.nn.Module):
@@ -279,10 +280,26 @@ class MACEPolCalculator(CalcABC):
             )
         dipole_np = np.asarray(dipole.detach().cpu(), dtype=float).reshape(-1, 3)[0]
         energy_ev = float(output["energy"].sum().detach().cpu())
+        forces = output.get("forces")
+        fixed_field_forces = None
+        if forces is not None:
+            fixed_field_forces = np.asarray(
+                forces.detach().cpu(),
+                dtype=float,
+            ).copy()
+            expected_shape = (density_np.shape[0], 3)
+            if fixed_field_forces.shape != expected_shape or not np.all(
+                np.isfinite(fixed_field_forces)
+            ):
+                raise RuntimeError(
+                    "MACE-POLAR fixed-local-field forces must be finite with "
+                    f"shape {expected_shape}; received {fixed_field_forces.shape}."
+                )
         return PolarState(
             energy_ev=energy_ev,
             density_coefficients=density_np,
             dipole_e_angstrom=dipole_np,
+            fixed_field_forces_ev_per_angstrom=fixed_field_forces,
         )
 
     def polar_output_torch(
@@ -368,7 +385,10 @@ class MACEPolCalculator(CalcABC):
         deliberately excludes the explicit ``<rho,V>`` coupling for a local
         field. Route 2 instead takes the PCMSolver polarization work directly
         as ``0.5*<rho,V>`` and uses the full coupling only as a reciprocity
-        diagnostic.
+        diagnostic.  When ``compute_forces`` is true, the state carries
+        ``-partial E_intrinsic/partial R`` in eV/Å with the supplied atom-indexed
+        potential and gradient samples held fixed.  This is a MACE-side partial
+        derivative, not a total implicit-solvent force.
         """
 
         potential_tensor = None
@@ -420,10 +440,9 @@ class MACEPolCalculator(CalcABC):
 
         forces_np = None
         if needs_forces:
-            forces = output.get("forces")
-            if forces is None:
+            forces_np = state.fixed_field_forces_ev_per_angstrom
+            if forces_np is None:
                 raise RuntimeError("MACE-POLAR did not return requested forces.")
-            forces_np = forces.detach().cpu().numpy().astype(float, copy=False)
 
         hessian_np = None
         if needs_hessian:

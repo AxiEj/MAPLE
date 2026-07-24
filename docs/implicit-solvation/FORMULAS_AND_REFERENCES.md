@@ -203,6 +203,29 @@ An energy-consistent implementation must account for all of the following:
    functional or an explicit coupled-response/implicit-differentiation solve;
 5. the analytic derivative of the geometry-dependent SMD CDS/SASA term.
 
+The first MACE-side position partial is now exposed explicitly. For fixed
+atom-indexed samples \(V_i\) and \(\nabla V_i\),
+
+\[
+\mathbf F_{\mathrm{MACE,fixed\ field}}
+=-\left.\frac{\partial E_{\mathrm{MACE,intrinsic}}}
+              {\partial\mathbf R}\right|_{\{V_i,\nabla V_i\}}.
+\]
+
+`PolarState.fixed_field_forces_ev_per_angstrom` carries this quantity in
+eV/angstrom when requested. Upstream MACE obtains it by automatic
+differentiation of its intrinsic energy with respect to model positions. MAPLE
+keeps the supplied node values constant during that derivative, so the result
+includes the geometry dependence of the field-polarized MACE representation but
+does not include \(dV_i/d\mathbf R\), \(d(\nabla V_i)/d\mathbf R\), PCM
+boundary/ASC response, CDS, or the converged fixed-point adjoint.
+
+A real float64 acetone component canary compared nine gas and nine polarized
+Cartesian components with central energy differences over three displacement
+steps. The best maximum absolute errors were \(4.37\times10^{-6}\) and
+\(3.27\times10^{-6}\) eV/angstrom. This validates the MACE-side partial and its
+unit/sign convention only; Route 2 still publishes no solvent force.
+
 The installed PCMSolver v1.1.12-style C interface used by MAPLE exposes cavity
 geometry, ASC, and polarization energy, but no nuclear-gradient API. Numerical
 whole-energy finite differences are therefore a reference oracle for

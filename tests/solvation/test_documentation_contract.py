@@ -47,6 +47,8 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "PCMSolver--GePol profile remains energy-only" in roadmap
     assert "Never combine energy from one cavity/operator definition" in roadmap
     assert "direct vector-Jacobian products" in roadmap
+    assert "fixed_field_forces_ev_per_angstrom" in formulas
+    assert "This is not a total solvent force" in roadmap
     assert "route2-protocol.json" in benchmark
     assert "does not define Route 2" in benchmark
     assert "No Route-2 FreeSolv accuracy artifact is frozen yet" in benchmark

@@ -197,7 +197,20 @@ selected, license-compatible differentiable provider.
 
 ### Phase 1 -- differentiable explicit geometry terms
 
-1. Return the gas and polarized MACE partial forces at fixed local field.
+1. **Done for the MACE-side partial:** `PolarState` now returns the gas or
+   polarized intrinsic MACE force
+   \[
+   -\left.\frac{\partial E_{\mathrm{MACE,intrinsic}}}
+                 {\partial\mathbf R}\right|_{\{V_i,\nabla V_i\}}
+   \]
+   in eV/angstrom when requested. The atom-indexed potential and gradient
+   samples are held fixed; their geometry response is deliberately excluded.
+   A real float64 acetone canary checked nine Cartesian components in both gas
+   and polarized states over \(10^{-3}\), \(3\times10^{-4}\), and
+   \(10^{-4}\) angstrom central-difference steps. The best maximum absolute
+   errors were \(4.37\times10^{-6}\) and \(3.27\times10^{-6}\) eV/angstrom,
+   respectively. The polarized-minus-gas partial force was nonzero
+   (\(L_2=8.01\times10^{-2}\) eV/angstrom). This is not a total solvent force.
 2. **Done for fixed density/ASC/surface:** add analytic position VJPs for the
    point-multipole MEP and ASC back-projection kernels without materializing
    dense Jacobians, and verify both against central differences plus the

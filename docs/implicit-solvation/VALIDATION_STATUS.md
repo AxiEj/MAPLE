@@ -29,8 +29,11 @@ not a complete solution-phase PES.
    converged fixed-point residual with an adjoint solve. A real local-field
    derivative probe rejects the shortcut
    `dE_intrinsic/d[V,grad(V)] == [q,p]`.
-2. The MACE local-field energy/density graph is now exposed; next retain the
-   fixed-field position derivative and connect it to the coupled adjoint.
+2. The MACE local-field energy/density graph is exposed. Gas and polarized
+   fixed-node-field intrinsic forces now match a real acetone central-difference
+   component canary to \(4.37\times10^{-6}\) and
+   \(3.27\times10^{-6}\) eV/angstrom. They remain MACE-side partials and must
+   next be connected to the coupled adjoint.
 3. Fixed-density/ASC/surface point-kernel position VJPs now match central
    differences and preserve the differentiated reciprocal identity without
    dense Jacobians. This is an explicit component only, not a force capability.

@@ -12,8 +12,10 @@ from ase.units import Bohr, Hartree
 
 from .gto_density import (
     external_field_to_density_order,
+    point_asc_reaction_position_vjp,
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
+    point_multipole_potential_position_vjp,
 )
 from .pcmsolver import PCMSolverSession
 
@@ -94,14 +96,7 @@ class FixedCavityPCMReactionFieldLinearMap:
         self._centers_bohr = centers.copy()
         self.atom_count = positions.shape[0]
 
-    def apply(self, density_direction: np.ndarray) -> np.ndarray:
-        """Map a density direction to the atom-centred reaction field."""
-
-        density = _validated_atom_block(
-            density_direction,
-            atom_count=self.atom_count,
-            name="density_direction",
-        )
+    def _compute_asc(self, density: np.ndarray) -> np.ndarray:
         mep = point_multipole_potential(
             self._centers_bohr,
             self._positions_angstrom,
@@ -115,6 +110,17 @@ class FixedCavityPCMReactionFieldLinearMap:
                 "PCMSolver ASC response must be finite with one value per "
                 "fixed cavity point."
             )
+        return asc
+
+    def apply(self, density_direction: np.ndarray) -> np.ndarray:
+        """Map a density direction to the atom-centred reaction field."""
+
+        density = _validated_atom_block(
+            density_direction,
+            atom_count=self.atom_count,
+            name="density_direction",
+        )
+        asc = self._compute_asc(density)
         potential, gradient = point_asc_reaction_potential_gradient(
             self._positions_angstrom,
             self._centers_bohr,
@@ -151,6 +157,63 @@ class FixedCavityPCMReactionFieldLinearMap:
         density_order = external_field_to_density_order(cotangent)
         response = self.apply(density_order)
         return external_field_to_density_order(response)
+
+    def position_vjp(
+        self,
+        density: np.ndarray,
+        field_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate a field pairing at fixed surface and PCM operator.
+
+        This returns
+        ``d <field_cotangent, P_R(density)> / dR`` in eV/Angstrom while
+        holding density coefficients, tessera centres, and the PCM surface
+        response matrix fixed.  Both the solute-MEP and ASC-back-projection
+        kernel positions are differentiated.  Cavity motion and operator
+        derivatives are deliberately absent.
+        """
+
+        coefficients = _validated_atom_block(
+            density,
+            atom_count=self.atom_count,
+            name="density",
+        )
+        cotangent = _validated_atom_block(
+            field_cotangent,
+            atom_count=self.atom_count,
+            name="field_cotangent",
+        )
+
+        asc = self._compute_asc(coefficients)
+        # The stored field gradient is eV/(e Angstrom), whereas the kernel VJP
+        # pairs its gradient with dipoles in e*bohr. Convert that cotangent by
+        # 1/Bohr here, then convert both Hartree/Angstrom kernel terms to
+        # eV/Angstrom once after they are summed.
+        reaction_projection_vjp = point_asc_reaction_position_vjp(
+            self._positions_angstrom,
+            self._centers_bohr,
+            asc,
+            cotangent[:, 0],
+            cotangent[:, 1:] / Bohr,
+        )
+
+        adjoint_density = external_field_to_density_order(cotangent)
+        adjoint_asc = self._compute_asc(adjoint_density)
+        solute_mep_vjp = point_multipole_potential_position_vjp(
+            self._centers_bohr,
+            self._positions_angstrom,
+            coefficients,
+            adjoint_asc,
+        )
+
+        result = (reaction_projection_vjp + solute_mep_vjp) * Hartree
+        expected_shape = (self.atom_count, 3)
+        if result.shape != expected_shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "Fixed-surface PCM position VJP must be finite with shape "
+                f"{expected_shape}; received {result.shape}."
+            )
+        return result
 
 
 __all__ = ["FixedCavityPCMReactionFieldLinearMap"]

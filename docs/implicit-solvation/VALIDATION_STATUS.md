@@ -57,9 +57,15 @@ not a complete solution-phase PES.
    threshold. Warm local reruns take roughly 0.4--0.6 s for the intrinsic
    field gradient, 0.02 s for RHS assembly, and 1.4--1.5 s for the adjoint
    solve; these are local diagnostics, not portable performance claims.
-6. Fixed-density/ASC/surface point-kernel position VJPs now match central
-   differences and preserve the differentiated reciprocal identity without
-   dense Jacobians. This is an explicit component only, not a force capability.
+6. Fixed-density and fixed-surface/operator point-kernel position VJPs match
+   central differences and preserve the differentiated reciprocal identity
+   without dense Jacobians. Their composed PCM field-pairing VJP matches the
+   six largest real acetone components over three steps with
+   \(2.40\times10^{-7}\) eV/angstrom maximum absolute and
+   \(1.65\times10^{-6}\) maximum relative error. Its local analytic time was
+   0.032 s versus 0.611 s for 36 scalar evaluations (18 central differences).
+   This excludes tessera/operator motion and remains an explicit component,
+   not a force capability or portable performance benchmark.
 7. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
    current PCMSolver--GePol energy; the current PCMSolver C ABI has no force endpoint.
    A separately named smooth PCM profile must be evaluated.

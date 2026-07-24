@@ -252,10 +252,18 @@ selected, license-compatible differentiable provider.
    errors were \(4.37\times10^{-6}\) and \(3.27\times10^{-6}\) eV/angstrom,
    respectively. The polarized-minus-gas partial force was nonzero
    (\(L_2=8.01\times10^{-2}\) eV/angstrom). This is not a total solvent force.
-2. **Done for fixed density/ASC/surface:** add analytic position VJPs for the
-   point-multipole MEP and ASC back-projection kernels without materializing
-   dense Jacobians, and verify both against central differences plus the
-   differentiated reciprocal identity. These terms are not a total force.
+2. **Done for fixed density and fixed PCM surface/operator:** analytic position
+   VJPs for the point-multipole MEP and ASC back-projection kernels avoid dense
+   Jacobians and pass individual central differences plus the differentiated
+   reciprocal identity. `FixedCavityPCMReactionFieldLinearMap.position_vjp()`
+   composes both terms for
+   \(\partial_{\mathbf R}\langle w,\mathcal P_{\mathbf R}c\rangle\).
+   On the real saved acetone fallback surface, the six largest components over
+   three steps have at most \(2.40\times10^{-7}\) eV/angstrom absolute and
+   \(1.65\times10^{-6}\) relative error. The analytic VJP took 0.032 s in the
+   local canary, compared with 0.611 s for its 36 scalar evaluations
+   (18 central differences). Tessera motion, PCM-operator response, and CDS are
+   still missing, so this is not a total force.
 3. **Provider decision made:** retain PCMSolver--GePol as energy-only and
    evaluate an explicit PySCF SWIG/ISWIG profile for smooth cavity/operator
    derivatives. Do not silently approximate missing GePol terms as zero.

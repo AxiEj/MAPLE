@@ -413,6 +413,51 @@ reciprocal coupling identity. They are only the explicit fixed-state kernel
 slice; \(dc/d\mathbf R\), \(d\sigma/d\mathbf R\), and cavity/operator response
 remain outside this result.
 
+For the complete reaction-field map at fixed tessera centres and fixed PCM
+surface operator, write
+
+\[
+\mathcal P_{\mathbf R}=B_{\mathbf R}SA_{\mathbf R},
+\qquad
+\sigma=SA_{\mathbf R}c,
+\]
+
+where \(A_{\mathbf R}\) is the solute-MEP kernel, \(S\) is the symmetric PCM
+MEP-to-ASC response, and \(B_{\mathbf R}\) is the ASC back-projection. For an
+external-field cotangent \(w\),
+
+\[
+\frac{\partial}{\partial\mathbf R}
+\langle w,\mathcal P_{\mathbf R}c\rangle
+=
+\left\langle w,
+(\partial_{\mathbf R}B_{\mathbf R})\sigma
+\right\rangle
++
+\left\langle
+\bar\sigma,
+(\partial_{\mathbf R}A_{\mathbf R})c
+\right\rangle,
+\]
+
+with
+
+\[
+\bar\sigma=SA_{\mathbf R}(Qw).
+\]
+
+`FixedCavityPCMReactionFieldLinearMap.position_vjp()` evaluates these direct
+back-projection and solute-MEP terms with two PCM response applications. It
+returns the derivative of the field pairing in eV/angstrom, not its negative
+and not a force. On the saved real acetone fallback surface, the six
+largest-magnitude coordinate components were checked at three central-
+difference steps. The worst absolute and relative errors were
+\(2.40\times10^{-7}\) eV/angstrom and \(1.65\times10^{-6}\), respectively.
+The analytic VJP took 0.032 s in that local development run, versus 0.611 s
+for the 36 scalar evaluations (18 central differences) used by the
+finite-difference oracle. Surface motion, surface-operator response, and CDS
+remain absent.
+
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build
 and call path. It does not provide the complete GePol/IEFPCM derivative.

@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from ase.units import Bohr
+from ase.units import Bohr, Hartree
 
+from maple.function.calculator.extra_correction.implicit.gto_density import (
+    point_asc_reaction_potential_gradient,
+    point_multipole_potential,
+)
 from maple.function.calculator.extra_correction.implicit.route2_pcm_response import (
     FixedCavityPCMReactionFieldLinearMap,
 )
@@ -116,6 +120,55 @@ def test_fixed_cavity_pcm_map_is_linear():
     )
 
 
+def test_fixed_surface_pcm_position_vjp_matches_central_difference():
+    operator, positions, session = _operator()
+    rng = np.random.default_rng(29)
+    density = rng.normal(size=(len(positions), 4))
+    field_cotangent = rng.normal(size=(len(positions), 4))
+
+    analytic = operator.position_vjp(density, field_cotangent)
+    finite_difference = np.empty_like(positions)
+    step_angstrom = 1.0e-6
+
+    def scalar(position_values: np.ndarray) -> float:
+        mep = point_multipole_potential(
+            session.cavity_centers_bohr,
+            position_values,
+            density,
+        )
+        asc = session.compute_asc(mep)
+        potential, gradient = point_asc_reaction_potential_gradient(
+            position_values,
+            session.cavity_centers_bohr,
+            asc,
+        )
+        field = np.concatenate(
+            (
+                (potential * Hartree)[:, None],
+                gradient * Hartree / Bohr,
+            ),
+            axis=1,
+        )
+        return float(np.vdot(field_cotangent, field))
+
+    for atom_index in range(len(positions)):
+        for coordinate in range(3):
+            plus = positions.copy()
+            minus = positions.copy()
+            plus[atom_index, coordinate] += step_angstrom
+            minus[atom_index, coordinate] -= step_angstrom
+            finite_difference[atom_index, coordinate] = (
+                scalar(plus) - scalar(minus)
+            ) / (2.0 * step_angstrom)
+
+    np.testing.assert_allclose(
+        analytic,
+        finite_difference,
+        rtol=2.0e-8,
+        atol=2.0e-7,
+    )
+
+
 def test_fixed_cavity_pcm_map_requires_hermitivized_response():
     with pytest.raises(ValueError, match="MATRIXSYMM=TRUE"):
         _operator(symmetric=False)
@@ -144,3 +197,7 @@ def test_fixed_cavity_pcm_map_rejects_invalid_blocks(bad_values):
         operator.apply(bad_values)
     with pytest.raises(ValueError, match="finite with shape"):
         operator.adjoint(bad_values)
+    with pytest.raises(ValueError, match="finite with shape"):
+        operator.position_vjp(bad_values, np.zeros((3, 4)))
+    with pytest.raises(ValueError, match="finite with shape"):
+        operator.position_vjp(np.zeros((3, 4)), bad_values)

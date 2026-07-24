@@ -112,6 +112,60 @@ def _flush_process_stderr() -> None:
     sys.stderr.flush()
 
 
+def _pedra_file_fingerprints(audit_dir: Path) -> dict[Path, tuple[int, int]]:
+    """Record enough file state to exclude stale PEDRA outputs from a run."""
+
+    return {
+        path: (path.stat().st_mtime_ns, path.stat().st_size)
+        for path in audit_dir.glob("PEDRA.OUT*")
+    }
+
+
+def _pedra_warning_records(
+    audit_dir: Path,
+    baseline: dict[Path, tuple[int, int]],
+) -> list[dict[str, Any]]:
+    """Return warning lines from PEDRA side files created or changed this run."""
+
+    warnings: list[dict[str, Any]] = []
+    for path in sorted(audit_dir.glob("PEDRA.OUT*")):
+        stat = path.stat()
+        if baseline.get(path) == (stat.st_mtime_ns, stat.st_size):
+            continue
+        for line_number, line in enumerate(
+            path.read_text(encoding="utf-8", errors="replace").splitlines(),
+            start=1,
+        ):
+            message = line.strip()
+            if "WARNING" not in message.upper():
+                continue
+            warnings.append(
+                {
+                    "file": str(path),
+                    "line": line_number,
+                    "message": message,
+                }
+            )
+    return warnings
+
+
+def _pcmsolver_diagnostics(
+    audit_dir: Path,
+    cavity_attempts: list[dict[str, Any]],
+    pedra_baseline: dict[Path, tuple[int, int]],
+) -> dict[str, Any]:
+    pedra_warnings = _pedra_warning_records(audit_dir, pedra_baseline)
+    return {
+        "native_stderr_warning_marker": PCM_WARNING_MARKER,
+        "native_stderr_warning_count": sum(
+            bool(attempt["warning_detected"]) for attempt in cavity_attempts
+        ),
+        "pedra_warning_count": len(pedra_warnings),
+        "pedra_warnings": pedra_warnings,
+        "pedra_warnings_are_selection_fatal": False,
+    }
+
+
 @contextmanager
 def _capture_process_stderr(path: Path):
     """Capture native-library stderr while preserving the caller's descriptor."""
@@ -444,7 +498,9 @@ class SMDImplicitSolvation:
         if self.cavity_policy == CAVITY_POLICY_FIXED_STABILITY_BRANCH:
             return (
                 "Use AREA=0.28 A^2 and MINRADIUS=0.30 A from the first "
-                "evaluation and fail closed on any PCMSolver warning. The "
+                "evaluation and fail closed on the native "
+                "'PCMSolver warning.' stderr marker. PEDRA.OUT warnings are "
+                "recorded separately and do not select a cavity branch. The "
                 "discretization parameters are predetermined rather than "
                 "selected from each geometry, removing policy-level branch "
                 "switching only; GePol surface/operator derivatives and "
@@ -452,10 +508,13 @@ class SMDImplicitSolvation:
             )
         return (
             "Start with AREA=0.20 A^2 and no added spheres. If PCMSolver "
-            "emits a cavity warning, retry deterministically with "
+            "emits the native 'PCMSolver warning.' stderr marker, retry "
+            "deterministically with "
             "AREA=0.28 A^2 and MINRADIUS=0.30 A; fail closed if a warning "
-            "persists. This warning-triggered branch is fixed-conformer "
-            "energy infrastructure and is not a force/PES policy."
+            "persists. PEDRA.OUT warnings are recorded separately and do not "
+            "select a cavity branch. This warning-triggered branch is "
+            "fixed-conformer energy infrastructure and is not a force/PES "
+            "policy."
         )
 
     @staticmethod
@@ -854,7 +913,7 @@ class SMDImplicitSolvation:
             ),
         )
         payload = {
-            "schema_version": 4,
+            "schema_version": 5,
             "response": self.response,
             "pcm_mep_projection": "cavity-exterior-point-multipole-l<=1",
             "converged": True,
@@ -918,6 +977,7 @@ class SMDImplicitSolvation:
         )
         cavity_attempts: list[dict[str, Any]] = []
         selected_cavity: dict[str, Any] | None = None
+        pedra_baseline = _pedra_file_fingerprints(self.audit_dir)
         with _pcmsolver_audit_working_directory(self.audit_dir):
             for (
                 attempt_name,
@@ -1075,6 +1135,11 @@ class SMDImplicitSolvation:
             failure_payload = {
                 "schema_version": 1,
                 "reason": "pcmsolver-cavity-warning-for-all-policy-attempts",
+                "pcmsolver_diagnostics": _pcmsolver_diagnostics(
+                    self.audit_dir,
+                    cavity_attempts,
+                    pedra_baseline,
+                ),
                 "cavity_stability": {
                     "policy": self.cavity_policy,
                     "force_compatible": False,
@@ -1100,6 +1165,11 @@ class SMDImplicitSolvation:
 
         audit_path = self.audit_dir / "route2-result.json"
         audit_payload = json.loads(audit_path.read_text(encoding="utf-8"))
+        pcmsolver_diagnostics = _pcmsolver_diagnostics(
+            self.audit_dir,
+            cavity_attempts,
+            pedra_baseline,
+        )
         audit_payload["cavity_stability"] = {
             "policy": self.cavity_policy,
             "force_compatible": False,
@@ -1109,6 +1179,7 @@ class SMDImplicitSolvation:
             "selected": selected_cavity["name"],
             "attempts": cavity_attempts,
         }
+        audit_payload["pcmsolver_diagnostics"] = pcmsolver_diagnostics
         audit_path.write_text(
             json.dumps(audit_payload, indent=2, sort_keys=True),
             encoding="utf-8",
@@ -1139,6 +1210,15 @@ class SMDImplicitSolvation:
                     selected_cavity["name"] == "stability-fallback"
                 ),
                 "attempt_count": len(cavity_attempts),
+            },
+            "pcmsolver_diagnostics": {
+                "native_stderr_warning_count": (
+                    pcmsolver_diagnostics["native_stderr_warning_count"]
+                ),
+                "pedra_warning_count": pcmsolver_diagnostics[
+                    "pedra_warning_count"
+                ],
+                "pedra_warnings_are_selection_fatal": False,
             },
             "audit_directory": (
                 None if self.audit_dir is None else str(self.audit_dir)

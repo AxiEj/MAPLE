@@ -115,13 +115,18 @@ not a complete solution-phase PES.
 11. The explicit `cavity_policy=fixed-stability-branch` public-input canary
     selects `AREA=0.28 A^2, MINRADIUS=0.30 A` before evaluation and fails
     closed instead of probing the primary branch. Acetone, methyl acetate, and
-    ethoxyethane completed with zero PCMSolver warnings and 17 ML--PCM
-    iterations each. Relative to the prior warning-fallback selections, the
-    largest hydration-energy change was `0.000532 kcal/mol`; the three-case
-    MAE was `0.451006 kcal/mol`. This only validates the policy wiring and
-    local energy invariance. The parameters are engineering stability
-    hyperparameters, the legacy energy default is unchanged, and GePol
-    topology continuity/derivatives remain unproven.
+    ethoxyethane completed with zero native `PCMSolver warning.` stderr markers
+    and 17 ML--PCM iterations each. That earlier count did not include
+    `PEDRA.OUT`; audit schema 5 now reports those side-file warnings separately
+    instead of calling the complete cavity output warning-free. Relative to the
+    prior warning-fallback selections, the largest hydration-energy change was
+    `0.000532 kcal/mol`; the three-case MAE was `0.451006 kcal/mol`. This only
+    validates the policy wiring and local energy invariance. The parameters are
+    engineering stability hyperparameters, the legacy energy default is
+    unchanged, and tessellation quality plus GePol topology
+    continuity/derivatives remain unproven. The unit audit further shows that
+    `AREA=0.28 A^2` becomes about `0.9999 bohr^2`, substantially coarser than
+    PCMSolver's documented `0.3 bohr^2` default.
 12. The clean staged artifact at Route-2 commit `3bd6a31` used external PySCF
     2.13.1 SWIG/IEFPCM and remains an investigation rather than an adopted
     provider. Orders 17/29 failed the predeclared rigid-rotation gate; order 35

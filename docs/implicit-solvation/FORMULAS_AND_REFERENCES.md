@@ -468,14 +468,22 @@ invariance, central-difference agreement, optimization, or MD.
 
 `cavity_policy=fixed-stability-branch` is a narrower intermediate control. It
 uses `AREA=0.28 A^2, MINRADIUS=0.30 A` from the first evaluation, never probes
-the primary branch, and fails closed on any PCMSolver warning. “Fixed branch”
-means that the **parameter branch** is selected before evaluation; it does not
-freeze tessera coordinates as nuclei move. The two numerical values are MAPLE
+the primary branch, and fails closed on the native `PCMSolver warning.` stderr
+marker. `PEDRA.OUT` warnings use a distinct side-file channel and are now
+recorded verbatim in the result audit rather than being hidden behind a zero
+solver-warning count. They do not select a cavity branch. “Fixed branch” means
+that the **parameter branch** is selected before evaluation; it does not freeze
+tessera coordinates as nuclei move. The two numerical values are MAPLE
 engineering stability hyperparameters, not SMD/PCM constants and not claimed
-as PCMSolver defaults. This removes only the discontinuity caused by
-warning-triggered policy selection. It does not supply the smooth
-surface/area/operator derivatives demonstrated by FIXPVA or SWIG, nor prove
-that GePol topology stays continuous along a trajectory.
+as PCMSolver defaults. Because MAPLE's generated input declares
+`UNITS=ANGSTROM`, `AREA=0.28 A^2` is parsed as approximately
+\(0.9999\,a_0^2\), whereas upstream documents a default of
+\(0.3\,a_0^2\approx0.0840\,\mathrm{\AA}^2\). The stability branch is therefore
+substantially coarser than the upstream default scale. This removes only the
+discontinuity caused by warning-triggered policy selection. It does not certify
+the tessellation, supply the smooth surface/area/operator derivatives
+demonstrated by FIXPVA or SWIG, or prove that GePol topology stays continuous
+along a trajectory.
 
 For the provider-neutral point kernels, let
 \(\mathbf d_{sA}=\mathbf s-\mathbf R_A\), \(r=|\mathbf d_{sA}|\), and hold the

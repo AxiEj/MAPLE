@@ -44,12 +44,16 @@ described as a complete solution-phase PES.
    policy and exposes a separate
    `cavity_policy=fixed-stability-branch` research policy. The latter selects
    `AREA=0.28 A^2, MINRADIUS=0.30 A` before the calculation and fails closed
-   on any warning, so it removes policy-level geometry branching. Those two
-   values are an engineering stability candidate, not theoretical constants;
-   GePol topology continuity and boundary/operator derivatives remain
-   unproven. A force implementation still needs one validated smooth cavity
-   construction (or a branch frozen for the entire trajectory), not merely a
-   predetermined parameter pair.
+   on the native `PCMSolver warning.` stderr marker, so it removes policy-level
+   geometry branching. `PEDRA.OUT` warnings are retained separately and do not
+   select the branch. Those two values are an engineering stability candidate,
+   not theoretical constants or a certified tessellation. With
+   `UNITS=ANGSTROM`, `AREA=0.28 A^2` is about `0.9999 bohr^2`, appreciably
+   coarser than PCMSolver's documented `0.3 bohr^2` default. GePol topology
+   continuity and boundary/operator derivatives remain unproven. A force
+   implementation still needs one validated smooth cavity construction (or a
+   branch frozen for the entire trajectory), not merely a predetermined
+   parameter pair.
 
 ## Required total derivative
 

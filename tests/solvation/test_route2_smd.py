@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import sys
 from types import SimpleNamespace
 
@@ -571,6 +572,16 @@ class _CloseWarningThenStablePCMSolverSession(_FakePCMSolverSession):
         super().close()
 
 
+class _PEDRAWarningPCMSolverSession(_FakePCMSolverSession):
+    def open(self):
+        Path("PEDRA.OUT__test").write_text(
+            "** WARNING  ** A very poor tesselation has been chosen. "
+            "It is valuable almost only for testing.\n",
+            encoding="utf-8",
+        )
+        return super().open()
+
+
 def _install_fake_pcm_pair(monkeypatch, provider, tmp_path, session_type):
     primary = tmp_path / "@primary.pcm"
     fallback = tmp_path / "@stability-fallback.pcm"
@@ -613,7 +624,7 @@ def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
         "cavity-exterior point monopoles and dipoles"
     )
     audit = (tmp_path / "route2-result.json").read_text(encoding="utf-8")
-    assert '"schema_version": 4' in audit
+    assert '"schema_version": 5' in audit
     assert '"pcm_mep_projection": "cavity-exterior-point-multipole-l<=1"' in audit
 
 
@@ -725,6 +736,64 @@ def test_route2_fixed_stability_branch_never_attempts_primary(
     assert audit["cavity_stability"]["attempts"][0]["warning_detected"] is False
 
 
+def test_route2_audits_pedra_warnings_separately_from_solver_gate(
+    monkeypatch, tmp_path
+):
+    (tmp_path / "PEDRA.OUT__stale").write_text(
+        "** WARNING  ** This warning belongs to an earlier run.\n",
+        encoding="utf-8",
+    )
+    atoms = _co_atoms()
+    gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
+    calc = _FakePolarCalculator(gas, gas)
+    options = _route2_options("frozen")
+    options["cavity_policy"] = "fixed-stability-branch"
+    provider = SMDImplicitSolvation(atoms, options, audit_dir=tmp_path)
+    stable = tmp_path / "@stability.pcm"
+    stable.write_text("parsed", encoding="utf-8")
+    monkeypatch.setattr(
+        smd_module,
+        "PCMSolverSession",
+        _PEDRAWarningPCMSolverSession,
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ensure_pcm_stability_input",
+        lambda: stable,
+    )
+
+    result = provider.evaluate(atoms, calculator=calc)
+
+    assert result.provenance["cavity_stability"]["selected"] == (
+        "fixed-stability-branch"
+    )
+    assert result.provenance["pcmsolver_diagnostics"] == {
+        "native_stderr_warning_count": 0,
+        "pedra_warning_count": 1,
+        "pedra_warnings_are_selection_fatal": False,
+    }
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["cavity_stability"]["attempts"][0]["warning_detected"] is False
+    assert audit["pcmsolver_diagnostics"] == {
+        "native_stderr_warning_marker": PCM_WARNING_MARKER,
+        "native_stderr_warning_count": 0,
+        "pedra_warning_count": 1,
+        "pedra_warnings": [
+            {
+                "file": str(tmp_path / "PEDRA.OUT__test"),
+                "line": 1,
+                "message": (
+                    "** WARNING  ** A very poor tesselation has been chosen. "
+                    "It is valuable almost only for testing."
+                ),
+            }
+        ],
+        "pedra_warnings_are_selection_fatal": False,
+    }
+
+
 def test_route2_fixed_stability_branch_fails_closed_on_warning(
     monkeypatch, tmp_path
 ):
@@ -760,6 +829,13 @@ def test_route2_fixed_stability_branch_fails_closed_on_warning(
     assert failure["cavity_stability"]["selected"] is None
     assert len(failure["cavity_stability"]["attempts"]) == 1
     assert failure["cavity_stability"]["attempts"][0]["warning_detected"] is True
+    assert failure["pcmsolver_diagnostics"] == {
+        "native_stderr_warning_marker": PCM_WARNING_MARKER,
+        "native_stderr_warning_count": 1,
+        "pedra_warning_count": 0,
+        "pedra_warnings": [],
+        "pedra_warnings_are_selection_fatal": False,
+    }
 
 
 def test_route2_retries_warning_detected_during_response(monkeypatch, tmp_path):

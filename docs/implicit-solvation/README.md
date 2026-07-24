@@ -40,10 +40,13 @@ the gas-phase density. The omitted cavity default is
 `cavity_policy=warning-fallback`: it may retry a warned primary GePol cavity
 and is fixed-conformer energy infrastructure only. The explicit research
 option `cavity_policy=fixed-stability-branch` instead selects
-`AREA=0.28 A^2, MINRADIUS=0.30 A` before evaluation and fails closed on any
-warning. It removes geometry-dependent **policy selection**, but does not make
-the GePol surface differentiable, prove topology continuity, or enable forces.
-There is no public mock or ddX backend.
+`AREA=0.28 A^2, MINRADIUS=0.30 A` before evaluation and fails closed on the
+native `PCMSolver warning.` stderr marker. `PEDRA.OUT` warning lines are
+retained separately in `route2-result.json`; they are diagnostics, not a
+cavity-branch selector. This removes geometry-dependent **policy selection**,
+but does not make the GePol surface differentiable, prove topology continuity,
+certify the tessellation, or enable forces. There is no public mock or ddX
+backend.
 
 ### Route-2 runtime
 

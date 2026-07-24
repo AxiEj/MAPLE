@@ -230,8 +230,31 @@ u-J_{\mathcal P_{\mathbf R}}^*
 The minus sign follows from the chosen residual \(c-\mathcal M(\mathcal P c)\).
 `UnmixedDensityResidualLinearization` implements this constrained operator
 without a dense Jacobian. MACE autograd supplies \(J_{\mathcal M}\) and
-\(J_{\mathcal M}^*\); the fixed-cavity PCM map and its verified reciprocal
-adjoint remain the next connection step. The external field is ordered
+\(J_{\mathcal M}^*\). `FixedCavityPCMReactionFieldLinearMap` supplies
+\(J_{\mathcal P_{\mathbf R}}\) by applying the same point-multipole MEP,
+PCMSolver ASC solve, and ASC back-projection used by the energy path, but
+without evaluating an unused polarization energy on every Krylov call.
+
+The fixed-cavity PCM adjoint is admitted only when the parsed machine input
+contains `MATRIXSYMM=TRUE`. In that mode PCMSolver hermitivizes its surface
+response. Let \(Q\) permute an external Cartesian block into MACE's raw
+real-spherical order,
+
+\[
+Q[V,\partial_xV,\partial_yV,\partial_zV]
+=[V,\partial_yV,\partial_zV,\partial_xV].
+\]
+
+The discrete numeric adjoint is then
+
+\[
+J_{\mathcal P_{\mathbf R}}^*
+=QJ_{\mathcal P_{\mathbf R}}Q.
+\]
+
+The Hartree and Bohr factors cancel between the two permutations; no fitted
+scale is used. Construction fails closed for an unsymmetrized response or a
+geometry that differs from the open PCM session. The external field is ordered
 \([V,\partial_xV,\partial_yV,\partial_zV]\), with potential in eV/e and
 gradient in eV/(e angstrom). Its physical pairing with density is
 \(\sum_i(q_iV_i+\mathbf p_i\cdot\nabla V_i)\); the MACE adapter owns the exact
@@ -244,8 +267,15 @@ Euclidean pairing. `solve_adjoint()` applies the residual VJP through a SciPy
 `LinearOperator` and matrix-free GMRES, then recomputes the unpreconditioned
 residual and fails closed unless the requested absolute/relative tolerance is
 met. Dense synthetic comparisons validate the reduced-coordinate solution and
-a singular-operator control validates the failure path. No production force is
-published by this solver infrastructure.
+a singular-operator control validates the failure path. On one real float64
+acetone state with the saved warning-free 508-tessera fallback cavity, the PCM
+JVP/VJP pairing closes to \(6.66\times10^{-16}\) absolute error and the full
+residual pairing to \(1.24\times10^{-11}\) absolute error. A random diagnostic
+right-hand side converges in eight GMRES callbacks and ten operator
+applications to a \(2.36\times10^{-9}\) relative residual. The physical
+energy-gradient right-hand side and every cavity/coordinate derivative remain
+unimplemented, so no production force is published by this solver
+infrastructure.
 
 An energy-consistent implementation must account for all of the following:
 

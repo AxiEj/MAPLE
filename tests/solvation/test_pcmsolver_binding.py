@@ -36,6 +36,7 @@ class FakePCMSolverCDLL:
         self._areas = np.array([0.5, 0.75], dtype=np.float64)
         self._asc = np.array([0.125, -0.250], dtype=np.float64)
         self._energy = 7.5
+        self.energy_calls = 0
 
         self.pcmsolver_is_compatible_library = FakeFunction(lambda: compatible)
         self.pcmsolver_new_v1112 = FakeFunction(self._pcmsolver_new_v1112)
@@ -49,7 +50,7 @@ class FakePCMSolverCDLL:
         self.pcmsolver_compute_response_asc = FakeFunction(lambda ctx, mep_name, asc_name, irrep: None)
         self.pcmsolver_get_surface_function = FakeFunction(self._pcmsolver_get_surface_function)
         self.pcmsolver_compute_polarization_energy = FakeFunction(
-            lambda ctx, mep_name, asc_name: self._energy
+            self._pcmsolver_compute_polarization_energy
         )
 
     def _pcmsolver_new_v1112(
@@ -93,6 +94,10 @@ class FakePCMSolverCDLL:
 
     def _pcmsolver_get_surface_function(self, ctx, size, values, name):
         np.ctypeslib.as_array(values, shape=(size,))[:] = self._asc
+
+    def _pcmsolver_compute_polarization_energy(self, ctx, mep_name, asc_name):
+        self.energy_calls += 1
+        return self._energy
 
 
 @pytest.fixture
@@ -174,13 +179,47 @@ def test_session_exposes_centers_areas_and_polarization_energy(monkeypatch, pars
 
         assert np.allclose(session.cavity_centers_bohr, [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
         assert np.allclose(session.cavity_areas_bohr2, [0.5, 0.75])
+        assert session.response_operator_is_symmetric is False
 
+        assert np.allclose(session.compute_asc([10.0, -2.0]), [0.125, -0.250])
+        assert fake.energy_calls == 0
         result = session.solve([10.0, -2.0])
         assert np.allclose(fake.last_surface, [10.0, -2.0])
         assert np.allclose(result["asc"], [0.125, -0.250])
         assert result["polarization_energy"] == pytest.approx(7.5)
+        assert fake.energy_calls == 1
 
     assert fake.deleted_contexts == [101]
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("True", True),
+        ("False", False),
+    ],
+)
+def test_session_reads_matrixsym_from_machine_input(
+    tmp_path: Path,
+    value: str,
+    expected: bool,
+):
+    parsed = tmp_path / "pcmsolver.parsed.inp"
+    parsed.write_text(
+        "SECT MEDIUM 1 True\n"
+        "TAG F KW 1\n"
+        "BOOL MATRIXSYMM 1 True\n"
+        f"{value}\n",
+        encoding="utf-8",
+    )
+    session = pcmsolver.PCMSolverSession(
+        [1],
+        [[0.0, 0.0, 0.0]],
+        parsed,
+        library_path="/unused/libpcm.so",
+    )
+
+    assert session.response_operator_is_symmetric is expected
 
 
 def test_session_cleans_up_if_open_fails_after_context_creation(monkeypatch, parsed_input_file):

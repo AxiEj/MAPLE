@@ -23,11 +23,12 @@ described as a complete solution-phase PES.
    the intrinsic MACE energy derivative with respect to the injected local
    potential/gradient is not the returned charge/dipole density. QM-SCF
    Hellmann--Feynman cancellations therefore cannot be imported into Route 2.
-2. **Only the MACE side of the response graph is exposed.**
-   `polar_output_torch()` now retains the graph from local potential/gradient
-   to both intrinsic energy and density coefficients. The PCM solve and cavity
-   geometry still cross the NumPy/C boundary and provide no differentiable
-   Jacobian-vector or vector-Jacobian product.
+2. **Only the fixed-geometry response graph is exposed.**
+   `polar_output_torch()` retains the graph from local potential/gradient to
+   both intrinsic energy and density coefficients. A hermitivized, fixed-cavity
+   PCMSolver map now supplies matrix-free density-to-field JVP/VJP operations.
+   Cavity geometry and boundary operators still cross the NumPy/C boundary and
+   have no coordinate derivative.
 3. **The PCMSolver binding is energy-only.** The v1.1.12-style C ABI loaded by
    MAPLE exports cavity centres/areas, ASC, response ASC, and polarization
    energy, but no nuclear-gradient or boundary-operator derivative endpoint.
@@ -194,7 +195,7 @@ selected, license-compatible differentiable provider.
    geometries before production.
 4. **Decision:** Route 2 requires an adjoint fixed-point derivative. Production
    force remains disabled until all later phases pass.
-5. **Done for the response skeleton:** the fixed-geometry MACE
+5. **Done for the fixed-cavity response skeleton:** the fixed-geometry MACE
    field-to-density JVP/VJP and
    `UnmixedDensityResidualLinearization` now implement
    \(\Pi_0(I-J_{\mathcal M}J_{\mathcal P})\) and its discrete adjoint on the
@@ -202,14 +203,23 @@ selected, license-compatible differentiable provider.
    JVP/VJP bilinear identity pass. On one real float64 acetone direction, the
    MACE density JVP agrees with a central field difference to
    \(1.29\times10^{-7}\) maximum absolute error, while its JVP/VJP bilinear
-   identity closes to \(1.94\times10^{-12}\) absolute error. The PCM
-   map/adjoint is not connected yet, so this remains response infrastructure
-   rather than a force capability.
-6. **Done for the abstract adjoint solve:** `NeutralDensityCoordinates` uses an
+   identity closes to \(1.94\times10^{-12}\) absolute error.
+   `FixedCavityPCMReactionFieldLinearMap` applies the same MEP--ASC--reaction
+   field chain as the energy path and admits its reciprocal adjoint only for a
+   parsed `MATRIXSYMM=TRUE` operator at exactly the same geometry. On the real
+   saved 508-tessera acetone fallback cavity, its bilinear identity closes to
+   \(6.66\times10^{-16}\) absolute error and the complete residual identity to
+   \(1.24\times10^{-11}\). This remains fixed-cavity response infrastructure,
+   not a force capability.
+6. **Done for a diagnostic PCM-coupled adjoint solve:**
+   `NeutralDensityCoordinates` uses an
    orthonormal Helmert charge basis and `solve_adjoint()` solves the residual
    VJP with matrix-free GMRES. A dense neutral-subspace system matches the
-   direct solution, while a singular synthetic operator fails closed. This has
-   not yet solved a real PCM-coupled adjoint.
+   direct solution, while a singular synthetic operator fails closed. One real
+   acetone random right-hand side converges in eight callbacks and ten operator
+   applications to \(2.36\times10^{-9}\) relative residual. The
+   physical energy-gradient right-hand side and coordinate/cavity response are
+   still absent.
 
 ### Phase 1 -- differentiable explicit geometry terms
 

@@ -52,7 +52,9 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "UnmixedDensityResidualLinearization" in formulas
     assert "neutral density tangent space" in roadmap
     assert "solve_adjoint()" in formulas
-    assert "not yet solved a real PCM-coupled adjoint" in roadmap
+    assert "FixedCavityPCMReactionFieldLinearMap" in formulas
+    assert "MATRIXSYMM=TRUE" in roadmap
+    assert "physical energy-gradient right-hand side" in roadmap
     assert "route2-protocol.json" in benchmark
     assert "does not define Route 2" in benchmark
     assert "No Route-2 FreeSolv accuracy artifact is frozen yet" in benchmark

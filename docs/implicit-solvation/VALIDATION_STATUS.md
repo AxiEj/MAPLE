@@ -37,11 +37,17 @@ not a complete solution-phase PES.
 3. The unmixed residual JVP/VJP is explicit on the neutral density tangent
    space and matches its dense synthetic operator. A real acetone MACE-response
    canary gives \(1.29\times10^{-7}\) maximum JVP finite-difference error and
-   \(1.94\times10^{-12}\) absolute JVP/VJP bilinear-identity error. The fixed
-   cavity PCM map/adjoint remains to be connected.
+   \(1.94\times10^{-12}\) absolute JVP/VJP bilinear-identity error. The
+   fixed-cavity PCM map reuses the energy-path MEP/ASC/back-projection, requires
+   `MATRIXSYMM=TRUE`, and closes its real acetone bilinear identity to
+   \(6.66\times10^{-16}\); the full residual identity closes to
+   \(1.24\times10^{-11}\).
 4. The neutral-subspace matrix-free GMRES adjoint solver matches a direct dense
-   synthetic solution and fails closed for a singular operator. It has not yet
-   solved a real PCM-coupled response equation.
+   synthetic solution and fails closed for a singular operator. A real
+   PCM-coupled acetone random right-hand side reaches \(2.36\times10^{-9}\)
+   relative residual in eight callbacks and ten operator applications. The
+   physical energy-gradient right-hand side and coordinate/cavity response are
+   not implemented yet.
 5. Fixed-density/ASC/surface point-kernel position VJPs now match central
    differences and preserve the differentiated reciprocal identity without
    dense Jacobians. This is an explicit component only, not a force capability.

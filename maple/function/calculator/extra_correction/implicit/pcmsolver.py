@@ -327,6 +327,28 @@ class PCMSolverSession:
         assert self._library is not None
         return self._library.source
 
+    @property
+    def response_operator_is_symmetric(self) -> bool:
+        """Return the parsed ``MATRIXSYMM`` setting used by PCMSolver."""
+
+        if not self.parsed_input_path.is_file():
+            return False
+        lines = self.parsed_input_path.read_text(
+            encoding="utf-8",
+            errors="replace",
+        ).splitlines()
+        for index, line in enumerate(lines):
+            fields = line.strip().split()
+            if len(fields) < 2 or fields[0] != "BOOL":
+                continue
+            if fields[1].upper() != "MATRIXSYMM":
+                continue
+            for value in lines[index + 1 :]:
+                stripped = value.strip()
+                if stripped:
+                    return stripped.lower() == "true"
+        return False
+
     def open(self) -> "PCMSolverSession":
         if self._context is not None:
             return self
@@ -394,14 +416,16 @@ class PCMSolverSession:
         self._cavity_centers_bohr = np.array(flat_centers.reshape((3, size), order="F").T, copy=True)
         self._cavity_areas_bohr2 = np.array(areas, copy=True)
 
-    def solve(
+    def compute_asc(
         self,
         mep: np.ndarray | list[float],
         *,
         irrep: int = 0,
         mep_label: bytes | str = _DEFAULT_MEP_LABEL,
         asc_label: bytes | str = _DEFAULT_ASC_LABEL,
-    ) -> dict[str, np.ndarray | float]:
+    ) -> np.ndarray:
+        """Apply the static PCMSolver MEP-to-ASC response operator."""
+
         self._require_open()
         assert self._library is not None and self._context is not None
         if self._cavity_areas_bohr2 is None:
@@ -430,6 +454,30 @@ class PCMSolverSession:
             asc.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
             asc_name,
         )
+        return asc
+
+    def solve(
+        self,
+        mep: np.ndarray | list[float],
+        *,
+        irrep: int = 0,
+        mep_label: bytes | str = _DEFAULT_MEP_LABEL,
+        asc_label: bytes | str = _DEFAULT_ASC_LABEL,
+    ) -> dict[str, np.ndarray | float]:
+        """Return static ASC plus its polarization energy."""
+
+        mep_values = np.asarray(mep, dtype=np.float64)
+        asc = self.compute_asc(
+            mep_values,
+            irrep=irrep,
+            mep_label=mep_label,
+            asc_label=asc_label,
+        )
+        self._require_open()
+        assert self._library is not None and self._context is not None
+        mep_values = np.ascontiguousarray(mep_values)
+        mep_name = mep_label.encode("utf-8") if isinstance(mep_label, str) else mep_label
+        asc_name = asc_label.encode("utf-8") if isinstance(asc_label, str) else asc_label
         energy = float(
             self._library.pcmsolver_compute_polarization_energy(
                 self._context,

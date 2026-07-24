@@ -109,6 +109,9 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "assemble_total_solvation_coordinate_gradient()" in formulas
     assert "no gas-force argument" in formulas
     assert "algebra/interface gate only" in validation
+    assert "2744038" in validation
+    assert "Both failed attempts remain" in validation
+    assert "dense order-47 continuum" in validation
     assert "three-case MAE worsened" in normalized_validation
     assert "0.7248%" in validation
     assert "route2-protocol.json" in benchmark

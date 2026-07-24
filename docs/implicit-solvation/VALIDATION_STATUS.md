@@ -286,10 +286,40 @@ proof-of-concept, not a complete solution-phase PES.
     This is an algebra/interface gate only. It does not verify same-provider
     provenance, run MACE/PySCF, populate `SolvationResult`, or enable public
     forces.
-20. Compare the summed analytic force with central finite differences of the
+20. A clean methanol canary under the same declared profile at commit
+    `2744038` combined real
+    float64 MACE-POLAR, order-47 PySCF SWIG/IEFPCM, and official PySCF SMD CDS.
+    On the largest total-gradient component (C0-y), the selected
+    \(3\times10^{-5}\)-angstrom central difference had continuum, CDS, and
+    total absolute errors of \(2.38\times10^{-6}\),
+    \(1.67\times10^{-7}\), and \(2.21\times10^{-6}\) eV/angstrom; total
+    relative error was \(6.45\times10^{-6}\). The total-gradient translation
+    norm was \(1.24\times10^{-14}\) eV/angstrom and torque norm was
+    \(5.16\times10^{-4}\) eV. Root, adjoint, energy-identity, component, total,
+    translation, and torque gates all passed.
+
+    Step selection is part of the evidence. A \(10^{-3}\)-angstrom displacement
+    changed one surviving SWIG parent count and failed closed. At
+    \(10^{-4}\) angstrom the topology was stable, but the CDS central-difference
+    error was \(1.86\times10^{-6}\) eV/angstrom and missed its predeclared
+    \(10^{-6}\) gate. A separate cheap CDS scan showed second-order convergence
+    to \(1.67\times10^{-7}\) eV/angstrom at
+    \(3\times10^{-5}\) angstrom; the SWIG parent counts were also stable there.
+    Both failed attempts remain in the artifact directory.
+
+    The final local process took `48.5 s` and about `3.10 GiB` peak RSS. Its
+    base CDS call took `0.0033 s`; the dense order-47 continuum response/root/
+    derivative dominated. The clean log contains neither `PCMSolver warning.`
+    nor `primary`, and the loader-only PCMSolver correction was detached and
+    not retained.
+
+    This is still one Cartesian component on one molecule. It does not populate
+    `SolvationResult`, enable public forces, establish a second-molecule or
+    broad-rotation gate, or certify chemical accuracy or portable speed.
+21. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-21. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+22. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

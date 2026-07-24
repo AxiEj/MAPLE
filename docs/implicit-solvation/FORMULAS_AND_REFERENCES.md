@@ -821,9 +821,41 @@ the eV-to-hartree conversion and gradient-to-force sign.
 This function does not prove that arbitrary inputs came from the same energy
 profile. The caller must still pair the optional PySCF continuum and CDS
 components selected for one declared calculation; mixing a PCMSolver energy
-with PySCF derivatives remains forbidden. No real combined MACE--PCM--CDS
-canary, public-provider integration, or force capability is claimed by this
-algebra-only gate.
+with PySCF derivatives remains forbidden.
+
+A clean one-methanol canary under the same declared profile at Route-2 commit
+`2744038` then
+combined real float64 MACE-POLAR, order-47 PySCF SWIG/IEFPCM, and the official
+PySCF SMD CDS pair. It checked the largest total-gradient component (C0-y)
+against a whole-\(\Delta G_{\mathrm{solv}}\) central difference. Step selection
+was explicit rather than post-hoc silent: \(10^{-3}\) angstrom changed one
+surviving SWIG parent count and was rejected; \(10^{-4}\) angstrom preserved
+the point set but its CDS error was \(1.86\times10^{-6}\) eV/angstrom, just
+above the predeclared \(10^{-6}\)-eV/angstrom component gate. The CDS step scan
+showed the expected second-order decrease to \(1.67\times10^{-7}\)
+eV/angstrom at \(3\times10^{-5}\) angstrom, which also preserved all 2227
+surface points, so that was the recorded total-energy step.
+
+At that step the continuum, CDS, and total absolute errors were
+\(2.38\times10^{-6}\), \(1.67\times10^{-7}\), and
+\(2.21\times10^{-6}\) eV/angstrom, respectively; the total relative error was
+\(6.45\times10^{-6}\). The total-gradient translation norm was
+\(1.24\times10^{-14}\) eV/angstrom and the torque norm was
+\(5.16\times10^{-4}\) eV. All predeclared root, adjoint, energy-identity,
+component, total, translation, and torque gates passed.
+
+The complete local process took `48.5 s` and about `3.10 GiB` peak RSS. The
+base CDS call took only `0.0033 s`, whereas response construction, density-root
+solution, and the analytic continuum derivative took `2.87 s`, `8.74 s`, and
+`12.67 s`; the new CDS/assembly layer is therefore negligible in this one
+timing, while the order-47 continuum remains the dominant cost. No
+`PCMSolver warning.` or `primary` marker appeared in the clean log because the
+unused public correction was detached before evaluation.
+
+This closes one component on one molecule only. The assembly is not populated
+into `SolvationResult`, the public provider remains energy-only, and no
+solution-force, broad rotation, chemical-accuracy, or portable-performance
+capability is claimed.
 
 A controlled methanol refinement then separated local derivative correctness
 from finite-grid rotation quality. Order 17 used 397 surviving surface points
@@ -857,11 +889,12 @@ to tested version 2.13.1, and neither the public parser nor production provider
 selects it. At least one additional rigid molecule, denser orientation
 sampling, and small-angle continuity remain required before selecting order
 47 or rejecting grid refinement in favour of a rotation-covariant
-discretization. A separate optional PySCF SMD-CDS energy/gradient pair passes
-the one-methanol component gate above, and the internal algebraic assembly is
-now unit/sign tested. Evaluation of both terms in one real same-profile canary,
-provider/result integration, and chemical-space validation remain open. Route 2
-therefore still does not expose a total solvent force or solution-phase PES.
+discretization. A separate optional PySCF SMD-CDS energy/gradient pair and the
+internal algebraic assembly now pass the one-component methanol gate under the
+same declared profile above. A second molecule, additional total-gradient
+components,
+provider/result integration, and chemical-space validation remain open. Route
+2 therefore still does not expose a total solvent force or solution-phase PES.
 
 The derivative-provider audit found that PCMSolver's dormant PEDRA code only
 forms added-sphere centre/radius derivatives and is disabled from its build

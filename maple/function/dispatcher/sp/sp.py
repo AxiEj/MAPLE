@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import Iterator, List, Optional, Union
 from dataclasses import dataclass
 
 from ase import Atoms
@@ -112,7 +112,7 @@ class SinglePoint(JobABC):
         if (
             calc is None
             or not supports_batch_calculation(calc)
-            or (self.verbose >= 1 and structures_have_constraints(self.atoms))
+            or structures_have_constraints(self.atoms)
         ):
             energies = []
             forces = [] if self.verbose >= 1 else None
@@ -139,29 +139,45 @@ class SinglePoint(JobABC):
         """Process multiple independent structures."""
         with timer("Single Point Energy Calculation (Trajectory)"):
             n_frames = len(self.atoms)
-            self.log_info([f"\nProcessing {n_frames} structures from trajectory...\n"])
-            self.log_info(["=" * 80 + "\n"])
+            self.log_info([
+                f"\nProcessing {n_frames} structures from trajectory...\n",
+                "=" * 80 + "\n",
+            ])
 
             energies_hartree, forces_list = self._trajectory_energy_forces()
+            self.log_info(
+                self._trajectory_result_lines(energies_hartree, forces_list)
+            )
 
-            for idx, (atoms_frame, energy_hartree) in enumerate(
-                zip(self.atoms, energies_hartree),
-                start=1,
-            ):
-                forces = None if forces_list is None else forces_list[idx - 1]
-                self.log_info(
-                    self._trajectory_frame_lines(
-                        idx,
-                        atoms_frame,
-                        energy_hartree,
-                        forces=forces,
-                    )
-                )
+    def _trajectory_result_lines(
+        self,
+        energies_hartree: List[float],
+        forces_list=None,
+    ) -> Iterator[str]:
+        """Yield trajectory results in output order for one streamed write."""
+        for idx, (atoms_frame, energy_hartree) in enumerate(
+            zip(self.atoms, energies_hartree),
+            start=1,
+        ):
+            forces = None if forces_list is None else forces_list[idx - 1]
+            yield from self._trajectory_frame_lines(
+                idx,
+                atoms_frame,
+                energy_hartree,
+                forces=forces,
+            )
 
-            # Summary (always shown)
-            self.log_info([f"\n{' SUMMARY ':=^80}\n"])
-            self.log_info([f"Total frames processed: {n_frames}\n"])
-            self.log_info([f"Energy range: {min(energies_hartree):.10f} to {max(energies_hartree):.10f} Hartree\n"])
-            energy_span = max(energies_hartree) - min(energies_hartree)
-            self.log_info([f"Energy span: {energy_span:.10f} Hartree ({energy_span * 627.509:.4f} kcal/mol)\n"])
-            self.log_info(["=" * 80 + "\n"])
+        yield f"\n{' SUMMARY ':=^80}\n"
+        yield f"Total frames processed: {len(self.atoms)}\n"
+        energy_min = min(energies_hartree)
+        energy_max = max(energies_hartree)
+        yield (
+            f"Energy range: {energy_min:.10f} to "
+            f"{energy_max:.10f} Hartree\n"
+        )
+        energy_span = energy_max - energy_min
+        yield (
+            f"Energy span: {energy_span:.10f} Hartree "
+            f"({energy_span * 627.509:.4f} kcal/mol)\n"
+        )
+        yield "=" * 80 + "\n"

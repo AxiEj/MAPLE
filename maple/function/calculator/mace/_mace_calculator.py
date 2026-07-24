@@ -215,8 +215,8 @@ class MACECalculator(CalcABC):
 
         The graph helper builds each image's no-PBC radius graph separately and
         offsets edge indices into a PyG-style batch, so there are no artificial
-        cross-image edges.  Units match ``calculate`` by differentiating the
-        Hartree-converted energy vector.
+        cross-image edges.  Units match ``calculate`` by keeping autograd in
+        native eV and converting detached outputs at the result boundary.
         """
         _, want_energy, want_forces, request = normalize_energy_forces_request(
             properties
@@ -261,28 +261,31 @@ class MACECalculator(CalcABC):
                     compute_virials=False,
                 )
 
-        energy_vec = energy_vector_from_output(
+        energy_vec_eV = energy_vector_from_output(
             total_energy_local,
             batch_size=len(atoms_list),
             n_atoms_total=data_dict['positions'].shape[0],
             batch=data_dict['batch'],
-        ) * EV2HARTREE
+        )
 
+        # Match calculate()/_finalize_results(): promote model energies before
+        # conversion so FP32 models do not incur an extra Hartree-rounding step.
         energies = (
-            energy_vec.detach().cpu().numpy().astype(np.float64)
+            energy_vec_eV.detach().cpu().numpy().astype(np.float64) * EV2HARTREE
             if want_energy else None
         )
 
         forces_list = None
         if want_forces:
-            forces = -torch.autograd.grad(
-                energy_vec.sum(),
+            forces_eV = -torch.autograd.grad(
+                energy_vec_eV.sum(),
                 data_dict['positions'],
                 create_graph=False,
                 retain_graph=False,
             )[0]
+            forces_ha = forces_eV.detach().cpu().numpy() * EV2HARTREE
             forces_list = split_atomwise_array(
-                forces.detach().cpu().numpy().astype(np.float64),
+                forces_ha.astype(np.float64),
                 counts,
             )
 

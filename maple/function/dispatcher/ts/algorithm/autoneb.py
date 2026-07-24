@@ -360,7 +360,11 @@ class AutoNEB(JobABC):
     def _get_energies(self, images: List[Atoms]) -> List[float]:
         """Get energies for independent path images, batched when safe."""
         calc = shared_calculator(images)
-        if calc is not None and supports_batch_calculation(calc):
+        if (
+            calc is not None
+            and supports_batch_calculation(calc)
+            and not structures_have_constraints(images)
+        ):
             energies = EnergyEvaluator(
                 calc,
                 batch_size=getattr(calc, "path_batch_size", None),

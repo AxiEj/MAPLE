@@ -27,6 +27,7 @@ from ....calculator._batch_eval import (
     PathEvaluator,
     energy_forces_one,
     shared_calculator,
+    structures_have_constraints,
     supports_batch_calculation,
 )
 
@@ -677,7 +678,11 @@ class NEB(JobABC):
 
     def get_energies(self, imgs): 
         calc = shared_calculator(imgs)
-        if calc is not None and supports_batch_calculation(calc):
+        if (
+            calc is not None
+            and supports_batch_calculation(calc)
+            and not structures_have_constraints(imgs)
+        ):
             energies = EnergyEvaluator(
                 calc,
                 batch_size=getattr(calc, "path_batch_size", None),
@@ -699,7 +704,11 @@ class NEB(JobABC):
             return [], []
 
         calc = shared_calculator(images)
-        if calc is not None and supports_batch_calculation(calc):
+        if (
+            calc is not None
+            and supports_batch_calculation(calc)
+            and not structures_have_constraints(images)
+        ):
             energies, forces = PathEvaluator(
                 calc,
                 batch_size=getattr(calc, "path_batch_size", None),

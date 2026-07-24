@@ -66,6 +66,9 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "fixed_surface_solvation_coordinate_gradient()" in formulas
     assert "ExternalMEPCavityResponse" in formulas
     assert "SurfaceChargeState" in formulas
+    assert "ExternalMEPCavityOperatorDerivative" in formulas
+    assert "continuum_operator_position_vjp()" in formulas
+    assert "polarization_operator_position_gradient()" in formulas
     assert "q_{\\mathrm{sym}}" in formulas
     assert "not production-ready" in roadmap
     assert "54cd781" in formulas

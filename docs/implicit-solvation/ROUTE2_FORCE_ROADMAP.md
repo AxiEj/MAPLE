@@ -340,6 +340,19 @@ selected, license-compatible differentiable provider.
    mixed-oxygen per-atom radii in the candidate backend, differentiable CDS,
    scaling, and broad speed/accuracy evidence remain open. PySCF is not a MAPLE
    dependency and no speed claim follows from these local timings.
+9. **Done for the provider-neutral operator-VJP boundary; no production
+   derivative provider yet:** `ExternalMEPCavityOperatorDerivative` represents
+   \(d\langle u,Q_{\mathrm{sym}}(R)v\rangle/dR\) directly, without assembling a
+   dense response Jacobian. `polarization_operator_position_gradient()` applies
+   the required one-half factor for
+   \(E_{\mathrm{pol}}=v^\mathsf TQ_{\mathrm{sym}}v/2\), while
+   `FixedCavityPCMReactionFieldLinearMap.continuum_operator_position_vjp()`
+   maps an arbitrary atom-field cotangent into the corresponding left surface
+   potential. A coordinate-dependent nonsymmetric synthetic \(K/R\) oracle
+   passes general bilinear and energy finite differences. The real PCMSolver
+   adapter has no such endpoint and intentionally raises instead of treating
+   the missing GePol derivative as zero. Moving-surface projection kernels,
+   smooth-provider integration, and CDS remain open.
 
 ### Phase 2 -- coupled response
 

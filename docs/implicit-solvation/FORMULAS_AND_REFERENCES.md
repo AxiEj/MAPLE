@@ -684,6 +684,60 @@ This is an architectural boundary, not a new public provider: PCMSolver remains
 the only accepted runtime backend and PySCF remains an external validation
 environment.
 
+The corresponding provider-neutral operator-derivative boundary is
+`ExternalMEPCavityOperatorDerivative` contract version 1. It does not expose a
+dense \(dQ_{\mathrm{sym}}/d\mathbf R\). Instead, for two fixed surface
+potentials \(\mathbf u\) and \(\mathbf v\), the provider returns the bilinear
+VJP
+
+\[
+\frac{d}{d\mathbf R}
+\left(\mathbf u^\mathsf T
+Q_{\mathrm{sym}}(\mathbf R)\mathbf v\right).
+\]
+
+Writing
+\[
+Q=K^{-1}R,\quad
+\mathbf q_v=Q\mathbf v,\quad
+\mathbf y_u=K^{-\mathsf T}\mathbf u,
+\]
+the general nonsymmetric IEFPCM identity is
+
+\[
+\begin{aligned}
+\frac{d}{d\mathbf R}
+\left(\mathbf u^\mathsf TQ_{\mathrm{sym}}\mathbf v\right)
+=\frac12\big[
+&\mathbf y_u^\mathsf T
+  (dR\,\mathbf v-dK\,\mathbf q_v)\\
++&\mathbf y_v^\mathsf T
+  (dR\,\mathbf u-dK\,\mathbf q_u)
+\big].
+\end{aligned}
+\]
+
+For the polarization energy, \(\mathbf u=\mathbf v\), and the operator-only
+term is one half of this VJP:
+
+\[
+\left.\frac{dE_{\mathrm{pol}}}{d\mathbf R}\right|_{\mathrm{operator}}
+=\frac12\frac{d}{d\mathbf R}
+\left(\mathbf v^\mathsf TQ_{\mathrm{sym}}\mathbf v\right).
+\]
+
+`polarization_operator_position_gradient()` applies this one-half factor.
+`continuum_operator_position_vjp()` validates the general contract, and
+`FixedCavityPCMReactionFieldLinearMap.continuum_operator_position_vjp()`
+constructs the left and right surface potentials with the same point-multipole
+projection used by the energy path. A coordinate-dependent nonsymmetric
+synthetic \(K/R\) system locks both the energy and general bilinear identities
+against central finite differences. This is still not a total force:
+moving-surface derivatives of the solute-MEP and ASC-back-projection kernels,
+CDS, and a real differentiable continuum provider remain separate. The
+PCMSolver adapter deliberately does not implement the derivative contract and
+therefore fails closed.
+
 Route-2 references:
 
 - MACE-POLAR-1 release and official checkpoints:

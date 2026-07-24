@@ -11,6 +11,9 @@ from __future__ import annotations
 import numpy as np
 from ase.units import Bohr, Hartree
 
+from .continuum_derivative import (
+    continuum_operator_position_vjp as _continuum_operator_position_vjp,
+)
 from .continuum_response import (
     EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
     ExternalMEPCavityResponse,
@@ -281,6 +284,56 @@ class FixedCavityPCMReactionFieldLinearMap:
         if result.shape != expected_shape or not np.all(np.isfinite(result)):
             raise RuntimeError(
                 "Fixed-surface PCM position VJP must be finite with shape "
+                f"{expected_shape}; received {result.shape}."
+            )
+        return result
+
+    def continuum_operator_position_vjp(
+        self,
+        density: np.ndarray,
+        field_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate only the continuum operator in a field pairing.
+
+        This returns the ``dQ_sym/dR`` contribution to
+        ``d<field_cotangent, P_R(density)>/dR`` in eV/Angstrom.  Surface MEP and
+        reaction-field projection kernels are held fixed; their solute-centre
+        derivative is provided by :meth:`position_vjp`, while moving-surface
+        kernel terms remain a separate future contribution.
+        """
+
+        coefficients = _validated_atom_block(
+            density,
+            atom_count=self.atom_count,
+            name="density",
+        )
+        cotangent = _validated_atom_block(
+            field_cotangent,
+            atom_count=self.atom_count,
+            name="field_cotangent",
+        )
+        right_surface_potential = point_multipole_potential(
+            self._centers_bohr,
+            self._positions_angstrom,
+            coefficients,
+        )
+        left_surface_potential = point_multipole_potential(
+            self._centers_bohr,
+            self._positions_angstrom,
+            external_field_to_density_order(cotangent),
+        )
+        result = (
+            _continuum_operator_position_vjp(
+                self._response,
+                left_surface_potential,
+                right_surface_potential,
+            )
+            * Hartree
+        )
+        expected_shape = (self.atom_count, 3)
+        if result.shape != expected_shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "Continuum operator position VJP must be finite with shape "
                 f"{expected_shape}; received {result.shape}."
             )
         return result

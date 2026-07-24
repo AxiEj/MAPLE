@@ -138,10 +138,19 @@ not a complete solution-phase PES.
     energy-conjugate \(q_{\mathrm{sym}}\). The current energy and fixed-cavity
     derivative paths share this contract, while the public provider remains
     PCMSolver-only.
-14. Compare the summed analytic force with central finite differences of the
+14. `ExternalMEPCavityOperatorDerivative`,
+    `continuum_operator_position_vjp()`, and
+    `polarization_operator_position_gradient()` now lock the operator-only
+    geometry VJP \(d\langle u,Q_{\mathrm{sym}}(R)v\rangle/dR\). A synthetic
+    nonsymmetric, coordinate-dependent IEFPCM \(K/R\) system passes energy,
+    bilinear, symmetry, and atom-field-pairing finite differences. This is an
+    algebra/interface gate only: PCMSolver still fails closed because its
+    GePol/operator derivative is unavailable, and moving-surface kernel plus CDS
+    terms remain absent.
+15. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-15. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+16. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

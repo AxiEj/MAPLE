@@ -250,6 +250,16 @@ def test_fixed_cavity_pcm_map_rejects_unknown_continuum_contract_version():
         FixedCavityPCMReactionFieldLinearMap(response, positions)
 
 
+def test_pcmsolver_map_fails_closed_without_operator_derivative():
+    operator, positions, _, _ = _operator()
+
+    with pytest.raises(NotImplementedError, match="operator derivative"):
+        operator.continuum_operator_position_vjp(
+            np.zeros((len(positions), 4)),
+            np.zeros((len(positions), 4)),
+        )
+
+
 def test_fixed_cavity_pcm_map_rejects_geometry_mismatch():
     _, positions, _, response = _operator()
     shifted = positions.copy()

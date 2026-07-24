@@ -205,6 +205,11 @@ selected, license-compatible differentiable provider.
    identity closes to \(1.94\times10^{-12}\) absolute error. The PCM
    map/adjoint is not connected yet, so this remains response infrastructure
    rather than a force capability.
+6. **Done for the abstract adjoint solve:** `NeutralDensityCoordinates` uses an
+   orthonormal Helmert charge basis and `solve_adjoint()` solves the residual
+   VJP with matrix-free GMRES. A dense neutral-subspace system matches the
+   direct solution, while a singular synthetic operator fails closed. This has
+   not yet solved a real PCM-coupled adjoint.
 
 ### Phase 1 -- differentiable explicit geometry terms
 

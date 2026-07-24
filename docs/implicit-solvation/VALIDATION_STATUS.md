@@ -39,17 +39,20 @@ not a complete solution-phase PES.
    canary gives \(1.29\times10^{-7}\) maximum JVP finite-difference error and
    \(1.94\times10^{-12}\) absolute JVP/VJP bilinear-identity error. The fixed
    cavity PCM map/adjoint remains to be connected.
-4. Fixed-density/ASC/surface point-kernel position VJPs now match central
+4. The neutral-subspace matrix-free GMRES adjoint solver matches a direct dense
+   synthetic solution and fails closed for a singular operator. It has not yet
+   solved a real PCM-coupled response equation.
+5. Fixed-density/ASC/surface point-kernel position VJPs now match central
    differences and preserve the differentiated reciprocal identity without
    dense Jacobians. This is an explicit component only, not a force capability.
-5. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
+6. The provider audit rejects mixing PySCF SWIG/ISWIG derivatives with the
    current PCMSolver--GePol energy; the current PCMSolver C ABI has no force endpoint.
    A separately named smooth PCM profile must be evaluated.
-6. Implement the geometry-dependent SMD CDS/SASA derivative.
-7. Compare the summed analytic force with central finite differences of the
+7. Implement the geometry-dependent SMD CDS/SASA derivative.
+8. Compare the summed analytic force with central finite differences of the
    converged total energy, then enforce translation, rotation, and energy
    conservation checks.
-8. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+9. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
    solution-phase PES.
 
 ## Secondary diagnostics

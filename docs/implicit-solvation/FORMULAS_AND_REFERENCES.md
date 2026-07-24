@@ -237,6 +237,16 @@ gradient in eV/(e angstrom). Its physical pairing with density is
 \(\sum_i(q_iV_i+\mathbf p_i\cdot\nabla V_i)\); the MACE adapter owns the exact
 Cartesian/e3nn permutation.
 
+The adjoint equation is solved in an orthonormal Helmert basis for the
+zero-sum monopole block, with the three \(l=1\) blocks retained directly. This
+removes the forbidden uniform-charge coordinate without changing the discrete
+Euclidean pairing. `solve_adjoint()` applies the residual VJP through a SciPy
+`LinearOperator` and matrix-free GMRES, then recomputes the unpreconditioned
+residual and fails closed unless the requested absolute/relative tolerance is
+met. Dense synthetic comparisons validate the reduced-coordinate solution and
+a singular-operator control validates the failure path. No production force is
+published by this solver infrastructure.
+
 An energy-consistent implementation must account for all of the following:
 
 1. the gas-to-polarized intrinsic MACE-POLAR force difference;

@@ -4,8 +4,10 @@ import numpy as np
 import pytest
 
 from maple.function.calculator.extra_correction.implicit.route2_response import (
+    NeutralDensityCoordinates,
     UnmixedDensityResidualLinearization,
     project_neutral_density_tangent,
+    solve_adjoint,
 )
 
 
@@ -123,3 +125,93 @@ def test_neutral_density_projection_only_changes_monopoles():
     assert float(np.sum(projected[:, 0])) == pytest.approx(0.0, abs=1.0e-15)
     np.testing.assert_array_equal(projected[:, 1:], values[:, 1:])
     np.testing.assert_array_equal(values[:, 0], [0.3, -0.1, 0.4])
+
+
+def test_neutral_density_coordinates_are_an_isometric_round_trip():
+    rng = np.random.default_rng(11)
+    coordinates = NeutralDensityCoordinates(4)
+    vector = rng.normal(size=coordinates.dimension)
+    tangent = coordinates.expand(vector)
+
+    np.testing.assert_allclose(
+        coordinates.reduce(tangent),
+        vector,
+        rtol=1.0e-14,
+        atol=1.0e-14,
+    )
+    assert np.linalg.norm(tangent) == pytest.approx(
+        np.linalg.norm(vector),
+        abs=1.0e-14,
+    )
+    assert float(np.sum(tangent[:, 0])) == pytest.approx(0.0, abs=1.0e-15)
+
+
+def test_matrix_free_adjoint_solver_matches_dense_neutral_solution():
+    atom_count = 3
+    dimension = 4 * atom_count
+    rng = np.random.default_rng(17)
+    reaction_matrix = rng.normal(scale=0.05, size=(dimension, dimension))
+    response_jacobian = rng.normal(scale=0.04, size=(dimension, dimension))
+    projector = _neutral_projector(atom_count)
+    dense = projector @ (
+        np.eye(dimension) - response_jacobian @ reaction_matrix
+    ) @ projector
+    linearization = UnmixedDensityResidualLinearization(
+        atom_count=atom_count,
+        reaction_field=_MatrixLinearMap(reaction_matrix, atom_count),
+        density_response=_MatrixDensityResponse(response_jacobian, atom_count),
+    )
+    coordinates = NeutralDensityCoordinates(atom_count)
+    embedding = np.column_stack(
+        [
+            coordinates.expand(np.eye(coordinates.dimension)[column]).reshape(-1)
+            for column in range(coordinates.dimension)
+        ]
+    )
+    rhs = project_neutral_density_tangent(
+        rng.normal(size=(atom_count, 4))
+    )
+    reduced_rhs = coordinates.reduce(rhs)
+    expected_reduced = np.linalg.solve(
+        embedding.T @ dense.T @ embedding,
+        reduced_rhs,
+    )
+
+    result = solve_adjoint(
+        linearization,
+        rhs,
+        relative_tolerance=1.0e-11,
+        absolute_tolerance=1.0e-13,
+    )
+
+    np.testing.assert_allclose(
+        coordinates.reduce(result.solution),
+        expected_reduced,
+        rtol=1.0e-10,
+        atol=1.0e-11,
+    )
+    assert result.residual_callback_count > 0
+    assert result.operator_applications >= result.residual_callback_count
+    assert result.relative_residual <= 1.0e-11
+
+
+def test_matrix_free_adjoint_solver_fails_closed_for_singular_operator():
+    atom_count = 2
+    identity = np.eye(4 * atom_count)
+    linearization = UnmixedDensityResidualLinearization(
+        atom_count=atom_count,
+        reaction_field=_MatrixLinearMap(identity, atom_count),
+        density_response=_MatrixDensityResponse(identity, atom_count),
+    )
+    rhs = project_neutral_density_tangent(
+        np.arange(4 * atom_count, dtype=float).reshape(atom_count, 4)
+    )
+
+    with pytest.raises(RuntimeError, match="GMRES did not satisfy"):
+        solve_adjoint(
+            linearization,
+            rhs,
+            relative_tolerance=1.0e-12,
+            absolute_tolerance=0.0,
+            max_iterations=2,
+        )

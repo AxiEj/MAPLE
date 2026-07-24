@@ -8,9 +8,11 @@ coordinate derivatives are separate terms in the total Route-2 derivative.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import inspect
 from typing import Protocol
 
 import numpy as np
+from scipy.sparse.linalg import LinearOperator, gmres
 
 
 class ReactionFieldLinearMap(Protocol):
@@ -159,9 +161,177 @@ class UnmixedDensityResidualLinearization:
         return project_neutral_density_tangent(cotangent - response_cotangent)
 
 
+class NeutralDensityCoordinates:
+    """Orthonormal coordinates for the zero-total-monopole tangent space."""
+
+    def __init__(self, atom_count: int, *, neutral_tolerance: float = 1.0e-10):
+        if atom_count <= 0:
+            raise ValueError("Neutral density coordinates require atoms.")
+        if neutral_tolerance <= 0.0:
+            raise ValueError("Neutral tangent tolerance must be positive.")
+        self.atom_count = int(atom_count)
+        self.neutral_tolerance = float(neutral_tolerance)
+        self._charge_basis = self._build_charge_basis(self.atom_count)
+        self.dimension = 4 * self.atom_count - 1
+
+    @staticmethod
+    def _build_charge_basis(atom_count: int) -> np.ndarray:
+        basis = np.zeros((atom_count, max(atom_count - 1, 0)), dtype=float)
+        for column in range(atom_count - 1):
+            count = column + 1
+            normalization = np.sqrt(count * (count + 1))
+            basis[:count, column] = 1.0 / normalization
+            basis[count, column] = -count / normalization
+        return basis
+
+    def expand(self, coordinates: np.ndarray) -> np.ndarray:
+        """Map a reduced vector isometrically into an ``(n_atoms, 4)`` tangent."""
+
+        vector = np.asarray(coordinates, dtype=float)
+        if vector.shape != (self.dimension,) or not np.all(np.isfinite(vector)):
+            raise ValueError(
+                "Neutral density coordinate vector must be finite with shape "
+                f"({self.dimension},); received {vector.shape}."
+            )
+        charge_dimension = self.atom_count - 1
+        values = np.empty((self.atom_count, 4), dtype=float)
+        values[:, 0] = self._charge_basis @ vector[:charge_dimension]
+        values[:, 1:] = vector[charge_dimension:].reshape(self.atom_count, 3)
+        return values
+
+    def reduce(self, values: np.ndarray) -> np.ndarray:
+        """Map a neutral tangent into its orthonormal reduced coordinates."""
+
+        tangent = _validated_block(
+            values,
+            atom_count=self.atom_count,
+            name="density tangent",
+        )
+        _require_neutral_density_tangent(
+            tangent,
+            name="density tangent",
+            tolerance=self.neutral_tolerance,
+        )
+        return np.concatenate(
+            (
+                self._charge_basis.T @ tangent[:, 0],
+                tangent[:, 1:].reshape(-1),
+            )
+        )
+
+
+@dataclass(frozen=True)
+class AdjointSolveResult:
+    """Verified solution of the neutral-subspace Route-2 adjoint equation."""
+
+    solution: np.ndarray
+    residual_callback_count: int
+    operator_applications: int
+    residual_norm: float
+    relative_residual: float
+    method: str = "gmres"
+
+
+def solve_adjoint(
+    linearization: UnmixedDensityResidualLinearization,
+    right_hand_side: np.ndarray,
+    *,
+    relative_tolerance: float = 1.0e-8,
+    absolute_tolerance: float = 1.0e-10,
+    restart: int | None = None,
+    max_iterations: int = 100,
+) -> AdjointSolveResult:
+    """Solve ``J_c R0* lambda = rhs`` by matrix-free GMRES.
+
+    The Helmert charge basis removes the forbidden uniform-charge mode while
+    preserving the Euclidean discrete pairing.  The solve fails closed on
+    Krylov non-convergence or when a fresh post-solve residual check does not
+    satisfy the requested tolerance.
+    """
+
+    if relative_tolerance <= 0.0:
+        raise ValueError("Adjoint relative tolerance must be positive.")
+    if absolute_tolerance < 0.0:
+        raise ValueError("Adjoint absolute tolerance cannot be negative.")
+    if restart is not None and restart <= 0:
+        raise ValueError("Adjoint GMRES restart must be positive.")
+    if max_iterations <= 0:
+        raise ValueError("Adjoint maximum iterations must be positive.")
+
+    coordinates = NeutralDensityCoordinates(
+        linearization.atom_count,
+        neutral_tolerance=linearization.neutral_tolerance,
+    )
+    rhs = coordinates.reduce(right_hand_side)
+    rhs_norm = float(np.linalg.norm(rhs))
+    if rhs_norm == 0.0:
+        return AdjointSolveResult(
+            solution=coordinates.expand(np.zeros_like(rhs)),
+            residual_callback_count=0,
+            operator_applications=0,
+            residual_norm=0.0,
+            relative_residual=0.0,
+        )
+
+    iterations = 0
+    operator_applications = 0
+
+    def matvec(vector: np.ndarray) -> np.ndarray:
+        nonlocal operator_applications
+        operator_applications += 1
+        return coordinates.reduce(
+            linearization.vjp(coordinates.expand(vector))
+        )
+
+    def callback(_residual) -> None:
+        nonlocal iterations
+        iterations += 1
+
+    operator = LinearOperator(
+        shape=(coordinates.dimension, coordinates.dimension),
+        matvec=matvec,
+        dtype=np.float64,
+    )
+    kwargs = {
+        "restart": restart,
+        "maxiter": max_iterations,
+        "callback": callback,
+        "atol": absolute_tolerance,
+    }
+    gmres_parameters = inspect.signature(gmres).parameters
+    if "rtol" in gmres_parameters:
+        kwargs["rtol"] = relative_tolerance
+    else:  # SciPy < 1.14
+        kwargs["tol"] = relative_tolerance
+    if "callback_type" in gmres_parameters:
+        kwargs["callback_type"] = "pr_norm"
+
+    solution, info = gmres(operator, rhs, **kwargs)
+    residual = matvec(solution) - rhs
+    residual_norm = float(np.linalg.norm(residual))
+    relative_residual = residual_norm / rhs_norm
+    threshold = max(absolute_tolerance, relative_tolerance * rhs_norm)
+    if info != 0 or residual_norm > threshold + 1.0e-13:
+        raise RuntimeError(
+            "Route-2 adjoint GMRES did not satisfy the requested tolerance "
+            f"(info={info}, residual={residual_norm:.3e}, "
+            f"threshold={threshold:.3e})."
+        )
+    return AdjointSolveResult(
+        solution=coordinates.expand(solution),
+        residual_callback_count=iterations,
+        operator_applications=operator_applications,
+        residual_norm=residual_norm,
+        relative_residual=relative_residual,
+    )
+
+
 __all__ = [
+    "AdjointSolveResult",
     "DensityResponseLinearization",
+    "NeutralDensityCoordinates",
     "ReactionFieldLinearMap",
     "UnmixedDensityResidualLinearization",
     "project_neutral_density_tangent",
+    "solve_adjoint",
 ]

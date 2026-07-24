@@ -1134,10 +1134,45 @@ adapter neither executes nor logs the PCMSolver `primary` branch; a
 `primary` warning still seen in the public Route-2 path comes from its
 unchanged `warning-fallback` cavity policy.
 
-This is an engineering canary, not an adopted grid or a solution-phase PES.
-The adapter is lazy, hard-gated to pyddx 0.8.0, absent from the public parser,
-and not yet connected to the converged MACE fixed-point adjoint, SMD CDS,
-`SolvationResult`, or chemical-space validation.
+The same map was then substituted into the existing real-MACE fixed point and
+adjoint without changing either algebra. On clean baseline `309366e`,
+MACE-POLAR-1-M plus `lmax=15`/770-point ddPCM converged with `mixing=1.0` in
+18 iterations to a \(6.23\times10^{-13}\) density residual. The continuum
+correction was `-0.3287750411 eV`; the provider/pairing energy discrepancy was
+\(1.29\times10^{-14}\) eV. The matrix-free adjoint residual was
+\(5.51\times10^{-14}\), and the largest analytic gradient component differed
+from a central finite difference of the fully reconverged energy by
+\(1.20\times10^{-6}\) eV/angstrom. Translation closure was
+\(1.32\times10^{-14}\) eV/angstrom.
+
+That 770-point state had a \(9.05\times10^{-4}\)-eV base torque, but one
+additional orientation gave \(1.31\times10^{-3}\) eV and failed the
+predeclared \(10^{-3}\)-eV gate. One bounded, upstream-supported 1202-point
+follow-up reduced the base and rotated torques to
+\(6.38\times10^{-4}\) and \(3.35\times10^{-4}\) eV. Its fully reconverged
+gradient finite-difference error was \(9.36\times10^{-7}\) eV/angstrom.
+However, the same orientation's energy span and maximum gradient-covariance
+error increased nonmonotonically to `0.0004776 kcal/mol` and
+`0.0009010 eV/angstrom`, close to the predeclared `0.0005` and
+`0.001` limits. Therefore 1202 points passes this discriminator but is not
+adopted as a universal grid.
+
+At 770 points the 18-iteration density root took `17.44--17.67 s` and the
+post-root analytic derivative `17.67 s`; 1202 points increased the
+corresponding base timings to `23.77` and `24.83 s`. The 770-point
+`mixing=0.5` control required 48 iterations and `41.96 s`, but both mixing
+values reached continuum corrections within \(1.12\times10^{-12}\) eV.
+These are cold validation timings, not production throughput: model loading,
+finite-difference oracles, and independent process startup are reported
+separately.
+
+This remains an engineering canary, not an adopted grid or a solution-phase
+PES. The adapter is lazy, hard-gated to pyddx 0.8.0, and absent from the
+public parser. The real coupled continuum-electrostatic gradient is now
+checked against one largest-component whole-energy finite difference and one
+additional rigid orientation for methanol, but SMD CDS assembly,
+`SolvationResult` force publication, broader rotation, a second molecule,
+flexible geometries, and chemical-space accuracy remain open.
 
 Route-2 references:
 

@@ -18,6 +18,16 @@ from maple.function.calculator.extra_correction.implicit.pyddx_pcm_response impo
     _PyDDXRuntime,
     mace_polar_density_to_pyddx_multipoles,
 )
+from maple.function.calculator.extra_correction.implicit.route2_derivative import (
+    continuum_coupled_solvation_coordinate_gradient,
+    fixed_cavity_energy_density_gradient,
+)
+from maple.function.calculator.extra_correction.implicit.route2_response import (
+    NeutralDensityCoordinates,
+    UnmixedDensityResidualLinearization,
+    project_neutral_density_tangent,
+    solve_adjoint,
+)
 
 
 class _FakeModel:
@@ -95,6 +105,23 @@ class _FakeState:
 
     def multipole_force_terms(self, _multipoles):
         return np.zeros((3, self.model.n_spheres), dtype=float)
+
+
+class _MatrixDensityResponse:
+    def __init__(self, matrix, atom_count):
+        self.matrix = np.asarray(matrix, dtype=float)
+        self.atom_count = int(atom_count)
+
+    def jvp(self, field_direction):
+        return (
+            self.matrix @ np.asarray(field_direction, dtype=float).reshape(-1)
+        ).reshape(self.atom_count, 4)
+
+    def vjp(self, density_cotangent):
+        return (
+            self.matrix.T
+            @ np.asarray(density_cotangent, dtype=float).reshape(-1)
+        ).reshape(self.atom_count, 4)
 
 
 @dataclass(frozen=True)
@@ -186,6 +213,141 @@ def test_pyddx_full_position_vjp_uses_complete_energy_polarization_identity(
     np.testing.assert_allclose(
         gradient,
         np.full((2, 3), expected_value),
+    )
+
+
+def test_pyddx_map_composes_with_fixed_point_adjoint_and_full_gradient(
+    fake_runtime,
+):
+    atom_count = 2
+    flat_dimension = 4 * atom_count
+    coordinates = NeutralDensityCoordinates(atom_count)
+    neutral_projector = np.column_stack(
+        [
+            project_neutral_density_tangent(unit.reshape(atom_count, 4)).reshape(
+                -1
+            )
+            for unit in np.eye(flat_dimension)
+        ]
+    )
+    shifted_identity = np.roll(np.eye(flat_dimension), 1, axis=1)
+    density_response = _MatrixDensityResponse(
+        neutral_projector
+        @ (2.0e-4 * np.eye(flat_dimension) + 5.0e-5 * shifted_identity),
+        atom_count,
+    )
+    base_density = project_neutral_density_tangent(
+        np.asarray(
+            [
+                [0.12, 0.03, -0.02, 0.04],
+                [-0.12, -0.01, 0.05, -0.03],
+            ]
+        )
+    )
+    intrinsic_linear = np.linspace(
+        -0.03,
+        0.04,
+        flat_dimension,
+    )
+    intrinsic_hessian = (
+        2.0e-3 * np.eye(flat_dimension)
+        + 5.0e-4 * (shifted_identity + shifted_identity.T)
+    )
+    positions = np.asarray([[-0.7, 0.1, 0.2], [0.8, -0.2, -0.1]])
+    radii = np.asarray([1.2, 1.5])
+
+    def state_at(displaced_positions):
+        reaction = PyDDXPCMReactionFieldLinearMap(
+            displaced_positions,
+            radii,
+            dielectric=78.39,
+            lmax=7,
+            n_lebedev=302,
+            solver_tolerance=1.0e-12,
+            _runtime=fake_runtime.runtime,
+        )
+        reduced_response = np.column_stack(
+            [
+                coordinates.reduce(
+                    density_response.jvp(
+                        reaction.apply(
+                            coordinates.expand(unit),
+                        )
+                    )
+                )
+                for unit in np.eye(coordinates.dimension)
+            ]
+        )
+        reduced_density = np.linalg.solve(
+            np.eye(coordinates.dimension) - reduced_response,
+            coordinates.reduce(base_density),
+        )
+        density = coordinates.expand(reduced_density)
+        field = reaction.apply(density)
+        flat_field = field.reshape(-1)
+        intrinsic_energy = float(
+            intrinsic_linear @ flat_field
+            + 0.5 * flat_field @ intrinsic_hessian @ flat_field
+        )
+        polarization_energy = (
+            reaction.polarization_energy_hartree(density) * Hartree
+        )
+        return reaction, density, field, intrinsic_energy + polarization_energy
+
+    reaction, density, field, _ = state_at(positions)
+    np.testing.assert_allclose(
+        density,
+        base_density + density_response.jvp(field),
+        rtol=1.0e-12,
+        atol=1.0e-12,
+    )
+    flat_field = field.reshape(-1)
+    intrinsic_field_gradient = (
+        intrinsic_linear + intrinsic_hessian @ flat_field
+    ).reshape(atom_count, 4)
+    residual = UnmixedDensityResidualLinearization(
+        atom_count=atom_count,
+        reaction_field=reaction,
+        density_response=density_response,
+    )
+    physical_rhs = fixed_cavity_energy_density_gradient(
+        reaction,
+        reaction_field_values=field,
+        intrinsic_energy_field_gradient=intrinsic_field_gradient,
+    )
+    adjoint = solve_adjoint(
+        residual,
+        physical_rhs,
+        relative_tolerance=1.0e-12,
+        absolute_tolerance=1.0e-13,
+    )
+    zero_coordinates = np.zeros((atom_count, 3))
+    analytic = continuum_coupled_solvation_coordinate_gradient(
+        reaction,
+        density_response,
+        density_coefficients=density,
+        intrinsic_energy_field_gradient=intrinsic_field_gradient,
+        adjoint_solution=adjoint.solution,
+        adjoint_density_position_vjp=zero_coordinates,
+        solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
+        gas_forces_ev_per_angstrom=zero_coordinates,
+    )
+
+    step = 1.0e-5
+    displaced_energies = []
+    for sign in (-1.0, 1.0):
+        displaced = positions.copy()
+        displaced[0, 0] += sign * step
+        displaced_energies.append(state_at(displaced)[-1])
+    finite_difference = (
+        displaced_energies[1] - displaced_energies[0]
+    ) / (2.0 * step)
+
+    assert adjoint.relative_residual <= 1.0e-12
+    assert analytic[0, 0] == pytest.approx(
+        finite_difference,
+        abs=2.0e-8,
+        rel=2.0e-7,
     )
 
 

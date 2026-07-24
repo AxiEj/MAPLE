@@ -548,8 +548,9 @@ that CDS energy and gradient come from the same selected provider.
    `supported_properties={"energy", "forces"}` be advertised. The per-atom
    radius, real-MACE fixed-point adjoint, CDS component, and algebraic total
    assembly are no longer the blockers.
-8. **Done for an independent multipole-native ddPCM energy/derivative
-   backbone; ML-SCF integration remains pending:**
+8. **Done for an independent multipole-native ddPCM backbone and one real
+   ML-SCF/adjoint-gradient canary; public total-force integration remains
+   pending:**
    `PyDDXPCMReactionFieldLinearMap` lazily and exactly version-locks pyddx
    0.8.0. It maps MACE-POLAR \(l\leq1\) atom-centred multipoles directly into
    ddX, obtains the reciprocal reaction field from one forward and one adjoint
@@ -574,12 +575,31 @@ that CDS energy and gradient come from the same selected provider.
    `primary` branch. Existing public-path `primary` warnings still describe
    the unchanged `warning-fallback` cavity probe, not this ddPCM solve.
 
-   The next bounded step is to substitute this map into the already tested
-   converged MACE fixed-point/adjoint assembly, then add the separately tested
-   SMD CDS derivative and compare the complete same-profile total gradient
-   against finite differences. Until that passes on more than one rigid
-   molecule, this is not chemical-accuracy evidence, a public force, or a
-   MAPLE solution-phase PES.
+   On clean baseline `309366e`, the same map was substituted into the existing
+   real MACE-POLAR-1-M fixed point and adjoint. At `lmax=15`/770, `mixing=1.0`
+   converged in 18 iterations to a \(6.23\times10^{-13}\) density residual.
+   The polarization-energy identity error was \(1.29\times10^{-14}\) eV, the
+   adjoint relative residual \(5.51\times10^{-14}\), and the checked
+   fully-reconverged whole-energy gradient error
+   \(1.20\times10^{-6}\) eV/angstrom. The density root and post-root analytic
+   derivative took `17.44` and `17.67 s`.
+
+   The 770-point base torque passed at \(9.05\times10^{-4}\) eV, but one
+   additional orientation failed at \(1.31\times10^{-3}\) eV. A single
+   1202-point follow-up passed both orientations at
+   \(6.38\times10^{-4}\) and \(3.35\times10^{-4}\) eV, while its
+   whole-energy gradient error remained
+   \(9.36\times10^{-7}\) eV/angstrom. The cost rose to `23.77 s` for the base
+   root and `24.83 s` for the analytic derivative. Its energy span
+   (`0.0004776 kcal/mol`) and gradient covariance
+   (`0.0009010 eV/angstrom`) moved close to their predeclared limits, so this
+   nonmonotonic one-molecule result does not select 1202 points as a default.
+
+   The next bounded step is to add the separately tested SMD CDS derivative
+   to the same-profile continuum gradient, compare that total against a
+   fully reconverged finite difference, and repeat the complete invariance
+   discriminator on a second rigid molecule. Until those pass, this is not
+   chemical-accuracy evidence, a public force, or a MAPLE solution-phase PES.
 
 ### Phase 3 -- verification gates
 

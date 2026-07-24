@@ -380,14 +380,47 @@ proof-of-concept, not a complete solution-phase PES.
     also has no PCMSolver `primary` branch; a `primary` warning from the public
     route remains a warning-fallback cavity-policy event.
 
-    This closes only the fixed-density ddPCM physics backbone. The tested
-    grid is not a default, and the adapter is not connected to the converged
-    MACE fixed-point adjoint, SMD CDS, public result properties, flexible
-    molecules, or chemical-accuracy benchmarks.
-23. Compare the summed analytic force with central finite differences of the
+    This closes the fixed-density ddPCM physics backbone. The tested grid is
+    not a default, and the adapter remains absent from the public result path.
+23. A clean one-molecule canary at baseline `309366e` connects the optional
+    pyddx map to the existing real MACE-POLAR-1-M fixed point, matrix-free
+    adjoint, and full continuum coordinate VJP. At `lmax=15`/770,
+    `mixing=1.0` converged in 18 iterations to a
+    \(6.23\times10^{-13}\) density residual. The continuum correction was
+    `-0.3287750411 eV`; the energy-identity error was
+    \(1.29\times10^{-14}\) eV, the adjoint relative residual
+    \(5.51\times10^{-14}\), and the checked fully reconverged central
+    finite-difference gradient error \(1.20\times10^{-6}\) eV/angstrom.
+    Translation closure was \(1.32\times10^{-14}\) eV/angstrom.
+
+    The base torque passed at \(9.05\times10^{-4}\) eV, but one extra
+    orientation failed at \(1.31\times10^{-3}\) eV. One bounded 1202-point
+    follow-up reduced the base/rotated torques to
+    \(6.38\times10^{-4}\)/\(3.35\times10^{-4}\) eV and retained a
+    \(9.36\times10^{-7}\)-eV/angstrom whole-energy gradient error. Its
+    `0.0004776 kcal/mol` energy span and `0.0009010 eV/angstrom` covariance
+    error nevertheless lie close to the predeclared `0.0005` and `0.001`
+    limits. This passes one discriminator but does not establish a universal
+    grid.
+
+    The 770-point density root and analytic derivative took `17.44` and
+    `17.67 s`; the 1202-point base took `23.77` and `24.83 s`. At 770 points,
+    `mixing=0.5` required 48 iterations and `41.96 s`, versus 18 iterations
+    and `17.67 s` for `mixing=1.0`, with converged corrections agreeing within
+    \(1.12\times10^{-12}\) eV. All coupled pyddx canaries recorded zero
+    PCMSolver/`primary` warnings.
+
+    A tracked fake-runtime regression now composes
+    `PyDDXPCMReactionFieldLinearMap`,
+    `UnmixedDensityResidualLinearization`, the adjoint solve, and
+    `continuum_coupled_solvation_coordinate_gradient()` and compares the
+    result with a fully reconverged scalar-energy finite difference. This
+    locks the dispatch-independent algebra but does not replace the real-MACE
+    evidence.
+24. Compare the summed analytic force with central finite differences of the
     converged total energy, then enforce translation, rotation, and energy
     conservation checks.
-24. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+25. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

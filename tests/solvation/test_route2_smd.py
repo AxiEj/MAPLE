@@ -22,6 +22,7 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     point_multipole_potential,
 )
 from maple.function.calculator.extra_correction.implicit.smd import (
+    PCM_WARNING_MARKER,
     SMDImplicitSolvation,
     _pcm_input_text,
 )
@@ -285,7 +286,7 @@ def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
     coefficients = np.asarray(
         [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]]
     )
-    session = _FakePCMSolverSession(None, None, None)
+    session = _FakePCMSolverSession(None, None, None).open()
     calls = 0
     implementation = smd_module.point_multipole_potential
 
@@ -355,26 +356,48 @@ class _FakePCMSolverSession:
         self.atomic_numbers = np.asarray(atomic_numbers)
         self.coordinates_bohr = np.asarray(coordinates_bohr)
         self.parsed_input_path = parsed_input_path
+        self._is_open = False
         self._centers = np.asarray(
             [[4.0, 0.0, 0.0], [-4.0, 0.0, 0.0], [0.0, 4.0, 0.0], [0.0, -4.0, 0.0]]
         )
         self._areas = np.ones(4)
 
     def __enter__(self):
-        return self
+        return self.open()
 
     def __exit__(self, exc_type, exc, tb):
+        self.close()
         return None
+
+    def open(self):
+        self._is_open = True
+        return self
+
+    def close(self):
+        self._is_open = False
+
+    @property
+    def cavity_size(self):
+        assert self._is_open
+        return int(self._areas.size)
+
+    @property
+    def library_source(self):
+        assert self._is_open
+        return "fake-pcmsolver"
 
     @property
     def cavity_centers_bohr(self):
+        assert self._is_open
         return self._centers.copy()
 
     @property
     def cavity_areas_bohr2(self):
+        assert self._is_open
         return self._areas.copy()
 
     def solve(self, mep):
+        assert self._is_open
         mep = np.asarray(mep, dtype=float)
         asc = -0.1 * mep
         return {
@@ -419,16 +442,39 @@ def _install_fake_pcm(monkeypatch, provider, tmp_path):
 
 
 class _WarningThenStablePCMSolverSession(_FakePCMSolverSession):
-    def __enter__(self):
+    def open(self):
         if "primary" in str(self.parsed_input_path):
             os.write(2, b"PCMSolver warning. synthetic primary instability\n")
-        return super().__enter__()
+        return super().open()
+
+    def solve(self, mep):
+        if "primary" in str(self.parsed_input_path):
+            raise AssertionError("warned primary cavity must not evaluate PCM")
+        return super().solve(mep)
 
 
 class _AlwaysWarningPCMSolverSession(_FakePCMSolverSession):
-    def __enter__(self):
+    def open(self):
         os.write(2, b"PCMSolver warning. synthetic persistent instability\n")
-        return super().__enter__()
+        return super().open()
+
+    def solve(self, mep):
+        raise AssertionError("warned cavity must not evaluate PCM")
+
+
+class _ResponseWarningThenStablePCMSolverSession(_FakePCMSolverSession):
+    def solve(self, mep):
+        result = super().solve(mep)
+        if "primary" in str(self.parsed_input_path):
+            os.write(2, b"PCMSolver warning. synthetic response instability\n")
+        return result
+
+
+class _CloseWarningThenStablePCMSolverSession(_FakePCMSolverSession):
+    def close(self):
+        if self._is_open and "primary" in str(self.parsed_input_path):
+            os.write(2, b"PCMSolver warning. synthetic close instability\n")
+        super().close()
 
 
 def _install_fake_pcm_pair(monkeypatch, provider, tmp_path, session_type):
@@ -478,7 +524,7 @@ def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
 
 
 def test_route2_retries_warning_cavity_with_deterministic_fallback(
-    monkeypatch, tmp_path
+    monkeypatch, tmp_path, capfd
 ):
     atoms = _co_atoms()
     gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
@@ -495,6 +541,7 @@ def test_route2_retries_warning_cavity_with_deterministic_fallback(
 
     result = provider.evaluate(atoms, calculator=calc)
 
+    assert PCM_WARNING_MARKER not in capfd.readouterr().err
     stability = result.provenance["cavity_stability"]
     assert stability == {
         "selected": "stability-fallback",
@@ -512,6 +559,109 @@ def test_route2_retries_warning_cavity_with_deterministic_fallback(
         attempt["warning_detected"]
         for attempt in audit["cavity_stability"]["attempts"]
     ] == [True, False]
+    primary, fallback = audit["cavity_stability"]["attempts"]
+    assert primary["warning_stage"] == "pcm-initialization"
+    assert primary["response_evaluated"] is False
+    assert primary["response_evaluation_seconds"] == 0.0
+    assert primary["pcm_initialization_seconds"] >= 0.0
+    assert fallback["warning_stage"] is None
+    assert fallback["response_evaluated"] is True
+    assert fallback["response_evaluation_seconds"] >= 0.0
+    assert fallback["pcm_initialization_seconds"] >= 0.0
+
+
+def test_route2_retries_warning_detected_during_response(monkeypatch, tmp_path):
+    atoms = _co_atoms()
+    gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
+    calc = _FakePolarCalculator(gas, gas)
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("frozen"), audit_dir=tmp_path
+    )
+    _install_fake_pcm_pair(
+        monkeypatch,
+        provider,
+        tmp_path,
+        _ResponseWarningThenStablePCMSolverSession,
+    )
+
+    result = provider.evaluate(atoms, calculator=calc)
+
+    assert result.provenance["cavity_stability"]["selected"] == (
+        "stability-fallback"
+    )
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    primary, fallback = audit["cavity_stability"]["attempts"]
+    assert primary["warning_detected"] is True
+    assert primary["warning_stage"] == "response-evaluation"
+    assert primary["response_evaluated"] is True
+    assert fallback["warning_detected"] is False
+    assert fallback["response_evaluated"] is True
+
+
+def test_route2_captures_close_warning_and_retries(monkeypatch, tmp_path, capfd):
+    atoms = _co_atoms()
+    gas = _state(-20.0, [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]])
+    calc = _FakePolarCalculator(gas, gas)
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("frozen"), audit_dir=tmp_path
+    )
+    _install_fake_pcm_pair(
+        monkeypatch,
+        provider,
+        tmp_path,
+        _CloseWarningThenStablePCMSolverSession,
+    )
+
+    result = provider.evaluate(atoms, calculator=calc)
+
+    assert PCM_WARNING_MARKER not in capfd.readouterr().err
+    assert result.provenance["cavity_stability"]["selected"] == (
+        "stability-fallback"
+    )
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    primary, fallback = audit["cavity_stability"]["attempts"]
+    assert primary["warning_detected"] is True
+    assert primary["warning_stage"] == "pcm-close"
+    assert fallback["warning_detected"] is False
+
+
+def test_scf_route2_skips_warned_primary_before_ml_scf(monkeypatch, tmp_path):
+    atoms = _co_atoms()
+    gas_density = np.asarray(
+        [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]]
+    )
+    response_density = np.asarray(
+        [[-0.12, 0.0, 0.0, 0.0], [0.12, 0.0, 0.0, 0.0]]
+    )
+    gas = _state(-20.0, gas_density)
+    response = _state(-19.9, response_density)
+    calc = _FakePolarCalculator(gas, response)
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("scf"), audit_dir=tmp_path
+    )
+    _install_fake_pcm_pair(
+        monkeypatch,
+        provider,
+        tmp_path,
+        _WarningThenStablePCMSolverSession,
+    )
+
+    result = provider.evaluate(atoms, calculator=calc)
+
+    assert result.provenance["cavity_stability"]["selected"] == (
+        "stability-fallback"
+    )
+    assert calc.calls > 1
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    primary, fallback = audit["cavity_stability"]["attempts"]
+    assert primary["response_evaluated"] is False
+    assert fallback["response_evaluated"] is True
 
 
 def test_route2_fails_closed_when_fallback_still_warns(monkeypatch, tmp_path):

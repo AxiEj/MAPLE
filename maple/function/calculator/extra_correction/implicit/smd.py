@@ -23,6 +23,7 @@ import os
 from pathlib import Path
 import sys
 import threading
+import time
 from typing import Any
 
 import numpy as np
@@ -92,6 +93,11 @@ def _pcmsolver_audit_working_directory(path: Path):
             os.chdir(previous)
 
 
+def _flush_process_stderr() -> None:
+    ctypes.CDLL(None).fflush(None)
+    sys.stderr.flush()
+
+
 @contextmanager
 def _capture_process_stderr(path: Path):
     """Capture native-library stderr while preserving the caller's descriptor."""
@@ -105,12 +111,11 @@ def _capture_process_stderr(path: Path):
         0o600,
     )
     try:
-        sys.stderr.flush()
+        _flush_process_stderr()
         os.dup2(capture_fd, 2)
         yield
     finally:
-        ctypes.CDLL(None).fflush(None)
-        sys.stderr.flush()
+        _flush_process_stderr()
         os.dup2(saved_stderr, 2)
         os.close(capture_fd)
         os.close(saved_stderr)
@@ -837,73 +842,135 @@ class SMDImplicitSolvation:
                 native_stderr_path = (
                     self.audit_dir / f"pcmsolver-{attempt_name}-stderr.log"
                 )
+                session = PCMSolverSession(
+                    np.asarray(atoms.numbers, dtype=float),
+                    np.asarray(atoms.get_positions(), dtype=float) / Bohr,
+                    parsed_input,
+                )
+                candidate_ready = False
                 with _capture_process_stderr(native_stderr_path):
-                    with PCMSolverSession(
-                        np.asarray(atoms.numbers, dtype=float),
-                        np.asarray(atoms.get_positions(), dtype=float) / Bohr,
-                        parsed_input,
-                    ) as session:
-                        if self.response == "frozen":
-                            solvent_state = gas_state
-                            pcm_state = self._solve_pcm(
-                                session, atoms, gas_state.density_coefficients
-                            )
-                            history = []
-                        else:
-                            (
-                                solvent_state,
-                                pcm_state,
-                                history,
-                            ) = self._self_consistent_state(
-                                session, atoms, calculator, gas_state
-                            )
-
-                        delta_e_solute = (
-                            float(solvent_state.energy_ev)
-                            - float(gas_state.energy_ev)
-                        ) / Hartree
-                        pcm_polarization = (
-                            pcm_state.polarization_energy_hartree
+                    try:
+                        initialization_started = time.perf_counter()
+                        session.open()
+                        initialization_seconds = (
+                            time.perf_counter() - initialization_started
                         )
-                        electrostatic = delta_e_solute + pcm_polarization
-                        total = electrostatic + cds_result.energy_hartree
-                        components = {
-                            "solute_polarization": delta_e_solute,
-                            "pcm_polarization": pcm_polarization,
-                            "electrostatic": electrostatic,
-                            "cds": cds_result.energy_hartree,
-                            "standard_state": 0.0,
-                            "delta_g_solv": total,
+                        _flush_process_stderr()
+                        native_stderr = native_stderr_path.read_text(
+                            encoding="utf-8", errors="replace"
+                        )
+                        initialization_warning = (
+                            PCM_WARNING_MARKER in native_stderr
+                        )
+                        attempt = {
+                            "name": attempt_name,
+                            "tessera_area_angstrom2": tessera_area,
+                            "minimum_added_sphere_radius_angstrom": minimum_radius,
+                            "warning_detected": initialization_warning,
+                            "warning_stage": (
+                                "pcm-initialization"
+                                if initialization_warning
+                                else None
+                            ),
+                            "stderr_log": str(native_stderr_path),
+                            "cavity_tesserae": session.cavity_size,
+                            "pcm_initialization_seconds": initialization_seconds,
+                            "response_evaluated": False,
+                            "response_evaluation_seconds": 0.0,
                         }
-                        self._parsed_pcm_input_path = parsed_input
-                        self._write_result_audit(
-                            gas_state=gas_state,
-                            solvent_state=solvent_state,
-                            pcm_state=pcm_state,
-                            session=session,
-                            cds_result=cds_result,
-                            components=components,
-                            history=history,
-                        )
-                        pcmsolver_library = getattr(
-                            session, "library_source", None
-                        )
+                        cavity_attempts.append(attempt)
+                        if not initialization_warning:
+                            response_started = time.perf_counter()
+                            if self.response == "frozen":
+                                solvent_state = gas_state
+                                pcm_state = self._solve_pcm(
+                                    session,
+                                    atoms,
+                                    gas_state.density_coefficients,
+                                )
+                                history = []
+                            else:
+                                (
+                                    solvent_state,
+                                    pcm_state,
+                                    history,
+                                ) = self._self_consistent_state(
+                                    session,
+                                    atoms,
+                                    calculator,
+                                    gas_state,
+                                )
+                            attempt["response_evaluated"] = True
+                            attempt["response_evaluation_seconds"] = (
+                                time.perf_counter() - response_started
+                            )
+                            _flush_process_stderr()
+                            native_stderr = native_stderr_path.read_text(
+                                encoding="utf-8", errors="replace"
+                            )
+                            if PCM_WARNING_MARKER in native_stderr:
+                                attempt["warning_detected"] = True
+                                attempt["warning_stage"] = "response-evaluation"
+                            else:
+                                delta_e_solute = (
+                                    float(solvent_state.energy_ev)
+                                    - float(gas_state.energy_ev)
+                                ) / Hartree
+                                pcm_polarization = (
+                                    pcm_state.polarization_energy_hartree
+                                )
+                                electrostatic = (
+                                    delta_e_solute + pcm_polarization
+                                )
+                                total = (
+                                    electrostatic + cds_result.energy_hartree
+                                )
+                                components = {
+                                    "solute_polarization": delta_e_solute,
+                                    "pcm_polarization": pcm_polarization,
+                                    "electrostatic": electrostatic,
+                                    "cds": cds_result.energy_hartree,
+                                    "standard_state": 0.0,
+                                    "delta_g_solv": total,
+                                }
+                                self._parsed_pcm_input_path = parsed_input
+                                self._write_result_audit(
+                                    gas_state=gas_state,
+                                    solvent_state=solvent_state,
+                                    pcm_state=pcm_state,
+                                    session=session,
+                                    cds_result=cds_result,
+                                    components=components,
+                                    history=history,
+                                )
+                                pcmsolver_library = getattr(
+                                    session,
+                                    "library_source",
+                                    None,
+                                )
+                                candidate_ready = True
+                    finally:
+                        session.close()
 
                 native_stderr = native_stderr_path.read_text(
                     encoding="utf-8", errors="replace"
                 )
-                warning_detected = PCM_WARNING_MARKER in native_stderr
-                attempt = {
-                    "name": attempt_name,
-                    "tessera_area_angstrom2": tessera_area,
-                    "minimum_added_sphere_radius_angstrom": minimum_radius,
-                    "warning_detected": warning_detected,
-                    "stderr_log": str(native_stderr_path),
-                    "cavity_tesserae": int(pcm_state.asc_e.size),
-                }
-                cavity_attempts.append(attempt)
-                if warning_detected:
+                if (
+                    PCM_WARNING_MARKER in native_stderr
+                    and not attempt["warning_detected"]
+                ):
+                    attempt["warning_detected"] = True
+                    attempt["warning_stage"] = "pcm-close"
+                    candidate_ready = False
+                    for filename in ("route2-result.json", "route2-state.npz"):
+                        (self.audit_dir / filename).unlink(missing_ok=True)
+                if attempt["warning_detected"]:
                     continue
+                if not candidate_ready:
+                    raise RuntimeError(
+                        f"Route 2 cavity attempt {attempt_name!r} produced "
+                        "neither a warning nor a publishable result."
+                    )
                 selected_cavity = attempt
                 break
 

@@ -28,13 +28,14 @@ from .continuum_response import (
     EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
     SurfaceChargeState,
 )
+from .pyscf_runtime import (
+    TESTED_PYSCF_VERSION,
+    require_tested_pyscf_version,
+)
 from .route2_pcm_response import (
     ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION,
     AtomCenteredSurfacePCMReactionFieldLinearMap,
 )
-
-
-TESTED_PYSCF_VERSION = "2.13.1"
 
 
 @dataclass(frozen=True)
@@ -214,12 +215,10 @@ class PySCFSWIGIEFPCMResponse:
         _runtime: _PySCFRuntime | None = None,
     ) -> None:
         runtime = _load_pyscf_runtime() if _runtime is None else _runtime
-        if runtime.version != TESTED_PYSCF_VERSION:
-            raise RuntimeError(
-                "The private PySCF external-MEP gradient bridge is tested only "
-                f"with PySCF {TESTED_PYSCF_VERSION}; received "
-                f"{runtime.version}."
-            )
+        require_tested_pyscf_version(
+            runtime.version,
+            feature="The private PySCF external-MEP gradient bridge",
+        )
 
         symbol_tuple = tuple(str(symbol) for symbol in symbols)
         positions = np.asarray(atom_positions_angstrom, dtype=float)

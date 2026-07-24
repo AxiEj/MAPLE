@@ -107,7 +107,9 @@ class SMDCDSResult:
     grid_points_per_atom: int
 
 
-def _validate_symbols(symbols: list[str] | tuple[str, ...]) -> tuple[str, ...]:
+def validate_smd_symbols(
+    symbols: list[str] | tuple[str, ...],
+) -> tuple[str, ...]:
     normalized = tuple(str(symbol) for symbol in symbols)
     unsupported = sorted(set(normalized).difference(SMD_WATER_COULOMB_RADII_ANGSTROM))
     if unsupported:
@@ -119,7 +121,7 @@ def _validate_symbols(symbols: list[str] | tuple[str, ...]) -> tuple[str, ...]:
 
 
 def smd_water_coulomb_radii(symbols) -> np.ndarray:
-    normalized = _validate_symbols(tuple(symbols))
+    normalized = validate_smd_symbols(tuple(symbols))
     return np.asarray(
         [SMD_WATER_COULOMB_RADII_ANGSTROM[symbol] for symbol in normalized],
         dtype=float,
@@ -134,7 +136,7 @@ def route2_water_coulomb_radii(
 ) -> np.ndarray:
     """Return the versioned Route-2 electrostatic cavity radii."""
 
-    normalized_symbols = _validate_symbols(tuple(symbols))
+    normalized_symbols = validate_smd_symbols(tuple(symbols))
     normalized_profile = str(profile).strip().lower()
     if normalized_profile not in SUPPORTED_ROUTE2_SMD_PROFILES:
         raise ValueError(f"Unsupported Route 2 SMD profile: {profile}.")
@@ -169,7 +171,7 @@ def route2_water_coulomb_radii(
 
 
 def smd_sasa_radii(symbols) -> np.ndarray:
-    normalized = _validate_symbols(tuple(symbols))
+    normalized = validate_smd_symbols(tuple(symbols))
     return np.asarray(
         [
             _SASA_VDW_RADII_ANGSTROM[symbol] + SASA_PROBE_RADIUS_ANGSTROM
@@ -206,7 +208,7 @@ def aqueous_atomic_surface_tensions(
 ) -> np.ndarray:
     """Return aqueous SMD atomic surface tensions in cal/(mol Å²)."""
 
-    symbols = _validate_symbols(tuple(symbols))
+    symbols = validate_smd_symbols(tuple(symbols))
     positions = np.asarray(positions_angstrom, dtype=float)
     if positions.shape != (len(symbols), 3) or not np.all(np.isfinite(positions)):
         raise ValueError("SMD coordinates must be finite with shape (n_atoms, 3).")
@@ -323,7 +325,7 @@ def aqueous_atomic_surface_tension_position_vjp(
     and deliberately absent, so this is not a complete CDS gradient.
     """
 
-    symbols = _validate_symbols(tuple(symbols))
+    symbols = validate_smd_symbols(tuple(symbols))
     positions = np.asarray(positions_angstrom, dtype=float)
     cotangent = np.asarray(tension_cotangent, dtype=float)
     expected_positions_shape = (len(symbols), 3)
@@ -787,7 +789,7 @@ def smd_water_cds(
 ) -> SMDCDSResult:
     """Compute the aqueous SMD cavity/dispersion/solvent-structure term."""
 
-    symbols = _validate_symbols(tuple(symbols))
+    symbols = validate_smd_symbols(tuple(symbols))
     positions = np.asarray(positions_angstrom, dtype=float)
     tensions = aqueous_atomic_surface_tensions(symbols, positions)
     areas = solvent_accessible_surface_areas(
@@ -818,7 +820,7 @@ def smd_water_cds_fibonacci_swig_inspired(
     neither Lebedev-SWIG nor selected by the public Route-2 provider.
     """
 
-    symbols = _validate_symbols(tuple(symbols))
+    symbols = validate_smd_symbols(tuple(symbols))
     positions = np.asarray(positions_angstrom, dtype=float)
     tensions = aqueous_atomic_surface_tensions(symbols, positions)
     areas = fibonacci_swig_inspired_solvent_accessible_surface_areas(
@@ -845,7 +847,7 @@ def smd_water_cds_fibonacci_swig_inspired_position_gradient(
 ) -> np.ndarray:
     """Return this experimental discrete CDS gradient in hartree/angstrom."""
 
-    symbols = _validate_symbols(tuple(symbols))
+    symbols = validate_smd_symbols(tuple(symbols))
     positions = np.asarray(positions_angstrom, dtype=float)
     tensions = aqueous_atomic_surface_tensions(symbols, positions)
     energy_scale = 1.0 / (1000.0 * HARTREE_TO_KCAL_MOL)

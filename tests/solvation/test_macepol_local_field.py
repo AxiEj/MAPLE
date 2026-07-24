@@ -136,6 +136,44 @@ def test_polar_output_torch_preserves_local_field_autograd_graph():
     assert recorder.values is None
 
 
+def test_density_response_linearization_returns_matching_jvp_and_vjp():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _QuadraticFieldModel(recorder),
+        recorder,
+    )
+    atoms = Atoms("OH", positions=np.zeros((2, 3)))
+    potential = np.asarray([0.2, -0.1])
+    gradient = np.asarray(
+        [[0.3, -0.4, 0.5], [-0.6, 0.7, -0.8]],
+    )
+    field_direction = np.asarray(
+        [[0.9, -0.8, 0.7, -0.6], [0.5, -0.4, 0.3, -0.2]],
+    )
+    density_cotangent = np.asarray(
+        [[-0.3, 0.2, -0.1, 0.4], [0.5, -0.6, 0.7, -0.8]],
+    )
+    linearization = calculator.linearize_density_response(
+        atoms,
+        node_potential_ev=potential,
+        node_gradient_ev_per_angstrom=gradient,
+    )
+
+    np.testing.assert_allclose(
+        linearization.jvp(field_direction),
+        3.0 * field_direction,
+        rtol=1.0e-13,
+        atol=1.0e-13,
+    )
+    np.testing.assert_allclose(
+        linearization.vjp(density_cotangent),
+        3.0 * density_cotangent,
+        rtol=1.0e-13,
+        atol=1.0e-13,
+    )
+    assert recorder.values is None
+
+
 def test_polar_state_returns_fixed_local_field_force_matching_energy_difference():
     recorder = _FieldRecorder()
     calculator = _calculator_with_model(

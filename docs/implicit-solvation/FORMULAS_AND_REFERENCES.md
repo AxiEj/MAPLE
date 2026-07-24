@@ -194,6 +194,49 @@ Numerical density mixing is only a root-finding choice and is not part of this
 physical residual. The corresponding total derivative must be obtained from
 the adjoint equations documented in `ROUTE2_FORCE_ROADMAP.md`.
 
+The converged model enforces a neutral residual density, so response is defined
+on the zero-total-monopole tangent space. With the orthogonal projector
+
+\[
+\Pi_0(q,\mathbf p)
+=\left(q-\frac{\mathbf 1^Tq}{N}\mathbf 1,\mathbf p\right),
+\]
+
+the fixed-geometry, fixed-cavity residual is
+
+\[
+\mathcal R_0(c)
+=\Pi_0\left[c-\mathcal M(\mathcal P_{\mathbf R}c;\mathbf R)\right].
+\]
+
+For a neutral density direction \(\delta c\), its matrix-free JVP is
+
+\[
+J_c\mathcal R_0[\delta c]
+=\Pi_0\left[
+\delta c-J_{\mathcal M}
+\left[J_{\mathcal P_{\mathbf R}}[\delta c]\right]\right],
+\]
+
+and the corresponding discrete VJP is
+
+\[
+J_c\mathcal R_0^*[u]
+=\Pi_0\left[
+u-J_{\mathcal P_{\mathbf R}}^*
+\left[J_{\mathcal M}^*[\Pi_0u]\right]\right].
+\]
+
+The minus sign follows from the chosen residual \(c-\mathcal M(\mathcal P c)\).
+`UnmixedDensityResidualLinearization` implements this constrained operator
+without a dense Jacobian. MACE autograd supplies \(J_{\mathcal M}\) and
+\(J_{\mathcal M}^*\); the fixed-cavity PCM map and its verified reciprocal
+adjoint remain the next connection step. The external field is ordered
+\([V,\partial_xV,\partial_yV,\partial_zV]\), with potential in eV/e and
+gradient in eV/(e angstrom). Its physical pairing with density is
+\(\sum_i(q_iV_i+\mathbf p_i\cdot\nabla V_i)\); the MACE adapter owns the exact
+Cartesian/e3nn permutation.
+
 An energy-consistent implementation must account for all of the following:
 
 1. the gas-to-polarized intrinsic MACE-POLAR force difference;

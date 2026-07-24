@@ -194,6 +194,17 @@ selected, license-compatible differentiable provider.
    geometries before production.
 4. **Decision:** Route 2 requires an adjoint fixed-point derivative. Production
    force remains disabled until all later phases pass.
+5. **Done for the response skeleton:** the fixed-geometry MACE
+   field-to-density JVP/VJP and
+   `UnmixedDensityResidualLinearization` now implement
+   \(\Pi_0(I-J_{\mathcal M}J_{\mathcal P})\) and its discrete adjoint on the
+   neutral density tangent space. Synthetic dense-matrix comparisons and a
+   JVP/VJP bilinear identity pass. On one real float64 acetone direction, the
+   MACE density JVP agrees with a central field difference to
+   \(1.29\times10^{-7}\) maximum absolute error, while its JVP/VJP bilinear
+   identity closes to \(1.94\times10^{-12}\) absolute error. The PCM
+   map/adjoint is not connected yet, so this remains response infrastructure
+   rather than a force capability.
 
 ### Phase 1 -- differentiable explicit geometry terms
 

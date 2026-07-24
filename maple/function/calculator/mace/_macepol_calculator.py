@@ -425,6 +425,29 @@ class MACEPolCalculator(CalcABC):
         )
         return self._polar_state_from_output(output), output
 
+    def linearize_density_response(
+        self,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray,
+        node_gradient_ev_per_angstrom: np.ndarray,
+    ):
+        """Return the fixed-geometry field-to-density JVP/VJP interface.
+
+        The external node-field order is ``[V, dV/dx, dV/dy, dV/dz]`` in
+        eV/e and eV/(e Å).  The returned density uses MACE-POLAR's native
+        ``(n_atoms, 4)`` monopole/real-spherical convention.  This linearizes
+        the learned response only; PCM and nuclear-coordinate derivatives are
+        outside this interface.
+        """
+
+        return _MACEPolarDensityResponseLinearization(
+            self,
+            atoms,
+            node_potential_ev=node_potential_ev,
+            node_gradient_ev_per_angstrom=node_gradient_ev_per_angstrom,
+        )
+
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
         properties = self._normalize_properties(properties)
         atoms = super().calculate(atoms, properties, system_changes)
@@ -483,3 +506,134 @@ class MACEPolCalculator(CalcABC):
             return output["energy"].sum() * EV2HARTREE
 
         return hessian_via_double_autograd(energy_fn, positions)
+
+
+class _MACEPolarDensityResponseLinearization:
+    """Autograd JVP/VJP for MACE-POLAR density at one geometry and node field."""
+
+    def __init__(
+        self,
+        calculator: MACEPolCalculator,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray,
+        node_gradient_ev_per_angstrom: np.ndarray,
+    ):
+        potential = np.asarray(node_potential_ev, dtype=float)
+        gradient = np.asarray(node_gradient_ev_per_angstrom, dtype=float)
+        if potential.shape != (len(atoms),) or gradient.shape != (len(atoms), 3):
+            raise ValueError(
+                "Local reaction potential/gradient shapes must be "
+                "(n_atoms,) and (n_atoms, 3)."
+            )
+        if not np.all(np.isfinite(potential)) or not np.all(np.isfinite(gradient)):
+            raise ValueError("Local reaction potential/gradient must be finite.")
+        self._calculator = calculator
+        self._atoms = atoms.copy()
+        self._potential = potential.copy()
+        self._gradient = gradient.copy()
+        self._shape = (len(atoms), 4)
+
+    def _base_tensors(self, *, requires_grad: bool):
+        potential = torch.tensor(
+            self._potential,
+            dtype=self._calculator.dtype,
+            device=self._calculator.device,
+            requires_grad=requires_grad,
+        )
+        gradient = torch.tensor(
+            self._gradient,
+            dtype=self._calculator.dtype,
+            device=self._calculator.device,
+            requires_grad=requires_grad,
+        )
+        return potential, gradient
+
+    def _density_tensor(
+        self,
+        potential: torch.Tensor,
+        gradient: torch.Tensor,
+    ) -> torch.Tensor:
+        output = self._calculator.polar_output_torch(
+            self._atoms,
+            node_potential_ev=potential,
+            node_gradient_ev_per_angstrom=gradient,
+        )
+        density = output.get("density_coefficients")
+        if density is None or density.shape != self._shape:
+            received = None if density is None else tuple(density.shape)
+            raise RuntimeError(
+                "MACE-POLAR density response must have shape "
+                f"{self._shape}; received {received}."
+            )
+        if not bool(torch.isfinite(density).all()):
+            raise RuntimeError("MACE-POLAR density response is non-finite.")
+        return density
+
+    def _validated_block(self, values: np.ndarray, *, name: str) -> np.ndarray:
+        array = np.asarray(values, dtype=float)
+        if array.shape != self._shape or not np.all(np.isfinite(array)):
+            raise ValueError(
+                f"{name} must be finite with shape {self._shape}; "
+                f"received {array.shape}."
+            )
+        return array
+
+    @staticmethod
+    def _to_numpy(values: torch.Tensor) -> np.ndarray:
+        return np.asarray(values.detach().cpu(), dtype=float).copy()
+
+    def jvp(self, field_direction: np.ndarray) -> np.ndarray:
+        """Apply the node-field-to-density Jacobian in external field order."""
+
+        direction = self._validated_block(
+            field_direction,
+            name="field_direction",
+        )
+        potential, gradient = self._base_tensors(requires_grad=False)
+        potential_direction = torch.as_tensor(
+            direction[:, 0],
+            dtype=self._calculator.dtype,
+            device=self._calculator.device,
+        )
+        gradient_direction = torch.as_tensor(
+            direction[:, 1:],
+            dtype=self._calculator.dtype,
+            device=self._calculator.device,
+        )
+        _, density_direction = torch.autograd.functional.jvp(
+            self._density_tensor,
+            (potential, gradient),
+            (potential_direction, gradient_direction),
+            create_graph=False,
+            strict=True,
+        )
+        return self._to_numpy(density_direction)
+
+    def vjp(self, density_cotangent: np.ndarray) -> np.ndarray:
+        """Apply the discrete density-to-node-field adjoint by autograd."""
+
+        cotangent = self._validated_block(
+            density_cotangent,
+            name="density_cotangent",
+        )
+        potential, gradient = self._base_tensors(requires_grad=True)
+        density = self._density_tensor(potential, gradient)
+        cotangent_tensor = torch.as_tensor(
+            cotangent,
+            dtype=self._calculator.dtype,
+            device=self._calculator.device,
+        )
+        potential_cotangent, gradient_cotangent = torch.autograd.grad(
+            density,
+            (potential, gradient),
+            grad_outputs=cotangent_tensor,
+            create_graph=False,
+        )
+        return np.concatenate(
+            (
+                self._to_numpy(potential_cotangent)[:, None],
+                self._to_numpy(gradient_cotangent),
+            ),
+            axis=1,
+        )

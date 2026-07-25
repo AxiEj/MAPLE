@@ -1,4 +1,4 @@
-"""Route-2 composition boundary for MACE-POLAR plus SMD/IEFPCM."""
+"""Route-2 composition boundary for MACE-POLAR plus SMD continuum."""
 
 from __future__ import annotations
 
@@ -9,12 +9,13 @@ from typing import Any
 
 import numpy as np
 
+from .ddpcm_smd import DDPCMSMDImplicitSolvation
 from .result import SolvationResult
 from .smd import SMDImplicitSolvation
 
 
 class ImplicitSolvationCorrection:
-    """Prepare and evaluate the locked Route-2 SMD provider."""
+    """Prepare and evaluate one explicitly selected Route-2 SMD provider."""
 
     def __init__(
         self,
@@ -33,19 +34,32 @@ class ImplicitSolvationCorrection:
             )
         if self.solvation_options.get("experimental") is not True:
             raise ValueError(
-                "Route 2 is an energy-only research proof-of-concept; "
+                "Route 2 is an uncertified research path; "
                 "set experimental=true explicitly."
             )
         method = str(self.solvation_options.get("method", "")).lower()
         if method != "smd":
             raise ValueError("The Route-2 branch supports method='smd' only.")
+        provider_name = str(
+            self.solvation_options.get("provider", "pcmsolver")
+        ).lower()
+        providers = {
+            "pcmsolver": SMDImplicitSolvation,
+            "pyddx": DDPCMSMDImplicitSolvation,
+        }
+        try:
+            provider_type = providers[provider_name]
+        except KeyError as exc:
+            raise ValueError(
+                "Route 2 provider must be pcmsolver or pyddx."
+            ) from exc
 
         self.method = "smd"
         self.mode = str(self.solvation_options.get("response", "scf")).lower()
         output_path = Path(output).resolve() if output else Path.cwd() / "maple.out"
         self.audit_dir = output_path.with_suffix(output_path.suffix + ".implicit")
         self.audit_dir.mkdir(parents=True, exist_ok=True)
-        self.provider = SMDImplicitSolvation(
+        self.provider = provider_type(
             atoms,
             self.solvation_options,
             audit_dir=self.audit_dir,

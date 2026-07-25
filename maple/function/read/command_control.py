@@ -604,14 +604,41 @@ class CommandControl:
 
             charge = params.get("charge", {})
             if method == "smd":
-                if task != "sp":
-                    msg = "Route 2 SMD is single-point energy-only in the first release."
+                provider = str(
+                    solv_params.get("provider", "pcmsolver")
+                ).lower()
+                if provider not in {"pcmsolver", "pyddx"}:
+                    msg = (
+                        "Route 2 provider must be provider=pcmsolver "
+                        "or provider=pyddx."
+                    )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if int(params.get("verbose", 0)) >= 1:
+                if (
+                    provider == "pyddx"
+                    and "profile" not in solv_params
+                ):
+                    msg = (
+                        "Route 2 provider=pyddx requires an explicit "
+                        "versioned profile."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if task != "sp":
+                    msg = (
+                        "Route 2 SMD remains single-point only while the "
+                        "solution-phase PES validation gate is open."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if (
+                    provider == "pcmsolver"
+                    and int(params.get("verbose", 0)) >= 1
+                ):
                     msg = (
                         "Route 2 SMD v1 does not provide forces/gradients; "
-                        "use #sp without verbose=1."
+                        "the PCMSolver/GePol provider remains energy-only. "
+                        "Use #sp without verbose=1."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -663,42 +690,72 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                provider = str(solv_params.get("provider", "pcmsolver")).lower()
-                if provider != "pcmsolver":
-                    msg = "Route 2 research contract requires provider=pcmsolver."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
                 profile = str(
-                    solv_params.get("profile", "smd-iefpcm")
+                    solv_params.get(
+                        "profile",
+                        "smd-iefpcm",
+                    )
                 ).lower()
-                if profile not in {
-                    "smd-iefpcm",
-                    "smd-iefpcm-gaff2-o",
-                }:
+                provider_profiles = {
+                    "pcmsolver": {
+                        "smd-iefpcm",
+                        "smd-iefpcm-gaff2-o",
+                    },
+                    "pyddx": {
+                        "smd-ddpcm-l15-n1202-v1",
+                        "smd-ddpcm-l15-n1202-gaff2-o-v1",
+                    },
+                }
+                if profile not in provider_profiles[provider]:
+                    supported = ", ".join(
+                        sorted(provider_profiles[provider])
+                    )
                     msg = (
-                        "Route 2 profile must be smd-iefpcm or "
-                        "smd-iefpcm-gaff2-o."
+                        f"Route 2 provider={provider} profile must be "
+                        f"one of: {supported}."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 response = str(solv_params.get("response", "scf")).lower()
-                if response not in {"frozen", "scf"}:
+                if provider == "pcmsolver" and response not in {
+                    "frozen",
+                    "scf",
+                }:
                     msg = "SMD response must be frozen or scf."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                cavity_policy = str(
-                    solv_params.get("cavity_policy", "warning-fallback")
-                ).lower()
-                if cavity_policy not in {
-                    "warning-fallback",
-                    "fixed-stability-branch",
-                }:
+                if provider == "pyddx" and response != "scf":
                     msg = (
-                        "Route 2 cavity_policy must be warning-fallback or "
-                        "fixed-stability-branch."
+                        "Route 2 provider=pyddx requires response=scf."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
+                cavity_policy = None
+                if provider == "pyddx" and "cavity_policy" in solv_params:
+                    msg = (
+                        "Route 2 cavity_policy is specific to the "
+                        "PCMSolver/GePol provider and is not valid for "
+                        "provider=pyddx."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if provider == "pcmsolver":
+                    cavity_policy = str(
+                        solv_params.get(
+                            "cavity_policy",
+                            "warning-fallback",
+                        )
+                    ).lower()
+                    if cavity_policy not in {
+                        "warning-fallback",
+                        "fixed-stability-branch",
+                    }:
+                        msg = (
+                            "Route 2 cavity_policy must be warning-fallback "
+                            "or fixed-stability-branch."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
                 standard_state = str(solv_params.get("standard_state", "1m")).lower()
                 if standard_state != "1m":
                     msg = (
@@ -713,7 +770,10 @@ class CommandControl:
                     response=response,
                     standard_state=standard_state,
                 )
-                if "cavity_policy" in solv_params:
+                if (
+                    provider == "pcmsolver"
+                    and "cavity_policy" in solv_params
+                ):
                     solv_params["cavity_policy"] = cavity_policy
             return
 

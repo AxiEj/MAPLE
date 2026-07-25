@@ -32,7 +32,14 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "\\frac12" in formulas
     assert "Research/Innovation Route" in formulas
     assert "complete MAPLE solution-phase PES" in overview
-    assert "Force derivative: next primary milestone" in formulas
+    assert "Force derivative: implemented candidate; PES validation remains" in formulas
+    assert "#sp(verbose=1)" in overview
+    assert "provider=pyddx" in overview
+    assert "profile=smd-ddpcm-l15-n1202-v1" in overview
+    assert "pyddx==0.8.0" in overview
+    assert "pyscf==2.13.1" in overview
+    assert "single-point research force candidate" in overview
+    assert "not a universal grid" in formulas
     validation = (
         REPOSITORY_ROOT / "docs/implicit-solvation/VALIDATION_STATUS.md"
     ).read_text(encoding="utf-8")
@@ -44,13 +51,16 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "Stationarity is not established" in roadmap
     assert "Route 2 requires an adjoint fixed-point derivative" in roadmap
     assert "polar_output_torch()" in roadmap
-    assert "current CDS area is not differentiable" in roadmap
+    assert "current CDS area on the default PCMSolver profile is not" in roadmap
     assert "Warning-triggered cavity switching is not a PES rule" in roadmap
     assert "cavity_policy=fixed-stability-branch" in overview
     assert "geometry-dependent **policy selection**" in overview
     assert "`PEDRA.OUT` warning lines are" in overview
     assert "Complete same-energy coordinate VJP" in overview
     assert "PCMSolver--GePol | yes | no; fails closed" in overview
+    assert "pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | yes" in overview
+    assert "route2-ddpcm-result.json" in overview
+    assert "route2-ddpcm-state.npz" in overview
     assert "engineering stability hyperparameters" in formulas
     assert "not SMD/PCM constants" in formulas
     assert "0.9999" in formulas
@@ -119,6 +129,11 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "no order-59 run" in normalized_validation
     assert "three-case MAE worsened" in normalized_validation
     assert "0.7248%" in validation
+    assert "public correction force differed" in normalized_validation
+    assert "4.11\\times10^{-11}" in validation
+    assert "forbidden provider-warning count was zero" in normalized_validation
+    assert "not a PCMSolver cavity warning" in normalized_validation
+    assert "short NVE conservation" in overview
     assert "route2-protocol.json" in benchmark
     assert "does not define Route 2" in benchmark
     assert "No Route-2 FreeSolv accuracy artifact is frozen yet" in benchmark

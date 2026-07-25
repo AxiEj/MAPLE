@@ -2,8 +2,9 @@
 
 ## Route 2: self-consistent polarizable MLIP--PCM/SMD coupling
 
-Route 2 is the **Research/Innovation Route**. Its current implementation
-provides an energy proof-of-concept for one fixed conformer:
+Route 2 is the **Research/Innovation Route**. Its default PCMSolver profile
+provides an energy proof-of-concept for one fixed conformer, while an explicit
+pyddx/PySCF profile provides a single-point research force candidate:
 
 \[
 \Delta G_{\mathrm{solv}}
@@ -19,7 +20,7 @@ It is not route 3: the official MACE-POLAR-1-M checkpoint was trained as a
 general polarizable MLIP, not fine-tuned against implicit-solvent free
 energies. MAPLE trains nothing and changes no checkpoint weight.
 
-This fixed-conformer result is not yet a complete solution-phase PES.
+This fixed-conformer/single-point result is not yet a complete solution-phase PES.
 FreeSolv is useful as an energy diagnostic, but Route 2 is defined by
 self-consistent mutual polarization and an energy-consistent derivative, not
 by hydration-MAE tuning.
@@ -304,7 +305,7 @@ The standard state is exactly 1 M gas to 1 M solution:
 MAPLE therefore does not add the approximately `1.89 kcal/mol` 1 atm to 1 M
 correction.
 
-### Force derivative: next primary milestone
+### Force derivative: implemented candidate; PES validation remains
 
 For a converged density representation \(c^*(\mathbf R)\) and apparent surface
 charge \(\sigma^*(\mathbf R)\), the required solvent force is the total
@@ -1232,15 +1233,25 @@ operator applications, so the increase is mainly the per-iteration cost of
 ten spheres and a 39-dimensional neutral response versus six spheres and 23
 dimensions, not CDS (`0.068 s`) or a `primary` fallback.
 
-This remains an engineering canary, not an adopted grid or a solution-phase
-PES. The adapter is lazy, hard-gated to pyddx 0.8.0, and absent from the
-public parser. The real coupled continuum-electrostatic gradient is now
-checked against one largest-component whole-energy finite difference and one
-additional rigid orientation for methanol; the total continuum-plus-CDS
-gradient is checked against one largest-component whole-energy finite
-difference for methanol and acetone. `SolvationResult` force publication, a
-total-gradient second orientation, broader rotation, flexible geometries, and
-chemical-space accuracy remain open.
+This remains an engineering canary, not a universal grid or a solution-phase
+PES. The adapter is lazy and hard-gated to pyddx 0.8.0; its CDS partner is
+hard-gated to PySCF 2.13.1. It is now selected publicly only by the exact
+single-point profile
+`provider=pyddx,profile=smd-ddpcm-l15-n1202-v1`. The real coupled
+continuum-electrostatic gradient is checked against one largest-component
+whole-energy finite difference and one additional rigid orientation for
+methanol; the total continuum-plus-CDS gradient is checked against one
+largest-component whole-energy finite difference for methanol and acetone.
+
+The first public-path methanol canary reproduced the independent same-profile
+correction energy within \(3.83\times10^{-13}\) eV and the negative total
+coordinate gradient within \(4.11\times10^{-11}\) eV/angstrom. The ML-SCF root
+converged in 16 iterations; the adjoint reached relative residual
+\(6.33\times10^{-11}\) in 8 callbacks and 10 operator applications. Model load
+and public force evaluation took `3.35` and `24.27 s`, respectively. Because
+this route never constructs PCMSolver, its forbidden `primary` warning count
+was zero. Additional orientations, broader rotation, flexible geometries,
+closed-loop/NVE conservation, and chemical-space accuracy remain open.
 
 Route-2 references:
 

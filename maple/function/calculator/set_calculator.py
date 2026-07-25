@@ -157,7 +157,7 @@ class SetCalculator:
             raise ValueError("The first implicit-solvation release supports water only.")
         if self.solvation_options.get('experimental') is not True:
             raise ValueError(
-                "Route 2 is an energy-only research proof-of-concept; "
+                "Route 2 is an uncertified research path; "
                 "set experimental=true explicitly."
             )
         configured_method = str(self.solvation_options.get('method', '')).lower()
@@ -186,21 +186,63 @@ class SetCalculator:
             if self.d4:
                 raise ValueError("Route 2 v1 does not compose D4.")
             if self.model_options.get('hessian') is not None:
-                raise ValueError("Route 2 SMD is energy-only in the first release.")
+                raise ValueError(
+                    "Route 2 SMD does not provide a solution-phase Hessian."
+                )
             if self.charge_options:
                 raise ValueError(
                     "Route 2 uses the MACE-POLAR density; remove #charge(...). "
                     "MOL2 partial charges are ignored."
                 )
-            if str(self.solvation_options.get('provider', 'pcmsolver')).lower() != 'pcmsolver':
-                raise ValueError("Route 2 research contract requires provider=pcmsolver.")
-            profile = str(
-                self.solvation_options.get('profile', 'smd-iefpcm')
+            provider = str(
+                self.solvation_options.get('provider', 'pcmsolver')
             ).lower()
-            if profile not in {'smd-iefpcm', 'smd-iefpcm-gaff2-o'}:
+            if provider not in {'pcmsolver', 'pyddx'}:
                 raise ValueError(
-                    "Route 2 profile must be smd-iefpcm or "
-                    "smd-iefpcm-gaff2-o."
+                    "Route 2 provider must be pcmsolver or pyddx."
+                )
+            if (
+                provider == 'pyddx'
+                and 'profile' not in self.solvation_options
+            ):
+                raise ValueError(
+                    "Route 2 provider=pyddx requires an explicit "
+                    "versioned profile."
+                )
+            profile = str(
+                self.solvation_options.get(
+                    'profile',
+                    'smd-iefpcm',
+                )
+            ).lower()
+            provider_profiles = {
+                'pcmsolver': {
+                    'smd-iefpcm',
+                    'smd-iefpcm-gaff2-o',
+                },
+                'pyddx': {
+                    'smd-ddpcm-l15-n1202-v1',
+                    'smd-ddpcm-l15-n1202-gaff2-o-v1',
+                },
+            }
+            if profile not in provider_profiles[provider]:
+                raise ValueError(
+                    f"Route 2 provider={provider} does not support "
+                    f"profile={profile}."
+                )
+            response = str(
+                self.solvation_options.get('response', 'scf')
+            ).lower()
+            if provider == 'pyddx' and response != 'scf':
+                raise ValueError(
+                    "Route 2 provider=pyddx requires response=scf."
+                )
+            if (
+                provider == 'pyddx'
+                and 'cavity_policy' in self.solvation_options
+            ):
+                raise ValueError(
+                    "Route 2 cavity_policy is specific to PCMSolver/GePol."
                 )
             if str(self.solvation_options.get('standard_state', '1m')).lower() != '1m':
                 raise ValueError("Route 2 standard_state must be 1m.")

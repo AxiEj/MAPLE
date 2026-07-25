@@ -11,11 +11,12 @@ MLIP--PCM/SMD coupling:
 \]
 
 The official MACE-POLAR-1-M checkpoint remains unchanged. FreeSolv is a
-secondary energy diagnostic, not the definition of the route. The current
-implementation is a fixed-conformer energy proof-of-concept and must not be
+secondary energy diagnostic, not the definition of the route. The default
+PCMSolver profile is a fixed-conformer energy proof-of-concept. The explicitly
+named pyddx/PySCF profile is a single-point force candidate. Neither may be
 described as a complete solution-phase PES.
 
-## Current force blockers
+## Current capability boundary and PES blockers
 
 1. **Stationarity is not established, and the simple conjugacy shortcut is
    rejected.** The code converges a fixed-point map between learned density
@@ -23,19 +24,28 @@ described as a complete solution-phase PES.
    the intrinsic MACE energy derivative with respect to the injected local
    potential/gradient is not the returned charge/dipole density. QM-SCF
    Hellmann--Feynman cancellations therefore cannot be imported into Route 2.
-2. **Only the fixed-geometry response graph is exposed.**
+   The explicit pyddx candidate therefore differentiates the unmixed
+   fixed-point residual with a matrix-free adjoint rather than assuming
+   stationarity.
+2. **The default PCMSolver path exposes only the fixed-geometry response
+   graph.**
    `polar_output_torch()` retains the graph from local potential/gradient to
    both intrinsic energy and density coefficients. A hermitivized, fixed-cavity
    PCMSolver map now supplies matrix-free density-to-field JVP/VJP operations.
    Cavity geometry and boundary operators still cross the NumPy/C boundary and
-   have no coordinate derivative.
+   have no coordinate derivative. The separately named pyddx map owns its
+   scalar ddPCM energy, forward/adjoint maps, and complete coordinate VJP, so
+   this blocker does not apply to that candidate.
 3. **The PCMSolver binding is energy-only.** The v1.1.12-style C ABI loaded by
    MAPLE exports cavity centres/areas, ASC, response ASC, and polarization
    energy, but no nuclear-gradient or boundary-operator derivative endpoint.
-4. **The current CDS area is not differentiable.** The deterministic
+4. **The current CDS area on the default PCMSolver profile is not
+   differentiable.** The deterministic
    Shrake--Rupley implementation counts hard visible/occluded spherical points.
    Its area is piecewise constant and jumps when a grid point crosses an
    occlusion boundary. It is suitable for energy controls, not analytic force.
+   The pyddx candidate instead uses the official PySCF SMD CDS scalar and its
+   matching analytic gradient.
 5. **Warning-triggered cavity switching is not a PES rule.** Retrying a single
    point with different GePol parameters removes known numerical warnings, but
    a geometry-dependent switch between primary and fallback cavities would
@@ -51,9 +61,16 @@ described as a complete solution-phase PES.
    `UNITS=ANGSTROM`, `AREA=0.28 A^2` is about `0.9999 bohr^2`, appreciably
    coarser than PCMSolver's documented `0.3 bohr^2` default. GePol topology
    continuity and boundary/operator derivatives remain unproven. A force
-   implementation still needs one validated smooth cavity construction (or a
-   branch frozen for the entire trajectory), not merely a predetermined
-   parameter pair.
+   implementation on this provider still needs one validated smooth cavity
+   construction (or a branch frozen for the entire trajectory), not merely a
+   predetermined parameter pair.
+6. **The public pyddx force is not yet a PES.** Its fixed `lmax=15`/1202-point
+   profile has same-energy derivative, translation, and narrow torque evidence
+   on rigid methanol and acetone. Additional orientations, flexible-geometry
+   continuity, closed displacement loops, and short NVE conservation remain
+   open. The finite laboratory-frame quadrature also leaves a small,
+   nonmonotonic rotation residual, so optimization, scan, TS, and MD stay
+   disabled.
 
 ## Required total derivative
 
@@ -487,8 +504,9 @@ that CDS energy and gradient come from the same selected provider.
    PySCF-SWIG evaluation and its loader-only manifest is not retained; the
    result-level PySCF provenance identifies the continuum actually
    differentiated. CDS is absent from these continuum result objects, while the
-   separately validated optional PySCF CDS component is not evaluated inside
-   them. `supported_properties` therefore remains energy-only.
+   separately validated optional PySCF CDS component was not evaluated inside
+   them. At this stage `supported_properties` therefore remained energy-only;
+   the later explicit pyddx integration is recorded in Phase 8.
 6. **Done for provider-neutral bookkeeping; real validation under the same
    declared profile has begun:**
    `assemble_total_solvation_coordinate_gradient()` converts
@@ -542,22 +560,25 @@ that CDS energy and gradient come from the same selected provider.
    alone is not a fundamental fix because it changes the switching function
    while retaining the laboratory-frame Lebedev construction. Post-hoc torque
    removal is nonconservative relative to the implemented scalar energy and is
-   forbidden. Only after this gate, additional total-gradient components, and
-   same-profile provenance pass may
+   forbidden. At this phase, only after a replacement provider passed this
+   gate, additional total-gradient components, and same-profile provenance
+   could
    `SolvationResult.forces_hartree_per_angstrom` be populated or
-   `supported_properties={"energy", "forces"}` be advertised. The per-atom
+   `supported_properties={"energy", "forces"}` be advertised for an explicit
+   research profile. Phase 8 records that narrow publication gate. The per-atom
    radius, real-MACE fixed-point adjoint, CDS component, and algebraic total
    assembly are no longer the blockers.
 8. **Done for an independent multipole-native ddPCM backbone, real
-   ML-SCF/adjoint-gradient canaries, and one total continuum-plus-CDS component
-   on each of two molecules; second-orientation and public-force integration
-   remain pending:**
+   ML-SCF/adjoint-gradient canaries, one total continuum-plus-CDS component on
+   each of two molecules, and the first explicit public single-point force
+   integration; PES validation remains pending:**
    `PyDDXPCMReactionFieldLinearMap` lazily and exactly version-locks pyddx
    0.8.0. It maps MACE-POLAR \(l\leq1\) atom-centred multipoles directly into
    ddX, obtains the reciprocal reaction field from one forward and one adjoint
    solve, and obtains the complete bilinear coordinate VJP from two
-   same-energy ddPCM gradients. It does not reuse the SWIG surface, mix
-   PCMSolver energy with ddX derivatives, or enter the public parser.
+   same-energy ddPCM gradients. It does not reuse the SWIG surface or mix
+   PCMSolver energy with ddX derivatives. The public factory selects it only
+   for the exact explicit pyddx profile; PCMSolver remains the default.
 
    A clean fixed-density methanol canary at commit `facd956` used `lmax=15`
    and 770 Lebedev points per sphere. Direct MEP agreement was
@@ -572,9 +593,10 @@ that CDS energy and gradient come from the same selected provider.
    complete coordinate VJP took `0.216`, `0.421`, and `0.902 s`. The complete
    three-orientation/two-displacement validation took `7.32 s` and emitted no
    warnings. Those figures are diagnostic only; `lmax=15`/770 is not adopted
-   as a universal default. Because the adapter bypasses PCMSolver, it has no
-   `primary` branch. Existing public-path `primary` warnings still describe
-   the unchanged `warning-fallback` cavity probe, not this ddPCM solve.
+   as a public profile. Because the adapter bypasses PCMSolver, it has no
+   `primary` branch. Warnings from the default PCMSolver public path still
+   describe its unchanged `warning-fallback` cavity probe, not this ddPCM
+   solve.
 
    On clean baseline `309366e`, the same map was substituted into the existing
    real MACE-POLAR-1-M fixed point and adjoint. At `lmax=15`/770, `mixing=1.0`
@@ -643,10 +665,23 @@ that CDS energy and gradient come from the same selected provider.
    `primary` fallback. Its structured PCMSolver/`primary` warning count was
    zero.
 
-   The next bounded step is one acetone total-gradient rigid-orientation
-   discriminator without changing the 1202-point candidate or the calibrated
-   solver policy. Until that passes, this is not chemical-accuracy evidence, a
-   public force, or a MAPLE solution-phase PES.
+   The public single-point methanol canary then selected
+   `provider=pyddx,profile=smd-ddpcm-l15-n1202-v1` through the normal parser,
+   calculator builder, correction factory, MACE-POLAR calculator, and shared
+   result finalizer. Its correction energy differed from the independent
+   same-profile result by \(3.83\times10^{-13}\) eV, and its correction force
+   differed from the negative independent total coordinate gradient by at most
+   \(4.11\times10^{-11}\) eV/angstrom. The ML-SCF root took 16 iterations; the
+   adjoint took 8 residual callbacks and 10 operator applications and reached
+   relative residual \(6.33\times10^{-11}\). Model load and public force
+   evaluation took `3.35` and `24.27 s`; the complete process took `29.75 s`.
+   The structured forbidden-provider warning count was zero.
+
+   This public result is a single-point research force candidate, not chemical
+   accuracy evidence or a MAPLE solution-phase PES. The next bounded work is
+   additional rigid orientations followed by flexible-geometry continuity,
+   closed-loop, and short-NVE gates without changing the named 1202-point
+   profile or calibrated solver policy.
 
 ### Phase 3 -- verification gates
 

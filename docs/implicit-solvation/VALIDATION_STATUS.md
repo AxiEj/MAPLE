@@ -1,16 +1,17 @@
 # Route-2 implicit-solvation validation status
 
-The public branch contains only official MACE-POLAR-1-M coupled to external
-PCMSolver IEFPCM and MAPLE's native aqueous SMD CDS term. Separately named,
-lazy PySCF research adapters are present for same-provider SWIG/IEFPCM and the
-official SMD CDS energy/gradient pair, but neither is selectable by the public
-input language. Route 2 remains a Research/Innovation Route and an energy
-proof-of-concept, not a complete solution-phase PES.
+The public branch contains only official MACE-POLAR-1-M coupled to an explicit
+continuum provider. PCMSolver IEFPCM plus MAPLE's native aqueous SMD CDS remains
+the default energy-only proof-of-concept. The separately named pyddx ddPCM plus
+PySCF SMD CDS profile is now selectable as a single-point research force
+candidate. The independent PySCF SWIG/IEFPCM adapter remains private. Route 2
+is still a Research/Innovation Route, not a complete solution-phase PES.
 
 ## Passing engineering gates
 
 - The public parser is locked to `macepol-m`, neutral singlet fixed-conformer
-  MOL2 input, water, PCMSolver, SMD-IEFPCM, SCF response, and 1 M to 1 M.
+  MOL2 input, water, SMD, SCF response, and 1 M to 1 M. PCMSolver remains the
+  default provider; pyddx requires an explicit exact force-candidate profile.
 - The official MACE-POLAR-1-M checkpoint loads through the upstream cache with
   `mace-torch==0.3.16`; MAPLE changes no learned weight and requires float64.
 - The PCMSolver v1.1.12-style C binding, matching Python parser, custom SMD
@@ -22,10 +23,15 @@ proof-of-concept, not a complete solution-phase PES.
   polarization response.
 - Native aqueous SMD CDS matches static NWChem controls for water, methane, and
   methanol within the frozen 0.015 kcal/mol tolerance.
+- The explicit
+  `provider=pyddx,profile=smd-ddpcm-l15-n1202-v1` path composes one same-energy
+  ddPCM scalar/derivative provider with the official PySCF SMD CDS
+  energy/gradient, publishes only the solvent-correction force, and lets the
+  shared calculator finalizer add the gas force exactly once.
 - Structured output and audit artifacts separate gas MLIP energy,
   `Delta G_solv`, and the combined result.
 
-## Primary next milestone: energy-consistent force
+## Primary next milestone: PES validation after the first public force candidate
 
 1. Keep the documented total-energy bookkeeping and differentiate the unmixed
    converged fixed-point residual with an adjoint solve. A real local-field
@@ -235,10 +241,10 @@ proof-of-concept, not a complete solution-phase PES.
     RSS. Because covariance error was nonmonotonic from order 41 to 47, this
     does not yet establish a generally rotation-qualified order.
 
-    These results close only a narrow continuum-electrostatic
-    coordinate-gradient slice. PySCF's private gradient intermediates remain
-    locked to version 2.13.1, CDS and total-force assembly are absent, and the
-    public parser remains PCMSolver-only. At least one more rigid molecule,
+    At this stage these results closed only a narrow continuum-electrostatic
+    coordinate-gradient slice. PySCF's private gradient intermediates remained
+    locked to version 2.13.1, CDS and total-force assembly were absent, and the
+    public parser remained PCMSolver-only. At least one more rigid molecule,
     denser orientations, and small-angle continuity remain open. The canaries
     load MACE through the public calculator plumbing but do not evaluate its
     attached PCMSolver correction. In the corrected order-47 artifact the
@@ -313,9 +319,9 @@ proof-of-concept, not a complete solution-phase PES.
     nor `primary`, and the loader-only PCMSolver correction was detached and
     not retained.
 
-    That canary still checks one Cartesian finite-difference component on one
-    molecule. It does not populate `SolvationResult`, enable public forces, or
-    certify chemical accuracy or portable speed.
+    That canary checked one Cartesian finite-difference component on one
+    molecule. At that stage it did not populate `SolvationResult` or enable
+    public forces, and it did not certify chemical accuracy or portable speed.
 21. The second-molecule rotation gate rejects fixed order 47 and order 53 as
     generally rotation-qualified defaults. For acetone, order 47 used 3435
     surviving points and gave a \(1.1146\times10^{-3}\)-eV base residual
@@ -380,8 +386,9 @@ proof-of-concept, not a complete solution-phase PES.
     also has no PCMSolver `primary` branch; a `primary` warning from the public
     route remains a warning-fallback cavity-policy event.
 
-    This closes the fixed-density ddPCM physics backbone. The tested grid is
-    not a default, and the adapter remains absent from the public result path.
+    This closed the fixed-density ddPCM physics backbone. The tested grid was
+    not a default, and at this stage the adapter remained absent from the
+    public result path; item 26 records the later explicit integration.
 23. A clean one-molecule canary at baseline `309366e` connects the optional
     pyddx map to the existing real MACE-POLAR-1-M fixed point, matrix-free
     adjoint, and full continuum coordinate VJP. At `lmax=15`/770,
@@ -484,9 +491,34 @@ proof-of-concept, not a complete solution-phase PES.
     `no_pcmsolver_primary_warning=true` is a passed gate.
 
     This adds a second molecule, not a second total-gradient orientation,
-    public force, flexible-geometry conservation, portable speed, or chemical
-    accuracy certification.
-26. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+    flexible-geometry conservation, portable speed, or chemical accuracy
+    certification.
+26. The first public-path methanol force canary selects
+    `provider=pyddx,profile=smd-ddpcm-l15-n1202-v1` through the normal parser,
+    `SetCalculator`, MACE-POLAR calculator, correction factory, and shared
+    result finalizer. It uses pyddx 0.8.0 and PySCF 2.13.1. The public
+    correction energy was `-0.22122796846575263 eV`, differing from the prior
+    independent same-profile canary by
+    \(3.83\times10^{-13}\) eV. The public correction force differed from the
+    negative independent total coordinate gradient by at most
+    \(4.11\times10^{-11}\) eV/angstrom, and the final gas-plus-correction force
+    was finite.
+
+    The ML-SCF root converged in 16 iterations; the adjoint used 8 residual
+    callbacks and 10 operator applications and reached relative residual
+    \(6.33\times10^{-11}\) under the \(10^{-10}\) gate. Model loading took
+    `3.35 s`, the public force evaluation `24.27 s`, and the complete process
+    `29.75 s` on this host. The output retained `manifest.json`,
+    `route2-ddpcm-result.json`, and `route2-ddpcm-state.npz`.
+
+    The forbidden provider-warning count was zero. This ddPCM path never
+    constructs PCMSolver and therefore has no `primary` cavity branch. The 73
+    captured Python warnings are the already classified MACE/Torch conversion,
+    cuequivariance-availability, and PySCF SWIG deprecation warnings—not a
+    PCMSolver cavity warning. This is public wiring and same-profile
+    equivalence evidence for one molecule, not chemical-accuracy, portable
+    speed, rotation-continuity, or solution-phase-PES certification.
+27. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

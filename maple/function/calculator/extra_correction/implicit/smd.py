@@ -43,20 +43,23 @@ from .gto_density import (
 )
 from .pcmsolver import PCMSolverSession
 from .result import SolvationResult
+from .route2_domain import (
+    FORMALLY_CHARGED_TRIPOS_TYPES,
+    MAX_MOLECULAR_MASS_DA,
+    MIN_MOLECULAR_MASS_DA,
+    SUPPORTED_ELEMENTS,
+    validate_route2_domain,
+)
 from .smd_cds import (
     CANONICAL_SMD_PROFILE,
     GAFF2_CARBONYL_O_PROFILE,
     SASA_GRID_POINTS,
-    SUPPORTED_ROUTE2_SMD_PROFILES,
+    SUPPORTED_PCMSOLVER_SMD_PROFILES,
     route2_water_coulomb_radii,
     smd_water_cds,
 )
 
 
-SUPPORTED_ELEMENTS = frozenset({"H", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I"})
-FORMALLY_CHARGED_TRIPOS_TYPES = frozenset({"n.4", "c.cat", "o.co2"})
-MIN_MOLECULAR_MASS_DA = 16.0
-MAX_MOLECULAR_MASS_DA = 500.0
 PCM_TESSERA_AREA_ANGSTROM2 = 0.2
 PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2 = 0.28
 PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM = 0.30
@@ -476,7 +479,7 @@ class SMDImplicitSolvation:
             raise ValueError("Route 2 currently supports implicit=water only.")
         if self.provider != "pcmsolver":
             raise ValueError("Route 2 research contract uses provider=pcmsolver only.")
-        if self.profile not in SUPPORTED_ROUTE2_SMD_PROFILES:
+        if self.profile not in SUPPORTED_PCMSOLVER_SMD_PROFILES:
             raise ValueError(
                 "Route 2 profile must be smd-iefpcm or "
                 "smd-iefpcm-gaff2-o."
@@ -519,55 +522,7 @@ class SMDImplicitSolvation:
 
     @staticmethod
     def _validate_domain(atoms) -> None:
-        if atoms is None or len(atoms) == 0:
-            raise ValueError("Route 2 requires one non-empty molecule.")
-        symbols = tuple(atoms.get_chemical_symbols())
-        unsupported = sorted(set(symbols).difference(SUPPORTED_ELEMENTS))
-        if unsupported:
-            raise ValueError(
-                "Route 2 supports H/C/N/O/F/P/S/Cl/Br/I only; unsupported elements: "
-                + ", ".join(unsupported)
-                + "."
-            )
-        molecular_mass = float(np.sum(atoms.get_masses()))
-        if not MIN_MOLECULAR_MASS_DA <= molecular_mass <= MAX_MOLECULAR_MASS_DA:
-            raise ValueError(
-                "Route 2 v1 is validated for neutral organics from 16 to 500 Da; "
-                f"received {molecular_mass:.6f} Da."
-            )
-        try:
-            charge = float(atoms.info.get("charge", 0))
-            multiplicity_value = float(atoms.info.get("mult", 1))
-        except (TypeError, ValueError) as exc:
-            raise ValueError(
-                "Route 2 requires numeric charge=0 and multiplicity=1 metadata."
-            ) from exc
-        if not multiplicity_value.is_integer():
-            raise ValueError("Route 2 multiplicity metadata must be an integer.")
-        multiplicity = int(multiplicity_value)
-        if charge != 0.0 or multiplicity != 1:
-            raise ValueError(
-                "Route 2 v1 supports neutral closed-shell molecules only "
-                f"(received charge={charge:g}, multiplicity={multiplicity})."
-            )
-        mol2 = atoms.info.get("mol2")
-        if isinstance(mol2, dict):
-            atom_types = {
-                str(atom_type).strip().lower()
-                for atom_type in mol2.get("atom_types", ())
-            }
-            charged_markers = sorted(
-                atom_types.intersection(FORMALLY_CHARGED_TRIPOS_TYPES)
-            )
-            if charged_markers:
-                raise ValueError(
-                    "Route 2 v1 excludes salts and zwitterions; the MOL2 uses "
-                    "formally charged Tripos atom type(s): "
-                    + ", ".join(charged_markers)
-                    + "."
-                )
-        if np.any(atoms.get_pbc()):
-            raise ValueError("Route 2 SMD is non-periodic.")
+        validate_route2_domain(atoms)
 
     def _validate_fixed_geometry(self, atoms) -> None:
         numbers = np.asarray(atoms.numbers, dtype=int)
@@ -698,7 +653,12 @@ class SMDImplicitSolvation:
 
     @staticmethod
     def _gas_state(calculator, atoms):
-        state = getattr(calculator, "_last_polar_state", None)
+        cached = getattr(calculator, "cached_polar_state", None)
+        state = (
+            cached(atoms)
+            if callable(cached)
+            else getattr(calculator, "_last_polar_state", None)
+        )
         if state is None:
             state, _ = calculator.polar_state(atoms)
         return state

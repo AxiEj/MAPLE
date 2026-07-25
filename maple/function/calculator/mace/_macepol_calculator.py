@@ -230,6 +230,8 @@ class MACEPolCalculator(CalcABC):
         self.atomic_numbers = [int(z) for z in self.model.atomic_numbers]
         self.hessian = "analytic"
         self._last_polar_state: PolarState | None = None
+        self._last_polar_state_numbers: np.ndarray | None = None
+        self._last_polar_state_positions: np.ndarray | None = None
 
         self.implicit_solv_init(implicit=implicit, solvent=solvent)
 
@@ -242,6 +244,35 @@ class MACEPolCalculator(CalcABC):
         if self._last_polar_state is None:
             return None
         return self._last_polar_state.density_coefficients.copy()
+
+    def cached_polar_state(
+        self,
+        atoms,
+        *,
+        require_forces: bool = False,
+    ) -> PolarState | None:
+        """Return the last public gas state only for the exact same geometry."""
+
+        state = self._last_polar_state
+        if (
+            state is None
+            or self._last_polar_state_numbers is None
+            or self._last_polar_state_positions is None
+            or not np.array_equal(
+                self._last_polar_state_numbers,
+                np.asarray(atoms.numbers, dtype=int),
+            )
+            or not np.array_equal(
+                self._last_polar_state_positions,
+                np.asarray(atoms.get_positions(), dtype=float),
+            )
+            or (
+                require_forces
+                and state.fixed_field_forces_ev_per_angstrom is None
+            )
+        ):
+            return None
+        return state
 
     @staticmethod
     def _atoms_for_mace(atoms):
@@ -679,6 +710,14 @@ class MACEPolCalculator(CalcABC):
             compute_hessian=needs_hessian,
         )
         self._last_polar_state = state
+        self._last_polar_state_numbers = np.asarray(
+            atoms.numbers,
+            dtype=int,
+        ).copy()
+        self._last_polar_state_positions = np.asarray(
+            atoms.get_positions(),
+            dtype=float,
+        ).copy()
 
         forces_np = None
         if needs_forces:

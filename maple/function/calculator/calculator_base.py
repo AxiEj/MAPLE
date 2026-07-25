@@ -325,6 +325,11 @@ class CalcABC(ase.calculators.calculator.Calculator):
         """Translate input-header options into ctor kwargs. Backends override."""
         return {}
 
+    @classmethod
+    def build_implicit_solvent_kwargs(cls, solvation_options):
+        """Translate one validated solvation profile into backend kwargs."""
+        return {}
+
     def _finalize_results(self, atoms, *, energy, forces=None, hessian=None, unit=None):
         """Single entry: unit conversion + implicit-solvent + write self.results.
 

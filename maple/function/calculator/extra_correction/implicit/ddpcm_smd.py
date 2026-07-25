@@ -19,6 +19,14 @@ from typing import Any
 import numpy as np
 from ase.units import Hartree
 
+from ....route2_smd_profiles import (
+    DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    DDPCM_GAFF2_CARBONYL_O_PROFILE,
+    DDPCM_SMD_PROFILE,
+    MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
+    SUPPORTED_DDPCM_SMD_PROFILES,
+    route2_smd_profile_spec,
+)
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
 from .gto_density import external_field_to_density_order
 from .pyddx_pcm_response import PyDDXPCMReactionFieldLinearMap
@@ -34,12 +42,7 @@ from .route2_response import (
     UnmixedDensityResidualLinearization,
     solve_adjoint,
 )
-from .smd_cds import (
-    DDPCM_GAFF2_CARBONYL_O_PROFILE,
-    DDPCM_SMD_PROFILE,
-    SUPPORTED_DDPCM_SMD_PROFILES,
-    route2_water_coulomb_radii,
-)
+from .smd_cds import route2_water_coulomb_radii
 
 
 WATER_STATIC_DIELECTRIC = 78.39
@@ -117,6 +120,7 @@ class DDPCMSMDImplicitSolvation:
             self.solvation_options.get("standard_state", "1m")
         ).lower()
         self._validate_options()
+        self.profile_spec = route2_smd_profile_spec(self.profile)
         validate_route2_domain(self.atoms)
         self._reference_numbers = np.asarray(
             self.atoms.numbers,
@@ -158,11 +162,21 @@ class DDPCMSMDImplicitSolvation:
             "pcm_projection": "atom-centred l<=1 real spherical multipoles",
             "cavity_radii": (
                 "SMD Coulomb radii with revised Br=2.60 A and I=2.74 A"
-                if self.profile == DDPCM_SMD_PROFILE
+                if not self.profile_spec.uses_gaff2_carbonyl_oxygen
                 else (
                     "SMD Coulomb radii with GAFF/GAFF2 carbonyl oxygen "
                     "(atom type o) overridden to 1.70 A"
                 )
+            ),
+            "mace_long_range_evaluator": (
+                self.profile_spec.mace_long_range_evaluator
+            ),
+            "mace_long_range_evaluator_status": (
+                "experimental fixed-box operator variant; not equivalent "
+                "to the default molecular real-space evaluator"
+                if self.profile_spec.mace_long_range_evaluator
+                == MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+                else "official default molecular real-space evaluator"
             ),
             "cds": "official PySCF water-SMD libsolvent energy and gradient",
             "route_role": "research-innovation",
@@ -265,8 +279,7 @@ class DDPCMSMDImplicitSolvation:
                 "Route 2 does not permit atom identity/order changes."
             )
 
-    @staticmethod
-    def _validate_calculator(calculator, *, need_forces: bool) -> None:
+    def _validate_calculator(self, calculator, *, need_forces: bool) -> None:
         if calculator is None or not callable(
             getattr(calculator, "polar_state", None)
         ):
@@ -281,6 +294,18 @@ class DDPCMSMDImplicitSolvation:
             raise TypeError(
                 "Route 2 requires the official MACE-POLAR-1-M float64 "
                 "local-field calculator profile."
+            )
+        expected_evaluator = self.profile_spec.mace_long_range_evaluator
+        actual_evaluator = getattr(
+            calculator,
+            "long_range_evaluator_profile",
+            None,
+        )
+        if actual_evaluator != expected_evaluator:
+            raise TypeError(
+                "The selected Route-2 profile requires MACE-POLAR "
+                f"long-range evaluator {expected_evaluator!r}; received "
+                f"{actual_evaluator!r}."
             )
         if not need_forces:
             return
@@ -799,6 +824,13 @@ class DDPCMSMDImplicitSolvation:
                 None,
             ),
             "mace_dtype": str(getattr(calculator, "dtype", None)),
+            "mace_long_range_evaluator": dict(
+                getattr(
+                    calculator,
+                    "long_range_evaluator_provenance",
+                    {},
+                )
+            ),
             "audit_directory": (
                 None
                 if self.audit_dir is None
@@ -818,6 +850,7 @@ __all__ = [
     "ADJOINT_MAX_ITERATIONS",
     "ADJOINT_RELATIVE_TOLERANCE",
     "DDPCM_ETA",
+    "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
     "DDPCM_LMAX",
     "DDPCM_N_LEBEDEV",

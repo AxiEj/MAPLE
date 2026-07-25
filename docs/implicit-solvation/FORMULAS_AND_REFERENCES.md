@@ -109,6 +109,55 @@ second time. It is locked by implementation and audit provenance; a future
 adapter whose energy includes the explicit coupling would require a different
 formula and profile name.
 
+### Versioned MACE long-range evaluator
+
+The learned weights \(\theta\) and the Route-2 energy accounting remain fixed,
+but MACE-POLAR's long-range numerical evaluator is part of the definition of a
+reproducible model state:
+
+\[
+\left(E_{\mathrm{intrinsic}}^{(\alpha)},\rho^{(\alpha)}\right)
+=\mathcal M_{\theta}
+\left(\mathbf R,V_{\mathrm{reac}};\mathcal L^{(\alpha)}\right).
+\]
+
+The default profiles use the official molecular real-space
+\(\mathcal L^{(\mathrm{real})}\). The explicitly named
+`smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1` profile instead selects
+\(\mathcal L^{(\mathrm{recip},40)}\): the same official checkpoint is evaluated
+with `use_pbc_evaluator=True` in the fixed cell
+\(\mathbf B=40\,\mathring{\mathrm A}\,\mathbf I\), with reciprocal cell
+\(\mathbf B^\ast=2\pi\mathbf B^{-T}\), while the molecular graph remains
+non-periodic. The coordinates supplied to this operator are
+
+\[
+\widetilde{\mathbf R}_i
+=\mathbf R_i-\frac1N\sum_j\mathbf R_j .
+\]
+
+Consequently its analytic derivative is the derivative of the actual centred
+profile energy:
+
+\[
+\frac{\partial E}{\partial\mathbf R_i}
+=\frac{\partial E}{\partial\widetilde{\mathbf R}_i}
+-\frac1N\sum_j
+\frac{\partial E}{\partial\widetilde{\mathbf R}_j}.
+\]
+
+MAPLE obtains this projection through ordinary autograd; it does not apply a
+post-hoc force or torque correction. The adapter also casts only the upstream
+reciprocal molecular-correction field to the float64 projection-matrix dtype.
+This is a numerical compatibility bridge, not a new physical term or a claim
+of an upstream dtype defect.
+
+Because \(\mathcal L^{(\mathrm{real})}\) and
+\(\mathcal L^{(\mathrm{recip},40)}\) are different finite numerical operators,
+their equality is neither assumed nor required. The profile registry binds the
+continuum backend, cavity variant, and MACE evaluator as one versioned
+contract; arbitrary cross-combinations and arbitrary box lengths fail closed.
+The solvation formula and adjoint derivative below are otherwise unchanged.
+
 For `response=scf`, MAPLE iterates
 
 \[

@@ -518,7 +518,58 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     PCMSolver cavity warning. This is public wiring and same-profile
     equivalence evidence for one molecule, not chemical-accuracy, portable
     speed, rotation-continuity, or solution-phase-PES certification.
-27. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
+27. A bounded acetone rotation investigation found that the default
+    graph_longrange molecular real-space evaluator contributed a
+    `0.0018627013 kcal/mol` full-continuum rigid-rotation span, above the
+    predeclared `0.0005 kcal/mol` gate. Tuning its Cartesian finite-difference
+    offsets was rejected because that changes, rather than removes, the
+    \(O(h)\) anisotropy.
+
+    The same official MACE-POLAR-1-M checkpoint was then evaluated through
+    graph_longrange 0.4.0's documented forced reciprocal path in fixed
+    non-periodic molecular boxes. At 20 Å the intrinsic-correction rotation
+    span was `0.0001634123 kcal/mol`; at 40 Å it fell to
+    \(6.0106\times10^{-6}\) kcal/mol. The corresponding density-covariance
+    error fell from \(3.49\times10^{-5}\) to
+    \(1.23\times10^{-6}\). Four isolated MACE evaluations took `0.523 s` in
+    the 40 Å reciprocal mode versus `1.307 s` through the default molecular
+    evaluator on this host.
+
+    In the complete 40 Å MACE/ddPCM/PySCF functional, two acetone orientations
+    had a total-correction span of
+    \(8.3038\times10^{-5}\) kcal/mol and a maximum total-gradient covariance
+    error of \(3.4356\times10^{-4}\) eV/angstrom. Both 21-iteration roots,
+    adjoints, translation/torque closures, and force-assembly reconstructions
+    passed. A fully reconverged \(5\times10^{-4}\)-angstrom central difference
+    on the largest component gave total, continuum, and CDS errors of
+    \(7.50\times10^{-7}\), \(4.69\times10^{-7}\), and
+    \(2.82\times10^{-7}\) eV/angstrom. The structured
+    PCMSolver/`primary` warning count was zero.
+
+    These gates justify only the explicit, non-default
+    `smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1` operator variant. They do
+    not establish equivalence to the default evaluator, box convergence for
+    every molecule, flexible-geometry continuity, chemical accuracy, or a
+    solution-phase PES.
+28. The first public-dispatch acetone run of that profile went through
+    `CommandControl`, the centralized profile registry, `SetCalculator`, the
+    isolated MACE evaluator adapter, the pyddx/PySCF correction provider, and
+    the shared result finalizer without a process-local monkeypatch. Its
+    correction energy differed from the prior independent canary by less than
+    \(10^{-11}\) eV; its analytic correction force differed from the
+    independent array by less than \(10^{-10}\) eV/angstrom. The root used 21
+    iterations. Model-load and cold public energy-plus-force timings are
+    retained as run-level diagnostics in the evidence artifact, not as
+    capability gates or portable throughput claims.
+
+    The audit records `pbc=False`, arithmetic-mean centering, a fixed 40 Å
+    cubic box, `use_pbc_evaluator=True`, graph_longrange 0.4.0, and the narrow
+    float32-to-float64 reciprocal-field projection bridge. The only visible
+    root logger message is MACE's intentional checkpoint conversion to
+    float64; no PCMSolver or `primary` warning occurred. A passing public
+    artifact must record its Git commit, a clean tracked working tree, no dirty
+    development override, and separate warning categories.
+29. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

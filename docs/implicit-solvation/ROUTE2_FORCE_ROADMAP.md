@@ -683,6 +683,33 @@ that CDS energy and gradient come from the same selected provider.
    closed-loop, and short-NVE gates without changing the named 1202-point
    profile or calibrated solver policy.
 
+10. **Experimental reciprocal MACE evaluator is isolated behind one complete
+    profile.** The default molecular real-space evaluator failed the bounded
+    acetone total-energy rotation gate at `0.0018627013 kcal/mol`. The same
+    unmodified checkpoint with graph_longrange's forced reciprocal evaluator
+    and an explicit fixed 40 Å helper box reduced the complete ML-SCF/SMD span
+    to \(8.3038\times10^{-5}\) kcal/mol. The two-orientation force-covariance
+    error was \(3.4356\times10^{-4}\) eV/angstrom, and the refined
+    whole-energy finite-difference force error was
+    \(7.50\times10^{-7}\) eV/angstrom.
+
+    The accepted architecture does not monkeypatch the model and does not put
+    box logic in ddPCM. `route2_smd_profiles.py` binds provider, cavity, and
+    evaluator; `_macepol_long_range.py` owns fixed-box centering, the
+    graph_longrange 0.4.0 gate, the narrow dtype bridge, and the forward flag;
+    `MACEPolCalculator._model_forward()` is the only model-call dispatch
+    boundary. Existing profiles select an exact no-op evaluator policy.
+
+    The public-path acetone energy and analytic correction force reproduce the
+    prior independent evidence within \(10^{-11}\) eV and
+    \(10^{-10}\) eV/angstrom, respectively. The public evidence artifact must
+    also identify a clean Git commit and classify PCMSolver/`primary`,
+    checkpoint-dtype, and dependency warnings separately. These gates permit
+    the explicit non-default
+    `smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1` research profile only.
+    Arbitrary boxes/evaluators, default promotion, equivalence claims, and PES
+    tasks remain rejected.
+
 ### Phase 3 -- verification gates
 
 1. Use whole-energy central finite differences only as an oracle. Demonstrate

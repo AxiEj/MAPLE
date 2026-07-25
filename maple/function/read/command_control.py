@@ -2,6 +2,8 @@ import re
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
+from ..route2_smd_profiles import route2_smd_profiles_for_provider
+
 
 class CommandControl:
     """
@@ -696,19 +698,12 @@ class CommandControl:
                         "smd-iefpcm",
                     )
                 ).lower()
-                provider_profiles = {
-                    "pcmsolver": {
-                        "smd-iefpcm",
-                        "smd-iefpcm-gaff2-o",
-                    },
-                    "pyddx": {
-                        "smd-ddpcm-l15-n1202-v1",
-                        "smd-ddpcm-l15-n1202-gaff2-o-v1",
-                    },
-                }
-                if profile not in provider_profiles[provider]:
+                supported_profiles = route2_smd_profiles_for_provider(
+                    provider
+                )
+                if profile not in supported_profiles:
                     supported = ", ".join(
-                        sorted(provider_profiles[provider])
+                        sorted(supported_profiles)
                     )
                     msg = (
                         f"Route 2 provider={provider} profile must be "

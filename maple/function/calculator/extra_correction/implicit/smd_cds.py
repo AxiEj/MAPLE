@@ -14,26 +14,23 @@ import math
 
 import numpy as np
 
+from ....route2_smd_profiles import (
+    CANONICAL_SMD_PROFILE,
+    DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    DDPCM_GAFF2_CARBONYL_O_PROFILE,
+    DDPCM_SMD_PROFILE,
+    GAFF2_CARBONYL_O_PROFILE,
+    SUPPORTED_DDPCM_SMD_PROFILES,
+    SUPPORTED_PCMSOLVER_SMD_PROFILES,
+    SUPPORTED_ROUTE2_SMD_PROFILES,
+    route2_smd_profile_spec,
+)
+
 
 HARTREE_TO_KCAL_MOL = 627.5094740631
 SASA_PROBE_RADIUS_ANGSTROM = 0.4
 SASA_GRID_POINTS = 5810
-CANONICAL_SMD_PROFILE = "smd-iefpcm"
-GAFF2_CARBONYL_O_PROFILE = "smd-iefpcm-gaff2-o"
-DDPCM_SMD_PROFILE = "smd-ddpcm-l15-n1202-v1"
-DDPCM_GAFF2_CARBONYL_O_PROFILE = (
-    "smd-ddpcm-l15-n1202-gaff2-o-v1"
-)
 GAFF2_CARBONYL_O_RADIUS_ANGSTROM = 1.70
-SUPPORTED_PCMSOLVER_SMD_PROFILES = frozenset(
-    {CANONICAL_SMD_PROFILE, GAFF2_CARBONYL_O_PROFILE}
-)
-SUPPORTED_DDPCM_SMD_PROFILES = frozenset(
-    {DDPCM_SMD_PROFILE, DDPCM_GAFF2_CARBONYL_O_PROFILE}
-)
-SUPPORTED_ROUTE2_SMD_PROFILES = (
-    SUPPORTED_PCMSOLVER_SMD_PROFILES | SUPPORTED_DDPCM_SMD_PROFILES
-)
 
 
 SMD_WATER_COULOMB_RADII_ANGSTROM = {
@@ -152,10 +149,8 @@ def route2_water_coulomb_radii(
         raise ValueError(f"Unsupported Route 2 SMD profile: {profile}.")
 
     radii = smd_water_coulomb_radii(normalized_symbols)
-    if normalized_profile in {
-        CANONICAL_SMD_PROFILE,
-        DDPCM_SMD_PROFILE,
-    }:
+    profile_spec = route2_smd_profile_spec(normalized_profile)
+    if not profile_spec.uses_gaff2_carbonyl_oxygen:
         return radii
 
     if atom_types is None:

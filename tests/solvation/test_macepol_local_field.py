@@ -8,6 +8,12 @@ from ase import Atoms
 torch = pytest.importorskip("torch")
 
 from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
+from maple.function.calculator.mace._macepol_long_range import (
+    MACEPolarLongRangeEvaluator,
+)
+from maple.function.route2_smd_profiles import (
+    MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+)
 
 
 class _FieldRecorder:
@@ -134,6 +140,11 @@ def _calculator_with_model(model, recorder: _FieldRecorder):
     calculator.device = torch.device("cpu")
     calculator.dtype = torch.float64
     calculator._reaction_projector = recorder
+    calculator._long_range_evaluator = (
+        MACEPolarLongRangeEvaluator.from_profile(
+            MACEPOL_MOLECULAR_REALSPACE_PROFILE
+        )
+    )
     calculator.model = model
     calculator._batch_dict = lambda _atoms: {"synthetic": torch.tensor(1.0)}
     return calculator

@@ -24,6 +24,11 @@ from maple.function.calculator.extra_correction.implicit.route2_derivative impor
 )
 from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.read.command_control import CommandControl
+from maple.function.route2_smd_profiles import (
+    DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
+    MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+)
 
 
 def _parse(*lines: str) -> dict[str, object]:
@@ -67,6 +72,47 @@ def test_public_parser_accepts_explicit_ddpcm_force_candidate():
     )
 
     assert params["solv"] == _options()
+
+
+def test_public_parser_accepts_only_the_versioned_reciprocal_profile():
+    options = {
+        **_options(),
+        "profile": DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    }
+    params = _parse(
+        "#model=macepol-m",
+        "#sp(verbose=1)",
+        (
+            "#solv(implicit=water,method=smd,provider=pyddx,"
+            f"profile={DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE},"
+            "response=scf,standard_state=1m,experimental=true)"
+        ),
+    )
+
+    assert params["solv"] == options
+
+    builder = SetCalculator(
+        "cpu",
+        "macepol-m",
+        "maple.out",
+        atoms=_atoms(),
+        implicit="smd",
+        solvent="water",
+        solvation_options=options,
+    )
+    builder._validate_solvent_config()
+
+    with pytest.raises(ValueError, match="Unknown solvation parameter.*evaluator"):
+        _parse(
+            "#model=macepol-m",
+            "#sp(verbose=1)",
+            (
+                "#solv(implicit=water,method=smd,provider=pyddx,"
+                f"profile={DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE},"
+                "evaluator=reciprocal,response=scf,standard_state=1m,"
+                "experimental=true)"
+            ),
+        )
 
 
 def test_pyddx_requires_an_explicit_versioned_profile_at_every_boundary(
@@ -263,6 +309,12 @@ class _FakeMACEPolarCalculator(CalcABC):
         )
         self._last_polar_state = self.gas_state
         self.route2_smd_profile = ROUTE2_SMD_CALCULATOR_PROFILE
+        self.long_range_evaluator_profile = (
+            MACEPOL_MOLECULAR_REALSPACE_PROFILE
+        )
+        self.long_range_evaluator_provenance = {
+            "profile": MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        }
         self.mace_torch_version = "0.3.16"
         self.dtype = "torch.float64"
         self.atoms = atoms.copy()
@@ -311,6 +363,45 @@ class _FakeMACEPolarCalculator(CalcABC):
     ):
         del node_potential_ev, node_gradient_ev_per_angstrom, density_cotangent
         return np.zeros((len(atoms), 3))
+
+
+def test_reciprocal_profile_requires_matching_calculator_evaluator(tmp_path):
+    atoms = _atoms()
+    options = {
+        **_options(),
+        "profile": DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    }
+    provider = DDPCMSMDImplicitSolvation(
+        atoms,
+        options,
+        audit_dir=tmp_path,
+    )
+    calculator = _FakeMACEPolarCalculator(atoms)
+
+    with pytest.raises(TypeError, match="long-range evaluator"):
+        provider._validate_calculator(
+            calculator,
+            need_forces=False,
+        )
+
+    calculator.long_range_evaluator_profile = (
+        MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+    )
+    calculator.long_range_evaluator_provenance = {
+        "profile": MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
+        "box_length_angstrom": 40.0,
+        "use_pbc_evaluator": True,
+        "equivalent_to_default_evaluator": False,
+    }
+    provider._validate_calculator(
+        calculator,
+        need_forces=True,
+    )
+
+    assert provider.provenance["mace_long_range_evaluator"] == (
+        MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+    )
+    assert provider.provenance["default_eligible"] is False
 
 
 def _fake_cds(atoms):

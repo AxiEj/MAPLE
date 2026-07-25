@@ -36,6 +36,13 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "#sp(verbose=1)" in overview
     assert "provider=pyddx" in overview
     assert "profile=smd-ddpcm-l15-n1202-v1" in overview
+    assert (
+        "profile=smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1"
+        in overview
+    )
+    assert "use_pbc_evaluator=True" in overview
+    assert "fixed 40 Å cubic helper box" in overview
+    assert "not proof that it is equivalent" in overview
     assert "pyddx==0.8.0" in overview
     assert "pyscf==2.13.1" in overview
     assert "single-point research force candidate" in overview
@@ -115,6 +122,9 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "pyscf_smd_water_cds()" in formulas
     assert "pyscf.solvent.smd.get_cds_legacy" in validation
     assert "position gradient, not force" in formulas
+    assert "\\mathcal L^{(\\mathrm{recip},40)}" in formulas
+    assert "ordinary autograd" in formulas
+    assert "arbitrary box lengths fail closed" in formulas
     assert "loader-only manifest is not retained" in roadmap
     assert "CDS-only component gate" in validation
     assert "assemble_total_solvation_coordinate_gradient()" in formulas
@@ -130,6 +140,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "three-case MAE worsened" in normalized_validation
     assert "0.7248%" in validation
     assert "public correction force differed" in normalized_validation
+    assert "0.0018627013 kcal/mol" in validation
+    assert "10^{-10}" in validation
+    assert "clean tracked working tree" in validation
+    assert "_macepol_long_range.py" in roadmap
     assert "4.11\\times10^{-11}" in validation
     assert "forbidden provider-warning count was zero" in normalized_validation
     assert "not a PCMSolver cavity warning" in normalized_validation

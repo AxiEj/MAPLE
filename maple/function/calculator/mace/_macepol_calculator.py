@@ -43,6 +43,11 @@ from ..calculator_base import (
     hessian_via_double_autograd,
     register_calculator,
 )
+from ...route2_smd_profiles import (
+    MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+    validate_route2_smd_profile,
+)
+from ._macepol_long_range import MACEPolarLongRangeEvaluator
 
 
 _MACEPOL_FOUNDATION_NAMES = {
@@ -144,6 +149,21 @@ class MACEPolCalculator(CalcABC):
             kwargs["model_path"] = resolved_model_path
         return kwargs
 
+    @classmethod
+    def build_implicit_solvent_kwargs(cls, solvation_options):
+        provider = str(
+            solvation_options.get("provider", "pcmsolver")
+        ).strip().lower()
+        profile = str(
+            solvation_options.get("profile", "smd-iefpcm")
+        ).strip().lower()
+        spec = validate_route2_smd_profile(provider, profile)
+        return {
+            "long_range_evaluator_profile": (
+                spec.mace_long_range_evaluator
+            )
+        }
+
     def __init__(
         self,
         device: torch.device | str,
@@ -151,9 +171,22 @@ class MACEPolCalculator(CalcABC):
         model_path: str | None = None,
         implicit: Literal["smd", "gb", "pb", "none"] = "none",
         solvent: str = "none",
+        long_range_evaluator_profile: str = (
+            MACEPOL_MOLECULAR_REALSPACE_PROFILE
+        ),
     ):
         super().__init__()
         route2_smd = str(implicit).strip().lower() == "smd"
+        self._long_range_evaluator = (
+            MACEPolarLongRangeEvaluator.from_profile(
+                long_range_evaluator_profile
+            )
+        )
+        if not route2_smd and not self._long_range_evaluator.is_default:
+            raise ValueError(
+                "The forced reciprocal MACE-POLAR evaluator is available "
+                "only through its explicit Route-2 SMD profile."
+            )
 
         try:
             mace_version = version("mace-torch")
@@ -214,6 +247,7 @@ class MACEPolCalculator(CalcABC):
         self.model.eval()
         for parameter in self.model.parameters():
             parameter.requires_grad_(False)
+        self._long_range_evaluator.configure_model(self.model)
 
         projector = getattr(self.model, "external_field_contribution", None)
         if projector is None or not hasattr(projector, "matrix"):
@@ -228,6 +262,12 @@ class MACEPolCalculator(CalcABC):
         self.dtype = next(self.model.parameters()).dtype
         self.r_max = float(self.model.r_max)
         self.atomic_numbers = [int(z) for z in self.model.atomic_numbers]
+        self.long_range_evaluator_profile = (
+            self._long_range_evaluator.profile
+        )
+        self.long_range_evaluator_provenance = (
+            self._long_range_evaluator.provenance
+        )
         self.hessian = "analytic"
         self._last_polar_state: PolarState | None = None
         self._last_polar_state_numbers: np.ndarray | None = None
@@ -292,7 +332,17 @@ class MACEPolCalculator(CalcABC):
         for key, value in tuple(result.items()):
             if torch.is_tensor(value) and torch.is_floating_point(value):
                 result[key] = value.to(dtype=model_dtype)
-        return result
+        return self._long_range_evaluator.prepare_batch(
+            result,
+            r_max=self.r_max,
+        )
+
+    def _model_forward(self, batch, **kwargs):
+        return self._long_range_evaluator.forward_model(
+            self.model,
+            batch,
+            **kwargs,
+        )
 
     @staticmethod
     def _polar_state_from_output(output) -> PolarState:
@@ -391,7 +441,7 @@ class MACEPolCalculator(CalcABC):
         batch = self._batch_dict(atoms)
         self._reaction_projector.set_node_potential_gradient(local_values)
         try:
-            return self.model(
+            return self._model_forward(
                 batch,
                 compute_force=compute_forces,
                 compute_stress=False,
@@ -615,7 +665,7 @@ class MACEPolCalculator(CalcABC):
         try:
             self._reaction_projector.set_node_potential_gradient(local_values)
             try:
-                output = self.model(
+                output = self._model_forward(
                     batch,
                     compute_force=False,
                     compute_stress=False,
@@ -755,7 +805,7 @@ class MACEPolCalculator(CalcABC):
         positions.requires_grad_(True)
 
         def energy_fn():
-            output = self.model(
+            output = self._model_forward(
                 batch,
                 compute_force=False,
                 compute_stress=False,

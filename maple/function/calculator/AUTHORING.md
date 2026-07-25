@@ -111,12 +111,19 @@ class FooCalculator(CalcABC):
   directly in their `calculate()` flow.
 - This branch implements only Route-2 `smd` in water. `SetCalculator` installs
   `ImplicitSolvationCorrection` after constructing official MACE-POLAR-1-M.
-- The public contract locks float64 MACE-POLAR-1-M, external PCMSolver IEFPCM,
-  aqueous SMD radii and CDS, SCF response, fixed MOL2 conformer, and 1 M gas to
-  1 M solution. Alternate providers, checkpoints, charge models, and standard
-  states fail closed.
-- Route-2 SMD exposes energy only. Forces, Hessian/HVP, stress, PBC, and
-  unsupported task/domain combinations are rejected.
+- `route2_smd_profiles.py` is the single registry binding continuum provider,
+  cavity variant, and MACE long-range evaluator. Parser, builder, calculator,
+  and provider must consume that registry rather than duplicating profile
+  strings.
+- Backends that receive profile-derived constructor arguments implement
+  `build_implicit_solvent_kwargs()`; user model options must not be repurposed
+  for implicit-solvent evaluator policy.
+- The default PCMSolver profile remains energy-only. Explicit pyddx/PySCF
+  profiles expose a same-energy single-point force candidate. Hessian/HVP,
+  stress, PBC, and unsupported task/domain combinations remain rejected.
+- The reciprocal MACE-POLAR variant lives in `_macepol_long_range.py`, not in
+  the continuum provider. Its profile locks the fixed box, centering, dtype
+  bridge, version gate, and forward flag; arbitrary combinations fail closed.
 
 ## Hessian
 
@@ -205,7 +212,7 @@ backend that switches tasks for periodic input.
 | AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | yes | no | no |
 | MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | no | no |
 | MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no | no |
-| MACE-POLAR (`macepols/m/l`) | no; fail-fast; Route 2 adds a per-atom local reaction potential/gradient through the pretrained GTO field projector | yes (`spin = mult`) | analytic + numerical gas phase; Route 2 SP energy only | yes; SMD is locked to `macepolm` | no | no |
+| MACE-POLAR (`macepols/m/l`) | no; fail-fast; Route 2 adds a per-atom local reaction potential/gradient through the pretrained GTO field projector | yes (`spin = mult`) | analytic + numerical gas phase; Route 2 has an explicit pyddx single-point force candidate but no solution Hessian | yes; SMD is locked to `macepolm` | no | no |
 | UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | yes | no | no |
 
 Both MACE-POLAR and UMA use an upstream field named `spin`, but checkpoint

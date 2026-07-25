@@ -11,6 +11,7 @@ from typing import Optional
 import ase
 from ase import Atoms
 
+from ..route2_smd_profiles import route2_smd_profiles_for_provider
 from .calculator_base import (
     atoms_has_pbc,
     get_registered_calculator,
@@ -215,17 +216,8 @@ class SetCalculator:
                     'smd-iefpcm',
                 )
             ).lower()
-            provider_profiles = {
-                'pcmsolver': {
-                    'smd-iefpcm',
-                    'smd-iefpcm-gaff2-o',
-                },
-                'pyddx': {
-                    'smd-ddpcm-l15-n1202-v1',
-                    'smd-ddpcm-l15-n1202-gaff2-o-v1',
-                },
-            }
-            if profile not in provider_profiles[provider]:
+            supported_profiles = route2_smd_profiles_for_provider(provider)
+            if profile not in supported_profiles:
                 raise ValueError(
                     f"Route 2 provider={provider} does not support "
                     f"profile={profile}."
@@ -575,6 +567,12 @@ class SetCalculator:
 
         resolved_path_str = str(resolved_model_path) if resolved_model_path is not None else None
         kwargs = cls.build_kwargs_from_options(name, options, resolved_model_path=resolved_path_str)
+        if self.implicit == 'smd':
+            kwargs.update(
+                cls.build_implicit_solvent_kwargs(
+                    self.solvation_options,
+                )
+            )
 
         calculator = cls(
             device=self.device,

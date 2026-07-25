@@ -71,6 +71,31 @@ certification. The separately named
 GAFF/GAFF2 `o` carbonyl-oxygen radius change to the same numerical candidate;
 it is not the canonical default or a broad-accuracy claim.
 
+One additional profile isolates the rigid-rotation defect of MACE-POLAR's
+default molecular long-range evaluator:
+
+```text
+#model=macepol-m
+#sp(verbose=1)
+#solv(implicit=water,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1,response=scf,standard_state=1m,experimental=true)
+```
+
+This profile keeps the same checkpoint, ddPCM equations, GAFF/GAFF2
+carbonyl-oxygen radius, PySCF CDS functional, SCF policy, and force derivative.
+It changes only the MACE long-range evaluation operator: an FFF molecular graph
+is arithmetic-mean centred in a fixed 40 Å cubic helper box and evaluated with
+graph_longrange's forced periodic reciprocal-space path by setting
+`use_pbc_evaluator=True`, while `pbc=False` remains unchanged. It is locked to
+`graph_longrange==0.4.0`; a narrow dtype
+bridge casts only the reciprocal molecular-correction field into the
+float64 projection dtype. No learned weight is changed.
+
+The combined profile is indivisible: free-form `evaluator`, box-length, and
+centering options are rejected, and a molecule that does not fit the 40 Å box
+with the MACE cutoff fails closed. This is a non-default experimental operator
+variant, not proof that it is equivalent to the default real-space evaluator.
+Its results remain box-dependent and require convergence validation.
+
 ### Route-2 runtime
 
 Install the exact MACE release used by the contract and let its official
@@ -140,6 +165,7 @@ The derivative capability boundary is likewise explicit:
 | --- | --- | --- | --- |
 | PCMSolver--GePol | yes | no; fails closed | energy only |
 | pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | yes | explicit single-point research force candidate |
+| pyddx/GAFF2 + MACE reciprocal fixed-box40 | yes | yes | explicit non-default operator-variant candidate |
 | synthetic contract oracle | test only | yes | no |
 | external PySCF SWIG investigation | separate canary only | incomplete Route-2 integration | no |
 

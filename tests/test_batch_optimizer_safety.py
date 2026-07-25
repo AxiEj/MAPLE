@@ -6,7 +6,11 @@ import numpy as np
 import torch
 from ase import Atoms
 
+from maple.function.calculator._batch_types import BatchResult
 from maple.function.dispatcher.optimization.algorithm.blbfgs import BatchLBFGS
+from maple.function.dispatcher.optimization.algorithm.calculate_many_batch import (
+    CalculateManyBatchCalc,
+)
 
 
 class _Molecules:
@@ -108,6 +112,31 @@ class _TrialNonfiniteCalculator(_SyntheticBatchCalculator):
         return super().get_ef_gpu()
 
 
+class _OOMCalculateMany:
+    supports_batch_energy_forces = True
+    device = torch.device("cpu")
+    optimization_batch_size = "all"
+
+    def __init__(self):
+        self.batch_lengths = []
+
+    def calculate_many(self, atoms_list, properties=("energy", "forces")):
+        atoms_list = list(atoms_list)
+        self.batch_lengths.append(len(atoms_list))
+        if len(atoms_list) > 2:
+            raise RuntimeError("CUDA out of memory")
+        return BatchResult(
+            energies=np.asarray(
+                [atoms.positions[0, 0] for atoms in atoms_list],
+                dtype=np.float64,
+            ),
+            forces=[
+                np.full((len(atoms), 3), atoms.positions[0, 0])
+                for atoms in atoms_list
+            ],
+        ).validate_against(atoms_list, properties)
+
+
 class BatchOptimizerSafetyTests(unittest.TestCase):
     def test_constructor_rejects_invalid_parameters(self):
         invalid = (
@@ -173,10 +202,14 @@ class BatchOptimizerSafetyTests(unittest.TestCase):
                 optimizer.run(molecules)
             self.assertEqual(
                 optimizer.statuses,
-                ["failed_nonfinite", "running"],
+                ["failed_nonfinite", "aborted_peer_failure"],
             )
             self.assertEqual(optimizer.failure_details[0]["index"], 0)
             self.assertIn("energies", optimizer.failure_details[0]["fields"])
+            self.assertEqual(
+                optimizer.failure_details[1]["status"],
+                "aborted_peer_failure",
+            )
 
     def test_backend_exception_sets_explicit_status(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -329,6 +362,27 @@ class BatchOptimizerSafetyTests(unittest.TestCase):
             self.assertFalse(
                 (Path(tmpdir) / "job_opt_unconverged.xyz").exists()
             )
+
+    def test_calculate_many_adapter_chunks_and_retries_oom_in_order(self):
+        calc = _OOMCalculateMany()
+        atoms = [
+            Atoms("H", positions=[[float(index), 0.0, 0.0]])
+            for index in range(5)
+        ]
+        adapter = CalculateManyBatchCalc(calc, device="cpu")
+        adapter.prepare(atoms)
+
+        energies, forces = adapter.get_ef_gpu()
+
+        self.assertEqual(calc.batch_lengths, [5, 2, 2, 1])
+        torch.testing.assert_close(
+            energies,
+            torch.arange(5, dtype=torch.float64),
+        )
+        torch.testing.assert_close(
+            forces[:, 0],
+            torch.arange(5, dtype=torch.float64),
+        )
 
 
 if __name__ == "__main__":

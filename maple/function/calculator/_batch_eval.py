@@ -39,6 +39,7 @@ from ._batch_utils import (
 )
 
 AUTO_BATCH_SIZE = "auto"
+ALL_BATCH_SIZE = "all"
 AUTO_BATCH_TARGET_FRACTION = 0.75
 FD_HESSIAN_ANTISYMMETRY_THRESHOLD = 1e-4
 
@@ -165,39 +166,45 @@ def _is_auto_batch_size(value) -> bool:
     return isinstance(value, str) and value.strip().lower() == AUTO_BATCH_SIZE
 
 
+def _is_all_batch_size(value) -> bool:
+    return isinstance(value, str) and value.strip().lower() == ALL_BATCH_SIZE
+
+
 def _positive_int_auto_or_none(value, name: str):
     if value is None:
         return None
     if _is_auto_batch_size(value):
         return AUTO_BATCH_SIZE
+    if _is_all_batch_size(value):
+        return ALL_BATCH_SIZE
     if isinstance(value, bool):
         raise ValueError(
-            f"{name} must be a positive integer, 'auto', or None, got {value!r}"
+            f"{name} must be a positive integer, 'auto', 'all', or None, got {value!r}"
         )
     if isinstance(value, str):
         try:
             coerced = int(value.strip(), 10)
         except ValueError as exc:
             raise ValueError(
-                f"{name} must be a positive integer, 'auto', or None, got {value!r}"
+                f"{name} must be a positive integer, 'auto', 'all', or None, got {value!r}"
             ) from exc
     else:
         try:
             coerced = operator.index(value)
         except TypeError as exc:
             raise ValueError(
-                f"{name} must be a positive integer, 'auto', or None, got {value!r}"
+                f"{name} must be a positive integer, 'auto', 'all', or None, got {value!r}"
             ) from exc
     if coerced <= 0:
         raise ValueError(
-            f"{name} must be a positive integer, 'auto', or None, got {value!r}"
+            f"{name} must be a positive integer, 'auto', 'all', or None, got {value!r}"
         )
     return coerced
 
 
 def _positive_int_or_none(value, name: str) -> Optional[int]:
     value = _positive_int_auto_or_none(value, name)
-    if value == AUTO_BATCH_SIZE:
+    if value in (AUTO_BATCH_SIZE, ALL_BATCH_SIZE):
         raise ValueError(
             f"{name} must be a positive integer or None, got {value!r}"
         )
@@ -208,6 +215,8 @@ def _calculator_batch_size(calc, specific: str):
     value = getattr(calc, specific, None)
     if value is None:
         value = getattr(calc, "batch_size", None)
+    if value is None:
+        value = AUTO_BATCH_SIZE
     return _positive_int_auto_or_none(value, specific)
 
 
@@ -816,6 +825,7 @@ class FDHessianEvaluator:
         ) if auto else None
         chunk = (
             sizer.chunk if sizer is not None
+            else n_total if self.fd_batch_size == ALL_BATCH_SIZE
             else self.fd_batch_size if self.fd_batch_size is not None
             else n_total
         )
@@ -876,7 +886,9 @@ class PathEvaluator:
         ) if auto else None
         chunk = (
             sizer.chunk if sizer is not None
-            else self.batch_size if self.batch_size else n_total
+            else n_total if self.batch_size == ALL_BATCH_SIZE
+            else self.batch_size if self.batch_size is not None
+            else n_total
         )
         energies: List[float] = []
         forces: List[np.ndarray] = []
@@ -941,7 +953,9 @@ class EnergyEvaluator:
         ) if auto else None
         chunk = (
             sizer.chunk if sizer is not None
-            else self.batch_size if self.batch_size else n_total
+            else n_total if self.batch_size == ALL_BATCH_SIZE
+            else self.batch_size if self.batch_size is not None
+            else n_total
         )
         energies: List[float] = []
         start = 0

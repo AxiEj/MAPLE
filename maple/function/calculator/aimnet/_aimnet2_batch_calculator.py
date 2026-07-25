@@ -11,48 +11,21 @@ from typing import List
 from ase import Atoms
 import numpy as np
 
+from .._batch_eval import (
+    ALL_BATCH_SIZE,
+    AUTO_BATCH_SIZE,
+    _AutoBatchSizer,
+    _calculator_batch_size,
+    _is_cuda_oom,
+)
 from ._aimnet2_calculator import (
     AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
-    identify_aimnet2_batch_layout,
+    build_aimnet2_neighbor_matrices,
+    identify_aimnet2_checkpoint_capabilities,
+    pad_dim0,
 )
 
 EH2EV = 27.211386245988
-
-
-def pad_dim0(a: torch.Tensor, value=0) -> torch.Tensor:
-    pad_shape = list(a.shape); pad_shape[0] = 1
-    pad_row = torch.full(pad_shape, value, dtype=a.dtype, device=a.device)
-    return torch.cat([a, pad_row], dim=0)
-
-
-def nblist_dense_padded_multi(coord: torch.Tensor, mol_idx: torch.Tensor, cutoff: float) -> torch.Tensor:
-    device = coord.device
-    dtype  = coord.dtype
-    N = coord.shape[0]
-    if N == 0:
-        return torch.full((1, 1), 0, dtype=torch.int64, device=device)
-
-    diff  = coord[:, None, :] - coord[None, :, :]
-    dist2 = (diff * diff).sum(dim=-1)
-    same  = (mol_idx[:, None] == mol_idx[None, :])
-    eye   = torch.eye(N, dtype=torch.bool, device=device)
-    mask  = (dist2 <= cutoff * cutoff) & same & (~eye)
-
-    deg = mask.sum(dim=1)
-    M   = int(max(int(deg.max().item()), 1))
-
-    big = torch.finfo(dtype).max / 4.0
-    sort_key = torch.where(mask, dist2, dist2.new_full(dist2.shape, big))
-    order = torch.argsort(sort_key, dim=1, stable=True)
-
-    nbmat = torch.full((N + 1, M), N, dtype=torch.int64, device=device)
-    for i in range(N):
-        ki = int(deg[i].item())
-        if ki > 0:
-            k = min(ki, M)
-            nbmat[i, :k] = order[i, :k]
-    return nbmat
-
 
 def _ptr_from_atoms(atoms_list: List[Atoms], device) -> torch.Tensor:
     ptr = [0]
@@ -71,14 +44,21 @@ class AIMNet2BatchCalc:
         model_path: str = None,
         device: str = "cuda",
         cutoff: float = 5.0,
-        dtype: torch.dtype = torch.float64,
+        cutoff_lr: float = float("inf"),
+        dtype: torch.dtype | None = None,
+        num_charge_channels: int | None = None,
+        batch_size=None,
+        auto_batch_hard_cap: int = 8,
         model=None,
         batch_energy_layout: str | None = None,
     ):
         self.device = torch.device(device)
-        self.dtype  = dtype
+        capabilities = None
         if model_path is not None:
-            identified_layout = identify_aimnet2_batch_layout(model_path)
+            capabilities = identify_aimnet2_checkpoint_capabilities(model_path)
+            identified_layout = (
+                None if capabilities is None else capabilities.batch_energy_layout
+            )
             if batch_energy_layout is None:
                 batch_energy_layout = identified_layout
             elif batch_energy_layout != identified_layout:
@@ -101,7 +81,47 @@ class AIMNet2BatchCalc:
         for p in self.model.parameters():
             p.requires_grad_(False)
 
+        try:
+            model_dtype = next(self.model.parameters()).dtype
+        except StopIteration:
+            model_dtype = torch.float32
+        inherited_dtype = (
+            model_dtype if capabilities is None else capabilities.input_dtype
+        )
+        if dtype is None:
+            dtype = inherited_dtype
+        elif dtype != inherited_dtype:
+            raise ValueError(
+                "AIMNet2BatchCalc input dtype must match the checkpoint; "
+                f"expected {inherited_dtype}, got {dtype}"
+            )
+        if model_dtype != dtype:
+            raise RuntimeError(
+                "AIMNet2 model parameter dtype does not match batch input dtype"
+            )
+        self.dtype = dtype
+
+        model_charge_channels = int(
+            getattr(self.model, "num_charge_channels", 1)
+        )
+        if num_charge_channels is None:
+            num_charge_channels = (
+                model_charge_channels
+                if capabilities is None
+                else capabilities.num_charge_channels
+            )
+        if int(num_charge_channels) != model_charge_channels:
+            raise RuntimeError(
+                "AIMNet2 checkpoint charge-channel count does not match the "
+                "batch capability contract"
+            )
+        self.num_charge_channels = int(num_charge_channels)
+        self.supports_multiplicity = self.num_charge_channels == 2
         self.cutoff = float(cutoff)
+        self.cutoff_lr = float(cutoff_lr)
+        self.batch_size = batch_size
+        self.auto_batch_hard_cap = auto_batch_hard_cap
+        self.batch_memory_model = "concat_dense_neighbor"
 
         # prepare-related internal buffers
         self._prepared    = False
@@ -115,11 +135,13 @@ class AIMNet2BatchCalc:
         self.nmax_dof     = 0   # <<< will be overridden if fixed_nmax is provided
         self.sentinel_mol = 0
         self.charge       = None
+        self.mult         = None
+        self._atoms_list  = []
 
         self._coord_backup = None
 
     @classmethod
-    def from_ase_calculator(cls, calc, dtype: torch.dtype = torch.float64):
+    def from_ase_calculator(cls, calc, dtype: torch.dtype | None = None):
         """Share the jit model already loaded by a single-molecule AIMNet2Calculator.
 
         Implicit solvation corrections are per-molecule post-processing in the
@@ -136,20 +158,21 @@ class AIMNet2BatchCalc:
                 "AIMNet2 native optimization batching is disabled for an "
                 "unrecognized checkpoint; run structures one at a time."
             )
-        coulomb_method = getattr(calc, "_coulomb_method", "simple")
-        if coulomb_method != "simple":
-            # The batch forward reuses the short-range neighbor list as
-            # nbmat_lr, which only matches the single-molecule wrapper when
-            # cutoff_lr is infinite (the 'simple' method).
-            raise NotImplementedError(
-                f"AIMNet2BatchCalc only supports coulomb_method='simple'; "
-                f"got '{coulomb_method}'. Run structures one at a time."
+        input_dtype = getattr(calc, "input_dtype", torch.float32)
+        if dtype is not None and dtype != input_dtype:
+            raise ValueError(
+                "AIMNet2BatchCalc must inherit calc.input_dtype exactly; "
+                f"expected {input_dtype}, got {dtype}"
             )
         return cls(
             model=calc.model,
             device=calc.device,
             cutoff=calc.cutoff,
-            dtype=dtype,
+            cutoff_lr=calc.cutoff_lr,
+            dtype=input_dtype,
+            num_charge_channels=getattr(calc, "num_charge_channels", 1),
+            batch_size=getattr(calc, "batch_size", None),
+            auto_batch_hard_cap=getattr(calc, "auto_batch_hard_cap", 8),
             batch_energy_layout=getattr(calc, "_batch_energy_layout", None),
         )
 
@@ -166,6 +189,7 @@ class AIMNet2BatchCalc:
         a fixed padded size (self._nmax) across all iterations.
         """
         device, dtype = self.device, self.dtype
+        self._atoms_list = list(atoms_list)
         if any(bool(np.any(getattr(at, "pbc", False))) for at in atoms_list):
             raise NotImplementedError(
                 "AIMNet2BatchCalc is a no-PBC batch wrapper; use a validated "
@@ -179,13 +203,13 @@ class AIMNet2BatchCalc:
 
         nums, mids = [], []
         for i, at in enumerate(atoms_list):
-            Z = torch.tensor(at.get_atomic_numbers(), dtype=torch.int64, device=device)
+            Z = torch.tensor(at.get_atomic_numbers(), dtype=torch.int32, device=device)
             n = Z.shape[0]
             nums.append(Z)
-            mids.append(torch.full((n,), i, dtype=torch.int64, device=device))
+            mids.append(torch.full((n,), i, dtype=torch.int32, device=device))
 
-        self.numbers = torch.cat(nums, dim=0) if nums else torch.zeros((0,), dtype=torch.int64, device=device)
-        self.mol_idx = torch.cat(mids, dim=0) if mids else torch.zeros((0,), dtype=torch.int64, device=device)
+        self.numbers = torch.cat(nums, dim=0) if nums else torch.zeros((0,), dtype=torch.int32, device=device)
+        self.mol_idx = torch.cat(mids, dim=0) if mids else torch.zeros((0,), dtype=torch.int32, device=device)
 
         self.N_atoms     = int(self.numbers.numel())
         self.Nmax_atoms  = int(max((len(at) for at in atoms_list), default=0))
@@ -229,16 +253,26 @@ class AIMNet2BatchCalc:
 
         self.sentinel_mol = (int(self.mol_idx.max().item()) + 1) if self.N_atoms > 0 else 0
 
-        # Per-molecule total charges; the trailing entry is the sentinel pad
-        # molecule. Open-shell systems are not supported on the batch path.
+        # Per-molecule charge/multiplicity; trailing entries belong to the
+        # sentinel pad molecule.
         mults = [float(at.info.get("mult", 1.0)) for at in atoms_list]
-        if any(m != 1.0 for m in mults):
+        if (
+            not np.all(np.isfinite(mults))
+            or any(m < 1.0 or m != np.floor(m) for m in mults)
+        ):
+            raise ValueError(
+                "AIMNet2 spin multiplicities must be finite positive integers"
+            )
+        if not self.supports_multiplicity and any(m != 1.0 for m in mults):
             raise NotImplementedError(
-                "AIMNet2BatchCalc does not support mult != 1; "
-                "run open-shell structures one at a time."
+                "The closed-shell AIMNet2 checkpoint only supports mult=1; "
+                "use AIMNet2-NSE for open-shell structures."
             )
         charges = [float(at.info.get("charge", 0.0)) for at in atoms_list]
+        if not np.all(np.isfinite(charges)):
+            raise ValueError("AIMNet2 molecular charges must be finite")
         self.charge = torch.tensor(charges + [0.0], dtype=dtype, device=device)
+        self.mult = torch.tensor(mults + [1.0], dtype=dtype, device=device)
 
         self._coord_backup = None
         self._prepared     = True
@@ -307,36 +341,70 @@ class AIMNet2BatchCalc:
     # forward (unchanged)
     # -------------------------------------------------------------------------
     def _forward_energy_forces_(self, c: torch.Tensor, need_graph: bool):
+        return self._forward_energy_forces_data(
+            c,
+            self.numbers,
+            self.mol_idx,
+            self.charge,
+            self.mult,
+            batch_size=self._atoms_B,
+            need_graph=need_graph,
+        )
+
+    def _forward_energy_forces_data(
+        self,
+        c: torch.Tensor,
+        numbers: torch.Tensor,
+        mol_idx: torch.Tensor,
+        charge: torch.Tensor,
+        mult: torch.Tensor,
+        *,
+        batch_size: int,
+        need_graph: bool,
+    ):
         if not self._prepared:
             raise RuntimeError("call prepare() before evaluating energy/forces")
         device, dtype = self.device, self.dtype
-        B = self._atoms_B
 
         coord_leaf = c.detach().to(device=device, dtype=dtype).requires_grad_(True)
-        nbmat = nblist_dense_padded_multi(coord_leaf, self.mol_idx, self.cutoff)
+        nbmat, nbmat_lr = build_aimnet2_neighbor_matrices(
+            coord_leaf,
+            mol_idx,
+            cutoff=self.cutoff,
+            cutoff_lr=self.cutoff_lr,
+        )
 
         data = {
             "coord":    pad_dim0(coord_leaf, 0.0),
-            "numbers":  pad_dim0(self.numbers, 0).to(torch.int64),
-            "charge":   self.charge,
-            "mol_idx":  pad_dim0(self.mol_idx, self.sentinel_mol).to(torch.int64),
+            "numbers":  pad_dim0(numbers, 0).to(torch.int32),
+            "charge":   charge,
+            "mult":     mult,
+            "mol_idx":  pad_dim0(mol_idx, batch_size).to(torch.int32),
             "nbmat":    nbmat,
-            "nbmat_lr": nbmat,
+            "nbmat_lr": nbmat_lr,
+            "cutoff_lr": torch.tensor(
+                self.cutoff_lr,
+                dtype=dtype,
+                device=device,
+            ),
         }
 
         with torch.jit.optimized_execution(False):
             out = self.model(data)
 
-        e_vec = out["energy"].to(dtype).reshape(-1)
+        # Packaged checkpoints accumulate molecular energies in float64 even
+        # though coordinates/weights are float32. Preserve that output dtype;
+        # casting it back to the input dtype loses several micro-Hartree.
+        e_vec = out["energy"].reshape(-1)
         if self.batch_energy_layout != AIMNET2_PADDED_PER_MOLECULE_LAYOUT:
             raise RuntimeError(
                 "AIMNet2 batch output schema is not validated for this checkpoint"
             )
-        expected = B + 1
+        expected = batch_size + 1
         if e_vec.numel() != expected:
             raise RuntimeError(
                 "AIMNet2 checkpoint must return the padded per-molecule energy "
-                f"layout with {expected} entries for batch size {B}; "
+                f"layout with {expected} entries for batch size {batch_size}; "
                 f"got {e_vec.numel()} entries"
             )
         if not bool(torch.isfinite(e_vec).all().item()):
@@ -360,21 +428,22 @@ class AIMNet2BatchCalc:
     def get_ef_gpu(self):
         B = self._atoms_B
         device, dtype = self.device, self.dtype
+        result_dtype = torch.float64
         if B == 0:
-            return (torch.zeros((0,), dtype=dtype, device=device),
-                    torch.zeros((0, 0), dtype=dtype, device=device))
+            return (torch.zeros((0,), dtype=result_dtype, device=device),
+                    torch.zeros((0, 0), dtype=result_dtype, device=device))
 
-        E_eV, F_all_eV, _ = self._forward_energy_forces_(self.coord, need_graph=False)
+        E_eV, F_all_eV = self._forward_energy_forces_chunked()
 
         nmax = self.nmax_dof
-        F_eV = torch.zeros((B, nmax), dtype=dtype, device=device)
+        F_eV = torch.zeros((B, nmax), dtype=result_dtype, device=device)
         s = self._ptr[:-1]; t = self._ptr[1:]
         for i in range(B):
             ni = int((t[i] - s[i]).item())
             if ni > 0:
                 F_eV[i, :3*ni] = F_all_eV[s[i]:t[i], :].reshape(-1)
 
-        energies = E_eV / EH2EV
+        energies = E_eV.to(result_dtype) / EH2EV
         forces = F_eV / EH2EV
         if (
             not bool(torch.isfinite(energies).all().item())
@@ -385,13 +454,72 @@ class AIMNet2BatchCalc:
             )
         return energies, forces
 
+    def _forward_energy_forces_chunked(self):
+        """Run optimizer E/F in ordered molecule chunks with CUDA-OOM backoff."""
+        B = self._atoms_B
+        setting = _calculator_batch_size(self, "optimization_batch_size")
+        sizer = _AutoBatchSizer(
+            self,
+            self._atoms_list,
+            ("energy", "forces"),
+            kind="optimization",
+        )
+        if setting == AUTO_BATCH_SIZE:
+            chunk = sizer.chunk
+        elif setting == ALL_BATCH_SIZE:
+            chunk = B
+        else:
+            chunk = int(setting)
+        sizer.chunk = max(1, min(chunk, B))
+        self._auto_batch_size_last = sizer.chunk
+
+        energies = []
+        forces = []
+        start = 0
+        while start < B:
+            stop = min(B, start + sizer.chunk)
+            atom_start = int(self._ptr[start].item())
+            atom_stop = int(self._ptr[stop].item())
+            local_mol_idx = self.mol_idx[atom_start:atom_stop] - int(start)
+            local_charge = torch.cat(
+                [
+                    self.charge[start:stop],
+                    self.charge.new_zeros(1),
+                ]
+            )
+            local_mult = torch.cat(
+                [
+                    self.mult[start:stop],
+                    self.mult.new_ones(1),
+                ]
+            )
+            try:
+                energy, force, _ = self._forward_energy_forces_data(
+                    self.coord[atom_start:atom_stop],
+                    self.numbers[atom_start:atom_stop],
+                    local_mol_idx,
+                    local_charge,
+                    local_mult,
+                    batch_size=stop - start,
+                    need_graph=False,
+                )
+            except RuntimeError as exc:
+                if not _is_cuda_oom(exc) or not sizer.backoff_after_oom():
+                    raise
+                continue
+            energies.append(energy.detach())
+            forces.append(force.detach())
+            start = stop
+        return torch.cat(energies, dim=0), torch.cat(forces, dim=0)
+
     def get_efh_gpu(self):
         B = self._atoms_B
         device, dtype = self.device, self.dtype
+        result_dtype = torch.float64
         if B == 0:
-            return (torch.zeros((0,), dtype=dtype, device=device),
-                    torch.zeros((0, 0), dtype=dtype, device=device),
-                    torch.zeros((0, 0, 0), dtype=dtype, device=device),
+            return (torch.zeros((0,), dtype=result_dtype, device=device),
+                    torch.zeros((0, 0), dtype=result_dtype, device=device),
+                    torch.zeros((0, 0, 0), dtype=result_dtype, device=device),
                     torch.zeros((0,), dtype=torch.int64, device=device))
 
         E_eV, F_all_eV, coord_leaf = self._forward_energy_forces_(self.coord, need_graph=True)
@@ -406,8 +534,12 @@ class AIMNet2BatchCalc:
         H_global_eV = 0.5 * (H_global_eV + H_global_eV.transpose(0, 1))
 
         nmax = self.nmax_dof
-        F_eV = torch.zeros((B, nmax), dtype=dtype, device=device)
-        H_eV = torch.zeros((B, nmax, nmax), dtype=dtype, device=device)
+        F_eV = torch.zeros((B, nmax), dtype=result_dtype, device=device)
+        H_eV = torch.zeros(
+            (B, nmax, nmax),
+            dtype=result_dtype,
+            device=device,
+        )
         P    = torch.empty((B,), dtype=torch.int64, device=device)
 
         s = self._ptr[:-1]; t = self._ptr[1:]
@@ -419,7 +551,7 @@ class AIMNet2BatchCalc:
                 F_eV[i, :dof]       = F_all_eV[s[i]:t[i], :].reshape(-1)
                 H_eV[i, :dof, :dof] = H_global_eV[3*s[i]:3*t[i], 3*s[i]:3*t[i]]
 
-        energies = E_eV / EH2EV
+        energies = E_eV.to(result_dtype) / EH2EV
         forces = F_eV / EH2EV
         hessians = H_eV / EH2EV
         if (

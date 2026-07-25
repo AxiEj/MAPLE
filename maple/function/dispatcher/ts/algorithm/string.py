@@ -557,23 +557,33 @@ class GSM(JobABC):
 
     def restart_run(self, images: List[Atoms], hei_idx: int, base_prefix: str):
         """
-        Take HEI from the equal-arc path as TS guess, run PRFO/RFO refinement,
-        then print a NEB-TS-style path summary (marking CI and TS) and dump files.
+        Take HEI from the equal-arc path as a TS guess, run PRFO refinement,
+        then report a geometry-converged candidate without certifying a TS.
         """
-        from .PRFO import PRFO
+        from .PRFO import PRFO, PRFOConvergenceError
 
         # Prepare TS guess from HEI
         ts_guess = copy.deepcopy(images[hei_idx])
         inherit_attrs(images[0], ts_guess)
 
-        # Run PRFO to refine TS
+        # Run PRFO to refine the candidate geometry.
         prfo = PRFO(output=self.output, atoms=ts_guess, paras=self.raw_paras)
-        ts_opt = prfo.run()
-        E_TS   = float(ts_opt.get_potential_energy(force_consistent=True))
+        prfo_result = prfo.run_result()
+        if not prfo_result.geometry_converged:
+            log_info([
+                "\nPRFO refinement did not converge; the HEI geometry was not "
+                "promoted to a TS candidate.\n",
+                f"Diagnostic: {prfo_result.structure_path}\n",
+            ], self.output)
+            raise PRFOConvergenceError(prfo_result)
+        ts_candidate = prfo_result.atoms
+        E_TS = float(
+            ts_candidate.get_potential_energy(force_consistent=True)
+        )
 
-        # Create a path with TS inserted after the original CI (HEI)
+        # Create a path with the candidate inserted after the original HEI.
         images_ts = [img for img in images]
-        images_ts.insert(hei_idx + 1, ts_opt)
+        images_ts.insert(hei_idx + 1, ts_candidate)
 
         # Energies of the augmented path
         Es_path, raw_forces_path = get_energy_forces(images_ts)
@@ -620,11 +630,15 @@ class GSM(JobABC):
                 maxFp_list.append(float(np.max(np.linalg.norm(Fp, axis=1))))
                 rmsFp_list.append(float(np.sqrt(np.mean(np.linalg.norm(Fp, axis=1) ** 2))))
 
-        # Dump STRING-TS files
+        # Dump STRING-TS candidate files.
         stringts_mep = base_prefix + "_stringts_mep.xyz"
-        stringts_ts  = base_prefix + "_stringts_ts.xyz"
+        stringts_candidate = base_prefix + "_stringts_ts_candidate.xyz"
         write_xyz(stringts_mep, images_ts, energies=Es_path)
-        write_xyz(stringts_ts, [ts_opt], energies=[E_TS])
+        write_xyz(
+            stringts_candidate,
+            [ts_candidate],
+            energies=[E_TS],
+        )
 
         # Pretty-print TS coordinates
         def atoms_to_xyz_lines(atoms: Atoms) -> List[str]:
@@ -640,7 +654,7 @@ class GSM(JobABC):
             "\n---------------------------------------------------------------\n",
             "                    PATH SUMMARY FOR String-TS             \n",
             "---------------------------------------------------------------\n",
-            "All forces in Eh/Angstrom. Global forces for TS.\n\n",
+            "All forces in Eh/Angstrom. Global forces for candidate.\n\n",
             "Image     E(Eh)   dE(kcal/mol)  max(|Fp|)  RMS(Fp)\n"
         ], self.output)
 
@@ -649,20 +663,22 @@ class GSM(JobABC):
             if i == hei_idx:
                 log_info([f"{i:4d} {E:12.5f} {dE:11.2f} {maxFp_list[i]:11.5f} {rmsFp_list[i]:10.5f} <= CI\n"], self.output)
             elif i == hei_idx + 1:
-                log_info([f"  TS {E:12.5f} {dE:11.2f} {0.0:11.5f} {0.0:10.5f} <= TS\n"], self.output)
+                log_info([f"CAND {E:12.5f} {dE:11.2f} {0.0:11.5f} {0.0:10.5f} <= TS candidate\n"], self.output)
             else:
                 log_info([f"{i:4d} {E:12.5f} {dE:11.2f} {maxFp_list[i]:11.5f} {rmsFp_list[i]:10.5f}\n"], self.output)
 
         log_info([
             "\n-----------------------------------------\n",
-            "  REFINED TS STRUCTURE (ANGSTROEM)\n",
+            "  REFINED TS CANDIDATE (ANGSTROEM)\n",
             "-----------------------------------------\n",
-            *[line + "\n" for line in atoms_to_xyz_lines(ts_opt)]
+            *[line + "\n" for line in atoms_to_xyz_lines(ts_candidate)],
+            "Frequency/mode and bidirectional IRC verification are still "
+            "required before TS certification.\n",
         ], self.output)
 
         log_info([
             f"\nWrote STRING-TS MEP to: {stringts_mep}\n",
-            f"Wrote TS structure to:  {stringts_ts}\n"
+            f"Wrote TS candidate to:  {stringts_candidate}\n"
         ], self.output)
 
 

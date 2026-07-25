@@ -107,13 +107,19 @@ single-structure calculator behavior.
   remain sequential. AIMNet2 batching accepts the padded per-molecule output
   contract only when the checkpoint SHA256 matches the validated packaged
   `aimnet2.pt`/`aimnet2nse.pt` identities; custom or changed checkpoints remain
-  sequential. MACE-OFF and MACE-O-MOL use disconnected no-PBC graphs;
+  sequential. AIMNet2 `simple` Coulomb always uses every non-self atom pair
+  within each molecule; only `dsf` uses a finite LR cutoff. The closed-shell
+  checkpoint rejects `mult != 1`, while AIMNet2-NSE receives the required
+  per-molecule multiplicity tensor. MACE-OFF and MACE-O-MOL use disconnected no-PBC graphs;
   MACE-Polar stays sequential. UMA native batching is limited to neutral
   closed-shell molecular inputs; charged/open-shell inputs retain the
   single-structure FAIR-Chem path.
-- `batch_size`, `path_batch_size`, and `scan_batch_size` bound evaluation
-  chunks. `auto` never rounds above its memory estimate; rigid scans flush
-  bounded chunks instead of retaining the full grid of `Atoms` objects.
+- `batch_size`, `path_batch_size`, `scan_batch_size`, `fd_batch_size`, and
+  `hvp_batch_size` bound evaluation chunks. Unset evaluator limits default to
+  `auto`; request `all` explicitly to attempt the whole workload at once.
+  `auto` never rounds above its memory estimate, and recognized CUDA OOMs
+  retry in ordered half-size chunks. Rigid scans flush bounded chunks instead
+  of retaining the full grid of `Atoms` objects.
 - Multi-structure optimization invokes the new BatchLBFGS path explicitly by
   supplying multiple structures. It rejects constraints/empty structures,
   rejects non-finite search state, applies per-structure Armijo backtracking
@@ -123,9 +129,11 @@ single-structure calculator behavior.
   boundary; this is a compatibility path rather than an end-to-end GPU claim.
 
 Batch evaluation does not certify a transition state. NEB/PRFO convergence
-produces a TS candidate; production first-order-saddle claims still require an
-independent frequency check (exactly one imaginary mode) and forward/reverse
-IRC endpoint validation.
+produces `_ts_candidate.xyz`; max-iteration PRFO termination produces only
+`_prfo_unconverged.xyz` and fails closed. Production first-order-saddle claims
+still require an independent frequency check (exactly one imaginary mode) and
+forward/reverse IRC endpoint validation. Experimental `BatchPRFO` remains
+runtime-disabled.
 
 ## Quick Start
 

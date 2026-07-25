@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -7,8 +8,12 @@ from ase import Atoms
 from ase.constraints import FixAtoms
 
 from maple.function.calculator._batch_eval import (
+    ALL_BATCH_SIZE,
+    AUTO_BATCH_SIZE,
+    EnergyEvaluator,
     FDHessianEvaluator,
     HVPEvaluator,
+    PathEvaluator,
     _copy_with_positions,
     _estimate_auto_batch_size_from_item_bytes,
 )
@@ -20,9 +25,16 @@ from maple.function.calculator._batch_utils import (
 )
 from maple.function.calculator.aimnet._aimnet2_calculator import (
     AIMNET2_BATCH_LAYOUT_BY_SHA256,
+    AIMNET2_CHECKPOINT_CAPABILITIES_BY_SHA256,
     AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
     AIMNet2Calculator,
+    build_aimnet2_neighbor_matrices,
+    identify_aimnet2_checkpoint_capabilities,
     identify_aimnet2_batch_layout,
+    nblist_all_pairs_padded_multi,
+)
+from maple.function.calculator.aimnet._aimnet2_batch_calculator import (
+    AIMNet2BatchCalc,
 )
 from maple.function.calculator.ani._ani_calculator import ANICalculator
 
@@ -215,6 +227,189 @@ class BackendContractTests(unittest.TestCase):
                 identify_aimnet2_batch_layout(custom.name)
             )
 
+    def test_aimnet_checkpoint_manifest_distinguishes_nse(self):
+        capabilities = list(
+            AIMNET2_CHECKPOINT_CAPABILITIES_BY_SHA256.values()
+        )
+        self.assertEqual(
+            sorted(item.num_charge_channels for item in capabilities),
+            [1, 2],
+        )
+        self.assertTrue(all(item.input_dtype == torch.float32 for item in capabilities))
+        self.assertEqual(
+            sum(item.supports_multiplicity for item in capabilities),
+            1,
+        )
+
+    def test_aimnet_simple_neighbor_list_is_all_pairs_per_molecule(self):
+        coord = torch.tensor(
+            [
+                [0.0, 0.0, 0.0],
+                [10.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 8.0, 0.0],
+                [0.0, 16.0, 0.0],
+            ],
+            dtype=torch.float32,
+        )
+        mol_idx = torch.tensor([0, 0, 1, 1, 1], dtype=torch.int32)
+        short, long_range = build_aimnet2_neighbor_matrices(
+            coord,
+            mol_idx,
+            cutoff=5.0,
+            cutoff_lr=float("inf"),
+        )
+        sentinel = len(coord)
+
+        self.assertTrue(torch.all(short[:2] == sentinel))
+        self.assertEqual(
+            {
+                int(value)
+                for value in long_range[0].tolist()
+                if value != sentinel
+            },
+            {1},
+        )
+        self.assertEqual(
+            {
+                int(value)
+                for value in long_range[2].tolist()
+                if value != sentinel
+            },
+            {3, 4},
+        )
+        for atom_index, row in enumerate(long_range[:-1]):
+            self.assertNotIn(atom_index, row.tolist())
+        self.assertTrue(torch.all(long_range[-1] == sentinel))
+        torch.testing.assert_close(
+            long_range,
+            nblist_all_pairs_padded_multi(mol_idx),
+        )
+
+    @staticmethod
+    def _packaged_aimnet_path(model_name):
+        return (
+            Path(__file__).parents[1]
+            / "maple"
+            / "function"
+            / "calculator"
+            / "model"
+            / f"{model_name}.pt"
+        )
+
+    def test_aimnet_real_checkpoint_long_range_and_batch_parity(self):
+        model_path = self._packaged_aimnet_path("aimnet2")
+        if not model_path.is_file():
+            self.skipTest("packaged AIMNet2 checkpoint is unavailable")
+        calc = AIMNet2Calculator(
+            device=torch.device("cpu"),
+            model="aimnet2",
+            model_path=str(model_path),
+            coulomb_method="simple",
+        )
+        atoms = Atoms(
+            "OH",
+            positions=[[0.0, 0.0, 0.0], [10.0, 0.0, 0.0]],
+        )
+        coord = torch.tensor(
+            atoms.get_positions(),
+            dtype=calc.input_dtype,
+            requires_grad=True,
+        )
+        data = calc._build_data(coord, atoms)
+        sentinel = len(atoms)
+        self.assertTrue(torch.all(data["nbmat"][:-1] == sentinel))
+        self.assertEqual(data["nbmat_lr"][0, 0].item(), 1)
+        self.assertEqual(data["nbmat_lr"][1, 0].item(), 0)
+        self.assertTrue(torch.isinf(data["cutoff_lr"]))
+
+        with torch.jit.optimized_execution(False):
+            all_pair_energy = calc.model(data)["energy"].sum()
+
+        truncated_data = calc._build_data(
+            torch.tensor(
+                atoms.get_positions(),
+                dtype=calc.input_dtype,
+                requires_grad=True,
+            ),
+            atoms,
+        )
+        mol_idx = torch.zeros(len(atoms), dtype=torch.int32)
+        _, truncated_lr = build_aimnet2_neighbor_matrices(
+            truncated_data["coord"][:-1],
+            mol_idx,
+            cutoff=calc.cutoff,
+            cutoff_lr=calc.cutoff,
+        )
+        truncated_data["nbmat_lr"] = truncated_lr
+        truncated_data["cutoff_lr"] = torch.tensor(
+            calc.cutoff,
+            dtype=calc.input_dtype,
+        )
+        with torch.jit.optimized_execution(False):
+            truncated_energy = calc.model(truncated_data)["energy"].sum()
+        self.assertGreater(
+            abs(float((all_pair_energy - truncated_energy).detach())),
+            1.0e-4,
+        )
+
+        calc.calculate(atoms, properties=("energy", "forces"))
+        sequential_energy = calc.results["energy"]
+        sequential_forces = calc.results["forces"].copy()
+        batched = calc.calculate_many([atoms], properties=("energy", "forces"))
+        np.testing.assert_allclose(
+            batched.energies,
+            [sequential_energy],
+            rtol=0.0,
+            atol=2.0e-7,
+        )
+        np.testing.assert_allclose(
+            batched.forces[0],
+            sequential_forces,
+            rtol=0.0,
+            atol=2.0e-7,
+        )
+
+    def test_aimnet_batch_adapter_inherits_dtype_and_passes_nse_mult(self):
+        standard_path = self._packaged_aimnet_path("aimnet2")
+        nse_path = self._packaged_aimnet_path("aimnet2nse")
+        if not standard_path.is_file() or not nse_path.is_file():
+            self.skipTest("packaged AIMNet2 checkpoints are unavailable")
+
+        standard = AIMNet2Calculator(
+            device=torch.device("cpu"),
+            model="aimnet2",
+            model_path=str(standard_path),
+        )
+        open_shell = Atoms(
+            "O",
+            positions=[[0.0, 0.0, 0.0]],
+            info={"charge": 0, "mult": 3},
+        )
+        with self.assertRaisesRegex(NotImplementedError, "closed-shell"):
+            standard.calculate(open_shell, properties=("energy",))
+        with self.assertRaisesRegex(NotImplementedError, "closed-shell"):
+            AIMNet2BatchCalc.from_ase_calculator(standard).prepare([open_shell])
+
+        nse = AIMNet2Calculator(
+            device=torch.device("cpu"),
+            model="aimnet2nse",
+            model_path=str(nse_path),
+        )
+        capabilities = identify_aimnet2_checkpoint_capabilities(str(nse_path))
+        self.assertIsNotNone(capabilities)
+        self.assertTrue(capabilities.supports_multiplicity)
+        adapter = AIMNet2BatchCalc.from_ase_calculator(nse)
+        adapter.prepare([open_shell])
+        self.assertEqual(adapter.dtype, torch.float32)
+        torch.testing.assert_close(
+            adapter.mult,
+            torch.tensor([3.0, 1.0]),
+        )
+        energies, forces = adapter.get_ef_gpu()
+        self.assertTrue(torch.isfinite(energies).all())
+        self.assertTrue(torch.isfinite(forces).all())
+
     def test_ani_rejects_short_energy_vector(self):
         calc = ANICalculator.__new__(ANICalculator)
         calc.device = torch.device("cpu")
@@ -273,6 +468,29 @@ class BackendContractTests(unittest.TestCase):
 
 
 class EvaluatorSafetyTests(unittest.TestCase):
+    def test_unset_evaluator_batch_sizes_default_to_auto(self):
+        calc = _QuadraticCalculator()
+        self.assertEqual(
+            FDHessianEvaluator(calc).fd_batch_size,
+            AUTO_BATCH_SIZE,
+        )
+        self.assertEqual(
+            PathEvaluator(calc).batch_size,
+            AUTO_BATCH_SIZE,
+        )
+        self.assertEqual(
+            EnergyEvaluator(calc).batch_size,
+            AUTO_BATCH_SIZE,
+        )
+        self.assertEqual(
+            HVPEvaluator(calc).batch_size,
+            AUTO_BATCH_SIZE,
+        )
+        self.assertEqual(
+            PathEvaluator(calc, batch_size="all").batch_size,
+            ALL_BATCH_SIZE,
+        )
+
     def test_auto_batch_sizing_never_rounds_above_memory_budget(self):
         self.assertEqual(
             _estimate_auto_batch_size_from_item_bytes(

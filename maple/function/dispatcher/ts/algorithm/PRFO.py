@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional, Tuple, List
 
 import numpy as np
@@ -440,6 +441,36 @@ class PRFOParams:
     dp_max_th: float = 1.8e-3              # Maximum displacement threshold (Angstrom)
     dp_rms_th: float = 1.2e-3              # RMS displacement threshold (Angstrom)
 
+
+class PRFOStatus(str, Enum):
+    """Optimization status; none of these values certifies a transition state."""
+
+    GEOMETRY_CONVERGED = "geometry_converged"
+    FAILED_MAXITER = "failed_maxiter"
+
+
+@dataclass(frozen=True)
+class PRFOResult:
+    atoms: Atoms
+    status: PRFOStatus
+    iterations: int
+    structure_path: str
+
+    @property
+    def geometry_converged(self) -> bool:
+        return self.status is PRFOStatus.GEOMETRY_CONVERGED
+
+
+class PRFOConvergenceError(RuntimeError):
+    def __init__(self, result: PRFOResult):
+        super().__init__(
+            "PRFO geometry optimization did not converge: "
+            f"status={result.status.value}, iterations={result.iterations}, "
+            f"diagnostic={result.structure_path}"
+        )
+        self.result = result
+
+
 # =============================================================================
 # ------------------------------- PRFO Class ----------------------------------
 # =============================================================================
@@ -475,6 +506,7 @@ class PRFO(JobABC):
         # Mode tracking
         self.tracked_mode_vec_mw = None
         self.tracked_mode_idx = None
+        self.result: PRFOResult | None = None
     
     def atoms_to_xyz(self, atoms: Atoms) -> str:
         """Convert Atoms object to XYZ format string."""
@@ -656,30 +688,43 @@ class PRFO(JobABC):
         return self.tracked_mode_idx
     
     def run(self) -> Atoms:
+        """Run PRFO and return a geometry-converged TS candidate.
+
+        This compatibility wrapper preserves the historical ``Atoms`` return
+        type while failing closed on max-iteration termination. Call
+        :meth:`run_result` when the structured status is needed.
         """
-        Run PRFO transition state optimization.
+        result = self.run_result()
+        if not result.geometry_converged:
+            raise PRFOConvergenceError(result)
+        return result.atoms
+
+    def run_result(self) -> PRFOResult:
+        """
+        Run PRFO geometry optimization and return a structured status.
         
         Returns
         -------
-        Atoms
-            Optimized (or final) geometry
+        PRFOResult
+            Geometry-convergence status. Frequency/mode/IRC verification is
+            deliberately outside this optimizer and is not implied here.
         """
         sys.setrecursionlimit(1000)
         
         atoms = self.atoms
         trust_radius = self.params.trust_radius
         
-        converged = False
         iteration = 0
         
         # Setup trajectory file
         base, _ = os.path.splitext(self.output)
         traj_file = base + "_prfo_traj.xyz"
-        ts_file = base + "_prfo_ts.xyz"
+        candidate_file = base + "_prfo_ts_candidate.xyz"
+        unconverged_file = base + "_prfo_unconverged.xyz"
         
         # Log header
         info_message = [
-            f"\nStarting Transition State Search (TS) with RS-PRFO...\n",
+            f"\nStarting TS-candidate geometry search with RS-PRFO...\n",
             f"Hessian recalc interval: {self.params.recalc}; "
             f"update method: {self.params.hessian_update}\n",
             f"Trust radius adaptation: eta_shrink={self.params.eta_shrink}, "
@@ -799,62 +844,73 @@ class PRFO(JobABC):
                 bad_model = (rho is None or rho < self.params.eta_shrink or
                            not np.isfinite(rho))
                 
-                if bad_model and trust_radius > self.params.trust_min * (1.0 + 1e-12):
-                    # Reject: rollback geometry, shrink radius, retry
+                if bad_model:
+                    # Reject non-finite/poor-model steps even at the minimum
+                    # radius. A small trust radius is not evidence that a bad
+                    # step is safe to commit.
                     atoms.set_positions(X)
-                    trust_radius = max(self.params.trust_min,
-                                     0.5 * trust_radius)
+                    if trust_radius > self.params.trust_min * (1.0 + 1e-12):
+                        trust_radius = max(
+                            self.params.trust_min,
+                            0.5 * trust_radius,
+                        )
                     continue
-                else:
-                    # Accept the step
-                    accepted = True
+
+                # Accept the step
+                accepted = True
                     
-                    # Radius adaptation after acceptance
-                    if (rho is not None and rho > self.params.eta_expand and
-                        on_boundary):
-                        trust_radius = min(self.params.trust_max,
-                                         2.0 * trust_radius)
+                # Radius adaptation after acceptance
+                if (rho is not None and rho > self.params.eta_expand and
+                    on_boundary):
+                    trust_radius = min(self.params.trust_max,
+                                     2.0 * trust_radius)
                     
-                    # Get new forces for convergence check
-                    F_new = to_numpy_f64(atoms.get_forces())
-                    g_new_cart = vec1d(-F_new, n3)
-                    if not need_recalc:
-                        y_cart = g_new_cart - g_cart
-                        if self.params.hessian_update == "bfgs":
-                            H_work = _bfgs_update(H_work, s_cart, y_cart)
-                        else:
-                            H_work = _bofill_update(H_work, s_cart, y_cart)
+                # Get new forces for convergence check
+                F_new = to_numpy_f64(atoms.get_forces())
+                g_new_cart = vec1d(-F_new, n3)
+                if not need_recalc:
+                    y_cart = g_new_cart - g_cart
+                    if self.params.hessian_update == "bfgs":
+                        H_work = _bfgs_update(H_work, s_cart, y_cart)
+                    else:
+                        H_work = _bofill_update(H_work, s_cart, y_cart)
                     
-                    # Compute convergence metrics (per DOF RMS)
-                    dof = s_cart.size
-                    atoms.max_dp = abs(s_cart).max()
-                    atoms.rms_dp = np.sqrt((s_cart**2).sum() / dof)
-                    atoms.max_f = abs(F_new).max()
-                    atoms.rms_f = np.sqrt((F_new**2).sum() / dof)
+                # Compute convergence metrics (per DOF RMS)
+                dof = s_cart.size
+                atoms.max_dp = abs(s_cart).max()
+                atoms.rms_dp = np.sqrt((s_cart**2).sum() / dof)
+                atoms.max_f = abs(F_new).max()
+                atoms.rms_f = np.sqrt((F_new**2).sum() / dof)
                     
-                    # Log iteration
-                    self.log_iteration(iteration + 1, atoms, E_new,
-                                     model_change, actual_change, rho,
-                                     trust_radius, norm_mw, on_boundary)
+                # Log iteration
+                self.log_iteration(iteration + 1, atoms, E_new,
+                                 model_change, actual_change, rho,
+                                 trust_radius, norm_mw, on_boundary)
                     
-                    # Write to trajectory
-                    append_xyz_trajectory(traj_file, atoms, energy=E_new,
-                                        iteration=iteration + 1)
+                # Write to trajectory
+                append_xyz_trajectory(traj_file, atoms, energy=E_new,
+                                    iteration=iteration + 1)
                     
-                    # Check convergence
-                    if self.check_convergence(atoms):
-                        converged = True
-                        info_message = [
-                            '\n\n' + '-' * 70 + '\n',
-                            f'{"Normal Termination".center(70)}\n\n'
-                        ]
-                        log_info(info_message, self.output)
+                # Check convergence
+                if self.check_convergence(atoms):
+                    info_message = [
+                        '\n\n' + '-' * 70 + '\n',
+                        f'{"Geometry Converged".center(70)}\n',
+                        "This is a TS candidate, not a frequency/IRC-verified "
+                        "transition state.\n\n",
+                    ]
+                    log_info(info_message, self.output)
                         
-                        # Write final TS structure
-                        write_xyz(ts_file, atoms, energy=E_new,
-                                iteration=iteration + 1)
-                        
-                        return atoms
+                    write_xyz(candidate_file, atoms, energy=E_new,
+                            iteration=iteration + 1)
+                    result = PRFOResult(
+                        atoms=atoms,
+                        status=PRFOStatus.GEOMETRY_CONVERGED,
+                        iterations=iteration + 1,
+                        structure_path=candidate_file,
+                    )
+                    self.result = result
+                    return result
             
             iteration += 1
         
@@ -862,13 +918,25 @@ class PRFO(JobABC):
         log_info([f'\n\n{"Maximum Iterations Reached".center(70)}\n\n'],
                 self.output)
         
-        # Write final structure even if not converged
+        # Preserve a diagnostic geometry, but never name it as a TS.
         E_final = atoms.get_potential_energy(force_consistent=True)
-        write_xyz(ts_file, atoms, energy=E_final, iteration=iteration)
+        write_xyz(
+            unconverged_file,
+            atoms,
+            energy=E_final,
+            iteration=iteration,
+        )
         
         log_info([
             f"\nWrote trajectory to: {traj_file}\n",
-            f"Wrote final TS structure to: {ts_file}\n"
+            f"Wrote unconverged PRFO diagnostic to: {unconverged_file}\n",
+            "No transition-state structure was produced.\n",
         ], self.output)
-        
-        return atoms
+        result = PRFOResult(
+            atoms=atoms,
+            status=PRFOStatus.FAILED_MAXITER,
+            iterations=iteration,
+            structure_path=unconverged_file,
+        )
+        self.result = result
+        return result

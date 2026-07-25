@@ -21,6 +21,13 @@ DTYPE = torch.float64
 BIG = 1e8
 
 
+def _regularize_signed(values: torch.Tensor, eps: float) -> torch.Tensor:
+    """Bound tiny denominators away from zero; exact zero maps to ``+eps``."""
+    eps_tensor = torch.full_like(values, float(eps))
+    replacement = torch.where(values < 0.0, -eps_tensor, eps_tensor)
+    return torch.where(values.abs() < float(eps), replacement, values)
+
+
 def _ptr_from_atoms(at_list, device):
     ptr = [0]
     for at in at_list:
@@ -109,6 +116,14 @@ class BatchPRFO:
     # PUBLIC RUN
     # ===================================================
     def run(self, mols) -> None:
+        raise NotImplementedError(
+            "BatchPRFO is experimental and runtime-disabled. Use the single-"
+            "structure PRFO candidate workflow until batched Hessian/mode and "
+            "TS-verification tests are available."
+        )
+
+    def _run_experimental(self, mols) -> None:
+        """Unwired implementation retained for numerical regression work."""
         device = self.device
         atoms_list = list(mols.multiatoms)
         calc = mols.calc
@@ -339,8 +354,7 @@ class BatchPRFO:
         w, V = torch.linalg.eigh(H_mw)
         gp = (V.transpose(-1, -2) @ g_mw.unsqueeze(-1)).squeeze(-1)
 
-        tiny = w.abs() < 1e-10
-        w = torch.where(tiny, torch.sign(w) * 1e-10, w)
+        w = _regularize_signed(w, 1e-10)
 
         if self.tracked_mode_vec_mw is None:
             neg_idx = torch.argmin(w, dim=1)
@@ -409,13 +423,11 @@ class BatchPRFO:
             s_unc_plus = torch.zeros_like(gp)
 
             denom_m0 = -w.masked_select(minus_mask)
-            denom_m0 = torch.where(denom_m0.abs() < 1e-10,
-                                   torch.sign(denom_m0) * 1e-10, denom_m0)
+            denom_m0 = _regularize_signed(denom_m0, 1e-10)
             s_unc_minus[minus_mask] = -(-gp[minus_mask]) / denom_m0
 
             denom_p0 = w.masked_select(plus_mask)
-            denom_p0 = torch.where(denom_p0.abs() < 1e-10,
-                                   torch.sign(denom_p0) * 1e-10, denom_p0)
+            denom_p0 = _regularize_signed(denom_p0, 1e-10)
             s_unc_plus[plus_mask] = -(gp[plus_mask]) / denom_p0
 
             norm2_minus = (s_unc_minus ** 2).sum(-1)
@@ -468,8 +480,7 @@ class BatchPRFO:
                 1e-6 * torch.clamp(trust_r, min=1.0)
             )
             bad = pend & ((~torch.isfinite(rho)) | (rho < self.eta_shrink))
-            force_accept = trust_r <= (self.trust_min * 1.000000000001)
-            acc = pend & (~bad | force_accept)
+            acc = pend & (~bad)
             rej = pend & (~acc)
 
             if acc.any():
@@ -587,8 +598,7 @@ class BatchPRFO:
                 continue
 
             R2_b = float(R2[b].item())
-            denom0 = torch.where(lam_b.abs() < 1e-10,
-                                 torch.sign(lam_b) * 1e-10, lam_b)
+            denom0 = _regularize_signed(lam_b, 1e-10)
             s_unc = -num_b / denom0
             norm2_unc = float((s_unc * s_unc).sum().item())
 
@@ -599,11 +609,7 @@ class BatchPRFO:
                 def F(mu_val):
                     mu_t = torch.tensor(mu_val, dtype=DTYPE, device=device)
                     denom = lam_b - mu_t
-                    denom = torch.where(
-                        denom.abs() < 1e-12,
-                        torch.sign(denom) * 1e-12,
-                        denom
-                    )
+                    denom = _regularize_signed(denom, 1e-12)
                     return float(((num_b / denom)**2).sum().item())
 
                 wt_min = float(lam_b.min().item())
@@ -634,11 +640,7 @@ class BatchPRFO:
                 mu_out[b] = mu_star
                 mu_t = torch.tensor(mu_star, dtype=DTYPE, device=device)
                 denom = lam_b - mu_t
-                denom = torch.where(
-                    denom.abs() < 1e-12,
-                    torch.sign(denom) * 1e-12,
-                    denom
-                )
+                denom = _regularize_signed(denom, 1e-12)
                 s_tmp = -num_b / denom
 
             s_full = torch.zeros(n, dtype=DTYPE, device=device)

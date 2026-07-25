@@ -1053,20 +1053,21 @@ class NEB(JobABC):
 
         log_info([
             "\n---------------------------------------------------------------\n",
-            "               INFORMATION ABOUT SADDLE POINT     \n",
+            "               INFORMATION ABOUT CI CANDIDATE     \n",
             "---------------------------------------------------------------\n",
             f"Climbing image                            ....  {hei}\n",
             f"Energy                                    ....  {Es[hei]: .8f} Eh\n",
             f"Max. abs. force                           ....  {maxF_CI: .4e} Eh/Angstrom\n",
             "\n-----------------------------------------\n",
-            "  SADDLE POINT (ANGSTROEM)\n",
+            "  CI TS CANDIDATE (ANGSTROEM)\n",
             "-----------------------------------------\n",
-            self.atoms_to_xyz(images[hei])
+            self.atoms_to_xyz(images[hei]),
+            "This geometry is not frequency/IRC-verified.\n",
         ], self.output)
 
         # --- Stage 2: Optional PRFO refinement ---
         if self.params.refine == 'nebts':
-            from .PRFO import PRFO
+            from .PRFO import PRFO, PRFOConvergenceError
 
             # Use CI geometry as TS guess
             ts_guess = images[hei].copy()
@@ -1077,34 +1078,44 @@ class NEB(JobABC):
             ts_guess.dp_rms_th = images[0].dp_rms_th
 
             prfo = PRFO(output=self.output, atoms=ts_guess)
-            ts_opt = prfo.run()
+            prfo_result = prfo.run_result()
+            if not prfo_result.geometry_converged:
+                log_info([
+                    "\nPRFO refinement did not converge; the CI geometry was "
+                    "not promoted to a TS candidate.\n",
+                    f"Diagnostic: {prfo_result.structure_path}\n",
+                ], self.output)
+                raise PRFOConvergenceError(prfo_result)
+            ts_candidate = prfo_result.atoms
 
-            E_TS = ts_opt.get_potential_energy(force_consistent=True)
-            maxF_TS = np.max(np.linalg.norm(ts_opt.get_forces(), axis=1))
-            rmsF_TS = np.sqrt(np.mean(np.linalg.norm(ts_opt.get_forces(), axis=1) ** 2))
+            E_TS = ts_candidate.get_potential_energy(force_consistent=True)
 
-            # Insert TS right after CI
-            images.insert(hei + 1, ts_opt)
+            # Insert the geometry-converged candidate right after CI.
+            images.insert(hei + 1, ts_candidate)
             Es.insert(hei + 1, E_TS)
 
             nebts_mep = base + "_nebts_mep.xyz"
-            nebts_ts = base + "_nebts_ts.xyz"
+            nebts_candidate = base + "_nebts_ts_candidate.xyz"
             write_xyz(nebts_mep, images, energies=Es)
-            write_xyz(nebts_ts, [ts_opt], energies=[E_TS])
+            write_xyz(
+                nebts_candidate,
+                [ts_candidate],
+                energies=[E_TS],
+            )
 
             log_info([
                 "\n---------------------------------------------------------------\n",
                 "                      PATH SUMMARY FOR NEB-TS             \n",
                 "---------------------------------------------------------------\n",
-                "All forces in Eh/Angstrom. Global forces for TS.\n\n",
+                "All forces in Eh/Angstrom. Global forces for candidate.\n\n",
                 "Image     E(Eh)   dE(kcal/mol)  max(|Fp|)  RMS(Fp)\n"
             ], self.output)
 
             kcal_per_Eh = 627.509
             for i, E in enumerate(Es):
                 dE = (E - Es[0]) * kcal_per_Eh
-                label = " TS" if i == hei + 1 else f"{i:3d}"
-                marker = " <= TS" if i == hei + 1 else (" <= CI" if i == hei else "")
+                label = "CAND" if i == hei + 1 else f"{i:3d}"
+                marker = " <= TS candidate" if i == hei + 1 else (" <= CI" if i == hei else "")
                 maxF = np.max(np.linalg.norm(images[i].get_forces(), axis=1))
                 rmsF = np.sqrt(np.mean(np.linalg.norm(images[i].get_forces(), axis=1) ** 2))
                 log_info([
@@ -1113,14 +1124,16 @@ class NEB(JobABC):
 
             log_info([
                 "\n-----------------------------------------\n",
-                "  REFINED TS STRUCTURE (ANGSTROEM)\n",
+                "  REFINED TS CANDIDATE (ANGSTROEM)\n",
                 "-----------------------------------------\n",
-                self.atoms_to_xyz(ts_opt)
+                self.atoms_to_xyz(ts_candidate),
+                "Frequency/mode and bidirectional IRC verification are still "
+                "required before TS certification.\n",
             ], self.output)
 
             log_info([
                 f"\nWrote NEB-TS MEP to: {nebts_mep}\n",
-                f"Wrote TS structure to: {nebts_ts}\n"
+                f"Wrote TS candidate to: {nebts_candidate}\n"
             ], self.output)
 
 

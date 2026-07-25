@@ -272,30 +272,38 @@ class Scan(JobABC):
             "scan_batch_size",
             self.params.get("batch_size"),
         )
-        if isinstance(value, str) and value.strip().lower() == "auto":
-            value = None
+        if isinstance(value, str):
+            mode = value.strip().lower()
+            if mode == "auto":
+                value = None
+            elif mode == "all":
+                return max(1, int(self._total_combinations))
         if value is not None:
             if isinstance(value, bool):
                 raise ValueError(
-                    "scan_batch_size must be a positive integer, 'auto', or None"
+                    "scan_batch_size must be a positive integer, 'auto', "
+                    "'all', or None"
                 )
             if isinstance(value, str):
                 try:
                     size = int(value.strip(), 10)
                 except ValueError as exc:
                     raise ValueError(
-                        "scan_batch_size must be a positive integer, 'auto', or None"
+                        "scan_batch_size must be a positive integer, 'auto', "
+                        "'all', or None"
                     ) from exc
             else:
                 try:
                     size = operator.index(value)
                 except TypeError as exc:
                     raise ValueError(
-                        "scan_batch_size must be a positive integer, 'auto', or None"
+                        "scan_batch_size must be a positive integer, 'auto', "
+                        "'all', or None"
                     ) from exc
             if size <= 0:
                 raise ValueError(
-                    "scan_batch_size must be a positive integer, 'auto', or None"
+                    "scan_batch_size must be a positive integer, 'auto', "
+                    "'all', or None"
                 )
             return size
 

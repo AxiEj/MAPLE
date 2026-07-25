@@ -387,6 +387,10 @@ class BatchLBFGS:
                     "fields": tuple(fields),
                 }
             )
+        self._terminalize_running_after_abort(
+            stage,
+            cause="another active structure produced non-finite values",
+        )
         self._w(f"\n# ERROR: {message}\n")
         self._w(f"# Per-structure status: {self.statuses}\n")
         self._close_log()
@@ -417,6 +421,26 @@ class BatchLBFGS:
                 self.failure_details.append(failure_detail)
         self._w(f"\n# ERROR: BatchLBFGS {stage}: {detail}\n")
         self._w(f"# Per-structure status: {self.statuses}\n")
+
+    def _terminalize_running_after_abort(
+        self,
+        stage: str,
+        *,
+        cause: str,
+    ) -> None:
+        """Ensure a raised batch-wide abort leaves no structure ``running``."""
+        for index, status in enumerate(self.statuses):
+            if status != "running":
+                continue
+            self.statuses[index] = "aborted_peer_failure"
+            self.failure_details.append(
+                {
+                    "index": index,
+                    "status": "aborted_peer_failure",
+                    "stage": stage,
+                    "detail": cause,
+                }
+            )
 
     def _validate_evaluation_shapes(
         self,
@@ -550,6 +574,10 @@ class BatchLBFGS:
             self.failure_details.append(detail)
             failed.append(f"{original_index}:{status}")
 
+        self._terminalize_running_after_abort(
+            f"iteration {iteration} line search",
+            cause="the active batch aborted after another structure failed line search",
+        )
         message = (
             "BatchLBFGS could not accept a finite energy-decreasing step for "
             f"structures {', '.join(failed)} after "

@@ -13,6 +13,13 @@ import numpy as np
 import torch
 from ase import Atoms
 
+from ....calculator._batch_eval import (
+    ALL_BATCH_SIZE,
+    AUTO_BATCH_SIZE,
+    _AutoBatchSizer,
+    _calculator_batch_size,
+    _is_cuda_oom,
+)
 from ....calculator._batch_types import BatchResult
 
 
@@ -147,10 +154,7 @@ class CalculateManyBatchCalc:
             )
 
         atoms_batch = self._atoms_with_current_positions()
-        result = self.calc.calculate_many(
-            atoms_batch,
-            properties=("energy", "forces"),
-        )
+        result = self._calculate_many_chunked(atoms_batch)
         if not isinstance(result, BatchResult):
             raise TypeError(
                 f"{type(self.calc).__name__}.calculate_many() must return "
@@ -204,6 +208,58 @@ class CalculateManyBatchCalc:
                 "CalculateManyBatchCalc received non-finite forces."
             )
         return energies, forces
+
+    def _calculate_many_chunked(self, atoms_batch: List[Atoms]) -> BatchResult:
+        """Evaluate the active optimizer batch with ordered CUDA-OOM backoff."""
+        n_total = len(atoms_batch)
+        setting = _calculator_batch_size(
+            self.calc,
+            "optimization_batch_size",
+        )
+        sizer = _AutoBatchSizer(
+            self.calc,
+            atoms_batch,
+            ("energy", "forces"),
+            kind="optimization",
+        )
+        if setting == AUTO_BATCH_SIZE:
+            chunk = sizer.chunk
+        elif setting == ALL_BATCH_SIZE:
+            chunk = n_total
+        else:
+            chunk = int(setting)
+        chunk = max(1, min(chunk, n_total))
+        sizer.chunk = chunk
+        setattr(self.calc, "_auto_batch_size_last", chunk)
+
+        energies = []
+        forces = []
+        start = 0
+        while start < n_total:
+            sub = atoms_batch[start : start + sizer.chunk]
+            try:
+                result = self.calc.calculate_many(
+                    sub,
+                    properties=("energy", "forces"),
+                )
+            except RuntimeError as exc:
+                if not _is_cuda_oom(exc) or not sizer.backoff_after_oom():
+                    raise
+                continue
+            if not isinstance(result, BatchResult):
+                raise TypeError(
+                    f"{type(self.calc).__name__}.calculate_many() must return "
+                    f"BatchResult, got {type(result).__name__}"
+                )
+            result.validate_against(sub, ("energy", "forces"))
+            energies.extend(float(value) for value in result.energies)
+            forces.extend(np.asarray(value, dtype=np.float64) for value in result.forces)
+            start += len(sub)
+
+        return BatchResult(
+            energies=np.asarray(energies, dtype=np.float64),
+            forces=forces,
+        ).validate_against(atoms_batch, ("energy", "forces"))
 
     def _atoms_with_current_positions(self) -> List[Atoms]:
         coords = self.coord.detach().cpu().numpy()

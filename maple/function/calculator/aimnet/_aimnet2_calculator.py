@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import hashlib
+import math
 import os
 from typing import Dict, Literal
 
@@ -22,17 +24,45 @@ from ..calculator_base import EV2HARTREE
 
 
 AIMNET2_PADDED_PER_MOLECULE_LAYOUT = "padded_per_molecule_v1"
-AIMNET2_BATCH_LAYOUT_BY_SHA256 = {
-    # Packaged MAPLE checkpoints validated by the batch parity suite.
+
+
+@dataclass(frozen=True)
+class AIMNet2CheckpointCapabilities:
+    """Versioned input/output contract for a packaged AIMNet2 checkpoint."""
+
+    batch_energy_layout: str
+    input_dtype: torch.dtype
+    num_charge_channels: int
+    long_range_policy: str = "simple_all_pairs_or_dsf_cutoff_v1"
+
+    @property
+    def supports_multiplicity(self) -> bool:
+        return self.num_charge_channels == 2
+
+
+AIMNET2_CHECKPOINT_CAPABILITIES_BY_SHA256 = {
+    # Closed-shell packaged checkpoint.
     "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d":
-        AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
+        AIMNet2CheckpointCapabilities(
+            batch_energy_layout=AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
+            input_dtype=torch.float32,
+            num_charge_channels=1,
+        ),
+    # Spin-polarized AIMNet2-NSE packaged checkpoint.
     "924570119cdb7a5f83ee204d72842620357ba482d7a41f900aed04f229e174b5":
-        AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
+        AIMNet2CheckpointCapabilities(
+            batch_energy_layout=AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
+            input_dtype=torch.float32,
+            num_charge_channels=2,
+        ),
+}
+AIMNET2_BATCH_LAYOUT_BY_SHA256 = {
+    digest: capabilities.batch_energy_layout
+    for digest, capabilities in AIMNET2_CHECKPOINT_CAPABILITIES_BY_SHA256.items()
 }
 
 
-def identify_aimnet2_batch_layout(model_path: str) -> str | None:
-    """Return the validated batch output schema for a known checkpoint."""
+def _checkpoint_sha256(model_path: str) -> str | None:
     digest = hashlib.sha256()
     try:
         with open(model_path, "rb") as checkpoint:
@@ -40,7 +70,23 @@ def identify_aimnet2_batch_layout(model_path: str) -> str | None:
                 digest.update(chunk)
     except OSError:
         return None
-    return AIMNET2_BATCH_LAYOUT_BY_SHA256.get(digest.hexdigest())
+    return digest.hexdigest()
+
+
+def identify_aimnet2_checkpoint_capabilities(
+    model_path: str,
+) -> AIMNet2CheckpointCapabilities | None:
+    """Return the validated contract for a known packaged checkpoint."""
+    digest = _checkpoint_sha256(model_path)
+    if digest is None:
+        return None
+    return AIMNET2_CHECKPOINT_CAPABILITIES_BY_SHA256.get(digest)
+
+
+def identify_aimnet2_batch_layout(model_path: str) -> str | None:
+    """Return the validated batch output schema for a known checkpoint."""
+    capabilities = identify_aimnet2_checkpoint_capabilities(model_path)
+    return None if capabilities is None else capabilities.batch_energy_layout
 
 
 # --------------------------------------------
@@ -51,23 +97,12 @@ def nblist_dense_padded(coord: torch.Tensor, cutoff: float) -> torch.Tensor:
     Brute-force dense neighbor list for single molecule.
     Returns: (N+1, M) int32 tensor, sentinel row = N
     """
-    device = coord.device
-    N = coord.shape[0]
-    if N == 0:
-        return torch.full((1, 1), 0, dtype=torch.int32, device=device)
-
-    diff = coord[:, None, :] - coord[None, :, :]
-    dist2 = torch.sum(diff ** 2, dim=-1)
-    dist2[torch.eye(N, dtype=torch.bool, device=device)] = float('inf')
-    mask = dist2 <= cutoff ** 2
-    M = max(int(mask.sum(dim=1).max().item()), 1)
-
-    nbmat = torch.full((N + 1, M), N, dtype=torch.int32, device=device)
-    for i in range(N):
-        nb_i = torch.nonzero(mask[i], as_tuple=False).flatten()
-        if nb_i.numel() > 0:
-            nbmat[i, :min(nb_i.numel(), M)] = nb_i[:min(nb_i.numel(), M)]
-    return nbmat
+    mol_idx = torch.zeros(
+        coord.shape[0],
+        dtype=torch.int32,
+        device=coord.device,
+    )
+    return nblist_dense_padded_multi(coord, mol_idx, cutoff)
 
 
 def nblist_dense_padded_multi(
@@ -100,6 +135,49 @@ def nblist_dense_padded_multi(
             k = min(nb_i.numel(), M)
             nbmat[i, :k] = nb_i[:k].to(torch.int32)
     return nbmat
+
+
+def nblist_all_pairs_padded_multi(mol_idx: torch.Tensor) -> torch.Tensor:
+    """All ordered, non-self atom pairs within each concatenated molecule."""
+    device = mol_idx.device
+    N = int(mol_idx.numel())
+    if N == 0:
+        return torch.full((1, 1), 0, dtype=torch.int32, device=device)
+
+    same = mol_idx[:, None] == mol_idx[None, :]
+    eye = torch.eye(N, dtype=torch.bool, device=device)
+    mask = same & (~eye)
+    M = max(int(mask.sum(dim=1).max().item()), 1)
+
+    nbmat = torch.full((N + 1, M), N, dtype=torch.int32, device=device)
+    for i in range(N):
+        nb_i = torch.nonzero(mask[i], as_tuple=False).flatten()
+        if nb_i.numel() > 0:
+            nbmat[i, : nb_i.numel()] = nb_i.to(torch.int32)
+    return nbmat
+
+
+def build_aimnet2_neighbor_matrices(
+    coord: torch.Tensor,
+    mol_idx: torch.Tensor,
+    *,
+    cutoff: float,
+    cutoff_lr: float,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Build independent short- and long-range AIMNet2 neighbor matrices."""
+    cutoff = float(cutoff)
+    cutoff_lr = float(cutoff_lr)
+    if not math.isfinite(cutoff) or cutoff <= 0.0:
+        raise ValueError(f"AIMNet2 short-range cutoff must be finite and positive, got {cutoff!r}")
+    if math.isnan(cutoff_lr) or cutoff_lr <= 0.0:
+        raise ValueError(f"AIMNet2 long-range cutoff must be positive or inf, got {cutoff_lr!r}")
+
+    nbmat = nblist_dense_padded_multi(coord, mol_idx, cutoff)
+    if math.isinf(cutoff_lr):
+        nbmat_lr = nblist_all_pairs_padded_multi(mol_idx)
+    else:
+        nbmat_lr = nblist_dense_padded_multi(coord, mol_idx, cutoff_lr)
+    return nbmat, nbmat_lr
 
 # --------------------------------------------
 # Pad helpers
@@ -181,12 +259,47 @@ class AIMNet2Calculator(CalcABC):
             model_dir = os.path.dirname(model_dir)
             model_path = os.path.join(model_dir, 'model', f'{model}.pt')
         self.model_path = os.path.realpath(model_path)
-        self._batch_energy_layout = identify_aimnet2_batch_layout(self.model_path)
+        self.checkpoint_capabilities = (
+            identify_aimnet2_checkpoint_capabilities(self.model_path)
+        )
+        self._batch_energy_layout = (
+            None
+            if self.checkpoint_capabilities is None
+            else self.checkpoint_capabilities.batch_energy_layout
+        )
         self.BATCH_ENERGY_LAYOUT = self._batch_energy_layout
         self.supports_batch_energy_forces = (
             self._batch_energy_layout == AIMNET2_PADDED_PER_MOLECULE_LAYOUT
         )
         self.model = torch.jit.load(model_path, map_location=device).eval()
+        try:
+            model_dtype = next(self.model.parameters()).dtype
+        except StopIteration:
+            model_dtype = torch.float32
+        self.input_dtype = (
+            model_dtype
+            if self.checkpoint_capabilities is None
+            else self.checkpoint_capabilities.input_dtype
+        )
+        if model_dtype != self.input_dtype:
+            raise RuntimeError(
+                "AIMNet2 checkpoint parameter dtype does not match its validated "
+                f"input contract: parameters={model_dtype}, input={self.input_dtype}"
+            )
+        model_charge_channels = int(
+            getattr(self.model, "num_charge_channels", 1)
+        )
+        if (
+            self.checkpoint_capabilities is not None
+            and model_charge_channels
+            != self.checkpoint_capabilities.num_charge_channels
+        ):
+            raise RuntimeError(
+                "AIMNet2 checkpoint charge-channel count does not match its "
+                "validated capability manifest"
+            )
+        self.num_charge_channels = model_charge_channels
+        self.supports_multiplicity = self.num_charge_channels == 2
 
         self.cutoff = float(getattr(self.model, 'cutoff'))
         self.cutoff_lr = float(getattr(self.model, 'cutoff_lr', float('inf')))
@@ -240,7 +353,7 @@ class AIMNet2Calculator(CalcABC):
         needs_grad = ('forces' in properties or 'hessian' in properties)
         coord = torch.tensor(
             atoms.get_positions(),
-            dtype=torch.float32,
+            dtype=self.input_dtype,
             device=self.device,
             requires_grad=needs_grad,
         )
@@ -320,17 +433,35 @@ class AIMNet2Calculator(CalcABC):
 
         charges = [float(at.info.get('charge', 0.0)) for at in atoms_list]
         mults = [float(at.info.get('mult', 1.0)) for at in atoms_list]
-        lr_cutoff = self.cutoff_lr if np.isfinite(self.cutoff_lr) else self.cutoff
+        self._validate_charge_multiplicity(charges, mults)
+        nbmat, nbmat_lr = build_aimnet2_neighbor_matrices(
+            coord,
+            mol_idx,
+            cutoff=self.cutoff,
+            cutoff_lr=self.cutoff_lr,
+        )
 
         data: Dict[str, torch.Tensor] = {
             'coord': pad_dim0(coord, value=0.0),
             'numbers': pad_dim0(numbers, value=0),
-            'charge': torch.tensor(charges + [0.0], dtype=torch.float32, device=self.device),
-            'mult': torch.tensor(mults + [1.0], dtype=torch.float32, device=self.device),
+            'charge': torch.tensor(
+                charges + [0.0],
+                dtype=self.input_dtype,
+                device=self.device,
+            ),
+            'mult': torch.tensor(
+                mults + [1.0],
+                dtype=self.input_dtype,
+                device=self.device,
+            ),
             'mol_idx': pad_dim0(mol_idx, value=batch_size),
-            'nbmat': nblist_dense_padded_multi(coord, mol_idx, self.cutoff),
-            'nbmat_lr': nblist_dense_padded_multi(coord, mol_idx, lr_cutoff),
-            'cutoff_lr': torch.tensor(lr_cutoff, device=self.device),
+            'nbmat': nbmat,
+            'nbmat_lr': nbmat_lr,
+            'cutoff_lr': torch.tensor(
+                self.cutoff_lr,
+                dtype=self.input_dtype,
+                device=self.device,
+            ),
         }
 
         with torch.jit.optimized_execution(False):
@@ -397,21 +528,52 @@ class AIMNet2Calculator(CalcABC):
         N = coord.shape[0]
         charge_val = float(atoms.info.get('charge', 0.0))
         mult_val = float(atoms.info.get('mult', 1.0))
+        self._validate_charge_multiplicity([charge_val], [mult_val])
 
-        nbmat = nblist_dense_padded(coord, self.cutoff)
+        nbmat, nbmat_lr = build_aimnet2_neighbor_matrices(
+            coord,
+            mol_idx,
+            cutoff=self.cutoff,
+            cutoff_lr=self.cutoff_lr,
+        )
         data: Dict[str, torch.Tensor] = {
             'coord': pad_dim0(coord, value=0.0),
             'numbers': pad_dim0(Z, value=0),
-            'charge': torch.tensor([charge_val], dtype=torch.float32, device=self.device),
-            'mult': torch.tensor([mult_val], dtype=torch.float32, device=self.device),
+            'charge': torch.tensor(
+                [charge_val], dtype=self.input_dtype, device=self.device
+            ),
+            'mult': torch.tensor(
+                [mult_val], dtype=self.input_dtype, device=self.device
+            ),
             'mol_idx': pad_dim0(mol_idx, value=mol_idx[-1].item() if N > 0 else 0),
             'nbmat': nbmat,
+            'nbmat_lr': nbmat_lr,
+            'cutoff_lr': torch.tensor(
+                self.cutoff_lr,
+                dtype=self.input_dtype,
+                device=self.device,
+            ),
         }
-
-        lr_cutoff = self.cutoff_lr if np.isfinite(self.cutoff_lr) else self.cutoff
-        data['nbmat_lr'] = nblist_dense_padded(coord, lr_cutoff)
-        data['cutoff_lr'] = torch.tensor(lr_cutoff, device=self.device)
         return data
+
+    def _validate_charge_multiplicity(self, charges, mults) -> None:
+        values = np.asarray(charges, dtype=np.float64)
+        multiplicities = np.asarray(mults, dtype=np.float64)
+        if not np.all(np.isfinite(values)):
+            raise ValueError("AIMNet2 molecular charges must be finite")
+        if (
+            not np.all(np.isfinite(multiplicities))
+            or np.any(multiplicities < 1.0)
+            or np.any(multiplicities != np.floor(multiplicities))
+        ):
+            raise ValueError(
+                "AIMNet2 spin multiplicities must be finite positive integers"
+            )
+        if not self.supports_multiplicity and np.any(multiplicities != 1.0):
+            raise NotImplementedError(
+                "The closed-shell AIMNet2 checkpoint only supports mult=1; "
+                "use AIMNet2-NSE for open-shell structures."
+            )
 
     def _forward_energy(self, data: Dict[str, torch.Tensor]) -> torch.Tensor:
         """Pure model forward; returns energy in eV (model's native unit)."""
@@ -425,7 +587,7 @@ class AIMNet2Calculator(CalcABC):
 
         coord = torch.tensor(
             atoms.get_positions(),
-            dtype=torch.float32,
+            dtype=self.input_dtype,
             device=self.device,
             requires_grad=True,
         )

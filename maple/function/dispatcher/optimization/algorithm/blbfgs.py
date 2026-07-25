@@ -5,12 +5,10 @@ Highly parallelized optimization using GPU tensors.
 Individual batches exit when converged (dynamic batch shrinking).
 """
 
-from typing import List, Optional
 import os
 import operator
 import numpy as np
 import torch
-from ase import Atoms
 
 from ._common import write_xyz
 
@@ -23,6 +21,10 @@ ENERGY_ACCEPTANCE_ATOL = 1e-12
 
 class _BatchNonFiniteError(FloatingPointError):
     """Internal marker for non-finite values already assigned by structure."""
+
+
+class _BatchProtocolError(ValueError):
+    """Calculator adapter violated the BatchLBFGS shape/topology contract."""
 
 
 def _positive_int(value, name: str) -> int:
@@ -168,7 +170,21 @@ class BatchLBFGS:
             calc.prepare(atoms_list)
             E0, F0 = calc.get_ef_gpu()
             self._validate_evaluation_shapes(E0, F0, B0, stage="initial evaluation")
+            self._validate_prepared_protocol(
+                calc,
+                atoms_list,
+                force_width=int(F0.shape[1]),
+                stage="initial evaluation",
+            )
             self._require_finite("initial evaluation", energies=E0, forces=F0)
+        except _BatchProtocolError as exc:
+            self._mark_active_failure(
+                "failed_protocol",
+                "initial evaluation",
+                detail=f"{type(exc).__name__}: {exc}",
+            )
+            self._close_log()
+            raise
         except _BatchNonFiniteError:
             self._close_log()
             raise
@@ -285,6 +301,20 @@ class BatchLBFGS:
                 if atoms_list:
                     try:
                         calc.prepare(atoms_list, fixed_nmax=self._nmax)
+                        self._validate_prepared_protocol(
+                            calc,
+                            atoms_list,
+                            force_width=self._nmax,
+                            stage=f"iteration {iteration} batch shrink",
+                        )
+                    except _BatchProtocolError as exc:
+                        self._mark_active_failure(
+                            "failed_protocol",
+                            f"iteration {iteration} batch shrink",
+                            detail=f"{type(exc).__name__}: {exc}",
+                        )
+                        self._close_log()
+                        raise
                     except Exception as exc:
                         self._mark_active_failure(
                             "failed_backend",
@@ -453,12 +483,12 @@ class BatchLBFGS:
         energy_shape = tuple(torch.as_tensor(energies).shape)
         force_shape = tuple(torch.as_tensor(forces).shape)
         if energy_shape != (batch_size,):
-            raise ValueError(
+            raise _BatchProtocolError(
                 f"BatchLBFGS {stage} energy shape is {energy_shape}, "
                 f"expected {(batch_size,)}"
             )
         if len(force_shape) != 2 or force_shape[0] != batch_size:
-            raise ValueError(
+            raise _BatchProtocolError(
                 f"BatchLBFGS {stage} force shape is {force_shape}, "
                 f"expected ({batch_size}, nmax)"
             )
@@ -467,9 +497,121 @@ class BatchLBFGS:
         else:
             expected_force_shape = force_shape
         if self._nmax and force_shape != expected_force_shape:
-            raise ValueError(
+            raise _BatchProtocolError(
                 f"BatchLBFGS {stage} force shape is {force_shape}, "
                 f"expected {expected_force_shape}"
+            )
+
+    def _validate_prepared_protocol(
+        self,
+        calc,
+        atoms_list,
+        *,
+        force_width: int,
+        stage: str,
+    ) -> None:
+        """Validate the public adapter topology before any optimizer step."""
+        force_width = int(force_width)
+        required_width = 3 * max(len(atoms) for atoms in atoms_list)
+        if force_width < required_width or force_width % 3 != 0:
+            raise _BatchProtocolError(
+                f"BatchLBFGS {stage} force width {force_width} is invalid; "
+                f"need a multiple of 3 covering at least {required_width} "
+                "Cartesian DOFs."
+            )
+
+        advertised_width = getattr(calc, "nmax_dof", None)
+        if advertised_width is not None:
+            try:
+                advertised_width = operator.index(advertised_width)
+            except TypeError as exc:
+                raise _BatchProtocolError(
+                    f"BatchLBFGS {stage} calculator nmax_dof must be an "
+                    f"integer, got {advertised_width!r}."
+                ) from exc
+            if advertised_width != force_width:
+                raise _BatchProtocolError(
+                    f"BatchLBFGS {stage} force width {force_width} does not "
+                    f"match calculator nmax_dof={advertised_width}."
+                )
+
+        total_atoms = sum(len(atoms) for atoms in atoms_list)
+        coord = torch.as_tensor(_get_coord_gpu(calc))
+        coord_shape = tuple(coord.shape)
+        if coord_shape != (total_atoms, 3):
+            raise _BatchProtocolError(
+                f"BatchLBFGS {stage} coordinate shape is {coord_shape}, "
+                f"expected {(total_atoms, 3)}."
+            )
+        if (
+            not torch.is_floating_point(coord)
+            or not bool(torch.isfinite(coord).all().item())
+        ):
+            raise _BatchProtocolError(
+                f"BatchLBFGS {stage} coordinate buffer must be finite "
+                "floating-point Cartesian data."
+            )
+        expected_device = self.device
+        if expected_device.type == "cuda" and expected_device.index is None:
+            expected_device = torch.device(
+                "cuda",
+                torch.cuda.current_device(),
+            )
+        if coord.device != expected_device:
+            raise _BatchProtocolError(
+                f"BatchLBFGS {stage} coordinate buffer is on {coord.device}, "
+                f"expected optimizer device {expected_device}."
+            )
+        expected_coord = torch.as_tensor(
+            np.concatenate(
+                [atoms.get_positions() for atoms in atoms_list],
+                axis=0,
+            ),
+            dtype=coord.dtype,
+            device=coord.device,
+        )
+        eps = float(torch.finfo(coord.dtype).eps)
+        if not bool(
+            torch.allclose(
+                coord,
+                expected_coord,
+                rtol=8.0 * eps,
+                atol=8.0 * eps,
+            )
+        ):
+            raise _BatchProtocolError(
+                f"BatchLBFGS {stage} coordinate contents/order do not match "
+                "the supplied structures."
+            )
+
+        ptr = getattr(calc, "_ptr", None)
+        if ptr is None:
+            ptr = getattr(calc, "ptr", None)
+        if ptr is None:
+            raise _BatchProtocolError(
+                f"BatchLBFGS {stage} calculator must expose atom pointer "
+                "topology as _ptr or ptr."
+            )
+        ptr = torch.as_tensor(ptr).detach().cpu()
+        integer_dtypes = {
+            torch.int8,
+            torch.int16,
+            torch.int32,
+            torch.int64,
+            torch.uint8,
+        }
+        expected_ptr = [0]
+        for atoms in atoms_list:
+            expected_ptr.append(expected_ptr[-1] + len(atoms))
+        if (
+            ptr.dtype not in integer_dtypes
+            or ptr.ndim != 1
+            or ptr.numel() != len(expected_ptr)
+            or ptr.tolist() != expected_ptr
+        ):
+            raise _BatchProtocolError(
+                f"BatchLBFGS {stage} atom pointer topology is {ptr.tolist()}, "
+                f"expected {expected_ptr}."
             )
 
     def _evaluate_accepted_step(
@@ -504,6 +646,16 @@ class BatchLBFGS:
                 )
                 trial_energy = trial_energy.to(dtype=DTYPE)
                 trial_forces = trial_forces.to(dtype=DTYPE)
+            except _BatchProtocolError as exc:
+                with torch.no_grad():
+                    _get_coord_gpu(calc).copy_(base_coord)
+                self._mark_active_failure(
+                    "failed_protocol",
+                    f"iteration {iteration} trial {attempt}",
+                    detail=f"{type(exc).__name__}: {exc}",
+                )
+                self._close_log()
+                raise
             except FloatingPointError as exc:
                 with torch.no_grad():
                     _get_coord_gpu(calc).copy_(base_coord)

@@ -424,7 +424,7 @@ class AIMNet2Calculator(CalcABC):
 
         coord = torch.tensor(
             coords_np,
-            dtype=torch.float32,
+            dtype=self.input_dtype,
             device=self.device,
             requires_grad=want_forces,
         )

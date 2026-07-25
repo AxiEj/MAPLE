@@ -1,6 +1,8 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import torch
@@ -37,6 +39,20 @@ from maple.function.calculator.aimnet._aimnet2_batch_calculator import (
     AIMNet2BatchCalc,
 )
 from maple.function.calculator.ani._ani_calculator import ANICalculator
+
+
+def _require_or_skip_real_checkpoints(test_case, *paths):
+    missing = [str(path) for path in paths if not Path(path).is_file()]
+    if not missing:
+        return
+    message = "required real checkpoints are unavailable: " + ", ".join(missing)
+    required = os.environ.get(
+        "MAPLE_REQUIRE_REAL_CHECKPOINTS",
+        "",
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    if required:
+        test_case.fail(message)
+    test_case.skipTest(message)
 
 
 class _CacheCalculator:
@@ -101,7 +117,33 @@ class _NaNANIModel:
         return (energy,)
 
 
+class _RecordingAIMNetModel:
+    def __init__(self):
+        self.coord_dtype = None
+
+    def __call__(self, data):
+        self.coord_dtype = data["coord"].dtype
+        return {
+            "energy": torch.zeros(
+                data["charge"].shape[0],
+                dtype=data["coord"].dtype,
+                device=data["coord"].device,
+            )
+        }
+
+
 class BatchResultContractTests(unittest.TestCase):
+    def test_required_real_checkpoint_gate_fails_instead_of_skipping(self):
+        missing = Path("/definitely/missing/maple-checkpoint.pt")
+        with (
+            patch.dict(
+                os.environ,
+                {"MAPLE_REQUIRE_REAL_CHECKPOINTS": "1"},
+            ),
+            self.assertRaisesRegex(AssertionError, "required real checkpoints"),
+        ):
+            _require_or_skip_real_checkpoints(self, missing)
+
     def test_rejects_nonfinite_numeric_fields(self):
         with self.assertRaisesRegex(ValueError, "energies.*finite"):
             BatchResult(energies=np.array([np.nan]))
@@ -241,6 +283,26 @@ class BackendContractTests(unittest.TestCase):
             1,
         )
 
+    def test_aimnet_direct_batch_uses_manifest_input_dtype(self):
+        calc = AIMNet2Calculator.__new__(AIMNet2Calculator)
+        calc.device = torch.device("cpu")
+        calc.input_dtype = torch.float64
+        calc.cutoff = 5.0
+        calc.cutoff_lr = 5.0
+        calc.solvent_correction = None
+        calc.supports_batch_energy_forces = True
+        calc.supports_multiplicity = False
+        calc._batch_energy_layout = AIMNET2_PADDED_PER_MOLECULE_LAYOUT
+        calc.model = _RecordingAIMNetModel()
+
+        result = calc.calculate_many(
+            [Atoms("H", positions=[[0.0, 0.0, 0.0]])],
+            properties=("energy",),
+        )
+
+        self.assertEqual(calc.model.coord_dtype, torch.float64)
+        np.testing.assert_allclose(result.energies, [0.0])
+
     def test_aimnet_simple_neighbor_list_is_all_pairs_per_molecule(self):
         coord = torch.tensor(
             [
@@ -288,6 +350,9 @@ class BackendContractTests(unittest.TestCase):
 
     @staticmethod
     def _packaged_aimnet_path(model_name):
+        release_dir = os.environ.get("MAPLE_RELEASE_CHECKPOINT_DIR")
+        if release_dir:
+            return Path(release_dir) / f"{model_name}.pt"
         return (
             Path(__file__).parents[1]
             / "maple"
@@ -299,8 +364,7 @@ class BackendContractTests(unittest.TestCase):
 
     def test_aimnet_real_checkpoint_long_range_and_batch_parity(self):
         model_path = self._packaged_aimnet_path("aimnet2")
-        if not model_path.is_file():
-            self.skipTest("packaged AIMNet2 checkpoint is unavailable")
+        _require_or_skip_real_checkpoints(self, model_path)
         calc = AIMNet2Calculator(
             device=torch.device("cpu"),
             model="aimnet2",
@@ -373,8 +437,7 @@ class BackendContractTests(unittest.TestCase):
     def test_aimnet_batch_adapter_inherits_dtype_and_passes_nse_mult(self):
         standard_path = self._packaged_aimnet_path("aimnet2")
         nse_path = self._packaged_aimnet_path("aimnet2nse")
-        if not standard_path.is_file() or not nse_path.is_file():
-            self.skipTest("packaged AIMNet2 checkpoints are unavailable")
+        _require_or_skip_real_checkpoints(self, standard_path, nse_path)
 
         standard = AIMNet2Calculator(
             device=torch.device("cpu"),

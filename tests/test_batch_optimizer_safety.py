@@ -30,6 +30,10 @@ class _SyntheticBatchCalculator:
 
     def prepare(self, atoms_list, fixed_nmax=None):
         self._atoms = list(atoms_list)
+        ptr = [0]
+        for atoms in self._atoms:
+            ptr.append(ptr[-1] + len(atoms))
+        self._ptr = torch.tensor(ptr, dtype=torch.long)
         self.coord = torch.from_numpy(
             np.concatenate(
                 [atoms.get_positions() for atoms in atoms_list],
@@ -39,6 +43,7 @@ class _SyntheticBatchCalculator:
             dtype=torch.float64,
         )
         self.nmax = fixed_nmax or max(3 * len(atoms) for atoms in atoms_list)
+        self.nmax_dof = self.nmax
 
     def get_ef_gpu(self):
         batch_size = len(self._atoms)
@@ -112,6 +117,25 @@ class _TrialNonfiniteCalculator(_SyntheticBatchCalculator):
         return super().get_ef_gpu()
 
 
+class _MalformedForceWidthCalculator(_SyntheticBatchCalculator):
+    def prepare(self, atoms_list, fixed_nmax=None):
+        super().prepare(atoms_list, fixed_nmax=fixed_nmax)
+        self.nmax = 1
+        self.nmax_dof = 1
+
+
+class _MalformedPointerCalculator(_SyntheticBatchCalculator):
+    def prepare(self, atoms_list, fixed_nmax=None):
+        super().prepare(atoms_list, fixed_nmax=fixed_nmax)
+        self._ptr[-1] -= 1
+
+
+class _ReorderedCoordinateCalculator(_SyntheticBatchCalculator):
+    def prepare(self, atoms_list, fixed_nmax=None):
+        super().prepare(atoms_list, fixed_nmax=fixed_nmax)
+        self.coord = torch.flip(self.coord, dims=(0,))
+
+
 class _OOMCalculateMany:
     supports_batch_energy_forces = True
     device = torch.device("cpu")
@@ -183,6 +207,84 @@ class BatchOptimizerSafetyTests(unittest.TestCase):
             self.assertFalse((Path(tmpdir) / "job_opt.xyz").exists())
             self.assertEqual(optimizer.statuses, ["failed_nonfinite"])
             self.assertIsNone(optimizer.log_fp)
+
+    def test_initial_force_width_must_cover_every_cartesian_dof(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            optimizer = BatchLBFGS(
+                output=str(Path(tmpdir) / "job.out"),
+                device="cpu",
+                maxiter=1,
+            )
+            atoms = Atoms(
+                "H10",
+                positions=np.zeros((10, 3), dtype=np.float64),
+            )
+            with self.assertRaisesRegex(ValueError, "force width"):
+                optimizer.run(
+                    _Molecules(
+                        [atoms],
+                        _MalformedForceWidthCalculator(stationary=True),
+                    )
+                )
+            self.assertEqual(optimizer.statuses, ["failed_protocol"])
+
+    def test_initial_atom_pointer_must_match_packed_coordinates(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            optimizer = BatchLBFGS(
+                output=str(Path(tmpdir) / "job.out"),
+                device="cpu",
+                maxiter=1,
+            )
+            atoms = Atoms("H2", positions=np.zeros((2, 3), dtype=np.float64))
+            with self.assertRaisesRegex(ValueError, "pointer topology"):
+                optimizer.run(
+                    _Molecules(
+                        [atoms],
+                        _MalformedPointerCalculator(stationary=True),
+                    )
+                )
+            self.assertEqual(optimizer.statuses, ["failed_protocol"])
+
+    def test_initial_coordinate_order_must_match_supplied_structures(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            optimizer = BatchLBFGS(
+                output=str(Path(tmpdir) / "job.out"),
+                device="cpu",
+                maxiter=1,
+            )
+            atoms = Atoms(
+                "H2",
+                positions=[[0.0, 0.0, 0.0], [1.0, 2.0, 3.0]],
+            )
+            with self.assertRaisesRegex(ValueError, "contents/order"):
+                optimizer.run(
+                    _Molecules(
+                        [atoms],
+                        _ReorderedCoordinateCalculator(stationary=True),
+                    )
+                )
+            self.assertEqual(optimizer.statuses, ["failed_protocol"])
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA is unavailable")
+    def test_default_cuda_alias_accepts_current_indexed_device(self):
+        optimizer = BatchLBFGS(
+            output="unused.out",
+            device="cuda",
+            maxiter=1,
+        )
+        atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+        calc = _SyntheticBatchCalculator(stationary=True)
+        calc.prepare([atoms])
+        calc.coord = calc.coord.to(
+            torch.device("cuda", torch.cuda.current_device())
+        )
+
+        optimizer._validate_prepared_protocol(
+            calc,
+            [atoms],
+            force_width=calc.nmax_dof,
+            stage="CUDA alias regression",
+        )
 
     def test_nonfinite_status_is_limited_to_the_bad_structure(self):
         with tempfile.TemporaryDirectory() as tmpdir:

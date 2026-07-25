@@ -34,6 +34,7 @@ from ....calculator._batch_eval import (
 
 # You already have these utilities / mixins in your codebase:
 from .logger import log_info
+from ._pdb_compat import require_shared_pdb_writer
 from ...jobABC import JobABC
 
 
@@ -389,6 +390,7 @@ class GSM(JobABC):
         self.raw_paras = paras if isinstance(paras, dict) else {}
         self.atoms_R.calc = atoms_R.calc
         self.atoms_P.calc = atoms_P.calc
+        require_shared_pdb_writer([atoms_R, atoms_P], "String")
 
         # Initialize params from paras dict
         self.params = self._init_params(GSMParams, paras, ("gsm", "GSM", "string", "STRING", "ts"))
@@ -561,6 +563,7 @@ class GSM(JobABC):
         then report a geometry-converged candidate without certifying a TS.
         """
         from .PRFO import PRFO, PRFOConvergenceError
+        require_shared_pdb_writer(images, "String")
 
         # Prepare TS guess from HEI
         ts_guess = copy.deepcopy(images[hei_idx])
@@ -615,16 +618,14 @@ class GSM(JobABC):
                 t_flat = np.zeros_like(t_flat); t_flat[0] = 1.0; nrm = 1.0
             return t_flat / nrm
 
-        # Compute per-image metrics:
-        # - Non-TS rows: projected-perpendicular forces (Fp)
-        # - TS row: global forces (printed as 0.0/0.0 if you want identical to sample)
-        maxFp_list = []
-        rmsFp_list = []
+        # Compute per-image metrics with an explicit force definition per row.
+        max_force_list = []
+        rms_force_list = []
+        force_kind_list = []
         for i, at in enumerate(images_ts):
             if i == hei_idx + 1:
-                # TS: global forces; print zeros to match your sample format
-                maxFp_list.append(0.0)
-                rmsFp_list.append(0.0)
+                reported_force = to_numpy_f64(raw_forces_path[i])
+                force_kind_list.append("candidate-global")
             else:
                 F_raw = raw_forces_path[i]
                 pos   = to_numpy_f64(at.get_positions())
@@ -632,9 +633,13 @@ class GSM(JobABC):
                 F_rb  = project_out_rigidbody_forces(F_raw, pos, masses).reshape(-1)
                 tau   = energy_weighted_tangent(images_ts, Es_path, i)
                 c     = float(np.dot(F_rb, tau))
-                Fp    = (F_rb - c * tau).reshape(-1, 3)
-                maxFp_list.append(float(np.max(np.linalg.norm(Fp, axis=1))))
-                rmsFp_list.append(float(np.sqrt(np.mean(np.linalg.norm(Fp, axis=1) ** 2))))
+                reported_force = (F_rb - c * tau).reshape(-1, 3)
+                force_kind_list.append("projected")
+            force_norms = np.linalg.norm(reported_force, axis=1)
+            max_force_list.append(float(np.max(force_norms)))
+            rms_force_list.append(
+                float(np.sqrt(np.mean(force_norms ** 2)))
+            )
 
         # Dump STRING-TS files
         ext = ".pdb" if images_ts and images_ts[0].info.get("pdb_template") else ".xyz"
@@ -643,9 +648,11 @@ class GSM(JobABC):
         write_xyz(stringts_mep, images_ts, energies=Es_path)
         write_xyz(
             stringts_candidate,
-            [ts_candidate],
-            energies=[E_TS],
-        )
+                [ts_candidate],
+                energies=[E_TS],
+            )
+        # Preserve PR57's legacy symbol without emitting a certified TS.
+        del stringts_ts
 
         # Pretty-print TS coordinates
         def atoms_to_xyz_lines(atoms: Atoms) -> List[str]:
@@ -661,18 +668,29 @@ class GSM(JobABC):
             "\n---------------------------------------------------------------\n",
             "                    PATH SUMMARY FOR String-TS             \n",
             "---------------------------------------------------------------\n",
-            "All forces in Eh/Angstrom. Global forces for candidate.\n\n",
-            "Image     E(Eh)   dE(kcal/mol)  max(|Fp|)  RMS(Fp)\n"
+            "All forces in Eh/Angstrom; definitions are explicit per row.\n\n",
+            "Image     E(Eh)   dE(kcal/mol)  Force kind       max(|F|)    RMS(|F|)\n"
         ], self.output)
 
         for i, E in enumerate(Es_path):
             dE = (E - Es_path[0]) * kcal_per_Eh
+            metrics = (
+                f"{force_kind_list[i]:<16s} "
+                f"{max_force_list[i]:11.5f} {rms_force_list[i]:10.5f}"
+            )
             if i == hei_idx:
-                log_info([f"{i:4d} {E:12.5f} {dE:11.2f} {maxFp_list[i]:11.5f} {rmsFp_list[i]:10.5f} <= CI\n"], self.output)
+                log_info([
+                    f"{i:4d} {E:12.5f} {dE:11.2f} {metrics} <= HEI\n"
+                ], self.output)
             elif i == hei_idx + 1:
-                log_info([f"CAND {E:12.5f} {dE:11.2f} {0.0:11.5f} {0.0:10.5f} <= TS candidate\n"], self.output)
+                log_info([
+                    f"CAND {E:12.5f} {dE:11.2f} "
+                    f"{metrics} <= TS candidate\n"
+                ], self.output)
             else:
-                log_info([f"{i:4d} {E:12.5f} {dE:11.2f} {maxFp_list[i]:11.5f} {rmsFp_list[i]:10.5f}\n"], self.output)
+                log_info([
+                    f"{i:4d} {E:12.5f} {dE:11.2f} {metrics}\n"
+                ], self.output)
 
         log_info([
             "\n-----------------------------------------\n",

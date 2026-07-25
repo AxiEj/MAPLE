@@ -21,6 +21,7 @@ import numpy as np
 from ase import Atoms
 
 from .logger import log_info
+from ._pdb_compat import require_shared_pdb_writer
 from ...jobABC import JobABC
 from ....calculator._batch_eval import (
     EnergyEvaluator,
@@ -565,6 +566,7 @@ class NEB(JobABC):
             self.atoms_P = None
         else:
             raise ValueError("Please provide Molecules object containing all images")
+        require_shared_pdb_writer(self.input_images, "NEB")
 
         # Initialize params from paras dict
         self.params = self._init_params(NEBParams, paras, ("neb", "NEB", "ts"))
@@ -923,6 +925,7 @@ class NEB(JobABC):
         """
         if energies is None:
             energies = [float(at.get_potential_energy(force_consistent=True)) for at in images]
+        require_shared_pdb_writer(images, "NEB")
 
         # reset any previous fixed HEI
         self._cineb_fixed_hei = None
@@ -1104,13 +1107,15 @@ class NEB(JobABC):
                 [ts_candidate],
                 energies=[E_TS],
             )
+            # Preserve PR57's legacy symbol without emitting a certified TS.
+            del nebts_ts
 
             log_info([
                 "\n---------------------------------------------------------------\n",
                 "                      PATH SUMMARY FOR NEB-TS             \n",
                 "---------------------------------------------------------------\n",
-                "All forces in Eh/Angstrom. Global forces for candidate.\n\n",
-                "Image     E(Eh)   dE(kcal/mol)  max(|Fp|)  RMS(Fp)\n"
+                "All forces in Eh/Angstrom; definitions are explicit per row.\n\n",
+                "Image     E(Eh)   dE(kcal/mol)  Force kind       max(|F|)    RMS(|F|)\n"
             ], self.output)
 
             kcal_per_Eh = 627.509
@@ -1118,10 +1123,26 @@ class NEB(JobABC):
                 dE = (E - Es[0]) * kcal_per_Eh
                 label = "CAND" if i == hei + 1 else f"{i:3d}"
                 marker = " <= TS candidate" if i == hei + 1 else (" <= CI" if i == hei else "")
-                maxF = np.max(np.linalg.norm(images[i].get_forces(), axis=1))
-                rmsF = np.sqrt(np.mean(np.linalg.norm(images[i].get_forces(), axis=1) ** 2))
+                if i == hei + 1:
+                    force_kind = "candidate-global"
+                    reported_force = to_numpy_f64(
+                        ts_candidate.get_forces()
+                    )
+                elif i == hei:
+                    force_kind = "CI-global"
+                    reported_force = to_numpy_f64(raw_forces[hei])
+                else:
+                    force_kind = "projected"
+                    original_index = i if i < hei + 1 else i - 1
+                    reported_force = to_numpy_f64(
+                        Fp_list[original_index]
+                    )
+                force_norms = np.linalg.norm(reported_force, axis=1)
+                maxF = float(np.max(force_norms))
+                rmsF = float(np.sqrt(np.mean(force_norms ** 2)))
                 log_info([
-                    f"{label:>4s} {E:12.5f} {dE:11.2f} {maxF:11.5f} {rmsF:10.5f}{marker}\n"
+                    f"{label:>4s} {E:12.5f} {dE:11.2f} "
+                    f"{force_kind:<16s} {maxF:11.5f} {rmsF:10.5f}{marker}\n"
                 ], self.output)
 
             log_info([

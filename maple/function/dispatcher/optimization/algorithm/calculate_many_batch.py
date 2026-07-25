@@ -13,6 +13,8 @@ import numpy as np
 import torch
 from ase import Atoms
 
+from ....calculator._batch_types import BatchResult
+
 
 class CalculateManyBatchCalc:
     """Minimal ``BatchLBFGS`` calculator interface using ``calculate_many``."""
@@ -51,6 +53,10 @@ class CalculateManyBatchCalc:
     def prepare(self, atoms_list: List[Atoms], fixed_nmax: int = None) -> None:
         """Pack current atom coordinates into the optimizer coordinate buffer."""
         self._atoms_list = list(atoms_list)
+        if any(len(at) == 0 for at in self._atoms_list):
+            raise ValueError(
+                "CalculateManyBatchCalc does not support empty structures."
+            )
         if any(bool(getattr(at, "constraints", None)) for at in self._atoms_list):
             raise NotImplementedError(
                 "CalculateManyBatchCalc does not support ASE constraints; "
@@ -87,6 +93,10 @@ class CalculateManyBatchCalc:
                 [at.get_positions() for at in self._atoms_list],
                 axis=0,
             )
+            if not np.all(np.isfinite(coords)):
+                raise ValueError(
+                    "CalculateManyBatchCalc input coordinates must be finite."
+                )
             self.coord = torch.tensor(
                 coords,
                 dtype=self.dtype,
@@ -115,6 +125,10 @@ class CalculateManyBatchCalc:
                 f"step_cart_ expects {expected}, got {tuple(s_cart.shape)}"
             )
         s_cart = s_cart.to(device=self.device, dtype=self.dtype)
+        if not bool(torch.isfinite(s_cart).all().item()):
+            raise FloatingPointError(
+                "CalculateManyBatchCalc received a non-finite Cartesian step."
+            )
         starts = self._ptr[:-1]
         stops = self._ptr[1:]
         for i in range(self._atoms_B):
@@ -137,6 +151,12 @@ class CalculateManyBatchCalc:
             atoms_batch,
             properties=("energy", "forces"),
         )
+        if not isinstance(result, BatchResult):
+            raise TypeError(
+                f"{type(self.calc).__name__}.calculate_many() must return "
+                f"BatchResult, got {type(result).__name__}"
+            )
+        result.validate_against(atoms_batch, ("energy", "forces"))
         if result.energies is None or len(result.energies) != self._atoms_B:
             got = None if result.energies is None else len(result.energies)
             raise RuntimeError(
@@ -170,11 +190,19 @@ class CalculateManyBatchCalc:
                     f"expected {expected}"
                 )
             if len(at):
-                forces[i, : 3 * len(at)] = torch.as_tensor(
+                forces[i, : 3 * len(at)] = torch.tensor(
                     arr.reshape(-1),
                     dtype=self.dtype,
                     device=self.device,
                 )
+        if not bool(torch.isfinite(energies).all().item()):
+            raise FloatingPointError(
+                "CalculateManyBatchCalc received non-finite energies."
+            )
+        if not bool(torch.isfinite(forces).all().item()):
+            raise FloatingPointError(
+                "CalculateManyBatchCalc received non-finite forces."
+            )
         return energies, forces
 
     def _atoms_with_current_positions(self) -> List[Atoms]:

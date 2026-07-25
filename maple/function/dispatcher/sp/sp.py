@@ -1,15 +1,19 @@
 from typing import Iterator, List, Optional, Union
 from dataclasses import dataclass
+from contextlib import ExitStack
+import math
 
 from ase import Atoms
 
 from ...calculator._batch_eval import (
     EnergyEvaluator,
     PathEvaluator,
+    energy_forces_one,
     shared_calculator,
     structures_have_constraints,
     supports_batch_calculation,
 )
+from ...calculator._batch_utils import preserve_calculator_state
 from ..jobABC import JobABC
 from maple.function.timer import timer
 
@@ -116,10 +120,39 @@ class SinglePoint(JobABC):
         ):
             energies = []
             forces = [] if self.verbose >= 1 else None
+            calculators = []
+            seen_calculators = set()
             for atoms_frame in self.atoms:
-                energies.append(float(atoms_frame.get_potential_energy()))
-                if forces is not None:
-                    forces.append(atoms_frame.get_forces())
+                frame_calc = getattr(atoms_frame, "calc", None)
+                if frame_calc is None:
+                    raise ValueError(
+                        "Single-point trajectory frame has no calculator."
+                    )
+                calc_id = id(frame_calc)
+                if calc_id not in seen_calculators:
+                    seen_calculators.add(calc_id)
+                    calculators.append(frame_calc)
+
+            with ExitStack() as stack:
+                for frame_calc in calculators:
+                    stack.enter_context(preserve_calculator_state(frame_calc))
+                for atoms_frame in self.atoms:
+                    frame_calc = atoms_frame.calc
+                    if forces is None:
+                        energy = float(atoms_frame.get_potential_energy())
+                        if not math.isfinite(energy):
+                            raise FloatingPointError(
+                                "Single-point trajectory returned a non-finite energy"
+                            )
+                        energies.append(energy)
+                    else:
+                        energy, force = energy_forces_one(
+                            frame_calc,
+                            atoms_frame,
+                            force_consistent=False,
+                        )
+                        energies.append(energy)
+                        forces.append(force)
             return energies, forces
 
         if self.verbose >= 1:
@@ -155,6 +188,17 @@ class SinglePoint(JobABC):
         forces_list=None,
     ) -> Iterator[str]:
         """Yield trajectory results in output order for one streamed write."""
+        if len(energies_hartree) != len(self.atoms):
+            raise ValueError(
+                "Single-point trajectory energy count does not match the "
+                f"number of frames: {len(energies_hartree)} != {len(self.atoms)}"
+            )
+        if forces_list is not None and len(forces_list) != len(self.atoms):
+            raise ValueError(
+                "Single-point trajectory force count does not match the "
+                f"number of frames: {len(forces_list)} != {len(self.atoms)}"
+            )
+
         for idx, (atoms_frame, energy_hartree) in enumerate(
             zip(self.atoms, energies_hartree),
             start=1,
@@ -169,6 +213,10 @@ class SinglePoint(JobABC):
 
         yield f"\n{' SUMMARY ':=^80}\n"
         yield f"Total frames processed: {len(self.atoms)}\n"
+        if not energies_hartree:
+            yield "No structures to summarize.\n"
+            yield "=" * 80 + "\n"
+            return
         energy_min = min(energies_hartree)
         energy_max = max(energies_hartree)
         yield (

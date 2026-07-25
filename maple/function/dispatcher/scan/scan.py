@@ -1,4 +1,5 @@
 import os
+import operator
 from typing import List, Optional, Sequence, Tuple
 
 from ase import Atoms
@@ -265,6 +266,72 @@ class Scan(JobABC):
                 energy=float(energy),
             )
 
+    def _rigid_record_buffer_size(self) -> int:
+        """Return a finite record buffer bound for rigid scan batching."""
+        value = self.params.get(
+            "scan_batch_size",
+            self.params.get("batch_size"),
+        )
+        if isinstance(value, str) and value.strip().lower() == "auto":
+            value = None
+        if value is not None:
+            if isinstance(value, bool):
+                raise ValueError(
+                    "scan_batch_size must be a positive integer, 'auto', or None"
+                )
+            if isinstance(value, str):
+                try:
+                    size = int(value.strip(), 10)
+                except ValueError as exc:
+                    raise ValueError(
+                        "scan_batch_size must be a positive integer, 'auto', or None"
+                    ) from exc
+            else:
+                try:
+                    size = operator.index(value)
+                except TypeError as exc:
+                    raise ValueError(
+                        "scan_batch_size must be a positive integer, 'auto', or None"
+                    ) from exc
+            if size <= 0:
+                raise ValueError(
+                    "scan_batch_size must be a positive integer, 'auto', or None"
+                )
+            return size
+
+        caps = [
+            getattr(self.initial_calc, "auto_path_batch_cap", None),
+            getattr(self.initial_calc, "auto_batch_hard_cap", None),
+        ]
+        positive_caps = [
+            int(cap)
+            for cap in caps
+            if isinstance(cap, int) and not isinstance(cap, bool) and cap > 0
+        ]
+        return min([32, *positive_caps])
+
+    def _buffer_rigid_result(
+        self,
+        records: list,
+        record: Tuple[int, List[float], Atoms],
+        coords_list: list,
+        energies: list,
+    ) -> None:
+        records.append(record)
+        if len(records) >= self._rigid_record_buffer_size():
+            self._record_rigid_results(records, coords_list, energies)
+            records.clear()
+
+    def _flush_rigid_results(
+        self,
+        records: list,
+        coords_list: list,
+        energies: list,
+    ) -> None:
+        if records:
+            self._record_rigid_results(records, coords_list, energies)
+            records.clear()
+
     def _uses_rigid_batch(self) -> bool:
         """Return True only for a validated native batch calculator."""
         if self.mode != "rigid":
@@ -297,14 +364,17 @@ class Scan(JobABC):
                 atoms_current = self._apply_constraints(atoms_current, coord)
             atoms_current = self._run_optimizer(atoms_current)
             if batch_rigid:
-                rigid_records.append(
-                    (self._current_index, coord[:], self._safe_copy(atoms_current))
+                self._buffer_rigid_result(
+                    rigid_records,
+                    (self._current_index, coord[:], self._safe_copy(atoms_current)),
+                    coords_list,
+                    energies,
                 )
             else:
                 self._record_result(atoms_current, coord, coords_list, energies)
 
         if batch_rigid:
-            self._record_rigid_results(rigid_records, coords_list, energies)
+            self._flush_rigid_results(rigid_records, coords_list, energies)
 
         return coords_list, energies
 
@@ -332,8 +402,11 @@ class Scan(JobABC):
             
             grid_xy[(ix, 0)] = self._safe_copy(atoms_current)  # Keep initial line
             if batch_rigid:
-                rigid_records.append(
-                    (self._current_index, coord[:], self._safe_copy(atoms_current))
+                self._buffer_rigid_result(
+                    rigid_records,
+                    (self._current_index, coord[:], self._safe_copy(atoms_current)),
+                    coords_list,
+                    energies,
                 )
             else:
                 self._record_result(atoms_current, coord, coords_list, energies)
@@ -353,14 +426,17 @@ class Scan(JobABC):
                     atoms_current = self._apply_constraints(atoms_current, coord)
                 atoms_current = self._run_optimizer(atoms_current)
                 if batch_rigid:
-                    rigid_records.append(
-                        (self._current_index, coord[:], self._safe_copy(atoms_current))
+                    self._buffer_rigid_result(
+                        rigid_records,
+                        (self._current_index, coord[:], self._safe_copy(atoms_current)),
+                        coords_list,
+                        energies,
                     )
                 else:
                     self._record_result(atoms_current, coord, coords_list, energies)
 
         if batch_rigid:
-            self._record_rigid_results(rigid_records, coords_list, energies)
+            self._flush_rigid_results(rigid_records, coords_list, energies)
 
         return coords_list, energies
 
@@ -388,8 +464,11 @@ class Scan(JobABC):
             
             grid_xy[(ix, 0)] = self._safe_copy(atoms_current)
             if batch_rigid:
-                rigid_records.append(
-                    (self._current_index, coord[:], self._safe_copy(atoms_current))
+                self._buffer_rigid_result(
+                    rigid_records,
+                    (self._current_index, coord[:], self._safe_copy(atoms_current)),
+                    coords_list,
+                    energies,
                 )
             else:
                 self._record_result(atoms_current, coord, coords_list, energies)
@@ -411,8 +490,11 @@ class Scan(JobABC):
                 
                 grid_xy[(ix, iy)] = self._safe_copy(atoms_current)  # Keep initial plane
                 if batch_rigid:
-                    rigid_records.append(
-                        (self._current_index, coord[:], self._safe_copy(atoms_current))
+                    self._buffer_rigid_result(
+                        rigid_records,
+                        (self._current_index, coord[:], self._safe_copy(atoms_current)),
+                        coords_list,
+                        energies,
                     )
                 else:
                     self._record_result(atoms_current, coord, coords_list, energies)
@@ -440,8 +522,11 @@ class Scan(JobABC):
                         atoms_current = self._apply_constraints(atoms_current, coord)
                     atoms_current = self._run_optimizer(atoms_current)
                     if batch_rigid:
-                        rigid_records.append(
-                            (self._current_index, coord[:], self._safe_copy(atoms_current))
+                        self._buffer_rigid_result(
+                            rigid_records,
+                            (self._current_index, coord[:], self._safe_copy(atoms_current)),
+                            coords_list,
+                            energies,
                         )
                     else:
                         self._record_result(atoms_current, coord, coords_list, energies)
@@ -450,7 +535,7 @@ class Scan(JobABC):
                 del grid_xy[(ix, iy)]
 
         if batch_rigid:
-            self._record_rigid_results(rigid_records, coords_list, energies)
+            self._flush_rigid_results(rigid_records, coords_list, energies)
 
         return coords_list, energies
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 from typing import Dict, Literal
 
@@ -18,6 +19,28 @@ from .._batch_utils import (
 )
 from ..calculator_base import CalcABC, register_calculator
 from ..calculator_base import EV2HARTREE
+
+
+AIMNET2_PADDED_PER_MOLECULE_LAYOUT = "padded_per_molecule_v1"
+AIMNET2_BATCH_LAYOUT_BY_SHA256 = {
+    # Packaged MAPLE checkpoints validated by the batch parity suite.
+    "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d":
+        AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
+    "924570119cdb7a5f83ee204d72842620357ba482d7a41f900aed04f229e174b5":
+        AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
+}
+
+
+def identify_aimnet2_batch_layout(model_path: str) -> str | None:
+    """Return the validated batch output schema for a known checkpoint."""
+    digest = hashlib.sha256()
+    try:
+        with open(model_path, "rb") as checkpoint:
+            for chunk in iter(lambda: checkpoint.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError:
+        return None
+    return AIMNET2_BATCH_LAYOUT_BY_SHA256.get(digest.hexdigest())
 
 
 # --------------------------------------------
@@ -119,11 +142,12 @@ class AIMNet2Calculator(CalcABC):
     REQUIRES_LOCAL_MODEL_FILE = False
     OPTION_KEYS = ('coulomb_method', 'batch_size', 'path_batch_size')
     MODEL_PATH_OPTION = 'model_path'
-    supports_batch_energy_forces = True
+    supports_batch_energy_forces = False
     supports_analytic_hessian = True
     batch_memory_model = 'concat_dense_neighbor'
     auto_batch_hard_cap = 8
     auto_path_batch_cap = 8
+    BATCH_ENERGY_LAYOUT = None
 
     @classmethod
     def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
@@ -156,6 +180,12 @@ class AIMNet2Calculator(CalcABC):
             model_dir = os.path.dirname(os.path.realpath(__file__))
             model_dir = os.path.dirname(model_dir)
             model_path = os.path.join(model_dir, 'model', f'{model}.pt')
+        self.model_path = os.path.realpath(model_path)
+        self._batch_energy_layout = identify_aimnet2_batch_layout(self.model_path)
+        self.BATCH_ENERGY_LAYOUT = self._batch_energy_layout
+        self.supports_batch_energy_forces = (
+            self._batch_energy_layout == AIMNET2_PADDED_PER_MOLECULE_LAYOUT
+        )
         self.model = torch.jit.load(model_path, map_location=device).eval()
 
         self.cutoff = float(getattr(self.model, 'cutoff'))
@@ -265,6 +295,10 @@ class AIMNet2Calculator(CalcABC):
             return sequential_calculate_many(
                 self, atoms_list, request, want_energy, want_forces
             )
+        if not self.supports_batch_energy_forces:
+            return sequential_calculate_many(
+                self, atoms_list, request, want_energy, want_forces
+            )
 
         counts = atom_counts(atoms_list)
         batch_size = len(atoms_list)
@@ -302,7 +336,7 @@ class AIMNet2Calculator(CalcABC):
         with torch.jit.optimized_execution(False):
             out = self.model(data)
         energy_vec_eV = self._energy_vector_from_output(
-            out['energy'], batch_size, coord.shape[0], mol_idx
+            out['energy'], batch_size, self._batch_energy_layout
         )
         energy_vec_ha = energy_vec_eV * EV2HARTREE
 
@@ -320,29 +354,42 @@ class AIMNet2Calculator(CalcABC):
                 counts,
             )
 
-        return BatchResult(energies=energies, forces=forces_list)
+        return BatchResult(
+            energies=energies,
+            forces=forces_list,
+        ).validate_against(atoms_list, request)
 
     @staticmethod
     def _energy_vector_from_output(
         energy_out: torch.Tensor,
         batch_size: int,
-        n_atoms_total: int,
-        mol_idx: torch.Tensor,
+        layout: str | None,
     ) -> torch.Tensor:
+        """Read the checkpoint's versioned padded-per-molecule energy layout.
+
+        MAPLE's supported ``aimnet2.pt`` and ``aimnet2nse.pt`` checkpoints
+        return one energy per molecule followed by the sentinel molecule
+        introduced by ``pad_dim0``. Atom-wise and unpadded layouts are not
+        guessed here because their lengths can be numerically ambiguous.
+        """
+        if layout != AIMNET2_PADDED_PER_MOLECULE_LAYOUT:
+            raise RuntimeError(
+                "AIMNet2 native batching requires a checkpoint with the "
+                f"validated {AIMNET2_PADDED_PER_MOLECULE_LAYOUT!r} schema"
+            )
         energy_vec = energy_out.reshape(-1)
-        if energy_vec.numel() in (batch_size + 1, n_atoms_total + 1):
-            energy_vec = energy_vec[:-1]
-
-        if energy_vec.numel() == batch_size:
-            return energy_vec
-        if energy_vec.numel() == n_atoms_total:
-            return torch.zeros(
-                batch_size,
-                dtype=energy_vec.dtype,
-                device=energy_vec.device,
-            ).scatter_add(0, mol_idx.to(torch.long), energy_vec)
-
-        raise RuntimeError(f"Unexpected AIMNet2 energy shape {tuple(energy_out.shape)}")
+        expected = batch_size + 1
+        if energy_vec.numel() != expected:
+            raise RuntimeError(
+                "AIMNet2 checkpoint must return the padded per-molecule energy "
+                f"layout with {expected} entries for batch size {batch_size}; "
+                f"got shape {tuple(energy_out.shape)} ({energy_vec.numel()} entries)"
+            )
+        if not bool(torch.isfinite(energy_vec).all().item()):
+            raise FloatingPointError(
+                "AIMNet2 returned non-finite padded per-molecule energies"
+            )
+        return energy_vec[:-1]
 
     def _build_data(self, coord: torch.Tensor, atoms) -> Dict[str, torch.Tensor]:
         Z = torch.tensor(atoms.get_atomic_numbers(), dtype=torch.int32, device=self.device)

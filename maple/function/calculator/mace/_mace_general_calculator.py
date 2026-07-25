@@ -226,7 +226,10 @@ class MACEModelCalculator(CalcABC):
                 counts,
             )
 
-        return BatchResult(energies=energies, forces=forces_list)
+        return BatchResult(
+            energies=energies,
+            forces=forces_list,
+        ).validate_against(atoms_list, request)
 
     def _analytic_hessian(self, atoms) -> np.ndarray:
         """Analytic Hessian via autograd. Returns (3N, 3N) np.ndarray in Hartree/Å²."""

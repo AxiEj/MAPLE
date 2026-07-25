@@ -89,6 +89,44 @@ PBC boundary:
 - AIMNet2 `coulomb_method=ewald` is disabled until validated cell/PBC/MIC inputs and reference tests exist; use `simple` or `dsf`.
 - UMA stress/virial requests are rejected until MAPLE validates stress-unit conversion.
 
+### Batch acceleration contract
+
+Batching is an optional evaluation-layer acceleration. It does not change the
+model, energy/force units, path equations, convergence thresholds, or
+single-structure calculator behavior.
+
+- Native batching is used only when all structures share one calculator,
+  carry no unsupported constraints/PBC/solvent state, and the backend declares
+  `supports_batch_energy_forces=True`. Unsupported cases use the validated
+  single-structure path with the ASE calculator cache restored afterward.
+- Every batch result is checked for requested fields, batch cardinality,
+  per-structure atom shapes, exact integer padding, and finite E/F/H values.
+  Unknown properties and ambiguous checkpoint output layouts fail instead of
+  being truncated or guessed.
+- ANI batches identical atomic-number sequences; D4, implicit solvent, and PBC
+  remain sequential. AIMNet2 batching accepts the padded per-molecule output
+  contract only when the checkpoint SHA256 matches the validated packaged
+  `aimnet2.pt`/`aimnet2nse.pt` identities; custom or changed checkpoints remain
+  sequential. MACE-OFF and MACE-O-MOL use disconnected no-PBC graphs;
+  MACE-Polar stays sequential. UMA native batching is limited to neutral
+  closed-shell molecular inputs; charged/open-shell inputs retain the
+  single-structure FAIR-Chem path.
+- `batch_size`, `path_batch_size`, and `scan_batch_size` bound evaluation
+  chunks. `auto` never rounds above its memory estimate; rigid scans flush
+  bounded chunks instead of retaining the full grid of `Atoms` objects.
+- Multi-structure optimization invokes the new BatchLBFGS path explicitly by
+  supplying multiple structures. It rejects constraints/empty structures,
+  rejects non-finite search state, applies per-structure Armijo backtracking
+  plus step clipping, records failure status by original structure index, and
+  does not write `_opt.xyz` for non-finite, rejected-step, or max-iteration
+  failures. The generic ASE-compatible adapter still crosses a CPU NumPy
+  boundary; this is a compatibility path rather than an end-to-end GPU claim.
+
+Batch evaluation does not certify a transition state. NEB/PRFO convergence
+produces a TS candidate; production first-order-saddle claims still require an
+independent frequency check (exactly one imaginary mode) and forward/reverse
+IRC endpoint validation.
+
 ## Quick Start
 
 ### Command Line

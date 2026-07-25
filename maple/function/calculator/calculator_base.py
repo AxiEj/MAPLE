@@ -296,8 +296,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
     auto_path_batch_cap: int | None = None
     auto_fd_batch_cap: int | None = None
     auto_hvp_batch_cap: int | None = None
-    fd_hessian_antisymmetry_threshold: float | None = 1e-5
-    fd_hessian_antisymmetry_action: str = "warn"
+    # Golden ANI/AIMNet2 FD probes stay below 5e-5 relative residual. Values
+    # above 1e-4 fail closed instead of being silently symmetrized.
+    fd_hessian_antisymmetry_threshold: float | None = 1e-4
+    fd_hessian_antisymmetry_action: str = "raise"
     fd_context_mode: str = "safe"
 
     def __init__(self):

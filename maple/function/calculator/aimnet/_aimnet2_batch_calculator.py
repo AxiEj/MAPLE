@@ -11,6 +11,11 @@ from typing import List
 from ase import Atoms
 import numpy as np
 
+from ._aimnet2_calculator import (
+    AIMNET2_PADDED_PER_MOLECULE_LAYOUT,
+    identify_aimnet2_batch_layout,
+)
+
 EH2EV = 27.211386245988
 
 
@@ -61,10 +66,32 @@ class AIMNet2BatchCalc:
     AIMNet2 batch calculator.
     """
 
-    def __init__(self, model_path: str = None, device: str = "cuda", cutoff: float = 5.0,
-                 dtype: torch.dtype = torch.float64, model=None):
+    def __init__(
+        self,
+        model_path: str = None,
+        device: str = "cuda",
+        cutoff: float = 5.0,
+        dtype: torch.dtype = torch.float64,
+        model=None,
+        batch_energy_layout: str | None = None,
+    ):
         self.device = torch.device(device)
         self.dtype  = dtype
+        if model_path is not None:
+            identified_layout = identify_aimnet2_batch_layout(model_path)
+            if batch_energy_layout is None:
+                batch_energy_layout = identified_layout
+            elif batch_energy_layout != identified_layout:
+                raise ValueError(
+                    "Explicit AIMNet2 batch schema does not match the "
+                    "checkpoint SHA256 identity"
+                )
+        if batch_energy_layout != AIMNET2_PADDED_PER_MOLECULE_LAYOUT:
+            raise NotImplementedError(
+                "AIMNet2BatchCalc requires a checkpoint with the validated "
+                f"{AIMNET2_PADDED_PER_MOLECULE_LAYOUT!r} output schema"
+            )
+        self.batch_energy_layout = batch_energy_layout
         if model is not None:
             self.model = model
         elif model_path is not None:
@@ -104,6 +131,11 @@ class AIMNet2BatchCalc:
                 "AIMNet2BatchCalc does not support implicit solvation; "
                 "remove #solv(...) or run structures one at a time."
             )
+        if not getattr(calc, "supports_batch_energy_forces", False):
+            raise NotImplementedError(
+                "AIMNet2 native optimization batching is disabled for an "
+                "unrecognized checkpoint; run structures one at a time."
+            )
         coulomb_method = getattr(calc, "_coulomb_method", "simple")
         if coulomb_method != "simple":
             # The batch forward reuses the short-range neighbor list as
@@ -113,8 +145,13 @@ class AIMNet2BatchCalc:
                 f"AIMNet2BatchCalc only supports coulomb_method='simple'; "
                 f"got '{coulomb_method}'. Run structures one at a time."
             )
-        return cls(model=calc.model, device=calc.device,
-                   cutoff=calc.cutoff, dtype=dtype)
+        return cls(
+            model=calc.model,
+            device=calc.device,
+            cutoff=calc.cutoff,
+            dtype=dtype,
+            batch_energy_layout=getattr(calc, "_batch_energy_layout", None),
+        )
 
     # -------------------------------------------------------------------------
     # prepare() modified to accept fixed_nmax
@@ -135,6 +172,8 @@ class AIMNet2BatchCalc:
                 "periodic backend for periodic systems."
             )
 
+        if any(len(at) == 0 for at in atoms_list):
+            raise ValueError("AIMNet2BatchCalc does not support empty structures.")
         self._atoms_B = len(atoms_list)
         self._ptr     = _ptr_from_atoms(atoms_list, device)
 
@@ -179,6 +218,10 @@ class AIMNet2BatchCalc:
         if self.N_atoms > 0:
             pos_list = [torch.tensor(at.get_positions(), dtype=dtype) for at in atoms_list]
             coord0   = torch.cat(pos_list, dim=0)
+            if not bool(torch.isfinite(coord0).all().item()):
+                raise ValueError(
+                    "AIMNet2BatchCalc input coordinates must be finite."
+                )
         else:
             coord0   = torch.zeros((0, 3), dtype=dtype)
 
@@ -208,18 +251,26 @@ class AIMNet2BatchCalc:
         """
         s_cart: (B, nmax_dof). MUST match self.nmax_dof (PRFO padded).
         """
-        assert self._prepared, "call prepare() first"
+        if not self._prepared:
+            raise RuntimeError("call prepare() before step_cart_()")
 
         B = self._atoms_B
 
         # ---------------------------- MODIFICATION ----------------------------
         # PRFO enforces a fixed padded DOF; here we enforce the same.
         # ----------------------------------------------------------------------
-        assert s_cart.shape == (B, self.nmax_dof), \
-            f"step_cart_ expects (B,{self.nmax_dof}), got {tuple(s_cart.shape)}"
+        expected = (B, self.nmax_dof)
+        if tuple(s_cart.shape) != expected:
+            raise ValueError(
+                f"step_cart_ expects {expected}, got {tuple(s_cart.shape)}"
+            )
         # ----------------------------------------------------------------------
 
         s_cart = s_cart.to(self.device, dtype=self.dtype)
+        if not bool(torch.isfinite(s_cart).all().item()):
+            raise FloatingPointError(
+                "AIMNet2BatchCalc received a non-finite Cartesian step."
+            )
         s = self._ptr[:-1]
         t = self._ptr[1:]
         for i in range(B):
@@ -229,9 +280,17 @@ class AIMNet2BatchCalc:
 
     @torch.no_grad()
     def set_coords_(self, coord: torch.Tensor):
-        assert self._prepared, "call prepare() first"
-        assert coord.shape == (self.N_atoms, 3)
-        self.coord.copy_(coord.to(self.device, dtype=self.dtype))
+        if not self._prepared:
+            raise RuntimeError("call prepare() before set_coords_()")
+        expected = (self.N_atoms, 3)
+        if tuple(coord.shape) != expected:
+            raise ValueError(f"set_coords_ expects {expected}, got {tuple(coord.shape)}")
+        coord = coord.to(self.device, dtype=self.dtype)
+        if not bool(torch.isfinite(coord).all().item()):
+            raise FloatingPointError(
+                "AIMNet2BatchCalc received non-finite coordinates."
+            )
+        self.coord.copy_(coord)
 
     @torch.no_grad()
     def backup_coords(self):
@@ -248,10 +307,10 @@ class AIMNet2BatchCalc:
     # forward (unchanged)
     # -------------------------------------------------------------------------
     def _forward_energy_forces_(self, c: torch.Tensor, need_graph: bool):
-        assert self._prepared, "call prepare() first"
+        if not self._prepared:
+            raise RuntimeError("call prepare() before evaluating energy/forces")
         device, dtype = self.device, self.dtype
         B = self._atoms_B
-        N = self.N_atoms
 
         coord_leaf = c.detach().to(device=device, dtype=dtype).requires_grad_(True)
         nbmat = nblist_dense_padded_multi(coord_leaf, self.mol_idx, self.cutoff)
@@ -269,19 +328,28 @@ class AIMNet2BatchCalc:
             out = self.model(data)
 
         e_vec = out["energy"].to(dtype).reshape(-1)
-        if e_vec.numel() == N + 1 or e_vec.numel() == B + 1:
-            e_vec = e_vec[:-1]
-
-        if e_vec.numel() == B:
-            E_eV = e_vec
-        elif e_vec.numel() == N:
-            E_eV = torch.bincount(self.mol_idx, weights=e_vec, minlength=B).to(dtype)
-        else:
-            raise RuntimeError(f"Unexpected energy shape {tuple(e_vec.shape)}")
+        if self.batch_energy_layout != AIMNET2_PADDED_PER_MOLECULE_LAYOUT:
+            raise RuntimeError(
+                "AIMNet2 batch output schema is not validated for this checkpoint"
+            )
+        expected = B + 1
+        if e_vec.numel() != expected:
+            raise RuntimeError(
+                "AIMNet2 checkpoint must return the padded per-molecule energy "
+                f"layout with {expected} entries for batch size {B}; "
+                f"got {e_vec.numel()} entries"
+            )
+        if not bool(torch.isfinite(e_vec).all().item()):
+            raise FloatingPointError(
+                "AIMNet2 returned non-finite padded per-molecule energies"
+            )
+        E_eV = e_vec[:-1]
 
         grad = torch.autograd.grad(E_eV.sum(), coord_leaf,
                                    create_graph=need_graph, retain_graph=need_graph)[0]
         F_all_eV = -grad
+        if not bool(torch.isfinite(F_all_eV).all().item()):
+            raise FloatingPointError("AIMNet2 returned non-finite forces")
 
         return E_eV, F_all_eV, coord_leaf
 
@@ -306,7 +374,16 @@ class AIMNet2BatchCalc:
             if ni > 0:
                 F_eV[i, :3*ni] = F_all_eV[s[i]:t[i], :].reshape(-1)
 
-        return E_eV / EH2EV, F_eV / EH2EV
+        energies = E_eV / EH2EV
+        forces = F_eV / EH2EV
+        if (
+            not bool(torch.isfinite(energies).all().item())
+            or not bool(torch.isfinite(forces).all().item())
+        ):
+            raise FloatingPointError(
+                "AIMNet2BatchCalc produced non-finite energies or forces."
+            )
+        return energies, forces
 
     def get_efh_gpu(self):
         B = self._atoms_B
@@ -342,7 +419,15 @@ class AIMNet2BatchCalc:
                 F_eV[i, :dof]       = F_all_eV[s[i]:t[i], :].reshape(-1)
                 H_eV[i, :dof, :dof] = H_global_eV[3*s[i]:3*t[i], 3*s[i]:3*t[i]]
 
-        return (E_eV / EH2EV,
-                F_eV / EH2EV,
-                H_eV / EH2EV,
-                P)
+        energies = E_eV / EH2EV
+        forces = F_eV / EH2EV
+        hessians = H_eV / EH2EV
+        if (
+            not bool(torch.isfinite(energies).all().item())
+            or not bool(torch.isfinite(forces).all().item())
+            or not bool(torch.isfinite(hessians).all().item())
+        ):
+            raise FloatingPointError(
+                "AIMNet2BatchCalc produced non-finite energies, forces, or Hessians."
+            )
+        return energies, forces, hessians, P

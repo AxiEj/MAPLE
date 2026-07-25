@@ -42,6 +42,7 @@ class ANICalculator(CalcABC):
     MODEL_PATH_OPTION = 'model_path'
     supports_batch_energy_forces = True
     supports_analytic_hessian = True
+    supports_hvp = True
     batch_memory_model = 'dense_same_shape'
     auto_path_batch_cap = 8
 
@@ -152,7 +153,7 @@ class ANICalculator(CalcABC):
         if self.d4 or getattr(self, 'solvent_correction', None) is not None:
             return sequential_calculate_many(self, atoms_list, request, want_energy, want_forces)
 
-        energies = np.empty(len(atoms_list), dtype=np.float64) if want_energy else None
+        energies = np.zeros(len(atoms_list), dtype=np.float64) if want_energy else None
         forces_out = [None] * len(atoms_list) if want_forces else None
 
         for numbers, indices in grouped_indices_by_numbers(atoms_list):
@@ -178,17 +179,43 @@ class ANICalculator(CalcABC):
                     energy_vec = self.model(species, coordinates)[0].reshape(-1)
                 force_tensor = None
 
+            expected_group = len(group_atoms)
+            if energy_vec.numel() != expected_group:
+                raise RuntimeError(
+                    "ANI energy output has the wrong number of entries: "
+                    f"expected {expected_group}, got {energy_vec.numel()}"
+                )
+            if not bool(torch.isfinite(energy_vec).all().item()):
+                raise FloatingPointError("ANI returned non-finite batched energies")
+
             if want_energy:
                 energy_np = energy_vec.detach().cpu().numpy().astype(np.float64)
-                for out_i, val in zip(indices, energy_np):
-                    energies[out_i] = float(val)
+                energies[np.asarray(indices, dtype=np.int64)] = energy_np
 
             if want_forces:
+                expected_force_shape = (
+                    expected_group,
+                    len(numbers),
+                    3,
+                )
+                if tuple(force_tensor.shape) != expected_force_shape:
+                    raise RuntimeError(
+                        "ANI force output has the wrong shape: "
+                        f"expected {expected_force_shape}, "
+                        f"got {tuple(force_tensor.shape)}"
+                    )
+                if not bool(torch.isfinite(force_tensor).all().item()):
+                    raise FloatingPointError(
+                        "ANI returned non-finite batched forces"
+                    )
                 force_np = force_tensor.detach().cpu().numpy().astype(np.float64)
-                for out_i, val in zip(indices, force_np):
-                    forces_out[out_i] = val
+                for local_i, out_i in enumerate(indices):
+                    forces_out[out_i] = force_np[local_i]
 
-        return BatchResult(energies=energies, forces=forces_out)
+        return BatchResult(
+            energies=energies,
+            forces=forces_out,
+        ).validate_against(atoms_list, request)
 
     def _forward_energy(self, atoms, coordinates):
         import torch
@@ -248,8 +275,30 @@ class ANICalculator(CalcABC):
 
         import torch
 
+        n_array = np.asarray(n, dtype=np.float64).reshape(-1)
+        expected_size = 3 * len(atoms)
+        if expected_size == 0:
+            raise ValueError("ANI HVP does not support empty structures")
+        if n_array.size != expected_size:
+            raise ValueError(
+                f"ANI HVP direction must contain exactly {expected_size} "
+                f"Cartesian components, got {n_array.size}"
+            )
+        if not np.all(np.isfinite(n_array)):
+            raise ValueError("ANI HVP direction must contain only finite values")
+        if np.linalg.norm(n_array) == 0.0:
+            raise ValueError("ANI HVP direction must be non-zero")
+        if bool(np.any(getattr(atoms, "pbc", False))):
+            raise NotImplementedError("ANI HVP does not support periodic structures")
+
+        positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+        if positions.shape != (len(atoms), 3) or not np.all(np.isfinite(positions)):
+            raise ValueError(
+                "ANI HVP input coordinates must have shape (N, 3) and be finite"
+            )
+
         coords = torch.tensor(
-            atoms.get_positions(),
+            positions,
             dtype=self.dtype,
             device=self.device,
             requires_grad=True,
@@ -263,14 +312,31 @@ class ANICalculator(CalcABC):
         energy = self.model(species, coords)[0]
         if self.d4:
             energy = energy + self.dftd4(species, coords)
+        if energy.numel() != 1 or not bool(torch.isfinite(energy).all().item()):
+            raise FloatingPointError(
+                "ANI HVP model must return one finite scalar energy"
+            )
 
         grad = torch.autograd.grad(energy, coords, create_graph=True)[0].squeeze(0)
         grad_vec = grad.view(-1)
 
-        n_tensor = torch.tensor(n, dtype=self.dtype, device=self.device)
+        n_tensor = torch.tensor(n_array, dtype=self.dtype, device=self.device)
         hvp = torch.autograd.grad(
             grad_vec @ n_tensor, coords, retain_graph=True
         )[0].squeeze(0).view(-1)
 
         forces = -grad_vec
+        if hvp.numel() != expected_size or forces.numel() != expected_size:
+            raise RuntimeError(
+                "ANI HVP returned an invalid vector size: "
+                f"Hn={hvp.numel()}, forces={forces.numel()}, "
+                f"expected={expected_size}"
+            )
+        if (
+            not bool(torch.isfinite(hvp).all().item())
+            or not bool(torch.isfinite(forces).all().item())
+        ):
+            raise FloatingPointError(
+                "ANI HVP returned non-finite Hn or force values"
+            )
         return hvp, forces, energy

@@ -103,7 +103,7 @@ class Optimization(JobABC):
             "=" * 70 + "\n\n",
         ])
 
-        BatchLBFGS(
+        optimizer = BatchLBFGS(
             output=self.output,
             memory=params.memory,
             curvature=params.curvature,
@@ -111,7 +111,14 @@ class Optimization(JobABC):
             maxiter=params.max_iter,
             device=base_calc.device,
             verbose=params.verbose,
-        ).run(mols)
+        )
+        try:
+            optimizer.run(mols)
+        finally:
+            mols.optimization_status = tuple(optimizer.statuses)
+            mols.optimization_failure_details = tuple(
+                optimizer.failure_details
+            )
         return mols
 
 

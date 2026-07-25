@@ -7,6 +7,7 @@ Individual batches exit when converged (dynamic batch shrinking).
 
 from typing import List, Optional
 import os
+import operator
 import numpy as np
 import torch
 from ase import Atoms
@@ -14,6 +15,42 @@ from ase import Atoms
 from ._common import write_xyz
 
 DTYPE = torch.float64
+ARMIJO_C1 = 1e-4
+BACKTRACK_FACTOR = 0.5
+MAX_BACKTRACK_STEPS = 12
+ENERGY_ACCEPTANCE_ATOL = 1e-12
+
+
+class _BatchNonFiniteError(FloatingPointError):
+    """Internal marker for non-finite values already assigned by structure."""
+
+
+def _positive_int(value, name: str) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"{name} must be a positive integer, got {value!r}")
+    try:
+        value = operator.index(value)
+    except TypeError as exc:
+        raise ValueError(
+            f"{name} must be a positive integer, got {value!r}"
+        ) from exc
+    if value <= 0:
+        raise ValueError(f"{name} must be a positive integer, got {value!r}")
+    return value
+
+
+def _positive_finite_float(value, name: str) -> float:
+    try:
+        value = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"{name} must be finite and positive, got {value!r}"
+        ) from exc
+    if not np.isfinite(value) or value <= 0.0:
+        raise ValueError(
+            f"{name} must be finite and positive, got {value!r}"
+        )
+    return value
 
 
 def _ptr_from_atoms(at_list, device):
@@ -61,13 +98,13 @@ class BatchLBFGS:
                  traj_every: int = 1,
                  verbose: int = 1):
         
-        self.memory = memory
-        self.curvature = curvature
-        self.maxstep = maxstep
-        self.maxiter = maxiter
+        self.memory = _positive_int(memory, "memory")
+        self.curvature = _positive_finite_float(curvature, "curvature")
+        self.maxstep = _positive_finite_float(maxstep, "maxstep")
+        self.maxiter = _positive_int(maxiter, "maxiter")
         self.device = torch.device(device)
         self.write_traj = write_traj
-        self.traj_every = traj_every
+        self.traj_every = _positive_int(traj_every, "traj_every")
         self.verbose = verbose
         
         self.output = os.path.abspath(output)
@@ -92,11 +129,13 @@ class BatchLBFGS:
         self.Y_history = []  # List of (B, nmax) tensors per history step
         self.rho_history = []  # List of (B,) tensors per history step
         self.history_valid = None  # (B, memory) mask indicating valid history slots
+        self.statuses = []
+        self.failure_details = []
 
     # ===================================================
     # PUBLIC RUN
     # ===================================================
-    def run(self, mols) -> None:
+    def run(self, mols) -> tuple[str, ...]:
         device = self.device
         atoms_list = list(mols.multiatoms)
         # Original structures in input order; positions are updated in place
@@ -106,7 +145,13 @@ class BatchLBFGS:
 
         B0 = len(atoms_list)
         if B0 == 0:
-            return
+            self.statuses = []
+            return ()
+        if any(len(at) == 0 for at in atoms_list):
+            raise ValueError("BatchLBFGS does not support empty structures.")
+        self._validate_convergence_thresholds(atoms_list)
+        self.statuses = ["running"] * B0
+        self.failure_details = []
 
         self._orig_index = torch.arange(B0, dtype=torch.long, device=device)
 
@@ -119,8 +164,31 @@ class BatchLBFGS:
         self._symbols_per_batch = _symbols_flat(atoms_list)
 
         # === First prepare to fix nmax ===
-        calc.prepare(atoms_list)
-        E0, F0 = calc.get_ef_gpu()
+        try:
+            calc.prepare(atoms_list)
+            E0, F0 = calc.get_ef_gpu()
+            self._validate_evaluation_shapes(E0, F0, B0, stage="initial evaluation")
+            self._require_finite("initial evaluation", energies=E0, forces=F0)
+        except _BatchNonFiniteError:
+            self._close_log()
+            raise
+        except FloatingPointError as exc:
+            self._mark_active_failure(
+                "failed_nonfinite",
+                "initial evaluation",
+                detail=f"{type(exc).__name__}: {exc}",
+                fields=("backend",),
+            )
+            self._close_log()
+            raise
+        except Exception as exc:
+            self._mark_active_failure(
+                "failed_backend",
+                "initial evaluation",
+                detail=f"{type(exc).__name__}: {exc}",
+            )
+            self._close_log()
+            raise
         self._nmax = int(F0.shape[1])
         self._arange_n = torch.arange(self._nmax, device=device)
 
@@ -153,20 +221,30 @@ class BatchLBFGS:
 
             # Compute L-BFGS search direction
             search_dir = self._two_loop_batched(g_cart)
+            self._require_finite(
+                "raw L-BFGS search direction",
+                search_direction=search_dir,
+            )
+            search_dir = self._safeguard_search_direction(
+                search_dir,
+                g_cart,
+            )
+            self._require_finite("search direction", search_direction=search_dir)
 
             # Clip step size
             step_cart = self._clip_step_batched(search_dir)
+            self._require_finite("Cartesian step", step=step_cart)
 
-            # Backup coordinates
-            calc.backup_coords()
-
-            # Take step
-            calc.step_cart_(step_cart)
-
-            # Evaluate new point
-            E_new, F_new = calc.get_ef_gpu()
-            E_new = E_new.to(dtype=DTYPE)
-            F_new = F_new.to(dtype=DTYPE)
+            # Accept a finite, energy-decreasing step independently for every
+            # active structure. Rejected rows are backtracked from the same
+            # coordinate snapshot; no trial geometry is accepted implicitly.
+            E_new, F_new, step_cart = self._evaluate_accepted_step(
+                calc,
+                step_cart,
+                E_old,
+                g_cart,
+                iteration,
+            )
             g_new = -F_new * real_mask.to(DTYPE)
 
             # Update L-BFGS history
@@ -190,6 +268,8 @@ class BatchLBFGS:
             )
 
             final_E[self._orig_index] = E_new
+            for original_index in self._orig_index[done].detach().cpu().tolist():
+                self.statuses[int(original_index)] = "converged"
 
             # Dynamic batch shrinking
             survive_local = (~done).nonzero(as_tuple=False).flatten()
@@ -203,7 +283,16 @@ class BatchLBFGS:
                 self._shrink_history(survive_local)
 
                 if atoms_list:
-                    calc.prepare(atoms_list, fixed_nmax=self._nmax)
+                    try:
+                        calc.prepare(atoms_list, fixed_nmax=self._nmax)
+                    except Exception as exc:
+                        self._mark_active_failure(
+                            "failed_backend",
+                            f"iteration {iteration} batch shrink",
+                            detail=f"{type(exc).__name__}: {exc}",
+                        )
+                        self._close_log()
+                        raise
                     self._rebuild_topology(atoms_list)
 
                 # Update old values
@@ -224,13 +313,276 @@ class BatchLBFGS:
         # final coordinates of any still-unconverged structures back too.
         if len(atoms_list) > 0:
             self._sync_atoms_from_calc(calc, atoms_list)
+            for original_index in self._orig_index.detach().cpu().tolist():
+                self.statuses[int(original_index)] = "maxiter"
+
+            failed_file = (
+                os.path.splitext(self.output)[0] + "_opt_unconverged.xyz"
+            )
+            write_xyz(
+                failed_file,
+                atoms_all,
+                energies=final_E.detach().cpu().tolist(),
+            )
+            self._w(
+                "\n# Unconverged diagnostic frames written to "
+                f"{failed_file}\n"
+            )
+            self._w(f"# Per-structure status: {self.statuses}\n")
+            self._close_log()
+            raise RuntimeError(
+                "BatchLBFGS reached maxiter with unconverged structures; "
+                f"no production _opt.xyz was written. Diagnostic: {failed_file}"
+            )
 
         # Final geometries, matching the single-structure _opt.xyz convention.
         opt_file = os.path.splitext(self.output)[0] + "_opt.xyz"
         write_xyz(opt_file, atoms_all, energies=final_E.detach().cpu().tolist())
         self._w(f"\n# Final frames written to {opt_file}\n")
+        self._w(f"# Per-structure status: {self.statuses}\n")
 
         self._close_log()
+        return tuple(self.statuses)
+
+    def _require_finite(self, stage: str, **named_tensors) -> None:
+        """Fail before non-finite optimizer state can be propagated or written."""
+        invalid_by_index = {}
+        active_count = (
+            int(self._orig_index.numel())
+            if self._orig_index is not None
+            else 0
+        )
+        for name, tensor in named_tensors.items():
+            tensor = torch.as_tensor(tensor)
+            finite = torch.isfinite(tensor)
+            if bool(finite.all().item()):
+                continue
+            if tensor.ndim >= 1 and tensor.shape[0] == active_count:
+                invalid_rows = ~finite.reshape(active_count, -1).all(dim=1)
+            else:
+                invalid_rows = torch.ones(
+                    active_count,
+                    dtype=torch.bool,
+                    device=self.device,
+                )
+            for local_index in invalid_rows.nonzero(as_tuple=False).flatten().tolist():
+                original_index = int(self._orig_index[local_index].item())
+                invalid_by_index.setdefault(original_index, []).append(name)
+
+        if not invalid_by_index:
+            return
+
+        details = "; ".join(
+            f"structure {index}: {','.join(fields)}"
+            for index, fields in sorted(invalid_by_index.items())
+        )
+        message = f"BatchLBFGS {stage} produced non-finite values ({details})"
+        for original_index, fields in invalid_by_index.items():
+            self.statuses[original_index] = "failed_nonfinite"
+            self.failure_details.append(
+                {
+                    "index": original_index,
+                    "status": "failed_nonfinite",
+                    "stage": stage,
+                    "fields": tuple(fields),
+                }
+            )
+        self._w(f"\n# ERROR: {message}\n")
+        self._w(f"# Per-structure status: {self.statuses}\n")
+        self._close_log()
+        raise _BatchNonFiniteError(message)
+
+    def _mark_active_failure(
+        self,
+        status: str,
+        stage: str,
+        *,
+        detail: str,
+        fields: tuple[str, ...] | None = None,
+    ) -> None:
+        if self._orig_index is None:
+            return
+        for original_index in self._orig_index.detach().cpu().tolist():
+            index = int(original_index)
+            if self.statuses[index] == "running":
+                self.statuses[index] = status
+                failure_detail = {
+                    "index": index,
+                    "status": status,
+                    "stage": stage,
+                    "detail": detail,
+                }
+                if fields is not None:
+                    failure_detail["fields"] = fields
+                self.failure_details.append(failure_detail)
+        self._w(f"\n# ERROR: BatchLBFGS {stage}: {detail}\n")
+        self._w(f"# Per-structure status: {self.statuses}\n")
+
+    def _validate_evaluation_shapes(
+        self,
+        energies: torch.Tensor,
+        forces: torch.Tensor,
+        batch_size: int,
+        *,
+        stage: str,
+    ) -> None:
+        energy_shape = tuple(torch.as_tensor(energies).shape)
+        force_shape = tuple(torch.as_tensor(forces).shape)
+        if energy_shape != (batch_size,):
+            raise ValueError(
+                f"BatchLBFGS {stage} energy shape is {energy_shape}, "
+                f"expected {(batch_size,)}"
+            )
+        if len(force_shape) != 2 or force_shape[0] != batch_size:
+            raise ValueError(
+                f"BatchLBFGS {stage} force shape is {force_shape}, "
+                f"expected ({batch_size}, nmax)"
+            )
+        if self._nmax:
+            expected_force_shape = (batch_size, self._nmax)
+        else:
+            expected_force_shape = force_shape
+        if self._nmax and force_shape != expected_force_shape:
+            raise ValueError(
+                f"BatchLBFGS {stage} force shape is {force_shape}, "
+                f"expected {expected_force_shape}"
+            )
+
+    def _evaluate_accepted_step(
+        self,
+        calc,
+        proposed_step: torch.Tensor,
+        old_energy: torch.Tensor,
+        gradient: torch.Tensor,
+        iteration: int,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Backtrack rejected structures until every active row is accepted."""
+        base_coord = _get_coord_gpu(calc).detach().clone()
+        batch_size = proposed_step.shape[0]
+        scales = torch.ones(batch_size, dtype=DTYPE, device=self.device)
+        rejected = torch.ones(batch_size, dtype=torch.bool, device=self.device)
+        nonfinite_rows = torch.zeros_like(rejected)
+        nonfinite_energy_rows = torch.zeros_like(rejected)
+        nonfinite_force_rows = torch.zeros_like(rejected)
+
+        for attempt in range(MAX_BACKTRACK_STEPS + 1):
+            with torch.no_grad():
+                _get_coord_gpu(calc).copy_(base_coord)
+            trial_step = proposed_step * scales.unsqueeze(-1)
+            try:
+                calc.step_cart_(trial_step)
+                trial_energy, trial_forces = calc.get_ef_gpu()
+                self._validate_evaluation_shapes(
+                    trial_energy,
+                    trial_forces,
+                    batch_size,
+                    stage=f"iteration {iteration} trial {attempt}",
+                )
+                trial_energy = trial_energy.to(dtype=DTYPE)
+                trial_forces = trial_forces.to(dtype=DTYPE)
+            except FloatingPointError as exc:
+                with torch.no_grad():
+                    _get_coord_gpu(calc).copy_(base_coord)
+                self._mark_active_failure(
+                    "failed_nonfinite",
+                    f"iteration {iteration} trial {attempt}",
+                    detail=f"{type(exc).__name__}: {exc}",
+                    fields=("backend",),
+                )
+                self._close_log()
+                raise
+            except Exception as exc:
+                with torch.no_grad():
+                    _get_coord_gpu(calc).copy_(base_coord)
+                self._mark_active_failure(
+                    "failed_backend",
+                    f"iteration {iteration} trial {attempt}",
+                    detail=f"{type(exc).__name__}: {exc}",
+                )
+                self._close_log()
+                raise
+
+            nonfinite_energy_rows = ~torch.isfinite(trial_energy)
+            nonfinite_force_rows = ~torch.isfinite(trial_forces).all(dim=1)
+            nonfinite_rows = nonfinite_energy_rows | nonfinite_force_rows
+            directional = (gradient * trial_step).sum(dim=-1)
+            armijo_bound = (
+                old_energy
+                + ARMIJO_C1 * directional
+                + ENERGY_ACCEPTANCE_ATOL
+            )
+            rejected = nonfinite_rows | (trial_energy > armijo_bound)
+            if not bool(rejected.any().item()):
+                return trial_energy, trial_forces, trial_step
+
+            if attempt < MAX_BACKTRACK_STEPS:
+                scales = torch.where(
+                    rejected,
+                    scales * BACKTRACK_FACTOR,
+                    scales,
+                )
+
+        with torch.no_grad():
+            _get_coord_gpu(calc).copy_(base_coord)
+
+        failed = []
+        for local_index in rejected.nonzero(as_tuple=False).flatten().tolist():
+            original_index = int(self._orig_index[local_index].item())
+            status = (
+                "failed_nonfinite"
+                if bool(nonfinite_rows[local_index].item())
+                else "failed_line_search"
+            )
+            self.statuses[original_index] = status
+            detail = {
+                "index": original_index,
+                "status": status,
+                "stage": f"iteration {iteration} line search",
+                "attempts": MAX_BACKTRACK_STEPS + 1,
+            }
+            if status == "failed_nonfinite":
+                fields = []
+                if bool(nonfinite_energy_rows[local_index].item()):
+                    fields.append("energies")
+                if bool(nonfinite_force_rows[local_index].item()):
+                    fields.append("forces")
+                detail["fields"] = tuple(fields)
+            self.failure_details.append(detail)
+            failed.append(f"{original_index}:{status}")
+
+        message = (
+            "BatchLBFGS could not accept a finite energy-decreasing step for "
+            f"structures {', '.join(failed)} after "
+            f"{MAX_BACKTRACK_STEPS + 1} attempts"
+        )
+        self._w(f"\n# ERROR: {message}\n")
+        self._w(f"# Per-structure status: {self.statuses}\n")
+        self._close_log()
+        raise RuntimeError(message)
+
+    @staticmethod
+    def _validate_convergence_thresholds(atoms_list) -> None:
+        defaults = {
+            "f_max_th": 2e-3,
+            "f_rms_th": 1e-3,
+            "dp_max_th": 1e-3,
+            "dp_rms_th": 5e-4,
+        }
+        for index, atoms in enumerate(atoms_list):
+            for name, default in defaults.items():
+                value = getattr(atoms, name, default)
+                try:
+                    value = float(value)
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(
+                        f"Structure {index} {name} must be finite and positive, "
+                        f"got {value!r}"
+                    ) from exc
+                if not np.isfinite(value) or value <= 0.0:
+                    raise ValueError(
+                        f"Structure {index} {name} must be finite and positive, "
+                        f"got {value!r}"
+                    )
 
     # ===================================================
     # L-BFGS TWO-LOOP RECURSION (BATCHED)
@@ -308,6 +660,17 @@ class BatchLBFGS:
     # ===================================================
     # STEP CLIPPING
     # ===================================================
+    def _safeguard_search_direction(
+        self,
+        direction: torch.Tensor,
+        gradient: torch.Tensor,
+    ) -> torch.Tensor:
+        """Use steepest descent only for finite but non-downhill directions."""
+        directional_derivative = (direction * gradient).sum(dim=-1)
+        invalid = directional_derivative >= 0.0
+        fallback = -(1.0 / self.curvature) * gradient
+        return torch.where(invalid.unsqueeze(-1), fallback, direction)
+
     def _clip_step_batched(self, step: torch.Tensor) -> torch.Tensor:
         """
         Clip step size per batch to maxstep.

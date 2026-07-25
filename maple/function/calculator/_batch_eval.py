@@ -40,7 +40,7 @@ from ._batch_utils import (
 
 AUTO_BATCH_SIZE = "auto"
 AUTO_BATCH_TARGET_FRACTION = 0.75
-FD_HESSIAN_ANTISYMMETRY_THRESHOLD = 1e-5
+FD_HESSIAN_ANTISYMMETRY_THRESHOLD = 1e-4
 
 
 def _calculate_many_nonperiodic_batch_only(calc, atoms_list, properties) -> BatchResult:
@@ -63,7 +63,13 @@ def _calculate_many_nonperiodic_batch_only(calc, atoms_list, properties) -> Batc
         return sequential_calculate_many(
             calc, atoms_list, request, want_energy, want_forces
         )
-    return calc.calculate_many(atoms_list, properties=properties)
+    result = calc.calculate_many(atoms_list, properties=properties)
+    if not isinstance(result, BatchResult):
+        raise TypeError(
+            f"{type(calc).__name__}.calculate_many() must return BatchResult, "
+            f"got {type(result).__name__}"
+        )
+    return result.validate_against(atoms_list, properties)
 
 
 def shared_calculator(atoms_list: Sequence[Atoms]):
@@ -102,12 +108,10 @@ def energy_forces_one(calc, atoms: Atoms, force_consistent: bool = True
                       ) -> Tuple[float, np.ndarray]:
     """One calculator invocation returning ``(energy, forces)``.
 
-    Equivalent to ``atoms.get_potential_energy() + atoms.get_forces()`` but
-    asks the calculator for both properties in a single ``calculate(...)``
-    call. This guarantees one calculator invocation for unconstrained
-    structures; when ASE constraints are present, the same constraint
-    projections/energy adjustments as the public ASE accessors are applied to
-    the returned values.
+    Ask the calculator for both properties in one ``calculate(...)`` call.
+    MAPLE calculators expose ``free_energy`` together with ``energy``; generic
+    ASE calculators that omit it use ``energy``. Constraint adjustments are
+    applied through the same public constraint hooks used by ASE.
 
     Returns
     -------
@@ -126,12 +130,23 @@ def energy_forces_one(calc, atoms: Atoms, force_consistent: bool = True
     else:
         energy = float(calc.results["energy"])
     forces = np.array(calc.results["forces"], dtype=np.float64, copy=True)
-
+    expected_force_shape = (len(atoms), 3)
+    if forces.shape != expected_force_shape:
+        raise ValueError(
+            "Calculator returned an invalid force shape: "
+            f"got {forces.shape}, expected {expected_force_shape}"
+        )
     for constraint in getattr(atoms, "constraints", ()):
         if hasattr(constraint, "adjust_potential_energy"):
             energy += float(constraint.adjust_potential_energy(atoms))
         if hasattr(constraint, "adjust_forces"):
             constraint.adjust_forces(atoms, forces)
+    if not np.isfinite(energy):
+        raise FloatingPointError(
+            f"Calculator returned a non-finite energy: {energy!r}"
+        )
+    if not np.all(np.isfinite(forces)):
+        raise FloatingPointError("Calculator returned non-finite forces")
     return energy, forces
 
 
@@ -311,11 +326,9 @@ def _estimate_auto_batch_size_from_item_bytes(
     if n_total <= 0:
         return 0
     if item_bytes <= 0 or free_bytes <= 0:
-        return n_total
+        return 1
     target_bytes = max(1.0, float(free_bytes) * float(target_fraction))
     chunk = max(1, min(n_total, int(target_bytes // float(item_bytes))))
-    if chunk >= int(0.9 * n_total):
-        return n_total
     return chunk
 
 
@@ -368,8 +381,8 @@ class _AutoBatchSizer:
                     free_bytes=int(free_bytes),
                     target_fraction=_auto_batch_target_fraction(self.calc),
                 )
-            except Exception:
-                chunk = self.n_total
+            except (RuntimeError, TypeError, ValueError, OverflowError):
+                chunk = 1
         chunk = self._apply_math_cap(chunk)
         setattr(self.calc, "_auto_batch_size_last", chunk)
         return chunk
@@ -469,8 +482,6 @@ def _copy_with_positions(
 ) -> Atoms:
     at = template.copy()
     at.set_positions(positions, apply_constraint=apply_constraints)
-    if getattr(template, "constraints", None):
-        at.set_constraint(template.constraints)
     return at
 
 
@@ -567,8 +578,8 @@ class FDHessianEvaluator:
         self.fd_context_mode = fd_context_mode
 
     def hessian(self, atoms: Atoms, delta: float = 0.002) -> np.ndarray:
-        if delta <= 0.0:
-            raise ValueError(f"delta must be positive, got {delta!r}")
+        if not np.isfinite(delta) or delta <= 0.0:
+            raise ValueError(f"delta must be finite and positive, got {delta!r}")
         N = len(atoms)
         pos0 = atoms.get_positions().copy()
 
@@ -702,6 +713,11 @@ class FDHessianEvaluator:
                 "calculate_many returned a force array with invalid shape: "
                 f"forces[{index}].shape={arr.shape}, expected {(n_atoms, 3)}"
             )
+        if not np.all(np.isfinite(arr)):
+            raise ValueError(
+                "calculate_many returned a force array with non-finite values: "
+                f"forces[{index}]"
+            )
         return arr
 
     def _project_fixed_dofs(
@@ -750,9 +766,9 @@ class FDHessianEvaluator:
         if threshold is None:
             return None
         threshold = float(threshold)
-        if threshold < 0.0:
+        if not np.isfinite(threshold) or threshold < 0.0:
             raise ValueError(
-                "fd_hessian_antisymmetry_threshold must be non-negative "
+                "fd_hessian_antisymmetry_threshold must be finite and non-negative "
                 f"or None, got {threshold!r}"
             )
         return threshold
@@ -775,7 +791,7 @@ class FDHessianEvaluator:
             "matrix will be symmetrized only after this diagnostic is surfaced."
         )
         action = str(
-            getattr(self.calc, "fd_hessian_antisymmetry_action", "warn")
+            getattr(self.calc, "fd_hessian_antisymmetry_action", "raise")
         ).lower()
         if action == "ignore":
             return
@@ -979,8 +995,23 @@ class HVPEvaluator:
         n: np.ndarray,
         delta: float = 0.005,
     ) -> Tuple[np.ndarray, np.ndarray, float]:
+        if not np.isfinite(delta) or delta <= 0.0:
+            raise ValueError(f"delta must be finite and positive, got {delta!r}")
+
+        expected_size = 3 * len(atoms)
+        n_flat = np.asarray(n, dtype=np.float64).reshape(-1)
+        if n_flat.size != expected_size:
+            raise ValueError(
+                f"HVP direction must contain exactly {expected_size} Cartesian "
+                f"components, got {n_flat.size}"
+            )
+        if not np.all(np.isfinite(n_flat)):
+            raise ValueError("HVP direction must contain only finite values")
+        if np.linalg.norm(n_flat) == 0.0:
+            raise ValueError("HVP direction must be non-zero")
+
         if getattr(self.calc, "supports_hvp", False) and hasattr(self.calc, "get_hvp"):
-            Hn_t, F_t, E_t = self.calc.get_hvp(atoms, n)
+            Hn_t, F_t, E_t = self.calc.get_hvp(atoms, n_flat)
 
             def _to_np(t):
                 if hasattr(t, "detach"):
@@ -993,9 +1024,27 @@ class HVPEvaluator:
                 E = float(E_t.item())
             else:
                 E = float(E_t)
+            if Hn.size != expected_size:
+                raise ValueError(
+                    f"Analytic HVP returned {Hn.size} components, "
+                    f"expected {expected_size}"
+                )
+            if F.size != expected_size:
+                raise ValueError(
+                    f"Analytic HVP force returned {F.size} components, "
+                    f"expected {expected_size}"
+                )
+            if (
+                not np.all(np.isfinite(Hn))
+                or not np.all(np.isfinite(F))
+                or not np.isfinite(E)
+            ):
+                raise FloatingPointError(
+                    "Analytic HVP returned non-finite HVP, force, or energy values"
+                )
             return Hn, F, E
 
-        n_arr = np.asarray(n, dtype=np.float64).reshape(-1, 3)
+        n_arr = n_flat.reshape(-1, 3)
         pos0 = atoms.get_positions().copy()
         at_p = _copy_with_positions(atoms, pos0 + delta * n_arr)
         at_m = _copy_with_positions(atoms, pos0 - delta * n_arr)
@@ -1021,4 +1070,12 @@ class HVPEvaluator:
         # Match CalcABC.get_hvp: forces/energy are reported AT the unperturbed
         # geometry R, while Hn comes from the +-delta force pair.
         Hn = -(F_p - F_m) / (2.0 * delta)
+        if (
+            not np.all(np.isfinite(Hn))
+            or not np.all(np.isfinite(F_0))
+            or not np.isfinite(E_0)
+        ):
+            raise FloatingPointError(
+                "Finite-difference HVP returned non-finite HVP, force, or energy values"
+            )
         return Hn, F_0, E_0

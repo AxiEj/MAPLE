@@ -416,6 +416,11 @@ class UMACalculator(FAIRChemCalculator):
             or getattr(self, "solvent_correction", None) is not None
             or any(len(at) == 1 for at in atoms_list)
             or self._maple_inference_settings == "turbo"
+            or any(
+                self._integer_info(at, "charge", 0) != 0
+                or self._integer_info(at, "mult", 1) != 1
+                for at in atoms_list
+            )
         ):
             return sequential_calculate_many(
                 self, atoms_list, request, want_energy, want_forces
@@ -456,7 +461,10 @@ class UMACalculator(FAIRChemCalculator):
                 for i in range(len(atoms_list))
             ]
 
-        return BatchResult(energies=energies, forces=forces_list)
+        return BatchResult(
+            energies=energies,
+            forces=forces_list,
+        ).validate_against(atoms_list, request)
 
     def calculate(self, atoms, properties=None, system_changes=None):
         properties = reject_implicit_solvent_derivatives(self, properties)

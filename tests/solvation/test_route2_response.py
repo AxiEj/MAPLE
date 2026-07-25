@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from maple.function.calculator.extra_correction.implicit import route2_response
 from maple.function.calculator.extra_correction.implicit.route2_response import (
     NeutralDensityCoordinates,
     UnmixedDensityResidualLinearization,
@@ -215,3 +216,75 @@ def test_matrix_free_adjoint_solver_fails_closed_for_singular_operator():
             absolute_tolerance=0.0,
             max_iterations=2,
         )
+
+
+def test_adjoint_solver_uses_full_bounded_krylov_space(monkeypatch):
+    atom_count = 6
+    dimension = 4 * atom_count
+    identity = np.eye(dimension)
+    linearization = UnmixedDensityResidualLinearization(
+        atom_count=atom_count,
+        reaction_field=_MatrixLinearMap(identity, atom_count),
+        density_response=_MatrixDensityResponse(
+            np.zeros((dimension, dimension)),
+            atom_count,
+        ),
+    )
+    rhs = project_neutral_density_tangent(
+        np.arange(dimension, dtype=float).reshape(atom_count, 4)
+    )
+    captured = {}
+
+    def fake_gmres(
+        _operator,
+        reduced_rhs,
+        _x0=None,
+        *,
+        tol,
+        atol,
+        restart,
+        maxiter,
+        M=None,
+        callback=None,
+        callback_type=None,
+    ):
+        captured.update(
+            {
+                "tol": tol,
+                "atol": atol,
+                "restart": restart,
+                "maxiter": maxiter,
+                "M": M,
+                "callback_type": callback_type,
+            }
+        )
+        return np.asarray(reduced_rhs, dtype=float).copy(), 0
+
+    monkeypatch.setattr(route2_response, "gmres", fake_gmres)
+
+    result = solve_adjoint(
+        linearization,
+        rhs,
+        relative_tolerance=1.0e-11,
+        absolute_tolerance=1.0e-13,
+    )
+
+    assert captured["restart"] == 4 * atom_count - 1
+    assert captured["maxiter"] == 100
+    assert captured["callback_type"] == "legacy"
+    assert result.restart_size == 4 * atom_count - 1
+    assert result.maximum_inner_iterations == 100
+
+    captured.clear()
+    limited_result = solve_adjoint(
+        linearization,
+        rhs,
+        relative_tolerance=1.0e-11,
+        absolute_tolerance=1.0e-13,
+        max_iterations=7,
+    )
+
+    assert captured["restart"] == 7
+    assert captured["maxiter"] == 7
+    assert limited_result.restart_size == 7
+    assert limited_result.maximum_inner_iterations == 7

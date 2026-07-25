@@ -229,6 +229,8 @@ class AdjointSolveResult:
     operator_applications: int
     residual_norm: float
     relative_residual: float
+    restart_size: int
+    maximum_inner_iterations: int
     method: str = "gmres"
 
 
@@ -244,9 +246,12 @@ def solve_adjoint(
     """Solve ``J_c R0* lambda = rhs`` by matrix-free GMRES.
 
     The Helmert charge basis removes the forbidden uniform-charge mode while
-    preserving the Euclidean discrete pairing.  The solve fails closed on
-    Krylov non-convergence or when a fresh post-solve residual check does not
-    satisfy the requested tolerance.
+    preserving the Euclidean discrete pairing.  By default the restart size
+    spans the reduced density space, capped by ``max_iterations``.  SciPy's
+    legacy callback-counting mode makes ``max_iterations`` an actual bound on
+    inner Krylov iterations rather than on restart cycles.  The solve fails
+    closed on Krylov non-convergence or when a fresh post-solve residual check
+    does not satisfy the requested tolerance.
     """
 
     if relative_tolerance <= 0.0:
@@ -262,6 +267,11 @@ def solve_adjoint(
         linearization.atom_count,
         neutral_tolerance=linearization.neutral_tolerance,
     )
+    restart_size = min(
+        coordinates.dimension if restart is None else restart,
+        coordinates.dimension,
+        max_iterations,
+    )
     rhs = coordinates.reduce(right_hand_side)
     rhs_norm = float(np.linalg.norm(rhs))
     if rhs_norm == 0.0:
@@ -271,6 +281,8 @@ def solve_adjoint(
             operator_applications=0,
             residual_norm=0.0,
             relative_residual=0.0,
+            restart_size=restart_size,
+            maximum_inner_iterations=max_iterations,
         )
 
     iterations = 0
@@ -293,7 +305,7 @@ def solve_adjoint(
         dtype=np.float64,
     )
     kwargs = {
-        "restart": restart,
+        "restart": restart_size,
         "maxiter": max_iterations,
         "callback": callback,
         "atol": absolute_tolerance,
@@ -304,7 +316,7 @@ def solve_adjoint(
     else:  # SciPy < 1.14
         kwargs["tol"] = relative_tolerance
     if "callback_type" in gmres_parameters:
-        kwargs["callback_type"] = "pr_norm"
+        kwargs["callback_type"] = "legacy"
 
     solution, info = gmres(operator, rhs, **kwargs)
     residual = matvec(solution) - rhs
@@ -323,6 +335,8 @@ def solve_adjoint(
         operator_applications=operator_applications,
         residual_norm=residual_norm,
         relative_residual=relative_residual,
+        restart_size=restart_size,
+        maximum_inner_iterations=max_iterations,
     )
 
 

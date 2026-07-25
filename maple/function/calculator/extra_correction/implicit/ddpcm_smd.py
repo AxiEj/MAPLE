@@ -198,6 +198,7 @@ class DDPCMSMDImplicitSolvation:
                 "dielectric": WATER_STATIC_DIELECTRIC,
                 "lmax": DDPCM_LMAX,
                 "n_lebedev": DDPCM_N_LEBEDEV,
+                "ddpcm_n_proc": self.profile_spec.ddpcm_n_proc,
                 "ddpcm_solver_tolerance": DDPCM_SOLVER_TOLERANCE,
                 "ddpcm_eta": DDPCM_ETA,
                 "scf_mixing": SCF_MIXING,
@@ -392,6 +393,7 @@ class DDPCMSMDImplicitSolvation:
             dielectric=WATER_STATIC_DIELECTRIC,
             lmax=DDPCM_LMAX,
             n_lebedev=DDPCM_N_LEBEDEV,
+            n_proc=self.profile_spec.ddpcm_n_proc,
             solver_tolerance=DDPCM_SOLVER_TOLERANCE,
             eta=DDPCM_ETA,
         )

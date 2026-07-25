@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import subprocess
+import sys
 import types
 
 import numpy as np
@@ -42,6 +44,8 @@ class _FakeModel:
         solvent_epsilon,
         **_kwargs,
     ):
+        self.options = dict(_kwargs)
+        self.n_proc = int(_kwargs["n_proc"])
         self.sphere_centres = np.asarray(sphere_centres, dtype=float)
         self.sphere_radii = np.asarray(sphere_radii, dtype=float)
         self.solvent_epsilon = float(solvent_epsilon)
@@ -186,6 +190,8 @@ def test_mace_density_to_pyddx_multipoles_preserves_l1_order_and_units():
 
 def test_pyddx_reaction_map_apply_adjoint_and_energy_identity(fake_runtime):
     reaction = _reaction_map(fake_runtime)
+    assert reaction._model.options["n_proc"] == 1
+    assert reaction.runtime_provenance["n_proc"] == 1
     density = np.asarray([[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]])
     cotangent = np.asarray([[0.7, -0.4, 0.2, 0.1], [-0.3, 0.6, -0.5, 0.8]])
     scale = reaction._model.scale
@@ -211,6 +217,67 @@ def test_pyddx_reaction_map_apply_adjoint_and_energy_identity(fake_runtime):
     assert float(np.vdot(cotangent, field)) == pytest.approx(
         float(np.vdot(adjoint, density))
     )
+
+
+def test_pyddx_reaction_map_passes_and_reports_configured_thread_count(
+    fake_runtime,
+):
+    reaction = PyDDXPCMReactionFieldLinearMap(
+        np.asarray([[-0.7, 0.1, 0.2], [0.8, -0.2, -0.1]]),
+        np.asarray([1.2, 1.5]),
+        dielectric=78.39,
+        lmax=7,
+        n_lebedev=302,
+        n_proc=4,
+        _runtime=fake_runtime.runtime,
+    )
+
+    assert reaction._model.options["n_proc"] == 4
+    assert reaction.runtime_provenance["n_proc"] == 4
+
+
+@pytest.mark.parametrize("n_proc", [True, 0, -1, 1.5])
+def test_pyddx_reaction_map_rejects_invalid_thread_count(
+    fake_runtime,
+    n_proc,
+):
+    with pytest.raises(ValueError, match="n_proc.*positive integer"):
+        PyDDXPCMReactionFieldLinearMap(
+            np.asarray([[-0.7, 0.1, 0.2], [0.8, -0.2, -0.1]]),
+            np.asarray([1.2, 1.5]),
+            dielectric=78.39,
+            lmax=7,
+            n_lebedev=302,
+            n_proc=n_proc,
+            _runtime=fake_runtime.runtime,
+        )
+
+
+def test_pyddx_reaction_map_rejects_backend_thread_count_mismatch(
+    fake_runtime,
+):
+    class _MismatchedThreadModel(_FakeModel):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.n_proc = 1
+
+    runtime = _PyDDXRuntime(
+        version=TESTED_PYDDX_VERSION,
+        module=types.SimpleNamespace(
+            Model=_MismatchedThreadModel,
+            State=_FakeState,
+        ),
+    )
+    with pytest.raises(RuntimeError, match="thread count"):
+        PyDDXPCMReactionFieldLinearMap(
+            np.asarray([[-0.7, 0.1, 0.2], [0.8, -0.2, -0.1]]),
+            np.asarray([1.2, 1.5]),
+            dielectric=78.39,
+            lmax=7,
+            n_lebedev=302,
+            n_proc=4,
+            _runtime=runtime,
+        )
 
 
 def test_pyddx_scf_path_reuses_previous_state_solutions_as_guesses(
@@ -543,16 +610,21 @@ def test_real_pyddx_full_position_vjp_matches_same_energy_finite_difference():
             reaction.polarization_energy_hartree(displaced_density)
         )
     density_finite_difference = (
-        displaced_density_energies_hartree[1] - displaced_density_energies_hartree[0]
+        displaced_density_energies_hartree[1]
+        - displaced_density_energies_hartree[0]
     ) / (2.0 * density_step)
-    raw_reaction_gradient_hartree = external_field_to_density_order(field) / Hartree
+    raw_reaction_gradient_hartree = (
+        external_field_to_density_order(field) / Hartree
+    )
     assert raw_reaction_gradient_hartree[0, 1] == pytest.approx(
         density_finite_difference,
         abs=1.0e-9,
         rel=1.0e-7,
     )
 
-    field_cotangent_probe = np.asarray([[0.7, -0.4, 0.2, 0.1], [-0.3, 0.6, -0.5, 0.8]])
+    field_cotangent_probe = np.asarray(
+        [[0.7, -0.4, 0.2, 0.1], [-0.3, 0.6, -0.5, 0.8]]
+    )
     adjoint = reaction.adjoint(field_cotangent_probe)
     assert float(np.vdot(field_cotangent_probe, field)) == pytest.approx(
         float(np.vdot(adjoint, density)),
@@ -587,4 +659,65 @@ def test_real_pyddx_full_position_vjp_matches_same_energy_finite_difference():
         finite_difference,
         abs=2.0e-6,
         rel=2.0e-5,
+    )
+
+
+def test_real_pyddx_one_and_four_threads_are_numerically_equivalent(tmp_path):
+    pyddx = pytest.importorskip("pyddx")
+    if str(pyddx.__version__) != TESTED_PYDDX_VERSION:
+        pytest.skip("The optional real-runtime canary is version locked.")
+
+    script = """
+import sys
+import numpy as np
+from maple.function.calculator.extra_correction.implicit.pyddx_pcm_response import (
+    PyDDXPCMReactionFieldLinearMap,
+)
+positions = np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]])
+radii = np.asarray([1.2, 1.5])
+density = np.asarray([[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]])
+cotangent = np.asarray([[0.3, -0.2, 0.5, 0.1], [-0.4, 0.6, -0.1, 0.2]])
+reaction = PyDDXPCMReactionFieldLinearMap(
+    positions,
+    radii,
+    dielectric=78.39,
+    lmax=7,
+    n_lebedev=302,
+    n_proc=int(sys.argv[1]),
+    solver_tolerance=1.0e-11,
+)
+np.savez(
+    sys.argv[2],
+    field=reaction.apply(density),
+    energy=reaction.polarization_energy_hartree(density),
+    position_vjp=reaction.full_position_vjp(density, cotangent),
+)
+"""
+    outputs = []
+    for n_proc in (1, 4):
+        output = tmp_path / f"pyddx-nproc-{n_proc}.npz"
+        subprocess.run(
+            [sys.executable, "-c", script, str(n_proc), str(output)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        outputs.append(np.load(output))
+
+    np.testing.assert_allclose(
+        outputs[1]["field"],
+        outputs[0]["field"],
+        atol=1.0e-12,
+        rtol=0.0,
+    )
+    assert float(outputs[1]["energy"]) == pytest.approx(
+        float(outputs[0]["energy"]),
+        abs=1.0e-13,
+        rel=0.0,
+    )
+    np.testing.assert_allclose(
+        outputs[1]["position_vjp"],
+        outputs[0]["position_vjp"],
+        atol=1.0e-11,
+        rtol=0.0,
     )

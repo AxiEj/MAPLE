@@ -19,6 +19,9 @@ DDPCM_GAFF2_CARBONYL_O_PROFILE = "smd-ddpcm-l15-n1202-gaff2-o-v1"
 DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE = (
     "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1"
 )
+DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE = (
+    "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-omp4-v1"
+)
 
 MACEPOL_MOLECULAR_REALSPACE_PROFILE = (
     "graph-longrange-molecular-realspace-v1"
@@ -36,6 +39,7 @@ class Route2SMDProfileSpec:
     provider: Literal["pcmsolver", "pyddx"]
     cavity: Literal["canonical-smd", "gaff2-carbonyl-o"]
     mace_long_range_evaluator: str
+    ddpcm_n_proc: int = 1
     default_eligible: bool = False
 
     @property
@@ -75,6 +79,15 @@ _PROFILE_SPECS = {
         mace_long_range_evaluator=(
             MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
         ),
+    ),
+    DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE: Route2SMDProfileSpec(
+        name=DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE,
+        provider="pyddx",
+        cavity="gaff2-carbonyl-o",
+        mace_long_range_evaluator=(
+            MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+        ),
+        ddpcm_n_proc=4,
     ),
 }
 
@@ -125,6 +138,7 @@ def validate_route2_smd_profile(
 __all__ = [
     "CANONICAL_SMD_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE",
+    "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
     "DDPCM_SMD_PROFILE",
     "GAFF2_CARBONYL_O_PROFILE",

@@ -96,6 +96,22 @@ with the MACE cutoff fails closed. This is a non-default experimental operator
 variant, not proof that it is equivalent to the default real-space evaluator.
 Its results remain box-dependent and require convergence validation.
 
+An execution-only variant is also available:
+
+```text
+#solv(implicit=water,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-omp4-v1,response=scf,standard_state=1m,experimental=true)
+```
+
+It is identical to
+`smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1` in checkpoint, cavity,
+equations, grids, tolerances, SCF policy, CDS functional, and MACE long-range
+operator. The only change is requesting and auditing four OpenMP threads for
+the upstream pyddx solver instead of one. The original profile remains fixed at
+one thread. Parallel speedup is not guaranteed: it depends on molecule, cavity,
+grid, hardware load, and the fraction of wall time spent inside pyddx. Treat
+the OMP4 profile as a reproducible performance candidate, not a different
+physical model or a general performance claim.
+
 ### Route-2 runtime
 
 Install the exact MACE release used by the contract and let its official

@@ -26,6 +26,7 @@ from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.read.command_control import CommandControl
 from maple.function.route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
@@ -113,6 +114,24 @@ def test_public_parser_accepts_only_the_versioned_reciprocal_profile():
                 "experimental=true)"
             ),
         )
+
+
+def test_public_parser_accepts_versioned_reciprocal_omp4_profile():
+    options = {
+        **_options(),
+        "profile": DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE,
+    }
+    params = _parse(
+        "#model=macepol-m",
+        "#sp(verbose=1)",
+        (
+            "#solv(implicit=water,method=smd,provider=pyddx,"
+            f"profile={DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE},"
+            "response=scf,standard_state=1m,experimental=true)"
+        ),
+    )
+
+    assert params["solv"] == options
 
 
 def test_pyddx_requires_an_explicit_versioned_profile_at_every_boundary(
@@ -261,12 +280,14 @@ class _ZeroReactionField:
         self,
         positions_angstrom,
         radii_angstrom,
-        **_kwargs,
+        **kwargs,
     ):
         self.atom_count = len(positions_angstrom)
+        self.n_proc = kwargs["n_proc"]
         self.runtime_provenance = {
             "backend": "fake-pyddx",
             "pyddx_version": "0.8.0",
+            "n_proc": self.n_proc,
         }
         self.cold_apply_calls = 0
         self.scf_apply_calls = 0
@@ -420,6 +441,46 @@ def test_reciprocal_profile_requires_matching_calculator_evaluator(tmp_path):
     assert provider.provenance["default_eligible"] is False
 
 
+def test_reciprocal_omp4_profile_passes_thread_count_to_pyddx(
+    monkeypatch,
+    tmp_path,
+):
+    import maple.function.calculator.extra_correction.implicit.ddpcm_smd as module
+
+    atoms = _atoms()
+    calculator = _FakeMACEPolarCalculator(atoms)
+    calculator.long_range_evaluator_profile = (
+        MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+    )
+    _ZeroReactionField.instances.clear()
+    monkeypatch.setattr(
+        module,
+        "PyDDXPCMReactionFieldLinearMap",
+        _ZeroReactionField,
+    )
+    monkeypatch.setattr(
+        module,
+        "pyscf_smd_water_cds",
+        lambda symbols, positions: _fake_cds(atoms),
+    )
+    provider = DDPCMSMDImplicitSolvation(
+        atoms,
+        {
+            **_options(),
+            "profile": (
+                DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE
+            ),
+        },
+        audit_dir=tmp_path,
+    )
+
+    result = provider.evaluate(atoms, calculator=calculator)
+
+    assert provider.provenance["numerics"]["ddpcm_n_proc"] == 4
+    assert _ZeroReactionField.instances[0].n_proc == 4
+    assert result.provenance["numerics"]["ddpcm_n_proc"] == 4
+
+
 def _fake_cds(atoms):
     gradient = np.asarray(
         [[0.001, 0.0, 0.0], [-0.001, 0.0, 0.0]]
@@ -485,6 +546,7 @@ def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
     assert result.provenance["forces_available"] is True
     assert result.provenance["solution_phase_pes"] is False
     reaction_field = _ZeroReactionField.instances[0]
+    assert reaction_field.n_proc == 1
     assert reaction_field.scf_apply_calls == 1
     assert reaction_field.scf_energy_calls == 1
     assert reaction_field.cold_energy_calls == 0

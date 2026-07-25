@@ -126,6 +126,7 @@ class PyDDXPCMReactionFieldLinearMap:
         dielectric: float,
         lmax: int,
         n_lebedev: int,
+        n_proc: int = 1,
         solver_tolerance: float = 1.0e-10,
         eta: float = 0.1,
         _runtime: _PyDDXRuntime | None = None,
@@ -165,6 +166,12 @@ class PyDDXPCMReactionFieldLinearMap:
             or int(n_lebedev) <= 0
         ):
             raise ValueError("ddPCM n_lebedev must be a positive integer.")
+        if (
+            isinstance(n_proc, bool)
+            or not isinstance(n_proc, (int, np.integer))
+            or int(n_proc) <= 0
+        ):
+            raise ValueError("ddPCM n_proc must be a positive integer.")
         tolerance = float(solver_tolerance)
         if not math.isfinite(tolerance) or tolerance <= 0.0:
             raise ValueError("ddPCM solver_tolerance must be finite and positive.")
@@ -184,7 +191,7 @@ class PyDDXPCMReactionFieldLinearMap:
             lmax=int(lmax),
             n_lebedev=int(n_lebedev),
             enable_fmm=False,
-            n_proc=1,
+            n_proc=int(n_proc),
             enable_force=True,
         )
         if int(getattr(model, "n_spheres", -1)) != positions.shape[0]:
@@ -192,6 +199,15 @@ class PyDDXPCMReactionFieldLinearMap:
         if getattr(model, "has_force_enabled", False) is not True:
             raise RuntimeError(
                 "pyddx ddPCM model did not enable analytic coordinate derivatives."
+            )
+        backend_n_proc = getattr(model, "n_proc", None)
+        if (
+            isinstance(backend_n_proc, bool)
+            or not isinstance(backend_n_proc, (int, np.integer))
+            or int(backend_n_proc) != int(n_proc)
+        ):
+            raise RuntimeError(
+                "pyddx ddPCM model did not retain the requested thread count."
             )
 
         self._runtime = runtime
@@ -202,6 +218,7 @@ class PyDDXPCMReactionFieldLinearMap:
         self._dielectric = dielectric_value
         self._lmax = int(lmax)
         self._n_lebedev = int(n_lebedev)
+        self._n_proc = int(backend_n_proc)
         self._solver_tolerance = tolerance
         self._eta = eta_value
         self.atom_count = positions.shape[0]
@@ -224,7 +241,7 @@ class PyDDXPCMReactionFieldLinearMap:
             "eta": self._eta,
             "shift": 0.0,
             "enable_fmm": False,
-            "n_proc": 1,
+            "n_proc": self._n_proc,
             "scf_state_reuse": "pyddx.State.update_problem warm start",
             "scf_state_creations": self._scf_state_creations,
             "scf_state_updates": self._scf_state_updates,

@@ -1,0 +1,367 @@
+{
+  "artifact_type": "route1-facts-gbsw-physical-provider-feasibility-audit",
+  "claim_scope": "Primary-source evidence for FACTS and GBSW formula compatibility, GAFF/AM1-BCC small-molecule hydration accuracy, derivative and speed scope, runtime availability, and Route 1 admission. This is not a MAPLE runtime benchmark, independent FreeSolv certification, a license opinion, or evidence that either solvent correction is faster than bare MM.",
+  "content_sha256": "2410814743fa0ab900666dc2d3b0142dd45b943d26a5ddc299f5201549418258",
+  "models": {
+    "facts": {
+      "applicability": {
+        "atoms_distinguished_only_by_vdw_radius": true,
+        "interpretation": "Historical small-molecule results show useful transfer, but the official parameter domain and TAVW fallback do not establish a prospectively frozen, broad small-molecule radius provider for MAPLE.",
+        "official_parameters_derived_for_protein_atoms_only": true,
+        "small_molecule_studies_used_interpolation_or_extrapolation": true,
+        "unknown_radii_use_tavw_interpolation": true
+      },
+      "gas_phase_mm_energy_in_product_potential": false,
+      "learned_solvent_correction": false,
+      "name": "Fast Analytical Continuum Treatment of Solvation",
+      "parameter_interface": {
+        "charges": "fixed atom-centered partial charges; GAFF/AM1-BCC demonstrated in the small-molecule studies",
+        "energy_decomposition": "FCTPOL1+FCTPOL2+FCTNPL",
+        "intrinsic_radii": "parameters indexed only by van der Waals radius; unknown radii require TAVW interpolation",
+        "nonpolar": "FACTS analytical SASA multiplied by GAMMa"
+      },
+      "published_force_support": {
+        "complete_local_all_3n_force_gate": false,
+        "fully_analytical_volume_and_spatial_symmetry": true,
+        "interpretation": "The maintained CHARMM module is an MD-capable physical potential, but no local CHARMM runtime was available to isolate the solvent force and run MAPLE provider parity or all-3N finite differences.",
+        "official_module_supports_molecular_dynamics": true
+      },
+      "published_speed_scope": {
+        "faster_than_bare_mm_claim": false,
+        "relative_to_gbmv_and_gbsw": "reported faster",
+        "relative_to_vacuum": "about 4x slower in the original study; current CHARMM documentation says 3-5x slower for peptide/protein MD",
+        "small_molecule_maple_benchmark": false
+      },
+      "route1_composition": "E_MLIP,gas(R)+G_FACTS,polar(R,q_fixed,radii)+gamma*SASA_FACTS(R)",
+      "route1_formula_compatible": true,
+      "small_molecule_evidence": {
+        "knight_brooks_2011": {
+          "charge_model": "AM1-BCC",
+          "doi": "10.1002/jcc.21876",
+          "domain": "small neutral organic molecules",
+          "interpretation": "The result is much better than a 3-5 kcal/mol typical error, but is systematically less accurate than GBMV2 and GBSW and uses label-exposed nonpolar selection.",
+          "molecule_count": 499,
+          "optimized_profile": {
+            "label_exposure": "gamma minimized AUE on every tenth molecule after sorting the full set by experimental hydration free energy",
+            "surface_offset_kcal_per_mol": 0.0,
+            "surface_tension_kcal_per_mol_angstrom2": 0.005
+          },
+          "optimized_profile_metrics": {
+            "aue_kcal_per_mol": 1.25,
+            "mean_error_kcal_per_mol": 0.23,
+            "percent_abs_error_lt_1_kcal_per_mol": 53,
+            "percent_abs_error_lt_2_kcal_per_mol": 83,
+            "percent_abs_error_lt_3_kcal_per_mol": 91,
+            "r_squared": 0.663,
+            "rmse_kcal_per_mol": 1.8
+          },
+          "parameterization": "GAFF",
+          "sampling": {
+            "analysis": "BAR",
+            "analyzed_tail_ns": 10.0,
+            "snapshot_interval_ps": 5.0,
+            "trajectory_source": "10.5 ns vacuum and GBMV2 trajectories; all model energies evaluated on stored snapshots"
+          }
+        },
+        "vanommeslaeghe_et_al_2013": {
+          "comparison_count": 457,
+          "doi": "10.1002/jcc.23199",
+          "interpretation": "The 375 compounds were not used to select gamma, but the split is not a modern MAPLE FreeSolv confirmation and FACTS remains worse than GBMV2/GBSW.",
+          "non_cgenff_375": {
+            "aue_kcal_per_mol": 1.42,
+            "mean_error_kcal_per_mol": 0.52,
+            "percent_abs_error_lt_1_kcal_per_mol": 51,
+            "percent_abs_error_lt_2_kcal_per_mol": 74,
+            "percent_abs_error_lt_3_kcal_per_mol": 90,
+            "r_squared": 0.628
+          },
+          "surface_tension_kcal_per_mol_angstrom2_for_gaff_facts": 0.0025,
+          "surface_tension_training_subset": "82 compounds present in CGENFF"
+        }
+      }
+    },
+    "gbsw": {
+      "applicability": {
+        "interpretation": "The protein-specific force-field recommendation must not be silently applied to arbitrary molecules; a MAPLE provider would need a frozen, audited small-molecule radius profile.",
+        "proper_input_radii_required": true,
+        "protein_specific_radii_and_cmap_exist": true,
+        "small_molecule_studies_used_vdw_intrinsic_radii": true
+      },
+      "gas_phase_mm_energy_in_product_potential": false,
+      "learned_solvent_correction": false,
+      "name": "Generalized Born with a simple SWitching function plus SASA",
+      "parameter_interface": {
+        "charges": "fixed atom-centered partial charges; GAFF/AM1-BCC demonstrated in the small-molecule studies",
+        "intrinsic_radii": "proper per-atom radii supplied through WMAIN; the small-molecule studies used van der Waals radii",
+        "nonpolar": "solvent-exposed surface area multiplied by SGAMMA",
+        "smoothing_half_width_angstrom_in_small_molecule_studies": 0.3
+      },
+      "published_force_support": {
+        "complete_local_all_3n_force_gate": false,
+        "complete_solvation_energy_and_forces": true,
+        "interpretation": "GBSW has a stronger published stability case than sharp-surface GBMV2, but the CHARMM/GBSW implementation was not locally available for MAPLE parity.",
+        "official_examples_include_minimization_or_dynamics": true,
+        "smooth_boundary_targets_numerically_stable_electrostatic_forces": true
+      },
+      "published_speed_scope": {
+        "faster_than_bare_mm_claim": false,
+        "relative_to_gbmv": "about 2-3x faster",
+        "relative_to_vacuum": "about 4x slower",
+        "small_molecule_maple_benchmark": false
+      },
+      "route1_composition": "E_MLIP,gas(R)+G_GBSW,polar(R,q_fixed,radii)+gamma*SASA(R)",
+      "route1_formula_compatible": true,
+      "small_molecule_evidence": {
+        "knight_brooks_2011": {
+          "charge_model": "AM1-BCC",
+          "common_nonpolar_profile": {
+            "aue_kcal_per_mol": 1.06,
+            "interpretation": "This historical common profile is not a prospectively selected MAPLE product parameter set and does not bypass independent validation.",
+            "r_squared": 0.796,
+            "rmse_kcal_per_mol": 1.38,
+            "surface_offset_kcal_per_mol": 0.92,
+            "surface_tension_kcal_per_mol_angstrom2": 0.005
+          },
+          "doi": "10.1002/jcc.21876",
+          "domain": "small neutral organic molecules",
+          "interpretation": "The historical physical model reaches near-1.2 kcal/mol AUE with AM1-BCC, but label-exposed parameter selection and protocol mismatch prevent a current MAPLE accuracy claim.",
+          "molecule_count": 499,
+          "optimized_profile": {
+            "label_exposure": "gamma minimized AUE on every tenth molecule after sorting the full set by experimental hydration free energy",
+            "surface_offset_kcal_per_mol": 0.0,
+            "surface_tension_kcal_per_mol_angstrom2": 0.01
+          },
+          "optimized_profile_metrics": {
+            "aue_kcal_per_mol": 1.2,
+            "mean_error_kcal_per_mol": -0.58,
+            "percent_abs_error_lt_1_kcal_per_mol": 51,
+            "percent_abs_error_lt_2_kcal_per_mol": 80,
+            "percent_abs_error_lt_3_kcal_per_mol": 97,
+            "r_squared": 0.788,
+            "rmse_kcal_per_mol": 1.52
+          },
+          "parameterization": "GAFF",
+          "sampling": {
+            "analysis": "BAR",
+            "analyzed_tail_ns": 10.0,
+            "snapshot_interval_ps": 5.0,
+            "trajectory_source": "10.5 ns vacuum and GBMV2 trajectories; all model energies evaluated on stored snapshots"
+          }
+        },
+        "vanommeslaeghe_et_al_2013": {
+          "comparison_count": 457,
+          "doi": "10.1002/jcc.23199",
+          "interpretation": "The 375-molecule result is separated from gamma selection on 82 CGENFF compounds, but remains historical rather than a MAPLE provider result.",
+          "non_cgenff_375": {
+            "aue_kcal_per_mol": 1.33,
+            "mean_error_kcal_per_mol": 0.07,
+            "percent_abs_error_lt_1_kcal_per_mol": 43,
+            "percent_abs_error_lt_2_kcal_per_mol": 78,
+            "percent_abs_error_lt_3_kcal_per_mol": 97,
+            "r_squared": 0.701
+          },
+          "surface_tension_kcal_per_mol_angstrom2_for_gaff_gbsw": 0.02,
+          "surface_tension_training_subset": "82 compounds present in CGENFF"
+        }
+      }
+    }
+  },
+  "overall_decision": {
+    "facts_status": "not_selected_runtime_blocked_and_accuracy_secondary",
+    "free_solv_product_screen_opened": false,
+    "gbsw_status": "scientifically_promising_runtime_blocked_secondary",
+    "new_runtime_provider_added": false,
+    "paper_based_reimplementation_planned": false,
+    "priority_order": [
+      "GBMV2",
+      "GBSW",
+      "FACTS"
+    ],
+    "reason": "Both are physical Route 1-compatible corrections with historical AM1-BCC hydration errors far below 3-5 kcal/mol. GBSW is the stronger secondary watch item because it exposes full solvation forces, smooths the boundary, and is faster than GBMV, but it is still about four times slower than vacuum and slightly less accurate than GBMV2 in the separated 375-molecule comparison. FACTS is also about four times slower than vacuum, is less accurate, and relies on protein-derived radius parameters with TAVW interpolation for unparameterized small-molecule radii. Neither implementation is available locally through a maintained redistributable standalone upstream runtime.",
+    "revisit_facts_only_if": [
+      "a maintained deployable upstream is available",
+      "a prospective small-molecule radius parameter domain eliminates silent TAVW extrapolation",
+      "independent accuracy is materially competitive with GBMV2/GBSW and the current Route 1 baseline",
+      "complete solvent forces and end-to-end throughput pass the same product gates"
+    ],
+    "revisit_gbsw_only_if": [
+      "a registered local CHARMM build with its GBSW OpenMM plugin or a maintained redistributable standalone upstream is available",
+      "fixed AM1-BCC charges and a frozen small-molecule radius/nonpolar profile can be injected without adding gas-phase MM energy",
+      "isolated solvent energy and force pass provider parity and full all-3N finite differences",
+      "a label-separated FreeSolv protocol materially improves on the frozen OBC-II baseline",
+      "multi-MLIP end-to-end throughput is measured without claiming faster-than-MM from the literature-only ratios",
+      "deployment and redistribution rights are established"
+    ],
+    "status": "no_new_provider"
+  },
+  "protocol": {
+    "admission_rule": "Published accuracy, analytical or MD-capable forces, and relative speed justify a provider audit only. Product admission requires a runnable upstream, explicit parameter provenance, provider and force parity, independent accuracy, measured multi-MLIP throughput, and deployable terms.",
+    "protocol_id": "route1-facts-gbsw-feasibility-v1",
+    "steps": [
+      "freeze the two primary small-molecule comparisons and current CHARMM module documentation",
+      "separate experimental-label-exposed nonpolar selection from independent validation",
+      "record speed ratios against their actual comparators rather than relabeling them as faster than bare MM",
+      "scan public OpenMM and the local runtime for named FACTS/GBSW implementations",
+      "rank candidates without paper-based reimplementation or a hidden chemistry-specific correction"
+    ]
+  },
+  "recorded_date": "2026-07-25",
+  "route_contract": {
+    "default_charge": "AM1-BCC",
+    "gas_mlip_retraining": false,
+    "gas_phase_mm_energy": false,
+    "learned_hydration_residual": false,
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "requires_conservative_force_for_opt_scan_md": true
+  },
+  "runtime_availability": {
+    "academic_charmm": {
+      "complete_source_in_registered_distribution": true,
+      "current_documentation_version": "c50b2",
+      "facts_openmm_plugin_named_in_current_documentation": false,
+      "gbsw_openmm_plugin_in_distribution": true,
+      "redistribution_permission_established_by_this_audit": false,
+      "registration_required": true
+    },
+    "local_environment": {
+      "charmm_executable_found": false,
+      "openmm_facts_symbol_found": false,
+      "openmm_gbsw_symbol_found": false,
+      "openmm_version": "8.5.2",
+      "relevant_core_force_classes": [
+        "AmoebaGeneralizedKirkwoodForce",
+        "GBSAOBCForce"
+      ]
+    },
+    "public_openmm": {
+      "audited_branch": "master",
+      "commit": "01138a87210325a68e3caa9ea568db423aaccd6d",
+      "facts_string_present": false,
+      "gbsw_string_present": false,
+      "interpretation": "The GBSW plugin named by CHARMM documentation belongs to the registered CHARMM distribution; it is not present in public OpenMM core.",
+      "named_implementation_hit_count": 0,
+      "upstream": "https://github.com/openmm/openmm"
+    }
+  },
+  "schema_version": 1,
+  "source_evidence": {
+    "facts_original_paper": {
+      "doi": "10.1002/jcc.20832",
+      "title": "FACTS: Fast analytical continuum treatment of solvation",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1002/jcc.20832"
+    },
+    "gbsw_original_paper": {
+      "doi": "10.1002/jcc.10321",
+      "title": "Generalized Born Model with a Simple Smoothing Function",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1002/jcc.10321"
+    },
+    "official_charmm_openmm_documentation": {
+      "line_ranges": [
+        [
+          350,
+          390
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/charmm-c50b2-openmm.txt",
+      "url": "https://academiccharmm.org/documentation/version/c50b2/openmm"
+    },
+    "official_facts_documentation": {
+      "line_ranges": [
+        [
+          287,
+          317
+        ],
+        [
+          339,
+          344
+        ],
+        [
+          396,
+          400
+        ],
+        [
+          544,
+          560
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/charmm-c50b2-facts.txt",
+      "url": "https://academiccharmm.org/documentation/version/c50b2/facts"
+    },
+    "official_gbsw_documentation": {
+      "line_ranges": [
+        [
+          261,
+          320
+        ],
+        [
+          393,
+          421
+        ],
+        [
+          442,
+          457
+        ],
+        [
+          520,
+          545
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/charmm-c50b2-gbsw.txt",
+      "url": "https://academiccharmm.org/documentation/version/c50b2/gbsw"
+    },
+    "parameterization_comparison": {
+      "doi": "10.1002/jcc.23199",
+      "line_ranges": [
+        [
+          14,
+          25
+        ],
+        [
+          35,
+          49
+        ],
+        [
+          65,
+          66
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/PMC4402937.txt",
+      "pmcid": "PMC4402937"
+    },
+    "public_openmm_source_scan": {
+      "archive_path": ".omx/vendor-audits/gbmv2/openmm-master.tar.gz",
+      "commit": "01138a87210325a68e3caa9ea568db423aaccd6d",
+      "hit_count": 0,
+      "patterns": [
+        "FACTS",
+        "GBSW",
+        "GBMV"
+      ],
+      "upstream": "https://github.com/openmm/openmm"
+    },
+    "small_molecule_survey": {
+      "doi": "10.1002/jcc.21876",
+      "line_ranges": [
+        [
+          19,
+          29
+        ],
+        [
+          68,
+          77
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/PMC3142295.txt",
+      "pmcid": "PMC3142295"
+    }
+  },
+  "source_fingerprints": {
+    "charmm_c50b2_facts_html_sha256": "889dbdeab2c06276ecaeda063332df7b87e15c3dab032c6d2bf18c971f264916",
+    "charmm_c50b2_gbsw_html_sha256": "e318e9947f01da9db4b2473f620fc6b5592b2cda60e3e61b4a19c5d574bf1bb5",
+    "charmm_c50b2_openmm_html_sha256": "0d97e5ac6e8660298d05ac45a7611e3f8cb5165523a6112e02cae571950c1921",
+    "charmm_registration_html_sha256": "0d3c090288fee7612dfa1baad48e132d977e4579ed51a2f616ab35d2e51ce938",
+    "openmm_master_archive_sha256": "7ae04d631e4f16e8ac27bd34a0afffb2ac7dd4b7998f703ba58e2f2c312f7870",
+    "pmc3142295_bioc_xml_sha256": "ccc911eeb853da4275a2c39f7b5c64e04415fe314c945a26f7462f941180048a",
+    "pmc4402937_bioc_xml_sha256": "c4ed787b4e08795c61576c8069e28107943f74b5b0a0db1c964f11a81c0002d5"
+  }
+}

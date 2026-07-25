@@ -13,9 +13,10 @@ import tempfile
 
 import numpy as np
 
-from .openmm_gb import KJ_PER_MOL_PER_HARTREE, build_openmm_topology
+from .common import KJ_PER_MOL_PER_HARTREE, build_openmm_topology
+from .nonpolar import APBSSASANonpolarProvider
+from .radii import OpenMMMbondi2RadiusProvider
 from .result import SolvationResult
-
 
 _PRINT_PATTERNS = (
     r"Global\s+net\s+{kind}\s+energy\s*=\s*([-+0-9.Ee]+)\s*kJ/mol",
@@ -54,7 +55,9 @@ def parse_apbs_print_energy(output: str, kind: str) -> float:
         return float(generic[0])
     if kind == "APOL" and len(generic) >= 2:
         return float(generic[-1])
-    raise ValueError(f"Could not find APBS PRINT {kind} ENERGY result in provider output.")
+    raise ValueError(
+        f"Could not find APBS PRINT {kind} ENERGY result in provider output."
+    )
 
 
 def _apbs_version(
@@ -75,24 +78,13 @@ def _apbs_version(
     except (OSError, subprocess.SubprocessError):
         return "unknown-external"
     text = completed.stdout + "\n" + completed.stderr
-    match = re.search(r"\bAPBS(?:\s+version)?\s+v?([0-9]+(?:\.[0-9]+)+)", text, re.IGNORECASE)
+    match = re.search(
+        r"\bAPBS(?:\s+version)?\s+v?([0-9]+(?:\.[0-9]+)+)", text, re.IGNORECASE
+    )
     if match:
         return match.group(1)
     standalone = re.search(r"(?m)^\s*([0-9]+(?:\.[0-9]+)+)\s*$", text)
     return standalone.group(1) if standalone else "unknown-external"
-
-
-def _mbondi2_radii_angstrom(atoms) -> np.ndarray:
-    try:
-        from openmm.app.internal.customgbforces import GBSAOBC1Force
-    except ImportError as exc:
-        raise ImportError(
-            "The APBS generic-mbondi2 profile uses OpenMM's upstream mbondi2 parameter assignment; "
-            "install `maple[implicit-gb]`."
-        ) from exc
-    topology = build_openmm_topology(atoms)
-    params = np.asarray(GBSAOBC1Force.getStandardParameters(topology), dtype=np.float64)
-    return params[:, 0] * 10.0
 
 
 class APBSLPB:
@@ -123,15 +115,25 @@ class APBSLPB:
         self.charges = np.asarray(charges, dtype=np.float64).copy()
         if self.charges.shape != (len(atoms),) or not np.isfinite(self.charges).all():
             raise ValueError("APBS LPB requires one finite partial charge per atom.")
-        self.radii = _mbondi2_radii_angstrom(atoms)
+        topology = build_openmm_topology(atoms)
+        self.radius_provider = OpenMMMbondi2RadiusProvider()
+        self.radius_result = self.radius_provider.assign(topology)
+        self.radii = self.radius_result.radii_angstrom.copy()
+        self.nonpolar_provider = APBSSASANonpolarProvider(
+            probe_radius=probe_radius,
+            surface_tension=surface_tension,
+            pressure=pressure,
+        )
         self.executable = executable
         self.grid_spacing = float(grid_spacing)
-        if isinstance(grid_points, bool) or not isinstance(grid_points, (int, np.integer)):
+        if isinstance(grid_points, bool) or not isinstance(
+            grid_points, (int, np.integer)
+        ):
             raise ValueError("APBS grid_points must be an integer.")
         self.grid_points = int(grid_points)
-        self.probe_radius = float(probe_radius)
-        self.surface_tension = float(surface_tension)
-        self.pressure = float(pressure)
+        self.probe_radius = self.nonpolar_provider.probe_radius
+        self.surface_tension = self.nonpolar_provider.surface_tension
+        self.pressure = self.nonpolar_provider.pressure
         self.timeout = float(timeout)
         self.audit_dir = Path(audit_dir) if audit_dir is not None else None
         if self.grid_points < 33 or (self.grid_points - 1) % 32 != 0:
@@ -141,10 +143,6 @@ class APBSLPB:
             )
         if self.grid_spacing <= 0:
             raise ValueError("APBS grid_spacing must be positive.")
-        if self.probe_radius < 0:
-            raise ValueError("APBS probe_radius must be non-negative.")
-        if self.surface_tension < 0 or self.pressure < 0:
-            raise ValueError("APBS surface_tension and pressure must be non-negative.")
         if self.timeout <= 0:
             raise ValueError("APBS timeout must be positive.")
         self._validate_grid_contains(atoms)
@@ -157,6 +155,8 @@ class APBSLPB:
             "profile": "generic-mbondi2",
             "radii": "mbondi2",
             "nonpolar": "sasa",
+            "radius_provider": self.radius_result.provenance,
+            "nonpolar_provider": self.nonpolar_provider.provenance,
             "surface_tension_kj_mol_a2": self.surface_tension,
             "pressure_kj_mol_a3": self.pressure,
             "bulk_solvent_density_a3": 0.0,
@@ -171,7 +171,9 @@ class APBSLPB:
         molecular_span = np.ptp(positions, axis=0)
         # Include the largest atom sphere, the solvent probe, and the two-grid
         # SPL2 charge-support margin documented by APBS on each boundary.
-        boundary = float(np.max(self.radii)) + self.probe_radius + 2.0 * self.grid_spacing
+        boundary = (
+            float(np.max(self.radii)) + self.probe_radius + 2.0 * self.grid_spacing
+        )
         required = molecular_span + 2.0 * boundary
         available = (self.grid_points - 1) * self.grid_spacing
         if np.any(required > available):
@@ -234,27 +236,15 @@ elec name ref
 {shared}
     sdie 1.0
 end
-apolar name nonpolar
-    mol 1
-    srfm sacc
-    srad {self.probe_radius:.6f}
-    swin 0.3
-    sdens 10.0
-    gamma {self.surface_tension:.8f}
-    press {self.pressure:.8f}
-    bconc 0.0
-    dpos 0.05
-    grid 0.5 0.5 0.5
-    temp 298.15
-    calcenergy total
-    calcforce no
-end
+{self.nonpolar_provider.render_input_block()}
 print elecEnergy solv - ref end
 print apolEnergy nonpolar end
 quit
 """
 
-    def evaluate(self, atoms, need_forces: bool = False, calculator=None) -> SolvationResult:
+    def evaluate(
+        self, atoms, need_forces: bool = False, calculator=None
+    ) -> SolvationResult:
         if need_forces:
             raise NotImplementedError(
                 "APBS LPB is SP-energy-only until grid-converged force parity is certified."
@@ -284,8 +274,12 @@ quit
                 self.audit_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(pqr, self.audit_dir / pqr.name)
                 shutil.copy2(inp, self.audit_dir / inp.name)
-                (self.audit_dir / "apbs.stdout.log").write_text(completed.stdout, encoding="utf-8")
-                (self.audit_dir / "apbs.stderr.log").write_text(completed.stderr, encoding="utf-8")
+                (self.audit_dir / "apbs.stdout.log").write_text(
+                    completed.stdout, encoding="utf-8"
+                )
+                (self.audit_dir / "apbs.stderr.log").write_text(
+                    completed.stderr, encoding="utf-8"
+                )
                 (self.audit_dir / "apbs.command.json").write_text(
                     json.dumps(
                         {

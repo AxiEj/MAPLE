@@ -59,6 +59,29 @@ class SinglePoint(JobABC):
         if gas is None or delta is None or combined is None:
             return []
         provenance = solvation.get("provenance", {})
+        if provenance.get("absolute_solvation_free_energy_claim") is False:
+            correction = solvation.get(
+                "cluster_continuum_correction_hartree",
+                solvation.get("energy_hartree"),
+            )
+            if correction is None:
+                return []
+            return [
+                f"Gas-phase MLIP cluster energy: {float(gas):.10f} Hartree\n",
+                (
+                    "Outer PB/GB correction for the prebuilt cluster: "
+                    f"{float(correction):.10f} Hartree\n"
+                ),
+                (
+                    "Combined fixed-shell cluster-continuum configurational "
+                    f"potential: {float(combined):.10f} Hartree\n"
+                ),
+                (
+                    "This value is not an absolute solvation free energy; "
+                    "cluster formation/occupancy, standard-state, solvent-cluster "
+                    "reference, and ensemble terms are not computed.\n"
+                ),
+            ]
         standard_state = provenance.get("standard_state", "provider-defined")
         return [
             f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",

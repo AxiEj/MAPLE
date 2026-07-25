@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-am1bcc-apbs-mol-ace-v1",
+  "source_partition": "development",
+  "claim_scope": "Development-only, neutral closed-shell FreeSolv molecules in water; one frozen FreeSolv geometry per molecule; frozen AM1-BCC charges; APBS linearized Poisson-Boltzmann polar energy with a molecular dielectric surface; and the frozen OpenMM mbondi2/ACE nonpolar component. This evaluates a fixed-geometry, SP-energy-only continuum endpoint. It is not a sampled finite-temperature hydration free energy, a force-capable OPT/SCAN provider, broad-solvent validation, or independent confirmation.",
+  "selection_disclosure": "The full development screen was commissioned after an exploratory aniline calculation suggested that replacing APBS APOLAR with ACE could help. The 526-molecule result is therefore development evidence and cannot be relabeled as independent confirmation.",
+  "source_evidence": {
+    "base_protocol": "protocol.json",
+    "base_protocol_sha256": "0aa134a94189583deccd027b428895a21a4244489711670fa4973b0d38513a1d",
+    "base_protocol_fingerprint": "76ed1ea6483678d113353d7371ca1e015c780a38937fa5333d7c40ec9db8c676",
+    "development_summary": "freesolv-development-2026-07-23.json",
+    "development_summary_sha256": "911e53feee177ffe1e92112b0a723793748850dfe470b6e4d08f8611ef3f6855",
+    "strongest_energy_only_summary": "freesolv-am1bcc-chagb-nonpolar-2026-07-24.json",
+    "strongest_energy_only_summary_sha256": "a842604d423dd01833b7e4a2b2d92ce0944e0d0e6f2c2e1d883edeaf2cf7308a",
+    "source_manifest": "apbs_ace_source_manifest.json",
+    "source_manifest_sha256": "7bdefe668d3288bee6806f729c88b631a16fd7f07fbcf15051ae4e9e2f672b90",
+    "expected_case_count": 526,
+    "baseline_attempt_suffix": "__am1bcc__obc2"
+  },
+  "execution_boundary": {
+    "energy_phase_reads_experimental_labels": false,
+    "energy_phase_inputs": [
+      "protocol",
+      "label-free source manifest",
+      "frozen FreeSolv MOL2"
+    ],
+    "summary_phase_may_read_experimental_labels": true,
+    "confirmation_remains_closed": true,
+    "no_experimental_fit_or_residual_model": true,
+    "no_gas_phase_mm_energy": true,
+    "no_mlip_retraining": true
+  },
+  "charge": {
+    "method": "AM1-BCC",
+    "lifecycle": "One frozen charge vector per molecule, reused unchanged by APBS and the source OBC-II/ACE calculation.",
+    "geometry_policy": "keep"
+  },
+  "polar": {
+    "provider": "APBS",
+    "method": "LPBE",
+    "component": "solvated ELEC minus reference ELEC",
+    "solute_dielectric": 1.0,
+    "solvent_dielectric": 78.5,
+    "boundary_condition": "mdh",
+    "charge_discretization": "spl2",
+    "surface_definition": "mol",
+    "radius_profile": "mbondi2",
+    "solvent_probe_radius_angstrom": 1.4,
+    "surface_window_angstrom": 0.3,
+    "surface_density_points_per_angstrom2": 10.0,
+    "temperature_kelvin": 298.15,
+    "grid": {
+      "mode": "mg-manual",
+      "points_per_axis": 97,
+      "spacing_angstrom": 0.33,
+      "levels": 4,
+      "center": "molecule"
+    },
+    "calculation": {
+      "energy": "total",
+      "force": "no"
+    }
+  },
+  "nonpolar_endpoints": {
+    "apbs_sasa_control": {
+      "provider": "APBS",
+      "model": "SASA",
+      "surface_tension_kj_mol_angstrom2": 0.105,
+      "pressure_kj_mol_angstrom3": 0.0,
+      "bulk_solvent_density_angstrom3": 0.0,
+      "total_formula": "APBS_LPBE_polar + APBS_SASA_nonpolar"
+    },
+    "openmm_ace_candidate": {
+      "provider": "OpenMM",
+      "model": "ACE",
+      "source": "Frozen nonpolar component from the AM1-BCC/OBC-II/ACE source record",
+      "provider_version": "8.5.2",
+      "radius_profile": "mbondi2",
+      "charge_dependence": false,
+      "double_counting_policy": "Discard the APBS APOLAR component and add exactly one OpenMM ACE component.",
+      "total_formula": "APBS_LPBE_polar + OpenMM_ACE_nonpolar"
+    }
+  },
+  "providers": {
+    "apbs": {
+      "required_version": "1.4.1",
+      "default_path": "/usr/bin/apbs",
+      "sha256": "13b555e8a38041d80ab4a9476126f8df6ca10eb6d140c12619e5794d83b7f080"
+    },
+    "openmm": {
+      "required_version": "8.5.2",
+      "implementation": "openmm.app.internal.customgbforces CustomGBForce ACE term"
+    }
+  },
+  "execution_controls": {
+    "maximum_concurrent_apbs_processes": 6,
+    "subprocess_environment": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    },
+    "reason": "APBS 1.4.1 otherwise starts multiple CPU threads per independent molecule on this host. Pinning one thread per process avoids nested oversubscription without changing the physical input."
+  },
+  "grid_sensitivity": {
+    "selection_source": "source manifest grid_sensitivity_selection",
+    "reference_grid": {
+      "points_per_axis": 129,
+      "spacing_angstrom": 0.25,
+      "levels": 4,
+      "center": "molecule"
+    },
+    "component": "APBS LPBE polar",
+    "maximum_absolute_difference_kcal_mol": 0.25,
+    "p90_absolute_difference_kcal_mol": 0.15
+  },
+  "prospective_decision_gates": {
+    "coverage": {
+      "required_success_count": 526,
+      "failed_cases_remain_in_denominator": true
+    },
+    "accuracy_against_obc2_ace": {
+      "minimum_mae_gain_kcal_mol": 0.15,
+      "paired_bootstrap_ci_lower_must_exceed_zero": true,
+      "candidate_rmse_must_not_exceed_baseline": true
+    },
+    "accuracy_against_existing_apbs_sasa": {
+      "candidate_mae_must_be_lower": true,
+      "candidate_rmse_must_be_lower": true
+    },
+    "product_role": {
+      "sp_only": true,
+      "cannot_replace_force_capable_obc2_ace_for_opt_or_scan": true,
+      "runtime_promotion_requires_all_accuracy_and_grid_gates": true,
+      "independent_confirmation_still_required": true
+    }
+  },
+  "statistics": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20260725
+  },
+  "failure_policy": {
+    "no_source_record_substitution": true,
+    "no_charge_substitution": true,
+    "no_provider_substitution": true,
+    "nonzero_provider_exit_fails_case": true,
+    "missing_or_nonfinite_component_fails_case": true,
+    "failed_cases_remain_failures": true
+  },
+  "literature": {
+    "apbs": "Baker et al., Electrostatics of nanosystems: application to microtubules and the ribosome, Proc. Natl. Acad. Sci. USA 2001, DOI:10.1073/pnas.181342398",
+    "apbs_software": "Jurrus et al., Improvements to the APBS biomolecular solvation software suite, Protein Sci. 2018, DOI:10.1002/pro.3280",
+    "apbs_nonpolar_control": "Wagoner and Baker, Assessing implicit models for nonpolar mean solvation forces: the importance of dispersion and volume terms, Proc. Natl. Acad. Sci. USA 2006, DOI:10.1073/pnas.0600118103",
+    "ace": "Schaefer and Karplus, A comprehensive analytical treatment of continuum electrostatics, J. Phys. Chem. 1996, DOI:10.1021/jp9521621"
+  }
+}

@@ -256,6 +256,14 @@ class InputReader():
                     "The first implicit-solvation domain is neutral closed-shell molecules "
                     "with charge/multiplicity '0 1'."
                 )
+            if (
+                implicit_options.get("inner") == "prebuilt"
+                and atoms_or_list.info["mol2"].get("component_count", 1) < 2
+            ):
+                raise ValueError(
+                    "inner=prebuilt requires a MOL2 cluster with at least two "
+                    "connected components."
+                )
             atoms_or_list.info["_maple_charge_options"] = dict(
                 self.command_control.params.get("charge", {})
             )
@@ -572,12 +580,18 @@ class InputReader():
                         elif keyword == 'MOL2':
                             charge_options = self.command_control.params.get("charge", {})
                             validate_charge = charge_options.get("source") == "mol2"
+                            solvation_options = self.command_control.params.get("solv", {})
+                            allow_disconnected = (
+                                isinstance(solvation_options, dict)
+                                and solvation_options.get("inner") == "prebuilt"
+                            )
                             atoms = MOL2Reader(
                                 file_path,
                                 charge=block_charge,
                                 mult=block_mult,
                                 base_dir=input_dir,
                                 validate_charge=validate_charge,
+                                allow_disconnected=allow_disconnected,
                             )
                             if self.pbc is not None:
                                 raise ValueError("MOL2 implicit-solvent input is non-periodic; remove #pbc.")

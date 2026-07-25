@@ -1,0 +1,292 @@
+{
+  "artifact_type": "route1-slic-cdc-physical-provider-feasibility-audit",
+  "candidate": {
+    "expanded_name": "Solvation-layer interface condition plus cavity, dispersion, combinatorial mixing, and hydrogen-bonding terms",
+    "fixed_charge_compatibility": {
+      "charge_model": "AM1-BCC",
+      "important_limit": "Compatibility is historical input provenance, not parity with MAPLE's present AM1-BCC generator, geometry protocol, or radius assignment.",
+      "paper_input_source": "Mobley et al. 2009 neutral-molecule structures and fixed partial charges",
+      "supporting_doi": "10.1021/ct800409d"
+    },
+    "gas_phase_mm_energy_in_product_potential": false,
+    "independent_si_table_reanalysis": {
+      "all_parsed_rows": {
+        "mae_kcal_per_mol": 0.8127732793522272,
+        "maximum_absolute_error_kcal_per_mol": 6.8100000000000005,
+        "mean_signed_error_kcal_per_mol": -0.18261133603238872,
+        "rmse_kcal_per_mol": 1.1523325227185854
+      },
+      "largest_absolute_errors_kcal_per_mol": [
+        {
+          "calculated": -11.39,
+          "error": -6.8100000000000005,
+          "experimental": -4.58,
+          "name": "2-nitrophenol"
+        },
+        {
+          "calculated": 2.41,
+          "error": 6.17,
+          "experimental": -3.76,
+          "name": "hexafluoropropene"
+        },
+        {
+          "calculated": -9.55,
+          "error": -4.510000000000001,
+          "experimental": -5.04,
+          "name": "2-isobutylpyrazine"
+        }
+      ],
+      "layout_and_raw_numeric_results_identical": true,
+      "listed_training_rows": {
+        "mae_kcal_per_mol": 0.721111111111111,
+        "maximum_absolute_error_kcal_per_mol": 2.0100000000000002,
+        "mean_signed_error_kcal_per_mol": -0.37857142857142845,
+        "n": 63,
+        "rmse_kcal_per_mol": 0.8526234026032047
+      },
+      "method": "Run the source-pinned replay_slic_cdc_si_table.py script on the published SI PDF. The script invokes pdftotext in -layout and -raw modes, parses the 21-by-3 Table S4 training-name grid from the layout extraction, parses Table S10 from both modes, requires identical S10 row records, and recomputes all metrics.",
+      "normalized_duplicate_names": [
+        "2-methylbut-2-ene",
+        "3-methylbut-1-ene"
+      ],
+      "normalized_unique_names": 492,
+      "parsed_rows": 494,
+      "reconciliation": "The recomputed 1.1523 kcal/mol RMSE matches the ChemRxiv preprint abstract's 1.15 value but not the published SI footer's 0.98 value. The extracted table has 494 rows rather than the abstract's 500 or Appendix E's 502-corpus statement. These internal discrepancies require upstream clarification before the headline metric is used as a product acceptance number.",
+      "remaining_rows_after_excluding_listed_training_names": {
+        "classification": "historical table holdout relative to the 63 explicitly listed training names; not a prospectively sealed independent MAPLE reserve",
+        "mae_kcal_per_mol": 0.8261716937354994,
+        "maximum_absolute_error_kcal_per_mol": 6.8100000000000005,
+        "mean_signed_error_kcal_per_mol": -0.1539675174013921,
+        "n": 431,
+        "rmse_kcal_per_mol": 1.1898341634139245
+      },
+      "replay": {
+        "artifact": "docs/implicit-solvation/benchmarks/route1-slic-cdc-si-table-replay-2026-07-25.json",
+        "artifact_content_sha256": "a55f1fbd04766d92ce63706329886275adcedac7746797c7998c4e333ca6c6cb",
+        "artifact_file_sha256": "11ec6822ab21cb5a0600b6f9b0b851dba9c89785912a7076d5649269f2acacd0",
+        "pdftotext_version": "pdftotext version 22.02.0",
+        "runner": "docs/implicit-solvation/benchmarks/replay_slic_cdc_si_table.py",
+        "runner_sha256": "bac9f1e8aab29ab46ca85bba319349c79d053c03f9b7e917b278f38e76b6191b",
+        "source_pdf_sha256": "8d1bc78500bc94ab58fcdd98a512e0fc842585379a5d9e9217d56b05cd9e8345"
+      }
+    },
+    "learned_solvent_correction": false,
+    "name": "SLIC/CDC",
+    "parameterization": {
+      "interpretation": "This is a parameterized physical implicit-solvent model, not a learned residual. Its published accuracy cannot be described as parameter-free or label-blind.",
+      "slic_cdc_no_hbond_parameter_count_for_delta_g": 26,
+      "slic_cdc_parameter_count_for_delta_g": 38,
+      "slic_sasa_parameter_count_for_delta_g": 6,
+      "training_count_stated_in_text": 65,
+      "training_names_listed_in_table_s4": 63,
+      "training_table_discrepancy": "The supporting-information prose states 65 neutral training compounds, while Table S4 contains 21 rows of three names, i.e. 63 listed names.",
+      "uses_experimental_hydration_labels": true,
+      "uses_explicit_solvent_component_labels": true
+    },
+    "published_accuracy": {
+      "chemrxiv_preprint_doi": "10.26434/chemrxiv-2021-dz2d8",
+      "chemrxiv_preprint_rmse_kcal_per_mol": 1.15,
+      "important_limit": "The journal abstract reports an average-accuracy statement rather than a prospectively frozen external reserve. The model parameters and atom types were selected using data from the same historical corpus family.",
+      "journal_abstract_claim": "average accuracy better than 1 kcal/mol versus experiment for 500 aqueous solutes",
+      "journal_doi": "10.1021/acs.jctc.2c00248",
+      "si_table_s10_footer": {
+        "mae_kcal_per_mol": 0.69,
+        "rmse_kcal_per_mol": 0.98
+      }
+    },
+    "published_composition": [
+      "nonlinear SLIC continuum electrostatics",
+      "cavity formation",
+      "atom-typed dispersion",
+      "combinatorial mixing",
+      "atom-typed hydrogen bonding"
+    ],
+    "route1_formula_compatible": true
+  },
+  "claim_scope": "Primary-paper, public-supporting-information, and related-upstream-source evidence for SLIC/CDC accuracy, fixed-charge compatibility, parameter exposure, derivatives, implementation availability, and Route 1 admission. The independent table reanalysis is a transcription-level audit of the published SI, not a rerun of SLIC/CDC, an independent FreeSolv calculation, or a speed benchmark.",
+  "content_sha256": "c47728efc294943bf3d4d2e02caaa3ad0d9f1aaeff5ff17d1f8e718723a2b3d0",
+  "overall_decision": {
+    "energy_only_final_sp_watch_item": true,
+    "force_capable_watch_priority_unchanged": [
+      "GBMV2",
+      "GBSW",
+      "FACTS"
+    ],
+    "free_solv_product_screen_opened": false,
+    "new_runtime_provider_added": false,
+    "opt_scan_md_claim_allowed": false,
+    "paper_based_reimplementation_planned": false,
+    "reason": "SLIC/CDC is a strong, fixed-charge-compatible physical accuracy lead, and a transcription-level holdout relative to the explicitly listed training names remains near 0.83 kcal/mol MAE. It is not presently admissible: the full 38-parameter 2022 model has no identified executable upstream; the related PBJ code is not the published CDC model and lacks a complete atom-resolved polar-plus-nonpolar force; the public result tables and summary counts/metrics are internally inconsistent; and no performance evidence supports faster-than-MM claims. Reimplementing the method from equations would violate Route 1's upstream-first/no-new-wheel rule and would not establish parity.",
+    "revisit_only_if": [
+      "the authors or another maintained upstream release the complete 2022 SLIC/CDC implementation and exact molecular inputs/typing rules under deployable terms",
+      "the provider accepts declared AM1-BCC charges and audited radii without changing or adding a gas-phase MM potential",
+      "a source-pinned reproduction resolves the 500/502/494 row and 0.98/1.15 RMSE discrepancies",
+      "a prospectively frozen label-separated FreeSolv evaluation materially improves on the current Route 1 reserve endpoint",
+      "complete atom-resolved conservative forces pass all-3N finite differences before OPT, SCAN, or MD are enabled",
+      "multi-MLIP timing demonstrates the actual supported performance claim rather than assuming continuum electrostatics is faster than bare MM"
+    ],
+    "speed_claim_allowed": false,
+    "status": "scientifically_promising_no_complete_upstream_provider"
+  },
+  "protocol": {
+    "admission_rule": "A high published accuracy claim for a parameterized physical implicit-solvent model motivates source and reproduction audits. It does not authorize a paper-derived reimplementation, metric transfer, force claim, or product provider without a complete upstream, exact parameter/typing provenance, independent accuracy, atom-resolved conservative forces, and measured performance.",
+    "protocol_id": "route1-slic-cdc-feasibility-v1",
+    "steps": [
+      "freeze the journal DOI, public supporting-information file identity, and related upstream commits",
+      "separate physical parameter fitting from prohibited learned residual correction",
+      "recompute the public SI total-energy table independently using two PDF text extraction modes",
+      "separate explicitly listed training names from remaining historical rows without calling the latter a prospective reserve",
+      "compare the complete published SLIC/CDC requirements with the related PBJ and historical MATLAB source scopes",
+      "fail closed without adding a dependency, runtime selector, force path, or paper-based reimplementation"
+    ]
+  },
+  "recorded_date": "2026-07-25",
+  "route_contract": {
+    "default_charge": "AM1-BCC",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_mlip_retraining": false,
+    "gas_phase_mm_energy": false,
+    "generic_gas_mlip_interface_required": true,
+    "learned_hydration_residual": false,
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "requires_conservative_atom_resolved_force_for_opt_scan_md": true
+  },
+  "schema_version": 1,
+  "source_evidence": {
+    "am1bcc_input_provenance": {
+      "doi": "10.1021/ct800409d",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2701304/"
+    },
+    "chemrxiv_preprint": {
+      "doi": "10.26434/chemrxiv-2021-dz2d8",
+      "url": "https://www.cambridge.org/engage/chemrxiv/article-details/61438dfd87a02d39703d2551"
+    },
+    "historical_matlab_source": {
+      "commit": "f90c8bac221abeb71dbe03af642e7e519e0e1d0e",
+      "paths": [
+        "README.md",
+        "NLBC_TANH.m",
+        "mytanhopt_temp.m",
+        "optimization_script_phi_toggle.m"
+      ],
+      "repository": "https://bitbucket.org/bardhanlab/slic_solvation_thermodynamics.git"
+    },
+    "journal_article": {
+      "doi": "10.1021/acs.jctc.2c00248",
+      "url": "https://pubs.acs.org/doi/10.1021/acs.jctc.2c00248"
+    },
+    "journal_supporting_information": {
+      "download_url": "https://ndownloader.figshare.com/files/36808833",
+      "extracted_text_path": ".omx/research/slic-cdc-paper-20260725/ct2c00248_si_001.txt",
+      "figshare_api_url": "https://api.figshare.com/v2/articles/20600379",
+      "line_ranges": [
+        [
+          1130,
+          1175
+        ],
+        [
+          1184,
+          1213
+        ],
+        [
+          1229,
+          1258
+        ],
+        [
+          1337,
+          1420
+        ],
+        [
+          2450,
+          3445
+        ]
+      ],
+      "local_audit_path": ".omx/research/slic-cdc-paper-20260725/ct2c00248_si_001.pdf"
+    },
+    "pbj_main_source": {
+      "commit": "fe2f2e3ec83f49de64e6a831d58124b9b85c8bdb",
+      "paths": [
+        "pbj/implicit_solvent/solute.py",
+        "pbj/implicit_solvent/pb_formulation/formulations/slic.py",
+        "pbj/tests/test_verification.py",
+        "README.md",
+        "LICENSE"
+      ],
+      "repository": "https://github.com/bem4solvation/pbj"
+    }
+  },
+  "source_fingerprints": {
+    "figshare_metadata_sha256": "b05b8439d752ca2abb1fd2adc7e196b76427be618c4aa06562a38d53496b3f1d",
+    "historical_slic_nlbc_source_sha256": "8b389fb22463f8aedce8322de030c187232abc07cab961e1906ab45f4276260c",
+    "historical_slic_optimizer_source_sha256": "46b1a6cc01befd22bb158af4282de3c714b0767df6168a60625dd758c70563a3",
+    "historical_slic_phi_toggle_source_sha256": "ab4bad47926b52a8bcd0877ddc2346bf556da6ff019071409ad41252c56ab4c7",
+    "historical_slic_readme_sha256": "fb549b2f69f48515b68d1b2d34c98abf0573819f12ff9dfdd28ae59594ed3e8e",
+    "journal_si_layout_text_sha256": "21160e32d087dd434d0e780d36daad5e660109cd079881921dd3970bb7a7731b",
+    "journal_si_pdf_sha256": "8d1bc78500bc94ab58fcdd98a512e0fc842585379a5d9e9217d56b05cd9e8345",
+    "journal_si_raw_text_sha256": "3d3fb765c373292ffb6acb926e629972fa532e4e2cd8cc44dda4733fcbbfb545",
+    "pbj_license_sha256": "e2a39f36d39be2db2f7d608e67fff01cb1376b127894f73fb8b98b0278f18a12",
+    "pbj_readme_sha256": "ec95d51c7fa4588f5b7e3fcd08e3b541a142ebb3d3618ed67aec97756dc58e4f",
+    "pbj_slic_source_sha256": "d2ae8a56a5c9e876ada11e59b2642acc2689f6fcf693091a27da604be5de046b",
+    "pbj_solute_source_sha256": "e20caff216b6f09203764e54e647a0b71501c440de2bb93e521a64a210d80ca2",
+    "pbj_tests_sha256": "28a2440bc27267f1b5db8c3a11123457861da4666e1de296d6d2128a759a815d",
+    "si_replay_artifact_sha256": "11ec6822ab21cb5a0600b6f9b0b851dba9c89785912a7076d5649269f2acacd0",
+    "si_replay_runner_sha256": "bac9f1e8aab29ab46ca85bba319349c79d053c03f9b7e917b278f38e76b6191b"
+  },
+  "upstream_implementation_audit": {
+    "historical_matlab_upstream": {
+      "commit": "f90c8bac221abeb71dbe03af642e7e519e0e1d0e",
+      "complete_2022_neutral_molecule_slic_cdc": false,
+      "interpretation": "The historical MATLAB source does not implement the 2022 500-neutral-solute SLIC/CDC model and is not a deployable licensed product backend.",
+      "local_matlab_or_octave_found": false,
+      "scope": "2016 ion/solvent SLIC thermodynamics with parameter optimization",
+      "top_level_license_found": false,
+      "upstream": "https://bitbucket.org/bardhanlab/slic_solvation_thermodynamics.git"
+    },
+    "journal_figshare": {
+      "article_id": 20600379,
+      "code_archive_present": false,
+      "data_archive_present": false,
+      "file_count": 1,
+      "interpretation": "The public journal record supplies one PDF containing equations, parameter tables, training names, and result tables, but no executable SLIC/CDC implementation or machine-readable 500-solute input/output archive.",
+      "supporting_file_id": 36808833,
+      "supporting_file_name": "ct2c00248_si_001.pdf"
+    },
+    "local_environment": {
+      "bempp_module_found": false,
+      "matlab_executable_found": false,
+      "octave_executable_found": false,
+      "pbj_module_found": false,
+      "pdb2pqr30_executable_found": false,
+      "pdb2pqr_module_found": false
+    },
+    "pbj_related_upstream": {
+      "force_branch_commit": "1c85d59b0a764ffb925e60aeca9db08f7becdf08",
+      "force_interface": {
+        "atom_resolved_complete_solvation_force_present": false,
+        "interpretation": "PBJ cannot currently supply the complete per-atom conservative polar-plus-CDC force required by MAPLE OPT, SCAN, or MD. A total net force vector is not an ASE atom-force array.",
+        "nonpolar_force_present": false,
+        "readme_labels_force_calculation": "under development",
+        "reported_solvation_force_is_total_three_vector": true,
+        "slic_force_regression_tests_present": false,
+        "solute_charge_force_array_present": true
+      },
+      "important_limit": "PBJ is a related SLIC boundary-element code, not evidence that the 2022 molecular SLIC/CDC model has been released or reproduced.",
+      "license": "MIT",
+      "main_commit": "fe2f2e3ec83f49de64e6a831d58124b9b85c8bdb",
+      "main_contains_complete_published_slic_cdc": false,
+      "main_contains_simple_sasa_nonpolar_energy": true,
+      "main_contains_slic_electrostatics": true,
+      "missing_published_terms_or_controls": [
+        "independent fitted SLIC mu parameter",
+        "static-potential parameter",
+        "published CDC combinatorial model",
+        "published atom-typed CDC hydrogen-bond model",
+        "published atom-typed CDC dispersion parameterization as an exposed model profile"
+      ],
+      "new_force_branch_commit": "a5271a0ea6d7ed307102858f48d6a95c66a64cf3",
+      "nonpolar_branch_commit": "ecde11478b4006623f9447184eaeff2a14af2584",
+      "slic_branch_commit": "a8a9ebf7f7db227e209ae035b785077de7e28415",
+      "upstream": "https://github.com/bem4solvation/pbj"
+    }
+  }
+}

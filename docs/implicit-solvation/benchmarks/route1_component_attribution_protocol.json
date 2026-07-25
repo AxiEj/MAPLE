@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-chagb-component-attribution-v1",
+  "claim_scope": "Post hoc development-only component attribution over already frozen fixed-geometry energy records. It determines whether the CHA-GB/cavity-dispersion gain can be assigned to an isolated polar or nonpolar swap. It is not model fitting, independent confirmation, a force result, or a runtime-provider admission.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "label_use_boundary": {
+    "component_energies_were_frozen_before_this_analysis": true,
+    "development_labels_are_read": true,
+    "experimental_fit_or_residual": false,
+    "confirmation_remains_closed": true
+  },
+  "source_evidence": {
+    "source_manifest": "apbs_ace_source_manifest.json",
+    "source_manifest_sha256": "7bdefe668d3288bee6806f729c88b631a16fd7f07fbcf15051ae4e9e2f672b90",
+    "expected_case_count": 526,
+    "source_development_summary": "freesolv-development-2026-07-23.json",
+    "source_development_summary_sha256": "911e53feee177ffe1e92112b0a723793748850dfe470b6e4d08f8611ef3f6855",
+    "chagb_summary": "freesolv-am1bcc-chagb-nonpolar-2026-07-24.json",
+    "chagb_summary_sha256": "a842604d423dd01833b7e4a2b2d92ce0944e0d0e6f2c2e1d883edeaf2cf7308a",
+    "fine_apbs_summary": "freesolv-am1bcc-apbs-ace-fine-2026-07-25.json",
+    "fine_apbs_summary_sha256": "50796dae78766a13ce66676c531451babdafec1fce578d57ac591bc5c7e98379"
+  },
+  "component_endpoints": {
+    "obc2_ace": {
+      "polar": "OpenMM OBC-II polar",
+      "nonpolar": "OpenMM ACE"
+    },
+    "obc2_pbsa_cavity_dispersion": {
+      "polar": "OpenMM OBC-II polar",
+      "nonpolar": "AmberTools PBSA inp=2 ECAVITY + EDISPER"
+    },
+    "chagb_ace": {
+      "polar": "AmberTools CHA-GB polar",
+      "nonpolar": "OpenMM ACE"
+    },
+    "chagb_surface_tension": {
+      "polar": "AmberTools CHA-GB polar",
+      "nonpolar": "GBNSR6 surface-tension term"
+    },
+    "chagb_pbsa_cavity_dispersion": {
+      "polar": "AmberTools CHA-GB polar",
+      "nonpolar": "AmberTools PBSA inp=2 ECAVITY + EDISPER"
+    },
+    "apbs_ace": {
+      "polar": "fine-grid APBS molecular-surface LPBE polar",
+      "nonpolar": "OpenMM ACE"
+    },
+    "apbs_pbsa_cavity_dispersion": {
+      "polar": "fine-grid APBS molecular-surface LPBE polar",
+      "nonpolar": "AmberTools PBSA inp=2 ECAVITY + EDISPER"
+    }
+  },
+  "attribution": {
+    "factorial_endpoints": {
+      "baseline": "obc2_ace",
+      "polar_only_swap": "chagb_ace",
+      "nonpolar_only_swap": "obc2_pbsa_cavity_dispersion",
+      "joint_swap": "chagb_pbsa_cavity_dispersion"
+    },
+    "polar_shapley_formula": "0.5*((MAE_baseline-MAE_polar_only)+(MAE_nonpolar_only-MAE_joint))",
+    "nonpolar_shapley_formula": "0.5*((MAE_baseline-MAE_nonpolar_only)+(MAE_polar_only-MAE_joint))",
+    "interaction_formula": "(MAE_polar_only-MAE_baseline)-(MAE_joint-MAE_nonpolar_only)",
+    "interpretation": "Shapley values allocate the observed endpoint MAE reduction across the two swaps. They do not prove microscopic causality because absolute error is nonlinear and the component parameterizations are coupled."
+  },
+  "statistics": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20260725
+  },
+  "decision_rule": {
+    "isolated_swap_requires_positive_paired_mae_gain": true,
+    "isolated_swap_requires_bootstrap_ci_lower_above_zero": true,
+    "joint_gain_does_not_license_mismatched_component_porting": true,
+    "runtime_provider_change_allowed": false
+  }
+}

@@ -122,6 +122,8 @@ def _mol2_charges(atoms, label: str | None) -> ChargeResult:
             "path": metadata["path"],
             "charge_type": metadata.get("charge_type"),
             "sum_e": float(charges.sum()),
+            "connected_component_count": int(metadata.get("component_count", 1)),
+            "component_charge_sums_e": metadata.get("component_charge_sums_e"),
         },
     )
 

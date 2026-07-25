@@ -7,13 +7,13 @@ import json
 import math
 import os
 from pathlib import Path, PurePosixPath
+import sys
 import tarfile
 import tempfile
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 import urllib.request
 
 import numpy as np
-
 
 REQUIRED_PROTOCOL_KEYS = {
     "schema_version",
@@ -53,6 +53,69 @@ def sha256_file(path: str | os.PathLike[str]) -> str:
     return digest.hexdigest()
 
 
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
+def command_provenance(
+    script_path: str | os.PathLike[str],
+    arguments: Mapping[str, Any],
+    *,
+    repository_root: str | os.PathLike[str],
+    environment_variables: Iterable[str] = (),
+) -> dict[str, Any]:
+    """Return a normalized, fingerprinted command record for one benchmark."""
+    script = Path(script_path).resolve()
+    root = Path(repository_root).resolve()
+    try:
+        script_name = script.relative_to(root).as_posix()
+    except ValueError:
+        script_name = str(script)
+    normalized_arguments = {
+        str(key): _json_safe(value) for key, value in sorted(arguments.items())
+    }
+    environment = {
+        name: os.environ.get(name) for name in sorted(set(environment_variables))
+    }
+    return {
+        "script": script_name,
+        "script_sha256": sha256_file(script),
+        "python_executable": sys.executable,
+        "arguments": normalized_arguments,
+        "arguments_sha256": sha256_bytes(canonical_json_bytes(normalized_arguments)),
+        "environment_variables": environment,
+    }
+
+
+def artifact_content_sha256(value: Mapping[str, Any]) -> str:
+    """Hash an artifact canonically while excluding its self-hash field."""
+    payload = {key: item for key, item in value.items() if key != "content_sha256"}
+    return sha256_bytes(
+        json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    )
+
+
+def seal_artifact(value: dict[str, Any]) -> dict[str, Any]:
+    """Attach a self-consistent content fingerprint to a finished artifact."""
+    value["content_sha256"] = artifact_content_sha256(value)
+    return value
+
+
 def write_json_atomic(path: str | os.PathLike[str], value: Any) -> None:
     destination = Path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -81,9 +144,13 @@ def load_protocol(path: str | os.PathLike[str]) -> tuple[dict[str, Any], str]:
         raise ValueError("Benchmark protocol must be a JSON object.")
     missing = sorted(REQUIRED_PROTOCOL_KEYS - set(protocol))
     if missing:
-        raise ValueError("Benchmark protocol is missing required keys: " + ", ".join(missing))
+        raise ValueError(
+            "Benchmark protocol is missing required keys: " + ", ".join(missing)
+        )
     if protocol["schema_version"] != 1 or protocol["result_schema_version"] != 1:
-        raise ValueError("Only benchmark protocol/result schema version 1 is supported.")
+        raise ValueError(
+            "Only benchmark protocol/result schema version 1 is supported."
+        )
 
     dataset = protocol["dataset"]
     if not _is_hex(str(dataset.get("commit", "")), 40):
@@ -110,7 +177,11 @@ def load_protocol(path: str | os.PathLike[str]) -> tuple[dict[str, Any], str]:
 
     partition = protocol["partition"]
     fraction = partition.get("development_fraction")
-    if not isinstance(fraction, (int, float)) or isinstance(fraction, bool) or not 0 < fraction < 1:
+    if (
+        not isinstance(fraction, (int, float))
+        or isinstance(fraction, bool)
+        or not 0 < fraction < 1
+    ):
         raise ValueError("development_fraction must be strictly between zero and one.")
     if not str(partition.get("seed", "")):
         raise ValueError("Partition seed must be non-empty.")
@@ -120,11 +191,17 @@ def load_protocol(path: str | os.PathLike[str]) -> tuple[dict[str, Any], str]:
 
     benchmark_kind = str(protocol.get("benchmark_kind", "route1-pbgb"))
     if benchmark_kind != "route1-pbgb":
-        raise ValueError(f"Route-1 branch requires benchmark_kind='route1-pbgb', got {benchmark_kind!r}.")
+        raise ValueError(
+            f"Route-1 branch requires benchmark_kind='route1-pbgb', got {benchmark_kind!r}."
+        )
     methods = protocol["methods"]
     for key in ("charge_methods", "gb_models"):
         values = methods.get(key)
-        if not isinstance(values, list) or not values or len(values) != len(set(values)):
+        if (
+            not isinstance(values, list)
+            or not values
+            or len(values) != len(set(values))
+        ):
             raise ValueError(f"methods.{key} must be a non-empty unique list.")
     statistics = protocol["statistics"]
     if int(statistics.get("bootstrap_resamples", 0)) <= 0:
@@ -151,7 +228,9 @@ def fetch_and_verify_artifacts(
             if source_dir is not None:
                 source = source_dir / name
                 if not source.is_file():
-                    raise FileNotFoundError(f"Pinned dataset artifact not found in source dir: {source}")
+                    raise FileNotFoundError(
+                        f"Pinned dataset artifact not found in source dir: {source}"
+                    )
                 destination.write_bytes(source.read_bytes())
             else:
                 with urllib.request.urlopen(artifact["url"], timeout=120) as response:
@@ -171,7 +250,12 @@ def safe_extract_tar(archive_path: Path, destination: Path) -> None:
     with tarfile.open(archive_path, "r:gz") as archive:
         for member in archive.getmembers():
             path = PurePosixPath(member.name)
-            if path.is_absolute() or ".." in path.parts or member.issym() or member.islnk():
+            if (
+                path.is_absolute()
+                or ".." in path.parts
+                or member.issym()
+                or member.islnk()
+            ):
                 raise ValueError(f"Unsafe path in dataset archive: {member.name!r}.")
             if not (member.isdir() or member.isfile()):
                 raise ValueError(f"Unsupported archive entry type: {member.name!r}.")
@@ -237,7 +321,11 @@ def rotatable_bond_proxy(atoms) -> int:
 def classify_candidate(atoms, groups: list[str]) -> dict[str, Any]:
     symbols = atoms.get_chemical_symbols()
     heavy = [symbol for symbol in symbols if symbol != "H"]
-    hetero = [symbol for symbol in heavy if symbol != "C" and symbol not in {"F", "Cl", "Br", "I"}]
+    hetero = [
+        symbol
+        for symbol in heavy
+        if symbol != "C" and symbol not in {"F", "Cl", "Br", "I"}
+    ]
     halogen_count = sum(symbol in {"F", "Cl", "Br", "I"} for symbol in heavy)
     rotatable = rotatable_bond_proxy(atoms)
     if halogen_count:
@@ -247,10 +335,16 @@ def classify_candidate(atoms, groups: list[str]) -> dict[str, Any]:
     else:
         element_class = "hydrocarbon"
     heavy_count = len(heavy)
-    size_bin = "small" if heavy_count <= 6 else "medium" if heavy_count <= 12 else "large"
+    size_bin = (
+        "small" if heavy_count <= 6 else "medium" if heavy_count <= 12 else "large"
+    )
     hetero_count = len(hetero) + halogen_count
-    hetero_bin = "zero" if hetero_count == 0 else "one" if hetero_count == 1 else "multiple"
-    flexibility = "rigid" if rotatable == 0 else "limited" if rotatable <= 3 else "flexible"
+    hetero_bin = (
+        "zero" if hetero_count == 0 else "one" if hetero_count == 1 else "multiple"
+    )
+    flexibility = (
+        "rigid" if rotatable == 0 else "limited" if rotatable <= 3 else "flexible"
+    )
     return {
         "elements": sorted(set(symbols)),
         "atom_count": len(symbols),
@@ -267,7 +361,9 @@ def classify_candidate(atoms, groups: list[str]) -> dict[str, Any]:
 
 
 def expected_attempt_ids(
-    candidate_ids: Iterable[str], charge_methods: Iterable[str], gb_models: Iterable[str]
+    candidate_ids: Iterable[str],
+    charge_methods: Iterable[str],
+    gb_models: Iterable[str],
 ) -> list[str]:
     return [
         f"{compound_id}__{charge_method}__{gb_model}"
@@ -279,7 +375,13 @@ def expected_attempt_ids(
 
 def _metric_values(errors: np.ndarray) -> dict[str, float | int | None]:
     if errors.size == 0:
-        return {"n": 0, "mse": None, "mae": None, "rmse": None, "max_absolute_error": None}
+        return {
+            "n": 0,
+            "mse": None,
+            "mae": None,
+            "rmse": None,
+            "max_absolute_error": None,
+        }
     absolute = np.abs(errors)
     return {
         "n": int(errors.size),
@@ -305,7 +407,9 @@ def summarize_errors(
     metrics["expected_count"] = int(expected_count)
     metrics["failure_count"] = int(expected_count - len(values))
     metrics["failure_rate"] = (
-        float((expected_count - len(values)) / expected_count) if expected_count else None
+        float((expected_count - len(values)) / expected_count)
+        if expected_count
+        else None
     )
     if values.size == 0:
         metrics["bootstrap_ci"] = {"mse": None, "mae": None, "rmse": None}
@@ -327,7 +431,9 @@ def summarize_errors(
     return metrics
 
 
-def ensure_confirmation_lock(work_dir: Path, protocol_fingerprint: str) -> dict[str, Any]:
+def ensure_confirmation_lock(
+    work_dir: Path, protocol_fingerprint: str
+) -> dict[str, Any]:
     path = work_dir / "confirmation-lock.json"
     if not path.is_file():
         raise ValueError(
@@ -336,7 +442,9 @@ def ensure_confirmation_lock(work_dir: Path, protocol_fingerprint: str) -> dict[
         )
     lock = load_json(path)
     if lock.get("protocol_fingerprint") != protocol_fingerprint:
-        raise ValueError("Confirmation lock protocol fingerprint does not match this protocol.")
+        raise ValueError(
+            "Confirmation lock protocol fingerprint does not match this protocol."
+        )
     for key in ("proposed_default", "pass_rule", "frozen_at_utc"):
         if not str(lock.get(key, "")).strip():
             raise ValueError(f"Confirmation lock is missing {key}.")

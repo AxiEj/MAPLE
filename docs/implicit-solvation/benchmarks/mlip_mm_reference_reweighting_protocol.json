@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-mmgb-reference-mlip-reweighting-v1",
+  "claim_scope": "Label-free development diagnostic for GAFF2/OBC-II/ACE reference sampling followed by sparse energy-only evaluation of the exact Route 1 MLIP/OBC-II/ACE target and indirect gas/solution free-energy corrections. This protocol cannot establish equilibrium, universal acceleration, chemical accuracy, confirmation, or product promotion.",
+  "route_contract": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "role": "Baseline/Product Route",
+    "target_formula": "U_target,lambda(R)=U_MLIP,gas(R)+lambda*[G_polar(R,q_fixed)+G_nonpolar(R)]",
+    "fixed_charge_across_states": true,
+    "reference_mm_role": "sampling_only",
+    "reference_mm_energy_in_target": false,
+    "no_hydration_residual_model": true,
+    "no_mlip_retraining": true,
+    "formal_model_agnosticism": "Any registered gas-phase MLIP that supplies finite energies on every audited configuration can be evaluated; practical efficiency remains overlap-limited."
+  },
+  "thermodynamic_cycle": {
+    "formula": "DeltaG_target_solv=DeltaG_ref_solv+DeltaF_ref_to_target_solution-DeltaF_ref_to_target_gas",
+    "reference_solvation_estimator": "PyMBAR MBAR from GAFF2 gas and GAFF2/OBC-II/ACE samples",
+    "indirect_correction_estimator": "PyMBAR MBAR for bidirectional validation, with BAR as an independent two-state cross-check",
+    "accelerated_candidate": "Reference-only PyMBAR EXP corrections with sparse target energy evaluations",
+    "accelerated_candidate_is_primary_estimator": false,
+    "arbitrary_reference_target_energy_zero_cancels_in_cycle": true
+  },
+  "execution_boundary": {
+    "sampling_or_energy_phase_reads_experimental_labels": false,
+    "scoring_must_be_separate": true,
+    "equilibrium_claim": false,
+    "promotion_allowed": false,
+    "reference_only_production_validated": false,
+    "target_force_evaluations_required_for_accelerated_candidate": false,
+    "target_samples_used_only_for_bidirectional_validation": true
+  },
+  "source_evidence": {
+    "target_ti_protocol": "mlip_obc2_ti_protocol.json",
+    "target_ti_protocol_sha256": "99843adbaa04f6e2a11b0baf17fa198ea351727657483c7a3fc3e02c3ca48144",
+    "target_record_manifest": "mlip_obc2_mbar_source_manifest.json",
+    "target_record_manifest_sha256": "cbe014d1db7ecf52c31da9e2d6fdafc7077d54c4f64138b486e4bb4fe4a51c6e",
+    "direct_target_mbar_artifact": "route1-multi-mlip-obc2-mbar-2026-07-25.json",
+    "direct_target_mbar_artifact_sha256": "f83569d9b4ad3b2b679c501a5f3154969326b5632e4c639a4dfb7e75345ab476",
+    "charge_manifest": "chagb_nonpolar_source_manifest.json",
+    "charge_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc"
+  },
+  "models": [
+    {
+      "name": "maceoff23m",
+      "checkpoint_sha256": "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee"
+    },
+    {
+      "name": "aimnet2",
+      "checkpoint_sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+    },
+    {
+      "name": "ani2x",
+      "checkpoint_sha256": "c8c41e89d5ccbe7b5c9f46ce4a262b913ad0c428a3a3742cc6e83ac10d4d43aa"
+    }
+  ],
+  "cases": [
+    {
+      "compound_id": "mobley_1952272",
+      "name": "nitromethane",
+      "flexibility_bin": "rigid",
+      "seed": 2026072501,
+      "reference_input_sha256": {
+        "m.mol2": "0bc5354eb3ef4a8df217e1bf9272ecde5ce117b144f626f074e4a23689c9ff6e",
+        "p": "fb8e8b7bd1786a372e40b13443afd1e0d6567529141ae0897a0cd4ba1ffd2e6b",
+        "initial.rst7": "8af1f96f8f153e01fad084083ade49364fc42efd842cd42952577a93d3dafadb"
+      }
+    },
+    {
+      "compound_id": "mobley_7758918",
+      "name": "propionic acid",
+      "flexibility_bin": "limited",
+      "seed": 2026072502,
+      "reference_input_sha256": {
+        "m.mol2": "f39746391ba721e6adf863c3f741300879a4d9f255a5e0178b20240f0441f9ba",
+        "p": "806316afa4b0a79635dc4e3a08061d77e507d4516108a45ac8ec8de7cbade164",
+        "initial.rst7": "b36c276e9ab4684491c5e4a49e1be9c4b7422dca563b3855c94999ab9c9b485f"
+      }
+    },
+    {
+      "compound_id": "mobley_1017962",
+      "name": "methyl hexanoate",
+      "flexibility_bin": "flexible",
+      "seed": 2026072503,
+      "reference_input_sha256": {
+        "m.mol2": "783df578c85819b79b59537197a0850e074426d2e9eef5bfef020c9a4849ce23",
+        "p": "ff5d5667948fc203331bf35ac589535a67b32003e2ebc14f3709a20744bb361c",
+        "initial.rst7": "a4e4695fdc67bc74d990664db25bfe4de2b899015ff2e94f33e8b2a8ca536967"
+      }
+    }
+  ],
+  "reference_potential": {
+    "gas": "GAFF2 fixed-charge molecular mechanics",
+    "solution": "GAFF2 fixed-charge molecular mechanics plus OpenMM OBC-II/ACE",
+    "charges": "The same frozen AM1-BCC vector used by the Route 1 target",
+    "radii": "Amber mbondi2 embedded in the frozen topology",
+    "solvent": "water",
+    "solute_dielectric": 1.0,
+    "solvent_dielectric": 78.5,
+    "salt_concentration_molar": 0.0,
+    "sasa_method": "ACE",
+    "nonbonded_method": "NoCutoff",
+    "constraints": null,
+    "openmm_platform": "CPU",
+    "openmm_platform_properties": {
+      "Threads": "1",
+      "DeterministicForces": "true"
+    }
+  },
+  "reference_sampling": {
+    "temperature_kelvin": 298.15,
+    "thermostat": "OpenMM LangevinMiddleIntegrator",
+    "timestep_fs": 0.5,
+    "friction_per_ps": 1.0,
+    "equilibration_steps_per_endpoint": 1000,
+    "production_steps_per_endpoint": 5000,
+    "sample_stride_steps": 50,
+    "expected_samples_per_endpoint_replicate": 100,
+    "replicates": [
+      {
+        "replicate_id": "repeat-0",
+        "seed_offset": 0
+      },
+      {
+        "replicate_id": "repeat-1",
+        "seed_offset": 100000
+      }
+    ],
+    "gas_seed_offset": 0,
+    "solution_seed_offset": 10000
+  },
+  "target_sample_source": {
+    "lambda_states": [
+      0.0,
+      1.0
+    ],
+    "use_only_published_production_frames": true,
+    "required_independent_chains": 2,
+    "expected_production_samples_per_endpoint_chain": 40,
+    "target_energy_is_reused_from_label_free_records": true,
+    "reference_energy_is_evaluated_on_every_target_frame": true
+  },
+  "analysis": {
+    "standard_state": "gas 1 M to ideal-dilute solution 1 M; configurational indirect correction",
+    "detect_equilibration": false,
+    "equilibration_nskip": 1,
+    "minimum_uncorrelated_samples_per_state": 20,
+    "minimum_effective_samples_per_state": 20.0,
+    "minimum_bar_overlap": 0.03,
+    "minimum_directional_effective_fraction": 0.1,
+    "maximum_directional_disagreement_kcal_mol": 0.5,
+    "maximum_bar_uncertainty_kcal_mol": 0.5,
+    "maximum_bar_mbar_disagreement_kcal_mol": 0.005,
+    "maximum_accelerated_vs_bidirectional_cycle_difference_kcal_mol": 0.25,
+    "maximum_bidirectional_cycle_vs_direct_mbar_difference_kcal_mol": 0.25,
+    "maximum_reference_target_solvent_provider_difference_kcal_mol": 0.05,
+    "maximum_iterations": 10000,
+    "relative_tolerance": 1e-07
+  },
+  "decision_policy": {
+    "promotion_allowed": false,
+    "reason": "The frozen trajectories are deliberately short and cannot establish equilibrium or conformer mixing. Reference-only acceleration remains unvalidated even if numerical overlap gates pass.",
+    "overlap_threshold_is_a_caution_boundary_not_a_universal_constant": true,
+    "poor_overlap_action": "fail closed or add intermediate reference-to-target states; never silently trust endpoint FEP",
+    "experimental_labels_may_not_change_this_protocol": true
+  },
+  "performance_claim_boundary": {
+    "allowed_comparators": [
+      "direct target-MLIP implicit-solvent sampling",
+      "explicit-solvent MM free-energy campaigns",
+      "QM/MM free-energy sampling"
+    ],
+    "forbidden_claims": [
+      "faster than a bare MM force evaluation",
+      "universally faster for every molecule or MLIP",
+      "accurate without an overlap and uncertainty audit"
+    ]
+  },
+  "literature": [
+    {
+      "citation": "Shirts MR, Chodera JD. J Chem Phys 129, 124105 (2008).",
+      "doi": "10.1063/1.2978177",
+      "role": "MBAR estimator"
+    },
+    {
+      "citation": "Konig G et al. J Chem Theory Comput 10, 1406-1419 (2014).",
+      "doi": "10.1021/ct401118k",
+      "role": "indirect reference-potential free energies"
+    },
+    {
+      "citation": "Jia X et al. J Chem Theory Comput 12, 499-511 (2016).",
+      "doi": "10.1021/acs.jctc.5b00920",
+      "role": "MM-to-QM energy reweighting for solvation free energies"
+    },
+    {
+      "citation": "Tkaczyk S et al. J Chem Theory Comput 20, 2719-2728 (2024).",
+      "doi": "10.1021/acs.jctc.3c01274",
+      "role": "MM reference to ANI-2x target free-energy reweighting"
+    },
+    {
+      "citation": "Wang Y et al. J Chem Theory Comput 21, 6979-6987 (2025).",
+      "doi": "10.1021/acs.jctc.5c00598",
+      "role": "multi-MLIP free-energy workflow precedent and interface evidence"
+    }
+  ],
+  "limitations": [
+    "Reference trajectories are only 3 ps per endpoint replicate including 0.5 ps discarded by construction.",
+    "The three target-model endpoint trajectories are only the production subsets of the prior 30 fs development diagnostic.",
+    "The three molecules and three registered MLIPs are a development matrix, not a confirmation benchmark.",
+    "Bidirectional BAR consumes direct target samples only to audit the cheaper reference-only EXP candidate; it is not part of the claimed accelerated production path.",
+    "No experimental FreeSolv labels may be opened until the label-free energy artifact is sealed."
+  ]
+}

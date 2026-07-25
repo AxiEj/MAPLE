@@ -1,0 +1,73 @@
+{
+  "artifact_type": "route1-slic-cdc-si-table-replay",
+  "claim_scope": "Source-bound transcription-level replay of published SLIC/CDC Supporting Information Tables S4 and S10. Table S4 is parsed from the layout-preserving extraction; Table S10 rows are required to match across layout and raw extraction modes. This is not a model execution, independent data source, independent FreeSolv calculation, or product benchmark.",
+  "content_sha256": "a55f1fbd04766d92ce63706329886275adcedac7746797c7998c4e333ca6c6cb",
+  "extraction": {
+    "layout_and_raw_rows_identical": true,
+    "normalized_duplicate_names": [
+      "2-methylbut-2-ene",
+      "3-methylbut-1-ene"
+    ],
+    "normalized_unique_names": 492,
+    "parsed_rows": 494,
+    "row_payload_sha256": "7f4b39f12973bac16a6e1397ffa55af99cbbbd810e0d90efa0dc3a0a59dd9d5e",
+    "training_names_listed": 63,
+    "training_table_s4": {
+      "column_count": 3,
+      "extraction_mode": "layout",
+      "name_payload_sha256": "63c1d71a32e784bea8f64f319e3b7ac227ea226a7f51eba2ddae8a9524341b1a",
+      "row_count": 21
+    }
+  },
+  "metrics": {
+    "all_parsed_rows": {
+      "mae_kcal_per_mol": 0.8127732793522272,
+      "maximum_absolute_error_kcal_per_mol": 6.8100000000000005,
+      "mean_signed_error_kcal_per_mol": -0.18261133603238872,
+      "n": 494,
+      "rmse_kcal_per_mol": 1.1523325227185854
+    },
+    "largest_absolute_errors_kcal_per_mol": [
+      {
+        "calculated": -11.39,
+        "error": -6.8100000000000005,
+        "experimental": -4.58,
+        "name": "2-nitrophenol"
+      },
+      {
+        "calculated": 2.41,
+        "error": 6.17,
+        "experimental": -3.76,
+        "name": "hexafluoropropene"
+      },
+      {
+        "calculated": -9.55,
+        "error": -4.510000000000001,
+        "experimental": -5.04,
+        "name": "2-isobutylpyrazine"
+      }
+    ],
+    "listed_training_rows": {
+      "mae_kcal_per_mol": 0.721111111111111,
+      "maximum_absolute_error_kcal_per_mol": 2.0100000000000002,
+      "mean_signed_error_kcal_per_mol": -0.3785714285714287,
+      "n": 63,
+      "rmse_kcal_per_mol": 0.8526234026032049
+    },
+    "remaining_rows_after_excluding_listed_training_names": {
+      "mae_kcal_per_mol": 0.8261716937354994,
+      "maximum_absolute_error_kcal_per_mol": 6.8100000000000005,
+      "mean_signed_error_kcal_per_mol": -0.1539675174013921,
+      "n": 431,
+      "rmse_kcal_per_mol": 1.1898341634139245
+    }
+  },
+  "schema_version": 1,
+  "source": {
+    "filename": "ct2c00248_si_001.pdf",
+    "layout_text_sha256": "21160e32d087dd434d0e780d36daad5e660109cd079881921dd3970bb7a7731b",
+    "pdf_sha256": "8d1bc78500bc94ab58fcdd98a512e0fc842585379a5d9e9217d56b05cd9e8345",
+    "pdftotext_version": "pdftotext version 22.02.0",
+    "raw_text_sha256": "3d3fb765c373292ffb6acb926e629972fa532e4e2cd8cc44dda4733fcbbfb545"
+  }
+}

@@ -12,6 +12,12 @@ have to inherit `CalcABC`. UMA, for example, extends third-party
 
 **Public methods:**
 - `calculate(self, atoms, properties, system_changes)` — ASE entry point.
+- `calculate_many(self, atoms_list, properties=('energy', 'forces'))` — returns
+  a `BatchResult` instead of mutating one ambiguous multi-structure
+  `self.results`. `CalcABC` supplies a conservative sequential fallback.
+  Native overrides must preserve order, Hartree/Hartree-per-angstrom units,
+  PBC policy, and solvent semantics; batched Hessian assembly is not part of
+  this method.
 - `get_hessian(self, atoms, delta=0.002)` — returns a `(3N, 3N) np.ndarray`
   in Hartree / Å². `CalcABC` provides a default that dispatches on
   `self.hessian`.
@@ -37,6 +43,8 @@ instantiated):
 | `SUPPORTED_HESSIAN_MODES` | `tuple[str, ...]` | Subset of `('analytic', 'numerical')`. |
 | `SUPPORTS_CHARGE_MULT` | `bool` | True if the backend honors `atoms.info['charge']` / `atoms.info['mult']`. |
 | `SUPPORTS_PBC` | `bool` | True only when the backend constructs a validated periodic graph / neighbor list. `SetCalculator` and `CalcABC.calculate()` reject periodic atoms for false values. |
+| `SUPPORTS_IMPLICIT_SOLVATION` | `bool` | Declares that the backend implements MAPLE's additive Route 1 composition contract. `CalcABC` supplies it; non-`CalcABC` backends must opt in explicitly after adding equivalent energy/force composition. |
+| `supports_batch_energy_forces` | `bool` | True only for a model-native `calculate_many` energy/force path that has passed serial parity. False still satisfies the API through the `CalcABC` sequential fallback. |
 | `CHECKPOINT_FILENAME` | `dict[str, str] \| None` | Per-name filename for HuggingFace auto-download. `None` if no auto-download. |
 | `REQUIRES_LOCAL_MODEL_FILE` | `bool` | Fallback when `CHECKPOINT_FILENAME` does not cover the requested name. |
 | `OPTION_KEYS` | `tuple[str, ...] \| None` | Supported backend-specific `model_options`. Shipped backends set this so typos fail loudly; `None` keeps legacy plug-ins permissive. |
@@ -47,6 +55,12 @@ gate that `SetCalculator` reads before instantiation: AIMNet2 declares it so an
 unsupported `coulomb_method` option is rejected before the model is built. It is
 not part of the core protocol — `SetCalculator` consults it only for the
 `coulomb_method` key — and is noted here so the capability surface is complete.
+
+After construction, a backend may expose an `atomic_numbers` iterable derived
+from its loaded checkpoint. When present, `SetCalculator` rejects unsupported
+input elements before evaluation. External backends without that declaration
+remain usable, but MAPLE cannot certify their element domain at the shared
+preflight boundary; those backends must perform their own domain validation.
 
 ## Minimum runnable subclass
 
@@ -104,30 +118,85 @@ class FooCalculator(CalcABC):
   inside its analytic method); the numerical path inherits Hartree via
   `numerical_hessian_from_atoms`, which calls back into `calculate()`.
 
+## Batch energy/force contract
+
+- `BatchResult.energies` is a `(B,)` `float64` array in Hartree;
+  `BatchResult.forces` is an ASE-ordered list of `(N_i, 3)` `float64` arrays in
+  Hartree/angstrom. A field is `None` when it was not requested.
+- `calculate_many` accepts only energy/forces. It rejects Hessian requests;
+  numerical or analytic Hessians remain explicit single-structure paths.
+- Empty inputs return empty requested fields. Unsupported PBC and attached
+  solvent cases must use the normal sequential path rather than omit physics.
+- MACE-OFF23m builds a disconnected graph with no cross-structure edges;
+  AIMNet2's dense neighbor list masks different `mol_idx` values; ANI2x groups
+  identical atomic-number sequences. ANI D4 remains sequential.
+- `evaluate_gas_conformer_energies` is the fixed-topology consumer. It copies
+  the template for each geometry, chunks calls, and rejects an attached solvent
+  correction so a later Route 1 \(W_i\) array cannot be counted twice.
+- Native batching is a capability, not a universal performance promise.
+  Benchmark and report speed per checkpoint/device/workload.
+
 ## Implicit solvent
 
 - `_finalize_results` is the only CalcABC composition point for additive
   solvent energy and force corrections. Custom calculators do not call a
   provider directly in their `calculate()` flow.
+- `SetCalculator` rejects a registered backend that does not declare
+  `SUPPORTS_IMPLICIT_SOLVATION=True`; registration alone is not evidence that
+  the backend actually composes the solvent term. `CalcABC` subclasses inherit
+  the declaration, while non-`CalcABC` backends must implement and declare the
+  equivalent contract explicitly.
 - `SetCalculator` installs one prepared `ImplicitSolvationCorrection` because
   the provider needs the reference MOL2 topology and explicit `#charge(...)`
   configuration.
+- The prepared correction adds a stable per-atom identity array. ASE copies
+  preserve it and ASE slicing reorders it, so evaluation can reject atom
+  deletion, substitution, and same-element reordering before frozen charges,
+  radii, or topology are applied. Plugin code must preserve custom ASE arrays
+  when copying structures; reconstructing `Atoms` from symbols and coordinates
+  alone fails closed.
 - Implemented route-1 methods are `gb` and `pb` in water. Legacy `gbsa` input
   raises a migration error rather than selecting the old heuristic correction.
 - A provider advertises `supported_properties`: OpenMM GB exposes energy and
   force; APBS LPB exposes energy only. Shared guards reject gas-only derivatives.
-- Hessian/HVP, stress, PBC, and unsupported task/domain combinations fail closed.
+- The structured provider contract is
+  `evaluate(atoms, need_forces=False, calculator=None)`. Runtime `TypeError`
+  exceptions propagate; `_finalize_results` does not retry a second signature
+  and cannot hide an internal provider bug as a compatibility fallback.
+- Analytic implicit-solvent Hessians, implicit-solvent HVP, stress, PBC, and
+  unsupported task/domain combinations fail closed. An explicit numerical
+  Hessian is available only for a force-capable solvent composition.
 
 ## Hessian
 
 - `self.hessian` selects `'analytic'` or `'numerical'`. Numerical falls
-  through to the shared `numerical_hessian_from_atoms` helper for free.
-- `numerical_hessian_from_atoms` restores the calculator's pre-call
-  `results` before returning, so standalone `calc.get_hessian(atoms)` does
-  not leave `results` pointing at the final displaced geometry.
+  through to the shared `numerical_hessian_from_atoms` helper.
+- With a force-capable implicit-solvent correction attached, the numerical
+  helper differentiates the calculator's **complete reported force**. This
+  yields the Hessian of the composed MLIP-plus-solvent potential and must not
+  be replaced by a gas-only backend Hessian. It costs two force evaluations
+  per movable Cartesian degree of freedom.
+- Energy-only solvent providers cannot use numerical Hessians. Non-`CalcABC`
+  plugins that declare `SUPPORTS_IMPLICIT_SOLVATION=True` must preserve this
+  complete-force behavior in their own `get_hessian` implementation.
+- `numerical_hessian_from_atoms` restores the calculator's pre-call `results`,
+  `atoms`, and `solvation_result` before returning, so standalone
+  `calc.get_hessian(atoms)` does not leave public calculator state pointing at
+  the final displaced geometry.
 - Analytic Hessian with implicit solvent is unsupported and raises
   `NotImplementedError` from `CalcABC.get_hessian`. Document the
   limitation in any backend-specific notes.
+- The MAPLE FREQ task requires explicit `#model=...(hessian=numerical)` and
+  `#freq(method=mw,ilowfreq=0..3)` for implicit GB. Non-mass-weighted and
+  unimplemented dual-mode analysis fail during input validation. The existing
+  translational/rotational RRHO treatment remains ideal-gas thermochemistry; a
+  combined-potential vibrational Hessian is not by itself a
+  solution-standard-state or absolute solvation free energy. Constrained FREQ
+  fails closed until an active-coordinate Hessian, mass matrix, and rigid-body
+  projection are implemented for ASE constraints. The runtime FREQ boundary
+  also rechecks `mode=fixed`, correction force support,
+  `SUPPORTS_IMPLICIT_SOLVATION=True`, `hessian=numerical`, and non-periodic
+  atoms so direct Python calls cannot bypass the command contract.
 
 ## Periodic boundary conditions and stress
 
@@ -198,14 +267,14 @@ backends build a **no-PBC** radius graph (zero `cell`/`shifts`), so they are
 molecule-only regardless of any periodic claim elsewhere. UMA is the only
 backend that switches tasks for periodic input.
 
-| Backend (names) | PBC | charge/mult | Hessian | Implicit solvent | D4 | HVP (Dimer) |
-|---|---|---|---|---|---|---|
-| ANI (`ani2x/1x/1ccx/1xnr`) | no; fail-fast | no | analytic + numerical | yes | yes | yes; no implicit solvent |
-| AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | yes | no | no |
-| MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | no | no |
-| MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no | no |
-| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`spin = mult − 1`) | analytic + numerical | yes | no | no |
-| UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | yes | no | no |
+| Backend (names) | PBC | charge/mult | Hessian | Implicit solvent | native batch E/F | D4 | HVP (Dimer) |
+|---|---|---|---|---|---|---|---|
+| ANI (`ani2x/1x/1ccx/1xnr`) | no; fail-fast | no | analytic + numerical | yes | yes; D4/solvent sequential | yes | yes; no implicit solvent |
+| AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | yes | yes; solvent sequential | no | no |
+| MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | yes; solvent sequential | no | no |
+| MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no; base fallback | no | no |
+| MACE-POLAR (`macepols/m/l`) | no; fail-fast; no external field | yes (`spin = mult − 1`) | analytic + numerical | yes | no; base fallback | no | no |
+| UMA (`uma`) | yes; non-PBC auto `omol`; PBC requires explicit non-`omol` task; stress rejected | `omol` only (`spin = mult`); non-`omol` rejects non-default charge/mult | numerical only | yes | no; common fallback | no | no |
 
 `spin` semantics differ on purpose: MACE-POLAR's traced interface takes the
 number of unpaired electrons (`mult − 1`), UMA's FAIR-Chem path takes the
@@ -237,7 +306,7 @@ my_lab = "my_lab.maple_plugin"
 
 ## Public vs private API
 
-- **Public**: `calculate`, `get_hessian`, `get_hvp`, the protocol class
+- **Public**: `calculate`, `calculate_many`, `get_hessian`, `get_hvp`, the protocol class
   attributes above.
 - **Private** (do not depend on from outside the calculator): `_forward_energy`,
   `_build_inputs`, `_analytic_hessian`, `self.model`.

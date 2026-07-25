@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 
 import numpy as np
 import pytest
@@ -57,7 +58,7 @@ def test_variational_cqeq_gb_force_matches_minimized_energy_finite_difference(
         output=tmp_path / "job.out",
     )
     result = correction.evaluate(atoms, need_forces=True)
-    h = 1.0e-4
+    h = 1.0e-2
     plus = atoms.copy()
     minus = atoms.copy()
     plus.positions[1, 0] += h
@@ -76,3 +77,10 @@ def test_variational_cqeq_gb_force_matches_minimized_energy_finite_difference(
     assert result.provenance["default_eligible"] is False
     assert result.provenance["selection_policy"] == "explicit-only-no-fallback"
     assert result.provenance["solvent_solver"]["kkt_residual_ev"] < 2.0e-6
+    manifest = json.loads(
+        (tmp_path / "job.out.implicit/manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["route"]["name"] == "Variational CQEq-GTO/GB research profile"
+    assert manifest["route"]["role"] == "Research control"
+    assert manifest["route"]["fixed_charge"] is False
+    assert manifest["route"]["product_contract"] is False

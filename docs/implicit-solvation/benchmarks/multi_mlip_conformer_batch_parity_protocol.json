@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-multi-mlip-conformer-batch-parity-v6",
+  "source_partition": "development",
+  "route": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false
+  },
+  "source": {
+    "protocol": "multi_mlip_discrete_conformer_protocol.json",
+    "protocol_file_sha256": "c4d80d9d388b3fefa51a8ceaaf887dba33c87d5231630e2c2b06003a99c7617c",
+    "manifest": "multi_mlip_discrete_conformer_source_manifest.json",
+    "manifest_file_sha256": "472b162fcaac3e318309edb8a5c7df2b956f043f119b239a9e86001a713dfeb1",
+    "manifest_content_sha256": "64baca2af71dda8920930c13cd8f3047224ff247f70fe39c9cc5ec8007358e4a",
+    "expected_models": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ],
+    "expected_case_count": 19,
+    "expected_state_count": 1270
+  },
+  "execution": {
+    "device": "cuda:0",
+    "batch_size": 16,
+    "repeat_count": 4,
+    "warmup_state_count": 2,
+    "require_gpu_endpoint_snapshots": true,
+    "maximum_preflight_load_per_logical_cpu": 0.25,
+    "properties": [
+      "energy"
+    ],
+    "balanced_order": [
+      [
+        "serial",
+        "batch"
+      ],
+      [
+        "batch",
+        "serial"
+      ],
+      [
+        "serial",
+        "batch"
+      ],
+      [
+        "batch",
+        "serial"
+      ]
+    ]
+  },
+  "gates": {
+    "maximum_absolute_energy_difference_hartree": 1.5936014376405156e-06,
+    "maximum_relative_energy_difference_kcal_mol": 0.001,
+    "maximum_delta_g_difference_kcal_mol": 0.001,
+    "minimum_paired_repeat_speedup": 1.25
+  },
+  "threshold_basis": {
+    "accuracy": "The absolute-energy gate is 0.001 kcal/mol converted to Hartree; the relative-energy and propagated-delta-G gates are also 0.001 kcal/mol. These are approximately 0.0017 kBT at 298.15 K and are far below the accuracy scale claimed for the solvent model; they guard numerical equivalence rather than fit chemistry.",
+    "speed": "A fixed batch size of 16 is used for every model. Every one of four balanced serial/batch paired repeats must reach 1.25x after including structure construction, graph building, and result splitting; a ratio-of-medians alone cannot promote an unstable speedup.",
+    "pilot_disclosure": "A one-case exploratory timing pilot selected the common batch size. The relative-energy, propagated-delta-G, and 1.25x speed gates were fixed before the initial 19-case run. Review then produced protocol v2, which added absolute-energy admission and repaired warmup, provenance, and fail-closed decisions. Two v2 executions showed that MACE's ratio-of-medians could flip the universal-speed decision while its paired repeats disagreed (the preserved review run has 1.060x and 1.619x). Protocol v3 therefore used four balanced repeats and required every paired repeat to clear the unchanged 1.25x floor. A later provenance refresh was visibly contaminated by concurrent CUDA jobs (one MACE batch repeat grew from about 56 s historically to 174 s), so that run was discarded. Protocol v4 added a fail-closed nvidia-smi GPU preflight; before accepting a v4 artifact, review added the pre-registered 0.25 one-minute-load-per-logical-CPU ceiling and a GPU postflight as protocol v5. Review then found that endpoint snapshots cannot prove whole-run GPU exclusivity, so protocol v6 narrows the artifact to preflight/postflight snapshot evidence and explicitly records that continuous monitoring was not performed. The parity and speed thresholds are unchanged. The v6 rerun is review-amended confirmation, not wholly pre-data."
+  },
+  "claim_boundary": {
+    "batch_vs_serial_same_mlip_only": true,
+    "faster_than_bare_mm_claim": false,
+    "solvent_accuracy_promotion": false,
+    "hydration_free_energy_claim": false,
+    "fixed_charge_solvent_functional_changed": false,
+    "public_solvfe_eligible": false,
+    "reason": "This is an engineering parity and throughput test of gas-phase conformer evaluation. It does not improve or validate the PB/GB solvent functional and does not compare against bare molecular mechanics."
+  }
+}

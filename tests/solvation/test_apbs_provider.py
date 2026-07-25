@@ -29,6 +29,20 @@ def test_apbs_input_contains_solvated_minus_reference_and_apolar(water_mol2):
     assert provider.provenance["nonpolar"] == "sasa"
 
 
+def test_apbs_exposes_first_class_radius_and_nonpolar_providers(water_mol2):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    provider = APBSLPB(atoms, atoms.get_initial_charges(), executable="apbs")
+
+    assert provider.radius_provider.name == "openmm-mbondi2-radii"
+    assert provider.radius_result.profile == "generic-mbondi2"
+    assert provider.radius_result.radii_angstrom.shape == (len(atoms),)
+    assert np.all(provider.radius_result.radii_angstrom > 0.0)
+    assert provider.nonpolar_provider.name == "apbs-sasa"
+    assert provider.nonpolar_provider.component_properties == frozenset({"energy"})
+    assert provider.provenance["radius_provider"]["profile"] == "generic-mbondi2"
+    assert provider.provenance["nonpolar_provider"]["name"] == "apbs-sasa"
+
+
 def test_apbs_print_energy_parser_reads_kj_per_mol_values():
     output = """
     PRINT ELEC ENERGY 1: -2.295900000000E+02 kJ/mol
@@ -87,7 +101,9 @@ def test_apbs_adapter_composes_polar_nonpolar_and_writes_audit(
     def fake_run(command, **_kwargs):
         if "--version" in command:
             assert _kwargs.get("cwd") is not None
-            return subprocess.CompletedProcess(command, 0, stdout="APBS 3.4.1\n", stderr="")
+            return subprocess.CompletedProcess(
+                command, 0, stdout="APBS 3.4.1\n", stderr=""
+            )
         return subprocess.CompletedProcess(
             command,
             0,

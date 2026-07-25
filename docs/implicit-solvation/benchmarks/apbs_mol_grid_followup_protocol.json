@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-apbs-mol-grid-followup-v1",
+  "claim_scope": "Post hoc, label-free numerical follow-up on the 20 cases selected before the parent APBS/ACE grid check. It compares two finer approximately 32-A APBS molecular-surface LPBE grids. It does not reopen the rejected parent candidate, evaluate hydration accuracy, expose forces, or constitute confirmation.",
+  "parent_evidence": {
+    "protocol": "apbs_ace_protocol.json",
+    "protocol_sha256": "e57ec3d37a2d3600cf3ebde42ecd199af3d352aad01e6024275fd63c6bc68fd6",
+    "protocol_fingerprint": "dff7f19e979ac7c9e62a5053375749a35ef37b07ed997920588cd7f5799d62da",
+    "source_manifest": "apbs_mol_grid_followup_source_manifest.json",
+    "source_manifest_sha256": "98c5a354458947fbef0e11275d2255f7378e85e737aec1338ec1b9d8b79f76bd",
+    "expected_case_count": 20
+  },
+  "execution_boundary": {
+    "reads_target_properties": false,
+    "changes_parent_accuracy_decision": false,
+    "no_fit_or_residual_model": true,
+    "no_gas_phase_mm_energy": true,
+    "force_claim": false
+  },
+  "apbs": {
+    "required_version": "1.4.1",
+    "default_path": "/usr/bin/apbs",
+    "sha256": "13b555e8a38041d80ab4a9476126f8df6ca10eb6d140c12619e5794d83b7f080",
+    "surface_definition": "mol",
+    "charge_discretization": "spl2",
+    "solute_dielectric": 1.0,
+    "solvent_dielectric": 78.5,
+    "radius_profile": "mbondi2",
+    "probe_radius_angstrom": 1.4,
+    "parent_grid": {
+      "points_per_axis": 129,
+      "spacing_angstrom": 0.25,
+      "levels": 4,
+      "center": "molecule"
+    },
+    "followup_grid": {
+      "points_per_axis": 161,
+      "spacing_angstrom": 0.2,
+      "levels": 4,
+      "center": "molecule"
+    }
+  },
+  "execution_controls": {
+    "maximum_concurrent_apbs_processes": 6,
+    "subprocess_environment": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    }
+  },
+  "numerical_gate": {
+    "maximum_absolute_difference_kcal_mol": 0.25,
+    "p90_absolute_difference_kcal_mol": 0.15,
+    "interpretation": "Passing would show only that 129^3 and 161^3 agree on this subset; it would not rescue the failed 97^3 parent endpoint or establish hydration accuracy."
+  }
+}

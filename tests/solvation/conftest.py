@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 import textwrap
 
 import pytest
@@ -64,4 +65,17 @@ def methanol_mol2(tmp_path):
         ),
         encoding="utf-8",
     )
+    return path
+
+
+@pytest.fixture
+def methanol_water_cluster_mol2(tmp_path):
+    path = tmp_path / "methanol-water.mol2"
+    source = (
+        Path(__file__).parent
+        / "data"
+        / "prebuilt_inner_outer"
+        / "methanol-water.mol2"
+    )
+    path.write_bytes(source.read_bytes())
     return path

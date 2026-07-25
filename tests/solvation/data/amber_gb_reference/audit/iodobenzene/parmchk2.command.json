@@ -1,0 +1,1 @@
+{"command":["/home/axie/miniconda3/envs/maple-ambertools/bin/parmchk2","-i","/home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/iodobenzene/normalized.mol2","-f","mol2","-o","/home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/iodobenzene/frcmod.gaff2","-s","gaff2"],"returncode":0}

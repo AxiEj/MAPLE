@@ -1,0 +1,119 @@
+{
+  "amberclassic_source_audit": {
+    "ar6_igb9": {
+      "classification": "not-exposed-by-current-msander-source",
+      "developer_readme_mentions_future_igb9": true,
+      "developer_readme_states_functionality_not_used_now": true,
+      "msander_ar6_topology_flag_count": 0,
+      "msander_igb9_condition_count": 0
+    },
+    "commit": "0b35bfeb96026ffa4e5876391a0828f39b3cfc8d",
+    "commit_date": "2026-07-19T17:42:04-06:00",
+    "driver_plumbing": {
+      "calls_egb_with_force_array": true,
+      "calls_nonpolar_force": true,
+      "interpretation": "Driver plumbing alone is not evidence that every endpoint component writes its derivative."
+    },
+    "manual_boundary": {
+      "states_gbnsr6_cannot_yet_be_used_in_dynamics": true
+    },
+    "nonpolar_source": {
+      "active_dispersion_force_assignments": 6,
+      "active_np_cavity_derivative_call": false,
+      "cavity_energy_uses_prtsas_or_prtsav": true,
+      "classification": "cavity-energy-only-dispersion-partial-force"
+    },
+    "polar_source": {
+      "chagb_equation_accumulates_epol": true,
+      "chagb_equation_force_array_argument_present": false,
+      "classification": "energy-only-in-inspected-equation-path",
+      "gb_equation_accumulates_epol": true,
+      "gb_equation_force_array_argument_present": false
+    },
+    "repository": "https://github.com/Amber-MD/AmberClassic",
+    "source_file_sha256": {
+      "doc/AmberClassic.lyx": "a9d68d0b16e38ea15e0808bc51994b202e5a89e1c128ef6ccb2d3498190ae74a",
+      "src/gbnsr6/README.txt": "659e2995ef60733e1a6365107a9cf17937c8863ab3d77c582faf0065f7ab7e72",
+      "src/gbnsr6/egb.F90": "916de11ba2d18219c38a467b83eabbbbe4ae574ab4c8c333e9f90f3f1f1200fa",
+      "src/gbnsr6/force.F90": "4319541c61fb09330b980af8a56a8de081b7e33367d8746e4c86d6716fa4e6c8",
+      "src/gbnsr6/gbnsr6.F90": "1ca088625ed5dee25f69b87ae210a48f260c9a22113512a8a4997fd68b1978ea",
+      "src/gbnsr6/np_force.F90": "b9277a180249a82a80e5ee25d1a28540e2247a85f0c0bf51274e28e0599a6cba"
+    }
+  },
+  "artifact_type": "route1-chagb-derivative-capability-audit",
+  "claim_scope": "Source-pinned and one-molecule runtime audit of derivative availability for the locked AmberTools CHA-GB path. It is a capability rejection audit, not an accuracy benchmark.",
+  "content_sha256": "73ce31397d9f3ef57925e7e0742d9264e25156fba1bd4b7859dc51a2788a6062",
+  "decision": {
+    "ar6_igb9_runtime_candidate_available": false,
+    "chagb_full_endpoint_derivative_verified": false,
+    "chagb_opt_scan_md": false,
+    "chagb_supported_tasks": [
+      "sp"
+    ],
+    "policy": "Keep AmberTools CHA-GB/PBSA cavity-dispersion energy-only and fail closed before OPT, relaxed SCAN, MD, or force requests.",
+    "reason": "The inspected polar equations accumulate energy without a force-array argument, the cavity derivative call is inactive, only partial dispersion force assignments remain, the official manual excludes GBNSR6 dynamics, and debugf reports nonzero numerical components beside zero analytical components.",
+    "runtime_probe_supports_rejection": true
+  },
+  "primary_sources": {
+    "amberclassic_commit": "https://github.com/Amber-MD/AmberClassic/tree/0b35bfeb96026ffa4e5876391a0828f39b3cfc8d",
+    "ar6": "https://doi.org/10.1021/ct100392h",
+    "gbnsr6_original": "https://doi.org/10.1021/acs.jcim.7b00192"
+  },
+  "recorded_date": "2026-07-25",
+  "route1_contract": {
+    "formula": "E_solution(R) = E_MLIP,gas(R) + G_polar(R,q_fixed) + G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_fit_or_residual": false,
+    "mlip_retraining": false,
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "role": "Baseline/Product Route"
+  },
+  "runtime_debug_probe": {
+    "debug_force": {
+      "all_analytical_components_zero": true,
+      "analytical_native_units": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "any_numerical_component_nonzero": true,
+      "atom_one_based": 1,
+      "numerical_analytical_match": false,
+      "numerical_native_units": [
+        0.05786533,
+        -0.55185254,
+        0.3009978
+      ],
+      "reported_difference_native_units": [
+        0.05786533,
+        -0.55185254,
+        0.3009978
+      ],
+      "reported_rms_force_error": 631.0,
+      "unit_note": "Values are retained in GBNSR6 debugf native output units; the eligibility decision uses only zero/nonzero and equality checks."
+    },
+    "executables": {
+      "gbnsr6": {
+        "path": "/home/axie/miniconda3/envs/maple-ambertools/bin/gbnsr6",
+        "sha256": "6f14c7a0418b8f03be1b0273367717335822d2f7719f137ad56f2d49e0489e42"
+      },
+      "parmchk2": {
+        "path": "/home/axie/miniconda3/envs/maple-ambertools/bin/parmchk2",
+        "sha256": "c2ef0906b71c64e5277673bcba943512daf75ef334ad9421c0045b6b80b6d7cc"
+      },
+      "tleap": {
+        "path": "/home/axie/miniconda3/envs/maple-ambertools/bin/tleap",
+        "sha256": "f1c526e0a24ad1fefc6c82be1279aa33eff5f9557d577c2236aa81437dfb52ac"
+      }
+    },
+    "input_sha256": "715413508c3d54f999db2271032263ed424fae095dfe70a09c37bae51b10871c",
+    "molecule": {
+      "compound_id": "mobley_1017962",
+      "mol2": "/home/axie/MAPLE/MAPLE-implicitsolv-route1/docs/implicit-solvation/benchmarks/route1-multi-mlip-obc2-ti-raw/inputs/mobley_1017962.mol2",
+      "mol2_sha256": "783df578c85819b79b59537197a0850e074426d2e9eef5bfef020c9a4849ce23",
+      "name": "methyl hexanoate"
+    },
+    "output_sha256": "af2d9efc9d6ff13f23be4168d678e02bf3dfc11dd381f0ef4a9878d0f65be66e"
+  },
+  "schema_version": 1
+}

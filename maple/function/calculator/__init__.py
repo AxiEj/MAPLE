@@ -1,3 +1,4 @@
+from ._batch_types import BatchResult
 from .calculator_base import (
     CalcABC,
     register_calculator,

@@ -22,6 +22,8 @@ try:
 except ImportError:
     raise ImportError("fairchem-core is not installed. Please install it first.")
 
+from .._batch_types import BatchResult
+from .._batch_utils import default_calculate_many
 from ..calculator_base import (
     EV2HARTREE,
     IMPLICIT_SOLVENT_FORCE_ERROR,
@@ -72,6 +74,8 @@ class UMACalculator(FAIRChemCalculator):
     SUPPORTED_HESSIAN_MODES = ("numerical",)
     SUPPORTS_CHARGE_MULT = True
     SUPPORTS_PBC = True
+    SUPPORTS_IMPLICIT_SOLVATION = True
+    supports_batch_energy_forces = False
     CHECKPOINT_FILENAME = None
     REQUIRES_LOCAL_MODEL_FILE = False
     OPTION_KEYS = (
@@ -429,3 +433,11 @@ class UMACalculator(FAIRChemCalculator):
                     self.results["free_energy"] += solvent_energy.item()
 
         return self.results
+
+    def calculate_many(
+        self,
+        atoms_list,
+        properties=("energy", "forces"),
+    ) -> BatchResult:
+        """Use the common result-driven fallback for the third-party wrapper."""
+        return default_calculate_many(self, atoms_list, properties)

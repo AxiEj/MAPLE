@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-multi-mlip-chagb-discrete-conformer-v1",
+  "source_partition": "development",
+  "claim_scope": "Label-free projection of the frozen 19-case, 1270-state, three-MLIP discrete-conformer matrix from AM1-BCC/OBC-II/ACE to the energy-only AM1-BCC/CHA-GB/PBSA cavity-dispersion solvent endpoint. This tests whether the more accurate fixed-charge provider and MLIP-dependent conformer weights reinforce each other before expensive long-trajectory sampling. It does not establish basin measures, conformer completeness, equilibrium, uncertainty, or a public solvation-free-energy result.",
+  "route_contract": {
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_am1bcc_charges": true,
+    "gas_mlip_energies_reused_without_modification": true,
+    "low_solvent_endpoint": "AM1-BCC/OBC-II/ACE",
+    "high_solvent_endpoint": "AM1-BCC/CHA-GB/PBSA cavity-dispersion"
+  },
+  "source_evidence": {
+    "discrete_protocol": "multi_mlip_discrete_conformer_protocol.json",
+    "discrete_protocol_sha256": "c4d80d9d388b3fefa51a8ceaaf887dba33c87d5231630e2c2b06003a99c7617c",
+    "state_manifest": "multi_mlip_discrete_conformer_source_manifest.json",
+    "state_manifest_sha256": "472b162fcaac3e318309edb8a5c7df2b956f043f119b239a9e86001a713dfeb1",
+    "state_manifest_content_sha256": "64baca2af71dda8920930c13cd8f3047224ff247f70fe39c9cc5ec8007358e4a",
+    "multi_mlip_energy_artifact": "route1-multi-mlip-discrete-conformer-2026-07-25.json",
+    "multi_mlip_energy_artifact_sha256": "4a1ad88cb9b59e99e5d577f6827c5b0e39fe7584e275c1b6c808008e7da3e5b6",
+    "multi_mlip_energy_artifact_content_sha256": "f39146197d670cbcc8196bb0aa33501b64e045823795305496bb1ac5ac6cd602",
+    "development_score_artifact": "route1-multi-mlip-discrete-conformer-score-2026-07-25.json",
+    "development_score_artifact_sha256": "a8b36af212aba1c0ca672d236e37944168855091529d99c82bee15e549225e88",
+    "development_score_artifact_content_sha256": "1421da4f2890420addca6d79bc5208d6850e402f13aef8c050908adcfbf41def",
+    "high_endpoint_protocol": "chagb_nonpolar_protocol.json",
+    "high_endpoint_protocol_sha256": "524cbcb66e9ee59ee502c59c59a186a35607f6cde0ac1ed43007a01898f6c9f8",
+    "high_endpoint_charge_manifest": "chagb_nonpolar_source_manifest.json",
+    "high_endpoint_charge_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc",
+    "high_endpoint_helper": "run_mlip_chagb_metropolis.py",
+    "high_endpoint_helper_sha256": "6adaca5c40506bf581fbdb8276558670916bdd53e085191dd5beed8f51f0f5ad",
+    "discrete_runner": "run_multi_mlip_discrete_conformers.py",
+    "discrete_runner_sha256": "74ea17675a5abdf50ce39c8662f153b8557b2b63582d7504f877da67548a8d4f",
+    "discrete_analysis_module": "../../../maple/function/free_energy/discrete_conformers.py",
+    "discrete_analysis_module_sha256": "9f34e9281c12b1629e57a91628177ade96db6703bdb38cfc46f022433c2b91fb"
+  },
+  "matrix": {
+    "model_count": 3,
+    "case_count": 19,
+    "model_case_record_count": 57,
+    "unique_state_count": 1270,
+    "high_endpoint_repeat_count": 2,
+    "expected_high_endpoint_evaluation_count": 2540,
+    "models": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ]
+  },
+  "estimator": {
+    "name": "equal-measure discrete-conformer partition ratio",
+    "api": "maple.function.free_energy.analyze_discrete_conformer_ensemble",
+    "temperature_kelvin": 298.15,
+    "minimum_state_count": 2,
+    "minimum_effective_conformer_count": 2.0,
+    "maximum_dominant_weight": 0.95,
+    "minimum_distribution_overlap": 0.1,
+    "maximum_high_endpoint_repeat_difference_kcal_mol": 1e-08,
+    "maximum_repeat_delta_g_difference_kcal_mol": 1e-08
+  },
+  "scoring": {
+    "partition": "development",
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20260725,
+    "promotion_allowed": false,
+    "material_gain_gate_kcal_mol": 0.1,
+    "paired_gain_interval_must_exclude_zero": true,
+    "minimum_improved_case_fraction": 0.6,
+    "maximum_single_case_positive_gain_fraction": 0.5,
+    "require_all_models_signal": true
+  },
+  "execution_boundary": {
+    "energy_phase_reads_experimental_labels": false,
+    "score_phase_reads_development_labels": true,
+    "labels_change_neither_cases_parameters_nor_energies": true,
+    "confirmation_partition": false,
+    "promotion_allowed": false
+  },
+  "decision_policy": {
+    "long_sampling_candidate_only_if": [
+      "the high-endpoint discrete-conformer MAE improves over both high-endpoint fixed geometry and low-endpoint discrete conformers by at least the frozen material-gain threshold",
+      "the paired bootstrap interval versus high-endpoint fixed geometry excludes zero",
+      "the signal is not driven by a single molecule",
+      "provider repeats and every available discrete-ensemble diagnostic pass"
+    ],
+    "promotion_allowed": false,
+    "reason": "The source conformers are a finite CREST-derived state set with equal basin measure assumed. Passing this screen can prioritize long sampling but cannot establish a hydration free energy."
+  },
+  "literature": [
+    {
+      "citation": "Mobley DL, Dill KA, Chodera JD. J Phys Chem B 112, 938-946 (2008).",
+      "doi": "10.1021/jp0764384",
+      "role": "conformational entropy and solute reorganization can materially change implicit-solvent hydration free energies"
+    },
+    {
+      "citation": "Zwanzig RW. J Chem Phys 22, 1420-1426 (1954).",
+      "doi": "10.1063/1.1740409",
+      "role": "partition-ratio and exponential-averaging identity"
+    },
+    {
+      "citation": "Karwounopoulos J, Boresch S. J Phys Chem B 128, 6693-6703 (2024).",
+      "doi": "10.1021/acs.jpcb.4c01417",
+      "role": "end-state corrections require adequate equilibrium sampling and are not generally accuracy-improving"
+    }
+  ]
+}

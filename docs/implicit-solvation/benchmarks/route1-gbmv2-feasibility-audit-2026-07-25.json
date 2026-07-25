@@ -1,0 +1,282 @@
+{
+  "artifact_type": "route1-gbmv2-physical-provider-feasibility-audit",
+  "claim_scope": "Primary-source evidence for GBMV2 scientific relevance, AM1-BCC compatibility, derivative support, implementation availability, and Route 1 admission. This is not a MAPLE runtime benchmark, an independent FreeSolv validation, a license opinion, or evidence that GBMV2 is faster than bare MM for small molecules.",
+  "content_sha256": "259e4ac2f9e7a990b1410dc1a1bb81d56d48b93a6a5e9b952dfe69398d1dfeb2",
+  "gbmv2": {
+    "gas_phase_mm_energy_in_product_potential": false,
+    "learned_solvent_correction": false,
+    "name": "Generalized Born with Molecular Volume, analytical method II, plus SASA",
+    "parameter_interface": {
+      "charges": "fixed atom-centered partial charges; GAFF/AM1-BCC demonstrated in the small-molecule studies",
+      "intrinsic_radii": "van der Waals radii by default; CHARMM WEIGHT can read user-supplied radii",
+      "nonpolar": "GBMV2 SASA coefficient SA (gamma) plus constant SB (beta)",
+      "water_probe_radius_angstrom": 1.4
+    },
+    "published_force_support": {
+      "analytic_first_derivatives": true,
+      "gpu_cpu_energy_force_parity_scope": "22 small proteins; electrostatic and SASA energy/force parity in the 2020 implementation paper",
+      "important_limitations": [
+        "The 2020 GPU force comparison is protein-focused, not a MAPLE small-molecule provider parity result.",
+        "The 2020 paper reports nonzero NVE drift and lower numerical stability than GBSW for the sharp molecular surface.",
+        "No local CHARMM or GBMV2 plugin was available for an all-3N finite-difference force gate."
+      ],
+      "official_derivative_tolerance_default": 1e-08,
+      "recommended_analytical_variant_for_dynamics": "GBMV II"
+    },
+    "route1_composition": "E_MLIP,gas(R)+G_GBMV2,polar(R,q_fixed,radii)+gamma*SASA(R)+beta",
+    "route1_formula_compatible": true,
+    "small_molecule_evidence": {
+      "knight_brooks_2011": {
+        "charge_model": "AM1-BCC",
+        "doi": "10.1002/jcc.21876",
+        "domain": "small neutral organic molecules",
+        "gbmv2_metrics": {
+          "aue_kcal_per_mol": 1.14,
+          "mean_error_kcal_per_mol": -0.5,
+          "percent_abs_error_lt_1_kcal_per_mol": 58,
+          "percent_abs_error_lt_2_kcal_per_mol": 84,
+          "percent_abs_error_lt_3_kcal_per_mol": 94,
+          "r_squared": 0.784,
+          "rmse_kcal_per_mol": 1.6
+        },
+        "gbmv2_profile": {
+          "angular_grid": "Lebedev, 38 points",
+          "intrinsic_radii": "van der Waals radii",
+          "kappa": 8,
+          "shift": -0.102,
+          "slope": 0.9085,
+          "still_cross_term": "geometric",
+          "surface_offset_kcal_per_mol": 0.0,
+          "surface_tension_kcal_per_mol_angstrom2": 0.005
+        },
+        "interpretation": "Strong historical multi-conformer evidence that a physical AM1-BCC/GBMV2/SASA profile can reduce typical hydration errors well below 3-5 kcal/mol. The tuned surface coefficient and historical dataset prevent treating these numbers as independent certification of the present MAPLE profile.",
+        "molecule_count": 499,
+        "parameterization": "GAFF",
+        "sampling": {
+          "analysis": "BAR",
+          "analyzed_tail_ns": 10.0,
+          "snapshot_interval_ps": 5.0,
+          "trajectory_length_ns": 10.5,
+          "vacuum_and_gbmv2_trajectories": true
+        },
+        "surface_tension_label_exposure": "gamma was selected to minimize AUE on every tenth molecule after sorting the full set by experimental hydration free energy"
+      },
+      "vanommeslaeghe_et_al_2013": {
+        "cgenff_82": {
+          "aue_kcal_per_mol": 0.88,
+          "mean_error_kcal_per_mol": 0.15,
+          "r_squared": 0.87
+        },
+        "comparison_count": 457,
+        "doi": "10.1002/jcc.23199",
+        "interpretation": "The 375-molecule result is held out from selection of the GBMV2 surface coefficient on the 82 CGENFF compounds, but it is not a modern FreeSolv split or a MAPLE provider result.",
+        "non_cgenff_375": {
+          "aue_kcal_per_mol": 1.24,
+          "mean_error_kcal_per_mol": 0.35,
+          "percent_abs_error_lt_1_kcal_per_mol": 48,
+          "percent_abs_error_lt_2_kcal_per_mol": 84,
+          "percent_abs_error_lt_3_kcal_per_mol": 95,
+          "r_squared": 0.758
+        },
+        "surface_tension_kcal_per_mol_angstrom2_for_gaff_gbmv2": 0.0075,
+        "surface_tension_training_subset": "82 compounds present in CGENFF"
+      }
+    }
+  },
+  "overall_decision": {
+    "free_solv_product_screen_opened": false,
+    "independent_reimplementation_planned": false,
+    "new_runtime_provider_added": false,
+    "reason": "GBMV2 is the first audited remaining physical candidate with direct GAFF/AM1-BCC multi-conformer hydration evidence near 1.2 kcal/mol AUE and published analytical forces. Admission is blocked by the absence of a locally runnable, source-auditable, redistributable standalone provider. Reimplementing the CHARMM algorithm from the papers would violate the upstream-first/no-new-wheel rule and would not establish provider parity.",
+    "revisit_only_if": [
+      "a registered local CHARMM/pyCHARMM GBMV2 runtime or a maintained redistributable standalone upstream implementation is available",
+      "the provider accepts the declared fixed AM1-BCC charges and audited intrinsic radii without changing the gas MLIP",
+      "the isolated solvent energy and complete solvent force can be obtained directly or by numerically exact solution-minus-vacuum cancellation",
+      "provider parity and full all-3N finite-difference force checks pass before OPT, SCAN, or MD",
+      "a prospectively frozen profile passes label-separated FreeSolv and multi-MLIP throughput gates",
+      "redistribution and deployment rights are established for the intended users"
+    ],
+    "status": "scientifically_promising_runtime_blocked"
+  },
+  "protocol": {
+    "admission_rule": "Promising published accuracy and analytical forces justify a high-priority provider audit, not integration. Route 1 requires a runnable upstream implementation, explicit parameter provenance, force parity, applicability, independent accuracy, and deployable license terms before product admission.",
+    "protocol_id": "route1-gbmv2-feasibility-v1",
+    "steps": [
+      "freeze the small-molecule, force, GPU, official implementation, and registration sources",
+      "separate label-exposed published parameter selection from independent product validation",
+      "verify whether the public OpenMM distribution exposes GBMV2",
+      "probe the local runtime without obtaining credentials or accepting a license on the user behalf",
+      "reject paper-based reimplementation and leave the provider disabled until all revisit gates can be tested"
+    ]
+  },
+  "recorded_date": "2026-07-25",
+  "route_contract": {
+    "default_charge": "AM1-BCC",
+    "gas_mlip_retraining": false,
+    "gas_phase_mm_energy": false,
+    "learned_hydration_residual": false,
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "requires_conservative_force_for_opt_scan_md": true
+  },
+  "runtime_availability": {
+    "academic_charmm": {
+      "commercial_distribution_is_separate": true,
+      "complete_source_in_registered_distribution": true,
+      "current_documentation_version": "c50b2",
+      "license_agreement_text_retrieved_by_this_audit": false,
+      "permitted_use": "academic, government, and nonprofit",
+      "pycharmm_requires_registered_charmm_shared_library": true,
+      "redistribution_permission_established_by_this_audit": false,
+      "registration_required": true
+    },
+    "local_environment": {
+      "charmm_executable_found": false,
+      "implicit_solvent_symbols_found": [
+        "AmoebaGeneralizedKirkwoodForce",
+        "GBSAOBCForce"
+      ],
+      "openmm_gbmv2_symbol_found": false,
+      "openmm_plugin_load_failures": [],
+      "openmm_version": "8.5.2"
+    },
+    "paper_reported_gpu_plugin": {
+      "current_official_charmm_openmm_documentation_names_gbmv2_plugin": false,
+      "host": "CHARMM/OpenMM interface",
+      "paper_doi": "10.1002/jcc.26133",
+      "reported_speedup_scope": "about 60-70x versus one CPU core for 856-77304 atom proteins on a TITAN X Pascal",
+      "small_molecule_speed_claim": false,
+      "standalone_public_source_repository_identified": false
+    },
+    "public_openmm": {
+      "audited_branch": "master",
+      "commit": "01138a87210325a68e3caa9ea568db423aaccd6d",
+      "gbmv2_force_class_present": false,
+      "gbmv2_string_present": false,
+      "gbmv_or_gbsw_text_hit_count": 0,
+      "interpretation": "The public OpenMM core is not the paper-reported CHARMM GBMV2 plugin. OpenMM being open source does not make the CHARMM plugin redistributable.",
+      "relevant_core_force_classes": [
+        "GBSAOBCForce",
+        "AmoebaGeneralizedKirkwoodForce"
+      ],
+      "upstream": "https://github.com/openmm/openmm"
+    }
+  },
+  "schema_version": 1,
+  "source_evidence": {
+    "gpu_force_implementation": {
+      "doi": "10.1002/jcc.26133",
+      "line_ranges": [
+        [
+          23,
+          34
+        ],
+        [
+          36,
+          49
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/PMC7076882.txt",
+      "pmcid": "PMC7076882"
+    },
+    "official_gbmv_documentation": {
+      "line_ranges": [
+        [
+          261,
+          317
+        ],
+        [
+          345,
+          364
+        ],
+        [
+          450,
+          532
+        ],
+        [
+          680,
+          706
+        ],
+        [
+          758,
+          762
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/charmm-c50b2-gbmv.txt",
+      "url": "https://academiccharmm.org/documentation/version/c50b2/gbmv"
+    },
+    "official_registration_page": {
+      "line_ranges": [
+        [
+          34,
+          50
+        ],
+        [
+          65,
+          70
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/charmm-register.html",
+      "url": "https://brooks.chem.lsa.umich.edu/register/"
+    },
+    "parameterization_comparison": {
+      "doi": "10.1002/jcc.23199",
+      "line_ranges": [
+        [
+          24,
+          30
+        ],
+        [
+          34,
+          39
+        ],
+        [
+          65,
+          68
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/PMC4402937.txt",
+      "pmcid": "PMC4402937"
+    },
+    "public_openmm_source_scan": {
+      "archive_path": ".omx/vendor-audits/gbmv2/openmm-master.tar.gz",
+      "commit": "01138a87210325a68e3caa9ea568db423aaccd6d",
+      "hit_count": 0,
+      "patterns": [
+        "GBMV2",
+        "GBMV",
+        "GBSW"
+      ],
+      "upstream": "https://github.com/openmm/openmm"
+    },
+    "small_molecule_survey": {
+      "doi": "10.1002/jcc.21876",
+      "line_ranges": [
+        [
+          23,
+          29
+        ],
+        [
+          31,
+          40
+        ],
+        [
+          72,
+          77
+        ]
+      ],
+      "local_path": ".omx/vendor-audits/gbmv2/PMC3142295.txt",
+      "pmcid": "PMC3142295"
+    }
+  },
+  "source_fingerprints": {
+    "charmm_c50b2_gbmv_html_sha256": "026923894c4c9f1469728ade2dec86d2a03b87f9ecf88ff5fa9b5b40a70f8ea3",
+    "charmm_c50b2_openmm_html_sha256": "0d97e5ac6e8660298d05ac45a7611e3f8cb5165523a6112e02cae571950c1921",
+    "charmm_registration_html_sha256": "0d3c090288fee7612dfa1baad48e132d977e4579ed51a2f616ab35d2e51ce938",
+    "charmm_request_form_html_sha256": "1552c5bf48c132bc0894ae6f2ce50ab84fb0394de549d723d946294490160938",
+    "openmm_master_archive_sha256": "7ae04d631e4f16e8ac27bd34a0afffb2ac7dd4b7998f703ba58e2f2c312f7870",
+    "pmc3142295_bioc_xml_sha256": "ccc911eeb853da4275a2c39f7b5c64e04415fe314c945a26f7462f941180048a",
+    "pmc4402937_bioc_xml_sha256": "c4ed787b4e08795c61576c8069e28107943f74b5b0a0db1c964f11a81c0002d5",
+    "pmc5407932_bioc_xml_sha256": "f3b64fd705d6c0861a9d9afd533b5d8f0fbdf9768c3552e030c62aeec3cd3e6e",
+    "pmc7076882_bioc_xml_sha256": "64d54ba1c95fd23a971d39cfeca74743a08e6f6a1eae3e1b1f6dd7fef51f203a"
+  }
+}

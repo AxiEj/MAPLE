@@ -2,11 +2,11 @@
 -I: Adding /home/axie/miniconda3/envs/maple-ambertools/dat/leap/lib to search path.
 -I: Adding /home/axie/miniconda3/envs/maple-ambertools/dat/leap/parm to search path.
 -I: Adding /home/axie/miniconda3/envs/maple-ambertools/dat/leap/cmd to search path.
--f: Source /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/obc1/tleap.in.
+-f: Source /home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/methanol/obc1/tleap.in.
 
 Welcome to LEaP!
 (no leaprc in search path)
-Sourcing: /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/obc1/tleap.in
+Sourcing: /home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/methanol/obc1/tleap.in
 ----- Source: /home/axie/miniconda3/envs/maple-ambertools/dat/leap/cmd/leaprc.gaff2
 ----- Source of /home/axie/miniconda3/envs/maple-ambertools/dat/leap/cmd/leaprc.gaff2 done
 Log file: ./leap.log
@@ -14,9 +14,9 @@ Loading parameters: /home/axie/miniconda3/envs/maple-ambertools/dat/leap/parm/ga
 Reading title:
 AMBER General Force Field for organic molecules (Version 2.2.30, Oct 2025)
 Using H(N)-modified Bondi radii
-Loading Mol2 file: /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/normalized.mol2
+Loading Mol2 file: /home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/methanol/normalized.mol2
 Reading MOLECULE named methanol
-Loading parameters: /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/frcmod.gaff2
+Loading parameters: /home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/methanol/frcmod.gaff2
 Reading force field modification type file (frcmod)
 Reading title:
 Remark line goes here

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-gbr6-development-screen-v1",
+  "claim_scope": "Development-only fixed-geometry polar-energy screen. It is not a force, product-readiness, or confirmation result.",
+  "route1_boundary": {
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "source": {
+    "project_url": "https://gbr6.sourceforge.net/",
+    "archive_url": "https://sourceforge.net/projects/gbr6/files/latest/download",
+    "archive_sha256": "1b781d8393df15dafee49f0ceeb41f093d293cab39c47875bc669c5c3f4f6dcc",
+    "fortran_path": "GBr6_v1/GBr6_v1.f",
+    "fortran_sha256": "93b96683ed8f600313bf138bb3d0d9e39d773d29f8c4e95ffbb9bf8d6a409774",
+    "license": "GPL-3.0-or-later",
+    "release_modified_utc": "2008-05-14",
+    "reference": "Tjong and Zhou, J. Phys. Chem. B 111, 3055-3061 (2007)",
+    "doi": "10.1021/jp066284c"
+  },
+  "build": {
+    "command": [
+      "gfortran",
+      "-O2",
+      "-std=legacy",
+      "-o",
+      "GBr6_v1.x",
+      "GBr6_v1.f"
+    ],
+    "compiler_observed": "GNU Fortran 11.4.0"
+  },
+  "energy_endpoint": {
+    "solute_dielectric": 1.0,
+    "solvent_dielectric": 78.5,
+    "salt_mM": 0.0,
+    "temperature_K": 298.15,
+    "charge_provider": "frozen AM1-BCC",
+    "radius_provider": "OpenMM GBSAGBnForce.getStandardParameters",
+    "radius_profile": "gbn-bondi",
+    "nonpolar_endpoint": "frozen PBSA inp=2 ECAVITY + EDISPER"
+  },
+  "execution_boundary": {
+    "energy_phase_reads_experimental_labels": false,
+    "summary_phase_reads_development_labels": true,
+    "experimental_fit_or_residual": false,
+    "confirmation_remains_closed": true
+  },
+  "derivative_audit": {
+    "project_website_claims_first_derivatives": true,
+    "released_fortran_program_outputs_energy": true,
+    "released_force_or_gradient_interface_identified": false
+  },
+  "product_admission_rule": {
+    "requires_material_independent_accuracy_gain": true,
+    "requires_released_conservative_force_path_for_opt_scan": true,
+    "requires_maintained_redistributable_dependency": true,
+    "requires_declared_small_molecule_applicability": true
+  }
+}

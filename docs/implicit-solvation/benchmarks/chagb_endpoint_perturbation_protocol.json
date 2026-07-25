@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-obc2-to-chagb-endpoint-perturbation-v1",
+  "source_partition": "development",
+  "claim_scope": "Label-free, one-sided thermodynamic perturbation from the force-capable AM1-BCC/OBC-II/ACE solution ensemble to the energy-only AM1-BCC/CHA-GB/PBSA cavity-dispersion endpoint. The target retains the same gas-phase MLIP. This frozen pilot tests endpoint overlap and numerical feasibility only; its 30 fs parent trajectories cannot establish equilibrium, conformer mixing, chemical accuracy, or product certification.",
+  "route_contract": {
+    "low_solution_potential": "U_low(R)=E_MLIP,gas(R)+W_OBC2_ACE(R)",
+    "high_solution_potential": "U_high(R)=E_MLIP,gas(R)+W_CHAGB_PBSA(R)",
+    "endpoint_correction": "DeltaF_low_to_high_solution=-RT*ln(<exp[-beta*(W_CHAGB_PBSA-W_OBC2_ACE)]>_low_solution)",
+    "corrected_solvation_free_energy": "DeltaG_high_solv=DeltaG_low_solv+DeltaF_low_to_high_solution",
+    "gas_correction_kcal_mol": 0.0,
+    "gas_correction_reason": "The low and high solvent endpoints use the identical gas-phase MLIP Hamiltonian, so there is no gas-leg model change.",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_am1bcc_charges": true
+  },
+  "source_evidence": {
+    "low_endpoint_record_manifest": "mlip_obc2_mbar_source_manifest.json",
+    "low_endpoint_record_manifest_sha256": "cbe014d1db7ecf52c31da9e2d6fdafc7077d54c4f64138b486e4bb4fe4a51c6e",
+    "low_endpoint_mbar_protocol": "mlip_obc2_mbar_protocol.json",
+    "low_endpoint_mbar_protocol_sha256": "97400743250f5711086299a15e76ce5f29e52579783d63a36f8fc2e561fb0042",
+    "low_endpoint_mbar_artifact": "route1-multi-mlip-obc2-mbar-2026-07-25.json",
+    "low_endpoint_mbar_artifact_sha256": "f83569d9b4ad3b2b679c501a5f3154969326b5632e4c639a4dfb7e75345ab476",
+    "low_endpoint_mbar_artifact_content_sha256": "a0a7437bcea650d82aaa284d6726f7c60c595b986af95390783ef10bf689e61a",
+    "parent_sampling_protocol": "mlip_obc2_ti_protocol.json",
+    "parent_sampling_protocol_sha256": "99843adbaa04f6e2a11b0baf17fa198ea351727657483c7a3fc3e02c3ca48144",
+    "high_endpoint_protocol": "chagb_nonpolar_protocol.json",
+    "high_endpoint_protocol_sha256": "524cbcb66e9ee59ee502c59c59a186a35607f6cde0ac1ed43007a01898f6c9f8",
+    "high_endpoint_charge_manifest": "chagb_nonpolar_source_manifest.json",
+    "high_endpoint_charge_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc",
+    "prepared_high_endpoint_helper": "run_mlip_chagb_metropolis.py",
+    "prepared_high_endpoint_helper_sha256": "6adaca5c40506bf581fbdb8276558670916bdd53e085191dd5beed8f51f0f5ad"
+  },
+  "sampling_reuse": {
+    "sampled_state": "lambda=1 AM1-BCC/OBC-II/ACE solution window",
+    "models": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ],
+    "case_count": 3,
+    "record_count": 9,
+    "independent_chains_per_record": 2,
+    "production_frames_per_chain": 40,
+    "expected_high_endpoint_evaluations_per_record": 80,
+    "expected_high_endpoint_evaluations_total": 720,
+    "reference_equilibrium_claim": false,
+    "target_ensemble_sampled": false
+  },
+  "analysis": {
+    "temperature_kelvin": 298.15,
+    "detect_equilibration": true,
+    "equilibration_nskip": 1,
+    "minimum_independent_replicates": 2,
+    "minimum_uncorrelated_samples_per_replicate": 20,
+    "minimum_effective_sample_count": 20.0,
+    "minimum_effective_sample_fraction": 0.1,
+    "maximum_normalized_weight": 0.2,
+    "maximum_replicate_difference_kcal_mol": 0.5
+  },
+  "execution_boundary": {
+    "energy_phase_reads_experimental_labels": false,
+    "score_phase_may_read_development_labels": true,
+    "labels_select_neither_cases_nor_parameters": true,
+    "confirmation_remains_closed": true,
+    "promotion_allowed": false
+  },
+  "decision_policy": {
+    "promotion_allowed": false,
+    "reason": "The parent OBC-II/ACE trajectories are intentionally short and explicitly lack an equilibrium or conformer-mixing claim. One-sided EXP cannot repair missing target coverage even when its observed weights look favorable.",
+    "future_candidate_requirement": "A longer independently initialized low-endpoint ensemble must pass equilibrium, uncorrelated-sample, effective-weight, replicate-agreement, and accuracy gates before this construction can be considered for production."
+  },
+  "literature": [
+    {
+      "citation": "Zwanzig RW. J Chem Phys 22, 1420-1426 (1954).",
+      "doi": "10.1063/1.1740409",
+      "role": "exact one-sided free-energy perturbation identity"
+    },
+    {
+      "citation": "Shirts MR, Chodera JD. J Chem Phys 129, 124105 (2008).",
+      "doi": "10.1063/1.2978177",
+      "role": "multistate low-endpoint free-energy estimator"
+    },
+    {
+      "citation": "Pan X et al. J Chem Theory Comput 14, 5583-5596 (2018).",
+      "doi": "10.1021/acs.jctc.8b00571",
+      "role": "reference-potential MBAR plus thermodynamic perturbation"
+    },
+    {
+      "citation": "Karwounopoulos J, Boresch S. J Phys Chem B 128, 6693-6703 (2024).",
+      "doi": "10.1021/acs.jpcb.4c01417",
+      "role": "solvation free-energy end-state correction and overlap limitations"
+    }
+  ]
+}

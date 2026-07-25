@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-mlip-conformer-relaxation-v1",
+  "source_partition": "development",
+  "claim_scope": "Development-only 0 K relaxed-transfer diagnostic. For each frozen start, the gas phase is minimized with MACE-OFF23 medium and the solution phase is minimized with the same MACE potential plus fixed-ABCG2/OBC-II/ACE forces. The reported transfer energy is a potential-energy difference between separately relaxed minima, not a finite-temperature hydration free energy, basin integral, RRHO correction, lambda-path estimate, or confirmation result.",
+  "source_evidence": {
+    "weighting_protocol": "mlip_conformer_weighting_protocol.json",
+    "weighting_protocol_sha256": "d007c63519f60bc525461a82092031129c64f758235f1cb5996c6147726c5369",
+    "weighting_protocol_fingerprint": "4c3da4d644758406efd6c3d4ef90e64f0eaad2a503c9769eec38472a631b8764",
+    "weighting_summary": "freesolv-mlip-conformer-weighting-2026-07-24.json",
+    "weighting_summary_sha256": "a3fa29a883b42c0c49f3abaaade2c89194240d9b5779671adbe158d505479f77",
+    "prepared_sha256": "e82f328d8b6a989dfc6367dc7b0c3019bbb09c0cb5929429202732e201d53bd7"
+  },
+  "model": {
+    "name": "maceoff23m",
+    "checkpoint_filename": "maceoff23m.pt",
+    "checkpoint_sha256": "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee",
+    "supported_atomic_numbers": [1, 6, 7, 8, 9, 15, 16, 17, 35, 53],
+    "maple_calculator_output_unit": "hartree",
+    "optimizer_unit_adapter": "hartree-to-eV"
+  },
+  "solvation": {
+    "charge_method": "abcg2",
+    "charge_mode": "fixed",
+    "charge_geometry": "keep",
+    "method": "gb",
+    "model": "obc2",
+    "provider": "openmm",
+    "profile": "obc2-mbondi2",
+    "nonpolar": "ace",
+    "platform": "Reference",
+    "solvent": "water"
+  },
+  "start_policy": {
+    "ordered_roles": ["reference", "gas-dominant", "solution-dominant"],
+    "deduplicate_equal_partition_indices": true
+  },
+  "optimizer": {
+    "algorithm": "ASE-LBFGS",
+    "fmax_eV_per_angstrom": 0.03,
+    "max_steps": 300,
+    "maxstep_angstrom": 0.1
+  },
+  "cases": [
+    {
+      "compound_id": "mobley_8124669",
+      "name": "alachlor",
+      "flexibility_bin": "flexible",
+      "selection_role": "largest first-stage conformational correction and influence stress test"
+    },
+    {
+      "compound_id": "mobley_1770205",
+      "name": "3-(dimethoxyphosphinothioylsulfanylmethyl)-1,2,3-benzotriazin-4-one",
+      "flexibility_bin": "flexible",
+      "selection_role": "large P/S-containing flexible chemistry coverage"
+    },
+    {
+      "compound_id": "mobley_3525176",
+      "name": "pentylbenzene",
+      "flexibility_bin": "flexible",
+      "selection_role": "flexible nonpolar control"
+    },
+    {
+      "compound_id": "mobley_5759258",
+      "name": "pentan-1-ol",
+      "flexibility_bin": "limited",
+      "selection_role": "limited-flexibility hydrogen-bonding case"
+    },
+    {
+      "compound_id": "mobley_2881590",
+      "name": "isobutyl nitrate",
+      "flexibility_bin": "limited",
+      "selection_role": "limited-flexibility polar case with distinct solution-dominant start"
+    },
+    {
+      "compound_id": "mobley_1952272",
+      "name": "nitromethane",
+      "flexibility_bin": "rigid",
+      "selection_role": "rigid single-state control"
+    }
+  ],
+  "formula": "DeltaE_relaxed=[U_MLIP(R_solution)+W_GB+ACE(R_solution)]-U_MLIP(R_gas)=DeltaU_reorganization+W_GB+ACE(R_solution)",
+  "failure_policy": {
+    "confirmation_remains_closed": true,
+    "no_source_record_substitution": true,
+    "no_checkpoint_substitution": true,
+    "no_charge_cache_substitution": true,
+    "nonfinite_energy_or_force_fails_branch": true,
+    "case_requires_one_converged_gas_and_solution_branch": true,
+    "minimum_selection_uses_only_converged_branches": true
+  },
+  "limitations": [
+    "Only the reference, gas-dominant, and solution-dominant first-stage states are started; this is not exhaustive conformer search on the MACE surfaces.",
+    "Separate 0 K minimization does not include conformer entropy, vibrational free energy, standard-state terms, or solvent sampling.",
+    "Fixed ABCG2 charges do not respond to geometry or solvent polarization.",
+    "OBC-II and ACE remain the solvent model; MACE only improves the intramolecular potential and its forces.",
+    "Agreement with experiment is reported only as a development diagnostic and cannot validate the thermodynamic estimator."
+  ],
+  "next_gate": "Proceed to broader MACE conformer relaxation and then lambda-window sampling/MBAR only if the relaxed minima are stable across starts and the improvement is not controlled by alachlor alone."
+}

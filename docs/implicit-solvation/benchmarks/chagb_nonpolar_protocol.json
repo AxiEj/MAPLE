@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-am1bcc-chagb-nonpolar-v1",
+  "source_partition": "development",
+  "claim_scope": "Development-only, neutral closed-shell FreeSolv molecules in water; one frozen FreeSolv GAFF geometry/topology per molecule; frozen AM1-BCC charges; CHA-GB/GBNSR6 polar energy; either the GBNSR6 surface-tension term or the PBSA cavity-plus-dispersion model. This is not a sampled finite-temperature free energy, a broad-solvent validation, or confirmation evidence.",
+  "source_evidence": {
+    "base_protocol": "protocol.json",
+    "base_protocol_sha256": "0aa134a94189583deccd027b428895a21a4244489711670fa4973b0d38513a1d",
+    "base_protocol_fingerprint": "76ed1ea6483678d113353d7371ca1e015c780a38937fa5333d7c40ec9db8c676",
+    "development_summary": "freesolv-development-2026-07-23.json",
+    "development_summary_sha256": "911e53feee177ffe1e92112b0a723793748850dfe470b6e4d08f8611ef3f6855",
+    "source_manifest": "chagb_nonpolar_source_manifest.json",
+    "source_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc",
+    "expected_case_count": 526,
+    "baseline_attempt_suffix": "__am1bcc__obc2"
+  },
+  "execution_boundary": {
+    "energy_phase_reads_experimental_labels": false,
+    "energy_phase_inputs": [
+      "protocol",
+      "label-free source manifest",
+      "frozen FreeSolv GAFF MOL2"
+    ],
+    "summary_phase_may_read_experimental_labels": true,
+    "confirmation_remains_closed": true,
+    "no_experimental_fit_or_residual_model": true
+  },
+  "topology": {
+    "force_field": "GAFF2",
+    "atom_types": "Pinned FreeSolv GAFF atom types",
+    "parmchk2_mode": "gaff2",
+    "tleap_source": "leaprc.gaff2",
+    "pb_radii": "bondi",
+    "charge_policy": "Replace only the charge column of the pinned FreeSolv GAFF MOL2 with the frozen AM1-BCC vector.",
+    "nonbonded_policy": "Use the pinned FreeSolv GAFF atom types with leaprc.gaff2 nonbonded parameters; parmchk2 supplies only any missing bonded terms, which are not included in the parsed solvation components."
+  },
+  "execution_controls": {
+    "gbnsr6_max_concurrent_processes": 1,
+    "reason": "The pinned AmberTools 26 GBNSR6 executable showed allocator crashes under concurrent independent processes; identical serial retries succeeded. Energy inputs and settings are unchanged."
+  },
+  "polar": {
+    "provider": "GBNSR6",
+    "model": "CHA-GB",
+    "component": "EGB",
+    "epsin": 1.0,
+    "epsout": 78.5,
+    "istrng_molar": 0.0,
+    "dprob_angstrom": 1.4,
+    "space_angstrom": 0.3,
+    "arcres_angstrom": 0.2,
+    "alpb": 1,
+    "chagb": 1,
+    "radiopt": 0,
+    "roh_angstrom": 0.586,
+    "tau": 1.47,
+    "rbornstat": 0
+  },
+  "nonpolar_endpoints": {
+    "gbnsr6_surface_tension": {
+      "provider": "GBNSR6",
+      "component": "ESURF",
+      "cavity_surften_kcal_mol_angstrom2": 0.005,
+      "total_formula": "EGB + ESURF"
+    },
+    "pbsa_cavity_dispersion": {
+      "provider": "PBSA",
+      "components": [
+        "ECAVITY",
+        "EDISPER"
+      ],
+      "inp": 2,
+      "istrng_millimolar": 0.0,
+      "fillratio": 1.5,
+      "saopt": 1,
+      "decompopt": 2,
+      "use_rmin": 1,
+      "sprob_angstrom": 0.557,
+      "vprob_angstrom": 1.3,
+      "rhow_effect": 1.129,
+      "use_sav": 1,
+      "cavity_surften": 0.0378,
+      "cavity_offset_kcal_mol": -0.5692,
+      "total_formula": "EGB + ECAVITY + EDISPER"
+    }
+  },
+  "providers": {
+    "required_ambertools_version": "26.0",
+    "executables": {
+      "gbnsr6": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/gbnsr6",
+        "sha256": "6f14c7a0418b8f03be1b0273367717335822d2f7719f137ad56f2d49e0489e42"
+      },
+      "pbsa": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/pbsa",
+        "sha256": "1cb42f0464e031b5f4331b8ae335cb0c130ddad50305956695efb62a19b2defd"
+      },
+      "parmchk2": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/parmchk2",
+        "sha256": "c2ef0906b71c64e5277673bcba943512daf75ef334ad9421c0045b6b80b6d7cc"
+      },
+      "tleap": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/tleap",
+        "sha256": "f1c526e0a24ad1fefc6c82be1279aa33eff5f9557d577c2236aa81437dfb52ac"
+      }
+    }
+  },
+  "statistics": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20260724
+  },
+  "failure_policy": {
+    "no_source_record_substitution": true,
+    "no_charge_substitution": true,
+    "no_provider_substitution": true,
+    "nonzero_provider_exit_fails_case": true,
+    "missing_or_nonfinite_component_fails_case": true,
+    "failed_cases_remain_failures": true
+  },
+  "literature": {
+    "chagb": "Mukhopadhyay et al., Charge hydration asymmetry: the basic principle and how to use it to test and improve water models, J. Chem. Theory Comput. 2014, DOI:10.1021/ct4010917",
+    "gbnsr6": "Aguilar et al., On the Evaluation of the Generating Function R6 for the Computation of the Effective Born Radii, J. Chem. Theory Comput. 2025, DOI:10.1021/acs.jctc.4c01471",
+    "nonpolar": "Tan, Tan, and Luo, Implicit nonpolar solvent models, J. Phys. Chem. B 2007, DOI:10.1021/jp073399n"
+  }
+}

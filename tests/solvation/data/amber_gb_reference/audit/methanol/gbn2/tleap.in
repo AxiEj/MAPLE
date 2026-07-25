@@ -1,6 +1,6 @@
 source leaprc.gaff2
 set default PBradii mbondi3
-MOL = loadmol2 /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/normalized.mol2
-loadamberparams /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/frcmod.gaff2
-saveamberparm MOL /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/gbn2/system.prmtop /home/axie/MAPLE/MAPLE-implicitsolv/tests/solvation/data/amber_gb_reference/audit/methanol/gbn2/system.inpcrd
+MOL = loadmol2 /home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/methanol/normalized.mol2
+loadamberparams /home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/methanol/frcmod.gaff2
+saveamberparm MOL /home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/methanol/gbn2/system.prmtop /home/axie/MAPLE/MAPLE-implicitsolv-route1/tests/solvation/data/amber_gb_reference/audit/methanol/gbn2/system.inpcrd
 quit

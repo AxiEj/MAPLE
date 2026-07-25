@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-mlip-obc2-force-ti-v1",
+  "source_partition": "development",
+  "claim_scope": "Short force-consistent multi-MLIP OBC-II/ACE thermodynamic-integration diagnostic for three predeclared neutral FreeSolv molecules. This is a fail-closed development screen, not equilibrated production sampling, MBAR, confirmation, or product certification.",
+  "route": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "role": "Baseline/Product Route",
+    "formula": "U_lambda(R)=U_MLIP,gas(R)+lambda*[G_polar(R,q_fixed)+G_nonpolar(R)]",
+    "gas_phase_mm_energy": false,
+    "retraining": false,
+    "hydration_label_residual": false
+  },
+  "execution_boundary": {
+    "sampling_phase_reads_experimental_labels": false,
+    "scoring_phase_may_read_development_labels": true,
+    "no_experimental_fit_or_residual_model": true,
+    "confirmation_remains_closed": true,
+    "promotion_allowed": false
+  },
+  "source_evidence": {
+    "charge_manifest": "chagb_nonpolar_source_manifest.json",
+    "charge_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc"
+  },
+  "models": [
+    {
+      "name": "maceoff23m",
+      "checkpoint_sha256": "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee"
+    },
+    {
+      "name": "aimnet2",
+      "checkpoint_sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+    },
+    {
+      "name": "ani2x",
+      "checkpoint_sha256": "c8c41e89d5ccbe7b5c9f46ce4a262b913ad0c428a3a3742cc6e83ac10d4d43aa"
+    }
+  ],
+  "endpoint": {
+    "charge": "AM1-BCC fixed once from normalized MOL2",
+    "polar": "OpenMM OBC-II",
+    "nonpolar": "OpenMM ACE",
+    "solvent": "water",
+    "openmm_platform": "Reference"
+  },
+  "sampling": {
+    "temperature_kelvin": 298.15,
+    "lambda_windows": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "estimator": "composite-simpson-ti",
+    "production_estimator_target": "mbar",
+    "thermostat": "langevin-lfmiddle",
+    "timestep_fs": 0.1,
+    "equilibration_steps_per_window": 100,
+    "production_steps_per_window": 200,
+    "sample_stride_steps": 5,
+    "friction_per_fs": 0.001,
+    "chains": [
+      {
+        "chain_id": "ascending",
+        "lambda_order": "ascending",
+        "seed_offset": 0
+      },
+      {
+        "chain_id": "descending",
+        "lambda_order": "descending",
+        "seed_offset": 100000
+      }
+    ]
+  },
+  "cases": [
+    {
+      "compound_id": "mobley_1952272",
+      "name": "nitromethane",
+      "flexibility_bin": "rigid",
+      "seed": 2026072501
+    },
+    {
+      "compound_id": "mobley_7758918",
+      "name": "propionic acid",
+      "flexibility_bin": "limited",
+      "seed": 2026072502
+    },
+    {
+      "compound_id": "mobley_1017962",
+      "name": "methyl hexanoate",
+      "flexibility_bin": "flexible",
+      "seed": 2026072503
+    }
+  ],
+  "diagnostic_gates": {
+    "expected_production_samples_per_window": 40,
+    "maximum_chain_ti_disagreement_kcal_mol": 0.5,
+    "minimum_endpoint_fep_ess_fraction": 0.1,
+    "require_finite_full_reduced_potential_matrix": true,
+    "promotion_allowed": false
+  },
+  "limitations": [
+    "Each lambda window is only 30 fs, including 10 fs discarded by construction; this cannot establish conformer mixing or equilibrium.",
+    "The fixed AM1-BCC/OBC-II/ACE solvent provider is sampled because it supplies conservative forces; the more accurate energy-only CHA-GB/cavity-dispersion candidate is not substituted.",
+    "TI is reported as a development cross-check. MBAR and its overlap matrix require the upstream pymbar analysis dependency and are not fabricated here.",
+    "Only three development molecules and three named registered MLIPs are included.",
+    "Experimental labels are opened only after label-free sample records are written, but this is not a sealed confirmation partition."
+  ]
+}

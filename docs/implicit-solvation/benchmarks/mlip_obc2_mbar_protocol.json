@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-multi-mlip-obc2-mbar-analysis-v1",
+  "claim_scope": "Post hoc, label-free PyMBAR analysis of the frozen short force-consistent multi-MLIP OBC-II/ACE lambda diagnostic. This exposes the upstream estimator and overlap evidence but cannot establish equilibrium, conformer mixing, chemical accuracy, confirmation, or product certification.",
+  "route_contract": {
+    "formula": "U_lambda(R)=U_MLIP,gas(R)+lambda*[G_polar(R,q_fixed)+G_nonpolar(R)]",
+    "fixed_charge_across_windows": true,
+    "no_gas_phase_mm_energy": true,
+    "no_hydration_residual_model": true,
+    "no_mlip_retraining": true,
+    "experimental_labels_read": false
+  },
+  "source_evidence": {
+    "manifest": "mlip_obc2_mbar_source_manifest.json",
+    "manifest_sha256": "cbe014d1db7ecf52c31da9e2d6fdafc7077d54c4f64138b486e4bb4fe4a51c6e",
+    "record_count": 9,
+    "parent_protocol": "mlip_obc2_ti_protocol.json",
+    "parent_protocol_sha256": "99843adbaa04f6e2a11b0baf17fa198ea351727657483c7a3fc3e02c3ca48144"
+  },
+  "analysis": {
+    "temperature_kelvin": 298.15,
+    "standard_state": "gas 1 M to ideal-dilute solution 1 M",
+    "lambda_values": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "detect_equilibration": true,
+    "equilibration_nskip": 1,
+    "equilibrium_claim": false,
+    "minimum_uncorrelated_samples_per_state": 20,
+    "minimum_effective_samples_per_state": 50.0,
+    "minimum_adjacent_overlap": 0.03,
+    "maximum_mbar_ti_absolute_difference_kcal_mol": 0.25,
+    "maximum_independent_repeat_difference_kcal_mol": 0.25,
+    "maximum_iterations": 10000,
+    "relative_tolerance": 1e-07
+  },
+  "dependency": {
+    "name": "pymbar",
+    "version_specifier": ">=4.0.3,<5",
+    "role": "Upstream MBAR estimator, equilibration detection, statistical inefficiency, decorrelation, effective sample counts, and overlap matrix.",
+    "handwritten_substitute_allowed": false
+  },
+  "decision_policy": {
+    "promotion_allowed": false,
+    "reason": "The parent windows are only 30 fs and were frozen before an equilibrium or conformer-mixing claim. Passing post hoc overlap cannot repair that missing sampling evidence.",
+    "post_hoc_thresholds_are_diagnostic_only": true
+  },
+  "limitations": [
+    "Every source record is development-only and contains only 40 production frames per window after a fixed 10 fs discard.",
+    "Automatic time-series diagnostics cannot prove mixing on timescales longer than the recorded trajectories.",
+    "Experimental FreeSolv labels are neither required nor opened by this analysis.",
+    "This analysis can validate estimator plumbing and expose overlap; it cannot promote the parent short TI screen."
+  ],
+  "literature": [
+    {
+      "citation": "Shirts MR, Chodera JD. J Chem Phys 129, 124105 (2008).",
+      "doi": "10.1063/1.2978177",
+      "role": "MBAR estimator"
+    },
+    {
+      "citation": "Chodera JD. J Chem Theory Comput 12, 1799-1805 (2016).",
+      "doi": "10.1021/acs.jctc.5b00784",
+      "role": "automatic equilibration detection"
+    }
+  ]
+}

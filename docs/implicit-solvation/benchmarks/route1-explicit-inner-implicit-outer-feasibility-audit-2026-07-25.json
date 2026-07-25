@@ -1,0 +1,261 @@
+{
+  "absolute_free_energy_completion_gate": {
+    "cluster_cycle_expression": "DeltaG_solv*(A)=DeltaG_clust,g*(A(S)n)+DeltaG_solv*(A(S)n)-DeltaG_solv*((S)n)+DeltaG_standard_state",
+    "neutral_solute_note": "Neutral solutes avoid the single-ion absolute-reference convention, but none of the listed ensemble or thermodynamic-cycle terms cancel automatically.",
+    "requires_cluster_conformer_and_size_ensemble": true,
+    "requires_gas_and_solution_free_energies_not_only_minimum_energies": true,
+    "requires_pure_solvent_reference": true,
+    "requires_standard_state_accounting": true,
+    "supermolecular_reference_expression": "DeltaG_solv*=G*[A(S)n]-G*[(S)n]-G*[A]+DeltaG_standard_state",
+    "terms_missing_from_prebuilt_runtime": [
+      "cluster formation or inner-shell occupancy free energy",
+      "pure-solvent reference cluster free energy or equivalent solvent chemical potential",
+      "gas/solution/pure-solvent standard-state and concentration corrections",
+      "Boltzmann ensemble over cluster conformers, coordination states, and cluster sizes"
+    ]
+  },
+  "artifact_type": "route1-explicit-inner-implicit-outer-feasibility-audit",
+  "candidate_workflows": {
+    "crest_qcg": {
+      "arbitrary_gas_mlip_end_to_end_validation": false,
+      "audited_branch": "master",
+      "audited_commit": "cfdc301f759686b0fd66ced63b5ddbd6c693fa4f",
+      "computes_a_supermolecular_solvation_free_energy": true,
+      "current_upstream_source_audit": {
+        "evidence_locations": {
+          "direct_xtb_hessian_commands": "src/qcg/solvtool_misc.f90:785-864",
+          "direct_xtb_single_point_and_optimization": "src/qcg/solvtool_misc.f90:23-101",
+          "qcg_frequency_driver": "src/qcg/solvtool.f90:1965-2218",
+          "qcg_level_parser": "src/confparse.f90:1855-1901",
+          "qcg_pipeline": "src/qcg/solvtool.f90:72-140",
+          "separate_generic_subprocess": "src/calculator/generic_sc.f90:20-319"
+        },
+        "generic_backend_exists_for_non_qcg_crest_calculations": true,
+        "generic_backend_is_wired_into_qcg": false,
+        "interpretation": "CREST has a generic energy/gradient subprocess for ordinary calculator-driven workflows, but the current QCG source bypasses it: QCG constructs direct xTB single-point, optimization, and Hessian commands and accepts only GFN-family ensemble/frequency levels. The generic hook therefore does not establish an arbitrary-MLIP QCG free-energy backend.",
+        "qcg_direct_xtb_single_point_and_optimization": true,
+        "qcg_ensemble_level_parser_values": [
+          "GFN0-xTB",
+          "GFN1-xTB",
+          "GFN2-xTB",
+          "GFN-FF"
+        ],
+        "qcg_files_containing_env_calculation_object": 0,
+        "qcg_files_containing_generic_backend_token": 0,
+        "qcg_frequency_level_parser_values": [
+          "GFN0-xTB",
+          "GFN1-xTB",
+          "GFN2-xTB",
+          "GFN-FF"
+        ],
+        "qcg_frequency_path_calls_xtb_hess_or_ohess": true,
+        "qcg_source_file_count": 5
+      },
+      "generates_solute_solvent_and_reference_solvent_ensembles": true,
+      "includes_thermochemical_and_conformational_terms": true,
+      "license": "LGPL-3.0 and GPL-3.0 files present upstream",
+      "local_environment": {
+        "crest_executable": "/home/axie/crest/crest",
+        "crest_version": "3.0.2",
+        "qcg_runtime_available": true,
+        "reason_not_run_as_product_benchmark": "The available executable can test the published xTB/GFN-FF workflow, not the required arbitrary target-MLIP route; such a run would not close the admission gate.",
+        "xtb_executable": "/home/axie/xtb/xtb-dist/bin/xtb",
+        "xtb_version": "6.7.1"
+      },
+      "measured_route1_multi_mlip_speed": false,
+      "name": "CREST Quantum Cluster Growth",
+      "neutral_aqueous_freesolv_product_validation": false,
+      "official_example": {
+        "nclus": 4,
+        "nsolv": 25,
+        "outer_model": "GBSA benzene",
+        "reported_reference_states": [
+          "1 M gas/solution",
+          "1 bar gas/1 M solution"
+        ],
+        "sampling_and_frequency_method": "GFN-FF",
+        "solute": "1-pentanol",
+        "solvent": "benzene"
+      },
+      "paper_doi": "10.1021/acs.jctc.2c00239",
+      "published_method_family": "GFN-xTB/GFN-FF",
+      "remote_head_verified_equal": true,
+      "route1_role": "literature-backed scaffold and possible proposal-ensemble generator; not a current drop-in multi-MLIP product backend",
+      "upstream": "https://github.com/crest-lab/crest"
+    },
+    "ensemble_cluster_continuum_literature": {
+      "lehmann_2026": {
+        "arbitrary_mlip_validation": false,
+        "doi": "10.1021/acs.jpca.6c00886",
+        "domain": "single ions in aqueous and nonaqueous solvents",
+        "neutral_freesolv_validation": false,
+        "workflow": "QCG proposal structures, DFT reoptimization and thermochemistry, higher-level energies, implicit embedding, conformer selection, and cluster-size averaging"
+      },
+      "tomanik_2020": {
+        "doi": "10.1039/D0CP02768E",
+        "domain": "anions and cations",
+        "important_result": "The ensemble formulation addresses the invalid single-rigid-minimum assumption and treats cluster-size convergence as a reliability criterion.",
+        "neutral_freesolv_validation": false
+      }
+    },
+    "febiss": {
+      "audited_branch": "2.0",
+      "audited_commit": "4ca103d1a57b0c179d8c4bce066371ad76ad00f7",
+      "computes_complete_absolute_solvation_free_energy": false,
+      "generates_equilibrium_target_mlip_ensemble": false,
+      "interpretation": "FEBISS converts a prior explicit-solvent trajectory and GIST site analysis into ranked solvent placements. Its voxel free-energy ranking is not the complete solute transfer free energy and cannot supply the missing pure-solvent, standard-state, coordination, or target-MLIP ensemble terms.",
+      "license": "MIT",
+      "name": "Free Energy Based Identification of Solvation Sites",
+      "paper_doi": "10.3390/molecules26061793",
+      "remote_head_verified_equal": true,
+      "requires_existing_explicit_solvent_trajectory_and_topology": true,
+      "role": "optional inner-shell proposal preprocessor only",
+      "source_evidence_locations": {
+        "gist_execution": "Febiss/cpptraj_interface/gist.py:39-139",
+        "microsolvated_structure_output": "Febiss/structures/write_pdb.py:1-48",
+        "trajectory_gist_scope": "README.rst:43-93"
+      },
+      "upstream": "https://github.com/PodewitzLab/FEBISS",
+      "uses_gist_to_rank_solvent_sites": true,
+      "writes_selected_microsolvated_structures": true
+    }
+  },
+  "claim_scope": "Primary-documentation and current-upstream-source audit of whether an automatic explicit-inner/implicit-outer workflow can presently produce neutral small-molecule absolute solvation free energies with arbitrary gas-phase MLIPs while preserving Route 1. This is not a QCG, FEBISS, or FreeSolv production run; it does not establish accuracy, speed, or generic MLIP compatibility.",
+  "content_sha256": "6b5a1db039c8c531c9cb85d4d7dba6f2f91812aba9b30c196161ae170da18d1d",
+  "current_route1_runtime": {
+    "absolute_solvation_free_energy_claim": false,
+    "automatic_shell_generation": false,
+    "fixed_shell_definition": "component membership and coordination number are fixed; coordinates remain task variables",
+    "formula": "E_cluster,outer(R)=E_MLIP,gas(cluster;R)+G_polar,outer(R,q_fixed)+G_nonpolar,outer(R)",
+    "hydration_accuracy_benchmark": false,
+    "input": "neutral closed-shell multicomponent MOL2 with fixed charges and explicit bonds",
+    "interpretation": "The existing runtime proves additive topology, energy, force, and MAPLE task plumbing for one illustrative prebuilt cluster. It does not compute an equilibrium shell population or an absolute solvation free energy.",
+    "mode": "inner=prebuilt",
+    "multi_mlip_engineering_smoke_models": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ],
+    "supported_engineering_tasks": [
+      "sp",
+      "opt",
+      "scan"
+    ],
+    "thermodynamic_quantity": "fixed-shell cluster-continuum configurational potential"
+  },
+  "multi_mlip_admission_gate": {
+    "charge_spin_element_and_size_compatibility_required": true,
+    "energy_zero_cancellation_requires_atom_conserving_cycle": true,
+    "force_or_hessian_support_required_for_sampling_or_rrho": true,
+    "important_cancellation": "A size-extensive target MLIP atomic-energy zero can cancel in the atom-conserving A(S)n - (S)n - A cycle. This does not validate intermolecular forces, sampling overlap, thermochemistry, or the outer-continuum treatment.",
+    "intermolecular_cluster_domain_validation_required": true,
+    "measured_cost_comparator": "end-to-end wall time and target evaluations versus the corresponding MM implicit or explicit reference workflow, not only the continuum correction kernel",
+    "outer_fixed_charge_provider_must_cover_cluster_and_reference_species": true,
+    "prospective_neutral_aqueous_accuracy_gate_required": true,
+    "pure_solvent_and_solute_cluster_ensembles_must_use_a_consistent_target_hamiltonian": true,
+    "reference_to_target_overlap_must_fail_closed": true,
+    "same_target_mlip_must_cover_all_cycle_species": true
+  },
+  "overall_decision": {
+    "arbitrary_mlip_compatibility_claim_allowed": false,
+    "automatic_inner_shell_runtime_added": false,
+    "faster_than_mm_claim_allowed": false,
+    "freesolv_accuracy_claim_allowed": false,
+    "new_dependency_added": false,
+    "paper_based_reimplementation_planned": false,
+    "prebuilt_runtime_classification": "experimental fixed-shell potential only",
+    "prebuilt_runtime_retained": true,
+    "reason": "QCG is the strongest complete upstream thermodynamic scaffold and FEBISS is a useful site-selection preprocessor, but neither supplies a validated arbitrary-gas-MLIP neutral aqueous product route. Current QCG is wired directly to xTB/GFN-family growth, sampling, optimization, and frequencies; FEBISS begins from an external explicit trajectory and does not compute the complete transfer free energy. Route 1 therefore retains the prebuilt engineering mode, adds no automatic generator or FreeSolv selector, and keeps the target-MLIP proposal/reweighting cycle as research-only until every compatibility, overlap, thermodynamic, accuracy, and cost gate passes.",
+    "revisit_only_if": [
+      "a maintained upstream exposes the full QCG-like cycle to arbitrary target energy/gradient/Hessian backends or a separately reviewed adapter does so without forking scientific logic",
+      "each admitted MLIP is validated for solute-solvent and pure-solvent clusters, not only isolated gas molecules",
+      "target/reference overlap and cluster-size/conformer convergence fail closed with uncertainty",
+      "a prospectively frozen neutral aqueous benchmark materially improves Route 1 accuracy",
+      "end-to-end multi-MLIP cost is measured against a like-for-like MM workflow"
+    ],
+    "status": "no_admissible_neutral_small_molecule_product_path"
+  },
+  "protocol": {
+    "admission_rule": "An automatic product path requires a closed thermodynamic cycle, a maintained upstream or a separately justified implementation boundary, target-MLIP validity for every cycle species, overlap and ensemble convergence, a prospective neutral aqueous accuracy gate, and measured multi-MLIP cost. A shell generator or fixed-shell potential alone is insufficient.",
+    "protocol_id": "route1-explicit-inner-implicit-outer-feasibility-v1",
+    "steps": [
+      "separate a fixed-shell configurational potential from an absolute transfer free energy",
+      "enumerate every cluster, pure-solvent, standard-state, and ensemble term",
+      "audit CREST QCG documentation and current source for arbitrary-backend connectivity",
+      "audit FEBISS source scope as a possible inner-shell proposal generator",
+      "check whether the published evidence validates neutral aqueous small molecules and arbitrary MLIPs",
+      "record a fail-closed product decision without adding a paper-derived runtime"
+    ]
+  },
+  "recorded_date": "2026-07-25",
+  "research_only_path_if_reopened": {
+    "status": "conceptual_not_implemented",
+    "steps": [
+      "generate solute-solvent and pure-solvent proposal ensembles with a maintained tool such as QCG",
+      "evaluate every atom-conserving cycle state with one target MLIP plus one audited outer fixed-charge provider",
+      "use reference-to-target MBAR or nonequilibrium switching only when overlap diagnostics pass",
+      "include thermochemical or rigorously sampled free-energy contributions and explicit standard states",
+      "average over conformers, coordination states, and cluster sizes with uncertainty",
+      "validate prospectively on neutral aqueous molecules for each admitted MLIP compatibility class",
+      "measure total cost against a like-for-like MM workflow"
+    ],
+    "why_not_current_product": "No current upstream performs this end-to-end arbitrary-MLIP cycle, the available Route 1 runtime supplies only one fixed-shell potential, and no neutral FreeSolv accuracy/cost evidence closes the product gates."
+  },
+  "route_contract": {
+    "automatic_inner_shell_must_remain_optional": true,
+    "default_charge": "AM1-BCC",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_mlip_retraining": false,
+    "gas_phase_mm_energy": false,
+    "learned_hydration_residual": false,
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "requires_conservative_force_for_opt_scan_md": true,
+    "role": "Baseline/Product Route"
+  },
+  "schema_version": 1,
+  "source_evidence": {
+    "crest_generic_backend_docs": {
+      "role": "generic energy/gradient subprocess for calculator-driven CREST workflows",
+      "url": "https://crest-lab.github.io/crest-docs/page/documentation/inputfiles.html"
+    },
+    "crest_qcg_example_4": {
+      "role": "1-pentanol/benzene free-energy example and reference-state output",
+      "url": "https://crest-lab.github.io/crest-docs/page/examples/qcg/example_4.html"
+    },
+    "crest_qcg_keyword_docs": {
+      "role": "published QCG grow, ensemble, and frequency method choices",
+      "url": "https://crest-lab.github.io/crest-docs/page/documentation/qcg.html"
+    },
+    "crest_qcg_paper": {
+      "doi": "10.1021/acs.jctc.2c00239",
+      "pubmed": "https://pubmed.ncbi.nlm.nih.gov/35482317/",
+      "title": "Automated Molecular Cluster Growing for Explicit Solvation by Efficient Force Field and Tight Binding Methods"
+    },
+    "crest_qcg_workflow_docs": {
+      "role": "supermolecular reference ensemble, thermochemical, and conformational free-energy description",
+      "url": "https://crest-lab.github.io/crest-docs/page/overview/workflows.html"
+    },
+    "ensemble_cluster_continuum_2020": {
+      "doi": "10.1039/D0CP02768E",
+      "url": "https://pubs.rsc.org/en/content/articlelanding/2020/cp/d0cp02768e"
+    },
+    "febiss_upstream": {
+      "role": "trajectory/GIST-driven solvent-site ranking and selected microsolvated structure output",
+      "url": "https://github.com/PodewitzLab/FEBISS"
+    },
+    "systematic_cluster_continuum_2026": {
+      "doi": "10.1021/acs.jpca.6c00886",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13158995/"
+    }
+  },
+  "source_fingerprints": {
+    "crest_confparse_sha256": "08c03ab54ea80e1e7c7ddcbdc06051ddf3dbd7b485173fa31db1e34e463dce00",
+    "crest_generic_backend_sha256": "581949e196b31a4be1aeaccab8675d55478401c45ab7bf5ed421ba2041d28888",
+    "crest_qcg_solvtool_misc_sha256": "6b1c3728b410fecfca44c32d9374b6dae6b0cd84bd2cf64940b110d099c75909",
+    "crest_qcg_solvtool_sha256": "b1dfecad030f0d53412f8076d91041e0b797dfaecc4f283e6853693b05383c40",
+    "febiss_license_sha256": "d728c08ec6b2f82ec09599ab5064dc16b4eac7dce191f67e595b92aa8a6efa81",
+    "febiss_readme_sha256": "1f9159d500a26af66d322e3a483b9ede539bc24f97a4f940aaef4fa99732bcd8",
+    "prebuilt_inner_outer_protocol_sha256": "daa1c79dcd1eff86517b19ef10043b7c52046f5b6ee86799cbee60ceccc52865",
+    "prebuilt_inner_outer_smoke_sha256": "e2b3b688d6784c3ea9cde8ad942cdabd189953c6767af33154f309a55a55b84c"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-am1bcc-mlip-conformer-weighting-v1",
+  "source_partition": "development",
+  "claim_scope": "Development-only discrete-conformer estimate of the AM1-BCC/OBC-II/ACE hydration correction after reweighting the frozen CREST conformer set with MACE-OFF23 medium gas-phase single-point relative energies. This forward-default comparison uses the same states and MLIP checkpoint as the historical ABCG2 diagnostic. It is not a basin-integrated conformational free energy, an RRHO treatment, a lambda-path calculation, or confirmation evidence.",
+  "source_evidence": {
+    "conformer_protocol": "conformer_protocol.json",
+    "conformer_protocol_sha256": "ad1635540b8ab95065f9f8ce55e3a73aed7fbb1afcbd78da1adf6ef9ebc1f210",
+    "conformer_protocol_fingerprint": "ad1635540b8ab95065f9f8ce55e3a73aed7fbb1afcbd78da1adf6ef9ebc1f210",
+    "conformer_summary": "freesolv-conformer-sensitivity-2026-07-23.json",
+    "conformer_summary_sha256": "645ee777aac259c791df8d4ff62dc05ca5020f69388deb46e7ec648461faebdd"
+  },
+  "model": {
+    "name": "maceoff23m",
+    "checkpoint_filename": "maceoff23m.pt",
+    "checkpoint_sha256": "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee",
+    "checkpoint_url": "https://huggingface.co/Wayne7815/MAPLE_models/resolve/d5d8eb902246fb3f0e3b24e0d4bbcdc12f12e816/maceoff23m.pt",
+    "supported_atomic_numbers": [1, 6, 7, 8, 9, 15, 16, 17, 35, 53],
+    "maple_calculator_output_unit": "hartree",
+    "role": "Gas-phase intramolecular single-point relative energies used only as discrete conformer Boltzmann weights; the absolute MLIP energy zero cancels."
+  },
+  "evaluation": {
+    "charge_method": "am1bcc",
+    "gb_model": "obc2",
+    "nonpolar": "ace",
+    "reference_geometry_rmsd_dedup_angstrom": 0.125,
+    "temperature_kelvin": 298.15,
+    "weighting": "discrete-mlip-single-point-log-sum-exp-reference-union"
+  },
+  "formula": "DeltaG=-RT*ln(sum_i exp[-beta*(DeltaU_MLIP_i+W_i)] / sum_i exp[-beta*DeltaU_MLIP_i])",
+  "failure_policy": {
+    "confirmation_remains_closed": true,
+    "no_source_record_substitution": true,
+    "no_checkpoint_substitution": true,
+    "nonfinite_mlip_energy_fails_case": true
+  },
+  "limitations": [
+    "The discrete state library is the union of the frozen CREST/GFN2-xTB/ALPB(water) set and the original FreeSolv geometry, not a gas-phase MACE sample.",
+    "MACE energies are single points on xTB geometries; no MACE geometry relaxation is included.",
+    "CREST geometric deduplication does not supply basin volumes, vibrational free energies, or symmetry degeneracies.",
+    "The estimator is a discrete-minima diagnostic and must not be labeled a converged finite-temperature hydration free energy.",
+    "Fixed AM1-BCC charges, OBC-II radii, and ACE nonpolar physics remain unchanged."
+  ],
+  "next_gate": "Compare AM1-BCC and historical ABCG2 on the identical frozen states, then proceed to AM1-BCC gas/solution relaxation only if the charge change does not erase the MLIP conformer signal."
+}

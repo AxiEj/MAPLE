@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-mmgb-to-mlipgb-nonequilibrium-switching-v1",
+  "claim_scope": "Prospectively frozen, label-free development diagnostic for bidirectional GAFF2/OBC-II/ACE to exact Route 1 MLIP/OBC-II/ACE nonequilibrium switching in gas and implicit solution. The short reused endpoint trajectories and 5-20 fs switches cannot establish equilibrium, production convergence, chemical accuracy, acceleration, confirmation, or product promotion.",
+  "route_contract": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "role": "Baseline/Product Route",
+    "target_formula": "U_target,phase(R)=U_MLIP,gas(R)+I_phase*[G_polar(R,q_fixed)+G_nonpolar(R)]",
+    "mixed_hamiltonian": "U_phase,lambda(R)=(1-lambda)*U_reference,phase(R)+lambda*[U_target,phase(R)-C_model_case]",
+    "fixed_charge_across_states": true,
+    "reference_mm_role": "endpoint sampling and switching bridge only",
+    "reference_mm_energy_in_target": false,
+    "no_hydration_residual_model": true,
+    "no_mlip_retraining": true,
+    "formal_model_agnosticism": "Any registered gas-phase MLIP that supplies finite energies and conservative forces on every audited switching configuration can use the same evaluator and switching interface; practical cost and accuracy remain model-, overlap-, and sampling-dependent."
+  },
+  "thermodynamic_cycle": {
+    "formula": "DeltaG_target_solv=DeltaG_reference_solv+DeltaF_reference_to_target_solution-DeltaF_reference_to_target_gas",
+    "primary_switching_estimator": "PyMBAR BAR from forward and reverse nonequilibrium work",
+    "directional_diagnostics": "PyMBAR EXP in both directions",
+    "reference_solvation_source": "sealed GAFF2/OBC-II/ACE MBAR result from route1-mm-reference-reweighting-2026-07-25.json",
+    "energy_alignment": {
+      "constant": "C_model_case=U_target,gas(R_anchor)-U_reference,gas(R_anchor)",
+      "anchor": "reference gas repeat-0 frame index 5",
+      "same_constant_for_gas_and_solution": true,
+      "forces_are_unshifted": true,
+      "cycle_identity": "The same C_model_case shifts both phase corrections by -C_model_case and therefore cancels exactly in DeltaF_solution-DeltaF_gas.",
+      "phase_specific_alignment_forbidden": true
+    }
+  },
+  "execution_boundary": {
+    "sampling_or_switching_reads_experimental_labels": false,
+    "scoring_must_be_separate": true,
+    "endpoint_equilibrium_claim": false,
+    "independent_work_values_claim": false,
+    "promotion_allowed": false,
+    "target_force_evaluations_required": true,
+    "direct_target_mbar_used_only_for_post_execution_validation": true
+  },
+  "source_evidence": {
+    "reference_reweighting_artifact": "route1-mm-reference-reweighting-2026-07-25.json",
+    "reference_reweighting_artifact_file_sha256": "9e190ce98050080aada55b8324557a72ef0e46ff4ac200a8af3154a1039b3b3e",
+    "reference_reweighting_artifact_content_sha256": "f28842335dc43b85acd36d02800f4e18c92b55a03e74230d51e0ba146f295978",
+    "reference_reweighting_protocol_fingerprint": "ea850cf817b10dd8d79ab8e7165094857f8daef65871dd0a7ed0e71f9bd517bb",
+    "direct_target_mbar_artifact": "route1-multi-mlip-obc2-mbar-2026-07-25.json",
+    "direct_target_mbar_artifact_file_sha256": "f83569d9b4ad3b2b679c501a5f3154969326b5632e4c639a4dfb7e75345ab476",
+    "direct_target_mbar_artifact_content_sha256": "a0a7437bcea650d82aaa284d6726f7c60c595b986af95390783ef10bf689e61a",
+    "target_ti_protocol": "mlip_obc2_ti_protocol.json",
+    "target_ti_protocol_sha256": "99843adbaa04f6e2a11b0baf17fa198ea351727657483c7a3fc3e02c3ca48144",
+    "target_record_manifest": "mlip_obc2_mbar_source_manifest.json",
+    "target_record_manifest_sha256": "cbe014d1db7ecf52c31da9e2d6fdafc7077d54c4f64138b486e4bb4fe4a51c6e",
+    "charge_manifest": "chagb_nonpolar_source_manifest.json",
+    "charge_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc"
+  },
+  "models": [
+    {
+      "name": "maceoff23m",
+      "checkpoint_sha256": "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee"
+    },
+    {
+      "name": "aimnet2",
+      "checkpoint_sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+    },
+    {
+      "name": "ani2x",
+      "checkpoint_sha256": "c8c41e89d5ccbe7b5c9f46ce4a262b913ad0c428a3a3742cc6e83ac10d4d43aa"
+    }
+  ],
+  "cases": [
+    {
+      "compound_id": "mobley_1952272",
+      "name": "nitromethane",
+      "flexibility_bin": "rigid",
+      "seed": 2026072501,
+      "reference_input_sha256": {
+        "m.mol2": "0bc5354eb3ef4a8df217e1bf9272ecde5ce117b144f626f074e4a23689c9ff6e",
+        "p": "fb8e8b7bd1786a372e40b13443afd1e0d6567529141ae0897a0cd4ba1ffd2e6b",
+        "initial.rst7": "8af1f96f8f153e01fad084083ade49364fc42efd842cd42952577a93d3dafadb"
+      }
+    },
+    {
+      "compound_id": "mobley_7758918",
+      "name": "propionic acid",
+      "flexibility_bin": "limited",
+      "seed": 2026072502,
+      "reference_input_sha256": {
+        "m.mol2": "f39746391ba721e6adf863c3f741300879a4d9f255a5e0178b20240f0441f9ba",
+        "p": "806316afa4b0a79635dc4e3a08061d77e507d4516108a45ac8ec8de7cbade164",
+        "initial.rst7": "b36c276e9ab4684491c5e4a49e1be9c4b7422dca563b3855c94999ab9c9b485f"
+      }
+    },
+    {
+      "compound_id": "mobley_1017962",
+      "name": "methyl hexanoate",
+      "flexibility_bin": "flexible",
+      "seed": 2026072503,
+      "reference_input_sha256": {
+        "m.mol2": "783df578c85819b79b59537197a0850e074426d2e9eef5bfef020c9a4849ce23",
+        "p": "ff5d5667948fc203331bf35ac589535a67b32003e2ebc14f3709a20744bb361c",
+        "initial.rst7": "a4e4695fdc67bc74d990664db25bfe4de2b899015ff2e94f33e8b2a8ca536967"
+      }
+    }
+  ],
+  "reference_potential": {
+    "gas": "GAFF2 fixed-charge molecular mechanics",
+    "solution": "GAFF2 fixed-charge molecular mechanics plus OpenMM OBC-II/ACE",
+    "charges": "The same frozen AM1-BCC vector used by the Route 1 target",
+    "radii": "Amber mbondi2 embedded in the frozen topology",
+    "solvent": "water",
+    "solute_dielectric": 1.0,
+    "solvent_dielectric": 78.5,
+    "salt_concentration_molar": 0.0,
+    "sasa_method": "ACE",
+    "nonbonded_method": "NoCutoff",
+    "constraints": null,
+    "openmm_platform": "CPU",
+    "openmm_platform_properties": {
+      "Threads": "1",
+      "DeterministicForces": "true"
+    }
+  },
+  "endpoint_sources": {
+    "forward_reference": {
+      "artifact": "route1-mm-reference-reweighting-2026-07-25.json",
+      "trajectory_role": "GAFF2 gas or GAFF2/OBC-II/ACE solution endpoint",
+      "required_replicates": [
+        "repeat-0",
+        "repeat-1"
+      ],
+      "frame_indices_per_replicate": [
+        5,
+        31,
+        57,
+        83
+      ],
+      "work_values_per_direction": 8
+    },
+    "reverse_target": {
+      "artifact": "route1-multi-mlip-obc2-ti-2026-07-25 raw trajectories referenced by the sealed direct-target MBAR artifact",
+      "gas_lambda": 0.0,
+      "solution_lambda": 1.0,
+      "required_chains": [
+        "ascending",
+        "descending"
+      ],
+      "production_frame_indices_per_chain": [
+        4,
+        14,
+        24,
+        34
+      ],
+      "work_values_per_direction": 8
+    }
+  },
+  "switching": {
+    "temperature_kelvin": 298.15,
+    "thermostat": "MAPLE LFMiddle Langevin",
+    "timestep_fs": 0.25,
+    "friction_per_fs": 0.001,
+    "protocol_order": "propagate at lambda_t, then perturb at R_t+1",
+    "interpolation": "linear",
+    "switch_lengths_fs": [
+      5.0,
+      20.0
+    ],
+    "steps_by_length": {
+      "5.0": 20,
+      "20.0": 80
+    },
+    "lambda_schedule": "equally spaced inclusive endpoints with steps+1 values",
+    "velocity_policy": "fresh deterministic Maxwell-Boltzmann draw per switch; momenta use the same masses at both endpoints",
+    "initialization_seed_formula": "case seed + model offset + phase offset + direction offset + length offset + source replicate offset + frame index",
+    "runtime_motion_projection": false,
+    "expected_target_energy_force_evaluations_per_model_case": 3264,
+    "expected_target_energy_force_evaluations_full_matrix": 29376
+  },
+  "analysis": {
+    "standard_state": "gas 1 M to ideal-dilute implicit solution 1 M; configurational indirect correction",
+    "work_unit": "kcal/mol",
+    "minimum_work_values_per_direction": 8,
+    "minimum_independent_replicates_per_direction": 2,
+    "minimum_bar_overlap": 0.03,
+    "maximum_forward_reverse_disagreement_kcal_mol": 0.5,
+    "maximum_bar_uncertainty_kcal_mol": 0.5,
+    "maximum_replicate_exp_range_kcal_mol": 1.0,
+    "maximum_leave_one_replicate_out_deviation_kcal_mol": 0.5,
+    "maximum_negative_dissipation_kcal_mol": 0.1,
+    "maximum_short_long_bar_difference_kcal_mol": 0.25,
+    "maximum_long_cycle_vs_direct_target_mbar_difference_kcal_mol": 0.25,
+    "maximum_reference_target_solvent_provider_difference_kcal_mol": 0.05,
+    "maximum_iterations": 10000,
+    "relative_tolerance": 1e-07
+  },
+  "decision_policy": {
+    "promotion_allowed": false,
+    "reason": "Only eight work values per direction are launched from previously sealed but deliberately short endpoint trajectories; the diagnostic can reject the method or motivate a production protocol but cannot validate it.",
+    "full_numerical_gate_requires": [
+      "gas BAR/EXP/overlap/replicate gates",
+      "solution BAR/EXP/overlap/replicate gates",
+      "5 fs versus 20 fs convergence",
+      "20 fs indirect cycle versus direct-target MBAR agreement",
+      "common energy alignment and provider parity checks"
+    ],
+    "poor_overlap_action": "fail closed; lengthen switching and/or sample real intermediate Hamiltonians rather than adding a hydration-label residual",
+    "experimental_labels_may_not_change_this_protocol": true
+  },
+  "performance_claim_boundary": {
+    "allowed_comparators": [
+      "direct target-MLIP implicit-solvent equilibrium sampling",
+      "explicit-solvent MM free-energy campaigns",
+      "QM/MM free-energy sampling"
+    ],
+    "forbidden_claims": [
+      "faster than a bare MM force evaluation",
+      "universally faster for every molecule or MLIP",
+      "accurate without endpoint-equilibrium, work-overlap, uncertainty, and switch-length audits"
+    ]
+  },
+  "literature": [
+    {
+      "citation": "Jarzynski C. Phys Rev E 56, 5018-5035 (1997).",
+      "doi": "10.1103/PhysRevE.56.5018",
+      "role": "nonequilibrium work identity"
+    },
+    {
+      "citation": "Scholler A et al. J Phys Chem B 126, 2798-2811 (2022).",
+      "doi": "10.1021/acs.jpcb.2c00696",
+      "role": "fewer sufficiently long switches outperform many short switches; work-series and conformational diagnostics"
+    },
+    {
+      "citation": "Tkaczyk S et al. J Chem Theory Comput 20, 2719-2728 (2024).",
+      "doi": "10.1021/acs.jctc.3c01274",
+      "role": "MM to ANI-2x comparison of FEP and nonequilibrium switching"
+    },
+    {
+      "citation": "Karwounopoulos J et al. J Phys Chem B 128, 6693-6703 (2024).",
+      "doi": "10.1021/acs.jpcb.4c01417",
+      "role": "direct solvation precedent: separate gas and aqueous MM-to-NNP switching, linear interpolation, bidirectional BAR, overlap auditing, and broad negative accuracy result"
+    },
+    {
+      "citation": "Shirts MR, Chodera JD. J Chem Phys 129, 124105 (2008).",
+      "doi": "10.1063/1.2978177",
+      "role": "upstream PyMBAR estimators and overlap diagnostics"
+    }
+  ],
+  "limitations": [
+    "The literature solvation protocol used 300 switches of 5 ps; this development protocol uses only eight switches per direction at 5 and 20 fs and is intentionally non-production.",
+    "The reverse starts are reused from prior 30 fs target diagnostics and cannot establish endpoint equilibrium or conformer mixing.",
+    "The three molecules and three registered MLIPs form a development matrix, not a confirmation benchmark.",
+    "A pass of numerical work-distribution gates would not show that MLIP intramolecular energetics generally improve fixed-charge implicit-solvation accuracy.",
+    "No experimental FreeSolv label may be opened until the label-free switching artifact is sealed."
+  ]
+}

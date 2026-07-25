@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-ddx-ddpcm-development-audit-v1",
+  "claim_scope": "Development-only audit of pyddx/ddPCM as a fixed-charge polar provider. The audit covers label-blind numerical convergence, one complete Cartesian force check, one local timing trace, and a 526-molecule fixed-geometry FreeSolv development screen. It is not independent confirmation, a sampled hydration free energy, or a production-provider admission.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "external_provider": {
+    "name": "ddX",
+    "python_distribution": "pyddx",
+    "version": "0.8.0",
+    "homepage": "https://ddsolvation.github.io/ddX/",
+    "source_repository": "https://github.com/ddsolvation/ddX",
+    "pypi_release_url": "https://pypi.org/project/pyddx/0.8.0/",
+    "pypi_sdist_sha256": "31a1ddfe72105a0a6843ef2bcda76763cb99bab56d85d844c08e078156201f08",
+    "license": "LGPL-3.0",
+    "isolated_build": {
+      "python": "3.11.14",
+      "pybind11": "3.0.1",
+      "project_dependency_added": false
+    },
+    "upstream_tests": {
+      "files": [
+        "src/test_pyddx.py",
+        "src/test_lpb_limits.py",
+        "src/test_multipoles.py",
+        "src/test_gradients.py"
+      ],
+      "result": "9 passed",
+      "elapsed_seconds": 63.6
+    }
+  },
+  "physical_model": {
+    "screened_model": "ddPCM",
+    "interpretation": "zero-ionic-strength ddLPB limit",
+    "finite_ionic_strength_model": "ddLPB",
+    "solute_dielectric": 1.0,
+    "solvent_dielectric": 78.5,
+    "solver_tolerance": 1e-10,
+    "fmm": false,
+    "native_force_api_semantics": "State.solvation_force_terms plus State.multipole_force_terms numerically equals positive dE/dR in native Hartree/Bohr units despite the force_terms name.",
+    "maple_force_conversion": "F_kJ_per_mol_A=-native_terms*bohr_per_angstrom*hartree_to_kJ_per_mol",
+    "required_native_terms": [
+      "State.solvation_force_terms",
+      "State.multipole_force_terms"
+    ]
+  },
+  "profiles": {
+    "ddpcm_vdw_mbondi2_l7_n194": {
+      "cavity": "union of OpenMM mbondi2 van-der-Waals balls",
+      "radius_provider": "OpenMM mbondi2",
+      "radius_offset_angstrom": 0.0,
+      "lmax": 7,
+      "n_lebedev": 194,
+      "force_reference": {
+        "lmax": 13,
+        "n_lebedev": 590
+      },
+      "nonpolar": "frozen OpenMM ACE component"
+    },
+    "ddpcm_sas_mbondi2_plus_1p4A_l5_n110": {
+      "cavity": "union of OpenMM mbondi2 radii expanded by the 1.4-A solvent probe",
+      "radius_provider": "OpenMM mbondi2",
+      "radius_offset_angstrom": 1.4,
+      "lmax": 5,
+      "n_lebedev": 110,
+      "force_reference": {
+        "lmax": 9,
+        "n_lebedev": 302
+      },
+      "nonpolar": "frozen OpenMM ACE component"
+    }
+  },
+  "numerical_convergence": {
+    "selection_source": "apbs_ace_source_manifest.json:grid_sensitivity_selection",
+    "selection_uses_experimental_labels": false,
+    "case_count": 20,
+    "candidate": {
+      "lmax": 7,
+      "n_lebedev": 194
+    },
+    "reference": {
+      "lmax": 13,
+      "n_lebedev": 590
+    },
+    "p90_absolute_difference_kcal_mol": 0.15,
+    "maximum_absolute_difference_kcal_mol": 0.25
+  },
+  "force_gate": {
+    "molecule": "methyl hexanoate",
+    "compound_id": "mobley_1017962",
+    "mol2": "route1-multi-mlip-obc2-ti-raw/inputs/mobley_1017962.mol2",
+    "mol2_sha256": "783df578c85819b79b59537197a0850e074426d2e9eef5bfef020c9a4849ce23",
+    "component_count": 69,
+    "finite_difference_steps_angstrom": [
+      0.003,
+      0.01
+    ],
+    "primary_step_angstrom": 0.003,
+    "maximum_rmse_kj_mol_angstrom": 0.01,
+    "maximum_component_error_kj_mol_angstrom": 0.05,
+    "maximum_net_force_norm_kj_mol_angstrom": 1e-08
+  },
+  "label_use_boundary": {
+    "energy_phase_reads_experimental_labels": false,
+    "score_phase_reads_development_labels": true,
+    "experimental_fit_or_residual": false,
+    "confirmation_remains_closed": true
+  },
+  "source_evidence": {
+    "source_manifest": "apbs_ace_source_manifest.json",
+    "source_manifest_sha256": "7bdefe668d3288bee6806f729c88b631a16fd7f07fbcf15051ae4e9e2f672b90",
+    "expected_case_count": 526,
+    "source_development_summary": "freesolv-development-2026-07-23.json",
+    "source_development_summary_sha256": "911e53feee177ffe1e92112b0a723793748850dfe470b6e4d08f8611ef3f6855",
+    "fine_apbs_summary": "freesolv-am1bcc-apbs-ace-fine-2026-07-25.json",
+    "fine_apbs_summary_sha256": "50796dae78766a13ce66676c531451babdafec1fce578d57ac591bc5c7e98379",
+    "chagb_summary": "freesolv-am1bcc-chagb-nonpolar-2026-07-24.json",
+    "chagb_summary_sha256": "a842604d423dd01833b7e4a2b2d92ce0944e0d0e6f2c2e1d883edeaf2cf7308a",
+    "product_performance_trace": "route1-performance-methyl-hexanoate-2026-07-24.json",
+    "product_performance_trace_sha256": "0fb8ece8459c6b2003a546520da8ffafdd0433923813b7d6603888c3af8edb27",
+    "product_performance_cpu_trace": "route1-performance-methyl-hexanoate-cpu-2026-07-24.json",
+    "product_performance_cpu_trace_sha256": "ff82622c960d4a70c2b0e88d4b8bb3bb0c129e165725a030332e82bc7ed14c25"
+  },
+  "statistics": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20260725
+  },
+  "product_admission_rule": {
+    "accuracy_against_obc2_ace": {
+      "minimum_mae_gain_kcal_mol": 0.15,
+      "paired_bootstrap_ci_lower_must_exceed_zero": true,
+      "candidate_rmse_must_not_exceed_baseline": true
+    },
+    "performance": {
+      "comparison": "same-molecule ddPCM analytic polar force wall time divided by the frozen warm OpenMM OBC-II/ACE correction median",
+      "maximum_slowdown_ratio": 10.0
+    },
+    "requires_complete_force_gate_for_opt_scan": true,
+    "requires_measured_product_appropriate_performance": true,
+    "requires_independent_confirmation": true,
+    "failure_disposition": "retain as external reference candidate; do not add a project dependency, runtime provider, or default"
+  },
+  "references": {
+    "ddx_theory": "https://ddsolvation.github.io/ddX/md_docs_theory.html",
+    "ddx_installation": "https://ddsolvation.github.io/ddX/label_download_and_install.html",
+    "ddlpb": "https://arxiv.org/abs/1807.05384",
+    "analytic_forces": "https://arxiv.org/abs/2203.00552"
+  }
+}

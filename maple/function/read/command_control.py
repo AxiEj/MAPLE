@@ -71,7 +71,7 @@ class CommandControl:
         "opt": {"lbfgs", "rfo", "sd", "cg", "sdcg", ""},
         "scan": {"lbfgs", "rfo", "sd", "cg", "sdcg"},
         "ts": {"prfo", "string", "neb", "dimer", "autoneb"},
-        "freq": {"mw", "nonmw", "both"},
+        "freq": {"mw", "nonmw"},
         "sp": set(),
         "irc": {"gs", "hpc", "eulerpc", "lqa"},
         "md": {"nve", "nvt", "npt"},
@@ -136,6 +136,7 @@ class CommandControl:
         "method",
         "implicit",
         "explicit",
+        "inner",
         "solvent",
         "radius",
         "padding",
@@ -188,14 +189,16 @@ class CommandControl:
         ),
     }
 
-    VALIDATED_TASK_PARAMS = {"opt", "scan", "md"}
+    VALIDATED_TASK_PARAMS = {"opt", "scan", "freq", "md"}
 
     TS_REFINE_MAP = {
         "neb": {"cineb", "nebts"},
         "string": {"cistring", "stringts"},
     }
 
-    def __init__(self, params: Dict[str, Any], task: str, output_path: Optional[str] = None):
+    def __init__(
+        self, params: Dict[str, Any], task: str, output_path: Optional[str] = None
+    ):
         self.params = params
         self.task = task
         self.output_path = output_path
@@ -229,7 +232,9 @@ class CommandControl:
 
             if key in cls.SUPPORTED_TASKS:
                 if task and task != key:
-                    cls._log_error(output_path, f"Multiple tasks defined: '{task}' and '{key}'.")
+                    cls._log_error(
+                        output_path, f"Multiple tasks defined: '{task}' and '{key}'."
+                    )
                     raise ValueError(f"Multiple tasks defined: '{task}' and '{key}'.")
 
                 task = key
@@ -261,7 +266,9 @@ class CommandControl:
                 cls._parse_nested(sub, paren_val)
                 params[key] = cls._auto_cast(assign_val.strip())
                 params[f"{key}_options"] = sub
-                log_lines.append(f"Global parameter: {key} = {params[key]} with options {sub}\n")
+                log_lines.append(
+                    f"Global parameter: {key} = {params[key]} with options {sub}\n"
+                )
                 continue
 
             if paren_val:
@@ -307,7 +314,9 @@ class CommandControl:
             kv = kv.strip()
             if "=" in kv:
                 k, v = kv.split("=", 1)
-                target[CommandControl._normalize_key(k)] = CommandControl._auto_cast(v.strip())
+                target[CommandControl._normalize_key(k)] = CommandControl._auto_cast(
+                    v.strip()
+                )
             else:
                 target[CommandControl._normalize_key(kv)] = True
 
@@ -328,7 +337,9 @@ class CommandControl:
         elif len(values) == 6:
             cellpar = values
         else:
-            cls._log_error(output_path, f"PBC requires 2, 3, or 6 values, got {len(values)}.")
+            cls._log_error(
+                output_path, f"PBC requires 2, 3, or 6 values, got {len(values)}."
+            )
             raise ValueError(
                 f"PBC requires 2, 3, or 6 values (a,b[,c][,alpha,beta,gamma]), got {len(values)}."
             )
@@ -395,8 +406,17 @@ class CommandControl:
         solv_options = params.get("solv")
         if isinstance(solv_options, dict):
             for key in (
-                "shape", "explicit", "method", "implicit", "solvent", "clash_method",
-                "provider", "profile", "model", "nonpolar", "platform",
+                "shape",
+                "explicit",
+                "method",
+                "implicit",
+                "solvent",
+                "clash_method",
+                "provider",
+                "profile",
+                "model",
+                "nonpolar",
+                "platform",
             ):
                 if key in solv_options and isinstance(solv_options[key], str):
                     solv_options[key] = solv_options[key].lower()
@@ -454,13 +474,18 @@ class CommandControl:
         raise ValueError(msg)
 
     @classmethod
-    def _allowed_task_params(cls, task: str, params: Dict[str, Any]) -> Optional[set[str]]:
+    def _allowed_task_params(
+        cls, task: str, params: Dict[str, Any]
+    ) -> Optional[set[str]]:
         if task not in cls.VALIDATED_TASK_PARAMS:
             return None
 
         allowed = set(cls.GLOBAL_PARAMS)
         if task == "md":
             allowed.update(cls.DEFAULTS["md"])
+            return allowed
+        if task == "freq":
+            allowed.update(cls.DEFAULTS["freq"])
             return allowed
 
         method = str(params.get("method") or "lbfgs").lower()
@@ -508,7 +533,9 @@ class CommandControl:
                 raise ValueError(msg)
             for key in charge_params:
                 if key not in cls.CHARGE_PARAMS:
-                    cls._raise_unknown_param(output_path, "charge", key, cls.CHARGE_PARAMS)
+                    cls._raise_unknown_param(
+                        output_path, "charge", key, cls.CHARGE_PARAMS
+                    )
 
     @classmethod
     def _validate_charge(
@@ -563,9 +590,7 @@ class CommandControl:
                 raise ValueError(msg)
         else:
             if method is None:
-                msg = "#charge(source=maple) requires method=am1bcc, abcg2, or qeq-gto."
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
+                method = "am1bcc"
             method = str(method).lower()
             if method not in {"am1bcc", "abcg2", "qeq-gto"}:
                 msg = "MAPLE charge method must be am1bcc, abcg2, or qeq-gto."
@@ -581,12 +606,12 @@ class CommandControl:
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if method == "qeq-gto":
-                ignored = sorted(key for key in ("executable", "timeout") if key in charge)
+                ignored = sorted(
+                    key for key in ("executable", "timeout") if key in charge
+                )
                 if ignored:
                     msg = (
-                        "QEq-GTO is native and does not use "
-                        + ", ".join(ignored)
-                        + "."
+                        "QEq-GTO is native and does not use " + ", ".join(ignored) + "."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -595,7 +620,8 @@ class CommandControl:
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
         if "timeout" in charge and (
-            isinstance(charge["timeout"], bool) or not isinstance(charge["timeout"], (int, float))
+            isinstance(charge["timeout"], bool)
+            or not isinstance(charge["timeout"], (int, float))
             or charge["timeout"] <= 0
         ):
             msg = "#charge timeout must be a positive number of seconds."
@@ -647,6 +673,22 @@ class CommandControl:
         method = solv_params.get("method")
         explicit = solv_params.get("explicit")
         implicit = solv_params.get("implicit")
+        inner = solv_params.get("inner")
+
+        if inner is not None:
+            if not isinstance(inner, str) or not inner.strip():
+                msg = "Solvation inner must be the non-empty string 'prebuilt'."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            inner = inner.lower()
+            if inner != "prebuilt":
+                msg = (
+                    "The explicit-inner/implicit-outer release supports "
+                    "inner=prebuilt only."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            solv_params["inner"] = inner
 
         if method is not None:
             method = str(method).lower()
@@ -667,6 +709,10 @@ class CommandControl:
             msg = "Use either explicit=<solvent> or implicit=<solvent>, not both."
             cls._log_error(output_path, msg)
             raise ValueError(msg)
+        if inner is not None and implicit is None:
+            msg = "inner=prebuilt requires implicit=<solvent>."
+            cls._log_error(output_path, msg)
+            raise ValueError(msg)
 
         if implicit is not None:
             if method not in {"gb", "pb"}:
@@ -675,7 +721,9 @@ class CommandControl:
                 raise ValueError(msg)
             implicit = str(implicit).lower()
             if implicit != "water":
-                msg = "The first implicit-solvation release supports implicit=water only."
+                msg = (
+                    "The first implicit-solvation release supports implicit=water only."
+                )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             solv_params["implicit"] = implicit
@@ -722,57 +770,230 @@ class CommandControl:
 
             cls._validate_charge(params, required=True, output_path=output_path)
             charge = params["charge"]
-            if method == "gb":
-                pb_only = {
-                    "executable",
-                    "grid_spacing",
-                    "grid_points",
-                    "probe_radius",
-                    "surface_tension",
-                    "pressure",
-                    "timeout",
-                }
-                conflicts = sorted(pb_only.intersection(solv_params))
-                if conflicts:
-                    msg = "GB/OpenMM does not use PB provider options: " + ", ".join(conflicts) + "."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                model = str(solv_params.get("model", "obc2")).lower()
-                profiles = {
-                    "hct": "hct-mbondi",
-                    "obc1": "obc1-mbondi2",
-                    "obc2": "obc2-mbondi2",
-                    "gbn": "gbn-bondi",
-                    "gbn2": "gbn2-mbondi3",
-                }
-                if model not in profiles:
-                    msg = "GB model must be hct, obc1, obc2, gbn, or gbn2."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                provider = str(solv_params.get("provider", "openmm")).lower()
-                if provider != "openmm":
-                    msg = "All five supported GB models currently require provider=openmm."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                profile = str(solv_params.get("profile", profiles[model])).lower()
-                if profile != profiles[model]:
+            if inner == "prebuilt" and charge.get("source") != "mol2":
+                msg = (
+                    "inner=prebuilt requires #charge(source=mol2) with fixed "
+                    "per-atom charges for the complete cluster."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if inner == "prebuilt":
+                prebuilt_provider = str(
+                    solv_params.get(
+                        "provider",
+                        "openmm" if method == "gb" else "apbs",
+                    )
+                ).lower()
+                prebuilt_nonpolar = str(
+                    solv_params.get(
+                        "nonpolar",
+                        "ace" if method == "gb" else prebuilt_provider,
+                    )
+                ).lower()
+                if (
+                    method != "gb"
+                    or prebuilt_provider != "openmm"
+                    or prebuilt_nonpolar not in {"ace", "lcpo"}
+                ):
                     msg = (
-                        f"GB profile {profile!r} does not match model={model}; expected "
-                        f"profile={profiles[model]}. Arbitrary parameter mixing is disabled."
+                        "inner=prebuilt is validated only with OpenMM GB and "
+                        "nonpolar=ACE or LCPO."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                nonpolar = str(solv_params.get("nonpolar", "ace")).lower()
-                if nonpolar not in {"ace", "lcpo", "none"}:
-                    msg = "GB nonpolar must be ace or lcpo (none is diagnostic only)."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if nonpolar == "none" and solv_params.get("experimental") is not True:
-                    msg = "nonpolar=none is diagnostic only and requires experimental=true."
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if task not in {"sp", "opt", "scan"}:
-                    msg = "GB currently supports SP, OPT, and SCAN/PES tasks only."
+            if method == "gb":
+                provider = str(solv_params.get("provider", "openmm")).lower()
+                if provider == "ambertools":
+                    conflicts = sorted(
+                        {
+                            "platform",
+                            "grid_spacing",
+                            "grid_points",
+                            "probe_radius",
+                            "surface_tension",
+                            "pressure",
+                        }.intersection(solv_params)
+                    )
+                    if conflicts:
+                        msg = (
+                            "GB/AmberTools CHA-GB does not use APBS/OpenMM options: "
+                            + ", ".join(conflicts)
+                            + "."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    model = str(solv_params.get("model", "chagb")).lower()
+                    profile = str(
+                        solv_params.get("profile", "chagb-bondi-pbsa-inp2")
+                    ).lower()
+                    nonpolar = str(
+                        solv_params.get("nonpolar", "cavity-dispersion")
+                    ).lower()
+                    if model != "chagb":
+                        msg = "provider=ambertools requires model=chagb."
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if profile != "chagb-bondi-pbsa-inp2":
+                        msg = (
+                            "provider=ambertools requires "
+                            "profile=chagb-bondi-pbsa-inp2."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if nonpolar != "cavity-dispersion":
+                        msg = (
+                            "provider=ambertools,model=chagb requires "
+                            "nonpolar=cavity-dispersion."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if (
+                        charge.get("source") != "maple"
+                        or charge.get("method") != "am1bcc"
+                        or charge.get("mode") != "fixed"
+                        or charge.get("geometry") != "keep"
+                    ):
+                        msg = (
+                            "The validated CHA-GB profile requires fixed "
+                            "#charge(source=maple,method=am1bcc,geometry=keep)."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if inner is not None:
+                        msg = (
+                            "The CHA-GB SP profile does not support " "inner=prebuilt."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if task != "sp" or params.get("verbose", 0) >= 1:
+                        msg = (
+                            "AmberTools CHA-GB/cavity-dispersion is "
+                            "single-point energy-only."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                elif provider == "openmm":
+                    pb_only = {
+                        "executable",
+                        "grid_spacing",
+                        "grid_points",
+                        "probe_radius",
+                        "surface_tension",
+                        "pressure",
+                        "timeout",
+                    }
+                    conflicts = sorted(pb_only.intersection(solv_params))
+                    if conflicts:
+                        msg = (
+                            "GB/OpenMM does not use PB provider options: "
+                            + ", ".join(conflicts)
+                            + "."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    model = str(solv_params.get("model", "obc2")).lower()
+                    profiles = {
+                        "hct": "hct-mbondi",
+                        "obc1": "obc1-mbondi2",
+                        "obc2": "obc2-mbondi2",
+                        "gbn": "gbn-bondi",
+                        "gbn2": "gbn2-mbondi3",
+                    }
+                    if model not in profiles:
+                        msg = (
+                            "GB/OpenMM model must be hct, obc1, obc2, " "gbn, or gbn2."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    profile = str(solv_params.get("profile", profiles[model])).lower()
+                    if profile != profiles[model]:
+                        msg = (
+                            f"GB profile {profile!r} does not match "
+                            f"model={model}; expected profile={profiles[model]}. "
+                            "Arbitrary parameter mixing is disabled."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    nonpolar = str(solv_params.get("nonpolar", "ace")).lower()
+                    if nonpolar not in {"ace", "lcpo", "none"}:
+                        msg = (
+                            "GB nonpolar must be ace or lcpo "
+                            "(none is diagnostic only)."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if (
+                        nonpolar == "none"
+                        and solv_params.get("experimental") is not True
+                    ):
+                        msg = (
+                            "nonpolar=none is diagnostic only and requires "
+                            "experimental=true."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                    if task == "md":
+                        if charge.get("mode", "fixed") != "fixed":
+                            msg = (
+                                "Route 1 implicit-GB MD currently requires fixed charges; "
+                                "polarizable research charge modes are not admitted."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                        if inner == "prebuilt":
+                            msg = (
+                                "inner=prebuilt MD is not admitted until fixed-shell "
+                                "membership and occupancy constraints are defined."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                        ensemble = str(params.get("ensemble", "nve")).lower()
+                        if ensemble not in {"nve", "nvt"}:
+                            msg = (
+                                "Implicit GB is non-periodic and supports only "
+                                "non-periodic NVE or NVT MD; NPT is not available."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                    elif task == "freq":
+                        if str(params.get("method", "mw")).lower() != "mw":
+                            msg = (
+                                "Route 1 implicit-GB frequency analysis supports "
+                                "only method=mw; non-mass-weighted analysis is "
+                                "not a physical thermochemistry path."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                        hessian_mode = (
+                            params.get("model_options", {}).get("hessian")
+                            if isinstance(params.get("model_options"), dict)
+                            else None
+                        )
+                        if hessian_mode != "numerical":
+                            msg = (
+                                "Implicit GB frequency analysis requires explicit "
+                                "#model=...(hessian=numerical) so the Hessian "
+                                "differentiates the complete MLIP+GB force."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                        if charge.get("mode", "fixed") != "fixed":
+                            msg = (
+                                "Route 1 implicit-GB frequency analysis currently "
+                                "requires fixed charges."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
+                    elif task not in {"sp", "opt", "scan"}:
+                        msg = (
+                            "GB currently supports SP, OPT, SCAN/PES, explicit "
+                            "numerical FREQ, and fixed-charge non-periodic "
+                            "NVE/NVT MD tasks only."
+                        )
+                        cls._log_error(output_path, msg)
+                        raise ValueError(msg)
+                else:
+                    msg = "GB provider must be openmm or ambertools."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 solv_params.update(
@@ -802,7 +1023,9 @@ class CommandControl:
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 nonpolar = str(
-                    solv_params.get("nonpolar", "apbs" if provider == "apbs" else "amber-pbsa")
+                    solv_params.get(
+                        "nonpolar", "apbs" if provider == "apbs" else "amber-pbsa"
+                    )
                 ).lower()
                 if nonpolar != provider:
                     msg = "PB polar and nonpolar terms must come from the same locked provider profile."
@@ -823,7 +1046,13 @@ class CommandControl:
                 solv_params.update(
                     model=model, provider=provider, profile=profile, nonpolar=nonpolar
                 )
-            for key in ("grid_spacing", "probe_radius", "surface_tension", "pressure", "timeout"):
+            for key in (
+                "grid_spacing",
+                "probe_radius",
+                "surface_tension",
+                "pressure",
+                "timeout",
+            ):
                 if key in solv_params and (
                     isinstance(solv_params[key], bool)
                     or not isinstance(solv_params[key], (int, float))
@@ -841,7 +1070,10 @@ class CommandControl:
                     msg = f"Implicit-solvent {key} must be non-negative."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-            if "grid_points" in solv_params and type(solv_params["grid_points"]) is not int:
+            if (
+                "grid_points" in solv_params
+                and type(solv_params["grid_points"]) is not int
+            ):
                 msg = "Implicit-solvent grid_points must be an integer."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
@@ -854,7 +1086,8 @@ class CommandControl:
                 raise ValueError(msg)
             for key in ("platform", "executable"):
                 if key in solv_params and (
-                    not isinstance(solv_params[key], str) or not solv_params[key].strip()
+                    not isinstance(solv_params[key], str)
+                    or not solv_params[key].strip()
                 ):
                     msg = f"Implicit-solvent {key} must be a non-empty string."
                     cls._log_error(output_path, msg)
@@ -1068,7 +1301,9 @@ class CommandControl:
                 raise ValueError(msg)
 
     @classmethod
-    def _validate(cls, params: Dict[str, Any], task: str, output_path: Optional[str]) -> None:
+    def _validate(
+        cls, params: Dict[str, Any], task: str, output_path: Optional[str]
+    ) -> None:
         model = params.get("model")
         # Calculator names and class-declared model_options are registry-owned:
         # SetCalculator imports builtins, honors module= / MAPLE_CALCULATOR_PLUGINS,
@@ -1077,7 +1312,11 @@ class CommandControl:
         cls._validate_solvation(params, task, output_path)
         cls._validate_charge(params, required=False, output_path=output_path)
 
-        if "gpuid" in params and params["gpuid"] is not None and not isinstance(params["gpuid"], int):
+        if (
+            "gpuid" in params
+            and params["gpuid"] is not None
+            and not isinstance(params["gpuid"], int)
+        ):
             cls._log_error(output_path, "GPU ID must be an integer.")
             raise ValueError("GPU ID must be an integer.")
 
@@ -1095,46 +1334,89 @@ class CommandControl:
                 cls._log_error(output_path, "SP verbose must be 0 or 1.")
                 raise ValueError("SP verbose must be 0 or 1.")
 
+        if task == "freq":
+            ilowfreq = params.get("ilowfreq")
+            if type(ilowfreq) is not int or ilowfreq not in {0, 1, 2, 3}:
+                msg = "FREQ ilowfreq must be one of 0, 1, 2, or 3."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            verbosity = params.get("verbosity")
+            if type(verbosity) is not int or verbosity < 0:
+                msg = "FREQ verbosity must be a non-negative integer."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
         if "method" in params:
             if task == "md":
-                cls._log_error(output_path, "'method' is not valid for MD tasks; use 'ensemble=' instead.")
-                raise ValueError("'method' is not valid for MD tasks. Use 'ensemble=' to choose nve/nvt/npt.")
+                cls._log_error(
+                    output_path,
+                    "'method' is not valid for MD tasks; use 'ensemble=' instead.",
+                )
+                raise ValueError(
+                    "'method' is not valid for MD tasks. Use 'ensemble=' to choose nve/nvt/npt."
+                )
 
             allowed = cls.IMPLEMENTATION_MAP.get(task, set())
             if allowed and params["method"] not in allowed:
-                cls._log_error(output_path, f"Method '{params['method']}' not implemented for task '{task}'.")
-                raise ValueError(f"Method '{params['method']}' not implemented for task '{task}'.")
+                cls._log_error(
+                    output_path,
+                    f"Method '{params['method']}' not implemented for task '{task}'.",
+                )
+                raise ValueError(
+                    f"Method '{params['method']}' not implemented for task '{task}'."
+                )
 
         if task == "ts" and "refine" in params:
             method = params.get("method")
-            allowed_refines = cls.TS_REFINE_MAP.get(method)
+            allowed_refines = (
+                cls.TS_REFINE_MAP.get(method) if isinstance(method, str) else None
+            )
             if allowed_refines is None:
-                cls._log_error(output_path, f"'refine' is not valid for TS method '{method}'.")
+                cls._log_error(
+                    output_path, f"'refine' is not valid for TS method '{method}'."
+                )
                 raise ValueError(f"'refine' is not valid for TS method '{method}'.")
             if params["refine"] not in allowed_refines:
-                cls._log_error(output_path, f"Refine '{params['refine']}' not implemented for TS method '{method}'.")
-                raise ValueError(f"Refine '{params['refine']}' not implemented for TS method '{method}'.")
+                cls._log_error(
+                    output_path,
+                    f"Refine '{params['refine']}' not implemented for TS method '{method}'.",
+                )
+                raise ValueError(
+                    f"Refine '{params['refine']}' not implemented for TS method '{method}'."
+                )
 
         if task == "md":
             ensemble = params.get("ensemble", "nve")
             allowed = cls.IMPLEMENTATION_MAP["md"]
             if ensemble not in allowed:
                 cls._log_error(output_path, f"MD ensemble '{ensemble}' not supported.")
-                raise ValueError(f"MD ensemble '{ensemble}' not supported. Choose from: {sorted(allowed)}")
+                raise ValueError(
+                    f"MD ensemble '{ensemble}' not supported. Choose from: {sorted(allowed)}"
+                )
         elif "ensemble" in params:
-            cls._log_error(output_path, f"'ensemble' is only valid for MD tasks, not '{task}'.")
+            cls._log_error(
+                output_path, f"'ensemble' is only valid for MD tasks, not '{task}'."
+            )
             raise ValueError(f"'ensemble' is only valid for MD tasks, not '{task}'.")
 
         if "pbc" in params:
             pbc_val = params["pbc"]
             if not isinstance(pbc_val, list) or len(pbc_val) != 6:
-                cls._log_error(output_path, "PBC must be a list of 6 values [a, b, c, alpha, beta, gamma].")
+                cls._log_error(
+                    output_path,
+                    "PBC must be a list of 6 values [a, b, c, alpha, beta, gamma].",
+                )
                 raise ValueError("PBC must be a list of 6 values.")
             if any(pbc_val[i] <= 0 for i in range(3)):
-                cls._log_error(output_path, "PBC lattice parameters (a, b, c) must be positive.")
+                cls._log_error(
+                    output_path, "PBC lattice parameters (a, b, c) must be positive."
+                )
                 raise ValueError("PBC lattice parameters must be positive.")
             if any(pbc_val[i] <= 0 or pbc_val[i] >= 180 for i in range(3, 6)):
-                cls._log_error(output_path, "PBC angles (alpha, beta, gamma) must be in range (0, 180).")
+                cls._log_error(
+                    output_path,
+                    "PBC angles (alpha, beta, gamma) must be in range (0, 180).",
+                )
                 raise ValueError("PBC angles must be in range (0, 180).")
 
         model_options = params.get("model_options", {})
@@ -1152,7 +1434,10 @@ class CommandControl:
                 raise ValueError(msg)
 
             inference_opt = model_options.get("inference")
-            if inference_opt is not None and inference_opt not in cls.SUPPORTED_UMA_INFERENCE:
+            if (
+                inference_opt is not None
+                and inference_opt not in cls.SUPPORTED_UMA_INFERENCE
+            ):
                 msg = (
                     f"Unsupported UMA inference mode: '{inference_opt}'. "
                     f"Supported: {sorted(cls.SUPPORTED_UMA_INFERENCE)}"

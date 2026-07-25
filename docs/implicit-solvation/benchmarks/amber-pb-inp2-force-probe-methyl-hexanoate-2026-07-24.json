@@ -1,0 +1,212 @@
+{
+  "artifact_type": "route1-amber-pb-inp2-exact-difference-force-probe",
+  "atom_count": 23,
+  "candidate_options": {
+    "solution": {
+      "igb": 10,
+      "inp": 2,
+      "ipb": 1
+    },
+    "vacuum": {
+      "extdiel": 1.0,
+      "gbsa": 0,
+      "igb": 5,
+      "inp": 0,
+      "intdiel": 1.0,
+      "interpretation": "Identical MM topology with zero dielectric contrast and nonpolar disabled.",
+      "ipb": 0
+    }
+  },
+  "compound_id": "mobley_1017962",
+  "compound_name": "methyl hexanoate",
+  "environment": {
+    "libsander": "/home/axie/miniconda3/envs/maple-ambertools/lib/libsander.so",
+    "libsander_sha256": "07f53231eae6024d9d4ecaa716850418d3ecbe143616d7af3a498d2c60c867d8",
+    "parmed": "4.3.1",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.15",
+    "sander_python_distribution": "22.0"
+  },
+  "force_consistency": {
+    "all_samples_within_tolerance": false,
+    "finite_difference_definition": "-d[DeltaG_candidate]/dR by centered energy differences",
+    "force_definition": "F_candidate = F_MM,PB(inp=2) - F_MM,vacuum",
+    "maximum_absolute_error_kcal_mol_angstrom": 3.4200304967338515,
+    "sampled_components": [
+      {
+        "atom_index": 0,
+        "axis": 0
+      },
+      {
+        "atom_index": 6,
+        "axis": 0
+      },
+      {
+        "atom_index": 7,
+        "axis": 0
+      },
+      {
+        "atom_index": 8,
+        "axis": 0
+      }
+    ],
+    "samples": [
+      {
+        "absolute_error_kcal_mol_angstrom": 0.07499856512551419,
+        "atom_index": 0,
+        "axis": 0,
+        "centered_energy_fd_force_kcal_mol_angstrom": -0.0871268672367383,
+        "reported_exact_difference_force_kcal_mol_angstrom": -0.01212830211122412,
+        "step_angstrom": 0.003,
+        "within_tolerance": false
+      },
+      {
+        "absolute_error_kcal_mol_angstrom": 2.569712597046918,
+        "atom_index": 6,
+        "axis": 0,
+        "centered_energy_fd_force_kcal_mol_angstrom": -2.217134022318786,
+        "reported_exact_difference_force_kcal_mol_angstrom": -4.786846619365704,
+        "step_angstrom": 0.003,
+        "within_tolerance": false
+      },
+      {
+        "absolute_error_kcal_mol_angstrom": 2.0493842589889697,
+        "atom_index": 7,
+        "axis": 0,
+        "centered_energy_fd_force_kcal_mol_angstrom": -1.6133327004673366,
+        "reported_exact_difference_force_kcal_mol_angstrom": 0.43605155852163335,
+        "step_angstrom": 0.003,
+        "within_tolerance": false
+      },
+      {
+        "absolute_error_kcal_mol_angstrom": 3.4200304967338515,
+        "atom_index": 8,
+        "axis": 0,
+        "centered_energy_fd_force_kcal_mol_angstrom": 3.744531116023945,
+        "reported_exact_difference_force_kcal_mol_angstrom": 0.32450061929009344,
+        "step_angstrom": 0.003,
+        "within_tolerance": false
+      },
+      {
+        "absolute_error_kcal_mol_angstrom": 0.029504530573098042,
+        "atom_index": 0,
+        "axis": 0,
+        "centered_energy_fd_force_kcal_mol_angstrom": 0.01737622846187392,
+        "reported_exact_difference_force_kcal_mol_angstrom": -0.01212830211122412,
+        "step_angstrom": 0.01,
+        "within_tolerance": true
+      },
+      {
+        "absolute_error_kcal_mol_angstrom": 1.8108314823341196,
+        "atom_index": 6,
+        "axis": 0,
+        "centered_energy_fd_force_kcal_mol_angstrom": -2.9760151370315846,
+        "reported_exact_difference_force_kcal_mol_angstrom": -4.786846619365704,
+        "step_angstrom": 0.01,
+        "within_tolerance": false
+      },
+      {
+        "absolute_error_kcal_mol_angstrom": 1.669621855314663,
+        "atom_index": 7,
+        "axis": 0,
+        "centered_energy_fd_force_kcal_mol_angstrom": -1.2335702967930295,
+        "reported_exact_difference_force_kcal_mol_angstrom": 0.43605155852163335,
+        "step_angstrom": 0.01,
+        "within_tolerance": false
+      },
+      {
+        "absolute_error_kcal_mol_angstrom": 1.1082403566011845,
+        "atom_index": 8,
+        "axis": 0,
+        "centered_energy_fd_force_kcal_mol_angstrom": 1.432740975891278,
+        "reported_exact_difference_force_kcal_mol_angstrom": 0.32450061929009344,
+        "step_angstrom": 0.01,
+        "within_tolerance": false
+      }
+    ],
+    "steps_angstrom": [
+      0.003,
+      0.01
+    ],
+    "tolerance_kcal_mol_angstrom": 0.05
+  },
+  "input": {
+    "prmtop": "/home/axie/MAPLE/MAPLE-implicitsolv-route1/.omx/benchmarks/route1-performance-20260724/mobley_1017962/obc2.prmtop",
+    "prmtop_sha256": "571cb2ddf776943390f5e458c53c1e97da69bd30a4564f200d2182feb28a428e",
+    "rst7": "/home/axie/MAPLE/MAPLE-implicitsolv-route1/.omx/benchmarks/route1-performance-20260724/mobley_1017962/obc2.rst7",
+    "rst7_sha256": "a4e4695fdc67bc74d990664db25bfe4de2b899015ff2e94f33e8b2a8ca536967"
+  },
+  "interpretation": "Subtracting identical MM gas terms removes MM from the reported Route-1 potential algebraically, but it does not make the PBSA inp=2 energy and returned force a conservative pair. This candidate must remain a single-point reference and must not be wired into OPT or relaxed SCAN.",
+  "official_capability_boundary": {
+    "amber25_manual": "https://ambermd.org/doc12/Amber25.pdf",
+    "chagb_primary_reference": "https://doi.org/10.1021/ct4010917",
+    "gbnsr6": "The manual states that GBNSR6 cannot yet be used in dynamics.",
+    "pbsa_inp2": "The documented PB force path is electrostatic; the standalone force example disables nonpolar interactions."
+  },
+  "product_eligibility": {
+    "default_provider": false,
+    "force_consistent_runtime": false,
+    "optimization": false,
+    "relaxed_scan": false,
+    "single_point_reference_energy": true
+  },
+  "reference_geometry": {
+    "exact_difference_kcal_mol": -4.813188185245458,
+    "mm_component_cancellation": {
+      "all_components_cancel_within_tolerance": true,
+      "components": {
+        "angle": {
+          "difference_kcal_mol": 0.0,
+          "solution_kcal_mol": 0.9707583999391526,
+          "vacuum_kcal_mol": 0.9707583999391526
+        },
+        "bond": {
+          "difference_kcal_mol": 0.0,
+          "solution_kcal_mol": 0.22725372072861372,
+          "vacuum_kcal_mol": 0.22725372072861372
+        },
+        "dihedral": {
+          "difference_kcal_mol": 0.0,
+          "solution_kcal_mol": 20.701722425516145,
+          "vacuum_kcal_mol": 20.701722425516145
+        },
+        "elec": {
+          "difference_kcal_mol": -5.329070518200751e-15,
+          "solution_kcal_mol": -12.04558808470618,
+          "vacuum_kcal_mol": -12.045588084706175
+        },
+        "elec_14": {
+          "difference_kcal_mol": 0.0,
+          "solution_kcal_mol": -3.0554504685747377,
+          "vacuum_kcal_mol": -3.0554504685747377
+        },
+        "vdw": {
+          "difference_kcal_mol": 5.551115123125783e-16,
+          "solution_kcal_mol": -0.8188150493331272,
+          "vacuum_kcal_mol": -0.8188150493331278
+        },
+        "vdw_14": {
+          "difference_kcal_mol": 0.0,
+          "solution_kcal_mol": 3.3612867819457843,
+          "vacuum_kcal_mol": 3.3612867819457843
+        }
+      },
+      "maximum_absolute_difference_kcal_mol": 5.329070518200751e-15,
+      "tolerance_kcal_mol": 1e-10
+    },
+    "solution_components_kcal_mol": {
+      "cavity": 20.94845,
+      "dispersion": -18.775526364632878,
+      "pb": -6.986111820612576
+    },
+    "solution_total_kcal_mol": 4.527979540270195,
+    "vacuum_total_kcal_mol": 9.341167725515653
+  },
+  "route1_boundary": {
+    "formula": "E_solution(R) = E_MLIP,gas(R) + G_polar(R,q_fixed) + G_nonpolar(R)",
+    "gas_phase_mm_energy_in_reported_potential": false,
+    "hydration_label_fit_or_residual_model": false,
+    "internal_exact_difference": "DeltaG_candidate(R) = E_MM,PB(inp=2)(R) - E_MM,vacuum(R)"
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "protocol_id": "route1-prebuilt-inner-outer-v1",
+  "route": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "role": "Baseline/Product Route",
+    "gas_phase_mm_energy": false,
+    "retraining": false,
+    "hydration_label_residual": false
+  },
+  "runtime_contract": {
+    "syntax": "#solv(implicit=water,inner=prebuilt,method=gb,experimental=true)",
+    "input": "one neutral closed-shell multicomponent MOL2 with explicit bonds and one fixed charge per atom",
+    "charge": "#charge(source=mol2,mode=fixed,geometry=keep)",
+    "automatic_explicit_solvent_generation": false,
+    "coordinate_scope": "the complete prebuilt solute-plus-inner-solvent cluster",
+    "fixed_shell_definition": "component membership and coordination number are fixed by the input; atomic coordinates remain task variables",
+    "thermodynamic_quantity": "fixed-shell cluster-continuum configurational potential",
+    "formula": "E_cluster,outer(R)=E_MLIP,gas(cluster;R)+G_polar,outer(R,q_fixed)+G_nonpolar,outer(R)",
+    "absolute_solvation_free_energy_claim": false,
+    "tasks": [
+      "sp",
+      "opt",
+      "scan"
+    ]
+  },
+  "absolute_free_energy_boundary": {
+    "cluster_cycle": "DeltaG_solv*(A)=DeltaG_clust,g*(A(H2O)n)+DeltaG_solv*(A(H2O)n)-DeltaG_solv*((H2O)n)-RT ln([H2O]/n)",
+    "terms_not_computed": [
+      "cluster formation or inner-shell occupancy free energy",
+      "1 atm to 1 M and pure-solvent concentration standard-state corrections",
+      "solvent-cluster reference solvation free energy or equivalent solvent chemical potential",
+      "cluster conformer and coordination-number ensemble average"
+    ],
+    "neutral_solute_note": "Neutral solutes avoid the single-ion absolute-reference convention but still require every listed thermodynamic and ensemble term."
+  },
+  "smoke": {
+    "system": "one illustrative methanol plus one water cluster",
+    "input": {
+      "path": "tests/solvation/data/prebuilt_inner_outer/methanol-water.mol2",
+      "sha256": "606ae8f3677cd80f9118921fbc224d8f321dceee86c0bb262cdde3b7d18fa0fc"
+    },
+    "fixed_charge_provenance": "illustrative user-supplied MOL2 charges; not a hydration-accuracy parameter set",
+    "provider": {
+      "method": "gb",
+      "model": "obc2",
+      "nonpolar": "ace",
+      "platform": "Reference"
+    },
+    "models": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ],
+    "tasks": [
+      "sp",
+      "two-iteration opt",
+      "three-point rigid scan"
+    ],
+    "task_controls": {
+      "opt_max_iter": 2,
+      "scan_atoms_one_based": [
+        2,
+        7
+      ],
+      "scan_step_angstrom": 0.02,
+      "scan_steps": 2
+    },
+    "combined_force_check": {
+      "atom_index_one_based": 8,
+      "axis": "x",
+      "centered_step_angstrom": 0.003,
+      "absolute_tolerance_hartree_per_angstrom": 0.00005
+    },
+    "claim": "engineering composition, topology, force, output-semantics, and task-plumbing evidence only"
+  },
+  "literature": [
+    {
+      "citation": "Bryantsev, Diallo, and Goddard, J. Phys. Chem. B 2008",
+      "doi": "10.1021/jp802665d",
+      "role": "consistent cluster and monomer cycles plus standard-state accounting"
+    },
+    {
+      "citation": "Tomanik et al., Phys. Chem. Chem. Phys. 2020",
+      "doi": "10.1039/D0CP02768E",
+      "role": "ensemble cluster-continuum treatment and cluster-size/conformer limitations"
+    },
+    {
+      "citation": "da Silva, Svendsen, and Merz, J. Phys. Chem. A 2009",
+      "doi": "10.1021/jp809712y",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2700946/",
+      "role": "explicit-shell cluster cycle and the displayed 1 M standard-state expression"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-mlip-chagb-metropolis-ti-v1",
+  "source_partition": "development",
+  "claim_scope": "Development-only configurational hydration free-energy diagnostic for three predeclared neutral closed-shell FreeSolv molecules in water. A registered molecular MLIP supplies the gas potential. Frozen AM1-BCC/CHA-GB/PBSA cavity-dispersion supplies the solvent energy. Energy-only Metropolis moves avoid claiming unavailable GBNSR6 forces. This is a small convergence probe, not confirmation or product certification.",
+  "execution_boundary": {
+    "energy_phase_reads_experimental_labels": false,
+    "summary_phase_may_read_experimental_labels": true,
+    "no_experimental_fit_or_residual_model": true,
+    "confirmation_remains_closed": true
+  },
+  "source_evidence": {
+    "chagb_protocol": "chagb_nonpolar_protocol.json",
+    "chagb_protocol_sha256": "524cbcb66e9ee59ee502c59c59a186a35607f6cde0ac1ed43007a01898f6c9f8",
+    "label_free_manifest": "chagb_nonpolar_source_manifest.json",
+    "label_free_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc",
+    "mlip_protocol": "mlip_conformer_weighting_am1bcc_protocol.json",
+    "mlip_protocol_sha256": "6c53fea0f1b46f3256ead50c6fde762b58af0ef614542a747c25cd2d0269adec",
+    "prepared_development_sha256": "e82f328d8b6a989dfc6367dc7b0c3019bbb09c0cb5929429202732e201d53bd7"
+  },
+  "model": {
+    "name": "maceoff23m",
+    "checkpoint_filename": "maceoff23m.pt",
+    "checkpoint_sha256": "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee",
+    "supported_atomic_numbers": [
+      1,
+      6,
+      7,
+      8,
+      9,
+      15,
+      16,
+      17,
+      35,
+      53
+    ],
+    "maple_calculator_output_unit": "hartree"
+  },
+  "target_endpoint": {
+    "charges": "AM1-BCC fixed at the source geometry",
+    "polar": "GBNSR6 CHA-GB EGB",
+    "nonpolar": "PBSA inp=2 ECAVITY + EDISPER",
+    "total_formula": "EGB + ECAVITY + EDISPER",
+    "force_policy": "Energy-only Metropolis sampling. No GBNSR6 or PBSA target force is requested or inferred."
+  },
+  "sampling": {
+    "temperature_kelvin": 298.15,
+    "lambda_windows": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "integration": "composite-simpson",
+    "chains": [
+      {
+        "chain_id": "ascending",
+        "lambda_order": "ascending",
+        "seed_offset": 0
+      },
+      {
+        "chain_id": "descending",
+        "lambda_order": "descending",
+        "seed_offset": 100000
+      }
+    ],
+    "burn_in_moves_per_window": 40,
+    "production_moves_per_window": 160,
+    "sample_stride": 1,
+    "torsion_move_probability": 0.7,
+    "torsion_maximum_angle_degrees": 60.0,
+    "cartesian_displacement_sigma_angstrom": 0.035
+  },
+  "cases": [
+    {
+      "compound_id": "mobley_1952272",
+      "name": "nitromethane",
+      "flexibility_bin": "rigid",
+      "seed": 2026072401
+    },
+    {
+      "compound_id": "mobley_7758918",
+      "name": "propionic acid",
+      "flexibility_bin": "limited",
+      "seed": 2026072402
+    },
+    {
+      "compound_id": "mobley_1017962",
+      "name": "methyl hexanoate",
+      "flexibility_bin": "flexible",
+      "seed": 2026072403
+    }
+  ],
+  "diagnostic_gates": {
+    "minimum_total_acceptance_fraction": 0.1,
+    "maximum_chain_free_energy_disagreement_kcal_mol": 0.75,
+    "required_independent_reproduction": true,
+    "promotion_allowed": false
+  }
+}

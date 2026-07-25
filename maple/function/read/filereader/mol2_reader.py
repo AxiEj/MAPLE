@@ -48,26 +48,36 @@ def _sections(lines: list[str]) -> dict[str, list[str]]:
     return sections
 
 
-def _connected(natoms: int, bonds: list[list[object]]) -> bool:
-    if natoms <= 1:
-        return True
+def _connected_components(
+    natoms: int, bonds: list[list[object]]
+) -> tuple[list[int], int]:
     adjacency = [[] for _ in range(natoms)]
     for i, j, _ in bonds:
         adjacency[int(i)].append(int(j))
         adjacency[int(j)].append(int(i))
-    visited = {0}
-    stack = [0]
-    while stack:
-        current = stack.pop()
-        for neighbor in adjacency[current]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                stack.append(neighbor)
-    return len(visited) == natoms
+    component_ids = [-1] * natoms
+    component_count = 0
+    for start in range(natoms):
+        if component_ids[start] >= 0:
+            continue
+        component_ids[start] = component_count
+        stack = [start]
+        while stack:
+            current = stack.pop()
+            for neighbor in adjacency[current]:
+                if component_ids[neighbor] < 0:
+                    component_ids[neighbor] = component_count
+                    stack.append(neighbor)
+        component_count += 1
+    return component_ids, component_count
 
 
 class MOL2Reader:
-    """Read one connected molecule from a Tripos MOL2 file into ASE Atoms."""
+    """Read a Tripos MOL2 topology into ASE Atoms.
+
+    Disconnected components remain fail-closed unless a caller explicitly
+    enables them for a prebuilt explicit-inner/implicit-outer cluster.
+    """
 
     def __new__(
         cls,
@@ -77,6 +87,7 @@ class MOL2Reader:
         base_dir: Optional[str] = None,
         *,
         validate_charge: bool = False,
+        allow_disconnected: bool = False,
     ) -> Atoms:
         path = Path(file_path).expanduser()
         if not path.is_absolute() and base_dir is not None:
@@ -157,7 +168,8 @@ class MOL2Reader:
                 f"MOL2 counts mismatch in {path}: declared {declared_atoms} atoms/{declared_bonds} "
                 f"bonds, read {len(symbols)} atoms/{len(bonds)} bonds."
             )
-        if not _connected(len(symbols), bonds):
+        component_ids, component_count = _connected_components(len(symbols), bonds)
+        if component_count > 1 and not allow_disconnected:
             raise ValueError("Implicit solvation currently requires one connected molecule per MOL2 file.")
         if mult is not None and mult < 1:
             raise ValueError(f"Invalid multiplicity: {mult}. Must be >= 1.")
@@ -194,5 +206,16 @@ class MOL2Reader:
             "subst_names": subst_names,
             "bonds": bonds,
             "charges_present": charges_present,
+            "component_ids": component_ids,
+            "component_count": component_count,
+            "component_charge_sums_e": (
+                np.bincount(
+                    component_ids,
+                    weights=charges,
+                    minlength=component_count,
+                ).astype(float).tolist()
+                if charges_present
+                else None
+            ),
         }
         return atoms

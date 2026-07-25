@@ -1,0 +1,616 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-multi-mlip-phase-specific-selected-minimum-rrho-v8",
+  "registered_utc": "2026-07-25T15:49:32Z",
+  "status": "preregistered-before-energy-evaluation-and-label-scoring",
+  "source_partition": "development",
+  "route": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "gas_potential": "U_g,m(R)=E_MLIP,m(R)",
+    "solution_potential": "U_s,m(R)=E_MLIP,m(R)+W_AM1-BCC/OBC-II/ACE(R,q_fixed)",
+    "solvent_correction": "W(R,q_fixed)=G_polar,OBC-II(R,q_fixed)+G_nonpolar,ACE(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "charge_refitting": false
+  },
+  "scientific_question": "Can a label-blind, cost-bounded selected-minimum local-RRHO surrogate expose a reproducible MLIP-dependent conformational contribution for fixed AM1-BCC/OBC-II/ACE Route 1, before any larger or accuracy-promoting study?",
+  "source": {
+    "manifest": "multi_mlip_discrete_conformer_source_manifest.json",
+    "manifest_file_sha256": "472b162fcaac3e318309edb8a5c7df2b956f043f119b239a9e86001a713dfeb1",
+    "manifest_content_sha256": "64baca2af71dda8920930c13cd8f3047224ff247f70fe39c9cc5ec8007358e4a",
+    "selection_rule": "For target state counts [1,2,8,20,40,150], choose without replacement among manifest cases with atom_count <= 23 the case minimizing absolute log(state_count/target); tie-break by lower atom_count then compound_id. No label or model outcome is used.",
+    "expected_case_count": 6,
+    "expected_source_state_count": 221,
+    "expected_models": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ],
+    "labels_forbidden_until": "The complete 18-model-case energy, optimization, Hessian, frequency, thermochemistry, and surrogate-prediction artifact has been atomically written and sealed with its content SHA256.",
+    "source_records_are_label_exposed_but_not_read_by_energy_runner": true,
+    "selection_target_state_counts": [
+      1,
+      2,
+      8,
+      20,
+      40,
+      150
+    ],
+    "maximum_atom_count": 23
+  },
+  "implementation_freeze": {
+    "required_versions": {
+      "ase": "3.27.0",
+      "numpy": "2.4.6",
+      "openmm": "8.5.2",
+      "torch": "2.12.0+cu130"
+    },
+    "source_files": [
+      {
+        "path": "docs/implicit-solvation/benchmarks/benchmark_core.py",
+        "sha256": "cb09b41ef510b535880d8e21437efa53e646a650828653575350e2630884b241"
+      },
+      {
+        "path": "docs/implicit-solvation/benchmarks/run_multi_mlip_phase_specific_qrrho.py",
+        "sha256": "30f9488d07fe04cc0aa32d0652b0a9f818a5904d09b6c1e24f7479f69852c52e"
+      },
+      {
+        "path": "docs/implicit-solvation/benchmarks/score_multi_mlip_phase_specific_qrrho.py",
+        "sha256": "bd5e2bd408d2a57b6d57de7e052d1fde521ab5d0ed8305d85943722c42960bb6"
+      },
+      {
+        "path": "maple/function/calculator/__init__.py",
+        "sha256": "8527529d29513f6bf03c102e83cb5cb3a1fbaea4ddccda4688b40f5e071682bc"
+      },
+      {
+        "path": "maple/function/calculator/_batch_types.py",
+        "sha256": "376840beef4a10b4a009b54f672667a0d0beb7bf5933bf9e81e9fa51545d1f00"
+      },
+      {
+        "path": "maple/function/calculator/_batch_utils.py",
+        "sha256": "f25d18571672192ea095607f921e26a54834ea17556023d1a2cba80bcd7bc1b7"
+      },
+      {
+        "path": "maple/function/calculator/calculator_base.py",
+        "sha256": "e2a3d6046cccd7030a499b0392cbcd93ddffecd1b4b66e9e1969f96b2bad426a"
+      },
+      {
+        "path": "maple/function/calculator/set_calculator.py",
+        "sha256": "acd4f9f0a17b3bedcd47287770c5db50846b6d9447bcb5a5f7c94dbe2efb24c5"
+      },
+      {
+        "path": "maple/function/calculator/mace/_common.py",
+        "sha256": "9d62c9129855ae19e978a93caea7df9a189451a22abd639fa0b09745ce00eb57"
+      },
+      {
+        "path": "maple/function/calculator/mace/_batch_graph.py",
+        "sha256": "9691930b9ddab91fb523233b0135bfd0df960bd19b7b8430c52c45bdc26aafe5"
+      },
+      {
+        "path": "maple/function/calculator/mace/_mace_calculator.py",
+        "sha256": "4745ef1054c5c3d70d69c3d88e2fb56527c5c64e037cbffd4f858861706437f2"
+      },
+      {
+        "path": "maple/function/calculator/aimnet/_aimnet2_calculator.py",
+        "sha256": "39ff750d7ac3528056036012867d95ef04df4f66bb14ec4d63df523b4141f866"
+      },
+      {
+        "path": "maple/function/calculator/ani/_ani_calculator.py",
+        "sha256": "b784bfd28fb901627e4ff2c44fd7be90075315cf9ba908c0b9d89d5515ec5b07"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/__init__.py",
+        "sha256": "9ff504183f6935628afa01ee04c6a56e88e1b23a2d56b320b31502dfaa7cda13"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/common.py",
+        "sha256": "9850f5ecf240651347f2db9da5dc7895a17e91cb291bf3844e1c9e812ce01cf3"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/nonpolar.py",
+        "sha256": "0381b5c4914a05bbb738d818ae12d6c445820c0ea46638b5e97959fe8b4e8404"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/openmm_gb.py",
+        "sha256": "28111a3e038b15c614988fd5a40b19fd3f3ab564f277b7996f3e5c1a0176d4d6"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/radii.py",
+        "sha256": "988337fdb9e4b8aca77822303149de1bb9243e468ca7e61ba35e05b6f6aaafec"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/result.py",
+        "sha256": "2cdb27b3e29b7035ed8816d08b0d6d4d6452f01f6b5ff275cb4ea572a259da0c"
+      },
+      {
+        "path": "maple/function/dispatcher/frequency/frequency.py",
+        "sha256": "03bcb2109d642d7c77fdc610131f6d3958320951ed71b242eafcc1c19298333b"
+      },
+      {
+        "path": "maple/function/read/filereader/mol2_reader.py",
+        "sha256": "dea2be95070e3a5c3c1ba0e86c43381a84ed07eda5a80cd5dfd9371ca45f1b90"
+      }
+    ],
+    "amendment_policy": "Any source or required-version change before v8 execution requires a visibly versioned protocol amendment while labels remain sealed; changes after any v8 model-case energy execution or post-seal label access invalidate the preregistered inference.",
+    "required_python": "3.11.14"
+  },
+  "models": [
+    {
+      "name": "maceoff23m",
+      "checkpoint_filename": "maceoff23m.pt",
+      "checkpoint_sha256": "ac172fdf9b5173fef4c64667739dbd06f230b0167b4ae2c67e8c08033254c9ee",
+      "maple_output_unit": "hartree"
+    },
+    {
+      "name": "aimnet2",
+      "checkpoint_filename": "aimnet2.pt",
+      "checkpoint_sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d",
+      "maple_output_unit": "hartree"
+    },
+    {
+      "name": "ani2x",
+      "checkpoint_filename": "ani2x.pt",
+      "checkpoint_sha256": "c8c41e89d5ccbe7b5c9f46ce4a262b913ad0c428a3a3742cc6e83ac10d4d43aa",
+      "maple_output_unit": "hartree"
+    }
+  ],
+  "solvation": {
+    "charge_method": "am1bcc",
+    "charge_mode": "fixed",
+    "charge_geometry": "keep",
+    "charge_source": "frozen-am1bcc-json",
+    "recharge_during_optimization": false,
+    "method": "gb",
+    "provider": "openmm",
+    "polar_model": "obc2",
+    "profile": "obc2-mbondi2",
+    "nonpolar_model": "ace",
+    "platform": "Reference",
+    "solvent": "water",
+    "same_charge_vector_for_every_geometry_and_mlip_of_a_case": true
+  },
+  "phase_specific_sampling": {
+    "evaluate_every_frozen_source_state": true,
+    "maximum_seed_count_per_phase_model_case": 3,
+    "seed_ranking": {
+      "gas": "ascending U_g,m, then ascending source state index",
+      "solution": "ascending U_s,m, then ascending source state index"
+    },
+    "seed_diversity": "Walk the phase ranking and accept a state only when its Kabsch-aligned heavy-atom RMSD exceeds 0.125 angstrom from every already accepted seed; stop after three accepted states or exhaustion.",
+    "cross_phase_seed_substitution": false,
+    "experimental_labels_used": false,
+    "selected_seed_terminal_requirement": "Every selected seed must finish as one valid unique minimum or an explicitly recorded duplicate of a valid unique minimum; optimization failure, nonconvergence, or invalid Hessian invalidates the model-case.",
+    "ensemble_completeness_claimed": false,
+    "seed_budget_convergence_diagnostic_available": false,
+    "seed_budget_convergence_reason": "A 1/2/3 prefix would require separate Hessian analyses after prefix-specific re-deduplication; v6 does not infer convergence from the final three-seed set or from a post hoc subset."
+  },
+  "optimization": {
+    "algorithm": "ASE-LBFGS",
+    "periodic_boundary_conditions": false,
+    "constraints_allowed": false,
+    "gas_force": "-grad_R E_MLIP,m(R)",
+    "solution_force": "-grad_R [E_MLIP,m(R)+W_AM1-BCC/OBC-II/ACE(R,q_fixed)]",
+    "fmax_eV_per_angstrom": 0.01,
+    "max_steps": 500,
+    "maxstep_angstrom": 0.1,
+    "convergence_requires_optimizer_success_and_force_gate": true,
+    "nonfinite_energy_or_force_fails_branch": true
+  },
+  "optimized_minimum_deduplication": {
+    "scope": "within one phase, model, and case",
+    "ordering": "ascending final phase potential, then ascending source state index",
+    "heavy_atom_rmsd_threshold_angstrom": 0.125,
+    "duplicate_action": "retain the lower-potential minimum and record the rejected branch as a duplicate",
+    "statistical_weight_of_each_unique_minimum": 1,
+    "duplicate_arrival_count_used_as_degeneracy": false,
+    "symmetry_degeneracy_inferred": false,
+    "statistical_weight_interpretation": "Unit weight is a lower-information selected-basin approximation; duplicate arrival count is not degeneracy and unknown basin volume is not recovered.",
+    "rotational_symmetry_number_source": "frozen per case and separate from conformer degeneracy"
+  },
+  "hessian_and_stationary_point": {
+    "method": "central finite difference of the complete phase force",
+    "cartesian_displacement_angstrom": 0.002,
+    "mass_weighted_translation_rotation_projection": true,
+    "linearity_moment_ratio_threshold": 0.01,
+    "linear_molecule_rigid_mode_count": 5,
+    "nonlinear_molecule_rigid_mode_count": 6,
+    "vibrational_mode_selection": "After mass-weighted rigid-body projection, select exactly 3N-5 modes for a linear molecule or 3N-6 modes otherwise by largest absolute frequency; the unselected rigid complement must remain within the frozen leakage gate.",
+    "imaginary_mode_policy": "Any selected vibrational frequency below 0 cm-1 invalidates the minimum. No selected negative frequency is replaced by its absolute value in the primary or sensitivity thermochemistry.",
+    "imaginary_frequency_cutoff_cm1": 0.0,
+    "maximum_rigid_mode_leakage_cm1": 1.0,
+    "maximum_final_force_eV_per_angstrom": 0.01,
+    "every_unique_minimum_must_be_valid": true,
+    "displacement_sensitivity": {
+      "status": "preregistered-label-blind-preflight",
+      "compound_ids": [
+        "mobley_1952272",
+        "mobley_4463913"
+      ],
+      "model_names": [
+        "maceoff23m",
+        "aimnet2",
+        "ani2x"
+      ],
+      "phases": [
+        "gas",
+        "solution"
+      ],
+      "unique_minimum_indices": [
+        0
+      ],
+      "cartesian_displacements_angstrom": [
+        0.001,
+        0.002,
+        0.004
+      ],
+      "reference_displacement_angstrom": 0.002,
+      "maximum_selected_mode_rms_difference_cm1": 25.0,
+      "failure_action": "A failed displacement sensitivity gate invalidates the affected model-case and blocks the six-case pilot.",
+      "scope_interpretation": "The rigid one-state nitromethane anchor checks plumbing; the flexible 19-state 1-acetoxyethyl acetate case checks a low-frequency multi-conformer basin. This remains a targeted numerical preflight, not a proof for every flexible molecule."
+    },
+    "failure_action": "Retain the model-case in the denominator, mark it incomplete, and close every accuracy or promotion claim; do not replace the case, model, selected branch, minimum, or checkpoint.",
+    "maximum_absolute_raw_hessian_asymmetry_hartree_per_angstrom2": 0.02,
+    "maximum_relative_raw_asymmetry_frobenius": 0.002,
+    "numerical_quality_gate": "Every raw finite-difference Hessian must pass both the broad absolute nonconservative-force sanity ceiling and the scale-aware Frobenius asymmetry gate before symmetrization; selected frequencies must independently pass the frozen displacement-sensitivity gate.",
+    "label_blind_numerical_qualification": {
+      "artifact": "docs/implicit-solvation/benchmarks/route1-hessian-numerical-qualification-2026-07-25.json",
+      "artifact_file_sha256": "952a50e6d0efb1736e9493ca3defcecd283e705cf73dd2429aca845aa3e2ba76",
+      "artifact_content_sha256": "0eec1db31a3b3239e9ac15f1c41131c1a84eff9cb66bb00bf8b21917f389feb7",
+      "experimental_labels_read": false,
+      "observed_maxima": {
+        "maximum_raw_asymmetry_hartree_per_angstrom2": 0.0017652649050230451,
+        "maximum_relative_raw_asymmetry_frobenius": 0.0007367790679508304,
+        "maximum_selected_mode_rms_difference_cm1": 1.0969283796108298
+      },
+      "selection_boundary": "Thresholds were selected only from three-MLIP force/Hessian/frequency stability and saddle recovery evidence; no FreeSolv experimental value or error statistic was read."
+    },
+    "imaginary_mode_recovery": {
+      "enabled": true,
+      "trigger": "At least one selected vibrational mode is below 0 cm-1 after a force-converged optimization and all raw-Hessian numerical-quality gates pass.",
+      "selected_mode": "most negative selected projected vibrational mode",
+      "directions": [
+        -1,
+        1
+      ],
+      "maximum_atom_displacement_angstrom": 0.5,
+      "maximum_recovery_cycles": 1,
+      "selection": "Reoptimize both directions with the frozen phase potential and choose the lower converged total energy; ties resolve to direction -1.",
+      "minimum_energy_lowering_kcal_mol": 0.001,
+      "post_recovery_requirement": "The accepted structure must pass the same force, raw-Hessian, stationary-point, rigid-leakage, and displacement-sensitivity gates; otherwise the model-case fails closed.",
+      "deduplication_boundary": "Recompute duplicate evidence after recovery; if unique-minimum membership changes, fail closed rather than silently altering weights."
+    }
+  },
+  "thermochemistry": {
+    "temperature_kelvin": 298.15,
+    "primary": {
+      "ilowfreq": 0,
+      "name": "Local harmonic RRHO primary; low-frequency rotor interpolation is excluded from the primary to avoid unquantified double counting with the explicit selected-minimum sum.",
+      "omega0_cm1": 100.0,
+      "alpha": 4,
+      "nu_floor_cm1": 1.0
+    },
+    "predeclared_sensitivity_variants": [
+      {
+        "id": "grimme-entropy-only",
+        "ilowfreq": 2,
+        "omega0_cm1": 100.0
+      },
+      {
+        "id": "qrrho-otlyotov-omega100",
+        "ilowfreq": 3,
+        "omega0_cm1": 100.0
+      },
+      {
+        "id": "qrrho-omega50",
+        "ilowfreq": 3,
+        "omega0_cm1": 50.0
+      },
+      {
+        "id": "qrrho-omega150",
+        "ilowfreq": 3,
+        "omega0_cm1": 150.0
+      }
+    ],
+    "sensitivity_variants_are_not_primary": true,
+    "torsional_double_counting_boundary": "Because multiple selected minima already represent part of torsional configurational space, applying qRRHO/free-rotor treatment can double count torsional entropy; those variants are sensitivity diagnostics only until a mode-to-torsion de-duplication rule is independently frozen.",
+    "per_minimum_internal_rotational_correction": "G_int+rot=ZPE+H_rot+H_vib,thermal-T(S_rot+S_vib)",
+    "rotational_partition_policy": "Retain the geometry-dependent local Q_rot,j/sigma_rot,j in each local basin; this is a local rovibrational metric, not an uncancelled global orientation or standard-state factor.",
+    "rotational_symmetry_number_policy": "Use the frozen per-case external rigid-rotor rotational_symmetry_number; keep internal-rotor permutation symmetry, conformer degeneracy, and duplicate arrival count separate.",
+    "translational_terms_in_partition_sums": false,
+    "standard_state": {
+      "transfer_convention": "1 mol/L gas to 1 mol/L solution, matching FreeSolv",
+      "reason_translation_is_omitted": "At the same temperature, molecular identity, and 1 mol/L standard concentration, the common center-of-mass translational factor cancels between the two phase partition sums.",
+      "standalone_1atm_to_1M_correction_added_to_prediction": false,
+      "warning": "Do not add approximately 1.89 kcal/mol to a Route 1 solvent endpoint that is already interpreted in the FreeSolv 1 M to 1 M convention."
+    },
+    "limitations": [
+      "This selected-minimum local-RRHO surrogate is not the exact Cartesian endpoint integral and does not establish basin completeness.",
+      "The continuum equilibrium model contains no explicit solvent cage or solvent friction.",
+      "Unit statistical weights avoid search-path overcounting but do not recover unknown conformer degeneracies or basin volumes.",
+      "qRRHO/free-rotor variants are sensitivity diagnostics because explicit minima plus rotor interpolation can double count torsional entropy."
+    ]
+  },
+  "ensemble_estimator": {
+    "estimator_identity": "selected-minimum local-RRHO surrogate",
+    "local_partition_surrogate": "Z_tilde_p,m=sum_j [Q_rot,j/sigma_rot,j] Q_vib,j exp[-U_p,m(R_p,m,j)/(RT)] over the frozen selected unique minima",
+    "not_exact_cartesian_endpoint_ratio": true,
+    "per_minimum_free_energy": {
+      "gas": "g_g,m,j=U_g,m(R_g,m,j)+G_local,int+rot,g,m,j",
+      "solution": "g_s,m,j=U_s,m(R_s,m,j)+G_local,int+rot,s,m,j"
+    },
+    "phase_ensemble": "G_tilde_p,m=g_p,m,min-RT ln sum_j exp[-(g_p,m,j-g_p,m,min)/(RT)]",
+    "hydration_prediction": "DeltaG_tilde_local-RRHO,m=G_tilde_s,m-G_tilde_g,m",
+    "zero_kelvin_diagnostic": "DeltaE_min,m=min_j U_s,m(R_s,m,j)-min_k U_g,m(R_g,m,k)",
+    "primary_baseline": "The frozen single-reference AM1-BCC/OBC-II/ACE endpoint from the source manifest; it is identical for all three gas-phase MLIPs.",
+    "secondary_baseline": "The zero-kelvin separately optimized minimum diagnostic computed from the same accepted minima.",
+    "pure_gas_mlip_as_hydration_baseline": false,
+    "global_factor_cancellation": "At identical 1 M conventions, common center-of-mass translation, global orientation-group volume, and momentum factors cancel in the exact endpoint ratio; the geometry-dependent local Q_rot,j/sigma_rot,j retained here belongs only to the local-basin approximation."
+  },
+  "cases": [
+    {
+      "compound_id": "mobley_1952272",
+      "name": "nitromethane",
+      "flexibility_bin": "rigid",
+      "source_state_count": 1,
+      "state_file": "docs/implicit-solvation/benchmarks/route1-multi-mlip-discrete-conformer-raw/states/mobley_1952272.npy",
+      "state_file_sha256": "9612faaab1a125388024ce68fd27ff9f128e9398f9f63cb049d2bcd31fb050c8",
+      "mol2_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset/mol2files_gaff/mobley_1952272.mol2",
+      "mol2_file_sha256": "f13afcc9cd5b6327b241c7428e908643dbcb455fa00a6c9e84eac6fc268e40c2",
+      "charge_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/charges/mobley_1952272/am1bcc.json",
+      "charge_file_sha256": "0369b338d16df91419ca2a63cba33f7bd19fa777d88732f1abbed649418ec2a2",
+      "charge_vector_sha256": "976ea0beef3bd673cfbb8999b02cb46cba86da07e6dc980ee908a327d528ebf7",
+      "rotational_symmetry_number": 1,
+      "rotational_symmetry_number_basis": "External rigid-rotor point-group symmetry only; internal methyl or torsional permutation symmetry is not folded into sigma_rot."
+    },
+    {
+      "compound_id": "mobley_1717215",
+      "name": "methyl formate",
+      "flexibility_bin": "limited",
+      "source_state_count": 2,
+      "state_file": "docs/implicit-solvation/benchmarks/route1-multi-mlip-discrete-conformer-raw/states/mobley_1717215.npy",
+      "state_file_sha256": "4558fdef7921a0bc8a6e3b71840a0cb6aef5667e6c16b6d2335fd989b2d90894",
+      "mol2_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset/mol2files_gaff/mobley_1717215.mol2",
+      "mol2_file_sha256": "9f12cc6c6c06cff100c39d337efa2e2a6851bc62be3d08e57b91e26137b42107",
+      "charge_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/charges/mobley_1717215/am1bcc.json",
+      "charge_file_sha256": "f0e8d31a0c2bb0b31b23da7568fe92aa190bf1303685ececb396f2f54d1d3e51",
+      "charge_vector_sha256": "f19ca68e504b54593cedb5fadbe750bfdb1bc4d201eebeed038f52dffd4505dd",
+      "rotational_symmetry_number": 1,
+      "rotational_symmetry_number_basis": "External rigid-rotor point-group symmetry only; internal methyl or torsional permutation symmetry is not folded into sigma_rot."
+    },
+    {
+      "compound_id": "mobley_8118832",
+      "name": "prop-2-en-1-ol",
+      "flexibility_bin": "limited",
+      "source_state_count": 8,
+      "state_file": "docs/implicit-solvation/benchmarks/route1-multi-mlip-discrete-conformer-raw/states/mobley_8118832.npy",
+      "state_file_sha256": "9e93ecc26fc3a78acb8d44d1898bf774cfc8f4183c00872dbf0a3cf1627a1049",
+      "mol2_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset/mol2files_gaff/mobley_8118832.mol2",
+      "mol2_file_sha256": "e85bde5b21215cdc2859a36aa9620458199daad1e13dfcd9778dccb0bd73329f",
+      "charge_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/charges/mobley_8118832/am1bcc.json",
+      "charge_file_sha256": "c388f2f03c53ce622efc0161651ca350236c8e84ffda7e57a2f68b09d3a8a929",
+      "charge_vector_sha256": "08ed7a8a8ea8f53de15b0de127e3fd7e16f53a52c21f5fd6076e77c831f5511a",
+      "rotational_symmetry_number": 1,
+      "rotational_symmetry_number_basis": "External rigid-rotor point-group symmetry only; internal methyl or torsional permutation symmetry is not folded into sigma_rot."
+    },
+    {
+      "compound_id": "mobley_4463913",
+      "name": "1-acetoxyethyl acetate",
+      "flexibility_bin": "flexible",
+      "source_state_count": 19,
+      "state_file": "docs/implicit-solvation/benchmarks/route1-multi-mlip-discrete-conformer-raw/states/mobley_4463913.npy",
+      "state_file_sha256": "adef208f3f206fe30780408497e1a61767908a317f43a130566a48547e0575cb",
+      "mol2_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset/mol2files_gaff/mobley_4463913.mol2",
+      "mol2_file_sha256": "a58432442fea2f84786394533698ffe00bc7f74984e2319a0e107c9767782128",
+      "charge_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/charges/mobley_4463913/am1bcc.json",
+      "charge_file_sha256": "3ba138e337b907f2dc6503b6feb03b49c5d4a1d43af0e3e4c236ca32e4850f66",
+      "charge_vector_sha256": "47bcded879465473c49a4b2c41a893f96670992551c91ef65a211c871f2be51d",
+      "rotational_symmetry_number": 1,
+      "rotational_symmetry_number_basis": "External rigid-rotor point-group symmetry only; internal methyl or torsional permutation symmetry is not folded into sigma_rot."
+    },
+    {
+      "compound_id": "mobley_5759258",
+      "name": "pentan-1-ol",
+      "flexibility_bin": "limited",
+      "source_state_count": 43,
+      "state_file": "docs/implicit-solvation/benchmarks/route1-multi-mlip-discrete-conformer-raw/states/mobley_5759258.npy",
+      "state_file_sha256": "26377a3e044a3d15611f7ab3ef61133996cb648ab0eacdd000a946535099e5b6",
+      "mol2_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset/mol2files_gaff/mobley_5759258.mol2",
+      "mol2_file_sha256": "001aba1f6871095792155413176df5e2529118d8434038447234a86a91447b51",
+      "charge_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/charges/mobley_5759258/am1bcc.json",
+      "charge_file_sha256": "b6a5fcc0265ddb4ffb0e9fe073370e78be629366501e95263c2f8ee38e50a267",
+      "charge_vector_sha256": "cef92d387caf1466b0b0385582fd206b70217b51e938f797512aab3477a4c6f1",
+      "rotational_symmetry_number": 1,
+      "rotational_symmetry_number_basis": "External rigid-rotor point-group symmetry only; internal methyl or torsional permutation symmetry is not folded into sigma_rot."
+    },
+    {
+      "compound_id": "mobley_1017962",
+      "name": "methyl hexanoate",
+      "flexibility_bin": "flexible",
+      "source_state_count": 148,
+      "state_file": "docs/implicit-solvation/benchmarks/route1-multi-mlip-discrete-conformer-raw/states/mobley_1017962.npy",
+      "state_file_sha256": "94c132c7aaf30789b01f8d62b8e871d088e5a28c3004b23c6e166f511ea5fdf9",
+      "mol2_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset/mol2files_gaff/mobley_1017962.mol2",
+      "mol2_file_sha256": "248c22a28e076d3e4a1d9785d69e44198e0ee31af8e2da266acd7840b497d424",
+      "charge_file": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/charges/mobley_1017962/am1bcc.json",
+      "charge_file_sha256": "92d809a3ff9cd71a498c7f029c88a39b61946f382fb5674003324039645a89af",
+      "charge_vector_sha256": "13ca2da2abdbb9225aae1f7783841f7335714698d38486909aca545ef017f1a2",
+      "rotational_symmetry_number": 1,
+      "rotational_symmetry_number_basis": "External rigid-rotor point-group symmetry only; internal methyl or torsional permutation symmetry is not folded into sigma_rot."
+    }
+  ],
+  "energy_artifact_gates": {
+    "expected_model_case_count": 18,
+    "all_model_cases_must_complete": true,
+    "all_source_states_must_be_evaluated_before_seed_selection": true,
+    "at_least_one_valid_unique_minimum_per_phase_model_case": true,
+    "prediction_artifact_must_not_contain_experimental_labels": true,
+    "prediction_artifact_must_be_content_hash_sealed_before_scoring": true,
+    "failed_case_or_model_substitution": false,
+    "every_model_case_must_pass_shared_semantic_validator": true,
+    "all_hessians_must_be_repository_contained_and_content_hash_valid": true,
+    "durable_raw_evidence_must_be_sealed_before_scoring": true,
+    "every_selected_seed_must_resolve_as_valid_or_duplicate": true,
+    "every_unique_minimum_must_be_valid": true
+  },
+  "post_seal_scoring": {
+    "experimental_source": "FreeSolv experimental hydration free energies under the documented 1 M gas to 1 M solution convention",
+    "paired_unit": "compound",
+    "bootstrap": {
+      "resamples": 10000,
+      "random_seed": 20260725,
+      "confidence_interval": "two-sided percentile 95%",
+      "resample_same_case_indices_for_baseline_and_qrrho": true
+    },
+    "per_model_primary_improvement_kcal_mol": "MAE(single-reference baseline)-MAE(selected-minimum local-RRHO surrogate)",
+    "positive_model_gate": {
+      "minimum_point_improvement_kcal_mol": 0.2,
+      "bootstrap_lower_bound_must_exceed_kcal_mol": 0.0
+    },
+    "route_accuracy_gate": "At least two of three MLIPs pass the positive model gate, and no remaining MLIP has both a point degradation of at least 0.2 kcal/mol and a bootstrap upper bound below 0.",
+    "cross_model_direction_gate": {
+      "correction": "DeltaG_phase-specific-qRRHO-DeltaG_single-reference",
+      "zero_tolerance_kcal_mol": 0.05,
+      "minimum_cases_with_same_nonzero_sign_in_at_least_two_models": 4
+    },
+    "low_frequency_stability_gate": {
+      "per_case_instability_threshold_kcal_mol": 1.0,
+      "instability": "Maximum absolute deviation of any predeclared sensitivity prediction from the primary prediction exceeds the threshold.",
+      "maximum_unstable_cases_per_model": 1,
+      "all_three_models_must_pass": true
+    },
+    "decision": "Any incomplete artifact or failed diagnostic gate falsifies this six-case selected-minimum local-RRHO development pilot. Passing does not promote an absolute hydration method; it only permits a separately preregistered larger seed-budget and held-out study.",
+    "script": "docs/implicit-solvation/benchmarks/score_multi_mlip_phase_specific_qrrho.py",
+    "script_sha256": "bd5e2bd408d2a57b6d57de7e052d1fde521ab5d0ed8305d85943722c42960bb6"
+  },
+  "claim_boundary": {
+    "absolute_hydration_free_energy_estimator_under_test": false,
+    "selected_minimum_local_rrho_surrogate_under_test": true,
+    "validated_absolute_hydration_free_energy_method": false,
+    "conformer_completeness_established": false,
+    "basin_measures_included": false,
+    "symmetry_degeneracies_established": false,
+    "rotational_symmetry_numbers_frozen_per_case": true,
+    "mlip_training_membership_audited": false,
+    "public_solvfe_eligible": false,
+    "posthoc_case_model_seed_or_cutoff_selection_allowed": false,
+    "reason": "This is a six-case cost-bounded development falsification of a selected-minimum local-RRHO surrogate. It tests whether MLIP-dependent phase reorganization is reproducible under fixed AM1-BCC/OBC-II/ACE; it cannot establish exact endpoint integration, basin completeness, or external accuracy."
+  },
+  "references": [
+    {
+      "citation": "Grimme, Chem. Eur. J. 2012",
+      "doi": "10.1002/chem.201200497",
+      "role": "Finite-inertia harmonic/free-rotor entropy interpolation."
+    },
+    {
+      "citation": "Otlyotov and Minenkov, J. Comput. Chem. 2023",
+      "doi": "10.1002/jcc.27129",
+      "role": "Internally consistent extension of the interpolation to complete vibrational internal energy."
+    },
+    {
+      "citation": "Mobley, Dill, and Chodera, J. Phys. Chem. B 2008",
+      "doi": "10.1021/jp0764384",
+      "role": "Primary evidence that conformational changes and entropy can materially affect hydration free energies; not evidence that this exact estimator succeeds."
+    },
+    {
+      "citation": "Pracht and Grimme, Chem. Sci. 2021",
+      "doi": "10.1039/D1SC00621E",
+      "role": "RRHO and modified-RRHO conformer-ensemble thermochemistry and low-frequency sensitivity."
+    },
+    {
+      "citation": "Gorges et al., Phys. Chem. Chem. Phys. 2022",
+      "doi": "10.1039/D1CP05805C",
+      "role": "Primary evidence that implicit solvent can alter conformational entropy."
+    },
+    {
+      "citation": "Hritz and Oostenbrink, J. Phys. Chem. B 2009",
+      "doi": "10.1021/jp902968m",
+      "role": "Multiconformational free-energy formulation."
+    },
+    {
+      "citation": "Head, Given, and Gilson, J. Phys. Chem. A 1997",
+      "doi": "10.1021/jp963817g",
+      "role": "Basin-measure limitation of minimum-only conformational free energies."
+    },
+    {
+      "citation": "Pracht et al., J. Chem. Phys. 2024",
+      "doi": "10.1063/5.0197592",
+      "role": "Conformer generation and duplicate bookkeeping."
+    },
+    {
+      "citation": "Mobley and Guthrie, J. Comput.-Aided Mol. Des. 2014; FreeSolv update, J. Chem. Eng. Data 2017",
+      "doi": "10.1021/acs.jced.7b00104",
+      "role": "FreeSolv provenance and 1 M gas to 1 M solution convention."
+    },
+    {
+      "citation": "Zheng and Truhlar, J. Chem. Theory Comput. 2013",
+      "doi": "10.1021/ct3010722",
+      "role": "Multistructural local partition functions retain per-structure rotational partition functions and symmetry numbers."
+    },
+    {
+      "citation": "Rapid Access to Small Molecule Conformational Ensembles in Solution, JACS 2025",
+      "doi": "10.1021/jacs.4c17622",
+      "role": "Contemporary implicit-solvent conformer ensemble and local normal-mode free-energy precedent."
+    },
+    {
+      "citation": "Electronic State Spectroscopy of Nitromethane and Nitroethane, J. Phys. Chem. A 2023",
+      "doi": "10.1021/acs.jpca.2c08023",
+      "role": "Nitromethane equilibrium conformers are Cs, supporting external rigid-rotor sigma=1 rather than folding methyl internal rotation into sigma_rot."
+    },
+    {
+      "citation": "ASE Vibrations finite-difference implementation and documentation",
+      "url": "https://docs.ase-lib.org/_modules/ase/vibrations/vibrations.html",
+      "role": "Central force finite differences and explicit Hessian symmetrization precedent."
+    },
+    {
+      "citation": "Beyond Numerical Hessians: Advancing Molecular Vibrational Analysis with Machine Learning, J. Chem. Theory Comput. 2025",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12080109/",
+      "role": "Contemporary evidence that numerical MLIP Hessians are common and that derivative noise and cost require explicit validation."
+    }
+  ],
+  "amendment_from": "maple-route1-multi-mlip-phase-specific-selected-minimum-rrho-v7",
+  "amendment_reason": "After the three label-blind v7 nitromethane model-cases succeeded and before aggregate sealing or any experimental-label access, static analysis found one missing isinstance guard on a Hessian evidence path. v8 adds only that behavior-preserving type narrowing, records v7 as invalidated under its own source-freeze policy, and requires the identical three-model preflight to be rerun. The Route 1 formula, AM1-BCC/OBC-II/ACE endpoint, cases, models, Hessian gates, imaginary-mode recovery, thermochemistry, scorer, and claim boundaries are unchanged.",
+  "execution": {
+    "device": "cuda:0",
+    "batch_size": 16,
+    "record_granularity": "one atomically sealed JSON file per model-case",
+    "resume_policy": "skip only a complete self-hash-valid successful record that passes the shared v8 scientific schema validator for the exact protocol/model/case",
+    "energy_runner_never_reads_experimental_labels": true,
+    "source_energy_repeat_count": 2,
+    "maximum_repeat_relative_energy_difference_kcal_mol": 0.0002,
+    "repeat_tolerance_provenance": {
+      "source_artifact": "docs/implicit-solvation/benchmarks/route1-multi-mlip-discrete-conformer-2026-07-25.json",
+      "source_artifact_content_sha256": "f39146197d670cbcc8196bb0aa33501b64e045823795305496bb1ac5ac6cd602",
+      "maximum_prior_label_free_repeat_difference_kcal_mol": 0.00010377602839106714,
+      "selection": "A pre-execution engineering ceiling of 0.0002 kcal/mol is above the frozen prior maximum but remains negligible relative to the 0.2 kcal/mol accuracy-effect gate; no experimental labels were used.",
+      "source_artifact_file_sha256": "4a1ad88cb9b59e99e5d577f6827c5b0e39fe7584e275c1b6c808008e7da3e5b6"
+    }
+  },
+  "evidence_sealing": {
+    "record_schema_version": 1,
+    "strict_validator_shared_by": [
+      "resume",
+      "seal",
+      "post-seal scorer"
+    ],
+    "semantic_requirements": [
+      "exact protocol/model/case/environment/source identity",
+      "complete finite source-state repeat arrays and derived repeat gate",
+      "deterministic cost-bounded source selection and phase-specific seed selection",
+      "every selected branch resolves as one converged unique valid minimum or an explicit duplicate",
+      "optimization convergence, exact solution OBC-II/ACE component closure, and frozen external AM1-BCC provenance",
+      "repository-contained content-hashed Hessian with shape, absolute and scale-aware raw-asymmetry, no-selected-imaginary-mode, rigid-leakage, and preregistered displacement-sensitivity checks",
+      "frozen per-case rotational symmetry number, thermochemistry, ensemble, and surrogate-prediction closure"
+    ],
+    "durable_storage": "Before aggregate sealing, complete records and content-addressed Hessian NPY files are copied from .omx into the fixed repository-relative <energy-artifact-stem>-raw sibling directory and revalidated.",
+    "absolute_parent_or_symlink_escaping_paths_allowed": false,
+    "label_access_requires_durable_evidence_validation": true
+  },
+  "engineering_amendment_audit": {
+    "artifact": "docs/implicit-solvation/benchmarks/route1-multi-mlip-phase-specific-selected-minimum-rrho-v7-preflight-invalidated-2026-07-25.json",
+    "artifact_file_sha256": "c710718ba47ff579379382c0885e67622cd0fdce2ccc177e3ee6aba0a5e6eb9b",
+    "artifact_content_sha256": "177518142ff4676c960d8c5434fe29fc811777ec40f31bbe812fb0de5cf6b08a",
+    "experimental_labels_read": false,
+    "v7_records_reused": false
+  }
+}

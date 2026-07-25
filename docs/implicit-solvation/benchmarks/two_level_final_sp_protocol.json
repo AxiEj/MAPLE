@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-two-level-final-sp-development-v1",
+  "claim_scope": "Six-case label-exposed development diagnostic of force-capable low-level optimization followed by energy-only high-level single points. It is not confirmation evidence or a product default.",
+  "route1_boundary": {
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "source_selection": {
+    "status": "pre-existing-label-exposed-six-case-development-diagnostic",
+    "compound_ids": [
+      "mobley_1770205",
+      "mobley_1952272",
+      "mobley_2881590",
+      "mobley_3525176",
+      "mobley_5759258",
+      "mobley_8124669"
+    ],
+    "selection_was_not_changed_for_this_probe": true
+  },
+  "pinned_inputs": {
+    "relaxation_protocol": {
+      "path": "docs/implicit-solvation/benchmarks/mlip_conformer_relaxation_am1bcc_protocol.json",
+      "sha256": "707eaf1f6e931d1e073c7d0a8ea91632c2adacf19b4de12548119a64aa06cff0"
+    },
+    "relaxation_summary": {
+      "path": "docs/implicit-solvation/benchmarks/freesolv-mlip-conformer-relaxation-am1bcc-2026-07-24.json",
+      "sha256": "18f117b02a4d241397f1bfbbf00de737a291d4121401fb2df4c31554989ddf0f"
+    },
+    "high_level_protocol": {
+      "path": "docs/implicit-solvation/benchmarks/chagb_nonpolar_protocol.json",
+      "sha256": "524cbcb66e9ee59ee502c59c59a186a35607f6cde0ac1ed43007a01898f6c9f8"
+    },
+    "high_level_summary": {
+      "path": "docs/implicit-solvation/benchmarks/freesolv-am1bcc-chagb-nonpolar-2026-07-24.json",
+      "sha256": "a842604d423dd01833b7e4a2b2d92ce0944e0d0e6f2c2e1d883edeaf2cf7308a"
+    }
+  },
+  "optimization_potential": "MACE-OFF23m gas + fixed-AM1-BCC/OBC-II/ACE",
+  "final_sp_potential": "MACE-OFF23m gas + fixed-AM1-BCC/CHA-GB/PBSA-cavity-dispersion",
+  "formula": "min_i[E_MLIP,gas(R_solution,low,i)+G_high(R_solution,low,i)] - min_j[E_MLIP,gas(R_gas,low,j)]",
+  "candidate_rule": "Evaluate every unique converged low-level solution minimum, then rank the high-level total potential without using experimental labels.",
+  "comparison_rule": [
+    "low-level separately relaxed transfer",
+    "fixed-reference-geometry high-level endpoint",
+    "two-level transfer at the low-level-selected minimum",
+    "two-level transfer after high-level reranking"
+  ],
+  "derivative_contract": {
+    "optimization_potential_has_consistent_forces": true,
+    "final_sp_potential_has_a_runtime_force_claim": false,
+    "same_potential_for_optimization_and_final_sp": false,
+    "both_potentials_must_be_reported": true
+  },
+  "label_boundary": {
+    "source_selection_and_input_records_are_label_exposed": true,
+    "experimental_labels_used_in_energy_or_reranking": false,
+    "experimental_labels_used_for_fit_or_residual": false,
+    "summary_uses_labels_for_development_scoring": true,
+    "confirmation_remains_closed": true
+  }
+}

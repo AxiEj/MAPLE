@@ -171,9 +171,12 @@ class SetCalculator:
                 "Implicit-solvent selector mismatch: "
                 f"implicit={self.implicit!r}, solv.method={configured_method!r}."
             )
-        if self.model_options.get('hessian') is not None and self.implicit in {'gb', 'pb'}:
+        hessian_mode = self.model_options.get('hessian')
+        if hessian_mode not in {None, 'numerical'} and self.implicit in {'gb', 'pb'}:
             raise ValueError(
-                "Implicit PB/GB does not yet support Hessian/HVP workflows."
+                "Implicit PB/GB supports only hessian='numerical', which "
+                "differentiates the complete composed force. Analytic Hessians "
+                "and HVP workflows remain unavailable."
             )
 
         if self.atoms is not None and atoms_has_pbc(self.atoms):
@@ -234,6 +237,15 @@ class SetCalculator:
 
     def _validate_against_class(self, cls) -> None:
         """Pre-instantiation gates: pbc, hessian mode, charge/mult, d4."""
+        if self.implicit in {'gb', 'pb'} and not getattr(
+            cls, 'SUPPORTS_IMPLICIT_SOLVATION', False
+        ):
+            raise NotImplementedError(
+                f"Registered model '{self.model}' does not declare Route 1 "
+                "composition support. Inherit CalcABC or explicitly set "
+                "SUPPORTS_IMPLICIT_SOLVATION=True and implement the shared "
+                "additive solvent energy/force contract."
+            )
         if self.atoms is not None and atoms_has_pbc(self.atoms) and not getattr(cls, 'SUPPORTS_PBC', False):
             raise NotImplementedError(
                 f"Model '{self.model}' is a no-PBC molecular wrapper. "
@@ -299,6 +311,26 @@ class SetCalculator:
             raise ValueError(
                 f"Unsupported model option(s) for '{self.model}': {', '.join(unknown)}. "
                 f"Supported options: {allowed_text}"
+            )
+
+    def _validate_calculator_element_domain(self, calculator) -> None:
+        """Reject input elements outside a checkpoint's declared atomic-number table."""
+        if self.atoms is None:
+            return
+        declared = getattr(calculator, 'atomic_numbers', None)
+        if declared is None:
+            return
+        supported = sorted({int(value) for value in declared})
+        if not supported:
+            raise ValueError(
+                f"Model '{self.model}' exposes an empty atomic-number domain."
+            )
+        observed = sorted({int(value) for value in self.atoms.get_atomic_numbers()})
+        unsupported = sorted(set(observed).difference(supported))
+        if unsupported:
+            raise ValueError(
+                f"Model '{self.model}' does not support atomic number(s) "
+                f"{unsupported}; checkpoint domain is {supported}."
             )
 
     def _explicit_model_path_option(self, cls) -> Optional[str]:
@@ -522,6 +554,7 @@ class SetCalculator:
             solvent=self.solvent,
             **kwargs,
         )
+        self._validate_calculator_element_domain(calculator)
 
         if self.implicit in {'gb', 'pb'}:
             from .extra_correction.implicit import ImplicitSolvationCorrection

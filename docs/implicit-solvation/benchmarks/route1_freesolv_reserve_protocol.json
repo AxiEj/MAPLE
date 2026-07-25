@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-freesolv-label-exposed-reserve-v1",
+  "claim_scope": "Label-exposed, held-out-by-computation FreeSolv reserve evaluation for two fixed Route 1 endpoints on one pinned GAFF MOL2 geometry per neutral closed-shell molecule in water. This is not an independent blind confirmation, a sampled finite-temperature free energy, a broad-solvent validation, or a force validation.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "evaluation_design": {
+    "designation": "label-exposed-held-out-by-computation-reserve",
+    "source_partition": "confirmation",
+    "historical_label_exposure": true,
+    "independent_blind_confirmation": false,
+    "energy_phase_reads_labels": false,
+    "energy_artifact_is_sealed_before_scoring": true,
+    "score_phase_reads_labels": true,
+    "no_fit": true,
+    "no_residual": true,
+    "no_endpoint_selection": true,
+    "no_post_score_tuning": true
+  },
+  "source_evidence": {
+    "base_protocol": "protocol.json",
+    "base_protocol_sha256": "0aa134a94189583deccd027b428895a21a4244489711670fa4973b0d38513a1d",
+    "prepared_manifest_relative_path": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/prepared.json",
+    "prepared_manifest_sha256": "e82f328d8b6a989dfc6367dc7b0c3019bbb09c0cb5929429202732e201d53bd7",
+    "source_manifest": "route1_freesolv_reserve_source_manifest.json",
+    "source_manifest_sha256": "24969fefd4e41b18f6f7c7c85523d2ec9bc888ecee882c75783e8526a95f1c81",
+    "expected_case_count": 116,
+    "development_artifact": "route1-chagb-component-attribution-2026-07-25.json",
+    "development_artifact_sha256": "a40b4cf76e55e7ed55b86dbc5bcb44a2c24ac3735abd45f4da8c89ddf9a0f0ab"
+  },
+  "endpoints": {
+    "am1bcc_obc2_ace": {
+      "role": "force-capable product baseline",
+      "polar": "OpenMM OBC-II",
+      "nonpolar": "OpenMM ACE",
+      "openmm_model": "obc2",
+      "openmm_nonpolar": "ace",
+      "task_scope": ["SP", "OPT", "SCAN"]
+    },
+    "am1bcc_chagb_pbsa_cavity_dispersion": {
+      "role": "candidate SP-only accuracy profile",
+      "polar": "AmberTools GBNSR6 CHA-GB",
+      "nonpolar": "AmberTools PBSA inp=2 ECAVITY + EDISPER",
+      "task_scope": ["SP"],
+      "force_capable": false
+    }
+  },
+  "charge": {
+    "source": "maple",
+    "method": "am1bcc",
+    "mode": "fixed",
+    "geometry": "keep",
+    "net_charge": 0,
+    "multiplicity": 1
+  },
+  "topology": {
+    "force_field": "GAFF2",
+    "atom_types": "Pinned FreeSolv GAFF atom types",
+    "parmchk2_mode": "gaff2",
+    "tleap_source": "leaprc.gaff2",
+    "pb_radii": "bondi",
+    "charge_policy": "Replace only the charge column of the pinned FreeSolv GAFF MOL2 with the AM1-BCC vector generated during the label-free energy phase.",
+    "nonbonded_policy": "Use the pinned FreeSolv GAFF atom types with leaprc.gaff2 nonbonded parameters; reject any parmchk2 NONBON override."
+  },
+  "polar": {
+    "provider": "GBNSR6",
+    "model": "CHA-GB",
+    "component": "EGB",
+    "epsin": 1.0,
+    "epsout": 78.5,
+    "istrng_molar": 0.0,
+    "dprob_angstrom": 1.4,
+    "space_angstrom": 0.3,
+    "arcres_angstrom": 0.2,
+    "alpb": 1,
+    "chagb": 1,
+    "radiopt": 0,
+    "roh_angstrom": 0.586,
+    "tau": 1.47,
+    "rbornstat": 0
+  },
+  "nonpolar_endpoints": {
+    "gbnsr6_surface_tension": {
+      "provider": "GBNSR6",
+      "component": "ESURF",
+      "cavity_surften_kcal_mol_angstrom2": 0.005
+    },
+    "pbsa_cavity_dispersion": {
+      "provider": "PBSA",
+      "components": ["ECAVITY", "EDISPER"],
+      "inp": 2,
+      "istrng_millimolar": 0.0,
+      "fillratio": 1.5,
+      "saopt": 1,
+      "decompopt": 2,
+      "use_rmin": 1,
+      "sprob_angstrom": 0.557,
+      "vprob_angstrom": 1.3,
+      "rhow_effect": 1.129,
+      "use_sav": 1,
+      "cavity_surften": 0.0378,
+      "cavity_offset_kcal_mol": -0.5692
+    }
+  },
+  "providers": {
+    "openmm": {
+      "required_version": "8.5.2",
+      "platform": "Reference"
+    },
+    "ambertools": {
+      "required_version": "26.0"
+    },
+    "executables": {
+      "antechamber": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/antechamber",
+        "sha256": "59060c69c5fca305794b10f19d950556fbd18db92d6c7af87252389858214c5d"
+      },
+      "gbnsr6": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/gbnsr6",
+        "sha256": "6f14c7a0418b8f03be1b0273367717335822d2f7719f137ad56f2d49e0489e42"
+      },
+      "pbsa": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/pbsa",
+        "sha256": "1cb42f0464e031b5f4331b8ae335cb0c130ddad50305956695efb62a19b2defd"
+      },
+      "parmchk2": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/parmchk2",
+        "sha256": "c2ef0906b71c64e5277673bcba943512daf75ef334ad9421c0045b6b80b6d7cc"
+      },
+      "tleap": {
+        "default_path": "/home/axie/miniconda3/envs/maple-ambertools/bin/tleap",
+        "sha256": "f1c526e0a24ad1fefc6c82be1279aa33eff5f9557d577c2236aa81437dfb52ac"
+      }
+    },
+    "execution_controls": {
+      "workers": 4,
+      "gbnsr6_max_concurrent_processes": 1
+    }
+  },
+  "statistics": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20260725,
+    "strata": ["element_class", "size", "heteroatom_count", "flexibility"]
+  },
+  "pre_registered_decision_rule": {
+    "required_case_count": 116,
+    "both_endpoints_require_full_coverage": true,
+    "baseline_reporting_gate": {
+      "mae_max_kcal_mol": 2.0,
+      "rmse_max_kcal_mol": 3.0,
+      "max_absolute_error_max_kcal_mol": 15.0
+    },
+    "retain_chagb_sp_accuracy_profile_only_if": {
+      "paired_mean_mae_gain_min_kcal_mol": 0.15,
+      "paired_bootstrap_ci_lower_strictly_above_zero": true,
+      "rmse_not_worse_than_obc2_ace": true,
+      "max_absolute_error_not_worse_than_obc2_ace": true
+    },
+    "failure_action": "Do not tune on this reserve. Retain OBC-II/ACE as the product baseline and reject the CHA-GB/PBSA SP accuracy profile if any gate fails.",
+    "production_default_may_change": false,
+    "runtime_force_capability_may_be_inferred": false
+  },
+  "failure_policy": {
+    "no_source_substitution": true,
+    "no_charge_substitution": true,
+    "no_provider_substitution": true,
+    "nonzero_provider_exit_fails_case": true,
+    "missing_or_nonfinite_component_fails_case": true,
+    "failed_cases_remain_failures": true
+  },
+  "literature": {
+    "am1bcc": "Jakalian et al., Fast, efficient generation of high-quality atomic charges. AM1-BCC model: II, J. Comput. Chem. 2002, DOI:10.1002/jcc.10128",
+    "obc": "Onufriev, Bashford, and Case, Exploring protein native states and large-scale conformational changes with a modified generalized Born model, Proteins 2004, DOI:10.1002/prot.20033",
+    "ace": "Schaefer and Karplus, A comprehensive analytical treatment of continuum electrostatics, J. Phys. Chem. 1996, DOI:10.1021/jp9521621",
+    "chagb": "Mukhopadhyay et al., Charge hydration asymmetry: the basic principle and how to use it to test and improve water models, J. Chem. Theory Comput. 2014, DOI:10.1021/ct4010917",
+    "gbnsr6": "Aguilar et al., On the Evaluation of the Generating Function R6 for the Computation of the Effective Born Radii, J. Chem. Theory Comput. 2025, DOI:10.1021/acs.jctc.4c01471",
+    "nonpolar": "Tan, Tan, and Luo, Implicit nonpolar solvent models, J. Phys. Chem. B 2007, DOI:10.1021/jp073399n"
+  }
+}

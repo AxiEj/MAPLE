@@ -12,7 +12,6 @@ import numpy as np
 import pytest
 from ase.calculators.calculator import Calculator, all_changes
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
 if str(BENCHMARK_DIR) not in sys.path:
@@ -22,7 +21,6 @@ import benchmark_core as core
 import run_conformer_sensitivity as conformers
 import run_freesolv as runner
 import run_provider_parity as parity
-
 
 MOL2 = """@<TRIPOS>MOLECULE
 METHANE
@@ -67,9 +65,7 @@ def _write_fixture_protocol(
         }
     }
     (source / "database.txt").write_text(database_text, encoding="utf-8")
-    (source / "database.json").write_text(
-        json.dumps(database_json), encoding="utf-8"
-    )
+    (source / "database.json").write_text(json.dumps(database_json), encoding="utf-8")
     mol2_root = tmp_path / "archive-root" / "mol2files_gaff"
     mol2_root.mkdir(parents=True)
     (mol2_root / "mobley_test.mol2").write_text(MOL2, encoding="utf-8")
@@ -105,8 +101,6 @@ def _prepare_fixture(tmp_path: Path) -> tuple[Path, Path]:
     return protocol_path, work
 
 
-
-
 def test_repository_protocol_is_pinned_and_schema_complete():
     protocol, fingerprint = core.load_protocol(BENCHMARK_DIR / "protocol.json")
 
@@ -124,9 +118,7 @@ def test_repository_protocol_is_pinned_and_schema_complete():
 
 def test_frozen_development_summary_reconciles_all_attempts():
     protocol, fingerprint = core.load_protocol(BENCHMARK_DIR / "protocol.json")
-    summary = core.load_json(
-        BENCHMARK_DIR / "freesolv-development-2026-07-23.json"
-    )
+    summary = core.load_json(BENCHMARK_DIR / "freesolv-development-2026-07-23.json")
 
     assert summary["protocol_fingerprint"] == fingerprint
     assert summary["partition"] == "development"
@@ -145,9 +137,7 @@ def test_frozen_development_summary_reconciles_all_attempts():
         "openmm": ["8.5.2"],
     }
     assert summary["confirmation_lock_sha256"] is None
-    assert summary["methods"]["abcg2/obc2"]["mae"] == pytest.approx(
-        1.6522994515889533
-    )
+    assert summary["methods"]["abcg2/obc2"]["mae"] == pytest.approx(1.6522994515889533)
     assert {
         (failure["charge_method"], failure["gb_model"], failure["phase"])
         for failure in summary["failures"]
@@ -172,20 +162,23 @@ def test_conformer_protocol_is_development_only_and_base_hash_pinned():
         "limited": 8,
         "flexible": 8,
     }
-    assert core.sha256_file(base_summary) == protocol["base_evidence"][
-        "development_summary_sha256"
-    ]
-    assert conformers._relative_protocol_path(
-        protocol_path, protocol["base_evidence"]["protocol"]
-    ) == BENCHMARK_DIR / "protocol.json"
+    assert (
+        core.sha256_file(base_summary)
+        == protocol["base_evidence"]["development_summary_sha256"]
+    )
+    assert (
+        conformers._relative_protocol_path(
+            protocol_path, protocol["base_evidence"]["protocol"]
+        )
+        == BENCHMARK_DIR / "protocol.json"
+    )
     assert protocol["evaluation"]["weighting"].startswith("None.")
 
 
 def test_conformer_xyz_parser_preserves_atom_order_and_method_stats(tmp_path):
     ensemble = tmp_path / "ensemble.xyz"
     ensemble.write_text(
-        "2\n-1.0\nH 0 0 0\nF 0 0 1\n"
-        "2\n-0.5\nH 0 0 0\nF 0 1 0\n",
+        "2\n-1.0\nH 0 0 0\nF 0 0 1\n" "2\n-0.5\nH 0 0 0\nF 0 1 0\n",
         encoding="utf-8",
     )
 
@@ -220,9 +213,9 @@ def test_frozen_conformer_summary_reconciles_cases_and_declared_failures():
     assert summary["environment"]["xtb"]["version"] == "6.7.1"
     assert summary["environment"]["openmm_version"] == "8.5.2"
     assert summary["conformer_count_by_flexibility"]["rigid"]["maximum"] == 1
-    assert summary["conformer_count_by_flexibility"]["flexible"]["median"] == pytest.approx(
-        134.5
-    )
+    assert summary["conformer_count_by_flexibility"]["flexible"][
+        "median"
+    ] == pytest.approx(134.5)
     assert summary["methods"]["abcg2/obc2"]["conformer_range_kcal_mol"][
         "p90"
     ] == pytest.approx(1.7906107608161428)
@@ -238,30 +231,46 @@ def test_frozen_conformer_summary_reconciles_cases_and_declared_failures():
             assert method["failures"] == []
 
 
-
-
-
-
-
-
-
-
 def test_provider_reference_manifests_are_hash_pinned_and_cover_declared_controls():
     protocol, _fingerprint = core.load_protocol(BENCHMARK_DIR / "protocol.json")
-    amber_path = REPOSITORY_ROOT / protocol["provider_parity"][
-        "amber_gb_reference_manifest"
-    ]
+    amber_path = (
+        REPOSITORY_ROOT / protocol["provider_parity"]["amber_gb_reference_manifest"]
+    )
     apbs_path = REPOSITORY_ROOT / protocol["provider_parity"]["apbs_reference_manifest"]
     amber = core.load_json(amber_path)
     apbs = core.load_json(apbs_path)
 
     required_models = set(protocol["methods"]["gb_models"])
     assert amber["provider"] == "amber"
-    assert len(amber["cases"]) == 5
+    assert len(amber["cases"]) == 12
     for case in amber["cases"]:
         mol2 = (amber_path.parent / case["mol2"]).resolve()
         assert core.sha256_file(mol2) == case["mol2_sha256"]
         assert set(case["models"]) == required_models
+    case_by_id = {case["case_id"]: case for case in amber["cases"]}
+    assert {
+        "methyl-hexanoate",
+        "4-nitroaniline",
+        "glucose",
+        "nitralin",
+    }.issubset(case_by_id)
+    for case_id in ("dimethyl-sulfide", "nitralin"):
+        expectation = case_by_id[case_id]["model_expectations"]["gbn2"]
+        assert expectation["openmm_supported"] is False
+        assert "sulfur" in expectation["reason"]
+    halogens = {
+        case["case_id"]: case
+        for case in amber["cases"]
+        if case["case_id"] in {"chlorobenzene", "bromobenzene", "iodobenzene"}
+    }
+    assert set(halogens) == {"chlorobenzene", "bromobenzene", "iodobenzene"}
+    assert all(case["parity_components"] == ["polar"] for case in halogens.values())
+    assert all(
+        case["parity_force_components"] == ["polar"] for case in halogens.values()
+    )
+    assert halogens["chlorobenzene"]["lcpo_expectation"]["openmm_supported"] is True
+    assert not halogens["bromobenzene"]["lcpo_expectation"]["openmm_supported"]
+    assert not halogens["iodobenzene"]["lcpo_expectation"]["openmm_supported"]
 
     assert apbs["provider"] == "apbs"
     assert {case["control_kind"] for case in apbs["cases"]} == set(
@@ -292,7 +301,9 @@ def test_official_born_control_matches_documented_apbs_settings():
 def test_measured_provider_evidence_is_pinned_but_proposed_tolerances_are_not_frozen(
     tmp_path,
 ):
-    observations_path = REPOSITORY_ROOT / "tests/solvation/data/provider_parity_observations.json"
+    observations_path = (
+        REPOSITORY_ROOT / "tests/solvation/data/provider_parity_observations.json"
+    )
     proposal_path = (
         REPOSITORY_ROOT
         / "tests/solvation/data/provider_parity_tolerances.proposed.json"
@@ -302,6 +313,41 @@ def test_measured_provider_evidence_is_pinned_but_proposed_tolerances_are_not_fr
 
     assert proposal["evidence_artifact_sha256"] == core.sha256_file(observations_path)
     assert observations["protocol_fingerprint"] == proposal["protocol_fingerprint"]
+    amber_observations = observations["amber_openmm"]
+    assert amber_observations["case_count"] == 12
+    assert amber_observations["record_count"] == 60
+    assert amber_observations["supported_record_count"] == 58
+    assert amber_observations["expected_unavailable_record_count"] == 2
+    assert amber_observations["full_lcpo_parity_case_count"] == 7
+    assert amber_observations["polar_only_case_count"] == 4
+    assert amber_observations["all_successful"]
+    assert amber_observations["energy_difference_kcal_mol"]["polar"][
+        "max_abs"
+    ] == pytest.approx(0.0013501029291660416)
+    assert amber_observations["force_difference_kcal_mol_angstrom"]["polar"][
+        "max_abs"
+    ] == pytest.approx(0.0010093634667747153)
+    assert amber_observations["energy_difference_kcal_mol"]["nonpolar_lcpo"][
+        "max_abs"
+    ] == pytest.approx(1.3322676295501878e-15)
+    lcpo = amber_observations["lcpo_applicability_observations"]
+    assert lcpo["chlorobenzene"]["observed_openmm_supported"]
+    assert lcpo["chlorobenzene"]["maximum_observed_difference"][
+        "nonpolar_lcpo"
+    ] == pytest.approx(0.16190400042787867)
+    assert not lcpo["bromobenzene"]["observed_openmm_supported"]
+    assert not lcpo["iodobenzene"]["observed_openmm_supported"]
+    assert not lcpo["nitralin"]["observed_openmm_supported"]
+    assert all(item["all_models_match_expectation"] for item in lcpo.values())
+    model_applicability = amber_observations["model_applicability_observations"]
+    assert {
+        (item["case_id"], item["model"])
+        for item in model_applicability
+    } == {
+        ("dimethyl-sulfide", "gbn2"),
+        ("nitralin", "gbn2"),
+    }
+    assert all(item["support_matches_expectation"] for item in model_applicability)
     for path_key, hash_key in (
         ("amber_openmm_results", "amber_openmm_results_sha256"),
         ("apbs_grid_results", "apbs_grid_results_sha256"),
@@ -317,6 +363,83 @@ def test_measured_provider_evidence_is_pinned_but_proposed_tolerances_are_not_fr
                 tolerances=str(proposal_path),
             )
         )
+
+
+def test_provider_observation_summary_is_reproducible(tmp_path):
+    frozen = REPOSITORY_ROOT / "tests/solvation/data/provider_parity_observations.json"
+    source = core.load_json(frozen)["source_artifacts"]
+    reproduced = tmp_path / "observations.json"
+
+    parity.observations(
+        argparse.Namespace(
+            protocol=str(BENCHMARK_DIR / "protocol.json"),
+            amber_artifact=str(REPOSITORY_ROOT / source["amber_openmm_results"]),
+            apbs_artifact=str(REPOSITORY_ROOT / source["apbs_grid_results"]),
+            output=str(reproduced),
+        )
+    )
+
+    assert reproduced.read_bytes() == frozen.read_bytes()
+
+
+def test_provider_verification_accepts_complete_polar_and_scoped_lcpo_records(
+    tmp_path,
+):
+    observations = core.load_json(
+        REPOSITORY_ROOT / "tests/solvation/data/provider_parity_observations.json"
+    )
+    proposal = core.load_json(
+        REPOSITORY_ROOT
+        / "tests/solvation/data/provider_parity_tolerances.proposed.json"
+    )
+    proposal["review_status"] = "human-reviewed-frozen"
+    tolerances = tmp_path / "provider_parity_tolerances.json"
+    core.write_json_atomic(tolerances, proposal)
+
+    artifact_dir = tmp_path / "provider-parity"
+    source_artifacts = observations["source_artifacts"]
+    for relative_target, source_key in (
+        ("amber-gb-parity/results.json", "amber_openmm_results"),
+        ("apbs-grid/results.json", "apbs_grid_results"),
+    ):
+        target = artifact_dir / relative_target
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(
+            (REPOSITORY_ROOT / source_artifacts[source_key]).read_bytes()
+        )
+
+    parity.verify(
+        argparse.Namespace(
+            protocol=str(BENCHMARK_DIR / "protocol.json"),
+            artifact_dir=str(artifact_dir),
+            tolerances=str(tolerances),
+        )
+    )
+
+    verification = core.load_json(artifact_dir / "provider-parity-verification.json")
+    assert verification["passed"]
+    completeness = next(
+        check
+        for check in verification["checks"]
+        if check["check"] == "amber-record-completeness"
+    )
+    assert completeness["passed"]
+    assert completeness["detail"] == {
+        "case_count": 12,
+        "observed_case_count": 12,
+        "record_count": 60,
+        "expected_record_count": 60,
+    }
+    check_names = {check["check"] for check in verification["checks"]}
+    assert "amber/chlorobenzene/obc2/polar" in check_names
+    assert "amber/bromobenzene/obc2/polar-force" in check_names
+    assert "amber/iodobenzene/gbn2/lcpo-support-expectation" in check_names
+    assert (
+        "amber/dimethyl-sulfide/gbn2/model-support-expectation" in check_names
+    )
+    assert "amber/dimethyl-sulfide/gbn2/polar" not in check_names
+    assert "amber/chlorobenzene/obc2/nonpolar_lcpo" not in check_names
+    assert "amber/bromobenzene/obc2/total_lcpo-force" not in check_names
 
 
 def test_prepare_verifies_hashes_and_forces_pilot_into_development(tmp_path):
@@ -346,12 +469,8 @@ def test_prepare_verifies_hashes_and_forces_pilot_into_development(tmp_path):
 
 
 def test_structure_group_split_is_deterministic_and_seeded():
-    one = core.partition_for_smiles(
-        "CCO", seed="fixed", development_fraction=0.8
-    )
-    two = core.partition_for_smiles(
-        "CCO", seed="fixed", development_fraction=0.8
-    )
+    one = core.partition_for_smiles("CCO", seed="fixed", development_fraction=0.8)
+    two = core.partition_for_smiles("CCO", seed="fixed", development_fraction=0.8)
     forced = core.partition_for_smiles(
         "CCO", seed="fixed", development_fraction=0.0, forced_development=True
     )
@@ -384,7 +503,9 @@ def test_run_resumes_without_overwriting_and_summary_is_byte_stable(
                 provenance={"provider": "fixture-openmm"},
             )
 
-    monkeypatch.setattr(runner, "prepare_charges", lambda *_args, **_kwargs: FakeChargeResult())
+    monkeypatch.setattr(
+        runner, "prepare_charges", lambda *_args, **_kwargs: FakeChargeResult()
+    )
     monkeypatch.setattr(runner, "OpenMMGB", FakeProvider)
     namespace = argparse.Namespace(
         protocol=str(protocol_path),
@@ -467,7 +588,9 @@ def test_run_jobs_dispatches_each_candidate_once(tmp_path, monkeypatch):
     assert sorted(seen) == ["mobley_test", "mobley_test_2"]
 
 
-def test_provider_failure_is_retained_and_denominator_is_unchanged(tmp_path, monkeypatch):
+def test_provider_failure_is_retained_and_denominator_is_unchanged(
+    tmp_path, monkeypatch
+):
     protocol_path, work = _prepare_fixture(tmp_path)
 
     def fail_provider(*_args, **_kwargs):
@@ -556,11 +679,20 @@ def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> 
             "schema_version": 1,
             "artifact_type": "amber-gb-parity",
             "protocol_fingerprint": fingerprint,
+            "case_count": 1,
+            "record_count": 1,
             "records": [
                 {
                     "case_id": "fixture-neutral",
                     "model": "hct",
                     "status": "success",
+                    "lcpo_observation": {
+                        "expected_openmm_supported": True,
+                        "observed_openmm_supported": True,
+                        "parity_target": True,
+                        "reason": "complete fixture LCPO parity target",
+                        "support_matches_expectation": True,
+                    },
                     "signed_difference_kcal_mol": {
                         "polar": 0.001,
                         "nonpolar_lcpo": -0.002,
@@ -634,7 +766,9 @@ def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> 
     return tolerance_path
 
 
-def test_provider_parity_verification_fails_closed_without_reviewed_tolerances(tmp_path):
+def test_provider_parity_verification_fails_closed_without_reviewed_tolerances(
+    tmp_path,
+):
     protocol_path, _source = _write_fixture_protocol(tmp_path)
     artifact_dir = tmp_path / "parity"
     _write_passing_parity_artifacts(protocol_path, artifact_dir)
@@ -665,3 +799,52 @@ def test_provider_parity_verification_accepts_complete_in_tolerance_fixture(tmp_
     assert verification["passed"] is True
     assert verification["checks"]
     assert all(check["passed"] for check in verification["checks"])
+
+
+@pytest.mark.parametrize(
+    ("corruption", "failed_check"),
+    [
+        ("missing-record", "amber-model-completeness"),
+        ("duplicate-record", "amber-record-completeness"),
+        (
+            "lcpo-support-mismatch",
+            "amber/fixture-neutral/hct/lcpo-support-expectation",
+        ),
+    ],
+)
+def test_provider_parity_verification_rejects_incomplete_or_mismatched_artifacts(
+    tmp_path,
+    corruption,
+    failed_check,
+):
+    protocol_path, _source = _write_fixture_protocol(tmp_path)
+    artifact_dir = tmp_path / "parity"
+    tolerances = _write_passing_parity_artifacts(protocol_path, artifact_dir)
+    amber_path = artifact_dir / "amber-gb-parity/results.json"
+    amber = core.load_json(amber_path)
+
+    if corruption == "missing-record":
+        amber["records"] = []
+        amber["record_count"] = 0
+    elif corruption == "duplicate-record":
+        amber["records"].append(dict(amber["records"][0]))
+        amber["record_count"] = 2
+    else:
+        amber["records"][0]["lcpo_observation"]["support_matches_expectation"] = False
+    core.write_json_atomic(amber_path, amber)
+
+    with pytest.raises(ValueError, match="Provider parity verification failed"):
+        parity.verify(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                artifact_dir=str(artifact_dir),
+                tolerances=str(tolerances),
+            )
+        )
+
+    verification = core.load_json(artifact_dir / "provider-parity-verification.json")
+    assert not verification["passed"]
+    assert any(
+        check["check"] == failed_check and not check["passed"]
+        for check in verification["checks"]
+    )

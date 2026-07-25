@@ -6,6 +6,9 @@ import numpy as np
 
 import ase.calculators.calculator
 
+from ._batch_types import BatchResult
+from ._batch_utils import default_calculate_many
+
 if TYPE_CHECKING:
     import torch
 
@@ -172,20 +175,36 @@ def reject_periodic_atoms(atoms, backend_name: str) -> None:
         )
 
 
-def numerical_hessian_from_atoms(calc, atoms, delta=0.002):
+def numerical_hessian_from_atoms(
+    calc,
+    atoms,
+    delta=0.002,
+    *,
+    return_diagnostics=False,
+):
     """Numerical Hessian via central finite difference on forces.
 
     Polymorphic: works for any calculator with the ASE protocol
     (calc.calculate(atoms, properties=['forces'], system_changes=...) writes
     calc.results['forces'] as a (N, 3) ndarray). Returns float64 ndarray of
-    shape (3N, 3N).
+    shape (3N, 3N). With ``return_diagnostics=True``, also return absolute and
+    scale-aware raw pre-symmetrization diagnostics so validation workflows can
+    audit finite-difference quality instead of observing a symmetry imposed by
+    construction.
     """
     from ase.constraints import FixAtoms
     from ase.calculators.calculator import all_changes
 
     old_results = dict(getattr(calc, 'results', {}) or {})
     old_atoms = getattr(calc, 'atoms', None)
+    missing = object()
+    old_solvation_result = getattr(calc, 'solvation_result', missing)
     try:
+        delta = float(delta)
+        if not np.isfinite(delta) or delta <= 0.0:
+            raise ValueError(
+                "Numerical Hessian displacement must be positive and finite."
+            )
         N = len(atoms)
         pos0 = atoms.get_positions().copy()
         fixed = {
@@ -198,7 +217,15 @@ def numerical_hessian_from_atoms(calc, atoms, delta=0.002):
 
         H = np.zeros((3 * N, 3 * N), dtype=np.float64)
         if not movable:
-            return H
+            diagnostics = {
+                "cartesian_displacement_angstrom": delta,
+                "maximum_absolute_raw_hessian_hartree_per_angstrom2": 0.0,
+                "maximum_raw_asymmetry_hartree_per_angstrom2": 0.0,
+                "raw_hessian_frobenius_norm_hartree_per_angstrom2": 0.0,
+                "raw_asymmetry_frobenius_norm_hartree_per_angstrom2": 0.0,
+                "relative_raw_asymmetry_frobenius": 0.0,
+            }
+            return (H, diagnostics) if return_diagnostics else H
 
         def force_at(positions):
             at = atoms.copy()
@@ -220,6 +247,18 @@ def numerical_hessian_from_atoms(calc, atoms, delta=0.002):
                 Fm = force_at(pos_m)
                 H[:, col] = (-(Fp - Fm) / (2.0 * delta)).reshape(-1)
 
+        raw_asymmetry = H - H.T
+        maximum_absolute_raw_hessian = float(np.max(np.abs(H)))
+        maximum_raw_asymmetry = float(np.max(np.abs(raw_asymmetry)))
+        raw_hessian_frobenius_norm = float(np.linalg.norm(H, ord="fro"))
+        raw_asymmetry_frobenius_norm = float(
+            np.linalg.norm(raw_asymmetry, ord="fro")
+        )
+        relative_raw_asymmetry_frobenius = (
+            raw_asymmetry_frobenius_norm / raw_hessian_frobenius_norm
+            if raw_hessian_frobenius_norm
+            else 0.0
+        )
         H = 0.5 * (H + H.T)
         if fixed:
             # PHVA embedding: a frozen atom contributes no Hessian row/column.
@@ -230,10 +269,33 @@ def numerical_hessian_from_atoms(calc, atoms, delta=0.002):
             fixed_dofs = [3 * i + k for i in sorted(fixed) for k in range(3)]
             H[fixed_dofs, :] = 0.0
             H[:, fixed_dofs] = 0.0
-        return H
+        diagnostics = {
+            "cartesian_displacement_angstrom": delta,
+            "maximum_absolute_raw_hessian_hartree_per_angstrom2": (
+                maximum_absolute_raw_hessian
+            ),
+            "maximum_raw_asymmetry_hartree_per_angstrom2": (
+                maximum_raw_asymmetry
+            ),
+            "raw_hessian_frobenius_norm_hartree_per_angstrom2": (
+                raw_hessian_frobenius_norm
+            ),
+            "raw_asymmetry_frobenius_norm_hartree_per_angstrom2": (
+                raw_asymmetry_frobenius_norm
+            ),
+            "relative_raw_asymmetry_frobenius": (
+                relative_raw_asymmetry_frobenius
+            ),
+        }
+        return (H, diagnostics) if return_diagnostics else H
     finally:
         calc.results = old_results
         calc.atoms = old_atoms
+        if old_solvation_result is missing:
+            if hasattr(calc, 'solvation_result'):
+                del calc.solvation_result
+        else:
+            calc.solvation_result = old_solvation_result
 
 
 def hessian_via_double_autograd(energy_fn, leaf):
@@ -272,6 +334,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
     SUPPORTED_HESSIAN_MODES: tuple = ('numerical',)
     SUPPORTS_CHARGE_MULT: bool = False
     SUPPORTS_PBC: bool = False
+    SUPPORTS_IMPLICIT_SOLVATION: bool = True
     CHECKPOINT_FILENAME: dict | None = None
     REQUIRES_LOCAL_MODEL_FILE: bool = False
     # None keeps legacy/plugins permissive. Shipped backends set an explicit
@@ -279,6 +342,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
     OPTION_KEYS: tuple | None = None
     # Constructor kwarg that accepts an explicit user model_path, if any.
     MODEL_PATH_OPTION: str | None = None
+    # Every CalcABC backend satisfies the return-value batch contract through
+    # the safe sequential fallback below. Native model-level batch backends
+    # override calculate_many and set this flag to True.
+    supports_batch_energy_forces: bool = False
 
     def __init__(self):
         super().__init__()
@@ -316,6 +383,24 @@ class CalcABC(ase.calculators.calculator.Calculator):
         super().calculate(atoms, properties, system_changes)
         return target_atoms
 
+    def calculate_many(
+        self,
+        atoms_list,
+        properties=("energy", "forces"),
+    ) -> BatchResult:
+        """Evaluate structures through a uniform, result-driven batch API.
+
+        The base implementation deliberately calls each backend's validated
+        single-structure path. Backends may override this only when their native
+        model supports an equivalent energy/force batch without changing units,
+        ordering, PBC policy, or implicit-solvent semantics.
+        """
+        return default_calculate_many(
+            self,
+            atoms_list,
+            properties,
+        )
+
     @classmethod
     def build_kwargs_from_options(cls, model, model_options, *, resolved_model_path=None):
         """Translate input-header options into ctor kwargs. Backends override."""
@@ -339,20 +424,11 @@ class CalcABC(ase.calculators.calculator.Calculator):
             if hessian is not None:
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             if hasattr(self.solvent_correction, "evaluate"):
-                try:
-                    solvent_result = self.solvent_correction.evaluate(
-                        atoms,
-                        need_forces=forces_ha is not None,
-                        calculator=self,
-                    )
-                except TypeError as exc:
-                    try:
-                        solvent_result = self.solvent_correction.evaluate(
-                            atoms,
-                            need_forces=forces_ha is not None,
-                        )
-                    except TypeError:
-                        raise exc
+                solvent_result = self.solvent_correction.evaluate(
+                    atoms,
+                    need_forces=forces_ha is not None,
+                    calculator=self,
+                )
                 energy_ha = energy_ha + float(solvent_result.energy_hartree)
                 if forces_ha is not None:
                     if solvent_result.forces_hartree_per_angstrom is None:
@@ -381,20 +457,33 @@ class CalcABC(ase.calculators.calculator.Calculator):
             self.results['hessian'] = hessian
         if structured_solvation_result is not None:
             result = structured_solvation_result
-            self.results['solvation'] = {
+            provenance = dict(result.provenance)
+            structured = {
                 'energy_hartree': float(result.energy_hartree),
-                'delta_g_solv_hartree': float(result.energy_hartree),
                 'gas_energy_hartree': gas_energy_ha,
                 'combined_energy_hartree': float(energy_ha),
                 'components_hartree': dict(result.components_hartree),
-                'provenance': dict(result.provenance),
+                'provenance': provenance,
                 'ase_free_energy_is_thermochemical_gibbs': False,
             }
+            if provenance.get('absolute_solvation_free_energy_claim') is False:
+                structured['cluster_continuum_correction_hartree'] = float(
+                    result.energy_hartree
+                )
+            else:
+                structured['delta_g_solv_hartree'] = float(result.energy_hartree)
+            self.results['solvation'] = structured
         elif hasattr(self, 'solvation_result'):
             del self.solvation_result
 
     def get_hessian(self, atoms, delta: float = 0.002):
-        """Dispatch on self.hessian. Subclasses may override for backend autograd."""
+        """Return the gas or complete composed-potential Hessian.
+
+        Analytic backend Hessians contain only the gas MLIP contribution and
+        therefore remain unavailable when a solvent correction is attached.
+        The numerical path differentiates the calculator's reported forces, so
+        it includes any attached energy-consistent solvent force exactly once.
+        """
         self._reject_unsupported_pbc(atoms)
         mode = getattr(self, 'hessian', self.SUPPORTED_HESSIAN_MODES[0])
         if mode == 'analytic':
@@ -402,7 +491,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             return np.asarray(self._analytic_hessian(atoms))
         if mode == 'numerical':
-            if getattr(self, 'solvent_correction', None) is not None:
+            correction = getattr(self, 'solvent_correction', None)
+            if correction is not None and "forces" not in set(
+                getattr(correction, "supported_properties", {"energy"})
+            ):
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             return numerical_hessian_from_atoms(self, atoms, delta)
         raise ValueError(f"Unknown hessian mode: {mode!r}")

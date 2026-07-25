@@ -7,7 +7,21 @@ import numpy as np
 import torch
 from ase.calculators.calculator import all_changes
 
-from ..calculator_base import CalcABC, hessian_via_double_autograd, register_calculator
+from .._batch_types import BatchResult
+from .._batch_utils import (
+    atoms_list_has_pbc,
+    empty_batch_result,
+    normalize_energy_forces_request,
+    sequential_calculate_many,
+    split_atomwise_array,
+)
+from ..calculator_base import (
+    EV2HARTREE,
+    CalcABC,
+    hessian_via_double_autograd,
+    register_calculator,
+)
+from ._batch_graph import build_mace_data_dict_batch, energy_vector_from_output
 from ._common import (
     model_float_dtype,
     one_hot_node_attrs,
@@ -107,6 +121,7 @@ class MACECalculator(CalcABC):
     REQUIRES_LOCAL_MODEL_FILE = True
     OPTION_KEYS = ()
     MODEL_PATH_OPTION = 'model_path'
+    supports_batch_energy_forces = True
 
     @classmethod
     def build_kwargs_from_options(cls, model, options, *, resolved_model_path=None):
@@ -184,10 +199,87 @@ class MACECalculator(CalcABC):
 
         self._finalize_results(atoms, energy=energy_eV.item(), forces=forces_np, hessian=hessian)
 
+    def calculate_many(
+        self,
+        atoms_list,
+        properties=("energy", "forces"),
+    ) -> BatchResult:
+        """Evaluate independent molecules as one disconnected MACE graph.
+
+        Each structure's radius graph is built separately before concatenation,
+        so different conformers cannot acquire artificial cross-image edges.
+        PBC and attached implicit-solvent corrections retain the validated
+        sequential path.
+        """
+        _, want_energy, want_forces, request = normalize_energy_forces_request(
+            properties
+        )
+        if not request:
+            return BatchResult()
+
+        atoms_list = list(atoms_list)
+        if not atoms_list:
+            return empty_batch_result(want_energy, want_forces)
+        if atoms_list_has_pbc(atoms_list) or self.solvent_correction is not None:
+            return sequential_calculate_many(
+                self,
+                atoms_list,
+                request,
+                want_energy,
+                want_forces,
+            )
+
+        data_dict, local_or_ghost, counts = build_mace_data_dict_batch(
+            atoms_list,
+            atomic_numbers=self.atomic_numbers,
+            r_max=self.r_max,
+            device=self.device,
+            dtype=self.dtype,
+            requires_grad=want_forces,
+        )
+        if want_forces:
+            total_energy_local = self.model.forward(
+                data=data_dict,
+                local_or_ghost=local_or_ghost,
+                compute_virials=False,
+            )
+        else:
+            with torch.no_grad():
+                total_energy_local = self.model.forward(
+                    data=data_dict,
+                    local_or_ghost=local_or_ghost,
+                    compute_virials=False,
+                )
+
+        energy_vector_eV = energy_vector_from_output(
+            total_energy_local,
+            batch_size=len(atoms_list),
+            n_atoms_total=data_dict['positions'].shape[0],
+            batch=data_dict['batch'],
+        )
+        energies = (
+            energy_vector_eV.detach().cpu().numpy().astype(np.float64)
+            * EV2HARTREE
+            if want_energy
+            else None
+        )
+
+        forces_list = None
+        if want_forces:
+            forces_eV = -torch.autograd.grad(
+                energy_vector_eV.sum(),
+                data_dict['positions'],
+            )[0]
+            forces_hartree = (
+                forces_eV.detach().cpu().numpy().astype(np.float64)
+                * EV2HARTREE
+            )
+            forces_list = split_atomwise_array(forces_hartree, counts)
+
+        return BatchResult(energies=energies, forces=forces_list)
+
     def _analytic_hessian(self, atoms) -> np.ndarray:
         """Analytic Hessian via autograd. Returns (3N, 3N) np.ndarray in Hartree/Å²."""
-        from ..calculator_base import EV2HARTREE
-
         positions = torch.tensor(
             atoms.get_positions(), dtype=self.dtype, device=self.device, requires_grad=True
         )

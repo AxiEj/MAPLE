@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import ctypes
 import os
+import threading
+from contextlib import contextmanager
 from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -56,6 +58,7 @@ _MACEPOL_FOUNDATION_NAMES = {
     "macepoll": "polar-1-l",
 }
 _ROUTE2_MACE_TORCH_VERSION = "0.3.16"
+_LOCAL_REACTION_FIELD_LOCK = threading.RLock()
 
 
 @dataclass(frozen=True)
@@ -84,6 +87,18 @@ class _LocalReactionFieldProjector(torch.nn.Module):
 
     def set_node_potential_gradient(self, values: torch.Tensor | None) -> None:
         self._node_potential_gradient = values
+
+    @contextmanager
+    def use_node_potential_gradient(self, values: torch.Tensor | None):
+        """Temporarily install one field without leaking across nested calls."""
+
+        with _LOCAL_REACTION_FIELD_LOCK:
+            previous = self._node_potential_gradient
+            self._node_potential_gradient = values
+            try:
+                yield
+            finally:
+                self._node_potential_gradient = previous
 
     def forward(self, batch, positions, field):
         values = self._node_potential_gradient
@@ -439,16 +454,13 @@ class MACEPolCalculator(CalcABC):
             local_values = torch.cat((potential[:, None], gradient), dim=1)
 
         batch = self._batch_dict(atoms)
-        self._reaction_projector.set_node_potential_gradient(local_values)
-        try:
+        with self._reaction_projector.use_node_potential_gradient(local_values):
             return self._model_forward(
                 batch,
                 compute_force=compute_forces,
                 compute_stress=False,
                 compute_hessian=compute_hessian,
             )
-        finally:
-            self._reaction_projector.set_node_potential_gradient(None)
 
     def polar_state(
         self,
@@ -663,16 +675,15 @@ class MACEPolCalculator(CalcABC):
         positions_required_grad = positions.requires_grad
         positions.requires_grad_(True)
         try:
-            self._reaction_projector.set_node_potential_gradient(local_values)
-            try:
+            with self._reaction_projector.use_node_potential_gradient(
+                local_values
+            ):
                 output = self._model_forward(
                     batch,
                     compute_force=False,
                     compute_stress=False,
                     compute_hessian=False,
                 )
-            finally:
-                self._reaction_projector.set_node_potential_gradient(None)
 
             density = output.get("density_coefficients")
             if density is None or density.shape != expected_density_shape:

@@ -6,8 +6,8 @@ complete coordinate derivative.  It is intentionally independent of the
 surface-MEP/ASC provider contract because ddX natively accepts atom-centred
 multipoles.
 
-``pyddx`` is imported lazily and version-gated.  The adapter is not wired into
-the public Route-2 parser or production force path.
+``pyddx`` is imported lazily and version-gated.  The adapter is wired only into
+the explicit, non-default experimental Route-2 single-point force candidate.
 """
 
 from __future__ import annotations

@@ -150,38 +150,46 @@ class ExternalMEPCavityResponse(Protocol):
 
     contract_version: int
     energy_response_is_reciprocal: bool
+    atom_count: int
 
     @property
     def atomic_numbers(self) -> np.ndarray:
         """Atomic numbers defining the fixed cavity."""
+        ...
 
     @property
     def reference_positions_bohr(self) -> np.ndarray:
         """Solute geometry at which the cavity/operator was built."""
+        ...
 
     @property
     def cavity_radii_angstrom(self) -> np.ndarray:
         """Per-atom radii used to define the cavity."""
+        ...
 
     @property
     def surface_points_bohr(self) -> np.ndarray:
         """Current fixed surface points."""
+        ...
 
     @property
     def surface_areas_bohr2(self) -> np.ndarray:
         """Current fixed surface areas."""
+        ...
 
     def apply_energy_conjugate(
         self,
         surface_potential_hartree_per_e: np.ndarray,
     ) -> np.ndarray:
         """Apply the reciprocal energy-conjugate surface response."""
+        ...
 
     def solve(
         self,
         surface_potential_hartree_per_e: np.ndarray,
     ) -> SurfaceChargeState:
         """Return direct, adjoint, conjugate charge, and polarization energy."""
+        ...
 
 
 class PCMSolverExternalMEPCavityResponse:
@@ -232,6 +240,7 @@ class PCMSolverExternalMEPCavityResponse:
         self._atomic_numbers = atomic_numbers
         self._reference_positions_bohr = positions
         self._cavity_radii_angstrom = radii
+        self.atom_count = int(atomic_numbers.size)
         self._surface_size = points.shape[0]
 
     @property
@@ -302,11 +311,16 @@ class PCMSolverExternalMEPCavityResponse:
             raise RuntimeError(
                 "PCMSolver solve() must return asc and polarization_energy."
             ) from exc
+        direct_charge = _immutable_vector(
+            np.asarray(direct, dtype=float),
+            name="direct_surface_charge_e",
+            length=potential.size,
+        )
         return SurfaceChargeState(
             surface_potential_hartree_per_e=potential,
-            direct_surface_charge_e=direct,
-            adjoint_surface_charge_e=direct,
-            energy_conjugate_surface_charge_e=direct,
+            direct_surface_charge_e=direct_charge,
+            adjoint_surface_charge_e=direct_charge,
+            energy_conjugate_surface_charge_e=direct_charge,
             polarization_energy_hartree=float(energy),
         )
 

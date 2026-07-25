@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from types import SimpleNamespace
 
 import pytest
@@ -62,6 +63,15 @@ class _FieldRecorder:
 
     def set_node_potential_gradient(self, values):
         self.values = values
+
+    @contextmanager
+    def use_node_potential_gradient(self, values):
+        previous = self.values
+        self.values = values
+        try:
+            yield
+        finally:
+            self.values = previous
 
 
 class _ForwardRecorder:

@@ -194,6 +194,21 @@ def test_ddpcm_gaff2_profile_changes_only_typed_carbonyl_oxygen(tmp_path):
     )
 
 
+def test_ddpcm_provider_rejects_mol2_atom_type_changes_after_initialization(
+    tmp_path,
+):
+    provider = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _options(),
+        audit_dir=tmp_path,
+    )
+    changed = _atoms()
+    changed.info["mol2"] = {"atom_types": ["c.3", "o"]}
+
+    with pytest.raises(ValueError, match="MOL2 atom type/order changes"):
+        provider.evaluate(changed, calculator=None)
+
+
 def test_public_parser_keeps_pcmsolver_energy_only():
     with pytest.raises(ValueError, match="does not provide forces"):
         _parse(

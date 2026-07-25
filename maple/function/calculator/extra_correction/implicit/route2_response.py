@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import inspect
-from typing import Protocol
+from typing import Any, Protocol
 
 import numpy as np
 from scipy.sparse.linalg import LinearOperator, gmres
@@ -18,11 +18,15 @@ from scipy.sparse.linalg import LinearOperator, gmres
 class ReactionFieldLinearMap(Protocol):
     """Fixed-cavity density-to-node-field map and its discrete adjoint."""
 
+    atom_count: int
+
     def apply(self, density_direction: np.ndarray) -> np.ndarray:
         """Map an ``(n_atoms, 4)`` density direction to a node-field direction."""
+        ...
 
     def adjoint(self, field_cotangent: np.ndarray) -> np.ndarray:
         """Map an ``(n_atoms, 4)`` node-field cotangent back to density space."""
+        ...
 
 
 class DensityResponseLinearization(Protocol):
@@ -30,9 +34,11 @@ class DensityResponseLinearization(Protocol):
 
     def jvp(self, field_direction: np.ndarray) -> np.ndarray:
         """Apply the field-to-density Jacobian."""
+        ...
 
     def vjp(self, density_cotangent: np.ndarray) -> np.ndarray:
         """Apply the discrete adjoint of the field-to-density Jacobian."""
+        ...
 
 
 def _validated_block(
@@ -299,7 +305,8 @@ def solve_adjoint(
         nonlocal iterations
         iterations += 1
 
-    operator = LinearOperator(
+    linear_operator_factory: Any = LinearOperator
+    operator = linear_operator_factory(
         shape=(coordinates.dimension, coordinates.dimension),
         matvec=matvec,
         dtype=np.float64,

@@ -62,10 +62,21 @@ FORCE_STATE_ENERGY_TOLERANCE_EV = 1.0e-9
 NEUTRAL_DENSITY_TOLERANCE = 1.0e-8
 
 
+def _normalized_mol2_atom_types(atoms) -> tuple[str, ...] | None:
+    mol2 = atoms.info.get("mol2")
+    if not isinstance(mol2, dict) or mol2.get("atom_types") is None:
+        return None
+    return tuple(
+        str(atom_type).strip().lower()
+        for atom_type in mol2["atom_types"]
+    )
+
+
 @dataclass(frozen=True)
 class _CoupledState:
     calculator_identity: int
     atomic_numbers: np.ndarray
+    mol2_atom_types: tuple[str, ...] | None
     positions_angstrom: np.ndarray
     reaction_field: Any
     density_coefficients: np.ndarray
@@ -83,6 +94,7 @@ class _CoupledState:
                 self.atomic_numbers,
                 np.asarray(atoms.numbers, dtype=int),
             )
+            and self.mol2_atom_types == _normalized_mol2_atom_types(atoms)
             and np.array_equal(
                 self.positions_angstrom,
                 np.asarray(atoms.get_positions(), dtype=float),
@@ -127,15 +139,12 @@ class DDPCMSMDImplicitSolvation:
             dtype=int,
         ).copy()
 
-        mol2 = self.atoms.info.get("mol2")
-        atom_types = (
-            mol2.get("atom_types")
-            if isinstance(mol2, dict)
-            else None
+        self._reference_mol2_atom_types = _normalized_mol2_atom_types(
+            self.atoms
         )
         self.coulomb_radii_angstrom = route2_water_coulomb_radii(
             self.atoms.get_chemical_symbols(),
-            atom_types=atom_types,
+            atom_types=self._reference_mol2_atom_types,
             profile=self.profile,
         )
         self._cached_state: _CoupledState | None = None
@@ -279,6 +288,12 @@ class DDPCMSMDImplicitSolvation:
             raise ValueError(
                 "Route 2 does not permit atom identity/order changes."
             )
+        atom_types = _normalized_mol2_atom_types(atoms)
+        if atom_types != self._reference_mol2_atom_types:
+            raise ValueError(
+                "Route 2 does not permit MOL2 atom type/order changes after "
+                "the cavity radii are initialized."
+            )
 
     def _validate_calculator(self, calculator, *, need_forces: bool) -> None:
         if calculator is None or not callable(
@@ -365,7 +380,7 @@ class DDPCMSMDImplicitSolvation:
         return field.copy()
 
     @staticmethod
-    def _gas_state(calculator, atoms, *, need_forces: bool):
+    def _gas_state(calculator, atoms, *, need_forces: bool) -> Any:
         cached = getattr(calculator, "cached_polar_state", None)
         if callable(cached):
             state = cached(atoms, require_forces=need_forces)
@@ -493,6 +508,7 @@ class DDPCMSMDImplicitSolvation:
         return _CoupledState(
             calculator_identity=id(calculator),
             atomic_numbers=np.asarray(atoms.numbers, dtype=int).copy(),
+            mol2_atom_types=self._reference_mol2_atom_types,
             positions_angstrom=np.asarray(
                 atoms.get_positions(),
                 dtype=float,
@@ -703,7 +719,8 @@ class DDPCMSMDImplicitSolvation:
                 }
             )
         state_path = self.audit_dir / "route2-ddpcm-state.npz"
-        np.savez_compressed(state_path, **arrays)
+        archive_arrays: dict[str, Any] = dict(arrays)
+        np.savez_compressed(state_path, **archive_arrays)
 
         payload = {
             "schema_version": 1,

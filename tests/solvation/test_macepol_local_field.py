@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import numpy as np
 import pytest
 from ase import Atoms
@@ -7,7 +9,10 @@ from ase import Atoms
 
 torch = pytest.importorskip("torch")
 
-from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
+from maple.function.calculator.mace._macepol_calculator import (
+    MACEPolCalculator,
+    _LocalReactionFieldProjector,
+)
 from maple.function.calculator.mace._macepol_long_range import (
     MACEPolarLongRangeEvaluator,
 )
@@ -22,6 +27,24 @@ class _FieldRecorder:
 
     def set_node_potential_gradient(self, values):
         self.values = values
+
+    @contextmanager
+    def use_node_potential_gradient(self, values):
+        previous = self.values
+        self.values = values
+        try:
+            yield
+        finally:
+            self.values = previous
+
+
+class _ProjectorStub(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.register_buffer("matrix", torch.eye(4, dtype=torch.float64))
+
+    def forward(self, _batch, _positions, _field):
+        raise AssertionError("The upstream projector is not used by this test.")
 
 
 class _QuadraticFieldModel:
@@ -148,6 +171,20 @@ def _calculator_with_model(model, recorder: _FieldRecorder):
     calculator.model = model
     calculator._batch_dict = lambda _atoms: {"synthetic": torch.tensor(1.0)}
     return calculator
+
+
+def test_local_reaction_field_context_restores_nested_outer_state():
+    projector = _LocalReactionFieldProjector(_ProjectorStub())
+    outer = torch.arange(8, dtype=torch.float64).reshape(2, 4)
+    inner = -outer
+
+    with projector.use_node_potential_gradient(outer):
+        assert projector._node_potential_gradient is outer
+        with projector.use_node_potential_gradient(inner):
+            assert projector._node_potential_gradient is inner
+        assert projector._node_potential_gradient is outer
+
+    assert projector._node_potential_gradient is None
 
 
 def test_polar_output_torch_preserves_local_field_autograd_graph():

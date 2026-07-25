@@ -3,14 +3,15 @@
 This module owns the neutral density-space right-hand side, the diagnostic
 fixed-surface coordinate-gradient slice, the contract for differentiating one
 complete continuum reaction-field map, and an internal bookkeeping boundary
-for adding a separately validated CDS gradient.  It deliberately does not
-expose forces through a production provider.
+for adding a separately validated CDS gradient.  Its complete derivative is
+used only by the explicit, non-default experimental single-point force
+candidate.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Protocol
+from typing import Callable, Protocol, cast
 
 import numpy as np
 from ase.units import Hartree
@@ -41,6 +42,7 @@ class FixedSurfaceReactionField(ReactionFieldLinearMap, Protocol):
         field_cotangent: np.ndarray,
     ) -> np.ndarray:
         """Differentiate ``<field_cotangent, P_R density>`` at fixed surface."""
+        ...
 
 
 class FullReactionFieldPositionDerivative(
@@ -65,6 +67,7 @@ class FullReactionFieldPositionDerivative(
         moving-surface kernels, the continuum response operator, and
         reaction-field back-projection for the exact discrete energy path.
         """
+        ...
 
 
 def _validated_block(
@@ -452,11 +455,15 @@ def continuum_coupled_solvation_coordinate_gradient(
             "The reaction-field backend does not provide a full reaction-field "
             "coordinate derivative."
         )
+    typed_implementation = cast(
+        Callable[[np.ndarray, np.ndarray], np.ndarray],
+        implementation,
+    )
 
     return _coupled_solvation_coordinate_gradient(
         reaction_field,
         density_response,
-        reaction_position_vjp=implementation,
+        reaction_position_vjp=typed_implementation,
         reaction_position_vjp_name="full reaction-field position VJP",
         reciprocity_error=(
             "The continuum-coupled coordinate gradient requires a reciprocal "

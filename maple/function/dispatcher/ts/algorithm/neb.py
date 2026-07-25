@@ -197,7 +197,6 @@ class NEBParams:
     cineb_f_rms_th: float = 1e-2 #2e-03          # RMS(Fp) threshold for CINEB
     cilbfgs_m: int = 20                    # memory size for L-BFGS in CINEB
     cistep0: float = 5e-3                  # initial step length for CINEB
-    nebts_candidates: int = 5              # max final-path candidates to try in NEB-TS handoff
 
 
 def compute_dynamic_k(energies: List[float], k_min: float, k_max: float, k_decay: float = 0.5) -> List[float]:
@@ -567,8 +566,6 @@ class NEB(JobABC):
         else:
             raise ValueError("Please provide Molecules object containing all images")
 
-        self.raw_paras = paras if isinstance(paras, dict) else {}
-
         # Initialize params from paras dict
         self.params = self._init_params(NEBParams, paras, ("neb", "NEB", "ts"))
 
@@ -736,41 +733,6 @@ class NEB(JobABC):
                 forces.append(to_numpy_f64(F))
         return energies, forces
 
-    def _nebts_candidate_indices(
-        self,
-        images: List[Atoms],
-        energies: List[float],
-        primary_idx: int,
-    ) -> List[int]:
-        """Rank final-path barrier candidates for NEB-TS PRFO refinement.
-
-        CI-NEB supplies a TS guess near the barrier, but the initially fixed
-        climbing image is not guaranteed to be the only usable saddle guess at
-        the end of CINEB.  Keep the path equations untouched and make only the
-        handoff robust: try the final highest-energy image first, then nearby
-        and next-highest internal images until a strict PRFO TS validation
-        accepts one candidate.
-        """
-        internal = list(range(1, len(images) - 1))
-        if not internal:
-            return [primary_idx]
-
-        limit = max(1, int(getattr(self.params, "nebts_candidates", 5)))
-        candidates: List[int] = []
-
-        def add(idx: int) -> None:
-            if idx in internal and idx not in candidates and len(candidates) < limit:
-                candidates.append(idx)
-
-        add(primary_idx)
-        for idx in sorted(internal, key=lambda i: energies[i], reverse=True):
-            add(idx)
-            add(idx - 1)
-            add(idx + 1)
-            if len(candidates) >= limit:
-                break
-        return candidates
-    
     def _compute_distances(self, images: List[Atoms]) -> List[float]:
         """
         Compute straight-line distances between consecutive images.
@@ -1082,24 +1044,6 @@ class NEB(JobABC):
         # Clean up fixed HEI
         self._cineb_fixed_hei = None
 
-        # Use the final highest-energy internal image as the TS candidate.  The
-        # climbing image is frozen during CINEB for optimizer stability, but a
-        # neighboring image can overtake it in energy before convergence.  The
-        # NEB-TS handoff should follow the final barrier-top image, not a stale
-        # initial CI index.
-        internal = range(1, len(images) - 1)
-        final_hei = max(internal, key=lambda idx: Es[idx]) if len(images) > 2 else hei
-        if final_hei != hei:
-            log_info([
-                "\nFinal highest-energy image differs from fixed CINEB image: "
-                f"{hei} -> {final_hei}. Using final highest-energy image for "
-                "NEB-TS PRFO refinement.\n"
-            ], self.output)
-            hei = final_hei
-            F_CI_vec = to_numpy_f64(raw_forces[hei])
-            maxF_CI = float(np.max(np.linalg.norm(F_CI_vec, axis=1)))
-            rmsF_CI = float(np.sqrt(np.mean(np.linalg.norm(F_CI_vec, axis=1) ** 2)))
-
         # --- Stage 1 summary: CI part ---
         base, _ = os.path.splitext(self.output)
         cineb_mep = base + "_cineb_mep.xyz"
@@ -1124,78 +1068,24 @@ class NEB(JobABC):
         if self.params.refine == 'nebts':
             from .PRFO import PRFO
 
-            candidate_indices = self._nebts_candidate_indices(images, Es, hei)
-            if len(candidate_indices) > 1:
-                log_info([
-                    "\nNEB-TS PRFO candidate order: "
-                    + ", ".join(
-                        f"{idx}(E={Es[idx]: .8f})" for idx in candidate_indices
-                    )
-                    + "\n"
-                ], self.output)
+            # Use CI geometry as TS guess
+            ts_guess = images[hei].copy()
+            ts_guess.calc = self.atoms_R.calc
+            ts_guess.f_max_th = images[0].f_max_th
+            ts_guess.f_rms_th = images[0].f_rms_th
+            ts_guess.dp_max_th = images[0].dp_max_th
+            ts_guess.dp_rms_th = images[0].dp_rms_th
 
-            ts_opt = None
-            accepted_hei = None
-            last_error: Optional[RuntimeError] = None
-            for cand_idx in candidate_indices:
-                ts_guess = images[cand_idx].copy()
-                ts_guess.calc = self.atoms_R.calc
-                ts_guess.f_max_th = images[0].f_max_th
-                ts_guess.f_rms_th = images[0].f_rms_th
-                ts_guess.dp_max_th = images[0].dp_max_th
-                ts_guess.dp_rms_th = images[0].dp_rms_th
-
-                if cand_idx != hei:
-                    log_info([
-                        "\nTrying alternate NEB-TS PRFO candidate image "
-                        f"{cand_idx} (E={Es[cand_idx]: .8f} Eh).\n"
-                    ], self.output)
-
-                prfo = PRFO(output=self.output, atoms=ts_guess, paras=self.raw_paras)
-                try:
-                    candidate_ts = prfo.run()
-                    if not getattr(prfo, "normal_termination", False):
-                        raise RuntimeError(
-                            "PRFO candidate did not reach Normal Termination."
-                        )
-                except RuntimeError as exc:
-                    msg = str(exc)
-                    retryable = (
-                        "first-order transition state" in msg
-                        or "Normal Termination" in msg
-                    )
-                    if not retryable:
-                        raise
-                    last_error = exc
-                    log_info([
-                        "\nRejected NEB-TS PRFO candidate image "
-                        f"{cand_idx}: {msg}\n"
-                    ], self.output)
-                    continue
-
-                ts_opt = candidate_ts
-                accepted_hei = cand_idx
-                if accepted_hei != hei:
-                    log_info([
-                        "\nAccepted alternate NEB-TS PRFO candidate image "
-                        f"{accepted_hei}.\n"
-                    ], self.output)
-                    write_xyz(cineb_hei, [images[accepted_hei]], energies=[Es[accepted_hei]])
-                break
-
-            if ts_opt is None or accepted_hei is None:
-                raise RuntimeError(
-                    "NEB-TS PRFO refinement failed for all final-path "
-                    "barrier candidates."
-                ) from last_error
+            prfo = PRFO(output=self.output, atoms=ts_guess)
+            ts_opt = prfo.run()
 
             E_TS = ts_opt.get_potential_energy(force_consistent=True)
             maxF_TS = np.max(np.linalg.norm(ts_opt.get_forces(), axis=1))
             rmsF_TS = np.sqrt(np.mean(np.linalg.norm(ts_opt.get_forces(), axis=1) ** 2))
 
             # Insert TS right after CI
-            images.insert(accepted_hei + 1, ts_opt)
-            Es.insert(accepted_hei + 1, E_TS)
+            images.insert(hei + 1, ts_opt)
+            Es.insert(hei + 1, E_TS)
 
             nebts_mep = base + "_nebts_mep.xyz"
             nebts_ts = base + "_nebts_ts.xyz"
@@ -1213,8 +1103,8 @@ class NEB(JobABC):
             kcal_per_Eh = 627.509
             for i, E in enumerate(Es):
                 dE = (E - Es[0]) * kcal_per_Eh
-                label = " TS" if i == accepted_hei + 1 else f"{i:3d}"
-                marker = " <= TS" if i == accepted_hei + 1 else (" <= CI" if i == accepted_hei else "")
+                label = " TS" if i == hei + 1 else f"{i:3d}"
+                marker = " <= TS" if i == hei + 1 else (" <= CI" if i == hei else "")
                 maxF = np.max(np.linalg.norm(images[i].get_forces(), axis=1))
                 rmsF = np.sqrt(np.mean(np.linalg.norm(images[i].get_forces(), axis=1) ** 2))
                 log_info([

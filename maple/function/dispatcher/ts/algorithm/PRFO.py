@@ -475,7 +475,6 @@ class PRFO(JobABC):
         # Mode tracking
         self.tracked_mode_vec_mw = None
         self.tracked_mode_idx = None
-        self.normal_termination = False
     
     def atoms_to_xyz(self, atoms: Atoms) -> str:
         """Convert Atoms object to XYZ format string."""
@@ -672,7 +671,6 @@ class PRFO(JobABC):
         
         converged = False
         iteration = 0
-        self.normal_termination = False
         
         # Setup trajectory file
         base, _ = os.path.splitext(self.output)
@@ -846,7 +844,6 @@ class PRFO(JobABC):
                     # Check convergence
                     if self.check_convergence(atoms):
                         converged = True
-                        self.normal_termination = True
                         info_message = [
                             '\n\n' + '-' * 70 + '\n',
                             f'{"Normal Termination".center(70)}\n\n'

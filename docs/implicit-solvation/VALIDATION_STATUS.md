@@ -446,11 +446,47 @@ proof-of-concept, not a complete solution-phase PES.
     deprecation and SWIG metadata warnings rather than a PCM cavity warning.
 
     This checks one total-gradient component for one molecule. Its relative
-    error is close to the gate, 1202 points remains a candidate rather than a
-    default, and no total-gradient second orientation, second molecule,
+    error is close to the gate, and 1202 points remains a candidate rather
+    than a default.
+25. A clean acetone total-gradient canary at baseline `aae25a8` repeats the
+    1202-point, `mixing=1.0` discriminator on a ten-atom second molecule. It
+    first exposed a generic solver-budget bug: SciPy GMRES's default
+    20-vector restart and `callback_type=pr_norm` allowed `maxiter=100` to
+    mean 100 restart cycles. The corrected policy uses the complete
+    39-dimensional neutral Krylov space and makes 100 a true inner-iteration
+    limit.
+
+    The original \(10^{-11}\) outer tolerance then failed closed after 100
+    iterations at a \(7.76\times10^{-11}\) residual. A dense diagnostic found
+    a well-conditioned operator (`cond=1.573`), while a separate probe found
+    deterministic repeat differences near \(10^{-17}\) but CUDA-float64
+    MACE/full-operator linear-superposition floors of
+    \(2.22\times10^{-11}\)/\(5.40\times10^{-11}\). The strict target was
+    below the measured operator arithmetic. At an evidence-calibrated
+    \(10^{-10}\) outer tolerance, GMRES used 11 callback iterations and 14
+    operator applications and reached relative residual
+    \(3.65\times10^{-11}\).
+
+    The independent \(3\times10^{-5}\)-angstrom whole-energy central
+    difference gave continuum, CDS, and total absolute errors of
+    \(6.46\times10^{-6}\), \(9.30\times10^{-10}\), and
+    \(6.46\times10^{-6}\) eV/angstrom. The total relative error was
+    \(6.97\times10^{-6}\); translation and torque norms were
+    \(1.39\times10^{-14}\) eV/angstrom and \(2.38\times10^{-4}\) eV. All
+    declared gates passed.
+
+    The base root, analytic derivative, and two-displacement oracle took
+    `35.97`, `35.05`, and `64.34 s`, and the full run took `149.24 s`.
+    Methanol's matching phases took `14.82`, `15.73`, and `32.24 s`. The
+    larger ten-sphere/39-dimensional per-iteration problem explains the
+    increase; the CDS call took only `0.068 s`, and the structured
+    PCMSolver/`primary` warning count was zero. The field
+    `no_pcmsolver_primary_warning=true` is a passed gate.
+
+    This adds a second molecule, not a second total-gradient orientation,
     public force, flexible-geometry conservation, portable speed, or chemical
-    accuracy is established.
-25. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
+    accuracy certification.
+26. Only after these gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

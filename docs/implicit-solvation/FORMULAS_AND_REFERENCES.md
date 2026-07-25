@@ -1193,14 +1193,53 @@ other Python warnings; earlier same-configuration, same-count energy canaries
 classify them as MACE/Torch deprecation and SWIG metadata warnings rather than
 continuum-cavity instability.
 
+On clean baseline `aae25a8`, the same 1202-point, `mixing=1.0` total-gradient
+canary was repeated for ten-atom acetone without changing the cavity radii,
+density tolerance, ddPCM tolerance, finite-difference step, or component
+gates. Acetone exposed a solver-budget error that methanol did not: SciPy
+GMRES had used its default 20-vector restart and interpreted `maxiter=100` as
+100 restart cycles. The corrected policy uses the complete 39-dimensional
+neutral Krylov space and makes 100 an actual inner-iteration limit. With the
+original \(10^{-11}\) outer relative tolerance, the now-bounded solve stopped
+after 100 inner iterations because the residual stalled near
+\(7.76\times10^{-11}\), rather than running for an unbounded number of
+restart cycles.
+
+A separate repeatability/linearity probe showed that this was not a
+condition-number or random-repeatability failure. The explicitly assembled
+39-dimensional operator had condition number `1.573`; identical MACE VJPs
+agreed to about \(10^{-17}\), while the MACE VJP and complete adjoint operator
+showed linear-superposition floors of \(2.22\times10^{-11}\) and
+\(5.40\times10^{-11}\), respectively, on CUDA float64. The \(10^{-11}\)
+outer target was therefore below the measured arithmetic linearity of this
+operator. A predeclared \(10^{-10}\) outer tolerance—not a change to the
+physical ML-SCF root or ddPCM equations—converged in 11 callback iterations
+and 14 operator applications to relative residual
+\(3.65\times10^{-11}\). The independent whole-energy finite-difference gate
+then gave continuum, CDS, and total absolute errors of
+\(6.46\times10^{-6}\), \(9.30\times10^{-10}\), and
+\(6.46\times10^{-6}\) eV/angstrom; the total relative error was
+\(6.97\times10^{-6}\). Translation and torque norms were
+\(1.39\times10^{-14}\) eV/angstrom and \(2.38\times10^{-4}\) eV. All
+predeclared physical and warning gates passed, with zero structured
+PCMSolver/`primary` warnings.
+
+The acetone base root, analytic derivative, and two-displacement oracle took
+`35.97`, `35.05`, and `64.34 s`; the full process took `149.24 s`. The
+corresponding methanol phases were `14.82`, `15.73`, and `32.24 s`. Both
+roots required 18 iterations and both adjoints required a similar number of
+operator applications, so the increase is mainly the per-iteration cost of
+ten spheres and a 39-dimensional neutral response versus six spheres and 23
+dimensions, not CDS (`0.068 s`) or a `primary` fallback.
+
 This remains an engineering canary, not an adopted grid or a solution-phase
 PES. The adapter is lazy, hard-gated to pyddx 0.8.0, and absent from the
 public parser. The real coupled continuum-electrostatic gradient is now
 checked against one largest-component whole-energy finite difference and one
 additional rigid orientation for methanol; the total continuum-plus-CDS
 gradient is checked against one largest-component whole-energy finite
-difference. `SolvationResult` force publication, a total-gradient second
-orientation, broader rotation, a second molecule, flexible geometries, and
+difference for methanol and acetone. `SolvationResult` force publication, a
+total-gradient second orientation, broader rotation, flexible geometries, and
 chemical-space accuracy remain open.
 
 Route-2 references:

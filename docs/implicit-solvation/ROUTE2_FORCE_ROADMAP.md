@@ -548,9 +548,10 @@ that CDS energy and gradient come from the same selected provider.
    `supported_properties={"energy", "forces"}` be advertised. The per-atom
    radius, real-MACE fixed-point adjoint, CDS component, and algebraic total
    assembly are no longer the blockers.
-8. **Done for an independent multipole-native ddPCM backbone, one real
-   ML-SCF/adjoint-gradient canary, and one total continuum-plus-CDS component;
-   second-molecule and public-force integration remain pending:**
+8. **Done for an independent multipole-native ddPCM backbone, real
+   ML-SCF/adjoint-gradient canaries, and one total continuum-plus-CDS component
+   on each of two molecules; second-orientation and public-force integration
+   remain pending:**
    `PyDDXPCMReactionFieldLinearMap` lazily and exactly version-locks pyddx
    0.8.0. It maps MACE-POLAR \(l\leq1\) atom-centred multipoles directly into
    ddX, obtains the reciprocal reaction field from one forward and one adjoint
@@ -614,10 +615,38 @@ that CDS energy and gradient come from the same selected provider.
    warning count was zero; a JSON key that asserts
    `no_pcmsolver_primary_warning=true` is a passed gate rather than a warning.
 
-   The next bounded step is to repeat the total-gradient and invariance
-   discriminator on a second rigid molecule without changing the 1202-point
-   candidate or tolerances. Until that passes, this is not chemical-accuracy
-   evidence, a public force, or a MAPLE solution-phase PES.
+   On clean baseline `aae25a8`, the same total-gradient discriminator was
+   applied to ten-atom acetone. This exposed a generic SciPy GMRES budget
+   error: the old 20-vector restart plus `callback_type=pr_norm` made
+   `maxiter=100` permit 100 restart cycles. The corrected solve uses the full
+   39-dimensional neutral Krylov space and counts at most 100 inner
+   iterations. A strict \(10^{-11}\) outer target still stalled because the
+   measured CUDA-float64 linear-superposition floor was
+   \(5.40\times10^{-11}\), not because the explicitly assembled operator was
+   ill-conditioned (`cond=1.573`) or non-repeatable.
+
+   With an evidence-calibrated \(10^{-10}\) outer tolerance, the acetone
+   adjoint converged in 11 callback iterations and 14 operator applications.
+   Continuum, CDS, and total whole-energy finite-difference errors were
+   \(6.46\times10^{-6}\), \(9.30\times10^{-10}\), and
+   \(6.46\times10^{-6}\) eV/angstrom; the total relative error was
+   \(6.97\times10^{-6}\). Translation and torque norms were
+   \(1.39\times10^{-14}\) eV/angstrom and \(2.38\times10^{-4}\) eV. Every
+   declared component, total, conservation, and warning gate passed.
+
+   The acetone base root, analytic derivative, and two-displacement oracle
+   took `35.97`, `35.05`, and `64.34 s`, versus methanol's `14.82`, `15.73`,
+   and `32.24 s`; the complete acetone process took `149.24 s`. Both roots
+   needed 18 iterations and the adjoints used a similar number of operator
+   applications. The increase is therefore mainly the larger ten-sphere,
+   39-dimensional per-iteration problem, not the `0.068-s` CDS term or a
+   `primary` fallback. Its structured PCMSolver/`primary` warning count was
+   zero.
+
+   The next bounded step is one acetone total-gradient rigid-orientation
+   discriminator without changing the 1202-point candidate or the calibrated
+   solver policy. Until that passes, this is not chemical-accuracy evidence, a
+   public force, or a MAPLE solution-phase PES.
 
 ### Phase 3 -- verification gates
 

@@ -8,6 +8,11 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
 RUNNER = BENCHMARK_DIR / "run_multi_mlip_optimizer_qualification.py"
 PROTOCOL = BENCHMARK_DIR / "multi_mlip_optimizer_qualification_protocol.json"
+RIGID_PREFLIGHT = (
+    BENCHMARK_DIR
+    / "route1-multi-mlip-phase-specific-selected-minimum-rrho-v8-rigid-"
+    "preflight-2026-07-25.json"
+)
 FAILURE_AUDIT = (
     BENCHMARK_DIR
     / "route1-multi-mlip-phase-specific-selected-minimum-rrho-v8-flexible-"
@@ -59,6 +64,40 @@ def test_optimizer_protocol_is_label_blind_and_freezes_all_three_mlips():
         "aimnet2",
         "ani2x",
     ]
+
+
+def test_v8_rigid_preflight_is_durable_and_scope_isolated():
+    runner = _load_runner()
+    artifact = runner.load_json(RIGID_PREFLIGHT)
+    runner._validate_self_hash(artifact, name="v8 rigid preflight audit")
+
+    assert artifact["case_scope"] == ["mobley_1952272"]
+    assert artifact["model_case_count"] == len(artifact["records"]) == 3
+    assert {record["model"] for record in artifact["records"]} == set(
+        artifact["models"]
+    )
+    assert {record["compound_id"] for record in artifact["records"]} == set(
+        artifact["case_scope"]
+    )
+
+    durable_root = BENCHMARK_DIR / f"{RIGID_PREFLIGHT.stem}-raw"
+    listed_paths = {evidence["path"] for evidence in artifact["raw_evidence"]}
+    actual_paths = {
+        path.relative_to(REPOSITORY_ROOT).as_posix()
+        for path in durable_root.rglob("*")
+        if path.is_file()
+    }
+    assert listed_paths == actual_paths
+
+    for evidence in artifact["raw_evidence"]:
+        assert any(
+            f"/{compound_id}/" in evidence["path"]
+            or evidence["path"].endswith(f"--{compound_id}.json")
+            for compound_id in artifact["case_scope"]
+        )
+        path = REPOSITORY_ROOT / evidence["path"]
+        assert path.stat().st_size == evidence["size_bytes"]
+        assert runner.sha256_file(path) == evidence["sha256"]
 
 
 def test_v8_flexible_failure_is_durable_and_closes_v8():

@@ -187,6 +187,9 @@ examples/md/**/*.xyz
 !/docs/implicit-solvation/benchmarks/*.json
 !/docs/implicit-solvation/benchmarks/*.py
 
+# Frozen benchmark artifacts hash optimizer logs inside their durable raw evidence.
+!/docs/implicit-solvation/benchmarks/*-raw/**/*.log
+
 # Frozen provider-parity evidence includes the original provider logs.
 !/tests/solvation/data/amber_gb_reference/audit/**/*.log
 !/tests/solvation/data/apbs_reference/audit/**/*.log

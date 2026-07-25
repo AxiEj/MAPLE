@@ -718,9 +718,9 @@ class PRFO(JobABC):
         
         # Setup trajectory file
         base, _ = os.path.splitext(self.output)
-        traj_file = base + "_prfo_traj.xyz"
-        candidate_file = base + "_prfo_ts_candidate.xyz"
-        unconverged_file = base + "_prfo_unconverged.xyz"
+        ext = ".pdb" if atoms.info.get("pdb_template") else ".xyz"
+        traj_file = base + "_prfo_traj" + ext
+        ts_file = base + "_prfo_ts" + ext
         
         # Log header
         info_message = [
@@ -893,6 +893,10 @@ class PRFO(JobABC):
                     
                 # Check convergence
                 if self.check_convergence(atoms):
+                    candidate_file = ts_file.replace(
+                        "_prfo_ts" + ext,
+                        "_prfo_ts_candidate" + ext,
+                    )
                     info_message = [
                         '\n\n' + '-' * 70 + '\n',
                         f'{"Geometry Converged".center(70)}\n',
@@ -920,6 +924,7 @@ class PRFO(JobABC):
         
         # Preserve a diagnostic geometry, but never name it as a TS.
         E_final = atoms.get_potential_energy(force_consistent=True)
+        unconverged_file = base + "_prfo_unconverged" + ext
         write_xyz(
             unconverged_file,
             atoms,

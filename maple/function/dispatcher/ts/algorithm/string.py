@@ -580,6 +580,12 @@ class GSM(JobABC):
         E_TS = float(
             ts_candidate.get_potential_energy(force_consistent=True)
         )
+        candidate_ext = (
+            ".pdb" if ts_candidate.info.get("pdb_template") else ".xyz"
+        )
+        stringts_candidate = (
+            base_prefix + "_stringts_ts_candidate" + candidate_ext
+        )
 
         # Create a path with the candidate inserted after the original HEI.
         images_ts = [img for img in images]
@@ -630,9 +636,10 @@ class GSM(JobABC):
                 maxFp_list.append(float(np.max(np.linalg.norm(Fp, axis=1))))
                 rmsFp_list.append(float(np.sqrt(np.mean(np.linalg.norm(Fp, axis=1) ** 2))))
 
-        # Dump STRING-TS candidate files.
-        stringts_mep = base_prefix + "_stringts_mep.xyz"
-        stringts_candidate = base_prefix + "_stringts_ts_candidate.xyz"
+        # Dump STRING-TS files
+        ext = ".pdb" if images_ts and images_ts[0].info.get("pdb_template") else ".xyz"
+        stringts_mep = base_prefix + "_stringts_mep" + ext
+        stringts_ts  = base_prefix + "_stringts_ts" + ext
         write_xyz(stringts_mep, images_ts, energies=Es_path)
         write_xyz(
             stringts_candidate,

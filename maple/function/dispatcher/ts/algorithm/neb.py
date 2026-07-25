@@ -927,7 +927,8 @@ class NEB(JobABC):
         # reset any previous fixed HEI
         self._cineb_fixed_hei = None
 
-        traj_file = os.path.splitext(self.output)[0] + "_cineb_traj.xyz"
+        ext = ".pdb" if images and images[0].info.get("pdb_template") else ".xyz"
+        traj_file = os.path.splitext(self.output)[0] + "_cineb_traj" + ext
         driver = LBFGSDriver(m=self.params.lbfgs_m, curvature=70.0, maxstep=self.params.cistep0)
         # set convergence thresholds
         driver.fmax_reg = self.params.neb_f_max_th
@@ -1089,13 +1090,14 @@ class NEB(JobABC):
             ts_candidate = prfo_result.atoms
 
             E_TS = ts_candidate.get_potential_energy(force_consistent=True)
+            nebts_candidate = base + "_nebts_ts_candidate" + ext
 
             # Insert the geometry-converged candidate right after CI.
             images.insert(hei + 1, ts_candidate)
             Es.insert(hei + 1, E_TS)
 
-            nebts_mep = base + "_nebts_mep.xyz"
-            nebts_candidate = base + "_nebts_ts_candidate.xyz"
+            nebts_mep = base + "_nebts_mep" + ext
+            nebts_ts = base + "_nebts_ts" + ext
             write_xyz(nebts_mep, images, energies=Es)
             write_xyz(
                 nebts_candidate,

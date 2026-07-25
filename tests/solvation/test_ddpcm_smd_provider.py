@@ -319,6 +319,99 @@ class _ZeroReactionField:
         return np.zeros((self.atom_count, 3))
 
 
+class _ScalarDensityResponse:
+    def __init__(self, field_response: float):
+        self.field_response = float(field_response)
+        self.shape = (2, 4)
+        self.vjp_calls = 0
+
+    def jvp(self, field_direction):
+        direction = np.asarray(field_direction, dtype=float)
+        response = np.zeros(self.shape)
+        response[0, 0] = self.field_response * direction[0, 0]
+        response[1, 0] = -response[0, 0]
+        return response
+
+    def vjp(self, density_cotangent):
+        self.vjp_calls += 1
+        cotangent = np.asarray(density_cotangent, dtype=float)
+        response = np.zeros(self.shape)
+        response[0, 0] = self.field_response * (
+            cotangent[0, 0] - cotangent[1, 0]
+        )
+        return response
+
+
+class _ScalarCoordinateReactionField:
+    instances = []
+    reciprocal_energy_pairing = True
+    full_position_derivative_contract_version = (
+        FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION
+    )
+    field_scale_intercept = 0.12
+    field_scale_slope = 0.01
+
+    def __init__(
+        self,
+        positions_angstrom,
+        radii_angstrom,
+        **kwargs,
+    ):
+        del kwargs
+        self.atom_count = len(positions_angstrom)
+        self.coordinate = float(positions_angstrom[0][0])
+        self.field_scale = (
+            self.field_scale_intercept
+            + self.field_scale_slope * self.coordinate
+        )
+        self.runtime_provenance = {
+            "backend": "synthetic-coordinate-pyddx",
+            "pyddx_version": "0.8.0",
+            "n_proc": 1,
+        }
+        self.full_position_vjp_value = None
+        self.instances.append(self)
+        assert self.atom_count == 2
+        assert np.asarray(radii_angstrom).shape == (self.atom_count,)
+
+    def apply(self, density_direction):
+        density = np.asarray(density_direction, dtype=float)
+        field = np.zeros_like(density)
+        field[:, 0] = self.field_scale * density[:, 0]
+        return field
+
+    def apply_scf(self, density_direction):
+        return self.apply(density_direction)
+
+    def adjoint(self, field_cotangent):
+        cotangent = np.asarray(field_cotangent, dtype=float)
+        density_cotangent = np.zeros_like(cotangent)
+        density_cotangent[:, 0] = (
+            self.field_scale * cotangent[:, 0]
+        )
+        return density_cotangent
+
+    def polarization_energy_hartree(self, density_coefficients):
+        density = np.asarray(density_coefficients, dtype=float)
+        return float(
+            0.5 * np.vdot(density, self.apply(density)) / Hartree
+        )
+
+    def scf_polarization_energy_hartree(self, density_coefficients):
+        return self.polarization_energy_hartree(density_coefficients)
+
+    def full_position_vjp(self, density, field_cotangent):
+        density = np.asarray(density, dtype=float)
+        cotangent = np.asarray(field_cotangent, dtype=float)
+        result = np.zeros((self.atom_count, 3))
+        result[0, 0] = self.field_scale_slope * np.vdot(
+            cotangent[:, 0],
+            density[:, 0],
+        )
+        self.full_position_vjp_value = float(result[0, 0])
+        return result
+
+
 class _FakeMACEPolarCalculator(CalcABC):
     MODEL_ENERGY_UNIT = "eV"
     SUPPORTS_PBC = False
@@ -400,6 +493,169 @@ class _FakeMACEPolarCalculator(CalcABC):
     ):
         del node_potential_ev, node_gradient_ev_per_angstrom, density_cotangent
         return np.zeros((len(atoms), 3))
+
+
+class _CoordinateMACEPolarCalculator(_FakeMACEPolarCalculator):
+    density_intercept = 0.08
+    density_coordinate_slope = 0.015
+    density_field_response_intercept = 0.18
+    density_field_response_coordinate_slope = 0.02
+    field_linear_intercept = 0.40
+    field_linear_coordinate_slope = -0.07
+    field_quadratic = 0.30
+    intrinsic_coordinate_linear = 0.11
+    intrinsic_coordinate_quadratic = 0.04
+    gas_coordinate_linear = 0.05
+    gas_coordinate_quadratic = 0.03
+
+    def __init__(self, atoms):
+        super().__init__(atoms)
+        self.coordinate = float(atoms.positions[0, 0])
+        density = self._density(node_potential_ev=None)
+        self.gas_state = SimpleNamespace(
+            energy_ev=self._gas_energy(),
+            density_coefficients=density,
+            fixed_field_forces_ev_per_angstrom=self._gas_forces(),
+        )
+        self._last_polar_state = self.gas_state
+        self.last_density_position_vjp = None
+        self.last_density_response = None
+        self.force_state_calls = 0
+
+    def _density(self, *, node_potential_ev):
+        base = (
+            self.density_intercept
+            + self.density_coordinate_slope * self.coordinate
+        )
+        field_response = (
+            self.density_field_response_intercept
+            + self.density_field_response_coordinate_slope
+            * self.coordinate
+        )
+        potential = (
+            0.0
+            if node_potential_ev is None
+            else float(np.asarray(node_potential_ev)[0])
+        )
+        charge = base + field_response * potential
+        density = np.zeros((2, 4))
+        density[:, 0] = [charge, -charge]
+        return density
+
+    def _intrinsic_energy(self, node_potential_ev):
+        potential = float(np.asarray(node_potential_ev)[0])
+        field_linear = (
+            self.field_linear_intercept
+            + self.field_linear_coordinate_slope * self.coordinate
+        )
+        return (
+            field_linear * potential
+            + 0.5 * self.field_quadratic * potential**2
+            + self.intrinsic_coordinate_linear * self.coordinate
+            + 0.5
+            * self.intrinsic_coordinate_quadratic
+            * self.coordinate**2
+        )
+
+    def _gas_energy(self):
+        return (
+            self.gas_coordinate_linear * self.coordinate
+            + 0.5 * self.gas_coordinate_quadratic * self.coordinate**2
+        )
+
+    def _gas_forces(self):
+        forces = np.zeros((2, 3))
+        forces[0, 0] = -(
+            self.gas_coordinate_linear
+            + self.gas_coordinate_quadratic * self.coordinate
+        )
+        return forces
+
+    def polar_state(
+        self,
+        atoms,
+        *,
+        node_potential_ev=None,
+        node_gradient_ev_per_angstrom=None,
+        compute_forces=False,
+        compute_hessian=False,
+    ):
+        del atoms, node_gradient_ev_per_angstrom, compute_hessian
+        if node_potential_ev is None:
+            return self.gas_state, {}
+        if compute_forces:
+            self.force_state_calls += 1
+        potential = float(np.asarray(node_potential_ev)[0])
+        forces = np.zeros((2, 3))
+        forces[0, 0] = -(
+            self.field_linear_coordinate_slope * potential
+            + self.intrinsic_coordinate_linear
+            + self.intrinsic_coordinate_quadratic * self.coordinate
+        )
+        state = SimpleNamespace(
+            energy_ev=self._intrinsic_energy(node_potential_ev),
+            density_coefficients=self._density(
+                node_potential_ev=node_potential_ev
+            ),
+            fixed_field_forces_ev_per_angstrom=(
+                forces if compute_forces else None
+            ),
+        )
+        return state, {}
+
+    def intrinsic_energy_field_gradient(
+        self,
+        atoms,
+        *,
+        node_potential_ev,
+        node_gradient_ev_per_angstrom,
+    ):
+        del atoms, node_gradient_ev_per_angstrom
+        potential = float(np.asarray(node_potential_ev)[0])
+        gradient = np.zeros((2, 4))
+        gradient[0, 0] = (
+            self.field_linear_intercept
+            + self.field_linear_coordinate_slope * self.coordinate
+            + self.field_quadratic * potential
+        )
+        return gradient
+
+    def linearize_density_response(
+        self,
+        atoms,
+        *,
+        node_potential_ev,
+        node_gradient_ev_per_angstrom,
+    ):
+        del atoms, node_potential_ev, node_gradient_ev_per_angstrom
+        self.last_density_response = _ScalarDensityResponse(
+            self.density_field_response_intercept
+            + self.density_field_response_coordinate_slope
+            * self.coordinate
+        )
+        return self.last_density_response
+
+    def density_position_vjp(
+        self,
+        atoms,
+        *,
+        node_potential_ev,
+        node_gradient_ev_per_angstrom,
+        density_cotangent,
+    ):
+        del atoms, node_gradient_ev_per_angstrom
+        potential = float(np.asarray(node_potential_ev)[0])
+        density_coordinate_derivative = (
+            self.density_coordinate_slope
+            + self.density_field_response_coordinate_slope * potential
+        )
+        cotangent = np.asarray(density_cotangent, dtype=float)
+        result = np.zeros((2, 3))
+        result[0, 0] = density_coordinate_derivative * (
+            cotangent[0, 0] - cotangent[1, 0]
+        )
+        self.last_density_position_vjp = float(result[0, 0])
+        return result
 
 
 def test_reciprocal_profile_requires_matching_calculator_evaluator(tmp_path):
@@ -495,6 +751,22 @@ def _fake_cds(atoms):
     )
 
 
+def _coordinate_cds(atoms):
+    coordinate = float(atoms.positions[0, 0])
+    gradient = np.zeros((2, 3))
+    gradient[0, 0] = 0.004 + 0.003 * coordinate
+    return SimpleNamespace(
+        energy_hartree=(
+            0.002 + 0.004 * coordinate + 0.5 * 0.003 * coordinate**2
+        ),
+        position_gradient_hartree_per_angstrom=gradient,
+        runtime_provenance={
+            "provider": "synthetic-coordinate-cds",
+            "pyscf_version": "2.13.1",
+        },
+    )
+
+
 def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
     monkeypatch,
     tmp_path,
@@ -553,6 +825,87 @@ def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
     assert reaction_field.cold_apply_calls == 0
     assert (tmp_path / "route2-ddpcm-result.json").is_file()
     assert (tmp_path / "route2-ddpcm-state.npz").is_file()
+
+
+def test_ddpcm_provider_nonzero_response_force_matches_complete_correction_energy_fd(
+    monkeypatch,
+    tmp_path,
+):
+    import maple.function.calculator.extra_correction.implicit.ddpcm_smd as module
+
+    _ScalarCoordinateReactionField.instances.clear()
+    monkeypatch.setattr(
+        module,
+        "PyDDXPCMReactionFieldLinearMap",
+        _ScalarCoordinateReactionField,
+    )
+    monkeypatch.setattr(
+        module,
+        "pyscf_smd_water_cds",
+        lambda symbols, positions: _coordinate_cds(
+            Atoms(symbols, positions=positions)
+        ),
+    )
+
+    def evaluate(coordinate, *, need_forces, label):
+        atoms = _atoms()
+        atoms.positions[0, 0] = coordinate
+        calculator = _CoordinateMACEPolarCalculator(atoms)
+        provider = DDPCMSMDImplicitSolvation(
+            atoms,
+            _options(),
+            audit_dir=tmp_path / label,
+        )
+        return (
+            provider.evaluate(
+                atoms,
+                need_forces=need_forces,
+                calculator=calculator,
+            ),
+            calculator,
+        )
+
+    coordinate = 0.23
+    center, center_calculator = evaluate(
+        coordinate,
+        need_forces=True,
+        label="center",
+    )
+    analytic_force = float(
+        center.forces_hartree_per_angstrom[0, 0]
+    )
+    finite_differences = []
+    for index, step in enumerate((1.0e-3, 3.0e-4, 1.0e-4)):
+        plus, _ = evaluate(
+            coordinate + step,
+            need_forces=False,
+            label=f"plus-{index}",
+        )
+        minus, _ = evaluate(
+            coordinate - step,
+            need_forces=False,
+            label=f"minus-{index}",
+        )
+        finite_difference_force = -(
+            plus.energy_hartree - minus.energy_hartree
+        ) / (2.0 * step)
+        finite_differences.append(finite_difference_force)
+        assert analytic_force == pytest.approx(
+            finite_difference_force,
+            rel=2.0e-8,
+            abs=2.0e-10,
+        )
+
+    assert abs(analytic_force) > 1.0e-4
+    assert abs(finite_differences[-1] - finite_differences[0]) < 1.0e-8
+    assert (
+        abs(center_calculator.last_density_position_vjp) > 1.0e-8
+    )
+    assert center_calculator.force_state_calls == 1
+    assert center_calculator.last_density_response.vjp_calls > 0
+    center_reaction_field = _ScalarCoordinateReactionField.instances[0]
+    assert abs(center_reaction_field.full_position_vjp_value) > 1.0e-8
+    assert center.provenance["forces_available"] is True
 
 
 def test_ddpcm_provider_reuses_root_only_for_the_same_geometry(

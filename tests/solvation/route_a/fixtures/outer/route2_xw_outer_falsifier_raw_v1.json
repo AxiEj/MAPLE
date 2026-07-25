@@ -1,0 +1,385 @@
+{
+  "all_warning_fatal_pass": true,
+  "claim": "real single-geometry X/XW1/XW2 outer-delta falsifier; not a free energy",
+  "failures": [
+    {
+      "label": "XW2",
+      "message": "PCMSolver emitted a warning for every cavity attempt under policy 'fixed-stability-branch'; Route 2 refuses to publish a numerically suspect result. See /tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw-outer-real-20260725/XW2.out.implicit/pcmsolver-fixed-stability-branch-stderr.log.",
+      "type": "RuntimeError"
+    }
+  ],
+  "qct_outer_signatures": {
+    "X": {
+      "n_water_outer_subtraction_kcal_mol": -0.0,
+      "outer_cluster_kcal_mol": -4.818260367239601,
+      "outer_cycle_signature_kcal_mol": -4.818260367239601
+    },
+    "XW1": {
+      "n_water_outer_subtraction_kcal_mol": 8.69347197304217,
+      "outer_cluster_kcal_mol": -10.65794902334078,
+      "outer_cycle_signature_kcal_mol": -1.9644770502986102
+    }
+  },
+  "records": [
+    {
+      "atom_count": 3,
+      "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw-outer-real-20260725/W.out.implicit/route2-result.json",
+      "cavity_stability": {
+        "attempts": [
+          {
+            "cavity_tesserae": 204,
+            "minimum_added_sphere_radius_angstrom": 1.0,
+            "name": "fixed-stability-branch",
+            "pcm_initialization_seconds": 0.0409780360005243,
+            "response_evaluated": true,
+            "response_evaluation_seconds": 1.4949808459987253,
+            "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw-outer-real-20260725/W.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+            "tessera_area_angstrom2": 0.28002852018012786,
+            "warning_detected": false,
+            "warning_stage": null
+          }
+        ],
+        "force_compatible": false,
+        "geometry_selection_branch_free": true,
+        "policy": "fixed-stability-branch",
+        "selected": "fixed-stability-branch"
+      },
+      "combined_energy_hartree": -76.44744173545067,
+      "components_hartree": {
+        "cds": 0.0022972241247459766,
+        "delta_g_solv": -0.013853929434327531,
+        "electrostatic": -0.016151153559073508,
+        "pcm_polarization": -0.01651477270970533,
+        "solute_polarization": 0.0003636191506318205,
+        "standard_state": 0.0
+      },
+      "components_kcal_mol": {
+        "cds": 1.441529902324413,
+        "delta_g_solv": -8.69347197304217,
+        "electrostatic": -10.135001875366584,
+        "pcm_polarization": -10.363176337338828,
+        "solute_polarization": 0.22817446197224484,
+        "standard_state": 0.0
+      },
+      "iterations": 14,
+      "label": "W",
+      "pcmsolver_diagnostics": {
+        "native_stderr_warning_count": 0,
+        "native_stderr_warning_marker": "PCMSolver warning.",
+        "pedra_warning_count": 0,
+        "pedra_warnings": [],
+        "pedra_warnings_are_selection_fatal": false
+      },
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -0.9572,
+          0.0,
+          0.0
+        ],
+        [
+          0.2396637398809113,
+          0.0,
+          0.9267109213699248
+        ]
+      ],
+      "symbols": [
+        "O",
+        "H",
+        "H"
+      ],
+      "timing_seconds": {
+        "evaluation": 2.070902935000049,
+        "model_load": 3.1597987489985826
+      },
+      "warning_count": 0,
+      "warning_fatal_pass": true
+    },
+    {
+      "atom_count": 10,
+      "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw-outer-real-20260725/X.out.implicit/route2-result.json",
+      "cavity_stability": {
+        "attempts": [
+          {
+            "cavity_tesserae": 508,
+            "minimum_added_sphere_radius_angstrom": 1.0,
+            "name": "fixed-stability-branch",
+            "pcm_initialization_seconds": 0.13273106399901735,
+            "response_evaluated": true,
+            "response_evaluation_seconds": 2.456647361999785,
+            "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw-outer-real-20260725/X.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+            "tessera_area_angstrom2": 0.28002852018012786,
+            "warning_detected": false,
+            "warning_stage": null
+          }
+        ],
+        "force_compatible": false,
+        "geometry_selection_branch_free": true,
+        "policy": "fixed-stability-branch",
+        "selected": "fixed-stability-branch"
+      },
+      "combined_energy_hartree": -193.14790365837794,
+      "components_hartree": {
+        "cds": 0.005691074926398708,
+        "delta_g_solv": -0.007678386648159347,
+        "electrostatic": -0.013369461574558055,
+        "pcm_polarization": -0.014703825664450627,
+        "solute_polarization": 0.0013343640898925712,
+        "standard_state": 0.0
+      },
+      "components_kcal_mol": {
+        "cds": 3.5712034339181487,
+        "delta_g_solv": -4.818260367239601,
+        "electrostatic": -8.38946380115775,
+        "pcm_polarization": -9.226789909414926,
+        "solute_polarization": 0.8373261082571745,
+        "standard_state": 0.0
+      },
+      "iterations": 17,
+      "label": "X",
+      "pcmsolver_diagnostics": {
+        "native_stderr_warning_count": 0,
+        "native_stderr_warning_marker": "PCMSolver warning.",
+        "pedra_warning_count": 0,
+        "pedra_warnings": [],
+        "pedra_warnings_are_selection_fatal": false
+      },
+      "positions_angstrom": [
+        [
+          -0.703,
+          -0.411,
+          0.729
+        ],
+        [
+          -0.057,
+          -0.447,
+          2.087
+        ],
+        [
+          0.101,
+          -1.502,
+          2.699
+        ],
+        [
+          0.385,
+          0.872,
+          2.662
+        ],
+        [
+          -1.782,
+          -0.284,
+          0.84
+        ],
+        [
+          -0.284,
+          0.412,
+          0.146
+        ],
+        [
+          -0.509,
+          -1.351,
+          0.204
+        ],
+        [
+          -0.43,
+          1.312,
+          3.244
+        ],
+        [
+          0.648,
+          1.555,
+          1.851
+        ],
+        [
+          1.245,
+          0.717,
+          3.318
+        ]
+      ],
+      "symbols": [
+        "C",
+        "C",
+        "O",
+        "C",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H"
+      ],
+      "timing_seconds": {
+        "evaluation": 2.792706704000011,
+        "model_load": 0.22849376600061078
+      },
+      "warning_count": 0,
+      "warning_fatal_pass": true
+    },
+    {
+      "atom_count": 13,
+      "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw-outer-real-20260725/XW1.out.implicit/route2-result.json",
+      "cavity_stability": {
+        "attempts": [
+          {
+            "cavity_tesserae": 694,
+            "minimum_added_sphere_radius_angstrom": 1.0,
+            "name": "fixed-stability-branch",
+            "pcm_initialization_seconds": 0.545246211999256,
+            "response_evaluated": true,
+            "response_evaluation_seconds": 4.257421276000969,
+            "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw-outer-real-20260725/XW1.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+            "tessera_area_angstrom2": 0.28002852018012786,
+            "warning_detected": false,
+            "warning_stage": null
+          }
+        ],
+        "force_compatible": false,
+        "geometry_selection_branch_free": true,
+        "policy": "fixed-stability-branch",
+        "selected": "fixed-stability-branch"
+      },
+      "combined_energy_hartree": -269.5988841044892,
+      "components_hartree": {
+        "cds": 0.006666621668620602,
+        "delta_g_solv": -0.016984522885895196,
+        "electrostatic": -0.023651144554515797,
+        "pcm_polarization": -0.024242000557421907,
+        "solute_polarization": 0.0005908560029061092,
+        "standard_state": 0.0
+      },
+      "components_kcal_mol": {
+        "cds": 4.18336825705378,
+        "delta_g_solv": -10.65794902334078,
+        "electrostatic": -14.84131728039456,
+        "pcm_polarization": -15.212085020025198,
+        "solute_polarization": 0.3707677396306381,
+        "standard_state": 0.0
+      },
+      "iterations": 17,
+      "label": "XW1",
+      "pcmsolver_diagnostics": {
+        "native_stderr_warning_count": 0,
+        "native_stderr_warning_marker": "PCMSolver warning.",
+        "pedra_warning_count": 0,
+        "pedra_warnings": [],
+        "pedra_warnings_are_selection_fatal": false
+      },
+      "positions_angstrom": [
+        [
+          -0.703,
+          -0.411,
+          0.729
+        ],
+        [
+          -0.057,
+          -0.447,
+          2.087
+        ],
+        [
+          0.101,
+          -1.502,
+          2.699
+        ],
+        [
+          0.385,
+          0.872,
+          2.662
+        ],
+        [
+          -1.782,
+          -0.284,
+          0.84
+        ],
+        [
+          -0.284,
+          0.412,
+          0.146
+        ],
+        [
+          -0.509,
+          -1.351,
+          0.204
+        ],
+        [
+          -0.43,
+          1.312,
+          3.244
+        ],
+        [
+          0.648,
+          1.555,
+          1.851
+        ],
+        [
+          1.245,
+          0.717,
+          3.318
+        ],
+        [
+          0.101,
+          -4.302,
+          2.699
+        ],
+        [
+          0.101,
+          -3.3447999999999993,
+          2.699
+        ],
+        [
+          0.101,
+          -4.541663739880911,
+          3.6257109213699246
+        ]
+      ],
+      "symbols": [
+        "C",
+        "C",
+        "O",
+        "C",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "H",
+        "O",
+        "H",
+        "H"
+      ],
+      "timing_seconds": {
+        "evaluation": 5.234638726999037,
+        "model_load": 0.39217284500045935
+      },
+      "warning_count": 0,
+      "warning_fatal_pass": true
+    }
+  ],
+  "runtime": {
+    "area_angstrom2": 0.28002852018012786,
+    "area_bohr2": 1.0,
+    "minimum_added_sphere_radius_angstrom": 1.0,
+    "profile": "smd-iefpcm-gaff2-o",
+    "response": "scf",
+    "standard_state": "1m"
+  },
+  "schema_version": 1,
+  "source": {
+    "git_head": "7fea1061e9def05914ebf82c2e2eaba8a8f54365",
+    "repository": "/tmp/maple-route2-clean-canary",
+    "source_sha256": {
+      "maple/function/calculator/extra_correction/implicit/continuum_response.py": "db59b72110f4c4b135dfda8c6e65c92b4081560ee560dc988fd6b5bb34c3e3db",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "b7cddbfa647a9605d12d34ab9e32cba4f12192cf8d388fc4592379404be62f00",
+      "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "453605bf27fe5abe8619bb62884dd7fd416ee94bab635d9667caf6705e0479bc",
+      "maple/function/calculator/extra_correction/implicit/route2_domain.py": "983cebfbb142b1e02b82fa95645d096dfa0d3b49fa4a9de1faa5a8841b1d9778",
+      "maple/function/calculator/extra_correction/implicit/smd.py": "3c7f3d368950c6e0b8bb1b05e893c0c2aa952c09737b38105588bf234332fd2a",
+      "maple/function/calculator/extra_correction/implicit/smd_cds.py": "f177e8b457dfca46e4f4088dfc6f23e646a9e68de912591cc79fda9e4a8fbaa9",
+      "maple/function/calculator/mace/_macepol_calculator.py": "76f8f8f6b622e4715062fb3b12f6a263de22f044b9b20a4ce03562d9e5563699",
+      "maple/function/route2_smd_profiles.py": "2b0443f369604a0a1393364a16d264b216cf3fab851c472abbdf241d304586b4"
+    },
+    "working_tree_clean": true
+  }
+}

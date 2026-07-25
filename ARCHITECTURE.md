@@ -24,10 +24,12 @@ maple/
 │   │   ├── ani/                # ANI calculator
 │   │   ├── mace/               # MACE calculator
 │   │   ├── uma/                # UMA calculator
-│   │   └── extra_correction/   # D4, solvation corrections
+│   │   ├── cluster_continuum.py # Supermolecule MLIP + outer-continuum composition
+│   │   └── extra_correction/    # D4, GB-polar/QEq correction
 │   ├── dispatcher/             # Job dispatchers
 │   │   ├── dispatcher.py       # Main job dispatcher
 │   │   ├── jobABC.py           # Base class for all jobs
+│   │   ├── solvfe/             # Route A states, alchemy, sampling, analysis
 │   │   ├── optimization/       # Geometry optimization (LBFGS, RFO)
 │   │   ├── ts/                 # Transition state (NEB, PRFO, Dimer, String, AFIR)
 │   │   ├── irc/                # IRC (GS method)
@@ -344,7 +346,68 @@ k_i = k_max - (k_max - k_min) · exp(-k_decay · ΔE_i / ΔE_max)
 
 ### Corrections
 - **D4**: DFT-D4 dispersion correction
-- **GBSA**: Implicit solvation (water, etc.)
+- **Supermolecule–continuum**: an arbitrary MAPLE calculator evaluates
+  solute plus explicit first-shell solvent as one non-periodic supermolecule;
+  an outer correction acts on that same complete atom list
+- **GB-polar/QEq**: experimental energy-only outer correction
+- **TBLite/ALPB delta**: optional force-capable outer correction,
+  `GFN2-xTB/ALPB - GFN2-xTB(vacuum)`
+
+### Route 3 versus Route A
+
+Route 3 composes an inner MLIP and an outer continuum for one fixed
+supermolecule composition and geometry. Route A (`dispatcher/solvfe/`) is a
+free-energy workflow above that calculator layer: it owns shell state
+definitions, sequential alchemical insertion, restrained sampling,
+BAR/MBAR diagnostics, standard-state terms, QCT occupancy bookkeeping, and
+scientific promotion gates.
+
+Route A v3 inherits the hash-frozen v2 outer boundary implemented in
+`calculator/extra_correction/implicit/`:
+
+- `supermolecule_pcm.py` constructs the frozen scaled atom-sphere rule and
+  validates that every explicit fragment belongs to one connected
+  supermolecule cavity;
+- `route2_subprocess.py` enforces the frozen Route 2 source/runtime contract,
+  same-topology batches, full-frame acceptance, and immutable provenance;
+- `_route2_outer_worker.py` evaluates the electrostatic delta in an isolated
+  process while excluding the legacy CDS term from the v2 core.
+
+Conditioning and packing are kept outside the outer-continuum adapter:
+
+- `membership.py` defines the one complementary soft membership and
+  frame-normalized soft occupancy recurrence used by every v3 term;
+- `association_conditioning.py` applies the matching member field to
+  nonperiodic fixed-`n` clusters and integrates its effective translational
+  volume;
+- `packing_contract.py` binds state indices, bias scales, membership,
+  observation volume, solute measure, water Hamiltonian, atom maps, cell and
+  ensemble without assuming a row order;
+- `packing_conditioning.py` evaluates the solute-measure/product-water
+  Hamiltonian
+  `U_X(q_X) + U_W(R_W)` on disjoint atom partitions and adds only the staged,
+  complementary empty field; and
+- `packing_analysis.py` proves each reduced-potential row implements that
+  schedule, then compares MBAR `F(1)-F(0)` with the reweighted soft-empty
+  expectation;
+- `occupancy_analysis.py` estimates the complete `p̃(n)` or `x̃(n)` vector
+  at an explicit target state and reconstructs its full covariance on the
+  probability simplex;
+- `qct_ledger.py` owns the single multi-`n` master equation, labeled-cluster
+  density/volume/`n!` counting, Hamiltonian-bridge metadata and joint
+  covariance propagation; and
+- `finite_qct.py` exactly enumerates finite reference/coupled partitions and
+  falsifies density or factorial double counting before real sampling.
+
+The older `packing.py` hard-empty estimator is diagnostic-only. V3 preserves
+the product measure with no physical solute-water interaction needed for
+`p0`. The algebraic and finite-enumeration ledger now closes, but the
+bulk-water Hamiltonian, real packing/occupancy sampling and conditioned `n=0`
+lineage are not yet frozen or connected to the public workflow.
+
+The per-frame GePol mesh is an energy-postprocessing operator, not a force
+provider. Route A output remains diagnostic until packing, multi-occupancy,
+independent-replica, cycle-closure, and blind-holdout gates all pass.
 
 ---
 

@@ -1,0 +1,87 @@
+{
+  "candidate_parameters": {
+    "area_angstrom2": 0.28002852018012786,
+    "area_bohr2": 1.0,
+    "minimum_added_sphere_radius_angstrom": 1.0
+  },
+  "claim_boundary": {
+    "accuracy_certified": false,
+    "diagnostic_constant_override": true,
+    "force_compatible": false,
+    "one_molecule": true,
+    "public_parameter_changed": false
+  },
+  "dataset_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+  "development_dirty_tree_override": false,
+  "git_head": "7fea1061e9def05914ebf82c2e2eaba8a8f54365",
+  "record": {
+    "absolute_error_kcal_mol": 1.01826036723961,
+    "audit_directory": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-warning-free-cavity-acetone-clean-20260725/maple.out.implicit",
+    "audit_schema_version": 5,
+    "baseline": {
+      "area_angstrom2": 0.28,
+      "artifact": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-pcmsolver-diagnostics-acetone-clean-20260725/results.json",
+      "iterations": 17,
+      "minimum_added_sphere_radius_angstrom": 0.3,
+      "native_stderr_warning_count": 0,
+      "pedra_warning_count": 1,
+      "predicted_kcal_mol": -4.7651008510000645
+    },
+    "cavity_stability": {
+      "attempts": [
+        {
+          "cavity_tesserae": 508,
+          "minimum_added_sphere_radius_angstrom": 1.0,
+          "name": "fixed-stability-branch",
+          "pcm_initialization_seconds": 0.1449055209996004,
+          "response_evaluated": true,
+          "response_evaluation_seconds": 2.432154516999617,
+          "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-warning-free-cavity-acetone-clean-20260725/maple.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+          "tessera_area_angstrom2": 0.28002852018012786,
+          "warning_detected": false,
+          "warning_stage": null
+        }
+      ],
+      "force_compatible": false,
+      "geometry_selection_branch_free": true,
+      "policy": "fixed-stability-branch",
+      "selected": "fixed-stability-branch"
+    },
+    "combined_energy_hartree": -193.14790365837794,
+    "components_kcal_mol": {
+      "cds": 3.5712034339181487,
+      "delta_g_solv": -4.81826036723961,
+      "electrostatic": -8.389463801157758,
+      "pcm_polarization": -9.226789909414933,
+      "solute_polarization": 0.8373261082571745,
+      "standard_state": 0.0
+    },
+    "compound_id": "mobley_3867265",
+    "delta_vs_baseline_kcal_mol": -0.05315951623954529,
+    "experimental_kcal_mol": -3.8,
+    "iterations": 17,
+    "name": "acetone",
+    "pcmsolver_diagnostics": {
+      "native_stderr_warning_count": 0,
+      "native_stderr_warning_marker": "PCMSolver warning.",
+      "pedra_warning_count": 0,
+      "pedra_warnings": [],
+      "pedra_warnings_are_selection_fatal": false
+    },
+    "predicted_kcal_mol": -4.81826036723961,
+    "signed_error_kcal_mol": -1.01826036723961,
+    "timing_seconds": {
+      "gas_plus_route2": 3.2496010989998467,
+      "model_load": 3.9526434240005983,
+      "pcm_attempt_path": 2.5770600379992175
+    }
+  },
+  "runtime_load_average": [
+    8.8935546875,
+    6.41015625,
+    6.92578125
+  ],
+  "schema_version": 1,
+  "status": "one-acetone warning-free cavity ML--PCM canary",
+  "working_tree_clean": true
+}

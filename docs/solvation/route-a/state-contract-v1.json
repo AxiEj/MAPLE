@@ -1,0 +1,250 @@
+{
+  "contract_name": "route-a-state-contract",
+  "contract_version": "1.6.0",
+  "contracts": {
+    "dimensionless_required": true,
+    "reduced_potential_unit": "dimensionless"
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "immutable": true,
+  "objects": {
+    "Hamiltonian": {
+      "immutable_fields": [
+        "id",
+        "protocol_hash",
+        "version",
+        "checksum",
+        "model_hashes",
+        "description"
+      ],
+      "model_hashes": {
+        "outer": "model_sha256",
+        "sampler": "model_sha256",
+        "target": "model_sha256"
+      },
+      "required_fields": [
+        "id",
+        "protocol_hash",
+        "version",
+        "model_hashes",
+        "checksum",
+        "temperature_k",
+        "description"
+      ]
+    },
+    "QCTStateResult": {
+      "invariants": [
+        "labeled_alchemical_association_total == sum(labeled_alchemical_association_steps)",
+        "volume_total == sum(volume_steps)",
+        "symmetry_total == sum(symmetry_steps)",
+        "release_total == sum(release_steps) == 0.0 for restraint-contract-v1",
+        "water_density_total == n * water_density_per_water",
+        "water_outer_total == n * water_outer_per_water",
+        "signed_water_outer_subtraction == -water_outer_total",
+        "G_n == labeled_alchemical_association_total + volume_total + symmetry_total + release_total + water_density_total + outer_cluster_total + signed_water_outer_subtraction",
+        "outer endpoint pairs have identical atom_list_hash, restraint_hash, measure_id, and boundary_conditions"
+      ],
+      "ledger_terms": [
+        "labeled_alchemical_association_total",
+        "volume_total",
+        "symmetry_total",
+        "release_total",
+        "water_density_per_water",
+        "water_density_total",
+        "outer_cluster_total",
+        "water_outer_per_water",
+        "water_outer_total",
+        "outer_state_refs",
+        "signed_water_outer_subtraction",
+        "tail_probability",
+        "tail_state",
+        "tail_gate",
+        "release_endpoints",
+        "covariance_matrix_id",
+        "outer_cluster_endpoint_pair",
+        "water_outer_endpoint_pair"
+      ],
+      "required_fields": [
+        "state_id",
+        "n",
+        "G_n",
+        "components",
+        "status",
+        "ledger"
+      ],
+      "required_ledger_terms": [
+        "labeled_alchemical_association_total",
+        "volume_total",
+        "symmetry_total",
+        "release_total",
+        "water_density_per_water",
+        "water_density_total",
+        "outer_cluster_total",
+        "water_outer_per_water",
+        "water_outer_total",
+        "outer_state_refs",
+        "signed_water_outer_subtraction",
+        "tail_probability",
+        "tail_state",
+        "tail_gate",
+        "release_endpoints",
+        "covariance_matrix_id",
+        "outer_cluster_endpoint_pair",
+        "water_outer_endpoint_pair"
+      ]
+    },
+    "ReducedPotentialTable": {
+      "contracts": {
+        "dimensionless_required": true,
+        "finite_u_kn": true,
+        "shape_match": "len(lambda_values) == len(row_labels) == len(N_k) == len(state_hashes) == len(u_kn) and len(frame_ids) == sum(N_k) == len(u_kn[0])",
+        "content_hashes_recomputed": true
+      },
+      "immutable_fields": [
+        "state_id",
+        "state_hash",
+        "lambda_values",
+        "row_labels",
+        "u_kn",
+        "reduced_potential_shape",
+        "state_hashes",
+        "beta",
+        "measure_id",
+        "boundary_conditions"
+      ],
+      "reduced_potential_shape": {
+        "columns": "frame_ids",
+        "rows": "lambda_values"
+      },
+      "required_fields": [
+        "state_id",
+        "state_hash",
+        "lambda_values",
+        "row_labels",
+        "u_kn",
+        "reduced_potential_shape",
+        "N_k",
+        "frame_ids",
+        "state_hashes",
+        "beta",
+        "units",
+        "dimensionless",
+        "measure_id",
+        "boundary_conditions"
+      ],
+      "shape_contract": {
+        "columns": "frame_ids",
+        "rows": "lambda_values"
+      },
+      "hash_contract": {
+        "algorithm": "sha256(canonical_json)",
+        "canonicalization": "sort_keys=True,separators=(',',':'),UTF-8",
+        "table_state_hash_preimage": "entire ReducedPotentialTable object excluding state_hash; state_hashes are included after row-hash derivation",
+        "row_state_hash_preimage_fields": [
+          "state_id",
+          "row_index",
+          "row_label",
+          "lambda_value",
+          "u_kn_row",
+          "N_k",
+          "frame_ids",
+          "beta",
+          "units",
+          "dimensionless",
+          "measure_id",
+          "boundary_conditions"
+        ],
+        "validation_order": [
+          "validate shape enough to construct row preimages",
+          "recompute every state_hashes[k]",
+          "recompute state_hash",
+          "reject any stale well-formed 64-hex hash with STATE_HASH_MISMATCH"
+        ],
+        "hash_fields_excluded_from_own_preimage": [
+          "state_hash"
+        ]
+      }
+    },
+    "ThermodynamicState": {
+      "immutable_fields": [
+        "id",
+        "stage",
+        "lambda",
+        "protocol_hash",
+        "atom_list_hash",
+        "restraint_hash",
+        "hamiltonian_id",
+        "beta",
+        "measure_id",
+        "boundary_conditions"
+      ],
+      "required_fields": [
+        "id",
+        "stage",
+        "lambda",
+        "protocol_hash",
+        "atom_list_hash",
+        "restraint_hash",
+        "hamiltonian_id",
+        "beta",
+        "measure_id",
+        "boundary_conditions",
+        "sample_count"
+      ]
+    }
+  },
+  "reduced_potential_unit_guard": {
+    "dimensionless_flag": true,
+    "free_energy_units": "kcal/mol",
+    "u_kn_units": "dimensionless"
+  },
+  "stage_graph": {
+    "edges": [
+      {
+        "from": "parse",
+        "name": "parse_to_discovery",
+        "to": "discovery"
+      },
+      {
+        "from": "discovery",
+        "name": "discovery_to_shell",
+        "to": "shell"
+      },
+      {
+        "from": "shell",
+        "name": "shell_to_alchemy",
+        "to": "alchemy"
+      },
+      {
+        "from": "alchemy",
+        "name": "alchemy_to_mbar",
+        "to": "mbar"
+      },
+      {
+        "from": "mbar",
+        "name": "mbar_to_qct",
+        "to": "qct"
+      },
+      {
+        "from": "qct",
+        "name": "qct_to_artifacts",
+        "to": "artifacts"
+      },
+      {
+        "from": "artifacts",
+        "name": "artifacts_to_result",
+        "to": "result"
+      }
+    ],
+    "order": [
+      "parse",
+      "discovery",
+      "shell",
+      "alchemy",
+      "mbar",
+      "qct",
+      "artifacts",
+      "result"
+    ]
+  }
+}

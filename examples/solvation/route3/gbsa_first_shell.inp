@@ -1,0 +1,12 @@
+#model=macepolm
+#sp(verbose=0)
+#device=cpu
+#solv(explicit=water,number=4,implicit=water,method=gbsa,experimental=true)
+
+0 1
+C    0.0000    0.0000    0.0000
+O    1.4300    0.0000    0.0000
+H   -0.5400    0.9300    0.0000
+H   -0.5400   -0.4650    0.8050
+H   -0.5400   -0.4650   -0.8050
+H    1.8000    0.7600    0.0000

@@ -1,0 +1,1151 @@
+{
+  "candidate_generation": {
+    "distance_angstrom": 2.8,
+    "geometric_clash_threshold_angstrom": 1.2,
+    "phi_degrees": [
+      0.0,
+      90.0,
+      180.0,
+      270.0
+    ],
+    "selection_after_results": false,
+    "theta_degrees": [
+      70.0,
+      90.0,
+      110.0
+    ]
+  },
+  "claim": "preregistered deterministic XW2 geometry robustness sweep; not a free energy",
+  "counts": {
+    "geometric-clash-rejected-before-provider": 3,
+    "provider-failed": 3,
+    "warning-free": 6
+  },
+  "records": [
+    {
+      "direction": [
+        0.9396926207859084,
+        -0.3420201433256689,
+        0.0
+      ],
+      "label": "t70_p0",
+      "minimum_pair": [
+        14,
+        2
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.8427999999999995,
+      "result": {
+        "atom_count": 16,
+        "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t70_p0.out.implicit/route2-result.json",
+        "cavity_stability": {
+          "attempts": [
+            {
+              "cavity_tesserae": 861,
+              "minimum_added_sphere_radius_angstrom": 1.0,
+              "name": "fixed-stability-branch",
+              "pcm_initialization_seconds": 0.8231745829998545,
+              "response_evaluated": true,
+              "response_evaluation_seconds": 6.321506059999592,
+              "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t70_p0.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+              "tessera_area_angstrom2": 0.28002852018012786,
+              "warning_detected": false,
+              "warning_stage": null
+            }
+          ],
+          "force_compatible": false,
+          "geometry_selection_branch_free": true,
+          "policy": "fixed-stability-branch",
+          "selected": "fixed-stability-branch"
+        },
+        "combined_energy_hartree": -346.04715726866664,
+        "components_hartree": {
+          "cds": 0.00749689125208545,
+          "delta_g_solv": -0.03055806286632315,
+          "electrostatic": -0.0380549541184086,
+          "pcm_polarization": -0.03977036151601943,
+          "solute_polarization": 0.0017154073976108374,
+          "standard_state": 0.0
+        },
+        "components_kcal_mol": {
+          "cds": 4.704370286704396,
+          "delta_g_solv": -19.175473957633585,
+          "electrostatic": -23.87984424433798,
+          "pcm_polarization": -24.956278638216705,
+          "solute_polarization": 1.0764343938787277,
+          "standard_state": 0.0
+        },
+        "iterations": 18,
+        "label": "t70_p0",
+        "pcmsolver_diagnostics": {
+          "native_stderr_warning_count": 0,
+          "native_stderr_warning_marker": "PCMSolver warning.",
+          "pedra_warning_count": 0,
+          "pedra_warnings": [],
+          "pedra_warnings_are_selection_fatal": false
+        },
+        "positions_angstrom": [
+          [
+            -0.703,
+            -0.411,
+            0.729
+          ],
+          [
+            -0.057,
+            -0.447,
+            2.087
+          ],
+          [
+            0.101,
+            -1.502,
+            2.699
+          ],
+          [
+            0.385,
+            0.872,
+            2.662
+          ],
+          [
+            -1.782,
+            -0.284,
+            0.84
+          ],
+          [
+            -0.284,
+            0.412,
+            0.146
+          ],
+          [
+            -0.509,
+            -1.351,
+            0.204
+          ],
+          [
+            -0.43,
+            1.312,
+            3.244
+          ],
+          [
+            0.648,
+            1.555,
+            1.851
+          ],
+          [
+            1.245,
+            0.717,
+            3.318
+          ],
+          [
+            0.101,
+            -4.302,
+            2.699
+          ],
+          [
+            0.101,
+            -3.3447999999999993,
+            2.699
+          ],
+          [
+            0.101,
+            -4.541663739880911,
+            3.6257109213699246
+          ],
+          [
+            2.732139338200543,
+            -2.459656401311873,
+            2.699
+          ],
+          [
+            1.8326655615842715,
+            -2.1322747201205425,
+            2.699
+          ],
+          [
+            2.957349586036589,
+            -2.541626227975908,
+            3.6257109213699246
+          ]
+        ],
+        "symbols": [
+          "C",
+          "C",
+          "O",
+          "C",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H"
+        ],
+        "timing_seconds": {
+          "evaluation": 8.044378161999703,
+          "model_load": 6.388698711998586
+        },
+        "warning_count": 0,
+        "warning_fatal_pass": true
+      },
+      "status": "warning-free"
+    },
+    {
+      "direction": [
+        5.753957801139253e-17,
+        -0.3420201433256689,
+        0.9396926207859084
+      ],
+      "label": "t70_p90",
+      "minimum_pair": [
+        14,
+        2
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.8428,
+      "result": {
+        "atom_count": 16,
+        "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t70_p90.out.implicit/route2-result.json",
+        "cavity_stability": {
+          "attempts": [
+            {
+              "cavity_tesserae": 868,
+              "minimum_added_sphere_radius_angstrom": 1.0,
+              "name": "fixed-stability-branch",
+              "pcm_initialization_seconds": 0.8967987919986626,
+              "response_evaluated": true,
+              "response_evaluation_seconds": 6.651761647000967,
+              "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t70_p90.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+              "tessera_area_angstrom2": 0.28002852018012786,
+              "warning_detected": false,
+              "warning_stage": null
+            }
+          ],
+          "force_compatible": false,
+          "geometry_selection_branch_free": true,
+          "policy": "fixed-stability-branch",
+          "selected": "fixed-stability-branch"
+        },
+        "combined_energy_hartree": -346.0493612770997,
+        "components_hartree": {
+          "cds": 0.0073041970140641215,
+          "delta_g_solv": -0.02844805438192522,
+          "electrostatic": -0.035752251395989344,
+          "pcm_polarization": -0.037139367862303804,
+          "solute_polarization": 0.0013871164663144576,
+          "standard_state": 0.0
+        },
+        "components_kcal_mol": {
+          "cds": 4.583452826748642,
+          "delta_g_solv": -17.851423643320363,
+          "electrostatic": -22.434876470069007,
+          "pcm_polarization": -23.30530519431026,
+          "solute_polarization": 0.8704287242412511,
+          "standard_state": 0.0
+        },
+        "iterations": 18,
+        "label": "t70_p90",
+        "pcmsolver_diagnostics": {
+          "native_stderr_warning_count": 0,
+          "native_stderr_warning_marker": "PCMSolver warning.",
+          "pedra_warning_count": 0,
+          "pedra_warnings": [],
+          "pedra_warnings_are_selection_fatal": false
+        },
+        "positions_angstrom": [
+          [
+            -0.703,
+            -0.411,
+            0.729
+          ],
+          [
+            -0.057,
+            -0.447,
+            2.087
+          ],
+          [
+            0.101,
+            -1.502,
+            2.699
+          ],
+          [
+            0.385,
+            0.872,
+            2.662
+          ],
+          [
+            -1.782,
+            -0.284,
+            0.84
+          ],
+          [
+            -0.284,
+            0.412,
+            0.146
+          ],
+          [
+            -0.509,
+            -1.351,
+            0.204
+          ],
+          [
+            -0.43,
+            1.312,
+            3.244
+          ],
+          [
+            0.648,
+            1.555,
+            1.851
+          ],
+          [
+            1.245,
+            0.717,
+            3.318
+          ],
+          [
+            0.101,
+            -4.302,
+            2.699
+          ],
+          [
+            0.101,
+            -3.3447999999999993,
+            2.699
+          ],
+          [
+            0.101,
+            -4.541663739880911,
+            3.6257109213699246
+          ],
+          [
+            0.10100000000000017,
+            -2.459656401311873,
+            5.330139338200543
+          ],
+          [
+            0.10100000000000012,
+            -2.1322747201205425,
+            4.430665561584272
+          ],
+          [
+            0.1010000000000002,
+            -1.6708028135628794,
+            5.872303388184993
+          ]
+        ],
+        "symbols": [
+          "C",
+          "C",
+          "O",
+          "C",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H"
+        ],
+        "timing_seconds": {
+          "evaluation": 7.885890473000472,
+          "model_load": 0.5233496629989531
+        },
+        "warning_count": 0,
+        "warning_fatal_pass": true
+      },
+      "status": "warning-free"
+    },
+    {
+      "direction": [
+        -0.9396926207859084,
+        -0.3420201433256689,
+        1.1507915602278505e-16
+      ],
+      "failure": {
+        "message": "PCMSolver emitted a warning for every cavity attempt under policy 'fixed-stability-branch'; Route 2 refuses to publish a numerically suspect result. See /tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t70_p180.out.implicit/pcmsolver-fixed-stability-branch-stderr.log.",
+        "type": "RuntimeError"
+      },
+      "label": "t70_p180",
+      "minimum_pair": [
+        14,
+        2
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.8427999999999995,
+      "status": "provider-failed"
+    },
+    {
+      "direction": [
+        -1.7261873403417754e-16,
+        -0.3420201433256689,
+        -0.9396926207859084
+      ],
+      "label": "t70_p270",
+      "minimum_pair": [
+        15,
+        6
+      ],
+      "minimum_water2_cross_distance_angstrom": 0.9666795363438574,
+      "status": "geometric-clash-rejected-before-provider"
+    },
+    {
+      "direction": [
+        1.0,
+        -6.123233995736766e-17,
+        0.0
+      ],
+      "label": "t90_p0",
+      "minimum_pair": [
+        14,
+        2
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.8427999999999998,
+      "result": {
+        "atom_count": 16,
+        "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t90_p0.out.implicit/route2-result.json",
+        "cavity_stability": {
+          "attempts": [
+            {
+              "cavity_tesserae": 857,
+              "minimum_added_sphere_radius_angstrom": 1.0,
+              "name": "fixed-stability-branch",
+              "pcm_initialization_seconds": 0.8386266810011875,
+              "response_evaluated": true,
+              "response_evaluation_seconds": 6.2603183909996005,
+              "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t90_p0.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+              "tessera_area_angstrom2": 0.28002852018012786,
+              "warning_detected": false,
+              "warning_stage": null
+            }
+          ],
+          "force_compatible": false,
+          "geometry_selection_branch_free": true,
+          "policy": "fixed-stability-branch",
+          "selected": "fixed-stability-branch"
+        },
+        "combined_energy_hartree": -346.04780589888907,
+        "components_hartree": {
+          "cds": 0.0074528034455309256,
+          "delta_g_solv": -0.029305534987830166,
+          "electrostatic": -0.03675833843336109,
+          "pcm_polarization": -0.03878624351185253,
+          "solute_polarization": 0.0020279050784914377,
+          "standard_state": 0.0
+        },
+        "components_kcal_mol": {
+          "cds": 4.676704770400771,
+          "delta_g_solv": -18.389500847351083,
+          "electrostatic": -23.066205617751855,
+          "pcm_polarization": -24.338735267005905,
+          "solute_polarization": 1.2725296492540517,
+          "standard_state": 0.0
+        },
+        "iterations": 18,
+        "label": "t90_p0",
+        "pcmsolver_diagnostics": {
+          "native_stderr_warning_count": 0,
+          "native_stderr_warning_marker": "PCMSolver warning.",
+          "pedra_warning_count": 0,
+          "pedra_warnings": [],
+          "pedra_warnings_are_selection_fatal": false
+        },
+        "positions_angstrom": [
+          [
+            -0.703,
+            -0.411,
+            0.729
+          ],
+          [
+            -0.057,
+            -0.447,
+            2.087
+          ],
+          [
+            0.101,
+            -1.502,
+            2.699
+          ],
+          [
+            0.385,
+            0.872,
+            2.662
+          ],
+          [
+            -1.782,
+            -0.284,
+            0.84
+          ],
+          [
+            -0.284,
+            0.412,
+            0.146
+          ],
+          [
+            -0.509,
+            -1.351,
+            0.204
+          ],
+          [
+            -0.43,
+            1.312,
+            3.244
+          ],
+          [
+            0.648,
+            1.555,
+            1.851
+          ],
+          [
+            1.245,
+            0.717,
+            3.318
+          ],
+          [
+            0.101,
+            -4.302,
+            2.699
+          ],
+          [
+            0.101,
+            -3.3447999999999993,
+            2.699
+          ],
+          [
+            0.101,
+            -4.541663739880911,
+            3.6257109213699246
+          ],
+          [
+            2.901,
+            -1.5020000000000002,
+            2.699
+          ],
+          [
+            1.9437999999999998,
+            -1.5020000000000002,
+            2.699
+          ],
+          [
+            3.140663739880911,
+            -1.5020000000000002,
+            3.6257109213699246
+          ]
+        ],
+        "symbols": [
+          "C",
+          "C",
+          "O",
+          "C",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H"
+        ],
+        "timing_seconds": {
+          "evaluation": 7.434923546001301,
+          "model_load": 0.48612227699959476
+        },
+        "warning_count": 0,
+        "warning_fatal_pass": true
+      },
+      "status": "warning-free"
+    },
+    {
+      "direction": [
+        6.123233995736766e-17,
+        -6.123233995736766e-17,
+        1.0
+      ],
+      "failure": {
+        "message": "PCMSolver emitted a warning for every cavity attempt under policy 'fixed-stability-branch'; Route 2 refuses to publish a numerically suspect result. See /tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t90_p90.out.implicit/pcmsolver-fixed-stability-branch-stderr.log.",
+        "type": "RuntimeError"
+      },
+      "label": "t90_p90",
+      "minimum_pair": [
+        14,
+        2
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.8427999999999995,
+      "status": "provider-failed"
+    },
+    {
+      "direction": [
+        -1.0,
+        -6.123233995736766e-17,
+        1.2246467991473532e-16
+      ],
+      "label": "t90_p180",
+      "minimum_pair": [
+        14,
+        2
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.8427999999999998,
+      "result": {
+        "atom_count": 16,
+        "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t90_p180.out.implicit/route2-result.json",
+        "cavity_stability": {
+          "attempts": [
+            {
+              "cavity_tesserae": 845,
+              "minimum_added_sphere_radius_angstrom": 1.0,
+              "name": "fixed-stability-branch",
+              "pcm_initialization_seconds": 0.7528805000001739,
+              "response_evaluated": true,
+              "response_evaluation_seconds": 6.344827832001101,
+              "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t90_p180.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+              "tessera_area_angstrom2": 0.28002852018012786,
+              "warning_detected": false,
+              "warning_stage": null
+            }
+          ],
+          "force_compatible": false,
+          "geometry_selection_branch_free": true,
+          "policy": "fixed-stability-branch",
+          "selected": "fixed-stability-branch"
+        },
+        "combined_energy_hartree": -346.0423541569631,
+        "components_hartree": {
+          "cds": 0.007358384677055212,
+          "delta_g_solv": -0.02675540311197782,
+          "electrostatic": -0.03411378778903303,
+          "pcm_polarization": -0.03573497797848976,
+          "solute_polarization": 0.0016211901894567311,
+          "standard_state": 0.0
+        },
+        "components_kcal_mol": {
+          "cds": 4.61745609865289,
+          "delta_g_solv": -16.789268935143433,
+          "electrostatic": -21.406725033796324,
+          "pcm_polarization": -22.42403723693857,
+          "solute_polarization": 1.0173122031422508,
+          "standard_state": 0.0
+        },
+        "iterations": 18,
+        "label": "t90_p180",
+        "pcmsolver_diagnostics": {
+          "native_stderr_warning_count": 0,
+          "native_stderr_warning_marker": "PCMSolver warning.",
+          "pedra_warning_count": 0,
+          "pedra_warnings": [],
+          "pedra_warnings_are_selection_fatal": false
+        },
+        "positions_angstrom": [
+          [
+            -0.703,
+            -0.411,
+            0.729
+          ],
+          [
+            -0.057,
+            -0.447,
+            2.087
+          ],
+          [
+            0.101,
+            -1.502,
+            2.699
+          ],
+          [
+            0.385,
+            0.872,
+            2.662
+          ],
+          [
+            -1.782,
+            -0.284,
+            0.84
+          ],
+          [
+            -0.284,
+            0.412,
+            0.146
+          ],
+          [
+            -0.509,
+            -1.351,
+            0.204
+          ],
+          [
+            -0.43,
+            1.312,
+            3.244
+          ],
+          [
+            0.648,
+            1.555,
+            1.851
+          ],
+          [
+            1.245,
+            0.717,
+            3.318
+          ],
+          [
+            0.101,
+            -4.302,
+            2.699
+          ],
+          [
+            0.101,
+            -3.3447999999999993,
+            2.699
+          ],
+          [
+            0.101,
+            -4.541663739880911,
+            3.6257109213699246
+          ],
+          [
+            -2.699,
+            -1.5020000000000002,
+            2.6990000000000003
+          ],
+          [
+            -1.7417999999999998,
+            -1.5020000000000002,
+            2.6990000000000003
+          ],
+          [
+            -2.9386637398809112,
+            -1.5020000000000002,
+            3.625710921369925
+          ]
+        ],
+        "symbols": [
+          "C",
+          "C",
+          "O",
+          "C",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H"
+        ],
+        "timing_seconds": {
+          "evaluation": 7.447734533001494,
+          "model_load": 0.4928748080001242
+        },
+        "warning_count": 0,
+        "warning_fatal_pass": true
+      },
+      "status": "warning-free"
+    },
+    {
+      "direction": [
+        -1.8369701987210297e-16,
+        -6.123233995736766e-17,
+        -1.0
+      ],
+      "label": "t90_p270",
+      "minimum_pair": [
+        13,
+        6
+      ],
+      "minimum_water2_cross_distance_angstrom": 0.698517000508935,
+      "status": "geometric-clash-rejected-before-provider"
+    },
+    {
+      "direction": [
+        0.9396926207859084,
+        0.3420201433256687,
+        0.0
+      ],
+      "label": "t110_p0",
+      "minimum_pair": [
+        14,
+        9
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.803485466312445,
+      "result": {
+        "atom_count": 16,
+        "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t110_p0.out.implicit/route2-result.json",
+        "cavity_stability": {
+          "attempts": [
+            {
+              "cavity_tesserae": 832,
+              "minimum_added_sphere_radius_angstrom": 1.0,
+              "name": "fixed-stability-branch",
+              "pcm_initialization_seconds": 1.1803629710011592,
+              "response_evaluated": true,
+              "response_evaluation_seconds": 6.1110319399995205,
+              "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t110_p0.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+              "tessera_area_angstrom2": 0.28002852018012786,
+              "warning_detected": false,
+              "warning_stage": null
+            }
+          ],
+          "force_compatible": false,
+          "geometry_selection_branch_free": true,
+          "policy": "fixed-stability-branch",
+          "selected": "fixed-stability-branch"
+        },
+        "combined_energy_hartree": -346.03372031710126,
+        "components_hartree": {
+          "cds": 0.007275232594664532,
+          "delta_g_solv": -0.02774931108742406,
+          "electrostatic": -0.03502454368208859,
+          "pcm_polarization": -0.037024595639920936,
+          "solute_polarization": 0.0020000519578323443,
+          "standard_state": 0.0
+        },
+        "components_kcal_mol": {
+          "cds": 4.565277379164663,
+          "delta_g_solv": -17.41295560608282,
+          "electrostatic": -21.978232985247484,
+          "pcm_polarization": -23.233284537405734,
+          "solute_polarization": 1.255051552158248,
+          "standard_state": 0.0
+        },
+        "iterations": 18,
+        "label": "t110_p0",
+        "pcmsolver_diagnostics": {
+          "native_stderr_warning_count": 0,
+          "native_stderr_warning_marker": "PCMSolver warning.",
+          "pedra_warning_count": 1,
+          "pedra_warnings": [
+            {
+              "file": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t110_p0.out.implicit/PEDRA.OUT__622973",
+              "line": 24,
+              "message": "** WARNING  ** A very poor tesselation has been chosen. It is valuable almost only for testing."
+            }
+          ],
+          "pedra_warnings_are_selection_fatal": false
+        },
+        "positions_angstrom": [
+          [
+            -0.703,
+            -0.411,
+            0.729
+          ],
+          [
+            -0.057,
+            -0.447,
+            2.087
+          ],
+          [
+            0.101,
+            -1.502,
+            2.699
+          ],
+          [
+            0.385,
+            0.872,
+            2.662
+          ],
+          [
+            -1.782,
+            -0.284,
+            0.84
+          ],
+          [
+            -0.284,
+            0.412,
+            0.146
+          ],
+          [
+            -0.509,
+            -1.351,
+            0.204
+          ],
+          [
+            -0.43,
+            1.312,
+            3.244
+          ],
+          [
+            0.648,
+            1.555,
+            1.851
+          ],
+          [
+            1.245,
+            0.717,
+            3.318
+          ],
+          [
+            0.101,
+            -4.302,
+            2.699
+          ],
+          [
+            0.101,
+            -3.3447999999999993,
+            2.699
+          ],
+          [
+            0.101,
+            -4.541663739880911,
+            3.6257109213699246
+          ],
+          [
+            2.732139338200543,
+            -0.5443435986881277,
+            2.699
+          ],
+          [
+            1.8326655615842715,
+            -0.8717252798794577,
+            2.699
+          ],
+          [
+            2.957349586036589,
+            -0.4623737720240926,
+            3.6257109213699246
+          ]
+        ],
+        "symbols": [
+          "C",
+          "C",
+          "O",
+          "C",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H"
+        ],
+        "timing_seconds": {
+          "evaluation": 7.757597802999953,
+          "model_load": 0.5920664999994187
+        },
+        "warning_count": 1,
+        "warning_fatal_pass": false
+      },
+      "status": "warning-free"
+    },
+    {
+      "direction": [
+        5.753957801139251e-17,
+        0.3420201433256687,
+        0.9396926207859084
+      ],
+      "label": "t110_p90",
+      "minimum_pair": [
+        14,
+        2
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.8428,
+      "result": {
+        "atom_count": 16,
+        "audit_path": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t110_p90.out.implicit/route2-result.json",
+        "cavity_stability": {
+          "attempts": [
+            {
+              "cavity_tesserae": 859,
+              "minimum_added_sphere_radius_angstrom": 1.0,
+              "name": "fixed-stability-branch",
+              "pcm_initialization_seconds": 1.468930150000233,
+              "response_evaluated": true,
+              "response_evaluation_seconds": 7.403472634001446,
+              "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t110_p90.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+              "tessera_area_angstrom2": 0.28002852018012786,
+              "warning_detected": false,
+              "warning_stage": null
+            }
+          ],
+          "force_compatible": false,
+          "geometry_selection_branch_free": true,
+          "policy": "fixed-stability-branch",
+          "selected": "fixed-stability-branch"
+        },
+        "combined_energy_hartree": -346.0485130083962,
+        "components_hartree": {
+          "cds": 0.006930387422593807,
+          "delta_g_solv": -0.03129289620505285,
+          "electrostatic": -0.03822328362764666,
+          "pcm_polarization": -0.040756378846974924,
+          "solute_polarization": 0.002533095219328261,
+          "standard_state": 0.0
+        },
+        "components_kcal_mol": {
+          "cds": 4.348883766605363,
+          "delta_g_solv": -19.636588839543894,
+          "electrostatic": -23.98547260614926,
+          "pcm_polarization": -25.575013854981687,
+          "solute_polarization": 1.5895412488324299,
+          "standard_state": 0.0
+        },
+        "iterations": 18,
+        "label": "t110_p90",
+        "pcmsolver_diagnostics": {
+          "native_stderr_warning_count": 0,
+          "native_stderr_warning_marker": "PCMSolver warning.",
+          "pedra_warning_count": 0,
+          "pedra_warnings": [],
+          "pedra_warnings_are_selection_fatal": false
+        },
+        "positions_angstrom": [
+          [
+            -0.703,
+            -0.411,
+            0.729
+          ],
+          [
+            -0.057,
+            -0.447,
+            2.087
+          ],
+          [
+            0.101,
+            -1.502,
+            2.699
+          ],
+          [
+            0.385,
+            0.872,
+            2.662
+          ],
+          [
+            -1.782,
+            -0.284,
+            0.84
+          ],
+          [
+            -0.284,
+            0.412,
+            0.146
+          ],
+          [
+            -0.509,
+            -1.351,
+            0.204
+          ],
+          [
+            -0.43,
+            1.312,
+            3.244
+          ],
+          [
+            0.648,
+            1.555,
+            1.851
+          ],
+          [
+            1.245,
+            0.717,
+            3.318
+          ],
+          [
+            0.101,
+            -4.302,
+            2.699
+          ],
+          [
+            0.101,
+            -3.3447999999999993,
+            2.699
+          ],
+          [
+            0.101,
+            -4.541663739880911,
+            3.6257109213699246
+          ],
+          [
+            0.10100000000000017,
+            -0.5443435986881277,
+            5.330139338200543
+          ],
+          [
+            0.10100000000000012,
+            -0.8717252798794577,
+            4.430665561584272
+          ],
+          [
+            0.10100000000000017,
+            0.408449642388936,
+            5.238395783888184
+          ]
+        ],
+        "symbols": [
+          "C",
+          "C",
+          "O",
+          "C",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H",
+          "O",
+          "H",
+          "H"
+        ],
+        "timing_seconds": {
+          "evaluation": 9.461381944000095,
+          "model_load": 0.5996960280008352
+        },
+        "warning_count": 0,
+        "warning_fatal_pass": true
+      },
+      "status": "warning-free"
+    },
+    {
+      "direction": [
+        -0.9396926207859084,
+        0.3420201433256687,
+        1.1507915602278503e-16
+      ],
+      "failure": {
+        "message": "PCMSolver emitted a warning for every cavity attempt under policy 'fixed-stability-branch'; Route 2 refuses to publish a numerically suspect result. See /tmp/maple-route2-clean-canary/.omx/benchmarks/route-a-xw2-robustness-20260725/t110_p180.out.implicit/pcmsolver-fixed-stability-branch-stderr.log.",
+        "type": "RuntimeError"
+      },
+      "label": "t110_p180",
+      "minimum_pair": [
+        14,
+        1
+      ],
+      "minimum_water2_cross_distance_angstrom": 1.7410797980233488,
+      "status": "provider-failed"
+    },
+    {
+      "direction": [
+        -1.7261873403417754e-16,
+        0.3420201433256687,
+        -0.9396926207859084
+      ],
+      "label": "t110_p270",
+      "minimum_pair": [
+        15,
+        5
+      ],
+      "minimum_water2_cross_distance_angstrom": 0.3852566413901038,
+      "status": "geometric-clash-rejected-before-provider"
+    }
+  ],
+  "schema_version": 1,
+  "source_git_head": "7fea1061e9def05914ebf82c2e2eaba8a8f54365",
+  "source_working_tree_clean": true
+}

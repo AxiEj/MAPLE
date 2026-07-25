@@ -1,0 +1,148 @@
+{
+  "contract_name": "route-a-polar-smd-outer-adapter",
+  "contract_version": "1.0.0",
+  "immutable": true,
+  "provider": {
+    "adapter_id": "maple-route2-polar-smd-delta-v1",
+    "profile": "smd-iefpcm-gaff2-o",
+    "polar_model": "MACE-POLAR-1-M",
+    "pcm": "IEFPCM via PCMSolver",
+    "cavity_radii": "GAFF2 with carbonyl oxygen radius 1.70 A",
+    "cds": "aqueous SMD CDS with 0.4 A SASA probe",
+    "reuse_policy": "extract a shared stateless provider from Route 2; do not copy its implementation",
+    "runtime_provenance_required_fields": [
+      "source_commit",
+      "source_blob_sha256",
+      "model_sha256",
+      "pcmsolver_library_sha256",
+      "profile",
+      "cavity_policy"
+    ]
+  },
+  "route2_parity_source": {
+    "repository": "/home/axie/MAPLE/MAPLE-implicitsolv-route2",
+    "commit": "7fea1061e9def05914ebf82c2e2eaba8a8f54365",
+    "clean_tree_required": true,
+    "source_sha256": {
+      "maple/function/calculator/extra_correction/implicit/smd.py": "3c7f3d368950c6e0b8bb1b05e893c0c2aa952c09737b38105588bf234332fd2a",
+      "maple/function/calculator/mace/_macepol_calculator.py": "76f8f8f6b622e4715062fb3b12f6a263de22f044b9b20a4ce03562d9e5563699",
+      "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "453605bf27fe5abe8619bb62884dd7fd416ee94bab635d9667caf6705e0479bc",
+      "maple/function/calculator/extra_correction/implicit/smd_cds.py": "f177e8b457dfca46e4f4088dfc6f23e646a9e68de912591cc79fda9e4a8fbaa9",
+      "maple/function/calculator/extra_correction/implicit/continuum_response.py": "db59b72110f4c4b135dfda8c6e65c92b4081560ee560dc988fd6b5bb34c3e3db",
+      "maple/function/route2_smd_profiles.py": "2b0443f369604a0a1393364a16d264b216cf3fab851c472abbdf241d304586b4",
+      "maple/function/calculator/extra_correction/implicit/route2_domain.py": "983cebfbb142b1e02b82fa95645d096dfa0d3b49fa4a9de1faa5a8841b1d9778",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "b7cddbfa647a9605d12d34ab9e32cba4f12192cf8d388fc4592379404be62f00"
+    }
+  },
+  "provider_config": {
+    "method": "smd",
+    "implicit": "water",
+    "response": "scf",
+    "standard_state": "1m",
+    "provider": "pcmsolver",
+    "profile": "smd-iefpcm-gaff2-o",
+    "cavity_policy": "fixed-stability-branch",
+    "experimental": true
+  },
+  "pcm_response": {
+    "external_mep_response_contract_version": 1,
+    "solver": "IEFPCM",
+    "solvent": "WATER",
+    "nonequilibrium": false,
+    "matrix_symmetric": true,
+    "diagonal_integrator": "COLLOCATION",
+    "diagonal_scaling": 1.07,
+    "pcmsolver_library_version": "1.3.0+27fb35f",
+    "pcmsolver_library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+  },
+  "cavity_profile": {
+    "mode": "ATOMS",
+    "scaling": false,
+    "area_bohr2": 1.0,
+    "area_angstrom2": 0.28002852018012786,
+    "minimum_added_sphere_radius_angstrom": 1.0,
+    "solute_atom_typing": "MOL2 atom types are required when profile-specific types apply",
+    "water_template": "element radii H=1.20 A and O=1.52 A",
+    "gaff2_carbonyl_oxygen_atom_type": "o",
+    "gaff2_carbonyl_oxygen_radius_angstrom": 1.7,
+    "native_and_pedra_warnings_fatal": true,
+    "scientific_status": "experimental candidate; one-acetone warning-free canary, not accuracy-certified"
+  },
+  "cds_profile": {
+    "model": "aqueous SMD atomic surface tensions",
+    "sasa_probe_radius_angstrom": 0.4,
+    "sasa_grid_points_per_atom": 5810,
+    "source_sha256": "f177e8b457dfca46e4f4088dfc6f23e646a9e68de912591cc79fda9e4a8fbaa9"
+  },
+  "energy_contract": {
+    "delta_outer_kcal": "Hartree_to_kcal_mol*((E_intrinsic_Polar[V_reac]-E_intrinsic_Polar[0])/Hartree_eV+E_PCM_pol_Ha+G_CDS_Ha)",
+    "target_hamiltonian": "U_target_kcal(q)=U_OMOL_vac_kcal(q)+delta_outer_kcal(q)",
+    "pcm_polarization": "E_PCM_pol_Ha=0.5*dot(MEP_Ha_per_e,ASC_e)",
+    "intrinsic_energy_definition": "Polar ML energy with explicit density-potential work removed, evaluated at converged reaction field and at zero field",
+    "apply_outer_delta_exactly_once": true,
+    "forbidden_compositions": [
+      "U_OMOL_vac plus a complete Route2 solvated total energy",
+      "a second PCM polarization term",
+      "a second CDS term",
+      "a second half-coupling term"
+    ]
+  },
+  "polar_representation": {
+    "required_field": "density_coefficients",
+    "shape": "(N,4)",
+    "interpretation": "learned atom-centered coefficients used to evaluate coarse point-multipole MEP",
+    "not_claimed_as": "quantum-mechanical electron density",
+    "charge_fallback_allowed": false
+  },
+  "endpoint_identity": {
+    "required_equal_fields": [
+      "atom_list_hash",
+      "restraint_hash",
+      "measure_id",
+      "boundary_conditions"
+    ],
+    "coordinate_identity_required": true,
+    "mismatch_failure_code": "STATE_SPACE_MISMATCH"
+  },
+  "scf_contract": {
+    "maximum_iterations": 50,
+    "mixing": 0.5,
+    "density_tolerance_e": 1e-05,
+    "energy_tolerance_eV": 1e-05,
+    "density_coefficients_required": true,
+    "fail_closed_on_nonconvergence": true
+  },
+  "intrinsic_energy_contract": {
+    "gas_state": "MACE-POLAR polar_state(atoms) at zero node potential and zero node gradient",
+    "reaction_state": "MACE-POLAR polar_state(atoms,node_potential_ev,node_gradient_ev_per_angstrom) at converged PCM reaction field",
+    "energy_field": "PolarState.energy_ev",
+    "density_field": "PolarState.density_coefficients",
+    "density_shape": "(N,4)",
+    "density_net_charge_tolerance_e": 0.0001,
+    "explicit_density_potential_work_in_energy_ev": false
+  },
+  "audit_schema": {
+    "route2_result_schema_version": 5,
+    "required_component_fields_hartree": [
+      "solute_polarization",
+      "pcm_polarization",
+      "electrostatic",
+      "cds",
+      "standard_state",
+      "delta_g_solv"
+    ],
+    "identities": [
+      "electrostatic=solute_polarization+pcm_polarization",
+      "delta_g_solv=electrostatic+cds+standard_state"
+    ],
+    "parity_fixture": "tests/solvation/route_a/fixtures/outer/route2_acetone_component_parity_v1.json",
+    "parity_fixture_canonical_sha256": "e94ed80490a82983e9bbeb4fdee73d596ea6def4fa35c2ae6d7f06cb969c18e6"
+  },
+  "sampler_boundary": {
+    "off24_role": "periodic discovery and proposal only",
+    "off24_frames_are_production_rows": false,
+    "periodic_to_nonperiodic_direct_reweighting_allowed": false,
+    "production_scoring": "nonperiodic OMOL vacuum plus nonperiodic Polar-SMD delta on the same atom list"
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')"
+}

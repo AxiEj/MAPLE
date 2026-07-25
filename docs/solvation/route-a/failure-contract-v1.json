@@ -1,0 +1,262 @@
+{
+  "catalog": {
+    "catalog_entry_required_fields": [
+      "category",
+      "code",
+      "scientific_gate",
+      "fail_closed",
+      "recovery_hint"
+    ],
+    "failure_codes": [
+      {
+        "category": "input",
+        "code": "DOMAIN_UNSUPPORTED",
+        "fail_closed": true,
+        "recovery_hint": "Switch to a neutral, closed-shell solute and remove unsupported topology constraints, then rerun parse with unchanged protocol hashes.",
+        "scientific_gate": false
+      },
+      {
+        "category": "input",
+        "code": "MUTUALLY_EXCLUSIVE_SOLVATION",
+        "fail_closed": true,
+        "recovery_hint": "Resolve explicit solvent input conflicts and rerun from parse.",
+        "scientific_gate": false
+      },
+      {
+        "category": "policy",
+        "code": "MODEL_LICENSE_UNACKNOWLEDGED",
+        "fail_closed": true,
+        "recovery_hint": "Attach the missing model and license acceptance artifacts required by protocol metadata, then rerun from parse.",
+        "scientific_gate": false
+      },
+      {
+        "category": "policy",
+        "code": "MODEL_HASH_MISMATCH",
+        "fail_closed": true,
+        "recovery_hint": "Pin all roles to protocol-locked model SHA values (target/sampler/outer) before rerun.",
+        "scientific_gate": false
+      },
+      {
+        "category": "provider",
+        "code": "MODEL_CAPABILITY_MISSING",
+        "fail_closed": true,
+        "recovery_hint": "Install missing ASE/MACE capabilities for all three roles and rerun a single shell benchmark.",
+        "scientific_gate": false
+      },
+      {
+        "category": "environment",
+        "code": "RUNTIME_ABI_INCOMPATIBLE",
+        "fail_closed": true,
+        "recovery_hint": "Align runtime ABI for Python/Numpy/Torch/PCMSolver and rerun from parse.",
+        "scientific_gate": false
+      },
+      {
+        "category": "environment",
+        "code": "PYMBAR_MISSING",
+        "fail_closed": true,
+        "recovery_hint": "Install PyMBAR and rerun the MBAR stage only.",
+        "scientific_gate": false
+      },
+      {
+        "category": "diagnostics",
+        "code": "PERIODIC_DENSITY_UNCONVERGED",
+        "fail_closed": true,
+        "recovery_hint": "Increase equilibration window by 50% and recompute density before rerunning shell statistics.",
+        "scientific_gate": false
+      },
+      {
+        "category": "diagnostics",
+        "code": "PERIODIC_BOX_TOO_SMALL",
+        "fail_closed": true,
+        "recovery_hint": "Regenerate with at least 14 Å solvent padding and rerun discovery+shell.",
+        "scientific_gate": false
+      },
+      {
+        "category": "diagnostics",
+        "code": "SHELL_MINIMUM_NOT_FOUND",
+        "fail_closed": true,
+        "recovery_hint": "Extend RDF sampling and rerun shell candidate generation.",
+        "scientific_gate": false
+      },
+      {
+        "category": "diagnostics",
+        "code": "SHELL_NO_PLATEAU",
+        "fail_closed": true,
+        "recovery_hint": "Extend shell sampling bins and require occupancy plateau spread <= comparator and non-empty CI overlap before proceeding.",
+        "scientific_gate": true
+      },
+      {
+        "category": "scientific",
+        "code": "OCCUPANCY_TAIL_UNBOUNDED",
+        "fail_closed": true,
+        "recovery_hint": "Inspect tail diagnostics; do not close this route unless omitted tail mass < 0.005 and final-two omitted contribution < 0.1 kcal/mol.",
+        "scientific_gate": true
+      },
+      {
+        "category": "topology",
+        "code": "ATOM_LIST_MISMATCH",
+        "fail_closed": true,
+        "recovery_hint": "Inspect atom index ordering between parse and reduced-potential rows before rerun.",
+        "scientific_gate": false
+      },
+      {
+        "category": "topology",
+        "code": "STATE_SPACE_MISMATCH",
+        "fail_closed": true,
+        "recovery_hint": "Boundary-condition or PBC mismatch detected between thermodynamic and reduced-potential states; rerun from parse with consistent measure_id and boundary metadata.",
+        "scientific_gate": true
+      },
+      {
+        "category": "numerical",
+        "code": "REDUCED_POTENTIAL_NONFINITE",
+        "fail_closed": true,
+        "recovery_hint": "Reject non-finite rows and rerun u_k table generation with fixed sampling; do not clamp NaNs.",
+        "scientific_gate": true
+      },
+      {
+        "category": "statistics",
+        "code": "MBAR_OVERLAP_DISCONNECTED",
+        "fail_closed": true,
+        "recovery_hint": "Increase lambda overlap where disconnected and rerun MBAR; MBAR overlap must pass and ESS gates must satisfy configured comparators.",
+        "scientific_gate": true
+      },
+      {
+        "category": "statistics",
+        "code": "MBAR_ESS_TOO_LOW",
+        "fail_closed": true,
+        "recovery_hint": "Extend production per window until ESS crosses minimum or explicit retry budget is exhausted.",
+        "scientific_gate": true
+      },
+      {
+        "category": "statistics",
+        "code": "MBAR_UNSAMPLED_TARGET_UNSUPPORTED",
+        "fail_closed": true,
+        "recovery_hint": "Resimulate target state to ensure support in sampled ensemble.",
+        "scientific_gate": true
+      },
+      {
+        "category": "statistics",
+        "code": "BAR_CLOSURE_FAILED",
+        "fail_closed": true,
+        "recovery_hint": "Increase sampling near high-gap λ windows before rerunning BAR.",
+        "scientific_gate": true
+      },
+      {
+        "category": "statistics",
+        "code": "REPLICA_DISAGREEMENT",
+        "fail_closed": true,
+        "recovery_hint": "Rerun with independent replica seeds and identical protocols per replica.",
+        "scientific_gate": true
+      },
+      {
+        "category": "outer",
+        "code": "SMD_WARNING",
+        "fail_closed": true,
+        "recovery_hint": "Treat any native or PEDRA PCMSolver warning as fatal; change cavity settings only through a new frozen protocol and regenerated parity/golden evidence.",
+        "scientific_gate": true
+      },
+      {
+        "category": "outer",
+        "code": "SMD_CAVITY_PENETRATION",
+        "fail_closed": true,
+        "recovery_hint": "Reject current mesh; regenerate cavity with preserved mesh topology and rerun protected-overlap predicate.",
+        "scientific_gate": true
+      },
+      {
+        "category": "outer",
+        "code": "SMD_CAVITY_TOPOLOGY_DISCONTINUITY",
+        "fail_closed": true,
+        "recovery_hint": "Reject the frame and diagnose atom mapping, cavity connectivity, and protected-contact geometry. Any area or MINRADIUS change requires a new protocol version plus regenerated cavity golden, Route 2 parity, and bound hashes; no automatic fallback profile is allowed.",
+        "scientific_gate": true
+      },
+      {
+        "category": "artifact",
+        "code": "RESTART_HASH_MISMATCH",
+        "fail_closed": true,
+        "recovery_hint": "Verify restart checkpoint lineage, delete corrupted restarts, and resume from last valid artifact hash.",
+        "scientific_gate": false
+      },
+      {
+        "category": "scientific",
+        "code": "BENCHMARK_LEAKAGE",
+        "fail_closed": true,
+        "recovery_hint": "Partition sampling by chemistry and topology families with protocol-family selection consistency, lock protocol identity, and score only against an untouched holdout split before any benchmark reopening.",
+        "scientific_gate": true
+      },
+      {
+        "category": "scientific",
+        "code": "FLEXIBILITY_UNCONVERGED",
+        "fail_closed": true,
+        "recovery_hint": "Increase conformer sampling diversity; require independent replica overlap before scientific closure.",
+        "scientific_gate": true
+      },
+      {
+        "category": "scientific",
+        "code": "REFERENCE_CYCLE_ABLATION_MISSING_OR_NONCOMPARABLE",
+        "fail_closed": true,
+        "recovery_hint": "Run both frozen reference cycles on the same holdout, same n-by-molecule map, and same nonreference controls, then attach verified artifacts before any scientifically-validated claim.",
+        "scientific_gate": true
+      }
+    ],
+    "failure_record_required_fields": [
+      "code",
+      "stage",
+      "state_id",
+      "message",
+      "thresholds",
+      "observed",
+      "recovery_hint"
+    ],
+    "known_categories": [
+      "artifact",
+      "diagnostics",
+      "environment",
+      "input",
+      "numerical",
+      "outer",
+      "policy",
+      "provider",
+      "scientific",
+      "statistics",
+      "topology"
+    ],
+    "required_fields": [
+      "code",
+      "category",
+      "scientific_gate",
+      "fail_closed",
+      "recovery_hint"
+    ],
+    "uniqueness": {
+      "code": "required"
+    }
+  },
+  "contract_name": "route-a-failure-contract",
+  "contract_version": "1.5.0",
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "immutable": true,
+  "runtime": {
+    "known_categories": [
+      "artifact",
+      "diagnostics",
+      "environment",
+      "input",
+      "numerical",
+      "outer",
+      "policy",
+      "provider",
+      "scientific",
+      "statistics",
+      "topology"
+    ],
+    "required_fields": [
+      "code",
+      "stage",
+      "state_id",
+      "message",
+      "thresholds",
+      "observed",
+      "recovery_hint"
+    ]
+  }
+}

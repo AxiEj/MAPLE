@@ -1,0 +1,55 @@
+{
+  "registry_version": "1.1.0",
+  "evidence_class": "synthetic-known-answer-contract-fixture",
+  "test_only": true,
+  "created_before_holdout_open": true,
+  "frozen_at_utc": "2026-07-25T05:00:00Z",
+  "vcs_anchor_commit": "1477d32165cb7683520f4b07b1069ce75f29f433",
+  "selection_policy_artifact_hash": "ae41bca873f500636b33f3dc0a8c0540fb1e8108b2d53a861cf68ce83d7ce22f",
+  "development_selection_artifact_hash": "ad31f4a9c40da0a2197be81aea8eb5c7217fe72aabc89301d743419dff35786a",
+  "holdout_lock_hash": "a19a9cba19eaca2fad894178da0b05a8c0629a406e9426c982a719292f860839",
+  "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+  "selected_primary_cycle": "sequential-monomer-water-reference-v1",
+  "trusted_scientific_evidence": {
+    "frozen_holdout": {
+      "molecule_ids": [
+        "m1",
+        "m2",
+        "m3",
+        "m4"
+      ],
+      "experiment_kcal_by_molecule": {
+        "m1": 0.0,
+        "m2": 0.0,
+        "m3": 0.0,
+        "m4": 0.0
+      }
+    },
+    "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+    "route2_baseline_by_molecule": {
+      "m1": 1.0,
+      "m2": -1.1,
+      "m3": 1.2,
+      "m4": -0.9
+    },
+    "full_explicit_reference_by_molecule": {
+      "m1": 0.4,
+      "m2": -0.5,
+      "m3": 0.5,
+      "m4": -0.2
+    },
+    "route2_bootstrap": {
+      "algorithm": "sha256-counter-modulo-v1",
+      "seed": "route-a-route2-paired-bootstrap-v1",
+      "resamples": 4096,
+      "sample_size": 4
+    },
+    "partition_bias_bootstrap": {
+      "algorithm": "sha256-counter-modulo-v1",
+      "seed": "route-a-partition-bias-bootstrap-v1",
+      "resamples": 4096,
+      "sample_size": 4
+    }
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')"
+}

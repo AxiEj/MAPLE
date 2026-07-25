@@ -1,0 +1,69 @@
+{
+  "schema_version": "3",
+  "artifact_type": "route-a-soft-conditioning-contract",
+  "contract_version": "3.0.0",
+  "status": "runtime-primitives-implemented-production-validation-pending",
+  "membership": {
+    "coordinate": "d_s(O_j)=minimum solute atom-sphere signed distance",
+    "scaled_coordinate": "z=(d_s-lambda_s)/R",
+    "member_weight": "b=1/(1+exp(z))",
+    "nonmember_weight": "1-b=1/(1+exp(-z))",
+    "member_field": "u_member=-kT ln(b)=kT softplus(z)",
+    "empty_field": "u_empty=-kT ln(1-b)=kT softplus(-z)",
+    "complementarity_required": true,
+    "hard_limit": "R->0",
+    "oxygen_decides_only": true,
+    "complete_solvent_molecule_retained": true,
+    "softness_policy": "preregistered from development stability and hard-limit sensitivity; experimental hydration values forbidden",
+    "same_definition_required_for": [
+      "packing-p0",
+      "coupled-x0-and-xn",
+      "fixed-n-association",
+      "effective-translational-volume"
+    ]
+  },
+  "soft_occupancy": {
+    "generating_function": "product_j[(1-b_j)+t*b_j]",
+    "omega_n": "coefficient of t^n",
+    "empty_weight": "omega_0=product_j(1-b_j)=exp[-beta sum_j u_empty,j]",
+    "algorithm": "production O(Nwater*nmax) active-support recurrence plus aggregate tail; exhaustive O(Nwater^2) recurrence retained for finite oracle tests",
+    "framewise_nonnegative_required": true,
+    "framewise_normalization_required": "sum_n omega_n=1",
+    "production_support": "preregistered active occupancies n=0..nmax plus one aggregate overflow tail bin n>nmax",
+    "simplex_reconstruction": "one preregistered well-conditioned bin; never the numerical far-tail by implicit position",
+    "tail_bin_required": true,
+    "tail_mass_gate": "tail probability must be below the protocol tail_mass_upper_bound",
+    "bulk_water_stress_regression": "Nwater=64,128,256,512"
+  },
+  "same_measure_bindings": [
+    "membership_definition_hash",
+    "observation_volume_hash",
+    "lambda_s_angstrom",
+    "softness_angstrom",
+    "vdw_radii_and_atom_map_hash",
+    "solute_measure_hash",
+    "temperature_k",
+    "water_hamiltonian_hash",
+    "boundary_conditions",
+    "boundary-independent membership_surface_hash plus explicit periodic/nonperiodic adapter bridge"
+  ],
+  "solute_flexibility": {
+    "fixed_conformer_diagnostic": "one coordinate-hash-bound conformer; approximate and diagnostic only",
+    "registered_conformer_ensemble": "preregistered conformers and weights; averaging occurs outside the packing estimator",
+    "arbitrary_snapshot_as_exact_flexible_result_allowed": false
+  },
+  "runtime_implementations": {
+    "membership": "maple/function/dispatcher/solvfe/membership.py::SoftCutoffMembership",
+    "soft_occupancy": "maple/function/dispatcher/solvfe/membership.py::soft_occupancy_weights",
+    "occupancy_distribution": "maple/function/dispatcher/solvfe/occupancy_analysis.py::SoftOccupancyDistribution",
+    "occupancy_estimator": "maple/function/dispatcher/solvfe/occupancy_analysis.py::estimate_soft_occupancy",
+    "association": "maple/function/dispatcher/solvfe/association_conditioning.py::SoftMembershipSurfaceRestraint",
+    "packing_field": "maple/function/dispatcher/solvfe/packing_conditioning.py::GeometryConditionedCavity"
+  },
+  "scientific_boundaries": {
+    "hard_empty_indicator_role": "diagnostic-only",
+    "softness_is_accuracy_guarantee": false,
+    "hard_limit_sensitivity_required": true,
+    "cluster_continuum_result_is_exact_qct": false
+  }
+}

@@ -1,0 +1,338 @@
+{
+  "aborted_candidate": {
+    "area_bohr2": 1.5,
+    "reason": "PCMSolver fatal process exit during XW2_t70_p90; later candidates were not run"
+  },
+  "claim": "development-only cavity initialization robustness scan; not a free energy and not a profile approval",
+  "completed_candidate_areas_bohr2": [
+    0.5,
+    0.75,
+    1.0,
+    1.25
+  ],
+  "conclusion": "1.0 bohr2 was best among completed candidates (9/13 initialization passes); no simple AREA change made all frozen development geometries warning-free.",
+  "minimum_added_sphere_radius_angstrom": 1.0,
+  "schema_version": 1,
+  "source_git_head": "7fea1061e9def05914ebf82c2e2eaba8a8f54365",
+  "source_working_tree_clean": true,
+  "summary": [
+    {
+      "area_bohr2": 0.5,
+      "failed_labels": [
+        "X",
+        "XW2_original",
+        "XW2_t70_p0",
+        "XW2_t70_p180",
+        "XW2_t70_p90"
+      ],
+      "passed": 8,
+      "records": [
+        {
+          "label": "W",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "X",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW1",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_original",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t110_p0",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t110_p180",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t110_p90",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t70_p0",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t70_p180",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t70_p90",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t90_p0",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t90_p180",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t90_p90",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "total": 13
+    },
+    {
+      "area_bohr2": 0.75,
+      "failed_labels": [
+        "X",
+        "XW2_original",
+        "XW2_t110_p180",
+        "XW2_t70_p180",
+        "XW2_t90_p0",
+        "XW2_t90_p90"
+      ],
+      "passed": 7,
+      "records": [
+        {
+          "label": "W",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "X",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW1",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_original",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t110_p0",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t110_p180",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t110_p90",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t70_p0",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t70_p180",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t70_p90",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t90_p0",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t90_p180",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t90_p90",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        }
+      ],
+      "total": 13
+    },
+    {
+      "area_bohr2": 1.0,
+      "failed_labels": [
+        "XW2_original",
+        "XW2_t110_p180",
+        "XW2_t70_p180",
+        "XW2_t90_p90"
+      ],
+      "passed": 9,
+      "records": [
+        {
+          "label": "W",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "X",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW1",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_original",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t110_p0",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t110_p180",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t110_p90",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t70_p0",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t70_p180",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t70_p90",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t90_p0",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t90_p180",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t90_p90",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        }
+      ],
+      "total": 13
+    },
+    {
+      "area_bohr2": 1.25,
+      "failed_labels": [
+        "XW1",
+        "XW2_original",
+        "XW2_t110_p0",
+        "XW2_t70_p180",
+        "XW2_t70_p90",
+        "XW2_t90_p0",
+        "XW2_t90_p180"
+      ],
+      "passed": 6,
+      "records": [
+        {
+          "label": "W",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "X",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW1",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_original",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t110_p0",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t110_p180",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t110_p90",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t70_p0",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "label": "XW2_t70_p180",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t70_p90",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t90_p0",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t90_p180",
+          "outcome": "warning",
+          "stderr_sha256": "88f5364bcbe449a8f9b32318e686de0f8978fb9202dfa72b8d8f1c58a317cb0e"
+        },
+        {
+          "label": "XW2_t90_p90",
+          "outcome": "pass",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "total": 13
+    }
+  ]
+}

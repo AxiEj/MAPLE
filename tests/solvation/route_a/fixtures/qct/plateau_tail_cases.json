@@ -1,0 +1,204 @@
+{
+  "protocol_version": "1.0.0",
+  "plateau": {
+    "thresholds": {
+      "spread_kcal": 0.5,
+      "ci_overlap": true
+    },
+    "pass": {
+      "boundaries": [
+        0.8,
+        1.0,
+        1.2,
+        1.6
+      ],
+      "rows": [
+        {
+          "boundary": 0.8,
+          "occupancy_kcal": 0.421,
+          "ci": [
+            0.36,
+            0.48
+          ],
+          "included": true
+        },
+        {
+          "boundary": 1.0,
+          "occupancy_kcal": 0.447,
+          "ci": [
+            0.38,
+            0.52
+          ],
+          "included": true
+        },
+        {
+          "boundary": 1.2,
+          "occupancy_kcal": 0.459,
+          "ci": [
+            0.41,
+            0.55
+          ],
+          "included": true
+        },
+        {
+          "boundary": 1.6,
+          "occupancy_kcal": 0.92,
+          "ci": [
+            0.85,
+            0.95
+          ],
+          "included": false
+        }
+      ]
+    },
+    "fail_spread": {
+      "boundaries": [
+        0.8,
+        1.0,
+        1.2
+      ],
+      "rows": [
+        {
+          "boundary": 0.8,
+          "occupancy_kcal": 0.1,
+          "ci": [
+            0.0,
+            0.2
+          ],
+          "included": true
+        },
+        {
+          "boundary": 1.0,
+          "occupancy_kcal": 0.6,
+          "ci": [
+            0.5,
+            0.7
+          ],
+          "included": true
+        },
+        {
+          "boundary": 1.2,
+          "occupancy_kcal": 1.2,
+          "ci": [
+            1.1,
+            1.3
+          ],
+          "included": true
+        }
+      ]
+    },
+    "fail_ci": {
+      "boundaries": [
+        0.8,
+        1.0,
+        1.2
+      ],
+      "rows": [
+        {
+          "boundary": 0.8,
+          "occupancy_kcal": 0.42,
+          "ci": [
+            0.0,
+            0.15
+          ],
+          "included": true
+        },
+        {
+          "boundary": 1.0,
+          "occupancy_kcal": 0.44,
+          "ci": [
+            0.25,
+            0.38
+          ],
+          "included": true
+        },
+        {
+          "boundary": 1.2,
+          "occupancy_kcal": 0.47,
+          "ci": [
+            0.45,
+            0.55
+          ],
+          "included": true
+        }
+      ]
+    }
+  },
+  "tail": {
+    "thresholds": {
+      "probability": 0.005,
+      "final_two_kcal": 0.1
+    },
+    "pass": {
+      "rows": [
+        {
+          "tail_state": false,
+          "tail_probability": 0.0,
+          "tail_contribution_kcal": 0.0,
+          "included": true,
+          "included_reason": "core sampling window"
+        },
+        {
+          "tail_state": false,
+          "tail_probability": 0.0,
+          "tail_contribution_kcal": 0.0,
+          "included": true,
+          "included_reason": "core sampling window"
+        },
+        {
+          "tail_state": true,
+          "tail_probability": 0.002,
+          "tail_contribution_kcal": 0.042,
+          "included": false,
+          "included_reason": "tail candidate"
+        },
+        {
+          "tail_state": true,
+          "tail_probability": 0.0015,
+          "tail_contribution_kcal": 0.039,
+          "included": false,
+          "included_reason": "tail candidate"
+        }
+      ]
+    },
+    "fail_mass_eq": {
+      "rows": [
+        {
+          "tail_state": false,
+          "tail_probability": 0.0,
+          "tail_contribution_kcal": 0.0,
+          "included": true
+        },
+        {
+          "tail_state": true,
+          "tail_probability": 0.003,
+          "tail_contribution_kcal": 0.03,
+          "included": false
+        },
+        {
+          "tail_state": true,
+          "tail_probability": 0.002,
+          "tail_contribution_kcal": 0.04,
+          "included": false
+        }
+      ]
+    },
+    "fail_final_two_eq": {
+      "rows": [
+        {
+          "tail_state": true,
+          "tail_probability": 0.002,
+          "tail_contribution_kcal": 0.06,
+          "included": false
+        },
+        {
+          "tail_state": true,
+          "tail_probability": 0.002,
+          "tail_contribution_kcal": 0.04,
+          "included": false
+        }
+      ]
+    }
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')"
+}

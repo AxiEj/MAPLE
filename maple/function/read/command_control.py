@@ -6,11 +6,20 @@ from typing import Any, Dict, List, Optional
 class CommandControl:
     """
     Parse and validate input settings.
-    One task only: sp/opt/ts/scan/freq/irc/md.
+    One task only: sp/opt/ts/scan/freq/irc/md/solvfe.
     All other settings are global parameters.
     """
 
-    SUPPORTED_TASKS = {"sp", "opt", "ts", "scan", "freq", "irc", "md"}
+    SUPPORTED_TASKS = {
+        "sp",
+        "opt",
+        "ts",
+        "scan",
+        "freq",
+        "irc",
+        "md",
+        "solvfe",
+    }
 
     SUPPORTED_UMA_TASKS = {"omol", "omat", "oc20", "odac", "omc", "oc22", "oc25"}
     SUPPORTED_UMA_SIZES = {"uma-s-1p1", "uma-s-1p2", "uma-m-1p1"}
@@ -65,6 +74,9 @@ class CommandControl:
             "traj_format": "xyz",
             "debug": False,
         },
+        "solvfe": {
+            "dry_run": False,
+        },
     }
 
     IMPLEMENTATION_MAP = {
@@ -75,10 +87,15 @@ class CommandControl:
         "sp": set(),
         "irc": {"gs", "hpc", "eulerpc", "lqa"},
         "md": {"nve", "nvt", "npt"},
+        "solvfe": {"qct"},
     }
     GLOBAL_PARAMS = {
         "model",
         "model_options",
+        "scorer",
+        "scorer_options",
+        "outer",
+        "outer_options",
         "device",
         "gpuid",
         "d4",
@@ -133,6 +150,7 @@ class CommandControl:
     SCAN_PARAMS = {"method", "mode"}
     SOLV_PARAMS = {
         "method",
+        "provider",
         "implicit",
         "explicit",
         "solvent",
@@ -166,7 +184,33 @@ class CommandControl:
         ),
     }
 
-    VALIDATED_TASK_PARAMS = {"opt", "scan", "md"}
+    SOLVFE_PARAMS = {
+        "method",
+        "solvent",
+        "temperature",
+        "pressure_bar",
+        "standard_state",
+        "protocol",
+        "experimental",
+        "dry_run",
+    }
+    SOLVFE_MODEL_OPTION_KEYS = {
+        "checkpoint",
+        "sha256",
+        "license_ack",
+    }
+    SOLVFE_OUTER_OPTION_KEYS = {
+        "provider",
+        "model",
+        "profile",
+        "response",
+        "standard_state",
+        "checkpoint",
+        "sha256",
+        "license_ack",
+    }
+
+    VALIDATED_TASK_PARAMS = {"opt", "scan", "md", "solvfe"}
 
     TS_REFINE_MAP = {
         "neb": {"cineb", "nebts"},
@@ -372,11 +416,38 @@ class CommandControl:
 
         solv_options = params.get("solv")
         if isinstance(solv_options, dict):
-            for key in ("shape", "explicit", "method", "implicit", "solvent", "clash_method"):
+            for key in (
+                "shape",
+                "explicit",
+                "method",
+                "provider",
+                "implicit",
+                "solvent",
+                "clash_method",
+            ):
                 if key in solv_options and isinstance(solv_options[key], str):
                     solv_options[key] = solv_options[key].lower()
             if solv_options.get("shape") == "box":
                 solv_options["shape"] = "cube"
+
+        for key in ("scorer", "outer"):
+            if key in params and isinstance(params[key], str):
+                params[key] = params[key].strip().lower()
+        for options_key in ("scorer_options", "outer_options"):
+            options = params.get(options_key)
+            if isinstance(options, dict):
+                for key in (
+                    "provider",
+                    "model",
+                    "profile",
+                    "response",
+                    "standard_state",
+                ):
+                    if key in options and isinstance(options[key], str):
+                        options[key] = options[key].strip().lower()
+        for key in ("method", "solvent", "standard_state"):
+            if key in params and isinstance(params[key], str):
+                params[key] = params[key].strip().lower()
 
         if "ensemble" in params and isinstance(params["ensemble"], str):
             params["ensemble"] = params["ensemble"].lower()
@@ -428,6 +499,9 @@ class CommandControl:
             return None
 
         allowed = set(cls.GLOBAL_PARAMS)
+        if task == "solvfe":
+            allowed.update(cls.SOLVFE_PARAMS)
+            return allowed
         if task == "md":
             allowed.update(cls.DEFAULTS["md"])
             return allowed
@@ -470,6 +544,16 @@ class CommandControl:
                         output_path, "solvation", key, cls.SOLV_PARAMS
                     )
 
+        if task == "solvfe":
+            for key in params:
+                if key not in allowed:
+                    cls._raise_unknown_param(
+                        output_path,
+                        "SOLVFE",
+                        key,
+                        allowed,
+                    )
+
     @classmethod
     def _validate_solvation(
         cls, params: Dict[str, Any], task: str, output_path: Optional[str]
@@ -503,25 +587,28 @@ class CommandControl:
                 raise ValueError(msg)
 
         method = solv_params.get("method")
+        provider = solv_params.get("provider")
+        if provider is not None:
+            provider = str(provider).strip().lower()
+            if provider in {"", "none", "null", "false", "0"}:
+                solv_params.pop("provider", None)
+                provider = None
+            else:
+                solv_params["provider"] = provider
         explicit = solv_params.get("explicit")
         implicit = solv_params.get("implicit")
 
         if method is not None:
             method = str(method).lower()
             solv_params["method"] = method
-            if method != "gbsa":
-                msg = "Implicit solvation method must be 'gbsa'."
+            if method not in {"gbsa", "alpb"}:
+                msg = "Implicit solvation method must be 'gbsa' or 'alpb'."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
-        if explicit is not None and implicit is not None:
-            msg = "Use either explicit=<solvent> or implicit=<solvent>, not both."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-
         if implicit is not None:
-            if method != "gbsa":
-                msg = "Implicit solvation requires method=gbsa."
+            if method not in {"gbsa", "alpb"}:
+                msg = "Implicit solvation requires method=gbsa or method=alpb."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if str(implicit).lower() in {"", "none"}:
@@ -530,28 +617,40 @@ class CommandControl:
                 raise ValueError(msg)
             if solv_params.get("experimental") is not True:
                 msg = (
-                    "Implicit GB-polar/QEq solvation is experimental and "
-                    "energy-only; add experimental=true in #solv(...) to "
-                    "request it explicitly."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if task != "sp":
-                msg = (
-                    "Implicit GB-polar/QEq solvation is currently energy-only "
-                    "and may be used only with task 'sp'."
-                )
-                cls._log_error(output_path, msg)
-                raise ValueError(msg)
-            if params.get("verbose", 0) >= 1:
-                msg = (
-                    "Implicit GB-polar/QEq solvation is energy-only and supports "
-                    "only #sp(verbose=0); verbose=1 requests gradients/forces."
+                    "Cluster-continuum solvation is experimental; add "
+                    "experimental=true in #solv(...) to request it explicitly."
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if "pbc" in params:
-                msg = "Implicit GB-polar/QEq solvation is non-periodic; remove #pbc."
+                msg = "Cluster-continuum solvation is non-periodic; remove #pbc."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+
+            if method == "gbsa":
+                if provider not in {None, "maple"}:
+                    msg = (
+                        "method=gbsa uses MAPLE's built-in experimental provider; "
+                        "omit provider or use provider=maple."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if task != "sp":
+                    msg = (
+                        "Implicit GB-polar/QEq solvation is currently energy-only "
+                        "and may be used only with task 'sp'."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if params.get("verbose", 0) >= 1:
+                    msg = (
+                        "Implicit GB-polar/QEq solvation is energy-only and supports "
+                        "only #sp(verbose=0); verbose=1 requests gradients/forces."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+            elif str(provider).lower() != "tblite":
+                msg = "method=alpb currently requires provider=tblite."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -575,32 +674,48 @@ class CommandControl:
                 "clash_cutoff",
                 "write_cell",
             }
-            conflicts = sorted(key for key in explicit_only if key in solv_params)
+            conflicts = sorted(
+                key
+                for key in explicit_only
+                if key in solv_params and explicit is None
+            )
             if conflicts:
                 msg = (
-                    "Explicit-solvent options cannot be combined with implicit "
-                    f"GB-polar solvation: {', '.join(conflicts)}."
+                    "Explicit-solvent options require explicit=<solvent>: "
+                    f"{', '.join(conflicts)}."
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            return
-
-        if method is not None:
-            msg = "method=gbsa requires implicit=<solvent>; omit method for explicit solvent."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-
-        if "experimental" in solv_params:
-            msg = "experimental=true is only valid with method=gbsa, implicit=<solvent>."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
-
-        if explicit is None:
-            if solv_params:
-                msg = "Solvation requires either explicit=<solvent> or implicit=<solvent>."
+            if explicit is None:
+                return
+        else:
+            if method is not None:
+                msg = (
+                    f"method={method} requires implicit=<solvent>; omit method "
+                    "for explicit-only solvent."
+                )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            return
+            if provider is not None:
+                msg = "provider is only valid with an implicit solvent method."
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if "experimental" in solv_params:
+                msg = (
+                    "experimental=true is only valid with an implicit solvent "
+                    "method."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if explicit is None:
+                if solv_params:
+                    msg = (
+                        "Solvation requires either explicit=<solvent> or "
+                        "implicit=<solvent>."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                return
 
         if "pbc" in params:
             msg = (
@@ -792,12 +907,100 @@ class CommandControl:
                 raise ValueError(msg)
 
     @classmethod
+    def _validate_solvfe(
+        cls, params: Dict[str, Any], task: str, output_path: Optional[str]
+    ) -> None:
+        if task != "solvfe":
+            return
+
+        def fail(message: str) -> None:
+            cls._log_error(output_path, message)
+            raise ValueError(message)
+
+        if "solv" in params:
+            fail(
+                "MUTUALLY_EXCLUSIVE_SOLVATION: #solv and #solvfe cannot be "
+                "used in the same job."
+            )
+        if "pbc" in params:
+            fail("Route A #solvfe is non-periodic at the input boundary; remove #pbc.")
+        if params.get("experimental") is not True:
+            fail("Route A #solvfe requires experimental=true.")
+        if params.get("method") != "qct":
+            fail("Route A #solvfe requires method=qct.")
+        if params.get("solvent") != "water":
+            fail("Route A v1 requires solvent=water.")
+        if params.get("standard_state") != "1m":
+            fail("Route A v1 requires standard_state=1m.")
+        if params.get("temperature") != 298.15:
+            fail("Route A v1 requires temperature=298.15.")
+        if params.get("pressure_bar") != 1.0:
+            fail("Route A v1 requires pressure_bar=1.0.")
+        if not isinstance(params.get("protocol"), str) or not params[
+            "protocol"
+        ].strip():
+            fail("Route A #solvfe requires protocol=<path>.")
+        if not isinstance(params.get("dry_run"), bool):
+            fail("Route A #solvfe dry_run must be true or false.")
+
+        if params.get("model") != "maceoff24m":
+            fail("Route A sampler requires #model=maceoff24m(...).")
+        if params.get("scorer") != "maceomol":
+            fail("Route A requires #scorer=maceomol(...).")
+        if params.get("outer") != "smd":
+            fail("Route A requires #outer=smd(...).")
+
+        for label, options_key, allowed_options in (
+            ("#model", "model_options", cls.SOLVFE_MODEL_OPTION_KEYS),
+            ("#scorer", "scorer_options", cls.SOLVFE_MODEL_OPTION_KEYS),
+            ("#outer", "outer_options", cls.SOLVFE_OUTER_OPTION_KEYS),
+        ):
+            options = params.get(options_key)
+            if not isinstance(options, dict):
+                fail(f"Route A requires {label}=name(...) options.")
+            unknown = sorted(set(options) - allowed_options)
+            if unknown:
+                fail(
+                    f"Unknown Route A {label} option(s): {', '.join(unknown)}."
+                )
+            if options.get("license_ack") is not True:
+                fail(f"Route A {label} requires license_ack=true.")
+
+        for label, options_key in (
+            ("#model", "model_options"),
+            ("#scorer", "scorer_options"),
+        ):
+            options = params[options_key]
+            if not isinstance(options.get("checkpoint"), str) or not options[
+                "checkpoint"
+            ].strip():
+                fail(f"Route A {label} requires checkpoint=<path>.")
+            sha = options.get("sha256")
+            if not isinstance(sha, str) or not re.fullmatch(
+                r"[0-9a-f]{64}", sha
+            ):
+                fail(f"Route A {label} requires a lowercase 64-hex sha256.")
+
+        outer = params["outer_options"]
+        required_outer = {
+            "provider": "mace-polar-pcmsolver",
+            "model": "mace-polar-1-m",
+            "profile": "smd-iefpcm-gaff2-o",
+            "response": "scf",
+            "standard_state": "1m",
+        }
+        for key, expected in required_outer.items():
+            if outer.get(key) != expected:
+                fail(f"Route A #outer requires {key}={expected}.")
+
+    @classmethod
     def _validate(cls, params: Dict[str, Any], task: str, output_path: Optional[str]) -> None:
         model = params.get("model")
         # Calculator names and class-declared model_options are registry-owned:
         # SetCalculator imports builtins, honors module= / MAPLE_CALCULATOR_PLUGINS,
         # and validates class OPTION_KEYS before construction.
         cls._validate_unknown_params(params, task, output_path)
+        cls._validate_solvfe(params, task, output_path)
         cls._validate_solvation(params, task, output_path)
 
         if "gpuid" in params and params["gpuid"] is not None and not isinstance(params["gpuid"], int):

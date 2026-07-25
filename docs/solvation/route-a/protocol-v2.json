@@ -1,0 +1,318 @@
+{
+  "schema_version": "2",
+  "artifact_type": "route-a-protocol",
+  "protocol_name": "route-a-conditioned-cluster-qct",
+  "protocol_version": "2.0.0",
+  "protocol_release": "research-v2",
+  "status": "research-protocol-partially-implemented",
+  "hamiltonian_id": "omol-vacuum-plus-scaled-supermolecule-pcm-v2",
+  "supersedes": {
+    "path": "docs/solvation/route-a/protocol-v1.json",
+    "protocol_version": "1.4.0",
+    "preserved_as_historical_artifact": true,
+    "scientific_reason": "V1 used ordinary bare-solute Route2 outer solvation as G_0 and omitted the QCT empty-volume packing/conditioning term; its multi-n result is not eligible for scientific promotion."
+  },
+  "domain": {
+    "clusters": {
+      "assembly_domain": "nonperiodic",
+      "discovery_domain": "periodic"
+    },
+    "name": "route-a-neutral-neutral-water-hydration",
+    "occupancy_support": {
+      "adaptive_n": true,
+      "n_min": 0,
+      "requires_n_plus_greater_zero": true
+    },
+    "property": "absolute_hydration_free_energy",
+    "solute_constraints": {
+      "allowed_elements": [
+        "H",
+        "C",
+        "N",
+        "O",
+        "F",
+        "P",
+        "S",
+        "Cl",
+        "Br",
+        "I"
+      ],
+      "charge": 0,
+      "disallow_metals": true,
+      "disallow_radicals": true,
+      "open_shell": false,
+      "spin_multiplicity": 1,
+      "one_connected_solute": true
+    },
+    "solvent": {
+      "electrolyte_free": true,
+      "model": "tip3p-like geometry-compatible",
+      "name": "water",
+      "phase": "liquid"
+    },
+    "standard_state": {
+      "C_number_0_per_A3": 0.000602214076,
+      "standard_state_volume_A3_per_molecule": 1660.5390671738467,
+      "gas_reference_concentration_molar": 1.0,
+      "water_bulk_concentration_molar": 55.345,
+      "solution_reference_concentration_molar": 1.0,
+      "rho_W_number_per_A3": 0.03332953803622,
+      "rho_W_over_C0": 55.345
+    },
+    "temperature_k": 298.15,
+    "unsupported_domains_fail_code": "DOMAIN_UNSUPPORTED",
+    "pressure_bar": 1.0,
+    "absolute_hydration_free_energy": true,
+    "production_domain": "nonperiodic"
+  },
+  "models": {
+    "outer": {
+      "checkpoint": "MACEPOLAR1Mmodel",
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "license": "Academic Software Licence",
+      "license_profile": "research-default-v1",
+      "name": "MACE-POLAR-1-M",
+      "provenance": {
+        "observed_local_filename": "MACEPOLAR1Mmodel",
+        "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACEPOLAR1Mmodel",
+        "official_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+        "source_commit": "2ee7e58beac3a9a12ad3644de1c3591c1ff11c2c",
+        "upstream_filename": "MACE-POLAR-1-M.model",
+        "verified_by_model_probe_key": "real_model_probes_v1.json::models.polar1m",
+        "source_ref": "mace_polar_1"
+      },
+      "provider": "SMDPolarDeltaProvider",
+      "provider_version": "v1",
+      "size_bytes": 68133235,
+      "source": "ACEsuit/mace-foundations",
+      "source_commit": "2ee7e58beac3a9a12ad3644de1c3591c1ff11c2c",
+      "source_ref": "mace_polar_1",
+      "variant": "continuum-polar"
+    },
+    "sampler": {
+      "checkpoint": "MACE-OFF24_medium.model",
+      "checkpoint_sha256": "e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69",
+      "license": "Academic Software Licence",
+      "license_profile": "research-default-v1",
+      "name": "MACE-OFF24",
+      "provenance": {
+        "observed_local_filename": "MACE-OFF24_medium.model",
+        "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACE-OFF24_medium.model",
+        "official_url": "https://raw.githubusercontent.com/ACEsuit/mace-off/v0.2/mace_off24/MACE-OFF24_medium.model",
+        "source_commit": "91a78c5a9c300d1104700d9352c8bfe449227737",
+        "upstream_filename": "MACE-OFF24_medium.model",
+        "verified_by_model_probe_key": "real_model_probes_v1.json::models.off24",
+        "source_ref": "v0.2"
+      },
+      "provider": "MACEOff24Provider",
+      "provider_version": "v1",
+      "size_bytes": 18375569,
+      "source": "ACEsuit/mace-off",
+      "source_commit": "91a78c5a9c300d1104700d9352c8bfe449227737",
+      "source_ref": "v0.2",
+      "variant": "MACE-OFF24(M)"
+    },
+    "target": {
+      "checkpoint": "MACE-omol-0-extra-large-1024.model",
+      "checkpoint_sha256": "9b64b4fd5153ca578c694abc57806d8111050de6ff652e695c9b525bc4d36469",
+      "license": "Academic Software Licence",
+      "license_profile": "research-default-v1",
+      "name": "MACE-OMOL-0",
+      "provenance": {
+        "observed_local_filename": "MACE-omol-0-extra-large-1024.model",
+        "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACE-omol-0-extra-large-1024.model",
+        "official_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_omol_0/MACE-omol-0-extra-large-1024.model",
+        "source_commit": "6009f59095a1c471e77fa8e77b989b1bb81435b3",
+        "upstream_filename": "MACE-omol-0-extra-large-1024.model",
+        "verified_by_model_probe_key": "real_model_probes_v1.json::models.omol0",
+        "source_ref": "mace_omol_0"
+      },
+      "provider": "MACEOMOLProvider",
+      "provider_version": "v1",
+      "size_bytes": 422242640,
+      "source": "ACEsuit/mace-foundations",
+      "source_commit": "6009f59095a1c471e77fa8e77b989b1bb81435b3",
+      "source_ref": "mace_omol_0",
+      "variant": "molecule-scored"
+    }
+  },
+  "standard_state": {
+    "C_number_0_per_A3": 0.000602214076,
+    "gas_constant_kcal_per_mol_K": 0.001987204258640831,
+    "label": "1M(gas)->1M(solution)",
+    "standard_state_correction": "-R*T*ln(Veff / V0)",
+    "standard_state_density_correction": "-R*T*ln(rho_W_over_C0)",
+    "standard_state_volume_A3_per_molecule": 1660.5390671738467,
+    "temperature_k": 298.15,
+    "gas_reference_concentration_molar": 1.0,
+    "water_bulk_concentration_molar": 55.345,
+    "solution_reference_concentration_molar": 1.0,
+    "rho_W_number_per_A3": 0.03332953803622,
+    "rho_W_over_C0": 55.345
+  },
+  "shell": {
+    "occupancy_indicator": "n(q,lambda_s)=sum_j 1[d_s(O_j)<=lambda_s]",
+    "oxygen_decides_only": true,
+    "complete_molecule_retained": true,
+    "lambda_s_selection": "three preregistered offsets around the first solute-water RDF minimum; development-set plateau required",
+    "observation_volume_is_pcm_cavity": false
+  },
+  "qct_conditioning": {
+    "identity": "cluster-qct-multistate",
+    "packing_probability": {
+      "symbol": "p_0(lambda_s)",
+      "system": "pure_bulk_water",
+      "required": true,
+      "estimator": "staged-soft-cavity-free-energy",
+      "same_observation_volume_required": true
+    },
+    "n0_state": {
+      "conditioned_empty_shell_required": true,
+      "ordinary_bare_route2_outer_allowed": false,
+      "common_construction_rule_required": true
+    },
+    "cross_checks": [
+      "direct-qct-ln-x0-minus-ln-p0-plus-conditioned-long-range",
+      "fixed-n-with-p_X(n)"
+    ],
+    "formulas": {
+      "hydration_free_energy": "mu_X_ex = -RT ln p_0(lambda_s) - RT ln sum_n exp[-beta A_n_tilde(lambda_s)]",
+      "conditioned_weight": "A_n_tilde(lambda_s) = -RT ln[K_n_tilde(lambda_s) rho_W^n]",
+      "direct_qct": "beta mu_X_ex = ln x_0(lambda_s) - ln p_0(lambda_s) + beta mu_LR(lambda_s)",
+      "fixed_n": "mu_X_ex = -RT ln[K_n^(0) rho_W^n] + RT ln p_X(n;lambda_s) + mu_XWn_ex - n mu_W_ex"
+    }
+  },
+  "supermolecule_outer_cavity": {
+    "definition": "one whole-cluster atom-centered GePol cavity for each XW_n frame",
+    "construction_rule_same_for_all_n": true,
+    "per_frame_gepol": true,
+    "whole_supermolecule_inside": true,
+    "mesh_reused_across_frames": false,
+    "base_radius_profile": "smd-coulomb-gaff2-carbonyl-o",
+    "base_radii_A": {
+      "H": 1.2,
+      "C": 1.85,
+      "N": 1.89,
+      "O": 1.52,
+      "F": 1.73,
+      "P": 2.47,
+      "S": 2.12,
+      "Cl": 2.49,
+      "Br": 2.6,
+      "I": 2.74
+    },
+    "carbonyl_oxygen_override": {
+      "element": "O",
+      "atom_type": "o",
+      "radius_A": 1.7
+    },
+    "radius_scale": 1.2,
+    "tessera_area_A2": 0.2,
+    "minimum_added_sphere_radius_A": 1.0,
+    "component_count_required": 1,
+    "minimum_bridge_overlap_A": 0.1,
+    "full_ensemble_required": true,
+    "frame_deletion_allowed": false,
+    "native_and_pedra_warnings_fatal": true,
+    "legacy_atom_cavity_role": "unscaled-route2-diagnostic-only",
+    "cds_policy": "excluded-from-v2-core-mandatory-ablation",
+    "cavity_parameter_selection": "literature plus development geometry and numerical convergence only; experimental hydration values forbidden",
+    "force_support": false
+  },
+  "thresholds": {
+    "bar_disagreement_kcal": {
+      "comparator": "<=",
+      "units": "kcal/mol",
+      "value": 0.2
+    },
+    "ess_min": {
+      "comparator": ">=",
+      "units": "frames",
+      "value": 100
+    },
+    "occupancy_plateau_ci_overlap": {
+      "comparator": "==",
+      "description": "non-empty common confidence interval intersection required",
+      "units": "none",
+      "value": true
+    },
+    "occupancy_plateau_spread_kcal": {
+      "comparator": "<=",
+      "units": "kcal/mol",
+      "value": 0.5
+    },
+    "omitted_tail_final_two_kcal": {
+      "comparator": "<",
+      "units": "kcal/mol",
+      "value": 0.1
+    },
+    "omitted_tail_mass": {
+      "comparator": "<",
+      "units": "dimensionless",
+      "value": 0.005
+    },
+    "overlap_min": {
+      "comparator": ">=",
+      "units": "overlap",
+      "value": 0.03
+    },
+    "packing_empty_samples_max_bias_min": {
+      "comparator": ">=",
+      "units": "frames",
+      "value": 100
+    },
+    "packing_se_kcal_max": {
+      "comparator": "<=",
+      "units": "kcal/mol",
+      "value": 0.2
+    },
+    "per_state_se_kcal_max": {
+      "comparator": "<=",
+      "units": "kcal/mol",
+      "value": 0.2
+    },
+    "replica_min_count": {
+      "comparator": ">=",
+      "units": "replicas",
+      "value": 3
+    },
+    "replica_pairwise_z_max": {
+      "comparator": "<=",
+      "units": "combined_standard_errors",
+      "value": 2.0
+    },
+    "stability_half_traj_kcal": {
+      "comparator": "<=",
+      "units": "kcal/mol",
+      "value": 0.2
+    }
+  },
+  "validation_gates": {
+    "cavity": "all frames, one connected supermolecule topology under one construction rule, zero warnings, no deletion",
+    "statistics": "independent replicas plus overlap, ESS, BAR-MBAR, time-stability, and cycle-closure gates",
+    "thermodynamic_cross_check": "direct-QCT and fixed-n identities on mandatory development subset",
+    "selection": "all method choices frozen on development set before holdout",
+    "accuracy": "paired blind-holdout primary error lower than frozen Route2 with uncertainty"
+  },
+  "tail_envelope_contract": {
+    "model": "geometric-exponential-upper-envelope",
+    "ratio_ceiling": 0.55,
+    "minimum_consecutive_ratios": 2,
+    "tail_mass_upper_bound": 0.005,
+    "tail_free_energy_upper_bound_kcal_mol": 0.1,
+    "extend_on_failure": true,
+    "contract_sha256": "4e0403fa0e3b6f0a70422988bc2e4cc1f4761ff0b703a1952f05b7617864a771"
+  },
+  "artifact_references": {
+    "thermodynamics_v2": {
+      "path": "docs/solvation/route-a/thermodynamics-v2.md",
+      "hash_kind": "sha256",
+      "sha256": "b28f5fe745ddd046e0f37ca7dc85d53bb287ce255578096756a3de17f3671ee5"
+    }
+  },
+  "protocol_schema": {
+    "path": "docs/solvation/route-a/protocol-schema-v2.json",
+    "sha256": "5603f182513eb7ae78b3885c30eb7210ec77c84c2739deb643f2a8091698ae7f"
+  },
+  "protocol_sha256": "1366086ed7a5742cdb15ce831686f899af67ad1c9b896f64c89ad1adbbd1e788"
+}

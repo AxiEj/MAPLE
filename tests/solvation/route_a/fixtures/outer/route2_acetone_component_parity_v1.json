@@ -1,0 +1,68 @@
+{
+  "fixture_version": "1.1.0",
+  "status": "real-route2-component-parity-engineering-evidence",
+  "source": {
+    "route2_commit": "7fea1061e9def05914ebf82c2e2eaba8a8f54365",
+    "working_tree_clean": true,
+    "development_dirty_tree_override": false,
+    "canary_artifact": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_canary_v1.json",
+      "canonical_sha256": "91471d34e209643150620116094609518e2af9b4fd2e2f7bbef8b13c2c807551"
+    },
+    "provider_audit_artifact": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_provider_audit_v1.json",
+      "canonical_sha256": "30a394260ffcaf410d6db76009416f86cc7d6dbca7e9a0c13794b62c9de0633e",
+      "audit_schema_version": 5
+    },
+    "native_stderr_artifact": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pedra_artifact": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.log",
+      "raw_sha256": "4292001dd69287caecc6981965b397db535f485baf44612f57cfc00ed4bc8b3d"
+    },
+    "compound_id": "mobley_3867265",
+    "name": "acetone"
+  },
+  "provider_config": {
+    "method": "smd",
+    "implicit": "water",
+    "response": "scf",
+    "standard_state": "1m",
+    "provider": "pcmsolver",
+    "profile": "smd-iefpcm-gaff2-o",
+    "cavity_policy": "fixed-stability-branch",
+    "area_bohr2": 1.0,
+    "area_angstrom2": 0.28002852018012786,
+    "minimum_added_sphere_radius_angstrom": 1.0
+  },
+  "components_kcal_mol": {
+    "cds": 3.5712034339181487,
+    "delta_g_solv": -4.81826036723961,
+    "electrostatic": -8.389463801157758,
+    "pcm_polarization": -9.226789909414933,
+    "solute_polarization": 0.8373261082571745,
+    "standard_state": 0.0
+  },
+  "iterations": 17,
+  "cavity_tesserae": 508,
+  "warning_counts": {
+    "native_stderr": 0,
+    "pedra": 0
+  },
+  "claim_boundary": {
+    "real_backend": true,
+    "component_parity_only": true,
+    "one_molecule": true,
+    "accuracy_certified": false,
+    "route_a_free_energy_computed": false
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "adapter_warning_policy": {
+    "native_and_pedra_warnings_fatal": true,
+    "source_reported_pedra_selection_policy_is_authoritative": false,
+    "source_reported_value": false,
+    "rule": "Route A adapter rejects any nonzero native/PEDRA warning count before accepting parity evidence."
+  }
+}

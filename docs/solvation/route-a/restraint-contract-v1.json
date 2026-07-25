@@ -1,0 +1,129 @@
+{
+  "contract_name": "route-a-restraint-contract",
+  "contract_version": "1.2.0",
+  "immutable": true,
+  "measures": {
+    "cluster": {
+      "measure_id": "nonperiodic-solute-com-reduced-v1",
+      "boundary_conditions": {
+        "pbc": false
+      },
+      "atom_list": "one connected solute X plus n complete labeled waters",
+      "removed_degrees_of_freedom": [
+        "global translation by solute COM"
+      ],
+      "retained_degrees_of_freedom": [
+        "solute rotation",
+        "solute internal coordinates",
+        "water relative translations",
+        "water rotations",
+        "water internal coordinates"
+      ]
+    },
+    "water_reference": {
+      "measure_id": "nonperiodic-water-com-reduced-v1",
+      "boundary_conditions": {
+        "pbc": false
+      },
+      "atom_list": "one complete labeled water",
+      "removed_degrees_of_freedom": [
+        "global translation by water COM"
+      ],
+      "retained_degrees_of_freedom": [
+        "water rotation",
+        "water internal coordinates"
+      ]
+    }
+  },
+  "restraints": {
+    "R_0": {
+      "formula": "R_0(q)=0"
+    },
+    "R_W": {
+      "formula": "R_W(q)=0"
+    },
+    "R_n": {
+      "formula": "R_n(q)=sum_{j=1..n} 0.5*k*max(d_s(O_j)-lambda_s,0)^2",
+      "per_water_term": "r_j(q_X,r_Oj)=0.5*k*max(d_s(q_X,O_j)-lambda_s,0)^2",
+      "sum_identity": "R_n(q_XWn)=sum_{j=1..n} r_j(q_X,r_Oj); R_i=R_(i-1)+r_i",
+      "signed_distance": "d_s(O_j)=min_i(||r_Oj-r_i||-R_i^vdW) over all solute atoms i",
+      "membership": "n labeled complete waters; oxygen alone determines shell membership",
+      "effective_volume": "V_eff,i=<integral exp(-beta*r_i(q_X,r_O)) d^3r_O>_(pi_base,i-1)",
+      "effective_volume_is_hard_indicator_volume": false,
+      "base_ensemble": "pi_base,i-1(q_XW_(i-1)) proportional to exp(-beta*(U_OMOL_vac(XW_(i-1))+R_(i-1))) on nonperiodic-solute-com-reduced-v1",
+      "normalization_identity": "V_eff,i=Z_D,i/(Z_base,i-1*z_W_internal_rotation), where Z_D,i integrates the added water relative translation, rotation, and internal coordinates under H_D,i",
+      "estimator": "average the per-base-frame translational integral before applying -RT*ln(C0*V_eff,i); block-bootstrap base frames",
+      "forbidden_estimators": [
+        "hard-indicator geometric volume",
+        "exp of an average log-volume",
+        "interacting-endpoint frame average"
+      ]
+    }
+  },
+  "alchemical_edge": {
+    "H_D_i": "U_OMOL_vac(XW_(i-1))+U_OMOL_vac(W_i)+R_(i-1)+r_i",
+    "H_R_i": "H_D_i+s_rep(xi)*U_rep",
+    "H_I_i": "H_D_i+U_rep+lambda_int(xi)*U_int_many_body",
+    "H_P_i": "U_OMOL_vac(XW_i)+R_i",
+    "auxiliary_core_release_belongs_to": "DeltaG_alch_labeled(i)",
+    "restraint_release_belongs_to": "DeltaG_release(i)=0 in v1",
+    "repulsive_core": {
+      "contract_id": "finite-gaussian-pair-core-v1",
+      "pair_scope": "every solute-atom / inserted-water-atom cross pair",
+      "formula": "U_rep(r)=epsilon_eV*exp(-(r/sigma_A)^2)",
+      "force_formula": "F_i=(2*U_rep/sigma_A^2)*(r_i-r_j)",
+      "epsilon_eV": 0.48,
+      "sigma_A": 0.85,
+      "coincident_pair_barrier_eV": 0.48,
+      "required_properties": [
+        "finite and positive at r=0",
+        "monotonically decreases with r for r>0",
+        "near-contact relative force is separating",
+        "vanishes continuously as r approaches infinity"
+      ],
+      "forbidden_forms": [
+        "positive harmonic U=0.5*k*r^2, whose minimum is atom coincidence",
+        "singular inverse-power core without finite endpoint energy"
+      ]
+    },
+    "many_body_interaction_contract": {
+      "formula": "U_int^(i)(q)=U_model(XW_i;q)-U_model(XW_(i-1);q)-U_model(W_i;q)",
+      "force_formula": "F_int^(i)=F_model(XW_i)-F_model(XW_(i-1))-F_model(W_i) on the identical combined coordinate array",
+      "pairwise_cross_sum_substitution_allowed": false,
+      "test_requirement": "deterministic fixture contains a nonzero irreducible cross-fragment three-body term and validates analytic forces by finite differences"
+    }
+  },
+  "restraint_hash_contract": {
+    "algorithm": "sha256(canonical_json)",
+    "required_fields": [
+      "restraint_contract_hash",
+      "shell_boundary_id",
+      "lambda_s_A",
+      "k_kcal_per_mol_A2",
+      "solute_atom_indices",
+      "labeled_water_atom_indices",
+      "measure_id"
+    ],
+    "same_hash_required_for": [
+      "D/R/I/P states on one insertion edge",
+      "vacuum and outer endpoints for one atom list"
+    ]
+  },
+  "release": {
+    "definition": "DeltaG_release(i)=F_target_i_interacting-F_biased_i_interacting",
+    "v1_policy": "no additional placement or orientation restraint beyond R_n",
+    "identity": "F_target_i_interacting=F_biased_i_interacting",
+    "value_kcal_per_mol": 0.0,
+    "applies_to_every_insertion_edge": true
+  },
+  "outer_endpoint_identity": {
+    "required_equal_fields": [
+      "atom_list_hash",
+      "restraint_hash",
+      "measure_id",
+      "boundary_conditions"
+    ],
+    "mismatch_failure_code": "STATE_SPACE_MISMATCH"
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')"
+}

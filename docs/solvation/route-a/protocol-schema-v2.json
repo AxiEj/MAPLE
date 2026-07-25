@@ -1,0 +1,726 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maple.local/schemas/route-a-protocol-v2.json",
+  "title": "MAPLE Route A conditioned cluster-QCT protocol v2",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "2"
+    },
+    "artifact_type": {
+      "const": "route-a-protocol"
+    },
+    "protocol_name": {
+      "const": "route-a-conditioned-cluster-qct"
+    },
+    "protocol_version": {
+      "const": "2.0.0"
+    },
+    "protocol_release": {
+      "const": "research-v2"
+    },
+    "status": {
+      "const": "research-protocol-partially-implemented"
+    },
+    "hamiltonian_id": {
+      "const": "omol-vacuum-plus-scaled-supermolecule-pcm-v2"
+    },
+    "supersedes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "const": "docs/solvation/route-a/protocol-v1.json"
+        },
+        "protocol_version": {
+          "const": "1.4.0"
+        },
+        "preserved_as_historical_artifact": {
+          "const": true
+        },
+        "scientific_reason": {
+          "const": "V1 used ordinary bare-solute Route2 outer solvation as G_0 and omitted the QCT empty-volume packing/conditioning term; its multi-n result is not eligible for scientific promotion."
+        }
+      },
+      "required": [
+        "path",
+        "protocol_version",
+        "preserved_as_historical_artifact",
+        "scientific_reason"
+      ]
+    },
+    "domain": {
+      "type": "object"
+    },
+    "models": {
+      "type": "object",
+      "required": [
+        "sampler",
+        "target",
+        "outer"
+      ]
+    },
+    "standard_state": {
+      "type": "object"
+    },
+    "shell": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "occupancy_indicator": {
+          "const": "n(q,lambda_s)=sum_j 1[d_s(O_j)<=lambda_s]"
+        },
+        "oxygen_decides_only": {
+          "const": true
+        },
+        "complete_molecule_retained": {
+          "const": true
+        },
+        "lambda_s_selection": {
+          "const": "three preregistered offsets around the first solute-water RDF minimum; development-set plateau required"
+        },
+        "observation_volume_is_pcm_cavity": {
+          "const": false
+        }
+      },
+      "required": [
+        "occupancy_indicator",
+        "oxygen_decides_only",
+        "complete_molecule_retained",
+        "lambda_s_selection",
+        "observation_volume_is_pcm_cavity"
+      ]
+    },
+    "qct_conditioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "const": "cluster-qct-multistate"
+        },
+        "packing_probability": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "symbol": {
+              "const": "p_0(lambda_s)"
+            },
+            "system": {
+              "const": "pure_bulk_water"
+            },
+            "required": {
+              "const": true
+            },
+            "estimator": {
+              "const": "staged-soft-cavity-free-energy"
+            },
+            "same_observation_volume_required": {
+              "const": true
+            }
+          },
+          "required": [
+            "symbol",
+            "system",
+            "required",
+            "estimator",
+            "same_observation_volume_required"
+          ]
+        },
+        "n0_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "conditioned_empty_shell_required": {
+              "const": true
+            },
+            "ordinary_bare_route2_outer_allowed": {
+              "const": false
+            },
+            "common_construction_rule_required": {
+              "const": true
+            }
+          },
+          "required": [
+            "conditioned_empty_shell_required",
+            "ordinary_bare_route2_outer_allowed",
+            "common_construction_rule_required"
+          ]
+        },
+        "cross_checks": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "direct-qct-ln-x0-minus-ln-p0-plus-conditioned-long-range"
+            },
+            {
+              "const": "fixed-n-with-p_X(n)"
+            }
+          ],
+          "items": false
+        },
+        "formulas": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hydration_free_energy": {
+              "const": "mu_X_ex = -RT ln p_0(lambda_s) - RT ln sum_n exp[-beta A_n_tilde(lambda_s)]"
+            },
+            "conditioned_weight": {
+              "const": "A_n_tilde(lambda_s) = -RT ln[K_n_tilde(lambda_s) rho_W^n]"
+            },
+            "direct_qct": {
+              "const": "beta mu_X_ex = ln x_0(lambda_s) - ln p_0(lambda_s) + beta mu_LR(lambda_s)"
+            },
+            "fixed_n": {
+              "const": "mu_X_ex = -RT ln[K_n^(0) rho_W^n] + RT ln p_X(n;lambda_s) + mu_XWn_ex - n mu_W_ex"
+            }
+          },
+          "required": [
+            "hydration_free_energy",
+            "conditioned_weight",
+            "direct_qct",
+            "fixed_n"
+          ]
+        }
+      },
+      "required": [
+        "identity",
+        "packing_probability",
+        "n0_state",
+        "cross_checks",
+        "formulas"
+      ]
+    },
+    "supermolecule_outer_cavity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "definition": {
+          "const": "one whole-cluster atom-centered GePol cavity for each XW_n frame"
+        },
+        "construction_rule_same_for_all_n": {
+          "const": true
+        },
+        "per_frame_gepol": {
+          "const": true
+        },
+        "whole_supermolecule_inside": {
+          "const": true
+        },
+        "mesh_reused_across_frames": {
+          "const": false
+        },
+        "base_radius_profile": {
+          "const": "smd-coulomb-gaff2-carbonyl-o"
+        },
+        "base_radii_A": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "H": {
+              "const": 1.2
+            },
+            "C": {
+              "const": 1.85
+            },
+            "N": {
+              "const": 1.89
+            },
+            "O": {
+              "const": 1.52
+            },
+            "F": {
+              "const": 1.73
+            },
+            "P": {
+              "const": 2.47
+            },
+            "S": {
+              "const": 2.12
+            },
+            "Cl": {
+              "const": 2.49
+            },
+            "Br": {
+              "const": 2.6
+            },
+            "I": {
+              "const": 2.74
+            }
+          },
+          "required": [
+            "H",
+            "C",
+            "N",
+            "O",
+            "F",
+            "P",
+            "S",
+            "Cl",
+            "Br",
+            "I"
+          ]
+        },
+        "carbonyl_oxygen_override": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "element": {
+              "const": "O"
+            },
+            "atom_type": {
+              "const": "o"
+            },
+            "radius_A": {
+              "const": 1.7
+            }
+          },
+          "required": [
+            "element",
+            "atom_type",
+            "radius_A"
+          ]
+        },
+        "radius_scale": {
+          "const": 1.2
+        },
+        "tessera_area_A2": {
+          "const": 0.2
+        },
+        "minimum_added_sphere_radius_A": {
+          "const": 1.0
+        },
+        "component_count_required": {
+          "const": 1
+        },
+        "minimum_bridge_overlap_A": {
+          "const": 0.1
+        },
+        "full_ensemble_required": {
+          "const": true
+        },
+        "frame_deletion_allowed": {
+          "const": false
+        },
+        "native_and_pedra_warnings_fatal": {
+          "const": true
+        },
+        "legacy_atom_cavity_role": {
+          "const": "unscaled-route2-diagnostic-only"
+        },
+        "cds_policy": {
+          "const": "excluded-from-v2-core-mandatory-ablation"
+        },
+        "cavity_parameter_selection": {
+          "const": "literature plus development geometry and numerical convergence only; experimental hydration values forbidden"
+        },
+        "force_support": {
+          "const": false
+        }
+      },
+      "required": [
+        "definition",
+        "construction_rule_same_for_all_n",
+        "per_frame_gepol",
+        "whole_supermolecule_inside",
+        "mesh_reused_across_frames",
+        "base_radius_profile",
+        "base_radii_A",
+        "carbonyl_oxygen_override",
+        "radius_scale",
+        "tessera_area_A2",
+        "minimum_added_sphere_radius_A",
+        "component_count_required",
+        "minimum_bridge_overlap_A",
+        "full_ensemble_required",
+        "frame_deletion_allowed",
+        "native_and_pedra_warnings_fatal",
+        "legacy_atom_cavity_role",
+        "cds_policy",
+        "cavity_parameter_selection",
+        "force_support"
+      ]
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bar_disagreement_kcal": {
+          "$ref": "#/$defs/thresholdLeKcal02"
+        },
+        "ess_min": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": ">="
+            },
+            "units": {
+              "const": "frames"
+            },
+            "value": {
+              "const": 100
+            }
+          },
+          "required": [
+            "comparator",
+            "units",
+            "value"
+          ]
+        },
+        "occupancy_plateau_ci_overlap": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": "=="
+            },
+            "description": {
+              "const": "non-empty common confidence interval intersection required"
+            },
+            "units": {
+              "const": "none"
+            },
+            "value": {
+              "const": true
+            }
+          },
+          "required": [
+            "comparator",
+            "description",
+            "units",
+            "value"
+          ]
+        },
+        "occupancy_plateau_spread_kcal": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": "<="
+            },
+            "units": {
+              "const": "kcal/mol"
+            },
+            "value": {
+              "const": 0.5
+            }
+          },
+          "required": [
+            "comparator",
+            "units",
+            "value"
+          ]
+        },
+        "omitted_tail_final_two_kcal": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": "<"
+            },
+            "units": {
+              "const": "kcal/mol"
+            },
+            "value": {
+              "const": 0.1
+            }
+          },
+          "required": [
+            "comparator",
+            "units",
+            "value"
+          ]
+        },
+        "omitted_tail_mass": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": "<"
+            },
+            "units": {
+              "const": "dimensionless"
+            },
+            "value": {
+              "const": 0.005
+            }
+          },
+          "required": [
+            "comparator",
+            "units",
+            "value"
+          ]
+        },
+        "overlap_min": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": ">="
+            },
+            "units": {
+              "const": "overlap"
+            },
+            "value": {
+              "const": 0.03
+            }
+          },
+          "required": [
+            "comparator",
+            "units",
+            "value"
+          ]
+        },
+        "packing_empty_samples_max_bias_min": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": ">="
+            },
+            "units": {
+              "const": "frames"
+            },
+            "value": {
+              "const": 100
+            }
+          },
+          "required": [
+            "comparator",
+            "units",
+            "value"
+          ]
+        },
+        "packing_se_kcal_max": {
+          "$ref": "#/$defs/thresholdLeKcal02"
+        },
+        "per_state_se_kcal_max": {
+          "$ref": "#/$defs/thresholdLeKcal02"
+        },
+        "replica_min_count": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": ">="
+            },
+            "units": {
+              "const": "replicas"
+            },
+            "value": {
+              "const": 3
+            }
+          },
+          "required": [
+            "comparator",
+            "units",
+            "value"
+          ]
+        },
+        "replica_pairwise_z_max": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "comparator": {
+              "const": "<="
+            },
+            "units": {
+              "const": "combined_standard_errors"
+            },
+            "value": {
+              "const": 2.0
+            }
+          },
+          "required": [
+            "comparator",
+            "units",
+            "value"
+          ]
+        },
+        "stability_half_traj_kcal": {
+          "$ref": "#/$defs/thresholdLeKcal02"
+        }
+      },
+      "required": [
+        "bar_disagreement_kcal",
+        "ess_min",
+        "occupancy_plateau_ci_overlap",
+        "occupancy_plateau_spread_kcal",
+        "omitted_tail_final_two_kcal",
+        "omitted_tail_mass",
+        "overlap_min",
+        "packing_empty_samples_max_bias_min",
+        "packing_se_kcal_max",
+        "per_state_se_kcal_max",
+        "replica_min_count",
+        "replica_pairwise_z_max",
+        "stability_half_traj_kcal"
+      ]
+    },
+    "validation_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cavity": {
+          "const": "all frames, one connected supermolecule topology under one construction rule, zero warnings, no deletion"
+        },
+        "statistics": {
+          "const": "independent replicas plus overlap, ESS, BAR-MBAR, time-stability, and cycle-closure gates"
+        },
+        "thermodynamic_cross_check": {
+          "const": "direct-QCT and fixed-n identities on mandatory development subset"
+        },
+        "selection": {
+          "const": "all method choices frozen on development set before holdout"
+        },
+        "accuracy": {
+          "const": "paired blind-holdout primary error lower than frozen Route2 with uncertainty"
+        }
+      },
+      "required": [
+        "cavity",
+        "statistics",
+        "thermodynamic_cross_check",
+        "selection",
+        "accuracy"
+      ]
+    },
+    "tail_envelope_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "const": "geometric-exponential-upper-envelope"
+        },
+        "ratio_ceiling": {
+          "const": 0.55
+        },
+        "minimum_consecutive_ratios": {
+          "const": 2
+        },
+        "tail_mass_upper_bound": {
+          "const": 0.005
+        },
+        "tail_free_energy_upper_bound_kcal_mol": {
+          "const": 0.1
+        },
+        "extend_on_failure": {
+          "const": true
+        },
+        "contract_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "model",
+        "ratio_ceiling",
+        "minimum_consecutive_ratios",
+        "tail_mass_upper_bound",
+        "tail_free_energy_upper_bound_kcal_mol",
+        "extend_on_failure",
+        "contract_sha256"
+      ]
+    },
+    "artifact_references": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "thermodynamics_v2": {
+          "$ref": "#/$defs/artifactReference"
+        }
+      },
+      "required": [
+        "thermodynamics_v2"
+      ]
+    },
+    "protocol_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "const": "docs/solvation/route-a/protocol-schema-v2.json"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ]
+    },
+    "protocol_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "protocol_name",
+    "protocol_version",
+    "protocol_release",
+    "status",
+    "hamiltonian_id",
+    "supersedes",
+    "domain",
+    "models",
+    "standard_state",
+    "shell",
+    "qct_conditioning",
+    "supermolecule_outer_cavity",
+    "thresholds",
+    "validation_gates",
+    "tail_envelope_contract",
+    "artifact_references",
+    "protocol_schema",
+    "protocol_sha256"
+  ],
+  "$defs": {
+    "thresholdLeKcal02": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "comparator": {
+          "const": "<="
+        },
+        "units": {
+          "const": "kcal/mol"
+        },
+        "value": {
+          "const": 0.2
+        }
+      },
+      "required": [
+        "comparator",
+        "units",
+        "value"
+      ]
+    },
+    "artifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "const": "docs/solvation/route-a/thermodynamics-v2.md"
+        },
+        "hash_kind": {
+          "const": "sha256"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "hash_kind",
+        "sha256"
+      ]
+    }
+  }
+}

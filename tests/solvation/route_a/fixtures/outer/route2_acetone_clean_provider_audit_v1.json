@@ -1,0 +1,181 @@
+{
+  "array_archive": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-warning-free-cavity-acetone-clean-20260725/maple.out.implicit/route2-state.npz",
+  "cavity_stability": {
+    "attempts": [
+      {
+        "cavity_tesserae": 508,
+        "minimum_added_sphere_radius_angstrom": 1.0,
+        "name": "fixed-stability-branch",
+        "pcm_initialization_seconds": 0.1449055209996004,
+        "response_evaluated": true,
+        "response_evaluation_seconds": 2.432154516999617,
+        "stderr_log": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-warning-free-cavity-acetone-clean-20260725/maple.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+        "tessera_area_angstrom2": 0.28002852018012786,
+        "warning_detected": false,
+        "warning_stage": null
+      }
+    ],
+    "force_compatible": false,
+    "geometry_selection_branch_free": true,
+    "policy": "fixed-stability-branch",
+    "selected": "fixed-stability-branch"
+  },
+  "converged": true,
+  "density_reaction_coupling_hartree": -0.029407651328901285,
+  "energies_hartree": {
+    "cds": 0.005691074926398708,
+    "delta_g_solv": -0.007678386648159361,
+    "electrostatic": -0.013369461574558069,
+    "pcm_polarization": -0.01470382566445064,
+    "solute_polarization": 0.0013343640898925712,
+    "standard_state": 0.0
+  },
+  "gas_mace_energy_ev": -5255.6132695061715,
+  "iterations": 17,
+  "pcm_mep_projection": "cavity-exterior-point-multipole-l<=1",
+  "pcmsolver_diagnostics": {
+    "native_stderr_warning_count": 0,
+    "native_stderr_warning_marker": "PCMSolver warning.",
+    "pedra_warning_count": 0,
+    "pedra_warnings": [],
+    "pedra_warnings_are_selection_fatal": false
+  },
+  "pcmsolver_input": "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-warning-free-cavity-acetone-clean-20260725/maple.out.implicit/@route2-smd-stability-fallback.pcm",
+  "pcmsolver_library": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+  "pcmsolver_python_parser": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/python/pcmsolver/pcmparser.py",
+  "pcmsolver_side_files": [
+    "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-warning-free-cavity-acetone-clean-20260725/maple.out.implicit/PEDRA.OUT__540441",
+    "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-warning-free-cavity-acetone-clean-20260725/maple.out.implicit/cavity.npz",
+    "/tmp/maple-route2-clean-canary/.omx/benchmarks/route2-warning-free-cavity-acetone-clean-20260725/maple.out.implicit/cavity.off__540441"
+  ],
+  "response": "scf",
+  "scf": {
+    "density_tolerance_e": 1e-05,
+    "energy_tolerance_ev": 1e-05,
+    "history": [
+      {
+        "density_residual_e": 0.03065837924613056,
+        "energy_residual_ev": null,
+        "intrinsic_energy_ev": -5255.587049581416,
+        "iteration": 1,
+        "pcm_polarization_energy_hartree": -0.010103742988474836
+      },
+      {
+        "density_residual_e": 0.017712538696681324,
+        "energy_residual_ev": 0.0034899725769719225,
+        "intrinsic_energy_ev": -5255.583559608839,
+        "iteration": 2,
+        "pcm_polarization_energy_hartree": -0.011802770456587144
+      },
+      {
+        "density_residual_e": 0.01028043601261791,
+        "energy_residual_ev": 0.0024180745513149304,
+        "intrinsic_energy_ev": -5255.581141534288,
+        "iteration": 3,
+        "pcm_polarization_energy_hartree": -0.012911708720247935
+      },
+      {
+        "density_residual_e": 0.005989044382520653,
+        "energy_residual_ev": 0.0015786203994139214,
+        "intrinsic_energy_ev": -5255.579562913888,
+        "iteration": 4,
+        "pcm_polarization_energy_hartree": -0.013609695087588792
+      },
+      {
+        "density_residual_e": 0.003499530088548447,
+        "energy_residual_ev": 0.0009988578312913887,
+        "intrinsic_energy_ev": -5255.578564056057,
+        "iteration": 5,
+        "pcm_polarization_energy_hartree": -0.014040168752063577
+      },
+      {
+        "density_residual_e": 0.002049995282411121,
+        "energy_residual_ev": 0.0006212634170879028,
+        "intrinsic_energy_ev": -5255.57794279264,
+        "iteration": 6,
+        "pcm_polarization_energy_hartree": -0.014302644543758285
+      },
+      {
+        "density_residual_e": 0.0012034872509035788,
+        "energy_residual_ev": 0.00038279681393760256,
+        "intrinsic_energy_ev": -5255.577559995826,
+        "iteration": 7,
+        "pcm_polarization_energy_hartree": -0.014461694254656422
+      },
+      {
+        "density_residual_e": 0.0007079063965533261,
+        "energy_residual_ev": 0.00023470378982892726,
+        "intrinsic_energy_ev": -5255.577325292036,
+        "iteration": 8,
+        "pcm_polarization_energy_hartree": -0.014557771099748302
+      },
+      {
+        "density_residual_e": 0.0004171423127951601,
+        "energy_residual_ev": 0.00014358290263771778,
+        "intrinsic_energy_ev": -5255.577181709134,
+        "iteration": 9,
+        "pcm_polarization_energy_hartree": -0.01461573459493206
+      },
+      {
+        "density_residual_e": 0.00024621380293315953,
+        "energy_residual_ev": 8.778371193329804e-05,
+        "intrinsic_energy_ev": -5255.577093925422,
+        "iteration": 10,
+        "pcm_polarization_energy_hartree": -0.014650699442244872
+      },
+      {
+        "density_residual_e": 0.00015295859364149178,
+        "energy_residual_ev": 5.3689698688685894e-05,
+        "intrinsic_energy_ev": -5255.577040235723,
+        "iteration": 11,
+        "pcm_polarization_energy_hartree": -0.014671802849530851
+      },
+      {
+        "density_residual_e": 9.663904218103203e-05,
+        "energy_residual_ev": 3.287331128376536e-05,
+        "intrinsic_energy_ev": -5255.577007362412,
+        "iteration": 12,
+        "pcm_polarization_energy_hartree": -0.014684552724113831
+      },
+      {
+        "density_residual_e": 6.11551475065697e-05,
+        "energy_residual_ev": 2.0154583580733743e-05,
+        "intrinsic_energy_ev": -5255.576987207828,
+        "iteration": 13,
+        "pcm_polarization_energy_hartree": -0.014692265509322198
+      },
+      {
+        "density_residual_e": 3.8766772674767025e-05,
+        "energy_residual_ev": 1.2377459825074766e-05,
+        "intrinsic_energy_ev": -5255.576974830368,
+        "iteration": 14,
+        "pcm_polarization_energy_hartree": -0.014696938020140965
+      },
+      {
+        "density_residual_e": 2.461838531050975e-05,
+        "energy_residual_ev": 7.619233656441793e-06,
+        "intrinsic_energy_ev": -5255.576967211135,
+        "iteration": 15,
+        "pcm_polarization_energy_hartree": -0.014699773187607689
+      },
+      {
+        "density_residual_e": 1.5662276274308606e-05,
+        "energy_residual_ev": 4.697397343988996e-06,
+        "intrinsic_energy_ev": -5255.576962513737,
+        "iteration": 16,
+        "pcm_polarization_energy_hartree": -0.014701496395764943
+      },
+      {
+        "density_residual_e": 9.982838389613335e-06,
+        "energy_residual_ev": 2.9039129003649577e-06,
+        "intrinsic_energy_ev": -5255.576959609824,
+        "iteration": 17,
+        "pcm_polarization_energy_hartree": -0.014702545606177368
+      }
+    ],
+    "maximum_iterations": 50,
+    "mixing": 0.5
+  },
+  "schema_version": 5,
+  "solvent_intrinsic_mace_energy_ev": -5255.576959609824
+}

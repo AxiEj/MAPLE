@@ -1,0 +1,77 @@
+{
+  "doi": "10.1021/j100785a001",
+  "mantina_lineage": "Mantina et al. provide later vdW-radius scaling context; this profile retains Bondi 1964 values.",
+  "mantina_doi": "10.1021/jp8111556",
+  "name": "bondi-mantina-v1",
+  "note": "Used for shell distance and solvent-accessible surface thresholds in Route A phase-0.",
+  "profile_version": "1.0.0",
+  "version": "v1",
+  "radii": {
+    "Br": 1.85,
+    "C": 1.7,
+    "Cl": 1.75,
+    "F": 1.47,
+    "H": 1.2,
+    "I": 1.98,
+    "N": 1.55,
+    "O": 1.52,
+    "P": 1.8,
+    "S": 1.8
+  },
+  "source": "Bondi 1964 atomic van der Waals radii table",
+  "source_doi": "10.1021/j100785a001",
+  "source_reference": "Bondi vdW radii table (1964)",
+  "value_provenance": {
+    "Br": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    },
+    "C": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    },
+    "Cl": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    },
+    "F": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    },
+    "H": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    },
+    "I": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    },
+    "N": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    },
+    "O": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained; Mantina DOI only retained as lineage context"
+    },
+    "P": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    },
+    "S": {
+      "doi": "10.1021/j100785a001",
+      "source": "Bondi 1964",
+      "notes": "Bondi base value retained for profile compatibility"
+    }
+  },
+  "units": "angstrom"
+}

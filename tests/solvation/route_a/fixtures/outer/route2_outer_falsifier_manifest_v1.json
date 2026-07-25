@@ -1,0 +1,58 @@
+{
+  "artifact_type": "route-a-real-outer-falsifier-manifest",
+  "artifacts": {
+    "cavity_area_scan_partial": {
+      "canonical_sha256": "c260c2b01f18060b45b28b2b1cac2f5a6b222c0ebd0e97c01fa0908c46f726a5",
+      "path": "tests/solvation/route_a/fixtures/outer/route2_cavity_area_scan_partial_v1.json"
+    },
+    "x_xw_raw": {
+      "canonical_sha256": "4000ff4d243398a2d3687cf5104168369f19ddea1a2ef7fdf6c72a7dc7a396c2",
+      "path": "tests/solvation/route_a/fixtures/outer/route2_xw_outer_falsifier_raw_v1.json"
+    },
+    "xw2_robustness_raw": {
+      "canonical_sha256": "3c23e694c56bd418f716b289488d058d28468c61d134fac47481ff6f0b002898",
+      "path": "tests/solvation/route_a/fixtures/outer/route2_xw2_robustness_raw_v1.json"
+    }
+  },
+  "claim_boundary": {
+    "accuracy_certification": false,
+    "hydration_free_energy": false,
+    "profile_change_approved": false,
+    "real_mace_polar_pcmsolver_scf": true,
+    "single_geometry_outer_delta_only": true
+  },
+  "decision": "Keep the frozen warning-fatal profile for parity, but treat multi-water cavity robustness as an open production blocker; do not discard warning frames or silently retune AREA/MINRADIUS.",
+  "observations": {
+    "W_delta_g_solv_kcal_mol": -8.69347197304217,
+    "XW1_delta_g_solv_kcal_mol": -10.65794902334078,
+    "XW1_outer_cycle_signature_kcal_mol": -1.9644770502986102,
+    "X_delta_g_solv_kcal_mol": -4.818260367239601,
+    "best_completed_area_bohr2": 1.0,
+    "best_completed_area_passed": 9,
+    "best_completed_area_total": 13,
+    "failed_states": [
+      "XW2"
+    ],
+    "warning_free_states": [
+      "W",
+      "X",
+      "XW1"
+    ],
+    "xw2_geometric_clash_rejected": 3,
+    "xw2_preregistered_candidates": 12,
+    "xw2_provider_evaluated": 9,
+    "xw2_provider_failed": 3,
+    "xw2_warning_free": 6
+  },
+  "schema_version": 1,
+  "source_contract": {
+    "area_bohr2": 1.0,
+    "clean_tree_observed": true,
+    "clean_tree_required": true,
+    "minimum_added_sphere_radius_angstrom": 1.0,
+    "profile": "smd-iefpcm-gaff2-o",
+    "response": "scf",
+    "route2_commit": "7fea1061e9def05914ebf82c2e2eaba8a8f54365",
+    "standard_state": "1m"
+  }
+}

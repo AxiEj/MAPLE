@@ -1,0 +1,519 @@
+{
+  "protocol_version": "1.1.0",
+  "units": "kcal/mol",
+  "dimensionless": false,
+  "temperature_k": 298.15,
+  "beta_kcal_inv": 1.6878065856071305,
+  "standard_state": {
+    "C_number_0_per_A3": 0.000602214076,
+    "standard_state_volume_A3": 1660.5390671738467,
+    "water_density_molar": 55.345,
+    "deltaG_density_reference": -2.3779894895
+  },
+  "omitted_tail_thresholds": {
+    "probability": 0.005,
+    "final_two_kcal": 0.1
+  },
+  "water_outer_reference": {
+    "G_outer_water": -1.25,
+    "formula": "ΔG_outer term used only through -n ΔG_outer(W) and signed_water_outer_subtraction"
+  },
+  "rows": [
+    {
+      "n": 0,
+      "included": true,
+      "labeled_alchemical_association_steps": [],
+      "labeled_alchemical_association_total": 0.0,
+      "volume_steps": [],
+      "volume_total": 0.0,
+      "symmetry_steps": [],
+      "symmetry_total": 0.0,
+      "release_steps": [],
+      "release_total": 0.0,
+      "release_endpoints": [],
+      "outer_cluster_total": 0.4,
+      "water_density_per_water": -2.3779894895,
+      "water_density_total": 0.0,
+      "water_outer_per_water": -1.25,
+      "water_outer_total": 0.0,
+      "signed_water_outer_subtraction": -0.0,
+      "tail_probability": 0.0,
+      "tail_state": false,
+      "tail_gate": {
+        "source": "derived-from-all-row-G_n-logsumexp",
+        "direct_stored_probability_input_allowed": false
+      },
+      "covariance_matrix_id": "shared",
+      "G_n": 0.4,
+      "outer_state_refs": {
+        "cluster": {
+          "measure_id": "solute_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        },
+        "water": {
+          "measure_id": "water_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        }
+      }
+    },
+    {
+      "n": 1,
+      "included": true,
+      "labeled_alchemical_association_steps": [
+        1.0
+      ],
+      "labeled_alchemical_association_total": 1.0,
+      "volume_steps": [
+        0.15
+      ],
+      "volume_total": 0.15,
+      "symmetry_steps": [
+        0.0
+      ],
+      "symmetry_total": 0.0,
+      "release_steps": [
+        0.0
+      ],
+      "release_total": 0.0,
+      "release_endpoints": [
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        }
+      ],
+      "outer_cluster_total": -1.0,
+      "water_density_per_water": -2.3779894895,
+      "water_density_total": -2.3779894895,
+      "water_outer_per_water": -1.25,
+      "water_outer_total": -1.25,
+      "signed_water_outer_subtraction": 1.25,
+      "tail_probability": 0.0,
+      "tail_state": false,
+      "tail_gate": {
+        "source": "derived-from-all-row-G_n-logsumexp",
+        "direct_stored_probability_input_allowed": false
+      },
+      "covariance_matrix_id": "shared",
+      "G_n": -0.9779894895,
+      "outer_state_refs": {
+        "cluster": {
+          "measure_id": "solute_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        },
+        "water": {
+          "measure_id": "water_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        }
+      }
+    },
+    {
+      "n": 2,
+      "included": true,
+      "labeled_alchemical_association_steps": [
+        0.45,
+        0.6
+      ],
+      "labeled_alchemical_association_total": 1.05,
+      "volume_steps": [
+        0.12,
+        0.1
+      ],
+      "volume_total": 0.22,
+      "symmetry_steps": [
+        0.0,
+        0.4106792724182963
+      ],
+      "symmetry_total": 0.4106792724182963,
+      "release_steps": [
+        0.0,
+        0.0
+      ],
+      "release_total": 0.0,
+      "release_endpoints": [
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        }
+      ],
+      "outer_cluster_total": -1.5,
+      "water_density_per_water": -2.3779894895,
+      "water_density_total": -4.755978979,
+      "water_outer_per_water": -1.25,
+      "water_outer_total": -2.5,
+      "signed_water_outer_subtraction": 2.5,
+      "tail_probability": 0.0,
+      "tail_state": false,
+      "tail_gate": {
+        "source": "derived-from-all-row-G_n-logsumexp",
+        "direct_stored_probability_input_allowed": false
+      },
+      "covariance_matrix_id": "shared",
+      "G_n": -2.0752997066,
+      "outer_state_refs": {
+        "cluster": {
+          "measure_id": "solute_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        },
+        "water": {
+          "measure_id": "water_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        }
+      }
+    },
+    {
+      "n": 3,
+      "included": false,
+      "labeled_alchemical_association_steps": [
+        0.2,
+        0.3,
+        0.1
+      ],
+      "labeled_alchemical_association_total": 0.6,
+      "volume_steps": [
+        0.12,
+        0.12,
+        0.1
+      ],
+      "volume_total": 0.34,
+      "symmetry_steps": [
+        0.0,
+        0.4106792724182963,
+        0.650911246606448
+      ],
+      "symmetry_total": 1.0615905190247443,
+      "release_steps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "release_total": 0.0,
+      "release_endpoints": [
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        }
+      ],
+      "outer_cluster_total": 3.8823779494752557,
+      "water_density_per_water": -2.3779894895,
+      "water_density_total": -7.1339684685,
+      "water_outer_per_water": -1.25,
+      "water_outer_total": -3.75,
+      "signed_water_outer_subtraction": 3.75,
+      "tail_probability": 0.00037757035331047813,
+      "tail_state": true,
+      "tail_gate": {
+        "source": "derived-from-all-row-G_n-logsumexp",
+        "direct_stored_probability_input_allowed": false
+      },
+      "covariance_matrix_id": "shared",
+      "G_n": 2.5,
+      "outer_state_refs": {
+        "cluster": {
+          "measure_id": "solute_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        },
+        "water": {
+          "measure_id": "water_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        }
+      }
+    },
+    {
+      "n": 4,
+      "included": false,
+      "labeled_alchemical_association_steps": [
+        0.3,
+        0.25,
+        0.25,
+        0.1
+      ],
+      "labeled_alchemical_association_total": 0.9,
+      "volume_steps": [
+        0.08,
+        0.08,
+        0.08,
+        0.08
+      ],
+      "volume_total": 0.32,
+      "symmetry_steps": [
+        0.0,
+        0.4106792724182963,
+        0.650911246606448,
+        0.8213585448365927
+      ],
+      "symmetry_total": 1.882949063861337,
+      "release_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "release_total": 0.0,
+      "release_endpoints": [
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        }
+      ],
+      "outer_cluster_total": 4.409008894138663,
+      "water_density_per_water": -2.3779894895,
+      "water_density_total": -9.511957958,
+      "water_outer_per_water": -1.25,
+      "water_outer_total": -5.0,
+      "signed_water_outer_subtraction": 5.0,
+      "tail_probability": 0.00016236609396187197,
+      "tail_state": true,
+      "tail_gate": {
+        "source": "derived-from-all-row-G_n-logsumexp",
+        "direct_stored_probability_input_allowed": false
+      },
+      "covariance_matrix_id": "shared",
+      "G_n": 3.0,
+      "outer_state_refs": {
+        "cluster": {
+          "measure_id": "solute_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        },
+        "water": {
+          "measure_id": "water_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        }
+      }
+    },
+    {
+      "n": 5,
+      "included": false,
+      "labeled_alchemical_association_steps": [
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2
+      ],
+      "labeled_alchemical_association_total": 1.0,
+      "volume_steps": [
+        0.06,
+        0.06,
+        0.06,
+        0.06,
+        0.06
+      ],
+      "volume_total": 0.3,
+      "symmetry_steps": [
+        0.0,
+        0.4106792724182963,
+        0.650911246606448,
+        0.8213585448365927,
+        0.9535677406159428
+      ],
+      "symmetry_total": 2.83651680447728,
+      "release_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "release_total": 0.0,
+      "release_endpoints": [
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        },
+        {
+          "F_biased": 0.0,
+          "F_target": 0.0,
+          "delta": 0.0
+        }
+      ],
+      "outer_cluster_total": 5.003430643022719,
+      "water_density_per_water": -2.3779894895,
+      "water_density_total": -11.889947447499999,
+      "water_outer_per_water": -1.25,
+      "water_outer_total": -6.25,
+      "signed_water_outer_subtraction": 6.25,
+      "tail_probability": 6.982208279143458e-05,
+      "tail_state": true,
+      "tail_gate": {
+        "source": "derived-from-all-row-G_n-logsumexp",
+        "direct_stored_probability_input_allowed": false
+      },
+      "covariance_matrix_id": "shared",
+      "G_n": 3.5,
+      "outer_state_refs": {
+        "cluster": {
+          "measure_id": "solute_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        },
+        "water": {
+          "measure_id": "water_com_reduced_nonperiodic_v1",
+          "boundary_conditions": "nonperiodic"
+        }
+      }
+    }
+  ],
+  "covariance_references": {
+    "shared": {
+      "matrix": [
+        [
+          0.0011,
+          0.002,
+          0.003,
+          0.004,
+          0.005,
+          0.006
+        ],
+        [
+          0.002,
+          0.0041,
+          0.006,
+          0.008,
+          0.01,
+          0.012
+        ],
+        [
+          0.003,
+          0.006,
+          0.0091,
+          0.012,
+          0.015,
+          0.018000000000000002
+        ],
+        [
+          0.004,
+          0.008,
+          0.012,
+          0.0161,
+          0.02,
+          0.024
+        ],
+        [
+          0.005,
+          0.01,
+          0.015,
+          0.02,
+          0.0251,
+          0.03
+        ],
+        [
+          0.006,
+          0.012,
+          0.018000000000000002,
+          0.024,
+          0.03,
+          0.03610000000000001
+        ]
+      ],
+      "analytic_reference": {
+        "law": "outer-product",
+        "scale": 0.001,
+        "offset": 0.0001,
+        "index_mode": "n_plus_one"
+      }
+    }
+  },
+  "row_edge_contract": {
+    "edge_keys": [
+      "labeled_alchemical_association_steps",
+      "volume_steps",
+      "symmetry_steps",
+      "release_steps"
+    ],
+    "release_endpoint_key": "release_endpoints"
+  },
+  "ledger_invariants": {
+    "signed_water_outer_relation": "signed_water_outer_subtraction == -water_outer_total",
+    "water_density_relation": "water_density_total == n * water_density_per_water",
+    "water_outer_relation": "water_outer_total == n * water_outer_per_water",
+    "release_relation": "release_total == sum(release_endpoints[].delta)",
+    "omitted_tail_relation": "tail probability and free-energy correction are recomputed from all row G_n values by log-sum-exp"
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "ledger_contract": {
+    "release_relation": "release_total == 0.0 and release_endpoints[].F_target == release_endpoints[].F_biased for restraint-contract-v1"
+  },
+  "omitted_tail_derived": {
+    "formula_probability_upper": "(sum_computed_omitted w_n + unseen_weight_upper)/(Z_included + sum_computed_omitted w_n + unseen_weight_upper)",
+    "formula_free_energy_correction_upper": "ln((Z_included+sum_computed_omitted w_n+unseen_weight_upper)/Z_included)/beta",
+    "finite_computed_probability": 0.0006097585300637846,
+    "finite_computed_free_energy_correction_kcal": 0.0003613829413883958,
+    "probability_upper": 0.0006950373180883343,
+    "free_energy_correction_upper_kcal": 0.00041194232469009176,
+    "direct_boolean_or_stored_probability_gate_allowed": false
+  },
+  "tail_envelope": {
+    "model": "geometric-exponential-conservative-ceiling-v1",
+    "weight_definition": "w_n=exp(-beta*G_n)",
+    "fit_tail_n": [
+      3,
+      4,
+      5
+    ],
+    "minimum_consecutive_ratios": 2,
+    "observed_weight_ratios": [
+      0.4300287152798712,
+      0.4300287152798708
+    ],
+    "strict_ratio_condition": "0 <= every observed ratio <= conservative_ratio_ceiling < 1",
+    "unseen_first_n": 6,
+    "unseen_weight_upper_formula": "w_N*q_upper/(1-q_upper)",
+    "unseen_weight_upper": 0.0033237807822030815,
+    "extension_policy": "compute the next n and refit until minimum consecutive ratios and both upper-bound gates pass; unresolved or nondecaying tails fail closed",
+    "conservative_ratio_ceiling": 0.55,
+    "upper_bound_semantics": "preregistered deterministic modeling ceiling, not a statistical confidence interval",
+    "confidence_level": null,
+    "ratio_floor": 0.0,
+    "selection_timing": "frozen before any production high-n occupancy result"
+  },
+  "tail_envelope_contract_sha256": "651c32fb42972e0f0b6a119a86fdbb06d7d5eff09bddbd253fd3ed46f278d054"
+}

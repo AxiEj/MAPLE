@@ -1,0 +1,77 @@
+{
+  "schema_version": "3",
+  "artifact_type": "route-a-soft-packing-contract",
+  "contract_version": "3.0.0",
+  "status": "runtime-contract-and-analysis-implemented-sampling-pending",
+  "thermodynamic_system": {
+    "measure": "isolated-solute-measure-times-pure-periodic-water",
+    "target": "unbiased pure water around the hash-bound ghost solute observation volume",
+    "field": "U_empty=sum_j[-kT ln(1-b_j)]",
+    "scaled_hamiltonian": "U_s=U_X+U_W+s*U_empty",
+    "packing_probability": "p0_soft=<exp(-beta U_empty)>_target=<product_j(1-b_j)>_target",
+    "packing_free_energy": "-RT ln p0_soft=F(s=1)-F(s=0)",
+    "solute_water_physical_interactions": "absent"
+  },
+  "schedule": {
+    "artifact": "PackingSchedule",
+    "bias_scales": "unique and strictly monotonic in either direction",
+    "target_state_index": "explicit unique index whose bias scale is 0",
+    "full_field_state_index": "explicit unique index whose bias scale is 1",
+    "row_position_assumptions_allowed": false,
+    "required_hashes": [
+      "membership_definition_hash",
+      "observation_volume_hash",
+      "solute_measure_hash",
+      "water_hamiltonian_hash",
+      "oxygen_atom_map_hash",
+      "solute_atom_map_hash",
+      "cell_hash"
+    ],
+    "required_thermodynamic_metadata": [
+      "conditioning_measure_id",
+      "temperature_k",
+      "ensemble",
+      "pressure_bar",
+      "boundary_conditions"
+    ],
+    "runtime_identity_validation": [
+      "solvent calculator maple_hamiltonian_hash equals water_hamiltonian_hash",
+      "canonical oxygen atom index map equals oxygen_atom_map_hash",
+      "canonical runtime periodic cell equals cell_hash"
+    ]
+  },
+  "water_hamiltonian_policy": {
+    "selection_status": "not-frozen",
+    "requirement": "explicitly identified checkpoint with verified periodic bulk-water support under the declared ensemble",
+    "silent_reuse_of_off24_or_omol_allowed": false,
+    "selection_uses_experimental_hydration_values": false,
+    "freeze_before_real_v3_replicas": true
+  },
+  "analysis": {
+    "primary_estimator": "MBAR free-energy difference at explicit target and full-field indices",
+    "mandatory_cross_check": "target-state reweighted expectation of product_j(1-b_j)",
+    "hard_empty_indicator_role": "diagnostic-only",
+    "bar_mbar_agreement_required": true,
+    "neighbor_overlap_connectivity_required": true,
+    "target_and_full_effective_sample_size_required": true,
+    "half_trajectory_stability_required": true,
+    "independent_replica_agreement_required": true,
+    "per_state_uncertainty_required": true,
+    "estimator_agreement_within_combined_uncertainty_required": true,
+    "energy_conversion": "RT is derived only from schedule.temperature_k and the canonical gas constant",
+    "packing_occupancy_bridge_required": true,
+    "packing_occupancy_bridge": "packing MBAR and reference p(n) share the exact reduced-potential table, frame order, omega0 values, measure hashes and uncertainty gate"
+  },
+  "runtime_implementations": {
+    "schedule": "maple/function/dispatcher/solvfe/packing_contract.py::PackingSchedule",
+    "calculator": "maple/function/dispatcher/solvfe/packing_conditioning.py::ProductMeasurePackingCalculator",
+    "analysis_input": "maple/function/dispatcher/solvfe/packing_analysis.py::PackingAnalysisInput",
+    "estimator": "maple/function/dispatcher/solvfe/packing_analysis.py::estimate_soft_packing",
+    "packing_occupancy_bridge": "maple/function/dispatcher/solvfe/qct_ledger.py::PackingOccupancyBridge"
+  },
+  "scientific_boundaries": {
+    "packing_hidden_in_outer_provider_allowed": false,
+    "single_conformer_promoted_as_flexible_solute_result_allowed": false,
+    "production_claim_before_three_independent_replicas_allowed": false
+  }
+}

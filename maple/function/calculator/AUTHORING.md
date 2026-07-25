@@ -104,20 +104,34 @@ class FooCalculator(CalcABC):
   inside its analytic method); the numerical path inherits Hartree via
   `numerical_hessian_from_atoms`, which calls back into `calculate()`.
 
-## Implicit solvent
+## Supermolecule–continuum solvent composition
 
-- `_finalize_results` is the only place that adds the GBSA correction.
-  **Custom calculators do not call `implicit_solv_energy_and_force()`
-  directly** for the `calculate()` flow. If a backend needs special
-  handling, override `_finalize_results` rather than duplicating the
-  solvent path.
-- Solvent setup happens via `init_implicit_solvent(calc, implicit,
-  solvent, device)`. `CalcABC.__init__` does not call this for you in the
-  current release; subclasses still invoke `self.implicit_solv_init(...)`
-  inside their own `__init__`.
+- `SetCalculator` now keeps the selected backend solvent-free and wraps it in
+  `ClusterContinuumCalculator` when an outer solvent method is requested.
+  In Cramer–Truhlar terminology, the full solute plus explicit first shell is
+  the **supermolecule**. The wrapper evaluates this same complete atom list
+  with both contributors and adds their Hartree-unit results exactly once.
+- Custom calculators loaded through `module=` participate automatically when
+  they follow the MAPLE result-unit contract. They must continue accepting
+  `implicit` and `solvent` constructor keywords for compatibility, but
+  `SetCalculator` passes `none` for both under Route 3.
+- The older `init_implicit_solvent` / `_finalize_results` hooks remain for
+  direct backend construction. Do not also enable them inside a calculator
+  returned by `SetCalculator`, or the outer term would be double-counted.
 - `None`, `none`, `null`, `false`, `0`, and empty strings normalize to
-  `none`. `implicit='gbsa'` requires a real solvent name such as
-  `solvent='water'`; MAPLE fails early instead of looking for `None.dat`.
+  `none`. Every enabled outer method requires a real solvent name.
+- Route A ensemble postprocessing is intentionally outside
+  `ClusterContinuumCalculator`. Protocol v3 inherits the v2
+  `FrozenRoute2SupermoleculePCMBackend`, which evaluates the exact sampled atom list
+  through a hash-pinned Route 2 subprocess, scales the frozen SMD/GAFF2-O
+  radii under one protocol rule, and rejects the entire batch on any topology
+  or PCM warning. It does not delete frames, reuse one mesh across mobile
+  waters, or expose continuum forces.
+- Route A v3 excludes legacy SMD CDS from its core outer term. A provider
+  author must return the electrostatic delta with `CDS = 0` and must not add a
+  complete solvated total energy to the OMOL vacuum Hamiltonian. Nonpolar
+  alternatives are development ablations and require a versioned protocol
+  change before use.
 
 ## Hessian
 
@@ -126,9 +140,10 @@ class FooCalculator(CalcABC):
 - `numerical_hessian_from_atoms` restores the calculator's pre-call
   `results` before returning, so standalone `calc.get_hessian(atoms)` does
   not leave `results` pointing at the final displaced geometry.
-- Analytic Hessian with implicit solvent is unsupported and raises
-  `NotImplementedError` from `CalcABC.get_hessian`. Document the
-  limitation in any backend-specific notes.
+- The GB-polar/QEq outer provider is energy-only. TBLite/ALPB supplies total
+  force composition and the wrapper obtains Hessians/HVPs by finite
+  differences of those total forces; it never returns an inner-only
+  derivative.
 
 ## Periodic boundary conditions and stress
 
@@ -189,8 +204,9 @@ class FooCalculator(CalcABC):
   `_finalize_results`, so the backend converts units itself: an eV-native
   backend must apply `EV2HARTREE` inside `get_hvp` and return Hartree-unit
   tensors. ANI is Hartree-native, so its implementation needs no conversion.
-- ANI HVP rejects implicit-solvent runs because solvent HVP is not implemented;
-  returning gas-phase HVP in that mode would be a silent mixed-model result.
+- Directly constructed ANI calculators still reject their legacy implicit
+  solvent HVP path. Route 3 instead finite-differences the complete composed
+  force when the selected outer provider supplies forces.
 
 ## Backend capability matrix
 
@@ -199,9 +215,9 @@ backends build a **no-PBC** radius graph (zero `cell`/`shifts`), so they are
 molecule-only regardless of any periodic claim elsewhere. UMA is the only
 backend that switches tasks for periodic input.
 
-| Backend (names) | PBC | charge/mult | Hessian | Implicit solvent | D4 | HVP (Dimer) |
+| Backend (names) | PBC | charge/mult | Hessian | Route 3 inner MLIP | D4 | HVP (Dimer) |
 |---|---|---|---|---|---|---|
-| ANI (`ani2x/1x/1ccx/1xnr`) | no; fail-fast | no | analytic + numerical | yes | yes | yes; no implicit solvent |
+| ANI (`ani2x/1x/1ccx/1xnr`) | no; fail-fast | no | analytic + numerical | yes | yes | yes |
 | AIMNet2 (`aimnet2`, `aimnet2nse`) | no; fail-fast; no Ewald | yes | analytic + numerical | yes | no | no |
 | MACE-OFF (`maceoff23s/m/l`, `egret`) | no; fail-fast | no | analytic + numerical | yes | no | no |
 | MACE-omol (`maceomol`) | no; fail-fast | no | analytic + numerical | yes | no | no |

@@ -1,0 +1,562 @@
+{
+  "artifact_type": "route-a-protocol",
+  "claim_contract": {
+    "code": "route-a-claim-contract",
+    "reference": {
+      "path": "docs/solvation/route-a/claim-contract-v1.json",
+      "hash": "d0bf181a761f98b60fcfeda816d248cab926416331a1d02a4fcd36ebf19f23de",
+      "hash_kind": "canonical_sha256"
+    }
+  },
+  "domain": {
+    "clusters": {
+      "assembly_domain": "nonperiodic",
+      "discovery_domain": "periodic"
+    },
+    "name": "route-a-neutral-neutral-water-hydration",
+    "occupancy_support": {
+      "adaptive_n": true,
+      "n_min": 0,
+      "requires_n_plus_greater_zero": true
+    },
+    "property": "absolute_hydration_free_energy",
+    "solute_constraints": {
+      "allowed_elements": [
+        "H",
+        "C",
+        "N",
+        "O",
+        "F",
+        "P",
+        "S",
+        "Cl",
+        "Br",
+        "I"
+      ],
+      "charge": 0,
+      "disallow_metals": true,
+      "disallow_radicals": true,
+      "open_shell": false,
+      "spin_multiplicity": 1,
+      "one_connected_solute": true
+    },
+    "solvent": {
+      "electrolyte_free": true,
+      "model": "tip3p-like geometry-compatible",
+      "name": "water",
+      "phase": "liquid"
+    },
+    "standard_state": {
+      "C_number_0_per_A3": 0.000602214076,
+      "standard_state_volume_A3_per_molecule": 1660.5390671738467,
+      "gas_reference_concentration_molar": 1.0,
+      "water_bulk_concentration_molar": 55.345,
+      "solution_reference_concentration_molar": 1.0,
+      "rho_W_number_per_A3": 0.03332953803622,
+      "rho_W_over_C0": 55.345
+    },
+    "temperature_k": 298.15,
+    "unsupported_domains_fail_code": "DOMAIN_UNSUPPORTED",
+    "pressure_bar": 1.0,
+    "absolute_hydration_free_energy": true,
+    "production_domain": "nonperiodic"
+  },
+  "failure_contract": {
+    "code": "route-a-failure-contract",
+    "reference": {
+      "path": "docs/solvation/route-a/failure-contract-v1.json",
+      "hash": "7254bb47c61fca1617fac5310a483c50e1e2db720f72aec8c3b37675a41e9f2a",
+      "hash_kind": "canonical_sha256"
+    }
+  },
+  "hamiltonian_id": "composite-omol0-vac-plus-polarmace-smd-v1",
+  "hash_canonicalization": "sort_keys=True,separators=(',',':'),ensure_ascii=True,encoding='utf-8'",
+  "models": {
+    "outer": {
+      "checkpoint": "MACEPOLAR1Mmodel",
+      "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "license": "Academic Software Licence",
+      "license_profile": "research-default-v1",
+      "name": "MACE-POLAR-1-M",
+      "provenance": {
+        "observed_local_filename": "MACEPOLAR1Mmodel",
+        "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACEPOLAR1Mmodel",
+        "official_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+        "source_commit": "2ee7e58beac3a9a12ad3644de1c3591c1ff11c2c",
+        "upstream_filename": "MACE-POLAR-1-M.model",
+        "verified_by_model_probe_key": "real_model_probes_v1.json::models.polar1m",
+        "source_ref": "mace_polar_1"
+      },
+      "provider": "SMDPolarDeltaProvider",
+      "provider_version": "v1",
+      "size_bytes": 68133235,
+      "source": "ACEsuit/mace-foundations",
+      "source_commit": "2ee7e58beac3a9a12ad3644de1c3591c1ff11c2c",
+      "source_ref": "mace_polar_1",
+      "variant": "continuum-polar"
+    },
+    "sampler": {
+      "checkpoint": "MACE-OFF24_medium.model",
+      "checkpoint_sha256": "e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69",
+      "license": "Academic Software Licence",
+      "license_profile": "research-default-v1",
+      "name": "MACE-OFF24",
+      "provenance": {
+        "observed_local_filename": "MACE-OFF24_medium.model",
+        "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACE-OFF24_medium.model",
+        "official_url": "https://raw.githubusercontent.com/ACEsuit/mace-off/v0.2/mace_off24/MACE-OFF24_medium.model",
+        "source_commit": "91a78c5a9c300d1104700d9352c8bfe449227737",
+        "upstream_filename": "MACE-OFF24_medium.model",
+        "verified_by_model_probe_key": "real_model_probes_v1.json::models.off24",
+        "source_ref": "v0.2"
+      },
+      "provider": "MACEOff24Provider",
+      "provider_version": "v1",
+      "size_bytes": 18375569,
+      "source": "ACEsuit/mace-off",
+      "source_commit": "91a78c5a9c300d1104700d9352c8bfe449227737",
+      "source_ref": "v0.2",
+      "variant": "MACE-OFF24(M)"
+    },
+    "target": {
+      "checkpoint": "MACE-omol-0-extra-large-1024.model",
+      "checkpoint_sha256": "9b64b4fd5153ca578c694abc57806d8111050de6ff652e695c9b525bc4d36469",
+      "license": "Academic Software Licence",
+      "license_profile": "research-default-v1",
+      "name": "MACE-OMOL-0",
+      "provenance": {
+        "observed_local_filename": "MACE-omol-0-extra-large-1024.model",
+        "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACE-omol-0-extra-large-1024.model",
+        "official_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_omol_0/MACE-omol-0-extra-large-1024.model",
+        "source_commit": "6009f59095a1c471e77fa8e77b989b1bb81435b3",
+        "upstream_filename": "MACE-omol-0-extra-large-1024.model",
+        "verified_by_model_probe_key": "real_model_probes_v1.json::models.omol0",
+        "source_ref": "mace_omol_0"
+      },
+      "provider": "MACEOMOLProvider",
+      "provider_version": "v1",
+      "size_bytes": 422242640,
+      "source": "ACEsuit/mace-foundations",
+      "source_commit": "6009f59095a1c471e77fa8e77b989b1bb81435b3",
+      "source_ref": "mace_omol_0",
+      "variant": "molecule-scored"
+    }
+  },
+  "protocol_contract": "route-a-protocol-contract-v1",
+  "protocol_name": "qct-supermolecule-hydration",
+  "protocol_release": "2026-07-25",
+  "protocol_schema_version": "1.4.0",
+  "protocol_version": "1.4.0",
+  "radius_profile": {
+    "name": "bondi-mantina-v1",
+    "notes": "Immutable for route-a phase-0 shell distance and SA geometry checks.",
+    "sha256": "56be49ddb0c7839ccd84855b36100373d26dd398e5a050b793412ccca559a08d",
+    "source": "docs/solvation/route-a/radius-profiles/bondi-mantina-v1.json",
+    "version": "1.0.0"
+  },
+  "schema_version": "1",
+  "shell": {
+    "cavity": {
+      "archive_sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
+      "component_graph_required": 1,
+      "fixture_hash": "750469dfa61c0e738dd5113a0e76f0b271fae39e98355141995899e98ee8c9e7",
+      "mesh_metadata_sha256": "8fd430aa6ae6429460db1b1b67cbae9861bc06467a8eb8e43ee861078226b89b",
+      "penetration_predicate": {
+        "fail_condition": "max_{t in tesserae, (i,j)} min(-s_i(t),-s_j(t)) > numerical_tolerance_A",
+        "failure_reasons": [
+          "SMD_CAVITY_PENETRATION",
+          "SMD_CAVITY_TOPOLOGY_DISCONTINUITY",
+          "STATE_SPACE_MISMATCH"
+        ],
+        "name": "protected-overlap-sphere-lens",
+        "numerical_tolerance_A": 1e-06,
+        "pair_criterion": "R_i+R_j-d_ij>0 over cross-fragment atom pairs",
+        "pair_partition": "auto: all cross-fragment solute/solvent pairs with R_i+R_j-d_ij>0",
+        "penetration_depth": "min(-s_i,-s_j)",
+        "s_i": "||t-r_i||-R_i"
+      },
+      "predetermined_mesh_file": "tests/solvation/route_a/fixtures/cavities/pcmsolver-golden-water-dimer.json",
+      "predetermined_mesh_required": true,
+      "synthetic_probe_penetration_A": 0.1200000000000001
+    },
+    "complete_molecule_retained": true,
+    "definition": "Whole-water occupancy by oxygen membership under the all-solute-atom signed-distance map and complete-molecule retention.",
+    "lambda_s_candidates": {
+      "anchor_source": "first-minimum of solute-water RDF",
+      "candidate_offsets_A": [
+        {
+          "label": "r_min_minus_0.20",
+          "offset_A": -0.2
+        },
+        {
+          "label": "r_min",
+          "offset_A": 0.0
+        },
+        {
+          "label": "r_min_plus_0.20",
+          "offset_A": 0.2
+        }
+      ],
+      "derivation": "three offsets around RDF first minimum",
+      "selection_requirement": "all three offsets must be evaluated and plateau validated"
+    },
+    "occupancy_indicator": "n(q,lambda_s)=Σ_j 1[d_s(O_j)<=lambda_s]",
+    "oxygen_decides_only": true,
+    "signed_distance": {
+      "boundary_type": "closed-shell minimum with smooth cap outside lambda",
+      "distance_fn": "d_s(O_j)=min_i ||r_Oj-r_i||-R_i^vdW (all solute atoms i)",
+      "effective_volume": "V_eff,i = <integral exp(-beta*r_i(q_X,r_O)) d^3r_O>_(pi_base,i-1) on the nonperiodic solute-COM-reduced decoupled reference measure; average per-base-frame integrals before -RT ln and never substitute a hard-indicator volume"
+    },
+    "wall": {
+      "buffer_height_kBT": 10.0,
+      "buffer_width_A": 0.5,
+      "differentiable": true,
+      "force_units": "eV/A",
+      "formula": "U(d)=0.5*k*max(d,0)^2, with k=2*buffer_height_kBT*kBT/(buffer_width_A**2)",
+      "lambda_basis": "oxygen only",
+      "type": "flat_bottom_harmonic_buffer"
+    }
+  },
+  "standard_state": {
+    "C_number_0_per_A3": 0.000602214076,
+    "gas_constant_kcal_per_mol_K": 0.001987204258640831,
+    "label": "1M(gas)->1M(solution)",
+    "standard_state_correction": "-R*T*ln(Veff / V0)",
+    "standard_state_density_correction": "-R*T*ln(rho_W_over_C0)",
+    "standard_state_volume_A3_per_molecule": 1660.5390671738467,
+    "temperature_k": 298.15,
+    "gas_reference_concentration_molar": 1.0,
+    "water_bulk_concentration_molar": 55.345,
+    "solution_reference_concentration_molar": 1.0,
+    "rho_W_number_per_A3": 0.03332953803622,
+    "rho_W_over_C0": 55.345
+  },
+  "state_contract": {
+    "code": "route-a-state-contract",
+    "reference": {
+      "path": "docs/solvation/route-a/state-contract-v1.json",
+      "hash": "2dd08c73960659e3238c4aa8d75feec03d74fe620ba1ee08db3f267d64ff23c3",
+      "hash_kind": "canonical_sha256"
+    }
+  },
+  "state_graph": {
+    "atom_list_invariant_per_edge": true,
+    "edges": [
+      {
+        "from": "parse",
+        "name": "parse_to_discovery",
+        "to": "discovery"
+      },
+      {
+        "from": "discovery",
+        "name": "discovery_to_shell",
+        "to": "shell"
+      },
+      {
+        "from": "shell",
+        "name": "shell_to_alchemy",
+        "to": "alchemy"
+      },
+      {
+        "from": "alchemy",
+        "name": "alchemy_to_mbar",
+        "to": "mbar"
+      },
+      {
+        "from": "mbar",
+        "name": "mbar_to_qct",
+        "to": "qct"
+      },
+      {
+        "from": "qct",
+        "name": "qct_to_artifacts",
+        "to": "artifacts"
+      },
+      {
+        "from": "artifacts",
+        "name": "artifacts_to_result",
+        "to": "result"
+      }
+    ],
+    "nodes": [
+      "parse",
+      "discovery",
+      "shell",
+      "alchemy",
+      "mbar",
+      "qct",
+      "artifacts",
+      "result"
+    ],
+    "order": [
+      "parse",
+      "discovery",
+      "shell",
+      "alchemy",
+      "mbar",
+      "qct",
+      "artifacts",
+      "result"
+    ]
+  },
+  "status": "frozen",
+  "thermodynamics": {
+    "R_gas_kcal_per_mol_K": 0.001987204258640831,
+    "association_block": {
+      "alchemical": "ΔG_alch_labeled(i)",
+      "release": "ΔG_release(i)",
+      "symmetry": "ΔG_sym(i)=RT ln(i)",
+      "volume": "ΔG_vol(i)"
+    },
+    "beta_definition": "1/(R_gas*T)",
+    "distance_unit": "angstrom",
+    "energy_unit": "kcal/mol",
+    "formulas": {
+      "association_labeled": "ΔG_alch_labeled(i)+ΔG_vol(i)+RT ln(i)+ΔG_release(i)",
+      "qct_n_entry": "ΔG_n = Σ_{i=1..n}[ΔG_alch_labeled(i)+ΔG_vol(i)+RT ln(i)+ΔG_release(i)] - n RT ln(rho_W_over_C0) + ΔG_outer(XW_n) - nΔG_outer(W)",
+      "release": "ΔG_release(i)=F_target_i_interacting-F_biased_i_interacting=0 for restraint-contract-v1",
+      "standard_state_correction": "-R*T*ln(Veff / V0)",
+      "symmetry_correction": "Σ_{i=1}^n RT ln(i) ; cumulative for insertion state n is RT ln(n!)",
+      "water_outer_signature": "ΔG_outer(XW_n) = solvent outer free-energy restraint contribution; signed water-outer subtraction is -nΔG_outer(W)",
+      "hamiltonian_decomposition": "ΔG_outer(XW_n)=F[U_OMOL_vac+δ_outer,R_n]-F[U_OMOL_vac,R_n], δ_outer_kcal(q)=Hartree_to_kcal_mol*((E_intrinsic_Polar[V_reac](q)-E_intrinsic_Polar[0](q))/Hartree_eV+E_PCM_pol_Ha(q)+G_CDS_Ha(q)), and ΔG_outer(W)=F[U_OMOL_vac+δ_outer,R_W]-F[U_OMOL_vac,R_W]",
+      "volume_density_identity": "rho_W_number_per_A3 = water_bulk_concentration_molar * C0 / solution_reference_concentration_molar; rho_W_over_C0 = rho_W_number_per_A3 / C0 = water_bulk_concentration_molar / solution_reference_concentration_molar; ΔG_vol(i) - RT ln(rho_W_over_C0) = -RT ln(rho_W_number_per_A3 * V_eff,i) for each insertion edge i=1..n; Σ_{i=1}^n ΔG_vol(i) - n RT ln(rho_W_over_C0) = -RT Σ_{i=1}^n ln(rho_W_number_per_A3 * V_eff,i)",
+      "outer_contains_density_term": false
+    },
+    "water_density_reference": "rho_W_over_C0"
+  },
+  "thresholds": {
+    "bar_disagreement_kcal": {
+      "comparator": "<=",
+      "units": "kcal/mol",
+      "value": 0.2
+    },
+    "ess_min": {
+      "comparator": ">=",
+      "units": "frames",
+      "value": 100
+    },
+    "occupancy_plateau_ci_overlap": {
+      "comparator": "==",
+      "description": "non-empty common confidence interval intersection required",
+      "units": "none",
+      "value": true
+    },
+    "occupancy_plateau_spread_kcal": {
+      "comparator": "<=",
+      "units": "kcal/mol",
+      "value": 0.5
+    },
+    "omitted_tail_final_two_kcal": {
+      "comparator": "<",
+      "units": "kcal/mol",
+      "value": 0.1
+    },
+    "omitted_tail_mass": {
+      "comparator": "<",
+      "units": "dimensionless",
+      "value": 0.005
+    },
+    "overlap_min": {
+      "comparator": ">=",
+      "units": "overlap",
+      "value": 0.03
+    },
+    "stability_half_traj_kcal": {
+      "comparator": "<=",
+      "units": "kcal/mol",
+      "value": 0.2
+    }
+  },
+  "artifact_references": {
+    "geometry": {
+      "path": "tests/solvation/route_a/fixtures/cavities/water_dimer_angstrom.xyz",
+      "sha256": "9a5b7b5cb5f7bd8d70983d27a770ef61df5405e797327125f55f44e921776742",
+      "hash_kind": "sha256"
+    },
+    "raw_input": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_raw_input.pcm.inp",
+      "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+      "hash_kind": "sha256"
+    },
+    "parsed_input": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_parsed_input.pcm.inp",
+      "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+      "hash_kind": "sha256"
+    },
+    "mesh": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_mesh.npz",
+      "sha256": "8fd430aa6ae6429460db1b1b67cbae9861bc06467a8eb8e43ee861078226b89b",
+      "hash_kind": "sha256"
+    },
+    "archive": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_cavity.npz",
+      "sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
+      "hash_kind": "sha256"
+    },
+    "cavity_fixture": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver-golden-water-dimer.json",
+      "sha256": "750469dfa61c0e738dd5113a0e76f0b271fae39e98355141995899e98ee8c9e7",
+      "hash_kind": "canonical_sha256"
+    },
+    "claim_contract": {
+      "path": "docs/solvation/route-a/claim-contract-v1.json",
+      "sha256": "d0bf181a761f98b60fcfeda816d248cab926416331a1d02a4fcd36ebf19f23de",
+      "hash_kind": "canonical_sha256"
+    },
+    "failure_contract": {
+      "path": "docs/solvation/route-a/failure-contract-v1.json",
+      "sha256": "7254bb47c61fca1617fac5310a483c50e1e2db720f72aec8c3b37675a41e9f2a",
+      "hash_kind": "canonical_sha256"
+    },
+    "state_contract": {
+      "path": "docs/solvation/route-a/state-contract-v1.json",
+      "sha256": "2dd08c73960659e3238c4aa8d75feec03d74fe620ba1ee08db3f267d64ff23c3",
+      "hash_kind": "canonical_sha256"
+    },
+    "radius_profile": {
+      "path": "docs/solvation/route-a/radius-profiles/bondi-mantina-v1.json",
+      "sha256": "56be49ddb0c7839ccd84855b36100373d26dd398e5a050b793412ccca559a08d",
+      "hash_kind": "canonical_sha256"
+    },
+    "model_probes": {
+      "path": "tests/solvation/route_a/fixtures/models/real_model_probes_v1.json",
+      "sha256": "6f6dac8586c3af69e73580215f5049b47af784eefce19cc7e0c4cc019bb7882d",
+      "hash_kind": "canonical_sha256"
+    },
+    "protocol_schema": {
+      "path": "docs/solvation/route-a/protocol-schema-v1.json",
+      "sha256": "207b081d0deda739de3d8039a3040b8e658a8e6de9eea6b1a6592526d87dd9f1",
+      "hash_kind": "canonical_sha256"
+    },
+    "thermodynamics_md": {
+      "path": "docs/solvation/route-a/thermodynamics.md",
+      "sha256": "ea950bb2d1993aca588e649d9bbbb7bebcb4e157f87d512b6db14840785e0412",
+      "hash_kind": "sha256"
+    },
+    "restraint_contract": {
+      "path": "docs/solvation/route-a/restraint-contract-v1.json",
+      "sha256": "9520e38827a4162f187ecea64b1b6cca7bdafc3f2188e594243454b2c01c292b",
+      "hash_kind": "canonical_sha256"
+    },
+    "outer_adapter_contract": {
+      "path": "docs/solvation/route-a/outer-adapter-contract-v1.json",
+      "sha256": "34defd161f1e2047ad76bbe4a4825c7f9ca9af8a886c6feedc3eb9525665f390",
+      "hash_kind": "canonical_sha256"
+    },
+    "reference_cycle_ablation_contract": {
+      "path": "docs/solvation/route-a/reference-cycle-ablation-contract-v1.json",
+      "sha256": "ed5d601c1abb1cdd0d6fd53930454315763c73da28e37b64dccab99c76fd0e3a",
+      "hash_kind": "canonical_sha256"
+    },
+    "outer_parity_fixture": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_component_parity_v1.json",
+      "sha256": "e94ed80490a82983e9bbeb4fdee73d596ea6def4fa35c2ae6d7f06cb969c18e6",
+      "hash_kind": "canonical_sha256"
+    },
+    "outer_parity_clean_canary": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_canary_v1.json",
+      "sha256": "91471d34e209643150620116094609518e2af9b4fd2e2f7bbef8b13c2c807551",
+      "hash_kind": "canonical_sha256"
+    },
+    "outer_parity_provider_audit": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_provider_audit_v1.json",
+      "sha256": "30a394260ffcaf410d6db76009416f86cc7d6dbca7e9a0c13794b62c9de0633e",
+      "hash_kind": "canonical_sha256"
+    },
+    "outer_parity_native_stderr": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "hash_kind": "sha256"
+    },
+    "outer_parity_pedra_log": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.log",
+      "sha256": "4292001dd69287caecc6981965b397db535f485baf44612f57cfc00ed4bc8b3d",
+      "hash_kind": "sha256"
+    },
+    "reference_cycle_preregistration": {
+      "path": "tests/solvation/route_a/fixtures/reference_cycle/preregistration_registry_v1.json",
+      "sha256": "a199f2a811a79fef6349004e4fd646d889f5fc53e7c4a874d20143340bc00ce4",
+      "hash_kind": "canonical_sha256"
+    },
+    "cavity_two_run_audit": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_two_run_audit_v1.json",
+      "hash_kind": "canonical_sha256",
+      "sha256": "dcffd03b40689ab9cb6ce901d07dfe9761f472e1b4fba5245bf53e43ebb487db"
+    },
+    "cavity_topology_fixture": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_topology_transition_v1.json",
+      "hash_kind": "canonical_sha256",
+      "sha256": "baf40e198c57af909f34c8ed0894e2d70b63cdbf272114e3abcaef3166c1382b"
+    },
+    "cavity_topology_metadata": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_topology_transition_v1.npz",
+      "hash_kind": "sha256",
+      "sha256": "9fb1b76595af607b98287c0232a91fc39a42cf4d4a80cbef82c33a463f6a1297"
+    },
+    "outer_xw_falsifier_raw": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_xw_outer_falsifier_raw_v1.json",
+      "sha256": "4000ff4d243398a2d3687cf5104168369f19ddea1a2ef7fdf6c72a7dc7a396c2",
+      "hash_kind": "canonical_sha256"
+    },
+    "outer_xw2_robustness_raw": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_xw2_robustness_raw_v1.json",
+      "sha256": "3c23e694c56bd418f716b289488d058d28468c61d134fac47481ff6f0b002898",
+      "hash_kind": "canonical_sha256"
+    },
+    "outer_cavity_area_scan_partial": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_cavity_area_scan_partial_v1.json",
+      "sha256": "c260c2b01f18060b45b28b2b1cac2f5a6b222c0ebd0e97c01fa0908c46f726a5",
+      "hash_kind": "canonical_sha256"
+    },
+    "outer_falsifier_manifest": {
+      "path": "tests/solvation/route_a/fixtures/outer/route2_outer_falsifier_manifest_v1.json",
+      "sha256": "4023fb25003f5916a1d7aeb8fe435ac6b96671fcc27c963f05fbad82b0d9d022",
+      "hash_kind": "canonical_sha256"
+    }
+  },
+  "protocol_schema": {
+    "path": "docs/solvation/route-a/protocol-schema-v1.json",
+    "sha256": "207b081d0deda739de3d8039a3040b8e658a8e6de9eea6b1a6592526d87dd9f1",
+    "hash_kind": "canonical_sha256"
+  },
+  "restraint_contract": {
+    "code": "route-a-restraint-contract",
+    "reference": {
+      "path": "docs/solvation/route-a/restraint-contract-v1.json",
+      "hash": "9520e38827a4162f187ecea64b1b6cca7bdafc3f2188e594243454b2c01c292b",
+      "hash_kind": "canonical_sha256"
+    }
+  },
+  "outer_adapter_contract": {
+    "code": "route-a-polar-smd-outer-adapter",
+    "reference": {
+      "path": "docs/solvation/route-a/outer-adapter-contract-v1.json",
+      "hash": "34defd161f1e2047ad76bbe4a4825c7f9ca9af8a886c6feedc3eb9525665f390",
+      "hash_kind": "canonical_sha256"
+    }
+  },
+  "reference_cycle_ablation_contract": {
+    "code": "route-a-reference-cycle-ablation",
+    "reference": {
+      "path": "docs/solvation/route-a/reference-cycle-ablation-contract-v1.json",
+      "hash": "ed5d601c1abb1cdd0d6fd53930454315763c73da28e37b64dccab99c76fd0e3a",
+      "hash_kind": "canonical_sha256"
+    }
+  },
+  "tail_envelope_contract": {
+    "contract_name": "route-a-tail-envelope",
+    "contract_version": "1.0.0",
+    "immutable": true,
+    "model": "geometric-exponential-conservative-ceiling-v1",
+    "weight_definition": "w_n=exp(-beta*G_n)",
+    "conservative_ratio_ceiling": 0.55,
+    "ratio_floor": 0.0,
+    "minimum_consecutive_ratios": 2,
+    "strict_ratio_condition": "0 <= every observed ratio <= conservative_ratio_ceiling < 1",
+    "extension_policy": "compute the next n and refit until minimum consecutive ratios and both upper-bound gates pass; unresolved or nondecaying tails fail closed",
+    "selection_timing": "frozen before any production high-n occupancy result",
+    "upper_bound_semantics": "preregistered deterministic modeling ceiling, not a statistical confidence interval",
+    "contract_sha256": "651c32fb42972e0f0b6a119a86fdbb06d7d5eff09bddbd253fd3ed46f278d054"
+  },
+  "protocol_sha256": "2c0375a431ec298ed7479225af7958e98913e69826cdcee1692c669459774c2e"
+}

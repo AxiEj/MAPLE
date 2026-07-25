@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Union, List
 
 from ase import Atoms 
@@ -73,9 +74,29 @@ class engine():
         try:
             self._input_reader(input_file_name, output_file_name)
 
-            self._mlp_initiator(self.model, self.device)
+            if self.jobtype == "solvfe":
+                from .dispatcher.solvfe import SolvationFreeEnergyWorkflow
 
-            if isinstance(self.atoms, Atoms):
+                prepared = SolvationFreeEnergyWorkflow.prepare(
+                    params=self.commandcontrol.params,
+                    atoms=self.atoms,
+                    project_root=Path(__file__).resolve().parents[2],
+                )
+                self.extra["solvfe_prepared"] = prepared
+                if prepared.request.dry_run:
+                    self.calulator = None
+                else:
+                    self._mlp_initiator(self.model, self.device)
+                self.extra["solvfe_primary_calculator"] = self.calulator
+            else:
+                self._mlp_initiator(self.model, self.device)
+
+            if self.jobtype == "solvfe":
+                # The pristine solute and the primary sampler are separate
+                # workflow inputs; attaching the sampler here would hide that
+                # boundary and encourage one-shot energy semantics.
+                pass
+            elif isinstance(self.atoms, Atoms):
                 self.atoms.calc = self.calulator
             elif isinstance(self.atoms, Molecules):
                 # For Molecules object, set calculator for all atoms in multiatoms

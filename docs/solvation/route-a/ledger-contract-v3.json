@@ -1,0 +1,93 @@
+{
+  "schema_version": "3",
+  "artifact_type": "route-a-soft-qct-ledger-contract",
+  "contract_version": "3.0.0",
+  "status": "runtime-closure-and-review-p0p1-remediation-implemented-real-ensemble-validation-pending",
+  "master_equation": {
+    "multi_n": "mu_A=-RT ln(p0_soft)-RT ln sum_n exp[-beta A_n]",
+    "fixed_n_cross_check": "mu_n=A_n+RT ln[x_tilde(n)/p0_soft]",
+    "direct_n0": "mu_direct=A_0+RT ln[x0_soft/p0_soft]",
+    "exact_periodic_row": "A_n_exact=g_n-RT ln[p_tilde(n)/p0_soft]",
+    "conditional_coupling": "g_n=-RT ln[Z_X,n/Z_0,n]",
+    "soft_partitions": {
+      "reference": "Z_0,n=sum_q omega_n(q) exp[-beta U_0(q)]",
+      "coupled": "Z_X,n=sum_q omega_n(q) exp[-beta U_X(q)]"
+    },
+    "active_support_runtime": "mu_A=-RT ln(p0_soft)-RT ln sum_{n=0}^{nmax} exp[-beta A_n]+RT ln[1-x_tail]",
+    "tail_definition": "x_tail=sum_{n>nmax} x_tilde(n); p_tail=sum_{n>nmax} p_tilde(n)",
+    "periodic_bridge_gate": "A_n versus g_n-RT ln[p_tilde(n)/p0_soft] for every active n"
+  },
+  "term_roles": {
+    "p0_soft": "one additive packing term through -RT ln(p0_soft)",
+    "x_tilde_n": "fixed-n and direct-n0 cross-check; not an additional multi-n term",
+    "p_tilde_n_nonzero": "Hamiltonian-bridge reference and falsifier; not added on top of the cluster density-volume ledger",
+    "A_n": "one conditioned row containing association, density-volume, labeled-to-unlabeled symmetry and outer reference exactly once",
+    "packing_evidence": "mandatory hash-bound PackingEvidence->reference occupancy bridge; arbitrary p0 is rejected"
+  },
+  "cluster_row_counting": {
+    "labeled_association": "sum_i DeltaG_alch_labeled(i)",
+    "density_volume": "sum_i[-RT ln(rho_W_number_per_A3*V_eff_i)]",
+    "symmetry": "RT ln(n!)",
+    "release": "sum_i DeltaG_release(i)",
+    "outer_cycle": "DeltaG_outer(XW_n)-n*DeltaG_outer(W)",
+    "row": "A_n=labeled_association+density_volume+RT ln(n!)+release+outer_cycle",
+    "p_tilde_n_added_again": false,
+    "density_factor_count_per_edge": 1,
+    "factorial_count_per_row": 1
+  },
+  "exact_vs_approximate": {
+    "periodic_soft_qct_identity": "exact for the declared finite or periodic Hamiltonians and omega_n",
+    "maple_cluster_continuum_rows": "nonperiodic cluster-continuum approximation to A_n",
+    "hamiltonian_bridge_hash_required": true,
+    "cluster_periodic_difference_role": "preregistered embedding residual and falsification gate; never labeled exact closure",
+    "same_membership_hash_alone_proves_bridge": false,
+    "boundary_measure_bridge_required": true,
+    "boundary_bridge_definition": "one boundary-independent membership surface plus distinct periodic minimum-image and nonperiodic cluster adapters",
+    "effective_volume_artifact_required_per_edge": true,
+    "exact_profile_public_arbitrary_constructor_allowed": false
+  },
+  "covariance": {
+    "joint_vector": "[p_tilde(0..nmax),p_tail,x_tilde(0..nmax),x_tail,A_0..A_nmax,g_0..g_nmax]",
+    "full_matrix_required": true,
+    "p_and_x_simplex_nullspaces_required": true,
+    "matrix_inversion_required": false,
+    "production_method": "shared-provenance-graph-bootstrap",
+    "independent_block_diagonal_allowed_only_with_hash_bound_independence_evidence": true,
+    "shared_water_outer_and_tail_selection_covariance_required": true,
+    "shared_bootstrap_evidence": "replicate-level QCTBootstrapEvidence artifact required; a naked evidence hash is rejected",
+    "block_diagonal_relation_matrix_consistency_required": true
+  },
+  "finite_enumeration": {
+    "reference_and_coupled_partition_sums_required": true,
+    "fractional_omega_n_required": true,
+    "n0_required": true,
+    "multi_n_required": true,
+    "labeled_cluster_density_volume_factorial_outer_bridge_required": true,
+    "deliberate_density_double_count_must_fail": true,
+    "deliberate_factorial_double_count_must_fail": true,
+    "independent_labeled_partition_oracle_required": true,
+    "primitive_partition_factors": "coupling Boltzmann factors, rho*Veff, release factors, outer factors, then divide by n! exactly once",
+    "bulk_water_tail_stress_sizes": [
+      64,
+      128,
+      256,
+      512
+    ]
+  },
+  "runtime_implementations": {
+    "occupancy_analysis": "maple/function/dispatcher/solvfe/occupancy_analysis.py::estimate_soft_occupancy",
+    "ledger": "maple/function/dispatcher/solvfe/qct_ledger.py::evaluate_soft_qct_ledger",
+    "finite_enumerator": "maple/function/dispatcher/solvfe/finite_qct.py::enumerate_finite_soft_qct",
+    "periodic_conditioned_profile": "maple/function/dispatcher/solvfe/qct_ledger.py::build_periodic_qct_profile",
+    "conditional_coupling_profile": "maple/function/dispatcher/solvfe/qct_ledger.py::ConditionalCouplingProfile",
+    "packing_occupancy_bridge": "maple/function/dispatcher/solvfe/qct_ledger.py::PackingOccupancyBridge",
+    "boundary_measure_bridge": "maple/function/dispatcher/solvfe/qct_ledger.py::BoundaryMeasureBridge",
+    "bootstrap_evidence": "maple/function/dispatcher/solvfe/qct_ledger.py::QCTBootstrapEvidence",
+    "finite_labeled_oracle": "maple/function/dispatcher/solvfe/finite_qct.py::enumerate_labeled_cluster_partition"
+  },
+  "promotion_boundary": {
+    "real_v3_replicas_before_bulk_water_hamiltonian_freeze_allowed": false,
+    "public_solvfe_runtime": "fail-closed",
+    "route_a_superiority_claim_allowed": false
+  }
+}

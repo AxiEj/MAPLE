@@ -19,6 +19,10 @@ from .calculator_base import (
     normalize_none_option,
     validate_implicit_solvent_choice,
 )
+from .cluster_continuum import (
+    ClusterContinuumCalculator,
+    build_outer_solvent_provider,
+)
 
 
 HF_REPO_ID = 'Wayne7815/MAPLE_models'
@@ -39,6 +43,7 @@ _BUILTIN_NAME_TO_MODULE = {
     'maceoff23s': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23m': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23l': 'maple.function.calculator.mace._mace_calculator',
+    'maceoff24m': 'maple.function.calculator.mace._mace_upstream_calculator',
     'egret': 'maple.function.calculator.mace._mace_calculator',
     'maceomol': 'maple.function.calculator.mace._mace_general_calculator',
     'macepols': 'maple.function.calculator.mace._macepol_calculator',
@@ -144,28 +149,49 @@ class SetCalculator:
         if self.implicit == 'none':
             return
 
-        if self.implicit != 'gbsa':
+        if self.implicit not in {'gbsa', 'alpb'}:
             raise ValueError(
                 "Unsupported implicit solvation method: "
-                f"'{self.implicit}'. Supported experimental method: gbsa."
+                f"'{self.implicit}'. Supported experimental methods: gbsa, alpb."
+            )
+        if self.solvent == 'none':
+            raise ValueError(
+                f"implicit='{self.implicit}' requires a real solvent name."
             )
 
         if self.solvation_options.get('experimental') is not True:
             raise ValueError(
-                "Implicit GB-polar/QEq solvation is experimental and disabled "
-                "by default. Add experimental=true in #solv(...) to request "
-                "energy-only use."
+                "Cluster-continuum solvation is experimental and disabled by "
+                "default. Add experimental=true in #solv(...) to request it."
             )
 
-        if self.model_options.get('hessian') is not None:
+        provider = normalize_none_option(self.solvation_options.get('provider'))
+        if self.implicit == 'gbsa' and provider not in {'none', 'maple'}:
+            raise ValueError(
+                "method=gbsa uses MAPLE's built-in experimental GB-polar "
+                "provider; omit provider or use provider=maple."
+            )
+        if self.implicit == 'alpb' and provider != 'tblite':
+            raise ValueError("method=alpb currently requires provider=tblite.")
+
+        if self.implicit == 'gbsa' and self.model_options.get('hessian') is not None:
             raise ValueError(
                 "Experimental implicit GB-polar solvation does not support "
                 "Hessian/HVP workflows."
             )
+        if (
+            self.implicit == 'alpb'
+            and self.model_options.get('hessian') not in {None, 'numerical'}
+        ):
+            raise ValueError(
+                "Cluster-continuum ALPB Hessians include the outer correction "
+                "through numerical force differences; use hessian=numerical or "
+                "omit the option."
+            )
 
         if self.atoms is not None and atoms_has_pbc(self.atoms):
             raise ValueError(
-                "Experimental implicit GB-polar solvation is non-periodic only; "
+                "Cluster-continuum solvation is non-periodic only; "
                 "remove #pbc or use a periodic solvent backend."
             )
 
@@ -453,6 +479,14 @@ class SetCalculator:
     def _build_calculator(self) -> ase.calculators.calculator.Calculator:
         requested_name = self.model
         self._validate_solvent_config()
+        outer_provider = None
+        if self.implicit != 'none':
+            outer_provider = build_outer_solvent_provider(
+                method=self.implicit,
+                solvent=self.solvent,
+                device=self.device,
+                provider=self.solvation_options.get('provider'),
+            )
 
         cls = self._discover_calculator_class(requested_name)
         name = self.model
@@ -501,12 +535,16 @@ class SetCalculator:
         calculator = cls(
             device=self.device,
             model=name,
-            implicit=self.implicit,
-            solvent=self.solvent,
+            # Outer solvation is composed exactly once at this boundary.  The
+            # inner backend always remains a pure cluster MLIP.
+            implicit='none',
+            solvent='none',
             **kwargs,
         )
 
         self._apply_hessian_mode(calculator)
+        if outer_provider is not None:
+            calculator = ClusterContinuumCalculator(calculator, outer_provider)
         return calculator
 
     def _apply_hessian_mode(self, calculator) -> None:

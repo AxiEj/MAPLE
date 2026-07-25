@@ -1,0 +1,409 @@
+{
+  "contract_name": "route-a-claim-contract",
+  "contract_version": "1.8.0",
+  "immutable": true,
+  "result_order": [
+    "failed",
+    "engineering-ready",
+    "thermodynamic-closure-passed",
+    "route2-superiority-demonstrated",
+    "scientifically-validated"
+  ],
+  "status_lattice": [
+    {
+      "status": "failed",
+      "required": []
+    },
+    {
+      "status": "engineering-ready",
+      "required": [
+        {
+          "field": "engineering",
+          "op": "eq",
+          "value": true
+        }
+      ]
+    },
+    {
+      "status": "thermodynamic-closure-passed",
+      "required": [
+        {
+          "field": "engineering",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "internal_closure_ledger",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "internal_closure_statistics",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "internal_closure_tail_gates",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "thermodynamic_state_contract",
+          "op": "eq",
+          "value": true
+        }
+      ]
+    },
+    {
+      "status": "route2-superiority-demonstrated",
+      "required": [
+        {
+          "field": "engineering",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "thermodynamic-closure-passed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "frozen_reference",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "protocol_locked_reference_set",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "paired_same_molecule_coverage",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "frozen_absolute_accuracy_passed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "route2_superiority_metric",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "holdout_partition_lock",
+          "op": "eq",
+          "value": true
+        }
+      ]
+    },
+    {
+      "status": "scientifically-validated",
+      "required": [
+        {
+          "field": "engineering",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "thermodynamic-closure-passed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "route2-superiority-demonstrated",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "full_explicit_reference_subset",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "frozen_absolute_accuracy_passed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "material_partition_bias_passed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "reference_cycle_ablation_completed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "reference_cycle_ablation_same_frozen_holdout",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "reference_cycle_ablation_same_n_by_molecule",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "reference_cycle_ablation_nonreference_controls_locked",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "reference_cycle_ablation_both_cycles_complete",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "reference_cycle_ablation_artifact_verified",
+          "op": "eq",
+          "value": true
+        }
+      ]
+    }
+  ],
+  "hash_fields": [
+    "protocol_hash",
+    "failure_contract_hash",
+    "state_contract_hash",
+    "restraint_contract_hash",
+    "outer_adapter_contract_hash",
+    "reference_cycle_ablation_contract_hash"
+  ],
+  "evidence_derivation": {
+    "validator_id": "route-a-claim-evidence-validator-v3",
+    "direct_boolean_gate_input_allowed": false,
+    "required_result_fields": [
+      "reference_cycle_ablation_manifest_hash",
+      "development_selection_artifact_hash",
+      "holdout_lock_hash",
+      "cycle_artifact_hashes",
+      "adjudication_hash",
+      "artifact_hashes",
+      "frozen_mae_kcal",
+      "frozen_rmse_kcal",
+      "frozen_mse_kcal",
+      "frozen_fail_count",
+      "frozen_abstain_count",
+      "frozen_evaluated_molecule_hash",
+      "partition_bias_mean_signed_kcal",
+      "partition_bias_ci_95_lower_kcal",
+      "partition_bias_ci_95_upper_kcal",
+      "partition_bias_fail_count",
+      "partition_bias_abstain_count",
+      "full_explicit_subset_hash",
+      "frozen_absolute_rows",
+      "frozen_absolute_rows_hash",
+      "partition_bias_rows",
+      "partition_bias_rows_hash",
+      "partition_bias_bootstrap_indices",
+      "partition_bias_bootstrap_indices_hash",
+      "route2_delta_ci_95_upper",
+      "route2_delta_ci_95_lower",
+      "route2_fail_count",
+      "route2_abstain_count",
+      "route2_d_i_abs_error",
+      "route2_sample_count",
+      "route2_paired_rows",
+      "route2_paired_rows_hash",
+      "route2_bootstrap_indices",
+      "route2_bootstrap_indices_hash",
+      "engineering_evidence",
+      "engineering_evidence_hash",
+      "closure_evidence",
+      "closure_evidence_hash",
+      "benchmark_lock_evidence",
+      "benchmark_lock_evidence_hash",
+      "full_explicit_evidence",
+      "full_explicit_evidence_hash",
+      "protocol_hash",
+      "failure_contract_hash",
+      "state_contract_hash",
+      "restraint_contract_hash",
+      "outer_adapter_contract_hash",
+      "reference_cycle_ablation_contract_hash"
+    ],
+    "derived_gate_fields": [
+      "material_partition_bias_passed",
+      "frozen_absolute_accuracy_passed",
+      "reference_cycle_ablation_completed",
+      "reference_cycle_ablation_same_frozen_holdout",
+      "reference_cycle_ablation_same_n_by_molecule",
+      "reference_cycle_ablation_nonreference_controls_locked",
+      "reference_cycle_ablation_both_cycles_complete",
+      "reference_cycle_ablation_artifact_verified",
+      "engineering",
+      "internal_closure_ledger",
+      "internal_closure_statistics",
+      "internal_closure_tail_gates",
+      "thermodynamic_state_contract",
+      "frozen_reference",
+      "protocol_locked_reference_set",
+      "holdout_partition_lock",
+      "full_explicit_reference_subset",
+      "paired_same_molecule_coverage"
+    ],
+    "validator_ids": [
+      "frozen-absolute-accuracy-validator-v1",
+      "material-partition-bias-validator-v1",
+      "reference-cycle-ablation-validator-v1"
+    ],
+    "numeric_gate_rule": "numeric rows are cross-checked against the protocol-bound trusted holdout, Route 2 baseline, full-explicit references, and deterministic SHA256-counter bootstrap specifications; caller booleans, caller-selected indices, and self-hashes alone are insufficient"
+  },
+  "route2_superiority_metric": {
+    "name": "route2-superiority-demonstrated",
+    "required_fields": [
+      "route2_delta_ci_95_upper",
+      "route2_delta_ci_95_lower",
+      "route2_fail_count",
+      "route2_abstain_count",
+      "route2_d_i_abs_error",
+      "route2_sample_count",
+      "route2_paired_rows",
+      "route2_paired_rows_hash",
+      "route2_bootstrap_indices",
+      "route2_bootstrap_indices_hash"
+    ],
+    "evaluator": {
+      "op": "and",
+      "terms": [
+        {
+          "field": "route2_delta_ci_95_upper",
+          "op": "lt",
+          "value": 0.0
+        },
+        {
+          "field": "route2_fail_count",
+          "op": "eq",
+          "value": 0
+        },
+        {
+          "field": "route2_abstain_count",
+          "op": "eq",
+          "value": 0
+        }
+      ]
+    },
+    "definition": "For each matched molecule i, d_i = |err_A(i)| - |err_route2(i)|. The CI upper bound on mean(d_i) must be strictly less than 0.0; no fail-counts or abstentions allowed in the final superiority claim.",
+    "formula": "d_i = abs(err_A(i)) - abs(err_R2(i))",
+    "raw_evidence_rule": "recompute d_i, sample count, failure/abstention counts and percentile CI from hash-bound paired rows and bootstrap indices; summaries must match"
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "notes": "Typed status lattice with production promotion capped at engineering-ready until production registries and runtime stage validators exist; higher-status known-answer tests require explicit test-only opt-in.",
+  "frozen_absolute_accuracy": {
+    "gate_field": "frozen_absolute_accuracy_passed",
+    "direct_boolean_gate_input_allowed": false,
+    "units": "kcal/mol",
+    "required_fields": [
+      "frozen_mae_kcal",
+      "frozen_rmse_kcal",
+      "frozen_mse_kcal",
+      "frozen_fail_count",
+      "frozen_abstain_count",
+      "frozen_evaluated_molecule_hash",
+      "frozen_absolute_rows",
+      "frozen_absolute_rows_hash"
+    ],
+    "thresholds": {
+      "mae_max_kcal": 1.0,
+      "rmse_max_kcal": 1.5,
+      "abs_mse_max_kcal": 0.5,
+      "fail_count": 0,
+      "abstain_count": 0
+    },
+    "evaluator": {
+      "op": "and",
+      "terms": [
+        {
+          "field": "frozen_mae_kcal",
+          "op": "le",
+          "value": 1.0
+        },
+        {
+          "field": "frozen_rmse_kcal",
+          "op": "le",
+          "value": 1.5
+        },
+        {
+          "field": "frozen_mse_kcal",
+          "op": "abs_le",
+          "value": 0.5
+        },
+        {
+          "field": "frozen_fail_count",
+          "op": "eq",
+          "value": 0
+        },
+        {
+          "field": "frozen_abstain_count",
+          "op": "eq",
+          "value": 0
+        }
+      ]
+    },
+    "definition": "Derived from the frozen untouched holdout only; all three absolute-error thresholds and zero failure/abstention counts must pass.",
+    "raw_evidence_rule": "recompute errors, MAE, RMSE, MSE, failures and abstentions from hash-bound per-molecule rows; summaries must match"
+  },
+  "material_partition_bias": {
+    "gate_field": "material_partition_bias_passed",
+    "direct_boolean_gate_input_allowed": false,
+    "units": "kcal/mol",
+    "required_fields": [
+      "partition_bias_mean_signed_kcal",
+      "partition_bias_ci_95_lower_kcal",
+      "partition_bias_ci_95_upper_kcal",
+      "partition_bias_fail_count",
+      "partition_bias_abstain_count",
+      "full_explicit_subset_hash",
+      "partition_bias_rows",
+      "partition_bias_rows_hash",
+      "partition_bias_bootstrap_indices",
+      "partition_bias_bootstrap_indices_hash"
+    ],
+    "equivalence_interval_kcal": [
+      -0.5,
+      0.5
+    ],
+    "evaluator": {
+      "op": "and",
+      "terms": [
+        {
+          "field": "partition_bias_ci_95_lower_kcal",
+          "op": "ge",
+          "value": -0.5
+        },
+        {
+          "field": "partition_bias_ci_95_upper_kcal",
+          "op": "le",
+          "value": 0.5
+        },
+        {
+          "field": "partition_bias_fail_count",
+          "op": "eq",
+          "value": 0
+        },
+        {
+          "field": "partition_bias_abstain_count",
+          "op": "eq",
+          "value": 0
+        }
+      ]
+    },
+    "definition": "On the preregistered full-explicit subset, the 95% CI for the paired signed Route-A minus full-explicit reference error must lie wholly inside [-0.5,+0.5] kcal/mol, with no failures or abstentions.",
+    "raw_evidence_rule": "recompute paired signed deltas, mean and percentile CI from hash-bound rows and preregistered bootstrap indices; summaries must match"
+  },
+  "production_gate": {
+    "enabled": false,
+    "maximum_status": "engineering-ready",
+    "reason": "Production scientific promotion remains disabled until the runtime workflow emits typed validator stage records and uses a protocol-bound production evidence registry; synthetic known-answer fixtures are test-only."
+  },
+  "test_only_validation": {
+    "explicit_opt_in_required": true,
+    "allowed_evidence_class": "synthetic-known-answer-contract-fixture",
+    "may_exercise_status_lattice": true,
+    "may_support_external_scientific_claims": false
+  }
+}

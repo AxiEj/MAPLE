@@ -1,0 +1,140 @@
+{
+  "contract_name": "route-a-reference-cycle-ablation",
+  "contract_version": "1.3.0",
+  "immutable": true,
+  "purpose": "Measure reference-cycle sensitivity without post-hoc selection on the final holdout.",
+  "cycles": [
+    "sequential-monomer-water-reference-v1",
+    "solvent-cluster-reference-v1"
+  ],
+  "selection_policy": {
+    "preregistered_cycle_required": true,
+    "final_holdout_may_select_cycle": false,
+    "ablation_is_sensitivity_evidence_not_reselection": true,
+    "numeric_agreement_threshold": null
+  },
+  "comparability": {
+    "required_same_fields": [
+      "frozen_holdout_hash",
+      "n_by_molecule_hash",
+      "nonreference_controls_hash"
+    ],
+    "nonreference_controls": [
+      "shell contract and lambda selection",
+      "solute conformer policy",
+      "model hashes",
+      "cavity profile",
+      "temperature and standard state",
+      "replica seeds and stopping rules"
+    ],
+    "both_cycles_required_per_molecule": true,
+    "failure_or_abstention_in_either_cycle_invalidates_final_scientific_status": true
+  },
+  "manifest_required_fields": [
+    "frozen_holdout_hash",
+    "n_by_molecule_hash",
+    "nonreference_controls_hash",
+    "preregistered_selection_policy_hash",
+    "nonreference_controls_artifact_hash",
+    "n_by_molecule_artifact_hash",
+    "selection_policy_artifact_hash",
+    "development_selection_artifact_hash",
+    "holdout_lock_hash",
+    "per_molecule_both_cycle_results",
+    "cycle_artifact_hashes",
+    "artifact_hashes",
+    "adjudication_hash"
+  ],
+  "evidence_chain": {
+    "selection_artifact_required_fields": [
+      "development_manifest_hash",
+      "selected_primary_cycle",
+      "selection_policy_hash"
+    ],
+    "holdout_lock_required_fields": [
+      "frozen_holdout_hash",
+      "development_selection_artifact_hash",
+      "opened_for_scoring_after_lock"
+    ],
+    "lineage_rule": "holdout_lock.development_selection_artifact_hash must equal sha256(canonical development selection artifact), and reported primary cycle must equal its selected_primary_cycle",
+    "cycle_result_required_fields": [
+      "cycle_id",
+      "frozen_holdout_hash",
+      "n_by_molecule_hash",
+      "nonreference_controls_hash",
+      "per_molecule_result_artifact_hash",
+      "uncertainty_artifact_hash",
+      "failure_count",
+      "abstention_count"
+    ],
+    "artifact_hashes_recomputed_by_validator": true,
+    "artifact_hash_rule": "selection, holdout-lock, per-molecule result, and uncertainty hashes are recomputed from canonical artifact content; self-reported verified booleans are forbidden",
+    "canonical_artifact_content_required": [
+      "selection_policy",
+      "development_selection",
+      "holdout",
+      "holdout_lock",
+      "n_by_molecule",
+      "nonreference_controls",
+      "per_cycle_per_molecule_results",
+      "per_cycle_uncertainty"
+    ],
+    "cross_binding_rules": [
+      "holdout_lock.frozen_holdout_hash equals canonical holdout artifact hash",
+      "each cycle n_by_molecule_hash equals canonical n-by-molecule artifact hash and every result molecule_id/n pair matches that artifact",
+      "each cycle nonreference_controls_hash equals canonical non-reference-controls artifact hash",
+      "selection.selection_policy_hash equals canonical preregistered selection-policy artifact hash",
+      "holdout_lock.opened_for_scoring_after_lock is true",
+      "selected_primary_cycle is one of the two declared cycles",
+      "production scientific evaluation requires evidence_class=production-preregistered-scientific-evidence",
+      "frozen absolute, Route 2 paired, holdout lock, and both reference cycles use the identical ordered frozen-holdout molecule manifest"
+    ],
+    "manifest_and_adjudication_rules": [
+      "reference_cycle_ablation_manifest_hash is recomputed from manifest content",
+      "manifest artifact_hashes exactly equal all recomputed artifact hashes",
+      "adjudication_hash is recomputed and adjudication.manifest_hash equals the recomputed manifest hash",
+      "selection and holdout-lock hashes equal the independent protocol-bound trusted preregistration root"
+    ]
+  },
+  "gate_derivation": {
+    "validator_id": "reference-cycle-ablation-validator-v1",
+    "direct_boolean_gate_input_allowed": false,
+    "rules": [
+      "both declared cycle IDs are present exactly once",
+      "both cycles share frozen_holdout_hash, n_by_molecule_hash, and nonreference_controls_hash",
+      "both cycles have failure_count=0 and abstention_count=0",
+      "every declared artifact hash is recomputed and matches",
+      "holdout lock references the pre-existing development selection artifact",
+      "reported primary cycle equals the development-selected primary cycle",
+      "cycle frozen_holdout_hash equals holdout_lock.frozen_holdout_hash, not merely the other cycle row",
+      "selection, holdout-lock, result, and uncertainty hashes are recomputed from canonical artifact content",
+      "holdout_lock.frozen_holdout_hash equals canonical holdout artifact hash",
+      "each cycle n_by_molecule_hash equals canonical n-by-molecule artifact hash and every result molecule_id/n pair matches that artifact",
+      "each cycle nonreference_controls_hash equals canonical non-reference-controls artifact hash",
+      "selection.selection_policy_hash equals canonical preregistered selection-policy artifact hash",
+      "holdout_lock.opened_for_scoring_after_lock is true",
+      "selected_primary_cycle is one of the two declared cycles",
+      "reference_cycle_ablation_manifest_hash is recomputed from manifest content",
+      "manifest artifact_hashes exactly equal all recomputed artifact hashes",
+      "adjudication_hash is recomputed and adjudication.manifest_hash equals the recomputed manifest hash",
+      "selection and holdout-lock hashes equal the independent protocol-bound trusted preregistration root"
+    ]
+  },
+  "claim_gate_fields": [
+    "reference_cycle_ablation_completed",
+    "reference_cycle_ablation_same_frozen_holdout",
+    "reference_cycle_ablation_same_n_by_molecule",
+    "reference_cycle_ablation_nonreference_controls_locked",
+    "reference_cycle_ablation_both_cycles_complete",
+    "reference_cycle_ablation_artifact_verified"
+  ],
+  "failure_code": "REFERENCE_CYCLE_ABLATION_MISSING_OR_NONCOMPARABLE",
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "trusted_preregistration_root": {
+    "path": "tests/solvation/route_a/fixtures/reference_cycle/preregistration_registry_v1.json",
+    "canonical_sha256": "a199f2a811a79fef6349004e4fd646d889f5fc53e7c4a874d20143340bc00ce4",
+    "production_allowed_evidence_class": "production-preregistered-scientific-evidence",
+    "test_fixture_evidence_class": "synthetic-known-answer-contract-fixture",
+    "runtime_requirement": "production evaluation rejects synthetic/test evidence; the known-answer root is accepted only through an explicit test-only validator flag"
+  }
+}

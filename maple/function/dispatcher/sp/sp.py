@@ -39,6 +39,7 @@ class SinglePoint(JobABC):
         """Return single-structure SP result lines for the selected verbosity."""
         lines = ["\n"]
         lines.extend(self._charge_mult_lines(self.atoms))
+        lines.extend(self._cluster_continuum_lines(self.atoms))
         lines.append(f"Energy: {energy:.10f} Hartree\n")
         if self.verbose >= 1:
             lines.extend(self._gradient_lines(self.atoms))
@@ -68,12 +69,25 @@ class SinglePoint(JobABC):
             )
         return lines
 
+    @staticmethod
+    def _cluster_continuum_lines(atoms: Atoms) -> list:
+        """Expose the two terms when a Route 3 composite produced the result."""
+        results = getattr(getattr(atoms, "calc", None), "results", {}) or {}
+        if "inner_energy" not in results or "outer_correction" not in results:
+            return []
+        return [
+            f"Inner cluster energy: {float(results['inner_energy']):.10f} Hartree\n",
+            "Outer continuum correction: "
+            f"{float(results['outer_correction']):.10f} Hartree\n",
+        ]
+
     def _trajectory_frame_lines(self, idx: int, atoms_frame: Atoms, energy_hartree: float) -> list:
         """Return trajectory-frame SP result lines for the selected verbosity."""
         lines = [
             f"\n{('Frame ' + str(idx)):=^80}\n",
         ]
         lines.extend(self._charge_mult_lines(atoms_frame))
+        lines.extend(self._cluster_continuum_lines(atoms_frame))
         lines.extend([
             f"Energy: {energy_hartree:.10f} Hartree\n\n",
             "Coordinates (Angstrom):\n",

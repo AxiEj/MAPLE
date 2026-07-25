@@ -1,0 +1,294 @@
+{
+  "fixture_version": "1.1.0",
+  "evidence_class": "synthetic-known-answer-contract-fixture",
+  "test_only": true,
+  "selection_policy": {
+    "policy_id": "development-only-reference-cycle-selection-v1",
+    "final_holdout_may_select_cycle": false
+  },
+  "selection_policy_hash": "ae41bca873f500636b33f3dc0a8c0540fb1e8108b2d53a861cf68ce83d7ce22f",
+  "selection": {
+    "development_manifest_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+    "selected_primary_cycle": "sequential-monomer-water-reference-v1",
+    "selection_policy_hash": "ae41bca873f500636b33f3dc0a8c0540fb1e8108b2d53a861cf68ce83d7ce22f"
+  },
+  "selection_hash": "ad31f4a9c40da0a2197be81aea8eb5c7217fe72aabc89301d743419dff35786a",
+  "holdout": {
+    "molecule_ids": [
+      "m1",
+      "m2",
+      "m3",
+      "m4"
+    ],
+    "experiment_kcal_by_molecule": {
+      "m1": 0.0,
+      "m2": 0.0,
+      "m3": 0.0,
+      "m4": 0.0
+    }
+  },
+  "holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+  "holdout_lock": {
+    "development_selection_artifact_hash": "ad31f4a9c40da0a2197be81aea8eb5c7217fe72aabc89301d743419dff35786a",
+    "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+    "opened_for_scoring_after_lock": true
+  },
+  "holdout_lock_hash": "a19a9cba19eaca2fad894178da0b05a8c0629a406e9426c982a719292f860839",
+  "n_by_molecule": {
+    "m1": 1,
+    "m2": 2,
+    "m3": 1,
+    "m4": 2
+  },
+  "n_by_molecule_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+  "nonreference_controls": {
+    "shell_contract_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+    "model_hashes": [
+      "4444444444444444444444444444444444444444444444444444444444444444",
+      "5555555555555555555555555555555555555555555555555555555555555555"
+    ],
+    "temperature_k": 298.15
+  },
+  "nonreference_controls_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2",
+  "primary_cycle": "sequential-monomer-water-reference-v1",
+  "cycles": [
+    {
+      "cycle_id": "sequential-monomer-water-reference-v1",
+      "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+      "n_by_molecule_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+      "nonreference_controls_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2",
+      "failure_count": 0,
+      "abstention_count": 0,
+      "per_molecule_results": [
+        {
+          "molecule_id": "m1",
+          "n": 1,
+          "value": 0.1
+        },
+        {
+          "molecule_id": "m2",
+          "n": 2,
+          "value": 0.2
+        },
+        {
+          "molecule_id": "m3",
+          "n": 1,
+          "value": 0.3
+        },
+        {
+          "molecule_id": "m4",
+          "n": 2,
+          "value": 0.4
+        }
+      ],
+      "uncertainty": {
+        "cycle_id": "sequential-monomer-water-reference-v1",
+        "se": [
+          0.1,
+          0.12,
+          0.11,
+          0.13
+        ]
+      },
+      "per_molecule_result_artifact_hash": "f5c1dc91f4fed5ddeeda60b329329bcd974c97e6a47bc1308bca6d25bfbd1cbd",
+      "uncertainty_artifact_hash": "489410c02b83646e63def9c3725771db250ea7701a0775c491f30714b0416b61"
+    },
+    {
+      "cycle_id": "solvent-cluster-reference-v1",
+      "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+      "n_by_molecule_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+      "nonreference_controls_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2",
+      "failure_count": 0,
+      "abstention_count": 0,
+      "per_molecule_results": [
+        {
+          "molecule_id": "m1",
+          "n": 1,
+          "value": 1.1
+        },
+        {
+          "molecule_id": "m2",
+          "n": 2,
+          "value": 1.2
+        },
+        {
+          "molecule_id": "m3",
+          "n": 1,
+          "value": 1.3
+        },
+        {
+          "molecule_id": "m4",
+          "n": 2,
+          "value": 1.4
+        }
+      ],
+      "uncertainty": {
+        "cycle_id": "solvent-cluster-reference-v1",
+        "se": [
+          0.1,
+          0.12,
+          0.11,
+          0.13
+        ]
+      },
+      "per_molecule_result_artifact_hash": "b0b5ad37113b553d7a15a5c32bc15cb7658b54a60bb7bb5c796f02bd35f5b976",
+      "uncertainty_artifact_hash": "e2952ad75d0036780bb6f55907bc5ecfc63d940349d5e7235059d44cecfe0382"
+    }
+  ],
+  "cycle_artifact_hashes": {
+    "sequential-monomer-water-reference-v1": {
+      "per_molecule_result_artifact_hash": "f5c1dc91f4fed5ddeeda60b329329bcd974c97e6a47bc1308bca6d25bfbd1cbd",
+      "uncertainty_artifact_hash": "489410c02b83646e63def9c3725771db250ea7701a0775c491f30714b0416b61"
+    },
+    "solvent-cluster-reference-v1": {
+      "per_molecule_result_artifact_hash": "b0b5ad37113b553d7a15a5c32bc15cb7658b54a60bb7bb5c796f02bd35f5b976",
+      "uncertainty_artifact_hash": "e2952ad75d0036780bb6f55907bc5ecfc63d940349d5e7235059d44cecfe0382"
+    }
+  },
+  "spoofed_boolean_gates": {
+    "reference_cycle_ablation_completed": true,
+    "reference_cycle_ablation_same_frozen_holdout": true,
+    "reference_cycle_ablation_same_n_by_molecule": true,
+    "reference_cycle_ablation_nonreference_controls_locked": true,
+    "reference_cycle_ablation_both_cycles_complete": true,
+    "reference_cycle_ablation_artifact_verified": true
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "artifact_hashes": {
+    "selection_policy_artifact_hash": "ae41bca873f500636b33f3dc0a8c0540fb1e8108b2d53a861cf68ce83d7ce22f",
+    "development_selection_artifact_hash": "ad31f4a9c40da0a2197be81aea8eb5c7217fe72aabc89301d743419dff35786a",
+    "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+    "holdout_lock_hash": "a19a9cba19eaca2fad894178da0b05a8c0629a406e9426c982a719292f860839",
+    "n_by_molecule_artifact_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+    "nonreference_controls_artifact_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2",
+    "sequential-monomer-water-reference-v1:per_molecule_result_artifact_hash": "f5c1dc91f4fed5ddeeda60b329329bcd974c97e6a47bc1308bca6d25bfbd1cbd",
+    "sequential-monomer-water-reference-v1:uncertainty_artifact_hash": "489410c02b83646e63def9c3725771db250ea7701a0775c491f30714b0416b61",
+    "solvent-cluster-reference-v1:per_molecule_result_artifact_hash": "b0b5ad37113b553d7a15a5c32bc15cb7658b54a60bb7bb5c796f02bd35f5b976",
+    "solvent-cluster-reference-v1:uncertainty_artifact_hash": "e2952ad75d0036780bb6f55907bc5ecfc63d940349d5e7235059d44cecfe0382"
+  },
+  "reference_cycle_ablation_manifest": {
+    "artifact_hashes": {
+      "selection_policy_artifact_hash": "ae41bca873f500636b33f3dc0a8c0540fb1e8108b2d53a861cf68ce83d7ce22f",
+      "development_selection_artifact_hash": "ad31f4a9c40da0a2197be81aea8eb5c7217fe72aabc89301d743419dff35786a",
+      "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+      "holdout_lock_hash": "a19a9cba19eaca2fad894178da0b05a8c0629a406e9426c982a719292f860839",
+      "n_by_molecule_artifact_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+      "nonreference_controls_artifact_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2",
+      "sequential-monomer-water-reference-v1:per_molecule_result_artifact_hash": "f5c1dc91f4fed5ddeeda60b329329bcd974c97e6a47bc1308bca6d25bfbd1cbd",
+      "sequential-monomer-water-reference-v1:uncertainty_artifact_hash": "489410c02b83646e63def9c3725771db250ea7701a0775c491f30714b0416b61",
+      "solvent-cluster-reference-v1:per_molecule_result_artifact_hash": "b0b5ad37113b553d7a15a5c32bc15cb7658b54a60bb7bb5c796f02bd35f5b976",
+      "solvent-cluster-reference-v1:uncertainty_artifact_hash": "e2952ad75d0036780bb6f55907bc5ecfc63d940349d5e7235059d44cecfe0382"
+    },
+    "primary_cycle": "sequential-monomer-water-reference-v1",
+    "cycle_artifact_hashes": {
+      "sequential-monomer-water-reference-v1": {
+        "per_molecule_result_artifact_hash": "f5c1dc91f4fed5ddeeda60b329329bcd974c97e6a47bc1308bca6d25bfbd1cbd",
+        "uncertainty_artifact_hash": "489410c02b83646e63def9c3725771db250ea7701a0775c491f30714b0416b61"
+      },
+      "solvent-cluster-reference-v1": {
+        "per_molecule_result_artifact_hash": "b0b5ad37113b553d7a15a5c32bc15cb7658b54a60bb7bb5c796f02bd35f5b976",
+        "uncertainty_artifact_hash": "e2952ad75d0036780bb6f55907bc5ecfc63d940349d5e7235059d44cecfe0382"
+      }
+    },
+    "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+    "n_by_molecule_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+    "nonreference_controls_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2"
+  },
+  "reference_cycle_ablation_manifest_hash": "b7dd6d91bfd6c1cabceef46e547e74ff676a30e17e3ee6aabb1ff74a20ebc313",
+  "adjudication": {
+    "manifest_hash": "b7dd6d91bfd6c1cabceef46e547e74ff676a30e17e3ee6aabb1ff74a20ebc313",
+    "primary_cycle": "sequential-monomer-water-reference-v1",
+    "decision": "contract-known-answer-pass"
+  },
+  "adjudication_hash": "d18bc0b48ec4be48c34eff4624c312ae40071b4357ae9ab9f266d2786e8c8d4d",
+  "preregistered_selection_policy_hash": "ae41bca873f500636b33f3dc0a8c0540fb1e8108b2d53a861cf68ce83d7ce22f",
+  "development_selection_artifact_hash": "ad31f4a9c40da0a2197be81aea8eb5c7217fe72aabc89301d743419dff35786a",
+  "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+  "per_molecule_both_cycle_results": [
+    {
+      "cycle_id": "sequential-monomer-water-reference-v1",
+      "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+      "n_by_molecule_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+      "nonreference_controls_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2",
+      "failure_count": 0,
+      "abstention_count": 0,
+      "per_molecule_results": [
+        {
+          "molecule_id": "m1",
+          "n": 1,
+          "value": 0.1
+        },
+        {
+          "molecule_id": "m2",
+          "n": 2,
+          "value": 0.2
+        },
+        {
+          "molecule_id": "m3",
+          "n": 1,
+          "value": 0.3
+        },
+        {
+          "molecule_id": "m4",
+          "n": 2,
+          "value": 0.4
+        }
+      ],
+      "uncertainty": {
+        "cycle_id": "sequential-monomer-water-reference-v1",
+        "se": [
+          0.1,
+          0.12,
+          0.11,
+          0.13
+        ]
+      },
+      "per_molecule_result_artifact_hash": "f5c1dc91f4fed5ddeeda60b329329bcd974c97e6a47bc1308bca6d25bfbd1cbd",
+      "uncertainty_artifact_hash": "489410c02b83646e63def9c3725771db250ea7701a0775c491f30714b0416b61"
+    },
+    {
+      "cycle_id": "solvent-cluster-reference-v1",
+      "frozen_holdout_hash": "e05bf87146f064b7bf1a93cf9a44be095545c440eca4d4abe02498a8c00b7f02",
+      "n_by_molecule_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+      "nonreference_controls_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2",
+      "failure_count": 0,
+      "abstention_count": 0,
+      "per_molecule_results": [
+        {
+          "molecule_id": "m1",
+          "n": 1,
+          "value": 1.1
+        },
+        {
+          "molecule_id": "m2",
+          "n": 2,
+          "value": 1.2
+        },
+        {
+          "molecule_id": "m3",
+          "n": 1,
+          "value": 1.3
+        },
+        {
+          "molecule_id": "m4",
+          "n": 2,
+          "value": 1.4
+        }
+      ],
+      "uncertainty": {
+        "cycle_id": "solvent-cluster-reference-v1",
+        "se": [
+          0.1,
+          0.12,
+          0.11,
+          0.13
+        ]
+      },
+      "per_molecule_result_artifact_hash": "b0b5ad37113b553d7a15a5c32bc15cb7658b54a60bb7bb5c796f02bd35f5b976",
+      "uncertainty_artifact_hash": "e2952ad75d0036780bb6f55907bc5ecfc63d940349d5e7235059d44cecfe0382"
+    }
+  ],
+  "selection_policy_artifact_hash": "ae41bca873f500636b33f3dc0a8c0540fb1e8108b2d53a861cf68ce83d7ce22f",
+  "n_by_molecule_artifact_hash": "2b9d8c5d564bc0f525c770055f970de8f99b4ec93c985078afae607e2deeb018",
+  "nonreference_controls_artifact_hash": "bec865b9659b50f2912e37273ea45544454a56246db7fc709298ee868d009ca2"
+}

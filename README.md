@@ -16,7 +16,7 @@ dynamics, and related post-processing workflows.
 | **Dynamics** | NVE, NVT, NPT |
 | **Analysis** | Frequency, PES Scan, Single Point |
 | **ML Potentials** | ANI, AIMNet2, MACE, MACEPol, UMA |
-| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental GB-polar SP energy correction, UMA/FAIR-Chem-backed PBC, restart files, DCD output |
+| **Extras** | D4 dispersion, explicit solvent cluster builder, experimental supermolecule–continuum solvation (GB-polar SP or optional TBLite/ALPB energy+forces), UMA/FAIR-Chem-backed PBC, restart files, DCD output |
 
 ## Installation
 
@@ -47,6 +47,7 @@ External runtime dependencies that users install manually:
 |---------|------------------|--------------|------------------------------------|
 | `torch` | `>=2.0` | ANI, AIMNet2, MACE-OFF, MACE-O-MOL, MACE-Polar, UMA | PyTorch wheels must match the user's CUDA/CPU runtime and should be selected from the official PyTorch index. |
 | `fairchem-core` | FAIR-Chem release with UMA support; tested locally with `2.19.0` | UMA and FAIR-Chem-backed/PBC workflows | FAIR-Chem may impose its own compatible PyTorch/runtime constraints, so install it after the matching PyTorch wheel. |
+| `tblite` with its Python/ASE interface | Upstream release supporting `tblite.ase.TBLite` | Route 3 `method=alpb,provider=tblite` | It is optional and may require platform-specific compiled libraries; MAPLE fails with an install hint when it is absent. |
 
 ### Install MAPLE
 
@@ -191,12 +192,75 @@ MAPLE supports custom explicit-solvent PDB templates; see the
 [solvent documentation](https://www.maplechem.org/functions/solvent.html)
 for usage guidance.
 
+### Experimental supermolecule–continuum solvation (Route 3)
+
+Following Cramer and Truhlar's terminology, Route 3 is a **supermolecule
+approach**: the complete `solute + first-shell solvent` supermolecule is
+evaluated with the selected MAPLE MLIP and surrounded by an outer continuum.
+This is a specific member of the broader cluster–continuum/discrete-SCRF
+family:
+
+```text
+E_total = E_inner_MLIP(cluster) + DeltaE_outer(cluster)
+```
+
+Energy-only engineering probe using MAPLE's existing GB-polar/QEq correction:
+
+```text
+#solv(explicit=water,number=4,implicit=water,method=gbsa,experimental=true)
+```
+
+Force-capable optional route using
+`GFN2-xTB/ALPB - GFN2-xTB(vacuum)` through TBLite:
+
+```text
+#solv(explicit=water,number=4,implicit=water,method=alpb,provider=tblite,experimental=true)
+```
+
+See [docs/route3-cluster-continuum.md](docs/route3-cluster-continuum.md) for
+the capability boundary, prebuilt-cluster workflow, examples, and scientific
+limitations.
+
+### Research hydration-free-energy workflow (Route A)
+
+`#solvfe(method=qct, ...)` is a separate research workflow for **ensemble**
+hydration free energies. It does not reinterpret one Route 3 cluster energy
+as a bulk free energy. The current implementation provides:
+
+- versioned thermodynamic and state-space contracts;
+- sequential OMOL alchemical insertion with rigid-water enhanced sampling;
+- one complementary soft-cutoff membership for packing and fixed-`n`
+  association, with hash-bound observation-volume and packing schedules;
+- overlap, BAR/MBAR, effective-sample-size, and restart diagnostics; and
+- a frozen Route 2/MACE-POLAR adapter that evaluates every sampled
+  `solute + first-shell water` frame in one scaled whole-supermolecule PCM
+  cavity, with zero-warning and zero-frame-deletion gates.
+
+The workflow is **partially implemented and not scientifically validated**.
+Protocol v3 removes v2's hard-packing/soft-association measure mismatch and
+implements the soft-membership, association, packing-field, explicit-schedule,
+two-estimator packing analysis, full `p̃(n)/x̃(n)/A_n` covariance ledger, and
+finite exact-enumeration closure. The toy ledger deliberately fails if water
+density or `n!` is counted twice. The pure-water Hamiltonian and real packing,
+`n=0`, multi-occupancy and cluster replicas are not yet frozen or run.
+Independent-replica convergence and the frozen blind-holdout comparison
+against Route 2 remain promotion gates. A fixed-`n=1` development diagnostic
+must not be reported as the final Route A hydration free energy.
+
+See
+[docs/solvation/route-a/thermodynamics-v3.md](docs/solvation/route-a/thermodynamics-v3.md)
+and
+[docs/solvation/route-a/literature-evidence.md](docs/solvation/route-a/literature-evidence.md)
+for the scientific contract and evidence boundary.
+
 ## Documentation
 
 - Website: https://www.maplechem.org/
 - Release history: https://github.com/ClickFF/MAPLE/releases
 - Architecture notes: [ARCHITECTURE.md](ARCHITECTURE.md)
 - Authoring a calculator backend: [maple/function/calculator/AUTHORING.md](maple/function/calculator/AUTHORING.md)
+- Route 3 supermolecule–continuum solvation: [docs/route3-cluster-continuum.md](docs/route3-cluster-continuum.md)
+- Route A research hydration free energy: [docs/solvation/route-a/thermodynamics-v3.md](docs/solvation/route-a/thermodynamics-v3.md)
 
 ## Citation
 

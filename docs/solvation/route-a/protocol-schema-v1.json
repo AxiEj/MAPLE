@@ -1,0 +1,2152 @@
+{
+  "$id": "https://example.com/route-a/protocol-schema-v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "definitions": {
+    "reference_entry": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "hash": {
+          "$ref": "#/definitions/sha256"
+        },
+        "hash_kind": {
+          "enum": [
+            "sha256",
+            "canonical_sha256"
+          ]
+        }
+      },
+      "required": [
+        "path",
+        "hash",
+        "hash_kind"
+      ],
+      "type": "object"
+    },
+    "model_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint": {
+          "type": "string"
+        },
+        "checkpoint_sha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "license": {
+          "type": "string"
+        },
+        "license_profile": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "provenance": {
+          "additionalProperties": false,
+          "properties": {
+            "observed_local_filename": {
+              "type": "string"
+            },
+            "observed_local_path": {
+              "type": "string"
+            },
+            "official_url": {
+              "type": "string"
+            },
+            "source_commit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "source_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "upstream_filename": {
+              "type": "string"
+            },
+            "verified_by_model_probe_key": {
+              "type": "string"
+            },
+            "source_tag": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "official_url",
+            "upstream_filename",
+            "observed_local_filename",
+            "source_commit",
+            "source_ref",
+            "observed_local_path",
+            "verified_by_model_probe_key"
+          ],
+          "type": "object"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "provider_version": {
+          "type": "string"
+        },
+        "release_definition": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "type": "integer"
+        },
+        "source": {
+          "type": "string"
+        },
+        "source_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_ref": {
+          "type": "string"
+        },
+        "variant": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "provider",
+        "provider_version",
+        "checkpoint",
+        "checkpoint_sha256",
+        "license",
+        "source",
+        "provenance",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "threshold_entry": {
+      "additionalProperties": false,
+      "properties": {
+        "comparator": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "units": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "number",
+            "boolean",
+            "string"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "units",
+        "comparator"
+      ],
+      "type": "object"
+    },
+    "artifact_entry": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "hash_kind": {
+          "enum": [
+            "sha256",
+            "canonical_sha256"
+          ]
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "hash_kind"
+      ],
+      "type": "object"
+    }
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':'),ensure_ascii=True,encoding='utf-8'",
+  "properties": {
+    "artifact_type": {
+      "type": "string"
+    },
+    "claim_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "route-a-claim-contract"
+        },
+        "reference": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "const": "docs/solvation/route-a/claim-contract-v1.json"
+            },
+            "hash": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "hash",
+            "hash_kind"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "reference"
+      ],
+      "type": "object"
+    },
+    "domain": {
+      "additionalProperties": false,
+      "properties": {
+        "clusters": {
+          "additionalProperties": false,
+          "properties": {
+            "assembly_domain": {
+              "enum": [
+                "nonperiodic"
+              ],
+              "type": "string",
+              "const": "nonperiodic"
+            },
+            "discovery_domain": {
+              "enum": [
+                "periodic"
+              ],
+              "type": "string",
+              "const": "periodic"
+            }
+          },
+          "required": [
+            "discovery_domain",
+            "assembly_domain"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "route-a-neutral-neutral-water-hydration",
+          "type": "string"
+        },
+        "occupancy_support": {
+          "additionalProperties": false,
+          "properties": {
+            "adaptive_n": {
+              "type": "boolean",
+              "const": true
+            },
+            "n_min": {
+              "minimum": 0,
+              "type": "integer",
+              "const": 0
+            },
+            "requires_n_plus_greater_zero": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "adaptive_n",
+            "n_min",
+            "requires_n_plus_greater_zero"
+          ],
+          "type": "object"
+        },
+        "property": {
+          "const": "absolute_hydration_free_energy",
+          "type": "string"
+        },
+        "solute_constraints": {
+          "additionalProperties": false,
+          "properties": {
+            "allowed_elements": {
+              "const": [
+                "H",
+                "C",
+                "N",
+                "O",
+                "F",
+                "P",
+                "S",
+                "Cl",
+                "Br",
+                "I"
+              ],
+              "type": "array"
+            },
+            "charge": {
+              "type": "integer",
+              "const": 0
+            },
+            "disallow_metals": {
+              "type": "boolean",
+              "const": true
+            },
+            "disallow_radicals": {
+              "type": "boolean",
+              "const": true
+            },
+            "open_shell": {
+              "type": "boolean",
+              "const": false
+            },
+            "spin_multiplicity": {
+              "minimum": 1,
+              "type": "integer",
+              "const": 1
+            },
+            "one_connected_solute": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "charge",
+            "spin_multiplicity",
+            "open_shell",
+            "allowed_elements",
+            "disallow_metals",
+            "disallow_radicals",
+            "one_connected_solute"
+          ],
+          "type": "object"
+        },
+        "solvent": {
+          "additionalProperties": false,
+          "properties": {
+            "electrolyte_free": {
+              "type": "boolean",
+              "const": true
+            },
+            "model": {
+              "const": "tip3p-like geometry-compatible",
+              "type": "string"
+            },
+            "name": {
+              "const": "water",
+              "type": "string"
+            },
+            "phase": {
+              "const": "liquid",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "phase",
+            "model",
+            "electrolyte_free"
+          ],
+          "type": "object"
+        },
+        "standard_state": {
+          "additionalProperties": false,
+          "properties": {
+            "gas_reference_concentration_molar": {
+              "minimum": 0,
+              "type": "number",
+              "const": 1.0
+            },
+            "water_bulk_concentration_molar": {
+              "minimum": 0,
+              "type": "number",
+              "const": 55.345
+            },
+            "C_number_0_per_A3": {
+              "minimum": 0,
+              "type": "number",
+              "const": 0.000602214076
+            },
+            "standard_state_volume_A3_per_molecule": {
+              "minimum": 0,
+              "type": "number",
+              "const": 1660.5390671738467
+            },
+            "solution_reference_concentration_molar": {
+              "const": 1.0,
+              "type": "number"
+            },
+            "rho_W_number_per_A3": {
+              "type": "number",
+              "const": 0.03332953803622
+            },
+            "rho_W_over_C0": {
+              "type": "number",
+              "const": 55.345
+            }
+          },
+          "required": [
+            "C_number_0_per_A3",
+            "gas_reference_concentration_molar",
+            "water_bulk_concentration_molar",
+            "solution_reference_concentration_molar",
+            "standard_state_volume_A3_per_molecule",
+            "rho_W_number_per_A3",
+            "rho_W_over_C0"
+          ],
+          "type": "object"
+        },
+        "temperature_k": {
+          "const": 298.15,
+          "type": "number"
+        },
+        "unsupported_domains_fail_code": {
+          "type": "string",
+          "const": "DOMAIN_UNSUPPORTED"
+        },
+        "pressure_bar": {
+          "maximum": 5.0,
+          "minimum": 0.5,
+          "type": "number",
+          "const": 1.0
+        },
+        "absolute_hydration_free_energy": {
+          "type": "boolean",
+          "const": true
+        },
+        "production_domain": {
+          "enum": [
+            "nonperiodic"
+          ],
+          "type": "string",
+          "const": "nonperiodic"
+        }
+      },
+      "required": [
+        "name",
+        "solvent",
+        "property",
+        "temperature_k",
+        "standard_state",
+        "solute_constraints",
+        "occupancy_support",
+        "clusters",
+        "unsupported_domains_fail_code",
+        "pressure_bar",
+        "absolute_hydration_free_energy",
+        "production_domain"
+      ],
+      "type": "object"
+    },
+    "failure_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "route-a-failure-contract"
+        },
+        "reference": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "const": "docs/solvation/route-a/failure-contract-v1.json"
+            },
+            "hash": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "hash",
+            "hash_kind"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "reference"
+      ],
+      "type": "object"
+    },
+    "hamiltonian_id": {
+      "type": "string"
+    },
+    "hash_canonicalization": {
+      "const": "sort_keys=True,separators=(',',':'),ensure_ascii=True,encoding='utf-8'",
+      "type": "string"
+    },
+    "models": {
+      "additionalProperties": false,
+      "properties": {
+        "outer": {
+          "$ref": "#/definitions/model_spec"
+        },
+        "sampler": {
+          "$ref": "#/definitions/model_spec"
+        },
+        "target": {
+          "$ref": "#/definitions/model_spec"
+        }
+      },
+      "required": [
+        "target",
+        "sampler",
+        "outer"
+      ],
+      "type": "object"
+    },
+    "protocol_contract": {
+      "type": "string"
+    },
+    "protocol_name": {
+      "type": "string"
+    },
+    "protocol_release": {
+      "type": "string"
+    },
+    "protocol_schema_version": {
+      "type": "string",
+      "const": "1.4.0"
+    },
+    "protocol_sha256": {
+      "$ref": "#/definitions/sha256"
+    },
+    "protocol_version": {
+      "type": "string",
+      "const": "1.4.0"
+    },
+    "radius_profile": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "source": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "source",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "shell": {
+      "additionalProperties": false,
+      "properties": {
+        "cavity": {
+          "additionalProperties": false,
+          "properties": {
+            "archive_sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "component_graph_required": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "fixture_hash": {
+              "$ref": "#/definitions/sha256"
+            },
+            "mesh_metadata_sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "penetration_predicate": {
+              "additionalProperties": false,
+              "properties": {
+                "fail_condition": {
+                  "type": "string"
+                },
+                "failure_reasons": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "numerical_tolerance_A": {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                "pair_criterion": {
+                  "type": "string"
+                },
+                "pair_partition": {
+                  "oneOf": [
+                    {
+                      "items": {
+                        "items": {
+                          "type": "integer"
+                        },
+                        "maxItems": 2,
+                        "minItems": 2,
+                        "type": "array"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    {
+                      "minLength": 5,
+                      "pattern": "^auto:",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "penetration_depth": {
+                  "type": "string"
+                },
+                "s_i": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "failure_reasons",
+                "pair_partition",
+                "pair_criterion",
+                "s_i",
+                "penetration_depth",
+                "fail_condition"
+              ],
+              "type": "object"
+            },
+            "predetermined_mesh_file": {
+              "type": "string"
+            },
+            "predetermined_mesh_required": {
+              "type": "boolean"
+            },
+            "synthetic_probe_penetration_A": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "predetermined_mesh_file",
+            "predetermined_mesh_required",
+            "penetration_predicate",
+            "mesh_metadata_sha256",
+            "archive_sha256",
+            "synthetic_probe_penetration_A",
+            "component_graph_required",
+            "fixture_hash"
+          ],
+          "type": "object"
+        },
+        "complete_molecule_retained": {
+          "type": "boolean"
+        },
+        "definition": {
+          "type": "string"
+        },
+        "lambda_s_candidates": {
+          "additionalProperties": false,
+          "properties": {
+            "anchor_source": {
+              "type": "string"
+            },
+            "candidate_offsets_A": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "offset_A": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "label",
+                  "offset_A"
+                ],
+                "type": "object"
+              },
+              "minItems": 3,
+              "type": "array"
+            },
+            "derivation": {
+              "type": "string"
+            },
+            "selection_requirement": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "anchor_source",
+            "candidate_offsets_A",
+            "derivation",
+            "selection_requirement"
+          ],
+          "type": "object"
+        },
+        "occupancy_indicator": {
+          "type": "string"
+        },
+        "oxygen_decides_only": {
+          "type": "boolean"
+        },
+        "signed_distance": {
+          "additionalProperties": false,
+          "properties": {
+            "boundary_type": {
+              "type": "string"
+            },
+            "distance_fn": {
+              "type": "string"
+            },
+            "effective_volume": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "distance_fn",
+            "boundary_type",
+            "effective_volume"
+          ],
+          "type": "object"
+        },
+        "wall": {
+          "additionalProperties": false,
+          "properties": {
+            "buffer_height_kBT": {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            "buffer_width_A": {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            "differentiable": {
+              "type": "boolean"
+            },
+            "force_units": {
+              "type": "string"
+            },
+            "formula": {
+              "type": "string"
+            },
+            "lambda_basis": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "force_units",
+            "differentiable",
+            "buffer_width_A",
+            "buffer_height_kBT",
+            "lambda_basis",
+            "formula"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "complete_molecule_retained",
+        "oxygen_decides_only",
+        "definition",
+        "occupancy_indicator",
+        "signed_distance",
+        "wall",
+        "cavity",
+        "lambda_s_candidates"
+      ],
+      "type": "object"
+    },
+    "standard_state": {
+      "additionalProperties": false,
+      "properties": {
+        "gas_reference_concentration_molar": {
+          "type": "number",
+          "const": 1.0
+        },
+        "C_number_0_per_A3": {
+          "type": "number",
+          "const": 0.000602214076
+        },
+        "gas_constant_kcal_per_mol_K": {
+          "type": "number",
+          "const": 0.001987204258640831
+        },
+        "label": {
+          "type": "string"
+        },
+        "standard_state_correction": {
+          "type": "string"
+        },
+        "standard_state_density_correction": {
+          "type": "string",
+          "const": "-R*T*ln(rho_W_over_C0)"
+        },
+        "standard_state_volume_A3_per_molecule": {
+          "minimum": 0.0,
+          "type": "number",
+          "const": 1660.5390671738467
+        },
+        "temperature_k": {
+          "type": "number",
+          "const": 298.15
+        },
+        "water_bulk_concentration_molar": {
+          "type": "number",
+          "const": 55.345
+        },
+        "solution_reference_concentration_molar": {
+          "const": 1.0,
+          "type": "number"
+        },
+        "rho_W_number_per_A3": {
+          "type": "number",
+          "const": 0.03332953803622
+        },
+        "rho_W_over_C0": {
+          "type": "number",
+          "const": 55.345
+        }
+      },
+      "required": [
+        "label",
+        "temperature_k",
+        "water_bulk_concentration_molar",
+        "C_number_0_per_A3",
+        "standard_state_volume_A3_per_molecule",
+        "gas_reference_concentration_molar",
+        "gas_constant_kcal_per_mol_K",
+        "solution_reference_concentration_molar",
+        "rho_W_number_per_A3",
+        "rho_W_over_C0"
+      ],
+      "type": "object"
+    },
+    "state_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "route-a-state-contract"
+        },
+        "reference": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "const": "docs/solvation/route-a/state-contract-v1.json"
+            },
+            "hash": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "hash",
+            "hash_kind"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "reference"
+      ],
+      "type": "object"
+    },
+    "state_graph": {
+      "additionalProperties": false,
+      "properties": {
+        "atom_list_invariant_per_edge": {
+          "type": "boolean"
+        },
+        "edges": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "nodes": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "order": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "order",
+        "nodes",
+        "edges",
+        "atom_list_invariant_per_edge"
+      ],
+      "type": "object"
+    },
+    "status": {
+      "enum": [
+        "frozen",
+        "draft"
+      ],
+      "type": "string"
+    },
+    "thermodynamics": {
+      "additionalProperties": false,
+      "properties": {
+        "R_gas_kcal_per_mol_K": {
+          "type": "number"
+        },
+        "association_block": {
+          "additionalProperties": false,
+          "properties": {
+            "alchemical": {
+              "type": "string"
+            },
+            "release": {
+              "type": "string"
+            },
+            "symmetry": {
+              "type": "string"
+            },
+            "volume": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "alchemical",
+            "volume",
+            "symmetry",
+            "release"
+          ],
+          "type": "object"
+        },
+        "beta_definition": {
+          "type": "string"
+        },
+        "distance_unit": {
+          "type": "string"
+        },
+        "energy_unit": {
+          "type": "string"
+        },
+        "formulas": {
+          "additionalProperties": false,
+          "properties": {
+            "association_labeled": {
+              "const": "ΔG_alch_labeled(i)+ΔG_vol(i)+RT ln(i)+ΔG_release(i)"
+            },
+            "qct_n_entry": {
+              "const": "ΔG_n = Σ_{i=1..n}[ΔG_alch_labeled(i)+ΔG_vol(i)+RT ln(i)+ΔG_release(i)] - n RT ln(rho_W_over_C0) + ΔG_outer(XW_n) - nΔG_outer(W)"
+            },
+            "release": {
+              "const": "ΔG_release(i)=F_target_i_interacting-F_biased_i_interacting=0 for restraint-contract-v1"
+            },
+            "standard_state_correction": {
+              "const": "-R*T*ln(Veff / V0)"
+            },
+            "symmetry_correction": {
+              "const": "Σ_{i=1}^n RT ln(i) ; cumulative for insertion state n is RT ln(n!)"
+            },
+            "water_outer_signature": {
+              "const": "ΔG_outer(XW_n) = solvent outer free-energy restraint contribution; signed water-outer subtraction is -nΔG_outer(W)"
+            },
+            "hamiltonian_decomposition": {
+              "const": "ΔG_outer(XW_n)=F[U_OMOL_vac+δ_outer,R_n]-F[U_OMOL_vac,R_n], δ_outer_kcal(q)=Hartree_to_kcal_mol*((E_intrinsic_Polar[V_reac](q)-E_intrinsic_Polar[0](q))/Hartree_eV+E_PCM_pol_Ha(q)+G_CDS_Ha(q)), and ΔG_outer(W)=F[U_OMOL_vac+δ_outer,R_W]-F[U_OMOL_vac,R_W]"
+            },
+            "volume_density_identity": {
+              "const": "rho_W_number_per_A3 = water_bulk_concentration_molar * C0 / solution_reference_concentration_molar; rho_W_over_C0 = rho_W_number_per_A3 / C0 = water_bulk_concentration_molar / solution_reference_concentration_molar; ΔG_vol(i) - RT ln(rho_W_over_C0) = -RT ln(rho_W_number_per_A3 * V_eff,i) for each insertion edge i=1..n; Σ_{i=1}^n ΔG_vol(i) - n RT ln(rho_W_over_C0) = -RT Σ_{i=1}^n ln(rho_W_number_per_A3 * V_eff,i)"
+            },
+            "outer_contains_density_term": {
+              "const": false
+            }
+          },
+          "required": [
+            "association_labeled",
+            "qct_n_entry",
+            "release",
+            "symmetry_correction",
+            "standard_state_correction",
+            "water_outer_signature",
+            "hamiltonian_decomposition",
+            "volume_density_identity",
+            "outer_contains_density_term"
+          ],
+          "type": "object"
+        },
+        "water_density_reference": {
+          "const": "rho_W_over_C0",
+          "type": "string"
+        }
+      },
+      "required": [
+        "distance_unit",
+        "energy_unit",
+        "R_gas_kcal_per_mol_K",
+        "beta_definition",
+        "water_density_reference",
+        "association_block",
+        "formulas"
+      ],
+      "type": "object"
+    },
+    "thresholds": {
+      "additionalProperties": false,
+      "properties": {
+        "bar_disagreement_kcal": {
+          "const": {
+            "comparator": "<=",
+            "units": "kcal/mol",
+            "value": 0.2
+          }
+        },
+        "ess_min": {
+          "const": {
+            "comparator": ">=",
+            "units": "frames",
+            "value": 100
+          }
+        },
+        "occupancy_plateau_ci_overlap": {
+          "const": {
+            "comparator": "==",
+            "description": "non-empty common confidence interval intersection required",
+            "units": "none",
+            "value": true
+          }
+        },
+        "occupancy_plateau_spread_kcal": {
+          "const": {
+            "comparator": "<=",
+            "units": "kcal/mol",
+            "value": 0.5
+          }
+        },
+        "omitted_tail_final_two_kcal": {
+          "const": {
+            "comparator": "<",
+            "units": "kcal/mol",
+            "value": 0.1
+          }
+        },
+        "omitted_tail_mass": {
+          "const": {
+            "comparator": "<",
+            "units": "dimensionless",
+            "value": 0.005
+          }
+        },
+        "overlap_min": {
+          "const": {
+            "comparator": ">=",
+            "units": "overlap",
+            "value": 0.03
+          }
+        },
+        "stability_half_traj_kcal": {
+          "const": {
+            "comparator": "<=",
+            "units": "kcal/mol",
+            "value": 0.2
+          }
+        }
+      },
+      "type": "object",
+      "required": [
+        "bar_disagreement_kcal",
+        "ess_min",
+        "occupancy_plateau_ci_overlap",
+        "occupancy_plateau_spread_kcal",
+        "omitted_tail_final_two_kcal",
+        "omitted_tail_mass",
+        "overlap_min",
+        "stability_half_traj_kcal"
+      ]
+    },
+    "artifact_references": {
+      "properties": {
+        "geometry": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/water_dimer_angstrom.xyz"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "raw_input": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_raw_input.pcm.inp"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "parsed_input": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_parsed_input.pcm.inp"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "mesh": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_mesh.npz"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "archive": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_cavity.npz"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "cavity_fixture": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/pcmsolver-golden-water-dimer.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "model_probes": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/models/real_model_probes_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "claim_contract": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/claim-contract-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "failure_contract": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/failure-contract-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "state_contract": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/state-contract-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "radius_profile": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/radius-profiles/bondi-mantina-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "protocol_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/protocol-schema-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "thermodynamics_md": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/thermodynamics.md"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "restraint_contract": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/restraint-contract-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_adapter_contract": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/outer-adapter-contract-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "reference_cycle_ablation_contract": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "docs/solvation/route-a/reference-cycle-ablation-contract-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_parity_fixture": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_component_parity_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "reference_cycle_preregistration": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/reference_cycle/preregistration_registry_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_parity_clean_canary": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_canary_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_parity_provider_audit": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_provider_audit_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_parity_native_stderr": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.log"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_parity_pedra_log": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.log"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "cavity_two_run_audit": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_two_run_audit_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "cavity_topology_fixture": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/pcmsolver_topology_transition_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "cavity_topology_metadata": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/cavities/pcmsolver_topology_transition_v1.npz"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_xw_falsifier_raw": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_xw_outer_falsifier_raw_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_xw2_robustness_raw": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_xw2_robustness_raw_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_cavity_area_scan_partial": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_cavity_area_scan_partial_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        },
+        "outer_falsifier_manifest": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "const": "tests/solvation/route_a/fixtures/outer/route2_outer_falsifier_manifest_v1.json"
+            },
+            "sha256": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "hash_kind"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "geometry",
+        "raw_input",
+        "parsed_input",
+        "mesh",
+        "archive",
+        "cavity_fixture",
+        "model_probes",
+        "claim_contract",
+        "failure_contract",
+        "state_contract",
+        "radius_profile",
+        "protocol_schema",
+        "thermodynamics_md",
+        "restraint_contract",
+        "outer_adapter_contract",
+        "reference_cycle_ablation_contract",
+        "outer_parity_fixture",
+        "reference_cycle_preregistration",
+        "outer_parity_clean_canary",
+        "outer_parity_provider_audit",
+        "outer_parity_native_stderr",
+        "outer_parity_pedra_log",
+        "cavity_two_run_audit",
+        "cavity_topology_fixture",
+        "cavity_topology_metadata",
+        "outer_xw_falsifier_raw",
+        "outer_xw2_robustness_raw",
+        "outer_cavity_area_scan_partial",
+        "outer_falsifier_manifest"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "protocol_schema": {
+      "$ref": "#/definitions/artifact_entry"
+    },
+    "restraint_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "route-a-restraint-contract"
+        },
+        "reference": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "const": "docs/solvation/route-a/restraint-contract-v1.json"
+            },
+            "hash": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "hash",
+            "hash_kind"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "reference"
+      ],
+      "type": "object"
+    },
+    "outer_adapter_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "route-a-polar-smd-outer-adapter"
+        },
+        "reference": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "const": "docs/solvation/route-a/outer-adapter-contract-v1.json"
+            },
+            "hash": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "hash",
+            "hash_kind"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "reference"
+      ],
+      "type": "object"
+    },
+    "reference_cycle_ablation_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "route-a-reference-cycle-ablation"
+        },
+        "reference": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "const": "docs/solvation/route-a/reference-cycle-ablation-contract-v1.json"
+            },
+            "hash": {
+              "$ref": "#/definitions/sha256"
+            },
+            "hash_kind": {
+              "enum": [
+                "sha256",
+                "canonical_sha256"
+              ],
+              "const": "canonical_sha256"
+            }
+          },
+          "required": [
+            "path",
+            "hash",
+            "hash_kind"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "reference"
+      ],
+      "type": "object"
+    },
+    "tail_envelope_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "contract_name": {
+          "const": "route-a-tail-envelope"
+        },
+        "contract_version": {
+          "const": "1.0.0"
+        },
+        "immutable": {
+          "const": true
+        },
+        "model": {
+          "const": "geometric-exponential-conservative-ceiling-v1"
+        },
+        "weight_definition": {
+          "const": "w_n=exp(-beta*G_n)"
+        },
+        "conservative_ratio_ceiling": {
+          "const": 0.55
+        },
+        "ratio_floor": {
+          "const": 0.0
+        },
+        "minimum_consecutive_ratios": {
+          "const": 2
+        },
+        "strict_ratio_condition": {
+          "const": "0 <= every observed ratio <= conservative_ratio_ceiling < 1"
+        },
+        "extension_policy": {
+          "const": "compute the next n and refit until minimum consecutive ratios and both upper-bound gates pass; unresolved or nondecaying tails fail closed"
+        },
+        "selection_timing": {
+          "const": "frozen before any production high-n occupancy result"
+        },
+        "upper_bound_semantics": {
+          "const": "preregistered deterministic modeling ceiling, not a statistical confidence interval"
+        },
+        "contract_sha256": {
+          "const": "651c32fb42972e0f0b6a119a86fdbb06d7d5eff09bddbd253fd3ed46f278d054"
+        }
+      },
+      "required": [
+        "contract_name",
+        "contract_version",
+        "immutable",
+        "model",
+        "weight_definition",
+        "conservative_ratio_ceiling",
+        "ratio_floor",
+        "minimum_consecutive_ratios",
+        "strict_ratio_condition",
+        "extension_policy",
+        "selection_timing",
+        "upper_bound_semantics",
+        "contract_sha256"
+      ]
+    }
+  },
+  "required": [
+    "artifact_type",
+    "artifact_references",
+    "protocol_name",
+    "protocol_version",
+    "protocol_release",
+    "protocol_contract",
+    "protocol_schema_version",
+    "protocol_sha256",
+    "hamiltonian_id",
+    "schema_version",
+    "domain",
+    "status",
+    "claim_contract",
+    "failure_contract",
+    "state_contract",
+    "radius_profile",
+    "models",
+    "state_graph",
+    "shell",
+    "standard_state",
+    "thermodynamics",
+    "thresholds",
+    "hash_canonicalization",
+    "protocol_schema",
+    "restraint_contract",
+    "outer_adapter_contract",
+    "reference_cycle_ablation_contract",
+    "tail_envelope_contract"
+  ],
+  "title": "route-a-protocol",
+  "type": "object"
+}

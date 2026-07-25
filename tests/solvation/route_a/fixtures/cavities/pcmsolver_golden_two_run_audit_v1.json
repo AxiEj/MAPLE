@@ -1,0 +1,160 @@
+{
+  "artifact_type": "route-a-pcmsolver-two-run-golden-audit",
+  "audit_version": "1.0.0",
+  "created_at_utc": "2026-07-25T07:30:19.821616Z",
+  "cross_run_checks": {
+    "canonical_mesh_identical": true,
+    "native_archive_identical": true,
+    "parsed_input_identical": true,
+    "raw_input_identical": true,
+    "zero_warning_lines": true
+  },
+  "execution_profile": {
+    "area_A2": 0.28002852018012786,
+    "engine": "pcmsolver",
+    "library_commit": "27fb35f",
+    "library_path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+    "library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+    "minradius_A": 1.0,
+    "units": "ANGSTROM",
+    "warnings_fatal": true
+  },
+  "geometry": {
+    "sha256": "9a5b7b5cb5f7bd8d70983d27a770ef61df5405e797327125f55f44e921776742",
+    "size_bytes": 346
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "promoted_outputs": {
+    "canonical_centers_areas_sha256": "b7d8c88afbb9b713607395ca612865e7e3a4f52a38b63ba9b18bab220d39cb22",
+    "exported_mesh": {
+      "sha256": "8fd430aa6ae6429460db1b1b67cbae9861bc06467a8eb8e43ee861078226b89b",
+      "size_bytes": 12644
+    },
+    "native_cavity_archive": {
+      "sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
+      "size_bytes": 232986
+    },
+    "parsed_input": {
+      "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+      "size_bytes": 1838
+    },
+    "raw_input": {
+      "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+      "size_bytes": 419
+    }
+  },
+  "runs": [
+    {
+      "completed_at_utc": "2026-07-25T06:45:34.225474Z",
+      "exported_mesh": {
+        "area_sum_A2": 64.76408764745233,
+        "canonical_centers_areas_sha256": "b7d8c88afbb9b713607395ca612865e7e3a4f52a38b63ba9b18bab220d39cb22",
+        "raw_sha256": "8fd430aa6ae6429460db1b1b67cbae9861bc06467a8eb8e43ee861078226b89b",
+        "tesserae": 378
+      },
+      "native_cavity_archive": {
+        "sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
+        "size_bytes": 232986
+      },
+      "parsed_input": {
+        "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+        "size_bytes": 1838
+      },
+      "raw_input": {
+        "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+        "size_bytes": 419
+      },
+      "run_id": "minradius1-run1",
+      "side_files": {
+        "@pcm.inp": {
+          "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+          "size_bytes": 1838
+        },
+        "PEDRA.OUT__467331": {
+          "sha256": "caf9c3d759807c21c8af0d750ba655ca90485073c5c71613f0ce2698f414d2a8",
+          "size_bytes": 34437
+        },
+        "cavity.npz": {
+          "sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
+          "size_bytes": 232986
+        },
+        "cavity.off__467331": {
+          "sha256": "49a1fe4ef5d767a73401a8be38903bbcaad4bc29ce6180770292efd9004ea1c6",
+          "size_bytes": 144493
+        },
+        "native.stderr": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size_bytes": 0
+        },
+        "pcm.inp": {
+          "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+          "size_bytes": 419
+        }
+      },
+      "warning_log": {
+        "lines": [],
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0,
+        "warning_count": 0,
+        "warning_lines": []
+      }
+    },
+    {
+      "completed_at_utc": "2026-07-25T06:45:34.317474Z",
+      "exported_mesh": {
+        "area_sum_A2": 64.76408764745233,
+        "canonical_centers_areas_sha256": "b7d8c88afbb9b713607395ca612865e7e3a4f52a38b63ba9b18bab220d39cb22",
+        "raw_sha256": "8fd430aa6ae6429460db1b1b67cbae9861bc06467a8eb8e43ee861078226b89b",
+        "tesserae": 378
+      },
+      "native_cavity_archive": {
+        "sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
+        "size_bytes": 232986
+      },
+      "parsed_input": {
+        "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+        "size_bytes": 1838
+      },
+      "raw_input": {
+        "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+        "size_bytes": 419
+      },
+      "run_id": "minradius1-run2",
+      "side_files": {
+        "@pcm.inp": {
+          "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+          "size_bytes": 1838
+        },
+        "PEDRA.OUT__467331": {
+          "sha256": "caf9c3d759807c21c8af0d750ba655ca90485073c5c71613f0ce2698f414d2a8",
+          "size_bytes": 34437
+        },
+        "cavity.npz": {
+          "sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
+          "size_bytes": 232986
+        },
+        "cavity.off__467331": {
+          "sha256": "49a1fe4ef5d767a73401a8be38903bbcaad4bc29ce6180770292efd9004ea1c6",
+          "size_bytes": 144493
+        },
+        "native.stderr": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size_bytes": 0
+        },
+        "pcm.inp": {
+          "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+          "size_bytes": 419
+        }
+      },
+      "warning_log": {
+        "lines": [],
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0,
+        "warning_count": 0,
+        "warning_lines": []
+      }
+    }
+  ],
+  "scientific_status": "engineering-evidence-only",
+  "scratch_source_note": "The temporary run directory is not a release dependency; all promoted outputs and every per-run side-file hash are archived here."
+}

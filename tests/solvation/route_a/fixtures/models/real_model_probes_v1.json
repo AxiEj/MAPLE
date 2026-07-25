@@ -1,0 +1,227 @@
+{
+  "fixture_name": "route-a-real-model-probes",
+  "fixture_version": "1.0.0",
+  "protocol_version": "1.0.0",
+  "created_utc": "2026-07-25T00:00:00Z",
+  "engineering_evidence_only": true,
+  "warning": "Raw total energies/forces prove runtime/model execution only; they are not solvation free energies or chemistry validation.",
+  "environment": {
+    "abi_preflight": "LD_LIBRARY_PATH prepended with active conda lib; provider must diagnose rather than mutate this at runtime.",
+    "python": "3.11.14",
+    "torch": "2.12.0+cu130",
+    "torch_device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "cuda_available": true,
+    "dtype": "float64",
+    "ase": "3.27.0",
+    "mace_torch": "0.3.16",
+    "cuequivariance": false
+  },
+  "geometry": {
+    "name": "water-dimer-angstrom",
+    "positions_A": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.9572,
+        0.0,
+        0.0
+      ],
+      [
+        -0.2399872,
+        0.927297,
+        0.0
+      ],
+      [
+        2.8,
+        0.0,
+        0.0
+      ],
+      [
+        3.7572,
+        0.0,
+        0.0
+      ],
+      [
+        2.5600128,
+        0.927297,
+        0.0
+      ]
+    ],
+    "symbols": [
+      "O",
+      "H",
+      "H",
+      "O",
+      "H",
+      "H"
+    ]
+  },
+  "models": {
+    "off24": {
+      "role": "periodic sampler",
+      "provider": "MACEOff24Provider",
+      "pbc": true,
+      "cell_A": [
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          0,
+          12,
+          0
+        ],
+        [
+          0,
+          0,
+          12
+        ]
+      ],
+      "energy_eV": -4162.237085927501,
+      "forces_eV_A": [
+        [
+          -0.2822910242714707,
+          0.20694251015432724,
+          0.0
+        ],
+        [
+          0.023502803560100094,
+          -0.47028084589104147,
+          0.0
+        ],
+        [
+          -0.17143034535680068,
+          0.0211413168824785,
+          0.0
+        ],
+        [
+          0.06757533639056822,
+          0.17552992856623145,
+          0.0
+        ],
+        [
+          0.12886830683019954,
+          -0.12455365053248127,
+          0.0
+        ],
+        [
+          0.23377492284740348,
+          0.19122074082048554,
+          0.0
+        ]
+      ],
+      "stress_eV_A3_voigt": [
+        -0.0007728586364225908,
+        -0.00011395989526723694,
+        0.0,
+        0.0,
+        0.0,
+        -3.345598360723563e-05
+      ],
+      "license": "Academic Software Licence",
+      "max_force_eV_A": 0.47028084589104147,
+      "source_url": "https://raw.githubusercontent.com/ACEsuit/mace-off/v0.2/mace_off24/MACE-OFF24_medium.model",
+      "source_path": "mace_off24/MACE-OFF24_medium.model",
+      "source_tag": "v0.2",
+      "source_ref": "v0.2",
+      "source_commit": "91a78c5a9c300d1104700d9352c8bfe449227737",
+      "size_bytes": 18375569,
+      "sha256": "e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69",
+      "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACE-OFF24_medium.model",
+      "observed_local_filename": "MACE-OFF24_medium.model"
+    },
+    "omol0": {
+      "role": "nonperiodic target scorer",
+      "provider": "MACEOMOLProvider",
+      "pbc": false,
+      "charge": 0.0,
+      "spin_multiplicity": 1,
+      "energy_eV": -4159.718571495262,
+      "forces_eV_A": [
+        [
+          -0.38706764902755286,
+          0.09570616208091787,
+          0.0
+        ],
+        [
+          0.18865266613545328,
+          -0.4887109118211197,
+          0.0
+        ],
+        [
+          -0.22245860299135153,
+          0.146049668731907,
+          0.0
+        ],
+        [
+          -0.008953762765481627,
+          0.011990194397120381,
+          0.0
+        ],
+        [
+          0.24289919235291152,
+          -0.13798085532172125,
+          0.0
+        ],
+        [
+          0.1869281562960212,
+          0.37294574193289576,
+          0.0
+        ]
+      ],
+      "license": "Academic Software Licence",
+      "max_force_eV_A": 0.4887109118211197,
+      "source_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_omol_0/MACE-omol-0-extra-large-1024.model",
+      "source_path": "MACE-omol-0-extra-large-1024.model",
+      "source_tag": "mace_omol_0",
+      "source_ref": "mace_omol_0",
+      "source_commit": "6009f59095a1c471e77fa8e77b989b1bb81435b3",
+      "size_bytes": 422242640,
+      "sha256": "9b64b4fd5153ca578c694abc57806d8111050de6ff652e695c9b525bc4d36469",
+      "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACE-omol-0-extra-large-1024.model",
+      "observed_local_filename": "MACE-omol-0-extra-large-1024.model"
+    },
+    "polar1m": {
+      "role": "outer SMD density provider",
+      "provider": "SMDPolarDeltaProvider",
+      "pbc": false,
+      "charge": 0.0,
+      "energy_eV": -2079.86392931896,
+      "forces_eV_A": [
+        [
+          -0.1458899213508661,
+          -0.14301995452892796,
+          0.00017483042688030753
+        ],
+        [
+          0.24601890962074524,
+          -0.048879362300277895,
+          -8.730839143431297e-05
+        ],
+        [
+          -0.10012898826987564,
+          0.19189931682920208,
+          -8.752203544599453e-05
+        ]
+      ],
+      "license": "Academic Software Licence",
+      "max_force_eV_A": 0.24601890962074524,
+      "source_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+      "source_path": "MACEPOLAR1Mmodel",
+      "source_tag": "mace_polar_1",
+      "source_ref": "mace_polar_1",
+      "source_commit": "2ee7e58beac3a9a12ad3644de1c3591c1ff11c2c",
+      "size_bytes": 68133235,
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "observed_local_path": "N/A (host-only): /home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "observed_local_filename": "MACEPOLAR1Mmodel",
+      "note": "This single model is used for outer continuation correction; this fixture is engineering evidence only."
+    }
+  },
+  "scientific_status": "engineering-evidence-only",
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')"
+}

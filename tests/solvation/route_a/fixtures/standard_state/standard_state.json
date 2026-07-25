@@ -1,0 +1,20 @@
+{
+  "protocol_version": "1.1.0",
+  "temperature_k": 298.15,
+  "gas_constant_kcal_per_mol_k": 0.001987204258640831,
+  "standard_state_volume_A3_per_molecule": 1660.5390671738467,
+  "C_number_0_per_A3": 0.000602214076,
+  "formula": "deltaG_vol = -RT ln(C_number^0 * Veff) = -RT ln(Veff/V0); deltaG_density = -RT ln(rho_W_over_C0)",
+  "unit_notes": {
+    "volume_in": "angstrom3",
+    "C_number_0_per_A3_units": "A^-3",
+    "water_bulk_concentration_molar_units": "mol/L",
+    "rho_W_number_per_A3_units": "A^-3",
+    "rho_W_over_C0_units": "dimensionless"
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "water_bulk_concentration_molar": 55.345,
+  "solution_reference_concentration_molar": 1.0,
+  "rho_W_number_per_A3": 0.03332953803622,
+  "rho_W_over_C0": 55.345
+}

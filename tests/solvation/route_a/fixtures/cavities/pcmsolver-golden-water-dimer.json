@@ -1,0 +1,153 @@
+{
+  "fixture_version": "1.1.0",
+  "system_name": "water-dimer",
+  "protocol_reference": "route-a-protocol-v1.4.0",
+  "status": "AVAILABLE",
+  "reason": "PCMSolver run-validated golden cavity from two identical MINRADIUS=1.0 A runs matching the frozen outer profile.",
+  "checked_at_utc": "2026-07-25T07:30:19.821616Z",
+  "source_runs": [
+    "minradius1-run1",
+    "minradius1-run2"
+  ],
+  "source_provenance": {
+    "geometry_coordinates": {
+      "path": "tests/solvation/route_a/fixtures/cavities/water_dimer_angstrom.xyz",
+      "units": "angstrom"
+    },
+    "input_raw": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_raw_input.pcm.inp",
+      "units": "angstrom"
+    },
+    "input_parsed": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_parsed_input.pcm.inp",
+      "units": "angstrom"
+    },
+    "pcmsolver_native": {
+      "archive_file": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_cavity.npz",
+      "coordinates": "bohr",
+      "weights": "dimensionless",
+      "areas": "bohr2"
+    },
+    "exported_mesh": {
+      "mesh_file": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_mesh.npz",
+      "centers": "angstrom",
+      "areas": "angstrom2"
+    },
+    "two_run_audit": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_two_run_audit_v1.json",
+      "sha256": "dcffd03b40689ab9cb6ce901d07dfe9761f472e1b4fba5245bf53e43ebb487db",
+      "hash_kind": "canonical_sha256"
+    }
+  },
+  "runtime": {
+    "engine": "pcmsolver",
+    "library_path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb",
+    "library_path_source_prefix": "bbd992d54ebeace528cf236dede1f0c56641defb",
+    "library_commit": "27fb35f",
+    "library_version": "1.3.0+27fb35f",
+    "library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+    "verified": true,
+    "measured_max_penetration_A": -0.01408324119508686,
+    "component_count": 1,
+    "profile": {
+      "tessera_area_angstrom2": 0.28002852018012786,
+      "minimum_added_sphere_radius_angstrom": 1.0,
+      "warnings_fatal": true,
+      "worst_overlap_pair": [
+        1,
+        3
+      ]
+    }
+  },
+  "geometry": {
+    "name": "water_dimer_angstrom.xyz",
+    "path": "tests/solvation/route_a/fixtures/cavities/water_dimer_angstrom.xyz",
+    "sha256": "9a5b7b5cb5f7bd8d70983d27a770ef61df5405e797327125f55f44e921776742",
+    "units": "angstrom",
+    "atoms": 6,
+    "elements": [
+      "O",
+      "H",
+      "H",
+      "O",
+      "H",
+      "H"
+    ],
+    "description": "Water dimer geometry in Å (O-H 0.9572 Å, O-O 2.8 Å)."
+  },
+  "input": {
+    "raw": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_raw_input.pcm.inp",
+      "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+      "units": "angstrom",
+      "tessera_fallback_area_A2": 0.28002852018012786,
+      "fallback_minradius_A": 1.0,
+      "source_units": "ANGSTROM"
+    },
+    "parsed": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_parsed_input.pcm.inp",
+      "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+      "units": "angstrom"
+    }
+  },
+  "cavity": {
+    "mesh": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_mesh.npz",
+      "sha256": "8fd430aa6ae6429460db1b1b67cbae9861bc06467a8eb8e43ee861078226b89b",
+      "canonical_centers_areas_sha256": "b7d8c88afbb9b713607395ca612865e7e3a4f52a38b63ba9b18bab220d39cb22",
+      "canonical_centers_areas_dtype": "<f8",
+      "units": {
+        "centers": "angstrom",
+        "areas": "angstrom2"
+      },
+      "tesserae": 378,
+      "area_sum_A2": 64.76408764745233,
+      "min_area_A2": 0.00017176682879906254,
+      "max_area_A2": 0.3585990663915714,
+      "source_tolerances_A": {
+        "area": 0.28002852018012786,
+        "minradius": 1.0
+      }
+    },
+    "archive": {
+      "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_golden_cavity.npz",
+      "sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
+      "units": "native npz array blob"
+    },
+    "penetrations": 0,
+    "warnings": [],
+    "synthetic_probe": {
+      "label": "protected-overlap-sentinel",
+      "center_A": [
+        1.4,
+        0.0,
+        0.0
+      ],
+      "area_A2": 0.0002,
+      "overlap_pairs": [
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      "expected_failure": true,
+      "penetration_A": 0.1200000000000001,
+      "notes": "Deterministic overlap-lens probe for fail-path unit coverage at midpoint-like contact."
+    },
+    "component_graph_required": 1,
+    "numerical_tolerance_A": 1e-06
+  },
+  "predetermined_mesh_required": true,
+  "protection_predicate": {
+    "name": "protected-overlap-sphere-lens"
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')"
+}

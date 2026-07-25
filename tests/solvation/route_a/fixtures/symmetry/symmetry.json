@@ -1,0 +1,16 @@
+{
+  "protocol_version": "1.0.0",
+  "temperature_k": 298.15,
+  "gas_constant_kcal_per_mol_k": 0.001987204258640831,
+  "expected_rtln": {
+    "1": 0.0,
+    "2": 0.4106792724,
+    "3": 0.6509112466,
+    "4": 0.8213585448
+  },
+  "cumulative_factorial": {
+    "n": 4,
+    "rtln": 1.8829490639
+  },
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')"
+}

@@ -1,0 +1,77 @@
+{
+  "artifact_type": "pcmsolver-native-cavity-topology-transition",
+  "component_definition": "connected components of unique native PCMSolver elSphCenter/elRadius generating spheres, joining two spheres when center distance <= sum of radii",
+  "expected_component_counts": [
+    1,
+    2
+  ],
+  "expected_failure_code": "SMD_CAVITY_TOPOLOGY_DISCONTINUITY",
+  "fixture_version": "1.0.0",
+  "frames": [
+    {
+      "completed_at_utc": "2026-07-25T07:16:17.476868Z",
+      "frame_index": 0,
+      "geometry_operation": "connected reference frame",
+      "native_cavity_archive": {
+        "sha256": "a8c668616917f3bb9c8e9ca3d8f78eeaef650bcb9e32e1c573b8883447a6462e",
+        "size_bytes": 253482
+      },
+      "native_element_count": 1,
+      "native_tesserae": 410,
+      "oo_distance_angstrom": 3.2,
+      "parsed_input": {
+        "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+        "size_bytes": 1838
+      },
+      "raw_input": {
+        "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+        "size_bytes": 419
+      },
+      "warning_count": 0,
+      "warning_lines": []
+    },
+    {
+      "completed_at_utc": "2026-07-25T07:16:17.652868Z",
+      "frame_index": 1,
+      "geometry_operation": "translate first-shell water along +x by 0.8 A",
+      "native_cavity_archive": {
+        "sha256": "73b43407c494aad9c0bc50016cb0f750a2aab7d9868a8bcc52beee1e62fcc6a8",
+        "size_bytes": 247674
+      },
+      "native_element_count": 1,
+      "native_tesserae": 404,
+      "oo_distance_angstrom": 4.0,
+      "parsed_input": {
+        "sha256": "f416d3dad68b353fc14bdbdceda585a81a01b9ce626509b4a462c77703f7a555",
+        "size_bytes": 1838
+      },
+      "raw_input": {
+        "sha256": "7ceaf4408f842b90f11a164f5ab5135422fcd014a07cadb04e04446eb2638eca",
+        "size_bytes": 419
+      },
+      "warning_count": 0,
+      "warning_lines": []
+    }
+  ],
+  "hash_canonicalization": "sort_keys=True,separators=(',',':')",
+  "metadata_npz": {
+    "hash_kind": "raw_sha256",
+    "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver_topology_transition_v1.npz",
+    "sha256": "9fb1b76595af607b98287c0232a91fc39a42cf4d4a80cbef82c33a463f6a1297",
+    "units": {
+      "elRadius": "bohr",
+      "elSphCenter": "bohr",
+      "positions": "angstrom"
+    }
+  },
+  "reason": "Two real PCMSolver frames cross from one to two connected components in native generating-sphere metadata.",
+  "runtime": {
+    "area_A2": 0.28002852018012786,
+    "engine": "pcmsolver",
+    "library_commit": "27fb35f",
+    "library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+    "minradius_A": 1.0,
+    "warnings_fatal": true
+  },
+  "scientific_status": "engineering-evidence-only"
+}

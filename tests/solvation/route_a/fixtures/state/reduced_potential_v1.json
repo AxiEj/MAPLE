@@ -1,0 +1,57 @@
+{
+  "state_id": "route-a-state-0",
+  "state_hash": "f90ac58be1e0e0110e7fc7606353cd13d7941847abd640629644f7169a5e0c8f",
+  "lambda_values": [
+    0.0,
+    0.2,
+    0.4
+  ],
+  "row_labels": [
+    "s0",
+    "s1",
+    "s2"
+  ],
+  "u_kn": [
+    [
+      0.0,
+      0.05,
+      0.09
+    ],
+    [
+      0.12,
+      -0.03,
+      0.08
+    ],
+    [
+      0.18,
+      0.02,
+      -0.01
+    ]
+  ],
+  "reduced_potential_shape": {
+    "rows": 3,
+    "columns": 3
+  },
+  "N_k": [
+    1,
+    1,
+    1
+  ],
+  "frame_ids": [
+    10,
+    11,
+    12
+  ],
+  "state_hashes": [
+    "74576b4357280b1cd7350c2834d04da5f4d4bc7743acae5b41fe1a96b14e57fd",
+    "3f7148994e90c128ee1fbaeb842bf5c0a880e209311655946a2bfd622979c544",
+    "c793bd7e911c4fcff1a9c254742ac63cb1e4a2daf36c75af75b7ceac54cfb81c"
+  ],
+  "beta": 1.6878065856071305,
+  "units": "dimensionless",
+  "dimensionless": true,
+  "measure_id": "measure-route-a-implicitsolv",
+  "boundary_conditions": {
+    "pbc": false
+  }
+}

@@ -24,7 +24,26 @@ class Dispatcher():
         self.output = output
         self.commandcontrol = commandcontrol
         self.set_throshould(atoms)
-        if jobtype == 'opt':
+        if jobtype == 'solvfe':
+            from .solvfe import SolvationFreeEnergyWorkflow
+
+            if isinstance(atoms, (list, Molecules)):
+                raise ValueError(
+                    "DOMAIN_UNSUPPORTED: Route A requires exactly one input solute."
+                )
+            if not extra or "solvfe_prepared" not in extra:
+                raise RuntimeError(
+                    "Route A dispatch requires a pre-model-load prepared request."
+                )
+            workflow = SolvationFreeEnergyWorkflow(
+                prepared=extra["solvfe_prepared"],
+                atoms=atoms,
+                primary_calculator=extra.get("solvfe_primary_calculator"),
+                output=output,
+            )
+            workflow.run()
+
+        elif jobtype == 'opt':
             from .optimization import Optimization
 
             if isinstance(atoms, (list, Molecules)):

@@ -24,9 +24,6 @@ from typing import List, Tuple, Optional
 import numpy as np
 from ase import Atoms
 
-# You already have these utilities / mixins in your codebase:
-from .logger import log_info
-from ...jobABC import JobABC
 from ....calculator._batch_eval import (
     EnergyEvaluator,
     PathEvaluator,
@@ -34,6 +31,10 @@ from ....calculator._batch_eval import (
     structures_have_constraints,
     supports_batch_calculation,
 )
+
+# You already have these utilities / mixins in your codebase:
+from .logger import log_info
+from ...jobABC import JobABC
 
 
 # =============================================================================
@@ -969,8 +970,8 @@ class GSM(JobABC):
 
         # Dump growth-final equal-arc path & HEI
         grow_final = base + "_gsm_grow_final.xyz"
+        write_xyz(grow_final, images, energies=get_energies(images))
         Es = get_energies(images)
-        write_xyz(grow_final, images, energies=Es)
         hei = max(range(1, len(images) - 1), key=lambda i: Es[i]) if len(images) > 2 else 0
         mep_path = base + "_gsm_mep.xyz"   # equal-arc path
         hei_path = base + "_gsm_hei.xyz"

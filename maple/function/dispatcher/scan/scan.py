@@ -194,8 +194,7 @@ class Scan(JobABC):
 
     def _record_result(self, atoms: Atoms, coord: List[float],
                        coords_list: list, energies: list,
-                       energy: Optional[float] = None,
-                       index: Optional[int] = None):
+                       energy: Optional[float] = None):
         """Record a scan point result by streaming to file."""
         # Get energy and structure info
         e = (
@@ -204,13 +203,12 @@ class Scan(JobABC):
         )
         pos = atoms.get_positions()
         symbols = atoms.get_chemical_symbols()
-        current_index = self._current_index if index is None else index
         
         # Write to XYZ file immediately
         self.xyz_file.write(f"{len(symbols)}\n")
         coord_str = "[" + ", ".join(f"{v:.4f}" for v in coord) + "]"
         self.xyz_file.write(
-            f"Scanning combination {current_index}/{self._total_combinations}: "
+            f"Scanning combination {self._current_index}/{self._total_combinations}: "
             f"{coord_str}  Energy = {e:.10f}\n"
         )
         for s, (x, y, z) in zip(symbols, pos):
@@ -248,17 +246,19 @@ class Scan(JobABC):
         calc = shared_calculator(atoms_list)
         if calc is None:
             for index, coord, atoms in records:
+                self._current_index = index
                 self._print_progress(index, self._total_combinations, coord)
-                self._record_result(atoms, coord, coords_list, energies, index=index)
+                self._record_result(atoms, coord, coords_list, energies)
             return
 
         batch_size = self.params.get("scan_batch_size", self.params.get("batch_size"))
         batch_energies = EnergyEvaluator(calc, batch_size=batch_size).energies(atoms_list)
         for (index, coord, atoms), energy in zip(records, batch_energies):
+            self._current_index = index
             self._print_progress(index, self._total_combinations, coord)
             self._record_result(
                 atoms, coord, coords_list, energies,
-                energy=float(energy), index=index,
+                energy=float(energy),
             )
 
     def _scan_1d(self, scan_values: List[List[float]]):

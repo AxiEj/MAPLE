@@ -1071,7 +1071,8 @@ class AutoNEB(JobABC):
         # Intermediates
         if self.all_intermediates:
             int_file = base + "_autoneb_intermediates.xyz"
-            int_energies = self._get_energies(self.all_intermediates)
+            int_energies = [float(at.get_potential_energy(force_consistent=True))
+                          for at in self.all_intermediates]
             write_xyz(int_file, self.all_intermediates, energies=int_energies)
             log_info([f"Wrote intermediates to: {int_file}\n"], self.output)
 
@@ -1079,7 +1080,8 @@ class AutoNEB(JobABC):
         self._collect_all_ts()
         if self.all_ts:
             ts_file = base + "_autoneb_ts_list.xyz"
-            ts_energies = self._get_energies(self.all_ts)
+            ts_energies = [float(at.get_potential_energy(force_consistent=True))
+                         for at in self.all_ts]
             write_xyz(ts_file, self.all_ts, energies=ts_energies)
             log_info([f"Wrote transition states to: {ts_file}\n"], self.output)
 

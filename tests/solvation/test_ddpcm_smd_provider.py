@@ -251,6 +251,7 @@ class _ZeroDensityResponse:
 
 
 class _ZeroReactionField:
+    instances = []
     reciprocal_energy_pairing = True
     full_position_derivative_contract_version = (
         FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION
@@ -267,15 +268,30 @@ class _ZeroReactionField:
             "backend": "fake-pyddx",
             "pyddx_version": "0.8.0",
         }
+        self.cold_apply_calls = 0
+        self.scf_apply_calls = 0
+        self.cold_energy_calls = 0
+        self.scf_energy_calls = 0
+        self.instances.append(self)
         assert np.asarray(radii_angstrom).shape == (self.atom_count,)
 
     def apply(self, density_direction):
+        self.cold_apply_calls += 1
+        return np.zeros_like(density_direction)
+
+    def apply_scf(self, density_direction):
+        self.scf_apply_calls += 1
         return np.zeros_like(density_direction)
 
     def adjoint(self, field_cotangent):
         return np.zeros_like(field_cotangent)
 
     def polarization_energy_hartree(self, density_coefficients):
+        self.cold_energy_calls += 1
+        return 0.0
+
+    def scf_polarization_energy_hartree(self, density_coefficients):
+        self.scf_energy_calls += 1
         return 0.0
 
     def full_position_vjp(self, density, field_cotangent):
@@ -426,6 +442,7 @@ def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
 
     atoms = _atoms()
     calculator = _FakeMACEPolarCalculator(atoms)
+    _ZeroReactionField.instances.clear()
     monkeypatch.setattr(
         module,
         "PyDDXPCMReactionFieldLinearMap",
@@ -467,6 +484,11 @@ def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
     assert result.provenance["provider"] == "pyddx"
     assert result.provenance["forces_available"] is True
     assert result.provenance["solution_phase_pes"] is False
+    reaction_field = _ZeroReactionField.instances[0]
+    assert reaction_field.scf_apply_calls == 1
+    assert reaction_field.scf_energy_calls == 1
+    assert reaction_field.cold_energy_calls == 0
+    assert reaction_field.cold_apply_calls == 0
     assert (tmp_path / "route2-ddpcm-result.json").is_file()
     assert (tmp_path / "route2-ddpcm-state.npz").is_file()
 

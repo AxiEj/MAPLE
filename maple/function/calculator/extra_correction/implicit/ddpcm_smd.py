@@ -408,7 +408,7 @@ class DDPCMSMDImplicitSolvation:
 
         for iteration in range(1, SCF_MAX_ITERATIONS + 1):
             field = self._validate_field(
-                reaction_field.apply(density),
+                reaction_field.apply_scf(density),
                 len(atoms),
             )
             solvent_state, _ = calculator.polar_state(
@@ -466,7 +466,7 @@ class DDPCMSMDImplicitSolvation:
             )
 
         polarization_energy_hartree = float(
-            reaction_field.polarization_energy_hartree(density)
+            reaction_field.scf_polarization_energy_hartree(density)
         )
         if not math.isfinite(polarization_energy_hartree):
             raise RuntimeError("ddPCM polarization energy is non-finite.")

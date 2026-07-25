@@ -205,6 +205,12 @@ class PyDDXPCMReactionFieldLinearMap:
         self._solver_tolerance = tolerance
         self._eta = eta_value
         self.atom_count = positions.shape[0]
+        self._scf_state = None
+        self._scf_state_has_adjoint_solution = False
+        self._scf_state_creations = 0
+        self._scf_state_updates = 0
+        self._scf_forward_warm_starts = 0
+        self._scf_adjoint_warm_starts = 0
 
     @property
     def runtime_provenance(self) -> dict[str, object]:
@@ -219,6 +225,11 @@ class PyDDXPCMReactionFieldLinearMap:
             "shift": 0.0,
             "enable_fmm": False,
             "n_proc": 1,
+            "scf_state_reuse": "pyddx.State.update_problem warm start",
+            "scf_state_creations": self._scf_state_creations,
+            "scf_state_updates": self._scf_state_updates,
+            "scf_forward_warm_starts": self._scf_forward_warm_starts,
+            "scf_adjoint_warm_starts": self._scf_adjoint_warm_starts,
         }
 
     @property
@@ -242,6 +253,7 @@ class PyDDXPCMReactionFieldLinearMap:
         *,
         coordinate_derivative: bool,
         solve_adjoint: bool,
+        warm_start: bool = False,
     ) -> tuple[np.ndarray, dict[str, np.ndarray], Any]:
         multipoles = mace_polar_density_to_pyddx_multipoles(density)
         derivative_order = -1 if coordinate_derivative else 0
@@ -256,23 +268,52 @@ class PyDDXPCMReactionFieldLinearMap:
                 "pyddx ddPCM source construction returned non-finite data."
             )
 
-        state = self._runtime.module.State(self._model, psi, phi)
-        state.fill_guess(self._solver_tolerance)
-        state.solve(self._solver_tolerance)
-        if not np.all(np.isfinite(np.asarray(state.x, dtype=float))):
-            raise RuntimeError("pyddx ddPCM forward solution contains non-finite data.")
-        if solve_adjoint:
-            state.fill_guess_adjoint(self._solver_tolerance)
-            state.solve_adjoint(self._solver_tolerance)
-            if not np.all(np.isfinite(np.asarray(state.xi, dtype=float))):
+        state = self._scf_state if warm_start else None
+        try:
+            if state is None:
+                state = self._runtime.module.State(self._model, psi, phi)
+                state.fill_guess(self._solver_tolerance)
+                if warm_start:
+                    if not callable(getattr(state, "update_problem", None)):
+                        raise RuntimeError(
+                            "pyddx State does not expose the tested "
+                            "update_problem warm-start API."
+                        )
+                    self._scf_state = state
+                    self._scf_state_creations += 1
+            else:
+                state.update_problem(psi, phi)
+                self._scf_state_updates += 1
+                self._scf_forward_warm_starts += 1
+            state.solve(self._solver_tolerance)
+            if not np.all(np.isfinite(np.asarray(state.x, dtype=float))):
                 raise RuntimeError(
-                    "pyddx ddPCM adjoint solution contains non-finite data."
+                    "pyddx ddPCM forward solution contains non-finite data."
                 )
+            if solve_adjoint:
+                if warm_start and self._scf_state_has_adjoint_solution:
+                    self._scf_adjoint_warm_starts += 1
+                else:
+                    state.fill_guess_adjoint(self._solver_tolerance)
+                state.solve_adjoint(self._solver_tolerance)
+                if warm_start:
+                    self._scf_state_has_adjoint_solution = True
+                if not np.all(np.isfinite(np.asarray(state.xi, dtype=float))):
+                    raise RuntimeError(
+                        "pyddx ddPCM adjoint solution contains non-finite data."
+                    )
+        except Exception:
+            if warm_start:
+                self._scf_state = None
+                self._scf_state_has_adjoint_solution = False
+            raise
         return multipoles, electrostatics, state
 
-    def polarization_energy_hartree(
+    def _polarization_energy_hartree(
         self,
         density_coefficients: np.ndarray,
+        *,
+        warm_start: bool,
     ) -> float:
         density = self._validated_density(
             density_coefficients,
@@ -282,15 +323,38 @@ class PyDDXPCMReactionFieldLinearMap:
             density,
             coordinate_derivative=False,
             solve_adjoint=False,
+            warm_start=warm_start,
         )
         energy = float(state.energy())
         if not math.isfinite(energy):
             raise RuntimeError("pyddx ddPCM polarization energy is non-finite.")
         return energy
 
+    def polarization_energy_hartree(
+        self,
+        density_coefficients: np.ndarray,
+    ) -> float:
+        return self._polarization_energy_hartree(
+            density_coefficients,
+            warm_start=False,
+        )
+
+    def scf_polarization_energy_hartree(
+        self,
+        density_coefficients: np.ndarray,
+    ) -> float:
+        """Evaluate final SCF energy using the sequential-state warm start."""
+
+        return self._polarization_energy_hartree(
+            density_coefficients,
+            warm_start=True,
+        )
+
     def _raw_reaction_gradient_hartree(
         self,
         density_coefficients: np.ndarray,
+        *,
+        warm_start: bool = False,
     ) -> np.ndarray:
         density = self._validated_density(
             density_coefficients,
@@ -300,6 +364,7 @@ class PyDDXPCMReactionFieldLinearMap:
             density,
             coordinate_derivative=False,
             solve_adjoint=True,
+            warm_start=warm_start,
         )
         forward_solution = np.asarray(state.x, dtype=float)
         adjoint_solution = np.asarray(state.xi, dtype=float)
@@ -352,6 +417,19 @@ class PyDDXPCMReactionFieldLinearMap:
             name="density_direction",
         )
         raw_gradient = self._raw_reaction_gradient_hartree(density)
+        return density_to_external_field_order(raw_gradient) * Hartree
+
+    def apply_scf(self, density_direction: np.ndarray) -> np.ndarray:
+        """Apply the map with a warm start for sequential ML-SCF densities."""
+
+        density = self._validated_density(
+            density_direction,
+            name="density_direction",
+        )
+        raw_gradient = self._raw_reaction_gradient_hartree(
+            density,
+            warm_start=True,
+        )
         return density_to_external_field_order(raw_gradient) * Hartree
 
     def adjoint(self, field_cotangent: np.ndarray) -> np.ndarray:

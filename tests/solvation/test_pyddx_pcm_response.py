@@ -71,31 +71,42 @@ class _FakeModel:
 
 
 class _FakeState:
+    instances = []
+
     def __init__(self, model, psi, phi):
         self.model = model
+        self.fill_guess_calls = 0
+        self.fill_guess_adjoint_calls = 0
+        self.solve_calls = 0
+        self.solve_adjoint_calls = 0
+        self.update_problem_calls = 0
+        self._set_problem(psi, phi)
+        self.instances.append(self)
+
+    def _set_problem(self, psi, phi):
         self.raw = np.asarray(psi, dtype=float).T.copy()
         np.testing.assert_allclose(
             np.asarray(phi, dtype=float),
             self.raw.reshape(-1),
         )
-        self.x = model.scale * self.raw.T
-        self.xi = -model.scale * self.raw.reshape(-1)
+        self.x = self.model.scale * self.raw.T
+        self.xi = -self.model.scale * self.raw.reshape(-1)
 
-    @staticmethod
-    def fill_guess(_tolerance):
-        return None
+    def update_problem(self, psi, phi, _elec_field=None):
+        self.update_problem_calls += 1
+        self._set_problem(psi, phi)
 
-    @staticmethod
-    def fill_guess_adjoint(_tolerance):
-        return None
+    def fill_guess(self, _tolerance):
+        self.fill_guess_calls += 1
 
-    @staticmethod
-    def solve(_tolerance):
-        return None
+    def fill_guess_adjoint(self, _tolerance):
+        self.fill_guess_adjoint_calls += 1
 
-    @staticmethod
-    def solve_adjoint(_tolerance):
-        return None
+    def solve(self, _tolerance):
+        self.solve_calls += 1
+
+    def solve_adjoint(self, _tolerance):
+        self.solve_adjoint_calls += 1
 
     def energy(self):
         return 0.5 * self.model.scale * float(np.vdot(self.raw, self.raw))
@@ -132,6 +143,7 @@ class _FakeRuntimeBundle:
 
 @pytest.fixture
 def fake_runtime():
+    _FakeState.instances.clear()
     return _FakeRuntimeBundle(
         runtime=_PyDDXRuntime(
             version=TESTED_PYDDX_VERSION,
@@ -199,6 +211,65 @@ def test_pyddx_reaction_map_apply_adjoint_and_energy_identity(fake_runtime):
     assert float(np.vdot(cotangent, field)) == pytest.approx(
         float(np.vdot(adjoint, density))
     )
+
+
+def test_pyddx_scf_path_reuses_previous_state_solutions_as_guesses(
+    fake_runtime,
+):
+    reaction = _reaction_map(fake_runtime)
+    first_density = np.asarray(
+        [[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]]
+    )
+    second_density = 0.75 * first_density
+
+    first_field = reaction.apply_scf(first_density)
+    second_field = reaction.apply_scf(second_density)
+
+    assert len(_FakeState.instances) == 1
+    state = _FakeState.instances[0]
+    assert state.fill_guess_calls == 1
+    assert state.fill_guess_adjoint_calls == 1
+    assert state.update_problem_calls == 1
+    assert state.solve_calls == 2
+    assert state.solve_adjoint_calls == 2
+    np.testing.assert_allclose(second_field, 0.75 * first_field)
+    assert np.isfinite(
+        reaction.scf_polarization_energy_hartree(second_density)
+    )
+    assert state.update_problem_calls == 2
+    assert state.solve_calls == 3
+    assert state.solve_adjoint_calls == 2
+    provenance = reaction.runtime_provenance
+    assert provenance["scf_state_creations"] == 1
+    assert provenance["scf_state_updates"] == 2
+    assert provenance["scf_forward_warm_starts"] == 2
+    assert provenance["scf_adjoint_warm_starts"] == 1
+
+    reaction.apply(second_density)
+    reaction.apply(second_density)
+    assert len(_FakeState.instances) == 3
+    assert provenance == reaction.runtime_provenance
+
+
+def test_pyddx_scf_path_discards_failed_warm_state(fake_runtime):
+    reaction = _reaction_map(fake_runtime)
+    density = np.asarray(
+        [[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]]
+    )
+    reaction.apply_scf(density)
+    failed_state = _FakeState.instances[0]
+
+    def fail_update(_psi, _phi):
+        raise RuntimeError("synthetic update failure")
+
+    failed_state.update_problem = fail_update
+    with pytest.raises(RuntimeError, match="synthetic update failure"):
+        reaction.apply_scf(0.75 * density)
+
+    reaction.apply_scf(0.5 * density)
+    assert len(_FakeState.instances) == 2
+    assert _FakeState.instances[1] is not failed_state
+    assert reaction.runtime_provenance["scf_state_creations"] == 2
 
 
 def test_pyddx_full_position_vjp_uses_complete_energy_polarization_identity(

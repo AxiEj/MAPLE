@@ -1,0 +1,175 @@
+{
+  "cavity": {
+    "cavity_model_count": 8,
+    "continuum_state_solve_count": 0,
+    "records": [
+      {
+        "active_mapping": {
+          "maximum_lebedev_direction_error": 3.152427400121712e-16,
+          "maximum_owner_residual_bohr": 8.881784197001252e-16,
+          "pair_count": 4992,
+          "sha256": "b6764eefe6ad37b9b9f4fb8cd959a126a8b54891e35ed75ca781a53fa787d1fd",
+          "unique_pair_count": 4992
+        },
+        "component": "carbonyl-carbon-y",
+        "minimum_reference_axis_overlap": 0.999999998359336,
+        "sign": -1.0,
+        "step_angstrom": 0.001
+      },
+      {
+        "active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_owner_residual_bohr": 8.881784197001252e-16,
+          "pair_count": 4993,
+          "sha256": "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300",
+          "unique_pair_count": 4993
+        },
+        "component": "carbonyl-carbon-y",
+        "minimum_reference_axis_overlap": 0.9999999983868192,
+        "sign": 1.0,
+        "step_angstrom": 0.001
+      },
+      {
+        "active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_owner_residual_bohr": 8.881784197001252e-16,
+          "pair_count": 4993,
+          "sha256": "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300",
+          "unique_pair_count": 4993
+        },
+        "component": "carbonyl-carbon-y",
+        "minimum_reference_axis_overlap": 0.9999999995915573,
+        "sign": -1.0,
+        "step_angstrom": 0.0005
+      },
+      {
+        "active_mapping": {
+          "maximum_lebedev_direction_error": 2.9504581591051765e-16,
+          "maximum_owner_residual_bohr": 8.881784197001252e-16,
+          "pair_count": 4993,
+          "sha256": "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300",
+          "unique_pair_count": 4993
+        },
+        "component": "carbonyl-carbon-y",
+        "minimum_reference_axis_overlap": 0.9999999995949931,
+        "sign": 1.0,
+        "step_angstrom": 0.0005
+      },
+      {
+        "active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_owner_residual_bohr": 8.881784197001252e-16,
+          "pair_count": 4992,
+          "sha256": "b6764eefe6ad37b9b9f4fb8cd959a126a8b54891e35ed75ca781a53fa787d1fd",
+          "unique_pair_count": 4992
+        },
+        "component": "carbonyl-oxygen-y",
+        "minimum_reference_axis_overlap": 0.9999998082390468,
+        "sign": -1.0,
+        "step_angstrom": 0.001
+      },
+      {
+        "active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_owner_residual_bohr": 8.881784197001252e-16,
+          "pair_count": 4992,
+          "sha256": "4bef8324dfdfbaf93d6402ba59ce1f144fa88545b5f802ea904dd177660bd675",
+          "unique_pair_count": 4992
+        },
+        "component": "carbonyl-oxygen-y",
+        "minimum_reference_axis_overlap": 0.9999998101751308,
+        "sign": 1.0,
+        "step_angstrom": 0.001
+      },
+      {
+        "active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_owner_residual_bohr": 8.881784197001252e-16,
+          "pair_count": 4992,
+          "sha256": "b6764eefe6ad37b9b9f4fb8cd959a126a8b54891e35ed75ca781a53fa787d1fd",
+          "unique_pair_count": 4992
+        },
+        "component": "carbonyl-oxygen-y",
+        "minimum_reference_axis_overlap": 0.9999999521813682,
+        "sign": -1.0,
+        "step_angstrom": 0.0005
+      },
+      {
+        "active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_owner_residual_bohr": 8.881784197001252e-16,
+          "pair_count": 4992,
+          "sha256": "14a9defd89248b81797823f242f119697aac797211f8251f03350468723cad74",
+          "unique_pair_count": 4992
+        },
+        "component": "carbonyl-oxygen-y",
+        "minimum_reference_axis_overlap": 0.999999952423377,
+        "sign": 1.0,
+        "step_angstrom": 0.0005
+      }
+    ]
+  },
+  "cds_evaluated": false,
+  "failed_gates": [
+    "cavity_active_mapping",
+    "cavity_pair_count"
+  ],
+  "gates": {
+    "cavity_active_mapping": false,
+    "cavity_local_axis_gauge": true,
+    "cavity_mapping_reconstruction": true,
+    "cavity_pair_count": false,
+    "cavity_pairs_unique": true,
+    "frame_determinant": true,
+    "frame_eigengap": true,
+    "frame_orthogonality": true,
+    "synthetic_dipole_absolute": true,
+    "synthetic_local_axis_gauge": true,
+    "synthetic_nontrivial_orientation": true,
+    "synthetic_position_absolute": true,
+    "synthetic_position_second_order": true,
+    "synthetic_translation": true,
+    "zero_continuum_state_solves": true
+  },
+  "mace_loaded": false,
+  "ml_scf_root_evaluated": false,
+  "phase": "preflight",
+  "protocol_id": "route2-ddpcm-ri-jgp94-acetone-fixed-density-frame-vjp-v1",
+  "provider_state_solve_count": 0,
+  "schema_version": 1,
+  "status": "fail",
+  "synthetic": {
+    "all_dipole_component_count": 30,
+    "all_position_component_count": 30,
+    "base_determinant_error": 1.2212453270876722e-15,
+    "base_orthogonality_error": 1.4432899320127035e-15,
+    "base_relative_minimum_eigengap": 0.14637102536705363,
+    "orientation_correction_norm": 6.942578841926523,
+    "position_error_ratios": [
+      0.24993922435266852,
+      0.24504071866801613
+    ],
+    "records": [
+      {
+        "maximum_dipole_absolute_error": 2.0385915178167124e-12,
+        "maximum_position_absolute_error": 9.348060503455713e-08,
+        "minimum_reference_axis_overlap": 0.9999999955215975,
+        "step": 0.0001
+      },
+      {
+        "maximum_dipole_absolute_error": 3.376410262490026e-12,
+        "maximum_position_absolute_error": 2.3364469914355368e-08,
+        "minimum_reference_axis_overlap": 0.999999998880557,
+        "step": 5e-05
+      },
+      {
+        "maximum_dipole_absolute_error": 7.493616838161188e-12,
+        "maximum_position_absolute_error": 5.725246499110881e-09,
+        "minimum_reference_axis_overlap": 0.9999999997201587,
+        "step": 2.5e-05
+      }
+    ],
+    "seed": 20260726,
+    "translation_error": 1.1102230246251565e-15
+  }
+}

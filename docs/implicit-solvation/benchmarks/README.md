@@ -172,3 +172,14 @@ span was `1.6528e-4 kcal/mol`, the molecule-frame span was
 `route2-ddpcm-ri-jgp94-acetone-v1.json` with SHA256
 `f1b7b01eb80b42489c1306b2006f919e5cc79bc295f73c84824626abccbeeeb7`.
 This pass authorizes only a separately locked analytic frame-VJP canary.
+
+That next protocol is `../ROUTE2_FRAME_VJP_CANARY.md`, with pure transform/VJP
+module `route2_jgp94_frame.py` and one-shot runner
+`run_route2_jgp94_frame_vjp_canary.py`. Its zero-solve preflight passes all 30
+coordinate and 30 dipole derivatives of the frame algebra, but rejects the
+provider experiment before a lock: the eight prescribed displaced cavities
+produce four active-set signatures and 4992/4993 active pairs. The exact
+preflight is tracked as `route2-jgp94-frame-vjp-preflight-v1.json`, SHA256
+`eefad3ce832bf8ffc1c2db9d29663e151da83e1558a3489e4193a360eaaeafb2`.
+No continuum state, MACE call, ML--SCF root, CDS evaluation, finite-difference
+energy, retry, or public-profile change occurred.

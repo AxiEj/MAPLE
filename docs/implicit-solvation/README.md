@@ -16,6 +16,15 @@ molecule-following candidate reduced it to `4.8644e-14 kcal/mol` with a
 chemical-accuracy result; it authorizes only a separately pre-registered
 analytic frame-VJP canary.
 
+That derivative stage is frozen in
+[`ROUTE2_FRAME_VJP_CANARY.md`](ROUTE2_FRAME_VJP_CANARY.md). Its zero-solve
+preflight validates all 30 coordinate and 30 dipole components of the pure
+frame VJP, but rejects the provider experiment: the eight prescribed acetone
+displacements produce four pyddx cavity active-set signatures and 4992/4993
+active pairs. No continuum state was solved and no one-shot lock was opened.
+The JGP94 frame therefore repairs rigid-rotation covariance but is not, by
+itself, a smooth-cavity solution for a MAPLE PES.
+
 ## Route-2 contract: self-consistent polarizable MLIP--PCM/SMD coupling
 
 Route 2 is separate from the fixed-charge PB/GB path. It couples the official

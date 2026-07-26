@@ -1323,7 +1323,70 @@ switches, or unstable active mappings remain fail-closed. The immutable
 result is mirrored in
 `benchmarks/route2-ddpcm-ri-jgp94-acetone-v1.json`.
 
-This closes only a narrow continuum-electrostatic coordinate-gradient slice.
+The subsequent frame-VJP derivation uses row vectors
+\(\mathbf Y=\mathbf C\mathbf O\) and
+\(\mathbf p_b=\mathbf p\mathbf O\). For cotangents
+\(\overline{\mathbf Y}\) and \(\overline{\mathbf p}_b\),
+
+\[
+\overline{\mathbf C}_{\mathrm{direct}}
+=\overline{\mathbf Y}\mathbf O^\mathsf T,\qquad
+\overline{\mathbf O}
+=\mathbf C^\mathsf T\overline{\mathbf Y}
++\mathbf p^\mathsf T\overline{\mathbf p}_b.
+\]
+
+With
+\(\mathbf S=\operatorname{skew}(\mathbf O^\mathsf T\overline{\mathbf O})\),
+
+\[
+\widetilde{\overline M}_{ij}
+=\frac{S_{ij}}{\lambda_j-\lambda_i}\quad(i\ne j),\qquad
+\overline{\mathbf M}
+=\mathbf O\widetilde{\overline M}\mathbf O^\mathsf T,
+\]
+
+and the frame contribution for atom \(A\) is
+
+\[
+\overline{\mathbf C}_{A,\mathrm{frame}}
+=2Z_A\left[
+\operatorname{tr}(\overline{\mathbf M})\mathbf C_A
+-\mathbf C_A\overline{\mathbf M}
+\right].
+\]
+
+After adding the direct term, differentiation of the center gives
+
+\[
+\overline{\mathbf R}_A
+=\overline{\mathbf C}_A
+-\frac{Z_A}{\sum_B Z_B}\sum_B\overline{\mathbf C}_B,
+\qquad
+\overline{\mathbf p}
+=\overline{\mathbf p}_b\mathbf O^\mathsf T.
+\]
+
+The pure implementation and its independent central-difference oracle pass
+all 30 acetone coordinate and 30 dipole components. Coordinate errors at
+steps \(10^{-4}\), \(5\times10^{-5}\), and \(2.5\times10^{-5}\) are
+\(9.3481\times10^{-8}\), \(2.3364\times10^{-8}\), and
+\(5.7252\times10^{-9}\), with translation error
+\(1.1103\times10^{-15}\).
+
+The provider-domain preflight rejects the actual one-shot derivative
+experiment before any continuum solve. The eight independently prescribed
+acetone displacements produce four pyddx active-set signatures and 4992/4993
+active pairs, failing the unchanged-active-set chart. Thus the
+molecule-following frame removes laboratory-grid rigid-rotation error but does
+not smooth the geometry-dependent cavity exposure rule. No finite-difference
+energy, MACE call, ML--SCF root, CDS term, lock, or attempt is run, and the
+components/steps are not replaced post hoc. The immutable zero-solve evidence
+is `benchmarks/route2-jgp94-frame-vjp-preflight-v1.json`; the protocol and
+strict boundary are in `ROUTE2_FRAME_VJP_CANARY.md`.
+
+Independently of that rejected JGP94 candidate, the already implemented PySCF
+path closes only a narrow continuum-electrostatic coordinate-gradient slice.
 PySCF is loaded lazily, its private gradient-intermediate layout remains locked
 to tested version 2.13.1, and neither the public parser nor production provider
 selects it. The additional rigid molecule and small-angle test now reject

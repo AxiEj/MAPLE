@@ -782,8 +782,30 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     positions/dipoles, source/back projection, and reaction map. Near
     eigenvalue degeneracy, axis/gauge switching, or unstable active mapping
     remains fail-closed.
-32. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
-    solution-phase PES.
+32. The separately pre-registered analytic frame-VJP stage stops at its
+    zero-continuum-solve preflight. Its pure NumPy oracle checks all 30 acetone
+    coordinate and 30 dipole components. The three coordinate-step maximum
+    errors are `9.3481e-8`, `2.3364e-8`, and `5.7252e-9`; the halving ratios are
+    `0.24994` and `0.24504`; the largest dipole error is `7.4937e-12`; and
+    translation closes to `1.1103e-15`. The frame response is nontrivial, with
+    orientation-contribution norm `6.9426`.
+
+    The eight prescribed pyddx cavity constructions nevertheless produce four
+    active-set signatures and 4992/4993 active pairs. Two frozen gates fail:
+    exact active mapping and pair count relative to the passed base scalar.
+    Every displaced mapping still contains unique sphere/Lebedev pairs. No
+    continuum state, MACE call, ML--SCF root, CDS term, finite-difference
+    energy, lock, or attempt was evaluated. The exact preflight is tracked as
+    `benchmarks/route2-jgp94-frame-vjp-preflight-v1.json`.
+
+    This rejects the inference that the JGP94 molecule-following frame alone
+    makes the current pyddx cavity a smooth geometry-dependent provider. It
+    preserves the scalar rigid-rotation pass and the pure frame-VJP algebra,
+    but blocks production integration and forbids replacing the prescribed
+    components/steps with a post-hoc stable subset.
+33. Only after a separately pre-registered smooth-cavity provider and the
+    remaining end-to-end gates pass may Route 2 enable OPT/scan/TS/MD or be
+    called a solution-phase PES.
 
 ## Secondary diagnostics
 

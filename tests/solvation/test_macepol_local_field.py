@@ -495,6 +495,51 @@ def test_intrinsic_energy_field_gradient_rejects_disconnected_model_energy():
     assert recorder.values is None
 
 
+def test_intrinsic_energy_model_feature_gradient_matches_exact_quadratic_model():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _FeatureStateModel(recorder),
+        recorder,
+    )
+    atoms = Atoms("OH", positions=np.zeros((2, 3)))
+    features = np.asarray(
+        [
+            [0.2, -0.1, 0.3, -0.4, 0.5, -0.6, 0.7, -0.8],
+            [-0.9, 1.0, -1.1, 1.2, -1.3, 1.4, -1.5, 1.6],
+        ],
+    )
+
+    feature_gradient = calculator.intrinsic_energy_model_feature_gradient(
+        atoms,
+        model_field_features=features,
+    )
+
+    np.testing.assert_allclose(
+        feature_gradient,
+        2.0 * features,
+        rtol=1.0e-13,
+        atol=1.0e-13,
+    )
+    assert recorder.values is None
+
+
+def test_intrinsic_energy_model_feature_gradient_rejects_disconnected_energy():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _DisconnectedFieldModel(),
+        recorder,
+    )
+    atoms = Atoms("H")
+
+    with pytest.raises(RuntimeError, match="disconnected"):
+        calculator.intrinsic_energy_model_feature_gradient(
+            atoms,
+            model_field_features=np.zeros((1, 8)),
+        )
+
+    assert recorder.values is None
+
+
 def test_density_response_linearization_returns_matching_jvp_and_vjp():
     recorder = _FieldRecorder()
     calculator = _calculator_with_model(
@@ -530,6 +575,79 @@ def test_density_response_linearization_returns_matching_jvp_and_vjp():
         rtol=1.0e-13,
         atol=1.0e-13,
     )
+    assert recorder.values is None
+
+
+def test_model_feature_density_response_is_rectangular_and_adjoint_consistent():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _FeatureStateModel(recorder),
+        recorder,
+    )
+    atoms = Atoms("OH", positions=np.zeros((2, 3)))
+    features = np.asarray(
+        [
+            [0.2, -0.1, 0.3, -0.4, 0.5, -0.6, 0.7, -0.8],
+            [-0.9, 1.0, -1.1, 1.2, -1.3, 1.4, -1.5, 1.6],
+        ],
+    )
+    feature_direction = np.asarray(
+        [
+            [0.8, -0.7, 0.6, -0.5, 0.4, -0.3, 0.2, -0.1],
+            [-0.2, 0.3, -0.4, 0.5, -0.6, 0.7, -0.8, 0.9],
+        ],
+    )
+    density_cotangent = np.asarray(
+        [[-0.3, 0.2, -0.1, 0.4], [0.5, -0.6, 0.7, -0.8]],
+    )
+    linearization = calculator.linearize_density_response_features(
+        atoms,
+        model_field_features=features,
+    )
+
+    density_direction = linearization.jvp(feature_direction)
+    feature_cotangent = linearization.vjp(density_cotangent)
+
+    np.testing.assert_allclose(
+        density_direction,
+        feature_direction[:, :4],
+        rtol=1.0e-13,
+        atol=1.0e-13,
+    )
+    expected_feature_cotangent = np.zeros_like(features)
+    expected_feature_cotangent[:, :4] = density_cotangent
+    np.testing.assert_allclose(
+        feature_cotangent,
+        expected_feature_cotangent,
+        rtol=1.0e-13,
+        atol=1.0e-13,
+    )
+    np.testing.assert_allclose(
+        np.vdot(density_direction, density_cotangent),
+        np.vdot(feature_direction, feature_cotangent),
+        rtol=1.0e-13,
+        atol=1.0e-13,
+    )
+    assert recorder.values is None
+
+
+def test_model_feature_density_response_rejects_disconnected_density():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _DisconnectedFieldModel(),
+        recorder,
+    )
+    atoms = Atoms("H")
+    linearization = calculator.linearize_density_response_features(
+        atoms,
+        model_field_features=np.zeros((1, 8)),
+    )
+
+    with pytest.raises(RuntimeError, match="disconnected"):
+        linearization.jvp(np.ones((1, 8)))
+
+    with pytest.raises(RuntimeError, match="disconnected"):
+        linearization.vjp(np.ones((1, 4)))
     assert recorder.values is None
 
 

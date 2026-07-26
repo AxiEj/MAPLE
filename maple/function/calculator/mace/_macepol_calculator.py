@@ -852,6 +852,78 @@ class MACEPolCalculator(CalcABC):
             )
         return result
 
+    def intrinsic_energy_model_feature_gradient(
+        self,
+        atoms,
+        *,
+        model_field_features: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate intrinsic energy with respect to native GTO features.
+
+        The returned array is the exact autograd derivative with the same
+        rectangular ``(n_atoms, n_features)`` shape as the preprojected
+        MACE-POLAR input.  It is a model-side partial derivative only; it does
+        not include the continuum feature map or establish an electrostatic
+        conjugacy relation with the returned ``(n_atoms, 4)`` density.
+        """
+
+        features = np.asarray(model_field_features, dtype=float)
+        if (
+            features.ndim != 2
+            or features.shape[0] != len(atoms)
+            or features.shape[1] == 0
+        ):
+            raise ValueError(
+                "Model-field features must have shape "
+                "(n_atoms, n_features) with at least one feature."
+            )
+        if not np.all(np.isfinite(features)):
+            raise ValueError("Model-field features must be finite.")
+
+        feature_tensor = torch.tensor(
+            features,
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=True,
+        )
+        output = self.polar_output_torch(
+            atoms,
+            model_field_features=feature_tensor,
+        )
+        energy = output.get("energy")
+        if energy is None or not torch.is_tensor(energy):
+            raise RuntimeError(
+                "MACE-POLAR did not return a differentiable intrinsic energy."
+            )
+        if not bool(torch.isfinite(energy).all()):
+            raise RuntimeError("MACE-POLAR intrinsic energy is non-finite.")
+        if not energy.requires_grad:
+            raise RuntimeError(
+                "MACE-POLAR intrinsic energy is disconnected from the "
+                "model-field-feature autograd graph."
+            )
+        (feature_gradient,) = torch.autograd.grad(
+            energy.sum(),
+            (feature_tensor,),
+            create_graph=False,
+            allow_unused=True,
+        )
+        if feature_gradient is None:
+            raise RuntimeError(
+                "MACE-POLAR intrinsic energy is not differentiable with "
+                "respect to model-field features."
+            )
+        result = np.asarray(
+            feature_gradient.detach().cpu(),
+            dtype=float,
+        ).copy()
+        if result.shape != features.shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "MACE-POLAR intrinsic-energy model-feature gradient must be "
+                f"finite with shape {features.shape}; received {result.shape}."
+            )
+        return result
+
     def density_position_vjp(
         self,
         atoms,
@@ -1004,6 +1076,27 @@ class MACEPolCalculator(CalcABC):
             atoms,
             node_potential_ev=node_potential_ev,
             node_gradient_ev_per_angstrom=node_gradient_ev_per_angstrom,
+        )
+
+    def linearize_density_response_features(
+        self,
+        atoms,
+        *,
+        model_field_features: np.ndarray,
+    ):
+        """Return native-feature-to-density JVP/VJP at fixed geometry.
+
+        MACE-POLAR's preprojected field feature count need not equal the four
+        returned l<=1 density coefficients per atom.  This interface therefore
+        keeps the learned response rectangular.  It does not compose the
+        continuum density-to-feature map and is not, by itself, an exact-GTO
+        Route-2 force implementation.
+        """
+
+        return _MACEPolarFeatureDensityResponseLinearization(
+            self,
+            atoms,
+            model_field_features=model_field_features,
         )
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
@@ -1203,3 +1296,157 @@ class _MACEPolarDensityResponseLinearization:
             ),
             axis=1,
         )
+
+
+class _MACEPolarFeatureDensityResponseLinearization:
+    """Autograd JVP/VJP from native GTO field features to l<=1 density."""
+
+    def __init__(
+        self,
+        calculator: MACEPolCalculator,
+        atoms,
+        *,
+        model_field_features: np.ndarray,
+    ):
+        features = np.asarray(model_field_features, dtype=float)
+        if (
+            features.ndim != 2
+            or features.shape[0] != len(atoms)
+            or features.shape[1] == 0
+        ):
+            raise ValueError(
+                "Model-field features must have shape "
+                "(n_atoms, n_features) with at least one feature."
+            )
+        if not np.all(np.isfinite(features)):
+            raise ValueError("Model-field features must be finite.")
+        self._calculator = calculator
+        self._atoms = atoms.copy()
+        self._features = features.copy()
+        self._feature_shape = features.shape
+        self._density_shape = (len(atoms), 4)
+
+    def _base_tensor(self, *, requires_grad: bool) -> torch.Tensor:
+        return torch.tensor(
+            self._features,
+            dtype=self._calculator.dtype,
+            device=self._calculator.device,
+            requires_grad=requires_grad,
+        )
+
+    def _density_tensor(self, features: torch.Tensor) -> torch.Tensor:
+        output = self._calculator.polar_output_torch(
+            self._atoms,
+            model_field_features=features,
+        )
+        density = output.get("density_coefficients")
+        if density is None or density.shape != self._density_shape:
+            received = None if density is None else tuple(density.shape)
+            raise RuntimeError(
+                "MACE-POLAR feature-driven density response must have shape "
+                f"{self._density_shape}; received {received}."
+            )
+        if not bool(torch.isfinite(density).all()):
+            raise RuntimeError(
+                "MACE-POLAR feature-driven density response is non-finite."
+            )
+        if not density.requires_grad:
+            raise RuntimeError(
+                "MACE-POLAR density is disconnected from the "
+                "model-field-feature autograd graph."
+            )
+        return density
+
+    def _validated_feature_block(
+        self,
+        values: np.ndarray,
+        *,
+        name: str,
+    ) -> np.ndarray:
+        array = np.asarray(values, dtype=float)
+        if array.shape != self._feature_shape or not np.all(np.isfinite(array)):
+            raise ValueError(
+                f"{name} must be finite with shape {self._feature_shape}; "
+                f"received {array.shape}."
+            )
+        return array
+
+    def _validated_density_block(
+        self,
+        values: np.ndarray,
+        *,
+        name: str,
+    ) -> np.ndarray:
+        array = np.asarray(values, dtype=float)
+        if array.shape != self._density_shape or not np.all(np.isfinite(array)):
+            raise ValueError(
+                f"{name} must be finite with shape {self._density_shape}; "
+                f"received {array.shape}."
+            )
+        return array
+
+    @staticmethod
+    def _to_numpy(values: torch.Tensor) -> np.ndarray:
+        return np.asarray(values.detach().cpu(), dtype=float).copy()
+
+    def jvp(self, feature_direction: np.ndarray) -> np.ndarray:
+        """Apply the native-feature-to-density Jacobian."""
+
+        direction = self._validated_feature_block(
+            feature_direction,
+            name="feature_direction",
+        )
+        features = self._base_tensor(requires_grad=False)
+        direction_tensor = torch.as_tensor(
+            direction,
+            dtype=self._calculator.dtype,
+            device=self._calculator.device,
+        )
+        _, density_direction = torch.autograd.functional.jvp(
+            self._density_tensor,
+            (features,),
+            (direction_tensor,),
+            create_graph=False,
+            strict=True,
+        )
+        result = self._to_numpy(density_direction)
+        if result.shape != self._density_shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "MACE-POLAR feature-driven density JVP must be finite with "
+                f"shape {self._density_shape}; received {result.shape}."
+            )
+        return result
+
+    def vjp(self, density_cotangent: np.ndarray) -> np.ndarray:
+        """Apply the density-to-native-feature adjoint by autograd."""
+
+        cotangent = self._validated_density_block(
+            density_cotangent,
+            name="density_cotangent",
+        )
+        features = self._base_tensor(requires_grad=True)
+        density = self._density_tensor(features)
+        cotangent_tensor = torch.as_tensor(
+            cotangent,
+            dtype=self._calculator.dtype,
+            device=self._calculator.device,
+        )
+        (feature_cotangent,) = torch.autograd.grad(
+            density,
+            (features,),
+            grad_outputs=cotangent_tensor,
+            create_graph=False,
+            allow_unused=True,
+        )
+        if feature_cotangent is None:
+            raise RuntimeError(
+                "MACE-POLAR density is not differentiable with respect to "
+                "model-field features."
+            )
+        result = self._to_numpy(feature_cotangent)
+        if result.shape != self._feature_shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "MACE-POLAR density model-feature VJP must be finite with "
+                f"shape {self._feature_shape}; received {result.shape}."
+            )
+        return result

@@ -186,10 +186,12 @@ formula and profile name.
 
 The exact-GTO profile remains energy-only. Its model response is taken with
 respect to the full feature tensor, whereas the current force candidate
-linearizes the historical four-component local-field input. A feature-space
-JVP/VJP, the matching coordinate derivative, and the atomic-mean gauge
-derivative must be derived and validated before the exact-GTO profile can
-expose a force.
+linearizes the historical four-component local-field input. MAPLE now exposes
+the exact autograd model-side feature gradient and the rectangular
+feature-to-density JVP/VJP, but these deliberately stop before the continuum
+density-to-feature map. Its forward/adjoint composition, the matching
+coordinate derivative, and the atomic-mean gauge derivative must still be
+derived and validated before the exact-GTO profile can expose a force.
 
 ### Versioned MACE long-range evaluator
 
@@ -790,8 +792,9 @@ This is a falsification canary, not a fitted model criterion: one valid state
 is enough to show that neither exact identity is established for the current
 coupling, but not enough to characterize all molecules or fields. It applies
 only to the differentiable local potential/gradient interface. The exact-GTO
-energy profile still lacks the feature-space response adjoint needed for the
-same audit.
+energy profile now has a model-side feature response adjoint, but still lacks
+the continuum density-to-feature forward/adjoint composition needed for the
+same fixed-point audit.
 
 \[
 \mathcal R(c,\mathbf R)

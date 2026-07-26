@@ -806,13 +806,16 @@ that CDS energy and gradient come from the same selected provider.
    domain-decomposition provider remains a candidate only after its own
    separately locked feasibility and derivative profile passes.
 
-   `ROUTE2_PROVIDER_CANARY.md` now freezes the first of those feasibility
-   checks. It uses one frozen acetone density, three prescribed rigid
-   orientations, and exactly three laboratory-frame plus three
-   molecule-frame scalar evaluations. It changes no radii, dielectric, grid
-   order, ddPCM equation, tolerance, MACE weight, or public profile. Failure
-   rejects the candidate without tuning; success authorizes only a separately
-   pre-registered analytic frame-VJP canary.
+   `ROUTE2_PROVIDER_CANARY.md` froze the first of those feasibility checks.
+   Its one-shot run at `da89ab8` used one frozen acetone density, three
+   prescribed rigid orientations, and exactly three laboratory-frame plus
+   three molecule-frame scalar evaluations. All gates passed. The control
+   rotation span was `1.6528e-4 kcal/mol`; the molecule-frame span was
+   `4.8644e-14 kcal/mol`; and the identity-profile shift was
+   `1.4473e-4 kcal/mol`. No radii, dielectric, grid order, ddPCM equation,
+   tolerance, MACE weight, or public profile changed. This result authorizes
+   only a separately pre-registered analytic frame-VJP canary; it does not
+   authorize a provider abstraction or production integration.
 
    The historical local two-torsion closed loop generated at `5d69ef4` must
    not be promoted or rerun as a production gate until the smooth-provider

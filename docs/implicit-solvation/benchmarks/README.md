@@ -156,12 +156,19 @@ conservation before the smooth-provider gate passes.
 Running more FreeSolv records must not displace those PES gates, while the
 bounded QM-fidelity panel must not be promoted into a broad accuracy claim.
 
-The first feasibility protocol is now
+The first feasibility protocol is
 `../ROUTE2_PROVIDER_CANARY.md`, with tracked runner
 `run_route2_jgp94_ddpcm_canary.py`. It is intentionally smaller than that
 eventual provider milestone: one frozen acetone density, three prescribed
 rigid orientations, six total ddPCM scalar cases, and no MACE/CDS/force call.
 It tests only whether the JGP94 nuclear-charge standard frame removes the
 laboratory-grid scalar rotation span while preserving the identity-orientation
-energy within `0.01 kcal/mol`. Passing it authorizes only a separately locked
-analytic frame-VJP canary.
+energy within `0.01 kcal/mol`.
+
+The one-shot run at `da89ab8` passed every frozen gate: the laboratory-frame
+span was `1.6528e-4 kcal/mol`, the molecule-frame span was
+`4.8644e-14 kcal/mol`, and the identity-profile shift was
+`1.4473e-4 kcal/mol`. The exact result is tracked as
+`route2-ddpcm-ri-jgp94-acetone-v1.json` with SHA256
+`f1b7b01eb80b42489c1306b2006f919e5cc79bc295f73c84824626abccbeeeb7`.
+This pass authorizes only a separately locked analytic frame-VJP canary.

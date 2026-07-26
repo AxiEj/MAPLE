@@ -759,7 +759,30 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     derivative checks still do not establish global flexible-geometry
     continuity, relaxed-PES behavior, QM-force fidelity, or short-NVE energy
     conservation.
-31. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
+31. A one-shot fixed-density acetone scalar canary at commit `da89ab8`
+    evaluates the unchanged pyddx ddPCM problem in the nuclear-charge
+    molecule-following frame of Johnson, Gill, and Pople. The immutable
+    lock/attempt/result chain contains exactly three laboratory-frame controls
+    and three molecule-frame candidates with no MACE, ML--SCF root, CDS, force,
+    finite difference, retry, or production-profile change.
+
+    All frozen gates pass. The laboratory-frame span is
+    `7.1672e-6 eV` (`1.6528e-4 kcal/mol`), while the molecule-frame span is
+    `2.1094e-15 eV` (`4.8644e-14 kcal/mol`). All three candidates retain 4993
+    unique active sphere/Lebedev pairs and the same mapping hash. The
+    identity-profile shift is `1.4473e-4 kcal/mol`, and the largest
+    half-coupling identity error is `2.2760e-14 eV`. The tracked result is
+    `benchmarks/route2-ddpcm-ri-jgp94-acetone-v1.json`.
+
+    This proves only rigid-rotation covariance for one fixed density in a
+    nondegenerate local frame domain. It does not validate the analytic frame
+    VJP, torsional continuity, self-consistent MACE--ddPCM force, CDS
+    derivative, chemical accuracy, or a public provider. A separate
+    pre-registration must differentiate the center, orientation, body-frame
+    positions/dipoles, source/back projection, and reaction map. Near
+    eigenvalue degeneracy, axis/gauge switching, or unstable active mapping
+    remains fail-closed.
+32. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics

@@ -1303,6 +1303,26 @@ eigengap guard, and its strict interpretation are recorded in
 `ROUTE2_PROVIDER_CANARY.md`. No parser/factory profile is added before the
 scalar and later derivative canaries pass.
 
+The locked scalar canary was run exactly once at commit `da89ab8`. All
+predeclared gates passed. The unchanged laboratory-frame control had a
+three-orientation span of \(7.1672\times10^{-6}\) eV
+(`0.00016528 kcal/mol`), whereas the molecule-frame candidate span was
+\(2.1094\times10^{-15}\) eV (`4.8644e-14 kcal/mol`). The candidate retained
+4993 unique active sphere/Lebedev pairs in every orientation, and its
+identity-orientation shift from the current laboratory-frame discretization
+was `0.00014473 kcal/mol`, below the locked `0.01 kcal/mol` gate. The largest
+half-coupling identity error was \(2.2760\times10^{-14}\) eV.
+
+This result supports only rigid-rotation covariance of one nonsymmetric,
+fixed-density acetone scalar inside the predeclared eigengap domain. It does
+not show that a merely rotated pyddx force differentiates the candidate
+energy. The next canary must contract the complete derivatives of
+\(\mathbf T\), \(\mathbf O\), body-frame positions, dipoles, source/back
+projection, and reaction map. Near-degenerate eigenvalues, axis/gauge
+switches, or unstable active mappings remain fail-closed. The immutable
+result is mirrored in
+`benchmarks/route2-ddpcm-ri-jgp94-acetone-v1.json`.
+
 This closes only a narrow continuum-electrostatic coordinate-gradient slice.
 PySCF is loaded lazily, its private gradient-intermediate layout remains locked
 to tested version 2.13.1, and neither the public parser nor production provider

@@ -1,0 +1,375 @@
+{
+  "claim_boundary": "A pass establishes only fixed-density scalar rigid-rotation invariance and negligible identity-orientation profile shift for one acetone geometry. It does not establish a frame VJP, smooth torsion, ML-SCF force, CDS derivative, QM fidelity, PES, or production profile.",
+  "completed_at_utc": "2026-07-26T07:46:15+00:00",
+  "failed_gates": [],
+  "gates": {
+    "active_mapping_pairs_unique": true,
+    "candidate_active_mapping": true,
+    "candidate_cavity_size": true,
+    "candidate_rotation_span": true,
+    "canonical_density": true,
+    "canonical_geometry": true,
+    "exact_evaluation_budget": true,
+    "frame_preflight": true,
+    "half_coupling_identity": true,
+    "identity_profile_shift": true,
+    "lebedev_direction_mapping": true,
+    "surface_owner_mapping": true
+  },
+  "git_head": "da89ab8da2796b74409277c606c8d3bfffb3a861",
+  "lock_path": ".omx/benchmarks/route2-ddpcm-ri-jgp94-acetone-20260726/lock.json",
+  "lock_sha256": "a2f590b00602527ccf38be4dc4c6f585b93828eb286393f50c582113fbce5308",
+  "metrics": {
+    "candidate_active_mapping_hashes": [
+      "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300",
+      "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300",
+      "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300"
+    ],
+    "candidate_active_mapping_pair_counts": [
+      4993,
+      4993,
+      4993
+    ],
+    "candidate_active_mapping_unique_pair_counts": [
+      4993,
+      4993,
+      4993
+    ],
+    "candidate_n_cav": [
+      4993,
+      4993,
+      4993
+    ],
+    "candidate_rotation_span_ev": 2.1094237467877974e-15,
+    "candidate_rotation_span_kcal_mol": 4.864446759059953e-14,
+    "control_rotation_span_ev": 7.167217553949445e-06,
+    "control_rotation_span_kcal_mol": 0.00016527996451579848,
+    "identity_profile_shift_kcal_mol": 0.00014473125989944435,
+    "maximum_aligned_density_error": 5.961892221226228e-16,
+    "maximum_aligned_geometry_error_angstrom": 4.440892098500626e-15,
+    "maximum_half_coupling_identity_error_ev": 2.275957200481571e-14,
+    "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+    "maximum_surface_owner_residual_bohr": 8.881784197001252e-16,
+    "minimum_lebedev_second_neighbor_distance": 0.05252272270323628,
+    "minimum_surface_owner_second_gap_bohr": 5.2960665748891245e-05,
+    "provider_energy_case_count": 6,
+    "total_case_elapsed_seconds": 11.34658836197923
+  },
+  "protocol_id": "route2-ddpcm-ri-jgp94-acetone-fixed-density-v1",
+  "provider": {
+    "backend": "pyddx",
+    "dielectric": 78.39,
+    "enable_fmm": false,
+    "enable_force": true,
+    "eta": 0.1,
+    "lmax": 15,
+    "model": "pcm",
+    "n_lebedev": 1202,
+    "n_proc": 1,
+    "pyddx_version": "0.8.0",
+    "shift": 0.0,
+    "solver_tolerance": 1e-12
+  },
+  "records": [
+    {
+      "candidate": {
+        "aligned_active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_surface_owner_residual_bohr": 8.881784197001252e-16,
+          "minimum_lebedev_second_neighbor_distance": 0.05252272270323628,
+          "minimum_surface_owner_second_gap_bohr": 5.296066575155578e-05,
+          "pair_count": 4993,
+          "sha256": "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300",
+          "unique_pair_count": 4993
+        },
+        "elapsed_seconds": 1.8243445270054508,
+        "energy_ev": -0.39974434990574453,
+        "energy_kcal_mol": -9.21832377355493,
+        "half_coupling_identity_error_ev": 1.7763568394002505e-14,
+        "n_cav": 4993,
+        "paired_energy_ev": -0.3997443499057623,
+        "runtime_provenance": {
+          "backend": "pyddx",
+          "enable_fmm": false,
+          "eta": 0.1,
+          "lmax": 15,
+          "model": "pcm",
+          "n_lebedev": 1202,
+          "n_proc": 1,
+          "pyddx_version": "0.8.0",
+          "scf_adjoint_warm_starts": 0,
+          "scf_forward_warm_starts": 0,
+          "scf_state_creations": 1,
+          "scf_state_reuse": "pyddx.State.update_problem warm start",
+          "scf_state_updates": 0,
+          "shift": 0.0,
+          "solver_tolerance": 1e-12
+        }
+      },
+      "control": {
+        "elapsed_seconds": 1.867202465000446,
+        "energy_ev": -0.3997380737643526,
+        "energy_kcal_mol": -9.21817904229503,
+        "half_coupling_identity_error_ev": 5.2735593669694936e-15,
+        "n_cav": 5012,
+        "paired_energy_ev": -0.39973807376434733,
+        "runtime_provenance": {
+          "backend": "pyddx",
+          "enable_fmm": false,
+          "eta": 0.1,
+          "lmax": 15,
+          "model": "pcm",
+          "n_lebedev": 1202,
+          "n_proc": 1,
+          "pyddx_version": "0.8.0",
+          "scf_adjoint_warm_starts": 0,
+          "scf_forward_warm_starts": 0,
+          "scf_state_creations": 1,
+          "scf_state_reuse": "pyddx.State.update_problem warm start",
+          "scf_state_updates": 0,
+          "shift": 0.0,
+          "solver_tolerance": 1e-12
+        }
+      },
+      "frame": {
+        "aligned_density_error": 5.551115123125783e-17,
+        "aligned_geometry_error_angstrom": 8.881784197001252e-16,
+        "determinant_error": 2.220446049250313e-16,
+        "eigenvalues": [
+          29.860800739910353,
+          39.013537676784686,
+          62.53107070830496
+        ],
+        "orthogonality_error": 4.440892098500626e-16,
+        "proper_signed_axis_alignment": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "relative_minimum_eigenvalue_gap": 0.1463710253670537
+      },
+      "rotation": {
+        "angle_degrees": 0.0,
+        "axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "label": "identity"
+      }
+    },
+    {
+      "candidate": {
+        "aligned_active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_surface_owner_residual_bohr": 8.881784197001252e-16,
+          "minimum_lebedev_second_neighbor_distance": 0.05252272270323628,
+          "minimum_surface_owner_second_gap_bohr": 5.2960665748891245e-05,
+          "pair_count": 4993,
+          "sha256": "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300",
+          "unique_pair_count": 4993
+        },
+        "elapsed_seconds": 1.9050732649920974,
+        "energy_ev": -0.39974434990574437,
+        "energy_kcal_mol": -9.218323773554927,
+        "half_coupling_identity_error_ev": 1.7763568394002505e-14,
+        "n_cav": 4993,
+        "paired_energy_ev": -0.39974434990576213,
+        "runtime_provenance": {
+          "backend": "pyddx",
+          "enable_fmm": false,
+          "eta": 0.1,
+          "lmax": 15,
+          "model": "pcm",
+          "n_lebedev": 1202,
+          "n_proc": 1,
+          "pyddx_version": "0.8.0",
+          "scf_adjoint_warm_starts": 0,
+          "scf_forward_warm_starts": 0,
+          "scf_state_creations": 1,
+          "scf_state_reuse": "pyddx.State.update_problem warm start",
+          "scf_state_updates": 0,
+          "shift": 0.0,
+          "solver_tolerance": 1e-12
+        }
+      },
+      "control": {
+        "elapsed_seconds": 1.937317060001078,
+        "energy_ev": -0.39973458920702587,
+        "energy_kcal_mol": -9.218098686493496,
+        "half_coupling_identity_error_ev": 1.8096635301390052e-14,
+        "n_cav": 4982,
+        "paired_energy_ev": -0.39973458920704397,
+        "runtime_provenance": {
+          "backend": "pyddx",
+          "enable_fmm": false,
+          "eta": 0.1,
+          "lmax": 15,
+          "model": "pcm",
+          "n_lebedev": 1202,
+          "n_proc": 1,
+          "pyddx_version": "0.8.0",
+          "scf_adjoint_warm_starts": 0,
+          "scf_forward_warm_starts": 0,
+          "scf_state_creations": 1,
+          "scf_state_reuse": "pyddx.State.update_problem warm start",
+          "scf_state_updates": 0,
+          "shift": 0.0,
+          "solver_tolerance": 1e-12
+        }
+      },
+      "frame": {
+        "aligned_density_error": 4.0419056990259605e-16,
+        "aligned_geometry_error_angstrom": 2.886579864025407e-15,
+        "determinant_error": 2.220446049250313e-16,
+        "eigenvalues": [
+          29.86080073991034,
+          39.013537676784665,
+          62.53107070830493
+        ],
+        "orthogonality_error": 5.220431992952407e-16,
+        "proper_signed_axis_alignment": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        ],
+        "relative_minimum_eigenvalue_gap": 0.14637102536705365
+      },
+      "rotation": {
+        "angle_degrees": 37.0,
+        "axis": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "label": "axis-1-2-3-angle-37"
+      }
+    },
+    {
+      "candidate": {
+        "aligned_active_mapping": {
+          "maximum_lebedev_direction_error": 3.3766115072321297e-16,
+          "maximum_surface_owner_residual_bohr": 8.881784197001252e-16,
+          "minimum_lebedev_second_neighbor_distance": 0.05252272270323628,
+          "minimum_surface_owner_second_gap_bohr": 5.296066574977942e-05,
+          "pair_count": 4993,
+          "sha256": "f4de8cfcb1e3cc99131227ad92851bd9d43006a4cd5a88e045342bf0e9d49300",
+          "unique_pair_count": 4993
+        },
+        "elapsed_seconds": 1.9005370669910917,
+        "energy_ev": -0.3997443499057424,
+        "energy_kcal_mol": -9.21832377355488,
+        "half_coupling_identity_error_ev": 1.9373391779708982e-14,
+        "n_cav": 4993,
+        "paired_energy_ev": -0.3997443499057618,
+        "runtime_provenance": {
+          "backend": "pyddx",
+          "enable_fmm": false,
+          "eta": 0.1,
+          "lmax": 15,
+          "model": "pcm",
+          "n_lebedev": 1202,
+          "n_proc": 1,
+          "pyddx_version": "0.8.0",
+          "scf_adjoint_warm_starts": 0,
+          "scf_forward_warm_starts": 0,
+          "scf_state_creations": 1,
+          "scf_state_reuse": "pyddx.State.update_problem warm start",
+          "scf_state_updates": 0,
+          "shift": 0.0,
+          "solver_tolerance": 1e-12
+        }
+      },
+      "control": {
+        "elapsed_seconds": 1.9121139779890655,
+        "energy_ev": -0.3997417564245798,
+        "energy_kcal_mol": -9.218263966458013,
+        "half_coupling_identity_error_ev": 2.275957200481571e-14,
+        "n_cav": 5010,
+        "paired_energy_ev": -0.3997417564246026,
+        "runtime_provenance": {
+          "backend": "pyddx",
+          "enable_fmm": false,
+          "eta": 0.1,
+          "lmax": 15,
+          "model": "pcm",
+          "n_lebedev": 1202,
+          "n_proc": 1,
+          "pyddx_version": "0.8.0",
+          "scf_adjoint_warm_starts": 0,
+          "scf_forward_warm_starts": 0,
+          "scf_state_creations": 1,
+          "scf_state_reuse": "pyddx.State.update_problem warm start",
+          "scf_state_updates": 0,
+          "shift": 0.0,
+          "solver_tolerance": 1e-12
+        }
+      },
+      "frame": {
+        "aligned_density_error": 5.961892221226228e-16,
+        "aligned_geometry_error_angstrom": 4.440892098500626e-15,
+        "determinant_error": 2.220446049250313e-16,
+        "eigenvalues": [
+          29.86080073991036,
+          39.01353767678471,
+          62.53107070830498
+        ],
+        "orthogonality_error": 2.220446049250313e-16,
+        "proper_signed_axis_alignment": [
+          [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        ],
+        "relative_minimum_eigenvalue_gap": 0.14637102536705388
+      },
+      "rotation": {
+        "angle_degrees": 113.0,
+        "axis": [
+          -2.0,
+          1.0,
+          0.5
+        ],
+        "label": "axis-minus2-1-0p5-angle-113"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "status": "pass",
+  "stop_condition": "Failing any locked gate rejects this candidate without tuning. Passing all gates authorizes only a separately pre-registered analytic frame-VJP canary."
+}

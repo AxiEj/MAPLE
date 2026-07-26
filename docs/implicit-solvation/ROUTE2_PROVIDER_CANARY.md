@@ -207,6 +207,40 @@ PYTHONPATH="$PWD:/home/axie/.cache/maple-envs/psi4-ddx-qmref/lib/python3.11/site
   run
 ```
 
+## Frozen outcome
+
+The protocol was frozen and run exactly once on 2026-07-26 at Git commit
+`da89ab8da2796b74409277c606c8d3bfffb3a861`.
+
+- lock SHA256:
+  `a2f590b00602527ccf38be4dc4c6f585b93828eb286393f50c582113fbce5308`;
+- attempt SHA256:
+  `d879acb49543cec0882b8bf3f65db223b21f69c7a4a73f1740d80d329ce5a665`;
+- raw/tracked result SHA256:
+  `f1b7b01eb80b42489c1306b2006f919e5cc79bc295f73c84824626abccbeeeb7`;
+- tracked result:
+  `benchmarks/route2-ddpcm-ri-jgp94-acetone-v1.json`.
+
+All frozen gates passed:
+
+| Metric | Observed | Frozen gate |
+|---|---:|---:|
+| Laboratory-frame rotation span | `7.1672e-6 eV` (`1.6528e-4 kcal/mol`) | informational |
+| Molecule-frame rotation span | `2.1094e-15 eV` (`4.8644e-14 kcal/mol`) | `<= 1e-10 eV` |
+| Identity-profile shift | `1.4473e-4 kcal/mol` | `<= 0.01 kcal/mol` |
+| Maximum half-coupling identity error | `2.2760e-14 eV` | `<= 1e-10 eV` |
+| Candidate active pairs | `4993 / 4993` unique in every orientation | identical and unique |
+| Maximum owner residual | `8.8818e-16 bohr` | `<= 1e-10 bohr` |
+| Minimum owner second-best gap | `5.2961e-5 bohr` | `>= 1e-8 bohr` |
+| Maximum Lebedev direction error | `3.3766e-16` | `<= 1e-10` |
+| Minimum Lebedev second-neighbour distance | `5.2523e-2` | `>= 1e-3` |
+| Provider energy cases | `6` | exactly `3 + 3`, no retry |
+
+The six scalar cases took `11.35 s`; the complete process took approximately
+`13 s` on this host. These one-shot observations are not a performance claim.
+The result supports the scalar hypothesis only within this fixed-density,
+nondegenerate acetone case.
+
 ## Interpretation and stop condition
 
 A **failure** rejects this candidate without retuning or adding another

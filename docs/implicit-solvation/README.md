@@ -7,11 +7,14 @@ explicit pyddx ddPCM profile now exposes a single-point research force
 candidate. Neither profile is yet a complete MAPLE solution-phase PES. All
 calculations therefore require `experimental=true`.
 
-The next provider experiment is frozen separately in
-[`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). It tests one
-fixed-density acetone scalar in a JGP94 molecule-following frame before any
-frame derivative or production-path change. A pass is not a PES or accuracy
-claim.
+The first provider-feasibility experiment is frozen separately in
+[`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot
+fixed-density acetone scalar canary passed at commit `da89ab8`: the
+laboratory-frame rotation span was `1.6528e-4 kcal/mol`, while the JGP94
+molecule-following candidate reduced it to `4.8644e-14 kcal/mol` with a
+`1.4473e-4 kcal/mol` identity-profile shift. This is not a force, PES, or
+chemical-accuracy result; it authorizes only a separately pre-registered
+analytic frame-VJP canary.
 
 ## Route-2 contract: self-consistent polarizable MLIP--PCM/SMD coupling
 

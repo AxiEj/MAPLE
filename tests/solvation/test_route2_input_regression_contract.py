@@ -24,6 +24,22 @@ def test_gas_phase_charge_configuration_remains_available_outside_route2():
     assert "solv" not in params
 
 
+def test_enhance_gbsa_contract_remains_available_alongside_route2():
+    """Adding SMD must extend, not replace, the enhance GBSA selector."""
+
+    params = _parse(
+        "#model=aimnet2",
+        "#sp",
+        "#solv(implicit=water,method=gbsa,experimental=true)",
+    )
+
+    assert params["solv"] == {
+        "implicit": "water",
+        "method": "gbsa",
+        "experimental": True,
+    }
+
+
 def test_route2_still_rejects_an_independent_charge_provider():
     with pytest.raises(ValueError, match=r"remove #charge"):
         _parse(

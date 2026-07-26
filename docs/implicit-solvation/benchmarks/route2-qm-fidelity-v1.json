@@ -23,7 +23,7 @@
     "valid_reference_boundary": "Use a maintained self-consistent SMD implementation designed for AO density (PySCF SMD/IEF-PCM) as a chemical-level QM reference. Compare total SMD corrections and broad components, not claim discretization-identical operators."
   },
   "benchmark_role": "Bounded same-geometry Route-2/QM/experiment energy comparison and four-geometry electronic conformer diagnostic; not a broad accuracy certification.",
-  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at execution heads 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force, one Cartesian finite-difference displacement pair, and one central C-C torsion at two step sizes (+/-0.5 and +/-1.0 degree) have clean canaries at execution head d72dfba, with no maple/ runtime-source change through the separately recorded runtime-equivalence reference head 564c5ff. The torsion errors decrease under step refinement, but two steps do not establish an asymptotic convergence order. The flexible four-geometry panel, third-step/asymptotic torsion and closed-loop panel, and second-molecule force evidence remain historical or unrun. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, multi-component Cartesian force panel, QM-force comparison, operator identity, short-NVE conservation, or hardware-normalized speedup is established.",
+  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at execution heads 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force, one Cartesian finite-difference displacement pair, and one central C-C torsion at three step sizes (+/-1.0, +/-0.5, and +/-0.25 degree) have current-runtime-equivalent evidence at execution head d72dfba, with no maple/ runtime-source change through f7a6dea. The 0.25-degree points are valid and reduce the analytic discrepancy, but the pre-registered smooth second-order asymptotic test fails: the finite-difference drift does not shrink and the observed order is -0.034 rather than approximately two. Component decomposition localizes the failure to the self-consistent electrostatic block, not gas MACE or CDS, without yet identifying its cause. The flexible four-geometry panel, closed-loop panel, and second-molecule force evidence remain historical. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, multi-component Cartesian force panel, QM-force comparison, operator identity, short-NVE conservation, or hardware-normalized speedup is established.",
   "runtime_source_alignment": {
     "canary_execution_heads": {
       "2-acetoxyethyl acetate": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
@@ -49,22 +49,29 @@
     "torsion_second_step_execution_heads": {
       "2-acetoxyethyl acetate": "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
     },
+    "torsion_third_step_execution_heads": {
+      "2-acetoxyethyl acetate": "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
+    },
     "force_evidence_confirmed_by_runtime_equivalent_canary": [
       "2-acetoxyethyl acetate source-geometry analytic force",
       "2-acetoxyethyl acetate source-geometry one-component finite-difference pair",
       "2-acetoxyethyl acetate central C-C torsion one-step +/-0.5-degree pair",
-      "2-acetoxyethyl acetate central C-C torsion second +/-1.0-degree pair and two-step refinement trend"
+      "2-acetoxyethyl acetate central C-C torsion second +/-1.0-degree pair and two-step refinement trend",
+      "2-acetoxyethyl acetate central C-C torsion third +/-0.25-degree pair with valid converged energy points"
+    ],
+    "force_evidence_failed_pre_registered_validation": [
+      "2-acetoxyethyl acetate central C-C torsion 1.0/0.5/0.25-degree smooth second-order asymptotic test"
     ],
     "force_evidence_still_historical": [
-      "2-acetoxyethyl acetate third-step/asymptotic torsion convergence and closed-loop panel",
+      "2-acetoxyethyl acetate closed-loop panel",
       "2-propoxyethanol center force"
     ],
     "latest_canary_execution_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
     "runtime_code_reference_git_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
     "runtime_code_unchanged_between_canary_heads": true,
-    "runtime_equivalence_reference_head": "564c5ff492b587a17fd8222d1b965304df76a4c6",
+    "runtime_equivalence_reference_head": "f7a6dea687a94c365848fc3fc11e7f0e2784ace9",
     "runtime_source_scope": "maple/",
-    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate energies were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force, its one-component Cartesian finite-difference pair, and central C-C torsion pairs at +/-0.5 and +/-1.0 degree were rerun at d72dfba. The two torsion steps show a bounded error-refinement trend, not an asymptotic convergence order. No tracked maple/ runtime source changed among those canary heads or through 564c5ff. The four-geometry panel, third-step/asymptotic torsion and closed-loop panel, and second-molecule force evidence remain historical or unrun until separately reconfirmed."
+    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate energies were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force, its one-component Cartesian finite-difference pair, and central C-C torsion pairs at +/-1.0, +/-0.5, and +/-0.25 degree were run at d72dfba. No tracked maple/ runtime source changed through f7a6dea. The third pair is scientifically valid, but its pre-registered three-step smooth second-order asymptotic test failed. The four-geometry panel, closed-loop panel, and second-molecule force evidence remain historical until separately reconfirmed."
   },
   "energy_definition": "delta_g_solv = delta_e_solute + u_pol + g_cds",
   "energy_force_separation": "The adjoint is evaluated only for coordinate derivatives. It does not alter the converged Route-2 solvation energy.",
@@ -278,6 +285,7 @@
           "force_canary_execution_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
           "torsion_single_step_execution_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
           "torsion_second_step_execution_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+          "torsion_third_step_execution_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
           "force_runtime_source_equivalence_confirmed": true,
           "runtime_equivalent_energy_canary": {
             "absolute_difference_from_historical_correction_ev": 2.220446049250313e-16,
@@ -310,7 +318,7 @@
             },
             "alignment_report_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-force-alignment-d72dfba.json",
             "alignment_report_sha256": "fcee980ee13b05a240e6460b6f5839eebd3abe3356d9b70636c38331f402f11c",
-            "claim_boundary": "This canary execution-head run confirms one source-geometry analytic-force result and energy alignment. Its one-component Cartesian finite-difference pair and one central C-C torsion at +/-0.5 and +/-1.0 degree were subsequently rerun against the same d72dfba runtime; a third-step asymptotic regime, multi-point torsion path, closed-loop evidence, a relaxed path, QM force, and NVE conservation remain unconfirmed.",
+            "claim_boundary": "This canary confirms one source-geometry analytic-force result and energy alignment. Its Cartesian finite-difference pair and one central C-C torsion at +/-1.0, +/-0.5, and +/-0.25 degree were subsequently evaluated against the same d72dfba runtime. The 0.25-degree pair is valid, but the pre-registered smooth second-order asymptotic test failed. Root cause, a multi-point torsion path, closed-loop evidence, a relaxed path, QM force, and NVE conservation remain unconfirmed.",
             "correction_energy_ev": -0.33988998861544,
             "cross_head_absolute_error_against_historical_finite_difference_ev_per_angstrom": 3.084074560066874e-06,
             "direct_runtime_equivalent_finite_difference_performed": true,
@@ -577,8 +585,259 @@
             "interpretation": "The current absolute generalized-force error decreases from 1.0 to 0.5 degree, and both steps reproduce the historical oracle. This is a bounded two-step refinement trend, not an estimate of asymptotic convergence order.",
             "claim_boundary": "One central C-C torsion on one fixed conformer at two current-runtime-equivalent step sizes validates a local derivative and bounded refinement trend only. It does not establish a third-step asymptotic regime, a multi-point torsion path, closed-loop conservativity, a second molecule, relaxed-PES behavior, QM-force fidelity, NVE conservation, or production PES readiness."
           },
+          "runtime_equivalent_torsion_three_step_asymptotic_test": {
+            "status": "fail-predeclared-asymptotic-order-gates",
+            "scientific_points_valid": true,
+            "pre_registered_validation_passed": false,
+            "git_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+            "runtime_equivalence_reference_head": "f7a6dea687a94c365848fc3fc11e7f0e2784ace9",
+            "profile": "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
+            "coordinate": {
+              "axis_bond_indices_one_based": [
+                5,
+                6
+              ],
+              "axis_direction_index_zero_based": 5,
+              "axis_origin_index_zero_based": 4,
+              "definition": "Rigidly rotate the downstream fragment about the central C3-C4 single-bond axis using the positive right-hand rule.",
+              "rotated_fragment_indices_one_based": [
+                6,
+                7,
+                8,
+                9,
+                10,
+                16,
+                17,
+                18,
+                19,
+                20
+              ],
+              "rotated_fragment_indices_zero_based": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                15,
+                16,
+                17,
+                18,
+                19
+              ]
+            },
+            "steps_degrees": [
+              1.0,
+              0.5,
+              0.25
+            ],
+            "analytic_generalized_force_ev_per_radian": 0.04520643472551838,
+            "finite_differences_ev_per_radian": [
+              0.04504468982867865,
+              0.04510541195057784,
+              0.04516757532134049
+            ],
+            "absolute_errors_ev_per_radian": [
+              0.00016174489683972587,
+              0.00010102277494054152,
+              3.88594041778878e-05
+            ],
+            "fine_step_degrees": 0.25,
+            "fine_finite_difference_ev_per_radian": 0.04516757532134049,
+            "fine_absolute_error_ev_per_radian": 3.88594041778878e-05,
+            "fine_relative_error": 0.0008595989578437653,
+            "coarse_to_middle_drift_ev_per_radian": 6.0722121899184356e-05,
+            "middle_to_fine_drift_ev_per_radian": 6.216337076265371e-05,
+            "drift_ratio_coarse_to_middle_over_middle_to_fine": 0.9768151429726648,
+            "observed_central_difference_order": -0.03384252916254888,
+            "second_order_richardson_ev_per_radian": 0.04518829644492804,
+            "richardson_analytic_error_ev_per_radian": 1.8138280590336564e-05,
+            "minus": {
+              "converged": true,
+              "correction_energy_ev": -0.33969248904996924,
+              "energy_formula_closure_error_hartree": 0.0,
+              "forces_evaluated": false,
+              "manifest_position_max_error_angstrom": 0.0,
+              "root_scf_iterations": 18
+            },
+            "plus": {
+              "converged": true,
+              "correction_energy_ev": -0.3400866505022192,
+              "energy_formula_closure_error_hartree": 0.0,
+              "forces_evaluated": false,
+              "manifest_position_max_error_angstrom": 0.0,
+              "root_scf_iterations": 18
+            },
+            "failed_pre_registered_gates": [
+              "fine_drift_within_threshold",
+              "finite_difference_drift_decreases",
+              "observed_order_consistent_with_central_difference"
+            ],
+            "all_gates": {
+              "absolute_error_decreases_across_all_three_steps": true,
+              "all_points_converged_energy_only": true,
+              "all_points_formula_close": true,
+              "all_points_geometry_exact": true,
+              "all_points_same_profile": true,
+              "center_profile_matches_lock": true,
+              "center_status_pass": true,
+              "exactly_two_new_energy_points": true,
+              "fine_absolute_error_within_threshold": true,
+              "fine_drift_within_threshold": false,
+              "fine_relative_error_within_threshold": true,
+              "finite_difference_drift_decreases": false,
+              "finite_difference_refinement_direction_consistent": true,
+              "no_legacy_primary_label_noise": true,
+              "no_pcmsolver_warning": true,
+              "observed_order_consistent_with_central_difference": false,
+              "observed_order_defined": true,
+              "prior_analytic_forces_match_center": true,
+              "prior_current_records_pass": true,
+              "prior_two_step_ledger_matches_sources": true,
+              "same_git_head": true,
+              "second_order_richardson_matches_analytic_threshold": true,
+              "tracked_tree_clean": true
+            },
+            "thresholds": {
+              "fine_maximum_absolute_error_ev_per_radian": 0.0002,
+              "fine_maximum_relative_error": 0.005,
+              "maximum_energy_closure_error_hartree": 1e-12,
+              "maximum_manifest_position_error_angstrom": 1e-12,
+              "maximum_middle_to_fine_drift_ev_per_radian": 5e-05,
+              "maximum_observed_central_difference_order": 2.5,
+              "maximum_prior_analytic_difference_ev_per_radian": 1e-10,
+              "maximum_prior_ledger_difference_ev_per_radian": 1e-12,
+              "maximum_richardson_analytic_error_ev_per_radian": 0.0001,
+              "minimum_observed_central_difference_order": 1.5
+            },
+            "component_diagnostic": {
+              "causal_boundary": "This decomposition localizes the failing block but does not distinguish density-response, continuum-operator/cavity geometry response, or their coupling. A separately pre-registered component and reproducibility diagnostic is required before any production change.",
+              "closure_maximum_absolute_ev_per_radian": 1.3461454173580023e-15,
+              "finding": "The gas-phase MACE and CDS central differences show approximately second-order refinement (orders 2.008 and 2.001), while the solvent-intrinsic MACE and PCM polarization terms show orders 0.544 and 0.212. Their coupled total has order -0.034. The failed asymptotic behavior is therefore localized to the self-consistent electrostatic coupling block rather than the gas MACE geometry response or CDS term.",
+              "generalized_forces_ev_per_radian": {
+                "0.25": {
+                  "cds": 0.001561888167231038,
+                  "delta_g_solv": 0.04516757532133577,
+                  "gas_mace_energy_ev": -0.14151987437918034,
+                  "pcm_polarization": 0.05318969195397705,
+                  "solute_polarization": -0.009584004799872314,
+                  "solvent_intrinsic_mace_energy_ev": -0.15110387917905288,
+                  "solvent_intrinsic_minus_gas": -0.009584004799872536,
+                  "standard_state": -0.0
+                },
+                "0.5": {
+                  "cds": 0.0015615228166186957,
+                  "delta_g_solv": 0.04510541195057862,
+                  "gas_mace_energy_ev": -0.141519725656647,
+                  "pcm_polarization": 0.053085464968795196,
+                  "solute_polarization": -0.009541575834835945,
+                  "solvent_intrinsic_mace_energy_ev": -0.1510613014914831,
+                  "solvent_intrinsic_minus_gas": -0.009541575834836113,
+                  "standard_state": -0.0
+                },
+                "1.0": {
+                  "cds": 0.0015600608483298318,
+                  "delta_g_solv": 0.04504468982867831,
+                  "gas_mace_energy_ev": -0.14151912763990113,
+                  "pcm_polarization": 0.052964743847358636,
+                  "solute_polarization": -0.009480114867008808,
+                  "solvent_intrinsic_mace_energy_ev": -0.15099924250690996,
+                  "solvent_intrinsic_minus_gas": -0.009480114867008838,
+                  "standard_state": -0.0
+                }
+              },
+              "observed_orders": {
+                "cds": 2.000558488071555,
+                "delta_g_solv": -0.033842529008137785,
+                "gas_mace_energy_ev": 2.007562633347754,
+                "pcm_polarization": 0.211949261915983,
+                "solute_polarization": 0.5346209976529417,
+                "solvent_intrinsic_mace_energy_ev": 0.5435424933412997,
+                "solvent_intrinsic_minus_gas": 0.5346209976543708,
+                "standard_state": null
+              },
+              "signed_refinement_drifts_ev_per_radian": {
+                "cds": {
+                  "0.5_to_0.25": 3.653506123423283e-07,
+                  "1.0_to_0.5": 1.4619682888639303e-06
+                },
+                "delta_g_solv": {
+                  "0.5_to_0.25": 6.216337075715117e-05,
+                  "1.0_to_0.5": 6.072212190030846e-05
+                },
+                "gas_mace_energy_ev": {
+                  "0.5_to_0.25": -1.4872253334408114e-07,
+                  "1.0_to_0.5": -5.98016745873009e-07
+                },
+                "pcm_polarization": {
+                  "0.5_to_0.25": 0.0001042269851818517,
+                  "1.0_to_0.5": 0.00012072112143655944
+                },
+                "solute_polarization": {
+                  "0.5_to_0.25": -4.242896503636913e-05,
+                  "1.0_to_0.5": -6.146096782713717e-05
+                },
+                "solvent_intrinsic_mace_energy_ev": {
+                  "0.5_to_0.25": -4.2577687569766987e-05,
+                  "1.0_to_0.5": -6.205898457314896e-05
+                },
+                "solvent_intrinsic_minus_gas": {
+                  "0.5_to_0.25": -4.2428965036422905e-05,
+                  "1.0_to_0.5": -6.146096782727595e-05
+                },
+                "standard_state": {
+                  "0.5_to_0.25": 0.0,
+                  "1.0_to_0.5": 0.0
+                }
+              }
+            },
+            "pcmsolver_warning_count": 0,
+            "legacy_label_noise_count": 0,
+            "permitted_dependency_warning_count": 1,
+            "runner_exit": 1,
+            "runner_exit_interpretation": "Expected nonzero exit after both immutable energy records and the raw result were written because three pre-registered refinement gates failed; this was not an execution or serialization failure.",
+            "internal_new_energy_points_seconds": 146.49743540200143,
+            "total_wall_seconds": 148.5,
+            "used_for_timing_claim": false,
+            "path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.json",
+            "sha256": "673ad9ff527e84944c5f889976310734a0ab4b87c39ae7e3ae99229107979391",
+            "alignment_report_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.alignment.json",
+            "alignment_report_sha256": "10508a0e6efde16abf756c815ba09216a7b070ad3d2230ffcfdd39bf54394fa2",
+            "analytic_force_canary_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-force-d72dfba.json",
+            "analytic_force_canary_sha256": "fd775bd9fc33053b4a17225b22c473cb0a7aa1396740f521983c5fbfbccc0f64",
+            "current_half_step_result_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p5-d72dfba.json",
+            "current_half_step_result_sha256": "0e0c83e5bd9a596bdace9422be06f3fab340fcf9f47ed10ebe8d24c444e72dcf",
+            "current_one_step_result_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg1p0-d72dfba.json",
+            "current_one_step_result_sha256": "503bb49168fcc4aa1aacf37476ab3989303039af433d1c9eca48029e0c06038a",
+            "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+            "pre_result_lock_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.lock.json",
+            "pre_result_lock_sha256": "311b7f5535397c4333a53946583ecb833859a0211bbde2d631d489161c659737",
+            "runner_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.runner.py",
+            "runner_sha256": "6bf4ed8f2ee79b4281ca28e9e19d523ac7916595c3606f8f2fa5bf647cef0344",
+            "runner_stdout_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.runner.stdout.log",
+            "runner_stdout_sha256": "0446425ff01aa44c70581de172bd8b54d5a1b0c0b30271a8544e523f50be28bb",
+            "runner_stderr_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.runner.stderr.log",
+            "runner_stderr_sha256": "04e808c2851fcdfba8a6ae00f62fcec61948c59eeb9075e884ee43d6cb646be4",
+            "runner_time_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.runner.time.txt",
+            "runner_time_sha256": "7f2e8cf14282b6ee033736742ee3051026ebcbe9b7c6b25258cbc5872da16766",
+            "runner_exitcode_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.runner.exitcode",
+            "runner_exitcode_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+            "minus_audit_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.minus.audit.json",
+            "minus_audit_sha256": "2892bffbd10fec1a7e8877aeb6ae3d06c8844631fb03595535365ac5b4eb0d36",
+            "minus_manifest_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.minus.manifest.json",
+            "minus_manifest_sha256": "289b95a31409b918dbea7deaace8b640537bc2b72968cc9919bb9abacb9d08d9",
+            "minus_output_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.minus.out",
+            "minus_output_sha256": "cbfb09804be00ce34799444f6c01927069d2805f21a6a9277a59fda3307c0e89",
+            "plus_audit_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.plus.audit.json",
+            "plus_audit_sha256": "115ddf5b3259cdb853da71441a26b8c6e0cfbd64a15b1deffe1e59fd303fc2fa",
+            "plus_manifest_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.plus.manifest.json",
+            "plus_manifest_sha256": "7f4723dd6dc117806fc13b82ea03a988da204e7f58073c94bb40330be0f05261",
+            "plus_output_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-torsion-cc-deg0p25-d72dfba.plus.out",
+            "plus_output_sha256": "cbfb09804be00ce34799444f6c01927069d2805f21a6a9277a59fda3307c0e89",
+            "interpretation": "The fine-step analytic error decreases substantially, but the finite-difference drift does not shrink under the second halving and the observed order is approximately zero rather than two. The result therefore rejects the pre-registered smooth second-order asymptotic-regime claim for this three-step sequence. Root cause remains unresolved.",
+            "claim_boundary": "Freeze this as a failed local asymptotic-order validation. Do not retune thresholds, rerun the same points, infer global PES smoothness, or proceed to closed-loop, second-molecule, optimization, TS, MD, NVE, QM-force, or speed certification until the non-asymptotic drift is diagnosed in a separately pre-registered stage."
+          },
           "evidence_git_head": "5422a078ade3adb0730ec420c3dc5245983e6f4e",
-          "force_alignment_status": "confirmed-by-runtime-equivalent-analytic-force-cartesian-finite-difference-and-two-step-torsion-refinement-canaries",
+          "force_alignment_status": "confirmed-by-runtime-equivalent-analytic-force-cartesian-finite-difference-and-three-step-torsion-canaries-with-pre-registered-asymptotic-order-fail",
           "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/2acetoxyethyl_acetate_route2_qm_experiment.json",
           "sha256": "ec92f1619cd902ce15fd104407c61bd36e6f00ec3f995c0a5ad974256c709487",
           "status": "comparison-valid",
@@ -790,6 +1049,6 @@
     "smd-ddpcm-l15-n1202-v1"
   ],
   "schema_version": 3,
-  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating execution heads and runtime-source equivalence references are recorded separately; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries plus one 2-acetoxyethyl-acetate source-geometry analytic-force canary, its one-component Cartesian finite-difference pair, and central C-C torsion pairs at +/-0.5 and +/-1.0 degree were rerun against recorded runtime-code-equivalent sources. The two torsion steps establish a bounded refinement trend only. The flexible four-geometry, third-step/asymptotic torsion and closed-loop, and second-molecule force records remain historical or unrun.",
+  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating execution heads and runtime-source equivalence references are recorded separately; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries plus one 2-acetoxyethyl-acetate source-geometry analytic-force canary, its one-component Cartesian finite-difference pair, and central C-C torsion pairs at +/-1.0, +/-0.5, and +/-0.25 degree were evaluated against recorded runtime-code-equivalent sources. The 0.25-degree energy points are valid, but the pre-registered three-step smooth second-order asymptotic test failed. The flexible four-geometry, closed-loop, and second-molecule force records remain historical.",
   "status": "frozen-bounded-pilot"
 }

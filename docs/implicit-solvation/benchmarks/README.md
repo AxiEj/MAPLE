@@ -106,16 +106,32 @@ converge in 18 iterations with no PCMSolver or legacy `primary` warnings; the
 \(0.5^\circ\) runner wrote both immutable point records before a NumPy-Boolean
 JSON serialization error, so a read-only finalizer validated those records and
 no scientific energy was rerun. The two steps establish a bounded refinement
-trend, not an asymptotic convergence order. The four-geometry flexible panel,
-third-step/asymptotic torsion and closed-loop panel, and second-molecule force
-evidence remain historical or unrun. The JSON freezes the reviewed numerical
-ledger and arithmetic checks.
+trend, not an asymptotic convergence order.
+
+The third pre-registered \(\pm0.25^\circ\) pair gives
+`0.0451675753 eV/rad`; its analytic discrepancy falls to
+`3.88594e-5 eV/rad` (`0.0860%`). Both roots converge in 18 iterations with no
+PCMSolver or legacy `primary` warnings. However, the \(0.5^\circ\)-to-
+\(0.25^\circ\) drift is `6.21634e-5 eV/rad`, not smaller than the preceding
+`6.07221e-5 eV/rad`, and the observed central-difference order is `-0.0338`.
+The pre-registered `1.5--2.5` smooth second-order gate therefore fails. The
+runner's exit 1 records that scientific failure after both results were
+written; it is not an execution failure. The `148.50 s` wall time is not a
+speed claim.
+
+Component decomposition gives order `2.008` for gas MACE and `2.001` for CDS,
+but only `0.544` for solvent-intrinsic MACE and `0.212` for PCM polarization.
+The failing behavior is localized to the self-consistent electrostatic
+coupling block, while its precise density/operator/cavity cause remains open.
+The four-geometry flexible panel, closed-loop panel, and second-molecule force
+evidence remain historical. The JSON freezes the reviewed numerical ledger,
+including the failed pre-registered gate, and arithmetic checks.
 
 The converged MLIP--PCM/SMD total derivative is now implemented for the
 explicit pyddx/PySCF single-point candidate. The next primary milestone is a
-third current-runtime step on the same locked torsion to probe whether an
-asymptotic refinement regime is present. Only then should the bounded closed
-loop, a second flexible molecule, broader relaxed-path continuity, and
-short-NVE energy conservation be rerun.
+separately pre-registered component/reproducibility diagnostic of the failed
+self-consistent electrostatic refinement. Do not add another finer step,
+retune the gate, rerun the bounded closed loop, or advance to a second flexible
+molecule or short-NVE conservation until that cause is resolved.
 Running more FreeSolv records must not displace those PES gates, while the
 bounded QM-fidelity panel must not be promoted into a broad accuracy claim.

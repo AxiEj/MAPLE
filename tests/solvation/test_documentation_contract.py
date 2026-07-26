@@ -192,32 +192,35 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "finite difference is `0.7570030893 eV/angstrom`" in normalized_overview
     assert "0.0451054120 eV/rad" in normalized_overview
     assert "0.0450446898 eV/rad" in normalized_overview
+    assert "0.0451675753 eV/rad" in normalized_overview
     assert (
-        "one Cartesian component and one internal-coordinate component on one "
-        "conformer, with a bounded two-step refinement trend"
+        "pre-registered smooth second-order refinement test **fails**"
         in normalized_overview
     )
+    assert "does not yet distinguish density response" in normalized_overview
     assert "without rerunning either energy" in normalized_overview
     assert "0.04520643472551838 eV/rad" in formulas
     assert "0.04510541195057784 eV/rad" in formulas
     assert "0.04504468982867865 eV/rad" in formulas
+    assert "0.04516757532134049 eV/rad" in formulas
     assert "no scientific energy evaluation was rerun" in normalized_formulas
     assert "evidence-generating execution heads" in benchmark
     assert "runtime-equivalence reference head" in benchmark
-    assert "bounded refinement trend, not an asymptotic convergence order" in (
+    assert "pre-registered `1.5--2.5` smooth second-order gate therefore fails" in (
         normalized_benchmark
     )
     assert "predeclared three-step validation" in validation
     assert "cannot retroactively overwrite" in normalized_validation
     assert (
-        "two current steps establish a bounded refinement trend, not an "
-        "asymptotic convergence order"
+        "pre-registered asymptotic-order validation nevertheless has "
+        "`status=fail`"
         in normalized_validation
     )
+    assert "self-consistent electrostatic coupling block" in normalized_validation
     assert "oriented loop force work" in normalized_validation
     assert "Broader flexible-geometry continuity" in roadmap
     assert "historical local two-torsion closed loop" in normalized_roadmap
     assert (
-        "next bounded gate is a third current-runtime step size"
+        "next bounded gate is a separately pre-registered diagnosis"
         in normalized_roadmap
     )

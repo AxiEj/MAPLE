@@ -681,8 +681,33 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     error. The current \(1.0^\circ\) finite difference reproduces the
     historical oracle within \(9.54\times10^{-15}\) eV/rad. Its `151.35 s`
     wall time is not a performance claim. These two current steps establish a
-    bounded refinement trend, not an asymptotic convergence order; a third
-    current-runtime step remains required.
+    bounded refinement trend, not an asymptotic convergence order.
+
+    The third pre-registered pair at \(\pm0.25^\circ\) is now complete.
+    Correction energies `-0.33969248904996924` and
+    `-0.3400866505022192 eV` give
+    `0.04516757532134049 eV/rad`, only
+    \(3.88594\times10^{-5}\) eV/rad (\(0.0860\%\)) from the analytic
+    generalized force. Both energy-only roots converge in 18 iterations;
+    formula, geometry, PCMSolver-warning, and legacy-`primary` gates all pass.
+    Their `148.50 s` outer wall time is not a performance claim.
+
+    The pre-registered asymptotic-order validation nevertheless has
+    `status=fail`. The finite-difference drift increases from
+    \(6.07221\times10^{-5}\) to
+    \(6.21634\times10^{-5}\) eV/rad after the second halving, producing
+    observed order `-0.03384` rather than the locked `1.5--2.5` range. The
+    runner's exit 1 records these failed gates after both immutable results
+    were written; it is not an execution or serialization failure. Thresholds
+    were not changed and the points were not rerun.
+
+    Read-only component decomposition gives orders `2.008` for gas MACE and
+    `2.001` for CDS, versus `0.544` for solvent-intrinsic MACE, `0.535` for
+    \(\Delta E_{\mathrm{solute}}\), and `0.212` for
+    \(U_{\mathrm{pol}}\). The failure is therefore localized to the
+    self-consistent electrostatic coupling block, not gas MACE or CDS. The
+    current evidence does not yet distinguish density response from
+    continuum-operator/cavity geometry response.
 
     The predeclared three-step validation for a second C--O torsion retains
     `status=fail`: its coarse-to-middle absolute error and step drift were not
@@ -701,12 +726,13 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     rotation audit with two resolved torsional generalized forces.
 
     The source-geometry analytic force, one Cartesian finite-difference
-    displacement pair, and one central C--C torsion at two step sizes are
-    current-runtime aligned. The third/asymptotic torsion step, bounded
-    two-dimensional loop, and second-molecule center point remain historical
-    or unrun. These local derivative checks still do not establish global
-    flexible-geometry continuity, relaxed-PES behavior, QM-force fidelity, or
-    short-NVE energy conservation.
+    displacement pair, and one central C--C torsion at three step sizes are
+    current-runtime aligned. The third pair is valid, but its pre-registered
+    smooth second-order asymptotic test failed. The bounded two-dimensional
+    loop and second-molecule center point remain historical. These local
+    derivative checks still do not establish global flexible-geometry
+    continuity, relaxed-PES behavior, QM-force fidelity, or short-NVE energy
+    conservation.
 31. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 

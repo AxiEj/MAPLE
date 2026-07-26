@@ -482,11 +482,58 @@ oracle within \(9.54\times10^{-15}\) eV/rad and
 zero. The pair took `151.35 s` total wall time, which is not a performance
 claim.
 
-These two step sizes establish a bounded error-refinement trend only. They do
-not determine an asymptotic convergence order, a multi-point path, the
-historical closed loop, a second molecule, relaxed-path continuity, QM-force
-fidelity, or NVE conservation. A third current-runtime step is required before
-making a step-size-convergence claim.
+A third pre-registered pair evaluated
+\(\theta=\pm0.25^\circ\). Its correction energies were
+`-0.33969248904996924` and `-0.3400866505022192 eV`, again after 18 root
+iterations each, yielding
+`0.04516757532134049 eV/rad`. Its analytic discrepancy decreases to
+\(3.88594\times10^{-5}\) eV/rad, or \(8.5960\times10^{-4}\) relative.
+These point-level accuracy gates pass, as do exact-geometry, formula-closure,
+and warning gates.
+
+The pre-registered smooth central-difference refinement gates do not pass.
+The finite-difference changes are
+\[
+\left|D_{0.5}-D_{1.0}\right|
+=6.07221\times10^{-5}\ \mathrm{eV/rad}
+\]
+and
+\[
+\left|D_{0.25}-D_{0.5}\right|
+=6.21634\times10^{-5}\ \mathrm{eV/rad}.
+\]
+Therefore,
+\[
+p_{\mathrm{obs}}
+=\log_2\frac{|D_{0.5}-D_{1.0}|}{|D_{0.25}-D_{0.5}|}
+=-0.03384,
+\]
+outside the pre-registered \(1.5\le p_{\mathrm{obs}}\le2.5\) interval for a
+smooth second-order central difference. The runner correctly exited 1 after
+writing both point records and the failed ledger. This is a scientific gate
+failure, not an execution or serialization failure. The two new evaluations
+took `148.50 s` outer wall time, which is not a performance claim.
+
+The already-computed component energies locate the problem without another
+scientific run:
+
+| component | observed order |
+|---|---:|
+| gas MACE | 2.008 |
+| CDS | 2.001 |
+| solvent-intrinsic MACE | 0.544 |
+| \(\Delta E_{\mathrm{solute}}\) | 0.535 |
+| \(U_{\mathrm{pol}}\) | 0.212 |
+| total \(\Delta G_{\mathrm{solv}}\) | -0.034 |
+
+Gas MACE and CDS therefore exhibit the expected local second-order behavior;
+the non-asymptotic drift is confined to the self-consistent electrostatic
+coupling block. This decomposition does not yet distinguish the MLIP density
+response, continuum operator/cavity geometry response, or their coupling.
+The failed gate must not be overwritten by a finer step. A separately
+pre-registered component/reproducibility diagnosis is required before the
+historical closed loop, second molecule, relaxed-path continuity, QM-force
+fidelity, or NVE conservation can be promoted.
 
 The total agreement contains substantial component cancellation. For acetone,
 \(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and

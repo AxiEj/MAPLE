@@ -235,15 +235,33 @@ iterations with zero PCMSolver or legacy `primary` warnings. The
 run is not a speed claim. The original \(0.5^\circ\) evidence runner exited
 only while serializing a NumPy Boolean after writing both immutable point
 records; a read-only finalizer verified those records without rerunning either
-energy. This establishes one Cartesian component and one internal-coordinate
-component on one conformer, with a bounded two-step refinement trend—not an
-asymptotic convergence order or a flexible-PES certification. The
-four-geometry flexible panel, third-step/asymptotic torsion and closed-loop
-panel, and second-molecule force evidence remain explicitly historical or
-unrun. Broader flexible/relaxed-path continuity, additional chemical classes,
-and complete conformer thermochemistry remain open without changing the named
-profile; the short NVE conservation gate is still unrun. Until those gates
-pass, optimization, scans, transition states, and MD remain out of scope.
+energy.
+
+A third pre-registered pair at \(\pm0.25^\circ\) then converged in 18
+iterations per point with correction energies `-0.3396924890` and
+`-0.3400866505 eV`. Its finite-difference generalized force is
+`0.0451675753 eV/rad`, only `3.88594e-5 eV/rad` (`0.0860%`) from the analytic
+value. Nevertheless, the pre-registered smooth second-order refinement test
+**fails**: the finite-difference drift is `6.21634e-5 eV/rad`, slightly larger
+than the preceding `6.07221e-5 eV/rad`, and the observed order is `-0.0338`
+rather than the locked `1.5--2.5` interval. The nonzero runner exit records
+those failed gates after both immutable results were written; it is not an
+execution or serialization failure. PCMSolver and legacy `primary` warning
+counts remain zero, and the `148.50 s` wall time is not a speed claim.
+
+Component central differences localize the failure: gas MACE and CDS show
+orders `2.008` and `2.001`, while solvent-intrinsic MACE and PCM polarization
+show only `0.544` and `0.212`; their coupled total has order `-0.034`. Thus the
+non-asymptotic behavior lies in the self-consistent electrostatic coupling
+block, not the gas MACE geometry response or CDS term, but the evidence does
+not yet distinguish density response from continuum-operator/cavity response.
+No finer step is being used to overwrite this failed gate. The four-geometry
+flexible panel, closed-loop panel, and second-molecule force evidence remain
+historical. Broader flexible/relaxed-path continuity, additional chemical
+classes, and complete conformer thermochemistry remain open without changing
+the named profile; the short NVE conservation gate is still unrun. Until the
+failed asymptotic behavior is diagnosed and the remaining gates pass,
+optimization, scans, transition states, and MD remain out of scope.
 
 See [FORMULAS_AND_REFERENCES.md](FORMULAS_AND_REFERENCES.md) for equations and
 the literature ledger, and [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the

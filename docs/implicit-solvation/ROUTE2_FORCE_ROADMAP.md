@@ -747,16 +747,35 @@ that CDS energy and gradient come from the same selected provider.
    \(0.5^\circ\) reduces the error by
    \(6.07221\times10^{-5}\) eV/rad, to `0.62458` of the coarse-step
    error. Both additional roots converge in 18 iterations and emit zero
-   PCMSolver or legacy `primary` warnings.
+   PCMSolver or legacy `primary` warnings. A third locked pair at
+   \(\pm0.25^\circ\) gives `0.04516757532134049 eV/rad`, reducing the
+   analytic discrepancy to \(3.88594\times10^{-5}\) eV/rad. Both new points
+   converge in 18 iterations with exact formula/geometry closure and no
+   PCMSolver or legacy `primary` warning.
 
-   These checks close one local Cartesian component and establish a bounded
-   two-step torsional refinement trend only; two steps do not establish an
-   asymptotic convergence order. The historical local two-torsion closed loop
-   generated at `5d69ef4` has not been rerun at that head. The next bounded
-   gate is a third current-runtime step size on the same locked torsion to
-   probe the asymptotic regime; only then rerun the bounded loop and
-   second-molecule force, broaden beyond one local rectangle, and run short NVE
-   tests before enabling optimization, scan, TS search, or MD.
+   The three-step smooth second-order gate **fails**. The refinement drifts are
+   \(6.07221\times10^{-5}\) and \(6.21634\times10^{-5}\) eV/rad, so the
+   observed order is `-0.03384`, outside the locked `1.5--2.5` interval.
+   Component orders are `2.008` for gas MACE and `2.001` for CDS, but only
+   `0.544` for solvent-intrinsic MACE and `0.212` for PCM polarization. The
+   failure is therefore in the self-consistent electrostatic coupling block,
+   while density-response versus continuum-operator/cavity causality remains
+   unresolved.
+
+   Do not retune this gate or add another finer point. The next bounded gate is
+   a separately pre-registered diagnosis that:
+
+   1. measures independent-process same-geometry energy reproducibility below
+      the antisymmetric drift scale;
+   2. separates frozen-density, density-response, and continuum
+      operator/cavity-coordinate contributions using the same energy ledger;
+   3. identifies whether the non-\(h^2\) term is numerical noise, an active-set
+      change, or an omitted/mismatched coordinate response.
+
+   The historical local two-torsion closed loop generated at `5d69ef4` must
+   not be promoted or rerun as a production gate until that diagnosis passes.
+   The same applies to second-molecule force, broader relaxed paths, short NVE,
+   optimization, scan, TS search, and MD.
 
 ## Stop condition for the force milestone
 

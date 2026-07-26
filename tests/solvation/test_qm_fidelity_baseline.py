@@ -17,8 +17,11 @@ HISTORICAL_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
 HALF_DEGREE_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
     "3069ef7fef95134e4a3deac50a51267e376a87c2"
 )
-CURRENT_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
+TWO_STEP_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
     "564c5ff492b587a17fd8222d1b965304df76a4c6"
+)
+CURRENT_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
+    "f7a6dea687a94c365848fc3fc11e7f0e2784ace9"
 )
 
 
@@ -110,6 +113,10 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         "torsion_second_step_execution_heads"
     ]
     assert torsion_second_step_execution_heads == force_canary_execution_heads
+    torsion_third_step_execution_heads = runtime_alignment[
+        "torsion_third_step_execution_heads"
+    ]
+    assert torsion_third_step_execution_heads == force_canary_execution_heads
     assert runtime_alignment[
         "force_evidence_confirmed_by_runtime_equivalent_canary"
     ] == [
@@ -120,12 +127,21 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
             "2-acetoxyethyl acetate central C-C torsion second +/-1.0-degree "
             "pair and two-step refinement trend"
         ),
+        (
+            "2-acetoxyethyl acetate central C-C torsion third +/-0.25-degree "
+            "pair with valid converged energy points"
+        ),
+    ]
+    assert runtime_alignment[
+        "force_evidence_failed_pre_registered_validation"
+    ] == [
+        (
+            "2-acetoxyethyl acetate central C-C torsion "
+            "1.0/0.5/0.25-degree smooth second-order asymptotic test"
+        ),
     ]
     assert runtime_alignment["force_evidence_still_historical"] == [
-        (
-            "2-acetoxyethyl acetate third-step/asymptotic torsion convergence "
-            "and closed-loop panel"
-        ),
+        "2-acetoxyethyl acetate closed-loop panel",
         "2-propoxyethanol center force",
     ]
     assert (
@@ -248,7 +264,7 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     force_evidence = flexible_record["source_evidence"]
     assert force_evidence["force_alignment_status"] == (
         "confirmed-by-runtime-equivalent-analytic-force-cartesian-finite-difference-"
-        "and-two-step-torsion-refinement-canaries"
+        "and-three-step-torsion-canaries-with-pre-registered-asymptotic-order-fail"
     )
     assert force_evidence["force_canary_execution_head"] == latest_canary_head
     assert force_evidence["force_runtime_source_equivalence_confirmed"] is True
@@ -575,8 +591,7 @@ def test_qm_fidelity_baseline_recomputes_two_step_torsion_refinement():
     )
     assert (
         refinement["runtime_equivalence_reference_head"]
-        == runtime_alignment["runtime_equivalence_reference_head"]
-        == CURRENT_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
+        == TWO_STEP_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     )
     assert refinement["profile"] == record["route2"]["profile"] == half_step["profile"]
     assert refinement["coordinate"] == half_step["coordinate"]
@@ -740,6 +755,334 @@ def test_qm_fidelity_baseline_recomputes_two_step_torsion_refinement():
         "NVE conservation",
     ):
         assert excluded_claim in refinement["claim_boundary"]
+
+
+def test_qm_fidelity_baseline_recomputes_failed_three_step_torsion_test():
+    baseline = _load_baseline()
+    record = next(
+        item
+        for item in baseline["fixed_conformer_panel"]["records"]
+        if item["name"] == "2-acetoxyethyl acetate"
+    )
+    evidence = record["source_evidence"]
+    force_canary = evidence["runtime_equivalent_force_canary"]
+    half_step = evidence["runtime_equivalent_torsion_single_step"]
+    one_step = evidence["runtime_equivalent_torsion_two_step_refinement"]
+    third_step = evidence[
+        "runtime_equivalent_torsion_three_step_asymptotic_test"
+    ]
+    runtime_alignment = baseline["runtime_source_alignment"]
+
+    assert third_step["status"] == "fail-predeclared-asymptotic-order-gates"
+    assert third_step["scientific_points_valid"] is True
+    assert third_step["pre_registered_validation_passed"] is False
+    assert (
+        third_step["git_head"]
+        == evidence["torsion_third_step_execution_head"]
+        == runtime_alignment["torsion_third_step_execution_heads"][
+            "2-acetoxyethyl acetate"
+        ]
+        == "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
+    )
+    assert (
+        third_step["runtime_equivalence_reference_head"]
+        == runtime_alignment["runtime_equivalence_reference_head"]
+        == CURRENT_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
+    )
+    assert third_step["profile"] == one_step["profile"] == half_step["profile"]
+    assert third_step["coordinate"] == one_step["coordinate"] == half_step[
+        "coordinate"
+    ]
+    assert third_step["steps_degrees"] == [1.0, 0.5, 0.25]
+
+    minus = third_step["minus"]
+    plus = third_step["plus"]
+    for point in (minus, plus):
+        assert point["converged"] is True
+        assert point["forces_evaluated"] is False
+        assert point["root_scf_iterations"] == 18
+        assert point["energy_formula_closure_error_hartree"] <= 1.0e-12
+        assert point["manifest_position_max_error_angstrom"] <= 1.0e-12
+
+    fine_step_radians = math.radians(third_step["fine_step_degrees"])
+    fine_finite_difference = -(
+        plus["correction_energy_ev"] - minus["correction_energy_ev"]
+    ) / (2.0 * fine_step_radians)
+    assert third_step["fine_finite_difference_ev_per_radian"] == pytest.approx(
+        fine_finite_difference,
+        abs=1.0e-14,
+    )
+    analytic = third_step["analytic_generalized_force_ev_per_radian"]
+    assert analytic == pytest.approx(
+        one_step["analytic_generalized_force_ev_per_radian"],
+        abs=1.0e-14,
+    )
+    assert analytic == pytest.approx(
+        half_step["analytic_generalized_force_ev_per_radian"],
+        abs=1.0e-14,
+    )
+    fine_absolute_error = abs(fine_finite_difference - analytic)
+    assert third_step["fine_absolute_error_ev_per_radian"] == pytest.approx(
+        fine_absolute_error,
+        abs=1.0e-15,
+    )
+    fine_relative_error = fine_absolute_error / max(abs(analytic), 1.0e-12)
+    assert third_step["fine_relative_error"] == pytest.approx(
+        fine_relative_error,
+        abs=1.0e-15,
+    )
+    assert fine_absolute_error <= third_step["thresholds"][
+        "fine_maximum_absolute_error_ev_per_radian"
+    ]
+    assert fine_relative_error <= third_step["thresholds"][
+        "fine_maximum_relative_error"
+    ]
+
+    finite_differences = [
+        one_step["one_degree_finite_difference_ev_per_radian"],
+        half_step["finite_difference_generalized_force_ev_per_radian"],
+        fine_finite_difference,
+    ]
+    absolute_errors = [abs(value - analytic) for value in finite_differences]
+    assert third_step["finite_differences_ev_per_radian"] == pytest.approx(
+        finite_differences,
+        abs=1.0e-14,
+    )
+    assert third_step["absolute_errors_ev_per_radian"] == pytest.approx(
+        absolute_errors,
+        abs=1.0e-15,
+    )
+    assert absolute_errors[2] < absolute_errors[1] < absolute_errors[0]
+
+    coarse_to_middle_drift = abs(finite_differences[1] - finite_differences[0])
+    middle_to_fine_drift = abs(finite_differences[2] - finite_differences[1])
+    assert third_step["coarse_to_middle_drift_ev_per_radian"] == pytest.approx(
+        coarse_to_middle_drift,
+        abs=1.0e-15,
+    )
+    assert third_step["middle_to_fine_drift_ev_per_radian"] == pytest.approx(
+        middle_to_fine_drift,
+        abs=1.0e-15,
+    )
+    assert middle_to_fine_drift > coarse_to_middle_drift
+    drift_ratio = coarse_to_middle_drift / middle_to_fine_drift
+    assert third_step[
+        "drift_ratio_coarse_to_middle_over_middle_to_fine"
+    ] == pytest.approx(drift_ratio, abs=1.0e-15)
+    observed_order = math.log2(drift_ratio)
+    assert third_step["observed_central_difference_order"] == pytest.approx(
+        observed_order,
+        abs=1.0e-15,
+    )
+    assert observed_order < third_step["thresholds"][
+        "minimum_observed_central_difference_order"
+    ]
+
+    second_order_richardson = finite_differences[2] + (
+        finite_differences[2] - finite_differences[1]
+    ) / 3.0
+    assert third_step["second_order_richardson_ev_per_radian"] == pytest.approx(
+        second_order_richardson,
+        abs=1.0e-15,
+    )
+    richardson_analytic_error = abs(second_order_richardson - analytic)
+    assert third_step[
+        "richardson_analytic_error_ev_per_radian"
+    ] == pytest.approx(richardson_analytic_error, abs=1.0e-15)
+
+    expected_failed_gates = [
+        "fine_drift_within_threshold",
+        "finite_difference_drift_decreases",
+        "observed_order_consistent_with_central_difference",
+    ]
+    recomputed_gate_results = {
+        "fine_drift_within_threshold": (
+            middle_to_fine_drift
+            <= third_step["thresholds"][
+                "maximum_middle_to_fine_drift_ev_per_radian"
+            ]
+        ),
+        "finite_difference_drift_decreases": (
+            middle_to_fine_drift < coarse_to_middle_drift
+        ),
+        "observed_order_consistent_with_central_difference": (
+            third_step["thresholds"][
+                "minimum_observed_central_difference_order"
+            ]
+            <= observed_order
+            <= third_step["thresholds"][
+                "maximum_observed_central_difference_order"
+            ]
+        ),
+        "second_order_richardson_matches_analytic_threshold": (
+            richardson_analytic_error
+            <= third_step["thresholds"][
+                "maximum_richardson_analytic_error_ev_per_radian"
+            ]
+        ),
+    }
+    for gate_name, passed in recomputed_gate_results.items():
+        assert third_step["all_gates"][gate_name] is passed
+    assert third_step["failed_pre_registered_gates"] == expected_failed_gates
+    assert sorted(
+        name for name, passed in third_step["all_gates"].items() if not passed
+    ) == expected_failed_gates
+    assert third_step["all_gates"][
+        "absolute_error_decreases_across_all_three_steps"
+    ] is True
+    assert third_step["all_gates"][
+        "second_order_richardson_matches_analytic_threshold"
+    ] is True
+
+    components = third_step["component_diagnostic"]
+    component_rows = components["generalized_forces_ev_per_radian"]
+    component_names = tuple(component_rows["1.0"])
+    component_closures = []
+    for step in ("1.0", "0.5", "0.25"):
+        row = component_rows[step]
+        assert tuple(row) == component_names
+        component_closures.append(
+            row["delta_g_solv"]
+            - row["solute_polarization"]
+            - row["pcm_polarization"]
+            - row["cds"]
+            - row["standard_state"]
+        )
+        component_closures.append(
+            row["solvent_intrinsic_minus_gas"] - row["solute_polarization"]
+        )
+        component_closures.append(
+            row["solvent_intrinsic_minus_gas"]
+            - row["solvent_intrinsic_mace_energy_ev"]
+            + row["gas_mace_energy_ev"]
+        )
+    recomputed_component_orders = {}
+    for component_name in component_names:
+        coarse_to_middle_signed = (
+            component_rows["0.5"][component_name]
+            - component_rows["1.0"][component_name]
+        )
+        middle_to_fine_signed = (
+            component_rows["0.25"][component_name]
+            - component_rows["0.5"][component_name]
+        )
+        stored_drifts = components["signed_refinement_drifts_ev_per_radian"][
+            component_name
+        ]
+        assert stored_drifts["1.0_to_0.5"] == pytest.approx(
+            coarse_to_middle_signed,
+            abs=1.0e-15,
+        )
+        assert stored_drifts["0.5_to_0.25"] == pytest.approx(
+            middle_to_fine_signed,
+            abs=1.0e-15,
+        )
+        if coarse_to_middle_signed == middle_to_fine_signed == 0.0:
+            recomputed_component_orders[component_name] = None
+        else:
+            recomputed_component_orders[component_name] = math.log2(
+                abs(coarse_to_middle_signed / middle_to_fine_signed)
+            )
+        stored_order = components["observed_orders"][component_name]
+        if stored_order is None:
+            assert recomputed_component_orders[component_name] is None
+        else:
+            assert stored_order == pytest.approx(
+                recomputed_component_orders[component_name],
+                abs=2.0e-10,
+            )
+    component_orders = components["observed_orders"]
+    assert 1.5 <= component_orders["gas_mace_energy_ev"] <= 2.5
+    assert 1.5 <= component_orders["cds"] <= 2.5
+    assert component_orders["solvent_intrinsic_mace_energy_ev"] < 1.0
+    assert component_orders["pcm_polarization"] < 1.0
+    assert component_orders["delta_g_solv"] == pytest.approx(
+        observed_order,
+        abs=2.0e-10,
+    )
+    maximum_component_closure = max(abs(value) for value in component_closures)
+    assert components["closure_maximum_absolute_ev_per_radian"] == pytest.approx(
+        maximum_component_closure,
+        abs=1.0e-18,
+    )
+    assert "self-consistent electrostatic coupling block" in components["finding"]
+    assert "does not distinguish" in components["causal_boundary"]
+
+    assert third_step["pcmsolver_warning_count"] == 0
+    assert third_step["legacy_label_noise_count"] == 0
+    assert third_step["permitted_dependency_warning_count"] == 1
+    assert third_step["runner_exit"] == 1
+    assert "not an execution or serialization failure" in third_step[
+        "runner_exit_interpretation"
+    ]
+    assert third_step["internal_new_energy_points_seconds"] > 0.0
+    assert third_step["total_wall_seconds"] > 0.0
+    assert third_step["used_for_timing_claim"] is False
+
+    for hash_name in (
+        "alignment_report_sha256",
+        "analytic_force_canary_sha256",
+        "current_half_step_result_sha256",
+        "current_one_step_result_sha256",
+        "minus_audit_sha256",
+        "minus_manifest_sha256",
+        "minus_output_sha256",
+        "mol2_sha256",
+        "plus_audit_sha256",
+        "plus_manifest_sha256",
+        "plus_output_sha256",
+        "pre_result_lock_sha256",
+        "runner_exitcode_sha256",
+        "runner_sha256",
+        "runner_stderr_sha256",
+        "runner_stdout_sha256",
+        "runner_time_sha256",
+        "sha256",
+    ):
+        _assert_sha256(third_step[hash_name])
+    for path_name, suffix in (
+        ("path", ".json"),
+        ("alignment_report_path", ".alignment.json"),
+        ("analytic_force_canary_path", "2acetoxyethyl-acetate-force-d72dfba.json"),
+        (
+            "current_half_step_result_path",
+            "2acetoxyethyl-acetate-torsion-cc-deg0p5-d72dfba.json",
+        ),
+        (
+            "current_one_step_result_path",
+            "2acetoxyethyl-acetate-torsion-cc-deg1p0-d72dfba.json",
+        ),
+        ("minus_audit_path", ".minus.audit.json"),
+        ("minus_manifest_path", ".minus.manifest.json"),
+        ("minus_output_path", ".minus.out"),
+        ("plus_audit_path", ".plus.audit.json"),
+        ("plus_manifest_path", ".plus.manifest.json"),
+        ("plus_output_path", ".plus.out"),
+        ("pre_result_lock_path", ".lock.json"),
+        ("runner_exitcode_path", ".runner.exitcode"),
+        ("runner_path", ".runner.py"),
+        ("runner_stderr_path", ".runner.stderr.log"),
+        ("runner_stdout_path", ".runner.stdout.log"),
+        ("runner_time_path", ".runner.time.txt"),
+    ):
+        assert third_step[path_name].startswith(".omx/benchmarks/")
+        assert third_step[path_name].endswith(suffix)
+    assert third_step["analytic_force_canary_sha256"] == force_canary["sha256"]
+    assert third_step["current_half_step_result_sha256"] == half_step["sha256"]
+    assert third_step["current_one_step_result_sha256"] == one_step["sha256"]
+    assert third_step["mol2_sha256"] == force_canary["mol2_sha256"]
+
+    assert "Root cause remains unresolved" in third_step["interpretation"]
+    for excluded_claim in (
+        "Do not retune thresholds",
+        "closed-loop",
+        "second-molecule",
+        "optimization",
+        "NVE",
+        "QM-force",
+        "speed certification",
+    ):
+        assert excluded_claim in third_step["claim_boundary"]
 
 
 def test_qm_fidelity_baseline_recomputes_bounded_electronic_ensemble():

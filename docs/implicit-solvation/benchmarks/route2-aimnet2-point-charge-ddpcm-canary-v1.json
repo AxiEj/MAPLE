@@ -1,5 +1,6 @@
 {
   "artifact": "route2-aimnet2-point-charge-ddpcm-canary-v1",
+  "execution_git_head": "37c3ed715c63c80045c2362a1580fdb503321344",
   "charge_output_parameters": {
     "padded_sentinel_tolerance_e": 1e-06,
     "projection": "uniform-affine-float-residue-only",

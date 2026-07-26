@@ -1,4 +1,4 @@
-"""Optional ddPCM reaction map for atom-centred MACE-POLAR multipoles.
+"""Optional ddPCM/ddCOSMO maps for atom-centred MACE-POLAR multipoles.
 
 This research adapter keeps one mathematical object responsible for the
 fixed-geometry reaction map, its discrete adjoint, polarization energy, and
@@ -7,7 +7,10 @@ surface-MEP/ASC provider contract because ddX natively accepts atom-centred
 multipoles.
 
 ``pyddx`` is imported lazily and version-gated.  The adapter is wired only into
-the explicit, non-default experimental Route-2 single-point force candidate.
+explicit, non-default experimental Route-2 research paths.  pyddx 0.8.0
+returns unscaled COSMO quantities, so the host applies ``(epsilon-1)/epsilon``
+to the energy, reaction map, and coordinate derivative as one inseparable
+physical factor.
 """
 
 from __future__ import annotations
@@ -15,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import importlib
 import math
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 from ase.units import Bohr, Hartree
@@ -29,6 +32,7 @@ from .route2_derivative import (
 )
 
 TESTED_PYDDX_VERSION = "0.8.0"
+_SUPPORTED_CONTINUUM_MODELS = frozenset({"pcm", "cosmo"})
 
 
 @dataclass(frozen=True)
@@ -44,7 +48,7 @@ def _load_pyddx_runtime() -> _PyDDXRuntime:
         module = importlib.import_module("pyddx")
     except ImportError as exc:
         raise RuntimeError(
-            "The optional ddPCM Route-2 research adapter requires "
+            "The optional pyddx Route-2 research adapter requires "
             f"pyddx {TESTED_PYDDX_VERSION}; MAPLE does not install it "
             "as a core dependency."
         ) from exc
@@ -58,7 +62,7 @@ def _require_tested_pyddx_version(version: object) -> str:
     normalized = str(version)
     if normalized != TESTED_PYDDX_VERSION:
         raise RuntimeError(
-            "The optional ddPCM Route-2 research adapter is tested only "
+            "The optional pyddx Route-2 research adapter is tested only "
             f"with pyddx {TESTED_PYDDX_VERSION}; received {normalized}."
         )
     return normalized
@@ -110,8 +114,8 @@ def mace_polar_density_to_pyddx_multipoles(
     return multipoles
 
 
-class PyDDXPCMReactionFieldLinearMap:
-    """Reciprocal ddPCM map and complete position VJP for MACE multipoles."""
+class PyDDXReactionFieldLinearMap:
+    """Reciprocal pyddx map and complete position VJP for MACE multipoles."""
 
     reciprocal_energy_pairing = True
     full_position_derivative_contract_version = (
@@ -123,6 +127,7 @@ class PyDDXPCMReactionFieldLinearMap:
         positions_angstrom: np.ndarray,
         radii_angstrom: np.ndarray,
         *,
+        continuum_model: Literal["pcm", "cosmo"],
         dielectric: float,
         lmax: int,
         n_lebedev: int,
@@ -131,6 +136,13 @@ class PyDDXPCMReactionFieldLinearMap:
         eta: float = 0.1,
         _runtime: _PyDDXRuntime | None = None,
     ) -> None:
+        normalized_model = str(continuum_model).strip().lower()
+        if normalized_model not in _SUPPORTED_CONTINUUM_MODELS:
+            raise ValueError(
+                "continuum_model must be either 'pcm' or 'cosmo'; "
+                f"received {continuum_model!r}."
+            )
+        method_label = "ddPCM" if normalized_model == "pcm" else "ddCOSMO"
         positions = np.asarray(positions_angstrom, dtype=float)
         if (
             positions.ndim != 2
@@ -153,36 +165,48 @@ class PyDDXPCMReactionFieldLinearMap:
             )
         dielectric_value = float(dielectric)
         if not math.isfinite(dielectric_value) or dielectric_value <= 1.0:
-            raise ValueError("ddPCM dielectric must be finite and greater than 1.")
+            raise ValueError(
+                f"{method_label} dielectric must be finite and greater than 1."
+            )
         if (
             isinstance(lmax, bool)
             or not isinstance(lmax, (int, np.integer))
             or int(lmax) < 1
         ):
-            raise ValueError("ddPCM lmax must be an integer of at least 1.")
+            raise ValueError(
+                f"{method_label} lmax must be an integer of at least 1."
+            )
         if (
             isinstance(n_lebedev, bool)
             or not isinstance(n_lebedev, (int, np.integer))
             or int(n_lebedev) <= 0
         ):
-            raise ValueError("ddPCM n_lebedev must be a positive integer.")
+            raise ValueError(
+                f"{method_label} n_lebedev must be a positive integer."
+            )
         if (
             isinstance(n_proc, bool)
             or not isinstance(n_proc, (int, np.integer))
             or int(n_proc) <= 0
         ):
-            raise ValueError("ddPCM n_proc must be a positive integer.")
+            raise ValueError(
+                f"{method_label} n_proc must be a positive integer."
+            )
         tolerance = float(solver_tolerance)
         if not math.isfinite(tolerance) or tolerance <= 0.0:
-            raise ValueError("ddPCM solver_tolerance must be finite and positive.")
+            raise ValueError(
+                f"{method_label} solver_tolerance must be finite and positive."
+            )
         eta_value = float(eta)
         if not math.isfinite(eta_value) or not 0.0 <= eta_value <= 1.0:
-            raise ValueError("ddPCM eta must be finite and lie in [0, 1].")
+            raise ValueError(
+                f"{method_label} eta must be finite and lie in [0, 1]."
+            )
 
         runtime = _load_pyddx_runtime() if _runtime is None else _runtime
         version = _require_tested_pyddx_version(runtime.version)
         model = runtime.module.Model(
-            "pcm",
+            normalized_model,
             (positions / Bohr).T,
             radii / Bohr,
             dielectric_value,
@@ -195,10 +219,13 @@ class PyDDXPCMReactionFieldLinearMap:
             enable_force=True,
         )
         if int(getattr(model, "n_spheres", -1)) != positions.shape[0]:
-            raise RuntimeError("pyddx ddPCM model returned an invalid sphere count.")
+            raise RuntimeError(
+                f"pyddx {method_label} model returned an invalid sphere count."
+            )
         if getattr(model, "has_force_enabled", False) is not True:
             raise RuntimeError(
-                "pyddx ddPCM model did not enable analytic coordinate derivatives."
+                f"pyddx {method_label} model did not enable analytic "
+                "coordinate derivatives."
             )
         backend_n_proc = getattr(model, "n_proc", None)
         if (
@@ -207,15 +234,28 @@ class PyDDXPCMReactionFieldLinearMap:
             or int(backend_n_proc) != int(n_proc)
         ):
             raise RuntimeError(
-                "pyddx ddPCM model did not retain the requested thread count."
+                f"pyddx {method_label} model did not retain the requested "
+                "thread count."
             )
 
         self._runtime = runtime
         self._version = version
         self._model = model
+        self._continuum_model = normalized_model
+        self._method_label = method_label
         self._positions_angstrom = positions.copy()
         self._radii_angstrom = radii.copy()
         self._dielectric = dielectric_value
+        self._dielectric_scaling = (
+            1.0
+            if normalized_model == "pcm"
+            else (dielectric_value - 1.0) / dielectric_value
+        )
+        self._dielectric_scaling_source = (
+            "native-pyddx-pcm"
+            if normalized_model == "pcm"
+            else "pyddx-0.8.0-host-applied-(epsilon-1)/epsilon"
+        )
         self._lmax = int(lmax)
         self._n_lebedev = int(n_lebedev)
         self._n_proc = int(backend_n_proc)
@@ -234,7 +274,11 @@ class PyDDXPCMReactionFieldLinearMap:
         return {
             "backend": "pyddx",
             "pyddx_version": self._version,
-            "model": "pcm",
+            "model": self._continuum_model,
+            "method": self._method_label,
+            "dielectric": self._dielectric,
+            "dielectric_scaling": self._dielectric_scaling,
+            "dielectric_scaling_source": self._dielectric_scaling_source,
             "lmax": self._lmax,
             "n_lebedev": self._n_lebedev,
             "solver_tolerance": self._solver_tolerance,
@@ -282,7 +326,8 @@ class PyDDXPCMReactionFieldLinearMap:
         psi = np.asarray(self._model.multipole_psi(multipoles), dtype=float)
         if not np.all(np.isfinite(phi)) or not np.all(np.isfinite(psi)):
             raise RuntimeError(
-                "pyddx ddPCM source construction returned non-finite data."
+                f"pyddx {self._method_label} source construction returned "
+                "non-finite data."
             )
 
         state = self._scf_state if warm_start else None
@@ -305,7 +350,8 @@ class PyDDXPCMReactionFieldLinearMap:
             state.solve(self._solver_tolerance)
             if not np.all(np.isfinite(np.asarray(state.x, dtype=float))):
                 raise RuntimeError(
-                    "pyddx ddPCM forward solution contains non-finite data."
+                    f"pyddx {self._method_label} forward solution contains "
+                    "non-finite data."
                 )
             if solve_adjoint:
                 if warm_start and self._scf_state_has_adjoint_solution:
@@ -317,7 +363,8 @@ class PyDDXPCMReactionFieldLinearMap:
                     self._scf_state_has_adjoint_solution = True
                 if not np.all(np.isfinite(np.asarray(state.xi, dtype=float))):
                     raise RuntimeError(
-                        "pyddx ddPCM adjoint solution contains non-finite data."
+                        f"pyddx {self._method_label} adjoint solution contains "
+                        "non-finite data."
                     )
         except Exception:
             if warm_start:
@@ -342,9 +389,11 @@ class PyDDXPCMReactionFieldLinearMap:
             solve_adjoint=False,
             warm_start=warm_start,
         )
-        energy = float(state.energy())
+        energy = self._dielectric_scaling * float(state.energy())
         if not math.isfinite(energy):
-            raise RuntimeError("pyddx ddPCM polarization energy is non-finite.")
+            raise RuntimeError(
+                f"pyddx {self._method_label} polarization energy is non-finite."
+            )
         return energy
 
     def polarization_energy_hartree(
@@ -389,7 +438,7 @@ class PyDDXPCMReactionFieldLinearMap:
         basis_density = np.zeros_like(density)
         # These basis calls differentiate the two source maps after exactly one
         # forward and one adjoint continuum solve; they are not 4N additional
-        # ddPCM solves.  Recomputing the cheap source projections avoids
+        # continuum solves. Recomputing the cheap source projections avoids
         # retaining O(4N * (n_cav + N*n_basis)) geometry-sized arrays.
         for flat_index in range(density.size):
             basis_density.fill(0.0)
@@ -410,18 +459,22 @@ class PyDDXPCMReactionFieldLinearMap:
                 float(np.vdot(basis_psi, forward_solution))
                 - float(np.vdot(basis_phi, adjoint_solution))
             )
-        gradient = gradient.reshape(density.shape)
+        gradient = self._dielectric_scaling * gradient.reshape(density.shape)
         if not np.all(np.isfinite(gradient)):
-            raise RuntimeError("pyddx ddPCM reaction field contains non-finite data.")
+            raise RuntimeError(
+                f"pyddx {self._method_label} reaction field contains "
+                "non-finite data."
+            )
 
-        energy = float(state.energy())
+        energy = self._dielectric_scaling * float(state.energy())
         paired_energy = 0.5 * float(np.vdot(density, gradient))
         scale = max(1.0, abs(energy), abs(paired_energy))
         relative_error = abs(paired_energy - energy) / scale
         allowed_error = max(100.0 * self._solver_tolerance, 1.0e-10)
         if not math.isfinite(energy) or relative_error > allowed_error:
             raise RuntimeError(
-                "pyddx ddPCM reaction field failed the polarization-energy "
+                f"pyddx {self._method_label} reaction field failed the "
+                "polarization-energy "
                 f"identity (relative error {relative_error:.3e})."
             )
         return gradient
@@ -488,13 +541,14 @@ class PyDDXPCMReactionFieldLinearMap:
             np.isfinite(coordinate_gradient)
         ):
             raise RuntimeError(
-                "pyddx ddPCM coordinate derivative must be finite with shape "
+                f"pyddx {self._method_label} coordinate derivative must be "
+                "finite with shape "
                 f"{expected_shape}; received {coordinate_gradient.shape}."
             )
 
         # Despite the upstream "force" method names, the pyddx 0.8.0 test
         # suite defines this returned array by central dE/dR finite differences.
-        return coordinate_gradient.T
+        return self._dielectric_scaling * coordinate_gradient.T
 
     def full_position_vjp(
         self,
@@ -521,8 +575,70 @@ class PyDDXPCMReactionFieldLinearMap:
         return 0.5 * (gradient_plus - gradient_minus) * Hartree / Bohr
 
 
+class PyDDXPCMReactionFieldLinearMap(PyDDXReactionFieldLinearMap):
+    """Compatibility wrapper selecting the pyddx ddPCM equation."""
+
+    def __init__(
+        self,
+        positions_angstrom: np.ndarray,
+        radii_angstrom: np.ndarray,
+        *,
+        dielectric: float,
+        lmax: int,
+        n_lebedev: int,
+        n_proc: int = 1,
+        solver_tolerance: float = 1.0e-10,
+        eta: float = 0.1,
+        _runtime: _PyDDXRuntime | None = None,
+    ) -> None:
+        super().__init__(
+            positions_angstrom,
+            radii_angstrom,
+            continuum_model="pcm",
+            dielectric=dielectric,
+            lmax=lmax,
+            n_lebedev=n_lebedev,
+            n_proc=n_proc,
+            solver_tolerance=solver_tolerance,
+            eta=eta,
+            _runtime=_runtime,
+        )
+
+
+class PyDDXCOSMOReactionFieldLinearMap(PyDDXReactionFieldLinearMap):
+    """pyddx ddCOSMO equation with host-applied finite-dielectric scaling."""
+
+    def __init__(
+        self,
+        positions_angstrom: np.ndarray,
+        radii_angstrom: np.ndarray,
+        *,
+        dielectric: float,
+        lmax: int,
+        n_lebedev: int,
+        n_proc: int = 1,
+        solver_tolerance: float = 1.0e-10,
+        eta: float = 0.1,
+        _runtime: _PyDDXRuntime | None = None,
+    ) -> None:
+        super().__init__(
+            positions_angstrom,
+            radii_angstrom,
+            continuum_model="cosmo",
+            dielectric=dielectric,
+            lmax=lmax,
+            n_lebedev=n_lebedev,
+            n_proc=n_proc,
+            solver_tolerance=solver_tolerance,
+            eta=eta,
+            _runtime=_runtime,
+        )
+
+
 __all__ = [
     "TESTED_PYDDX_VERSION",
+    "PyDDXCOSMOReactionFieldLinearMap",
     "PyDDXPCMReactionFieldLinearMap",
+    "PyDDXReactionFieldLinearMap",
     "mace_polar_density_to_pyddx_multipoles",
 ]

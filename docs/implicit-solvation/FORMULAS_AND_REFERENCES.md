@@ -1642,11 +1642,12 @@ same-provider reaction-map VJP described above. That fixed-density continuum
 canary is not a total force: the real coupled MACE adjoint, CDS, and public
 provider/invariance gates remain separate.
 
-### Multipole-native ddPCM research boundary
+### Multipole-native pyddx continuum research boundary
 
-`PyDDXPCMReactionFieldLinearMap` is a second, independent research adapter. It
-does not translate ddPCM through the surface-MEP/ASC abstraction: ddX accepts
-the atom-centred MACE-POLAR multipoles directly. For raw MACE coefficients
+`PyDDXReactionFieldLinearMap` owns the common pyddx equation axis, with
+compatibility wrappers selecting ddPCM or ddCOSMO. It does not translate the
+continuum problem through the surface-MEP/ASC abstraction: ddX accepts the
+atom-centred MACE-POLAR multipoles directly. For raw MACE coefficients
 \(\mathbf c_A=[q_A,y_A,z_A,x_A]\), the version-locked conversion to ddX's
 orthonormal real-spherical convention is
 
@@ -1658,7 +1659,24 @@ m_{A,1k}=\frac{c_{A,1k}}
 
 The \(l=1\) component order is unchanged here; Cartesian reordering occurs
 only at MAPLE's external node-field boundary. On a fixed geometry, write the
-reciprocal ddPCM reaction map as \(P_{\mathbf R}\) and
+raw reciprocal pyddx reaction map as \(P^{(m)}_{\mathbf R,\mathrm{raw}}\).
+pyddx 0.8.0 explicitly returns unscaled COSMO energy and derivatives, so MAPLE
+defines one method-wide factor
+
+\[
+s_m =
+\begin{cases}
+1, & m=\mathrm{ddPCM},\\
+(\epsilon-1)/\epsilon, & m=\mathrm{ddCOSMO},
+\end{cases}
+\qquad
+P^{(m)}_{\mathbf R}=s_m P^{(m)}_{\mathbf R,\mathrm{raw}}.
+\]
+
+The same \(s_m\) multiplies scalar energy, reaction-field/adjoint application,
+and coordinate derivative. Scaling only the reported energy would violate the
+half-coupling identity and return forces for a different scalar. With the
+scaled reciprocal map,
 
 \[
 E_{\mathrm{pol}}(\mathbf c;\mathbf R)
@@ -1694,11 +1712,12 @@ identity rather than a partial moving-cavity correction:
 \right].
 \]
 
-Both energy gradients on the right are supplied by the same pyddx ddPCM
-energy/derivative implementation. Although pyddx names the component routines
-`*_force_terms`, its version-0.8.0 upstream test defines their sum against
-positive central \(dE/d\mathbf R\); MAPLE preserves that convention and
-converts hartree/bohr to eV/angstrom only once.
+Both energy gradients on the right are supplied by the same selected pyddx
+continuum energy/derivative implementation. Although pyddx names the component
+routines `*_force_terms`, its version-0.8.0 upstream test defines their sum
+against positive central \(dE/d\mathbf R\); MAPLE preserves that convention,
+applies the method-wide dielectric scaling, and converts hartree/bohr to
+eV/angstrom only once.
 
 A clean fixed-density methanol canary at Route-2 commit `facd956` used pyddx
 0.8.0, `lmax=15`, 770 Lebedev points per sphere, \(\eta=0.1\), zero shift,

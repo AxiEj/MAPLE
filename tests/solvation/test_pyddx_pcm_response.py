@@ -16,7 +16,9 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
 )
 from maple.function.calculator.extra_correction.implicit.pyddx_pcm_response import (
     TESTED_PYDDX_VERSION,
+    PyDDXCOSMOReactionFieldLinearMap,
     PyDDXPCMReactionFieldLinearMap,
+    PyDDXReactionFieldLinearMap,
     _PyDDXRuntime,
     mace_polar_density_to_pyddx_multipoles,
 )
@@ -38,12 +40,13 @@ class _FakeModel:
 
     def __init__(
         self,
-        _model,
+        model,
         sphere_centres,
         sphere_radii,
         solvent_epsilon,
         **_kwargs,
     ):
+        self.model_name = str(model)
         self.options = dict(_kwargs)
         self.n_proc = int(_kwargs["n_proc"])
         self.sphere_centres = np.asarray(sphere_centres, dtype=float)
@@ -190,6 +193,10 @@ def test_mace_density_to_pyddx_multipoles_preserves_l1_order_and_units():
 
 def test_pyddx_reaction_map_apply_adjoint_and_energy_identity(fake_runtime):
     reaction = _reaction_map(fake_runtime)
+    assert reaction._model.model_name == "pcm"
+    assert reaction.runtime_provenance["model"] == "pcm"
+    assert reaction.runtime_provenance["method"] == "ddPCM"
+    assert reaction.runtime_provenance["dielectric_scaling"] == 1.0
     assert reaction._model.options["n_proc"] == 1
     assert reaction.runtime_provenance["n_proc"] == 1
     density = np.asarray([[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]])
@@ -217,6 +224,68 @@ def test_pyddx_reaction_map_apply_adjoint_and_energy_identity(fake_runtime):
     assert float(np.vdot(cotangent, field)) == pytest.approx(
         float(np.vdot(adjoint, density))
     )
+
+
+def test_pyddx_cosmo_scales_energy_field_adjoint_and_position_vjp(
+    fake_runtime,
+):
+    positions = np.asarray([[-0.7, 0.1, 0.2], [0.8, -0.2, -0.1]])
+    radii = np.asarray([1.2, 1.5])
+    dielectric = 78.39
+    common = {
+        "dielectric": dielectric,
+        "lmax": 7,
+        "n_lebedev": 302,
+        "solver_tolerance": 1.0e-12,
+        "_runtime": fake_runtime.runtime,
+    }
+    pcm = PyDDXPCMReactionFieldLinearMap(positions, radii, **common)
+    cosmo = PyDDXCOSMOReactionFieldLinearMap(positions, radii, **common)
+    density = np.asarray(
+        [[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]]
+    )
+    cotangent = np.asarray(
+        [[0.7, -0.4, 0.2, 0.1], [-0.3, 0.6, -0.5, 0.8]]
+    )
+    expected_scale = (dielectric - 1.0) / dielectric
+
+    assert cosmo._model.model_name == "cosmo"
+    assert cosmo.runtime_provenance["model"] == "cosmo"
+    assert cosmo.runtime_provenance["method"] == "ddCOSMO"
+    assert cosmo.runtime_provenance["dielectric_scaling"] == pytest.approx(
+        expected_scale
+    )
+    assert cosmo.runtime_provenance["dielectric_scaling_source"] == (
+        "pyddx-0.8.0-host-applied-(epsilon-1)/epsilon"
+    )
+    assert cosmo.polarization_energy_hartree(density) == pytest.approx(
+        expected_scale * pcm.polarization_energy_hartree(density)
+    )
+    np.testing.assert_allclose(
+        cosmo.apply(density),
+        expected_scale * pcm.apply(density),
+    )
+    np.testing.assert_allclose(
+        cosmo.adjoint(cotangent),
+        expected_scale * pcm.adjoint(cotangent),
+    )
+    np.testing.assert_allclose(
+        cosmo.full_position_vjp(density, cotangent),
+        expected_scale * pcm.full_position_vjp(density, cotangent),
+    )
+
+
+def test_pyddx_generic_map_rejects_unsupported_continuum_model(fake_runtime):
+    with pytest.raises(ValueError, match="continuum_model.*pcm.*cosmo"):
+        PyDDXReactionFieldLinearMap(
+            np.asarray([[-0.7, 0.1, 0.2], [0.8, -0.2, -0.1]]),
+            np.asarray([1.2, 1.5]),
+            continuum_model="cpcm",
+            dielectric=78.39,
+            lmax=7,
+            n_lebedev=302,
+            _runtime=fake_runtime.runtime,
+        )
 
 
 def test_pyddx_reaction_map_passes_and_reports_configured_thread_count(
@@ -659,6 +728,47 @@ def test_real_pyddx_full_position_vjp_matches_same_energy_finite_difference():
         finite_difference,
         abs=2.0e-6,
         rel=2.0e-5,
+    )
+
+
+def test_real_pyddx_pcm_converges_to_scaled_cosmo_at_high_dielectric():
+    pyddx = pytest.importorskip("pyddx")
+    if str(pyddx.__version__) != TESTED_PYDDX_VERSION:
+        pytest.skip("The optional real-runtime canary is version locked.")
+
+    positions = np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]])
+    radii = np.asarray([1.2, 1.5])
+    density = np.asarray(
+        [[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]]
+    )
+    cotangent = np.asarray(
+        [[0.7, -0.4, 0.2, 0.1], [-0.3, 0.6, -0.5, 0.8]]
+    )
+    common = {
+        "dielectric": 1.0e8,
+        "lmax": 7,
+        "n_lebedev": 302,
+        "solver_tolerance": 1.0e-11,
+    }
+    pcm = PyDDXPCMReactionFieldLinearMap(positions, radii, **common)
+    cosmo = PyDDXCOSMOReactionFieldLinearMap(positions, radii, **common)
+
+    assert cosmo.polarization_energy_hartree(density) == pytest.approx(
+        pcm.polarization_energy_hartree(density),
+        abs=5.0e-10,
+        rel=1.0e-8,
+    )
+    np.testing.assert_allclose(
+        cosmo.apply(density),
+        pcm.apply(density),
+        atol=5.0e-8,
+        rtol=1.0e-8,
+    )
+    np.testing.assert_allclose(
+        cosmo.full_position_vjp(density, cotangent),
+        pcm.full_position_vjp(density, cotangent),
+        atol=5.0e-8,
+        rtol=1.0e-7,
     )
 
 

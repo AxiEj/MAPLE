@@ -257,18 +257,20 @@ as an aggregate exclusion rather than being mislabeled as a single-molecule
 Route-2 candidate.
 
 This stage is dataset infrastructure only. It does not run MACE-POLAR, expose
-AIMNet charges, add ddCOSMO, or compare accuracy. AIMNet will first be treated
-as a distinct fixed point-charge baseline; COSMO-RS remains a separate
-sigma-profile/statistical-thermodynamic model family rather than a continuum
-solver switch. The later comparison matrix belongs to benchmark strategy, not
-the MNSol data contract:
+AIMNet charges, or compare accuracy. AIMNet is treated as a distinct fixed
+point-charge baseline. A separately named pyddx ddCOSMO equation adapter now
+exists for bounded equation-axis canaries, but it is not a public profile or
+MNSol accuracy result. COSMO-RS remains a separate sigma-profile/statistical-
+thermodynamic model family rather than a continuum solver switch. The later
+comparison matrix belongs to benchmark strategy, not the MNSol data contract:
 
 - solute-source axis: self-consistent MACE-POLAR coarse residual
   point-\(l\le1\) multipoles versus an AIMNet2 point-\(l=0\) fixed-charge
   baseline;
 - continuum-equation axis: PCMSolver IEFPCM as an energy-only oracle, pyddx
   ddPCM as the current single-point research-force candidate, and pyddx
-  ddCOSMO as a separate planned family;
+  ddCOSMO as a separate optional equation family with host-applied
+  \((\epsilon-1)/\epsilon\) scaling for pyddx 0.8.0;
 - liquid-thermodynamics axis: COSMO-RS only through a separate sigma-profile
   implementation and a matching partition/transfer benchmark, never by
   relabelling a COSMO boundary solver.

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 
 import numpy as np
+
+from artifact_source_binding import (
+    assert_source_files_match_execution_commit,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -14,16 +17,14 @@ ARTIFACT = (
     "route2-aimnet2-point-charge-ddpcm-canary-v1.json"
 )
 
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
 def test_aimnet2_point_charge_canary_is_source_bound_and_claim_bounded():
     artifact = json.loads(ARTIFACT.read_text(encoding="utf-8"))
 
     assert artifact["artifact"] == (
         "route2-aimnet2-point-charge-ddpcm-canary-v1"
+    )
+    assert artifact["execution_git_head"] == (
+        "37c3ed715c63c80045c2362a1580fdb503321344"
     )
     identity = artifact["scientific_identity"]
     assert identity["solute_source"] == "AIMNet2 NQE point-charge-l0"
@@ -48,8 +49,7 @@ def test_aimnet2_point_charge_canary_is_source_bound_and_claim_bounded():
         "reduced_canary_discretization"
     ] is True
 
-    for relative, expected in artifact["source_files_sha256"].items():
-        assert _sha256(ROOT / relative) == expected
+    assert_source_files_match_execution_commit(ROOT, artifact)
 
     records = artifact["records"]
     assert [record["molecule"] for record in records] == [

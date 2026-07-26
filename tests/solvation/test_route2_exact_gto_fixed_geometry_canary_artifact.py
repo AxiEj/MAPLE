@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 
 import numpy as np
+
+from artifact_source_binding import (
+    assert_source_files_match_execution_commit,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -13,11 +16,6 @@ ARTIFACT = (
     / "docs/implicit-solvation/benchmarks/"
     "route2-mace-exact-gto-fixed-geometry-canary-v1.json"
 )
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
 
 def test_exact_gto_fixed_geometry_canary_is_source_bound_and_claim_bounded():
     artifact = json.loads(ARTIFACT.read_text(encoding="utf-8"))
@@ -50,8 +48,7 @@ def test_exact_gto_fixed_geometry_canary_is_source_bound_and_claim_bounded():
         "claim_boundary"
     ]
 
-    for relative, expected in artifact["source_files_sha256"].items():
-        assert _sha256(ROOT / relative) == expected
+    assert_source_files_match_execution_commit(ROOT, artifact)
 
     energy = artifact["public_energy_hartree"]
     np.testing.assert_allclose(

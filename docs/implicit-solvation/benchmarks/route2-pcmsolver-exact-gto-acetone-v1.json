@@ -1,0 +1,451 @@
+{
+  "atomic_center_mean_checkpoint_canary": {
+    "checkpoint": {
+      "identifier": "polar-1-m",
+      "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "size_bytes": 68133235
+    },
+    "gates": {
+      "clean_committed_source": true,
+      "complete_checkpoint_contract": true,
+      "feature_shape": true,
+      "gauge_fixed_exact_density": true,
+      "gauge_fixed_exact_energy": true,
+      "gauge_fixed_features": true,
+      "gauge_fixed_local_density": true,
+      "gauge_fixed_local_energy": true,
+      "gauge_fixed_local_vs_exact_density": true,
+      "gauge_fixed_local_vs_exact_energy": true,
+      "projection_contract": true,
+      "raw_local_vs_raw_exact_density": true,
+      "raw_local_vs_raw_exact_energy": true
+    },
+    "git_head": "d4439554faee67d38427fb4913c20ff3f4e34cad",
+    "metrics": {
+      "gauge_fixed_exact_density_absolute_shift_e": 1.3877787807814457e-16,
+      "gauge_fixed_exact_energy_absolute_shift_ev": 0.0,
+      "gauge_fixed_feature_absolute_value": 0.0,
+      "gauge_fixed_local_density_absolute_shift_e": 2.220446049250313e-16,
+      "gauge_fixed_local_energy_absolute_shift_ev": 0.0,
+      "gauge_fixed_local_field_absolute_value": 0.0,
+      "gauge_fixed_local_vs_exact_density_absolute_error_e": 2.220446049250313e-16,
+      "gauge_fixed_local_vs_exact_energy_absolute_error_ev": 0.0,
+      "model_field_projection_contract": {
+        "contract_version": 1,
+        "feature_layout": "graph-longrange-0.4.0-l0-radial-first-l1-radial-cartesian-v1",
+        "graph_longrange_version": "0.4.0",
+        "receiver_max_l": 1,
+        "receiver_normalization": "receiver",
+        "receiver_sigmas_angstrom": [
+          1.5,
+          3.0
+        ],
+        "upstream_matrix_sha256": "6b529e271d99c63e73dd4ea45c0ed192c2a44ee4e916241867b076a32875d649",
+        "upstream_matrix_shape": [
+          8,
+          4
+        ]
+      },
+      "model_load_seconds": 3.128649869991932,
+      "raw_exact_vs_gas_density_absolute_shift_e": 0.0003175168885794222,
+      "raw_exact_vs_gas_energy_absolute_shift_ev": 0.000354438847352867,
+      "raw_feature_shape": [
+        10,
+        8
+      ],
+      "raw_local_vs_gas_density_absolute_shift_e": 0.0003175168885794777,
+      "raw_local_vs_gas_energy_absolute_shift_ev": 0.0003544388482623617,
+      "raw_local_vs_raw_exact_density_absolute_error_e": 2.220446049250313e-16,
+      "raw_local_vs_raw_exact_energy_absolute_error_ev": 9.094947017729282e-13,
+      "receiver_sigmas_angstrom": [
+        1.5,
+        3.0
+      ]
+    },
+    "status": "pass",
+    "working_tree_clean": true
+  },
+  "claim_boundary": [
+    "One fixed-conformer development molecule is an engineering and mechanism canary only.",
+    "No gate requires improved agreement with experiment; the lower total error may reflect component-error cancellation.",
+    "The solute source is the atom-centred l<=1 coarse residual density represented as point multipoles, not a full QM electron density.",
+    "The nonpolar term is native water SMD-CDS, but the complete hybrid is not strict original SMD.",
+    "The exact and matched local profiles are energy-only; no force, gauge-coordinate derivative, smooth-PES, OPT, TS, scan, or MD claim is permitted.",
+    "No broad chemistry, held-out accuracy, variational consistency, Gaussian source, or second continuum equation was evaluated.",
+    "Timings are local host observations; the second model load was cache-warm and is not a portable performance comparison.",
+    "The checkpoint-bound rerun closes executable provenance only and does not strengthen the one-molecule scientific claim."
+  ],
+  "completed_at_utc": "2026-07-26T20:20:41.874109+00:00",
+  "controlled_axes": {
+    "candidate_model_drive": "exact point-ASC-to-receiver-GTO projection",
+    "cavity": "canonical SMD radii with fixed-stability-branch",
+    "changed_only": "model-driving reaction-field projector",
+    "continuum": "PCMSolver IEFPCM",
+    "control_model_drive": "local-jet",
+    "density_dual_field_gauge": "continuum-zero-at-infinity",
+    "model_field_gauge": "atomic-center-mean-zero-v1",
+    "nonpolar": "native water SMD-CDS",
+    "solute_source": "point-multipole-l1"
+  },
+  "learned_checkpoint": {
+    "identifier": "polar-1-m",
+    "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "size_bytes": 68133235
+  },
+  "matched_gauge_pcm_canary": {
+    "comparison": {
+      "exact_minus_local_absolute_error_kcal_mol": -2.00944631252876,
+      "exact_minus_local_kcal_mol": 2.00944631252876
+    },
+    "gates": {
+      "both_profiles_converge": true,
+      "clean_committed_source": true,
+      "complete_checkpoint_contract": true,
+      "energy_identity_error_ev_max": true,
+      "exact_model_feature_shape": true,
+      "exact_projection_contract": true,
+      "exact_projector": true,
+      "local_model_field_centered": true,
+      "local_model_field_shape": true,
+      "local_projector": true,
+      "native_pcmsolver_warning_count": true,
+      "same_cavity_hash": true,
+      "shared_density_dual_field_gauge": true,
+      "shared_model_field_gauge": true
+    },
+    "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "git_head": "d4439554faee67d38427fb4913c20ff3f4e34cad",
+    "records": [
+      {
+        "absolute_error_kcal_mol": 2.893013327088383,
+        "attempts": [
+          {
+            "cavity_tesserae": 516,
+            "minimum_added_sphere_radius_angstrom": 0.3,
+            "name": "fixed-stability-branch",
+            "pcm_initialization_seconds": 0.14626453899836633,
+            "response_evaluated": true,
+            "response_evaluation_seconds": 2.459869127997081,
+            "stderr_log": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/local-jet-atomic-mean.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+            "tessera_area_angstrom2": 0.28,
+            "warning_detected": false,
+            "warning_stage": null
+          }
+        ],
+        "audit_directory": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/local-jet-atomic-mean.out.implicit",
+        "cavity_areas_sha256": "c385bc837fd6e6f360ffd806e75a98878468da01e7cc1bde1c5a12727dfa755d",
+        "cavity_centers_sha256": "daf77eb1d38a5c47ff0025a59ba56b28488e6dd8ee3d7c1302e2ddaa78d92ea1",
+        "cavity_size": 516,
+        "combined_energy_hartree": -193.15089126738997,
+        "components_kcal_mol": {
+          "cds": 3.5712034339181487,
+          "delta_g_solv": -6.693013327088383,
+          "electrostatic": -10.264216761006532,
+          "pcm_polarization": -11.391904642722213,
+          "solute_polarization": 1.1276878817156815,
+          "standard_state": 0.0
+        },
+        "density_dual_field_gauge": "continuum-zero-at-infinity",
+        "density_residual_inf_e": 6.423222767740211e-06,
+        "energy_identity_error_ev": 9.440846030067411e-17,
+        "graph_longrange_version": null,
+        "iterations": 18,
+        "mace_polar_checkpoint": {
+          "identifier": "polar-1-m",
+          "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+          "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+          "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+          "size_bytes": 68133235
+        },
+        "model_field_feature_shape": null,
+        "model_field_gauge": "atomic-center-mean-zero-v1",
+        "model_field_gauge_reference_ev": -0.16259567654003837,
+        "model_field_projection_contract": null,
+        "model_local_field_shape": [
+          10,
+          4
+        ],
+        "model_local_potential_mean_ev": 2.7755575615628915e-18,
+        "native_pcmsolver_warning_count": 0,
+        "pcmsolver_library": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so",
+        "pcmsolver_python_parser": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/python/pcmsolver/pcmparser.py",
+        "pedra_warning_count": 1,
+        "pedra_warnings": [
+          {
+            "file": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/local-jet-atomic-mean.out.implicit/PEDRA.OUT__1864623",
+            "line": 18,
+            "message": "** WARNING  ** A very poor tesselation has been chosen. It is valuable almost only for testing."
+          }
+        ],
+        "predicted_kcal_mol": -6.693013327088383,
+        "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+        "reaction_field_projector": "local-jet",
+        "signed_error_kcal_mol": -2.893013327088383,
+        "solute_source": "point-multipole-l1",
+        "timing_seconds": {
+          "gas_plus_route2": 3.2407985879981425,
+          "model_load": 3.1970672980096424,
+          "pcm_initialization": 0.14626453899836633,
+          "pcm_response": 2.459869127997081
+        }
+      },
+      {
+        "absolute_error_kcal_mol": 0.883567014559623,
+        "attempts": [
+          {
+            "cavity_tesserae": 516,
+            "minimum_added_sphere_radius_angstrom": 0.3,
+            "name": "fixed-stability-branch",
+            "pcm_initialization_seconds": 0.1448525809973944,
+            "response_evaluated": true,
+            "response_evaluation_seconds": 1.6025383840024006,
+            "stderr_log": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/exact-gto-atomic-mean.out.implicit/pcmsolver-fixed-stability-branch-stderr.log",
+            "tessera_area_angstrom2": 0.28,
+            "warning_detected": false,
+            "warning_stage": null
+          }
+        ],
+        "audit_directory": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/exact-gto-atomic-mean.out.implicit",
+        "cavity_areas_sha256": "c385bc837fd6e6f360ffd806e75a98878468da01e7cc1bde1c5a12727dfa755d",
+        "cavity_centers_sha256": "daf77eb1d38a5c47ff0025a59ba56b28488e6dd8ee3d7c1302e2ddaa78d92ea1",
+        "cavity_size": 516,
+        "combined_energy_hartree": -193.14768901085748,
+        "components_kcal_mol": {
+          "cds": 3.5712034339181487,
+          "delta_g_solv": -4.683567014559623,
+          "electrostatic": -8.254770448477771,
+          "pcm_polarization": -8.333338422796027,
+          "solute_polarization": 0.07856797431825474,
+          "standard_state": 0.0
+        },
+        "density_dual_field_gauge": "continuum-zero-at-infinity",
+        "density_residual_inf_e": 5.275923285252837e-06,
+        "energy_identity_error_ev": 0.0,
+        "graph_longrange_version": "0.4.0",
+        "iterations": 13,
+        "mace_polar_checkpoint": {
+          "identifier": "polar-1-m",
+          "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+          "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+          "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+          "size_bytes": 68133235
+        },
+        "model_field_feature_shape": [
+          10,
+          8
+        ],
+        "model_field_gauge": "atomic-center-mean-zero-v1",
+        "model_field_gauge_reference_ev": -0.17348164480580824,
+        "model_field_projection_contract": {
+          "contract_version": 1,
+          "feature_layout": "graph-longrange-0.4.0-l0-radial-first-l1-radial-cartesian-v1",
+          "graph_longrange_version": "0.4.0",
+          "receiver_max_l": 1,
+          "receiver_normalization": "receiver",
+          "receiver_sigmas_angstrom": [
+            1.5,
+            3.0
+          ],
+          "upstream_matrix_sha256": "6b529e271d99c63e73dd4ea45c0ed192c2a44ee4e916241867b076a32875d649",
+          "upstream_matrix_shape": [
+            8,
+            4
+          ]
+        },
+        "model_local_field_shape": null,
+        "model_local_potential_mean_ev": null,
+        "native_pcmsolver_warning_count": 0,
+        "pcmsolver_library": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so",
+        "pcmsolver_python_parser": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/python/pcmsolver/pcmparser.py",
+        "pedra_warning_count": 1,
+        "pedra_warnings": [
+          {
+            "file": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/exact-gto-atomic-mean.out.implicit/PEDRA.OUT__1864623",
+            "line": 18,
+            "message": "** WARNING  ** A very poor tesselation has been chosen. It is valuable almost only for testing."
+          }
+        ],
+        "predicted_kcal_mol": -4.683567014559623,
+        "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+        "reaction_field_projector": "exact-gto-v1",
+        "signed_error_kcal_mol": -0.883567014559623,
+        "solute_source": "point-multipole-l1",
+        "timing_seconds": {
+          "gas_plus_route2": 1.9163541840098333,
+          "model_load": 0.2526546589942882,
+          "pcm_initialization": 0.1448525809973944,
+          "pcm_response": 1.6025383840024006
+        }
+      }
+    ],
+    "status": "pass",
+    "warning_summary": {
+      "native_pcmsolver_warning_count_total": 0,
+      "pedra_warning_count_per_profile": [
+        1,
+        1
+      ],
+      "pedra_warning_is_non_selection_fatal": true
+    },
+    "working_tree_clean": true
+  },
+  "molecule": {
+    "compound_id": "mobley_3867265",
+    "dataset": "FreeSolv 0.52",
+    "dataset_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+    "dataset_record_sha256": "61f8e4f8778918bf7f6c01c16647cc4c17172765d93c36559d13a7ee62e97aab",
+    "experimental_kcal_mol": -3.8,
+    "experimental_reference": "10.1021/ct050097l",
+    "experimental_uncertainty_kcal_mol": 0.6,
+    "mace_polar_training_overlap": "unknown; this is not a held-out model certification",
+    "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+    "name": "acetone",
+    "partition": "development",
+    "structure_group_sha256": "110ce3a9aea7797d2bbdfe8879d52d03492bed3c8be5fb779691f39723ba9090"
+  },
+  "raw_checkpoint_gauge_diagnostic": {
+    "constant_shift_ev": 0.25,
+    "exact_density_shift_e": 0.0003175168885794222,
+    "exact_energy_shift_ev": 0.000354438847352867,
+    "interpretation": "The raw neutral checkpoint response is not invariant to a constant potential; a model-field gauge is required.",
+    "local_density_shift_e": 0.0003175168885794777,
+    "local_energy_shift_ev": 0.0003544388482623617,
+    "local_vs_exact_density_error_e": 2.220446049250313e-16,
+    "local_vs_exact_energy_error_ev": 9.094947017729282e-13,
+    "source_bound_git_head": "d4439554faee67d38427fb4913c20ff3f4e34cad",
+    "status": "fail"
+  },
+  "rerun_disclosure": {
+    "checkpoint_bound_gauge_canary_runs": 1,
+    "checkpoint_bound_route2_single_points": 2,
+    "earlier_pre_checkpoint_artifacts": "superseded; they did not bind the complete learned checkpoint and are not used as final evidence",
+    "new_scientific_selection_after_observing_results": false,
+    "reason": "Independent review required execution-time binding of the complete MACE-POLAR checkpoint after an earlier source-bound artifact recorded only the projection-matrix fingerprint.",
+    "result_driven_parameter_or_profile_changes": false
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "checkpoint_projection_matrix_sha256": "6b529e271d99c63e73dd4ea45c0ed192c2a44ee4e916241867b076a32875d649",
+    "complete_checkpoint_identifier": "polar-1-m",
+    "complete_checkpoint_release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+    "complete_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "complete_checkpoint_size_bytes": 68133235,
+    "driver": "580.88",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "graph-longrange": "0.4.0",
+    "graph-longrange_vcs_commit": "0e21d5546c482d08388a08eb4d948e833227ce47",
+    "mace-torch": "0.3.16",
+    "numpy": "2.4.6",
+    "pcmsolver_build": "bbd992d54ebeace528cf236dede1f0c56641defb",
+    "python": "3.11.14",
+    "scipy": "1.17.1",
+    "timing_caveat": "The second model load benefited from local process/file caches; compare PCM response times and iteration counts only as host observations, not portable performance claims.",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 3,
+  "scientific_identity": "MACE-POLAR coarse residual point-(l<=1) source + PCMSolver/IEFPCM + atomic-center-mean model-field gauge + local-jet or exact point-ASC-to-receiver-GTO projection + native water SMD-CDS",
+  "source_artifacts": [
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-gauge-acetone-v4-20260727/protocol.json",
+      "sha256": "43977117cc6bbc5a8657322729fc5affa139a7c7d62a4e6ddcf59f390825fe59"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-gauge-acetone-v4-20260727/run.py",
+      "sha256": "f361f432ff0dd1d7ffc302855577642dfe84a2251c7d0f404aa1cc6b817fbb7e"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-gauge-acetone-v4-20260727/results.json",
+      "sha256": "e182d1d7642e3232f33be0557f2327c058c0daa8d917ef53df8ea4f23c42f125"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-gauge-acetone-v4-20260727/run.log",
+      "sha256": "911abfbb263235327e44f46900f624d99131b16d2839c9b9fe080df289262db0"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/protocol.json",
+      "sha256": "9579328f9eb6efc69b1a7f36b614e4652678ec63c1a1d37d72055ff10e3652ad"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/run.py",
+      "sha256": "379b82409614a952fb66cfee2604e0a33329cd1c1376f385fd28e39ac7f17fc8"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/results.json",
+      "sha256": "fddcc5544cad4e4066b70f83e8a3ac18e3ab823f03370be80d5a705f17c673bb"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/run.log",
+      "sha256": "809320a423c41e18692f78ab389296d6cac81a9c7030e666b2070cef3dddc8ee"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/local-jet-atomic-mean.out.implicit/route2-result.json",
+      "sha256": "be9763acf1e3206ba8c901edfb0c2e079cc0949aea8b6585254e1408b63925b0"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/local-jet-atomic-mean.out.implicit/route2-state.npz",
+      "sha256": "ece029c30fc6b2f3aedae1915f3c5843930624d8c21ad7e25babf2fcab4db9d0"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/exact-gto-atomic-mean.out.implicit/route2-result.json",
+      "sha256": "4da65c399a9a5f35dc18e461b5fce993dd2be793559852fb4a898ea24c5c28b7"
+    },
+    {
+      "path": ".omx/benchmarks/route2-exact-gto-checkpoint-bound-acetone-canary-v3-20260727/exact-gto-atomic-mean.out.implicit/route2-state.npz",
+      "sha256": "3358efa7a7e9a7fd2fbf88426f0ae55eb94b52df1be04e0fa1f414916a75ffde"
+    }
+  ],
+  "source_binding": {
+    "empty_worktree_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "executable_source_commit": "d4439554faee67d38427fb4913c20ff3f4e34cad",
+    "executable_source_parent": "bfce1320ce4fcb10c6cb815d346680b549c3c009",
+    "implicit_docs_tree_object": "847fd48ce146229c7383dd06020e148ab0fd9e1e",
+    "maple_tree_object": "0f134176265eb25d18abe1284240c4070a9218b7",
+    "repository_tree_object": "bd1800b87a39b5f633209912486058c3d8007a32",
+    "runtime_source_files": [
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py",
+        "sha256": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/gto_density.py",
+        "sha256": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/gto_field_projection.py",
+        "sha256": "ec54d429882b83c910727ff1ed65a2ccd3eba0f0c50f2050e836ff17aaf64987"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/route2_engine.py",
+        "sha256": "e4a00ec8f6763345dae96cc8c2f8919808deec9effbe79ae16e1d0fef4445957"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/route2_field_state.py",
+        "sha256": "45a25ad2df9285be338dfd2180789d74dc6742dc76f0d774d8ea8580f82cc2c4"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py",
+        "sha256": "743582534041013127c645f89784ab7d878dff7674b875cddccfae8a3aec9936"
+      },
+      {
+        "path": "maple/function/calculator/extra_correction/implicit/smd.py",
+        "sha256": "fb4e4a5a6133917fe9fe7d8943e16d5ea626654a638ced68a959f4dbe587f9f2"
+      },
+      {
+        "path": "maple/function/calculator/mace/_macepol_calculator.py",
+        "sha256": "39e4c5b65acbc694109346530e87f13d41c1776a7245d62d32300b303411f5b9"
+      },
+      {
+        "path": "maple/function/route2_smd_profiles.py",
+        "sha256": "1485999845647b9117dc031b539cda42d17f15e29328651adb56728203c9a88b"
+      }
+    ],
+    "solvation_tests_tree_object": "f62ef76329205ca2d5bfdbda3d090bc5b834fcd1",
+    "working_tree_clean_at_both_runs": true
+  },
+  "status": "pass",
+  "strict_original_smd_equivalence": false
+}

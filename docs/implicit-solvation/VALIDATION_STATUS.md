@@ -878,7 +878,7 @@ Research/Innovation Route, not a complete solution-phase PES.
     one common mean point-ASC potential from the model-driving scalar channel
     only. Under the same constant-field canary, gas-versus-gauge-fixed energy
     shifts became exactly zero and the largest density shift was
-    `6.66e-16 e`; local-jet and exact GTO also agreed to numerical precision.
+    `2.22e-16 e`; local-jet and exact GTO also agreed to numerical precision.
 
     One separately pre-registered fixed-conformer acetone calculation then
     compared only the matched-gauge profiles. Both used the same 516-point
@@ -895,7 +895,7 @@ Research/Innovation Route, not a complete solution-phase PES.
     Local-jet and exact GTO converged in 18 and 13 iterations with density
     residuals `6.42e-6` and `5.28e-6 e`; their half-coupling identity errors
     were below `9.45e-17 eV`. On this host, PCMSolver initialization/response
-    times were `0.150/2.455 s` and `0.147/1.621 s`. The second model load was
+    times were `0.146/2.460 s` and `0.145/1.603 s`. The second model load was
     cache-warm, so neither those timings nor the apparent iteration advantage
     is a portable speed claim. Native PCMSolver warning count was zero; each
     run retained one non-selection-fatal PEDRA poor-tessellation warning.

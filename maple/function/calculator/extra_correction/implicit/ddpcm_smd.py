@@ -12,12 +12,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
-import math
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-from ase.units import Hartree
 
 from ....route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
@@ -28,19 +26,14 @@ from ....route2_smd_profiles import (
     route2_smd_profile_spec,
 )
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
-from .gto_density import external_field_to_density_order
 from .pyddx_pcm_response import PyDDXPCMReactionFieldLinearMap
 from .pyscf_smd_cds import pyscf_smd_water_cds
 from .result import SolvationResult
-from .route2_derivative import (
-    assemble_total_solvation_coordinate_gradient,
-    continuum_coupled_solvation_coordinate_gradient,
-    fixed_cavity_energy_density_gradient,
-)
 from .route2_domain import validate_route2_domain
-from .route2_response import (
-    UnmixedDensityResidualLinearization,
-    solve_adjoint,
+from .route2_engine import (
+    Route2ContinuumEngine,
+    Route2CoupledState,
+    Route2EngineSettings,
 )
 from .smd_cds import route2_water_coulomb_radii
 
@@ -61,6 +54,20 @@ ENERGY_IDENTITY_TOLERANCE_EV = 2.0e-10
 FORCE_STATE_ENERGY_TOLERANCE_EV = 1.0e-9
 NEUTRAL_DENSITY_TOLERANCE = 1.0e-8
 
+_DDPCM_ENGINE_SETTINGS = Route2EngineSettings(
+    continuum_label="ddPCM",
+    scf_mixing=SCF_MIXING,
+    scf_density_tolerance=SCF_DENSITY_TOLERANCE,
+    scf_energy_tolerance_ev=SCF_ENERGY_TOLERANCE_EV,
+    scf_max_iterations=SCF_MAX_ITERATIONS,
+    adjoint_relative_tolerance=ADJOINT_RELATIVE_TOLERANCE,
+    adjoint_absolute_tolerance=ADJOINT_ABSOLUTE_TOLERANCE,
+    adjoint_max_iterations=ADJOINT_MAX_ITERATIONS,
+    energy_identity_tolerance_ev=ENERGY_IDENTITY_TOLERANCE_EV,
+    force_state_energy_tolerance_ev=FORCE_STATE_ENERGY_TOLERANCE_EV,
+    neutral_density_tolerance=NEUTRAL_DENSITY_TOLERANCE,
+)
+
 
 def _normalized_mol2_atom_types(atoms) -> tuple[str, ...] | None:
     mol2 = atoms.info.get("mol2")
@@ -70,36 +77,6 @@ def _normalized_mol2_atom_types(atoms) -> tuple[str, ...] | None:
         str(atom_type).strip().lower()
         for atom_type in mol2["atom_types"]
     )
-
-
-@dataclass(frozen=True)
-class _CoupledState:
-    calculator_identity: int
-    atomic_numbers: np.ndarray
-    mol2_atom_types: tuple[str, ...] | None
-    positions_angstrom: np.ndarray
-    reaction_field: Any
-    density_coefficients: np.ndarray
-    reaction_field_values_ev: np.ndarray
-    solvent_state: Any
-    polarization_energy_hartree: float
-    energy_identity_error_ev: float
-    cds_result: Any
-    history: tuple[dict[str, float | int | None], ...]
-
-    def matches(self, calculator, atoms) -> bool:
-        return (
-            self.calculator_identity == id(calculator)
-            and np.array_equal(
-                self.atomic_numbers,
-                np.asarray(atoms.numbers, dtype=int),
-            )
-            and self.mol2_atom_types == _normalized_mol2_atom_types(atoms)
-            and np.array_equal(
-                self.positions_angstrom,
-                np.asarray(atoms.get_positions(), dtype=float),
-            )
-        )
 
 
 @dataclass
@@ -147,7 +124,12 @@ class DDPCMSMDImplicitSolvation:
             atom_types=self._reference_mol2_atom_types,
             profile=self.profile,
         )
-        self._cached_state: _CoupledState | None = None
+        self._engine = Route2ContinuumEngine(
+            reaction_field_factory=self._build_reaction_field,
+            cds_evaluator=self._evaluate_cds,
+            settings=_DDPCM_ENGINE_SETTINGS,
+        )
+        self._cached_state: Route2CoupledState | None = None
 
         if self.audit_dir is not None:
             self.audit_dir = Path(self.audit_dir).resolve()
@@ -343,63 +325,25 @@ class DDPCMSMDImplicitSolvation:
                 + "."
             )
 
-    @staticmethod
     def _validate_density(
+        self,
         values: np.ndarray,
         atom_count: int,
         *,
         name: str,
     ) -> np.ndarray:
-        density = np.asarray(values, dtype=float)
-        expected_shape = (atom_count, 4)
-        if density.shape != expected_shape or not np.all(np.isfinite(density)):
-            raise RuntimeError(
-                f"{name} must be finite with shape {expected_shape}; "
-                f"received {density.shape}."
-            )
-        monopole_sum = float(np.sum(density[:, 0]))
-        if abs(monopole_sum) > NEUTRAL_DENSITY_TOLERANCE:
-            raise RuntimeError(
-                f"{name} violates the neutral charge constraint "
-                f"(sum={monopole_sum:.6e} e)."
-            )
-        return density.copy()
+        return self._engine.validate_density(
+            values,
+            atom_count,
+            name=name,
+        )
 
-    @staticmethod
-    def _validate_field(
-        values: np.ndarray,
-        atom_count: int,
-    ) -> np.ndarray:
-        field = np.asarray(values, dtype=float)
-        expected_shape = (atom_count, 4)
-        if field.shape != expected_shape or not np.all(np.isfinite(field)):
-            raise RuntimeError(
-                "The ddPCM reaction field must be finite with shape "
-                f"{expected_shape}; received {field.shape}."
-            )
-        return field.copy()
-
-    @staticmethod
-    def _gas_state(calculator, atoms, *, need_forces: bool) -> Any:
-        cached = getattr(calculator, "cached_polar_state", None)
-        if callable(cached):
-            state = cached(atoms, require_forces=need_forces)
-        else:
-            state = getattr(calculator, "_last_polar_state", None)
-        if state is None or (
-            need_forces
-            and getattr(
-                state,
-                "fixed_field_forces_ev_per_angstrom",
-                None,
-            )
-            is None
-        ):
-            state, _ = calculator.polar_state(
-                atoms,
-                compute_forces=need_forces,
-            )
-        return state
+    def _gas_state(self, calculator, atoms, *, need_forces: bool) -> Any:
+        return self._engine.gas_state(
+            calculator,
+            atoms,
+            need_forces=need_forces,
+        )
 
     def _build_reaction_field(self, atoms):
         return PyDDXPCMReactionFieldLinearMap(
@@ -413,119 +357,38 @@ class DDPCMSMDImplicitSolvation:
             eta=DDPCM_ETA,
         )
 
-    def _solve_coupled_state(self, atoms, calculator, gas_state) -> _CoupledState:
-        reaction_field = self._build_reaction_field(atoms)
-        density = self._validate_density(
-            gas_state.density_coefficients,
-            len(atoms),
-            name="Gas MACE-POLAR density",
-        )
-        previous_energy_ev: float | None = None
-        history: list[dict[str, float | int | None]] = []
-
-        for iteration in range(1, SCF_MAX_ITERATIONS + 1):
-            field = self._validate_field(
-                reaction_field.apply_scf(density),
-                len(atoms),
-            )
-            solvent_state, _ = calculator.polar_state(
-                atoms,
-                node_potential_ev=field[:, 0],
-                node_gradient_ev_per_angstrom=field[:, 1:],
-            )
-            response_density = self._validate_density(
-                solvent_state.density_coefficients,
-                len(atoms),
-                name="Field-polarized MACE-POLAR density",
-            )
-            density_residual = float(
-                np.max(np.abs(response_density - density))
-            )
-            current_energy_ev = float(solvent_state.energy_ev)
-            if not math.isfinite(current_energy_ev):
-                raise RuntimeError(
-                    "Field-polarized MACE-POLAR energy is non-finite."
-                )
-            energy_residual = (
-                None
-                if previous_energy_ev is None
-                else abs(current_energy_ev - previous_energy_ev)
-            )
-            history.append(
-                {
-                    "iteration": iteration,
-                    "density_residual_e": density_residual,
-                    "energy_residual_ev": energy_residual,
-                    "intrinsic_energy_ev": current_energy_ev,
-                }
-            )
-            energy_converged = (
-                energy_residual is None
-                or energy_residual <= SCF_ENERGY_TOLERANCE_EV
-            )
-            if (
-                density_residual <= SCF_DENSITY_TOLERANCE
-                and energy_converged
-            ):
-                break
-            density = (
-                (1.0 - SCF_MIXING) * density
-                + SCF_MIXING * response_density
-            )
-            previous_energy_ev = current_energy_ev
-        else:
-            last = history[-1]
-            raise RuntimeError(
-                "MACE-POLAR/ddPCM reaction-field SCF did not converge in "
-                f"{SCF_MAX_ITERATIONS} iterations "
-                f"(density residual={last['density_residual_e']:.3e} e, "
-                f"energy residual={last['energy_residual_ev']!r} eV)."
-            )
-
-        polarization_energy_hartree = float(
-            reaction_field.scf_polarization_energy_hartree(density)
-        )
-        if not math.isfinite(polarization_energy_hartree):
-            raise RuntimeError("ddPCM polarization energy is non-finite.")
-        paired_energy_ev = 0.5 * float(
-            np.vdot(
-                density,
-                external_field_to_density_order(field),
-            )
-        )
-        provider_energy_ev = polarization_energy_hartree * Hartree
-        identity_error_ev = abs(paired_energy_ev - provider_energy_ev)
-        if identity_error_ev > ENERGY_IDENTITY_TOLERANCE_EV:
-            raise RuntimeError(
-                "ddPCM reaction field failed the polarization-energy "
-                f"identity (absolute error={identity_error_ev:.3e} eV)."
-            )
-
-        cds_result = pyscf_smd_water_cds(
+    @staticmethod
+    def _evaluate_cds(atoms):
+        return pyscf_smd_water_cds(
             atoms.get_chemical_symbols(),
             np.asarray(atoms.get_positions(), dtype=float),
         )
-        return _CoupledState(
-            calculator_identity=id(calculator),
-            atomic_numbers=np.asarray(atoms.numbers, dtype=int).copy(),
-            mol2_atom_types=self._reference_mol2_atom_types,
-            positions_angstrom=np.asarray(
-                atoms.get_positions(),
-                dtype=float,
-            ).copy(),
-            reaction_field=reaction_field,
-            density_coefficients=density,
-            reaction_field_values_ev=field,
-            solvent_state=solvent_state,
-            polarization_energy_hartree=polarization_energy_hartree,
-            energy_identity_error_ev=identity_error_ev,
-            cds_result=cds_result,
-            history=tuple(history),
+
+    def _solve_coupled_state(
+        self,
+        atoms,
+        calculator,
+        gas_state,
+    ) -> Route2CoupledState:
+        return self._engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=self._reference_mol2_atom_types,
         )
 
-    def _coupled_state(self, atoms, calculator, gas_state) -> _CoupledState:
+    def _coupled_state(
+        self,
+        atoms,
+        calculator,
+        gas_state,
+    ) -> Route2CoupledState:
         cached = self._cached_state
-        if cached is not None and cached.matches(calculator, atoms):
+        if cached is not None and cached.matches(
+            calculator,
+            atoms,
+            provider_cache_signature=self._reference_mol2_atom_types,
+        ):
             return cached
         state = self._solve_coupled_state(
             atoms,
@@ -540,149 +403,13 @@ class DDPCMSMDImplicitSolvation:
         atoms,
         calculator,
         gas_state,
-        coupled: _CoupledState,
+        coupled: Route2CoupledState,
     ):
-        field = coupled.reaction_field_values_ev
-        density = coupled.density_coefficients
-        solvent_state, _ = calculator.polar_state(
+        return self._engine.solvent_correction_force(
             atoms,
-            node_potential_ev=field[:, 0],
-            node_gradient_ev_per_angstrom=field[:, 1:],
-            compute_forces=True,
-        )
-        response_density = self._validate_density(
-            solvent_state.density_coefficients,
-            len(atoms),
-            name="Force-evaluation MACE-POLAR density",
-        )
-        force_state_residual = float(
-            np.max(np.abs(response_density - density))
-        )
-        if force_state_residual > max(
-            10.0 * SCF_DENSITY_TOLERANCE,
-            1.0e-10,
-        ):
-            raise RuntimeError(
-                "The MACE-POLAR force state does not match the converged "
-                f"density root (residual={force_state_residual:.3e} e)."
-            )
-        force_state_energy_error_ev = abs(
-            float(solvent_state.energy_ev)
-            - float(coupled.solvent_state.energy_ev)
-        )
-        if (
-            not math.isfinite(force_state_energy_error_ev)
-            or force_state_energy_error_ev
-            > FORCE_STATE_ENERGY_TOLERANCE_EV
-        ):
-            raise RuntimeError(
-                "The MACE-POLAR force evaluation does not reproduce the "
-                "converged intrinsic energy "
-                f"(absolute error={force_state_energy_error_ev:.3e} eV)."
-            )
-
-        gas_forces = getattr(
+            calculator,
             gas_state,
-            "fixed_field_forces_ev_per_angstrom",
-            None,
-        )
-        solvent_forces = getattr(
-            solvent_state,
-            "fixed_field_forces_ev_per_angstrom",
-            None,
-        )
-        if gas_forces is None or solvent_forces is None:
-            raise RuntimeError(
-                "MACE-POLAR omitted the gas or fixed-field force partial."
-            )
-
-        intrinsic_gradient = (
-            calculator.intrinsic_energy_field_gradient(
-                atoms,
-                node_potential_ev=field[:, 0],
-                node_gradient_ev_per_angstrom=field[:, 1:],
-            )
-        )
-        density_response = calculator.linearize_density_response(
-            atoms,
-            node_potential_ev=field[:, 0],
-            node_gradient_ev_per_angstrom=field[:, 1:],
-        )
-        physical_rhs = fixed_cavity_energy_density_gradient(
-            coupled.reaction_field,
-            reaction_field_values=field,
-            intrinsic_energy_field_gradient=intrinsic_gradient,
-        )
-        residual = UnmixedDensityResidualLinearization(
-            atom_count=len(atoms),
-            reaction_field=coupled.reaction_field,
-            density_response=density_response,
-        )
-        adjoint = solve_adjoint(
-            residual,
-            physical_rhs,
-            relative_tolerance=ADJOINT_RELATIVE_TOLERANCE,
-            absolute_tolerance=ADJOINT_ABSOLUTE_TOLERANCE,
-            max_iterations=ADJOINT_MAX_ITERATIONS,
-        )
-        density_position_vjp = calculator.density_position_vjp(
-            atoms,
-            node_potential_ev=field[:, 0],
-            node_gradient_ev_per_angstrom=field[:, 1:],
-            density_cotangent=adjoint.solution,
-        )
-        continuum_gradient = (
-            continuum_coupled_solvation_coordinate_gradient(
-                coupled.reaction_field,
-                density_response,
-                density_coefficients=density,
-                intrinsic_energy_field_gradient=intrinsic_gradient,
-                adjoint_solution=adjoint.solution,
-                adjoint_density_position_vjp=density_position_vjp,
-                solvent_fixed_field_forces_ev_per_angstrom=(
-                    solvent_forces
-                ),
-                gas_forces_ev_per_angstrom=gas_forces,
-            )
-        )
-        total = assemble_total_solvation_coordinate_gradient(
-            continuum_gradient,
-            coupled.cds_result.position_gradient_hartree_per_angstrom,
-        )
-        derivative = {
-            "continuum_position_gradient_ev_per_angstrom": (
-                continuum_gradient
-            ),
-            "cds_position_gradient_hartree_per_angstrom": (
-                coupled.cds_result.position_gradient_hartree_per_angstrom
-            ),
-            "total_position_gradient_hartree_per_angstrom": (
-                total.total_position_gradient_hartree_per_angstrom
-            ),
-            "solvent_correction_forces_hartree_per_angstrom": (
-                total.solvent_correction_forces_hartree_per_angstrom
-            ),
-            "force_state_density_residual_e": force_state_residual,
-            "force_state_energy_error_ev": force_state_energy_error_ev,
-            "adjoint": {
-                "method": adjoint.method,
-                "relative_tolerance": ADJOINT_RELATIVE_TOLERANCE,
-                "absolute_tolerance": ADJOINT_ABSOLUTE_TOLERANCE,
-                "restart_size": adjoint.restart_size,
-                "maximum_inner_iterations": (
-                    adjoint.maximum_inner_iterations
-                ),
-                "operator_applications": adjoint.operator_applications,
-                "residual_callback_count": (
-                    adjoint.residual_callback_count
-                ),
-                "residual_norm": adjoint.residual_norm,
-                "relative_residual": adjoint.relative_residual,
-            },
-        }
-        return (
-            total.solvent_correction_forces_hartree_per_angstrom,
-            derivative,
+            coupled,
         )
 
     def _write_result_audit(
@@ -690,7 +417,7 @@ class DDPCMSMDImplicitSolvation:
         *,
         atoms,
         gas_state,
-        coupled: _CoupledState,
+        coupled: Route2CoupledState,
         components: dict[str, float],
         derivative: dict[str, Any] | None,
     ) -> None:
@@ -786,22 +513,11 @@ class DDPCMSMDImplicitSolvation:
             gas_state,
         )
 
-        delta_e_solute = (
-            float(coupled.solvent_state.energy_ev)
-            - float(gas_state.energy_ev)
-        ) / Hartree
-        pcm_polarization = coupled.polarization_energy_hartree
-        electrostatic = delta_e_solute + pcm_polarization
-        cds_energy = float(coupled.cds_result.energy_hartree)
-        total_energy = electrostatic + cds_energy
-        components = {
-            "solute_polarization": delta_e_solute,
-            "pcm_polarization": pcm_polarization,
-            "electrostatic": electrostatic,
-            "cds": cds_energy,
-            "standard_state": 0.0,
-            "delta_g_solv": total_energy,
-        }
+        components = self._engine.energy_components(
+            gas_state,
+            coupled,
+        )
+        total_energy = components["delta_g_solv"]
 
         correction_forces = None
         derivative = None

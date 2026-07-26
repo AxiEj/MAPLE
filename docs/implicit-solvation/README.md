@@ -25,6 +25,12 @@ active pairs. No continuum state was solved and no one-shot lock was opened.
 The JGP94 frame therefore repairs rigid-rotation covariance but is not, by
 itself, a smooth-cavity solution for a MAPLE PES.
 
+The resulting implementation boundary is recorded separately in
+[`ROUTE2_CONTINUUM_ENGINE.md`](ROUTE2_CONTINUUM_ENGINE.md). That stage only
+extracts the existing ML--SCF/adjoint/energy-ledger orchestration behind an
+internal provider-neutral interface. It does not add a continuum provider,
+change a formula or numerical setting, or promote the current force candidate.
+
 ## Route-2 contract: self-consistent polarizable MLIP--PCM/SMD coupling
 
 Route 2 is separate from the fixed-charge PB/GB path. It couples the official

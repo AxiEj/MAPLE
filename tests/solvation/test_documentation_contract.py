@@ -239,3 +239,20 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
         "upstream-backed smooth cavity/operator feasibility profile"
         in normalized_benchmark
     )
+
+
+def test_route2_continuum_engine_stage_preserves_scientific_boundary():
+    stage = (
+        REPOSITORY_ROOT
+        / "docs"
+        / "implicit-solvation"
+        / "ROUTE2_CONTINUUM_ENGINE.md"
+    ).read_text(encoding="utf-8")
+    normalized_stage = " ".join(stage.lower().split())
+
+    assert "zero-behaviour-change" in stage
+    assert "unmixed" in stage
+    assert "This stage must not" in stage
+    assert "add or accept a new `provider`" in stage
+    assert "does not import pyddx" in normalized_stage
+    assert "separately pre-registered" in stage

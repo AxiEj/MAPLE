@@ -1,0 +1,443 @@
+{
+  "acetone_same_cavity_ao_reference_diagnostic": {
+    "finding": "In this acetone-specific attempt to reuse the Route-2 cavity radii and ddX numerical settings with an AO density, the diffuse-basis solution calculation collapsed nonphysically.",
+    "forbidden_inference": "Do not enlarge Route-2 radii merely to stabilize this invalid AO-density reference and do not interpret the collapse as a Route-2 SCF failure.",
+    "numerically_completed_but_physically_invalid_case": {
+      "basis": "def2-SVP",
+      "dd_solvation_energy_hartree": -114.16103810006106,
+      "method": "omegaB97M-V",
+      "status": "completed-but-physically-invalid"
+    },
+    "production_change_required": false,
+    "scope_boundary": "This one acetone diagnostic does not prove that every AO-density sharp-cavity PCM formulation fails; it only rejects this attempted reference construction for the tested Route-2 cavity/settings.",
+    "source_evidence": {
+      "alignment_status": "source-did-not-record-git-head",
+      "current_checkout_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
+      "current_checkout_match": null,
+      "evidence_git_head": null,
+      "path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/negative_result_same_operator_ao_qm.json",
+      "sha256": "ff8eb2efe36482444bf1e8b4466bc1584511426b096f101d2d029c477a914a67",
+      "status": "source-diagnostic-valid"
+    },
+    "status": "acetone-specific-invalid-reference",
+    "valid_reference_boundary": "Use a maintained self-consistent SMD implementation designed for AO density (PySCF SMD/IEF-PCM) as a chemical-level QM reference. Compare total SMD corrections and broad components, not claim discretization-identical operators."
+  },
+  "benchmark_role": "Bounded same-geometry Route-2/QM/experiment energy comparison and four-geometry electronic conformer diagnostic; not a broad accuracy certification.",
+  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. Only methanol has a clean current-HEAD energy canary; the other frozen energies and all flexible force/loop evidence are historical pre-5746 records. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, QM-force comparison, operator identity, or hardware-normalized speedup is established.",
+  "current_checkout_alignment": {
+    "fixed_records_confirmed_by_current_head_canary": [
+      "methanol"
+    ],
+    "fixed_records_not_rerun": [
+      "acetone",
+      "2-acetoxyethyl acetate"
+    ],
+    "flexible_panel_current_checkout_match": null,
+    "git_head_at_freeze": "5746f24e1ff67482622ebc789c6126cda5cf5928",
+    "scope": "Only the methanol energy was rerun in a clean detached worktree at this HEAD. Acetone, the flexible energy panel, and flexible force/loop evidence remain historical pre-5746 evidence until separately rerun."
+  },
+  "energy_definition": "delta_g_solv = delta_e_solute + u_pol + g_cds",
+  "energy_force_separation": "The adjoint is evaluated only for coordinate derivatives. It does not alter the converged Route-2 solvation energy.",
+  "fixed_conformer_panel": {
+    "records": [
+      {
+        "compound_id": "mobley_1636752",
+        "differences_kcal_mol": {
+          "qm_minus_experiment": 0.6917218323438252,
+          "route2_minus_experiment": -0.001638189814713975,
+          "route2_minus_qm": -0.6933600221585392,
+          "route2_minus_qm_components": {
+            "delta_e_solute": -0.8390519800486745,
+            "delta_g_solv": -0.6933600221585396,
+            "g_cds": 0.0,
+            "u_pol": 0.1456919578841655
+          }
+        },
+        "experiment": {
+          "delta_g_solv_kcal_mol": -5.1,
+          "reference": "10.1021/ct050097l",
+          "uncertainty_kcal_mol": 0.6
+        },
+        "geometry": "same fixed FreeSolv MOL2 conformer",
+        "name": "methanol",
+        "observed_timing": {
+          "hardware_normalized": false,
+          "qm_over_route2_evaluation_ratio": 3.0485886228270744,
+          "speedup_certified": false
+        },
+        "partition": "development",
+        "qm": {
+          "components_kcal_mol": {
+            "delta_e_solute": 1.4623363058153198,
+            "g_cds": 2.4807736566106557,
+            "u_pol": -8.351388130076181
+          },
+          "delta_g_solv_kcal_mol": -4.408278167656174,
+          "gas_plus_solution_seconds": 32.231790812002146,
+          "gas_scf_cycles": 12,
+          "solution_scf_cycles": 10
+        },
+        "route2": {
+          "cold_total_seconds": 14.62711101899913,
+          "components_kcal_mol": {
+            "delta_e_solute": 0.6232843257666454,
+            "g_cds": 2.4807736566106557,
+            "u_pol": -8.205696172192015
+          },
+          "delta_g_solv_kcal_mol": -5.101638189814714,
+          "evaluation_seconds": 10.572692743999141,
+          "profile": "smd-ddpcm-l15-n1202-v1",
+          "root_scf_iterations": 16
+        },
+        "same_geometry": true,
+        "source_evidence": {
+          "alignment_status": "confirmed-by-current-head-energy-canary",
+          "current_checkout_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
+          "current_checkout_match": true,
+          "current_head_canary": {
+            "absolute_difference_from_historical_correction_ev": 4.5458081743277035e-13,
+            "correction_energy_ev": -0.22122796846574475,
+            "git_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
+            "historical_correction_energy_ev": -0.22122796846529016,
+            "path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/methanol-energy-5746f24.json",
+            "root_scf_iterations": 16,
+            "sha256": "f335f79eb51d689fc89ca708558e066fd151ab852e6e793426b00e09cf6549c6",
+            "status": "pass",
+            "used_for_timing_claim": false
+          },
+          "evidence_git_head": "278c312e2d4eaf36edf9f6c17f062befb1bc1c66",
+          "path": ".omx/benchmarks/route2-qm-ddx-methanol-20260725/methanol_route2_qm_experiment_comparison.json",
+          "sha256": "1d37e348c0498a6f645abe4ed7f6eb4794976734eb9504b10f4f35d332dd31e8",
+          "status": "comparison-valid"
+        },
+        "training_membership_confirmed_excluded": false
+      },
+      {
+        "compound_id": "mobley_3867265",
+        "differences_kcal_mol": {
+          "qm_minus_experiment": -1.3084276990771952,
+          "route2_minus_experiment": -1.0165900334830456,
+          "route2_minus_qm": 0.2918376655941497,
+          "route2_minus_qm_components": {
+            "delta_e_solute": -1.927863801343313,
+            "delta_g_solv": 0.29183766559414975,
+            "g_cds": 0.0,
+            "u_pol": 2.219701466933384
+          }
+        },
+        "experiment": {
+          "delta_g_solv_kcal_mol": -3.8,
+          "reference": "10.1021/ct050097l",
+          "uncertainty_kcal_mol": 0.6
+        },
+        "geometry": "same fixed FreeSolv MOL2 conformer",
+        "name": "acetone",
+        "observed_timing": {
+          "hardware_normalized": false,
+          "qm_over_route2_evaluation_ratio": 5.558798345878918,
+          "speedup_certified": false
+        },
+        "partition": "development",
+        "qm": {
+          "components_kcal_mol": {
+            "delta_e_solute": 2.7644007484502144,
+            "g_cds": 3.5650520642492025,
+            "u_pol": -11.437880511772534
+          },
+          "delta_g_solv_kcal_mol": -5.108427699077195,
+          "gas_plus_solution_seconds": 180.64687328699983,
+          "gas_scf_cycles": 14,
+          "solution_scf_cycles": 11
+        },
+        "route2": {
+          "cold_total_seconds": 36.54590646900033,
+          "components_kcal_mol": {
+            "delta_e_solute": 0.8365369471069014,
+            "g_cds": 3.5650520642492025,
+            "u_pol": -9.21817904483915
+          },
+          "delta_g_solv_kcal_mol": -4.816590033483045,
+          "evaluation_seconds": 32.49746834600046,
+          "profile": "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
+          "root_scf_iterations": 21
+        },
+        "same_geometry": true,
+        "source_evidence": {
+          "alignment_status": "not-rerun-on-current-checkout",
+          "current_checkout_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
+          "current_checkout_match": null,
+          "evidence_git_head": "278c312e2d4eaf36edf9f6c17f062befb1bc1c66",
+          "path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/acetone_route2_qm_experiment_comparison.json",
+          "sha256": "18eb93238b1cc3a7a72b7e0000311c1f9841c34c9adcc80cacb847c4dc248986",
+          "status": "comparison-valid"
+        },
+        "training_membership_confirmed_excluded": false
+      },
+      {
+        "compound_id": "mobley_352111",
+        "differences_kcal_mol": {
+          "qm_minus_experiment": -2.21313795252272,
+          "route2_minus_experiment": -1.4980494034517875,
+          "route2_minus_qm": 0.7150885490709324,
+          "route2_minus_qm_components": {
+            "delta_e_solute": -1.4800605532075644,
+            "delta_g_solv": 0.7150885490709319,
+            "g_cds": 0.0,
+            "u_pol": 2.19514910223374
+          }
+        },
+        "experiment": {
+          "delta_g_solv_kcal_mol": -6.34,
+          "reference": "10.1021/ct050097l",
+          "uncertainty_kcal_mol": 0.6
+        },
+        "geometry": "same fixed FreeSolv MOL2 conformer",
+        "name": "2-acetoxyethyl acetate",
+        "observed_timing": {
+          "hardware_normalized": false,
+          "qm_over_route2_evaluation_ratio": 9.041808961552059,
+          "speedup_certified": false
+        },
+        "partition": "confirmation",
+        "qm": {
+          "components_kcal_mol": {
+            "delta_e_solute": 3.168304635217573,
+            "g_cds": 6.774444361295448,
+            "u_pol": -18.495886948990982
+          },
+          "delta_g_solv_kcal_mol": -8.55313795252272,
+          "gas_plus_solution_seconds": 773.5198267199994,
+          "gas_scf_cycles": 17,
+          "solution_scf_cycles": 14
+        },
+        "route2": {
+          "cold_total_seconds": 89.7105573359986,
+          "components_kcal_mol": {
+            "delta_e_solute": 1.6882440820100086,
+            "g_cds": 6.774444361295448,
+            "u_pol": -16.300737846757244
+          },
+          "delta_g_solv_kcal_mol": -7.838049403451787,
+          "evaluation_seconds": 85.54923356699874,
+          "profile": "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
+          "root_scf_iterations": 18
+        },
+        "same_geometry": true,
+        "source_evidence": {
+          "alignment_status": "not-rerun-on-current-checkout",
+          "current_checkout_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
+          "current_checkout_match": null,
+          "evidence_git_head": "5422a078ade3adb0730ec420c3dc5245983e6f4e",
+          "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/2acetoxyethyl_acetate_route2_qm_experiment.json",
+          "sha256": "ec92f1619cd902ce15fd104407c61bd36e6f00ec3f995c0a5ad974256c709487",
+          "status": "comparison-valid"
+        },
+        "training_membership_confirmed_excluded": false
+      }
+    ],
+    "summary": {
+      "record_count": 3,
+      "route2_vs_experiment": {
+        "mae_kcal_mol": 0.8387592089165157,
+        "maximum_absolute_error_kcal_mol": 1.4980494034517875,
+        "rmse_kcal_mol": 1.045244787123282
+      },
+      "route2_vs_qm": {
+        "mae_kcal_mol": 0.5667620789412071,
+        "maximum_absolute_error_kcal_mol": 0.7150885490709324,
+        "rmse_kcal_mol": 0.5992409021418971
+      }
+    }
+  },
+  "flexible_conformer_panel": {
+    "certification_gates": {
+      "all_four_locked_geometries_complete": true,
+      "complete_conformer_thermochemistry": false,
+      "force_validation_complete": false,
+      "predeclared_four_geometry_mae_pass": true,
+      "solution_phase_geometry_relaxation": false,
+      "training_membership_confirmed_excluded": false
+    },
+    "compound_id": "mobley_352111",
+    "geometry_count": 4,
+    "geometry_generation": "One original source geometry plus three ETKDGv3/MMFF-generated and screened candidates; final gas/aqueous energies and Boltzmann weights use Route 2 or QM as labelled.",
+    "name": "2-acetoxyethyl acetate",
+    "partition": "confirmation",
+    "predeclared_primary_gate": {
+      "metric": "mean_absolute_route2_minus_qm_kcal_mol",
+      "status": "pass",
+      "threshold_kcal_mol": 1.0
+    },
+    "records": [
+      {
+        "absolute_route2_minus_qm_kcal_mol": 0.7150885490709324,
+        "label": "source",
+        "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "qm": {
+          "aqueous_energy_kcal_mol": -336106.9167679813,
+          "components_kcal_mol": {
+            "delta_e_solute": 3.168304635217573,
+            "g_cds": 6.774444361295448,
+            "u_pol": -18.495886948990982
+          },
+          "delta_g_solv_kcal_mol": -8.55313795252272,
+          "gas_energy_kcal_mol": -336098.3636300288
+        },
+        "rank": 0,
+        "route2": {
+          "aqueous_energy_kcal_mol": -336106.15663025767,
+          "components_kcal_mol": {
+            "delta_e_solute": 1.6882440820100086,
+            "g_cds": 6.774444361295448,
+            "u_pol": -16.300737846757244
+          },
+          "delta_g_solv_kcal_mol": -7.838049403451787,
+          "gas_energy_kcal_mol": -336098.3185808542
+        },
+        "route2_minus_qm_components_kcal_mol": {
+          "delta_e_solute": -1.4800605532075646,
+          "g_cds": 0.0,
+          "u_pol": 2.1951491022337386
+        },
+        "route2_minus_qm_kcal_mol": 0.7150885490709324
+      },
+      {
+        "absolute_route2_minus_qm_kcal_mol": 0.7833866303612727,
+        "label": "etkdg-mmff-rank-1",
+        "mol2_sha256": "069d998669c36118f9e51a180abf52f5f576d4d866b9da2bc03aa3a16f9ff82e",
+        "qm": {
+          "aqueous_energy_kcal_mol": -336107.9355428729,
+          "components_kcal_mol": {
+            "delta_e_solute": 2.59498186971389,
+            "g_cds": 6.622344477008956,
+            "u_pol": -16.625215178322772
+          },
+          "delta_g_solv_kcal_mol": -7.407888831631248,
+          "gas_energy_kcal_mol": -336100.52765404125
+        },
+        "rank": 1,
+        "route2": {
+          "aqueous_energy_kcal_mol": -336107.098058881,
+          "components_kcal_mol": {
+            "delta_e_solute": 1.4466658992850312,
+            "g_cds": 6.622344477008956,
+            "u_pol": -14.693512577563961
+          },
+          "delta_g_solv_kcal_mol": -6.6245022012699755,
+          "gas_energy_kcal_mol": -336100.47355667973
+        },
+        "route2_minus_qm_components_kcal_mol": {
+          "delta_e_solute": -1.1483159704288588,
+          "g_cds": 0.0,
+          "u_pol": 1.9317026007588112
+        },
+        "route2_minus_qm_kcal_mol": 0.7833866303612727
+      },
+      {
+        "absolute_route2_minus_qm_kcal_mol": 1.0080864158901965,
+        "label": "etkdg-mmff-rank-2",
+        "mol2_sha256": "3f430c4d1d183345ce3b6ab457b5c616eb3d9979a21e4e216b62b1c188d41925",
+        "qm": {
+          "aqueous_energy_kcal_mol": -336108.3094953365,
+          "components_kcal_mol": {
+            "delta_e_solute": 3.0716533258407006,
+            "g_cds": 6.285456356598993,
+            "u_pol": -16.79608946137887
+          },
+          "delta_g_solv_kcal_mol": -7.43897977894624,
+          "gas_energy_kcal_mol": -336100.8705155576
+        },
+        "rank": 2,
+        "route2": {
+          "aqueous_energy_kcal_mol": -336107.16394019756,
+          "components_kcal_mol": {
+            "delta_e_solute": 1.5568652896458905,
+            "g_cds": 6.285456356598993,
+            "u_pol": -14.273215009300927
+          },
+          "delta_g_solv_kcal_mol": -6.430893363056043,
+          "gas_energy_kcal_mol": -336100.7330468345
+        },
+        "route2_minus_qm_components_kcal_mol": {
+          "delta_e_solute": -1.51478803619481,
+          "g_cds": 0.0,
+          "u_pol": 2.522874452077943
+        },
+        "route2_minus_qm_kcal_mol": 1.0080864158901965
+      },
+      {
+        "absolute_route2_minus_qm_kcal_mol": 1.0082005046868385,
+        "label": "etkdg-mmff-rank-3",
+        "mol2_sha256": "1c9ff1ebc29ee5ebfd6af8d6611914374bcdba0a4fda7082f48f5f207cfc8f91",
+        "qm": {
+          "aqueous_energy_kcal_mol": -336108.31063920626,
+          "components_kcal_mol": {
+            "delta_e_solute": 3.073140079529115,
+            "g_cds": 6.285454769872615,
+            "u_pol": -16.79685030291885
+          },
+          "delta_g_solv_kcal_mol": -7.438255453476279,
+          "gas_energy_kcal_mol": -336100.8723837528
+        },
+        "rank": 3,
+        "route2": {
+          "aqueous_energy_kcal_mol": -336107.16302299587,
+          "components_kcal_mol": {
+            "delta_e_solute": 1.5564989932731004,
+            "g_cds": 6.285454769872615,
+            "u_pol": -14.272008711935156
+          },
+          "delta_g_solv_kcal_mol": -6.43005494878944,
+          "gas_energy_kcal_mol": -336100.7329680471
+        },
+        "route2_minus_qm_components_kcal_mol": {
+          "delta_e_solute": -1.5166410862560145,
+          "g_cds": 0.0,
+          "u_pol": 2.5248415909836925
+        },
+        "route2_minus_qm_kcal_mol": 1.0082005046868385
+      }
+    ],
+    "route2_profile": "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
+    "source_evidence": {
+      "alignment_status": "not-rerun-on-current-checkout",
+      "current_checkout_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
+      "current_checkout_match": null,
+      "evidence_git_heads": [
+        "278c312e2d4eaf36edf9f6c17f062befb1bc1c66",
+        "5422a078ade3adb0730ec420c3dc5245983e6f4e"
+      ],
+      "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/locked_qm_conformer_crosscheck.json",
+      "sha256": "85f7e323ab38d562584c3dd87cf1a68c209697d96b5d1c410678ebb2da7d67d2",
+      "status": "complete-valid"
+    },
+    "summary": {
+      "absolute_ensemble_difference_kcal_mol": 0.9340895290952176,
+      "experimental_kcal_mol": -6.34,
+      "maximum_absolute_route2_minus_qm_kcal_mol": 1.0082005046868385,
+      "mean_absolute_route2_minus_qm_kcal_mol": 0.87869052500231,
+      "mean_signed_route2_minus_qm_kcal_mol": 0.87869052500231,
+      "qm_bounded_electronic_ensemble_kcal_mol": -7.4505587901803665,
+      "route2_bounded_electronic_ensemble_kcal_mol": -6.516469261085149,
+      "route2_ensemble_absolute_experimental_error_kcal_mol": 0.17646926108514904,
+      "route2_minus_qm_bias_range_kcal_mol": 0.2931119556159061
+    },
+    "temperature_k": 298.15
+  },
+  "mechanism_diagnostic": {
+    "observed": "All fixed and flexible records use the same CDS term in both columns. The small total differences therefore do not prove that solute polarization and continuum polarization are separately QM-accurate.",
+    "requirement": "Report delta_e_solute, u_pol, and g_cds differences alongside total Route-2/QM error because opposing component errors can cancel."
+  },
+  "qm_reference": {
+    "comparison_level": "chemical-level same-geometry reference, not operator-identical",
+    "implementation": "PySCF 2.13.1 self-consistent SMD/water",
+    "method": "omegaB97M-V/def2-TZVPD"
+  },
+  "route2_profiles": [
+    "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
+    "smd-ddpcm-l15-n1202-v1"
+  ],
+  "schema_version": 1,
+  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating Git heads and current-checkout alignment are recorded explicitly; this tracked file freezes the reviewed numerical ledger and arithmetic checks, while only the listed methanol canary was rerun at the current checkout.",
+  "status": "frozen-bounded-pilot"
+}

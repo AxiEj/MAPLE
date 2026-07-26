@@ -569,7 +569,90 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     float64; no PCMSolver or `primary` warning occurred. A passing public
     artifact must record its Git commit, a clean tracked working tree, no dirty
     development override, and separate warning categories.
-29. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
+29. The frozen bounded QM-fidelity pilot
+    `benchmarks/route2-qm-fidelity-v1.json` compares three identical fixed
+    geometries against self-consistent PySCF 2.13.1 SMD/water at
+    omegaB97M-V/def2-TZVPD. Methanol, acetone, and 2-acetoxyethyl acetate have
+    absolute Route-2/QM differences of `0.6934`, `0.2918`, and
+    `0.7151 kcal/mol`, respectively. The three-record Route-2/QM MAE is
+    `0.5668 kcal/mol`; the Route-2/experiment MAE is `0.8388 kcal/mol`.
+    Methanol uses the base `smd-ddpcm-l15-n1202-v1` profile; the other two use
+    `smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1`. These are bounded
+    cross-profile pilot statistics, not a single-profile or chemical-space
+    confirmation.
+
+    The frozen source records were generated at `278c312` for methanol/acetone
+    and `5422a07` for the fixed 2-acetoxyethyl-acetate conformer. A clean
+    detached-worktree methanol energy canary at `5746f24` reproduces its
+    historical correction within \(4.55\times10^{-13}\) eV, with 16 root
+    iterations and no `primary` warning. Acetone, the flexible panel, the force
+    evidence, and the historical timing ratios have not been rerun at
+    `5746f24`; the frozen ledger records this lack of current-checkout alignment
+    rather than silently treating ancestry as a rerun.
+
+    Component-resolved comparison exposes error cancellation. Acetone has
+    Route-2-minus-QM differences of `-1.9279 kcal/mol` in
+    \(\Delta E_{\mathrm{solute}}\) and `+2.2197 kcal/mol` in
+    \(U_{\mathrm{pol}}\), leaving a total difference of only
+    `+0.2918 kcal/mol`. The fixed 2-acetoxyethyl-acetate conformer similarly
+    combines `-1.4801` and `+2.1951 kcal/mol` component differences into a
+    `+0.7151 kcal/mol` total. The shared PySCF SMD CDS value is identical in
+    both columns. Total-energy agreement therefore does not yet certify either
+    polarization component independently.
+
+    A locked four-geometry electronic panel for 2-acetoxyethyl acetate gives
+    per-conformer Route-2/QM MAE `0.8787 kcal/mol`, maximum absolute error
+    `1.0082 kcal/mol`, and bounded Route-2/QM ensemble values of `-6.5165` and
+    `-7.4506 kcal/mol`. Their difference is `0.9341 kcal/mol`. Route 2 is
+    arithmetically `0.1765 kcal/mol` from experiment for this one bounded panel,
+    but that is not an HFE-accuracy estimate. The panel contains one original
+    source geometry and three ETKDGv3/MMFF-generated screened candidates; Route
+    2 or QM supplied every reported gas/aqueous energy and Boltzmann weight.
+    Vibrational thermochemistry, basin degeneracy, broad sampling, solution
+    relaxation, and training-set exclusion remain absent.
+
+    Observed QM/Route-2 energy wall-time ratios are `3.05`, `5.56`, and `9.04`
+    for the three fixed systems, but they compare Route-2 CUDA with PySCF
+    eight-thread CPU and are not hardware-normalized speedups. A proposed
+    same-cavity/ddX-settings AO-density reference was rejected for acetone. One
+    omegaB97M-V/def2-SVP calculation numerically completed with the physically
+    invalid `-114.1610 hartree` ddPCM correction, while the diffuse-basis
+    calculation collapsed nonphysically. This does not establish that all
+    AO-density sharp-cavity PCM formulations fail. Production Route-2 radii
+    were not changed to rescue this invalid construction; PySCF SMD/IEFPCM
+    remains a chemical-level, not operator-identical, comparison.
+30. Historical flexible-coordinate and closed-loop evidence generated at
+    `5422a07` and `5d69ef4` exists for the explicit k-space-40 force profile.
+    On one fixed, unrelaxed
+    2-acetoxyethyl-acetate conformer, a Cartesian component differs from a
+    fully reconverged \(5\times10^{-4}\)-angstrom central difference by
+    \(3.08\times10^{-6}\) eV/angstrom. A central C--C torsion gives analytic
+    generalized force `0.0452064 eV/rad`; the `1.0`- and `0.5`-degree
+    finite-difference errors are \(1.62\times10^{-4}\) and
+    \(1.01\times10^{-4}\) eV/rad.
+
+    The predeclared three-step validation for a second C--O torsion retains
+    `status=fail`: its coarse-to-middle absolute error and step drift were not
+    monotonic. A separate `0.125`-degree extension passes with
+    \(5.68\times10^{-7}\) eV/rad absolute error, but explicitly cannot
+    retroactively overwrite that failed source gate.
+
+    An independently reconstructed local two-torsion rectangle nevertheless
+    passes its scalar-energy/analytic-force consistency gates. The oriented
+    loop force work is \(5.10\times10^{-8}\) eV, the largest edge
+    energy/work residual is \(8.70\times10^{-8}\) eV, and the mixed generalized
+    derivative mismatch is \(2.68\times10^{-3}\) eV/rad2. Every point reused
+    identical cavity radii, converged its root/adjoint, and closed translation.
+    A second functionally distinct flexible C/H/O molecule,
+    2-propoxyethanol, also passes one center-point force/root/translation/
+    rotation audit with two resolved torsional generalized forces.
+
+    These results close only one local Cartesian slice, one local torsion, one
+    bounded two-dimensional loop, and one second-molecule center point. They
+    are not current-checkout-aligned at `5746f24` and do not establish global
+    flexible-geometry continuity, relaxed-PES behavior, QM-force fidelity, or
+    short-NVE energy conservation.
+31. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 
 ## Secondary diagnostics
@@ -579,7 +662,8 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
   benchmark is not the next Route-2 milestone.
 - Dipole, polarizability, provider-parity, and cavity-stability controls remain
   mechanism diagnostics.
-- Other solvents, ions, radicals, and conformer ensembles remain separate
-  later extensions.
+- One bounded electronic conformer panel is now recorded as a sensitivity
+  diagnostic. Complete conformer thermochemistry, other solvents, ions, and
+  radicals remain separate later extensions.
 
 Fresh tests establish implementation correctness, not broad chemical accuracy.

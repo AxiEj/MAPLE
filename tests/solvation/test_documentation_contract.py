@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 
@@ -11,9 +12,22 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_route2_documentation_matches_the_public_fail_closed_contract():
+    fidelity_baseline = json.loads(
+        (
+            REPOSITORY_ROOT
+            / "docs/implicit-solvation/benchmarks/route2-qm-fidelity-v1.json"
+        ).read_text(encoding="utf-8")
+    )
+    fixed_qm_mae = fidelity_baseline["fixed_conformer_panel"]["summary"][
+        "route2_vs_qm"
+    ]["mae_kcal_mol"]
+    flexible_qm_mae = fidelity_baseline["flexible_conformer_panel"]["summary"][
+        "mean_absolute_route2_minus_qm_kcal_mol"
+    ]
     overview = (
         REPOSITORY_ROOT / "docs/implicit-solvation/README.md"
     ).read_text(encoding="utf-8")
+    normalized_overview = " ".join(overview.split())
     formulas = (
         REPOSITORY_ROOT / "docs/implicit-solvation/FORMULAS_AND_REFERENCES.md"
     ).read_text(encoding="utf-8")
@@ -21,6 +35,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     benchmark = (
         REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks/README.md"
     ).read_text(encoding="utf-8")
+    normalized_benchmark = " ".join(benchmark.split())
 
     assert "#model=macepol-m" in overview
     assert "#sp\n" in overview
@@ -148,6 +163,30 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "forbidden provider-warning count was zero" in normalized_validation
     assert "not a PCMSolver cavity warning" in normalized_validation
     assert "short NVE conservation" in overview
+    assert "route2-qm-fidelity-v1.json" in overview
+    assert "polarization errors currently cancel" in normalized_overview
     assert "route2-protocol.json" in benchmark
+    assert (
+        "three same-geometry Route-2/QM/experiment comparisons"
+        in normalized_benchmark
+    )
+    assert "not hardware-normalized speedups" in normalized_benchmark
     assert "does not define Route 2" in benchmark
     assert "No Route-2 FreeSolv accuracy artifact is frozen yet" in benchmark
+    assert "The force adjoint is **not** an additional" in formulas
+    assert "QM fidelity, component cancellation" in formulas
+    assert f"{fixed_qm_mae:.4f} kcal/mol" in formulas
+    assert f"{flexible_qm_mae:.4f} kcal/mol" in formulas
+    assert "not a discretization-identical operator reference" in formulas
+    assert "not an HFE-accuracy estimate" in formulas
+    assert (
+        "does not prove that all AO-density sharp-cavity PCM"
+        in normalized_formulas
+    )
+    assert "Only methanol energy has been reconfirmed" in overview
+    assert "evidence-generating Git heads" in benchmark
+    assert "predeclared three-step validation" in validation
+    assert "cannot retroactively overwrite" in normalized_validation
+    assert "oriented loop force work" in normalized_validation
+    assert "Broader flexible-geometry continuity" in roadmap
+    assert "One historical local two-torsion closed displacement loop" in roadmap

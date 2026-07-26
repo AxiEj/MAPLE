@@ -75,6 +75,21 @@ and convergence only. Until development and one-shot confirmation pass, the
 public input continues to require `experimental=true`; no constant shift,
 fine-tuning, or confirmation-set refit is allowed.
 
-The next primary Route-2 milestone is the total derivative of the converged
-MLIP--PCM/SMD energy. Running more FreeSolv records must not displace that force
-derivation and its finite-difference/invariance validation.
+[`route2-qm-fidelity-v1.json`](route2-qm-fidelity-v1.json) is a separate frozen
+bounded pilot: three same-geometry Route-2/QM/experiment comparisons plus one
+locked four-geometry electronic conformer panel. Its tests recompute energy
+decomposition, MAE/RMSE, and ensemble statistics. It does not replace the
+unrun FreeSolv confirmation partition, and its observed CUDA-versus-CPU timing
+ratios are not hardware-normalized speedups. The recorded `.omx` source paths
+and SHA256 values are witnesses to retained local raw evidence, not tracked CI
+inputs. The JSON also records the evidence-generating Git heads and whether a
+result has actually been rerun at the current checkout; ancestry alone is not
+treated as current-checkout evidence. At the `5746f24` baseline only the
+methanol energy has a clean current-HEAD canary. The JSON freezes the reviewed
+numerical ledger and arithmetic checks.
+
+The converged MLIP--PCM/SMD total derivative is now implemented for the
+explicit pyddx/PySCF single-point candidate. The next primary milestone is
+broader flexible/relaxed-path continuity plus short-NVE energy conservation.
+Running more FreeSolv records must not displace those PES gates, while the
+bounded QM-fidelity panel must not be promoted into a broad accuracy claim.

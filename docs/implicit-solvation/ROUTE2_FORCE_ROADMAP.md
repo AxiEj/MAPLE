@@ -66,11 +66,16 @@ described as a complete solution-phase PES.
    predetermined parameter pair.
 6. **The public pyddx force is not yet a PES.** Its fixed `lmax=15`/1202-point
    profile has same-energy derivative, translation, and narrow torque evidence
-   on rigid methanol and acetone. Additional orientations, flexible-geometry
-   continuity, closed displacement loops, and short NVE conservation remain
-   open. The finite laboratory-frame quadrature also leaves a small,
-   nonmonotonic rotation residual, so optimization, scan, TS, and MD stay
-   disabled.
+   on rigid methanol and acetone. The explicit k-space-40 variant additionally
+   passes one flexible-molecule Cartesian component, one central-torsion
+   derivative, one independently reconstructed local two-torsion closed loop,
+   and a second flexible molecule's center-point force/root audit. The
+   predeclared three-step second-torsion refinement remains failed even though
+   a separate finer-step extension passes; the latter cannot overwrite the
+   former. Broader flexible-geometry continuity, relaxed-path behavior,
+   additional chemical classes, and short NVE conservation remain open. The
+   finite laboratory-frame quadrature also leaves a small, nonmonotonic
+   rotation residual, so optimization, scan, TS, and MD stay disabled.
 
 ## Required total derivative
 
@@ -720,8 +725,11 @@ that CDS energy and gradient come from the same selected provider.
 3. Check zero net force under translation and zero net torque under rotation.
 4. Check energy continuity across small geometry displacements and reject any
    cavity-topology or fallback-branch jumps.
-5. Run closed displacement loops and short NVE tests before enabling
-   optimization, scan, TS search, or MD.
+5. One historical local two-torsion closed displacement loop generated at
+   `5d69ef4` passes for a fixed, unrelaxed 2-acetoxyethyl-acetate conformer. It
+   has not been rerun at the current `5746f24` baseline. Broaden that gate
+   beyond one local rectangle, reconfirm it on the current checkout, and run
+   short NVE tests before enabling optimization, scan, TS search, or MD.
 
 ## Stop condition for the force milestone
 

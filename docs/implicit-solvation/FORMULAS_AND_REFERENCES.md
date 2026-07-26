@@ -354,6 +354,121 @@ The standard state is exactly 1 M gas to 1 M solution:
 MAPLE therefore does not add the approximately `1.89 kcal/mol` 1 atm to 1 M
 correction.
 
+### QM fidelity, component cancellation, and conformer averaging
+
+The force adjoint is **not** an additional solvation-energy term. Energy-only
+evaluation stops after the converged ML--PCM fixed point and computes
+
+\[
+\Delta G_{\mathrm{solv}}
+=\Delta E_{\mathrm{solute}}+U_{\mathrm{pol}}+G_{\mathrm{CDS}}.
+\]
+
+The adjoint is evaluated only when a coordinate derivative is requested.
+Consequently, chemical accuracy of \(\Delta G_{\mathrm{solv}}\) and numerical
+accuracy of its analytic force are independent validation gates.
+
+For a fixed geometry \(\mathbf R\), the chemical-level QM comparison is
+
+\[
+\delta_{\mathrm{QM}}(\mathbf R)
+=\Delta G_{\mathrm{solv}}^{\mathrm{Route2}}(\mathbf R)
+ -\Delta G_{\mathrm{solv}}^{\mathrm{QM/SMD}}(\mathbf R),
+\]
+
+with the component identity
+
+\[
+\delta_{\mathrm{QM}}
+=\delta\Delta E_{\mathrm{solute}}
+ +\delta U_{\mathrm{pol}}
+ +\delta G_{\mathrm{CDS}}.
+\]
+
+MAPLE must retain this decomposition. A small total error is not evidence that
+the learned solute-polarization response and continuum-polarization energy are
+separately QM-accurate when the two component errors have opposite signs.
+
+The frozen bounded pilot
+[`route2-qm-fidelity-v1.json`](benchmarks/route2-qm-fidelity-v1.json)
+compares identical fixed geometries against self-consistent PySCF 2.13.1
+SMD/water at \(\omega\)B97M-V/def2-TZVPD:
+
+| molecule | Route-2 profile | Route 2 | QM/SMD | experiment | \(|\mathrm{Route2-QM}|\) | \(|\mathrm{Route2-exp}|\) | observed QM/Route-2 energy time |
+|---|---|---:|---:|---:|---:|---:|---:|
+| methanol | base l15/n1202 | -5.1016 | -4.4083 | -5.10 | 0.6934 | 0.0016 | 3.05 |
+| acetone | GAFF2-o + kspace40 | -4.8166 | -5.1084 | -3.80 | 0.2918 | 1.0166 | 5.56 |
+| 2-acetoxyethyl acetate | GAFF2-o + kspace40 | -7.8380 | -8.5531 | -6.34 | 0.7151 | 1.4980 | 9.04 |
+
+Energies and absolute errors are in kcal/mol. These three fixed conformers
+give Route-2/QM MAE `0.5668 kcal/mol` and Route-2/experiment MAE
+`0.8388 kcal/mol`. Methanol uses
+`smd-ddpcm-l15-n1202-v1`; acetone and 2-acetoxyethyl acetate use
+`smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1`. The aggregate is therefore a
+bounded cross-profile diagnostic, not a single-profile benchmark. The timing
+ratios are observed Route-2 CUDA versus PySCF eight-thread CPU wall times on
+this host; they are neither hardware-normalized nor certified speedups.
+
+The frozen source records were generated at Git commits `278c312` (methanol and
+acetone) and `5422a07` (the fixed 2-acetoxyethyl-acetate record). A clean
+detached-worktree methanol energy canary at the present baseline commit
+`5746f24` reproduced the historical correction within
+\(4.55\times10^{-13}\) eV, with 16 root iterations and no `primary` warning.
+That canary establishes current-checkout alignment for methanol energy only; it
+does not align acetone, the flexible panel, force evidence, or the historical
+timing ratios with the current checkout.
+
+The total agreement contains substantial component cancellation. For acetone,
+\(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and
+\(\delta U_{\mathrm{pol}}=+2.2197\) kcal/mol, leaving only
+\(\delta_{\mathrm{QM}}=+0.2918\) kcal/mol. For the fixed
+2-acetoxyethyl-acetate conformer, the corresponding values are `-1.4801`,
+`+2.1951`, and `+0.7151 kcal/mol`. The same PySCF SMD CDS value is deliberately
+used in both columns, so \(\delta G_{\mathrm{CDS}}=0\) in this diagnostic.
+These results support bounded total-energy fidelity near 1 kcal/mol; they do
+not yet validate the two polarization components independently.
+
+For a common discrete conformer set, the electronic-only ensemble correction
+is evaluated as a difference of gas and aqueous configurational free energies:
+
+\[
+\Delta G_{\mathrm{solv}}^{\mathrm{ens}}
+=-\beta^{-1}\ln
+\frac{
+\sum_k \exp[-\beta(E_{\mathrm{gas},k}+\Delta G_{\mathrm{solv},k})]
+}{
+\sum_k \exp[-\beta E_{\mathrm{gas},k}]
+}.
+\]
+
+The locked four-geometry 2-acetoxyethyl-acetate panel gives per-conformer
+Route-2/QM MAE `0.8787 kcal/mol`, maximum absolute error
+`1.0082 kcal/mol`, and bounded electronic-ensemble values of `-6.5165` and
+`-7.4506 kcal/mol`, respectively. Their ensemble difference is
+`0.9341 kcal/mol`. Its arithmetic distance from the experimental value is
+`0.1765 kcal/mol`, but this is not an HFE-accuracy estimate: the bounded
+electronic panel excludes vibrational thermochemistry, basin degeneracy, broad
+conformer sampling, and solution-phase geometry relaxation. The panel contains
+one original source geometry and three ETKDGv3/MMFF-generated screened
+candidates; Route 2 or QM supplied all reported gas/aqueous energies and
+Boltzmann weights.
+
+An acetone-specific attempt to reuse the Route-2 cavity radii and ddX numerical
+settings for an AO-density reference was rejected. The
+\(\omega\)B97M-V/def2-SVP calculation numerically completed but returned the
+physically invalid ddPCM correction `-114.1610 hartree`; the diffuse-basis
+calculation collapsed nonphysically. This one diagnostic does not prove that
+all AO-density sharp-cavity PCM formulations fail. It only rejects this
+reference construction for the tested acetone cavity/settings. Enlarging
+Route-2 radii to rescue it would change the production model and is forbidden.
+The maintained PySCF SMD/IEFPCM calculation is therefore a chemical-level
+reference, not a discretization-identical operator reference.
+
+This pilot contains three fixed conformers and one four-geometry electronic
+panel. It does not establish broad chemical-space accuracy, training-set
+exclusion, QM-force agreement, complete conformer thermochemistry, or a
+hardware-normalized performance advantage.
+
 ### Force derivative: implemented candidate; PES validation remains
 
 For a converged density representation \(c^*(\mathbf R)\) and apparent surface

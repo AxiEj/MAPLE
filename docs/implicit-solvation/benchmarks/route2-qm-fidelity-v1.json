@@ -12,7 +12,7 @@
     "scope_boundary": "This one acetone diagnostic does not prove that every AO-density sharp-cavity PCM formulation fails; it only rejects this attempted reference construction for the tested Route-2 cavity/settings.",
     "source_evidence": {
       "alignment_status": "source-did-not-record-git-head",
-      "current_checkout_head": "f3e989245189f742a03a61a19a848df54035c96f",
+      "current_checkout_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
       "current_checkout_match": null,
       "evidence_git_head": null,
       "path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/negative_result_same_operator_ao_qm.json",
@@ -23,25 +23,25 @@
     "valid_reference_boundary": "Use a maintained self-consistent SMD implementation designed for AO density (PySCF SMD/IEF-PCM) as a chemical-level QM reference. Compare total SMD corrections and broad components, not claim discretization-identical operators."
   },
   "benchmark_role": "Bounded same-geometry Route-2/QM/experiment energy comparison and four-geometry electronic conformer diagnostic; not a broad accuracy certification.",
-  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. Methanol and acetone have clean energy canaries at 5746f24 and f3e9892, respectively, with no maple/ runtime-source change between those heads. The fixed 2-acetoxyethyl-acetate energy and all flexible force/loop evidence are historical pre-f3e9892 records. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, QM-force comparison, operator identity, or hardware-normalized speedup is established.",
+  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at 5746f24, f3e9892, and e34abc5, with no maple/ runtime-source change among those heads. The flexible four-geometry panel and all flexible force/loop evidence remain historical pre-e34abc5 records. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, QM-force comparison, operator identity, or hardware-normalized speedup is established.",
   "current_checkout_alignment": {
     "canary_execution_heads": {
+      "2-acetoxyethyl acetate": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
       "acetone": "f3e989245189f742a03a61a19a848df54035c96f",
       "methanol": "5746f24e1ff67482622ebc789c6126cda5cf5928"
     },
     "fixed_records_confirmed_by_current_head_canary": [
       "methanol",
-      "acetone"
-    ],
-    "fixed_records_not_rerun": [
+      "acetone",
       "2-acetoxyethyl acetate"
     ],
+    "fixed_records_not_rerun": [],
     "flexible_panel_current_checkout_match": null,
-    "latest_checked_git_head": "f3e989245189f742a03a61a19a848df54035c96f",
+    "latest_checked_git_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
     "runtime_code_reference_git_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
     "runtime_code_unchanged_between_canary_heads": true,
     "runtime_source_scope": "maple/",
-    "scope": "Methanol was rerun in a clean detached worktree at 5746f24 and acetone at f3e9892. No tracked maple/ runtime source changed between those heads. The fixed 2-acetoxyethyl-acetate energy, the flexible panel, and flexible force/loop evidence remain historical until separately rerun."
+    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. No tracked maple/ runtime source changed among those heads. The flexible four-geometry panel and flexible force/loop evidence remain historical until separately rerun."
   },
   "energy_definition": "delta_g_solv = delta_e_solute + u_pol + g_cds",
   "energy_force_separation": "The adjoint is evaluated only for coordinate derivatives. It does not alter the converged Route-2 solvation energy.",
@@ -250,9 +250,24 @@
         },
         "same_geometry": true,
         "source_evidence": {
-          "alignment_status": "not-rerun-on-current-checkout",
-          "current_checkout_head": "f3e989245189f742a03a61a19a848df54035c96f",
-          "current_checkout_match": null,
+          "alignment_status": "confirmed-by-current-head-energy-canary",
+          "current_checkout_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
+          "current_checkout_match": true,
+          "current_head_canary": {
+            "absolute_difference_from_historical_correction_ev": 2.220446049250313e-16,
+            "correction_energy_ev": -0.33988998861544006,
+            "evaluation_seconds": 71.90954354999849,
+            "force_reference_sha256": "4d53acc278997d5e7c5daa0e4c5ac5135d43ecb514bd3483f9ed82fc0dad4bdc",
+            "git_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
+            "historical_correction_energy_ev": -0.3398899886154403,
+            "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+            "path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-energy-e34abc5.json",
+            "root_scf_iterations": 18,
+            "runner_sha256": "658c5d4e064b911374582ee1072a3515ffbbee62920f19ff200b2e03296dd27a",
+            "sha256": "fe71e841c6c0d630cdfbabab7121491bfed73fa27ba0add49d85751a74c64906",
+            "status": "pass",
+            "used_for_timing_claim": false
+          },
           "evidence_git_head": "5422a078ade3adb0730ec420c3dc5245983e6f4e",
           "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/2acetoxyethyl_acetate_route2_qm_experiment.json",
           "sha256": "ec92f1619cd902ce15fd104407c61bd36e6f00ec3f995c0a5ad974256c709487",
@@ -427,7 +442,7 @@
     "route2_profile": "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
     "source_evidence": {
       "alignment_status": "not-rerun-on-current-checkout",
-      "current_checkout_head": "f3e989245189f742a03a61a19a848df54035c96f",
+      "current_checkout_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
       "current_checkout_match": null,
       "evidence_git_heads": [
         "278c312e2d4eaf36edf9f6c17f062befb1bc1c66",
@@ -464,6 +479,6 @@
     "smd-ddpcm-l15-n1202-v1"
   ],
   "schema_version": 2,
-  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating Git heads and current-checkout alignment are recorded explicitly; this tracked file freezes the reviewed numerical ledger and arithmetic checks. Only the listed methanol and acetone energy canaries were rerun against the recorded runtime-code-equivalent checkout heads.",
+  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating Git heads and current-checkout alignment are recorded explicitly; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries were rerun against the recorded runtime-code-equivalent checkout heads.",
   "status": "frozen-bounded-pilot"
 }

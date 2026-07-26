@@ -65,16 +65,18 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     assert current_alignment["runtime_code_unchanged_between_canary_heads"] is True
     canary_execution_heads = current_alignment["canary_execution_heads"]
     assert canary_execution_heads == {
-        "acetone": latest_checked_head,
+        "2-acetoxyethyl acetate": latest_checked_head,
+        "acetone": "f3e989245189f742a03a61a19a848df54035c96f",
         "methanol": runtime_reference_head,
     }
+    for execution_head in canary_execution_heads.values():
+        _assert_git_sha(execution_head)
     assert current_alignment["fixed_records_confirmed_by_current_head_canary"] == [
         "methanol",
         "acetone",
-    ]
-    assert current_alignment["fixed_records_not_rerun"] == [
         "2-acetoxyethyl acetate",
     ]
+    assert current_alignment["fixed_records_not_rerun"] == []
     assert current_alignment["flexible_panel_current_checkout_match"] is None
     assert len(records) == panel["summary"]["record_count"] == 3
     assert len({record["compound_id"] for record in records}) == len(records)

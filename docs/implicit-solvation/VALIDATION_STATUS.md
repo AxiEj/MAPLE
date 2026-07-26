@@ -583,16 +583,17 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
 
     The frozen source records were generated at `278c312` for methanol/acetone
     and `5422a07` for the fixed 2-acetoxyethyl-acetate conformer. Clean
-    detached-worktree methanol and acetone energy canaries at `5746f24` and
-    `f3e9892` reproduce their historical corrections within
-    \(4.55\times10^{-13}\) and \(2.50\times10^{-16}\) eV. No tracked `maple/`
-    runtime source changed between those heads. They use 16 and 21 root
-    iterations and emit no `primary` warning. Their observed energy-evaluation
-    times are `8.85` and `24.86 s`, compared with historical `10.57` and
-    `32.50 s`; this is not a hardware-normalized or replicated speed result.
-    The flexible panel, force evidence, and historical timing ratios remain
-    unaligned with the latest checked checkout rather than being treated as
-    current merely through ancestry.
+    detached-worktree energy canaries at `5746f24`, `f3e9892`, and `e34abc5`
+    reproduce their historical corrections within \(4.55\times10^{-13}\),
+    \(2.50\times10^{-16}\), and \(2.22\times10^{-16}\) eV. No tracked `maple/`
+    runtime source changed among those heads. They use 16, 21, and 18 root
+    iterations and emit no `primary` or solver warning. Their observed
+    energy-evaluation times are `8.85`, `24.86`, and `71.91 s`, compared with
+    historical `10.57`, `32.50`, and `85.55 s`; this is not a
+    hardware-normalized or replicated speed result. The flexible panel, force
+    evidence, and historical timing ratios remain unaligned with the latest
+    checked checkout rather than being treated as current merely through
+    ancestry.
 
     Component-resolved comparison exposes error cancellation. Acetone has
     Route-2-minus-QM differences of `-1.9279 kcal/mol` in

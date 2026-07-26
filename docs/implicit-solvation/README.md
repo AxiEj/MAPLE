@@ -209,15 +209,15 @@ three-fixed-geometry QM/experiment comparison and four-geometry electronic
 conformer panel are frozen in
 [`route2-qm-fidelity-v1.json`](benchmarks/route2-qm-fidelity-v1.json);
 component-resolved differences must be read with the total because polarization
-errors currently cancel. Methanol and acetone energies have been reconfirmed in
-clean worktrees at `5746f24` and `f3e9892`, with no tracked `maple/` runtime
-source change between those heads. The fixed flexible-molecule energy and the
-local flexible-coordinate/two-torsion evidence were generated at earlier
-commits and remain explicitly historical until rerun. Broader
-flexible/relaxed-path continuity, additional chemical classes, and complete
-conformer thermochemistry remain open without changing the named profile; the
-short NVE conservation gate is still unrun. Until those gates pass,
-optimization, scans, transition states, and MD remain out of scope.
+errors currently cancel. All three fixed-conformer energies have been
+reconfirmed in clean worktrees at `5746f24`, `f3e9892`, and `e34abc5`, with no
+tracked `maple/` runtime-source change among those heads. The four-geometry
+flexible panel and the local flexible-coordinate/two-torsion force evidence
+were generated at earlier commits and remain explicitly historical until
+rerun. Broader flexible/relaxed-path continuity, additional chemical classes,
+and complete conformer thermochemistry remain open without changing the named
+profile; the short NVE conservation gate is still unrun. Until those gates
+pass, optimization, scans, transition states, and MD remain out of scope.
 
 See [FORMULAS_AND_REFERENCES.md](FORMULAS_AND_REFERENCES.md) for equations and
 the literature ledger, and [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the

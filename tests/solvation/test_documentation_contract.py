@@ -183,7 +183,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
         "does not prove that all AO-density sharp-cavity PCM"
         in normalized_formulas
     )
-    assert "Methanol and acetone energies have been reconfirmed" in overview
+    assert (
+        "All three fixed-conformer energies have been reconfirmed"
+        in normalized_overview
+    )
     assert "evidence-generating Git heads" in benchmark
     assert "predeclared three-step validation" in validation
     assert "cannot retroactively overwrite" in normalized_validation

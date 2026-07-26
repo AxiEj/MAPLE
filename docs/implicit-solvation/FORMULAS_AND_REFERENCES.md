@@ -410,17 +410,17 @@ ratios are observed Route-2 CUDA versus PySCF eight-thread CPU wall times on
 this host; they are neither hardware-normalized nor certified speedups.
 
 The frozen source records were generated at Git commits `278c312` (methanol and
-acetone) and `5422a07` (the fixed 2-acetoxyethyl-acetate record). A clean
-detached-worktree methanol energy canary at `5746f24` reproduced the historical
-correction within \(4.55\times10^{-13}\) eV; an acetone canary at `f3e9892`
-reproduced it within \(2.50\times10^{-16}\) eV. No tracked `maple/` runtime
-source changed between those heads. The roots used 16 and 21 iterations,
-respectively, and neither emitted a `primary` warning. Their observed
-energy-evaluation times were `8.85` and `24.86 s`, versus historical `10.57`
-and `32.50 s`; these single-run observations do not replace the frozen timing
-ratios or establish speedup. The fixed 2-acetoxyethyl-acetate energy, flexible
-panel, and force evidence remain historical and are not aligned with the latest
-checked checkout.
+acetone) and `5422a07` (the fixed 2-acetoxyethyl-acetate record). Clean
+detached-worktree energy canaries at `5746f24`, `f3e9892`, and `e34abc5`
+reproduced their historical corrections within \(4.55\times10^{-13}\),
+\(2.50\times10^{-16}\), and \(2.22\times10^{-16}\) eV, respectively. No
+tracked `maple/` runtime source changed among those heads. The roots used 16,
+21, and 18 iterations, and none emitted a `primary` or solver warning. Their
+observed energy-evaluation times were `8.85`, `24.86`, and `71.91 s`, versus
+historical `10.57`, `32.50`, and `85.55 s`; these single-run observations do
+not replace the frozen timing ratios or establish speedup. The four-geometry
+flexible panel and force evidence remain historical and are not aligned with
+the latest checked checkout.
 
 The total agreement contains substantial component cancellation. For acetone,
 \(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and

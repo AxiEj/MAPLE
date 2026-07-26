@@ -174,6 +174,19 @@ class _PinnedMACEProvider(Calculator):
             device=self.device,
             default_dtype=self.default_dtype,
         )
+        try:
+            interaction_cutoff = float(self._upstream.r_max)
+        except (AttributeError, TypeError, ValueError) as exc:
+            raise RuntimeError(
+                "MACE_MODEL_INVALID: upstream model exposes no finite "
+                "interaction cutoff."
+            ) from exc
+        if not math.isfinite(interaction_cutoff) or interaction_cutoff <= 0.0:
+            raise RuntimeError(
+                "MACE_MODEL_INVALID: upstream interaction cutoff must be "
+                "finite and positive."
+            )
+        self.interaction_cutoff_angstrom = interaction_cutoff
 
     def _prepare_atoms(self, atoms: Atoms) -> Atoms:
         raise NotImplementedError
@@ -221,9 +234,17 @@ class _PinnedMACEProvider(Calculator):
             "free_energy": float(source.get("free_energy", energy)),
         }
         for name in ("forces", "stress"):
-            if name not in requested:
+            if name not in self.implemented_properties:
                 continue
-            values = np.asarray(source.get(name), dtype=float)
+            raw_values = source.get(name)
+            if raw_values is None:
+                if name in requested:
+                    raise RuntimeError(
+                        f"MACE_RESULT_INVALID: upstream provider returned no "
+                        f"{name}."
+                    )
+                continue
+            values = np.asarray(raw_values, dtype=float)
             expected_shape = (len(atoms), 3) if name == "forces" else (6,)
             if values.shape != expected_shape or not np.all(np.isfinite(values)):
                 raise RuntimeError(
@@ -243,6 +264,9 @@ class _PinnedMACEProvider(Calculator):
             "checkpoint_sha256": self.checkpoint_sha256,
             "default_dtype": self.default_dtype,
             "device": self.device,
+            "interaction_cutoff_angstrom": (
+                self.interaction_cutoff_angstrom
+            ),
             "result_units": {
                 "energy": "eV",
                 "forces": "eV/angstrom",

@@ -57,6 +57,104 @@ The current checkpoint is:
 | `mace-torch` | 0.3.16 |
 | arithmetic | float64 |
 
+## Paper-derived NPT and replica contract
+
+The MACE-OFF24 supporting information gives a substantially stronger
+liquid-water density protocol than MAPLE's first NVT preflight:
+
+| Field | MACE-OFF24 supporting information |
+|---|---|
+| initial construction | OpenMM Modeller, 12.5 Å padding |
+| box edge | 25 Å |
+| ensemble | NPT |
+| temperature | 298 K |
+| pressure | 1 atm |
+| dynamics | Langevin equations |
+| barostat | Monte Carlo barostat |
+| timestep | 1 fs |
+| total duration | 500 ps |
+| discarded equilibration | first 100 ps |
+| density average | final 400 ps |
+| density sampling | every 100 steps |
+
+The source is the
+[official MACE-OFF24 supporting information](https://www.repository.cam.ac.uk/bitstreams/7e2a13f9-d1de-4814-9af7-e51de175a024/download).
+The paper reports that the older MACE-OFF23(M) overestimates ambient water
+density by about 20%, while the extended-cutoff MACE-OFF24(M) result is within
+about 2% at room temperature. MAPLE therefore uses a preregistered 3% density
+error gate rather than weakening the target to fit a short local trajectory.
+
+The numerical density reference is
+`0.997047013 g mL^-1` at 298.15 K and 0.1 MPa from
+[IAPWS SR6-08(2011), Table 8](https://www.iapws.org/relguide/LiquidWater.pdf).
+The 0.1 MPa IAPWS state and the 1 atm paper pressure differ slightly and are
+recorded separately rather than silently treated as identical provenance.
+
+`bulk_water_npt.py` implements a stress-aware ASE
+`IsotropicMTKNPT` route with an explicit fixed-cell Langevin preconditioning
+stage. ASE documents MTK as a correct isotropic NPT ensemble and warns that
+Berendsen suppresses thermodynamic fluctuations; see the
+[ASE molecular-dynamics documentation](https://ase.gitlab.io/ase/ase/md.html).
+The ASE route is scientifically useful as an independent NPT implementation,
+but it is **not** labeled an exact reproduction of the paper's OpenMM
+Langevin/Monte-Carlo-barostat trajectory.
+
+The current runtime has OpenMM but no installed `mace-md` or OpenMM-Torch MACE
+force provider. Consequently:
+
+- `paper_duration_fidelity_passed` can become true for a 100 ps + 400 ps run;
+- `paper_integrator_fidelity_passed` remains false for ASE MTK;
+- `paper_protocol_reproduced` remains false;
+- the Hamiltonian-freeze gate retains an independent cross-engine
+  OpenMM/Monte-Carlo-barostat comparison.
+
+The NPT runner obtains the interaction cutoff from the loaded MACE model
+(`MACECalculator.r_max`) and binds that value into immutable calculator
+provenance. A caller cannot substitute a smaller cutoff. The run terminates
+whenever the instantaneous minimum cell height is below
+`2 * max(model cutoff + safety margin, RDF maximum radius)`. The second term
+matters under a fluctuating NPT cell: a box can remain safe for the model
+cutoff while becoming too small for the requested RDF. The pinned 64-water
+box starts at 12.442878 Å, only slightly above the 12.2 Å default safety
+threshold, so it remains an engineering and finite-size diagnostic rather
+than a paper-size production box.
+
+A density close to IAPWS is not sufficient by itself. The NPT diagnostic also
+requires the production temperature and mean pressure to be centered within
+preregistered tolerances and the first/second-half density means to agree.
+This prevents a fixed-density starting box or a short barostat transient from
+passing merely because its initial volume was chosen near 1 g mL^-1.
+
+`bulk_water_campaign.py` aggregates replica means rather than pooling
+correlated frames. It requires at least three distinct seeds with the exact
+preregistered non-seed protocol (literal SHA256
+`59c39954c8df951fae3189dae2b483c78f347ebc2acc3937bd724263360136bf`)
+and matching source, water count, checkpoint,
+implementation, ensemble and integrator identities. Different result hashes
+are insufficient: the combined semantic hashes of coordinates, cells and
+velocities must also be distinct. Formal campaign inputs must come from a
+clean committed worktree; dirty artifacts remain engineering diagnostics.
+
+Before aggregation, `bulk_water_evidence.py` requires the exact NPZ schema and
+recomputes production duration, frame count, density from cell volumes and
+default isotope masses, density blocks and SEM, half-trajectory drift,
+temperature, pressure, intermolecular RDF histograms, RDF block SEM, derived
+O--O features and every engineering gate. RDF evidence is regenerated from
+the retained production coordinates and cells rather than trusted from a
+self-consistent manifest. The NPT artifact retains per-step temperature,
+energy, velocity maximum, force maximum, intramolecular geometry ranges,
+cell-height range, volume and density, so placeholder pass flags cannot stand
+in for missing stepwise evidence.
+
+The campaign combines between-replica and within-replica uncertainty, then
+uses a two-sided 95% Student-t interval with `replica_count - 1` degrees of
+freedom. For three replicas the critical value is about 4.303, not 1.96; see
+the [NIST Student-t critical-value table](https://www.itl.nist.gov/div898/handbook/eda/section3/eda3672.htm).
+The complete interval, not only its point estimate, must fit inside the
+preregistered ±3% IAPWS density band. Density and replica-spread tolerances
+may be tightened but not loosened. Even a passing campaign leaves finite-size,
+external-RDF and cross-engine gates false.
+
 ## Runner contract
 
 `examples/solvation/route_a/validate_bulk_water.py` runs three distinct NVT
@@ -88,7 +186,8 @@ sample uncertainty when the trajectory is too short.
 
 The result directory contains:
 
-- `arrays.npz`: observations, production frames and RDF arrays;
+- `arrays.npz`: sampled observations, production frames, RDF arrays and the
+  complete per-step NPT engineering ledger;
 - `summary.json`: inputs, diagnostics, gates and semantic array hashes;
 - `manifest.json`: result hash, raw `arrays.npz` byte hash, canonical
   `summary.json` hash and semantic hashes for every array.
@@ -96,6 +195,70 @@ The result directory contains:
 An existing output path is never overwritten. A fixed RNG seed constrains the
 stochastic path, but bitwise reproducibility across different CUDA and library
 stacks is explicitly not claimed.
+
+The corresponding NPT command is:
+
+```bash
+python examples/solvation/route_a/validate_bulk_water_npt.py \
+  --waterbox /path/to/hash-verified/waterbox.xyz \
+  --waterbox-sha256 <sha256> \
+  --expected-waters 64 \
+  --checkpoint /path/to/MACE-OFF24_medium.model \
+  --checkpoint-sha256 e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69 \
+  --output /path/to/new/npt-result \
+  --device cuda
+```
+
+The defaults bind the paper-derived 100 ps equilibration and 400 ps production
+durations. Shorter invocations are allowed only to expose engineering failures;
+their duration and paper-fidelity gates remain false.
+
+After three completed replicas, verify and aggregate them with:
+
+```bash
+python examples/solvation/route_a/aggregate_bulk_water_npt_replicas.py \
+  --output /path/to/new/npt-campaign.json \
+  /path/to/npt-replica-01 \
+  /path/to/npt-replica-02 \
+  /path/to/npt-replica-03
+```
+
+The aggregator verifies each `manifest.json`, canonical summary hash, raw NPZ
+hash, semantic array hashes and result hash, then reproduces the scientific
+values from arrays before aggregation. It rejects missing or malformed Git
+identity, a calculator/config cutoff mismatch, duplicate core trajectories,
+weakened replica gates and an uncertainty interval that crosses the density
+acceptance band. Its single JSON output binds the replica result hashes,
+campaign thresholds, executing aggregator source hashes and Git state.
+Creation uses an atomic non-overwrite link, so a concurrent or repeated
+invocation cannot replace existing campaign evidence.
+
+## Stepwise-evidence development smoke
+
+The post-review NPT evidence path was exercised once against the real
+MACE-OFF24(M) checkpoint and the pinned 64-water box. This was a deliberately
+short **dirty-worktree engineering smoke**, not promotion evidence:
+
+| Field | Observed |
+|---|---|
+| result hash | `7f7890712c464e71853802c826da148410f4690fe4eac15a31ae5efd53b9c89a` |
+| MD updates | 2 preconditioning + 4 equilibration + 4 production |
+| retained arrays | exact 39-array NPT schema |
+| stepwise rows | 11 / 11 states |
+| loaded model cutoff | 6.0 Å |
+| minimum cell height | 12.436869 Å |
+| water topology | preserved |
+| engineering gate | pass |
+| production temperature | 351.482907 K |
+| production pressure | -55,149.188 bar |
+| scientific NPT diagnostic | fail |
+
+The artifact successfully round-tripped through the semantic campaign loader:
+all hashes, shapes, per-step evidence and recomputed summaries agreed. Its
+large temperature/pressure offsets and sub-femtosecond production duration
+make it unsuitable for density inference. The result demonstrates only that
+the real calculator, evidence ledger, writer and independent loader form one
+fail-closed engineering path.
 
 ## Final v2 staged preflight
 

@@ -14,6 +14,7 @@ class _FakeUpstream:
     def __init__(self, calls):
         self.calls = calls
         self.results = {}
+        self.r_max = 6.0
 
     def calculate(self, atoms, properties, system_changes):
         self.calls.append(
@@ -60,6 +61,29 @@ def test_hash_is_checked_before_the_mace_runtime_is_imported(
         )
 
 
+def test_model_cutoff_must_come_from_loaded_upstream_model(
+    tmp_path,
+    monkeypatch,
+):
+    checkpoint, sha256 = _checkpoint(tmp_path)
+    upstream = _FakeUpstream([])
+    upstream.r_max = float("nan")
+    monkeypatch.setattr(
+        backend,
+        "_construct_upstream_calculator",
+        lambda **kwargs: upstream,
+    )
+
+    with pytest.raises(RuntimeError, match="interaction cutoff"):
+        backend.MACEOff24Provider(
+            device="cpu",
+            model="maceoff24m",
+            checkpoint=str(checkpoint),
+            sha256=sha256,
+            license_ack=True,
+        )
+
+
 def test_off24_forwards_periodic_cell_energy_forces_and_stress(
     tmp_path, monkeypatch
 ):
@@ -98,6 +122,39 @@ def test_off24_forwards_periodic_cell_energy_forces_and_stress(
     assert calculator.results["energy"] == -12.5
     assert calculator.results["forces"].shape == (3, 3)
     assert calculator.results["stress"].shape == (6,)
+    assert calculator.provenance["interaction_cutoff_angstrom"] == 6.0
+
+
+def test_off24_retains_coevaluated_results_for_ase_cache(
+    tmp_path,
+    monkeypatch,
+):
+    checkpoint, sha256 = _checkpoint(tmp_path)
+    calls = []
+    monkeypatch.setattr(
+        backend,
+        "_construct_upstream_calculator",
+        lambda **kwargs: _FakeUpstream(calls),
+    )
+    calculator = backend.MACEOff24Provider(
+        device="cpu",
+        model="maceoff24m",
+        checkpoint=str(checkpoint),
+        sha256=sha256,
+        license_ack=True,
+    )
+    atoms = Atoms(
+        "OH2",
+        positions=[[0, 0, 0], [0.96, 0, 0], [-0.24, 0.93, 0]],
+        cell=[12, 12, 12],
+        pbc=True,
+        calculator=calculator,
+    )
+
+    assert atoms.get_potential_energy() == pytest.approx(-12.5)
+    assert atoms.get_forces().shape == (3, 3)
+    assert atoms.get_stress().shape == (6,)
+    assert len(calls) == 1
 
 
 def test_omol_maps_closed_shell_multiplicity_to_spin_one(

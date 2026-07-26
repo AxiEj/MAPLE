@@ -21,6 +21,10 @@ from ase.md.velocitydistribution import (
 )
 
 from .protocol import canonical_sha256, raw_sha256
+from .provenance import (
+    collect_implementation_provenance,
+    require_coherent_git_status,
+)
 
 
 MACE_MD_WATERBOX_COMMIT = "e19729524fc91920169d4e193e4edd55bc4c5707"
@@ -47,6 +51,17 @@ def _require_sha256(value: str, *, label: str) -> str:
     ):
         raise BulkWaterValidationError(
             f"{label} must be 64 lowercase hexadecimal characters."
+        )
+    return normalized
+
+
+def _require_git_commit(value: str, *, label: str) -> str:
+    normalized = str(value)
+    if len(normalized) not in {40, 64} or any(
+        character not in _SHA256_CHARS for character in normalized
+    ):
+        raise BulkWaterValidationError(
+            f"{label} must be a 40- or 64-character lowercase Git object ID."
         )
     return normalized
 
@@ -185,7 +200,13 @@ class _StepwiseStabilityMonitor:
     minimum_hoh_angle_degrees: float = math.inf
     maximum_hoh_angle_degrees: float = -math.inf
 
-    def inspect(self, atoms: Atoms, *, stage: str, step: int) -> None:
+    def inspect(
+        self,
+        atoms: Atoms,
+        *,
+        stage: str,
+        step: int,
+    ) -> dict[str, float]:
         try:
             topology = validate_water_box(atoms)
         except BulkWaterValidationError as exc:
@@ -243,6 +264,26 @@ class _StepwiseStabilityMonitor:
                 "DYNAMICS_FORCE_LIMIT: "
                 f"stage={stage}, step={step}, max_force={force_max:.8g} eV/A."
             )
+        return {
+            "temperature_k": temperature,
+            "potential_energy_ev": potential,
+            "velocity_max_angstrom_per_ase_time": float(
+                np.max(np.linalg.norm(velocities, axis=1))
+            ),
+            "force_max_ev_per_angstrom": force_max,
+            "oh_min_distance_angstrom": topology[
+                "oh_distance_range_angstrom"
+            ][0],
+            "oh_max_distance_angstrom": topology[
+                "oh_distance_range_angstrom"
+            ][1],
+            "hoh_min_angle_degrees": topology[
+                "hoh_angle_range_degrees"
+            ][0],
+            "hoh_max_angle_degrees": topology[
+                "hoh_angle_range_degrees"
+            ][1],
+        }
 
     def as_dict(self, *, expected_last_step: int) -> dict[str, Any]:
         expected_count = int(expected_last_step) + 1
@@ -274,6 +315,7 @@ class BulkWaterValidationResult:
     result_hash: str
     summary: Mapping[str, Any]
     arrays: Mapping[str, np.ndarray]
+    artifact_schema: str = "maple-route-a-bulk-water-validation-artifact-v2"
 
     def write(self, output_directory: str | Path) -> Path:
         root = Path(output_directory).expanduser().resolve()
@@ -320,7 +362,7 @@ class BulkWaterValidationResult:
         summary["result_hash"] = self.result_hash
         _atomic_json(root / "summary.json", summary)
         manifest = {
-            "schema": "maple-route-a-bulk-water-validation-artifact-v2",
+            "schema": self.artifact_schema,
             "result_hash": self.result_hash,
             "files": {
                 "arrays": {
@@ -489,6 +531,53 @@ def validate_water_box(atoms: Atoms, *, expected_waters: int | None = None) -> d
     }
 
 
+def replicate_water_box(
+    atoms: Atoms,
+    repetitions: tuple[int, int, int],
+) -> Atoms:
+    """Replicate contiguous O-H-H waters without breaking wrapped molecules."""
+
+    topology = validate_water_box(atoms)
+    try:
+        normalized = tuple(repetitions)
+    except TypeError as exc:
+        raise BulkWaterValidationError(
+            "WATER_REPLICATION_INVALID: repetitions must contain three "
+            "positive integers."
+        ) from exc
+    if (
+        len(normalized) != 3
+        or any(type(value) is not int or value <= 0 for value in normalized)
+    ):
+        raise BulkWaterValidationError(
+            "WATER_REPLICATION_INVALID: repetitions must contain three "
+            "positive integers."
+        )
+
+    unwrapped = atoms.copy()
+    unwrapped.calc = None
+    positions = np.asarray(unwrapped.positions, dtype=float).copy()
+    oxygen_positions = positions[0::3].copy()
+    for offset in (1, 2):
+        vectors = positions[offset::3] - oxygen_positions
+        mic_vectors, _ = find_mic(
+            vectors,
+            unwrapped.cell,
+            pbc=unwrapped.pbc,
+        )
+        positions[offset::3] = oxygen_positions + mic_vectors
+    unwrapped.set_positions(positions)
+
+    replicated = unwrapped.repeat(normalized)
+    replicated.calc = None
+    expected_waters = topology["water_count"] * math.prod(normalized)
+    validate_water_box(
+        replicated,
+        expected_waters=expected_waters,
+    )
+    return replicated
+
+
 def load_water_box(
     path: str | Path,
     *,
@@ -532,6 +621,7 @@ def _validated_run_provenance(
     source_provenance: Mapping[str, Any],
     calculator_provenance: Mapping[str, Any],
     implementation_provenance: Mapping[str, Any],
+    required_implementation_paths: set[str] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     source = dict(source_provenance)
     if source.get("schema") != "maple-route-a-bulk-water-source-v1":
@@ -601,6 +691,20 @@ def _validated_run_provenance(
             "CALCULATOR_PROVENANCE_INVALID: result units must be the Route A "
             "eV-native energy/force/stress contract."
         )
+    try:
+        interaction_cutoff = float(
+            declared_calculator["interaction_cutoff_angstrom"]
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise BulkWaterValidationError(
+            "CALCULATOR_PROVENANCE_INVALID: interaction cutoff is missing "
+            "or invalid."
+        ) from exc
+    if not math.isfinite(interaction_cutoff) or interaction_cutoff <= 0.0:
+        raise BulkWaterValidationError(
+            "CALCULATOR_PROVENANCE_INVALID: interaction cutoff must be "
+            "finite and positive."
+        )
     runtime_calculator_provenance = getattr(calculator, "provenance", None)
     if not isinstance(runtime_calculator_provenance, Mapping):
         raise BulkWaterValidationError(
@@ -636,6 +740,35 @@ def _validated_run_provenance(
             "IMPLEMENTATION_PROVENANCE_INVALID: project_root is not the "
             "currently executing MAPLE source tree."
         )
+    try:
+        implementation["git_head"] = _require_git_commit(
+            implementation["git_head"],
+            label="implementation Git HEAD",
+        )
+        implementation["git_status_sha256"] = _require_sha256(
+            implementation["git_status_sha256"],
+            label="implementation Git status SHA256",
+        )
+    except (KeyError, TypeError) as exc:
+        raise BulkWaterValidationError(
+            "IMPLEMENTATION_PROVENANCE_INVALID: required Git identity is "
+            "missing."
+        ) from exc
+    if type(implementation.get("git_dirty")) is not bool:
+        raise BulkWaterValidationError(
+            "IMPLEMENTATION_PROVENANCE_INVALID: Git dirty state must be "
+            "boolean."
+        )
+    try:
+        require_coherent_git_status(
+            implementation["git_dirty"],
+            implementation["git_status_sha256"],
+        )
+    except ValueError as exc:
+        raise BulkWaterValidationError(
+            "IMPLEMENTATION_PROVENANCE_INVALID: "
+            f"{exc}"
+        ) from exc
     file_hashes = implementation.get("implementation_file_sha256")
     if not project_root.is_dir() or not isinstance(file_hashes, Mapping) or not file_hashes:
         raise BulkWaterValidationError(
@@ -668,12 +801,14 @@ def _validated_run_provenance(
                 f"'{relative_path.as_posix()}' does not match its SHA256."
             )
         normalized_file_hashes[relative_path.as_posix()] = expected_hash
-    required_implementation_paths = {
-        "maple/function/dispatcher/solvfe/bulk_water.py",
-        "maple/function/dispatcher/solvfe/protocol.py",
-        "maple/function/calculator/mace/_mace_upstream_calculator.py",
-        "examples/solvation/route_a/validate_bulk_water.py",
-    }
+    if required_implementation_paths is None:
+        required_implementation_paths = {
+            "maple/function/dispatcher/solvfe/bulk_water.py",
+            "maple/function/dispatcher/solvfe/protocol.py",
+            "maple/function/dispatcher/solvfe/provenance.py",
+            "maple/function/calculator/mace/_mace_upstream_calculator.py",
+            "examples/solvation/route_a/validate_bulk_water.py",
+        }
     missing_implementation_paths = (
         required_implementation_paths - normalized_file_hashes.keys()
     )
@@ -684,6 +819,16 @@ def _validated_run_provenance(
             + ", ".join(sorted(missing_implementation_paths))
             + "."
         )
+    current_implementation = collect_implementation_provenance(
+        project_root,
+        normalized_file_hashes,
+    )
+    for name in ("git_head", "git_dirty", "git_status_sha256"):
+        if implementation[name] != current_implementation[name]:
+            raise BulkWaterValidationError(
+                "IMPLEMENTATION_PROVENANCE_INVALID: declared Git identity "
+                "does not match the executing source tree."
+            )
     implementation["project_root"] = project_root.as_posix()
     implementation["implementation_file_sha256"] = normalized_file_hashes
     return source, calculator_record, implementation

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import subprocess
 from dataclasses import replace
 from pathlib import Path
 
@@ -25,15 +26,21 @@ from maple.function.dispatcher.solvfe.bulk_water import (
     _rdf_histograms,
     _StepwiseStabilityMonitor,
     load_water_box,
+    replicate_water_box,
     run_bulk_water_nvt,
     validate_water_box,
     water_density_g_per_ml,
+)
+from maple.function.dispatcher.solvfe import provenance as provenance_module
+from maple.function.dispatcher.solvfe.provenance import (
+    collect_implementation_provenance,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 IMPLEMENTATION_PATHS = (
     "maple/function/dispatcher/solvfe/bulk_water.py",
     "maple/function/dispatcher/solvfe/protocol.py",
+    "maple/function/dispatcher/solvfe/provenance.py",
     "maple/function/calculator/mace/_mace_upstream_calculator.py",
     "examples/solvation/route_a/validate_bulk_water.py",
 )
@@ -146,6 +153,7 @@ def _run_evidence(
         "checkpoint_sha256": hashlib.sha256(
             checkpoint.read_bytes()
         ).hexdigest(),
+        "interaction_cutoff_angstrom": 3.0,
         "result_units": {
             "energy": "eV",
             "forces": "eV/angstrom",
@@ -157,16 +165,10 @@ def _run_evidence(
         "calculator": calculator_identity,
         "runtime": {"backend": "deterministic-test-double"},
     }
-    implementation = {
-        "schema": "maple-route-a-bulk-water-implementation-v1",
-        "project_root": PROJECT_ROOT.as_posix(),
-        "implementation_file_sha256": {
-            relative_path: hashlib.sha256(
-                (PROJECT_ROOT / relative_path).read_bytes()
-            ).hexdigest()
-            for relative_path in IMPLEMENTATION_PATHS
-        },
-    }
+    implementation = collect_implementation_provenance(
+        PROJECT_ROOT,
+        IMPLEMENTATION_PATHS,
+    )
     return loaded_atoms, source, calculator, implementation
 
 
@@ -495,6 +497,10 @@ def test_provenance_contract_rejects_semantic_drift(tmp_path):
     bad_calculator["calculator"]["result_units"]["forces"] = "hartree/bohr"
     with pytest.raises(BulkWaterValidationError, match="result units"):
         run_with(source, bad_calculator, implementation)
+    missing_cutoff = json.loads(json.dumps(calculator_record))
+    missing_cutoff["calculator"].pop("interaction_cutoff_angstrom")
+    with pytest.raises(BulkWaterValidationError, match="interaction cutoff"):
+        run_with(source, missing_cutoff, implementation)
     with pytest.raises(BulkWaterValidationError, match="provenance mapping"):
         run_bulk_water_nvt(
             atoms,
@@ -524,6 +530,48 @@ def test_provenance_contract_rejects_semantic_drift(tmp_path):
     with pytest.raises(BulkWaterValidationError, match="does not match"):
         run_with(source, calculator_record, bad_hash)
 
+    missing_git = json.loads(json.dumps(implementation))
+    missing_git["git_head"] = None
+    with pytest.raises(BulkWaterValidationError, match="Git"):
+        run_with(source, calculator_record, missing_git)
+
+    invalid_dirty = json.loads(json.dumps(implementation))
+    invalid_dirty["git_dirty"] = None
+    with pytest.raises(BulkWaterValidationError, match="dirty"):
+        run_with(source, calculator_record, invalid_dirty)
+
+    invalid_status_hash = json.loads(json.dumps(implementation))
+    invalid_status_hash["git_status_sha256"] = "not-a-sha256"
+    with pytest.raises(BulkWaterValidationError, match="status SHA256"):
+        run_with(source, calculator_record, invalid_status_hash)
+
+    clean_with_changes = json.loads(json.dumps(implementation))
+    clean_with_changes["git_dirty"] = False
+    clean_with_changes["git_status_sha256"] = "a" * 64
+    with pytest.raises(BulkWaterValidationError, match="Git status"):
+        run_with(source, calculator_record, clean_with_changes)
+
+    dirty_without_changes = json.loads(json.dumps(implementation))
+    dirty_without_changes["git_dirty"] = True
+    dirty_without_changes["git_status_sha256"] = hashlib.sha256(b"").hexdigest()
+    with pytest.raises(BulkWaterValidationError, match="Git status"):
+        run_with(source, calculator_record, dirty_without_changes)
+
+
+def test_implementation_provenance_fails_closed_when_git_is_unavailable(
+    monkeypatch,
+):
+    def fail_git(*args, **kwargs):
+        raise subprocess.CalledProcessError(128, args[0])
+
+    monkeypatch.setattr(provenance_module.subprocess, "run", fail_git)
+
+    with pytest.raises(RuntimeError, match="GIT_PROVENANCE_UNAVAILABLE"):
+        provenance_module.collect_implementation_provenance(
+            PROJECT_ROOT,
+            IMPLEMENTATION_PATHS,
+        )
+
 
 def test_stepwise_monitor_fails_on_force_or_water_identity():
     atoms = _water_box()
@@ -542,6 +590,25 @@ def test_stepwise_monitor_fails_on_force_or_water_identity():
     monitor = _StepwiseStabilityMonitor(_short_config())
     with pytest.raises(BulkWaterValidationError, match="TOPOLOGY_FAILURE"):
         monitor.inspect(broken, stage="test", step=0)
+
+
+def test_replicate_water_box_unwraps_boundary_crossing_molecules():
+    atoms = _water_box()
+    atoms.positions[1] += atoms.cell[0]
+    validate_water_box(atoms, expected_waters=4)
+
+    replicated = replicate_water_box(atoms, (2, 2, 2))
+    topology = validate_water_box(replicated, expected_waters=32)
+
+    assert len(replicated) == 96
+    assert np.allclose(
+        replicated.cell.lengths(),
+        2.0 * atoms.cell.lengths(),
+    )
+    assert topology["density_g_per_ml"] == pytest.approx(
+        water_density_g_per_ml(atoms)
+    )
+    assert topology["oh_distance_range_angstrom"][1] < 1.3
 
 
 def test_cli_locks_official_source_and_hashes_its_implementation():
@@ -565,6 +632,9 @@ def test_cli_locks_official_source_and_hashes_its_implementation():
     assert "--waterbox-sha256" not in option_strings
     provenance = module._maple_source_provenance()
     assert provenance["project_root"] == PROJECT_ROOT.as_posix()
+    assert len(provenance["git_head"]) in {40, 64}
+    assert type(provenance["git_dirty"]) is bool
+    assert len(provenance["git_status_sha256"]) == 64
     assert set(provenance["implementation_file_sha256"]) == set(
         IMPLEMENTATION_PATHS
     )

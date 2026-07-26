@@ -20,6 +20,7 @@ from .gto_density import (
     density_to_external_field_order,
     external_field_to_density_order,
 )
+from .route2_feature_response import ModelFeatureLinearMap
 from .route2_response import (
     DensityResponseLinearization,
     ReactionFieldLinearMap,
@@ -240,6 +241,63 @@ def fixed_cavity_energy_density_gradient(
         reaction_field.adjoint(field_gradient),
         expected_shape=field.shape,
         name="reaction-field energy VJP",
+    )
+    polarization_gradient = external_field_to_density_order(field)
+    return project_neutral_density_tangent(
+        mace_chain + polarization_gradient
+    )
+
+
+def fixed_cavity_model_feature_energy_density_gradient(
+    reaction_field: ModelFeatureLinearMap,
+    *,
+    reaction_field_values: np.ndarray,
+    intrinsic_energy_feature_gradient: np.ndarray,
+) -> np.ndarray:
+    """Return ``J_z.T g_z + Q f`` in the neutral density tangent space.
+
+    The energy-dual field ``f`` remains the point-l1 continuum reaction field
+    used by the half-coupling ledger.  The intrinsic MACE energy is driven by
+    a separate checkpoint-native feature tensor ``z(c)``.  This fixed-geometry
+    right-hand side composes only their exact discrete derivatives; CDS and
+    every coordinate/cavity derivative remain outside it.
+    """
+
+    if getattr(reaction_field, "reciprocal_energy_pairing", False) is not True:
+        raise ValueError(
+            "The fixed-cavity energy gradient requires a reciprocal reaction "
+            "field energy pairing."
+        )
+    field = _validated_block(
+        reaction_field_values,
+        expected_shape=None,
+        name="reaction_field_values",
+    )
+    if reaction_field.atom_count != field.shape[0]:
+        raise ValueError(
+            "Reaction-field atom count does not match the energy-dual field."
+        )
+    feature_count = reaction_field.model_feature_count
+    if not isinstance(feature_count, (int, np.integer)) or feature_count <= 0:
+        raise ValueError("Reaction-field model-feature count must be positive.")
+    feature_count = int(feature_count)
+    feature_gradient = np.asarray(
+        intrinsic_energy_feature_gradient,
+        dtype=float,
+    )
+    expected_feature_shape = (field.shape[0], feature_count)
+    if (
+        feature_gradient.shape != expected_feature_shape
+        or not np.all(np.isfinite(feature_gradient))
+    ):
+        raise ValueError(
+            "intrinsic_energy_feature_gradient must be finite with shape "
+            f"{expected_feature_shape}; received {feature_gradient.shape}."
+        )
+    mace_chain = _validated_block(
+        reaction_field.model_feature_vjp(feature_gradient),
+        expected_shape=field.shape,
+        name="model-feature energy VJP",
     )
     polarization_gradient = external_field_to_density_order(field)
     return project_neutral_density_tangent(
@@ -490,5 +548,6 @@ __all__ = [
     "assemble_total_solvation_coordinate_gradient",
     "continuum_coupled_solvation_coordinate_gradient",
     "fixed_cavity_energy_density_gradient",
+    "fixed_cavity_model_feature_energy_density_gradient",
     "fixed_surface_solvation_coordinate_gradient",
 ]

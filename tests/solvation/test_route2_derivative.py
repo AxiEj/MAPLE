@@ -13,6 +13,7 @@ from maple.function.calculator.extra_correction.implicit.route2_derivative impor
     assemble_total_solvation_coordinate_gradient,
     continuum_coupled_solvation_coordinate_gradient,
     fixed_cavity_energy_density_gradient,
+    fixed_cavity_model_feature_energy_density_gradient,
     fixed_surface_solvation_coordinate_gradient,
 )
 from maple.function.calculator.extra_correction.implicit.route2_response import (
@@ -115,6 +116,30 @@ class _MatrixDensityResponse:
     def vjp(self, density_cotangent: np.ndarray) -> np.ndarray:
         return (
             self.matrix.T @ np.asarray(density_cotangent).reshape(-1)
+        ).reshape(self.atom_count, 4)
+
+
+class _MatrixModelFeatureReactionField:
+    def __init__(
+        self,
+        feature_matrix: np.ndarray,
+        atom_count: int,
+        feature_count: int,
+        *,
+        reciprocal: bool = True,
+    ):
+        self.feature_matrix = np.asarray(feature_matrix, dtype=float)
+        self.atom_count = atom_count
+        self.model_feature_count = feature_count
+        self.reciprocal_energy_pairing = reciprocal
+
+    def model_feature_vjp(
+        self,
+        feature_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        return (
+            self.feature_matrix.T
+            @ np.asarray(feature_cotangent).reshape(-1)
         ).reshape(self.atom_count, 4)
 
 
@@ -275,6 +300,117 @@ def test_fixed_cavity_energy_density_gradient_requires_reciprocity():
             reaction_field,
             reaction_field_values=np.zeros((3, 4)),
             intrinsic_energy_field_gradient=np.zeros((3, 4)),
+        )
+
+
+def test_model_feature_energy_density_gradient_matches_neutral_fd():
+    atom_count = 3
+    feature_count = 8
+    density_dimension = 4 * atom_count
+    feature_dimension = feature_count * atom_count
+    rng = np.random.default_rng(20260727)
+    order = _external_to_density_order_matrix(atom_count)
+
+    symmetric_kernel_seed = rng.normal(
+        scale=0.05,
+        size=(density_dimension, density_dimension),
+    )
+    symmetric_kernel = symmetric_kernel_seed + symmetric_kernel_seed.T
+    energy_dual_reaction = order.T @ symmetric_kernel
+    feature_matrix = rng.normal(
+        scale=0.04,
+        size=(feature_dimension, density_dimension),
+    )
+    reaction_field = _MatrixModelFeatureReactionField(
+        feature_matrix,
+        atom_count,
+        feature_count,
+    )
+    intrinsic_hessian_seed = rng.normal(
+        scale=0.03,
+        size=(feature_dimension, feature_dimension),
+    )
+    intrinsic_hessian = intrinsic_hessian_seed + intrinsic_hessian_seed.T
+    intrinsic_linear = rng.normal(scale=0.2, size=feature_dimension)
+    density = rng.normal(scale=0.1, size=(atom_count, 4))
+    flat_density = density.reshape(-1)
+    field = (energy_dual_reaction @ flat_density).reshape(atom_count, 4)
+    features = feature_matrix @ flat_density
+    intrinsic_gradient = (
+        intrinsic_hessian @ features + intrinsic_linear
+    ).reshape(atom_count, feature_count)
+
+    analytic = fixed_cavity_model_feature_energy_density_gradient(
+        reaction_field,
+        reaction_field_values=field,
+        intrinsic_energy_feature_gradient=intrinsic_gradient,
+    )
+    expected = project_neutral_density_tangent(
+        (
+            feature_matrix.T @ intrinsic_gradient.reshape(-1)
+            + order @ field.reshape(-1)
+        ).reshape(atom_count, 4)
+    )
+    np.testing.assert_allclose(
+        analytic,
+        expected,
+        rtol=1.0e-13,
+        atol=1.0e-13,
+    )
+
+    direction = project_neutral_density_tangent(
+        rng.normal(size=(atom_count, 4))
+    )
+
+    def energy(coefficients: np.ndarray) -> float:
+        flat = coefficients.reshape(-1)
+        model_features = feature_matrix @ flat
+        intrinsic = (
+            0.5 * model_features @ intrinsic_hessian @ model_features
+            + intrinsic_linear @ model_features
+        )
+        dual_field = energy_dual_reaction @ flat
+        polarization = 0.5 * flat @ order @ dual_field
+        return float(intrinsic + polarization)
+
+    for step in (1.0e-3, 3.0e-4, 1.0e-4):
+        finite_difference = (
+            energy(density + step * direction)
+            - energy(density - step * direction)
+        ) / (2.0 * step)
+        assert finite_difference == pytest.approx(
+            np.vdot(analytic, direction),
+            rel=2.0e-10,
+            abs=2.0e-11,
+        )
+
+
+def test_model_feature_energy_density_gradient_fails_closed():
+    atom_count = 2
+    feature_count = 3
+    reaction_field = _MatrixModelFeatureReactionField(
+        np.zeros((atom_count * feature_count, atom_count * 4)),
+        atom_count,
+        feature_count,
+        reciprocal=False,
+    )
+    field = np.zeros((atom_count, 4))
+    feature_gradient = np.zeros((atom_count, feature_count))
+
+    with pytest.raises(ValueError, match="reciprocal"):
+        fixed_cavity_model_feature_energy_density_gradient(
+            reaction_field,
+            reaction_field_values=field,
+            intrinsic_energy_feature_gradient=feature_gradient,
+        )
+
+    reaction_field.reciprocal_energy_pairing = True
+    reaction_field.model_feature_count = 0
+    with pytest.raises(ValueError, match="count must be positive"):
+        fixed_cavity_model_feature_energy_density_gradient(
+            reaction_field,
+            reaction_field_values=field,
+            intrinsic_energy_feature_gradient=np.zeros((atom_count, 0)),
         )
 
 

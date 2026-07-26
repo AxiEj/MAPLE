@@ -200,6 +200,12 @@ class FixedCavityPCMReactionFieldLinearMap:
             return None
         return dict(projector.spec.provenance)
 
+    @property
+    def model_feature_count(self) -> int:
+        """Return the exact-GTO feature width owned by this map."""
+
+        return self._required_model_field_projector().feature_count
+
     def _surface_potential(self, density: np.ndarray) -> np.ndarray:
         return point_multipole_potential(
             self._centers_bohr,

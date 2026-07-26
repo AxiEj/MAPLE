@@ -276,6 +276,21 @@ that CDS energy and gradient come from the same selected provider.
    residual in eight callbacks and ten operator applications. This is still a
    fixed-geometry/fixed-cavity density derivative, not a solvent force;
    coordinate, boundary, and CDS derivatives remain absent.
+8. **Done as exact-GTO fixed-geometry diagnostic infrastructure:**
+   the exact-GTO continuum map and learned model response are composed as the
+   rectangular matrix-free residual
+   \[
+   \Pi_0\left[I-J_{\mathcal M}^{z}J_z\right]
+   \]
+   and its exact transpose. The matching density-space energy right-hand side
+   is
+   \[
+   \Pi_0\left[J_z^\mathsf T g_z+Qf\right].
+   \]
+   Synthetic dense-operator, bilinear-transpose, and neutral-direction energy
+   finite-difference tests lock this algebra. This code is diagnostic-only:
+   it does not supply the exact-GTO coordinate/gauge derivative, is not wired
+   into the production force path, and does not change the energy profile.
 
 ### Phase 1 -- differentiable explicit geometry terms
 

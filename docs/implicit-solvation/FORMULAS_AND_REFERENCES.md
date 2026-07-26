@@ -187,13 +187,16 @@ formula and profile name.
 The exact-GTO profile remains energy-only. Its model response is taken with
 respect to the full feature tensor, whereas the current force candidate
 linearizes the historical four-component local-field input. MAPLE now exposes
-the exact autograd model-side feature gradient and the rectangular
-feature-to-density JVP/VJP. The fixed-geometry continuum map now separately
-exposes the density-to-feature JVP and its exact discrete VJP, including the
-atomic-centre mean-potential gauge. These two rectangular maps are not yet
-composed into the production fixed-point adjoint; the matching coordinate
-derivative, including the gauge derivative, also remains absent. Both are
-required before the exact-GTO profile can expose a force.
+the exact autograd model-side feature gradient, the rectangular
+feature-to-density JVP/VJP, and the fixed-geometry continuum
+density-to-feature JVP plus exact discrete VJP, including the atomic-centre
+mean-potential gauge. Diagnostic-only composition implements
+\(\Pi_0[I-J_{\mathcal M}^{z}J_z]\) and
+\(\Pi_0[J_z^\mathsf T g_z+Qf]\) without dense Jacobians or numerical SCF
+mixing. It is not wired into the production force path. The matching
+coordinate derivative, including motion of the cavity, exact-GTO kernels, and
+gauge reference, remains absent and is required before the exact-GTO profile
+can expose a force.
 
 ### Versioned MACE long-range evaluator
 

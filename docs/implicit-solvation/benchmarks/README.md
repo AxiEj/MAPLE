@@ -364,8 +364,10 @@ The result therefore strengthens the conservative wording already used by
 Route 2: the matrix-free adjoint differentiates the scalar surrogate actually
 implemented, but the tested learned local-field response does not support a
 claim that this scalar is a jointly variational physical free-energy
-functional. The exact-GTO profile remains outside this diagnostic until a
-continuum density-to-feature forward/adjoint is composed with the separately
-available model-side rectangular feature JVP/VJP and a matching coordinate
-derivative exists. The artifact SHA256 is
+functional. The continuum density-to-feature forward/adjoint and model-side
+rectangular feature JVP/VJP are now composed in fixed-geometry
+diagnostic infrastructure. This local-jet artifact is not retroactively an
+exact-GTO result, and the exact-GTO profile remains outside the production
+force path because its matching coordinate/gauge derivative does not exist.
+The artifact SHA256 is
 `518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6`.

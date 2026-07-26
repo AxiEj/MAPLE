@@ -197,7 +197,12 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
         "pre-registered smooth second-order refinement test **fails**"
         in normalized_overview
     )
-    assert "does not yet distinguish density response" in normalized_overview
+    assert "Frozen density carries `73.8%`" in normalized_overview
+    assert (
+        "active-set-associated explicit continuum geometry response"
+        in normalized_overview
+    )
+    assert "does not authorize a production change" in normalized_overview
     assert "without rerunning either energy" in normalized_overview
     assert "0.04520643472551838 eV/rad" in formulas
     assert "0.04510541195057784 eV/rad" in formulas
@@ -221,6 +226,16 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "Broader flexible-geometry continuity" in roadmap
     assert "historical local two-torsion closed loop" in normalized_roadmap
     assert (
-        "next bounded gate is a separately pre-registered diagnosis"
+        "The completed pre-registered diagnosis"
         in normalized_roadmap
+    )
+    assert "all 18 validity gates pass" in normalized_roadmap
+    assert (
+        "active-set-associated-explicit-continuum-geometry-response"
+        in normalized_roadmap
+    )
+    assert "upstream-backed smooth cavity/operator profile" in normalized_roadmap
+    assert (
+        "upstream-backed smooth cavity/operator feasibility profile"
+        in normalized_benchmark
     )

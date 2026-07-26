@@ -23,7 +23,7 @@
     "valid_reference_boundary": "Use a maintained self-consistent SMD implementation designed for AO density (PySCF SMD/IEF-PCM) as a chemical-level QM reference. Compare total SMD corrections and broad components, not claim discretization-identical operators."
   },
   "benchmark_role": "Bounded same-geometry Route-2/QM/experiment energy comparison and four-geometry electronic conformer diagnostic; not a broad accuracy certification.",
-  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at execution heads 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force, one Cartesian finite-difference displacement pair, and one central C-C torsion at three step sizes (+/-1.0, +/-0.5, and +/-0.25 degree) have current-runtime-equivalent evidence at execution head d72dfba, with no maple/ runtime-source change through f7a6dea. The 0.25-degree points are valid and reduce the analytic discrepancy, but the pre-registered smooth second-order asymptotic test fails: the finite-difference drift does not shrink and the observed order is -0.034 rather than approximately two. Component decomposition localizes the failure to the self-consistent electrostatic block, not gas MACE or CDS, without yet identifying its cause. The flexible four-geometry panel, closed-loop panel, and second-molecule force evidence remain historical. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, multi-component Cartesian force panel, QM-force comparison, operator identity, short-NVE conservation, or hardware-normalized speedup is established.",
+  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at execution heads 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force, one Cartesian finite-difference displacement pair, and one central C-C torsion at three step sizes (+/-1.0, +/-0.5, and +/-0.25 degree) have current-runtime-equivalent evidence at execution head d72dfba, with no maple/ runtime-source change through f7a6dea. The 0.25-degree points are valid, but the pre-registered smooth second-order test fails. A subsequent pre-registered one-replicate/frozen-state diagnostic passes every validity gate and specifically associates the fine-interval non-h2 drift with canonical ddPCM cavity active-set changes in the explicit continuum geometry response: frozen density carries 73.8% of the fine drift, with fixed-center-density PCM and reaction-map-through-MACE carrying 67.6% and 31.9% of its subcomponent L1 norm. This is an association, not an operator-only versus cavity-only causal split, and it does not authorize a production change. The flexible four-geometry panel, closed-loop panel, and second-molecule force evidence remain historical. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, multi-component Cartesian force panel, QM-force comparison, operator identity, short-NVE conservation, or hardware-normalized speedup is established.",
   "runtime_source_alignment": {
     "canary_execution_heads": {
       "2-acetoxyethyl acetate": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
@@ -59,6 +59,9 @@
       "2-acetoxyethyl acetate central C-C torsion second +/-1.0-degree pair and two-step refinement trend",
       "2-acetoxyethyl acetate central C-C torsion third +/-0.25-degree pair with valid converged energy points"
     ],
+    "coupling_diagnostic_evidence_confirmed_by_runtime_equivalent_canary": [
+      "2-acetoxyethyl acetate pre-registered energy-only coupling diagnostic with no force evaluation and active-set-associated explicit continuum geometry response localization"
+    ],
     "force_evidence_failed_pre_registered_validation": [
       "2-acetoxyethyl acetate central C-C torsion 1.0/0.5/0.25-degree smooth second-order asymptotic test"
     ],
@@ -71,7 +74,11 @@
     "runtime_code_unchanged_between_canary_heads": true,
     "runtime_equivalence_reference_head": "f7a6dea687a94c365848fc3fc11e7f0e2784ace9",
     "runtime_source_scope": "maple/",
-    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate energies were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force, its one-component Cartesian finite-difference pair, and central C-C torsion pairs at +/-1.0, +/-0.5, and +/-0.25 degree were run at d72dfba. No tracked maple/ runtime source changed through f7a6dea. The third pair is scientifically valid, but its pre-registered three-step smooth second-order asymptotic test failed. The four-geometry panel, closed-loop panel, and second-molecule force evidence remain historical until separately reconfirmed."
+    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate energies were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force, its one-component Cartesian finite-difference pair, and central C-C torsion pairs at +/-1.0, +/-0.5, and +/-0.25 degree were run at d72dfba. No tracked maple/ runtime source changed through f7a6dea. The third pair is scientifically valid, but its pre-registered three-step smooth second-order test failed. A subsequent single-replicate/frozen-state diagnostic at d72dfba is runtime-equivalent through bc0e58b, passes all validity gates, and associates the failure with fine-interval ddPCM cavity active-set changes in explicit continuum geometry response without claiming operator-only/cavity-only causation. The four-geometry panel, closed-loop panel, and second-molecule force evidence remain historical until separately reconfirmed.",
+    "coupling_root_cause_diagnostic_execution_heads": {
+      "2-acetoxyethyl acetate": "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
+    },
+    "coupling_root_cause_diagnostic_runtime_equivalence_reference_head": "bc0e58b8603a30bd3a0f1cb43b7a2db99e64faa6"
   },
   "energy_definition": "delta_g_solv = delta_e_solute + u_pol + g_cds",
   "energy_force_separation": "The adjoint is evaluated only for coordinate derivatives. It does not alter the converged Route-2 solvation energy.",
@@ -841,7 +848,212 @@
           "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/2acetoxyethyl_acetate_route2_qm_experiment.json",
           "sha256": "ec92f1619cd902ce15fd104407c61bd36e6f00ec3f995c0a5ad974256c709487",
           "status": "comparison-valid",
-          "runtime_source_equivalence_confirmed": true
+          "runtime_source_equivalence_confirmed": true,
+          "coupling_root_cause_diagnostic_execution_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+          "runtime_equivalent_coupling_root_cause_diagnostic": {
+            "status": "pass-specific-localization",
+            "scientific_diagnostic_valid": true,
+            "specific_localization_passed": true,
+            "execution_git_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+            "runtime_equivalence_reference_head": "bc0e58b8603a30bd3a0f1cb43b7a2db99e64faa6",
+            "runtime_source_scope": "maple/",
+            "profile": "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
+            "runner_exit": 0,
+            "result_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-coupling-root-cause-71953e2f.raw/coupling_root_cause_diagnostic_2acetoxyethyl_acetate.json",
+            "result_sha256": "c9b05396016c4b96ba1c0973de2c9eaa11891e923e6fe6028b07336975e76798",
+            "lock_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-coupling-root-cause-71953e2f.raw/coupling_root_cause_diagnostic_2acetoxyethyl_acetate.lock.json",
+            "lock_sha256": "c5b1717a9ec33be8ed930fd15198496655bf622ae00f2973b251f8383b346c48",
+            "runner_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-coupling-root-cause-71953e2f.raw/run_coupling_root_cause_diagnostic_2acetoxyethyl_acetate.py",
+            "runner_sha256": "71953e2fc3cd374a3dc005d7d16180d9c6a5461143d412233755319f2507a553",
+            "run_sentinel_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-coupling-root-cause-71953e2f.raw/coupling_root_cause_diagnostic_2acetoxyethyl_acetate.run-sentinel.json",
+            "run_sentinel_sha256": "c1ca796a8ec2d1253a384af5390cd450bd9047e547e49bc0ef077882b30166b5",
+            "freeze_manifest_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-coupling-root-cause-71953e2f.raw/freeze-manifest.json",
+            "freeze_manifest_sha256": "df88991e2d3b245d7e81cfc30855f7b0060dec7fee2756ec2cc2d643d18b1c92",
+            "evaluation_counts": {
+              "active_set_models": 7,
+              "continuum_scalar_solves": 26,
+              "force_evaluations": 0,
+              "independent_full_root_replicates": 1,
+              "mace_polar_state_calls_after_replicate": 24,
+              "new_finite_difference_steps": 0,
+              "new_geometries": 0
+            },
+            "independent_full_root_replicate": {
+              "source_case": "0.25_plus",
+              "scf_iterations": 18,
+              "maximum_component_energy_difference_ev": 2.220446049250313e-16,
+              "maximum_density_difference_e": 2.220446049250313e-16,
+              "maximum_reaction_potential_difference_ev": 1.887379141862766e-15,
+              "maximum_reaction_gradient_difference_ev_per_angstrom": 7.216449660063518e-16,
+              "maximum_position_difference_angstrom": 0.0,
+              "audit_sha256": "4e5d56271c9c383626a5b9d9cfb5598ab145ca746b9f69d89e48179fce6e640a",
+              "state_sha256": "54f220bbc0c18bd76ba84055d67e2fecf64c3476db9cf2662491d06277c996ff",
+              "manifest_sha256": "7f4723dd6dc117806fc13b82ea03a988da204e7f58073c94bb40330be0f05261"
+            },
+            "saved_state_replay": {
+              "center_pcm_energy_difference_ev": 1.213473765915296e-13,
+              "center_reaction_gradient_maximum_difference_ev_per_angstrom": 6.304401445333951e-13,
+              "center_reaction_potential_maximum_difference_ev": 2.0571322423279526e-12,
+              "maximum_energy_difference_ev": 6.161737786669619e-14,
+              "maximum_reaction_gradient_difference_ev_per_angstrom": 5.056510765655275e-13,
+              "maximum_reaction_potential_difference_ev": 2.4496515926841766e-12
+            },
+            "classification": {
+              "causal_boundary": "This exact energy decomposition can distinguish density relaxation from the combined explicit reaction-map/cavity geometry response. The pyddx 0.8.0 API does not expose a provider-consistent operator-only versus cavity-only split, so no such finer causal claim is permitted. Active-set association is not causation and is authoritative only when the fine refinement interval changes and frozen density independently meets the locked dominance and non-smoothness rules.",
+              "derivative_noise_bound_ev_per_radian": 5.562154026943398e-11,
+              "dominant_frozen_density_component": "pcm_fixed_center_density",
+              "dominant_frozen_density_component_is_resolvable_nonsmooth": true,
+              "dominant_top_level_component": "frozen_density",
+              "dominant_top_level_component_is_resolvable_nonsmooth": true,
+              "fine_interval_active_set_changed": true,
+              "frozen_density_fine_drift_l1_fractions": {
+                "cds": 0.0028438704903923926,
+                "fixed_center_field_mace_minus_gas": 0.0023185421817203513,
+                "pcm_fixed_center_density": 0.6756445828419462,
+                "reaction_map_through_mace": 0.31919300448594107
+              },
+              "label": "active-set-associated-explicit-continuum-geometry-response",
+              "order_resolution_floor_ev_per_radian": 5.562154026943398e-10,
+              "specific_localization": true,
+              "top_level_fine_drift_l1_fractions": {
+                "density_relaxation": 0.26225618959876046,
+                "frozen_density": 0.7377438104012395
+              }
+            },
+            "component_refinement_metrics": {
+              "cds": {
+                "absolute_drift_0p5_to_0p25_ev_per_radian": 3.653506120513284e-07,
+                "absolute_drift_1_to_0p5_ev_per_radian": 1.4619682895567355e-06,
+                "observed_order": 2.000558489904326,
+                "order_resolvable": true,
+                "raw_observed_order": 2.000558489904326,
+                "signed_drift_0p5_to_0p25_ev_per_radian": 3.653506120513284e-07,
+                "signed_drift_1_to_0p5_ev_per_radian": 1.4619682895567355e-06
+              },
+              "density_relaxation": {
+                "absolute_drift_0p5_to_0p25_ev_per_radian": 1.630272935439908e-05,
+                "absolute_drift_1_to_0p5_ev_per_radian": 4.625545149461452e-06,
+                "observed_order": -1.8174182049774574,
+                "order_resolvable": true,
+                "raw_observed_order": -1.8174182049774574,
+                "signed_drift_0p5_to_0p25_ev_per_radian": 1.630272935439908e-05,
+                "signed_drift_1_to_0p5_ev_per_radian": 4.625545149461452e-06
+              },
+              "fixed_center_field_mace_minus_gas": {
+                "absolute_drift_0p5_to_0p25_ev_per_radian": 2.978619483623088e-07,
+                "absolute_drift_1_to_0p5_ev_per_radian": 1.192958989479527e-06,
+                "observed_order": 2.001828710877889,
+                "order_resolvable": true,
+                "raw_observed_order": 2.001828710877889,
+                "signed_drift_0p5_to_0p25_ev_per_radian": -2.978619483623088e-07,
+                "signed_drift_1_to_0p5_ev_per_radian": -1.192958989479527e-06
+              },
+              "frozen_density": {
+                "absolute_drift_0p5_to_0p25_ev_per_radian": 4.586064371733464e-05,
+                "absolute_drift_1_to_0p5_ev_per_radian": 5.6096576067501264e-05,
+                "observed_order": 0.2906561113501319,
+                "order_resolvable": true,
+                "raw_observed_order": 0.2906561113501319,
+                "signed_drift_0p5_to_0p25_ev_per_radian": 4.586064371733464e-05,
+                "signed_drift_1_to_0p5_ev_per_radian": 5.6096576067501264e-05
+              },
+              "full_replayed": {
+                "absolute_drift_0p5_to_0p25_ev_per_radian": 6.21633730717372e-05,
+                "absolute_drift_1_to_0p5_ev_per_radian": 6.0722121216959246e-05,
+                "observed_order": -0.033842598961002716,
+                "order_resolvable": true,
+                "raw_observed_order": -0.033842598961002716,
+                "signed_drift_0p5_to_0p25_ev_per_radian": 6.21633730717372e-05,
+                "signed_drift_1_to_0p5_ev_per_radian": 6.0722121216959246e-05
+              },
+              "pcm_fixed_center_density": {
+                "absolute_drift_0p5_to_0p25_ev_per_radian": 8.679971985517876e-05,
+                "absolute_drift_1_to_0p5_ev_per_radian": 0.00011626696607901828,
+                "observed_order": 0.42167896313449477,
+                "order_resolvable": true,
+                "raw_observed_order": 0.42167896313449477,
+                "signed_drift_0p5_to_0p25_ev_per_radian": 8.679971985517876e-05,
+                "signed_drift_1_to_0p5_ev_per_radian": 0.00011626696607901828
+              },
+              "reaction_map_through_mace": {
+                "absolute_drift_0p5_to_0p25_ev_per_radian": 4.1006564801532265e-05,
+                "absolute_drift_1_to_0p5_ev_per_radian": 6.043939931159401e-05,
+                "observed_order": 0.5596344306758558,
+                "order_resolvable": true,
+                "raw_observed_order": 0.5596344306758558,
+                "signed_drift_0p5_to_0p25_ev_per_radian": -4.1006564801532265e-05,
+                "signed_drift_1_to_0p5_ev_per_radian": -6.043939931159401e-05
+              },
+              "standard_state": {
+                "absolute_drift_0p5_to_0p25_ev_per_radian": 0.0,
+                "absolute_drift_1_to_0p5_ev_per_radian": 0.0,
+                "observed_order": null,
+                "order_resolvable": false,
+                "raw_observed_order": null,
+                "signed_drift_0p5_to_0p25_ev_per_radian": 0.0,
+                "signed_drift_1_to_0p5_ev_per_radian": 0.0
+              }
+            },
+            "active_set": {
+              "changed_anywhere": true,
+              "changed_in_fine_refinement_interval": true,
+              "fine_interval_comparisons": {
+                "0.5_minus_vs_0.25_minus": {
+                  "fine_only_count": 8,
+                  "middle_only_count": 11,
+                  "symmetric_difference_count": 19
+                },
+                "0.5_plus_vs_0.25_plus": {
+                  "fine_only_count": 16,
+                  "middle_only_count": 11,
+                  "symmetric_difference_count": 27
+                }
+              },
+              "all_sphere_assignments_unique": true,
+              "all_lebedev_assignments_unique": true,
+              "maximum_sphere_assignment_error_bohr": 1.3322676295501878e-15,
+              "maximum_lebedev_direction_match_error": 5.721958498152797e-16,
+              "minimum_lebedev_second_neighbor_distance": 0.052522722703240585
+            },
+            "decomposition_closure": {
+              "maximum_derivative_error_ev_per_radian": 6.505213034913027e-19,
+              "maximum_energy_error_ev": 0.0,
+              "maximum_polarization_identity_error_ev": 4.5852210917018965e-14
+            },
+            "gates": {
+              "active_set_mapping_exact": true,
+              "all_derivative_decompositions_close": true,
+              "all_energy_decompositions_close": true,
+              "all_polarization_identities_close": true,
+              "all_saved_state_energy_replays_reproducible": true,
+              "all_saved_state_gradient_replays_reproducible": true,
+              "all_saved_state_potential_replays_reproducible": true,
+              "all_source_positions_exact": true,
+              "exact_diagnostic_evaluation_counts": true,
+              "exactly_one_independent_full_root_replicate": true,
+              "independent_density_reproducibility": true,
+              "independent_energy_reproducibility": true,
+              "independent_full_root_replicate_converged_energy_only": true,
+              "independent_position_reproducibility": true,
+              "independent_reaction_gradient_reproducibility": true,
+              "independent_reaction_potential_reproducibility": true,
+              "no_legacy_primary_warning": true,
+              "no_pcmsolver_warning": true
+            },
+            "failed_validity_gates": [],
+            "warning_counts": {
+              "pcmsolver": 0,
+              "legacy_primary": 0,
+              "python_dependency": 73,
+              "logging": 1
+            },
+            "total_internal_seconds": 190.4744086849969,
+            "outer_wall_seconds": 192.76,
+            "used_for_timing_claim": false,
+            "interpretation": "Independent full-root and saved-state replay rule out numerical noise. The canonical cavity active set changes across both fine refinement interval sides. Frozen density carries 73.8% of the fine-drift L1 norm; within it, fixed-center-density PCM carries 67.6% and reaction-map-through-MACE carries 31.9%. Gas MACE and CDS remain locally second order. This validly associates the non-h2 drift with explicit continuum geometry/active-set response, but does not prove an operator-only or cavity-only cause.",
+            "claim_boundary": "This one-conformer diagnostic can distinguish numerical reproducibility, density relaxation, and the combined explicit reaction-map/cavity geometry response for the exact Route-2 energy ledger. pyddx 0.8.0 does not expose a provider-consistent operator-only versus cavity-only split, so the result must not claim that finer causality. It does not certify global forces, a solution-phase PES, QM-force fidelity, energy conservation, or speed."
+          },
+          "coupling_root_cause_diagnostic_status": "valid-specific-active-set-associated-explicit-continuum-geometry-response-localization-without-finer-causal-or-production-claim"
         },
         "training_membership_confirmed_excluded": false
       }
@@ -1048,7 +1260,7 @@
     "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
     "smd-ddpcm-l15-n1202-v1"
   ],
-  "schema_version": 3,
-  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating execution heads and runtime-source equivalence references are recorded separately; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries plus one 2-acetoxyethyl-acetate source-geometry analytic-force canary, its one-component Cartesian finite-difference pair, and central C-C torsion pairs at +/-1.0, +/-0.5, and +/-0.25 degree were evaluated against recorded runtime-code-equivalent sources. The 0.25-degree energy points are valid, but the pre-registered three-step smooth second-order asymptotic test failed. The flexible four-geometry, closed-loop, and second-molecule force records remain historical.",
+  "schema_version": 4,
+  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating execution heads and runtime-source equivalence references are recorded separately; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries plus one 2-acetoxyethyl-acetate source-geometry analytic-force canary, its one-component Cartesian finite-difference pair, and central C-C torsion pairs at +/-1.0, +/-0.5, and +/-0.25 degree were evaluated against recorded runtime-code-equivalent sources. The 0.25-degree energy points are valid, but the pre-registered three-step smooth second-order asymptotic test failed. The flexible four-geometry, closed-loop, and second-molecule force records remain historical. A subsequent pre-registered d72dfba coupling root-cause diagnostic performed exactly one independent existing-geometry energy replicate, no new geometry or finite-difference step, and no force evaluation. It passes all validity gates and freezes formal sphere/Lebedev active-set witnesses. It associates the failed refinement with explicit continuum geometry/active-set response without establishing operator-only/cavity-only causation or production PES readiness.",
   "status": "frozen-bounded-pilot"
 }

@@ -759,23 +759,52 @@ that CDS energy and gradient come from the same selected provider.
    Component orders are `2.008` for gas MACE and `2.001` for CDS, but only
    `0.544` for solvent-intrinsic MACE and `0.212` for PCM polarization. The
    failure is therefore in the self-consistent electrostatic coupling block,
-   while density-response versus continuum-operator/cavity causality remains
-   unresolved.
+   not in gas MACE or CDS.
 
-   Do not retune this gate or add another finer point. The next bounded gate is
-   a separately pre-registered diagnosis that:
+   The completed pre-registered diagnosis reuses the six immutable torsion
+   states and performs exactly one independent \(+0.25^\circ\) energy-only
+   root. It adds no geometry, finite-difference step, or force evaluation. The
+   independent result reproduces energy to
+   \(2.22\times10^{-16}\) eV and density to
+   \(2.22\times10^{-16}\) electron, all 18 validity gates pass, and the
+   PCMSolver and legacy `primary` warning counts are zero.
 
-   1. measures independent-process same-geometry energy reproducibility below
-      the antisymmetric drift scale;
-   2. separates frozen-density, density-response, and continuum
-      operator/cavity-coordinate contributions using the same energy ledger;
-   3. identifies whether the non-\(h^2\) term is numerical noise, an active-set
-      change, or an omitted/mismatched coordinate response.
+   Formal mapping to the PySCF 1202-point Lebedev grid finds 19 changed cavity
+   active points across the minus-side fine interval and 27 across the
+   plus-side interval. Frozen density carries `73.8%` of the fine-drift L1
+   norm. Inside that block, fixed-center-density PCM carries `67.6%`,
+   reaction-map-through-MACE carries `31.9%`, and the fixed-center-field
+   MACE-minus-gas and CDS terms retain approximately second-order behavior.
+   The valid bounded label is therefore
+   `active-set-associated-explicit-continuum-geometry-response`.
+
+   This is association, not proof that an active-set change alone causes the
+   failed refinement. pyddx 0.8.0 does not expose a provider-consistent
+   operator-only versus cavity-only split. Do not retune this gate, add another
+   finer point, alter mixing/radii, or hide the result behind a local switching
+   patch.
+
+   The next bounded stage must pre-register an upstream-backed smooth
+   cavity/operator profile and require:
+
+   1. the exact same scalar-energy, reaction-map, adjoint, coordinate-VJP, and
+      CDS definitions within one provider profile;
+   2. current-runtime same-geometry energy closure against its own independent
+      oracle;
+   3. smooth local Cartesian/torsional refinement with stable surface topology
+      and explicit translation/rotation checks.
+
+   The existing optional PySCF SWIG/IEFPCM adapter is a research control, not
+   an automatic repair: its fixed laboratory-frame Lebedev quadrature already
+   shows nonmonotonic rotation residuals. A molecule-following,
+   derivative-complete quadrature or a published analytic-force
+   domain-decomposition provider remains a candidate only after its own
+   separately locked feasibility and derivative profile passes.
 
    The historical local two-torsion closed loop generated at `5d69ef4` must
-   not be promoted or rerun as a production gate until that diagnosis passes.
-   The same applies to second-molecule force, broader relaxed paths, short NVE,
-   optimization, scan, TS search, and MD.
+   not be promoted or rerun as a production gate until the smooth-provider
+   stage passes. The same applies to second-molecule force, broader relaxed
+   paths, short NVE, optimization, scan, TS search, and MD.
 
 ## Stop condition for the force milestone
 

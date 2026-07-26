@@ -253,15 +253,31 @@ Component central differences localize the failure: gas MACE and CDS show
 orders `2.008` and `2.001`, while solvent-intrinsic MACE and PCM polarization
 show only `0.544` and `0.212`; their coupled total has order `-0.034`. Thus the
 non-asymptotic behavior lies in the self-consistent electrostatic coupling
-block, not the gas MACE geometry response or CDS term, but the evidence does
-not yet distinguish density response from continuum-operator/cavity response.
-No finer step is being used to overwrite this failed gate. The four-geometry
-flexible panel, closed-loop panel, and second-molecule force evidence remain
-historical. Broader flexible/relaxed-path continuity, additional chemical
-classes, and complete conformer thermochemistry remain open without changing
-the named profile; the short NVE conservation gate is still unrun. Until the
-failed asymptotic behavior is diagnosed and the remaining gates pass,
-optimization, scans, transition states, and MD remain out of scope.
+block, not the gas MACE geometry response or CDS term.
+
+A subsequent pre-registered diagnostic then reused the six immutable torsion
+states and performed exactly one independent \(+0.25^\circ\) energy replicate.
+The replicate agrees to `2.22e-16 eV` in energy and `2.22e-16 e` in density,
+all 18 validity gates pass, and no PCMSolver or legacy `primary` warning
+occurs. Across the
+\(0.5^\circ\to0.25^\circ\) interval, formal sphere/Lebedev active-set
+comparisons change by 19 points on the minus side and 27 on the plus side.
+Frozen density carries `73.8%` of the fine-drift L1 norm; within that block,
+fixed-center-density PCM carries `67.6%` and reaction-map-through-MACE carries
+`31.9%`. The valid result therefore associates the failed refinement with
+active-set-associated explicit continuum geometry response. It does **not**
+prove that active-set change alone is causal, nor split operator-only from
+cavity-only response, because pyddx 0.8.0 exposes only their combined
+provider-consistent coordinate response.
+
+No finer step is being used to overwrite the failed asymptotic gate, and this
+diagnosis does not authorize a production change. The next bounded stage is an
+upstream-backed smooth cavity/operator research profile, not a local switching
+patch or a mixing/radius retune. The four-geometry flexible panel, closed-loop
+panel, and second-molecule force evidence remain historical. Broader
+flexible/relaxed-path continuity, additional chemical classes, complete
+conformer thermochemistry, and short NVE conservation remain open.
+Optimization, scans, transition states, and MD remain out of scope.
 
 See [FORMULAS_AND_REFERENCES.md](FORMULAS_AND_REFERENCES.md) for equations and
 the literature ledger, and [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the

@@ -122,16 +122,36 @@ speed claim.
 Component decomposition gives order `2.008` for gas MACE and `2.001` for CDS,
 but only `0.544` for solvent-intrinsic MACE and `0.212` for PCM polarization.
 The failing behavior is localized to the self-consistent electrostatic
-coupling block, while its precise density/operator/cavity cause remains open.
-The four-geometry flexible panel, closed-loop panel, and second-molecule force
-evidence remain historical. The JSON freezes the reviewed numerical ledger,
-including the failed pre-registered gate, and arithmetic checks.
+coupling block.
+
+The completed pre-registered root-cause diagnostic reuses all six immutable
+torsion states and performs exactly one independent \(+0.25^\circ\)
+energy-only root, with no new geometry, finite-difference step, or force
+evaluation. Energy reproduces to `2.22e-16 eV` and density to `2.22e-16 e`;
+all 18 locked validity gates pass, and the PCMSolver and legacy `primary`
+warning counts are zero.
+Formal PySCF-1202-Lebedev mapping finds 19 changed active points on the
+minus-side fine interval and 27 on the plus side. Frozen density carries
+`73.8%` of the fine-drift L1 norm; fixed-center-density PCM and
+reaction-map-through-MACE carry `67.6%` and `31.9%` of that block's
+subcomponent L1 norm. The bounded classification is
+`active-set-associated-explicit-continuum-geometry-response`.
+
+This is an association, not an operator-only/cavity-only causal split, and it
+does not authorize a production change. The four-geometry flexible panel,
+closed-loop panel, and second-molecule force evidence remain historical. The
+JSON freezes the reviewed numerical ledger, including the failed
+pre-registered gate, the subsequent valid diagnostic, and arithmetic checks.
 
 The converged MLIP--PCM/SMD total derivative is now implemented for the
 explicit pyddx/PySCF single-point candidate. The next primary milestone is a
-separately pre-registered component/reproducibility diagnostic of the failed
-self-consistent electrostatic refinement. Do not add another finer step,
-retune the gate, rerun the bounded closed loop, or advance to a second flexible
-molecule or short-NVE conservation until that cause is resolved.
+separately pre-registered upstream-backed smooth cavity/operator feasibility
+profile with one same-energy forward/adjoint/coordinate-VJP/CDS definition,
+followed by local smooth-force and translation/rotation canaries. The existing
+optional PySCF SWIG control is not automatically promotable because its fixed
+laboratory-frame quadrature has already shown nonmonotonic rotation residuals.
+Do not add another finer pyddx point, retune the failed gate, rerun the bounded
+closed loop, or advance to a second flexible molecule or short-NVE
+conservation before the smooth-provider gate passes.
 Running more FreeSolv records must not displace those PES gates, while the
 bounded QM-fidelity panel must not be promoted into a broad accuracy claim.

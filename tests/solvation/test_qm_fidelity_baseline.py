@@ -62,7 +62,7 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     panel = baseline["fixed_conformer_panel"]
     records = panel["records"]
 
-    assert baseline["schema_version"] == 3
+    assert baseline["schema_version"] == 4
     assert baseline["status"] == "frozen-bounded-pilot"
     assert baseline["route2_profiles"] == [
         "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
@@ -131,6 +131,15 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
             "2-acetoxyethyl acetate central C-C torsion third +/-0.25-degree "
             "pair with valid converged energy points"
         ),
+    ]
+    assert runtime_alignment[
+        "coupling_diagnostic_evidence_confirmed_by_runtime_equivalent_canary"
+    ] == [
+        (
+            "2-acetoxyethyl acetate pre-registered energy-only coupling "
+            "diagnostic with no force evaluation and active-set-associated "
+            "explicit continuum geometry response localization"
+        )
     ]
     assert runtime_alignment[
         "force_evidence_failed_pre_registered_validation"
@@ -1083,6 +1092,286 @@ def test_qm_fidelity_baseline_recomputes_failed_three_step_torsion_test():
         "speed certification",
     ):
         assert excluded_claim in third_step["claim_boundary"]
+
+
+def test_qm_fidelity_baseline_freezes_coupling_root_cause_diagnostic():
+    baseline = _load_baseline()
+    evidence = baseline["fixed_conformer_panel"]["records"][2]["source_evidence"]
+    diagnostic = evidence["runtime_equivalent_coupling_root_cause_diagnostic"]
+
+    assert diagnostic["status"] == "pass-specific-localization"
+    assert diagnostic["scientific_diagnostic_valid"] is True
+    assert diagnostic["specific_localization_passed"] is True
+    assert diagnostic["failed_validity_gates"] == []
+    assert diagnostic["runner_exit"] == 0
+    assert diagnostic["evaluation_counts"] == {
+        "active_set_models": 7,
+        "continuum_scalar_solves": 26,
+        "force_evaluations": 0,
+        "independent_full_root_replicates": 1,
+        "mace_polar_state_calls_after_replicate": 24,
+        "new_finite_difference_steps": 0,
+        "new_geometries": 0,
+    }
+    assert diagnostic["gates"] == {
+        "active_set_mapping_exact": True,
+        "all_derivative_decompositions_close": True,
+        "all_energy_decompositions_close": True,
+        "all_polarization_identities_close": True,
+        "all_saved_state_energy_replays_reproducible": True,
+        "all_saved_state_gradient_replays_reproducible": True,
+        "all_saved_state_potential_replays_reproducible": True,
+        "all_source_positions_exact": True,
+        "exact_diagnostic_evaluation_counts": True,
+        "exactly_one_independent_full_root_replicate": True,
+        "independent_density_reproducibility": True,
+        "independent_energy_reproducibility": True,
+        "independent_full_root_replicate_converged_energy_only": True,
+        "independent_position_reproducibility": True,
+        "independent_reaction_gradient_reproducibility": True,
+        "independent_reaction_potential_reproducibility": True,
+        "no_legacy_primary_warning": True,
+        "no_pcmsolver_warning": True,
+    }
+    assert len(diagnostic["gates"]) == 18
+
+    replicate = diagnostic["independent_full_root_replicate"]
+    assert replicate == {
+        "source_case": "0.25_plus",
+        "scf_iterations": 18,
+        "maximum_component_energy_difference_ev": 2.220446049250313e-16,
+        "maximum_density_difference_e": 2.220446049250313e-16,
+        "maximum_reaction_potential_difference_ev": 1.887379141862766e-15,
+        "maximum_reaction_gradient_difference_ev_per_angstrom": (
+            7.216449660063518e-16
+        ),
+        "maximum_position_difference_angstrom": 0.0,
+        "audit_sha256": (
+            "4e5d56271c9c383626a5b9d9cfb5598ab145ca746b9f69d89e48179fce6e640a"
+        ),
+        "state_sha256": (
+            "54f220bbc0c18bd76ba84055d67e2fecf64c3476db9cf2662491d06277c996ff"
+        ),
+        "manifest_sha256": (
+            "7f4723dd6dc117806fc13b82ea03a988da204e7f58073c94bb40330be0f05261"
+        ),
+    }
+
+    active_set = diagnostic["active_set"]
+    assert active_set == {
+        "changed_anywhere": True,
+        "changed_in_fine_refinement_interval": True,
+        "fine_interval_comparisons": {
+            "0.5_minus_vs_0.25_minus": {
+                "fine_only_count": 8,
+                "middle_only_count": 11,
+                "symmetric_difference_count": 19,
+            },
+            "0.5_plus_vs_0.25_plus": {
+                "fine_only_count": 16,
+                "middle_only_count": 11,
+                "symmetric_difference_count": 27,
+            },
+        },
+        "all_sphere_assignments_unique": True,
+        "all_lebedev_assignments_unique": True,
+        "maximum_sphere_assignment_error_bohr": 1.3322676295501878e-15,
+        "maximum_lebedev_direction_match_error": 5.721958498152797e-16,
+        "minimum_lebedev_second_neighbor_distance": 0.052522722703240585,
+    }
+
+    classification = diagnostic["classification"]
+    assert classification == {
+        "causal_boundary": (
+            "This exact energy decomposition can distinguish density relaxation "
+            "from the combined explicit reaction-map/cavity geometry response. "
+            "The pyddx 0.8.0 API does not expose a provider-consistent "
+            "operator-only versus cavity-only split, so no such finer causal "
+            "claim is permitted. Active-set association is not causation and is "
+            "authoritative only when the fine refinement interval changes and "
+            "frozen density independently meets the locked dominance and "
+            "non-smoothness rules."
+        ),
+        "derivative_noise_bound_ev_per_radian": 5.562154026943398e-11,
+        "dominant_frozen_density_component": "pcm_fixed_center_density",
+        "dominant_frozen_density_component_is_resolvable_nonsmooth": True,
+        "dominant_top_level_component": "frozen_density",
+        "dominant_top_level_component_is_resolvable_nonsmooth": True,
+        "fine_interval_active_set_changed": True,
+        "frozen_density_fine_drift_l1_fractions": {
+            "cds": 0.0028438704903923926,
+            "fixed_center_field_mace_minus_gas": 0.0023185421817203513,
+            "pcm_fixed_center_density": 0.6756445828419462,
+            "reaction_map_through_mace": 0.31919300448594107,
+        },
+        "label": "active-set-associated-explicit-continuum-geometry-response",
+        "order_resolution_floor_ev_per_radian": 5.562154026943398e-10,
+        "specific_localization": True,
+        "top_level_fine_drift_l1_fractions": {
+            "density_relaxation": 0.26225618959876046,
+            "frozen_density": 0.7377438104012395,
+        },
+    }
+    top_fractions = classification["top_level_fine_drift_l1_fractions"]
+    assert sum(top_fractions.values()) == pytest.approx(1.0, abs=1.0e-15)
+    frozen_fractions = classification["frozen_density_fine_drift_l1_fractions"]
+    assert sum(frozen_fractions.values()) == pytest.approx(1.0, abs=1.0e-15)
+
+    metrics = diagnostic["component_refinement_metrics"]
+    observed_orders = {
+        name: values["observed_order"]
+        for name, values in metrics.items()
+        if values["observed_order"] is not None
+    }
+    assert observed_orders == pytest.approx(
+        {
+            "cds": 2.000558489904326,
+            "density_relaxation": -1.8174182049774574,
+            "fixed_center_field_mace_minus_gas": 2.001828710877889,
+            "frozen_density": 0.2906561113501319,
+            "full_replayed": -0.033842598961002716,
+            "pcm_fixed_center_density": 0.42167896313449477,
+            "reaction_map_through_mace": 0.5596344306758558,
+        },
+        abs=1.0e-15,
+    )
+    assert metrics["standard_state"]["observed_order"] is None
+    fine_drifts = {
+        name: values["absolute_drift_0p5_to_0p25_ev_per_radian"]
+        for name, values in metrics.items()
+    }
+    assert fine_drifts == pytest.approx(
+        {
+            "cds": 3.653506120513284e-07,
+            "density_relaxation": 1.630272935439908e-05,
+            "fixed_center_field_mace_minus_gas": 2.978619483623088e-07,
+            "frozen_density": 4.586064371733464e-05,
+            "full_replayed": 6.21633730717372e-05,
+            "pcm_fixed_center_density": 8.679971985517876e-05,
+            "reaction_map_through_mace": 4.1006564801532265e-05,
+            "standard_state": 0.0,
+        },
+        abs=1.0e-15,
+    )
+
+    assert diagnostic["decomposition_closure"] == {
+        "maximum_derivative_error_ev_per_radian": 6.505213034913027e-19,
+        "maximum_energy_error_ev": 0.0,
+        "maximum_polarization_identity_error_ev": 4.5852210917018965e-14,
+    }
+    assert diagnostic["saved_state_replay"] == {
+        "center_pcm_energy_difference_ev": 1.213473765915296e-13,
+        "center_reaction_gradient_maximum_difference_ev_per_angstrom": (
+            6.304401445333951e-13
+        ),
+        "center_reaction_potential_maximum_difference_ev": 2.0571322423279526e-12,
+        "maximum_energy_difference_ev": 6.161737786669619e-14,
+        "maximum_reaction_gradient_difference_ev_per_angstrom": (
+            5.056510765655275e-13
+        ),
+        "maximum_reaction_potential_difference_ev": 2.4496515926841766e-12,
+    }
+    assert diagnostic["warning_counts"] == {
+        "pcmsolver": 0,
+        "legacy_primary": 0,
+        "python_dependency": 73,
+        "logging": 1,
+    }
+    assert diagnostic["total_internal_seconds"] == pytest.approx(
+        190.4744086849969,
+        abs=1.0e-12,
+    )
+    assert diagnostic["outer_wall_seconds"] == pytest.approx(192.76, abs=1.0e-12)
+    assert diagnostic["used_for_timing_claim"] is False
+
+    expected_hashes = {
+        "freeze_manifest_sha256": (
+            "df88991e2d3b245d7e81cfc30855f7b0060dec7fee2756ec2cc2d643d18b1c92"
+        ),
+        "lock_sha256": (
+            "c5b1717a9ec33be8ed930fd15198496655bf622ae00f2973b251f8383b346c48"
+        ),
+        "result_sha256": (
+            "c9b05396016c4b96ba1c0973de2c9eaa11891e923e6fe6028b07336975e76798"
+        ),
+        "run_sentinel_sha256": (
+            "c1ca796a8ec2d1253a384af5390cd450bd9047e547e49bc0ef077882b30166b5"
+        ),
+        "runner_sha256": (
+            "71953e2fc3cd374a3dc005d7d16180d9c6a5461143d412233755319f2507a553"
+        ),
+    }
+    assert {
+        hash_name: diagnostic[hash_name] for hash_name in expected_hashes
+    } == expected_hashes
+    all_hashes = list(expected_hashes.values()) + [
+        replicate[hash_name]
+        for hash_name in ("audit_sha256", "manifest_sha256", "state_sha256")
+    ]
+    for digest in all_hashes:
+        _assert_sha256(digest)
+
+    evidence_root = (
+        ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/"
+        "2acetoxyethyl-acetate-coupling-root-cause-71953e2f.raw/"
+    )
+    assert {
+        "freeze_manifest_path": diagnostic["freeze_manifest_path"],
+        "lock_path": diagnostic["lock_path"],
+        "result_path": diagnostic["result_path"],
+        "run_sentinel_path": diagnostic["run_sentinel_path"],
+        "runner_path": diagnostic["runner_path"],
+    } == {
+        "freeze_manifest_path": evidence_root + "freeze-manifest.json",
+        "lock_path": (
+            evidence_root
+            + "coupling_root_cause_diagnostic_2acetoxyethyl_acetate.lock.json"
+        ),
+        "result_path": (
+            evidence_root
+            + "coupling_root_cause_diagnostic_2acetoxyethyl_acetate.json"
+        ),
+        "run_sentinel_path": (
+            evidence_root
+            + "coupling_root_cause_diagnostic_2acetoxyethyl_acetate."
+            "run-sentinel.json"
+        ),
+        "runner_path": (
+            evidence_root
+            + "run_coupling_root_cause_diagnostic_2acetoxyethyl_acetate.py"
+        ),
+    }
+    assert (
+        evidence["coupling_root_cause_diagnostic_execution_head"]
+        == diagnostic["execution_git_head"]
+        == "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
+    )
+    assert diagnostic["runtime_equivalence_reference_head"] == (
+        "bc0e58b8603a30bd3a0f1cb43b7a2db99e64faa6"
+    )
+    assert diagnostic["runtime_source_scope"] == "maple/"
+    assert diagnostic["profile"] == (
+        "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1"
+    )
+    assert diagnostic["interpretation"] == (
+        "Independent full-root and saved-state replay rule out numerical noise. "
+        "The canonical cavity active set changes across both fine refinement "
+        "interval sides. Frozen density carries 73.8% of the fine-drift L1 norm; "
+        "within it, fixed-center-density PCM carries 67.6% and "
+        "reaction-map-through-MACE carries 31.9%. Gas MACE and CDS remain locally "
+        "second order. This validly associates the non-h2 drift with explicit "
+        "continuum geometry/active-set response, but does not prove an "
+        "operator-only or cavity-only cause."
+    )
+    assert diagnostic["claim_boundary"] == (
+        "This one-conformer diagnostic can distinguish numerical "
+        "reproducibility, density relaxation, and the combined explicit "
+        "reaction-map/cavity geometry response for the exact Route-2 energy "
+        "ledger. pyddx 0.8.0 does not expose a provider-consistent operator-only "
+        "versus cavity-only split, so the result must not claim that finer "
+        "causality. It does not certify global forces, a solution-phase PES, "
+        "QM-force fidelity, energy conservation, or speed."
+    )
 
 
 def test_qm_fidelity_baseline_recomputes_bounded_electronic_ensemble():

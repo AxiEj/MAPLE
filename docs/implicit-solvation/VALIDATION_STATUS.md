@@ -705,9 +705,35 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     `2.001` for CDS, versus `0.544` for solvent-intrinsic MACE, `0.535` for
     \(\Delta E_{\mathrm{solute}}\), and `0.212` for
     \(U_{\mathrm{pol}}\). The failure is therefore localized to the
-    self-consistent electrostatic coupling block, not gas MACE or CDS. The
-    current evidence does not yet distinguish density response from
-    continuum-operator/cavity geometry response.
+    self-consistent electrostatic coupling block, not gas MACE or CDS.
+
+    A separately pre-registered root-cause diagnostic subsequently reused all
+    six immutable torsion states and performed exactly one independent
+    \(+0.25^\circ\) energy-only root. It introduced zero new geometries, zero
+    finite-difference steps, and zero force evaluations. The independent root
+    reproduces the stored correction energy to
+    \(2.22\times10^{-16}\) eV and density to
+    \(2.22\times10^{-16}\) electron, while the reaction potential and gradient agree to
+    \(1.89\times10^{-15}\) eV and \(7.22\times10^{-16}\) eV/angstrom.
+    All 18 locked validity gates pass; PCMSolver and legacy `primary` warning
+    counts are zero.
+
+    Canonical sphere/PySCF-1202-Lebedev witnesses show 19 changed active points
+    on the minus fine interval and 27 on the plus interval. Frozen density
+    contributes `73.8%` of the \(0.5^\circ\to0.25^\circ\) fine-drift L1 norm.
+    Inside that term, fixed-center-density PCM contributes `67.6%` and
+    reaction-map-through-MACE contributes `31.9%`; fixed-center-field
+    MACE-minus-gas and CDS retain approximately second-order behavior.
+    Consequently, the valid label is
+    `active-set-associated-explicit-continuum-geometry-response`.
+
+    This is a bounded association, not proof that active-set change is the
+    sole cause. pyddx 0.8.0 does not expose a provider-consistent operator-only
+    versus cavity-only split, so that finer claim remains prohibited. The
+    diagnostic took `192.76 s` outer wall time and is explicitly not a speed
+    claim. Repeated Torch/JIT/SWIG deprecation messages and one recorded
+    float32-to-float64 model conversion are non-gating dependency messages;
+    the result must not be summarized as having no warnings at all.
 
     The predeclared three-step validation for a second C--O torsion retains
     `status=fail`: its coarse-to-middle absolute error and step drift were not

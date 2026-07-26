@@ -528,12 +528,52 @@ scientific run:
 
 Gas MACE and CDS therefore exhibit the expected local second-order behavior;
 the non-asymptotic drift is confined to the self-consistent electrostatic
-coupling block. This decomposition does not yet distinguish the MLIP density
-response, continuum operator/cavity geometry response, or their coupling.
-The failed gate must not be overwritten by a finer step. A separately
-pre-registered component/reproducibility diagnosis is required before the
-historical closed loop, second molecule, relaxed-path continuity, QM-force
-fidelity, or NVE conservation can be promoted.
+coupling block.
+
+The completed pre-registered diagnosis evaluates the same energy functional
+without introducing another finite-difference point:
+
+\[
+\begin{aligned}
+G(R,c)={}&E_{\mathrm{MACE}}^{\mathrm{int}}(R,P_Rc)
+-E_{\mathrm{MACE}}^{\mathrm{gas}}(R)\\
+&+\frac12\langle c,P_Rc\rangle+G_{\mathrm{CDS}}(R),\\
+G_{\mathrm{full}}(R)={}&G(R,c^\star(R)),\\
+G_{\mathrm{frozen}}(R)={}&G(R,c^\star(R_0)),\\
+\Delta G_{\mathrm{relax}}(R)={}&
+G_{\mathrm{full}}(R)-G_{\mathrm{frozen}}(R).
+\end{aligned}
+\]
+
+One independent \(+0.25^\circ\) production root first establishes that the
+stored energies, density, potential, and gradient are reproducible far below
+the antisymmetric drift scale. The three-step derivative decomposition then
+gives:
+
+| diagnostic block | fine-drift L1 fraction | observed order |
+|---|---:|---:|
+| frozen density | 0.7377 | 0.291 |
+| density relaxation | 0.2623 | -1.817 |
+| fixed-center-density PCM within frozen block | 0.6756 | 0.422 |
+| reaction map through MACE within frozen block | 0.3192 | 0.560 |
+| fixed-center-field MACE-minus-gas within frozen block | 0.0023 | 2.002 |
+| CDS within frozen block | 0.0028 | 2.001 |
+
+Formal mapping to the PySCF 1202-point Lebedev grid shows that the cavity
+active set changes across both fine refinement intervals. Under the locked
+60% dominance rule, the permitted conclusion is therefore
+**active-set-associated explicit continuum geometry response**. Association
+is not causation: the pyddx 0.8.0 API does not expose a provider-consistent
+operator-only versus cavity-only decomposition, and the reaction-map and PCM
+subterms partially cancel.
+
+The failed asymptotic gate must not be overwritten by a finer step. It also
+must not be hidden by changing SCF mixing, cavity radii, or an ad hoc local
+switch. The literature-backed next stage is a separately pre-registered
+upstream smooth cavity/operator research profile, such as the fixed-point,
+variable-area idea represented by FIXPVA or an available SWIG/ISWIG
+implementation. The historical closed loop, second molecule, relaxed-path
+continuity, QM-force fidelity, and NVE conservation remain unpromoted.
 
 The total agreement contains substantial component cancellation. For acetone,
 \(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and

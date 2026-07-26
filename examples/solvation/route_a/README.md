@@ -1,5 +1,30 @@
 # Route A research replica driver
 
+## Periodic bulk-water Hamiltonian validation
+
+Before starting any v3 packing replica, validate the candidate periodic
+pure-water Hamiltonian with:
+
+```bash
+python examples/solvation/route_a/validate_bulk_water.py \
+  --waterbox /path/to/hash-verified/waterbox.xyz \
+  --checkpoint /path/to/MACE-OFF24_medium.model \
+  --checkpoint-sha256 e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69 \
+  --output /path/to/new/result \
+  --device cuda
+```
+
+The source water box is pinned to a specific upstream commit and SHA256 in
+`bulk_water.py`; the file is not vendored. The runner writes immutable,
+hash-bound trajectory/RDF evidence and fails closed when its duration, sample
+count or temperature gate is insufficient. Its default 10 ps production is a
+research gate, not final liquid-water convergence or Route A accuracy
+evidence. See
+[`bulk-water-hamiltonian-validation.md`](../../../docs/solvation/route-a/bulk-water-hamiltonian-validation.md)
+for the exact contract, first real preflight and open promotion gates.
+
+## Fixed-occupancy development replica
+
 `run_acetone_n1_replica.py` runs one real, nonperiodic MACE-OMOL
 acetone + one-water alchemical development replica. It is intentionally not
 wired to the public `#solvfe` result path because protocol v2 still requires

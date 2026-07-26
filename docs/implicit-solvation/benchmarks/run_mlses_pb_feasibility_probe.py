@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit AmberTools MLSES PB energy, force, and local small-molecule timing."""
+"""Audit AmberTools GENIUSES/MLSES PB force and local small-molecule timing."""
 
 from __future__ import annotations
 
@@ -74,14 +74,22 @@ GRIDS = (
         "fscale": 4,
     },
 )
-LEGAL_FORCE_PAIRS = (
+EXPECTED_RUNTIME_ACCEPTED_FORCE_PAIRS = (
     {"eneopt": 1, "frcopt": 1},
     {"eneopt": 2, "frcopt": 2},
     {"eneopt": 2, "frcopt": 3},
+    {"eneopt": 2, "frcopt": 4},
+    {"eneopt": 3, "frcopt": 2},
 )
+ENEOPT_DISCOVERY_VALUES = (1, 2, 3, 4)
+FRCOPT_DISCOVERY_VALUES = (1, 2, 3, 4, 5)
 SURFACES = (
-    {"surface_id": "classical-ses", "sasopt": 0},
-    {"surface_id": "mlses-geniuses", "sasopt": 3},
+    {"surface_id": "classical-ses", "sasopt": 0, "mlses_opt": None},
+    {
+        "surface_id": "geniuses-mlses-opt0",
+        "sasopt": 3,
+        "mlses_opt": 0,
+    },
 )
 
 
@@ -116,8 +124,8 @@ def _render_input(
     frcopt: int,
 ) -> str:
     optional: list[str] = []
-    if surface["sasopt"] == 3:
-        optional.append("mlses_opt=0")
+    if surface["mlses_opt"] is not None:
+        optional.append(f"mlses_opt={surface['mlses_opt']}")
     if grid["arcres_angstrom"] is not None:
         optional.append(f"arcres={grid['arcres_angstrom']}")
     if grid["fscale"] is not None:
@@ -252,17 +260,61 @@ def _run_job(
     }
 
 
-def _force_matrix(
+def _force_record_passed(record: dict[str, Any]) -> bool:
+    return bool(
+        record["returncode"] == 0
+        and record["force_file"]["exists"]
+        and record["force_file"]["size_bytes"] > 0
+    )
+
+
+def _discover_runtime_force_pairs(
     *,
     work_dir: Path,
     pbsa: Path,
     prmtop: Path,
     rst7: Path,
     timeout_seconds: float,
+) -> tuple[list[dict[str, Any]], list[dict[str, int]]]:
+    records: list[dict[str, Any]] = []
+    accepted: list[dict[str, int]] = []
+    surface = SURFACES[0]
+    grid = GRIDS[0]
+    for eneopt in ENEOPT_DISCOVERY_VALUES:
+        for frcopt in FRCOPT_DISCOVERY_VALUES:
+            record = _run_job(
+                job_dir=(
+                    work_dir
+                    / "force-pair-discovery"
+                    / f"eneopt-{eneopt}--frcopt-{frcopt}"
+                ),
+                pbsa=pbsa,
+                prmtop=prmtop,
+                rst7=rst7,
+                surface=surface,
+                grid=grid,
+                eneopt=eneopt,
+                frcopt=frcopt,
+                timeout_seconds=timeout_seconds,
+            )
+            records.append(record)
+            if _force_record_passed(record):
+                accepted.append({"eneopt": eneopt, "frcopt": frcopt})
+    return records, accepted
+
+
+def _force_matrix(
+    *,
+    work_dir: Path,
+    pbsa: Path,
+    prmtop: Path,
+    rst7: Path,
+    force_pairs: list[dict[str, int]],
+    timeout_seconds: float,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for grid in GRIDS:
-        for pair in LEGAL_FORCE_PAIRS:
+        for pair in force_pairs:
             for surface in SURFACES:
                 job_id = (
                     f"{grid['grid_id']}--e{pair['eneopt']}-f{pair['frcopt']}"
@@ -326,17 +378,19 @@ def _energy_timing(
             surface_records[surface["surface_id"]] = records
 
         classical = surface_records["classical-ses"]
-        mlses = surface_records["mlses-geniuses"]
+        geniuses = surface_records["geniuses-mlses-opt0"]
         classical_seconds = statistics.median(
             float(record["pbsa_internal_seconds"]) for record in classical
         )
-        mlses_seconds = statistics.median(
-            float(record["pbsa_internal_seconds"]) for record in mlses
+        geniuses_seconds = statistics.median(
+            float(record["pbsa_internal_seconds"]) for record in geniuses
         )
         classical_energy = float(
             classical[0]["reaction_field_energy_kcal_mol"]
         )
-        mlses_energy = float(mlses[0]["reaction_field_energy_kcal_mol"])
+        geniuses_energy = float(
+            geniuses[0]["reaction_field_energy_kcal_mol"]
+        )
         summaries.append(
             {
                 "grid": grid,
@@ -346,19 +400,81 @@ def _energy_timing(
                     "median_pbsa_internal_seconds": classical_seconds,
                     "reaction_field_energy_kcal_mol": classical_energy,
                 },
-                "mlses_geniuses": {
-                    "median_pbsa_internal_seconds": mlses_seconds,
-                    "reaction_field_energy_kcal_mol": mlses_energy,
+                "geniuses_mlses_opt0": {
+                    "median_pbsa_internal_seconds": geniuses_seconds,
+                    "reaction_field_energy_kcal_mol": geniuses_energy,
                 },
-                "classical_over_mlses_speed_ratio": (
-                    classical_seconds / mlses_seconds
+                "classical_over_geniuses_speed_ratio": (
+                    classical_seconds / geniuses_seconds
                 ),
-                "mlses_minus_classical_energy_kcal_mol": (
-                    mlses_energy - classical_energy
+                "geniuses_minus_classical_energy_kcal_mol": (
+                    geniuses_energy - classical_energy
                 ),
             }
         )
     return summaries
+
+
+def _derive_decision(
+    *,
+    force_supported: bool,
+    faster_at_every_grid: bool,
+) -> dict[str, Any]:
+    if force_supported and faster_at_every_grid:
+        status = "eligible-for-further-provider-validation"
+        reason = (
+            "GENIUSES supplied atom-resolved force output for every "
+            "runtime-accepted pair and was faster at both local grids. "
+            "This capability probe alone still does not establish "
+            "finite-difference consistency, FreeSolv accuracy, or a "
+            "production provider."
+        )
+    elif not force_supported and not faster_at_every_grid:
+        status = (
+            "rejected-no-atom-resolved-force-or-local-small-molecule-speedup"
+        )
+        reason = (
+            "The maintained local AmberTools runtime supplies no "
+            "atom-resolved GENIUSES force for every runtime-accepted "
+            "force pair, and it is slower than classical SES in both "
+            "local small-molecule grid observations."
+        )
+    elif not force_supported:
+        status = "rejected-no-atom-resolved-force"
+        reason = (
+            "The maintained local AmberTools runtime does not supply "
+            "atom-resolved GENIUSES force for every runtime-accepted "
+            "force pair."
+        )
+    else:
+        status = "rejected-no-local-small-molecule-speedup"
+        reason = (
+            "GENIUSES supplied force output for every runtime-accepted "
+            "pair but did not outperform classical SES at both local "
+            "small-molecule grids."
+        )
+    return {
+        "status": status,
+        "atom_resolved_force_output_supported": force_supported,
+        "force_consistency_established": False,
+        "local_small_molecule_speed_gate_passed": faster_at_every_grid,
+        "eligible_for_further_provider_validation": (
+            force_supported and faster_at_every_grid
+        ),
+        "reason": reason,
+    }
+
+
+def _validate_output_boundary(
+    *,
+    canonical_inputs: bool,
+    output: Path,
+) -> None:
+    if not canonical_inputs and output == DEFAULT_OUTPUT.resolve():
+        raise ValueError(
+            "Noncanonical comparisons require an explicit --output path and "
+            "cannot overwrite the canonical MLSES/GENIUSES artifact."
+        )
 
 
 def run_probe(args: argparse.Namespace) -> dict[str, Any]:
@@ -388,12 +504,41 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
     if args.timeout <= 0:
         raise ValueError("--timeout must be positive.")
 
+    canonical_inputs = (
+        not args.allow_other_inputs
+        and pbsa_hash == EXPECTED_PBSA_SHA256
+        and prmtop_hash == EXPECTED_PRMTOP_SHA256
+        and rst7_hash == EXPECTED_RST7_SHA256
+        and args.repeats == 3
+    )
+    output = Path(args.output).resolve()
+    _validate_output_boundary(
+        canonical_inputs=canonical_inputs,
+        output=output,
+    )
+
     work_dir = Path(args.work_dir).resolve()
+    discovery_records, accepted_force_pairs = _discover_runtime_force_pairs(
+        work_dir=work_dir,
+        pbsa=pbsa,
+        prmtop=prmtop,
+        rst7=rst7,
+        timeout_seconds=args.timeout,
+    )
+    if canonical_inputs and accepted_force_pairs != list(
+        EXPECTED_RUNTIME_ACCEPTED_FORCE_PAIRS
+    ):
+        raise RuntimeError(
+            "The runtime-accepted ENEOPT/FRCOPT matrix changed: expected "
+            f"{list(EXPECTED_RUNTIME_ACCEPTED_FORCE_PAIRS)}, observed "
+            f"{accepted_force_pairs}."
+        )
     force_records = _force_matrix(
         work_dir=work_dir,
         pbsa=pbsa,
         prmtop=prmtop,
         rst7=rst7,
+        force_pairs=accepted_force_pairs,
         timeout_seconds=args.timeout,
     )
     timing = _energy_timing(
@@ -410,49 +555,92 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
         for record in force_records
         if record["surface_id"] == "classical-ses"
     ]
-    mlses_force_records = [
+    geniuses_force_records = [
         record
         for record in force_records
-        if record["surface_id"] == "mlses-geniuses"
+        if record["surface_id"] == "geniuses-mlses-opt0"
     ]
-    classical_controls_pass = all(
-        record["returncode"] == 0
-        and record["force_file"]["exists"]
-        and record["force_file"]["size_bytes"] > 0
-        for record in classical_force_records
+    expected_matrix_size = 2 * len(accepted_force_pairs)
+    classical_controls_pass = bool(accepted_force_pairs) and (
+        len(classical_force_records) == expected_matrix_size
+        and all(
+            _force_record_passed(record)
+            for record in classical_force_records
+        )
     )
-    mlses_force_supported = all(
-        record["returncode"] == 0
-        and record["force_file"]["exists"]
-        and record["force_file"]["size_bytes"] > 0
-        for record in mlses_force_records
+    geniuses_force_supported = bool(accepted_force_pairs) and (
+        len(geniuses_force_records) == expected_matrix_size
+        and all(
+            _force_record_passed(record)
+            for record in geniuses_force_records
+        )
     )
-    mlses_faster_at_every_grid = all(
-        result["classical_over_mlses_speed_ratio"] > 1.0 for result in timing
-    )
-    timings_finite = all(
-        math.isfinite(float(result["classical_over_mlses_speed_ratio"]))
-        and float(result["classical_over_mlses_speed_ratio"]) > 0.0
+    geniuses_faster_at_every_grid = all(
+        result["classical_over_geniuses_speed_ratio"] > 1.0
         for result in timing
     )
-
-    canonical_inputs = (
-        pbsa_hash == EXPECTED_PBSA_SHA256
-        and prmtop_hash == EXPECTED_PRMTOP_SHA256
-        and rst7_hash == EXPECTED_RST7_SHA256
-        and args.repeats == 3
+    timings_finite = all(
+        math.isfinite(float(result["classical_over_geniuses_speed_ratio"]))
+        and float(result["classical_over_geniuses_speed_ratio"]) > 0.0
+        for result in timing
+    )
+    decision = _derive_decision(
+        force_supported=geniuses_force_supported,
+        faster_at_every_grid=geniuses_faster_at_every_grid,
+    )
+    decision.update(
+        {
+            "learned_surface_is_route1_residual_cheating": False,
+            "optimization": False,
+            "relaxed_scan": False,
+            "md": False,
+            "single_point_provider_added": False,
+            "full_freesolv_screen_opened": False,
+            "new_dependency_added": False,
+            "default_provider_changed": False,
+        }
     )
     payload = {
         "schema_version": 1,
         "artifact_type": "route1-mlses-pb-feasibility-probe",
         "protocol": {
-            "protocol_id": "route1-mlses-pb-feasibility-v1",
-            "status": "post-exploratory-label-free-capability-audit",
+            "protocol_id": "route1-mlses-pb-feasibility-v2",
+            "amendment_from": "route1-mlses-pb-feasibility-v1",
+            "amendment_reason": (
+                "Independent review found that v1 tested three pairings but "
+                "described them as exhaustive and conflated the predecessor "
+                "MLSES paper with the executed GENIUSES runtime. V2 discovers "
+                "the complete runtime-accepted force-pair matrix, separates "
+                "both sources, and derives its decision from observations."
+            ),
+            "status": (
+                "post-exploratory-label-free-capability-audit-amended"
+                if canonical_inputs
+                else "noncanonical-comparison"
+            ),
             "canonical_inputs": canonical_inputs,
+            "force_pair_discovery": {
+                "surface": SURFACES[0],
+                "grid": GRIDS[0],
+                "eneopt_values": list(ENEOPT_DISCOVERY_VALUES),
+                "frcopt_values": list(FRCOPT_DISCOVERY_VALUES),
+                "range_basis": (
+                    "The canonical PBSA input validator accepts ENEOPT=1..4 "
+                    "and FRCOPT=0..5; FRCOPT=0 is excluded because it requests "
+                    "no force output."
+                ),
+                "frcopt_zero_excluded_because_it_requests_no_force": True,
+                "acceptance_rule": (
+                    "returncode == 0 and force.dat exists and is nonempty"
+                ),
+                "expected_runtime_accepted_pairs": list(
+                    EXPECTED_RUNTIME_ACCEPTED_FORCE_PAIRS
+                ),
+            },
             "force_matrix": {
                 "surfaces": list(SURFACES),
                 "grids": list(GRIDS),
-                "legal_energy_force_pairs": list(LEGAL_FORCE_PAIRS),
+                "runtime_accepted_energy_force_pairs": accepted_force_pairs,
             },
             "energy_timing": {
                 "eneopt": 2,
@@ -474,16 +662,53 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             "gas_mlip_retrained": False,
         },
         "source_basis": {
-            "primary_paper": {
+            "executed_surface_model": {
+                "name": "GENIUSES",
+                "runtime_mapping": {
+                    "sasopt": 3,
+                    "mlses_opt": 0,
+                    "amber26_manual_meaning": (
+                        "Customized Fortran function/CUDA kernel running "
+                        "GENIUSES on CPU/GPU."
+                    ),
+                },
+                "primary_paper": {
+                    "title": (
+                        "Grid-Robust Efficient Neural Interface Model for "
+                        "Universal Molecule Surface Construction from Point "
+                        "Clouds"
+                    ),
+                    "doi": "10.1021/acs.jpclett.3c02176",
+                    "url": (
+                        "https://pubs.acs.org/doi/"
+                        "10.1021/acs.jpclett.3c02176"
+                    ),
+                    "training_target": (
+                        "Classical solvent-excluded-surface point-cloud "
+                        "geometry, not hydration free energies or molecular "
+                        "forces."
+                    ),
+                    "reported_classical_ses_fidelity_percent": 95.0,
+                    "reported_gpu_speedup_range": [26.0, 33.0],
+                },
+            },
+            "mlses_predecessor": {
+                "name": "MLSES",
+                "relationship": (
+                    "Predecessor learned SES classifier compared against "
+                    "GENIUSES in the GENIUSES paper; not the mlses_opt=0 "
+                    "runtime executed by this probe."
+                ),
+                "title": (
+                    "Machine-Learned Molecular Surface and Its Application "
+                    "to Implicit Solvent Simulations"
+                ),
                 "doi": "10.1021/acs.jctc.1c00492",
                 "url": "https://pubmed.ncbi.nlm.nih.gov/34516109/",
                 "training_target": (
                     "Classical solvent-excluded-surface level-set geometry, "
                     "not hydration free energies or molecular forces."
                 ),
-                "reported_classical_ses_agreement_percent": 95.0,
-                "reported_average_reaction_field_energy_deviation_percent": 1.0,
-                "reported_cpu_surface_speedup": 2.5,
             },
             "amber26_manual": {
                 "url": "https://ambermd.org/doc12/Amber26.pdf",
@@ -492,9 +717,11 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
                 "mlses_single_point_example": {
                     "ipb": 2,
                     "sasopt": 3,
+                    "mlses_opt": 0,
                     "eneopt": 1,
                     "frcopt": 0,
                 },
+                "mlses_opt_zero_model": "GENIUSES",
                 "force_example_disables_nonpolar": True,
                 "force_example_does_not_enable_mlses": True,
             },
@@ -550,62 +777,45 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             repository_root=REPOSITORY_ROOT,
         ),
         "force_capability": {
+            "pair_discovery_records": discovery_records,
+            "runtime_accepted_energy_force_pairs": accepted_force_pairs,
             "records": force_records,
             "classical_ses_controls_pass": classical_controls_pass,
-            "mlses_all_legal_force_pairs_pass": mlses_force_supported,
-            "finite_difference_gate_reached": mlses_force_supported,
+            "geniuses_all_runtime_accepted_force_pairs_pass": (
+                geniuses_force_supported
+            ),
+            "finite_difference_gate_eligible": geniuses_force_supported,
+            "finite_difference_gate_executed": False,
+            "finite_difference_gate_passed": None,
             "interpretation": (
-                "The same executable, topology, grids, and every legal "
-                "ENEOPT/FRCOPT pair emit nonempty force.dat controls with "
-                "classical SES. MLSES either terminates by signal or aborts "
-                "while mapping dielectric-boundary force to atoms, so no "
-                "candidate force exists to compare with an energy finite "
-                "difference."
+                "A complete ENEOPT=1..4/FRCOPT=1..5 classical-SES input "
+                "discovery under the canonical linear-PB setup identifies "
+                "five runtime-accepted force pairs. Those five emit nonempty "
+                "classical controls at both grids. GENIUSES emits no force "
+                "for every accepted pair, so the finite-difference gate is "
+                "not eligible and is not executed."
             ),
         },
         "energy_timing": {
             "records": timing,
             "all_ratios_finite": timings_finite,
-            "mlses_faster_than_classical_at_every_grid": (
-                mlses_faster_at_every_grid
+            "geniuses_faster_than_classical_at_every_grid": (
+                geniuses_faster_at_every_grid
             ),
             "claim_boundary": (
                 "Three standalone CPU process repeats on one 23-atom molecule; "
                 "not a general PBSA, GPU, or large-system performance claim."
             ),
         },
-        "decision": {
-            "status": (
-                "rejected-no-atom-resolved-force-or-local-small-molecule-speedup"
-            ),
-            "learned_surface_is_route1_residual_cheating": False,
-            "force_consistent_runtime": False,
-            "optimization": False,
-            "relaxed_scan": False,
-            "md": False,
-            "single_point_provider_added": False,
-            "full_freesolv_screen_opened": False,
-            "new_dependency_added": False,
-            "default_provider_changed": False,
-            "reason": (
-                "MLSES is an admissible frozen geometry surrogate in principle, "
-                "not a hydration-label residual. The maintained local AmberTools "
-                "runtime supplies no atom-resolved MLSES force for any legal "
-                "force pair, and it is slower than classical SES in both local "
-                "small-molecule grid observations. It therefore supplies no "
-                "Route-1 product advantage over the existing force-capable "
-                "OBC-II/ACE or SP-only CHA-GB/cavity-dispersion profiles."
-            ),
-        },
+        "decision": decision,
     }
     if not classical_controls_pass:
         raise RuntimeError("Classical SES force controls did not pass.")
     if not timings_finite:
         raise RuntimeError("Energy/timing ratios are invalid.")
 
-    output = Path(args.output).resolve()
     write_json_atomic(output, seal_artifact(payload))
-    print(f"Wrote MLSES PB feasibility probe to {output}.")
+    print(f"Wrote MLSES/GENIUSES PB feasibility probe to {output}.")
     return payload
 
 

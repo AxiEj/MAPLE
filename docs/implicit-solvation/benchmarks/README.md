@@ -562,32 +562,40 @@ python docs/implicit-solvation/benchmarks/run_ddx_pcm_screen.py score
 
 [`route1-mlses-pb-feasibility-probe-2026-07-26.json`](route1-mlses-pb-feasibility-probe-2026-07-26.json)
 pins the local AmberTools/PBSA executable and topology hashes, the current
-AmberTools 26 manual, and the primary MLSES paper
-(DOI `10.1021/acs.jctc.1c00492`). The paper learns a classical
-solvent-excluded-surface level-set geometry, not a hydration-energy residual,
-so the candidate remains inside the Route 1 physical-model boundary in
-principle.
+AmberTools 26 manual, the executed GENIUSES paper
+(DOI `10.1021/acs.jpclett.3c02176`), and its predecessor MLSES paper
+(DOI `10.1021/acs.jctc.1c00492`). AmberTools maps `sasopt=3, mlses_opt=0`
+to GENIUSES; the original MLSES classifier is not the runtime executed here.
+Both learn classical solvent-excluded-surface geometry rather than a
+hydration-energy residual, so the model class remains inside the Route 1
+physical boundary in principle.
 
-The runtime probe crosses both a coarse `0.50 A` grid and the manual-style
-`0.25 A` grid with all three legal `ENEOPT/FRCOPT` pairs. Every classical-SES
-control writes a nonempty atom-force file. MLSES provides no atom-resolved
-MLSES force: `ENEOPT=1/FRCOPT=1` terminates by signal, while `2/2` and `2/3`
-abort while projecting dielectric-boundary forces to atoms. Because no
-candidate force vector exists, the independent finite-difference gate is not
-reached.
+The amended v2 probe first scans every `ENEOPT=1..4` /
+`FRCOPT=1..5` input pairing under the fixed linear-PB setup. It identifies five
+runtime-accepted force pairings: `1/1`, `2/2`, `2/3`, `2/4`, and `3/2`.
+The force matrix then crosses those five pairings with both a coarse `0.50 A`
+grid and the manual-style `0.25 A` grid. Every classical-SES control writes a
+nonempty atom-force file. GENIUSES provides no atom-resolved MLSES force:
+`1/1` terminates by signal, while the other four pairings abort during
+dielectric-boundary force projection. Because no candidate force vector
+exists, the independent finite-difference gate is not eligible and is not
+executed.
 
 Three standalone energy-only process repeats per surface and grid also show no
 local small-molecule speed advantage:
 
-| grid | classical SES median | MLSES median | classical/MLSES | MLSES minus classical PB energy |
+| grid | classical SES median | GENIUSES median | classical/GENIUSES | GENIUSES minus classical PB energy |
 |---|---:|---:|---:|---:|
-| `0.50 A`, fill `1.25` | 0.11 s | 0.17 s | 0.647 | -0.0046 kcal/mol |
-| `0.25 A`, fill `2.00` | 3.09 s | 3.69 s | 0.837 | +0.0912 kcal/mol |
+| `0.50 A`, fill `1.25` | 0.12 s | 0.24 s | 0.500 | -0.0046 kcal/mol |
+| `0.25 A`, fill `2.00` | 3.16 s | 3.79 s | 0.834 | +0.0912 kcal/mol |
 
 These timings cover one 23-atom molecule on one CPU build and are not a
 large-system or GPU performance claim. They nevertheless close the local
 product-admission question: no MLSES runtime provider, dependency, FreeSolv
-screen, or default change is introduced.
+screen, or default change is introduced. Noncanonical binaries, topologies, or
+repeat counts must use `--allow-other-inputs` together with an explicit
+noncanonical `--output`; they cannot overwrite the canonical artifact, and
+their decision is derived from their own force and timing observations.
 
 Reproduction with the artifact-pinned local inputs:
 
@@ -1218,11 +1226,21 @@ exact source coordinates and adds one common 1,000-evaluation ceiling.
 The sealed result is
 [`route1-multi-mlip-optimizer-qualification-v2-2026-07-26.json`](route1-multi-mlip-optimizer-qualification-v2-2026-07-26.json):
 
-| global candidate | branches passing | calculator evaluations | optimizer steps | wall time |
+| global candidate | branches passing | calculator evaluations | successful-branch optimizer steps | wall time |
 |---|---:|---:|---:|---:|
 | BFGSLineSearch | 12/18 | 8,180 | 640 | 309.31 s |
 | LBFGSLineSearch | 12/18 | 8,502 | 845 | 309.88 s |
 | FIRE2/ABC | 12/18 | 7,601 | 6,134 | 365.36 s |
+
+The frozen v2 exception schema records calculator evaluations and elapsed time
+but omits `optimizer.nsteps` on failed branches. The displayed step column is
+therefore the sum for successful branches only, not a total-cost metric; the
+failed-branch logs contain additional steps. This omission does not affect the
+`12/18` denominator or null global-policy decision. The frozen candidate
+`basis` strings also say that the v8 500-step ceiling is retained, but the
+normative and executed v2 gate is `maximum_steps=1000`. That wording is a
+protocol-provenance erratum and is not repaired in place because changing the
+frozen protocol bytes would invalidate its fingerprint and sealed records.
 
 Both line-search policies fail all six AIMNet2 branches through evaluation
 exhaustion or another frozen convergence failure. FIRE2/ABC reaches the force

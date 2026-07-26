@@ -1223,31 +1223,36 @@ nonpolar term, and it does not provide the missing CHA-GB polar derivative.
 
 ### MLSES PB surface feasibility boundary
 
-MLSES/GENIUSES changes the PB dielectric-boundary construction rather than the
-Route 1 additive identity. Its neural network approximates a classical
-solvent-excluded-surface level-set geometry; the primary paper
-(DOI `10.1021/acs.jctc.1c00492`) does not train a hydration-energy residual or
-an MLIP-specific molecular correction. It is therefore not residual cheating
-in principle.
+The tested AmberTools `sasopt=3, mlses_opt=0` path executes GENIUSES, which
+changes PB dielectric-boundary construction rather than the Route 1 additive
+identity. Its primary paper (DOI `10.1021/acs.jpclett.3c02176`) learns a
+classical solvent-excluded-surface point-cloud geometry. The earlier MLSES
+classifier (DOI `10.1021/acs.jctc.1c00492`) is its predecessor, not the
+executed runtime. Neither model trains a hydration-energy residual or an
+MLIP-specific molecular correction, so this class of surface surrogate is not
+residual cheating in principle.
 
 The maintained executable boundary is stricter. AmberTools 26 documents an
-MLSES single-point example with `sasopt=3`, `ipb=2`, `eneopt=1`, and
-`frcopt=0`; its force example does not enable MLSES. A direct matrix over all
-three legal PB energy/force pairs and two grids produced valid classical-SES
-atom forces but no atom-resolved MLSES force. Because no force vector survived,
-the required comparison
+MLSES single-point example with `sasopt=3`, `mlses_opt=0`, `ipb=2`,
+`eneopt=1`, and `frcopt=0`; its force example does not enable MLSES. A complete
+runtime-input discovery over `ENEOPT=1..4` and `FRCOPT=1..5` under the fixed
+linear-PB setup identifies five runtime-accepted force pairings:
+`1/1`, `2/2`, `2/3`, `2/4`, and `3/2`. Classical SES writes nonempty atom
+forces for all five at both grids, while GENIUSES writes no atom-resolved MLSES
+force for any of them. Because no candidate force vector survives, the
+required comparison
 
 \[
-F_i^{\mathrm{MLSES}}\stackrel{?}{=}
--\frac{G_{\mathrm{PB,MLSES}}(R+h e_i)
-       -G_{\mathrm{PB,MLSES}}(R-h e_i)}{2h}
+F_i^{\mathrm{GENIUSES}}\stackrel{?}{=}
+-\frac{G_{\mathrm{PB,GENIUSES}}(R+h e_i)
+       -G_{\mathrm{PB,GENIUSES}}(R-h e_i)}{2h}
 \]
 
-could not be reached. On the same 23-atom CPU probe, the MLSES energy-only path
-was also slower than classical SES at both grid settings. Consequently there
-is no MLSES runtime provider and no derivative-based Route 1 task uses this
-surface. This rejection is about present force and performance capability,
-not the scientific legitimacy of a geometry surrogate.
+could not be reached. On the same 23-atom CPU probe, the GENIUSES energy-only
+path was also slower than classical SES at both grid settings. Consequently
+there is no MLSES runtime provider and no derivative-based Route 1 task uses
+this surface. This rejection is about present force and performance
+capability, not the scientific legitimacy of a geometry surrogate.
 
 GNNIS is excluded for a different, contractual reason rather than for a
 missing derivative. The released implementation computes a scalar

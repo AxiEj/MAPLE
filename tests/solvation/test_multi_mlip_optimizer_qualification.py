@@ -333,3 +333,5 @@ def test_route1_docs_close_v8_and_optimizer_v2_without_accuracy_claim():
     assert "no v9" in normalized
     assert "12/18" in normalized
     assert "per-model optimizer tuning" in normalized
+    assert "successful branches only" in normalized
+    assert "normative and executed v2 gate is `maximum_steps=1000`" in normalized

@@ -683,18 +683,20 @@ ABCG2 benchmark artifacts below remain immutable evidence.
   finite-difference and three-model nine-task matrices remain green. LCPO
   continues to use a two-context difference.
 - The **MLSES PB surface feasibility boundary** is frozen against the
-  AmberTools 26 manual and the primary MLSES paper
-  (DOI `10.1021/acs.jctc.1c00492`). The learned object approximates classical
+  AmberTools 26 manual, the executed GENIUSES paper
+  (DOI `10.1021/acs.jpclett.3c02176`), and the predecessor MLSES paper
+  (DOI `10.1021/acs.jctc.1c00492`). Both learned objects approximate classical
   solvent-excluded-surface geometry rather than a hydration-label residual, so
-  it is physically admissible in Route 1 in principle. In the maintained local
-  CPU build, however, classical SES emits nonempty atom forces for every legal
-  `ENEOPT/FRCOPT` pair at both tested grids while MLSES emits no atom-resolved
-  MLSES force: one pair terminates by signal and the other two abort during
-  force projection. The finite-difference force gate is therefore unreachable.
-  Three-process energy repeats on the same 23-atom case also make MLSES slower
-  than classical SES at both grids. This is a local small-molecule boundary,
-  not a universal large-system/GPU speed claim, but it opens no dependency,
-  FreeSolv screen, or MLSES runtime provider.
+  they are physically admissible in Route 1 in principle. In the maintained
+  local CPU build, a complete `ENEOPT=1..4` / `FRCOPT=1..5` input discovery
+  finds five runtime-accepted force pairings. Classical SES emits nonempty atom
+  forces for all five at both grids, whereas GENIUSES emits no atom-resolved
+  MLSES force for any of them: one terminates by signal and four abort during
+  force projection. The finite-difference force gate is therefore not
+  eligible. Three-process energy repeats on the same 23-atom case also make
+  GENIUSES slower than classical SES at both grids. This is a local
+  small-molecule boundary, not a universal large-system/GPU speed claim, but
+  it opens no dependency, FreeSolv screen, or MLSES runtime provider.
 
 ## Open scientific gates
 

@@ -130,7 +130,7 @@ one composition boundary.
 | automatic QCG/FEBISS explicit-inner cycle | unavailable | no | no | no | no | source-audited research path only; no arbitrary-MLIP QCG backend, complete neutral FreeSolv validation, or end-to-end speed evidence |
 | APBS LPB + APOLAR | energy only | no | no | no | no | fail closed on forces |
 | APBS SPL4 LPB force probe | rejected benchmark | no | no | no | no | molecular surface aborts; SPL4 polar and APOLAR force gates fail |
-| AmberTools MLSES PB surface probe | rejected benchmark | no | no | no | no | no atom-resolved MLSES force; no local small-molecule speedup; no runtime provider |
+| AmberTools GENIUSES/MLSES PB surface probe | rejected benchmark | no | no | no | no | no atom-resolved MLSES force; no local small-molecule speedup; no runtime provider |
 | external ddX/ddPCM audit | benchmark only | no | no | no | no | polar derivative passes, but accuracy and performance gates fail; no dependency/provider added |
 | CHARMM GBMV2/SA source audit | unavailable locally | no | no | no | no | scientifically promising physical candidate; registered CHARMM runtime and deployable provider path not available for parity/force validation |
 | SLIC/CDC source audit | unavailable locally | no | no | no | no | promising AM1-BCC-compatible physical energy model; complete 2022 upstream and atom-resolved polar-plus-nonpolar force are unavailable |
@@ -1253,23 +1253,26 @@ performance, and confirmation gates. The protocol and sealed evidence are
 
 ### MLSES PB surface feasibility boundary
 
-AmberTools MLSES (`sasopt=3`, `ipb=2`) is scientifically admissible within
-Route 1 as a frozen surrogate for constructing the classical
-solvent-excluded dielectric surface. The primary method
-(DOI `10.1021/acs.jctc.1c00492`) learns level-set surface geometry rather than
-hydration labels, molecular forces, or a chemistry-specific residual, so the
-candidate does not violate the no-residual contract.
+The tested AmberTools MLSES selector (`sasopt=3`, `mlses_opt=0`, `ipb=2`)
+executes GENIUSES. Its primary paper (DOI `10.1021/acs.jpclett.3c02176`)
+learns classical solvent-excluded-surface point-cloud geometry; the earlier
+MLSES classifier (DOI `10.1021/acs.jctc.1c00492`) is a predecessor rather than
+the executed runtime. Both are scientifically admissible within Route 1 as
+surface-geometry surrogates because neither fits hydration labels, molecular
+forces, or a chemistry-specific residual.
 
 That admissibility does not establish a product advantage. With the maintained
-local AmberTools 26 CPU build, classical SES produced a nonempty atom force for
-all three legal `ENEOPT/FRCOPT` pairs at both tested grids. MLSES produced no
-atom-resolved MLSES force: the `1/1` pair terminated by signal and the `2/2`
-and `2/3` pairs aborted while projecting dielectric-boundary force to atoms.
-The finite-difference gate was therefore not reachable. Three independent
-energy-only process repeats on one 23-atom molecule also showed MLSES slower
-than classical SES at both grids (classical/MLSES median ratios `0.647` and
-`0.837`), while changing the PB reaction-field energy by `-0.0046` and
-`+0.0912 kcal/mol`.
+local AmberTools 26 CPU build, a complete `ENEOPT=1..4` /
+`FRCOPT=1..5` input-discovery matrix identifies five runtime-accepted force
+pairings under the fixed linear-PB setup: `1/1`, `2/2`, `2/3`, `2/4`, and
+`3/2`. Classical SES produces a nonempty atom force for all five at both
+tested grids. GENIUSES produces no atom-resolved MLSES force for any of the
+five: `1/1` terminates by signal, while the other four abort during force
+projection. The finite-difference gate is therefore not eligible and is not
+executed. Three independent energy-only process repeats on one 23-atom
+molecule also show GENIUSES slower than classical SES at both grids
+(classical/GENIUSES median ratios `0.500` and `0.834`), while changing the PB
+reaction-field energy by `-0.0046` and `+0.0912 kcal/mol`.
 
 Those timing ratios are explicitly local small-molecule CPU observations, not
 a claim about large systems or a GPU implementation. They are nevertheless

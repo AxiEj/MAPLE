@@ -4,9 +4,11 @@ This branch contains only the MACE-POLAR + SMD continuum route. It does not
 contain the fixed-charge PB/GB implementation. The default
 PCMSolver--IEFPCM/GePol profile remains an energy proof-of-concept. Separate,
 explicit pyddx ddPCM profiles expose single-point research force candidates,
-including one versioned multi-solvent parameter profile. None is yet a
-complete MAPLE solution-phase PES. All calculations therefore require
-`experimental=true`.
+including one versioned multi-solvent parameter profile. A separate
+PCMSolver profile changes only the ASC-to-MACE reaction-field projection from
+the historical local first-order jet to the checkpoint-native \(l\le1\) GTO
+integrals. None is yet a complete MAPLE solution-phase PES. All calculations
+therefore require `experimental=true`.
 
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot
@@ -44,6 +46,20 @@ rather than extending MACE's internal 1.5 A GTO smearing across the cavity. It
 does not train or fine-tune a model, consume MOL2 partial charges, invoke a
 quantum-chemistry executable, or use a solvation-trained MLIP.
 
+The default PCMSolver profile feeds the atom-centred reaction potential and
+gradient through the upstream affine-field matrix (`local-jet`) in the
+continuum zero-at-infinity gauge. Two non-default energy-only profiles use the
+same atomic-centre-mean model-field gauge: the matched
+`smd-iefpcm-point-l1-local-jet-atomic-mean-v1` control retains `local-jet`,
+whereas `smd-iefpcm-point-l1-exact-gto-v1` analytically integrates the point
+ASC reaction potential against every receiver GTO channel exposed by the
+loaded checkpoint. Only a comparison between those two matched-gauge profiles
+isolates the reaction-field projector. Comparing the historical default
+directly with exact GTO changes both projector and model-field gauge.
+The exact path fails closed unless the runtime is
+`graph-longrange==0.4.0`. Its audit records the versioned receiver-feature
+layout and a SHA-256 fingerprint of the live checkpoint projection matrix.
+
 The research objective is mutual polarization: the MACE-POLAR representation
 generates the solute electrostatic potential, PCM returns a reaction field, and
 that reaction field is fed back through the unmodified MACE-POLAR field-response
@@ -75,6 +91,29 @@ cavity-branch selector. This removes geometry-dependent **policy selection**,
 but does not make the GePol surface differentiable, prove topology continuity,
 certify the tessellation, or enable forces. There is no public mock or ddX
 backend on this default path.
+
+The model-native reaction-field projection experiment must be selected
+exactly:
+
+```text
+#model=macepol-m
+#sp(verbose=1)
+#solv(implicit=water,method=smd,provider=pcmsolver,profile=smd-iefpcm-point-l1-exact-gto-v1,response=scf,standard_state=1m,cavity_policy=fixed-stability-branch,experimental=true)
+
+0 1
+MOL2 molecule.mol2
+```
+
+Its complete scientific identity is
+`MACE-POLAR coarse residual point-(l<=1) source + PCMSolver/IEFPCM +
+exact point-ASC-to-receiver-GTO projection + atomic-center-mean model-field
+gauge + native water SMD-CDS`.
+“Exact” refers only to the analytic receiver-GTO projection for the discrete
+ASC; it does not mean full electron density, original SMD equivalence,
+variational free-energy consistency, a complete coordinate derivative, or
+chemical-accuracy certification. The profile is energy-only and non-default.
+The matching projector control replaces only the profile name with
+`smd-iefpcm-point-l1-local-jet-atomic-mean-v1`.
 
 The separately named single-point force candidate must be selected exactly:
 
@@ -197,10 +236,12 @@ scalar energy and analytic gradient. Energy from one continuum definition is
 never combined with a derivative from another.
 
 The model is loaded as `polar-1-m` in float64. MAPLE uses the pretrained
-model's existing GTO field-response path, supplies a different reaction
-potential/gradient at each atom, and changes no learned weight.  The official
-weights remain subject to the upstream Academic Software License; MAPLE does
-not bundle or mirror them.
+model's existing GTO field-response path and changes no learned weight. The
+historical profiles supply a different reaction potential/gradient at each
+atom through the upstream local affine-field projector. The exact-GTO
+experiment instead supplies the complete checkpoint-native feature tensor
+computed from the same discrete ASC. The official weights remain subject to
+the upstream Academic Software License; MAPLE does not bundle or mirror them.
 
 ### Route-2 result and domain
 
@@ -234,6 +275,7 @@ The derivative capability boundary is likewise explicit:
 | Continuum path | Energy | Complete same-energy coordinate VJP | Public |
 | --- | --- | --- | --- |
 | PCMSolver--GePol | yes | no; fails closed | energy only |
+| PCMSolver--GePol + exact receiver-GTO field projection | yes | no; feature-space adjoint/VJP absent | explicit non-default energy experiment |
 | pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | yes | explicit single-point research force candidate |
 | pyddx ddPCM multi-solvent parameters + PySCF SMD CDS | yes | yes | explicit capability candidate; accuracy not certified |
 | pyddx/GAFF2 + MACE reciprocal fixed-box40 | yes | yes | explicit non-default operator-variant candidate |

@@ -13,6 +13,10 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
 )
+from maple.function.calculator.extra_correction.implicit.gto_field_projection import (
+    ExactGTOFieldProjector,
+    MACEPolarGTOFieldProjectionSpec,
+)
 from maple.function.calculator.extra_correction.implicit.route2_derivative import (
     continuum_coupled_solvation_coordinate_gradient,
 )
@@ -273,6 +277,124 @@ def test_fixed_cavity_pcm_scf_field_and_energy_share_one_root_snapshot():
         field[:, 1:],
         snapshot.reaction_gradient_hartree_per_e_bohr * Hartree / Bohr,
     )
+
+
+def test_exact_gto_drive_keeps_energy_and_model_spaces_distinct():
+    _, positions, session, continuum_response = _operator()
+    matrix = np.asarray(
+        [
+            [3.544907701811032, 0.0, 0.0, 0.0],
+            [3.544907701811032, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 5.771474235728387],
+            [0.0, 5.771474235728387, 0.0, 0.0],
+            [0.0, 0.0, 5.771474235728387, 0.0],
+            [0.0, 0.0, 0.0, 11.542948471456774],
+            [0.0, 11.542948471456774, 0.0, 0.0],
+            [0.0, 0.0, 11.542948471456774, 0.0],
+        ]
+    )
+    projector = ExactGTOFieldProjector(
+        MACEPolarGTOFieldProjectionSpec(
+            receiver_sigmas_angstrom=(1.5, 3.0),
+            receiver_max_l=1,
+            receiver_normalization="receiver",
+            upstream_matrix=matrix,
+        )
+    )
+    operator = FixedCavityPCMReactionFieldLinearMap(
+        continuum_response,
+        positions,
+        model_field_projector=projector,
+        model_field_gauge="atomic-center-mean-zero-v1",
+    )
+    density = np.asarray(
+        [
+            [-0.20, 0.10, -0.30, 0.40],
+            [0.05, -0.20, 0.15, -0.10],
+            [0.15, 0.10, 0.15, -0.30],
+        ]
+    )
+
+    drive = operator.apply_scf_drive(density)
+    snapshot = operator.scf_snapshot(density)
+    expected_mep = point_multipole_potential(
+        session.cavity_centers_bohr,
+        positions,
+        density,
+    )
+    expected_potential, expected_gradient = (
+        point_asc_reaction_potential_gradient(
+        positions,
+        session.cavity_centers_bohr,
+        snapshot.asc_e,
+        )
+    )
+
+    np.testing.assert_allclose(snapshot.mep_hartree_per_e, expected_mep)
+    np.testing.assert_allclose(
+        drive.density_dual_field_ev[:, 0],
+        expected_potential * Hartree,
+    )
+    np.testing.assert_allclose(
+        drive.density_dual_field_ev[:, 1:],
+        expected_gradient * Hartree / Bohr,
+    )
+    np.testing.assert_allclose(
+        drive.model_field_features,
+        projector.project_asc(
+            positions,
+            session.cavity_centers_bohr,
+            snapshot.asc_e,
+        ),
+    )
+    assert drive.projector == "exact-gto-v1"
+    assert drive.model_field_gauge == "atomic-center-mean-zero-v1"
+    assert drive.model_field_gauge_reference_ev == pytest.approx(
+        float(np.mean(expected_potential)) * Hartree
+    )
+    assert np.isfinite(drive.model_field_gauge_reference_ev)
+    assert snapshot.density_reaction_coupling_hartree == pytest.approx(
+        2.0 * snapshot.polarization_energy_hartree,
+        rel=2.0e-13,
+        abs=2.0e-11,
+    )
+
+
+def test_centered_local_jet_uses_same_atomic_mean_as_exact_gto():
+    _, positions, session, continuum_response = _operator()
+    density = np.asarray(
+        [
+            [-0.20, 0.10, -0.30, 0.40],
+            [0.05, -0.20, 0.15, -0.10],
+            [0.15, 0.10, 0.15, -0.30],
+        ]
+    )
+    operator = FixedCavityPCMReactionFieldLinearMap(
+        continuum_response,
+        positions,
+        model_field_gauge="atomic-center-mean-zero-v1",
+    )
+
+    drive = operator.apply_scf_drive(density)
+    expected_reference = float(
+        np.mean(drive.density_dual_field_ev[:, 0])
+    )
+
+    assert drive.model_field_features is None
+    assert drive.model_local_field_ev is not None
+    assert drive.model_field_gauge == "atomic-center-mean-zero-v1"
+    assert drive.model_field_gauge_reference_ev == pytest.approx(
+        expected_reference
+    )
+    np.testing.assert_allclose(
+        drive.model_local_field_ev[:, 0],
+        drive.density_dual_field_ev[:, 0] - expected_reference,
+    )
+    np.testing.assert_allclose(
+        drive.model_local_field_ev[:, 1:],
+        drive.density_dual_field_ev[:, 1:],
+    )
+    assert session.solve_calls == 1
 
 
 def test_current_pcmsolver_map_fails_closed_for_full_coordinate_gradient():

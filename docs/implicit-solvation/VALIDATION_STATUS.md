@@ -23,6 +23,16 @@ Research/Innovation Route, not a complete solution-phase PES.
 - Frozen and self-consistent response paths execute with the real
   MACE/PCMSolver stack; the water SCF smoke converges with a nonzero solute
   polarization response.
+- The non-default `smd-iefpcm-point-l1-exact-gto-v1` profile keeps the
+  historical point \(l\le1\) solute source and energy pairing but supplies the
+  complete checkpoint-native receiver tensor to MACE-POLAR. It shares the
+  `atomic-center-mean-zero-v1` model-field gauge with the separately versioned
+  `smd-iefpcm-point-l1-local-jet-atomic-mean-v1` control; only that pair
+  isolates the projector. Analytic point-ASC projection passes an independent
+  three-dimensional quadrature check, the affine-field limit reproduces the
+  upstream matrix, rotations transform the \(l=1\) channels covariantly, and
+  both atomic-mean profiles fail closed in the legacy force path. These are
+  representation/engineering gates, not broad accuracy or PES validation.
 - Native aqueous SMD CDS matches static NWChem controls for water, methane, and
   methanol within the frozen 0.015 kcal/mol tolerance.
 - The explicit
@@ -860,6 +870,48 @@ Research/Innovation Route, not a complete solution-phase PES.
     No immutable multi-solvent chemical-accuracy artifact is frozen yet.
     Therefore this stage establishes a capability boundary only, not a
     multi-solvent accuracy estimate, a fitted result, or a PES gate.
+37. A real MACE-POLAR-1-M checkpoint canary first exposed a model-interface
+    gauge defect: adding a constant `0.25 eV` potential to neutral acetone
+    changed the intrinsic energy by `3.5444e-4 eV` and the largest density
+    coefficient by `3.1752e-4 e`, for both raw local-jet and raw exact-GTO
+    inputs. The pre-registered `atomic-center-mean-zero-v1` repair subtracts
+    one common mean point-ASC potential from the model-driving scalar channel
+    only. Under the same constant-field canary, gas-versus-gauge-fixed energy
+    shifts became exactly zero and the largest density shift was
+    `5.55e-16 e`; local-jet and exact GTO also agreed to numerical precision.
+
+    One separately pre-registered fixed-conformer acetone calculation then
+    compared only the matched-gauge profiles. Both used the same 516-point
+    cavity hash, point-\(l<=1\) source, IEFPCM equation, SMD radii, CDS term,
+    SCF policy, and zero-at-infinity density-dual energy field. The
+    atomic-mean local-jet control predicted `-6.6930 kcal/mol` versus the
+    FreeSolv `-3.80 +/- 0.60 kcal/mol` record, an absolute error of
+    `2.8930 kcal/mol`; its component ledger was `+1.1277` solute response,
+    `-11.3919` PCM polarization, and `+3.5712 kcal/mol` CDS. Exact GTO
+    predicted `-4.6836 kcal/mol`, an absolute error of `0.8836 kcal/mol`,
+    from `+0.0786`, `-8.3333`, and `+3.5712 kcal/mol`, respectively. The
+    exact-minus-local shift was `+2.0094 kcal/mol`.
+
+    Local-jet and exact GTO converged in 18 and 13 iterations with density
+    residuals `6.42e-6` and `5.28e-6 e`; their half-coupling identity errors
+    were below `9.45e-17 eV`. On this host, PCMSolver initialization/response
+    times were `0.160/2.688 s` and `0.145/1.630 s`. The second model load was
+    cache-warm, so neither those timings nor the apparent iteration advantage
+    is a portable speed claim. Native PCMSolver warning count was zero; each
+    run retained one non-selection-fatal PEDRA poor-tessellation warning.
+
+    The exact profile now fails closed unless the runtime is
+    `graph-longrange==0.4.0`; the immutable result audit also fingerprints the
+    ordered live-checkpoint projection matrix. This closes a feature-layout
+    provenance boundary, not an accuracy or PES gate.
+
+    The lower total error is one development-molecule observation, not an
+    accuracy gate or proof of improved physics: MACE-POLAR training overlap is
+    unknown, the component changes may compensate, and no force, gauge
+    coordinate derivative, Gaussian solute source, variational diagnostic,
+    smooth cavity, or second continuum equation was evaluated. The immutable
+    evidence summary is
+    `benchmarks/route2-pcmsolver-exact-gto-acetone-v1.json`.
 
 ## Secondary diagnostics
 

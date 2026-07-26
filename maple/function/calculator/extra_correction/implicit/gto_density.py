@@ -8,6 +8,8 @@ import numpy as np
 from ase.units import Bohr
 from scipy.special import erf
 
+from .electrostatic_pairing import MACE_POLAR_L1_PAIRING
+
 
 MACE_POLAR_DENSITY_SIGMA_ANGSTROM = 1.5
 
@@ -22,12 +24,7 @@ def external_field_to_density_order(values: np.ndarray) -> np.ndarray:
     not introduce a unit conversion.
     """
 
-    field = np.asarray(values, dtype=float)
-    if field.ndim != 2 or field.shape[1] != 4 or not np.all(np.isfinite(field)):
-        raise ValueError(
-            "External node field must be finite with shape (n_atoms, 4)."
-        )
-    return field[:, [0, 2, 3, 1]].copy()
+    return MACE_POLAR_L1_PAIRING.field_to_density_order(values)
 
 
 def density_to_external_field_order(values: np.ndarray) -> np.ndarray:
@@ -39,16 +36,7 @@ def density_to_external_field_order(values: np.ndarray) -> np.ndarray:
     changing units.
     """
 
-    density = np.asarray(values, dtype=float)
-    if (
-        density.ndim != 2
-        or density.shape[1] != 4
-        or not np.all(np.isfinite(density))
-    ):
-        raise ValueError(
-            "Raw density-dual values must be finite with shape (n_atoms, 4)."
-        )
-    return density[:, [0, 3, 1, 2]].copy()
+    return MACE_POLAR_L1_PAIRING.density_to_field_order(values)
 
 
 def cartesian_multipoles(
@@ -396,15 +384,16 @@ def asc_reaction_potential_gradient(
     *,
     sigma_angstrom: float = MACE_POLAR_DENSITY_SIGMA_ANGSTROM,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Project the ASC reaction potential onto the MACE-POLAR GTO moments.
+    """Return the requested-width Gaussian-smoothed ASC potential and gradient.
 
     The returned potential is in Hartree/e and the gradient is in
-    Hartree/(e bohr).  The same Gaussian width as the MACE-POLAR density is
-    used, making
+    Hartree/(e bohr). ``sigma_angstrom`` selects the receiver smoothing width;
+    it need not equal the MACE-POLAR source-density width. The corresponding
+    finite-width ``l<=1`` reciprocity identity applies only when the solute
+    source uses the same Gaussian width. The current Route-2 point-multipole
+    source instead checks its energy reciprocity with the unsmoothed point-ASC
+    field.
 
-    ``sum(q*V + p.grad(V)) == dot(MEP, ASC)``
-
-    for the discrete l<=1 representation (up to floating-point roundoff).
     PCMSolver ASC values are integrated tessera charges, not charge densities,
     so no surface-area factor is applied.
     """

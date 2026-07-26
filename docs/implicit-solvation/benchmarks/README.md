@@ -69,9 +69,14 @@ The protocol also records separate open Dip146 (`MAE <= 0.25 D`) and HR46
 FreeSolv, because hydration error alone cannot certify the learned
 density/polarizability mechanism.
 
-No Route-2 FreeSolv accuracy artifact is frozen yet. The real water and static
-SMD-CDS controls in `VALIDATION_STATUS.md` prove execution, units, reciprocity,
-and convergence only. Until development and one-shot confirmation pass, the
+No Route-2 FreeSolv accuracy artifact is frozen yet. The tracked
+[`route2-pcmsolver-exact-gto-acetone-v1.json`](route2-pcmsolver-exact-gto-acetone-v1.json)
+is only a one-molecule development canary: it records the failed raw
+constant-potential gauge probe, the atomic-centre-mean repair, and a matched
+gauge local-jet/exact-GTO comparison. It does not replace a development
+partition or confirmation set. The other real-water and static SMD-CDS
+controls in `VALIDATION_STATUS.md` prove execution, units, reciprocity, and
+convergence only. Until development and one-shot confirmation pass, the
 public input continues to require `experimental=true`; no constant shift,
 fine-tuning, or confirmation-set refit is allowed.
 

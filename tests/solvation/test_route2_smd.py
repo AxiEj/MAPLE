@@ -30,6 +30,9 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
 )
+from maple.function.calculator.extra_correction.implicit.gto_field_projection import (
+    MACEPolarGTOFieldProjectionSpec,
+)
 from maple.function.calculator.extra_correction.implicit.route2_pcm_response import (
     FixedCavityPCMReactionFieldLinearMap,
 )
@@ -46,6 +49,10 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
     smd_water_cds,
 )
 from maple.function.read.command_control import CommandControl
+from maple.function.route2_smd_profiles import (
+    PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE,
+    PCMSOLVER_EXACT_GTO_FIELD_PROFILE,
+)
 
 
 def parse(*lines):
@@ -99,6 +106,72 @@ def test_route2_public_contract_accepts_gaff2_carbonyl_oxygen_profile():
     )
 
     assert params["solv"]["profile"] == GAFF2_CARBONYL_O_PROFILE
+
+
+def test_route2_public_contract_accepts_explicit_exact_gto_profile():
+    params = parse(
+        "#model=macepol-m",
+        "#sp",
+        (
+            "#solv(implicit=water,method=smd,"
+            f"profile={PCMSOLVER_EXACT_GTO_FIELD_PROFILE},"
+            "experimental=true)"
+        ),
+    )
+
+    assert (
+        params["solv"]["profile"]
+        == PCMSOLVER_EXACT_GTO_FIELD_PROFILE
+    )
+
+
+def test_route2_public_contract_accepts_centered_local_jet_profile():
+    params = parse(
+        "#model=macepol-m",
+        "#sp",
+        (
+            "#solv(implicit=water,method=smd,"
+            f"profile={PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE},"
+            "experimental=true)"
+        ),
+    )
+
+    assert (
+        params["solv"]["profile"]
+        == PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE
+    )
+
+
+def test_exact_gto_profile_rejects_frozen_response(tmp_path):
+    atoms = _co_atoms()
+    options = _route2_options("frozen")
+    options["profile"] = PCMSOLVER_EXACT_GTO_FIELD_PROFILE
+
+    with pytest.raises(
+        ValueError,
+        match="requires response=scf",
+    ):
+        SMDImplicitSolvation(
+            atoms,
+            options,
+            audit_dir=tmp_path,
+        )
+
+
+def test_centered_local_jet_profile_rejects_frozen_response(tmp_path):
+    atoms = _co_atoms()
+    options = _route2_options("frozen")
+    options["profile"] = PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE
+
+    with pytest.raises(
+        ValueError,
+        match="requires response=scf",
+    ):
+        SMDImplicitSolvation(
+            atoms,
+            options,
+            audit_dir=tmp_path,
+        )
 
 
 def test_route2_public_contract_accepts_fixed_stability_branch_cavity_policy():
@@ -532,6 +605,45 @@ class _FakePolarCalculator:
         return self.response_state, {}
 
 
+class _FakeExactGTOCalculator(_FakePolarCalculator):
+    def __init__(self, gas_state, response_state):
+        super().__init__(gas_state, response_state)
+        self.model_field_features = []
+        self.graph_longrange_version = "0.4.0"
+
+    @staticmethod
+    def route2_gto_field_projection_spec():
+        return MACEPolarGTOFieldProjectionSpec(
+            receiver_sigmas_angstrom=(1.5, 3.0),
+            receiver_max_l=1,
+            receiver_normalization="receiver",
+            upstream_matrix=np.asarray(
+                [
+                    [3.544907701811032, 0.0, 0.0, 0.0],
+                    [3.544907701811032, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 5.771474235728387],
+                    [0.0, 5.771474235728387, 0.0, 0.0],
+                    [0.0, 0.0, 5.771474235728387, 0.0],
+                    [0.0, 0.0, 0.0, 11.542948471456774],
+                    [0.0, 11.542948471456774, 0.0, 0.0],
+                    [0.0, 0.0, 11.542948471456774, 0.0],
+                ]
+            ),
+        )
+
+    def polar_state(
+        self,
+        atoms,
+        *,
+        model_field_features=None,
+    ):
+        self.calls += 1
+        features = np.asarray(model_field_features, dtype=float)
+        assert features.shape == (len(atoms), 8)
+        self.model_field_features.append(features.copy())
+        return self.response_state, {}
+
+
 def _state(energy_ev, density):
     return SimpleNamespace(
         energy_ev=float(energy_ev),
@@ -635,7 +747,7 @@ def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
         "cavity-exterior point monopoles and dipoles"
     )
     audit = (tmp_path / "route2-result.json").read_text(encoding="utf-8")
-    assert '"schema_version": 6' in audit
+    assert '"schema_version": 9' in audit
     assert '"pcm_mep_projection": "cavity-exterior-point-multipole-l<=1"' in audit
 
 
@@ -1000,6 +1112,128 @@ def test_scf_route2_iterates_density_and_adds_solute_polarization(
     assert result.provenance["iterations"] > 1
     assert (tmp_path / "route2-state.npz").is_file()
     assert (tmp_path / "route2-result.json").is_file()
+
+
+def test_exact_gto_profile_keeps_point_source_and_audits_model_features(
+    monkeypatch,
+    tmp_path,
+):
+    atoms = _co_atoms()
+    density = np.asarray(
+        [[-0.1, 0.02, -0.03, 0.04], [0.1, -0.02, 0.03, -0.04]]
+    )
+    gas = _state(-20.0, density)
+    response = _state(-19.95, density)
+    calculator = _FakeExactGTOCalculator(gas, response)
+    options = _route2_options("scf")
+    options["profile"] = PCMSOLVER_EXACT_GTO_FIELD_PROFILE
+    provider = SMDImplicitSolvation(
+        atoms,
+        options,
+        audit_dir=tmp_path,
+    )
+    _install_fake_pcm(monkeypatch, provider, tmp_path)
+
+    result = provider.evaluate(atoms, calculator=calculator)
+
+    assert calculator.calls == 2
+    assert result.provenance["solute_source"] == "point-multipole-l1"
+    assert result.provenance["reaction_field_projector"] == "exact-gto-v1"
+    assert result.provenance["density_dual_field_gauge"] == (
+        "continuum-zero-at-infinity"
+    )
+    assert result.provenance["model_field_gauge"] == (
+        "atomic-center-mean-zero-v1"
+    )
+    assert result.provenance["strict_original_smd_equivalence"] is False
+    with np.load(tmp_path / "route2-state.npz") as state:
+        assert state["model_field_features"].shape == (2, 8)
+        expected_mep = point_multipole_potential(
+            state["cavity_centers_bohr"],
+            atoms.get_positions(),
+            state["root_density_coefficients"],
+        )
+        np.testing.assert_allclose(
+            state["mep_hartree_per_e"],
+            expected_mep,
+        )
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["pcm_mep_projection"] == (
+        "cavity-exterior-point-multipole-l<=1"
+    )
+    assert audit["reaction_field_projector"] == "exact-gto-v1"
+    assert audit["density_dual_field_gauge"] == (
+        "continuum-zero-at-infinity"
+    )
+    assert audit["model_field_gauge"] == "atomic-center-mean-zero-v1"
+    assert np.isfinite(audit["model_field_gauge_reference_ev"])
+    assert audit["model_field_feature_shape"] == [2, 8]
+    assert audit["model_field_projection_contract"][
+        "graph_longrange_version"
+    ] == "0.4.0"
+    assert len(
+        audit["model_field_projection_contract"][
+            "upstream_matrix_sha256"
+        ]
+    ) == 64
+    assert result.provenance["graph_longrange_version"] == "0.4.0"
+    assert result.provenance["model_field_projection_contract"] == (
+        audit["model_field_projection_contract"]
+    )
+    assert audit["polarization_energy"][
+        "absolute_identity_error_ev"
+    ] == pytest.approx(0.0, abs=1.0e-12)
+
+
+def test_centered_local_jet_profile_audits_dual_and_model_fields(
+    monkeypatch,
+    tmp_path,
+):
+    atoms = _co_atoms()
+    density = np.asarray(
+        [[-0.1, 0.02, -0.03, 0.04], [0.1, -0.02, 0.03, -0.04]]
+    )
+    gas = _state(-20.0, density)
+    response = _state(-19.95, density)
+    calculator = _FakePolarCalculator(gas, response)
+    options = _route2_options("scf")
+    options["profile"] = PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE
+    provider = SMDImplicitSolvation(
+        atoms,
+        options,
+        audit_dir=tmp_path,
+    )
+    _install_fake_pcm(monkeypatch, provider, tmp_path)
+
+    result = provider.evaluate(atoms, calculator=calculator)
+
+    assert result.provenance["reaction_field_projector"] == "local-jet"
+    assert result.provenance["density_dual_field_gauge"] == (
+        "continuum-zero-at-infinity"
+    )
+    assert result.provenance["model_field_gauge"] == (
+        "atomic-center-mean-zero-v1"
+    )
+    with np.load(tmp_path / "route2-state.npz") as state:
+        dual_field = state["reaction_field_values_ev"]
+        model_field = state["model_local_field_values_ev"]
+        assert dual_field.shape == model_field.shape == (2, 4)
+        assert float(np.mean(model_field[:, 0])) == pytest.approx(
+            0.0,
+            abs=1.0e-15,
+        )
+        np.testing.assert_allclose(model_field[:, 1:], dual_field[:, 1:])
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["density_dual_field_gauge"] == (
+        "continuum-zero-at-infinity"
+    )
+    assert audit["model_field_gauge"] == "atomic-center-mean-zero-v1"
+    assert audit["model_local_field_shape"] == [2, 4]
+    assert audit["model_field_feature_shape"] is None
 
 
 def test_scf_route2_closes_energy_and_field_on_the_same_finite_tolerance_root(

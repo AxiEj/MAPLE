@@ -16,12 +16,13 @@ from typing import Any
 import numpy as np
 from ase.units import Hartree
 
-from .gto_density import external_field_to_density_order
+from .electrostatic_pairing import MACE_POLAR_L1_PAIRING
 from .route2_derivative import (
     assemble_total_solvation_coordinate_gradient,
     continuum_coupled_solvation_coordinate_gradient,
     fixed_cavity_energy_density_gradient,
 )
+from .route2_field_state import ReactionFieldDrive
 from .route2_response import (
     UnmixedDensityResidualLinearization,
     solve_adjoint,
@@ -88,6 +89,11 @@ class Route2CoupledState:
     density_coefficients: np.ndarray
     response_density_coefficients: np.ndarray
     reaction_field_values_ev: np.ndarray
+    model_local_field_values_ev: np.ndarray | None
+    model_field_features: np.ndarray | None
+    reaction_field_projector: str
+    model_field_gauge: str
+    model_field_gauge_reference_ev: float
     solvent_state: Any
     polarization_energy_hartree: float
     energy_identity_error_ev: float
@@ -105,6 +111,21 @@ class Route2CoupledState:
             values = np.array(getattr(self, name), copy=True)
             values.setflags(write=False)
             object.__setattr__(self, name, values)
+        if self.model_field_features is not None:
+            features = np.array(self.model_field_features, copy=True)
+            features.setflags(write=False)
+            object.__setattr__(self, "model_field_features", features)
+        if self.model_local_field_values_ev is not None:
+            model_field = np.array(
+                self.model_local_field_values_ev,
+                copy=True,
+            )
+            model_field.setflags(write=False)
+            object.__setattr__(
+                self,
+                "model_local_field_values_ev",
+                model_field,
+            )
 
     @property
     def root_density_coefficients(self) -> np.ndarray:
@@ -189,6 +210,77 @@ class Route2ContinuumEngine:
             )
         return field.copy()
 
+    def _reaction_field_drive(
+        self,
+        reaction_field,
+        density: np.ndarray,
+        atom_count: int,
+    ) -> ReactionFieldDrive:
+        apply_drive = getattr(reaction_field, "apply_scf_drive", None)
+        if callable(apply_drive):
+            drive = apply_drive(density)
+            if not isinstance(drive, ReactionFieldDrive):
+                raise RuntimeError(
+                    f"The {self.settings.continuum_label} reaction-field "
+                    "provider returned an invalid model-drive state."
+                )
+        else:
+            drive = ReactionFieldDrive.local_jet(
+                reaction_field.apply_scf(density)
+            )
+        field = self._validate_field(
+            drive.density_dual_field_ev,
+            atom_count,
+        )
+        if drive.model_field_features is None:
+            if drive.model_local_field_ev is None:
+                return ReactionFieldDrive.local_jet(field)
+            return ReactionFieldDrive(
+                density_dual_field_ev=field,
+                model_local_field_ev=drive.model_local_field_ev,
+                model_field_features=None,
+                projector=drive.projector,
+                model_field_gauge=drive.model_field_gauge,
+                model_field_gauge_reference_ev=(
+                    drive.model_field_gauge_reference_ev
+                ),
+            )
+        if drive.model_field_features.shape[0] != atom_count:
+            raise RuntimeError(
+                f"The {self.settings.continuum_label} model features do not "
+                "match the atom count."
+            )
+        return ReactionFieldDrive(
+            density_dual_field_ev=field,
+            model_local_field_ev=None,
+            model_field_features=drive.model_field_features,
+            projector=drive.projector,
+            model_field_gauge=drive.model_field_gauge,
+            model_field_gauge_reference_ev=(
+                drive.model_field_gauge_reference_ev
+            ),
+        )
+
+    @staticmethod
+    def _polarize(calculator, atoms, drive: ReactionFieldDrive, **kwargs):
+        if drive.model_field_features is not None:
+            return calculator.polar_state(
+                atoms,
+                model_field_features=drive.model_field_features,
+                **kwargs,
+            )
+        field = (
+            drive.density_dual_field_ev
+            if drive.model_local_field_ev is None
+            else drive.model_local_field_ev
+        )
+        return calculator.polar_state(
+            atoms,
+            node_potential_ev=field[:, 0],
+            node_gradient_ev_per_angstrom=field[:, 1:],
+            **kwargs,
+        )
+
     @staticmethod
     def gas_state(calculator, atoms, *, need_forces: bool) -> Any:
         cached = getattr(calculator, "cached_polar_state", None)
@@ -230,14 +322,16 @@ class Route2ContinuumEngine:
         history: list[dict[str, float | int | None]] = []
 
         for iteration in range(1, settings.scf_max_iterations + 1):
-            field = self._validate_field(
-                reaction_field.apply_scf(density),
+            drive = self._reaction_field_drive(
+                reaction_field,
+                density,
                 len(atoms),
             )
-            solvent_state, _ = calculator.polar_state(
+            field = drive.density_dual_field_ev
+            solvent_state, _ = self._polarize(
+                calculator,
                 atoms,
-                node_potential_ev=field[:, 0],
-                node_gradient_ev_per_angstrom=field[:, 1:],
+                drive,
             )
             response_density = self.validate_density(
                 solvent_state.density_coefficients,
@@ -302,10 +396,7 @@ class Route2ContinuumEngine:
                 "non-finite."
             )
         paired_energy_ev = 0.5 * float(
-            np.vdot(
-                density,
-                external_field_to_density_order(field),
-            )
+            MACE_POLAR_L1_PAIRING.pair(density, field)
         )
         provider_energy_ev = polarization_energy_hartree * Hartree
         identity_error_ev = abs(paired_energy_ev - provider_energy_ev)
@@ -329,6 +420,13 @@ class Route2ContinuumEngine:
             density_coefficients=density,
             response_density_coefficients=response_density,
             reaction_field_values_ev=field,
+            model_local_field_values_ev=drive.model_local_field_ev,
+            model_field_features=drive.model_field_features,
+            reaction_field_projector=drive.projector,
+            model_field_gauge=drive.model_field_gauge,
+            model_field_gauge_reference_ev=(
+                drive.model_field_gauge_reference_ev
+            ),
             solvent_state=solvent_state,
             polarization_energy_hartree=polarization_energy_hartree,
             energy_identity_error_ev=identity_error_ev,
@@ -344,6 +442,14 @@ class Route2ContinuumEngine:
         coupled: Route2CoupledState,
     ) -> tuple[np.ndarray, dict[str, Any]]:
         settings = self.settings
+        if (
+            coupled.model_field_features is not None
+            or coupled.model_local_field_values_ev is not None
+        ):
+            raise NotImplementedError(
+                "A non-default model-field profile is energy-only until its "
+                "gauge/projector response adjoint and position VJP are derived."
+            )
         field = coupled.reaction_field_values_ev
         density = coupled.density_coefficients
         solvent_state, _ = calculator.polar_state(

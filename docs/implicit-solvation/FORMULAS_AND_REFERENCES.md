@@ -98,9 +98,78 @@ revised Minnesota values.
 ### Polarizable response
 
 The upstream MACE-POLAR model already contains a GTO
-potential/field-to-feature projector. MAPLE supplies the local
-\([V_i,\nabla V_i]\) values through that projector, leaving the graph-level
-uniform external field at zero. Consequently the returned quantity is the
+potential/field-to-feature projector. The historical Route-2 profiles supply
+the local \([V_i,\nabla V_i]\) values through its affine-field matrix, leaving
+the graph-level uniform external field at zero. This `local-jet` construction
+is exact for an affine external potential but is an approximation for a
+general PCM reaction potential.
+
+The separately versioned
+`smd-iefpcm-point-l1-exact-gto-v1` profile instead evaluates the
+checkpoint-native receiver features
+
+\[
+v_{i,nlm}
+=\frac{1}{\mathcal N_{nl}}
+\int \phi_{nlm}(\mathbf r-\mathbf R_i)
+V_{\mathrm{reac}}(\mathbf r)\,d\mathbf r
+\]
+
+directly for the discrete PCMSolver ASC. For a point ASC
+\(\sigma_k\) at \(\mathbf s_k\), the normalized spherical-Gaussian \(l=0\)
+convolution is
+
+\[
+\overline V_{\sigma}(\mathbf R_i)
+=\sum_k \sigma_k
+\frac{\operatorname{erf}
+\left(d_{ik}/\sqrt{2}\sigma\right)}{d_{ik}},
+\qquad
+d_{ik}=\lvert\mathbf R_i-\mathbf s_k\rvert .
+\]
+
+The \(l=1\) integrals follow from integration by parts and the analytic
+\(\nabla\overline V_{\sigma}\). MAPLE takes the receiver widths, \(l_{\max}\),
+normalization, real-spherical order, and final projection matrix from the
+loaded MACE-POLAR checkpoint. An affine-potential limit test reproduces the
+upstream local-field matrix, while independent three-dimensional
+Gauss--Hermite quadrature and rotation-covariance tests validate the analytic
+ASC projection.
+
+MACE-POLAR's raw node-potential response is not invariant to adding a constant
+potential, even for the neutral acetone checkpoint canary. The two
+model-field experiments therefore use one common, SE(3)-invariant gauge
+
+\[
+C(\mathbf R,\boldsymbol\sigma)
+=\frac{1}{N}\sum_i V_{\mathrm{reac}}(\mathbf R_i),
+\qquad
+V'_{\mathrm{reac}}(\mathbf r)
+=V_{\mathrm{reac}}(\mathbf r)-C .
+\]
+
+The same scalar \(C\), evaluated from the point ASC potential at the protected
+atomic centres, is subtracted from every receiver-\(\sigma\) \(l=0\) channel;
+the \(l=1\) channels are unchanged. It is not evaluated at the arithmetic
+barycentre because a barycentre can approach a point tessera in a non-convex
+or hollow molecule. The historical default retains the continuum
+zero-at-infinity model input. Consequently, an isolated projector comparison
+must use
+`smd-iefpcm-point-l1-local-jet-atomic-mean-v1` versus
+`smd-iefpcm-point-l1-exact-gto-v1`; the gauge choice is itself a separate
+experimental axis.
+
+This profile intentionally keeps the solute-to-cavity source as the same
+cavity-exterior point-\(l\le1\) multipole expansion. The four-component
+point-source reaction field remains the energy-dual object used by
+\(\frac12\langle\rho,V_{\mathrm{reac}}\rangle\); the complete GTO tensor is a
+separate model-driving object. Changing the solute source to a finite-width
+Gaussian is a later, independent ablation and is not part of this profile.
+The density-dual field remains in the continuum zero-at-infinity gauge; only
+the model-driving copy is gauge-fixed. The current force path does not include
+\(dC/d\mathbf R\), so both atomic-mean profiles fail closed for forces.
+
+For either reaction-field projector, the returned quantity is the
 field-polarized **intrinsic** MACE energy and deliberately excludes the
 explicit \(\langle\rho,V_{\mathrm{reac}}\rangle\) interaction:
 
@@ -114,6 +183,13 @@ This convention is why MAPLE does not subtract the density/reaction coupling a
 second time. It is locked by implementation and audit provenance; a future
 adapter whose energy includes the explicit coupling would require a different
 formula and profile name.
+
+The exact-GTO profile remains energy-only. Its model response is taken with
+respect to the full feature tensor, whereas the current force candidate
+linearizes the historical four-component local-field input. A feature-space
+JVP/VJP, the matching coordinate derivative, and the atomic-mean gauge
+derivative must be derived and validated before the exact-GTO profile can
+expose a force.
 
 ### Versioned MACE long-range evaluator
 

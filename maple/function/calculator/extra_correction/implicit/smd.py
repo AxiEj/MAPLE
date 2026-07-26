@@ -28,9 +28,12 @@ import time
 from typing import Any
 
 import numpy as np
-from ase.units import Bohr
+from ase.units import Bohr, Hartree
 
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
+from ....route2_smd_profiles import (
+    route2_smd_profile_spec,
+)
 from .continuum_response import (
     PCMSolverExternalMEPCavityResponse,
 )
@@ -45,6 +48,7 @@ from .route2_pcm_response import (
     FixedCavityPCMSnapshot,
     FixedCavityPCMReactionFieldLinearMap,
 )
+from .gto_field_projection import ExactGTOFieldProjector
 from .route2_domain import (
     FORMALLY_CHARGED_TRIPOS_TYPES,
     MAX_MOLECULAR_MASS_DA,
@@ -396,6 +400,7 @@ class SMDImplicitSolvation:
             == CAVITY_POLICY_FIXED_STABILITY_BRANCH
         )
 
+        self.profile_spec = route2_smd_profile_spec(self.profile)
         self._validate_options()
         self._validate_domain(self.atoms)
         self._reference_numbers = np.asarray(self.atoms.numbers, dtype=int).copy()
@@ -428,9 +433,20 @@ class SMDImplicitSolvation:
             "standard_state_correction_hartree": 0.0,
             "density_source": "official MACE-POLAR-1-M l<=1 residual charge density",
             "density_interpretation": "coarse-grained net charge density, not a QM electron density",
+            "solute_source": self.profile_spec.solute_source,
+            "reaction_field_projector": (
+                self.profile_spec.reaction_field_projector
+            ),
+            "density_dual_field_gauge": "continuum-zero-at-infinity",
+            "model_field_gauge": self.profile_spec.model_field_gauge,
+            "nonpolar_model": self.profile_spec.nonpolar_model,
+            "strict_original_smd_equivalence": (
+                self.profile_spec.strict_original_smd_equivalence
+            ),
             "pcm_mep_projection": (
-                "cavity-exterior point monopoles and dipoles; the model-internal "
-                "1.5 A GTO smearing is not extended across the dielectric boundary"
+                "cavity-exterior point monopoles and dipoles; the "
+                "model-internal 1.5 A GTO smearing is not extended "
+                "across the dielectric boundary"
             ),
             "electrostatics": "IEFPCM",
             "cavity_policy": self.cavity_policy,
@@ -441,7 +457,7 @@ class SMDImplicitSolvation:
             "cavity_stability_policy_force_compatible": False,
             "cavity_radii": (
                 "SMD Coulomb radii with revised Br=2.60 A and I=2.74 A"
-                if self.profile == CANONICAL_SMD_PROFILE
+                if not self.profile_spec.uses_gaff2_carbonyl_oxygen
                 else (
                     "SMD Coulomb radii with GAFF/GAFF2 carbonyl oxygen "
                     "(atom type o) overridden to 1.70 A"
@@ -474,7 +490,7 @@ class SMDImplicitSolvation:
                             "DOI:10.1002/jcc.27089"
                         )
                     }
-                    if self.profile == GAFF2_CARBONYL_O_PROFILE
+                    if self.profile_spec.uses_gaff2_carbonyl_oxygen
                     else {}
                 ),
             },
@@ -495,8 +511,8 @@ class SMDImplicitSolvation:
             raise ValueError("Route 2 research contract uses provider=pcmsolver only.")
         if self.profile not in SUPPORTED_PCMSOLVER_SMD_PROFILES:
             raise ValueError(
-                "Route 2 profile must be smd-iefpcm or "
-                "smd-iefpcm-gaff2-o."
+                "Route 2 profile must be one of the registered PCMSolver "
+                "SMD profiles."
             )
         if self.cavity_policy not in SUPPORTED_CAVITY_POLICIES:
             raise ValueError(
@@ -505,6 +521,19 @@ class SMDImplicitSolvation:
             )
         if self.response not in {"frozen", "scf"}:
             raise ValueError("SMD response must be frozen or scf.")
+        if (
+            (
+                self.profile_spec.reaction_field_projector != "local-jet"
+                or self.profile_spec.model_field_gauge
+                != "continuum-zero-at-infinity"
+            )
+            and self.response != "scf"
+        ):
+            raise ValueError(
+                "A non-default reaction-field projector or model-field gauge "
+                "requires response=scf; a frozen response would configure but "
+                "never apply that model drive."
+            )
         if self.standard_state != "1m":
             raise ValueError(
                 "Route 2 uses the 1 M gas -> 1 M solution convention only; "
@@ -692,6 +721,12 @@ class SMDImplicitSolvation:
         root_density_coefficients: np.ndarray,
         response_density_coefficients: np.ndarray,
         reaction_field_values_ev: np.ndarray,
+        model_local_field_values_ev: np.ndarray | None,
+        model_field_features: np.ndarray | None,
+        reaction_field_projector: str,
+        model_field_gauge: str,
+        model_field_gauge_reference_ev: float,
+        model_field_projection_contract: dict[str, object] | None,
         pcm_state: FixedCavityPCMSnapshot,
         session: PCMSolverSession,
         cds_result,
@@ -708,36 +743,70 @@ class SMDImplicitSolvation:
         density_residual_inf = float(
             np.max(np.abs(response_density - root_density))
         )
-        np.savez_compressed(
-            self.audit_dir / "route2-state.npz",
-            gas_density_coefficients=np.asarray(gas_state.density_coefficients),
+        archive_arrays = {
+            "gas_density_coefficients": np.asarray(
+                gas_state.density_coefficients
+            ),
             # Legacy name retained for readers of schema <=5.
-            solvent_density_coefficients=response_density,
-            root_density_coefficients=root_density,
-            response_density_coefficients=response_density,
-            reaction_field_values_ev=np.asarray(
+            "solvent_density_coefficients": response_density,
+            "root_density_coefficients": root_density,
+            "response_density_coefficients": response_density,
+            "reaction_field_values_ev": np.asarray(
                 reaction_field_values_ev,
                 dtype=float,
             ),
-            cavity_centers_bohr=session.cavity_centers_bohr,
-            cavity_areas_bohr2=session.cavity_areas_bohr2,
-            mep_hartree_per_e=pcm_state.mep_hartree_per_e,
-            asc_e=pcm_state.asc_e,
-            reaction_potential_hartree_per_e=(
+            "cavity_centers_bohr": session.cavity_centers_bohr,
+            "cavity_areas_bohr2": session.cavity_areas_bohr2,
+            "mep_hartree_per_e": pcm_state.mep_hartree_per_e,
+            "asc_e": pcm_state.asc_e,
+            "reaction_potential_hartree_per_e": (
                 pcm_state.reaction_potential_hartree_per_e
             ),
-            reaction_gradient_hartree_per_e_bohr=(
+            "reaction_gradient_hartree_per_e_bohr": (
                 pcm_state.reaction_gradient_hartree_per_e_bohr
             ),
-            cds_atom_areas_angstrom2=cds_result.atom_areas_angstrom2,
-            cds_atom_tensions_cal_mol_angstrom2=(
+            "cds_atom_areas_angstrom2": cds_result.atom_areas_angstrom2,
+            "cds_atom_tensions_cal_mol_angstrom2": (
                 cds_result.atom_tensions_cal_mol_angstrom2
             ),
+        }
+        if model_field_features is not None:
+            archive_arrays["model_field_features"] = np.asarray(
+                model_field_features,
+                dtype=float,
+            )
+        if model_local_field_values_ev is not None:
+            archive_arrays["model_local_field_values_ev"] = np.asarray(
+                model_local_field_values_ev,
+                dtype=float,
+            )
+        np.savez_compressed(
+            self.audit_dir / "route2-state.npz",
+            **archive_arrays,
         )
         payload = {
-            "schema_version": 6,
+            "schema_version": 9,
             "response": self.response,
             "pcm_mep_projection": "cavity-exterior-point-multipole-l<=1",
+            "reaction_field_projector": reaction_field_projector,
+            "density_dual_field_gauge": "continuum-zero-at-infinity",
+            "model_field_gauge": model_field_gauge,
+            "model_field_gauge_reference_ev": (
+                model_field_gauge_reference_ev
+            ),
+            "model_local_field_shape": (
+                None
+                if model_local_field_values_ev is None
+                else list(np.asarray(model_local_field_values_ev).shape)
+            ),
+            "model_field_feature_shape": (
+                None
+                if model_field_features is None
+                else list(np.asarray(model_field_features).shape)
+            ),
+            "model_field_projection_contract": (
+                model_field_projection_contract
+            ),
             "converged": True,
             "iterations": len(history),
             "fixed_point": {
@@ -777,6 +846,23 @@ class SMDImplicitSolvation:
             "density_reaction_coupling_hartree": (
                 pcm_state.density_reaction_coupling_hartree
             ),
+            "polarization_energy": {
+                "provider_hartree": (
+                    pcm_state.polarization_energy_hartree
+                ),
+                "paired_half_coupling_hartree": (
+                    0.5
+                    * pcm_state.density_reaction_coupling_hartree
+                ),
+                "absolute_identity_error_ev": (
+                    abs(
+                        pcm_state.polarization_energy_hartree
+                        - 0.5
+                        * pcm_state.density_reaction_coupling_hartree
+                    )
+                    * Hartree
+                ),
+            },
             "pcmsolver_input": str(self._parsed_pcm_input_path),
             "pcmsolver_python_parser": (
                 None
@@ -888,6 +974,23 @@ class SMDImplicitSolvation:
                                         atoms.get_positions(),
                                         dtype=float,
                                     ),
+                                    model_field_gauge=(
+                                        self.profile_spec.model_field_gauge
+                                    ),
+                                    **(
+                                        {
+                                            "model_field_projector": (
+                                                ExactGTOFieldProjector(
+                                                    calculator
+                                                    .route2_gto_field_projection_spec()
+                                                )
+                                            )
+                                        }
+                                        if self.profile_spec
+                                        .reaction_field_projector
+                                        == "exact-gto-v1"
+                                        else {}
+                                    ),
                                 )
                             )
                             engine = self._engine_for_reaction_field(
@@ -905,6 +1008,16 @@ class SMDImplicitSolvation:
                                 reaction_field_values = (
                                     reaction_field.apply_scf(root_density)
                                 )
+                                model_local_field_values = None
+                                model_field_features = None
+                                reaction_field_projector = (
+                                    self.profile_spec
+                                    .reaction_field_projector
+                                )
+                                model_field_gauge = (
+                                    self.profile_spec.model_field_gauge
+                                )
+                                model_field_gauge_reference_ev = 0.0
                                 pcm_state = reaction_field.scf_snapshot(
                                     root_density
                                 )
@@ -949,6 +1062,22 @@ class SMDImplicitSolvation:
                                 reaction_field_values = (
                                     coupled.reaction_field_values_ev
                                 )
+                                model_field_features = (
+                                    coupled.model_field_features
+                                )
+                                model_local_field_values = (
+                                    coupled.model_local_field_values_ev
+                                )
+                                reaction_field_projector = (
+                                    coupled.reaction_field_projector
+                                )
+                                model_field_gauge = (
+                                    coupled.model_field_gauge
+                                )
+                                model_field_gauge_reference_ev = (
+                                    coupled
+                                    .model_field_gauge_reference_ev
+                                )
                                 pcm_state = reaction_field.scf_snapshot(
                                     root_density
                                 )
@@ -982,6 +1111,25 @@ class SMDImplicitSolvation:
                                     ),
                                     reaction_field_values_ev=(
                                         reaction_field_values
+                                    ),
+                                    model_local_field_values_ev=(
+                                        model_local_field_values
+                                    ),
+                                    model_field_features=(
+                                        model_field_features
+                                    ),
+                                    reaction_field_projector=(
+                                        reaction_field_projector
+                                    ),
+                                    model_field_gauge=(
+                                        model_field_gauge
+                                    ),
+                                    model_field_gauge_reference_ev=(
+                                        model_field_gauge_reference_ev
+                                    ),
+                                    model_field_projection_contract=(
+                                        reaction_field
+                                        .model_field_projection_provenance
                                     ),
                                     pcm_state=pcm_state,
                                     session=session,
@@ -1129,6 +1277,12 @@ class SMDImplicitSolvation:
             ),
             "mace_torch_version": getattr(
                 calculator, "mace_torch_version", None
+            ),
+            "graph_longrange_version": getattr(
+                calculator, "graph_longrange_version", None
+            ),
+            "model_field_projection_contract": (
+                reaction_field.model_field_projection_provenance
             ),
             "mace_dtype": str(getattr(calculator, "dtype", None)),
             "pcmsolver_library": pcmsolver_library,

@@ -131,18 +131,56 @@ provenance. Components from different electrostatic providers may not be
 mixed. The engine is an internal implementation detail and is not re-exported
 as a public MAPLE API.
 
+## Subsequent model-field projection extension
+
+The later exact-GTO energy experiment preserves this ownership boundary but
+separates two objects that the historical local-jet path happened to encode in
+one four-vector:
+
+1. the density-dual field \(\mathbf f\), kept in the continuum
+   zero-at-infinity gauge and used only for the discrete electrostatic pairing
+   and provider half-coupling identity; and
+2. a model-driving local field or checkpoint-native feature tensor, used only
+   to drive the MACE-POLAR response.
+
+`ReactionFieldDrive` is the immutable carrier for those two objects.
+Historical providers return only the four-component field and retain
+`reaction_field_projector=local-jet` plus the continuum zero-at-infinity model
+gauge. The explicit
+`smd-iefpcm-point-l1-local-jet-atomic-mean-v1` control subtracts the mean
+point-ASC potential at the atomic centres from only the model-driving scalar
+potential. The exact-GTO profile uses that same scalar gauge and additionally
+returns the analytically integrated receiver tensor with
+`reaction_field_projector=exact-gto-v1`. Therefore only the matched-gauge
+local-versus-exact pair isolates the projector; the historical default is a
+separate gauge baseline. The point-\(l\le1\) solute source remains unchanged
+in all three profiles.
+
+All half-coupling, energy-identity, and order conversions pass through one
+`ElectrostaticPairing` contract. Neither the gauge-fixed local field nor model
+features are substituted into that bilinear energy pairing. Both atomic-mean
+states fail closed in the legacy force path until the gauge derivative is
+implemented; exact GTO additionally requires a feature-space response adjoint
+and coordinate VJP.
+
+The exact receiver-row ordering is a versioned runtime contract rather than
+an inferred convention. The adapter currently accepts only
+`graph-longrange==0.4.0`, and each exact-profile audit records the layout
+identifier, receiver widths and normalization, matrix shape, and SHA-256 of
+the live checkpoint projection matrix.
+
 ## Frozen non-goals
 
 This stage must not:
 
-- add or accept a new `provider`, profile, parser option, solvent, charge
-  state, or model checkpoint;
+- add or accept a new `provider`, parser option, solvent, charge state, or
+  model checkpoint beyond the two explicitly versioned field experiments;
 - change `mixing=1.0`, any SCF/adjoint/identity tolerance, ddPCM setting,
   radius, CDS functional, or standard-state convention;
 - change `route2-ddpcm-result.json`, `route2-ddpcm-state.npz`, their schemas,
   or the public `SolvationResult`;
-- call a real continuum runtime or MACE checkpoint merely to validate the
-  refactor;
+- use a small real-runtime canary as broad chemical or performance
+  certification;
 - claim a solution-phase PES, QM accuracy, broader applicability, or a speed
   improvement.
 

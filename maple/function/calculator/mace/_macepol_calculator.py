@@ -49,6 +49,13 @@ from ...route2_smd_profiles import (
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
     validate_route2_smd_profile,
 )
+from ..extra_correction.implicit.gto_field_projection import (
+    EXACT_GTO_GRAPH_LONGRANGE_VERSION,
+    MACEPolarGTOFieldProjectionSpec,
+)
+from ..extra_correction.implicit.electrostatic_pairing import (
+    MACE_POLAR_MODEL_FEATURE_FIELD_INDICES,
+)
 from ._macepol_long_range import MACEPolarLongRangeEvaluator
 
 
@@ -84,6 +91,7 @@ class _LocalReactionFieldProjector(torch.nn.Module):
         super().__init__()
         self.upstream = upstream
         self._node_potential_gradient: torch.Tensor | None = None
+        self._model_field_features: torch.Tensor | None = None
 
     def set_node_potential_gradient(self, values: torch.Tensor | None) -> None:
         self._node_potential_gradient = values
@@ -93,6 +101,10 @@ class _LocalReactionFieldProjector(torch.nn.Module):
         """Temporarily install one field without leaking across nested calls."""
 
         with _LOCAL_REACTION_FIELD_LOCK:
+            if values is not None and self._model_field_features is not None:
+                raise RuntimeError(
+                    "Preprojected MACE-POLAR field features are already installed."
+                )
             previous = self._node_potential_gradient
             self._node_potential_gradient = values
             try:
@@ -100,7 +112,44 @@ class _LocalReactionFieldProjector(torch.nn.Module):
             finally:
                 self._node_potential_gradient = previous
 
+    @contextmanager
+    def use_model_field_features(self, values: torch.Tensor | None):
+        """Temporarily install checkpoint-native GTO field features."""
+
+        with _LOCAL_REACTION_FIELD_LOCK:
+            if values is not None and self._node_potential_gradient is not None:
+                raise RuntimeError(
+                    "A local MACE-POLAR node field is already installed."
+                )
+            previous = self._model_field_features
+            self._model_field_features = values
+            try:
+                yield
+            finally:
+                self._model_field_features = previous
+
     def forward(self, batch, positions, field):
+        features = self._model_field_features
+        if features is not None:
+            expected_features = int(self.upstream.matrix.shape[0])
+            if (
+                features.ndim != 2
+                or features.shape[1] != expected_features
+            ):
+                raise ValueError(
+                    "MACE-POLAR preprojected reaction-field features must "
+                    f"have shape (n_atoms, {expected_features})."
+                )
+            if features.shape[0] != batch.shape[0]:
+                raise ValueError(
+                    "MACE-POLAR preprojected reaction-field atom count does "
+                    "not match the model graph."
+                )
+            return features.to(
+                device=positions.device,
+                dtype=positions.dtype,
+            )
+
         values = self._node_potential_gradient
         if values is None:
             return self.upstream(batch, positions, field)
@@ -116,7 +165,10 @@ class _LocalReactionFieldProjector(torch.nn.Module):
         node_fields = values.to(device=positions.device, dtype=positions.dtype)
         # Match graph_longrange.GTOInternalFieldtoFeaturesBlock and MACE's
         # Cartesian-to-e3nn convention exactly.
-        node_fields = node_fields[:, [0, 3, 1, 2]]
+        node_fields = node_fields[
+            :,
+            list(MACE_POLAR_MODEL_FEATURE_FIELD_INDICES),
+        ]
         return torch.einsum("pf,nf->np", self.upstream.matrix, node_fields)
 
 
@@ -215,6 +267,12 @@ class MACEPolCalculator(CalcABC):
                 f"{mace_version}."
             )
         self.mace_torch_version = mace_version
+        try:
+            self.graph_longrange_version = version("graph-longrange")
+        except PackageNotFoundError as exc:
+            raise ImportError(
+                "MACE-POLAR requires graph-longrange."
+            ) from exc
         self.route2_smd_profile = (
             ROUTE2_SMD_CALCULATOR_PROFILE if route2_smd else None
         )
@@ -299,6 +357,55 @@ class MACEPolCalculator(CalcABC):
         if self._last_polar_state is None:
             return None
         return self._last_polar_state.density_coefficients.copy()
+
+    def route2_gto_field_projection_spec(
+        self,
+    ) -> MACEPolarGTOFieldProjectionSpec:
+        """Return the immutable receiver basis of the loaded checkpoint."""
+
+        graph_longrange_version = getattr(
+            self,
+            "graph_longrange_version",
+            None,
+        )
+        if (
+            graph_longrange_version
+            != EXACT_GTO_GRAPH_LONGRANGE_VERSION
+        ):
+            raise RuntimeError(
+                "The exact Route-2 GTO projector is pinned to "
+                f"graph-longrange {EXACT_GTO_GRAPH_LONGRANGE_VERSION} "
+                "because its receiver-row ordering is part of the scientific "
+                f"contract; found {graph_longrange_version!r}."
+            )
+        descriptor = getattr(
+            self.model,
+            "electric_potential_descriptor",
+            None,
+        )
+        basis = getattr(descriptor, "feature_basis", None)
+        if basis is None:
+            raise RuntimeError(
+                "The loaded MACE-POLAR checkpoint does not expose its "
+                "receiver GTO basis."
+            )
+        upstream = getattr(self._reaction_projector, "upstream", None)
+        matrix = getattr(upstream, "matrix", None)
+        if matrix is None or not torch.is_tensor(matrix):
+            raise RuntimeError(
+                "The loaded MACE-POLAR checkpoint does not expose its "
+                "external-field projection matrix."
+            )
+        return MACEPolarGTOFieldProjectionSpec(
+            receiver_sigmas_angstrom=tuple(basis.sigmas),
+            receiver_max_l=int(basis.max_l),
+            receiver_normalization=str(basis.normalize),
+            upstream_matrix=np.asarray(
+                matrix.detach().cpu(),
+                dtype=float,
+            ),
+            graph_longrange_version=graph_longrange_version,
+        )
 
     def cached_polar_state(
         self,
@@ -404,6 +511,7 @@ class MACEPolCalculator(CalcABC):
         *,
         node_potential_ev: torch.Tensor | None = None,
         node_gradient_ev_per_angstrom: torch.Tensor | None = None,
+        model_field_features: torch.Tensor | None = None,
         compute_forces: bool = False,
         compute_hessian: bool = False,
     ) -> dict:
@@ -417,6 +525,38 @@ class MACEPolCalculator(CalcABC):
         """
 
         local_values = None
+        feature_values = None
+        if model_field_features is not None and (
+            node_potential_ev is not None
+            or node_gradient_ev_per_angstrom is not None
+        ):
+            raise ValueError(
+                "Supply either local reaction potential/gradient or "
+                "preprojected model-field features, not both."
+            )
+        if model_field_features is not None:
+            if not torch.is_tensor(model_field_features):
+                raise TypeError(
+                    "Graph-preserving model-field features must be a torch "
+                    "tensor."
+                )
+            if (
+                model_field_features.ndim != 2
+                or model_field_features.shape[0] != len(atoms)
+            ):
+                raise ValueError(
+                    "Model-field features must have shape "
+                    "(n_atoms, n_features)."
+                )
+            if not torch.is_floating_point(model_field_features):
+                raise TypeError(
+                    "Model-field features must use a floating-point torch "
+                    "dtype."
+                )
+            feature_values = model_field_features.to(
+                dtype=self.dtype,
+                device=self.device,
+            )
         if node_potential_ev is not None or node_gradient_ev_per_angstrom is not None:
             if node_potential_ev is None or node_gradient_ev_per_angstrom is None:
                 raise ValueError(
@@ -454,7 +594,14 @@ class MACEPolCalculator(CalcABC):
             local_values = torch.cat((potential[:, None], gradient), dim=1)
 
         batch = self._batch_dict(atoms)
-        with self._reaction_projector.use_node_potential_gradient(local_values):
+        context = (
+            self._reaction_projector.use_model_field_features(feature_values)
+            if feature_values is not None
+            else self._reaction_projector.use_node_potential_gradient(
+                local_values
+            )
+        )
+        with context:
             return self._model_forward(
                 batch,
                 compute_force=compute_forces,
@@ -468,6 +615,7 @@ class MACEPolCalculator(CalcABC):
         *,
         node_potential_ev: np.ndarray | None = None,
         node_gradient_ev_per_angstrom: np.ndarray | None = None,
+        model_field_features: np.ndarray | None = None,
         compute_forces: bool = False,
         compute_hessian: bool = False,
     ) -> tuple[PolarState, dict]:
@@ -486,6 +634,31 @@ class MACEPolCalculator(CalcABC):
 
         potential_tensor = None
         gradient_tensor = None
+        feature_tensor = None
+        if model_field_features is not None and (
+            node_potential_ev is not None
+            or node_gradient_ev_per_angstrom is not None
+        ):
+            raise ValueError(
+                "Supply either local reaction potential/gradient or "
+                "preprojected model-field features, not both."
+            )
+        if model_field_features is not None:
+            features = np.asarray(model_field_features, dtype=float)
+            if (
+                features.ndim != 2
+                or features.shape[0] != len(atoms)
+                or not np.all(np.isfinite(features))
+            ):
+                raise ValueError(
+                    "Model-field features must be finite with shape "
+                    "(n_atoms, n_features)."
+                )
+            feature_tensor = torch.tensor(
+                features,
+                dtype=self.dtype,
+                device=self.device,
+            )
         if node_potential_ev is not None or node_gradient_ev_per_angstrom is not None:
             if node_potential_ev is None or node_gradient_ev_per_angstrom is None:
                 raise ValueError(
@@ -498,12 +671,12 @@ class MACEPolCalculator(CalcABC):
                     "Local reaction potential/gradient shapes must be "
                     "(n_atoms,) and (n_atoms, 3)."
                 )
-            potential_tensor = torch.as_tensor(
+            potential_tensor = torch.tensor(
                 potential,
                 dtype=self.dtype,
                 device=self.device,
             )
-            gradient_tensor = torch.as_tensor(
+            gradient_tensor = torch.tensor(
                 gradient,
                 dtype=self.dtype,
                 device=self.device,
@@ -513,6 +686,7 @@ class MACEPolCalculator(CalcABC):
             atoms,
             node_potential_ev=potential_tensor,
             node_gradient_ev_per_angstrom=gradient_tensor,
+            model_field_features=feature_tensor,
             compute_forces=compute_forces,
             compute_hessian=compute_hessian,
         )

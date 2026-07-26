@@ -16,6 +16,12 @@ from .route2_solvents import SUPPORTED_ROUTE2_SMD_SOLVENTS
 
 CANONICAL_SMD_PROFILE = "smd-iefpcm"
 GAFF2_CARBONYL_O_PROFILE = "smd-iefpcm-gaff2-o"
+PCMSOLVER_EXACT_GTO_FIELD_PROFILE = (
+    "smd-iefpcm-point-l1-exact-gto-v1"
+)
+PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE = (
+    "smd-iefpcm-point-l1-local-jet-atomic-mean-v1"
+)
 DDPCM_SMD_PROFILE = "smd-ddpcm-l15-n1202-v1"
 DDPCM_MULTISOLVENT_SMD_PROFILE = "smd-ddpcm-l15-n1202-multisolv-v1"
 DDPCM_GAFF2_CARBONYL_O_PROFILE = "smd-ddpcm-l15-n1202-gaff2-o-v1"
@@ -44,7 +50,14 @@ class Route2SMDProfileSpec:
     mace_long_range_evaluator: str
     electrostatics_model: Literal["iefpcm", "ddpcm"]
     solute_source: Literal["point-multipole-l1"]
-    reaction_field_projector: Literal["local-jet"]
+    reaction_field_projector: Literal[
+        "local-jet",
+        "exact-gto-v1",
+    ]
+    model_field_gauge: Literal[
+        "continuum-zero-at-infinity",
+        "atomic-center-mean-zero-v1",
+    ]
     nonpolar_model: Literal[
         "native-water-smd-cds",
         "pyscf-smd-cds",
@@ -83,6 +96,7 @@ _PROFILE_SPECS = {
         electrostatics_model="iefpcm",
         solute_source="point-multipole-l1",
         reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="native-water-smd-cds",
         dielectric_policy="pcmsolver-water-keyword",
         coulomb_radii_policy="legacy-route2-water-v1",
@@ -96,6 +110,35 @@ _PROFILE_SPECS = {
         electrostatics_model="iefpcm",
         solute_source="point-multipole-l1",
         reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="native-water-smd-cds",
+        dielectric_policy="pcmsolver-water-keyword",
+        coulomb_radii_policy="legacy-route2-water-v1",
+        supported_solvents=_WATER_ONLY,
+    ),
+    PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE: Route2SMDProfileSpec(
+        name=PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE,
+        provider="pcmsolver",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="iefpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="atomic-center-mean-zero-v1",
+        nonpolar_model="native-water-smd-cds",
+        dielectric_policy="pcmsolver-water-keyword",
+        coulomb_radii_policy="legacy-route2-water-v1",
+        supported_solvents=_WATER_ONLY,
+    ),
+    PCMSOLVER_EXACT_GTO_FIELD_PROFILE: Route2SMDProfileSpec(
+        name=PCMSOLVER_EXACT_GTO_FIELD_PROFILE,
+        provider="pcmsolver",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="iefpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="exact-gto-v1",
+        model_field_gauge="atomic-center-mean-zero-v1",
         nonpolar_model="native-water-smd-cds",
         dielectric_policy="pcmsolver-water-keyword",
         coulomb_radii_policy="legacy-route2-water-v1",
@@ -109,6 +152,7 @@ _PROFILE_SPECS = {
         electrostatics_model="ddpcm",
         solute_source="point-multipole-l1",
         reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="legacy-water-78.39",
         coulomb_radii_policy="legacy-route2-water-v1",
@@ -122,6 +166,7 @@ _PROFILE_SPECS = {
         electrostatics_model="ddpcm",
         solute_source="point-multipole-l1",
         reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="pyscf-smd-2.13.1",
         coulomb_radii_policy="pyscf-smd-2.13.1",
@@ -135,6 +180,7 @@ _PROFILE_SPECS = {
         electrostatics_model="ddpcm",
         solute_source="point-multipole-l1",
         reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="legacy-water-78.39",
         coulomb_radii_policy="legacy-route2-water-v1",
@@ -150,6 +196,7 @@ _PROFILE_SPECS = {
         electrostatics_model="ddpcm",
         solute_source="point-multipole-l1",
         reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="legacy-water-78.39",
         coulomb_radii_policy="legacy-route2-water-v1",
@@ -165,6 +212,7 @@ _PROFILE_SPECS = {
         electrostatics_model="ddpcm",
         solute_source="point-multipole-l1",
         reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="legacy-water-78.39",
         coulomb_radii_policy="legacy-route2-water-v1",
@@ -233,6 +281,8 @@ __all__ = [
     "GAFF2_CARBONYL_O_PROFILE",
     "MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE",
     "MACEPOL_MOLECULAR_REALSPACE_PROFILE",
+    "PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE",
+    "PCMSOLVER_EXACT_GTO_FIELD_PROFILE",
     "Route2SMDProfileSpec",
     "SUPPORTED_DDPCM_SMD_PROFILES",
     "SUPPORTED_PCMSOLVER_SMD_PROFILES",

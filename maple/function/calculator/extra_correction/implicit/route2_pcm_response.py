@@ -30,9 +30,14 @@ from .gto_density import (
     point_multipole_potential_position_vjp,
     point_multipole_potential_surface_position_vjp,
 )
+from .gto_field_projection import (
+    ATOMIC_CENTER_MEAN_GAUGE,
+    ExactGTOFieldProjector,
+)
 from .route2_derivative import (
     FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION,
 )
+from .route2_field_state import ReactionFieldDrive
 
 
 ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION = 1
@@ -107,6 +112,8 @@ class FixedCavityPCMReactionFieldLinearMap:
         atom_positions_angstrom: np.ndarray,
         *,
         geometry_tolerance_angstrom: float = 1.0e-12,
+        model_field_projector: ExactGTOFieldProjector | None = None,
+        model_field_gauge: str = "continuum-zero-at-infinity",
     ):
         if geometry_tolerance_angstrom < 0.0:
             raise ValueError("Geometry tolerance cannot be negative.")
@@ -162,14 +169,60 @@ class FixedCavityPCMReactionFieldLinearMap:
             geometry_tolerance_angstrom / Bohr
         )
         self.atom_count = positions.shape[0]
+        self._model_field_projector = model_field_projector
+        self._model_field_gauge = str(model_field_gauge)
+        if self._model_field_gauge not in {
+            "continuum-zero-at-infinity",
+            ATOMIC_CENTER_MEAN_GAUGE,
+        }:
+            raise ValueError(
+                f"Unsupported Route-2 model-field gauge: "
+                f"{self._model_field_gauge}."
+            )
+        if (
+            self._model_field_projector is not None
+            and self._model_field_gauge != ATOMIC_CENTER_MEAN_GAUGE
+        ):
+            raise ValueError(
+                "The exact-GTO projector currently requires the "
+                "atomic-center-mean-zero-v1 model-field gauge."
+            )
         self._scf_snapshot: FixedCavityPCMSnapshot | None = None
 
-    def _compute_asc(self, density: np.ndarray) -> np.ndarray:
-        mep = point_multipole_potential(
+    @property
+    def model_field_projection_provenance(
+        self,
+    ) -> dict[str, object] | None:
+        """Return the exact projector contract, if this map owns one."""
+
+        projector = self._model_field_projector
+        if projector is None:
+            return None
+        return dict(projector.spec.provenance)
+
+    def _surface_potential(self, density: np.ndarray) -> np.ndarray:
+        return point_multipole_potential(
             self._centers_bohr,
             self._positions_angstrom,
             density,
         )
+
+    def _reaction_potential_gradient(
+        self,
+        asc: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        potential, gradient = point_asc_reaction_potential_gradient(
+            self._positions_angstrom,
+            self._centers_bohr,
+            asc,
+        )
+        return (
+            np.asarray(potential, dtype=float),
+            np.asarray(gradient, dtype=float),
+        )
+
+    def _compute_asc(self, density: np.ndarray) -> np.ndarray:
+        mep = self._surface_potential(density)
         asc = np.asarray(
             self._response.apply_energy_conjugate(mep),
             dtype=float,
@@ -192,11 +245,7 @@ class FixedCavityPCMReactionFieldLinearMap:
             atom_count=self.atom_count,
             name="density_coefficients",
         )
-        mep = point_multipole_potential(
-            self._centers_bohr,
-            self._positions_angstrom,
-            density,
-        )
+        mep = self._surface_potential(density)
         solved = self._response.solve(mep)
         solved_mep = np.asarray(
             solved.surface_potential_hartree_per_e,
@@ -222,11 +271,7 @@ class FixedCavityPCMReactionFieldLinearMap:
             )
 
         reaction_potential, reaction_gradient = (
-            point_asc_reaction_potential_gradient(
-                self._positions_angstrom,
-                self._centers_bohr,
-                asc,
-            )
+            self._reaction_potential_gradient(asc)
         )
         multipole_coupling = density_reaction_coupling(
             density,
@@ -237,7 +282,7 @@ class FixedCavityPCMReactionFieldLinearMap:
             1.0e-10, 1.0e-8 * abs(surface_coupling)
         ):
             raise RuntimeError(
-                "MACE-POLAR point-multipole/ASC reciprocity check failed; the "
+                "MACE-POLAR source/ASC reciprocity check failed; the "
                 "reaction-field projection is inconsistent with the cavity MEP."
             )
         return FixedCavityPCMSnapshot(
@@ -299,6 +344,49 @@ class FixedCavityPCMReactionFieldLinearMap:
             name="reaction-field response",
         )
 
+    def apply_scf_drive(
+        self,
+        density_direction: np.ndarray,
+    ) -> ReactionFieldDrive:
+        """Return one same-root energy field and optional exact model features."""
+
+        snapshot = self.scf_snapshot(density_direction)
+        field = _validated_atom_block(
+            self._field_from_snapshot(snapshot),
+            atom_count=self.atom_count,
+            name="reaction-field response",
+        )
+        projector = self._model_field_projector
+        if self._model_field_gauge == "continuum-zero-at-infinity":
+            gauge_reference_ev = 0.0
+        else:
+            gauge_reference_ev = float(np.mean(field[:, 0]))
+        if projector is None:
+            return ReactionFieldDrive.local_jet(
+                field,
+                model_field_gauge=self._model_field_gauge,
+                model_field_gauge_reference_ev=gauge_reference_ev,
+            )
+        features, gauge_reference_ev = projector.project_asc_with_gauge(
+            self._positions_angstrom,
+            self._centers_bohr,
+            snapshot.asc_e,
+        )
+        expected_reference_ev = float(np.mean(field[:, 0]))
+        if abs(gauge_reference_ev - expected_reference_ev) > 1.0e-12:
+            raise RuntimeError(
+                "The exact-GTO and local-jet projectors disagree on the "
+                "atomic-center mean model-field gauge."
+            )
+        return ReactionFieldDrive(
+            density_dual_field_ev=field,
+            model_local_field_ev=None,
+            model_field_features=features,
+            projector="exact-gto-v1",
+            model_field_gauge=self._model_field_gauge,
+            model_field_gauge_reference_ev=gauge_reference_ev,
+        )
+
     def scf_polarization_energy_hartree(
         self,
         density_coefficients: np.ndarray,
@@ -318,11 +406,7 @@ class FixedCavityPCMReactionFieldLinearMap:
             name="density_direction",
         )
         asc = self._compute_asc(density)
-        potential, gradient = point_asc_reaction_potential_gradient(
-            self._positions_angstrom,
-            self._centers_bohr,
-            asc,
-        )
+        potential, gradient = self._reaction_potential_gradient(asc)
         field = np.concatenate(
             (
                 (potential * Hartree)[:, None],
@@ -403,6 +487,8 @@ class FixedCavityPCMReactionFieldLinearMap:
             self._surface_readback_tolerance_bohr
         )
         displaced.atom_count = self.atom_count
+        displaced._model_field_projector = self._model_field_projector
+        displaced._model_field_gauge = self._model_field_gauge
         displaced._scf_snapshot = None
         return displaced
 

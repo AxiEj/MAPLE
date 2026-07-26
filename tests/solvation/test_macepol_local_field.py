@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from types import SimpleNamespace
+import warnings
 
 import numpy as np
 import pytest
@@ -30,6 +32,15 @@ class _FieldRecorder:
 
     @contextmanager
     def use_node_potential_gradient(self, values):
+        previous = self.values
+        self.values = values
+        try:
+            yield
+        finally:
+            self.values = previous
+
+    @contextmanager
+    def use_model_field_features(self, values):
         previous = self.values
         self.values = values
         try:
@@ -158,6 +169,30 @@ class _PositionDependentDensityModel:
         }
 
 
+class _FeatureStateModel:
+    def __init__(self, recorder: _FieldRecorder):
+        self.recorder = recorder
+
+    def __call__(
+        self,
+        _batch,
+        *,
+        compute_force,
+        compute_stress,
+        compute_hessian,
+    ):
+        assert compute_force is False
+        assert compute_stress is False
+        assert compute_hessian is False
+        values = self.recorder.values
+        assert values is not None
+        return {
+            "energy": values.square().sum().reshape(1),
+            "density_coefficients": values[:, :4],
+            "dipole": torch.zeros((1, 3), dtype=values.dtype),
+        }
+
+
 def _calculator_with_model(model, recorder: _FieldRecorder):
     calculator = object.__new__(MACEPolCalculator)
     calculator.device = torch.device("cpu")
@@ -185,6 +220,33 @@ def test_local_reaction_field_context_restores_nested_outer_state():
         assert projector._node_potential_gradient is outer
 
     assert projector._node_potential_gradient is None
+
+
+def test_projected_reaction_features_bypass_the_local_jet_matrix():
+    projector = _LocalReactionFieldProjector(_ProjectorStub())
+    features = torch.arange(8, dtype=torch.float32).reshape(2, 4)
+    batch = torch.zeros(2, dtype=torch.long)
+    positions = torch.zeros((2, 3), dtype=torch.float64)
+
+    with projector.use_model_field_features(features):
+        actual = projector(batch, positions, torch.zeros((1, 4)))
+
+    torch.testing.assert_close(
+        actual,
+        features.to(dtype=torch.float64),
+    )
+    assert projector._model_field_features is None
+
+
+def test_projector_rejects_ambiguous_local_and_preprojected_field_state():
+    projector = _LocalReactionFieldProjector(_ProjectorStub())
+    local = torch.zeros((1, 4))
+    features = torch.zeros((1, 4))
+
+    with projector.use_node_potential_gradient(local):
+        with pytest.raises(RuntimeError, match="already installed"):
+            with projector.use_model_field_features(features):
+                pass
 
 
 def test_polar_output_torch_preserves_local_field_autograd_graph():
@@ -228,6 +290,120 @@ def test_polar_output_torch_preserves_local_field_autograd_graph():
     )
     assert output["energy"].dtype == torch.float64
     assert recorder.values is None
+
+
+def test_polar_output_torch_preserves_preprojected_feature_autograd_graph():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _QuadraticFieldModel(recorder),
+        recorder,
+    )
+    atoms = Atoms("OH", positions=np.zeros((2, 3)))
+    features = torch.tensor(
+        [[0.2, -0.1, 0.3, -0.4], [0.5, -0.6, 0.7, -0.8]],
+        dtype=torch.float32,
+        requires_grad=True,
+    )
+
+    output = calculator.polar_output_torch(
+        atoms,
+        model_field_features=features,
+    )
+    derivative = torch.autograd.grad(output["energy"].sum(), features)[0]
+
+    torch.testing.assert_close(derivative, 2.0 * features)
+    assert output["energy"].dtype == torch.float64
+    assert recorder.values is None
+
+
+@pytest.mark.parametrize("preprojected", [False, True])
+def test_polar_state_copies_immutable_numpy_field_inputs_without_warning(
+    preprojected,
+):
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _FeatureStateModel(recorder),
+        recorder,
+    )
+    atoms = Atoms("OH", positions=np.zeros((2, 3)))
+    values = np.arange(
+        16 if preprojected else 8,
+        dtype=float,
+    ).reshape(2, -1)
+    values.setflags(write=False)
+    kwargs = (
+        {"model_field_features": values}
+        if preprojected
+        else {
+            "node_potential_ev": values[:, 0],
+            "node_gradient_ev_per_angstrom": values[:, 1:],
+        }
+    )
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        state, _ = calculator.polar_state(atoms, **kwargs)
+
+    assert state.density_coefficients.shape == (2, 4)
+    assert not any(
+        "not writable" in str(item.message)
+        for item in caught
+    )
+
+
+def test_mace_projection_spec_is_read_from_the_loaded_checkpoint():
+    upstream = torch.nn.Module()
+    upstream.register_buffer(
+        "matrix",
+        torch.arange(32, dtype=torch.float64).reshape(8, 4),
+    )
+    calculator = object.__new__(MACEPolCalculator)
+    calculator._reaction_projector = _LocalReactionFieldProjector(upstream)
+    calculator.graph_longrange_version = "0.4.0"
+    calculator.model = SimpleNamespace(
+        electric_potential_descriptor=SimpleNamespace(
+            feature_basis=SimpleNamespace(
+                sigmas=[1.5, 3.0],
+                max_l=1,
+                normalize="receiver",
+            )
+        )
+    )
+
+    spec = calculator.route2_gto_field_projection_spec()
+
+    assert spec.receiver_sigmas_angstrom == (1.5, 3.0)
+    assert spec.receiver_max_l == 1
+    assert spec.receiver_normalization == "receiver"
+    np.testing.assert_array_equal(
+        spec.upstream_matrix,
+        np.arange(32, dtype=float).reshape(8, 4),
+    )
+    assert spec.graph_longrange_version == "0.4.0"
+    assert len(spec.upstream_matrix_sha256) == 64
+
+
+def test_mace_projection_spec_fails_closed_on_unvalidated_graph_longrange():
+    upstream = torch.nn.Module()
+    upstream.register_buffer(
+        "matrix",
+        torch.arange(32, dtype=torch.float64).reshape(8, 4),
+    )
+    calculator = object.__new__(MACEPolCalculator)
+    calculator._reaction_projector = _LocalReactionFieldProjector(upstream)
+    calculator.graph_longrange_version = "0.4.1"
+    calculator.model = SimpleNamespace(
+        electric_potential_descriptor=SimpleNamespace(
+            feature_basis=SimpleNamespace(
+                sigmas=[1.5, 3.0],
+                max_l=1,
+                normalize="receiver",
+            )
+        )
+    )
+
+    with pytest.raises(RuntimeError, match="pinned to graph-longrange 0.4.0"):
+        calculator.route2_gto_field_projection_spec()
 
 
 def test_intrinsic_energy_field_gradient_matches_exact_quadratic_model():

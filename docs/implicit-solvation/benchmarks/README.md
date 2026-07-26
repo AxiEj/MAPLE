@@ -96,17 +96,26 @@ without PCMSolver or legacy `primary` warnings. One pre-registered central
 C--C torsion pair at \(\pm0.5^\circ\) was then rerun at `d72dfba`. Its analytic
 and central-difference generalized forces are `0.0452064347` and
 `0.0451054120 eV/rad`, differing by `1.01023e-4 eV/rad` (`0.2235%`); both
-energy-only points converge in 18 iterations without either warning class. The
-runner wrote both immutable point records before a NumPy-Boolean JSON
-serialization error, so a read-only finalizer validated those records and no
-scientific energy was rerun. The four-geometry flexible panel, multi-step
-torsion/closed-loop panel, and second-molecule force evidence remain historical.
-The JSON freezes the reviewed numerical ledger and arithmetic checks.
+energy-only points converge in 18 iterations without either warning class.
+A separately locked \(\pm1.0^\circ\) pair on the same coordinate gives
+`0.0450446898 eV/rad`, an absolute error of `1.61745e-4 eV/rad` (`0.3578%`).
+Refining to \(0.5^\circ\) reduces the absolute error by
+`6.07221e-5 eV/rad`, to `0.62458` of the coarse-step error. Its two roots also
+converge in 18 iterations with no PCMSolver or legacy `primary` warnings; the
+`151.35 s` wall time is not used as a speed claim. The original
+\(0.5^\circ\) runner wrote both immutable point records before a NumPy-Boolean
+JSON serialization error, so a read-only finalizer validated those records and
+no scientific energy was rerun. The two steps establish a bounded refinement
+trend, not an asymptotic convergence order. The four-geometry flexible panel,
+third-step/asymptotic torsion and closed-loop panel, and second-molecule force
+evidence remain historical or unrun. The JSON freezes the reviewed numerical
+ledger and arithmetic checks.
 
 The converged MLIP--PCM/SMD total derivative is now implemented for the
-explicit pyddx/PySCF single-point candidate. The next primary milestone is
-current-runtime torsion step-size convergence, followed by a bounded closed
+explicit pyddx/PySCF single-point candidate. The next primary milestone is a
+third current-runtime step on the same locked torsion to probe whether an
+asymptotic refinement regime is present. Only then should the bounded closed
 loop, a second flexible molecule, broader relaxed-path continuity, and
-short-NVE energy conservation.
+short-NVE energy conservation be rerun.
 Running more FreeSolv records must not displace those PES gates, while the
 bounded QM-fidelity panel must not be promoted into a broad accuracy claim.

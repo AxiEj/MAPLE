@@ -11,8 +11,14 @@ BASELINE_PATH = (
     REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks/route2-qm-fidelity-v1.json"
 )
 GAS_CONSTANT_KCAL_MOL_K = 0.00198720425864083
-PRIOR_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
+HISTORICAL_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
     "4c933135a58051b3ace5b8017cd4e64bf25a84af"
+)
+HALF_DEGREE_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
+    "3069ef7fef95134e4a3deac50a51267e376a87c2"
+)
+CURRENT_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
+    "564c5ff492b587a17fd8222d1b965304df76a4c6"
 )
 
 
@@ -68,10 +74,7 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         "runtime_equivalence_reference_head"
     ]
     _assert_git_sha(runtime_equivalence_reference_head)
-    assert (
-        runtime_equivalence_reference_head
-        == "3069ef7fef95134e4a3deac50a51267e376a87c2"
-    )
+    assert runtime_equivalence_reference_head == CURRENT_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     assert runtime_alignment["runtime_source_scope"] == "maple/"
     assert runtime_alignment["runtime_code_unchanged_between_canary_heads"] is True
     canary_execution_heads = runtime_alignment["canary_execution_heads"]
@@ -103,15 +106,26 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         "torsion_single_step_execution_heads"
     ]
     assert torsion_single_step_execution_heads == force_canary_execution_heads
+    torsion_second_step_execution_heads = runtime_alignment[
+        "torsion_second_step_execution_heads"
+    ]
+    assert torsion_second_step_execution_heads == force_canary_execution_heads
     assert runtime_alignment[
         "force_evidence_confirmed_by_runtime_equivalent_canary"
     ] == [
         "2-acetoxyethyl acetate source-geometry analytic force",
         "2-acetoxyethyl acetate source-geometry one-component finite-difference pair",
         "2-acetoxyethyl acetate central C-C torsion one-step +/-0.5-degree pair",
+        (
+            "2-acetoxyethyl acetate central C-C torsion second +/-1.0-degree "
+            "pair and two-step refinement trend"
+        ),
     ]
     assert runtime_alignment["force_evidence_still_historical"] == [
-        "2-acetoxyethyl acetate multi-step torsion and closed-loop panel",
+        (
+            "2-acetoxyethyl acetate third-step/asymptotic torsion convergence "
+            "and closed-loop panel"
+        ),
         "2-propoxyethanol center force",
     ]
     assert (
@@ -234,7 +248,7 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     force_evidence = flexible_record["source_evidence"]
     assert force_evidence["force_alignment_status"] == (
         "confirmed-by-runtime-equivalent-analytic-force-cartesian-finite-difference-"
-        "and-one-step-torsion-canaries"
+        "and-two-step-torsion-refinement-canaries"
     )
     assert force_evidence["force_canary_execution_head"] == latest_canary_head
     assert force_evidence["force_runtime_source_equivalence_confirmed"] is True
@@ -297,7 +311,7 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     )
     assert (
         force_finite_difference["runtime_equivalence_reference_head"]
-        == PRIOR_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
+        == HISTORICAL_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     )
     assert force_finite_difference["used_for_timing_claim"] is False
     assert force_finite_difference["pcmsolver_warning_count"] == 0
@@ -401,7 +415,7 @@ def test_qm_fidelity_baseline_recomputes_single_step_torsion_canary():
     )
     assert (
         torsion["runtime_equivalence_reference_head"]
-        == runtime_alignment["runtime_equivalence_reference_head"]
+        == HALF_DEGREE_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     )
     assert torsion["profile"] == record["route2"]["profile"]
     assert torsion["coordinate"] == {
@@ -537,6 +551,197 @@ def test_qm_fidelity_baseline_recomputes_single_step_torsion_canary():
     assert "NVE conservation" in torsion["claim_boundary"]
 
 
+def test_qm_fidelity_baseline_recomputes_two_step_torsion_refinement():
+    baseline = _load_baseline()
+    record = next(
+        item
+        for item in baseline["fixed_conformer_panel"]["records"]
+        if item["name"] == "2-acetoxyethyl acetate"
+    )
+    evidence = record["source_evidence"]
+    force_canary = evidence["runtime_equivalent_force_canary"]
+    half_step = evidence["runtime_equivalent_torsion_single_step"]
+    refinement = evidence["runtime_equivalent_torsion_two_step_refinement"]
+    runtime_alignment = baseline["runtime_source_alignment"]
+
+    assert refinement["status"] == "pass"
+    assert (
+        refinement["git_head"]
+        == evidence["torsion_second_step_execution_head"]
+        == runtime_alignment["torsion_second_step_execution_heads"][
+            "2-acetoxyethyl acetate"
+        ]
+        == "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
+    )
+    assert (
+        refinement["runtime_equivalence_reference_head"]
+        == runtime_alignment["runtime_equivalence_reference_head"]
+        == CURRENT_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
+    )
+    assert refinement["profile"] == record["route2"]["profile"] == half_step["profile"]
+    assert refinement["coordinate"] == half_step["coordinate"]
+    assert refinement["new_step_degrees"] == pytest.approx(1.0)
+    assert refinement["reference_refined_step_degrees"] == pytest.approx(
+        half_step["step_degrees"]
+    )
+
+    minus = refinement["minus"]
+    plus = refinement["plus"]
+    for point in (minus, plus):
+        assert point["converged"] is True
+        assert point["forces_evaluated"] is False
+        assert point["root_scf_iterations"] == 18
+        assert point["energy_formula_closure_error_hartree"] <= 1.0e-12
+        assert point["manifest_position_max_error_angstrom"] <= 1.0e-12
+
+    one_degree_step_radians = math.radians(refinement["new_step_degrees"])
+    one_degree_finite_difference = -(
+        plus["correction_energy_ev"] - minus["correction_energy_ev"]
+    ) / (2.0 * one_degree_step_radians)
+    assert refinement["one_degree_finite_difference_ev_per_radian"] == pytest.approx(
+        one_degree_finite_difference,
+        abs=1.0e-14,
+    )
+    analytic = refinement["analytic_generalized_force_ev_per_radian"]
+    assert analytic == pytest.approx(
+        half_step["analytic_generalized_force_ev_per_radian"],
+        abs=1.0e-14,
+    )
+    one_degree_absolute_error = abs(one_degree_finite_difference - analytic)
+    assert refinement["one_degree_absolute_error_ev_per_radian"] == pytest.approx(
+        one_degree_absolute_error,
+        abs=1.0e-15,
+    )
+    one_degree_relative_error = one_degree_absolute_error / max(abs(analytic), 1.0e-12)
+    assert refinement["one_degree_relative_error"] == pytest.approx(
+        one_degree_relative_error,
+        abs=1.0e-15,
+    )
+    assert one_degree_absolute_error <= 2.0e-4
+    assert one_degree_relative_error <= 5.0e-3
+
+    assert refinement["half_degree_finite_difference_ev_per_radian"] == pytest.approx(
+        half_step["finite_difference_generalized_force_ev_per_radian"],
+        abs=1.0e-14,
+    )
+    assert refinement["half_degree_absolute_error_ev_per_radian"] == pytest.approx(
+        half_step["absolute_generalized_force_error_ev_per_radian"],
+        abs=1.0e-15,
+    )
+    assert refinement["half_degree_relative_error"] == pytest.approx(
+        half_step["relative_generalized_force_error"],
+        abs=1.0e-15,
+    )
+    absolute_error_reduction = (
+        one_degree_absolute_error
+        - half_step["absolute_generalized_force_error_ev_per_radian"]
+    )
+    assert refinement["absolute_error_reduction_ev_per_radian"] == pytest.approx(
+        absolute_error_reduction,
+        abs=1.0e-15,
+    )
+    assert absolute_error_reduction > 0.0
+    refined_over_coarse = (
+        half_step["absolute_generalized_force_error_ev_per_radian"]
+        / one_degree_absolute_error
+    )
+    assert refinement["absolute_error_ratio_refined_over_coarse"] == pytest.approx(
+        refined_over_coarse,
+        abs=1.0e-15,
+    )
+    step_drift = abs(
+        one_degree_finite_difference
+        - half_step["finite_difference_generalized_force_ev_per_radian"]
+    )
+    assert refinement["finite_difference_step_drift_ev_per_radian"] == pytest.approx(
+        step_drift,
+        abs=1.0e-15,
+    )
+    assert step_drift <= 1.0e-4
+
+    assert refinement["center_correction_energy_ev"] == pytest.approx(
+        force_canary["correction_energy_ev"],
+        abs=1.0e-15,
+    )
+    assert refinement["pcmsolver_warning_count"] == 0
+    assert refinement["legacy_label_noise_count"] == 0
+    assert refinement["permitted_dependency_warning_count"] == 1
+    assert refinement["internal_new_energy_points_seconds"] > 0.0
+    assert refinement["total_wall_seconds"] > 0.0
+    assert refinement["used_for_timing_claim"] is False
+
+    for hash_name in (
+        "alignment_report_sha256",
+        "analytic_force_canary_sha256",
+        "current_half_step_result_sha256",
+        "historical_torsion_sha256",
+        "lock_sha256",
+        "minus_audit_sha256",
+        "minus_manifest_sha256",
+        "mol2_sha256",
+        "plus_audit_sha256",
+        "plus_manifest_sha256",
+        "runner_sha256",
+        "runner_stderr_sha256",
+        "runner_stdout_sha256",
+        "runner_time_sha256",
+        "sha256",
+    ):
+        _assert_sha256(refinement[hash_name])
+    for path_name, suffix in (
+        ("path", ".json"),
+        ("alignment_report_path", ".alignment.json"),
+        ("analytic_force_canary_path", "2acetoxyethyl-acetate-force-d72dfba.json"),
+        (
+            "current_half_step_result_path",
+            "2acetoxyethyl-acetate-torsion-cc-deg0p5-d72dfba.json",
+        ),
+        ("historical_torsion_path", "torsion_force_fd_2acetoxyethyl_acetate.json"),
+        ("lock_path", ".lock.json"),
+        ("minus_audit_path", ".minus.audit.json"),
+        ("minus_manifest_path", ".minus.manifest.json"),
+        ("plus_audit_path", ".plus.audit.json"),
+        ("plus_manifest_path", ".plus.manifest.json"),
+        ("runner_path", ".runner.py"),
+        ("runner_stderr_path", ".runner.stderr.log"),
+        ("runner_stdout_path", ".runner.stdout.log"),
+        ("runner_time_path", ".runner.time.txt"),
+    ):
+        assert refinement[path_name].startswith(".omx/benchmarks/")
+        assert refinement[path_name].endswith(suffix)
+
+    assert refinement["analytic_force_canary_sha256"] == force_canary["sha256"]
+    assert refinement["current_half_step_result_sha256"] == half_step["sha256"]
+    assert refinement["historical_torsion_sha256"] == half_step[
+        "historical_torsion_sha256"
+    ]
+    assert refinement["mol2_sha256"] == force_canary["mol2_sha256"]
+    assert abs(
+        refinement[
+            "analytic_generalized_force_difference_from_historical_ev_per_radian"
+        ]
+    ) <= 1.0e-10
+    assert abs(
+        refinement[
+            "finite_difference_generalized_force_difference_from_historical_ev_per_radian"
+        ]
+    ) <= 1.0e-10
+    assert abs(refinement["minus_energy_difference_from_historical_ev"]) <= 1.0e-12
+    assert abs(refinement["plus_energy_difference_from_historical_ev"]) <= 1.0e-12
+
+    assert "bounded two-step refinement trend" in refinement["interpretation"]
+    assert "not an estimate of asymptotic convergence order" in refinement[
+        "interpretation"
+    ]
+    for excluded_claim in (
+        "third-step asymptotic regime",
+        "closed-loop conservativity",
+        "second molecule",
+        "NVE conservation",
+    ):
+        assert excluded_claim in refinement["claim_boundary"]
+
+
 def test_qm_fidelity_baseline_recomputes_bounded_electronic_ensemble():
     baseline = _load_baseline()
     panel = baseline["flexible_conformer_panel"]
@@ -558,7 +763,7 @@ def test_qm_fidelity_baseline_recomputes_bounded_electronic_ensemble():
     assert evidence["status"] == "complete-valid"
     assert (
         evidence["runtime_equivalence_reference_head"]
-        == PRIOR_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
+        == HISTORICAL_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     )
     assert evidence["runtime_source_equivalence_confirmed"] is None
     assert evidence["alignment_status"] == (
@@ -683,7 +888,7 @@ def test_qm_fidelity_baseline_preserves_reference_and_claim_boundaries():
     assert diagnostic["source_evidence"]["status"] == "source-diagnostic-valid"
     assert (
         diagnostic["source_evidence"]["runtime_equivalence_reference_head"]
-        == PRIOR_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
+        == HISTORICAL_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     )
     assert diagnostic["source_evidence"]["runtime_source_equivalence_confirmed"] is None
     assert "No vibrational thermochemistry" in baseline["claim_boundary"]

@@ -741,13 +741,20 @@ that CDS energy and gradient come from the same selected provider.
    \(2.2347\times10^{-3}\). Both energy-only points converge in 18 iterations
    without either warning class. A read-only finalizer recovered the completed
    point records after a result-serialization error; no scientific evaluation
-   was rerun.
+   was rerun. A second locked pair at \(\pm1.0^\circ\) gives
+   `0.04504468982867865 eV/rad`, with
+   \(1.61745\times10^{-4}\) eV/rad absolute error. Refining to
+   \(0.5^\circ\) reduces the error by
+   \(6.07221\times10^{-5}\) eV/rad, to `0.62458` of the coarse-step
+   error. Both additional roots converge in 18 iterations and emit zero
+   PCMSolver or legacy `primary` warnings.
 
-   These checks close one local Cartesian component and one single-step
-   torsional component only. The historical local two-torsion closed loop
+   These checks close one local Cartesian component and establish a bounded
+   two-step torsional refinement trend only; two steps do not establish an
+   asymptotic convergence order. The historical local two-torsion closed loop
    generated at `5d69ef4` has not been rerun at that head. The next bounded
-   gate is a second current-runtime step size on the same locked torsion to
-   establish step-size convergence; only then rerun the bounded loop and
+   gate is a third current-runtime step size on the same locked torsion to
+   probe the asymptotic regime; only then rerun the bounded loop and
    second-molecule force, broaden beyond one local rectangle, and run short NVE
    tests before enabling optimization, scan, TS search, or MD.
 

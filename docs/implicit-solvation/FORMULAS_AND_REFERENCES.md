@@ -464,10 +464,29 @@ The two scientific energy evaluations took `147.73 s` total contended wall
 time, which is not a performance claim. After writing both immutable
 audit/manifest pairs, the original runner exited while JSON-serializing a NumPy
 Boolean. A read-only finalizer recomputed the scalar gates from those records;
-no scientific energy evaluation was rerun. One torsion at one step does not
-establish step-size convergence, a multi-point path, the historical closed
-loop, a second molecule, relaxed-path continuity, QM-force fidelity, or NVE
-conservation.
+no scientific energy evaluation was rerun.
+
+A second pre-registered pair evaluated the same coordinate at
+\(\theta=\pm1.0^\circ\). Its correction energies were
+`-0.3390965192574748` and `-0.3406688755535749 eV`, again after 18 root
+iterations each, giving `0.04504468982867865 eV/rad`. Against the same analytic
+generalized force, its absolute and relative errors are
+\(1.61745\times10^{-4}\) eV/rad and \(3.5779\times10^{-3}\). Refining the
+step from \(1.0^\circ\) to \(0.5^\circ\) lowers the absolute error by
+\(6.07221\times10^{-5}\) eV/rad; the refined/coarse error ratio is
+`0.6245809`, and the two finite differences differ by
+\(6.07221\times10^{-5}\) eV/rad. The current analytic force, finite
+difference, and displaced energies reproduce the historical \(1.0^\circ\)
+oracle within \(9.54\times10^{-15}\) eV/rad and
+\(5.00\times10^{-16}\) eV. PCMSolver and legacy `primary` warning counts are
+zero. The pair took `151.35 s` total wall time, which is not a performance
+claim.
+
+These two step sizes establish a bounded error-refinement trend only. They do
+not determine an asymptotic convergence order, a multi-point path, the
+historical closed loop, a second molecule, relaxed-path continuity, QM-force
+fidelity, or NVE conservation. A third current-runtime step is required before
+making a step-size-convergence claim.
 
 The total agreement contains substantial component cancellation. For acetone,
 \(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and

@@ -667,9 +667,22 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     evaluations were not rerun. The analytic and finite-difference generalized
     forces reproduce the historical record within
     \(1.39\times10^{-15}\) and \(3.18\times10^{-14}\) eV/rad,
-    respectively. The historical `1.0`-degree point was deliberately not rerun;
-    this single current step therefore does not establish step-size
-    convergence.
+    respectively.
+
+    A separately pre-registered \(\pm1.0^\circ\) pair on the same locked
+    coordinate was then run against `d72dfba`. Correction energies
+    `-0.3390965192574748` and `-0.3406688755535749 eV` give
+    `0.04504468982867865 eV/rad`. Its absolute and relative errors are
+    \(1.61745\times10^{-4}\) eV/rad and \(3.5779\times10^{-3}\), also
+    inside the locked gates. Both roots converge in 18 iterations with zero
+    PCMSolver or legacy `primary` warnings. Refining from \(1.0^\circ\) to
+    \(0.5^\circ\) lowers the absolute error by
+    \(6.07221\times10^{-5}\) eV/rad, to `0.62458` of the coarse-step
+    error. The current \(1.0^\circ\) finite difference reproduces the
+    historical oracle within \(9.54\times10^{-15}\) eV/rad. Its `151.35 s`
+    wall time is not a performance claim. These two current steps establish a
+    bounded refinement trend, not an asymptotic convergence order; a third
+    current-runtime step remains required.
 
     The predeclared three-step validation for a second C--O torsion retains
     `status=fail`: its coarse-to-middle absolute error and step drift were not
@@ -688,10 +701,10 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     rotation audit with two resolved torsional generalized forces.
 
     The source-geometry analytic force, one Cartesian finite-difference
-    displacement pair, and one central C--C torsion pair at one step are
-    current-runtime aligned. The remaining multi-step torsions, bounded
-    two-dimensional loop, and second-molecule center point remain historical.
-    These two local derivative checks still do not establish global
+    displacement pair, and one central C--C torsion at two step sizes are
+    current-runtime aligned. The third/asymptotic torsion step, bounded
+    two-dimensional loop, and second-molecule center point remain historical
+    or unrun. These local derivative checks still do not establish global
     flexible-geometry continuity, relaxed-PES behavior, QM-force fidelity, or
     short-NVE energy conservation.
 31. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a

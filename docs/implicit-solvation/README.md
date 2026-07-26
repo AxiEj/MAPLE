@@ -224,18 +224,26 @@ iterations with zero PCMSolver or `primary` warnings. A separately
 pre-registered central C--C torsion pair at \(\pm0.5^\circ\) was also rerun at
 `d72dfba`: its analytic and central-difference generalized forces are
 `0.0452064347` and `0.0451054120 eV/rad`, an absolute error of
-`1.01023e-4 eV/rad` (`0.2235%`). Both torsion points converged in 18 root
-iterations with zero solver warnings. The original evidence runner exited only
-while serializing a NumPy Boolean after writing both immutable point records;
-a read-only finalizer verified those records without rerunning either energy.
-This establishes one Cartesian component and one internal-coordinate component
-on one conformer, each at one step size—not step-size convergence or a
-flexible-PES certification. The four-geometry flexible panel, multi-step
-torsion/closed-loop panel, and second-molecule force evidence remain explicitly
-historical. Broader flexible/relaxed-path continuity, additional chemical
-classes, and complete conformer thermochemistry remain open without changing
-the named profile; the short NVE conservation gate is still unrun. Until those
-gates pass, optimization, scans, transition states, and MD remain out of scope.
+`1.01023e-4 eV/rad` (`0.2235%`). The same locked coordinate was then evaluated
+at \(\pm1.0^\circ\). Its central difference is
+`0.0450446898 eV/rad`, with an absolute error of `1.61745e-4 eV/rad` and a
+relative error of `0.3578%`. Refining from \(1.0^\circ\) to \(0.5^\circ\)
+therefore reduces the absolute error by `6.07221e-5 eV/rad`, to `0.62458` of
+the coarse-step error. All four displaced energy roots converged in 18
+iterations with zero PCMSolver or legacy `primary` warnings. The
+\(1.0^\circ\) pair took `151.35 s` total wall time, but this contended single
+run is not a speed claim. The original \(0.5^\circ\) evidence runner exited
+only while serializing a NumPy Boolean after writing both immutable point
+records; a read-only finalizer verified those records without rerunning either
+energy. This establishes one Cartesian component and one internal-coordinate
+component on one conformer, with a bounded two-step refinement trend—not an
+asymptotic convergence order or a flexible-PES certification. The
+four-geometry flexible panel, third-step/asymptotic torsion and closed-loop
+panel, and second-molecule force evidence remain explicitly historical or
+unrun. Broader flexible/relaxed-path continuity, additional chemical classes,
+and complete conformer thermochemistry remain open without changing the named
+profile; the short NVE conservation gate is still unrun. Until those gates
+pass, optimization, scans, transition states, and MD remain out of scope.
 
 See [FORMULAS_AND_REFERENCES.md](FORMULAS_AND_REFERENCES.md) for equations and
 the literature ledger, and [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the

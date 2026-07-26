@@ -293,6 +293,11 @@ Route A implication:
 - this is strong evidence that **explicit-solvent MLIP alchemical FE is technically viable**;
 - it supports using MLIPs in rigorous FE components of Route A;
 - it provides a reproducible **OFF23-SC-style control route** that MAPLE can compare against;
+- the official OpenMM path keeps MACE dynamics on the GPU, making it the
+  relevant performance and cross-engine precedent for the long bulk-water
+  and full-explicit control calculations; it does not remove the need to
+  validate precision, ensemble fidelity and the exact checkpoint used by
+  MAPLE;
 - it does **not** validate Route A's cluster/continuum partition, because that paper is a full explicit-solvent alchemical protocol, not a supermolecule + continuum hybrid.
 
 ### C2. MACE-OFF24-SC hydration FE (JACS 2026)

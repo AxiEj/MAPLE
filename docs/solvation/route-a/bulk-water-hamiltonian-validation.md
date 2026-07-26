@@ -55,7 +55,33 @@ The current checkpoint is:
 | model | MACE-OFF24(M) |
 | checkpoint SHA256 | `e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69` |
 | `mace-torch` | 0.3.16 |
-| arithmetic | float64 |
+| arithmetic | explicit `float32` or `float64`; not yet frozen |
+
+## Numerical-precision policy
+
+The official MACE implementation documents `float64` as its default and
+`float32` as a faster alternative, but it does not establish that converting
+this specific MACE-OFF24(M) checkpoint preserves Route A density, RDF and
+packing observables. See the
+[official MACE repository precision guidance](https://github.com/ACEsuit/mace).
+MAPLE therefore treats numerical precision as part of the Hamiltonian
+identity rather than as an unrecorded performance switch.
+
+Both validation runners accept only `--default-dtype float32` or
+`--default-dtype float64`; the selected value is stored in calculator
+provenance. Replica aggregation rejects mixed-precision campaigns even when
+the checkpoint and every other setting match.
+
+A local exploratory comparison used ten strongly correlated frames from the
+`0.05 ps` NVT preflight. It was useful for sizing the next experiment, but its
+probe used a development-only provider wrapper and its reports remain under
+ignored `.omx` state. No numerical result from that probe is therefore
+accepted as commit-level evidence or reported here.
+
+Float32 can be frozen only after a reproducible, hash-bound comparison uses
+the public provider path and independent float32 and float64 trajectories to
+demonstrate equivalent density, RDF, stability and packing observables with
+uncertainty. Until then the formal default remains float64.
 
 ## Paper-derived NPT and replica contract
 
@@ -108,6 +134,13 @@ force provider. Consequently:
 - the Hamiltonian-freeze gate retains an independent cross-engine
   OpenMM/Monte-Carlo-barostat comparison.
 
+The official MACE OpenMM documentation confirms that `mace-md` keeps the
+simulation on the GPU and provides both ordinary MACE MD and softcore
+alchemical workflows. It is therefore the preferred paper-faithful
+cross-engine candidate, but its absence from the current pinned environment
+means MAPLE records this as an open dependency boundary rather than silently
+installing a second runtime.
+
 The NPT runner obtains the interaction cutoff from the loaded MACE model
 (`MACECalculator.r_max`) and binds that value into immutable calculator
 provenance. A caller cannot substitute a smaller cutoff. The run terminates
@@ -130,10 +163,11 @@ correlated frames. It requires at least three distinct seeds with the exact
 preregistered non-seed protocol (literal SHA256
 `59c39954c8df951fae3189dae2b483c78f347ebc2acc3937bd724263360136bf`)
 and matching source, water count, checkpoint,
-implementation, ensemble and integrator identities. Different result hashes
-are insufficient: the combined semantic hashes of coordinates, cells and
-velocities must also be distinct. Formal campaign inputs must come from a
-clean committed worktree; dirty artifacts remain engineering diagnostics.
+numerical precision, implementation, ensemble and integrator identities.
+Different result hashes are insufficient: the combined semantic hashes of
+coordinates, cells and velocities must also be distinct. Formal campaign
+inputs must come from a clean committed worktree; dirty artifacts remain
+engineering diagnostics.
 
 Before aggregation, `bulk_water_evidence.py` requires the exact NPZ schema and
 recomputes production duration, frame count, density from cell volumes and
@@ -205,6 +239,7 @@ python examples/solvation/route_a/validate_bulk_water_npt.py \
   --expected-waters 64 \
   --checkpoint /path/to/MACE-OFF24_medium.model \
   --checkpoint-sha256 e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69 \
+  --default-dtype float64 \
   --output /path/to/new/npt-result \
   --device cuda
 ```
@@ -269,6 +304,7 @@ python examples/solvation/route_a/validate_bulk_water.py \
   --waterbox /path/to/hash-verified/waterbox.xyz \
   --checkpoint /path/to/MACE-OFF24_medium.model \
   --checkpoint-sha256 e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69 \
+  --default-dtype float64 \
   --output /path/to/new/result \
   --device cuda \
   --timestep-fs 0.5 \

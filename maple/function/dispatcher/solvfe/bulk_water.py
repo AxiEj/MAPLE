@@ -691,6 +691,15 @@ def _validated_run_provenance(
             "CALCULATOR_PROVENANCE_INVALID: result units must be the Route A "
             "eV-native energy/force/stress contract."
         )
+    declared_default_dtype = declared_calculator.get("default_dtype")
+    if (
+        not isinstance(declared_default_dtype, str)
+        or declared_default_dtype not in {"float32", "float64"}
+    ):
+        raise BulkWaterValidationError(
+            "CALCULATOR_PROVENANCE_INVALID: default dtype must be float32 "
+            "or float64."
+        )
     try:
         interaction_cutoff = float(
             declared_calculator["interaction_cutoff_angstrom"]

@@ -103,6 +103,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--checkpoint-sha256", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument(
+        "--default-dtype",
+        choices=("float32", "float64"),
+        default="float64",
+    )
     parser.add_argument("--temperature-k", type=float, default=298.15)
     parser.add_argument("--pressure-bar", type=float, default=1.01325)
     parser.add_argument("--timestep-fs", type=float, default=1.0)
@@ -222,6 +227,7 @@ def main() -> int:
         checkpoint=args.checkpoint.expanduser().resolve().as_posix(),
         sha256=args.checkpoint_sha256,
         license_ack=True,
+        default_dtype=args.default_dtype,
     )
     config = BulkWaterNPTConfig(
         temperature_k=args.temperature_k,

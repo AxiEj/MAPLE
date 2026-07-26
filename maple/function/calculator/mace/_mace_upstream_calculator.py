@@ -91,7 +91,7 @@ class _PinnedMACEProvider(Calculator):
     SUPPORTED_HESSIAN_MODES: tuple[str, ...] = ()
     CHECKPOINT_FILENAME = None
     REQUIRES_LOCAL_MODEL_FILE = False
-    OPTION_KEYS = ("checkpoint", "sha256", "license_ack")
+    OPTION_KEYS = ("checkpoint", "sha256", "license_ack", "default_dtype")
     MODEL_PATH_OPTION = "checkpoint"
     DEFAULT_DTYPE = "float64"
     PROVIDER_KIND = ""
@@ -114,6 +114,7 @@ class _PinnedMACEProvider(Calculator):
             "checkpoint": checkpoint,
             "sha256": options.get("sha256"),
             "license_ack": options.get("license_ack"),
+            "default_dtype": options.get("default_dtype"),
         }
 
     def __init__(
@@ -124,6 +125,7 @@ class _PinnedMACEProvider(Calculator):
         checkpoint: str,
         sha256: str,
         license_ack: bool,
+        default_dtype: str | None = None,
         implicit: str = "none",
         solvent: str = "none",
     ) -> None:
@@ -139,6 +141,16 @@ class _PinnedMACEProvider(Calculator):
         if license_ack is not True:
             raise ValueError(
                 "Pinned MACE foundation models require license_ack=true."
+            )
+        if default_dtype is None:
+            normalized_dtype = self.DEFAULT_DTYPE
+        elif isinstance(default_dtype, str):
+            normalized_dtype = default_dtype.strip().lower()
+        else:
+            normalized_dtype = ""
+        if normalized_dtype not in {"float32", "float64"}:
+            raise ValueError(
+                "Pinned upstream MACE default_dtype must be float32 or float64."
             )
         if not isinstance(sha256, str) or not _SHA256_RE.fullmatch(sha256):
             raise ValueError(
@@ -167,7 +179,7 @@ class _PinnedMACEProvider(Calculator):
         self.checkpoint = checkpoint_path
         self.checkpoint_sha256 = sha256
         self.license_acknowledged = True
-        self.default_dtype = self.DEFAULT_DTYPE
+        self.default_dtype = normalized_dtype
         self._upstream = _construct_upstream_calculator(
             kind=self.PROVIDER_KIND,
             checkpoint=checkpoint_path,

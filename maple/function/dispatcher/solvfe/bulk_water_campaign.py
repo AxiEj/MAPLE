@@ -381,6 +381,20 @@ def _identity(
         ),
         label="checkpoint SHA256",
     )
+    numerical_precision = _nested(
+        replica,
+        "calculator",
+        "calculator",
+        "default_dtype",
+    )
+    if (
+        not isinstance(numerical_precision, str)
+        or numerical_precision not in {"float32", "float64"}
+    ):
+        raise BulkWaterValidationError(
+            "CAMPAIGN_CALCULATOR_INVALID: numerical precision must be "
+            "float32 or float64."
+        )
     water_count = _nested(
         replica,
         "source",
@@ -396,6 +410,7 @@ def _identity(
         "source_sha256": source_hash,
         "water_count": water_count,
         "checkpoint_sha256": checkpoint_hash,
+        "numerical_precision": numerical_precision,
         "implementation": implementation_identity,
         "git_dirty": implementation["git_dirty"],
         "core_trajectory": core_trajectory_hash,
@@ -584,6 +599,7 @@ def _validate_matching_identities(
         "source_sha256": "source",
         "water_count": "water count",
         "checkpoint_sha256": "checkpoint",
+        "numerical_precision": "numerical precision",
         "implementation": "implementation",
         "ensemble": "ensemble",
         "integrator": "integrator",

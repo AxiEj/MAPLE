@@ -125,6 +125,59 @@ def test_off24_forwards_periodic_cell_energy_forces_and_stress(
     assert calculator.provenance["interaction_cutoff_angstrom"] == 6.0
 
 
+def test_off24_forwards_explicit_float32_and_records_provenance(
+    tmp_path, monkeypatch
+):
+    checkpoint, sha256 = _checkpoint(tmp_path)
+    construction = {}
+
+    def fake_construct(**kwargs):
+        construction.update(kwargs)
+        return _FakeUpstream([])
+
+    monkeypatch.setattr(
+        backend,
+        "_construct_upstream_calculator",
+        fake_construct,
+    )
+    calculator = backend.MACEOff24Provider(
+        device="cpu",
+        model="maceoff24m",
+        checkpoint=str(checkpoint),
+        sha256=sha256,
+        license_ack=True,
+        default_dtype="float32",
+    )
+
+    assert construction["default_dtype"] == "float32"
+    assert calculator.default_dtype == "float32"
+    assert calculator.provenance["default_dtype"] == "float32"
+
+
+def test_off24_rejects_unsupported_dtype_before_runtime_construction(
+    tmp_path, monkeypatch
+):
+    checkpoint, sha256 = _checkpoint(tmp_path)
+
+    def forbidden_construct(**kwargs):
+        raise AssertionError("runtime constructed for invalid precision")
+
+    monkeypatch.setattr(
+        backend,
+        "_construct_upstream_calculator",
+        forbidden_construct,
+    )
+    with pytest.raises(ValueError, match="default_dtype"):
+        backend.MACEOff24Provider(
+            device="cpu",
+            model="maceoff24m",
+            checkpoint=str(checkpoint),
+            sha256=sha256,
+            license_ack=True,
+            default_dtype="float16",
+        )
+
+
 def test_off24_retains_coevaluated_results_for_ase_cache(
     tmp_path,
     monkeypatch,

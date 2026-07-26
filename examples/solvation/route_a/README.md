@@ -10,6 +10,7 @@ python examples/solvation/route_a/validate_bulk_water.py \
   --waterbox /path/to/hash-verified/waterbox.xyz \
   --checkpoint /path/to/MACE-OFF24_medium.model \
   --checkpoint-sha256 e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69 \
+  --default-dtype float64 \
   --output /path/to/new/result \
   --device cuda
 ```
@@ -32,6 +33,7 @@ python examples/solvation/route_a/validate_bulk_water_npt.py \
   --expected-waters 64 \
   --checkpoint /path/to/MACE-OFF24_medium.model \
   --checkpoint-sha256 e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69 \
+  --default-dtype float64 \
   --output /path/to/new/npt-result \
   --device cuda
 ```
@@ -51,16 +53,17 @@ python examples/solvation/route_a/aggregate_bulk_water_npt_replicas.py \
 ```
 
 The MACE cutoff is read from the loaded model, not accepted from the command
-line, and every NPT step retains the scalar evidence needed to reproduce
-engineering gates. The campaign loader revalidates every manifest, summary,
-raw NPZ hash, semantic array hash and the exact preregistered protocol, then
-recomputes density, block SEM, drift, temperature, pressure, duration, frame
-count, intermolecular RDFs, RDF block SEM, O--O features and gates from the
-arrays. Distinct seeds must also have distinct core trajectory hashes. The
-complete small-sample Student-t 95% density interval must fit inside the
-fixed ±3% IAPWS band. The command writes one non-overwriting,
-source-hash-bound JSON artifact; finite-size, experimental-RDF and
-cross-engine gates remain mandatory.
+line, and numerical precision is explicit and hash-bound. Mixed float32 and
+float64 replicas cannot be aggregated. Every NPT step retains the scalar
+evidence needed to reproduce engineering gates. The campaign loader
+revalidates every manifest, summary, raw NPZ hash, semantic array hash and the
+exact preregistered protocol, then recomputes density, block SEM, drift,
+temperature, pressure, duration, frame count, intermolecular RDFs, RDF block
+SEM, O--O features and gates from the arrays. Distinct seeds must also have
+distinct core trajectory hashes. The complete small-sample Student-t 95%
+density interval must fit inside the fixed ±3% IAPWS band. The command writes
+one non-overwriting, source-hash-bound JSON artifact; finite-size,
+experimental-RDF and cross-engine gates remain mandatory.
 
 ## Fixed-occupancy development replica
 

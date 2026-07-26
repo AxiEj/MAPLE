@@ -81,6 +81,7 @@ def _replica(
         "calculator": {
             "calculator": {
                 "checkpoint_sha256": "c" * 64,
+                "default_dtype": "float64",
                 "interaction_cutoff_angstrom": 6.0,
             },
         },
@@ -544,6 +545,42 @@ def test_campaign_fails_closed_on_seed_or_identity_reuse():
             (first, mismatch, _replica(13, 0.9972, 0.0005)),
             config=BulkWaterCampaignConfig(),
         )
+
+    precision_mismatch = copy.deepcopy(_replica(12, 0.9971, 0.0005))
+    precision_mismatch["calculator"]["calculator"][
+        "default_dtype"
+    ] = "float32"
+    _rehash_summary(precision_mismatch)
+    with pytest.raises(BulkWaterValidationError, match="numerical precision"):
+        _evaluate_bulk_water_replica_summaries(
+            (
+                first,
+                precision_mismatch,
+                _replica(13, 0.9972, 0.0005),
+            ),
+            config=BulkWaterCampaignConfig(),
+        )
+
+    for malformed_dtype in ([], {}):
+        malformed_precision = copy.deepcopy(
+            _replica(12, 0.9971, 0.0005)
+        )
+        malformed_precision["calculator"]["calculator"][
+            "default_dtype"
+        ] = malformed_dtype
+        _rehash_summary(malformed_precision)
+        with pytest.raises(
+            BulkWaterValidationError,
+            match="numerical precision",
+        ):
+            _evaluate_bulk_water_replica_summaries(
+                (
+                    first,
+                    malformed_precision,
+                    _replica(13, 0.9972, 0.0005),
+                ),
+                config=BulkWaterCampaignConfig(),
+            )
 
     override = copy.deepcopy(_replica(12, 0.9971, 0.0005))
     override["implementation"][

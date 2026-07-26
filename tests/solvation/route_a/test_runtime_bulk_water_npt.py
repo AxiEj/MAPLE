@@ -128,6 +128,7 @@ def _run_evidence(
         "checkpoint_sha256": hashlib.sha256(
             checkpoint.read_bytes()
         ).hexdigest(),
+        "default_dtype": "float64",
         "interaction_cutoff_angstrom": 3.0,
         "result_units": {
             "energy": "eV",
@@ -397,7 +398,15 @@ def test_npt_cli_binds_source_checkpoint_and_implementation_hashes():
         "--waterbox-sha256",
         "--expected-waters",
         "--checkpoint-sha256",
+        "--default-dtype",
     } <= option_strings
+    dtype_action = next(
+        action
+        for action in module._parser()._actions
+        if "--default-dtype" in action.option_strings
+    )
+    assert dtype_action.default == "float64"
+    assert tuple(dtype_action.choices) == ("float32", "float64")
     provenance = module._maple_source_provenance()
     assert provenance["project_root"] == PROJECT_ROOT.as_posix()
     assert len(provenance["git_head"]) in {40, 64}

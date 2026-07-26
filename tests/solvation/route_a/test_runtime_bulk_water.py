@@ -153,6 +153,7 @@ def _run_evidence(
         "checkpoint_sha256": hashlib.sha256(
             checkpoint.read_bytes()
         ).hexdigest(),
+        "default_dtype": "float64",
         "interaction_cutoff_angstrom": 3.0,
         "result_units": {
             "energy": "eV",
@@ -501,6 +502,15 @@ def test_provenance_contract_rejects_semantic_drift(tmp_path):
     missing_cutoff["calculator"].pop("interaction_cutoff_angstrom")
     with pytest.raises(BulkWaterValidationError, match="interaction cutoff"):
         run_with(source, missing_cutoff, implementation)
+    missing_dtype = json.loads(json.dumps(calculator_record))
+    missing_dtype["calculator"].pop("default_dtype")
+    with pytest.raises(BulkWaterValidationError, match="default dtype"):
+        run_with(source, missing_dtype, implementation)
+    for malformed_dtype in ([], {}):
+        malformed = json.loads(json.dumps(calculator_record))
+        malformed["calculator"]["default_dtype"] = malformed_dtype
+        with pytest.raises(BulkWaterValidationError, match="default dtype"):
+            run_with(source, malformed, implementation)
     with pytest.raises(BulkWaterValidationError, match="provenance mapping"):
         run_bulk_water_nvt(
             atoms,
@@ -630,6 +640,13 @@ def test_cli_locks_official_source_and_hashes_its_implementation():
         for option in action.option_strings
     }
     assert "--waterbox-sha256" not in option_strings
+    dtype_action = next(
+        action
+        for action in module._parser()._actions
+        if "--default-dtype" in action.option_strings
+    )
+    assert dtype_action.default == "float64"
+    assert tuple(dtype_action.choices) == ("float32", "float64")
     provenance = module._maple_source_provenance()
     assert provenance["project_root"] == PROJECT_ROOT.as_posix()
     assert len(provenance["git_head"]) in {40, 64}

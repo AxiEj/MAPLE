@@ -726,12 +726,17 @@ that CDS energy and gradient come from the same selected provider.
 4. Check energy continuity across small geometry displacements and reject any
    cavity-topology or fallback-branch jumps.
 5. The source-geometry analytic force for a fixed, unrelaxed
-   2-acetoxyethyl-acetate conformer is reconfirmed at current head `d72dfba`.
-   Its direct finite-difference displacement pair and the historical local
-   two-torsion closed loop generated at `5d69ef4` have not been rerun at that
-   head. Reconfirm the direct oracle first, then broaden beyond one local
-   rectangle and run short NVE tests before enabling optimization, scan, TS
-   search, or MD.
+   2-acetoxyethyl-acetate conformer is reconfirmed at canary execution head
+   `d72dfba`.
+   Its direct one-component \(5\times10^{-4}\)-angstrom displacement pair is
+   also reconfirmed against that runtime: the analytic/finite-difference
+   mismatch is \(3.0841\times10^{-6}\) eV/angstrom, both sides converge in 18
+   root iterations, and PCMSolver/legacy-`primary` warning counts are zero.
+   This closes only the source-geometry local Cartesian canary. The historical
+   local two-torsion closed loop generated at `5d69ef4` has not been rerun at
+   that head. Reconfirm a small displaced continuity or torsion gate next,
+   then broaden beyond one local rectangle and run short NVE tests before
+   enabling optimization, scan, TS search, or MD.
 
 ## Stop condition for the force milestone
 

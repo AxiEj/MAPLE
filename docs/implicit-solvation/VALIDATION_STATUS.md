@@ -626,7 +626,7 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     AO-density sharp-cavity PCM formulations fail. Production Route-2 radii
     were not changed to rescue this invalid construction; PySCF SMD/IEFPCM
     remains a chemical-level, not operator-identical, comparison.
-30. A clean current-head source-geometry analytic-force canary for
+30. A clean source-geometry analytic-force canary executed for
     2-acetoxyethyl acetate at `d72dfba` reproduces the historical correction
     energy exactly and every correction-force component within
     \(2.66\times10^{-14}\) eV/angstrom. The 18-iteration root and
@@ -636,11 +636,17 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     took `160.91 s`; it is one run, not a performance claim.
 
     The fully reconverged \(5\times10^{-4}\)-angstrom displacement pair was
-    not rerun. Comparing the current analytic component with that historical
-    `5422a07` finite-difference oracle gives
-    \(3.08\times10^{-6}\) eV/angstrom, but this is cross-head alignment rather
-    than a current-head direct finite-difference validation. A historical
-    central C--C torsion gives analytic generalized force
+    then rerun against the same `d72dfba` runtime. Both displaced energies
+    converged in 18 root iterations and emitted zero PCMSolver or legacy
+    `primary` warnings. The central-difference force is
+    `0.7570030893060409 eV/angstrom`, versus the same-execution-head analytic
+    `0.7570000052313698 eV/angstrom`; the absolute and relative errors are
+    \(3.0841\times10^{-6}\) eV/angstrom and \(4.0741\times10^{-6}\).
+    The negative and positive energy evaluations took `70.56` and `74.21 s`,
+    with `150.78 s` total process wall time; this is not a performance claim.
+    Agreement with the historical `5422a07` finite-difference force is
+    \(1.11\times10^{-13}\) eV/angstrom. A historical central C--C torsion gives
+    analytic generalized force
     `0.0452064 eV/rad`; the `1.0`- and `0.5`-degree finite-difference errors
     are \(1.62\times10^{-4}\) and \(1.01\times10^{-4}\) eV/rad.
 
@@ -660,11 +666,12 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     2-propoxyethanol, also passes one center-point force/root/translation/
     rotation audit with two resolved torsional generalized forces.
 
-    Only the source-geometry analytic force is current-checkout-aligned. The
-    direct finite-difference displacements, local torsions, bounded
+    The source-geometry analytic force and one Cartesian finite-difference
+    displacement pair are current-runtime aligned. The local torsions, bounded
     two-dimensional loop, and second-molecule center point remain historical.
-    Together they still do not establish global flexible-geometry continuity,
-    relaxed-PES behavior, QM-force fidelity, or short-NVE energy conservation.
+    One component at one step still does not establish global
+    flexible-geometry continuity, relaxed-PES behavior, QM-force fidelity, or
+    short-NVE energy conservation.
 31. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a
     solution-phase PES.
 

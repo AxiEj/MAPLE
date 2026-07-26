@@ -50,20 +50,24 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     panel = baseline["fixed_conformer_panel"]
     records = panel["records"]
 
-    assert baseline["schema_version"] == 2
+    assert baseline["schema_version"] == 3
     assert baseline["status"] == "frozen-bounded-pilot"
     assert baseline["route2_profiles"] == [
         "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
         "smd-ddpcm-l15-n1202-v1",
     ]
-    current_alignment = baseline["current_checkout_alignment"]
-    latest_checked_head = current_alignment["latest_checked_git_head"]
-    runtime_reference_head = current_alignment["runtime_code_reference_git_head"]
-    _assert_git_sha(latest_checked_head)
+    runtime_alignment = baseline["runtime_source_alignment"]
+    latest_canary_head = runtime_alignment["latest_canary_execution_head"]
+    runtime_reference_head = runtime_alignment["runtime_code_reference_git_head"]
+    _assert_git_sha(latest_canary_head)
     _assert_git_sha(runtime_reference_head)
-    assert current_alignment["runtime_source_scope"] == "maple/"
-    assert current_alignment["runtime_code_unchanged_between_canary_heads"] is True
-    canary_execution_heads = current_alignment["canary_execution_heads"]
+    runtime_equivalence_reference_head = runtime_alignment[
+        "runtime_equivalence_reference_head"
+    ]
+    _assert_git_sha(runtime_equivalence_reference_head)
+    assert runtime_alignment["runtime_source_scope"] == "maple/"
+    assert runtime_alignment["runtime_code_unchanged_between_canary_heads"] is True
+    canary_execution_heads = runtime_alignment["canary_execution_heads"]
     assert canary_execution_heads == {
         "2-acetoxyethyl acetate": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
         "acetone": "f3e989245189f742a03a61a19a848df54035c96f",
@@ -71,26 +75,39 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     }
     for execution_head in canary_execution_heads.values():
         _assert_git_sha(execution_head)
-    assert current_alignment["fixed_records_confirmed_by_current_head_canary"] == [
+    assert runtime_alignment[
+        "fixed_records_confirmed_by_runtime_equivalent_canary"
+    ] == [
         "methanol",
         "acetone",
         "2-acetoxyethyl acetate",
     ]
-    assert current_alignment["fixed_records_not_rerun"] == []
-    force_canary_execution_heads = current_alignment["force_canary_execution_heads"]
+    assert runtime_alignment["fixed_records_not_rerun"] == []
+    force_canary_execution_heads = runtime_alignment["force_canary_execution_heads"]
     assert force_canary_execution_heads == {
-        "2-acetoxyethyl acetate": latest_checked_head,
+        "2-acetoxyethyl acetate": latest_canary_head,
     }
     _assert_git_sha(force_canary_execution_heads["2-acetoxyethyl acetate"])
-    assert current_alignment["force_evidence_confirmed_by_current_head_canary"] == [
-        "2-acetoxyethyl acetate source-geometry analytic force",
+    force_finite_difference_execution_heads = runtime_alignment[
+        "force_finite_difference_execution_heads"
     ]
-    assert current_alignment["force_evidence_still_historical"] == [
-        "2-acetoxyethyl acetate direct finite-difference displacement pair",
+    assert force_finite_difference_execution_heads == force_canary_execution_heads
+    assert runtime_alignment[
+        "force_evidence_confirmed_by_runtime_equivalent_canary"
+    ] == [
+        "2-acetoxyethyl acetate source-geometry analytic force",
+        "2-acetoxyethyl acetate source-geometry one-component finite-difference pair",
+    ]
+    assert runtime_alignment["force_evidence_still_historical"] == [
         "2-acetoxyethyl acetate torsion and closed-loop panel",
         "2-propoxyethanol center force",
     ]
-    assert current_alignment["flexible_panel_current_checkout_match"] is None
+    assert (
+        runtime_alignment[
+            "flexible_panel_runtime_source_equivalence_confirmed"
+        ]
+        is None
+    )
     assert len(records) == panel["summary"]["record_count"] == 3
     assert len({record["compound_id"] for record in records}) == len(records)
 
@@ -159,14 +176,14 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         )
 
         if record["name"] in canary_execution_heads:
-            assert evidence["current_checkout_match"] is True
+            assert evidence["runtime_source_equivalence_confirmed"] is True
             assert evidence["alignment_status"] == (
-                "confirmed-by-current-head-energy-canary"
+                "confirmed-by-runtime-equivalent-energy-canary"
             )
-            canary = evidence["current_head_canary"]
+            canary = evidence["runtime_equivalent_energy_canary"]
             assert canary["status"] == "pass"
             assert canary["git_head"] == canary_execution_heads[record["name"]]
-            assert evidence["current_checkout_head"] == canary["git_head"]
+            assert evidence["energy_canary_execution_head"] == canary["git_head"]
             assert canary["root_scf_iterations"] == route2["root_scf_iterations"]
             assert canary["evaluation_seconds"] > 0.0
             assert canary["used_for_timing_claim"] is False
@@ -187,9 +204,14 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
                 abs=1.0e-18,
             )
         else:
-            assert evidence["current_checkout_match"] is None
-            assert evidence["alignment_status"] == "not-rerun-on-current-checkout"
-            assert evidence["current_checkout_head"] == latest_checked_head
+            assert evidence["runtime_source_equivalence_confirmed"] is None
+            assert evidence["alignment_status"] == (
+                "not-rerun-on-runtime-equivalence-reference"
+            )
+            assert (
+                evidence["runtime_equivalence_reference_head"]
+                == runtime_equivalence_reference_head
+            )
 
         route2_qm_errors.append(abs(differences["route2_minus_qm"]))
         route2_experiment_errors.append(abs(differences["route2_minus_experiment"]))
@@ -199,32 +221,37 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     )
     force_evidence = flexible_record["source_evidence"]
     assert force_evidence["force_alignment_status"] == (
-        "confirmed-by-current-head-analytic-force-canary"
+        "confirmed-by-runtime-equivalent-analytic-force-and-direct-finite-difference-canaries"
     )
-    assert force_evidence["current_checkout_force_head"] == latest_checked_head
-    assert force_evidence["current_checkout_force_match"] is True
-    force_canary = force_evidence["current_head_force_canary"]
+    assert force_evidence["force_canary_execution_head"] == latest_canary_head
+    assert force_evidence["force_runtime_source_equivalence_confirmed"] is True
+    force_canary = force_evidence["runtime_equivalent_force_canary"]
     assert force_canary["status"] == "pass"
-    assert force_canary["git_head"] == latest_checked_head
+    assert force_canary["git_head"] == latest_canary_head
     assert force_canary["root_scf_iterations"] == 18
-    assert force_canary["direct_current_head_finite_difference_performed"] is False
+    assert (
+        force_canary["direct_runtime_equivalent_finite_difference_performed"]
+        is True
+    )
     assert force_canary["used_for_timing_claim"] is False
     assert force_canary["pcmsolver_warning_count"] == 0
     assert force_canary["legacy_label_noise_count"] == 0
     assert force_canary["evaluation_seconds"] > 0.0
     for hash_name in (
         "alignment_report_sha256",
-        "current_energy_canary_sha256",
         "historical_finite_difference_sha256",
         "historical_force_sha256",
         "mol2_sha256",
         "prepared_sha256",
         "runner_sha256",
+        "runtime_equivalent_energy_canary_sha256",
         "sha256",
     ):
         _assert_sha256(force_canary[hash_name])
     assert (
-        force_canary["absolute_energy_difference_from_current_energy_canary_ev"]
+        force_canary[
+            "absolute_energy_difference_from_runtime_equivalent_energy_canary_ev"
+        ]
         <= 1.0e-12
     )
     assert (
@@ -246,6 +273,89 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     assert force_canary[
         "cross_head_absolute_error_against_historical_finite_difference_ev_per_angstrom"
     ] == pytest.approx(3.084074560066874e-06)
+
+    force_finite_difference = force_evidence[
+        "runtime_equivalent_force_finite_difference"
+    ]
+    assert force_finite_difference["status"] == "pass"
+    assert (
+        force_finite_difference["git_head"]
+        == force_finite_difference_execution_heads["2-acetoxyethyl acetate"]
+    )
+    assert (
+        force_finite_difference["runtime_equivalence_reference_head"]
+        == runtime_equivalence_reference_head
+    )
+    assert force_finite_difference["used_for_timing_claim"] is False
+    assert force_finite_difference["pcmsolver_warning_count"] == 0
+    assert force_finite_difference["legacy_label_noise_count"] == 0
+    assert force_finite_difference["step_angstrom"] == pytest.approx(5.0e-4)
+    assert force_finite_difference["total_wall_seconds"] > 0.0
+    for hash_name in (
+        "analytic_force_canary_sha256",
+        "alignment_report_sha256",
+        "historical_finite_difference_sha256",
+        "mol2_sha256",
+        "runner_sha256",
+        "sha256",
+        "stderr_sha256",
+        "time_sha256",
+    ):
+        _assert_sha256(force_finite_difference[hash_name])
+    assert (
+        force_finite_difference["analytic_force_canary_sha256"]
+        == force_canary["sha256"]
+    )
+    assert (
+        force_finite_difference["historical_finite_difference_sha256"]
+        == force_canary["historical_finite_difference_sha256"]
+    )
+    assert force_finite_difference["mol2_sha256"] == force_canary["mol2_sha256"]
+    assert force_finite_difference["selected_component"] == {
+        "atom_index_one_based": 2,
+        "atom_index_zero_based": 1,
+        "axis": "z",
+        "axis_index": 2,
+    }
+    minus = force_finite_difference["minus"]
+    plus = force_finite_difference["plus"]
+    assert minus["root_scf_iterations"] == plus["root_scf_iterations"] == 18
+    assert minus["evaluation_seconds"] > 0.0
+    assert plus["evaluation_seconds"] > 0.0
+    finite_difference_force = -(
+        plus["correction_energy_ev"] - minus["correction_energy_ev"]
+    ) / (2.0 * force_finite_difference["step_angstrom"])
+    assert force_finite_difference[
+        "finite_difference_correction_force_ev_per_angstrom"
+    ] == pytest.approx(finite_difference_force, abs=1.0e-12)
+    absolute_force_error = abs(
+        finite_difference_force
+        - force_finite_difference[
+            "analytic_correction_force_ev_per_angstrom"
+        ]
+    )
+    assert force_finite_difference[
+        "absolute_force_error_ev_per_angstrom"
+    ] == pytest.approx(absolute_force_error, abs=1.0e-15)
+    assert absolute_force_error <= 2.0e-4
+    relative_force_error = absolute_force_error / max(
+        abs(
+            force_finite_difference[
+                "analytic_correction_force_ev_per_angstrom"
+            ]
+        ),
+        1.0e-12,
+    )
+    assert force_finite_difference["relative_force_error"] == pytest.approx(
+        relative_force_error,
+        abs=1.0e-15,
+    )
+    assert relative_force_error <= 5.0e-4
+    assert abs(
+        force_finite_difference[
+            "finite_difference_force_difference_from_historical_ev_per_angstrom"
+        ]
+    ) <= 1.0e-10
 
     assert panel["summary"]["route2_vs_qm"] == pytest.approx(
         _summary(route2_qm_errors), abs=1.0e-12
@@ -275,11 +385,15 @@ def test_qm_fidelity_baseline_recomputes_bounded_electronic_ensemble():
     _assert_sha256(evidence["sha256"])
     assert evidence["status"] == "complete-valid"
     assert (
-        evidence["current_checkout_head"]
-        == baseline["current_checkout_alignment"]["latest_checked_git_head"]
+        evidence["runtime_equivalence_reference_head"]
+        == baseline["runtime_source_alignment"][
+            "runtime_equivalence_reference_head"
+        ]
     )
-    assert evidence["current_checkout_match"] is None
-    assert evidence["alignment_status"] == "not-rerun-on-current-checkout"
+    assert evidence["runtime_source_equivalence_confirmed"] is None
+    assert evidence["alignment_status"] == (
+        "not-rerun-on-runtime-equivalence-reference"
+    )
     for evidence_head in evidence["evidence_git_heads"]:
         _assert_git_sha(evidence_head)
 
@@ -398,9 +512,11 @@ def test_qm_fidelity_baseline_preserves_reference_and_claim_boundaries():
     _assert_sha256(diagnostic["source_evidence"]["sha256"])
     assert diagnostic["source_evidence"]["status"] == "source-diagnostic-valid"
     assert (
-        diagnostic["source_evidence"]["current_checkout_head"]
-        == baseline["current_checkout_alignment"]["latest_checked_git_head"]
+        diagnostic["source_evidence"]["runtime_equivalence_reference_head"]
+        == baseline["runtime_source_alignment"][
+            "runtime_equivalence_reference_head"
+        ]
     )
-    assert diagnostic["source_evidence"]["current_checkout_match"] is None
+    assert diagnostic["source_evidence"]["runtime_source_equivalence_confirmed"] is None
     assert "No vibrational thermochemistry" in baseline["claim_boundary"]
     assert "hardware-normalized speedup" in baseline["claim_boundary"]

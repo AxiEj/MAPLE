@@ -82,15 +82,18 @@ decomposition, MAE/RMSE, and ensemble statistics. It does not replace the
 unrun FreeSolv confirmation partition, and its observed CUDA-versus-CPU timing
 ratios are not hardware-normalized speedups. The recorded `.omx` source paths
 and SHA256 values are witnesses to retained local raw evidence, not tracked CI
-inputs. The JSON also records the evidence-generating Git heads and whether a
-result has actually been rerun at the current checkout; ancestry alone is not
-treated as current-checkout evidence. All three fixed-conformer energies have
-clean canaries at `5746f24`, `f3e9892`, and `e34abc5`, with no tracked
+inputs. The JSON records evidence-generating execution heads separately from
+the runtime-equivalence reference head; ancestry alone is not treated as
+evidence that a result was rerun. All three fixed-conformer energies have clean
+canaries at `5746f24`, `f3e9892`, and `e34abc5`, with no tracked
 `maple/` runtime-source change among those heads. One
 2-acetoxyethyl-acetate source-geometry analytic-force canary at `d72dfba`
 reproduces the historical correction force within `2.66e-14 eV/angstrom`.
-The direct finite-difference displacement pair, four-geometry flexible panel,
-torsion/closed-loop panel, and second-molecule force evidence remain
+Its direct one-component `5e-4`-angstrom finite-difference pair was rerun
+against the same runtime and differs from the analytic force by
+`3.084e-6 eV/angstrom`; both displaced energies converge in 18 iterations
+without PCMSolver or legacy `primary` warnings. The four-geometry flexible
+panel, torsion/closed-loop panel, and second-molecule force evidence remain
 historical. The JSON freezes the reviewed numerical ledger and arithmetic
 checks.
 

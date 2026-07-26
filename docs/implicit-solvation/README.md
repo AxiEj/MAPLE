@@ -215,10 +215,15 @@ tracked `maple/` runtime-source change among those heads. One clean
 source-geometry analytic-force canary for 2-acetoxyethyl acetate at `d72dfba`
 reproduces the historical correction force within
 `2.66e-14 eV/angstrom`, converges its adjoint below the configured tolerance,
-and emits no PCMSolver or legacy `primary` warning. This does not rerun the
-direct finite-difference displacement pair. The four-geometry flexible panel,
-finite-difference oracle, torsion/closed-loop panel, and second-molecule force
-evidence remain explicitly historical. Broader flexible/relaxed-path
+and emits no PCMSolver or legacy `primary` warning. Its direct
+`5e-4`-angstrom central-difference pair was then rerun against the same runtime:
+the largest analytic component is `0.7570000052 eV/angstrom`, the finite
+difference is `0.7570030893 eV/angstrom`, and their absolute difference is
+`3.084e-6 eV/angstrom`. Both displaced energies converged in 18 root
+iterations with zero PCMSolver or `primary` warnings. This is one component,
+one conformer, and one step size—not a flexible-PES certification. The
+four-geometry flexible panel, torsion/closed-loop panel, and second-molecule
+force evidence remain explicitly historical. Broader flexible/relaxed-path
 continuity, additional chemical classes, and complete conformer thermochemistry
 remain open without changing the named profile; the short NVE conservation
 gate is still unrun. Until those gates pass, optimization, scans, transition

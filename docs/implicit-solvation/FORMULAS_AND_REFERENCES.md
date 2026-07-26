@@ -426,17 +426,27 @@ A clean source-geometry analytic-force canary for 2-acetoxyethyl acetate at
 `d72dfba` reached the same 18-iteration root and 11-application adjoint as the
 historical record. Its relative adjoint residual was
 \(6.49\times10^{-11}\), below the configured \(10^{-10}\) tolerance. The
-correction energy matched the current energy-only canary within
+correction energy matched the runtime-equivalent energy-only canary within
 \(5.55\times10^{-17}\) eV; the maximum correction-force and total-force
 component differences from the historical force record were
 \(2.66\times10^{-14}\) and \(9.96\times10^{-16}\) eV/angstrom. No
 PCMSolver or legacy `primary` warning was emitted. The observed force
 evaluation time was `160.91 s`, but this single run is not a timing claim.
-The \(5\times10^{-4}\)-angstrom displacement pair was not rerun: comparing
-the current analytic component to that historical oracle still gives
-\(3.08\times10^{-6}\) eV/angstrom, but it is explicitly cross-head evidence,
-not a current-head direct finite-difference validation. Torsion, closed-loop,
-second-molecule, relaxed-path, and NVE evidence remain historical or unrun.
+The \(5\times10^{-4}\)-angstrom displacement pair was subsequently rerun
+against the same `d72dfba` runtime. Its negative and positive correction
+energies were `-0.33951177624995427` and `-0.3402687793392603 eV`, each after
+18 root iterations. The resulting central-difference correction force was
+`0.7570030893060409 eV/angstrom`, versus the analytic
+`0.7570000052313698 eV/angstrom`: the absolute and relative errors were
+\(3.0841\times10^{-6}\) eV/angstrom and \(4.0741\times10^{-6}\).
+The two energy evaluations took `70.56` and `74.21 s`; total process wall time
+was `150.78 s`, none of which is used as a speed claim. The displaced energies
+and finite-difference force reproduce the historical oracle within
+\(1.11\times10^{-16}\) eV and \(1.11\times10^{-13}\) eV/angstrom,
+respectively, with zero PCMSolver or legacy `primary` warnings. This validates
+one local Cartesian component at one conformer and one step; torsion,
+closed-loop, second-molecule, relaxed-path, and NVE evidence remain historical
+or unrun.
 
 The total agreement contains substantial component cancellation. For acetone,
 \(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and

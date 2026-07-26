@@ -189,8 +189,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
         in normalized_overview
     )
     assert "source-geometry analytic-force canary" in normalized_overview
-    assert "does not rerun the direct finite-difference" in normalized_overview
-    assert "evidence-generating Git heads" in benchmark
+    assert "finite difference is `0.7570030893 eV/angstrom`" in normalized_overview
+    assert "one component, one conformer, and one step size" in normalized_overview
+    assert "evidence-generating execution heads" in benchmark
+    assert "runtime-equivalence reference head" in benchmark
     assert "predeclared three-step validation" in validation
     assert "cannot retroactively overwrite" in normalized_validation
     assert "oriented loop force work" in normalized_validation

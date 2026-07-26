@@ -12,10 +12,10 @@
     "scope_boundary": "This one acetone diagnostic does not prove that every AO-density sharp-cavity PCM formulation fails; it only rejects this attempted reference construction for the tested Route-2 cavity/settings.",
     "source_evidence": {
       "alignment_status": "source-did-not-record-git-head",
-      "current_checkout_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
-      "current_checkout_match": null,
       "evidence_git_head": null,
       "path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/negative_result_same_operator_ao_qm.json",
+      "runtime_equivalence_reference_head": "4c933135a58051b3ace5b8017cd4e64bf25a84af",
+      "runtime_source_equivalence_confirmed": null,
       "sha256": "ff8eb2efe36482444bf1e8b4466bc1584511426b096f101d2d029c477a914a67",
       "status": "source-diagnostic-valid"
     },
@@ -23,36 +23,40 @@
     "valid_reference_boundary": "Use a maintained self-consistent SMD implementation designed for AO density (PySCF SMD/IEF-PCM) as a chemical-level QM reference. Compare total SMD corrections and broad components, not claim discretization-identical operators."
   },
   "benchmark_role": "Bounded same-geometry Route-2/QM/experiment energy comparison and four-geometry electronic conformer diagnostic; not a broad accuracy certification.",
-  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at 5746f24, f3e9892, and e34abc5, and the 2-acetoxyethyl-acetate source-geometry analytic force has a clean canary at d72dfba, with no maple/ runtime-source change among those heads. The flexible four-geometry panel, direct finite-difference displacement pair, torsion/closed-loop panel, and second-molecule force evidence remain historical. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, current-head direct finite-difference force oracle, QM-force comparison, operator identity, short-NVE conservation, or hardware-normalized speedup is established.",
-  "current_checkout_alignment": {
+  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at execution heads 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force and one Cartesian finite-difference displacement pair have clean canaries at execution head d72dfba, with no maple/ runtime-source change through the separately recorded runtime-equivalence reference head 4c93313. The flexible four-geometry panel, torsion/closed-loop panel, and second-molecule force evidence remain historical. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, multi-component or multi-step finite-difference force panel, QM-force comparison, operator identity, short-NVE conservation, or hardware-normalized speedup is established.",
+  "runtime_source_alignment": {
     "canary_execution_heads": {
       "2-acetoxyethyl acetate": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
       "acetone": "f3e989245189f742a03a61a19a848df54035c96f",
       "methanol": "5746f24e1ff67482622ebc789c6126cda5cf5928"
     },
-    "fixed_records_confirmed_by_current_head_canary": [
+    "fixed_records_confirmed_by_runtime_equivalent_canary": [
       "methanol",
       "acetone",
       "2-acetoxyethyl acetate"
     ],
     "fixed_records_not_rerun": [],
-    "flexible_panel_current_checkout_match": null,
+    "flexible_panel_runtime_source_equivalence_confirmed": null,
     "force_canary_execution_heads": {
       "2-acetoxyethyl acetate": "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
     },
-    "force_evidence_confirmed_by_current_head_canary": [
-      "2-acetoxyethyl acetate source-geometry analytic force"
+    "force_finite_difference_execution_heads": {
+      "2-acetoxyethyl acetate": "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
+    },
+    "force_evidence_confirmed_by_runtime_equivalent_canary": [
+      "2-acetoxyethyl acetate source-geometry analytic force",
+      "2-acetoxyethyl acetate source-geometry one-component finite-difference pair"
     ],
     "force_evidence_still_historical": [
-      "2-acetoxyethyl acetate direct finite-difference displacement pair",
       "2-acetoxyethyl acetate torsion and closed-loop panel",
       "2-propoxyethanol center force"
     ],
-    "latest_checked_git_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+    "latest_canary_execution_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
     "runtime_code_reference_git_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
     "runtime_code_unchanged_between_canary_heads": true,
+    "runtime_equivalence_reference_head": "4c933135a58051b3ace5b8017cd4e64bf25a84af",
     "runtime_source_scope": "maple/",
-    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate energies were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force was rerun at d72dfba. No tracked maple/ runtime source changed among those canary heads. The four-geometry panel, direct finite-difference displacements, torsion/loop panel, and second-molecule force evidence remain historical until separately rerun."
+    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate energies were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force and its one-component finite-difference displacement pair were rerun at d72dfba. No tracked maple/ runtime source changed among those canary heads or through 4c93313. The four-geometry panel, torsion/loop panel, and second-molecule force evidence remain historical until separately rerun."
   },
   "energy_definition": "delta_g_solv = delta_e_solute + u_pol + g_cds",
   "energy_force_separation": "The adjoint is evaluated only for coordinate derivatives. It does not alter the converged Route-2 solvation energy.",
@@ -109,10 +113,9 @@
         },
         "same_geometry": true,
         "source_evidence": {
-          "alignment_status": "confirmed-by-current-head-energy-canary",
-          "current_checkout_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
-          "current_checkout_match": true,
-          "current_head_canary": {
+          "alignment_status": "confirmed-by-runtime-equivalent-energy-canary",
+          "energy_canary_execution_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
+          "runtime_equivalent_energy_canary": {
             "absolute_difference_from_historical_correction_ev": 4.5458081743277035e-13,
             "correction_energy_ev": -0.22122796846574475,
             "evaluation_seconds": 8.849805768004444,
@@ -127,6 +130,7 @@
             "status": "pass",
             "used_for_timing_claim": false
           },
+          "runtime_source_equivalence_confirmed": true,
           "evidence_git_head": "278c312e2d4eaf36edf9f6c17f062befb1bc1c66",
           "path": ".omx/benchmarks/route2-qm-ddx-methanol-20260725/methanol_route2_qm_experiment_comparison.json",
           "sha256": "1d37e348c0498a6f645abe4ed7f6eb4794976734eb9504b10f4f35d332dd31e8",
@@ -185,10 +189,9 @@
         },
         "same_geometry": true,
         "source_evidence": {
-          "alignment_status": "confirmed-by-current-head-energy-canary",
-          "current_checkout_head": "f3e989245189f742a03a61a19a848df54035c96f",
-          "current_checkout_match": true,
-          "current_head_canary": {
+          "alignment_status": "confirmed-by-runtime-equivalent-energy-canary",
+          "energy_canary_execution_head": "f3e989245189f742a03a61a19a848df54035c96f",
+          "runtime_equivalent_energy_canary": {
             "absolute_difference_from_historical_correction_ev": 2.498001805406602e-16,
             "correction_energy_ev": -0.2088671106008631,
             "evaluation_seconds": 24.864594692000537,
@@ -203,6 +206,7 @@
             "status": "pass",
             "used_for_timing_claim": false
           },
+          "runtime_source_equivalence_confirmed": true,
           "evidence_git_head": "278c312e2d4eaf36edf9f6c17f062befb1bc1c66",
           "path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/acetone_route2_qm_experiment_comparison.json",
           "sha256": "18eb93238b1cc3a7a72b7e0000311c1f9841c34c9adcc80cacb847c4dc248986",
@@ -261,12 +265,11 @@
         },
         "same_geometry": true,
         "source_evidence": {
-          "alignment_status": "confirmed-by-current-head-energy-canary",
-          "current_checkout_force_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
-          "current_checkout_force_match": true,
-          "current_checkout_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
-          "current_checkout_match": true,
-          "current_head_canary": {
+          "alignment_status": "confirmed-by-runtime-equivalent-energy-canary",
+          "energy_canary_execution_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
+          "force_canary_execution_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+          "force_runtime_source_equivalence_confirmed": true,
+          "runtime_equivalent_energy_canary": {
             "absolute_difference_from_historical_correction_ev": 2.220446049250313e-16,
             "correction_energy_ev": -0.33988998861544006,
             "evaluation_seconds": 71.90954354999849,
@@ -281,9 +284,9 @@
             "status": "pass",
             "used_for_timing_claim": false
           },
-          "current_head_force_canary": {
-            "absolute_energy_difference_from_current_energy_canary_ev": 5.551115123125783e-17,
+          "runtime_equivalent_force_canary": {
             "absolute_energy_difference_from_historical_force_canary_ev": 0.0,
+            "absolute_energy_difference_from_runtime_equivalent_energy_canary_ev": 5.551115123125783e-17,
             "adjoint": {
               "absolute_tolerance": 1e-13,
               "maximum_inner_iterations": 100,
@@ -297,11 +300,10 @@
             },
             "alignment_report_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-force-alignment-d72dfba.json",
             "alignment_report_sha256": "fcee980ee13b05a240e6460b6f5839eebd3abe3356d9b70636c38331f402f11c",
-            "claim_boundary": "This current-head run confirms one source-geometry analytic-force result and energy alignment. It does not rerun the finite-difference displacement pair, torsion/closed-loop evidence, relaxed path, QM force, or NVE conservation.",
+            "claim_boundary": "This canary execution-head run confirms one source-geometry analytic-force result and energy alignment. Its one-component finite-difference displacement pair was subsequently rerun against the same d72dfba runtime; torsion/closed-loop evidence, a relaxed path, QM force, and NVE conservation remain unconfirmed.",
             "correction_energy_ev": -0.33988998861544,
             "cross_head_absolute_error_against_historical_finite_difference_ev_per_angstrom": 3.084074560066874e-06,
-            "current_energy_canary_sha256": "fe71e841c6c0d630cdfbabab7121491bfed73fa27ba0add49d85751a74c64906",
-            "direct_current_head_finite_difference_performed": false,
+            "direct_runtime_equivalent_finite_difference_performed": true,
             "evaluation_seconds": 160.9126563480022,
             "git_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
             "historical_finite_difference_git_head": "5422a078ade3adb0730ec420c3dc5245983e6f4e",
@@ -315,16 +317,60 @@
             "pcmsolver_warning_count": 0,
             "prepared_sha256": "b22fecdb876627b627c24e08f34f124a519bf3455002bdd204b93d6c5aa8b21e",
             "root_scf_iterations": 18,
+            "runtime_equivalent_energy_canary_sha256": "fe71e841c6c0d630cdfbabab7121491bfed73fa27ba0add49d85751a74c64906",
             "runner_sha256": "538361ad81ac399968ef99c801a712423890d5600f95bc8ccd368c5f314b49fb",
             "sha256": "fd775bd9fc33053b4a17225b22c473cb0a7aa1396740f521983c5fbfbccc0f64",
             "status": "pass",
             "used_for_timing_claim": false
           },
+          "runtime_equivalent_force_finite_difference": {
+            "absolute_force_error_ev_per_angstrom": 3.0840746710891764e-06,
+            "alignment_report_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-force-fd-alignment-d72dfba.json",
+            "alignment_report_sha256": "6ab9ea45916a59e8514151b58e64e0e9a95364cef06477fd0e5f6540cb5d7d59",
+            "analytic_correction_force_ev_per_angstrom": 0.7570000052313698,
+            "analytic_force_canary_sha256": "fd775bd9fc33053b4a17225b22c473cb0a7aa1396740f521983c5fbfbccc0f64",
+            "claim_boundary": "One Cartesian correction-force component at one fixed conformer and one 0.0005-angstrom step validates a local derivative canary only; it does not establish flexible-path continuity, a torsion or closed loop, a second-molecule force, QM-force agreement, or NVE conservation.",
+            "finite_difference_correction_force_ev_per_angstrom": 0.7570030893060409,
+            "finite_difference_force_difference_from_historical_ev_per_angstrom": 1.1102230246251565e-13,
+            "git_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+            "historical_finite_difference_sha256": "28aea23d3fd3b6ce832d612b3faee41bbfaed1c5d53021d380ae35c1e7bd8bac",
+            "legacy_label_noise_count": 0,
+            "minus": {
+              "correction_energy_ev": -0.33951177624995427,
+              "evaluation_seconds": 70.55924300599872,
+              "root_scf_iterations": 18
+            },
+            "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+            "path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-force-fd-d72dfba.json",
+            "pcmsolver_warning_count": 0,
+            "plus": {
+              "correction_energy_ev": -0.3402687793392603,
+              "evaluation_seconds": 74.21362791600404,
+              "root_scf_iterations": 18
+            },
+            "relative_force_error": 4.074074834578843e-06,
+            "runner_sha256": "ec21573c839e23b2bc3b46dcd878e21cac77ccca7024bf6ad9bed8c66ea62d99",
+            "runtime_equivalence_reference_head": "4c933135a58051b3ace5b8017cd4e64bf25a84af",
+            "selected_component": {
+              "atom_index_one_based": 2,
+              "atom_index_zero_based": 1,
+              "axis": "z",
+              "axis_index": 2
+            },
+            "sha256": "09d478661a0dce26e7bbb5c84838537a99b044fa143453badf0236aca19a666e",
+            "status": "pass",
+            "stderr_sha256": "f0c7c57d31d516866740ad2979fed192f0372833fe7cae7d23b8bb973759b7b5",
+            "step_angstrom": 0.0005,
+            "time_sha256": "8c6e4510c7824e44d941ee293f9a53a5af91be50d700971928085a44009dded6",
+            "total_wall_seconds": 150.78,
+            "used_for_timing_claim": false
+          },
           "evidence_git_head": "5422a078ade3adb0730ec420c3dc5245983e6f4e",
-          "force_alignment_status": "confirmed-by-current-head-analytic-force-canary",
+          "force_alignment_status": "confirmed-by-runtime-equivalent-analytic-force-and-direct-finite-difference-canaries",
           "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/2acetoxyethyl_acetate_route2_qm_experiment.json",
           "sha256": "ec92f1619cd902ce15fd104407c61bd36e6f00ec3f995c0a5ad974256c709487",
-          "status": "comparison-valid"
+          "status": "comparison-valid",
+          "runtime_source_equivalence_confirmed": true
         },
         "training_membership_confirmed_excluded": false
       }
@@ -494,14 +540,14 @@
     ],
     "route2_profile": "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
     "source_evidence": {
-      "alignment_status": "not-rerun-on-current-checkout",
-      "current_checkout_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
-      "current_checkout_match": null,
+      "alignment_status": "not-rerun-on-runtime-equivalence-reference",
       "evidence_git_heads": [
         "278c312e2d4eaf36edf9f6c17f062befb1bc1c66",
         "5422a078ade3adb0730ec420c3dc5245983e6f4e"
       ],
       "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/locked_qm_conformer_crosscheck.json",
+      "runtime_equivalence_reference_head": "4c933135a58051b3ace5b8017cd4e64bf25a84af",
+      "runtime_source_equivalence_confirmed": null,
       "sha256": "85f7e323ab38d562584c3dd87cf1a68c209697d96b5d1c410678ebb2da7d67d2",
       "status": "complete-valid"
     },
@@ -531,7 +577,7 @@
     "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
     "smd-ddpcm-l15-n1202-v1"
   ],
-  "schema_version": 2,
-  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating Git heads and current-checkout alignment are recorded explicitly; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries and one 2-acetoxyethyl-acetate source-geometry analytic-force canary were rerun against recorded runtime-code-equivalent checkout heads. Direct finite-difference, torsion/loop, and second-molecule force records remain historical.",
+  "schema_version": 3,
+  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating execution heads and runtime-source equivalence references are recorded separately; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries plus one 2-acetoxyethyl-acetate source-geometry analytic-force canary and its one-component finite-difference pair were rerun against recorded runtime-code-equivalent sources. The flexible four-geometry, torsion/loop, and second-molecule force records remain historical.",
   "status": "frozen-bounded-pilot"
 }

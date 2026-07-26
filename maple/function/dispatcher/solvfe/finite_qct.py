@@ -7,12 +7,16 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.special import logsumexp
 
-from .occupancy_analysis import SoftOccupancyDistribution
+from .occupancy_analysis import (
+    SoftOccupancyDistribution,
+    _EXACT_OCCUPANCY_TOKEN,
+)
 from .protocol import canonical_sha256
 from .qct_ledger import (
     ConditionalCouplingProfile,
     ConditionedQCTProfile,
-    build_periodic_qct_profile,
+    _EXACT_PROFILE_TOKEN,
+    _build_exact_periodic_qct_profile,
 )
 
 
@@ -25,6 +29,32 @@ def _array_sha256(values: np.ndarray) -> str:
     digest.update(str(contiguous.shape).encode("ascii"))
     digest.update(contiguous.tobytes(order="C"))
     return digest.hexdigest()
+
+
+def _finite_periodic_boundary_adapter_hash(
+    *,
+    membership_definition_hash: str,
+    observation_volume_hash: str,
+    solute_measure_hash: str,
+) -> str:
+    """Identify the algebraic periodic adapter used by the finite oracle."""
+
+    return canonical_sha256(
+        {
+            "contract_id": "finite-soft-qct-periodic-boundary-adapter-v3",
+            "membership_definition_hash": membership_definition_hash,
+            "observation_volume_hash": observation_volume_hash,
+            "solute_measure_hash": solute_measure_hash,
+            "boundary_conditions": "periodic-3d",
+            "coordinate_adapter": (
+                "identity over caller-enumerated finite configurations"
+            ),
+            "occupancy_input": (
+                "precomputed framewise soft weights under this declared "
+                "periodic adapter"
+            ),
+        }
+    )
 
 
 @dataclass(frozen=True)
@@ -220,6 +250,13 @@ def enumerate_finite_soft_qct(
         log_z_coupled_n - log_z_reference_n
     )
     exact_excess = -rt * (log_z_coupled - log_z_reference)
+    periodic_boundary_adapter_hash = (
+        _finite_periodic_boundary_adapter_hash(
+            membership_definition_hash=membership_definition_hash,
+            observation_volume_hash=observation_volume_hash,
+            solute_measure_hash=solute_measure_hash,
+        )
+    )
 
     source_artifact_hash = canonical_sha256(
         {
@@ -236,6 +273,9 @@ def enumerate_finite_soft_qct(
             "temperature_k": float(temperature_k),
             "membership_definition_hash": membership_definition_hash,
             "observation_volume_hash": observation_volume_hash,
+            "periodic_boundary_adapter_hash": (
+                periodic_boundary_adapter_hash
+            ),
             "solute_measure_hash": solute_measure_hash,
             "water_hamiltonian_hash": water_hamiltonian_hash,
             "reference_hamiltonian_hash": reference_hamiltonian_hash,
@@ -247,6 +287,9 @@ def enumerate_finite_soft_qct(
             "contract_id": "finite-soft-qct-identity-bridge-v3",
             "reference_hamiltonian_hash": reference_hamiltonian_hash,
             "coupled_hamiltonian_hash": coupled_hamiltonian_hash,
+            "periodic_boundary_adapter_hash": (
+                periodic_boundary_adapter_hash
+            ),
             "boundary_conditions": "periodic-3d",
         }
     )
@@ -265,6 +308,7 @@ def enumerate_finite_soft_qct(
         covariance_of_mean=zero_probability_covariance,
         membership_definition_hash=membership_definition_hash,
         observation_volume_hash=observation_volume_hash,
+        boundary_adapter_hash=periodic_boundary_adapter_hash,
         solute_measure_hash=solute_measure_hash,
         water_hamiltonian_hash=water_hamiltonian_hash,
         system_hamiltonian_hash=reference_hamiltonian_hash,
@@ -272,6 +316,7 @@ def enumerate_finite_soft_qct(
         boundary_conditions="periodic-3d",
         source_artifact_hash=source_artifact_hash,
         estimator="exact finite-state enumeration",
+        _exact_source_token=_EXACT_OCCUPANCY_TOKEN,
     )
     coupled_distribution = SoftOccupancyDistribution.create(
         ensemble_role="coupled-solution",
@@ -280,6 +325,7 @@ def enumerate_finite_soft_qct(
         covariance_of_mean=zero_probability_covariance,
         membership_definition_hash=membership_definition_hash,
         observation_volume_hash=observation_volume_hash,
+        boundary_adapter_hash=periodic_boundary_adapter_hash,
         solute_measure_hash=solute_measure_hash,
         water_hamiltonian_hash=water_hamiltonian_hash,
         system_hamiltonian_hash=coupled_hamiltonian_hash,
@@ -287,12 +333,14 @@ def enumerate_finite_soft_qct(
         boundary_conditions="periodic-3d",
         source_artifact_hash=source_artifact_hash,
         estimator="exact finite-state enumeration",
+        _exact_source_token=_EXACT_OCCUPANCY_TOKEN,
     )
     conditional_coupling_profile = ConditionalCouplingProfile.create(
         free_energies_kcal_mol=conditional_coupling,
         covariance_of_mean=zero_energy_covariance,
         membership_definition_hash=membership_definition_hash,
         observation_volume_hash=observation_volume_hash,
+        periodic_boundary_adapter_hash=periodic_boundary_adapter_hash,
         solute_measure_hash=solute_measure_hash,
         water_hamiltonian_hash=water_hamiltonian_hash,
         reference_hamiltonian_hash=reference_hamiltonian_hash,
@@ -301,12 +349,12 @@ def enumerate_finite_soft_qct(
         temperature_k=temperature_k,
         source_artifact_hash=source_artifact_hash,
         estimator="exact finite enumeration of Z_X,n/Z_0,n",
+        _exact_source_token=_EXACT_PROFILE_TOKEN,
     )
-    conditioned_profile = build_periodic_qct_profile(
+    conditioned_profile = _build_exact_periodic_qct_profile(
         reference=reference_distribution,
         conditional_coupling=conditional_coupling_profile,
         covariance_of_mean=zero_energy_covariance,
-        approximation_role="exact-enumerable-bridge",
     )
     immutable_conditional = np.array(
         conditional_coupling,

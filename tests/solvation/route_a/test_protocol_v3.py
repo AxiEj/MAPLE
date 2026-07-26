@@ -56,6 +56,9 @@ def test_protocol_v3_uses_one_measure_and_remains_fail_closed():
     assert conditioning["nonmember_weight"] == "1-b"
     assert conditioning["same_membership_hash_required_for_all_terms"] is True
     assert conditioning["hard_empty_indicator_role"] == "diagnostic-only"
+    assert conditioning["active_occupancy_max_minimum"] == 1
+    assert conditioning["active_support_must_include_n0_and_n1"] is True
+    assert conditioning["full_support_zero_tail_allowed"] is True
     assert packing["target_state_index_explicit"] is True
     assert packing["full_field_state_index_explicit"] is True
     assert packing["row_position_assumptions_allowed"] is False
@@ -76,6 +79,9 @@ def test_protocol_v3_uses_one_measure_and_remains_fail_closed():
     )
     assert ledger["density_volume_factor_count_per_edge"] == 1
     assert ledger["factorial_count_per_row"] == 1
+    assert ledger["shared_bootstrap_canonical_column_order_required"] is True
+    assert ledger["nonzero_cross_block_covariance_propagation_required"] is True
+    assert ledger["finite_oracle_boundary_adapter_derived_and_source_bound"] is True
     assert ledger["implementation_status"] == (
         "runtime-and-enumeration-closure-implemented-real-sampling-pending"
     )
@@ -101,6 +107,32 @@ def test_v3_contracts_point_only_to_existing_runtime_primitives():
             assert (PROJECT_ROOT / relative_path).is_file()
 
 
+def test_v3_contracts_bind_reviewed_active_support_and_provenance_repairs():
+    packing = _load(PACKING_PATH)
+    ledger = _load(LEDGER_PATH)
+
+    assert "nmax>=1" in packing["schedule"]["active_occupancy_max"]
+    assert "exactly zero" in packing["schedule"]["full_support_zero_tail_allowed"]
+    assert packing["scientific_boundaries"]["production_nmax_zero_allowed"] is False
+
+    exact = ledger["exact_vs_approximate"]
+    assert (
+        exact["placeholder_or_caller_selected_finite_boundary_adapter_allowed"]
+        is False
+    )
+    assert (
+        exact["finite_boundary_adapter_bound_into_source_and_hamiltonian_bridge_hashes"]
+        is True
+    )
+    covariance = ledger["covariance"]
+    assert "canonical labeled ledger order" in covariance[
+        "shared_bootstrap_column_order"
+    ]
+    assert "must alter propagated ledger uncertainty" in covariance[
+        "nonzero_cross_block_propagation"
+    ]
+
+
 @pytest.mark.parametrize(
     "mutator",
     [
@@ -109,6 +141,9 @@ def test_v3_contracts_point_only_to_existing_runtime_primitives():
         ),
         lambda value: value["conditioning_measure"].__setitem__(
             "same_membership_hash_required_for_all_terms", False
+        ),
+        lambda value: value["conditioning_measure"].__setitem__(
+            "active_occupancy_max_minimum", 0
         ),
         lambda value: value["packing"].__setitem__(
             "row_position_assumptions_allowed", True
@@ -124,6 +159,12 @@ def test_v3_contracts_point_only_to_existing_runtime_primitives():
         ),
         lambda value: value["soft_occupancy_and_closure"].__setitem__(
             "factorial_count_per_row", 2
+        ),
+        lambda value: value["soft_occupancy_and_closure"].__setitem__(
+            "nonzero_cross_block_covariance_propagation_required", False
+        ),
+        lambda value: value["soft_occupancy_and_closure"].__setitem__(
+            "finite_oracle_boundary_adapter_derived_and_source_bound", False
         ),
         lambda value: value["outer_continuum"].__setitem__(
             "frame_deletion_allowed", True
@@ -155,6 +196,9 @@ def test_protocol_v3_thermodynamics_documents_measure_and_claim_boundaries():
     assert "mu_A = -RT ln(p0_soft)" in text
     assert "No `p_tilde(n)` factor is then added to this row" in text
     assert "Deliberately applying" in text
+    assert "Production packing and occupancy artifacts require `nmax >= 1`" in text
+    assert "nonzero cross-block covariance" in text
+    assert "finite periodic boundary adapter is likewise canonical" in text
 
 
 def test_protocol_loader_rejects_v3_hash_drift(tmp_path: Path):

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 
 import numpy as np
 from ase import Atoms
@@ -18,6 +18,7 @@ from .protocol import canonical_sha256
 
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_EFFECTIVE_VOLUME_TOKEN = object()
 
 
 def _indices(
@@ -67,7 +68,190 @@ class SoftEffectiveVolumeEstimate:
     observation_volume_hash: str
     boundary_adapter_hash: str
     solute_geometry_hash: str
+    sobol_power: int
+    seed: int
+    tail_log_tolerance: float
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _EFFECTIVE_VOLUME_TOKEN:
+            raise ValueError(
+                "SoftEffectiveVolumeEstimate must be constructed by its "
+                "validated factory."
+            )
+        estimates = np.asarray(
+            self.replicate_estimates_angstrom3,
+            dtype=float,
+        )
+        if (
+            estimates.ndim != 1
+            or len(estimates) < 2
+            or not np.all(np.isfinite(estimates))
+            or np.any(estimates <= 0.0)
+        ):
+            raise ValueError(
+                "Effective-volume replicates must be finite and positive."
+            )
+        if (
+            isinstance(self.sobol_power, (bool, np.bool_))
+            or int(self.sobol_power) != self.sobol_power
+            or int(self.sobol_power) < 1
+            or self.samples_per_replicate != 2 ** int(self.sobol_power)
+        ):
+            raise ValueError(
+                "Effective-volume sample count must equal 2**sobol_power."
+            )
+        if (
+            isinstance(self.seed, (bool, np.bool_))
+            or int(self.seed) != self.seed
+            or int(self.seed) < 0
+        ):
+            raise ValueError("Effective-volume seed must be non-negative.")
+        for name, value, allow_zero in (
+            ("tail_upper_bound_angstrom3", self.tail_upper_bound_angstrom3, True),
+            ("tail_log_tolerance", self.tail_log_tolerance, False),
+        ):
+            if (
+                isinstance(value, (bool, np.bool_))
+                or not math.isfinite(float(value))
+                or (float(value) < 0.0 if allow_zero else float(value) <= 0.0)
+            ):
+                qualifier = "non-negative" if allow_zero else "positive"
+                raise ValueError(f"{name} must be finite and {qualifier}.")
+        expected_mean = float(np.mean(estimates))
+        expected_se = float(
+            np.std(estimates, ddof=1) / math.sqrt(len(estimates))
+        )
+        if not math.isclose(
+            self.volume_angstrom3,
+            expected_mean,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ) or not math.isclose(
+            self.replicate_standard_error_angstrom3,
+            expected_se,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError(
+                "Effective-volume mean/standard error do not match the "
+                "stored replicates."
+            )
+        box = np.asarray(self.integration_box_angstrom, dtype=float)
+        if (
+            box.shape != (2, 3)
+            or not np.all(np.isfinite(box))
+            or np.any(box[1] <= box[0])
+        ):
+            raise ValueError(
+                "Effective-volume integration box must have finite ordered "
+                "lower/upper corners."
+            )
+        for name in (
+            "membership_definition_hash",
+            "observation_volume_hash",
+            "boundary_adapter_hash",
+            "solute_geometry_hash",
+            "content_hash",
+        ):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not _SHA256_RE.fullmatch(value):
+                raise ValueError(f"{name} must be a lowercase SHA-256 hash.")
+        expected_hash = canonical_sha256(
+            self._content_preimage(estimates=estimates)
+        )
+        if self.content_hash != expected_hash:
+            raise ValueError(
+                "Effective-volume content hash does not match its data."
+            )
+
+    def _content_preimage(
+        self,
+        *,
+        estimates: np.ndarray | None = None,
+    ) -> dict[str, object]:
+        values = (
+            np.asarray(self.replicate_estimates_angstrom3, dtype=float)
+            if estimates is None
+            else estimates
+        )
+        return {
+            "contract_id": "soft-membership-effective-volume-v3",
+            "membership_definition_hash": self.membership_definition_hash,
+            "observation_volume_hash": self.observation_volume_hash,
+            "boundary_adapter_hash": self.boundary_adapter_hash,
+            "solute_geometry_hash": self.solute_geometry_hash,
+            "sobol_power": int(self.sobol_power),
+            "replicates": len(values),
+            "seed": int(self.seed),
+            "tail_log_tolerance": float(self.tail_log_tolerance),
+            "replicate_estimates_angstrom3": [
+                float(value) for value in values
+            ],
+            "tail_upper_bound_angstrom3": float(
+                self.tail_upper_bound_angstrom3
+            ),
+        }
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        replicate_estimates_angstrom3: tuple[float, ...],
+        tail_upper_bound_angstrom3: float,
+        integration_box_angstrom: tuple[
+            tuple[float, float, float],
+            tuple[float, float, float],
+        ],
+        membership_definition_hash: str,
+        observation_volume_hash: str,
+        boundary_adapter_hash: str,
+        solute_geometry_hash: str,
+        sobol_power: int,
+        seed: int,
+        tail_log_tolerance: float,
+    ) -> "SoftEffectiveVolumeEstimate":
+        estimates = np.asarray(replicate_estimates_angstrom3, dtype=float)
+        mean = float(np.mean(estimates))
+        standard_error = float(
+            np.std(estimates, ddof=1) / math.sqrt(len(estimates))
+        )
+        canonical_estimates = tuple(float(value) for value in estimates)
+        preimage = {
+            "contract_id": "soft-membership-effective-volume-v3",
+            "membership_definition_hash": membership_definition_hash,
+            "observation_volume_hash": observation_volume_hash,
+            "boundary_adapter_hash": boundary_adapter_hash,
+            "solute_geometry_hash": solute_geometry_hash,
+            "sobol_power": int(sobol_power),
+            "replicates": len(canonical_estimates),
+            "seed": int(seed),
+            "tail_log_tolerance": float(tail_log_tolerance),
+            "replicate_estimates_angstrom3": list(canonical_estimates),
+            "tail_upper_bound_angstrom3": float(
+                tail_upper_bound_angstrom3
+            ),
+        }
+        return cls(
+            volume_angstrom3=mean,
+            replicate_standard_error_angstrom3=standard_error,
+            tail_upper_bound_angstrom3=float(
+                tail_upper_bound_angstrom3
+            ),
+            replicate_estimates_angstrom3=canonical_estimates,
+            samples_per_replicate=2 ** int(sobol_power),
+            integration_box_angstrom=integration_box_angstrom,
+            membership_definition_hash=membership_definition_hash,
+            observation_volume_hash=observation_volume_hash,
+            boundary_adapter_hash=boundary_adapter_hash,
+            solute_geometry_hash=solute_geometry_hash,
+            sobol_power=int(sobol_power),
+            seed=int(seed),
+            tail_log_tolerance=float(tail_log_tolerance),
+            content_hash=canonical_sha256(preimage),
+            _factory_token=_EFFECTIVE_VOLUME_TOKEN,
+        )
 
 
 @dataclass(frozen=True)
@@ -370,9 +554,6 @@ class SoftMembershipSurfaceRestraint:
             estimates.append(box_volume * weight_sum / len(points))
 
         estimate_array = np.asarray(estimates, dtype=float)
-        standard_error = float(
-            np.std(estimate_array, ddof=1) / math.sqrt(len(estimate_array))
-        )
         softness = float(self.membership.softness_angstrom)
         tail_exponential = math.exp(
             -float(tail_log_tolerance)
@@ -401,29 +582,11 @@ class SoftMembershipSurfaceRestraint:
                 "positions_angstrom": solute_positions.tolist(),
             }
         )
-        preimage = {
-            "contract_id": "soft-membership-effective-volume-v3",
-            "membership_definition_hash": self.membership_definition_hash,
-            "observation_volume_hash": self.observation_volume_hash,
-            "boundary_adapter_hash": self.boundary_adapter_hash,
-            "solute_geometry_hash": solute_geometry_hash,
-            "sobol_power": int(sobol_power),
-            "replicates": int(replicates),
-            "seed": int(seed),
-            "tail_log_tolerance": float(tail_log_tolerance),
-            "replicate_estimates_angstrom3": [
-                float(value) for value in estimate_array
-            ],
-            "tail_upper_bound_angstrom3": tail_bound,
-        }
-        return SoftEffectiveVolumeEstimate(
-            volume_angstrom3=float(np.mean(estimate_array)),
-            replicate_standard_error_angstrom3=standard_error,
+        return SoftEffectiveVolumeEstimate.create(
             tail_upper_bound_angstrom3=tail_bound,
             replicate_estimates_angstrom3=tuple(
                 float(value) for value in estimate_array
             ),
-            samples_per_replicate=2 ** int(sobol_power),
             integration_box_angstrom=(
                 tuple(float(value) for value in lower),
                 tuple(float(value) for value in upper),
@@ -432,7 +595,9 @@ class SoftMembershipSurfaceRestraint:
             observation_volume_hash=self.observation_volume_hash,
             boundary_adapter_hash=self.boundary_adapter_hash,
             solute_geometry_hash=solute_geometry_hash,
-            content_hash=canonical_sha256(preimage),
+            sobol_power=int(sobol_power),
+            seed=int(seed),
+            tail_log_tolerance=float(tail_log_tolerance),
         )
 
 

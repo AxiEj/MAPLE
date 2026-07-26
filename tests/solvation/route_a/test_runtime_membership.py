@@ -121,6 +121,15 @@ def test_soft_occupancy_supports_batches_and_preserves_normalization():
     assert weights[0] == pytest.approx([0.0, 0.5, 0.5, 0.0])
 
 
+def test_active_support_may_cover_every_possible_occupancy():
+    weights = soft_occupancy_weights(
+        np.asarray([0.25]),
+        active_occupancy_max=1,
+    )
+
+    assert weights == pytest.approx([0.75, 0.25, 0.0])
+
+
 @pytest.mark.parametrize(
     "memberships",
     [

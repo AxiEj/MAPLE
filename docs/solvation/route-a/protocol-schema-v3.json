@@ -96,7 +96,10 @@
         "membership_surface_identity": "boundary-independent nearest atom-sphere surface hash",
         "boundary_adapters": "distinct hash-bound periodic minimum-image and nonperiodic cluster adapters",
         "occupancy_support": "preregistered n=0..nmax plus aggregate n>nmax tail bin",
-        "simplex_reconstruction_bin_preregistered": true
+        "simplex_reconstruction_bin_preregistered": true,
+        "active_occupancy_max_minimum": 1,
+        "active_support_must_include_n0_and_n1": true,
+        "full_support_zero_tail_allowed": true
       }
     },
     "packing": {
@@ -115,7 +118,9 @@
         "runtime_identity_checks": [
           "water Hamiltonian provider hash",
           "oxygen atom map hash",
-          "periodic cell hash"
+          "periodic cell hash",
+          "periodic boundary adapter hash",
+          "active occupancy support"
         ]
       }
     },
@@ -158,6 +163,9 @@
         "packing_reference_occupancy_same_dataset_bridge_required": true,
         "joint_covariance_vector": "[p_active,p_tail,x_active,x_tail,A_active,g_active]",
         "shared_bootstrap_replicate_evidence_required": true,
+        "shared_bootstrap_canonical_column_order_required": true,
+        "nonzero_cross_block_covariance_propagation_required": true,
+        "finite_oracle_boundary_adapter_derived_and_source_bound": true,
         "bulk_water_numerical_stress_sizes": [
           64,
           128,
@@ -179,9 +187,9 @@
     },
     "validation_gates": {
       "const": {
-        "analytic": "complementarity, forces, active-support plus tail normalization, PyMBAR Theta covariance identity, Nwater=64/128/256/512 stability",
+        "analytic": "complementarity, forces, nmax>=1 production support, full-support zero tail, active-support plus tail normalization, PyMBAR Theta covariance identity, Nwater=64/128/256/512 stability",
         "packing_statistics": "overlap, ESS, BAR-MBAR, per-state uncertainty, half-trajectory stability, estimator equivalence, and hash-bound equality with reference occupancy",
-        "thermodynamic_closure": "real-ensemble n0, multi-n, p0, x0, every active p(n)/x(n), p/x tail gates, g(n), joint-provenance covariance, Hamiltonian/boundary bridge residual and two independent finite enumeration oracles",
+        "thermodynamic_closure": "real-ensemble n0, multi-n, p0, x0, every active p(n)/x(n), p/x tail gates, g(n), joint-provenance covariance with nonzero cross-block propagation, Hamiltonian/boundary bridge residual and two independent source-bound finite enumeration oracles",
         "replicas": "at least three independent v3 replicas after the packing-water Hamiltonian is frozen",
         "outer": "whole-supermolecule equivalence with zero warnings and no frame deletion",
         "selection": "all method choices frozen on development data before experimental holdout labels are opened",

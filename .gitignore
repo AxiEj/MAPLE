@@ -180,6 +180,7 @@ examples/md/**/*.xyz
 /docs/
 !docs/
 docs/*
+!docs/route3-cluster-continuum.md
 !docs/solvation/
 docs/solvation/*
 !docs/solvation/route-a/

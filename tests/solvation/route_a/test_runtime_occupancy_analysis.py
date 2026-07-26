@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -30,6 +31,7 @@ def _contract(
         sampling_measure_id=sampling_measure_id,
         membership_definition_hash="1" * 64,
         observation_volume_hash="2" * 64,
+        boundary_adapter_hash="7" * 64,
         solute_measure_hash="3" * 64,
         water_hamiltonian_hash="4" * 64,
         system_hamiltonian_hash="5" * 64,
@@ -197,6 +199,7 @@ def test_distribution_rejects_covariance_that_violates_simplex_nullspace():
             covariance_of_mean=np.eye(3) * 0.01,
             membership_definition_hash="1" * 64,
             observation_volume_hash="2" * 64,
+            boundary_adapter_hash="7" * 64,
             solute_measure_hash="3" * 64,
             water_hamiltonian_hash="4" * 64,
             system_hamiltonian_hash="5" * 64,
@@ -205,6 +208,45 @@ def test_distribution_rejects_covariance_that_violates_simplex_nullspace():
             source_artifact_hash="6" * 64,
             estimator="test",
         )
+
+
+def test_distribution_rejects_public_exact_enumeration_claim():
+    with pytest.raises(ValueError, match="internal finite-system oracle"):
+        SoftOccupancyDistribution.create(
+            ensemble_role="reference-product",
+            probabilities=np.asarray([0.4, 0.6]),
+            tail_probability=0.0,
+            covariance_of_mean=np.zeros((3, 3)),
+            membership_definition_hash="1" * 64,
+            observation_volume_hash="2" * 64,
+            boundary_adapter_hash="7" * 64,
+            solute_measure_hash="3" * 64,
+            water_hamiltonian_hash="4" * 64,
+            system_hamiltonian_hash="5" * 64,
+            temperature_k=298.15,
+            boundary_conditions="periodic-3d",
+            source_artifact_hash="6" * 64,
+            estimator="exact finite-state enumeration",
+        )
+
+
+def test_validated_occupancy_artifacts_cannot_be_replaced():
+    estimate = estimate_soft_occupancy(
+        SoftOccupancyAnalysisInput.create(
+            table=_table(),
+            contract=_contract(),
+            occupancy_weights=np.tile([0.25, 0.5, 0.25], (240, 1)),
+        )
+    )
+
+    with pytest.raises(ValueError, match="validated factory"):
+        replace(
+            estimate.distribution,
+            estimator="exact finite-state enumeration",
+            provenance_role="finite-state-oracle",
+        )
+    with pytest.raises(ValueError, match="soft-occupancy estimator"):
+        replace(estimate, normalization_error=0.5)
 
 
 @pytest.mark.parametrize("molecule_count", [64, 128, 256, 512])

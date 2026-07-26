@@ -213,11 +213,11 @@ def soft_occupancy_weights(
         if (
             isinstance(active_occupancy_max, (bool, np.bool_))
             or int(active_occupancy_max) != active_occupancy_max
-            or not 0 <= int(active_occupancy_max) < molecule_count
+            or not 0 <= int(active_occupancy_max) <= molecule_count
         ):
             raise ValueError(
                 "active_occupancy_max must be an integer in "
-                "[0, solvent_molecule_count)."
+                "[0, solvent_molecule_count]."
             )
         active_max = int(active_occupancy_max)
         # Last entry is the aggregate n > active_max tail. Once probability

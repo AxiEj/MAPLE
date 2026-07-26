@@ -5,7 +5,10 @@ import pytest
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
-from maple.function.dispatcher.solvfe.membership import SoftCutoffMembership
+from maple.function.dispatcher.solvfe.membership import (
+    SoftCutoffMembership,
+    soft_occupancy_weights,
+)
 from maple.function.dispatcher.solvfe.packing_conditioning import (
     GeometryConditionedCavity,
     ProductMeasurePackingCalculator,
@@ -86,6 +89,7 @@ def _cavity(
     *,
     solute_indices: tuple[int, ...] = (0,),
     membership: SoftCutoffMembership | None = None,
+    active_occupancy_max: int = 1,
 ) -> GeometryConditionedCavity:
     return GeometryConditionedCavity(
         solute_indices=solute_indices,
@@ -94,6 +98,7 @@ def _cavity(
         conditioning_measure_id="vacuum-solute-times-pure-water-v3",
         solute_measure_hash="2" * 64,
         solute_atom_map_hash="6" * 64,
+        active_occupancy_max=active_occupancy_max,
     )
 
 
@@ -112,6 +117,7 @@ def _schedule(
         full_field_state_index=1,
         membership_definition_hash=cavity.membership_definition_hash,
         observation_volume_hash=cavity.observation_volume_hash,
+        boundary_adapter_hash=cavity.boundary_adapter_hash,
         conditioning_measure_id=cavity.conditioning_measure_id,
         solute_measure_hash=cavity.solute_measure_hash,
         water_hamiltonian_hash="3" * 64,
@@ -124,6 +130,7 @@ def _schedule(
             np.eye(3) * cell_length_angstrom,
             np.ones(3, dtype=bool),
         ),
+        active_occupancy_max=cavity.active_occupancy_max,
         temperature_k=cavity.temperature_k,
         ensemble="NVT",
         pressure_bar=None,
@@ -155,7 +162,7 @@ def test_geometry_conditioned_cavity_uses_complementary_soft_empty_field():
     assert evaluation.hard_empty is False
     assert evaluation.memberships == pytest.approx([0.5])
     assert evaluation.nonmemberships == pytest.approx([0.5])
-    assert evaluation.soft_occupancy_weights == pytest.approx([0.5, 0.5])
+    assert evaluation.soft_occupancy_weights == pytest.approx([0.5, 0.5, 0.0])
     assert evaluation.log_empty_weight == pytest.approx(-np.log(2.0))
     assert evaluation.energy_ev == pytest.approx(
         expected.empty_potential_ev[0]
@@ -171,6 +178,36 @@ def test_geometry_conditioned_cavity_uses_complementary_soft_empty_field():
     assert evaluation.forces_ev_per_angstrom[1, 0] == pytest.approx(
         -expected.empty_derivative_ev_per_angstrom[0]
     )
+
+
+def test_geometry_conditioned_cavity_uses_preregistered_active_support():
+    atoms = Atoms(
+        "COOO",
+        positions=[
+            [0.0, 0.0, 0.0],
+            [2.3, 0.0, 0.0],
+            [2.7, 0.0, 0.0],
+            [3.1, 0.0, 0.0],
+        ],
+        cell=np.eye(3) * 20.0,
+        pbc=True,
+    )
+    cavity = _cavity(active_occupancy_max=1)
+    evaluation = cavity.evaluate(atoms, oxygen_indices=(1, 2, 3))
+
+    assert evaluation.soft_occupancy_weights.shape == (3,)
+    assert evaluation.soft_occupancy_weights == pytest.approx(
+        soft_occupancy_weights(
+            evaluation.memberships,
+            active_occupancy_max=1,
+        )
+    )
+    assert np.sum(evaluation.soft_occupancy_weights) == pytest.approx(1.0)
+
+
+def test_geometry_conditioned_cavity_rejects_packing_only_n0_support():
+    with pytest.raises(ValueError, match="include n=0 and at least n=1"):
+        _cavity(active_occupancy_max=0)
 
 
 @pytest.mark.parametrize("atom_index", [0, 1])

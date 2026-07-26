@@ -41,12 +41,14 @@ class PackingSchedule:
     full_field_state_index: int
     membership_definition_hash: str
     observation_volume_hash: str
+    boundary_adapter_hash: str
     conditioning_measure_id: str
     solute_measure_hash: str
     water_hamiltonian_hash: str
     oxygen_atom_map_hash: str
     solute_atom_map_hash: str
     cell_hash: str
+    active_occupancy_max: int
     temperature_k: float
     ensemble: str
     pressure_bar: float | None
@@ -111,6 +113,7 @@ class PackingSchedule:
         for name in (
             "membership_definition_hash",
             "observation_volume_hash",
+            "boundary_adapter_hash",
             "solute_measure_hash",
             "water_hamiltonian_hash",
             "oxygen_atom_map_hash",
@@ -120,6 +123,14 @@ class PackingSchedule:
             value = getattr(self, name)
             if not isinstance(value, str) or not _SHA256_RE.fullmatch(value):
                 raise ValueError(f"{name} must be a lowercase SHA-256 hash.")
+        if (
+            isinstance(self.active_occupancy_max, (bool, np.bool_))
+            or int(self.active_occupancy_max) != self.active_occupancy_max
+            or int(self.active_occupancy_max) < 1
+        ):
+            raise ValueError(
+                "active_occupancy_max must include n=0 and at least n=1."
+            )
         if (
             not isinstance(self.conditioning_measure_id, str)
             or not self.conditioning_measure_id
@@ -133,19 +144,12 @@ class PackingSchedule:
             or float(self.temperature_k) <= 0.0
         ):
             raise ValueError("temperature_k must be finite and positive.")
-        if self.ensemble not in {"NVT", "NPT"}:
-            raise ValueError("Packing ensemble must be NVT or NPT.")
-        if self.ensemble == "NPT":
-            if (
-                self.pressure_bar is None
-                or isinstance(self.pressure_bar, (bool, np.bool_))
-                or not math.isfinite(float(self.pressure_bar))
-                or float(self.pressure_bar) <= 0.0
-            ):
-                raise ValueError(
-                    "NPT packing schedules require a finite positive pressure_bar."
-                )
-        elif self.pressure_bar is not None:
+        if self.ensemble != "NVT":
+            raise ValueError(
+                "Packing production schedules currently require NVT; "
+                "NPT cell-ensemble identity and stress are not implemented."
+            )
+        if self.pressure_bar is not None:
             raise ValueError(
                 "NVT packing schedules must set pressure_bar to null."
             )
@@ -157,6 +161,11 @@ class PackingSchedule:
         object.__setattr__(self, "states", states)
         object.__setattr__(self, "target_state_index", target_index)
         object.__setattr__(self, "full_field_state_index", full_index)
+        object.__setattr__(
+            self,
+            "active_occupancy_max",
+            int(self.active_occupancy_max),
+        )
 
     @staticmethod
     def _validate_state_index(
@@ -204,12 +213,14 @@ class PackingSchedule:
                     self.membership_definition_hash
                 ),
                 "observation_volume_hash": self.observation_volume_hash,
+                "boundary_adapter_hash": self.boundary_adapter_hash,
                 "conditioning_measure_id": self.conditioning_measure_id,
                 "solute_measure_hash": self.solute_measure_hash,
                 "water_hamiltonian_hash": self.water_hamiltonian_hash,
                 "oxygen_atom_map_hash": self.oxygen_atom_map_hash,
                 "solute_atom_map_hash": self.solute_atom_map_hash,
                 "cell_hash": self.cell_hash,
+                "active_occupancy_max": self.active_occupancy_max,
                 "temperature_k": float(self.temperature_k),
                 "ensemble": self.ensemble,
                 "pressure_bar": (

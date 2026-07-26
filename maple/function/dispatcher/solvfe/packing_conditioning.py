@@ -113,6 +113,7 @@ class GeometryConditionedCavity:
     conditioning_measure_id: str
     solute_measure_hash: str
     solute_atom_map_hash: str
+    active_occupancy_max: int
 
     def __post_init__(self) -> None:
         solute_indices = _indices(
@@ -140,7 +141,20 @@ class GeometryConditionedCavity:
             value = getattr(self, name)
             if not isinstance(value, str) or not _SHA256_RE.fullmatch(value):
                 raise ValueError(f"{name} must be a lowercase SHA-256 hash.")
+        if (
+            isinstance(self.active_occupancy_max, (bool, np.bool_))
+            or int(self.active_occupancy_max) != self.active_occupancy_max
+            or int(self.active_occupancy_max) < 1
+        ):
+            raise ValueError(
+                "active_occupancy_max must include n=0 and at least n=1."
+            )
         object.__setattr__(self, "solute_indices", solute_indices)
+        object.__setattr__(
+            self,
+            "active_occupancy_max",
+            int(self.active_occupancy_max),
+        )
 
     @property
     def membership_definition_hash(self) -> str:
@@ -180,6 +194,7 @@ class GeometryConditionedCavity:
                 "boundary_adapter_hash": self.boundary_adapter_hash,
                 "conditioning_measure_id": self.conditioning_measure_id,
                 "temperature_k": float(self.temperature_k),
+                "active_occupancy_max": self.active_occupancy_max,
                 "potential": "sum_j[-kT ln(1-b_j)]",
             }
         )
@@ -237,6 +252,11 @@ class GeometryConditionedCavity:
             raise ValueError(
                 "oxygen_indices must identify oxygen atoms."
             )
+        if self.active_occupancy_max > len(oxygen_indices):
+            raise ValueError(
+                "active_occupancy_max cannot exceed the number of periodic "
+                "solvent molecules."
+            )
 
         solute_positions = np.asarray(
             atoms.positions[list(self.solute_indices)],
@@ -282,7 +302,10 @@ class GeometryConditionedCavity:
 
         energy = float(np.sum(fields.empty_potential_ev))
         log_empty_weight = -energy / (kB * float(self.temperature_k))
-        occupancy = soft_occupancy_weights(fields.membership)
+        occupancy = soft_occupancy_weights(
+            fields.membership,
+            active_occupancy_max=self.active_occupancy_max,
+        )
         forces.setflags(write=False)
         return SoftCavityEvaluation(
             energy_ev=energy,
@@ -361,6 +384,11 @@ class ProductMeasurePackingCalculator(Calculator):
                 cavity.observation_volume_hash,
             ),
             (
+                "boundary-adapter",
+                schedule.boundary_adapter_hash,
+                cavity.boundary_adapter_hash,
+            ),
+            (
                 "solute-measure",
                 schedule.solute_measure_hash,
                 cavity.solute_measure_hash,
@@ -369,6 +397,11 @@ class ProductMeasurePackingCalculator(Calculator):
                 "solute-atom-map",
                 schedule.solute_atom_map_hash,
                 cavity.solute_atom_map_hash,
+            ),
+            (
+                "active-occupancy-max",
+                schedule.active_occupancy_max,
+                cavity.active_occupancy_max,
             ),
         )
         for label, scheduled, observed in expected_pairs:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 from types import MappingProxyType
 from typing import Any, Mapping
 
@@ -14,8 +14,13 @@ from .association_conditioning import SoftEffectiveVolumeEstimate
 from .occupancy_analysis import (
     SoftOccupancyAnalysisInput,
     SoftOccupancyDistribution,
+    SoftOccupancyEstimate,
 )
-from .packing_analysis import PackingAnalysisInput
+from .packing_analysis import (
+    PackingAnalysisInput,
+    SoftPackingEstimate,
+    soft_packing_result_hash,
+)
 from .protocol import canonical_sha256
 
 
@@ -23,6 +28,7 @@ _R_KCAL_PER_MOL_K = 0.001987204258640831
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _MATRIX_TOLERANCE = 1.0e-10
 _EXACT_PROFILE_TOKEN = object()
+_QCT_ARTIFACT_TOKEN = object()
 
 
 def _array_sha256(values: np.ndarray) -> str:
@@ -69,6 +75,17 @@ def _validate_covariance(
     return immutable
 
 
+def _qct_variable_labels(count: int) -> tuple[str, ...]:
+    return tuple(
+        [f"p[{n}]" for n in range(count)]
+        + [f"p[n>={count}]"]
+        + [f"x[{n}]" for n in range(count)]
+        + [f"x[n>={count}]"]
+        + [f"A[{n}]_kcal_mol" for n in range(count)]
+        + [f"g[{n}]_kcal_mol" for n in range(count)]
+    )
+
+
 @dataclass(frozen=True)
 class ConditionedQCTProfile:
     """The v3 conditioned row free energies ``A_n`` and their covariance.
@@ -87,6 +104,8 @@ class ConditionedQCTProfile:
     covariance_of_mean: np.ndarray
     membership_definition_hash: str
     observation_volume_hash: str
+    periodic_boundary_adapter_hash: str
+    boundary_measure_bridge_hash: str | None
     solute_measure_hash: str
     water_hamiltonian_hash: str
     reference_hamiltonian_hash: str
@@ -98,6 +117,14 @@ class ConditionedQCTProfile:
     estimator: str
     approximation_role: str
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _QCT_ARTIFACT_TOKEN:
+            raise ValueError(
+                "ConditionedQCTProfile must be constructed by its "
+                "validated factory."
+            )
 
     @classmethod
     def create(
@@ -107,6 +134,8 @@ class ConditionedQCTProfile:
         covariance_of_mean: np.ndarray,
         membership_definition_hash: str,
         observation_volume_hash: str,
+        periodic_boundary_adapter_hash: str,
+        boundary_measure_bridge_hash: str | None,
         solute_measure_hash: str,
         water_hamiltonian_hash: str,
         reference_hamiltonian_hash: str,
@@ -137,6 +166,7 @@ class ConditionedQCTProfile:
         for name in (
             "membership_definition_hash",
             "observation_volume_hash",
+            "periodic_boundary_adapter_hash",
             "solute_measure_hash",
             "water_hamiltonian_hash",
             "reference_hamiltonian_hash",
@@ -145,6 +175,11 @@ class ConditionedQCTProfile:
             "source_artifact_hash",
         ):
             _require_hash(locals()[name], name)
+        if boundary_measure_bridge_hash is not None:
+            _require_hash(
+                boundary_measure_bridge_hash,
+                "boundary_measure_bridge_hash",
+            )
         if (
             isinstance(temperature_k, (bool, np.bool_))
             or not math.isfinite(float(temperature_k))
@@ -168,6 +203,22 @@ class ConditionedQCTProfile:
         }:
             raise ValueError(
                 "Unsupported conditioned QCT approximation_role."
+            )
+        if (
+            approximation_role == "maple-cluster-continuum-v3"
+            and boundary_measure_bridge_hash is None
+        ):
+            raise ValueError(
+                "Cluster-continuum profiles require a boundary-measure "
+                "bridge."
+            )
+        if (
+            approximation_role != "maple-cluster-continuum-v3"
+            and boundary_measure_bridge_hash is not None
+        ):
+            raise ValueError(
+                "Periodic profiles cannot claim a nonperiodic boundary "
+                "bridge."
             )
         if (
             approximation_role != "maple-cluster-continuum-v3"
@@ -197,6 +248,12 @@ class ConditionedQCTProfile:
                 "covariance_of_mean_sha256": _array_sha256(covariance),
                 "membership_definition_hash": membership_definition_hash,
                 "observation_volume_hash": observation_volume_hash,
+                "periodic_boundary_adapter_hash": (
+                    periodic_boundary_adapter_hash
+                ),
+                "boundary_measure_bridge_hash": (
+                    boundary_measure_bridge_hash
+                ),
                 "solute_measure_hash": solute_measure_hash,
                 "water_hamiltonian_hash": water_hamiltonian_hash,
                 "reference_hamiltonian_hash": reference_hamiltonian_hash,
@@ -215,6 +272,8 @@ class ConditionedQCTProfile:
             covariance_of_mean=covariance,
             membership_definition_hash=membership_definition_hash,
             observation_volume_hash=observation_volume_hash,
+            periodic_boundary_adapter_hash=periodic_boundary_adapter_hash,
+            boundary_measure_bridge_hash=boundary_measure_bridge_hash,
             solute_measure_hash=solute_measure_hash,
             water_hamiltonian_hash=water_hamiltonian_hash,
             reference_hamiltonian_hash=reference_hamiltonian_hash,
@@ -226,6 +285,7 @@ class ConditionedQCTProfile:
             estimator=estimator,
             approximation_role=approximation_role,
             content_hash=content_hash,
+            _factory_token=_QCT_ARTIFACT_TOKEN,
         )
 
 
@@ -238,6 +298,7 @@ class ConditionalCouplingProfile:
     covariance_of_mean: np.ndarray
     membership_definition_hash: str
     observation_volume_hash: str
+    periodic_boundary_adapter_hash: str
     solute_measure_hash: str
     water_hamiltonian_hash: str
     reference_hamiltonian_hash: str
@@ -246,7 +307,16 @@ class ConditionalCouplingProfile:
     temperature_k: float
     source_artifact_hash: str
     estimator: str
+    provenance_role: str
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _QCT_ARTIFACT_TOKEN:
+            raise ValueError(
+                "ConditionalCouplingProfile must be constructed by its "
+                "validated factory."
+            )
 
     @classmethod
     def create(
@@ -256,6 +326,7 @@ class ConditionalCouplingProfile:
         covariance_of_mean: np.ndarray,
         membership_definition_hash: str,
         observation_volume_hash: str,
+        periodic_boundary_adapter_hash: str,
         solute_measure_hash: str,
         water_hamiltonian_hash: str,
         reference_hamiltonian_hash: str,
@@ -264,6 +335,7 @@ class ConditionalCouplingProfile:
         temperature_k: float,
         source_artifact_hash: str,
         estimator: str,
+        _exact_source_token: object | None = None,
     ) -> "ConditionalCouplingProfile":
         energies = np.asarray(free_energies_kcal_mol, dtype=float)
         if (
@@ -283,6 +355,7 @@ class ConditionalCouplingProfile:
         for name in (
             "membership_definition_hash",
             "observation_volume_hash",
+            "periodic_boundary_adapter_hash",
             "solute_measure_hash",
             "water_hamiltonian_hash",
             "reference_hamiltonian_hash",
@@ -299,6 +372,24 @@ class ConditionalCouplingProfile:
             raise ValueError("temperature_k must be finite and positive.")
         if not isinstance(estimator, str) or not estimator:
             raise ValueError("estimator must be a non-empty string.")
+        exact_estimator = (
+            estimator == "exact finite enumeration of Z_X,n/Z_0,n"
+        )
+        if exact_estimator and _exact_source_token is not _EXACT_PROFILE_TOKEN:
+            raise ValueError(
+                "Exact conditional-coupling provenance is restricted to "
+                "the internal finite-system oracle."
+            )
+        if not exact_estimator and _exact_source_token is not None:
+            raise ValueError(
+                "Exact-source provenance cannot be attached to an empirical "
+                "conditional-coupling estimator."
+            )
+        provenance_role = (
+            "finite-state-oracle"
+            if exact_estimator
+            else "sampled-or-constructed"
+        )
         immutable = np.array(energies, dtype=float, order="C", copy=True)
         immutable.setflags(write=False)
         occupancies = tuple(range(len(immutable)))
@@ -310,6 +401,9 @@ class ConditionalCouplingProfile:
                 "covariance_of_mean_sha256": _array_sha256(covariance),
                 "membership_definition_hash": membership_definition_hash,
                 "observation_volume_hash": observation_volume_hash,
+                "periodic_boundary_adapter_hash": (
+                    periodic_boundary_adapter_hash
+                ),
                 "solute_measure_hash": solute_measure_hash,
                 "water_hamiltonian_hash": water_hamiltonian_hash,
                 "reference_hamiltonian_hash": reference_hamiltonian_hash,
@@ -319,6 +413,7 @@ class ConditionalCouplingProfile:
                 "boundary_conditions": "periodic-3d",
                 "source_artifact_hash": source_artifact_hash,
                 "estimator": estimator,
+                "provenance_role": provenance_role,
             }
         )
         return cls(
@@ -327,6 +422,7 @@ class ConditionalCouplingProfile:
             covariance_of_mean=covariance,
             membership_definition_hash=membership_definition_hash,
             observation_volume_hash=observation_volume_hash,
+            periodic_boundary_adapter_hash=periodic_boundary_adapter_hash,
             solute_measure_hash=solute_measure_hash,
             water_hamiltonian_hash=water_hamiltonian_hash,
             reference_hamiltonian_hash=reference_hamiltonian_hash,
@@ -335,7 +431,9 @@ class ConditionalCouplingProfile:
             temperature_k=float(temperature_k),
             source_artifact_hash=source_artifact_hash,
             estimator=estimator,
+            provenance_role=provenance_role,
             content_hash=content_hash,
+            _factory_token=_QCT_ARTIFACT_TOKEN,
         )
 
 
@@ -345,6 +443,7 @@ def build_periodic_qct_profile(
     conditional_coupling: ConditionalCouplingProfile,
     covariance_of_mean: np.ndarray,
     approximation_role: str,
+    _exact_source_token: object | None = None,
 ) -> ConditionedQCTProfile:
     """Construct ``A_n`` so every nonzero ``p_n`` enters the exact bridge."""
 
@@ -364,6 +463,30 @@ def build_periodic_qct_profile(
             "Periodic conditioned profile role must be exact enumerable or "
             "periodic explicit reference."
         )
+    if approximation_role == "exact-enumerable-bridge":
+        if _exact_source_token is not _EXACT_PROFILE_TOKEN:
+            raise ValueError(
+                "Exact enumerable profiles are restricted to the internal "
+                "finite-state oracle."
+            )
+        if (
+            reference.provenance_role != "finite-state-oracle"
+            or conditional_coupling.provenance_role
+            != "finite-state-oracle"
+            or reference.tail_probability != 0.0
+            or np.any(reference.covariance_of_mean != 0.0)
+            or np.any(conditional_coupling.covariance_of_mean != 0.0)
+            or reference.source_artifact_hash
+            != conditional_coupling.source_artifact_hash
+        ):
+            raise ValueError(
+                "Exact enumerable profiles require matching zero-uncertainty "
+                "finite-oracle artifacts."
+            )
+    elif _exact_source_token is not None:
+        raise ValueError(
+            "Exact-source token is invalid for empirical periodic profiles."
+        )
     if reference.occupancies != conditional_coupling.occupancies:
         raise ValueError("Periodic QCT bridge occupancy supports differ.")
     comparisons = (
@@ -374,6 +497,10 @@ def build_periodic_qct_profile(
         (
             reference.observation_volume_hash,
             conditional_coupling.observation_volume_hash,
+        ),
+        (
+            reference.boundary_adapter_hash,
+            conditional_coupling.periodic_boundary_adapter_hash,
         ),
         (
             reference.solute_measure_hash,
@@ -418,6 +545,8 @@ def build_periodic_qct_profile(
         covariance_of_mean=covariance_of_mean,
         membership_definition_hash=reference.membership_definition_hash,
         observation_volume_hash=reference.observation_volume_hash,
+        periodic_boundary_adapter_hash=reference.boundary_adapter_hash,
+        boundary_measure_bridge_hash=None,
         solute_measure_hash=reference.solute_measure_hash,
         water_hamiltonian_hash=reference.water_hamiltonian_hash,
         reference_hamiltonian_hash=reference.system_hamiltonian_hash,
@@ -438,6 +567,23 @@ def build_periodic_qct_profile(
     )
 
 
+def _build_exact_periodic_qct_profile(
+    *,
+    reference: SoftOccupancyDistribution,
+    conditional_coupling: ConditionalCouplingProfile,
+    covariance_of_mean: np.ndarray,
+) -> ConditionedQCTProfile:
+    """Internal finite-oracle constructor for exact periodic rows."""
+
+    return build_periodic_qct_profile(
+        reference=reference,
+        conditional_coupling=conditional_coupling,
+        covariance_of_mean=covariance_of_mean,
+        approximation_role="exact-enumerable-bridge",
+        _exact_source_token=_EXACT_PROFILE_TOKEN,
+    )
+
+
 @dataclass(frozen=True)
 class BoundaryMeasureBridge:
     """Explicit bridge between one surface and two boundary adapters."""
@@ -445,16 +591,53 @@ class BoundaryMeasureBridge:
     membership_surface_hash: str
     periodic_adapter_hash: str
     nonperiodic_adapter_hash: str
+    reference_distribution_hash: str
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _QCT_ARTIFACT_TOKEN:
+            raise ValueError(
+                "BoundaryMeasureBridge must be constructed by its "
+                "validated factory."
+            )
+        expected = canonical_sha256(
+            {
+                "contract_id": "boundary-measure-bridge-v3",
+                "membership_surface_hash": self.membership_surface_hash,
+                "periodic_adapter_hash": self.periodic_adapter_hash,
+                "nonperiodic_adapter_hash": self.nonperiodic_adapter_hash,
+                "reference_distribution_hash": (
+                    self.reference_distribution_hash
+                ),
+                "scientific_role": (
+                    "shared surface identity with explicit boundary "
+                    "approximation residual"
+                ),
+            }
+        )
+        if self.content_hash != expected:
+            raise ValueError(
+                "BoundaryMeasureBridge content hash does not match its data."
+            )
 
     @classmethod
     def create(
         cls,
         *,
-        membership_surface_hash: str,
-        periodic_adapter_hash: str,
+        reference: SoftOccupancyDistribution,
         nonperiodic_adapter_hash: str,
     ) -> "BoundaryMeasureBridge":
+        if (
+            not isinstance(reference, SoftOccupancyDistribution)
+            or reference.ensemble_role != "reference-product"
+        ):
+            raise ValueError(
+                "Boundary bridge requires a validated reference-product "
+                "occupancy distribution."
+            )
+        membership_surface_hash = reference.observation_volume_hash
+        periodic_adapter_hash = reference.boundary_adapter_hash
         for name in (
             "membership_surface_hash",
             "periodic_adapter_hash",
@@ -471,6 +654,7 @@ class BoundaryMeasureBridge:
                 "membership_surface_hash": membership_surface_hash,
                 "periodic_adapter_hash": periodic_adapter_hash,
                 "nonperiodic_adapter_hash": nonperiodic_adapter_hash,
+                "reference_distribution_hash": reference.content_hash,
                 "scientific_role": (
                     "shared surface identity with explicit boundary "
                     "approximation residual"
@@ -481,7 +665,9 @@ class BoundaryMeasureBridge:
             membership_surface_hash=membership_surface_hash,
             periodic_adapter_hash=periodic_adapter_hash,
             nonperiodic_adapter_hash=nonperiodic_adapter_hash,
+            reference_distribution_hash=reference.content_hash,
             content_hash=content_hash,
+            _factory_token=_QCT_ARTIFACT_TOKEN,
         )
 
 
@@ -492,10 +678,19 @@ class ClusterQCTBuild:
     profile: ConditionedQCTProfile
     rows: tuple[Mapping[str, Any], ...]
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _QCT_ARTIFACT_TOKEN:
+            raise ValueError(
+                "ClusterQCTBuild must be constructed by the labeled-cluster "
+                "builder."
+            )
 
 
 def build_cluster_qct_profile(
     *,
+    reference_distribution: SoftOccupancyDistribution,
     edge_alchemical_free_energies_kcal_mol: np.ndarray,
     effective_volume_estimates: tuple[
         SoftEffectiveVolumeEstimate,
@@ -526,6 +721,14 @@ def build_cluster_qct_profile(
         edge_alchemical_free_energies_kcal_mol,
         dtype=float,
     )
+    if (
+        not isinstance(reference_distribution, SoftOccupancyDistribution)
+        or reference_distribution.ensemble_role != "reference-product"
+    ):
+        raise ValueError(
+            "Cluster QCT construction requires a validated reference-product "
+            "occupancy distribution."
+        )
     if not isinstance(boundary_measure_bridge, BoundaryMeasureBridge):
         raise ValueError(
             "boundary_measure_bridge must be a BoundaryMeasureBridge."
@@ -574,6 +777,35 @@ def build_cluster_qct_profile(
     ):
         raise ValueError(
             "Boundary bridge does not match the cluster membership surface."
+        )
+    if (
+        boundary_measure_bridge.reference_distribution_hash
+        != reference_distribution.content_hash
+        or boundary_measure_bridge.periodic_adapter_hash
+        != reference_distribution.boundary_adapter_hash
+        or reference_distribution.observation_volume_hash
+        != observation_volume_hash
+        or reference_distribution.membership_definition_hash
+        != membership_definition_hash
+        or reference_distribution.solute_measure_hash
+        != solute_measure_hash
+        or reference_distribution.water_hamiltonian_hash
+        != water_hamiltonian_hash
+        or reference_distribution.system_hamiltonian_hash
+        != reference_hamiltonian_hash
+    ):
+        raise ValueError(
+            "Boundary bridge/reference distribution does not match the "
+            "cluster QCT construction."
+        )
+    if not math.isclose(
+        reference_distribution.temperature_k,
+        float(temperature_k),
+        rel_tol=0.0,
+        abs_tol=1.0e-12,
+    ):
+        raise ValueError(
+            "Reference distribution and cluster QCT temperatures differ."
         )
     for artifact in volume_artifacts:
         if (
@@ -672,6 +904,9 @@ def build_cluster_qct_profile(
     source_artifact_hash = canonical_sha256(
         {
             "contract_id": "labeled-cluster-qct-build-v3",
+            "reference_distribution_hash": (
+                reference_distribution.content_hash
+            ),
             "edge_alchemical_sha256": _array_sha256(alchemical),
             "effective_volume_artifact_hashes": [
                 artifact.content_hash for artifact in volume_artifacts
@@ -701,6 +936,10 @@ def build_cluster_qct_profile(
         covariance_of_mean=covariance_of_mean,
         membership_definition_hash=membership_definition_hash,
         observation_volume_hash=observation_volume_hash,
+        periodic_boundary_adapter_hash=(
+            boundary_measure_bridge.periodic_adapter_hash
+        ),
+        boundary_measure_bridge_hash=boundary_measure_bridge.content_hash,
         solute_measure_hash=solute_measure_hash,
         water_hamiltonian_hash=water_hamiltonian_hash,
         reference_hamiltonian_hash=reference_hamiltonian_hash,
@@ -727,6 +966,7 @@ def build_cluster_qct_profile(
         profile=profile,
         rows=tuple(rows),
         content_hash=content_hash,
+        _factory_token=_QCT_ARTIFACT_TOKEN,
     )
 
 
@@ -736,24 +976,77 @@ class PackingOccupancyBridge:
 
     role: str
     reference_distribution_hash: str
+    reference_estimate_hash: str
     reference_analysis_input_hash: str
     packing_analysis_input_hash: str
+    packing_result_hash: str
     reduced_potential_table_hash: str
+    periodic_boundary_adapter_hash: str
     p0_reference: float
     p0_from_free_energy: float
     p0_from_expectation: float
+    agreement_abs_tolerance: float
+    agreement_z_max: float
     maximum_standardized_residual: float
     status: str
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    @staticmethod
+    def _preimage_from_values(values: Mapping[str, Any]) -> dict[str, Any]:
+        return {
+            "contract_id": "packing-occupancy-bridge-v3",
+            "role": values["role"],
+            "reference_distribution_hash": (
+                values["reference_distribution_hash"]
+            ),
+            "reference_estimate_hash": values["reference_estimate_hash"],
+            "reference_analysis_input_hash": (
+                values["reference_analysis_input_hash"]
+            ),
+            "packing_analysis_input_hash": (
+                values["packing_analysis_input_hash"]
+            ),
+            "packing_result_hash": values["packing_result_hash"],
+            "reduced_potential_table_hash": (
+                values["reduced_potential_table_hash"]
+            ),
+            "periodic_boundary_adapter_hash": (
+                values["periodic_boundary_adapter_hash"]
+            ),
+            "p0_reference": values["p0_reference"],
+            "p0_from_free_energy": values["p0_from_free_energy"],
+            "p0_from_expectation": values["p0_from_expectation"],
+            "agreement_abs_tolerance": values["agreement_abs_tolerance"],
+            "agreement_z_max": values["agreement_z_max"],
+            "maximum_standardized_residual": (
+                values["maximum_standardized_residual"]
+            ),
+            "status": values["status"],
+        }
+
+    def _content_preimage(self) -> dict[str, Any]:
+        return self._preimage_from_values(self.__dict__)
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _QCT_ARTIFACT_TOKEN:
+            raise ValueError(
+                "PackingOccupancyBridge must be constructed by its "
+                "validated factory."
+            )
+        if self.content_hash != canonical_sha256(self._content_preimage()):
+            raise ValueError(
+                "PackingOccupancyBridge content hash does not match its data."
+            )
 
     @classmethod
     def create(
         cls,
         *,
         packing_input: PackingAnalysisInput,
-        packing_result: Mapping[str, Any],
+        packing_result: SoftPackingEstimate,
         reference_input: SoftOccupancyAnalysisInput,
-        reference: SoftOccupancyDistribution,
+        reference_estimate: SoftOccupancyEstimate,
         agreement_abs_tolerance: float,
         agreement_z_max: float,
     ) -> "PackingOccupancyBridge":
@@ -763,19 +1056,25 @@ class PackingOccupancyBridge:
             raise ValueError(
                 "reference_input must be a SoftOccupancyAnalysisInput."
             )
-        if not isinstance(reference, SoftOccupancyDistribution):
+        if not isinstance(reference_estimate, SoftOccupancyEstimate):
             raise ValueError(
-                "reference must be a SoftOccupancyDistribution."
+                "reference_estimate must be a SoftOccupancyEstimate."
             )
+        reference = reference_estimate.distribution
         if reference.ensemble_role != "reference-product":
             raise ValueError("Packing bridge requires reference-product p(n).")
-        if reference.source_artifact_hash != reference_input.content_hash:
+        if (
+            reference.source_artifact_hash != reference_input.content_hash
+            or reference_estimate.analysis_input_hash
+            != reference_input.content_hash
+        ):
             raise ValueError(
-                "Reference distribution does not belong to reference_input."
+                "Reference estimate does not belong to reference_input."
             )
         if (
-            not isinstance(packing_result, Mapping)
+            not isinstance(packing_result, SoftPackingEstimate)
             or packing_result.get("status") != "passed"
+            or packing_result.analysis_input_hash != packing_input.content_hash
             or packing_result.get("packing_analysis_input_sha256")
             != packing_input.content_hash
             or packing_result.get("reduced_potential_table_sha256")
@@ -784,10 +1083,15 @@ class PackingOccupancyBridge:
             raise ValueError(
                 "Packing bridge requires one passed, hash-bound packing result."
             )
-        _require_hash(
-            packing_result.get("packing_result_sha256"),
-            "packing_result_sha256",
-        )
+        if (
+            packing_result.content_hash
+            != soft_packing_result_hash(packing_result)
+            or packing_result["packing_result_sha256"]
+            != packing_result.content_hash
+        ):
+            raise ValueError(
+                "Packing result content hash does not match its data."
+            )
         if packing_input.table.state_hash != reference_input.table.state_hash:
             raise ValueError(
                 "Packing and reference occupancy must share the exact reduced-"
@@ -814,6 +1118,11 @@ class PackingOccupancyBridge:
                 contract.observation_volume_hash,
             ),
             (
+                "boundary adapter",
+                schedule.boundary_adapter_hash,
+                contract.boundary_adapter_hash,
+            ),
+            (
                 "solute measure",
                 schedule.solute_measure_hash,
                 contract.solute_measure_hash,
@@ -827,6 +1136,11 @@ class PackingOccupancyBridge:
                 "boundary conditions",
                 schedule.boundary_conditions,
                 contract.boundary_conditions,
+            ),
+            (
+                "active occupancy maximum",
+                schedule.active_occupancy_max,
+                contract.active_occupancy_max,
             ),
         )
         for label, scheduled, observed in comparisons:
@@ -864,70 +1178,64 @@ class PackingOccupancyBridge:
                 raise ValueError(f"{name} must be finite and positive.")
 
         p0_reference = float(reference.probabilities[0])
-        reference_se = math.sqrt(
-            max(float(reference.covariance_of_mean[0, 0]), 0.0)
+        p0_from_free_energy = float(
+            packing_result["p0_from_free_energy"]
         )
-        estimates = (
-            (
-                float(packing_result["p0_from_free_energy"]),
-                float(
-                    packing_result[
-                        "p0_from_free_energy_standard_error"
-                    ]
-                ),
-            ),
-            (
-                float(packing_result["p0_from_reweighted_expectation"]),
-                float(
-                    packing_result[
-                        "p0_reweighted_expectation_standard_error"
-                    ]
-                ),
-            ),
+        p0_from_expectation = float(
+            packing_result["p0_from_reweighted_expectation"]
         )
-        standardized: list[float] = []
-        failed = False
-        for estimate, estimate_se in estimates:
-            combined_se = math.hypot(reference_se, estimate_se)
-            allowed = max(
-                float(agreement_abs_tolerance),
-                float(agreement_z_max) * combined_se,
-            )
-            residual = abs(p0_reference - estimate)
-            failed = failed or residual > allowed
-            standardized.append(
-                residual / combined_se
-                if combined_se > 0.0
-                else (0.0 if residual == 0.0 else math.inf)
-            )
+        free_difference_se = float(
+            packing_result["p0_estimator_difference_standard_error"]
+        )
+        free_allowed = max(
+            float(agreement_abs_tolerance),
+            float(agreement_z_max) * free_difference_se,
+        )
+        free_residual = abs(p0_reference - p0_from_free_energy)
+        expectation_residual = abs(
+            p0_reference - p0_from_expectation
+        )
+        failed = (
+            free_residual > free_allowed
+            or expectation_residual > float(agreement_abs_tolerance)
+        )
+        standardized = (
+            free_residual / free_difference_se
+            if free_difference_se > 0.0
+            else (0.0 if free_residual == 0.0 else math.inf)
+        )
+        numerical_residual = (
+            expectation_residual / float(agreement_abs_tolerance)
+        )
         status = "failed" if failed else "passed"
-        preimage = {
-            "contract_id": "packing-occupancy-bridge-v3",
+        values = {
             "role": "shared-packing-occupancy-analysis",
             "reference_distribution_hash": reference.content_hash,
+            "reference_estimate_hash": reference_estimate.content_hash,
             "reference_analysis_input_hash": reference_input.content_hash,
             "packing_analysis_input_hash": packing_input.content_hash,
+            "packing_result_hash": packing_result.content_hash,
             "reduced_potential_table_hash": packing_input.table.state_hash,
+            "periodic_boundary_adapter_hash": (
+                reference.boundary_adapter_hash
+            ),
             "p0_reference": p0_reference,
-            "p0_from_free_energy": estimates[0][0],
-            "p0_from_expectation": estimates[1][0],
+            "p0_from_free_energy": p0_from_free_energy,
+            "p0_from_expectation": p0_from_expectation,
             "agreement_abs_tolerance": float(agreement_abs_tolerance),
             "agreement_z_max": float(agreement_z_max),
-            "maximum_standardized_residual": max(standardized),
+            "maximum_standardized_residual": max(
+                standardized,
+                numerical_residual,
+            ),
             "status": status,
         }
         return cls(
-            role="shared-packing-occupancy-analysis",
-            reference_distribution_hash=reference.content_hash,
-            reference_analysis_input_hash=reference_input.content_hash,
-            packing_analysis_input_hash=packing_input.content_hash,
-            reduced_potential_table_hash=packing_input.table.state_hash,
-            p0_reference=p0_reference,
-            p0_from_free_energy=estimates[0][0],
-            p0_from_expectation=estimates[1][0],
-            maximum_standardized_residual=max(standardized),
-            status=status,
-            content_hash=canonical_sha256(preimage),
+            **values,
+            content_hash=canonical_sha256(
+                cls._preimage_from_values(values)
+            ),
+            _factory_token=_QCT_ARTIFACT_TOKEN,
         )
 
     @classmethod
@@ -939,31 +1247,49 @@ class PackingOccupancyBridge:
             raise ValueError(
                 "reference must be a SoftOccupancyDistribution."
             )
-        if reference.estimator != "exact finite-state enumeration":
+        if reference.provenance_role != "finite-state-oracle":
             raise ValueError(
                 "Exact packing evidence is restricted to the finite-state "
                 "enumerator."
             )
+        if (
+            reference.tail_probability != 0.0
+            or np.any(reference.covariance_of_mean != 0.0)
+        ):
+            raise ValueError(
+                "Exact packing evidence requires zero tail and zero "
+                "sampling covariance."
+            )
         p0 = float(reference.probabilities[0])
-        preimage = {
-            "contract_id": "packing-occupancy-bridge-v3",
+        values = {
             "role": "exact-enumeration",
             "reference_distribution_hash": reference.content_hash,
-            "p0": p0,
+            "reference_estimate_hash": reference.source_artifact_hash,
+            "reference_analysis_input_hash": (
+                reference.source_artifact_hash
+            ),
+            "packing_analysis_input_hash": reference.source_artifact_hash,
+            "packing_result_hash": reference.source_artifact_hash,
+            "reduced_potential_table_hash": (
+                reference.source_artifact_hash
+            ),
+            "periodic_boundary_adapter_hash": (
+                reference.boundary_adapter_hash
+            ),
+            "p0_reference": p0,
+            "p0_from_free_energy": p0,
+            "p0_from_expectation": p0,
+            "agreement_abs_tolerance": 0.0,
+            "agreement_z_max": 0.0,
+            "maximum_standardized_residual": 0.0,
             "status": "passed",
         }
         return cls(
-            role="exact-enumeration",
-            reference_distribution_hash=reference.content_hash,
-            reference_analysis_input_hash=reference.source_artifact_hash,
-            packing_analysis_input_hash=reference.source_artifact_hash,
-            reduced_potential_table_hash=reference.source_artifact_hash,
-            p0_reference=p0,
-            p0_from_free_energy=p0,
-            p0_from_expectation=p0,
-            maximum_standardized_residual=0.0,
-            status="passed",
-            content_hash=canonical_sha256(preimage),
+            **values,
+            content_hash=canonical_sha256(
+                cls._preimage_from_values(values)
+            ),
+            _factory_token=_QCT_ARTIFACT_TOKEN,
         )
 
 
@@ -973,30 +1299,153 @@ class QCTBootstrapEvidence:
 
     replicate_values: np.ndarray
     covariance: np.ndarray
+    variable_labels: tuple[str, ...]
+    reference_distribution_hash: str
+    coupled_distribution_hash: str
+    conditioned_profile_hash: str
+    conditional_coupling_profile_hash: str
     provenance_graph_hash: str
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    @staticmethod
+    def _content_hash_from_values(
+        *,
+        replicate_values: np.ndarray,
+        covariance: np.ndarray,
+        variable_labels: tuple[str, ...],
+        reference_distribution_hash: str,
+        coupled_distribution_hash: str,
+        conditioned_profile_hash: str,
+        conditional_coupling_profile_hash: str,
+        provenance_graph_hash: str,
+    ) -> str:
+        return canonical_sha256(
+            {
+                "contract_id": "qct-bootstrap-evidence-v3",
+                "replicate_values_sha256": _array_sha256(
+                    replicate_values
+                ),
+                "covariance_sha256": _array_sha256(covariance),
+                "variable_labels": list(variable_labels),
+                "reference_distribution_hash": (
+                    reference_distribution_hash
+                ),
+                "coupled_distribution_hash": (
+                    coupled_distribution_hash
+                ),
+                "conditioned_profile_hash": conditioned_profile_hash,
+                "conditional_coupling_profile_hash": (
+                    conditional_coupling_profile_hash
+                ),
+                "provenance_graph_hash": provenance_graph_hash,
+            }
+        )
+
+    def _expected_content_hash(self, covariance: np.ndarray) -> str:
+        return self._content_hash_from_values(
+            replicate_values=self.replicate_values,
+            covariance=covariance,
+            variable_labels=self.variable_labels,
+            reference_distribution_hash=self.reference_distribution_hash,
+            coupled_distribution_hash=self.coupled_distribution_hash,
+            conditioned_profile_hash=self.conditioned_profile_hash,
+            conditional_coupling_profile_hash=(
+                self.conditional_coupling_profile_hash
+            ),
+            provenance_graph_hash=self.provenance_graph_hash,
+        )
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _QCT_ARTIFACT_TOKEN:
+            raise ValueError(
+                "QCTBootstrapEvidence must be constructed by its "
+                "validated factory."
+            )
+        if (
+            self.replicate_values.ndim != 2
+            or self.replicate_values.shape[0] < 2
+            or self.replicate_values.shape[1] != len(self.variable_labels)
+            or not np.all(np.isfinite(self.replicate_values))
+            or len(set(self.variable_labels)) != len(self.variable_labels)
+            or any(
+                not isinstance(label, str) or not label
+                for label in self.variable_labels
+            )
+        ):
+            raise ValueError(
+                "QCTBootstrapEvidence requires finite replicate vectors "
+                "with one uniquely labeled column per QCT variable."
+            )
+        for name in (
+            "reference_distribution_hash",
+            "coupled_distribution_hash",
+            "conditioned_profile_hash",
+            "conditional_coupling_profile_hash",
+            "provenance_graph_hash",
+        ):
+            _require_hash(getattr(self, name), name)
+        expected_covariance = np.atleast_2d(
+            np.cov(self.replicate_values, rowvar=False, ddof=1)
+        )
+        if (
+            self.covariance.shape != expected_covariance.shape
+            or not np.allclose(
+                self.covariance,
+                expected_covariance,
+                rtol=0.0,
+                atol=1.0e-12,
+            )
+            or self.content_hash
+            != self._expected_content_hash(expected_covariance)
+        ):
+            raise ValueError(
+                "QCTBootstrapEvidence does not match its replicate data."
+            )
 
     @classmethod
     def create(
         cls,
         *,
-        replicate_values: np.ndarray,
+        replicate_columns: Mapping[str, np.ndarray],
+        reference: SoftOccupancyDistribution,
+        coupled: SoftOccupancyDistribution,
+        profile: ConditionedQCTProfile,
+        conditional_coupling: ConditionalCouplingProfile,
         provenance_graph_hash: str,
     ) -> "QCTBootstrapEvidence":
-        values = np.asarray(replicate_values, dtype=float)
+        _validate_ledger_compatibility(
+            reference,
+            coupled,
+            profile,
+            conditional_coupling,
+        )
+        labels = _qct_variable_labels(len(profile.occupancies))
         if (
-            values.ndim != 2
-            or values.shape[0] < 2
-            or values.shape[1] < 1
-            or not np.all(np.isfinite(values))
+            not isinstance(replicate_columns, Mapping)
+            or set(replicate_columns) != set(labels)
+        ):
+            raise ValueError(
+                "QCT bootstrap evidence columns must exactly match the "
+                "canonical ledger variable labels."
+            )
+        columns = tuple(
+            np.asarray(replicate_columns[label], dtype=float)
+            for label in labels
+        )
+        if (
+            any(column.ndim != 1 for column in columns)
+            or len({len(column) for column in columns}) != 1
+            or len(columns[0]) < 2
+            or any(not np.all(np.isfinite(column)) for column in columns)
         ):
             raise ValueError(
                 "QCT bootstrap evidence requires at least two finite "
-                "replicate vectors."
+                "replicate values for every canonical ledger variable."
             )
         _require_hash(provenance_graph_hash, "provenance_graph_hash")
         immutable_values = np.array(
-            values,
+            np.column_stack(columns),
             dtype=float,
             order="C",
             copy=True,
@@ -1006,19 +1455,31 @@ class QCTBootstrapEvidence:
         )
         immutable_values.setflags(write=False)
         covariance.setflags(write=False)
-        content_hash = canonical_sha256(
-            {
-                "contract_id": "qct-bootstrap-evidence-v3",
-                "replicate_values_sha256": _array_sha256(immutable_values),
-                "covariance_sha256": _array_sha256(covariance),
-                "provenance_graph_hash": provenance_graph_hash,
-            }
+        reference_hash = reference.content_hash
+        coupled_hash = coupled.content_hash
+        profile_hash = profile.content_hash
+        conditional_hash = conditional_coupling.content_hash
+        content_hash = cls._content_hash_from_values(
+            replicate_values=immutable_values,
+            covariance=covariance,
+            variable_labels=labels,
+            reference_distribution_hash=reference_hash,
+            coupled_distribution_hash=coupled_hash,
+            conditioned_profile_hash=profile_hash,
+            conditional_coupling_profile_hash=conditional_hash,
+            provenance_graph_hash=provenance_graph_hash,
         )
         return cls(
             replicate_values=immutable_values,
             covariance=covariance,
+            variable_labels=labels,
+            reference_distribution_hash=reference_hash,
+            coupled_distribution_hash=coupled_hash,
+            conditioned_profile_hash=profile_hash,
+            conditional_coupling_profile_hash=conditional_hash,
             provenance_graph_hash=provenance_graph_hash,
             content_hash=content_hash,
+            _factory_token=_QCT_ARTIFACT_TOKEN,
         )
 
 
@@ -1035,6 +1496,39 @@ class QCTJointCovariance:
     relation: str
     evidence_hash: str
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    def _expected_content_hash(self) -> str:
+        return canonical_sha256(
+            {
+                "contract_id": "qct-joint-covariance-v3",
+                "matrix_sha256": _array_sha256(self.matrix),
+                "variable_labels": list(self.variable_labels),
+                "reference_distribution_hash": (
+                    self.reference_distribution_hash
+                ),
+                "coupled_distribution_hash": (
+                    self.coupled_distribution_hash
+                ),
+                "conditioned_profile_hash": self.conditioned_profile_hash,
+                "conditional_coupling_profile_hash": (
+                    self.conditional_coupling_profile_hash
+                ),
+                "relation": self.relation,
+                "evidence_hash": self.evidence_hash,
+            }
+        )
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _QCT_ARTIFACT_TOKEN:
+            raise ValueError(
+                "QCTJointCovariance must be constructed by its validated "
+                "factory."
+            )
+        if self.content_hash != self._expected_content_hash():
+            raise ValueError(
+                "QCTJointCovariance content hash does not match its data."
+            )
 
     @classmethod
     def create(
@@ -1058,6 +1552,7 @@ class QCTJointCovariance:
         count = len(profile.occupancies)
         probability_count = count + 1
         total_count = 4 * count + 2
+        labels = _qct_variable_labels(count)
         proposed = np.asarray(matrix, dtype=float)
         if (
             proposed.shape != (total_count, total_count)
@@ -1083,6 +1578,18 @@ class QCTJointCovariance:
             if (
                 not isinstance(bootstrap_evidence, QCTBootstrapEvidence)
                 or evidence_hash != bootstrap_evidence.content_hash
+                or bootstrap_evidence.variable_labels != labels
+                or bootstrap_evidence.reference_distribution_hash
+                != reference.content_hash
+                or bootstrap_evidence.coupled_distribution_hash
+                != coupled.content_hash
+                or bootstrap_evidence.conditioned_profile_hash
+                != profile.content_hash
+                or bootstrap_evidence.conditional_coupling_profile_hash
+                != conditional_coupling.content_hash
+                or bootstrap_evidence.replicate_values.shape[1]
+                != total_count
+                or bootstrap_evidence.covariance.shape != proposed.shape
                 or not np.allclose(
                     proposed,
                     bootstrap_evidence.covariance,
@@ -1138,6 +1645,26 @@ class QCTJointCovariance:
                     "Independent block-diagonal covariance contains "
                     "cross-block terms."
                 )
+        elif relation == "exact-enumeration":
+            exact_source_hashes = {
+                reference.source_artifact_hash,
+                coupled.source_artifact_hash,
+                conditional_coupling.source_artifact_hash,
+                evidence_hash,
+            }
+            if (
+                reference.provenance_role != "finite-state-oracle"
+                or coupled.provenance_role != "finite-state-oracle"
+                or conditional_coupling.provenance_role
+                != "finite-state-oracle"
+                or profile.approximation_role
+                != "exact-enumerable-bridge"
+                or len(exact_source_hashes) != 1
+            ):
+                raise ValueError(
+                    "Exact-enumeration covariance requires one matching "
+                    "finite-oracle provenance artifact."
+                )
         reference_null = np.zeros(total_count)
         reference_null[:probability_count] = 1.0
         coupled_null = np.zeros(total_count)
@@ -1154,20 +1681,19 @@ class QCTJointCovariance:
                 "QCT joint covariance violates an occupancy normalization "
                 "nullspace."
             )
+        if (
+            relation == "exact-enumeration"
+            and np.max(np.abs(proposed)) > _MATRIX_TOLERANCE
+        ):
+            raise ValueError(
+                "Exact-enumeration covariance requires zero uncertainty."
+            )
         covariance = _validate_covariance(
             proposed,
             size=total_count,
             name="QCT joint covariance",
         )
 
-        labels = tuple(
-            [f"p[{n}]" for n in range(count)]
-            + [f"p[n>={count}]"]
-            + [f"x[{n}]" for n in range(count)]
-            + [f"x[n>={count}]"]
-            + [f"A[{n}]_kcal_mol" for n in range(count)]
-            + [f"g[{n}]_kcal_mol" for n in range(count)]
-        )
         content_hash = canonical_sha256(
             {
                 "contract_id": "qct-joint-covariance-v3",
@@ -1195,6 +1721,7 @@ class QCTJointCovariance:
             relation=relation,
             evidence_hash=evidence_hash,
             content_hash=content_hash,
+            _factory_token=_QCT_ARTIFACT_TOKEN,
         )
 
     @classmethod
@@ -1298,6 +1825,13 @@ def _validate_ledger_compatibility(
             coupled.observation_volume_hash,
             profile.observation_volume_hash,
             conditional_coupling.observation_volume_hash,
+        ),
+        (
+            "periodic boundary adapter",
+            reference.boundary_adapter_hash,
+            coupled.boundary_adapter_hash,
+            profile.periodic_boundary_adapter_hash,
+            conditional_coupling.periodic_boundary_adapter_hash,
         ),
         (
             "solute measure",
@@ -1419,6 +1953,14 @@ def evaluate_soft_qct_ledger(
         )
     if (
         packing_bridge.reference_distribution_hash != reference.content_hash
+        or packing_bridge.periodic_boundary_adapter_hash
+        != reference.boundary_adapter_hash
+        or not math.isclose(
+            packing_bridge.p0_reference,
+            float(reference.probabilities[0]),
+            rel_tol=0.0,
+            abs_tol=1.0e-15,
+        )
         or packing_bridge.status != "passed"
     ):
         raise ValueError(
@@ -1430,10 +1972,14 @@ def evaluate_soft_qct_ledger(
             "joint_covariance must be a QCTJointCovariance."
         )
     if packing_bridge.role == "exact-enumeration":
-        if joint_covariance.relation != "exact-enumeration":
+        if joint_covariance.relation not in {
+            "exact-enumeration",
+            "independent-block-diagonal",
+        }:
             raise ValueError(
                 "Exact-enumeration packing evidence is restricted to the "
-                "finite exact oracle."
+                "finite exact oracle or an explicitly independent "
+                "downstream covariance."
             )
     elif packing_bridge.role != "shared-packing-occupancy-analysis":
         raise ValueError("Unsupported packing-occupancy bridge role.")

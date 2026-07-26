@@ -11,6 +11,7 @@ from maple.function.dispatcher.solvfe.packing_contract import (
 _HASHES = {
     "membership_definition_hash": "1" * 64,
     "observation_volume_hash": "2" * 64,
+    "boundary_adapter_hash": "7" * 64,
     "solute_measure_hash": "3" * 64,
     "water_hamiltonian_hash": "4" * 64,
     "oxygen_atom_map_hash": "5" * 64,
@@ -39,6 +40,7 @@ def _schedule(
         "ensemble": "NVT",
         "pressure_bar": None,
         "boundary_conditions": "periodic-3d",
+        "active_occupancy_max": 1,
         **_HASHES,
     }
     values.update(overrides)
@@ -112,11 +114,19 @@ def test_packing_schedule_does_not_assume_target_is_row_zero():
         ),
         (
             {"ensemble": "NPT", "pressure_bar": None},
-            "pressure_bar",
+            "require NVT",
+        ),
+        (
+            {"ensemble": "NPT", "pressure_bar": 1.0},
+            "require NVT",
         ),
         (
             {"ensemble": "NVT", "pressure_bar": 1.0},
             "pressure_bar",
+        ),
+        (
+            {"active_occupancy_max": 0},
+            "include n=0 and at least n=1",
         ),
     ],
 )

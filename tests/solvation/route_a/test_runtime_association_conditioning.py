@@ -14,9 +14,6 @@ from maple.function.dispatcher.solvfe.membership import SoftCutoffMembership
 from maple.function.dispatcher.solvfe.packing_conditioning import (
     GeometryConditionedCavity,
 )
-from maple.function.dispatcher.solvfe.qct_ledger import (
-    BoundaryMeasureBridge,
-)
 
 
 def _membership() -> SoftCutoffMembership:
@@ -102,18 +99,13 @@ def test_association_and_packing_can_bind_same_membership_hash():
         conditioning_measure_id="product-soft-packing-v3",
         solute_measure_hash="1" * 64,
         solute_atom_map_hash="2" * 64,
+        active_occupancy_max=1,
     )
 
     assert restraint.membership_definition_hash == _membership().content_hash
     assert restraint.membership_surface_hash == cavity.membership_surface_hash
     assert restraint.observation_volume_hash == cavity.observation_volume_hash
     assert restraint.boundary_adapter_hash != cavity.boundary_adapter_hash
-    bridge = BoundaryMeasureBridge.create(
-        membership_surface_hash=restraint.membership_surface_hash,
-        periodic_adapter_hash=cavity.boundary_adapter_hash,
-        nonperiodic_adapter_hash=restraint.boundary_adapter_hash,
-    )
-    assert bridge.content_hash
     assert restraint.content_hash
     assert restraint.observation_volume_hash
 

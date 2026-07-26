@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 from typing import Any
 
 import numpy as np
@@ -16,6 +16,8 @@ from .protocol import canonical_sha256
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _SIMPLEX_TOLERANCE = 1.0e-10
 _PSD_TOLERANCE = 1.0e-12
+_OCCUPANCY_ARTIFACT_TOKEN = object()
+_EXACT_OCCUPANCY_TOKEN = object()
 
 
 def _array_sha256(values: np.ndarray) -> str:
@@ -51,6 +53,7 @@ class SoftOccupancyContract:
     sampling_measure_id: str
     membership_definition_hash: str
     observation_volume_hash: str
+    boundary_adapter_hash: str
     solute_measure_hash: str
     water_hamiltonian_hash: str
     system_hamiltonian_hash: str
@@ -113,6 +116,7 @@ class SoftOccupancyContract:
         for name in (
             "membership_definition_hash",
             "observation_volume_hash",
+            "boundary_adapter_hash",
             "solute_measure_hash",
             "water_hamiltonian_hash",
             "system_hamiltonian_hash",
@@ -158,6 +162,7 @@ class SoftOccupancyContract:
                     self.membership_definition_hash
                 ),
                 "observation_volume_hash": self.observation_volume_hash,
+                "boundary_adapter_hash": self.boundary_adapter_hash,
                 "solute_measure_hash": self.solute_measure_hash,
                 "water_hamiltonian_hash": self.water_hamiltonian_hash,
                 "system_hamiltonian_hash": self.system_hamiltonian_hash,
@@ -301,6 +306,7 @@ class SoftOccupancyDistribution:
     covariance_of_mean: np.ndarray
     membership_definition_hash: str
     observation_volume_hash: str
+    boundary_adapter_hash: str
     solute_measure_hash: str
     water_hamiltonian_hash: str
     system_hamiltonian_hash: str
@@ -308,7 +314,16 @@ class SoftOccupancyDistribution:
     boundary_conditions: str
     source_artifact_hash: str
     estimator: str
+    provenance_role: str
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _OCCUPANCY_ARTIFACT_TOKEN:
+            raise ValueError(
+                "SoftOccupancyDistribution must be constructed by its "
+                "validated factory."
+            )
 
     @classmethod
     def create(
@@ -320,6 +335,7 @@ class SoftOccupancyDistribution:
         covariance_of_mean: np.ndarray,
         membership_definition_hash: str,
         observation_volume_hash: str,
+        boundary_adapter_hash: str,
         solute_measure_hash: str,
         water_hamiltonian_hash: str,
         system_hamiltonian_hash: str,
@@ -327,6 +343,7 @@ class SoftOccupancyDistribution:
         boundary_conditions: str,
         source_artifact_hash: str,
         estimator: str,
+        _exact_source_token: object | None = None,
     ) -> "SoftOccupancyDistribution":
         if ensemble_role not in {"reference-product", "coupled-solution"}:
             raise ValueError(
@@ -384,6 +401,7 @@ class SoftOccupancyDistribution:
         for name in (
             "membership_definition_hash",
             "observation_volume_hash",
+            "boundary_adapter_hash",
             "solute_measure_hash",
             "water_hamiltonian_hash",
             "system_hamiltonian_hash",
@@ -402,6 +420,22 @@ class SoftOccupancyDistribution:
             )
         if not isinstance(estimator, str) or not estimator:
             raise ValueError("estimator must be a non-empty string.")
+        exact_estimator = estimator == "exact finite-state enumeration"
+        if exact_estimator and _exact_source_token is not _EXACT_OCCUPANCY_TOKEN:
+            raise ValueError(
+                "Exact finite-state occupancy provenance is restricted to "
+                "the internal finite-system oracle."
+            )
+        if not exact_estimator and _exact_source_token is not None:
+            raise ValueError(
+                "Exact-source provenance cannot be attached to an empirical "
+                "occupancy estimator."
+            )
+        provenance_role = (
+            "finite-state-oracle"
+            if exact_estimator
+            else "sampled-or-constructed"
+        )
 
         immutable_probabilities = np.array(
             probabilities_array,
@@ -433,6 +467,7 @@ class SoftOccupancyDistribution:
                 ),
                 "membership_definition_hash": membership_definition_hash,
                 "observation_volume_hash": observation_volume_hash,
+                "boundary_adapter_hash": boundary_adapter_hash,
                 "solute_measure_hash": solute_measure_hash,
                 "water_hamiltonian_hash": water_hamiltonian_hash,
                 "system_hamiltonian_hash": system_hamiltonian_hash,
@@ -440,6 +475,7 @@ class SoftOccupancyDistribution:
                 "boundary_conditions": boundary_conditions,
                 "source_artifact_hash": source_artifact_hash,
                 "estimator": estimator,
+                "provenance_role": provenance_role,
             }
         )
         return cls(
@@ -451,6 +487,7 @@ class SoftOccupancyDistribution:
             covariance_of_mean=immutable_covariance,
             membership_definition_hash=membership_definition_hash,
             observation_volume_hash=observation_volume_hash,
+            boundary_adapter_hash=boundary_adapter_hash,
             solute_measure_hash=solute_measure_hash,
             water_hamiltonian_hash=water_hamiltonian_hash,
             system_hamiltonian_hash=system_hamiltonian_hash,
@@ -458,7 +495,9 @@ class SoftOccupancyDistribution:
             boundary_conditions=boundary_conditions,
             source_artifact_hash=source_artifact_hash,
             estimator=estimator,
+            provenance_role=provenance_role,
             content_hash=content_hash,
+            _factory_token=_OCCUPANCY_ARTIFACT_TOKEN,
         )
 
 
@@ -470,6 +509,14 @@ class SoftOccupancyEstimate:
     covariance_projection_max_abs: float
     analysis_input_hash: str
     content_hash: str
+    _factory_token: InitVar[object | None] = None
+
+    def __post_init__(self, _factory_token: object | None) -> None:
+        if _factory_token is not _OCCUPANCY_ARTIFACT_TOKEN:
+            raise ValueError(
+                "SoftOccupancyEstimate must be constructed by the "
+                "soft-occupancy estimator."
+            )
 
 
 def estimate_soft_occupancy(
@@ -614,6 +661,7 @@ def estimate_soft_occupancy(
         covariance_of_mean=projected,
         membership_definition_hash=contract.membership_definition_hash,
         observation_volume_hash=contract.observation_volume_hash,
+        boundary_adapter_hash=contract.boundary_adapter_hash,
         solute_measure_hash=contract.solute_measure_hash,
         water_hamiltonian_hash=contract.water_hamiltonian_hash,
         system_hamiltonian_hash=contract.system_hamiltonian_hash,
@@ -650,6 +698,7 @@ def estimate_soft_occupancy(
         covariance_projection_max_abs=covariance_projection,
         analysis_input_hash=analysis_input.content_hash,
         content_hash=content_hash,
+        _factory_token=_OCCUPANCY_ARTIFACT_TOKEN,
     )
 
 

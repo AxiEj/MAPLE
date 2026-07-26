@@ -48,6 +48,13 @@ regressions cover 64, 128, 256 and 512 waters. In particular,
 omega_0 = product_j (1-b_j).
 ```
 
+Production packing and occupancy artifacts require `nmax >= 1`, so their
+active support always contains both `n=0` and `n=1`; a packing-only
+`nmax=0` artifact cannot be bridged into the QCT ledger. For finite systems,
+`nmax` may equal the total number of explicit solvent molecules. That is a
+valid full-support representation with an exactly zero aggregate tail, not an
+out-of-range request.
+
 ## Packing identity
 
 The packing ensemble is the product of a declared solute measure and a
@@ -77,6 +84,20 @@ the ledger. `RT` is derived from the scheduled temperature, never accepted as
 a caller-selected conversion. The schedule stores explicit target and full-field indices;
 neither the first row nor the last row has an implicit scientific meaning.
 A hard empty-shell count may be reported only as a diagnostic.
+
+The two packing estimators are correlated because they use the same reduced-
+potential table. Their agreement uncertainty is therefore obtained from a
+state-stratified paired bootstrap that recomputes both estimators in every
+replicate. Adding their marginal variances as if the estimators were
+independent is forbidden. The bootstrap seed, replicate count, paired-value
+hash, covariance and direct difference uncertainties are part of the sealed
+packing result.
+
+The implemented packing ensemble is NVT with a fixed, hash-bound periodic
+cell and `pressure_bar=null`. An NPT label is rejected until a variable-cell
+runtime supplies stress, the `PV` term and the corresponding volume measure;
+the protocol's 1 bar thermodynamic reference does not by itself turn a
+fixed-cell trajectory into NPT sampling.
 
 The pure-water Hamiltonian is not yet frozen.  Before a real v3 campaign it
 must be an identified, hash-bound checkpoint with verified periodic
@@ -221,6 +242,14 @@ case requires replicate-level `QCTBootstrapEvidence`; a naked evidence hash is
 rejected. A block-diagonal matrix is allowed only with explicit independence
 evidence and must have exactly zero cross-block entries.
 
+Shared-bootstrap columns use one canonical labeled ledger order and one source
+artifact binding across the reference distribution, coupled distribution,
+conditioned profile and conditional-coupling profile. A positive propagation
+gate must retain at least one nonzero cross-block covariance and demonstrate
+that it changes the direct-`n=0` and multi-`n` standard errors relative to the
+block-diagonal counterfactual. A zero-cross-covariance-only test cannot certify
+the shared path.
+
 The finite enumerator now proves, with fractional `omega_n`, that direct
 `n=0`, every fixed-`n` row and the multi-`n` log-sum are identical for one
 exact Hamiltonian.  A second enumerable labeled-cluster construction includes
@@ -228,6 +257,18 @@ primitive coupling factors, `rho*V_eff`, release factors, outer factors and
 division by `n!` exactly once. It is independent of the additive cluster
 builder. Deliberately applying the actual density-volume or factorial
 correction twice is required to fail closure.
+
+Exact-enumeration labels are not caller-selected metadata. Exact occupancy,
+conditional-coupling and zero-covariance artifacts are emitted only by the
+internal finite-system oracle and share one source hash. Empirical artifacts
+cannot enter an exact ledger by replacing an estimator string or supplying an
+arbitrary evidence hash.
+
+The finite periodic boundary adapter is likewise canonical rather than a
+literal placeholder. Its identity is derived from the membership definition,
+observation volume, solute measure, periodic boundary declaration and finite
+coordinate-adapter contract, and is included in both the finite source hash
+and Hamiltonian bridge hash.
 
 These runtime and finite-enumeration closures do not promote the fixed-`n=1`
 acetone value.  Real `n=0`, multi-`n`, periodic occupancy and cluster rows have

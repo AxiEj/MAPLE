@@ -67,7 +67,10 @@
     "membership_surface_identity": "boundary-independent nearest atom-sphere surface hash",
     "boundary_adapters": "distinct hash-bound periodic minimum-image and nonperiodic cluster adapters",
     "occupancy_support": "preregistered n=0..nmax plus aggregate n>nmax tail bin",
-    "simplex_reconstruction_bin_preregistered": true
+    "simplex_reconstruction_bin_preregistered": true,
+    "active_occupancy_max_minimum": 1,
+    "active_support_must_include_n0_and_n1": true,
+    "full_support_zero_tail_allowed": true
   },
   "packing": {
     "contract": "docs/solvation/route-a/packing-contract-v3.json",
@@ -84,7 +87,9 @@
     "runtime_identity_checks": [
       "water Hamiltonian provider hash",
       "oxygen atom map hash",
-      "periodic cell hash"
+      "periodic cell hash",
+      "periodic boundary adapter hash",
+      "active occupancy support"
     ]
   },
   "fixed_n_association": {
@@ -123,6 +128,9 @@
     "packing_reference_occupancy_same_dataset_bridge_required": true,
     "joint_covariance_vector": "[p_active,p_tail,x_active,x_tail,A_active,g_active]",
     "shared_bootstrap_replicate_evidence_required": true,
+    "shared_bootstrap_canonical_column_order_required": true,
+    "nonzero_cross_block_covariance_propagation_required": true,
+    "finite_oracle_boundary_adapter_derived_and_source_bound": true,
     "bulk_water_numerical_stress_sizes": [
       64,
       128,
@@ -140,9 +148,9 @@
     "cds_policy": "excluded-from-v3-core-until-hash-bound-development-ablation"
   },
   "validation_gates": {
-    "analytic": "complementarity, forces, active-support plus tail normalization, PyMBAR Theta covariance identity, Nwater=64/128/256/512 stability",
+    "analytic": "complementarity, forces, nmax>=1 production support, full-support zero tail, active-support plus tail normalization, PyMBAR Theta covariance identity, Nwater=64/128/256/512 stability",
     "packing_statistics": "overlap, ESS, BAR-MBAR, per-state uncertainty, half-trajectory stability, estimator equivalence, and hash-bound equality with reference occupancy",
-    "thermodynamic_closure": "real-ensemble n0, multi-n, p0, x0, every active p(n)/x(n), p/x tail gates, g(n), joint-provenance covariance, Hamiltonian/boundary bridge residual and two independent finite enumeration oracles",
+    "thermodynamic_closure": "real-ensemble n0, multi-n, p0, x0, every active p(n)/x(n), p/x tail gates, g(n), joint-provenance covariance with nonzero cross-block propagation, Hamiltonian/boundary bridge residual and two independent source-bound finite enumeration oracles",
     "replicas": "at least three independent v3 replicas after the packing-water Hamiltonian is frozen",
     "outer": "whole-supermolecule equivalence with zero warnings and no frame deletion",
     "selection": "all method choices frozen on development data before experimental holdout labels are opened",
@@ -179,22 +187,22 @@
     "packing_contract_v3": {
       "path": "docs/solvation/route-a/packing-contract-v3.json",
       "hash_kind": "canonical_sha256",
-      "sha256": "905416832486d3660f0bdcb6ef2770d460a87c225e4ba1d72ba9f0d049777d6d"
+      "sha256": "291082ae4c9383159eddec2dedc5a711179831963f302153205b895d0dc431cc"
     },
     "thermodynamics_v3": {
       "path": "docs/solvation/route-a/thermodynamics-v3.md",
       "hash_kind": "sha256",
-      "sha256": "05987d0ff1b74c98aedfd2c18a7c9244cff9b96d6887963658b43ba6e8b0ef23"
+      "sha256": "5274148da776caa5499e76f5dccb1639af105bb9dec2a6dc3c016b7631804b7e"
     },
     "ledger_contract_v3": {
       "path": "docs/solvation/route-a/ledger-contract-v3.json",
       "hash_kind": "canonical_sha256",
-      "sha256": "efe4a7980365803ea326dc634d3a81f523ed8a5ab2f3b2483c657ef4269caacf"
+      "sha256": "1b7b4329acddb653fc1adf7e91d69a0261ce8933f583e28cad96ca40119ccb2f"
     }
   },
   "protocol_schema": {
     "path": "docs/solvation/route-a/protocol-schema-v3.json",
-    "sha256": "bcc35f8a39fb50984ec0defc940803e3decef91943d7be3bb183cd98b4c37bbe"
+    "sha256": "91d1d19eecfd871e07697d9ef403fa6ddcf37f515f322e0b69ca769753e9a847"
   },
-  "protocol_sha256": "36d73180e5801cdf6903f9503dae25f22cc74fa8179c5565fda3feb7e8a6f4ea"
+  "protocol_sha256": "2d0dc54f6a119a19bdbff9c88457433626e0761493765199424e316b2e3fc9f0"
 }

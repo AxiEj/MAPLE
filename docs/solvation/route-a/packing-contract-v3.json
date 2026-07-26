@@ -21,6 +21,7 @@
     "required_hashes": [
       "membership_definition_hash",
       "observation_volume_hash",
+      "boundary_adapter_hash",
       "solute_measure_hash",
       "water_hamiltonian_hash",
       "oxygen_atom_map_hash",
@@ -37,8 +38,13 @@
     "runtime_identity_validation": [
       "solvent calculator maple_hamiltonian_hash equals water_hamiltonian_hash",
       "canonical oxygen atom index map equals oxygen_atom_map_hash",
-      "canonical runtime periodic cell equals cell_hash"
-    ]
+      "canonical runtime periodic cell equals cell_hash",
+      "schedule boundary_adapter_hash equals the cavity periodic adapter hash",
+      "schedule active_occupancy_max equals the runtime cavity active support"
+    ],
+    "implemented_ensemble": "NVT only with pressure_bar=null; NPT requires a future variable-cell, stress, PV and volume-measure implementation",
+    "active_occupancy_max": "integer nmax>=1 defining active support n=0..nmax; n=0-only packing artifacts cannot enter the production occupancy ledger",
+    "full_support_zero_tail_allowed": "nmax may equal the number of explicit solvent molecules, in which case the aggregate overflow tail is exactly zero"
   },
   "water_hamiltonian_policy": {
     "selection_status": "not-frozen",
@@ -57,21 +63,25 @@
     "half_trajectory_stability_required": true,
     "independent_replica_agreement_required": true,
     "per_state_uncertainty_required": true,
-    "estimator_agreement_within_combined_uncertainty_required": true,
     "energy_conversion": "RT is derived only from schedule.temperature_k and the canonical gas constant",
     "packing_occupancy_bridge_required": true,
-    "packing_occupancy_bridge": "packing MBAR and reference p(n) share the exact reduced-potential table, frame order, omega0 values, measure hashes and uncertainty gate"
+    "packing_occupancy_bridge": "packing MBAR and reference p(n) share the exact reduced-potential table, frame order, omega0 values, membership, boundary adapter, active support, measure hashes and uncertainty gate",
+    "estimator_agreement_uncertainty": "state-stratified paired bootstrap of both estimators on every resampled reduced-potential table; independent-error hypot is forbidden",
+    "paired_bootstrap_evidence": "replicate count, seed, paired-estimate hash, covariance and direct difference standard errors are content-hash bound"
   },
   "runtime_implementations": {
     "schedule": "maple/function/dispatcher/solvfe/packing_contract.py::PackingSchedule",
     "calculator": "maple/function/dispatcher/solvfe/packing_conditioning.py::ProductMeasurePackingCalculator",
     "analysis_input": "maple/function/dispatcher/solvfe/packing_analysis.py::PackingAnalysisInput",
     "estimator": "maple/function/dispatcher/solvfe/packing_analysis.py::estimate_soft_packing",
-    "packing_occupancy_bridge": "maple/function/dispatcher/solvfe/qct_ledger.py::PackingOccupancyBridge"
+    "packing_occupancy_bridge": "maple/function/dispatcher/solvfe/qct_ledger.py::PackingOccupancyBridge",
+    "sealed_result": "maple/function/dispatcher/solvfe/packing_analysis.py::SoftPackingEstimate"
   },
   "scientific_boundaries": {
     "packing_hidden_in_outer_provider_allowed": false,
     "single_conformer_promoted_as_flexible_solute_result_allowed": false,
-    "production_claim_before_three_independent_replicas_allowed": false
+    "production_claim_before_three_independent_replicas_allowed": false,
+    "npt_claim_before_variable_cell_runtime_allowed": false,
+    "production_nmax_zero_allowed": false
   }
 }

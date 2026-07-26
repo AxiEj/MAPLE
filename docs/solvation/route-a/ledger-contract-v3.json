@@ -22,7 +22,7 @@
     "x_tilde_n": "fixed-n and direct-n0 cross-check; not an additional multi-n term",
     "p_tilde_n_nonzero": "Hamiltonian-bridge reference and falsifier; not added on top of the cluster density-volume ledger",
     "A_n": "one conditioned row containing association, density-volume, labeled-to-unlabeled symmetry and outer reference exactly once",
-    "packing_evidence": "mandatory hash-bound PackingEvidence->reference occupancy bridge; arbitrary p0 is rejected"
+    "packing_evidence": "mandatory factory-validated SoftPackingEstimate plus reference occupancy bridge; arbitrary mappings and arbitrary p0 values are rejected"
   },
   "cluster_row_counting": {
     "labeled_association": "sum_i DeltaG_alch_labeled(i)",
@@ -44,7 +44,12 @@
     "boundary_measure_bridge_required": true,
     "boundary_bridge_definition": "one boundary-independent membership surface plus distinct periodic minimum-image and nonperiodic cluster adapters",
     "effective_volume_artifact_required_per_edge": true,
-    "exact_profile_public_arbitrary_constructor_allowed": false
+    "exact_profile_public_arbitrary_constructor_allowed": false,
+    "exact_occupancy_provenance": "finite-state-oracle artifacts only; public empirical estimators cannot claim exact finite enumeration by changing an estimator label",
+    "exact_conditional_coupling_provenance": "finite-state-oracle artifacts only and source hash must match the exact reference and coupled distributions",
+    "finite_periodic_boundary_adapter": "canonical identity derived from membership definition, observation volume, solute measure, periodic boundary conditions and the finite coordinate-adapter declaration",
+    "placeholder_or_caller_selected_finite_boundary_adapter_allowed": false,
+    "finite_boundary_adapter_bound_into_source_and_hamiltonian_bridge_hashes": true
   },
   "covariance": {
     "joint_vector": "[p_tilde(0..nmax),p_tail,x_tilde(0..nmax),x_tail,A_0..A_nmax,g_0..g_nmax]",
@@ -55,7 +60,11 @@
     "independent_block_diagonal_allowed_only_with_hash_bound_independence_evidence": true,
     "shared_water_outer_and_tail_selection_covariance_required": true,
     "shared_bootstrap_evidence": "replicate-level QCTBootstrapEvidence artifact required; a naked evidence hash is rejected",
-    "block_diagonal_relation_matrix_consistency_required": true
+    "shared_bootstrap_column_order": "canonical labeled ledger order [p_active,p_tail,x_active,x_tail,A_active,g_active] is required",
+    "shared_bootstrap_source_binding": "one source artifact hash binds the reference distribution, coupled distribution, conditioned profile and conditional-coupling profile",
+    "nonzero_cross_block_propagation": "nonzero shared-bootstrap cross-block covariance must be retained and must alter propagated ledger uncertainty relative to the block-diagonal counterfactual",
+    "block_diagonal_relation_matrix_consistency_required": true,
+    "exact_enumeration_relation": "zero covariance plus one matching finite-oracle source artifact"
   },
   "finite_enumeration": {
     "reference_and_coupled_partition_sums_required": true,
@@ -67,6 +76,8 @@
     "deliberate_factorial_double_count_must_fail": true,
     "independent_labeled_partition_oracle_required": true,
     "primitive_partition_factors": "coupling Boltzmann factors, rho*Veff, release factors, outer factors, then divide by n! exactly once",
+    "periodic_boundary_adapter_provenance_required": true,
+    "periodic_boundary_adapter_placeholder_allowed": false,
     "bulk_water_tail_stress_sizes": [
       64,
       128,
@@ -83,7 +94,8 @@
     "packing_occupancy_bridge": "maple/function/dispatcher/solvfe/qct_ledger.py::PackingOccupancyBridge",
     "boundary_measure_bridge": "maple/function/dispatcher/solvfe/qct_ledger.py::BoundaryMeasureBridge",
     "bootstrap_evidence": "maple/function/dispatcher/solvfe/qct_ledger.py::QCTBootstrapEvidence",
-    "finite_labeled_oracle": "maple/function/dispatcher/solvfe/finite_qct.py::enumerate_labeled_cluster_partition"
+    "finite_labeled_oracle": "maple/function/dispatcher/solvfe/finite_qct.py::enumerate_labeled_cluster_partition",
+    "packing_result": "maple/function/dispatcher/solvfe/packing_analysis.py::SoftPackingEstimate"
   },
   "promotion_boundary": {
     "real_v3_replicas_before_bulk_water_hamiltonian_freeze_allowed": false,

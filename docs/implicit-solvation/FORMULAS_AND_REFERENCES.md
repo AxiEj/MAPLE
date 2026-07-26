@@ -411,12 +411,16 @@ this host; they are neither hardware-normalized nor certified speedups.
 
 The frozen source records were generated at Git commits `278c312` (methanol and
 acetone) and `5422a07` (the fixed 2-acetoxyethyl-acetate record). A clean
-detached-worktree methanol energy canary at the present baseline commit
-`5746f24` reproduced the historical correction within
-\(4.55\times10^{-13}\) eV, with 16 root iterations and no `primary` warning.
-That canary establishes current-checkout alignment for methanol energy only; it
-does not align acetone, the flexible panel, force evidence, or the historical
-timing ratios with the current checkout.
+detached-worktree methanol energy canary at `5746f24` reproduced the historical
+correction within \(4.55\times10^{-13}\) eV; an acetone canary at `f3e9892`
+reproduced it within \(2.50\times10^{-16}\) eV. No tracked `maple/` runtime
+source changed between those heads. The roots used 16 and 21 iterations,
+respectively, and neither emitted a `primary` warning. Their observed
+energy-evaluation times were `8.85` and `24.86 s`, versus historical `10.57`
+and `32.50 s`; these single-run observations do not replace the frozen timing
+ratios or establish speedup. The fixed 2-acetoxyethyl-acetate energy, flexible
+panel, and force evidence remain historical and are not aligned with the latest
+checked checkout.
 
 The total agreement contains substantial component cancellation. For acetone,
 \(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and

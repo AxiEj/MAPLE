@@ -50,20 +50,29 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     panel = baseline["fixed_conformer_panel"]
     records = panel["records"]
 
-    assert baseline["schema_version"] == 1
+    assert baseline["schema_version"] == 2
     assert baseline["status"] == "frozen-bounded-pilot"
     assert baseline["route2_profiles"] == [
         "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
         "smd-ddpcm-l15-n1202-v1",
     ]
     current_alignment = baseline["current_checkout_alignment"]
-    current_head = current_alignment["git_head_at_freeze"]
-    _assert_git_sha(current_head)
+    latest_checked_head = current_alignment["latest_checked_git_head"]
+    runtime_reference_head = current_alignment["runtime_code_reference_git_head"]
+    _assert_git_sha(latest_checked_head)
+    _assert_git_sha(runtime_reference_head)
+    assert current_alignment["runtime_source_scope"] == "maple/"
+    assert current_alignment["runtime_code_unchanged_between_canary_heads"] is True
+    canary_execution_heads = current_alignment["canary_execution_heads"]
+    assert canary_execution_heads == {
+        "acetone": latest_checked_head,
+        "methanol": runtime_reference_head,
+    }
     assert current_alignment["fixed_records_confirmed_by_current_head_canary"] == [
-        "methanol"
+        "methanol",
+        "acetone",
     ]
     assert current_alignment["fixed_records_not_rerun"] == [
-        "acetone",
         "2-acetoxyethyl acetate",
     ]
     assert current_alignment["flexible_panel_current_checkout_match"] is None
@@ -81,7 +90,6 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         _assert_sha256(evidence["sha256"])
         _assert_git_sha(evidence["evidence_git_head"])
         assert evidence["status"] == "comparison-valid"
-        assert evidence["current_checkout_head"] == current_head
 
         route2 = record["route2"]
         qm = record["qm"]
@@ -135,17 +143,25 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
             < 0.0
         )
 
-        if record["name"] == "methanol":
+        if record["name"] in canary_execution_heads:
             assert evidence["current_checkout_match"] is True
             assert evidence["alignment_status"] == (
                 "confirmed-by-current-head-energy-canary"
             )
             canary = evidence["current_head_canary"]
             assert canary["status"] == "pass"
-            assert canary["git_head"] == current_head
+            assert canary["git_head"] == canary_execution_heads[record["name"]]
+            assert evidence["current_checkout_head"] == canary["git_head"]
             assert canary["root_scf_iterations"] == route2["root_scf_iterations"]
+            assert canary["evaluation_seconds"] > 0.0
             assert canary["used_for_timing_claim"] is False
-            _assert_sha256(canary["sha256"])
+            for hash_name in (
+                "sha256",
+                "force_reference_sha256",
+                "mol2_sha256",
+                "runner_sha256",
+            ):
+                _assert_sha256(canary[hash_name])
             assert canary[
                 "absolute_difference_from_historical_correction_ev"
             ] == pytest.approx(
@@ -158,6 +174,7 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         else:
             assert evidence["current_checkout_match"] is None
             assert evidence["alignment_status"] == "not-rerun-on-current-checkout"
+            assert evidence["current_checkout_head"] == latest_checked_head
 
         route2_qm_errors.append(abs(differences["route2_minus_qm"]))
         route2_experiment_errors.append(abs(differences["route2_minus_experiment"]))
@@ -191,7 +208,7 @@ def test_qm_fidelity_baseline_recomputes_bounded_electronic_ensemble():
     assert evidence["status"] == "complete-valid"
     assert (
         evidence["current_checkout_head"]
-        == baseline["current_checkout_alignment"]["git_head_at_freeze"]
+        == baseline["current_checkout_alignment"]["latest_checked_git_head"]
     )
     assert evidence["current_checkout_match"] is None
     assert evidence["alignment_status"] == "not-rerun-on-current-checkout"
@@ -312,6 +329,10 @@ def test_qm_fidelity_baseline_preserves_reference_and_claim_boundaries():
     )
     _assert_sha256(diagnostic["source_evidence"]["sha256"])
     assert diagnostic["source_evidence"]["status"] == "source-diagnostic-valid"
+    assert (
+        diagnostic["source_evidence"]["current_checkout_head"]
+        == baseline["current_checkout_alignment"]["latest_checked_git_head"]
+    )
     assert diagnostic["source_evidence"]["current_checkout_match"] is None
     assert "No vibrational thermochemistry" in baseline["claim_boundary"]
     assert "hardware-normalized speedup" in baseline["claim_boundary"]

@@ -84,9 +84,11 @@ ratios are not hardware-normalized speedups. The recorded `.omx` source paths
 and SHA256 values are witnesses to retained local raw evidence, not tracked CI
 inputs. The JSON also records the evidence-generating Git heads and whether a
 result has actually been rerun at the current checkout; ancestry alone is not
-treated as current-checkout evidence. At the `5746f24` baseline only the
-methanol energy has a clean current-HEAD canary. The JSON freezes the reviewed
-numerical ledger and arithmetic checks.
+treated as current-checkout evidence. Methanol and acetone have clean energy
+canaries at `5746f24` and `f3e9892`, with no tracked `maple/` runtime-source
+change between those heads. The fixed flexible-molecule record and flexible
+force evidence remain historical. The JSON freezes the reviewed numerical
+ledger and arithmetic checks.
 
 The converged MLIP--PCM/SMD total derivative is now implemented for the
 explicit pyddx/PySCF single-point candidate. The next primary milestone is

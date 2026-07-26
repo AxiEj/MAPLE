@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-solprop-external-water-audit-v1",
+  "claim_scope": "Pre-registered SolProp external-water source audit. This workflow selects only neutral closed-shell, non-heavy-filtered external-water candidates for downstream external comparison and does not perform energy calculations.",
+  "route1_boundary": {
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "fixed_charge": "AM1-BCC"
+  },
+  "analysis": {
+    "water_smiles": [
+      "O",
+      "[OH2]",
+      "water"
+    ],
+    "freesolv_connectivity_match_mode": "inchi_key_block"
+  },
+  "dataset": {
+    "name": "SolProp v1.2",
+    "version": "v1.2",
+    "source": "https://zenodo.org/records/5970538",
+    "expected_archive": {
+      "name": "SolProp_v1.2.xlsx",
+      "sha256": "f66bb046bc1d5b8471d36436e485d0cb9d95fb7111aa2db4deb85fdbbea6b766",
+      "md5": "677d6f107df6fbd0e6d3963e32f06bdb",
+      "size_bytes": 268574239
+    },
+    "expected_rows": 8780,
+    "analysis_temperature_k": 298.15,
+    "standard_state": 1.0
+  },
+  "columns": {
+    "source": "sourceall",
+    "solvent": "solvent_smiles",
+    "solute_smiles": "smiles",
+    "solute_inchi": "inchi"
+  },
+  "counts": {
+    "total_rows": 8780,
+    "water_rows": 1153,
+    "overlap_connectivity_rows": 560,
+    "source_has_freesolv_rows": 560,
+    "source_has_freesolv_mismatch_rows": 0,
+    "nonoverlap_rows": 593,
+    "candidate_rows": 561,
+    "filter_exclusions": 32
+  },
+  "freesolv_reference": {
+    "database_json": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset/database.json",
+    "sha256": "9133b2438af6081d4cf6ac040cb201c2e3ec953988a45248586f20f2f159c78a"
+  },
+  "literature": {
+    "solprop": "Open notebook and source dataset metadata in Zenodo record 5970538.",
+    "freesolv": "Mobley et al., J. Comput. Aided Mol. Des. 2009, FreeSolv database."
+  }
+}

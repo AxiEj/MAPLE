@@ -371,3 +371,38 @@ exact-GTO result, and the exact-GTO profile remains outside the production
 force path because its matching coordinate/gauge derivative does not exist.
 The artifact SHA256 is
 `518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6`.
+
+## MACE-POLAR exact-GTO fixed-geometry derivative canary
+
+[`route2-mace-exact-gto-fixed-geometry-canary-v1.json`](route2-mace-exact-gto-fixed-geometry-canary-v1.json)
+is a source-bound one-acetone implementation canary for the exact-GTO model
+drive. It constructs the public
+`MACE-POLAR-1-M/point-l1/exact-gto/PCMSolver-IEFPCM/native-SMD-CDS` root,
+reopens the identical fixed cavity, and composes the continuum
+density-to-feature map with the learned feature-to-density response. It
+requests no coordinate derivative and changes neither the production energy
+nor the disabled force path.
+
+The 13-iteration root has a `5.2759e-6 e` unmixed residual. Reopening the
+516-point cavity reproduces the reaction field and model feature tensor
+exactly. Continuum, learned-model, and composed-residual JVP/VJP identities
+close to `5.00e-16`, `4.09e-13`, and `2.46e-12`; the physical adjoint reaches
+`1.96e-9` relative residual in five callbacks and seven operator
+applications. Its neutral-direction energy derivative has `1.75e-7` relative
+central-difference error at the best tested coefficient step, `1e-3`.
+The two smaller steps are less accurate, consistent with finite-precision and
+solver cancellation rather than a demonstrated asymptotic refinement order.
+
+The acetone hydration value, `-4.6836 kcal/mol`, differs from the development
+record `-3.80 +/- 0.60 kcal/mol` by `0.8836 kcal/mol`; it is recorded only for
+provenance. There are zero native `PCMSolver warning.` markers and one retained
+PEDRA poor-tessellation warning in each public/reopened solve. The local
+internal total was `8.49 s` (`10.50 s` process wall time), which is run
+metadata rather than a portable performance result.
+
+This artifact establishes only fixed-geometry derivative algebra for the
+exact-GTO receiver. It sets no scientific pass threshold and supplies no
+coordinate/gauge derivative, thermodynamic-conjugacy result, full
+electron-density PCM, original-SMD equivalence, hydration certification,
+smooth PES, OPT, TS, scan, MD, or NVE claim. Its SHA256 is
+`8c63c7a85f8b100a0165ba5d0eb4626250f326aaf85ed1d3c13ee57552a6d491`.

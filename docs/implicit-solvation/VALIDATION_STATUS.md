@@ -944,6 +944,36 @@ Research/Innovation Route, not a complete solution-phase PES.
     prevalence, smooth coordinates, and PES/NVE gates remain open. The frozen
     evidence is
     `benchmarks/route2-mace-local-field-thermodynamic-canary-v1.json`.
+39. A separate source-bound exact-GTO acetone canary closes the
+    fixed-geometry derivative algebra without changing the public energy or
+    force path. The public PCMSolver/IEFPCM root converged in 13 iterations
+    with a stored unmixed density residual of `5.2759e-6 e`; reopening the
+    identical 516-point cavity reproduced both the reaction field and the
+    complete model-native feature tensor exactly.
+
+    The continuum feature transpose, learned feature-to-density transpose, and
+    composed unmixed-residual transpose close their bilinear identities to
+    `5.00e-16`, `4.09e-13`, and `2.46e-12`, respectively. Matrix-free GMRES
+    reaches `1.96e-9` relative residual in five callbacks and seven operator
+    applications. The physical density-space right-hand side agrees with a
+    neutral-direction central difference to `1.75e-7` relative error at the
+    best tested coefficient step, `1e-3`; smaller steps are less accurate, so
+    this result is not presented as an asymptotic finite-difference order.
+
+    The public hydration result, `-4.6836 kcal/mol` versus the development
+    record `-3.80 +/- 0.60 kcal/mol`, is retained only as provenance
+    (`0.8836 kcal/mol` absolute error), not as an accuracy gate. Both the
+    public and reopened calculations emitted zero native `PCMSolver warning.`
+    markers and each retained one non-selection-fatal PEDRA
+    poor-tessellation warning. The local run took `8.49 s` internally
+    (`10.50 s` process wall time); this is host metadata, not a portable speed
+    claim.
+
+    This evidence proves only fixed-geometry exact-GTO derivative
+    implementation closure. It supplies no coordinate or gauge derivative,
+    variational/thermodynamic identity, hydration certification, smooth PES,
+    OPT, TS, scan, MD, or NVE gate. The frozen evidence is
+    `benchmarks/route2-mace-exact-gto-fixed-geometry-canary-v1.json`.
 
 ## Secondary diagnostics
 

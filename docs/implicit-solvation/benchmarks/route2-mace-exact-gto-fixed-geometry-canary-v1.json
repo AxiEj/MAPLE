@@ -1,0 +1,204 @@
+{
+  "artifact": "route2-mace-exact-gto-fixed-geometry-canary-v1",
+  "checkpoint": {
+    "identifier": "polar-1-m",
+    "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "size_bytes": 68133235
+  },
+  "claim_boundary": "This one-acetone canary checks only fixed-geometry derivative algebra for the exact-GTO model drive. It changes no production energy or force and sets no scientific pass threshold. It does not provide an exact-GTO coordinate or gauge derivative, full electron-density PCM, original SMD equivalence, hydration accuracy, a smooth solution-phase PES, OPT, TS, scan, MD, or NVE certification.",
+  "diagnostic_protocol": {
+    "coordinate_derivative_requested": false,
+    "finite_difference_steps_density_coefficient": [
+      0.001,
+      0.0003,
+      0.0001
+    ],
+    "implementation_dot_tolerance": 1e-09,
+    "random_seed": 20260727,
+    "scientific_pass_thresholds": null
+  },
+  "diagnostics": {
+    "adjoint": {
+      "maximum_inner_iterations": 100,
+      "method": "gmres",
+      "operator_applications": 7,
+      "relative_residual": 1.962512398381192e-09,
+      "residual_callback_count": 5,
+      "residual_norm": 4.243555099345098e-09,
+      "restart_size": 39
+    },
+    "composed_residual_jvp_vjp": {
+      "absolute_error": 2.463168558008988e-12,
+      "forward": 0.06612795246372555,
+      "relative_error": 1.862426149754359e-11,
+      "reverse": 0.06612795246618872
+    },
+    "continuum_feature_jvp_vjp": {
+      "absolute_error": 4.996003610813204e-16,
+      "forward": -0.4592544216042087,
+      "relative_error": 5.439254774468808e-16,
+      "reverse": -0.4592544216042082
+    },
+    "mace_feature_density_jvp_vjp": {
+      "absolute_error": 4.0912981552967964e-13,
+      "forward": 0.00015207782994595108,
+      "relative_error": 1.345132999085901e-09,
+      "reverse": 0.0001520778303550809
+    },
+    "physical_rhs_directional_finite_difference": [
+      {
+        "absolute_error_ev": 9.172623721687145e-08,
+        "analytic_ev": 0.2625552218469824,
+        "central_difference_ev": 0.26255513012074516,
+        "relative_error": 1.7467992560639673e-07,
+        "step_density_coefficient": 0.001
+      },
+      {
+        "absolute_error_ev": 6.963509218693709e-07,
+        "analytic_ev": 0.2625552218469824,
+        "central_difference_ev": 0.26255591819790425,
+        "relative_error": 1.3261019787351046e-06,
+        "step_density_coefficient": 0.0003
+      },
+      {
+        "absolute_error_ev": 4.374082040514704e-06,
+        "analytic_ev": 0.2625552218469824,
+        "central_difference_ev": 0.26255084776494186,
+        "relative_error": 8.329901887722107e-06,
+        "step_density_coefficient": 0.0001
+      }
+    ]
+  },
+  "execution_git_head": "408ca3fce8f9831db3cb93882fc2f0e0dc439e85",
+  "experiment_comparison": {
+    "absolute_error_kcal_mol": 0.8835670145596204,
+    "experimental_kcal_mol": -3.8,
+    "experimental_uncertainty_kcal_mol": 0.6,
+    "interpretation": "Recorded for provenance only; one development molecule cannot certify accuracy or mechanism.",
+    "predicted_kcal_mol": -4.68356701455962,
+    "signed_error_kcal_mol": -0.8835670145596204
+  },
+  "fixed_geometry_state": {
+    "adjoint_solution_l2": 2.319734861522612,
+    "cavity_areas_sha256": "c385bc837fd6e6f360ffd806e75a98878468da01e7cc1bde1c5a12727dfa755d",
+    "cavity_centers_sha256": "daf77eb1d38a5c47ff0025a59ba56b28488e6dd8ee3d7c1302e2ddaa78d92ea1",
+    "cavity_size": 516,
+    "density_shape": [
+      10,
+      4
+    ],
+    "model_feature_shape": [
+      10,
+      8
+    ],
+    "physical_rhs_l2_ev": 2.162307409036223,
+    "physical_rhs_monopole_sum_ev": -8.326672684688674e-17
+  },
+  "generated_at_utc": "2026-07-26T23:31:32+00:00",
+  "molecule": {
+    "atom_count": 10,
+    "compound_id": "mobley_3867265",
+    "experimental_kcal_mol": -3.8,
+    "experimental_uncertainty_kcal_mol": 0.6,
+    "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+    "name": "acetone",
+    "partition": "development",
+    "prepared_manifest_sha256": "f5a611f4ba1af2a9ac6f47df724d4d1cd713790bcc16be0777ae32dade688c01"
+  },
+  "pcmsolver_diagnostics": {
+    "public_native_stderr_warning_count": 0,
+    "public_pedra_warning_count": 1,
+    "public_pedra_warnings": [
+      {
+        "file": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/PEDRA.OUT__2245845",
+        "line": 18,
+        "message": "** WARNING  ** A very poor tesselation has been chosen. It is valuable almost only for testing."
+      }
+    ],
+    "reopened_native_stderr_warning_count": 0,
+    "reopened_pedra_warning_count": 1,
+    "reopened_pedra_warnings": [
+      {
+        "file": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/fixed-geometry-continuum/PEDRA.OUT__2245845",
+        "line": 18,
+        "message": "** WARNING  ** A very poor tesselation has been chosen. It is valuable almost only for testing."
+      }
+    ],
+    "warning_semantics": "The native 'PCMSolver warning.' marker is selection-fatal. PEDRA poor-tessellation warnings are retained as audit evidence but do not select a different fixed cavity."
+  },
+  "public_energy_hartree": {
+    "combined": -193.14768901085748,
+    "delta_g_solv": -0.0074637391276879085,
+    "gas": -193.14022527172978
+  },
+  "public_settings": [
+    "#model=macepol-m",
+    "#sp",
+    "#solv(implicit=water,method=smd,provider=pcmsolver,profile=smd-iefpcm-point-l1-exact-gto-v1,response=scf,standard_state=1m,cavity_policy=fixed-stability-branch,experimental=true)"
+  ],
+  "runtime": {
+    "ase": "3.27.0",
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "graph_longrange": "0.4.0",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "pcmsolver_library": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so",
+    "pcmsolver_library_environment": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so",
+    "pcmsolver_python_path_environment": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/python",
+    "python": "3.11.14",
+    "timing_seconds": {
+      "directional_finite_differences": 0.7680862599954708,
+      "fixed_geometry_continuum_and_derivatives": 2.675611239988939,
+      "model_derivative_setup": 0.2632994209998287,
+      "model_load": 2.96688465999614,
+      "public_coupled_root_and_energy": 2.7296160539990524,
+      "total": 8.48631216600188
+    },
+    "torch": "2.12.0+cu130"
+  },
+  "same_root": {
+    "fresh_unmixed_density_residual_inf_e": 5.2759232850307924e-06,
+    "public_audit": {
+      "result_sha256": "67b4c6b4bbed20d9bd9297cf580edfc0305ca56461934067079c225d2fd4e14b",
+      "state_sha256": "68b7f77c66d51f7c48cde12be9117622848493ef9606d645b8bffc01ae106c30"
+    },
+    "public_to_reopened_feature_max_abs": 0.0,
+    "public_to_reopened_field_max_abs_ev": 0.0,
+    "response_density_monopole_sum_e": 3.469446951953614e-18,
+    "root_density_monopole_sum_e": -3.2959746043559335e-17,
+    "scf_iterations": 13,
+    "stored_unmixed_density_residual_inf_e": 5.275923285141815e-06
+  },
+  "schema_version": 1,
+  "scientific_identity": {
+    "continuum": "PCMSolver IEFPCM",
+    "density_interpretation": "coarse-grained residual/net-charge l<=1 coefficients",
+    "model_field_gauge": "atomic-center-mean-zero-v1",
+    "nonpolar": "native water SMD-CDS in public energy only",
+    "reaction_field_projector": "exact-gto-v1",
+    "solute_response_model": "official MACE-POLAR-1-M",
+    "solute_source": "point-multipole-l1",
+    "strict_original_smd_equivalence": false
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_route2_exact_gto_fixed_geometry_canary.py": "30c3ef3bdb1c862346ccfaf48ee35a50520a7dcadfcba14478afd307dc2c8834",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "453605bf27fe5abe8619bb62884dd7fd416ee94bab635d9667caf6705e0479bc",
+    "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "f31b7226de7eb8ecce39b8e18fdc8613410d21730d03e371d7327b535da7ebde",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "e4a00ec8f6763345dae96cc8c2f8919808deec9effbe79ae16e1d0fef4445957",
+    "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
+    "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "42d8111cd338fe2bb8e5a6117c68080626656c46f4294dc4e782e745ee837da1",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "fb4e4a5a6133917fe9fe7d8943e16d5ea626654a638ced68a959f4dbe587f9f2",
+    "maple/function/calculator/mace/_macepol_calculator.py": "2dfbe998713fa3e4786aee329267e2b172e03b0b451d0c4c8b551ef3e501b5bb",
+    "maple/function/calculator/set_calculator.py": "b78f83c2b4853554e48ec6c71531cbcf122aaea949b89a9436b1f4b7ebe2bfdf",
+    "maple/function/read/command_control.py": "6356deb7a681a2c2226733189ed87376a753b9ae5a725f9a7b1e66aa4f912e9c",
+    "maple/function/route2_smd_profiles.py": "1485999845647b9117dc031b539cda42d17f15e29328651adb56728203c9a88b"
+  }
+}

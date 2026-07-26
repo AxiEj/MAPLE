@@ -288,7 +288,16 @@ that CDS energy and gradient come from the same selected provider.
    \Pi_0\left[J_z^\mathsf T g_z+Qf\right].
    \]
    Synthetic dense-operator, bilinear-transpose, and neutral-direction energy
-   finite-difference tests lock this algebra. This code is diagnostic-only:
+   finite-difference tests lock this algebra. A source-bound official
+   MACE-POLAR-1-M/PCMSolver acetone canary reopens the identical 516-point
+   cavity, reproduces the public field and model feature tensor exactly, and
+   closes the continuum, learned-model, and composed-residual transpose tests
+   to `5.00e-16`, `4.09e-13`, and `2.46e-12`. Its matrix-free physical
+   adjoint reaches `1.96e-9` relative residual, and the best tested
+   neutral-direction energy finite difference has `1.75e-7` relative error.
+   The corresponding immutable artifact is
+   `benchmarks/route2-mace-exact-gto-fixed-geometry-canary-v1.json`.
+   This code and evidence are diagnostic-only:
    it does not supply the exact-GTO coordinate/gauge derivative, is not wired
    into the production force path, and does not change the energy profile.
 

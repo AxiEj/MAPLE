@@ -43,6 +43,7 @@ class Route2EngineSettings:
     energy_identity_tolerance_ev: float
     force_state_energy_tolerance_ev: float
     neutral_density_tolerance: float
+    scf_require_two_energy_samples: bool = False
 
     def __post_init__(self) -> None:
         if not self.continuum_label:
@@ -77,7 +78,7 @@ class Route2EngineSettings:
 
 @dataclass(frozen=True)
 class Route2CoupledState:
-    """One converged geometry/provider state reusable by a public wrapper."""
+    """One same-root geometry/provider state reusable by a public wrapper."""
 
     calculator_identity: int
     atomic_numbers: np.ndarray
@@ -85,12 +86,43 @@ class Route2CoupledState:
     positions_angstrom: np.ndarray
     reaction_field: Any
     density_coefficients: np.ndarray
+    response_density_coefficients: np.ndarray
     reaction_field_values_ev: np.ndarray
     solvent_state: Any
     polarization_energy_hartree: float
     energy_identity_error_ev: float
     cds_result: Any
     history: tuple[dict[str, float | int | None], ...]
+
+    def __post_init__(self) -> None:
+        for name in (
+            "atomic_numbers",
+            "positions_angstrom",
+            "density_coefficients",
+            "response_density_coefficients",
+            "reaction_field_values_ev",
+        ):
+            values = np.array(getattr(self, name), copy=True)
+            values.setflags(write=False)
+            object.__setattr__(self, name, values)
+
+    @property
+    def root_density_coefficients(self) -> np.ndarray:
+        """Density used to generate both the stored field and PCM energy."""
+
+        return self.density_coefficients
+
+    @property
+    def density_residual_coefficients(self) -> np.ndarray:
+        """Unmixed physical residual ``M(P(c)) - c``."""
+
+        residual = self.response_density_coefficients - self.density_coefficients
+        residual.setflags(write=False)
+        return residual
+
+    @property
+    def density_residual_inf(self) -> float:
+        return float(np.max(np.abs(self.density_residual_coefficients)))
 
     def matches(
         self,
@@ -233,10 +265,14 @@ class Route2ContinuumEngine:
                     "intrinsic_energy_ev": current_energy_ev,
                 }
             )
-            energy_converged = (
-                energy_residual is None
-                or energy_residual <= settings.scf_energy_tolerance_ev
-            )
+            if energy_residual is None:
+                energy_converged = (
+                    not settings.scf_require_two_energy_samples
+                )
+            else:
+                energy_converged = (
+                    energy_residual <= settings.scf_energy_tolerance_ev
+                )
             if (
                 density_residual <= settings.scf_density_tolerance
                 and energy_converged
@@ -291,6 +327,7 @@ class Route2ContinuumEngine:
             ).copy(),
             reaction_field=reaction_field,
             density_coefficients=density,
+            response_density_coefficients=response_density,
             reaction_field_values_ev=field,
             solvent_state=solvent_state,
             polarization_energy_hartree=polarization_energy_hartree,
@@ -447,17 +484,21 @@ class Route2ContinuumEngine:
         )
 
     @staticmethod
-    def energy_components(
-        gas_state,
-        coupled: Route2CoupledState,
+    def compose_energy_components(
+        *,
+        gas_energy_ev: float,
+        solvent_energy_ev: float,
+        polarization_energy_hartree: float,
+        cds_energy_hartree: float,
     ) -> dict[str, float]:
+        """Compose the single Route-2 scalar-energy ledger."""
+
         delta_e_solute = (
-            float(coupled.solvent_state.energy_ev)
-            - float(gas_state.energy_ev)
+            float(solvent_energy_ev) - float(gas_energy_ev)
         ) / Hartree
-        pcm_polarization = coupled.polarization_energy_hartree
+        pcm_polarization = float(polarization_energy_hartree)
         electrostatic = delta_e_solute + pcm_polarization
-        cds_energy = float(coupled.cds_result.energy_hartree)
+        cds_energy = float(cds_energy_hartree)
         total_energy = electrostatic + cds_energy
         return {
             "solute_polarization": delta_e_solute,
@@ -467,6 +508,21 @@ class Route2ContinuumEngine:
             "standard_state": 0.0,
             "delta_g_solv": total_energy,
         }
+
+    @classmethod
+    def energy_components(
+        cls,
+        gas_state,
+        coupled: Route2CoupledState,
+    ) -> dict[str, float]:
+        return cls.compose_energy_components(
+            gas_energy_ev=float(gas_state.energy_ev),
+            solvent_energy_ev=float(coupled.solvent_state.energy_ev),
+            polarization_energy_hartree=(
+                coupled.polarization_energy_hartree
+            ),
+            cds_energy_hartree=float(coupled.cds_result.energy_hartree),
+        )
 
 
 __all__ = [

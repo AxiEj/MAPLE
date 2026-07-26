@@ -38,9 +38,19 @@ class _FakeSymmetricPCMSolverSession:
         self.cavity_areas_bohr2 = np.ones(len(cavity_centers_bohr))
         self.response_operator_is_symmetric = symmetric
         self._response_matrix = np.asarray(response_matrix, dtype=float)
+        self.solve_calls = 0
 
     def compute_asc(self, mep: np.ndarray) -> np.ndarray:
         return self._response_matrix @ np.asarray(mep, dtype=float)
+
+    def solve(self, mep: np.ndarray) -> dict[str, np.ndarray | float]:
+        self.solve_calls += 1
+        potential = np.asarray(mep, dtype=float)
+        asc = self.compute_asc(potential)
+        return {
+            "asc": asc,
+            "polarization_energy": 0.5 * float(np.dot(potential, asc)),
+        }
 
 
 class _ZeroDensityResponse:
@@ -240,6 +250,28 @@ def test_fixed_cavity_pcm_map_is_linear():
         0.7 * operator.apply(first) - 1.3 * operator.apply(second),
         rtol=2.0e-13,
         atol=2.0e-11,
+    )
+
+
+def test_fixed_cavity_pcm_scf_field_and_energy_share_one_root_snapshot():
+    operator, positions, session, _ = _operator()
+    density = np.zeros((len(positions), 4))
+    density[:, 0] = [-0.2, 0.05, 0.15]
+
+    field = operator.apply_scf(density)
+    snapshot = operator.scf_snapshot(density)
+    energy = operator.scf_polarization_energy_hartree(density)
+
+    assert session.solve_calls == 1
+    assert energy == snapshot.polarization_energy_hartree
+    assert snapshot.density_coefficients.flags.writeable is False
+    np.testing.assert_allclose(
+        field[:, 0],
+        snapshot.reaction_potential_hartree_per_e * Hartree,
+    )
+    np.testing.assert_allclose(
+        field[:, 1:],
+        snapshot.reaction_gradient_hartree_per_e_bohr * Hartree / Bohr,
     )
 
 

@@ -28,21 +28,23 @@ import time
 from typing import Any
 
 import numpy as np
-from ase.units import Bohr, Hartree
+from ase.units import Bohr
 
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
 from .continuum_response import (
-    EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
-    ExternalMEPCavityResponse,
     PCMSolverExternalMEPCavityResponse,
-)
-from .gto_density import (
-    density_reaction_coupling,
-    point_asc_reaction_potential_gradient,
-    point_multipole_potential,
 )
 from .pcmsolver import PCMSolverSession
 from .result import SolvationResult
+from .route2_engine import (
+    Route2ContinuumEngine,
+    Route2CoupledState,
+    Route2EngineSettings,
+)
+from .route2_pcm_response import (
+    FixedCavityPCMSnapshot,
+    FixedCavityPCMReactionFieldLinearMap,
+)
 from .route2_domain import (
     FORMALLY_CHARGED_TRIPOS_TYPES,
     MAX_MOLECULAR_MASS_DA,
@@ -79,14 +81,25 @@ SCF_ENERGY_TOLERANCE_EV = 1.0e-5
 _PCMSOLVER_CWD_LOCK = threading.RLock()
 
 
-@dataclass(frozen=True)
-class _PCMState:
-    mep_hartree_per_e: np.ndarray
-    asc_e: np.ndarray
-    polarization_energy_hartree: float
-    reaction_potential_hartree_per_e: np.ndarray
-    reaction_gradient_hartree_per_e_bohr: np.ndarray
-    density_reaction_coupling_hartree: float
+def _pcmsolver_engine_settings() -> Route2EngineSettings:
+    """Build the PCMSolver policy from the public numerical knobs."""
+
+    return Route2EngineSettings(
+        continuum_label="IEFPCM",
+        scf_mixing=SCF_MIXING,
+        scf_density_tolerance=SCF_DENSITY_TOLERANCE,
+        scf_energy_tolerance_ev=SCF_ENERGY_TOLERANCE_EV,
+        scf_max_iterations=SCF_MAX_ITERATIONS,
+        # PCMSolver remains energy-only; these positive derivative settings
+        # satisfy the shared policy contract but are not consumed here.
+        adjoint_relative_tolerance=1.0e-10,
+        adjoint_absolute_tolerance=1.0e-13,
+        adjoint_max_iterations=100,
+        energy_identity_tolerance_ev=1.0e-8,
+        force_state_energy_tolerance_ev=1.0e-8,
+        neutral_density_tolerance=1.0e-4,
+        scf_require_two_energy_samples=True,
+    )
 
 
 @contextmanager
@@ -399,6 +412,7 @@ class SMDImplicitSolvation:
         self._parsed_pcm_input_path: Path | None = None
         self._parsed_pcm_input_paths: dict[str, Path] = {}
         self._pcmsolver_parser_path: Path | None = None
+        self._engine_settings = _pcmsolver_engine_settings()
 
         if self.audit_dir is not None:
             self.audit_dir = Path(self.audit_dir).resolve()
@@ -653,209 +667,57 @@ class SMDImplicitSolvation:
 
     @staticmethod
     def _gas_state(calculator, atoms):
-        cached = getattr(calculator, "cached_polar_state", None)
-        state = (
-            cached(atoms)
-            if callable(cached)
-            else getattr(calculator, "_last_polar_state", None)
-        )
-        if state is None:
-            state, _ = calculator.polar_state(atoms)
-        return state
-
-    @staticmethod
-    def _validate_density(density_coefficients: np.ndarray, atom_count: int) -> np.ndarray:
-        density = np.asarray(density_coefficients, dtype=float)
-        if density.shape != (atom_count, 4) or not np.all(np.isfinite(density)):
-            raise RuntimeError(
-                "Route 2 requires finite MACE-POLAR density coefficients with "
-                f"shape ({atom_count}, 4); received {density.shape}."
-            )
-        net_charge = float(np.sum(density[:, 0]))
-        if abs(net_charge) > 1.0e-4:
-            raise RuntimeError(
-                "The MACE-POLAR residual density violates the neutral charge "
-                f"constraint (sum={net_charge:.6e} e)."
-            )
-        return density.copy()
-
-    def _solve_pcm(
-        self,
-        response: ExternalMEPCavityResponse,
-        atoms,
-        density_coefficients: np.ndarray,
-    ) -> _PCMState:
-        if (
-            getattr(response, "contract_version", None)
-            != EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
-        ):
-            raise ValueError(
-                "Unsupported external-MEP continuum-response contract version."
-            )
-        surface_points_bohr = np.asarray(
-            response.surface_points_bohr,
-            dtype=float,
-        )
-        mep = point_multipole_potential(
-            surface_points_bohr,
-            atoms.get_positions(),
-            density_coefficients,
-        )
-        solved = response.solve(mep)
-        solved_mep = np.asarray(
-            solved.surface_potential_hartree_per_e,
-            dtype=float,
-        )
-        if solved_mep.shape != mep.shape or not np.array_equal(solved_mep, mep):
-            raise RuntimeError(
-                "Continuum response returned a state for a different surface "
-                "potential."
-            )
-        asc = np.asarray(
-            solved.energy_conjugate_surface_charge_e,
-            dtype=float,
-        )
-        polarization_energy = float(solved.polarization_energy_hartree)
-        if not np.all(np.isfinite(asc)) or not np.isfinite(polarization_energy):
-            raise RuntimeError(
-                "Continuum response returned non-finite ASC/energy values."
-            )
-
-        surface_coupling = float(np.dot(mep, asc))
-        expected_coupling = 2.0 * polarization_energy
-        tolerance = max(1.0e-10, 1.0e-8 * abs(expected_coupling))
-        if abs(surface_coupling - expected_coupling) > tolerance:
-            raise RuntimeError(
-                "Continuum polarization-energy convention check failed: "
-                "E_pol must equal 0.5*dot(MEP,q_energy)."
-            )
-
-        reaction_potential, reaction_gradient = point_asc_reaction_potential_gradient(
-            atoms.get_positions(),
-            surface_points_bohr,
-            asc,
-        )
-        multipole_coupling = density_reaction_coupling(
-            density_coefficients,
-            reaction_potential,
-            reaction_gradient,
-        )
-        if abs(multipole_coupling - surface_coupling) > max(
-            1.0e-10, 1.0e-8 * abs(surface_coupling)
-        ):
-            raise RuntimeError(
-                "MACE-POLAR point-multipole/ASC reciprocity check failed; the reaction-field "
-                "projection is inconsistent with the cavity MEP."
-            )
-
-        return _PCMState(
-            mep_hartree_per_e=mep,
-            asc_e=asc,
-            polarization_energy_hartree=polarization_energy,
-            reaction_potential_hartree_per_e=reaction_potential,
-            reaction_gradient_hartree_per_e_bohr=reaction_gradient,
-            density_reaction_coupling_hartree=surface_coupling,
-        )
-
-    @staticmethod
-    def _polarize(calculator, atoms, pcm_state: _PCMState):
-        node_potential_ev = pcm_state.reaction_potential_hartree_per_e * Hartree
-        node_gradient_ev_per_angstrom = (
-            pcm_state.reaction_gradient_hartree_per_e_bohr * Hartree / Bohr
-        )
-        state, _ = calculator.polar_state(
+        return Route2ContinuumEngine.gas_state(
+            calculator,
             atoms,
-            node_potential_ev=node_potential_ev,
-            node_gradient_ev_per_angstrom=node_gradient_ev_per_angstrom,
+            need_forces=False,
         )
-        return state
 
-    def _self_consistent_state(
+    def _engine_for_reaction_field(
         self,
-        response: ExternalMEPCavityResponse,
-        atoms,
-        calculator,
-        gas_state,
-    ):
-        density = self._validate_density(
-            gas_state.density_coefficients, len(atoms)
+        reaction_field: FixedCavityPCMReactionFieldLinearMap,
+        cds_result,
+    ) -> Route2ContinuumEngine:
+        return Route2ContinuumEngine(
+            reaction_field_factory=lambda _atoms: reaction_field,
+            cds_evaluator=lambda _atoms: cds_result,
+            settings=self._engine_settings,
         )
-        previous_energy_ev: float | None = None
-        history: list[dict[str, float | int | None]] = []
-        final_state = None
-
-        for iteration in range(1, SCF_MAX_ITERATIONS + 1):
-            pcm_state = self._solve_pcm(response, atoms, density)
-            response_state = self._polarize(calculator, atoms, pcm_state)
-            response_density = self._validate_density(
-                response_state.density_coefficients, len(atoms)
-            )
-            density_residual = float(np.max(np.abs(response_density - density)))
-            energy_residual = (
-                None
-                if previous_energy_ev is None
-                else abs(float(response_state.energy_ev) - previous_energy_ev)
-            )
-            history.append(
-                {
-                    "iteration": iteration,
-                    "density_residual_e": density_residual,
-                    "energy_residual_ev": energy_residual,
-                    "intrinsic_energy_ev": float(response_state.energy_ev),
-                    "pcm_polarization_energy_hartree": (
-                        pcm_state.polarization_energy_hartree
-                    ),
-                }
-            )
-
-            if (
-                previous_energy_ev is not None
-                and density_residual <= SCF_DENSITY_TOLERANCE
-                and energy_residual is not None
-                and energy_residual <= SCF_ENERGY_TOLERANCE_EV
-            ):
-                final_state = response_state
-                break
-
-            density = (
-                (1.0 - SCF_MIXING) * density
-                + SCF_MIXING * response_density
-            )
-            previous_energy_ev = float(response_state.energy_ev)
-
-        if final_state is None:
-            last = history[-1]
-            raise RuntimeError(
-                "MACE-POLAR/IEFPCM reaction-field SCF did not converge in "
-                f"{SCF_MAX_ITERATIONS} iterations "
-                f"(density residual={last['density_residual_e']:.3e} e, "
-                f"energy residual={last['energy_residual_ev']:.3e} eV)."
-            )
-
-        final_density = self._validate_density(
-            final_state.density_coefficients, len(atoms)
-        )
-        final_pcm = self._solve_pcm(response, atoms, final_density)
-        return final_state, final_pcm, history
 
     def _write_result_audit(
         self,
         *,
         gas_state,
         solvent_state,
-        pcm_state: _PCMState,
+        root_density_coefficients: np.ndarray,
+        response_density_coefficients: np.ndarray,
+        reaction_field_values_ev: np.ndarray,
+        pcm_state: FixedCavityPCMSnapshot,
         session: PCMSolverSession,
         cds_result,
         components: dict[str, float],
-        history: list[dict[str, float | int | None]],
+        history: tuple[dict[str, float | int | None], ...],
     ) -> None:
         if self.audit_dir is None:
             return
+        root_density = np.asarray(root_density_coefficients, dtype=float)
+        response_density = np.asarray(
+            response_density_coefficients,
+            dtype=float,
+        )
+        density_residual_inf = float(
+            np.max(np.abs(response_density - root_density))
+        )
         np.savez_compressed(
             self.audit_dir / "route2-state.npz",
             gas_density_coefficients=np.asarray(gas_state.density_coefficients),
-            solvent_density_coefficients=np.asarray(
-                solvent_state.density_coefficients
+            # Legacy name retained for readers of schema <=5.
+            solvent_density_coefficients=response_density,
+            root_density_coefficients=root_density,
+            response_density_coefficients=response_density,
+            reaction_field_values_ev=np.asarray(
+                reaction_field_values_ev,
+                dtype=float,
             ),
             cavity_centers_bohr=session.cavity_centers_bohr,
             cavity_areas_bohr2=session.cavity_areas_bohr2,
@@ -873,17 +735,41 @@ class SMDImplicitSolvation:
             ),
         )
         payload = {
-            "schema_version": 5,
+            "schema_version": 6,
             "response": self.response,
             "pcm_mep_projection": "cavity-exterior-point-multipole-l<=1",
             "converged": True,
             "iterations": len(history),
+            "fixed_point": {
+                "applies": self.response == "scf",
+                "same_root_energy_ledger": True,
+                "root_density_definition": (
+                    "density c supplied to the continuum operator"
+                ),
+                "response_density_definition": (
+                    "unmixed MACE-POLAR response M(P(c))"
+                ),
+                "density_residual_inf_e": (
+                    density_residual_inf
+                    if self.response == "scf"
+                    else None
+                ),
+            },
             "scf": {
-                "maximum_iterations": SCF_MAX_ITERATIONS,
-                "mixing": SCF_MIXING,
-                "density_tolerance_e": SCF_DENSITY_TOLERANCE,
-                "energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
-                "history": history,
+                "maximum_iterations": (
+                    self._engine_settings.scf_max_iterations
+                ),
+                "mixing": self._engine_settings.scf_mixing,
+                "density_tolerance_e": (
+                    self._engine_settings.scf_density_tolerance
+                ),
+                "energy_tolerance_ev": (
+                    self._engine_settings.scf_energy_tolerance_ev
+                ),
+                "require_two_energy_samples": (
+                    self._engine_settings.scf_require_two_energy_samples
+                ),
+                "history": list(history),
             },
             "energies_hartree": components,
             "gas_mace_energy_ev": float(gas_state.energy_ev),
@@ -929,7 +815,6 @@ class SMDImplicitSolvation:
             )
 
         gas_state = self._gas_state(calculator, atoms)
-        self._validate_density(gas_state.density_coefficients, len(atoms))
         assert self.audit_dir is not None
         cds_result = smd_water_cds(
             atoms.get_chemical_symbols(),
@@ -996,24 +881,81 @@ class SMDImplicitSolvation:
                         cavity_attempts.append(attempt)
                         if not initialization_warning:
                             response_started = time.perf_counter()
+                            reaction_field = (
+                                FixedCavityPCMReactionFieldLinearMap(
+                                    continuum_response,
+                                    np.asarray(
+                                        atoms.get_positions(),
+                                        dtype=float,
+                                    ),
+                                )
+                            )
+                            engine = self._engine_for_reaction_field(
+                                reaction_field,
+                                cds_result,
+                            )
                             if self.response == "frozen":
                                 solvent_state = gas_state
-                                pcm_state = self._solve_pcm(
-                                    continuum_response,
-                                    atoms,
+                                root_density = engine.validate_density(
                                     gas_state.density_coefficients,
+                                    len(atoms),
+                                    name="Gas MACE-POLAR density",
                                 )
-                                history = []
+                                response_density = root_density
+                                reaction_field_values = (
+                                    reaction_field.apply_scf(root_density)
+                                )
+                                pcm_state = reaction_field.scf_snapshot(
+                                    root_density
+                                )
+                                history = ()
+                                components = (
+                                    engine.compose_energy_components(
+                                        gas_energy_ev=float(
+                                            gas_state.energy_ev
+                                        ),
+                                        solvent_energy_ev=float(
+                                            gas_state.energy_ev
+                                        ),
+                                        polarization_energy_hartree=(
+                                            pcm_state
+                                            .polarization_energy_hartree
+                                        ),
+                                        cds_energy_hartree=float(
+                                            cds_result.energy_hartree
+                                        ),
+                                    )
+                                )
                             else:
-                                (
-                                    solvent_state,
-                                    pcm_state,
-                                    history,
-                                ) = self._self_consistent_state(
-                                    continuum_response,
-                                    atoms,
-                                    calculator,
+                                coupled: Route2CoupledState = (
+                                    engine.solve_coupled_state(
+                                        atoms,
+                                        calculator,
+                                        gas_state,
+                                        provider_cache_signature=(
+                                            self.profile,
+                                            self.cavity_policy,
+                                            attempt_name,
+                                        ),
+                                    )
+                                )
+                                solvent_state = coupled.solvent_state
+                                root_density = (
+                                    coupled.root_density_coefficients
+                                )
+                                response_density = (
+                                    coupled.response_density_coefficients
+                                )
+                                reaction_field_values = (
+                                    coupled.reaction_field_values_ev
+                                )
+                                pcm_state = reaction_field.scf_snapshot(
+                                    root_density
+                                )
+                                history = coupled.history
+                                components = engine.energy_components(
                                     gas_state,
+                                    coupled,
                                 )
                             attempt["response_evaluated"] = True
                             attempt["response_evaluation_seconds"] = (
@@ -1027,31 +969,20 @@ class SMDImplicitSolvation:
                                 attempt["warning_detected"] = True
                                 attempt["warning_stage"] = "response-evaluation"
                             else:
-                                delta_e_solute = (
-                                    float(solvent_state.energy_ev)
-                                    - float(gas_state.energy_ev)
-                                ) / Hartree
-                                pcm_polarization = (
-                                    pcm_state.polarization_energy_hartree
-                                )
-                                electrostatic = (
-                                    delta_e_solute + pcm_polarization
-                                )
-                                total = (
-                                    electrostatic + cds_result.energy_hartree
-                                )
-                                components = {
-                                    "solute_polarization": delta_e_solute,
-                                    "pcm_polarization": pcm_polarization,
-                                    "electrostatic": electrostatic,
-                                    "cds": cds_result.energy_hartree,
-                                    "standard_state": 0.0,
-                                    "delta_g_solv": total,
-                                }
+                                total = components["delta_g_solv"]
                                 self._parsed_pcm_input_path = parsed_input
                                 self._write_result_audit(
                                     gas_state=gas_state,
                                     solvent_state=solvent_state,
+                                    root_density_coefficients=(
+                                        root_density
+                                    ),
+                                    response_density_coefficients=(
+                                        response_density
+                                    ),
+                                    reaction_field_values_ev=(
+                                        reaction_field_values
+                                    ),
                                     pcm_state=pcm_state,
                                     session=session,
                                     cds_result=cds_result,
@@ -1149,6 +1080,16 @@ class SMDImplicitSolvation:
             **self.provenance,
             "converged": True,
             "iterations": len(history),
+            "same_root_energy_ledger": True,
+            "fixed_point_density_residual_inf_e": (
+                None
+                if self.response == "frozen"
+                else float(
+                    np.max(
+                        np.abs(response_density - root_density)
+                    )
+                )
+            ),
             "density_reaction_coupling_hartree": (
                 pcm_state.density_reaction_coupling_hartree
             ),

@@ -8,6 +8,8 @@ force-capable by itself.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 from ase.units import Bohr, Hartree
 
@@ -20,6 +22,7 @@ from .continuum_response import (
     ExternalMEPCavityResponse,
 )
 from .gto_density import (
+    density_reaction_coupling,
     external_field_to_density_order,
     point_asc_reaction_position_vjp,
     point_asc_reaction_potential_gradient,
@@ -33,6 +36,42 @@ from .route2_derivative import (
 
 
 ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION = 1
+
+
+@dataclass(frozen=True)
+class FixedCavityPCMSnapshot:
+    """PCM energy, field, and surface state from one explicit root density."""
+
+    density_coefficients: np.ndarray
+    mep_hartree_per_e: np.ndarray
+    asc_e: np.ndarray
+    polarization_energy_hartree: float
+    reaction_potential_hartree_per_e: np.ndarray
+    reaction_gradient_hartree_per_e_bohr: np.ndarray
+    density_reaction_coupling_hartree: float
+
+    def __post_init__(self) -> None:
+        for name in (
+            "density_coefficients",
+            "mep_hartree_per_e",
+            "asc_e",
+            "reaction_potential_hartree_per_e",
+            "reaction_gradient_hartree_per_e_bohr",
+        ):
+            values = np.asarray(getattr(self, name), dtype=float)
+            if not np.all(np.isfinite(values)):
+                raise ValueError(f"{name} must contain only finite values.")
+            immutable = np.array(values, copy=True)
+            immutable.setflags(write=False)
+            object.__setattr__(self, name, immutable)
+        for name in (
+            "polarization_energy_hartree",
+            "density_reaction_coupling_hartree",
+        ):
+            value = float(getattr(self, name))
+            if not np.isfinite(value):
+                raise ValueError(f"{name} must be finite.")
+            object.__setattr__(self, name, value)
 
 
 def _validated_atom_block(
@@ -123,6 +162,7 @@ class FixedCavityPCMReactionFieldLinearMap:
             geometry_tolerance_angstrom / Bohr
         )
         self.atom_count = positions.shape[0]
+        self._scf_snapshot: FixedCavityPCMSnapshot | None = None
 
     def _compute_asc(self, density: np.ndarray) -> np.ndarray:
         mep = point_multipole_potential(
@@ -142,6 +182,132 @@ class FixedCavityPCMReactionFieldLinearMap:
                 "fixed cavity point."
             )
         return asc
+
+    def _solve_snapshot(
+        self,
+        density_coefficients: np.ndarray,
+    ) -> FixedCavityPCMSnapshot:
+        density = _validated_atom_block(
+            density_coefficients,
+            atom_count=self.atom_count,
+            name="density_coefficients",
+        )
+        mep = point_multipole_potential(
+            self._centers_bohr,
+            self._positions_angstrom,
+            density,
+        )
+        solved = self._response.solve(mep)
+        solved_mep = np.asarray(
+            solved.surface_potential_hartree_per_e,
+            dtype=float,
+        )
+        if solved_mep.shape != mep.shape or not np.array_equal(solved_mep, mep):
+            raise RuntimeError(
+                "Continuum response returned a state for a different surface "
+                "potential."
+            )
+        asc = np.asarray(
+            solved.energy_conjugate_surface_charge_e,
+            dtype=float,
+        )
+        polarization_energy = float(solved.polarization_energy_hartree)
+        surface_coupling = float(np.dot(mep, asc))
+        expected_coupling = 2.0 * polarization_energy
+        tolerance = max(1.0e-10, 1.0e-8 * abs(expected_coupling))
+        if abs(surface_coupling - expected_coupling) > tolerance:
+            raise RuntimeError(
+                "Continuum polarization-energy convention check failed: "
+                "E_pol must equal 0.5*dot(MEP,q_energy)."
+            )
+
+        reaction_potential, reaction_gradient = (
+            point_asc_reaction_potential_gradient(
+                self._positions_angstrom,
+                self._centers_bohr,
+                asc,
+            )
+        )
+        multipole_coupling = density_reaction_coupling(
+            density,
+            reaction_potential,
+            reaction_gradient,
+        )
+        if abs(multipole_coupling - surface_coupling) > max(
+            1.0e-10, 1.0e-8 * abs(surface_coupling)
+        ):
+            raise RuntimeError(
+                "MACE-POLAR point-multipole/ASC reciprocity check failed; the "
+                "reaction-field projection is inconsistent with the cavity MEP."
+            )
+        return FixedCavityPCMSnapshot(
+            density_coefficients=density,
+            mep_hartree_per_e=mep,
+            asc_e=asc,
+            polarization_energy_hartree=polarization_energy,
+            reaction_potential_hartree_per_e=reaction_potential,
+            reaction_gradient_hartree_per_e_bohr=reaction_gradient,
+            density_reaction_coupling_hartree=surface_coupling,
+        )
+
+    def scf_snapshot(
+        self,
+        density_coefficients: np.ndarray,
+    ) -> FixedCavityPCMSnapshot:
+        """Return the cached PCM state for exactly one SCF root density."""
+
+        density = _validated_atom_block(
+            density_coefficients,
+            atom_count=self.atom_count,
+            name="density_coefficients",
+        )
+        cached = self._scf_snapshot
+        if cached is not None and np.array_equal(
+            cached.density_coefficients,
+            density,
+        ):
+            return cached
+        snapshot = self._solve_snapshot(density)
+        self._scf_snapshot = snapshot
+        return snapshot
+
+    @staticmethod
+    def _field_from_snapshot(
+        snapshot: FixedCavityPCMSnapshot,
+    ) -> np.ndarray:
+        return np.concatenate(
+            (
+                (
+                    snapshot.reaction_potential_hartree_per_e * Hartree
+                )[:, None],
+                (
+                    snapshot.reaction_gradient_hartree_per_e_bohr
+                    * Hartree
+                    / Bohr
+                ),
+            ),
+            axis=1,
+        )
+
+    def apply_scf(self, density_direction: np.ndarray) -> np.ndarray:
+        """Map one SCF root and retain its exact continuum energy state."""
+
+        snapshot = self.scf_snapshot(density_direction)
+        return _validated_atom_block(
+            self._field_from_snapshot(snapshot),
+            atom_count=self.atom_count,
+            name="reaction-field response",
+        )
+
+    def scf_polarization_energy_hartree(
+        self,
+        density_coefficients: np.ndarray,
+    ) -> float:
+        """Return the polarization energy from the same cached SCF root."""
+
+        return self.scf_snapshot(
+            density_coefficients
+        ).polarization_energy_hartree
 
     def apply(self, density_direction: np.ndarray) -> np.ndarray:
         """Map a density direction to the atom-centred reaction field."""
@@ -237,6 +403,7 @@ class FixedCavityPCMReactionFieldLinearMap:
             self._surface_readback_tolerance_bohr
         )
         displaced.atom_count = self.atom_count
+        displaced._scf_snapshot = None
         return displaced
 
     def position_vjp(
@@ -506,5 +673,6 @@ class AtomCenteredSurfacePCMReactionFieldLinearMap(
 __all__ = [
     "ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION",
     "AtomCenteredSurfacePCMReactionFieldLinearMap",
+    "FixedCavityPCMSnapshot",
     "FixedCavityPCMReactionFieldLinearMap",
 ]

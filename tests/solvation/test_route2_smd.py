@@ -15,6 +15,9 @@ from maple.function.calculator.calculator_base import (
     ROUTE2_SMD_CALCULATOR_PROFILE,
 )
 import maple.function.calculator.extra_correction.implicit.smd as smd_module
+from maple.function.calculator.extra_correction.implicit import (
+    route2_pcm_response as pcm_response_module,
+)
 from maple.function.calculator.extra_correction.implicit.continuum_response import (
     EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
     PCMSolverExternalMEPCavityResponse,
@@ -26,6 +29,9 @@ from maple.function.calculator.extra_correction.implicit.gto_density import (
     gaussian_multipole_potential,
     point_asc_reaction_potential_gradient,
     point_multipole_potential,
+)
+from maple.function.calculator.extra_correction.implicit.route2_pcm_response import (
+    FixedCavityPCMReactionFieldLinearMap,
 )
 from maple.function.calculator.extra_correction.implicit.smd import (
     PCM_WARNING_MARKER,
@@ -331,7 +337,7 @@ def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
         None,
     ).open()
     calls = 0
-    implementation = smd_module.point_multipole_potential
+    implementation = pcm_response_module.point_multipole_potential
 
     def tracked_point_multipole_potential(*args, **kwargs):
         nonlocal calls
@@ -339,7 +345,7 @@ def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
         return implementation(*args, **kwargs)
 
     monkeypatch.setattr(
-        smd_module,
+        pcm_response_module,
         "point_multipole_potential",
         tracked_point_multipole_potential,
     )
@@ -348,7 +354,11 @@ def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
         session,
         cavity_radii_angstrom=provider.coulomb_radii_angstrom,
     )
-    state = provider._solve_pcm(response, atoms, coefficients)
+    reaction_field = FixedCavityPCMReactionFieldLinearMap(
+        response,
+        atoms.get_positions(),
+    )
+    state = reaction_field.scf_snapshot(coefficients)
 
     assert calls == 1
     assert state.polarization_energy_hartree < 0.0
@@ -356,15 +366,15 @@ def test_route2_pcm_uses_cavity_exterior_point_multipoles(monkeypatch):
 
 def test_route2_pcm_rejects_response_state_for_a_different_surface_potential():
     atoms = _co_atoms()
-    provider = SMDImplicitSolvation(
-        atoms, _route2_options("frozen"), audit_dir=None
-    )
     coefficients = np.asarray(
         [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]]
     )
 
     class _MismatchedResponse:
         contract_version = EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
+        energy_response_is_reciprocal = True
+        atomic_numbers = np.asarray(atoms.numbers, dtype=float)
+        reference_positions_bohr = atoms.get_positions() / Bohr
         surface_points_bohr = np.asarray(
             [
                 [4.0, 0.0, 0.0],
@@ -391,9 +401,10 @@ def test_route2_pcm_rejects_response_state_for_a_different_surface_potential():
             )
 
     with pytest.raises(RuntimeError, match="different surface potential"):
-        provider._solve_pcm(
+        FixedCavityPCMReactionFieldLinearMap(
             _MismatchedResponse(),
-            atoms,
+            atoms.get_positions(),
+        ).scf_snapshot(
             coefficients,
         )
 
@@ -624,7 +635,7 @@ def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
         "cavity-exterior point monopoles and dipoles"
     )
     audit = (tmp_path / "route2-result.json").read_text(encoding="utf-8")
-    assert '"schema_version": 5' in audit
+    assert '"schema_version": 6' in audit
     assert '"pcm_mep_projection": "cavity-exterior-point-multipole-l<=1"' in audit
 
 
@@ -989,6 +1000,102 @@ def test_scf_route2_iterates_density_and_adds_solute_polarization(
     assert result.provenance["iterations"] > 1
     assert (tmp_path / "route2-state.npz").is_file()
     assert (tmp_path / "route2-result.json").is_file()
+
+
+def test_scf_route2_closes_energy_and_field_on_the_same_finite_tolerance_root(
+    monkeypatch, tmp_path
+):
+    atoms = _co_atoms()
+    gas_density = np.asarray(
+        [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]]
+    )
+    response_density = np.asarray(
+        [[-0.12, 0.0, 0.0, 0.0], [0.12, 0.0, 0.0, 0.0]]
+    )
+    gas = _state(-20.0, gas_density)
+    response = _state(-19.9, response_density)
+    calc = _FakePolarCalculator(gas, response)
+    monkeypatch.setattr(smd_module, "SCF_DENSITY_TOLERANCE", 1.1e-2)
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("scf"), audit_dir=tmp_path
+    )
+    _install_fake_pcm(monkeypatch, provider, tmp_path)
+
+    result = provider.evaluate(atoms, calculator=calc)
+
+    expected_root_density = 0.5 * (gas_density + response_density)
+    expected_session = _FakePCMSolverSession(
+        atoms.numbers,
+        atoms.get_positions() / Bohr,
+        tmp_path / "@unused.pcm",
+    ).open()
+    expected_mep = point_multipole_potential(
+        expected_session.cavity_centers_bohr,
+        atoms.get_positions(),
+        expected_root_density,
+    )
+    expected_pcm_energy = -0.05 * float(np.dot(expected_mep, expected_mep))
+    assert result.components_hartree["pcm_polarization"] == pytest.approx(
+        expected_pcm_energy
+    )
+    assert result.provenance["same_root_energy_ledger"] is True
+    assert result.provenance[
+        "fixed_point_density_residual_inf_e"
+    ] == pytest.approx(1.0e-2)
+
+    with np.load(tmp_path / "route2-state.npz") as state:
+        np.testing.assert_allclose(
+            state["root_density_coefficients"],
+            expected_root_density,
+        )
+        np.testing.assert_allclose(
+            state["response_density_coefficients"],
+            response_density,
+        )
+        np.testing.assert_allclose(
+            state["mep_hartree_per_e"],
+            expected_mep,
+        )
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["fixed_point"]["density_residual_inf_e"] == pytest.approx(
+        1.0e-2
+    )
+    assert audit["fixed_point"]["same_root_energy_ledger"] is True
+
+
+def test_scf_route2_requires_two_energy_samples_when_density_starts_converged(
+    monkeypatch, tmp_path
+):
+    atoms = _co_atoms()
+    gas_density = np.asarray(
+        [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]]
+    )
+    response_density = np.asarray(
+        [[-0.105, 0.0, 0.0, 0.0], [0.105, 0.0, 0.0, 0.0]]
+    )
+    gas = _state(-20.0, gas_density)
+    response = _state(-19.9, response_density)
+    calc = _FakePolarCalculator(gas, response)
+    monkeypatch.setattr(smd_module, "SCF_DENSITY_TOLERANCE", 1.1e-2)
+    provider = SMDImplicitSolvation(
+        atoms, _route2_options("scf"), audit_dir=tmp_path
+    )
+    _install_fake_pcm(monkeypatch, provider, tmp_path)
+
+    result = provider.evaluate(atoms, calculator=calc)
+
+    assert calc.calls == 2
+    assert result.provenance["iterations"] == 2
+    audit = json.loads(
+        (tmp_path / "route2-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["scf"]["require_two_energy_samples"] is True
+    assert audit["scf"]["history"][0]["energy_residual_ev"] is None
+    assert audit["scf"]["history"][1]["energy_residual_ev"] == pytest.approx(
+        0.0
+    )
 
 
 def test_route2_rejects_geometry_changes(tmp_path):

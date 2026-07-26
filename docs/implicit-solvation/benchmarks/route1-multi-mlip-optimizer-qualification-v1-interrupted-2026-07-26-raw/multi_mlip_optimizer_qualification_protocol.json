@@ -1,0 +1,187 @@
+{
+  "claim_boundary": {
+    "absolute_solvation_free_energy_method_validated": false,
+    "hessian_or_stationary_point_validity_established": false,
+    "hydration_accuracy_established": false,
+    "next_gate": "If and only if one global policy qualifies, create a separately frozen v9 protocol and rerun every model-case from exact source states; v9 retains all Hessian, stationary-point, ensemble, sealing, and post-seal scoring gates.",
+    "optimizer_robustness_qualification_only": true,
+    "public_solvfe_eligible": false,
+    "v8_records_reused_by_v9": false
+  },
+  "execution": {
+    "candidate_execution_order": [
+      "bfgs-linesearch",
+      "lbfgs-linesearch",
+      "fire2-abc"
+    ],
+    "candidate_records_are_resumable_only_when_self_hash_and_protocol_fingerprint_validate": true,
+    "device": "cuda:0",
+    "fresh_start_positions_for_every_candidate": true,
+    "model_execution_order": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ]
+  },
+  "frozen_upstream": {
+    "qrrho_protocol": {
+      "file_sha256": "13d0c21e0f812fcf477236b6b59c48e92c8856c656fb93909aaa8f129b9782e0",
+      "path": "docs/implicit-solvation/benchmarks/multi_mlip_phase_specific_qrrho_protocol.json",
+      "protocol_fingerprint": "bf572d6db943be8f0dda32374c49ebcc2da85e171e05bd8369d28260f3022dd1",
+      "protocol_id": "maple-route1-multi-mlip-phase-specific-selected-minimum-rrho-v8"
+    },
+    "v8_failure_audit": {
+      "content_sha256": "0d58a52976e978a9516bbc1af417e47b35fc22928d0de8805b4537cedffb1f30",
+      "failed_case": "mobley_4463913",
+      "failed_model": "aimnet2",
+      "failed_phase": "gas",
+      "failed_source_state_index": 16,
+      "file_sha256": "5b618330125d0e132095f6e9dc6f0905179327da414b695fa861c92473d999cb",
+      "path": "docs/implicit-solvation/benchmarks/route1-multi-mlip-phase-specific-selected-minimum-rrho-v8-flexible-preflight-failure-2026-07-25.json"
+    }
+  },
+  "implementation_freeze": {
+    "required_python": "3.11.14",
+    "required_versions": {
+      "ase": "3.27.0",
+      "numpy": "2.4.6",
+      "openmm": "8.5.2",
+      "torch": "2.12.0+cu130"
+    },
+    "source_files": [
+      {
+        "path": "docs/implicit-solvation/benchmarks/run_multi_mlip_optimizer_qualification.py",
+        "sha256": "c3f5806d73808002c426e892d4cacbf1f2fe81775a73bbae2ab8c2d4b29bcb2e"
+      },
+      {
+        "path": "docs/implicit-solvation/benchmarks/run_multi_mlip_phase_specific_qrrho.py",
+        "sha256": "30f9488d07fe04cc0aa32d0652b0a9f818a5904d09b6c1e24f7479f69852c52e"
+      },
+      {
+        "path": "docs/implicit-solvation/benchmarks/benchmark_core.py",
+        "sha256": "cb09b41ef510b535880d8e21437efa53e646a650828653575350e2630884b241"
+      }
+    ]
+  },
+  "label_boundary": {
+    "experimental_labels_read": false,
+    "forbidden_inputs": [
+      "FreeSolv experimental values",
+      "hydration residuals",
+      "per-model accuracy metrics"
+    ],
+    "hydration_accuracy_evaluated": false,
+    "selection_uses_only_optimizer_observables": true
+  },
+  "optimizer_candidates": [
+    {
+      "algorithm": "ASE-BFGSLineSearch",
+      "alpha": 10.0,
+      "basis": "ASE documents BFGSLineSearch as enforcing Wolfe conditions and notes that it is often the optimal quasi-Newton choice.",
+      "c1": 0.23,
+      "c2": 0.46,
+      "candidate_id": "bfgs-linesearch",
+      "candidate_order": 0,
+      "maxstep_angstrom": 0.1,
+      "stpmax": 50.0
+    },
+    {
+      "algorithm": "ASE-LBFGSLineSearch",
+      "alpha": 70.0,
+      "basis": "Direct low-memory line-search successor to the v8 LBFGS policy, retaining the v8 step ceiling.",
+      "candidate_id": "lbfgs-linesearch",
+      "candidate_order": 1,
+      "damping": 1.0,
+      "maxstep_angstrom": 0.1,
+      "memory": 100
+    },
+    {
+      "Nmin": 20,
+      "algorithm": "ASE-FIRE2-ABC",
+      "astart": 0.25,
+      "basis": "Independent inertial-relaxation family included to avoid comparing only quasi-Newton variants; the v8 step ceiling is retained.",
+      "candidate_id": "fire2-abc",
+      "candidate_order": 2,
+      "dt": 0.1,
+      "dtmax": 1.0,
+      "dtmin": 0.002,
+      "fa": 0.99,
+      "fdec": 0.5,
+      "finc": 1.1,
+      "maxstep_angstrom": 0.1,
+      "use_abc": true
+    }
+  ],
+  "protocol_id": "maple-route1-multi-mlip-optimizer-qualification-v1",
+  "qualification_gates": {
+    "all_18_branches_must_converge": true,
+    "all_18_branches_must_succeed": true,
+    "all_traced_energies_and_forces_must_be_finite": true,
+    "every_final_energy_must_not_exceed_its_exact_initial_energy": true,
+    "failed_branch_retained_in_denominator": true,
+    "fmax_eV_per_angstrom": 0.01,
+    "force_comparison_tolerance_eV_per_angstrom": 1e-12,
+    "maximum_final_energy_increase_eV": 1e-08,
+    "maximum_steps": 1000
+  },
+  "qualification_scope": {
+    "case_ids": [
+      "mobley_4463913"
+    ],
+    "case_selection_basis": "The preregistered v8 flexible gate and its exact failed AIMNet2 branch; no experimental label was read.",
+    "expected_branch_count_per_candidate": 18,
+    "maximum_seed_count_per_phase_model_case": 3,
+    "model_ids": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ],
+    "per_model_or_per_phase_optimizer_selection_allowed": false,
+    "phase_seed_rule": "Reuse the frozen v8 model- and phase-specific low-potential heavy-atom-diverse selection from exact source positions.",
+    "phases": [
+      "gas",
+      "solution"
+    ],
+    "source_partition": "development"
+  },
+  "references": [
+    {
+      "role": "Defines optimizer families, force convergence, Wolfe line search, and the small-system preconditioning boundary.",
+      "title": "ASE structure optimization documentation",
+      "url": "https://docs.ase-lib.org/ase/optimize.html"
+    },
+    {
+      "doi": "10.1016/j.commatsci.2019.109584",
+      "role": "FIRE implementation and parameter assessment.",
+      "title": "Assessment and optimization of FIRE for atomistic energy minimization"
+    },
+    {
+      "doi": "10.1016/j.commatsci.2022.111978",
+      "role": "Independent FIRE2/ABC-FIRE candidate basis.",
+      "title": "ABC-FIRE: Accelerated Bias-Corrected Fast Inertial Relaxation Engine"
+    }
+  ],
+  "registered_utc": "2026-07-25T16:20:00Z",
+  "route_boundary": {
+    "charge_refitting": false,
+    "gas_force": "-grad_R E_MLIP,m(R)",
+    "gas_phase_mm_energy": false,
+    "hydration_label_residual": false,
+    "mlip_retraining": false,
+    "solution_force": "-grad_R [E_MLIP,m(R)+W_AM1-BCC/OBC-II/ACE(R,q_fixed)]"
+  },
+  "schema_version": 1,
+  "scientific_question": "Can one model-neutral ASE optimizer policy robustly relax every frozen flexible-case gas and additive AM1-BCC/OBC-II/ACE solution branch across MACE-OFF23-M, AIMNet2, and ANI2x without increasing the endpoint energy?",
+  "selection_rule": {
+    "eligible_set": "Candidates passing every frozen branch and every qualification gate.",
+    "lexicographic_metrics": [
+      "total_calculator_evaluations",
+      "total_optimizer_steps",
+      "candidate_order"
+    ],
+    "no_fallback_to_second_candidate_after_v9_hessian_failure": true,
+    "single_global_policy_required": true,
+    "wall_time_used_for_selection": false
+  },
+  "status": "preregistered-before-qualification-execution"
+}

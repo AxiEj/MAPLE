@@ -127,6 +127,21 @@ potential, accepts only the lower converged structure with at least
 `0.001 kcal/mol` energy lowering, and reapplies every Hessian and
 stationary-point gate.
 
+V8 later failed closed on the flexible preflight before reaching those Hessian
+tests: one frozen AIMNet2 gas branch remained above the force threshold after
+500 LBFGS steps. A separate label-blind optimizer-robustness qualification
+then tested BFGSLineSearch, LBFGSLineSearch, and FIRE2/ABC on the identical
+three MLIPs, two physical phases, and three selected source states. The
+candidate changes only the numerical minimizer; every branch still
+differentiates either
+\(E_{\mathrm{MLIP,gas}}\) or
+\(E_{\mathrm{MLIP,gas}}+G_{\mathrm{polar}}+G_{\mathrm{nonpolar}}\).
+All three candidates passed only `12/18` branches under the common
+force, finite-trace, non-increasing-energy, step, and calculator-evaluation
+gates. Because the protocol forbids per-model or per-phase selection, no
+global policy exists and no v9 thermochemistry protocol is scientifically
+admissible from this screen.
+
 The entropy interpolation follows Grimme,
 DOI `10.1002/chem.201200497`; conformer-ensemble and msRRHO context follows
 Pracht and Grimme, DOI `10.1039/D1SC00621E`; and the energy interpolation
@@ -1205,6 +1220,34 @@ term and is implemented in Amber. It remains a surface-area model rather than
 the PBSA `inp=2` cavity-plus-dispersion endpoint that participated in the
 lowest-error pairing. It therefore cannot be substituted silently for that
 nonpolar term, and it does not provide the missing CHA-GB polar derivative.
+
+### MLSES PB surface feasibility boundary
+
+MLSES/GENIUSES changes the PB dielectric-boundary construction rather than the
+Route 1 additive identity. Its neural network approximates a classical
+solvent-excluded-surface level-set geometry; the primary paper
+(DOI `10.1021/acs.jctc.1c00492`) does not train a hydration-energy residual or
+an MLIP-specific molecular correction. It is therefore not residual cheating
+in principle.
+
+The maintained executable boundary is stricter. AmberTools 26 documents an
+MLSES single-point example with `sasopt=3`, `ipb=2`, `eneopt=1`, and
+`frcopt=0`; its force example does not enable MLSES. A direct matrix over all
+three legal PB energy/force pairs and two grids produced valid classical-SES
+atom forces but no atom-resolved MLSES force. Because no force vector survived,
+the required comparison
+
+\[
+F_i^{\mathrm{MLSES}}\stackrel{?}{=}
+-\frac{G_{\mathrm{PB,MLSES}}(R+h e_i)
+       -G_{\mathrm{PB,MLSES}}(R-h e_i)}{2h}
+\]
+
+could not be reached. On the same 23-atom CPU probe, the MLSES energy-only path
+was also slower than classical SES at both grid settings. Consequently there
+is no MLSES runtime provider and no derivative-based Route 1 task uses this
+surface. This rejection is about present force and performance capability,
+not the scientific legitimacy of a geometry surrogate.
 
 GNNIS is excluded for a different, contractual reason rather than for a
 missing derivative. The released implementation computes a scalar

@@ -120,7 +120,7 @@ def load_protocol(
         not isinstance(protocol, dict)
         or protocol.get("schema_version") != 1
         or protocol.get("protocol_id")
-        != "maple-route1-multi-mlip-optimizer-qualification-v1"
+        != "maple-route1-multi-mlip-optimizer-qualification-v2"
         or protocol.get("status") != "preregistered-before-qualification-execution"
     ):
         raise ValueError("Unsupported optimizer-qualification protocol.")
@@ -177,6 +177,28 @@ def load_protocol(
     ):
         raise ValueError("v8 failure audit is not the frozen label-blind evidence.")
 
+    interruption_path = _resolve_repository_file(
+        upstream["v1_interruption_audit"]["path"],
+        name="v1 interruption audit",
+    )
+    if (
+        sha256_file(interruption_path)
+        != upstream["v1_interruption_audit"]["file_sha256"]
+    ):
+        raise ValueError("v1 interruption-audit bytes changed.")
+    interruption = load_json(interruption_path)
+    _validate_self_hash(interruption, name="v1 interruption audit")
+    if (
+        interruption.get("content_sha256")
+        != upstream["v1_interruption_audit"]["content_sha256"]
+        or interruption.get("status")
+        != "interrupted-before-complete-matrix-or-selection"
+        or interruption.get("decision", {}).get("v1_resume_allowed") is not False
+        or interruption.get("amendment_basis", {}).get("experimental_labels_read")
+        is not False
+    ):
+        raise ValueError("v1 interruption audit is not the frozen amendment evidence.")
+
     implementation = protocol["implementation_freeze"]
     if platform.python_version() != implementation["required_python"]:
         raise ValueError("Required Python version changed.")
@@ -230,9 +252,12 @@ def load_protocol(
 class CountingHartreeToEVCalculator(QRRHO.HartreeToEVCalculator):
     """Count ASE-level calculator evaluations without changing energies or forces."""
 
-    def __init__(self, source_calculator):
+    def __init__(self, source_calculator, *, maximum_calculate_calls: int):
         super().__init__(source_calculator)
         self.calculate_calls = 0
+        self.maximum_calculate_calls = int(maximum_calculate_calls)
+        if self.maximum_calculate_calls <= 0:
+            raise ValueError("Calculator-evaluation budget must be positive.")
 
     def calculate(
         self,
@@ -240,6 +265,11 @@ class CountingHartreeToEVCalculator(QRRHO.HartreeToEVCalculator):
         properties=None,
         system_changes=all_changes,
     ):
+        if self.calculate_calls >= self.maximum_calculate_calls:
+            raise RuntimeError(
+                "Frozen per-branch calculator-evaluation budget exhausted: "
+                f"{self.maximum_calculate_calls}."
+            )
         self.calculate_calls += 1
         return super().calculate(
             atoms=atoms,
@@ -308,7 +338,12 @@ def _run_branch(
 
     atoms = template_atoms.copy()
     atoms.set_positions(initial_positions)
-    adapter = CountingHartreeToEVCalculator(source_calculator)
+    adapter = CountingHartreeToEVCalculator(
+        source_calculator,
+        maximum_calculate_calls=int(
+            gates["maximum_calculator_evaluations_per_branch"]
+        ),
+    )
     atoms.calc = adapter
     branch_dir.mkdir(parents=True, exist_ok=True)
     logfile = branch_dir / f"{phase}.log"
@@ -403,6 +438,11 @@ def _run_branch(
             "trajectory": _relative_to_repository(trajectory),
         }
     except Exception as exc:
+        finite_trace = all(
+            math.isfinite(float(row["energy_eV"]))
+            and math.isfinite(float(row["maximum_force_eV_per_angstrom"]))
+            for row in trace
+        )
         return {
             "status": "failure",
             "phase": phase,
@@ -411,6 +451,21 @@ def _run_branch(
             "converged": False,
             "calculator_evaluations": int(adapter.calculate_calls),
             "elapsed_seconds": time.perf_counter() - start,
+            "finite_trace": finite_trace,
+            "trace": trace,
+            "trace_sha256": sha256_bytes(canonical_json_bytes(trace)),
+            "logfile": _relative_to_repository(logfile),
+            "trajectory": (
+                _relative_to_repository(trajectory)
+                if trajectory.is_file()
+                else None
+            ),
+            "calculator_evaluation_budget_exhausted": (
+                isinstance(exc, RuntimeError)
+                and str(exc).startswith(
+                    "Frozen per-branch calculator-evaluation budget exhausted:"
+                )
+            ),
             "failure": {
                 "exception_class": type(exc).__name__,
                 "reason": str(exc),

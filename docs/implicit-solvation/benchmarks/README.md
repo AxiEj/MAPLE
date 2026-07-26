@@ -558,6 +558,43 @@ echo "31a1ddfe72105a0a6843ef2bcda76763cb99bab56d85d844c08e078156201f08  pyddx-0.
 python docs/implicit-solvation/benchmarks/run_ddx_pcm_screen.py score
 ```
 
+### MLSES PB surface feasibility boundary (2026-07-26)
+
+[`route1-mlses-pb-feasibility-probe-2026-07-26.json`](route1-mlses-pb-feasibility-probe-2026-07-26.json)
+pins the local AmberTools/PBSA executable and topology hashes, the current
+AmberTools 26 manual, and the primary MLSES paper
+(DOI `10.1021/acs.jctc.1c00492`). The paper learns a classical
+solvent-excluded-surface level-set geometry, not a hydration-energy residual,
+so the candidate remains inside the Route 1 physical-model boundary in
+principle.
+
+The runtime probe crosses both a coarse `0.50 A` grid and the manual-style
+`0.25 A` grid with all three legal `ENEOPT/FRCOPT` pairs. Every classical-SES
+control writes a nonempty atom-force file. MLSES provides no atom-resolved
+MLSES force: `ENEOPT=1/FRCOPT=1` terminates by signal, while `2/2` and `2/3`
+abort while projecting dielectric-boundary forces to atoms. Because no
+candidate force vector exists, the independent finite-difference gate is not
+reached.
+
+Three standalone energy-only process repeats per surface and grid also show no
+local small-molecule speed advantage:
+
+| grid | classical SES median | MLSES median | classical/MLSES | MLSES minus classical PB energy |
+|---|---:|---:|---:|---:|
+| `0.50 A`, fill `1.25` | 0.11 s | 0.17 s | 0.647 | -0.0046 kcal/mol |
+| `0.25 A`, fill `2.00` | 3.09 s | 3.69 s | 0.837 | +0.0912 kcal/mol |
+
+These timings cover one 23-atom molecule on one CPU build and are not a
+large-system or GPU performance claim. They nevertheless close the local
+product-admission question: no MLSES runtime provider, dependency, FreeSolv
+screen, or default change is introduced.
+
+Reproduction with the artifact-pinned local inputs:
+
+```bash
+python docs/implicit-solvation/benchmarks/run_mlses_pb_feasibility_probe.py
+```
+
 ### Actual MAPLE SP/OPT/SCAN/MD task matrix (2026-07-25)
 
 [`route1-task-matrix-methyl-hexanoate-2026-07-24.json`](route1-task-matrix-methyl-hexanoate-2026-07-24.json)
@@ -1159,6 +1196,49 @@ python docs/implicit-solvation/benchmarks/run_multi_mlip_phase_specific_qrrho.py
 
 python -m pytest -q \
   tests/solvation/test_multi_mlip_phase_specific_qrrho_protocol.py
+```
+
+### Global multi-MLIP optimizer qualification v2 (2026-07-26)
+
+The flexible v8 preflight failed before Hessian construction when one selected
+AIMNet2 gas branch exhausted the frozen 500-step LBFGS budget at
+`0.138705 eV/A`. Its self-hashed failure artifact forbids resume, record
+replacement, aggregate sealing, and label scoring:
+[`route1-multi-mlip-phase-specific-selected-minimum-rrho-v8-flexible-preflight-failure-2026-07-25.json`](route1-multi-mlip-phase-specific-selected-minimum-rrho-v8-flexible-preflight-failure-2026-07-25.json).
+
+The separately frozen optimizer qualification asks only whether one
+model-neutral policy can relax the exact three selected flexible-case source
+states in gas and AM1-BCC/OBC-II/ACE solution for MACE-OFF23m, AIMNet2, and
+ANI2x. It reads no hydration labels and permits neither per-model nor
+per-phase selection. V1 was interrupted after bounding optimizer steps but not
+line-search calculator evaluations; its partial records are retained solely
+for interruption audit and are not reused. V2 reruns every branch from its
+exact source coordinates and adds one common 1,000-evaluation ceiling.
+
+The sealed result is
+[`route1-multi-mlip-optimizer-qualification-v2-2026-07-26.json`](route1-multi-mlip-optimizer-qualification-v2-2026-07-26.json):
+
+| global candidate | branches passing | calculator evaluations | optimizer steps | wall time |
+|---|---:|---:|---:|---:|
+| BFGSLineSearch | 12/18 | 8,180 | 640 | 309.31 s |
+| LBFGSLineSearch | 12/18 | 8,502 | 845 | 309.88 s |
+| FIRE2/ABC | 12/18 | 7,601 | 6,134 | 365.36 s |
+
+Both line-search policies fail all six AIMNet2 branches through evaluation
+exhaustion or another frozen convergence failure. FIRE2/ABC reaches the force
+threshold for five of those branches but violates the predeclared
+non-increasing-energy gate, and the sixth exhausts the evaluation ceiling.
+Thus no candidate passes every branch, `selected_global_policy` is null, and
+the terminal status is `failed-closed-no-global-policy`.
+
+This result closes the v9 escalation. It is not a hydration-accuracy result,
+does not invalidate the Route 1 SP/OPT/SCAN composition, and does not license
+per-model optimizer tuning, v8 state reuse, Hessian continuation, or label
+scoring. Validation:
+
+```bash
+python docs/implicit-solvation/benchmarks/run_multi_mlip_optimizer_qualification.py validate
+python -m pytest -q tests/solvation/test_multi_mlip_optimizer_qualification.py
 ```
 
 ### Common-state CHA-GB/PBSA discrete-conformer screen (2026-07-25)

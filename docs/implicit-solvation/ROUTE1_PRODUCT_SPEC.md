@@ -130,6 +130,7 @@ one composition boundary.
 | automatic QCG/FEBISS explicit-inner cycle | unavailable | no | no | no | no | source-audited research path only; no arbitrary-MLIP QCG backend, complete neutral FreeSolv validation, or end-to-end speed evidence |
 | APBS LPB + APOLAR | energy only | no | no | no | no | fail closed on forces |
 | APBS SPL4 LPB force probe | rejected benchmark | no | no | no | no | molecular surface aborts; SPL4 polar and APOLAR force gates fail |
+| AmberTools MLSES PB surface probe | rejected benchmark | no | no | no | no | no atom-resolved MLSES force; no local small-molecule speedup; no runtime provider |
 | external ddX/ddPCM audit | benchmark only | no | no | no | no | polar derivative passes, but accuracy and performance gates fail; no dependency/provider added |
 | CHARMM GBMV2/SA source audit | unavailable locally | no | no | no | no | scientifically promising physical candidate; registered CHARMM runtime and deployable provider path not available for parity/force validation |
 | SLIC/CDC source audit | unavailable locally | no | no | no | no | promising AM1-BCC-compatible physical energy model; complete 2022 upstream and atom-resolved polar-plus-nonpolar force are unavailable |
@@ -195,17 +196,31 @@ only `1.10/1.06 cm-1` maximum selected-mode RMS changes across
 cannot rescue or rerun v6. Any successor requires a separately versioned
 numerical-Hessian qualification before a new scientific pilot.
 
-The active v8 successor now supplies that qualification without reading
-experimental labels. It combines a broad `0.02 Hartree/Angstrom^2` raw
-absolute sanity ceiling with a scale-aware `0.002` Frobenius asymmetry gate and
-retains the independent `25 cm-1` displacement-frequency criterion. A
-force-converged selected negative mode triggers one deterministic plus/minus
-normal-mode displacement and reoptimization cycle; it is never made positive
-by taking an absolute value. The exact v8 nitromethane preflight passed for
-MACE-OFF23m, AIMNet2, and ANI2x. AIMNet2 required saddle recovery in both
-phases; the other two did not. This establishes only rigid numerical plumbing
-for 3/18 label-free records. The flexible three-MLIP preflight, complete
-18-record seal, and post-seal accuracy scoring remain open.
+The v8 successor supplied that qualification without reading experimental
+labels. It combined a broad `0.02 Hartree/Angstrom^2` raw absolute sanity
+ceiling with a scale-aware `0.002` Frobenius asymmetry gate and retained the
+independent `25 cm-1` displacement-frequency criterion. A force-converged
+selected negative mode triggered one deterministic plus/minus normal-mode
+displacement and reoptimization cycle; it was never made positive by taking
+an absolute value. The exact v8 nitromethane preflight passed for
+MACE-OFF23m, AIMNet2, and ANI2x, with AIMNet2 requiring saddle recovery in
+both phases. The next flexible preflight then failed closed before any
+Hessian or label scoring: one selected AIMNet2 gas branch exhausted the
+frozen 500-step LBFGS budget at `0.138705 eV/A`.
+
+A separately frozen, label-blind optimizer qualification subsequently compared
+one common BFGSLineSearch, LBFGSLineSearch, and FIRE2/ABC policy on all
+`3 MLIPs x 2 phases x 3 source states`. V2 reran from the exact source
+coordinates and limited every branch to 1,000 calculator evaluations; no v1
+partial or v8 optimized state was reused. Every candidate passed only `12/18`
+branches. The two line-search families exhausted the evaluation ceiling or
+otherwise failed on AIMNet2, while FIRE2/ABC converged five AIMNet2 branches
+but failed their frozen no-final-energy-increase gate and exhausted the ceiling
+on the sixth. Therefore no single model-neutral optimizer policy qualifies,
+no v9 successor may be created, and no aggregate or hydration-accuracy score
+may be opened. This is a negative optimizer-robustness result, not a failure
+of the additive energy formula and not permission for per-model optimizer
+tuning.
 
 ### Explicit CHA-GB single-point profile
 
@@ -1235,6 +1250,33 @@ performance, and confirmation gates. The protocol and sealed evidence are
 `benchmarks/route1-ddx-ddpcm-force-probe-methyl-hexanoate-2026-07-25.json`,
 `benchmarks/route1-ddx-ddpcm-energy-screen-2026-07-25.json`, and
 `benchmarks/route1-ddx-ddpcm-development-summary-2026-07-25.json`.
+
+### MLSES PB surface feasibility boundary
+
+AmberTools MLSES (`sasopt=3`, `ipb=2`) is scientifically admissible within
+Route 1 as a frozen surrogate for constructing the classical
+solvent-excluded dielectric surface. The primary method
+(DOI `10.1021/acs.jctc.1c00492`) learns level-set surface geometry rather than
+hydration labels, molecular forces, or a chemistry-specific residual, so the
+candidate does not violate the no-residual contract.
+
+That admissibility does not establish a product advantage. With the maintained
+local AmberTools 26 CPU build, classical SES produced a nonempty atom force for
+all three legal `ENEOPT/FRCOPT` pairs at both tested grids. MLSES produced no
+atom-resolved MLSES force: the `1/1` pair terminated by signal and the `2/2`
+and `2/3` pairs aborted while projecting dielectric-boundary force to atoms.
+The finite-difference gate was therefore not reachable. Three independent
+energy-only process repeats on one 23-atom molecule also showed MLSES slower
+than classical SES at both grids (classical/MLSES median ratios `0.647` and
+`0.837`), while changing the PB reaction-field energy by `-0.0046` and
+`+0.0912 kcal/mol`.
+
+Those timing ratios are explicitly local small-molecule CPU observations, not
+a claim about large systems or a GPU implementation. They are nevertheless
+sufficient for the present admission question: there is no MLSES runtime
+provider, no dependency or FreeSolv screen is opened, and OBC-II/ACE remains
+the force-capable default. The self-hashed evidence is
+[`route1-mlses-pb-feasibility-probe-2026-07-26.json`](benchmarks/route1-mlses-pb-feasibility-probe-2026-07-26.json).
 
 ### Route 1 component-attribution audit
 

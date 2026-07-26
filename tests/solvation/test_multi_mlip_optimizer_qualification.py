@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import math
 from pathlib import Path
-
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
@@ -17,6 +17,10 @@ FAILURE_AUDIT = (
     BENCHMARK_DIR
     / "route1-multi-mlip-phase-specific-selected-minimum-rrho-v8-flexible-"
     "preflight-failure-2026-07-25.json"
+)
+QUALIFICATION_V2 = (
+    BENCHMARK_DIR
+    / "route1-multi-mlip-optimizer-qualification-v2-2026-07-26.json"
 )
 
 
@@ -44,6 +48,12 @@ def test_optimizer_protocol_is_label_blind_and_freezes_all_three_mlips():
     ]
     assert protocol["qualification_scope"]["phases"] == ["gas", "solution"]
     assert protocol["qualification_scope"]["expected_branch_count_per_candidate"] == 18
+    assert protocol["qualification_gates"][
+        "maximum_calculator_evaluations_per_branch"
+    ] == 1000
+    assert protocol["frozen_upstream"]["v1_interruption_audit"][
+        "v1_records_reused"
+    ] is False
     assert protocol["qualification_scope"][
         "per_model_or_per_phase_optimizer_selection_allowed"
     ] is False
@@ -179,3 +189,147 @@ def test_optimizer_candidate_factory_covers_only_frozen_algorithms(tmp_path):
             trajectory=tmp_path / f"{candidate['candidate_id']}.traj",
         )
         assert optimizer is not None
+
+
+def test_calculator_evaluation_budget_fails_closed():
+    runner = _load_runner()
+    from ase import Atoms
+    from ase.calculators.calculator import all_changes
+    from ase.calculators.emt import EMT
+
+    source = EMT()
+    atoms = Atoms("Cu", positions=[[0.0, 0.0, 0.0]])
+    adapter = runner.CountingHartreeToEVCalculator(
+        source,
+        maximum_calculate_calls=1,
+    )
+    adapter.calculate(
+        atoms=atoms,
+        properties=["energy"],
+        system_changes=all_changes,
+    )
+    assert adapter.calculate_calls == 1
+
+    import pytest
+
+    with pytest.raises(
+        RuntimeError,
+        match="per-branch calculator-evaluation budget exhausted",
+    ):
+        adapter.calculate(
+            atoms=atoms,
+            properties=["energy"],
+            system_changes=all_changes,
+        )
+
+
+def test_v2_artifact_fails_closed_without_a_global_optimizer_policy():
+    runner = _load_runner()
+    artifact = runner.load_json(QUALIFICATION_V2)
+    runner._validate_self_hash(artifact, name="optimizer qualification v2")
+
+    assert artifact["protocol_id"] == (
+        "maple-route1-multi-mlip-optimizer-qualification-v2"
+    )
+    assert artifact["status"] == "failed-closed-no-global-policy"
+    assert artifact["selected_global_policy"] is None
+    assert artifact["selection_evidence"] is None
+    assert len(artifact["records"]) == 9
+    assert {
+        (record["candidate_id"], record["model"])
+        for record in artifact["records"]
+    } == {
+        (candidate, model)
+        for candidate in (
+            "bfgs-linesearch",
+            "lbfgs-linesearch",
+            "fire2-abc",
+        )
+        for model in ("maceoff23m", "aimnet2", "ani2x")
+    }
+
+    summaries = {
+        summary["candidate_id"]: summary
+        for summary in artifact["candidate_summaries"]
+    }
+    assert set(summaries) == {
+        "bfgs-linesearch",
+        "lbfgs-linesearch",
+        "fire2-abc",
+    }
+    assert all(
+        summary["observed_branch_count"] == 18
+        and summary["passed_branch_count"] == 12
+        and summary["all_branches_passed"] is False
+        for summary in summaries.values()
+    )
+    assert artifact["claim_boundary"][
+        "optimizer_robustness_qualification_only"
+    ]
+    assert artifact["claim_boundary"]["hydration_accuracy_established"] is False
+    assert artifact["claim_boundary"]["public_solvfe_eligible"] is False
+    assert artifact["label_boundary"]["experimental_labels_read"] is False
+    assert artifact["route_boundary"]["gas_phase_mm_energy"] is False
+    assert artifact["route_boundary"]["hydration_label_residual"] is False
+
+
+def test_v2_artifact_covers_all_durable_raw_evidence():
+    runner = _load_runner()
+    artifact = runner.load_json(QUALIFICATION_V2)
+    durable_root = BENCHMARK_DIR / f"{QUALIFICATION_V2.stem}-raw"
+    listed = {
+        evidence["path"]: evidence for evidence in artifact["raw_evidence"]
+    }
+    actual = {
+        path.relative_to(REPOSITORY_ROOT).as_posix()
+        for path in durable_root.rglob("*")
+        if path.is_file()
+    }
+
+    assert set(listed) == actual
+    for relative, evidence in listed.items():
+        path = REPOSITORY_ROOT / relative
+        assert path.stat().st_size == evidence["size_bytes"]
+        assert runner.sha256_file(path) == evidence["sha256"]
+
+
+def test_v2_failure_records_have_nonempty_finite_traces():
+    runner = _load_runner()
+    durable_root = BENCHMARK_DIR / f"{QUALIFICATION_V2.stem}-raw" / "records"
+    failures = []
+
+    for record_path in sorted(durable_root.glob("*.json")):
+        record = runner.load_json(record_path)
+        for phase in ("gas", "solution"):
+            for branch in record["branches"][phase]:
+                if branch["status"] != "failure":
+                    continue
+                failures.append(branch)
+                assert branch["trace"]
+                expected = all(
+                    math.isfinite(float(row["energy_eV"]))
+                    and math.isfinite(
+                        float(row["maximum_force_eV_per_angstrom"])
+                    )
+                    for row in branch["trace"]
+                )
+                assert branch["finite_trace"] is expected
+
+    assert failures
+
+
+def test_route1_docs_close_v8_and_optimizer_v2_without_accuracy_claim():
+    documents = [
+        REPOSITORY_ROOT / "docs/implicit-solvation/ROUTE1_PRODUCT_SPEC.md",
+        REPOSITORY_ROOT / "docs/implicit-solvation/FORMULAS_AND_REFERENCES.md",
+        REPOSITORY_ROOT / "docs/implicit-solvation/VALIDATION_STATUS.md",
+        BENCHMARK_DIR / "README.md",
+    ]
+    normalized = " ".join(
+        "\n".join(path.read_text(encoding="utf-8") for path in documents).split()
+    )
+
+    assert "failed-closed-no-global-policy" in normalized
+    assert "no v9" in normalized
+    assert "12/18" in normalized
+    assert "per-model optimizer tuning" in normalized

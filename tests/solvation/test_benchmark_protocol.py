@@ -3,9 +3,9 @@ from __future__ import annotations
 import argparse
 import importlib.metadata
 import json
-from pathlib import Path
 import sys
 import tarfile
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -455,17 +455,36 @@ def test_prepare_verifies_hashes_and_forces_pilot_into_development(tmp_path):
     )
 
     protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+    expected_artifact_hash = protocol["dataset"]["artifacts"][0]["sha256"]
     protocol["dataset"]["artifacts"][0]["sha256"] = "f" * 64
     broken = tmp_path / "broken-protocol.json"
     broken.write_text(json.dumps(protocol), encoding="utf-8")
+    broken_work = tmp_path / "broken-work"
     with pytest.raises(ValueError, match="hash mismatch"):
         runner.prepare(
             argparse.Namespace(
                 protocol=str(broken),
-                work_dir=str(tmp_path / "broken-work"),
+                work_dir=str(broken_work),
                 source_dir=str(tmp_path / "source"),
             )
         )
+    broken_dataset = broken_work / "dataset"
+    assert not (broken_dataset / protocol["dataset"]["artifacts"][0]["name"]).exists()
+    assert not list(broken_dataset.glob(".*"))
+
+    stale_work = tmp_path / "stale-work"
+    stale_dataset = stale_work / "dataset"
+    stale_dataset.mkdir(parents=True)
+    stale_artifact = stale_dataset / protocol["dataset"]["artifacts"][0]["name"]
+    stale_artifact.write_bytes(b"stale unverified content")
+    runner.prepare(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            work_dir=str(stale_work),
+            source_dir=str(tmp_path / "source"),
+        )
+    )
+    assert core.sha256_file(stale_artifact) == expected_artifact_hash
 
 
 def test_structure_group_split_is_deterministic_and_seeded():

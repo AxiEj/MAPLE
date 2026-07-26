@@ -1,4 +1,6 @@
 {
+  "amendment_from": "maple-route1-multi-mlip-optimizer-qualification-v1",
+  "amendment_reason": "v1 bounded optimizer steps but not line-search calculator evaluations and was interrupted before the matrix completed. v2 retains the candidate matrix and scientific gates, adds one global per-branch evaluation ceiling, and reruns from exact source states.",
   "claim_boundary": {
     "absolute_solvation_free_energy_method_validated": false,
     "hessian_or_stationary_point_validity_established": false,
@@ -6,6 +8,7 @@
     "next_gate": "If and only if one global policy qualifies, create a separately frozen v9 protocol and rerun every model-case from exact source states; v9 retains all Hessian, stationary-point, ensemble, sealing, and post-seal scoring gates.",
     "optimizer_robustness_qualification_only": true,
     "public_solvfe_eligible": false,
+    "v1_partial_records_reused_by_v2": false,
     "v8_records_reused_by_v9": false
   },
   "execution": {
@@ -21,7 +24,8 @@
       "maceoff23m",
       "aimnet2",
       "ani2x"
-    ]
+    ],
+    "v1_partial_records_reused": false
   },
   "frozen_upstream": {
     "qrrho_protocol": {
@@ -29,6 +33,12 @@
       "path": "docs/implicit-solvation/benchmarks/multi_mlip_phase_specific_qrrho_protocol.json",
       "protocol_fingerprint": "bf572d6db943be8f0dda32374c49ebcc2da85e171e05bd8369d28260f3022dd1",
       "protocol_id": "maple-route1-multi-mlip-phase-specific-selected-minimum-rrho-v8"
+    },
+    "v1_interruption_audit": {
+      "content_sha256": "38dbbdb083d0c3b48ca80f2c4181065b677907b55f2e47b31bed5410cb96700c",
+      "file_sha256": "54e16282dcd9666a020ea7dfa4f48bec12a1961acd0d1d31082b7b99f648786e",
+      "path": "docs/implicit-solvation/benchmarks/route1-multi-mlip-optimizer-qualification-v1-interrupted-2026-07-26.json",
+      "v1_records_reused": false
     },
     "v8_failure_audit": {
       "content_sha256": "0d58a52976e978a9516bbc1af417e47b35fc22928d0de8805b4537cedffb1f30",
@@ -51,7 +61,7 @@
     "source_files": [
       {
         "path": "docs/implicit-solvation/benchmarks/run_multi_mlip_optimizer_qualification.py",
-        "sha256": "c3f5806d73808002c426e892d4cacbf1f2fe81775a73bbae2ab8c2d4b29bcb2e"
+        "sha256": "2125bf4e89051832a4943c7cdc10af944b43aeacc1c8b0f254712f2162be43b3"
       },
       {
         "path": "docs/implicit-solvation/benchmarks/run_multi_mlip_phase_specific_qrrho.py",
@@ -112,15 +122,17 @@
       "use_abc": true
     }
   ],
-  "protocol_id": "maple-route1-multi-mlip-optimizer-qualification-v1",
+  "protocol_id": "maple-route1-multi-mlip-optimizer-qualification-v2",
   "qualification_gates": {
     "all_18_branches_must_converge": true,
     "all_18_branches_must_succeed": true,
     "all_traced_energies_and_forces_must_be_finite": true,
+    "evaluation_ceiling_basis": "Twice the v8 500-step ceiling; prevents line-search sub-evaluations from escaping the same cost scale while remaining identical for every MLIP, phase, seed, and candidate.",
     "every_final_energy_must_not_exceed_its_exact_initial_energy": true,
     "failed_branch_retained_in_denominator": true,
     "fmax_eV_per_angstrom": 0.01,
     "force_comparison_tolerance_eV_per_angstrom": 1e-12,
+    "maximum_calculator_evaluations_per_branch": 1000,
     "maximum_final_energy_increase_eV": 1e-08,
     "maximum_steps": 1000
   },
@@ -161,7 +173,7 @@
       "title": "ABC-FIRE: Accelerated Bias-Corrected Fast Inertial Relaxation Engine"
     }
   ],
-  "registered_utc": "2026-07-25T16:20:00Z",
+  "registered_utc": "2026-07-25T16:40:00Z",
   "route_boundary": {
     "charge_refitting": false,
     "gas_force": "-grad_R E_MLIP,m(R)",

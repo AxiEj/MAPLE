@@ -494,13 +494,24 @@ ABCG2 benchmark artifacts below remain immutable evidence.
   interim records and raw Hessians are durably mirrored in
   [`route1-multi-mlip-phase-specific-selected-minimum-rrho-v8-rigid-preflight-2026-07-25.json`](benchmarks/route1-multi-mlip-phase-specific-selected-minimum-rrho-v8-rigid-preflight-2026-07-25.json);
   that mirror is not the protocol's required 18-record aggregate seal.
-  The next stage is the three-MLIP flexible
-  `mobley_4463913` preflight, followed by the remaining twelve records only if
-  it passes. Even a future development pass would
-  allow only a separately preregistered
-  larger seed-budget and held-out study, because three seeds per phase do not
-  establish conformer completeness and unit weights omit basin volumes and
-  conformer degeneracies.
+  The subsequent three-MLIP flexible `mobley_4463913` preflight failed closed:
+  one selected AIMNet2 gas branch exhausted 500 LBFGS steps with a final
+  maximum force of `0.138705 eV/A`. V8 cannot be resumed, repaired, sealed, or
+  scored.
+- A separately frozen label-blind optimizer qualification then tested
+  BFGSLineSearch, LBFGSLineSearch, and FIRE2/ABC from the exact same three
+  source states in both phases for MACE-OFF23m, AIMNet2, and ANI2x. V1 had
+  bounded optimizer steps but not line-search calculator evaluations and was
+  interrupted; v2 reuses no partial record and adds one common 1,000-evaluation
+  ceiling. Each candidate passes `12/18` branches. BFGSLineSearch and
+  LBFGSLineSearch fail every AIMNet2 branch through evaluation exhaustion or
+  another frozen convergence failure. FIRE2/ABC reaches the force threshold
+  on five AIMNet2 branches but violates the no-final-energy-increase gate, and
+  exhausts the ceiling on the sixth. The result is
+  `failed-closed-no-global-policy`: no per-model/per-phase tuning, no v9, no
+  Hessian or thermochemistry continuation, no label scoring, and no public
+  `#solvfe` claim. This closes the proposed selected-minimum RRHO escalation
+  without changing the force-capable SP/OPT/SCAN product.
 - A follow-up six-case stratified MACE relaxation diagnostic ran 13 gas and 13
   MACE+ABCG2/OBC-II/ACE minimizations; all 26 branches converged below
   0.03 eV/A. Relative to the first-stage discrete weighting on the same cases,
@@ -671,6 +682,19 @@ ABCG2 benchmark artifacts below remain immutable evidence.
   two-model 69-component
   finite-difference and three-model nine-task matrices remain green. LCPO
   continues to use a two-context difference.
+- The **MLSES PB surface feasibility boundary** is frozen against the
+  AmberTools 26 manual and the primary MLSES paper
+  (DOI `10.1021/acs.jctc.1c00492`). The learned object approximates classical
+  solvent-excluded-surface geometry rather than a hydration-label residual, so
+  it is physically admissible in Route 1 in principle. In the maintained local
+  CPU build, however, classical SES emits nonempty atom forces for every legal
+  `ENEOPT/FRCOPT` pair at both tested grids while MLSES emits no atom-resolved
+  MLSES force: one pair terminates by signal and the other two abort during
+  force projection. The finite-difference force gate is therefore unreachable.
+  Three-process energy repeats on the same 23-atom case also make MLSES slower
+  than classical SES at both grids. This is a local small-molecule boundary,
+  not a universal large-system/GPU speed claim, but it opens no dependency,
+  FreeSolv screen, or MLSES runtime provider.
 
 ## Open scientific gates
 

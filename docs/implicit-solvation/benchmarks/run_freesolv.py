@@ -4,15 +4,17 @@
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
 import importlib.metadata
 import json
 import os
-from pathlib import Path
 import platform
 import shutil
 import sys
+import tempfile
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -21,10 +23,10 @@ if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from benchmark_core import (  # noqa: E402
+    canonical_json_bytes,
     classify_candidate,
     ensure_confirmation_lock,
     expected_attempt_ids,
-    fetch_and_verify_artifacts,
     load_json,
     load_protocol,
     partition_for_smiles,
@@ -33,8 +35,8 @@ from benchmark_core import (  # noqa: E402
     sha256_file,
     summarize_errors,
     write_json_atomic,
-    canonical_json_bytes,
 )
+
 from maple.function.calculator.extra_correction.implicit.charges import (  # noqa: E402
     prepare_charges,
 )
@@ -44,12 +46,82 @@ from maple.function.calculator.extra_correction.implicit.openmm_gb import (  # n
 )
 from maple.function.read.filereader.mol2_reader import MOL2Reader  # noqa: E402
 
-
 KCAL_PER_HARTREE = KJ_PER_MOL_PER_HARTREE / 4.184
 
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _fetch_and_verify_artifacts(
+    protocol: dict[str, Any],
+    dataset_dir: Path,
+    *,
+    source_dir: Path | None = None,
+) -> dict[str, str]:
+    """Stage, verify, and atomically publish each pinned dataset artifact.
+
+    The historical helper in ``benchmark_core.py`` is byte-frozen by completed
+    Route 1 evidence. The active preparation path therefore fixes publication
+    semantics here without invalidating those artifacts.
+    """
+
+    dataset_dir.mkdir(parents=True, exist_ok=True)
+    hashes: dict[str, str] = {}
+    for artifact in protocol["dataset"]["artifacts"]:
+        name = artifact["name"]
+        destination = dataset_dir / name
+        expected = artifact["sha256"]
+        existing_hash = (
+            sha256_file(destination) if destination.is_file() else None
+        )
+        if existing_hash != expected:
+            temporary: Path | None = None
+            try:
+                with tempfile.NamedTemporaryFile(
+                    mode="wb",
+                    dir=dataset_dir,
+                    prefix=f".{name}.",
+                    delete=False,
+                ) as handle:
+                    temporary = Path(handle.name)
+                    if source_dir is not None:
+                        source = source_dir / name
+                        if not source.is_file():
+                            raise FileNotFoundError(
+                                "Pinned dataset artifact not found in source dir: "
+                                f"{source}"
+                            )
+                        with source.open("rb") as source_handle:
+                            shutil.copyfileobj(source_handle, handle)
+                    else:
+                        with urllib.request.urlopen(
+                            artifact["url"], timeout=120
+                        ) as response:
+                            shutil.copyfileobj(response, handle)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+
+                actual = sha256_file(temporary)
+                if actual != expected:
+                    raise ValueError(
+                        f"Dataset artifact hash mismatch for {name}: expected "
+                        f"{expected}, observed {actual}."
+                    )
+                os.replace(temporary, destination)
+                temporary = None
+            finally:
+                if temporary is not None:
+                    temporary.unlink(missing_ok=True)
+
+        actual = sha256_file(destination)
+        if actual != expected:
+            raise ValueError(
+                f"Dataset artifact hash mismatch for {name}: expected "
+                f"{expected}, observed {actual}."
+            )
+        hashes[name] = actual
+    return hashes
 
 
 def _parse_database_text(path: Path) -> dict[str, dict[str, str]]:
@@ -80,7 +152,7 @@ def prepare(args: argparse.Namespace) -> None:
     work_dir = Path(args.work_dir).resolve()
     dataset_dir = work_dir / "dataset"
     source_dir = Path(args.source_dir).resolve() if args.source_dir else None
-    hashes = fetch_and_verify_artifacts(
+    hashes = _fetch_and_verify_artifacts(
         protocol, dataset_dir, source_dir=source_dir
     )
     safe_extract_tar(dataset_dir / "mol2files_gaff.tar.gz", dataset_dir)

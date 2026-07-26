@@ -69,6 +69,7 @@ from maple.function.route2_smd_profiles import (  # noqa: E402
 
 ARTIFACT_ID = "route2-mace-exact-gto-fixed-geometry-canary-v1"
 COMPOUND_ID = "mobley_3867265"
+KCAL_PER_HARTREE = 627.5094740631
 RANDOM_SEED = 20260727
 FINITE_DIFFERENCE_STEPS = (1.0e-3, 3.0e-4, 1.0e-4)
 IMPLEMENTATION_DOT_TOLERANCE = 1.0e-9
@@ -206,6 +207,28 @@ def _write_exclusive_json(path: Path, payload: object) -> None:
     )
     with path.open("x", encoding="utf-8") as handle:
         handle.write(serialized)
+
+
+def _warning_records(directory: Path) -> list[dict[str, object]]:
+    records: list[dict[str, object]] = []
+    for path in sorted(directory.glob("PEDRA.OUT*")):
+        for line_number, line in enumerate(
+            path.read_text(
+                encoding="utf-8",
+                errors="replace",
+            ).splitlines(),
+            start=1,
+        ):
+            message = line.strip()
+            if "WARNING" in message.upper():
+                records.append(
+                    {
+                        "file": str(path),
+                        "line": line_number,
+                        "message": message,
+                    }
+                )
+    return records
 
 
 def _fixed_geometry_energy_ev(
@@ -477,6 +500,7 @@ def main() -> int:
             "The reopened fixed-cavity diagnostic emitted a native "
             "PCMSolver warning."
         )
+    reopened_pedra_warnings = _warning_records(diagnostic_dir)
     if not np.array_equal(cavity_centers, public_cavity_centers):
         raise RuntimeError(
             "The reopened PCMSolver cavity centers differ from the public root."
@@ -494,6 +518,9 @@ def main() -> int:
     if not isinstance(solvation, dict):
         raise RuntimeError("The public finalizer omitted Route-2 solvation.")
     checkpoint = dict(getattr(calculator, "mace_polar_checkpoint_provenance", {}) or {})
+    predicted_kcal_mol = float(solvation["delta_g_solv_hartree"]) * KCAL_PER_HARTREE
+    experimental_kcal_mol = float(candidate["experimental_kcal_mol"])
+    public_pcmsolver_diagnostics = dict(audit["pcmsolver_diagnostics"])
     total_seconds = time.perf_counter() - total_started
     artifact: dict[str, Any] = {
         "artifact": ARTIFACT_ID,
@@ -572,6 +599,36 @@ def main() -> int:
             "gas": float(solvation["gas_energy_hartree"]),
             "delta_g_solv": float(solvation["delta_g_solv_hartree"]),
             "combined": combined_energy_hartree,
+        },
+        "experiment_comparison": {
+            "predicted_kcal_mol": predicted_kcal_mol,
+            "experimental_kcal_mol": experimental_kcal_mol,
+            "experimental_uncertainty_kcal_mol": float(
+                candidate["experimental_uncertainty_kcal_mol"]
+            ),
+            "signed_error_kcal_mol": (predicted_kcal_mol - experimental_kcal_mol),
+            "absolute_error_kcal_mol": abs(predicted_kcal_mol - experimental_kcal_mol),
+            "interpretation": (
+                "Recorded for provenance only; one development molecule "
+                "cannot certify accuracy or mechanism."
+            ),
+        },
+        "pcmsolver_diagnostics": {
+            "public_native_stderr_warning_count": int(
+                public_pcmsolver_diagnostics["native_stderr_warning_count"]
+            ),
+            "public_pedra_warning_count": int(
+                public_pcmsolver_diagnostics["pedra_warning_count"]
+            ),
+            "public_pedra_warnings": public_pcmsolver_diagnostics["pedra_warnings"],
+            "reopened_native_stderr_warning_count": 0,
+            "reopened_pedra_warning_count": len(reopened_pedra_warnings),
+            "reopened_pedra_warnings": reopened_pedra_warnings,
+            "warning_semantics": (
+                "The native 'PCMSolver warning.' marker is selection-fatal. "
+                "PEDRA poor-tessellation warnings are retained as audit "
+                "evidence but do not select a different fixed cavity."
+            ),
         },
         "fixed_geometry_state": {
             "density_shape": list(root_density.shape),

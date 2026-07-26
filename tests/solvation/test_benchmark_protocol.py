@@ -85,6 +85,132 @@ def _write_fixture_protocol(
         "openmm"
     )
     protocol["statistics"]["bootstrap_resamples"] = 100
+    parity_fixture = tmp_path / "provider-parity-reference"
+    parity_fixture.mkdir()
+    charges = [-0.1, 0.025, 0.025, 0.025, 0.025]
+    zero_forces = [[0.0, 0.0, 0.0] for _ in charges]
+    fixture_mol2 = (mol2_root / "mobley_test.mol2").resolve()
+    amber_manifest = parity_fixture / "amber-manifest.json"
+    core.write_json_atomic(
+        amber_manifest,
+        {
+            "schema_version": 1,
+            "provider": "amber",
+            "provider_version": protocol["providers"]["ambertools"][
+                "required_version"
+            ],
+            "cases": [
+                {
+                    "case_id": "fixture-neutral",
+                    "charge": 0,
+                    "multiplicity": 1,
+                    "mol2": str(fixture_mol2),
+                    "mol2_sha256": core.sha256_file(fixture_mol2),
+                    "charges_e": charges,
+                    "models": {
+                        "hct": {
+                            "polar": -1.0,
+                            "nonpolar_lcpo": 0.2,
+                            "total_lcpo": -0.8,
+                            "polar_force_kcal_mol_angstrom": zero_forces,
+                            "total_lcpo_force_kcal_mol_angstrom": zero_forces,
+                        }
+                    },
+                },
+                {
+                    "case_id": "fixture-neutral-2",
+                    "charge": 0,
+                    "multiplicity": 1,
+                    "mol2": str(fixture_mol2),
+                    "mol2_sha256": core.sha256_file(fixture_mol2),
+                    "charges_e": charges,
+                    "models": {
+                        "hct": {
+                            "polar": -1.0,
+                            "nonpolar_lcpo": 0.2,
+                            "total_lcpo": -0.8,
+                            "polar_force_kcal_mol_angstrom": zero_forces,
+                            "total_lcpo_force_kcal_mol_angstrom": zero_forces,
+                        }
+                    },
+                }
+            ],
+        },
+    )
+    pqr = parity_fixture / "official-ion.pqr"
+    pqr.write_text(
+        "ATOM      1  ION ION     1       0.000   0.000   0.000  1.0000 2.0000\n",
+        encoding="utf-8",
+    )
+    apbs_manifest = parity_fixture / "apbs-manifest.json"
+    core.write_json_atomic(
+        apbs_manifest,
+        {
+            "schema_version": 1,
+            "provider": "apbs",
+            "provider_version": protocol["providers"]["apbs"]["required_version"],
+            "cases": [
+                {
+                    "case_id": "official-ion",
+                    "control_kind": "official-born-ion",
+                    "pqr": str(pqr.resolve()),
+                    "pqr_sha256": core.sha256_file(pqr),
+                    "grids": [
+                        {
+                            "grid_points": 97,
+                            "grid_spacing_angstrom": 0.33,
+                        }
+                    ],
+                    "expected_kcal_mol": {"polar": -10.001},
+                    "expected_kj_mol": {"polar": -10.001 * parity.KJ_PER_KCAL},
+                },
+                {
+                    "case_id": "fixture-neutral",
+                    "control_kind": "neutral-grid-convergence",
+                    "charge": 0,
+                    "multiplicity": 1,
+                    "mol2": str(fixture_mol2),
+                    "mol2_sha256": core.sha256_file(fixture_mol2),
+                    "charges_e": charges,
+                    "grids": [
+                        {
+                            "grid_points": 65,
+                            "grid_spacing_angstrom": 0.5,
+                        },
+                        {
+                            "grid_points": 97,
+                            "grid_spacing_angstrom": 0.33,
+                        },
+                    ],
+                },
+                {
+                    "case_id": "fixture-neutral-2",
+                    "control_kind": "neutral-grid-convergence",
+                    "charge": 0,
+                    "multiplicity": 1,
+                    "mol2": str(fixture_mol2),
+                    "mol2_sha256": core.sha256_file(fixture_mol2),
+                    "charges_e": charges,
+                    "grids": [
+                        {
+                            "grid_points": 65,
+                            "grid_spacing_angstrom": 0.5,
+                        },
+                        {
+                            "grid_points": 97,
+                            "grid_spacing_angstrom": 0.33,
+                        },
+                    ],
+                },
+            ],
+        },
+    )
+    protocol["provider_parity"]["amber_gb_reference_manifest"] = str(
+        amber_manifest.resolve()
+    )
+    protocol["provider_parity"]["apbs_reference_manifest"] = str(
+        apbs_manifest.resolve()
+    )
     protocol_path = tmp_path / "protocol.json"
     protocol_path.write_text(json.dumps(protocol), encoding="utf-8")
     return protocol_path, source
@@ -298,7 +424,28 @@ def test_official_born_control_matches_documented_apbs_settings():
     assert "print energy solv - ref end" in rendered
 
 
-def test_measured_provider_evidence_is_pinned_but_proposed_tolerances_are_not_frozen(
+def test_provider_generation_only_accepts_declared_unavailability_signatures():
+    assert parity._matches_declared_model_unavailability(
+        NotImplementedError(
+            "OpenMM's generic GBn2 expression does not reproduce Amber's signed "
+            "near-pair descreening branch for sulfur's negative screening radius."
+        )
+    )
+    assert not parity._matches_declared_model_unavailability(
+        RuntimeError("GPU context initialization failed")
+    )
+    assert parity._matches_declared_lcpo_unavailability(
+        ValueError(
+            "No LCPO parameters found for element with atomic number 35, "
+            "1 bonds, and 1 bonds excluding H"
+        )
+    )
+    assert not parity._matches_declared_lcpo_unavailability(
+        ValueError("OpenMM returned a non-finite energy")
+    )
+
+
+def test_measured_provider_evidence_and_independent_freeze_are_pinned(
     tmp_path,
 ):
     observations_path = (
@@ -308,8 +455,12 @@ def test_measured_provider_evidence_is_pinned_but_proposed_tolerances_are_not_fr
         REPOSITORY_ROOT
         / "tests/solvation/data/provider_parity_tolerances.proposed.json"
     )
+    frozen_path = (
+        REPOSITORY_ROOT / "tests/solvation/data/provider_parity_tolerances.json"
+    )
     observations = core.load_json(observations_path)
     proposal = core.load_json(proposal_path)
+    frozen = core.load_json(frozen_path)
 
     assert proposal["evidence_artifact_sha256"] == core.sha256_file(observations_path)
     assert observations["protocol_fingerprint"] == proposal["protocol_fingerprint"]
@@ -354,8 +505,17 @@ def test_measured_provider_evidence_is_pinned_but_proposed_tolerances_are_not_fr
     ):
         raw_path = REPOSITORY_ROOT / observations["source_artifacts"][path_key]
         assert core.sha256_file(raw_path) == observations["source_artifacts"][hash_key]
-    assert proposal["review_status"] == "proposed-awaiting-human-review"
-    with pytest.raises(ValueError, match="not marked human-reviewed-frozen"):
+    assert proposal["review_status"] == "proposed-awaiting-independent-review"
+    assert frozen["review_status"] == "independently-reviewed-frozen"
+    assert (
+        frozen["reviewed_proposal_artifact"]
+        == "tests/solvation/data/provider_parity_tolerances.proposed.json"
+    )
+    assert frozen["reviewed_proposal_sha256"] == core.sha256_file(proposal_path)
+    for key, value in proposal.items():
+        if key != "review_status":
+            assert frozen[key] == value
+    with pytest.raises(ValueError, match="not marked independently-reviewed-frozen"):
         parity.verify(
             argparse.Namespace(
                 protocol=str(BENCHMARK_DIR / "protocol.json"),
@@ -388,13 +548,9 @@ def test_provider_verification_accepts_complete_polar_and_scoped_lcpo_records(
     observations = core.load_json(
         REPOSITORY_ROOT / "tests/solvation/data/provider_parity_observations.json"
     )
-    proposal = core.load_json(
-        REPOSITORY_ROOT
-        / "tests/solvation/data/provider_parity_tolerances.proposed.json"
+    tolerances = (
+        REPOSITORY_ROOT / "tests/solvation/data/provider_parity_tolerances.json"
     )
-    proposal["review_status"] = "human-reviewed-frozen"
-    tolerances = tmp_path / "provider_parity_tolerances.json"
-    core.write_json_atomic(tolerances, proposal)
 
     artifact_dir = tmp_path / "provider-parity"
     source_artifacts = observations["source_artifacts"]
@@ -688,6 +844,113 @@ def test_metric_fixture_matches_hand_computation():
 
 def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> Path:
     protocol, fingerprint = core.load_protocol(protocol_path)
+    amber_manifest_path = Path(
+        protocol["provider_parity"]["amber_gb_reference_manifest"]
+    )
+    apbs_manifest_path = Path(
+        protocol["provider_parity"]["apbs_reference_manifest"]
+    )
+    amber_manifest = core.load_json(amber_manifest_path)
+    apbs_manifest = core.load_json(apbs_manifest_path)
+    amber_case = amber_manifest["cases"][0]
+    amber_reference = amber_case["models"]["hct"]
+    reference_polar_force = np.asarray(
+        amber_reference["polar_force_kcal_mol_angstrom"], dtype=float
+    )
+    reference_total_force = np.asarray(
+        amber_reference["total_lcpo_force_kcal_mol_angstrom"], dtype=float
+    )
+    maple_polar_force = reference_polar_force.copy()
+    maple_polar_force[0, 0] += 0.001
+    maple_total_force = reference_total_force.copy()
+    maple_total_force[0, 0] += 0.002
+    polar_force_difference = maple_polar_force - reference_polar_force
+    total_force_difference = maple_total_force - reference_total_force
+    amber_records = []
+    for case in amber_manifest["cases"]:
+        amber_records.append(
+            {
+                "case_id": case["case_id"],
+                "model": "hct",
+                "profile": protocol["providers"]["openmm"]["models"]["hct"][
+                    "profile"
+                ],
+                "mol2_sha256": case["mol2_sha256"],
+                "reference_provider": "amber",
+                "reference_provider_version": protocol["providers"]["ambertools"][
+                    "required_version"
+                ],
+                "status": "success",
+                "parity_components": [
+                    "polar",
+                    "nonpolar_lcpo",
+                    "total_lcpo",
+                ],
+                "parity_force_components": ["polar", "total_lcpo"],
+                "model_observation": {
+                    "expected_openmm_supported": True,
+                    "observed_openmm_supported": True,
+                    "support_matches_expectation": True,
+                    "reason": (
+                        "OpenMM model is expected to support this reference case."
+                    ),
+                },
+                "lcpo_observation": {
+                    "expected_openmm_supported": True,
+                    "observed_openmm_supported": True,
+                    "parity_target": True,
+                    "reason": "complete Amber/OpenMM LCPO parity target",
+                    "support_matches_expectation": True,
+                    "signed_difference_kcal_mol": {
+                        "nonpolar_lcpo": -0.002,
+                        "total_lcpo": -0.001,
+                    },
+                    "force_difference_metrics": {
+                        "total_lcpo": {
+                            "max_abs": 0.002,
+                            "rms": float(np.sqrt(np.mean(total_force_difference**2))),
+                        }
+                    },
+                },
+                "reference_kcal_mol": {
+                    "polar": -1.0,
+                    "nonpolar_lcpo": 0.2,
+                    "total_lcpo": -0.8,
+                },
+                "maple_kcal_mol": {
+                    "polar": -0.999,
+                    "nonpolar_lcpo": 0.198,
+                    "total_lcpo": -0.801,
+                },
+                "signed_difference_kcal_mol": {
+                    "polar": 0.001,
+                    "nonpolar_lcpo": -0.002,
+                    "total_lcpo": -0.001,
+                },
+                "reference_force_kcal_mol_angstrom": {
+                    "polar": reference_polar_force.tolist(),
+                    "total_lcpo": reference_total_force.tolist(),
+                },
+                "maple_force_kcal_mol_angstrom": {
+                    "polar": maple_polar_force.tolist(),
+                    "total_lcpo": maple_total_force.tolist(),
+                },
+                "force_difference_kcal_mol_angstrom": {
+                    "polar": polar_force_difference.tolist(),
+                    "total_lcpo": total_force_difference.tolist(),
+                },
+                "force_difference_metrics": {
+                    "polar": {
+                        "max_abs": 0.001,
+                        "rms": float(np.sqrt(np.mean(polar_force_difference**2))),
+                    },
+                    "total_lcpo": {
+                        "max_abs": 0.002,
+                        "rms": float(np.sqrt(np.mean(total_force_difference**2))),
+                    },
+                },
+            }
+        )
     amber_dir = artifact_dir / "amber-gb-parity"
     apbs_dir = artifact_dir / "apbs-grid"
     amber_dir.mkdir(parents=True)
@@ -697,32 +960,17 @@ def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> 
         {
             "schema_version": 1,
             "artifact_type": "amber-gb-parity",
+            "protocol_id": protocol["protocol_id"],
             "protocol_fingerprint": fingerprint,
-            "case_count": 1,
-            "record_count": 1,
-            "records": [
-                {
-                    "case_id": "fixture-neutral",
-                    "model": "hct",
-                    "status": "success",
-                    "lcpo_observation": {
-                        "expected_openmm_supported": True,
-                        "observed_openmm_supported": True,
-                        "parity_target": True,
-                        "reason": "complete fixture LCPO parity target",
-                        "support_matches_expectation": True,
-                    },
-                    "signed_difference_kcal_mol": {
-                        "polar": 0.001,
-                        "nonpolar_lcpo": -0.002,
-                        "total_lcpo": -0.001,
-                    },
-                    "force_difference_metrics": {
-                        "polar": {"max_abs": 0.001, "rms": 0.0005},
-                        "total_lcpo": {"max_abs": 0.002, "rms": 0.001},
-                    },
-                }
-            ],
+            "reference_manifest": str(amber_manifest_path),
+            "reference_manifest_sha256": core.sha256_file(amber_manifest_path),
+            "provider_versions": {
+                "amber": protocol["providers"]["ambertools"]["required_version"],
+                "openmm": protocol["providers"]["openmm"]["required_version"],
+            },
+            "case_count": len(amber_manifest["cases"]),
+            "record_count": len(amber_records),
+            "records": amber_records,
         },
     )
     core.write_json_atomic(
@@ -730,7 +978,13 @@ def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> 
         {
             "schema_version": 1,
             "artifact_type": "apbs-grid-parity",
+            "protocol_id": protocol["protocol_id"],
             "protocol_fingerprint": fingerprint,
+            "reference_manifest": str(apbs_manifest_path),
+            "reference_manifest_sha256": core.sha256_file(apbs_manifest_path),
+            "provider_version": protocol["providers"]["apbs"]["required_version"],
+            "provider_executable": "/fixture/apbs",
+            "provider_executable_sha256": "a" * 64,
             "records": [
                 {
                     "case_id": "official-ion",
@@ -738,6 +992,8 @@ def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> 
                     "status": "success",
                     "grid_points": 97,
                     "grid_spacing_angstrom": 0.33,
+                    "pqr_sha256": apbs_manifest["cases"][0]["pqr_sha256"],
+                    "expected_kcal_mol": {"polar": -10.001},
                     "maple_kcal_mol": {"polar": -10.0, "nonpolar": 0.0, "total": -10.0},
                     "signed_difference_kcal_mol": {"polar": 0.001},
                 },
@@ -747,6 +1003,8 @@ def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> 
                     "status": "success",
                     "grid_points": 65,
                     "grid_spacing_angstrom": 0.5,
+                    "mol2_sha256": apbs_manifest["cases"][1]["mol2_sha256"],
+                    "expected_kcal_mol": None,
                     "maple_kcal_mol": {"polar": -1.0, "nonpolar": 0.2, "total": -0.8},
                     "signed_difference_kcal_mol": {},
                 },
@@ -756,19 +1014,63 @@ def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> 
                     "status": "success",
                     "grid_points": 97,
                     "grid_spacing_angstrom": 0.33,
+                    "mol2_sha256": apbs_manifest["cases"][1]["mol2_sha256"],
+                    "expected_kcal_mol": None,
                     "maple_kcal_mol": {"polar": -1.05, "nonpolar": 0.2, "total": -0.85},
+                    "signed_difference_kcal_mol": {},
+                },
+                {
+                    "case_id": "fixture-neutral-2",
+                    "control_kind": "neutral-grid-convergence",
+                    "status": "success",
+                    "grid_points": 65,
+                    "grid_spacing_angstrom": 0.5,
+                    "mol2_sha256": apbs_manifest["cases"][2]["mol2_sha256"],
+                    "expected_kcal_mol": None,
+                    "maple_kcal_mol": {
+                        "polar": -1.0,
+                        "nonpolar": 0.2,
+                        "total": -0.8,
+                    },
+                    "signed_difference_kcal_mol": {},
+                },
+                {
+                    "case_id": "fixture-neutral-2",
+                    "control_kind": "neutral-grid-convergence",
+                    "status": "success",
+                    "grid_points": 97,
+                    "grid_spacing_angstrom": 0.33,
+                    "mol2_sha256": apbs_manifest["cases"][2]["mol2_sha256"],
+                    "expected_kcal_mol": None,
+                    "maple_kcal_mol": {
+                        "polar": -1.05,
+                        "nonpolar": 0.2,
+                        "total": -0.85,
+                    },
                     "signed_difference_kcal_mol": {},
                 },
             ],
         },
     )
-    tolerance_path = artifact_dir / "tolerances.json"
+    observations_path = artifact_dir / "observations.json"
+    parity.observations(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            amber_artifact=str(amber_dir / "results.json"),
+            apbs_artifact=str(apbs_dir / "results.json"),
+            output=str(observations_path),
+        )
+    )
+    proposal_path = artifact_dir / "tolerances.proposed.json"
     core.write_json_atomic(
-        tolerance_path,
+        proposal_path,
         {
             "schema_version": 1,
+            "protocol_id": protocol["protocol_id"],
             "protocol_fingerprint": fingerprint,
-            "review_status": "human-reviewed-frozen",
+            "review_status": "proposed-awaiting-independent-review",
+            "evidence_artifact": str(observations_path.resolve()),
+            "evidence_artifact_sha256": core.sha256_file(observations_path),
             "amber_gb": {
                 "max_abs_polar_kcal_mol": 0.01,
                 "max_abs_nonpolar_lcpo_kcal_mol": 0.01,
@@ -782,7 +1084,40 @@ def _write_passing_parity_artifacts(protocol_path: Path, artifact_dir: Path) -> 
             },
         },
     )
+    tolerance_path = artifact_dir / "tolerances.json"
+    frozen = core.load_json(proposal_path)
+    frozen.update(
+        review_status="independently-reviewed-frozen",
+        reviewed_proposal_artifact=str(proposal_path.resolve()),
+        reviewed_proposal_sha256=core.sha256_file(proposal_path),
+    )
+    core.write_json_atomic(tolerance_path, frozen)
     return tolerance_path
+
+
+def _regenerate_and_reseal_fixture_review_chain(
+    protocol_path: Path,
+    tolerance_path: Path,
+) -> None:
+    frozen = core.load_json(tolerance_path)
+    proposal_path = Path(frozen["reviewed_proposal_artifact"])
+    proposal = core.load_json(proposal_path)
+    observations_path = Path(proposal["evidence_artifact"])
+    observations = core.load_json(observations_path)
+    sources = observations["source_artifacts"]
+    parity.observations(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            amber_artifact=sources["amber_openmm_results"],
+            apbs_artifact=sources["apbs_grid_results"],
+            output=str(observations_path),
+        )
+    )
+    proposal["evidence_artifact_sha256"] = core.sha256_file(observations_path)
+    core.write_json_atomic(proposal_path, proposal)
+    frozen["evidence_artifact_sha256"] = core.sha256_file(observations_path)
+    frozen["reviewed_proposal_sha256"] = core.sha256_file(proposal_path)
+    core.write_json_atomic(tolerance_path, frozen)
 
 
 def test_provider_parity_verification_fails_closed_without_reviewed_tolerances(
@@ -820,21 +1155,197 @@ def test_provider_parity_verification_accepts_complete_in_tolerance_fixture(tmp_
     assert all(check["passed"] for check in verification["checks"])
 
 
+def test_provider_parity_verification_rejects_unsealed_raw_artifact_tampering(
+    tmp_path,
+):
+    protocol_path, _source = _write_fixture_protocol(tmp_path)
+    artifact_dir = tmp_path / "parity"
+    tolerances = _write_passing_parity_artifacts(protocol_path, artifact_dir)
+    amber_path = artifact_dir / "amber-gb-parity/results.json"
+    amber = core.load_json(amber_path)
+    amber["records"][0]["maple_kcal_mol"]["polar"] = 1.0e9
+    core.write_json_atomic(amber_path, amber)
+
+    with pytest.raises(ValueError, match="artifact hash"):
+        parity.verify(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                artifact_dir=str(artifact_dir),
+                tolerances=str(tolerances),
+            )
+        )
+
+
 @pytest.mark.parametrize(
-    ("corruption", "failed_check"),
+    "corruption",
     [
-        ("missing-record", "amber-model-completeness"),
-        ("duplicate-record", "amber-record-completeness"),
-        (
-            "lcpo-support-mismatch",
-            "amber/fixture-neutral/hct/lcpo-support-expectation",
-        ),
+        "drop-amber-case",
+        "drop-apbs-case",
+        "invent-expected-unavailable",
+        "forge-energy-difference",
+        "forge-force-metrics",
+        "break-apbs-energy-closure",
+        "break-apbs-unit-contract",
+        "wrong-model-unavailability-signature",
+        "wrong-lcpo-unavailability-signature",
     ],
+)
+def test_provider_parity_verification_recomputes_resealed_evidence(
+    tmp_path,
+    corruption,
+):
+    protocol_path, _source = _write_fixture_protocol(tmp_path)
+    artifact_dir = tmp_path / "parity"
+    tolerances = _write_passing_parity_artifacts(protocol_path, artifact_dir)
+    amber_path = artifact_dir / "amber-gb-parity/results.json"
+    apbs_path = artifact_dir / "apbs-grid/results.json"
+    amber = core.load_json(amber_path)
+    apbs = core.load_json(apbs_path)
+
+    if corruption == "drop-amber-case":
+        amber["records"] = [
+            record
+            for record in amber["records"]
+            if record["case_id"] != "fixture-neutral-2"
+        ]
+        amber["case_count"] = 1
+        amber["record_count"] = 1
+    elif corruption == "drop-apbs-case":
+        apbs["records"] = [
+            record
+            for record in apbs["records"]
+            if record["case_id"] != "fixture-neutral-2"
+        ]
+    elif corruption == "invent-expected-unavailable":
+        record = amber["records"][0]
+        record["status"] = "expected-unavailable"
+        for key in (
+            "maple_kcal_mol",
+            "signed_difference_kcal_mol",
+            "reference_force_kcal_mol_angstrom",
+            "maple_force_kcal_mol_angstrom",
+            "force_difference_kcal_mol_angstrom",
+            "force_difference_metrics",
+            "lcpo_observation",
+        ):
+            record.pop(key, None)
+    elif corruption == "forge-energy-difference":
+        record = amber["records"][0]
+        record["maple_kcal_mol"]["polar"] = (
+            record["reference_kcal_mol"]["polar"] + 1.0e9
+        )
+        record["signed_difference_kcal_mol"]["polar"] = 0.0
+    elif corruption == "forge-force-metrics":
+        record = amber["records"][0]
+        record["maple_force_kcal_mol_angstrom"]["polar"][0][0] = 1.0e9
+        reference = record["reference_force_kcal_mol_angstrom"]["polar"][0][0]
+        record["force_difference_kcal_mol_angstrom"]["polar"][0][0] = (
+            1.0e9 - reference
+        )
+        record["force_difference_metrics"]["polar"] = {
+            "max_abs": 0.0,
+            "rms": 0.0,
+        }
+    elif corruption == "break-apbs-energy-closure":
+        apbs["records"][0]["maple_kcal_mol"]["total"] = 1.0e9
+    elif corruption == "break-apbs-unit-contract":
+        protocol, _fingerprint = core.load_protocol(protocol_path)
+        manifest_path = Path(
+            protocol["provider_parity"]["apbs_reference_manifest"]
+        )
+        manifest = core.load_json(manifest_path)
+        manifest["cases"][0]["expected_kj_mol"]["polar"] = 0.0
+        core.write_json_atomic(manifest_path, manifest)
+        apbs["reference_manifest_sha256"] = core.sha256_file(manifest_path)
+    else:
+        protocol, _fingerprint = core.load_protocol(protocol_path)
+        manifest_path = Path(
+            protocol["provider_parity"]["amber_gb_reference_manifest"]
+        )
+        manifest = core.load_json(manifest_path)
+        case = manifest["cases"][0]
+        record = amber["records"][0]
+        unrelated_failure = {
+            "exception_class": "TotallyUnrelatedError",
+            "reason": "network timeout silently routed around the provider",
+        }
+        if corruption == "wrong-model-unavailability-signature":
+            reason = "fixture-declared model boundary"
+            case["model_expectations"] = {
+                "hct": {
+                    "openmm_supported": False,
+                    "reason": reason,
+                }
+            }
+            record["status"] = "expected-unavailable"
+            record["model_observation"] = {
+                "expected_openmm_supported": False,
+                "observed_openmm_supported": False,
+                "support_matches_expectation": True,
+                "reason": reason,
+                "failure": unrelated_failure,
+            }
+            for key in (
+                "maple_kcal_mol",
+                "signed_difference_kcal_mol",
+                "reference_force_kcal_mol_angstrom",
+                "maple_force_kcal_mol_angstrom",
+                "force_difference_kcal_mol_angstrom",
+                "force_difference_metrics",
+                "lcpo_observation",
+            ):
+                record.pop(key, None)
+        else:
+            reason = "fixture-declared LCPO boundary"
+            case["parity_components"] = ["polar"]
+            case["parity_force_components"] = ["polar"]
+            case["lcpo_expectation"] = {
+                "parity_target": False,
+                "openmm_supported": False,
+                "reason": reason,
+            }
+            record["parity_components"] = ["polar"]
+            record["parity_force_components"] = ["polar"]
+            for field in (
+                "maple_kcal_mol",
+                "signed_difference_kcal_mol",
+                "maple_force_kcal_mol_angstrom",
+                "force_difference_kcal_mol_angstrom",
+                "force_difference_metrics",
+            ):
+                record[field] = {"polar": record[field]["polar"]}
+            record["lcpo_observation"] = {
+                "parity_target": False,
+                "expected_openmm_supported": False,
+                "observed_openmm_supported": False,
+                "support_matches_expectation": True,
+                "reason": reason,
+                "failure": unrelated_failure,
+            }
+        core.write_json_atomic(manifest_path, manifest)
+        amber["reference_manifest_sha256"] = core.sha256_file(manifest_path)
+
+    core.write_json_atomic(amber_path, amber)
+    core.write_json_atomic(apbs_path, apbs)
+    _regenerate_and_reseal_fixture_review_chain(protocol_path, tolerances)
+
+    with pytest.raises(ValueError):
+        parity.verify(
+            argparse.Namespace(
+                protocol=str(protocol_path),
+                artifact_dir=str(artifact_dir),
+                tolerances=str(tolerances),
+            )
+        )
+
+
+@pytest.mark.parametrize(
+    "corruption",
+    ["missing-record", "duplicate-record", "lcpo-support-mismatch"],
 )
 def test_provider_parity_verification_rejects_incomplete_or_mismatched_artifacts(
     tmp_path,
     corruption,
-    failed_check,
 ):
     protocol_path, _source = _write_fixture_protocol(tmp_path)
     artifact_dir = tmp_path / "parity"
@@ -852,7 +1363,7 @@ def test_provider_parity_verification_rejects_incomplete_or_mismatched_artifacts
         amber["records"][0]["lcpo_observation"]["support_matches_expectation"] = False
     core.write_json_atomic(amber_path, amber)
 
-    with pytest.raises(ValueError, match="Provider parity verification failed"):
+    with pytest.raises(ValueError, match="artifact hash"):
         parity.verify(
             argparse.Namespace(
                 protocol=str(protocol_path),
@@ -860,10 +1371,3 @@ def test_provider_parity_verification_rejects_incomplete_or_mismatched_artifacts
                 tolerances=str(tolerances),
             )
         )
-
-    verification = core.load_json(artifact_dir / "provider-parity-verification.json")
-    assert not verification["passed"]
-    assert any(
-        check["check"] == failed_check and not check["passed"]
-        for check in verification["checks"]
-    )

@@ -801,6 +801,11 @@ The product evidence is deliberately split:
 5. **Applicability**: failures and element/size/functional-group strata are
    retained, not removed from the denominator.
 
+The fingerprinted 12-molecule provider-fidelity corpus is independently frozen
+and passes 355 reconstructed evidence checks. This closes numerical parity
+review for that exact corpus only; it does not close the experimental hydration
+accuracy or independent-confirmation gates.
+
 Engineering tests and development-set improvements do not close the scientific
 confirmation gate.
 

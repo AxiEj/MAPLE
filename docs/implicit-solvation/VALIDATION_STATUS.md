@@ -113,6 +113,20 @@ ABCG2 benchmark artifacts below remain immutable evidence.
   OpenMM's generic GBn2 expression also does not reproduce Amber's signed
   sulfur near-pair descreening branch, so dimethyl sulfide and nitralin/GBn2
   fail closed rather than enter a numerical tolerance.
+- Independent architecture/science review accepted the unchanged
+  pre-expansion Amber/OpenMM and APBS parity bounds for this exact corpus.
+  Adversarial code review first blocked the freeze because the original
+  verifier trusted artifact self-counts and precomputed differences. The
+  corrected verifier now pins the proposal, observations, both raw artifacts,
+  and both reference manifests; reconstructs the exact 12-case/60-slot Amber
+  and 11-record APBS matrices; retains only the reviewed two
+  sulfur/GBn2 unavailable slots with their declared failure signatures; and
+  recomputes energy/force differences, force max/RMS, component closure, and
+  APBS kcal/kJ conversion. The frozen
+  `independently-reviewed-frozen` contract passes 355 checks. This closes the
+  numerical provider-parity review for the fingerprinted corpus only; it is
+  not a hydration-accuracy tolerance, independent chemical confirmation, or
+  permission to expand GBn2 applicability.
 - A separate platform audit promotes single-thread deterministic OpenMM CPU as
   the product runtime default while retaining Reference as the explicit
   correctness/parity control. Across the same 12 molecules and five GB models,
@@ -698,32 +712,37 @@ ABCG2 benchmark artifacts below remain immutable evidence.
   small-molecule boundary, not a universal large-system/GPU speed claim, but
   it opens no dependency, FreeSolv screen, or MLSES runtime provider.
 
+## Closed scientific review gates
+
+- The numerical Amber/OpenMM and APBS parity envelope and expanded
+  12-molecule corpus are independently reviewed and frozen under a complete
+  evidence-hash chain. Any new corpus, artifact, manifest, unsupported record,
+  or numerical bound requires a new proposal and review.
+
 ## Open scientific gates
 
-1. Human-review and freeze the proposed Amber/OpenMM and APBS parity bounds.
-2. Obtain independent/human review of the expanded 12-molecule parity corpus.
-   If broader GBn2 support is required, add an authoritative implementation
+1. If broader GBn2 support is required, add an authoritative implementation
    that reproduces both phosphorus parameters and Amber's signed sulfur
    descreening branch in energy and force; current P- and S-containing GBn2
    inputs must continue to fail closed.
-3. Keep the explicit AM1-BCC/CHA-GB/cavity-dispersion provider limited to the
+2. Keep the explicit AM1-BCC/CHA-GB/cavity-dispersion provider limited to the
    pre-registered **fixed-geometry SP-only accuracy profile**. Its reserve
    result and runtime parity cannot replace the force-consistent OBC-II/ACE
    OPT/SCAN path without an independently justified derivative-capable
    implementation and force gate.
-4. Obtain a genuinely independent external or label-sealed evaluation. The
+3. Obtain a genuinely independent external or label-sealed evaluation. The
    116-record FreeSolv reserve has been computed behind a sealed energy/scoring
    boundary and passed its pre-registered gates, but its labels were exposed
    in the legacy preparation artifact. Do not call it blind confirmation or
    use it as the final certification claim.
-5. Obtain and review the exact redistributable ABCG2-PBSA-2023 radii and
+4. Obtain and review the exact redistributable ABCG2-PBSA-2023 radii and
    nonpolar parameters before enabling that profile.
-6. Keep PB energy-only and keep APBS/ACE out of the runtime. Its 526-case
+5. Keep PB energy-only and keep APBS/ACE out of the runtime. Its 526-case
    development accuracy improvement is too small. The original molecular-
    surface grid fails stability, while a converged finer grid still misses the
    material-gain gate. Any replacement PB endpoint must first pass an
    energy-convergence protocol, then an independent force gate.
-7. Add a genuinely force-consistent runtime path for any selected
+6. Add a genuinely force-consistent runtime path for any selected
    high-accuracy GB/PB/nonpolar composition before derivative-based MLIP
    sampling; current CHA-GB, PB exact-difference, and unavailable AR6/igb9
    paths must not be reused as if force-capable. Broaden
@@ -752,15 +771,15 @@ ABCG2 benchmark artifacts below remain immutable evidence.
    separated set and still about four times slower than vacuum. FACTS remains
    below both: it is less accurate and lacks prospectively complete
    small-molecule radius parameters.
-8. Expand the now two-MLIP performance protocol across molecule-size bins and
+7. Expand the now two-MLIP performance protocol across molecule-size bins and
    warm/cold SP, OPT, SCAN, and NVE/NVT MD before making any broader throughput
    statement.
-9. Keep the frozen two-level `force-capable OPT -> high-accuracy final SP`
+8. Keep the frozen two-level `force-capable OPT -> high-accuracy final SP`
    probe benchmark-only. A broader attempt requires a prospectively frozen
    molecule/MLIP protocol and must still expose both potentials and provider
    manifests; do not report its final-SP energy as though optimization used
    that derivative.
-10. Keep `inner=prebuilt` out of FreeSolv accuracy scoring until a separate,
+9. Keep `inner=prebuilt` out of FreeSolv accuracy scoring until a separate,
     prospectively frozen cluster-continuum free-energy protocol supplies the
     missing cluster-formation/occupancy, standard-state, solvent-reference,
     and ensemble terms. Do not reinterpret the fixed-shell runtime potential

@@ -1793,25 +1793,42 @@ sulfur/GBn2 slots fail closed as predeclared applicability observations.
 Complete LCPO comparison contains 39 records: seven cases cover all five
 models and dimethyl sulfide covers its four supported models. The APBS corpus
 contains the official Born ion plus methanol and aniline grid sweeps.
-Numerical tolerances remain a separate human-review gate. The repository
-includes only a
-`provider_parity_tolerances.proposed.json` proposal, and verification fails
-closed until an explicitly reviewed file is frozen as
-`provider_parity_tolerances.json` with `review_status=human-reviewed-frozen`:
+The unchanged pre-expansion numerical bounds and expanded corpus have now
+passed independent architecture/science review. An adversarial code review
+then demonstrated that the original verifier could accept a shortened matrix,
+invented `expected-unavailable` records, or forged precomputed differences.
+The reviewed bounds were frozen only after the verifier was changed to:
+
+- bind the frozen file to the exact proposal, observations, raw artifacts, and
+  reference manifests by SHA-256;
+- rebuild the complete case/model/grid matrices from the reference manifests;
+- permit only the reviewed unsupported records and require their declared
+  exception/reason signatures;
+- independently recompute all energy differences, force arrays, max/RMS
+  metrics, component closures, and APBS kcal/kJ conversion.
+
+The frozen contract is
+`provider_parity_tolerances.json` with
+`review_status=independently-reviewed-frozen`. Verification of that immutable
+evidence uses the pinned raw artifacts:
 
 ```bash
-python docs/implicit-solvation/benchmarks/run_provider_parity.py \
-  amber-gb --protocol "$PROTOCOL" --output-dir "$WORK/amber-gb-parity"
-python docs/implicit-solvation/benchmarks/run_provider_parity.py \
-  apbs-grid --protocol "$PROTOCOL" --output-dir "$WORK/apbs-grid"
-python docs/implicit-solvation/benchmarks/run_provider_parity.py \
-  observations --protocol "$PROTOCOL" \
-  --amber-artifact "$WORK/amber-gb-parity/results.json" \
-  --apbs-artifact "$WORK/apbs-grid/results.json" \
-  --output "$WORK/provider-parity-observations.json"
+PROTOCOL=docs/implicit-solvation/benchmarks/protocol.json
+WORK=.omx/verification/provider-parity-reviewed
+mkdir -p "$WORK/amber-gb-parity" "$WORK/apbs-grid"
+cp tests/solvation/data/provider_parity_raw/amber-openmm-results.json \
+  "$WORK/amber-gb-parity/results.json"
+cp tests/solvation/data/provider_parity_raw/apbs-grid-results.json \
+  "$WORK/apbs-grid/results.json"
 python docs/implicit-solvation/benchmarks/run_provider_parity.py \
   verify --protocol "$PROTOCOL" --artifact-dir "$WORK"
 ```
+
+That frozen verification currently passes 355 independently reconstructed
+checks. A new provider run has a new artifact hash and intentionally cannot
+reuse this reviewed contract: run `amber-gb`, `apbs-grid`, and `observations`
+into a new directory, then create and review a new proposal/evidence chain.
+This prevents a fresh or modified corpus from silently inheriting old bounds.
 
 Amber `gbsa=1` is LCPO, so the parity runner compares polar GB, LCPO nonpolar,
 and GB+LCPO totals and forces only where both providers implement the same

@@ -1,0 +1,86 @@
+{
+  "charge": {
+    "charge_type": "No Charge or Current Charge",
+    "component_charge_sums_e": [
+      -0.00019999999999997797
+    ],
+    "connected_component_count": 1,
+    "label": "am1bcc-frozen-performance-matrix",
+    "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route1/docs/implicit-solvation/benchmarks/route1-performance-matrix-inputs-2026-07-26/mol2files_gaff/mobley_2078467.mol2",
+    "source": "mol2",
+    "sum_e": 1.6653345369377348e-16
+  },
+  "charge_options": {
+    "label": "am1bcc-frozen-performance-matrix",
+    "source": "mol2"
+  },
+  "energy_composition": "E_solution(R) = E_MLIP,gas(R) + G_polar(R,q_fixed) + G_nonpolar(R)",
+  "fixed_charge_lifecycle": "reference-geometry-once",
+  "route": {
+    "fixed_charge": true,
+    "formula": "E_solution(R) = E_MLIP,gas(R) + G_polar(R,q_fixed) + G_nonpolar(R)",
+    "name": "Additive fixed-charge PB/GB implicit solvation",
+    "product_contract": true,
+    "prohibited_terms": {
+      "gas_phase_mm_energy": false,
+      "hydration_label_residual": false,
+      "retraining": false
+    },
+    "role": "Baseline/Product Route"
+  },
+  "schema_version": 1,
+  "solvation": {
+    "amber_igb": 5,
+    "component_decomposition": "single-context OpenMM energy-parameter derivative",
+    "energy_force_evaluations_per_call": 1,
+    "method": "gb",
+    "model": "obc2",
+    "nonpolar": "ace",
+    "nonpolar_implementation": "openmm.app.internal.customgbforces CustomGBForce ACE term",
+    "nonpolar_installation": null,
+    "nonpolar_provider": {
+      "category": "nonpolar",
+      "component_properties": [
+        "energy",
+        "forces"
+      ],
+      "implementation": "openmm.app.internal.customgbforces CustomGBForce ACE term",
+      "name": "openmm-ace",
+      "profile": "ace",
+      "provider": "openmm"
+    },
+    "platform": "CPU",
+    "platform_properties": {
+      "DeterministicForces": "true",
+      "Threads": "1"
+    },
+    "profile": "obc2-mbondi2",
+    "provider": "openmm",
+    "provider_version": "8.5.2",
+    "radii": "mbondi2",
+    "radius_provider": {
+      "category": "radius",
+      "implementation": "openmm.app.internal.customgbforces.GBSAOBC2Force.getStandardParameters",
+      "model": "obc2",
+      "name": "openmm-amber-gb-radii",
+      "parameter_adjustments": {
+        "adjusted_atom_indices": [],
+        "generic_mol_mbondi3_oxygen_radius_angstrom": null
+      },
+      "profile": "obc2-mbondi2",
+      "provider": "openmm",
+      "provider_version": "8.5.2",
+      "radii": "mbondi2"
+    },
+    "solute_dielectric": 1.0,
+    "solvent": "water",
+    "solvent_dielectric": 78.5
+  },
+  "solvation_options": {
+    "experimental": true,
+    "method": "gb",
+    "model": "obc2",
+    "nonpolar": "ace",
+    "platform": "CPU"
+  }
+}

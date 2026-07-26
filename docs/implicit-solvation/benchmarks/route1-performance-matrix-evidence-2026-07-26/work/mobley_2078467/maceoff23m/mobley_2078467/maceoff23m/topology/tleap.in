@@ -1,0 +1,6 @@
+source leaprc.gaff2
+set default PBradii mbondi2
+MOL = loadmol2 molecule.mol2
+loadamberparams molecule.frcmod
+saveamberparm MOL molecule.prmtop molecule.inpcrd
+quit

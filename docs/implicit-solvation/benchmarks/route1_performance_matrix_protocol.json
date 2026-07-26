@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-fair-sp-performance-matrix-v1",
+  "claim_scope": "A same-host, same-resource diagnostic of Route 1 single-point energy+force solvent overhead and a named GAFF2/OBC-II MM comparison. Every result is indexed by gas MLIP, molecule-size bin, device, OpenMM platform, and warm versus in-process construction-cold policy. It is not a universal faster-than-MM, negligible-overhead, or production-throughput claim.",
+  "matrix": {
+    "models": [
+      "maceoff23m",
+      "aimnet2",
+      "ani2x"
+    ],
+    "cases": [
+      {
+        "case_id": "mobley_3867265",
+        "name": "acetone",
+        "size_bin": "small",
+        "atom_count": 10,
+        "heavy_atom_count": 4,
+        "elements": [
+          "C",
+          "H",
+          "O"
+        ],
+        "mol2_relative_path": "mol2files_gaff/mobley_3867265.mol2",
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1"
+      },
+      {
+        "case_id": "mobley_1017962",
+        "name": "methyl hexanoate",
+        "size_bin": "medium",
+        "atom_count": 23,
+        "heavy_atom_count": 9,
+        "elements": [
+          "C",
+          "H",
+          "O"
+        ],
+        "mol2_relative_path": "mol2files_gaff/mobley_1017962.mol2",
+        "mol2_sha256": "248c22a28e076d3e4a1d9785d69e44198e0ee31af8e2da266acd7840b497d424"
+      },
+      {
+        "case_id": "mobley_2078467",
+        "name": "ibuprofen",
+        "size_bin": "large",
+        "atom_count": 33,
+        "heavy_atom_count": 15,
+        "elements": [
+          "C",
+          "H",
+          "O"
+        ],
+        "mol2_relative_path": "mol2files_gaff/mobley_2078467.mol2",
+        "mol2_sha256": "e10ef645190c3ddf644950438f93d64a4836eab29c98d41e3ce92bb18eb6ebd0"
+      }
+    ]
+  },
+  "inputs": {
+    "input_root_relative_path": "docs/implicit-solvation/benchmarks/route1-performance-matrix-inputs-2026-07-26",
+    "charge_manifest_relative_path": "docs/implicit-solvation/benchmarks/chagb_nonpolar_source_manifest.json",
+    "charge_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc",
+    "benchmark_helper_relative_path": "docs/implicit-solvation/benchmarks/run_route1_performance.py",
+    "benchmark_helper_sha256": "f3567e26e2f74748d15019ac0bed0766f3614be634bdf56e11f29669fded7ccd"
+  },
+  "case_selection": {
+    "policy": "Label-blind performance representatives selected by atom count, element support, availability of frozen AM1-BCC charges, and reproducible GAFF2 topology construction; experimental hydration labels were not consulted.",
+    "topology_determinism_screen": "The large-bin candidate must produce one byte-level frcmod SHA256 across 20 independent parmchk2 invocations from the exact pinned MOL2 on the recorded AmberTools installation.",
+    "rejected_large_case": "mobley_8124669 (alachlor) produced two frcmod variants and is excluded from the formal matrix.",
+    "accepted_large_case": "mobley_2078467 (ibuprofen) produced one frcmod variant in all 20 invocations.",
+    "assembly_guard": "All three model cells for a case must independently rehash to the same semantic MOL2, frcmod, prmtop, and inpcrd topology identities."
+  },
+  "route1": {
+    "charge": "frozen AM1-BCC from the pinned source manifest",
+    "polar": "OpenMM OBC-II with mbondi2 radii",
+    "nonpolar": "OpenMM ACE",
+    "reported_task": "single-point energy+forces"
+  },
+  "mm_comparator": {
+    "name": "GAFF2 plus OpenMM OBC-II/ACE",
+    "topology_source": "the same pinned GAFF-typed MOL2 and frozen AM1-BCC vector",
+    "includes": "GAFF2 bonded and gas nonbonded terms plus OBC-II/ACE implicit solvent",
+    "implicit_solvent": "OBC2",
+    "sasa_method": "ACE",
+    "expected_gbsa_force_class": "GBSAOBCForce",
+    "expected_surface_area_energy_kj_mol_nm2": 2.25936,
+    "excludes_from_timing": [
+      "charge generation",
+      "parmchk2",
+      "tleap",
+      "MOL2 parsing"
+    ]
+  },
+  "topology": {
+    "parmchk2_mode": "gaff2",
+    "tleap_source": "leaprc.gaff2",
+    "pb_radii": "mbondi2",
+    "reject_nonbon_overrides": true
+  },
+  "timing": {
+    "warm": {
+      "samples": 30,
+      "warmups": 4,
+      "definition": "Persistent calculators and OpenMM contexts; each sample changes one coordinate by 1e-5 Angstrom and requests energy plus forces."
+    },
+    "construction_cold": {
+      "samples": 6,
+      "warmups": 0,
+      "definition": "Within an already-started Python process and with parsed structures plus prepared topology available, construct a fresh calculator or OpenMM System/Context and perform its first fully materialized energy+force evaluation. Six paired samples use an equal AB/BA order. Python process startup, imports, charge generation, parmchk2, and tleap are excluded."
+    }
+  },
+  "resource_policy": {
+    "device": "cpu",
+    "torch_threads": 1,
+    "torch_interop_threads": 1,
+    "maximum_native_threadpool_threads": 1,
+    "maximum_one_minute_load_per_logical_cpu": 0.25,
+    "required_environment": {
+      "MKL_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    },
+    "openmm_platform": "CPU",
+    "openmm_platform_properties": {
+      "DeterministicForces": "true",
+      "Threads": "1"
+    }
+  },
+  "acceptance": {
+    "required_cell_count": 9,
+    "require_exact_model_case_cross_product": true,
+    "require_protocol_conformance": true,
+    "require_named_mm_comparison_eligibility": true,
+    "require_finite_positive_timing_summaries": true,
+    "require_energy_force_composition_closure": true,
+    "maximum_energy_closure_hartree": 1e-12,
+    "maximum_force_closure_hartree_per_angstrom": 1e-12,
+    "maximum_topology_charge_difference_e": 1e-7,
+    "maximum_topology_coordinate_difference_angstrom": 1e-6
+  },
+  "limitations": [
+    "Three label-free development structures are performance representatives, not an accuracy set.",
+    "The large-bin case was selected only after a label-blind topology-determinism screen; the screen is an engineering fairness gate, not scientific validation.",
+    "Construction-cold is an in-process calculator/context cold start and is not Python-process or filesystem-cache cold.",
+    "The named MM comparison changes the gas potential and measures runtime only; its Route 1 and MM calls are interleaved within a dedicated paired block, but it is not an energy or accuracy parity comparison.",
+    "Host-load isolation is checked at entry, immediately before timing, and immediately after timing; these endpoint snapshots do not prove continuous whole-run isolation.",
+    "No timing ratio may be generalized beyond the exact recorded model, molecule, device, OpenMM platform, and warm/cold definition.",
+    "The protocol does not predeclare that Route 1 will be faster than the named MM comparator."
+  ]
+}

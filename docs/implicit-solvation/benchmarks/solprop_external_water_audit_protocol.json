@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "protocol_id": "maple-route1-solprop-external-water-audit-v1",
-  "claim_scope": "Pre-registered SolProp external-water source audit. This workflow selects only neutral closed-shell, non-heavy-filtered external-water candidates for downstream external comparison and does not perform energy calculations.",
+  "claim_scope": "Pre-registered, label-free SolProp external-water source audit. This workflow reads only solvent identity, solute identity, and measurement-source columns; excludes any conservative FreeSolv connectivity or provenance overlap; and selects neutral, connected, closed-shell organic candidates in the declared Route 1 element domain. It performs neither energy calculation nor experimental-label scoring.",
   "route1_boundary": {
     "name": "Additive fixed-charge PB/GB implicit solvation",
     "formula": "E_solution(R)=E_MLIP,gas(R)+G_polar(R,q_fixed)+G_nonpolar(R)",
@@ -11,32 +11,59 @@
     "fixed_charge": "AM1-BCC"
   },
   "analysis": {
+    "sheet_name": "data",
     "water_smiles": [
       "O",
       "[OH2]",
       "water"
     ],
-    "freesolv_connectivity_match_mode": "inchi_key_block"
+    "freesolv_connectivity_match_mode": "inchi_key_block",
+    "allowed_elements": [
+      "H",
+      "C",
+      "N",
+      "O",
+      "F",
+      "S",
+      "Cl"
+    ],
+    "size_bins_heavy_atoms": {
+      "small_max": 8,
+      "medium_max": 16
+    },
+    "require_unique_candidate_connectivity": true
   },
   "dataset": {
     "name": "SolProp v1.2",
     "version": "v1.2",
     "source": "https://zenodo.org/records/5970538",
+    "license": "CC-BY-4.0",
     "expected_archive": {
-      "name": "SolProp_v1.2.xlsx",
+      "name": "SolProp_v1.2.zip",
       "sha256": "f66bb046bc1d5b8471d36436e485d0cb9d95fb7111aa2db4deb85fdbbea6b766",
       "md5": "677d6f107df6fbd0e6d3963e32f06bdb",
       "size_bytes": 268574239
     },
-    "expected_rows": 8780,
-    "analysis_temperature_k": 298.15,
-    "standard_state": 1.0
+    "source_table": {
+      "name": "CombiSolv-Exp.xlsx",
+      "relative_archive_path": "SolProp_v1.2/Data/CombiSolv-Exp.xlsx",
+      "sha256": "a68bb5ba4f120846f8250cb79f18afd6439cebba4e7d418f2e54ba38919d91b7",
+      "size_bytes": 466840,
+      "expected_rows": 8780
+    },
+    "readme": {
+      "relative_archive_path": "SolProp_v1.2/ReadMe.txt",
+      "sha256": "6ac6558995f5c64bc6d50a317d26b151aec5a537bb9a356911cf169be931aa27",
+      "size_bytes": 12534
+    },
+    "analysis_temperature_k": 298,
+    "standard_state_molar": 1.0
   },
   "columns": {
-    "source": "sourceall",
-    "solvent": "solvent_smiles",
-    "solute_smiles": "smiles",
-    "solute_inchi": "inchi"
+    "source": "Source_all",
+    "solvent": "smiles_solvent",
+    "solute_smiles": "smiles_solute",
+    "solute_inchi": "inchi_solute"
   },
   "counts": {
     "total_rows": 8780,
@@ -46,14 +73,24 @@
     "source_has_freesolv_mismatch_rows": 0,
     "nonoverlap_rows": 593,
     "candidate_rows": 561,
-    "filter_exclusions": 32
+    "filter_exclusions": 32,
+    "candidate_small_rows": 114,
+    "candidate_medium_rows": 304,
+    "candidate_large_rows": 143,
+    "candidate_source_abraham_rows": 486,
+    "candidate_source_compsol_rows": 103,
+    "candidate_source_both_rows": 28,
+    "candidate_multi_measurement_rows": 186,
+    "candidate_three_plus_measurement_rows": 112
   },
   "freesolv_reference": {
     "database_json": ".omx/benchmarks/neutral-water-freesolv-route1-20260723/dataset/database.json",
     "sha256": "9133b2438af6081d4cf6ac040cb201c2e3ec953988a45248586f20f2f159c78a"
   },
   "literature": {
-    "solprop": "Open notebook and source dataset metadata in Zenodo record 5970538.",
-    "freesolv": "Mobley et al., J. Comput. Aided Mol. Des. 2009, FreeSolv database."
+    "solprop_dataset": "Zenodo record 5970538, SolProp v1.2, CC BY 4.0.",
+    "combisolv_exp": "Vermeire, Chung, and Green, Chemical Engineering Journal 2021, DOI 10.1016/j.cej.2021.129307.",
+    "solprop": "Vermeire and Green, JACS 2022, DOI 10.1021/jacs.2c01768.",
+    "freesolv": "Mobley and Guthrie, J. Comput.-Aided Mol. Des. 2014, DOI 10.1007/s10822-014-9747-x."
   }
 }

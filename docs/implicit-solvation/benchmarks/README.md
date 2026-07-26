@@ -2202,6 +2202,102 @@ python "$RUNNER" \
   --output docs/implicit-solvation/benchmarks/route1-performance-methyl-hexanoate-ani2x-cpu-2026-07-24.json
 ```
 
+### Formal fair 3x3 CPU SP matrix (2026-07-26)
+
+The frozen
+[`route1_performance_matrix_protocol.json`](route1_performance_matrix_protocol.json)
+replaces the one-molecule CPU counterexamples with a same-host,
+single-threaded CPU/OpenMM CPU matrix over three gas MLIPs and three
+label-blind molecule-size representatives. Every cell runs 30 paired warm
+energy+force samples and six balanced in-process construction-cold samples.
+The named comparator is explicitly GAFF2 plus OpenMM OBC-II/ACE; runtime
+validation requires one `GBSAOBCForce` with surface-area energy
+`2.25936 kJ mol-1 nm-2`. Charge generation, MOL2 parsing, `parmchk2`, and
+`tleap` are excluded from both measured paths.
+
+The original large-bin candidate, alachlor, exposed nondeterministic
+`parmchk2` improper assignment: 20 independent invocations produced two
+byte-distinct frcmod files (`8/20` and `12/20`). The separate label-blind
+[`route1_topology_determinism_protocol.json`](route1_topology_determinism_protocol.json)
+and
+[`route1-topology-determinism-screen-2026-07-26.json`](route1-topology-determinism-screen-2026-07-26.json)
+therefore reject it before timing. Ibuprofen produced one frcmod SHA256 in
+`20/20` invocations and is the admitted large-bin input. The formal assembler
+still requires independently generated semantic MOL2, frcmod, prmtop, and
+inpcrd identities to match across all three model cells for every case.
+
+The sealed matrix
+[`route1-performance-matrix-2026-07-26.json`](route1-performance-matrix-evidence-2026-07-26/route1-performance-matrix-2026-07-26.json)
+has content SHA256
+`3076d3da83a05b73835c2978259e68bc0204ba8aa88d9d9c47c4c7428d1f457d`.
+All `9/9` cells are protocol-conformant and eligible; all three per-case
+topologies are model-invariant.
+
+| size case | gas MLIP | gas warm ms | correction-only ms | Route 1 warm ms | named MM warm ms | paired warm overhead | warm Route 1/MM | cold Route 1/MM |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| acetone, 10 atoms | MACE-OFF23m | 113.063 | 0.443 | 115.394 | 0.549 | 0.91% | 209.57x | 230.49x |
+| acetone, 10 atoms | AIMNet2 | 8.138 | 0.348 | 8.908 | 0.518 | 12.91% | 16.73x | 40.23x |
+| acetone, 10 atoms | ANI2x | 10.103 | 0.365 | 9.468 | 0.689 | 10.78% | 14.34x | 138.83x |
+| methyl hexanoate, 23 atoms | MACE-OFF23m | 283.376 | 0.452 | 288.418 | 0.552 | -0.10% | 519.38x | 387.92x |
+| methyl hexanoate, 23 atoms | AIMNet2 | 14.092 | 0.896 | 14.371 | 0.563 | -0.90% | 26.79x | 36.39x |
+| methyl hexanoate, 23 atoms | ANI2x | 10.859 | 0.419 | 11.887 | 0.487 | 11.62% | 24.75x | 99.37x |
+| ibuprofen, 33 atoms | MACE-OFF23m | 417.276 | 0.673 | 415.863 | 0.579 | 0.50% | 708.23x | 376.11x |
+| ibuprofen, 33 atoms | AIMNet2 | 18.296 | 0.543 | 20.046 | 0.553 | 7.74% | 37.19x | 32.26x |
+| ibuprofen, 33 atoms | ANI2x | 12.334 | 0.494 | 13.405 | 0.532 | 11.26% | 25.50x | 92.08x |
+
+The correction-only median is `0.53x-1.59x` the named full-MM median
+(`0.86x` median), while it is only `0.16%-6.36%` of the gas-MLIP median.
+Paired warm total-time overhead spans `-0.90%-12.91%` (`7.74%` median);
+the negative values are timing noise, not negative solvent cost. The combined
+warm Route 1/MM ratio spans `14.34x-708.23x`; the construction-cold ratio
+spans `32.26x-387.92x`. Route 1 is faster in `0/9` warm and `0/9`
+construction-cold cells. This matrix therefore closes the same-resource
+single-molecule SP question negatively: the additive solvent layer is usually
+small relative to its gas MLIP, but it does not make the combined potential
+faster than classical MM.
+
+Reproduction first runs the topology screen, then one command per frozen
+model/case cell, and finally strict assembly:
+
+```bash
+export MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+AMBERTOOLS_BIN=/path/to/ambertools/bin
+
+python docs/implicit-solvation/benchmarks/run_route1_topology_determinism_screen.py run \
+  --protocol docs/implicit-solvation/benchmarks/route1_topology_determinism_protocol.json \
+  --ambertools-bin "$AMBERTOOLS_BIN" \
+  --work-dir /empty/work/topology-screen \
+  --output docs/implicit-solvation/benchmarks/route1-topology-determinism-screen-2026-07-26.json
+
+python docs/implicit-solvation/benchmarks/run_route1_performance_matrix.py run-cell \
+  --protocol docs/implicit-solvation/benchmarks/route1_performance_matrix_protocol.json \
+  --case-id mobley_3867265 --model ani2x \
+  --ambertools-bin "$AMBERTOOLS_BIN" \
+  --work-dir /empty/work/mobley_3867265/ani2x \
+  --output /evidence/cells/mobley_3867265__ani2x.json
+
+python docs/implicit-solvation/benchmarks/run_route1_performance_matrix.py assemble \
+  --protocol docs/implicit-solvation/benchmarks/route1_performance_matrix_protocol.json \
+  --cell /evidence/cells/mobley_3867265__maceoff23m.json \
+  --cell /evidence/cells/mobley_3867265__aimnet2.json \
+  --cell /evidence/cells/mobley_3867265__ani2x.json \
+  --cell /evidence/cells/mobley_1017962__maceoff23m.json \
+  --cell /evidence/cells/mobley_1017962__aimnet2.json \
+  --cell /evidence/cells/mobley_1017962__ani2x.json \
+  --cell /evidence/cells/mobley_2078467__maceoff23m.json \
+  --cell /evidence/cells/mobley_2078467__aimnet2.json \
+  --cell /evidence/cells/mobley_2078467__ani2x.json \
+  --output /evidence/route1-performance-matrix-2026-07-26.json
+```
+
+For a portable integrity check after cloning, use the same nine `--cell`
+arguments with `verify-frozen` and replace `--output` by
+`--matrix /evidence/route1-performance-matrix-2026-07-26.json`. This path
+recomputes all cell-derived claims and committed topology/input hashes without
+requiring the original local model checkpoints or AmberTools installation.
+The live `assemble` command remains strict and verifies those external
+dependencies.
+
 The compatibility trace, task matrix, and four performance traces each embed a
 machine-readable `command_provenance` record with the runner hash, normalized
 arguments and argument hash, Python executable, and selected resource

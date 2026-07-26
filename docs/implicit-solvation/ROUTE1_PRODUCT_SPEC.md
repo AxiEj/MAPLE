@@ -1434,6 +1434,57 @@ equivalent common interface, but the every-repeat `1.25x` promotion gate fails
 for MACE; AIMNet2 and ANI2x pass all four paired repeats. It is not a
 comparison with MM and does not change the solvent functional.
 
+A formal same-resource CPU matrix now resolves the single-molecule SP question
+over MACE-OFF23m, AIMNet2, and ANI2x crossed with 10-, 23-, and 33-atom
+label-blind inputs. The large input passed a separate 20-repeat `parmchk2`
+determinism screen; the initially selected alachlor input was rejected after
+producing two frcmod identities. Each of the nine admitted cells uses one
+PyTorch thread, one deterministic OpenMM CPU thread, 30 paired warm samples,
+six balanced construction-cold samples, and the same GAFF2/OBC-II/ACE
+comparator. All `9/9` cells are conformant and all per-case semantic MM
+topologies are model-invariant.
+
+The paired warm total-time overhead spans `-0.90%-12.91%` with a `7.74%`
+median; the negative values are timing noise, not negative solvent cost.
+Correction-only time is `0.16%-6.36%` of gas-MLIP time, while its ratio to the
+named full-MM median spans `0.53x-1.59x` with a `0.86x` median. The combined
+warm Route 1/MM ratio is nevertheless `14.34x-708.23x`, and the
+construction-cold ratio is `32.26x-387.92x`; Route 1 is faster in `0/9` cells
+under both policies. The sealed artifact is
+[`route1-performance-matrix-2026-07-26.json`](benchmarks/route1-performance-matrix-evidence-2026-07-26/route1-performance-matrix-2026-07-26.json).
+
+This establishes a product boundary rather than an optimization target that
+can be wished away: for the shipped models and this CPU SP regime, gas-MLIP
+inference dominates and eliminating PB/GB Python overhead cannot make the
+sum faster than the measured classical comparator. Native conformer batching
+can improve AIMNet2 and ANI2x throughput, but current evidence does not admit
+a universal MACE acceleration and is not speed-versus-MM evidence. Distilled
+models, learned solvent residuals, and MM-reference multiple-time-step
+approximations would change the Route 1 no-retraining/exact-additive contract;
+they require separate routes rather than hidden product shortcuts.
+
+The literature supports the same boundary:
+
+- [NNP/MM](https://doi.org/10.1021/acs.jcim.3c00773) starts from the explicit
+  observation that neural potentials are substantially more expensive than
+  classical MM and gains throughput by restricting the NNP to a small region;
+  it is an acceleration of an NNP/MM simulation, not evidence that a full
+  solute NNP is faster than bare MM.
+- [OpenMM-ML](https://docs.openmm.org/latest/userguide/application/05_add_on_packages.html#openmm-ml)
+  provides a maintained mixed ML/MM system interface. It supports MAPLE's
+  compositional architecture, but its documentation does not establish a
+  speed-versus-MM claim.
+- [Distilled multiple-time-step
+  MLIP dynamics](https://doi.org/10.1021/acs.jpclett.5c03720) evaluates an
+  accurate foundation potential less often by training a smaller distilled
+  model. That is a legitimate separate acceleration route, but it violates
+  this route's no-retraining/no-surrogate boundary.
+- Learned PB or solvent-potential approaches such as
+  [MLIMC](https://doi.org/10.1063/1674-0068/cjcp2109150) and
+  [ISSNet](https://doi.org/10.1063/5.0059915) can target the solvent bottleneck
+  or explicit-solvent thermodynamics. They replace or learn the solvent
+  functional and therefore are not fixed-provider Route 1 improvements.
+
 The first locally traceable 23-atom warm energy+force run uses MACE-OFF23 medium
 on an RTX 4060 Laptop GPU and OpenMM 8.5.2 Reference:
 
@@ -1472,12 +1523,14 @@ and it is not a claim that MLIP+solvent is faster than bare MM. The sealed
 evidence is
 `benchmarks/route1-openmm-platform-audit-2026-07-25.json`.
 
-These 50-sample local observations have no uncertainty interval. They show
-that solvent overhead is gas-model dependent rather than a universal small
-constant. They reject both a global “faster than MM” claim and a universal
-“negligible solvent overhead” claim: Route 1 is a quality/integration route
-for MLIPs, not a way to outrun classical MM. OpenMM Reference is deliberately
-fixed here as a correctness-oriented local backend; neither CPU ratio is a
+These historical 50-sample local observations have no uncertainty interval.
+They first showed that solvent overhead is gas-model dependent rather than a
+universal small constant; the later formal 3x3 CPU matrix above supplies the
+strict same-resource counterevidence. Together they reject both a global
+“faster than MM” claim and a universal “negligible solvent overhead” claim:
+Route 1 is a quality/integration route for MLIPs, not a way to outrun
+classical MM. OpenMM Reference is deliberately fixed here as a
+correctness-oriented local backend; neither historical CPU ratio is a
 production-MM or general throughput comparison. The four local traces are
 `benchmarks/route1-performance-methyl-hexanoate-2026-07-24.json`,
 `benchmarks/route1-performance-methyl-hexanoate-cpu-2026-07-24.json`,

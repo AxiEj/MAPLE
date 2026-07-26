@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "protocol_id": "maple-route1-parmchk2-topology-determinism-v1",
+  "purpose": "A label-blind engineering screen for selecting a reproducible large-bin GAFF2 topology input before the formal Route 1 performance matrix.",
+  "performance_protocol_relative_path": "docs/implicit-solvation/benchmarks/route1_performance_matrix_protocol.json",
+  "performance_protocol_sha256": "c6fff86ac8deb009509148142070c526524aec84c4ac7c3ec6773e9675716d52",
+  "charge_manifest_relative_path": "docs/implicit-solvation/benchmarks/chagb_nonpolar_source_manifest.json",
+  "charge_manifest_sha256": "84cd6569296ab4f0ae8410f3f03728fd04c358980936b811be57e8ff2c2508dc",
+  "execution": {
+    "repeat_count": 20,
+    "sequential": true,
+    "parmchk2_arguments": [
+      "-f",
+      "mol2",
+      "-s",
+      "gaff2"
+    ],
+    "determinism_identity": "byte-level SHA256 of molecule.frcmod",
+    "acceptance_rule": "exactly one observed frcmod SHA256 across all repeats"
+  },
+  "candidates": [
+    {
+      "compound_id": "mobley_8124669",
+      "name": "alachlor",
+      "role": "rejected_large_candidate",
+      "atom_count": 38,
+      "heavy_atom_count": 18,
+      "mol2_relative_path": "docs/implicit-solvation/benchmarks/route1-topology-determinism-inputs-2026-07-26/mol2files_gaff/mobley_8124669.mol2",
+      "mol2_sha256": "2e1faf358cdb480dd0e262e88f10382fd564d89f54b5ce3c5f37e27bf787958a"
+    },
+    {
+      "compound_id": "mobley_2078467",
+      "name": "ibuprofen",
+      "role": "accepted_large_candidate",
+      "atom_count": 33,
+      "heavy_atom_count": 15,
+      "mol2_relative_path": "docs/implicit-solvation/benchmarks/route1-performance-matrix-inputs-2026-07-26/mol2files_gaff/mobley_2078467.mol2",
+      "mol2_sha256": "e10ef645190c3ddf644950438f93d64a4836eab29c98d41e3ce92bb18eb6ebd0"
+    }
+  ],
+  "selection_boundary": {
+    "experimental_hydration_labels_used": false,
+    "accuracy_claimed": false,
+    "force_field_quality_claimed": false,
+    "scope": "Topology construction reproducibility only; it does not validate chemistry or performance."
+  }
+}

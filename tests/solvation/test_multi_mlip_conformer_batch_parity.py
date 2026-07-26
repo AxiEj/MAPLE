@@ -28,6 +28,7 @@ if str(BENCHMARK_DIR) not in sys.path:
 
 import benchmark_core as core
 import run_multi_mlip_conformer_batch_parity as runner
+from source_compatibility import validate_frozen_source
 
 
 def _load(path: Path) -> dict:
@@ -334,6 +335,8 @@ def test_batch_parity_artifact_separates_validity_from_speed_claims():
         "maple/function/calculator/mace/_common.py"
     )
     compatibility = artifact["hessian_diagnostics_compatibility_update"]
+    assert compatibility["historical_execution_hash_retained"] is True
+    assert compatibility["batch_energy_force_path_changed"] is False
     for environment in artifact["model_environments"].values():
         assert {
             "benchmark_core",
@@ -355,17 +358,15 @@ def test_batch_parity_artifact_separates_validity_from_speed_claims():
             "medium",
         }
         for source in environment["source_hashes"].values():
-            observed_sha256 = core.sha256_file(REPOSITORY_ROOT / source["path"])
-            if observed_sha256 != source["sha256"]:
-                assert source["path"] == compatibility["source"]["path"]
-                assert source["sha256"] == compatibility["source"][
-                    "historical_execution_sha256"
-                ]
-                assert observed_sha256 == compatibility["source"][
-                    "current_sha256"
-                ]
-                assert compatibility["historical_execution_hash_retained"] is True
-                assert compatibility["batch_energy_force_path_changed"] is False
+            validation = validate_frozen_source(
+                REPOSITORY_ROOT,
+                source["path"],
+                source["sha256"],
+            )
+            assert validation["mode"] in {
+                "exact-historical-freeze",
+                "documented-postexecution-production-safety-change",
+            }
     for summary in artifact["model_summaries"].values():
         assert (
             summary["maximum_relative_energy_difference_kcal_mol"]

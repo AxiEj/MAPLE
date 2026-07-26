@@ -404,10 +404,10 @@ implicit-gb = [
 requires-dist = [
     { name = "ase", specifier = ">=3.22" },
     { name = "numpy", specifier = ">=1.20" },
-    { name = "openmm", marker = "extra == 'implicit'", specifier = ">=8.5" },
-    { name = "openmm", marker = "extra == 'implicit-free-energy'", specifier = ">=8.5" },
-    { name = "openmm", marker = "extra == 'implicit-gb'", specifier = ">=8.5" },
-    { name = "pymbar", marker = "extra == 'implicit-free-energy'", specifier = ">=4.0.3,<5" },
+    { name = "openmm", marker = "extra == 'implicit'", specifier = "==8.5.2" },
+    { name = "openmm", marker = "extra == 'implicit-free-energy'", specifier = "==8.5.2" },
+    { name = "openmm", marker = "extra == 'implicit-gb'", specifier = "==8.5.2" },
+    { name = "pymbar", marker = "extra == 'implicit-free-energy'", specifier = "==4.0.3" },
     { name = "scipy", specifier = ">=1.7" },
 ]
 provides-extras = ["implicit-gb", "implicit", "implicit-free-energy"]

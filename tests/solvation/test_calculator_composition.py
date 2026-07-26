@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 from ase import Atoms
+from ase.constraints import FixAtoms, FixBondLength, FixCartesian
 
 from maple.function.calculator.calculator_base import (
     IMPLICIT_SOLVENT_FORCE_ERROR,
     CalcABC,
+    init_implicit_solvent,
     numerical_hessian_from_atoms,
 )
 from maple.function.calculator.extra_correction.implicit.result import SolvationResult
@@ -107,6 +111,32 @@ class NonConservativeCalculator(CalcABC):
             forces=np.asarray([[-x - 2.0 * y, -3.0 * x - y, -z]]),
             unit="hartree",
         )
+
+
+def test_calcabc_implicit_solvation_capability_is_opt_in():
+    class UnreviewedCalculator(CalcABC):
+        pass
+
+    assert CalcABC.SUPPORTS_IMPLICIT_SOLVATION is False
+    assert UnreviewedCalculator.SUPPORTS_IMPLICIT_SOLVATION is False
+
+
+def test_legacy_gbsa_qeq_constructor_path_is_removed():
+    class Dummy:
+        pass
+
+    with pytest.raises(ValueError, match="legacy implicit='gbsa'"):
+        init_implicit_solvent(Dummy(), "gbsa", "water", "cpu")
+
+
+def test_uma_has_no_unstructured_legacy_solvent_fallback():
+    source = (
+        Path(__file__).resolve().parents[2]
+        / "maple/function/calculator/uma/_uma_calculator.py"
+    ).read_text(encoding="utf-8")
+
+    assert "self.chargecalc(calc_atoms" not in source
+    assert "self.solvent_correction.get_energy(calc_atoms)" not in source
 
 
 def test_registered_plugin_without_route1_composition_capability_fails_closed(
@@ -258,6 +288,41 @@ def test_numerical_hessian_can_report_presymmetrization_diagnostics():
         numerical_hessian_from_atoms(calc, atoms, delta=1.0e-4),
         np.ndarray,
     )
+
+
+@pytest.mark.parametrize(
+    "constraint",
+    [
+        FixBondLength(0, 1),
+        FixCartesian(0, mask=(True, False, False)),
+    ],
+    ids=["fixed-bond-length", "fixed-cartesian"],
+)
+def test_numerical_hessian_rejects_unimplemented_constraints(constraint):
+    atoms = Atoms("H2", positions=[[0.0, 0.0, 0.0], [0.8, 0.0, 0.0]])
+    atoms.set_constraint(constraint)
+
+    with pytest.raises(NotImplementedError, match="FixAtoms"):
+        numerical_hessian_from_atoms(
+            QuadraticGasCalculator(0.7),
+            atoms,
+            delta=1.0e-4,
+        )
+
+
+def test_numerical_hessian_fixatoms_phva_rows_and_columns_are_zero():
+    atoms = Atoms("H2", positions=[[0.2, -0.1, 0.3], [-0.4, 0.5, -0.2]])
+    atoms.set_constraint(FixAtoms(indices=[0]))
+
+    hessian = numerical_hessian_from_atoms(
+        QuadraticGasCalculator(0.7),
+        atoms,
+        delta=1.0e-4,
+    )
+
+    np.testing.assert_allclose(hessian[:3, :], 0.0, atol=1.0e-12)
+    np.testing.assert_allclose(hessian[:, :3], 0.0, atol=1.0e-12)
+    np.testing.assert_allclose(hessian[3:, 3:], np.eye(3) * 0.7, atol=1.0e-10)
 
 
 def test_analytic_hessian_with_implicit_solvent_remains_fail_closed():

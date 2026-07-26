@@ -14,15 +14,16 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# OpenMM supplies the five upstream Amber GB implementations.  8.5 is the
-# supported floor because it exposes both ACE and LCPO nonpolar choices in the
-# CustomGB force family.  APBS and AmberTools remain external executables.
-implicit-gb = ["openmm>=8.5"]
-implicit = ["openmm>=8.5"]
+# OpenMM supplies the five upstream Amber GB implementations.  Route 1 depends
+# on private customgbforces/LCPO modules, so installation is pinned to the
+# exact release covered by provider parity and the runtime compatibility gate.
+# APBS and AmberTools remain external executables.
+implicit-gb = ["openmm==8.5.2"]
+implicit = ["openmm==8.5.2"]
 # PyMBAR is optional because most MAPLE tasks do not perform multistate
 # free-energy analysis.  Route 1 delegates MBAR and time-series decorrelation to
 # this maintained upstream implementation instead of shipping a local estimator.
-implicit-free-energy = ["openmm>=8.5", "pymbar>=4.0.3,<5"]
+implicit-free-energy = ["openmm==8.5.2", "pymbar==4.0.3"]
 # PyTorch/CUDA and fairchem-core are intentionally not declared here because
 # users must install versions that match their CUDA/CPU runtime before using
 # MAPLE's torch-backed and UMA/PBC-backed models. fairchem-core supplies its

@@ -115,6 +115,7 @@ class AIMNet2Calculator(CalcABC):
     SUPPORTED_HESSIAN_MODES = ("analytic", "numerical")
     SUPPORTS_CHARGE_MULT = True
     SUPPORTS_PBC = False
+    SUPPORTS_IMPLICIT_SOLVATION = True
     SUPPORTED_COULOMB_METHODS = ("simple", "dsf")
     CHECKPOINT_FILENAME = {"aimnet2": "aimnet2.pt", "aimnet2nse": "aimnet2nse.pt"}
     REQUIRES_LOCAL_MODEL_FILE = False

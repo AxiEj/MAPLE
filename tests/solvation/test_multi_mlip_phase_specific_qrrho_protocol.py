@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import sys
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
@@ -15,6 +16,10 @@ FAILURE_ARTIFACT_PATH = (
     BENCHMARK_DIR
     / "route1-multi-mlip-phase-specific-selected-minimum-rrho-v6-failure-2026-07-25.json"
 )
+if str(BENCHMARK_DIR) not in sys.path:
+    sys.path.insert(0, str(BENCHMARK_DIR))
+
+from source_compatibility import validate_frozen_source
 
 
 def _load(path: Path) -> dict:
@@ -167,8 +172,16 @@ def test_qrrho_protocol_freezes_the_scientific_implementation():
     }
     assert implementation["required_python"] == "3.11.14"
     assert len(implementation["source_files"]) == 21
+    compatibility_modes = []
     for source in implementation["source_files"]:
-        assert _sha256(REPOSITORY_ROOT / source["path"]) == source["sha256"]
+        compatibility_modes.append(
+            validate_frozen_source(
+                REPOSITORY_ROOT,
+                source["path"],
+                source["sha256"],
+            )["mode"]
+        )
+    assert "documented-postexecution-production-safety-change" in compatibility_modes
     assert (
         "docs/implicit-solvation/benchmarks/" "run_multi_mlip_phase_specific_qrrho.py"
     ) in {source["path"] for source in implementation["source_files"]}

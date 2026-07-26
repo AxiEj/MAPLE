@@ -42,21 +42,32 @@ def _sha256_if_file(path: str | os.PathLike[str]) -> str | None:
 def parse_apbs_print_energy(output: str, kind: str) -> float:
     """Parse a named PRINT result from APBS stdout, returned in kJ/mol."""
     kind = str(kind).upper()
-    for template in _PRINT_PATTERNS:
-        match = re.search(template.format(kind=re.escape(kind)), output, re.IGNORECASE)
-        if match:
-            return float(match.group(1))
-    generic = re.findall(
-        r"PRINT\s+ENERGY[^\n:]*:\s*([-+0-9.Ee]+)\s*kJ/mol",
-        output,
-        re.IGNORECASE,
-    )
-    if kind == "ELEC" and generic:
-        return float(generic[0])
-    if kind == "APOL" and len(generic) >= 2:
-        return float(generic[-1])
+    if kind not in {"ELEC", "APOL"}:
+        raise ValueError("APBS energy kind must be ELEC or APOL.")
+    matches: list[str] = []
+    for line in output.splitlines():
+        for template in _PRINT_PATTERNS:
+            match = re.search(
+                template.format(kind=re.escape(kind)),
+                line,
+                re.IGNORECASE,
+            )
+            if match:
+                matches.append(match.group(1))
+                break
+    if len(matches) > 1:
+        raise ValueError(
+            f"APBS provider output contains {len(matches)} named PRINT "
+            f"{kind} ENERGY results; exactly one is required."
+        )
+    if matches:
+        value = float(matches[0])
+        if not np.isfinite(value):
+            raise ValueError(f"APBS PRINT {kind} ENERGY result is non-finite.")
+        return value
     raise ValueError(
-        f"Could not find APBS PRINT {kind} ENERGY result in provider output."
+        f"Could not find a uniquely named APBS PRINT {kind} ENERGY result "
+        "in provider output."
     )
 
 
@@ -141,10 +152,10 @@ class APBSLPB:
                 "APBS grid_points must have the nlev=4 form c*32+1 "
                 "(for example 65, 97, 129, or 161)."
             )
-        if self.grid_spacing <= 0:
-            raise ValueError("APBS grid_spacing must be positive.")
-        if self.timeout <= 0:
-            raise ValueError("APBS timeout must be positive.")
+        if not np.isfinite(self.grid_spacing) or self.grid_spacing <= 0:
+            raise ValueError("APBS grid_spacing must be finite and positive.")
+        if not np.isfinite(self.timeout) or self.timeout <= 0:
+            raise ValueError("APBS timeout must be finite and positive.")
         self._validate_grid_contains(atoms)
 
     @property
@@ -164,10 +175,15 @@ class APBSLPB:
             "grid_points": self.grid_points,
             "solvent_dielectric": 78.5,
             "solute_dielectric": 1.0,
+            "energy_only": True,
+            "grid_convergence_required_per_system": True,
+            "default_grid_is_not_production_certification": True,
         }
 
     def _validate_grid_contains(self, atoms) -> None:
         positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+        if positions.shape != (len(atoms), 3) or not np.isfinite(positions).all():
+            raise ValueError("APBS LPB requires finite Nx3 coordinates.")
         molecular_span = np.ptp(positions, axis=0)
         # Include the largest atom sphere, the solvent probe, and the two-grid
         # SPL2 charge-support margin documented by APBS on each boundary.
@@ -188,6 +204,8 @@ class APBSLPB:
     def write_pqr(self, path: str | os.PathLike[str], atoms=None) -> None:
         atoms = self.atoms if atoms is None else atoms
         positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+        if positions.shape != (len(atoms), 3) or not np.isfinite(positions).all():
+            raise ValueError("APBS PQR output requires finite Nx3 coordinates.")
         metadata = atoms.info.get("mol2", {})
         names = metadata.get("atom_names") or atoms.get_chemical_symbols()
         # This is deliberately synthetic: MOL2 molecule names are not residue

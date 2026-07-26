@@ -5,7 +5,7 @@ import os
 import warnings
 from functools import partial
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import torch
@@ -78,6 +78,7 @@ class UMACalculator(FAIRChemCalculator):
     supports_batch_energy_forces = False
     CHECKPOINT_FILENAME = None
     REQUIRES_LOCAL_MODEL_FILE = False
+    solvent_correction: Any
     OPTION_KEYS = (
         'task',
         'size',
@@ -267,8 +268,8 @@ class UMACalculator(FAIRChemCalculator):
         self._auto_task = task is None
         self.hessian = "numerical"
 
-        # Shared helper sets self.solvent_correction (and self.chargecalc when
-        # applicable); identical contract to CalcABC.implicit_solv_init.
+        # The shared helper rejects the removed legacy GBSA/QEq constructor and
+        # leaves the audited Route 1 correction to SetCalculator.
         init_implicit_solvent(self, implicit, solvent, self.device)
 
     def _set_task_from_atoms(self, atoms: Atoms) -> None:
@@ -425,12 +426,10 @@ class UMACalculator(FAIRChemCalculator):
                     "provenance": dict(solvent_result.provenance),
                 }
             else:
-                calc_atoms.atomic_charges = self.chargecalc(calc_atoms, total_charge=float(charge))
-                solvent_energy, _ = self.solvent_correction.get_energy(calc_atoms)
-                if "energy" in self.results:
-                    self.results["energy"] += solvent_energy.item()
-                if "free_energy" in self.results:
-                    self.results["free_energy"] += solvent_energy.item()
+                raise RuntimeError(
+                    "Unstructured legacy implicit-solvent corrections are no "
+                    "longer supported; attach an ImplicitSolvationCorrection."
+                )
 
         return self.results
 

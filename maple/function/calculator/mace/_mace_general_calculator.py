@@ -52,6 +52,7 @@ class MACEModelCalculator(CalcABC):
     SUPPORTED_HESSIAN_MODES = ('analytic', 'numerical')
     SUPPORTS_CHARGE_MULT = False
     SUPPORTS_PBC = False
+    SUPPORTS_IMPLICIT_SOLVATION = True
     CHECKPOINT_FILENAME = None
     REQUIRES_LOCAL_MODEL_FILE = True
     OPTION_KEYS = ()

@@ -44,6 +44,10 @@ from benchmark_core import (  # noqa: E402
     sha256_file,
     write_json_atomic,
 )
+from source_compatibility import (  # noqa: E402
+    require_exact_frozen_sources,
+    validate_frozen_source,
+)
 from maple.function.calculator.set_calculator import SetCalculator  # noqa: E402
 
 DEFAULT_PROTOCOL = SCRIPT_DIR / "multi_mlip_optimizer_qualification_protocol.json"
@@ -206,12 +210,15 @@ def load_protocol(
         if importlib.metadata.version(distribution) != expected_version:
             raise ValueError(f"Required {distribution} version changed.")
     for source in implementation["source_files"]:
-        source_path = _resolve_repository_file(
+        _resolve_repository_file(
             source["path"],
             name="Frozen qualification source",
         )
-        if sha256_file(source_path) != source["sha256"]:
-            raise ValueError(f"Frozen source changed: {source['path']}.")
+        validate_frozen_source(
+            REPOSITORY_ROOT,
+            source["path"],
+            source["sha256"],
+        )
 
     candidates = protocol.get("optimizer_candidates")
     if not isinstance(candidates, list) or len(candidates) < 2:
@@ -723,6 +730,10 @@ def validate_record(
 
 def validate_command(args: argparse.Namespace) -> None:
     protocol, fingerprint, _, _ = load_protocol(args.protocol)
+    require_exact_frozen_sources(
+        REPOSITORY_ROOT,
+        protocol["implementation_freeze"]["source_files"],
+    )
     print(
         f"Validated {protocol['protocol_id']} fingerprint={fingerprint} "
         f"for {len(protocol['optimizer_candidates'])} candidates x "
@@ -736,6 +747,10 @@ def run_command(args: argparse.Namespace) -> None:
 
     protocol, fingerprint, qrrho_protocol, source_manifest = load_protocol(
         args.protocol
+    )
+    require_exact_frozen_sources(
+        REPOSITORY_ROOT,
+        protocol["implementation_freeze"]["source_files"],
     )
     device = torch.device(protocol["execution"]["device"])
     if device.type != "cuda" or not torch.cuda.is_available():
@@ -867,6 +882,10 @@ def _copy_tree_atomic(source: Path, destination: Path) -> None:
 
 def seal_command(args: argparse.Namespace) -> None:
     protocol, fingerprint, qrrho_protocol, _ = load_protocol(args.protocol)
+    require_exact_frozen_sources(
+        REPOSITORY_ROOT,
+        protocol["implementation_freeze"]["source_files"],
+    )
     record_dir = Path(args.record_dir).resolve()
     if not record_dir.is_dir():
         raise ValueError("Optimizer qualification record directory is missing.")

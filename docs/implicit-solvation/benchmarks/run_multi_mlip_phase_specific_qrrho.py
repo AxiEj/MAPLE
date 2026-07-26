@@ -46,6 +46,10 @@ from benchmark_core import (  # noqa: E402
     sha256_file,
     write_json_atomic,
 )
+from source_compatibility import (  # noqa: E402
+    require_exact_frozen_sources,
+    validate_frozen_source,
+)
 
 from maple.function.calculator.calculator_base import (  # noqa: E402
     numerical_hessian_from_atoms,
@@ -393,9 +397,11 @@ def load_qrrho_protocol(
                 f"Required {name} version changed: expected {expected}, got {observed}."
             )
     for record in implementation["source_files"]:
-        source_path = REPOSITORY_ROOT / record["path"]
-        if sha256_file(source_path) != record["sha256"]:
-            raise ValueError(f"Frozen implementation changed: {record['path']}.")
+        validate_frozen_source(
+            REPOSITORY_ROOT,
+            record["path"],
+            record["sha256"],
+        )
     scoring = protocol.get("post_seal_scoring", {})
     scoring_script = REPOSITORY_ROOT / scoring["script"]
     if sha256_file(scoring_script) != scoring["script_sha256"]:
@@ -3364,6 +3370,10 @@ def _model_environment(
 
 def validate_command(args: argparse.Namespace) -> None:
     protocol, fingerprint, manifest = load_qrrho_protocol(args.protocol)
+    require_exact_frozen_sources(
+        REPOSITORY_ROOT,
+        protocol["implementation_freeze"]["source_files"],
+    )
     print(
         f"Validated {protocol['protocol_id']} fingerprint={fingerprint} "
         f"for {len(protocol['models'])} models x {len(protocol['cases'])} cases; "
@@ -3375,6 +3385,10 @@ def run_command(args: argparse.Namespace) -> None:
     import torch
 
     protocol, fingerprint, manifest = load_qrrho_protocol(args.protocol)
+    require_exact_frozen_sources(
+        REPOSITORY_ROOT,
+        protocol["implementation_freeze"]["source_files"],
+    )
     device = torch.device(protocol["execution"]["device"])
     if device.type != "cuda" or not torch.cuda.is_available():
         raise RuntimeError("The preregistered cuda:0 execution device is unavailable.")
@@ -3505,6 +3519,10 @@ def run_command(args: argparse.Namespace) -> None:
 
 def seal_command(args: argparse.Namespace) -> None:
     protocol, fingerprint, manifest = load_qrrho_protocol(args.protocol)
+    require_exact_frozen_sources(
+        REPOSITORY_ROOT,
+        protocol["implementation_freeze"]["source_files"],
+    )
     record_dir = Path(args.record_dir).resolve()
     if not record_dir.is_dir():
         raise ValueError(f"Record directory is missing: {record_dir}.")

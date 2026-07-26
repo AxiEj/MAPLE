@@ -248,7 +248,8 @@ def analyze_nonequilibrium_switching(
     Replicate boundaries must identify independently initialized endpoint
     trajectories or chains.  This function does not decorrelate endpoint
     configurations after the fact and does not convert a short diagnostic
-    into an equilibrium claim.
+    into an equilibrium claim.  ``standard_state`` is an auditable
+    declaration only; no 1 atm/1 M or volume correction is applied here.
     """
 
     if work_unit not in _WORK_UNITS:
@@ -416,6 +417,12 @@ def analyze_nonequilibrium_switching(
             "handwritten_estimator": False,
         },
         "standard_state": standard_state.strip(),
+        "standard_state_declaration": standard_state.strip(),
+        "standard_state_conversion": {
+            "applied": False,
+            "correction_kcal_mol": 0.0,
+            "responsibility": "caller-supplied work values or downstream cycle",
+        },
         "temperature_kelvin": float(temperature_kelvin),
         "kbt_kcal_mol": float(kbt),
         "input": {

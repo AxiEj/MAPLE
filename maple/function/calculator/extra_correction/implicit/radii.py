@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import importlib.metadata
 from typing import Any, Protocol
 
 import numpy as np
+
+from .openmm_compat import customgbforces_module, openmm_version
 
 GB_MODELS: dict[str, dict[str, Any]] = {
     "hct": {
@@ -57,23 +58,11 @@ class RadiusProvider(Protocol):
 
     def assign(self, topology) -> RadiusResult:
         """Assign one radius and the provider-native parameters per atom."""
-
-
-def _openmm_version() -> str:
-    try:
-        return importlib.metadata.version("openmm")
-    except importlib.metadata.PackageNotFoundError:
-        return "unknown"
+        ...
 
 
 def _standard_parameters(topology, force_class: str) -> np.ndarray:
-    try:
-        from openmm.app.internal import customgbforces
-    except ImportError as exc:
-        raise ImportError(
-            "OpenMM radius assignment requires the optional dependency. Install with "
-            "`pip install 'maple[implicit-gb]'`."
-        ) from exc
+    customgbforces = customgbforces_module()
     force_cls = getattr(customgbforces, force_class)
     parameters = np.asarray(force_cls.getStandardParameters(topology), dtype=np.float64)
     if parameters.ndim != 2 or parameters.shape[0] != topology.getNumAtoms():
@@ -153,7 +142,7 @@ class OpenMMAmberGBRadiusProvider:
                 "category": "radius",
                 "name": self.name,
                 "provider": "openmm",
-                "provider_version": _openmm_version(),
+                "provider_version": openmm_version(),
                 "model": self.model,
                 "profile": self.model_info["profile"],
                 "radii": self.model_info["radii"],
@@ -184,7 +173,7 @@ class OpenMMMbondi2RadiusProvider:
                 "category": "radius",
                 "name": self.name,
                 "provider": "openmm",
-                "provider_version": _openmm_version(),
+                "provider_version": openmm_version(),
                 "profile": "generic-mbondi2",
                 "radii": "mbondi2",
                 "implementation": (

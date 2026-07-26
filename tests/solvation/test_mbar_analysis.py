@@ -72,6 +72,10 @@ def test_solver_warning_capture_distinguishes_fallback_from_final_failure():
     fallback = module._solver_diagnostics(messages)
     assert fallback["warning_count"] == 1
     assert fallback["convergence_established"] is True
+    assert (
+        fallback["convergence_signal_source"]
+        == "pymbar-4.0.3-warning-contract"
+    )
 
     with module._capture_solver_warnings() as messages:
         logging.getLogger("pymbar.mbar_solvers").warning(
@@ -124,4 +128,10 @@ def test_pymbar_analysis_recovers_a_two_state_offset():
     assert result["gates"]["checks"]["solver_convergence"] is True
     assert result["gates"]["statistical_gates_passed"] is True
     assert result["estimator"]["handwritten_estimator"] is False
+    assert result["standard_state_declaration"] == "synthetic equal-partition test"
+    assert result["standard_state_conversion"] == {
+        "applied": False,
+        "correction_kcal_mol": 0.0,
+        "responsibility": "caller-supplied energies or downstream cycle",
+    }
     assert "pymbar" in sys.modules

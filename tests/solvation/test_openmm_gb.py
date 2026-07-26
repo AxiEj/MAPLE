@@ -71,6 +71,10 @@ def test_ace_term_discovery_contract_is_versioned_and_explicit(water_mol2):
     assert provider.provenance["provider_version"] == importlib.metadata.version(
         "openmm"
     )
+    compatibility = provider.provenance["private_api_compatibility"]
+    assert compatibility["verified_openmm_version"] == "8.5.2"
+    assert compatibility["observed_openmm_version"] == "8.5.2"
+    assert compatibility["unverified_versions_fail_closed"] is True
     assert [
         force.getGlobalParameterName(index)
         for index in range(force.getNumGlobalParameters())
@@ -88,6 +92,14 @@ def test_ace_term_discovery_contract_is_versioned_and_explicit(water_mol2):
         )
     ]
     assert len(tagged_terms) == 1
+
+
+def test_private_openmm_adapter_rejects_unverified_versions(monkeypatch):
+    from maple.function.calculator.extra_correction.implicit import openmm_compat
+
+    monkeypatch.setattr(openmm_compat, "openmm_version", lambda: "8.6.0")
+    with pytest.raises(ImportError, match="verified only against OpenMM 8.5.2"):
+        openmm_compat.customgbforces_module()
 
 
 def test_ace_term_discovery_fails_closed_when_upstream_adds_multiple_terms():
@@ -304,6 +316,31 @@ def test_fixed_charge_correction_rejects_same_element_atom_reordering(tmp_path):
     assert reordered.info["mol2"] == atoms.info["mol2"]
     with pytest.raises(ValueError, match="frozen atom identity"):
         correction.evaluate(reordered)
+
+
+def test_fixed_charge_correction_rejects_atom_reordering_before_preparation(
+    water_mol2,
+    tmp_path,
+):
+    from maple.function.calculator.extra_correction.implicit.correction import (
+        ImplicitSolvationCorrection,
+    )
+
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    reordered = atoms[[1, 0, 2]]
+
+    with pytest.raises(ValueError, match="source MOL2 atom IDs"):
+        ImplicitSolvationCorrection(
+            reordered,
+            {"source": "mol2", "mode": "fixed", "geometry": "keep"},
+            {
+                "method": "gb",
+                "model": "obc2",
+                "nonpolar": "ace",
+                "experimental": True,
+            },
+            output=tmp_path / "preparation-order.out",
+        )
 
 
 def test_disabled_nonpolar_provider_declares_no_component_properties():

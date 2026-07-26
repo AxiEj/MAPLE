@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from argparse import Namespace
 import importlib.util
 import math
 from pathlib import Path
@@ -31,6 +32,40 @@ def test_runner_validates_the_complete_label_free_freeze():
     assert (
         manifest["label_boundary"]["prepared_state_manifest_contains_labels"] is False
     )
+
+
+@pytest.mark.parametrize(
+    ("handler", "arguments"),
+    [
+        (
+            runner.validate_command,
+            Namespace(protocol=str(PROTOCOL_PATH)),
+        ),
+        (
+            runner.run_command,
+            Namespace(
+                protocol=str(PROTOCOL_PATH),
+                work_dir="unused",
+                model=None,
+                case=None,
+            ),
+        ),
+        (
+            runner.seal_command,
+            Namespace(
+                protocol=str(PROTOCOL_PATH),
+                record_dir="unused",
+                output="unused",
+            ),
+        ),
+    ],
+    ids=["validate", "run", "seal"],
+)
+def test_qrrho_cli_never_executes_or_seals_documented_source_drift(
+    handler, arguments
+):
+    with pytest.raises(ValueError, match="historical-audit-only"):
+        handler(arguments)
 
 
 def test_cost_bounded_source_selection_is_label_blind_and_deterministic():
@@ -507,7 +542,9 @@ def test_source_state_energy_repeats_ignore_only_a_common_absolute_offset():
         )
 
 
-def test_label_keys_are_rejected_recursively_and_incomplete_sealing_fails(tmp_path):
+def test_label_keys_are_rejected_recursively_and_incomplete_sealing_fails(
+    tmp_path, monkeypatch
+):
     assert runner._contains_forbidden_label_key(
         {"nested": [{"experimental_kcal_mol": -1.0}]}
     )
@@ -521,6 +558,11 @@ def test_label_keys_are_rejected_recursively_and_incomplete_sealing_fails(tmp_pa
         },
     )()
 
+    monkeypatch.setattr(
+        runner,
+        "require_exact_frozen_sources",
+        lambda *_args, **_kwargs: None,
+    )
     with pytest.raises(ValueError, match="Record directory is missing"):
         runner.seal_command(args)
 

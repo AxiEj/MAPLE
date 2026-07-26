@@ -4,11 +4,16 @@ import copy
 import importlib.util
 import json
 from pathlib import Path
+import sys
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK_DIR = ROOT / "docs" / "implicit-solvation" / "benchmarks"
+if str(BENCHMARK_DIR) not in sys.path:
+    sys.path.insert(0, str(BENCHMARK_DIR))
+from source_compatibility import validate_frozen_source
+
 RUNNER = BENCHMARK_DIR / "run_mlip_mm_nonequilibrium_switching.py"
 PROTOCOL = BENCHMARK_DIR / "mlip_mm_nonequilibrium_switching_protocol.json"
 SCORER = BENCHMARK_DIR / "score_mlip_mm_nonequilibrium_switching.py"
@@ -154,9 +159,15 @@ def test_switching_artifact_is_complete_sealed_and_fail_closed():
         row["target_energy_force_evaluations"] == 3264 for row in analysis["records"]
     )
     for name, provenance in analysis["implementation_provenance"].items():
-        assert (
-            module.sha256_file(ROOT / provenance["path"]) == provenance["sha256"]
-        ), name
+        validation = validate_frozen_source(
+            ROOT,
+            provenance["path"],
+            provenance["sha256"],
+        )
+        assert validation["mode"] in {
+            "exact-historical-freeze",
+            "documented-postexecution-production-safety-change",
+        }, name
 
 
 def test_switching_raw_manifest_closes_hash_chain():

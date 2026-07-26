@@ -9,6 +9,12 @@ from typing import Any
 
 import numpy as np
 
+from maple.function.read.filereader.mol2_reader import (
+    MOL2_ATOM_ID_ARRAY,
+    MOL2_IDENTITY_SHA256_KEY,
+    mol2_identity_sha256,
+)
+
 from .charges import (
     QEQ_EXPERIMENTAL_PROVENANCE,
     ChargeResult,
@@ -29,6 +35,7 @@ def _mol2_topology_signature(atoms) -> str | None:
     topology = {
         key: metadata.get(key)
         for key in (
+            "atom_ids",
             "atom_names",
             "atom_types",
             "subst_ids",
@@ -58,9 +65,38 @@ class ImplicitSolvationCorrection:
         output: str | os.PathLike[str] | None = None,
     ):
         self.atoms = atoms
+        mol2_metadata = atoms.info.get("mol2")
+        mol2_atom_identity = atoms.arrays.get(MOL2_ATOM_ID_ARRAY)
+        if isinstance(mol2_metadata, dict):
+            if (
+                mol2_metadata.get(MOL2_IDENTITY_SHA256_KEY)
+                != mol2_identity_sha256(mol2_metadata)
+            ):
+                raise ValueError(
+                    "MOL2 atom/type/substructure/topology metadata changed "
+                    "after MOL2Reader; refusing implicit-solvation setup."
+                )
+            mol2_atom_ids = tuple(
+                int(value) for value in mol2_metadata.get("atom_ids", [])
+            )
+            if (
+                mol2_atom_identity is None
+                or len(mol2_atom_ids) != len(atoms)
+                or tuple(int(value) for value in mol2_atom_identity)
+                != mol2_atom_ids
+            ):
+                raise ValueError(
+                    "Current ASE atom order no longer matches the source MOL2 "
+                    "atom IDs; reload the structure before preparing implicit "
+                    "solvation."
+                )
         atom_identity = atoms.arrays.get(_ATOM_IDENTITY_ARRAY)
         if atom_identity is None:
-            atom_identity = np.arange(len(atoms), dtype=np.int64)
+            atom_identity = (
+                np.asarray(mol2_atom_identity, dtype=np.int64)
+                if mol2_atom_identity is not None
+                else np.arange(len(atoms), dtype=np.int64)
+            )
             atoms.new_array(_ATOM_IDENTITY_ARRAY, atom_identity)
         else:
             atom_identity = np.asarray(atom_identity)

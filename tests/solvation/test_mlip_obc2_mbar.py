@@ -1,12 +1,17 @@
 import importlib.util
 import json
 from pathlib import Path
+import sys
 
 import numpy as np
 import pytest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK_DIR = REPOSITORY_ROOT / "docs" / "implicit-solvation" / "benchmarks"
+if str(BENCHMARK_DIR) not in sys.path:
+    sys.path.insert(0, str(BENCHMARK_DIR))
+from source_compatibility import validate_frozen_source
+
 SPEC = importlib.util.spec_from_file_location(
     "run_mlip_obc2_mbar",
     BENCHMARK_DIR / "run_mlip_obc2_mbar.py",
@@ -25,6 +30,25 @@ PROTOCOL_PATH = BENCHMARK_DIR / "mlip_obc2_mbar_protocol.json"
 ARTIFACT_PATH = BENCHMARK_DIR / "route1-multi-mlip-obc2-mbar-2026-07-25.json"
 LABEL_SUMMARY_PATH = BENCHMARK_DIR / "route1-multi-mlip-obc2-ti-2026-07-25.json"
 SCORE_PATH = BENCHMARK_DIR / "route1-multi-mlip-obc2-mbar-score-2026-07-25.json"
+
+
+def _compatibility_projection(value):
+    if isinstance(value, dict):
+        ignored = {
+            "analysis_module_sha256",
+            "content_sha256",
+            "convergence_signal_source",
+            "standard_state_conversion",
+            "standard_state_declaration",
+        }
+        return {
+            key: _compatibility_projection(item)
+            for key, item in value.items()
+            if key not in ignored
+        }
+    if isinstance(value, list):
+        return [_compatibility_projection(item) for item in value]
+    return value
 
 
 def test_protocol_is_label_free_upstream_mbar_and_nonpromotable():
@@ -82,10 +106,13 @@ def test_frozen_mbar_artifact_is_self_consistent_and_fail_closed():
     assert (
         artifact["claim_boundary"]["product_solvation_free_energy_established"] is False
     )
-    assert artifact["implementation_provenance"][
-        "analysis_module_sha256"
-    ] == RUNNER.sha256_file(
-        REPOSITORY_ROOT / "maple" / "function" / "free_energy" / "mbar.py"
+    validation = validate_frozen_source(
+        REPOSITORY_ROOT,
+        artifact["implementation_provenance"]["analysis_module"],
+        artifact["implementation_provenance"]["analysis_module_sha256"],
+    )
+    assert validation["mode"] == (
+        "documented-postexecution-production-safety-change"
     )
 
     aggregate = artifact["aggregate_diagnostics"]
@@ -151,4 +178,8 @@ def test_runner_recomputes_the_frozen_artifact_with_upstream_pymbar():
     recomputed = RUNNER.run(PROTOCOL_PATH)
     frozen = json.loads(ARTIFACT_PATH.read_text(encoding="utf-8"))
 
-    assert recomputed == frozen
+    assert _compatibility_projection(recomputed) == _compatibility_projection(frozen)
+    assert all(
+        record["mbar"]["standard_state_conversion"]["applied"] is False
+        for record in recomputed["records"]
+    )

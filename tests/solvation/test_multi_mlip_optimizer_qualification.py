@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from argparse import Namespace
 import importlib.util
 import math
 from pathlib import Path
+
+import pytest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
@@ -74,6 +77,37 @@ def test_optimizer_protocol_is_label_blind_and_freezes_all_three_mlips():
         "aimnet2",
         "ani2x",
     ]
+
+
+@pytest.mark.parametrize(
+    ("command_name", "arguments"),
+    [
+        (
+            "validate_command",
+            Namespace(protocol=str(PROTOCOL)),
+        ),
+        (
+            "run_command",
+            Namespace(protocol=str(PROTOCOL), work_dir="unused"),
+        ),
+        (
+            "seal_command",
+            Namespace(
+                protocol=str(PROTOCOL),
+                record_dir="unused",
+                output="unused",
+            ),
+        ),
+    ],
+    ids=["validate", "run", "seal"],
+)
+def test_optimizer_cli_never_executes_or_seals_documented_source_drift(
+    command_name, arguments
+):
+    runner = _load_runner()
+
+    with pytest.raises(ValueError, match="historical-audit-only"):
+        getattr(runner, command_name)(arguments)
 
 
 def test_v8_rigid_preflight_is_durable_and_scope_isolated():
@@ -209,8 +243,6 @@ def test_calculator_evaluation_budget_fails_closed():
         system_changes=all_changes,
     )
     assert adapter.calculate_calls == 1
-
-    import pytest
 
     with pytest.raises(
         RuntimeError,

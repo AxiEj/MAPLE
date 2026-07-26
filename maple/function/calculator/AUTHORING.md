@@ -43,7 +43,7 @@ instantiated):
 | `SUPPORTED_HESSIAN_MODES` | `tuple[str, ...]` | Subset of `('analytic', 'numerical')`. |
 | `SUPPORTS_CHARGE_MULT` | `bool` | True if the backend honors `atoms.info['charge']` / `atoms.info['mult']`. |
 | `SUPPORTS_PBC` | `bool` | True only when the backend constructs a validated periodic graph / neighbor list. `SetCalculator` and `CalcABC.calculate()` reject periodic atoms for false values. |
-| `SUPPORTS_IMPLICIT_SOLVATION` | `bool` | Declares that the backend implements MAPLE's additive Route 1 composition contract. `CalcABC` supplies it; non-`CalcABC` backends must opt in explicitly after adding equivalent energy/force composition. |
+| `SUPPORTS_IMPLICIT_SOLVATION` | `bool` | Declares that the backend implements MAPLE's additive Route 1 composition contract. The `CalcABC` default is fail-closed `False`; every reviewed backend must opt in explicitly after using the shared result finalizer. |
 | `supports_batch_energy_forces` | `bool` | True only for a model-native `calculate_many` energy/force path that has passed serial parity. False still satisfies the API through the `CalcABC` sequential fallback. |
 | `CHECKPOINT_FILENAME` | `dict[str, str] \| None` | Per-name filename for HuggingFace auto-download. `None` if no auto-download. |
 | `REQUIRES_LOCAL_MODEL_FILE` | `bool` | Fallback when `CHECKPOINT_FILENAME` does not cover the requested name. |
@@ -76,6 +76,7 @@ class FooCalculator(CalcABC):
     SUPPORTED_HESSIAN_MODES = ('analytic', 'numerical')
     SUPPORTS_CHARGE_MULT = False
     SUPPORTS_PBC = False               # fail fast on periodic atoms unless validated
+    SUPPORTS_IMPLICIT_SOLVATION = False  # opt in only after Route 1 review
     CHECKPOINT_FILENAME = {'foo2x': 'foo2x.pt', 'foo1ccx': 'foo1ccx.pt'}
     REQUIRES_LOCAL_MODEL_FILE = False
     OPTION_KEYS = ('foo_mode',)
@@ -143,14 +144,15 @@ class FooCalculator(CalcABC):
   provider directly in their `calculate()` flow.
 - `SetCalculator` rejects a registered backend that does not declare
   `SUPPORTS_IMPLICIT_SOLVATION=True`; registration alone is not evidence that
-  the backend actually composes the solvent term. `CalcABC` subclasses inherit
-  the declaration, while non-`CalcABC` backends must implement and declare the
-  equivalent contract explicitly.
+  the backend actually composes the solvent term. `CalcABC` and non-`CalcABC`
+  backends both default to unsupported unless the reviewed implementation
+  declares the equivalent contract explicitly.
 - `SetCalculator` installs one prepared `ImplicitSolvationCorrection` because
   the provider needs the reference MOL2 topology and explicit `#charge(...)`
   configuration.
-- The prepared correction adds a stable per-atom identity array. ASE copies
-  preserve it and ASE slicing reorders it, so evaluation can reject atom
+- `MOL2Reader` records stable source atom IDs before preparation, and the
+  prepared correction adds its own frozen identity array. ASE copies preserve
+  both and ASE slicing reorders them, so preparation and evaluation reject
   deletion, substitution, and same-element reordering before frozen charges,
   radii, or topology are applied. Plugin code must preserve custom ASE arrays
   when copying structures; reconstructing `Atoms` from symbols and coordinates

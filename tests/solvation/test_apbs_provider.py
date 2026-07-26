@@ -61,25 +61,53 @@ def test_apbs_print_energy_parser_reads_official_global_net_output():
     assert parse_apbs_print_energy(output, "APOL") == 12.5
 
 
-def test_apbs_print_energy_parser_accepts_generic_print_lines_in_order():
+def test_apbs_print_energy_parser_rejects_unnamed_positional_lines():
     output = """
     PRINT ENERGY: -2.295900000000E+02 kJ/mol
     PRINT ENERGY: 1.250000000000E+01 kJ/mol
     """
-    assert parse_apbs_print_energy(output, "ELEC") == -229.59
-    assert parse_apbs_print_energy(output, "APOL") == 12.5
+    with pytest.raises(ValueError, match="uniquely named"):
+        parse_apbs_print_energy(output, "ELEC")
 
 
-def test_apbs_parser_never_reuses_one_polar_value_as_nonpolar():
-    output = "PRINT ENERGY: -2.295900000000E+02 kJ/mol\n"
-    with pytest.raises(ValueError, match="APOL"):
-        parse_apbs_print_energy(output, "APOL")
+def test_apbs_parser_rejects_duplicate_named_results():
+    output = """
+    Global net ELEC energy = -2.295900000000E+02 kJ/mol
+    Global net ELEC energy = -2.100000000000E+02 kJ/mol
+    """
+    with pytest.raises(ValueError, match="exactly one"):
+        parse_apbs_print_energy(output, "ELEC")
+
+
+def test_apbs_parser_rejects_duplicate_results_across_named_formats():
+    output = """
+    Global net ELEC energy = -2.295900000000E+02 kJ/mol
+    PRINT ELEC ENERGY 1: -2.100000000000E+02 kJ/mol
+    """
+    with pytest.raises(ValueError, match="exactly one"):
+        parse_apbs_print_energy(output, "ELEC")
 
 
 def test_apbs_rejects_grid_dimension_that_apbs_would_round_down(water_mol2):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
     with pytest.raises(ValueError, match=r"c\*32\+1"):
         APBSLPB(atoms, atoms.get_initial_charges(), grid_points=99)
+
+
+@pytest.mark.parametrize(
+    ("keyword", "value"),
+    [
+        ("grid_spacing", np.nan),
+        ("timeout", np.inf),
+        ("probe_radius", np.nan),
+        ("surface_tension", np.inf),
+        ("pressure", np.nan),
+    ],
+)
+def test_apbs_rejects_nonfinite_configuration(water_mol2, keyword, value):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    with pytest.raises(ValueError, match="finite"):
+        APBSLPB(atoms, atoms.get_initial_charges(), **{keyword: value})
 
 
 def test_apbs_missing_executable_is_actionable(water_mol2, monkeypatch):

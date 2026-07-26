@@ -16,6 +16,7 @@ from typing import Any, Sequence
 import numpy as np
 
 R_KCAL_PER_MOL_K = 0.00198720425864083
+VERIFIED_PYMBAR_VERSION = "4.0.3"
 
 
 class MBARDependencyError(ImportError):
@@ -61,6 +62,9 @@ def _solver_diagnostics(messages: Sequence[str]) -> dict[str, Any]:
         or "exercise caution with this solution" in message.casefold()
     ]
     return {
+        "convergence_signal_source": (
+            f"pymbar-{VERIFIED_PYMBAR_VERSION}-warning-contract"
+        ),
         "warning_count": len(warnings),
         "warning_messages": warnings,
         "final_nonconvergence_messages": final_failures,
@@ -78,6 +82,13 @@ def _load_pymbar():
             "MAPLE with the 'implicit-free-energy' extra; MAPLE does not ship "
             "a handwritten MBAR substitute."
         ) from exc
+    observed_version = str(getattr(pymbar, "__version__", "unknown"))
+    if observed_version != VERIFIED_PYMBAR_VERSION:
+        raise MBARDependencyError(
+            "MAPLE's fail-closed solver-warning contract is verified only for "
+            f"PyMBAR {VERIFIED_PYMBAR_VERSION}; observed {observed_version!r}. "
+            "Install the pinned 'maple[implicit-free-energy]' dependency."
+        )
     return pymbar, timeseries
 
 
@@ -215,7 +226,8 @@ def analyze_mbar(
     The returned ``statistical_gates_passed`` value is deliberately narrower
     than a scientific or product-promotion decision.  It cannot establish
     chemical accuracy, adequate conformer mixing, or an experimental
-    confirmation partition.
+    confirmation partition.  ``standard_state`` is an auditable declaration;
+    this estimator does not apply a 1 atm/1 M or volume correction.
     """
 
     normalized, lambdas = _validate_inputs(
@@ -362,6 +374,12 @@ def analyze_mbar(
             "handwritten_estimator": False,
         },
         "standard_state": standard_state.strip(),
+        "standard_state_declaration": standard_state.strip(),
+        "standard_state_conversion": {
+            "applied": False,
+            "correction_kcal_mol": 0.0,
+            "responsibility": "caller-supplied energies or downstream cycle",
+        },
         "temperature_kelvin": float(temperature_kelvin),
         "kbt_kcal_mol": float(kbt_kcal_mol),
         "lambda_values": lambdas.tolist(),

@@ -31,6 +31,7 @@ class ANICalculator(CalcABC):
     SUPPORTED_HESSIAN_MODES = ("analytic", "numerical")
     SUPPORTS_CHARGE_MULT = False
     SUPPORTS_PBC = False
+    SUPPORTS_IMPLICIT_SOLVATION = True
     CHECKPOINT_FILENAME = {
         "ani2x": "ani2x.pt",
         "ani1x": "ani1x.pt",

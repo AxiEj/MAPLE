@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 from collections import Counter
-import importlib.metadata
 
 import numpy as np
 
 from .common import EV_PER_HARTREE, KJ_PER_MOL_PER_HARTREE, build_openmm_topology
 from .nonpolar import OpenMMNonpolarProvider
+from .openmm_compat import (
+    customgbforces_module,
+    openmm_version,
+    private_api_provenance,
+    require_verified_openmm,
+)
 from .radii import GB_MODELS, OpenMMAmberGBRadiusProvider
 from .result import SolvationResult
 
@@ -77,8 +82,8 @@ class _ContextBundle:
         platform_name,
     ):
         from openmm import Context, Platform, System, VerletIntegrator, unit
-        from openmm.app.internal import customgbforces
 
+        customgbforces = customgbforces_module()
         force_cls = getattr(customgbforces, force_class)
         sa = None if nonpolar_provider is None else nonpolar_provider.custom_gb_sa
         force = force_cls(
@@ -125,7 +130,9 @@ class _ContextBundle:
                 topology,
                 atoms,
             )
-        integrator = VerletIntegrator(0.001 * unit.picoseconds)
+        integrator = VerletIntegrator(
+            0.001 * unit.picoseconds  # pyright: ignore[reportAttributeAccessIssue]
+        )
         available = [
             Platform.getPlatform(index).getName()
             for index in range(Platform.getNumPlatforms())
@@ -164,7 +171,11 @@ class _ContextBundle:
     def evaluate(self, positions_angstrom, need_forces):
         from openmm import unit
 
-        self.context.setPositions(np.asarray(positions_angstrom) * 0.1 * unit.nanometer)
+        self.context.setPositions(
+            np.asarray(positions_angstrom)
+            * 0.1
+            * unit.nanometer  # pyright: ignore[reportAttributeAccessIssue]
+        )
         state = self.context.getState(
             getEnergy=True,
             getForces=need_forces,
@@ -174,7 +185,8 @@ class _ContextBundle:
         forces = None
         if need_forces:
             forces = state.getForces(asNumpy=True).value_in_unit(
-                unit.kilojoule_per_mole / unit.nanometer
+                unit.kilojoule_per_mole
+                / unit.nanometer  # pyright: ignore[reportAttributeAccessIssue]
             )
         nonpolar_energy = None
         if self.nonpolar_parameter is not None:
@@ -201,6 +213,7 @@ class OpenMMGB:
         nonpolar: str = "ace",
         platform: str = DEFAULT_OPENMM_PLATFORM,
     ):
+        require_verified_openmm()
         model = str(model).lower()
         nonpolar = str(nonpolar).lower()
         if model not in GB_MODELS:
@@ -247,13 +260,10 @@ class OpenMMGB:
             else _ContextBundle(*context_args, self.nonpolar_provider, platform)
         )
         self.platform = self._total.platform_name
-        try:
-            version = importlib.metadata.version("openmm")
-        except importlib.metadata.PackageNotFoundError:
-            version = "unknown"
         self._provenance = {
             "provider": "openmm",
-            "provider_version": version,
+            "provider_version": openmm_version(),
+            "private_api_compatibility": private_api_provenance(),
             "method": "gb",
             "platform": self._total.platform_name,
             "platform_properties": self._total.platform_properties,

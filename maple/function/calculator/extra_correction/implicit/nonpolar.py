@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import ClassVar, Protocol
+
+from .openmm_compat import lcpo_module
+
+
+def _scalar_value(value) -> float:
+    return float(getattr(value, "_value", value))
 
 
 def _openmm_lcpo_parameters(topology, atoms):
     from openmm import unit
-    from openmm.app.internal import lcpo
 
+    lcpo = lcpo_module()
     parameters = list(lcpo.getLCPOParamsTopology(topology))
     metadata = atoms.info.get("mol2", {})
     atom_types = list(metadata.get("atom_types") or [])
@@ -28,19 +35,19 @@ def _openmm_lcpo_parameters(topology, atoms):
             continue
         raw = lcpo.LCPO_PARAMETERS[parameter_key]
         expected = (
-            raw[0] * unit.angstrom,
+            raw[0] * unit.angstrom,  # pyright: ignore[reportOperatorIssue]
             raw[1],
             raw[2],
             raw[3],
-            raw[4] / unit.angstrom**2,
+            raw[4] / unit.angstrom**2,  # pyright: ignore[reportOperatorIssue]
         )
         typed_atom_indices.append(index)
         current_values = tuple(
-            float(value._value if hasattr(value, "_value") else value)
+            _scalar_value(value)
             for value in parameters[index]
         )
         expected_values = tuple(
-            float(value._value if hasattr(value, "_value") else value)
+            _scalar_value(value)
             for value in expected
         )
         if current_values != expected_values:
@@ -62,10 +69,12 @@ class NonpolarProvider(Protocol):
     @property
     def component_properties(self) -> frozenset[str]:
         """Return properties supplied by this component, not the parent solver."""
+        ...
 
     @property
     def provenance(self) -> dict[str, object]:
         """Return an auditable provider record."""
+        ...
 
 
 @dataclass(frozen=True)
@@ -102,8 +111,7 @@ class OpenMMNonpolarProvider:
         if self.selection != "lcpo":
             return None
         try:
-            from openmm.app.internal import lcpo
-
+            lcpo = lcpo_module()
             if atoms is None:
                 raise ValueError(
                     "nonpolar=lcpo requires MOL2 atom types for audited parameter "
@@ -117,7 +125,7 @@ class OpenMMNonpolarProvider:
             )
         except (ImportError, AttributeError) as exc:
             raise ImportError(
-                "nonpolar=lcpo requires OpenMM>=8.5 with LCPOForce support."
+                "nonpolar=lcpo requires the verified OpenMM private LCPO contract."
             ) from exc
         return audit
 
@@ -152,10 +160,17 @@ class APBSSASANonpolarProvider:
         object.__setattr__(self, "probe_radius", float(self.probe_radius))
         object.__setattr__(self, "surface_tension", float(self.surface_tension))
         object.__setattr__(self, "pressure", float(self.pressure))
-        if self.probe_radius < 0:
-            raise ValueError("APBS probe_radius must be non-negative.")
-        if self.surface_tension < 0 or self.pressure < 0:
-            raise ValueError("APBS surface_tension and pressure must be non-negative.")
+        if not math.isfinite(self.probe_radius) or self.probe_radius < 0:
+            raise ValueError("APBS probe_radius must be finite and non-negative.")
+        if (
+            not math.isfinite(self.surface_tension)
+            or not math.isfinite(self.pressure)
+            or self.surface_tension < 0
+            or self.pressure < 0
+        ):
+            raise ValueError(
+                "APBS surface_tension and pressure must be finite and non-negative."
+            )
 
     def render_input_block(self) -> str:
         return f"""\

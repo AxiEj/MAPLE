@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -95,10 +95,12 @@ def validate_implicit_solvent_choice(implicit, solvent):
     """Normalize and validate implicit-solvent selector pair."""
     implicit_norm = normalize_none_option(implicit)
     solvent_norm = normalize_none_option(solvent)
-    if implicit_norm == 'gbsa' and solvent_norm == 'none':
+    if implicit_norm == 'gbsa':
         raise ValueError(
-            "implicit='gbsa' requires an explicit solvent name such as solvent='water'; "
-            "use implicit='none' to disable implicit solvent."
+            "The legacy implicit='gbsa' + QEqTorch path is removed because it "
+            "is not the audited Route 1 fixed-charge composition. Use the "
+            "#charge(...) and #solv(method=gb|pb,experimental=true) provider "
+            "framework, or implicit='none' to disable solvent."
         )
     return implicit_norm, solvent_norm
 
@@ -146,19 +148,9 @@ def _convert_energy_force_units(energy, forces, *, source_unit):
 
 
 def init_implicit_solvent(calc, implicit, solvent, device):
-    """Shared implicit-solvent initializer.
-
-    Usable by CalcABC subclasses and duck-typed calculators (UMA) so the
-    GBSA/QEq construction lives in one place.
-    """
-    implicit, solvent = validate_implicit_solvent_choice(implicit, solvent)
-    if implicit == 'gbsa':
-        from .extra_correction import GBSA, QEqTorch
-
-        calc.solvent_correction = GBSA(solvent=solvent, device=device)
-        calc.chargecalc = QEqTorch(device=device)
-    else:
-        calc.solvent_correction = None
+    """Initialize the legacy constructor surface without enabling old GBSA."""
+    validate_implicit_solvent_choice(implicit, solvent)
+    calc.solvent_correction = None
 
 
 def atoms_has_pbc(atoms) -> bool:
@@ -207,9 +199,23 @@ def numerical_hessian_from_atoms(
             )
         N = len(atoms)
         pos0 = atoms.get_positions().copy()
+        constraints = list(getattr(atoms, 'constraints', []) or [])
+        unsupported_constraints = [
+            type(constraint).__name__
+            for constraint in constraints
+            if not isinstance(constraint, FixAtoms)
+        ]
+        if unsupported_constraints:
+            raise NotImplementedError(
+                "Numerical Cartesian Hessians currently support ASE FixAtoms "
+                "constraints only. Reduced-coordinate/projection behavior is "
+                "not implemented for: "
+                + ", ".join(sorted(set(unsupported_constraints)))
+                + "."
+            )
         fixed = {
             i
-            for c in getattr(atoms, 'constraints', []) or []
+            for c in constraints
             if isinstance(c, FixAtoms)
             for i in c.get_indices()
         }
@@ -334,7 +340,7 @@ class CalcABC(ase.calculators.calculator.Calculator):
     SUPPORTED_HESSIAN_MODES: tuple = ('numerical',)
     SUPPORTS_CHARGE_MULT: bool = False
     SUPPORTS_PBC: bool = False
-    SUPPORTS_IMPLICIT_SOLVATION: bool = True
+    SUPPORTS_IMPLICIT_SOLVATION: bool = False
     CHECKPOINT_FILENAME: dict | None = None
     REQUIRES_LOCAL_MODEL_FILE: bool = False
     # None keeps legacy/plugins permissive. Shipped backends set an explicit
@@ -346,6 +352,9 @@ class CalcABC(ase.calculators.calculator.Calculator):
     # the safe sequential fallback below. Native model-level batch backends
     # override calculate_many and set this flag to True.
     supports_batch_energy_forces: bool = False
+    device: Any
+    output: Any
+    solvent_correction: Any
 
     def __init__(self):
         super().__init__()
@@ -439,11 +448,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 self.solvation_result = solvent_result
                 structured_solvation_result = solvent_result
             else:
-                if forces_ha is not None:
-                    raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
-                solvent_energy = self.implicit_solv_energy(atoms)
-                se = solvent_energy.item() if hasattr(solvent_energy, 'item') else float(solvent_energy)
-                energy_ha = energy_ha + se
+                raise RuntimeError(
+                    "Unstructured legacy implicit-solvent corrections are no "
+                    "longer supported; attach an ImplicitSolvationCorrection."
+                )
 
         # Sole results-writing chokepoint for every CalcABC backend: clear first
         # so an energy-only call cannot inherit stale forces/hessian from a
@@ -556,13 +564,12 @@ class CalcABC(ase.calculators.calculator.Calculator):
         Returns:
             torch.Tensor: Implicit solvent correction energy in Hartree.
         """
-        if hasattr(self.solvent_correction, 'evaluate'):
-            return self.solvent_correction.evaluate(atoms).energy_hartree
-        atoms.atomic_charges = self.chargecalc(
-            atoms, total_charge=self._total_charge_from_atoms(atoms)
-        )
-        solvent_energy,_ = self.solvent_correction.get_energy(atoms)
-        return solvent_energy
+        if not hasattr(self.solvent_correction, 'evaluate'):
+            raise RuntimeError(
+                "Unstructured legacy implicit-solvent corrections are no "
+                "longer supported; attach an ImplicitSolvationCorrection."
+            )
+        return self.solvent_correction.evaluate(atoms).energy_hartree
 
     def implicit_solv_energy_and_force(self, atoms: ase.Atoms) -> tuple[torch.Tensor, torch.Tensor]:
         """

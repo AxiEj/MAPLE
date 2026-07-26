@@ -87,6 +87,12 @@ def test_bidirectional_reweighting_recovers_target_offset():
     assert result["gates"]["checks"]["bar_solver_convergence"] is True
     assert result["gates"]["statistical_gates_passed"] is True
     assert result["estimator"]["handwritten_estimator"] is False
+    assert (
+        result["standard_state_declaration"]
+        == "synthetic reference-to-target correction"
+    )
+    assert result["standard_state_conversion"]["applied"] is False
+    assert result["standard_state_conversion"]["correction_kcal_mol"] == 0.0
 
 
 @pytest.mark.skipif(

@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import sys
 
 import numpy as np
 import pytest
@@ -22,6 +23,13 @@ from maple.function.calculator.extra_correction.implicit import (
     correction as correction_module,
 )
 from maple.function.read.filereader.mol2_reader import MOL2Reader
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
+if str(BENCHMARK_DIR) not in sys.path:
+    sys.path.insert(0, str(BENCHMARK_DIR))
+
+from source_compatibility import validate_frozen_source
 
 
 def test_component_parsers_use_final_provider_blocks():
@@ -132,10 +140,28 @@ def test_provider_composes_only_egb_cavity_dispersion_and_audits(
     assert result.provenance["bonded_mm_energy_used"] is False
     assert result.provenance["execution_control"]["gbnsr6_in_process_serialization"]
     assert result.provenance["reported_formula"] == "EGB + ECAVITY + EDISPER"
+    citations = result.provenance["citations"]
+    assert any("10.1021/ct4010917" in citation for citation in citations)
+    assert any("10.1021/ct200786m" in citation for citation in citations)
+    assert all("10.1021/acs.jctc.4c01471" not in citation for citation in citations)
+    ledger = result.provenance["parameter_source_ledger"]
+    assert set(ledger["polar"]) == set(result.provenance["polar_parameters"])
+    assert set(ledger["nonpolar"]) == set(result.provenance["nonpolar_parameters"])
     assert (audit / "molecule.mol2").is_file()
     assert (audit / "amber-chagb.commands.json").is_file()
     recorded = json.loads((audit / "amber-chagb.result.json").read_text())
     assert recorded["energy_hartree"] == pytest.approx(result.energy_hartree)
+
+
+def test_chagb_rejects_source_mol2_drift_before_resolving_tools(water_mol2):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    water_mol2.write_text(
+        water_mol2.read_text(encoding="utf-8").replace("O.3", "O.2", 1),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="source MOL2 changed after MOL2Reader"):
+        AmberToolsChaGB(atoms, atoms.get_initial_charges())
 
 
 def test_composition_boundary_selects_chagb_provider(water_mol2, tmp_path, monkeypatch):
@@ -321,6 +347,8 @@ def test_frozen_runtime_parity_artifact_locks_sp_only_boundary():
     assert "OpenMM GB" in identity_update["reason"]
     assert "ACE/LCPO" in identity_update["reason"]
     for relative, expected in identity_update["current_runtime_implementation"].items():
-        assert (
-            hashlib.sha256((repository / relative).read_bytes()).hexdigest() == expected
-        )
+        validation = validate_frozen_source(repository, relative, expected)
+        assert validation["mode"] in {
+            "exact-historical-freeze",
+            "documented-postexecution-production-safety-change",
+        }

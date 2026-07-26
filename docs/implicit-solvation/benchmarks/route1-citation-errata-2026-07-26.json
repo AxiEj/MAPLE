@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "artifact_type": "route1-citation-errata",
+  "recorded_date": "2026-07-26",
+  "content_sha256": "3443db96a2e3e64e592d1fa5068f576b1618d753724de30becc7abee8fe5c46f",
+  "historical_metadata_only": true,
+  "scientific_results_changed": false,
+  "formula_or_parameter_changed": false,
+  "affected_sealed_files": [
+    "chagb_nonpolar_protocol.json",
+    "route1_freesolv_reserve_protocol.json"
+  ],
+  "invalid_historical_record": {
+    "citation": "Aguilar et al., On the Evaluation of the Generating Function R6 for the Computation of the Effective Born Radii, J. Chem. Theory Comput. 2025",
+    "doi": "10.1021/acs.jctc.4c01471",
+    "resolution_status": "not-found"
+  },
+  "replacement_record": {
+    "citation": "Aguilar and Onufriev, Efficient Computation of the Total Solvation Energy of Small Molecules via the R6 Generalized Born Model, J. Chem. Theory Comput. 2012, 8, 2404-2411",
+    "doi": "10.1021/ct200786m",
+    "resolution_status": "verified",
+    "publisher_url": "https://pubs.acs.org/doi/10.1021/ct200786m"
+  },
+  "cha_gb_record": {
+    "citation": "Mukhopadhyay et al., Introducing Charge Hydration Asymmetry into the Generalized Born Model, J. Chem. Theory Comput. 2014, 10, 1788-1794",
+    "doi": "10.1021/ct4010917",
+    "resolution_status": "verified",
+    "publisher_url": "https://pubs.acs.org/doi/10.1021/ct4010917"
+  },
+  "preservation_reason": "The affected protocols are sealed evidence inputs whose canonical JSON fingerprints are referenced by frozen numerical artifacts. Rewriting citation-only metadata would invalidate the evidence chain without changing a scientific calculation."
+}

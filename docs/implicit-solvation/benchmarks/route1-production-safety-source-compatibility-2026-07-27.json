@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "artifact_type": "route1-postexecution-production-safety-source-compatibility",
+  "recorded_date": "2026-07-27",
+  "historical_evidence_bytes_unchanged": true,
+  "frozen_results_recomputed": false,
+  "scientific_claim_promoted": false,
+  "route1_formula_changed": false,
+  "gas_phase_mm_energy_added": false,
+  "hydration_label_residual_added": false,
+  "qrrho_v8_status_remains_failed_closed": true,
+  "scope": "Documents source drift caused by fail-closed production-safety and audit changes. It permits repository tests to distinguish current source from historical execution hashes; it does not recertify, recompute, or authorize reuse of frozen numerical claims.",
+  "source_changes": [
+    {
+      "path": "docs/implicit-solvation/benchmarks/run_multi_mlip_optimizer_qualification.py",
+      "historical_sha256": [
+        "2125bf4e89051832a4943c7cdc10af944b43aeacc1c8b0f254712f2162be43b3"
+      ],
+      "current_sha256": "9f2cc40cd2f29f2cfec3704868af34b512f961fc6e80e7ccd2708cf3cdd61544",
+      "change_class": "historical-freeze-compatibility-validation-only",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "docs/implicit-solvation/benchmarks/run_multi_mlip_phase_specific_qrrho.py",
+      "historical_sha256": [
+        "30f9488d07fe04cc0aa32d0652b0a9f818a5904d09b6c1e24f7479f69852c52e"
+      ],
+      "current_sha256": "a4ccb0427618bbc665275afdce0b9f934811c6785a576f30e22d014405f0a463",
+      "change_class": "historical-freeze-compatibility-validation-only",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "docs/implicit-solvation/benchmarks/source_compatibility.py",
+      "historical_sha256": [],
+      "current_sha256": "1c0a903f991eea5c830466a02538bb804dae24f3d5cc1dd7a1fdbd9c423a2010",
+      "change_class": "historical-freeze-compatibility-validation-only",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/aimnet/_aimnet2_calculator.py",
+      "historical_sha256": [
+        "39ff750d7ac3528056036012867d95ef04df4f66bb14ec4d63df523b4141f866"
+      ],
+      "current_sha256": "32d216e2daa953c71abcc0803c2a6254b7943fff320dc55e506d9d14ea7a4c08",
+      "change_class": "explicit-solvation-capability-and-hessian-constraint-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/ani/_ani_calculator.py",
+      "historical_sha256": [
+        "b784bfd28fb901627e4ff2c44fd7be90075315cf9ba908c0b9d89d5515ec5b07"
+      ],
+      "current_sha256": "70bdae8d07cb4f59424d58d665874e5b93b86e9b14d8f653f03b381778a0799b",
+      "change_class": "explicit-solvation-capability-and-hessian-constraint-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/calculator_base.py",
+      "historical_sha256": [
+        "ddd30f3c4af004fc7477036c60604bca5c8a6d7ef7f0967e7b17f0502142e7ee",
+        "e2a3d6046cccd7030a499b0392cbcd93ddffecd1b4b66e9e1969f96b2bad426a"
+      ],
+      "current_sha256": "aa2dbf9942b64afcf04930f6c051dfd4ac959cc962c07a9d2d13017c495bf2da",
+      "change_class": "explicit-solvation-capability-and-hessian-constraint-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/amber_chagb.py",
+      "historical_sha256": [
+        "151573f30a0c65f4dd67487d68deded2e7474262e3e4e77ab84c15ba40aca715"
+      ],
+      "current_sha256": "e02ad1e74fbbf7d3969681da34fd04d1f4f4879729a878bf354f69b36264484c",
+      "change_class": "citation-and-parameter-source-ledger-without-formula-change",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/apbs_pb.py",
+      "historical_sha256": [
+        "e33eb3c6358024b9d0af0ca0e6e101480647102d9f77c4b4dd3a25c1ba78872e"
+      ],
+      "current_sha256": "414d426be24319550bbdacc3447a9ed961614d686e3f757888a800bdf6f21d3d",
+      "change_class": "named-output-parser-and-finite-input-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/charges.py",
+      "historical_sha256": [
+        "0d9384a0437f1b7b7cc346cfbaa11ccc168b46c102543efb2a9f345703c98320"
+      ],
+      "current_sha256": "fc5e5e9d20ff421b5be6b9458baf2dded913819b2a671858d5f5e7792660fa75",
+      "change_class": "atom-identity-current-geometry-and-charge-closure-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/correction.py",
+      "historical_sha256": [
+        "83800cabc8a88c77f8b1ea1e8edce6a99c67e946383237f8b81b056a0ad71e84",
+        "cb3dbb158de92e960c9fa008f82015c1734f3bc51351ac89d3108e8dee03eec0"
+      ],
+      "current_sha256": "9d058de4bbf3b076b02ea680d5cf695a540223ef5ddb5568bc3a8d85e91d0c50",
+      "change_class": "atom-identity-current-geometry-and-charge-closure-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/nonpolar.py",
+      "historical_sha256": [
+        "0381b5c4914a05bbb738d818ae12d6c445820c0ea46638b5e97959fe8b4e8404"
+      ],
+      "current_sha256": "0cf71b73e257cdf5427c93bbf9fb17080cf8a1b9b01775f6f6d3930706d00aab",
+      "change_class": "private-openmm-api-version-gate-and-provenance",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/openmm_compat.py",
+      "historical_sha256": [],
+      "current_sha256": "0141df608e71ba7dcce91b2da10d4723968295abf5b262b8c5afae2a0c5a4132",
+      "change_class": "private-openmm-api-version-gate-and-provenance",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/openmm_gb.py",
+      "historical_sha256": [
+        "28111a3e038b15c614988fd5a40b19fd3f3ab564f277b7996f3e5c1a0176d4d6"
+      ],
+      "current_sha256": "1820f49fc685cce5265d4e79c430b347744492607fd891268a1637428e91938a",
+      "change_class": "private-openmm-api-version-gate-and-provenance",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/extra_correction/implicit/radii.py",
+      "historical_sha256": [
+        "988337fdb9e4b8aca77822303149de1bb9243e468ca7e61ba35e05b6f6aaafec"
+      ],
+      "current_sha256": "53b87ca32e215a5a8309703de4adee20b237c8a24ab1103449c956bbdd3b7043",
+      "change_class": "private-openmm-api-version-gate-and-provenance",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/mace/_mace_calculator.py",
+      "historical_sha256": [
+        "4745ef1054c5c3d70d69c3d88e2fb56527c5c64e037cbffd4f858861706437f2"
+      ],
+      "current_sha256": "3423624cd58ba41abf567efe38a38386e9d4b062b2b3e8973f60aa15c534b73e",
+      "change_class": "explicit-solvation-capability-and-hessian-constraint-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/mace/_mace_general_calculator.py",
+      "historical_sha256": [
+        "857e8de2e752f534b8a3e9e84d1231602bedebf5d2b84709e2d42d1058ef91c2"
+      ],
+      "current_sha256": "0a527166ea1442c04add5fca3b5c860272bd4305244e5baa3afba7eabfae5f6f",
+      "change_class": "explicit-solvation-capability-and-hessian-constraint-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/mace/_macepol_calculator.py",
+      "historical_sha256": [
+        "e7ca37aebc8a69f152191798f9b705712c4556e21c1ffb0fd86b8be6af6caf79"
+      ],
+      "current_sha256": "3dea4101bc22a9df48d5556e3ecafc07875ed80a0e544221da5521602b18f529",
+      "change_class": "explicit-solvation-capability-and-hessian-constraint-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/calculator/uma/_uma_calculator.py",
+      "historical_sha256": [
+        "9a25400479df28eb6e6a5ac7db6778fd60dd8221b794e73039653f366d667666"
+      ],
+      "current_sha256": "ccd1345dad1f1a51651c898b016c15ccb902641d65a834e2fe4112a0a13ba817",
+      "change_class": "removed-legacy-unstructured-implicit-solvent-fallback",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/free_energy/mbar.py",
+      "historical_sha256": [
+        "fe4a7b87f484398479233fa9234921e65e41ffb337d3c7e1d68f833c8136fdc8"
+      ],
+      "current_sha256": "fc5c2caea62212cf24c1bd812090d9c06867cb4675d37181df8994e8f54db8b6",
+      "change_class": "standard-state-declaration-and-pinned-upstream-solver-contract",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/free_energy/nonequilibrium.py",
+      "historical_sha256": [
+        "bf574f841142eb525943922f0b4b30895d2d82cd29fc51879ffabc3debf688c7"
+      ],
+      "current_sha256": "1af36465decc6427361d69fb6a25c4a1c111c9ac7d610a697d3332ad685b69e2",
+      "change_class": "standard-state-declaration-and-pinned-upstream-solver-contract",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/free_energy/reweighting.py",
+      "historical_sha256": [
+        "7cdf8970ee4f601f1e322937e330743c69e2edd8ee6617eb5f5cf7ee78ebeccf"
+      ],
+      "current_sha256": "797c2e10458955e369b901908411aa1827221cc7c9472100fa6bab7d5c891fe6",
+      "change_class": "standard-state-declaration-and-pinned-upstream-solver-contract",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    },
+    {
+      "path": "maple/function/read/filereader/mol2_reader.py",
+      "historical_sha256": [
+        "dea2be95070e3a5c3c1ba0e86c43381a84ed07eda5a80cd5dfd9371ca45f1b90"
+      ],
+      "current_sha256": "31bbcc9e2c252d6c277b52b3333654624de6b1cfe206598431df1cb801df750d",
+      "change_class": "atom-identity-current-geometry-and-charge-closure-fail-closed",
+      "historical_numerical_results_recomputed": false,
+      "scientific_claim_reuse_authorized": false
+    }
+  ],
+  "content_sha256": "67ab26c78e2b14ee25dfe38f8412bd88d2e6446469d8aef3cda59a0dddfdde5a"
+}

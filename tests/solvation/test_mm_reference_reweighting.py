@@ -9,6 +9,10 @@ import pytest
 BENCHMARK_DIR = (
     Path(__file__).resolve().parents[2] / "docs" / "implicit-solvation" / "benchmarks"
 )
+if str(BENCHMARK_DIR) not in sys.path:
+    sys.path.insert(0, str(BENCHMARK_DIR))
+from source_compatibility import validate_frozen_source
+
 RUNNER_PATH = BENCHMARK_DIR / "run_mlip_mm_reference_reweighting.py"
 PROTOCOL_PATH = BENCHMARK_DIR / "mlip_mm_reference_reweighting_protocol.json"
 ANALYSIS_PATH = BENCHMARK_DIR / "route1-mm-reference-reweighting-2026-07-25.json"
@@ -118,14 +122,13 @@ def test_reference_reweighting_artifact_fails_closed():
             "solution_correction_bar_uncertainty",
             "direct_endpoint_bar_uncertainty",
         } <= row["numerical_checks"].keys()
-    assert analysis["implementation_provenance"][
-        "mbar_analysis_module_sha256"
-    ] == runner.sha256_file(
-        Path(__file__).resolve().parents[2]
-        / "maple"
-        / "function"
-        / "free_energy"
-        / "mbar.py"
+    validation = validate_frozen_source(
+        Path(__file__).resolve().parents[2],
+        analysis["implementation_provenance"]["mbar_analysis_module"],
+        analysis["implementation_provenance"]["mbar_analysis_module_sha256"],
+    )
+    assert validation["mode"] == (
+        "documented-postexecution-production-safety-change"
     )
 
 

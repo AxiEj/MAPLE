@@ -8,9 +8,11 @@ geometry.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Any, Mapping, Optional
 
 import numpy as np
 from ase import Atoms
@@ -18,20 +20,146 @@ from ase.data import atomic_numbers
 
 
 MOL2_CHARGE_TOL = 1.0e-4
+MOL2_ATOM_ID_ARRAY = "_maple_mol2_atom_id"
+MOL2_IDENTITY_SHA256_KEY = "identity_sha256"
+_MOL2_IDENTITY_FIELDS = (
+    "atom_ids",
+    "atom_names",
+    "atom_types",
+    "subst_ids",
+    "subst_names",
+    "bonds",
+    "component_ids",
+    "component_count",
+)
+
+
+def mol2_identity_sha256(metadata: Mapping[str, Any]) -> str:
+    """Hash the atom/type/substructure/bond identity frozen by MOL2Reader."""
+    payload = {
+        field: metadata.get(field)
+        for field in _MOL2_IDENTITY_FIELDS
+    }
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+_GAFF_TYPES_BY_ELEMENT = {
+    # Exact GAFF/GAFF2 atom-type tables, rather than a first-character guess.
+    # The ambiguous lowercase labels ``ca`` and ``na`` therefore remain
+    # aromatic carbon and nitrogen, while case-correct ``Ca`` and ``Na`` are
+    # explicit element tokens.
+    "C": frozenset(
+        {
+            "c",
+            "c1",
+            "c2",
+            "c3",
+            "c5",
+            "c6",
+            "ca",
+            "cc",
+            "cd",
+            "ce",
+            "cf",
+            "cg",
+            "ch",
+            "cp",
+            "cq",
+            "cs",
+            "cu",
+            "cv",
+            "cx",
+            "cy",
+            "cz",
+        }
+    ),
+    "H": frozenset(
+        {
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "ha",
+            "hb",
+            "hc",
+            "hn",
+            "ho",
+            "hp",
+            "hs",
+            "hw",
+            "hx",
+        }
+    ),
+    "F": frozenset({"f"}),
+    "Cl": frozenset({"cl"}),
+    "Br": frozenset({"br"}),
+    "I": frozenset({"i"}),
+    "N": frozenset(
+        {
+            "n",
+            "n+",
+            "n1",
+            "n2",
+            "n3",
+            "n4",
+            "n5",
+            "n6",
+            "n7",
+            "n8",
+            "n9",
+            "na",
+            "nb",
+            "nc",
+            "nd",
+            "ne",
+            "nf",
+            "nh",
+            "ni",
+            "nj",
+            "nk",
+            "nl",
+            "nm",
+            "nn",
+            "no",
+            "np",
+            "nq",
+            "ns",
+            "nt",
+            "nu",
+            "nv",
+            "nx",
+            "ny",
+            "nz",
+        }
+    ),
+    "O": frozenset({"o", "oh", "op", "oq", "os", "ow"}),
+    "P": frozenset({"p2", "p3", "p4", "p5", "pb", "pc", "pd", "pe", "pf", "px", "py"}),
+    "S": frozenset({"s", "s2", "s4", "s6", "sh", "sp", "sq", "ss", "sx", "sy"}),
+}
+_GAFF_ELEMENT_BY_TYPE = {
+    atom_type: element
+    for element, atom_types in _GAFF_TYPES_BY_ELEMENT.items()
+    for atom_type in atom_types
+}
 
 
 def _element_from_mol2(atom_name: str, atom_type: str) -> str:
     token = atom_type.split(".", 1)[0].strip()
-    # Preserve an explicit, case-correct Tripos element token first.  Lowercase
-    # GAFF/GAFF2 types such as ``ho`` and ``ca`` are force-field labels, not Ho
-    # or Ca element symbols, so atom names must take precedence over title-casing
-    # those labels.
-    candidates = [token, atom_name[:2].capitalize(), atom_name[:1].upper(), token.capitalize()]
-    for candidate in candidates:
-        if candidate in atomic_numbers:
-            return candidate
+    if token in atomic_numbers and atomic_numbers[token] > 0:
+        return token
+    gaff_element = _GAFF_ELEMENT_BY_TYPE.get(atom_type.strip())
+    if gaff_element is not None:
+        return gaff_element
     raise ValueError(
-        f"Cannot determine an element from MOL2 atom name/type {atom_name!r}/{atom_type!r}."
+        "Cannot determine an element from the explicit Tripos or GAFF/GAFF2 "
+        f"MOL2 atom type {atom_type!r} (atom name {atom_name!r})."
     )
 
 
@@ -49,7 +177,7 @@ def _sections(lines: list[str]) -> dict[str, list[str]]:
 
 
 def _connected_components(
-    natoms: int, bonds: list[list[object]]
+    natoms: int, bonds: list[list[int | str]]
 ) -> tuple[list[int], int]:
     adjacency = [[] for _ in range(natoms)]
     for i, j, _ in bonds:
@@ -96,7 +224,10 @@ class MOL2Reader:
         if not path.is_file():
             raise FileNotFoundError(f"MOL2 file not found: {path}")
 
-        sections = _sections(path.read_text(encoding="utf-8", errors="replace").splitlines())
+        source_bytes = path.read_bytes()
+        source_sha256 = hashlib.sha256(source_bytes).hexdigest()
+        source_text = source_bytes.decode("utf-8", errors="replace")
+        sections = _sections(source_text.splitlines())
         molecule = [line.strip() for line in sections.get("MOLECULE", []) if line.strip()]
         atom_lines = [line for line in sections.get("ATOM", []) if line.strip()]
         bond_lines = [line for line in sections.get("BOND", []) if line.strip()]
@@ -117,6 +248,7 @@ class MOL2Reader:
         positions: list[list[float]] = []
         names: list[str] = []
         atom_types: list[str] = []
+        atom_ids: list[int] = []
         subst_ids: list[int] = []
         subst_names: list[str] = []
         charges: list[float] = []
@@ -136,31 +268,51 @@ class MOL2Reader:
                 raise ValueError(f"Duplicate MOL2 atom id {atom_id} in {path}.")
             atom_id_to_index[atom_id] = index
             atom_name, atom_type = fields[1], fields[5]
+            if not np.isfinite(xyz).all():
+                raise ValueError(f"Non-finite MOL2 coordinate in {path}: {line!r}")
             symbols.append(_element_from_mol2(atom_name, atom_type))
             positions.append(xyz)
             names.append(atom_name)
             atom_types.append(atom_type)
+            atom_ids.append(atom_id)
             subst_ids.append(int(fields[6]) if len(fields) >= 7 else 1)
             subst_names.append(fields[7] if len(fields) >= 8 else "MOL")
             if len(fields) >= 9:
                 try:
-                    charges.append(float(fields[8]))
+                    partial_charge = float(fields[8])
                 except ValueError as exc:
                     raise ValueError(f"Invalid MOL2 partial charge in {path}: {line!r}") from exc
+                if not np.isfinite(partial_charge):
+                    raise ValueError(f"Non-finite MOL2 partial charge in {path}: {line!r}")
+                charges.append(partial_charge)
             else:
                 charges_present = False
                 charges.append(0.0)
 
-        bonds: list[list[object]] = []
+        bonds: list[list[int | str]] = []
+        bond_ids: set[int] = set()
+        bonded_pairs: set[tuple[int, int]] = set()
         for line in bond_lines:
             fields = line.split()
             if len(fields) < 4:
                 raise ValueError(f"Invalid MOL2 BOND record in {path}: {line!r}")
             try:
+                bond_id = int(fields[0])
                 i = atom_id_to_index[int(fields[1])]
                 j = atom_id_to_index[int(fields[2])]
             except (KeyError, ValueError) as exc:
                 raise ValueError(f"Invalid MOL2 bond atom id in {path}: {line!r}") from exc
+            if bond_id in bond_ids:
+                raise ValueError(f"Duplicate MOL2 bond id {bond_id} in {path}.")
+            bond_ids.add(bond_id)
+            if i == j:
+                raise ValueError(f"Self-referential MOL2 bond in {path}: {line!r}")
+            bonded_pair = (min(i, j), max(i, j))
+            if bonded_pair in bonded_pairs:
+                raise ValueError(
+                    f"Duplicate MOL2 bond between one atom pair in {path}: {line!r}"
+                )
+            bonded_pairs.add(bonded_pair)
             bonds.append([i, j, fields[3]])
 
         if declared_atoms != len(symbols) or declared_bonds != len(bonds):
@@ -188,6 +340,7 @@ class MOL2Reader:
                 )
 
         atoms = Atoms(symbols=symbols, positions=np.asarray(positions, dtype=np.float64))
+        atoms.new_array(MOL2_ATOM_ID_ARRAY, np.asarray(atom_ids, dtype=np.int64))
         if charges_present:
             atoms.set_initial_charges(np.asarray(charges, dtype=np.float64))
         if charge is not None:
@@ -195,11 +348,13 @@ class MOL2Reader:
         if mult is not None:
             atoms.info["mult"] = int(mult)
             atoms.info["spin"] = (int(mult) - 1) / 2
-        atoms.info["mol2"] = {
+        metadata = {
             "path": os.fspath(path),
+            "source_sha256": source_sha256,
             "name": name,
             "molecule_type": molecule_type,
             "charge_type": charge_type,
+            "atom_ids": atom_ids,
             "atom_names": names,
             "atom_types": atom_types,
             "subst_ids": subst_ids,
@@ -218,4 +373,6 @@ class MOL2Reader:
                 else None
             ),
         }
+        metadata[MOL2_IDENTITY_SHA256_KEY] = mol2_identity_sha256(metadata)
+        atoms.info["mol2"] = metadata
         return atoms

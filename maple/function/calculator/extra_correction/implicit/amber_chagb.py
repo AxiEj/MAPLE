@@ -16,6 +16,11 @@ import threading
 
 import numpy as np
 
+from maple.function.read.filereader.mol2_reader import (
+    MOL2_IDENTITY_SHA256_KEY,
+    mol2_identity_sha256,
+)
+
 from .common import KJ_PER_MOL_PER_HARTREE
 from .result import SolvationResult
 
@@ -54,6 +59,27 @@ _NONPOLAR_PARAMETERS = {
     "use_sav": 1,
     "cavity_surften": 0.0378,
     "cavity_offset_kcal_mol": -0.5692,
+}
+_POLAR_PARAMETER_SOURCES = {
+    "epsin": "MAPLE frozen AmberTools-26 GBNSR6 input; dielectric convention",
+    "epsout": "MAPLE frozen AmberTools-26 GBNSR6 input; aqueous dielectric",
+    "istrng_molar": "MAPLE frozen AmberTools-26 GBNSR6 input; zero-salt endpoint",
+    "dprob_angstrom": "MAPLE frozen AmberTools-26 GBNSR6 input",
+    "space_angstrom": "MAPLE frozen numerical GBNSR6 profile",
+    "arcres_angstrom": "MAPLE frozen numerical GBNSR6 profile",
+    "alpb": "AmberTools-26 GBNSR6 input switch; runtime provider source",
+    "chagb": "Mukhopadhyay et al. 2014, DOI:10.1021/ct4010917",
+    "radiopt": "MAPLE frozen Bondi-radius GBNSR6 profile",
+    "roh_angstrom": "Mukhopadhyay et al. 2014, DOI:10.1021/ct4010917",
+    "tau": "Mukhopadhyay et al. 2014, DOI:10.1021/ct4010917",
+    "rbornstat": "MAPLE frozen AmberTools-26 output-control setting",
+}
+_NONPOLAR_PARAMETER_SOURCES = {
+    name: (
+        "MAPLE frozen AmberTools-26 PBSA inp=2 cavity-dispersion input; "
+        "provider-backed endpoint validated without reimplementing PBSA"
+    )
+    for name in _NONPOLAR_PARAMETERS
 }
 
 
@@ -124,7 +150,6 @@ def render_typed_mol2(
         raise ValueError(
             "CHA-GB requires finite Nx3 coordinates and one finite fixed charge per atom."
         )
-
     output: list[str] = []
     section = ""
     atom_index = 0
@@ -269,11 +294,26 @@ class AmberToolsChaGB:
         metadata = atoms.info.get("mol2")
         if not metadata:
             raise ValueError("AmberTools CHA-GB requires a typed MOL2 input.")
+        if metadata.get(MOL2_IDENTITY_SHA256_KEY) != mol2_identity_sha256(
+            metadata
+        ):
+            raise ValueError(
+                "MOL2 atom/type/substructure/topology metadata changed after "
+                "MOL2Reader; refusing unsafe CHA-GB preparation."
+            )
         source_path = Path(metadata["path"]).resolve()
         if not source_path.is_file():
             raise FileNotFoundError(source_path)
+        source_bytes = source_path.read_bytes()
+        source_sha256 = hashlib.sha256(source_bytes).hexdigest()
+        if source_sha256 != metadata.get("source_sha256"):
+            raise ValueError(
+                "The source MOL2 changed after MOL2Reader froze its atom types "
+                "and topology; refusing unsafe CHA-GB preparation."
+            )
         self.source_path = source_path
-        self.source_text = source_path.read_text(encoding="utf-8")
+        self.source_text = source_bytes.decode("utf-8", errors="replace")
+        self.source_sha256 = source_sha256
         self.symbols = list(atoms.get_chemical_symbols())
         self.atom_types = list(metadata.get("atom_types") or [])
         if len(self.atom_types) != len(atoms):
@@ -302,11 +342,15 @@ class AmberToolsChaGB:
             "topology_atom_types": "preserved-from-input-mol2",
             "input_atom_types": self.atom_types,
             "input_mol2": str(self.source_path),
-            "input_mol2_sha256": _sha256_file(self.source_path),
+            "input_mol2_sha256": self.source_sha256,
             "polar_component": "gbnsr6:EGB",
             "nonpolar_components": ["pbsa:ECAVITY", "pbsa:EDISPER"],
             "polar_parameters": dict(_POLAR_PARAMETERS),
             "nonpolar_parameters": dict(_NONPOLAR_PARAMETERS),
+            "parameter_source_ledger": {
+                "polar": dict(_POLAR_PARAMETER_SOURCES),
+                "nonpolar": dict(_NONPOLAR_PARAMETER_SOURCES),
+            },
             "gas_phase_mm_energy_used": False,
             "bonded_mm_energy_used": False,
             "provider_substitution": False,
@@ -327,8 +371,17 @@ class AmberToolsChaGB:
                 for name, path in sorted(self.executables.items())
             },
             "citations": [
-                "Mukhopadhyay et al., JCTC 2014, DOI:10.1021/ct4010917",
-                "Aguilar et al., JCTC 2025, DOI:10.1021/acs.jctc.4c01471",
+                (
+                    "Mukhopadhyay et al., Introducing Charge Hydration "
+                    "Asymmetry into the Generalized Born Model, JCTC 2014, "
+                    "DOI:10.1021/ct4010917"
+                ),
+                (
+                    "Aguilar and Onufriev, Efficient Computation of the Total "
+                    "Solvation Energy of Small Molecules via the R6 "
+                    "Generalized Born Model, JCTC 2012, "
+                    "DOI:10.1021/ct200786m"
+                ),
                 "Tan, Tan, and Luo, JPCB 2007, DOI:10.1021/jp073399n",
             ],
         }

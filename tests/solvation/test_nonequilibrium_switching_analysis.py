@@ -84,6 +84,15 @@ def test_nonequilibrium_analysis_recovers_offset_and_reports_work_diagnostics():
     assert result["gates"]["numerical_gates_passed"] is True
     assert result["gates"]["scientific_gates_passed"] is True
     assert result["estimator"]["handwritten_estimator"] is False
+    assert (
+        result["standard_state_declaration"]
+        == "synthetic reference-to-target correction"
+    )
+    assert result["standard_state_conversion"] == {
+        "applied": False,
+        "correction_kcal_mol": 0.0,
+        "responsibility": "caller-supplied work values or downstream cycle",
+    }
 
 
 @pytest.mark.skipif(

@@ -1088,14 +1088,20 @@ the paired hydration score. MLIP quality contributes instead through combined
 forces, relaxed geometries, conformer populations, and reorganization terms,
 none of which this reserve establishes.
 
-- Mukhopadhyay et al., “Charge hydration asymmetry: the basic principle and
-  how to use it to test and improve water models,” *J. Chem. Theory Comput.*
-  (2014), DOI `10.1021/ct4010917`.
-- Aguilar et al., “On the Evaluation of the Generating Function R6 for the
-  Computation of the Effective Born Radii,” *J. Chem. Theory Comput.* (2025),
-  DOI `10.1021/acs.jctc.4c01471`.
+- Mukhopadhyay et al., “Introducing Charge Hydration Asymmetry into the
+  Generalized Born Model,” *J. Chem. Theory Comput.* (2014),
+  DOI `10.1021/ct4010917`.
+- Aguilar and Onufriev, “Efficient Computation of the Total Solvation Energy
+  of Small Molecules via the R6 Generalized Born Model,”
+  *J. Chem. Theory Comput.* (2012), DOI `10.1021/ct200786m`.
 - Tan, Tan, and Luo, “Implicit nonpolar solvent models,”
   *J. Phys. Chem. B* (2007), DOI `10.1021/jp073399n`.
+
+The sealed 2026-07-24/25 benchmark protocol JSON files retain an invalid
+historical DOI string solely to preserve their cryptographic fingerprints.
+That metadata is superseded by
+`benchmarks/route1-citation-errata-2026-07-26.json`; it did not select a
+formula, parameter, molecule, energy, or score.
 
 ## External higher-accuracy models screened but not integrated
 
@@ -1363,11 +1369,18 @@ item, not a current redistributable Route 1 provider.
 - ABCG2 is invoked through AmberTools24+ Antechamber `-c abcg2`; see “ABCG2: A
   Milestone Charge Model for Accurate Solvation Free Energy Calculation,”
   *J. Chem. Theory Comput.* (2025), DOI `10.1021/acs.jctc.5c00038`.
-- Antechamber's finite-precision text output can have a small residual from the
-  declared integer charge.  MAPLE follows the published FESetup procedure and
-  distributes only residuals no larger than `0.01 e` uniformly over all atoms,
-  preserving equivalence while recording the provider values, correction, and
-  used values in a normalization audit.  Larger residuals fail closed.  See
+- Antechamber's finite-precision provider path can leave a small residual from
+  the declared integer charge.  MAPLE no longer accepts a molecule-independent
+  `0.01 e` allowance.  The runtime derives a per-molecule upper bound from the
+  three-decimal SQM Mulliken precharge resolution, the actual final-MOL2 charge
+  tokens, atom count, and floating-point slack.  Only residuals within that
+  serialization bound are distributed uniformly; all raw tokens, half-widths,
+  formulas, and repaired values are written to the normalization audit.  A
+  provider token coarser than the verified AmberTools 26 four-decimal MOL2
+  floor is rejected rather than being allowed to enlarge its own tolerance.
+  Larger residuals fail closed.  Uniform distribution follows the published
+  FESetup workflow, while the acceptance bound is MAPLE's narrower
+  provider-serialization guard rather than a charge-model parameter.  See
   Loeffler et al., “FESetup: Automating Setup for Alchemical Free Energy
   Simulations,” *J. Chem. Inf. Model.* (2015), DOI
   `10.1021/acs.jcim.5b00368`.

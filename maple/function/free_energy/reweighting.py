@@ -227,6 +227,8 @@ def analyze_bidirectional_reweighting(
             "handwritten_estimator": False,
         },
         "standard_state": mbar["standard_state"],
+        "standard_state_declaration": mbar["standard_state_declaration"],
+        "standard_state_conversion": mbar["standard_state_conversion"],
         "temperature_kelvin": mbar["temperature_kelvin"],
         "kbt_kcal_mol": mbar["kbt_kcal_mol"],
         "directional": {

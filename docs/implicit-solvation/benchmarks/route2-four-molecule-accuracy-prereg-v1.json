@@ -1,0 +1,104 @@
+{
+  "claim_boundary": "This is a four-molecule same-geometry diagnostic for one indivisible Route-2 profile. A pass can show that the profile remains more accurate than the selected Route-1 OBC2/ACE control and stays close to the locked QM reference on this deliberately small oxygen-rich panel. It cannot establish broad chemical-space accuracy, training-set exclusion, conformer thermochemistry, a solution-phase PES, forces, optimization, transition states, molecular dynamics, or a production default.",
+  "created_at_utc": "2026-07-26T13:30:20Z",
+  "decision_rule": {
+    "fail": "Failing any primary gate freezes the result as a rejected or inconclusive profile without changing radii, tolerances, grids, MACE settings, molecule membership, or thresholds.",
+    "pass": "Passing every primary gate authorizes only a separately pre-registered held-out expansion. It does not authorize a public default or a force claim."
+  },
+  "energy_definition": "delta_g_solv = delta_e_solute + u_pol + g_cds",
+  "evidence_policy": {
+    "component_ledger_required": [
+      "delta_e_solute",
+      "u_pol",
+      "g_cds",
+      "delta_g_solv"
+    ],
+    "exact_mol2_sha256_match_required": true,
+    "molecule_specific_tuning_forbidden": true,
+    "same_charge_protonation_and_conformer_required": true,
+    "timing_is_a_recorded_diagnostic_not_a_scientific_gate": true,
+    "training_exclusion_unknown_is_not_held_out": true
+  },
+  "execution_budget": {
+    "new_qm_same_geometry_single_points": 1,
+    "new_route2_single_points": 4,
+    "qm_target": "methyl acetate only",
+    "route1_recalculation": false,
+    "route1_source_is_read_only": true,
+    "stop_after_budget": true
+  },
+  "fixed_panel": [
+    {
+      "compound_id": "mobley_1636752",
+      "experimental_kcal_mol": -5.1,
+      "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "name": "methanol",
+      "partition": "development",
+      "role": "small protic polar anchor",
+      "training_membership_confirmed_excluded": false
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "experimental_kcal_mol": -3.8,
+      "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+      "name": "acetone",
+      "partition": "development",
+      "role": "rigid strong-dipole carbonyl anchor",
+      "training_membership_confirmed_excluded": false
+    },
+    {
+      "compound_id": "mobley_3982371",
+      "experimental_kcal_mol": -3.13,
+      "mol2_sha256": "c5fa648fbdf2060b92c73b9e0f46bb6f3defa3c62a808f65503f2182a9f1115e",
+      "name": "methyl acetate",
+      "partition": "confirmation",
+      "role": "pre-selected ester oxygen-environment stress case",
+      "training_membership_confirmed_excluded": false
+    },
+    {
+      "compound_id": "mobley_352111",
+      "experimental_kcal_mol": -6.34,
+      "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+      "name": "2-acetoxyethyl acetate",
+      "partition": "confirmation",
+      "role": "flexible multiheteroatom stress case",
+      "training_membership_confirmed_excluded": false
+    }
+  ],
+  "git_head_at_registration": "456b81090d7b30dec1dcee015fa2f722cbf36c50",
+  "primary_gates": {
+    "all_four_records_complete": true,
+    "maximum_route2_absolute_error_vs_experiment_kcal_mol": 1.5,
+    "maximum_route2_absolute_error_vs_qm_kcal_mol": 1.5,
+    "minimum_route2_per_molecule_wins_or_ties_vs_route1": 3,
+    "route2_mae_vs_experiment_must_be_lower_than_route1": true,
+    "route2_mae_vs_qm_kcal_mol": 1.0,
+    "single_indivisible_route2_profile": true
+  },
+  "protocol_id": "route2-four-molecule-same-geometry-accuracy-v1",
+  "qm_reference": {
+    "basis": "def2-TZVPD",
+    "functional": "omegaB97M-V",
+    "geometry_policy": "same fixed FreeSolv MOL2 conformer",
+    "new_work": "Run only the missing methyl-acetate same-geometry reference with the already audited PySCF SMD workflow.",
+    "solvent": "water",
+    "surface_discretization_method": "SWIG"
+  },
+  "route1_control": {
+    "git_head": "c727f433c68379a8696d6c9c479e6a7ef4ded09b",
+    "method": "obc2_ace",
+    "source_branch": "implicitsolv-route1",
+    "source_relative_path": "docs/implicit-solvation/benchmarks/route1-chagb-component-attribution-2026-07-25.json",
+    "source_sha256": "a40b4cf76e55e7ed55b86dbc5bcb44a2c24ac3735abd45f4da8c89ddf9a0f0ab",
+    "write_prohibited": true
+  },
+  "route2_profile": "smd-ddpcm-l15-n1202-gaff2-o-v1",
+  "schema_version": 1,
+  "selection_bias": [
+    "neutral FreeSolv molecules only",
+    "oxygen-rich chemistry",
+    "preference for locally cached exact geometries",
+    "no ions, heavy halogens, or broad flexible chemical space"
+  ],
+  "status": "pre-registered"
+}

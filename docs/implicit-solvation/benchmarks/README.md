@@ -183,3 +183,33 @@ preflight is tracked as `route2-jgp94-frame-vjp-preflight-v1.json`, SHA256
 `eefad3ce832bf8ffc1c2db9d29663e151da83e1558a3489e4193a360eaaeafb2`.
 No continuum state, MACE call, ML--SCF root, CDS evaluation, finite-difference
 energy, retry, or public-profile change occurred.
+
+The next bounded upstream control tested PySCF 2.13.1 ISWIG without integrating
+another provider. The pre-registration
+`route2-pyscf-iswig-discriminator-prereg-v1.json` locked methanol and acetone,
+three rigid orientations, order 47, the SWIG control, the fixed density
+archives, and the exact 12-solve budget before execution. The exact executed
+runner is retained as `run_route2_pyscf_iswig_discriminator.py` with the
+SHA256 recorded in `route2-pyscf-iswig-discriminator-v1.json`; it is an
+archived research runner, not a public provider. The result also distinguishes
+the pre-registered ddPCM scientific-profile context from the actual
+`smd-iefpcm-gaff2-o` radius selector used by the runner. At the execution head
+both select the same strict GAFF/GAFF2 carbonyl-oxygen radii, but only the
+actual selector is treated as executed provenance.
+ISWIG failed without a retry: its rotation spans were `1.6858x` and `1.2634x`
+the corresponding SWIG spans, and the surviving parent counts changed across
+orientations for both molecules. All scalar/reciprocity checks remained
+finite. The tracked result
+`route2-pyscf-iswig-discriminator-v1.json` therefore rejects ISWIG as the
+selected next Route-2 provider candidate; it does not authorize a gradient,
+ML--SCF, CDS, PES, or production-provider claim.
+
+The proposed four-molecule same-geometry accuracy protocol was independently
+reviewed before execution and withdrawn without running any of its five new
+single points. Its immutable preregistration remains
+`route2-four-molecule-accuracy-prereg-v1.json`; the separate
+`route2-four-molecule-accuracy-prereg-v1-disposition.json` records the missing
+per-molecule Route-1 geometry/source-record, QM-artifact, and FreeSolv
+dataset/uncertainty provenance. A broader replacement must be registered as a
+new protocol with those fields locked before any calculation. The rejected
+protocol must not be repaired in place or used as evidence for accuracy.

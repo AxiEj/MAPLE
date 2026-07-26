@@ -1,0 +1,20 @@
+{
+  "claim_boundary": "This disposition closes the unexecuted four-molecule preregistration after independent scientific review found that its Route-1, QM, and experimental evidence chain was not complete enough to audit the proposed gates. It records no energy result and does not alter the locked panel, profile, thresholds, or execution budget.",
+  "decision": "withdrawn-before-execution",
+  "decision_reasons": [
+    "Existing QM references were not locked per molecule with tracked artifact path, SHA256, energy, geometry hash, charge, multiplicity, and runtime protocol.",
+    "The Route-1 control did not lock per-molecule source-record SHA256, prediction, and source MOL2 SHA256 even though those records existed read-only.",
+    "The experimental block did not lock the FreeSolv dataset commit, artifact hashes, record SHA256, DOI, and assigned uncertainty.",
+    "The requested next benchmark program is broader than this oxygen-rich four-molecule diagnostic and requires a new provenance-complete preregistration rather than post-registration edits."
+  ],
+  "executed_new_qm_single_points": 0,
+  "executed_new_route1_calculations": 0,
+  "executed_new_route2_single_points": 0,
+  "preregistration_path": "docs/implicit-solvation/benchmarks/route2-four-molecule-accuracy-prereg-v1.json",
+  "preregistration_sha256": "e21a03ead130c08d32c0b9d31df7da58921298857ba01099c0af251434076829",
+  "protocol_id": "route2-four-molecule-same-geometry-accuracy-v1",
+  "replacement_requirement": "Any replacement must lock dataset/version/record provenance, identical geometry evidence for every compared method, charge-model and continuum-method identity, per-solvent experimental references, immutable thresholds, and a staged evaluation budget before execution.",
+  "reviewed_at_utc": "2026-07-26T16:42:16Z",
+  "schema_version": 1,
+  "thresholds_or_membership_changed_after_registration": false
+}

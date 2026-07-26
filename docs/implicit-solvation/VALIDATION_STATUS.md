@@ -806,6 +806,43 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
 33. Only after a separately pre-registered smooth-cavity provider and the
     remaining end-to-end gates pass may Route 2 enable OPT/scan/TS/MD or be
     called a solution-phase PES.
+34. A separately pre-registered PySCF 2.13.1 fixed-density discriminator
+    evaluated exactly 12 continuum scalar cases: SWIG and ISWIG for methanol
+    and acetone at three locked rigid orientations, order 47, with unchanged
+    geometries, density archives, radii, dielectric, and point-multipole
+    coupling. It loaded no MACE model, performed no ML--SCF root, evaluated no
+    CDS term or force, and changed no production provider.
+
+    ISWIG failed three locked gates. Its rotation span was
+    `0.00076871 kcal/mol` for methanol and `0.00047738 kcal/mol` for acetone,
+    versus SWIG controls of `0.00045599` and `0.00037786 kcal/mol`. The ISWIG
+    to SWIG ratios were therefore `1.6858` and `1.2634`, rather than the
+    required maximum `0.75`. ISWIG also changed surviving surface parent
+    counts across the three orientations for both molecules. Every scalar was
+    finite. The largest ISWIG half-coupling/reciprocity residual remained
+    below `2.43e-17 hartree`; the largest residual across all 12 SWIG and
+    ISWIG cases was `5.21e-17 hartree`.
+
+    This rejects ISWIG as the selected next Route-2 provider candidate without
+    post-result tuning. It does not show that ISWIG is generally inferior as a
+    PCM discretization; it shows only that changing the switching function did
+    not repair this locked finite-grid rotation/active-set discriminator. The
+    frozen result is
+    `benchmarks/route2-pyscf-iswig-discriminator-v1.json`. The exact executed
+    runner bytes are tracked as
+    `benchmarks/run_route2_pyscf_iswig_discriminator.py`; the frozen result
+    records both its SHA256 and the actual `smd-iefpcm-gaff2-o` radius selector
+    used by that runner.
+35. The separately registered four-molecule same-geometry accuracy diagnostic
+    was not executed. Independent scientific review found that its per-molecule
+    Route-1 geometry/source record, existing QM artifact, and FreeSolv
+    dataset/uncertainty provenance were not complete enough to audit the
+    proposed gates. No Route-1 recalculation, Route-2 single point, or new QM
+    reference was run; no threshold, molecule, or profile was changed after
+    registration. The immutable disposition is
+    `benchmarks/route2-four-molecule-accuracy-prereg-v1-disposition.json`.
+    Any replacement must be newly pre-registered with a complete evidence
+    chain and a staged budget rather than editing the rejected protocol.
 
 ## Secondary diagnostics
 

@@ -1,0 +1,278 @@
+{
+  "claim_boundary": "This zero-integration fixed-density discriminator tests whether upstream PySCF ISWIG materially reduces the finite-grid rigid-rotation sensitivity of the existing PySCF SWIG control for methanol and acetone. It does not test an ML-SCF root, total SMD hydration free energy, analytic forces, torsion smoothness, active-set continuity under arbitrary geometry changes, QM fidelity, or production readiness.",
+  "completed_at_utc": "2026-07-26T13:37:10+00:00",
+  "failed_gates": [
+    "candidate_parent_counts_constant_across_orientations",
+    "candidate_rotation_span_not_greater_than_control",
+    "candidate_rotation_span_ratio_to_control"
+  ],
+  "gates": {
+    "all_surface_solves_finite": true,
+    "candidate_maximum_rotation_span": true,
+    "candidate_parent_counts_constant_across_orientations": false,
+    "candidate_rotation_span_not_greater_than_control": false,
+    "candidate_rotation_span_ratio_to_control": false,
+    "exact_evaluation_budget": true,
+    "maximum_half_coupling_identity_error": true
+  },
+  "git_head": "a55a0d9e0acb900fc384296738d398bfdc46e64d",
+  "interpretation": "ISWIG is rejected as the selected next Route-2 continuum candidate. It increased the locked fixed-density rotation span for both molecules and retained orientation-dependent active-point parent counts. No threshold, grid, radius, orientation, molecule, or production code was changed.",
+  "preregistration_path": "docs/implicit-solvation/benchmarks/route2-pyscf-iswig-discriminator-prereg-v1.json",
+  "preregistration_sha256": "76ff7457c739d4666a9619f8af0e7c8be9bb844ae383fca2f2fb82c095b6b6f6",
+  "protocol_id": "route2-pyscf-iswig-fixed-density-rotation-v1",
+  "pyscf": {
+    "path": "/home/axie/.cache/maple-envs/pyscf-smd-qmref/lib/python3.11/site-packages",
+    "version": "2.13.1"
+  },
+  "radius_provenance": {
+    "actual_radius_selector": "smd-iefpcm-gaff2-o",
+    "equivalence_scope": "At git head a55a0d9 both names select the strict GAFF/GAFF2 carbonyl-o cavity branch (o=1.70 angstrom, os=1.52 angstrom); only smd-iefpcm-gaff2-o was passed to route2_water_coulomb_radii by the executed runner.",
+    "preregistered_profile_context": "smd-ddpcm-l15-n1202-gaff2-o-v1",
+    "production_profile_changed": false
+  },
+  "records": [
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "orientations": [
+        {
+          "angle_radians": 0.0,
+          "energy_hartree": -0.010298606727780189,
+          "half_coupling_identity_error_hartree": 1.734723475976807e-17,
+          "parent_counts": [
+            421,
+            393,
+            333,
+            330,
+            339,
+            411
+          ],
+          "surface_size": 2227
+        },
+        {
+          "angle_radians": 0.731,
+          "energy_hartree": -0.010298258861450907,
+          "half_coupling_identity_error_hartree": 3.469446951953614e-18,
+          "parent_counts": [
+            435,
+            393,
+            335,
+            337,
+            335,
+            410
+          ],
+          "surface_size": 2245
+        },
+        {
+          "angle_radians": 1.947,
+          "energy_hartree": -0.010298985526510282,
+          "half_coupling_identity_error_hartree": 6.938893903907228e-18,
+          "parent_counts": [
+            417,
+            381,
+            335,
+            329,
+            333,
+            416
+          ],
+          "surface_size": 2211
+        }
+      ],
+      "rotation_span_hartree": 7.266650593751312e-07,
+      "rotation_span_kcal_mol": 0.0004559892092285199,
+      "surface_discretization_method": "SWIG"
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "orientations": [
+        {
+          "angle_radians": 0.0,
+          "energy_hartree": -0.010297505494334001,
+          "half_coupling_identity_error_hartree": 3.469446951953614e-18,
+          "parent_counts": [
+            511,
+            412,
+            334,
+            322,
+            337,
+            416
+          ],
+          "surface_size": 2332
+        },
+        {
+          "angle_radians": 0.731,
+          "energy_hartree": -0.0102962804798543,
+          "half_coupling_identity_error_hartree": 1.734723475976807e-17,
+          "parent_counts": [
+            524,
+            417,
+            336,
+            339,
+            333,
+            416
+          ],
+          "surface_size": 2365
+        },
+        {
+          "angle_radians": 1.947,
+          "energy_hartree": -0.010297078144215871,
+          "half_coupling_identity_error_hartree": 3.469446951953614e-18,
+          "parent_counts": [
+            503,
+            409,
+            329,
+            329,
+            334,
+            419
+          ],
+          "surface_size": 2323
+        }
+      ],
+      "rotation_span_hartree": 1.225014479700956e-06,
+      "rotation_span_kcal_mol": 0.000768708191876829,
+      "surface_discretization_method": "ISWIG"
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "orientations": [
+        {
+          "angle_radians": 0.0,
+          "energy_hartree": -0.010542311049885383,
+          "half_coupling_identity_error_hartree": 5.204170427930421e-17,
+          "parent_counts": [
+            361,
+            205,
+            500,
+            369,
+            330,
+            331,
+            334,
+            336,
+            331,
+            338
+          ],
+          "surface_size": 3435
+        },
+        {
+          "angle_radians": 0.731,
+          "energy_hartree": -0.010542649699456884,
+          "half_coupling_identity_error_hartree": 1.0408340855860843e-17,
+          "parent_counts": [
+            364,
+            194,
+            500,
+            358,
+            339,
+            333,
+            338,
+            333,
+            332,
+            338
+          ],
+          "surface_size": 3429
+        },
+        {
+          "angle_radians": 1.947,
+          "energy_hartree": -0.010542047533358263,
+          "half_coupling_identity_error_hartree": 1.3877787807814457e-17,
+          "parent_counts": [
+            339,
+            199,
+            500,
+            354,
+            333,
+            329,
+            325,
+            337,
+            323,
+            330
+          ],
+          "surface_size": 3369
+        }
+      ],
+      "rotation_span_hartree": 6.021660986215566e-07,
+      "rotation_span_kcal_mol": 0.00037786493184464176,
+      "surface_discretization_method": "SWIG"
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "name": "acetone",
+      "orientations": [
+        {
+          "angle_radians": 0.0,
+          "energy_hartree": -0.010542578189104042,
+          "half_coupling_identity_error_hartree": 1.0408340855860843e-17,
+          "parent_counts": [
+            439,
+            247,
+            513,
+            450,
+            323,
+            336,
+            332,
+            337,
+            330,
+            334
+          ],
+          "surface_size": 3641
+        },
+        {
+          "angle_radians": 0.731,
+          "energy_hartree": -0.010543338936515339,
+          "half_coupling_identity_error_hartree": 2.42861286636753e-17,
+          "parent_counts": [
+            447,
+            241,
+            517,
+            445,
+            338,
+            331,
+            341,
+            333,
+            334,
+            336
+          ],
+          "surface_size": 3663
+        },
+        {
+          "angle_radians": 1.947,
+          "energy_hartree": -0.010542580176067757,
+          "half_coupling_identity_error_hartree": 3.469446951953614e-18,
+          "parent_counts": [
+            426,
+            247,
+            511,
+            437,
+            335,
+            330,
+            324,
+            337,
+            320,
+            331
+          ],
+          "surface_size": 3598
+        }
+      ],
+      "rotation_span_hartree": 7.607474112967388e-07,
+      "rotation_span_kcal_mol": 0.0004773762079576814,
+      "surface_discretization_method": "ISWIG"
+    }
+  ],
+  "rotation_span_ratios_iswig_over_swig": {
+    "mobley_1636752": 1.6858034714843204,
+    "mobley_3867265": 1.2633514457858013
+  },
+  "run_exit_code": 1,
+  "runner_path": "docs/implicit-solvation/benchmarks/run_route2_pyscf_iswig_discriminator.py",
+  "runner_sha256": "b7d6de1ead302973d40442b6bef5c4b7bb1a83afa5a51b85dc9392e8a7e5b3d6",
+  "schema_version": 1,
+  "source_artifact_path": ".omx/benchmarks/route2-pyscf-iswig-discriminator-20260726/results.json",
+  "source_artifact_sha256": "124e1631273a95a0bfc294ab16cc7ddd2b9265d5625146d6a7e8320083cd0678",
+  "status": "fail",
+  "stop_condition": {
+    "fail": "Failing any locked gate rejects ISWIG as the selected next Route-2 provider candidate without threshold, grid, radius, orientation, or molecule retuning.",
+    "pass": "Passing every locked gate authorizes only one separately pre-registered analytic-gradient and active-set displacement canary. It does not authorize production integration."
+  }
+}

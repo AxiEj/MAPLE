@@ -247,6 +247,44 @@ def test_exact_gto_projection_is_rotation_covariant_before_model_injection():
     )
 
 
+def test_exact_gto_projection_adjoint_matches_the_full_discrete_transpose():
+    projector = _projector()
+    positions_angstrom = np.asarray(
+        [[0.2, -0.1, 0.3], [-0.4, 0.7, -0.2]]
+    )
+    surface_centers_bohr = np.asarray(
+        [[6.0, 2.0, -1.0], [-5.0, 4.0, 3.0], [2.0, -7.0, 4.0]]
+    )
+    rng = np.random.default_rng(20260727)
+    feature_cotangent = rng.normal(
+        size=(len(positions_angstrom), projector.feature_count)
+    )
+    surface_dimension = len(surface_centers_bohr)
+    forward_matrix = np.column_stack(
+        [
+            projector.project_asc(
+                positions_angstrom,
+                surface_centers_bohr,
+                basis,
+            ).reshape(-1)
+            for basis in np.eye(surface_dimension)
+        ]
+    )
+
+    actual = projector.project_asc_adjoint(
+        positions_angstrom,
+        surface_centers_bohr,
+        feature_cotangent,
+    )
+
+    np.testing.assert_allclose(
+        actual,
+        forward_matrix.T @ feature_cotangent.reshape(-1),
+        rtol=2.0e-13,
+        atol=2.0e-12,
+    )
+
+
 def test_projection_spec_rejects_a_matrix_that_cannot_match_the_receiver_basis():
     with pytest.raises(ValueError, match="matrix shape"):
         MACEPolarGTOFieldProjectionSpec(

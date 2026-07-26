@@ -202,6 +202,29 @@ def _moving_operator(atom_positions_angstrom: np.ndarray):
     )
 
 
+def _exact_gto_projector():
+    matrix = np.asarray(
+        [
+            [3.544907701811032, 0.0, 0.0, 0.0],
+            [3.544907701811032, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 5.771474235728387],
+            [0.0, 5.771474235728387, 0.0, 0.0],
+            [0.0, 0.0, 5.771474235728387, 0.0],
+            [0.0, 0.0, 0.0, 11.542948471456774],
+            [0.0, 11.542948471456774, 0.0, 0.0],
+            [0.0, 0.0, 11.542948471456774, 0.0],
+        ]
+    )
+    return ExactGTOFieldProjector(
+        MACEPolarGTOFieldProjectionSpec(
+            receiver_sigmas_angstrom=(1.5, 3.0),
+            receiver_max_l=1,
+            receiver_normalization="receiver",
+            upstream_matrix=matrix,
+        )
+    )
+
+
 def test_fixed_cavity_pcm_apply_and_adjoint_obey_discrete_pairing():
     operator, positions, _, _ = _operator()
     rng = np.random.default_rng(19)
@@ -281,26 +304,7 @@ def test_fixed_cavity_pcm_scf_field_and_energy_share_one_root_snapshot():
 
 def test_exact_gto_drive_keeps_energy_and_model_spaces_distinct():
     _, positions, session, continuum_response = _operator()
-    matrix = np.asarray(
-        [
-            [3.544907701811032, 0.0, 0.0, 0.0],
-            [3.544907701811032, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 5.771474235728387],
-            [0.0, 5.771474235728387, 0.0, 0.0],
-            [0.0, 0.0, 5.771474235728387, 0.0],
-            [0.0, 0.0, 0.0, 11.542948471456774],
-            [0.0, 11.542948471456774, 0.0, 0.0],
-            [0.0, 0.0, 11.542948471456774, 0.0],
-        ]
-    )
-    projector = ExactGTOFieldProjector(
-        MACEPolarGTOFieldProjectionSpec(
-            receiver_sigmas_angstrom=(1.5, 3.0),
-            receiver_max_l=1,
-            receiver_normalization="receiver",
-            upstream_matrix=matrix,
-        )
-    )
+    projector = _exact_gto_projector()
     operator = FixedCavityPCMReactionFieldLinearMap(
         continuum_response,
         positions,
@@ -347,6 +351,12 @@ def test_exact_gto_drive_keeps_energy_and_model_spaces_distinct():
             snapshot.asc_e,
         ),
     )
+    np.testing.assert_allclose(
+        drive.model_field_features,
+        operator.model_feature_jvp(density),
+        rtol=2.0e-13,
+        atol=2.0e-11,
+    )
     assert drive.projector == "exact-gto-v1"
     assert drive.model_field_gauge == "atomic-center-mean-zero-v1"
     assert drive.model_field_gauge_reference_ev == pytest.approx(
@@ -358,6 +368,37 @@ def test_exact_gto_drive_keeps_energy_and_model_spaces_distinct():
         rel=2.0e-13,
         abs=2.0e-11,
     )
+
+
+def test_exact_gto_continuum_feature_jvp_and_vjp_are_adjoint_consistent():
+    _, positions, _, continuum_response = _operator()
+    operator = FixedCavityPCMReactionFieldLinearMap(
+        continuum_response,
+        positions,
+        model_field_projector=_exact_gto_projector(),
+        model_field_gauge="atomic-center-mean-zero-v1",
+    )
+    rng = np.random.default_rng(20260727)
+    density_direction = rng.normal(size=(len(positions), 4))
+    feature_cotangent = rng.normal(size=(len(positions), 8))
+
+    feature_direction = operator.model_feature_jvp(density_direction)
+    density_cotangent = operator.model_feature_vjp(feature_cotangent)
+
+    assert np.vdot(feature_cotangent, feature_direction) == pytest.approx(
+        np.vdot(density_cotangent, density_direction),
+        rel=2.0e-13,
+        abs=2.0e-11,
+    )
+
+
+def test_model_feature_derivative_fails_closed_without_exact_gto_projector():
+    operator, positions, _, _ = _operator()
+
+    with pytest.raises(NotImplementedError, match="exact-GTO"):
+        operator.model_feature_jvp(np.zeros((len(positions), 4)))
+    with pytest.raises(NotImplementedError, match="exact-GTO"):
+        operator.model_feature_vjp(np.zeros((len(positions), 8)))
 
 
 def test_centered_local_jet_uses_same_atomic_mean_as_exact_gto():

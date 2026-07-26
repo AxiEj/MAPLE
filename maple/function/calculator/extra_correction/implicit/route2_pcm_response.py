@@ -236,6 +236,15 @@ class FixedCavityPCMReactionFieldLinearMap:
             )
         return asc
 
+    def _required_model_field_projector(self) -> ExactGTOFieldProjector:
+        projector = self._model_field_projector
+        if projector is None:
+            raise NotImplementedError(
+                "The exact-GTO model-feature derivative requires an "
+                "ExactGTOFieldProjector."
+            )
+        return projector
+
     def _solve_snapshot(
         self,
         density_coefficients: np.ndarray,
@@ -418,6 +427,86 @@ class FixedCavityPCMReactionFieldLinearMap:
             field,
             atom_count=self.atom_count,
             name="reaction-field response",
+        )
+
+    def model_feature_jvp(
+        self,
+        density_direction: np.ndarray,
+    ) -> np.ndarray:
+        """Map a density direction to exact-GTO model features."""
+
+        density = _validated_atom_block(
+            density_direction,
+            atom_count=self.atom_count,
+            name="density_direction",
+        )
+        projector = self._required_model_field_projector()
+        features = np.asarray(
+            projector.project_asc(
+                self._positions_angstrom,
+                self._centers_bohr,
+                self._compute_asc(density),
+            ),
+            dtype=float,
+        )
+        expected_shape = (self.atom_count, projector.feature_count)
+        if features.shape != expected_shape or not np.all(np.isfinite(features)):
+            raise RuntimeError(
+                "Continuum exact-GTO feature JVP must be finite with shape "
+                f"{expected_shape}; received {features.shape}."
+            )
+        return features
+
+    def model_feature_vjp(
+        self,
+        feature_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Apply the exact-GTO-feature-to-density continuum transpose."""
+
+        projector = self._required_model_field_projector()
+        cotangent = np.asarray(feature_cotangent, dtype=float)
+        expected_shape = (self.atom_count, projector.feature_count)
+        if cotangent.shape != expected_shape or not np.all(
+            np.isfinite(cotangent)
+        ):
+            raise ValueError(
+                "feature_cotangent must be finite with shape "
+                f"{expected_shape}; received {cotangent.shape}."
+            )
+        asc_cotangent = projector.project_asc_adjoint(
+            self._positions_angstrom,
+            self._centers_bohr,
+            cotangent,
+        )
+        surface_cotangent = np.asarray(
+            self._response.apply_energy_conjugate(asc_cotangent),
+            dtype=float,
+        )
+        expected_surface_shape = (self._centers_bohr.shape[0],)
+        if surface_cotangent.shape != expected_surface_shape or not np.all(
+            np.isfinite(surface_cotangent)
+        ):
+            raise RuntimeError(
+                "Continuum exact-GTO surface adjoint must be finite with "
+                f"shape {expected_surface_shape}; received "
+                f"{surface_cotangent.shape}."
+            )
+        potential, gradient = self._reaction_potential_gradient(
+            surface_cotangent
+        )
+        density_cotangent = external_field_to_density_order(
+            np.concatenate(
+                (
+                    potential[:, None],
+                    gradient / Bohr,
+                ),
+                axis=1,
+            )
+        )
+        return _validated_atom_block(
+            density_cotangent,
+            atom_count=self.atom_count,
+            name="exact-GTO density cotangent",
         )
 
     def adjoint(self, field_cotangent: np.ndarray) -> np.ndarray:

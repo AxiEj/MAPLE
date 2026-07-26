@@ -21,7 +21,10 @@ from .electrostatic_pairing import (
 )
 from .gto_density import (
     asc_reaction_potential_gradient,
+    external_field_to_density_order,
+    gaussian_multipole_potential,
     point_asc_reaction_potential_gradient,
+    point_multipole_potential,
 )
 
 
@@ -259,6 +262,130 @@ class ExactGTOFieldProjector:
             apparent_surface_charges,
         )
         return float(np.mean(potential))
+
+    def _smoothed_field_cotangents(
+        self,
+        feature_cotangent: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, float]:
+        """Transpose the checkpoint projection before electrostatic kernels."""
+
+        cotangent = np.asarray(feature_cotangent, dtype=float)
+        if (
+            cotangent.ndim != 2
+            or cotangent.shape[1] != self.feature_count
+            or not np.all(np.isfinite(cotangent))
+        ):
+            raise ValueError(
+                "Model-feature cotangent must be finite with shape "
+                "(n_atoms, n_features)."
+            )
+        feature_field_cotangent = np.einsum(
+            "np,pf->pnf",
+            cotangent,
+            self.spec.upstream_matrix,
+        )
+        sigma_count = len(self.spec.receiver_sigmas_angstrom)
+        upstream_cotangent = np.zeros(
+            (sigma_count, cotangent.shape[0], 4),
+            dtype=float,
+        )
+        np.add.at(
+            upstream_cotangent,
+            self._feature_sigma_indices(),
+            feature_field_cotangent,
+        )
+        external_cotangent = np.zeros_like(upstream_cotangent)
+        external_cotangent[
+            ...,
+            list(MACE_POLAR_MODEL_FEATURE_FIELD_INDICES),
+        ] = upstream_cotangent
+        potential_cotangent = external_cotangent[..., 0]
+        gradient_cotangent = external_cotangent[..., 1:]
+        gauge_cotangent = -float(np.sum(potential_cotangent))
+        return potential_cotangent, gradient_cotangent, gauge_cotangent
+
+    def project_asc_adjoint(
+        self,
+        atom_positions_angstrom: np.ndarray,
+        surface_centers_bohr: np.ndarray,
+        feature_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Apply the exact transpose of the gauged ASC-to-feature map.
+
+        This is a fixed-geometry linear adjoint.  It includes the common
+        atomic-centre mean-potential gauge used by :meth:`project_asc`, but no
+        coordinate derivative.  Existing Gaussian and point-multipole
+        reciprocity kernels provide the transpose without a surface-size
+        dense matrix.
+        """
+
+        positions = np.asarray(atom_positions_angstrom, dtype=float)
+        centers = np.asarray(surface_centers_bohr, dtype=float)
+        if (
+            positions.ndim != 2
+            or positions.shape[1] != 3
+            or positions.shape[0] == 0
+            or not np.all(np.isfinite(positions))
+        ):
+            raise ValueError(
+                "Atom positions must be finite with shape (n_atoms, 3)."
+            )
+        if (
+            centers.ndim != 2
+            or centers.shape[1] != 3
+            or not np.all(np.isfinite(centers))
+        ):
+            raise ValueError(
+                "Surface centers must be finite with shape (n_surface, 3)."
+            )
+        potential_cotangent, gradient_cotangent, gauge_cotangent = (
+            self._smoothed_field_cotangents(feature_cotangent)
+        )
+        if potential_cotangent.shape[1] != positions.shape[0]:
+            raise ValueError(
+                "Model-feature cotangent atom count does not match positions."
+            )
+
+        asc_cotangent = np.zeros(centers.shape[0], dtype=float)
+        for sigma_index, sigma in enumerate(
+            self.spec.receiver_sigmas_angstrom
+        ):
+            # Gaussian-multipole reciprocity expects Cartesian dipoles in
+            # e*Angstrom.  Reversing the eV/(e Angstrom) field conversion
+            # makes both external blocks carry the same Hartree factor here.
+            external_multipoles = np.concatenate(
+                (
+                    (
+                        potential_cotangent[sigma_index] * Hartree
+                    )[:, None],
+                    gradient_cotangent[sigma_index] * Hartree,
+                ),
+                axis=1,
+            )
+            asc_cotangent += gaussian_multipole_potential(
+                centers,
+                positions,
+                external_field_to_density_order(external_multipoles),
+                sigma_angstrom=sigma,
+            )
+
+        gauge_source = np.zeros((positions.shape[0], 4), dtype=float)
+        gauge_source[:, 0] = (
+            gauge_cotangent * Hartree / positions.shape[0]
+        )
+        asc_cotangent += point_multipole_potential(
+            centers,
+            positions,
+            gauge_source,
+        )
+        if asc_cotangent.shape != (centers.shape[0],) or not np.all(
+            np.isfinite(asc_cotangent)
+        ):
+            raise RuntimeError(
+                "Exact-GTO ASC adjoint must be finite with one value per "
+                "surface point."
+            )
+        return asc_cotangent
 
     def project_asc_with_gauge(
         self,

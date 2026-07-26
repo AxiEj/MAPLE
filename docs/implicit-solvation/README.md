@@ -211,13 +211,18 @@ conformer panel are frozen in
 component-resolved differences must be read with the total because polarization
 errors currently cancel. All three fixed-conformer energies have been
 reconfirmed in clean worktrees at `5746f24`, `f3e9892`, and `e34abc5`, with no
-tracked `maple/` runtime-source change among those heads. The four-geometry
-flexible panel and the local flexible-coordinate/two-torsion force evidence
-were generated at earlier commits and remain explicitly historical until
-rerun. Broader flexible/relaxed-path continuity, additional chemical classes,
-and complete conformer thermochemistry remain open without changing the named
-profile; the short NVE conservation gate is still unrun. Until those gates
-pass, optimization, scans, transition states, and MD remain out of scope.
+tracked `maple/` runtime-source change among those heads. One clean
+source-geometry analytic-force canary for 2-acetoxyethyl acetate at `d72dfba`
+reproduces the historical correction force within
+`2.66e-14 eV/angstrom`, converges its adjoint below the configured tolerance,
+and emits no PCMSolver or legacy `primary` warning. This does not rerun the
+direct finite-difference displacement pair. The four-geometry flexible panel,
+finite-difference oracle, torsion/closed-loop panel, and second-molecule force
+evidence remain explicitly historical. Broader flexible/relaxed-path
+continuity, additional chemical classes, and complete conformer thermochemistry
+remain open without changing the named profile; the short NVE conservation
+gate is still unrun. Until those gates pass, optimization, scans, transition
+states, and MD remain out of scope.
 
 See [FORMULAS_AND_REFERENCES.md](FORMULAS_AND_REFERENCES.md) for equations and
 the literature ledger, and [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the

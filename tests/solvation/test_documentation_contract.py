@@ -70,6 +70,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     roadmap = (
         REPOSITORY_ROOT / "docs/implicit-solvation/ROUTE2_FORCE_ROADMAP.md"
     ).read_text(encoding="utf-8")
+    normalized_roadmap = " ".join(roadmap.split())
     assert "Stationarity is not established" in roadmap
     assert "Route 2 requires an adjoint fixed-point derivative" in roadmap
     assert "polar_output_torch()" in roadmap
@@ -187,9 +188,11 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
         "All three fixed-conformer energies have been reconfirmed"
         in normalized_overview
     )
+    assert "source-geometry analytic-force canary" in normalized_overview
+    assert "does not rerun the direct finite-difference" in normalized_overview
     assert "evidence-generating Git heads" in benchmark
     assert "predeclared three-step validation" in validation
     assert "cannot retroactively overwrite" in normalized_validation
     assert "oriented loop force work" in normalized_validation
     assert "Broader flexible-geometry continuity" in roadmap
-    assert "One historical local two-torsion closed displacement loop" in roadmap
+    assert "historical local two-torsion closed loop" in normalized_roadmap

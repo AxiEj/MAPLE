@@ -419,8 +419,24 @@ tracked `maple/` runtime source changed among those heads. The roots used 16,
 observed energy-evaluation times were `8.85`, `24.86`, and `71.91 s`, versus
 historical `10.57`, `32.50`, and `85.55 s`; these single-run observations do
 not replace the frozen timing ratios or establish speedup. The four-geometry
-flexible panel and force evidence remain historical and are not aligned with
-the latest checked checkout.
+flexible panel remains historical and is not aligned with the latest checked
+checkout.
+
+A clean source-geometry analytic-force canary for 2-acetoxyethyl acetate at
+`d72dfba` reached the same 18-iteration root and 11-application adjoint as the
+historical record. Its relative adjoint residual was
+\(6.49\times10^{-11}\), below the configured \(10^{-10}\) tolerance. The
+correction energy matched the current energy-only canary within
+\(5.55\times10^{-17}\) eV; the maximum correction-force and total-force
+component differences from the historical force record were
+\(2.66\times10^{-14}\) and \(9.96\times10^{-16}\) eV/angstrom. No
+PCMSolver or legacy `primary` warning was emitted. The observed force
+evaluation time was `160.91 s`, but this single run is not a timing claim.
+The \(5\times10^{-4}\)-angstrom displacement pair was not rerun: comparing
+the current analytic component to that historical oracle still gives
+\(3.08\times10^{-6}\) eV/angstrom, but it is explicitly cross-head evidence,
+not a current-head direct finite-difference validation. Torsion, closed-loop,
+second-molecule, relaxed-path, and NVE evidence remain historical or unrun.
 
 The total agreement contains substantial component cancellation. For acetone,
 \(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and

@@ -12,7 +12,7 @@
     "scope_boundary": "This one acetone diagnostic does not prove that every AO-density sharp-cavity PCM formulation fails; it only rejects this attempted reference construction for the tested Route-2 cavity/settings.",
     "source_evidence": {
       "alignment_status": "source-did-not-record-git-head",
-      "current_checkout_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
+      "current_checkout_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
       "current_checkout_match": null,
       "evidence_git_head": null,
       "path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/negative_result_same_operator_ao_qm.json",
@@ -23,7 +23,7 @@
     "valid_reference_boundary": "Use a maintained self-consistent SMD implementation designed for AO density (PySCF SMD/IEF-PCM) as a chemical-level QM reference. Compare total SMD corrections and broad components, not claim discretization-identical operators."
   },
   "benchmark_role": "Bounded same-geometry Route-2/QM/experiment energy comparison and four-geometry electronic conformer diagnostic; not a broad accuracy certification.",
-  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at 5746f24, f3e9892, and e34abc5, with no maple/ runtime-source change among those heads. The flexible four-geometry panel and all flexible force/loop evidence remain historical pre-e34abc5 records. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, QM-force comparison, operator identity, or hardware-normalized speedup is established.",
+  "claim_boundary": "Three fixed conformers and one locked four-geometry electronic ensemble. All three fixed conformers have clean energy canaries at 5746f24, f3e9892, and e34abc5, and the 2-acetoxyethyl-acetate source-geometry analytic force has a clean canary at d72dfba, with no maple/ runtime-source change among those heads. The flexible four-geometry panel, direct finite-difference displacement pair, torsion/closed-loop panel, and second-molecule force evidence remain historical. No vibrational thermochemistry, basin degeneracy, solution-phase geometry relaxation, broad chemical-space confirmation, training-set exclusion, current-head direct finite-difference force oracle, QM-force comparison, operator identity, short-NVE conservation, or hardware-normalized speedup is established.",
   "current_checkout_alignment": {
     "canary_execution_heads": {
       "2-acetoxyethyl acetate": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
@@ -37,11 +37,22 @@
     ],
     "fixed_records_not_rerun": [],
     "flexible_panel_current_checkout_match": null,
-    "latest_checked_git_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
+    "force_canary_execution_heads": {
+      "2-acetoxyethyl acetate": "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
+    },
+    "force_evidence_confirmed_by_current_head_canary": [
+      "2-acetoxyethyl acetate source-geometry analytic force"
+    ],
+    "force_evidence_still_historical": [
+      "2-acetoxyethyl acetate direct finite-difference displacement pair",
+      "2-acetoxyethyl acetate torsion and closed-loop panel",
+      "2-propoxyethanol center force"
+    ],
+    "latest_checked_git_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
     "runtime_code_reference_git_head": "5746f24e1ff67482622ebc789c6126cda5cf5928",
     "runtime_code_unchanged_between_canary_heads": true,
     "runtime_source_scope": "maple/",
-    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. No tracked maple/ runtime source changed among those heads. The flexible four-geometry panel and flexible force/loop evidence remain historical until separately rerun."
+    "scope": "Methanol, acetone, and fixed 2-acetoxyethyl acetate energies were rerun in clean detached worktrees at 5746f24, f3e9892, and e34abc5. The 2-acetoxyethyl-acetate source-geometry analytic force was rerun at d72dfba. No tracked maple/ runtime source changed among those canary heads. The four-geometry panel, direct finite-difference displacements, torsion/loop panel, and second-molecule force evidence remain historical until separately rerun."
   },
   "energy_definition": "delta_g_solv = delta_e_solute + u_pol + g_cds",
   "energy_force_separation": "The adjoint is evaluated only for coordinate derivatives. It does not alter the converged Route-2 solvation energy.",
@@ -251,6 +262,8 @@
         "same_geometry": true,
         "source_evidence": {
           "alignment_status": "confirmed-by-current-head-energy-canary",
+          "current_checkout_force_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+          "current_checkout_force_match": true,
           "current_checkout_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
           "current_checkout_match": true,
           "current_head_canary": {
@@ -268,7 +281,47 @@
             "status": "pass",
             "used_for_timing_claim": false
           },
+          "current_head_force_canary": {
+            "absolute_energy_difference_from_current_energy_canary_ev": 5.551115123125783e-17,
+            "absolute_energy_difference_from_historical_force_canary_ev": 0.0,
+            "adjoint": {
+              "absolute_tolerance": 1e-13,
+              "maximum_inner_iterations": 100,
+              "method": "gmres",
+              "operator_applications": 11,
+              "relative_residual": 6.492754519902793e-11,
+              "relative_tolerance": 1e-10,
+              "residual_callback_count": 9,
+              "residual_norm": 1.6101811387024748e-10,
+              "restart_size": 79
+            },
+            "alignment_report_path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-force-alignment-d72dfba.json",
+            "alignment_report_sha256": "fcee980ee13b05a240e6460b6f5839eebd3abe3356d9b70636c38331f402f11c",
+            "claim_boundary": "This current-head run confirms one source-geometry analytic-force result and energy alignment. It does not rerun the finite-difference displacement pair, torsion/closed-loop evidence, relaxed path, QM force, or NVE conservation.",
+            "correction_energy_ev": -0.33988998861544,
+            "cross_head_absolute_error_against_historical_finite_difference_ev_per_angstrom": 3.084074560066874e-06,
+            "current_energy_canary_sha256": "fe71e841c6c0d630cdfbabab7121491bfed73fa27ba0add49d85751a74c64906",
+            "direct_current_head_finite_difference_performed": false,
+            "evaluation_seconds": 160.9126563480022,
+            "git_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
+            "historical_finite_difference_git_head": "5422a078ade3adb0730ec420c3dc5245983e6f4e",
+            "historical_finite_difference_sha256": "28aea23d3fd3b6ce832d612b3faee41bbfaed1c5d53021d380ae35c1e7bd8bac",
+            "historical_force_sha256": "4d53acc278997d5e7c5daa0e4c5ac5135d43ecb514bd3483f9ed82fc0dad4bdc",
+            "legacy_label_noise_count": 0,
+            "maximum_absolute_correction_force_difference_ev_per_angstrom": 2.6617597015388128e-14,
+            "maximum_absolute_total_force_difference_ev_per_angstrom": 9.957312752106873e-16,
+            "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+            "path": ".omx/benchmarks/route2-qm-fidelity-current-head-20260726/2acetoxyethyl-acetate-force-d72dfba.json",
+            "pcmsolver_warning_count": 0,
+            "prepared_sha256": "b22fecdb876627b627c24e08f34f124a519bf3455002bdd204b93d6c5aa8b21e",
+            "root_scf_iterations": 18,
+            "runner_sha256": "538361ad81ac399968ef99c801a712423890d5600f95bc8ccd368c5f314b49fb",
+            "sha256": "fd775bd9fc33053b4a17225b22c473cb0a7aa1396740f521983c5fbfbccc0f64",
+            "status": "pass",
+            "used_for_timing_claim": false
+          },
           "evidence_git_head": "5422a078ade3adb0730ec420c3dc5245983e6f4e",
+          "force_alignment_status": "confirmed-by-current-head-analytic-force-canary",
           "path": ".omx/benchmarks/route2-flexible-multihetero-20260725/2acetoxyethyl_acetate_route2_qm_experiment.json",
           "sha256": "ec92f1619cd902ce15fd104407c61bd36e6f00ec3f995c0a5ad974256c709487",
           "status": "comparison-valid"
@@ -442,7 +495,7 @@
     "route2_profile": "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1",
     "source_evidence": {
       "alignment_status": "not-rerun-on-current-checkout",
-      "current_checkout_head": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
+      "current_checkout_head": "d72dfbaa3997b8d449720d07f3dd6dc076775eea",
       "current_checkout_match": null,
       "evidence_git_heads": [
         "278c312e2d4eaf36edf9f6c17f062befb1bc1c66",
@@ -479,6 +532,6 @@
     "smd-ddpcm-l15-n1202-v1"
   ],
   "schema_version": 2,
-  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating Git heads and current-checkout alignment are recorded explicitly; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries were rerun against the recorded runtime-code-equivalent checkout heads.",
+  "source_artifact_scope": "The listed .omx source paths identify retained local raw evidence and their SHA256 witnesses. They are intentionally not CI inputs or part of the tracked repository. Evidence-generating Git heads and current-checkout alignment are recorded explicitly; this tracked file freezes the reviewed numerical ledger and arithmetic checks. All three fixed-conformer energy canaries and one 2-acetoxyethyl-acetate source-geometry analytic-force canary were rerun against recorded runtime-code-equivalent checkout heads. Direct finite-difference, torsion/loop, and second-molecule force records remain historical.",
   "status": "frozen-bounded-pilot"
 }

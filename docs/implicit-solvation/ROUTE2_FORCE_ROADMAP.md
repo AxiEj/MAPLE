@@ -725,11 +725,13 @@ that CDS energy and gradient come from the same selected provider.
 3. Check zero net force under translation and zero net torque under rotation.
 4. Check energy continuity across small geometry displacements and reject any
    cavity-topology or fallback-branch jumps.
-5. One historical local two-torsion closed displacement loop generated at
-   `5d69ef4` passes for a fixed, unrelaxed 2-acetoxyethyl-acetate conformer. It
-   has not been rerun at the current `5746f24` baseline. Broaden that gate
-   beyond one local rectangle, reconfirm it on the current checkout, and run
-   short NVE tests before enabling optimization, scan, TS search, or MD.
+5. The source-geometry analytic force for a fixed, unrelaxed
+   2-acetoxyethyl-acetate conformer is reconfirmed at current head `d72dfba`.
+   Its direct finite-difference displacement pair and the historical local
+   two-torsion closed loop generated at `5d69ef4` have not been rerun at that
+   head. Reconfirm the direct oracle first, then broaden beyond one local
+   rectangle and run short NVE tests before enabling optimization, scan, TS
+   search, or MD.
 
 ## Stop condition for the force milestone
 

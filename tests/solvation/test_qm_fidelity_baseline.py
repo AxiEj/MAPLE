@@ -65,7 +65,7 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     assert current_alignment["runtime_code_unchanged_between_canary_heads"] is True
     canary_execution_heads = current_alignment["canary_execution_heads"]
     assert canary_execution_heads == {
-        "2-acetoxyethyl acetate": latest_checked_head,
+        "2-acetoxyethyl acetate": "e34abc5bb01be0cfe65e536ca7ec90e7c0ed4e55",
         "acetone": "f3e989245189f742a03a61a19a848df54035c96f",
         "methanol": runtime_reference_head,
     }
@@ -77,6 +77,19 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         "2-acetoxyethyl acetate",
     ]
     assert current_alignment["fixed_records_not_rerun"] == []
+    force_canary_execution_heads = current_alignment["force_canary_execution_heads"]
+    assert force_canary_execution_heads == {
+        "2-acetoxyethyl acetate": latest_checked_head,
+    }
+    _assert_git_sha(force_canary_execution_heads["2-acetoxyethyl acetate"])
+    assert current_alignment["force_evidence_confirmed_by_current_head_canary"] == [
+        "2-acetoxyethyl acetate source-geometry analytic force",
+    ]
+    assert current_alignment["force_evidence_still_historical"] == [
+        "2-acetoxyethyl acetate direct finite-difference displacement pair",
+        "2-acetoxyethyl acetate torsion and closed-loop panel",
+        "2-propoxyethanol center force",
+    ]
     assert current_alignment["flexible_panel_current_checkout_match"] is None
     assert len(records) == panel["summary"]["record_count"] == 3
     assert len({record["compound_id"] for record in records}) == len(records)
@@ -180,6 +193,59 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
 
         route2_qm_errors.append(abs(differences["route2_minus_qm"]))
         route2_experiment_errors.append(abs(differences["route2_minus_experiment"]))
+
+    flexible_record = next(
+        record for record in records if record["name"] == "2-acetoxyethyl acetate"
+    )
+    force_evidence = flexible_record["source_evidence"]
+    assert force_evidence["force_alignment_status"] == (
+        "confirmed-by-current-head-analytic-force-canary"
+    )
+    assert force_evidence["current_checkout_force_head"] == latest_checked_head
+    assert force_evidence["current_checkout_force_match"] is True
+    force_canary = force_evidence["current_head_force_canary"]
+    assert force_canary["status"] == "pass"
+    assert force_canary["git_head"] == latest_checked_head
+    assert force_canary["root_scf_iterations"] == 18
+    assert force_canary["direct_current_head_finite_difference_performed"] is False
+    assert force_canary["used_for_timing_claim"] is False
+    assert force_canary["pcmsolver_warning_count"] == 0
+    assert force_canary["legacy_label_noise_count"] == 0
+    assert force_canary["evaluation_seconds"] > 0.0
+    for hash_name in (
+        "alignment_report_sha256",
+        "current_energy_canary_sha256",
+        "historical_finite_difference_sha256",
+        "historical_force_sha256",
+        "mol2_sha256",
+        "prepared_sha256",
+        "runner_sha256",
+        "sha256",
+    ):
+        _assert_sha256(force_canary[hash_name])
+    assert (
+        force_canary["absolute_energy_difference_from_current_energy_canary_ev"]
+        <= 1.0e-12
+    )
+    assert (
+        force_canary["absolute_energy_difference_from_historical_force_canary_ev"]
+        <= 1.0e-12
+    )
+    assert (
+        force_canary["maximum_absolute_correction_force_difference_ev_per_angstrom"]
+        <= 1.0e-10
+    )
+    assert (
+        force_canary["maximum_absolute_total_force_difference_ev_per_angstrom"]
+        <= 1.0e-10
+    )
+    assert (
+        force_canary["adjoint"]["relative_residual"]
+        <= force_canary["adjoint"]["relative_tolerance"]
+    )
+    assert force_canary[
+        "cross_head_absolute_error_against_historical_finite_difference_ev_per_angstrom"
+    ] == pytest.approx(3.084074560066874e-06)
 
     assert panel["summary"]["route2_vs_qm"] == pytest.approx(
         _summary(route2_qm_errors), abs=1.0e-12

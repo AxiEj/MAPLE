@@ -86,9 +86,13 @@ inputs. The JSON also records the evidence-generating Git heads and whether a
 result has actually been rerun at the current checkout; ancestry alone is not
 treated as current-checkout evidence. All three fixed-conformer energies have
 clean canaries at `5746f24`, `f3e9892`, and `e34abc5`, with no tracked
-`maple/` runtime-source change among those heads. The four-geometry flexible
-panel and flexible force evidence remain historical. The JSON freezes the
-reviewed numerical ledger and arithmetic checks.
+`maple/` runtime-source change among those heads. One
+2-acetoxyethyl-acetate source-geometry analytic-force canary at `d72dfba`
+reproduces the historical correction force within `2.66e-14 eV/angstrom`.
+The direct finite-difference displacement pair, four-geometry flexible panel,
+torsion/closed-loop panel, and second-molecule force evidence remain
+historical. The JSON freezes the reviewed numerical ledger and arithmetic
+checks.
 
 The converged MLIP--PCM/SMD total derivative is now implemented for the
 explicit pyddx/PySCF single-point candidate. The next primary milestone is

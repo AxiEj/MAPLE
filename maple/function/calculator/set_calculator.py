@@ -11,7 +11,11 @@ from typing import Optional
 import ase
 from ase import Atoms
 
-from ..route2_smd_profiles import route2_smd_profiles_for_provider
+from ..route2_smd_profiles import (
+    route2_smd_profiles_for_provider,
+    validate_route2_smd_profile,
+)
+from ..route2_solvents import normalize_route2_solvent_name
 from .calculator_base import (
     atoms_has_pbc,
     get_registered_calculator,
@@ -154,8 +158,17 @@ class SetCalculator:
             raise ValueError(
                 f"The Route-2 branch supports implicit method='smd' only, got {self.implicit!r}."
             )
-        if self.solvent != 'water':
-            raise ValueError("The first implicit-solvation release supports water only.")
+        self.solvent = normalize_route2_solvent_name(self.solvent)
+        configured_solvent = normalize_route2_solvent_name(
+            self.solvation_options.get('implicit', self.solvent)
+        )
+        if configured_solvent != self.solvent:
+            raise ValueError(
+                "Implicit-solvent selector mismatch: "
+                f"solvent={self.solvent!r}, "
+                f"solv.implicit={configured_solvent!r}."
+            )
+        self.solvation_options['implicit'] = configured_solvent
         if self.solvation_options.get('experimental') is not True:
             raise ValueError(
                 "Route 2 is an uncertified research path; "
@@ -222,6 +235,11 @@ class SetCalculator:
                     f"Route 2 provider={provider} does not support "
                     f"profile={profile}."
                 )
+            validate_route2_smd_profile(
+                provider,
+                profile,
+                solvent=self.solvent,
+            )
             response = str(
                 self.solvation_options.get('response', 'scf')
             ).lower()

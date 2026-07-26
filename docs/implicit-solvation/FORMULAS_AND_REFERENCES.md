@@ -87,7 +87,13 @@ fallback fails closed.
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 1.20 | 1.85 | 1.89 | 1.52 | 1.73 | 2.47 | 2.12 | 2.49 | 2.60 | 2.74 |
 
-The Br and I values are the revised Minnesota values.
+This is the frozen historical Route-2 water-v1 table; existing profiles retain
+it so their numerical results do not change. The new
+`smd-ddpcm-l15-n1202-multisolv-v1` profile instead follows the tested PySCF
+2.13.1 SMD element mapping, in which P/S/Cl are
+`2.12/2.49/2.38 angstrom`, and applies the published
+solvent-acidity-dependent oxygen radius. In both tables, Br and I use the
+revised Minnesota values.
 
 ### Polarizable response
 
@@ -290,8 +296,9 @@ research candidate, not a published Route-2 force component.
 ### Optional official PySCF SMD CDS energy/gradient pair
 
 For the optional PySCF 2.13.1 research runtime, MAPLE does not construct a new
-surface-area CDS model. `pyscf_smd_water_cds()` delegates both quantities to the
-same production entry point used by PySCF SMD,
+surface-area CDS model. `pyscf_smd_cds()` delegates both quantities to the
+same production entry point used by PySCF SMD; the retained
+`pyscf_smd_water_cds()` name is only a backward-compatible aqueous wrapper,
 
 \[
 \left(
@@ -299,7 +306,7 @@ G_{\mathrm{CDS}}^{\mathrm{PySCF}},
 \nabla_{\mathbf R}G_{\mathrm{CDS}}^{\mathrm{PySCF}}
 \right)
 =
-\operatorname{get\_cds\_legacy}(\mathrm{SMD}_{\mathrm{water}}).
+\operatorname{get\_cds\_legacy}(\mathrm{SMD}_{s}).
 \]
 
 The upstream `get_cds_legacy()` wrapper, backed by compiled `libsolvent`,

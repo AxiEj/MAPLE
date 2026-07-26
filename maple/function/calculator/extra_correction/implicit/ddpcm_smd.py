@@ -20,14 +20,19 @@ import numpy as np
 from ....route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
     DDPCM_GAFF2_CARBONYL_O_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_PROFILE,
     DDPCM_SMD_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     SUPPORTED_DDPCM_SMD_PROFILES,
     route2_smd_profile_spec,
 )
+from ....route2_solvents import (
+    normalize_route2_solvent_name,
+    route2_solvent_spec,
+)
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
 from .pyddx_pcm_response import PyDDXPCMReactionFieldLinearMap
-from .pyscf_smd_cds import pyscf_smd_water_cds
+from .pyscf_smd_cds import pyscf_smd_cds
 from .result import SolvationResult
 from .route2_domain import validate_route2_domain
 from .route2_engine import (
@@ -35,7 +40,7 @@ from .route2_engine import (
     Route2CoupledState,
     Route2EngineSettings,
 )
-from .smd_cds import route2_water_coulomb_radii
+from .smd_cds import route2_coulomb_radii
 
 
 WATER_STATIC_DIELECTRIC = 78.39
@@ -81,7 +86,7 @@ def _normalized_mol2_atom_types(atoms) -> tuple[str, ...] | None:
 
 @dataclass
 class DDPCMSMDImplicitSolvation:
-    """Aqueous SMD correction with a complete ddPCM response derivative."""
+    """SMD-CDS correction with a complete ddPCM response derivative."""
 
     atoms: Any
     solvation_options: dict[str, Any]
@@ -108,8 +113,19 @@ class DDPCMSMDImplicitSolvation:
         self.standard_state = str(
             self.solvation_options.get("standard_state", "1m")
         ).lower()
-        self._validate_options()
         self.profile_spec = route2_smd_profile_spec(self.profile)
+        self.solvent = normalize_route2_solvent_name(
+            self.solvation_options.get("implicit", "")
+        )
+        self.solvation_options["implicit"] = self.solvent
+        self.solvent_spec = route2_solvent_spec(self.solvent)
+        self._validate_options()
+        self.continuum_dielectric = (
+            WATER_STATIC_DIELECTRIC
+            if self.profile_spec.dielectric_policy
+            == "legacy-water-78.39"
+            else self.solvent_spec.descriptors.dielectric
+        )
         validate_route2_domain(self.atoms)
         self._reference_numbers = np.asarray(
             self.atoms.numbers,
@@ -119,8 +135,9 @@ class DDPCMSMDImplicitSolvation:
         self._reference_mol2_atom_types = _normalized_mol2_atom_types(
             self.atoms
         )
-        self.coulomb_radii_angstrom = route2_water_coulomb_radii(
+        self.coulomb_radii_angstrom = route2_coulomb_radii(
             self.atoms.get_chemical_symbols(),
+            solvent=self.solvent,
             atom_types=self._reference_mol2_atom_types,
             profile=self.profile,
         )
@@ -139,7 +156,8 @@ class DDPCMSMDImplicitSolvation:
             "provider": "pyddx",
             "method": "smd",
             "profile": self.profile,
-            "solvent": "water",
+            "solvent": self.solvent,
+            "pyscf_smd_solvent": self.solvent_spec.pyscf_smd_name,
             "response": "scf",
             "standard_state": "1M(gas)->1M(solution)",
             "standard_state_correction_hartree": 0.0,
@@ -150,13 +168,30 @@ class DDPCMSMDImplicitSolvation:
                 "coarse-grained net charge density, not a QM electron density"
             ),
             "electrostatics": "ddPCM",
+            "electrostatics_model": (
+                self.profile_spec.electrostatics_model
+            ),
+            "solute_source": self.profile_spec.solute_source,
+            "reaction_field_projector": (
+                self.profile_spec.reaction_field_projector
+            ),
+            "nonpolar_model": self.profile_spec.nonpolar_model,
+            "strict_original_smd_equivalence": (
+                self.profile_spec.strict_original_smd_equivalence
+            ),
             "pcm_projection": "atom-centred l<=1 real spherical multipoles",
             "cavity_radii": (
-                "SMD Coulomb radii with revised Br=2.60 A and I=2.74 A"
-                if not self.profile_spec.uses_gaff2_carbonyl_oxygen
-                else (
+                (
                     "SMD Coulomb radii with GAFF/GAFF2 carbonyl oxygen "
                     "(atom type o) overridden to 1.70 A"
+                )
+                if self.profile_spec.uses_gaff2_carbonyl_oxygen
+                else (
+                    "PySCF 2.13.1 SMD solvent-acidity-dependent Coulomb "
+                    "radii with revised Br=2.60 A and I=2.74 A"
+                    if self.profile_spec.coulomb_radii_policy
+                    == "pyscf-smd-2.13.1"
+                    else "frozen legacy Route-2 water-v1 Coulomb radii"
                 )
             ),
             "mace_long_range_evaluator": (
@@ -169,7 +204,16 @@ class DDPCMSMDImplicitSolvation:
                 == MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
                 else "official default molecular real-space evaluator"
             ),
-            "cds": "official PySCF water-SMD libsolvent energy and gradient",
+            "cds": (
+                "official PySCF SMD libsolvent energy and gradient for "
+                f"{self.solvent_spec.pyscf_smd_name}"
+            ),
+            "solvent_descriptors": {
+                "source": self.solvent_spec.descriptor_source,
+                "values": self.solvent_spec.descriptors.as_pyscf_tuple(),
+                "mnsol_name": self.solvent_spec.mnsol_name,
+                "mnsol_doi": self.solvent_spec.experimental_dataset_doi,
+            },
             "route_role": "research-innovation",
             "scientific_status": "single-point-force-candidate",
             "solution_phase_pes": False,
@@ -186,7 +230,11 @@ class DDPCMSMDImplicitSolvation:
                 "response eliminated by one adjoint solve"
             ),
             "numerics": {
-                "dielectric": WATER_STATIC_DIELECTRIC,
+                "dielectric": self.continuum_dielectric,
+                "dielectric_policy": self.profile_spec.dielectric_policy,
+                "coulomb_radii_policy": (
+                    self.profile_spec.coulomb_radii_policy
+                ),
                 "lmax": DDPCM_LMAX,
                 "n_lebedev": DDPCM_N_LEBEDEV,
                 "ddpcm_n_proc": self.profile_spec.ddpcm_n_proc,
@@ -215,11 +263,6 @@ class DDPCMSMDImplicitSolvation:
             )
         if str(self.solvation_options.get("method", "")).lower() != "smd":
             raise ValueError("DDPCMSMDImplicitSolvation requires method=smd.")
-        if str(self.solvation_options.get("implicit", "")).lower() != "water":
-            raise ValueError(
-                "The ddPCM Route-2 force candidate supports "
-                "implicit=water only."
-            )
         if self.provider != "pyddx":
             raise ValueError(
                 "DDPCMSMDImplicitSolvation requires provider=pyddx."
@@ -229,6 +272,11 @@ class DDPCMSMDImplicitSolvation:
             raise ValueError(
                 "The pyddx Route-2 profile must be one of: "
                 f"{supported}."
+            )
+        if not self.profile_spec.supports_solvent(self.solvent):
+            raise ValueError(
+                f"Route 2 profile={self.profile} does not support "
+                f"solvent={self.solvent}."
             )
         if self.response != "scf":
             raise ValueError(
@@ -349,7 +397,7 @@ class DDPCMSMDImplicitSolvation:
         return PyDDXPCMReactionFieldLinearMap(
             np.asarray(atoms.get_positions(), dtype=float),
             self.coulomb_radii_angstrom,
-            dielectric=WATER_STATIC_DIELECTRIC,
+            dielectric=self.continuum_dielectric,
             lmax=DDPCM_LMAX,
             n_lebedev=DDPCM_N_LEBEDEV,
             n_proc=self.profile_spec.ddpcm_n_proc,
@@ -357,11 +405,11 @@ class DDPCMSMDImplicitSolvation:
             eta=DDPCM_ETA,
         )
 
-    @staticmethod
-    def _evaluate_cds(atoms):
-        return pyscf_smd_water_cds(
+    def _evaluate_cds(self, atoms):
+        return pyscf_smd_cds(
             atoms.get_chemical_symbols(),
             np.asarray(atoms.get_positions(), dtype=float),
+            solvent=self.solvent,
         )
 
     def _solve_coupled_state(
@@ -374,7 +422,10 @@ class DDPCMSMDImplicitSolvation:
             atoms,
             calculator,
             gas_state,
-            provider_cache_signature=self._reference_mol2_atom_types,
+            provider_cache_signature=(
+                self.solvent,
+                self._reference_mol2_atom_types,
+            ),
         )
 
     def _coupled_state(
@@ -387,7 +438,10 @@ class DDPCMSMDImplicitSolvation:
         if cached is not None and cached.matches(
             calculator,
             atoms,
-            provider_cache_signature=self._reference_mol2_atom_types,
+            provider_cache_signature=(
+                self.solvent,
+                self._reference_mol2_atom_types,
+            ),
         ):
             return cached
         state = self._solve_coupled_state(
@@ -454,6 +508,7 @@ class DDPCMSMDImplicitSolvation:
             "converged": True,
             "forces_evaluated": derivative is not None,
             "profile": self.profile,
+            "solvent": self.solvent,
             "energies_hartree": components,
             "gas_mace_energy_ev": float(gas_state.energy_ev),
             "solvent_intrinsic_mace_energy_ev": float(
@@ -587,6 +642,7 @@ __all__ = [
     "DDPCM_ETA",
     "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
+    "DDPCM_MULTISOLVENT_SMD_PROFILE",
     "DDPCM_LMAX",
     "DDPCM_N_LEBEDEV",
     "DDPCM_SMD_PROFILE",

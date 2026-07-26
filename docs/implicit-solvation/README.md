@@ -2,10 +2,11 @@
 
 This branch contains only the MACE-POLAR + SMD continuum route. It does not
 contain the fixed-charge PB/GB implementation. The default
-PCMSolver--IEFPCM/GePol profile remains an energy proof-of-concept. A separate,
-explicit pyddx ddPCM profile now exposes a single-point research force
-candidate. Neither profile is yet a complete MAPLE solution-phase PES. All
-calculations therefore require `experimental=true`.
+PCMSolver--IEFPCM/GePol profile remains an energy proof-of-concept. Separate,
+explicit pyddx ddPCM profiles expose single-point research force candidates,
+including one versioned multi-solvent parameter profile. None is yet a
+complete MAPLE solution-phase PES. All calculations therefore require
+`experimental=true`.
 
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot
@@ -94,6 +95,34 @@ certification. The separately named
 `smd-ddpcm-l15-n1202-gaff2-o-v1` profile applies the already documented
 GAFF/GAFF2 `o` carbonyl-oxygen radius change to the same numerical candidate;
 it is not the canonical default or a broad-accuracy claim.
+
+The multi-solvent parameter profile must be selected explicitly:
+
+```text
+#model=macepol-m
+#sp(verbose=1)
+#solv(implicit=acetonitrile,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-multisolv-v1,response=scf,standard_state=1m,experimental=true)
+```
+
+It registers 11 solvents from the tested PySCF 2.13.1 SMD solvent database:
+water, methanol, ethanol, acetonitrile, dimethyl sulfoxide,
+dimethylformamide, tetrahydrofuran, chloroform, dichloromethane, toluene, and
+hexane. The profile uses each solvent's tabulated dielectric, the
+solvent-acidity-dependent SMD oxygen radius, the tested PySCF element-radius
+mapping, and the matching PySCF SMD CDS energy/gradient. Historical water
+profiles retain their original `78.39` dielectric and frozen radius table,
+including its legacy P/S/Cl mapping, so existing results do not silently
+change.
+
+The complete scientific identity is printed in provenance:
+`electrostatics_model=ddpcm`, `solute_source=point-multipole-l1`,
+`reaction_field_projector=local-jet`, and
+`nonpolar_model=pyscf-smd-cds`, with
+`strict_original_smd_equivalence=false`. Thus `method=smd` is a compatible
+input label for an **SMD-CDS-augmented MACE-POLAR/ddPCM hybrid**, not a claim
+that the coarse residual multipoles reproduce original electron-density SMD.
+Registration and successful execution are not multi-solvent accuracy
+validation.
 
 One additional profile isolates the rigid-rotation defect of MACE-POLAR's
 default molecular long-range evaluator:
@@ -194,7 +223,8 @@ The current research route is deliberately fail-closed:
 - neutral closed-shell molecules (`0 1`), no salts, zwitterions, radicals, or
   periodic cells;
 - H/C/N/O/F/P/S/Cl/Br/I and molecular mass from 16 through 500 Da;
-- water only; the explicit pyddx profile may return a single-point force, but
+- the default and historical profiles remain water-only; only the explicitly
+  named multi-solvent pyddx profile accepts its 11 registered solvents;
   optimization, Hessian, scan, TS search, and MD remain disabled;
 - exact official MACE-POLAR-1-M only; `#charge`, D4, other models, and
   unlisted continuum providers are rejected.
@@ -205,6 +235,7 @@ The derivative capability boundary is likewise explicit:
 | --- | --- | --- | --- |
 | PCMSolver--GePol | yes | no; fails closed | energy only |
 | pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | yes | explicit single-point research force candidate |
+| pyddx ddPCM multi-solvent parameters + PySCF SMD CDS | yes | yes | explicit capability candidate; accuracy not certified |
 | pyddx/GAFF2 + MACE reciprocal fixed-box40 | yes | yes | explicit non-default operator-variant candidate |
 | synthetic contract oracle | test only | yes | no |
 | external PySCF SWIG investigation | separate canary only | incomplete Route-2 integration | no |

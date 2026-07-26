@@ -12,6 +12,7 @@ from maple.function.calculator.extra_correction.implicit.pyscf_runtime import (
 from maple.function.calculator.extra_correction.implicit.pyscf_smd_cds import (
     PySCFSMDCDSResult,
     _PySCFSMDCDSRuntime,
+    pyscf_smd_cds,
     pyscf_smd_water_cds,
 )
 
@@ -97,6 +98,7 @@ def test_pyscf_smd_cds_uses_official_energy_and_gradient_in_maple_units(
         "provider": "pyscf-smd-libsolvent-cds",
         "pyscf_version": TESTED_PYSCF_VERSION,
         "solvent": "water",
+        "pyscf_smd_solvent": "water",
         "upstream_entrypoint": "pyscf.solvent.smd.get_cds_legacy",
     }
     assert _FakeGTO.last_kwargs == {
@@ -115,6 +117,22 @@ def test_pyscf_smd_cds_uses_official_energy_and_gradient_in_maple_units(
         result.position_gradient_hartree_per_angstrom[0, 0] = 0.0
     with pytest.raises(TypeError):
         result.runtime_provenance["provider"] = "mutated"
+
+
+def test_pyscf_smd_cds_routes_canonical_name_to_upstream_name(fake_runtime):
+    result = pyscf_smd_cds(
+        ("H", "O"),
+        np.zeros((2, 3)),
+        solvent="dmf",
+        _runtime=fake_runtime,
+    )
+
+    assert _FakeSMD.last_object.solvent == "N,N-dimethylformamide"
+    assert result.runtime_provenance["solvent"] == "dimethylformamide"
+    assert (
+        result.runtime_provenance["pyscf_smd_solvent"]
+        == "N,N-dimethylformamide"
+    )
 
 
 def test_pyscf_smd_cds_rejects_untested_runtime(fake_runtime):

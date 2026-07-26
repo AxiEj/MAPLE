@@ -16,6 +16,7 @@ from typing import Any, Mapping
 import numpy as np
 from ase.units import Bohr
 
+from ....route2_solvents import route2_solvent_spec
 from .pyscf_runtime import (
     TESTED_PYSCF_VERSION,
     require_tested_pyscf_version,
@@ -73,18 +74,20 @@ def _load_pyscf_smd_cds_runtime() -> _PySCFSMDCDSRuntime:
     )
 
 
-def pyscf_smd_water_cds(
+def pyscf_smd_cds(
     symbols,
     positions_angstrom: np.ndarray,
     *,
+    solvent: str,
     _runtime: _PySCFSMDCDSRuntime | None = None,
 ) -> PySCFSMDCDSResult:
-    """Return official PySCF water-SMD CDS energy and gradient.
+    """Return official PySCF SMD CDS energy and gradient.
 
     The upstream gradient is in hartree/bohr.  MAPLE returns the position
     gradient, not force, in hartree/angstrom.
     """
 
+    solvent_spec = route2_solvent_spec(solvent)
     runtime = (
         _load_pyscf_smd_cds_runtime()
         if _runtime is None
@@ -125,7 +128,10 @@ def pyscf_smd_water_cds(
         spin=0,
         verbose=0,
     )
-    smd_object = runtime.smd.SMD(molecule, solvent="water")
+    smd_object = runtime.smd.SMD(
+        molecule,
+        solvent=solvent_spec.pyscf_smd_name,
+    )
     energy, gradient_bohr = runtime.smd.get_cds_legacy(smd_object)
 
     energy_hartree = float(energy)
@@ -150,7 +156,31 @@ def pyscf_smd_water_cds(
         runtime_provenance={
             "provider": "pyscf-smd-libsolvent-cds",
             "pyscf_version": version,
-            "solvent": "water",
+            "solvent": solvent_spec.name,
+            "pyscf_smd_solvent": solvent_spec.pyscf_smd_name,
             "upstream_entrypoint": "pyscf.solvent.smd.get_cds_legacy",
         },
     )
+
+
+def pyscf_smd_water_cds(
+    symbols,
+    positions_angstrom: np.ndarray,
+    *,
+    _runtime: _PySCFSMDCDSRuntime | None = None,
+) -> PySCFSMDCDSResult:
+    """Backward-compatible aqueous wrapper around :func:`pyscf_smd_cds`."""
+
+    return pyscf_smd_cds(
+        symbols,
+        positions_angstrom,
+        solvent="water",
+        _runtime=_runtime,
+    )
+
+
+__all__ = [
+    "PySCFSMDCDSResult",
+    "pyscf_smd_cds",
+    "pyscf_smd_water_cds",
+]

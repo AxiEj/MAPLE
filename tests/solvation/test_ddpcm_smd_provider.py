@@ -27,9 +27,11 @@ from maple.function.read.command_control import CommandControl
 from maple.function.route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
+from maple.function.route2_solvents import SUPPORTED_ROUTE2_SMD_SOLVENTS
 
 
 def _parse(*lines: str) -> dict[str, object]:
@@ -61,6 +63,14 @@ def _options() -> dict[str, object]:
     }
 
 
+def _multisolvent_options(solvent: str) -> dict[str, object]:
+    return {
+        **_options(),
+        "implicit": solvent,
+        "profile": DDPCM_MULTISOLVENT_SMD_PROFILE,
+    }
+
+
 def test_public_parser_accepts_explicit_ddpcm_force_candidate():
     params = _parse(
         "#model=macepol-m",
@@ -73,6 +83,68 @@ def test_public_parser_accepts_explicit_ddpcm_force_candidate():
     )
 
     assert params["solv"] == _options()
+
+
+@pytest.mark.parametrize("solvent", sorted(SUPPORTED_ROUTE2_SMD_SOLVENTS))
+def test_public_parser_accepts_only_multisolvent_profile_for_each_solvent(
+    solvent,
+):
+    params = _parse(
+        "#model=macepol-m",
+        "#sp(verbose=1)",
+        (
+            f"#solv(implicit={solvent},method=smd,provider=pyddx,"
+            f"profile={DDPCM_MULTISOLVENT_SMD_PROFILE},response=scf,"
+            "standard_state=1m,experimental=true)"
+        ),
+    )
+
+    assert params["solv"] == _multisolvent_options(solvent)
+
+
+def test_public_parser_canonicalizes_multisolvent_alias():
+    params = _parse(
+        "#model=macepol-m",
+        "#sp(verbose=1)",
+        (
+            "#solv(implicit=MeCN,method=smd,provider=pyddx,"
+            f"profile={DDPCM_MULTISOLVENT_SMD_PROFILE},response=scf,"
+            "standard_state=1m,experimental=true)"
+        ),
+    )
+
+    assert params["solv"] == _multisolvent_options("acetonitrile")
+
+
+def test_legacy_ddpcm_profile_remains_water_only():
+    with pytest.raises(ValueError, match="does not support solvent=acetonitrile"):
+        _parse(
+            "#model=macepol-m",
+            "#sp(verbose=1)",
+            (
+                "#solv(implicit=acetonitrile,method=smd,provider=pyddx,"
+                f"profile={DDPCM_SMD_PROFILE},response=scf,"
+                "standard_state=1m,experimental=true)"
+            ),
+        )
+
+
+def test_set_calculator_rejects_mismatched_direct_solvent_configuration():
+    builder = SetCalculator(
+        "cpu",
+        "macepol-m",
+        "maple.out",
+        atoms=_atoms(),
+        implicit="smd",
+        solvent="water",
+        solvation_options=_multisolvent_options("acetonitrile"),
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Implicit-solvent selector mismatch",
+    ):
+        builder._validate_solvent_config()
 
 
 def test_public_parser_accepts_only_the_versioned_reciprocal_profile():
@@ -299,6 +371,7 @@ class _ZeroReactionField:
     ):
         self.atom_count = len(positions_angstrom)
         self.n_proc = kwargs["n_proc"]
+        self.dielectric = kwargs["dielectric"]
         self.runtime_provenance = {
             "backend": "fake-pyddx",
             "pyddx_version": "0.8.0",
@@ -731,8 +804,8 @@ def test_reciprocal_omp4_profile_passes_thread_count_to_pyddx(
     )
     monkeypatch.setattr(
         module,
-        "pyscf_smd_water_cds",
-        lambda symbols, positions: _fake_cds(atoms),
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _fake_cds(atoms),
     )
     provider = DDPCMSMDImplicitSolvation(
         atoms,
@@ -750,6 +823,73 @@ def test_reciprocal_omp4_profile_passes_thread_count_to_pyddx(
     assert provider.provenance["numerics"]["ddpcm_n_proc"] == 4
     assert _ZeroReactionField.instances[0].n_proc == 4
     assert result.provenance["numerics"]["ddpcm_n_proc"] == 4
+
+
+def test_multisolvent_provider_routes_dielectric_radii_and_cds_together(
+    monkeypatch,
+    tmp_path,
+):
+    import maple.function.calculator.extra_correction.implicit.ddpcm_smd as module
+
+    atoms = _atoms()
+    calculator = _FakeMACEPolarCalculator(atoms)
+    seen = {}
+    _ZeroReactionField.instances.clear()
+    monkeypatch.setattr(
+        module,
+        "PyDDXPCMReactionFieldLinearMap",
+        _ZeroReactionField,
+    )
+
+    def fake_cds(symbols, positions, *, solvent):
+        seen["solvent"] = solvent
+        return _fake_cds(Atoms(symbols, positions=positions))
+
+    monkeypatch.setattr(module, "pyscf_smd_cds", fake_cds)
+    provider = DDPCMSMDImplicitSolvation(
+        atoms,
+        _multisolvent_options("acetonitrile"),
+        audit_dir=tmp_path,
+    )
+
+    result = provider.evaluate(atoms, calculator=calculator)
+
+    assert seen["solvent"] == "acetonitrile"
+    assert _ZeroReactionField.instances[0].dielectric == pytest.approx(35.688)
+    assert provider.coulomb_radii_angstrom == pytest.approx([1.85, 2.168])
+    assert provider.provenance["solvent"] == "acetonitrile"
+    assert provider.provenance["strict_original_smd_equivalence"] is False
+    assert result.provenance["numerics"]["dielectric"] == pytest.approx(35.688)
+    assert (
+        result.provenance["numerics"]["coulomb_radii_policy"]
+        == "pyscf-smd-2.13.1"
+    )
+
+
+def test_multisolvent_water_dielectric_is_versioned_from_legacy_water(
+    tmp_path,
+):
+    legacy = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _options(),
+        audit_dir=tmp_path / "legacy",
+    )
+    multisolv = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _multisolvent_options("water"),
+        audit_dir=tmp_path / "multisolv",
+    )
+
+    assert legacy.continuum_dielectric == pytest.approx(78.39)
+    assert multisolv.continuum_dielectric == pytest.approx(78.355)
+    assert (
+        legacy.profile_spec.coulomb_radii_policy
+        == "legacy-route2-water-v1"
+    )
+    assert (
+        multisolv.profile_spec.coulomb_radii_policy
+        == "pyscf-smd-2.13.1"
+    )
 
 
 def _fake_cds(atoms):
@@ -798,8 +938,8 @@ def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
     )
     monkeypatch.setattr(
         module,
-        "pyscf_smd_water_cds",
-        lambda symbols, positions: _fake_cds(atoms),
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _fake_cds(atoms),
     )
     provider = DDPCMSMDImplicitSolvation(
         atoms,
@@ -856,8 +996,8 @@ def test_ddpcm_provider_nonzero_response_force_matches_complete_correction_energ
     )
     monkeypatch.setattr(
         module,
-        "pyscf_smd_water_cds",
-        lambda symbols, positions: _coordinate_cds(
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _coordinate_cds(
             Atoms(symbols, positions=positions)
         ),
     )
@@ -945,8 +1085,8 @@ def test_ddpcm_provider_reuses_root_only_for_the_same_geometry(
     )
     monkeypatch.setattr(
         module,
-        "pyscf_smd_water_cds",
-        lambda symbols, positions: _fake_cds(atoms),
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _fake_cds(atoms),
     )
     provider = DDPCMSMDImplicitSolvation(
         atoms,
@@ -997,8 +1137,8 @@ def test_ddpcm_provider_rejects_force_state_energy_drift(
     )
     monkeypatch.setattr(
         module,
-        "pyscf_smd_water_cds",
-        lambda symbols, positions: _fake_cds(atoms),
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _fake_cds(atoms),
     )
     provider = DDPCMSMDImplicitSolvation(
         atoms,
@@ -1059,8 +1199,8 @@ def test_calcabc_adds_gas_force_and_ddpcm_correction_exactly_once(
     )
     monkeypatch.setattr(
         module,
-        "pyscf_smd_water_cds",
-        lambda symbols, positions: _fake_cds(atoms),
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _fake_cds(atoms),
     )
     calculator.solvent_correction = ImplicitSolvationCorrection(
         atoms,

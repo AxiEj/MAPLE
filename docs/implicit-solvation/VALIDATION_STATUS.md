@@ -2,16 +2,18 @@
 
 The public branch contains only official MACE-POLAR-1-M coupled to an explicit
 continuum provider. PCMSolver IEFPCM plus MAPLE's native aqueous SMD CDS remains
-the default energy-only proof-of-concept. The separately named pyddx ddPCM plus
-PySCF SMD CDS profile is now selectable as a single-point research force
-candidate. The independent PySCF SWIG/IEFPCM adapter remains private. Route 2
-is still a Research/Innovation Route, not a complete solution-phase PES.
+the default energy-only proof-of-concept. Separately named pyddx ddPCM plus
+PySCF SMD CDS profiles are selectable as single-point research force
+candidates, including one explicit multi-solvent parameter profile. The
+independent PySCF SWIG/IEFPCM adapter remains private. Route 2 is still a
+Research/Innovation Route, not a complete solution-phase PES.
 
 ## Passing engineering gates
 
 - The public parser is locked to `macepol-m`, neutral singlet fixed-conformer
-  MOL2 input, water, SMD, SCF response, and 1 M to 1 M. PCMSolver remains the
-  default provider; pyddx requires an explicit exact force-candidate profile.
+  MOL2 input, SMD, SCF response, and 1 M to 1 M. PCMSolver and historical
+  profiles remain water-only; pyddx requires an explicit exact profile, and
+  only `smd-ddpcm-l15-n1202-multisolv-v1` accepts the 11 registered solvents.
 - The official MACE-POLAR-1-M checkpoint loads through the upstream cache with
   `mace-torch==0.3.16`; MAPLE changes no learned weight and requires float64.
 - The PCMSolver v1.1.12-style C binding, matching Python parser, custom SMD
@@ -843,6 +845,21 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     `benchmarks/route2-four-molecule-accuracy-prereg-v1-disposition.json`.
     Any replacement must be newly pre-registered with a complete evidence
     chain and a staged budget rather than editing the rejected protocol.
+36. The versioned
+    `smd-ddpcm-l15-n1202-multisolv-v1` capability profile separates
+    electrostatics, source representation, reaction-field projection,
+    nonpolar model, and solvent parameters in immutable profile/solvent
+    records. It uses PySCF 2.13.1 solvent descriptors, including the
+    solvent-acidity-dependent SMD oxygen radius and the tested P/S/Cl mapping
+    (`2.12/2.49/2.38 angstrom`), without changing the historical water
+    profiles and their frozen legacy P/S/Cl mapping.
+
+    Registry immutability, aliases, provider/profile gating, dielectric/CDS
+    routing, historical-profile compatibility, and exact descriptor/radius
+    agreement with the tested PySCF runtime are covered by executable tests.
+    No immutable multi-solvent chemical-accuracy artifact is frozen yet.
+    Therefore this stage establishes a capability boundary only, not a
+    multi-solvent accuracy estimate, a fitted result, or a PES gate.
 
 ## Secondary diagnostics
 
@@ -852,7 +869,7 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
 - Dipole, polarizability, provider-parity, and cavity-stability controls remain
   mechanism diagnostics.
 - One bounded electronic conformer panel is now recorded as a sensitivity
-  diagnostic. Complete conformer thermochemistry, other solvents, ions, and
-  radicals remain separate later extensions.
+  diagnostic. Complete conformer thermochemistry, broad multi-solvent
+  validation, ions, and radicals remain separate later extensions.
 
 Fresh tests establish implementation correctness, not broad chemical accuracy.

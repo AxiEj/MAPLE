@@ -25,6 +25,7 @@ from ....route2_smd_profiles import (
     SUPPORTED_ROUTE2_SMD_PROFILES,
     route2_smd_profile_spec,
 )
+from ....route2_solvents import route2_solvent_spec
 
 
 HARTREE_TO_KCAL_MOL = 627.5094740631
@@ -33,6 +34,8 @@ SASA_GRID_POINTS = 5810
 GAFF2_CARBONYL_O_RADIUS_ANGSTROM = 1.70
 
 
+# Frozen historical Route-2 mapping. New profiles must select an explicit
+# radii policy rather than silently changing these results.
 SMD_WATER_COULOMB_RADII_ANGSTROM = {
     "H": 1.20,
     "C": 1.85,
@@ -43,6 +46,19 @@ SMD_WATER_COULOMB_RADII_ANGSTROM = {
     "S": 2.12,
     "Cl": 2.49,
     # SMD18 revision recommended by the Minnesota solvation database.
+    "Br": 2.60,
+    "I": 2.74,
+}
+
+PYSCF_SMD_COULOMB_RADII_ANGSTROM = {
+    "H": 1.20,
+    "C": 1.85,
+    "N": 1.89,
+    "O": 1.52,
+    "F": 1.73,
+    "P": 2.12,
+    "S": 2.49,
+    "Cl": 2.38,
     "Br": 2.60,
     "I": 2.74,
 }
@@ -121,35 +137,75 @@ def validate_smd_symbols(
     unsupported = sorted(set(normalized).difference(SMD_WATER_COULOMB_RADII_ANGSTROM))
     if unsupported:
         raise ValueError(
-            "Route-2 SMD water currently supports H/C/N/O/F/P/S/Cl/Br/I only; "
+            "Route-2 SMD currently supports H/C/N/O/F/P/S/Cl/Br/I only; "
             f"unsupported elements: {', '.join(unsupported)}."
         )
     return normalized
 
 
-def smd_water_coulomb_radii(symbols) -> np.ndarray:
+def smd_coulomb_radii(symbols, *, solvent: str) -> np.ndarray:
+    """Return SMD Coulomb radii for one registered solvent.
+
+    SMD equation 16 makes the oxygen radius depend on the solvent
+    hydrogen-bond acidity.  All other currently supported elemental radii
+    remain the locked SMD/SMD18 values.
+    """
+
     normalized = validate_smd_symbols(tuple(symbols))
-    return np.asarray(
-        [SMD_WATER_COULOMB_RADII_ANGSTROM[symbol] for symbol in normalized],
+    solvent_spec = route2_solvent_spec(solvent)
+    radii = np.asarray(
+        [PYSCF_SMD_COULOMB_RADII_ANGSTROM[symbol] for symbol in normalized],
         dtype=float,
     )
+    acidity = solvent_spec.descriptors.hydrogen_bond_acidity
+    oxygen_radius = (
+        1.52
+        if acidity >= 0.43
+        else 1.52 + 1.8 * (0.43 - acidity)
+    )
+    radii[np.asarray(normalized) == "O"] = oxygen_radius
+    return radii
 
 
-def route2_water_coulomb_radii(
+def smd_water_coulomb_radii(symbols) -> np.ndarray:
+    return smd_coulomb_radii(symbols, solvent="water")
+
+
+def route2_coulomb_radii(
     symbols,
     *,
+    solvent: str,
     atom_types=None,
     profile: str = CANONICAL_SMD_PROFILE,
 ) -> np.ndarray:
-    """Return the versioned Route-2 electrostatic cavity radii."""
+    """Return versioned Route-2 electrostatic cavity radii."""
 
     normalized_symbols = validate_smd_symbols(tuple(symbols))
+    solvent_spec = route2_solvent_spec(solvent)
     normalized_profile = str(profile).strip().lower()
     if normalized_profile not in SUPPORTED_ROUTE2_SMD_PROFILES:
         raise ValueError(f"Unsupported Route 2 SMD profile: {profile}.")
 
-    radii = smd_water_coulomb_radii(normalized_symbols)
     profile_spec = route2_smd_profile_spec(normalized_profile)
+    if not profile_spec.supports_solvent(solvent_spec.name):
+        raise ValueError(
+            f"Route 2 profile={normalized_profile} does not support "
+            f"solvent={solvent_spec.name}."
+        )
+
+    if profile_spec.coulomb_radii_policy == "legacy-route2-water-v1":
+        radii = np.asarray(
+            [
+                SMD_WATER_COULOMB_RADII_ANGSTROM[symbol]
+                for symbol in normalized_symbols
+            ],
+            dtype=float,
+        )
+    else:
+        radii = smd_coulomb_radii(
+            normalized_symbols,
+            solvent=solvent_spec.name,
+        )
     if not profile_spec.uses_gaff2_carbonyl_oxygen:
         return radii
 
@@ -176,6 +232,21 @@ def route2_water_coulomb_radii(
     )
     radii[carbonyl_oxygen] = GAFF2_CARBONYL_O_RADIUS_ANGSTROM
     return radii
+
+
+def route2_water_coulomb_radii(
+    symbols,
+    *,
+    atom_types=None,
+    profile: str = CANONICAL_SMD_PROFILE,
+) -> np.ndarray:
+    """Return the versioned Route-2 electrostatic cavity radii."""
+    return route2_coulomb_radii(
+        symbols,
+        solvent="water",
+        atom_types=atom_types,
+        profile=profile,
+    )
 
 
 def smd_sasa_radii(symbols) -> np.ndarray:

@@ -2,7 +2,11 @@ import re
 from difflib import get_close_matches
 from typing import Any, Dict, List, Optional
 
-from ..route2_smd_profiles import route2_smd_profiles_for_provider
+from ..route2_smd_profiles import (
+    route2_smd_profiles_for_provider,
+    validate_route2_smd_profile,
+)
+from ..route2_solvents import normalize_route2_solvent_name
 
 
 class CommandControl:
@@ -557,11 +561,12 @@ class CommandControl:
                 msg = "Route-2 implicit solvation requires method=smd."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            implicit = str(implicit).lower()
-            if implicit != "water":
-                msg = "The first implicit-solvation release supports implicit=water only."
+            try:
+                implicit = normalize_route2_solvent_name(implicit)
+            except ValueError as exc:
+                msg = str(exc)
                 cls._log_error(output_path, msg)
-                raise ValueError(msg)
+                raise ValueError(msg) from exc
             solv_params["implicit"] = implicit
             if solv_params.get("experimental") is not True:
                 msg = (
@@ -711,6 +716,16 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
+                try:
+                    validate_route2_smd_profile(
+                        provider,
+                        profile,
+                        solvent=implicit,
+                    )
+                except ValueError as exc:
+                    msg = str(exc)
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg) from exc
                 response = str(solv_params.get("response", "scf")).lower()
                 if provider == "pcmsolver" and response not in {
                     "frozen",
@@ -773,7 +788,10 @@ class CommandControl:
             return
 
         if method is not None:
-            msg = "method=smd requires implicit=water; omit method for explicit solvent."
+            msg = (
+                "method=smd requires implicit=<supported-solvent>; "
+                "omit method for explicit solvent."
+            )
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 

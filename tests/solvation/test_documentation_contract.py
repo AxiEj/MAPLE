@@ -82,6 +82,12 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "Complete same-energy coordinate VJP" in overview
     assert "PCMSolver--GePol | yes | no; fails closed" in overview
     assert "pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | yes" in overview
+    assert "profile=smd-ddpcm-l15-n1202-multisolv-v1" in overview
+    assert "strict_original_smd_equivalence=false" in overview
+    assert "SMD-CDS-augmented MACE-POLAR/ddPCM hybrid" in overview
+    assert "only `smd-ddpcm-l15-n1202-multisolv-v1` accepts" in validation
+    assert "No immutable multi-solvent chemical-accuracy artifact" in validation
+    assert "not a multi-solvent accuracy estimate" in normalized_validation
     assert "route2-ddpcm-result.json" in overview
     assert "route2-ddpcm-state.npz" in overview
     assert "engineering stability hyperparameters" in formulas
@@ -135,6 +141,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "three-orientation" in validation
     assert "Order 47" in validation
     assert "rotation-covariant discretization" in roadmap
+    assert "pyscf_smd_cds()" in formulas
     assert "pyscf_smd_water_cds()" in formulas
     assert "pyscf.solvent.smd.get_cds_legacy" in validation
     assert "position gradient, not force" in formulas

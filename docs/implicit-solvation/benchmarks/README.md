@@ -320,3 +320,51 @@ These are interface canaries, not hydration-free-energy predictions: no
 solute polarization response, SMD-CDS term, experimental comparison, force,
 or solution-phase PES is included. The artifact SHA256 is
 `126f6f08329f6553654defa6fc59dd059c60c6d9e87ca3f1c307764e8c4335c5`.
+
+## MACE-POLAR local-field thermodynamic diagnostic
+
+[`route2-mace-local-field-thermodynamic-canary-v1.json`](route2-mace-local-field-thermodynamic-canary-v1.json)
+is a one-water, no-threshold mechanism diagnostic. It constructs the public
+`MACE-POLAR-1-M/point-l1/local-jet/pyddx-ddPCM/PySCF-SMD-CDS` profile through
+`CommandControl` and `SetCalculator`, reuses its shared-engine coupled root,
+then interrogates only the learned local potential/gradient response. CDS is
+present in the public energy but is not part of any field-response diagnostic.
+
+The root converged in 9 iterations with an unmixed density residual of
+`1.8633e-12 e`; its half-coupling identity error was `8.16e-15 eV`. Three
+independent implementation-level JVP/VJP dot tests closed within
+`2.11e-12 eV`, ruling out a broken automatic transpose as the source of the
+physical diagnostics.
+
+Neither tested energy interpretation is close to its exact identity. The
+maximum separately normalized monopole/dipole defect is `0.6641` for the
+intrinsic-energy candidate and `0.9995` for the already-coupled-energy
+candidate. “Intrinsic” is only the numerically smaller defect; it is not a
+pass. Three response-reciprocity probes have absolute discrepancies from
+`0.00288` to `0.00465 eV`. In the explicit 12-dimensional scaled response
+matrix, the symmetric part has 5 negative, 4 near-zero, and 3 positive modes,
+with a largest positive eigenvalue of `0.00856 eV`; the antisymmetric
+Frobenius norm is `0.01715 eV`.
+
+The field-space rectangular loop gives `-4.1610e-9 eV` at step scale
+`1e-3` and `-1.0402e-9 eV` at `5e-4`. Dividing by the squared step gives
+`-0.00416103` and `-0.00416091 eV`, respectively. This local refinement is
+consistent with nonzero circulation for the tested water state and directions,
+not merely a constant absolute quadrature residue. It is still one molecule,
+one local-jet interface, and one direction pair; it does not quantify broad
+chemical-space behavior.
+
+The complete CUDA process took `8.93 s` on an RTX 4060 Laptop GPU:
+`2.88 s` model load, `2.85 s` public root/energy, `0.14 s` intrinsic field
+gradient, `1.20 s` for three reciprocity pairs plus their adjoint checks, and
+`1.16 s` for the 12 JVP stability matrix. These are run metadata, not portable
+speed claims.
+
+The result therefore strengthens the conservative wording already used by
+Route 2: the matrix-free adjoint differentiates the scalar surrogate actually
+implemented, but the tested learned local-field response does not support a
+claim that this scalar is a jointly variational physical free-energy
+functional. The exact-GTO profile remains outside this diagnostic until a
+feature-space JVP/VJP and matching coordinate derivative exist. The artifact
+SHA256 is
+`65907175add8480fe1cd7d4dbb48a0fe167e7631b57d6a71781cef40fadf3ea1`.

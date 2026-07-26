@@ -746,6 +746,53 @@ by one common sign or scale. Route 2 therefore uses the converged fixed-point
 residual, rather than a presumed density--field variational functional, as the
 definition of its response problem:
 
+The stronger local-field audit compares both candidate identities. If
+\(E_{\mathrm{intrinsic}}(f)=F(c(f))\) for a stationary internal functional,
+then
+
+\[
+g_f+J_{\mathcal M}(f)^\mathsf TQf=0.
+\]
+
+If the reported field-dependent energy instead already contains the complete
+external coupling, its envelope derivative should satisfy
+
+\[
+g_f-Q^\mathsf Tc(f)=0.
+\]
+
+The diagnostic normalizes monopole and dipole blocks separately because their
+natural units differ. It also checks response reciprocity,
+
+\[
+\langle J_{\mathcal M}v,u\rangle_{\mathrm{el}}
+-\langle J_{\mathcal M}u,v\rangle_{\mathrm{el}},
+\]
+
+the sign spectrum of the symmetrized work-conjugate susceptibility, and the
+closed field-space work
+
+\[
+\oint \langle c(f),df\rangle_{\mathrm{el}}.
+\]
+
+On the frozen one-water local-jet/ddPCM state, the intrinsic and coupled
+maximum block defects are `0.6641` and `0.9995`. Three reciprocity
+discrepancies are `0.00288--0.00465 eV`; the symmetrized 12-dimensional
+response contains 3 positive modes under the nonpositive stability
+convention. A rectangular loop at step scales \(10^{-3}\) and
+\(5\times10^{-4}\) gives step-squared-normalized work `-0.00416103` and
+`-0.00416091 eV`. Independent JVP/VJP implementation dot products close
+within `2.11e-12 eV`, so these discrepancies are not explained by a broken
+autograd transpose.
+
+This is a falsification canary, not a fitted model criterion: one valid state
+is enough to show that neither exact identity is established for the current
+coupling, but not enough to characterize all molecules or fields. It applies
+only to the differentiable local potential/gradient interface. The exact-GTO
+energy profile still lacks the feature-space response adjoint needed for the
+same audit.
+
 \[
 \mathcal R(c,\mathbf R)
 =c-\mathcal M\!\left(\mathcal P(c,\mathbf R),\mathbf R\right)=0.

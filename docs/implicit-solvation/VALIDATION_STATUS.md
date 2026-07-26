@@ -917,6 +917,33 @@ Research/Innovation Route, not a complete solution-phase PES.
     smooth cavity, or second continuum equation was evaluated. The immutable
     evidence summary is
     `benchmarks/route2-pcmsolver-exact-gto-acetone-v1.json`.
+38. A source-bound one-water canary now tests the stronger thermodynamic
+    identities requested after the initial
+    `dE_intrinsic/df != returned_density` probe. The public local-jet
+    MACE-POLAR/ddPCM root converged in 9 iterations with
+    `1.8633e-12 e` unmixed residual and `8.16e-15 eV` half-coupling error.
+    Three JVP/VJP implementation dot tests closed within `2.11e-12 eV`.
+
+    With that transpose check passing, the maximum block-normalized
+    energy-density defect is `0.6641` for the intrinsic-energy identity and
+    `0.9995` for the already-coupled-energy identity. Three physical
+    reciprocity discrepancies span `0.00288--0.00465 eV`. The symmetric
+    12-dimensional susceptibility discriminator contains 3 positive modes
+    under the documented nonpositive stability convention, and the
+    antisymmetric norm is `0.01715 eV`. A two-step field-loop refinement gives
+    nearly constant step-squared-normalized work (`-0.00416103` and
+    `-0.00416091 eV`).
+
+    This one-state result sets no fitted pass threshold and does not prove a
+    universal theorem about MACE-POLAR. It is sufficient to reject a claim
+    that either tested exact conjugacy identity is established for the current
+    local-jet Route-2 coupling. The implemented scalar remains differentiable
+    through the fixed-point adjoint, but it must be described as a
+    self-consistent differentiable surrogate rather than a demonstrated joint
+    variational free-energy functional. Exact-GTO response, chemical-space
+    prevalence, smooth coordinates, and PES/NVE gates remain open. The frozen
+    evidence is
+    `benchmarks/route2-mace-local-field-thermodynamic-canary-v1.json`.
 
 ## Secondary diagnostics
 

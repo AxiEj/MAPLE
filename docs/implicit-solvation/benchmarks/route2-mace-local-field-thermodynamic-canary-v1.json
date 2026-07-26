@@ -1,0 +1,651 @@
+{
+  "artifact": "route2-mace-local-field-thermodynamic-canary-v1",
+  "checkpoint": {
+    "identifier": "polar-1-m",
+    "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "size_bytes": 68133235
+  },
+  "claim_boundary": "This one-water canary discriminates two energy-density conjugacy identities and measures local-field response reciprocity, a small-system susceptibility spectrum, and field-loop work. It changes no production energy or force and sets no scientific pass threshold. It does not validate the exact-GTO energy-only response, full electron-density PCM, original SMD equivalence, hydration accuracy, coordinate-force smoothness, a solution-phase PES, OPT, TS, scan, MD, or NVE.",
+  "diagnostic_protocol": {
+    "linearization_adjoint_tolerance_ev": 1e-10,
+    "loop_quadrature": "endpoint-trapezoid-v1",
+    "loop_step_scales": [
+      0.001,
+      0.0005
+    ],
+    "pass_thresholds": null,
+    "random_seed": 20260727,
+    "reciprocity_direction_pairs": 3,
+    "reciprocity_gradient_direction_scale_ev_per_angstrom": 1.0,
+    "reciprocity_potential_direction_scale_ev": 1.0,
+    "stability_eigenvalue_tolerance_ev": 1e-10,
+    "stability_gradient_direction_scale_ev_per_angstrom": 1.0,
+    "stability_potential_direction_scale_ev": 1.0
+  },
+  "diagnostics": {
+    "energy_density_conjugacy": {
+      "coupled_candidate": {
+        "dipole_absolute_l2_e_angstrom": 0.3928690322265119,
+        "dipole_relative_l2": 0.9767797249475267,
+        "maximum_relative_block_error": 0.999498319249544,
+        "monopole_absolute_l2_e": 0.06814460706942099,
+        "monopole_relative_l2": 0.999498319249544
+      },
+      "field_interface": "local-potential-gradient-v1",
+      "intrinsic_candidate": {
+        "dipole_absolute_l2_e_angstrom": 0.015236455697410056,
+        "dipole_relative_l2": 0.46501571778280976,
+        "maximum_relative_block_error": 0.6641099250563749,
+        "monopole_absolute_l2_e": 0.0005273008978156911,
+        "monopole_relative_l2": 0.6641099250563749
+      },
+      "lower_defect_candidate": "intrinsic"
+    },
+    "field_loop_fresh_model_evaluations": 6,
+    "field_loop_work_refinement": [
+      {
+        "absolute_edge_work_ev": 0.0004126350135734447,
+        "closed_loop_work_ev": -4.1610315499739266e-09,
+        "edge_work_ev": [
+          1.7762638466163806e-06,
+          0.00020453916242433096,
+          -1.7771524326395022e-06,
+          -0.00020454243486985784
+        ],
+        "first_field_step": [
+          [
+            -0.00025051233966148404,
+            -4.206379009336637e-05,
+            -3.747925255763367e-05,
+            0.0003770913076602541
+          ],
+          [
+            -0.0003621206623161723,
+            0.00042519676439361457,
+            -0.00022593807360789313,
+            -0.0002256585215172771
+          ],
+          [
+            -0.00028367838032544897,
+            0.0003367923910098828,
+            -0.0003938915270732296,
+            0.00017007392328836134
+          ]
+        ],
+        "gradient_step_scale_ev_per_angstrom": 0.001,
+        "potential_step_scale_ev": 0.001,
+        "quadrature": "endpoint-trapezoid-v1",
+        "relative_closed_loop_work": 1.008404864613678e-05,
+        "second_field_step": [
+          [
+            0.00033331803093577443,
+            8.973267180552214e-06,
+            0.00025943553914751485,
+            -0.0004682069399201095
+          ],
+          [
+            -0.00033061059527828175,
+            0.0001578835547088634,
+            0.00024262131416531016,
+            -0.00020667136002768614
+          ],
+          [
+            0.00036810674255012527,
+            -1.8691622137760445e-05,
+            -0.0004692615631470023,
+            0.0001021123507228918
+          ]
+        ]
+      },
+      {
+        "absolute_edge_work_ev": 0.00020631827969749863,
+        "closed_loop_work_ev": -1.040227837027785e-09,
+        "edge_work_ev": [
+          8.883080392042125e-07,
+          0.00010227031169562659,
+          -8.885302143868643e-07,
+          -0.00010227112974828096
+        ],
+        "first_field_step": [
+          [
+            -0.00012525616983074202,
+            -2.1031895046683185e-05,
+            -1.8739626278816836e-05,
+            0.00018854565383012706
+          ],
+          [
+            -0.00018106033115808615,
+            0.00021259838219680728,
+            -0.00011296903680394656,
+            -0.00011282926075863855
+          ],
+          [
+            -0.00014183919016272448,
+            0.0001683961955049414,
+            -0.0001969457635366148,
+            8.503696164418067e-05
+          ]
+        ],
+        "gradient_step_scale_ev_per_angstrom": 0.0005,
+        "potential_step_scale_ev": 0.0005,
+        "quadrature": "endpoint-trapezoid-v1",
+        "relative_closed_loop_work": 5.041859783597239e-06,
+        "second_field_step": [
+          [
+            0.00016665901546788722,
+            4.486633590276107e-06,
+            0.00012971776957375743,
+            -0.00023410346996005475
+          ],
+          [
+            -0.00016530529763914088,
+            7.89417773544317e-05,
+            0.00012131065708265508,
+            -0.00010333568001384307
+          ],
+          [
+            0.00018405337127506264,
+            -9.345811068880223e-06,
+            -0.00023463078157350114,
+            5.10561753614459e-05
+          ]
+        ]
+      }
+    ],
+    "interpretation_policy": "Report both candidate defects and all raw diagnostics. The numerically lower defect is not a pass or proof of a variational free-energy functional.",
+    "response_reciprocity": [
+      {
+        "absolute_error_ev": 0.0033961969285394838,
+        "first_field_direction": [
+          [
+            -0.13900659600709797,
+            -0.5467413483927462,
+            0.41286639649432744,
+            -0.503783110524912
+          ],
+          [
+            0.14365674348443758,
+            0.23437159989115838,
+            -0.24033034486853802,
+            -0.09269756775737904
+          ],
+          [
+            0.18397195672309763,
+            -0.032608378191326406,
+            -0.28368459365075543,
+            -0.013792173120547738
+          ]
+        ],
+        "forward_pairing_ev": -0.0032640763318556023,
+        "linearization_adjoint_dot_test": {
+          "absolute_error_ev": 2.1079956356861995e-12,
+          "forward_dot_ev": -0.0032640763318556023,
+          "passed": true,
+          "relative_error": 3.229084464772811e-10,
+          "reverse_dot_ev": -0.003264076333963598,
+          "tolerance_ev": 1e-10
+        },
+        "pair_index": 0,
+        "relative_error": 1.0,
+        "reverse_pairing_ev": 0.00013212059668388134,
+        "second_field_direction": [
+          [
+            0.003388688657451201,
+            0.22624286833396604,
+            0.007424607414053108,
+            -0.5022824915583372
+          ],
+          [
+            -0.22401263072282937,
+            -0.3453459696702971,
+            0.37967572360181434,
+            0.45155430009206804
+          ],
+          [
+            -0.08001607960174295,
+            0.31454283959604157,
+            0.20456474669885055,
+            -0.1782495726583409
+          ]
+        ]
+      },
+      {
+        "absolute_error_ev": 0.0046511301949924404,
+        "first_field_direction": [
+          [
+            0.4919301967566318,
+            0.14329191771324712,
+            -0.10391212691754195,
+            -0.43921608720831873
+          ],
+          [
+            -0.40200566244209396,
+            -0.09571461150912604,
+            -0.008057042957916618,
+            0.0759230231730002
+          ],
+          [
+            0.11565157788147444,
+            -0.34466582520126016,
+            0.19240668979987116,
+            -0.43356013742644917
+          ]
+        ],
+        "forward_pairing_ev": 6.091370767686026e-05,
+        "linearization_adjoint_dot_test": {
+          "absolute_error_ev": 8.399882894284671e-13,
+          "forward_dot_ev": 6.091370767686026e-05,
+          "passed": true,
+          "relative_error": 6.894903591264413e-09,
+          "reverse_dot_ev": 6.091370851684855e-05,
+          "tolerance_ev": 1e-10
+        },
+        "pair_index": 1,
+        "relative_error": 1.0,
+        "reverse_pairing_ev": -0.0045902164873155805,
+        "second_field_direction": [
+          [
+            -0.28524578313083687,
+            0.309636615733222,
+            0.29296515287820574,
+            -0.11178411416795415
+          ],
+          [
+            0.6401818843997633,
+            -0.30511064965414925,
+            -0.17225740081498803,
+            0.19246199435640488
+          ],
+          [
+            0.0683339563397458,
+            0.2391668535694937,
+            -0.10616008569772122,
+            0.28575492670849484
+          ]
+        ]
+      },
+      {
+        "absolute_error_ev": 0.0028826490280789464,
+        "first_field_direction": [
+          [
+            -0.17924826630399912,
+            0.26719122659935673,
+            0.058183659776268874,
+            0.06174607252650227
+          ],
+          [
+            0.6257766732314645,
+            0.033607056810400944,
+            -0.5187592042919554,
+            -0.287470969085315
+          ],
+          [
+            0.2782945383210125,
+            -0.23483153154107658,
+            -0.10294339017221608,
+            0.04016718486503198
+          ]
+        ],
+        "forward_pairing_ev": 0.004001140128193476,
+        "linearization_adjoint_dot_test": {
+          "absolute_error_ev": 1.530386060932809e-12,
+          "forward_dot_ev": 0.004001140128193476,
+          "passed": true,
+          "relative_error": 1.912437470562245e-10,
+          "reverse_dot_ev": 0.00400114012666309,
+          "tolerance_ev": 1e-10
+        },
+        "pair_index": 2,
+        "relative_error": 0.5630579429510272,
+        "reverse_pairing_ev": 0.0011184911001145298,
+        "second_field_direction": [
+          [
+            -0.5827535846542875,
+            0.3994384269262332,
+            0.14424203393744825,
+            0.3898990864810108
+          ],
+          [
+            0.010870190036229462,
+            -0.1661321527983498,
+            0.053491903614945956,
+            0.012527671515258687
+          ],
+          [
+            -0.1726734302238369,
+            -0.4910382066669934,
+            -0.11336890563261746,
+            -0.11617494767380872
+          ]
+        ]
+      }
+    ],
+    "response_stability": {
+      "antisymmetric_frobenius_norm_ev": 0.017147980133275495,
+      "dimension": 12,
+      "gradient_direction_scale_ev_per_angstrom": 1.0,
+      "maximum_eigenvalue_ev": 0.008559499508787935,
+      "minimum_eigenvalue_ev": -0.01217602175888384,
+      "near_zero_eigenvalue_count": 4,
+      "negative_eigenvalue_count": 5,
+      "passivity_violation_ev": 0.008559499508787935,
+      "positive_eigenvalue_count": 3,
+      "potential_direction_scale_ev": 1.0,
+      "stable_sign_convention": "nonpositive"
+    }
+  },
+  "execution_git_head": "c8fe19b35b2ea0c9631891d3b0f999fd2e0fe703",
+  "field_summary": {
+    "gradient_l2_ev_per_angstrom": 2.3545002752331072,
+    "potential_max_ev": 0.6603974562492541,
+    "potential_min_ev": -0.2910319251746737
+  },
+  "generated_at_utc": "2026-07-26T22:22:06+00:00",
+  "molecule": {
+    "atom_count": 3,
+    "formula": "H2O",
+    "geometry_sha256": "178fe0c8df79b72be93f689af33453140d85103a246060a08f7ad1df3bfc9227",
+    "geometry_source": "ASE G2 molecule collection",
+    "name": "water",
+    "positions_angstrom": [
+      [
+        0.0,
+        0.0,
+        0.119262
+      ],
+      [
+        0.0,
+        0.763239,
+        -0.477047
+      ],
+      [
+        0.0,
+        -0.763239,
+        -0.477047
+      ]
+    ]
+  },
+  "profile": {
+    "name": "smd-ddpcm-l15-n1202-v1",
+    "provenance": {
+      "accuracy_certified": false,
+      "cavity_radii": "frozen legacy Route-2 water-v1 Coulomb radii",
+      "cds": "official PySCF SMD libsolvent energy and gradient for water",
+      "default_eligible": false,
+      "density_interpretation": "coarse-grained net charge density, not a QM electron density",
+      "density_source": "official MACE-POLAR-1-M l<=1 residual charge density",
+      "electrostatics": "ddPCM",
+      "electrostatics_model": "ddpcm",
+      "energy_composition": "delta_G_solv = (E_MACE_intrinsic[V_reac]-E_MACE_gas) + E_ddPCM + G_CDS",
+      "force_composition": "F_solution = F_MACE_gas - d(delta_G_solv)/dR, with the converged-density response eliminated by one adjoint solve",
+      "forces_available": true,
+      "mace_long_range_evaluator": "graph-longrange-molecular-realspace-v1",
+      "mace_long_range_evaluator_status": "official default molecular real-space evaluator",
+      "method": "smd",
+      "nonpolar_model": "pyscf-smd-cds",
+      "numerics": {
+        "adjoint_absolute_tolerance": 1e-13,
+        "adjoint_maximum_iterations": 100,
+        "adjoint_relative_tolerance": 1e-10,
+        "coulomb_radii_policy": "legacy-route2-water-v1",
+        "ddpcm_eta": 0.1,
+        "ddpcm_n_proc": 1,
+        "ddpcm_solver_tolerance": 1e-12,
+        "dielectric": 78.39,
+        "dielectric_policy": "legacy-water-78.39",
+        "lmax": 15,
+        "n_lebedev": 1202,
+        "scf_density_tolerance_e": 2e-12,
+        "scf_energy_tolerance_ev": 1e-10,
+        "scf_maximum_iterations": 100,
+        "scf_mixing": 1.0
+      },
+      "pcm_projection": "atom-centred l<=1 real spherical multipoles",
+      "profile": "smd-ddpcm-l15-n1202-v1",
+      "provider": "pyddx",
+      "pyscf_smd_solvent": "water",
+      "reaction_field_projector": "local-jet",
+      "response": "scf",
+      "route_role": "research-innovation",
+      "scientific_status": "single-point-force-candidate",
+      "solute_source": "point-multipole-l1",
+      "solution_phase_pes": false,
+      "solvent": "water",
+      "solvent_descriptors": {
+        "mnsol_doi": "10.13020/3eks-j059",
+        "mnsol_name": "water",
+        "source": "PySCF 2.13.1 SMD solvent_db",
+        "values": [
+          1.3328,
+          1.3323,
+          0.82,
+          0.35,
+          -1.0,
+          78.355,
+          -1.0,
+          -1.0
+        ]
+      },
+      "standard_state": "1M(gas)->1M(solution)",
+      "standard_state_correction_hartree": 0.0,
+      "strict_original_smd_equivalence": false
+    }
+  },
+  "public_energy_hartree": {
+    "combined": -76.44766636547484,
+    "delta_g_solv": -0.014126359579011448,
+    "gas": -76.43354000589584
+  },
+  "public_settings": [
+    "#model=macepol-m",
+    "#sp(verbose=1)",
+    "#solv(implicit=water,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-v1,response=scf,standard_state=1m,experimental=true)"
+  ],
+  "runtime": {
+    "ase": "3.27.0",
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "graph_longrange": "0.4.0",
+    "ld_preload": "/home/axie/miniconda3/envs/maple/lib/libstdc++.so.6.0.34",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "pyddx": "0.8.0",
+    "pyddx_extension": {
+      "path": "/home/axie/.cache/maple-envs/psi4-ddx-qmref/lib/python3.11/site-packages/pyddx.cpython-311-x86_64-linux-gnu.so",
+      "sha256": "697bafe818a749bb70963ef13a36496bcba52fc427046e8eefe6e769a0d68845"
+    },
+    "pyscf": "2.13.1",
+    "python": "3.11.14",
+    "timing_seconds": {
+      "density_linearization_setup": 0.0001021979987854138,
+      "energy_density_conjugacy": 0.11906974099110812,
+      "field_loop_work_by_step": [
+        0.1897575670009246,
+        0.19405808601004537
+      ],
+      "intrinsic_energy_field_gradient": 0.13743886799784377,
+      "model_load": 2.879571792000206,
+      "public_coupled_root_and_energy": 2.8494907380081713,
+      "reciprocity_three_pairs": 1.2015470970072784,
+      "same_field_response_state": 0.06527521699899808,
+      "stability_twelve_jvps": 1.1563363739987835,
+      "total": 8.933323111996287
+    },
+    "torch": "2.12.0+cu130"
+  },
+  "same_root": {
+    "half_coupling_identity_error_ev": 8.1601392309949e-15,
+    "history": [
+      {
+        "density_residual_e": 0.01883579403591497,
+        "energy_residual_ev": null,
+        "intrinsic_energy_ev": -2079.853356751702,
+        "iteration": 1
+      },
+      {
+        "density_residual_e": 0.0015423724409944634,
+        "energy_residual_ev": 0.000582711481001752,
+        "intrinsic_energy_ev": -2079.852774040221,
+        "iteration": 2
+      },
+      {
+        "density_residual_e": 8.790953617493491e-05,
+        "energy_residual_ev": 3.23817321259412e-05,
+        "intrinsic_energy_ev": -2079.852741658489,
+        "iteration": 3
+      },
+      {
+        "density_residual_e": 4.703536362754557e-06,
+        "energy_residual_ev": 1.7740862858772743e-06,
+        "intrinsic_energy_ev": -2079.8527398844026,
+        "iteration": 4
+      },
+      {
+        "density_residual_e": 2.490577230701563e-07,
+        "energy_residual_ev": 9.458562999498099e-08,
+        "intrinsic_energy_ev": -2079.852739789817,
+        "iteration": 5
+      },
+      {
+        "density_residual_e": 1.3129039917736396e-08,
+        "energy_residual_ev": 4.671619535656646e-09,
+        "intrinsic_energy_ev": -2079.8527397851453,
+        "iteration": 6
+      },
+      {
+        "density_residual_e": 6.895067988788028e-10,
+        "energy_residual_ev": 2.0236257114447653e-10,
+        "intrinsic_energy_ev": -2079.852739784943,
+        "iteration": 7
+      },
+      {
+        "density_residual_e": 3.519811525576344e-11,
+        "energy_residual_ev": 1.3642420526593924e-11,
+        "intrinsic_energy_ev": -2079.8527397849293,
+        "iteration": 8
+      },
+      {
+        "density_residual_e": 1.8632803633344963e-12,
+        "energy_residual_ev": 9.094947017729282e-13,
+        "intrinsic_energy_ev": -2079.8527397849284,
+        "iteration": 9
+      }
+    ],
+    "public_audit": {
+      "result_sha256": "7828a77c11b6115f4ab9eb4224a92c402d8be3a7f8bb2c1d5c520d5e17b29611",
+      "state_sha256": "2881f66deb254e0aa1f5af450a0b6a49e9f41e0e1529beba98902b139c3fff82"
+    },
+    "response_density_monopole_sum_e": 3.469446951953614e-18,
+    "root_density_monopole_sum_e": -3.469446951953614e-18,
+    "scf_iterations": 9,
+    "unmixed_density_residual_inf_e": 1.8632803633344963e-12
+  },
+  "schema_version": 1,
+  "scientific_identity": {
+    "cds_present_in_public_energy": true,
+    "cds_used_in_diagnostics": false,
+    "continuum": "pyddx ddPCM",
+    "density_interpretation": "coarse-grained residual/net-charge l<=1 coefficients",
+    "field_interface": "local-potential-gradient-v1",
+    "reaction_field_projector": "local-jet",
+    "solute_response_model": "official MACE-POLAR-1-M",
+    "solute_source": "point-multipole-l1",
+    "strict_original_smd_equivalence": false
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_route2_mace_thermodynamic_canary.py": "ad5ef71665767bf558e2467ea0c3ee2c33407aaf2d214674b6adca9e90705c0e",
+    "maple/function/calculator/extra_correction/implicit/ddpcm_smd.py": "a0058ce06bd08c64609354e43f75514291835ffb73ae4c7354a1e6315048c1bf",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/route2_engine.py": "e4a00ec8f6763345dae96cc8c2f8919808deec9effbe79ae16e1d0fef4445957",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "42d8111cd338fe2bb8e5a6117c68080626656c46f4294dc4e782e745ee837da1",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "dc7a2ee65baba3d7641f0216b7cfeb2d2eca9c36044e63190d044290a9c7c696",
+    "maple/function/calculator/mace/_macepol_calculator.py": "39e4c5b65acbc694109346530e87f13d41c1776a7245d62d32300b303411f5b9",
+    "maple/function/calculator/set_calculator.py": "b78f83c2b4853554e48ec6c71531cbcf122aaea949b89a9436b1f4b7ebe2bfdf",
+    "maple/function/read/command_control.py": "6356deb7a681a2c2226733189ed87376a753b9ae5a725f9a7b1e66aa4f912e9c",
+    "maple/function/route2_smd_profiles.py": "1485999845647b9117dc031b539cda42d17f15e29328651adb56728203c9a88b"
+  },
+  "state_arrays": {
+    "intrinsic_energy_field_gradient": [
+      [
+        0.00035705687285415724,
+        0.0,
+        0.0,
+        0.010239573956622132
+      ],
+      [
+        -4.4365673556508324e-05,
+        0.0,
+        0.0004794035628002087,
+        -0.001546079288988084
+      ],
+      [
+        -4.5734545756820385e-05,
+        0.0,
+        -0.0004941632651985972,
+        -0.0015434042029663195
+      ]
+    ],
+    "reaction_field_values_ev": [
+      [
+        0.6603974562492541,
+        4.319166534861212e-18,
+        0.0001178148587676473,
+        1.0279601235949425
+      ],
+      [
+        -0.2908142020131079,
+        4.373753249183456e-17,
+        -0.8871234169271949,
+        1.20672438270385
+      ],
+      [
+        -0.2910319251746737,
+        -1.5564879923635463e-17,
+        0.8874025745018262,
+        1.2067785607086612
+      ]
+    ],
+    "response_density_coefficients": [
+      [
+        -0.055371620544317206,
+        0.0,
+        -0.10506651880077178,
+        0.0
+      ],
+      [
+        0.027667117567439812,
+        0.22061422688918902,
+        -0.15007951228774413,
+        0.0
+      ],
+      [
+        0.027704502976877397,
+        -0.22063887158408158,
+        -0.1500875649615666,
+        0.0
+      ]
+    ],
+    "root_density_coefficients": [
+      [
+        -0.055371620542453925,
+        0.0,
+        -0.10506651880040274,
+        0.0
+      ],
+      [
+        0.02766711756639691,
+        0.22061422688885612,
+        -0.150079512287491,
+        0.0
+      ],
+      [
+        0.027704502976057012,
+        -0.22063887158381718,
+        -0.1500875649613565,
+        0.0
+      ]
+    ]
+  }
+}

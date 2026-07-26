@@ -560,13 +560,18 @@ that CDS energy and gradient come from the same selected provider.
    The next continuum provider must use a rotation-covariant discretization
    (or an equivalently rotation-stable construction) and must own the matching
    scalar energy and analytic coordinate derivative.
-   Literature-backed candidates are a molecule-following atom-centred grid
-   with the complete orientation-matrix derivative, or a separately named
-   ddPCM/ddCOSMO provider with its own same-energy force derivation. ISWIG
-   alone is not a fundamental fix because it changes the switching function
-   while retaining the laboratory-frame Lebedev construction. Post-hoc torque
-   removal is nonconservative relative to the implemented scalar energy and is
-   forbidden. At this phase, only after a replacement provider passed this
+   Route 2 already uses a separately named pyddx ddPCM provider with its own
+   same-energy force derivation, so “switch to ddPCM/ddCOSMO” is not a new
+   repair. The selected next canary wraps that unchanged scalar in the
+   molecule-following nuclear-charge frame of Johnson, Gill, and Pople; a
+   complete orientation-matrix VJP and an explicit eigenvalue-degeneracy
+   fail-closed boundary remain mandatory. A genuinely different
+   domain-decomposition provider remains an alternative only if it exposes a
+   maintained callable same-energy derivative profile. ISWIG alone is not a
+   fundamental fix because it changes the switching function while retaining
+   the laboratory-frame Lebedev construction. Post-hoc torque removal is
+   nonconservative relative to the implemented scalar energy and is forbidden.
+   At this phase, only after a replacement provider passed this
    gate, additional total-gradient components, and same-profile provenance
    could
    `SolvationResult.forces_hartree_per_angstrom` be populated or
@@ -800,6 +805,14 @@ that CDS energy and gradient come from the same selected provider.
    derivative-complete quadrature or a published analytic-force
    domain-decomposition provider remains a candidate only after its own
    separately locked feasibility and derivative profile passes.
+
+   `ROUTE2_PROVIDER_CANARY.md` now freezes the first of those feasibility
+   checks. It uses one frozen acetone density, three prescribed rigid
+   orientations, and exactly three laboratory-frame plus three
+   molecule-frame scalar evaluations. It changes no radii, dielectric, grid
+   order, ddPCM equation, tolerance, MACE weight, or public profile. Failure
+   rejects the candidate without tuning; success authorizes only a separately
+   pre-registered analytic frame-VJP canary.
 
    The historical local two-torsion closed loop generated at `5d69ef4` must
    not be promoted or rerun as a production gate until the smooth-provider

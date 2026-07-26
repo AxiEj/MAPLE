@@ -7,6 +7,12 @@ explicit pyddx ddPCM profile now exposes a single-point research force
 candidate. Neither profile is yet a complete MAPLE solution-phase PES. All
 calculations therefore require `experimental=true`.
 
+The next provider experiment is frozen separately in
+[`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). It tests one
+fixed-density acetone scalar in a JGP94 molecule-following frame before any
+frame derivative or production-path change. A pass is not a PES or accuracy
+claim.
+
 ## Route-2 contract: self-consistent polarizable MLIP--PCM/SMD coupling
 
 Route 2 is separate from the fixed-charge PB/GB path. It couples the official

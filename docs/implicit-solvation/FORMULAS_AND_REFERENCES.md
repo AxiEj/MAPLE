@@ -1260,6 +1260,49 @@ derivative for the present SWIG/IEFPCM energy. Either candidate must first
 define one same-energy forward, adjoint, coordinate-VJP, and CDS profile before
 another real-MACE canary is justified.
 
+The selected next scalar canary adapts the nuclear-charge standard frame of
+Johnson, Gill, and Pople rather than pretending that a new provider name fixes
+the grid. Route 2 already uses pyddx ddPCM. Define
+
+\[
+\mathbf T=\frac{\sum_A Z_A\mathbf R_A}{\sum_A Z_A},
+\qquad
+\mathbf M=\sum_A Z_A\left[
+|\mathbf R_A-\mathbf T|^2\mathbf I
+-(\mathbf R_A-\mathbf T)(\mathbf R_A-\mathbf T)^\mathsf T
+\right],
+\]
+
+and order the columns of \(\mathbf O\) so that
+
+\[
+\mathbf O^\mathsf T\mathbf M\mathbf O
+=\operatorname{diag}(\lambda_1,\lambda_2,\lambda_3).
+\]
+
+The body coordinates and Cartesian dipoles are
+\(\mathbf Y=(\mathbf R-\mathbf T)\mathbf O\) and
+\(\mathbf p_{\mathrm{body}}=\mathbf p\mathbf O\), respectively. Evaluating the
+unchanged finite ddPCM problem in that frame makes the atomic grids follow the
+molecule. This scalar construction is not yet a force. For a nuclear
+coordinate \(x\), with
+\(\mathbf P^x=\mathbf O^\mathsf T\mathbf O^x\),
+
+\[
+P^x_{ij}
+=\frac{(\mathbf O^\mathsf T\mathbf M^x\mathbf O)_{ij}}
+{\lambda_j-\lambda_i},
+\qquad i\ne j,
+\]
+
+and the moving-grid term
+\(\mathbf O^x\mathbf s_g\) must be included. Eigenvalue degeneracy therefore
+defines a real singular/high-symmetry boundary, not a numerical exception to
+hide. The one-shot fixed-density acetone protocol, a predeclared relative
+eigengap guard, and its strict interpretation are recorded in
+`ROUTE2_PROVIDER_CANARY.md`. No parser/factory profile is added before the
+scalar and later derivative canaries pass.
+
 This closes only a narrow continuum-electrostatic coordinate-gradient slice.
 PySCF is loaded lazily, its private gradient-intermediate layout remains locked
 to tested version 2.13.1, and neither the public parser nor production provider

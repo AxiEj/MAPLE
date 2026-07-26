@@ -155,3 +155,13 @@ closed loop, or advance to a second flexible molecule or short-NVE
 conservation before the smooth-provider gate passes.
 Running more FreeSolv records must not displace those PES gates, while the
 bounded QM-fidelity panel must not be promoted into a broad accuracy claim.
+
+The first feasibility protocol is now
+`../ROUTE2_PROVIDER_CANARY.md`, with tracked runner
+`run_route2_jgp94_ddpcm_canary.py`. It is intentionally smaller than that
+eventual provider milestone: one frozen acetone density, three prescribed
+rigid orientations, six total ddPCM scalar cases, and no MACE/CDS/force call.
+It tests only whether the JGP94 nuclear-charge standard frame removes the
+laboratory-grid scalar rotation span while preserving the identity-orientation
+energy within `0.01 kcal/mol`. Passing it authorizes only a separately locked
+analytic frame-VJP canary.

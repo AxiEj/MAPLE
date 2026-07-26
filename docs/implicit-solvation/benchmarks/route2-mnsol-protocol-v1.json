@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "benchmark_kind": "mnsol-v2012-dataset-protocol",
+  "protocol_id": "maple-route2-mnsol-multisolvent-dataset-v1",
+  "claim_scope": "License-aware ingestion and aggregate coverage audit for a user-supplied MNSol-v2012 distribution. This protocol does not run or certify MACE-POLAR, AIMNet, PCM, CPCM, COSMO, COSMO-RS, SMD-CDS, forces, or a solution-phase PES.",
+  "dataset": {
+    "name": "Minnesota Solvation Database",
+    "version": "2012",
+    "date": "2012-11-26",
+    "doi": "10.13020/3eks-j059",
+    "homepage": "https://comp.chem.umn.edu/mnsol/",
+    "manual": "https://comp.chem.umn.edu/mnsol/MNSol-v2012_Manual.pdf",
+    "table_name": "MNSol_alldata.txt",
+    "table_sha256": "6dba4397764d1ca665c5dac653b9963bd64f784c353311a72c15e42897b90156",
+    "normalized_bundle_sha256": "6465a65a024cd06872cb9812381184ed6e9b1a528adfe12be9d5d43b4aec75d8",
+    "expected_record_count": 3037,
+    "expected_unique_solutes": 790,
+    "expected_absolute_solvents": 92,
+    "expected_transfer_labels": 14,
+    "temperature_k": 298.0,
+    "standard_state": "1M-ideal-gas-to-1M-ideal-solution",
+    "acquisition_policy": "user-supplied-no-auto-download",
+    "redistribution_policy": "MAPLE does not redistribute the MNSol archive or row-level data",
+    "license_note": "Academic, government, and non-profit use is free according to the official site; the distributed database includes unpublished material and commercial use requires a separate license."
+  },
+  "domain": {
+    "molecular_charge": 0,
+    "multiplicity": 1,
+    "molecular_mass_da": [
+      16.0,
+      500.0
+    ],
+    "allowed_elements": [
+      "H",
+      "C",
+      "N",
+      "O",
+      "F",
+      "P",
+      "S",
+      "Cl",
+      "Br",
+      "I"
+    ],
+    "process_type": "abs",
+    "geometry_policy": "one-fixed-MNSol-M06-2X-MG3S-gas-geometry-no-optimization",
+    "connectedness": {
+      "required_component_count": 1,
+      "bond_scale": 1.25,
+      "radius_source": "ase.data.covalent_radii"
+    },
+    "uncertainty_policy": "MNSol manual reports subset-average uncertainty classes; do not treat them as per-record standard deviations"
+  },
+  "partition": {
+    "strategy": "sha256-geometry-handle-group-v1",
+    "group_key": "FileHandle",
+    "seed": "maple-route2-mnsol-2026-07-27",
+    "development_fraction": 0.8,
+    "rationale": "Every solvent row for the same solute geometry remains in one partition, preventing cross-solvent solute leakage. Solvent-wise results remain separately reported.",
+    "solvent_generalization": {
+      "strategy": "per-solvent-reporting-plus-leave-one-solvent-out-sensitivity",
+      "pooled_random_split_is_not_sufficient": true,
+      "small_n_policy": "Report counts and intervals for every solvent; seven-record solvent strata are diagnostics, not standalone precision certifications."
+    }
+  },
+  "solvent_panel": [
+    {
+      "canonical_name": "water",
+      "mnsol_name": "water",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 533,
+      "expected_neutral_absolute_records": 390,
+      "rationale": "High-dielectric protic reference; FreeSolv remains an independent water confirmation set."
+    },
+    {
+      "canonical_name": "methanol",
+      "mnsol_name": "methanol",
+      "neutral_absolute_validation": false,
+      "expected_all_records": 80,
+      "expected_neutral_absolute_records": 0,
+      "rationale": "MNSol-v2012 contains ionic methanol records but no neutral absolute methanol records; retain runtime support but do not claim neutral validation."
+    },
+    {
+      "canonical_name": "ethanol",
+      "mnsol_name": "ethanol",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 8,
+      "expected_neutral_absolute_records": 8,
+      "rationale": "Protic polar nonaqueous solvent."
+    },
+    {
+      "canonical_name": "acetonitrile",
+      "mnsol_name": "acetonitrile",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 76,
+      "expected_neutral_absolute_records": 7,
+      "rationale": "Polar aprotic solvent; ionic records are outside the current public Route-2 domain."
+    },
+    {
+      "canonical_name": "dimethylsulfoxide",
+      "mnsol_name": "dimethylsulfoxide",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 78,
+      "expected_neutral_absolute_records": 7,
+      "rationale": "Strongly polar aprotic hydrogen-bond acceptor."
+    },
+    {
+      "canonical_name": "dimethylformamide",
+      "mnsol_name": "dimethylformamide",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 7,
+      "expected_neutral_absolute_records": 7,
+      "rationale": "Polar aprotic amide solvent."
+    },
+    {
+      "canonical_name": "tetrahydrofuran",
+      "mnsol_name": "tetrahydrofuran",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 7,
+      "expected_neutral_absolute_records": 7,
+      "rationale": "Moderate-polarity ether solvent."
+    },
+    {
+      "canonical_name": "chloroform",
+      "mnsol_name": "chloroform",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 109,
+      "expected_neutral_absolute_records": 109,
+      "rationale": "Low-dielectric halogenated solvent with a substantial neutral panel."
+    },
+    {
+      "canonical_name": "dichloromethane",
+      "mnsol_name": "methylenechloride",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 11,
+      "expected_neutral_absolute_records": 11,
+      "rationale": "Halogenated solvent with intermediate dielectric response."
+    },
+    {
+      "canonical_name": "toluene",
+      "mnsol_name": "toluene",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 51,
+      "expected_neutral_absolute_records": 51,
+      "rationale": "Low-dielectric aromatic solvent."
+    },
+    {
+      "canonical_name": "hexane",
+      "mnsol_name": "hexane",
+      "neutral_absolute_validation": true,
+      "expected_all_records": 59,
+      "expected_neutral_absolute_records": 59,
+      "rationale": "Low-dielectric aliphatic hydrocarbon solvent."
+    }
+  ],
+  "literature": {
+    "mnsol": "Marenich et al., Minnesota Solvation Database version 2012, University of Minnesota, 2012, DOI:10.13020/3eks-j059"
+  }
+}

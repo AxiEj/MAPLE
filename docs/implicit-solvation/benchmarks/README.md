@@ -222,3 +222,53 @@ per-molecule Route-1 geometry/source-record, QM-artifact, and FreeSolv
 dataset/uncertainty provenance. A broader replacement must be registered as a
 new protocol with those fields locked before any calculation. The rejected
 protocol must not be repaired in place or used as evidence for accuracy.
+
+## MNSol-v2012 multi-solvent dataset protocol
+
+[`route2-mnsol-protocol-v1.json`](route2-mnsol-protocol-v1.json) freezes a
+separate, provider-independent MNSol-v2012 ingestion contract. MNSol contains
+row-level material that MAPLE does not redistribute, so the adapter never
+downloads the database and never writes raw rows to its output. It accepts
+only a user-supplied archive or extracted directory, applies bounded archive
+reads, verifies both the pinned `MNSol_alldata.txt` hash and the normalized
+table-plus-geometry bundle hash, reconciles all 3037 rows with all 790 fixed
+M06-2X/MG3S gas-phase geometries, and emits aggregate coverage and provenance:
+
+```bash
+python docs/implicit-solvation/benchmarks/mnsol_dataset.py inspect \
+  --source .omx/datasets/mnsol-v2012/MNSolDatabase_v2012.zip \
+  --protocol docs/implicit-solvation/benchmarks/route2-mnsol-protocol-v1.json \
+  --output .omx/benchmarks/route2-mnsol-v2012-coverage.json
+```
+
+The initial neutral absolute panel has ten experimentally populated solvents:
+water, ethanol, acetonitrile, dimethyl sulfoxide, dimethylformamide,
+tetrahydrofuran, chloroform, dichloromethane, toluene, and hexane. Methanol
+remains a supported runtime solvent, but MNSol-v2012 has no neutral absolute
+methanol rows; its 80 entries are ionic and therefore outside the current
+public Route-2 domain. The protocol keeps absolute gas-to-solution free
+energies separate from water-to-organic transfer free energies and groups
+every row sharing one `FileHandle` into the same partition, preventing the
+same solute from leaking across solvents.
+
+The Route-2 domain audit also applies the frozen single-covalent-component
+criterion. Consequently, the disconnected MNSol water-dimer record is reported
+as an aggregate exclusion rather than being mislabeled as a single-molecule
+Route-2 candidate.
+
+This stage is dataset infrastructure only. It does not run MACE-POLAR, expose
+AIMNet charges, add ddCOSMO, or compare accuracy. AIMNet will first be treated
+as a distinct fixed point-charge baseline; COSMO-RS remains a separate
+sigma-profile/statistical-thermodynamic model family rather than a continuum
+solver switch. The later comparison matrix belongs to benchmark strategy, not
+the MNSol data contract:
+
+- solute-source axis: self-consistent MACE-POLAR coarse residual
+  point-\(l\le1\) multipoles versus an AIMNet2 point-\(l=0\) fixed-charge
+  baseline;
+- continuum-equation axis: PCMSolver IEFPCM as an energy-only oracle, pyddx
+  ddPCM as the current single-point research-force candidate, and pyddx
+  ddCOSMO as a separate planned family;
+- liquid-thermodynamics axis: COSMO-RS only through a separate sigma-profile
+  implementation and a matching partition/transfer benchmark, never by
+  relabelling a COSMO boundary solver.

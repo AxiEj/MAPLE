@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+import hashlib
 import os
 import threading
 from contextlib import contextmanager
@@ -65,7 +66,60 @@ _MACEPOL_FOUNDATION_NAMES = {
     "macepoll": "polar-1-l",
 }
 _ROUTE2_MACE_TORCH_VERSION = "0.3.16"
+_ROUTE2_MACE_POLAR_IDENTIFIER = "polar-1-m"
+_ROUTE2_MACE_POLAR_RELEASE_URL = (
+    "https://github.com/ACEsuit/mace-foundations/releases/download/"
+    "mace_polar_1/MACE-POLAR-1-M.model"
+)
+_ROUTE2_MACE_POLAR_CHECKPOINT_SIZE_BYTES = 68_133_235
+_ROUTE2_MACE_POLAR_CHECKPOINT_SHA256 = (
+    "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+)
 _LOCAL_REACTION_FIELD_LOCK = threading.RLock()
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _validated_route2_checkpoint_provenance(
+    resolved_path: str | Path,
+    *,
+    identifier: str,
+    release_url: str,
+) -> dict[str, object]:
+    """Fingerprint and validate the complete Route-2 learned checkpoint."""
+
+    path = Path(resolved_path).expanduser().resolve()
+    if not path.is_file():
+        raise RuntimeError(
+            f"The resolved MACE-POLAR checkpoint does not exist: {path}."
+        )
+    size_bytes = path.stat().st_size
+    sha256 = _sha256_file(path)
+    expected = (
+        identifier == _ROUTE2_MACE_POLAR_IDENTIFIER
+        and release_url == _ROUTE2_MACE_POLAR_RELEASE_URL
+        and size_bytes == _ROUTE2_MACE_POLAR_CHECKPOINT_SIZE_BYTES
+        and sha256 == _ROUTE2_MACE_POLAR_CHECKPOINT_SHA256
+    )
+    if not expected:
+        raise RuntimeError(
+            "Route 2 requires the validated official MACE-POLAR-1-M "
+            "checkpoint bytes; the resolved identifier, release URL, size, "
+            "or SHA-256 does not match the frozen contract."
+        )
+    return {
+        "identifier": identifier,
+        "release_url": release_url,
+        "resolved_path": str(path),
+        "size_bytes": size_bytes,
+        "sha256": sha256,
+    }
 
 
 @dataclass(frozen=True)
@@ -279,6 +333,10 @@ class MACEPolCalculator(CalcABC):
 
         try:
             from mace.calculators import mace_polar
+            from mace.calculators.foundations_models import (
+                download_mace_polar_checkpoint,
+                polar_model_urls,
+            )
         except Exception as exc:
             raise ImportError(
                 "MACE-POLAR requires the official mace-torch runtime with "
@@ -296,9 +354,24 @@ class MACEPolCalculator(CalcABC):
             if model_path is not None
             else _MACEPOL_FOUNDATION_NAMES[model]
         )
+        checkpoint_provenance = None
+        resolved_model_source = model_source
+        if route2_smd:
+            release_url = str(polar_model_urls.get(model_source, ""))
+            resolved_model_source = download_mace_polar_checkpoint(
+                model_source
+            )
+            checkpoint_provenance = (
+                _validated_route2_checkpoint_provenance(
+                    resolved_model_source,
+                    identifier=model_source,
+                    release_url=release_url,
+                )
+            )
+        self.mace_polar_checkpoint_provenance = checkpoint_provenance
         try:
             self._mace = mace_polar(
-                model=model_source,
+                model=resolved_model_source,
                 device=str(device),
                 # Route 2 subtracts large absolute MLIP energies to obtain a
                 # small polarization response.  The upstream-recommended

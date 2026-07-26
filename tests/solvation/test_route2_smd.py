@@ -590,6 +590,13 @@ class _FakePolarCalculator:
         self._last_polar_state = gas_state
         self.response_state = response_state
         self.route2_smd_profile = ROUTE2_SMD_CALCULATOR_PROFILE
+        self.mace_polar_checkpoint_provenance = {
+            "identifier": "polar-1-m",
+            "release_url": "https://example.invalid/MACE-POLAR-1-M.model",
+            "resolved_path": "/cache/MACEPOLAR1Mmodel",
+            "size_bytes": 123,
+            "sha256": "a" * 64,
+        }
         self.calls = 0
 
     def polar_state(
@@ -1185,6 +1192,12 @@ def test_exact_gto_profile_keeps_point_source_and_audits_model_features(
     assert audit["polarization_energy"][
         "absolute_identity_error_ev"
     ] == pytest.approx(0.0, abs=1.0e-12)
+    assert audit["mace_polar_checkpoint"] == (
+        calculator.mace_polar_checkpoint_provenance
+    )
+    assert result.provenance["mace_polar_checkpoint"] == (
+        calculator.mace_polar_checkpoint_provenance
+    )
 
 
 def test_centered_local_jet_profile_audits_dual_and_model_fields(

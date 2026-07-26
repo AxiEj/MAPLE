@@ -57,8 +57,11 @@ loaded checkpoint. Only a comparison between those two matched-gauge profiles
 isolates the reaction-field projector. Comparing the historical default
 directly with exact GTO changes both projector and model-field gauge.
 The exact path fails closed unless the runtime is
-`graph-longrange==0.4.0`. Its audit records the versioned receiver-feature
-layout and a SHA-256 fingerprint of the live checkpoint projection matrix.
+`graph-longrange==0.4.0`. Route 2 also resolves and hashes the complete
+official MACE-POLAR-1-M checkpoint before loading, then fails closed unless
+its release URL, byte size, and SHA-256 match the frozen contract. Its audit
+records that full checkpoint identity plus the versioned receiver-feature
+layout and live projection-matrix fingerprint.
 
 The research objective is mutual polarization: the MACE-POLAR representation
 generates the solute electrostatic potential, PCM returns a reaction field, and

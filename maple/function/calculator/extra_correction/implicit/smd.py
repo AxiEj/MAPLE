@@ -1219,6 +1219,11 @@ class SMDImplicitSolvation:
             "attempts": cavity_attempts,
         }
         audit_payload["pcmsolver_diagnostics"] = pcmsolver_diagnostics
+        audit_payload["mace_polar_checkpoint"] = getattr(
+            calculator,
+            "mace_polar_checkpoint_provenance",
+            None,
+        )
         audit_path.write_text(
             json.dumps(audit_payload, indent=2, sort_keys=True),
             encoding="utf-8",
@@ -1283,6 +1288,11 @@ class SMDImplicitSolvation:
             ),
             "model_field_projection_contract": (
                 reaction_field.model_field_projection_provenance
+            ),
+            "mace_polar_checkpoint": getattr(
+                calculator,
+                "mace_polar_checkpoint_provenance",
+                None,
             ),
             "mace_dtype": str(getattr(calculator, "dtype", None)),
             "pcmsolver_library": pcmsolver_library,

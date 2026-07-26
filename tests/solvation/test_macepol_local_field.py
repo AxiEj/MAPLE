@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+import hashlib
 from types import SimpleNamespace
 import warnings
 
@@ -14,7 +15,9 @@ torch = pytest.importorskip("torch")
 from maple.function.calculator.mace._macepol_calculator import (
     MACEPolCalculator,
     _LocalReactionFieldProjector,
+    _validated_route2_checkpoint_provenance,
 )
+from maple.function.calculator.mace import _macepol_calculator as macepol_module
 from maple.function.calculator.mace._macepol_long_range import (
     MACEPolarLongRangeEvaluator,
 )
@@ -404,6 +407,47 @@ def test_mace_projection_spec_fails_closed_on_unvalidated_graph_longrange():
 
     with pytest.raises(RuntimeError, match="pinned to graph-longrange 0.4.0"):
         calculator.route2_gto_field_projection_spec()
+
+
+def test_route2_checkpoint_provenance_hashes_full_checkpoint_and_fails_closed(
+    monkeypatch,
+    tmp_path,
+):
+    checkpoint = tmp_path / "MACE-POLAR-1-M.model"
+    checkpoint.write_bytes(b"complete learned checkpoint")
+    expected_sha = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    monkeypatch.setattr(
+        macepol_module,
+        "_ROUTE2_MACE_POLAR_CHECKPOINT_SIZE_BYTES",
+        checkpoint.stat().st_size,
+    )
+    monkeypatch.setattr(
+        macepol_module,
+        "_ROUTE2_MACE_POLAR_CHECKPOINT_SHA256",
+        expected_sha,
+    )
+
+    provenance = _validated_route2_checkpoint_provenance(
+        checkpoint,
+        identifier="polar-1-m",
+        release_url=macepol_module._ROUTE2_MACE_POLAR_RELEASE_URL,
+    )
+
+    assert provenance == {
+        "identifier": "polar-1-m",
+        "release_url": macepol_module._ROUTE2_MACE_POLAR_RELEASE_URL,
+        "resolved_path": str(checkpoint.resolve()),
+        "size_bytes": checkpoint.stat().st_size,
+        "sha256": expected_sha,
+    }
+
+    checkpoint.write_bytes(b"different learned weights")
+    with pytest.raises(RuntimeError, match="checkpoint bytes"):
+        _validated_route2_checkpoint_provenance(
+            checkpoint,
+            identifier="polar-1-m",
+            release_url=macepol_module._ROUTE2_MACE_POLAR_RELEASE_URL,
+        )
 
 
 def test_intrinsic_energy_field_gradient_matches_exact_quadratic_model():

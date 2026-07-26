@@ -73,7 +73,11 @@ No Route-2 FreeSolv accuracy artifact is frozen yet. The tracked
 [`route2-pcmsolver-exact-gto-acetone-v1.json`](route2-pcmsolver-exact-gto-acetone-v1.json)
 is only a one-molecule development canary: it records the failed raw
 constant-potential gauge probe, the atomic-centre-mean repair, and a matched
-gauge local-jet/exact-GTO comparison. It does not replace a development
+gauge local-jet/exact-GTO comparison. The current artifact was regenerated on
+a clean committed source snapshot after independent review, and records the
+complete MACE-POLAR-1-M checkpoint hash, exact graph-longrange layout, and
+live checkpoint-matrix fingerprint. That closes execution provenance only;
+it does not replace a development
 partition or confirmation set. The other real-water and static SMD-CDS
 controls in `VALIDATION_STATUS.md` prove execution, units, reciprocity, and
 convergence only. Until development and one-shot confirmation pass, the

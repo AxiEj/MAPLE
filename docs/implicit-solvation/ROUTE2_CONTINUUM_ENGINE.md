@@ -167,7 +167,10 @@ The exact receiver-row ordering is a versioned runtime contract rather than
 an inferred convention. The adapter currently accepts only
 `graph-longrange==0.4.0`, and each exact-profile audit records the layout
 identifier, receiver widths and normalization, matrix shape, and SHA-256 of
-the live checkpoint projection matrix.
+the live checkpoint projection matrix. Independently, every Route-2
+MACE-POLAR load resolves the official `polar-1-m` release, hashes the complete
+checkpoint file, and rejects any identifier, release URL, byte size, or
+SHA-256 outside the frozen checkpoint contract.
 
 ## Frozen non-goals
 

@@ -354,10 +354,10 @@ not merely a constant absolute quadrature residue. It is still one molecule,
 one local-jet interface, and one direction pair; it does not quantify broad
 chemical-space behavior.
 
-The complete CUDA process took `8.93 s` on an RTX 4060 Laptop GPU:
-`2.88 s` model load, `2.85 s` public root/energy, `0.14 s` intrinsic field
-gradient, `1.20 s` for three reciprocity pairs plus their adjoint checks, and
-`1.16 s` for the 12 JVP stability matrix. These are run metadata, not portable
+The rebound CUDA process took `11.47 s` on an RTX 4060 Laptop GPU:
+`4.41 s` model load, `3.60 s` public root/energy, `0.15 s` intrinsic field
+gradient, `1.18 s` for three reciprocity pairs plus their adjoint checks, and
+`1.21 s` for the 12 JVP stability matrix. These are run metadata, not portable
 speed claims.
 
 The result therefore strengthens the conservative wording already used by
@@ -368,4 +368,4 @@ functional. The exact-GTO profile remains outside this diagnostic until a
 continuum density-to-feature forward/adjoint is composed with the now
 available model-side rectangular feature JVP/VJP and a matching coordinate
 derivative exists. The artifact SHA256 is
-`65907175add8480fe1cd7d4dbb48a0fe167e7631b57d6a71781cef40fadf3ea1`.
+`518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6`.

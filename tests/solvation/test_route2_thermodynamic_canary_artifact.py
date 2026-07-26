@@ -27,7 +27,7 @@ def test_thermodynamic_canary_is_source_bound_and_claim_bounded():
     )
     assert artifact["schema_version"] == 1
     assert artifact["execution_git_head"] == (
-        "c8fe19b35b2ea0c9631891d3b0f999fd2e0fe703"
+        "b855901b3d0b220fcc03f913af70f74193a9d01d"
     )
     assert artifact["checkpoint"]["sha256"] == (
         "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
@@ -107,7 +107,7 @@ def test_thermodynamic_canary_is_source_bound_and_claim_bounded():
     ]
     np.testing.assert_allclose(
         area_normalized,
-        [-0.004161031549973927, -0.00416091134811114],
+        [-0.004161031549784191, -0.0041609113481653505],
         rtol=1.0e-12,
         atol=1.0e-15,
     )

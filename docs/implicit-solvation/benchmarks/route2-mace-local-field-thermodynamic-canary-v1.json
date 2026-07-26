@@ -27,32 +27,32 @@
   "diagnostics": {
     "energy_density_conjugacy": {
       "coupled_candidate": {
-        "dipole_absolute_l2_e_angstrom": 0.3928690322265119,
-        "dipole_relative_l2": 0.9767797249475267,
-        "maximum_relative_block_error": 0.999498319249544,
-        "monopole_absolute_l2_e": 0.06814460706942099,
-        "monopole_relative_l2": 0.999498319249544
+        "dipole_absolute_l2_e_angstrom": 0.39286903222651104,
+        "dipole_relative_l2": 0.9767797249475135,
+        "maximum_relative_block_error": 0.9994983192495448,
+        "monopole_absolute_l2_e": 0.06814460706942112,
+        "monopole_relative_l2": 0.9994983192495448
       },
       "field_interface": "local-potential-gradient-v1",
       "intrinsic_candidate": {
-        "dipole_absolute_l2_e_angstrom": 0.015236455697410056,
-        "dipole_relative_l2": 0.46501571778280976,
-        "maximum_relative_block_error": 0.6641099250563749,
-        "monopole_absolute_l2_e": 0.0005273008978156911,
-        "monopole_relative_l2": 0.6641099250563749
+        "dipole_absolute_l2_e_angstrom": 0.01523645569740902,
+        "dipole_relative_l2": 0.4650157177827131,
+        "maximum_relative_block_error": 0.6641099250564895,
+        "monopole_absolute_l2_e": 0.0005273008978158363,
+        "monopole_relative_l2": 0.6641099250564895
       },
       "lower_defect_candidate": "intrinsic"
     },
     "field_loop_fresh_model_evaluations": 6,
     "field_loop_work_refinement": [
       {
-        "absolute_edge_work_ev": 0.0004126350135734447,
-        "closed_loop_work_ev": -4.1610315499739266e-09,
+        "absolute_edge_work_ev": 0.00041263501357344473,
+        "closed_loop_work_ev": -4.161031549784191e-09,
         "edge_work_ev": [
-          1.7762638466163806e-06,
-          0.00020453916242433096,
-          -1.7771524326395022e-06,
-          -0.00020454243486985784
+          1.7762638466164517e-06,
+          0.000204539162424331,
+          -1.7771524326394632e-06,
+          -0.00020454243486985778
         ],
         "first_field_step": [
           [
@@ -77,7 +77,7 @@
         "gradient_step_scale_ev_per_angstrom": 0.001,
         "potential_step_scale_ev": 0.001,
         "quadrature": "endpoint-trapezoid-v1",
-        "relative_closed_loop_work": 1.008404864613678e-05,
+        "relative_closed_loop_work": 1.0084048645676965e-05,
         "second_field_step": [
           [
             0.00033331803093577443,
@@ -100,13 +100,13 @@
         ]
       },
       {
-        "absolute_edge_work_ev": 0.00020631827969749863,
-        "closed_loop_work_ev": -1.040227837027785e-09,
+        "absolute_edge_work_ev": 0.00020631827969749865,
+        "closed_loop_work_ev": -1.0402278370413376e-09,
         "edge_work_ev": [
-          8.883080392042125e-07,
+          8.883080392042261e-07,
           0.00010227031169562659,
-          -8.885302143868643e-07,
-          -0.00010227112974828096
+          -8.885302143868465e-07,
+          -0.000102271129748281
         ],
         "first_field_step": [
           [
@@ -131,7 +131,7 @@
         "gradient_step_scale_ev_per_angstrom": 0.0005,
         "potential_step_scale_ev": 0.0005,
         "quadrature": "endpoint-trapezoid-v1",
-        "relative_closed_loop_work": 5.041859783597239e-06,
+        "relative_closed_loop_work": 5.041859783662926e-06,
         "second_field_step": [
           [
             0.00016665901546788722,
@@ -157,7 +157,7 @@
     "interpretation_policy": "Report both candidate defects and all raw diagnostics. The numerically lower defect is not a pass or proof of a variational free-energy functional.",
     "response_reciprocity": [
       {
-        "absolute_error_ev": 0.0033961969285394838,
+        "absolute_error_ev": 0.003396196928539488,
         "first_field_direction": [
           [
             -0.13900659600709797,
@@ -178,18 +178,18 @@
             -0.013792173120547738
           ]
         ],
-        "forward_pairing_ev": -0.0032640763318556023,
+        "forward_pairing_ev": -0.0032640763318556045,
         "linearization_adjoint_dot_test": {
-          "absolute_error_ev": 2.1079956356861995e-12,
-          "forward_dot_ev": -0.0032640763318556023,
+          "absolute_error_ev": 2.1079934672818545e-12,
+          "forward_dot_ev": -0.0032640763318556045,
           "passed": true,
-          "relative_error": 3.229084464772811e-10,
+          "relative_error": 3.2290811431526584e-10,
           "reverse_dot_ev": -0.003264076333963598,
           "tolerance_ev": 1e-10
         },
         "pair_index": 0,
         "relative_error": 1.0,
-        "reverse_pairing_ev": 0.00013212059668388134,
+        "reverse_pairing_ev": 0.00013212059668388373,
         "second_field_direction": [
           [
             0.003388688657451201,
@@ -212,7 +212,7 @@
         ]
       },
       {
-        "absolute_error_ev": 0.0046511301949924404,
+        "absolute_error_ev": 0.004651130194992438,
         "first_field_direction": [
           [
             0.4919301967566318,
@@ -233,18 +233,18 @@
             -0.43356013742644917
           ]
         ],
-        "forward_pairing_ev": 6.091370767686026e-05,
+        "forward_pairing_ev": 6.09137076768602e-05,
         "linearization_adjoint_dot_test": {
-          "absolute_error_ev": 8.399882894284671e-13,
-          "forward_dot_ev": 6.091370767686026e-05,
+          "absolute_error_ev": 8.399915488112482e-13,
+          "forward_dot_ev": 6.09137076768602e-05,
           "passed": true,
-          "relative_error": 6.894903591264413e-09,
-          "reverse_dot_ev": 6.091370851684855e-05,
+          "relative_error": 6.894930345363459e-09,
+          "reverse_dot_ev": 6.091370851685175e-05,
           "tolerance_ev": 1e-10
         },
         "pair_index": 1,
         "relative_error": 1.0,
-        "reverse_pairing_ev": -0.0045902164873155805,
+        "reverse_pairing_ev": -0.004590216487315578,
         "second_field_direction": [
           [
             -0.28524578313083687,
@@ -267,7 +267,7 @@
         ]
       },
       {
-        "absolute_error_ev": 0.0028826490280789464,
+        "absolute_error_ev": 0.002882649028078948,
         "first_field_direction": [
           [
             -0.17924826630399912,
@@ -288,18 +288,18 @@
             0.04016718486503198
           ]
         ],
-        "forward_pairing_ev": 0.004001140128193476,
+        "forward_pairing_ev": 0.004001140128193478,
         "linearization_adjoint_dot_test": {
-          "absolute_error_ev": 1.530386060932809e-12,
-          "forward_dot_ev": 0.004001140128193476,
+          "absolute_error_ev": 1.530386928294547e-12,
+          "forward_dot_ev": 0.004001140128193478,
           "passed": true,
-          "relative_error": 1.912437470562245e-10,
-          "reverse_dot_ev": 0.00400114012666309,
+          "relative_error": 1.912438554455473e-10,
+          "reverse_dot_ev": 0.004001140126663091,
           "tolerance_ev": 1e-10
         },
         "pair_index": 2,
-        "relative_error": 0.5630579429510272,
-        "reverse_pairing_ev": 0.0011184911001145298,
+        "relative_error": 0.5630579429510274,
+        "reverse_pairing_ev": 0.0011184911001145296,
         "second_field_direction": [
           [
             -0.5827535846542875,
@@ -326,23 +326,23 @@
       "antisymmetric_frobenius_norm_ev": 0.017147980133275495,
       "dimension": 12,
       "gradient_direction_scale_ev_per_angstrom": 1.0,
-      "maximum_eigenvalue_ev": 0.008559499508787935,
-      "minimum_eigenvalue_ev": -0.01217602175888384,
+      "maximum_eigenvalue_ev": 0.008559499508787942,
+      "minimum_eigenvalue_ev": -0.012176021758883845,
       "near_zero_eigenvalue_count": 4,
       "negative_eigenvalue_count": 5,
-      "passivity_violation_ev": 0.008559499508787935,
+      "passivity_violation_ev": 0.008559499508787942,
       "positive_eigenvalue_count": 3,
       "potential_direction_scale_ev": 1.0,
       "stable_sign_convention": "nonpositive"
     }
   },
-  "execution_git_head": "c8fe19b35b2ea0c9631891d3b0f999fd2e0fe703",
+  "execution_git_head": "b855901b3d0b220fcc03f913af70f74193a9d01d",
   "field_summary": {
     "gradient_l2_ev_per_angstrom": 2.3545002752331072,
     "potential_max_ev": 0.6603974562492541,
-    "potential_min_ev": -0.2910319251746737
+    "potential_min_ev": -0.291031925174674
   },
-  "generated_at_utc": "2026-07-26T22:22:06+00:00",
+  "generated_at_utc": "2026-07-26T22:50:57+00:00",
   "molecule": {
     "atom_count": 3,
     "formula": "H2O",
@@ -435,7 +435,7 @@
   },
   "public_energy_hartree": {
     "combined": -76.44766636547484,
-    "delta_g_solv": -0.014126359579011448,
+    "delta_g_solv": -0.014126359579011441,
     "gas": -76.43354000589584
   },
   "public_settings": [
@@ -459,88 +459,88 @@
     "pyscf": "2.13.1",
     "python": "3.11.14",
     "timing_seconds": {
-      "density_linearization_setup": 0.0001021979987854138,
-      "energy_density_conjugacy": 0.11906974099110812,
+      "density_linearization_setup": 0.0001277999981539324,
+      "energy_density_conjugacy": 0.11400166399835143,
       "field_loop_work_by_step": [
-        0.1897575670009246,
-        0.19405808601004537
+        0.21553190299891867,
+        0.18962460300826933
       ],
-      "intrinsic_energy_field_gradient": 0.13743886799784377,
-      "model_load": 2.879571792000206,
-      "public_coupled_root_and_energy": 2.8494907380081713,
-      "reciprocity_three_pairs": 1.2015470970072784,
-      "same_field_response_state": 0.06527521699899808,
-      "stability_twelve_jvps": 1.1563363739987835,
-      "total": 8.933323111996287
+      "intrinsic_energy_field_gradient": 0.14601004500582349,
+      "model_load": 4.410606867008028,
+      "public_coupled_root_and_energy": 3.6013335900061065,
+      "reciprocity_three_pairs": 1.1802812700043432,
+      "same_field_response_state": 0.08585466700606048,
+      "stability_twelve_jvps": 1.2149370030092541,
+      "total": 11.46547570200346
     },
     "torch": "2.12.0+cu130"
   },
   "same_root": {
-    "half_coupling_identity_error_ev": 8.1601392309949e-15,
+    "half_coupling_identity_error_ev": 7.827072323607354e-15,
     "history": [
       {
-        "density_residual_e": 0.01883579403591497,
+        "density_residual_e": 0.018835794035914795,
         "energy_residual_ev": null,
         "intrinsic_energy_ev": -2079.853356751702,
         "iteration": 1
       },
       {
-        "density_residual_e": 0.0015423724409944634,
+        "density_residual_e": 0.0015423724409946368,
         "energy_residual_ev": 0.000582711481001752,
         "intrinsic_energy_ev": -2079.852774040221,
         "iteration": 2
       },
       {
-        "density_residual_e": 8.790953617493491e-05,
+        "density_residual_e": 8.790953618198483e-05,
         "energy_residual_ev": 3.23817321259412e-05,
         "intrinsic_energy_ev": -2079.852741658489,
         "iteration": 3
       },
       {
-        "density_residual_e": 4.703536362754557e-06,
+        "density_residual_e": 4.703536353276028e-06,
         "energy_residual_ev": 1.7740862858772743e-06,
         "intrinsic_energy_ev": -2079.8527398844026,
         "iteration": 4
       },
       {
-        "density_residual_e": 2.490577230701563e-07,
-        "energy_residual_ev": 9.458562999498099e-08,
-        "intrinsic_energy_ev": -2079.852739789817,
+        "density_residual_e": 2.490577253322357e-07,
+        "energy_residual_ev": 9.45851752476301e-08,
+        "intrinsic_energy_ev": -2079.8527397898174,
         "iteration": 5
       },
       {
-        "density_residual_e": 1.3129039917736396e-08,
-        "energy_residual_ev": 4.671619535656646e-09,
+        "density_residual_e": 1.3129040063453168e-08,
+        "energy_residual_ev": 4.672074283007532e-09,
         "intrinsic_energy_ev": -2079.8527397851453,
         "iteration": 6
       },
       {
-        "density_residual_e": 6.895067988788028e-10,
+        "density_residual_e": 6.895068405121663e-10,
         "energy_residual_ev": 2.0236257114447653e-10,
         "intrinsic_energy_ev": -2079.852739784943,
         "iteration": 7
       },
       {
-        "density_residual_e": 3.519811525576344e-11,
-        "energy_residual_ev": 1.3642420526593924e-11,
-        "intrinsic_energy_ev": -2079.8527397849293,
+        "density_residual_e": 3.5198108316869536e-11,
+        "energy_residual_ev": 1.318767317570746e-11,
+        "intrinsic_energy_ev": -2079.85273978493,
         "iteration": 8
       },
       {
-        "density_residual_e": 1.8632803633344963e-12,
-        "energy_residual_ev": 9.094947017729282e-13,
+        "density_residual_e": 1.8632664855466885e-12,
+        "energy_residual_ev": 1.3642420526593924e-12,
         "intrinsic_energy_ev": -2079.8527397849284,
         "iteration": 9
       }
     ],
     "public_audit": {
-      "result_sha256": "7828a77c11b6115f4ab9eb4224a92c402d8be3a7f8bb2c1d5c520d5e17b29611",
-      "state_sha256": "2881f66deb254e0aa1f5af450a0b6a49e9f41e0e1529beba98902b139c3fff82"
+      "result_sha256": "f0a73b6c4ee8ae4a3e2af60199eb9369f90d5a2709c8103962cddff799a6bf1a",
+      "state_sha256": "02b44fcaf34e187d2455b4c39ee56dbcb62e453407f2a20b4686eaabe04c6f72"
     },
-    "response_density_monopole_sum_e": 3.469446951953614e-18,
-    "root_density_monopole_sum_e": -3.469446951953614e-18,
+    "response_density_monopole_sum_e": 0.0,
+    "root_density_monopole_sum_e": 6.938893903907228e-18,
     "scf_iterations": 9,
-    "unmixed_density_residual_inf_e": 1.8632803633344963e-12
+    "unmixed_density_residual_inf_e": 1.8632664855466885e-12
   },
   "schema_version": 1,
   "scientific_identity": {
@@ -561,7 +561,7 @@
     "maple/function/calculator/extra_correction/implicit/route2_engine.py": "e4a00ec8f6763345dae96cc8c2f8919808deec9effbe79ae16e1d0fef4445957",
     "maple/function/calculator/extra_correction/implicit/route2_response.py": "42d8111cd338fe2bb8e5a6117c68080626656c46f4294dc4e782e745ee837da1",
     "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "dc7a2ee65baba3d7641f0216b7cfeb2d2eca9c36044e63190d044290a9c7c696",
-    "maple/function/calculator/mace/_macepol_calculator.py": "39e4c5b65acbc694109346530e87f13d41c1776a7245d62d32300b303411f5b9",
+    "maple/function/calculator/mace/_macepol_calculator.py": "2dfbe998713fa3e4786aee329267e2b172e03b0b451d0c4c8b551ef3e501b5bb",
     "maple/function/calculator/set_calculator.py": "b78f83c2b4853554e48ec6c71531cbcf122aaea949b89a9436b1f4b7ebe2bfdf",
     "maple/function/read/command_control.py": "6356deb7a681a2c2226733189ed87376a753b9ae5a725f9a7b1e66aa4f912e9c",
     "maple/function/route2_smd_profiles.py": "1485999845647b9117dc031b539cda42d17f15e29328651adb56728203c9a88b"
@@ -569,42 +569,42 @@
   "state_arrays": {
     "intrinsic_energy_field_gradient": [
       [
-        0.00035705687285415724,
+        0.00035705687285421227,
         0.0,
         0.0,
-        0.010239573956622132
+        0.010239573956626398
       ],
       [
-        -4.4365673556508324e-05,
+        -4.436567355659502e-05,
         0.0,
-        0.0004794035628002087,
-        -0.001546079288988084
+        0.00047940356280015234,
+        -0.001546079288988152
       ],
       [
-        -4.5734545756820385e-05,
+        -4.573454575691783e-05,
         0.0,
-        -0.0004941632651985972,
-        -0.0015434042029663195
+        -0.0004941632652010355,
+        -0.0015434042029681765
       ]
     ],
     "reaction_field_values_ev": [
       [
         0.6603974562492541,
-        4.319166534861212e-18,
-        0.0001178148587676473,
+        4.986212686222297e-17,
+        0.00011781485876771413,
         1.0279601235949425
       ],
       [
-        -0.2908142020131079,
-        4.373753249183456e-17,
-        -0.8871234169271949,
-        1.20672438270385
+        -0.2908142020131078,
+        1.479398662924616e-17,
+        -0.8871234169271945,
+        1.2067243827038499
       ],
       [
-        -0.2910319251746737,
-        -1.5564879923635463e-17,
-        0.8874025745018262,
-        1.2067785607086612
+        -0.291031925174674,
+        3.763051503173016e-17,
+        0.8874025745018267,
+        1.2067785607086616
       ]
     ],
     "response_density_coefficients": [
@@ -615,35 +615,35 @@
         0.0
       ],
       [
-        0.027667117567439812,
-        0.22061422688918902,
-        -0.15007951228774413,
+        0.02766711756743982,
+        0.22061422688918886,
+        -0.15007951228774408,
         0.0
       ],
       [
-        0.027704502976877397,
-        -0.22063887158408158,
-        -0.1500875649615666,
+        0.027704502976877387,
+        -0.22063887158408169,
+        -0.15008756496156667,
         0.0
       ]
     ],
     "root_density_coefficients": [
       [
-        -0.055371620542453925,
+        -0.05537162054245394,
         0.0,
-        -0.10506651880040274,
+        -0.10506651880040263,
         0.0
       ],
       [
-        0.02766711756639691,
+        0.027667117566396913,
         0.22061422688885612,
-        -0.150079512287491,
+        -0.15007951228749095,
         0.0
       ],
       [
-        0.027704502976057012,
-        -0.22063887158381718,
-        -0.1500875649613565,
+        0.027704502976057033,
+        -0.22063887158381723,
+        -0.15008756496135667,
         0.0
       ]
     ]

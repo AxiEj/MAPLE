@@ -42,7 +42,7 @@
     "cluster_periodic_difference_role": "preregistered embedding residual and falsification gate; never labeled exact closure",
     "same_membership_hash_alone_proves_bridge": false,
     "boundary_measure_bridge_required": true,
-    "boundary_bridge_definition": "one boundary-independent membership surface plus distinct periodic minimum-image and nonperiodic cluster adapters",
+    "boundary_bridge_definition": "one boundary-independent membership surface plus distinct symmetric periodic-image and nonperiodic cluster adapters",
     "effective_volume_artifact_required_per_edge": true,
     "exact_profile_public_arbitrary_constructor_allowed": false,
     "exact_occupancy_provenance": "finite-state-oracle artifacts only; public empirical estimators cannot claim exact finite enumeration by changing an estimator label",

@@ -2,8 +2,8 @@
   "schema_version": "3",
   "artifact_type": "route-a-protocol",
   "protocol_name": "route-a-one-measure-soft-cluster-qct",
-  "protocol_version": "3.0.0",
-  "protocol_release": "research-v3-soft-qct",
+  "protocol_version": "3.1.0",
+  "protocol_release": "research-v3.1-smooth-surface-qct",
   "status": "research-contract-implemented-production-validation-pending",
   "hamiltonian_id": "v3-development-composite-packing-water-hamiltonian-not-frozen",
   "supersedes": {
@@ -13,7 +13,7 @@
     "scientific_reason": "V2 mixed a hard packing occupancy with finite soft fixed-n association and therefore did not use one conditioned measure."
   },
   "inherited_v2_contract": {
-    "protocol_sha256": "1366086ed7a5742cdb15ce831686f899af67ad1c9b896f64c89ad1adbbd1e788",
+    "protocol_sha256": "18d4db4cf17237381d2b7e520efc68c1beaca60611789c23500de821e6841551",
     "inherited_by_hash": [
       "neutral closed-shell water domain",
       "1M gas to 1M solution standard state",
@@ -64,13 +64,17 @@
     "hard_empty_indicator_role": "diagnostic-only",
     "softness_selected_from_experimental_hydration_values": false,
     "hard_limit_sensitivity_required": true,
-    "membership_surface_identity": "boundary-independent nearest atom-sphere surface hash",
-    "boundary_adapters": "distinct hash-bound periodic minimum-image and nonperiodic cluster adapters",
+    "membership_surface_identity": "boundary-independent log-sum-exp smooth-union atom-sphere surface hash",
+    "boundary_adapters": "distinct hash-bound symmetric periodic-image and nonperiodic cluster adapters",
     "occupancy_support": "preregistered n=0..nmax plus aggregate n>nmax tail bin",
     "simplex_reconstruction_bin_preregistered": true,
     "active_occupancy_max_minimum": 1,
     "active_support_must_include_n0_and_n1": true,
-    "full_support_zero_tail_allowed": true
+    "full_support_zero_tail_allowed": true,
+    "surface_coordinate": "d_s=-tau*ln sum_i exp(-d_i/tau)",
+    "surface_smoothing_parameter": "surface_smoothing_angstrom=tau>0",
+    "surface_hard_min_sensitivity_required": true,
+    "pre_v3_1_nearest_surface_artifacts_compatible": false
   },
   "packing": {
     "contract": "docs/solvation/route-a/packing-contract-v3.json",
@@ -148,13 +152,14 @@
     "cds_policy": "excluded-from-v3-core-until-hash-bound-development-ablation"
   },
   "validation_gates": {
-    "analytic": "complementarity, forces, nmax>=1 production support, full-support zero tail, active-support plus tail normalization, PyMBAR Theta covariance identity, Nwater=64/128/256/512 stability",
+    "analytic": "complementarity, smooth-union atom-sphere seam and periodic cut-locus continuity, center-order invariance, energy-force finite differences and NVE seam crossings, nmax>=1 production support, full-support zero tail, active-support plus tail normalization, PyMBAR Theta covariance identity, Nwater=64/128/256/512 stability",
     "packing_statistics": "overlap, ESS, BAR-MBAR, per-state uncertainty, half-trajectory stability, estimator equivalence, and hash-bound equality with reference occupancy",
     "thermodynamic_closure": "real-ensemble n0, multi-n, p0, x0, every active p(n)/x(n), p/x tail gates, g(n), joint-provenance covariance with nonzero cross-block propagation, Hamiltonian/boundary bridge residual and two independent source-bound finite enumeration oracles",
     "replicas": "at least three independent v3 replicas after the packing-water Hamiltonian is frozen",
     "outer": "whole-supermolecule equivalence with zero warnings and no frame deletion",
     "selection": "all method choices frozen on development data before experimental holdout labels are opened",
-    "accuracy": "prespecified paired blind-holdout error lower than frozen Route2 with uncertainty"
+    "accuracy": "prespecified paired blind-holdout error lower than frozen Route2 with uncertainty",
+    "alchemical_path": "epsilon/sigma and lambda-schedule sensitivity, minimum cross-fragment distance distributions, exact-coincidence rejection, forward/reverse cycle closure, overlap, and independent-replica agreement"
   },
   "scientific_status": {
     "public_solvfe_runtime": "fail-closed",
@@ -177,32 +182,32 @@
     "protocol_v2": {
       "path": "docs/solvation/route-a/protocol-v2.json",
       "hash_kind": "canonical_sha256",
-      "sha256": "637855d1e10ecc1c96391ad7632e845816a176aa2d5e4a5fe00adb6172ec0543"
+      "sha256": "2219cf270e8241191807fcb9303fa28767b5ac9c7d335accb6948bdb39f2c61b"
     },
     "conditioning_contract_v3": {
       "path": "docs/solvation/route-a/conditioning-contract-v3.json",
       "hash_kind": "canonical_sha256",
-      "sha256": "dcb6dc74e9e124919d57a791b612ffd395fd1e5a588ca188be3d8ce1eb6632c0"
+      "sha256": "bab4eef0e510f8159cc73115608f57e441bf1eadcb0b5830ea78748cdea81178"
     },
     "packing_contract_v3": {
       "path": "docs/solvation/route-a/packing-contract-v3.json",
       "hash_kind": "canonical_sha256",
-      "sha256": "291082ae4c9383159eddec2dedc5a711179831963f302153205b895d0dc431cc"
+      "sha256": "0ea6346d9ec713d6e0cda60d1e0d4ddaf1bc8dce1293272e275ad47136a33d75"
     },
     "thermodynamics_v3": {
       "path": "docs/solvation/route-a/thermodynamics-v3.md",
       "hash_kind": "sha256",
-      "sha256": "5274148da776caa5499e76f5dccb1639af105bb9dec2a6dc3c016b7631804b7e"
+      "sha256": "2d2c3777ccc5b89dac738251656b1073d7cd44c8527d88e8071d6c47ecb8a021"
     },
     "ledger_contract_v3": {
       "path": "docs/solvation/route-a/ledger-contract-v3.json",
       "hash_kind": "canonical_sha256",
-      "sha256": "1b7b4329acddb653fc1adf7e91d69a0261ce8933f583e28cad96ca40119ccb2f"
+      "sha256": "13b5c337146b1c1884b3f9dc5853836b9a90b124a35c4caf1c6570fa5e75768f"
     }
   },
   "protocol_schema": {
     "path": "docs/solvation/route-a/protocol-schema-v3.json",
-    "sha256": "91d1d19eecfd871e07697d9ef403fa6ddcf37f515f322e0b69ca769753e9a847"
+    "sha256": "a4f7b78c0af6fe671121db73ab1c969137c9b700e53b8c62b7f1ced3a4d0546a"
   },
-  "protocol_sha256": "2d0dc54f6a119a19bdbff9c88457433626e0761493765199424e316b2e3fc9f0"
+  "protocol_sha256": "0f12d905c04231889cd2a91d09fa1c2fd248b198da8d0afed8d9c82dadbbafcf"
 }

@@ -136,7 +136,7 @@
       "delta_g_solv=electrostatic+cds+standard_state"
     ],
     "parity_fixture": "tests/solvation/route_a/fixtures/outer/route2_acetone_component_parity_v1.json",
-    "parity_fixture_canonical_sha256": "e94ed80490a82983e9bbeb4fdee73d596ea6def4fa35c2ae6d7f06cb969c18e6"
+    "parity_fixture_canonical_sha256": "49be9e55a3c5912773aff283f0eac435c961d839cbe7e058dfe403060cb6b7df"
   },
   "sampler_boundary": {
     "off24_role": "periodic discovery and proposal only",

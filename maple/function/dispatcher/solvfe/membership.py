@@ -6,10 +6,13 @@ from types import MappingProxyType
 from typing import Mapping
 
 import numpy as np
-from ase.geometry import find_mic
 from ase.units import kB
 
 from .protocol import canonical_sha256
+
+
+PERIODIC_IMAGE_LOG_TOLERANCE = 50.0
+PERIODIC_IMAGE_MAX_SHELLS = 4
 
 
 def membership_surface_identity_hash(
@@ -19,16 +22,18 @@ def membership_surface_identity_hash(
     solute_measure_hash: str,
     membership_definition_hash: str,
 ) -> str:
-    """Boundary-independent identity of the shared atom-sphere surface."""
+    """Boundary-independent identity of the shared smooth-union surface."""
 
     return canonical_sha256(
         {
-            "contract_id": "membership-surface-identity-v3",
+            "contract_id": "membership-surface-identity-v4",
             "solute_indices": [int(index) for index in solute_indices],
             "solute_atom_map_hash": solute_atom_map_hash,
             "solute_measure_hash": solute_measure_hash,
             "membership_definition_hash": membership_definition_hash,
-            "coordinate": "nearest atom-sphere signed distance",
+            "coordinate": (
+                "log-sum-exp smooth minimum of atom-sphere signed distances"
+            ),
             "complete_solvent_molecule_rule": "oxygen membership",
         }
     )
@@ -45,10 +50,11 @@ class SoftCutoffEvaluation:
 
 
 @dataclass(frozen=True)
-class NearestSurfaceGeometry:
+class SmoothSurfaceGeometry:
     signed_distances_angstrom: np.ndarray
-    nearest_center_indices: np.ndarray
-    unit_vectors_center_to_point: np.ndarray
+    center_weights: np.ndarray
+    center_gradient_vectors: np.ndarray
+    periodic_image_shells: int
 
 
 @dataclass(frozen=True)
@@ -67,6 +73,7 @@ class SoftCutoffMembership:
     vdw_radii_angstrom: Mapping[int, float]
     lambda_s_angstrom: float
     softness_angstrom: float
+    surface_smoothing_angstrom: float
     shell_boundary_id: str
 
     def __post_init__(self) -> None:
@@ -86,6 +93,10 @@ class SoftCutoffMembership:
         for name, value in (
             ("lambda_s_angstrom", self.lambda_s_angstrom),
             ("softness_angstrom", self.softness_angstrom),
+            (
+                "surface_smoothing_angstrom",
+                self.surface_smoothing_angstrom,
+            ),
         ):
             if (
                 isinstance(value, (bool, np.bool_))
@@ -108,7 +119,11 @@ class SoftCutoffMembership:
     def content_hash(self) -> str:
         return canonical_sha256(
             {
-                "contract_id": "soft-cutoff-membership-v1",
+                "contract_id": "soft-cutoff-membership-v2",
+                "surface_coordinate": (
+                    "d_s=-tau*log(sum_i exp[-d_i/tau]); "
+                    "d_i=|r-R_i|-r_i_vdw"
+                ),
                 "membership": (
                     "b(d)=1/(1+exp((d-lambda_s)/R))"
                 ),
@@ -117,6 +132,9 @@ class SoftCutoffMembership:
                 "shell_boundary_id": self.shell_boundary_id,
                 "lambda_s_angstrom": float(self.lambda_s_angstrom),
                 "softness_angstrom": float(self.softness_angstrom),
+                "surface_smoothing_angstrom": float(
+                    self.surface_smoothing_angstrom
+                ),
                 "vdw_radii_angstrom": {
                     str(number): radius
                     for number, radius in sorted(
@@ -270,15 +288,28 @@ def soft_occupancy_weights(
     return weights
 
 
-def nearest_surface_geometry(
+def smooth_surface_geometry(
     *,
     point_positions_angstrom: np.ndarray,
     center_positions_angstrom: np.ndarray,
     center_radii_angstrom: np.ndarray,
+    surface_smoothing_angstrom: float,
     cell_angstrom: np.ndarray | None = None,
     pbc: np.ndarray | None = None,
-) -> NearestSurfaceGeometry:
-    """Evaluate nearest atom-sphere signed distances and force directions."""
+) -> SmoothSurfaceGeometry:
+    """Evaluate a differentiable log-sum-exp union of atom spheres.
+
+    If ``d_i = |r - R_i| - r_i`` is the signed distance to atom sphere
+    ``i``, the shared Route A surface coordinate is
+
+    ``d_s = -tau log(sum_i exp(-d_i / tau))``.
+
+    Its point gradient is the softmax-weighted sum of the individual sphere
+    gradients. Under periodic boundary conditions, the same log-sum-exp is
+    evaluated over a symmetric lattice-image shell. The shell is enlarged
+    until omitted image weights are below the hash-bound numerical tolerance,
+    avoiding the minimum-image cut-locus force cusp.
+    """
 
     points = np.asarray(point_positions_angstrom, dtype=float)
     centers = np.asarray(center_positions_angstrom, dtype=float)
@@ -300,6 +331,15 @@ def nearest_surface_geometry(
             "Surface points/centers must be finite non-empty (N, 3) arrays "
             "with one positive radius per center."
         )
+    if (
+        isinstance(surface_smoothing_angstrom, (bool, np.bool_))
+        or not math.isfinite(float(surface_smoothing_angstrom))
+        or float(surface_smoothing_angstrom) <= 0.0
+    ):
+        raise ValueError(
+            "surface_smoothing_angstrom must be finite and positive."
+        )
+    smoothing = float(surface_smoothing_angstrom)
 
     periodic = cell_angstrom is not None or pbc is not None
     if periodic:
@@ -324,55 +364,115 @@ def nearest_surface_geometry(
         cell = None
         periodic_axes = None
 
-    signed_distances: list[float] = []
-    nearest_indices: list[int] = []
-    unit_vectors: list[np.ndarray] = []
-    for point in points:
-        displacements = point - centers
-        if periodic:
-            displacement_vectors, distances = find_mic(
-                displacements,
-                cell,
-                pbc=periodic_axes,
+    displacement_vectors = points[:, None, :] - centers[None, :, :]
+    periodic_image_shells = 0
+    if periodic:
+        singular_values = np.linalg.svd(cell, compute_uv=False)
+        smallest_scale = float(np.min(singular_values))
+        largest_scale = float(np.max(singular_values))
+        nearest_distance_upper_bound = (
+            0.5 * math.sqrt(3.0) * largest_scale - float(np.max(radii))
+        )
+        required_separation = (
+            smoothing * PERIODIC_IMAGE_LOG_TOLERANCE
+            + float(np.max(radii))
+            + nearest_distance_upper_bound
+        )
+        periodic_image_shells = max(
+            1,
+            int(
+                math.ceil(
+                    required_separation / smallest_scale - 0.5
+                )
+            ),
+        )
+        if periodic_image_shells > PERIODIC_IMAGE_MAX_SHELLS:
+            raise ValueError(
+                "PERIODIC_IMAGE_SHELL_UNSUPPORTED: the cell, radii, and "
+                "surface smoothing require more lattice images than the "
+                "validated Route A adapter permits."
             )
-        else:
-            displacement_vectors = displacements
-            distances = np.linalg.norm(displacements, axis=1)
-        signed_by_center = distances - radii
-        nearest = int(np.argmin(signed_by_center))
-        distance = float(distances[nearest])
-        if distance <= 1.0e-12:
-            raise RuntimeError(
-                "SURFACE_GEOMETRY_SINGULAR: point coincides with a "
-                "surface center."
-            )
-        signed_distances.append(float(signed_by_center[nearest]))
-        nearest_indices.append(nearest)
-        unit_vectors.append(
-            np.asarray(displacement_vectors[nearest], dtype=float) / distance
+        inverse_cell = np.linalg.inv(cell)
+        fractional = displacement_vectors @ inverse_cell
+        fractional -= np.floor(fractional + 0.5)
+        wrapped_displacements = fractional @ cell
+        image_range = np.arange(
+            -periodic_image_shells,
+            periodic_image_shells + 1,
+            dtype=float,
+        )
+        image_shifts = np.stack(
+            np.meshgrid(
+                image_range,
+                image_range,
+                image_range,
+                indexing="ij",
+            ),
+            axis=-1,
+        ).reshape(-1, 3)
+        image_vectors = image_shifts @ cell
+        displacement_vectors = (
+            wrapped_displacements[:, :, None, :]
+            + image_vectors[None, None, :, :]
+        )
+    else:
+        displacement_vectors = displacement_vectors[:, :, None, :]
+    distances = np.linalg.norm(displacement_vectors, axis=3)
+    if np.any(distances <= 1.0e-12):
+        raise RuntimeError(
+            "SURFACE_GEOMETRY_SINGULAR: point coincides with a surface "
+            "center."
         )
 
+    signed_by_center = distances - radii[None, :, None]
+    with np.errstate(over="ignore", invalid="ignore"):
+        scaled = -signed_by_center / smoothing
+    if not np.all(np.isfinite(scaled)):
+        raise ValueError(
+            "Smooth-surface scaled distances exceed the finite range."
+        )
+    row_max = np.max(scaled, axis=(1, 2), keepdims=True)
+    exponentials = np.exp(scaled - row_max)
+    normalizers = np.sum(exponentials, axis=(1, 2), keepdims=True)
+    image_weights = exponentials / normalizers
+    signed_distances = -smoothing * (
+        row_max[:, 0, 0] + np.log(normalizers[:, 0, 0])
+    )
+    unit_vectors = displacement_vectors / distances[..., None]
+    center_weights = np.sum(image_weights, axis=2)
+    center_gradient_vectors = np.sum(
+        image_weights[..., None] * unit_vectors,
+        axis=2,
+    )
+
     immutable_values = []
-    for value, dtype in (
-        (signed_distances, float),
-        (nearest_indices, np.int64),
-        (unit_vectors, float),
+    for value in (
+        signed_distances,
+        center_weights,
+        center_gradient_vectors,
     ):
-        array = np.asarray(value, dtype=dtype)
+        array = np.array(value, dtype=float, copy=True, order="C")
+        if not np.all(np.isfinite(array)):
+            raise RuntimeError(
+                "SMOOTH_SURFACE_NONFINITE: geometry evaluation is non-finite."
+            )
         array.setflags(write=False)
         immutable_values.append(array)
-    return NearestSurfaceGeometry(
+    return SmoothSurfaceGeometry(
         signed_distances_angstrom=immutable_values[0],
-        nearest_center_indices=immutable_values[1],
-        unit_vectors_center_to_point=immutable_values[2],
+        center_weights=immutable_values[1],
+        center_gradient_vectors=immutable_values[2],
+        periodic_image_shells=periodic_image_shells,
     )
 
 
 __all__ = [
-    "NearestSurfaceGeometry",
+    "PERIODIC_IMAGE_LOG_TOLERANCE",
+    "PERIODIC_IMAGE_MAX_SHELLS",
+    "SmoothSurfaceGeometry",
     "SoftCutoffEvaluation",
     "SoftCutoffMembership",
     "membership_surface_identity_hash",
-    "nearest_surface_geometry",
+    "smooth_surface_geometry",
     "soft_occupancy_weights",
 ]

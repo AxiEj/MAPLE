@@ -98,6 +98,7 @@
     "sampler": {
       "checkpoint": "MACE-OFF24_medium.model",
       "checkpoint_sha256": "e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69",
+      "default_dtype": "float64",
       "license": "Academic Software Licence",
       "license_profile": "research-default-v1",
       "name": "MACE-OFF24",
@@ -121,6 +122,7 @@
     "target": {
       "checkpoint": "MACE-omol-0-extra-large-1024.model",
       "checkpoint_sha256": "9b64b4fd5153ca578c694abc57806d8111050de6ff652e695c9b525bc4d36469",
+      "default_dtype": "float64",
       "license": "Academic Software Licence",
       "license_profile": "research-default-v1",
       "name": "MACE-OMOL-0",
@@ -145,8 +147,8 @@
   "protocol_contract": "route-a-protocol-contract-v1",
   "protocol_name": "qct-supermolecule-hydration",
   "protocol_release": "2026-07-25",
-  "protocol_schema_version": "1.4.0",
-  "protocol_version": "1.4.0",
+  "protocol_schema_version": "1.5.0",
+  "protocol_version": "1.5.0",
   "radius_profile": {
     "name": "bondi-mantina-v1",
     "notes": "Immutable for route-a phase-0 shell distance and SA geometry checks.",
@@ -159,7 +161,7 @@
     "cavity": {
       "archive_sha256": "2bec9b259181fadc59640c0d6b94c3d07227da1b17e6b1397e17bbf73305b992",
       "component_graph_required": 1,
-      "fixture_hash": "750469dfa61c0e738dd5113a0e76f0b271fae39e98355141995899e98ee8c9e7",
+      "fixture_hash": "7736c4faf43c5b88218fc4d80f004ad5c1892c94744ed89617e608a7c675f541",
       "mesh_metadata_sha256": "8fd430aa6ae6429460db1b1b67cbae9861bc06467a8eb8e43ee861078226b89b",
       "penetration_predicate": {
         "fail_condition": "max_{t in tesserae, (i,j)} min(-s_i(t),-s_j(t)) > numerical_tolerance_A",
@@ -395,7 +397,7 @@
     },
     "cavity_fixture": {
       "path": "tests/solvation/route_a/fixtures/cavities/pcmsolver-golden-water-dimer.json",
-      "sha256": "750469dfa61c0e738dd5113a0e76f0b271fae39e98355141995899e98ee8c9e7",
+      "sha256": "7736c4faf43c5b88218fc4d80f004ad5c1892c94744ed89617e608a7c675f541",
       "hash_kind": "canonical_sha256"
     },
     "claim_contract": {
@@ -425,7 +427,7 @@
     },
     "protocol_schema": {
       "path": "docs/solvation/route-a/protocol-schema-v1.json",
-      "sha256": "207b081d0deda739de3d8039a3040b8e658a8e6de9eea6b1a6592526d87dd9f1",
+      "sha256": "36a5fed945224c972d0a977b0946fa0c1bf3c6f96d3433a9f4188d21cfc82e3c",
       "hash_kind": "canonical_sha256"
     },
     "thermodynamics_md": {
@@ -440,7 +442,7 @@
     },
     "outer_adapter_contract": {
       "path": "docs/solvation/route-a/outer-adapter-contract-v1.json",
-      "sha256": "34defd161f1e2047ad76bbe4a4825c7f9ca9af8a886c6feedc3eb9525665f390",
+      "sha256": "9bab36658eb1af74ea0fb45284d7de89b1fb49000898e9433e2f368d44d2fe1d",
       "hash_kind": "canonical_sha256"
     },
     "reference_cycle_ablation_contract": {
@@ -450,7 +452,7 @@
     },
     "outer_parity_fixture": {
       "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_component_parity_v1.json",
-      "sha256": "e94ed80490a82983e9bbeb4fdee73d596ea6def4fa35c2ae6d7f06cb969c18e6",
+      "sha256": "49be9e55a3c5912773aff283f0eac435c961d839cbe7e058dfe403060cb6b7df",
       "hash_kind": "canonical_sha256"
     },
     "outer_parity_clean_canary": {
@@ -464,13 +466,13 @@
       "hash_kind": "canonical_sha256"
     },
     "outer_parity_native_stderr": {
-      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.log",
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.txt",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "hash_kind": "sha256"
     },
     "outer_parity_pedra_log": {
-      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.log",
-      "sha256": "4292001dd69287caecc6981965b397db535f485baf44612f57cfc00ed4bc8b3d",
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.txt",
+      "sha256": "54dc170cba6c51a3e40a4e647d2d9c81a68129ec05ca72d005f470dc24aef0e2",
       "hash_kind": "sha256"
     },
     "reference_cycle_preregistration": {
@@ -516,7 +518,7 @@
   },
   "protocol_schema": {
     "path": "docs/solvation/route-a/protocol-schema-v1.json",
-    "sha256": "207b081d0deda739de3d8039a3040b8e658a8e6de9eea6b1a6592526d87dd9f1",
+    "sha256": "36a5fed945224c972d0a977b0946fa0c1bf3c6f96d3433a9f4188d21cfc82e3c",
     "hash_kind": "canonical_sha256"
   },
   "restraint_contract": {
@@ -531,7 +533,7 @@
     "code": "route-a-polar-smd-outer-adapter",
     "reference": {
       "path": "docs/solvation/route-a/outer-adapter-contract-v1.json",
-      "hash": "34defd161f1e2047ad76bbe4a4825c7f9ca9af8a886c6feedc3eb9525665f390",
+      "hash": "9bab36658eb1af74ea0fb45284d7de89b1fb49000898e9433e2f368d44d2fe1d",
       "hash_kind": "canonical_sha256"
     }
   },
@@ -558,5 +560,5 @@
     "upper_bound_semantics": "preregistered deterministic modeling ceiling, not a statistical confidence interval",
     "contract_sha256": "651c32fb42972e0f0b6a119a86fdbb06d7d5eff09bddbd253fd3ed46f278d054"
   },
-  "protocol_sha256": "2c0375a431ec298ed7479225af7958e98913e69826cdcee1692c669459774c2e"
+  "protocol_sha256": "6c0fc30f520d52a21e4776229291d7cf5a8de6c59a9b4c22245d4b95528c8eec"
 }

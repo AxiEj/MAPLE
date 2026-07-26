@@ -1,7 +1,7 @@
 {
   "fixture_version": "1.1.0",
   "system_name": "water-dimer",
-  "protocol_reference": "route-a-protocol-v1.4.0",
+  "protocol_reference": "route-a-protocol-v1.5.0",
   "status": "AVAILABLE",
   "reason": "PCMSolver run-validated golden cavity from two identical MINRADIUS=1.0 A runs matching the frozen outer profile.",
   "checked_at_utc": "2026-07-25T07:30:19.821616Z",

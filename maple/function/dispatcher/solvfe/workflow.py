@@ -93,6 +93,14 @@ def _calculator_spec(
             f"SHA {expected_hash}."
         )
     checkpoint = str(options.get("checkpoint", protocol_model["checkpoint"]))
+    expected_dtype = protocol_model.get("default_dtype")
+    if expected_dtype is not None:
+        declared_dtype = options.get("default_dtype")
+        if declared_dtype != expected_dtype:
+            raise ValueError(
+                f"MODEL_PRECISION_MISMATCH: role '{role}' must use protocol-"
+                f"locked default_dtype={expected_dtype}."
+            )
     spec = CalculatorSpec(
         role=role,
         name=name,
@@ -173,6 +181,15 @@ class SolvationFreeEnergyWorkflow:
         if not protocol_path.is_absolute():
             protocol_path = root / protocol_path
         protocol = RouteAProtocol.load(protocol_path, project_root=root)
+        protocol_version = str(protocol.data.get("protocol_version", ""))
+        if not protocol_version.startswith("1."):
+            major = protocol_version.split(".", 1)[0] or "unknown"
+            raise NotImplementedError(
+                "PUBLIC_PROTOCOL_UNSUPPORTED: public #solvfe currently "
+                "supports the Route A v1 PRECHECK contract only; "
+                f"protocol v{major} is an internal research contract and "
+                "cannot be executed through the public workflow."
+            )
         domain = protocol.data["domain"]
         if (
             domain["solvent"]["name"] != request.solvent
@@ -240,10 +257,10 @@ class SolvationFreeEnergyWorkflow:
             "protocol_hash": protocol.content_hash,
             "atom_list_hash": atom_hash,
             "coordinate_hash": coordinate_hash,
-            "model_hashes": {
-                "sampler": sampler.sha256,
-                "target": scorer.sha256,
-                "outer": outer.sha256,
+            "calculator_spec_hashes": {
+                "sampler": sampler.content_hash,
+                "target": scorer.content_hash,
+                "outer": outer.content_hash,
             },
         }
         run_hash = canonical_sha256(run_preimage)
@@ -269,6 +286,9 @@ class SolvationFreeEnergyWorkflow:
                 "target": scorer.as_dict(),
                 "outer": outer.as_dict(),
             },
+            "calculator_spec_hashes": dict(
+                run_preimage["calculator_spec_hashes"]
+            ),
         }
         return PreparedSolvFE(
             request=request,
@@ -287,11 +307,15 @@ class SolvationFreeEnergyWorkflow:
         return self.output.with_suffix(".solvfe")
 
     def run(self) -> dict[str, Any]:
-        prepared = self.prepared
         store = ArtifactStore(
             self.run_directory,
-            run_hash=prepared.run_hash,
+            run_hash=self.prepared.run_hash,
         )
+        with store.exclusive_session():
+            return self._run_locked(store)
+
+    def _run_locked(self, store: ArtifactStore) -> dict[str, Any]:
+        prepared = self.prepared
         store.initialize(dict(prepared.manifest))
         store.write_json("protocol.json", prepared.protocol.data)
         store.write_json(

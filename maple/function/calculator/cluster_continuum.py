@@ -8,6 +8,7 @@ teaching individual MLIP backends about solvent models.
 
 from __future__ import annotations
 
+import threading
 from typing import Optional
 
 import numpy as np
@@ -138,6 +139,9 @@ class ClusterContinuumCalculator(Calculator):
             "free_energy": total_energy,
             "inner_energy": inner_energy,
             "outer_correction": outer_energy,
+            "energy_semantics": "cluster_continuum_potential_energy",
+            "free_energy_is_ase_potential_energy_alias": True,
+            "thermodynamic_hydration_free_energy": False,
         }
         if "forces" in requested:
             if "forces" not in inner_results:
@@ -271,6 +275,7 @@ class TBLiteALPBDeltaProvider:
             calculator_cls = TBLite
         self._calculator_cls = calculator_cls
         self._calculator_cache: dict[tuple[float, int], tuple[Calculator, Calculator]] = {}
+        self._calculator_lock = threading.RLock()
 
     @staticmethod
     def _charge_and_multiplicity(atoms) -> tuple[float, int]:
@@ -285,21 +290,22 @@ class TBLiteALPBDeltaProvider:
     def _calculators_for(self, atoms) -> tuple[Calculator, Calculator]:
         charge, multiplicity = self._charge_and_multiplicity(atoms)
         key = (charge, multiplicity)
-        if key not in self._calculator_cache:
-            common = {
-                "method": self.method,
-                "charge": charge,
-                "multiplicity": multiplicity,
-                "cache_api": True,
-                "verbosity": 0,
-            }
-            vacuum = self._calculator_cls(**common)
-            solvated = self._calculator_cls(
-                **common,
-                solvation=("alpb", self.solvent, self.state),
-            )
-            self._calculator_cache[key] = (vacuum, solvated)
-        return self._calculator_cache[key]
+        with self._calculator_lock:
+            if key not in self._calculator_cache:
+                common = {
+                    "method": self.method,
+                    "charge": charge,
+                    "multiplicity": multiplicity,
+                    "cache_api": True,
+                    "verbosity": 0,
+                }
+                vacuum = self._calculator_cls(**common)
+                solvated = self._calculator_cls(
+                    **common,
+                    solvation=("alpb", self.solvent, self.state),
+                )
+                self._calculator_cache[key] = (vacuum, solvated)
+            return self._calculator_cache[key]
 
     @staticmethod
     def _evaluate(calculator, atoms, *, forces: bool):
@@ -324,9 +330,14 @@ class TBLiteALPBDeltaProvider:
             )
 
         need_forces = "forces" in requested
-        vacuum_calc, solvated_calc = self._calculators_for(atoms)
-        vacuum = self._evaluate(vacuum_calc, atoms, forces=need_forces)
-        solvated = self._evaluate(solvated_calc, atoms, forces=need_forces)
+        with self._calculator_lock:
+            vacuum_calc, solvated_calc = self._calculators_for(atoms)
+            vacuum = self._evaluate(vacuum_calc, atoms, forces=need_forces)
+            solvated = self._evaluate(
+                solvated_calc,
+                atoms,
+                forces=need_forces,
+            )
 
         result = {
             "energy": (solvated["energy"] - vacuum["energy"]) * EV2HARTREE
@@ -348,6 +359,11 @@ def build_outer_solvent_provider(
     method = str(method).strip().lower()
     provider_name = None if provider is None else str(provider).strip().lower()
     if method == "gbsa":
+        raise ValueError(
+            "method=gbsa is not a production GBSA/OBC implementation; use "
+            "method=experimental-gb-polar for the MAPLE QEq heuristic."
+        )
+    if method == "experimental-gb-polar":
         if provider_name not in {
             None,
             "",
@@ -355,11 +371,12 @@ def build_outer_solvent_provider(
             "null",
             "false",
             "0",
-            "maple",
+            "maple-qeq-heuristic",
         }:
             raise ValueError(
-                "method=gbsa uses MAPLE's built-in experimental GB-polar provider; "
-                "omit provider or use provider=maple."
+                "method=experimental-gb-polar uses MAPLE's energy-only QEq "
+                "heuristic; omit provider or use "
+                "provider=maple-qeq-heuristic."
             )
         return GBPolarOuterProvider(solvent, device=device)
     if method == "alpb":

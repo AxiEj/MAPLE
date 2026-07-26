@@ -11,9 +11,11 @@ from ase.geometry import find_mic
 from ase.units import kB
 
 from .membership import (
+    PERIODIC_IMAGE_LOG_TOLERANCE,
+    PERIODIC_IMAGE_MAX_SHELLS,
     SoftCutoffMembership,
     membership_surface_identity_hash,
-    nearest_surface_geometry,
+    smooth_surface_geometry,
     soft_occupancy_weights,
 )
 from .packing_contract import PackingSchedule
@@ -177,10 +179,15 @@ class GeometryConditionedCavity:
     def boundary_adapter_hash(self) -> str:
         return canonical_sha256(
             {
-                "contract_id": "membership-boundary-adapter-v3",
+                "contract_id": "periodic-membership-boundary-adapter-v5",
                 "membership_surface_hash": self.membership_surface_hash,
                 "boundary_conditions": "periodic-3d",
-                "distance": "minimum-image atom-sphere signed distance",
+                "distance": (
+                    "symmetric periodic-image log-sum-exp smooth "
+                    "atom-sphere signed distance"
+                ),
+                "image_log_tolerance": PERIODIC_IMAGE_LOG_TOLERANCE,
+                "maximum_image_shells": PERIODIC_IMAGE_MAX_SHELLS,
             }
         )
 
@@ -188,7 +195,7 @@ class GeometryConditionedCavity:
     def content_hash(self) -> str:
         return canonical_sha256(
             {
-                "contract_id": "geometry-conditioned-soft-cavity-v3",
+                "contract_id": "geometry-conditioned-soft-cavity-v5",
                 "observation_volume_hash": self.observation_volume_hash,
                 "membership_surface_hash": self.membership_surface_hash,
                 "boundary_adapter_hash": self.boundary_adapter_hash,
@@ -275,10 +282,13 @@ class GeometryConditionedCavity:
             ],
             dtype=float,
         )
-        geometry = nearest_surface_geometry(
+        geometry = smooth_surface_geometry(
             point_positions_angstrom=oxygen_positions,
             center_positions_angstrom=solute_positions,
             center_radii_angstrom=radii,
+            surface_smoothing_angstrom=(
+                self.membership.surface_smoothing_angstrom
+            ),
             cell_angstrom=cell,
             pbc=pbc,
         )
@@ -289,16 +299,18 @@ class GeometryConditionedCavity:
 
         forces = np.zeros((atom_count, 3), dtype=float)
         for local_oxygen, oxygen_index in enumerate(oxygen_indices):
-            nearest_local = int(
-                geometry.nearest_center_indices[local_oxygen]
+            center_gradients = geometry.center_gradient_vectors[local_oxygen]
+            derivative = float(
+                fields.empty_derivative_ev_per_angstrom[local_oxygen]
             )
-            solute_index = self.solute_indices[nearest_local]
             oxygen_force = (
-                -fields.empty_derivative_ev_per_angstrom[local_oxygen]
-                * geometry.unit_vectors_center_to_point[local_oxygen]
+                -derivative * np.sum(center_gradients, axis=0)
             )
             forces[oxygen_index] += oxygen_force
-            forces[solute_index] -= oxygen_force
+            for local_solute, solute_index in enumerate(self.solute_indices):
+                forces[solute_index] += (
+                    derivative * center_gradients[local_solute]
+                )
 
         energy = float(np.sum(fields.empty_potential_ev))
         log_empty_weight = -energy / (kB * float(self.temperature_k))

@@ -8,7 +8,7 @@
   "hamiltonian_id": "omol-vacuum-plus-scaled-supermolecule-pcm-v2",
   "supersedes": {
     "path": "docs/solvation/route-a/protocol-v1.json",
-    "protocol_version": "1.4.0",
+    "protocol_version": "1.5.0",
     "preserved_as_historical_artifact": true,
     "scientific_reason": "V1 used ordinary bare-solute Route2 outer solvation as G_0 and omitted the QCT empty-volume packing/conditioning term; its multi-n result is not eligible for scientific promotion."
   },
@@ -312,7 +312,7 @@
   },
   "protocol_schema": {
     "path": "docs/solvation/route-a/protocol-schema-v2.json",
-    "sha256": "5603f182513eb7ae78b3885c30eb7210ec77c84c2739deb643f2a8091698ae7f"
+    "sha256": "4c4fd8067fd63ba33ced69106db9afa98aa89b19919d070a833ad53fc08e36c0"
   },
-  "protocol_sha256": "1366086ed7a5742cdb15ce831686f899af67ad1c9b896f64c89ad1adbbd1e788"
+  "protocol_sha256": "18d4db4cf17237381d2b7e520efc68c1beaca60611789c23500de821e6841551"
 }

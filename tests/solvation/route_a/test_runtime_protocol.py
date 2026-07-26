@@ -20,7 +20,7 @@ def test_runtime_protocol_loader_verifies_schema_self_hash_and_artifacts():
     loaded = RouteAProtocol.load(PROTOCOL, project_root=ROOT)
 
     assert loaded.content_hash == loaded.data["protocol_sha256"]
-    assert loaded.data["protocol_version"] == "1.4.0"
+    assert loaded.data["protocol_version"] == "1.5.0"
     assert loaded.data["tail_envelope_contract"][
         "conservative_ratio_ceiling"
     ] == 0.55
@@ -44,4 +44,3 @@ def test_runtime_protocol_loader_rejects_self_rehashed_semantic_mutation(
 
     with pytest.raises(ProtocolIntegrityError, match="schema"):
         RouteAProtocol.load(mutated, project_root=ROOT)
-

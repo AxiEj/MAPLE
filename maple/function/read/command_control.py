@@ -197,6 +197,7 @@ class CommandControl:
     SOLVFE_MODEL_OPTION_KEYS = {
         "checkpoint",
         "sha256",
+        "default_dtype",
         "license_ack",
     }
     SOLVFE_OUTER_OPTION_KEYS = {
@@ -568,7 +569,7 @@ class CommandControl:
             implicit = solv_params.get("implicit")
             if explicit is None and implicit is None:
                 # Backward-compatible interpretation:
-                #   #solv(method=gbsa, solvent=water) -> implicit solvent
+                #   #solv(method=alpb, solvent=water) -> implicit solvent
                 #   #solv(solvent=water)              -> explicit solvent
                 target = "implicit" if solv_params.get("method") else "explicit"
                 solv_params[target] = solvent_alias
@@ -601,14 +602,28 @@ class CommandControl:
         if method is not None:
             method = str(method).lower()
             solv_params["method"] = method
-            if method not in {"gbsa", "alpb"}:
-                msg = "Implicit solvation method must be 'gbsa' or 'alpb'."
+            if method == "gbsa":
+                msg = (
+                    "method=gbsa is not a production GBSA/OBC implementation; "
+                    "use method=experimental-gb-polar for MAPLE's energy-only "
+                    "QEq heuristic."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
+            if method not in {"experimental-gb-polar", "alpb"}:
+                msg = (
+                    "Implicit solvation method must be "
+                    "'experimental-gb-polar' or 'alpb'."
+                )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
         if implicit is not None:
-            if method not in {"gbsa", "alpb"}:
-                msg = "Implicit solvation requires method=gbsa or method=alpb."
+            if method not in {"experimental-gb-polar", "alpb"}:
+                msg = (
+                    "Implicit solvation requires "
+                    "method=experimental-gb-polar or method=alpb."
+                )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             if str(implicit).lower() in {"", "none"}:
@@ -627,11 +642,12 @@ class CommandControl:
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
-            if method == "gbsa":
-                if provider not in {None, "maple"}:
+            if method == "experimental-gb-polar":
+                if provider not in {None, "maple-qeq-heuristic"}:
                     msg = (
-                        "method=gbsa uses MAPLE's built-in experimental provider; "
-                        "omit provider or use provider=maple."
+                        "method=experimental-gb-polar uses MAPLE's energy-only "
+                        "QEq heuristic; omit provider or use "
+                        "provider=maple-qeq-heuristic."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -980,6 +996,11 @@ class CommandControl:
                 r"[0-9a-f]{64}", sha
             ):
                 fail(f"Route A {label} requires a lowercase 64-hex sha256.")
+            if options.get("default_dtype") not in {"float32", "float64"}:
+                fail(
+                    f"Route A {label} requires "
+                    "default_dtype=float32 or default_dtype=float64."
+                )
 
         outer = params["outer_options"]
         required_outer = {

@@ -1,4 +1,7 @@
 import builtins
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pytest
@@ -68,6 +71,11 @@ def test_composite_adds_inner_and_outer_results_for_entire_cluster():
     assert calc.results["energy"] == pytest.approx(6.25)
     assert calc.results["inner_energy"] == pytest.approx(5.0)
     assert calc.results["outer_correction"] == pytest.approx(1.25)
+    assert calc.results["energy_semantics"] == (
+        "cluster_continuum_potential_energy"
+    )
+    assert calc.results["free_energy_is_ase_potential_energy_alias"] is True
+    assert calc.results["thermodynamic_hydration_free_energy"] is False
     np.testing.assert_allclose(calc.results["forces"], -2.5 * atoms.positions)
     assert inner.seen_atom_counts == [3]
     assert outer.seen_atom_counts == [3]
@@ -147,6 +155,24 @@ class FakeTBLite(Calculator):
         }
 
 
+class ConcurrentDetectingTBLite(FakeTBLite):
+    guard = threading.Lock()
+    active_calls = 0
+    overlap_detected = False
+
+    def calculate(self, atoms=None, properties=None, system_changes=all_changes):
+        with self.guard:
+            if self.active_calls:
+                type(self).overlap_detected = True
+            type(self).active_calls += 1
+        try:
+            time.sleep(0.02)
+            super().calculate(atoms, properties, system_changes)
+        finally:
+            with self.guard:
+                type(self).active_calls -= 1
+
+
 def test_tblite_provider_returns_alpb_minus_vacuum_in_maple_units():
     FakeTBLite.init_kwargs.clear()
     atoms = Atoms("H2", positions=[[0, 0, 0], [1, 0, 0]], info={"charge": 0, "mult": 1})
@@ -177,3 +203,31 @@ def test_tblite_provider_has_clear_optional_dependency_error(monkeypatch):
 
     with pytest.raises(ImportError, match=r"conda install.*tblite"):
         TBLiteALPBDeltaProvider("water")
+
+
+def test_tblite_provider_serializes_mutable_backend_calculators():
+    ConcurrentDetectingTBLite.active_calls = 0
+    ConcurrentDetectingTBLite.overlap_detected = False
+    provider = TBLiteALPBDeltaProvider(
+        "water",
+        calculator_cls=ConcurrentDetectingTBLite,
+    )
+    systems = [
+        Atoms(
+            "H2",
+            positions=[[0, 0, 0], [distance, 0, 0]],
+            info={"charge": 0, "mult": 1},
+        )
+        for distance in (0.8, 1.0)
+    ]
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(
+            executor.map(
+                lambda atoms: provider.calculate(atoms, ["energy", "forces"]),
+                systems,
+            )
+        )
+
+    assert ConcurrentDetectingTBLite.overlap_detected is False
+    assert all(np.isfinite(result["energy"]) for result in results)

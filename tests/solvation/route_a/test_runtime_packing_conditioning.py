@@ -3,7 +3,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from ase import Atoms
+from ase import units
 from ase.calculators.calculator import Calculator, all_changes
+from ase.md.verlet import VelocityVerlet
 
 from maple.function.dispatcher.solvfe.membership import (
     SoftCutoffMembership,
@@ -73,6 +75,36 @@ class _DistanceCalculator(Calculator):
         }
 
 
+class _CavityOnlyCalculator(Calculator):
+    implemented_properties = ["energy", "forces"]
+
+    def __init__(
+        self,
+        cavity: GeometryConditionedCavity,
+        *,
+        oxygen_indices: tuple[int, ...] = (2,),
+    ) -> None:
+        super().__init__()
+        self.cavity = cavity
+        self.oxygen_indices = oxygen_indices
+
+    def calculate(
+        self,
+        atoms=None,
+        properties=("energy", "forces"),
+        system_changes=all_changes,
+    ):
+        super().calculate(atoms, properties, system_changes)
+        evaluation = self.cavity.evaluate(
+            atoms,
+            oxygen_indices=self.oxygen_indices,
+        )
+        self.results = {
+            "energy": evaluation.energy_ev,
+            "forces": evaluation.forces_ev_per_angstrom,
+        }
+
+
 def _membership(
     *,
     carbon_radius: float = 1.5,
@@ -81,7 +113,8 @@ def _membership(
         vdw_radii_angstrom={6: carbon_radius},
         lambda_s_angstrom=1.0,
         softness_angstrom=0.1,
-        shell_boundary_id="nearest-solute-vdw-surface-v3",
+        surface_smoothing_angstrom=0.05,
+        shell_boundary_id="smooth-union-solute-vdw-surface-v3",
     )
 
 
@@ -234,7 +267,142 @@ def test_geometry_conditioned_cavity_force_matches_finite_difference(
     assert analytic == pytest.approx(finite_difference_force, abs=1.0e-8)
 
 
-def test_geometry_conditioned_cavity_uses_minimum_image():
+def test_geometry_conditioned_cavity_force_is_smooth_at_two_center_seam():
+    atoms = Atoms(
+        "CCO",
+        positions=[
+            [8.0, 10.0, 10.0],
+            [12.0, 10.0, 10.0],
+            [10.0, 10.0, 10.0],
+        ],
+        cell=np.eye(3) * 20.0,
+        pbc=True,
+    )
+    cavity = _cavity(solute_indices=(0, 1))
+    step = 1.0e-6
+
+    center = cavity.evaluate(atoms, oxygen_indices=(2,))
+    plus = atoms.copy()
+    minus = atoms.copy()
+    plus.positions[2, 0] += step
+    minus.positions[2, 0] -= step
+    plus_force = cavity.evaluate(
+        plus,
+        oxygen_indices=(2,),
+    ).forces_ev_per_angstrom[2, 0]
+    minus_force = cavity.evaluate(
+        minus,
+        oxygen_indices=(2,),
+    ).forces_ev_per_angstrom[2, 0]
+    finite_difference = -(
+        cavity.evaluate(plus, oxygen_indices=(2,)).energy_ev
+        - cavity.evaluate(minus, oxygen_indices=(2,)).energy_ev
+    ) / (2.0 * step)
+
+    assert center.forces_ev_per_angstrom[2, 0] == pytest.approx(
+        0.0,
+        abs=1.0e-12,
+    )
+    assert center.forces_ev_per_angstrom[2, 0] == pytest.approx(
+        finite_difference,
+        abs=1.0e-10,
+    )
+    assert plus_force == pytest.approx(-minus_force, abs=1.0e-12)
+    assert abs(plus_force) < 1.0e-4
+    np.testing.assert_allclose(
+        center.forces_ev_per_angstrom.sum(axis=0),
+        0.0,
+        atol=1.0e-12,
+    )
+
+
+def test_smooth_surface_nve_canary_crosses_seam_without_energy_jump():
+    atoms = Atoms(
+        "CCO",
+        positions=[
+            [8.0, 10.0, 10.0],
+            [12.0, 10.0, 10.0],
+            [9.95, 10.0, 10.0],
+        ],
+        cell=np.eye(3) * 20.0,
+        pbc=True,
+    )
+    atoms.calc = _CavityOnlyCalculator(
+        _cavity(solute_indices=(0, 1))
+    )
+    atoms.set_velocities(
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.02, 0.0, 0.0]]
+    )
+    dynamics = VelocityVerlet(atoms, timestep=0.05 * units.fs)
+    total_energies = []
+
+    for _ in range(400):
+        total_energies.append(float(atoms.get_total_energy()))
+        dynamics.run(1)
+
+    assert atoms.positions[2, 0] > 10.0
+    assert max(total_energies) - min(total_energies) < 1.0e-7
+
+
+def test_periodic_cavity_force_matches_finite_difference_at_cut_locus():
+    atoms = Atoms(
+        "CO",
+        positions=[[0.0, 0.0, 0.0], [2.5, 0.0, 0.0]],
+        cell=np.eye(3) * 5.0,
+        pbc=True,
+    )
+    cavity = _cavity()
+    step = 1.0e-6
+    plus = atoms.copy()
+    minus = atoms.copy()
+    plus.positions[1, 0] += step
+    minus.positions[1, 0] -= step
+
+    center = cavity.evaluate(atoms, oxygen_indices=(1,))
+    plus_result = cavity.evaluate(plus, oxygen_indices=(1,))
+    minus_result = cavity.evaluate(minus, oxygen_indices=(1,))
+    finite_difference = -(
+        plus_result.energy_ev - minus_result.energy_ev
+    ) / (2.0 * step)
+
+    assert center.forces_ev_per_angstrom[1, 0] == pytest.approx(
+        finite_difference,
+        abs=1.0e-10,
+    )
+    assert center.forces_ev_per_angstrom[1, 0] == pytest.approx(
+        0.0,
+        abs=1.0e-12,
+    )
+    assert plus_result.forces_ev_per_angstrom[1, 0] == pytest.approx(
+        -minus_result.forces_ev_per_angstrom[1, 0],
+        abs=1.0e-12,
+    )
+
+
+def test_periodic_cavity_nve_canary_crosses_cut_locus_without_energy_jump():
+    atoms = Atoms(
+        "CO",
+        positions=[[0.0, 0.0, 0.0], [2.45, 0.0, 0.0]],
+        cell=np.eye(3) * 5.0,
+        pbc=True,
+    )
+    atoms.calc = _CavityOnlyCalculator(
+        _cavity(),
+        oxygen_indices=(1,),
+    )
+    atoms.set_velocities([[0.0, 0.0, 0.0], [0.08, 0.0, 0.0]])
+    dynamics = VelocityVerlet(atoms, timestep=0.02 * units.fs)
+    total_energies = []
+
+    for _ in range(500):
+        total_energies.append(float(atoms.get_total_energy()))
+        dynamics.run(1)
+
+    assert atoms.positions[1, 0] - atoms.positions[0, 0] > 2.5
+    assert max(total_energies) - min(total_energies) < 1.0e-7
+
+
+def test_geometry_conditioned_cavity_uses_periodic_images():
     atoms = Atoms(
         "CO",
         positions=[

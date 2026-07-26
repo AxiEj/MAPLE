@@ -34,7 +34,7 @@
           "const": "docs/solvation/route-a/protocol-v1.json"
         },
         "protocol_version": {
-          "const": "1.4.0"
+          "const": "1.5.0"
         },
         "preserved_as_historical_artifact": {
           "const": true

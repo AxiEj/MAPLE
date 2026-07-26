@@ -1,0 +1,88 @@
+name: Route A research contracts
+
+"on":
+  pull_request:
+    paths:
+      - ".github/workflows/route-a-research.yml"
+      - ".github/route-a-ci-constraints.txt"
+      - "docs/solvation/route-a/**"
+      - "docs/route3-cluster-continuum.md"
+      - "examples/solvation/route3/**"
+      - "maple/function/calculator/cluster_continuum.py"
+      - "maple/function/calculator/set_calculator.py"
+      - "maple/function/dispatcher/solvfe/**"
+      - "maple/function/read/command_control.py"
+      - "tests/solvation/route_a/**"
+      - "tests/test_cluster_continuum.py"
+      - "tests/test_route3_*.py"
+  push:
+    paths:
+      - ".github/workflows/route-a-research.yml"
+      - ".github/route-a-ci-constraints.txt"
+      - "docs/solvation/route-a/**"
+      - "docs/route3-cluster-continuum.md"
+      - "examples/solvation/route3/**"
+      - "maple/function/calculator/cluster_continuum.py"
+      - "maple/function/calculator/set_calculator.py"
+      - "maple/function/dispatcher/solvfe/**"
+      - "maple/function/read/command_control.py"
+      - "tests/solvation/route_a/**"
+      - "tests/test_cluster_continuum.py"
+      - "tests/test_route3_*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: route-a-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract-tests:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install contract-test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            --index-url https://download.pytorch.org/whl/cpu \
+            torch==2.7.1
+          python -m pip install \
+            -c .github/route-a-ci-constraints.txt \
+            -e . \
+            pytest \
+            jsonschema \
+            pymbar \
+            mace-torch
+          python -m pip check
+          python -m pip freeze --all | sort > route-a-ci-freeze.txt
+      - name: Compile MAPLE sources
+        run: python -m compileall -q maple
+      - name: Run Route A research contract suite
+        run: python -m pytest -q tests/solvation/route_a
+      - name: Run Route 3 public-contract tests
+        run: |
+          python -m pytest -q \
+            tests/test_cluster_continuum.py \
+            tests/test_route3_command_control.py \
+            tests/test_route3_engine_flow.py \
+            tests/test_route3_set_calculator.py
+      - name: Upload resolved environment
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-a-python-${{ matrix.python-version }}-environment
+          path: route-a-ci-freeze.txt

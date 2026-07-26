@@ -6,7 +6,7 @@ from ase.units import kB
 
 from maple.function.dispatcher.solvfe.membership import (
     SoftCutoffMembership,
-    nearest_surface_geometry,
+    smooth_surface_geometry,
     soft_occupancy_weights,
 )
 
@@ -16,7 +16,8 @@ def _definition(**overrides) -> SoftCutoffMembership:
         "vdw_radii_angstrom": {1: 1.20, 6: 1.70, 8: 1.52},
         "lambda_s_angstrom": 1.50,
         "softness_angstrom": 0.10,
-        "shell_boundary_id": "nearest-solute-vdw-surface-v1",
+        "surface_smoothing_angstrom": 0.05,
+        "shell_boundary_id": "smooth-union-solute-vdw-surface-v1",
     }
     values.update(overrides)
     return SoftCutoffMembership(**values)
@@ -148,9 +149,11 @@ def test_membership_hash_is_order_independent_and_parameter_sensitive():
     first = _definition(vdw_radii_angstrom={8: 1.52, 1: 1.20, 6: 1.70})
     reordered = _definition(vdw_radii_angstrom={1: 1.20, 6: 1.70, 8: 1.52})
     changed_softness = _definition(softness_angstrom=0.20)
+    changed_surface = _definition(surface_smoothing_angstrom=0.10)
 
     assert first.content_hash == reordered.content_hash
     assert first.content_hash != changed_softness.content_hash
+    assert first.content_hash != changed_surface.content_hash
 
 
 def test_hard_limit_is_approached_without_overflow():
@@ -167,8 +170,26 @@ def test_hard_limit_is_approached_without_overflow():
     assert evaluation.nonmembership == pytest.approx([0.0, 1.0], abs=1.0e-15)
 
 
-def test_nearest_surface_geometry_selects_minimum_signed_distance():
-    geometry = nearest_surface_geometry(
+def test_smooth_surface_geometry_is_exact_for_one_center():
+    geometry = smooth_surface_geometry(
+        point_positions_angstrom=np.asarray([[2.0, 0.0, 0.0]]),
+        center_positions_angstrom=np.asarray([[4.0, 0.0, 0.0]]),
+        center_radii_angstrom=np.asarray([1.8]),
+        surface_smoothing_angstrom=0.05,
+    )
+
+    assert geometry.signed_distances_angstrom == pytest.approx([0.2])
+    np.testing.assert_allclose(geometry.center_weights, [[1.0]])
+    np.testing.assert_allclose(
+        geometry.center_gradient_vectors,
+        [[[-1.0, 0.0, 0.0]]],
+    )
+    assert geometry.periodic_image_shells == 0
+
+
+def test_smooth_surface_geometry_blends_two_centers_at_seam():
+    smoothing = 0.20
+    geometry = smooth_surface_geometry(
         point_positions_angstrom=np.asarray([[2.0, 0.0, 0.0]]),
         center_positions_angstrom=np.asarray(
             [
@@ -177,27 +198,145 @@ def test_nearest_surface_geometry_selects_minimum_signed_distance():
             ]
         ),
         center_radii_angstrom=np.asarray([1.0, 1.8]),
+        surface_smoothing_angstrom=smoothing,
     )
 
-    assert geometry.nearest_center_indices.tolist() == [1]
-    assert geometry.signed_distances_angstrom == pytest.approx([0.2])
+    expected = -smoothing * np.log(
+        np.exp(-1.0 / smoothing) + np.exp(-0.2 / smoothing)
+    )
+    assert geometry.signed_distances_angstrom == pytest.approx([expected])
     np.testing.assert_allclose(
-        geometry.unit_vectors_center_to_point,
-        [[-1.0, 0.0, 0.0]],
+        geometry.center_weights,
+        [[1.0 / (1.0 + np.exp(4.0)), 1.0 / (1.0 + np.exp(-4.0))]],
+    )
+    np.testing.assert_allclose(
+        geometry.center_gradient_vectors,
+        [
+            [
+                [geometry.center_weights[0, 0], 0.0, 0.0],
+                [-geometry.center_weights[0, 1], 0.0, 0.0],
+            ]
+        ],
     )
 
 
-def test_nearest_surface_geometry_uses_minimum_image_when_periodic():
-    geometry = nearest_surface_geometry(
+def test_smooth_surface_geometry_is_order_invariant_and_continuous_at_seam():
+    centers = np.asarray([[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+    radii = np.asarray([1.0, 1.0])
+    smoothing = 0.10
+
+    seam = smooth_surface_geometry(
+        point_positions_angstrom=np.asarray([[0.0, 0.0, 0.0]]),
+        center_positions_angstrom=centers,
+        center_radii_angstrom=radii,
+        surface_smoothing_angstrom=smoothing,
+    )
+    left = smooth_surface_geometry(
+        point_positions_angstrom=np.asarray([[-1.0e-7, 0.0, 0.0]]),
+        center_positions_angstrom=centers,
+        center_radii_angstrom=radii,
+        surface_smoothing_angstrom=smoothing,
+    )
+    right = smooth_surface_geometry(
+        point_positions_angstrom=np.asarray([[1.0e-7, 0.0, 0.0]]),
+        center_positions_angstrom=centers,
+        center_radii_angstrom=radii,
+        surface_smoothing_angstrom=smoothing,
+    )
+    reordered = smooth_surface_geometry(
+        point_positions_angstrom=np.asarray([[0.0, 0.0, 0.0]]),
+        center_positions_angstrom=centers[::-1],
+        center_radii_angstrom=radii[::-1],
+        surface_smoothing_angstrom=smoothing,
+    )
+
+    assert seam.signed_distances_angstrom == pytest.approx(
+        [-smoothing * np.log(2.0)]
+    )
+    np.testing.assert_allclose(seam.center_weights, [[0.5, 0.5]])
+    seam_gradient = np.sum(seam.center_gradient_vectors, axis=1)
+    left_gradient = np.sum(left.center_gradient_vectors, axis=1)
+    right_gradient = np.sum(right.center_gradient_vectors, axis=1)
+    np.testing.assert_allclose(seam_gradient, 0.0, atol=1.0e-15)
+    np.testing.assert_allclose(
+        left_gradient,
+        right_gradient,
+        atol=4.0e-6,
+    )
+    np.testing.assert_allclose(
+        reordered.signed_distances_angstrom,
+        seam.signed_distances_angstrom,
+    )
+    np.testing.assert_allclose(
+        reordered.center_weights[:, ::-1],
+        seam.center_weights,
+    )
+
+
+def test_smooth_surface_geometry_uses_periodic_images():
+    geometry = smooth_surface_geometry(
         point_positions_angstrom=np.asarray([[9.8, 0.0, 0.0]]),
         center_positions_angstrom=np.asarray([[0.2, 0.0, 0.0]]),
         center_radii_angstrom=np.asarray([1.5]),
+        surface_smoothing_angstrom=0.05,
         cell_angstrom=np.eye(3) * 10.0,
         pbc=np.ones(3, dtype=bool),
     )
 
     assert geometry.signed_distances_angstrom == pytest.approx([-1.1])
     np.testing.assert_allclose(
-        geometry.unit_vectors_center_to_point,
-        [[-1.0, 0.0, 0.0]],
+        geometry.center_gradient_vectors,
+        [[[-1.0, 0.0, 0.0]]],
+        atol=1.0e-14,
     )
+    assert geometry.periodic_image_shells >= 1
+
+
+def test_periodic_image_surface_is_smooth_at_minimum_image_cut_locus():
+    smoothing = 0.05
+    cell = np.eye(3) * 5.0
+    center = np.asarray([[0.0, 0.0, 0.0]])
+    radii = np.asarray([1.5])
+    step = 1.0e-6
+
+    seam = smooth_surface_geometry(
+        point_positions_angstrom=np.asarray([[2.5, 0.0, 0.0]]),
+        center_positions_angstrom=center,
+        center_radii_angstrom=radii,
+        surface_smoothing_angstrom=smoothing,
+        cell_angstrom=cell,
+        pbc=np.ones(3, dtype=bool),
+    )
+    left = smooth_surface_geometry(
+        point_positions_angstrom=np.asarray([[2.5 - step, 0.0, 0.0]]),
+        center_positions_angstrom=center,
+        center_radii_angstrom=radii,
+        surface_smoothing_angstrom=smoothing,
+        cell_angstrom=cell,
+        pbc=np.ones(3, dtype=bool),
+    )
+    right = smooth_surface_geometry(
+        point_positions_angstrom=np.asarray([[2.5 + step, 0.0, 0.0]]),
+        center_positions_angstrom=center,
+        center_radii_angstrom=radii,
+        surface_smoothing_angstrom=smoothing,
+        cell_angstrom=cell,
+        pbc=np.ones(3, dtype=bool),
+    )
+
+    seam_gradient = np.sum(seam.center_gradient_vectors, axis=1)[0, 0]
+    left_gradient = np.sum(left.center_gradient_vectors, axis=1)[0, 0]
+    right_gradient = np.sum(right.center_gradient_vectors, axis=1)[0, 0]
+    finite_difference = (
+        right.signed_distances_angstrom[0]
+        - left.signed_distances_angstrom[0]
+    ) / (2.0 * step)
+
+    assert seam.periodic_image_shells == 1
+    assert seam.signed_distances_angstrom[0] == pytest.approx(
+        1.0 - smoothing * np.log(2.0),
+        abs=1.0e-14,
+    )
+    assert seam_gradient == pytest.approx(0.0, abs=1.0e-14)
+    assert finite_difference == pytest.approx(0.0, abs=1.0e-10)
+    assert left_gradient == pytest.approx(-right_gradient, abs=1.0e-12)

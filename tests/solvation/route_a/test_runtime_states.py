@@ -23,6 +23,16 @@ def test_calculator_spec_is_immutable_and_requires_provenance():
     )
 
     assert spec.content_hash
+    float64 = CalculatorSpec(
+        role="target",
+        name="maceomol",
+        checkpoint="/tmp/model",
+        sha256=SHA,
+        license_acknowledged=True,
+        capabilities=spec.capabilities,
+        options={"device": "cpu", "default_dtype": "float64"},
+    )
+    assert spec.content_hash != float64.content_hash
     with pytest.raises(Exception):
         spec.name = "changed"
 
@@ -59,4 +69,3 @@ def test_solvfe_request_is_narrow_and_typed():
                 "standard_state": "1atm",
             }
         )
-

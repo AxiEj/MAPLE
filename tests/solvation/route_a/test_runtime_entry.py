@@ -16,11 +16,11 @@ def _valid_lines(*, dry_run: bool = True) -> list[str]:
     return [
         (
             "#model=maceoff24m(checkpoint=/tmp/MACE-OFF24_medium.model,"
-            f"sha256={SAMPLER_SHA},license_ack=true)"
+            f"sha256={SAMPLER_SHA},default_dtype=float64,license_ack=true)"
         ),
         (
             "#scorer=maceomol(checkpoint=/tmp/MACE-omol.model,"
-            f"sha256={SCORER_SHA},license_ack=true)"
+            f"sha256={SCORER_SHA},default_dtype=float64,license_ack=true)"
         ),
         (
             "#outer=smd(provider=mace-polar-pcmsolver,model=mace-polar-1-m,"
@@ -44,8 +44,10 @@ def test_valid_route_a_header_parses_to_separate_provider_specs():
     assert control.params["standard_state"] == "1m"
     assert control.params["experimental"] is True
     assert control.params["dry_run"] is True
+    assert control.params["model_options"]["default_dtype"] == "float64"
     assert control.params["scorer"] == "maceomol"
     assert control.params["scorer_options"]["sha256"] == SCORER_SHA
+    assert control.params["scorer_options"]["default_dtype"] == "float64"
     assert control.params["outer"] == "smd"
     assert control.params["outer_options"]["provider"] == (
         "mace-polar-pcmsolver"
@@ -73,7 +75,10 @@ def test_route_a_rejects_nested_solvation_and_other_tasks():
     with pytest.raises(ValueError, match="MUTUALLY_EXCLUSIVE_SOLVATION"):
         CommandControl.from_settings(
             _valid_lines()
-            + ["#solv(implicit=water,method=gbsa,experimental=true)"]
+            + [
+                "#solv(implicit=water,method=experimental-gb-polar,"
+                "experimental=true)"
+            ]
         )
 
     with pytest.raises(ValueError, match="Multiple tasks"):
@@ -93,3 +98,12 @@ def test_route_a_rejects_missing_provider_specs_and_unknown_fields():
     with pytest.raises(ValueError, match="Unknown SOLVFE parameter"):
         CommandControl.from_settings(bad)
 
+
+@pytest.mark.parametrize("dtype", ["float16", "single", ""])
+def test_route_a_rejects_unsupported_or_empty_model_dtype(dtype):
+    lines = [
+        line.replace("default_dtype=float64", f"default_dtype={dtype}", 1)
+        for line in _valid_lines()
+    ]
+    with pytest.raises(ValueError, match="default_dtype"):
+        CommandControl.from_settings(lines)

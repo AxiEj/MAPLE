@@ -15,10 +15,10 @@
       "const": "route-a-one-measure-soft-cluster-qct"
     },
     "protocol_version": {
-      "const": "3.0.0"
+      "const": "3.1.0"
     },
     "protocol_release": {
-      "const": "research-v3-soft-qct"
+      "const": "research-v3.1-smooth-surface-qct"
     },
     "status": {
       "const": "research-contract-implemented-production-validation-pending"
@@ -36,7 +36,7 @@
     },
     "inherited_v2_contract": {
       "const": {
-        "protocol_sha256": "1366086ed7a5742cdb15ce831686f899af67ad1c9b896f64c89ad1adbbd1e788",
+        "protocol_sha256": "18d4db4cf17237381d2b7e520efc68c1beaca60611789c23500de821e6841551",
         "inherited_by_hash": [
           "neutral closed-shell water domain",
           "1M gas to 1M solution standard state",
@@ -93,13 +93,17 @@
         "hard_empty_indicator_role": "diagnostic-only",
         "softness_selected_from_experimental_hydration_values": false,
         "hard_limit_sensitivity_required": true,
-        "membership_surface_identity": "boundary-independent nearest atom-sphere surface hash",
-        "boundary_adapters": "distinct hash-bound periodic minimum-image and nonperiodic cluster adapters",
+        "membership_surface_identity": "boundary-independent log-sum-exp smooth-union atom-sphere surface hash",
+        "boundary_adapters": "distinct hash-bound symmetric periodic-image and nonperiodic cluster adapters",
         "occupancy_support": "preregistered n=0..nmax plus aggregate n>nmax tail bin",
         "simplex_reconstruction_bin_preregistered": true,
         "active_occupancy_max_minimum": 1,
         "active_support_must_include_n0_and_n1": true,
-        "full_support_zero_tail_allowed": true
+        "full_support_zero_tail_allowed": true,
+        "surface_coordinate": "d_s=-tau*ln sum_i exp(-d_i/tau)",
+        "surface_smoothing_parameter": "surface_smoothing_angstrom=tau>0",
+        "surface_hard_min_sensitivity_required": true,
+        "pre_v3_1_nearest_surface_artifacts_compatible": false
       }
     },
     "packing": {
@@ -187,13 +191,14 @@
     },
     "validation_gates": {
       "const": {
-        "analytic": "complementarity, forces, nmax>=1 production support, full-support zero tail, active-support plus tail normalization, PyMBAR Theta covariance identity, Nwater=64/128/256/512 stability",
+        "analytic": "complementarity, smooth-union atom-sphere seam and periodic cut-locus continuity, center-order invariance, energy-force finite differences and NVE seam crossings, nmax>=1 production support, full-support zero tail, active-support plus tail normalization, PyMBAR Theta covariance identity, Nwater=64/128/256/512 stability",
         "packing_statistics": "overlap, ESS, BAR-MBAR, per-state uncertainty, half-trajectory stability, estimator equivalence, and hash-bound equality with reference occupancy",
         "thermodynamic_closure": "real-ensemble n0, multi-n, p0, x0, every active p(n)/x(n), p/x tail gates, g(n), joint-provenance covariance with nonzero cross-block propagation, Hamiltonian/boundary bridge residual and two independent source-bound finite enumeration oracles",
         "replicas": "at least three independent v3 replicas after the packing-water Hamiltonian is frozen",
         "outer": "whole-supermolecule equivalence with zero warnings and no frame deletion",
         "selection": "all method choices frozen on development data before experimental holdout labels are opened",
-        "accuracy": "prespecified paired blind-holdout error lower than frozen Route2 with uncertainty"
+        "accuracy": "prespecified paired blind-holdout error lower than frozen Route2 with uncertainty",
+        "alchemical_path": "epsilon/sigma and lambda-schedule sensitivity, minimum cross-fragment distance distributions, exact-coincidence rejection, forward/reverse cycle closure, overlap, and independent-replica agreement"
       }
     },
     "scientific_status": {

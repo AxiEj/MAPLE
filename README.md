@@ -207,7 +207,7 @@ E_total = E_inner_MLIP(cluster) + DeltaE_outer(cluster)
 Energy-only engineering probe using MAPLE's existing GB-polar/QEq correction:
 
 ```text
-#solv(explicit=water,number=4,implicit=water,method=gbsa,experimental=true)
+#solv(explicit=water,number=4,implicit=water,method=experimental-gb-polar,provider=maple-qeq-heuristic,experimental=true)
 ```
 
 Force-capable optional route using

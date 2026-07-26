@@ -15,12 +15,12 @@
       "audit_schema_version": 5
     },
     "native_stderr_artifact": {
-      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.log",
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.txt",
       "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "pedra_artifact": {
-      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.log",
-      "raw_sha256": "4292001dd69287caecc6981965b397db535f485baf44612f57cfc00ed4bc8b3d"
+      "path": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.txt",
+      "raw_sha256": "54dc170cba6c51a3e40a4e647d2d9c81a68129ec05ca72d005f470dc24aef0e2"
     },
     "compound_id": "mobley_3867265",
     "name": "acetone"

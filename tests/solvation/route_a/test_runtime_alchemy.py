@@ -183,6 +183,22 @@ def test_gaussian_core_is_finite_and_separating_near_overlap():
     relative_force = forces[0] - forces[1]
     assert energy > 0.0
     assert np.dot(relative_force, displacement) > 0.0
+    assert core.content_hash
+
+
+def test_gaussian_core_rejects_exact_zero_force_coincidence():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0]] * 2)
+    partition = FragmentPartition.from_atoms(
+        atoms,
+        solute_indices=(0,),
+        water_indices=(1,),
+    )
+
+    with pytest.raises(RuntimeError, match="REPULSIVE_CORE_COINCIDENT"):
+        GaussianRepulsiveCore(
+            epsilon_ev=0.48,
+            sigma_angstrom=0.85,
+        ).evaluate(atoms, partition)
 
 
 def test_decoupled_dynamics_defers_combined_pass_until_sample_boundary():

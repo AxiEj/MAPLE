@@ -31,7 +31,7 @@ def test_protocol_v2_is_self_consistent_and_artifact_bound():
     assert protocol.data["status"] == (
         "research-protocol-partially-implemented"
     )
-    assert protocol.data["supersedes"]["protocol_version"] == "1.4.0"
+    assert protocol.data["supersedes"]["protocol_version"] == "1.5.0"
     assert protocol.data["supersedes"]["scientific_reason"] == (
         "V1 used ordinary bare-solute Route2 outer solvation as G_0 and omitted "
         "the QCT empty-volume packing/conditioning term; its multi-n result is "

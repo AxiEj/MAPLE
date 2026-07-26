@@ -1,7 +1,7 @@
 #model=macepolm
 #sp(verbose=0)
 #device=cpu
-#solv(explicit=water,number=4,implicit=water,method=gbsa,experimental=true)
+#solv(explicit=water,number=4,implicit=water,method=experimental-gb-polar,provider=maple-qeq-heuristic,experimental=true)
 
 0 1
 C    0.0000    0.0000    0.0000

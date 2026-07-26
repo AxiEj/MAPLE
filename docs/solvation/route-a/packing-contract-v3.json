@@ -1,7 +1,7 @@
 {
   "schema_version": "3",
   "artifact_type": "route-a-soft-packing-contract",
-  "contract_version": "3.0.0",
+  "contract_version": "3.1.0",
   "status": "runtime-contract-and-analysis-implemented-sampling-pending",
   "thermodynamic_system": {
     "measure": "isolated-solute-measure-times-pure-periodic-water",
@@ -42,6 +42,7 @@
       "schedule boundary_adapter_hash equals the cavity periodic adapter hash",
       "schedule active_occupancy_max equals the runtime cavity active support"
     ],
+    "surface_measure": "hash-bound log-sum-exp smooth union with explicit surface_smoothing_angstrom and a symmetric tolerance-bound periodic-image adapter; hard nearest-center and minimum-image cut-locus switching are forbidden",
     "implemented_ensemble": "NVT only with pressure_bar=null; NPT requires a future variable-cell, stress, PV and volume-measure implementation",
     "active_occupancy_max": "integer nmax>=1 defining active support n=0..nmax; n=0-only packing artifacts cannot enter the production occupancy ledger",
     "full_support_zero_tail_allowed": "nmax may equal the number of explicit solvent molecules, in which case the aggregate overflow tail is exactly zero"

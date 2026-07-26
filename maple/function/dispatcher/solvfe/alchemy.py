@@ -130,6 +130,14 @@ class AlchemicalState:
 
 @dataclass(frozen=True)
 class GaussianRepulsiveCore:
+    """Finite auxiliary path; not a general soft-core safety guarantee.
+
+    The Gaussian is deliberately finite for MBAR endpoint compatibility.  Its
+    radial force vanishes at exact coincidence, so coincident cross-fragment
+    atoms fail closed and production promotion still requires parameter,
+    schedule, minimum-distance, and forward/reverse closure diagnostics.
+    """
+
     epsilon_ev: float
     sigma_angstrom: float
 
@@ -163,6 +171,12 @@ class GaussianRepulsiveCore:
                     positions[solute_index] - positions[water_index]
                 )
                 distance_squared = float(np.dot(displacement, displacement))
+                if distance_squared <= 1.0e-24:
+                    raise RuntimeError(
+                        "REPULSIVE_CORE_COINCIDENT: the finite Gaussian core "
+                        "has zero force at exact atom coincidence; reject this "
+                        "configuration rather than treating it as protected."
+                    )
                 pair_energy = float(self.epsilon_ev) * math.exp(
                     -distance_squared / sigma_squared
                 )
@@ -173,6 +187,18 @@ class GaussianRepulsiveCore:
                 forces[solute_index] += pair_force
                 forces[water_index] -= pair_force
         return energy, forces
+
+    @property
+    def content_hash(self) -> str:
+        return canonical_sha256(
+            {
+                "contract_id": "finite-gaussian-pair-core-v2",
+                "epsilon_ev": float(self.epsilon_ev),
+                "sigma_angstrom": float(self.sigma_angstrom),
+                "coincident_configuration": "fail-closed",
+                "production_safety_guarantee": False,
+            }
+        )
 
 
 @dataclass(frozen=True)
@@ -310,6 +336,7 @@ class SequentialInsertionCalculator(Calculator):
             "combined_ev": interaction.combined_ev,
             "interaction_ev": interaction.interaction_ev,
             "repulsive_ev": repulsive_energy,
+            "repulsive_core_hash": self.repulsive_core.content_hash,
             "restraint_ev": restraint_energy,
             "repulsive_scale": repulsive_scale,
             "full_scale": full_scale,

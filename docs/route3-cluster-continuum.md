@@ -41,7 +41,7 @@ The wrapper records:
 
 - `inner_energy`: MLIP energy of the full cluster;
 - `outer_correction`: outer continuum delta;
-- `energy` / `free_energy`: their sum;
+- `energy` / ASE `free_energy`: their potential-energy sum;
 - component and total forces when both contributors support forces.
 
 Single-point output prints the two energy components before the total.
@@ -50,7 +50,7 @@ Single-point output prints the two energy components before the total.
 
 | Input | Outer contribution | Public capability |
 |---|---|---|
-| `method=gbsa` | Existing MAPLE heuristic GB-polar/QEq correction | Energy only; `#sp(verbose=0)` |
+| `method=experimental-gb-polar` | Existing MAPLE heuristic GB-polar/QEq correction | Energy only; `#sp(verbose=0)` |
 | `method=alpb,provider=tblite` | GFN2-xTB ALPB minus GFN2-xTB vacuum | Energy and forces; numerical total Hessian/HVP |
 
 Both paths require `experimental=true` and reject periodic input.
@@ -73,7 +73,7 @@ MAPLE otherwise fails before the inner model is loaded.
 #model=macepolm
 #sp(verbose=0)
 #device=cpu
-#solv(explicit=water,number=4,implicit=water,method=gbsa,experimental=true)
+#solv(explicit=water,number=4,implicit=water,method=experimental-gb-polar,provider=maple-qeq-heuristic,experimental=true)
 ```
 
 `explicit=water,number=4` runs MAPLE's existing cluster builder before the

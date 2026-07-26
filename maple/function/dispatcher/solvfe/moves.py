@@ -17,7 +17,13 @@ from .protocol import canonical_sha256
 
 @dataclass(frozen=True)
 class RigidBodyMoveConfig:
-    """Symmetric rigid-water Metropolis moves for relative shell mixing."""
+    """Symmetric Metropolis moves for one rigid alchemical water.
+
+    Sequential insertion treats previously coupled waters as part of the
+    fixed cluster and exposes exactly one new OHH fragment on each edge. The
+    single-water restriction is required because only that fragment's
+    intramolecular energy is invariant under an individual rigid move.
+    """
 
     water_groups: tuple[tuple[int, ...], ...]
     equilibration_attempts: int
@@ -47,6 +53,11 @@ class RigidBodyMoveConfig:
         )
         if len(set(flattened)) != len(flattened):
             raise ValueError("Rigid-body water groups overlap.")
+        if len(self.water_groups) != 1 or len(self.water_groups[0]) != 3:
+            raise ValueError(
+                "Rigid-body Metropolis requires exactly one rigid OHH water "
+                "per sequential-insertion edge."
+            )
         for name, value in (
             ("equilibration_attempts", self.equilibration_attempts),
             ("attempts_per_sample", self.attempts_per_sample),
@@ -81,7 +92,7 @@ class RigidBodyMoveConfig:
     def content_hash(self) -> str:
         return canonical_sha256(
             {
-                "contract_id": "rigid-water-metropolis-v1",
+                "contract_id": "rigid-single-water-metropolis-v2",
                 "water_groups": [list(group) for group in self.water_groups],
                 "equilibration_attempts": int(self.equilibration_attempts),
                 "attempts_per_sample": int(self.attempts_per_sample),
@@ -96,7 +107,8 @@ class RigidBodyMoveConfig:
                 ),
                 "proposal_contract": (
                     "symmetric uniform-ball translation or symmetric "
-                    "axis-angle rotation about the selected water COM"
+                    "axis-angle rotation about the single OHH water COM; "
+                    "previously coupled waters belong to the fixed cluster"
                 ),
             }
         )
@@ -128,12 +140,13 @@ class MoveStatistics:
 
 
 class RigidBodyMetropolis:
-    """Metropolis kernel that preserves each explicit water's geometry.
+    """Metropolis kernel that preserves one alchemical water's geometry.
 
     Translation and rotation proposals are symmetric, so the acceptance ratio
-    contains only the target Hamiltonian difference.  Fragment internal energy
-    cancels exactly for a rigid move; only the cross interaction, auxiliary
-    core, and shell restraint need evaluation.
+    contains only the target Hamiltonian difference. The single OHH
+    fragment's intramolecular energy cancels exactly for a rigid move; only
+    its cross interaction with the fixed cluster, auxiliary core, and shell
+    restraint need evaluation.
     """
 
     def __init__(
@@ -170,6 +183,19 @@ class RigidBodyMetropolis:
             raise ValueError(
                 "Rigid-body water groups must partition all alchemical water "
                 "indices exactly."
+            )
+
+    def _validate_ohh_fragment(self, atoms: Atoms) -> None:
+        group = self.config.water_groups[0]
+        if any(index >= len(atoms) for index in group):
+            raise ValueError(
+                "Rigid-body OHH water indices exceed the atom list."
+            )
+        symbols = sorted(atoms[index].symbol for index in group)
+        if symbols != ["H", "H", "O"]:
+            raise ValueError(
+                "Rigid-body Metropolis requires exactly one O and two H "
+                "atoms in the alchemical fragment."
             )
 
     @staticmethod
@@ -265,6 +291,7 @@ class RigidBodyMetropolis:
         ):
             raise ValueError("Rigid move attempts must be nonnegative.")
         attempts = int(attempts)
+        self._validate_ohh_fragment(atoms)
         if attempts == 0:
             return MoveStatistics(0, 0, 0, 0, 0, 0)
 

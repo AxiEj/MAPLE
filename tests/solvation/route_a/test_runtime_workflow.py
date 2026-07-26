@@ -60,9 +60,32 @@ def test_dry_run_writes_restartable_manifest_and_withholds_free_energy(
         prepared.run_hash
     )
     assert json.loads((run_dir / "result.json").read_text()) == first
+    assert prepared.manifest["calculator_spec_hashes"] == {
+        "sampler": prepared.sampler.content_hash,
+        "target": prepared.scorer.content_hash,
+        "outer": prepared.outer.content_hash,
+    }
     assert set(
         json.loads((run_dir / "stage-ledger.json").read_text())["stages"]
     ) == {"PRECHECK", "RESULT"}
+
+
+def test_public_workflow_rejects_protocol_v3_before_v1_field_access():
+    lines = [
+        line.replace("protocol-v1.json", "protocol-v3.json")
+        for line in _valid_lines()
+    ]
+    control = CommandControl.from_settings(lines)
+
+    with pytest.raises(
+        NotImplementedError,
+        match="PUBLIC_PROTOCOL_UNSUPPORTED.*v3",
+    ):
+        SolvationFreeEnergyWorkflow.prepare(
+            params=control.params,
+            atoms=_methane(),
+            project_root=ROOT,
+        )
 
 
 @pytest.mark.parametrize(

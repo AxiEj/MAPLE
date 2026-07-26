@@ -12,7 +12,7 @@ from scipy.stats import qmc
 from .membership import (
     SoftCutoffMembership,
     membership_surface_identity_hash,
-    nearest_surface_geometry,
+    smooth_surface_geometry,
 )
 from .protocol import canonical_sha256
 
@@ -343,10 +343,13 @@ class SoftMembershipSurfaceRestraint:
     def boundary_adapter_hash(self) -> str:
         return canonical_sha256(
             {
-                "contract_id": "membership-boundary-adapter-v3",
+                "contract_id": "membership-boundary-adapter-v4",
                 "membership_surface_hash": self.membership_surface_hash,
                 "boundary_conditions": "nonperiodic-cluster",
-                "distance": "nonperiodic nearest atom-sphere signed distance",
+                "distance": (
+                    "nonperiodic log-sum-exp smooth atom-sphere "
+                    "signed distance"
+                ),
             }
         )
 
@@ -354,7 +357,7 @@ class SoftMembershipSurfaceRestraint:
     def content_hash(self) -> str:
         return canonical_sha256(
             {
-                "contract_id": "soft-membership-association-restraint-v3",
+                "contract_id": "soft-membership-association-restraint-v4",
                 "observation_volume_hash": self.observation_volume_hash,
                 "membership_surface_hash": self.membership_surface_hash,
                 "boundary_adapter_hash": self.boundary_adapter_hash,
@@ -429,10 +432,13 @@ class SoftMembershipSurfaceRestraint:
             atoms.positions[list(self.water_oxygen_indices)],
             dtype=float,
         )
-        geometry = nearest_surface_geometry(
+        geometry = smooth_surface_geometry(
             point_positions_angstrom=oxygen_positions,
             center_positions_angstrom=solute_positions,
             center_radii_angstrom=radii,
+            surface_smoothing_angstrom=(
+                self.membership.surface_smoothing_angstrom
+            ),
         )
         fields = self.membership.evaluate_signed_distances(
             geometry.signed_distances_angstrom,
@@ -443,16 +449,18 @@ class SoftMembershipSurfaceRestraint:
         for local_oxygen, oxygen_index in enumerate(
             self.water_oxygen_indices
         ):
-            nearest_local = int(
-                geometry.nearest_center_indices[local_oxygen]
+            center_gradients = geometry.center_gradient_vectors[local_oxygen]
+            derivative = float(
+                fields.member_derivative_ev_per_angstrom[local_oxygen]
             )
-            solute_index = self.solute_indices[nearest_local]
             oxygen_force = (
-                -fields.member_derivative_ev_per_angstrom[local_oxygen]
-                * geometry.unit_vectors_center_to_point[local_oxygen]
+                -derivative * np.sum(center_gradients, axis=0)
             )
             forces[oxygen_index] += oxygen_force
-            forces[solute_index] -= oxygen_force
+            for local_solute, solute_index in enumerate(self.solute_indices):
+                forces[solute_index] += (
+                    derivative * center_gradients[local_solute]
+                )
 
         energy = float(np.sum(fields.member_potential_ev))
         forces.setflags(write=False)
@@ -508,17 +516,28 @@ class SoftMembershipSurfaceRestraint:
             )
 
         solute_positions, radii = self._solute_geometry(atoms)
-        hard_radii = radii + float(self.membership.lambda_s_angstrom)
+        # softmin(d_i) >= min(d_i) - tau*ln(Ncenter).  Expanding every
+        # atom-sphere by that exact worst-case shift keeps the finite Sobol box
+        # and omitted-tail bound conservative for the smooth union.
+        surface_shift_bound = (
+            float(self.membership.surface_smoothing_angstrom)
+            * math.log(len(radii))
+        )
+        tail_reference_radii = (
+            radii
+            + float(self.membership.lambda_s_angstrom)
+            + surface_shift_bound
+        )
         tail_extent = (
             float(tail_log_tolerance)
             * float(self.membership.softness_angstrom)
         )
         lower = np.min(
-            solute_positions - hard_radii[:, None],
+            solute_positions - tail_reference_radii[:, None],
             axis=0,
         ) - tail_extent
         upper = np.max(
-            solute_positions + hard_radii[:, None],
+            solute_positions + tail_reference_radii[:, None],
             axis=0,
         ) + tail_extent
         box_volume = float(np.prod(upper - lower))
@@ -538,16 +557,16 @@ class SoftMembershipSurfaceRestraint:
             weight_sum = 0.0
             for start in range(0, len(points), int(chunk_size)):
                 block = points[start : start + int(chunk_size)]
-                distances = np.linalg.norm(
-                    block[:, None, :] - solute_positions[None, :, :],
-                    axis=2,
-                )
-                signed = np.min(
-                    distances - radii[None, :],
-                    axis=1,
+                geometry = smooth_surface_geometry(
+                    point_positions_angstrom=block,
+                    center_positions_angstrom=solute_positions,
+                    center_radii_angstrom=radii,
+                    surface_smoothing_angstrom=(
+                        self.membership.surface_smoothing_angstrom
+                    ),
                 )
                 weights = self.membership.evaluate_signed_distances(
-                    signed,
+                    geometry.signed_distances_angstrom,
                     temperature_k=self.temperature_k,
                 ).membership
                 weight_sum += float(np.sum(weights))
@@ -570,7 +589,7 @@ class SoftMembershipSurfaceRestraint:
                     * (radius + tail_extent)
                     + 2.0 * softness**3
                 )
-                for radius in hard_radii
+                for radius in tail_reference_radii
             )
         )
         solute_geometry_hash = canonical_sha256(

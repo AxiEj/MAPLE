@@ -1,4 +1,4 @@
-# Route A protocol v3: one-measure soft-cutoff cluster QCT
+# Route A protocol v3.1: one-measure smooth-surface soft-cutoff cluster QCT
 
 Status: research contract. Runtime conditioning, packing analysis, finite
 `n=0`/multi-`n` closure and the reviewed evidence bridges exist, but real
@@ -16,7 +16,39 @@ complementary membership definition everywhere.
 
 ## One membership and its exact complement
 
-For the signed nearest solute atom-sphere distance of water oxygen `j`,
+For water oxygen `j`, first define its signed distance to every solute
+atom-sphere and then their differentiable log-sum-exp union:
+
+```text
+d_ij      = |O_j - R_i| - r_i_vdw
+d_s(O_j) = -tau ln sum_i exp(-d_ij/tau)
+```
+
+`tau>0` removes the force switch at weighted Voronoi seams. Its gradient is
+the softmax-weighted sum of all atom-sphere gradients, so the oxygen force is
+continuous and the equal-and-opposite force is distributed over every
+contributing solute center. The exact hard minimum is recovered only in the
+`tau -> 0` limit; changing `tau` changes the conditioning measure and therefore
+invalidates prior packing, occupancy, `V_eff`, association and ledger
+artifacts.
+
+For periodic packing, applying the same formula to only one minimum-image
+vector would reintroduce a force cusp at the torus cut locus. The periodic
+adapter therefore evaluates the log-sum-exp over a symmetric lattice-image
+shell,
+
+```text
+d_s^PBC(O_j) = -tau ln sum_i sum_{n in Z^3}
+               exp[-d_i(O_j + nL)/tau].
+```
+
+The finite numerical shell is enlarged until every omitted image has a
+relative log weight below 50. More than four shells fails closed instead of
+silently changing the measure. The tolerance, enumeration rule, cell and
+resulting periodic boundary-adapter hash are bound into packing artifacts.
+Cut-locus finite differences and NVE crossings are mandatory regressions.
+
+The complementary membership field is then
 
 ```text
 z_j       = (d_s(O_j) - lambda_s) / R
@@ -27,9 +59,22 @@ u_empty   = -kT ln(1 - b_j)
 ```
 
 Thus `exp(-beta u_member)=b` and `exp(-beta u_empty)=1-b` exactly.
-`lambda_s`, `R`, the solute atom map, radii, solute measure, temperature and
-boundary conditions are hash-bound.  The hard-cutoff limit is a required
-sensitivity test; a smoother field is not assumed to be more accurate.
+`lambda_s`, `R`, `tau`, the solute atom map, radii, solute measure, temperature
+and boundary conditions are hash-bound. Both the membership hard-cutoff
+`R -> 0` limit and the surface hard-minimum `tau -> 0` limit are required
+sensitivity tests; neither smoothing parameter is assumed to improve
+accuracy. Pre-v3.1 nearest-center artifacts are incompatible with this
+measure and cannot be reused.
+
+For finite `V_eff` integration, the exact inequality
+
+```text
+d_s >= min_i(d_i) - tau ln(N_center)
+```
+
+is used to expand every atom-sphere by `tau ln(N_center)` before defining the
+Sobol box and omitted-tail bound. This prevents the smooth union from leaking
+probability outside a box derived for the old hard minimum.
 
 The soft integer-occupancy weights are the coefficients of
 
@@ -214,8 +259,8 @@ A_0 = DeltaG_outer(X | soft-empty-conditioned ensemble).
 
 The nonperiodic cluster row and the periodic exact row have different
 Hamiltonians and boundary conditions. They share one boundary-independent
-membership-surface identity but use distinct, hash-bound minimum-image and
-nonperiodic boundary adapters. Every `V_eff` is a real
+smooth-membership-surface identity but use distinct, hash-bound periodic
+symmetric-image and nonperiodic boundary adapters. Every `V_eff` is a real
 `SoftEffectiveVolumeEstimate` artifact bound into its cluster row. The rows
 are connected only through explicit boundary-measure and Hamiltonian bridges.
 Their difference is a preregistered
@@ -289,14 +334,17 @@ term.
 The research workflow remains fail-closed until all of the following pass:
 
 1. analytic complementarity, force and occupancy-normalization tests;
-2. packing MBAR overlap, ESS, BAR--MBAR, uncertainty, time-stability and
+2. alchemical `epsilon/sigma` and lambda-schedule sensitivity, minimum
+   cross-fragment distance distributions, forward/reverse cycle closure, and
+   explicit rejection of exact atom coincidence;
+3. packing MBAR overlap, ESS, BAR--MBAR, uncertainty, time-stability and
    estimator-equivalence gates;
-3. real-ensemble `n=0`, multi-`n`, `p0/x0/p(n)/x(n)` and joint-bootstrap
+4. real-ensemble `n=0`, multi-`n`, `p0/x0/p(n)/x(n)` and joint-bootstrap
    covariance closure;
-4. three independent v3 replicas;
-5. whole-supermolecule outer equivalence with zero warnings and no deletions;
-6. a frozen development protocol followed by a blind multi-molecule holdout;
-7. prespecified paired error lower than the frozen Route 2 baseline.
+5. three independent v3 replicas;
+6. whole-supermolecule outer equivalence with zero warnings and no deletions;
+7. a frozen development protocol followed by a blind multi-molecule holdout;
+8. prespecified paired error lower than the frozen Route 2 baseline.
 
 The result remains a cluster-continuum approximation to molecular QCT and is
 not labeled exact.

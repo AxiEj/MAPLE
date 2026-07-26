@@ -1,10 +1,12 @@
 {
   "schema_version": "3",
   "artifact_type": "route-a-soft-conditioning-contract",
-  "contract_version": "3.0.0",
+  "contract_version": "3.1.0",
   "status": "runtime-primitives-implemented-production-validation-pending",
   "membership": {
-    "coordinate": "d_s(O_j)=minimum solute atom-sphere signed distance",
+    "atom_sphere_coordinate": "d_i(O_j)=|O_j-R_i|-r_i_vdw",
+    "coordinate": "d_s(O_j)=-tau*log(sum_i exp[-d_i(O_j)/tau])",
+    "surface_gradient": "grad_O d_s=sum_i softmax(-d_i/tau)*unit(R_i->O)",
     "scaled_coordinate": "z=(d_s-lambda_s)/R",
     "member_weight": "b=1/(1+exp(z))",
     "nonmember_weight": "1-b=1/(1+exp(-z))",
@@ -15,6 +17,12 @@
     "oxygen_decides_only": true,
     "complete_solvent_molecule_retained": true,
     "softness_policy": "preregistered from development stability and hard-limit sensitivity; experimental hydration values forbidden",
+    "surface_smoothing_policy": "tau>0 is preregistered from force-continuity and tau->0 measure-sensitivity tests; experimental hydration values forbidden",
+    "surface_hard_min_limit": "tau->0",
+    "periodic_coordinate": "d_s^PBC(O_j)=-tau*log(sum_i sum_{n in Z^3} exp[-d_i(O_j+nL)/tau])",
+    "periodic_image_adapter": "symmetric lattice-image shells with relative log-weight tolerance 50; more than four shells fails closed",
+    "periodic_cut_locus_continuity_required": true,
+    "effective_volume_tail_bound": "softmin(d_i)>=min(d_i)-tau*ln(Ncenter); finite integration boxes and omitted-tail bounds expand every atom sphere by tau*ln(Ncenter)",
     "same_definition_required_for": [
       "packing-p0",
       "coupled-x0-and-xn",
@@ -40,6 +48,7 @@
     "observation_volume_hash",
     "lambda_s_angstrom",
     "softness_angstrom",
+    "surface_smoothing_angstrom",
     "vdw_radii_and_atom_map_hash",
     "solute_measure_hash",
     "temperature_k",
@@ -64,6 +73,8 @@
     "hard_empty_indicator_role": "diagnostic-only",
     "softness_is_accuracy_guarantee": false,
     "hard_limit_sensitivity_required": true,
+    "surface_hard_min_sensitivity_required": true,
+    "pre_v3_1_nearest_surface_artifacts_compatible": false,
     "cluster_continuum_result_is_exact_qct": false
   }
 }

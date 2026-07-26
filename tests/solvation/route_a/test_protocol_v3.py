@@ -34,7 +34,7 @@ def test_protocol_v3_is_self_consistent_and_binds_all_scientific_artifacts():
     )
 
     assert protocol.content_hash == protocol.data["protocol_sha256"]
-    assert protocol.data["protocol_version"] == "3.0.0"
+    assert protocol.data["protocol_version"] == "3.1.0"
     assert protocol.data["status"] == (
         "research-contract-implemented-production-validation-pending"
     )
@@ -56,6 +56,13 @@ def test_protocol_v3_uses_one_measure_and_remains_fail_closed():
     assert conditioning["nonmember_weight"] == "1-b"
     assert conditioning["same_membership_hash_required_for_all_terms"] is True
     assert conditioning["hard_empty_indicator_role"] == "diagnostic-only"
+    assert conditioning["surface_coordinate"] == (
+        "d_s=-tau*ln sum_i exp(-d_i/tau)"
+    )
+    assert conditioning["surface_hard_min_sensitivity_required"] is True
+    assert (
+        conditioning["pre_v3_1_nearest_surface_artifacts_compatible"] is False
+    )
     assert conditioning["active_occupancy_max_minimum"] == 1
     assert conditioning["active_support_must_include_n0_and_n1"] is True
     assert conditioning["full_support_zero_tail_allowed"] is True
@@ -108,9 +115,28 @@ def test_v3_contracts_point_only_to_existing_runtime_primitives():
 
 
 def test_v3_contracts_bind_reviewed_active_support_and_provenance_repairs():
+    conditioning = _load(CONDITIONING_PATH)
     packing = _load(PACKING_PATH)
     ledger = _load(LEDGER_PATH)
 
+    assert conditioning["contract_version"] == "3.1.0"
+    assert "surface_smoothing_angstrom" in conditioning[
+        "same_measure_bindings"
+    ]
+    assert conditioning["scientific_boundaries"][
+        "pre_v3_1_nearest_surface_artifacts_compatible"
+    ] is False
+    assert conditioning["membership"][
+        "periodic_cut_locus_continuity_required"
+    ] is True
+    assert "relative log-weight tolerance 50" in conditioning[
+        "membership"
+    ]["periodic_image_adapter"]
+    assert packing["contract_version"] == "3.1.0"
+    assert "log-sum-exp smooth union" in packing["schedule"]["surface_measure"]
+    assert "minimum-image cut-locus switching" in packing[
+        "schedule"
+    ]["surface_measure"]
     assert "nmax>=1" in packing["schedule"]["active_occupancy_max"]
     assert "exactly zero" in packing["schedule"]["full_support_zero_tail_allowed"]
     assert packing["scientific_boundaries"]["production_nmax_zero_allowed"] is False
@@ -199,6 +225,10 @@ def test_protocol_v3_thermodynamics_documents_measure_and_claim_boundaries():
     assert "Production packing and occupancy artifacts require `nmax >= 1`" in text
     assert "nonzero cross-block covariance" in text
     assert "finite periodic boundary adapter is likewise canonical" in text
+    assert "force switch at weighted Voronoi seams" in text
+    assert "minimum-image" in text
+    assert "Cut-locus finite differences and NVE crossings" in text
+    assert "Pre-v3.1 nearest-center artifacts are incompatible" in text
 
 
 def test_protocol_loader_rejects_v3_hash_drift(tmp_path: Path):

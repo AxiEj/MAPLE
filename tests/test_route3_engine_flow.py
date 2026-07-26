@@ -5,7 +5,7 @@ def test_explicit_first_shell_is_built_before_calculator_initialization(tmp_path
     job = engine()
 
     job._input_reader(
-        "examples/solvation/route3/gbsa_first_shell.inp",
+        "examples/solvation/route3/experimental_gb_polar_first_shell.inp",
         str(tmp_path / "route3.out"),
     )
 

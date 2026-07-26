@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, ValidationError
 
 from .conftest import DOCS_DIR, PROJECT_ROOT, load_json
 
@@ -832,6 +832,22 @@ def test_protocol_thresholds_models_are_pinned_and_referenced_to_local_probe_fix
     failure = load_json(FAIL_PATH)
     codes = {row["code"] for row in failure["catalog"]["failure_codes"]}
     assert "SMD_CAVITY_TOPOLOGY_DISCONTINUITY" in codes
+
+
+def test_sampler_and_target_precision_are_required_by_protocol_schema():
+    protocol = load_json(PROTO_PATH)
+    schema = load_json(SCHEMA_PATH)
+    validator = Draft202012Validator(schema)
+
+    for role in ("sampler", "target"):
+        assert protocol["models"][role]["default_dtype"] == "float64"
+        mutated = copy.deepcopy(protocol)
+        mutated["models"][role].pop("default_dtype")
+
+        with pytest.raises(ValidationError):
+            validator.validate(mutated)
+        with pytest.raises(AssertionError):
+            _validate_local_schema(mutated, schema)
 
 
 def test_claim_failure_state_contracts_validate_and_enforce_lattice_logic():

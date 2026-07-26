@@ -48,7 +48,7 @@ def test_set_calculator_wraps_custom_inner_without_double_counting(tmp_path, mon
         "cpu",
         "dummy",
         str(output),
-        implicit="gbsa",
+        implicit="experimental-gb-polar",
         solvent="water",
         solvation_options={"experimental": True},
     )

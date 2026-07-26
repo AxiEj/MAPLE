@@ -149,10 +149,17 @@ class SetCalculator:
         if self.implicit == 'none':
             return
 
-        if self.implicit not in {'gbsa', 'alpb'}:
+        if self.implicit == 'gbsa':
+            raise ValueError(
+                "implicit='gbsa' is not a production GBSA/OBC implementation; "
+                "use implicit='experimental-gb-polar' for MAPLE's energy-only "
+                "QEq heuristic."
+            )
+        if self.implicit not in {'experimental-gb-polar', 'alpb'}:
             raise ValueError(
                 "Unsupported implicit solvation method: "
-                f"'{self.implicit}'. Supported experimental methods: gbsa, alpb."
+                f"'{self.implicit}'. Supported experimental methods: "
+                "experimental-gb-polar, alpb."
             )
         if self.solvent == 'none':
             raise ValueError(
@@ -166,15 +173,22 @@ class SetCalculator:
             )
 
         provider = normalize_none_option(self.solvation_options.get('provider'))
-        if self.implicit == 'gbsa' and provider not in {'none', 'maple'}:
+        if (
+            self.implicit == 'experimental-gb-polar'
+            and provider not in {'none', 'maple-qeq-heuristic'}
+        ):
             raise ValueError(
-                "method=gbsa uses MAPLE's built-in experimental GB-polar "
-                "provider; omit provider or use provider=maple."
+                "method=experimental-gb-polar uses MAPLE's energy-only QEq "
+                "heuristic; omit provider or use "
+                "provider=maple-qeq-heuristic."
             )
         if self.implicit == 'alpb' and provider != 'tblite':
             raise ValueError("method=alpb currently requires provider=tblite.")
 
-        if self.implicit == 'gbsa' and self.model_options.get('hessian') is not None:
+        if (
+            self.implicit == 'experimental-gb-polar'
+            and self.model_options.get('hessian') is not None
+        ):
             raise ValueError(
                 "Experimental implicit GB-polar solvation does not support "
                 "Hessian/HVP workflows."

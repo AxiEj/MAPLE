@@ -35,6 +35,12 @@
         "checkpoint_sha256": {
           "$ref": "#/definitions/sha256"
         },
+        "default_dtype": {
+          "enum": [
+            "float32",
+            "float64"
+          ]
+        },
         "license": {
           "type": "string"
         },
@@ -130,6 +136,17 @@
         "source",
         "provenance",
         "size_bytes"
+      ],
+      "type": "object"
+    },
+    "precision_model_spec": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/model_spec"
+        }
+      ],
+      "required": [
+        "default_dtype"
       ],
       "type": "object"
     },
@@ -520,10 +537,10 @@
           "$ref": "#/definitions/model_spec"
         },
         "sampler": {
-          "$ref": "#/definitions/model_spec"
+          "$ref": "#/definitions/precision_model_spec"
         },
         "target": {
-          "$ref": "#/definitions/model_spec"
+          "$ref": "#/definitions/precision_model_spec"
         }
       },
       "required": [
@@ -544,14 +561,14 @@
     },
     "protocol_schema_version": {
       "type": "string",
-      "const": "1.4.0"
+      "const": "1.5.0"
     },
     "protocol_sha256": {
       "$ref": "#/definitions/sha256"
     },
     "protocol_version": {
       "type": "string",
-      "const": "1.4.0"
+      "const": "1.5.0"
     },
     "radius_profile": {
       "additionalProperties": false,
@@ -1673,7 +1690,7 @@
             "path": {
               "type": "string",
               "minLength": 1,
-              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.log"
+              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_native_stderr_v1.txt"
             },
             "sha256": {
               "$ref": "#/definitions/sha256"
@@ -1699,7 +1716,7 @@
             "path": {
               "type": "string",
               "minLength": 1,
-              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.log"
+              "const": "tests/solvation/route_a/fixtures/outer/route2_acetone_clean_pedra_v1.txt"
             },
             "sha256": {
               "$ref": "#/definitions/sha256"

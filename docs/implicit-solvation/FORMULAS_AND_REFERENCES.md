@@ -444,9 +444,30 @@ was `150.78 s`, none of which is used as a speed claim. The displaced energies
 and finite-difference force reproduce the historical oracle within
 \(1.11\times10^{-16}\) eV and \(1.11\times10^{-13}\) eV/angstrom,
 respectively, with zero PCMSolver or legacy `primary` warnings. This validates
-one local Cartesian component at one conformer and one step; torsion,
-closed-loop, second-molecule, relaxed-path, and NVE evidence remain historical
-or unrun.
+one local Cartesian component at one conformer and one step.
+
+A separately pre-registered central C--C torsion pair at
+\(\theta=\pm0.5^\circ\) was then evaluated against the same `d72dfba`
+runtime. With the right-hand-rule coordinate defined about atoms 5--6 and the
+downstream fragment rotated rigidly, the analytic generalized force was
+`0.04520643472551838 eV/rad`. The two converged correction energies were
+`-0.33949480476764604` and `-0.340282042716652 eV`, giving the central
+difference `0.04510541195057784 eV/rad`. The absolute and relative errors were
+\(1.01023\times10^{-4}\) eV/rad and \(2.2347\times10^{-3}\), inside the
+predeclared \(2\times10^{-4}\) eV/rad and \(5\times10^{-3}\) gates. Both
+energy-only roots used 18 iterations and emitted zero PCMSolver or legacy
+`primary` warnings. The current analytic and finite-difference generalized
+forces differ from the historical values by
+\(1.39\times10^{-15}\) and \(3.18\times10^{-14}\) eV/rad.
+
+The two scientific energy evaluations took `147.73 s` total contended wall
+time, which is not a performance claim. After writing both immutable
+audit/manifest pairs, the original runner exited while JSON-serializing a NumPy
+Boolean. A read-only finalizer recomputed the scalar gates from those records;
+no scientific energy evaluation was rerun. One torsion at one step does not
+establish step-size convergence, a multi-point path, the historical closed
+loop, a second molecule, relaxed-path continuity, QM-force fidelity, or NVE
+conservation.
 
 The total agreement contains substantial component cancellation. For acetone,
 \(\delta\Delta E_{\mathrm{solute}}=-1.9279\) and

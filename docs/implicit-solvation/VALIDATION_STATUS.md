@@ -590,10 +590,12 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     iterations and emit no `primary` or solver warning. Their observed
     energy-evaluation times are `8.85`, `24.86`, and `71.91 s`, compared with
     historical `10.57`, `32.50`, and `85.55 s`; this is not a
-    hardware-normalized or replicated speed result. The flexible panel, force
-    evidence, and historical timing ratios remain unaligned with the latest
-    checked checkout rather than being treated as current merely through
-    ancestry.
+    hardware-normalized or replicated speed result. The flexible panel,
+    remaining multi-step torsion/loop and second-molecule force evidence, and
+    historical timing ratios remain unaligned with the latest checked checkout
+    rather than being treated as current merely through ancestry. Item 30
+    records the separately rerun source force, Cartesian pair, and one-step
+    central torsion.
 
     Component-resolved comparison exposes error cancellation. Acetone has
     Route-2-minus-QM differences of `-1.9279 kcal/mol` in
@@ -645,10 +647,29 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     The negative and positive energy evaluations took `70.56` and `74.21 s`,
     with `150.78 s` total process wall time; this is not a performance claim.
     Agreement with the historical `5422a07` finite-difference force is
-    \(1.11\times10^{-13}\) eV/angstrom. A historical central C--C torsion gives
-    analytic generalized force
-    `0.0452064 eV/rad`; the `1.0`- and `0.5`-degree finite-difference errors
-    are \(1.62\times10^{-4}\) and \(1.01\times10^{-4}\) eV/rad.
+    \(1.11\times10^{-13}\) eV/angstrom.
+
+    One pre-registered central C--C torsion pair at \(\pm0.5^\circ\) was also
+    rerun against `d72dfba`. The analytic generalized force is
+    `0.04520643472551838 eV/rad`; correction energies
+    `-0.33949480476764604` and `-0.340282042716652 eV` give the
+    central-difference value `0.04510541195057784 eV/rad`. The absolute and
+    relative errors are \(1.01023\times10^{-4}\) eV/rad and
+    \(2.2347\times10^{-3}\), inside the predeclared
+    \(2\times10^{-4}\) eV/rad and \(5\times10^{-3}\) limits. Both
+    energy-only points converge in 18 root iterations and emit zero PCMSolver
+    or legacy `primary` warnings. Their `147.73 s` total contended wall time is
+    not a performance claim.
+
+    The original runner wrote both immutable audit/manifest pairs before
+    exiting on a NumPy-Boolean JSON-serialization error. A read-only finalizer
+    recomputed the scalar gates from those pairs, so the two scientific energy
+    evaluations were not rerun. The analytic and finite-difference generalized
+    forces reproduce the historical record within
+    \(1.39\times10^{-15}\) and \(3.18\times10^{-14}\) eV/rad,
+    respectively. The historical `1.0`-degree point was deliberately not rerun;
+    this single current step therefore does not establish step-size
+    convergence.
 
     The predeclared three-step validation for a second C--O torsion retains
     `status=fail`: its coarse-to-middle absolute error and step drift were not
@@ -666,10 +687,11 @@ is still a Research/Innovation Route, not a complete solution-phase PES.
     2-propoxyethanol, also passes one center-point force/root/translation/
     rotation audit with two resolved torsional generalized forces.
 
-    The source-geometry analytic force and one Cartesian finite-difference
-    displacement pair are current-runtime aligned. The local torsions, bounded
+    The source-geometry analytic force, one Cartesian finite-difference
+    displacement pair, and one central C--C torsion pair at one step are
+    current-runtime aligned. The remaining multi-step torsions, bounded
     two-dimensional loop, and second-molecule center point remain historical.
-    One component at one step still does not establish global
+    These two local derivative checks still do not establish global
     flexible-geometry continuity, relaxed-PES behavior, QM-force fidelity, or
     short-NVE energy conservation.
 31. Only after the remaining gates pass, enable OPT/scan/TS/MD and call Route 2 a

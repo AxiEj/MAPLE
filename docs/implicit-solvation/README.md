@@ -220,14 +220,22 @@ and emits no PCMSolver or legacy `primary` warning. Its direct
 the largest analytic component is `0.7570000052 eV/angstrom`, the finite
 difference is `0.7570030893 eV/angstrom`, and their absolute difference is
 `3.084e-6 eV/angstrom`. Both displaced energies converged in 18 root
-iterations with zero PCMSolver or `primary` warnings. This is one component,
-one conformer, and one step size—not a flexible-PES certification. The
-four-geometry flexible panel, torsion/closed-loop panel, and second-molecule
-force evidence remain explicitly historical. Broader flexible/relaxed-path
-continuity, additional chemical classes, and complete conformer thermochemistry
-remain open without changing the named profile; the short NVE conservation
-gate is still unrun. Until those gates pass, optimization, scans, transition
-states, and MD remain out of scope.
+iterations with zero PCMSolver or `primary` warnings. A separately
+pre-registered central C--C torsion pair at \(\pm0.5^\circ\) was also rerun at
+`d72dfba`: its analytic and central-difference generalized forces are
+`0.0452064347` and `0.0451054120 eV/rad`, an absolute error of
+`1.01023e-4 eV/rad` (`0.2235%`). Both torsion points converged in 18 root
+iterations with zero solver warnings. The original evidence runner exited only
+while serializing a NumPy Boolean after writing both immutable point records;
+a read-only finalizer verified those records without rerunning either energy.
+This establishes one Cartesian component and one internal-coordinate component
+on one conformer, each at one step size—not step-size convergence or a
+flexible-PES certification. The four-geometry flexible panel, multi-step
+torsion/closed-loop panel, and second-molecule force evidence remain explicitly
+historical. Broader flexible/relaxed-path continuity, additional chemical
+classes, and complete conformer thermochemistry remain open without changing
+the named profile; the short NVE conservation gate is still unrun. Until those
+gates pass, optimization, scans, transition states, and MD remain out of scope.
 
 See [FORMULAS_AND_REFERENCES.md](FORMULAS_AND_REFERENCES.md) for equations and
 the literature ledger, and [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the

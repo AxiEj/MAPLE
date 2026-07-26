@@ -92,13 +92,21 @@ reproduces the historical correction force within `2.66e-14 eV/angstrom`.
 Its direct one-component `5e-4`-angstrom finite-difference pair was rerun
 against the same runtime and differs from the analytic force by
 `3.084e-6 eV/angstrom`; both displaced energies converge in 18 iterations
-without PCMSolver or legacy `primary` warnings. The four-geometry flexible
-panel, torsion/closed-loop panel, and second-molecule force evidence remain
-historical. The JSON freezes the reviewed numerical ledger and arithmetic
-checks.
+without PCMSolver or legacy `primary` warnings. One pre-registered central
+C--C torsion pair at \(\pm0.5^\circ\) was then rerun at `d72dfba`. Its analytic
+and central-difference generalized forces are `0.0452064347` and
+`0.0451054120 eV/rad`, differing by `1.01023e-4 eV/rad` (`0.2235%`); both
+energy-only points converge in 18 iterations without either warning class. The
+runner wrote both immutable point records before a NumPy-Boolean JSON
+serialization error, so a read-only finalizer validated those records and no
+scientific energy was rerun. The four-geometry flexible panel, multi-step
+torsion/closed-loop panel, and second-molecule force evidence remain historical.
+The JSON freezes the reviewed numerical ledger and arithmetic checks.
 
 The converged MLIP--PCM/SMD total derivative is now implemented for the
 explicit pyddx/PySCF single-point candidate. The next primary milestone is
-broader flexible/relaxed-path continuity plus short-NVE energy conservation.
+current-runtime torsion step-size convergence, followed by a bounded closed
+loop, a second flexible molecule, broader relaxed-path continuity, and
+short-NVE energy conservation.
 Running more FreeSolv records must not displace those PES gates, while the
 bounded QM-fidelity panel must not be promoted into a broad accuracy claim.

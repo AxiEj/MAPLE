@@ -11,6 +11,9 @@ BASELINE_PATH = (
     REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks/route2-qm-fidelity-v1.json"
 )
 GAS_CONSTANT_KCAL_MOL_K = 0.00198720425864083
+PRIOR_RUNTIME_EQUIVALENCE_REFERENCE_HEAD = (
+    "4c933135a58051b3ace5b8017cd4e64bf25a84af"
+)
 
 
 def _load_baseline() -> dict:
@@ -65,6 +68,10 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         "runtime_equivalence_reference_head"
     ]
     _assert_git_sha(runtime_equivalence_reference_head)
+    assert (
+        runtime_equivalence_reference_head
+        == "3069ef7fef95134e4a3deac50a51267e376a87c2"
+    )
     assert runtime_alignment["runtime_source_scope"] == "maple/"
     assert runtime_alignment["runtime_code_unchanged_between_canary_heads"] is True
     canary_execution_heads = runtime_alignment["canary_execution_heads"]
@@ -92,14 +99,19 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
         "force_finite_difference_execution_heads"
     ]
     assert force_finite_difference_execution_heads == force_canary_execution_heads
+    torsion_single_step_execution_heads = runtime_alignment[
+        "torsion_single_step_execution_heads"
+    ]
+    assert torsion_single_step_execution_heads == force_canary_execution_heads
     assert runtime_alignment[
         "force_evidence_confirmed_by_runtime_equivalent_canary"
     ] == [
         "2-acetoxyethyl acetate source-geometry analytic force",
         "2-acetoxyethyl acetate source-geometry one-component finite-difference pair",
+        "2-acetoxyethyl acetate central C-C torsion one-step +/-0.5-degree pair",
     ]
     assert runtime_alignment["force_evidence_still_historical"] == [
-        "2-acetoxyethyl acetate torsion and closed-loop panel",
+        "2-acetoxyethyl acetate multi-step torsion and closed-loop panel",
         "2-propoxyethanol center force",
     ]
     assert (
@@ -221,7 +233,8 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     )
     force_evidence = flexible_record["source_evidence"]
     assert force_evidence["force_alignment_status"] == (
-        "confirmed-by-runtime-equivalent-analytic-force-and-direct-finite-difference-canaries"
+        "confirmed-by-runtime-equivalent-analytic-force-cartesian-finite-difference-"
+        "and-one-step-torsion-canaries"
     )
     assert force_evidence["force_canary_execution_head"] == latest_canary_head
     assert force_evidence["force_runtime_source_equivalence_confirmed"] is True
@@ -284,7 +297,7 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     )
     assert (
         force_finite_difference["runtime_equivalence_reference_head"]
-        == runtime_equivalence_reference_head
+        == PRIOR_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     )
     assert force_finite_difference["used_for_timing_claim"] is False
     assert force_finite_difference["pcmsolver_warning_count"] == 0
@@ -365,6 +378,165 @@ def test_qm_fidelity_baseline_recomputes_fixed_conformer_metrics():
     )
 
 
+def test_qm_fidelity_baseline_recomputes_single_step_torsion_canary():
+    baseline = _load_baseline()
+    record = next(
+        item
+        for item in baseline["fixed_conformer_panel"]["records"]
+        if item["name"] == "2-acetoxyethyl acetate"
+    )
+    evidence = record["source_evidence"]
+    force_canary = evidence["runtime_equivalent_force_canary"]
+    torsion = evidence["runtime_equivalent_torsion_single_step"]
+    runtime_alignment = baseline["runtime_source_alignment"]
+
+    assert torsion["status"] == "pass"
+    assert (
+        torsion["git_head"]
+        == evidence["torsion_single_step_execution_head"]
+        == runtime_alignment["torsion_single_step_execution_heads"][
+            "2-acetoxyethyl acetate"
+        ]
+        == "d72dfbaa3997b8d449720d07f3dd6dc076775eea"
+    )
+    assert (
+        torsion["runtime_equivalence_reference_head"]
+        == runtime_alignment["runtime_equivalence_reference_head"]
+    )
+    assert torsion["profile"] == record["route2"]["profile"]
+    assert torsion["coordinate"] == {
+        "axis_bond_indices_one_based": [5, 6],
+        "axis_direction_index_zero_based": 5,
+        "axis_origin_index_zero_based": 4,
+        "definition": (
+            "Rigidly rotate the downstream fragment about the central C3-C4 "
+            "single-bond axis using the positive right-hand rule."
+        ),
+        "rotated_fragment_indices_one_based": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            16,
+            17,
+            18,
+            19,
+            20,
+        ],
+        "rotated_fragment_indices_zero_based": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            15,
+            16,
+            17,
+            18,
+            19,
+        ],
+    }
+    assert torsion["step_degrees"] == pytest.approx(0.5)
+    assert torsion["step_radians"] == pytest.approx(math.radians(0.5), abs=1.0e-18)
+
+    minus = torsion["minus"]
+    plus = torsion["plus"]
+    for point in (minus, plus):
+        assert point["converged"] is True
+        assert point["forces_evaluated"] is False
+        assert point["root_scf_iterations"] == 18
+        assert point["energy_formula_closure_error_hartree"] <= 1.0e-12
+        assert point["manifest_position_max_error_angstrom"] <= 1.0e-12
+
+    finite_difference = -(
+        plus["correction_energy_ev"] - minus["correction_energy_ev"]
+    ) / (2.0 * torsion["step_radians"])
+    assert torsion[
+        "finite_difference_generalized_force_ev_per_radian"
+    ] == pytest.approx(finite_difference, abs=1.0e-14)
+    absolute_error = abs(
+        finite_difference - torsion["analytic_generalized_force_ev_per_radian"]
+    )
+    assert torsion[
+        "absolute_generalized_force_error_ev_per_radian"
+    ] == pytest.approx(absolute_error, abs=1.0e-15)
+    relative_error = absolute_error / max(
+        abs(torsion["analytic_generalized_force_ev_per_radian"]),
+        1.0e-12,
+    )
+    assert torsion["relative_generalized_force_error"] == pytest.approx(
+        relative_error,
+        abs=1.0e-15,
+    )
+    assert absolute_error <= 2.0e-4
+    assert relative_error <= 5.0e-3
+    assert torsion["symmetric_second_difference_ev"] == pytest.approx(
+        plus["correction_energy_ev"]
+        + minus["correction_energy_ev"]
+        - 2.0 * torsion["center_correction_energy_ev"],
+        abs=1.0e-15,
+    )
+    assert torsion["center_correction_energy_ev"] == pytest.approx(
+        force_canary["correction_energy_ev"],
+        abs=1.0e-15,
+    )
+
+    assert torsion["pcmsolver_warning_count"] == 0
+    assert torsion["legacy_label_noise_count"] == 0
+    assert torsion["total_wall_seconds"] > 0.0
+    assert torsion["used_for_timing_claim"] is False
+    for hash_name in (
+        "alignment_report_sha256",
+        "analytic_force_canary_sha256",
+        "finalizer_sha256",
+        "historical_torsion_sha256",
+        "lock_sha256",
+        "mol2_sha256",
+        "runner_sha256",
+        "sha256",
+    ):
+        _assert_sha256(torsion[hash_name])
+    for path_name, suffix in (
+        ("path", ".json"),
+        ("alignment_report_path", ".alignment.json"),
+        ("analytic_force_canary_path", "2acetoxyethyl-acetate-force-d72dfba.json"),
+        ("historical_torsion_path", "torsion_force_fd_2acetoxyethyl_acetate.json"),
+        ("lock_path", ".lock.json"),
+        ("runner_path", ".runner.py"),
+        ("finalizer_path", ".finalizer.py"),
+    ):
+        assert torsion[path_name].startswith(".omx/benchmarks/")
+        assert torsion[path_name].endswith(suffix)
+    assert torsion["analytic_force_canary_sha256"] == force_canary["sha256"]
+    assert torsion["mol2_sha256"] == force_canary["mol2_sha256"]
+    assert (
+        torsion["historical_torsion_sha256"]
+        == "ada069fd1371baab4f1aa9ae57c26a2ca9a12cdb0bf9c9d84438961657599b0a"
+    )
+    assert abs(
+        torsion[
+            "analytic_generalized_force_difference_from_historical_ev_per_radian"
+        ]
+    ) <= 1.0e-10
+    assert abs(
+        torsion[
+            "finite_difference_generalized_force_difference_from_historical_ev_per_radian"
+        ]
+    ) <= 1.0e-10
+    assert abs(torsion["minus_energy_difference_from_historical_ev"]) <= 1.0e-12
+    assert abs(torsion["plus_energy_difference_from_historical_ev"]) <= 1.0e-12
+
+    recovery = torsion["recovery"]
+    assert recovery["original_runner_exit"] == 1
+    assert "NumPy boolean" in recovery["original_runner_failure"]
+    assert recovery["scientific_evaluations_rerun"] is False
+    assert "step-size convergence" in torsion["claim_boundary"]
+    assert "closed-loop conservativity" in torsion["claim_boundary"]
+    assert "second molecule" in torsion["claim_boundary"]
+    assert "NVE conservation" in torsion["claim_boundary"]
+
+
 def test_qm_fidelity_baseline_recomputes_bounded_electronic_ensemble():
     baseline = _load_baseline()
     panel = baseline["flexible_conformer_panel"]
@@ -386,9 +558,7 @@ def test_qm_fidelity_baseline_recomputes_bounded_electronic_ensemble():
     assert evidence["status"] == "complete-valid"
     assert (
         evidence["runtime_equivalence_reference_head"]
-        == baseline["runtime_source_alignment"][
-            "runtime_equivalence_reference_head"
-        ]
+        == PRIOR_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     )
     assert evidence["runtime_source_equivalence_confirmed"] is None
     assert evidence["alignment_status"] == (
@@ -513,9 +683,7 @@ def test_qm_fidelity_baseline_preserves_reference_and_claim_boundaries():
     assert diagnostic["source_evidence"]["status"] == "source-diagnostic-valid"
     assert (
         diagnostic["source_evidence"]["runtime_equivalence_reference_head"]
-        == baseline["runtime_source_alignment"][
-            "runtime_equivalence_reference_head"
-        ]
+        == PRIOR_RUNTIME_EQUIVALENCE_REFERENCE_HEAD
     )
     assert diagnostic["source_evidence"]["runtime_source_equivalence_confirmed"] is None
     assert "No vibrational thermochemistry" in baseline["claim_boundary"]

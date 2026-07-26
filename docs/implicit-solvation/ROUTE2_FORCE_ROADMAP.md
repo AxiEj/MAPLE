@@ -67,11 +67,12 @@ described as a complete solution-phase PES.
 6. **The public pyddx force is not yet a PES.** Its fixed `lmax=15`/1202-point
    profile has same-energy derivative, translation, and narrow torque evidence
    on rigid methanol and acetone. The explicit k-space-40 variant additionally
-   passes one flexible-molecule Cartesian component, one central-torsion
-   derivative, one independently reconstructed local two-torsion closed loop,
-   and a second flexible molecule's center-point force/root audit. The
-   predeclared three-step second-torsion refinement remains failed even though
-   a separate finer-step extension passes; the latter cannot overwrite the
+   has current-runtime evidence for one flexible-molecule Cartesian component
+   and one central-torsion derivative at a single step. An independently
+   reconstructed local two-torsion closed loop and a second flexible
+   molecule's center-point force/root audit remain historical. The predeclared
+   three-step second-torsion refinement also remains failed even though a
+   separate finer-step extension passes; the latter cannot overwrite the
    former. Broader flexible-geometry continuity, relaxed-path behavior,
    additional chemical classes, and short NVE conservation remain open. The
    finite laboratory-frame quadrature also leaves a small, nonmonotonic
@@ -732,11 +733,23 @@ that CDS energy and gradient come from the same selected provider.
    also reconfirmed against that runtime: the analytic/finite-difference
    mismatch is \(3.0841\times10^{-6}\) eV/angstrom, both sides converge in 18
    root iterations, and PCMSolver/legacy-`primary` warning counts are zero.
-   This closes only the source-geometry local Cartesian canary. The historical
-   local two-torsion closed loop generated at `5d69ef4` has not been rerun at
-   that head. Reconfirm a small displaced continuity or torsion gate next,
-   then broaden beyond one local rectangle and run short NVE tests before
-   enabling optimization, scan, TS search, or MD.
+   A separately locked central C--C torsion pair at \(\pm0.5^\circ\) is now
+   reconfirmed at the same execution head. Its analytic and central-difference
+   generalized forces are `0.04520643472551838` and
+   `0.04510541195057784 eV/rad`, an absolute error of
+   \(1.01023\times10^{-4}\) eV/rad and a relative error of
+   \(2.2347\times10^{-3}\). Both energy-only points converge in 18 iterations
+   without either warning class. A read-only finalizer recovered the completed
+   point records after a result-serialization error; no scientific evaluation
+   was rerun.
+
+   These checks close one local Cartesian component and one single-step
+   torsional component only. The historical local two-torsion closed loop
+   generated at `5d69ef4` has not been rerun at that head. The next bounded
+   gate is a second current-runtime step size on the same locked torsion to
+   establish step-size convergence; only then rerun the bounded loop and
+   second-molecule force, broaden beyond one local rectangle, and run short NVE
+   tests before enabling optimization, scan, TS search, or MD.
 
 ## Stop condition for the force milestone
 

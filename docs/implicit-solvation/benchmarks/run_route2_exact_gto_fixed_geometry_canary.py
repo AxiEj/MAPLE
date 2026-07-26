@@ -99,7 +99,7 @@ SOURCE_RELATIVE_PATHS = (
 )
 PUBLIC_SETTINGS = (
     "#model=macepol-m",
-    "#sp(verbose=1)",
+    "#sp",
     (
         "#solv(implicit=water,method=smd,provider=pcmsolver,"
         f"profile={PCMSOLVER_EXACT_GTO_FIELD_PROFILE},response=scf,"

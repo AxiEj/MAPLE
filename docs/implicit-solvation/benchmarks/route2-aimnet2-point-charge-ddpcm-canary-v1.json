@@ -1,0 +1,214 @@
+{
+  "artifact": "route2-aimnet2-point-charge-ddpcm-canary-v1",
+  "charge_output_parameters": {
+    "padded_sentinel_tolerance_e": 1e-06,
+    "projection": "uniform-affine-float-residue-only",
+    "raw_total_charge_tolerance_e": 0.0001
+  },
+  "checkpoint": {
+    "bytes": 11613188,
+    "filename": "aimnet2.pt",
+    "redistributed": false,
+    "sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+  },
+  "claim_boundary": "This four-molecule canary validates AIMNet2 charge export, float-residue-only charge projection, fixed point-charge-l0 continuum ingestion, and the discrete half-coupling identity. It does not validate SMD-CDS, absolute solvation free energies, MNSol/FreeSolv accuracy, forces, a self-consistent AIMNet2-PCM response, or a solution-phase PES.",
+  "continuum_parameters": {
+    "dielectric": 78.39,
+    "eta": 0.1,
+    "full_profile_numerical_equivalence": false,
+    "lmax": 7,
+    "n_lebedev": 302,
+    "n_proc": 1,
+    "radii_selector_profile": "smd-ddpcm-l15-n1202-v1",
+    "reduced_canary_discretization": true,
+    "solvent_context": "water",
+    "solver_tolerance": 1e-10
+  },
+  "records": [
+    {
+      "atom_count": 3,
+      "cavity_radii_angstrom": [
+        1.52,
+        1.2,
+        1.2
+      ],
+      "charge_projection_per_atom_e": -0.0,
+      "charges_e": [
+        -0.6898444890975952,
+        0.3449222445487976,
+        0.3449222445487976
+      ],
+      "energy_ev": -2081.0408720877963,
+      "formula": "H2O",
+      "geometry_sha256": "178fe0c8df79b72be93f689af33453140d85103a246060a08f7ad1df3bfc9227",
+      "geometry_source": "ASE G2 molecule collection",
+      "half_coupling_identity_error_ev": 4.6629367034256575e-15,
+      "molecule": "H2O",
+      "polarization_energy_hartree": -0.010653314849532398,
+      "polarization_energy_kcal_mol": -6.685055998258688,
+      "projected_charge_sum_e": 0.0,
+      "raw_charge_residual_e": 0.0,
+      "raw_charge_sum_e": 0.0,
+      "timing_seconds": {
+        "aimnet2_charge_median": 0.004089426001883112,
+        "aimnet2_charge_samples": [
+          0.012711392002529465,
+          0.004089426001883112,
+          0.0030622009944636375
+        ],
+        "ddpcm_build": 0.0013495650055119768,
+        "ddpcm_solve": 0.01643471200077329
+      }
+    },
+    {
+      "atom_count": 4,
+      "cavity_radii_angstrom": [
+        1.89,
+        1.2,
+        1.2,
+        1.2
+      ],
+      "charge_projection_per_atom_e": 2.9802322387695312e-08,
+      "charges_e": [
+        -0.8988713920116425,
+        0.2996238172054291,
+        0.2996237874031067,
+        0.2996237874031067
+      ],
+      "energy_ev": -1540.0573887698988,
+      "formula": "H3N",
+      "geometry_sha256": "1883d8843d57b0bd854e028ec8edc9b3fcdba30557c2f56ea5e29dcf7806c59b",
+      "geometry_source": "ASE G2 molecule collection",
+      "half_coupling_identity_error_ev": 1.27675647831893e-15,
+      "molecule": "NH3",
+      "polarization_energy_hartree": -0.005758999081380267,
+      "polarization_energy_kcal_mol": -3.6138264846868076,
+      "projected_charge_sum_e": 0.0,
+      "raw_charge_residual_e": -1.1920928955078125e-07,
+      "raw_charge_sum_e": -1.1920928955078125e-07,
+      "timing_seconds": {
+        "aimnet2_charge_median": 0.003707804993609898,
+        "aimnet2_charge_samples": [
+          0.0054434829944511876,
+          0.003707804993609898,
+          0.0031529129919363186
+        ],
+        "ddpcm_build": 0.001352847000816837,
+        "ddpcm_solve": 0.019934650001232512
+      }
+    },
+    {
+      "atom_count": 5,
+      "cavity_radii_angstrom": [
+        1.85,
+        1.2,
+        1.2,
+        1.2,
+        1.2
+      ],
+      "charge_projection_per_atom_e": 1.6808509826660156e-06,
+      "charges_e": [
+        -0.3185219943523407,
+        0.07963049858808517,
+        0.07963049858808517,
+        0.07963049858808517,
+        0.07963049858808517
+      ],
+      "energy_ev": -1103.0290477808906,
+      "formula": "CH4",
+      "geometry_sha256": "34e939aa8807e7b6a4d71a74fd41a8a55f152c3499e9521ca0ff3e560789013c",
+      "geometry_source": "ASE G2 molecule collection",
+      "half_coupling_identity_error_ev": 1.407728100755179e-15,
+      "molecule": "CH4",
+      "polarization_energy_hartree": -0.00018364324786922787,
+      "polarization_energy_kcal_mol": -0.1152378778856587,
+      "projected_charge_sum_e": 2.7755575615628914e-17,
+      "raw_charge_residual_e": -8.404254913330078e-06,
+      "raw_charge_sum_e": -8.404254913330078e-06,
+      "timing_seconds": {
+        "aimnet2_charge_median": 0.003926160992705263,
+        "aimnet2_charge_samples": [
+          0.005193516990402713,
+          0.003926160992705263,
+          0.003833402006421238
+        ],
+        "ddpcm_build": 0.0016819000011309981,
+        "ddpcm_solve": 0.031436627003131434
+      }
+    },
+    {
+      "atom_count": 10,
+      "cavity_radii_angstrom": [
+        1.52,
+        1.85,
+        1.85,
+        1.85,
+        1.2,
+        1.2,
+        1.2,
+        1.2,
+        1.2,
+        1.2
+      ],
+      "charge_projection_per_atom_e": -7.450580596923828e-09,
+      "charges_e": [
+        -0.402858205139637,
+        0.34821774810552597,
+        -0.23807983845472336,
+        -0.2380797639489174,
+        0.09495791047811508,
+        0.09495774656534195,
+        0.08522115647792816,
+        0.08522102236747742,
+        0.08522114157676697,
+        0.08522108197212219
+      ],
+      "energy_ev": -5259.4497506581565,
+      "formula": "C3H6O",
+      "geometry_sha256": "66c7d12a0e735b0d94b72721e507b0141a49cd3fbe9ec9d1645ff290cea0feaf",
+      "geometry_source": "ASE G2 molecule collection",
+      "half_coupling_identity_error_ev": 8.586464872450961e-13,
+      "molecule": "CH3COCH3",
+      "polarization_energy_hartree": -0.007838407026904713,
+      "polarization_energy_kcal_mol": -4.918674670945484,
+      "projected_charge_sum_e": 0.0,
+      "raw_charge_residual_e": 7.450580596923828e-08,
+      "raw_charge_sum_e": 7.450580596923828e-08,
+      "timing_seconds": {
+        "aimnet2_charge_median": 0.003620007002609782,
+        "aimnet2_charge_samples": [
+          0.005253824012470432,
+          0.003620007002609782,
+          0.0035783159983111545
+        ],
+        "ddpcm_build": 0.0028674489876721054,
+        "ddpcm_solve": 0.11695565000991337
+      }
+    }
+  ],
+  "runtime": {
+    "ase": "3.27.0",
+    "device": "cpu",
+    "model_load_seconds": 0.04344713099999353,
+    "numpy": "2.4.6",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "torch": "2.12.0+cu130",
+    "torch_threads": 1
+  },
+  "scientific_identity": {
+    "cds_included": false,
+    "continuum": "pyddx ddPCM",
+    "mutual_ml_continuum_polarization": false,
+    "polarization_response": "fixed",
+    "solute_energy_model": "AIMNet2 gas-phase wB97M-D3 checkpoint",
+    "solute_source": "AIMNet2 NQE point-charge-l0",
+    "total_solvation_free_energy_reported": false
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_aimnet2_point_charge_canary.py": "24b0315dd250f11f3fafe4194853bca1bdc47f47fd8fda5ad0aa3666f0d0f266",
+    "maple/function/calculator/aimnet/_aimnet2_calculator.py": "ebb3e40b3c62dac02b9488cf137bd8595c6c50579762fa10f58461993facbda9",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "e8678b93dcd2477fbce77fcb0cdcfc4bc3d4250b8759e38eaa95a7ee8f35c8b9",
+    "maple/function/calculator/extra_correction/implicit/source/point_charge_l0.py": "75f527cc6c8bf4bfe8706771c3b06d5164c75f2691fbb5fc488eb03a9329da13"
+  }
+}

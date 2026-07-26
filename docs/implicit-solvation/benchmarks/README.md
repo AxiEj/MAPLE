@@ -272,3 +272,51 @@ the MNSol data contract:
 - liquid-thermodynamics axis: COSMO-RS only through a separate sigma-profile
   implementation and a matching partition/transfer benchmark, never by
   relabelling a COSMO boundary solver.
+
+## AIMNet2 fixed point-charge baseline
+
+[`route2-aimnet2-point-charge-ddpcm-canary-v1.json`](route2-aimnet2-point-charge-ddpcm-canary-v1.json)
+is the first bounded AIMNet2 source-interface result. AIMNet2 predicts
+atom-centred point charges and applies Neural Charge Equilibration after each
+charge update to enforce the requested molecular total; the learned charges
+are trained against DFT electrostatic observables
+([Chemical Science 2025](https://pubs.rsc.org/en/content/articlehtml/2025/sc/d4sc08572h)).
+The official model guide also identifies the standard AIMNet2 models as
+gas-phase molecular models without implicit solvation
+([AIMNetCentral](https://isayevlab.github.io/aimnetcentral/models/guide/)).
+MAPLE therefore exposes these charges as a separate fixed
+`point-charge-l0` source and does not insert AIMNet2 into the MACE-POLAR
+mutual-polarization fixed-point engine.
+
+The tracked runner is
+`run_aimnet2_point_charge_canary.py`. It pins the local checkpoint by SHA256,
+does not redistribute it, uses four small ASE G2 geometries, and runs a reduced
+`lmax=7`, 302-point pyddx/ddPCM water canary without CDS:
+
+```bash
+python docs/implicit-solvation/benchmarks/run_aimnet2_point_charge_canary.py \
+  --checkpoint /path/to/aimnet2.pt \
+  --output route2-aimnet2-point-charge-ddpcm-canary-v1.json
+```
+
+For checkpoint
+`85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d`,
+the largest raw total-charge residue is `8.4043e-6 e` for methane and is
+removed by an explicitly audited uniform float-residue projection. The four
+half-coupling identity errors range from `1.28e-15` to `8.59e-13 eV`.
+On the recorded single-thread CPU run, median AIMNet2 charge inference is
+`0.0036--0.0041 s`; the reduced ddPCM solve is `0.0164--0.1170 s`.
+
+The corresponding continuum-only polarization energies are:
+
+| molecule | fixed-charge ddPCM polarization (kcal/mol) |
+|---|---:|
+| water | -6.6851 |
+| ammonia | -3.6138 |
+| methane | -0.1152 |
+| acetone | -4.9187 |
+
+These are interface canaries, not hydration-free-energy predictions: no
+solute polarization response, SMD-CDS term, experimental comparison, force,
+or solution-phase PES is included. The artifact SHA256 is
+`126f6f08329f6553654defa6fc59dd059c60c6d9e87ca3f1c307764e8c4335c5`.

@@ -90,7 +90,8 @@ The result directory contains:
 
 - `arrays.npz`: observations, production frames and RDF arrays;
 - `summary.json`: inputs, diagnostics, gates and semantic array hashes;
-- `manifest.json`: result hash plus byte hashes of the written artifacts.
+- `manifest.json`: result hash, raw `arrays.npz` byte hash, canonical
+  `summary.json` hash and semantic hashes for every array.
 
 An existing output path is never overwritten. A fixed RNG seed constrains the
 stochastic path, but bitwise reproducibility across different CUDA and library
@@ -117,10 +118,86 @@ python examples/solvation/route_a/validate_bulk_water.py \
   --sample-interval-steps 10
 ```
 
-The final v2 artifact is generated only after the implementation commit is
-clean. It binds the executing repository root and exact hashes of the runner,
-analysis module, MACE provider and canonical hashing module. Its table is
-filled from that artifact, never by copying values from an earlier run.
+The final v2 artifact was generated from clean implementation commit
+`b172a59a62b36303ec64d90987d838f7453ec1fe`. It binds the executing
+repository root and exact hashes of the runner, analysis module, MACE provider
+and canonical hashing module.
+
+| Artifact field | Recorded value |
+|---|---|
+| summary schema | `maple-route-a-bulk-water-validation-summary-v2` |
+| manifest schema | `maple-route-a-bulk-water-validation-artifact-v2` |
+| result hash | `3fda5c6b6d4dfe259d9db21ac11d0ebc50f898a52572bfb92675875d415b5f6b` |
+| implementation Git HEAD | `b172a59a62b36303ec64d90987d838f7453ec1fe` |
+| implementation worktree | clean |
+| runtime | Python 3.11.14; `mace-torch` 0.3.16; ASE 3.27.0; PyTorch 2.12.0+cu130 |
+| hardware | NVIDIA GeForce RTX 4060 Laptop GPU |
+| protocol | 100 thermalization + 100 equilibration + 100 production steps |
+| integration step | 0.5 fs |
+| production evidence | 0.05 ps; 10 sampled frames; 5 contiguous RDF blocks |
+| required minimum diagnostic | 10 ps; 500 sampled frames |
+
+The full every-step stability monitor reported:
+
+| Check | Result |
+|---|---|
+| unique states checked | 301 / 301 |
+| every expected state checked | yes |
+| maximum temperature over every state | 507.986590 K |
+| maximum sampled production temperature | 314.204110 K |
+| maximum force over every state | 5.662289 eV Å⁻¹ |
+| maximum sampled production force | 4.512084 eV Å⁻¹ |
+| O-H distance range | 0.884722–1.086703 Å |
+| H-O-H angle range | 88.753567–126.047075° |
+| original O-H-H identity preserved | yes |
+
+The two temperature maxima cover different evidence sets: the first covers
+the complete staged path, while the second covers sampled production frames.
+The artifact does not retain the stage and step at which the global maximum
+occurred, so no timing or causal interpretation is assigned to the 507.99 K
+excursion. It does show why the full staged path must be monitored rather than
+judged from the sampled production table alone. The run is accepted as an
+engineering preflight and rejected as equilibrated production evidence.
+
+The sampled production diagnostics were:
+
+| Diagnostic | Result |
+|---|---|
+| mean temperature | 296.651705 K |
+| relative temperature-centering error | 0.0050253 |
+| fixed-cell density | 0.993804 g mL⁻¹ |
+| mean pressure | 1940.496683 bar |
+| potential-energy slope | 0.109098 eV water⁻¹ ps⁻¹ |
+| O-O first peak | 2.775 Å, height 3.673392 |
+| O-O first minimum | 3.475 Å |
+| apparent coordination at first minimum | 5.10625 |
+
+Neither the pressure nor the RDF features are equilibrium observables here.
+The density is inherited from the fixed input cell, while the pressure and RDF
+statistics come from only ten strongly correlated frames. The high positive
+mean pressure is a warning that makes an independently equilibrated NPT
+density calculation mandatory; it is not a 1 bar density result. Likewise,
+the apparent coordination number is recorded only to demonstrate that the
+RDF pipeline executes and must not be compared quantitatively with experiment.
+
+The gates deliberately remained fail closed:
+
+| Gate | Result | Reason |
+|---|---|---|
+| engineering stability | pass | all states finite, below emergency limits and topology-preserving |
+| minimum NVT diagnostic | fail | 0.05 ps and 10 frames are below 10 ps and 500 frames |
+| Hamiltonian freeze | fail | no independent long NVT replicas, NPT density, finite-size series or external reference |
+| Route A scientific claim | fail | no frozen Hamiltonian and no blind hydration-free-energy comparison |
+
+Exact copies of the result
+[`summary.json`](evidence/bulk-water/maceoff24m-64w-staged-20260726-c/summary.json)
+and
+[`manifest.json`](evidence/bulk-water/maceoff24m-64w-staged-20260726-c/manifest.json)
+are retained with this document. `arrays.npz` remains in the non-overwriting,
+hash-bound local artifact directory and is not copied into Git; the manifest
+records its raw byte SHA256 as
+`f716e6c387cf890c30856243d2f0e95afe3a6f4241e981f65c7a3ad0b9ca9116`
+and also records semantic hashes for every array.
 
 Two earlier exploratory runs established that staged temperature control was
 promising, but they used the superseded v1 summary shape and predated the

@@ -1,0 +1,258 @@
+{
+  "calculator": {
+    "calculator": {
+      "checkpoint": "/home/axie/.cache/mace/MACE-OFF24_medium.model",
+      "checkpoint_sha256": "e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69",
+      "default_dtype": "float64",
+      "device": "cuda",
+      "mace_torch_version": "0.3.16",
+      "provider": "MACEOff24Provider",
+      "provider_kind": "off24",
+      "result_units": {
+        "energy": "eV",
+        "forces": "eV/angstrom",
+        "stress": "eV/angstrom^3"
+      }
+    },
+    "runtime": {
+      "hardware": {
+        "cuda_available": true,
+        "cuda_device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+        "cuda_version": "13.0",
+        "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "python": "3.11.14"
+      },
+      "numpy_float_error_policy": {
+        "divide": "warn",
+        "invalid": "warn",
+        "over": "warn",
+        "under": "ignore"
+      },
+      "versions": {
+        "ase": "3.27.0",
+        "mace-torch": "0.3.16",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "torch": "2.12.0+cu130"
+      }
+    },
+    "schema": "maple-route-a-bulk-water-calculator-v1"
+  },
+  "config": {
+    "content_hash": "322593578c5a66fe096d069d0286891036a630dce50b7992826ebd76711742c7",
+    "equilibration_friction_per_fs": 0.005,
+    "equilibration_steps": 100,
+    "maximum_force_ev_per_angstrom": 50.0,
+    "maximum_temperature_k": 1000.0,
+    "minimum_diagnostic_duration_ps": 10.0,
+    "minimum_diagnostic_frames": 500,
+    "production_friction_per_fs": 0.001,
+    "production_steps": 100,
+    "rdf_bin_width_angstrom": 0.05,
+    "rdf_block_count": 5,
+    "rdf_max_angstrom": 6.0,
+    "sample_interval_steps": 10,
+    "schema": "maple-route-a-bulk-water-nvt-config-v2",
+    "seed": 20260726,
+    "temperature_k": 298.15,
+    "temperature_relative_tolerance": 0.1,
+    "thermalization_friction_per_fs": 0.05,
+    "thermalization_steps": 100,
+    "timestep_fs": 0.5
+  },
+  "diagnostics": {
+    "production_density_mean_g_per_ml": 0.9938042121455286,
+    "production_force_max_ev_per_angstrom": 4.512084206646196,
+    "production_potential_slope_ev_per_water_ps": 0.10909786116030243,
+    "production_pressure_mean_bar": 1940.4966825866002,
+    "production_temperature_max_k": 314.20410987888954,
+    "production_temperature_mean_k": 296.6517052852162,
+    "production_temperature_relative_error": 0.005025305097379687,
+    "rdf": {
+      "hh": {
+        "block_count": 5,
+        "intermolecular_only": true,
+        "pair": [
+          1,
+          1
+        ]
+      },
+      "oh": {
+        "block_count": 5,
+        "intermolecular_only": true,
+        "pair": [
+          8,
+          1
+        ]
+      },
+      "oo": {
+        "block_count": 5,
+        "intermolecular_only": true,
+        "pair": [
+          8,
+          8
+        ]
+      },
+      "oo_features": {
+        "coordination_number_at_first_minimum": 5.10625,
+        "first_minimum_position_angstrom": 3.475,
+        "first_peak_height": 3.6733924468180166,
+        "first_peak_position_angstrom": 2.7750000000000004
+      }
+    },
+    "stepwise_stability": {
+      "all_steps_checked": true,
+      "checked_unique_steps": 301,
+      "expected_unique_steps": 301,
+      "hoh_angle_range_degrees": [
+        88.75356680016642,
+        126.04707473511166
+      ],
+      "maximum_force_ev_per_angstrom": 5.662289093547226,
+      "maximum_temperature_k": 507.98659020847043,
+      "oh_distance_range_angstrom": [
+        0.8847217703944248,
+        1.0867030425319733
+      ],
+      "topology_preserved": true
+    }
+  },
+  "final_structure": {
+    "atom_count": 192,
+    "atomic_numbers_sha256": "8676ae1a0e123ffa24528f15df60dc1bd2788abb3f99df228f02bca0f1c11d7e",
+    "cell_sha256": "892cbdd0eefc882493587b1635b26bfb3f1bcc83bf8b138b764ebc53bdf5123c",
+    "formula": "H128O64",
+    "masses_sha256": "3d6a1e6ad7946a1da36d2e5473fc98702948af8ec9c9efc3bb91a0f593c4d570",
+    "pbc": [
+      true,
+      true,
+      true
+    ],
+    "positions_sha256": "cada5a5d8df7d6ac969156c02feb07af141ccdd10c5ca7dbd02410060f6aa96d"
+  },
+  "gates": {
+    "claim_eligible": false,
+    "engineering_checks": {
+      "all_md_steps_checked": true,
+      "finite_observations": true,
+      "force_below_emergency_limit": true,
+      "temperature_below_emergency_limit": true,
+      "water_topology_preserved": true
+    },
+    "engineering_stability_passed": true,
+    "hamiltonian_freeze_checks": {
+      "external_reference_validation_passed": false,
+      "finite_size_validation_passed": false,
+      "independent_replicas_passed": false,
+      "minimum_nvt_diagnostic_passed": false,
+      "npt_density_validation_passed": false
+    },
+    "hamiltonian_freeze_eligible": false,
+    "interpretation": "The in-run diagnostic is necessary but cannot freeze the Hamiltonian without independent replicas, NPT density, finite-size and external-reference evidence. No bulk-water result alone establishes Route A hydration-free-energy accuracy.",
+    "minimum_diagnostic_checks": {
+      "engineering_stability_passed": true,
+      "production_duration_sufficient": false,
+      "production_frame_count_sufficient": false,
+      "production_temperature_centered": true,
+      "three_stage_protocol_completed": true
+    },
+    "minimum_diagnostic_eligible": false
+  },
+  "implementation": {
+    "git_dirty": false,
+    "git_head": "b172a59a62b36303ec64d90987d838f7453ec1fe",
+    "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "implementation_file_sha256": {
+      "examples/solvation/route_a/validate_bulk_water.py": "b34eb901eeed9b34431285cd0e706005d6170af12b3d74b2d5a3ad2288cb888b",
+      "maple/function/calculator/mace/_mace_upstream_calculator.py": "1bc1b92c86717f7a0e15b47668eea03c3c010a5578686ee156c8a9bb8deffeed",
+      "maple/function/dispatcher/solvfe/bulk_water.py": "435fb1cdb08e580ad8208d6ee9c30698759919acbe22fea7fe06e922fd75322c",
+      "maple/function/dispatcher/solvfe/protocol.py": "f31161f892740ac3e10d1d5e88343ad5d0668a3c39a0d47055520664efa9c085"
+    },
+    "project_root": "/home/axie/MAPLE/MAPLE-implicitsolv-route3",
+    "schema": "maple-route-a-bulk-water-implementation-v1"
+  },
+  "initial_structure": {
+    "atom_count": 192,
+    "atomic_numbers_sha256": "8676ae1a0e123ffa24528f15df60dc1bd2788abb3f99df228f02bca0f1c11d7e",
+    "cell_sha256": "892cbdd0eefc882493587b1635b26bfb3f1bcc83bf8b138b764ebc53bdf5123c",
+    "formula": "H128O64",
+    "masses_sha256": "3d6a1e6ad7946a1da36d2e5473fc98702948af8ec9c9efc3bb91a0f593c4d570",
+    "pbc": [
+      true,
+      true,
+      true
+    ],
+    "positions_sha256": "b98a523ce2f7cb22e21db8ca6f8c3817f3e4e1834f5e66b738437d3f696b0681"
+  },
+  "result_hash": "3fda5c6b6d4dfe259d9db21ac11d0ebc50f898a52572bfb92675875d415b5f6b",
+  "schema": "maple-route-a-bulk-water-validation-summary-v2",
+  "source": {
+    "commit": "e19729524fc91920169d4e193e4edd55bc4c5707",
+    "path": "/tmp/mace-md-waterbox-pinned.xyz",
+    "schema": "maple-route-a-bulk-water-source-v1",
+    "sha256": "a052257f5f9c068884ec7527d6dd41d05a7c3705b729e7d9703543890931ec61",
+    "topology": {
+      "atom_count": 192,
+      "density_g_per_ml": 0.9938042121455286,
+      "formula": "H128O64",
+      "hoh_angle_range_degrees": [
+        102.28642148908412,
+        122.13859242820675
+      ],
+      "oh_distance_range_angstrom": [
+        0.9746329231792654,
+        1.0653057402309443
+      ],
+      "safe_rdf_radius_angstrom": 6.221438884735112,
+      "volume_angstrom3": 1926.471128648003,
+      "water_count": 64
+    },
+    "url": "https://raw.githubusercontent.com/jharrymoore/mace-md/e19729524fc91920169d4e193e4edd55bc4c5707/examples/example_data/waterbox.xyz"
+  },
+  "topology": {
+    "atom_count": 192,
+    "density_g_per_ml": 0.9938042121455286,
+    "formula": "H128O64",
+    "hoh_angle_range_degrees": [
+      102.28642148908412,
+      122.13859242820675
+    ],
+    "oh_distance_range_angstrom": [
+      0.9746329231792654,
+      1.0653057402309443
+    ],
+    "safe_rdf_radius_angstrom": 6.221438884735112,
+    "volume_angstrom3": 1926.471128648003,
+    "water_count": 64
+  },
+  "trajectory": {
+    "determinism_scope": "Seeded stochastic path; bitwise identity across different GPU/runtime stacks is not claimed.",
+    "production_duration_ps": 0.05,
+    "production_frame_count": 10,
+    "semantic_array_sha256": {
+      "atomic_numbers": "8676ae1a0e123ffa24528f15df60dc1bd2788abb3f99df228f02bca0f1c11d7e",
+      "observation_density_g_per_ml": "d9458b91078d560a120384c49cc5021058a5ebe90eea463afc92998576111c5f",
+      "observation_force_max_ev_per_angstrom": "cee07fb85815e32ecf649238b68a61e9f2b2bdc91a3ecbeb7a71237ec56a44d2",
+      "observation_force_rms_ev_per_angstrom": "1fe2d04bdc44125530463041e41fb46ec5f9e1585c3adfce74e68556580fe6bb",
+      "observation_kinetic_energy_ev": "8061fa43fb01bd28ab529a4911eea0405d3beb8de44f22f2646fbfef486466f4",
+      "observation_potential_energy_ev": "1d344fccc92d79e23c50f0619155e09a4e9df6d5932186d01902f7780398d17f",
+      "observation_pressure_bar": "24b9304181bea6ed2eb3ae4463cc18067490904e05f06d4b13d78399fc57b452",
+      "observation_stage": "5ae33d8a49c1435ee9a53ff7ca4bcf06369a2281b130d45389ecd772b2aa8373",
+      "observation_step": "822d26ee8159cc0abed63e9b6bfc12a039c126a0c76a9b380c0c8cd3fac86fa8",
+      "observation_temperature_k": "fee7af853f2c03fa7a014b9e62d7d223bab9b310e127f9e6bb630447073f0860",
+      "observation_time_fs": "7e0e0f7ac0f88e03ea447f35fe86373e45ee388c63e873f5bdc1a6554ece50bb",
+      "observation_total_energy_ev": "cdb0ed152a4e66e31370718ebefcae8c480c56fae9e6b6eedf9c477fde28292c",
+      "observation_volume_angstrom3": "af7301ab4bd1538c7bb7aeb66642de15b10036773b89e04acd340c98b7a2c350",
+      "production_cells_angstrom": "c1e93d5573a2050aa10d74fab67ba8d626ed35683a198552284072e720ffc3ec",
+      "production_positions_angstrom": "03cb26eb5e103cef0fc3a79b01e9209aecc2b7a56ae002fa17058b70b785f696",
+      "production_velocities_angstrom_per_ase_time": "9b6c0e547cecd8cd6e85b6768e1d32a689ae98548387d8ecee6ede91f3b0df21",
+      "rdf_hh_g": "e32343957b9c97ce817352df59f2d59c21aaa094929ac8f8a8b978832048ec04",
+      "rdf_hh_sem": "29400bfd02e243f5674026872c72fcd42e30ed96b8c7234b624ba5f2c217b565",
+      "rdf_oh_g": "9b24f814153d31d3046a43251cdb2975b5778837a86198b9971cbe09f41c62ad",
+      "rdf_oh_sem": "3cb6c92188155664ad22b9744415e0c8ed0b314f442db966dab83daced2c6937",
+      "rdf_oo_g": "60d399715f3c7947a4987f1bb173e34636679a7f3a70479f3ab34578baaa6811",
+      "rdf_oo_sem": "df95b5ab53ee50c3b89384596a6b0249a907113cc4a01ae3ec31f8fc7643ae42",
+      "rdf_r_angstrom": "c3e2a9ea29c90d68567afc3b46d66a17016700dbb486b92f195ab7484dc56e85"
+    }
+  }
+}

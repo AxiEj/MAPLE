@@ -1,0 +1,39 @@
+{
+  "files": {
+    "arrays": {
+      "path": "arrays.npz",
+      "sha256": "f716e6c387cf890c30856243d2f0e95afe3a6f4241e981f65c7a3ad0b9ca9116"
+    },
+    "summary": {
+      "canonical_sha256": "a8d0d9fe59dd7b08df90fce1504e894221573f94bfa6832f359c2c314d7d3fa8",
+      "path": "summary.json"
+    }
+  },
+  "result_hash": "3fda5c6b6d4dfe259d9db21ac11d0ebc50f898a52572bfb92675875d415b5f6b",
+  "schema": "maple-route-a-bulk-water-validation-artifact-v2",
+  "semantic_array_sha256": {
+    "atomic_numbers": "8676ae1a0e123ffa24528f15df60dc1bd2788abb3f99df228f02bca0f1c11d7e",
+    "observation_density_g_per_ml": "d9458b91078d560a120384c49cc5021058a5ebe90eea463afc92998576111c5f",
+    "observation_force_max_ev_per_angstrom": "cee07fb85815e32ecf649238b68a61e9f2b2bdc91a3ecbeb7a71237ec56a44d2",
+    "observation_force_rms_ev_per_angstrom": "1fe2d04bdc44125530463041e41fb46ec5f9e1585c3adfce74e68556580fe6bb",
+    "observation_kinetic_energy_ev": "8061fa43fb01bd28ab529a4911eea0405d3beb8de44f22f2646fbfef486466f4",
+    "observation_potential_energy_ev": "1d344fccc92d79e23c50f0619155e09a4e9df6d5932186d01902f7780398d17f",
+    "observation_pressure_bar": "24b9304181bea6ed2eb3ae4463cc18067490904e05f06d4b13d78399fc57b452",
+    "observation_stage": "5ae33d8a49c1435ee9a53ff7ca4bcf06369a2281b130d45389ecd772b2aa8373",
+    "observation_step": "822d26ee8159cc0abed63e9b6bfc12a039c126a0c76a9b380c0c8cd3fac86fa8",
+    "observation_temperature_k": "fee7af853f2c03fa7a014b9e62d7d223bab9b310e127f9e6bb630447073f0860",
+    "observation_time_fs": "7e0e0f7ac0f88e03ea447f35fe86373e45ee388c63e873f5bdc1a6554ece50bb",
+    "observation_total_energy_ev": "cdb0ed152a4e66e31370718ebefcae8c480c56fae9e6b6eedf9c477fde28292c",
+    "observation_volume_angstrom3": "af7301ab4bd1538c7bb7aeb66642de15b10036773b89e04acd340c98b7a2c350",
+    "production_cells_angstrom": "c1e93d5573a2050aa10d74fab67ba8d626ed35683a198552284072e720ffc3ec",
+    "production_positions_angstrom": "03cb26eb5e103cef0fc3a79b01e9209aecc2b7a56ae002fa17058b70b785f696",
+    "production_velocities_angstrom_per_ase_time": "9b6c0e547cecd8cd6e85b6768e1d32a689ae98548387d8ecee6ede91f3b0df21",
+    "rdf_hh_g": "e32343957b9c97ce817352df59f2d59c21aaa094929ac8f8a8b978832048ec04",
+    "rdf_hh_sem": "29400bfd02e243f5674026872c72fcd42e30ed96b8c7234b624ba5f2c217b565",
+    "rdf_oh_g": "9b24f814153d31d3046a43251cdb2975b5778837a86198b9971cbe09f41c62ad",
+    "rdf_oh_sem": "3cb6c92188155664ad22b9744415e0c8ed0b314f442db966dab83daced2c6937",
+    "rdf_oo_g": "60d399715f3c7947a4987f1bb173e34636679a7f3a70479f3ab34578baaa6811",
+    "rdf_oo_sem": "df95b5ab53ee50c3b89384596a6b0249a907113cc4a01ae3ec31f8fc7643ae42",
+    "rdf_r_angstrom": "c3e2a9ea29c90d68567afc3b46d66a17016700dbb486b92f195ab7484dc56e85"
+  }
+}

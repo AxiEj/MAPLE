@@ -133,3 +133,29 @@ def test_unsafe_anderson_coefficients_fall_back_to_picard():
         step.density,
         samples[-1].density + 0.5 * samples[-1].residual,
     )
+
+
+def test_anderson_regularization_remains_relative_near_the_scf_tolerance():
+    samples = [
+        FixedPointSample(
+            density=np.zeros((1, 4)),
+            residual=np.asarray([[0.0, 1.0e-12, 0.0, 0.0]]),
+        ),
+        FixedPointSample(
+            density=np.asarray([[0.0, 1.0e-12, 0.0, 0.0]]),
+            residual=np.asarray([[0.0, 5.0e-13, 0.0, 0.0]]),
+        ),
+    ]
+
+    step = next_fixed_point_density(
+        samples,
+        solver=SAFEGUARDED_ANDERSON_SOLVER,
+        mixing=1.0,
+        anderson_depth=4,
+        anderson_regularization=1.0e-12,
+        anderson_coefficient_l1_limit=100.0,
+        anderson_step_ratio_limit=100.0,
+    )
+
+    assert step.method == SAFEGUARDED_ANDERSON_SOLVER
+    assert step.fallback_reason is None

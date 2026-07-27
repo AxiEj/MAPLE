@@ -169,14 +169,22 @@ def next_fixed_point_density(
     )
     residual = residuals[-1]
     residual_l2 = float(np.linalg.norm(residual))
-    scale = max(
-        1.0,
-        residual_l2,
-        float(np.linalg.norm(delta_residual, ord="fro")),
+    gram_matrix = delta_residual.T @ delta_residual
+    gram_scale = float(np.trace(gram_matrix)) / float(
+        gram_matrix.shape[0]
     )
+    if not math.isfinite(gram_scale) or gram_scale <= np.finfo(float).tiny:
+        return _picard_step(
+            current,
+            mixing=mixing,
+            history_size=len(recent),
+            fallback_reason="anderson-degenerate-history",
+        )
     normal_matrix = (
-        delta_residual.T @ delta_residual
-        + anderson_regularization * scale * scale * np.eye(delta_residual.shape[1])
+        gram_matrix
+        + anderson_regularization
+        * gram_scale
+        * np.eye(delta_residual.shape[1])
     )
     right_hand_side = delta_residual.T @ residual
     try:

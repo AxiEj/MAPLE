@@ -12,6 +12,7 @@ from maple.function.calculator.extra_correction.implicit.electrostatic_pairing i
     MACE_POLAR_L1_PAIRING,
 )
 from maple.function.calculator.extra_correction.implicit.route2_engine import (
+    NEAR_ROOT_NEWTON_CORRECTOR,
     Route2ContinuumEngine,
     Route2EngineSettings,
     Route2SCFConvergenceError,
@@ -132,6 +133,12 @@ class _IdentityReactionMap:
         self.last_drive = ReactionFieldDrive.local_jet(dual_field)
         return self.last_drive
 
+    def apply(self, density_direction):
+        return np.asarray(density_direction, dtype=float).copy()
+
+    def adjoint(self, field_cotangent):
+        return np.asarray(field_cotangent, dtype=float).copy()
+
     def scf_polarization_energy_hartree(self, density):
         assert self.last_drive is not None
         return (
@@ -145,9 +152,20 @@ class _IdentityReactionMap:
 
 
 class _LinearContractiveCalculator:
-    def __init__(self, fixed_point: np.ndarray, contraction: float):
+    def __init__(
+        self,
+        fixed_point: np.ndarray,
+        contraction: float,
+        *,
+        linearization_contraction: float | None = None,
+    ):
         self.fixed_point = np.asarray(fixed_point, dtype=float).copy()
         self.contraction = float(contraction)
+        self.linearization_contraction = float(
+            contraction
+            if linearization_contraction is None
+            else linearization_contraction
+        )
 
     def polar_state(self, _atoms, **kwargs):
         density = np.column_stack(
@@ -159,6 +177,32 @@ class _LinearContractiveCalculator:
         response = self.fixed_point + self.contraction * (density - self.fixed_point)
         energy_ev = float(np.sum(response * response))
         return _State(energy_ev=energy_ev, density_coefficients=response), {}
+
+    def linearize_density_response(self, _atoms, **_kwargs):
+        return _ScaledDensityResponse(self.linearization_contraction)
+
+
+class _ScaledDensityResponse:
+    def __init__(self, scale: float):
+        self.scale = float(scale)
+
+    def jvp(self, field_direction):
+        return self.scale * np.asarray(field_direction, dtype=float)
+
+    def vjp(self, density_cotangent):
+        return self.scale * np.asarray(density_cotangent, dtype=float)
+
+
+class _LineSearchFailingCalculator(_LinearContractiveCalculator):
+    def __init__(self, fixed_point: np.ndarray, contraction: float):
+        super().__init__(fixed_point, contraction)
+        self.polar_calls = 0
+
+    def polar_state(self, atoms, **kwargs):
+        self.polar_calls += 1
+        if 2 <= self.polar_calls <= 4:
+            raise RuntimeError("synthetic trial-map failure")
+        return super().polar_state(atoms, **kwargs)
 
 
 class _ChargeNoisyCalculator:
@@ -298,6 +342,63 @@ def test_engine_keeps_centered_local_model_field_out_of_energy_pairing():
         )
 
 
+@pytest.mark.parametrize("model_drive", ["exact-gto", "gauge-transformed-local"])
+def test_near_root_newton_fails_closed_for_unsupported_model_drives(
+    model_drive,
+):
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    gas_state = _State(
+        energy_ev=0.0,
+        density_coefficients=np.zeros_like(fixed_point),
+    )
+    solvent_state = _State(
+        energy_ev=-9.9,
+        density_coefficients=fixed_point,
+    )
+    if model_drive == "exact-gto":
+        reaction_map = _ExactFeatureReactionMap()
+        calculator = _FeatureAwareCalculator(solvent_state)
+    else:
+        reaction_map = _CenteredLocalReactionMap()
+        calculator = _LocalFieldAwareCalculator(
+            solvent_state,
+            reaction_map,
+        )
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic unsupported Newton drive",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-1,
+        scf_energy_tolerance_ev=1.0,
+        scf_max_iterations=2,
+        scf_newton_trigger_factor=5.0,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("synthetic-unsupported-newton-drive",),
+    )
+
+    first = coupled.history[0]
+    assert first["newton_attempted"] is True
+    assert first["newton_accepted"] is False
+    assert first["newton_fallback_reason"] == (
+        "unsupported-nonlocal-or-gauge-transformed-model-field"
+    )
+    assert first["next_density_update"] == DAMPED_PICARD_SOLVER
+    assert coupled.history[-1]["next_density_update"] == "converged"
+
+
 def test_engine_uses_anderson_acceleration_for_unit_mixing_fixed_point_iterations():
     atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
     fixed_point = np.asarray([[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]])
@@ -336,6 +437,213 @@ def test_engine_uses_anderson_acceleration_for_unit_mixing_fixed_point_iteration
     assert coupled.history[1]["next_density_update"] == SAFEGUARDED_ANDERSON_SOLVER
     assert coupled.history[2]["next_density_update"] == SAFEGUARDED_ANDERSON_SOLVER
     assert coupled.history[-1]["next_density_update"] == "converged"
+
+
+def test_engine_accepts_fresh_map_near_root_newton_correction():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    gas_state = _State(
+        energy_ev=0.0,
+        density_coefficients=np.zeros_like(fixed_point),
+    )
+    calculator = _LinearContractiveCalculator(
+        fixed_point,
+        contraction=0.95,
+    )
+    reaction_map = _IdentityReactionMap()
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic Newton ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-3,
+        scf_energy_tolerance_ev=1.0,
+        scf_max_iterations=3,
+        scf_newton_trigger_factor=100.0,
+        scf_newton_step_ratio_limit=25.0,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("synthetic-newton-ddpcm",),
+    )
+
+    first = coupled.history[0]
+    assert first["newton_attempted"] is True
+    assert first["newton_accepted"] is True
+    assert first["newton_accepted_alpha"] == pytest.approx(1.0)
+    assert first["newton_trial_residual_e"] is not None
+    assert first["newton_trial_residual_e"] < first["density_residual_e"]
+    assert first["next_density_update"] == NEAR_ROOT_NEWTON_CORRECTOR
+    assert coupled.history[1]["arrived_by"] == NEAR_ROOT_NEWTON_CORRECTOR
+    assert coupled.history[1]["next_density_update"] == "converged"
+    np.testing.assert_allclose(
+        coupled.density_coefficients,
+        fixed_point,
+        atol=1.0e-12,
+    )
+
+
+def test_engine_backtracks_newton_until_fresh_map_residual_decreases():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    gas_state = _State(
+        energy_ev=0.0,
+        density_coefficients=np.zeros_like(fixed_point),
+    )
+    calculator = _LinearContractiveCalculator(
+        fixed_point,
+        contraction=0.5,
+        linearization_contraction=0.75,
+    )
+    reaction_map = _IdentityReactionMap()
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic backtracked Newton ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-1,
+        scf_energy_tolerance_ev=1.0,
+        scf_max_iterations=3,
+        scf_newton_trigger_factor=3.0,
+        scf_newton_step_ratio_limit=10.0,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("synthetic-backtracked-newton-ddpcm",),
+    )
+
+    first = coupled.history[0]
+    assert first["newton_attempted"] is True
+    assert first["newton_accepted"] is True
+    assert first["newton_accepted_alpha"] == pytest.approx(0.5)
+    assert first["newton_trial_residual_e"] == pytest.approx(0.0)
+    assert first["next_density_update"] == NEAR_ROOT_NEWTON_CORRECTOR
+    assert coupled.history[-1]["next_density_update"] == "converged"
+
+
+def test_engine_rejects_bad_newton_linearization_and_keeps_picard_path():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    gas_state = _State(
+        energy_ev=0.0,
+        density_coefficients=np.zeros_like(fixed_point),
+    )
+    calculator = _LinearContractiveCalculator(
+        fixed_point,
+        contraction=0.5,
+        linearization_contraction=2.0,
+    )
+    reaction_map = _IdentityReactionMap()
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic safeguarded Newton ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-1,
+        scf_energy_tolerance_ev=1.0,
+        scf_max_iterations=3,
+        scf_newton_trigger_factor=3.0,
+        scf_newton_step_ratio_limit=10.0,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("synthetic-safeguarded-newton-ddpcm",),
+    )
+
+    first = coupled.history[0]
+    assert first["newton_attempted"] is True
+    assert first["newton_accepted"] is False
+    assert first["newton_fallback_reason"] == (
+        "fresh-map-line-search-rejected"
+    )
+    assert first["newton_trial_residual_e"] is not None
+    assert first["newton_trial_residual_e"] > first["density_residual_e"]
+    assert first["next_density_update"] == DAMPED_PICARD_SOLVER
+    assert coupled.history[-1]["next_density_update"] == "converged"
+
+
+def test_engine_preserves_failed_newton_trial_map_evidence():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    gas_state = _State(
+        energy_ev=0.0,
+        density_coefficients=np.zeros_like(fixed_point),
+    )
+    calculator = _LineSearchFailingCalculator(
+        fixed_point,
+        contraction=0.5,
+    )
+    reaction_map = _IdentityReactionMap()
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic trial-failure Newton ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-1,
+        scf_energy_tolerance_ev=1.0,
+        scf_max_iterations=3,
+        scf_newton_trigger_factor=3.0,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("synthetic-trial-failure-newton-ddpcm",),
+    )
+
+    first = coupled.history[0]
+    assert first["newton_attempted"] is True
+    assert first["newton_accepted"] is False
+    fallback = first["newton_fallback_reason"]
+    assert fallback is not None
+    assert fallback.startswith("fresh-map-line-search-failed:")
+    assert "alpha=1:RuntimeError:synthetic trial-map failure" in fallback
+    assert "alpha=0.5:RuntimeError:synthetic trial-map failure" in fallback
+    assert "alpha=0.25:RuntimeError:synthetic trial-map failure" in fallback
+    assert first["next_density_update"] == DAMPED_PICARD_SOLVER
+    assert coupled.history[-1]["next_density_update"] == "converged"
+
+
+def test_near_root_newton_settings_reject_invalid_trigger_factor():
+    with pytest.raises(ValueError, match="trigger factor"):
+        replace(
+            _settings(),
+            scf_newton_trigger_factor=1.0,
+        )
 
 
 def test_engine_converges_with_the_neutral_tangent_unmixed_residual():

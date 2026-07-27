@@ -40,6 +40,7 @@ from .pyscf_smd_cds import pyscf_smd_cds
 from .result import SolvationResult
 from .route2_domain import validate_route2_domain
 from .route2_engine import (
+    NEAR_ROOT_NEWTON_CORRECTOR,
     Route2ContinuumEngine,
     Route2CoupledState,
     Route2EngineSettings,
@@ -65,6 +66,13 @@ SCF_ANDERSON_COEFFICIENT_L1_LIMIT = 100.0
 SCF_ANDERSON_STEP_RATIO_LIMIT = 100.0
 SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT = 2.0
 SCF_TOTAL_CHARGE_E = 0.0
+SCF_NEWTON_TRIGGER_FACTOR = 10.0
+SCF_NEWTON_RELATIVE_TOLERANCE = 1.0e-8
+SCF_NEWTON_ABSOLUTE_TOLERANCE = 1.0e-15
+SCF_NEWTON_MAX_ITERATIONS = 100
+SCF_NEWTON_MAX_ATTEMPTS = 2
+SCF_NEWTON_LINE_SEARCH_STEPS = 3
+SCF_NEWTON_STEP_RATIO_LIMIT = 10.0
 ADJOINT_RELATIVE_TOLERANCE = 1.0e-10
 ADJOINT_ABSOLUTE_TOLERANCE = 1.0e-13
 ADJOINT_MAX_ITERATIONS = 100
@@ -91,6 +99,13 @@ _DDPCM_ENGINE_SETTINGS = Route2EngineSettings(
     scf_anderson_step_ratio_limit=SCF_ANDERSON_STEP_RATIO_LIMIT,
     scf_anderson_residual_growth_limit=(SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
     scf_total_charge_e=SCF_TOTAL_CHARGE_E,
+    scf_newton_trigger_factor=SCF_NEWTON_TRIGGER_FACTOR,
+    scf_newton_relative_tolerance=SCF_NEWTON_RELATIVE_TOLERANCE,
+    scf_newton_absolute_tolerance=SCF_NEWTON_ABSOLUTE_TOLERANCE,
+    scf_newton_max_iterations=SCF_NEWTON_MAX_ITERATIONS,
+    scf_newton_max_attempts=SCF_NEWTON_MAX_ATTEMPTS,
+    scf_newton_line_search_steps=SCF_NEWTON_LINE_SEARCH_STEPS,
+    scf_newton_step_ratio_limit=SCF_NEWTON_STEP_RATIO_LIMIT,
 )
 
 
@@ -203,6 +218,23 @@ class PyDDXSMDImplicitSolvation:
             "scf_anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
             "scf_anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
             "scf_total_charge_e": SCF_TOTAL_CHARGE_E,
+            "scf_newton_trigger_factor": SCF_NEWTON_TRIGGER_FACTOR,
+            "scf_newton_relative_tolerance": (
+                SCF_NEWTON_RELATIVE_TOLERANCE
+            ),
+            "scf_newton_absolute_tolerance": (
+                SCF_NEWTON_ABSOLUTE_TOLERANCE
+            ),
+            "scf_newton_maximum_iterations": (
+                SCF_NEWTON_MAX_ITERATIONS
+            ),
+            "scf_newton_maximum_attempts": SCF_NEWTON_MAX_ATTEMPTS,
+            "scf_newton_line_search_steps": (
+                SCF_NEWTON_LINE_SEARCH_STEPS
+            ),
+            "scf_newton_step_ratio_limit": (
+                SCF_NEWTON_STEP_RATIO_LIMIT
+            ),
             "adjoint_relative_tolerance": ADJOINT_RELATIVE_TOLERANCE,
             "adjoint_absolute_tolerance": ADJOINT_ABSOLUTE_TOLERANCE,
             "adjoint_maximum_iterations": ADJOINT_MAX_ITERATIONS,
@@ -494,11 +526,42 @@ class PyDDXSMDImplicitSolvation:
                 SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT
             ),
             "total_charge_e": SCF_TOTAL_CHARGE_E,
+            "newton_trigger_factor": SCF_NEWTON_TRIGGER_FACTOR,
+            "newton_relative_tolerance": (
+                SCF_NEWTON_RELATIVE_TOLERANCE
+            ),
+            "newton_absolute_tolerance": (
+                SCF_NEWTON_ABSOLUTE_TOLERANCE
+            ),
+            "newton_maximum_iterations": SCF_NEWTON_MAX_ITERATIONS,
+            "newton_maximum_attempts": SCF_NEWTON_MAX_ATTEMPTS,
+            "newton_line_search_steps": SCF_NEWTON_LINE_SEARCH_STEPS,
+            "newton_step_ratio_limit": SCF_NEWTON_STEP_RATIO_LIMIT,
             "residual_definition": (
                 "unmixed neutral-tangent Pi0[M(P(c))-c]"
             ),
             "iterations": len(history),
             "history": list(history),
+        }
+
+    @staticmethod
+    def _newton_decision_summary(
+        history: tuple[Route2SCFHistoryRecord, ...],
+    ) -> dict[str, Any]:
+        attempts = [record for record in history if record["newton_attempted"]]
+        accepted = [record for record in attempts if record["newton_accepted"]]
+        return {
+            "corrector": NEAR_ROOT_NEWTON_CORRECTOR,
+            "attempt_count": len(attempts),
+            "accepted_count": len(accepted),
+            "accepted_alphas": [
+                record["newton_accepted_alpha"] for record in accepted
+            ],
+            "fallback_reasons": [
+                record["newton_fallback_reason"]
+                for record in attempts
+                if record["newton_fallback_reason"] is not None
+            ],
         }
 
     def _write_scf_failure_audit(
@@ -714,6 +777,9 @@ class PyDDXSMDImplicitSolvation:
             **self.provenance,
             "converged": True,
             "iterations": len(coupled.history),
+            "near_root_newton": self._newton_decision_summary(
+                coupled.history
+            ),
             "continuum_provider": dict(coupled.reaction_field.runtime_provenance),
             "cds_provider": dict(coupled.cds_result.runtime_provenance),
             "calculator_profile": getattr(

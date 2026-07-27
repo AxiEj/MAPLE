@@ -32,9 +32,13 @@ from .route2_fixed_point import (
     project_density_total_charge,
 )
 from .route2_response import (
+    DensityResponseLinearization,
     UnmixedDensityResidualLinearization,
     solve_adjoint,
+    solve_newton_correction,
 )
+
+NEAR_ROOT_NEWTON_CORRECTOR = "near-root-newton-gmres-v1"
 
 
 class Route2SCFHistoryRecord(TypedDict):
@@ -55,6 +59,15 @@ class Route2SCFHistoryRecord(TypedDict):
     anderson_coefficient_l1: float | None
     anderson_step_ratio_to_picard: float | None
     anderson_fallback_reason: str | None
+    newton_attempted: bool
+    newton_accepted: bool
+    newton_linear_residual_l2: float | None
+    newton_relative_linear_residual: float | None
+    newton_operator_applications: int | None
+    newton_step_ratio_to_picard: float | None
+    newton_accepted_alpha: float | None
+    newton_trial_residual_e: float | None
+    newton_fallback_reason: str | None
 
 
 @dataclass(frozen=True)
@@ -89,6 +102,24 @@ class Route2SCFIterationState:
             values = np.array(current, copy=True)
             values.setflags(write=False)
             object.__setattr__(self, name, values)
+
+
+@dataclass(frozen=True)
+class _NearRootNewtonTrial:
+    """One fail-closed Newton attempt and its fresh-map acceptance evidence."""
+
+    accepted_density: np.ndarray | None = None
+    linear_residual_l2: float | None = None
+    relative_linear_residual: float | None = None
+    operator_applications: int | None = None
+    step_ratio_to_picard: float | None = None
+    accepted_alpha: float | None = None
+    trial_residual_e: float | None = None
+    fallback_reason: str | None = None
+
+    @property
+    def accepted(self) -> bool:
+        return self.accepted_density is not None
 
 
 class Route2SCFConvergenceError(RuntimeError):
@@ -131,6 +162,13 @@ class Route2EngineSettings:
     scf_anderson_step_ratio_limit: float = 100.0
     scf_anderson_residual_growth_limit: float = 2.0
     scf_total_charge_e: float = 0.0
+    scf_newton_trigger_factor: float | None = None
+    scf_newton_relative_tolerance: float = 1.0e-8
+    scf_newton_absolute_tolerance: float = 1.0e-15
+    scf_newton_max_iterations: int = 100
+    scf_newton_max_attempts: int = 2
+    scf_newton_line_search_steps: int = 3
+    scf_newton_step_ratio_limit: float = 10.0
 
     def __post_init__(self) -> None:
         if not self.continuum_label:
@@ -139,6 +177,13 @@ class Route2EngineSettings:
             raise ValueError(f"Unsupported Route-2 SCF solver: {self.scf_solver}.")
         if not math.isfinite(self.scf_total_charge_e):
             raise ValueError("The Route-2 total-charge constraint must be finite.")
+        if self.scf_newton_trigger_factor is not None and (
+            not math.isfinite(self.scf_newton_trigger_factor)
+            or self.scf_newton_trigger_factor <= 1.0
+        ):
+            raise ValueError(
+                "The near-root Newton trigger factor must be greater than 1."
+            )
         if not 0.0 < self.scf_mixing <= 1.0:
             raise ValueError("SCF mixing must lie in (0, 1].")
         positive = {
@@ -157,6 +202,15 @@ class Route2EngineSettings:
             "scf_anderson_residual_growth_limit": (
                 self.scf_anderson_residual_growth_limit
             ),
+            "scf_newton_relative_tolerance": (
+                self.scf_newton_relative_tolerance
+            ),
+            "scf_newton_absolute_tolerance": (
+                self.scf_newton_absolute_tolerance
+            ),
+            "scf_newton_step_ratio_limit": (
+                self.scf_newton_step_ratio_limit
+            ),
         }
         invalid = [
             name
@@ -169,9 +223,15 @@ class Route2EngineSettings:
                 + ", ".join(invalid)
                 + "."
             )
-        if self.scf_max_iterations <= 0 or self.adjoint_max_iterations <= 0:
+        if (
+            self.scf_max_iterations <= 0
+            or self.adjoint_max_iterations <= 0
+            or self.scf_newton_max_iterations <= 0
+            or self.scf_newton_max_attempts <= 0
+            or self.scf_newton_line_search_steps <= 0
+        ):
             raise ValueError(
-                "Route-2 SCF and adjoint iteration limits must be positive."
+                "Route-2 SCF, adjoint, and Newton limits must be positive."
             )
         if self.scf_anderson_depth <= 0:
             raise ValueError("Route-2 Anderson history depth must be positive.")
@@ -397,6 +457,167 @@ class Route2ContinuumEngine:
             )
         return state
 
+    def _try_near_root_newton(
+        self,
+        *,
+        atoms,
+        calculator,
+        reaction_field,
+        density: np.ndarray,
+        response_density: np.ndarray,
+        drive: ReactionFieldDrive,
+        density_residual: float,
+    ) -> _NearRootNewtonTrial:
+        settings = self.settings
+        if (
+            drive.model_field_features is not None
+            or drive.model_local_field_ev is not None
+        ):
+            return _NearRootNewtonTrial(
+                fallback_reason=(
+                    "unsupported-nonlocal-or-gauge-transformed-model-field"
+                )
+            )
+        linearize = getattr(calculator, "linearize_density_response", None)
+        if not callable(linearize):
+            return _NearRootNewtonTrial(
+                fallback_reason="calculator-omits-local-field-linearization"
+            )
+        try:
+            density_response = cast(
+                DensityResponseLinearization,
+                linearize(
+                    atoms,
+                    node_potential_ev=drive.density_dual_field_ev[:, 0],
+                    node_gradient_ev_per_angstrom=(
+                        drive.density_dual_field_ev[:, 1:]
+                    ),
+                ),
+            )
+            linearization = UnmixedDensityResidualLinearization(
+                atom_count=len(atoms),
+                reaction_field=reaction_field,
+                density_response=density_response,
+                neutral_tolerance=settings.neutral_density_tolerance,
+            )
+            update_residual = response_density - density
+            correction = solve_newton_correction(
+                linearization,
+                update_residual,
+                relative_tolerance=settings.scf_newton_relative_tolerance,
+                absolute_tolerance=settings.scf_newton_absolute_tolerance,
+                max_iterations=settings.scf_newton_max_iterations,
+            )
+        except (NotImplementedError, RuntimeError, ValueError) as exc:
+            return _NearRootNewtonTrial(
+                fallback_reason=(
+                    f"linear-solve-failed:{type(exc).__name__}:{exc}"
+                )
+            )
+
+        picard_norm = float(np.linalg.norm(update_residual))
+        correction_norm = float(np.linalg.norm(correction.solution))
+        if picard_norm == 0.0:
+            return _NearRootNewtonTrial(
+                linear_residual_l2=correction.residual_norm,
+                relative_linear_residual=correction.relative_residual,
+                operator_applications=correction.operator_applications,
+                fallback_reason="zero-picard-residual",
+            )
+        step_ratio = correction_norm / picard_norm
+        common = {
+            "linear_residual_l2": correction.residual_norm,
+            "relative_linear_residual": correction.relative_residual,
+            "operator_applications": correction.operator_applications,
+            "step_ratio_to_picard": step_ratio,
+        }
+        if (
+            not math.isfinite(step_ratio)
+            or step_ratio > settings.scf_newton_step_ratio_limit
+        ):
+            return _NearRootNewtonTrial(
+                **common,
+                fallback_reason="newton-step-ratio-limit",
+            )
+
+        minimum_trial_residual: float | None = None
+        trial_failures: list[str] = []
+        strict_decrease_guard = (
+            8.0
+            * np.finfo(float).eps
+            * max(1.0, abs(density_residual))
+        )
+        for line_search_index in range(settings.scf_newton_line_search_steps):
+            alpha = 0.5**line_search_index
+            candidate = project_density_total_charge(
+                density + alpha * correction.solution,
+                total_charge_e=settings.scf_total_charge_e,
+            )
+            try:
+                candidate_drive = self._reaction_field_drive(
+                    reaction_field,
+                    candidate,
+                    len(atoms),
+                )
+                candidate_state, _ = self._polarize(
+                    calculator,
+                    atoms,
+                    candidate_drive,
+                )
+                raw_candidate_response = self.validate_density(
+                    candidate_state.density_coefficients,
+                    len(atoms),
+                    name="Newton-trial MACE-POLAR density",
+                )
+                candidate_response = project_density_total_charge(
+                    raw_candidate_response,
+                    total_charge_e=settings.scf_total_charge_e,
+                )
+                candidate_residual = float(
+                    np.max(np.abs(candidate_response - candidate))
+                )
+                candidate_energy = float(candidate_state.energy_ev)
+                if not math.isfinite(candidate_energy):
+                    raise RuntimeError(
+                        "Newton-trial MACE-POLAR energy is non-finite."
+                    )
+            except (NotImplementedError, RuntimeError, ValueError) as exc:
+                trial_failures.append(
+                    f"alpha={alpha:g}:{type(exc).__name__}:{exc}"
+                )
+                continue
+            minimum_trial_residual = (
+                candidate_residual
+                if minimum_trial_residual is None
+                else min(minimum_trial_residual, candidate_residual)
+            )
+            if candidate_residual < (
+                density_residual - strict_decrease_guard
+            ):
+                return _NearRootNewtonTrial(
+                    accepted_density=candidate,
+                    **common,
+                    accepted_alpha=alpha,
+                    trial_residual_e=candidate_residual,
+                )
+
+        if minimum_trial_residual is None and trial_failures:
+            fallback_reason = (
+                "fresh-map-line-search-failed:" + ";".join(trial_failures)
+            )
+        elif trial_failures:
+            fallback_reason = (
+                "fresh-map-line-search-rejected-with-errors:"
+                + ";".join(trial_failures)
+            )
+        else:
+            fallback_reason = "fresh-map-line-search-rejected"
+        return _NearRootNewtonTrial(
+            **common,
+            trial_residual_e=minimum_trial_residual,
+            fallback_reason=fallback_reason,
+        )
+
     def solve_coupled_state(
         self,
         atoms,
@@ -421,6 +642,7 @@ class Route2ContinuumEngine:
         history: list[Route2SCFHistoryRecord] = []
         fixed_point_samples: list[FixedPointSample] = []
         best_iteration_state: Route2SCFIterationState | None = None
+        newton_attempt_count = 0
 
         for iteration in range(1, settings.scf_max_iterations + 1):
             drive = self._reaction_field_drive(
@@ -484,6 +706,15 @@ class Route2ContinuumEngine:
                 "anderson_coefficient_l1": None,
                 "anderson_step_ratio_to_picard": None,
                 "anderson_fallback_reason": None,
+                "newton_attempted": False,
+                "newton_accepted": False,
+                "newton_linear_residual_l2": None,
+                "newton_relative_linear_residual": None,
+                "newton_operator_applications": None,
+                "newton_step_ratio_to_picard": None,
+                "newton_accepted_alpha": None,
+                "newton_trial_residual_e": None,
+                "newton_fallback_reason": None,
             }
             history.append(record)
             if (
@@ -507,6 +738,61 @@ class Route2ContinuumEngine:
             if density_residual <= settings.scf_density_tolerance and energy_converged:
                 record["next_density_update"] = "converged"
                 break
+            should_try_newton = (
+                settings.scf_newton_trigger_factor is not None
+                and density_residual > settings.scf_density_tolerance
+                and density_residual
+                <= (
+                    settings.scf_newton_trigger_factor
+                    * settings.scf_density_tolerance
+                )
+                and newton_attempt_count < settings.scf_newton_max_attempts
+                and iteration < settings.scf_max_iterations
+            )
+            if should_try_newton:
+                newton_attempt_count += 1
+                trial = self._try_near_root_newton(
+                    atoms=atoms,
+                    calculator=calculator,
+                    reaction_field=reaction_field,
+                    density=density,
+                    response_density=response_density,
+                    drive=drive,
+                    density_residual=density_residual,
+                )
+                record.update(
+                    {
+                        "newton_attempted": True,
+                        "newton_accepted": trial.accepted,
+                        "newton_linear_residual_l2": (
+                            trial.linear_residual_l2
+                        ),
+                        "newton_relative_linear_residual": (
+                            trial.relative_linear_residual
+                        ),
+                        "newton_operator_applications": (
+                            trial.operator_applications
+                        ),
+                        "newton_step_ratio_to_picard": (
+                            trial.step_ratio_to_picard
+                        ),
+                        "newton_accepted_alpha": trial.accepted_alpha,
+                        "newton_trial_residual_e": (
+                            trial.trial_residual_e
+                        ),
+                        "newton_fallback_reason": trial.fallback_reason,
+                    }
+                )
+                if trial.accepted_density is not None:
+                    record["next_density_update"] = (
+                        NEAR_ROOT_NEWTON_CORRECTOR
+                    )
+                    fixed_point_samples.clear()
+                    density = trial.accepted_density
+                    previous_energy_ev = current_energy_ev
+                    previous_density_residual = density_residual
+                    previous_update_method = NEAR_ROOT_NEWTON_CORRECTOR
+                    continue
             fixed_point_samples.append(
                 FixedPointSample(
                     density=density,

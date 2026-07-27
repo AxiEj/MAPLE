@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 
-from .ddpcm_smd import DDPCMSMDImplicitSolvation
+from .ddpcm_smd import PyDDXSMDImplicitSolvation
 from .result import SolvationResult
 from .smd import SMDImplicitSolvation
 
@@ -45,7 +45,7 @@ class ImplicitSolvationCorrection:
         ).lower()
         providers = {
             "pcmsolver": SMDImplicitSolvation,
-            "pyddx": DDPCMSMDImplicitSolvation,
+            "pyddx": PyDDXSMDImplicitSolvation,
         }
         try:
             provider_type = providers[provider_name]

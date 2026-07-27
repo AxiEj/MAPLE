@@ -18,6 +18,7 @@ from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     DDPCM_GAFF2_CARBONYL_O_PROFILE,
     DDPCM_SMD_PROFILE,
     DDPCMSMDImplicitSolvation,
+    PyDDXSMDImplicitSolvation,
 )
 from maple.function.calculator.extra_correction.implicit.route2_derivative import (
     FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION,
@@ -28,6 +29,7 @@ from maple.function.route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
@@ -71,6 +73,14 @@ def _multisolvent_options(solvent: str) -> dict[str, object]:
     }
 
 
+def _multisolvent_cosmo_options(solvent: str) -> dict[str, object]:
+    return {
+        **_options(),
+        "implicit": solvent,
+        "profile": DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+    }
+
+
 def test_public_parser_accepts_explicit_ddpcm_force_candidate():
     params = _parse(
         "#model=macepol-m",
@@ -100,6 +110,23 @@ def test_public_parser_accepts_only_multisolvent_profile_for_each_solvent(
     )
 
     assert params["solv"] == _multisolvent_options(solvent)
+
+
+@pytest.mark.parametrize("solvent", sorted(SUPPORTED_ROUTE2_SMD_SOLVENTS))
+def test_public_parser_accepts_ddcosmo_as_a_separate_equation_profile(
+    solvent,
+):
+    params = _parse(
+        "#model=macepol-m",
+        "#sp(verbose=1)",
+        (
+            f"#solv(implicit={solvent},method=smd,provider=pyddx,"
+            f"profile={DDCOSMO_MULTISOLVENT_SMD_PROFILE},response=scf,"
+            "standard_state=1m,experimental=true)"
+        ),
+    )
+
+    assert params["solv"] == _multisolvent_cosmo_options(solvent)
 
 
 def test_public_parser_canonicalizes_multisolvent_alias():
@@ -343,6 +370,51 @@ def test_setcalculator_accepts_the_same_ddpcm_contract_before_model_load(
     )
 
     builder._validate_solvent_config()
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        _multisolvent_options("acetonitrile"),
+        _multisolvent_cosmo_options("acetonitrile"),
+    ],
+)
+def test_canonical_pyddx_profile_accepts_xyz_geometry_without_fake_mol2(
+    options,
+):
+    atoms = _atoms()
+    atoms.info.pop("mol2")
+    builder = SetCalculator(
+        "cpu",
+        "macepol-m",
+        "maple.out",
+        atoms=atoms,
+        implicit="smd",
+        solvent="acetonitrile",
+        solvation_options=options,
+    )
+
+    builder._validate_solvent_config()
+
+
+def test_gaff2_profile_still_requires_mol2_atom_types():
+    atoms = _atoms()
+    atoms.info.pop("mol2")
+    builder = SetCalculator(
+        "cpu",
+        "macepol-m",
+        "maple.out",
+        atoms=atoms,
+        implicit="smd",
+        solvent="water",
+        solvation_options={
+            **_options(),
+            "profile": DDPCM_GAFF2_CARBONYL_O_PROFILE,
+        },
+    )
+
+    with pytest.raises(ValueError, match="requires one MOL2 molecule"):
+        builder._validate_solvent_config()
 
 
 class _ZeroDensityResponse:
@@ -864,6 +936,49 @@ def test_multisolvent_provider_routes_dielectric_radii_and_cds_together(
         result.provenance["numerics"]["coulomb_radii_policy"]
         == "pyscf-smd-2.13.1"
     )
+
+
+def test_pyddx_provider_dispatches_ddcosmo_without_reusing_ddpcm_label(
+    monkeypatch,
+    tmp_path,
+):
+    import maple.function.calculator.extra_correction.implicit.ddpcm_smd as module
+
+    atoms = _atoms()
+    calculator = _FakeMACEPolarCalculator(atoms)
+    _ZeroReactionField.instances.clear()
+    monkeypatch.setattr(
+        module,
+        "PyDDXCOSMOReactionFieldLinearMap",
+        _ZeroReactionField,
+    )
+    monkeypatch.setattr(
+        module,
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _fake_cds(atoms),
+    )
+    provider = PyDDXSMDImplicitSolvation(
+        atoms,
+        _multisolvent_cosmo_options("acetonitrile"),
+        audit_dir=tmp_path,
+    )
+
+    result = provider.evaluate(atoms, calculator=calculator)
+
+    assert isinstance(provider, DDPCMSMDImplicitSolvation)
+    assert provider.continuum_label == "ddCOSMO"
+    assert provider.provenance["electrostatics"] == "ddCOSMO"
+    assert provider.provenance["electrostatics_model"] == "ddcosmo"
+    assert provider.provenance["scientific_identity"] == (
+        "MACE-POLAR/(l<=1)-point-multipole + ddCOSMO + SMD-CDS"
+    )
+    assert "E_ddCOSMO" in provider.provenance["energy_composition"]
+    assert "ddpcm_n_proc" not in provider.provenance["numerics"]
+    assert provider.provenance["numerics"]["pyddx_n_proc"] == 1
+    assert result.provenance["electrostatics"] == "ddCOSMO"
+    assert (tmp_path / "route2-ddcosmo-result.json").is_file()
+    assert (tmp_path / "route2-ddcosmo-state.npz").is_file()
+    assert not (tmp_path / "route2-ddpcm-result.json").exists()
 
 
 def test_multisolvent_water_dielectric_is_versioned_from_legacy_water(

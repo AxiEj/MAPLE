@@ -16,6 +16,10 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
 from maple.function.route2_smd_profiles import (
     DDPCM_MULTISOLVENT_SMD_PROFILE,
     DDPCM_SMD_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+    SUPPORTED_DDPCM_SMD_PROFILES,
+    SUPPORTED_PYDDX_SMD_PROFILES,
+    route2_smd_profile_spec,
 )
 
 
@@ -142,6 +146,27 @@ def test_multisolvent_profile_uses_tested_pyscf_element_radii():
         [2.12, 2.49, 2.38],
         rtol=0.0,
         atol=1.0e-12,
+    )
+
+
+def test_ddpcm_and_ddcosmo_profiles_change_only_the_continuum_equation():
+    ddpcm = route2_smd_profile_spec(DDPCM_MULTISOLVENT_SMD_PROFILE)
+    ddcosmo = route2_smd_profile_spec(DDCOSMO_MULTISOLVENT_SMD_PROFILE)
+
+    assert ddpcm.electrostatics_model == "ddpcm"
+    assert ddcosmo.electrostatics_model == "ddcosmo"
+    assert {
+        key: value
+        for key, value in ddpcm.__dict__.items()
+        if key not in {"name", "electrostatics_model"}
+    } == {
+        key: value
+        for key, value in ddcosmo.__dict__.items()
+        if key not in {"name", "electrostatics_model"}
+    }
+    assert DDCOSMO_MULTISOLVENT_SMD_PROFILE in SUPPORTED_PYDDX_SMD_PROFILES
+    assert DDCOSMO_MULTISOLVENT_SMD_PROFILE not in (
+        SUPPORTED_DDPCM_SMD_PROFILES
     )
 
 

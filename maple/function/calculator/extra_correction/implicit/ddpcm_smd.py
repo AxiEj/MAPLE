@@ -1,16 +1,16 @@
-"""Self-consistent MACE-POLAR/ddPCM/SMD research force candidate.
+"""Self-consistent MACE-POLAR/pyddx/SMD research force candidates.
 
 This provider is deliberately separate from the public PCMSolver/GePol energy
-proof of concept.  One pyddx ddPCM object owns the scalar polarization energy,
-reaction-field forward/adjoint maps, and complete coordinate derivative.  The
-official PySCF SMD CDS entrypoint supplies its scalar energy and matching
-analytic gradient.  Components from the two continuum providers are never
-mixed.
+proof of concept.  One profile-selected pyddx ddPCM or scaled-ddCOSMO object
+owns the scalar polarization energy, reaction-field forward/adjoint maps, and
+complete coordinate derivative.  The official PySCF SMD CDS entrypoint
+supplies its scalar energy and matching analytic gradient.  Components from
+different continuum equations are never mixed.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 from pathlib import Path
 from typing import Any
@@ -22,8 +22,9 @@ from ....route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
     DDPCM_SMD_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
-    SUPPORTED_DDPCM_SMD_PROFILES,
+    SUPPORTED_PYDDX_SMD_PROFILES,
     route2_smd_profile_spec,
 )
 from ....route2_solvents import (
@@ -31,7 +32,10 @@ from ....route2_solvents import (
     route2_solvent_spec,
 )
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
-from .pyddx_pcm_response import PyDDXPCMReactionFieldLinearMap
+from .pyddx_pcm_response import (
+    PyDDXCOSMOReactionFieldLinearMap,
+    PyDDXPCMReactionFieldLinearMap,
+)
 from .pyscf_smd_cds import pyscf_smd_cds
 from .result import SolvationResult
 from .route2_domain import validate_route2_domain
@@ -74,6 +78,28 @@ _DDPCM_ENGINE_SETTINGS = Route2EngineSettings(
 )
 
 
+_CONTINUUM_LABELS = {
+    "ddpcm": "ddPCM",
+    "ddcosmo": "ddCOSMO",
+}
+
+
+def _engine_settings(electrostatics_model: str) -> Route2EngineSettings:
+    try:
+        label = _CONTINUUM_LABELS[electrostatics_model]
+    except KeyError as exc:
+        raise ValueError(
+            "The pyddx Route-2 provider requires electrostatics_model="
+            "ddpcm or ddcosmo."
+        ) from exc
+    if label == _DDPCM_ENGINE_SETTINGS.continuum_label:
+        return _DDPCM_ENGINE_SETTINGS
+    return replace(
+        _DDPCM_ENGINE_SETTINGS,
+        continuum_label=label,
+    )
+
+
 def _normalized_mol2_atom_types(atoms) -> tuple[str, ...] | None:
     mol2 = atoms.info.get("mol2")
     if not isinstance(mol2, dict) or mol2.get("atom_types") is None:
@@ -85,8 +111,8 @@ def _normalized_mol2_atom_types(atoms) -> tuple[str, ...] | None:
 
 
 @dataclass
-class DDPCMSMDImplicitSolvation:
-    """SMD-CDS correction with a complete ddPCM response derivative."""
+class PyDDXSMDImplicitSolvation:
+    """SMD-CDS correction with one profile-selected pyddx equation."""
 
     atoms: Any
     solvation_options: dict[str, Any]
@@ -120,6 +146,8 @@ class DDPCMSMDImplicitSolvation:
         self.solvation_options["implicit"] = self.solvent
         self.solvent_spec = route2_solvent_spec(self.solvent)
         self._validate_options()
+        self.electrostatics_model = self.profile_spec.electrostatics_model
+        self.continuum_label = _CONTINUUM_LABELS[self.electrostatics_model]
         self.continuum_dielectric = (
             WATER_STATIC_DIELECTRIC
             if self.profile_spec.dielectric_policy
@@ -144,7 +172,7 @@ class DDPCMSMDImplicitSolvation:
         self._engine = Route2ContinuumEngine(
             reaction_field_factory=self._build_reaction_field,
             cds_evaluator=self._evaluate_cds,
-            settings=_DDPCM_ENGINE_SETTINGS,
+            settings=_engine_settings(self.electrostatics_model),
         )
         self._cached_state: Route2CoupledState | None = None
 
@@ -152,10 +180,41 @@ class DDPCMSMDImplicitSolvation:
             self.audit_dir = Path(self.audit_dir).resolve()
             self.audit_dir.mkdir(parents=True, exist_ok=True)
 
+        numerics = {
+            "dielectric": self.continuum_dielectric,
+            "dielectric_policy": self.profile_spec.dielectric_policy,
+            "coulomb_radii_policy": (
+                self.profile_spec.coulomb_radii_policy
+            ),
+            "lmax": DDPCM_LMAX,
+            "n_lebedev": DDPCM_N_LEBEDEV,
+            "pyddx_n_proc": self.profile_spec.ddpcm_n_proc,
+            "pyddx_solver_tolerance": DDPCM_SOLVER_TOLERANCE,
+            "pyddx_eta": DDPCM_ETA,
+            "scf_mixing": SCF_MIXING,
+            "scf_density_tolerance_e": SCF_DENSITY_TOLERANCE,
+            "scf_energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
+            "scf_maximum_iterations": SCF_MAX_ITERATIONS,
+            "adjoint_relative_tolerance": ADJOINT_RELATIVE_TOLERANCE,
+            "adjoint_absolute_tolerance": ADJOINT_ABSOLUTE_TOLERANCE,
+            "adjoint_maximum_iterations": ADJOINT_MAX_ITERATIONS,
+        }
+        if self.electrostatics_model == "ddpcm":
+            numerics.update(
+                {
+                    "ddpcm_n_proc": self.profile_spec.ddpcm_n_proc,
+                    "ddpcm_solver_tolerance": DDPCM_SOLVER_TOLERANCE,
+                    "ddpcm_eta": DDPCM_ETA,
+                }
+            )
         self.provenance = {
             "provider": "pyddx",
             "method": "smd",
             "profile": self.profile,
+            "scientific_identity": (
+                "MACE-POLAR/(l<=1)-point-multipole + "
+                f"{self.continuum_label} + SMD-CDS"
+            ),
             "solvent": self.solvent,
             "pyscf_smd_solvent": self.solvent_spec.pyscf_smd_name,
             "response": "scf",
@@ -167,7 +226,7 @@ class DDPCMSMDImplicitSolvation:
             "density_interpretation": (
                 "coarse-grained net charge density, not a QM electron density"
             ),
-            "electrostatics": "ddPCM",
+            "electrostatics": self.continuum_label,
             "electrostatics_model": (
                 self.profile_spec.electrostatics_model
             ),
@@ -222,53 +281,31 @@ class DDPCMSMDImplicitSolvation:
             "default_eligible": False,
             "energy_composition": (
                 "delta_G_solv = (E_MACE_intrinsic[V_reac]-E_MACE_gas) "
-                "+ E_ddPCM + G_CDS"
+                f"+ E_{self.continuum_label} + G_CDS"
             ),
             "force_composition": (
                 "F_solution = F_MACE_gas "
                 "- d(delta_G_solv)/dR, with the converged-density "
                 "response eliminated by one adjoint solve"
             ),
-            "numerics": {
-                "dielectric": self.continuum_dielectric,
-                "dielectric_policy": self.profile_spec.dielectric_policy,
-                "coulomb_radii_policy": (
-                    self.profile_spec.coulomb_radii_policy
-                ),
-                "lmax": DDPCM_LMAX,
-                "n_lebedev": DDPCM_N_LEBEDEV,
-                "ddpcm_n_proc": self.profile_spec.ddpcm_n_proc,
-                "ddpcm_solver_tolerance": DDPCM_SOLVER_TOLERANCE,
-                "ddpcm_eta": DDPCM_ETA,
-                "scf_mixing": SCF_MIXING,
-                "scf_density_tolerance_e": SCF_DENSITY_TOLERANCE,
-                "scf_energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
-                "scf_maximum_iterations": SCF_MAX_ITERATIONS,
-                "adjoint_relative_tolerance": (
-                    ADJOINT_RELATIVE_TOLERANCE
-                ),
-                "adjoint_absolute_tolerance": (
-                    ADJOINT_ABSOLUTE_TOLERANCE
-                ),
-                "adjoint_maximum_iterations": ADJOINT_MAX_ITERATIONS,
-            },
+            "numerics": numerics,
         }
         self._write_manifest()
 
     def _validate_options(self) -> None:
         if self.solvation_options.get("experimental") is not True:
             raise ValueError(
-                "The ddPCM Route-2 force candidate requires "
+                "The pyddx Route-2 force candidate requires "
                 "experimental=true explicitly."
             )
         if str(self.solvation_options.get("method", "")).lower() != "smd":
-            raise ValueError("DDPCMSMDImplicitSolvation requires method=smd.")
+            raise ValueError("PyDDXSMDImplicitSolvation requires method=smd.")
         if self.provider != "pyddx":
             raise ValueError(
-                "DDPCMSMDImplicitSolvation requires provider=pyddx."
+                "PyDDXSMDImplicitSolvation requires provider=pyddx."
             )
-        if self.profile not in SUPPORTED_DDPCM_SMD_PROFILES:
-            supported = ", ".join(sorted(SUPPORTED_DDPCM_SMD_PROFILES))
+        if self.profile not in SUPPORTED_PYDDX_SMD_PROFILES:
+            supported = ", ".join(sorted(SUPPORTED_PYDDX_SMD_PROFILES))
             raise ValueError(
                 "The pyddx Route-2 profile must be one of: "
                 f"{supported}."
@@ -280,7 +317,7 @@ class DDPCMSMDImplicitSolvation:
             )
         if self.response != "scf":
             raise ValueError(
-                "The ddPCM Route-2 force candidate requires response=scf."
+                "The pyddx Route-2 force candidate requires response=scf."
             )
         if self.standard_state != "1m":
             raise ValueError(
@@ -330,7 +367,7 @@ class DDPCMSMDImplicitSolvation:
             getattr(calculator, "polar_state", None)
         ):
             raise TypeError(
-                "The ddPCM Route-2 provider requires the "
+                "The pyddx Route-2 provider requires the "
                 "MACEPolCalculator polar_state() API."
             )
         if (
@@ -367,7 +404,7 @@ class DDPCMSMDImplicitSolvation:
         ]
         if missing:
             raise TypeError(
-                "The ddPCM Route-2 force candidate requires the complete "
+                "The pyddx Route-2 force candidate requires the complete "
                 "MACE response API; missing: "
                 + ", ".join(missing)
                 + "."
@@ -394,7 +431,11 @@ class DDPCMSMDImplicitSolvation:
         )
 
     def _build_reaction_field(self, atoms):
-        return PyDDXPCMReactionFieldLinearMap(
+        reaction_field_type = {
+            "ddpcm": PyDDXPCMReactionFieldLinearMap,
+            "ddcosmo": PyDDXCOSMOReactionFieldLinearMap,
+        }[self.electrostatics_model]
+        return reaction_field_type(
             np.asarray(atoms.get_positions(), dtype=float),
             self.coulomb_radii_angstrom,
             dielectric=self.continuum_dielectric,
@@ -424,6 +465,7 @@ class DDPCMSMDImplicitSolvation:
             gas_state,
             provider_cache_signature=(
                 self.solvent,
+                self.electrostatics_model,
                 self._reference_mol2_atom_types,
             ),
         )
@@ -440,6 +482,7 @@ class DDPCMSMDImplicitSolvation:
             atoms,
             provider_cache_signature=(
                 self.solvent,
+                self.electrostatics_model,
                 self._reference_mol2_atom_types,
             ),
         ):
@@ -499,7 +542,8 @@ class DDPCMSMDImplicitSolvation:
                     if key != "adjoint"
                 }
             )
-        state_path = self.audit_dir / "route2-ddpcm-state.npz"
+        audit_stem = f"route2-{self.electrostatics_model}"
+        state_path = self.audit_dir / f"{audit_stem}-state.npz"
         archive_arrays: dict[str, Any] = dict(arrays)
         np.savez_compressed(state_path, **archive_arrays)
 
@@ -536,7 +580,7 @@ class DDPCMSMDImplicitSolvation:
             ),
             "array_archive": str(state_path),
         }
-        (self.audit_dir / "route2-ddpcm-result.json").write_text(
+        (self.audit_dir / f"{audit_stem}-result.json").write_text(
             json.dumps(payload, indent=2, sort_keys=True),
             encoding="utf-8",
         )
@@ -635,6 +679,11 @@ class DDPCMSMDImplicitSolvation:
         )
 
 
+# Compatibility alias for imports written before the ddCOSMO equation profile
+# existed.  Provider dispatch uses the equation-neutral class name.
+DDPCMSMDImplicitSolvation = PyDDXSMDImplicitSolvation
+
+
 __all__ = [
     "ADJOINT_ABSOLUTE_TOLERANCE",
     "ADJOINT_MAX_ITERATIONS",
@@ -643,12 +692,14 @@ __all__ = [
     "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
     "DDPCM_MULTISOLVENT_SMD_PROFILE",
+    "DDCOSMO_MULTISOLVENT_SMD_PROFILE",
     "DDPCM_LMAX",
     "DDPCM_N_LEBEDEV",
     "DDPCM_SMD_PROFILE",
     "DDPCM_SOLVER_TOLERANCE",
     "DDPCMSMDImplicitSolvation",
     "FORCE_STATE_ENERGY_TOLERANCE_EV",
+    "PyDDXSMDImplicitSolvation",
     "SCF_DENSITY_TOLERANCE",
     "SCF_ENERGY_TOLERANCE_EV",
     "SCF_MAX_ITERATIONS",

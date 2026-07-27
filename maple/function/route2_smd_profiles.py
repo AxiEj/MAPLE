@@ -24,6 +24,9 @@ PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE = (
 )
 DDPCM_SMD_PROFILE = "smd-ddpcm-l15-n1202-v1"
 DDPCM_MULTISOLVENT_SMD_PROFILE = "smd-ddpcm-l15-n1202-multisolv-v1"
+DDCOSMO_MULTISOLVENT_SMD_PROFILE = (
+    "smd-ddcosmo-l15-n1202-multisolv-v1"
+)
 DDPCM_GAFF2_CARBONYL_O_PROFILE = "smd-ddpcm-l15-n1202-gaff2-o-v1"
 DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE = (
     "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1"
@@ -48,7 +51,7 @@ class Route2SMDProfileSpec:
     provider: Literal["pcmsolver", "pyddx"]
     cavity: Literal["canonical-smd", "gaff2-carbonyl-o"]
     mace_long_range_evaluator: str
-    electrostatics_model: Literal["iefpcm", "ddpcm"]
+    electrostatics_model: Literal["iefpcm", "ddpcm", "ddcosmo"]
     solute_source: Literal["point-multipole-l1"]
     reaction_field_projector: Literal[
         "local-jet",
@@ -172,6 +175,20 @@ _PROFILE_SPECS = {
         coulomb_radii_policy="pyscf-smd-2.13.1",
         supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
     ),
+    DDCOSMO_MULTISOLVENT_SMD_PROFILE: Route2SMDProfileSpec(
+        name=DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+        provider="pyddx",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="ddcosmo",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="pyscf-smd-cds",
+        dielectric_policy="pyscf-smd-2.13.1",
+        coulomb_radii_policy="pyscf-smd-2.13.1",
+        supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
+    ),
     DDPCM_GAFF2_CARBONYL_O_PROFILE: Route2SMDProfileSpec(
         name=DDPCM_GAFF2_CARBONYL_O_PROFILE,
         provider="pyddx",
@@ -226,10 +243,15 @@ SUPPORTED_PCMSOLVER_SMD_PROFILES = frozenset(
     for name, spec in _PROFILE_SPECS.items()
     if spec.provider == "pcmsolver"
 )
-SUPPORTED_DDPCM_SMD_PROFILES = frozenset(
+SUPPORTED_PYDDX_SMD_PROFILES = frozenset(
     name
     for name, spec in _PROFILE_SPECS.items()
     if spec.provider == "pyddx"
+)
+SUPPORTED_DDPCM_SMD_PROFILES = frozenset(
+    name
+    for name, spec in _PROFILE_SPECS.items()
+    if spec.provider == "pyddx" and spec.electrostatics_model == "ddpcm"
 )
 SUPPORTED_ROUTE2_SMD_PROFILES = frozenset(_PROFILE_SPECS)
 
@@ -239,7 +261,7 @@ def route2_smd_profiles_for_provider(provider: str) -> frozenset[str]:
     if normalized == "pcmsolver":
         return SUPPORTED_PCMSOLVER_SMD_PROFILES
     if normalized == "pyddx":
-        return SUPPORTED_DDPCM_SMD_PROFILES
+        return SUPPORTED_PYDDX_SMD_PROFILES
     raise ValueError(f"Unsupported Route 2 SMD provider: {provider}.")
 
 
@@ -278,6 +300,7 @@ __all__ = [
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
     "DDPCM_MULTISOLVENT_SMD_PROFILE",
     "DDPCM_SMD_PROFILE",
+    "DDCOSMO_MULTISOLVENT_SMD_PROFILE",
     "GAFF2_CARBONYL_O_PROFILE",
     "MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE",
     "MACEPOL_MOLECULAR_REALSPACE_PROFILE",
@@ -286,6 +309,7 @@ __all__ = [
     "Route2SMDProfileSpec",
     "SUPPORTED_DDPCM_SMD_PROFILES",
     "SUPPORTED_PCMSOLVER_SMD_PROFILES",
+    "SUPPORTED_PYDDX_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_PROFILES",
     "route2_smd_profile_spec",
     "route2_smd_profiles_for_provider",

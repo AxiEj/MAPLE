@@ -12,6 +12,7 @@ import ase
 from ase import Atoms
 
 from ..route2_smd_profiles import (
+    route2_smd_profile_spec,
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
 )
@@ -185,8 +186,8 @@ class SetCalculator:
                 "Implicit solvation is non-periodic only; "
                 "remove #pbc or use a periodic solvent backend."
             )
-        if self.atoms is None or 'mol2' not in self.atoms.info:
-            raise ValueError("Implicit solvation requires one MOL2 molecule with explicit topology.")
+        if self.atoms is None:
+            raise ValueError("Implicit solvation requires one molecule.")
         if self.implicit == 'smd':
             if _compact_model_name(self.model) != 'macepolm':
                 raise ValueError(
@@ -240,6 +241,18 @@ class SetCalculator:
                 profile,
                 solvent=self.solvent,
             )
+            profile_spec = route2_smd_profile_spec(profile)
+            if (
+                "mol2" not in self.atoms.info
+                and (
+                    provider == "pcmsolver"
+                    or profile_spec.uses_gaff2_carbonyl_oxygen
+                )
+            ):
+                raise ValueError(
+                    "This Route-2 profile requires one MOL2 molecule with "
+                    "explicit topology/atom types."
+                )
             response = str(
                 self.solvation_options.get('response', 'scf')
             ).lower()

@@ -7,6 +7,7 @@ import pytest
 from ase import Atoms
 from ase.units import Hartree
 
+import maple.function.calculator.extra_correction.implicit.route2_engine as route2_engine_module
 from maple.function.calculator.extra_correction.implicit.electrostatic_pairing import (
     MACE_POLAR_L1_PAIRING,
 )
@@ -17,6 +18,7 @@ from maple.function.calculator.extra_correction.implicit.route2_engine import (
 from maple.function.calculator.extra_correction.implicit.route2_fixed_point import (
     DAMPED_PICARD_SOLVER,
     SAFEGUARDED_ANDERSON_SOLVER,
+    FixedPointStep,
 )
 from maple.function.calculator.extra_correction.implicit.route2_field_state import (
     ReactionFieldDrive,
@@ -375,3 +377,73 @@ def test_engine_converges_with_the_neutral_tangent_unmixed_residual():
         "response_charge_projection_max_e"
     ] == pytest.approx(5.0e-12)
     assert coupled.history[0]["next_density_update"] == "converged"
+
+
+def test_engine_resets_anderson_history_after_observed_residual_growth(
+    monkeypatch,
+):
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    gas_state = _State(
+        energy_ev=0.0,
+        density_coefficients=np.zeros_like(fixed_point),
+    )
+    calculator = _LinearContractiveCalculator(
+        fixed_point,
+        contraction=0.5,
+    )
+    reaction_map = _IdentityReactionMap()
+    proposed_densities = iter(
+        (
+            -10.0 * fixed_point,
+            fixed_point,
+            fixed_point,
+        )
+    )
+
+    def _controlled_step(samples, **_kwargs):
+        density = next(proposed_densities)
+        method = (
+            SAFEGUARDED_ANDERSON_SOLVER
+            if len(samples) == 1 and np.allclose(samples[-1].density, 0.0)
+            else DAMPED_PICARD_SOLVER
+        )
+        return FixedPointStep(
+            density=density,
+            method=method,
+            history_size=len(samples),
+        )
+
+    monkeypatch.setattr(
+        route2_engine_module,
+        "next_fixed_point_density",
+        _controlled_step,
+    )
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic reset ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-12,
+        scf_energy_tolerance_ev=1.0e-12,
+        scf_max_iterations=4,
+        scf_solver=SAFEGUARDED_ANDERSON_SOLVER,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("synthetic-reset-ddpcm",),
+    )
+
+    assert coupled.history[1]["arrived_by"] == SAFEGUARDED_ANDERSON_SOLVER
+    assert coupled.history[1]["anderson_history_reset"] is True
+    assert coupled.history[1]["fixed_point_history_size"] == 1
+    assert coupled.history[-1]["next_density_update"] == "converged"

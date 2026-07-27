@@ -2,8 +2,9 @@
 
 These updates only choose the next density at which the physical map is
 evaluated.  Convergence is always judged with the unmixed residual
-``M(P(c)) - c``; neither Picard damping nor Anderson acceleration is part of
-the physical residual or energy functional.
+``Pi_q[M(P(c)) - c]`` in the fixed-total-charge tangent space; neither Picard
+damping nor Anderson acceleration is part of the physical residual or energy
+functional.
 """
 
 from __future__ import annotations
@@ -24,6 +25,18 @@ SUPPORTED_FIXED_POINT_SOLVERS = frozenset(
 )
 
 
+def _density_block(values: np.ndarray, *, name: str) -> np.ndarray:
+    block = np.asarray(values, dtype=float)
+    if (
+        block.ndim != 2
+        or block.shape[0] == 0
+        or block.shape[1] != 4
+        or not np.all(np.isfinite(block))
+    ):
+        raise ValueError(f"{name} must be a finite (n_atoms, 4) block.")
+    return block
+
+
 def project_density_total_charge(
     values: np.ndarray,
     *,
@@ -41,13 +54,6 @@ def project_density_total_charge(
         float(total_charge_e) - float(np.sum(density[:, 0]))
     ) / float(density.shape[0])
     return density
-
-
-def _density_block(values: np.ndarray, *, name: str) -> np.ndarray:
-    block = np.asarray(values, dtype=float)
-    if block.ndim != 2 or block.shape[1] != 4 or not np.all(np.isfinite(block)):
-        raise ValueError(f"{name} must be a finite (n_atoms, 4) block.")
-    return block
 
 
 @dataclass(frozen=True)

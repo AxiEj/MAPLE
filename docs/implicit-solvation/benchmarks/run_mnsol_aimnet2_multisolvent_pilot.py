@@ -10,6 +10,7 @@ development/confirmation evaluation.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import math
 from pathlib import Path
@@ -211,6 +212,53 @@ def _timing_summary(
     }
 
 
+def _paired_method_comparison(
+    records: list[dict[str, object]],
+) -> dict[str, float | int]:
+    energy_differences = np.asarray(
+        [
+            record["methods"]["ddcosmo"]["total_solvation_kcal_mol"]
+            - record["methods"]["ddpcm"]["total_solvation_kcal_mol"]
+            for record in records
+        ],
+        dtype=float,
+    )
+    pcm_errors = np.asarray(
+        [record["methods"]["ddpcm"]["absolute_error_kcal_mol"] for record in records],
+        dtype=float,
+    )
+    cosmo_errors = np.asarray(
+        [record["methods"]["ddcosmo"]["absolute_error_kcal_mol"] for record in records],
+        dtype=float,
+    )
+    if (
+        energy_differences.size != 10
+        or not np.all(np.isfinite(energy_differences))
+        or not np.all(np.isfinite(pcm_errors))
+        or not np.all(np.isfinite(cosmo_errors))
+    ):
+        raise RuntimeError(
+            "Paired MNSol method comparison requires ten finite records."
+        )
+    tolerance = 1.0e-12
+    return {
+        "record_count": int(energy_differences.size),
+        "mean_ddcosmo_minus_ddpcm_kcal_mol": float(np.mean(energy_differences)),
+        "minimum_ddcosmo_minus_ddpcm_kcal_mol": float(np.min(energy_differences)),
+        "maximum_ddcosmo_minus_ddpcm_kcal_mol": float(np.max(energy_differences)),
+        "ddcosmo_lower_absolute_error_count": int(
+            np.sum(cosmo_errors < pcm_errors - tolerance)
+        ),
+        "ddpcm_lower_absolute_error_count": int(
+            np.sum(pcm_errors < cosmo_errors - tolerance)
+        ),
+        "absolute_error_tie_count": int(
+            np.sum(np.abs(cosmo_errors - pcm_errors) <= tolerance)
+        ),
+        "tie_tolerance_kcal_mol": tolerance,
+    }
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, required=True)
@@ -337,8 +385,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "solute_name": record.solute_name,
                 "formula": record.formula,
                 "atom_count": len(atoms),
+                "subset": record.subset,
                 "experimental_delta_g_kcal_mol": (record.delta_g_kcal_mol),
                 "aimnet2_energy_ev": charge_state.energy_ev,
+                "charges_e": charge_state.charges_e.tolist(),
                 "raw_charge_residual_e": (charge_state.raw_charge_residual_e),
                 "projected_charge_sum_e": (charge_state.projected_charge_sum_e),
                 "cavity_radii_angstrom": radii.tolist(),
@@ -355,6 +405,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     total_wall_seconds = time.perf_counter() - wall_started
     method_metrics = {method: _metrics(records, method) for method, _ in METHODS}
+    paired_comparison = _paired_method_comparison(records)
     private_artifact = {
         "artifact": ARTIFACT_NAME,
         "schema_version": 1,
@@ -376,6 +427,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "redistributed": False,
         },
         "aggregate_metrics": method_metrics,
+        "paired_method_comparison": paired_comparison,
         "records": records,
     }
     write_json_atomic(private_output, private_artifact)
@@ -445,6 +497,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "selection_solvent_count": len(
             {record["canonical_solvent"] for record in records}
         ),
+        "selection_partition_counts": dict(
+            sorted(Counter(record["partition"] for record in records).items())
+        ),
         "checkpoint": {
             "filename": checkpoint.name,
             "bytes": checkpoint.stat().st_size,
@@ -455,6 +510,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             "raw_total_charge_tolerance_e": (AIMNET2_RAW_CHARGE_TOLERANCE_E),
             "padded_sentinel_tolerance_e": (AIMNET2_PADDED_SENTINEL_TOLERANCE_E),
             "projection": "uniform-affine-float-residue-only",
+        },
+        "charge_quality": {
+            "maximum_absolute_raw_charge_residual_e": float(
+                max(abs(record["raw_charge_residual_e"]) for record in records)
+            ),
+            "maximum_absolute_projected_charge_sum_e": float(
+                max(abs(record["projected_charge_sum_e"]) for record in records)
+            ),
         },
         "continuum_parameters": {
             "shared_parameter_profile": (DDPCM_MULTISOLVENT_SMD_PROFILE),
@@ -473,9 +536,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             "standard_state_correction_kcal_mol": 0.0,
         },
         "aggregate_metrics": method_metrics,
+        "paired_method_comparison": paired_comparison,
         "timing_seconds": {
             "model_load": model_load_seconds,
             "total_wall": total_wall_seconds,
+            "method_execution_order": [method for method, _ in METHODS],
+            "comparison_status": (
+                "metadata-only-not-a-speed-ranking; fixed ddPCM-then-ddCOSMO "
+                "order and process-level cache effects are not randomized"
+            ),
             "shared": shared_timings,
             "methods": method_timings,
         },

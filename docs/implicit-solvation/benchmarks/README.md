@@ -357,6 +357,59 @@ This pilot does not validate MACE-POLAR, mutual polarization, C-PCM, COSMO-RS,
 forces, or a solution-phase PES, and it is not a substitute for the complete
 MNSol development/confirmation partitions.
 
+## MNSol fixed-versus-polarizable response ablation
+
+[`route2-mnsol-macepolar-response-ablation-v1.json`](route2-mnsol-macepolar-response-ablation-v1.json)
+uses the same preregistered ten records to separate source representation from
+ML response. The ten reference values are neutral absolute experimental
+MNSol-v2012 free energies at 298 K in the 1-M ideal-gas to 1-M ideal-solution
+standard state: one record is from subset `[a]` and nine are from subset `[g]`.
+The runner verified the selected rows directly against the pinned
+`MNSol_alldata.txt` hash
+`6dba4397764d1ca665c5dac653b9963bd64f784c353311a72c15e42897b90156`.
+The public artifact remains aggregate-only; the selected names, entry numbers,
+coordinates, and experimental row values remain in the ignored private
+`.omx` result.
+
+Every method uses the same pyddx ddPCM equation, solvent-specific PySCF SMD
+Coulomb radii, and PySCF 2.13.1 SMD-CDS term. Only the learned source and
+response treatment change:
+
+| method | MAE | RMSE | mean signed error | maximum absolute error | mean time (s) |
+|---|---:|---:|---:|---:|---:|
+| AIMNet2 fixed \(l=0\) charges | 1.1431 | 1.3516 | +1.0333 | 2.2322 | 2.379 |
+| MACE fixed \(l=0\) monopoles | 3.3946 | 3.7781 | +3.3946 | 5.9762 | 2.684 |
+| MACE fixed \(l\le1\) multipoles | **0.8635** | **0.9902** | +0.3430 | **1.6454** | 2.715 |
+| MACE one-response diagnostic | 1.0392 | 1.1906 | +0.7306 | 1.9386 | 3.048 |
+| MACE same-root \(l\le1\) SCF | 0.9905 | 1.3225 | -0.4703 | 3.1905 | 26.247 |
+
+Energies and errors are in kcal/mol. The fixed MACE monopoles alone are not a
+competitive electrostatic source: restoring the learned atomic dipoles lowers
+the MAE by `2.5311 kcal/mol` and gives the best descriptive aggregate in this
+panel. Relative to that fixed \(l\le1\) source, the converged SCF makes the
+mean prediction `0.8132 kcal/mol` more negative, lowers the absolute error on
+4/10 records, raises it on 6/10, and raises the MAE by `0.1270 kcal/mol`.
+The one-response diagnostic lies between the two energy treatments in the
+aggregate but is explicitly not a fixed point.
+
+This does not show that fixed electrostatics is intrinsically more accurate
+than mutual polarization. It shows that the current local-jet
+MACE-POLAR/\(l\le1\)-multipole + ddPCM + SMD-CDS combination does not turn its
+additional response into a robust ten-point accuracy gain. The fixed
+\(l\le1\) result can benefit from cancellation between gas-phase multipoles,
+cavity/CDS parameters, and missing response, while the SCF can expose
+representation or calibration error by adding an average
+`+0.6889 kcal/mol` solute response and changing the mean continuum
+polarization from `-3.1618` to `-4.6639 kcal/mol`. Exact-GTO field projection,
+variational-response diagnostics, and replicated per-solvent chemistry remain
+open gates before any general accuracy conclusion.
+
+The actual single-process wall time was `342.93 s`. Per-method times are
+phase-summed estimated standalone costs with shared phases charged to each
+method; execution order was not randomized, so they are diagnostic metadata,
+not a hardware speed ranking. The public artifact SHA256 is
+`2d7e7d2ea5356ad97344e77316d1c4c30dae3cfa2642892ff5b1c93cd8168c52`.
+
 ## AIMNet2 fixed point-charge baseline
 
 [`route2-aimnet2-point-charge-ddpcm-canary-v1.json`](route2-aimnet2-point-charge-ddpcm-canary-v1.json)

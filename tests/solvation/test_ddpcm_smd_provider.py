@@ -417,6 +417,21 @@ def test_gaff2_profile_still_requires_mol2_atom_types():
         builder._validate_solvent_config()
 
 
+def test_topology_free_pyddx_geometry_still_requires_one_connected_molecule(
+    tmp_path,
+):
+    atoms = _atoms()
+    atoms.info.pop("mol2")
+    atoms.positions[1, 0] += 10.0
+
+    with pytest.raises(ValueError, match="one connected molecule"):
+        PyDDXSMDImplicitSolvation(
+            atoms,
+            _multisolvent_options("acetonitrile"),
+            audit_dir=tmp_path,
+        )
+
+
 class _ZeroDensityResponse:
     def __init__(self, atom_count: int):
         self.shape = (atom_count, 4)

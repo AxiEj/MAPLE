@@ -13,6 +13,8 @@ from dataclasses import dataclass
 import math
 from typing import Any
 
+_FIXED_POINT_ANDERSON_HISTORY = 6
+
 import numpy as np
 from ase.units import Hartree
 
@@ -56,12 +58,8 @@ class Route2EngineSettings:
             "scf_energy_tolerance_ev": self.scf_energy_tolerance_ev,
             "adjoint_relative_tolerance": self.adjoint_relative_tolerance,
             "adjoint_absolute_tolerance": self.adjoint_absolute_tolerance,
-            "energy_identity_tolerance_ev": (
-                self.energy_identity_tolerance_ev
-            ),
-            "force_state_energy_tolerance_ev": (
-                self.force_state_energy_tolerance_ev
-            ),
+            "energy_identity_tolerance_ev": (self.energy_identity_tolerance_ev),
+            "force_state_energy_tolerance_ev": (self.force_state_energy_tolerance_ev),
             "neutral_density_tolerance": self.neutral_density_tolerance,
         }
         invalid = [name for name, value in positive.items() if value <= 0.0]
@@ -210,6 +208,84 @@ class Route2ContinuumEngine:
             )
         return field.copy()
 
+    @staticmethod
+    def _mixed_density_update(
+        density: np.ndarray,
+        response_density: np.ndarray,
+        mixing: float,
+    ) -> np.ndarray:
+        return (1.0 - mixing) * density + mixing * response_density
+
+    @staticmethod
+    def _project_neutral_density(density: np.ndarray) -> np.ndarray:
+        corrected = np.asarray(density, dtype=float).copy()
+        corrected[:, 0] -= float(np.sum(corrected[:, 0])) / float(corrected.shape[0])
+        return corrected
+
+    def _accelerated_density_update(
+        self,
+        density: np.ndarray,
+        response_density: np.ndarray,
+        iterate_history: list[np.ndarray],
+        residual_history: list[np.ndarray],
+    ) -> tuple[np.ndarray, str]:
+        settings = self.settings
+        mixed = self._mixed_density_update(
+            density,
+            response_density,
+            settings.scf_mixing,
+        )
+        if (
+            settings.scf_mixing != 1.0
+            or len(iterate_history) < 2
+            or len(residual_history) < 2
+        ):
+            return mixed, "linear-mixing"
+
+        history = min(
+            _FIXED_POINT_ANDERSON_HISTORY,
+            len(iterate_history) - 1,
+            len(residual_history) - 1,
+        )
+        if history <= 0:
+            return mixed, "linear-mixing"
+
+        xk = np.asarray(iterate_history[-1], dtype=float).reshape(-1)
+        rk = np.asarray(residual_history[-1], dtype=float).reshape(-1)
+        start = len(iterate_history) - history - 1
+        steps = []
+        residual_steps = []
+        for index in range(start, len(iterate_history) - 1):
+            steps.append(
+                np.asarray(iterate_history[index + 1], dtype=float).reshape(-1)
+                - np.asarray(iterate_history[index], dtype=float).reshape(-1)
+            )
+            residual_steps.append(
+                np.asarray(residual_history[index + 1], dtype=float).reshape(-1)
+                - np.asarray(residual_history[index], dtype=float).reshape(-1)
+            )
+        if not steps:
+            return mixed, "linear-mixing"
+
+        try:
+            step_matrix = np.column_stack(steps)
+            residual_matrix = np.column_stack(residual_steps)
+            gamma, *_ = np.linalg.lstsq(residual_matrix, rk, rcond=None)
+        except np.linalg.LinAlgError:
+            return mixed, "linear-mixing"
+
+        candidate = (
+            xk
+            + settings.scf_mixing * rk
+            - (step_matrix + settings.scf_mixing * residual_matrix) @ gamma
+        )
+        if not np.all(np.isfinite(candidate)):
+            return mixed, "linear-mixing"
+        accelerated = self._project_neutral_density(candidate.reshape(density.shape))
+        if not np.all(np.isfinite(accelerated)):
+            return mixed, "linear-mixing"
+        return accelerated, "anderson-accelerated"
+
     def _reaction_field_drive(
         self,
         reaction_field,
@@ -225,9 +301,7 @@ class Route2ContinuumEngine:
                     "provider returned an invalid model-drive state."
                 )
         else:
-            drive = ReactionFieldDrive.local_jet(
-                reaction_field.apply_scf(density)
-            )
+            drive = ReactionFieldDrive.local_jet(reaction_field.apply_scf(density))
         field = self._validate_field(
             drive.density_dual_field_ev,
             atom_count,
@@ -241,9 +315,7 @@ class Route2ContinuumEngine:
                 model_field_features=None,
                 projector=drive.projector,
                 model_field_gauge=drive.model_field_gauge,
-                model_field_gauge_reference_ev=(
-                    drive.model_field_gauge_reference_ev
-                ),
+                model_field_gauge_reference_ev=(drive.model_field_gauge_reference_ev),
             )
         if drive.model_field_features.shape[0] != atom_count:
             raise RuntimeError(
@@ -256,9 +328,7 @@ class Route2ContinuumEngine:
             model_field_features=drive.model_field_features,
             projector=drive.projector,
             model_field_gauge=drive.model_field_gauge,
-            model_field_gauge_reference_ev=(
-                drive.model_field_gauge_reference_ev
-            ),
+            model_field_gauge_reference_ev=(drive.model_field_gauge_reference_ev),
         )
 
     @staticmethod
@@ -320,6 +390,8 @@ class Route2ContinuumEngine:
         )
         previous_energy_ev: float | None = None
         history: list[dict[str, float | int | None]] = []
+        iterate_history: list[np.ndarray] = []
+        residual_history: list[np.ndarray] = []
 
         for iteration in range(1, settings.scf_max_iterations + 1):
             drive = self._reaction_field_drive(
@@ -338,14 +410,10 @@ class Route2ContinuumEngine:
                 len(atoms),
                 name="Field-polarized MACE-POLAR density",
             )
-            density_residual = float(
-                np.max(np.abs(response_density - density))
-            )
+            density_residual = float(np.max(np.abs(response_density - density)))
             current_energy_ev = float(solvent_state.energy_ev)
             if not math.isfinite(current_energy_ev):
-                raise RuntimeError(
-                    "Field-polarized MACE-POLAR energy is non-finite."
-                )
+                raise RuntimeError("Field-polarized MACE-POLAR energy is non-finite.")
             energy_residual = (
                 None
                 if previous_energy_ev is None
@@ -360,22 +428,21 @@ class Route2ContinuumEngine:
                 }
             )
             if energy_residual is None:
-                energy_converged = (
-                    not settings.scf_require_two_energy_samples
-                )
+                energy_converged = not settings.scf_require_two_energy_samples
             else:
-                energy_converged = (
-                    energy_residual <= settings.scf_energy_tolerance_ev
-                )
-            if (
-                density_residual <= settings.scf_density_tolerance
-                and energy_converged
-            ):
+                energy_converged = energy_residual <= settings.scf_energy_tolerance_ev
+            if density_residual <= settings.scf_density_tolerance and energy_converged:
+                history[-1]["next_density_update"] = "converged"
                 break
-            density = (
-                (1.0 - settings.scf_mixing) * density
-                + settings.scf_mixing * response_density
+            iterate_history.append(density.copy())
+            residual_history.append((response_density - density).copy())
+            density, update_kind = self._accelerated_density_update(
+                density,
+                response_density,
+                iterate_history,
+                residual_history,
             )
+            history[-1]["next_density_update"] = update_kind
             previous_energy_ev = current_energy_ev
         else:
             last = history[-1]
@@ -392,12 +459,9 @@ class Route2ContinuumEngine:
         )
         if not math.isfinite(polarization_energy_hartree):
             raise RuntimeError(
-                f"{settings.continuum_label} polarization energy is "
-                "non-finite."
+                f"{settings.continuum_label} polarization energy is " "non-finite."
             )
-        paired_energy_ev = 0.5 * float(
-            MACE_POLAR_L1_PAIRING.pair(density, field)
-        )
+        paired_energy_ev = 0.5 * float(MACE_POLAR_L1_PAIRING.pair(density, field))
         provider_energy_ev = polarization_energy_hartree * Hartree
         identity_error_ev = abs(paired_energy_ev - provider_energy_ev)
         if identity_error_ev > settings.energy_identity_tolerance_ev:
@@ -424,9 +488,7 @@ class Route2ContinuumEngine:
             model_field_features=drive.model_field_features,
             reaction_field_projector=drive.projector,
             model_field_gauge=drive.model_field_gauge,
-            model_field_gauge_reference_ev=(
-                drive.model_field_gauge_reference_ev
-            ),
+            model_field_gauge_reference_ev=(drive.model_field_gauge_reference_ev),
             solvent_state=solvent_state,
             polarization_energy_hartree=polarization_energy_hartree,
             energy_identity_error_ev=identity_error_ev,
@@ -463,9 +525,7 @@ class Route2ContinuumEngine:
             len(atoms),
             name="Force-evaluation MACE-POLAR density",
         )
-        force_state_residual = float(
-            np.max(np.abs(response_density - density))
-        )
+        force_state_residual = float(np.max(np.abs(response_density - density)))
         if force_state_residual > max(
             10.0 * settings.scf_density_tolerance,
             1.0e-10,
@@ -475,13 +535,11 @@ class Route2ContinuumEngine:
                 f"density root (residual={force_state_residual:.3e} e)."
             )
         force_state_energy_error_ev = abs(
-            float(solvent_state.energy_ev)
-            - float(coupled.solvent_state.energy_ev)
+            float(solvent_state.energy_ev) - float(coupled.solvent_state.energy_ev)
         )
         if (
             not math.isfinite(force_state_energy_error_ev)
-            or force_state_energy_error_ev
-            > settings.force_state_energy_tolerance_ev
+            or force_state_energy_error_ev > settings.force_state_energy_tolerance_ev
         ):
             raise RuntimeError(
                 "The MACE-POLAR force evaluation does not reproduce the "
@@ -537,26 +595,22 @@ class Route2ContinuumEngine:
             node_gradient_ev_per_angstrom=field[:, 1:],
             density_cotangent=adjoint.solution,
         )
-        continuum_gradient = (
-            continuum_coupled_solvation_coordinate_gradient(
-                coupled.reaction_field,
-                density_response,
-                density_coefficients=density,
-                intrinsic_energy_field_gradient=intrinsic_gradient,
-                adjoint_solution=adjoint.solution,
-                adjoint_density_position_vjp=density_position_vjp,
-                solvent_fixed_field_forces_ev_per_angstrom=solvent_forces,
-                gas_forces_ev_per_angstrom=gas_forces,
-            )
+        continuum_gradient = continuum_coupled_solvation_coordinate_gradient(
+            coupled.reaction_field,
+            density_response,
+            density_coefficients=density,
+            intrinsic_energy_field_gradient=intrinsic_gradient,
+            adjoint_solution=adjoint.solution,
+            adjoint_density_position_vjp=density_position_vjp,
+            solvent_fixed_field_forces_ev_per_angstrom=solvent_forces,
+            gas_forces_ev_per_angstrom=gas_forces,
         )
         total = assemble_total_solvation_coordinate_gradient(
             continuum_gradient,
             coupled.cds_result.position_gradient_hartree_per_angstrom,
         )
         derivative = {
-            "continuum_position_gradient_ev_per_angstrom": (
-                continuum_gradient
-            ),
+            "continuum_position_gradient_ev_per_angstrom": (continuum_gradient),
             "cds_position_gradient_hartree_per_angstrom": (
                 coupled.cds_result.position_gradient_hartree_per_angstrom
             ),
@@ -573,13 +627,9 @@ class Route2ContinuumEngine:
                 "relative_tolerance": settings.adjoint_relative_tolerance,
                 "absolute_tolerance": settings.adjoint_absolute_tolerance,
                 "restart_size": adjoint.restart_size,
-                "maximum_inner_iterations": (
-                    adjoint.maximum_inner_iterations
-                ),
+                "maximum_inner_iterations": (adjoint.maximum_inner_iterations),
                 "operator_applications": adjoint.operator_applications,
-                "residual_callback_count": (
-                    adjoint.residual_callback_count
-                ),
+                "residual_callback_count": (adjoint.residual_callback_count),
                 "residual_norm": adjoint.residual_norm,
                 "relative_residual": adjoint.relative_residual,
             },
@@ -599,9 +649,7 @@ class Route2ContinuumEngine:
     ) -> dict[str, float]:
         """Compose the single Route-2 scalar-energy ledger."""
 
-        delta_e_solute = (
-            float(solvent_energy_ev) - float(gas_energy_ev)
-        ) / Hartree
+        delta_e_solute = (float(solvent_energy_ev) - float(gas_energy_ev)) / Hartree
         pcm_polarization = float(polarization_energy_hartree)
         electrostatic = delta_e_solute + pcm_polarization
         cds_energy = float(cds_energy_hartree)
@@ -624,9 +672,7 @@ class Route2ContinuumEngine:
         return cls.compose_energy_components(
             gas_energy_ev=float(gas_state.energy_ev),
             solvent_energy_ev=float(coupled.solvent_state.energy_ev),
-            polarization_energy_hartree=(
-                coupled.polarization_energy_hartree
-            ),
+            polarization_energy_hartree=(coupled.polarization_energy_hartree),
             cds_energy_hartree=float(coupled.cds_result.energy_hartree),
         )
 

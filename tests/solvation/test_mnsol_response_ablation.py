@@ -1,0 +1,144 @@
+from __future__ import annotations
+
+from pathlib import Path
+import sys
+
+import numpy as np
+import pytest
+from ase.units import Hartree
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
+if str(BENCHMARK_DIR) not in sys.path:
+    sys.path.insert(0, str(BENCHMARK_DIR))
+
+from mnsol_response_ablation import (  # noqa: E402
+    aggregate_method_metrics,
+    compose_method_ledger,
+    paired_method_comparison,
+    solve_fixed_multipole_continuum,
+)
+from maple.function.calculator.extra_correction.implicit.electrostatic_pairing import (  # noqa: E402
+    MACE_POLAR_L1_PAIRING,
+)
+
+
+def _record(experimental: float, left_total: float, right_total: float):
+    def _method(total: float):
+        return compose_method_ledger(
+            experimental_kcal_mol=experimental,
+            solute_polarization_kcal_mol=1.0,
+            continuum_polarization_kcal_mol=total - 1.5,
+            smd_cds_kcal_mol=0.5,
+            wall_seconds=2.0,
+        )
+
+    return {
+        "experimental_delta_g_kcal_mol": experimental,
+        "methods": {
+            "left": _method(left_total),
+            "right": _method(right_total),
+        },
+    }
+
+
+def test_response_ablation_ledger_closes_components_and_error():
+    result = compose_method_ledger(
+        experimental_kcal_mol=-4.0,
+        solute_polarization_kcal_mol=1.25,
+        continuum_polarization_kcal_mol=-5.0,
+        smd_cds_kcal_mol=-0.75,
+        wall_seconds=3.5,
+        extra={"identity_error_ev": 2.0e-14},
+    )
+
+    assert result["electrostatic_kcal_mol"] == pytest.approx(-3.75)
+    assert result["total_solvation_kcal_mol"] == pytest.approx(-4.5)
+    assert result["signed_error_kcal_mol"] == pytest.approx(-0.5)
+    assert result["absolute_error_kcal_mol"] == pytest.approx(0.5)
+    assert result["identity_error_ev"] == pytest.approx(2.0e-14)
+
+
+def test_response_ablation_metrics_and_paired_counts():
+    records = [
+        _record(-4.0, -4.5, -4.1),
+        _record(-2.0, -1.0, -2.3),
+    ]
+
+    metrics = aggregate_method_metrics(records, "right")
+    paired = paired_method_comparison(
+        records,
+        left="left",
+        right="right",
+    )
+
+    assert metrics["record_count"] == 2
+    assert metrics["mean_signed_error_kcal_mol"] == pytest.approx(-0.2)
+    assert metrics["mean_absolute_error_kcal_mol"] == pytest.approx(0.2)
+    assert metrics["root_mean_square_error_kcal_mol"] == pytest.approx(
+        (0.1**2 + 0.3**2) ** 0.5 / 2**0.5
+    )
+    assert metrics["total_wall_seconds"] == pytest.approx(4.0)
+    assert paired["right_minus_left_mean_energy_kcal_mol"] == pytest.approx(-0.45)
+    assert paired["right_lower_absolute_error_count"] == 2
+    assert paired["left_lower_absolute_error_count"] == 0
+
+
+def test_response_ablation_rejects_nonfinite_and_field_replacement():
+    with pytest.raises(ValueError, match="must be finite"):
+        compose_method_ledger(
+            experimental_kcal_mol=float("nan"),
+            solute_polarization_kcal_mol=0.0,
+            continuum_polarization_kcal_mol=-1.0,
+            smd_cds_kcal_mol=0.0,
+            wall_seconds=1.0,
+        )
+    with pytest.raises(ValueError, match="cannot replace"):
+        compose_method_ledger(
+            experimental_kcal_mol=-1.0,
+            solute_polarization_kcal_mol=0.0,
+            continuum_polarization_kcal_mol=-1.0,
+            smd_cds_kcal_mol=0.0,
+            wall_seconds=1.0,
+            extra={"signed_error_kcal_mol": 0.0},
+        )
+
+
+def test_fixed_multipole_solve_checks_charge_and_half_coupling():
+    coefficients = np.asarray(
+        [
+            [0.2, 0.3, -0.4, 0.1],
+            [-0.2, -0.1, 0.2, 0.5],
+        ],
+        dtype=float,
+    )
+    field = np.asarray(
+        [
+            [-1.0, 0.2, -0.3, 0.4],
+            [0.5, -0.6, 0.7, -0.8],
+        ],
+        dtype=float,
+    )
+
+    class _ReactionField:
+        def apply_scf(self, values):
+            assert np.array_equal(values, coefficients)
+            return field
+
+        def scf_polarization_energy_hartree(self, values):
+            return 0.5 * MACE_POLAR_L1_PAIRING.pair(values, field) / Hartree
+
+    state = solve_fixed_multipole_continuum(
+        _ReactionField(),
+        coefficients,
+    )
+
+    assert state["reaction_field_values_ev"] == pytest.approx(field)
+    assert state["energy_identity_error_ev"] == pytest.approx(0.0)
+    assert state["observed_total_charge_e"] == pytest.approx(0.0)
+
+    with pytest.raises(ValueError, match="declared total charge"):
+        solve_fixed_multipole_continuum(
+            _ReactionField(),
+            coefficients + np.asarray([[0.1, 0, 0, 0], [0, 0, 0, 0]]),
+        )

@@ -223,6 +223,41 @@ dataset/uncertainty provenance. A broader replacement must be registered as a
 new protocol with those fields locked before any calculation. The rejected
 protocol must not be repaired in place or used as evidence for accuracy.
 
+## Same-basis GTO--PCM representation transfer
+
+[`route2-gto-pcm-energy-projection-four-prereg-v1.json`](route2-gto-pcm-energy-projection-four-prereg-v1.json)
+freezes a separate representation-only experiment over benzene, acetone,
+acetic acid, and 2-acetoxyethyl acetate. It compares one and two radial
+\(l\leq1\) GTO bases by projecting the same fixed-geometry
+\(\omega\)B97M-V/def2-TZVPD cavity MEP in the PCMSolver IEFPCM energy norm.
+Source and receiver use the same GTO basis, the total charge and molecular
+dipole are constrained exactly, and every raw canary binds the preregistration,
+QM checkpoint, MOL2 geometry, intrinsic probe-zero cavity, executable, and
+source hashes.
+
+The completed aggregate is
+[`route2-gto-pcm-energy-projection-four-v1.json`](route2-gto-pcm-energy-projection-four-v1.json).
+The second radial channel improves all four records at the preregistered
+`1e-4` cutoff and lowers mean representation error from `1.2365` to
+`0.7536 kcal/mol`. The flexible diester remains at `1.5372 kcal/mol`, so the
+frozen sub-`1 kcal/mol` maximum-error gate **fails**. Lower cutoffs reduce the
+two-radial mean error but expose near-null modes:
+
+| relative cutoff | two-radial mean error / kcal mol\(^{-1}\) | maximum retained condition number | maximum coefficient L2 norm |
+| ---: | ---: | ---: | ---: |
+| `1e-4` | 0.7536 | \(9.87\times10^3\) | 6.49 |
+| `1e-6` | 0.2998 | \(9.43\times10^5\) | 65.72 |
+| `1e-8` | 0.1224 | \(9.33\times10^7\) | 243.9 |
+| `1e-10` | 0.1043 | \(9.92\times10^9\) | 963.5 |
+| `1e-12` | 0.0855 | \(9.88\times10^{11}\) | 16541.3 |
+
+This is therefore a complete negative preregistered result, not a reason to
+select the lowest cutoff. It establishes a representation
+accuracy--conditioning tradeoff only. It does not validate MACE-POLAR
+density--energy conjugacy, projected coefficients as ML targets, experimental
+solvation accuracy, a variational free energy, forces, or a solution-phase
+PES.
+
 ## MNSol-v2012 multi-solvent dataset protocol
 
 [`route2-mnsol-protocol-v1.json`](route2-mnsol-protocol-v1.json) freezes a

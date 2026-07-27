@@ -1,0 +1,1846 @@
+{
+  "aggregate_by_cutoff": {
+    "1e-10": {
+      "arms": {
+        "one_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 0.6761524419588134,
+          "maximum_coefficient_absolute_value": 93.0859210125281,
+          "maximum_coefficient_l2_norm": 266.6634482610833,
+          "maximum_retained_condition_number": 428509841.9072071,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.4120912995818379,
+          "mean_wall_seconds": 3.1421304199975566,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.4660387355896505,
+          "total_wall_seconds": 12.568521679990226
+        },
+        "two_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 0.17356477677898471,
+          "maximum_coefficient_absolute_value": 412.9054048281478,
+          "maximum_coefficient_l2_norm": 963.4615780272526,
+          "maximum_retained_condition_number": 9916153830.271067,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.10425252126960816,
+          "mean_wall_seconds": 6.083976967747731,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.11420767362761425,
+          "total_wall_seconds": 24.335907870990923
+        }
+      },
+      "two_radial_vs_one_radial": {
+        "improvement_count": 4,
+        "mean_absolute_error_improvement_kcal_mol": 0.3078387783122297,
+        "regression_count": 0,
+        "tie_count": 0
+      }
+    },
+    "1e-12": {
+      "arms": {
+        "one_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 0.6761524419588134,
+          "maximum_coefficient_absolute_value": 93.0859210125281,
+          "maximum_coefficient_l2_norm": 266.6634482610833,
+          "maximum_retained_condition_number": 18409480068.35528,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.4120906771477512,
+          "mean_wall_seconds": 3.165832778751792,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.4660386364856051,
+          "total_wall_seconds": 12.663331115007168
+        },
+        "two_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 0.1398374428215886,
+          "maximum_coefficient_absolute_value": 9834.64659296467,
+          "maximum_coefficient_l2_norm": 16541.25157080045,
+          "maximum_retained_condition_number": 987705946718.0299,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.08552664167618854,
+          "mean_wall_seconds": 6.000353397233994,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.09183372295833134,
+          "total_wall_seconds": 24.001413588935975
+        }
+      },
+      "two_radial_vs_one_radial": {
+        "improvement_count": 4,
+        "mean_absolute_error_improvement_kcal_mol": 0.32656403547156265,
+        "regression_count": 0,
+        "tie_count": 0
+      }
+    },
+    "1e-4": {
+      "arms": {
+        "one_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 1.61952781645162,
+          "maximum_coefficient_absolute_value": 4.101548509960722,
+          "maximum_coefficient_l2_norm": 10.76041095833519,
+          "maximum_retained_condition_number": 8562.189148178846,
+          "mean_absolute_polarization_projection_error_kcal_mol": 1.2364961326922692,
+          "mean_wall_seconds": 3.069935895240633,
+          "root_mean_square_polarization_projection_error_kcal_mol": 1.2642023198765038,
+          "total_wall_seconds": 12.279743580962531
+        },
+        "two_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 1.5371996446955856,
+          "maximum_coefficient_absolute_value": 1.9563039155171935,
+          "maximum_coefficient_l2_norm": 6.489504878060692,
+          "maximum_retained_condition_number": 9874.191316570617,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.7535668337330764,
+          "mean_wall_seconds": 5.999224946004688,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.9197345909729235,
+          "total_wall_seconds": 23.99689978401875
+        }
+      },
+      "two_radial_vs_one_radial": {
+        "improvement_count": 4,
+        "mean_absolute_error_improvement_kcal_mol": 0.48292929895919295,
+        "regression_count": 0,
+        "tie_count": 0
+      }
+    },
+    "1e-6": {
+      "arms": {
+        "one_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 1.046301466026273,
+          "maximum_coefficient_absolute_value": 45.8972385039655,
+          "maximum_coefficient_l2_norm": 96.02537560767266,
+          "maximum_retained_condition_number": 894063.4748513629,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.5364514306481736,
+          "mean_wall_seconds": 3.1402556795073906,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.6389913992808581,
+          "total_wall_seconds": 12.561022718029562
+        },
+        "two_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 0.537856207680826,
+          "maximum_coefficient_absolute_value": 25.78845729664482,
+          "maximum_coefficient_l2_norm": 65.72110720918424,
+          "maximum_retained_condition_number": 942844.7772987109,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.2997814903636013,
+          "mean_wall_seconds": 6.03300643574039,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.35006277145044445,
+          "total_wall_seconds": 24.13202574296156
+        }
+      },
+      "two_radial_vs_one_radial": {
+        "improvement_count": 4,
+        "mean_absolute_error_improvement_kcal_mol": 0.23666994028457222,
+        "regression_count": 0,
+        "tie_count": 0
+      }
+    },
+    "1e-8": {
+      "arms": {
+        "one_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 0.6761524419588134,
+          "maximum_coefficient_absolute_value": 93.0859210125281,
+          "maximum_coefficient_l2_norm": 266.6634482610833,
+          "maximum_retained_condition_number": 76667264.79178387,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.41212725808012396,
+          "mean_wall_seconds": 3.080048032490595,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.4660444665161094,
+          "total_wall_seconds": 12.32019212996238
+        },
+        "two_radial": {
+          "maximum_absolute_polarization_projection_error_kcal_mol": 0.23256278971934088,
+          "maximum_coefficient_absolute_value": 97.73523160665034,
+          "maximum_coefficient_l2_norm": 243.89502058360762,
+          "maximum_retained_condition_number": 93264075.78619848,
+          "mean_absolute_polarization_projection_error_kcal_mol": 0.12240562349748685,
+          "mean_wall_seconds": 6.000455207496998,
+          "root_mean_square_polarization_projection_error_kcal_mol": 0.14043990605759435,
+          "total_wall_seconds": 24.00182082998799
+        }
+      },
+      "two_radial_vs_one_radial": {
+        "improvement_count": 4,
+        "mean_absolute_error_improvement_kcal_mol": 0.2897216345826371,
+        "regression_count": 0,
+        "tie_count": 0
+      }
+    }
+  },
+  "artifact_id": "route2-gto-pcm-energy-projection-four-v1",
+  "case_count": 20,
+  "cases": [
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 48,
+          "coefficient_l2_norm": 1.2773841380427016,
+          "coefficient_max_abs": 0.4413592865466485,
+          "constraint_residual_inf": 3.5163386959136123e-16,
+          "discarded_mode_count": 18,
+          "effective_rank": 26,
+          "elapsed_seconds": 1.437493948993506,
+          "fitted_polarization_energy_hartree": -0.002955170100234153,
+          "fitted_polarization_energy_kcal_per_mol": -1.8543972353649318,
+          "full_tangent_gradient_inf": 1.4497767623254708e-05,
+          "maximum_eigenvalue_hartree": 0.04209683404780512,
+          "polarization_energy_error_hartree": 0.0020428466538681407,
+          "polarization_energy_error_kcal_per_mol": 1.2819056293603608,
+          "reduced_dimension": 44,
+          "relative_spectral_cutoff": 0.0001,
+          "residual_energy_norm_squared_hartree": 0.004085693163685824,
+          "retained_condition_number": 5678.2922266376045,
+          "retained_minimum_eigenvalue_hartree": 7.413643463139043e-06,
+          "retained_subspace_optimality_inf": 7.672742073584673e-18,
+          "shifted_pythagorean_error_hartree": 0.0,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 96,
+          "coefficient_l2_norm": 2.8758315777573142,
+          "coefficient_max_abs": 0.8730491369684987,
+          "constraint_residual_inf": 1.432366595124912e-15,
+          "discarded_mode_count": 64,
+          "effective_rank": 28,
+          "elapsed_seconds": 2.695573356002569,
+          "fitted_polarization_energy_hartree": -0.004903511812032817,
+          "fitted_polarization_energy_kcal_per_mol": -3.0770001182309117,
+          "full_tangent_gradient_inf": 2.236907210382755e-07,
+          "maximum_eigenvalue_hartree": 0.10393332989329274,
+          "polarization_energy_error_hartree": 9.450494206947671e-05,
+          "polarization_energy_error_kcal_per_mol": 0.05930274649438107,
+          "reduced_dimension": 92,
+          "relative_spectral_cutoff": 0.0001,
+          "residual_energy_norm_squared_hartree": 0.00018900988136209896,
+          "retained_condition_number": 3678.7606905727953,
+          "retained_minimum_eigenvalue_hartree": 2.8252267172374827e-05,
+          "retained_subspace_optimality_inf": 5.5196906970910157e-17,
+          "shifted_pythagorean_error_hartree": 4.1470733097570545e-18,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "weakly-polar aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "cutoff_token": "1e-4",
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "input_bindings": {
+        "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "parsed_pcm_input_sha256": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4",
+        "qm_checkpoint_sha256": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079"
+      },
+      "molecule_name": "benzene",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3053621-cutoff-1e-4-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/cutoff-1e-4/result.json",
+        "sha256": "a0e971144d97e842b9f01976cbcc340395858f85048bab288369710f9352992f"
+      },
+      "relative_spectral_cutoff": 0.0001,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 48,
+          "coefficient_l2_norm": 90.39214959095106,
+          "coefficient_max_abs": 22.698789900855356,
+          "constraint_residual_inf": 5.728338810240263e-14,
+          "discarded_mode_count": 11,
+          "effective_rank": 33,
+          "elapsed_seconds": 1.3958622239879332,
+          "fitted_polarization_energy_hartree": -0.0048795217558123515,
+          "fitted_polarization_energy_kcal_per_mol": -3.061946130669263,
+          "full_tangent_gradient_inf": 1.2870674390399648e-08,
+          "maximum_eigenvalue_hartree": 0.04209683404780512,
+          "polarization_energy_error_hartree": 0.00011849499828994227,
+          "polarization_energy_error_kcal_per_mol": 0.0743567340560296,
+          "reduced_dimension": 44,
+          "relative_spectral_cutoff": 1e-06,
+          "residual_energy_norm_squared_hartree": 0.00023699021180392148,
+          "retained_condition_number": 222412.44544948684,
+          "retained_minimum_eigenvalue_hartree": 1.8927373404275586e-07,
+          "retained_subspace_optimality_inf": 2.374855506366139e-15,
+          "shifted_pythagorean_error_hartree": 4.189803885779053e-13,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 96,
+          "coefficient_l2_norm": 2.9035503863297363,
+          "coefficient_max_abs": 0.8241344482372875,
+          "constraint_residual_inf": 1.4339657933293282e-15,
+          "discarded_mode_count": 48,
+          "effective_rank": 44,
+          "elapsed_seconds": 2.6729245389869902,
+          "fitted_polarization_energy_hartree": -0.004903561546646652,
+          "fitted_polarization_energy_kcal_per_mol": -3.077031327172282,
+          "full_tangent_gradient_inf": 1.8417928010526045e-07,
+          "maximum_eigenvalue_hartree": 0.10393332989329274,
+          "polarization_energy_error_hartree": 9.445520745564144e-05,
+          "polarization_energy_error_kcal_per_mol": 0.05927153755301057,
+          "reduced_dimension": 92,
+          "relative_spectral_cutoff": 1e-06,
+          "residual_energy_norm_squared_hartree": 0.00018891041494103426,
+          "retained_condition_number": 942844.7772987109,
+          "retained_minimum_eigenvalue_hartree": 1.1023376529810771e-07,
+          "retained_subspace_optimality_inf": 5.653745406958707e-17,
+          "shifted_pythagorean_error_hartree": 1.474514954580286e-17,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "weakly-polar aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "cutoff_token": "1e-6",
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "input_bindings": {
+        "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "parsed_pcm_input_sha256": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4",
+        "qm_checkpoint_sha256": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079"
+      },
+      "molecule_name": "benzene",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3053621-cutoff-1e-6-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/cutoff-1e-6/result.json",
+        "sha256": "413e8a31fa662fd5883a3973a93494337aaf58ed5327dc2e74aa0f3ebf5453bf"
+      },
+      "relative_spectral_cutoff": 1e-06,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 48,
+          "coefficient_l2_norm": 90.39959282110011,
+          "coefficient_max_abs": 23.06778259995079,
+          "constraint_residual_inf": 4.973799150320701e-14,
+          "discarded_mode_count": 4,
+          "effective_rank": 40,
+          "elapsed_seconds": 1.352104204997886,
+          "fitted_polarization_energy_hartree": -0.004879535951887934,
+          "fitted_polarization_energy_kcal_per_mol": -3.0619550388411856,
+          "full_tangent_gradient_inf": 2.4686887429515507e-09,
+          "maximum_eigenvalue_hartree": 0.04209683404780512,
+          "polarization_energy_error_hartree": 0.00011848080221435985,
+          "polarization_energy_error_kcal_per_mol": 0.07434782588410713,
+          "reduced_dimension": 44,
+          "relative_spectral_cutoff": 1e-08,
+          "residual_energy_norm_squared_hartree": 0.00023696187849725172,
+          "retained_condition_number": 12771277.489969088,
+          "retained_minimum_eigenvalue_hartree": 3.2962116813192048e-09,
+          "retained_subspace_optimality_inf": 2.4217433954576876e-15,
+          "shifted_pythagorean_error_hartree": 3.9877275743657736e-13,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 96,
+          "coefficient_l2_norm": 46.74249914441263,
+          "coefficient_max_abs": 11.333907115150497,
+          "constraint_residual_inf": 1.4531141589481378e-14,
+          "discarded_mode_count": 37,
+          "effective_rank": 55,
+          "elapsed_seconds": 2.6899408389872406,
+          "fitted_polarization_energy_hartree": -0.004916025242938909,
+          "fitted_polarization_energy_kcal_per_mol": -3.0848524146775183,
+          "full_tangent_gradient_inf": 1.89386636890247e-09,
+          "maximum_eigenvalue_hartree": 0.10393332989329274,
+          "polarization_energy_error_hartree": 8.199151116338507e-05,
+          "polarization_energy_error_kcal_per_mol": 0.05145045004777456,
+          "reduced_dimension": 92,
+          "relative_spectral_cutoff": 1e-08,
+          "residual_energy_norm_squared_hartree": 0.00016398302208836695,
+          "retained_condition_number": 85060785.76581356,
+          "retained_minimum_eigenvalue_hartree": 1.2218712648556812e-09,
+          "retained_subspace_optimality_inf": 9.348956809217471e-16,
+          "shifted_pythagorean_error_hartree": 1.0531370697383635e-14,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "weakly-polar aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "cutoff_token": "1e-8",
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "input_bindings": {
+        "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "parsed_pcm_input_sha256": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4",
+        "qm_checkpoint_sha256": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079"
+      },
+      "molecule_name": "benzene",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3053621-cutoff-1e-8-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/cutoff-1e-8/result.json",
+        "sha256": "9959a448eb590215c0881d9e66d4e085e7d0ddbc28f99928a38c1e66ae84ce7c"
+      },
+      "relative_spectral_cutoff": 1e-08,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 48,
+          "coefficient_l2_norm": 113.27894139188605,
+          "coefficient_max_abs": 45.26968040811735,
+          "constraint_residual_inf": 8.692821310864185e-14,
+          "discarded_mode_count": 1,
+          "effective_rank": 43,
+          "elapsed_seconds": 1.4105888420017436,
+          "fitted_polarization_energy_hartree": -0.00487976516594619,
+          "fitted_polarization_energy_kcal_per_mol": -3.06209887283433,
+          "full_tangent_gradient_inf": 4.6097575878887805e-11,
+          "maximum_eigenvalue_hartree": 0.04209683404780512,
+          "polarization_energy_error_hartree": 0.00011825158815610345,
+          "polarization_energy_error_kcal_per_mol": 0.07420399189096279,
+          "reduced_dimension": 44,
+          "relative_spectral_cutoff": 1e-10,
+          "residual_energy_norm_squared_hartree": 0.00023650323754212415,
+          "retained_condition_number": 428509841.9072071,
+          "retained_minimum_eigenvalue_hartree": 9.824006342641041e-11,
+          "retained_subspace_optimality_inf": 5.275552904749744e-15,
+          "shifted_pythagorean_error_hartree": 1.4006935260095499e-12,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 96,
+          "coefficient_l2_norm": 106.37368002178822,
+          "coefficient_max_abs": 33.542714887535546,
+          "constraint_residual_inf": 6.083797202995067e-14,
+          "discarded_mode_count": 25,
+          "effective_rank": 67,
+          "elapsed_seconds": 2.7537957839958835,
+          "fitted_polarization_energy_hartree": -0.0049162325459026785,
+          "fitted_polarization_energy_kcal_per_mol": -3.084982499251285,
+          "full_tangent_gradient_inf": 3.20382326544967e-10,
+          "maximum_eigenvalue_hartree": 0.10393332989329274,
+          "polarization_energy_error_hartree": 8.178420819961521e-05,
+          "polarization_energy_error_kcal_per_mol": 0.05132036547400761,
+          "reduced_dimension": 92,
+          "relative_spectral_cutoff": 1e-10,
+          "residual_energy_norm_squared_hartree": 0.00016356841517234594,
+          "retained_condition_number": 6555930249.933888,
+          "retained_minimum_eigenvalue_hartree": 1.5853330638217333e-11,
+          "retained_subspace_optimality_inf": 2.751719907693133e-15,
+          "shifted_pythagorean_error_hartree": 5.557685388291045e-13,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "weakly-polar aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "cutoff_token": "1e-10",
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "input_bindings": {
+        "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "parsed_pcm_input_sha256": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4",
+        "qm_checkpoint_sha256": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079"
+      },
+      "molecule_name": "benzene",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3053621-cutoff-1e-10-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/cutoff-1e-10/result.json",
+        "sha256": "8ac5b7b1845e12f61c495118b86e619622ce87f7bf9d639c1d620d0206a0752c"
+      },
+      "relative_spectral_cutoff": 1e-10,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 48,
+          "coefficient_l2_norm": 128.5519990656705,
+          "coefficient_max_abs": 55.497089505873916,
+          "constraint_residual_inf": 9.6864709179037e-14,
+          "discarded_mode_count": 0,
+          "effective_rank": 44,
+          "elapsed_seconds": 1.400586525007384,
+          "fitted_polarization_energy_hartree": -0.004879769133593612,
+          "fitted_polarization_energy_kcal_per_mol": -3.0621013625706768,
+          "full_tangent_gradient_inf": 3.573541689577892e-15,
+          "maximum_eigenvalue_hartree": 0.04209683404780512,
+          "polarization_energy_error_hartree": 0.00011824762050868191,
+          "polarization_energy_error_kcal_per_mol": 0.07420150215461602,
+          "reduced_dimension": 44,
+          "relative_spectral_cutoff": 1e-12,
+          "residual_energy_norm_squared_hartree": 0.00023649479178460968,
+          "retained_condition_number": 18409480068.35528,
+          "retained_minimum_eigenvalue_hartree": 2.2866932630089258e-12,
+          "retained_subspace_optimality_inf": 2.7601184506079458e-15,
+          "shifted_pythagorean_error_hartree": 1.1228854760077234e-12,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 96,
+          "coefficient_l2_norm": 165.25544017282934,
+          "coefficient_max_abs": 46.45622285805695,
+          "constraint_residual_inf": 4.4643745623039466e-14,
+          "discarded_mode_count": 16,
+          "effective_rank": 76,
+          "elapsed_seconds": 2.707223477977095,
+          "fitted_polarization_energy_hartree": -0.004916236166314907,
+          "fitted_polarization_energy_kcal_per_mol": -3.0849847710942586,
+          "full_tangent_gradient_inf": 3.1678461423014983e-10,
+          "maximum_eigenvalue_hartree": 0.10393332989329274,
+          "polarization_energy_error_hartree": 8.178058778738652e-05,
+          "polarization_energy_error_kcal_per_mol": 0.051318093631034095,
+          "reduced_dimension": 92,
+          "relative_spectral_cutoff": 1e-12,
+          "residual_energy_norm_squared_hartree": 0.00016356117622101353,
+          "retained_condition_number": 889068617576.9072,
+          "retained_minimum_eigenvalue_hartree": 1.169013592860308e-13,
+          "retained_subspace_optimality_inf": 2.429767453309863e-15,
+          "shifted_pythagorean_error_hartree": 7.992802925592402e-13,
+          "surface_point_count": 616,
+          "target_polarization_energy_hartree": -0.004998016754102294,
+          "target_polarization_energy_kcal_per_mol": -3.1363028647252924,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "weakly-polar aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "cutoff_token": "1e-12",
+      "geometry_max_abs_error_angstrom": 1.2082379541311639e-10,
+      "input_bindings": {
+        "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+        "parsed_pcm_input_sha256": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4",
+        "qm_checkpoint_sha256": "fe17bc2202f48630a79f7ee4020f44fc8483a8b2b0c2c675714943d5fede7079"
+      },
+      "molecule_name": "benzene",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3053621-cutoff-1e-12-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3053621/cutoff-1e-12/result.json",
+        "sha256": "c1a786cfdd11e5b2e6caf3406599eb29575520dfd303addcc66a29999124bd65"
+      },
+      "relative_spectral_cutoff": 1e-12,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 40,
+          "coefficient_l2_norm": 2.9293984270091116,
+          "coefficient_max_abs": 0.986694178974998,
+          "constraint_residual_inf": 8.881784197001252e-16,
+          "discarded_mode_count": 11,
+          "effective_rank": 25,
+          "elapsed_seconds": 0.713227611995535,
+          "fitted_polarization_energy_hartree": -0.009173263264379576,
+          "fitted_polarization_energy_kcal_per_mol": -5.756309606473184,
+          "full_tangent_gradient_inf": 1.3105558036932653e-05,
+          "maximum_eigenvalue_hartree": 0.03714680554218354,
+          "polarization_energy_error_hartree": 0.001413571256760648,
+          "polarization_energy_error_kcal_per_mol": 0.8870293558805896,
+          "reduced_dimension": 36,
+          "relative_spectral_cutoff": 0.0001,
+          "residual_energy_norm_squared_hartree": 0.002621915608885187,
+          "retained_condition_number": 6133.923923770249,
+          "retained_minimum_eigenvalue_hartree": 6.055961241748016e-06,
+          "retained_subspace_optimality_inf": 4.756005295538171e-17,
+          "shifted_pythagorean_error_hartree": 4.206704429243757e-16,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 2.267161716639165,
+          "coefficient_max_abs": 0.6938629192389595,
+          "constraint_residual_inf": 3.885780586188048e-16,
+          "discarded_mode_count": 51,
+          "effective_rank": 25,
+          "elapsed_seconds": 1.345195337984478,
+          "fitted_polarization_energy_hartree": -0.009581206679380574,
+          "fitted_polarization_energy_kcal_per_mol": -6.012297964267965,
+          "full_tangent_gradient_inf": 3.603227666688648e-05,
+          "maximum_eigenvalue_hartree": 0.10134199539225518,
+          "polarization_energy_error_hartree": 0.00100562784175965,
+          "polarization_energy_error_kcal_per_mol": 0.6310409980858084,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 0.0001,
+          "residual_energy_norm_squared_hartree": 0.002029191848580454,
+          "retained_condition_number": 9874.191316570617,
+          "retained_minimum_eigenvalue_hartree": 1.026332102986354e-05,
+          "retained_subspace_optimality_inf": 1.3877787807814457e-17,
+          "shifted_pythagorean_error_hartree": 1.4224732503009818e-16,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "strongly-dipolar ketone",
+      "compound_id": "mobley_3867265",
+      "cutoff_token": "1e-4",
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "input_bindings": {
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "parsed_pcm_input_sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8",
+        "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+      },
+      "molecule_name": "acetone",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3867265-cutoff-1e-4-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-4/result.json",
+        "sha256": "87d0276ecc23232210c605aa474c2339e1fdac603ba7ea14d5898070031d5cd2"
+      },
+      "relative_spectral_cutoff": 0.0001,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 40,
+          "coefficient_l2_norm": 65.11384915012529,
+          "coefficient_max_abs": 27.04998321093907,
+          "constraint_residual_inf": 3.397282455352979e-14,
+          "discarded_mode_count": 3,
+          "effective_rank": 33,
+          "elapsed_seconds": 0.7310407390177716,
+          "fitted_polarization_energy_hartree": -0.009867588097967431,
+          "fitted_polarization_energy_kcal_per_mol": -6.192005017626848,
+          "full_tangent_gradient_inf": 6.028321958909867e-07,
+          "maximum_eigenvalue_hartree": 0.03714680554218354,
+          "polarization_energy_error_hartree": 0.0007192464231727935,
+          "polarization_energy_error_kcal_per_mol": 0.4513339447269255,
+          "reduced_dimension": 36,
+          "relative_spectral_cutoff": 1e-06,
+          "residual_energy_norm_squared_hartree": 0.001540929232679728,
+          "retained_condition_number": 599497.8205327673,
+          "retained_minimum_eigenvalue_hartree": 6.196320365130197e-08,
+          "retained_subspace_optimality_inf": 2.05935999678923e-15,
+          "shifted_pythagorean_error_hartree": 1.6836727324831546e-13,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 54.33259124548988,
+          "coefficient_max_abs": 16.77412518128798,
+          "constraint_residual_inf": 1.6431300764452317e-14,
+          "discarded_mode_count": 40,
+          "effective_rank": 36,
+          "elapsed_seconds": 1.4045752150123008,
+          "fitted_polarization_energy_hartree": -0.01025046396311328,
+          "fitted_polarization_energy_kcal_per_mol": -6.432263250395974,
+          "full_tangent_gradient_inf": 1.218152876035623e-06,
+          "maximum_eigenvalue_hartree": 0.10134199539225518,
+          "polarization_energy_error_hartree": 0.00033637055802694486,
+          "polarization_energy_error_kcal_per_mol": 0.21107571195779964,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 1e-06,
+          "residual_energy_norm_squared_hartree": 0.0006818019898407133,
+          "retained_condition_number": 650308.3034656809,
+          "retained_minimum_eigenvalue_hartree": 1.5583684669590469e-07,
+          "retained_subspace_optimality_inf": 1.8899544396597744e-15,
+          "shifted_pythagorean_error_hartree": 3.448511008002919e-14,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "strongly-dipolar ketone",
+      "compound_id": "mobley_3867265",
+      "cutoff_token": "1e-6",
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "input_bindings": {
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "parsed_pcm_input_sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8",
+        "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+      },
+      "molecule_name": "acetone",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3867265-cutoff-1e-6-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-6/result.json",
+        "sha256": "e99de660e68d1b62d41cc2e9ab1324bd13627c5d53afb09612195cacb01e6e16"
+      },
+      "relative_spectral_cutoff": 1e-06,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 40,
+          "coefficient_l2_norm": 105.91888227947321,
+          "coefficient_max_abs": 54.48881673032373,
+          "constraint_residual_inf": 3.197442310920451e-14,
+          "discarded_mode_count": 0,
+          "effective_rank": 36,
+          "elapsed_seconds": 0.7071070009842515,
+          "fitted_polarization_energy_hartree": -0.009931670276804956,
+          "fitted_polarization_energy_kcal_per_mol": -6.232217191966001,
+          "full_tangent_gradient_inf": 6.151329445813758e-15,
+          "maximum_eigenvalue_hartree": 0.03714680554218354,
+          "polarization_energy_error_hartree": 0.0006551642443352688,
+          "polarization_energy_error_kcal_per_mol": 0.41112177038777287,
+          "reduced_dimension": 36,
+          "relative_spectral_cutoff": 1e-08,
+          "residual_energy_norm_squared_hartree": 0.0014264897055786634,
+          "retained_condition_number": 4132109.2404292715,
+          "retained_minimum_eigenvalue_hartree": 8.98979271378713e-09,
+          "retained_subspace_optimality_inf": 3.683183093560714e-15,
+          "shifted_pythagorean_error_hartree": 5.662057194627534e-13,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 209.2860089852313,
+          "coefficient_max_abs": 74.17859093714956,
+          "constraint_residual_inf": 4.39648317751562e-14,
+          "discarded_mode_count": 24,
+          "effective_rank": 52,
+          "elapsed_seconds": 1.3267036259931047,
+          "fitted_polarization_energy_hartree": -0.010459051433271306,
+          "fitted_polarization_energy_kcal_per_mol": -6.56315386409099,
+          "full_tangent_gradient_inf": 1.516798964545317e-08,
+          "maximum_eigenvalue_hartree": 0.10134199539225518,
+          "polarization_energy_error_hartree": 0.0001277830878689181,
+          "polarization_energy_error_kcal_per_mol": 0.0801850982627837,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 1e-08,
+          "residual_energy_norm_squared_hartree": 0.00025610944246059184,
+          "retained_condition_number": 93264075.78619848,
+          "retained_minimum_eigenvalue_hartree": 1.086613409696728e-09,
+          "retained_subspace_optimality_inf": 4.3786058290262896e-15,
+          "shifted_pythagorean_error_hartree": 6.777740261393328e-13,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "strongly-dipolar ketone",
+      "compound_id": "mobley_3867265",
+      "cutoff_token": "1e-8",
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "input_bindings": {
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "parsed_pcm_input_sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8",
+        "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+      },
+      "molecule_name": "acetone",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3867265-cutoff-1e-8-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-8/result.json",
+        "sha256": "0a861e9670a26dc64afd0162f4fbe9c1d4ec95d1d06d0a02d2d10a458f33c22d"
+      },
+      "relative_spectral_cutoff": 1e-08,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 40,
+          "coefficient_l2_norm": 105.91888227947321,
+          "coefficient_max_abs": 54.48881673032373,
+          "constraint_residual_inf": 3.197442310920451e-14,
+          "discarded_mode_count": 0,
+          "effective_rank": 36,
+          "elapsed_seconds": 0.7520719899912365,
+          "fitted_polarization_energy_hartree": -0.009931670276804956,
+          "fitted_polarization_energy_kcal_per_mol": -6.232217191966001,
+          "full_tangent_gradient_inf": 6.151329445813758e-15,
+          "maximum_eigenvalue_hartree": 0.03714680554218354,
+          "polarization_energy_error_hartree": 0.0006551642443352688,
+          "polarization_energy_error_kcal_per_mol": 0.41112177038777287,
+          "reduced_dimension": 36,
+          "relative_spectral_cutoff": 1e-10,
+          "residual_energy_norm_squared_hartree": 0.0014264897055786634,
+          "retained_condition_number": 4132109.2404292715,
+          "retained_minimum_eigenvalue_hartree": 8.98979271378713e-09,
+          "retained_subspace_optimality_inf": 3.683183093560714e-15,
+          "shifted_pythagorean_error_hartree": 5.662057194627534e-13,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 697.6246222271553,
+          "coefficient_max_abs": 314.84507382929263,
+          "constraint_residual_inf": 1.192379528447418e-13,
+          "discarded_mode_count": 16,
+          "effective_rank": 60,
+          "elapsed_seconds": 1.3638961530232336,
+          "fitted_polarization_energy_hartree": -0.010468646232626598,
+          "fitted_polarization_energy_kcal_per_mol": -6.56917469158817,
+          "full_tangent_gradient_inf": 2.3290595736374798e-09,
+          "maximum_eigenvalue_hartree": 0.10134199539225518,
+          "polarization_energy_error_hartree": 0.00011818828851362616,
+          "polarization_energy_error_kcal_per_mol": 0.07416427076560347,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 1e-10,
+          "residual_energy_norm_squared_hartree": 0.00023673785270194732,
+          "retained_condition_number": 6960435882.669492,
+          "retained_minimum_eigenvalue_hartree": 1.455971969292649e-11,
+          "retained_subspace_optimality_inf": 6.738672951700947e-15,
+          "shifted_pythagorean_error_hartree": 5.46991166011819e-12,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "strongly-dipolar ketone",
+      "compound_id": "mobley_3867265",
+      "cutoff_token": "1e-10",
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "input_bindings": {
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "parsed_pcm_input_sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8",
+        "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+      },
+      "molecule_name": "acetone",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3867265-cutoff-1e-10-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-10/result.json",
+        "sha256": "188d070d065c73aaff6cee1ec5924ba14c48e8255880891b0314cb909136ff31"
+      },
+      "relative_spectral_cutoff": 1e-10,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 40,
+          "coefficient_l2_norm": 105.91888227947321,
+          "coefficient_max_abs": 54.48881673032373,
+          "constraint_residual_inf": 3.197442310920451e-14,
+          "discarded_mode_count": 0,
+          "effective_rank": 36,
+          "elapsed_seconds": 0.7517492820043117,
+          "fitted_polarization_energy_hartree": -0.009931670276804956,
+          "fitted_polarization_energy_kcal_per_mol": -6.232217191966001,
+          "full_tangent_gradient_inf": 6.151329445813758e-15,
+          "maximum_eigenvalue_hartree": 0.03714680554218354,
+          "polarization_energy_error_hartree": 0.0006551642443352688,
+          "polarization_energy_error_kcal_per_mol": 0.41112177038777287,
+          "reduced_dimension": 36,
+          "relative_spectral_cutoff": 1e-12,
+          "residual_energy_norm_squared_hartree": 0.0014264897055786634,
+          "retained_condition_number": 4132109.2404292715,
+          "retained_minimum_eigenvalue_hartree": 8.98979271378713e-09,
+          "retained_subspace_optimality_inf": 3.683183093560714e-15,
+          "shifted_pythagorean_error_hartree": 5.662057194627534e-13,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 10709.742588957726,
+          "coefficient_max_abs": 5005.282724385672,
+          "constraint_residual_inf": 2.488231842789901e-12,
+          "discarded_mode_count": 8,
+          "effective_rank": 68,
+          "elapsed_seconds": 1.370085125992773,
+          "fitted_polarization_energy_hartree": -0.01048047520423517,
+          "fitted_polarization_energy_kcal_per_mol": -6.576597483340972,
+          "full_tangent_gradient_inf": 5.547505334312693e-10,
+          "maximum_eigenvalue_hartree": 0.10134199539225518,
+          "polarization_energy_error_hartree": 0.0001063593169050546,
+          "polarization_energy_error_kcal_per_mol": 0.06674147901280139,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 1e-12,
+          "residual_energy_norm_squared_hartree": 0.00021305444696581845,
+          "retained_condition_number": 640730327410.3123,
+          "retained_minimum_eigenvalue_hartree": 1.5816637836054478e-13,
+          "retained_subspace_optimality_inf": 1.9690766343515482e-13,
+          "shifted_pythagorean_error_hartree": 7.2518082919659135e-09,
+          "surface_point_count": 516,
+          "target_polarization_energy_hartree": -0.010586834521140225,
+          "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "strongly-dipolar ketone",
+      "compound_id": "mobley_3867265",
+      "cutoff_token": "1e-12",
+      "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+      "input_bindings": {
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+        "parsed_pcm_input_sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8",
+        "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+      },
+      "molecule_name": "acetone",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3867265-cutoff-1e-12-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3867265/cutoff-1e-12/result.json",
+        "sha256": "a64d8c0df5c42e1190100294bd4a37ef0bebff918527164a4ad2c339c2c25905"
+      },
+      "relative_spectral_cutoff": 1e-12,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 32,
+          "coefficient_l2_norm": 10.76041095833519,
+          "coefficient_max_abs": 4.101548509960722,
+          "constraint_residual_inf": 2.55351295663786e-15,
+          "discarded_mode_count": 7,
+          "effective_rank": 21,
+          "elapsed_seconds": 0.4311750209890306,
+          "fitted_polarization_energy_hartree": -0.01565858507030193,
+          "fitted_polarization_energy_kcal_per_mol": -9.825910482037473,
+          "full_tangent_gradient_inf": 7.27700416995551e-06,
+          "maximum_eigenvalue_hartree": 0.020345891643838897,
+          "polarization_energy_error_hartree": 0.001844628291556457,
+          "polarization_energy_error_kcal_per_mol": 1.157521729076507,
+          "reduced_dimension": 28,
+          "relative_spectral_cutoff": 0.0001,
+          "residual_energy_norm_squared_hartree": 0.0029483183369689993,
+          "retained_condition_number": 4942.104157081439,
+          "retained_minimum_eigenvalue_hartree": 4.116848005861165e-06,
+          "retained_subspace_optimality_inf": 4.3610761838808534e-17,
+          "shifted_pythagorean_error_hartree": 2.0690914259713367e-15,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 64,
+          "coefficient_l2_norm": 4.211758792637661,
+          "coefficient_max_abs": 1.9563039155171935,
+          "constraint_residual_inf": 8.881784197001252e-16,
+          "discarded_mode_count": 39,
+          "effective_rank": 21,
+          "elapsed_seconds": 0.8030410180217586,
+          "fitted_polarization_energy_hartree": -0.01624948895103392,
+          "fitted_polarization_energy_kcal_per_mol": -10.19670826545745,
+          "full_tangent_gradient_inf": 1.800300410731959e-05,
+          "maximum_eigenvalue_hartree": 0.08716989492108441,
+          "polarization_energy_error_hartree": 0.001253724410824466,
+          "polarization_energy_error_kcal_per_mol": 0.7867239456565306,
+          "reduced_dimension": 60,
+          "relative_spectral_cutoff": 0.0001,
+          "residual_energy_norm_squared_hartree": 0.0025219984644067094,
+          "retained_condition_number": 8426.820015748395,
+          "retained_minimum_eigenvalue_hartree": 1.0344340422386814e-05,
+          "retained_subspace_optimality_inf": 6.778677621934077e-17,
+          "shifted_pythagorean_error_hartree": 2.437286483747414e-16,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "hydrogen-bonding carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "cutoff_token": "1e-4",
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "input_bindings": {
+        "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "parsed_pcm_input_sha256": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0",
+        "qm_checkpoint_sha256": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12"
+      },
+      "molecule_name": "acetic acid",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3034976-cutoff-1e-4-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/cutoff-1e-4/result.json",
+        "sha256": "5568b3f5550496f65e5353820441a50f977e6eef29a692c0f6b6036fd64ccf73"
+      },
+      "relative_spectral_cutoff": 0.0001,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 32,
+          "coefficient_l2_norm": 96.02537560767266,
+          "coefficient_max_abs": 45.8972385039655,
+          "constraint_residual_inf": 3.097522238704187e-14,
+          "discarded_mode_count": 1,
+          "effective_rank": 27,
+          "elapsed_seconds": 0.42434083501575515,
+          "fitted_polarization_energy_hartree": -0.016588783219365008,
+          "fitted_polarization_energy_kcal_per_mol": -10.409618633330515,
+          "full_tangent_gradient_inf": 1.20700668140237e-06,
+          "maximum_eigenvalue_hartree": 0.020345891643838897,
+          "polarization_energy_error_hartree": 0.000914430142493379,
+          "polarization_energy_error_kcal_per_mol": 0.5738135777834659,
+          "reduced_dimension": 28,
+          "relative_spectral_cutoff": 1e-06,
+          "residual_energy_norm_squared_hartree": 0.0019139519573339449,
+          "retained_condition_number": 511032.917932972,
+          "retained_minimum_eigenvalue_hartree": 3.981327020211152e-08,
+          "retained_subspace_optimality_inf": 1.4177454829663227e-15,
+          "shifted_pythagorean_error_hartree": 3.377549975813743e-14,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 64,
+          "coefficient_l2_norm": 65.72110720918424,
+          "coefficient_max_abs": 25.78845729664482,
+          "constraint_residual_inf": 3.708144902248023e-14,
+          "discarded_mode_count": 29,
+          "effective_rank": 31,
+          "elapsed_seconds": 0.7690730519825593,
+          "fitted_polarization_energy_hartree": -0.016880238697059208,
+          "fitted_polarization_energy_kcal_per_mol": -10.592509706851212,
+          "full_tangent_gradient_inf": 2.486065756559867e-06,
+          "maximum_eigenvalue_hartree": 0.08716989492108441,
+          "polarization_energy_error_hartree": 0.0006229746647991793,
+          "polarization_energy_error_kcal_per_mol": 0.39092250426276903,
+          "reduced_dimension": 60,
+          "relative_spectral_cutoff": 1e-06,
+          "residual_energy_norm_squared_hartree": 0.0012633784200767875,
+          "retained_condition_number": 800861.101885752,
+          "retained_minimum_eigenvalue_hartree": 1.0884521013173113e-07,
+          "retained_subspace_optimality_inf": 1.2273424555304659e-15,
+          "shifted_pythagorean_error_hartree": 4.349558907490447e-14,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "hydrogen-bonding carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "cutoff_token": "1e-6",
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "input_bindings": {
+        "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "parsed_pcm_input_sha256": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0",
+        "qm_checkpoint_sha256": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12"
+      },
+      "molecule_name": "acetic acid",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3034976-cutoff-1e-6-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/cutoff-1e-6/result.json",
+        "sha256": "eae29cb0f2b935a031206685339eda8a97f26a922dbd663f67c282e032cb329b"
+      },
+      "relative_spectral_cutoff": 1e-06,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 32,
+          "coefficient_l2_norm": 154.42360488209937,
+          "coefficient_max_abs": 80.25727204466223,
+          "constraint_residual_inf": 6.317169010117141e-14,
+          "discarded_mode_count": 0,
+          "effective_rank": 28,
+          "elapsed_seconds": 0.4401760099863168,
+          "fitted_polarization_energy_hartree": -0.01672730954810841,
+          "fitted_polarization_energy_kcal_per_mol": -10.49654521702418,
+          "full_tangent_gradient_inf": 3.626229362358596e-15,
+          "maximum_eigenvalue_hartree": 0.020345891643838897,
+          "polarization_energy_error_hartree": 0.0007759038137499785,
+          "polarization_energy_error_kcal_per_mol": 0.4868869940898025,
+          "reduced_dimension": 28,
+          "relative_spectral_cutoff": 1e-08,
+          "residual_energy_norm_squared_hartree": 0.0016412720638537181,
+          "retained_condition_number": 1091295.9890201292,
+          "retained_minimum_eigenvalue_hartree": 1.8643788530834244e-08,
+          "retained_subspace_optimality_inf": 3.101829320452637e-15,
+          "shifted_pythagorean_error_hartree": 6.102429759430317e-13,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 64,
+          "coefficient_l2_norm": 243.89502058360762,
+          "coefficient_max_abs": 97.73523160665034,
+          "constraint_residual_inf": 8.72635297355373e-14,
+          "discarded_mode_count": 17,
+          "effective_rank": 43,
+          "elapsed_seconds": 0.8196872280095704,
+          "fitted_polarization_energy_hartree": -0.017303337246605606,
+          "fitted_polarization_energy_kcal_per_mol": -10.858008055153933,
+          "full_tangent_gradient_inf": 3.320444615684378e-08,
+          "maximum_eigenvalue_hartree": 0.08716989492108441,
+          "polarization_energy_error_hartree": 0.00019987611525278115,
+          "polarization_energy_error_kcal_per_mol": 0.12542415596004827,
+          "reduced_dimension": 60,
+          "relative_spectral_cutoff": 1e-08,
+          "residual_energy_norm_squared_hartree": 0.00040049614836564043,
+          "retained_condition_number": 78798476.20417456,
+          "retained_minimum_eigenvalue_hartree": 1.1062383325182417e-09,
+          "retained_subspace_optimality_inf": 4.560573739551292e-15,
+          "shifted_pythagorean_error_hartree": 2.938336043662587e-12,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "hydrogen-bonding carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "cutoff_token": "1e-8",
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "input_bindings": {
+        "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "parsed_pcm_input_sha256": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0",
+        "qm_checkpoint_sha256": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12"
+      },
+      "molecule_name": "acetic acid",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3034976-cutoff-1e-8-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/cutoff-1e-8/result.json",
+        "sha256": "95851291dbf8469f8b22f6f6a17484dbfc2af79ef5dd12451147390c52488900"
+      },
+      "relative_spectral_cutoff": 1e-08,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 32,
+          "coefficient_l2_norm": 154.42360488209937,
+          "coefficient_max_abs": 80.25727204466223,
+          "constraint_residual_inf": 6.317169010117141e-14,
+          "discarded_mode_count": 0,
+          "effective_rank": 28,
+          "elapsed_seconds": 0.4418087230005767,
+          "fitted_polarization_energy_hartree": -0.01672730954810841,
+          "fitted_polarization_energy_kcal_per_mol": -10.49654521702418,
+          "full_tangent_gradient_inf": 3.626229362358596e-15,
+          "maximum_eigenvalue_hartree": 0.020345891643838897,
+          "polarization_energy_error_hartree": 0.0007759038137499785,
+          "polarization_energy_error_kcal_per_mol": 0.4868869940898025,
+          "reduced_dimension": 28,
+          "relative_spectral_cutoff": 1e-10,
+          "residual_energy_norm_squared_hartree": 0.0016412720638537181,
+          "retained_condition_number": 1091295.9890201292,
+          "retained_minimum_eigenvalue_hartree": 1.8643788530834244e-08,
+          "retained_subspace_optimality_inf": 3.101829320452637e-15,
+          "shifted_pythagorean_error_hartree": 6.102429759430317e-13,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 64,
+          "coefficient_l2_norm": 963.4615780272526,
+          "coefficient_max_abs": 412.9054048281478,
+          "constraint_residual_inf": 1.8673951274195133e-13,
+          "discarded_mode_count": 11,
+          "effective_rank": 49,
+          "elapsed_seconds": 0.7983302179782186,
+          "fitted_polarization_energy_hartree": -0.01731523106527879,
+          "fitted_polarization_energy_kcal_per_mol": -10.865471539054145,
+          "full_tangent_gradient_inf": 5.432973266582631e-09,
+          "maximum_eigenvalue_hartree": 0.08716989492108441,
+          "polarization_energy_error_hartree": 0.00018798229657959742,
+          "polarization_energy_error_kcal_per_mol": 0.11796067205983686,
+          "reduced_dimension": 60,
+          "relative_spectral_cutoff": 1e-10,
+          "residual_energy_norm_squared_hartree": 0.000376484197666628,
+          "retained_condition_number": 9916153830.271067,
+          "retained_minimum_eigenvalue_hartree": 8.790696111932096e-12,
+          "retained_subspace_optimality_inf": 1.0870151333138901e-14,
+          "shifted_pythagorean_error_hartree": 1.249602304227368e-11,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "hydrogen-bonding carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "cutoff_token": "1e-10",
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "input_bindings": {
+        "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "parsed_pcm_input_sha256": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0",
+        "qm_checkpoint_sha256": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12"
+      },
+      "molecule_name": "acetic acid",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3034976-cutoff-1e-10-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/cutoff-1e-10/result.json",
+        "sha256": "f87f208bcdb9c312c60682af1796dbe4d077e937cff21a746fb89f99f3f42989"
+      },
+      "relative_spectral_cutoff": 1e-10,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 32,
+          "coefficient_l2_norm": 154.42360488209937,
+          "coefficient_max_abs": 80.25727204466223,
+          "constraint_residual_inf": 6.317169010117141e-14,
+          "discarded_mode_count": 0,
+          "effective_rank": 28,
+          "elapsed_seconds": 0.449680752994027,
+          "fitted_polarization_energy_hartree": -0.01672730954810841,
+          "fitted_polarization_energy_kcal_per_mol": -10.49654521702418,
+          "full_tangent_gradient_inf": 3.626229362358596e-15,
+          "maximum_eigenvalue_hartree": 0.020345891643838897,
+          "polarization_energy_error_hartree": 0.0007759038137499785,
+          "polarization_energy_error_kcal_per_mol": 0.4868869940898025,
+          "reduced_dimension": 28,
+          "relative_spectral_cutoff": 1e-12,
+          "residual_energy_norm_squared_hartree": 0.0016412720638537181,
+          "retained_condition_number": 1091295.9890201292,
+          "retained_minimum_eigenvalue_hartree": 1.8643788530834244e-08,
+          "retained_subspace_optimality_inf": 3.101829320452637e-15,
+          "shifted_pythagorean_error_hartree": 6.102429759430317e-13,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 64,
+          "coefficient_l2_norm": 16541.25157080045,
+          "coefficient_max_abs": 9834.64659296467,
+          "constraint_residual_inf": 5.0184301159106326e-12,
+          "discarded_mode_count": 4,
+          "effective_rank": 56,
+          "elapsed_seconds": 0.8090169949864503,
+          "fitted_polarization_energy_hartree": -0.017369016899940328,
+          "fitted_polarization_energy_kcal_per_mol": -10.89922265987465,
+          "full_tangent_gradient_inf": 3.0522909870923543e-10,
+          "maximum_eigenvalue_hartree": 0.08716989492108441,
+          "polarization_energy_error_hartree": 0.00013419646191805898,
+          "polarization_energy_error_kcal_per_mol": 0.08420955123933002,
+          "reduced_dimension": 60,
+          "relative_spectral_cutoff": 1e-12,
+          "residual_energy_norm_squared_hartree": 0.0002686727439216304,
+          "retained_condition_number": 987705946718.0299,
+          "retained_minimum_eigenvalue_hartree": 8.825490543084648e-14,
+          "retained_subspace_optimality_inf": 3.5261993860002554e-13,
+          "shifted_pythagorean_error_hartree": 4.070617278580796e-10,
+          "surface_point_count": 454,
+          "target_polarization_energy_hartree": -0.017503213361858387,
+          "target_polarization_energy_kcal_per_mol": -10.983432211113982,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 0.0,
+      "chemistry_class": "hydrogen-bonding carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "cutoff_token": "1e-12",
+      "geometry_max_abs_error_angstrom": 8.519718264210496e-11,
+      "input_bindings": {
+        "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+        "parsed_pcm_input_sha256": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0",
+        "qm_checkpoint_sha256": "95eb37502d28188697abaeaccb5369e03709b681141f70046657ac7e4d9e1b12"
+      },
+      "molecule_name": "acetic acid",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_3034976-cutoff-1e-12-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_3034976/cutoff-1e-12/result.json",
+        "sha256": "d0a0c3ecf51f5cd91f80a44c7a0de8da0e0043d63b495126ead9501465d1b913"
+      },
+      "relative_spectral_cutoff": 1e-12,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 7.031577631642432,
+          "coefficient_max_abs": 2.481913349202499,
+          "constraint_residual_inf": 4.718447854656915e-15,
+          "discarded_mode_count": 32,
+          "effective_rank": 44,
+          "elapsed_seconds": 9.69784699898446,
+          "fitted_polarization_energy_hartree": -0.017733324926258613,
+          "fitted_polarization_energy_kcal_per_mol": -11.127829397866604,
+          "full_tangent_gradient_inf": 3.418586037581916e-05,
+          "maximum_eigenvalue_hartree": 0.15981947961282525,
+          "polarization_energy_error_hartree": 0.0025808818565961067,
+          "polarization_energy_error_kcal_per_mol": 1.61952781645162,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 0.0001,
+          "residual_energy_norm_squared_hartree": 0.00518325264108677,
+          "retained_condition_number": 8562.189148178846,
+          "retained_minimum_eigenvalue_hartree": 1.8665726351866266e-05,
+          "retained_subspace_optimality_inf": 1.463300238358639e-16,
+          "shifted_pythagorean_error_hartree": 4.753142324176451e-16,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 160,
+          "coefficient_l2_norm": 6.489504878060692,
+          "coefficient_max_abs": 1.8891185750400352,
+          "constraint_residual_inf": 7.632783294297951e-15,
+          "discarded_mode_count": 111,
+          "effective_rank": 45,
+          "elapsed_seconds": 19.153090072009945,
+          "fitted_polarization_energy_hartree": -0.017864523219127345,
+          "fitted_polarization_energy_kcal_per_mol": -11.21015756962264,
+          "full_tangent_gradient_inf": 4.275344655599508e-05,
+          "maximum_eigenvalue_hartree": 0.2098583638090264,
+          "polarization_energy_error_hartree": 0.002449683563727375,
+          "polarization_energy_error_kcal_per_mol": 1.5371996446955856,
+          "reduced_dimension": 156,
+          "relative_spectral_cutoff": 0.0001,
+          "residual_energy_norm_squared_hartree": 0.004917402737533419,
+          "retained_condition_number": 9375.901206935687,
+          "retained_minimum_eigenvalue_hartree": 2.2382740514990358e-05,
+          "retained_subspace_optimality_inf": 2.3346515015286104e-16,
+          "shifted_pythagorean_error_hartree": 1.8561541192951836e-16,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 1.4210854715202004e-14,
+      "chemistry_class": "flexible multihetero diester",
+      "compound_id": "mobley_352111",
+      "cutoff_token": "1e-4",
+      "geometry_max_abs_error_angstrom": 1.8970158777165125e-10,
+      "input_bindings": {
+        "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "parsed_pcm_input_sha256": "91ec37c8221f5f8b925087c95062229bb1e8ad049040cb4a9252c08ec5c0c8a2",
+        "qm_checkpoint_sha256": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b"
+      },
+      "molecule_name": "2-acetoxyethyl acetate",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_352111-cutoff-1e-4-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/cutoff-1e-4/result.json",
+        "sha256": "c12c4e4d1ef5251c9aac8313e8d03a870c68dd33783cd6d9f5b0733594e1a9fa"
+      },
+      "relative_spectral_cutoff": 0.0001,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 34.65535891048603,
+          "coefficient_max_abs": 13.874709667080337,
+          "constraint_residual_inf": 9.409140133698202e-15,
+          "discarded_mode_count": 15,
+          "effective_rank": 61,
+          "elapsed_seconds": 10.009778920008102,
+          "fitted_polarization_energy_hartree": -0.018646819262389872,
+          "fitted_polarization_energy_kcal_per_mol": -11.701055748291951,
+          "full_tangent_gradient_inf": 3.1162062891925308e-06,
+          "maximum_eigenvalue_hartree": 0.15981947961282525,
+          "polarization_energy_error_hartree": 0.0016673875204648476,
+          "polarization_energy_error_kcal_per_mol": 1.046301466026273,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 1e-06,
+          "residual_energy_norm_squared_hartree": 0.0033804419341581064,
+          "retained_condition_number": 894063.4748513629,
+          "retained_minimum_eigenvalue_hartree": 1.7875630098790812e-07,
+          "retained_subspace_optimality_inf": 8.374029237978478e-16,
+          "shifted_pythagorean_error_hartree": 8.333958523287777e-14,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 160,
+          "coefficient_l2_norm": 37.45225345999789,
+          "coefficient_max_abs": 10.380855464312798,
+          "constraint_residual_inf": 4.299338662860919e-14,
+          "discarded_mode_count": 88,
+          "effective_rank": 68,
+          "elapsed_seconds": 19.28545293697971,
+          "fitted_polarization_energy_hartree": -0.01945707835705068,
+          "fitted_polarization_energy_kcal_per_mol": -12.209501006637398,
+          "full_tangent_gradient_inf": 1.7217634086789054e-06,
+          "maximum_eigenvalue_hartree": 0.2098583638090264,
+          "polarization_energy_error_hartree": 0.00085712842580404,
+          "polarization_energy_error_kcal_per_mol": 0.537856207680826,
+          "reduced_dimension": 156,
+          "relative_spectral_cutoff": 1e-06,
+          "residual_energy_norm_squared_hartree": 0.0017211424660303672,
+          "retained_condition_number": 864867.9859008378,
+          "retained_minimum_eigenvalue_hartree": 2.426478575113866e-07,
+          "retained_subspace_optimality_inf": 1.018215473627977e-15,
+          "shifted_pythagorean_error_hartree": 4.446269741276154e-14,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 1.4210854715202004e-14,
+      "chemistry_class": "flexible multihetero diester",
+      "compound_id": "mobley_352111",
+      "cutoff_token": "1e-6",
+      "geometry_max_abs_error_angstrom": 1.8970158777165125e-10,
+      "input_bindings": {
+        "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "parsed_pcm_input_sha256": "91ec37c8221f5f8b925087c95062229bb1e8ad049040cb4a9252c08ec5c0c8a2",
+        "qm_checkpoint_sha256": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b"
+      },
+      "molecule_name": "2-acetoxyethyl acetate",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_352111-cutoff-1e-6-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/cutoff-1e-6/result.json",
+        "sha256": "2a4c27ec8b1ec3d559b65e707b03048fe0abb428610fccaa5ea15ee852441d65"
+      },
+      "relative_spectral_cutoff": 1e-06,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 266.6634482610833,
+          "coefficient_max_abs": 93.0859210125281,
+          "constraint_residual_inf": 4.144184995169553e-13,
+          "discarded_mode_count": 0,
+          "effective_rank": 76,
+          "elapsed_seconds": 9.820804913993925,
+          "fitted_polarization_energy_hartree": -0.01923668927928501,
+          "fitted_polarization_energy_kcal_per_mol": -12.07120477235941,
+          "full_tangent_gradient_inf": 9.678455953343601e-15,
+          "maximum_eigenvalue_hartree": 0.15981947961282525,
+          "polarization_energy_error_hartree": 0.0010775175035697103,
+          "polarization_energy_error_kcal_per_mol": 0.6761524419588134,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 1e-08,
+          "residual_energy_norm_squared_hartree": 0.002149006826562981,
+          "retained_condition_number": 76667264.79178387,
+          "retained_minimum_eigenvalue_hartree": 2.0845856448233755e-09,
+          "retained_subspace_optimality_inf": 8.635916981026188e-15,
+          "shifted_pythagorean_error_hartree": 1.4536856961233635e-12,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 160,
+          "coefficient_l2_norm": 214.23021000600158,
+          "coefficient_max_abs": 55.48227730118841,
+          "constraint_residual_inf": 3.3756331063727885e-13,
+          "discarded_mode_count": 61,
+          "effective_rank": 95,
+          "elapsed_seconds": 19.165489136998076,
+          "fitted_polarization_energy_hartree": -0.01994359438681629,
+          "fitted_polarization_energy_kcal_per_mol": -12.514794424598882,
+          "full_tangent_gradient_inf": 1.1475331541771376e-07,
+          "maximum_eigenvalue_hartree": 0.2098583638090264,
+          "polarization_energy_error_hartree": 0.00037061239603843055,
+          "polarization_energy_error_kcal_per_mol": 0.23256278971934088,
+          "reduced_dimension": 156,
+          "relative_spectral_cutoff": 1e-08,
+          "residual_energy_norm_squared_hartree": 0.0007413380066570584,
+          "retained_condition_number": 87524721.94173306,
+          "retained_minimum_eigenvalue_hartree": 2.397703861872686e-09,
+          "retained_subspace_optimality_inf": 8.268140676477817e-15,
+          "shifted_pythagorean_error_hartree": 2.2974326434332948e-12,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 1.4210854715202004e-14,
+      "chemistry_class": "flexible multihetero diester",
+      "compound_id": "mobley_352111",
+      "cutoff_token": "1e-8",
+      "geometry_max_abs_error_angstrom": 1.8970158777165125e-10,
+      "input_bindings": {
+        "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "parsed_pcm_input_sha256": "91ec37c8221f5f8b925087c95062229bb1e8ad049040cb4a9252c08ec5c0c8a2",
+        "qm_checkpoint_sha256": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b"
+      },
+      "molecule_name": "2-acetoxyethyl acetate",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_352111-cutoff-1e-8-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/cutoff-1e-8/result.json",
+        "sha256": "4ae445ec4b4505526628014c1074ba3b7a451764ecff880a07cdd6179fa3787a"
+      },
+      "relative_spectral_cutoff": 1e-08,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 266.6634482610833,
+          "coefficient_max_abs": 93.0859210125281,
+          "constraint_residual_inf": 4.144184995169553e-13,
+          "discarded_mode_count": 0,
+          "effective_rank": 76,
+          "elapsed_seconds": 9.96405212499667,
+          "fitted_polarization_energy_hartree": -0.01923668927928501,
+          "fitted_polarization_energy_kcal_per_mol": -12.07120477235941,
+          "full_tangent_gradient_inf": 9.678455953343601e-15,
+          "maximum_eigenvalue_hartree": 0.15981947961282525,
+          "polarization_energy_error_hartree": 0.0010775175035697103,
+          "polarization_energy_error_kcal_per_mol": 0.6761524419588134,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 1e-10,
+          "residual_energy_norm_squared_hartree": 0.002149006826562981,
+          "retained_condition_number": 76667264.79178387,
+          "retained_minimum_eigenvalue_hartree": 2.0845856448233755e-09,
+          "retained_subspace_optimality_inf": 8.635916981026188e-15,
+          "shifted_pythagorean_error_hartree": 1.4536856961233635e-12,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 160,
+          "coefficient_l2_norm": 759.5419756263053,
+          "coefficient_max_abs": 252.25597111585324,
+          "constraint_residual_inf": 8.92980134281629e-13,
+          "discarded_mode_count": 44,
+          "effective_rank": 112,
+          "elapsed_seconds": 19.419885715993587,
+          "fitted_polarization_energy_hartree": -0.020037613705055975,
+          "fitted_polarization_energy_kcal_per_mol": -12.57379243753924,
+          "full_tangent_gradient_inf": 7.4501147923938144e-09,
+          "maximum_eigenvalue_hartree": 0.2098583638090264,
+          "polarization_energy_error_hartree": 0.0002765930777987452,
+          "polarization_energy_error_kcal_per_mol": 0.17356477677898471,
+          "reduced_dimension": 156,
+          "relative_spectral_cutoff": 1e-10,
+          "residual_energy_norm_squared_hartree": 0.0005530993180883622,
+          "retained_condition_number": 5914089877.400818,
+          "retained_minimum_eigenvalue_hartree": 3.548447320879354e-11,
+          "retained_subspace_optimality_inf": 1.662809625663838e-14,
+          "shifted_pythagorean_error_hartree": 4.096986313574524e-12,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 1.4210854715202004e-14,
+      "chemistry_class": "flexible multihetero diester",
+      "compound_id": "mobley_352111",
+      "cutoff_token": "1e-10",
+      "geometry_max_abs_error_angstrom": 1.8970158777165125e-10,
+      "input_bindings": {
+        "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "parsed_pcm_input_sha256": "91ec37c8221f5f8b925087c95062229bb1e8ad049040cb4a9252c08ec5c0c8a2",
+        "qm_checkpoint_sha256": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b"
+      },
+      "molecule_name": "2-acetoxyethyl acetate",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_352111-cutoff-1e-10-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/cutoff-1e-10/result.json",
+        "sha256": "65088c5fd5d38265882f1e0439975f74142c5f347af7bcfebd635ae2ebc4ce81"
+      },
+      "relative_spectral_cutoff": 1e-10,
+      "retained_subspace_projection_gates_passed": true
+    },
+    {
+      "basis_results": {
+        "one_radial": {
+          "coefficient_count": 80,
+          "coefficient_l2_norm": 266.6634482610833,
+          "coefficient_max_abs": 93.0859210125281,
+          "constraint_residual_inf": 4.144184995169553e-13,
+          "discarded_mode_count": 0,
+          "effective_rank": 76,
+          "elapsed_seconds": 10.061314555001445,
+          "fitted_polarization_energy_hartree": -0.01923668927928501,
+          "fitted_polarization_energy_kcal_per_mol": -12.07120477235941,
+          "full_tangent_gradient_inf": 9.678455953343601e-15,
+          "maximum_eigenvalue_hartree": 0.15981947961282525,
+          "polarization_energy_error_hartree": 0.0010775175035697103,
+          "polarization_energy_error_kcal_per_mol": 0.6761524419588134,
+          "reduced_dimension": 76,
+          "relative_spectral_cutoff": 1e-12,
+          "residual_energy_norm_squared_hartree": 0.002149006826562981,
+          "retained_condition_number": 76667264.79178387,
+          "retained_minimum_eigenvalue_hartree": 2.0845856448233755e-09,
+          "retained_subspace_optimality_inf": 8.635916981026188e-15,
+          "shifted_pythagorean_error_hartree": 1.4536856961233635e-12,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5
+          ]
+        },
+        "two_radial": {
+          "coefficient_count": 160,
+          "coefficient_l2_norm": 7970.56230029723,
+          "coefficient_max_abs": 2590.9539955231785,
+          "constraint_residual_inf": 2.5153212845907547e-12,
+          "discarded_mode_count": 26,
+          "effective_rank": 130,
+          "elapsed_seconds": 19.115087989979656,
+          "fitted_polarization_energy_hartree": -0.020091361632938263,
+          "fitted_polarization_energy_kcal_per_mol": -12.607519771496635,
+          "full_tangent_gradient_inf": 6.824617498660289e-10,
+          "maximum_eigenvalue_hartree": 0.2098583638090264,
+          "polarization_energy_error_hartree": 0.00022284514991645701,
+          "polarization_energy_error_kcal_per_mol": 0.1398374428215886,
+          "reduced_dimension": 156,
+          "relative_spectral_cutoff": 1e-12,
+          "residual_energy_norm_squared_hartree": 0.00044564936692204787,
+          "retained_condition_number": 872540908024.5444,
+          "retained_minimum_eigenvalue_hartree": 2.4051406860012014e-13,
+          "retained_subspace_optimality_inf": 1.6148861492985876e-13,
+          "shifted_pythagorean_error_hartree": 1.6475192948176703e-09,
+          "surface_point_count": 1039,
+          "target_polarization_energy_hartree": -0.02031420678285472,
+          "target_polarization_energy_kcal_per_mol": -12.747357214318225,
+          "widths_angstrom": [
+            1.5,
+            3.0
+          ]
+        }
+      },
+      "checkpoint_density_binding_residual_e": 1.4210854715202004e-14,
+      "chemistry_class": "flexible multihetero diester",
+      "compound_id": "mobley_352111",
+      "cutoff_token": "1e-12",
+      "geometry_max_abs_error_angstrom": 1.8970158777165125e-10,
+      "input_bindings": {
+        "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+        "parsed_pcm_input_sha256": "91ec37c8221f5f8b925087c95062229bb1e8ad049040cb4a9252c08ec5c0c8a2",
+        "qm_checkpoint_sha256": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b"
+      },
+      "molecule_name": "2-acetoxyethyl acetate",
+      "raw_artifact": {
+        "artifact_id": "route2-gto-pcm-energy-projection-mobley_352111-cutoff-1e-12-v1",
+        "path": ".omx/benchmarks/route2-gto-pcm-energy-projection-four-v1/mobley_352111/cutoff-1e-12/result.json",
+        "sha256": "e3c89b54c6fbbb25ece9ab3fd5b6b9a3e61fa9c605d65533c29084cd15b53fe7"
+      },
+      "relative_spectral_cutoff": 1e-12,
+      "retained_subspace_projection_gates_passed": true
+    }
+  ],
+  "claim_boundary": {
+    "does_not_establish": [
+      "MACE-POLAR density-energy conjugacy",
+      "a variational ML-continuum free energy",
+      "hydration free-energy or experimental accuracy",
+      "physical uniqueness of the fitted GTO coefficients",
+      "forces, smooth PES, optimization, transition states, scans, frequencies, or MD"
+    ],
+    "establishes": [
+      "fixed-geometry same-basis representation transfer on four preregistered molecules",
+      "the cutoff-dependent tradeoff between PCM energy error and spectral conditioning",
+      "the preregistered pass/fail disposition without threshold changes"
+    ]
+  },
+  "completed_at_utc": "2026-07-27T19:24:11.278909+00:00",
+  "cutoff_count": 5,
+  "decision": "fail-preregistered-transfer-gate",
+  "evaluated_gates": {
+    "all_density_checkpoint_binding_residuals_below_e": true,
+    "all_geometry_max_abs_errors_below_angstrom": true,
+    "all_reciprocity_half_coupling_constraint_retained_subspace_optimality_and_shifted_pythagorean_gates_pass": true,
+    "all_twenty_case_cutoff_combinations_execute": true,
+    "at_cutoff_1e-4_two_radial_improvement_count_minimum": true,
+    "at_cutoff_1e-4_two_radial_maximum_absolute_projection_error_kcal_mol_below": false,
+    "at_cutoff_1e-4_two_radial_mean_absolute_polarization_projection_error_not_above_one_radial": true,
+    "residual_energy_norm_is_nonincreasing_as_cutoff_decreases_for_each_record_and_basis": true
+  },
+  "failed_gate_names": [
+    "at_cutoff_1e-4_two_radial_maximum_absolute_projection_error_kcal_mol_below"
+  ],
+  "mandatory_diagnostics": {
+    "full_tangent_gradient_is_ungated": true,
+    "maximum_two_radial_coefficient_absolute_value": 9834.64659296467,
+    "maximum_two_radial_coefficient_l2_norm": 16541.25157080045,
+    "maximum_two_radial_retained_condition_number": 987705946718.0299
+  },
+  "method": {
+    "basis_arms_angstrom": {
+      "one_radial": [
+        1.5
+      ],
+      "two_radial": [
+        1.5,
+        3.0
+      ]
+    },
+    "constraints": [
+      "exact total charge",
+      "exact Cartesian molecular dipole"
+    ],
+    "continuum": "PCMSolver bbd992d54ebeace528cf236dede1f0c56641defb IEFPCM, explicit water dielectric 78.355, SMD intrinsic Coulomb spheres, probe radius 0, no added spheres",
+    "qm_reference": "PySCF 2.13.1 omegaB97M-V/def2-TZVPD gas checkpoint, RKS density fitting, semilocal grid level 3, NLC 50x194 with sg1_prune",
+    "record_order": [
+      "mobley_3053621",
+      "mobley_3867265",
+      "mobley_3034976",
+      "mobley_352111"
+    ],
+    "relative_spectral_cutoffs": [
+      0.0001,
+      1e-06,
+      1e-08,
+      1e-10,
+      1e-12
+    ]
+  },
+  "provenance_validation": {
+    "all_pcm_provenance_matches_record_contract": true,
+    "all_pcmsolver_library_hashes_match_preregistration": true,
+    "all_pyscf_interpreter_hashes_match_preregistration": true,
+    "all_qm_provenance_matches_record_contract": true,
+    "all_raw_source_hash_maps_match_preregistration": true,
+    "common_frozen_hashes": {
+      "pcmsolver_library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+      "pcmsolver_parser_sha256": "f91b067a07d0198c3fb9cbc0426c8e6b21467aa74d8081c4a64875c07aff08b0",
+      "pyscf_python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "source_sha256": {
+        "docs/implicit-solvation/benchmarks/route2_qm_surface_mep.py": "3e21714d078b72edf691f5a4809485ea321d3c3cf9c9e04a498b678e7f73c276",
+        "docs/implicit-solvation/benchmarks/run_route2_gto_pcm_energy_projection_canary.py": "130d36c8f0a52f648310e676307e4e75ba3b7e2990441ad7fb36f9ee93b676c4",
+        "docs/implicit-solvation/benchmarks/run_route2_intrinsic_pcm_input.py": "28f59e1cd810ddaf774e576061469a80954d65a1a0661ba773ebf08c0c4a8551",
+        "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb",
+        "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+        "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+        "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+        "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+        "maple/function/calculator/extra_correction/implicit/pcm_energy_projection.py": "e75f312b02854447c3d9dcc5448a2aa8164d1342b7fffb06aa011f3c861d2181",
+        "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+        "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+        "maple/function/calculator/extra_correction/implicit/smd.py": "4949095b5d453ff1bbbdfc4e365f9556db027b6ccb110337a472f18a2f4e439f",
+        "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+        "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7",
+        "maple/function/route2_smd_profiles.py": "3ae09cb0ee1b446d47807524a68b9e95e5c884ff69f65d524038c675e960d420"
+      }
+    }
+  },
+  "record_count": 4,
+  "schema_version": 1,
+  "scientific_conclusion": "The second radial channel lowers the PCM-energy-norm representation error for all four chemistry classes, but the preregistered 1e-4 cutoff misses the sub-1 kcal/mol maximum-error gate on the flexible diester. Lower cutoffs reduce energy error only by retaining increasingly ill-conditioned modes and do not authorize projected coefficients as ML targets.",
+  "scientific_status": "complete-negative-result",
+  "source": {
+    "aggregator_path": "docs/implicit-solvation/benchmarks/aggregate_route2_gto_pcm_energy_projection_four.py",
+    "aggregator_sha256": "9ae1911ca8dc3656de33b270a86a9bfccce7925ba5f27b77c18476fa62e4a95d",
+    "execution_git_head": "a3cab00d89e78ca0fb9b734fcbaaf4c64c0d0438",
+    "preregistration": {
+      "path": "docs/implicit-solvation/benchmarks/route2-gto-pcm-energy-projection-four-prereg-v1.json",
+      "sha256": "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef"
+    }
+  }
+}

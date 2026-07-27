@@ -974,6 +974,26 @@ Research/Innovation Route, not a complete solution-phase PES.
     variational/thermodynamic identity, hydration certification, smooth PES,
     OPT, TS, scan, MD, or NVE gate. The frozen evidence is
     `benchmarks/route2-mace-exact-gto-fixed-geometry-canary-v1.json`.
+40. The pyddx reaction map now exposes ddPCM and ddCOSMO as one orthogonal
+    equation axis while preserving the historical ddPCM wrapper. For pyddx
+    0.8.0, MAPLE applies the required \((\epsilon-1)/\epsilon\) COSMO factor
+    to the scalar energy, reaction field, adjoint, and coordinate VJP
+    together. Contract tests cover all four quantities, and a real-runtime
+    high-dielectric limit makes scaled ddCOSMO converge to ddPCM.
+
+    A source-bound two-molecule fixed-AIMNet2 canary then changed only the
+    continuum equation. At water dielectric `78.39`, water gives
+    `-6.6851/-6.7223 kcal/mol` for ddPCM/ddCOSMO, and acetone gives
+    `-4.9187/-4.9472 kcal/mol`; COSMO-minus-PCM is therefore `-0.0373` and
+    `-0.0285 kcal/mol`. All four half-coupling errors are below
+    `8.59e-13 eV`.
+
+    The one-process internal timings are retained only as host/order metadata,
+    not a speed ranking. This fixed-charge, no-CDS result is not a total
+    solvation free energy, experimental accuracy test, self-consistent
+    MACE/ddCOSMO result, C-PCM implementation, COSMO-RS calculation, force
+    gate, or PES claim. The immutable evidence is
+    `benchmarks/route2-aimnet2-ddpcm-ddcosmo-equation-canary-v1.json`.
 
 ## Secondary diagnostics
 

@@ -321,7 +321,38 @@ The corresponding continuum-only polarization energies are:
 These are interface canaries, not hydration-free-energy predictions: no
 solute polarization response, SMD-CDS term, experimental comparison, force,
 or solution-phase PES is included. The artifact SHA256 is
-`126f6f08329f6553654defa6fc59dd059c60c6d9e87ca3f1c307764e8c4335c5`.
+`a058ed4a74f4533048c22a231995f78d28e6b743eb62f298a8cfdcc064b29bfb`;
+the file now also records its original execution commit, without changing any
+scientific value.
+
+## AIMNet2 ddPCM/ddCOSMO equation-axis canary
+
+[`route2-aimnet2-ddpcm-ddcosmo-equation-canary-v1.json`](route2-aimnet2-ddpcm-ddcosmo-equation-canary-v1.json)
+changes only the pyddx continuum equation for fixed AIMNet2 charges. Water and
+acetone use identical ASE geometry, `point-charge-l0` source, SMD water radii,
+dielectric, `lmax=7`, 302-point grid, and solver tolerance. The ddCOSMO host
+factor is explicitly \((78.39-1)/78.39=0.9872432708253603\), because pyddx
+0.8.0 returns unscaled COSMO energies and derivatives.
+
+| molecule | ddPCM \(U_\mathrm{pol}\) | ddCOSMO \(U_\mathrm{pol}\) | COSMO - PCM |
+|---|---:|---:|---:|
+| water | -6.6851 | -6.7223 | -0.0373 kcal/mol |
+| acetone | -4.9187 | -4.9472 | -0.0285 kcal/mol |
+
+All four half-coupling errors are below `8.59e-13 eV`. The recorded internal
+build/solve times are `0.0014/0.0113 s` (water ddPCM),
+`0.0004/0.0039 s` (water ddCOSMO), `0.0032/0.1107 s` (acetone ddPCM), and
+`0.0005/0.0312 s` (acetone ddCOSMO). They were obtained in one fixed
+ddPCM-then-ddCOSMO process, so cache/order effects make them metadata rather
+than a method-speed ranking.
+
+The runner is
+`run_aimnet2_continuum_equation_canary.py`; it refuses a dirty checkout and
+binds the result to execution commit `6b3ba1e`. This remains a continuum-only
+control. It includes no CDS, experimental value, total solvation free energy,
+self-consistent AIMNet2 polarization, force, C-PCM, or COSMO-RS calculation.
+The artifact SHA256 is
+`0daf325fe24f384d3f29c61d14216acccb7e7099114aaa6ee41abb254c738847`.
 
 ## MACE-POLAR local-field thermodynamic diagnostic
 

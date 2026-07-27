@@ -1,0 +1,261 @@
+{
+  "artifact": "route2-aimnet2-ddpcm-ddcosmo-equation-canary-v1",
+  "charge_output_parameters": {
+    "padded_sentinel_tolerance_e": 1e-06,
+    "projection": "uniform-affine-float-residue-only",
+    "raw_total_charge_tolerance_e": 0.0001
+  },
+  "checkpoint": {
+    "bytes": 11613188,
+    "filename": "aimnet2.pt",
+    "redistributed": false,
+    "sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d"
+  },
+  "claim_boundary": "This two-molecule canary validates the orthogonal ddPCM/ddCOSMO equation axis, pyddx 0.8.0 host-side finite-dielectric COSMO scaling, and each method's discrete half-coupling identity. It does not validate SMD-CDS, experimental solvation accuracy, C-PCM, COSMO-RS, forces, self-consistent AIMNet2 response, or a solution-phase PES.",
+  "continuum_parameters": {
+    "cosmo_dielectric_scaling": 0.9872432708253603,
+    "cosmo_dielectric_scaling_owner": "MAPLE host because pyddx 0.8.0 returns unscaled COSMO energy and derivatives",
+    "dielectric": 78.39,
+    "eta": 0.1,
+    "full_profile_numerical_equivalence": false,
+    "lmax": 7,
+    "n_lebedev": 302,
+    "n_proc": 1,
+    "radii_selector_profile": "smd-ddpcm-l15-n1202-v1",
+    "reduced_canary_discretization": true,
+    "solvent_context": "water",
+    "solver_tolerance": 1e-10
+  },
+  "execution_git_head": "6b3ba1e7e063cee13f890ccfb4a9f93e126a81ff",
+  "records": [
+    {
+      "aimnet2_energy_ev": -2081.0408720877963,
+      "atom_count": 3,
+      "cavity_radii_angstrom": [
+        1.52,
+        1.2,
+        1.2
+      ],
+      "charge_projection_per_atom_e": -0.0,
+      "charges_e": [
+        -0.6898444890975952,
+        0.3449222445487976,
+        0.3449222445487976
+      ],
+      "ddcosmo_minus_ddpcm_kcal_mol": -0.03725405720296049,
+      "formula": "H2O",
+      "geometry_sha256": "178fe0c8df79b72be93f689af33453140d85103a246060a08f7ad1df3bfc9227",
+      "geometry_source": "ASE G2 molecule collection",
+      "methods": {
+        "ddcosmo": {
+          "half_coupling_identity_error_ev": 1.1102230246251565e-15,
+          "polarization_energy_hartree": -0.010712682968648978,
+          "polarization_energy_kcal_mol": -6.722310055461649,
+          "runtime_provenance": {
+            "backend": "pyddx",
+            "dielectric": 78.39,
+            "dielectric_scaling": 0.9872432708253603,
+            "dielectric_scaling_source": "pyddx-0.8.0-host-applied-(epsilon-1)/epsilon",
+            "enable_fmm": false,
+            "eta": 0.1,
+            "lmax": 7,
+            "method": "ddCOSMO",
+            "model": "cosmo",
+            "n_lebedev": 302,
+            "n_proc": 1,
+            "pyddx_version": "0.8.0",
+            "scf_adjoint_warm_starts": 0,
+            "scf_forward_warm_starts": 1,
+            "scf_state_creations": 1,
+            "scf_state_reuse": "pyddx.State.update_problem warm start",
+            "scf_state_updates": 1,
+            "shift": 0.0,
+            "solver_tolerance": 1e-10
+          },
+          "timing_seconds": {
+            "build": 0.0004386079963296652,
+            "solve": 0.003760226012673229
+          }
+        },
+        "ddpcm": {
+          "half_coupling_identity_error_ev": 4.6629367034256575e-15,
+          "polarization_energy_hartree": -0.010653314849532398,
+          "polarization_energy_kcal_mol": -6.685055998258688,
+          "runtime_provenance": {
+            "backend": "pyddx",
+            "dielectric": 78.39,
+            "dielectric_scaling": 1.0,
+            "dielectric_scaling_source": "native-pyddx-pcm",
+            "enable_fmm": false,
+            "eta": 0.1,
+            "lmax": 7,
+            "method": "ddPCM",
+            "model": "pcm",
+            "n_lebedev": 302,
+            "n_proc": 1,
+            "pyddx_version": "0.8.0",
+            "scf_adjoint_warm_starts": 0,
+            "scf_forward_warm_starts": 1,
+            "scf_state_creations": 1,
+            "scf_state_reuse": "pyddx.State.update_problem warm start",
+            "scf_state_updates": 1,
+            "shift": 0.0,
+            "solver_tolerance": 1e-10
+          },
+          "timing_seconds": {
+            "build": 0.0012650570133700967,
+            "solve": 0.012693727010628209
+          }
+        }
+      },
+      "molecule": "H2O",
+      "projected_charge_sum_e": 0.0,
+      "raw_charge_residual_e": 0.0,
+      "raw_charge_sum_e": 0.0,
+      "timing_seconds": {
+        "aimnet2_charge": 0.017961493984330446
+      }
+    },
+    {
+      "aimnet2_energy_ev": -5259.4497506581565,
+      "atom_count": 10,
+      "cavity_radii_angstrom": [
+        1.52,
+        1.85,
+        1.85,
+        1.85,
+        1.2,
+        1.2,
+        1.2,
+        1.2,
+        1.2,
+        1.2
+      ],
+      "charge_projection_per_atom_e": -7.450580596923828e-09,
+      "charges_e": [
+        -0.402858205139637,
+        0.34821774810552597,
+        -0.23807983845472336,
+        -0.2380797639489174,
+        0.09495791047811508,
+        0.09495774656534195,
+        0.08522115647792816,
+        0.08522102236747742,
+        0.08522114157676697,
+        0.08522108197212219
+      ],
+      "ddcosmo_minus_ddpcm_kcal_mol": -0.02854857510253961,
+      "formula": "C3H6O",
+      "geometry_sha256": "66c7d12a0e735b0d94b72721e507b0141a49cd3fbe9ec9d1645ff290cea0feaf",
+      "geometry_source": "ASE G2 molecule collection",
+      "methods": {
+        "ddcosmo": {
+          "half_coupling_identity_error_ev": 4.00679489587219e-13,
+          "polarization_energy_hartree": -0.00788390207723071,
+          "polarization_energy_kcal_mol": -4.947223246048024,
+          "runtime_provenance": {
+            "backend": "pyddx",
+            "dielectric": 78.39,
+            "dielectric_scaling": 0.9872432708253603,
+            "dielectric_scaling_source": "pyddx-0.8.0-host-applied-(epsilon-1)/epsilon",
+            "enable_fmm": false,
+            "eta": 0.1,
+            "lmax": 7,
+            "method": "ddCOSMO",
+            "model": "cosmo",
+            "n_lebedev": 302,
+            "n_proc": 1,
+            "pyddx_version": "0.8.0",
+            "scf_adjoint_warm_starts": 0,
+            "scf_forward_warm_starts": 1,
+            "scf_state_creations": 1,
+            "scf_state_reuse": "pyddx.State.update_problem warm start",
+            "scf_state_updates": 1,
+            "shift": 0.0,
+            "solver_tolerance": 1e-10
+          },
+          "timing_seconds": {
+            "build": 0.0004531559825409204,
+            "solve": 0.03418058200622909
+          }
+        },
+        "ddpcm": {
+          "half_coupling_identity_error_ev": 8.586464872450961e-13,
+          "polarization_energy_hartree": -0.007838407026904713,
+          "polarization_energy_kcal_mol": -4.918674670945484,
+          "runtime_provenance": {
+            "backend": "pyddx",
+            "dielectric": 78.39,
+            "dielectric_scaling": 1.0,
+            "dielectric_scaling_source": "native-pyddx-pcm",
+            "enable_fmm": false,
+            "eta": 0.1,
+            "lmax": 7,
+            "method": "ddPCM",
+            "model": "pcm",
+            "n_lebedev": 302,
+            "n_proc": 1,
+            "pyddx_version": "0.8.0",
+            "scf_adjoint_warm_starts": 0,
+            "scf_forward_warm_starts": 1,
+            "scf_state_creations": 1,
+            "scf_state_reuse": "pyddx.State.update_problem warm start",
+            "scf_state_updates": 1,
+            "shift": 0.0,
+            "solver_tolerance": 1e-10
+          },
+          "timing_seconds": {
+            "build": 0.0028982649964746088,
+            "solve": 0.11666305200196803
+          }
+        }
+      },
+      "molecule": "CH3COCH3",
+      "projected_charge_sum_e": 0.0,
+      "raw_charge_residual_e": 7.450580596923828e-08,
+      "raw_charge_sum_e": 7.450580596923828e-08,
+      "timing_seconds": {
+        "aimnet2_charge": 0.004459537012735382
+      }
+    }
+  ],
+  "references": {
+    "ddx_cosmo_scaling_source": "pyddx.State.energy documentation and src/ddx.h at v0.8.0",
+    "ddx_documentation": "https://ddsolvation.github.io/ddX/",
+    "ddx_source_tag": "v0.8.0"
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "device": "cpu",
+    "model_load_seconds": 0.03839991701534018,
+    "numpy": "2.4.6",
+    "pyddx": "0.8.0",
+    "python": "3.11.14",
+    "torch": "2.12.0+cu130",
+    "torch_threads": 1
+  },
+  "schema_version": 1,
+  "scientific_identity": {
+    "cds_included": false,
+    "continuum_equations": [
+      "pyddx ddPCM",
+      "pyddx ddCOSMO"
+    ],
+    "cosmo_rs_included": false,
+    "mutual_ml_continuum_polarization": false,
+    "orthogonal_comparison": "same geometry/source/radii/dielectric/grid; continuum equation only",
+    "polarization_response": "fixed",
+    "solute_energy_model": "AIMNet2 gas-phase wB97M-D3 checkpoint",
+    "solute_source": "AIMNet2 NQE point-charge-l0",
+    "total_solvation_free_energy_reported": false
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_aimnet2_continuum_equation_canary.py": "3a31e1a8315a88f54dd9a7d2ce0025366124b65784b3c7a5824140fd80d3a580",
+    "maple/function/calculator/aimnet/_aimnet2_calculator.py": "ebb3e40b3c62dac02b9488cf137bd8595c6c50579762fa10f58461993facbda9",
+    "maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py": "376fd8bdff13c8dc288674c6cd29f971a4987c7aaf38b507100068929b1cbf67",
+    "maple/function/calculator/extra_correction/implicit/smd_cds.py": "ec9591181a04f93f2188903d0e575193b03469c9262ca7d8284ca3e9f057e142",
+    "maple/function/calculator/extra_correction/implicit/source/point_charge_l0.py": "75f527cc6c8bf4bfe8706771c3b06d5164c75f2691fbb5fc488eb03a9329da13",
+    "maple/function/route2_smd_profiles.py": "1485999845647b9117dc031b539cda42d17f15e29328651adb56728203c9a88b",
+    "maple/function/route2_solvents.py": "b9721d942ed9ac0a5e8673da8c5379346017b4cb78d4e4e9e00bd72bc0216fbe"
+  }
+}

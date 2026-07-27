@@ -772,6 +772,55 @@ def test_real_pyddx_pcm_converges_to_scaled_cosmo_at_high_dielectric():
     )
 
 
+def test_real_pyddx_scaled_cosmo_position_vjp_matches_energy_difference():
+    pyddx = pytest.importorskip("pyddx")
+    if str(pyddx.__version__) != TESTED_PYDDX_VERSION:
+        pytest.skip("The optional real-runtime canary is version locked.")
+
+    positions = np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]])
+    radii = np.asarray([1.2, 1.5])
+    density = np.asarray(
+        [[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]]
+    )
+    common = {
+        "dielectric": 78.39,
+        "lmax": 7,
+        "n_lebedev": 302,
+        "solver_tolerance": 1.0e-11,
+    }
+    reaction = PyDDXCOSMOReactionFieldLinearMap(
+        positions,
+        radii,
+        **common,
+    )
+    analytic = reaction.full_position_vjp(
+        density,
+        0.5 * density_to_external_field_order(density),
+    )
+
+    step = 1.0e-4
+    energies = []
+    for sign in (-1.0, 1.0):
+        displaced = positions.copy()
+        displaced[0, 0] += sign * step
+        displaced_reaction = PyDDXCOSMOReactionFieldLinearMap(
+            displaced,
+            radii,
+            **common,
+        )
+        energies.append(
+            displaced_reaction.polarization_energy_hartree(density)
+            * Hartree
+        )
+    finite_difference = (energies[1] - energies[0]) / (2.0 * step)
+
+    assert analytic[0, 0] == pytest.approx(
+        finite_difference,
+        abs=2.0e-6,
+        rel=2.0e-5,
+    )
+
+
 def test_real_pyddx_one_and_four_threads_are_numerically_equivalent(tmp_path):
     pyddx = pytest.importorskip("pyddx")
     if str(pyddx.__version__) != TESTED_PYDDX_VERSION:

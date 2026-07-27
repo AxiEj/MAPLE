@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from types import SimpleNamespace
 
 import numpy as np
@@ -22,6 +23,9 @@ from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
 )
 from maple.function.calculator.extra_correction.implicit.route2_derivative import (
     FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION,
+)
+from maple.function.calculator.extra_correction.implicit.route2_engine import (
+    Route2SCFConvergenceError,
 )
 from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.read.command_control import CommandControl
@@ -306,6 +310,45 @@ def test_ddpcm_provider_rejects_mol2_atom_type_changes_after_initialization(
 
     with pytest.raises(ValueError, match="MOL2 atom type/order changes"):
         provider.evaluate(changed, calculator=None)
+
+
+def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
+    atoms = _atoms()
+    provider = DDPCMSMDImplicitSolvation(
+        atoms,
+        _options(),
+        audit_dir=tmp_path,
+    )
+    history = [
+        {
+            "iteration": 1,
+            "density_residual_e": 1.0e-6,
+            "energy_residual_ev": None,
+            "next_density_update": "damped-picard-v1",
+        }
+    ]
+    error = Route2SCFConvergenceError(
+        "synthetic nonconvergence",
+        history=history,
+    )
+
+    provider._write_scf_failure_audit(
+        atoms=atoms,
+        gas_state=SimpleNamespace(energy_ev=-10.0),
+        error=error,
+    )
+
+    payload = json.loads(
+        (tmp_path / "route2-ddpcm-failure.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["converged"] is False
+    assert payload["error"] == "synthetic nonconvergence"
+    assert payload["scf"]["history"] == history
+    assert payload["scf"]["residual_definition"] == (
+        "unmixed neutral-tangent Pi0[M(P(c))-c]"
+    )
 
 
 def test_public_parser_keeps_pcmsolver_energy_only():

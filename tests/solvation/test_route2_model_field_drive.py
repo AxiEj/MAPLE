@@ -14,6 +14,7 @@ from maple.function.calculator.extra_correction.implicit.electrostatic_pairing i
 from maple.function.calculator.extra_correction.implicit.route2_engine import (
     Route2ContinuumEngine,
     Route2EngineSettings,
+    Route2SCFConvergenceError,
 )
 from maple.function.calculator.extra_correction.implicit.route2_fixed_point import (
     DAMPED_PICARD_SOLVER,
@@ -447,3 +448,45 @@ def test_engine_resets_anderson_history_after_observed_residual_growth(
     assert coupled.history[1]["anderson_history_reset"] is True
     assert coupled.history[1]["fixed_point_history_size"] == 1
     assert coupled.history[-1]["next_density_update"] == "converged"
+
+
+def test_engine_nonconvergence_exposes_the_complete_numerical_history():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    gas_state = _State(
+        energy_ev=0.0,
+        density_coefficients=np.zeros_like(fixed_point),
+    )
+    calculator = _LinearContractiveCalculator(
+        fixed_point,
+        contraction=0.95,
+    )
+    reaction_map = _IdentityReactionMap()
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic failing ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-12,
+        scf_energy_tolerance_ev=1.0e-12,
+        scf_max_iterations=2,
+        scf_solver=DAMPED_PICARD_SOLVER,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    with pytest.raises(Route2SCFConvergenceError) as caught:
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("synthetic-failing-ddpcm",),
+        )
+
+    assert len(caught.value.history) == 2
+    assert caught.value.history[-1]["density_residual_e"] > 1.0e-12
+    assert "minimum density residual=" in str(caught.value)

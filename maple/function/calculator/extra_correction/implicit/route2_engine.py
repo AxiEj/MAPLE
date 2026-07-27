@@ -37,6 +37,19 @@ from .route2_response import (
 )
 
 
+class Route2SCFConvergenceError(RuntimeError):
+    """Fail-closed SCF error carrying the complete numerical history."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        history: list[dict[str, object]],
+    ) -> None:
+        super().__init__(message)
+        self.history = tuple(dict(record) for record in history)
+
+
 @dataclass(frozen=True)
 class Route2EngineSettings:
     """Numerical policy for one versioned Route-2 provider profile."""
@@ -451,12 +464,18 @@ class Route2ContinuumEngine:
             previous_update_method = step.method
         else:
             last = history[-1]
-            raise RuntimeError(
+            minimum_density_residual = min(
+                float(record["density_residual_e"])
+                for record in history
+            )
+            raise Route2SCFConvergenceError(
                 "MACE-POLAR/"
                 f"{settings.continuum_label} reaction-field SCF did not "
                 f"converge in {settings.scf_max_iterations} iterations "
                 f"(density residual={last['density_residual_e']:.3e} e, "
-                f"energy residual={last['energy_residual_ev']!r} eV)."
+                f"energy residual={last['energy_residual_ev']!r} eV, "
+                f"minimum density residual={minimum_density_residual:.3e} e).",
+                history=history,
             )
 
         polarization_energy_hartree = float(

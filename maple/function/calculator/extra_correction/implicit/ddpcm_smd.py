@@ -43,6 +43,7 @@ from .route2_engine import (
     Route2ContinuumEngine,
     Route2CoupledState,
     Route2EngineSettings,
+    Route2SCFConvergenceError,
 )
 from .route2_fixed_point import SAFEGUARDED_ANDERSON_SOLVER
 from .smd_cds import route2_coulomb_radii
@@ -451,15 +452,84 @@ class PyDDXSMDImplicitSolvation:
         calculator,
         gas_state,
     ) -> Route2CoupledState:
-        return self._engine.solve_coupled_state(
-            atoms,
-            calculator,
-            gas_state,
-            provider_cache_signature=(
-                self.solvent,
-                self.electrostatics_model,
-                self._reference_mol2_atom_types,
+        try:
+            return self._engine.solve_coupled_state(
+                atoms,
+                calculator,
+                gas_state,
+                provider_cache_signature=(
+                    self.solvent,
+                    self.electrostatics_model,
+                    self._reference_mol2_atom_types,
+                ),
+            )
+        except Route2SCFConvergenceError as exc:
+            self._write_scf_failure_audit(
+                atoms=atoms,
+                gas_state=gas_state,
+                error=exc,
+            )
+            raise
+
+    @staticmethod
+    def _scf_audit_payload(
+        history: tuple[dict[str, object], ...],
+    ) -> dict[str, Any]:
+        return {
+            "solver": SCF_SOLVER,
+            "mixing": SCF_MIXING,
+            "density_tolerance_e": SCF_DENSITY_TOLERANCE,
+            "energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
+            "maximum_iterations": SCF_MAX_ITERATIONS,
+            "anderson_depth": SCF_ANDERSON_DEPTH,
+            "anderson_regularization": SCF_ANDERSON_REGULARIZATION,
+            "anderson_coefficient_l1_limit": (
+                SCF_ANDERSON_COEFFICIENT_L1_LIMIT
             ),
+            "anderson_step_ratio_limit": (
+                SCF_ANDERSON_STEP_RATIO_LIMIT
+            ),
+            "anderson_residual_growth_limit": (
+                SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT
+            ),
+            "total_charge_e": SCF_TOTAL_CHARGE_E,
+            "residual_definition": (
+                "unmixed neutral-tangent Pi0[M(P(c))-c]"
+            ),
+            "iterations": len(history),
+            "history": list(history),
+        }
+
+    def _write_scf_failure_audit(
+        self,
+        *,
+        atoms,
+        gas_state,
+        error: Route2SCFConvergenceError,
+    ) -> None:
+        if self.audit_dir is None:
+            return
+        audit_stem = f"route2-{self.electrostatics_model}"
+        payload = {
+            "schema_version": 1,
+            "converged": False,
+            "error": str(error),
+            "profile": self.profile,
+            "solvent": self.solvent,
+            "gas_mace_energy_ev": float(gas_state.energy_ev),
+            "positions_angstrom": np.asarray(
+                atoms.get_positions(),
+                dtype=float,
+            ).tolist(),
+            "cavity_radii_angstrom": np.asarray(
+                self.coulomb_radii_angstrom,
+                dtype=float,
+            ).tolist(),
+            "scf": self._scf_audit_payload(error.history),
+        }
+        (self.audit_dir / f"{audit_stem}-failure.json").write_text(
+            json.dumps(payload, indent=2, sort_keys=True),
+            encoding="utf-8",
         )
 
     def _coupled_state(
@@ -547,24 +617,7 @@ class PyDDXSMDImplicitSolvation:
             "gas_mace_energy_ev": float(gas_state.energy_ev),
             "solvent_intrinsic_mace_energy_ev": float(coupled.solvent_state.energy_ev),
             "polarization_energy_identity_error_ev": (coupled.energy_identity_error_ev),
-            "scf": {
-                "solver": SCF_SOLVER,
-                "mixing": SCF_MIXING,
-                "density_tolerance_e": SCF_DENSITY_TOLERANCE,
-                "energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
-                "maximum_iterations": SCF_MAX_ITERATIONS,
-                "anderson_depth": SCF_ANDERSON_DEPTH,
-                "anderson_regularization": SCF_ANDERSON_REGULARIZATION,
-                "anderson_coefficient_l1_limit": (SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
-                "anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
-                "anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
-                "total_charge_e": SCF_TOTAL_CHARGE_E,
-                "residual_definition": (
-                    "unmixed neutral-tangent Pi0[M(P(c))-c]"
-                ),
-                "iterations": len(coupled.history),
-                "history": list(coupled.history),
-            },
+            "scf": self._scf_audit_payload(coupled.history),
             "providers": {
                 "continuum": dict(coupled.reaction_field.runtime_provenance),
                 "cds": dict(coupled.cds_result.runtime_provenance),

@@ -13,8 +13,6 @@ from dataclasses import dataclass
 import math
 from typing import Any
 
-_FIXED_POINT_ANDERSON_HISTORY = 6
-
 import numpy as np
 from ase.units import Hartree
 
@@ -25,6 +23,13 @@ from .route2_derivative import (
     fixed_cavity_energy_density_gradient,
 )
 from .route2_field_state import ReactionFieldDrive
+from .route2_fixed_point import (
+    DAMPED_PICARD_SOLVER,
+    SAFEGUARDED_ANDERSON_SOLVER,
+    SUPPORTED_FIXED_POINT_SOLVERS,
+    FixedPointSample,
+    next_fixed_point_density,
+)
 from .route2_response import (
     UnmixedDensityResidualLinearization,
     solve_adjoint,
@@ -47,10 +52,18 @@ class Route2EngineSettings:
     force_state_energy_tolerance_ev: float
     neutral_density_tolerance: float
     scf_require_two_energy_samples: bool = False
+    scf_solver: str = DAMPED_PICARD_SOLVER
+    scf_anderson_depth: int = 6
+    scf_anderson_regularization: float = 1.0e-12
+    scf_anderson_coefficient_l1_limit: float = 100.0
+    scf_anderson_step_ratio_limit: float = 100.0
+    scf_anderson_residual_growth_limit: float = 2.0
 
     def __post_init__(self) -> None:
         if not self.continuum_label:
             raise ValueError("A continuum label is required.")
+        if self.scf_solver not in SUPPORTED_FIXED_POINT_SOLVERS:
+            raise ValueError(f"Unsupported Route-2 SCF solver: {self.scf_solver}.")
         if not 0.0 < self.scf_mixing <= 1.0:
             raise ValueError("SCF mixing must lie in (0, 1].")
         positive = {
@@ -61,6 +74,14 @@ class Route2EngineSettings:
             "energy_identity_tolerance_ev": (self.energy_identity_tolerance_ev),
             "force_state_energy_tolerance_ev": (self.force_state_energy_tolerance_ev),
             "neutral_density_tolerance": self.neutral_density_tolerance,
+            "scf_anderson_regularization": (self.scf_anderson_regularization),
+            "scf_anderson_coefficient_l1_limit": (
+                self.scf_anderson_coefficient_l1_limit
+            ),
+            "scf_anderson_step_ratio_limit": (self.scf_anderson_step_ratio_limit),
+            "scf_anderson_residual_growth_limit": (
+                self.scf_anderson_residual_growth_limit
+            ),
         }
         invalid = [name for name, value in positive.items() if value <= 0.0]
         if invalid:
@@ -73,6 +94,8 @@ class Route2EngineSettings:
             raise ValueError(
                 "Route-2 SCF and adjoint iteration limits must be positive."
             )
+        if self.scf_anderson_depth <= 0:
+            raise ValueError("Route-2 Anderson history depth must be positive.")
 
 
 @dataclass(frozen=True)
@@ -96,7 +119,7 @@ class Route2CoupledState:
     polarization_energy_hartree: float
     energy_identity_error_ev: float
     cds_result: Any
-    history: tuple[dict[str, float | int | None], ...]
+    history: tuple[dict[str, object], ...]
 
     def __post_init__(self) -> None:
         for name in (
@@ -208,84 +231,6 @@ class Route2ContinuumEngine:
             )
         return field.copy()
 
-    @staticmethod
-    def _mixed_density_update(
-        density: np.ndarray,
-        response_density: np.ndarray,
-        mixing: float,
-    ) -> np.ndarray:
-        return (1.0 - mixing) * density + mixing * response_density
-
-    @staticmethod
-    def _project_neutral_density(density: np.ndarray) -> np.ndarray:
-        corrected = np.asarray(density, dtype=float).copy()
-        corrected[:, 0] -= float(np.sum(corrected[:, 0])) / float(corrected.shape[0])
-        return corrected
-
-    def _accelerated_density_update(
-        self,
-        density: np.ndarray,
-        response_density: np.ndarray,
-        iterate_history: list[np.ndarray],
-        residual_history: list[np.ndarray],
-    ) -> tuple[np.ndarray, str]:
-        settings = self.settings
-        mixed = self._mixed_density_update(
-            density,
-            response_density,
-            settings.scf_mixing,
-        )
-        if (
-            settings.scf_mixing != 1.0
-            or len(iterate_history) < 2
-            or len(residual_history) < 2
-        ):
-            return mixed, "linear-mixing"
-
-        history = min(
-            _FIXED_POINT_ANDERSON_HISTORY,
-            len(iterate_history) - 1,
-            len(residual_history) - 1,
-        )
-        if history <= 0:
-            return mixed, "linear-mixing"
-
-        xk = np.asarray(iterate_history[-1], dtype=float).reshape(-1)
-        rk = np.asarray(residual_history[-1], dtype=float).reshape(-1)
-        start = len(iterate_history) - history - 1
-        steps = []
-        residual_steps = []
-        for index in range(start, len(iterate_history) - 1):
-            steps.append(
-                np.asarray(iterate_history[index + 1], dtype=float).reshape(-1)
-                - np.asarray(iterate_history[index], dtype=float).reshape(-1)
-            )
-            residual_steps.append(
-                np.asarray(residual_history[index + 1], dtype=float).reshape(-1)
-                - np.asarray(residual_history[index], dtype=float).reshape(-1)
-            )
-        if not steps:
-            return mixed, "linear-mixing"
-
-        try:
-            step_matrix = np.column_stack(steps)
-            residual_matrix = np.column_stack(residual_steps)
-            gamma, *_ = np.linalg.lstsq(residual_matrix, rk, rcond=None)
-        except np.linalg.LinAlgError:
-            return mixed, "linear-mixing"
-
-        candidate = (
-            xk
-            + settings.scf_mixing * rk
-            - (step_matrix + settings.scf_mixing * residual_matrix) @ gamma
-        )
-        if not np.all(np.isfinite(candidate)):
-            return mixed, "linear-mixing"
-        accelerated = self._project_neutral_density(candidate.reshape(density.shape))
-        if not np.all(np.isfinite(accelerated)):
-            return mixed, "linear-mixing"
-        return accelerated, "anderson-accelerated"
-
     def _reaction_field_drive(
         self,
         reaction_field,
@@ -389,9 +334,10 @@ class Route2ContinuumEngine:
             name="Gas MACE-POLAR density",
         )
         previous_energy_ev: float | None = None
-        history: list[dict[str, float | int | None]] = []
-        iterate_history: list[np.ndarray] = []
-        residual_history: list[np.ndarray] = []
+        previous_density_residual: float | None = None
+        previous_update_method: str | None = None
+        history: list[dict[str, object]] = []
+        fixed_point_samples: list[FixedPointSample] = []
 
         for iteration in range(1, settings.scf_max_iterations + 1):
             drive = self._reaction_field_drive(
@@ -419,31 +365,68 @@ class Route2ContinuumEngine:
                 if previous_energy_ev is None
                 else abs(current_energy_ev - previous_energy_ev)
             )
-            history.append(
-                {
-                    "iteration": iteration,
-                    "density_residual_e": density_residual,
-                    "energy_residual_ev": energy_residual,
-                    "intrinsic_energy_ev": current_energy_ev,
-                }
+            reset_anderson_history = (
+                settings.scf_solver == SAFEGUARDED_ANDERSON_SOLVER
+                and previous_update_method == SAFEGUARDED_ANDERSON_SOLVER
+                and previous_density_residual is not None
+                and density_residual
+                > (
+                    settings.scf_anderson_residual_growth_limit
+                    * previous_density_residual
+                )
             )
+            if reset_anderson_history:
+                fixed_point_samples.clear()
+            record: dict[str, object] = {
+                "iteration": iteration,
+                "density_residual_e": density_residual,
+                "energy_residual_ev": energy_residual,
+                "intrinsic_energy_ev": current_energy_ev,
+                "arrived_by": previous_update_method,
+                "anderson_history_reset": reset_anderson_history,
+            }
+            history.append(record)
             if energy_residual is None:
                 energy_converged = not settings.scf_require_two_energy_samples
             else:
                 energy_converged = energy_residual <= settings.scf_energy_tolerance_ev
             if density_residual <= settings.scf_density_tolerance and energy_converged:
-                history[-1]["next_density_update"] = "converged"
+                record["next_density_update"] = "converged"
                 break
-            iterate_history.append(density.copy())
-            residual_history.append((response_density - density).copy())
-            density, update_kind = self._accelerated_density_update(
-                density,
-                response_density,
-                iterate_history,
-                residual_history,
+            fixed_point_samples.append(
+                FixedPointSample(
+                    density=density,
+                    residual=response_density - density,
+                )
             )
-            history[-1]["next_density_update"] = update_kind
+            fixed_point_samples = fixed_point_samples[
+                -(settings.scf_anderson_depth + 1) :
+            ]
+            step = next_fixed_point_density(
+                fixed_point_samples,
+                solver=settings.scf_solver,
+                mixing=settings.scf_mixing,
+                anderson_depth=settings.scf_anderson_depth,
+                anderson_regularization=(settings.scf_anderson_regularization),
+                anderson_coefficient_l1_limit=(
+                    settings.scf_anderson_coefficient_l1_limit
+                ),
+                anderson_step_ratio_limit=(settings.scf_anderson_step_ratio_limit),
+            )
+            record.update(
+                {
+                    "next_density_update": step.method,
+                    "fixed_point_history_size": step.history_size,
+                    "anderson_predicted_residual_l2": (step.predicted_residual_l2),
+                    "anderson_coefficient_l1": step.coefficient_l1,
+                    "anderson_step_ratio_to_picard": (step.step_ratio_to_picard),
+                    "anderson_fallback_reason": step.fallback_reason,
+                }
+            )
+            density = step.density
             previous_energy_ev = current_energy_ev
+            previous_density_residual = density_residual
+            previous_update_method = step.method
         else:
             last = history[-1]
             raise RuntimeError(

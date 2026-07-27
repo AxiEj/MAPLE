@@ -44,8 +44,9 @@ from .route2_engine import (
     Route2CoupledState,
     Route2EngineSettings,
 )
+from .route2_fixed_point import SAFEGUARDED_ANDERSON_SOLVER
+from .route2_fixed_point import SAFEGUARDED_ANDERSON_SOLVER
 from .smd_cds import route2_coulomb_radii
-
 
 WATER_STATIC_DIELECTRIC = 78.39
 DDPCM_LMAX = 15
@@ -56,6 +57,12 @@ SCF_MIXING = 1.0
 SCF_DENSITY_TOLERANCE = 2.0e-12
 SCF_ENERGY_TOLERANCE_EV = 1.0e-10
 SCF_MAX_ITERATIONS = 100
+SCF_SOLVER = SAFEGUARDED_ANDERSON_SOLVER
+SCF_ANDERSON_DEPTH = 6
+SCF_ANDERSON_REGULARIZATION = 1.0e-12
+SCF_ANDERSON_COEFFICIENT_L1_LIMIT = 100.0
+SCF_ANDERSON_STEP_RATIO_LIMIT = 100.0
+SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT = 2.0
 ADJOINT_RELATIVE_TOLERANCE = 1.0e-10
 ADJOINT_ABSOLUTE_TOLERANCE = 1.0e-13
 ADJOINT_MAX_ITERATIONS = 100
@@ -75,6 +82,12 @@ _DDPCM_ENGINE_SETTINGS = Route2EngineSettings(
     energy_identity_tolerance_ev=ENERGY_IDENTITY_TOLERANCE_EV,
     force_state_energy_tolerance_ev=FORCE_STATE_ENERGY_TOLERANCE_EV,
     neutral_density_tolerance=NEUTRAL_DENSITY_TOLERANCE,
+    scf_solver=SCF_SOLVER,
+    scf_anderson_depth=SCF_ANDERSON_DEPTH,
+    scf_anderson_regularization=SCF_ANDERSON_REGULARIZATION,
+    scf_anderson_coefficient_l1_limit=(SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
+    scf_anderson_step_ratio_limit=SCF_ANDERSON_STEP_RATIO_LIMIT,
+    scf_anderson_residual_growth_limit=(SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
 )
 
 
@@ -104,10 +117,7 @@ def _normalized_mol2_atom_types(atoms) -> tuple[str, ...] | None:
     mol2 = atoms.info.get("mol2")
     if not isinstance(mol2, dict) or mol2.get("atom_types") is None:
         return None
-    return tuple(
-        str(atom_type).strip().lower()
-        for atom_type in mol2["atom_types"]
-    )
+    return tuple(str(atom_type).strip().lower() for atom_type in mol2["atom_types"])
 
 
 @dataclass
@@ -124,18 +134,11 @@ class PyDDXSMDImplicitSolvation:
         self.solvation_options = dict(self.solvation_options)
         if "profile" not in self.solvation_options:
             raise ValueError(
-                "Route 2 provider=pyddx requires an explicit "
-                "versioned profile."
+                "Route 2 provider=pyddx requires an explicit " "versioned profile."
             )
-        self.provider = str(
-            self.solvation_options.get("provider", "")
-        ).lower()
-        self.profile = str(
-            self.solvation_options["profile"]
-        ).lower()
-        self.response = str(
-            self.solvation_options.get("response", "scf")
-        ).lower()
+        self.provider = str(self.solvation_options.get("provider", "")).lower()
+        self.profile = str(self.solvation_options["profile"]).lower()
+        self.response = str(self.solvation_options.get("response", "scf")).lower()
         self.standard_state = str(
             self.solvation_options.get("standard_state", "1m")
         ).lower()
@@ -150,8 +153,7 @@ class PyDDXSMDImplicitSolvation:
         self.continuum_label = _CONTINUUM_LABELS[self.electrostatics_model]
         self.continuum_dielectric = (
             WATER_STATIC_DIELECTRIC
-            if self.profile_spec.dielectric_policy
-            == "legacy-water-78.39"
+            if self.profile_spec.dielectric_policy == "legacy-water-78.39"
             else self.solvent_spec.descriptors.dielectric
         )
         validate_route2_domain(self.atoms)
@@ -160,9 +162,7 @@ class PyDDXSMDImplicitSolvation:
             dtype=int,
         ).copy()
 
-        self._reference_mol2_atom_types = _normalized_mol2_atom_types(
-            self.atoms
-        )
+        self._reference_mol2_atom_types = _normalized_mol2_atom_types(self.atoms)
         self.coulomb_radii_angstrom = route2_coulomb_radii(
             self.atoms.get_chemical_symbols(),
             solvent=self.solvent,
@@ -183,9 +183,7 @@ class PyDDXSMDImplicitSolvation:
         numerics = {
             "dielectric": self.continuum_dielectric,
             "dielectric_policy": self.profile_spec.dielectric_policy,
-            "coulomb_radii_policy": (
-                self.profile_spec.coulomb_radii_policy
-            ),
+            "coulomb_radii_policy": (self.profile_spec.coulomb_radii_policy),
             "lmax": DDPCM_LMAX,
             "n_lebedev": DDPCM_N_LEBEDEV,
             "pyddx_n_proc": self.profile_spec.ddpcm_n_proc,
@@ -195,6 +193,12 @@ class PyDDXSMDImplicitSolvation:
             "scf_density_tolerance_e": SCF_DENSITY_TOLERANCE,
             "scf_energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
             "scf_maximum_iterations": SCF_MAX_ITERATIONS,
+            "scf_solver": SCF_SOLVER,
+            "scf_anderson_depth": SCF_ANDERSON_DEPTH,
+            "scf_anderson_regularization": SCF_ANDERSON_REGULARIZATION,
+            "scf_anderson_coefficient_l1_limit": (SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
+            "scf_anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
+            "scf_anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
             "adjoint_relative_tolerance": ADJOINT_RELATIVE_TOLERANCE,
             "adjoint_absolute_tolerance": ADJOINT_ABSOLUTE_TOLERANCE,
             "adjoint_maximum_iterations": ADJOINT_MAX_ITERATIONS,
@@ -212,18 +216,12 @@ class PyDDXSMDImplicitSolvation:
                 "SMD Coulomb radii with GAFF/GAFF2 carbonyl oxygen "
                 "(atom type o) overridden to 1.70 A"
             )
-        elif (
-            self.profile_spec.coulomb_radii_policy
-            == "pyscf-smd-2.13.1"
-        ):
+        elif self.profile_spec.coulomb_radii_policy == "pyscf-smd-2.13.1":
             cavity_radii_provenance = (
                 "PySCF 2.13.1 SMD solvent-acidity-dependent Coulomb "
                 "radii with revised Br=2.60 A and I=2.74 A"
             )
-        elif (
-            self.profile_spec.coulomb_radii_policy
-            == "smd-water-reference-smd18-v1"
-        ):
+        elif self.profile_spec.coulomb_radii_policy == "smd-water-reference-smd18-v1":
             cavity_radii_provenance = (
                 "SMD/SMD18 atomic-number-indexed water Coulomb "
                 "radii (P=2.12 A, S=2.49 A, Cl=2.38 A)"
@@ -246,29 +244,21 @@ class PyDDXSMDImplicitSolvation:
             "response": "scf",
             "standard_state": "1M(gas)->1M(solution)",
             "standard_state_correction_hartree": 0.0,
-            "density_source": (
-                "official MACE-POLAR-1-M l<=1 residual charge density"
-            ),
+            "density_source": ("official MACE-POLAR-1-M l<=1 residual charge density"),
             "density_interpretation": (
                 "coarse-grained net charge density, not a QM electron density"
             ),
             "electrostatics": self.continuum_label,
-            "electrostatics_model": (
-                self.profile_spec.electrostatics_model
-            ),
+            "electrostatics_model": (self.profile_spec.electrostatics_model),
             "solute_source": self.profile_spec.solute_source,
-            "reaction_field_projector": (
-                self.profile_spec.reaction_field_projector
-            ),
+            "reaction_field_projector": (self.profile_spec.reaction_field_projector),
             "nonpolar_model": self.profile_spec.nonpolar_model,
             "strict_original_smd_equivalence": (
                 self.profile_spec.strict_original_smd_equivalence
             ),
             "pcm_projection": "atom-centred l<=1 real spherical multipoles",
             "cavity_radii": cavity_radii_provenance,
-            "mace_long_range_evaluator": (
-                self.profile_spec.mace_long_range_evaluator
-            ),
+            "mace_long_range_evaluator": (self.profile_spec.mace_long_range_evaluator),
             "mace_long_range_evaluator_status": (
                 "experimental fixed-box operator variant; not equivalent "
                 "to the default molecular real-space evaluator"
@@ -314,14 +304,11 @@ class PyDDXSMDImplicitSolvation:
         if str(self.solvation_options.get("method", "")).lower() != "smd":
             raise ValueError("PyDDXSMDImplicitSolvation requires method=smd.")
         if self.provider != "pyddx":
-            raise ValueError(
-                "PyDDXSMDImplicitSolvation requires provider=pyddx."
-            )
+            raise ValueError("PyDDXSMDImplicitSolvation requires provider=pyddx.")
         if self.profile not in SUPPORTED_PYDDX_SMD_PROFILES:
             supported = ", ".join(sorted(SUPPORTED_PYDDX_SMD_PROFILES))
             raise ValueError(
-                "The pyddx Route-2 profile must be one of: "
-                f"{supported}."
+                "The pyddx Route-2 profile must be one of: " f"{supported}."
             )
         if not self.profile_spec.supports_solvent(self.solvent):
             raise ValueError(
@@ -329,9 +316,7 @@ class PyDDXSMDImplicitSolvation:
                 f"solvent={self.solvent}."
             )
         if self.response != "scf":
-            raise ValueError(
-                "The pyddx Route-2 force candidate requires response=scf."
-            )
+            raise ValueError("The pyddx Route-2 force candidate requires response=scf.")
         if self.standard_state != "1m":
             raise ValueError(
                 "Route 2 uses the 1 M gas -> 1 M solution convention only; "
@@ -365,9 +350,7 @@ class PyDDXSMDImplicitSolvation:
         validate_route2_domain(atoms)
         numbers = np.asarray(atoms.numbers, dtype=int)
         if not np.array_equal(numbers, self._reference_numbers):
-            raise ValueError(
-                "Route 2 does not permit atom identity/order changes."
-            )
+            raise ValueError("Route 2 does not permit atom identity/order changes.")
         atom_types = _normalized_mol2_atom_types(atoms)
         if atom_types != self._reference_mol2_atom_types:
             raise ValueError(
@@ -376,9 +359,7 @@ class PyDDXSMDImplicitSolvation:
             )
 
     def _validate_calculator(self, calculator, *, need_forces: bool) -> None:
-        if calculator is None or not callable(
-            getattr(calculator, "polar_state", None)
-        ):
+        if calculator is None or not callable(getattr(calculator, "polar_state", None)):
             raise TypeError(
                 "The pyddx Route-2 provider requires the "
                 "MACEPolCalculator polar_state() API."
@@ -411,16 +392,12 @@ class PyDDXSMDImplicitSolvation:
             "density_position_vjp",
         )
         missing = [
-            name
-            for name in required
-            if not callable(getattr(calculator, name, None))
+            name for name in required if not callable(getattr(calculator, name, None))
         ]
         if missing:
             raise TypeError(
                 "The pyddx Route-2 force candidate requires the complete "
-                "MACE response API; missing: "
-                + ", ".join(missing)
-                + "."
+                "MACE response API; missing: " + ", ".join(missing) + "."
             )
 
     def _validate_density(
@@ -543,9 +520,7 @@ class PyDDXSMDImplicitSolvation:
                 dtype=float,
             ),
             "density_coefficients": coupled.density_coefficients,
-            "reaction_field_values_ev": (
-                coupled.reaction_field_values_ev
-            ),
+            "reaction_field_values_ev": (coupled.reaction_field_values_ev),
         }
         if derivative is not None:
             arrays.update(
@@ -568,29 +543,27 @@ class PyDDXSMDImplicitSolvation:
             "solvent": self.solvent,
             "energies_hartree": components,
             "gas_mace_energy_ev": float(gas_state.energy_ev),
-            "solvent_intrinsic_mace_energy_ev": float(
-                coupled.solvent_state.energy_ev
-            ),
-            "polarization_energy_identity_error_ev": (
-                coupled.energy_identity_error_ev
-            ),
+            "solvent_intrinsic_mace_energy_ev": float(coupled.solvent_state.energy_ev),
+            "polarization_energy_identity_error_ev": (coupled.energy_identity_error_ev),
             "scf": {
+                "solver": SCF_SOLVER,
                 "mixing": SCF_MIXING,
                 "density_tolerance_e": SCF_DENSITY_TOLERANCE,
                 "energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
                 "maximum_iterations": SCF_MAX_ITERATIONS,
+                "anderson_depth": SCF_ANDERSON_DEPTH,
+                "anderson_regularization": SCF_ANDERSON_REGULARIZATION,
+                "anderson_coefficient_l1_limit": (SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
+                "anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
+                "anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
                 "iterations": len(coupled.history),
                 "history": list(coupled.history),
             },
             "providers": {
-                "continuum": dict(
-                    coupled.reaction_field.runtime_provenance
-                ),
+                "continuum": dict(coupled.reaction_field.runtime_provenance),
                 "cds": dict(coupled.cds_result.runtime_provenance),
             },
-            "adjoint": (
-                None if derivative is None else derivative["adjoint"]
-            ),
+            "adjoint": (None if derivative is None else derivative["adjoint"]),
             "array_archive": str(state_path),
         }
         (self.audit_dir / f"{audit_stem}-result.json").write_text(
@@ -634,13 +607,11 @@ class PyDDXSMDImplicitSolvation:
         correction_forces = None
         derivative = None
         if need_forces:
-            correction_forces, derivative = (
-                self._solvent_correction_force(
-                    atoms,
-                    calculator,
-                    gas_state,
-                    coupled,
-                )
+            correction_forces, derivative = self._solvent_correction_force(
+                atoms,
+                calculator,
+                gas_state,
+                coupled,
             )
         self._write_result_audit(
             atoms=atoms,
@@ -654,12 +625,8 @@ class PyDDXSMDImplicitSolvation:
             **self.provenance,
             "converged": True,
             "iterations": len(coupled.history),
-            "continuum_provider": dict(
-                coupled.reaction_field.runtime_provenance
-            ),
-            "cds_provider": dict(
-                coupled.cds_result.runtime_provenance
-            ),
+            "continuum_provider": dict(coupled.reaction_field.runtime_provenance),
+            "cds_provider": dict(coupled.cds_result.runtime_provenance),
             "calculator_profile": getattr(
                 calculator,
                 "route2_smd_profile",
@@ -679,9 +646,7 @@ class PyDDXSMDImplicitSolvation:
                 )
             ),
             "audit_directory": (
-                None
-                if self.audit_dir is None
-                else str(self.audit_dir)
+                None if self.audit_dir is None else str(self.audit_dir)
             ),
         }
         return SolvationResult(
@@ -717,5 +682,11 @@ __all__ = [
     "SCF_ENERGY_TOLERANCE_EV",
     "SCF_MAX_ITERATIONS",
     "SCF_MIXING",
+    "SCF_SOLVER",
+    "SCF_ANDERSON_DEPTH",
+    "SCF_ANDERSON_REGULARIZATION",
+    "SCF_ANDERSON_COEFFICIENT_L1_LIMIT",
+    "SCF_ANDERSON_STEP_RATIO_LIMIT",
+    "SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT",
     "WATER_STATIC_DIELECTRIC",
 ]

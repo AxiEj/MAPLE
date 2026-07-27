@@ -14,6 +14,10 @@ from maple.function.calculator.extra_correction.implicit.route2_engine import (
     Route2ContinuumEngine,
     Route2EngineSettings,
 )
+from maple.function.calculator.extra_correction.implicit.route2_fixed_point import (
+    DAMPED_PICARD_SOLVER,
+    SAFEGUARDED_ANDERSON_SOLVER,
+)
 from maple.function.calculator.extra_correction.implicit.route2_field_state import (
     ReactionFieldDrive,
 )
@@ -166,6 +170,7 @@ def _settings() -> Route2EngineSettings:
         energy_identity_tolerance_ev=1.0e-12,
         force_state_energy_tolerance_ev=1.0e-12,
         neutral_density_tolerance=1.0e-12,
+        scf_solver=DAMPED_PICARD_SOLVER,
     )
 
 
@@ -291,7 +296,8 @@ def test_engine_uses_anderson_acceleration_for_unit_mixing_fixed_point_iteration
         scf_mixing=1.0,
         scf_density_tolerance=1.0e-8,
         scf_energy_tolerance_ev=1.0e-8,
-        scf_max_iterations=4,
+        scf_max_iterations=5,
+        scf_solver=SAFEGUARDED_ANDERSON_SOLVER,
     )
     engine = Route2ContinuumEngine(
         reaction_field_factory=lambda _atoms: reaction_map,
@@ -311,7 +317,7 @@ def test_engine_uses_anderson_acceleration_for_unit_mixing_fixed_point_iteration
         fixed_point,
         atol=1.0e-12,
     )
-    assert coupled.history[0]["next_density_update"] == "linear-mixing"
-    assert coupled.history[1]["next_density_update"] == "anderson-accelerated"
-    assert coupled.history[2]["next_density_update"] == "anderson-accelerated"
-    assert coupled.history[3]["next_density_update"] == "converged"
+    assert coupled.history[0]["next_density_update"] == DAMPED_PICARD_SOLVER
+    assert coupled.history[1]["next_density_update"] == SAFEGUARDED_ANDERSON_SOLVER
+    assert coupled.history[2]["next_density_update"] == SAFEGUARDED_ANDERSON_SOLVER
+    assert coupled.history[-1]["next_density_update"] == "converged"

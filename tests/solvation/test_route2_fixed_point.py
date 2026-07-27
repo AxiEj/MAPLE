@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from maple.function.calculator.extra_correction.implicit.route2_fixed_point import (
     DAMPED_PICARD_SOLVER,
@@ -175,3 +176,27 @@ def test_anderson_regularization_remains_relative_near_the_scf_tolerance():
 
     assert step.method == SAFEGUARDED_ANDERSON_SOLVER
     assert step.fallback_reason is None
+    assert step.density[0, 1] == pytest.approx(
+        2.0e-12,
+        rel=1.0e-10,
+        abs=0.0,
+    )
+
+
+@pytest.mark.parametrize("unsafe_limit", [float("nan"), float("inf")])
+def test_anderson_rejects_nonfinite_safeguards(unsafe_limit):
+    sample = FixedPointSample(
+        density=np.zeros((1, 4)),
+        residual=np.asarray([[0.0, 1.0, 0.0, 0.0]]),
+    )
+
+    with pytest.raises(ValueError, match="Anderson safeguards"):
+        next_fixed_point_density(
+            [sample],
+            solver=SAFEGUARDED_ANDERSON_SOLVER,
+            mixing=1.0,
+            anderson_depth=4,
+            anderson_regularization=1.0e-12,
+            anderson_coefficient_l1_limit=100.0,
+            anderson_step_ratio_limit=unsafe_limit,
+        )

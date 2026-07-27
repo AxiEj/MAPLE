@@ -256,13 +256,49 @@ criterion. Consequently, the disconnected MNSol water-dimer record is reported
 as an aggregate exclusion rather than being mislabeled as a single-molecule
 Route-2 candidate.
 
-This stage is dataset infrastructure only. It does not run MACE-POLAR, expose
-AIMNet charges, or compare accuracy. AIMNet is treated as a distinct fixed
-point-charge baseline. A separately named pyddx ddCOSMO equation adapter now
-exists for bounded equation-axis canaries, but it is not a public profile or
-MNSol accuracy result. COSMO-RS remains a separate sigma-profile/statistical-
-thermodynamic model family rather than a continuum solver switch. The later
-comparison matrix belongs to benchmark strategy, not the MNSol data contract:
+[`route2-mnsol-pilot-selection-v1.json`](route2-mnsol-pilot-selection-v1.json)
+freezes the first bounded ten-solvent pilot **before** any model or error is
+evaluated. It takes one record per validation solvent, prefers the confirmation
+partition, requires distinct solute geometries, caps this first diagnostic at
+20 atoms, and chooses the lexicographically smallest seeded SHA256 score. The
+score uses only solvent identity, geometry handle, and database entry number;
+it does not use the experimental free energy or any model output. The tracked
+manifest contains only opaque row and geometry hashes plus aggregate candidate
+counts—no names, formulas, coordinates, entry numbers, or experimental values.
+
+The corresponding runner is
+`run_mnsol_aimnet2_multisolvent_pilot.py`. It refuses a dirty checkout, verifies
+the frozen selection against the user-supplied database, writes the row-level
+result only below `.omx`, and emits a separate aggregate-only public summary:
+
+```bash
+PYTHONPATH=/path/to/pyddx-and-pyscf/site-packages \
+python docs/implicit-solvation/benchmarks/run_mnsol_aimnet2_multisolvent_pilot.py \
+  --source .omx/datasets/mnsol-v2012/MNSolDatabase_v2012.zip \
+  --protocol docs/implicit-solvation/benchmarks/route2-mnsol-protocol-v1.json \
+  --selection docs/implicit-solvation/benchmarks/route2-mnsol-pilot-selection-v1.json \
+  --checkpoint /path/to/aimnet2.pt \
+  --private-output .omx/benchmarks/route2-mnsol-aimnet2-private-v1.json \
+  --public-output docs/implicit-solvation/benchmarks/route2-mnsol-aimnet2-multisolvent-pilot-v1.json
+```
+
+The pilot uses fixed AIMNet2 NQE point charges, the production-resolution
+`lmax=15`/1202-point discretization for pyddx ddPCM and scaled ddCOSMO,
+solvent-specific SMD Coulomb radii, and the official PySCF 2.13.1 SMD-CDS
+entrypoint. The multisolvent profile supplies shared radii/descriptors/CDS;
+ddCOSMO remains an explicitly named equation override rather than pretending
+to be the ddPCM profile. The two predictions are
+\(U_\mathrm{pol}+G_\mathrm{CDS}\); neither contains mutual
+AIMNet2–continuum polarization or a solute internal-response term. No
+1-atm-to-1-M correction is added because MNSol absolute values already use the
+1-M ideal-gas to 1-M ideal-solution convention.
+
+This preregistration is selection infrastructure, not an accuracy result.
+AIMNet is treated as a distinct fixed point-charge baseline. A separately
+named pyddx ddCOSMO equation adapter exists, but it is not C-PCM. COSMO-RS
+remains a separate sigma-profile/statistical-thermodynamic model family rather
+than a continuum solver switch. The later comparison matrix belongs to
+benchmark strategy, not the MNSol data contract:
 
 - solute-source axis: self-consistent MACE-POLAR coarse residual
   point-\(l\le1\) multipoles versus an AIMNet2 point-\(l=0\) fixed-charge

@@ -17,6 +17,7 @@ if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 
 import mnsol_dataset as mnsol
+import mnsol_pilot
 
 
 def _row(
@@ -181,6 +182,12 @@ def test_mnsol_loader_reconciles_table_geometries_and_aggregate_scope(tmp_path):
         == manifest["initial_neutral_absolute_scope"]["eligible_record_count"]
     )
     assert manifest["partition"]["same_solute_cross_solvent_leakage"] is False
+    eligible = mnsol.eligible_mnsol_records(dataset, protocol)
+    assert len(eligible) == 10
+    assert {item.partition for item in eligible} <= {
+        "development",
+        "confirmation",
+    }
 
 
 def test_mnsol_loader_rejects_header_drift_before_reading_rows(tmp_path):
@@ -428,3 +435,78 @@ def test_mnsol_dataset_module_is_provider_independent():
     assert "extra_correction" not in source
     assert "ddpcm_smd" not in source
     assert "pcmsolver" not in source.lower()
+
+
+def test_mnsol_pilot_selection_is_unique_and_emits_no_row_data(tmp_path):
+    source, protocol_path = _fixture(tmp_path, _ten_solvent_rows())
+    protocol = mnsol.load_mnsol_protocol(protocol_path)
+    dataset = mnsol.load_mnsol_v2012(source, protocol)
+
+    selection = mnsol_pilot.select_mnsol_pilot(dataset, protocol)
+    manifest = mnsol_pilot.build_mnsol_pilot_selection_manifest(
+        dataset,
+        protocol,
+    )
+    serialized = json.dumps(manifest, sort_keys=True)
+
+    assert len(selection) == 10
+    assert (
+        len({item.eligible_record.record.geometry_handle for item in selection}) == 10
+    )
+    assert all(
+        len(item.eligible_record.geometry.atomic_numbers)
+        <= mnsol_pilot.PILOT_MAX_ATOM_COUNT
+        for item in selection
+    )
+    assert (
+        manifest["selection_policy"]["experimental_value_used_for_selection"] is False
+    )
+    assert manifest["selection_policy"]["model_output_used_for_selection"] is False
+    assert manifest["redistribution_guard"] == {
+        "raw_rows_emitted": False,
+        "entry_numbers_emitted": False,
+        "geometry_handles_emitted": False,
+        "solute_names_emitted": False,
+        "formulas_emitted": False,
+        "coordinates_emitted": False,
+        "experimental_values_emitted": False,
+    }
+    assert "solute01" not in serialized
+    assert "solute-solute01" not in serialized
+    assert "-1.25" not in serialized
+    assert (
+        mnsol_pilot.validate_frozen_mnsol_pilot_selection(
+            manifest,
+            dataset,
+            protocol,
+        )
+        == selection
+    )
+
+
+def test_mnsol_pilot_choice_does_not_change_with_experimental_values(tmp_path):
+    rows_a = _ten_solvent_rows()
+    rows_b = [row.copy() for row in rows_a]
+    for index, row in enumerate(rows_b):
+        row[10] = str(1000.0 + index)
+
+    first = tmp_path / "a"
+    second = tmp_path / "b"
+    first.mkdir()
+    second.mkdir()
+    source_a, protocol_a_path = _fixture(first, rows_a)
+    source_b, protocol_b_path = _fixture(second, rows_b)
+    protocol_a = mnsol.load_mnsol_protocol(protocol_a_path)
+    protocol_b = mnsol.load_mnsol_protocol(protocol_b_path)
+    dataset_a = mnsol.load_mnsol_v2012(source_a, protocol_a)
+    dataset_b = mnsol.load_mnsol_v2012(source_b, protocol_b)
+
+    selected_a = mnsol_pilot.select_mnsol_pilot(dataset_a, protocol_a)
+    selected_b = mnsol_pilot.select_mnsol_pilot(dataset_b, protocol_b)
+
+    assert [item.eligible_record.record.geometry_handle for item in selected_a] == [
+        item.eligible_record.record.geometry_handle for item in selected_b
+    ]
+    assert [item.selection_score_sha256 for item in selected_a] == [
+        item.selection_score_sha256 for item in selected_b
+    ]

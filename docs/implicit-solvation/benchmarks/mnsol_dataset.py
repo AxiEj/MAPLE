@@ -231,6 +231,16 @@ class MNSolDataset:
     source_kind: str
 
 
+@dataclass(frozen=True)
+class MNSolEligibleRecord:
+    """One Route-2-domain row with its geometry and frozen partition."""
+
+    canonical_solvent: str
+    record: MNSolRecord
+    geometry: MNSolGeometry
+    partition: str
+
+
 def load_mnsol_protocol(path: str | Path) -> MNSolProtocol:
     """Load and strictly validate the tracked MNSol-v2012 protocol."""
 
@@ -970,10 +980,80 @@ def load_mnsol_v2012(source: str | Path, protocol: MNSolProtocol) -> MNSolDatase
     )
 
 
-def _partition_for_handle(handle: str, protocol: MNSolProtocol) -> str:
+def partition_for_mnsol_handle(
+    handle: str,
+    protocol: MNSolProtocol,
+) -> str:
+    """Return the solute-group partition without inspecting experiment values."""
+
     key = f"{protocol.partition_seed}\0{handle}".encode("utf-8")
     score = int.from_bytes(hashlib.sha256(key).digest()[:8], "big") / 2**64
     return "development" if score < protocol.development_fraction else "confirmation"
+
+
+def _geometry_domain_exclusion(
+    geometry: MNSolGeometry,
+    protocol: MNSolProtocol,
+) -> str | None:
+    mass_min, mass_max = protocol.molecular_mass_da
+    if geometry.multiplicity != protocol.multiplicity:
+        return "non-singlet_geometry"
+    if not set(geometry.atomic_numbers).issubset(protocol.allowed_atomic_numbers):
+        return "unsupported_element"
+    if not mass_min <= geometry.molecular_mass_da <= mass_max:
+        return "outside_mass_domain"
+    if (
+        _covalent_component_count(
+            geometry,
+            bond_scale=protocol.connectedness_bond_scale,
+        )
+        != protocol.required_component_count
+    ):
+        return "disconnected_geometry"
+    return None
+
+
+def eligible_mnsol_records(
+    dataset: MNSolDataset,
+    protocol: MNSolProtocol,
+) -> tuple[MNSolEligibleRecord, ...]:
+    """Return neutral absolute rows inside the frozen Route-2 domain."""
+
+    solvent_names = {
+        item.mnsol_name: item.canonical_name
+        for item in protocol.panel
+        if item.neutral_absolute_validation
+    }
+    eligible: list[MNSolEligibleRecord] = []
+    for record in dataset.records:
+        canonical_solvent = solvent_names.get(record.solvent)
+        if canonical_solvent is None:
+            continue
+        if (
+            record.process_type != protocol.process_type
+            or record.charge != protocol.molecular_charge
+        ):
+            continue
+        geometry = dataset.geometries[record.geometry_handle]
+        if _geometry_domain_exclusion(geometry, protocol) is not None:
+            continue
+        eligible.append(
+            MNSolEligibleRecord(
+                canonical_solvent=canonical_solvent,
+                record=record,
+                geometry=geometry,
+                partition=partition_for_mnsol_handle(
+                    record.geometry_handle,
+                    protocol,
+                ),
+            )
+        )
+    return tuple(eligible)
+
+
+# Retain the private spelling for older fixture callers while new benchmark
+# code uses the explicit public helper above.
+_partition_for_handle = partition_for_mnsol_handle
 
 
 def build_coverage_manifest(
@@ -994,7 +1074,6 @@ def build_coverage_manifest(
         if len(descriptor_sets) != 1:
             descriptor_inconsistencies.append(solvent)
 
-    mass_min, mass_max = protocol.molecular_mass_da
     panel_rows: list[dict[str, object]] = []
     eligible_records: list[MNSolRecord] = []
     exclusion_counts: Counter[str] = Counter()
@@ -1028,25 +1107,12 @@ def build_coverage_manifest(
         if panel_solvent.neutral_absolute_validation:
             for record in neutral_absolute:
                 geometry = dataset.geometries[record.geometry_handle]
-                if geometry.multiplicity != protocol.multiplicity:
-                    exclusion_counts["non-singlet_geometry"] += 1
-                elif not set(geometry.atomic_numbers).issubset(
-                    protocol.allowed_atomic_numbers
-                ):
-                    exclusion_counts["unsupported_element"] += 1
-                elif not mass_min <= geometry.molecular_mass_da <= mass_max:
-                    exclusion_counts["outside_mass_domain"] += 1
-                elif (
-                    _covalent_component_count(
-                        geometry,
-                        bond_scale=protocol.connectedness_bond_scale,
-                    )
-                    != protocol.required_component_count
-                ):
-                    exclusion_counts["disconnected_geometry"] += 1
-                else:
+                exclusion = _geometry_domain_exclusion(geometry, protocol)
+                if exclusion is None:
                     eligible_records.append(record)
                     eligible_for_solvent += 1
+                else:
+                    exclusion_counts[exclusion] += 1
         panel_rows.append(
             {
                 "canonical_name": panel_solvent.canonical_name,
@@ -1064,7 +1130,8 @@ def build_coverage_manifest(
 
     eligible_handles = {record.geometry_handle for record in eligible_records}
     partition_by_handle = {
-        handle: _partition_for_handle(handle, protocol) for handle in eligible_handles
+        handle: partition_for_mnsol_handle(handle, protocol)
+        for handle in eligible_handles
     }
     partition_record_counts = Counter(
         partition_by_handle[record.geometry_handle] for record in eligible_records

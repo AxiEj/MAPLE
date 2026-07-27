@@ -626,3 +626,34 @@ parser identities, runtime package versions, and a MOL2 plus canonical
 structure fingerprint for every geometry.  Tests intentionally validate those
 immutable blobs rather than equating a historical result with the current
 working-tree implementation.
+
+## Same-basis GTO/PCM energy-norm acetone canary
+
+[`route2-gto-pcm-energy-projection-acetone-v1.json`](route2-gto-pcm-energy-projection-acetone-v1.json)
+locks the first fixed-geometry reference for a same-source/same-receiver
+finite-width \(l\le1\) GTO continuum operator. The frozen acetone
+\(\omega\)B97M-V/def2-TZVPD gas checkpoint supplies the AO density directly
+through its stored restricted orbitals and occupations; no separately supplied
+density matrix can be substituted. The checkpoint geometry matches the
+FreeSolv MOL2 within \(1.1\times10^{-10}\) angstrom, and the reconstructed
+density has zero electron-count binding residual.
+
+Both basis arms use the same 516-point intrinsic PCMSolver IEFPCM cavity, SMD
+radii, zero probe, no added spheres, and energy-conjugate surface response.
+The one-radial \(1.5\)-angstrom basis has 40 coefficients; adding a
+\(3.0\)-angstrom radial channel gives 80:
+
+| GTO radial widths | QM PCM polarization | Fitted polarization | Absolute projection error |
+| --- | ---: | ---: | ---: |
+| 1.5 angstrom | -6.64334 | -6.23222 | 0.41112 kcal/mol |
+| 1.5, 3.0 angstrom | -6.64334 | -6.57660 | **0.06674 kcal/mol** |
+
+The surface/source reciprocity residual is below
+\(1.8\times10^{-16}\) hartree, and both constrained projections pass their
+charge/dipole, tangent-optimality, semidefinite, and shifted affine
+Pythagorean gates. This establishes a useful representation result only. It
+does not connect the new coefficient space to the current MACE-POLAR
+checkpoint, prove density--energy conjugacy, certify hydration free-energy
+accuracy, or authorize forces, a solution-phase PES, optimization, TS, scan,
+frequency, or MD use. Artifact SHA-256:
+`9f5d13432ee5a3759bcc45ec6b0e6e845d3eb977d16cd7f3578c9813f3660823`.

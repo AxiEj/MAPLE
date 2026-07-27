@@ -1,0 +1,419 @@
+{
+  "artifact_id": "route2-gto-pcm-energy-projection-acetone-v1",
+  "basis_results": {
+    "one_radial": {
+      "coefficient_count": 40,
+      "constraint_residual_inf": 5.5289106626332796e-14,
+      "elapsed_seconds": 0.7191652150067966,
+      "fitted_polarization_energy_hartree": -0.009931670276709006,
+      "fitted_polarization_energy_kcal_per_mol": -6.232217191905792,
+      "operator": {
+        "antisymmetric_norm_hartree": 1.5381981435583478e-16,
+        "atom_count": 10,
+        "basis_layout": "atom-radial-raw-mace-l1-v1",
+        "coefficient_count": 40,
+        "fixed_geometry_only": true,
+        "maximum_eigenvalue_hartree": -8.8150154967864e-09,
+        "minimum_eigenvalue_hartree": -1.5058260008184092,
+        "operator": "fixed-cavity-gto-galerkin-v1",
+        "production_profile": false,
+        "sigmas_angstrom": [
+          1.5
+        ],
+        "source_receiver_basis_identical": true,
+        "surface_point_count": 516,
+        "surface_response": "energy-conjugate"
+      },
+      "polarization_energy_error_hartree": 0.0006551642444312181,
+      "polarization_energy_error_kcal_per_mol": 0.4111217704479819,
+      "projected_coefficients": [
+        [
+          [
+            54.488816654010876,
+            4.671759053636998,
+            -20.623410734692335,
+            18.98455812995153
+          ]
+        ],
+        [
+          [
+            -0.9692534014300788,
+            -17.67799118101315,
+            12.704713306393293,
+            0.781616393192296
+          ]
+        ],
+        [
+          [
+            -12.085808246410046,
+            -4.194690737673633,
+            2.346786999423309,
+            0.3139458165360853
+          ]
+        ],
+        [
+          [
+            52.11563416126598,
+            12.410967569945152,
+            -15.074637482645572,
+            16.995879513067827
+          ]
+        ],
+        [
+          [
+            5.306149824582648,
+            -0.5523701131100588,
+            3.359334176571109,
+            1.633690585059468
+          ]
+        ],
+        [
+          [
+            -30.544873752764044,
+            12.730326011270831,
+            -6.130320472116955,
+            5.110200057133754
+          ]
+        ],
+        [
+          [
+            -22.506650613010198,
+            -11.113420135127592,
+            -4.624500056827939,
+            0.39349162896874995
+          ]
+        ],
+        [
+          [
+            1.8728707374791012,
+            -2.844488442001114,
+            0.2959348681336765,
+            -1.507473184391566
+          ]
+        ],
+        [
+          [
+            -30.63353500242622,
+            8.744604800437363,
+            -11.874380355726432,
+            1.6277696405961817
+          ]
+        ],
+        [
+          [
+            -17.043350361298046,
+            -2.1684631029748838,
+            7.262352991590305,
+            6.174950917100466
+          ]
+        ]
+      ],
+      "residual_energy_norm_squared_hartree": 0.0014264897055786447,
+      "shifted_pythagorean_error_hartree": 3.119581416105577e-13,
+      "surface_point_count": 516,
+      "tangent_optimality_inf": 6.675215935558754e-15,
+      "target_polarization_energy_hartree": -0.010586834521140225,
+      "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+      "widths_angstrom": [
+        1.5
+      ]
+    },
+    "two_radial": {
+      "coefficient_count": 80,
+      "constraint_residual_inf": 2.4553553634731884e-12,
+      "elapsed_seconds": 1.283453946991358,
+      "fitted_polarization_energy_hartree": -0.010480472910734007,
+      "fitted_polarization_energy_kcal_per_mol": -6.576596044147263,
+      "operator": {
+        "antisymmetric_norm_hartree": 1.7579199010993389e-16,
+        "atom_count": 10,
+        "basis_layout": "atom-radial-raw-mace-l1-v1",
+        "coefficient_count": 80,
+        "fixed_geometry_only": true,
+        "maximum_eigenvalue_hartree": -3.0964887282039183e-16,
+        "minimum_eigenvalue_hartree": -2.2069381514736235,
+        "operator": "fixed-cavity-gto-galerkin-v1",
+        "production_profile": false,
+        "sigmas_angstrom": [
+          1.5,
+          3.0
+        ],
+        "source_receiver_basis_identical": true,
+        "surface_point_count": 516,
+        "surface_response": "energy-conjugate"
+      },
+      "polarization_energy_error_hartree": 0.00010636161040621789,
+      "polarization_energy_error_kcal_per_mol": 0.06674291820651013,
+      "projected_coefficients": [
+        [
+          [
+            88.02713934841688,
+            5.78305392601922,
+            -25.44416479487132,
+            48.053015506556584
+          ],
+          [
+            -1800.4468098858772,
+            -907.0626097366462,
+            5004.508709947854,
+            479.41255091547214
+          ]
+        ],
+        [
+          [
+            -54.61758039890398,
+            21.117564712314334,
+            -4.179768765547613,
+            -8.651746537189851
+          ],
+          [
+            -4430.447041100857,
+            -2226.062188639096,
+            1141.969168215539,
+            605.3118098418087
+          ]
+        ],
+        [
+          [
+            36.61406752612175,
+            29.343481640282846,
+            -17.49036375164045,
+            -5.847261144229165
+          ],
+          [
+            -258.3611833436903,
+            -129.70322409470705,
+            -34.72027712072654,
+            288.8455739220489
+          ]
+        ],
+        [
+          [
+            88.24870807623581,
+            5.711135383815587,
+            -24.883363408317344,
+            43.59265565225702
+          ],
+          [
+            -1653.4539466049816,
+            -4439.5480143826835,
+            5.704086598658528,
+            -2240.418775222339
+          ]
+        ],
+        [
+          [
+            14.848800737465186,
+            -2.7971582799856107,
+            2.8402745517568566,
+            -0.5329568545633097
+          ],
+          [
+            89.50741591013404,
+            20.708797995473276,
+            -498.9796157239791,
+            -69.73398438687906
+          ]
+        ],
+        [
+          [
+            -52.67245241936571,
+            22.340865300823282,
+            -17.89719759919121,
+            2.6080096119244156
+          ],
+          [
+            3365.9916895699685,
+            -1578.9176879592846,
+            449.47777088773137,
+            -835.5095400551974
+          ]
+        ],
+        [
+          [
+            -39.0043390571736,
+            -25.522245677609988,
+            -11.535690886867492,
+            -3.6376855101886183
+          ],
+          [
+            706.252995782227,
+            674.5747090773906,
+            -665.1200983498272,
+            -439.13793250264257
+          ]
+        ],
+        [
+          [
+            9.036648403713546,
+            -1.758677411445775,
+            3.788759895405797,
+            -3.9607645877902375
+          ],
+          [
+            -17.907801176529144,
+            503.7726191191522,
+            78.5933652100251,
+            179.29977743336724
+          ]
+        ],
+        [
+          [
+            -48.12381615832275,
+            21.53828287382447,
+            -15.524292660871431,
+            1.0573574105298744
+          ],
+          [
+            3226.5973442869285,
+            -702.2312578049421,
+            1255.9488060956687,
+            -194.00836303454471
+          ]
+        ],
+        [
+          [
+            -41.612132428476315,
+            -2.834986446235861,
+            23.54967865370603,
+            16.80639329452808
+          ],
+          [
+            771.5222929329674,
+            1147.042907250349,
+            -261.10817079625633,
+            -203.75362871858138
+          ]
+        ]
+      ],
+      "residual_energy_norm_squared_hartree": 0.00021305641470448968,
+      "shifted_pythagorean_error_hartree": 4.6322797634128134e-09,
+      "surface_point_count": 516,
+      "tangent_optimality_inf": 5.548110753984558e-10,
+      "target_polarization_energy_hartree": -0.010586834521140225,
+      "target_polarization_energy_kcal_per_mol": -6.6433389623537735,
+      "widths_angstrom": [
+        1.5,
+        3.0
+      ]
+    }
+  },
+  "claim_boundary": {
+    "certifies": [
+      "same-basis finite-width l<=1 GTO source/receiver reciprocity",
+      "fixed-cavity PCM half-coupling identity",
+      "constrained PCM-energy-norm projection algebra",
+      "acetone two-radial representation improvement on one QM MEP"
+    ],
+    "does_not_certify": [
+      "MACE density-energy conjugacy",
+      "self-consistent variational free energy",
+      "hydration free-energy accuracy",
+      "forces or a solution-phase PES",
+      "optimization, transition states, scans, frequencies, or MD"
+    ]
+  },
+  "gates": {
+    "absolute_error_improvement_kcal_per_mol": 0.3443788522414718,
+    "algebraic_projection_gates_passed": true,
+    "one_radial_absolute_error_kcal_per_mol": 0.4111217704479819,
+    "two_radial_absolute_error_kcal_per_mol": 0.06674291820651013,
+    "two_radial_improves_energy_projection": true
+  },
+  "generated_at_utc": "2026-07-27T18:28:16.083665+00:00",
+  "inputs": {
+    "compound_id": "mobley_3867265",
+    "geometry_max_abs_error_angstrom": 1.0659206850505143e-10,
+    "molecule": {
+      "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_3867265.mol2",
+      "sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1"
+    },
+    "parsed_pcm_input": {
+      "cavity_radii_angstrom": [
+        1.849999998754871,
+        1.849999998754871,
+        1.519999998976975,
+        1.849999998754871,
+        1.1999999991923487,
+        1.1999999991923487,
+        1.1999999991923487,
+        1.1999999991923487,
+        1.1999999991923487,
+        1.1999999991923487
+      ],
+      "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-intrinsic-exact-gto-ten-panel-20260727-234625/mobley_3867265/exact_gto/maple.out.implicit/@route2-smd-intrinsic.pcm",
+      "sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8"
+    },
+    "qm_checkpoint": {
+      "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-qm-ddx-acetone-center-20260725/pyscf_smd_acetone_wb97mv_def2tzvpd_g3_n50x194sg1.gas.chk",
+      "sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0"
+    },
+    "qm_density": {
+      "checkpoint_density_binding_residual_e": 0.0,
+      "checkpoint_mo_orthonormality_inf": 1.0043371057196852e-11,
+      "checkpoint_occupation_sum_e": 32.0,
+      "checkpoint_occupied_orbital_count": 16,
+      "source": "checkpoint:scf/mo_coeff+scf/mo_occ"
+    },
+    "qm_molecular_dipole_e_angstrom": [
+      -0.0976746255767469,
+      0.5593310353681447,
+      -0.3170491438826788
+    ],
+    "qm_total_charge_e": 0.0
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "numpy": "2.4.6",
+    "pcmsolver_library": {
+      "path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "pyscf": "2.13.1",
+    "pyscf_python": {
+      "invoked_path": "/home/axie/.cache/maple-envs/pyscf-smd-qmref/bin/python",
+      "resolved_target": "/home/axie/miniconda3/envs/maple/bin/python3.11"
+    },
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "scipy": "1.17.1"
+  },
+  "schema_version": 1,
+  "scientific_status": "fixed-geometry representation feasibility canary; not a variational MACE-POLAR model",
+  "source": {
+    "git_head": "4959e588ccf19111990454bd9287fbefcbace5d9",
+    "helper_command": [
+      "/home/axie/.cache/maple-envs/pyscf-smd-qmref/bin/python",
+      "/home/axie/MAPLE/MAPLE-implicitsolv-route2/docs/implicit-solvation/benchmarks/route2_qm_surface_mep.py",
+      "--checkpoint",
+      "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-qm-ddx-acetone-center-20260725/pyscf_smd_acetone_wb97mv_def2tzvpd_g3_n50x194sg1.gas.chk",
+      "--surface",
+      "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-gto-pcm-energy-projection-acetone-20260727-182811/surface.npz",
+      "--output",
+      "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-gto-pcm-energy-projection-acetone-20260727-182811/qm-surface-mep.npz"
+    ],
+    "runner_argv": [
+      "/home/axie/miniconda3/envs/maple/bin/python",
+      "docs/implicit-solvation/benchmarks/run_route2_gto_pcm_energy_projection_canary.py",
+      "--pyscf-python",
+      "/home/axie/.cache/maple-envs/pyscf-smd-qmref/bin/python",
+      "--pcmsolver-library",
+      "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "--work-dir",
+      ".omx/benchmarks/route2-gto-pcm-energy-projection-acetone-20260727-182811",
+      "--output",
+      ".omx/benchmarks/route2-gto-pcm-energy-projection-acetone-20260727-182811.json"
+    ],
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/route2_qm_surface_mep.py": "3e21714d078b72edf691f5a4809485ea321d3c3cf9c9e04a498b678e7f73c276",
+      "docs/implicit-solvation/benchmarks/run_route2_gto_pcm_energy_projection_canary.py": "0be566ab72a41badaafe6fa6074c302e6d1c705ff8007d9cfdef5912a88ad570",
+      "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+      "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+      "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+      "maple/function/calculator/extra_correction/implicit/pcm_energy_projection.py": "bc0024da3c026a84c29f8330df4414f32780465efe0d002528e6a09501f218eb",
+      "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+      "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7"
+    }
+  }
+}

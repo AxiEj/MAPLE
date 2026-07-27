@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
+import numpy as np
 import torch
 
 from ...route2_smd_profiles import (
@@ -112,6 +113,64 @@ class MACEPolarLongRangeEvaluator:
             return {}
         return {"use_pbc_evaluator": True}
 
+    def coordinate_vjp(self, cotangent: np.ndarray) -> np.ndarray:
+        """Pull one coordinate cotangent back to the input geometry.
+
+        The molecular real-space profile uses the identity transform.  The
+        fixed-box reciprocal profile evaluates the model at
+        ``R - mean(R)`` and therefore applies the corresponding centering
+        projector to every returned coordinate cotangent.
+        """
+
+        values = np.asarray(cotangent, dtype=float)
+        if (
+            values.ndim != 2
+            or values.shape[1] != 3
+            or values.shape[0] == 0
+            or not np.all(np.isfinite(values))
+        ):
+            raise ValueError(
+                "Coordinate cotangents must be finite with shape "
+                "(n_atoms, 3)."
+            )
+        result = values.copy()
+        if not self.is_default:
+            result -= np.mean(result, axis=0, keepdims=True)
+        return result
+
+    def coordinate_hessian_pullback(
+        self,
+        hessian: np.ndarray,
+    ) -> np.ndarray:
+        """Pull one Cartesian Hessian back through the coordinate transform."""
+
+        values = np.asarray(hessian, dtype=float)
+        if (
+            values.ndim != 2
+            or values.shape[0] == 0
+            or values.shape[0] != values.shape[1]
+            or values.shape[0] % 3 != 0
+            or not np.all(np.isfinite(values))
+        ):
+            raise ValueError(
+                "Coordinate Hessians must be finite square (3N, 3N) arrays."
+            )
+        if self.is_default:
+            return values.copy()
+
+        atom_count = values.shape[0] // 3
+        blocks = values.reshape(atom_count, 3, atom_count, 3)
+        row_mean = np.mean(blocks, axis=0, keepdims=True)
+        column_mean = np.mean(blocks, axis=2, keepdims=True)
+        total_mean = np.mean(
+            blocks,
+            axis=(0, 2),
+            keepdims=True,
+        )
+        return (
+            blocks - row_mean - column_mean + total_mean
+        ).reshape(values.shape)
+
     @property
     def provenance(self) -> dict[str, Any]:
         if self.is_default:
@@ -121,6 +180,7 @@ class MACEPolarLongRangeEvaluator:
                 "use_pbc_evaluator": False,
                 "box_length_angstrom": None,
                 "coordinate_policy": "upstream molecular batch",
+                "coordinate_derivative_policy": "identity pullback",
                 "pbc": False,
                 "dtype_bridge": False,
                 "equivalent_to_default_evaluator": True,
@@ -135,6 +195,9 @@ class MACEPolarLongRangeEvaluator:
             "use_pbc_evaluator": True,
             "box_length_angstrom": self.box_length_angstrom,
             "coordinate_policy": "arithmetic-mean centering in fixed cubic box",
+            "coordinate_derivative_policy": (
+                "centering-projector VJP and double-sided Hessian pullback"
+            ),
             "pbc": False,
             "dtype_bridge": True,
             "graph_longrange_version": _VALIDATED_GRAPH_LONGRANGE_VERSION,

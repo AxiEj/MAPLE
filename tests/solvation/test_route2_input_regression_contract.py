@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import pytest
+from ase import Atoms
 
+from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.read.command_control import CommandControl
 
 
@@ -38,6 +40,56 @@ def test_enhance_gbsa_contract_remains_available_alongside_route2():
         "method": "gbsa",
         "experimental": True,
     }
+
+
+def test_calculator_factory_keeps_enhance_gbsa_available(tmp_path):
+    atoms = Atoms(
+        "H2O",
+        positions=[
+            [0.0, 0.0, 0.0],
+            [0.96, 0.0, 0.0],
+            [-0.24, 0.93, 0.0],
+        ],
+    )
+    builder = SetCalculator(
+        device="cpu",
+        model="aimnet2",
+        output=str(tmp_path / "job.out"),
+        atoms=atoms,
+        implicit="gbsa",
+        solvent="water",
+        solvation_options={
+            "implicit": "water",
+            "method": "gbsa",
+            "experimental": True,
+        },
+    )
+
+    builder._validate_solvent_config()
+
+
+def test_route2_domain_rejection_precedes_model_discovery(tmp_path):
+    atoms = Atoms("NO", positions=[[0.0, 0.0, 0.0], [1.15, 0.0, 0.0]])
+    atoms.info.update(charge=0, mult=1)
+    builder = SetCalculator(
+        device="cpu",
+        model="macepol-m",
+        output=str(tmp_path / "job.out"),
+        atoms=atoms,
+        implicit="smd",
+        solvent="water",
+        solvation_options={
+            "implicit": "water",
+            "method": "smd",
+            "experimental": True,
+        },
+    )
+    builder._discover_calculator_class = lambda _name: pytest.fail(
+        "Model discovery must not run before Route-2 domain validation."
+    )
+
+    with pytest.raises(ValueError, match="electron-count parity"):
+        builder._build_calculator()
 
 
 def test_route2_still_rejects_an_independent_charge_provider():

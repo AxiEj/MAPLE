@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 from ase import Atoms
 
@@ -139,6 +140,22 @@ def test_route2_profile_dispatches_one_closed_evaluator_contract():
     }
 
 
+def test_direct_smd_construction_fails_before_it_can_return_gas_phase_results():
+    public_profile_kwargs = MACEPolCalculator.build_implicit_solvent_kwargs(
+        {
+            "provider": "pcmsolver",
+            "profile": "smd-iefpcm",
+        }
+    )
+    with pytest.raises(ValueError, match="SetCalculator factory"):
+        MACEPolCalculator(
+            device="cpu",
+            implicit="smd",
+            solvent="water",
+            **public_profile_kwargs,
+        )
+
+
 def test_evaluator_rejects_inconsistent_direct_construction():
     with pytest.raises(ValueError, match="inconsistent"):
         MACEPolarLongRangeEvaluator(
@@ -184,6 +201,81 @@ def test_forced_reciprocal_evaluator_centres_one_graph_in_fixed_40a_box():
     assert evaluator.model_forward_kwargs == {
         "use_pbc_evaluator": True
     }
+
+
+def test_forced_reciprocal_evaluator_pulls_back_coordinate_derivatives():
+    evaluator = MACEPolarLongRangeEvaluator.from_profile(
+        MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+    )
+    raw_cotangent = np.asarray(
+        [[1.0, -2.0, 0.5], [4.0, 1.0, -0.5], [-2.0, 3.0, 2.0]]
+    )
+
+    pulled_back = evaluator.coordinate_vjp(raw_cotangent)
+
+    np.testing.assert_allclose(
+        pulled_back,
+        raw_cotangent - np.mean(raw_cotangent, axis=0, keepdims=True),
+    )
+    np.testing.assert_allclose(np.sum(pulled_back, axis=0), 0.0, atol=1.0e-15)
+
+    positions = np.asarray(
+        [[0.3, -0.4, 0.2], [-0.7, 0.5, 0.8], [1.1, -0.2, -0.6]]
+    )
+    step = 1.0e-6
+    finite_difference = np.zeros_like(positions)
+
+    def centered_linear_energy(coordinates):
+        centered = coordinates - np.mean(coordinates, axis=0, keepdims=True)
+        return float(np.vdot(raw_cotangent, centered))
+
+    for atom_index in range(len(positions)):
+        for axis in range(3):
+            plus = positions.copy()
+            minus = positions.copy()
+            plus[atom_index, axis] += step
+            minus[atom_index, axis] -= step
+            finite_difference[atom_index, axis] = (
+                centered_linear_energy(plus)
+                - centered_linear_energy(minus)
+            ) / (2.0 * step)
+
+    np.testing.assert_allclose(
+        pulled_back,
+        finite_difference,
+        rtol=1.0e-9,
+        atol=1.0e-9,
+    )
+
+
+def test_forced_reciprocal_evaluator_pulls_back_hessian_on_both_sides():
+    evaluator = MACEPolarLongRangeEvaluator.from_profile(
+        MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+    )
+    rng = np.random.default_rng(8472)
+    raw = rng.normal(size=(9, 9))
+    raw_hessian = raw + raw.T
+    atom_projector = np.eye(3) - np.ones((3, 3)) / 3.0
+    cartesian_projector = np.kron(atom_projector, np.eye(3))
+
+    pulled_back = evaluator.coordinate_hessian_pullback(raw_hessian)
+
+    np.testing.assert_allclose(
+        pulled_back,
+        cartesian_projector @ raw_hessian @ cartesian_projector,
+        rtol=1.0e-14,
+        atol=1.0e-14,
+    )
+    np.testing.assert_allclose(
+        pulled_back.reshape(3, 3, 3, 3).sum(axis=0),
+        0.0,
+        atol=1.0e-14,
+    )
+    np.testing.assert_allclose(
+        pulled_back.reshape(3, 3, 3, 3).sum(axis=2),
+        0.0,
+        atol=1.0e-14,
+    )
 
 
 def test_forced_reciprocal_evaluator_fails_closed_outside_fixed_box_domain():

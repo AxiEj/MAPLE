@@ -43,6 +43,7 @@ from ..calculator_base import (
     CalcABC,
     EV2HARTREE,
     ROUTE2_SMD_CALCULATOR_PROFILE,
+    _IMPLICIT_SOLVENT_FACTORY_TOKEN,
     hessian_via_double_autograd,
     register_calculator,
 )
@@ -282,7 +283,7 @@ class MACEPolCalculator(CalcABC):
         return {
             "long_range_evaluator_profile": (
                 spec.mace_long_range_evaluator
-            )
+            ),
         }
 
     def __init__(
@@ -290,14 +291,24 @@ class MACEPolCalculator(CalcABC):
         device: torch.device | str,
         model: str = "macepolm",
         model_path: str | None = None,
-        implicit: Literal["smd", "gb", "pb", "none"] = "none",
+        implicit: Literal["smd", "gbsa", "none"] = "none",
         solvent: str = "none",
         long_range_evaluator_profile: str = (
             MACEPOL_MOLECULAR_REALSPACE_PROFILE
         ),
+        _implicit_solvent_factory_token=None,
     ):
         super().__init__()
         route2_smd = str(implicit).strip().lower() == "smd"
+        if route2_smd and (
+            _implicit_solvent_factory_token
+            is not _IMPLICIT_SOLVENT_FACTORY_TOKEN
+        ):
+            raise ValueError(
+                "Direct MACEPolCalculator(implicit='smd') construction is "
+                "disabled because it cannot attach the Route-2 continuum "
+                "correction safely; use MAPLE's SetCalculator factory."
+            )
         self._long_range_evaluator = (
             MACEPolarLongRangeEvaluator.from_profile(
                 long_range_evaluator_profile
@@ -539,8 +550,7 @@ class MACEPolCalculator(CalcABC):
             **kwargs,
         )
 
-    @staticmethod
-    def _polar_state_from_output(output) -> PolarState:
+    def _polar_state_from_output(self, output) -> PolarState:
         density = output.get("density_coefficients")
         dipole = output.get("dipole")
         if density is None or dipole is None:
@@ -549,13 +559,28 @@ class MACEPolCalculator(CalcABC):
                 "Route 2 cannot fall back to atom charges."
             )
         density_np = density.detach().cpu().numpy().astype(float, copy=True)
-        if density_np.ndim != 2 or density_np.shape[1] != 4:
+        if (
+            density_np.ndim != 2
+            or density_np.shape[1] != 4
+            or not np.all(np.isfinite(density_np))
+        ):
             raise RuntimeError(
-                "Route 2 requires the MACE-POLAR l<=1 four-coefficient GTO "
-                f"density; received shape {density_np.shape}."
+                "Route 2 requires a finite MACE-POLAR l<=1 four-coefficient "
+                f"GTO density; received shape {density_np.shape}."
             )
-        dipole_np = np.asarray(dipole.detach().cpu(), dtype=float).reshape(-1, 3)[0]
-        energy_ev = float(output["energy"].sum().detach().cpu())
+        dipole_np = np.asarray(dipole.detach().cpu(), dtype=float)
+        if dipole_np.size != 3 or not np.all(np.isfinite(dipole_np)):
+            raise RuntimeError(
+                "MACE-POLAR must return one finite three-component dipole; "
+                f"received shape {dipole_np.shape}."
+            )
+        dipole_np = dipole_np.reshape(3).copy()
+        energy = output.get("energy")
+        if energy is None or not torch.is_tensor(energy):
+            raise RuntimeError("MACE-POLAR did not return an energy tensor.")
+        energy_ev = float(energy.sum().detach().cpu())
+        if not np.isfinite(energy_ev):
+            raise RuntimeError("MACE-POLAR returned a non-finite energy.")
         forces = output.get("forces")
         fixed_field_forces = None
         if forces is not None:
@@ -571,6 +596,9 @@ class MACEPolCalculator(CalcABC):
                     "MACE-POLAR fixed-local-field forces must be finite with "
                     f"shape {expected_shape}; received {fixed_field_forces.shape}."
                 )
+            fixed_field_forces = self._long_range_evaluator.coordinate_vjp(
+                fixed_field_forces
+            )
         return PolarState(
             energy_ev=energy_ev,
             density_coefficients=density_np,
@@ -1050,7 +1078,7 @@ class MACEPolCalculator(CalcABC):
                     "MACE-POLAR density position VJP must be finite with shape "
                     f"{expected_position_shape}; received {result.shape}."
                 )
-            return result
+            return self._long_range_evaluator.coordinate_vjp(result)
         finally:
             if not positions_required_grad:
                 positions.requires_grad_(False)
@@ -1136,9 +1164,21 @@ class MACEPolCalculator(CalcABC):
             if hessian is None:
                 hessian_np = self.get_hessian(atoms)
             else:
-                hessian_np = (
+                raw_hessian = (
                     hessian.detach().cpu().numpy().astype(float, copy=False)
                     * EV2HARTREE
+                )
+                expected_size = 3 * len(atoms)
+                if raw_hessian.size != expected_size**2:
+                    raise RuntimeError(
+                        "MACE-POLAR Hessian must contain exactly "
+                        f"{expected_size**2} Cartesian entries; received "
+                        f"shape {raw_hessian.shape}."
+                    )
+                hessian_np = (
+                    self._long_range_evaluator.coordinate_hessian_pullback(
+                        raw_hessian.reshape(expected_size, expected_size)
+                    )
                 )
 
         self._finalize_results(
@@ -1164,7 +1204,10 @@ class MACEPolCalculator(CalcABC):
             )
             return output["energy"].sum() * EV2HARTREE
 
-        return hessian_via_double_autograd(energy_fn, positions)
+        raw_hessian = hessian_via_double_autograd(energy_fn, positions)
+        return self._long_range_evaluator.coordinate_hessian_pullback(
+            raw_hessian
+        )
 
 
 class _MACEPolarDensityResponseLinearization:

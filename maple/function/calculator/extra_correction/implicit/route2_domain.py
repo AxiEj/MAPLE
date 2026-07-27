@@ -76,9 +76,14 @@ def validate_route2_domain(atoms) -> None:
             "Route 2 v1 is validated for neutral organics from 16 to 500 Da; "
             f"received {molecular_mass:.6f} Da."
         )
+    if "charge" not in atoms.info or "mult" not in atoms.info:
+        raise ValueError(
+            "Route 2 requires explicit molecular charge and multiplicity "
+            "metadata; declare the neutral closed-shell state as '0 1'."
+        )
     try:
-        charge = float(atoms.info.get("charge", 0))
-        multiplicity_value = float(atoms.info.get("mult", 1))
+        charge = float(atoms.info["charge"])
+        multiplicity_value = float(atoms.info["mult"])
     except (TypeError, ValueError) as exc:
         raise ValueError(
             "Route 2 requires numeric charge=0 and multiplicity=1 metadata."
@@ -90,6 +95,13 @@ def validate_route2_domain(atoms) -> None:
         raise ValueError(
             "Route 2 v1 supports neutral closed-shell molecules only "
             f"(received charge={charge:g}, multiplicity={multiplicity})."
+        )
+    electron_count = int(np.sum(np.asarray(atoms.numbers, dtype=int)))
+    if electron_count % 2 != (multiplicity - 1) % 2:
+        raise ValueError(
+            "Route 2 electron-count parity is inconsistent with the declared "
+            f"multiplicity={multiplicity}: the neutral molecule has "
+            f"{electron_count} electrons."
         )
     component_count = _covalent_component_count(atoms)
     if component_count != 1:

@@ -10,10 +10,13 @@ Research/Innovation Route, not a complete solution-phase PES.
 
 ## Passing engineering gates
 
-- The public parser is locked to `macepol-m`, neutral singlet fixed-conformer
-  MOL2 input, SMD, SCF response, and 1 M to 1 M. PCMSolver and historical
-  profiles remain water-only; pyddx requires an explicit exact profile, and
-  only `smd-ddpcm-l15-n1202-multisolv-v1` accepts the 11 registered solvents.
+- The Route-2 parser is locked to `macepol-m`, a parity-consistent neutral
+  singlet fixed conformer, SMD, SCF response, and 1 M to 1 M. Canonical
+  element-radius profiles accept XYZ/inline/MOL2 geometry; only GAFF/GAFF2
+  radius profiles require MOL2 atom types. Experimental GBSA and gas-phase
+  charge APIs remain available outside Route 2. PCMSolver water profiles remain
+  water-only; pyddx requires an explicit exact profile, and only `smd-ddpcm-l15-n1202-multisolv-v1` accepts
+  the 11 registered solvents.
 - The official MACE-POLAR-1-M checkpoint loads through the upstream cache with
   `mace-torch==0.3.16`; MAPLE changes no learned weight and requires float64.
 - The PCMSolver v1.1.12-style C binding, matching Python parser, custom SMD
@@ -581,6 +584,13 @@ Research/Innovation Route, not a complete solution-phase PES.
     float64; no PCMSolver or `primary` warning occurred. A passing public
     artifact must record its Git commit, a clean tracked working tree, no dirty
     development override, and separate warning categories.
+
+    The corrected evaluator now owns an explicit coordinate-transform
+    derivative contract. Synthetic non-translation-invariant scalar, force,
+    density-pairing, and Hessian oracles verify the centering VJP and the
+    double-sided Hessian pullback against finite differences or direct matrix
+    projection. Earlier fixed-box derivative artifacts remain bound to their
+    execution commits and must not be used to certify the corrected pullback.
 29. The frozen bounded QM-fidelity pilot
     `benchmarks/route2-qm-fidelity-v1.json` compares three identical fixed
     geometries against self-consistent PySCF 2.13.1 SMD/water at
@@ -861,11 +871,12 @@ Research/Innovation Route, not a complete solution-phase PES.
     nonpolar model, and solvent parameters in immutable profile/solvent
     records. It uses PySCF 2.13.1 solvent descriptors, including the
     solvent-acidity-dependent SMD oxygen radius and the tested P/S/Cl mapping
-    (`2.12/2.49/2.38 angstrom`), without changing the historical water
-    profiles and their frozen legacy P/S/Cl mapping.
+    (`2.12/2.49/2.38 angstrom`). Current water profiles now use that same
+    corrected atomic-number-indexed mapping; artifacts generated with the old
+    shifted mapping remain commit-bound and are stale for the corrected method.
 
     Registry immutability, aliases, provider/profile gating, dielectric/CDS
-    routing, historical-profile compatibility, and exact descriptor/radius
+    routing, corrected water-profile radii, and exact descriptor/radius
     agreement with the tested PySCF runtime are covered by executable tests.
     No immutable multi-solvent chemical-accuracy artifact is frozen yet.
     Therefore this stage establishes a capability boundary only, not a

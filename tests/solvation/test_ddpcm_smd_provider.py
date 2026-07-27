@@ -1014,7 +1014,11 @@ def test_multisolvent_water_dielectric_is_versioned_from_legacy_water(
     assert multisolv.continuum_dielectric == pytest.approx(78.355)
     assert (
         legacy.profile_spec.coulomb_radii_policy
-        == "legacy-route2-water-v1"
+        == "smd-water-reference-smd18-v1"
+    )
+    assert legacy.provenance["cavity_radii"] == (
+        "SMD/SMD18 atomic-number-indexed water Coulomb radii "
+        "(P=2.12 A, S=2.49 A, Cl=2.38 A)"
     )
     assert (
         multisolv.profile_spec.coulomb_radii_policy

@@ -170,7 +170,7 @@ def test_ddpcm_and_ddcosmo_profiles_change_only_the_continuum_equation():
     )
 
 
-def test_historical_water_profile_keeps_its_frozen_legacy_radii():
+def test_water_profile_uses_atomic_number_indexed_smd_reference_radii():
     radii = route2_coulomb_radii(
         ["P", "S", "Cl"],
         solvent="water",
@@ -179,7 +179,7 @@ def test_historical_water_profile_keeps_its_frozen_legacy_radii():
 
     np.testing.assert_allclose(
         radii,
-        [2.47, 2.12, 2.49],
+        [2.12, 2.49, 2.38],
         rtol=0.0,
         atol=1.0e-12,
     )

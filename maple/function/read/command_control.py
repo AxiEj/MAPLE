@@ -522,6 +522,7 @@ class CommandControl:
             if explicit is None and implicit is None:
                 # Backward-compatible interpretation:
                 #   #solv(method=smd, solvent=water)  -> implicit solvent
+                #   #solv(method=gbsa, solvent=water) -> implicit solvent
                 #   #solv(solvent=water)              -> explicit solvent
                 target = "implicit" if solv_params.get("method") else "explicit"
                 solv_params[target] = solvent_alias
@@ -546,8 +547,8 @@ class CommandControl:
         if method is not None:
             method = str(method).lower()
             solv_params["method"] = method
-            if method != "smd":
-                msg = "The Route-2 branch supports implicit method='smd' only."
+            if method not in {"gbsa", "smd"}:
+                msg = "Implicit solvation method must be 'gbsa' or 'smd'."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -557,16 +558,23 @@ class CommandControl:
             raise ValueError(msg)
 
         if implicit is not None:
-            if method != "smd":
-                msg = "Route-2 implicit solvation requires method=smd."
+            if method not in {"gbsa", "smd"}:
+                msg = "Implicit solvation requires method=gbsa or method=smd."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            try:
-                implicit = normalize_route2_solvent_name(implicit)
-            except ValueError as exc:
-                msg = str(exc)
+            if str(implicit).strip().lower() in {"", "none"}:
+                msg = "Implicit solvation requires a real solvent name, not 'none'."
                 cls._log_error(output_path, msg)
-                raise ValueError(msg) from exc
+                raise ValueError(msg)
+            if method == "smd":
+                try:
+                    implicit = normalize_route2_solvent_name(implicit)
+                except ValueError as exc:
+                    msg = str(exc)
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg) from exc
+            else:
+                implicit = str(implicit).strip().lower()
             solv_params["implicit"] = implicit
             if solv_params.get("experimental") is not True:
                 msg = (
@@ -609,7 +617,54 @@ class CommandControl:
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
-            charge = params.get("charge", {})
+            if method == "gbsa":
+                provider = solv_params.get("provider")
+                if provider is not None:
+                    provider = str(provider).strip().lower()
+                    if provider in {"", "none", "null", "false", "0"}:
+                        solv_params.pop("provider", None)
+                        provider = None
+                    else:
+                        solv_params["provider"] = provider
+                if provider not in {None, "maple"}:
+                    msg = (
+                        "method=gbsa uses MAPLE's built-in experimental provider; "
+                        "omit provider or use provider=maple."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if task != "sp":
+                    msg = (
+                        "Implicit GB-polar/QEq solvation is currently energy-only "
+                        "and may be used only with task 'sp'."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if int(params.get("verbose", 0)) >= 1:
+                    msg = (
+                        "Implicit GB-polar/QEq solvation is energy-only and supports "
+                        "only #sp(verbose=0); verbose=1 requests gradients/forces."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                allowed_gbsa_options = {
+                    "method",
+                    "implicit",
+                    "experimental",
+                    "provider",
+                }
+                gbsa_conflicts = sorted(
+                    set(solv_params).difference(allowed_gbsa_options)
+                )
+                if gbsa_conflicts:
+                    msg = (
+                        "Implicit GBSA does not accept Route-2 or explicit-solvent "
+                        "options: " + ", ".join(gbsa_conflicts) + "."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                return
+
             if method == "smd":
                 provider = str(
                     solv_params.get("provider", "pcmsolver")
@@ -789,14 +844,14 @@ class CommandControl:
 
         if method is not None:
             msg = (
-                "method=smd requires implicit=<supported-solvent>; "
+                f"method={method} requires implicit=<solvent>; "
                 "omit method for explicit solvent."
             )
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 
         if "experimental" in solv_params:
-            msg = "experimental is only valid with the Route-2 SMD configuration."
+            msg = "experimental is only valid with an implicit solvent method."
             cls._log_error(output_path, msg)
             raise ValueError(msg)
 
@@ -1004,10 +1059,6 @@ class CommandControl:
         # and validates class OPTION_KEYS before construction.
         cls._validate_unknown_params(params, task, output_path)
         cls._validate_solvation(params, task, output_path)
-        if "charge" in params:
-            msg = "Route 2 obtains its charge density from MACE-POLAR; remove #charge(...)."
-            cls._log_error(output_path, msg)
-            raise ValueError(msg)
 
         if "gpuid" in params and params["gpuid"] is not None and not isinstance(params["gpuid"], int):
             cls._log_error(output_path, "GPU ID must be an integer.")

@@ -146,7 +146,8 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "pyscf.solvent.smd.get_cds_legacy" in validation
     assert "position gradient, not force" in formulas
     assert "\\mathcal L^{(\\mathrm{recip},40)}" in formulas
-    assert "ordinary autograd" in formulas
+    assert "coordinate-transform pullback" in formulas
+    assert "both sides of a Cartesian Hessian" in formulas
     assert "arbitrary box lengths fail closed" in formulas
     assert "loader-only manifest is not retained" in roadmap
     assert "CDS-only component gate" in validation

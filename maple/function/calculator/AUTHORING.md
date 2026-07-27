@@ -109,10 +109,13 @@ class FooCalculator(CalcABC):
 - `_finalize_results` is the only CalcABC composition point for additive
   solvent energy. Custom calculators do not call the continuum provider
   directly in their `calculate()` flow.
-- This branch implements only Route-2 `smd`. The default and historical
-  profiles remain water-only; the explicit versioned multi-solvent pyddx
-  profile accepts only its registered solvent set. `SetCalculator` installs
-  `ImplicitSolvationCorrection` after constructing official MACE-POLAR-1-M.
+- The existing experimental `gbsa`/QEq route remains calculator-owned.
+  Route-2 `smd` is a separate factory-managed route: the default and
+  historical profiles remain water-only, while the explicit versioned
+  multi-solvent pyddx profile accepts only its registered solvent set.
+  `SetCalculator` validates the chemical domain before model discovery and
+  installs `ImplicitSolvationCorrection` after constructing official
+  MACE-POLAR-1-M. Direct SMD calculator construction fails closed.
 - `route2_smd_profiles.py` is the single registry binding continuum provider,
   cavity variant, and MACE long-range evaluator. Parser, builder, calculator,
   and provider must consume that registry rather than duplicating profile

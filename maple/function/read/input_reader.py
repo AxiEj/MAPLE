@@ -18,6 +18,7 @@ from .header.header import print_banner
 from maple.function.utility import Molecules
 from maple.function.timer import timer
 from maple.function.dispatcher.md.logger import _backup_file
+from maple.function.route2_smd_profiles import route2_smd_profile_spec
 
 class InputReader():
     def __init__(self):
@@ -239,28 +240,42 @@ class InputReader():
 
         implicit_options = self.command_control.params.get("solv", {})
         if isinstance(implicit_options, dict) and implicit_options.get("implicit") is not None:
-            if isinstance(atoms_or_list, list):
-                raise ValueError("Implicit solvation currently accepts exactly one MOL2 molecule.")
-            if "mol2" not in atoms_or_list.info:
-                raise ValueError(
-                    "Implicit solvation requires a MOL2 coordinate source; XYZ/inline coordinates "
-                    "do not contain the explicit topology/parameter identity contract."
-                )
-            if "charge" not in atoms_or_list.info or "mult" not in atoms_or_list.info:
-                raise ValueError(
-                    "Implicit solvation requires an explicit '0 1' charge/multiplicity line "
-                    "immediately before the MOL2 reference."
-                )
-            if atoms_or_list.info["charge"] != 0 or atoms_or_list.info["mult"] != 1:
-                raise ValueError(
-                    "The first implicit-solvation domain is neutral closed-shell molecules "
-                    "with charge/multiplicity '0 1'."
-                )
-            atoms_or_list.info["_maple_charge_options"] = dict(
-                self.command_control.params.get("charge", {})
+            implicit_method = str(implicit_options.get("method", "")).lower()
+            targets = (
+                atoms_or_list
+                if isinstance(atoms_or_list, list)
+                else [atoms_or_list]
             )
-            atoms_or_list.info["_maple_solvation_options"] = dict(implicit_options)
-            atoms_or_list.info["_maple_output"] = self.output
+            if implicit_method == "smd":
+                if len(targets) != 1:
+                    raise ValueError(
+                        "Route 2 SMD currently accepts exactly one molecule."
+                    )
+                atoms = targets[0]
+                profile = route2_smd_profile_spec(
+                    implicit_options.get("profile", "smd-iefpcm")
+                )
+                if profile.uses_gaff2_carbonyl_oxygen and "mol2" not in atoms.info:
+                    raise ValueError(
+                        f"Route 2 profile={profile.name} requires a MOL2 coordinate "
+                        "source with explicit GAFF/GAFF2 atom types."
+                    )
+                if "charge" not in atoms.info or "mult" not in atoms.info:
+                    raise ValueError(
+                        "Route 2 SMD requires an explicit '0 1' charge/multiplicity "
+                        "line before the coordinate source."
+                    )
+                if atoms.info["charge"] != 0 or atoms.info["mult"] != 1:
+                    raise ValueError(
+                        "The first Route-2 SMD domain is neutral closed-shell "
+                        "molecules with charge/multiplicity '0 1'."
+                    )
+            for atoms in targets:
+                atoms.info["_maple_charge_options"] = dict(
+                    self.command_control.params.get("charge", {})
+                )
+                atoms.info["_maple_solvation_options"] = dict(implicit_options)
+                atoms.info["_maple_output"] = self.output
         
         # === Step 3: Expand post-processing commands (handle POST references) ===
         with timer("Post-Processing Expansion"):

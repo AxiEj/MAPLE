@@ -66,6 +66,7 @@ IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES = {
 ROUTE2_SMD_CALCULATOR_PROFILE = (
     "official-mace-polar-1-m/float64/local-gto-reaction-field/v1"
 )
+_IMPLICIT_SOLVENT_FACTORY_TOKEN = object()
 
 
 def reject_implicit_solvent_derivatives(calculator, properties):

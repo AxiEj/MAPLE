@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from maple.function.read.input_reader import InputReader
 
 
@@ -26,7 +28,7 @@ def test_input_reader_accepts_charge_mult_then_mol2(water_mol2, tmp_path):
     assert atoms.info["_maple_solvation_options"]["profile"] == "smd-iefpcm"
 
 
-def test_implicit_input_rejects_xyz_even_when_charge_method_can_use_geometry(tmp_path):
+def test_canonical_route2_profile_accepts_xyz_with_explicit_domain_metadata(tmp_path):
     xyz = tmp_path / "water.xyz"
     xyz.write_text("3\nwater\nO 0 0 0\nH .96 0 0\nH -.24 .93 0\n")
     inp = tmp_path / "job.inp"
@@ -41,12 +43,58 @@ def test_implicit_input_rejects_xyz_even_when_charge_method_can_use_geometry(tmp
             ]
         )
     )
-    try:
+    atoms = InputReader()(str(inp), str(tmp_path / "job.out"))
+
+    assert atoms.info["charge"] == 0
+    assert atoms.info["mult"] == 1
+    assert "mol2" not in atoms.info
+    assert atoms.info["_maple_solvation_options"]["profile"] == "smd-iefpcm"
+
+
+def test_gaff2_route2_profile_still_requires_mol2_topology(tmp_path):
+    xyz = tmp_path / "water.xyz"
+    xyz.write_text("3\nwater\nO 0 0 0\nH .96 0 0\nH -.24 .93 0\n")
+    inp = tmp_path / "job.inp"
+    inp.write_text(
+        "\n".join(
+            [
+                "#model=macepol-m",
+                (
+                    "#solv(implicit=water,method=smd,"
+                    "profile=smd-iefpcm-gaff2-o,experimental=true)"
+                ),
+                "",
+                "0 1",
+                f"XYZ {xyz}",
+            ]
+        )
+    )
+
+    with pytest.raises(ValueError, match="requires a MOL2"):
         InputReader()(str(inp), str(tmp_path / "job.out"))
-    except ValueError as exc:
-        assert "requires a MOL2" in str(exc)
-    else:
-        raise AssertionError("Implicit XYZ input should fail closed")
+
+
+def test_gbsa_xyz_input_does_not_inherit_route2_topology_or_singlet_rules(tmp_path):
+    xyz = tmp_path / "water.xyz"
+    xyz.write_text("3\nwater\nO 0 0 0\nH .96 0 0\nH -.24 .93 0\n")
+    inp = tmp_path / "job.inp"
+    inp.write_text(
+        "\n".join(
+            [
+                "#model=aimnet2",
+                "#sp",
+                "#solv(implicit=water,method=gbsa,experimental=true)",
+                "",
+                f"XYZ {xyz}",
+            ]
+        )
+    )
+
+    atoms = InputReader()(str(inp), str(tmp_path / "job.out"))
+
+    assert "charge" not in atoms.info
+    assert "mult" not in atoms.info
+    assert atoms.info["_maple_solvation_options"]["method"] == "gbsa"
 
 
 def test_implicit_mol2_requires_explicit_neutral_closed_shell_line(water_mol2, tmp_path):

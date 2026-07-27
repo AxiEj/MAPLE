@@ -22,6 +22,7 @@ from maple.function.calculator.mace._macepol_long_range import (
     MACEPolarLongRangeEvaluator,
 )
 from maple.function.route2_smd_profiles import (
+    MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
 
@@ -118,7 +119,9 @@ class _PositionFieldModel:
         compute_force,
         compute_stress,
         compute_hessian,
+        use_pbc_evaluator=None,
     ):
+        del use_pbc_evaluator
         assert compute_stress is False
         assert compute_hessian is False
         positions = batch["positions"]
@@ -155,7 +158,9 @@ class _PositionDependentDensityModel:
         compute_force,
         compute_stress,
         compute_hessian,
+        use_pbc_evaluator=None,
     ):
+        del use_pbc_evaluator
         assert compute_force is False
         assert compute_stress is False
         assert compute_hessian is False
@@ -352,6 +357,32 @@ def test_polar_state_copies_immutable_numpy_field_inputs_without_warning(
         "not writable" in str(item.message)
         for item in caught
     )
+
+
+@pytest.mark.parametrize(
+    ("field", "message"),
+    [
+        ("energy", "non-finite energy"),
+        ("density_coefficients", "finite MACE-POLAR"),
+        ("dipole", "finite three-component dipole"),
+    ],
+)
+def test_polar_state_rejects_nonfinite_model_outputs(field, message):
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _QuadraticFieldModel(recorder),
+        recorder,
+    )
+    output = {
+        "energy": torch.zeros(1, dtype=torch.float64),
+        "density_coefficients": torch.zeros((1, 4), dtype=torch.float64),
+        "dipole": torch.zeros((1, 3), dtype=torch.float64),
+    }
+    output[field] = output[field].clone()
+    output[field].reshape(-1)[0] = torch.nan
+
+    with pytest.raises(RuntimeError, match=message):
+        calculator._polar_state_from_output(output)
 
 
 def test_mace_projection_spec_is_read_from_the_loaded_checkpoint():
@@ -715,6 +746,79 @@ def test_polar_state_returns_fixed_local_field_force_matching_energy_difference(
     )
 
 
+def test_fixed_box_force_pullback_matches_centered_energy_difference():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _PositionFieldModel(recorder),
+        recorder,
+    )
+    calculator._long_range_evaluator = (
+        MACEPolarLongRangeEvaluator.from_profile(
+            MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+        )
+    )
+
+    def centered_batch(atoms):
+        positions = atoms.get_positions()
+        positions = positions - np.mean(positions, axis=0, keepdims=True)
+        return {
+            "positions": torch.tensor(
+                positions,
+                dtype=torch.float64,
+                requires_grad=True,
+            )
+        }
+
+    calculator._batch_dict = centered_batch
+    atoms = Atoms(
+        "OH",
+        positions=[[0.1, -0.2, 0.3], [-0.4, 0.5, -0.6]],
+    )
+    potential = np.asarray([0.2, -0.1])
+    gradient = np.asarray(
+        [[0.3, -0.4, 0.5], [-0.6, 0.7, -0.8]],
+    )
+
+    state, _ = calculator.polar_state(
+        atoms,
+        node_potential_ev=potential,
+        node_gradient_ev_per_angstrom=gradient,
+        compute_forces=True,
+    )
+    analytic = state.fixed_field_forces_ev_per_angstrom
+    assert analytic is not None
+
+    step_angstrom = 1.0e-6
+    finite_difference = np.zeros_like(atoms.positions)
+    for atom_index in range(len(atoms)):
+        for axis in range(3):
+            plus = atoms.copy()
+            minus = atoms.copy()
+            plus.positions[atom_index, axis] += step_angstrom
+            minus.positions[atom_index, axis] -= step_angstrom
+            plus_state, _ = calculator.polar_state(
+                plus,
+                node_potential_ev=potential,
+                node_gradient_ev_per_angstrom=gradient,
+            )
+            minus_state, _ = calculator.polar_state(
+                minus,
+                node_potential_ev=potential,
+                node_gradient_ev_per_angstrom=gradient,
+            )
+            finite_difference[atom_index, axis] = -(
+                plus_state.energy_ev - minus_state.energy_ev
+            ) / (2.0 * step_angstrom)
+
+    np.testing.assert_allclose(
+        analytic,
+        finite_difference,
+        rtol=1.0e-9,
+        atol=1.0e-9,
+    )
+    np.testing.assert_allclose(np.sum(analytic, axis=0), 0.0, atol=1.0e-15)
+
+
 def test_density_position_vjp_matches_exact_fixed_field_coordinate_derivative():
     recorder = _FieldRecorder()
     calculator = _calculator_with_model(
@@ -749,6 +853,88 @@ def test_density_position_vjp_matches_exact_fixed_field_coordinate_derivative():
 
     np.testing.assert_allclose(analytic, expected, rtol=1.0e-13, atol=1.0e-13)
     assert batch_positions.requires_grad is False
+    assert recorder.values is None
+
+
+def test_fixed_box_density_vjp_matches_centered_pairing_difference():
+    recorder = _FieldRecorder()
+    calculator = _calculator_with_model(
+        _PositionDependentDensityModel(recorder),
+        recorder,
+    )
+    calculator._long_range_evaluator = (
+        MACEPolarLongRangeEvaluator.from_profile(
+            MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+        )
+    )
+
+    def centered_batch(atoms):
+        positions = atoms.get_positions()
+        positions = positions - np.mean(positions, axis=0, keepdims=True)
+        return {
+            "positions": torch.tensor(
+                positions,
+                dtype=torch.float64,
+            )
+        }
+
+    calculator._batch_dict = centered_batch
+    atoms = Atoms(
+        "OH",
+        positions=[[0.1, -0.2, 0.3], [-0.4, 0.5, -0.6]],
+    )
+    potential = np.asarray([0.2, -0.1])
+    gradient = np.asarray(
+        [[0.3, -0.4, 0.5], [-0.6, 0.7, -0.8]],
+    )
+    cotangent = np.asarray(
+        [[0.7, -0.2, 0.4, -0.6], [-0.3, 0.8, -0.5, 0.9]],
+    )
+
+    analytic = calculator.density_position_vjp(
+        atoms,
+        node_potential_ev=potential,
+        node_gradient_ev_per_angstrom=gradient,
+        density_cotangent=cotangent,
+    )
+
+    def density_pairing(target):
+        output = calculator.polar_output_torch(
+            target,
+            node_potential_ev=torch.as_tensor(
+                potential,
+                dtype=torch.float64,
+            ),
+            node_gradient_ev_per_angstrom=torch.as_tensor(
+                gradient,
+                dtype=torch.float64,
+            ),
+        )
+        density = np.asarray(
+            output["density_coefficients"].detach().cpu(),
+            dtype=float,
+        )
+        return float(np.vdot(cotangent, density))
+
+    step_angstrom = 1.0e-6
+    finite_difference = np.zeros_like(atoms.positions)
+    for atom_index in range(len(atoms)):
+        for axis in range(3):
+            plus = atoms.copy()
+            minus = atoms.copy()
+            plus.positions[atom_index, axis] += step_angstrom
+            minus.positions[atom_index, axis] -= step_angstrom
+            finite_difference[atom_index, axis] = (
+                density_pairing(plus) - density_pairing(minus)
+            ) / (2.0 * step_angstrom)
+
+    np.testing.assert_allclose(
+        analytic,
+        finite_difference,
+        rtol=1.0e-9,
+        atol=1.0e-9,
+    )
+    np.testing.assert_allclose(np.sum(analytic, axis=0), 0.0, atol=1.0e-15)
     assert recorder.values is None
 
 

@@ -83,7 +83,10 @@ MOL2 molecule.mol2
 The omitted locked defaults are `provider=pcmsolver` and
 `profile=smd-iefpcm`.  `response=scf` is the public default;
 `response=frozen` is retained only as a diagnostic that solves PCM once from
-the gas-phase density. The omitted cavity default is
+the gas-phase density. Canonical element-radius profiles also accept
+XYZ/inline geometry when the explicit `0 1` domain metadata is present;
+only a profile whose identity includes a GAFF/GAFF2 radius override requires
+MOL2 atom types. The omitted cavity default is
 `cavity_policy=warning-fallback`: it may retry a warned primary GePol cavity
 and is fixed-conformer energy infrastructure only. The explicit research
 option `cavity_policy=fixed-stability-branch` instead selects
@@ -151,10 +154,11 @@ water, methanol, ethanol, acetonitrile, dimethyl sulfoxide,
 dimethylformamide, tetrahydrofuran, chloroform, dichloromethane, toluene, and
 hexane. The profile uses each solvent's tabulated dielectric, the
 solvent-acidity-dependent SMD oxygen radius, the tested PySCF element-radius
-mapping, and the matching PySCF SMD CDS energy/gradient. Historical water
-profiles retain their original `78.39` dielectric and frozen radius table,
-including its legacy P/S/Cl mapping, so existing results do not silently
-change.
+mapping, and the matching PySCF SMD CDS energy/gradient. Water-only profiles
+retain their original `78.39` dielectric but now use the corrected
+atomic-number-indexed SMD/SMD18 P/S/Cl radii (`2.12/2.49/2.38 angstrom`).
+Artifacts generated with the former shifted mapping remain bound to their old
+execution commits and are stale evidence for the corrected profile.
 
 The complete scientific identity is printed in provenance:
 `electrostatics_model=ddpcm`, `solute_source=point-multipole-l1`,
@@ -183,7 +187,10 @@ graph_longrange's forced periodic reciprocal-space path by setting
 `use_pbc_evaluator=True`, while `pbc=False` remains unchanged. It is locked to
 `graph_longrange==0.4.0`; a narrow dtype
 bridge casts only the reciprocal molecular-correction field into the
-float64 projection dtype. No learned weight is changed.
+float64 projection dtype. The evaluator also owns the exact chain rule for
+its coordinate transform: every model force or density-position VJP is
+projected by \(I-\mathbf 1\mathbf 1^\mathsf T/N\), and any Cartesian Hessian
+is projected on both sides. No learned weight is changed.
 
 The combined profile is indivisible: free-form `evaluator`, box-length, and
 centering options are rejected, and a molecule that does not fit the 40 Å box
@@ -263,15 +270,25 @@ commonly used 1 atm to 1 M `1.89 kcal/mol` correction.
 
 The current research route is deliberately fail-closed:
 
-- one Tripos MOL2 conformer; single-point evaluation only;
-- neutral closed-shell molecules (`0 1`), no salts, zwitterions, radicals, or
-  periodic cells;
+- one conformer and single-point evaluation only; canonical element-radius
+  profiles accept XYZ/inline/MOL2, while GAFF/GAFF2 radius profiles require
+  MOL2 atom types;
+- explicitly declared neutral closed-shell molecules (`0 1`), one connected
+  component, no radicals or periodic cells;
 - H/C/N/O/F/P/S/Cl/Br/I and molecular mass from 16 through 500 Da;
 - the default and historical profiles remain water-only; only the explicitly
   named multi-solvent pyddx profile accepts its 11 registered solvents;
   optimization, Hessian, scan, TS search, and MD remain disabled;
 - exact official MACE-POLAR-1-M only; `#charge`, D4, other models, and
   unlisted continuum providers are rejected.
+
+The MOL2 path additionally rejects the formally charged Tripos types currently
+covered by the Route-2 domain screen, including the registered salt/zwitterion
+markers. XYZ and inline coordinates contain no per-atom formal-charge or
+bond-order contract, so accepting them for canonical element-radius profiles does
+**not** prove that a latent zwitterionic assignment is absent. A study that
+requires strict zwitterion exclusion must supply topology-aware formal-charge
+metadata; MAPLE does not infer formal charges from Cartesian distances.
 
 The derivative capability boundary is likewise explicit:
 

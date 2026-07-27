@@ -22,11 +22,20 @@ MOL2_CHARGE_TOL = 1.0e-4
 
 def _element_from_mol2(atom_name: str, atom_type: str) -> str:
     token = atom_type.split(".", 1)[0].strip()
-    # Preserve an explicit, case-correct Tripos element token first.  Lowercase
-    # GAFF/GAFF2 types such as ``ho`` and ``ca`` are force-field labels, not Ho
-    # or Ca element symbols, so atom names must take precedence over title-casing
-    # those labels.
-    candidates = [token, atom_name[:2].capitalize(), atom_name[:1].upper(), token.capitalize()]
+    # Preserve an explicit, case-correct Tripos element token. Lowercase
+    # GAFF/GAFF2 tokens are force-field labels: ``ca`` is aromatic carbon and
+    # ``ho`` is hydroxyl hydrogen, while ``cl`` and ``br`` are the two
+    # unambiguous two-letter halogen labels in the supported domain.
+    if token in atomic_numbers:
+        return token
+    if token.islower():
+        if token in {"cl", "br"}:
+            return token.capitalize()
+        candidate = token[:1].upper()
+        if candidate in atomic_numbers:
+            return candidate
+
+    candidates = [atom_name[:1].upper(), atom_name[:2].capitalize()]
     for candidate in candidates:
         if candidate in atomic_numbers:
             return candidate

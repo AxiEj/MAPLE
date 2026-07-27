@@ -34,17 +34,16 @@ SASA_GRID_POINTS = 5810
 GAFF2_CARBONYL_O_RADIUS_ANGSTROM = 1.70
 
 
-# Frozen historical Route-2 mapping. New profiles must select an explicit
-# radii policy rather than silently changing these results.
+# Atomic-number-indexed SMD Coulomb radii for the Route-2 element domain.
 SMD_WATER_COULOMB_RADII_ANGSTROM = {
     "H": 1.20,
     "C": 1.85,
     "N": 1.89,
     "O": 1.52,
     "F": 1.73,
-    "P": 2.47,
-    "S": 2.12,
-    "Cl": 2.49,
+    "P": 2.12,
+    "S": 2.49,
+    "Cl": 2.38,
     # SMD18 revision recommended by the Minnesota solvation database.
     "Br": 2.60,
     "I": 2.74,
@@ -102,6 +101,7 @@ _SWITCH_PARAMETERS = {
     ("C", "Br"): (2.30, 0.30),
     ("C", "I"): (2.60, 0.30),
     ("N", "C"): (1.84, 0.30),
+    ("N", "C3"): (1.225, 0.065),
     ("O", "C"): (1.33, 0.10),
     ("O", "N"): (1.50, 0.30),
     ("O", "O"): (1.80, 0.30),
@@ -112,7 +112,7 @@ _HYDROGEN_CARBON_TENSION_COEFFICIENT = -60.77
 _CARBON_CARBON_TENSION_COEFFICIENT = -72.95
 _NITROGEN_COORDINATION_TENSION_COEFFICIENT = -48.22
 _NITROGEN_COORDINATION_POWER = 1.3
-_NITROGEN_CARBONYL_TENSION_COEFFICIENT = 84.10
+_NITROGEN_SHORT_RANGE_C3_TENSION_COEFFICIENT = 84.10
 _OXYGEN_TENSION_COEFFICIENTS = {
     "C": 68.69,
     "N": 121.98,
@@ -193,7 +193,10 @@ def route2_coulomb_radii(
             f"solvent={solvent_spec.name}."
         )
 
-    if profile_spec.coulomb_radii_policy == "legacy-route2-water-v1":
+    if (
+        profile_spec.coulomb_radii_policy
+        == "smd-water-reference-smd18-v1"
+    ):
         radii = np.asarray(
             [
                 SMD_WATER_COULOMB_RADII_ANGSTROM[symbol]
@@ -333,31 +336,29 @@ def aqueous_atomic_surface_tensions(
 
         if symbol == "N":
             t_nc = 0.0
-            t_nc_carbonyl = 0.0
+            t_nc3 = 0.0
             for j, other in enumerate(symbols):
                 if other != "C":
                     continue
                 carbon_environment = 0.0
-                carbon_oxygen_environment = 0.0
                 for k, neighbor in enumerate(symbols):
                     if k in {i, j}:
                         continue
                     parameters = _SWITCH_PARAMETERS.get(("C", neighbor), (0.0, 0.0))
                     if parameters[1] > 0.0:
-                        coordination = _switch(distances[j, k], *parameters)
-                        carbon_environment += coordination
-                        if neighbor == "O":
-                            carbon_oxygen_environment += coordination
+                        carbon_environment += _switch(distances[j, k], *parameters)
                 nc_coordination = _switch(
                     distances[i, j], *_SWITCH_PARAMETERS[("N", "C")]
                 )
                 t_nc += nc_coordination * carbon_environment**2
-                t_nc_carbonyl += nc_coordination * carbon_oxygen_environment
+                t_nc3 += _switch(
+                    distances[i, j], *_SWITCH_PARAMETERS[("N", "C3")]
+                )
             tensions[i] = (
                 tension
                 + _NITROGEN_COORDINATION_TENSION_COEFFICIENT
                 * t_nc**_NITROGEN_COORDINATION_POWER
-                + _NITROGEN_CARBONYL_TENSION_COEFFICIENT * t_nc_carbonyl
+                + _NITROGEN_SHORT_RANGE_C3_TENSION_COEFFICIENT * t_nc3
             )
             continue
 
@@ -477,12 +478,10 @@ def aqueous_atomic_surface_tension_position_vjp(
         if symbol == "N":
             carbon_branches = []
             t_nc = 0.0
-            t_nc_carbonyl = 0.0
             for j, other in enumerate(symbols):
                 if other != "C":
                     continue
                 carbon_environment = 0.0
-                carbon_oxygen_environment = 0.0
                 environment_branches = []
                 for k, neighbor in enumerate(symbols):
                     if k in {i, j}:
@@ -500,24 +499,17 @@ def aqueous_atomic_surface_tension_position_vjp(
                         )
                     )
                     carbon_environment += coordination
-                    is_oxygen = neighbor == "O"
-                    if is_oxygen:
-                        carbon_oxygen_environment += coordination
-                    environment_branches.append(
-                        (k, coordination_derivative, is_oxygen)
-                    )
+                    environment_branches.append((k, coordination_derivative))
                 nc_coordination, nc_derivative = switch(i, j, ("N", "C"))
+                _, nc3_derivative = switch(i, j, ("N", "C3"))
                 t_nc += nc_coordination * carbon_environment**2
-                t_nc_carbonyl += (
-                    nc_coordination * carbon_oxygen_environment
-                )
                 carbon_branches.append(
                     (
                         j,
                         nc_coordination,
                         nc_derivative,
+                        nc3_derivative,
                         carbon_environment,
-                        carbon_oxygen_environment,
                         environment_branches,
                     )
                 )
@@ -533,16 +525,23 @@ def aqueous_atomic_surface_tension_position_vjp(
                 j,
                 nc_coordination,
                 nc_derivative,
+                nc3_derivative,
                 carbon_environment,
-                carbon_oxygen_environment,
                 environment_branches,
             ) in carbon_branches:
-                nc_cotangent = objective_cotangent * (
-                    t_nc_gradient * carbon_environment**2
-                    + _NITROGEN_CARBONYL_TENSION_COEFFICIENT
-                    * carbon_oxygen_environment
+                nc_cotangent = (
+                    objective_cotangent
+                    * t_nc_gradient
+                    * carbon_environment**2
                 )
-                add_pair(i, j, nc_cotangent * nc_derivative)
+                add_pair(
+                    i,
+                    j,
+                    nc_cotangent * nc_derivative
+                    + objective_cotangent
+                    * _NITROGEN_SHORT_RANGE_C3_TENSION_COEFFICIENT
+                    * nc3_derivative,
+                )
 
                 environment_cotangent = (
                     objective_cotangent
@@ -551,23 +550,11 @@ def aqueous_atomic_surface_tension_position_vjp(
                     * 2.0
                     * carbon_environment
                 )
-                oxygen_environment_cotangent = (
-                    objective_cotangent
-                    * _NITROGEN_CARBONYL_TENSION_COEFFICIENT
-                    * nc_coordination
-                )
-                for (
-                    k,
-                    coordination_derivative,
-                    is_oxygen,
-                ) in environment_branches:
-                    branch_cotangent = environment_cotangent
-                    if is_oxygen:
-                        branch_cotangent += oxygen_environment_cotangent
+                for k, coordination_derivative in environment_branches:
                     add_pair(
                         j,
                         k,
-                        branch_cotangent * coordination_derivative,
+                        environment_cotangent * coordination_derivative,
                     )
             continue
 

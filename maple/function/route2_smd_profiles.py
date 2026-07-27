@@ -71,7 +71,7 @@ class Route2SMDProfileSpec:
         "pyscf-smd-2.13.1",
     ]
     coulomb_radii_policy: Literal[
-        "legacy-route2-water-v1",
+        "smd-water-reference-smd18-v1",
         "pyscf-smd-2.13.1",
     ]
     supported_solvents: frozenset[str]
@@ -102,7 +102,7 @@ _PROFILE_SPECS = {
         model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="native-water-smd-cds",
         dielectric_policy="pcmsolver-water-keyword",
-        coulomb_radii_policy="legacy-route2-water-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
     ),
     GAFF2_CARBONYL_O_PROFILE: Route2SMDProfileSpec(
@@ -116,7 +116,7 @@ _PROFILE_SPECS = {
         model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="native-water-smd-cds",
         dielectric_policy="pcmsolver-water-keyword",
-        coulomb_radii_policy="legacy-route2-water-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
     ),
     PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE: Route2SMDProfileSpec(
@@ -130,7 +130,7 @@ _PROFILE_SPECS = {
         model_field_gauge="atomic-center-mean-zero-v1",
         nonpolar_model="native-water-smd-cds",
         dielectric_policy="pcmsolver-water-keyword",
-        coulomb_radii_policy="legacy-route2-water-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
     ),
     PCMSOLVER_EXACT_GTO_FIELD_PROFILE: Route2SMDProfileSpec(
@@ -144,7 +144,7 @@ _PROFILE_SPECS = {
         model_field_gauge="atomic-center-mean-zero-v1",
         nonpolar_model="native-water-smd-cds",
         dielectric_policy="pcmsolver-water-keyword",
-        coulomb_radii_policy="legacy-route2-water-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
     ),
     DDPCM_SMD_PROFILE: Route2SMDProfileSpec(
@@ -158,7 +158,7 @@ _PROFILE_SPECS = {
         model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="legacy-water-78.39",
-        coulomb_radii_policy="legacy-route2-water-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
     ),
     DDPCM_MULTISOLVENT_SMD_PROFILE: Route2SMDProfileSpec(
@@ -200,7 +200,7 @@ _PROFILE_SPECS = {
         model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="legacy-water-78.39",
-        coulomb_radii_policy="legacy-route2-water-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
     ),
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE: Route2SMDProfileSpec(
@@ -216,7 +216,7 @@ _PROFILE_SPECS = {
         model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="legacy-water-78.39",
-        coulomb_radii_policy="legacy-route2-water-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
     ),
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE: Route2SMDProfileSpec(
@@ -232,7 +232,7 @@ _PROFILE_SPECS = {
         model_field_gauge="continuum-zero-at-infinity",
         nonpolar_model="pyscf-smd-cds",
         dielectric_policy="legacy-water-78.39",
-        coulomb_radii_policy="legacy-route2-water-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
         ddpcm_n_proc=4,
     ),

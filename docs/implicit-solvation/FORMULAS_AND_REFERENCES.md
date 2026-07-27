@@ -85,15 +85,16 @@ fallback fails closed.
 
 | H | C | N | O | F | P | S | Cl | Br | I |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1.20 | 1.85 | 1.89 | 1.52 | 1.73 | 2.47 | 2.12 | 2.49 | 2.60 | 2.74 |
+| 1.20 | 1.85 | 1.89 | 1.52 | 1.73 | 2.12 | 2.49 | 2.38 | 2.60 | 2.74 |
 
-This is the frozen historical Route-2 water-v1 table; existing profiles retain
-it so their numerical results do not change. The new
-`smd-ddpcm-l15-n1202-multisolv-v1` profile instead follows the tested PySCF
-2.13.1 SMD element mapping, in which P/S/Cl are
-`2.12/2.49/2.38 angstrom`, and applies the published
-solvent-acidity-dependent oxygen radius. In both tables, Br and I use the
-revised Minnesota values.
+This is the atomic-number-indexed SMD/SMD18 reference table used by current
+water profiles. The former Route-2 table had shifted the unsupported Si value
+onto P and the following entries; results produced with that mapping are tied
+to their historical execution commits and are stale evidence for the corrected
+method. The `smd-ddpcm-l15-n1202-multisolv-v1` profile uses the same tested
+PySCF 2.13.1 element mapping and additionally applies the published
+solvent-acidity-dependent oxygen radius. Br and I use the revised Minnesota
+values.
 
 ### Polarizable response
 
@@ -234,11 +235,15 @@ profile energy:
 \frac{\partial E}{\partial\widetilde{\mathbf R}_j}.
 \]
 
-MAPLE obtains this projection through ordinary autograd; it does not apply a
-post-hoc force or torque correction. The adapter also casts only the upstream
-reciprocal molecular-correction field to the float64 projection-matrix dtype.
-This is a numerical compatibility bridge, not a new physical term or a claim
-of an upstream dtype defect.
+The upstream model creates its coordinate autograd leaf after this centering
+operation, so MAPLE's evaluator adapter explicitly owns the corresponding
+coordinate-transform pullback. It applies the centering projector to every
+MACE force or density-position cotangent and applies the same projector on
+both sides of a Cartesian Hessian. This is the chain rule for the declared
+profile, not a post-hoc zero-force or zero-torque repair. The adapter also
+casts only the upstream reciprocal molecular-correction field to the float64
+projection-matrix dtype. This is a numerical compatibility bridge, not a new
+physical term or a claim of an upstream dtype defect.
 
 Because \(\mathcal L^{(\mathrm{real})}\) and
 \(\mathcal L^{(\mathrm{recip},40)}\) are different finite numerical operators,

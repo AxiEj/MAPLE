@@ -207,6 +207,32 @@ class PyDDXSMDImplicitSolvation:
                     "ddpcm_eta": DDPCM_ETA,
                 }
             )
+        if self.profile_spec.uses_gaff2_carbonyl_oxygen:
+            cavity_radii_provenance = (
+                "SMD Coulomb radii with GAFF/GAFF2 carbonyl oxygen "
+                "(atom type o) overridden to 1.70 A"
+            )
+        elif (
+            self.profile_spec.coulomb_radii_policy
+            == "pyscf-smd-2.13.1"
+        ):
+            cavity_radii_provenance = (
+                "PySCF 2.13.1 SMD solvent-acidity-dependent Coulomb "
+                "radii with revised Br=2.60 A and I=2.74 A"
+            )
+        elif (
+            self.profile_spec.coulomb_radii_policy
+            == "smd-water-reference-smd18-v1"
+        ):
+            cavity_radii_provenance = (
+                "SMD/SMD18 atomic-number-indexed water Coulomb "
+                "radii (P=2.12 A, S=2.49 A, Cl=2.38 A)"
+            )
+        else:
+            raise RuntimeError(
+                "Unsupported Route-2 Coulomb-radii provenance policy: "
+                f"{self.profile_spec.coulomb_radii_policy!r}."
+            )
         self.provenance = {
             "provider": "pyddx",
             "method": "smd",
@@ -239,20 +265,7 @@ class PyDDXSMDImplicitSolvation:
                 self.profile_spec.strict_original_smd_equivalence
             ),
             "pcm_projection": "atom-centred l<=1 real spherical multipoles",
-            "cavity_radii": (
-                (
-                    "SMD Coulomb radii with GAFF/GAFF2 carbonyl oxygen "
-                    "(atom type o) overridden to 1.70 A"
-                )
-                if self.profile_spec.uses_gaff2_carbonyl_oxygen
-                else (
-                    "PySCF 2.13.1 SMD solvent-acidity-dependent Coulomb "
-                    "radii with revised Br=2.60 A and I=2.74 A"
-                    if self.profile_spec.coulomb_radii_policy
-                    == "pyscf-smd-2.13.1"
-                    else "frozen legacy Route-2 water-v1 Coulomb radii"
-                )
-            ),
+            "cavity_radii": cavity_radii_provenance,
             "mace_long_range_evaluator": (
                 self.profile_spec.mace_long_range_evaluator
             ),

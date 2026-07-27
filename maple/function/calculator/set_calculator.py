@@ -18,11 +18,13 @@ from ..route2_smd_profiles import (
 )
 from ..route2_solvents import normalize_route2_solvent_name
 from .calculator_base import (
+    _IMPLICIT_SOLVENT_FACTORY_TOKEN,
     atoms_has_pbc,
     get_registered_calculator,
     import_calculator_plugin,
     load_calculator_plugins_from_env,
     normalize_none_option,
+    validate_implicit_solvent_choice,
 )
 
 
@@ -150,14 +152,61 @@ class SetCalculator:
         self.log_error(message)
 
     def _validate_solvent_config(self) -> None:
-        self.implicit = normalize_none_option(self.implicit)
-        self.solvent = normalize_none_option(self.solvent)
+        self.implicit, self.solvent = validate_implicit_solvent_choice(
+            self.implicit,
+            self.solvent,
+        )
         if self.implicit == 'none':
+            return
+
+        configured_method = str(
+            self.solvation_options.get('method', '')
+        ).strip().lower()
+        if configured_method != self.implicit:
+            raise ValueError(
+                "Implicit-solvent selector mismatch: "
+                f"implicit={self.implicit!r}, solv.method={configured_method!r}."
+            )
+        if self.solvation_options.get('experimental') is not True:
+            raise ValueError(
+                "Implicit solvation is an uncertified research path; "
+                "set experimental=true explicitly."
+            )
+        if self.atoms is not None and atoms_has_pbc(self.atoms):
+            raise ValueError(
+                "Implicit solvation is non-periodic only; "
+                "remove #pbc or use a periodic solvent backend."
+            )
+
+        if self.implicit == 'gbsa':
+            configured_solvent = normalize_none_option(
+                self.solvation_options.get('implicit', self.solvent)
+            )
+            if configured_solvent != self.solvent:
+                raise ValueError(
+                    "Implicit-solvent selector mismatch: "
+                    f"solvent={self.solvent!r}, "
+                    f"solv.implicit={configured_solvent!r}."
+                )
+            provider = normalize_none_option(
+                self.solvation_options.get('provider')
+            )
+            if provider not in {'none', 'maple'}:
+                raise ValueError(
+                    "method=gbsa uses MAPLE's built-in experimental provider; "
+                    "omit provider or use provider=maple."
+                )
+            if self.model_options.get('hessian') is not None:
+                raise ValueError(
+                    "Experimental implicit GB-polar solvation does not support "
+                    "Hessian/HVP workflows."
+                )
             return
 
         if self.implicit != 'smd':
             raise ValueError(
-                f"The Route-2 branch supports implicit method='smd' only, got {self.implicit!r}."
+                "Unsupported implicit solvation method: "
+                f"{self.implicit!r}; expected 'gbsa' or 'smd'."
             )
         self.solvent = normalize_route2_solvent_name(self.solvent)
         configured_solvent = normalize_route2_solvent_name(
@@ -170,25 +219,14 @@ class SetCalculator:
                 f"solv.implicit={configured_solvent!r}."
             )
         self.solvation_options['implicit'] = configured_solvent
-        if self.solvation_options.get('experimental') is not True:
-            raise ValueError(
-                "Route 2 is an uncertified research path; "
-                "set experimental=true explicitly."
-            )
-        configured_method = str(self.solvation_options.get('method', '')).lower()
-        if configured_method != self.implicit:
-            raise ValueError(
-                "Implicit-solvent selector mismatch: "
-                f"implicit={self.implicit!r}, solv.method={configured_method!r}."
-            )
-        if self.atoms is not None and atoms_has_pbc(self.atoms):
-            raise ValueError(
-                "Implicit solvation is non-periodic only; "
-                "remove #pbc or use a periodic solvent backend."
-            )
         if self.atoms is None:
             raise ValueError("Implicit solvation requires one molecule.")
         if self.implicit == 'smd':
+            from .extra_correction.implicit.route2_domain import (
+                validate_route2_domain,
+            )
+
+            validate_route2_domain(self.atoms)
             if _compact_model_name(self.model) != 'macepolm':
                 raise ValueError(
                     "Route 2 v1 is locked to the official MACE-POLAR-1-M checkpoint."
@@ -244,10 +282,7 @@ class SetCalculator:
             profile_spec = route2_smd_profile_spec(profile)
             if (
                 "mol2" not in self.atoms.info
-                and (
-                    provider == "pcmsolver"
-                    or profile_spec.uses_gaff2_carbonyl_oxygen
-                )
+                and profile_spec.uses_gaff2_carbonyl_oxygen
             ):
                 raise ValueError(
                     "This Route-2 profile requires one MOL2 molecule with "
@@ -603,6 +638,9 @@ class SetCalculator:
                 cls.build_implicit_solvent_kwargs(
                     self.solvation_options,
                 )
+            )
+            kwargs['_implicit_solvent_factory_token'] = (
+                _IMPLICIT_SOLVENT_FACTORY_TOKEN
             )
 
         calculator = cls(

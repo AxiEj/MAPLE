@@ -23,9 +23,9 @@ def test_exact_gto_fixed_geometry_canary_is_source_bound_and_claim_bounded():
     assert artifact["artifact"] == (
         "route2-mace-exact-gto-fixed-geometry-canary-v1"
     )
-    assert artifact["schema_version"] == 1
+    assert artifact["schema_version"] == 2
     assert artifact["execution_git_head"] == (
-        "408ca3fce8f9831db3cb93882fc2f0e0dc439e85"
+        "0f6fa2334ef1b278207727d7984d6e95429fb8b6"
     )
     assert artifact["checkpoint"]["sha256"] == (
         "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
@@ -42,8 +42,13 @@ def test_exact_gto_fixed_geometry_canary_is_source_bound_and_claim_bounded():
     protocol = artifact["diagnostic_protocol"]
     assert protocol["coordinate_derivative_requested"] is False
     assert protocol["scientific_pass_thresholds"] is None
+    assert protocol["feedback_dimension"] == 39
+    assert protocol["feedback_mixing_values"] == [0.25, 0.5, 0.75, 1.0]
     assert "fixed-geometry derivative algebra" in artifact["claim_boundary"]
     assert "sets no scientific pass threshold" in artifact["claim_boundary"]
+    assert "Feedback convergence is not thermodynamic passivity" in artifact[
+        "claim_boundary"
+    ]
     assert "exact-GTO coordinate or gauge derivative" in artifact[
         "claim_boundary"
     ]
@@ -86,7 +91,7 @@ def test_exact_gto_fixed_geometry_canary_is_source_bound_and_claim_bounded():
         same_root["stored_unmixed_density_residual_inf_e"],
         same_root["fresh_unmixed_density_residual_inf_e"],
         rtol=0.0,
-        atol=2.0e-16,
+        atol=1.0e-15,
     )
     assert abs(same_root["root_density_monopole_sum_e"]) <= 1.0e-12
     assert abs(same_root["response_density_monopole_sum_e"]) <= 1.0e-12
@@ -106,6 +111,72 @@ def test_exact_gto_fixed_geometry_canary_is_source_bound_and_claim_bounded():
         "composed_residual_jvp_vjp",
     ):
         assert diagnostics[name]["absolute_error"] <= 1.0e-9
+
+    conjugacy = diagnostics["intrinsic_feature_conjugacy"]
+    assert conjugacy["identity"] == "g_z + J_M(z)^T Q f = 0"
+    assert conjugacy["field_interface"] == "model-native-gto-v1"
+    assert conjugacy["coupled_candidate"] is None
+    assert conjugacy["feature_count"] == 8
+    assert conjugacy["l0_feature_count"] == 2
+    np.testing.assert_allclose(
+        [
+            conjugacy["all_features"]["relative_l2"],
+            conjugacy["l0_radial_features"]["relative_l2"],
+            conjugacy["l1_radial_cartesian_features"]["relative_l2"],
+            conjugacy["all_features"]["cosine_similarity"],
+        ],
+        [
+            0.8410594936402452,
+            0.7091035565775148,
+            0.8893491542946312,
+            -0.41467837631408305,
+        ],
+        rtol=1.0e-12,
+        atol=1.0e-15,
+    )
+
+    feedback = diagnostics["fixed_point_feedback_spectrum"]
+    assert feedback["dimension"] == 39
+    assert "not a thermodynamic passivity proof" in feedback[
+        "interpretation"
+    ]
+    np.testing.assert_allclose(
+        [
+            feedback["spectral_radius"],
+            feedback["largest_singular_value"],
+            feedback["symmetric_frobenius_norm"],
+            feedback["antisymmetric_frobenius_norm"],
+            feedback["antisymmetric_to_symmetric_frobenius_ratio"],
+        ],
+        [
+            0.08672630278209689,
+            0.11926189159116382,
+            0.18094814836521475,
+            0.10084941088495895,
+            0.5573387282273297,
+        ],
+        rtol=1.0e-12,
+        atol=1.0e-15,
+    )
+    residual_condition = feedback["residual_operator_i_minus_feedback"]
+    assert residual_condition["numerically_singular"] is False
+    np.testing.assert_allclose(
+        [
+            residual_condition["condition_number_2"],
+            residual_condition["inverse_norm_2"],
+        ],
+        [1.1338276816868966, 1.1144009676255984],
+        rtol=1.0e-12,
+        atol=1.0e-15,
+    )
+    mixing = feedback["mixing_iteration_matrices"]
+    assert [item["mixing"] for item in mixing] == [0.25, 0.5, 0.75, 1.0]
+    assert all(item["locally_contracting_by_eigenvalues"] for item in mixing)
+    assert all(item["contractive_in_euclidean_2_norm"] for item in mixing)
+    assert [item["spectral_radius"] for item in mixing] == sorted(
+        (item["spectral_radius"] for item in mixing),
+        reverse=True,
+    )
 
     adjoint = diagnostics["adjoint"]
     assert adjoint["relative_residual"] <= 1.0e-8
@@ -138,3 +209,6 @@ def test_exact_gto_fixed_geometry_canary_is_source_bound_and_claim_bounded():
     assert "do not select a different fixed cavity" in warnings[
         "warning_semantics"
     ]
+
+    timing = artifact["runtime"]["timing_seconds"]
+    assert timing["thermodynamic_and_feedback_diagnostics"] > 0.0

@@ -7,9 +7,16 @@
     "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
     "size_bytes": 68133235
   },
-  "claim_boundary": "This one-acetone canary checks only fixed-geometry derivative algebra for the exact-GTO model drive. It changes no production energy or force and sets no scientific pass threshold. It does not provide an exact-GTO coordinate or gauge derivative, full electron-density PCM, original SMD equivalence, hydration accuracy, a smooth solution-phase PES, OPT, TS, scan, MD, or NVE certification.",
+  "claim_boundary": "This one-acetone canary checks only fixed-geometry derivative algebra, intrinsic feature-conjugacy defect, and complete neutral-space feedback spectrum for the exact-GTO model drive. It changes no production energy or force and sets no scientific pass threshold. Feedback convergence is not thermodynamic passivity. It does not provide an exact-GTO coordinate or gauge derivative, full electron-density PCM, original SMD equivalence, hydration accuracy, a smooth solution-phase PES, OPT, TS, scan, MD, or NVE certification.",
   "diagnostic_protocol": {
     "coordinate_derivative_requested": false,
+    "feedback_dimension": 39,
+    "feedback_mixing_values": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
     "finite_difference_steps_density_coefficient": [
       0.001,
       0.0003,
@@ -24,16 +31,16 @@
       "maximum_inner_iterations": 100,
       "method": "gmres",
       "operator_applications": 7,
-      "relative_residual": 1.962512398381192e-09,
+      "relative_residual": 1.9625124870563994e-09,
       "residual_callback_count": 5,
-      "residual_norm": 4.243555099345098e-09,
+      "residual_norm": 4.243555291088177e-09,
       "restart_size": 39
     },
     "composed_residual_jvp_vjp": {
-      "absolute_error": 2.463168558008988e-12,
-      "forward": 0.06612795246372555,
-      "relative_error": 1.862426149754359e-11,
-      "reverse": 0.06612795246618872
+      "absolute_error": 2.4631963135846036e-12,
+      "forward": 0.06612795246372553,
+      "relative_error": 1.8624471360200614e-11,
+      "reverse": 0.06612795246618873
     },
     "continuum_feature_jvp_vjp": {
       "absolute_error": 4.996003610813204e-16,
@@ -41,47 +48,209 @@
       "relative_error": 5.439254774468808e-16,
       "reverse": -0.4592544216042082
     },
+    "fixed_point_feedback_spectrum": {
+      "antisymmetric_frobenius_norm": 0.10084941088495895,
+      "antisymmetric_to_symmetric_frobenius_ratio": 0.5573387282273297,
+      "dimension": 39,
+      "eigenvalues_imaginary": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        8.14823838746242e-06,
+        -8.14823838746242e-06,
+        0.0,
+        -1.4221468018200098e-06,
+        1.4221468018200098e-06,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        5.343519385505747e-06,
+        -5.343519385505747e-06,
+        0.0,
+        -4.4561477983863e-07,
+        4.4561477983863e-07,
+        6.509210901961834e-07,
+        -6.509210901961834e-07,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "eigenvalues_real": [
+        0.08672630278209689,
+        0.07426058798285107,
+        0.06068182973441886,
+        0.048316905352308016,
+        0.04284145519348815,
+        0.035741199576929415,
+        0.018814522841812745,
+        0.004403488937992397,
+        0.003781701520898799,
+        0.0030238776307861394,
+        0.0021715063105909598,
+        0.0019554335845992066,
+        0.000499334621623008,
+        0.00045888356143682774,
+        -0.0002131477144699224,
+        0.00012855703114658448,
+        -0.00010005166636786481,
+        8.983535886570123e-05,
+        8.983535886570123e-05,
+        2.4980431359765606e-05,
+        -1.7162650926710908e-05,
+        -1.7162650926710908e-05,
+        1.3952820287820443e-05,
+        -9.291862163294895e-06,
+        9.289430910131355e-06,
+        7.266940151975145e-06,
+        -6.776093110508709e-06,
+        -2.522142575268299e-06,
+        -2.522142575268299e-06,
+        -1.4198631675536608e-06,
+        -6.342293807864353e-07,
+        -6.342293807864353e-07,
+        3.212991252785562e-07,
+        3.212991252785562e-07,
+        3.1880602185081744e-07,
+        1.851914290115407e-07,
+        -5.689059120426091e-09,
+        4.606471877306386e-09,
+        -8.043187315118212e-11
+      ],
+      "interpretation": "Spectral radii diagnose local linear convergence. Singular values and the antisymmetric norm expose non-normal transient amplification. These are solver/feedback diagnostics, not a thermodynamic passivity proof.",
+      "largest_singular_value": 0.11926189159116382,
+      "maximum_absolute_imaginary_eigenvalue": 8.14823838746242e-06,
+      "maximum_real_eigenvalue": 0.08672630278209689,
+      "minimum_real_eigenvalue": -0.0002131477144699224,
+      "mixing_iteration_matrices": [
+        {
+          "contractive_in_euclidean_2_norm": true,
+          "largest_singular_value": 0.7759489093417379,
+          "locally_contracting_by_eigenvalues": true,
+          "mixing": 0.25,
+          "spectral_radius": 0.7716815756955236
+        },
+        {
+          "contractive_in_euclidean_2_norm": true,
+          "largest_singular_value": 0.5521579165706393,
+          "locally_contracting_by_eigenvalues": true,
+          "mixing": 0.5,
+          "spectral_radius": 0.5433631513910487
+        },
+        {
+          "contractive_in_euclidean_2_norm": true,
+          "largest_singular_value": 0.32927975039345575,
+          "locally_contracting_by_eigenvalues": true,
+          "mixing": 0.75,
+          "spectral_radius": 0.31504472708657383
+        },
+        {
+          "contractive_in_euclidean_2_norm": true,
+          "largest_singular_value": 0.11926189159116382,
+          "locally_contracting_by_eigenvalues": true,
+          "mixing": 1.0,
+          "spectral_radius": 0.08672630278209689
+        }
+      ],
+      "operator": "Pi J_M J_P restricted to neutral density coordinates",
+      "residual_operator_i_minus_feedback": {
+        "condition_number_2": 1.1338276816868966,
+        "inverse_norm_2": 1.1144009676255984,
+        "largest_singular_value": 1.0174324274885456,
+        "numerically_singular": false,
+        "smallest_singular_value": 0.8973430830113626
+      },
+      "smallest_singular_value": 1.3446476736021607e-11,
+      "spectral_radius": 0.08672630278209689,
+      "symmetric_frobenius_norm": 0.18094814836521475
+    },
+    "intrinsic_feature_conjugacy": {
+      "all_features": {
+        "absolute_l2": 0.023565011519866036,
+        "cosine_similarity": -0.41467837631408305,
+        "left_l2": 0.013841531679674354,
+        "relative_l2": 0.8410594936402452,
+        "right_l2": 0.014176713995043317
+      },
+      "coupled_candidate": null,
+      "coupled_candidate_reason": "No density-to-native-feature conjugacy map is defined; Q^T c is not inferred in feature space.",
+      "feature_count": 8,
+      "field_interface": "model-native-gto-v1",
+      "identity": "g_z + J_M(z)^T Q f = 0",
+      "l0_feature_count": 2,
+      "l0_radial_features": {
+        "absolute_l2": 0.007989069742140741,
+        "cosine_similarity": 0.28784181658839325,
+        "left_l2": 0.008322445243191751,
+        "relative_l2": 0.7091035565775148,
+        "right_l2": 0.0029439906222549703
+      },
+      "l1_radial_cartesian_features": {
+        "absolute_l2": 0.022169450434925766,
+        "cosine_similarity": -0.5765116809542657,
+        "left_l2": 0.01106005896971186,
+        "relative_l2": 0.8893491542946312,
+        "right_l2": 0.01386766522935032
+      }
+    },
     "mace_feature_density_jvp_vjp": {
-      "absolute_error": 4.0912981552967964e-13,
-      "forward": 0.00015207782994595108,
-      "relative_error": 1.345132999085901e-09,
-      "reverse": 0.0001520778303550809
+      "absolute_error": 4.0913098104701506e-13,
+      "forward": 0.00015207782994595002,
+      "relative_error": 1.3451368310623815e-09,
+      "reverse": 0.000152077830355081
     },
     "physical_rhs_directional_finite_difference": [
       {
-        "absolute_error_ev": 9.172623721687145e-08,
-        "analytic_ev": 0.2625552218469824,
-        "central_difference_ev": 0.26255513012074516,
-        "relative_error": 1.7467992560639673e-07,
+        "absolute_error_ev": 9.263573430562388e-08,
+        "analytic_ev": 0.26255522184698477,
+        "central_difference_ev": 0.26255512921125046,
+        "relative_error": 1.7641193726030835e-07,
         "step_density_coefficient": 0.001
       },
       {
-        "absolute_error_ev": 6.963509218693709e-07,
-        "analytic_ev": 0.2625552218469824,
-        "central_difference_ev": 0.26255591819790425,
-        "relative_error": 1.3261019787351046e-06,
+        "absolute_error_ev": 6.9786674400385e-07,
+        "analytic_ev": 0.26255522184698477,
+        "central_difference_ev": 0.26255591971372877,
+        "relative_error": 1.3289886440605307e-06,
         "step_density_coefficient": 0.0003
       },
       {
-        "absolute_error_ev": 4.374082040514704e-06,
-        "analytic_ev": 0.2625552218469824,
+        "absolute_error_ev": 4.3740820429016836e-06,
+        "analytic_ev": 0.26255522184698477,
         "central_difference_ev": 0.26255084776494186,
-        "relative_error": 8.329901887722107e-06,
+        "relative_error": 8.329901892267779e-06,
         "step_density_coefficient": 0.0001
       }
     ]
   },
-  "execution_git_head": "408ca3fce8f9831db3cb93882fc2f0e0dc439e85",
+  "execution_git_head": "0f6fa2334ef1b278207727d7984d6e95429fb8b6",
   "experiment_comparison": {
-    "absolute_error_kcal_mol": 0.8835670145596204,
+    "absolute_error_kcal_mol": 0.8835670145596186,
     "experimental_kcal_mol": -3.8,
     "experimental_uncertainty_kcal_mol": 0.6,
     "interpretation": "Recorded for provenance only; one development molecule cannot certify accuracy or mechanism.",
-    "predicted_kcal_mol": -4.68356701455962,
-    "signed_error_kcal_mol": -0.8835670145596204
+    "predicted_kcal_mol": -4.683567014559618,
+    "signed_error_kcal_mol": -0.8835670145596186
   },
   "fixed_geometry_state": {
-    "adjoint_solution_l2": 2.319734861522612,
+    "adjoint_solution_l2": 2.3197348615226248,
     "cavity_areas_sha256": "c385bc837fd6e6f360ffd806e75a98878468da01e7cc1bde1c5a12727dfa755d",
     "cavity_centers_sha256": "daf77eb1d38a5c47ff0025a59ba56b28488e6dd8ee3d7c1302e2ddaa78d92ea1",
     "cavity_size": 516,
@@ -93,10 +262,10 @@
       10,
       8
     ],
-    "physical_rhs_l2_ev": 2.162307409036223,
-    "physical_rhs_monopole_sum_ev": -8.326672684688674e-17
+    "physical_rhs_l2_ev": 2.1623074090362335,
+    "physical_rhs_monopole_sum_ev": -1.1102230246251565e-16
   },
-  "generated_at_utc": "2026-07-26T23:31:32+00:00",
+  "generated_at_utc": "2026-07-27T02:05:16+00:00",
   "molecule": {
     "atom_count": 10,
     "compound_id": "mobley_3867265",
@@ -112,7 +281,7 @@
     "public_pedra_warning_count": 1,
     "public_pedra_warnings": [
       {
-        "file": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/PEDRA.OUT__2245845",
+        "file": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-exact-gto-thermodynamic-acetone-canary-tracked-20260727-0f6fa23/maple.out.implicit/PEDRA.OUT__2542985",
         "line": 18,
         "message": "** WARNING  ** A very poor tesselation has been chosen. It is valuable almost only for testing."
       }
@@ -121,7 +290,7 @@
     "reopened_pedra_warning_count": 1,
     "reopened_pedra_warnings": [
       {
-        "file": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/fixed-geometry-continuum/PEDRA.OUT__2245845",
+        "file": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-exact-gto-thermodynamic-acetone-canary-tracked-20260727-0f6fa23/fixed-geometry-continuum/PEDRA.OUT__2542985",
         "line": 18,
         "message": "** WARNING  ** A very poor tesselation has been chosen. It is valuable almost only for testing."
       }
@@ -130,7 +299,7 @@
   },
   "public_energy_hartree": {
     "combined": -193.14768901085748,
-    "delta_g_solv": -0.0074637391276879085,
+    "delta_g_solv": -0.007463739127687905,
     "gas": -193.14022527172978
   },
   "public_settings": [
@@ -150,29 +319,30 @@
     "pcmsolver_python_path_environment": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/python",
     "python": "3.11.14",
     "timing_seconds": {
-      "directional_finite_differences": 0.7680862599954708,
-      "fixed_geometry_continuum_and_derivatives": 2.675611239988939,
-      "model_derivative_setup": 0.2632994209998287,
-      "model_load": 2.96688465999614,
-      "public_coupled_root_and_energy": 2.7296160539990524,
-      "total": 8.48631216600188
+      "directional_finite_differences": 0.7471391420112923,
+      "fixed_geometry_continuum_and_derivatives": 8.288982051977655,
+      "model_derivative_setup": 0.23626991698984057,
+      "model_load": 2.942356868996285,
+      "public_coupled_root_and_energy": 2.809619670995744,
+      "thermodynamic_and_feedback_diagnostics": 5.697439534007572,
+      "total": 14.161743260017829
     },
     "torch": "2.12.0+cu130"
   },
   "same_root": {
-    "fresh_unmixed_density_residual_inf_e": 5.2759232850307924e-06,
+    "fresh_unmixed_density_residual_inf_e": 5.275923285474882e-06,
     "public_audit": {
-      "result_sha256": "67b4c6b4bbed20d9bd9297cf580edfc0305ca56461934067079c225d2fd4e14b",
-      "state_sha256": "68b7f77c66d51f7c48cde12be9117622848493ef9606d645b8bffc01ae106c30"
+      "result_sha256": "cc9ec6755024516a1e8c3abf83ab02562105c427f3cd9ebcc530a781ee3b561f",
+      "state_sha256": "df64006514c9d7e442f44cffa28bf9b9a5b9877674ba439f2a11dc18914a00b0"
     },
     "public_to_reopened_feature_max_abs": 0.0,
     "public_to_reopened_field_max_abs_ev": 0.0,
-    "response_density_monopole_sum_e": 3.469446951953614e-18,
-    "root_density_monopole_sum_e": -3.2959746043559335e-17,
+    "response_density_monopole_sum_e": -3.469446951953614e-17,
+    "root_density_monopole_sum_e": 1.5612511283791264e-17,
     "scf_iterations": 13,
-    "stored_unmixed_density_residual_inf_e": 5.275923285141815e-06
+    "stored_unmixed_density_residual_inf_e": 5.27592328491977e-06
   },
-  "schema_version": 1,
+  "schema_version": 2,
   "scientific_identity": {
     "continuum": "PCMSolver IEFPCM",
     "density_interpretation": "coarse-grained residual/net-charge l<=1 coefficients",
@@ -184,7 +354,7 @@
     "strict_original_smd_equivalence": false
   },
   "source_files_sha256": {
-    "docs/implicit-solvation/benchmarks/run_route2_exact_gto_fixed_geometry_canary.py": "30c3ef3bdb1c862346ccfaf48ee35a50520a7dcadfcba14478afd307dc2c8834",
+    "docs/implicit-solvation/benchmarks/run_route2_exact_gto_fixed_geometry_canary.py": "3b04561c4628a6fb61194019d16711f68c59a539290ca820ea0c603fd09e4579",
     "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
     "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
     "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
@@ -195,10 +365,11 @@
     "maple/function/calculator/extra_correction/implicit/route2_feature_response.py": "e8fe5086dcb10389e1046335388137badce6ad5fe049f7d1944f8fb2426f9ced",
     "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9",
     "maple/function/calculator/extra_correction/implicit/route2_response.py": "42d8111cd338fe2bb8e5a6117c68080626656c46f4294dc4e782e745ee837da1",
+    "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": "6cd11fb0671805a6bc05a68cc1ce1fbc8c0beb54159ef64d6984c98e7252b0b5",
     "maple/function/calculator/extra_correction/implicit/smd.py": "fb4e4a5a6133917fe9fe7d8943e16d5ea626654a638ced68a959f4dbe587f9f2",
     "maple/function/calculator/mace/_macepol_calculator.py": "2dfbe998713fa3e4786aee329267e2b172e03b0b451d0c4c8b551ef3e501b5bb",
-    "maple/function/calculator/set_calculator.py": "b78f83c2b4853554e48ec6c71531cbcf122aaea949b89a9436b1f4b7ebe2bfdf",
+    "maple/function/calculator/set_calculator.py": "5dfca0b177d95aca9506368f58de0ad9ee71eaa4a7eda91279e8aa264cc64500",
     "maple/function/read/command_control.py": "6356deb7a681a2c2226733189ed87376a753b9ae5a725f9a7b1e66aa4f912e9c",
-    "maple/function/route2_smd_profiles.py": "1485999845647b9117dc031b539cda42d17f15e29328651adb56728203c9a88b"
+    "maple/function/route2_smd_profiles.py": "31a80131d869d6988370333a2a650e7ca33fe2bd2129b45ba6f5fd9a91f02520"
   }
 }

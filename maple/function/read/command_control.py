@@ -772,7 +772,7 @@ class CommandControl:
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 try:
-                    validate_route2_smd_profile(
+                    profile_spec = validate_route2_smd_profile(
                         provider,
                         profile,
                         solvent=implicit,
@@ -805,22 +805,33 @@ class CommandControl:
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 if provider == "pcmsolver":
-                    cavity_policy = str(
-                        solv_params.get(
-                            "cavity_policy",
-                            "warning-fallback",
-                        )
-                    ).lower()
-                    if cavity_policy not in {
-                        "warning-fallback",
-                        "fixed-stability-branch",
-                    }:
+                    if (
+                        profile_spec.uses_intrinsic_pcmsolver_cavity
+                        and "cavity_policy" in solv_params
+                    ):
                         msg = (
-                            "Route 2 cavity_policy must be warning-fallback "
-                            "or fixed-stability-branch."
+                            f"Route 2 profile={profile} owns its cavity "
+                            "generation policy; remove cavity_policy."
                         )
                         cls._log_error(output_path, msg)
                         raise ValueError(msg)
+                    if not profile_spec.uses_intrinsic_pcmsolver_cavity:
+                        cavity_policy = str(
+                            solv_params.get(
+                                "cavity_policy",
+                                "warning-fallback",
+                            )
+                        ).lower()
+                        if cavity_policy not in {
+                            "warning-fallback",
+                            "fixed-stability-branch",
+                        }:
+                            msg = (
+                                "Route 2 cavity_policy must be warning-fallback "
+                                "or fixed-stability-branch."
+                            )
+                            cls._log_error(output_path, msg)
+                            raise ValueError(msg)
                 standard_state = str(solv_params.get("standard_state", "1m")).lower()
                 if standard_state != "1m":
                     msg = (

@@ -302,6 +302,15 @@ class SetCalculator:
                 raise ValueError(
                     "Route 2 cavity_policy is specific to PCMSolver/GePol."
                 )
+            if (
+                provider == 'pcmsolver'
+                and profile_spec.uses_intrinsic_pcmsolver_cavity
+                and 'cavity_policy' in self.solvation_options
+            ):
+                raise ValueError(
+                    f"Route 2 profile={profile} owns its cavity generation "
+                    "policy; remove cavity_policy."
+                )
             if str(self.solvation_options.get('standard_state', '1m')).lower() != '1m':
                 raise ValueError("Route 2 standard_state must be 1m.")
 

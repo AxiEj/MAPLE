@@ -52,6 +52,8 @@ from maple.function.read.command_control import CommandControl
 from maple.function.route2_smd_profiles import (
     PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE,
     PCMSOLVER_EXACT_GTO_FIELD_PROFILE,
+    PCMSOLVER_INTRINSIC_CAVITY_PROFILE,
+    PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE,
 )
 
 
@@ -142,10 +144,75 @@ def test_route2_public_contract_accepts_centered_local_jet_profile():
     )
 
 
+def test_route2_public_contract_accepts_versioned_intrinsic_pcm_cavity_profile():
+    params = parse(
+        "#model=macepol-m",
+        "#sp",
+        (
+            "#solv(implicit=water,method=smd,"
+            f"profile={PCMSOLVER_INTRINSIC_CAVITY_PROFILE},"
+            "experimental=true)"
+        ),
+    )
+
+    assert (
+        params["solv"]["profile"]
+        == PCMSOLVER_INTRINSIC_CAVITY_PROFILE
+    )
+    assert "cavity_policy" not in params["solv"]
+
+
+def test_route2_public_contract_accepts_intrinsic_exact_gto_profile():
+    params = parse(
+        "#model=macepol-m",
+        "#sp",
+        (
+            "#solv(implicit=water,method=smd,"
+            f"profile={PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE},"
+            "response=scf,experimental=true)"
+        ),
+    )
+
+    assert (
+        params["solv"]["profile"]
+        == PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE
+    )
+    assert "cavity_policy" not in params["solv"]
+
+
+def test_intrinsic_pcm_profile_public_contract_rejects_legacy_cavity_policy():
+    with pytest.raises(ValueError, match="owns its cavity generation policy"):
+        parse(
+            "#model=macepol-m",
+            "#sp",
+            (
+                "#solv(implicit=water,method=smd,"
+                f"profile={PCMSOLVER_INTRINSIC_CAVITY_PROFILE},"
+                "cavity_policy=warning-fallback,experimental=true)"
+            ),
+        )
+
+
 def test_exact_gto_profile_rejects_frozen_response(tmp_path):
     atoms = _co_atoms()
     options = _route2_options("frozen")
     options["profile"] = PCMSOLVER_EXACT_GTO_FIELD_PROFILE
+
+    with pytest.raises(
+        ValueError,
+        match="requires response=scf",
+    ):
+        SMDImplicitSolvation(
+            atoms,
+            options,
+            audit_dir=tmp_path,
+        )
+
+
+def test_intrinsic_exact_gto_profile_rejects_frozen_response(tmp_path):
+    atoms = _co_atoms()
+    options = _route2_options("frozen")
+    options["profile"] = PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE
 
     with pytest.raises(
         ValueError,
@@ -287,6 +354,112 @@ def test_generated_pcmsolver_fallback_input_locks_stable_gepol_settings():
     assert "MINRADIUS = 0.3000000000" in text
 
 
+def test_generated_pcmsolver_intrinsic_cavity_input_locks_smd_electrostatics():
+    text = _pcm_input_text(
+        2,
+        np.asarray([1.85, 1.52]),
+        minimum_added_sphere_radius_angstrom=52.917721092,
+        dielectric_policy="explicit-smd-water-78.355-v1",
+    )
+
+    assert "SOLVENT = EXPLICIT" in text
+    assert "SOLVENT = WATER" not in text
+    assert "PROBERADIUS = 0.0000000000" in text
+    assert "MINRADIUS = 52.9177210920" in text
+    assert "GREEN<INSIDE>" in text
+    assert "TYPE = VACUUM" in text
+    assert "GREEN<OUTSIDE>" in text
+    assert "TYPE = UNIFORMDIELECTRIC" in text
+    assert text.count("EPS = 78.3550000000") == 1
+    assert text.count("EPSDYN = 1.7763558400") == 1
+
+
+def test_zero_probe_machine_patch_is_exact_and_fail_closed():
+    parsed = (
+        "STR MODE 1 True\n"
+        "ATOMS\n"
+        "BOOL SCALING 1 True\n"
+        "False\n"
+        "DBL MINRADIUS 1 True\n"
+        "100.0\n"
+        "STR SOLVENT 1 True\n"
+        "EXPLICIT\n"
+        "DBL PROBERADIUS 1 True\n"
+        "0.18897261246\n"
+        "STR TYPE 1 True\n"
+        "GEPOL\n"
+        "STR TYPE 1 True\n"
+        "VACUUM\n"
+        "STR TYPE 1 True\n"
+        "UNIFORMDIELECTRIC\n"
+        "DBL EPS 1 True\n"
+        "78.355\n"
+        "DBL EPSDYN 1 True\n"
+        "1.77635584\n"
+    )
+
+    patched, semantics = smd_module._patch_intrinsic_pcm_machine_input(
+        parsed,
+    )
+
+    assert "\nDBL PROBERADIUS 1 True\n0.0\n" in f"\n{patched}"
+    assert semantics == {
+        "solvent": "EXPLICIT",
+        "probe_radius_bohr": 0.0,
+        "minimum_added_sphere_radius_bohr": 100.0,
+        "scaling": False,
+        "mode": "ATOMS",
+        "cavity_type": "GEPOL",
+        "inside_green_type": "VACUUM",
+        "outside_green_type": "UNIFORMDIELECTRIC",
+        "outside_static_dielectric": 78.355,
+        "outside_dynamic_dielectric": 1.77635584,
+    }
+
+    with pytest.raises(RuntimeError, match="exactly one PROBERADIUS"):
+        smd_module._patch_intrinsic_pcm_machine_input(
+            parsed.replace(
+                "DBL PROBERADIUS 1 True\n0.18897261246\n",
+                "",
+            )
+        )
+
+
+def test_intrinsic_pcm_runtime_report_proves_effective_cavity_and_medium():
+    report = (
+        "========== Cavity\n"
+        "Cavity type: GePol\n"
+        "Solvent probe radius = 0 Ang\n"
+        "Number of spheres = 2 [initial = 2; added = 0]\n"
+        ".... Inside\n"
+        "Green's function type: vacuum\n"
+        "Permittivity = 1\n"
+        ".... Outside\n"
+        "Green's function type: uniform dielectric\n"
+        "Permittivity = 78.355\n"
+    )
+
+    assert smd_module._validate_intrinsic_pcm_runtime_info(
+        report,
+        atom_count=2,
+    ) == {
+        "probe_radius_angstrom": 0.0,
+        "sphere_count": 2,
+        "initial_sphere_count": 2,
+        "added_sphere_count": 0,
+        "outside_static_dielectric": 78.355,
+    }
+
+    with pytest.raises(RuntimeError, match="added spheres"):
+        smd_module._validate_intrinsic_pcm_runtime_info(
+            report.replace(
+                "2 [initial = 2; added = 0]",
+                "3 [initial = 2; added = 1]",
+            ),
+            atom_count=2,
+        )
+
+
 def test_smd_revised_halogen_coulomb_radii_are_locked():
     assert SMD_WATER_COULOMB_RADII_ANGSTROM["Br"] == 2.60
     assert SMD_WATER_COULOMB_RADII_ANGSTROM["I"] == 2.74
@@ -342,6 +515,49 @@ def test_route2_provider_rejects_unknown_cavity_policy():
     options["cavity_policy"] = "geometry-dependent"
 
     with pytest.raises(ValueError, match="cavity_policy must be"):
+        SMDImplicitSolvation(_co_atoms(), options, audit_dir=None)
+
+
+def test_intrinsic_pcm_profile_owns_probe0_no_added_sphere_policy():
+    options = _route2_options("frozen")
+    options["profile"] = PCMSOLVER_INTRINSIC_CAVITY_PROFILE
+
+    provider = SMDImplicitSolvation(_co_atoms(), options, audit_dir=None)
+
+    assert provider.cavity_policy == "intrinsic-smd-probe0-noaddsph-v1"
+    attempts = provider._cavity_attempt_specs()
+    assert len(attempts) == 1
+    name, _factory, area, minimum_radius = attempts[0]
+    assert name == "intrinsic-smd"
+    assert area == pytest.approx(0.28)
+    assert minimum_radius == pytest.approx(52.917721092)
+    assert provider.provenance["strict_original_smd_equivalence"] is False
+
+
+def test_intrinsic_exact_gto_profile_owns_probe0_and_native_receiver():
+    options = _route2_options("scf")
+    options["profile"] = PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE
+
+    provider = SMDImplicitSolvation(_co_atoms(), options, audit_dir=None)
+
+    assert provider.cavity_policy == "intrinsic-smd-probe0-noaddsph-v1"
+    assert provider.profile_spec.reaction_field_projector == "exact-gto-v1"
+    assert (
+        provider.profile_spec.model_field_gauge
+        == "atomic-center-mean-zero-v1"
+    )
+    assert provider.profile_spec.dielectric_policy == (
+        "explicit-smd-water-78.355-v1"
+    )
+    assert len(provider._cavity_attempt_specs()) == 1
+
+
+def test_intrinsic_pcm_profile_rejects_legacy_cavity_policy_override():
+    options = _route2_options("frozen")
+    options["profile"] = PCMSOLVER_INTRINSIC_CAVITY_PROFILE
+    options["cavity_policy"] = "warning-fallback"
+
+    with pytest.raises(ValueError, match="owns its cavity generation policy"):
         SMDImplicitSolvation(_co_atoms(), options, audit_dir=None)
 
 
@@ -712,6 +928,22 @@ class _PEDRAWarningPCMSolverSession(_FakePCMSolverSession):
         return super().open()
 
 
+class _IntrinsicPCMSolverSession(_FakePCMSolverSession):
+    def render_info(self):
+        return (
+            "========== Cavity\n"
+            "Cavity type: GePol\n"
+            "Solvent probe radius = 0 Ang\n"
+            "Number of spheres = 2 [initial = 2; added = 0]\n"
+            ".... Inside\n"
+            "Green's function type: vacuum\n"
+            "Permittivity = 1\n"
+            ".... Outside\n"
+            "Green's function type: uniform dielectric\n"
+            "Permittivity = 78.355\n"
+        )
+
+
 def _install_fake_pcm_pair(monkeypatch, provider, tmp_path, session_type):
     primary = tmp_path / "@primary.pcm"
     fallback = tmp_path / "@stability-fallback.pcm"
@@ -756,6 +988,52 @@ def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
     audit = (tmp_path / "route2-result.json").read_text(encoding="utf-8")
     assert '"schema_version": 9' in audit
     assert '"pcm_mep_projection": "cavity-exterior-point-multipole-l<=1"' in audit
+
+
+def test_intrinsic_pcm_profile_publishes_only_runtime_verified_cavity(
+    monkeypatch,
+    tmp_path,
+):
+    atoms = _co_atoms()
+    gas = _state(
+        -20.0,
+        [[-0.1, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.0]],
+    )
+    options = _route2_options("frozen")
+    options["profile"] = PCMSOLVER_INTRINSIC_CAVITY_PROFILE
+    provider = SMDImplicitSolvation(atoms, options, audit_dir=tmp_path)
+    parsed = tmp_path / "@intrinsic.pcm"
+    parsed.write_text("parsed", encoding="utf-8")
+    monkeypatch.setattr(
+        smd_module,
+        "PCMSolverSession",
+        _IntrinsicPCMSolverSession,
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ensure_pcm_intrinsic_input",
+        lambda: parsed,
+    )
+
+    result = provider.evaluate(
+        atoms,
+        calculator=_FakePolarCalculator(gas, gas),
+    )
+
+    stability = result.provenance["cavity_stability"]
+    assert stability["selected"] == "intrinsic-smd"
+    assert stability["fallback_used"] is False
+    assert stability["attempt_count"] == 1
+    assert stability["runtime_cavity_contract"] == {
+        "probe_radius_angstrom": 0.0,
+        "sphere_count": 2,
+        "initial_sphere_count": 2,
+        "added_sphere_count": 0,
+        "outside_static_dielectric": 78.355,
+    }
+    assert (
+        tmp_path / "pcmsolver-intrinsic-smd-effective-info.log"
+    ).is_file()
 
 
 def test_route2_retries_warning_cavity_with_deterministic_fallback(

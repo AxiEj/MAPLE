@@ -424,6 +424,27 @@ def test_pyddx_full_position_vjp_uses_complete_energy_polarization_identity(
     )
 
 
+def test_pyddx_exposes_fixed_source_polarization_position_gradient(
+    fake_runtime,
+):
+    reaction = _reaction_map(fake_runtime)
+    density = np.asarray(
+        [[0.2, 0.1, -0.3, 0.4], [-0.2, 0.5, 0.2, -0.1]]
+    )
+
+    gradient = reaction.polarization_position_gradient_ev_per_angstrom(
+        density
+    )
+
+    expected_value = (
+        0.005 * float(np.vdot(density, density)) * Hartree / Bohr
+    )
+    np.testing.assert_allclose(
+        gradient,
+        np.full((2, 3), expected_value),
+    )
+
+
 def test_pyddx_map_composes_with_fixed_point_adjoint_and_total_cds_gradient(
     fake_runtime,
 ):

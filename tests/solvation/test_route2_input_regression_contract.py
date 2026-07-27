@@ -7,6 +7,10 @@ from ase import Atoms
 
 from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.read.command_control import CommandControl
+from maple.function.route2_smd_profiles import (
+    PCMSOLVER_INTRINSIC_CAVITY_PROFILE,
+    PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE,
+)
 
 
 def _parse(*lines: str) -> dict[str, object]:
@@ -100,3 +104,65 @@ def test_route2_still_rejects_an_independent_charge_provider():
             "#charge(source=mol2)",
             "#solv(implicit=water,method=smd,experimental=true)",
         )
+
+
+def test_intrinsic_cavity_profile_rejects_factory_level_policy_override(
+    tmp_path,
+):
+    atoms = Atoms(
+        "CO",
+        positions=[[0.0, 0.0, 0.0], [1.13, 0.0, 0.0]],
+    )
+    atoms.info.update(charge=0, mult=1)
+    builder = SetCalculator(
+        device="cpu",
+        model="macepol-m",
+        output=str(tmp_path / "job.out"),
+        atoms=atoms,
+        implicit="smd",
+        solvent="water",
+        solvation_options={
+            "implicit": "water",
+            "method": "smd",
+            "provider": "pcmsolver",
+            "profile": PCMSOLVER_INTRINSIC_CAVITY_PROFILE,
+            "response": "scf",
+            "standard_state": "1m",
+            "cavity_policy": "warning-fallback",
+            "experimental": True,
+        },
+    )
+
+    with pytest.raises(ValueError, match="owns its cavity generation policy"):
+        builder._validate_solvent_config()
+
+
+def test_intrinsic_exact_gto_profile_rejects_factory_policy_override(
+    tmp_path,
+):
+    atoms = Atoms(
+        "CO",
+        positions=[[0.0, 0.0, 0.0], [1.13, 0.0, 0.0]],
+    )
+    atoms.info.update(charge=0, mult=1)
+    builder = SetCalculator(
+        device="cpu",
+        model="macepol-m",
+        output=str(tmp_path / "job.out"),
+        atoms=atoms,
+        implicit="smd",
+        solvent="water",
+        solvation_options={
+            "implicit": "water",
+            "method": "smd",
+            "provider": "pcmsolver",
+            "profile": PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE,
+            "response": "scf",
+            "standard_state": "1m",
+            "cavity_policy": "warning-fallback",
+            "experimental": True,
+        },
+    )
+
+    with pytest.raises(ValueError, match="owns its cavity generation policy"):
+        builder._validate_solvent_config()

@@ -38,6 +38,19 @@ from .continuum_response import (
     PCMSolverExternalMEPCavityResponse,
 )
 from .pcmsolver import PCMSolverSession
+from .route2_pcmsolver_cavity import (
+    PCM_INTRINSIC_MIN_RADIUS_ANGSTROM,
+    PCM_INTRINSIC_TESSERA_AREA_ANGSTROM2,
+    PCM_PARSER_SURROGATE_PROBE_RADIUS_ANGSTROM,
+    PCM_SMD_WATER_DIELECTRIC,
+    PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM,
+    PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2,
+    PCM_TESSERA_AREA_ANGSTROM2,
+    _intrinsic_pcm_parser_surrogate,
+    _patch_intrinsic_pcm_machine_input,
+    _pcm_input_text,
+    _validate_intrinsic_pcm_runtime_info,
+)
 from .result import SolvationResult
 from .route2_engine import (
     Route2ContinuumEngine,
@@ -66,16 +79,15 @@ from .smd_cds import (
 )
 
 
-PCM_TESSERA_AREA_ANGSTROM2 = 0.2
-PCM_STABILITY_FALLBACK_TESSERA_AREA_ANGSTROM2 = 0.28
-PCM_STABILITY_FALLBACK_MIN_RADIUS_ANGSTROM = 0.30
 PCM_WARNING_MARKER = "PCMSolver warning."
 CAVITY_POLICY_WARNING_FALLBACK = "warning-fallback"
 CAVITY_POLICY_FIXED_STABILITY_BRANCH = "fixed-stability-branch"
+CAVITY_POLICY_INTRINSIC_SMD = "intrinsic-smd-probe0-noaddsph-v1"
 SUPPORTED_CAVITY_POLICIES = frozenset(
     {
         CAVITY_POLICY_WARNING_FALLBACK,
         CAVITY_POLICY_FIXED_STABILITY_BRANCH,
+        CAVITY_POLICY_INTRINSIC_SMD,
     }
 )
 SCF_MAX_ITERATIONS = 50
@@ -303,70 +315,6 @@ def _load_pcmsolver_parser():
     return parser
 
 
-def _pcm_input_text(
-    atom_count: int,
-    radii_angstrom: np.ndarray,
-    *,
-    tessera_area_angstrom2: float = PCM_TESSERA_AREA_ANGSTROM2,
-    minimum_added_sphere_radius_angstrom: float | None = None,
-) -> str:
-    """Return a human-readable PCMSolver input with explicit per-atom radii.
-
-    ``MODE=ATOMS`` is intentional: it lets the C API initialize the molecular
-    geometry from the host arrays while replacing every built-in radius with
-    the SMD radius.  ``MODE=EXPLICIT`` instead turns the sphere list into dummy
-    unit-charge atoms in the v1.1 C API.
-    """
-
-    radii = np.asarray(radii_angstrom, dtype=float)
-    if radii.shape != (atom_count,) or not np.all(np.isfinite(radii)):
-        raise ValueError("PCMSolver radii must be one finite value per atom.")
-    area = float(tessera_area_angstrom2)
-    if not np.isfinite(area) or area <= 0.0:
-        raise ValueError("PCMSolver tessera area must be finite and positive.")
-    minimum_radius = (
-        None
-        if minimum_added_sphere_radius_angstrom is None
-        else float(minimum_added_sphere_radius_angstrom)
-    )
-    if minimum_radius is not None and (
-        not np.isfinite(minimum_radius) or minimum_radius <= 0.0
-    ):
-        raise ValueError(
-            "PCMSolver minimum added-sphere radius must be finite and positive."
-        )
-    atom_indices = ", ".join(str(index) for index in range(1, atom_count + 1))
-    radius_values = ", ".join(f"{radius:.10f}" for radius in radii)
-    minimum_radius_line = (
-        ""
-        if minimum_radius is None
-        else f"  MINRADIUS = {minimum_radius:.10f}\n"
-    )
-    return (
-        "UNITS = ANGSTROM\n"
-        "CODATA = 2010\n"
-        "CAVITY\n"
-        "{\n"
-        "  TYPE = GEPOL\n"
-        f"  AREA = {area:.10f}\n"
-        "  SCALING = FALSE\n"
-        f"{minimum_radius_line}"
-        "  MODE = ATOMS\n"
-        f"  ATOMS = [{atom_indices}]\n"
-        f"  RADII = [{radius_values}]\n"
-        "}\n"
-        "MEDIUM\n"
-        "{\n"
-        "  SOLVERTYPE = IEFPCM\n"
-        "  SOLVENT = WATER\n"
-        "  NONEQUILIBRIUM = FALSE\n"
-        "  MATRIXSYMM = TRUE\n"
-        "  DIAGONALINTEGRATOR = COLLOCATION\n"
-        "  DIAGONALSCALING = 1.07\n"
-        "}\n"
-    )
-
-
 @dataclass
 class SMDImplicitSolvation:
     """Aqueous SMD correction driven by the MACE-POLAR residual density."""
@@ -389,18 +337,28 @@ class SMDImplicitSolvation:
         self.profile = str(
             self.solvation_options.get("profile", "smd-iefpcm")
         ).lower()
-        self.cavity_policy = str(
-            self.solvation_options.get(
-                "cavity_policy",
-                CAVITY_POLICY_WARNING_FALLBACK,
-            )
-        ).lower()
+        self.profile_spec = route2_smd_profile_spec(self.profile)
+        self._cavity_policy_was_explicit = (
+            "cavity_policy" in self.solvation_options
+        )
+        self.cavity_policy = (
+            CAVITY_POLICY_INTRINSIC_SMD
+            if self.profile_spec.uses_intrinsic_pcmsolver_cavity
+            else str(
+                self.solvation_options.get(
+                    "cavity_policy",
+                    CAVITY_POLICY_WARNING_FALLBACK,
+                )
+            ).lower()
+        )
         self._cavity_policy_geometry_selection_branch_free = (
             self.cavity_policy
-            == CAVITY_POLICY_FIXED_STABILITY_BRANCH
+            in {
+                CAVITY_POLICY_FIXED_STABILITY_BRANCH,
+                CAVITY_POLICY_INTRINSIC_SMD,
+            }
         )
 
-        self.profile_spec = route2_smd_profile_spec(self.profile)
         self._validate_options()
         self._validate_domain(self.atoms)
         self._reference_numbers = np.asarray(self.atoms.numbers, dtype=int).copy()
@@ -416,6 +374,7 @@ class SMDImplicitSolvation:
         )
         self._parsed_pcm_input_path: Path | None = None
         self._parsed_pcm_input_paths: dict[str, Path] = {}
+        self._pcm_input_adapter_audits: dict[str, dict[str, object]] = {}
         self._pcmsolver_parser_path: Path | None = None
         self._engine_settings = _pcmsolver_engine_settings()
 
@@ -449,6 +408,10 @@ class SMDImplicitSolvation:
                 "across the dielectric boundary"
             ),
             "electrostatics": "IEFPCM",
+            "electrostatic_cavity_generation": (
+                self.profile_spec.pcmsolver_cavity_generation
+            ),
+            "dielectric_policy": self.profile_spec.dielectric_policy,
             "cavity_policy": self.cavity_policy,
             "cavity_stability_policy": self._cavity_policy_description(),
             "cavity_policy_geometry_selection_branch_free": (
@@ -517,7 +480,18 @@ class SMDImplicitSolvation:
         if self.cavity_policy not in SUPPORTED_CAVITY_POLICIES:
             raise ValueError(
                 "Route 2 cavity_policy must be warning-fallback or "
-                "fixed-stability-branch."
+                "fixed-stability-branch for legacy profiles."
+            )
+        if self.profile_spec.uses_intrinsic_pcmsolver_cavity:
+            if self._cavity_policy_was_explicit:
+                raise ValueError(
+                    f"Route 2 profile={self.profile} owns its cavity "
+                    "generation policy; remove cavity_policy."
+                )
+        elif self.cavity_policy == CAVITY_POLICY_INTRINSIC_SMD:
+            raise ValueError(
+                "The intrinsic SMD cavity policy requires its versioned "
+                "PCMSolver profile."
             )
         if self.response not in {"frozen", "scf"}:
             raise ValueError("SMD response must be frozen or scf.")
@@ -541,6 +515,15 @@ class SMDImplicitSolvation:
             )
 
     def _cavity_policy_description(self) -> str:
+        if self.cavity_policy == CAVITY_POLICY_INTRINSIC_SMD:
+            return (
+                "Use the union of unscaled SMD intrinsic Coulomb spheres with "
+                "PROBERADIUS=0, MINRADIUS=100 bohr (no added spheres), and "
+                f"AREA={PCM_INTRINSIC_TESSERA_AREA_ANGSTROM2:.2f} A^2, plus "
+                f"explicit water epsilon={PCM_SMD_WATER_DIELECTRIC}. The "
+                "machine input and effective C++ runtime report are both "
+                "validated; any warning or semantic drift fails closed."
+            )
         if self.cavity_policy == CAVITY_POLICY_FIXED_STABILITY_BRANCH:
             return (
                 "Use AREA=0.28 A^2 and MINRADIUS=0.30 A from the first "
@@ -619,9 +602,30 @@ class SMDImplicitSolvation:
         """Reuse the established stability cavity without changing its audit file."""
         return self._ensure_pcm_fallback_input()
 
+    def _ensure_pcm_intrinsic_input(self) -> Path:
+        return self._ensure_pcm_input_variant(
+            key="intrinsic-smd",
+            filename="route2-smd-intrinsic.pcm",
+            tessera_area_angstrom2=(
+                PCM_INTRINSIC_TESSERA_AREA_ANGSTROM2
+            ),
+            minimum_added_sphere_radius_angstrom=(
+                PCM_INTRINSIC_MIN_RADIUS_ANGSTROM
+            ),
+        )
+
     def _cavity_attempt_specs(
         self,
     ) -> tuple[tuple[str, Callable[[], Path], float, float | None], ...]:
+        if self.cavity_policy == CAVITY_POLICY_INTRINSIC_SMD:
+            return (
+                (
+                    "intrinsic-smd",
+                    self._ensure_pcm_intrinsic_input,
+                    PCM_INTRINSIC_TESSERA_AREA_ANGSTROM2,
+                    PCM_INTRINSIC_MIN_RADIUS_ANGSTROM,
+                ),
+            )
         stability = (
             CAVITY_POLICY_FIXED_STABILITY_BRANCH,
             self._ensure_pcm_stability_input,
@@ -663,34 +667,66 @@ class SMDImplicitSolvation:
             )
 
         raw_path = self.audit_dir / filename
-        raw_path.write_text(
-            _pcm_input_text(
-                len(self.atoms),
-                self.coulomb_radii_angstrom,
-                tessera_area_angstrom2=tessera_area_angstrom2,
-                minimum_added_sphere_radius_angstrom=(
-                    minimum_added_sphere_radius_angstrom
-                ),
+        raw_text = _pcm_input_text(
+            len(self.atoms),
+            self.coulomb_radii_angstrom,
+            tessera_area_angstrom2=tessera_area_angstrom2,
+            minimum_added_sphere_radius_angstrom=(
+                minimum_added_sphere_radius_angstrom
             ),
+            dielectric_policy=self.profile_spec.dielectric_policy,
+        )
+        raw_path.write_text(
+            raw_text,
             encoding="utf-8",
         )
+        parser_input_path = raw_path
+        if self.profile_spec.uses_intrinsic_pcmsolver_cavity:
+            parser_input_path = raw_path.with_name(
+                f"{raw_path.stem}.parser-surrogate{raw_path.suffix}"
+            )
+            parser_input_path.write_text(
+                _intrinsic_pcm_parser_surrogate(raw_text),
+                encoding="utf-8",
+            )
         parser = _load_pcmsolver_parser()
         parser_module = importlib.import_module(parser.__module__)
         parser_file = getattr(parser_module, "__file__", None)
         if parser_file:
             self._pcmsolver_parser_path = Path(parser_file).resolve()
         try:
-            parser(str(raw_path), write_out=True)
-        except Exception as exc:
+            parser(str(parser_input_path), write_out=True)
+        except (Exception, SystemExit) as exc:
             raise RuntimeError(
-                f"PCMSolver failed to parse the generated SMD input {raw_path}: {exc}"
+                "PCMSolver failed to parse the generated SMD input "
+                f"{parser_input_path}: {exc}"
             ) from exc
-        parsed_path = raw_path.with_name("@" + raw_path.name)
-        if not parsed_path.is_file():
+        parser_output_path = parser_input_path.with_name(
+            "@" + parser_input_path.name
+        )
+        if not parser_output_path.is_file():
             raise RuntimeError(
                 "PCMSolver parse_pcm_input(..., write_out=True) did not create the "
-                f"expected machine input: {parsed_path}."
+                f"expected machine input: {parser_output_path}."
             )
+        parsed_path = parser_output_path
+        if self.profile_spec.uses_intrinsic_pcmsolver_cavity:
+            patched, semantics = _patch_intrinsic_pcm_machine_input(
+                parser_output_path.read_text(encoding="utf-8")
+            )
+            parsed_path = raw_path.with_name("@" + raw_path.name)
+            parsed_path.write_text(patched, encoding="utf-8")
+            self._pcm_input_adapter_audits[str(parsed_path)] = {
+                "scientific_input": str(raw_path),
+                "parser_surrogate_input": str(parser_input_path),
+                "parser_machine_output": str(parser_output_path),
+                "effective_machine_input": str(parsed_path),
+                "parser_surrogate_probe_radius_angstrom": (
+                    PCM_PARSER_SURROGATE_PROBE_RADIUS_ANGSTROM
+                ),
+                "single_machine_patch": "PROBERADIUS -> 0.0 bohr",
+                "effective_semantics": semantics,
+            }
         self._parsed_pcm_input_paths[key] = parsed_path
         return parsed_path
 
@@ -864,6 +900,13 @@ class SMDImplicitSolvation:
                 ),
             },
             "pcmsolver_input": str(self._parsed_pcm_input_path),
+            "pcmsolver_input_adapter": (
+                None
+                if self._parsed_pcm_input_path is None
+                else self._pcm_input_adapter_audits.get(
+                    str(self._parsed_pcm_input_path)
+                )
+            ),
             "pcmsolver_python_parser": (
                 None
                 if self._pcmsolver_parser_path is None
@@ -933,6 +976,30 @@ class SMDImplicitSolvation:
                         initialization_seconds = (
                             time.perf_counter() - initialization_started
                         )
+                        runtime_cavity_contract = None
+                        runtime_info_path = None
+                        if (
+                            self.profile_spec
+                            .uses_intrinsic_pcmsolver_cavity
+                        ):
+                            runtime_info_path = (
+                                self.audit_dir
+                                / (
+                                    "pcmsolver-"
+                                    f"{attempt_name}-effective-info.log"
+                                )
+                            )
+                            runtime_info = session.render_info()
+                            runtime_info_path.write_text(
+                                runtime_info,
+                                encoding="utf-8",
+                            )
+                            runtime_cavity_contract = (
+                                _validate_intrinsic_pcm_runtime_info(
+                                    runtime_info,
+                                    atom_count=len(atoms),
+                                )
+                            )
                         continuum_response = (
                             PCMSolverExternalMEPCavityResponse(
                                 session,
@@ -961,6 +1028,14 @@ class SMDImplicitSolvation:
                             "stderr_log": str(native_stderr_path),
                             "cavity_tesserae": session.cavity_size,
                             "pcm_initialization_seconds": initialization_seconds,
+                            "runtime_info_log": (
+                                None
+                                if runtime_info_path is None
+                                else str(runtime_info_path)
+                            ),
+                            "runtime_cavity_contract": (
+                                runtime_cavity_contract
+                            ),
                             "response_evaluated": False,
                             "response_evaluation_seconds": 0.0,
                         }
@@ -1229,6 +1304,29 @@ class SMDImplicitSolvation:
             encoding="utf-8",
         )
 
+        cavity_stability = {
+            "policy": self.cavity_policy,
+            "selected": selected_cavity["name"],
+            "force_compatible": False,
+            "geometry_selection_branch_free": (
+                self._cavity_policy_geometry_selection_branch_free
+            ),
+            "tessera_area_angstrom2": selected_cavity[
+                "tessera_area_angstrom2"
+            ],
+            "minimum_added_sphere_radius_angstrom": selected_cavity[
+                "minimum_added_sphere_radius_angstrom"
+            ],
+            "fallback_used": (
+                selected_cavity["name"] == "stability-fallback"
+            ),
+            "attempt_count": len(cavity_attempts),
+        }
+        if selected_cavity.get("runtime_cavity_contract") is not None:
+            cavity_stability["runtime_cavity_contract"] = selected_cavity[
+                "runtime_cavity_contract"
+            ]
+
         provenance = {
             **self.provenance,
             "converged": True,
@@ -1247,24 +1345,7 @@ class SMDImplicitSolvation:
                 pcm_state.density_reaction_coupling_hartree
             ),
             "cavity_tesserae": int(pcm_state.asc_e.size),
-            "cavity_stability": {
-                "policy": self.cavity_policy,
-                "selected": selected_cavity["name"],
-                "force_compatible": False,
-                "geometry_selection_branch_free": (
-                    self._cavity_policy_geometry_selection_branch_free
-                ),
-                "tessera_area_angstrom2": selected_cavity[
-                    "tessera_area_angstrom2"
-                ],
-                "minimum_added_sphere_radius_angstrom": selected_cavity[
-                    "minimum_added_sphere_radius_angstrom"
-                ],
-                "fallback_used": (
-                    selected_cavity["name"] == "stability-fallback"
-                ),
-                "attempt_count": len(cavity_attempts),
-            },
+            "cavity_stability": cavity_stability,
             "pcmsolver_diagnostics": {
                 "native_stderr_warning_count": (
                     pcmsolver_diagnostics["native_stderr_warning_count"]

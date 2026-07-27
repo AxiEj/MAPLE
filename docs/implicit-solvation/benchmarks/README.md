@@ -574,3 +574,45 @@ coordinate/gauge derivative, thermodynamic-conjugacy result, full
 electron-density PCM, original-SMD equivalence, hydration certification,
 smooth PES, OPT, TS, scan, MD, or NVE claim. Its SHA256 is
 `8c63c7a85f8b100a0165ba5d0eb4626250f326aaf85ed1d3c13ee57552a6d491`.
+
+## Intrinsic-cavity exact-GTO ten-class development panel
+
+[`route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1.json`](route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1.json)
+freezes the first pre-registered cross-functional-group check after replacing
+the unintended PCMSolver water probe with the SMD intrinsic electrostatic
+cavity. All three arms use the same point-\(l\le1\) source, SMD radii,
+zero-probe/no-added-sphere cavity, explicit `78.355` dielectric, IEFPCM
+equation, and native water SMD-CDS term. The arms are gas-density fixed
+\(l\le1\), self-consistent local jet, and self-consistent exact receiver GTO.
+
+The ten neutral FreeSolv v0.52 records cover ketone, alcohol, aromatic
+hydrocarbon, amide, carboxylic acid, cyclic diether, nitro, phenol, alkyl
+chloride, and ester. Their experimental values and uncertainties are checked
+against the pinned upstream `database.txt` SHA-256
+`2d13f095713bc39b85f85dd7b4e5483fbb12fc694bf253bb1d92a4c4d484f260`;
+each row retains its original experimental reference and row fingerprint.
+Selection was frozen before the panel and did not use candidate errors.
+
+| Method | MAE | RMSE | Max error | Mean wall time |
+| --- | ---: | ---: | ---: | ---: |
+| MACE fixed \(l\le1\) | 1.084 | 1.294 | 2.647 | 0.420 s |
+| MACE SCF local jet | 1.752 | 2.516 | 5.744 | 2.130 s |
+| MACE SCF exact GTO | **0.915** | 1.305 | 3.247 | 1.599 s |
+
+Exact GTO has lower absolute error on 7/10 rows and lowers acetone from
+`2.963` to `0.933 kcal/mol` relative to local jet. It also materially improves
+acetamide, acetic acid, and methyl acetate. It is not uniformly better:
+methanol, phenol, and chloroethane favor local jet, while acetic acid remains a
+`3.247 kcal/mol` outlier. Consequently the pre-registered panel-MAE,
+control-MAE, acetone, and native-warning gates pass, but the `<2 kcal/mol`
+maximum-error gate fails. The candidate is retained as a non-default,
+energy-only experimental profile; neither the old profile nor any global
+default is replaced.
+
+The timing order was counterbalanced by record and model load was excluded,
+but each arm was run only once on this host, so the timing is diagnostic rather
+than a portable benchmark. This development panel does not certify FreeSolv
+population accuracy, an unseen confirmation set, training-set exclusion,
+variational thermodynamics, forces, or a smooth solution-phase PES. Artifact
+SHA-256:
+`31f085158cda6a1497863a5d933524da73525e3a02c42a49d7b19058becc159d`.

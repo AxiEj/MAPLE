@@ -7,8 +7,10 @@ explicit pyddx ddPCM profiles expose single-point research force candidates,
 including one versioned multi-solvent parameter profile. A separate
 PCMSolver profile changes only the ASC-to-MACE reaction-field projection from
 the historical local first-order jet to the checkpoint-native \(l\le1\) GTO
-integrals. None is yet a complete MAPLE solution-phase PES. All calculations
-therefore require `experimental=true`.
+integrals. A newer, still non-default profile combines that receiver with the
+SMD intrinsic Coulomb-sphere electrostatic cavity (`probe=0`, no added
+spheres, explicit water dielectric). None is yet a complete MAPLE solution-phase PES.
+All calculations therefore require `experimental=true`.
 
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot
@@ -120,6 +122,35 @@ variational free-energy consistency, a complete coordinate derivative, or
 chemical-accuracy certification. The profile is energy-only and non-default.
 The matching projector control replaces only the profile name with
 `smd-iefpcm-point-l1-local-jet-atomic-mean-v1`.
+
+The corrected intrinsic-cavity/exact-GTO combination must be selected exactly:
+
+```text
+#model=macepol-m
+#sp(verbose=1)
+#solv(implicit=water,method=smd,provider=pcmsolver,profile=macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1,response=scf,standard_state=1m,experimental=true)
+
+0 1
+MOL2 molecule.mol2
+```
+
+This versioned profile owns its cavity policy: it uses the SMD Coulomb radii
+with zero electrostatic probe radius, disables added spheres, and uses an
+explicit `78.355` water dielectric. It therefore rejects the legacy
+`cavity_policy` option. The matched intrinsic-cavity local-jet control is
+`macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-v1`. Neither profile changes
+the historical default.
+
+A pre-registered ten-class FreeSolv development panel gives MAEs of `1.084`,
+`1.752`, and `0.915 kcal/mol` for fixed \(l\le1\), intrinsic-cavity local-jet
+SCF, and intrinsic-cavity exact-GTO SCF, respectively. Exact GTO wins 7/10
+paired comparisons and reduces acetone's error to `0.933 kcal/mol`, but its
+maximum error is still `3.247 kcal/mol` for acetic acid and it regresses
+methanol, phenol, and chloroethane relative to local jet. The pre-registered
+maximum-error gate therefore fails, so this profile remains an explicit
+energy-only experiment rather than a default replacement. The row-level
+experimental provenance and component ledger are frozen in
+[`route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1.json`](benchmarks/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1.json).
 
 The separately named single-point force candidate must be selected exactly:
 

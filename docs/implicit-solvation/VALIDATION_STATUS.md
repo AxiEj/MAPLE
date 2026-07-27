@@ -1036,6 +1036,40 @@ Research/Innovation Route, not a complete solution-phase PES.
     solution-phase PES result. Complete development/confirmation evaluation
     remains required. The immutable aggregate evidence is
     `benchmarks/route2-mnsol-aimnet2-multisolvent-pilot-v1.json`.
+42. The PCMSolver route now has two explicit, non-default intrinsic-cavity
+    profiles. Both replace the built-in water-solvent probe with a runtime
+    verified SMD electrostatic cavity: zero probe radius, no added spheres,
+    explicit `78.355` dielectric, and the canonical SMD Coulomb radii. One
+    retains local jet; the other uses the checkpoint-native exact receiver-GTO
+    projection. Legacy profiles and the global default are unchanged.
+
+    A selection manifest was frozen before evaluating ten neutral FreeSolv
+    v0.52 development representatives spanning ten functional-group classes.
+    Experimental values and uncertainties were verified row by row against the
+    pinned upstream database SHA-256
+    `2d13f095713bc39b85f85dd7b4e5483fbb12fc694bf253bb1d92a4c4d484f260`.
+    Fixed \(l<=1\), local-jet SCF, and exact-GTO SCF give
+    MAE/RMSE/max errors of `1.084/1.294/2.647`,
+    `1.752/2.516/5.744`, and `0.915/1.305/3.247 kcal/mol`,
+    respectively. Exact GTO wins 7/10 paired comparisons and changes the
+    acetone error from `2.963` to `0.933 kcal/mol`.
+
+    This is not a universal improvement. Relative to local jet, exact GTO
+    worsens methanol by `0.761`, phenol by `1.295`, and chloroethane by
+    `0.463 kcal/mol`; acetic acid remains the largest exact-GTO error at
+    `3.247 kcal/mol`. Therefore the pre-registered `<1 kcal/mol` panel-MAE,
+    no-worse-than-control, acetone, and zero-native-warning gates pass, but the
+    `<2 kcal/mol` maximum-error gate fails and the overall promotion decision
+    is **fail**. The exact-GTO candidate remains explicit, non-default, and
+    energy-only. Its single-run mean wall time was `1.599 s` versus `2.130 s`
+    for local jet and `0.420 s` for fixed \(l<=1\); these are host diagnostics,
+    not portable speed rankings.
+
+    The artifact is
+    `benchmarks/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1.json`.
+    This development panel does not certify confirmation accuracy,
+    training-set exclusion, original-SMD equivalence, variational
+    thermodynamics, forces, or a smooth solution-phase PES.
 
 ## Secondary diagnostics
 

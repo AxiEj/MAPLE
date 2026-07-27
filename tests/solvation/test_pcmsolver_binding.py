@@ -52,6 +52,9 @@ class FakePCMSolverCDLL:
         self.pcmsolver_compute_polarization_energy = FakeFunction(
             self._pcmsolver_compute_polarization_energy
         )
+        self.pcmsolver_print = FakeFunction(
+            lambda ctx: self.last_new["writer"](b"pcmsolver-cavity-info")
+        )
 
     def _pcmsolver_new_v1112(
         self,
@@ -75,6 +78,7 @@ class FakePCMSolverCDLL:
             "coordinates": coordinates_array,
             "symmetry": symmetry_array,
             "parsed_fname": parsed_fname,
+            "writer": writer,
         }
         return self._context
 
@@ -180,6 +184,7 @@ def test_session_exposes_centers_areas_and_polarization_energy(monkeypatch, pars
         assert np.allclose(session.cavity_centers_bohr, [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
         assert np.allclose(session.cavity_areas_bohr2, [0.5, 0.75])
         assert session.response_operator_is_symmetric is False
+        assert session.render_info() == "pcmsolver-cavity-info"
 
         assert np.allclose(session.compute_asc([10.0, -2.0]), [0.125, -0.250])
         assert fake.energy_calls == 0

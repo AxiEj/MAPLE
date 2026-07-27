@@ -23,6 +23,7 @@ _REQUIRED_SYMBOLS = (
     "pcmsolver_compute_response_asc",
     "pcmsolver_get_surface_function",
     "pcmsolver_compute_polarization_energy",
+    "pcmsolver_print",
 )
 _DEFAULT_MEP_LABEL = b"MAPLE_MEP"
 _DEFAULT_ASC_LABEL = b"MAPLE_ASC"
@@ -184,6 +185,10 @@ class _PCMSolverLibrary:
         ]
         self.pcmsolver_compute_polarization_energy.restype = ctypes.c_double
 
+        self.pcmsolver_print = self.cdll.pcmsolver_print
+        self.pcmsolver_print.argtypes = [ctypes.c_void_p]
+        self.pcmsolver_print.restype = None
+
     def _verify_abi(self) -> None:
         if not bool(self.pcmsolver_is_compatible_library()):
             raise PCMSolverABIError(
@@ -256,7 +261,17 @@ class PCMSolverSession:
         self.parsed_input_path = Path(parsed_input_path)
         self.symmetry_info = self._normalize_symmetry(symmetry_info)
         self.library_path = library_path
-        self._writer_callback = _HostWriter(host_writer or _noop_host_writer)
+        self._host_messages: list[str] = []
+        downstream_writer = host_writer or _noop_host_writer
+
+        def capture_host_message(message: bytes | None) -> None:
+            if message is not None:
+                self._host_messages.append(
+                    message.decode("utf-8", errors="replace")
+                )
+            downstream_writer(message)
+
+        self._writer_callback = _HostWriter(capture_host_message)
         self._library: _PCMSolverLibrary | None = None
         self._context: int | None = None
         self._input = PCMInput.defaults()
@@ -348,6 +363,15 @@ class PCMSolverSession:
                 if stripped:
                     return stripped.lower() == "true"
         return False
+
+    def render_info(self) -> str:
+        """Ask the pinned runtime to emit its effective cavity/medium report."""
+
+        self._require_open()
+        assert self._library is not None and self._context is not None
+        self._host_messages.clear()
+        self._library.pcmsolver_print(self._context)
+        return "".join(self._host_messages)
 
     def open(self) -> "PCMSolverSession":
         if self._context is not None:

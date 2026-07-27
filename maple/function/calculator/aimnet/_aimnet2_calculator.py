@@ -106,6 +106,74 @@ class AIMNet2ChargeState:
         }
 
 
+@dataclass(frozen=True)
+class AIMNet2ChargePositionResponse:
+    """Coordinate derivatives for one AIMNet2 energy/charge evaluation.
+
+    ``charge_position_vjp_ev_per_angstrom`` is the derivative of
+    ``sum_i q_i * v_i`` for the supplied charge cotangent ``v``.  The tiny
+    affine total-charge projection is kept inside the autograd graph so this
+    response remains in the fixed-total-charge tangent space.
+    """
+
+    charge_state: AIMNet2ChargeState
+    charge_cotangent_ev_per_e: np.ndarray
+    intrinsic_energy_gradient_ev_per_angstrom: np.ndarray
+    charge_position_vjp_ev_per_angstrom: np.ndarray
+
+    def __post_init__(self) -> None:
+        atom_count = self.charge_state.charges_e.size
+        cotangent = np.asarray(
+            self.charge_cotangent_ev_per_e,
+            dtype=float,
+        ).copy()
+        intrinsic = np.asarray(
+            self.intrinsic_energy_gradient_ev_per_angstrom,
+            dtype=float,
+        ).copy()
+        charge_vjp = np.asarray(
+            self.charge_position_vjp_ev_per_angstrom,
+            dtype=float,
+        ).copy()
+        if cotangent.shape != (atom_count,) or not np.all(
+            np.isfinite(cotangent)
+        ):
+            raise ValueError(
+                "AIMNet2 charge cotangent must be finite with shape "
+                f"{(atom_count,)}."
+            )
+        expected_gradient_shape = (atom_count, 3)
+        for name, values in (
+            ("intrinsic energy gradient", intrinsic),
+            ("charge-position VJP", charge_vjp),
+        ):
+            if values.shape != expected_gradient_shape or not np.all(
+                np.isfinite(values)
+            ):
+                raise ValueError(
+                    f"AIMNet2 {name} must be finite with shape "
+                    f"{expected_gradient_shape}."
+                )
+        cotangent.setflags(write=False)
+        intrinsic.setflags(write=False)
+        charge_vjp.setflags(write=False)
+        object.__setattr__(
+            self,
+            "charge_cotangent_ev_per_e",
+            cotangent,
+        )
+        object.__setattr__(
+            self,
+            "intrinsic_energy_gradient_ev_per_angstrom",
+            intrinsic,
+        )
+        object.__setattr__(
+            self,
+            "charge_position_vjp_ev_per_angstrom",
+            charge_vjp,
+        )
+
+
 # --------------------------------------------
 # Build dense neighbor list (N+1, M) sentinel padded
 # --------------------------------------------
@@ -456,6 +524,101 @@ class AIMNet2Calculator(CalcABC):
         )
         self._last_charge_state = state
         return state
+
+    def charge_position_response(
+        self,
+        atoms,
+        charge_cotangent_ev_per_e: np.ndarray,
+    ) -> AIMNet2ChargePositionResponse:
+        """Differentiate AIMNet2 energy and NQE charges with respect to geometry.
+
+        This is a fixed-geometry response primitive, not an implicit-solvent
+        model by itself.  A continuum caller supplies the reaction potential
+        as the charge cotangent and remains responsible for the continuum's
+        explicit cavity/source coordinate derivative.
+        """
+
+        self._reject_unsupported_pbc(atoms)
+        self._validate_charge_output_domain(atoms)
+        atom_count = len(atoms)
+        cotangent = np.array(
+            charge_cotangent_ev_per_e,
+            dtype=float,
+            copy=True,
+        )
+        if cotangent.shape != (atom_count,) or not np.all(
+            np.isfinite(cotangent)
+        ):
+            raise ValueError(
+                "AIMNet2 charge cotangent must be finite with shape "
+                f"{(atom_count,)}."
+            )
+
+        coord = torch.tensor(
+            atoms.get_positions(),
+            dtype=torch.float32,
+            device=self.device,
+            requires_grad=True,
+        )
+        data = self._build_data(coord, atoms)
+        output = self._forward_output(data)
+        charge_state = self._charge_state_from_output(
+            output,
+            atom_count=atom_count,
+            requested_total_charge_e=self._total_charge_from_atoms(atoms),
+        )
+        raw_tensor = output.get("charges")
+        if raw_tensor is None or not raw_tensor.requires_grad:
+            raise RuntimeError(
+                "AIMNet2 charge-position response requires differentiable "
+                "checkpoint charge outputs."
+            )
+        raw_atomic = raw_tensor[:atom_count]
+        target_charge = torch.as_tensor(
+            charge_state.requested_total_charge_e,
+            dtype=raw_atomic.dtype,
+            device=raw_atomic.device,
+        )
+        differentiable_charges = raw_atomic + (
+            target_charge - raw_atomic.sum()
+        ) / atom_count
+
+        energy_ev = self._energy_from_output(output)
+        if not energy_ev.requires_grad:
+            raise RuntimeError(
+                "AIMNet2 charge-position response requires a differentiable "
+                "checkpoint energy output."
+            )
+        intrinsic_gradient = torch.autograd.grad(
+            energy_ev,
+            data["coord"],
+            retain_graph=True,
+        )[0][:atom_count]
+        cotangent_tensor = torch.as_tensor(
+            cotangent,
+            dtype=differentiable_charges.dtype,
+            device=differentiable_charges.device,
+        )
+        charge_pairing_ev = torch.sum(
+            differentiable_charges * cotangent_tensor
+        )
+        charge_position_vjp = torch.autograd.grad(
+            charge_pairing_ev,
+            data["coord"],
+        )[0][:atom_count]
+
+        response = AIMNet2ChargePositionResponse(
+            charge_state=charge_state,
+            charge_cotangent_ev_per_e=cotangent,
+            intrinsic_energy_gradient_ev_per_angstrom=(
+                intrinsic_gradient.detach().cpu().numpy()
+            ),
+            charge_position_vjp_ev_per_angstrom=(
+                charge_position_vjp.detach().cpu().numpy()
+            ),
+        )
+        self._last_charge_state = charge_state
+        return response
 
     @property
     def last_charge_state(self) -> AIMNet2ChargeState | None:

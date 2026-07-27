@@ -34,6 +34,32 @@ class _FakeAIMNet2(torch.nn.Module):
         }
 
 
+class _CoordinateResponsiveFakeAIMNet2(torch.nn.Module):
+    cutoff = 5.0
+    cutoff_lr = float("inf")
+
+    def forward(self, data):
+        coord = data["coord"]
+        atomic_coord = coord[:-1]
+        base = torch.tensor(
+            [-0.6, 0.3, 0.3],
+            dtype=coord.dtype,
+            device=coord.device,
+        )
+        x_centered = atomic_coord[:, 0] - atomic_coord[:, 0].mean()
+        atomic_charges = base + 0.1 * x_centered
+        charges = torch.cat(
+            [
+                atomic_charges,
+                torch.zeros(1, dtype=coord.dtype, device=coord.device),
+            ]
+        )
+        return {
+            "energy": 0.5 * torch.sum(atomic_coord**2).reshape(1),
+            "charges": charges,
+        }
+
+
 def _calculator(monkeypatch, charges, *, model_name="aimnet2"):
     model = _FakeAIMNet2(charges)
     monkeypatch.setattr(torch.jit, "load", lambda *args, **kwargs: model)
@@ -173,3 +199,62 @@ def test_nse_charge_channels_fail_closed_until_their_source_is_validated(
     assert "charges" not in calculator.implemented_properties
     with pytest.raises(NotImplementedError, match="NSE two-channel"):
         calculator.charge_state(_water())
+
+
+def test_charge_position_response_differentiates_energy_and_projected_charges(
+    monkeypatch,
+):
+    model = _CoordinateResponsiveFakeAIMNet2()
+    monkeypatch.setattr(torch.jit, "load", lambda *args, **kwargs: model)
+    calculator = AIMNet2Calculator(
+        torch.device("cpu"),
+        model="aimnet2",
+        model_path="/unused/aimnet2.pt",
+    )
+    atoms = _water()
+    cotangent = np.asarray([-2.0, 0.5, 1.5])
+
+    response = calculator.charge_position_response(atoms, cotangent)
+
+    np.testing.assert_allclose(
+        response.intrinsic_energy_gradient_ev_per_angstrom,
+        atoms.get_positions(),
+        rtol=0.0,
+        atol=2.0e-7,
+    )
+    expected_charge_vjp = np.zeros((3, 3))
+    expected_charge_vjp[:, 0] = 0.1 * (
+        cotangent - float(np.mean(cotangent))
+    )
+    np.testing.assert_allclose(
+        response.charge_position_vjp_ev_per_angstrom,
+        expected_charge_vjp,
+        rtol=0.0,
+        atol=2.0e-7,
+    )
+    assert response.charge_state.projected_charge_sum_e == pytest.approx(
+        0.0,
+        abs=1.0e-15,
+    )
+    assert response.charge_cotangent_ev_per_e.flags.writeable is False
+    assert (
+        response.intrinsic_energy_gradient_ev_per_angstrom.flags.writeable
+        is False
+    )
+    assert (
+        response.charge_position_vjp_ev_per_angstrom.flags.writeable
+        is False
+    )
+
+
+def test_charge_position_response_rejects_invalid_cotangent(monkeypatch):
+    calculator = _calculator(
+        monkeypatch,
+        [-0.7, 0.35, 0.35, 0.0],
+    )
+
+    with pytest.raises(ValueError, match="cotangent.*shape"):
+        calculator.charge_position_response(
+            _water(),
+            np.zeros((3, 1)),
+        )

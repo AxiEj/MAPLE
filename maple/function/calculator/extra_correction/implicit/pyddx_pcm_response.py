@@ -550,6 +550,25 @@ class PyDDXReactionFieldLinearMap:
         # suite defines this returned array by central dE/dR finite differences.
         return self._dielectric_scaling * coordinate_gradient.T
 
+    def polarization_position_gradient_ev_per_angstrom(
+        self,
+        density_coefficients: np.ndarray,
+    ) -> np.ndarray:
+        """Return ``dE_pol/dR`` at fixed source multipole coefficients.
+
+        Geometry-adaptive source models must add their own source-response
+        chain rule separately.  Keeping this term explicit prevents double
+        counting the charge/multipole response.
+        """
+
+        return (
+            self._coordinate_energy_gradient_hartree_per_bohr(
+                density_coefficients
+            )
+            * Hartree
+            / Bohr
+        )
+
     def full_position_vjp(
         self,
         density: np.ndarray,

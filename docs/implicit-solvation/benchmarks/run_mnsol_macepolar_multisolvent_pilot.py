@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
-"""Run the preregistered ten-solvent self-consistent MACE-POLAR pilot.
+"""Run the preregistered self-consistent MACE-POLAR multisolvent pilot.
 
 The private output contains row-level MNSol values and must remain under
 ``.omx``.  The tracked public summary contains aggregate metrics only.  Both
 ddPCM and scaled ddCOSMO are evaluated through MAPLE's public Route-2 path and
 the same shared fixed-point engine.  This is a bounded diagnostic, not a
 replacement for complete MNSol development/confirmation evaluation.
+
+The default path remains the frozen ten-record panel.  ``--record-index`` is a
+single-record engineering smoke only: both outputs must remain under ``.omx``,
+are marked ``do_not_commit``, and cannot support population or solvent-ranking
+claims.
 """
 
 from __future__ import annotations
 
 import argparse
 from collections import Counter
+from importlib import import_module
 from importlib.metadata import version
 import json
 import math
@@ -33,8 +39,6 @@ for search_path in (REPO_ROOT, BENCHMARK_DIR):
 import ase
 from ase import Atoms
 import numpy as np
-import pyddx
-import pyscf
 import torch
 
 from benchmark_core import sha256_file, write_json_atomic
@@ -64,6 +68,7 @@ from maple.function.route2_smd_profiles import (
 )
 
 ARTIFACT_NAME = "route2-mnsol-macepolar-multisolvent-pilot-v1"
+FULL_PANEL_RECORD_COUNT = 10
 METHOD_PROFILES = (
     ("ddpcm", DDPCM_MULTISOLVENT_SMD_PROFILE),
     ("ddcosmo", DDCOSMO_MULTISOLVENT_SMD_PROFILE),
@@ -166,12 +171,12 @@ def _metrics(
         dtype=float,
     )
     if (
-        errors.size != 10
+        errors.size == 0
         or not np.all(np.isfinite(errors))
         or not np.all(np.isfinite(predicted))
         or not np.all(np.isfinite(experimental))
     ):
-        raise RuntimeError("MNSol pilot metrics require ten finite records.")
+        raise RuntimeError("MNSol pilot metrics require finite nonempty records.")
     return {
         "record_count": int(errors.size),
         "mean_signed_error_kcal_mol": float(np.mean(errors)),
@@ -231,12 +236,14 @@ def _paired_method_comparison(
         dtype=float,
     )
     if (
-        energy_differences.size != 10
+        energy_differences.size == 0
         or not np.all(np.isfinite(energy_differences))
         or not np.all(np.isfinite(pcm_errors))
         or not np.all(np.isfinite(cosmo_errors))
     ):
-        raise RuntimeError("Paired MNSol comparison requires ten finite records.")
+        raise RuntimeError(
+            "Paired MNSol comparison requires finite nonempty records."
+        )
     tolerance = 1.0e-12
     return {
         "record_count": int(energy_differences.size),
@@ -391,39 +398,88 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--private-output", type=Path, required=True)
     parser.add_argument("--public-output", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
+    parser.add_argument(
+        "--record-index",
+        type=int,
+        help="Run one zero-based selected record as a private smoke test.",
+    )
     return parser
+
+
+def _indexed_selection(
+    full_selection: Sequence[object],
+    record_index: int | None,
+) -> tuple[list[tuple[int, object]], bool]:
+    if len(full_selection) != FULL_PANEL_RECORD_COUNT:
+        raise RuntimeError(
+            "The frozen MNSol MACE-POLAR pilot must contain exactly "
+            f"{FULL_PANEL_RECORD_COUNT} records."
+        )
+    if record_index is None:
+        return list(enumerate(full_selection)), True
+    if not 0 <= record_index < len(full_selection):
+        raise ValueError(
+            f"--record-index must lie in [0, {len(full_selection) - 1}]."
+        )
+    return [(record_index, full_selection[record_index])], False
+
+
+def _validated_output_paths(
+    *,
+    private_output: Path,
+    public_output: Path,
+    work_dir: Path,
+    complete_panel: bool,
+) -> tuple[Path, Path, Path]:
+    private = _require_private_path(
+        private_output,
+        kind="Row-level MNSol pilot output",
+    )
+    work = _require_private_path(
+        work_dir,
+        kind="MNSol provider audit work directory",
+    )
+    public = public_output.resolve()
+    if not complete_panel:
+        public = _require_private_path(
+            public,
+            kind="Single-record derived MNSol smoke output",
+        )
+    return private, public, work
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
-    private_output = _require_private_path(
-        args.private_output,
-        kind="Row-level MNSol pilot output",
-    )
-    work_dir = _require_private_path(
-        args.work_dir,
-        kind="MNSol provider audit work directory",
-    )
-    if work_dir.exists():
-        raise FileExistsError(work_dir)
-    work_dir.mkdir(parents=True)
     execution_git_head = _execution_git_head()
 
     protocol = load_mnsol_protocol(args.protocol)
     dataset = load_mnsol_v2012(args.source, protocol)
     selection_manifest = json.loads(args.selection.read_text(encoding="utf-8"))
-    selection = validate_frozen_mnsol_pilot_selection(
+    full_selection = validate_frozen_mnsol_pilot_selection(
         selection_manifest,
         dataset,
         protocol,
     )
+    indexed_selection, complete_panel = _indexed_selection(
+        full_selection,
+        args.record_index,
+    )
+    private_output, public_output, work_dir = _validated_output_paths(
+        private_output=args.private_output,
+        public_output=args.public_output,
+        work_dir=args.work_dir,
+        complete_panel=complete_panel,
+    )
+    if work_dir.exists():
+        raise FileExistsError(work_dir)
+    work_dir.mkdir(parents=True)
 
     torch.set_num_threads(1)
     wall_started = time.perf_counter()
     load_started = time.perf_counter()
     calculator = _load_calculator(
-        _atoms(selection[0]),
-        selection[0].canonical_solvent,
+        _atoms(indexed_selection[0][1]),
+        indexed_selection[0][1].canonical_solvent,
         work_dir,
     )
     model_load_seconds = time.perf_counter() - load_started
@@ -432,7 +488,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     supported_atomic_numbers = frozenset(calculator.atomic_numbers)
 
     records: list[dict[str, object]] = []
-    for selected in selection:
+    for ordinal, (selection_index, selected) in enumerate(
+        indexed_selection,
+        start=1,
+    ):
+        print(
+            f"[{ordinal}/{len(indexed_selection)}] index={selection_index} "
+            f"solvent={selected.canonical_solvent}",
+            flush=True,
+        )
         atoms = _atoms(selected)
         unsupported = sorted(
             set(int(number) for number in atoms.numbers) - supported_atomic_numbers
@@ -466,6 +530,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         item = selected.eligible_record
         records.append(
             {
+                "selection_index": selection_index,
                 "canonical_solvent": selected.canonical_solvent,
                 "mnsol_solvent": item.record.solvent,
                 "partition": item.partition,
@@ -483,6 +548,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
 
     total_wall_seconds = time.perf_counter() - wall_started
+    if complete_panel and len(records) != FULL_PANEL_RECORD_COUNT:
+        raise RuntimeError("The full MNSol pilot did not produce all ten records.")
     method_metrics = {
         method: _metrics(records, method) for method, _profile in METHOD_PROFILES
     }
@@ -493,6 +560,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         "schema_version": 1,
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
+        "complete_panel": complete_panel,
+        "run_kind": (
+            "ten-record-panel" if complete_panel else "single-record-smoke"
+        ),
         "execution_git_head": execution_git_head,
         "protocol_fingerprint": protocol.fingerprint,
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
@@ -518,11 +589,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         for method, _profile in METHOD_PROFILES
     }
+    pyddx_runtime = import_module("pyddx")
+    pyscf_runtime = import_module("pyscf")
     public_artifact = {
         "artifact": ARTIFACT_NAME,
         "schema_version": 1,
-        "visibility": "public-aggregate-only",
+        "visibility": (
+            "public-aggregate-only"
+            if complete_panel
+            else "private-single-record-smoke-do-not-commit"
+        ),
+        "do_not_commit": not complete_panel,
         "execution_git_head": execution_git_head,
+        "complete_panel": complete_panel,
+        "run_kind": (
+            "ten-record-panel" if complete_panel else "single-record-smoke"
+        ),
         "scientific_identity": {
             "solute_energy_model": ("official unmodified MACE-POLAR-1-M checkpoint"),
             "solute_source": ("MACE-POLAR coarse residual point-multipole-l<=1"),
@@ -539,13 +621,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             "cosmo_rs_included": False,
         },
         "claim_boundary": (
-            "This experiment-blind ten-record MNSol pilot is an engineering "
-            "and early chemical diagnostic for self-consistent MACE-POLAR "
-            "coarse residual point-(l<=1) multipoles with ddPCM or scaled "
-            "ddCOSMO plus SMD-CDS. One record per solvent cannot certify "
-            "accuracy, solvent generalization, exact-GTO forces, Gaussian "
-            "solute sources, original SMD equivalence, C-PCM, COSMO-RS, a "
-            "smooth solution-phase PES, OPT, TS, scan, or MD."
+            (
+                "This experiment-blind ten-record MNSol pilot is an engineering "
+                "and early chemical diagnostic for self-consistent MACE-POLAR "
+                "coarse residual point-(l<=1) multipoles with ddPCM or scaled "
+                "ddCOSMO plus SMD-CDS. One record per solvent cannot certify "
+                "accuracy, solvent generalization, exact-GTO forces, Gaussian "
+                "solute sources, original SMD equivalence, C-PCM, COSMO-RS, a "
+                "smooth solution-phase PES, OPT, TS, scan, or MD."
+            )
+            if complete_panel
+            else (
+                "One-record engineering smoke for provenance, convergence, "
+                "energy-ledger, and timing inspection only. Its derived "
+                "single-row values remain private under .omx and cannot "
+                "support population accuracy, solvent ranking, generalization, "
+                "method selection, force, PES, OPT, TS, scan, or MD claims."
+            )
         ),
         "dataset": {
             "name": "MNSol",
@@ -554,7 +646,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "normalized_bundle_sha256": dataset.normalized_bundle_sha256,
             "standard_state": protocol.standard_state,
             "temperature_k": protocol.temperature_k,
-            "row_level_data_emitted": False,
+            "row_level_data_emitted": not complete_panel,
         },
         "protocol_id": protocol.protocol_id,
         "protocol_fingerprint": protocol.fingerprint,
@@ -562,6 +654,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "selection_artifact_sha256": sha256_file(args.selection),
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
         "selection_record_count": len(records),
+        "selection_full_preregistered_record_count": len(full_selection),
         "selection_solvent_count": len(
             {record["canonical_solvent"] for record in records}
         ),
@@ -613,8 +706,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             "torch": torch.__version__,
             "mace_torch": version("mace-torch"),
             "graph_longrange": version("graph-longrange"),
-            "pyddx": pyddx.__version__,
-            "pyscf": pyscf.__version__,
+            "pyddx": pyddx_runtime.__version__,
+            "pyscf": pyscf_runtime.__version__,
             "device": "cpu",
             "torch_threads": torch.get_num_threads(),
         },
@@ -626,9 +719,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             "ddx_documentation": "https://ddsolvation.github.io/ddX/",
         },
     }
-    write_json_atomic(args.public_output, public_artifact)
+    write_json_atomic(public_output, public_artifact)
     print(
-        f"Wrote private {private_output} and public {args.public_output} "
+        f"Wrote private {private_output} and summary {public_output} "
         f"for {len(records)} preregistered records."
     )
     return 0

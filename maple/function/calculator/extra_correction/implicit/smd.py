@@ -998,6 +998,12 @@ class SMDImplicitSolvation:
                                 _validate_intrinsic_pcm_runtime_info(
                                     runtime_info,
                                     atom_count=len(atoms),
+                                    expected_radii_angstrom=(
+                                        self.coulomb_radii_angstrom
+                                    ),
+                                    expected_tessera_area_angstrom2=(
+                                        tessera_area
+                                    ),
                                 )
                             )
                         continuum_response = (

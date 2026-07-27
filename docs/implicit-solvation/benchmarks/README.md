@@ -615,4 +615,14 @@ than a portable benchmark. This development panel does not certify FreeSolv
 population accuracy, an unseen confirmation set, training-set exclusion,
 variational thermodynamics, forces, or a smooth solution-phase PES. Artifact
 SHA-256:
-`31f085158cda6a1497863a5d933524da73525e3a02c42a49d7b19058becc159d`.
+`d20469a091b84523d3b7417dc3a90696a72c31124ff6e18a54a33e1e62b71d90`.
+
+Schema v2 also freezes both panel runners and the pre-registered selection
+under
+[`reproducers/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1/`](reproducers/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1/).
+The artifact records immutable Git blob identities for the source bytes that
+produced the panel, the complete MACE-POLAR checkpoint, PCMSolver library and
+parser identities, runtime package versions, and a MOL2 plus canonical
+structure fingerprint for every geometry.  Tests intentionally validate those
+immutable blobs rather than equating a historical result with the current
+working-tree implementation.

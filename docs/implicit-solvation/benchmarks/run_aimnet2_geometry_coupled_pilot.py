@@ -41,9 +41,10 @@ from maple.function.calculator.aimnet._aimnet2_calculator import (
     AIMNet2Calculator,
 )
 from maple.function.calculator.extra_correction.implicit.aimnet2_geometry_coupling import (
-    AIMNet2GeometryCoupledASECalculator,
     AIMNet2GeometryCoupledObjective,
     AIMNet2GeometryCoupledState,
+    _make_aimnet2_geometry_coupled_research_ase_calculator,
+    _require_research_optimization_convergence,
 )
 from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     DDPCM_ETA,
@@ -272,6 +273,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_step=args.max_step,
         )
         gas_forces = gas.get_forces()
+        gas_maximum_force = _require_research_optimization_convergence(
+            stage="gas",
+            forces_ev_per_angstrom=gas_forces,
+            target_fmax_ev_per_angstrom=args.gas_fmax,
+            steps=gas_optimizer.nsteps,
+            maximum_steps=args.gas_max_steps,
+        )
         gas_charge_state = calculator.charge_state(gas)
         gas_reference_energy_ev = gas_charge_state.energy_ev
 
@@ -289,7 +297,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
 
         solution = gas.copy()
-        solution.calc = AIMNet2GeometryCoupledASECalculator(
+        solution.calc = _make_aimnet2_geometry_coupled_research_ase_calculator(
             solution_objective
         )
         history: list[dict[str, object]] = []
@@ -324,6 +332,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         solution_seconds = time.perf_counter() - solution_started
         solution_forces = solution.get_forces()
+        solution_maximum_force = _require_research_optimization_convergence(
+            stage="solution",
+            forces_ev_per_angstrom=solution_forces,
+            target_fmax_ev_per_angstrom=args.solution_fmax,
+            steps=solution_optimizer.nsteps,
+            maximum_steps=args.solution_max_steps,
+        )
         final_state = solution.calc.last_state
         if final_state is None:
             raise RuntimeError("Missing final geometry-coupled state.")
@@ -395,8 +410,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "methods": methods,
                 "gas_optimization": {
                     "steps": gas_optimizer.nsteps,
-                    "converged": _max_force(gas_forces) <= args.gas_fmax,
-                    "maximum_force_ev_per_angstrom": _max_force(gas_forces),
+                    "converged": True,
+                    "maximum_force_ev_per_angstrom": gas_maximum_force,
                     "wall_seconds": gas_seconds,
                     **_aligned_geometry_metrics(
                         original.positions,
@@ -405,12 +420,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 },
                 "solution_optimization": {
                     "steps": solution_optimizer.nsteps,
-                    "converged": (
-                        _max_force(solution_forces) <= args.solution_fmax
-                    ),
-                    "maximum_force_ev_per_angstrom": _max_force(
-                        solution_forces
-                    ),
+                    "converged": True,
+                    "maximum_force_ev_per_angstrom": solution_maximum_force,
                     "last_step_maximum_charge_change_e": (
                         charge_step_residual
                     ),

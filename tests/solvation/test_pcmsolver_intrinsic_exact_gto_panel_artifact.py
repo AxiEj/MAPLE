@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import subprocess
 
 import pytest
 
@@ -20,13 +21,22 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _git_blob_bytes(blob_sha1: str) -> bytes:
+    return subprocess.run(
+        ["git", "cat-file", "blob", blob_sha1],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+
+
 def test_intrinsic_exact_gto_panel_is_real_data_bound_and_reproducible():
     artifact = json.loads(ARTIFACT.read_text(encoding="utf-8"))
 
     assert artifact["artifact"] == (
         "route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1"
     )
-    assert artifact["schema_version"] == 1
+    assert artifact["schema_version"] == 2
     assert artifact["selection"]["record_count"] == 10
     assert artifact["selection"]["partition"] == "development-only"
     assert artifact["selection"]["used_candidate_errors"] is False
@@ -66,21 +76,78 @@ def test_intrinsic_exact_gto_panel_is_real_data_bound_and_reproducible():
         len(row["experimental_reference"]["database_record_sha256"]) == 64
         for row in records
     )
+    assert all(
+        len(row["geometry_input"]["mol2_sha256"]) == 64
+        and len(
+            row["geometry_input"]["canonical_structure_group_sha256"]
+        )
+        == 64
+        for row in records
+    )
 
     execution = artifact["execution_source"]
-    source_paths = {
-        "profile_registry_sha256": ROOT
-        / "maple/function/route2_smd_profiles.py",
-        "intrinsic_cavity_adapter_sha256": ROOT
-        / (
-            "maple/function/calculator/extra_correction/implicit/"
-            "route2_pcmsolver_cavity.py"
+    generated = execution["generated_state"]
+    assert generated["git_head"] == (
+        "ab3db63fe0553df7e5d2b0651f00c3c04c3fd2e0"
+    )
+    assert len(generated["git_diff_sha256"]) == 64
+    snapshot = execution["equivalent_committed_source_snapshot"]
+    assert snapshot["commit"] == (
+        "a4fc3f9b4887b938ad3e9c0411ccd2503529a4f9"
+    )
+    assert len(snapshot["files"]) >= 7
+    for source_path, identity in snapshot["files"].items():
+        assert subprocess.run(
+            [
+                "git",
+                "merge-base",
+                "--is-ancestor",
+                snapshot["commit"],
+                "HEAD",
+            ],
+            cwd=ROOT,
+            check=False,
+        ).returncode == 0
+        blob = _git_blob_bytes(identity["git_blob_sha1"])
+        assert hashlib.sha256(blob).hexdigest() == identity["sha256"]
+        assert (
+            subprocess.run(
+                [
+                    "git",
+                    "rev-parse",
+                    f"{snapshot['commit']}:{source_path}",
+                ],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            == identity["git_blob_sha1"]
+        )
+
+    reproduction = execution["frozen_reproduction"]
+    for key in ("exact_gto_vs_local_jet_runner", "fixed_l1_runner", "selection"):
+        frozen = reproduction[key]
+        assert _sha256(ROOT / frozen["path"]) == frozen["sha256"]
+
+    runtime = artifact["runtime"]
+    assert runtime["mace_checkpoint"] == {
+        "identifier": "polar-1-m",
+        "release_url": (
+            "https://github.com/ACEsuit/mace-foundations/releases/download/"
+            "mace_polar_1/MACE-POLAR-1-M.model"
         ),
-        "smd_provider_sha256": ROOT
-        / "maple/function/calculator/extra_correction/implicit/smd.py",
+        "sha256": (
+            "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+        ),
+        "size_bytes": 68133235,
     }
-    for key, path in source_paths.items():
-        assert execution[key] == _sha256(path)
+    assert runtime["pcmsolver"]["upstream_commit"] == (
+        "bbd992d54ebeace528cf236dede1f0c56641defb"
+    )
+    assert runtime["pcmsolver"]["library_sha256"] == (
+        "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+    )
 
 
 def test_intrinsic_exact_gto_panel_metrics_and_non_default_decision_are_locked():

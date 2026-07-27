@@ -161,7 +161,11 @@ def test_geometry_coupled_ase_bridge_returns_same_energy_and_force(monkeypatch):
     objective = _objective(monkeypatch)
     atoms = _water()
     direct = objective.evaluate(atoms)
-    atoms.calc = coupling.AIMNet2GeometryCoupledASECalculator(objective)
+    atoms.calc = (
+        coupling._make_aimnet2_geometry_coupled_research_ase_calculator(
+            objective
+        )
+    )
 
     assert atoms.get_potential_energy() == direct.solution_energy_ev
     np.testing.assert_allclose(
@@ -169,6 +173,36 @@ def test_geometry_coupled_ase_bridge_returns_same_energy_and_force(monkeypatch):
         -direct.total_gradient_ev_per_angstrom,
     )
     assert atoms.calc.last_state is not None
+
+
+def test_geometry_coupled_ase_bridge_cannot_be_constructed_as_public_pes(
+    monkeypatch,
+):
+    objective = _objective(monkeypatch)
+
+    with pytest.raises(PermissionError, match="research-only"):
+        coupling._AIMNet2GeometryCoupledResearchASECalculator(objective)
+    assert "AIMNet2GeometryCoupledASECalculator" not in coupling.__all__
+
+
+def test_geometry_coupled_research_optimization_fails_closed_when_unconverged():
+    converged = np.asarray([[0.01, 0.0, 0.0]])
+    assert coupling._require_research_optimization_convergence(
+        stage="gas",
+        forces_ev_per_angstrom=converged,
+        target_fmax_ev_per_angstrom=0.02,
+        steps=4,
+        maximum_steps=10,
+    ) == pytest.approx(0.01)
+
+    with pytest.raises(RuntimeError, match="No energy/error record"):
+        coupling._require_research_optimization_convergence(
+            stage="solution",
+            forces_ev_per_angstrom=np.asarray([[0.051, 0.0, 0.0]]),
+            target_fmax_ev_per_angstrom=0.05,
+            steps=30,
+            maximum_steps=30,
+        )
 
 
 @pytest.mark.parametrize(

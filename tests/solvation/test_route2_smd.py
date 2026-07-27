@@ -429,11 +429,19 @@ def test_intrinsic_pcm_runtime_report_proves_effective_cavity_and_medium():
     report = (
         "========== Cavity\n"
         "Cavity type: GePol\n"
+        "Average tesserae area = 0.28 Ang^2\n"
         "Solvent probe radius = 0 Ang\n"
         "Number of spheres = 2 [initial = 2; added = 0]\n"
+        "============ Spheres list (in Angstrom)\n"
+        " Sphere   on   Radius   Alpha       X            Y            Z\n"
+        "-------- ---- -------- ------- -----------  -----------  -----------\n"
+        "   1      C    1.8500   1.00     0.000000     0.000000     0.000000\n"
+        "   2      O    1.5200   1.00     1.200000     0.000000     0.000000\n"
+        "========== Static solver\n"
+        "Solver Type: IEFPCM, isotropic\n"
+        "============ Medium\n"
         ".... Inside\n"
         "Green's function type: vacuum\n"
-        "Permittivity = 1\n"
         ".... Outside\n"
         "Green's function type: uniform dielectric\n"
         "Permittivity = 78.355\n"
@@ -442,11 +450,19 @@ def test_intrinsic_pcm_runtime_report_proves_effective_cavity_and_medium():
     assert smd_module._validate_intrinsic_pcm_runtime_info(
         report,
         atom_count=2,
+        expected_radii_angstrom=np.asarray([1.85, 1.52]),
+        expected_tessera_area_angstrom2=0.28,
     ) == {
+        "cavity_type": "GePol",
+        "average_tessera_area_angstrom2": 0.28,
         "probe_radius_angstrom": 0.0,
         "sphere_count": 2,
         "initial_sphere_count": 2,
         "added_sphere_count": 0,
+        "sphere_radii_angstrom": [1.85, 1.52],
+        "inside_green_type": "vacuum",
+        "inside_static_dielectric": 1.0,
+        "outside_green_type": "uniform dielectric",
         "outside_static_dielectric": 78.355,
     }
 
@@ -457,6 +473,36 @@ def test_intrinsic_pcm_runtime_report_proves_effective_cavity_and_medium():
                 "3 [initial = 2; added = 1]",
             ),
             atom_count=2,
+            expected_radii_angstrom=np.asarray([1.85, 1.52]),
+            expected_tessera_area_angstrom2=0.28,
+        )
+
+    with pytest.raises(RuntimeError, match="primitive-sphere radii"):
+        smd_module._validate_intrinsic_pcm_runtime_info(
+            report.replace("2      O    1.5200", "2      O    1.6200"),
+            atom_count=2,
+            expected_radii_angstrom=np.asarray([1.85, 1.52]),
+            expected_tessera_area_angstrom2=0.28,
+        )
+
+    with pytest.raises(RuntimeError, match="tessera area"):
+        smd_module._validate_intrinsic_pcm_runtime_info(
+            report.replace("area = 0.28", "area = 0.20"),
+            atom_count=2,
+            expected_radii_angstrom=np.asarray([1.85, 1.52]),
+            expected_tessera_area_angstrom2=0.28,
+        )
+
+    with pytest.raises(RuntimeError, match="vacuum"):
+        smd_module._validate_intrinsic_pcm_runtime_info(
+            report.replace(
+                "Green's function type: vacuum",
+                "Green's function type: uniform dielectric",
+                1,
+            ),
+            atom_count=2,
+            expected_radii_angstrom=np.asarray([1.85, 1.52]),
+            expected_tessera_area_angstrom2=0.28,
         )
 
 
@@ -933,11 +979,19 @@ class _IntrinsicPCMSolverSession(_FakePCMSolverSession):
         return (
             "========== Cavity\n"
             "Cavity type: GePol\n"
+            "Average tesserae area = 0.28 Ang^2\n"
             "Solvent probe radius = 0 Ang\n"
             "Number of spheres = 2 [initial = 2; added = 0]\n"
+            "============ Spheres list (in Angstrom)\n"
+            " Sphere   on   Radius   Alpha       X            Y            Z\n"
+            "-------- ---- -------- ------- -----------  -----------  -----------\n"
+            "   1      C    1.8500   1.00     0.000000     0.000000     0.000000\n"
+            "   2      O    1.5200   1.00     1.100000     0.000000     0.000000\n"
+            "========== Static solver\n"
+            "Solver Type: IEFPCM, isotropic\n"
+            "============ Medium\n"
             ".... Inside\n"
             "Green's function type: vacuum\n"
-            "Permittivity = 1\n"
             ".... Outside\n"
             "Green's function type: uniform dielectric\n"
             "Permittivity = 78.355\n"
@@ -1025,10 +1079,16 @@ def test_intrinsic_pcm_profile_publishes_only_runtime_verified_cavity(
     assert stability["fallback_used"] is False
     assert stability["attempt_count"] == 1
     assert stability["runtime_cavity_contract"] == {
+        "cavity_type": "GePol",
+        "average_tessera_area_angstrom2": 0.28,
         "probe_radius_angstrom": 0.0,
         "sphere_count": 2,
         "initial_sphere_count": 2,
         "added_sphere_count": 0,
+        "sphere_radii_angstrom": [1.85, 1.52],
+        "inside_green_type": "vacuum",
+        "inside_static_dielectric": 1.0,
+        "outside_green_type": "uniform dielectric",
         "outside_static_dielectric": 78.355,
     }
     assert (

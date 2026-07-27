@@ -400,16 +400,69 @@ class AIMNet2GeometryCoupledObjective:
         )
 
 
-class AIMNet2GeometryCoupledASECalculator(Calculator):
-    """ASE bridge for bounded research optimization of the coupled scalar."""
+_RESEARCH_ASE_BRIDGE_CAPABILITY = object()
+
+
+def _require_research_optimization_convergence(
+    *,
+    stage: str,
+    forces_ev_per_angstrom: np.ndarray,
+    target_fmax_ev_per_angstrom: float,
+    steps: int,
+    maximum_steps: int,
+) -> float:
+    """Fail closed before a research optimization contributes any result."""
+
+    forces = np.asarray(forces_ev_per_angstrom, dtype=float)
+    if (
+        forces.ndim != 2
+        or forces.shape[0] == 0
+        or forces.shape[1] != 3
+        or not np.all(np.isfinite(forces))
+    ):
+        raise ValueError(
+            "Research optimization forces must be finite with shape "
+            "(n_atoms, 3)."
+        )
+    target = float(target_fmax_ev_per_angstrom)
+    if not math.isfinite(target) or target <= 0.0:
+        raise ValueError(
+            "Research optimization target fmax must be finite and positive."
+        )
+    step_count = int(steps)
+    step_limit = int(maximum_steps)
+    if step_count < 0 or step_limit <= 0 or step_count > step_limit:
+        raise ValueError(
+            "Research optimization step accounting is inconsistent."
+        )
+    maximum_force = float(np.max(np.linalg.norm(forces, axis=1)))
+    if maximum_force > target:
+        raise RuntimeError(
+            f"{stage} research optimization did not converge: maximum force "
+            f"{maximum_force:.8g} eV/Angstrom exceeds target {target:.8g} "
+            f"after {step_count}/{step_limit} steps. No energy/error record "
+            "may be emitted from this geometry."
+        )
+    return maximum_force
+
+
+class _AIMNet2GeometryCoupledResearchASECalculator(Calculator):
+    """Capability-gated ASE bridge for the research-only coupled scalar."""
 
     implemented_properties = ("energy", "forces")
 
     def __init__(
         self,
         objective: AIMNet2GeometryCoupledObjective,
+        *,
+        _capability: object | None = None,
         **kwargs: Any,
     ) -> None:
+        if _capability is not _RESEARCH_ASE_BRIDGE_CAPABILITY:
+            raise PermissionError(
+                "The AIMNet2 geometry-coupled ASE bridge is research-only and "
+                "may only be constructed by its internal bounded pilot."
+            )
         super().__init__(**kwargs)
         self.objective = objective
         self.last_state: AIMNet2GeometryCoupledState | None = None
@@ -429,8 +482,18 @@ class AIMNet2GeometryCoupledASECalculator(Calculator):
         }
 
 
+def _make_aimnet2_geometry_coupled_research_ase_calculator(
+    objective: AIMNet2GeometryCoupledObjective,
+) -> _AIMNet2GeometryCoupledResearchASECalculator:
+    """Construct the internal bridge without publishing a solution-PES API."""
+
+    return _AIMNet2GeometryCoupledResearchASECalculator(
+        objective,
+        _capability=_RESEARCH_ASE_BRIDGE_CAPABILITY,
+    )
+
+
 __all__ = [
-    "AIMNet2GeometryCoupledASECalculator",
     "AIMNet2GeometryCoupledObjective",
     "AIMNet2GeometryCoupledState",
 ]

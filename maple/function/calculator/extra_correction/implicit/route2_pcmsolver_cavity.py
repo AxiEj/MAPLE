@@ -294,9 +294,33 @@ def _validate_intrinsic_pcm_runtime_info(
     text: str,
     *,
     atom_count: int,
+    expected_radii_angstrom: np.ndarray,
+    expected_tessera_area_angstrom2: float,
 ) -> dict[str, object]:
     """Verify the effective C++ cavity, not only the machine input text."""
 
+    expected_radii = np.asarray(expected_radii_angstrom, dtype=float)
+    if (
+        expected_radii.shape != (atom_count,)
+        or not np.all(np.isfinite(expected_radii))
+        or np.any(expected_radii <= 0.0)
+    ):
+        raise ValueError(
+            "Intrinsic PCMSolver runtime validation requires one finite "
+            "positive expected radius per atom."
+        )
+    expected_area = float(expected_tessera_area_angstrom2)
+    if not np.isfinite(expected_area) or expected_area <= 0.0:
+        raise ValueError(
+            "Intrinsic PCMSolver runtime validation requires a finite "
+            "positive expected tessera area."
+        )
+
+    cavity_matches = re.findall(r"Cavity type:\s*(\S+)", text)
+    area_matches = re.findall(
+        r"Average tesserae area\s*=\s*([-+0-9.eE]+)\s*Ang\^2",
+        text,
+    )
     probe_matches = re.findall(
         r"Solvent probe radius\s*=\s*" r"([-+0-9.eE]+)\s*Ang",
         text,
@@ -306,30 +330,98 @@ def _validate_intrinsic_pcm_runtime_info(
         r"\[initial\s*=\s*(\d+);\s*added\s*=\s*(\d+)\]",
         text,
     )
-    outside_sections = text.split(".... Outside", maxsplit=1)
-    if len(probe_matches) != 1 or len(sphere_matches) != 1:
+    sphere_list_sections = re.findall(
+        r"=+\s*Spheres list \(in Angstrom\).*?\n"
+        r"\s*Sphere\s+on\s+Radius\s+Alpha\s+X\s+Y\s+Z\s*\n"
+        r"-+\s+-+\s+-+\s+-+\s+-+\s+-+\s+-+\s*\n"
+        r"(.*?)"
+        r"(?=\n=+\s*Static solver)",
+        text,
+        flags=re.DOTALL,
+    )
+    medium_sections = re.findall(
+        r"=+\s*Medium\s*"
+        r"\n\.\.\.\.\s*Inside\s*(.*?)"
+        r"\n\.\.\.\.\s*Outside\s*(.*)",
+        text,
+        flags=re.DOTALL,
+    )
+    if (
+        len(cavity_matches) != 1
+        or len(area_matches) != 1
+        or len(probe_matches) != 1
+        or len(sphere_matches) != 1
+        or len(sphere_list_sections) != 1
+        or len(medium_sections) != 1
+    ):
         raise RuntimeError(
-            "PCMSolver runtime report did not expose one unambiguous cavity "
-            "probe/sphere summary."
+            "PCMSolver runtime report did not expose one unambiguous cavity, "
+            "sphere list, and medium summary."
         )
-    if len(outside_sections) != 2:
-        raise RuntimeError(
-            "PCMSolver runtime report did not expose the outside medium."
-        )
+    sphere_rows = re.findall(
+        r"^\s*(\d+)\s+\S+\s+([-+0-9.eE]+)\s+"
+        r"[-+0-9.eE]+\s+[-+0-9.eE]+\s+[-+0-9.eE]+\s+[-+0-9.eE]+\s*$",
+        sphere_list_sections[0],
+        flags=re.MULTILINE,
+    )
+    inside_section, outside_section = medium_sections[0]
+    inside_types = re.findall(
+        r"Green's function type:\s*([^\n]+)",
+        inside_section,
+    )
+    outside_types = re.findall(
+        r"Green's function type:\s*([^\n]+)",
+        outside_section,
+    )
     outside_permittivity = re.findall(
         r"Permittivity\s*=\s*([-+0-9.eE]+)",
-        outside_sections[1],
+        outside_section,
     )
-    if len(outside_permittivity) != 1:
+    if (
+        len(sphere_rows) != atom_count
+        or [int(index) for index, _ in sphere_rows]
+        != list(range(1, atom_count + 1))
+    ):
         raise RuntimeError(
-            "PCMSolver runtime report did not expose one outside permittivity."
+            "PCMSolver runtime sphere list does not contain exactly one "
+            "ordered primitive sphere per atom."
+        )
+    if (
+        len(inside_types) != 1
+        or len(outside_types) != 1
+        or len(outside_permittivity) != 1
+    ):
+        raise RuntimeError(
+            "PCMSolver runtime report did not expose one unambiguous inside "
+            "and outside Green function."
         )
 
+    cavity_type = cavity_matches[0].strip()
+    tessera_area_angstrom2 = float(area_matches[0])
     probe_angstrom = float(probe_matches[0])
     total_spheres, initial_spheres, added_spheres = (
         int(value) for value in sphere_matches[0]
     )
+    sphere_radii_angstrom = np.asarray(
+        [float(radius) for _, radius in sphere_rows],
+        dtype=float,
+    )
+    inside_green_type = inside_types[0].strip()
+    outside_green_type = outside_types[0].strip()
     dielectric = float(outside_permittivity[0])
+    if cavity_type.casefold() != "gepol":
+        raise RuntimeError(
+            "PCMSolver runtime did not construct the locked GEPOL cavity."
+        )
+    if not np.isclose(
+        tessera_area_angstrom2,
+        expected_area,
+        rtol=0.0,
+        atol=5.0e-6,
+    ):
+        raise RuntimeError(
+            "PCMSolver runtime did not apply the locked tessera area."
+        )
     if probe_angstrom != 0.0:
         raise RuntimeError(
             "PCMSolver runtime did not apply the zero-probe intrinsic cavity."
@@ -343,6 +435,24 @@ def _validate_intrinsic_pcm_runtime_info(
             "PCMSolver runtime added spheres or changed the one-sphere-per-atom "
             "intrinsic cavity."
         )
+    if not np.allclose(
+        sphere_radii_angstrom,
+        expected_radii,
+        rtol=0.0,
+        atol=5.0e-5,
+    ):
+        raise RuntimeError(
+            "PCMSolver runtime primitive-sphere radii differ from the locked "
+            "per-atom intrinsic Coulomb radii."
+        )
+    if inside_green_type.casefold() != "vacuum":
+        raise RuntimeError(
+            "PCMSolver runtime did not apply vacuum (epsilon=1) inside."
+        )
+    if outside_green_type.casefold() != "uniform dielectric":
+        raise RuntimeError(
+            "PCMSolver runtime did not apply a uniform dielectric outside."
+        )
     if not np.isclose(
         dielectric,
         PCM_SMD_WATER_DIELECTRIC,
@@ -353,9 +463,15 @@ def _validate_intrinsic_pcm_runtime_info(
             "PCMSolver runtime did not apply the locked SMD water dielectric."
         )
     return {
+        "cavity_type": cavity_type,
+        "average_tessera_area_angstrom2": tessera_area_angstrom2,
         "probe_radius_angstrom": probe_angstrom,
         "sphere_count": total_spheres,
         "initial_sphere_count": initial_spheres,
         "added_sphere_count": added_spheres,
+        "sphere_radii_angstrom": sphere_radii_angstrom.tolist(),
+        "inside_green_type": inside_green_type,
+        "inside_static_dielectric": 1.0,
+        "outside_green_type": outside_green_type,
         "outside_static_dielectric": dielectric,
     }

@@ -33,11 +33,65 @@
   "artifact": "route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1",
   "claim_boundary": "Ten development representatives detect broad regressions but do not certify FreeSolv population accuracy, confirmation performance, training-set exclusion, or production readiness. The exact-GTO profile is energy-only and does not certify a variational free energy or solution-phase PES.",
   "execution_source": {
-    "git_diff_sha256": "e74e0fb3bbf11e845a25622722fb4ece6dd394982cecf2567801e89b867dfec2",
-    "git_head": "ab3db63fe0553df7e5d2b0651f00c3c04c3fd2e0",
-    "intrinsic_cavity_adapter_sha256": "2897bb698785ddfc2b207516712551a3a0353d1ffd899901485e7b9385113637",
-    "profile_registry_sha256": "3ae09cb0ee1b446d47807524a68b9e95e5c884ff69f65d524038c675e960d420",
-    "smd_provider_sha256": "daea28a180c9db54e27fd23d7317537c2603b5a29fcf15da97022e1cb752c5d2"
+    "equivalent_committed_source_snapshot": {
+      "commit": "a4fc3f9b4887b938ad3e9c0411ccd2503529a4f9",
+      "files": {
+        "maple/function/calculator/extra_correction/implicit/gto_density.py": {
+          "git_blob_sha1": "db4fe17457f4b7abd4889569ecd2cced5b59e5d0",
+          "sha256": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3"
+        },
+        "maple/function/calculator/extra_correction/implicit/gto_field_projection.py": {
+          "git_blob_sha1": "a1d82cfdbd790fa01f48122abbc493390eb5037b",
+          "sha256": "804109c2aab81cd238be9ffba4eb462781f3a266ac1b334d073ebe4d6744a13e"
+        },
+        "maple/function/calculator/extra_correction/implicit/pcmsolver.py": {
+          "git_blob_sha1": "3dc4395b9ab222e25ea106a0f7954b46948161fc",
+          "sha256": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6"
+        },
+        "maple/function/calculator/extra_correction/implicit/route2_pcm_response.py": {
+          "git_blob_sha1": "4d1b4824367443f21a298ee9a8306b380aff2c2f",
+          "sha256": "511fcf80c4bd1029801f316709a6af56eae34256d509dc33e03b33f196559fc9"
+        },
+        "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": {
+          "git_blob_sha1": "456f36cfb82f31b23c4ea08a84546ad87597202e",
+          "sha256": "2897bb698785ddfc2b207516712551a3a0353d1ffd899901485e7b9385113637"
+        },
+        "maple/function/calculator/extra_correction/implicit/smd.py": {
+          "git_blob_sha1": "c726eb8dcaf6a7ba1a59348d80b908b77d44d465",
+          "sha256": "daea28a180c9db54e27fd23d7317537c2603b5a29fcf15da97022e1cb752c5d2"
+        },
+        "maple/function/route2_smd_profiles.py": {
+          "git_blob_sha1": "0663ccccb41375966fd53de5b9101c3df31d5056",
+          "sha256": "3ae09cb0ee1b446d47807524a68b9e95e5c884ff69f65d524038c675e960d420"
+        }
+      },
+      "relationship": "The benchmark-relevant dirty source bytes from the generated state were committed unchanged; immutable git blobs below are the audit source."
+    },
+    "frozen_reproduction": {
+      "directory": "docs/implicit-solvation/benchmarks/reproducers/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1",
+      "exact_gto_vs_local_jet_runner": {
+        "command": "OUT_DIR=<private-output> python run_exact_gto_vs_local_jet.py",
+        "path": "docs/implicit-solvation/benchmarks/reproducers/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1/run_exact_gto_vs_local_jet.py",
+        "sha256": "95806c4e0d371bbe4d54d075c5b37981fa5c416e36abd00bd4546a3c09c3db1f"
+      },
+      "fixed_l1_runner": {
+        "command": "OUT_DIR=<private-output> python run_fixed_l1.py",
+        "path": "docs/implicit-solvation/benchmarks/reproducers/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1/run_fixed_l1.py",
+        "sha256": "1e71d237e0fe882f51ed018ac4b873e845a5964d2bc554887fceb96ee4e0e8b0"
+      },
+      "prepared_input_contract": ".omx/benchmarks/route2-macepolar-smd/prepared.json produced by the tracked FreeSolv preparation workflow; row-level MOL2 files remain private/local and are bound below by SHA256 and structure fingerprint.",
+      "selection": {
+        "path": "docs/implicit-solvation/benchmarks/reproducers/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1/selection.json",
+        "sha256": "f052891e51c694f99061abc1e7b8c6e4ea094d9356591c50993efc248ae39eb6"
+      }
+    },
+    "generated_state": {
+      "exact_gto_vs_local_jet_runner_sha256": "b6d46f7f7caec77e88a80e93cc4eea9e44683957ba66a6f822ebe85504e6fb68",
+      "fixed_l1_runner_sha256": "069b02b5c7c2bc0d78e67c120d6b8d20e102a60461f9310ec0ea85e27575bd62",
+      "git_diff_sha256": "e74e0fb3bbf11e845a25622722fb4ece6dd394982cecf2567801e89b867dfec2",
+      "git_head": "ab3db63fe0553df7e5d2b0651f00c3c04c3fd2e0",
+      "selection_sha256": "f052891e51c694f99061abc1e7b8c6e4ea094d9356591c50993efc248ae39eb6"
+    }
   },
   "experimental_reference": {
     "all_records_neutral": true,
@@ -171,6 +225,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.6,
       "functional_group_class": "ketone",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "110ce3a9aea7797d2bbdfe8879d52d03492bed3c8be5fb779691f39723ba9090",
+        "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 0.16339931637919491,
@@ -231,6 +289,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.6,
       "functional_group_class": "alcohol",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "fc8842c641d9150647f928e6c294ce26dd51ecae5ba30b114a78ddedcd398815",
+        "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 1.2604595159698389,
@@ -291,6 +353,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.2,
       "functional_group_class": "aromatic-hydrocarbon",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "13cad05ca8f49c509e5b7be8c67668484344ebf2b2d12b03b295f14d4b1c32d1",
+        "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 0.6739071263434975,
@@ -351,6 +417,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.6,
       "functional_group_class": "amide",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "b9f52fe46cc71f297b12000fe61e4538205fad3ad843f91c8c28afecc0374892",
+        "mol2_sha256": "04cfd88f681f2f77524301fe57bf450601c3c9e41c38a80e346e575e61d3f4f1"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 1.4266729694730547,
@@ -411,6 +481,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.6,
       "functional_group_class": "carboxylic-acid",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "b00014bedbaba3c96c5a7a9a3e5b442e4866a65e4668060e94657318f994bd8a",
+        "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 1.8688729762986194,
@@ -471,6 +545,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.6,
       "functional_group_class": "cyclic-diether",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "53b5b2411b4bfe41e435d13df6e66c572946e99310064792e760333b1b14cb05",
+        "mol2_sha256": "3d61076f499893cb889dc94824811fe96c20548bf8b4bbb1d7ecef2d2824c9a8"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 0.8797165784348939,
@@ -531,6 +609,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.6,
       "functional_group_class": "nitro",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "9dd6477011e170df8c6a8b067c399b43a2ad6b900754d12dfb60c91c14231420",
+        "mol2_sha256": "f13afcc9cd5b6327b241c7428e908643dbcb455fa00a6c9e84eac6fc268e40c2"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 0.9140482549393294,
@@ -591,6 +673,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.2,
       "functional_group_class": "phenol",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "ca12ce07328194343f78cbba7e6146cfdc8b086ef33c20c24ab8db5d00be3fbe",
+        "mol2_sha256": "f505a87f03dc6b3053efa53be516e1410156e222ecafa6d1aac1b98350d81394"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 2.6472294792602096,
@@ -651,6 +737,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.6,
       "functional_group_class": "alkyl-chloride",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "4a080a2a20baa1b8e12f75068f70ff414f1d38c594e10dc956a4b6c31017f3aa",
+        "mol2_sha256": "8324d857045111c381fce8b3b9cf6b5c5499eebd7adc2dd2fe2a2fd2b6165a30"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 0.6056251501608323,
@@ -711,6 +801,10 @@
       },
       "experimental_uncertainty_kcal_mol": 0.6,
       "functional_group_class": "ester",
+      "geometry_input": {
+        "canonical_structure_group_sha256": "be1fd5ea389a3d679e800aaa2c0ee95147a8eef278533ca76d54e2f54b4c4b47",
+        "mol2_sha256": "c5fa648fbdf2060b92c73b9e0f46bb6f3defa3c62a808f65503f2182a9f1115e"
+      },
       "methods": {
         "mace_fixed_l1": {
           "absolute_error_kcal_mol": 0.3995779911649593,
@@ -763,7 +857,32 @@
       "smiles": "CC(=O)OC"
     }
   ],
-  "schema_version": 1,
+  "runtime": {
+    "device": "cuda",
+    "mace_checkpoint": {
+      "identifier": "polar-1-m",
+      "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "size_bytes": 68133235
+    },
+    "packages": {
+      "ase": "3.27.0",
+      "graph-longrange": "0.4.0",
+      "mace-torch": "0.3.16",
+      "numpy": "2.4.6",
+      "torch": "2.12.0+cu130"
+    },
+    "pcmsolver": {
+      "library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+      "library_size_bytes": 1745240,
+      "python_parser_sha256": "f91b067a07d0198c3fb9cbc0426c8e6b21467aa74d8081c4a64875c07aff08b0",
+      "python_parser_size_bytes": 21735,
+      "upstream_commit": "bbd992d54ebeace528cf236dede1f0c56641defb"
+    },
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14"
+  },
+  "schema_version": 2,
   "scientific_identity": {
     "mace_fixed_l1": "gas MACE l<=1 density; one continuum solve; no model response",
     "mace_scf_exact_gto": "same-root ML-SCF with checkpoint-native analytic receiver-GTO model drive in atomic-center-mean gauge",

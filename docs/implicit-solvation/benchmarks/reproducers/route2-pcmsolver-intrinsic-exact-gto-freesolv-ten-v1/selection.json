@@ -1,0 +1,30 @@
+{
+  "artifact": "route2-intrinsic-exact-gto-ten-panel-prereg-v1",
+  "created_before_panel_execution": true,
+  "dataset": "FreeSolv",
+  "partition": "development-only",
+  "selection_basis": "One small neutral representative per predeclared functional-group class; inclusion did not use candidate model errors.",
+  "profiles": {
+    "control": "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-v1",
+    "candidate": "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1"
+  },
+  "records": [
+    {"compound_id": "mobley_3867265", "class": "ketone", "name": "acetone"},
+    {"compound_id": "mobley_1636752", "class": "alcohol", "name": "methanol"},
+    {"compound_id": "mobley_3053621", "class": "aromatic-hydrocarbon", "name": "benzene"},
+    {"compound_id": "mobley_8048190", "class": "amide", "name": "acetamide"},
+    {"compound_id": "mobley_3034976", "class": "carboxylic-acid", "name": "acetic acid"},
+    {"compound_id": "mobley_6739648", "class": "cyclic-diether", "name": "1,4-dioxane"},
+    {"compound_id": "mobley_1952272", "class": "nitro", "name": "nitromethane"},
+    {"compound_id": "mobley_20524", "class": "phenol", "name": "phenol"},
+    {"compound_id": "mobley_2198613", "class": "alkyl-chloride", "name": "chloroethane"},
+    {"compound_id": "mobley_3982371", "class": "ester", "name": "methyl acetate"}
+  ],
+  "decision_gates": {
+    "candidate_panel_mae_kcal_mol_max": 1.0,
+    "candidate_mae_must_not_exceed_control": true,
+    "candidate_acetone_absolute_error_kcal_mol_max": 1.0,
+    "candidate_maximum_absolute_error_kcal_mol_max": 2.0
+  },
+  "claim_boundary": "Ten development representatives detect broad regressions but do not certify FreeSolv population accuracy, confirmation performance, training-set exclusion, or production readiness."
+}

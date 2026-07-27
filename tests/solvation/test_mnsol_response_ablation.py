@@ -12,7 +12,7 @@ BENCHMARK_DIR = REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
 if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 
-from mnsol_response_ablation import (  # noqa: E402
+from mnsol_response_ablation import (  # pyright: ignore[reportMissingImports]  # noqa: E402
     aggregate_method_metrics,
     compose_method_ledger,
     paired_method_comparison,
@@ -25,7 +25,7 @@ from maple.function.calculator.calculator_base import EV2HARTREE  # noqa: E402
 from maple.function.calculator.extra_correction.implicit.smd_cds import (  # noqa: E402
     HARTREE_TO_KCAL_MOL,
 )
-import run_mnsol_macepolar_response_ablation as response_runner  # noqa: E402
+import run_mnsol_macepolar_response_ablation as response_runner  # pyright: ignore[reportMissingImports]  # noqa: E402
 
 
 def _record(experimental: float, left_total: float, right_total: float):
@@ -155,3 +155,35 @@ def test_response_ablation_uses_maple_energy_conversion_contract():
         rel=0.0,
         abs=0.0,
     )
+
+
+def test_response_ablation_single_record_outputs_remain_private():
+    private = REPOSITORY_ROOT / ".omx/response-ablation/private.json"
+    public = REPOSITORY_ROOT / ".omx/response-ablation/summary.json"
+    work = REPOSITORY_ROOT / ".omx/response-ablation/work"
+
+    assert response_runner._validated_output_paths(
+        private_output=private,
+        public_output=public,
+        work_dir=work,
+        complete_panel=False,
+    ) == (private.resolve(), public.resolve(), work.resolve())
+
+    with pytest.raises(ValueError, match="Single-record response-ablation"):
+        response_runner._validated_output_paths(
+            private_output=private,
+            public_output=REPOSITORY_ROOT / "docs/single-record.json",
+            work_dir=work,
+            complete_panel=False,
+        )
+
+
+def test_response_ablation_shard_disclosure_and_indices_are_explicit():
+    assert response_runner._row_level_data_emitted(complete_panel=False) is True
+    assert response_runner._row_level_data_emitted(complete_panel=True) is False
+    assert response_runner._selection_indices(
+        [{"selection_index": 2}, {"selection_index": 17}]
+    ) == [2, 17]
+
+    with pytest.raises(TypeError, match="Selection indices"):
+        response_runner._selection_indices([{"selection_index": True}])

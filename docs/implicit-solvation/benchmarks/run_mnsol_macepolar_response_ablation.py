@@ -20,7 +20,7 @@ import platform
 import subprocess
 import sys
 import time
-from typing import Sequence
+from typing import Any, Mapping, Sequence, cast
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BENCHMARK_DIR = Path(__file__).resolve().parent
@@ -34,7 +34,16 @@ import torch
 
 from benchmark_core import sha256_file, write_json_atomic
 from mnsol_dataset import load_mnsol_protocol, load_mnsol_v2012
-from mnsol_pilot import validate_frozen_mnsol_pilot_selection
+from mnsol_partition import (
+    MNSolPartitionSelection,
+    PARTITION_ARTIFACT,
+    indexed_partition_record,
+    validate_frozen_mnsol_partition_selection,
+)
+from mnsol_pilot import (
+    MNSolPilotSelection,
+    validate_frozen_mnsol_pilot_selection,
+)
 from mnsol_response_ablation import (
     ABLATION_METHODS,
     aggregate_method_metrics,
@@ -92,6 +101,7 @@ PAIRED_COMPARISONS = (
     ("mace_fixed_l1", "mace_scf_l1"),
     ("mace_one_shot_l1", "mace_scf_l1"),
 )
+SelectionRecord = MNSolPilotSelection | MNSolPartitionSelection
 
 
 def _execution_git_head() -> str:
@@ -126,6 +136,45 @@ def _require_private_path(path: Path, *, kind: str) -> Path:
     return resolved
 
 
+def _validated_output_paths(
+    *,
+    private_output: Path,
+    public_output: Path,
+    work_dir: Path,
+    complete_panel: bool,
+) -> tuple[Path, Path, Path]:
+    private = _require_private_path(
+        private_output,
+        kind="Row-level response-ablation output",
+    )
+    work = _require_private_path(
+        work_dir,
+        kind="Provider audit work directory",
+    )
+    public = public_output.resolve()
+    if not complete_panel:
+        public = _require_private_path(
+            public,
+            kind="Single-record response-ablation output",
+        )
+    return private, public, work
+
+
+def _selection_indices(records: Sequence[Mapping[str, Any]]) -> list[int]:
+    indices: list[int] = []
+    for record in records:
+        selection_index = record["selection_index"]
+        if isinstance(selection_index, bool) or not isinstance(selection_index, int):
+            raise TypeError("Selection indices must be integers.")
+        indices.append(selection_index)
+    return indices
+
+
+def _row_level_data_emitted(*, complete_panel: bool) -> bool:
+    # A single-record aggregate reproduces that record's experimental value.
+    return not complete_panel
+
+
 def _source_hashes() -> dict[str, str]:
     root = "maple/function/calculator/extra_correction/implicit"
     paths = (
@@ -139,6 +188,7 @@ def _source_hashes() -> dict[str, str]:
         "maple/function/route2_smd_profiles.py",
         "maple/function/route2_solvents.py",
         "docs/implicit-solvation/benchmarks/mnsol_dataset.py",
+        "docs/implicit-solvation/benchmarks/mnsol_partition.py",
         "docs/implicit-solvation/benchmarks/mnsol_pilot.py",
         "docs/implicit-solvation/benchmarks/mnsol_response_ablation.py",
         (
@@ -246,6 +296,8 @@ def _private_artifact(
     mace_checkpoint,
     records,
     status,
+    complete_panel,
+    run_kind,
 ):
     return {
         "artifact": ARTIFACT_NAME,
@@ -253,6 +305,8 @@ def _private_artifact(
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
         "status": status,
+        "complete_panel": complete_panel,
+        "run_kind": run_kind,
         "execution_git_head": execution_git_head,
         "protocol_fingerprint": protocol.fingerprint,
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
@@ -278,6 +332,14 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--protocol", type=Path, required=True)
     parser.add_argument("--selection", type=Path, required=True)
+    parser.add_argument(
+        "--pilot-selection",
+        type=Path,
+        help=(
+            "Frozen ten-record pilot manifest used to validate prior-pilot "
+            "geometry overlap for a complete MNSol partition selection."
+        ),
+    )
     parser.add_argument("--aimnet2-checkpoint", type=Path, required=True)
     parser.add_argument("--private-output", type=Path, required=True)
     parser.add_argument("--public-output", type=Path, required=True)
@@ -292,14 +354,6 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
-    private_output = _require_private_path(
-        args.private_output,
-        kind="Row-level response-ablation output",
-    )
-    work_dir = _require_private_path(
-        args.work_dir,
-        kind="Provider audit work directory",
-    )
     aimnet_checkpoint = args.aimnet2_checkpoint.resolve()
     if not aimnet_checkpoint.is_file():
         raise FileNotFoundError(aimnet_checkpoint)
@@ -308,26 +362,74 @@ def main(argv: Sequence[str] | None = None) -> int:
     protocol = load_mnsol_protocol(args.protocol)
     dataset = load_mnsol_v2012(args.source, protocol)
     selection_manifest = json.loads(args.selection.read_text(encoding="utf-8"))
-    full_selection = validate_frozen_mnsol_pilot_selection(
-        selection_manifest,
-        dataset,
-        protocol,
-    )
+    partition_shard = selection_manifest.get("artifact") == PARTITION_ARTIFACT
+    partition_name: str | None = None
+    pilot_selection_path: Path | None = None
+    full_selection: tuple[SelectionRecord, ...]
+    indexed_selection: list[tuple[int, SelectionRecord]]
+    if partition_shard:
+        if args.pilot_selection is None:
+            raise ValueError(
+                "Complete MNSol partition selection requires "
+                "--pilot-selection to validate prior-pilot overlap."
+            )
+        pilot_selection_path = cast(Path, args.pilot_selection)
+        pilot_manifest = json.loads(
+            pilot_selection_path.read_text(encoding="utf-8")
+        )
+        full_selection = validate_frozen_mnsol_partition_selection(
+            selection_manifest,
+            dataset,
+            protocol,
+            pilot_manifest,
+        )
+        indexed_selection = cast(
+            list[tuple[int, SelectionRecord]],
+            indexed_partition_record(
+                full_selection,
+                args.record_index,
+            ),
+        )
+        partition_name = str(selection_manifest["partition"])
+        complete_panel = False
+    else:
+        full_selection = validate_frozen_mnsol_pilot_selection(
+            selection_manifest,
+            dataset,
+            protocol,
+        )
+        if len(full_selection) != len(FUNCTIONAL_GROUP_COVERAGE):
+            raise RuntimeError(
+                "Functional-group coverage no longer matches selection."
+            )
+        if args.record_index is None:
+            indexed_selection = list(enumerate(full_selection))
+        else:
+            if not 0 <= args.record_index < len(full_selection):
+                raise ValueError(
+                    "--record-index must lie in "
+                    f"[0, {len(full_selection) - 1}]."
+                )
+            indexed_selection = [
+                (args.record_index, full_selection[args.record_index])
+            ]
+        complete_panel = len(indexed_selection) == len(full_selection)
     experimental_checks = _validate_experimental_selection(
         full_selection,
         protocol,
     )
-    if len(full_selection) != len(FUNCTIONAL_GROUP_COVERAGE):
-        raise RuntimeError("Functional-group coverage no longer matches selection.")
-    if args.record_index is None:
-        indexed_selection = list(enumerate(full_selection))
-    else:
-        if not 0 <= args.record_index < len(full_selection):
-            raise ValueError(
-                f"--record-index must lie in [0, {len(full_selection) - 1}]."
-            )
-        indexed_selection = [(args.record_index, full_selection[args.record_index])]
-    complete_panel = len(indexed_selection) == len(full_selection)
+    run_kind = (
+        "partition-record-shard"
+        if partition_shard
+        else ("ten-record-panel" if complete_panel else "single-record-smoke")
+    )
+    partition_display = partition_name or "pilot"
+    private_output, public_output, work_dir = _validated_output_paths(
+        private_output=args.private_output,
+        public_output=args.public_output,
+        work_dir=args.work_dir,
+        complete_panel=complete_panel,
+    )
     if work_dir.exists():
         raise FileExistsError(work_dir)
     work_dir.mkdir(parents=True)
@@ -356,7 +458,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     mace_checkpoint = dict(mace.mace_polar_checkpoint_provenance)
     supported_numbers = frozenset(mace.atomic_numbers)
 
-    records: list[dict[str, object]] = []
+    records: list[dict[str, Any]] = []
     for ordinal, (selection_index, selected) in enumerate(
         indexed_selection,
         start=1,
@@ -368,6 +470,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         item = selected.eligible_record
         record = item.record
+        prior_pilot_overlap = (
+            selected.prior_pilot_geometry_overlap
+            if isinstance(selected, MNSolPartitionSelection)
+            else False
+        )
         atoms = mace_runtime._atoms(selected)
         unsupported = sorted(set(map(int, atoms.numbers)) - supported_numbers)
         if unsupported:
@@ -474,7 +581,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 experimental_kcal_mol=experiment,
                 solute_polarization_kcal_mol=one_shot_delta_e,
                 continuum_polarization_kcal_mol=(
-                    float(mace_l1["polarization_energy_hartree"]) * HARTREE_TO_KCAL_MOL
+                    cast(float, mace_l1["polarization_energy_hartree"])
+                    * HARTREE_TO_KCAL_MOL
                 ),
                 smd_cds_kcal_mol=cds.energy_kcal_mol,
                 wall_seconds=(
@@ -510,30 +618,35 @@ def main(argv: Sequence[str] | None = None) -> int:
         if tuple(methods) != ABLATION_METHODS:
             raise RuntimeError("Response-ablation method order drifted.")
 
-        records.append(
-            {
-                "selection_index": selection_index,
-                "functional_group_class": FUNCTIONAL_GROUP_COVERAGE[selection_index],
-                "canonical_solvent": selected.canonical_solvent,
-                "partition": item.partition,
-                "opaque_record_id": selected.opaque_record_id,
-                "entry_number": record.entry_number,
-                "geometry_handle": record.geometry_handle,
-                "geometry_sha256": item.geometry.sha256,
-                "solute_name": record.solute_name,
-                "formula": record.formula,
-                "atom_count": len(atoms),
-                "subset": record.subset,
-                "process_type": record.process_type,
-                "charge": record.charge,
-                "experimental_delta_g_kcal_mol": experiment,
-                "cavity_radii_angstrom": radii.tolist(),
-                "aimnet2_charges_e": aimnet_state.charges_e.tolist(),
-                "aimnet2_raw_charge_residual_e": (aimnet_state.raw_charge_residual_e),
-                "mace_gas_density_coefficients": gas_density.tolist(),
-                "methods": methods,
-            }
-        )
+        record_payload = {
+            "selection_index": selection_index,
+            "canonical_solvent": selected.canonical_solvent,
+            "partition": item.partition,
+            "prior_pilot_geometry_overlap": prior_pilot_overlap,
+            "opaque_record_id": selected.opaque_record_id,
+            "entry_number": record.entry_number,
+            "geometry_handle": record.geometry_handle,
+            "geometry_sha256": item.geometry.sha256,
+            "solute_name": record.solute_name,
+            "formula": record.formula,
+            "atom_count": len(atoms),
+            "subset": record.subset,
+            "process_type": record.process_type,
+            "charge": record.charge,
+            "experimental_delta_g_kcal_mol": experiment,
+            "cavity_radii_angstrom": radii.tolist(),
+            "aimnet2_charges_e": aimnet_state.charges_e.tolist(),
+            "aimnet2_raw_charge_residual_e": (
+                aimnet_state.raw_charge_residual_e
+            ),
+            "mace_gas_density_coefficients": gas_density.tolist(),
+            "methods": methods,
+        }
+        if not partition_shard:
+            record_payload["functional_group_class"] = (
+                FUNCTIONAL_GROUP_COVERAGE[selection_index]
+            )
+        records.append(record_payload)
         write_json_atomic(
             private_output,
             _private_artifact(
@@ -545,6 +658,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 mace_checkpoint=mace_checkpoint,
                 records=records,
                 status="running",
+                complete_panel=complete_panel,
+                run_kind=run_kind,
             ),
         )
 
@@ -560,10 +675,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         mace_checkpoint=mace_checkpoint,
         records=records,
         status="complete",
+        complete_panel=complete_panel,
+        run_kind=run_kind,
     )
     private.update(
         {
-            "complete_panel": complete_panel,
             "aggregate_metrics": metrics,
             "paired_method_comparisons": comparisons,
             "actual_total_wall_seconds": total_wall_seconds,
@@ -576,15 +692,24 @@ def main(argv: Sequence[str] | None = None) -> int:
     coverage = (
         list(FUNCTIONAL_GROUP_COVERAGE)
         if complete_panel
-        else [FUNCTIONAL_GROUP_COVERAGE[indexed_selection[0][0]]]
+        else (
+            []
+            if partition_shard
+            else [FUNCTIONAL_GROUP_COVERAGE[indexed_selection[0][0]]]
+        )
     )
     public = {
         "artifact": ARTIFACT_NAME,
         "schema_version": 1,
-        "visibility": "public-aggregate-only",
+        "visibility": (
+            "public-aggregate-only"
+            if complete_panel
+            else "private-single-record-smoke-do-not-commit"
+        ),
+        "do_not_commit": not complete_panel,
         "execution_git_head": execution_git_head,
         "complete_panel": complete_panel,
-        "run_kind": "ten-record-panel" if complete_panel else "single-record-smoke",
+        "run_kind": run_kind,
         "scientific_identity": {
             "shared_electrostatics": "pyddx ddPCM",
             "shared_cavity": "PySCF 2.13.1 SMD Coulomb radii",
@@ -607,7 +732,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             "functional-group classes; one point per class/solvent cannot "
             "certify population accuracy or separate class from solvent."
             if complete_panel
-            else "One-record engineering smoke; no ten-record accuracy claim."
+            else (
+                f"One-record frozen MNSol {partition_display}-partition shard "
+                "for "
+                "paired AIMNet2/MACE response diagnosis only. It cannot be "
+                "aggregated until the complete partition is evaluated."
+                if partition_shard
+                else "One-record engineering smoke; no ten-record accuracy claim."
+            )
         ),
         "experimental_reference": {
             "dataset": "Minnesota Solvation Database",
@@ -628,17 +760,33 @@ def main(argv: Sequence[str] | None = None) -> int:
             "uncertainty_scope": (
                 "dataset-average estimate; not a per-record standard deviation"
             ),
-            "row_level_data_emitted": False,
+            "row_level_data_emitted": _row_level_data_emitted(
+                complete_panel=complete_panel
+            ),
+            "row_level_disclosure_reason": (
+                "A one-record aggregate reproduces that record's experimental "
+                "value and therefore remains private below .omx."
+                if not complete_panel
+                else "Only aggregate statistics over the complete panel are emitted."
+            ),
         },
         "selection": {
             "artifact_sha256": sha256_file(args.selection),
             "fingerprint": selection_manifest["selection_fingerprint"],
             "record_count": len(records),
             "full_preregistered_record_count": len(full_selection),
+            "partition": partition_name,
+            "selection_indices": _selection_indices(records),
+            "prior_pilot_geometry_overlap_count": sum(
+                bool(record["prior_pilot_geometry_overlap"])
+                for record in records
+            ),
             "used_experimental_values": False,
             "used_model_outputs": False,
             "functional_group_assignment": (
-                "post-selection descriptive labels; not selection criteria"
+                f"not assigned for {partition_display}-partition shards"
+                if partition_shard
+                else "post-selection descriptive labels; not selection criteria"
             ),
             "functional_group_coverage": coverage,
             "solvent_count": len({record["canonical_solvent"] for record in records}),
@@ -701,10 +849,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             "aimnet2": "https://isayevlab.github.io/aimnetcentral/models/guide/",
         },
     }
-    write_json_atomic(args.public_output, public)
+    if partition_shard:
+        assert pilot_selection_path is not None
+        public["selection"]["pilot_selection_artifact_sha256"] = sha256_file(
+            pilot_selection_path
+        )
+    write_json_atomic(public_output, public)
     print(
         f"Wrote {len(records)} record(s) to {private_output} and "
-        f"{args.public_output}.",
+        f"{public_output}.",
         flush=True,
     )
     return 0

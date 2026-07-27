@@ -157,6 +157,17 @@ class _LinearContractiveCalculator:
         return _State(energy_ev=energy_ev, density_coefficients=response), {}
 
 
+class _ChargeNoisyCalculator:
+    def __init__(self, fixed_point: np.ndarray, per_atom_offset_e: float):
+        self.fixed_point = np.asarray(fixed_point, dtype=float).copy()
+        self.per_atom_offset_e = float(per_atom_offset_e)
+
+    def polar_state(self, _atoms, **_kwargs):
+        response = self.fixed_point.copy()
+        response[:, 0] += self.per_atom_offset_e
+        return _State(energy_ev=0.0, density_coefficients=response), {}
+
+
 def _settings() -> Route2EngineSettings:
     return Route2EngineSettings(
         continuum_label="synthetic exact GTO",
@@ -321,3 +332,46 @@ def test_engine_uses_anderson_acceleration_for_unit_mixing_fixed_point_iteration
     assert coupled.history[1]["next_density_update"] == SAFEGUARDED_ANDERSON_SOLVER
     assert coupled.history[2]["next_density_update"] == SAFEGUARDED_ANDERSON_SOLVER
     assert coupled.history[-1]["next_density_update"] == "converged"
+
+
+def test_engine_converges_with_the_neutral_tangent_unmixed_residual():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    gas_state = _State(energy_ev=0.0, density_coefficients=fixed_point)
+    calculator = _ChargeNoisyCalculator(
+        fixed_point,
+        per_atom_offset_e=5.0e-12,
+    )
+    reaction_map = _IdentityReactionMap()
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic constrained ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-12,
+        scf_energy_tolerance_ev=1.0e-12,
+        scf_max_iterations=2,
+        neutral_density_tolerance=1.0e-8,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("synthetic-constrained-ddpcm",),
+    )
+
+    assert coupled.density_residual_inf == pytest.approx(0.0, abs=1.0e-18)
+    assert coupled.history[0]["raw_response_total_charge_e"] == pytest.approx(
+        1.0e-11
+    )
+    assert coupled.history[0][
+        "response_charge_projection_max_e"
+    ] == pytest.approx(5.0e-12)
+    assert coupled.history[0]["next_density_update"] == "converged"

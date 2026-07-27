@@ -67,6 +67,7 @@ from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     SCF_MAX_ITERATIONS,
     SCF_MIXING,
     SCF_SOLVER,
+    SCF_TOTAL_CHARGE_E,
 )
 from maple.function.calculator.extra_correction.implicit.smd_cds import (
     HARTREE_TO_KCAL_MOL,
@@ -743,7 +744,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             "anderson_coefficient_l1_limit": (SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
             "anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
             "anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
-            "residual_definition": "unmixed M(P(c))-c",
+            "total_charge_e": SCF_TOTAL_CHARGE_E,
+            "residual_definition": (
+                "unmixed neutral-tangent Pi0[M(P(c))-c]"
+            ),
         },
         "aggregate_metrics": method_metrics,
         "paired_method_comparison": paired_comparison,

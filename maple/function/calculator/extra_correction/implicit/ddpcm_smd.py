@@ -45,7 +45,6 @@ from .route2_engine import (
     Route2EngineSettings,
 )
 from .route2_fixed_point import SAFEGUARDED_ANDERSON_SOLVER
-from .route2_fixed_point import SAFEGUARDED_ANDERSON_SOLVER
 from .smd_cds import route2_coulomb_radii
 
 WATER_STATIC_DIELECTRIC = 78.39
@@ -63,6 +62,7 @@ SCF_ANDERSON_REGULARIZATION = 1.0e-12
 SCF_ANDERSON_COEFFICIENT_L1_LIMIT = 100.0
 SCF_ANDERSON_STEP_RATIO_LIMIT = 100.0
 SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT = 2.0
+SCF_TOTAL_CHARGE_E = 0.0
 ADJOINT_RELATIVE_TOLERANCE = 1.0e-10
 ADJOINT_ABSOLUTE_TOLERANCE = 1.0e-13
 ADJOINT_MAX_ITERATIONS = 100
@@ -88,6 +88,7 @@ _DDPCM_ENGINE_SETTINGS = Route2EngineSettings(
     scf_anderson_coefficient_l1_limit=(SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
     scf_anderson_step_ratio_limit=SCF_ANDERSON_STEP_RATIO_LIMIT,
     scf_anderson_residual_growth_limit=(SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
+    scf_total_charge_e=SCF_TOTAL_CHARGE_E,
 )
 
 
@@ -199,6 +200,7 @@ class PyDDXSMDImplicitSolvation:
             "scf_anderson_coefficient_l1_limit": (SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
             "scf_anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
             "scf_anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
+            "scf_total_charge_e": SCF_TOTAL_CHARGE_E,
             "adjoint_relative_tolerance": ADJOINT_RELATIVE_TOLERANCE,
             "adjoint_absolute_tolerance": ADJOINT_ABSOLUTE_TOLERANCE,
             "adjoint_maximum_iterations": ADJOINT_MAX_ITERATIONS,
@@ -556,6 +558,10 @@ class PyDDXSMDImplicitSolvation:
                 "anderson_coefficient_l1_limit": (SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
                 "anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
                 "anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
+                "total_charge_e": SCF_TOTAL_CHARGE_E,
+                "residual_definition": (
+                    "unmixed neutral-tangent Pi0[M(P(c))-c]"
+                ),
                 "iterations": len(coupled.history),
                 "history": list(coupled.history),
             },
@@ -688,5 +694,6 @@ __all__ = [
     "SCF_ANDERSON_COEFFICIENT_L1_LIMIT",
     "SCF_ANDERSON_STEP_RATIO_LIMIT",
     "SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT",
+    "SCF_TOTAL_CHARGE_E",
     "WATER_STATIC_DIELECTRIC",
 ]

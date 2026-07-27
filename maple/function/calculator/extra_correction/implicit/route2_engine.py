@@ -29,6 +29,7 @@ from .route2_fixed_point import (
     SUPPORTED_FIXED_POINT_SOLVERS,
     FixedPointSample,
     next_fixed_point_density,
+    project_density_total_charge,
 )
 from .route2_response import (
     UnmixedDensityResidualLinearization,
@@ -58,12 +59,15 @@ class Route2EngineSettings:
     scf_anderson_coefficient_l1_limit: float = 100.0
     scf_anderson_step_ratio_limit: float = 100.0
     scf_anderson_residual_growth_limit: float = 2.0
+    scf_total_charge_e: float = 0.0
 
     def __post_init__(self) -> None:
         if not self.continuum_label:
             raise ValueError("A continuum label is required.")
         if self.scf_solver not in SUPPORTED_FIXED_POINT_SOLVERS:
             raise ValueError(f"Unsupported Route-2 SCF solver: {self.scf_solver}.")
+        if not math.isfinite(self.scf_total_charge_e):
+            raise ValueError("The Route-2 total-charge constraint must be finite.")
         if not 0.0 < self.scf_mixing <= 1.0:
             raise ValueError("SCF mixing must lie in (0, 1].")
         positive = {
@@ -83,7 +87,11 @@ class Route2EngineSettings:
                 self.scf_anderson_residual_growth_limit
             ),
         }
-        invalid = [name for name, value in positive.items() if value <= 0.0]
+        invalid = [
+            name
+            for name, value in positive.items()
+            if not math.isfinite(value) or value <= 0.0
+        ]
         if invalid:
             raise ValueError(
                 "Route-2 engine tolerances must be positive: "
@@ -328,10 +336,13 @@ class Route2ContinuumEngine:
     ) -> Route2CoupledState:
         settings = self.settings
         reaction_field = self.reaction_field_factory(atoms)
-        density = self.validate_density(
-            gas_state.density_coefficients,
-            len(atoms),
-            name="Gas MACE-POLAR density",
+        density = project_density_total_charge(
+            self.validate_density(
+                gas_state.density_coefficients,
+                len(atoms),
+                name="Gas MACE-POLAR density",
+            ),
+            total_charge_e=settings.scf_total_charge_e,
         )
         previous_energy_ev: float | None = None
         previous_density_residual: float | None = None
@@ -351,10 +362,14 @@ class Route2ContinuumEngine:
                 atoms,
                 drive,
             )
-            response_density = self.validate_density(
+            raw_response_density = self.validate_density(
                 solvent_state.density_coefficients,
                 len(atoms),
                 name="Field-polarized MACE-POLAR density",
+            )
+            response_density = project_density_total_charge(
+                raw_response_density,
+                total_charge_e=settings.scf_total_charge_e,
             )
             density_residual = float(np.max(np.abs(response_density - density)))
             current_energy_ev = float(solvent_state.energy_ev)
@@ -382,6 +397,13 @@ class Route2ContinuumEngine:
                 "density_residual_e": density_residual,
                 "energy_residual_ev": energy_residual,
                 "intrinsic_energy_ev": current_energy_ev,
+                "root_total_charge_e": float(np.sum(density[:, 0])),
+                "raw_response_total_charge_e": float(
+                    np.sum(raw_response_density[:, 0])
+                ),
+                "response_charge_projection_max_e": float(
+                    np.max(np.abs(response_density - raw_response_density))
+                ),
                 "arrived_by": previous_update_method,
                 "anderson_history_reset": reset_anderson_history,
             }
@@ -503,10 +525,13 @@ class Route2ContinuumEngine:
             node_gradient_ev_per_angstrom=field[:, 1:],
             compute_forces=True,
         )
-        response_density = self.validate_density(
-            solvent_state.density_coefficients,
-            len(atoms),
-            name="Force-evaluation MACE-POLAR density",
+        response_density = project_density_total_charge(
+            self.validate_density(
+                solvent_state.density_coefficients,
+                len(atoms),
+                name="Force-evaluation MACE-POLAR density",
+            ),
+            total_charge_e=settings.scf_total_charge_e,
         )
         force_state_residual = float(np.max(np.abs(response_density - density)))
         if force_state_residual > max(

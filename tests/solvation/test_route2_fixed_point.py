@@ -7,6 +7,7 @@ from maple.function.calculator.extra_correction.implicit.route2_fixed_point impo
     SAFEGUARDED_ANDERSON_SOLVER,
     FixedPointSample,
     next_fixed_point_density,
+    project_density_total_charge,
 )
 
 
@@ -45,6 +46,21 @@ def _iterate_linear_map(
         density = step.density.reshape(4)
         methods.append(step.method)
     return density, residual_inf, methods
+
+
+def test_density_projection_enforces_the_requested_affine_charge():
+    density = np.asarray(
+        [[0.2, 1.0, 2.0, 3.0], [-0.1, 4.0, 5.0, 6.0]]
+    )
+
+    projected = project_density_total_charge(
+        density,
+        total_charge_e=0.0,
+    )
+
+    assert float(np.sum(projected[:, 0])) == 0.0
+    np.testing.assert_allclose(projected[:, 1:], density[:, 1:])
+    np.testing.assert_allclose(density[:, 0], [0.2, -0.1])
 
 
 def test_safeguarded_anderson_converges_a_slow_contracting_map():

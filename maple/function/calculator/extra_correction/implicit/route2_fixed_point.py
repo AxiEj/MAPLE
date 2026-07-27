@@ -24,6 +24,25 @@ SUPPORTED_FIXED_POINT_SOLVERS = frozenset(
 )
 
 
+def project_density_total_charge(
+    values: np.ndarray,
+    *,
+    total_charge_e: float,
+) -> np.ndarray:
+    """Project one density block onto an affine total-charge constraint."""
+
+    density = np.array(
+        _density_block(values, name="Density"),
+        copy=True,
+    )
+    if not math.isfinite(total_charge_e):
+        raise ValueError("The target total charge must be finite.")
+    density[:, 0] += (
+        float(total_charge_e) - float(np.sum(density[:, 0]))
+    ) / float(density.shape[0])
+    return density
+
+
 def _density_block(values: np.ndarray, *, name: str) -> np.ndarray:
     block = np.asarray(values, dtype=float)
     if block.ndim != 2 or block.shape[1] != 4 or not np.all(np.isfinite(block)):
@@ -137,7 +156,11 @@ def next_fixed_point_density(
         "anderson_coefficient_l1_limit": (anderson_coefficient_l1_limit),
         "anderson_step_ratio_limit": anderson_step_ratio_limit,
     }
-    invalid = [name for name, value in positive.items() if value <= 0.0]
+    invalid = [
+        name
+        for name, value in positive.items()
+        if not math.isfinite(value) or value <= 0.0
+    ]
     if invalid:
         raise ValueError(
             "Anderson safeguards must be positive: " + ", ".join(invalid) + "."
@@ -278,4 +301,5 @@ __all__ = [
     "FixedPointSample",
     "FixedPointStep",
     "next_fixed_point_density",
+    "project_density_total_charge",
 ]

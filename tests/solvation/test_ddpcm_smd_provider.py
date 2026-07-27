@@ -338,15 +338,6 @@ def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
             "anderson_coefficient_l1": None,
             "anderson_step_ratio_to_picard": None,
             "anderson_fallback_reason": None,
-            "newton_attempted": False,
-            "newton_accepted": False,
-            "newton_linear_residual_l2": None,
-            "newton_relative_linear_residual": None,
-            "newton_operator_applications": None,
-            "newton_step_ratio_to_picard": None,
-            "newton_accepted_alpha": None,
-            "newton_trial_residual_e": None,
-            "newton_fallback_reason": None,
         }
     ]
     error = Route2SCFConvergenceError(
@@ -382,9 +373,6 @@ def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
     assert payload["scf"]["residual_definition"] == (
         "unmixed neutral-tangent Pi0[M(P(c))-c]"
     )
-    assert payload["scf"]["newton_trigger_factor"] == pytest.approx(10.0)
-    assert payload["scf"]["newton_maximum_attempts"] == 2
-    assert payload["scf"]["newton_line_search_steps"] == 3
     assert payload["best_iteration_state"] == {
         "array_artifact": "route2-ddpcm-failure-best-state.npz",
         "array_keys": [
@@ -1005,9 +993,6 @@ def test_reciprocal_omp4_profile_passes_thread_count_to_pyddx(
     result = provider.evaluate(atoms, calculator=calculator)
 
     assert provider.provenance["numerics"]["ddpcm_n_proc"] == 4
-    assert provider.provenance["numerics"][
-        "scf_newton_trigger_factor"
-    ] == pytest.approx(10.0)
     assert _ZeroReactionField.instances[0].n_proc == 4
     assert result.provenance["numerics"]["ddpcm_n_proc"] == 4
 
@@ -1206,13 +1191,6 @@ def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
     assert result.provenance["provider"] == "pyddx"
     assert result.provenance["forces_available"] is True
     assert result.provenance["solution_phase_pes"] is False
-    assert result.provenance["near_root_newton"] == {
-        "corrector": "near-root-newton-gmres-v1",
-        "attempt_count": 0,
-        "accepted_count": 0,
-        "accepted_alphas": [],
-        "fallback_reasons": [],
-    }
     reaction_field = _ZeroReactionField.instances[0]
     assert reaction_field.n_proc == 1
     assert reaction_field.scf_apply_calls == 1

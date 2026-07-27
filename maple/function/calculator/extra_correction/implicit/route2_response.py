@@ -7,7 +7,6 @@ coordinate derivatives are separate terms in the total Route-2 derivative.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
 import inspect
 from typing import Any, Protocol
@@ -241,59 +240,34 @@ class AdjointSolveResult:
     method: str = "gmres"
 
 
-@dataclass(frozen=True)
-class NewtonCorrectionResult:
-    """Verified neutral-subspace Newton correction for the SCF root."""
-
-    solution: np.ndarray
-    residual_callback_count: int
-    operator_applications: int
-    residual_norm: float
-    relative_residual: float
-    restart_size: int
-    maximum_inner_iterations: int
-    method: str = "gmres"
-
-
-@dataclass(frozen=True)
-class _NeutralGMRESSolveResult:
-    solution: np.ndarray
-    residual_callback_count: int
-    operator_applications: int
-    residual_norm: float
-    relative_residual: float
-    restart_size: int
-    maximum_inner_iterations: int
-
-
-def _solve_neutral_gmres(
+def solve_adjoint(
     linearization: UnmixedDensityResidualLinearization,
     right_hand_side: np.ndarray,
     *,
-    operator_action: Callable[[np.ndarray], np.ndarray],
-    solve_label: str,
-    relative_tolerance: float,
-    absolute_tolerance: float,
-    restart: int | None,
-    max_iterations: int,
-    verification_slack: float,
-) -> _NeutralGMRESSolveResult:
+    relative_tolerance: float = 1.0e-8,
+    absolute_tolerance: float = 1.0e-10,
+    restart: int | None = None,
+    max_iterations: int = 100,
+) -> AdjointSolveResult:
+    """Solve ``J_c R0* lambda = rhs`` by matrix-free GMRES.
+
+    The Helmert charge basis removes the forbidden uniform-charge mode while
+    preserving the Euclidean discrete pairing.  By default the restart size
+    spans the reduced density space, capped by ``max_iterations``.  SciPy's
+    legacy callback-counting mode makes ``max_iterations`` an actual bound on
+    inner Krylov iterations rather than on restart cycles.  The solve fails
+    closed on Krylov non-convergence or when a fresh post-solve residual check
+    does not satisfy the requested tolerance.
+    """
+
     if relative_tolerance <= 0.0:
-        raise ValueError(f"{solve_label} relative tolerance must be positive.")
+        raise ValueError("Adjoint relative tolerance must be positive.")
     if absolute_tolerance < 0.0:
-        raise ValueError(
-            f"{solve_label} absolute tolerance cannot be negative."
-        )
+        raise ValueError("Adjoint absolute tolerance cannot be negative.")
     if restart is not None and restart <= 0:
-        raise ValueError(f"{solve_label} GMRES restart must be positive.")
+        raise ValueError("Adjoint GMRES restart must be positive.")
     if max_iterations <= 0:
-        raise ValueError(
-            f"{solve_label} maximum iterations must be positive."
-        )
-    if not np.isfinite(verification_slack) or verification_slack < 0.0:
-        raise ValueError(
-            f"{solve_label} verification slack cannot be negative."
-        )
+        raise ValueError("Adjoint maximum iterations must be positive.")
 
     coordinates = NeutralDensityCoordinates(
         linearization.atom_count,
@@ -307,7 +281,7 @@ def _solve_neutral_gmres(
     rhs = coordinates.reduce(right_hand_side)
     rhs_norm = float(np.linalg.norm(rhs))
     if rhs_norm == 0.0:
-        return _NeutralGMRESSolveResult(
+        return AdjointSolveResult(
             solution=coordinates.expand(np.zeros_like(rhs)),
             residual_callback_count=0,
             operator_applications=0,
@@ -324,7 +298,7 @@ def _solve_neutral_gmres(
         nonlocal operator_applications
         operator_applications += 1
         return coordinates.reduce(
-            operator_action(coordinates.expand(vector))
+            linearization.vjp(coordinates.expand(vector))
         )
 
     def callback(_residual) -> None:
@@ -356,14 +330,13 @@ def _solve_neutral_gmres(
     residual_norm = float(np.linalg.norm(residual))
     relative_residual = residual_norm / rhs_norm
     threshold = max(absolute_tolerance, relative_tolerance * rhs_norm)
-    if info != 0 or residual_norm > threshold + verification_slack:
+    if info != 0 or residual_norm > threshold + 1.0e-13:
         raise RuntimeError(
-            f"Route-2 {solve_label.lower()} GMRES did not satisfy the "
-            "requested tolerance "
+            "Route-2 adjoint GMRES did not satisfy the requested tolerance "
             f"(info={info}, residual={residual_norm:.3e}, "
             f"threshold={threshold:.3e})."
         )
-    return _NeutralGMRESSolveResult(
+    return AdjointSolveResult(
         solution=coordinates.expand(solution),
         residual_callback_count=iterations,
         operator_applications=operator_applications,
@@ -374,96 +347,12 @@ def _solve_neutral_gmres(
     )
 
 
-def solve_adjoint(
-    linearization: UnmixedDensityResidualLinearization,
-    right_hand_side: np.ndarray,
-    *,
-    relative_tolerance: float = 1.0e-8,
-    absolute_tolerance: float = 1.0e-10,
-    restart: int | None = None,
-    max_iterations: int = 100,
-) -> AdjointSolveResult:
-    """Solve ``J_c R0* lambda = rhs`` by matrix-free GMRES.
-
-    The Helmert charge basis removes the forbidden uniform-charge mode while
-    preserving the Euclidean discrete pairing.  By default the restart size
-    spans the reduced density space, capped by ``max_iterations``.  SciPy's
-    legacy callback-counting mode makes ``max_iterations`` an actual bound on
-    inner Krylov iterations rather than on restart cycles.  The solve fails
-    closed on Krylov non-convergence or when a fresh post-solve residual check
-    does not satisfy the requested tolerance.
-    """
-
-    result = _solve_neutral_gmres(
-        linearization,
-        right_hand_side,
-        operator_action=linearization.vjp,
-        solve_label="Adjoint",
-        relative_tolerance=relative_tolerance,
-        absolute_tolerance=absolute_tolerance,
-        restart=restart,
-        max_iterations=max_iterations,
-        verification_slack=1.0e-13,
-    )
-    return AdjointSolveResult(
-        solution=result.solution,
-        residual_callback_count=result.residual_callback_count,
-        operator_applications=result.operator_applications,
-        residual_norm=result.residual_norm,
-        relative_residual=result.relative_residual,
-        restart_size=result.restart_size,
-        maximum_inner_iterations=result.maximum_inner_iterations,
-    )
-
-
-def solve_newton_correction(
-    linearization: UnmixedDensityResidualLinearization,
-    fixed_point_update_residual: np.ndarray,
-    *,
-    relative_tolerance: float = 1.0e-8,
-    absolute_tolerance: float = 1.0e-15,
-    restart: int | None = None,
-    max_iterations: int = 100,
-) -> NewtonCorrectionResult:
-    """Solve the neutral Newton correction for ``c = M(P(c))``.
-
-    The physical residual is ``R(c)=Pi0[c-M(P(c))]``.  With the supplied
-    update residual ``Pi0[M(P(c))-c] = -R(c)``, the primal Newton equation is
-    ``J_c R(c) delta = -R(c)``.  This routine solves that equation only; a
-    caller must still apply a fresh full-map line search before accepting the
-    correction.
-    """
-
-    result = _solve_neutral_gmres(
-        linearization,
-        fixed_point_update_residual,
-        operator_action=linearization.jvp,
-        solve_label="Newton correction",
-        relative_tolerance=relative_tolerance,
-        absolute_tolerance=absolute_tolerance,
-        restart=restart,
-        max_iterations=max_iterations,
-        verification_slack=0.0,
-    )
-    return NewtonCorrectionResult(
-        solution=result.solution,
-        residual_callback_count=result.residual_callback_count,
-        operator_applications=result.operator_applications,
-        residual_norm=result.residual_norm,
-        relative_residual=result.relative_residual,
-        restart_size=result.restart_size,
-        maximum_inner_iterations=result.maximum_inner_iterations,
-    )
-
-
 __all__ = [
     "AdjointSolveResult",
     "DensityResponseLinearization",
     "NeutralDensityCoordinates",
-    "NewtonCorrectionResult",
     "ReactionFieldLinearMap",
     "UnmixedDensityResidualLinearization",
     "project_neutral_density_tangent",
     "solve_adjoint",
-    "solve_newton_correction",
 ]

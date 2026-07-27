@@ -29,8 +29,18 @@ class PCMEnergyNormProjection:
     residual_surface_potential_hartree_per_e: np.ndarray
     target_constraints: np.ndarray
     achieved_constraints: np.ndarray
+    relative_spectral_cutoff: float
+    reduced_dimension: int
+    effective_rank: int
+    discarded_mode_count: int
+    maximum_eigenvalue_hartree: float
+    retained_minimum_eigenvalue_hartree: float
+    retained_condition_number: float
+    coefficient_l2_norm: float
+    coefficient_max_abs: float
     constraint_residual_inf: float
-    tangent_optimality_inf: float
+    retained_subspace_optimality_inf: float
+    full_tangent_gradient_inf: float
     shifted_target_energy_norm_squared_hartree: float
     shifted_fit_energy_norm_squared_hartree: float
     residual_energy_norm_squared_hartree: float
@@ -53,8 +63,15 @@ class PCMEnergyNormProjection:
                 _immutable(getattr(self, name), name=name),
             )
         for name in (
+            "relative_spectral_cutoff",
+            "maximum_eigenvalue_hartree",
+            "retained_minimum_eigenvalue_hartree",
+            "retained_condition_number",
+            "coefficient_l2_norm",
+            "coefficient_max_abs",
             "constraint_residual_inf",
-            "tangent_optimality_inf",
+            "retained_subspace_optimality_inf",
+            "full_tangent_gradient_inf",
             "shifted_target_energy_norm_squared_hartree",
             "shifted_fit_energy_norm_squared_hartree",
             "residual_energy_norm_squared_hartree",
@@ -70,11 +87,38 @@ class PCMEnergyNormProjection:
                 name.endswith("_inf")
                 or "norm_squared" in name
                 or name == "shifted_pythagorean_error_hartree"
+                or name
+                in {
+                    "relative_spectral_cutoff",
+                    "maximum_eigenvalue_hartree",
+                    "retained_minimum_eigenvalue_hartree",
+                    "coefficient_l2_norm",
+                    "coefficient_max_abs",
+                }
             ):
                 if value < -1.0e-12:
                     raise ValueError(f"{name} must be nonnegative.")
                 value = max(0.0, value)
             object.__setattr__(self, name, value)
+        if not 0.0 < self.relative_spectral_cutoff <= 1.0:
+            raise ValueError("relative_spectral_cutoff must be in the interval (0, 1].")
+        for name in (
+            "reduced_dimension",
+            "effective_rank",
+            "discarded_mode_count",
+        ):
+            value = getattr(self, name)
+            if isinstance(value, bool) or int(value) != value or value < 0:
+                raise ValueError(f"{name} must be a nonnegative integer.")
+            object.__setattr__(self, name, int(value))
+        if self.effective_rank > self.reduced_dimension:
+            raise ValueError("effective_rank cannot exceed reduced_dimension.")
+        if self.discarded_mode_count != (self.reduced_dimension - self.effective_rank):
+            raise ValueError(
+                "discarded_mode_count must close the reduced spectral ledger."
+            )
+        if self.retained_condition_number < 1.0:
+            raise ValueError("retained_condition_number must be at least one.")
 
 
 def project_surface_potential_in_pcm_energy_norm(
@@ -87,6 +131,7 @@ def project_surface_potential_in_pcm_energy_norm(
     optimality_tolerance: float = 1.0e-9,
     semidefinite_tolerance_hartree: float = 1.0e-10,
     pythagorean_tolerance_hartree: float = 1.0e-8,
+    relative_spectral_cutoff: float = 1.0e-12,
 ) -> PCMEnergyNormProjection:
     """Project one MEP with exact charge/dipole constraints.
 
@@ -122,6 +167,9 @@ def project_surface_potential_in_pcm_energy_norm(
     )
     if any(not math.isfinite(value) or value <= 0.0 for value in tolerances):
         raise ValueError("Projection tolerances must be finite and positive.")
+    cutoff = float(relative_spectral_cutoff)
+    if not math.isfinite(cutoff) or not 0.0 < cutoff <= 1.0:
+        raise ValueError("The relative spectral cutoff must be finite and in (0, 1].")
 
     constraints = operator.basis.molecular_charge_dipole_constraints(
         operator.atom_positions_angstrom
@@ -146,13 +194,28 @@ def project_surface_potential_in_pcm_energy_norm(
     if tangent.shape[1]:
         reduced_metric = tangent.T @ pcm_metric @ tangent
         reduced_rhs = tangent.T @ (linear_term - pcm_metric @ particular)
-        reduced_solution = np.linalg.lstsq(
-            reduced_metric,
-            reduced_rhs,
-            rcond=1.0e-12,
-        )[0]
+        eigenvalues, eigenvectors = np.linalg.eigh(reduced_metric)
+        maximum_eigenvalue = max(0.0, float(eigenvalues[-1]))
+        retained = eigenvalues > cutoff * maximum_eigenvalue
+        effective_rank = int(np.count_nonzero(retained))
+        reduced_solution = np.zeros(tangent.shape[1], dtype=float)
+        if effective_rank:
+            reduced_solution = eigenvectors[:, retained] @ (
+                (eigenvectors[:, retained].T @ reduced_rhs) / eigenvalues[retained]
+            )
         coefficient_vector = particular + tangent @ reduced_solution
+        retained_minimum_eigenvalue = (
+            float(eigenvalues[retained][0]) if effective_rank else 0.0
+        )
+        retained_condition_number = (
+            maximum_eigenvalue / retained_minimum_eigenvalue if effective_rank else 1.0
+        )
     else:
+        retained = np.empty(0, dtype=bool)
+        effective_rank = 0
+        maximum_eigenvalue = 0.0
+        retained_minimum_eigenvalue = 0.0
+        retained_condition_number = 1.0
         coefficient_vector = particular
 
     achieved = constraints @ coefficient_vector
@@ -162,12 +225,19 @@ def project_surface_potential_in_pcm_energy_norm(
             "PCM-energy projection failed its exact molecular-moment " "constraints."
         )
     gradient = pcm_metric @ coefficient_vector - linear_term
-    tangent_optimality = (
-        0.0 if tangent.shape[1] == 0 else float(np.max(np.abs(tangent.T @ gradient)))
+    reduced_gradient = tangent.T @ gradient
+    full_tangent_gradient = (
+        0.0 if tangent.shape[1] == 0 else float(np.max(np.abs(reduced_gradient)))
     )
-    if tangent_optimality > optimality_tolerance:
+    retained_subspace_optimality = (
+        0.0
+        if effective_rank == 0
+        else float(np.max(np.abs(eigenvectors[:, retained].T @ reduced_gradient)))
+    )
+    if retained_subspace_optimality > optimality_tolerance:
         raise RuntimeError(
-            "PCM-energy projection did not reach the constrained tangent " "optimum."
+            "PCM-energy projection did not reach the retained spectral "
+            "subspace optimum."
         )
 
     fitted = surface_operator @ coefficient_vector
@@ -229,8 +299,18 @@ def project_surface_potential_in_pcm_energy_norm(
         residual_surface_potential_hartree_per_e=residual,
         target_constraints=target,
         achieved_constraints=achieved,
+        relative_spectral_cutoff=cutoff,
+        reduced_dimension=int(tangent.shape[1]),
+        effective_rank=effective_rank,
+        discarded_mode_count=int(tangent.shape[1]) - effective_rank,
+        maximum_eigenvalue_hartree=maximum_eigenvalue,
+        retained_minimum_eigenvalue_hartree=retained_minimum_eigenvalue,
+        retained_condition_number=retained_condition_number,
+        coefficient_l2_norm=float(np.linalg.norm(coefficient_vector)),
+        coefficient_max_abs=float(np.max(np.abs(coefficient_vector))),
         constraint_residual_inf=constraint_residual,
-        tangent_optimality_inf=tangent_optimality,
+        retained_subspace_optimality_inf=retained_subspace_optimality,
+        full_tangent_gradient_inf=full_tangent_gradient,
         shifted_target_energy_norm_squared_hartree=shifted_target_norm,
         shifted_fit_energy_norm_squared_hartree=shifted_fit_norm,
         residual_energy_norm_squared_hartree=residual_norm,

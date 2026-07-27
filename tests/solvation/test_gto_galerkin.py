@@ -208,7 +208,7 @@ def test_pcm_energy_projection_uses_affine_shifted_pythagorean_identity():
         atol=2.0e-12,
     )
     assert projection.constraint_residual_inf < 2.0e-12
-    assert projection.tangent_optimality_inf < 2.0e-11
+    assert projection.retained_subspace_optimality_inf < 2.0e-11
     assert projection.shifted_pythagorean_error_hartree < 2.0e-11
     assert projection.residual_energy_norm_squared_hartree >= 0.0
     assert projection.target_polarization_energy_hartree < 0.0
@@ -237,6 +237,44 @@ def test_homogeneous_pcm_projection_recovers_absolute_energy_identity():
         rel=2.0e-10,
         abs=2.0e-11,
     )
+
+
+def test_pcm_projection_reports_truncated_spectral_conditioning():
+    positions, points, response_matrix = _geometry()
+    response = _ReciprocalSurfaceResponse(
+        positions,
+        points,
+        response_matrix,
+    )
+    basis = AtomCenteredL1GTOBasis((1.5, 3.0))
+    operator = FixedCavityGTOGalerkinOperator(response, positions, basis)
+    target = np.random.default_rng(151).normal(size=len(points))
+    common = {
+        "total_charge_e": 0.0,
+        "molecular_dipole_e_angstrom": np.asarray([0.2, -0.1, 0.3]),
+    }
+    tight = project_surface_potential_in_pcm_energy_norm(
+        operator,
+        target,
+        relative_spectral_cutoff=1.0e-12,
+        **common,
+    )
+    coarse = project_surface_potential_in_pcm_energy_norm(
+        operator,
+        target,
+        relative_spectral_cutoff=1.0e-2,
+        **common,
+    )
+
+    assert tight.reduced_dimension == coarse.reduced_dimension
+    assert coarse.effective_rank < tight.effective_rank
+    assert coarse.discarded_mode_count > tight.discarded_mode_count
+    assert coarse.coefficient_l2_norm < tight.coefficient_l2_norm
+    assert coarse.coefficient_max_abs < tight.coefficient_max_abs
+    assert coarse.retained_condition_number < tight.retained_condition_number
+    assert coarse.shifted_pythagorean_error_hartree < 1.0e-8
+    assert coarse.retained_subspace_optimality_inf < 1.0e-9
+    assert coarse.full_tangent_gradient_inf >= coarse.retained_subspace_optimality_inf
 
 
 def test_pcm_energy_projection_rejects_a_positive_energy_response():
@@ -336,4 +374,28 @@ def test_pcm_projection_rejects_nonfinite_tolerances(keyword, invalid):
             total_charge_e=0.0,
             molecular_dipole_e_angstrom=np.zeros(3),
             **{keyword: invalid},
+        )
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    [np.nan, np.inf, -np.inf, 0.0, -1.0, 1.0001],
+)
+def test_pcm_projection_rejects_invalid_spectral_cutoff(invalid):
+    positions, points, response_matrix = _geometry()
+    response = _ReciprocalSurfaceResponse(
+        positions,
+        points,
+        response_matrix,
+    )
+    basis = AtomCenteredL1GTOBasis((1.5,))
+    operator = FixedCavityGTOGalerkinOperator(response, positions, basis)
+
+    with pytest.raises(ValueError, match="relative spectral cutoff"):
+        project_surface_potential_in_pcm_energy_norm(
+            operator,
+            np.random.default_rng(401).normal(size=len(points)),
+            total_charge_e=0.0,
+            molecular_dipole_e_angstrom=np.zeros(3),
+            relative_spectral_cutoff=invalid,
         )

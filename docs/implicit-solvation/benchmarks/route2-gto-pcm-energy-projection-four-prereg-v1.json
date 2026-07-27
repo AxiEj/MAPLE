@@ -1,0 +1,203 @@
+{
+  "artifact_id": "route2-gto-pcm-energy-projection-four-prereg-v1",
+  "claim_boundary": {
+    "can_establish": [
+      "fixed-geometry same-basis representation transfer across four chemistry classes",
+      "cutoff sensitivity of the PCM-energy-norm projection",
+      "whether the second radial channel improves aggregate representation loss"
+    ],
+    "cannot_establish": [
+      "MACE-POLAR density-energy conjugacy",
+      "a variational ML-continuum free energy",
+      "hydration free-energy or experimental accuracy",
+      "physical uniqueness of the fitted GTO coefficients",
+      "forces, smooth PES, optimization, transition states, scans, frequencies, or MD"
+    ]
+  },
+  "decision_gates": {
+    "all_density_checkpoint_binding_residuals_below_e": 1e-07,
+    "all_geometry_max_abs_errors_below_angstrom": 1e-08,
+    "all_reciprocity_half_coupling_constraint_retained_subspace_optimality_and_shifted_pythagorean_gates_pass": true,
+    "all_twenty_case_cutoff_combinations_execute": true,
+    "at_cutoff_1e-4_two_radial_improvement_count_minimum": 3,
+    "at_cutoff_1e-4_two_radial_maximum_absolute_projection_error_kcal_mol_below": 1.0,
+    "at_cutoff_1e-4_two_radial_mean_absolute_polarization_projection_error_not_above_one_radial": true,
+    "full_tangent_gradient_is_ungated_diagnostic": true,
+    "residual_energy_norm_is_nonincreasing_as_cutoff_decreases_for_each_record_and_basis": true
+  },
+  "execution_contract": {
+    "comparison_tolerances": {
+      "maximum_error_threshold_is_strict": true,
+      "mean_absolute_error_comparison_kcal_per_mol": 1e-09,
+      "per_record_improvement_tie_kcal_per_mol": 1e-09,
+      "residual_energy_norm_monotonic_absolute_hartree": 1e-12
+    },
+    "gas_runner_effective_arguments": {
+      "basis": "def2-tzvpd",
+      "grid_level": 3,
+      "max_memory_mb": 8000,
+      "nlc_grid_level": 3,
+      "nlc_grid_profile": "pyscf-official-50x194-sg1",
+      "threads": 8
+    },
+    "pcm_input_runner_effective_arguments": {
+      "minimum_added_sphere_radius_bohr": 100.0,
+      "probe_radius_angstrom": 0.0,
+      "profile": "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1",
+      "tessera_area_angstrom2": 0.28
+    },
+    "pcmsolver_library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+    "pcmsolver_parser_sha256": "f91b067a07d0198c3fb9cbc0426c8e6b21467aa74d8081c4a64875c07aff08b0",
+    "projection_runner_policy": {
+      "artifact_id_template": "route2-gto-pcm-energy-projection-{compound_id}-cutoff-{cutoff_token}-v1",
+      "each_execution_must_bind_preregistration_qm_ledger_checkpoint_mol2_pcm_input_and_source_hashes": true,
+      "per_record_two_radial_improvement_required": false
+    },
+    "pyscf_python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/route2_qm_surface_mep.py": "3e21714d078b72edf691f5a4809485ea321d3c3cf9c9e04a498b678e7f73c276",
+      "docs/implicit-solvation/benchmarks/run_route2_gto_pcm_energy_projection_canary.py": "130d36c8f0a52f648310e676307e4e75ba3b7e2990441ad7fb36f9ee93b676c4",
+      "docs/implicit-solvation/benchmarks/run_route2_intrinsic_pcm_input.py": "28f59e1cd810ddaf774e576061469a80954d65a1a0661ba773ebf08c0c4a8551",
+      "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py": "3c11704002357fcc94516a71bcebf14cbf9113ec5fed0b2d2cb06fd9638c84bb",
+      "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+      "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+      "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+      "maple/function/calculator/extra_correction/implicit/pcm_energy_projection.py": "e75f312b02854447c3d9dcc5448a2aa8164d1342b7fffb06aa011f3c861d2181",
+      "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+      "maple/function/calculator/extra_correction/implicit/route2_pcmsolver_cavity.py": "fe862ebb567caeccdbc771bd61162f3e5bcf3d50a3d74ecb7993b4ed49378173",
+      "maple/function/calculator/extra_correction/implicit/smd.py": "4949095b5d453ff1bbbdfc4e365f9556db027b6ccb110337a472f18a2f4e439f",
+      "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+      "maple/function/read/filereader/mol2_reader.py": "3c03a14e068d3c765b3e4d6e75feb696a42efc3e113a094908433f61982227a7",
+      "maple/function/route2_smd_profiles.py": "3ae09cb0ee1b446d47807524a68b9e95e5c884ff69f65d524038c675e960d420"
+    }
+  },
+  "mandatory_diagnostics_without_pass_threshold": [
+    "effective rank and discarded mode count",
+    "retained condition number",
+    "coefficient L2 and maximum absolute norms",
+    "full tangent gradient norm after spectral truncation",
+    "wall time",
+    "per-record one-radial versus two-radial energy error at every cutoff"
+  ],
+  "method": {
+    "basis_arms_angstrom": {
+      "one_radial": [
+        1.5
+      ],
+      "two_radial": [
+        1.5,
+        3.0
+      ]
+    },
+    "constraints": [
+      "exact total charge",
+      "exact Cartesian molecular dipole"
+    ],
+    "continuum": "PCMSolver bbd992d54ebeace528cf236dede1f0c56641defb IEFPCM, explicit water dielectric 78.355, SMD intrinsic Coulomb spheres, probe radius 0, no added spheres",
+    "qm_reference": "PySCF 2.13.1 omegaB97M-V/def2-TZVPD gas checkpoint, RKS density fitting, semilocal grid level 3, NLC 50x194 with sg1_prune",
+    "record_order": [
+      "mobley_3053621",
+      "mobley_3867265",
+      "mobley_3034976",
+      "mobley_352111"
+    ],
+    "relative_spectral_cutoffs": [
+      0.0001,
+      1e-06,
+      1e-08,
+      1e-10,
+      1e-12
+    ]
+  },
+  "prior_observation_boundary": {
+    "2_acetoxyethyl_acetate": "not evaluated with the same-basis projection before freeze",
+    "acetic_acid": "not evaluated with the same-basis projection before freeze",
+    "acetone": "development anchor; one legacy numpy.linalg.lstsq(rcond=1e-12) result was observed before this four-record preregistration",
+    "benzene": "not evaluated with the same-basis projection before freeze"
+  },
+  "records": [
+    {
+      "class": "weakly-polar aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "mol2_path": ".omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_3053621.mol2",
+      "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "name": "benzene",
+      "pcm_input": {
+        "effective_machine_input_path": ".omx/benchmarks/route2-intrinsic-exact-gto-ten-panel-20260727-234625/mobley_3053621/exact_gto/maple.out.implicit/@route2-smd-intrinsic.pcm",
+        "effective_machine_input_sha256": "6e11a6f046f10cdd1836aca1cb3eb642af67b14fff66cdc2b638e0293e9c36a4",
+        "provenance_mode": "legacy-frozen-machine-input-v1"
+      },
+      "qm_reference": {
+        "expected_checkpoint_filename": "gas.chk",
+        "expected_ledger_filename": "gas.json",
+        "generator_runner": "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+        "provenance_mode": "preregistered-gas-runner-v1"
+      }
+    },
+    {
+      "class": "strongly-dipolar ketone",
+      "compound_id": "mobley_3867265",
+      "mol2_path": ".omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_3867265.mol2",
+      "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+      "name": "acetone",
+      "pcm_input": {
+        "effective_machine_input_path": ".omx/benchmarks/route2-intrinsic-exact-gto-ten-panel-20260727-234625/mobley_3867265/exact_gto/maple.out.implicit/@route2-smd-intrinsic.pcm",
+        "effective_machine_input_sha256": "27d22f2828e3ac690d4ffa458b865eebc7fe76eb70e5c5f30e3815ea788e68e8",
+        "provenance_mode": "legacy-frozen-machine-input-v1"
+      },
+      "qm_reference": {
+        "checkpoint_path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/pyscf_smd_acetone_wb97mv_def2tzvpd_g3_n50x194sg1.gas.chk",
+        "checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0",
+        "declared_runner_sha256": "2a442cae393519bd21b1f4de18ec18f8e1d7406883252f76ebedf88053e77228",
+        "ledger_path": ".omx/benchmarks/route2-qm-ddx-acetone-center-20260725/pyscf_smd_acetone_wb97mv_def2tzvpd_g3_n50x194sg1.gas.json",
+        "ledger_sha256": "4143e5bfb6e603ea74acb7b0498dfd92c0bf4fdad104c798d57c4badecdc6213",
+        "limitation": "The historical ledger does not bind the checkpoint hash; the preregistration binds both immutable files directly.",
+        "provenance_mode": "legacy-frozen-checkpoint-v1"
+      }
+    },
+    {
+      "class": "hydrogen-bonding carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "mol2_path": ".omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_3034976.mol2",
+      "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+      "name": "acetic acid",
+      "pcm_input": {
+        "effective_machine_input_path": ".omx/benchmarks/route2-intrinsic-exact-gto-ten-panel-20260727-234625/mobley_3034976/exact_gto/maple.out.implicit/@route2-smd-intrinsic.pcm",
+        "effective_machine_input_sha256": "4ebca96e3442b9224255935a53d46814ebfb13438b80937154e6c507f149b9b0",
+        "provenance_mode": "legacy-frozen-machine-input-v1"
+      },
+      "qm_reference": {
+        "expected_checkpoint_filename": "gas.chk",
+        "expected_ledger_filename": "gas.json",
+        "generator_runner": "docs/implicit-solvation/benchmarks/run_route2_qm_gas_checkpoint.py",
+        "provenance_mode": "preregistered-gas-runner-v1"
+      }
+    },
+    {
+      "class": "flexible multihetero diester",
+      "compound_id": "mobley_352111",
+      "mol2_path": ".omx/benchmarks/route2-macepolar-smd-smoke/dataset/mol2files_gaff/mobley_352111.mol2",
+      "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+      "name": "2-acetoxyethyl acetate",
+      "pcm_input": {
+        "expected_effective_machine_input_filename": "@route2-smd-intrinsic.pcm",
+        "expected_ledger_filename": "pcm-input.json",
+        "generator_runner": "docs/implicit-solvation/benchmarks/run_route2_intrinsic_pcm_input.py",
+        "provenance_mode": "preregistered-intrinsic-input-runner-v1"
+      },
+      "qm_reference": {
+        "checkpoint_path": ".omx/benchmarks/route2-flexible-multihetero-20260725/pyscf_smd_2acetoxyethyl_acetate_wb97mv_def2tzvpd_g3_n50x194sg1.gas.chk",
+        "checkpoint_sha256": "ba653bf9fbfc579f2683de5261eb713a912ce4af1d02e10fea1da2b8fe24d97b",
+        "declared_runner_sha256": "85c56d5edb0e3909bd85cb7d1817ad1ed281a2674fbb9b3a713ee128d8d8c4fa",
+        "ledger_path": ".omx/benchmarks/route2-flexible-multihetero-20260725/pyscf_smd_2acetoxyethyl_acetate_wb97mv_def2tzvpd_g3_n50x194sg1.gas.json",
+        "ledger_sha256": "3859f0031523ed9d6580db1715fb0a3b6fdfbf0b83983a4d2db53763840f53df",
+        "limitation": "The historical ledger does not bind the checkpoint hash; the preregistration binds both immutable files directly.",
+        "provenance_mode": "legacy-frozen-checkpoint-v1"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "scientific_question": "Does a second radial l<=1 GTO channel reduce fixed-cavity PCM-energy-norm representation loss across weakly polar, strongly dipolar, hydrogen-bonding, and flexible multihetero neutral molecules without hiding spectral ill-conditioning?",
+  "status": "frozen-before-transfer-execution"
+}

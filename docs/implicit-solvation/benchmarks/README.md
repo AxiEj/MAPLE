@@ -340,9 +340,9 @@ factor is explicitly \((78.39-1)/78.39=0.9872432708253603\), because pyddx
 | acetone | -4.9187 | -4.9472 | -0.0285 kcal/mol |
 
 All four half-coupling errors are below `8.59e-13 eV`. The recorded internal
-build/solve times are `0.0014/0.0113 s` (water ddPCM),
-`0.0004/0.0039 s` (water ddCOSMO), `0.0032/0.1107 s` (acetone ddPCM), and
-`0.0005/0.0312 s` (acetone ddCOSMO). They were obtained in one fixed
+build/solve times are `0.0013/0.0127 s` (water ddPCM),
+`0.0004/0.0038 s` (water ddCOSMO), `0.0029/0.1167 s` (acetone ddPCM), and
+`0.0005/0.0342 s` (acetone ddCOSMO). They were obtained in one fixed
 ddPCM-then-ddCOSMO process, so cache/order effects make them metadata rather
 than a method-speed ranking.
 

@@ -994,6 +994,37 @@ Research/Innovation Route, not a complete solution-phase PES.
     MACE/ddCOSMO result, C-PCM implementation, COSMO-RS calculation, force
     gate, or PES claim. The immutable evidence is
     `benchmarks/route2-aimnet2-ddpcm-ddcosmo-equation-canary-v1.json`.
+41. A provider-independent MNSol-v2012 protocol now verifies the pinned
+    3037-row table and all 790 fixed M06-2X/MG3S gas-phase geometries without
+    redistributing the database. Its initial neutral, absolute,
+    single-component Route-2 scope contains 653 rows across ten experimentally
+    populated solvents. A separate immutable manifest selected exactly one
+    at-most-20-atom, distinct-geometry row per solvent before reading any
+    model output or using experimental values for selection; eight selected
+    rows are confirmation records and two are deterministic development
+    fallbacks.
+
+    On that ten-record pilot, fixed AIMNet2 NQE point charges plus SMD-CDS
+    give an MAE/RMSE of `1.1431/1.3516 kcal/mol` with ddPCM and
+    `1.0121/1.2743 kcal/mol` with scaled ddCOSMO. Mean signed errors are
+    `+1.0333` and `+0.8300 kcal/mol`, respectively. ddCOSMO has the lower
+    absolute error on 8/10 rows and is on average `0.2033 kcal/mol` more
+    negative. Maximum half-coupling errors remain below `3.12e-14 eV`; the
+    maximum raw AIMNet2 total-charge residue is `1.49e-7 e`, and the largest
+    projected final charge sum is `1.11e-16 e`.
+
+    The source-bound clean run took `28.92 s` internally for all ten rows and
+    both equations. Fixed-order method timings are retained only as metadata,
+    not a speed ranking. The public artifact contains aggregate values only;
+    row-level experiments, predictions, components, names, formulas,
+    coordinates, and charges remain in the ignored local `.omx` artifact.
+
+    This one-row-per-solvent diagnostic does not certify multi-solvent
+    accuracy or solvent generalization. It is not self-consistent AIMNet2
+    polarization, MACE-POLAR validation, C-PCM, COSMO-RS, a force gate, or a
+    solution-phase PES result. Complete development/confirmation evaluation
+    remains required. The immutable aggregate evidence is
+    `benchmarks/route2-mnsol-aimnet2-multisolvent-pilot-v1.json`.
 
 ## Secondary diagnostics
 

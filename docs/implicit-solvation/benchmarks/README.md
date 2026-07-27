@@ -311,6 +311,52 @@ benchmark strategy, not the MNSol data contract:
   implementation and a matching partition/transfer benchmark, never by
   relabelling a COSMO boundary solver.
 
+## MNSol ten-solvent AIMNet2 pilot
+
+[`route2-mnsol-aimnet2-multisolvent-pilot-v1.json`](route2-mnsol-aimnet2-multisolvent-pilot-v1.json)
+is the aggregate-only result from the preregistered ten-record selection. It
+was executed from clean commit `7bc6164`; rerunning after the audit-only runner
+update reproduced every scientific scalar from the first run exactly. Eight
+records are in the confirmation partition and two are deterministic
+development fallbacks needed to preserve distinct solute geometries.
+
+| fixed-charge method | MAE | RMSE | mean signed error | maximum absolute error |
+|---|---:|---:|---:|---:|
+| AIMNet2 + ddPCM + SMD-CDS | 1.1431 | 1.3516 | +1.0333 | 2.2322 |
+| AIMNet2 + scaled ddCOSMO + SMD-CDS | 1.0121 | 1.2743 | +0.8300 | 2.1933 |
+
+All values are in kcal/mol. Scaled ddCOSMO has the lower absolute error on
+8/10 selected rows and is on average `0.2033 kcal/mol` more negative than
+ddPCM. That is a small-pilot observation, not evidence that ddCOSMO is
+generally more accurate: the ten rows represent ten different solvents, the
+chemical sample is intentionally capped at 20 atoms, and there is no
+per-solvent replication.
+
+The maximum raw AIMNet2 total-charge residue is `1.49e-7 e`; the explicit
+float-residue projection closes the largest final charge sum to
+`1.11e-16 e`. Maximum half-coupling errors are `3.12e-14 eV` for ddPCM and
+`2.09e-14 eV` for ddCOSMO. The mean component ledger is:
+
+| method | mean \(U_\mathrm{pol}\) | mean \(G_\mathrm{CDS}\) | mean prediction | mean experiment |
+|---|---:|---:|---:|---:|
+| ddPCM | -2.4715 | -1.3122 | -3.7837 | -4.8170 |
+| ddCOSMO | -2.6748 | -1.3122 | -3.9870 | -4.8170 |
+
+The internal single-process wall time was `28.92 s`. Shared AIMNet2 charge and
+SMD-CDS work totaled `0.0775 s` and `0.0623 s`; ddPCM build/solve totals were
+`2.435/19.968 s`, while ddCOSMO build/solve totals were `0.0297/6.301 s`.
+These timings are metadata only: the fixed ddPCM-then-ddCOSMO order was not
+randomized and process-level cache effects make them unsuitable as a method
+speed ranking.
+
+The tracked artifact contains no row-level MNSol values. The detailed
+experiment/component table remains only in the ignored `.omx` output for the
+local database holder. The public artifact SHA256 is
+`68319cc76c9f6f8ceb479625dd3f2a841cd592609b0a564d8978f1e783521d11`.
+This pilot does not validate MACE-POLAR, mutual polarization, C-PCM, COSMO-RS,
+forces, or a solution-phase PES, and it is not a substitute for the complete
+MNSol development/confirmation partitions.
+
 ## AIMNet2 fixed point-charge baseline
 
 [`route2-aimnet2-point-charge-ddpcm-canary-v1.json`](route2-aimnet2-point-charge-ddpcm-canary-v1.json)

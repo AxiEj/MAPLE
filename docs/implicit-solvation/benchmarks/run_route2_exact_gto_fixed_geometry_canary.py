@@ -12,6 +12,7 @@ solution-phase PES, force, optimization, transition state, scan, or dynamics.
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict
 from datetime import datetime, timezone
 import hashlib
 import importlib.metadata
@@ -55,6 +56,10 @@ from maple.function.calculator.extra_correction.implicit.route2_response import 
     project_neutral_density_tangent,
     solve_adjoint,
 )
+from maple.function.calculator.extra_correction.implicit.route2_thermodynamic_diagnostics import (  # noqa: E402
+    fixed_point_feedback_spectrum_diagnostic,
+    intrinsic_feature_conjugacy_diagnostic,
+)
 from maple.function.calculator.extra_correction.implicit.smd import (  # noqa: E402
     PCM_WARNING_MARKER,
     _capture_process_stderr,
@@ -72,6 +77,7 @@ COMPOUND_ID = "mobley_3867265"
 KCAL_PER_HARTREE = 627.5094740631
 RANDOM_SEED = 20260727
 FINITE_DIFFERENCE_STEPS = (1.0e-3, 3.0e-4, 1.0e-4)
+FEEDBACK_MIXING_VALUES = (0.25, 0.5, 0.75, 1.0)
 IMPLEMENTATION_DOT_TOLERANCE = 1.0e-9
 RUNNER_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
@@ -96,6 +102,10 @@ SOURCE_RELATIVE_PATHS = (
     ),
     ("maple/function/calculator/extra_correction/implicit/" "route2_pcm_response.py"),
     ("maple/function/calculator/extra_correction/implicit/" "route2_response.py"),
+    (
+        "maple/function/calculator/extra_correction/implicit/"
+        "route2_thermodynamic_diagnostics.py"
+    ),
     "maple/function/calculator/extra_correction/implicit/smd.py",
 )
 PUBLIC_SETTINGS = (
@@ -361,11 +371,12 @@ def main() -> int:
                     session,
                     cavity_radii_angstrom=provider.coulomb_radii_angstrom,
                 )
+                projection_spec = calculator.route2_gto_field_projection_spec()
                 reaction_field = FixedCavityPCMReactionFieldLinearMap(
                     continuum_response,
                     np.asarray(atoms.get_positions(), dtype=float),
                     model_field_projector=ExactGTOFieldProjector(
-                        calculator.route2_gto_field_projection_spec()
+                        projection_spec
                     ),
                     model_field_gauge=provider.profile_spec.model_field_gauge,
                 )
@@ -440,6 +451,25 @@ def main() -> int:
                 _assert_dot_test(
                     "Composed exact-GTO residual JVP/VJP",
                     residual_dot,
+                )
+
+                _sync(args.device)
+                started = time.perf_counter()
+                feature_conjugacy = intrinsic_feature_conjugacy_diagnostic(
+                    reaction_field_values_ev=field_values,
+                    intrinsic_energy_feature_gradient=intrinsic_gradient,
+                    density_response=density_response,
+                    l0_feature_count=len(
+                        projection_spec.receiver_sigmas_angstrom
+                    ),
+                )
+                feedback_spectrum = fixed_point_feedback_spectrum_diagnostic(
+                    residual,
+                    mixing_values=FEEDBACK_MIXING_VALUES,
+                )
+                _sync(args.device)
+                thermodynamic_diagnostic_seconds = (
+                    time.perf_counter() - started
                 )
 
                 physical_rhs = fixed_cavity_model_feature_energy_density_gradient(
@@ -524,7 +554,7 @@ def main() -> int:
     total_seconds = time.perf_counter() - total_started
     artifact: dict[str, Any] = {
         "artifact": ARTIFACT_ID,
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at_utc": datetime.now(timezone.utc)
         .replace(microsecond=0)
         .isoformat(),
@@ -544,12 +574,14 @@ def main() -> int:
         },
         "claim_boundary": (
             "This one-acetone canary checks only fixed-geometry derivative "
-            "algebra for the exact-GTO model drive. It changes no production "
-            "energy or force and sets no scientific pass threshold. It does "
-            "not provide an exact-GTO coordinate or gauge derivative, full "
-            "electron-density PCM, original SMD equivalence, hydration "
-            "accuracy, a smooth solution-phase PES, OPT, TS, scan, MD, or "
-            "NVE certification."
+            "algebra, intrinsic feature-conjugacy defect, and complete "
+            "neutral-space feedback spectrum for the exact-GTO model drive. "
+            "It changes no production energy or force and sets no scientific "
+            "pass threshold. Feedback convergence is not thermodynamic "
+            "passivity. It does not provide an exact-GTO coordinate or gauge "
+            "derivative, full electron-density PCM, original SMD equivalence, "
+            "hydration accuracy, a smooth solution-phase PES, OPT, TS, scan, "
+            "MD, or NVE certification."
         ),
         "diagnostic_protocol": {
             "random_seed": RANDOM_SEED,
@@ -557,6 +589,8 @@ def main() -> int:
                 FINITE_DIFFERENCE_STEPS
             ),
             "implementation_dot_tolerance": (IMPLEMENTATION_DOT_TOLERANCE),
+            "feedback_mixing_values": list(FEEDBACK_MIXING_VALUES),
+            "feedback_dimension": 4 * len(atoms) - 1,
             "scientific_pass_thresholds": None,
             "coordinate_derivative_requested": False,
         },
@@ -644,6 +678,8 @@ def main() -> int:
             "continuum_feature_jvp_vjp": continuum_dot,
             "mace_feature_density_jvp_vjp": model_dot,
             "composed_residual_jvp_vjp": residual_dot,
+            "intrinsic_feature_conjugacy": asdict(feature_conjugacy),
+            "fixed_point_feedback_spectrum": asdict(feedback_spectrum),
             "physical_rhs_directional_finite_difference": (finite_differences),
             "adjoint": {
                 "method": adjoint.method,
@@ -677,6 +713,9 @@ def main() -> int:
                 "model_load": model_load_seconds,
                 "public_coupled_root_and_energy": public_root_seconds,
                 "model_derivative_setup": model_derivative_setup_seconds,
+                "thermodynamic_and_feedback_diagnostics": (
+                    thermodynamic_diagnostic_seconds
+                ),
                 "fixed_geometry_continuum_and_derivatives": (diagnostic_seconds),
                 "directional_finite_differences": (finite_difference_seconds),
                 "total": total_seconds,

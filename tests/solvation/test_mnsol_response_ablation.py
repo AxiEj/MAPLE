@@ -21,6 +21,11 @@ from mnsol_response_ablation import (  # noqa: E402
 from maple.function.calculator.extra_correction.implicit.electrostatic_pairing import (  # noqa: E402
     MACE_POLAR_L1_PAIRING,
 )
+from maple.function.calculator.calculator_base import EV2HARTREE  # noqa: E402
+from maple.function.calculator.extra_correction.implicit.smd_cds import (  # noqa: E402
+    HARTREE_TO_KCAL_MOL,
+)
+import run_mnsol_macepolar_response_ablation as response_runner  # noqa: E402
 
 
 def _record(experimental: float, left_total: float, right_total: float):
@@ -142,3 +147,11 @@ def test_fixed_multipole_solve_checks_charge_and_half_coupling():
             _ReactionField(),
             coefficients + np.asarray([[0.1, 0, 0, 0], [0, 0, 0, 0]]),
         )
+
+
+def test_response_ablation_uses_maple_energy_conversion_contract():
+    assert response_runner.EV_TO_KCAL_MOL == pytest.approx(
+        EV2HARTREE * HARTREE_TO_KCAL_MOL,
+        rel=0.0,
+        abs=0.0,
+    )

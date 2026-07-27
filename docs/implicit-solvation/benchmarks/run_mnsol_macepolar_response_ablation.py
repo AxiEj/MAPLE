@@ -29,7 +29,6 @@ for search_path in (REPO_ROOT, BENCHMARK_DIR):
         sys.path.insert(0, str(search_path))
 
 import ase
-from ase.units import Hartree
 import numpy as np
 import torch
 
@@ -46,6 +45,7 @@ from mnsol_response_ablation import (
 from maple.function.calculator.aimnet._aimnet2_calculator import (
     AIMNet2Calculator,
 )
+from maple.function.calculator.calculator_base import EV2HARTREE
 from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     DDPCM_ETA,
     DDPCM_LMAX,
@@ -72,7 +72,7 @@ from maple.function.route2_smd_profiles import DDPCM_MULTISOLVENT_SMD_PROFILE
 from maple.function.route2_solvents import route2_solvent_spec
 
 ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v1"
-EV_TO_KCAL_MOL = HARTREE_TO_KCAL_MOL / Hartree
+EV_TO_KCAL_MOL = HARTREE_TO_KCAL_MOL * EV2HARTREE
 FUNCTIONAL_GROUP_COVERAGE = (
     "halogenated-hydrocarbon",
     "ketone",
@@ -441,7 +441,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
             work_dir=work_dir,
         )
-        if abs(scf["gas_energy_hartree"] - gas_state.energy_ev / Hartree) > 1.0e-10:
+        if abs(scf["gas_energy_hartree"] - gas_state.energy_ev * EV2HARTREE) > 1.0e-10:
             raise RuntimeError("Direct and public MACE gas energies differ.")
         if abs(scf["smd_cds_energy_kcal_mol"] - cds.energy_kcal_mol) > 1.0e-9:
             raise RuntimeError("Direct and public SMD-CDS energies differ.")

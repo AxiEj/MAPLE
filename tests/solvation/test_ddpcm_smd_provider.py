@@ -26,6 +26,8 @@ from maple.function.calculator.extra_correction.implicit.route2_derivative impor
 )
 from maple.function.calculator.extra_correction.implicit.route2_engine import (
     Route2SCFConvergenceError,
+    Route2SCFHistoryRecord,
+    Route2SCFIterationState,
 )
 from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.read.command_control import CommandControl
@@ -319,17 +321,38 @@ def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
         _options(),
         audit_dir=tmp_path,
     )
-    history = [
+    history: list[Route2SCFHistoryRecord] = [
         {
             "iteration": 1,
             "density_residual_e": 1.0e-6,
             "energy_residual_ev": None,
+            "intrinsic_energy_ev": -9.9,
+            "root_total_charge_e": 0.0,
+            "raw_response_total_charge_e": 0.0,
+            "response_charge_projection_max_e": 0.0,
+            "arrived_by": None,
+            "anderson_history_reset": False,
             "next_density_update": "damped-picard-v1",
+            "fixed_point_history_size": 1,
+            "anderson_predicted_residual_l2": None,
+            "anderson_coefficient_l1": None,
+            "anderson_step_ratio_to_picard": None,
+            "anderson_fallback_reason": None,
         }
     ]
     error = Route2SCFConvergenceError(
         "synthetic nonconvergence",
         history=history,
+        best_state=Route2SCFIterationState(
+            iteration=1,
+            density_residual_e=1.0e-6,
+            intrinsic_energy_ev=-9.9,
+            density_coefficients=np.zeros((2, 4)),
+            response_density_coefficients=np.full((2, 4), 1.0e-6),
+            reaction_field_values_ev=np.ones((2, 4)),
+            model_local_field_values_ev=None,
+            model_field_features=None,
+        ),
     )
 
     provider._write_scf_failure_audit(
@@ -344,11 +367,30 @@ def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
         )
     )
     assert payload["converged"] is False
+    assert payload["schema_version"] == 2
     assert payload["error"] == "synthetic nonconvergence"
     assert payload["scf"]["history"] == history
     assert payload["scf"]["residual_definition"] == (
         "unmixed neutral-tangent Pi0[M(P(c))-c]"
     )
+    assert payload["best_iteration_state"] == {
+        "array_artifact": "route2-ddpcm-failure-best-state.npz",
+        "array_keys": [
+            "density_coefficients",
+            "reaction_field_values_ev",
+            "response_density_coefficients",
+        ],
+        "density_residual_e": 1.0e-6,
+        "intrinsic_energy_ev": -9.9,
+        "iteration": 1,
+    }
+    with np.load(tmp_path / "route2-ddpcm-failure-best-state.npz") as arrays:
+        np.testing.assert_allclose(arrays["density_coefficients"], 0.0)
+        np.testing.assert_allclose(
+            arrays["response_density_coefficients"],
+            1.0e-6,
+        )
+        np.testing.assert_allclose(arrays["reaction_field_values_ev"], 1.0)
 
 
 def test_public_parser_keeps_pcmsolver_energy_only():

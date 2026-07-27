@@ -44,6 +44,7 @@ from .route2_engine import (
     Route2CoupledState,
     Route2EngineSettings,
     Route2SCFConvergenceError,
+    Route2SCFHistoryRecord,
 )
 from .route2_fixed_point import SAFEGUARDED_ANDERSON_SOLVER
 from .smd_cds import route2_coulomb_radii
@@ -473,7 +474,7 @@ class PyDDXSMDImplicitSolvation:
 
     @staticmethod
     def _scf_audit_payload(
-        history: tuple[dict[str, object], ...],
+        history: tuple[Route2SCFHistoryRecord, ...],
     ) -> dict[str, Any]:
         return {
             "solver": SCF_SOLVER,
@@ -510,8 +511,36 @@ class PyDDXSMDImplicitSolvation:
         if self.audit_dir is None:
             return
         audit_stem = f"route2-{self.electrostatics_model}"
+        best_state_payload: dict[str, Any] | None = None
+        if error.best_state is not None:
+            best_state_path = self.audit_dir / f"{audit_stem}-failure-best-state.npz"
+            arrays: dict[str, Any] = {
+                "density_coefficients": error.best_state.density_coefficients,
+                "response_density_coefficients": (
+                    error.best_state.response_density_coefficients
+                ),
+                "reaction_field_values_ev": (
+                    error.best_state.reaction_field_values_ev
+                ),
+            }
+            if error.best_state.model_local_field_values_ev is not None:
+                arrays["model_local_field_values_ev"] = (
+                    error.best_state.model_local_field_values_ev
+                )
+            if error.best_state.model_field_features is not None:
+                arrays["model_field_features"] = (
+                    error.best_state.model_field_features
+                )
+            np.savez_compressed(best_state_path, **arrays)
+            best_state_payload = {
+                "iteration": error.best_state.iteration,
+                "density_residual_e": error.best_state.density_residual_e,
+                "intrinsic_energy_ev": error.best_state.intrinsic_energy_ev,
+                "array_artifact": best_state_path.name,
+                "array_keys": sorted(arrays),
+            }
         payload = {
-            "schema_version": 1,
+            "schema_version": 2,
             "converged": False,
             "error": str(error),
             "profile": self.profile,
@@ -526,6 +555,7 @@ class PyDDXSMDImplicitSolvation:
                 dtype=float,
             ).tolist(),
             "scf": self._scf_audit_payload(error.history),
+            "best_iteration_state": best_state_payload,
         }
         (self.audit_dir / f"{audit_stem}-failure.json").write_text(
             json.dumps(payload, indent=2, sort_keys=True),

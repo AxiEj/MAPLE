@@ -15,6 +15,7 @@ from maple.function.calculator.extra_correction.implicit.route2_engine import (
     Route2ContinuumEngine,
     Route2EngineSettings,
     Route2SCFConvergenceError,
+    Route2SCFIterationState,
 )
 from maple.function.calculator.extra_correction.implicit.route2_fixed_point import (
     DAMPED_PICARD_SOLVER,
@@ -490,3 +491,13 @@ def test_engine_nonconvergence_exposes_the_complete_numerical_history():
     assert len(caught.value.history) == 2
     assert caught.value.history[-1]["density_residual_e"] > 1.0e-12
     assert "minimum density residual=" in str(caught.value)
+    assert isinstance(caught.value.best_state, Route2SCFIterationState)
+    assert caught.value.best_state.iteration == 2
+    assert caught.value.best_state.density_residual_e == pytest.approx(
+        min(record["density_residual_e"] for record in caught.value.history)
+    )
+    assert caught.value.best_state.density_coefficients.flags.writeable is False
+    assert (
+        caught.value.best_state.response_density_coefficients.flags.writeable
+        is False
+    )

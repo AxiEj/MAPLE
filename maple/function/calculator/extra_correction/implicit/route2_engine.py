@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Callable, Hashable
 from dataclasses import dataclass
 import math
-from typing import Any
+from typing import Any, TypedDict, cast
 
 import numpy as np
 from ase.units import Hartree
@@ -37,6 +37,60 @@ from .route2_response import (
 )
 
 
+class Route2SCFHistoryRecord(TypedDict):
+    """One complete JSON-serializable fixed-point iteration record."""
+
+    iteration: int
+    density_residual_e: float
+    energy_residual_ev: float | None
+    intrinsic_energy_ev: float
+    root_total_charge_e: float
+    raw_response_total_charge_e: float
+    response_charge_projection_max_e: float
+    arrived_by: str | None
+    anderson_history_reset: bool
+    next_density_update: str | None
+    fixed_point_history_size: int | None
+    anderson_predicted_residual_l2: float | None
+    anderson_coefficient_l1: float | None
+    anderson_step_ratio_to_picard: float | None
+    anderson_fallback_reason: str | None
+
+
+@dataclass(frozen=True)
+class Route2SCFIterationState:
+    """Immutable same-root arrays for one fixed-point iteration."""
+
+    iteration: int
+    density_residual_e: float
+    intrinsic_energy_ev: float
+    density_coefficients: np.ndarray
+    response_density_coefficients: np.ndarray
+    reaction_field_values_ev: np.ndarray
+    model_local_field_values_ev: np.ndarray | None
+    model_field_features: np.ndarray | None
+
+    def __post_init__(self) -> None:
+        for name in (
+            "density_coefficients",
+            "response_density_coefficients",
+            "reaction_field_values_ev",
+        ):
+            values = np.array(getattr(self, name), copy=True)
+            values.setflags(write=False)
+            object.__setattr__(self, name, values)
+        for name in (
+            "model_local_field_values_ev",
+            "model_field_features",
+        ):
+            current = getattr(self, name)
+            if current is None:
+                continue
+            values = np.array(current, copy=True)
+            values.setflags(write=False)
+            object.__setattr__(self, name, values)
+
+
 class Route2SCFConvergenceError(RuntimeError):
     """Fail-closed SCF error carrying the complete numerical history."""
 
@@ -44,10 +98,14 @@ class Route2SCFConvergenceError(RuntimeError):
         self,
         message: str,
         *,
-        history: list[dict[str, object]],
+        history: list[Route2SCFHistoryRecord],
+        best_state: Route2SCFIterationState | None = None,
     ) -> None:
         super().__init__(message)
-        self.history = tuple(dict(record) for record in history)
+        self.history: tuple[Route2SCFHistoryRecord, ...] = tuple(
+            cast(Route2SCFHistoryRecord, dict(record)) for record in history
+        )
+        self.best_state = best_state
 
 
 @dataclass(frozen=True)
@@ -140,7 +198,7 @@ class Route2CoupledState:
     polarization_energy_hartree: float
     energy_identity_error_ev: float
     cds_result: Any
-    history: tuple[dict[str, object], ...]
+    history: tuple[Route2SCFHistoryRecord, ...]
 
     def __post_init__(self) -> None:
         for name in (
@@ -360,8 +418,9 @@ class Route2ContinuumEngine:
         previous_energy_ev: float | None = None
         previous_density_residual: float | None = None
         previous_update_method: str | None = None
-        history: list[dict[str, object]] = []
+        history: list[Route2SCFHistoryRecord] = []
         fixed_point_samples: list[FixedPointSample] = []
+        best_iteration_state: Route2SCFIterationState | None = None
 
         for iteration in range(1, settings.scf_max_iterations + 1):
             drive = self._reaction_field_drive(
@@ -405,7 +464,7 @@ class Route2ContinuumEngine:
             )
             if reset_anderson_history:
                 fixed_point_samples.clear()
-            record: dict[str, object] = {
+            record: Route2SCFHistoryRecord = {
                 "iteration": iteration,
                 "density_residual_e": density_residual,
                 "energy_residual_ev": energy_residual,
@@ -419,8 +478,28 @@ class Route2ContinuumEngine:
                 ),
                 "arrived_by": previous_update_method,
                 "anderson_history_reset": reset_anderson_history,
+                "next_density_update": None,
+                "fixed_point_history_size": None,
+                "anderson_predicted_residual_l2": None,
+                "anderson_coefficient_l1": None,
+                "anderson_step_ratio_to_picard": None,
+                "anderson_fallback_reason": None,
             }
             history.append(record)
+            if (
+                best_iteration_state is None
+                or density_residual < best_iteration_state.density_residual_e
+            ):
+                best_iteration_state = Route2SCFIterationState(
+                    iteration=iteration,
+                    density_residual_e=density_residual,
+                    intrinsic_energy_ev=current_energy_ev,
+                    density_coefficients=density,
+                    response_density_coefficients=response_density,
+                    reaction_field_values_ev=field,
+                    model_local_field_values_ev=drive.model_local_field_ev,
+                    model_field_features=drive.model_field_features,
+                )
             if energy_residual is None:
                 energy_converged = not settings.scf_require_two_energy_samples
             else:
@@ -465,8 +544,7 @@ class Route2ContinuumEngine:
         else:
             last = history[-1]
             minimum_density_residual = min(
-                float(record["density_residual_e"])
-                for record in history
+                record["density_residual_e"] for record in history
             )
             raise Route2SCFConvergenceError(
                 "MACE-POLAR/"
@@ -476,6 +554,7 @@ class Route2ContinuumEngine:
                 f"energy residual={last['energy_residual_ev']!r} eV, "
                 f"minimum density residual={minimum_density_residual:.3e} e).",
                 history=history,
+                best_state=best_iteration_state,
             )
 
         polarization_energy_hartree = float(

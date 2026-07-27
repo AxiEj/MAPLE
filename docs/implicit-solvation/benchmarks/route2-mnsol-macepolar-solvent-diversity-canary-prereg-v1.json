@@ -1,0 +1,28 @@
+{
+  "artifact": "route2-mnsol-macepolar-solvent-diversity-canary-prereg-v1",
+  "claim_boundary": "This frozen three-record subset is a solvent-diversity canary only. It cannot certify population accuracy, solvent generalization, continuum-equation ranking, forces, a smooth solution-phase PES, OPT, TS, scan, or MD.",
+  "parent_selection_artifact": "route2-mnsol-pilot-selection-v1.json",
+  "parent_selection_fingerprint": "967979795b3bd1483db93f7b463f9a65f3f2c0859f69228100d2adc107138fba",
+  "protocol_fingerprint": "3fbc6b6c7fedd97afdd05cc654bf529b75d28fa55765ffca2311a2ff83f58fa0",
+  "protocol_id": "maple-route2-mnsol-multisolvent-dataset-v1",
+  "run_kind": "three-record-solvent-diversity-canary",
+  "schema_version": 1,
+  "selected_records": [
+    {
+      "canonical_solvent": "water",
+      "opaque_record_id": "ad12c4e39ae7810c343fd355931245425b1c37bad431e8610e69448ab8156733",
+      "selection_index": 0
+    },
+    {
+      "canonical_solvent": "dimethylsulfoxide",
+      "opaque_record_id": "e317f337aac6382de02bb3db1c26a8805fad1e419b27e8049b350aa701bfd698",
+      "selection_index": 3
+    },
+    {
+      "canonical_solvent": "hexane",
+      "opaque_record_id": "4c33299b1c299924f131f3e2b92c90a66f6f7b94827bfe57768938e0ba4235da",
+      "selection_index": 9
+    }
+  ],
+  "selection_fingerprint": "78e0871049d07c3e1da4343a72712971d93fb82d8dad8b9059eb7f8f92d5ff13"
+}

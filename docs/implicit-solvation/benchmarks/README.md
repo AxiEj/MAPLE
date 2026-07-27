@@ -301,6 +301,35 @@ it does not use the experimental free energy or any model output. The tracked
 manifest contains only opaque row and geometry hashes plus aggregate candidate
 counts—no names, formulas, coordinates, entry numbers, or experimental values.
 
+[`route2-mnsol-confirmation-selection-v1.json`](route2-mnsol-confirmation-selection-v1.json)
+freezes the complete 148-row confirmation partition without selecting a
+favorable subset. It contains 83 unique solute geometries. Because the earlier
+ten-record pilot was already inspected, 46 confirmation rows sharing eight
+pilot solute geometries are explicitly marked as prior-pilot overlap; the
+other 102 rows are ordered first but are not described as a fully untouched
+ten-solvent set. Within each overlap stratum, records are interleaved by
+solvent and ordered by a seeded hash of solvent identity, geometry handle, and
+entry number. Experimental free energies and model outputs do not enter that
+order.
+
+Both multisolvent runners accept this partition manifest only with the frozen
+pilot manifest and one explicit `--record-index`. They refuse an implicit
+148-record run, require both derived outputs below `.omx`, and mark each shard
+`do_not_commit`. This keeps execution bounded and prevents a single row from
+being presented as population accuracy:
+
+```bash
+python docs/implicit-solvation/benchmarks/run_mnsol_macepolar_multisolvent_pilot.py \
+  --source .omx/datasets/mnsol-v2012/MNSolDatabase_v2012.zip \
+  --protocol docs/implicit-solvation/benchmarks/route2-mnsol-protocol-v1.json \
+  --selection docs/implicit-solvation/benchmarks/route2-mnsol-confirmation-selection-v1.json \
+  --pilot-selection docs/implicit-solvation/benchmarks/route2-mnsol-pilot-selection-v1.json \
+  --record-index 0 \
+  --private-output .omx/benchmarks/mnsol-confirmation-000-private.json \
+  --public-output .omx/benchmarks/mnsol-confirmation-000-summary.json \
+  --work-dir .omx/benchmarks/mnsol-confirmation-000-work
+```
+
 The corresponding runner is
 `run_mnsol_aimnet2_multisolvent_pilot.py`. It refuses a dirty checkout, verifies
 the frozen selection against the user-supplied database, writes the row-level

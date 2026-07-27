@@ -5,12 +5,18 @@ The private output contains row-level MNSol values and must remain under
 ``.omx``.  The tracked public summary contains aggregate metrics only.  This is
 an intentionally small diagnostic, not a replacement for complete MNSol
 development/confirmation evaluation.
+
+The default path remains the frozen ten-record panel.  ``--record-index`` is a
+single-record engineering smoke only: both outputs must remain under ``.omx``,
+are marked ``do_not_commit``, and cannot support population or solvent-ranking
+claims.
 """
 
 from __future__ import annotations
 
 import argparse
 from collections import Counter
+from importlib import import_module
 import json
 import math
 from pathlib import Path
@@ -31,12 +37,15 @@ for search_path in (REPO_ROOT, BENCHMARK_DIR):
 import ase
 from ase import Atoms
 import numpy as np
-import pyddx
-import pyscf
 import torch
 
 from benchmark_core import sha256_file, write_json_atomic
 from mnsol_dataset import load_mnsol_protocol, load_mnsol_v2012
+from mnsol_partition import (
+    PARTITION_ARTIFACT,
+    indexed_partition_record,
+    validate_frozen_mnsol_partition_selection,
+)
 from mnsol_pilot import validate_frozen_mnsol_pilot_selection
 from maple.function.calculator.aimnet._aimnet2_calculator import (
     AIMNET2_PADDED_SENTINEL_TOLERANCE_E,
@@ -71,6 +80,7 @@ from maple.function.route2_solvents import route2_solvent_spec
 
 ARTIFACT_NAME = "route2-mnsol-aimnet2-multisolvent-pilot-v1"
 ENERGY_IDENTITY_TOLERANCE_EV = 1.0e-8
+FULL_PANEL_RECORD_COUNT = 10
 METHODS = (
     ("ddpcm", PyDDXPCMReactionFieldLinearMap),
     ("ddcosmo", PyDDXCOSMOReactionFieldLinearMap),
@@ -125,6 +135,7 @@ def _source_hashes() -> dict[str, str]:
         "maple/function/route2_solvents.py",
         "docs/implicit-solvation/benchmarks/benchmark_core.py",
         "docs/implicit-solvation/benchmarks/mnsol_dataset.py",
+        "docs/implicit-solvation/benchmarks/mnsol_partition.py",
         "docs/implicit-solvation/benchmarks/mnsol_pilot.py",
         (
             "docs/implicit-solvation/benchmarks/"
@@ -132,6 +143,15 @@ def _source_hashes() -> dict[str, str]:
         ),
     )
     return {relative: sha256_file(REPO_ROOT / relative) for relative in paths}
+
+
+def _runtime_versions() -> dict[str, str]:
+    """Load optional providers before model work and record live versions."""
+
+    return {
+        name: str(getattr(import_module(name), "__version__", "unknown"))
+        for name in ("pyddx", "pyscf")
+    }
 
 
 def _require_private_output(path: Path) -> Path:
@@ -145,6 +165,35 @@ def _require_private_output(path: Path) -> Path:
             "'.omx' directory and must not be committed."
         ) from exc
     return resolved
+
+
+def _validated_output_paths(
+    *,
+    private_output: Path,
+    public_output: Path,
+    complete_panel: bool,
+) -> tuple[Path, Path]:
+    private = _require_private_output(private_output)
+    public = public_output.resolve()
+    if not complete_panel:
+        public = _require_private_output(public)
+    return private, public
+
+
+def _indexed_selection(
+    full_selection: Sequence[object],
+    record_index: int | None,
+) -> tuple[list[tuple[int, object]], bool]:
+    if len(full_selection) != FULL_PANEL_RECORD_COUNT:
+        raise RuntimeError(
+            "The frozen MNSol AIMNet2 pilot must contain exactly "
+            f"{FULL_PANEL_RECORD_COUNT} records."
+        )
+    if record_index is None:
+        return list(enumerate(full_selection)), True
+    if not 0 <= record_index < len(full_selection):
+        raise ValueError(f"--record-index must lie in [0, {len(full_selection) - 1}].")
+    return [(record_index, full_selection[record_index])], False
 
 
 def _metrics(
@@ -164,12 +213,12 @@ def _metrics(
         dtype=float,
     )
     if (
-        errors.size != 10
+        errors.size == 0
         or not np.all(np.isfinite(errors))
         or not np.all(np.isfinite(predicted))
         or not np.all(np.isfinite(experimental))
     ):
-        raise RuntimeError("MNSol pilot metrics require ten finite records.")
+        raise RuntimeError("MNSol pilot metrics require finite nonempty records.")
     return {
         "record_count": int(errors.size),
         "mean_signed_error_kcal_mol": float(np.mean(errors)),
@@ -232,13 +281,13 @@ def _paired_method_comparison(
         dtype=float,
     )
     if (
-        energy_differences.size != 10
+        energy_differences.size == 0
         or not np.all(np.isfinite(energy_differences))
         or not np.all(np.isfinite(pcm_errors))
         or not np.all(np.isfinite(cosmo_errors))
     ):
         raise RuntimeError(
-            "Paired MNSol method comparison requires ten finite records."
+            "Paired MNSol method comparison requires finite nonempty records."
         )
     tolerance = 1.0e-12
     return {
@@ -264,9 +313,22 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--protocol", type=Path, required=True)
     parser.add_argument("--selection", type=Path, required=True)
+    parser.add_argument(
+        "--pilot-selection",
+        type=Path,
+        help=(
+            "Frozen ten-record pilot manifest used only to validate prior-"
+            "inspection overlap in a complete partition selection."
+        ),
+    )
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--private-output", type=Path, required=True)
     parser.add_argument("--public-output", type=Path, required=True)
+    parser.add_argument(
+        "--record-index",
+        type=int,
+        help="Run one zero-based selected record as a private smoke test.",
+    )
     return parser
 
 
@@ -275,17 +337,46 @@ def main(argv: Sequence[str] | None = None) -> int:
     checkpoint = args.checkpoint.resolve()
     if not checkpoint.is_file():
         raise FileNotFoundError(checkpoint)
-    private_output = _require_private_output(args.private_output)
     execution_git_head = _execution_git_head()
 
     protocol = load_mnsol_protocol(args.protocol)
     dataset = load_mnsol_v2012(args.source, protocol)
     selection_manifest = json.loads(args.selection.read_text(encoding="utf-8"))
-    selection = validate_frozen_mnsol_pilot_selection(
-        selection_manifest,
-        dataset,
-        protocol,
+    partition_shard = selection_manifest.get("artifact") == PARTITION_ARTIFACT
+    if partition_shard:
+        if args.pilot_selection is None:
+            raise ValueError(
+                "Complete MNSol partition selection requires "
+                "--pilot-selection to classify prior inspection overlap."
+            )
+        pilot_manifest = json.loads(args.pilot_selection.read_text(encoding="utf-8"))
+        full_selection = validate_frozen_mnsol_partition_selection(
+            selection_manifest,
+            dataset,
+            protocol,
+            pilot_manifest,
+        )
+        indexed_selection = indexed_partition_record(
+            full_selection,
+            args.record_index,
+        )
+        complete_panel = False
+    else:
+        full_selection = validate_frozen_mnsol_pilot_selection(
+            selection_manifest,
+            dataset,
+            protocol,
+        )
+        indexed_selection, complete_panel = _indexed_selection(
+            full_selection,
+            args.record_index,
+        )
+    private_output, public_output = _validated_output_paths(
+        private_output=args.private_output,
+        public_output=args.public_output,
+        complete_panel=complete_panel,
     )
+    runtime_versions = _runtime_versions()
 
     torch.set_num_threads(1)
     wall_started = time.perf_counter()
@@ -298,7 +389,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     model_load_seconds = time.perf_counter() - load_started
 
     records: list[dict[str, object]] = []
-    for selected in selection:
+    for selection_index, selected in indexed_selection:
+        prior_pilot_overlap = (
+            bool(selected.prior_pilot_geometry_overlap) if partition_shard else False
+        )
         item = selected.eligible_record
         geometry = item.geometry
         record = item.record
@@ -375,6 +469,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         records.append(
             {
+                "selection_index": selection_index,
                 "canonical_solvent": selected.canonical_solvent,
                 "mnsol_solvent": record.solvent,
                 "partition": item.partition,
@@ -386,6 +481,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "formula": record.formula,
                 "atom_count": len(atoms),
                 "subset": record.subset,
+                "prior_pilot_geometry_overlap": prior_pilot_overlap,
                 "experimental_delta_g_kcal_mol": (record.delta_g_kcal_mol),
                 "aimnet2_energy_ev": charge_state.energy_ev,
                 "charges_e": charge_state.charges_e.tolist(),
@@ -406,11 +502,45 @@ def main(argv: Sequence[str] | None = None) -> int:
     total_wall_seconds = time.perf_counter() - wall_started
     method_metrics = {method: _metrics(records, method) for method, _ in METHODS}
     paired_comparison = _paired_method_comparison(records)
+    run_kind = (
+        "partition-record-shard"
+        if partition_shard
+        else ("ten-record-panel" if complete_panel else "single-record-smoke")
+    )
+    if complete_panel:
+        claim_boundary = (
+            "This experiment-blind ten-record MNSol pilot is an engineering "
+            "and early chemical diagnostic for a fixed AIMNet2 point-charge "
+            "source with ddPCM or scaled ddCOSMO plus SMD-CDS. One record per "
+            "solvent cannot certify accuracy, solvent generalization, "
+            "MACE-POLAR, C-PCM, COSMO-RS, forces, self-consistent solute "
+            "polarization, or a solution-phase PES."
+        )
+    elif partition_shard:
+        claim_boundary = (
+            "One-record bounded MNSol confirmation-partition shard for "
+            "provenance, charge, continuum, energy-ledger, and timing "
+            "inspection only. It cannot be aggregated until the complete "
+            "frozen partition has been evaluated."
+        )
+    else:
+        claim_boundary = (
+            "One-record bounded MNSol pilot smoke for provenance, charge, "
+            "continuum, energy-ledger, and timing inspection only."
+        )
+    if not complete_panel:
+        claim_boundary += (
+            " Its derived single-row values remain private under .omx and "
+            "cannot support population accuracy, solvent ranking, "
+            "generalization, method selection, force, or PES claims."
+        )
     private_artifact = {
         "artifact": ARTIFACT_NAME,
         "schema_version": 1,
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
+        "complete_panel": complete_panel,
+        "run_kind": run_kind,
         "execution_git_head": execution_git_head,
         "protocol_fingerprint": protocol.fingerprint,
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
@@ -455,7 +585,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     public_artifact = {
         "artifact": ARTIFACT_NAME,
         "schema_version": 1,
-        "visibility": "public-aggregate-only",
+        "visibility": (
+            "public-aggregate-only"
+            if complete_panel
+            else "private-single-record-smoke-do-not-commit"
+        ),
+        "do_not_commit": not complete_panel,
+        "complete_panel": complete_panel,
+        "run_kind": run_kind,
         "execution_git_head": execution_git_head,
         "scientific_identity": {
             "solute_energy_model": ("AIMNet2 gas-phase wB97M-D3 checkpoint"),
@@ -471,14 +608,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "cpcm_included": False,
             "cosmo_rs_included": False,
         },
-        "claim_boundary": (
-            "This experiment-blind ten-record MNSol pilot is an engineering "
-            "and early chemical diagnostic for a fixed AIMNet2 point-charge "
-            "source with ddPCM or scaled ddCOSMO plus SMD-CDS. One record per "
-            "solvent cannot certify accuracy, solvent generalization, "
-            "MACE-POLAR, C-PCM, COSMO-RS, forces, self-consistent solute "
-            "polarization, or a solution-phase PES."
-        ),
+        "claim_boundary": claim_boundary,
         "dataset": {
             "name": "MNSol",
             "version": "2012",
@@ -486,7 +616,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "normalized_bundle_sha256": dataset.normalized_bundle_sha256,
             "standard_state": protocol.standard_state,
             "temperature_k": protocol.temperature_k,
-            "row_level_data_emitted": False,
+            "row_level_data_emitted": not complete_panel,
         },
         "protocol_id": protocol.protocol_id,
         "protocol_fingerprint": protocol.fingerprint,
@@ -494,6 +624,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         "selection_artifact_sha256": sha256_file(args.selection),
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
         "selection_record_count": len(records),
+        "selection_full_preregistered_record_count": len(full_selection),
+        "selection_indices": [int(record["selection_index"]) for record in records],
+        "selection_prior_pilot_geometry_overlap_count": sum(
+            bool(record["prior_pilot_geometry_overlap"]) for record in records
+        ),
         "selection_solvent_count": len(
             {record["canonical_solvent"] for record in records}
         ),
@@ -553,8 +688,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "numpy": np.__version__,
             "torch": torch.__version__,
             "ase": ase.__version__,
-            "pyddx": pyddx.__version__,
-            "pyscf": pyscf.__version__,
+            **runtime_versions,
             "device": "cpu",
             "torch_threads": torch.get_num_threads(),
         },
@@ -570,9 +704,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "source_files_sha256": _source_hashes(),
     }
-    write_json_atomic(args.public_output, public_artifact)
-    print(args.private_output)
-    print(args.public_output)
+    write_json_atomic(public_output, public_artifact)
+    print(private_output)
+    print(public_output)
     return 0
 
 

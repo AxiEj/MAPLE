@@ -43,6 +43,11 @@ import torch
 
 from benchmark_core import sha256_file, write_json_atomic
 from mnsol_dataset import load_mnsol_protocol, load_mnsol_v2012
+from mnsol_partition import (
+    PARTITION_ARTIFACT,
+    indexed_partition_record,
+    validate_frozen_mnsol_partition_selection,
+)
 from mnsol_pilot import validate_frozen_mnsol_pilot_selection
 from maple.function.calculator.extra_correction.implicit.correction import (
     ImplicitSolvationCorrection,
@@ -99,9 +104,7 @@ def _execution_git_head() -> str:
 
 
 def _source_hashes() -> dict[str, str]:
-    implicit_root = (
-        "maple/function/calculator/extra_correction/implicit"
-    )
+    implicit_root = "maple/function/calculator/extra_correction/implicit"
     paths = (
         "maple/function/calculator/mace/_macepol_calculator.py",
         "maple/function/calculator/calculator_base.py",
@@ -118,6 +121,7 @@ def _source_hashes() -> dict[str, str]:
         "maple/function/route2_solvents.py",
         "docs/implicit-solvation/benchmarks/benchmark_core.py",
         "docs/implicit-solvation/benchmarks/mnsol_dataset.py",
+        "docs/implicit-solvation/benchmarks/mnsol_partition.py",
         "docs/implicit-solvation/benchmarks/mnsol_pilot.py",
         (
             "docs/implicit-solvation/benchmarks/"
@@ -140,9 +144,7 @@ def _require_private_path(path: Path, *, kind: str) -> Path:
 
 
 def _timing_summary(values: list[float]) -> dict[str, float | int]:
-    if not values or not all(
-        math.isfinite(value) and value >= 0.0 for value in values
-    ):
+    if not values or not all(math.isfinite(value) and value >= 0.0 for value in values):
         raise RuntimeError("Pilot timing samples must be finite and nonnegative.")
     return {
         "sample_count": len(values),
@@ -241,9 +243,7 @@ def _paired_method_comparison(
         or not np.all(np.isfinite(pcm_errors))
         or not np.all(np.isfinite(cosmo_errors))
     ):
-        raise RuntimeError(
-            "Paired MNSol comparison requires finite nonempty records."
-        )
+        raise RuntimeError("Paired MNSol comparison requires finite nonempty records.")
     tolerance = 1.0e-12
     return {
         "record_count": int(energy_differences.size),
@@ -395,6 +395,14 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--protocol", type=Path, required=True)
     parser.add_argument("--selection", type=Path, required=True)
+    parser.add_argument(
+        "--pilot-selection",
+        type=Path,
+        help=(
+            "Frozen ten-record pilot manifest used only to validate prior-"
+            "inspection overlap in a complete partition selection."
+        ),
+    )
     parser.add_argument("--private-output", type=Path, required=True)
     parser.add_argument("--public-output", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
@@ -418,9 +426,7 @@ def _indexed_selection(
     if record_index is None:
         return list(enumerate(full_selection)), True
     if not 0 <= record_index < len(full_selection):
-        raise ValueError(
-            f"--record-index must lie in [0, {len(full_selection) - 1}]."
-        )
+        raise ValueError(f"--record-index must lie in [0, {len(full_selection) - 1}].")
     return [(record_index, full_selection[record_index])], False
 
 
@@ -455,15 +461,35 @@ def main(argv: Sequence[str] | None = None) -> int:
     protocol = load_mnsol_protocol(args.protocol)
     dataset = load_mnsol_v2012(args.source, protocol)
     selection_manifest = json.loads(args.selection.read_text(encoding="utf-8"))
-    full_selection = validate_frozen_mnsol_pilot_selection(
-        selection_manifest,
-        dataset,
-        protocol,
-    )
-    indexed_selection, complete_panel = _indexed_selection(
-        full_selection,
-        args.record_index,
-    )
+    partition_shard = selection_manifest.get("artifact") == PARTITION_ARTIFACT
+    if partition_shard:
+        if args.pilot_selection is None:
+            raise ValueError(
+                "Complete MNSol partition selection requires "
+                "--pilot-selection to classify prior inspection overlap."
+            )
+        pilot_manifest = json.loads(args.pilot_selection.read_text(encoding="utf-8"))
+        full_selection = validate_frozen_mnsol_partition_selection(
+            selection_manifest,
+            dataset,
+            protocol,
+            pilot_manifest,
+        )
+        indexed_selection = indexed_partition_record(
+            full_selection,
+            args.record_index,
+        )
+        complete_panel = False
+    else:
+        full_selection = validate_frozen_mnsol_pilot_selection(
+            selection_manifest,
+            dataset,
+            protocol,
+        )
+        indexed_selection, complete_panel = _indexed_selection(
+            full_selection,
+            args.record_index,
+        )
     private_output, public_output, work_dir = _validated_output_paths(
         private_output=args.private_output,
         public_output=args.public_output,
@@ -492,6 +518,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         indexed_selection,
         start=1,
     ):
+        prior_pilot_overlap = (
+            bool(selected.prior_pilot_geometry_overlap) if partition_shard else False
+        )
         print(
             f"[{ordinal}/{len(indexed_selection)}] index={selection_index} "
             f"solvent={selected.canonical_solvent}",
@@ -542,6 +571,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "formula": item.record.formula,
                 "atom_count": len(atoms),
                 "subset": item.record.subset,
+                "prior_pilot_geometry_overlap": prior_pilot_overlap,
                 "experimental_delta_g_kcal_mol": (item.record.delta_g_kcal_mol),
                 "methods": methods,
             }
@@ -555,15 +585,47 @@ def main(argv: Sequence[str] | None = None) -> int:
     }
     paired_comparison = _paired_method_comparison(records)
     checkpoint = dict(calculator.mace_polar_checkpoint_provenance)
+    run_kind = (
+        "partition-record-shard"
+        if partition_shard
+        else ("ten-record-panel" if complete_panel else "single-record-smoke")
+    )
+    if complete_panel:
+        claim_boundary = (
+            "This experiment-blind ten-record MNSol pilot is an engineering "
+            "and early chemical diagnostic for self-consistent MACE-POLAR "
+            "coarse residual point-(l<=1) multipoles with ddPCM or scaled "
+            "ddCOSMO plus SMD-CDS. One record per solvent cannot certify "
+            "accuracy, solvent generalization, exact-GTO forces, Gaussian "
+            "solute sources, original SMD equivalence, C-PCM, COSMO-RS, a "
+            "smooth solution-phase PES, OPT, TS, scan, or MD."
+        )
+    elif partition_shard:
+        claim_boundary = (
+            "One-record bounded MNSol confirmation-partition shard for "
+            "provenance, convergence, energy-ledger, and timing inspection "
+            "only. It cannot be aggregated until the complete frozen "
+            "partition has been evaluated."
+        )
+    else:
+        claim_boundary = (
+            "One-record bounded MNSol pilot smoke for provenance, "
+            "convergence, energy-ledger, and timing inspection only."
+        )
+    if not complete_panel:
+        claim_boundary += (
+            " Its derived single-row values remain private under .omx and "
+            "cannot support population accuracy, solvent ranking, "
+            "generalization, method selection, force, PES, OPT, TS, scan, "
+            "or MD claims."
+        )
     private_artifact = {
         "artifact": ARTIFACT_NAME,
         "schema_version": 1,
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
         "complete_panel": complete_panel,
-        "run_kind": (
-            "ten-record-panel" if complete_panel else "single-record-smoke"
-        ),
+        "run_kind": run_kind,
         "execution_git_head": execution_git_head,
         "protocol_fingerprint": protocol.fingerprint,
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
@@ -602,9 +664,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "do_not_commit": not complete_panel,
         "execution_git_head": execution_git_head,
         "complete_panel": complete_panel,
-        "run_kind": (
-            "ten-record-panel" if complete_panel else "single-record-smoke"
-        ),
+        "run_kind": run_kind,
         "scientific_identity": {
             "solute_energy_model": ("official unmodified MACE-POLAR-1-M checkpoint"),
             "solute_source": ("MACE-POLAR coarse residual point-multipole-l<=1"),
@@ -620,25 +680,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "cpcm_included": False,
             "cosmo_rs_included": False,
         },
-        "claim_boundary": (
-            (
-                "This experiment-blind ten-record MNSol pilot is an engineering "
-                "and early chemical diagnostic for self-consistent MACE-POLAR "
-                "coarse residual point-(l<=1) multipoles with ddPCM or scaled "
-                "ddCOSMO plus SMD-CDS. One record per solvent cannot certify "
-                "accuracy, solvent generalization, exact-GTO forces, Gaussian "
-                "solute sources, original SMD equivalence, C-PCM, COSMO-RS, a "
-                "smooth solution-phase PES, OPT, TS, scan, or MD."
-            )
-            if complete_panel
-            else (
-                "One-record engineering smoke for provenance, convergence, "
-                "energy-ledger, and timing inspection only. Its derived "
-                "single-row values remain private under .omx and cannot "
-                "support population accuracy, solvent ranking, generalization, "
-                "method selection, force, PES, OPT, TS, scan, or MD claims."
-            )
-        ),
+        "claim_boundary": claim_boundary,
         "dataset": {
             "name": "MNSol",
             "version": "2012",
@@ -655,6 +697,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
         "selection_record_count": len(records),
         "selection_full_preregistered_record_count": len(full_selection),
+        "selection_indices": [int(record["selection_index"]) for record in records],
+        "selection_prior_pilot_geometry_overlap_count": sum(
+            bool(record["prior_pilot_geometry_overlap"]) for record in records
+        ),
         "selection_solvent_count": len(
             {record["canonical_solvent"] for record in records}
         ),

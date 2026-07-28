@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Compare fixed and polarizable solute response on the frozen MNSol pilot.
+"""Compare fixed and polarizable solute response on frozen MNSol records.
 
 The selected rows are neutral absolute experimental MNSol-v2012 free
 energies. Row-level data remain below ``.omx``; public output is aggregate
-only. Every method shares ddPCM, cavity radii, dielectric, and SMD-CDS so the
-paired differences isolate source representation and ML response.
+only. Within one run every method shares the selected continuum equation,
+cavity radii, dielectric, and SMD-CDS so paired differences isolate source
+representation and ML response.
 """
 
 from __future__ import annotations
 
 import argparse
 from collections import Counter
+from dataclasses import dataclass
 from importlib import import_module
 from importlib.metadata import version
 import json
@@ -55,6 +57,7 @@ from maple.function.calculator.aimnet._aimnet2_calculator import (
     AIMNet2Calculator,
 )
 from maple.function.calculator.calculator_base import EV2HARTREE
+from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
 from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     DDPCM_ETA,
     DDPCM_LMAX,
@@ -68,7 +71,9 @@ from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     SCF_MIXING,
 )
 from maple.function.calculator.extra_correction.implicit.pyddx_pcm_response import (
+    PyDDXCOSMOReactionFieldLinearMap,
     PyDDXPCMReactionFieldLinearMap,
+    PyDDXReactionFieldLinearMap,
 )
 from maple.function.calculator.extra_correction.implicit.pyscf_smd_cds import (
     pyscf_smd_cds,
@@ -77,7 +82,10 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
     HARTREE_TO_KCAL_MOL,
     route2_coulomb_radii,
 )
-from maple.function.route2_smd_profiles import DDPCM_MULTISOLVENT_SMD_PROFILE
+from maple.function.route2_smd_profiles import (
+    DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_PROFILE,
+)
 from maple.function.route2_solvents import route2_solvent_spec
 
 ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v1"
@@ -103,6 +111,84 @@ PAIRED_COMPARISONS = (
 )
 MAXIMUM_RESPONSE_STAGES = ("one-shot", "scf")
 SelectionRecord = MNSolPilotSelection | MNSolPartitionSelection
+
+
+@dataclass(frozen=True)
+class ContinuumArm:
+    """One versioned continuum-equation arm with all other axes held fixed."""
+
+    equation: str
+    display_name: str
+    profile: str
+    reaction_field_type: Callable[..., PyDDXReactionFieldLinearMap]
+
+
+CONTINUUM_ARMS = {
+    "ddpcm": ContinuumArm(
+        equation="ddpcm",
+        display_name="ddPCM",
+        profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+        reaction_field_type=PyDDXPCMReactionFieldLinearMap,
+    ),
+    "ddcosmo": ContinuumArm(
+        equation="ddcosmo",
+        display_name="ddCOSMO",
+        profile=DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+        reaction_field_type=PyDDXCOSMOReactionFieldLinearMap,
+    ),
+}
+MACE_BOOTSTRAP_SETTING_KEYS = ("model", "d4", "model_options", "charge")
+
+
+def _continuum_arm(equation: str) -> ContinuumArm:
+    try:
+        return CONTINUUM_ARMS[equation]
+    except KeyError as exc:
+        supported = ", ".join(CONTINUUM_ARMS)
+        raise ValueError(
+            f"Unsupported continuum equation {equation!r}; choose {supported}."
+        ) from exc
+
+
+def _validate_mace_bootstrap_profile_compatibility(
+    mace_runtime,
+    *,
+    solvent: str,
+    continuum_arm: ContinuumArm,
+) -> None:
+    """Fail closed if the shared MACE bootstrap diverges between profiles."""
+
+    baseline = mace_runtime._settings(
+        solvent,
+        DDPCM_MULTISOLVENT_SMD_PROFILE,
+    )
+    selected = mace_runtime._settings(solvent, continuum_arm.profile)
+    drifted = [
+        key
+        for key in MACE_BOOTSTRAP_SETTING_KEYS
+        if baseline.get(key) != selected.get(key)
+    ]
+    baseline_solvation = baseline.get("solv")
+    selected_solvation = selected.get("solv")
+    if not isinstance(baseline_solvation, dict) or not isinstance(
+        selected_solvation,
+        dict,
+    ):
+        raise TypeError("MACE bootstrap requires mapping solvation settings.")
+    baseline_implicit_kwargs = MACEPolCalculator.build_implicit_solvent_kwargs(
+        baseline_solvation
+    )
+    selected_implicit_kwargs = MACEPolCalculator.build_implicit_solvent_kwargs(
+        selected_solvation
+    )
+    if baseline_implicit_kwargs != selected_implicit_kwargs:
+        drifted.append("implicit_solvent_kwargs")
+    if drifted:
+        raise RuntimeError(
+            "Selected continuum profile changes MACE bootstrap settings "
+            f"{drifted}; the response-ablation runner cannot isolate only "
+            "the continuum equation."
+        )
 
 
 def _execution_git_head() -> str:
@@ -230,13 +316,13 @@ def _source_hashes() -> dict[str, str]:
     return {relative: sha256_file(REPO_ROOT / relative) for relative in paths}
 
 
-def _reaction_field(atoms, solvent: str):
+def _reaction_field(atoms, solvent: str, continuum_arm: ContinuumArm):
     radii = route2_coulomb_radii(
         atoms.get_chemical_symbols(),
         solvent=solvent,
-        profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+        profile=continuum_arm.profile,
     )
-    reaction = PyDDXPCMReactionFieldLinearMap(
+    reaction = continuum_arm.reaction_field_type(
         atoms.get_positions(),
         radii,
         dielectric=route2_solvent_spec(solvent).descriptors.dielectric,
@@ -249,9 +335,14 @@ def _reaction_field(atoms, solvent: str):
     return reaction, radii
 
 
-def _fixed_source(atoms, solvent: str, coefficients: np.ndarray):
+def _fixed_source(
+    atoms,
+    solvent: str,
+    coefficients: np.ndarray,
+    continuum_arm: ContinuumArm,
+):
     started = time.perf_counter()
-    reaction, radii = _reaction_field(atoms, solvent)
+    reaction, radii = _reaction_field(atoms, solvent, continuum_arm)
     state = solve_fixed_multipole_continuum(
         reaction,
         coefficients,
@@ -392,6 +483,7 @@ def _private_artifact(
     run_kind,
     evaluated_methods,
     maximum_response_stage,
+    continuum_arm,
 ):
     return {
         "artifact": ARTIFACT_NAME,
@@ -403,6 +495,8 @@ def _private_artifact(
         "run_kind": run_kind,
         "evaluated_methods": list(evaluated_methods),
         "maximum_response_stage": maximum_response_stage,
+        "continuum_equation": continuum_arm.equation,
+        "continuum_profile": continuum_arm.profile,
         "execution_git_head": execution_git_head,
         "protocol_fingerprint": protocol.fingerprint,
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
@@ -452,6 +546,15 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "Stop after the one-shot response or continue through strict SCF. "
             "The one-shot bound is allowed only for private partition shards."
+        ),
+    )
+    parser.add_argument(
+        "--continuum-equation",
+        choices=tuple(CONTINUUM_ARMS),
+        default="ddpcm",
+        help=(
+            "Select one continuum equation while holding the cavity, source, "
+            "response stages, and SMD-CDS model fixed."
         ),
     )
     return parser
@@ -520,6 +623,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ]
         complete_panel = len(indexed_selection) == len(full_selection)
     maximum_response_stage = str(args.maximum_response_stage)
+    continuum_arm = _continuum_arm(str(args.continuum_equation))
     evaluated_methods = _validated_evaluated_methods(
         maximum_response_stage=maximum_response_stage,
         partition_shard=partition_shard,
@@ -561,6 +665,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     aimnet_load_seconds = time.perf_counter() - load_started
     load_started = time.perf_counter()
+    _validate_mace_bootstrap_profile_compatibility(
+        mace_runtime,
+        solvent=indexed_selection[0][1].canonical_solvent,
+        continuum_arm=continuum_arm,
+    )
     mace = mace_runtime._load_calculator(
         mace_runtime._atoms(indexed_selection[0][1]),
         indexed_selection[0][1].canonical_solvent,
@@ -611,6 +720,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             atoms,
             selected.canonical_solvent,
             aimnet_coefficients,
+            continuum_arm,
         )
 
         mace_gas_started = time.perf_counter()
@@ -629,11 +739,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             atoms,
             selected.canonical_solvent,
             gas_density_l0,
+            continuum_arm,
         )
         mace_l1, l1_radii, mace_l1_seconds = _fixed_source(
             atoms,
             selected.canonical_solvent,
             gas_density,
+            continuum_arm,
         )
         if not (np.array_equal(radii, l0_radii) and np.array_equal(radii, l1_radii)):
             raise RuntimeError("Paired methods did not share one cavity.")
@@ -747,6 +859,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     run_kind=run_kind,
                     evaluated_methods=tuple(methods),
                     maximum_response_stage=maximum_response_stage,
+                    continuum_arm=continuum_arm,
                 ),
             )
             def _persist_scf_failure(exc: Exception) -> None:
@@ -764,6 +877,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     run_kind=run_kind,
                     evaluated_methods=partial_methods,
                     maximum_response_stage=maximum_response_stage,
+                    continuum_arm=continuum_arm,
                 )
                 failure.update(
                     {
@@ -789,8 +903,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     calculator=mace,
                     atoms=atoms,
                     selected=selected,
-                    method="ddpcm",
-                    profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+                    method=continuum_arm.equation,
+                    profile=continuum_arm.profile,
                     work_dir=work_dir,
                 ),
                 on_failure=_persist_scf_failure,
@@ -816,6 +930,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 run_kind=run_kind,
                 evaluated_methods=evaluated_methods,
                 maximum_response_stage=maximum_response_stage,
+                continuum_arm=continuum_arm,
             ),
         )
 
@@ -835,6 +950,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         run_kind=run_kind,
         evaluated_methods=evaluated_methods,
         maximum_response_stage=maximum_response_stage,
+        continuum_arm=continuum_arm,
     )
     private.update(
         {
@@ -891,8 +1007,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         "run_kind": run_kind,
         "evaluated_methods": list(evaluated_methods),
         "maximum_response_stage": maximum_response_stage,
+        "continuum_equation": continuum_arm.equation,
+        "continuum_profile": continuum_arm.profile,
         "scientific_identity": {
-            "shared_electrostatics": "pyddx ddPCM",
+            "shared_electrostatics": f"pyddx {continuum_arm.display_name}",
             "shared_cavity": "PySCF 2.13.1 SMD Coulomb radii",
             "shared_nonpolar_model": "PySCF 2.13.1 SMD-CDS",
             "reaction_field_projector": "local-jet",
@@ -977,7 +1095,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             },
         },
         "numerics": {
-            "profile": DDPCM_MULTISOLVENT_SMD_PROFILE,
+            "profile": continuum_arm.profile,
             "lmax": DDPCM_LMAX,
             "n_lebedev": DDPCM_N_LEBEDEV,
             "solver_tolerance": DDPCM_SOLVER_TOLERANCE,

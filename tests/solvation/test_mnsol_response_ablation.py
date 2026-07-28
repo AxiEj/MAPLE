@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -155,6 +156,144 @@ def test_response_ablation_uses_maple_energy_conversion_contract():
         rel=0.0,
         abs=0.0,
     )
+
+
+def test_response_ablation_continuum_arm_is_explicit_and_defaults_to_ddpcm():
+    parser = response_runner._build_parser()
+    default_args = parser.parse_args(
+        [
+            "--source",
+            "source.zip",
+            "--protocol",
+            "protocol.json",
+            "--selection",
+            "selection.json",
+            "--aimnet2-checkpoint",
+            "aimnet2.pt",
+            "--private-output",
+            ".omx/private.json",
+            "--public-output",
+            ".omx/public.json",
+            "--work-dir",
+            ".omx/work",
+        ]
+    )
+
+    assert default_args.continuum_equation == "ddpcm"
+    assert response_runner._continuum_arm("ddpcm").profile == (
+        response_runner.DDPCM_MULTISOLVENT_SMD_PROFILE
+    )
+    assert response_runner._continuum_arm("ddcosmo").profile == (
+        response_runner.DDCOSMO_MULTISOLVENT_SMD_PROFILE
+    )
+    assert (
+        response_runner._continuum_arm("ddcosmo").reaction_field_type
+        is response_runner.PyDDXCOSMOReactionFieldLinearMap
+    )
+
+    with pytest.raises(ValueError, match="Unsupported continuum equation"):
+        response_runner._continuum_arm("cpcm")
+
+
+def test_response_ablation_reaction_field_uses_selected_profile_and_backend(
+    monkeypatch,
+):
+    captured = {}
+    expected_radii = np.asarray([1.2, 1.85], dtype=float)
+
+    class _Atoms:
+        def get_chemical_symbols(self):
+            return ["H", "C"]
+
+        def get_positions(self):
+            return np.zeros((2, 3), dtype=float)
+
+    def _radii(symbols, *, solvent, profile):
+        captured["symbols"] = symbols
+        captured["solvent"] = solvent
+        captured["profile"] = profile
+        return expected_radii
+
+    def _reaction(positions, radii, **kwargs):
+        captured["positions"] = positions
+        captured["radii"] = radii
+        captured["reaction_kwargs"] = kwargs
+        return "reaction"
+
+    monkeypatch.setattr(response_runner, "route2_coulomb_radii", _radii)
+    monkeypatch.setattr(
+        response_runner,
+        "route2_solvent_spec",
+        lambda solvent: SimpleNamespace(
+            descriptors=SimpleNamespace(dielectric=12.5)
+        ),
+    )
+    arm = response_runner.ContinuumArm(
+        equation="ddcosmo",
+        display_name="ddCOSMO",
+        profile="selected-profile",
+        reaction_field_type=_reaction,
+    )
+
+    reaction, radii = response_runner._reaction_field(
+        _Atoms(),
+        "toluene",
+        arm,
+    )
+
+    assert reaction == "reaction"
+    assert radii is expected_radii
+    assert captured["profile"] == "selected-profile"
+    assert captured["solvent"] == "toluene"
+    assert captured["reaction_kwargs"]["dielectric"] == pytest.approx(12.5)
+
+
+def test_response_ablation_mace_bootstrap_profile_drift_fails_closed(
+    monkeypatch,
+):
+    arm = response_runner._continuum_arm("ddcosmo")
+
+    class _Runtime:
+        @staticmethod
+        def _settings(solvent, profile):
+            return {
+                "model": "mace",
+                "d4": False,
+                "model_options": None,
+                "charge": {},
+                "solv": {"profile": profile},
+            }
+
+    class _CompatibleMACE:
+        @staticmethod
+        def build_implicit_solvent_kwargs(solvation_options):
+            return {"long_range_evaluator_profile": "shared"}
+
+    monkeypatch.setattr(
+        response_runner,
+        "MACEPolCalculator",
+        _CompatibleMACE,
+    )
+    response_runner._validate_mace_bootstrap_profile_compatibility(
+        _Runtime,
+        solvent="water",
+        continuum_arm=arm,
+    )
+
+    class _DriftedMACE:
+        @staticmethod
+        def build_implicit_solvent_kwargs(solvation_options):
+            return {
+                "long_range_evaluator_profile": solvation_options["profile"]
+            }
+
+    monkeypatch.setattr(response_runner, "MACEPolCalculator", _DriftedMACE)
+    with pytest.raises(RuntimeError, match="cannot isolate"):
+        response_runner._validate_mace_bootstrap_profile_compatibility(
+            _Runtime,
+            solvent="water",
+            continuum_arm=arm,
+        )
 
 
 def test_response_ablation_single_record_outputs_remain_private():

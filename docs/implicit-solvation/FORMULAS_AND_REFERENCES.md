@@ -856,6 +856,47 @@ without a dense Jacobian. MACE autograd supplies \(J_{\mathcal M}\) and
 PCMSolver ASC solve, and ASC back-projection used by the energy path, but
 without evaluating an unused polarization energy on every Krylov call.
 
+The root-local feedback operator on the same neutral space is
+
+\[
+A_\star
+=\Pi_0J_{\mathcal M}(f^\star)
+J_{\mathcal P_{\mathbf R}}\Pi_0.
+\]
+
+Because \(J_c\mathcal R_0=I-A_\star\), matrix-free applications require no
+new physical derivative:
+
+\[
+A_\star d=d-J_c\mathcal R_0[d],
+\qquad
+A_\star^*u=u-J_c\mathcal R_0^*[u].
+\]
+
+`matrix_free_fixed_point_feedback_gain_diagnostic()` supplies these two
+operations to an iterative largest-singular-value solve and reports an estimate
+of
+
+\[
+\sigma_{\max}(A_\star)
+=\sqrt{\lambda_{\max}(A_\star^*A_\star)}.
+\]
+
+This quantity is a fixed-state feedback-gain screen. A Banach contraction
+argument would instead require a certified uniform bound
+
+\[
+\sup_{c\in\mathcal U}\left\|A(c)\right\|_2\le L<1
+\]
+
+on a complete invariant neighborhood \(\mathcal U\). One converged ARPACK
+singular triplet at \(c^\star\), even with a small residual and an estimate
+below one, is neither that upper bound nor a proof of nonlinear contractivity,
+global fixed-point uniqueness, variational thermodynamics, or passivity.
+Numerical mixing is deliberately absent from \(A_\star\), because it changes
+the root-finding iteration matrix but not the physical fixed-point equation.
+The complete dense feedback spectrum remains the small-system oracle.
+
 The fixed-cavity PCM adjoint is admitted only when the parsed machine input
 contains `MATRIXSYMM=TRUE`. In that mode PCMSolver hermitivizes its surface
 response. Let \(Q\) permute an external Cartesian block into MACE's raw

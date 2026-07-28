@@ -654,6 +654,36 @@ force path because its matching coordinate/gauge derivative does not exist.
 The artifact SHA256 is
 `518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6`.
 
+## Matrix-free root-local feedback-gain canary
+
+[`route2-matrix-free-feedback-gain-two-state-v1.json`](route2-matrix-free-feedback-gain-two-state-v1.json)
+anonymizes two fixed neutral MNSol-derived states and compares the
+matrix-free largest-feedback-singular-value estimate against the complete
+neutral-space dense oracle. No row identity, geometry, measured value,
+prediction, or chemistry-error record is published.
+
+| state | neutral dimension | dense \(\sigma_{\max}\) | matrix-free estimate | absolute difference | triplet residual | JVP/VJP calls | dense time | matrix-free time |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| state-01 | 31 | 0.3195933458 | 0.3195933457 | \(1.02\times10^{-10}\) | \(1.55\times10^{-10}\) | 13/12 | 39.49 s | 35.74 s |
+| state-02 | 75 | 0.4167834048 | 0.4167834047 | \(5.41\times10^{-11}\) | \(3.46\times10^{-10}\) | 23/22 | 447.10 s | 269.61 s |
+
+Both iterative estimates are below one at their tested roots and match the
+dense oracle within \(1.1\times10^{-10}\), but neither value is a certified
+upper bound on a nonlinear neighborhood. They therefore establish numerical
+agreement and local cost only—not a Banach contraction certificate, global
+fixed-point uniqueness, variational identity, thermodynamic passivity, or
+chemical-accuracy result. The 75-dimensional estimate still took 269.61 s, so
+the diagnostic remains outside default SCF and broad panels.
+
+The execution occurred at tracked head `ca5aed3` while the diagnostic source
+was still uncommitted. The exact diagnostic and synthetic-test byte hashes
+match their subsequent landed commit `f833d8e` and the current frozen source.
+The private execution summaries did not record the model-checkpoint hash, so
+this is source-bound evidence rather than a checkpoint-bound rerun. Timings
+exclude model loading and fixed-state setup and are single-host metadata, not
+a portable speed ranking. Artifact SHA256:
+`7683c93ae373341de0dcd8563e48a092a9ff231965c326d68cc21de1830dae48`.
+
 ## MACE-POLAR exact-GTO fixed-geometry derivative canary
 
 [`route2-mace-exact-gto-fixed-geometry-canary-v1.json`](route2-mace-exact-gto-fixed-geometry-canary-v1.json)

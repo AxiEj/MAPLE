@@ -1,0 +1,109 @@
+{
+  "artifact": "route2-matrix-free-feedback-gain-two-state-v1",
+  "schema_version": 1,
+  "visibility": "public-anonymous-fixed-state-evidence",
+  "claim_boundary": "Two anonymous fixed neutral states validate agreement with the dense small-system oracle and record local timing only. The ARPACK value is a root-local iterative largest-singular-value estimate, not a certified nonlinear contraction upper bound, Banach certificate, global uniqueness proof, variational identity, or thermodynamic-passivity result.",
+  "decision": "Keep the matrix-free feedback-gain calculation as an explicit research diagnostic. Do not invoke it during default SCF or broad chemical panels until a cheaper bounded-accuracy screen is justified.",
+  "scientific_identity": {
+    "solute_response_model": "official MACE-POLAR-1-M",
+    "response": "self-consistent",
+    "solute_source": "point-multipole-l1",
+    "reaction_field_projector": "local-jet",
+    "continuum": "pyddx ddPCM",
+    "nonpolar_model_in_public_energy": "PySCF 2.13.1 SMD-CDS",
+    "nonpolar_model_used_by_diagnostic": false,
+    "profile": "smd-ddpcm-l15-n1202-multisolv-v1",
+    "solvent": "water",
+    "strict_original_smd_equivalence": false,
+    "operator": "Pi J_M J_P Pi restricted to neutral density coordinates"
+  },
+  "execution_source": {
+    "execution_git_head": "ca5aed354e06f679a2903b209874393200a9f859",
+    "execution_worktree_state": "The diagnostic source was uncommitted at execution time.",
+    "implementation_landed_commit": "f833d8e2af5435631bd67040c82c6d02d856f192",
+    "equivalence_basis": "The executed diagnostic and synthetic-test SHA-256 values exactly match the bytes subsequently committed at implementation_landed_commit and present when this artifact was frozen.",
+    "files": {
+      "maple/function/calculator/extra_correction/implicit/route2_thermodynamic_diagnostics.py": {
+        "sha256": "a9b1590fd677f5c5268101a4a461ca568dcafd707ed5e4a9bba4f1b7b8f4129e",
+        "landed_git_blob_sha1": "9d97c43dc38af91c1290a3770071f7d18c9dc84a"
+      },
+      "tests/solvation/test_route2_thermodynamic_diagnostics.py": {
+        "sha256": "d9e9f9e173734395dbb50485bfea1565a1eeee62f44c6987a8d186fd39a2dab0",
+        "landed_git_blob_sha1": "d6340ff05b59a6cfd2988978e1cd6b78de2b469e"
+      }
+    },
+    "private_source_summaries": {
+      "anonymous_matrix_free_summary_sha256": "bb80b4ce3af5f7f8462245b161381dcdcaea66d352be70949523f091cb7ea31f",
+      "stage_summary_sha256": "2354a90f520ddd0b12116e98c735f24a6b059521d62a6096ebfbe606b34388d7"
+    },
+    "checkpoint_binding": {
+      "checkpoint_identifier_recorded": "MACE-POLAR-1-M",
+      "checkpoint_sha256_recorded": false,
+      "limitation": "The private execution summaries did not record the model-checkpoint hash, so this is source-bound numerical evidence rather than a checkpoint-bound rerun."
+    }
+  },
+  "runtime": {
+    "python": "3.11.14",
+    "ase": "3.27.0",
+    "numpy": "2.4.6",
+    "pyddx": "0.8.0",
+    "torch": "2.12.0+cu130",
+    "device": "cpu",
+    "torch_threads": 1,
+    "timing_scope": "Diagnostic calls exclude model load and fixed-state linearization/continuum setup.",
+    "timing_status": "single-host metadata, not a portable speed ranking"
+  },
+  "diagnostic_protocol": {
+    "solver": "scipy.sparse.linalg.svds-arpack-largest",
+    "solver_tolerance": 1e-06,
+    "solver_maximum_iterations": 100,
+    "krylov_subspace_dimension": 10,
+    "random_seed": 20260728,
+    "dense_oracle": "complete neutral-space feedback matrix followed by dense singular-value decomposition",
+    "chemistry_accuracy_evaluated": false,
+    "nonlinear_neighborhood_sampled": false,
+    "default_scf_path_changed": false
+  },
+  "records": [
+    {
+      "state_id": "state-01",
+      "neutral_dimension": 31,
+      "dense_oracle_sigma_max": 0.31959334582405363,
+      "matrix_free_sigma_max_estimate": 0.3195933457221077,
+      "absolute_difference": 1.0194595168044884e-10,
+      "relative_difference": 3.18986465183081e-10,
+      "relative_singular_triplet_residual": 1.5514446987423233e-10,
+      "feedback_jvp_applications": 13,
+      "feedback_vjp_applications": 12,
+      "dense_oracle_seconds": 39.49111270499998,
+      "matrix_free_seconds": 35.73558398601017,
+      "speedup_excluding_model_load_and_setup": 1.1050921322696177,
+      "private_record_sha256": "06d2498b1fbd4d030e2f8f657c752c0aae08f041f7b5a6aa2a90e51b2bbc89c1"
+    },
+    {
+      "state_id": "state-02",
+      "neutral_dimension": 75,
+      "dense_oracle_sigma_max": 0.41678340475526304,
+      "matrix_free_sigma_max_estimate": 0.4167834047011413,
+      "absolute_difference": 5.4121762627090675e-11,
+      "relative_difference": 1.2985584840853056e-10,
+      "relative_singular_triplet_residual": 3.4639088680851005e-10,
+      "feedback_jvp_applications": 23,
+      "feedback_vjp_applications": 22,
+      "dense_oracle_seconds": 447.1026719509973,
+      "matrix_free_seconds": 269.6063399089908,
+      "speedup_excluding_model_load_and_setup": 1.658353702297664,
+      "private_record_sha256": "f41f2ffb5ea9168084941f849e21f70a453e596aac328405afb6cd58f3914255"
+    }
+  ],
+  "aggregate": {
+    "state_count": 2,
+    "maximum_sigma_max_estimate": 0.4167834047011413,
+    "maximum_absolute_dense_difference": 1.0194595168044884e-10,
+    "maximum_relative_dense_difference": 3.18986465183081e-10,
+    "maximum_relative_singular_triplet_residual": 3.4639088680851005e-10,
+    "mean_dense_oracle_seconds": 243.29689232799865,
+    "mean_matrix_free_seconds": 152.67096194750047,
+    "mean_per_state_speedup": 1.381722917283641
+  }
+}

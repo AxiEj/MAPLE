@@ -1103,6 +1103,25 @@ Research/Innovation Route, not a complete solution-phase PES.
     a sigma-profile/statistical-thermodynamics workflow rather than a
     continuum-equation switch. No ORCA/openCOSMO-RS executable or chemical
     accuracy benchmark has been run in this stage.
+45. A matrix-free feedback-gain diagnostic now reuses the unmixed neutral
+    residual JVP/VJP to estimate the root-local
+    \(\sigma_{\max}(\Pi_0J_{\mathcal M}J_{\mathcal P}\Pi_0)\) without
+    materializing every feedback column. Two anonymous fixed neutral states
+    with dimensions 31 and 75 match their dense small-system oracles within
+    `1.02e-10` and `5.41e-11`; their singular-triplet relative residuals are
+    below `3.47e-10`. The matrix-free calls used 13/12 and 23/22 JVP/VJP
+    applications and took `35.74` and `269.61 s`, versus `39.49` and
+    `447.10 s` for the complete dense oracles on the same host.
+
+    Both root-local estimates are below one, but they are iterative values, not
+    certified upper bounds over a complete invariant neighborhood. They do not
+    prove Banach contractivity, nonlinear uniqueness, variational
+    thermodynamics, passivity, or chemical accuracy. The diagnostic therefore
+    remains research-only and is not called by default SCF or broad panels.
+    The execution predated the clean implementation commit: its exact source
+    hashes match landed commit `f833d8e`, but the private summaries did not
+    retain a checkpoint hash. The public anonymous evidence is
+    `benchmarks/route2-matrix-free-feedback-gain-two-state-v1.json`.
 
 ## Secondary diagnostics
 

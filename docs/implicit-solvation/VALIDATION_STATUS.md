@@ -1084,6 +1084,25 @@ Research/Innovation Route, not a complete solution-phase PES.
     the largest \(R\) mismatch was \(2.78\times10^{-17}\). This is an operator
     implementation result, not a chemical-accuracy result or a public Route-2
     C-PCM profile.
+44. A two-record private MNSol water screen then held frozen gas-phase
+    MACE-POLAR \(l\leq1\) multipoles and SMD-CDS fixed while changing the
+    continuum equation. PySCF SWIG IEFPCM, C-PCM, and COSMO give two-record
+    MAEs of `2.3352`, `2.2838`, and `2.3516 kcal/mol`; pyddx ddPCM and scaled
+    ddCOSMO give `2.2756` and `2.2212 kcal/mol`. The largest within-backend
+    prediction shift is only `0.0635 kcal/mol`, all half-coupling errors are
+    below `1.9e-14 eV`, and the three PySCF arms use identical points and
+    areas. This is too small and too underpowered to justify another
+    ten-solvent equation scan. Cross-backend values are not a pure equation
+    comparison because their cavity discretizations differ.
+
+    The same stage adds a fail-closed COSMO-RS evidence boundary. It hashes the
+    three ORCA/openCOSMO-RS 24a inputs, locks the audited
+    BP86/def2-TZVPD/298.15 K/surface contract, and verifies the temperature and
+    Hartree/kcal consistency of one external `dGsolv` result. COSMO-RS remains
+    outside the Route-2 profile registry and `method=cosmo-rs` is rejected as
+    a sigma-profile/statistical-thermodynamics workflow rather than a
+    continuum-equation switch. No ORCA/openCOSMO-RS executable or chemical
+    accuracy benchmark has been run in this stage.
 
 ## Secondary diagnostics
 

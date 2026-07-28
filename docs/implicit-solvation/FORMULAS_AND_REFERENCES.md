@@ -1254,6 +1254,34 @@ whereas ddCOSMO uses a domain-decomposition discretization and its own cavity
 operator. Conversely, the PySCF `COSMO` wrapper is not silently aliased to
 C-PCM because its finite-dielectric denominator is \(\epsilon+\tfrac12\).
 
+### COSMO-RS is a separate liquid-thermodynamics workflow
+
+COSMO-RS is not a fourth choice of \(K/R\) matrices in the table above.
+The ORCA/openCOSMO-RS 24a workflow first performs three matched quantum
+calculations:
+
+1. a gas-phase solute single point;
+2. a perfect-conductor solute calculation that generates its surface
+   screening-charge density;
+3. a perfect-conductor solvent calculation that generates the solvent
+   screening-charge density.
+
+The openCOSMO-RS statistical-thermodynamics program then evaluates interacting
+surface segments and reports \(\Delta G_{\mathrm{solv}}\). Its ORCA 6
+parameterization is tied to BP86/def2-TZVPD, special parameterized cavity
+radii, 298.15 K, and removal of surface segments below
+\(0.01\,\mathring{\mathrm A}^2\). A MACE point-multipole state plus a
+PCM/COSMO reaction-field solve does not supply these sigma-profile inputs.
+
+`maple.function.cosmo_rs` therefore defines an evidence boundary rather than a
+calculator provider. `OpenCOSMORS24aInputBundle` hashes the three required
+external assets and fails closed outside the audited neutral, closed-shell
+ORCA 6/openCOSMO-RS 24a contract. The output parser accepts exactly one
+`OPENCOSMO-RS CALCULATION` block and cross-checks its reference temperature and
+Hartree/kcal conversion. Public
+`#solv(implicit=...,method=cosmo-rs,...)` input is rejected rather than
+silently relabelled as C-PCM, COSMO, or ddCOSMO.
+
 MAPLE passes one radius per atom to PySCF's unmodified `gen_surface()` through
 an atom-index molecule view and retains the real molecule for nuclear
 identities and gradient bookkeeping. A runtime guard checks the PySCF 2.13.1
@@ -1916,6 +1944,15 @@ Route-2 references:
   electronic properties of molecules in solution with the C-PCM solvation
   model,” *J. Comput. Chem.* **24**, 669--681 (2003),
   DOI `10.1002/jcc.10189`.
+- A. Klamt, “Conductor-like Screening Model for Real Solvents: A New Approach
+  to the Quantitative Calculation of Solvation Phenomena,” *J. Phys. Chem.*
+  **99**, 2224--2235 (1995), DOI `10.1021/j100007a062`.
+- openCOSMO-RS 24a parameterization article, “Predicting solvation free
+  energies for neutral molecules in any solvent with openCOSMO-RS,”
+  `arXiv:2407.03434`; ORCA 6.1 openCOSMO-RS workflow:
+  `https://www.faccts.de/docs/orca/6.1/manual/contents/essentialelements/solvationmodels.html#opencosmo-rs`;
+  upstream implementation:
+  `https://github.com/TUHH-TVT/openCOSMO-RS_py`.
 - B. G. Johnson, P. M. W. Gill, and J. A. Pople, “A rotationally invariant
   procedure for density functional calculations,” *Chem. Phys. Lett.* **220**,
   377--384 (1994),

@@ -547,6 +547,15 @@ class CommandControl:
         if method is not None:
             method = str(method).lower()
             solv_params["method"] = method
+            if method in {"cosmors", "cosmo-rs", "cosmo_rs"}:
+                msg = (
+                    "COSMO-RS is a separate sigma-profile/statistical-thermodynamics "
+                    "workflow, not a PCM/COSMO continuum-equation switch. Route 2 "
+                    "records it only through a separate version-locked external "
+                    "asset/result boundary."
+                )
+                cls._log_error(output_path, msg)
+                raise ValueError(msg)
             if method not in {"gbsa", "smd"}:
                 msg = "Implicit solvation method must be 'gbsa' or 'smd'."
                 cls._log_error(output_path, msg)

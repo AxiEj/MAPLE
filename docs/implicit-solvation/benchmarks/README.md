@@ -377,6 +377,54 @@ matrix belongs to benchmark strategy, not the MNSol data contract:
   implementation and a matching partition/transfer benchmark, never by
   relabelling a COSMO boundary solver.
 
+## Two-record PCM-family equation screen
+
+A bounded private MNSol water canary changed the continuum equation while
+holding the frozen gas-phase MACE-POLAR \(l\leq1\) source and each record's
+SMD-CDS value fixed. The three PySCF 2.13.1 SWIG comparisons used exactly the
+same order-17 surface; the pyddx 0.8.0 comparison used the same
+`lmax=15`/1202-point ddX discretization. Aggregate-only results are:
+
+| equation arm | two-record MAE / kcal mol\(^{-1}\) | mean wall time / s |
+|---|---:|---:|
+| PySCF SWIG IEFPCM | 2.3352 | 0.2250 |
+| PySCF SWIG C-PCM | 2.2838 | 0.0774 |
+| PySCF SWIG COSMO | 2.3516 | 0.0717 |
+| pyddx ddPCM | 2.2756 | 2.9677 |
+| pyddx scaled ddCOSMO | 2.2212 | 0.6762 |
+
+The same-surface PySCF equation changes move either prediction by only
+`0.0160--0.0588 kcal/mol`; scaled ddCOSMO moves the two pyddx predictions by
+`-0.0452` and `-0.0635 kcal/mol`. Every half-coupling identity error is below
+`1.9e-14 eV`. The fixed, non-randomized execution order makes the timing column
+runtime metadata rather than a speed ranking. PySCF-versus-pyddx differences
+also change discretization and backend implementation, so only within-backend
+comparisons isolate the equation.
+
+The private row-level artifact has SHA256
+`de912de10d71401229434381d5dea429486327acfba5838269956259fe742c3a`
+and remains below `.omx` because it contains user-supplied MNSol records. With
+only two development points and an equation effect below
+`0.064 kcal/mol`, this screen does not trigger another ten-solvent full scan.
+The existing preregistered ten-solvent AIMNet2 ddPCM/ddCOSMO pilot remains the
+broader diagnostic evidence.
+
+## COSMO-RS external evidence boundary
+
+COSMO-RS is intentionally absent from the Route-2 profile registry. The
+version-locked boundary in `maple.function.cosmo_rs` accepts the three assets
+required by the ORCA/openCOSMO-RS 24a workflow: the solute gas output, solute
+perfect-conductor surface, and solvent perfect-conductor surface. It records
+their SHA256 hashes and enforces BP86/def2-TZVPD, ORCA 6, 298.15 K, neutral
+closed-shell systems, parameterized COSMO-RS radii, and the
+`0.01 angstrom squared` surface-segment cutoff.
+
+This boundary parses and audits externally generated `dGsolv`; it does not
+execute ORCA/openCOSMO-RS, add a dependency, construct sigma profiles from
+MACE multipoles, or expose a public calculator. A future COSMO-RS benchmark
+must version-lock the upstream implementation and all three matched QC assets
+before comparing against experiment.
+
 ## MNSol ten-solvent AIMNet2 pilot
 
 [`route2-mnsol-aimnet2-multisolvent-pilot-v1.json`](route2-mnsol-aimnet2-multisolvent-pilot-v1.json)

@@ -1,9 +1,10 @@
-"""Version-locked data boundary for openCOSMO-RS 24a results.
+"""Version-locked QM-reference boundary for openCOSMO-RS 24a results.
 
 COSMO-RS is a sigma-profile/statistical-thermodynamics workflow.  It is not a
 continuum-equation option for MAPLE's Route-2 ``#solv`` calculator, so this
 module validates external ORCA/openCOSMO-RS assets without registering a
-calculator provider.
+calculator provider. It is an oracle for the experimental MLIP surface bridge
+in :mod:`maple.function.mlip_cosmo_rs`, not the target MLIP--continuum method.
 """
 
 from __future__ import annotations

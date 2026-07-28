@@ -8,6 +8,14 @@ candidates, including one explicit multi-solvent parameter profile. The
 independent PySCF SWIG/IEFPCM adapter remains private. Route 2 is still a
 Research/Innovation Route, not a complete solution-phase PES.
 
+The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
+QM reference oracle, not as the Route-2 target. A separate experimental
+`mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening
+surface from fixed AIMNet2 or MACE-POLAR \(l\leq1\) sources without solute QM.
+It is out of the BP86/def2-TZVPD-fitted 24a parameterization, may reuse a
+QM-derived solvent profile, has not yet closed mutual MACE--conductor
+self-consistency, and is not a public calculator or accuracy-certified method.
+
 ## Passing engineering gates
 
 - The Route-2 parser is locked to `macepol-m`, a parity-consistent neutral

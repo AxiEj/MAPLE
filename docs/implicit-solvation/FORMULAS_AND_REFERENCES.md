@@ -1295,11 +1295,11 @@ whereas ddCOSMO uses a domain-decomposition discretization and its own cavity
 operator. Conversely, the PySCF `COSMO` wrapper is not silently aliased to
 C-PCM because its finite-dielectric denominator is \(\epsilon+\tfrac12\).
 
-### COSMO-RS is a separate liquid-thermodynamics workflow
+### COSMO-RS has distinct QM-reference and experimental MLIP-surface arms
 
 COSMO-RS is not a fourth choice of \(K/R\) matrices in the table above.
-The ORCA/openCOSMO-RS 24a workflow first performs three matched quantum
-calculations:
+The standard ORCA/openCOSMO-RS 24a reference workflow first performs three
+matched quantum calculations:
 
 1. a gas-phase solute single point;
 2. a perfect-conductor solute calculation that generates its surface
@@ -1311,11 +1311,13 @@ The openCOSMO-RS statistical-thermodynamics program then evaluates interacting
 surface segments and reports \(\Delta G_{\mathrm{solv}}\). Its ORCA 6
 parameterization is tied to BP86/def2-TZVPD, special parameterized cavity
 radii, 298.15 K, and removal of surface segments below
-\(0.01\,\mathring{\mathrm A}^2\). A MACE point-multipole state plus a
-PCM/COSMO reaction-field solve does not supply these sigma-profile inputs.
+\(0.01\,\mathring{\mathrm A}^2\). A MACE point-multipole state plus an
+ordinary finite-dielectric PCM/COSMO energy does not by itself supply these
+sigma-profile inputs.
 
 `maple.function.cosmo_rs` therefore defines an evidence boundary rather than a
-calculator provider. `OpenCOSMORS24aInputBundle` hashes the three required
+calculator provider. It is explicitly the **QM reference arm**, not the
+Route-2 target. `OpenCOSMORS24aInputBundle` hashes the three required
 external assets and fails closed outside the audited neutral, closed-shell
 ORCA 6/openCOSMO-RS 24a contract. The output parser accepts exactly one
 `OPENCOSMO-RS CALCULATION` block and cross-checks its reference temperature and
@@ -1326,6 +1328,34 @@ host-process status while a child calculation had terminated with an error.
 Public
 `#solv(implicit=...,method=cosmo-rs,...)` input is rejected rather than
 silently relabelled as C-PCM, COSMO, or ddCOSMO.
+
+The separate experimental module `maple.function.mlip_cosmo_rs` supplies the
+missing MLIP--implicit-solvent bridge without a solute QM calculation:
+
+\[
+\text{fixed MLIP }(l\leq1)\text{ source}
+\longrightarrow
+\text{perfect-conductor SWIG response}
+\longrightarrow
+\{\sigma_k,A_k,\mathbf s_k\}
+\longrightarrow
+\text{openCOSMO-RS statistical thermodynamics}.
+\]
+
+It preserves the openCOSMO-RS 24a cavity radii and
+\(0.01\,\mathring{\mathrm A}^2\) segment cutoff, writes the minimum upstream
+ORCA-COSMO surface contract, and uses the MLIP conductor polarization energy
+for \(E_{\mathrm{conductor}}-E_{\mathrm{gas}}\). The current bounded arm may
+reuse a precomputed solvent profile from the 24a library, but the **solute**
+profile is produced by MLIP plus a continuum conductor solve. This is therefore
+an MLIP--implicit-solvent hybrid, not the all-QM reference workflow.
+
+The bridge remains experimental for two reasons. First, openCOSMO-RS 24a was
+fitted to BP86/def2-TZVPD surfaces, so an MLIP-generated sigma profile is
+out-of-parameterization and the upstream QSPR warning is retained. Second, the
+first implementation uses a fixed MLIP source; mutual MACE--conductor
+self-consistency is the next research gate. It is not registered as a public
+calculator and is not strict openCOSMO-RS 24a equivalence.
 
 MAPLE passes one radius per atom to PySCF's unmodified `gen_surface()` through
 an atom-index molecule view and retains the real molecule for nuclear

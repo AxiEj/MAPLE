@@ -651,9 +651,55 @@ class PySCFSWIGCOSMOResponse(PySCFSWIGPCMResponse):
         )
 
 
+class PySCFSWIGConductorResponse(PySCFSWIGCPCMResponse):
+    """C-PCM response at the floating-point conductor limit.
+
+    COSMO-RS consumes screening charges obtained for ``epsilon = infinity``.
+    PySCF's SWIG surface construction does not require an electronic-structure
+    calculation, so a fixed external ML multipole source can drive the same
+    conductor boundary equation.  The largest finite float makes
+    ``(epsilon - 1) / epsilon`` exactly one in binary64 while keeping PySCF's
+    existing C-PCM derivative path finite.
+    """
+
+    _CONDUCTOR_DIELECTRIC = float(np.finfo(float).max)
+
+    def __init__(
+        self,
+        symbols: Sequence[str],
+        atom_positions_angstrom: np.ndarray,
+        cavity_radii_angstrom: np.ndarray,
+        *,
+        lebedev_order: int,
+        _runtime: _PySCFRuntime | None = None,
+    ) -> None:
+        super().__init__(
+            symbols,
+            atom_positions_angstrom,
+            cavity_radii_angstrom,
+            dielectric=self._CONDUCTOR_DIELECTRIC,
+            lebedev_order=lebedev_order,
+            _runtime=_runtime,
+        )
+
+    @property
+    def runtime_provenance(self) -> dict[str, str | int | float | bool]:
+        provenance = super().runtime_provenance
+        provenance.update(
+            {
+                "provider": "pyscf-swig-conductor",
+                "continuum_model": "conductor-limit-cpcm",
+                "static_dielectric": "infinity-via-float-max",
+                "conductor_limit": True,
+            }
+        )
+        return provenance
+
+
 __all__ = [
     "TESTED_PYSCF_VERSION",
     "PySCFSWIGCPCMResponse",
+    "PySCFSWIGConductorResponse",
     "PySCFSWIGCOSMOResponse",
     "PySCFSWIGIEFPCMResponse",
     "PySCFSWIGPCMResponse",

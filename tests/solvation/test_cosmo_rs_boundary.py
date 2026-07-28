@@ -218,10 +218,16 @@ def test_cosmors_documentation_preserves_the_external_evidence_boundary():
     ).read_text(encoding="utf-8")
     normalized_validation = " ".join(validation.split())
 
-    assert "COSMO-RS is a separate liquid-thermodynamics workflow" in formulas
+    assert (
+        "COSMO-RS has distinct QM-reference and experimental MLIP-surface arms"
+        in formulas
+    )
     assert "COSMO-RS is intentionally absent from the Route-2 profile registry" in (
         benchmark
     )
+    assert "It is explicitly the **QM reference arm**" in formulas
+    assert "maple.function.mlip_cosmo_rs" in formulas
+    assert "solute chain is MLIP" in benchmark
     assert "not an MNSol chemical-accuracy or generalization result" in (
         normalized_validation
     )

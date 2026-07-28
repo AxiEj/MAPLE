@@ -10,6 +10,7 @@ from ase.units import Bohr
 from maple.function.calculator.extra_correction.implicit.pyscf_swig_response import (
     TESTED_PYSCF_VERSION,
     PySCFSWIGCPCMResponse,
+    PySCFSWIGConductorResponse,
     PySCFSWIGCOSMOResponse,
     PySCFSWIGIEFPCMResponse,
     PySCFSWIGPCMResponse,
@@ -294,6 +295,32 @@ def test_pyscf_swig_cpcm_and_cosmo_are_not_aliases(fake_runtime):
         rel=1.0e-8,
         abs=1.0e-12,
     )
+
+
+def test_pyscf_swig_conductor_response_has_unit_screening(fake_runtime):
+    response = PySCFSWIGConductorResponse(
+        ("H", "O"),
+        np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]]),
+        np.asarray([1.2, 1.5]),
+        lebedev_order=17,
+        _runtime=fake_runtime.runtime,
+    )
+    potential = np.asarray([0.2, -0.1, 0.3, -0.25])
+    _, S = fake_runtime.pcm.get_D_S(None, with_S=True, with_D=True)
+
+    state = response.solve(potential)
+
+    np.testing.assert_allclose(
+        state.direct_surface_charge_e,
+        np.linalg.solve(S, -potential),
+        rtol=2.0e-13,
+        atol=2.0e-13,
+    )
+    assert response.runtime_provenance["continuum_model"] == (
+        "conductor-limit-cpcm"
+    )
+    assert response.runtime_provenance["conductor_limit"] is True
+    assert response.runtime_provenance["dielectric_scaling"] == 1.0
 
 
 def test_pyscf_swig_generic_response_rejects_unknown_model(fake_runtime):

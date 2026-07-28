@@ -449,14 +449,17 @@ different solvents and ten post-selection functional-group labels. They do
 not separate solvent from chemistry, establish per-solvent generalization, or
 support changing a production default. The `5.27 s` total and per-method
 timings exclude frozen AIMNet2/MACE inference and were not randomized.
-COSMO-RS is not included because it requires a separate quantum-chemical
-sigma-profile and statistical-thermodynamic workflow rather than another
-switch on the same PCM surface. The public artifact SHA256 is
+The standard ORCA/openCOSMO-RS reference is not included because it requires a
+separate quantum-chemical sigma-profile and statistical-thermodynamic workflow
+rather than another switch on the same PCM surface. A later experimental
+MLIP-surface bridge is a separately named out-of-parameterization arm, not a
+reinterpretation of this same-surface equation panel. The public artifact
+SHA256 is
 `d387adb6d3e2e1fa082685948911eb45fbf60ba8ff5cc3c313d758df46d8179f`;
 the private row-level artifact remains below `.omx` with SHA256
 `7ea80dbf4f9b7e75106b41f3f7f1d42f7b9d38bbded12da1e581c6cf5a696e5f`.
 
-## COSMO-RS external evidence boundary
+## COSMO-RS QM reference and MLIP-surface research boundary
 
 COSMO-RS is intentionally absent from the Route-2 profile registry. The
 version-locked boundary in `maple.function.cosmo_rs` accepts the three assets
@@ -468,8 +471,23 @@ closed-shell systems, parameterized COSMO-RS radii, and the
 
 This boundary parses and audits externally generated `dGsolv`, renders a
 neutral-singlet fixed-geometry ORCA input, and binds the three assets from one
-audited ORCA run. It does not add ORCA as a MAPLE dependency, construct sigma
-profiles from MACE multipoles, or expose a public calculator.
+audited ORCA run. It is the **QM oracle arm**. It does not add ORCA as a MAPLE
+dependency or expose a public calculator.
+
+`maple.function.mlip_cosmo_rs` is the separate experimental integration arm.
+It takes neutral AIMNet2 monopoles or MACE-POLAR \(l\leq1\) coefficients,
+constructs a PySCF SWIG perfect-conductor surface, solves its screening charge,
+applies the 24a minimum-segment rule, and renders the upstream surface-file
+contract consumed by openCOSMO-RS. Thus the solute chain is MLIP
+\(\rightarrow\) implicit conductor \(\rightarrow\) sigma profile
+\(\rightarrow\) liquid thermodynamics, with no solute QM calculation.
+
+This does not make the result strict openCOSMO-RS 24a: the parameterization was
+fitted to BP86/def2-TZVPD profiles, and a precomputed QM-derived solvent profile
+may still be reused. The first bridge is fixed-source only; a self-consistent
+MACE--conductor profile and an MLIP-generated solvent-profile arm remain open
+gates. The upstream method-mismatch warning is scientific evidence and must
+not be hidden by falsely labelling the surface as BP86/def2-TZVPD.
 
 The preregistered external benchmark
 [`route2-mnsol-opencosmors24a-fixed-geometry-prereg-v1.json`](route2-mnsol-opencosmors24a-fixed-geometry-prereg-v1.json)

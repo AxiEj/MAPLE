@@ -9,10 +9,11 @@ calculator provider.
 from __future__ import annotations
 
 import hashlib
+import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 HARTREE_TO_KCAL_MOL = 627.5094740631
 OPEN_COSMORS_24A_PARAMETERIZATION = "openCOSMO-RS 24a"
@@ -20,6 +21,9 @@ OPEN_COSMORS_24A_PARAMETERIZATION = "openCOSMO-RS 24a"
 _REFERENCE_TEMPERATURE_K = 298.15
 _MINIMUM_SURFACE_SEGMENT_AREA_ANGSTROM2 = 0.01
 _ENERGY_UNIT_TOLERANCE_KCAL_MOL = 5.0e-6
+_SAFE_ORCA_STEM_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*\Z")
+_SAFE_SOLVENT_ALIAS_RE = re.compile(r"[A-Za-z][A-Za-z0-9]*\Z")
+_ELEMENT_SYMBOL_RE = re.compile(r"[A-Z][a-z]?\Z")
 
 
 @dataclass(frozen=True)
@@ -151,6 +155,38 @@ class OpenCOSMORS24aInputBundle:
             ),
         )
 
+    @classmethod
+    def from_orca_run(
+        cls,
+        work_directory: str | Path,
+        stem: str,
+    ) -> "OpenCOSMORS24aInputBundle":
+        """Bind the three audited assets emitted by one ORCA 6 COSMO-RS run."""
+
+        if not _SAFE_ORCA_STEM_RE.fullmatch(str(stem)):
+            raise ValueError("ORCA COSMO-RS stem must be one safe basename.")
+        workdir = Path(work_directory).expanduser().resolve()
+        if not workdir.is_dir():
+            raise ValueError("ORCA COSMO-RS work directory must exist.")
+        return cls.from_paths(
+            solute_gas_output=workdir / f"{stem}.solute_vac.lastout",
+            solute_conductor_surface=workdir / f"{stem}.solute.orcacosmo",
+            solvent_conductor_surface=workdir / f"{stem}.solvent.orcacosmo",
+            orca_major_version=6,
+            solute_charge=0,
+            solute_multiplicity=1,
+            solvent_charge=0,
+            solvent_multiplicity=1,
+            temperature_k=_REFERENCE_TEMPERATURE_K,
+            functional="BP86",
+            basis="def2-TZVPD",
+            parameterization=OPEN_COSMORS_24A_PARAMETERIZATION,
+            uses_parameterized_cavity_radii=True,
+            minimum_surface_segment_area_angstrom2=(
+                _MINIMUM_SURFACE_SEGMENT_AREA_ANGSTROM2
+            ),
+        )
+
     def as_manifest(self) -> dict[str, Any]:
         return {
             "scientific_family": "COSMO-RS",
@@ -210,6 +246,86 @@ _SOLVATION_RE = re.compile(
 )
 
 
+def render_orca_opencosmors24a_input(
+    symbols: Sequence[str],
+    coordinates_angstrom: Sequence[Sequence[float]],
+    *,
+    solvent_alias: str,
+    maxcore_mb: int = 2000,
+    nprocs: int = 1,
+) -> str:
+    """Render one neutral-singlet fixed-geometry ORCA 6 COSMO-RS input."""
+
+    if isinstance(symbols, (str, bytes)):
+        raise ValueError("COSMO-RS symbols must be a non-empty sequence.")
+    try:
+        normalized_symbols = tuple(str(symbol) for symbol in symbols)
+    except TypeError as exc:
+        raise ValueError("COSMO-RS symbols must be a non-empty sequence.") from exc
+    if not normalized_symbols:
+        raise ValueError("COSMO-RS symbols must be a non-empty sequence.")
+    if any(
+        _ELEMENT_SYMBOL_RE.fullmatch(symbol) is None for symbol in normalized_symbols
+    ):
+        raise ValueError("COSMO-RS symbols must be canonical element symbols.")
+    if not _SAFE_SOLVENT_ALIAS_RE.fullmatch(str(solvent_alias)):
+        raise ValueError("COSMO-RS solvent alias contains unsafe characters.")
+    if isinstance(maxcore_mb, bool) or not isinstance(maxcore_mb, int):
+        raise ValueError("COSMO-RS maxcore_mb must be a positive integer.")
+    if maxcore_mb <= 0:
+        raise ValueError("COSMO-RS maxcore_mb must be a positive integer.")
+    if isinstance(nprocs, bool) or not isinstance(nprocs, int) or nprocs <= 0:
+        raise ValueError("COSMO-RS nprocs must be a positive integer.")
+
+    if isinstance(coordinates_angstrom, (str, bytes)):
+        raise ValueError("COSMO-RS coordinates must be an N by 3 sequence.")
+    try:
+        rows = tuple(
+            tuple(float(value) for value in row) for row in coordinates_angstrom
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "COSMO-RS coordinates must be an N by 3 numeric sequence."
+        ) from exc
+    if len(rows) != len(normalized_symbols) or any(len(row) != 3 for row in rows):
+        raise ValueError("COSMO-RS coordinates must match symbols with shape N by 3.")
+    if any(not math.isfinite(value) for row in rows for value in row):
+        raise ValueError("COSMO-RS coordinates must be finite.")
+
+    lines = [f"! COSMORS({solvent_alias})"]
+    if nprocs > 1:
+        lines.append(f"%pal nprocs {nprocs} end")
+    lines.extend((f"%maxcore {maxcore_mb}", "* xyz 0 1"))
+    lines.extend(
+        f"{symbol:<2} {x: .15f} {y: .15f} {z: .15f}"
+        for symbol, (x, y, z) in zip(normalized_symbols, rows, strict=True)
+    )
+    lines.append("*")
+    return "\n".join(lines) + "\n"
+
+
+def validate_orca_opencosmors_completion(output: str) -> None:
+    """Reject partial ORCA workflows even when the host process returned zero."""
+
+    normalized = str(output)
+    if normalized.upper().count("OPENCOSMO-RS CALCULATION") != 1:
+        raise ValueError("Expected exactly one ORCA OPENCOSMO-RS CALCULATION block.")
+    if normalized.upper().count("****ORCA TERMINATED NORMALLY****") != 1:
+        raise ValueError(
+            "ORCA COSMO-RS output did not terminate normally exactly once."
+        )
+    lowered = normalized.lower()
+    for failure_marker in ("error termination", "unable to open file"):
+        if failure_marker in lowered:
+            raise ValueError(
+                f"ORCA COSMO-RS output contains failure marker {failure_marker!r}."
+            )
+    if len(_TEMPERATURE_RE.findall(normalized)) != 1:
+        raise ValueError("ORCA COSMO-RS output omitted its unique temperature result.")
+    if len(_SOLVATION_RE.findall(normalized)) != 1:
+        raise ValueError("ORCA COSMO-RS output omitted its unique dGsolv result.")
+
+
 def parse_orca_opencosmors_solvation_output(
     output: str,
     *,
@@ -217,8 +333,7 @@ def parse_orca_opencosmors_solvation_output(
 ) -> OpenCOSMORSSolvationResult:
     """Parse one version-locked ORCA openCOSMO-RS solvation result."""
 
-    if output.upper().count("OPENCOSMO-RS CALCULATION") != 1:
-        raise ValueError("Expected exactly one ORCA OPENCOSMO-RS CALCULATION block.")
+    validate_orca_opencosmors_completion(output)
 
     temperature_matches = _TEMPERATURE_RE.findall(output)
     energy_matches = _SOLVATION_RE.findall(output)

@@ -1319,7 +1319,11 @@ calculator provider. `OpenCOSMORS24aInputBundle` hashes the three required
 external assets and fails closed outside the audited neutral, closed-shell
 ORCA 6/openCOSMO-RS 24a contract. The output parser accepts exactly one
 `OPENCOSMO-RS CALCULATION` block and cross-checks its reference temperature and
-Hartree/kcal conversion. Public
+Hartree/kcal conversion. The external fixed-geometry runner additionally
+requires one normal termination in the main output and in all three ORCA child
+outputs; this is necessary because the audited MPI failure returned a zero
+host-process status while a child calculation had terminated with an error.
+Public
 `#solv(implicit=...,method=cosmo-rs,...)` input is rejected rather than
 silently relabelled as C-PCM, COSMO, or ddCOSMO.
 

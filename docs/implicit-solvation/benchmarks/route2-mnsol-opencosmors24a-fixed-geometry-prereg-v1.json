@@ -1,0 +1,170 @@
+{
+  "artifact": "route2-mnsol-opencosmors24a-fixed-geometry-prereg-v1",
+  "claim_boundary": "This bounded experiment compares direct fixed-MNSol-geometry ORCA 6.1.0/openCOSMO-RS 24a results with six already-frozen fixed-source PCM-family baselines on the same ten selected experimental MNSol rows. It is a training-domain reproduction diagnostic because the published openCOSMO-RS 24a parameterization used the Marenich/Minnesota solvation data. It does not test independent generalization, the full published conformer/geometry workflow, Route-2 self-consistency, forces, a smooth solution-phase PES, or a production default.",
+  "comparison_baseline": {
+    "artifact": "route2-mnsol-fixed-source-pyscf-pcm-family-v1",
+    "comparison_scope": "Paired total-solvation errors on the identical frozen MNSol rows; scientific representations and fitted-data exposure are not equivalent.",
+    "execution_git_head": "da9d3ba112b7ba2e1f0a681c9b28b3aa32f19c39",
+    "method_ids": [
+      "aimnet2_fixed_l0__pyscf_swig_iefpcm",
+      "aimnet2_fixed_l0__pyscf_swig_cpcm",
+      "aimnet2_fixed_l0__pyscf_swig_cosmo",
+      "mace_fixed_l1__pyscf_swig_iefpcm",
+      "mace_fixed_l1__pyscf_swig_cpcm",
+      "mace_fixed_l1__pyscf_swig_cosmo"
+    ],
+    "private_artifact_sha256": "7ea80dbf4f9b7e75106b41f3f7f1d42f7b9d38bbded12da1e581c6cf5a696e5f"
+  },
+  "created_at_utc": "2026-07-28T03:48:08Z",
+  "dataset": {
+    "doi": "10.13020/3eks-j059",
+    "name": "Minnesota Solvation Database",
+    "normalized_bundle_sha256": "6465a65a024cd06872cb9812381184ed6e9b1a528adfe12be9d5d43b4aec75d8",
+    "source_artifact_sha256": "6e2b25175d41f5c0a319ca7ec50c4586fe88ecfbd096264811fc1e8e77d6c4cc",
+    "standard_state": "1M-ideal-gas-to-1M-ideal-solution",
+    "table_sha256": "6dba4397764d1ca665c5dac653b9963bd64f784c353311a72c15e42897b90156",
+    "temperature_k": 298.0,
+    "version": "2012"
+  },
+  "decision_rule": {
+    "failure": "Any dataset, selection, executable, version, baseline, asset, completion, temperature, unit, finiteness, privacy, or completeness gate failure invalidates the run.",
+    "interpretation": "The three preregistered smokes are inspected before deciding whether to spend the full ten-record budget. No aliases, geometry policy, thresholds, records, or comparison baselines may change after observing results.",
+    "success": "All requested records complete under the locked workflow and produce a private row-level artifact; only a complete ten-record run may emit a tracked aggregate artifact."
+  },
+  "exact_evaluation_budget": {
+    "full_dft_single_points": 30,
+    "full_orca_workflows": 10,
+    "full_records": 10,
+    "full_statistical_thermodynamics_evaluations": 10,
+    "reruns_after_observing_results": 0,
+    "smoke_dft_single_points": 9,
+    "smoke_orca_workflows": 3,
+    "smoke_records": 3,
+    "smoke_statistical_thermodynamics_evaluations": 3
+  },
+  "git_head_at_registration": "2b0a15309a91921cfb4c91e80cd019b7389d4870",
+  "method": {
+    "geometry_policy": "one fixed MNSol gas-phase geometry; no conformer generation, gas optimization, conductor optimization, or solution relaxation",
+    "method_id": "orca610_opencosmors24a_fixed_mnsol_geometry",
+    "qc_level": "BP86/def2-TZVPD selected by ORCA COSMORS keyword",
+    "scientific_family": "COSMO-RS sigma-profile/statistical thermodynamics",
+    "software": "ORCA 6.1.0-f.0 with bundled openCOSMO-RS 24a",
+    "solute_charge": 0,
+    "solute_multiplicity": 1,
+    "solvent_aliases": {
+      "acetonitrile": "Acetonitrile",
+      "chloroform": "Chloroform",
+      "dichloromethane": "DCM",
+      "dimethylformamide": "DMF",
+      "dimethylsulfoxide": "DMSO",
+      "ethanol": "Ethanol",
+      "hexane": "Hexane",
+      "tetrahydrofuran": "THF",
+      "toluene": "Toluene",
+      "water": "Water"
+    },
+    "standard_state_interpretation": "openCOSMO-RS molar-concentration solvation free energy compared with MNSol 1 M gas to 1 M solution values",
+    "strict_published_24a_geometry_workflow": false,
+    "temperature_difference_from_mnsol_k": 0.15,
+    "temperature_k": 298.15
+  },
+  "metrics": {
+    "opencosmors24a": [
+      "mean_signed_error_kcal_mol",
+      "mean_absolute_error_kcal_mol",
+      "root_mean_square_error_kcal_mol",
+      "maximum_absolute_error_kcal_mol"
+    ],
+    "paired_against_each_frozen_baseline": [
+      "mean_absolute_error_difference_kcal_mol",
+      "mean_signed_prediction_shift_kcal_mol",
+      "win_tie_loss_counts"
+    ],
+    "timing": "ORCA wall time is metadata only; serial fixed-order measurements are not a randomized speed ranking."
+  },
+  "privacy": {
+    "complete_panel_public_output": "aggregate-only; no solute names, coordinates, row-level experiments, or row-level predictions",
+    "row_level_output": "must remain below .omx and must not be committed",
+    "single_record_or_smoke_subset": "all outputs and work directories must remain below .omx"
+  },
+  "protocol_artifact_sha256": "70c34de4b9812f557c123cd124f1b49d4b58e33467e6ba893f4c267b905b9a21",
+  "protocol_fingerprint": "3fbc6b6c7fedd97afdd05cc654bf529b75d28fa55765ffca2311a2ff83f58fa0",
+  "protocol_id": "route2-mnsol-opencosmors24a-fixed-geometry-v1",
+  "references": {
+    "mnsol": "10.13020/3eks-j059",
+    "opencosmors24a": "10.1016/j.fluid.2024.114250",
+    "opencosmors24a_preprint": "https://arxiv.org/abs/2407.03434",
+    "orca_6_1_manual": "https://www.faccts.de/docs/orca/6.1/manual/contents/essentialelements/solvationmodels.html"
+  },
+  "runtime": {
+    "completion_gate": "Require normal termination of the ORCA main output and every generated child .lastout; reject known failure markers even when process return code is zero.",
+    "maxcore_mb": 2000,
+    "nprocs": 1,
+    "opencosmors_executable": {
+      "parameterization": "openCOSMO-RS 24a",
+      "sha256": "0e4067d0de52c896cd95b7b699a506382b521036102c1f4a2fd4b59a21b569d2",
+      "size_bytes": 564392
+    },
+    "orca_executable": {
+      "required_version": "6.1.0-f.0",
+      "sha256": "3de3506205ffff90e9eaa435f4e56cd43ae27ba724cfe07a3280525aed400d8e",
+      "size_bytes": 6337817
+    },
+    "serial_reason": "The audited local MPI child launch failed while ORCA returned process code zero; serial execution completed normally.",
+    "timeout_seconds_per_record": 900
+  },
+  "schema_version": 1,
+  "selection": {
+    "artifact_sha256": "689dee172e7d8da3f2e5a501dd1ca905f18cf4dae9f830cabea1cb05e933a069",
+    "fingerprint": "967979795b3bd1483db93f7b463f9a65f3f2c0859f69228100d2adc107138fba",
+    "functional_group_assignment": "post-selection descriptive labels frozen before this run; not selection criteria",
+    "functional_group_coverage": [
+      "halogenated-hydrocarbon",
+      "ketone",
+      "aromatic-hydrocarbon",
+      "nitro",
+      "amide",
+      "cyclic-diether",
+      "phenol",
+      "thiophenol",
+      "alcohol",
+      "carboxylic-acid"
+    ],
+    "record_count": 10,
+    "solvent_count": 10,
+    "solvents": [
+      "water",
+      "ethanol",
+      "acetonitrile",
+      "dimethylsulfoxide",
+      "dimethylformamide",
+      "tetrahydrofuran",
+      "chloroform",
+      "dichloromethane",
+      "toluene",
+      "hexane"
+    ],
+    "used_experimental_values": false,
+    "used_model_outputs": false
+  },
+  "smoke_plan": {
+    "rationale": [
+      "ketone hydrogen-bond acceptor in protic ethanol",
+      "phenol hydrogen-bond donor in chloroform",
+      "carboxylic-acid donor/acceptor in nonpolar hexane"
+    ],
+    "scientific_status": "engineering-and-directional-smoke-only",
+    "selection_indices": [
+      1,
+      6,
+      9
+    ],
+    "stop_rule": "Run and inspect only these three records after the code/preregistration commit; do not launch the full ten-record panel automatically."
+  },
+  "status": "pre-registered-before-mnsol-opencosmors24a-run",
+  "training_overlap": {
+    "consequence": "Report descriptive errors only. Do not use this panel to claim blind generalization or superiority over methods not fitted to the same data.",
+    "statement": "The openCOSMO-RS 24a paper reports fitting to 2129 Marenich et al. solvation free energies drawn from the Minnesota solvation data; these ten MNSol rows are therefore not an independent confirmation set.",
+    "status": "known-overlap-training-domain-reproduction"
+  }
+}

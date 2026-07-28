@@ -1103,8 +1103,13 @@ Research/Innovation Route, not a complete solution-phase PES.
     Hartree/kcal consistency of one external `dGsolv` result. COSMO-RS remains
     outside the Route-2 profile registry and `method=cosmo-rs` is rejected as
     a sigma-profile/statistical-thermodynamics workflow rather than a
-    continuum-equation switch. No ORCA/openCOSMO-RS executable or chemical
-    accuracy benchmark has been run in this stage.
+    continuum-equation switch. A later local serial ORCA 6.1.0-f.0 runtime
+    smoke reproduced the complete three-QC-job/openCOSMO-RS workflow for
+    fixed-geometry acetone in water and returned `-4.176542 kcal/mol`. The
+    MPI attempt failed in a child process even though the host ORCA process
+    returned zero, so the new external runner is locked to one process and
+    checks the main output plus every child `.lastout`. This runtime smoke is
+    not an MNSol chemical-accuracy or generalization result.
 45. A matrix-free feedback-gain diagnostic now reuses the unmixed neutral
     residual JVP/VJP to estimate the root-local
     \(\sigma_{\max}(\Pi_0J_{\mathcal M}J_{\mathcal P}\Pi_0)\) without

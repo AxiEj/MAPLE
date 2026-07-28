@@ -466,11 +466,24 @@ their SHA256 hashes and enforces BP86/def2-TZVPD, ORCA 6, 298.15 K, neutral
 closed-shell systems, parameterized COSMO-RS radii, and the
 `0.01 angstrom squared` surface-segment cutoff.
 
-This boundary parses and audits externally generated `dGsolv`; it does not
-execute ORCA/openCOSMO-RS, add a dependency, construct sigma profiles from
-MACE multipoles, or expose a public calculator. A future COSMO-RS benchmark
-must version-lock the upstream implementation and all three matched QC assets
-before comparing against experiment.
+This boundary parses and audits externally generated `dGsolv`, renders a
+neutral-singlet fixed-geometry ORCA input, and binds the three assets from one
+audited ORCA run. It does not add ORCA as a MAPLE dependency, construct sigma
+profiles from MACE multipoles, or expose a public calculator.
+
+The preregistered external benchmark
+[`route2-mnsol-opencosmors24a-fixed-geometry-prereg-v1.json`](route2-mnsol-opencosmors24a-fixed-geometry-prereg-v1.json)
+locks ORCA `6.1.0-f.0`, the bundled openCOSMO-RS executable, serial execution,
+ten solvent aliases, one fixed MNSol geometry per record, and comparison
+against the already-frozen six-method PCM-family artifact. Its first execution
+is deliberately limited to selection indices `1`, `6`, and `9`; all row-level
+outputs and ORCA work files remain below `.omx`.
+
+This is not the full published openCOSMO-RS 24a conformer/geometry workflow.
+It is also a training-domain reproduction diagnostic rather than an
+independent confirmation: the published 24a parameterization used the
+Marenich/Minnesota solvation-free-energy data in fitting. The runner therefore
+reports the overlap explicitly and forbids a blind-generalization claim.
 
 ## MNSol ten-solvent AIMNet2 pilot
 

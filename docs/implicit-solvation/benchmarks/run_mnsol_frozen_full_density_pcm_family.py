@@ -78,13 +78,13 @@ from maple.function.route2_smd_profiles import (
 )
 from maple.function.route2_solvents import route2_solvent_spec
 
-ARTIFACT_NAME = "route2-mnsol-frozen-full-density-pcm-family-v1"
+ARTIFACT_NAME = "route2-mnsol-frozen-full-density-pcm-family-v2"
 PREREGISTRATION_PATH = (
     BENCHMARK_DIR
-    / "route2-mnsol-frozen-full-density-pcm-family-prereg-v1.json"
+    / "route2-mnsol-frozen-full-density-pcm-family-prereg-v2.json"
 )
 PREREGISTRATION_SHA256 = (
-    "faf10a95c58c8d5c0b7b1fd84b7683a1030c38e9119df2638261687fc92c14e3"
+    "aa121700c6bfc6d8b5d61e08b9845a5392f84063e83dd660208edf0eebb46cef"
 )
 QM_FUNCTIONAL = "wb97m-v"
 QM_BASIS = "def2-svpd"
@@ -178,9 +178,9 @@ def _validate_preregistration(path: Path) -> dict[str, Any]:
     preregistration = _load_json_mapping(path, label="Preregistration")
     expected = {
         "artifact": (
-            "route2-mnsol-frozen-full-density-pcm-family-prereg-v1"
+            "route2-mnsol-frozen-full-density-pcm-family-prereg-v2"
         ),
-        "status": "pre-registered-before-full-density-run",
+        "status": "pre-registered-before-full-density-v2-run",
         "protocol_id": ARTIFACT_NAME,
     }
     for field, value in expected.items():
@@ -382,7 +382,7 @@ def _run_qm_density(atoms: Atoms) -> QMDensityState:
     mean_field.nlcgrids.atom_grid = {
         symbol: QM_NLC_ATOM_GRID for symbol in sorted(set(symbols))
     }
-    mean_field.nlcgrids.prune = dft.gen_grid.sg1_prune
+    mean_field.nlcgrids.prune = None
     mean_field.conv_tol = QM_ENERGY_TOLERANCE_HARTREE
     mean_field.conv_tol_grad = QM_GRADIENT_TOLERANCE
     mean_field.max_cycle = QM_MAX_CYCLES
@@ -781,6 +781,7 @@ def _run_record(
             "nonlocal_grid_point_count": (
                 qm_state.nonlocal_grid_point_count
             ),
+            "nonlocal_grid_profile": "unpruned-50x194-per-element",
         },
         "representation_diagnostics": representation,
         "timing_seconds": {
@@ -901,7 +902,11 @@ def _source_hashes() -> dict[str, str]:
         ),
         (
             "docs/implicit-solvation/benchmarks/"
-            "route2-mnsol-frozen-full-density-pcm-family-prereg-v1.json"
+            "route2-mnsol-frozen-full-density-pcm-family-prereg-v2.json"
+        ),
+        (
+            "docs/implicit-solvation/benchmarks/"
+            "route2-mnsol-frozen-full-density-pcm-family-prereg-v1-disposition.json"
         ),
         (
             "docs/implicit-solvation/benchmarks/"
@@ -1046,6 +1051,7 @@ def _public_artifact(
             "electronic_structure_method": "omegaB97M-V",
             "electronic_structure_basis": QM_BASIS,
             "auxiliary_basis": AUXILIARY_BASIS,
+            "nonlocal_grid_profile": "unpruned-50x194-per-element",
             "surface_discretization_method": "SWIG",
             "lebedev_order": PYSCF_LEBEDEV_ORDER,
             "ri_charge_constraint": "coulomb-metric",

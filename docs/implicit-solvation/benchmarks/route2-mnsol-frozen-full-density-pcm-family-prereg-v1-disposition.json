@@ -1,0 +1,21 @@
+{
+  "artifact": "route2-mnsol-frozen-full-density-pcm-family-prereg-v1-disposition",
+  "completed_record_count": 0,
+  "corrective_action": "Replace only the infeasible PySCF sg1_prune NLC-grid policy with an unpruned 50x194 atom grid, preserve all scientific methods, records, bases, continuum equations, radii, CDS terms, charge gates, metrics, and evaluation budgets, and preregister v2 before rerunning.",
+  "failed_execution": {
+    "execution_git_head": "eb63b417f587198048c688b5a95d5ed5dd7e2963",
+    "failure_message": "index 35 is out of bounds for axis 0 with size 19",
+    "failure_stage": "frozen-full-density-record",
+    "failure_type": "IndexError",
+    "private_artifact_sha256": "d687eeb8058124b08c384465c359657080401dfc184993b57096d7cdf0e7c166",
+    "selection_index": 0
+  },
+  "observed_new_scientific_results": false,
+  "preregistration": {
+    "artifact": "route2-mnsol-frozen-full-density-pcm-family-prereg-v1",
+    "sha256": "faf10a95c58c8d5c0b7b1fd84b7683a1030c38e9119df2638261687fc92c14e3"
+  },
+  "reason": "PySCF 2.13.1 dft.gen_grid.sg1_prune uses an atomic-radius table with only 19 entries. The first locked record contains Br (Z=35), so grid construction raised IndexError before the first SCF iteration. No record or AO/RI continuum result completed.",
+  "schema_version": 1,
+  "status": "superseded-preflight-infeasible-no-scientific-result"
+}

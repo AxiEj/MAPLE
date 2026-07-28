@@ -1,0 +1,208 @@
+{
+  "artifact": "route2-mnsol-frozen-full-density-pcm-family-prereg-v2",
+  "claim_boundary": "This is a development-set representation diagnostic on the existing frozen ten-record, ten-functional-group MNSol panel. It compares a previously evaluated MACE-POLAR fixed l<=1 source with one fixed gas-phase QM AO density and the same density projected into a SALTED-compatible RI Gaussian basis. The RI arm is a representation upper bound, not a learned SALTED prediction. The run cannot certify SALTED model accuracy, blind generalization, original-SMD equivalence, self-consistent polarization, forces, geometry relaxation, a smooth solution-phase PES, conformer ensembles, or a production default.",
+  "continuum_equations": [
+    {
+      "continuum_model": "iefpcm",
+      "method_id": "pyscf_swig_iefpcm",
+      "provider": "PySCF 2.13.1",
+      "surface_discretization_method": "SWIG"
+    },
+    {
+      "continuum_model": "cpcm",
+      "method_id": "pyscf_swig_cpcm",
+      "provider": "PySCF 2.13.1",
+      "surface_discretization_method": "SWIG"
+    },
+    {
+      "continuum_model": "cosmo",
+      "method_id": "pyscf_swig_cosmo",
+      "provider": "PySCF 2.13.1",
+      "surface_discretization_method": "SWIG"
+    }
+  ],
+  "created_at_utc": "2026-07-28T16:06:41Z",
+  "dataset": {
+    "doi": "10.13020/3eks-j059",
+    "name": "Minnesota Solvation Database",
+    "normalized_bundle_sha256": "6465a65a024cd06872cb9812381184ed6e9b1a528adfe12be9d5d43b4aec75d8",
+    "source_artifact_sha256": "6e2b25175d41f5c0a319ca7ec50c4586fe88ecfbd096264811fc1e8e77d6c4cc",
+    "standard_state": "1M-ideal-gas-to-1M-ideal-solution",
+    "table_sha256": "6dba4397764d1ca665c5dac653b9963bd64f784c353311a72c15e42897b90156",
+    "temperature_k": 298.0,
+    "version": "2012"
+  },
+  "decision_rule": {
+    "failure": "Any Git cleanliness, dataset, selection, geometry, baseline-artifact, SCF convergence, closed-shell electron-count, finite-value, RI raw-charge, RI projected-charge, surface-parity, provider-version, or completeness gate failure invalidates the run. No density method, basis, auxiliary basis, equation, radius, dielectric, grid, CDS value, record, or threshold may be changed after observing full-panel outcomes.",
+    "interpretation": "AO-versus-RI differences estimate loss from the SALTED-compatible RI representation. MACE-versus-AO/RI differences also contain density-model and electronic-structure differences and cannot be attributed only to angular truncation. Rankings are descriptive for this bounded development panel.",
+    "success": "All ten gas-phase QM densities and all sixty new frozen-density continuum evaluations complete under the locked gates, while the thirty existing MACE fixed-l1 method ledgers are rebound from the immutable baseline artifact. Emit one private row-level artifact and one public aggregate-only artifact."
+  },
+  "exact_evaluation_budget": {
+    "baseline_method_ledgers_reused": 30,
+    "continuum_equations": 3,
+    "new_continuum_scalar_evaluations": 60,
+    "new_gas_phase_qm_density_evaluations": 10,
+    "records": 10,
+    "reruns_after_observing_full_panel_results": 0,
+    "new_full_density_sources": 2
+  },
+  "excluded_axes": {
+    "conformer_ensemble": false,
+    "geometry_relaxation": false,
+    "learned_salted_inference": false,
+    "parameter_refitting": false,
+    "self_consistent_solute_response": false,
+    "solution_phase_qm_density": false
+  },
+  "frozen_baseline_artifact": {
+    "artifact": "route2-mnsol-fixed-source-pyscf-pcm-family-v1",
+    "complete_panel": true,
+    "completed_record_count": 10,
+    "execution_git_head": "da9d3ba112b7ba2e1f0a681c9b28b3aa32f19c39",
+    "sha256": "7ea80dbf4f9b7e75106b41f3f7f1d42f7b9d38bbded12da1e581c6cf5a696e5f",
+    "visibility": "private-user-supplied-mnsol-row-level"
+  },
+  "frozen_source_artifact": {
+    "artifact": "route2-mnsol-macepolar-response-ablation-v1",
+    "complete_panel": true,
+    "completed_record_count": 10,
+    "execution_git_head": "96dbb70003c487f1dd3d3507e4a8962fa8eca5f9",
+    "sha256": "f0d36edf68d651057d98413fbeccae2c3b1f7eeea64ceb7eb4038283236940fe",
+    "visibility": "private-user-supplied-mnsol-row-level"
+  },
+  "git_head_at_registration": "eb63b417f587198048c688b5a95d5ed5dd7e2963",
+  "locked_gates": {
+    "all_60_new_continuum_evaluations_complete": true,
+    "all_10_qm_scf_calculations_converged": true,
+    "all_inputs_and_outputs_finite": true,
+    "ao_density_charge_residual_maximum_e": 1e-7,
+    "baseline_artifact_sha256": "7ea80dbf4f9b7e75106b41f3f7f1d42f7b9d38bbded12da1e581c6cf5a696e5f",
+    "frozen_cavity_radii_maximum_difference_angstrom": 0.0,
+    "frozen_smd_cds_maximum_difference_kcal_mol": 1e-10,
+    "pyscf_version": "2.13.1",
+    "ri_charge_constraint": "coulomb-metric",
+    "ri_projected_charge_residual_maximum_e": 1e-8,
+    "ri_raw_charge_residual_maximum_e": 0.1,
+    "same_surface_area_maximum_difference_bohr2": 0.0,
+    "same_surface_point_maximum_difference_bohr": 0.0,
+    "same_surface_shape": true
+  },
+  "metrics": {
+    "aggregate_per_source_and_equation": [
+      "mean_signed_error_kcal_mol",
+      "mean_absolute_error_kcal_mol",
+      "root_mean_square_error_kcal_mol",
+      "maximum_absolute_error_kcal_mol",
+      "mean_predicted_delta_g_kcal_mol",
+      "mean_continuum_polarization_kcal_mol",
+      "mean_smd_cds_kcal_mol"
+    ],
+    "paired": [
+      "AO_to_RI_energy_shift",
+      "AO_to_RI_absolute_error_shift",
+      "MACE_to_AO_absolute_error_shift",
+      "MACE_to_RI_absolute_error_shift",
+      "paired_absolute_error_win_tie_loss_counts"
+    ],
+    "representation": [
+      "AO_to_RI_surface_MEP_RMSE_hartree_per_e",
+      "AO_to_RI_surface_MEP_maximum_absolute_difference_hartree_per_e",
+      "RI_raw_charge_residual_e",
+      "RI_projected_charge_residual_e",
+      "RI_charge_correction_Coulomb_norm",
+      "RI_maximum_absolute_coefficient_correction"
+    ],
+    "timing": "QM SCF, AO MEP, RI fit, RI MEP, continuum build, continuum solve, and shared CDS wall times are recorded separately. QM-oracle time is not a learned SALTED inference benchmark."
+  },
+  "numerics": {
+    "auxiliary_basis": "def2-svp-jkfit",
+    "cavity_radii": "frozen per-solvent PySCF-2.13.1 SMD Coulomb radii from the baseline artifact and recomputed for equality",
+    "density_fit": true,
+    "dielectric": "route2_solvent_spec canonical static dielectric for each solvent",
+    "electronic_structure_basis": "def2-svpd",
+    "electronic_structure_method": "omegaB97M-V",
+    "lebedev_order": 17,
+    "maximum_scf_cycles": 100,
+    "nonlocal_grid": "unpruned 50x194 per element",
+    "nonpolar_model": "PySCF 2.13.1 SMD-CDS, recomputed and required to match the frozen baseline artifact",
+    "ri_charge_constraint": "Coulomb-metric minimum correction to the exact closed-shell electron count",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-7,
+    "semilocal_grid_level": 3,
+    "strict_original_smd_equivalence": false
+  },
+  "privacy": {
+    "full_panel_public_output": "aggregate-only",
+    "row_level_output": "must remain below .omx and must not be committed",
+    "single_record_smoke": "both outputs must remain below .omx and are non-scientific engineering evidence"
+  },
+  "protocol_fingerprint": "3fbc6b6c7fedd97afdd05cc654bf529b75d28fa55765ffca2311a2ff83f58fa0",
+  "protocol_id": "route2-mnsol-frozen-full-density-pcm-family-v2",
+  "references": {
+    "mnsol": "10.13020/3eks-j059",
+    "pyscf": "10.1002/wcms.1340",
+    "salted_repository": "https://github.com/andreagrisafi/SALTED",
+    "smd": "10.1021/jp810292n"
+  },
+  "schema_version": 1,
+  "salted_upstream": {
+    "package_version": "3.0.0",
+    "repository": "https://github.com/andreagrisafi/SALTED",
+    "reviewed_git_commit": "fd5adaa1c682ae7f4ce580798d79bfe499783784"
+  },
+  "selection": {
+    "artifact_sha256": "689dee172e7d8da3f2e5a501dd1ca905f18cf4dae9f830cabea1cb05e933a069",
+    "fingerprint": "967979795b3bd1483db93f7b463f9a65f3f2c0859f69228100d2adc107138fba",
+    "functional_group_assignment": "pre-existing post-selection descriptive labels; not selection criteria for this density diagnostic",
+    "functional_group_coverage": [
+      "halogenated-hydrocarbon",
+      "ketone",
+      "aromatic-hydrocarbon",
+      "nitro",
+      "amide",
+      "cyclic-diether",
+      "phenol",
+      "thiophenol",
+      "alcohol",
+      "carboxylic-acid"
+    ],
+    "record_count": 10,
+    "solvents": [
+      "water",
+      "ethanol",
+      "acetonitrile",
+      "dimethylsulfoxide",
+      "dimethylformamide",
+      "tetrahydrofuran",
+      "chloroform",
+      "dichloromethane",
+      "toluene",
+      "hexane"
+    ],
+    "used_existing_experimental_values": true,
+    "used_new_AO_or_RI_results": false
+  },
+  "solute_sources": [
+    {
+      "method_id": "mace_fixed_l1",
+      "representation": "previously frozen gas MACE-POLAR atom-centred l<=1 coarse residual-charge multipoles",
+      "result_source": "immutable baseline artifact"
+    },
+    {
+      "method_id": "qm_ao_frozen",
+      "representation": "fixed gas-phase DF-RKS AO density evaluated directly on the PCM surface",
+      "result_source": "new QM representation oracle"
+    },
+    {
+      "method_id": "qm_ri_salted_space_frozen",
+      "representation": "the same DF-RKS AO density Coulomb-fitted into the SALTED-compatible auxiliary Gaussian basis with explicit charge projection",
+      "result_source": "new SALTED representation upper bound, not learned SALTED inference"
+    }
+  ],
+  "status": "pre-registered-before-full-density-v2-run",
+  "supersedes": {
+    "artifact": "route2-mnsol-frozen-full-density-pcm-family-prereg-v1",
+    "disposition": "route2-mnsol-frozen-full-density-pcm-family-prereg-v1-disposition",
+    "reason": "PySCF 2.13.1 sg1_prune cannot index bromine; v1 failed before its first SCF cycle and produced zero completed records."
+  }
+}

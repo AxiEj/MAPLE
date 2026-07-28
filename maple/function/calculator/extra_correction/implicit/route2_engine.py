@@ -469,6 +469,33 @@ class Route2ContinuumEngine:
         return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
 
     @staticmethod
+    def _maximum_ulp_distance(left: np.ndarray, right: np.ndarray) -> int:
+        left_values = np.asarray(left, dtype=np.float64).copy()
+        right_values = np.asarray(right, dtype=np.float64).copy()
+        if left_values.shape != right_values.shape:
+            raise ValueError("ULP inputs must be shape-compatible.")
+        left_values[left_values == 0.0] = 0.0
+        right_values[right_values == 0.0] = 0.0
+
+        SIGN = 1 << 63
+        MAG_MASK = SIGN - 1
+
+        def ordered(raw: int) -> int:
+            magnitude = raw & MAG_MASK
+            return SIGN - magnitude if (raw & SIGN) else SIGN + magnitude
+
+        return max(
+            abs(
+                ordered(int(raw))
+                - ordered(int(raw_rhs))
+            )
+            for raw, raw_rhs in zip(
+                left_values.view(np.uint64).ravel(order="C"),
+                right_values.view(np.uint64).ravel(order="C"),
+            )
+        )
+
+    @staticmethod
     def _reaction_field_signature(
         drive: ReactionFieldDrive,
     ) -> tuple[Any, ...]:
@@ -765,14 +792,96 @@ class Route2ContinuumEngine:
                 replay_polarization_identity_error_ev
             )
 
-        all_field_arrays_identical = all(
-            np.array_equal(field_reference, replay_field)
-            for replay_field in replay_fields
+        field_sha256_by_evaluation = [
+            self._array_sha256(field_reference),
+            *[self._array_sha256(field) for field in replay_fields],
+        ]
+        response_sha256_by_evaluation = [
+            self._array_sha256(response_reference),
+            *[self._array_sha256(response) for response in replay_responses],
+        ]
+        cold_replay_field_arrays_identical = (
+            len(set(field_sha256_by_evaluation[1:])) == 1
         )
-        all_response_arrays_identical = all(
-            np.array_equal(response_reference, replay_response)
-            for replay_response in replay_responses
+        cold_replay_response_arrays_identical = (
+            len(set(response_sha256_by_evaluation[1:])) == 1
         )
+        response_monopole_tolerance = self.settings.scf_density_tolerance
+        response_dipole_tolerance = cast(
+            float,
+            self.settings.scf_dipole_tolerance_e_angstrom,
+        )
+        field_potential_deltas = []
+        field_gradient_deltas = []
+        response_monopole_deltas = []
+        response_dipole_deltas = []
+        field_potential_ulp = []
+        field_gradient_ulp = []
+        response_monopole_ulp = []
+        response_dipole_ulp = []
+        for replay_field, replay_response in zip(
+            replay_fields,
+            replay_responses,
+        ):
+            field_delta = np.abs(field_reference - replay_field)
+            response_delta = np.abs(response_reference - replay_response)
+            field_potential_delta = float(np.max(field_delta[:, 0]))
+            field_gradient_delta = float(np.max(field_delta[:, 1:]))
+            response_monopole_delta = float(np.max(response_delta[:, 0]))
+            response_dipole_delta = float(np.max(response_delta[:, 1:]))
+            if field_potential_delta > policy.potential_span_tolerance_ev:
+                raise Route2SCFConvergenceError(
+                    "Finite-resolution map-replay field potential delta exceeds "
+                    "policy tolerance.",
+                    history=[],
+                )
+            if field_gradient_delta > policy.gradient_span_tolerance_ev_per_angstrom:
+                raise Route2SCFConvergenceError(
+                    "Finite-resolution map-replay field gradient delta exceeds "
+                    "policy tolerance.",
+                    history=[],
+                )
+            if response_monopole_delta > response_monopole_tolerance:
+                raise Route2SCFConvergenceError(
+                    "Finite-resolution map-replay response monopole delta exceeds "
+                    "nominal density tolerance.",
+                    history=[],
+                )
+            if response_dipole_delta > response_dipole_tolerance:
+                raise Route2SCFConvergenceError(
+                    "Finite-resolution map-replay response dipole delta exceeds "
+                    "nominal dipole tolerance.",
+                    history=[],
+                )
+            field_potential_deltas.append(field_potential_delta)
+            field_gradient_deltas.append(field_gradient_delta)
+            response_monopole_deltas.append(response_monopole_delta)
+            response_dipole_deltas.append(response_dipole_delta)
+            field_potential_ulp.append(
+                self._maximum_ulp_distance(
+                    field_reference[:, 0],
+                    replay_field[:, 0],
+                )
+            )
+            field_gradient_ulp.append(
+                self._maximum_ulp_distance(
+                    field_reference[:, 1:],
+                    replay_field[:, 1:],
+                )
+            )
+            response_monopole_ulp.append(
+                self._maximum_ulp_distance(
+                    response_reference[:, 0],
+                    replay_response[:, 0],
+                )
+            )
+            response_dipole_ulp.append(
+                self._maximum_ulp_distance(
+                    response_reference[:, 1:],
+                    replay_response[:, 1:],
+                )
+            )
+
         maximum_monopole_residual_e = float(
             np.max(np.abs(candidate_residual[:, 0]))
         )
@@ -860,12 +969,12 @@ class Route2ContinuumEngine:
                 "polarization-energy identity.",
                 history=[],
             )
-        if not all_field_arrays_identical:
+        if not cold_replay_field_arrays_identical:
             raise Route2SCFConvergenceError(
                 "Finite-resolution map-replay field arrays are not byte-identical.",
                 history=[],
             )
-        if not all_response_arrays_identical:
+        if not cold_replay_response_arrays_identical:
             raise Route2SCFConvergenceError(
                 "Finite-resolution map-replay response arrays are not byte-identical.",
                 history=[],
@@ -875,10 +984,30 @@ class Route2ContinuumEngine:
             "replay_count": policy.map_replay_count,
             "evaluation_count": policy.map_replay_count + 1,
             "includes_online_candidate": True,
-            "all_field_arrays_identical": all_field_arrays_identical,
-            "all_response_arrays_identical": all_response_arrays_identical,
-            "field_sha256": self._array_sha256(field_reference),
-            "response_sha256": self._array_sha256(response_reference),
+            "cold_replay_field_arrays_identical": (
+                cold_replay_field_arrays_identical
+            ),
+            "cold_replay_response_arrays_identical": (
+                cold_replay_response_arrays_identical
+            ),
+            "field_sha256_by_evaluation": field_sha256_by_evaluation,
+            "response_sha256_by_evaluation": response_sha256_by_evaluation,
+            "maximum_online_to_replay_potential_delta_ev_per_e": max(
+                field_potential_deltas
+            ),
+            "maximum_online_to_replay_gradient_delta_ev_per_e_angstrom": max(
+                field_gradient_deltas
+            ),
+            "maximum_online_to_replay_monopole_response_delta_e": max(
+                response_monopole_deltas
+            ),
+            "maximum_online_to_replay_dipole_response_delta_e_angstrom": max(
+                response_dipole_deltas
+            ),
+            "maximum_online_to_replay_potential_ulp": max(field_potential_ulp),
+            "maximum_online_to_replay_gradient_ulp": max(field_gradient_ulp),
+            "maximum_online_to_replay_monopole_ulp": max(response_monopole_ulp),
+            "maximum_online_to_replay_dipole_ulp": max(response_dipole_ulp),
             "maximum_monopole_residual_e": maximum_monopole_residual_e,
             "maximum_dipole_residual_e_angstrom": maximum_dipole_residual_e_angstrom,
             "intrinsic_ledger_span_ev": intrinsic_span_ev,

@@ -36,11 +36,11 @@ import run_mnsol_macepolar_response_ablation as runner
 ALLOWED_METHODS = ("mace_fixed_l1", "mace_scf_l1")
 FULL_METHODS = tuple(runner.ABLATION_METHODS)
 SUPPORTED_PARTITIONS = frozenset({"development"})
-AGGREGATOR_ARTIFACT_NAME = "route2-mnsol-macepolar-two-member-matrix-v2"
+AGGREGATOR_ARTIFACT_NAME = "route2-mnsol-macepolar-two-member-matrix-v3"
 SOURCE_RUN_KIND = "partition-record-shard"
 AGGREGATE_RUN_KIND = "partition-two-member-matrix"
 REQUIRED_STAGE = "scf"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 REQUIRED_CONTINUUM_EQUATION = "ddpcm"
 SOURCE_RUNNER_PATH = (
     "docs/implicit-solvation/benchmarks/run_mnsol_macepolar_response_ablation.py"
@@ -85,7 +85,7 @@ METHOD_FIELDS = (
     "smd_cds_kcal_mol",
 )
 MACE_SCF_NOMINAL_REASON = "nominal-density-and-energy-v1"
-MACE_SCF_FINITE_RESOLUTION_REASON = "finite-resolution-stagnation-v1"
+MACE_SCF_FINITE_RESOLUTION_REASON = "finite-resolution-stagnation-v2"
 MACE_SCF_CONVERGENCE_REASONS = frozenset(
     {MACE_SCF_NOMINAL_REASON, MACE_SCF_FINITE_RESOLUTION_REASON}
 )
@@ -96,6 +96,7 @@ MACE_SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM = 1.0e-10
 MACE_SCF_FINITE_RESOLUTION_FIELD_SPAN_TOLERANCE = 1.0e-10
 MACE_SCF_FINITE_RESOLUTION_ENERGY_TOLERANCE_EV = 1.0e-10
 MACE_SCF_POLARIZATION_IDENTITY_TOLERANCE_EV = 2.0e-10
+MACE_SCF_MAX_FINITE_FLOAT64_ULP_DISTANCE = 0xFFDFFFFFFFFFFFFE
 MACE_SCF_CONVERGENCE_HISTORY_FIELDS = (
     "start_iteration",
     "end_iteration",
@@ -114,16 +115,42 @@ MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS = (
     "replay_count",
     "evaluation_count",
     "includes_online_candidate",
-    "all_field_arrays_identical",
-    "all_response_arrays_identical",
-    "field_sha256",
-    "response_sha256",
+    "cold_replay_field_arrays_identical",
+    "cold_replay_response_arrays_identical",
+    "field_sha256_by_evaluation",
+    "response_sha256_by_evaluation",
+    "maximum_online_to_replay_potential_delta_ev_per_e",
+    "maximum_online_to_replay_gradient_delta_ev_per_e_angstrom",
+    "maximum_online_to_replay_monopole_response_delta_e",
+    "maximum_online_to_replay_dipole_response_delta_e_angstrom",
+    "maximum_online_to_replay_potential_ulp",
+    "maximum_online_to_replay_gradient_ulp",
+    "maximum_online_to_replay_monopole_ulp",
+    "maximum_online_to_replay_dipole_ulp",
     "maximum_monopole_residual_e",
     "maximum_dipole_residual_e_angstrom",
     "intrinsic_ledger_span_ev",
     "pcm_ledger_span_ev",
     "electrostatic_ledger_span_ev",
     "maximum_polarization_identity_error_ev",
+)
+MACE_SCF_REPLAY_DELTA_ULP_FIELDS = (
+    (
+        "maximum_online_to_replay_potential_delta_ev_per_e",
+        "maximum_online_to_replay_potential_ulp",
+    ),
+    (
+        "maximum_online_to_replay_gradient_delta_ev_per_e_angstrom",
+        "maximum_online_to_replay_gradient_ulp",
+    ),
+    (
+        "maximum_online_to_replay_monopole_response_delta_e",
+        "maximum_online_to_replay_monopole_ulp",
+    ),
+    (
+        "maximum_online_to_replay_dipole_response_delta_e_angstrom",
+        "maximum_online_to_replay_dipole_ulp",
+    ),
 )
 PUBLIC_SOURCE_FILES = (
     "docs/implicit-solvation/benchmarks/aggregate_mnsol_response_partition.py",
@@ -199,6 +226,28 @@ def _require_int(value: object, *, label: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise ValueError(f"{label} must be an integer.")
     return value
+
+
+def _require_nonnegative_int(value: object, *, label: str) -> int:
+    integer = _require_int(value, label=label)
+    if integer < 0:
+        raise ValueError(f"{label} must be non-negative.")
+    return integer
+
+
+def _require_hashes_by_evaluation(
+    value: object,
+    *,
+    label: str,
+) -> list[str]:
+    if not isinstance(value, list):
+        raise ValueError(f"{label} must be a list of 4 sha256 digests.")
+    if len(value) != 4:
+        raise ValueError(f"{label} must contain exactly 4 sha256 digests.")
+    return [
+        _require_hex(item, length=64, label=f"{label}[{index}]")
+        for index, item in enumerate(value)
+    ]
 
 
 def _finite_float(value: object, *, label: str) -> float:
@@ -489,6 +538,16 @@ def _validate_scf_convergence(
         value.get("fresh_map_replay"),
         label=f"Record {selection_index} method {method} fresh_map_replay",
     )
+    actual_replay_fields = set(fresh_map_replay)
+    expected_replay_fields = set(MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS)
+    if actual_replay_fields != expected_replay_fields:
+        missing = sorted(expected_replay_fields - actual_replay_fields)
+        unexpected = sorted(actual_replay_fields - expected_replay_fields)
+        raise ValueError(
+            f"Record {selection_index} method {method} fresh_map_replay "
+            "must contain exactly the v2 evidence fields; "
+            f"missing={missing}, unexpected={unexpected}."
+        )
     replay_count = _require_int(
         fresh_map_replay.get("replay_count"),
         label=(
@@ -515,8 +574,8 @@ def _validate_scf_convergence(
         )
     for field in (
         "includes_online_candidate",
-        "all_field_arrays_identical",
-        "all_response_arrays_identical",
+        "cold_replay_field_arrays_identical",
+        "cold_replay_response_arrays_identical",
     ):
         flag = fresh_map_replay.get(field)
         if flag is not True:
@@ -524,77 +583,168 @@ def _validate_scf_convergence(
                 f"Record {selection_index} method {method} "
                 f"fresh_map_replay {field} must be true."
             )
-    _require_hex(
-        fresh_map_replay.get("field_sha256"),
-        length=64,
-        label=f"Record {selection_index} method {method} fresh_map_replay field_sha256",
+    field_sha256_by_evaluation = _require_hashes_by_evaluation(
+        fresh_map_replay.get("field_sha256_by_evaluation"),
+        label=(
+            f"Record {selection_index} method {method} "
+            "fresh_map_replay field_sha256_by_evaluation"
+        ),
     )
-    _require_hex(
-        fresh_map_replay.get("response_sha256"),
-        length=64,
-        label=f"Record {selection_index} method {method} fresh_map_replay response_sha256",
+    if len({*field_sha256_by_evaluation[1:]}) != 1:
+        raise ValueError(
+            f"Record {selection_index} method {method} fresh_map_replay "
+            "field_sha256_by_evaluation entries 1..3 must match."
+        )
+    response_sha256_by_evaluation = _require_hashes_by_evaluation(
+        fresh_map_replay.get("response_sha256_by_evaluation"),
+        label=(
+            f"Record {selection_index} method {method} "
+            "fresh_map_replay response_sha256_by_evaluation"
+        ),
     )
+    if len({*response_sha256_by_evaluation[1:]}) != 1:
+        raise ValueError(
+            f"Record {selection_index} method {method} fresh_map_replay "
+            "response_sha256_by_evaluation entries 1..3 must match."
+        )
     for field in MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS:
         if field in (
             "replay_count",
             "evaluation_count",
             "includes_online_candidate",
-            "all_field_arrays_identical",
-            "all_response_arrays_identical",
+            "cold_replay_field_arrays_identical",
+            "cold_replay_response_arrays_identical",
         ):
             continue
-        if field in ("field_sha256", "response_sha256"):
+        if field in (
+            "field_sha256_by_evaluation",
+            "response_sha256_by_evaluation",
+        ):
             continue
-        metric = _nonnegative_float(
-            fresh_map_replay.get(field),
-            label=(
-                f"Record {selection_index} method {method} "
-                f"fresh_map_replay {field}"
-            ),
-        )
+        if field.endswith("_ulp"):
+            metric = _require_nonnegative_int(
+                fresh_map_replay.get(field),
+                label=(
+                    f"Record {selection_index} method {method} "
+                    f"fresh_map_replay {field}"
+                ),
+            )
+        else:
+            metric = _nonnegative_float(
+                fresh_map_replay.get(field),
+                label=(
+                    f"Record {selection_index} method {method} "
+                    f"fresh_map_replay {field}"
+                ),
+            )
         ceiling = (
             MACE_SCF_POLARIZATION_IDENTITY_TOLERANCE_EV
             if field == "maximum_polarization_identity_error_ev"
             else (
-                MACE_SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E
-                if field == "maximum_monopole_residual_e"
+                MACE_SCF_NOMINAL_MONOPOLE_TOLERANCE_E
+                if field
+                == "maximum_online_to_replay_monopole_response_delta_e"
                 else (
-                    MACE_SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM
-                    if field == "maximum_dipole_residual_e_angstrom"
-                    else MACE_SCF_FINITE_RESOLUTION_ENERGY_TOLERANCE_EV
+                    MACE_SCF_NOMINAL_DIPOLE_TOLERANCE_E_ANGSTROM
+                    if field
+                    == "maximum_online_to_replay_dipole_response_delta_e_angstrom"
+                    else (
+                        MACE_SCF_FINITE_RESOLUTION_FIELD_SPAN_TOLERANCE
+                        if field
+                        in (
+                            "maximum_online_to_replay_potential_delta_ev_per_e",
+                            "maximum_online_to_replay_gradient_delta_ev_per_e_angstrom",
+                        )
+                        else (
+                            MACE_SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E
+                            if field == "maximum_monopole_residual_e"
+                            else (
+                                MACE_SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM
+                                if field == "maximum_dipole_residual_e_angstrom"
+                                else MACE_SCF_FINITE_RESOLUTION_ENERGY_TOLERANCE_EV
+                            )
+                        )
+                    )
                 )
             )
         )
-        _require_not_above(
-            metric,
-            ceiling=ceiling,
-            label=(
-                f"Record {selection_index} method {method} "
-                f"fresh_map_replay {field}"
-            ),
-        )
+        if not field.endswith("_ulp"):
+            _require_not_above(
+                metric,
+                ceiling=ceiling,
+                label=(
+                    f"Record {selection_index} method {method} "
+                    f"fresh_map_replay {field}"
+                ),
+            )
 
     normalized_fresh_map_replay: dict[str, Any] = {
         "replay_count": replay_count,
         "evaluation_count": evaluation_count,
         "includes_online_candidate": True,
-        "all_field_arrays_identical": True,
-        "all_response_arrays_identical": True,
-        "field_sha256": _require_hex(
-            fresh_map_replay["field_sha256"],
-            length=64,
-            label="field_sha256",
-        ),
-        "response_sha256": _require_hex(
-            fresh_map_replay["response_sha256"],
-            length=64,
-            label="response_sha256",
-        ),
+        "cold_replay_field_arrays_identical": True,
+        "cold_replay_response_arrays_identical": True,
+        "field_sha256_by_evaluation": field_sha256_by_evaluation,
+        "response_sha256_by_evaluation": response_sha256_by_evaluation,
     }
     for field in MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS:
         if field in normalized_fresh_map_replay:
             continue
-        normalized_fresh_map_replay[field] = float(fresh_map_replay[field])
+        if field.endswith("_ulp"):
+            normalized_fresh_map_replay[field] = _require_nonnegative_int(
+                fresh_map_replay[field],
+                label=(
+                    f"Record {selection_index} method {method} "
+                    f"fresh_map_replay {field}"
+                ),
+            )
+        else:
+            normalized_fresh_map_replay[field] = float(fresh_map_replay[field])
+    for delta_field, ulp_field in MACE_SCF_REPLAY_DELTA_ULP_FIELDS:
+        delta = float(normalized_fresh_map_replay[delta_field])
+        ulp = int(normalized_fresh_map_replay[ulp_field])
+        if ulp > MACE_SCF_MAX_FINITE_FLOAT64_ULP_DISTANCE:
+            raise ValueError(
+                f"Record {selection_index} method {method} fresh_map_replay "
+                f"{ulp_field} exceeds the finite float64 ULP range."
+            )
+        if (delta == 0.0) != (ulp == 0):
+            raise ValueError(
+                f"Record {selection_index} method {method} fresh_map_replay "
+                f"{delta_field} and {ulp_field} must be zero together."
+            )
+    hash_metric_groups = (
+        (
+            field_sha256_by_evaluation,
+            (
+                "maximum_online_to_replay_potential_delta_ev_per_e",
+                "maximum_online_to_replay_gradient_delta_ev_per_e_angstrom",
+                "maximum_online_to_replay_potential_ulp",
+                "maximum_online_to_replay_gradient_ulp",
+            ),
+            "field",
+        ),
+        (
+            response_sha256_by_evaluation,
+            (
+                "maximum_online_to_replay_monopole_response_delta_e",
+                "maximum_online_to_replay_dipole_response_delta_e_angstrom",
+                "maximum_online_to_replay_monopole_ulp",
+                "maximum_online_to_replay_dipole_ulp",
+            ),
+            "response",
+        ),
+    )
+    for hashes, metric_fields, channel_group in hash_metric_groups:
+        if hashes[0] == hashes[1] and any(
+            normalized_fresh_map_replay[field] != 0
+            for field in metric_fields
+        ):
+            raise ValueError(
+                f"Record {selection_index} method {method} fresh_map_replay "
+                f"identical online/cold {channel_group} hashes require zero "
+                "online-to-replay delta and ULP metrics."
+            )
     result["runtime_identity"] = runtime_identity
     result["history_window"] = normalized_history
     result["fresh_map_replay"] = normalized_fresh_map_replay
@@ -612,21 +762,47 @@ def _validate_scf_convergence(
             f"Record {selection_index} method {method} final dipole "
             "residual exceeds its history-window maximum."
         )
-    if final_monopole_residual_e != float(
+    final_monopole_residual_via_fresh_map = float(
         normalized_fresh_map_replay["maximum_monopole_residual_e"]
-    ):
-        raise ValueError(
-            f"Record {selection_index} method {method} fresh-map monopole "
-            "residual does not reproduce the online candidate."
-        )
-    if final_dipole_residual_e_angstrom != float(
+    )
+    final_monopole_response_delta = float(
         normalized_fresh_map_replay[
-            "maximum_dipole_residual_e_angstrom"
+            "maximum_online_to_replay_monopole_response_delta_e"
         ]
+    )
+    if final_monopole_residual_e > final_monopole_residual_via_fresh_map:
+        raise ValueError(
+            f"Record {selection_index} method {method} final monopole "
+            "residual exceeds the replay residual."
+        )
+    if (
+        final_monopole_residual_via_fresh_map - final_monopole_residual_e
+        > final_monopole_response_delta
     ):
         raise ValueError(
-            f"Record {selection_index} method {method} fresh-map dipole "
-            "residual does not reproduce the online candidate."
+            f"Record {selection_index} method {method} replay monopole "
+            "residual exceeds the final residual by more than response delta."
+        )
+    final_dipole_residual_via_fresh_map = float(
+        normalized_fresh_map_replay["maximum_dipole_residual_e_angstrom"]
+    )
+    final_dipole_response_delta = float(
+        normalized_fresh_map_replay[
+            "maximum_online_to_replay_dipole_response_delta_e_angstrom"
+        ]
+    )
+    if final_dipole_residual_e_angstrom > final_dipole_residual_via_fresh_map:
+        raise ValueError(
+            f"Record {selection_index} method {method} final dipole "
+            "residual exceeds the replay residual."
+        )
+    if (
+        final_dipole_residual_via_fresh_map - final_dipole_residual_e_angstrom
+        > final_dipole_response_delta
+    ):
+        raise ValueError(
+            f"Record {selection_index} method {method} replay dipole "
+            "residual exceeds the final residual by more than response delta."
         )
     return result
 
@@ -993,17 +1169,33 @@ def _aggregate_scf_convergence(
         field: 0.0 for field in MACE_SCF_CONVERGENCE_HISTORY_FIELDS
     }
     replay_maxima: dict[str, float] = {
-        field: 0.0 for field in MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS
+        field: 0.0
+        for field in MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS
         if field
         not in (
             "replay_count",
             "evaluation_count",
             "includes_online_candidate",
-            "all_field_arrays_identical",
-            "all_response_arrays_identical",
-            "field_sha256",
-            "response_sha256",
+            "cold_replay_field_arrays_identical",
+            "cold_replay_response_arrays_identical",
+            "field_sha256_by_evaluation",
+            "response_sha256_by_evaluation",
         )
+        if not field.endswith("_ulp")
+    }
+    replay_ulp_maxima: dict[str, int] = {
+        field: 0 for field in MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS
+        if field
+        not in (
+            "replay_count",
+            "evaluation_count",
+            "includes_online_candidate",
+            "cold_replay_field_arrays_identical",
+            "cold_replay_response_arrays_identical",
+            "field_sha256_by_evaluation",
+            "response_sha256_by_evaluation",
+        )
+        if field.endswith("_ulp")
     }
     nominal_count = 0
     finite_count = 0
@@ -1043,6 +1235,11 @@ def _aggregate_scf_convergence(
                 value = float(candidate)
                 if value > replay_maxima[field]:
                     replay_maxima[field] = value
+            for field in replay_ulp_maxima:
+                candidate = fresh_map_replay[field]
+                value = int(candidate)
+                if value > replay_ulp_maxima[field]:
+                    replay_ulp_maxima[field] = value
 
     return {
         "record_count": len(records),
@@ -1053,6 +1250,7 @@ def _aggregate_scf_convergence(
         "max_final_dipole_residual_e_angstrom": max_final_dipole_residual_e_angstrom,
         "finite_history_window_maximums": history_maxima,
         "finite_map_replay_maximums": replay_maxima,
+        "finite_map_replay_ulp_maximums": replay_ulp_maxima,
     }
 
 

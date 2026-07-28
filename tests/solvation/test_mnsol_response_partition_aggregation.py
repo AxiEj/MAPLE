@@ -30,14 +30,34 @@ CURRENT_HEAD = subprocess.run(
 ).stdout.strip()
 
 
+def test_replay_v2_artifact_contract_is_versioned():
+    assert aggregation.runner.ARTIFACT_NAME == (
+        "route2-mnsol-macepolar-response-ablation-v3"
+    )
+    assert aggregation.runner.SCHEMA_VERSION == 3
+    assert aggregation.runner.SCF_CONVERGENCE_CONTRACT_VERSION == (
+        "route2-scf-convergence-evidence-v2"
+    )
+    assert aggregation.AGGREGATOR_ARTIFACT_NAME == (
+        "route2-mnsol-macepolar-two-member-matrix-v3"
+    )
+    assert aggregation.SCHEMA_VERSION == 3
+    assert aggregation.MACE_SCF_FINITE_RESOLUTION_REASON == (
+        "finite-resolution-stagnation-v2"
+    )
+    assert aggregation.MACE_SCF_MAX_FINITE_FLOAT64_ULP_DISTANCE == (
+        0xFFDFFFFFFFFFFFFE
+    )
+
+
 def _scf_convergence(
     *,
     online_candidate_iteration: int,
     solvent: str,
     scale: float = 1.0,
-    reason: str = "finite-resolution-stagnation-v1",
+    reason: str = "finite-resolution-stagnation-v2",
 ):
-    finite_resolution = reason == "finite-resolution-stagnation-v1"
+    finite_resolution = reason == "finite-resolution-stagnation-v2"
     convergence = {
         "reason": reason,
         "online_candidate_iteration": online_candidate_iteration,
@@ -107,10 +127,20 @@ def _scf_convergence(
         "replay_count": 3,
         "evaluation_count": 4,
         "includes_online_candidate": True,
-        "all_field_arrays_identical": True,
-        "all_response_arrays_identical": True,
-        "field_sha256": "aa" * 32,
-        "response_sha256": "bb" * 32,
+        "cold_replay_field_arrays_identical": True,
+        "cold_replay_response_arrays_identical": True,
+        "field_sha256_by_evaluation": ["cc" * 32] + ["aa" * 32] * 3,
+        "response_sha256_by_evaluation": ["dd" * 32] + ["bb" * 32] * 3,
+        "maximum_online_to_replay_potential_delta_ev_per_e": 1.0e-11 * scale,
+        "maximum_online_to_replay_gradient_delta_ev_per_e_angstrom": 1.0e-11
+        * scale,
+        "maximum_online_to_replay_monopole_response_delta_e": 2.0e-13 * scale,
+        "maximum_online_to_replay_dipole_response_delta_e_angstrom": 2.0e-13
+        * scale,
+        "maximum_online_to_replay_potential_ulp": 8,
+        "maximum_online_to_replay_gradient_ulp": 8,
+        "maximum_online_to_replay_monopole_ulp": 4,
+        "maximum_online_to_replay_dipole_ulp": 4,
         "maximum_monopole_residual_e": 4.0e-11 * scale,
         "maximum_dipole_residual_e_angstrom": 3.0e-11 * scale,
         "intrinsic_ledger_span_ev": 2.0e-11 * scale,
@@ -197,7 +227,7 @@ def _fragment(
             online_candidate_iteration=7 + shard_index,
             solvent=canonical_solvent,
             scale=method_scale,
-            reason=scf_reason or "finite-resolution-stagnation-v1",
+            reason=scf_reason or "finite-resolution-stagnation-v2",
         )
         method_rows["mace_scf_l1"]["scf_convergence"] = scf
         method_rows["mace_scf_l1"].update(
@@ -473,11 +503,28 @@ def test_aggregate_rejects_incomplete_mace_scf_l1_scf_convergence_evidence():
 def test_aggregate_rejects_finite_non_true_replay_flags():
     selection_records = aggregation._selection_records(_selection_manifest())
     bad = _fragment(1)
-    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"]["fresh_map_replay"][
-        "all_field_arrays_identical"
-    ] = False
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]["cold_replay_field_arrays_identical"] = False
 
-    with pytest.raises(ValueError, match="fresh_map_replay all_field_arrays_identical"):
+    with pytest.raises(
+        ValueError,
+        match="fresh_map_replay cold_replay_field_arrays_identical",
+    ):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_legacy_map_replay_evidence_field():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]["all_field_arrays_identical"] = True
+
+    with pytest.raises(ValueError, match="exactly the v2 evidence fields"):
         _run_aggregation(
             [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
             selection_records=selection_records,
@@ -487,11 +534,93 @@ def test_aggregate_rejects_finite_non_true_replay_flags():
 def test_aggregate_rejects_finite_bad_replay_digest():
     selection_records = aggregation._selection_records(_selection_manifest())
     bad = _fragment(1)
-    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"]["fresh_map_replay"][
-        "field_sha256"
-    ] = "zz" * 32
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]["field_sha256_by_evaluation"] = ["zz" * 32] * 4
 
-    with pytest.raises(ValueError, match="field_sha256"):
+    with pytest.raises(ValueError, match="field_sha256_by_evaluation"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_inconsistent_map_replay_hash_vector():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]["field_sha256_by_evaluation"] = [
+        "aa" * 32,
+        "aa" * 32,
+        "bb" * 32,
+        "cc" * 32,
+    ]
+
+    with pytest.raises(
+        ValueError,
+        match="entries 1..3 must match",
+    ):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_identical_hashes_with_nonzero_replay_metrics():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    replay = bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]
+    replay["field_sha256_by_evaluation"][0] = (
+        replay["field_sha256_by_evaluation"][1]
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="identical online/cold field hashes require zero",
+    ):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+@pytest.mark.parametrize(
+    ("delta", "ulp"),
+    (
+        (0.0, 1),
+        (1.0e-11, 0),
+    ),
+)
+def test_aggregate_rejects_inconsistent_replay_delta_and_ulp(delta, ulp):
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    replay = bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]
+    replay["maximum_online_to_replay_potential_delta_ev_per_e"] = delta
+    replay["maximum_online_to_replay_potential_ulp"] = ulp
+
+    with pytest.raises(ValueError, match="must be zero together"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_replay_ulp_outside_finite_float64_range():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    replay = bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]
+    replay["maximum_online_to_replay_potential_ulp"] = (
+        aggregation.MACE_SCF_MAX_FINITE_FLOAT64_ULP_DISTANCE + 1
+    )
+
+    with pytest.raises(ValueError, match="exceeds the finite float64 ULP range"):
         _run_aggregation(
             [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
             selection_records=selection_records,
@@ -573,7 +702,7 @@ def test_aggregate_rejects_map_replay_residual_contradiction():
         "fresh_map_replay"
     ]["maximum_monopole_residual_e"] = 0.0
 
-    with pytest.raises(ValueError, match="does not reproduce"):
+    with pytest.raises(ValueError, match="final monopole residual exceeds the replay residual"):
         _run_aggregation(
             [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
             selection_records=selection_records,
@@ -627,11 +756,11 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
         selection_records=selection_records,
     )
 
-    assert private["artifact"] == "route2-mnsol-macepolar-two-member-matrix-v2"
-    assert private["schema_version"] == 2
+    assert private["artifact"] == aggregation.AGGREGATOR_ARTIFACT_NAME
+    assert private["schema_version"] == aggregation.SCHEMA_VERSION
     assert (
         private["scf_convergence_contract_version"]
-        == "route2-scf-convergence-evidence-v1"
+        == aggregation.runner.SCF_CONVERGENCE_CONTRACT_VERSION
     )
     assert private["run_kind"] == "partition-two-member-matrix"
     assert private["source_run_kind"] == "partition-record-shard"
@@ -654,7 +783,7 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
     assert scf_summary["finite_count"] == 1
     assert scf_summary["reason_counts"] == {
         "nominal-density-and-energy-v1": 1,
-        "finite-resolution-stagnation-v1": 1,
+        "finite-resolution-stagnation-v2": 1,
     }
     assert scf_summary["max_final_monopole_residual_e"] == pytest.approx(
         8.0e-11
@@ -685,7 +814,7 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
         assert "ge_1_0_count" in metrics[method]
         assert "ge_1_5_fraction" in metrics[method]
 
-    assert public["artifact"] == "route2-mnsol-macepolar-two-member-matrix-v2"
+    assert public["artifact"] == aggregation.AGGREGATOR_ARTIFACT_NAME
     assert public["run_kind"] == "partition-two-member-matrix"
     assert public["source_run_kind"] == "partition-record-shard"
     assert public["status"] == "complete"
@@ -760,7 +889,9 @@ def test_private_rows_retain_full_mace_scf_l1_scf_convergence_evidence():
         4.0e-13
     )
     finite_row = private["records"][1]["methods"]["mace_scf_l1"]
-    assert finite_row["scf_convergence"]["reason"] == "finite-resolution-stagnation-v1"
+    assert finite_row["scf_convergence"]["reason"] == (
+        "finite-resolution-stagnation-v2"
+    )
     assert (
         finite_row["scf_convergence"]["fresh_map_replay"]["replay_count"]
         == 3
@@ -773,6 +904,34 @@ def test_private_rows_retain_full_mace_scf_l1_scf_convergence_evidence():
         finite_row["scf_convergence"]["history_window"]["end_iteration"],
         int,
     )
+
+
+def test_aggregate_accepts_distinct_online_and_repeatable_cold_replay_hashes():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    finite = _fragment(1)
+    replay = finite["records"][0]["methods"]["mace_scf_l1"][
+        "scf_convergence"
+    ]["fresh_map_replay"]
+    replay["field_sha256_by_evaluation"] = ["cc" * 32] + ["aa" * 32] * 3
+    replay["response_sha256_by_evaluation"] = ["dd" * 32] + ["bb" * 32] * 3
+    replay["maximum_online_to_replay_potential_ulp"] = 17
+    replay["maximum_online_to_replay_monopole_ulp"] = 5
+
+    private, public = _run_aggregation(
+        [_fragment(0, scf_reason="nominal-density-and-energy-v1"), finite],
+        selection_records=selection_records,
+    )
+
+    accepted = private["records"][1]["methods"]["mace_scf_l1"][
+        "scf_convergence"
+    ]["fresh_map_replay"]
+    assert accepted["field_sha256_by_evaluation"][0] != (
+        accepted["field_sha256_by_evaluation"][1]
+    )
+    assert len(set(accepted["field_sha256_by_evaluation"][1:])) == 1
+    assert public["scf_convergence_summary"][
+        "finite_map_replay_ulp_maximums"
+    ]["maximum_online_to_replay_potential_ulp"] == 17
 
 
 def test_threshold_metrics_treat_exact_targets_as_failures_of_strict_bounds():

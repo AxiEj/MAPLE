@@ -306,13 +306,33 @@ MACE-POLAR-1-M checkpoint, `mace-torch==0.3.16`,
 `graph-longrange==0.4.0`, `torch==2.12.0+cu130`, `torch.float64`,
 `device=cpu`, `torch_threads=1`, `pyddx==0.8.0`, `n_proc=1`, `lmax=15`,
 `n_lebedev=1202`, `eta=0.1`, solver tolerance `1e-12`, and hashed
-atomic-number, coordinate, and cavity-radius arrays. The three fresh map
-reevaluations must reproduce the online field and response arrays byte for
-byte. The online candidate plus all three reevaluations must have finite
-intrinsic, PCM-polarization, and electrostatic ledger values; their spans must
-remain at or below `1e-10 eV`, their separate residual-channel maxima must
-remain below `1e-10`, and every half-coupling polarization identity must stay
-within `2e-10 eV`.
+atomic-number, coordinate, and cavity-radius arrays. Under
+`finite-resolution-stagnation-v2`, the **three fresh-cold reevaluations** must
+be mutually byte-identical in canonical little-endian float64 form: all
+fresh-cold field digests match, and all fresh-cold response digests match. The
+online warm candidate is then compared against each
+fresh-cold replay with bounded, unit-aware gates instead of online-to-cold
+byte identity: reaction-potential and reaction-gradient component deltas must
+remain at or below `1e-10 eV/e` and `1e-10 eV/(e angstrom)`, while response
+monopole and dipole deltas must remain at or below the nominal
+`2e-12 e` and `2e-12 e angstrom` tolerances.
+
+The online candidate plus all three fresh-cold reevaluations must still have
+finite intrinsic, PCM-polarization, and electrostatic ledger values; their
+spans must remain at or below `1e-10 eV`, their separate residual-channel
+maxima must remain at or below `1e-10`, and every half-coupling polarization
+identity must stay within `2e-10 eV`. The benchmark artifact records four
+per-evaluation hashes (online warm plus three fresh-cold) for fields and for
+responses, together with the four maximum online-to-cold ULP diagnostics, as
+post-hoc evidence only; those hash/ULP records are not additional online
+acceptance predicates. The ULP ordering is monotone across signed finite
+float64 values and normalizes `+0.0`/`-0.0` as the same numerical zero; the
+hashes retain their distinct byte encodings. Aggregation nevertheless rejects
+representationally impossible evidence: ULP values outside the finite float64 range,
+delta/ULP zero-status contradictions, or identical online/cold hashes paired
+with nonzero delta or ULP metrics. Response-ablation outputs carrying this
+branch bind the `route2-scf-convergence-evidence-v2` contract and
+runner/artifact schema v3.
 
 This stopping rule is a versioned engineering inference from inexact-solve
 theory and the observed precision floor. Dembo--Eisenstat--Steihaug and

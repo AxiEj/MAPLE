@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -231,7 +232,7 @@ def _settings() -> Route2EngineSettings:
 
 def _finite_resolution_policy() -> Route2FiniteResolutionPolicy:
     return Route2FiniteResolutionPolicy(
-        version="finite-resolution-stagnation-v1",
+        version="finite-resolution-stagnation-v2",
         history_length=7,
         map_replay_count=3,
         monopole_residual_ceiling_e=1.0e-10,
@@ -242,6 +243,77 @@ def _finite_resolution_policy() -> Route2FiniteResolutionPolicy:
     )
 
 
+@pytest.mark.parametrize(
+    ("left", "right", "expected"),
+    [
+        (0.0, -0.0, 0),
+        (0.0, np.nextafter(0.0, np.inf), 1),
+        (0.0, np.nextafter(0.0, -np.inf), 1),
+        (-1.0, np.nextafter(-1.0, np.inf), 1),
+        (1.0, 1.0, 0),
+        (
+            -np.finfo(np.float64).max,
+            np.finfo(np.float64).max,
+            0xFFDFFFFFFFFFFFFE,
+        ),
+    ],
+)
+def test_maximum_ulp_distance_uses_contiguous_signed_float_order(
+    left,
+    right,
+    expected,
+):
+    assert Route2ContinuumEngine._maximum_ulp_distance(
+        np.asarray([left]),
+        np.asarray([right]),
+    ) == expected
+
+
+def test_array_digest_preserves_signed_zero_for_byte_identity():
+    positive_zero = np.asarray([0.0])
+    negative_zero = np.asarray([-0.0])
+
+    assert Route2ContinuumEngine._array_sha256(positive_zero) != (
+        Route2ContinuumEngine._array_sha256(negative_zero)
+    )
+    assert (
+        Route2ContinuumEngine._maximum_ulp_distance(
+            positive_zero,
+            negative_zero,
+        )
+        == 0
+    )
+
+
+class _OffsetReplayFieldMap:
+    atom_count = 2
+
+    def __init__(self, offset: float = 0.0):
+        self.offset = float(offset)
+        self.last_density = None
+        self.last_drive = None
+
+    def apply_scf_drive(self, density):
+        self.last_density = np.asarray(density, dtype=float).copy()
+        dual_field = self.last_density.copy()
+        if self.offset != 0.0:
+            dual_field = dual_field.copy()
+            dual_field[:, 0] += np.asarray([self.offset, -self.offset])
+        self.last_drive = ReactionFieldDrive.local_jet(dual_field)
+        return self.last_drive
+
+    def scf_polarization_energy_hartree(self, density):
+        assert self.last_drive is not None
+        return (
+            0.5
+            * MACE_POLAR_L1_PAIRING.pair(
+                density,
+                self.last_drive.density_dual_field_ev,
+            )
+            / Hartree
+        )
+
+
 def _finite_resolution_case(
     monkeypatch,
     *,
@@ -250,6 +322,7 @@ def _finite_resolution_case(
     maximum_iterations: int = 8,
     policy: Route2FiniteResolutionPolicy | None,
     runtime_identity: dict[str, object] | None,
+    reaction_field_factory: Callable[[Atoms], object] | None = None,
 ):
     atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
     gas_density = np.asarray(
@@ -261,12 +334,22 @@ def _finite_resolution_case(
         residuals,
         energies_ev=energies_ev,
     )
-    reaction_maps: list[_IdentityReactionMap] = []
+    reaction_maps: list[object] = []
 
-    def reaction_field_factory(_atoms):
-        reaction_map = _IdentityReactionMap()
-        reaction_maps.append(reaction_map)
-        return reaction_map
+    if reaction_field_factory is None:
+        def tracked_reaction_field_factory(_atoms) -> _IdentityReactionMap:
+            reaction_map = _IdentityReactionMap()
+            reaction_maps.append(reaction_map)
+            return reaction_map
+    else:
+        supplied_reaction_field_factory = reaction_field_factory
+
+        def tracked_reaction_field_factory(
+            _atoms,
+        ) -> object:
+            reaction_map = supplied_reaction_field_factory(_atoms)
+            reaction_maps.append(reaction_map)
+            return reaction_map
 
     roots = []
     for step in range(1, maximum_iterations):
@@ -300,7 +383,7 @@ def _finite_resolution_case(
         scf_finite_resolution_policy=policy,
     )
     engine = Route2ContinuumEngine(
-        reaction_field_factory=reaction_field_factory,
+        reaction_field_factory=tracked_reaction_field_factory,
         cds_evaluator=lambda _atoms: _CDS(),
         settings=settings,
     )
@@ -671,9 +754,7 @@ def test_engine_accepts_the_earliest_online_window_satisfying_all_predicates(
     )
     assert len(reaction_maps) == 4
     assert calculator.calls == 11
-    assert coupled.scf_convergence["reason"] == (
-        "finite-resolution-stagnation-v1"
-    )
+    assert coupled.scf_convergence["reason"] == "finite-resolution-stagnation-v2"
     assert coupled.scf_convergence["online_candidate_iteration"] == 8
     assert coupled.scf_convergence["final_monopole_residual_e"] <= 1.0e-10
     assert (
@@ -694,18 +775,172 @@ def test_engine_accepts_the_earliest_online_window_satisfying_all_predicates(
     assert replay["replay_count"] == 3
     assert replay["evaluation_count"] == 4
     assert replay["includes_online_candidate"] is True
-    assert replay["all_field_arrays_identical"] is True
-    assert replay["all_response_arrays_identical"] is True
+    assert replay["cold_replay_field_arrays_identical"] is True
+    assert replay["cold_replay_response_arrays_identical"] is True
     assert replay["maximum_monopole_residual_e"] <= 1.0e-10
     assert replay["maximum_dipole_residual_e_angstrom"] <= 1.0e-10
     assert replay["electrostatic_ledger_span_ev"] <= 1.0e-10
     assert replay["maximum_polarization_identity_error_ev"] <= 1.0e-12
-    assert len(replay["field_sha256"]) == 64
-    assert len(replay["response_sha256"]) == 64
+    assert len(replay["field_sha256_by_evaluation"]) == 4
+    assert all(len(item) == 64 for item in replay["field_sha256_by_evaluation"])
+    assert len(replay["response_sha256_by_evaluation"]) == 4
+    assert all(
+        len(item) == 64
+        for item in replay["response_sha256_by_evaluation"]
+    )
+    assert replay["maximum_online_to_replay_potential_delta_ev_per_e"] <= 1.0e-10
+    assert (
+        replay["maximum_online_to_replay_gradient_delta_ev_per_e_angstrom"]
+        <= 1.0e-10
+    )
+    assert (
+        replay["maximum_online_to_replay_monopole_response_delta_e"]
+        <= 1.0e-12
+    )
+    assert (
+        replay["maximum_online_to_replay_dipole_response_delta_e_angstrom"]
+        <= 1.0e-12
+    )
+    for field in (
+        "maximum_online_to_replay_potential_ulp",
+        "maximum_online_to_replay_gradient_ulp",
+        "maximum_online_to_replay_monopole_ulp",
+        "maximum_online_to_replay_dipole_ulp",
+    ):
+        assert field in replay
+        assert isinstance(replay[field], int)
+        assert replay[field] >= 0
+    assert "all_field_arrays_identical" not in replay
+    assert "all_response_arrays_identical" not in replay
+    assert "field_sha256" not in replay
+    assert "response_sha256" not in replay
     np.testing.assert_allclose(
         coupled.density_coefficients,
         reaction_maps[0].last_density,
     )
+
+
+def test_engine_rejects_warm_v_cold_map_replay_field_delta_beyond_tolerance(
+    monkeypatch,
+):
+    warm_residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    map_offsets = iter([0.0, 1.1e-10, 1.1e-10, 1.1e-10])
+
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[warm_residual] * 11,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+        reaction_field_factory=lambda _atoms: _OffsetReplayFieldMap(
+            offset=next(map_offsets),
+        ),
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(
+        Route2SCFConvergenceError,
+        match="map-replay field potential delta exceeds",
+    ):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-field-delta",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_engine_accepts_bounded_warm_v_cold_field_delta_with_repeatable_cold_maps(
+    monkeypatch,
+):
+    warm_residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    potential_offset = 5.0e-11
+    offset_array = np.zeros_like(warm_residual)
+    offset_array[:, 0] = np.asarray([potential_offset, -potential_offset])
+    replay_residual = warm_residual - offset_array
+    map_offsets = iter([0.0, potential_offset, potential_offset, potential_offset])
+
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[warm_residual] * 8 + [replay_residual] * 3,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+        reaction_field_factory=lambda _atoms: _OffsetReplayFieldMap(
+            offset=next(map_offsets),
+        ),
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("finite-resolution-bounded-field-delta",),
+        finite_resolution_runtime_identity=identity,
+    )
+
+    replay = coupled.scf_convergence["fresh_map_replay"]
+    assert replay["cold_replay_field_arrays_identical"] is True
+    assert replay["cold_replay_response_arrays_identical"] is True
+    assert replay["maximum_online_to_replay_potential_delta_ev_per_e"] == (
+        pytest.approx(potential_offset)
+    )
+    assert replay["maximum_online_to_replay_monopole_response_delta_e"] == (
+        pytest.approx(0.0)
+    )
+    assert len(set(replay["field_sha256_by_evaluation"][1:])) == 1
+    assert (
+        replay["field_sha256_by_evaluation"][0]
+        != replay["field_sha256_by_evaluation"][1]
+    )
+    assert len(set(replay["response_sha256_by_evaluation"])) == 1
+
+
+def test_engine_rejects_map_replay_response_delta_beyond_nominal_tolerance(
+    monkeypatch,
+):
+    warm_residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    replay_residual = np.asarray(
+        [
+            [5.0e-11, 7.0e-12, 0.0, 0.0],
+            [-5.0e-11, -7.0e-12, 0.0, 0.0],
+        ]
+    )
+
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[warm_residual] * 8 + [replay_residual] * 3,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(
+        Route2SCFConvergenceError,
+        match="response dipole delta exceeds nominal dipole tolerance",
+    ):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-response-delta",),
+            finite_resolution_runtime_identity=identity,
+        )
 
 
 @pytest.mark.parametrize(
@@ -820,7 +1055,7 @@ def test_engine_rejects_nonrepeatable_fresh_map_replay(
     replay_residuals = [
         warm_residual,
         warm_residual + np.asarray(
-            [[0.0, 3.0e-12, 0.0, 0.0], [0.0, -3.0e-12, 0.0, 0.0]]
+            [[0.0, 5.0e-13, 0.0, 0.0], [0.0, -5.0e-13, 0.0, 0.0]]
         ),
         warm_residual,
     ]
@@ -832,12 +1067,55 @@ def test_engine_rejects_nonrepeatable_fresh_map_replay(
     )
     engine, atoms, calculator, gas_state, _, identity = case
 
-    with pytest.raises(Route2SCFConvergenceError):
+    with pytest.raises(
+        Route2SCFConvergenceError,
+        match="response arrays are not byte-identical",
+    ):
         engine.solve_coupled_state(
             atoms,
             calculator,
             gas_state,
             provider_cache_signature=("finite-resolution-replay-mismatch",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_engine_rejects_nonrepeatable_fresh_map_replay_fields(
+    monkeypatch,
+):
+    warm_residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    cold_offsets = (5.0e-11, 4.0e-11, 5.0e-11)
+    replay_residuals = []
+    for offset in cold_offsets:
+        offset_array = np.zeros_like(warm_residual)
+        offset_array[:, 0] = np.asarray([offset, -offset])
+        replay_residuals.append(warm_residual - offset_array)
+    map_offsets = iter((0.0, *cold_offsets))
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[warm_residual] * 8 + replay_residuals,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+        reaction_field_factory=lambda _atoms: _OffsetReplayFieldMap(
+            offset=next(map_offsets),
+        ),
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(
+        Route2SCFConvergenceError,
+        match="field arrays are not byte-identical",
+    ):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-field-mismatch",),
             finite_resolution_runtime_identity=identity,
         )
 

@@ -97,9 +97,9 @@ from maple.function.route2_smd_profiles import (
 )
 from maple.function.route2_solvents import route2_solvent_spec
 
-ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v2"
-SCHEMA_VERSION = 2
-SCF_CONVERGENCE_CONTRACT_VERSION = "route2-scf-convergence-evidence-v1"
+ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v3"
+SCHEMA_VERSION = 3
+SCF_CONVERGENCE_CONTRACT_VERSION = "route2-scf-convergence-evidence-v2"
 EV_TO_KCAL_MOL = HARTREE_TO_KCAL_MOL * EV2HARTREE
 FUNCTIONAL_GROUP_COVERAGE = (
     "halogenated-hydrocarbon",

@@ -1220,69 +1220,97 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     executed, the production energy is unchanged, and the thermodynamic
     release gate remains open.
 
-49. The exact `smd-ddpcm-l15-n1202-multisolv-v1` profile now carries a
-    fail-closed, energy-only finite-resolution acceptance contract for an
-    approximate fixed-point candidate of the frozen discrete
-    MACE-POLAR/ddPCM operator. In Walker--Ni terms this is a numerical
+49. The exact `smd-ddpcm-l15-n1202-multisolv-v1` profile now carries the
+    fail-closed, energy-only finite-resolution replay v2 contract for an
+    approximate fixed-point candidate of the frozen discrete MACE-POLAR/ddPCM
+    operator. In Walker--Ni terms this remains a numerical
     Anderson/inexact-Newton acceptance rule, not a new physical free-energy or
     force statement; the variational PCM and ddPCM-force references remain the
     Lipparini et al. and Gatto et al. papers already cited in the formula
-    ledger. The profile arms this branch only under its frozen enumerated
-    runtime identity gate:
-    official unfine-tuned MACE-POLAR-1-M checkpoint, `mace-torch==0.3.16`,
-    `graph-longrange==0.4.0`, `torch==2.12.0+cu130`, `torch.float64`, `device=cpu`,
-    `torch_threads=1`, `pyddx==0.8.0`, `n_proc=1`, `lmax=15`,
-    `n_lebedev=1202`, `eta=0.1`, solver tolerance `1e-12`, and hashed atomic
-    numbers, coordinates, and cavity radii.
+    ledger. The profile binds policy `finite-resolution-stagnation-v2`,
+    convergence contract `route2-scf-convergence-evidence-v2`, and
+    response-ablation runner/artifact schema v3 under the same frozen
+    enumerated runtime identity gate: official unfine-tuned MACE-POLAR-1-M
+    checkpoint, `mace-torch==0.3.16`, `graph-longrange==0.4.0`,
+    `torch==2.12.0+cu130`, `torch.float64`, `device=cpu`, `torch_threads=1`,
+    `pyddx==0.8.0`, `n_proc=1`, `lmax=15`, `n_lebedev=1202`, `eta=0.1`,
+    solver tolerance `1e-12`, and hashed atomic numbers, coordinates, and
+    cavity radii.
 
     The unchanged nominal gate is checked first: monopole residual
     `<= 2e-12 e`, dipole residual `<= 2e-12 e angstrom`, and configured
-    intrinsic-energy change `<= 1e-10 eV`. The fallback accepts only the
+    intrinsic-energy change `<= 1e-10 eV`. The fallback still accepts only the
     **earliest online seven-iteration window satisfying every predicate**;
     merely being the first Anderson/no-reset window is insufficient. Its
-    dimensions are checked separately: monopole and dipole residual ceilings
+    dimensions remain separated: monopole and dipole residual ceilings
     `1e-10 e` and `1e-10 e angstrom`; per-component root and residual spans
     below their corresponding nominal `2e-12` channel tolerances;
     conjugate reaction-potential and gradient spans `<= 1e-10 eV/e` and
-    `<= 1e-10 eV/(e angstrom)`; intrinsic-energy span `<= 1e-10 eV`. The
-    accepted state must also pass three fresh reaction-map reevaluations at
-    the retained density. These are not independent cold SCF starts. The
-    online candidate plus all three reevaluations must have finite ledger
-    scalars, byte-identical fields/responses, separate channel-residual
-    ceilings, bounded energy-ledger spans, and the half-coupling identity.
-    Finite-resolution acceptance is energy-only; force evaluation fails closed
-    unless nominal convergence was reached.
+    `<= 1e-10 eV/(e angstrom)`; intrinsic-energy span `<= 1e-10 eV`.
 
-    The preregistration diagnostic found the first eligible
-    development-index-4 dimethylformamide window at iterations 17--23, with
-    the online candidate at iteration 23. Three fresh diagnostic map
-    reevaluations
-    reproduced identical field/response hashes. Their archived mixed
-    raw-\(l\le1\)-component maximum was `2.6204635683590993e-11`; the
-    half-coupling identity error was `4.53e-14 eV`, and the
-    intrinsic/PCM/electrostatic ledger spans were zero at the locked `1e-12`
-    reevaluation tolerance. This is design evidence, not yet a prospectively counted
-    partition row. The retained private diagnostics are
+    Replay v2 changes only the online-versus-cold acceptance rule. Three fresh
+    reaction-map reevaluations at the retained density are still required, and
+    these are still not independent cold SCF starts. The three fresh-cold
+    field arrays must have identical canonical little-endian float64 digests,
+    and the three fresh-cold response arrays must have identical canonical
+    little-endian float64 digests. The online warm candidate is then compared
+    against each fresh-cold replay with bounded deltas rather than
+    online-to-cold byte identity: reaction-potential and
+    reaction-gradient component deltas `<= 1e-10 eV/e` and
+    `<= 1e-10 eV/(e angstrom)`, response monopole deltas `<= 2e-12 e`, and
+    response dipole deltas `<= 2e-12 e angstrom`. Residual ceilings,
+    intrinsic/PCM/electrostatic ledger spans, and the `2e-10 eV`
+    half-coupling identity gate are unchanged. The artifact retains four
+    per-evaluation hashes (online warm plus three fresh-cold) for fields and
+    responses, plus the four maximum online-to-cold ULP distances, as
+    diagnostics only.
+
+    Historical evidence is preserved. The preregistration diagnostic found the
+    first eligible development-index-4 dimethylformamide window at iterations
+    17--23, with the online candidate at iteration 23. The retained private
+    trajectory and earliest-window replay witnesses remain
     `.omx/diagnostics/mnsol-development-index004-trajectory-4d09ba74-root-v1/trajectory.json`
     and
     `.omx/diagnostics/mnsol-development-index004-iter023-cold-map-4d09ba74-root-v1/diagnostic.json`.
+    That earliest-window v1 evidence kept the residual ceiling (legacy mixed
+    raw-\(l\le1\) component infinity norm `2.6204635683590993e-11`, not a
+    channel-separated v2 quantity),
+    half-coupling identity error (`4.526934382909076e-14 eV`), and locked
+    `1e-12` intrinsic/PCM/electrostatic ledger spans at zero.
 
-    The earlier post-hoc best-residual index-4 artifact,
+    The older post-hoc best-residual artifact,
     `.omx/diagnostics/mnsol-development-index004-cold-map-4d09ba74-root-v1/diagnostic.json`,
-    is intentionally preserved as a **failed, uncounted diagnostic**. It
-    explored the same frozen operator under tighter replay tolerances and did
-    reproduce one archived best-state residual near `2.53e-11 e`, but it was
-    selected after the fact rather than as the earliest online window
-    satisfying the complete frozen predicate set. It therefore cannot count
-    toward the two-member matrix or any partition aggregate.
+    remains intentionally preserved as a **failed, uncounted diagnostic**.
+    It explored the same frozen operator after the fact and therefore cannot
+    count toward the two-member matrix or any partition aggregate even though
+    its archived best-state residual was near `2.53e-11 e`.
 
-    A future prospectively accepted result under this gate can record only a
-    repeatable finite-precision approximate fixed-point candidate under the
-    frozen residual policy. The current
-    archived index-4 source shard remains failed and uncounted until that
-    rerun. Neither the diagnostic nor the new rule certifies chemistry
-    accuracy, forces, a smooth PES, solvent-population performance, or a
-    completed 505-row development or 148-row confirmation rerun.
+    Separately, the clean byte-identity failure that motivated replay v2 is
+    now archived in
+    `.omx/diagnostics/mnsol-development-index004-map-replay-norm-965aeb8-v2/`.
+    In that diagnostic-only run, all six actual `np.array_equal` checks were
+    false even though the measured deltas stayed small. The online-warm versus
+    fresh-cold field comparisons recorded
+    `max_abs = 1.936228954946273e-12`, `L2 = 7.901838936066065e-12`, and
+    `max_rel = 4.286571482853837e-10`; the corresponding response comparisons
+    recorded `max_abs = 7.577272143066693e-15`,
+    `L2 = 2.9938859233415605e-14`, and
+    `max_rel = 8.560585688915213e-13`. The same diagnostic kept
+    `maximum_monopole_residual_e = 1.1122637533222957e-11`,
+    `maximum_dipole_residual_e_angstrom = 2.6204635683590993e-11`,
+    `intrinsic_ledger_span_ev = 0.0`,
+    `pcm_ledger_span_ev = 9.71445146547012e-14`,
+    `electrostatic_ledger_span_ev = 9.71445146547012e-14`, and
+    `maximum_polarization_identity_error_ev = 4.526934382909076e-14`.
+    This is diagnostic evidence only. A prospectively counted index-4 rerun
+    under replay v2 is still pending, so no new partition row has been added.
+
+    A future prospectively accepted result under this gate can still record
+    only a repeatable finite-precision approximate fixed-point candidate under
+    the frozen residual policy. Neither the preserved diagnostics nor the new
+    rule certifies chemistry accuracy, forces, a smooth PES,
+    solvent-population performance, or a completed 505-row development or
+    148-row confirmation rerun.
 
 ## Secondary diagnostics
 

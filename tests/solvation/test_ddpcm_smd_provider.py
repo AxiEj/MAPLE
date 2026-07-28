@@ -183,7 +183,7 @@ def test_finite_resolution_policy_is_scoped_to_the_exact_multisolvent_ddpcm_prof
 
     policy = multisolvent._engine.settings.scf_finite_resolution_policy
     assert policy is not None
-    assert policy.version == "finite-resolution-stagnation-v1"
+    assert policy.version == "finite-resolution-stagnation-v2"
     assert policy.history_length == 7
     assert policy.map_replay_count == 3
     assert policy.monopole_residual_ceiling_e == pytest.approx(1.0e-10)

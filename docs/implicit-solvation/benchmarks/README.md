@@ -679,26 +679,58 @@ residuals and no fallback evidence. A finite-resolution row for
 online seven-step Anderson/no-reset window satisfying every predicate, the
 frozen enumerated runtime identity gate (including
 `torch==2.12.0+cu130`), and three fresh reaction-map reevaluations at the
-retained density. These are not independent cold SCF starts. The online
-candidate plus all three reevaluations must contain finite energy-ledger
-scalars, reproduce identical field/response hashes, and keep separate channel
-residuals, the intrinsic/PCM/electrostatic ledger spans, and the half-coupling
-identity inside the frozen policy gates. This finite-resolution branch is
-energy-only; force requests require nominal convergence. Response-ablation
-shards carrying this evidence use artifact/schema v2 and the explicit
-`route2-scf-convergence-evidence-v1` contract.
+retained density. These are not independent cold SCF starts. Under
+`finite-resolution-stagnation-v2`, the three fresh-cold field arrays must have
+identical canonical little-endian float64 digests, and the three fresh-cold
+response arrays must have identical canonical little-endian float64 digests.
+The online warm candidate is compared against each
+fresh-cold replay with bounded deltas only: reaction-potential and
+reaction-gradient component deltas must stay within the existing
+`1e-10 eV/e` and `1e-10 eV/(e angstrom)` gates, while response monopole and
+dipole deltas must stay within the nominal `2e-12 e` and
+`2e-12 e angstrom` gates. Residual ceilings, the
+intrinsic/PCM/electrostatic ledger spans, and the `2e-10 eV` half-coupling
+identity gate are unchanged. The shard records four per-evaluation hashes
+(online warm plus three fresh-cold) for fields and for responses, plus the
+four maximum online-to-cold ULP metrics, as diagnostics only. This
+finite-resolution branch is energy-only; force requests require nominal
+convergence. Response-ablation shards carrying this evidence use
+artifact/schema v3 and the explicit `route2-scf-convergence-evidence-v2`
+contract. Aggregation rejects ULP values outside the finite float64 range,
+delta/ULP zero-status contradictions, and identical online/cold hashes paired
+with nonzero delta or ULP metrics.
 
-The retained index-004 diagnostic candidate records zero ledger span at the
-locked `1e-12` map-reevaluation tolerance, but it is not a prospectively
-counted shard. The retained private trajectory and map-reevaluation
-diagnostics are
+Historical index-004 evidence remains preserved but uncounted. The retained
+private trajectory and earliest-window map-reevaluation diagnostics are
 `.omx/diagnostics/mnsol-development-index004-trajectory-4d09ba74-root-v1/trajectory.json`
 and
-`.omx/diagnostics/mnsol-development-index004-iter023-cold-map-4d09ba74-root-v1/diagnostic.json`.
-The older post-hoc best-state map reevaluation,
+`.omx/diagnostics/mnsol-development-index004-iter023-cold-map-4d09ba74-root-v1/diagnostic.json`;
+they keep the iteration-23 candidate from the 17--23 window, the legacy mixed
+raw-\(l\le1\) component infinity norm `2.6204635683590993e-11` (not a
+channel-separated v2 quantity), the
+`4.526934382909076e-14 eV` half-coupling identity error, and zero locked
+`1e-12` ledger span. The older post-hoc best-state map reevaluation,
 `.omx/diagnostics/mnsol-development-index004-cold-map-4d09ba74-root-v1/diagnostic.json`,
 remains failed and uncounted; it is a diagnostic witness, not an aggregatable
 row result.
+
+The clean byte-identity failure that motivated replay v2 is also preserved as
+non-countable evidence in
+`.omx/diagnostics/mnsol-development-index004-map-replay-norm-965aeb8-v2/`.
+That diagnostic-only run showed six false actual `np.array_equal` checks while
+keeping the measured deltas small. Online-warm versus fresh-cold fields had
+max-absolute/L2/max-relative differences of `1.936228954946273e-12` /
+`7.901838936066065e-12` / `4.286571482853837e-10`; responses had
+`7.577272143066693e-15` / `2.9938859233415605e-14` /
+`8.560585688915213e-13`. The same run retained
+`maximum_monopole_residual_e = 1.1122637533222957e-11`,
+`maximum_dipole_residual_e_angstrom = 2.6204635683590993e-11`,
+`intrinsic_ledger_span_ev = 0.0`,
+`pcm_ledger_span_ev = 9.71445146547012e-14`,
+`electrostatic_ledger_span_ev = 9.71445146547012e-14`, and
+`maximum_polarization_identity_error_ev = 4.526934382909076e-14`.
+A prospectively counted replay-v2 rerun is still pending, so index-004 cannot
+be aggregated yet.
 
 No complete 505-row development or 148-row confirmation artifact has been
 produced yet. This artifact rejects confirmation selections outright; a

@@ -1,0 +1,165 @@
+{
+  "artifact": "route2-mnsol-fixed-source-pyscf-pcm-family-prereg-v1",
+  "claim_boundary": "This paired ten-record diagnostic compares three PySCF SWIG continuum equations while holding each frozen solute source, MNSol geometry, SMD Coulomb radii, dielectric, and SMD-CDS term fixed. One record per solvent cannot certify population accuracy, source transferability, original-SMD equivalence, self-consistent polarization, forces, a smooth solution-phase PES, or a production default.",
+  "continuum_equations": [
+    {
+      "continuum_model": "iefpcm",
+      "method_id": "pyscf_swig_iefpcm",
+      "provider": "PySCF 2.13.1",
+      "surface_discretization_method": "SWIG"
+    },
+    {
+      "continuum_model": "cpcm",
+      "method_id": "pyscf_swig_cpcm",
+      "provider": "PySCF 2.13.1",
+      "surface_discretization_method": "SWIG"
+    },
+    {
+      "continuum_model": "cosmo",
+      "method_id": "pyscf_swig_cosmo",
+      "provider": "PySCF 2.13.1",
+      "surface_discretization_method": "SWIG"
+    }
+  ],
+  "created_at_utc": "2026-07-28T03:14:54Z",
+  "dataset": {
+    "doi": "10.13020/3eks-j059",
+    "name": "Minnesota Solvation Database",
+    "normalized_bundle_sha256": "6465a65a024cd06872cb9812381184ed6e9b1a528adfe12be9d5d43b4aec75d8",
+    "source_artifact_sha256": "6e2b25175d41f5c0a319ca7ec50c4586fe88ecfbd096264811fc1e8e77d6c4cc",
+    "standard_state": "1M-ideal-gas-to-1M-ideal-solution",
+    "table_sha256": "6dba4397764d1ca665c5dac653b9963bd64f784c353311a72c15e42897b90156",
+    "temperature_k": 298.0,
+    "version": "2012"
+  },
+  "decision_rule": {
+    "failure": "Any source-binding, neutrality, finite-value, half-coupling, same-surface, provider-version, or completeness gate failure invalidates the run. No equation, radius, dielectric, grid order, source coefficient, CDS value, record, or threshold may be changed after observing results.",
+    "interpretation": "Rankings and paired win counts are descriptive for this bounded panel only. No method or profile is promoted from these ten rows.",
+    "success": "All 60 fixed-source continuum evaluations complete under the locked gates and yield one private row-level artifact plus one public aggregate-only artifact."
+  },
+  "exact_evaluation_budget": {
+    "continuum_equations": 3,
+    "continuum_scalar_evaluations": 60,
+    "records": 10,
+    "reruns_after_observing_results": 0,
+    "solute_sources": 2
+  },
+  "excluded_axes": {
+    "cosmo_rs": "Excluded because COSMO-RS requires a separate quantum-chemical sigma-profile and statistical-thermodynamic workflow; it is not another boundary-equation switch on the same fixed surface.",
+    "geometry_relaxation": false,
+    "parameter_refitting": false,
+    "self_consistent_solute_response": false
+  },
+  "frozen_source_artifact": {
+    "artifact": "route2-mnsol-macepolar-response-ablation-v1",
+    "checkpoints": {
+      "aimnet2_sha256": "85ba59d8c78eb4d3185f6b1614df79706427f7ca72f53f2d90e365a1723d953d",
+      "mace_polar_identifier": "polar-1-m",
+      "mace_polar_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    },
+    "complete_panel": true,
+    "completed_record_count": 10,
+    "execution_git_head": "96dbb70003c487f1dd3d3507e4a8962fa8eca5f9",
+    "sha256": "f0d36edf68d651057d98413fbeccae2c3b1f7eeea64ceb7eb4038283236940fe",
+    "visibility": "private-user-supplied-mnsol-row-level"
+  },
+  "git_head_at_registration": "0ec6d34fba40e7b63ccf742fc172e91cf4cc677d",
+  "locked_gates": {
+    "all_60_evaluations_complete": true,
+    "all_inputs_and_outputs_finite": true,
+    "all_sources_neutral_within_e": 1e-08,
+    "frozen_cavity_radii_maximum_difference_angstrom": 0.0,
+    "frozen_smd_cds_maximum_difference_kcal_mol": 1e-10,
+    "frozen_source_artifact_sha256": "f0d36edf68d651057d98413fbeccae2c3b1f7eeea64ceb7eb4038283236940fe",
+    "maximum_half_coupling_identity_error_ev": 2e-10,
+    "pyscf_version": "2.13.1",
+    "same_surface_area_maximum_difference_bohr2": 0.0,
+    "same_surface_point_maximum_difference_bohr": 0.0,
+    "same_surface_shape": true
+  },
+  "metrics": {
+    "aggregate_per_source_and_equation": [
+      "mean_signed_error_kcal_mol",
+      "mean_absolute_error_kcal_mol",
+      "root_mean_square_error_kcal_mol",
+      "maximum_absolute_error_kcal_mol",
+      "mean_predicted_delta_g_kcal_mol",
+      "mean_continuum_polarization_kcal_mol",
+      "mean_smd_cds_kcal_mol"
+    ],
+    "paired": [
+      "equation_energy_shift_within_source",
+      "equation_absolute_error_shift_within_source",
+      "paired_absolute_error_win_tie_loss_counts",
+      "source_energy_shift_within_equation",
+      "source_absolute_error_shift_within_equation"
+    ],
+    "timing": "Continuum build, source solve, and shared CDS timings are metadata only; frozen-source model inference is excluded and ordering is not randomized."
+  },
+  "numerics": {
+    "cavity_radii": "frozen per-solvent PySCF-2.13.1 SMD Coulomb radii from the source artifact and recomputed for equality",
+    "dielectric": "route2_solvent_spec canonical static dielectric for each solvent",
+    "energy_identity_tolerance_ev": 2e-10,
+    "lebedev_order": 17,
+    "nonpolar_model": "PySCF 2.13.1 SMD-CDS, recomputed and required to match the frozen source artifact",
+    "strict_original_smd_equivalence": false
+  },
+  "privacy": {
+    "full_panel_public_output": "aggregate-only",
+    "row_level_output": "must remain below .omx and must not be committed",
+    "single_record_smoke": "both outputs must remain below .omx and are non-scientific engineering evidence"
+  },
+  "protocol_fingerprint": "3fbc6b6c7fedd97afdd05cc654bf529b75d28fa55765ffca2311a2ff83f58fa0",
+  "protocol_id": "route2-mnsol-fixed-source-pyscf-pcm-family-v1",
+  "references": {
+    "mnsol": "10.13020/3eks-j059",
+    "pyscf": "10.1002/wcms.1340",
+    "smd": "10.1021/jp810292n"
+  },
+  "schema_version": 1,
+  "selection": {
+    "artifact_sha256": "689dee172e7d8da3f2e5a501dd1ca905f18cf4dae9f830cabea1cb05e933a069",
+    "fingerprint": "967979795b3bd1483db93f7b463f9a65f3f2c0859f69228100d2adc107138fba",
+    "functional_group_assignment": "post-selection descriptive labels frozen by the source artifact; not selection criteria",
+    "functional_group_coverage": [
+      "halogenated-hydrocarbon",
+      "ketone",
+      "aromatic-hydrocarbon",
+      "nitro",
+      "amide",
+      "cyclic-diether",
+      "phenol",
+      "thiophenol",
+      "alcohol",
+      "carboxylic-acid"
+    ],
+    "record_count": 10,
+    "solvents": [
+      "water",
+      "ethanol",
+      "acetonitrile",
+      "dimethylsulfoxide",
+      "dimethylformamide",
+      "tetrahydrofuran",
+      "chloroform",
+      "dichloromethane",
+      "toluene",
+      "hexane"
+    ],
+    "used_experimental_values": false,
+    "used_model_outputs": false
+  },
+  "solute_sources": [
+    {
+      "field": "aimnet2_charges_e",
+      "method_id": "aimnet2_fixed_l0",
+      "representation": "atom-centred monopoles only"
+    },
+    {
+      "field": "mace_gas_density_coefficients",
+      "method_id": "mace_fixed_l1",
+      "representation": "atom-centred l<=1 coarse residual-charge multipoles"
+    }
+  ],
+  "status": "pre-registered-before-pyscf-pcm-family-run"
+}

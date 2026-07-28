@@ -359,10 +359,12 @@ AIMNet2–continuum polarization or a solute internal-response term. No
 
 This preregistration is selection infrastructure, not an accuracy result.
 AIMNet is treated as a distinct fixed point-charge baseline. A separately
-named pyddx ddCOSMO equation adapter exists, but it is not C-PCM. COSMO-RS
-remains a separate sigma-profile/statistical-thermodynamic model family rather
-than a continuum solver switch. The later comparison matrix belongs to
-benchmark strategy, not the MNSol data contract:
+named pyddx ddCOSMO equation adapter exists, but it is not C-PCM. A separately
+named PySCF SWIG/C-PCM research operator is available for bounded equation
+canaries; it is not a public profile and has not passed a broad chemical
+benchmark. COSMO-RS remains a separate sigma-profile/statistical-thermodynamic
+model family rather than a continuum solver switch. The later comparison
+matrix belongs to benchmark strategy, not the MNSol data contract:
 
 - solute-source axis: self-consistent MACE-POLAR coarse residual
   point-\(l\le1\) multipoles versus an AIMNet2 point-\(l=0\) fixed-charge

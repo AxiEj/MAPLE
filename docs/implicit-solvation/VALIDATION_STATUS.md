@@ -1070,6 +1070,20 @@ Research/Innovation Route, not a complete solution-phase PES.
     This development panel does not certify confirmation accuracy,
     training-set exclusion, original-SMD equivalence, variational
     thermodynamics, forces, or a smooth solution-phase PES.
+43. The optional PySCF SWIG response layer now exposes separately named
+    IEFPCM, C-PCM, and COSMO research operators without changing any public
+    profile. The implementation is hard-gated to PySCF 2.13.1 and follows the
+    upstream `PCM.build()` branches exactly: C-PCM uses
+    \(f_\epsilon=(\epsilon-1)/\epsilon\), COSMO uses
+    \(f_\epsilon=(\epsilon-1)/(\epsilon+1/2)\), and IEFPCM retains its
+    nonsymmetric \(K/R\) equation with an energy-conjugate response. Synthetic
+    direct/adjoint/energy/gradient tests pass for all three.
+
+    A real water-molecule comparison against PySCF 2.13.1 produced an
+    identical SWIG surface, \(K\), and \(f_\epsilon\) for all three methods;
+    the largest \(R\) mismatch was \(2.78\times10^{-17}\). This is an operator
+    implementation result, not a chemical-accuracy result or a public Route-2
+    C-PCM profile.
 
 ## Secondary diagnostics
 

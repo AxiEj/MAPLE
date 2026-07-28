@@ -1225,15 +1225,42 @@ weights, areas, and \(S/D/K/R\) response. MAPLE's
 terms with the fixed-surface solute/back-projection kernels and the
 same-provider operator VJP exactly once.
 
-The optional `PySCFSWIGIEFPCMResponse` research adapter now supplies this
-complete continuum-electrostatic map using PySCF 2.13.1 SWIG/IEFPCM energy and
-its matching analytic operator derivative. MAPLE passes one radius per atom to
-PySCF's unmodified `gen_surface()` through an atom-index molecule view and
-retains the real molecule for nuclear identities and gradient bookkeeping. A
-runtime guard checks the PySCF 2.13.1 integer-index behavior on which this
-version-locked bridge depends. Equal-radius repeated-element surfaces are
-bitwise identical to PySCF's ordinary element-radius path, while methyl acetate
-correctly retains different `o=1.70 A` and `os=1.52 A` oxygen radii.
+The optional `PySCFSWIGPCMResponse` research adapter now supplies this complete
+continuum-electrostatic map using PySCF 2.13.1 SWIG PCM energies and matching
+analytic operator derivatives. Three separately named wrappers retain the
+upstream equations rather than treating them as labels for one rescaled
+operator:
+
+\[
+\begin{array}{c|c|c}
+\text{wrapper} & K & R\\
+\hline
+\texttt{PySCFSWIGCPCMResponse}
+  & S & -\dfrac{\epsilon-1}{\epsilon}I\\[5pt]
+\texttt{PySCFSWIGCOSMOResponse}
+  & S & -\dfrac{\epsilon-1}{\epsilon+\tfrac12}I\\[5pt]
+\texttt{PySCFSWIGIEFPCMResponse}
+  & S-\dfrac{f_\epsilon}{2\pi}DAS
+  & -f_\epsilon\left(I-\dfrac{DA}{2\pi}\right),
+  \quad f_\epsilon=\dfrac{\epsilon-1}{\epsilon+1}.
+\end{array}
+\]
+
+These are the exact branches in the version-locked
+`pyscf.solvent.pcm.PCM.build()` implementation. The common
+\((\epsilon-1)/\epsilon\) conductor scaling does **not** make C-PCM identical
+to ddCOSMO: C-PCM solves the global SWIG surface-charge equation \(Sq=-fV\),
+whereas ddCOSMO uses a domain-decomposition discretization and its own cavity
+operator. Conversely, the PySCF `COSMO` wrapper is not silently aliased to
+C-PCM because its finite-dielectric denominator is \(\epsilon+\tfrac12\).
+
+MAPLE passes one radius per atom to PySCF's unmodified `gen_surface()` through
+an atom-index molecule view and retains the real molecule for nuclear
+identities and gradient bookkeeping. A runtime guard checks the PySCF 2.13.1
+integer-index behavior on which this version-locked bridge depends.
+Equal-radius repeated-element surfaces are bitwise identical to PySCF's
+ordinary element-radius path, while methyl acetate correctly retains different
+`o=1.70 A` and `os=1.52 A` oxygen radii.
 
 On fixed-density order-17 acetone (643 surface points), three representative
 coordinate derivatives at \(10^{-4}\) angstrom had relative errors
@@ -1586,10 +1613,10 @@ symmetrization or half-coupling identity is inconsistent. The current
 `PCMSolverExternalMEPCavityResponse` accepts only `MATRIXSYMM=TRUE`, for which
 all three charges coincide. Both the existing energy path and
 `FixedCavityPCMReactionFieldLinearMap` consume this energy-conjugate contract.
-PCMSolver remains the only public parser/calculator backend.
-`PySCFSWIGIEFPCMResponse` is a separately named, optional research adapter:
-importing MAPLE does not require PySCF, and the adapter cannot be selected by
-the public input language.
+PCMSolver and pyddx remain the only public parser/calculator backends.
+`PySCFSWIGPCMResponse` and its IEFPCM/C-PCM/COSMO wrappers are separately
+named, optional research adapters: importing MAPLE does not require PySCF, and
+the adapters cannot be selected by the public input language.
 
 The corresponding provider-neutral operator-derivative boundary is
 `ExternalMEPCavityOperatorDerivative` contract version 1. It does not expose a
@@ -1885,6 +1912,10 @@ Route-2 references:
   discretization scheme for polarizable continuum models: The
   switching/Gaussian approach,” *J. Chem. Phys.* **133**, 244111 (2010),
   DOI `10.1063/1.3511297`.
+- M. Cossi, N. Rega, G. Scalmani, and V. Barone, “Energies, structures, and
+  electronic properties of molecules in solution with the C-PCM solvation
+  model,” *J. Comput. Chem.* **24**, 669--681 (2003),
+  DOI `10.1002/jcc.10189`.
 - B. G. Johnson, P. M. W. Gill, and J. A. Pople, “A rotationally invariant
   procedure for density functional calculations,” *Chem. Phys. Lett.* **220**,
   377--384 (1994),

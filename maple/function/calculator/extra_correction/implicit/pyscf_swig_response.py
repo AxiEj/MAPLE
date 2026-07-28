@@ -1,9 +1,10 @@
-"""Optional PySCF SWIG/IEFPCM response for the Route-2 research force path.
+"""Optional PySCF SWIG PCM responses for the Route-2 research force path.
 
 PySCF is imported lazily and is not a MAPLE runtime dependency.  This adapter
-uses PySCF's own SWIG surface, IEFPCM matrices, and analytic operator gradient;
-MAPLE supplies only an external surface MEP and keeps the direct, transpose, and
-energy-conjugate responses distinct.  The private PySCF gradient-intermediate
+uses PySCF's own SWIG surface, PCM matrix definitions, and analytic operator
+gradient; MAPLE supplies only an external surface MEP and keeps the direct,
+transpose, and energy-conjugate responses distinct.  IEFPCM, C-PCM, and COSMO
+remain separately named equations.  The private PySCF gradient-intermediate
 layout is version-gated until upstream exposes a public external-MEP derivative
 API.
 """
@@ -13,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import importlib
 import math
-from typing import Any, Sequence
+from typing import Any, Literal, Sequence
 import warnings
 
 import numpy as np
@@ -56,7 +57,7 @@ def _load_pyscf_runtime() -> _PySCFRuntime:
         pcm_grad = importlib.import_module("pyscf.solvent.grad.pcm")
     except ImportError as exc:
         raise ImportError(
-            "The optional PySCF SWIG/IEFPCM research provider requires "
+            "The optional PySCF SWIG PCM research provider requires "
             f"PySCF {TESTED_PYSCF_VERSION}; MAPLE does not install it "
             "automatically."
         ) from exc
@@ -192,8 +193,21 @@ def _surface_parent_indices(
     return parents
 
 
-class PySCFSWIGIEFPCMResponse:
-    """One immutable PySCF SWIG/IEFPCM energy-conjugate response operator."""
+_SUPPORTED_CONTINUUM_MODELS = frozenset({"iefpcm", "cpcm", "cosmo"})
+_PYSCF_METHODS = {
+    "iefpcm": "IEFPCM",
+    "cpcm": "C-PCM",
+    "cosmo": "COSMO",
+}
+_DISPLAY_NAMES = {
+    "iefpcm": "IEFPCM",
+    "cpcm": "C-PCM",
+    "cosmo": "COSMO",
+}
+
+
+class PySCFSWIGPCMResponse:
+    """One immutable PySCF SWIG PCM energy-conjugate response operator."""
 
     contract_version = EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
     operator_derivative_contract_version = (
@@ -210,6 +224,7 @@ class PySCFSWIGIEFPCMResponse:
         atom_positions_angstrom: np.ndarray,
         cavity_radii_angstrom: np.ndarray,
         *,
+        continuum_model: Literal["iefpcm", "cpcm", "cosmo"],
         dielectric: float,
         lebedev_order: int,
         _runtime: _PySCFRuntime | None = None,
@@ -220,12 +235,22 @@ class PySCFSWIGIEFPCMResponse:
             feature="The private PySCF external-MEP gradient bridge",
         )
 
+        normalized_model = str(continuum_model).strip().lower()
+        if normalized_model not in _SUPPORTED_CONTINUUM_MODELS:
+            raise ValueError(
+                "continuum_model must be iefpcm, cpcm, or cosmo; "
+                f"received {continuum_model!r}."
+            )
+        pyscf_method = _PYSCF_METHODS[normalized_model]
+        display_name = _DISPLAY_NAMES[normalized_model]
         symbol_tuple = tuple(str(symbol) for symbol in symbols)
         positions = np.asarray(atom_positions_angstrom, dtype=float)
         radii = np.asarray(cavity_radii_angstrom, dtype=float)
         atom_count = len(symbol_tuple)
         if atom_count == 0:
-            raise ValueError("PySCF SWIG/IEFPCM requires at least one atom.")
+            raise ValueError(
+                f"PySCF SWIG/{display_name} requires at least one atom."
+            )
         if positions.shape != (atom_count, 3) or not np.all(
             np.isfinite(positions)
         ):
@@ -317,21 +342,38 @@ class PySCFSWIGIEFPCMResponse:
             or not np.all(np.isfinite(S))
         ):
             raise RuntimeError(
-                "PySCF IEFPCM D/S matrices must be finite square surface matrices."
+                f"PySCF {display_name} D/S matrices must be finite square "
+                "surface matrices."
             )
 
-        f_epsilon = (
-            (dielectric_value - 1.0) / (dielectric_value + 1.0)
-        )
-        DA = D * area
-        K = S - f_epsilon / (2.0 * math.pi) * (DA @ S)
-        R = -f_epsilon * (
-            np.eye(surface_size) - DA / (2.0 * math.pi)
-        )
+        if normalized_model == "cpcm":
+            f_epsilon = (dielectric_value - 1.0) / dielectric_value
+            K = S
+            R = -f_epsilon * np.eye(surface_size)
+        elif normalized_model == "cosmo":
+            f_epsilon = (
+                (dielectric_value - 1.0) / (dielectric_value + 0.5)
+            )
+            K = S
+            R = -f_epsilon * np.eye(surface_size)
+        else:
+            f_epsilon = (
+                (dielectric_value - 1.0) / (dielectric_value + 1.0)
+            )
+            DA = D * area
+            K = S - f_epsilon / (2.0 * math.pi) * (DA @ S)
+            R = -f_epsilon * (
+                np.eye(surface_size) - DA / (2.0 * math.pi)
+            )
         if not np.all(np.isfinite(K)) or not np.all(np.isfinite(R)):
-            raise RuntimeError("PySCF IEFPCM K/R matrices contain non-finite values.")
+            raise RuntimeError(
+                f"PySCF {display_name} K/R matrices contain non-finite values."
+            )
 
         self._runtime = runtime
+        self._continuum_model = normalized_model
+        self._pyscf_method = pyscf_method
+        self._display_name = display_name
         self._symbols = symbol_tuple
         self._positions_angstrom = positions.copy()
         self._radii_angstrom = radii.copy()
@@ -347,13 +389,14 @@ class PySCFSWIGIEFPCMResponse:
         self._S = S.copy()
         self._K = K
         self._R = R
+        self._f_epsilon = f_epsilon
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("error", LinAlgWarning)
                 self._lu_and_piv = lu_factor(K, check_finite=True)
         except (LinAlgError, LinAlgWarning, ValueError) as exc:
             raise RuntimeError(
-                "PySCF IEFPCM response matrix factorization failed."
+                f"PySCF {display_name} response matrix factorization failed."
             ) from exc
         self.atom_count = atom_count
         self.surface_size = surface_size
@@ -385,10 +428,14 @@ class PySCFSWIGIEFPCMResponse:
     @property
     def runtime_provenance(self) -> dict[str, str | int | float]:
         return {
-            "provider": "pyscf-swig-iefpcm",
+            "provider": f"pyscf-swig-{self._continuum_model}",
             "pyscf_version": self._runtime.version,
+            "continuum_model": self._continuum_model,
+            "pyscf_pcm_method": self._pyscf_method,
             "lebedev_order": self._lebedev_order,
             "static_dielectric": self._dielectric,
+            "dielectric_scaling": self._f_epsilon,
+            "equation_source": "pyscf.solvent.pcm.PCM.build",
             "cavity_radius_assignment": "per-atom",
         }
 
@@ -414,7 +461,9 @@ class PySCFSWIGIEFPCMResponse:
                 check_finite=True,
             )
         except (LinAlgError, ValueError) as exc:
-            raise RuntimeError("PySCF IEFPCM response solve failed.") from exc
+            raise RuntimeError(
+                f"PySCF {self._display_name} response solve failed."
+            ) from exc
         adjoint = self._R.T @ inverse_transpose_potential
         conjugate = 0.5 * (direct + adjoint)
         if not all(
@@ -422,7 +471,8 @@ class PySCFSWIGIEFPCMResponse:
             for values in (direct, adjoint, conjugate)
         ):
             raise RuntimeError(
-                "PySCF IEFPCM response solve produced non-finite values."
+                f"PySCF {self._display_name} response solve produced "
+                "non-finite values."
             )
         return direct, adjoint, conjugate
 
@@ -466,7 +516,7 @@ class PySCFSWIGIEFPCMResponse:
         direct, _, conjugate = self._solve_components(potential)
         dm = np.zeros((self._mol.nao, self._mol.nao), dtype=float)
         pcm_object = self._runtime.pcm.PCM(self._mol)
-        pcm_object.method = "IEFPCM"
+        pcm_object.method = self._pyscf_method
         pcm_object.eps = self._dielectric
         pcm_object.surface_discretization_method = "SWIG"
         pcm_object.surface = self._surface
@@ -476,6 +526,7 @@ class PySCFSWIGIEFPCMResponse:
             "S": self._S,
             "K": self._K,
             "R": self._R,
+            "f_epsilon": self._f_epsilon,
             "q": direct,
             "q_sym": conjugate,
             "v_grids": potential,
@@ -528,7 +579,82 @@ class PySCFSWIGIEFPCMResponse:
         )
 
 
+class PySCFSWIGIEFPCMResponse(PySCFSWIGPCMResponse):
+    """Version-locked PySCF SWIG/IEFPCM response."""
+
+    def __init__(
+        self,
+        symbols: Sequence[str],
+        atom_positions_angstrom: np.ndarray,
+        cavity_radii_angstrom: np.ndarray,
+        *,
+        dielectric: float,
+        lebedev_order: int,
+        _runtime: _PySCFRuntime | None = None,
+    ) -> None:
+        super().__init__(
+            symbols,
+            atom_positions_angstrom,
+            cavity_radii_angstrom,
+            continuum_model="iefpcm",
+            dielectric=dielectric,
+            lebedev_order=lebedev_order,
+            _runtime=_runtime,
+        )
+
+
+class PySCFSWIGCPCMResponse(PySCFSWIGPCMResponse):
+    """Version-locked PySCF SWIG/C-PCM response."""
+
+    def __init__(
+        self,
+        symbols: Sequence[str],
+        atom_positions_angstrom: np.ndarray,
+        cavity_radii_angstrom: np.ndarray,
+        *,
+        dielectric: float,
+        lebedev_order: int,
+        _runtime: _PySCFRuntime | None = None,
+    ) -> None:
+        super().__init__(
+            symbols,
+            atom_positions_angstrom,
+            cavity_radii_angstrom,
+            continuum_model="cpcm",
+            dielectric=dielectric,
+            lebedev_order=lebedev_order,
+            _runtime=_runtime,
+        )
+
+
+class PySCFSWIGCOSMOResponse(PySCFSWIGPCMResponse):
+    """Version-locked PySCF SWIG/COSMO response."""
+
+    def __init__(
+        self,
+        symbols: Sequence[str],
+        atom_positions_angstrom: np.ndarray,
+        cavity_radii_angstrom: np.ndarray,
+        *,
+        dielectric: float,
+        lebedev_order: int,
+        _runtime: _PySCFRuntime | None = None,
+    ) -> None:
+        super().__init__(
+            symbols,
+            atom_positions_angstrom,
+            cavity_radii_angstrom,
+            continuum_model="cosmo",
+            dielectric=dielectric,
+            lebedev_order=lebedev_order,
+            _runtime=_runtime,
+        )
+
+
 __all__ = [
     "TESTED_PYSCF_VERSION",
+    "PySCFSWIGCPCMResponse",
+    "PySCFSWIGCOSMOResponse",
     "PySCFSWIGIEFPCMResponse",
+    "PySCFSWIGPCMResponse",
 ]

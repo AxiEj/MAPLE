@@ -9,7 +9,10 @@ from ase.units import Bohr
 
 from maple.function.calculator.extra_correction.implicit.pyscf_swig_response import (
     TESTED_PYSCF_VERSION,
+    PySCFSWIGCPCMResponse,
+    PySCFSWIGCOSMOResponse,
     PySCFSWIGIEFPCMResponse,
+    PySCFSWIGPCMResponse,
     _PySCFRuntime,
 )
 
@@ -100,10 +103,12 @@ class _FakePCM:
 
 class _FakePCMGradient:
     _base = np.asarray([[1.0, -2.0, 0.5], [-0.7, 0.4, 1.3]])
+    last_method = None
 
     @classmethod
     def grad_solver(cls, pcm_object, dm):
         assert dm.shape == (2, 2)
+        cls.last_method = pcm_object.method
         potential = np.asarray(
             pcm_object._intermediates["v_grids"],
             dtype=float,
@@ -125,6 +130,7 @@ def fake_runtime():
 
     RecordingPCM.last_surface_elements = None
     RecordingPCM.last_surface_radii = None
+    _FakePCMGradient.last_method = None
     return _FakeRuntimeBundle(
         runtime=_PySCFRuntime(
             version=TESTED_PYSCF_VERSION,
@@ -203,6 +209,104 @@ def test_pyscf_swig_response_uses_energy_conjugate_direct_and_adjoint_solve(
         == "per-atom"
     )
     assert np.issubdtype(response.atomic_numbers.dtype, np.integer)
+
+
+@pytest.mark.parametrize(
+    ("response_type", "method", "f_epsilon"),
+    (
+        (
+            PySCFSWIGCPCMResponse,
+            "C-PCM",
+            (4.0 - 1.0) / 4.0,
+        ),
+        (
+            PySCFSWIGCOSMOResponse,
+            "COSMO",
+            (4.0 - 1.0) / (4.0 + 0.5),
+        ),
+    ),
+)
+def test_pyscf_swig_conductor_models_use_distinct_upstream_screening(
+    fake_runtime,
+    response_type,
+    method,
+    f_epsilon,
+):
+    response = response_type(
+        ("H", "O"),
+        np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]]),
+        np.asarray([1.2, 1.5]),
+        dielectric=4.0,
+        lebedev_order=17,
+        _runtime=fake_runtime.runtime,
+    )
+    potential = np.asarray([0.2, -0.1, 0.3, -0.25])
+    _, S = fake_runtime.pcm.get_D_S(None, with_S=True, with_D=True)
+    expected = np.linalg.solve(S, -f_epsilon * potential)
+
+    state = response.solve(potential)
+
+    np.testing.assert_allclose(
+        state.direct_surface_charge_e,
+        expected,
+        rtol=2.0e-13,
+        atol=2.0e-13,
+    )
+    np.testing.assert_allclose(
+        state.adjoint_surface_charge_e,
+        expected,
+        rtol=2.0e-13,
+        atol=2.0e-13,
+    )
+    np.testing.assert_allclose(
+        state.energy_conjugate_surface_charge_e,
+        expected,
+        rtol=2.0e-13,
+        atol=2.0e-13,
+    )
+    assert response.runtime_provenance["pyscf_pcm_method"] == method
+    assert response.runtime_provenance["dielectric_scaling"] == pytest.approx(
+        f_epsilon
+    )
+
+    response.operator_position_vjp(potential, -0.5 * potential)
+    assert fake_runtime.gradient.last_method == method
+
+
+def test_pyscf_swig_cpcm_and_cosmo_are_not_aliases(fake_runtime):
+    common = dict(
+        symbols=("H", "O"),
+        atom_positions_angstrom=np.asarray(
+            [[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]]
+        ),
+        cavity_radii_angstrom=np.asarray([1.2, 1.5]),
+        dielectric=4.0,
+        lebedev_order=17,
+        _runtime=fake_runtime.runtime,
+    )
+    potential = np.asarray([0.2, -0.1, 0.3, -0.25])
+
+    cpcm = PySCFSWIGCPCMResponse(**common).solve(potential)
+    cosmo = PySCFSWIGCOSMOResponse(**common).solve(potential)
+
+    assert cpcm.polarization_energy_hartree != pytest.approx(
+        cosmo.polarization_energy_hartree,
+        rel=1.0e-8,
+        abs=1.0e-12,
+    )
+
+
+def test_pyscf_swig_generic_response_rejects_unknown_model(fake_runtime):
+    with pytest.raises(ValueError, match="iefpcm, cpcm, or cosmo"):
+        PySCFSWIGPCMResponse(
+            ("H", "O"),
+            np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]]),
+            np.asarray([1.2, 1.5]),
+            continuum_model="unknown",
+            dielectric=78.39,
+            lebedev_order=17,
+            _runtime=fake_runtime.runtime,
+        )
 
 
 def test_pyscf_swig_operator_bilinear_vjp_uses_polarization_identity(

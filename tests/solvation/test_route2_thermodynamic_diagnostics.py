@@ -12,6 +12,7 @@ from maple.function.calculator.extra_correction.implicit.route2_thermodynamic_di
     field_loop_work_diagnostic,
     fixed_point_feedback_spectrum_diagnostic,
     intrinsic_feature_conjugacy_diagnostic,
+    matrix_free_fixed_point_feedback_gain_diagnostic,
     response_reciprocity_diagnostic,
     response_stability_diagnostic,
 )
@@ -97,6 +98,14 @@ class _ReducedFeedbackResidual:
             self.feedback_matrix @ reduced
         )
         return direction - feedback
+
+    def vjp(self, density_cotangent):
+        cotangent = np.asarray(density_cotangent, dtype=float)
+        reduced = self.coordinates.reduce(cotangent)
+        feedback = self.coordinates.expand(
+            self.feedback_matrix.T @ reduced
+        )
+        return cotangent - feedback
 
 
 def _field():
@@ -434,6 +443,85 @@ def test_fixed_point_feedback_spectrum_validates_budget_and_mixing():
             residual,
             mixing_values=(0.5, 0.5),
         )
+
+
+@pytest.mark.parametrize(
+    "feedback",
+    (
+        np.diag([0.5, -0.3, 0.2, 0.1, 0.05, -0.02, 0.01]),
+        np.asarray(
+            [
+                [0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.05, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.02, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01],
+            ]
+        ),
+    ),
+)
+def test_matrix_free_feedback_gain_matches_the_complete_small_system_oracle(
+    feedback,
+):
+    residual = _ReducedFeedbackResidual(feedback)
+    complete = fixed_point_feedback_spectrum_diagnostic(
+        residual,
+        mixing_values=(1.0,),
+    )
+
+    estimated = matrix_free_fixed_point_feedback_gain_diagnostic(
+        residual,
+        solver_tolerance=1.0e-12,
+        maximum_iterations=100,
+        random_seed=20260728,
+    )
+
+    assert estimated.dimension == feedback.shape[0]
+    assert estimated.largest_singular_value_estimate == pytest.approx(
+        complete.largest_singular_value,
+        rel=1.0e-10,
+        abs=1.0e-12,
+    )
+    assert estimated.relative_singular_triplet_residual < 1.0e-10
+    assert estimated.solver_converged is True
+    assert estimated.feedback_jvp_applications > 0
+    assert estimated.feedback_vjp_applications > 0
+
+
+def test_matrix_free_feedback_gain_validates_solver_controls():
+    dimension = NeutralDensityCoordinates(2).dimension
+    residual = _ReducedFeedbackResidual(np.zeros((dimension, dimension)))
+
+    with pytest.raises(ValueError, match="tolerance"):
+        matrix_free_fixed_point_feedback_gain_diagnostic(
+            residual,
+            solver_tolerance=0.0,
+        )
+    with pytest.raises(ValueError, match="iterations"):
+        matrix_free_fixed_point_feedback_gain_diagnostic(
+            residual,
+            maximum_iterations=0,
+        )
+    with pytest.raises(ValueError, match="Krylov"):
+        matrix_free_fixed_point_feedback_gain_diagnostic(
+            residual,
+            krylov_subspace_dimension=1,
+        )
+
+
+def test_matrix_free_feedback_gain_handles_the_zero_operator():
+    dimension = NeutralDensityCoordinates(2).dimension
+    diagnostic = matrix_free_fixed_point_feedback_gain_diagnostic(
+        _ReducedFeedbackResidual(np.zeros((dimension, dimension))),
+        solver_tolerance=1.0e-12,
+    )
+
+    assert diagnostic.largest_singular_value_estimate == pytest.approx(0.0)
+    assert diagnostic.relative_singular_triplet_residual == pytest.approx(0.0)
+    assert diagnostic.estimated_euclidean_contraction is True
+    assert diagnostic.solver == "zero-feedback-random-probe-v1"
 
 
 def test_field_loop_work_vanishes_for_a_conservative_linear_response():

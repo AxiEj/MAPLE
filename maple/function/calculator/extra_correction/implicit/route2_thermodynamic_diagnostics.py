@@ -26,6 +26,12 @@ from dataclasses import dataclass
 from typing import Protocol
 
 import numpy as np
+from scipy.sparse.linalg import (
+    ArpackError,
+    ArpackNoConvergence,
+    LinearOperator,
+    svds,
+)
 
 from .electrostatic_pairing import (
     MACE_POLAR_L1_PAIRING,
@@ -51,6 +57,17 @@ class UnmixedResidualLinearization(Protocol):
 
     def jvp(self, density_direction: np.ndarray) -> np.ndarray:
         """Apply ``Pi[c - M(P(c))]`` to a neutral density direction."""
+        ...
+
+
+class AdjointUnmixedResidualLinearization(
+    UnmixedResidualLinearization,
+    Protocol,
+):
+    """Neutral residual interface with the discrete adjoint required by SVD."""
+
+    def vjp(self, density_cotangent: np.ndarray) -> np.ndarray:
+        """Apply the transpose of the unmixed residual Jacobian."""
         ...
 
 
@@ -789,6 +806,252 @@ class FixedPointFeedbackSpectrumDiagnostic:
             )
 
 
+@dataclass(frozen=True)
+class MatrixFreeFixedPointFeedbackGainDiagnostic:
+    """Largest singular-value estimate of ``J_F`` without dense materialization.
+
+    The estimate uses the neutral-space ``J_F=I-J_R`` JVP and VJP.  Returning
+    from ARPACK and closing one singular-triplet residual demonstrate numerical
+    convergence of the requested Ritz pair, not a rigorous global upper bound
+    on the nonlinear feedback map.
+    """
+
+    dimension: int
+    largest_singular_value_estimate: float
+    left_singular_residual_norm: float
+    right_singular_residual_norm: float
+    relative_singular_triplet_residual: float
+    solver_residual_tolerance: float
+    solver_converged: bool
+    singular_triplet_residual_within_tolerance: bool
+    estimated_euclidean_contraction: bool
+    feedback_jvp_applications: int
+    feedback_vjp_applications: int
+    solver_tolerance: float
+    solver_maximum_iterations: int
+    krylov_subspace_dimension: int
+    random_seed: int
+    solver: str = "scipy.sparse.linalg.svds-arpack-largest"
+    operator: str = (
+        "Pi J_M J_P restricted to neutral density coordinates"
+    )
+    interpretation: str = (
+        "This matrix-free quantity screens the root-local maximum feedback "
+        "gain. It is an iterative largest-singular-value estimate, not a "
+        "certified upper bound and not a proof of nonlinear contractivity, "
+        "global fixed-point uniqueness, or thermodynamic passivity."
+    )
+
+    def __post_init__(self) -> None:
+        if self.dimension <= 0:
+            raise ValueError(
+                "Matrix-free feedback gain requires positive dimension."
+            )
+        if not all(
+            np.isfinite(value) and value >= 0.0
+            for value in (
+                self.largest_singular_value_estimate,
+                self.left_singular_residual_norm,
+                self.right_singular_residual_norm,
+                self.relative_singular_triplet_residual,
+                self.solver_residual_tolerance,
+            )
+        ):
+            raise ValueError(
+                "Matrix-free feedback metrics must be finite and nonnegative."
+            )
+        if self.feedback_jvp_applications <= 0:
+            raise ValueError(
+                "Matrix-free feedback gain requires at least one JVP."
+            )
+        if self.feedback_vjp_applications <= 0:
+            raise ValueError(
+                "Matrix-free feedback gain requires at least one VJP."
+            )
+        if self.solver_tolerance <= 0.0:
+            raise ValueError(
+                "Matrix-free feedback solver tolerance must be positive."
+            )
+        if self.solver_maximum_iterations <= 0:
+            raise ValueError(
+                "Matrix-free feedback maximum iterations must be positive."
+            )
+        if not 1 < self.krylov_subspace_dimension < self.dimension:
+            raise ValueError(
+                "Matrix-free feedback Krylov dimension must lie strictly "
+                "between one and the neutral-space dimension."
+            )
+
+
+def matrix_free_fixed_point_feedback_gain_diagnostic(
+    residual_linearization: AdjointUnmixedResidualLinearization,
+    *,
+    solver_tolerance: float = 1.0e-6,
+    maximum_iterations: int = 100,
+    krylov_subspace_dimension: int = 10,
+    random_seed: int = 20260728,
+) -> MatrixFreeFixedPointFeedbackGainDiagnostic:
+    """Estimate ``sigma_max(J_F)`` using only neutral residual JVPs and VJPs.
+
+    ``R(c)=Pi[c-F(c)]`` gives ``J_F d=d-J_R d`` and
+    ``J_F* y=y-J_R* y``.  ARPACK therefore sees a square neutral-space
+    ``LinearOperator`` without materializing all ``4N-1`` columns.  The dense
+    complete-spectrum diagnostic remains the small-system oracle.
+    """
+
+    if not np.isfinite(solver_tolerance) or solver_tolerance <= 0.0:
+        raise ValueError(
+            "Matrix-free feedback solver tolerance must be positive."
+        )
+    if maximum_iterations <= 0:
+        raise ValueError(
+            "Matrix-free feedback maximum iterations must be positive."
+        )
+    if krylov_subspace_dimension <= 1:
+        raise ValueError(
+            "Matrix-free feedback Krylov dimension must exceed one."
+        )
+    if not callable(getattr(residual_linearization, "vjp", None)):
+        raise TypeError(
+            "Matrix-free feedback gain requires an unmixed residual VJP."
+        )
+    atom_count = int(getattr(residual_linearization, "atom_count", 0))
+    if atom_count <= 0:
+        raise ValueError(
+            "Matrix-free feedback residual requires a positive atom count."
+        )
+    coordinates = NeutralDensityCoordinates(atom_count)
+    dimension = coordinates.dimension
+    resolved_krylov_dimension = min(
+        dimension - 1,
+        int(krylov_subspace_dimension),
+    )
+    expected_shape = (atom_count, 4)
+    counts = {"jvp": 0, "vjp": 0}
+
+    def feedback_jvp(reduced_direction: np.ndarray) -> np.ndarray:
+        counts["jvp"] += 1
+        direction = coordinates.expand(
+            np.asarray(reduced_direction, dtype=float).reshape(-1)
+        )
+        residual_direction = _validated_block(
+            residual_linearization.jvp(direction),
+            name="matrix-free unmixed residual JVP",
+            expected_shape=expected_shape,
+        )
+        return coordinates.reduce(direction - residual_direction)
+
+    def feedback_vjp(reduced_cotangent: np.ndarray) -> np.ndarray:
+        counts["vjp"] += 1
+        cotangent = coordinates.expand(
+            np.asarray(reduced_cotangent, dtype=float).reshape(-1)
+        )
+        residual_cotangent = _validated_block(
+            residual_linearization.vjp(cotangent),
+            name="matrix-free unmixed residual VJP",
+            expected_shape=expected_shape,
+        )
+        return coordinates.reduce(cotangent - residual_cotangent)
+
+    operator = LinearOperator(
+        shape=(dimension, dimension),
+        matvec=feedback_jvp,
+        rmatvec=feedback_vjp,
+        dtype=float,
+    )
+    rng = np.random.default_rng(random_seed)
+    initial = rng.normal(size=dimension)
+    initial /= float(np.linalg.norm(initial))
+    initial_feedback_norm = float(np.linalg.norm(feedback_jvp(initial)))
+    zero_tolerance = 128.0 * np.finfo(float).eps * dimension
+    if initial_feedback_norm <= zero_tolerance:
+        left_probe = rng.normal(size=dimension)
+        left_probe /= float(np.linalg.norm(left_probe))
+        adjoint_probe_norm = float(np.linalg.norm(feedback_vjp(left_probe)))
+        if adjoint_probe_norm <= zero_tolerance:
+            relative_residual = float(
+                np.hypot(initial_feedback_norm, adjoint_probe_norm)
+            )
+            return MatrixFreeFixedPointFeedbackGainDiagnostic(
+                dimension=dimension,
+                largest_singular_value_estimate=0.0,
+                left_singular_residual_norm=initial_feedback_norm,
+                right_singular_residual_norm=adjoint_probe_norm,
+                relative_singular_triplet_residual=relative_residual,
+                solver_residual_tolerance=max(
+                    10.0 * solver_tolerance,
+                    zero_tolerance,
+                ),
+                solver_converged=True,
+                singular_triplet_residual_within_tolerance=True,
+                estimated_euclidean_contraction=True,
+                feedback_jvp_applications=counts["jvp"],
+                feedback_vjp_applications=counts["vjp"],
+                solver_tolerance=solver_tolerance,
+                solver_maximum_iterations=maximum_iterations,
+                krylov_subspace_dimension=resolved_krylov_dimension,
+                random_seed=random_seed,
+                solver="zero-feedback-random-probe-v1",
+            )
+    try:
+        left_vectors, singular_values, right_vectors_transpose = svds(
+            operator,
+            k=1,
+            ncv=resolved_krylov_dimension,
+            tol=solver_tolerance,
+            which="LM",
+            v0=initial,
+            maxiter=maximum_iterations,
+            return_singular_vectors=True,
+            solver="arpack",
+        )
+    except (ArpackError, ArpackNoConvergence) as exc:
+        raise RuntimeError(
+            "Matrix-free fixed-point feedback gain did not converge within "
+            f"{maximum_iterations} ARPACK iterations."
+        ) from exc
+
+    singular_value = float(singular_values[-1])
+    left_vector = np.asarray(left_vectors[:, -1], dtype=float)
+    right_vector = np.asarray(
+        right_vectors_transpose[-1, :],
+        dtype=float,
+    )
+    left_residual = float(
+        np.linalg.norm(feedback_jvp(right_vector) - singular_value * left_vector)
+    )
+    right_residual = float(
+        np.linalg.norm(feedback_vjp(left_vector) - singular_value * right_vector)
+    )
+    relative_residual = float(
+        np.hypot(left_residual, right_residual)
+        / max(1.0, singular_value)
+    )
+    residual_tolerance = max(
+        10.0 * solver_tolerance,
+        128.0 * np.finfo(float).eps * dimension,
+    )
+    return MatrixFreeFixedPointFeedbackGainDiagnostic(
+        dimension=dimension,
+        largest_singular_value_estimate=singular_value,
+        left_singular_residual_norm=left_residual,
+        right_singular_residual_norm=right_residual,
+        relative_singular_triplet_residual=relative_residual,
+        solver_residual_tolerance=residual_tolerance,
+        solver_converged=True,
+        singular_triplet_residual_within_tolerance=(
+            relative_residual <= residual_tolerance
+        ),
+        estimated_euclidean_contraction=(singular_value < 1.0),
+        feedback_jvp_applications=counts["jvp"],
+        feedback_vjp_applications=counts["vjp"],
+        solver_tolerance=solver_tolerance,
+        solver_maximum_iterations=maximum_iterations,
+        krylov_subspace_dimension=resolved_krylov_dimension,
+        random_seed=random_seed,
+    )
+
+
 def fixed_point_feedback_spectrum_diagnostic(
     residual_linearization: UnmixedResidualLinearization,
     *,
@@ -1050,11 +1313,13 @@ def field_loop_work_diagnostic(
 
 
 __all__ = [
+    "AdjointUnmixedResidualLinearization",
     "BlockConjugacyDefect",
     "EnergyDensityConjugacyDiagnostic",
     "FieldLoopWorkDiagnostic",
     "FixedPointFeedbackSpectrumDiagnostic",
     "IntrinsicFeatureConjugacyDiagnostic",
+    "MatrixFreeFixedPointFeedbackGainDiagnostic",
     "MixingIterationDiagnostic",
     "RelativeVectorDefect",
     "ResidualOperatorConditionDiagnostic",
@@ -1064,6 +1329,7 @@ __all__ = [
     "field_loop_work_diagnostic",
     "fixed_point_feedback_spectrum_diagnostic",
     "intrinsic_feature_conjugacy_diagnostic",
+    "matrix_free_fixed_point_feedback_gain_diagnostic",
     "response_reciprocity_diagnostic",
     "response_stability_diagnostic",
 ]

@@ -187,3 +187,70 @@ def test_response_ablation_shard_disclosure_and_indices_are_explicit():
 
     with pytest.raises(TypeError, match="Selection indices"):
         response_runner._selection_indices([{"selection_index": True}])
+
+
+def test_response_ablation_stage_bound_is_private_and_method_complete():
+    assert response_runner._validated_evaluated_methods(
+        maximum_response_stage="one-shot",
+        partition_shard=True,
+    ) == response_runner.ABLATION_METHODS[:-1]
+    assert response_runner._validated_evaluated_methods(
+        maximum_response_stage="scf",
+        partition_shard=False,
+    ) == response_runner.ABLATION_METHODS
+
+    with pytest.raises(ValueError, match="private frozen MNSol partition"):
+        response_runner._validated_evaluated_methods(
+            maximum_response_stage="one-shot",
+            partition_shard=False,
+        )
+
+
+def _scf_result(*, gas_energy_ev: float = -10.0) -> dict[str, object]:
+    return {
+        "gas_energy_hartree": gas_energy_ev * response_runner.EV2HARTREE,
+        "smd_cds_energy_kcal_mol": 0.4,
+        "solute_polarization_kcal_mol": 0.2,
+        "continuum_polarization_kcal_mol": -1.1,
+        "timing_seconds": {"public_energy": 3.0},
+        "scf_iterations": 7,
+        "unmixed_density_residual_inf_e": 1.0e-13,
+        "half_coupling_identity_error_ev": 2.0e-14,
+    }
+
+
+def test_response_ablation_audits_provider_failure_before_reraising():
+    failures: list[Exception] = []
+
+    def _provider_failure():
+        raise RuntimeError("provider failed")
+
+    with pytest.raises(RuntimeError, match="provider failed"):
+        response_runner._run_audited_scf_stage(
+            evaluator=_provider_failure,
+            on_failure=failures.append,
+            gas_energy_ev=-10.0,
+            cds_energy_kcal_mol=0.4,
+            experimental_kcal_mol=-0.5,
+        )
+
+    assert len(failures) == 1
+    assert str(failures[0]) == "provider failed"
+
+
+def test_response_ablation_audits_returned_scf_identity_failure():
+    failures: list[Exception] = []
+    inconsistent = _scf_result()
+    inconsistent["gas_energy_hartree"] = 0.0
+
+    with pytest.raises(RuntimeError, match="MACE gas energies"):
+        response_runner._run_audited_scf_stage(
+            evaluator=lambda: inconsistent,
+            on_failure=failures.append,
+            gas_energy_ev=-10.0,
+            cds_energy_kcal_mol=0.4,
+            experimental_kcal_mol=-0.5,
+        )
+
+    assert len(failures) == 1
+    assert "MACE gas energies" in str(failures[0])

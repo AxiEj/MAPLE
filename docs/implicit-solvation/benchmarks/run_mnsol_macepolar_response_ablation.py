@@ -20,7 +20,7 @@ import platform
 import subprocess
 import sys
 import time
-from typing import Any, Mapping, Sequence, cast
+from typing import Any, Callable, Mapping, Sequence, cast
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BENCHMARK_DIR = Path(__file__).resolve().parent
@@ -101,6 +101,7 @@ PAIRED_COMPARISONS = (
     ("mace_fixed_l1", "mace_scf_l1"),
     ("mace_one_shot_l1", "mace_scf_l1"),
 )
+MAXIMUM_RESPONSE_STAGES = ("one-shot", "scf")
 SelectionRecord = MNSolPilotSelection | MNSolPartitionSelection
 
 
@@ -175,6 +176,32 @@ def _row_level_data_emitted(*, complete_panel: bool) -> bool:
     return not complete_panel
 
 
+def _evaluated_methods(maximum_response_stage: str) -> tuple[str, ...]:
+    if maximum_response_stage == "one-shot":
+        return ABLATION_METHODS[:-1]
+    if maximum_response_stage == "scf":
+        return ABLATION_METHODS
+    raise ValueError(
+        "Maximum response stage must be one of "
+        + ", ".join(MAXIMUM_RESPONSE_STAGES)
+        + "."
+    )
+
+
+def _validated_evaluated_methods(
+    *,
+    maximum_response_stage: str,
+    partition_shard: bool,
+) -> tuple[str, ...]:
+    methods = _evaluated_methods(maximum_response_stage)
+    if maximum_response_stage != "scf" and not partition_shard:
+        raise ValueError(
+            "A stage-bounded response-ablation run is allowed only for a "
+            "private frozen MNSol partition shard."
+        )
+    return methods
+
+
 def _source_hashes() -> dict[str, str]:
     root = "maple/function/calculator/extra_correction/implicit"
     paths = (
@@ -246,6 +273,69 @@ def _fixed_ledger(experiment, cds, model_seconds, continuum_seconds, state):
     )
 
 
+def _validated_scf_ledger(
+    scf: Mapping[str, Any],
+    *,
+    gas_energy_ev: float,
+    cds_energy_kcal_mol: float,
+    experimental_kcal_mol: float,
+) -> dict[str, object]:
+    if (
+        abs(float(scf["gas_energy_hartree"]) - gas_energy_ev * EV2HARTREE)
+        > 1.0e-10
+    ):
+        raise RuntimeError("Direct and public MACE gas energies differ.")
+    if (
+        abs(float(scf["smd_cds_energy_kcal_mol"]) - cds_energy_kcal_mol)
+        > 1.0e-9
+    ):
+        raise RuntimeError("Direct and public SMD-CDS energies differ.")
+    timing = scf["timing_seconds"]
+    if not isinstance(timing, Mapping):
+        raise TypeError("SCF timing metadata must be a mapping.")
+    return compose_method_ledger(
+        experimental_kcal_mol=experimental_kcal_mol,
+        solute_polarization_kcal_mol=float(
+            scf["solute_polarization_kcal_mol"]
+        ),
+        continuum_polarization_kcal_mol=float(
+            scf["continuum_polarization_kcal_mol"]
+        ),
+        smd_cds_kcal_mol=float(scf["smd_cds_energy_kcal_mol"]),
+        wall_seconds=float(timing["public_energy"]),
+        extra={
+            "scf_iterations": scf["scf_iterations"],
+            "unmixed_density_residual_inf_e": scf[
+                "unmixed_density_residual_inf_e"
+            ],
+            "half_coupling_identity_error_ev": scf[
+                "half_coupling_identity_error_ev"
+            ],
+        },
+    )
+
+
+def _run_audited_scf_stage(
+    *,
+    evaluator: Callable[[], Mapping[str, Any]],
+    on_failure: Callable[[Exception], None],
+    gas_energy_ev: float,
+    cds_energy_kcal_mol: float,
+    experimental_kcal_mol: float,
+) -> dict[str, object]:
+    try:
+        scf = evaluator()
+        return _validated_scf_ledger(
+            scf,
+            gas_energy_ev=gas_energy_ev,
+            cds_energy_kcal_mol=cds_energy_kcal_mol,
+            experimental_kcal_mol=experimental_kcal_mol,
+        )
+    except Exception as exc:
+        on_failure(exc)
+        raise
+
+
 def _validate_experimental_selection(selection, protocol) -> dict[str, object]:
     if protocol.temperature_k != 298.0:
         raise RuntimeError("The frozen comparison requires 298 K.")
@@ -269,13 +359,14 @@ def _validate_experimental_selection(selection, protocol) -> dict[str, object]:
     }
 
 
-def _metrics(records):
+def _metrics(records, methods: Sequence[str]):
     return {
-        method: aggregate_method_metrics(records, method) for method in ABLATION_METHODS
+        method: aggregate_method_metrics(records, method) for method in methods
     }
 
 
-def _comparisons(records):
+def _comparisons(records, methods: Sequence[str]):
+    evaluated = frozenset(methods)
     return {
         f"{left}__to__{right}": paired_method_comparison(
             records,
@@ -283,6 +374,7 @@ def _comparisons(records):
             right=right,
         )
         for left, right in PAIRED_COMPARISONS
+        if left in evaluated and right in evaluated
     }
 
 
@@ -298,6 +390,8 @@ def _private_artifact(
     status,
     complete_panel,
     run_kind,
+    evaluated_methods,
+    maximum_response_stage,
 ):
     return {
         "artifact": ARTIFACT_NAME,
@@ -307,6 +401,8 @@ def _private_artifact(
         "status": status,
         "complete_panel": complete_panel,
         "run_kind": run_kind,
+        "evaluated_methods": list(evaluated_methods),
+        "maximum_response_stage": maximum_response_stage,
         "execution_git_head": execution_git_head,
         "protocol_fingerprint": protocol.fingerprint,
         "selection_fingerprint": selection_manifest["selection_fingerprint"],
@@ -348,6 +444,15 @@ def _build_parser() -> argparse.ArgumentParser:
         "--record-index",
         type=int,
         help="Run one zero-based selected record as a smoke test.",
+    )
+    parser.add_argument(
+        "--maximum-response-stage",
+        choices=MAXIMUM_RESPONSE_STAGES,
+        default="scf",
+        help=(
+            "Stop after the one-shot response or continue through strict SCF. "
+            "The one-shot bound is allowed only for private partition shards."
+        ),
     )
     return parser
 
@@ -414,12 +519,21 @@ def main(argv: Sequence[str] | None = None) -> int:
                 (args.record_index, full_selection[args.record_index])
             ]
         complete_panel = len(indexed_selection) == len(full_selection)
+    maximum_response_stage = str(args.maximum_response_stage)
+    evaluated_methods = _validated_evaluated_methods(
+        maximum_response_stage=maximum_response_stage,
+        partition_shard=partition_shard,
+    )
     experimental_checks = _validate_experimental_selection(
         full_selection,
         protocol,
     )
     run_kind = (
-        "partition-record-shard"
+        (
+            "partition-record-shard"
+            if maximum_response_stage == "scf"
+            else "partition-record-shard-through-one-shot"
+        )
         if partition_shard
         else ("ten-record-panel" if complete_panel else "single-record-smoke")
     )
@@ -540,19 +654,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             float(one_shot_state.energy_ev) - float(gas_state.energy_ev)
         ) * EV_TO_KCAL_MOL
 
-        scf = mace_runtime._evaluate_method(
-            calculator=mace,
-            atoms=atoms,
-            selected=selected,
-            method="ddpcm",
-            profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
-            work_dir=work_dir,
-        )
-        if abs(scf["gas_energy_hartree"] - gas_state.energy_ev * EV2HARTREE) > 1.0e-10:
-            raise RuntimeError("Direct and public MACE gas energies differ.")
-        if abs(scf["smd_cds_energy_kcal_mol"] - cds.energy_kcal_mol) > 1.0e-9:
-            raise RuntimeError("Direct and public SMD-CDS energies differ.")
-
         experiment = record.delta_g_kcal_mol
         shared_fixed_time = cds_seconds
         methods = {
@@ -598,25 +699,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     ],
                 },
             ),
-            "mace_scf_l1": compose_method_ledger(
-                experimental_kcal_mol=experiment,
-                solute_polarization_kcal_mol=scf["solute_polarization_kcal_mol"],
-                continuum_polarization_kcal_mol=scf["continuum_polarization_kcal_mol"],
-                smd_cds_kcal_mol=scf["smd_cds_energy_kcal_mol"],
-                wall_seconds=scf["timing_seconds"]["public_energy"],
-                extra={
-                    "scf_iterations": scf["scf_iterations"],
-                    "unmixed_density_residual_inf_e": scf[
-                        "unmixed_density_residual_inf_e"
-                    ],
-                    "half_coupling_identity_error_ev": scf[
-                        "half_coupling_identity_error_ev"
-                    ],
-                },
-            ),
         }
-        if tuple(methods) != ABLATION_METHODS:
-            raise RuntimeError("Response-ablation method order drifted.")
 
         record_payload = {
             "selection_index": selection_index,
@@ -647,6 +730,77 @@ def main(argv: Sequence[str] | None = None) -> int:
                 FUNCTIONAL_GROUP_COVERAGE[selection_index]
             )
         records.append(record_payload)
+
+        if maximum_response_stage == "scf":
+            write_json_atomic(
+                private_output,
+                _private_artifact(
+                    execution_git_head=execution_git_head,
+                    protocol=protocol,
+                    selection_manifest=selection_manifest,
+                    dataset=dataset,
+                    aimnet_checkpoint=aimnet_checkpoint,
+                    mace_checkpoint=mace_checkpoint,
+                    records=records,
+                    status="running-scf",
+                    complete_panel=complete_panel,
+                    run_kind=run_kind,
+                    evaluated_methods=tuple(methods),
+                    maximum_response_stage=maximum_response_stage,
+                ),
+            )
+            def _persist_scf_failure(exc: Exception) -> None:
+                partial_methods = tuple(methods)
+                failure = _private_artifact(
+                    execution_git_head=execution_git_head,
+                    protocol=protocol,
+                    selection_manifest=selection_manifest,
+                    dataset=dataset,
+                    aimnet_checkpoint=aimnet_checkpoint,
+                    mace_checkpoint=mace_checkpoint,
+                    records=records,
+                    status="failed-during-scf",
+                    complete_panel=complete_panel,
+                    run_kind=run_kind,
+                    evaluated_methods=partial_methods,
+                    maximum_response_stage=maximum_response_stage,
+                )
+                failure.update(
+                    {
+                        "failed_method": "mace_scf_l1",
+                        "error": {
+                            "type": type(exc).__name__,
+                            "message": str(exc),
+                        },
+                        "aggregate_metrics": _metrics(records, partial_methods),
+                        "paired_method_comparisons": _comparisons(
+                            records,
+                            partial_methods,
+                        ),
+                        "actual_total_wall_seconds": (
+                            time.perf_counter() - wall_started
+                        ),
+                    }
+                )
+                write_json_atomic(private_output, failure)
+
+            methods["mace_scf_l1"] = _run_audited_scf_stage(
+                evaluator=lambda: mace_runtime._evaluate_method(
+                    calculator=mace,
+                    atoms=atoms,
+                    selected=selected,
+                    method="ddpcm",
+                    profile=DDPCM_MULTISOLVENT_SMD_PROFILE,
+                    work_dir=work_dir,
+                ),
+                on_failure=_persist_scf_failure,
+                gas_energy_ev=float(gas_state.energy_ev),
+                cds_energy_kcal_mol=float(cds.energy_kcal_mol),
+                experimental_kcal_mol=float(experiment),
+            )
+
+        if tuple(methods) != evaluated_methods:
+            raise RuntimeError("Response-ablation method order drifted.")
         write_json_atomic(
             private_output,
             _private_artifact(
@@ -660,11 +814,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 status="running",
                 complete_panel=complete_panel,
                 run_kind=run_kind,
+                evaluated_methods=evaluated_methods,
+                maximum_response_stage=maximum_response_stage,
             ),
         )
 
-    metrics = _metrics(records)
-    comparisons = _comparisons(records)
+    metrics = _metrics(records, evaluated_methods)
+    comparisons = _comparisons(records, evaluated_methods)
     total_wall_seconds = time.perf_counter() - wall_started
     private = _private_artifact(
         execution_git_head=execution_git_head,
@@ -677,6 +833,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         status="complete",
         complete_panel=complete_panel,
         run_kind=run_kind,
+        evaluated_methods=evaluated_methods,
+        maximum_response_stage=maximum_response_stage,
     )
     private.update(
         {
@@ -698,6 +856,27 @@ def main(argv: Sequence[str] | None = None) -> int:
             else [FUNCTIONAL_GROUP_COVERAGE[indexed_selection[0][0]]]
         )
     )
+    if complete_panel:
+        claim_boundary = (
+            "Paired diagnostic over ten solvents and ten post-selection "
+            "functional-group classes; one point per class/solvent cannot "
+            "certify population accuracy or separate class from solvent."
+        )
+    elif partition_shard:
+        claim_boundary = (
+            f"One-record frozen MNSol {partition_display}-partition shard for "
+            "paired AIMNet2/MACE response diagnosis only. It cannot be "
+            "aggregated until the complete partition is evaluated."
+        )
+    else:
+        claim_boundary = (
+            "One-record engineering smoke; no ten-record accuracy claim."
+        )
+    if maximum_response_stage == "one-shot":
+        claim_boundary += (
+            " This stage-bounded run deliberately did not attempt the "
+            "self-consistent method and cannot be interpreted as an SCF result."
+        )
     public = {
         "artifact": ARTIFACT_NAME,
         "schema_version": 1,
@@ -710,6 +889,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "execution_git_head": execution_git_head,
         "complete_panel": complete_panel,
         "run_kind": run_kind,
+        "evaluated_methods": list(evaluated_methods),
+        "maximum_response_stage": maximum_response_stage,
         "scientific_identity": {
             "shared_electrostatics": "pyddx ddPCM",
             "shared_cavity": "PySCF 2.13.1 SMD Coulomb radii",
@@ -727,20 +908,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "mace_scf_l1": ("same-root c*=M(P(c*)); DeltaEint+U(c*)+G_CDS"),
             },
         },
-        "claim_boundary": (
-            "Paired diagnostic over ten solvents and ten post-selection "
-            "functional-group classes; one point per class/solvent cannot "
-            "certify population accuracy or separate class from solvent."
-            if complete_panel
-            else (
-                f"One-record frozen MNSol {partition_display}-partition shard "
-                "for "
-                "paired AIMNet2/MACE response diagnosis only. It cannot be "
-                "aggregated until the complete partition is evaluated."
-                if partition_shard
-                else "One-record engineering smoke; no ten-record accuracy claim."
-            )
-        ),
+        "claim_boundary": claim_boundary,
         "experimental_reference": {
             "dataset": "Minnesota Solvation Database",
             "version": "2012",
@@ -818,6 +986,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "scf_density_tolerance_e": SCF_DENSITY_TOLERANCE,
             "scf_energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
             "scf_maximum_iterations": SCF_MAX_ITERATIONS,
+            "scf_attempted": maximum_response_stage == "scf",
         },
         "timing_seconds": {
             "aimnet2_model_load": aimnet_load_seconds,

@@ -66,7 +66,16 @@ from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     ENERGY_IDENTITY_TOLERANCE_EV,
     NEUTRAL_DENSITY_TOLERANCE,
     SCF_DENSITY_TOLERANCE,
+    SCF_DIPOLE_TOLERANCE_E_ANGSTROM,
     SCF_ENERGY_TOLERANCE_EV,
+    SCF_FINITE_RESOLUTION_MAP_REPLAY_COUNT,
+    SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM,
+    SCF_FINITE_RESOLUTION_GRADIENT_SPAN_TOLERANCE_EV_PER_ANGSTROM,
+    SCF_FINITE_RESOLUTION_HISTORY_LENGTH,
+    SCF_FINITE_RESOLUTION_LEDGER_SPAN_TOLERANCE_EV,
+    SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E,
+    SCF_FINITE_RESOLUTION_POLICY_VERSION,
+    SCF_FINITE_RESOLUTION_POTENTIAL_SPAN_TOLERANCE_EV,
     SCF_MAX_ITERATIONS,
     SCF_MIXING,
 )
@@ -88,7 +97,9 @@ from maple.function.route2_smd_profiles import (
 )
 from maple.function.route2_solvents import route2_solvent_spec
 
-ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v1"
+ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v2"
+SCHEMA_VERSION = 2
+SCF_CONVERGENCE_CONTRACT_VERSION = "route2-scf-convergence-evidence-v1"
 EV_TO_KCAL_MOL = HARTREE_TO_KCAL_MOL * EV2HARTREE
 FUNCTIONAL_GROUP_COVERAGE = (
     "halogenated-hydrocarbon",
@@ -402,6 +413,7 @@ def _validated_scf_ledger(
             "half_coupling_identity_error_ev": scf[
                 "half_coupling_identity_error_ev"
             ],
+            "scf_convergence": dict(scf["scf_convergence"]),
         },
     )
 
@@ -487,7 +499,10 @@ def _private_artifact(
 ):
     return {
         "artifact": ARTIFACT_NAME,
-        "schema_version": 1,
+        "schema_version": SCHEMA_VERSION,
+        "scf_convergence_contract_version": (
+            SCF_CONVERGENCE_CONTRACT_VERSION
+        ),
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
         "status": status,
@@ -995,7 +1010,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     public = {
         "artifact": ARTIFACT_NAME,
-        "schema_version": 1,
+        "schema_version": SCHEMA_VERSION,
+        "scf_convergence_contract_version": (
+            SCF_CONVERGENCE_CONTRACT_VERSION
+        ),
         "visibility": (
             "public-aggregate-only"
             if complete_panel
@@ -1023,7 +1041,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "diagnostic c0->P(c0)->M(P(c0)); "
                     "DeltaEint+U(c0,P(c0))+G_CDS; not a fixed point"
                 ),
-                "mace_scf_l1": ("same-root c*=M(P(c*)); DeltaEint+U(c*)+G_CDS"),
+                "mace_scf_l1": (
+                    "nominal same-root c*=M(P(c*)) or energy-only "
+                    "finite-resolution approximate candidate under the "
+                    "frozen residual policy; DeltaEint+U(c*)+G_CDS"
+                ),
             },
         },
         "claim_boundary": claim_boundary,
@@ -1102,9 +1124,39 @@ def main(argv: Sequence[str] | None = None) -> int:
             "eta": DDPCM_ETA,
             "scf_mixing": SCF_MIXING,
             "scf_density_tolerance_e": SCF_DENSITY_TOLERANCE,
+            "scf_dipole_tolerance_e_angstrom": (
+                SCF_DIPOLE_TOLERANCE_E_ANGSTROM
+            ),
             "scf_energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
             "scf_maximum_iterations": SCF_MAX_ITERATIONS,
             "scf_attempted": maximum_response_stage == "scf",
+            "scf_finite_resolution_policy": (
+                {
+                    "version": SCF_FINITE_RESOLUTION_POLICY_VERSION,
+                    "profile_scope": DDPCM_MULTISOLVENT_SMD_PROFILE,
+                    "history_length": SCF_FINITE_RESOLUTION_HISTORY_LENGTH,
+                    "map_replay_count": (
+                        SCF_FINITE_RESOLUTION_MAP_REPLAY_COUNT
+                    ),
+                    "monopole_residual_ceiling_e": (
+                        SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E
+                    ),
+                    "dipole_residual_ceiling_e_angstrom": (
+                        SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM
+                    ),
+                    "potential_span_tolerance_ev": (
+                        SCF_FINITE_RESOLUTION_POTENTIAL_SPAN_TOLERANCE_EV
+                    ),
+                    "gradient_span_tolerance_ev_per_angstrom": (
+                        SCF_FINITE_RESOLUTION_GRADIENT_SPAN_TOLERANCE_EV_PER_ANGSTROM
+                    ),
+                    "ledger_span_tolerance_ev": (
+                        SCF_FINITE_RESOLUTION_LEDGER_SPAN_TOLERANCE_EV
+                    ),
+                }
+                if continuum_arm.equation == "ddpcm"
+                else None
+            ),
         },
         "timing_seconds": {
             "aimnet2_model_load": aimnet_load_seconds,

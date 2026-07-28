@@ -162,6 +162,128 @@ def test_legacy_ddpcm_profile_remains_water_only():
         )
 
 
+def test_finite_resolution_policy_is_scoped_to_the_exact_multisolvent_ddpcm_profile(
+    tmp_path,
+):
+    multisolvent = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _multisolvent_options("water"),
+        audit_dir=tmp_path / "multisolvent-ddpcm",
+    )
+    legacy = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _options(),
+        audit_dir=tmp_path / "legacy-ddpcm",
+    )
+    ddcosmo = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _multisolvent_cosmo_options("water"),
+        audit_dir=tmp_path / "multisolvent-ddcosmo",
+    )
+
+    policy = multisolvent._engine.settings.scf_finite_resolution_policy
+    assert policy is not None
+    assert policy.version == "finite-resolution-stagnation-v1"
+    assert policy.history_length == 7
+    assert policy.map_replay_count == 3
+    assert policy.monopole_residual_ceiling_e == pytest.approx(1.0e-10)
+    assert policy.dipole_residual_ceiling_e_angstrom == pytest.approx(1.0e-10)
+    assert (
+        multisolvent._engine.settings.scf_dipole_tolerance_e_angstrom
+        == pytest.approx(2.0e-12)
+    )
+    assert legacy._engine.settings.scf_finite_resolution_policy is None
+    assert ddcosmo._engine.settings.scf_finite_resolution_policy is None
+
+
+def test_finite_resolution_runtime_identity_fails_closed_on_any_lock_drift(
+    monkeypatch,
+    tmp_path,
+):
+    import maple.function.calculator.extra_correction.implicit.ddpcm_smd as module
+
+    provider = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _multisolvent_options("water"),
+        audit_dir=tmp_path,
+    )
+    monkeypatch.setattr(module, "_torch_thread_count", lambda: 1)
+    monkeypatch.setattr(module, "_torch_version", lambda: "2.12.0+cu130")
+    checkpoint = {
+        "identifier": "polar-1-m",
+        "release_url": (
+            "https://github.com/ACEsuit/mace-foundations/releases/download/"
+            "mace_polar_1/MACE-POLAR-1-M.model"
+        ),
+        "resolved_path": "/cache/MACEPOLAR1Mmodel",
+        "sha256": (
+            "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+        ),
+        "size_bytes": 68_133_235,
+    }
+    calculator = SimpleNamespace(
+        mace_polar_checkpoint_provenance=checkpoint,
+        mace_torch_version="0.3.16",
+        graph_longrange_version="0.4.0",
+        long_range_evaluator_profile=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        dtype="torch.float64",
+        device="cpu",
+    )
+
+    identity = provider._finite_resolution_runtime_identity(
+        calculator,
+        _atoms(),
+    )
+
+    assert identity is not None
+    assert identity["profile"] == DDPCM_MULTISOLVENT_SMD_PROFILE
+    assert identity["mace_checkpoint_sha256"] == checkpoint["sha256"]
+    assert identity["mace_dtype"] == "torch.float64"
+    assert identity["mace_long_range_evaluator_profile"] == (
+        MACEPOL_MOLECULAR_REALSPACE_PROFILE
+    )
+    assert identity["device"] == "cpu"
+    assert identity["torch_threads"] == 1
+    assert identity["torch_version"] == "2.12.0+cu130"
+    assert identity["pyddx_version"] == "0.8.0"
+    assert identity["pyddx_n_proc"] == 1
+    assert identity["pyddx_solver_tolerance"] == pytest.approx(1.0e-12)
+    assert identity["continuum_dielectric"] == pytest.approx(78.355)
+    assert len(identity["atomic_numbers_sha256"]) == 64
+    assert len(identity["positions_angstrom_sha256"]) == 64
+    assert len(identity["cavity_radii_angstrom_sha256"]) == 64
+
+    for attribute, drifted in (
+        (
+            "mace_polar_checkpoint_provenance",
+            {**checkpoint, "sha256": "0" * 64},
+        ),
+        ("mace_torch_version", "0.3.17"),
+        ("graph_longrange_version", "0.4.1"),
+        ("long_range_evaluator_profile", "forced-reciprocal"),
+        ("dtype", "torch.float32"),
+        ("device", "cuda"),
+    ):
+        changed = SimpleNamespace(**calculator.__dict__)
+        setattr(changed, attribute, drifted)
+        assert (
+            provider._finite_resolution_runtime_identity(changed, _atoms())
+            is None
+        )
+
+    monkeypatch.setattr(module, "_torch_thread_count", lambda: 2)
+    assert (
+        provider._finite_resolution_runtime_identity(calculator, _atoms())
+        is None
+    )
+    monkeypatch.setattr(module, "_torch_thread_count", lambda: 1)
+    monkeypatch.setattr(module, "_torch_version", lambda: "2.12.1")
+    assert (
+        provider._finite_resolution_runtime_identity(calculator, _atoms())
+        is None
+    )
+
+
 def test_set_calculator_rejects_mismatched_direct_solvent_configuration():
     builder = SetCalculator(
         "cpu",
@@ -325,6 +447,8 @@ def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
         {
             "iteration": 1,
             "density_residual_e": 1.0e-6,
+            "monopole_residual_e": 1.0e-6,
+            "dipole_residual_e_angstrom": 0.0,
             "energy_residual_ev": None,
             "intrinsic_energy_ev": -9.9,
             "root_total_charge_e": 0.0,
@@ -1032,10 +1156,33 @@ def test_multisolvent_provider_routes_dielectric_radii_and_cds_together(
     assert provider.provenance["solvent"] == "acetonitrile"
     assert provider.provenance["strict_original_smd_equivalence"] is False
     assert result.provenance["numerics"]["dielectric"] == pytest.approx(35.688)
+    assert result.provenance["scf_convergence"] == {
+        "reason": "nominal-density-and-energy-v1",
+        "online_candidate_iteration": 1,
+        "final_monopole_residual_e": 0.0,
+        "final_dipole_residual_e_angstrom": 0.0,
+        "runtime_identity": None,
+        "history_window": None,
+        "fresh_map_replay": None,
+    }
     assert (
         result.provenance["numerics"]["coulomb_radii_policy"]
         == "pyscf-smd-2.13.1"
     )
+    audit = json.loads(
+        (tmp_path / "route2-ddpcm-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["scf"]["coefficient_units"] == {
+        "monopole": "e",
+        "dipole": "e angstrom",
+    }
+    assert audit["scf"]["field_units"] == {
+        "potential": "eV/e",
+        "gradient": "eV/(e angstrom)",
+    }
+    assert audit["scf"]["convergence"] == result.provenance["scf_convergence"]
+    with np.load(tmp_path / "route2-ddpcm-state.npz") as arrays:
+        assert "response_density_coefficients" in arrays
 
 
 def test_pyddx_provider_dispatches_ddcosmo_without_reusing_ddpcm_label(

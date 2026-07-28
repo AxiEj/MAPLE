@@ -9,7 +9,8 @@ implicit-function adjoint, and component ledger.
 from __future__ import annotations
 
 from collections.abc import Callable, Hashable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import hashlib
 import math
 from typing import Any, TypedDict, cast
 
@@ -42,6 +43,8 @@ class Route2SCFHistoryRecord(TypedDict):
 
     iteration: int
     density_residual_e: float
+    monopole_residual_e: float
+    dipole_residual_e_angstrom: float
     energy_residual_ev: float | None
     intrinsic_energy_ev: float
     root_total_charge_e: float
@@ -55,6 +58,69 @@ class Route2SCFHistoryRecord(TypedDict):
     anderson_coefficient_l1: float | None
     anderson_step_ratio_to_picard: float | None
     anderson_fallback_reason: str | None
+
+
+@dataclass(frozen=True)
+class Route2FiniteResolutionPolicy:
+    """Finite-resolution policy for an energy-only approximate fixed-point gate."""
+
+    version: str
+    history_length: int
+    map_replay_count: int
+    monopole_residual_ceiling_e: float
+    dipole_residual_ceiling_e_angstrom: float
+    potential_span_tolerance_ev: float
+    gradient_span_tolerance_ev_per_angstrom: float
+    ledger_span_tolerance_ev: float
+
+    def as_dict(self) -> dict[str, float | int | str]:
+        return {
+            "version": self.version,
+            "history_length": self.history_length,
+            "map_replay_count": self.map_replay_count,
+            "monopole_residual_ceiling_e": self.monopole_residual_ceiling_e,
+            "dipole_residual_ceiling_e_angstrom": self.dipole_residual_ceiling_e_angstrom,
+            "potential_span_tolerance_ev": self.potential_span_tolerance_ev,
+            "gradient_span_tolerance_ev_per_angstrom": (
+                self.gradient_span_tolerance_ev_per_angstrom
+            ),
+            "ledger_span_tolerance_ev": self.ledger_span_tolerance_ev,
+        }
+
+    def __post_init__(self) -> None:
+        if not self.version:
+            raise ValueError("Route-2 finite-resolution policy must define a version.")
+        for name in ("history_length", "map_replay_count"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                raise ValueError(
+                    f"Route-2 finite-resolution {name} must be a positive integer."
+                )
+        positive = {
+            "monopole_residual_ceiling_e": (self.monopole_residual_ceiling_e),
+            "dipole_residual_ceiling_e_angstrom": (
+                self.dipole_residual_ceiling_e_angstrom
+            ),
+            "potential_span_tolerance_ev": (self.potential_span_tolerance_ev),
+            "gradient_span_tolerance_ev_per_angstrom": (
+                self.gradient_span_tolerance_ev_per_angstrom
+            ),
+            "ledger_span_tolerance_ev": (self.ledger_span_tolerance_ev),
+        }
+        invalid = [
+            name
+            for name, value in positive.items()
+            if isinstance(value, bool)
+            or not isinstance(value, int | float)
+            or not math.isfinite(value)
+            or value <= 0.0
+        ]
+        if invalid:
+            raise ValueError(
+                "Route-2 finite-resolution tolerances must be positive: "
+                + ", ".join(invalid)
+                + "."
+            )
 
 
 @dataclass(frozen=True)
@@ -123,6 +189,8 @@ class Route2EngineSettings:
     energy_identity_tolerance_ev: float
     force_state_energy_tolerance_ev: float
     neutral_density_tolerance: float
+    scf_dipole_tolerance_e_angstrom: float | None = None
+    scf_finite_resolution_policy: Route2FiniteResolutionPolicy | None = None
     scf_require_two_energy_samples: bool = False
     scf_solver: str = DAMPED_PICARD_SOLVER
     scf_anderson_depth: int = 6
@@ -175,6 +243,29 @@ class Route2EngineSettings:
             )
         if self.scf_anderson_depth <= 0:
             raise ValueError("Route-2 Anderson history depth must be positive.")
+        scf_dipole_tolerance = (
+            self.scf_density_tolerance
+            if self.scf_dipole_tolerance_e_angstrom is None
+            else self.scf_dipole_tolerance_e_angstrom
+        )
+        object.__setattr__(
+            self,
+            "scf_dipole_tolerance_e_angstrom",
+            scf_dipole_tolerance,
+        )
+        if (
+            not math.isfinite(scf_dipole_tolerance)
+            or scf_dipole_tolerance <= 0.0
+        ):
+            raise ValueError("scf_dipole_tolerance_e_angstrom must be positive.")
+        if (
+            self.scf_finite_resolution_policy is not None
+            and not isinstance(
+                self.scf_finite_resolution_policy,
+                Route2FiniteResolutionPolicy,
+            )
+        ):
+            raise ValueError("Route-2 finite-resolution policy is malformed.")
 
 
 @dataclass(frozen=True)
@@ -199,6 +290,7 @@ class Route2CoupledState:
     energy_identity_error_ev: float
     cds_result: Any
     history: tuple[Route2SCFHistoryRecord, ...]
+    scf_convergence: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         for name in (
@@ -332,27 +424,64 @@ class Route2ContinuumEngine:
         )
         if drive.model_field_features is None:
             if drive.model_local_field_ev is None:
-                return ReactionFieldDrive.local_jet(field)
-            return ReactionFieldDrive(
-                density_dual_field_ev=field,
-                model_local_field_ev=drive.model_local_field_ev,
-                model_field_features=None,
-                projector=drive.projector,
-                model_field_gauge=drive.model_field_gauge,
-                model_field_gauge_reference_ev=(drive.model_field_gauge_reference_ev),
-            )
-        if drive.model_field_features.shape[0] != atom_count:
+                reaction_field_drive = ReactionFieldDrive.local_jet(field)
+            else:
+                reaction_field_drive = ReactionFieldDrive(
+                    density_dual_field_ev=field,
+                    model_local_field_ev=drive.model_local_field_ev,
+                    model_field_features=None,
+                    projector=drive.projector,
+                    model_field_gauge=drive.model_field_gauge,
+                    model_field_gauge_reference_ev=(
+                        drive.model_field_gauge_reference_ev
+                    ),
+                )
+        elif drive.model_field_features.shape[0] != atom_count:
             raise RuntimeError(
                 f"The {self.settings.continuum_label} model features do not "
                 "match the atom count."
             )
-        return ReactionFieldDrive(
-            density_dual_field_ev=field,
-            model_local_field_ev=None,
-            model_field_features=drive.model_field_features,
-            projector=drive.projector,
-            model_field_gauge=drive.model_field_gauge,
-            model_field_gauge_reference_ev=(drive.model_field_gauge_reference_ev),
+        else:
+            reaction_field_drive = ReactionFieldDrive(
+                density_dual_field_ev=field,
+                model_local_field_ev=None,
+                model_field_features=drive.model_field_features,
+                projector=drive.projector,
+                model_field_gauge=drive.model_field_gauge,
+                model_field_gauge_reference_ev=(
+                    drive.model_field_gauge_reference_ev
+                ),
+            )
+        return reaction_field_drive
+
+    @staticmethod
+    def _maximum_component_span(values: np.ndarray) -> float:
+        """Return the largest per-component peak-to-peak span over iterations."""
+
+        array = np.asarray(values, dtype=float)
+        if array.ndim < 1 or array.shape[0] == 0:
+            raise ValueError("A non-empty iteration axis is required.")
+        return float(np.max(np.ptp(array, axis=0)))
+
+    @staticmethod
+    def _array_sha256(values: np.ndarray) -> str:
+        canonical = np.ascontiguousarray(np.asarray(values, dtype="<f8"))
+        return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
+
+    @staticmethod
+    def _reaction_field_signature(
+        drive: ReactionFieldDrive,
+    ) -> tuple[Any, ...]:
+        return (
+            drive.projector,
+            drive.model_field_gauge,
+            float(drive.model_field_gauge_reference_ev),
+            None
+            if drive.model_field_features is None
+            else tuple(drive.model_field_features.shape),
+            None
+            if drive.model_local_field_ev is None
+            else tuple(drive.model_local_field_ev.shape),
         )
 
     @staticmethod
@@ -374,6 +503,391 @@ class Route2ContinuumEngine:
             node_gradient_ev_per_angstrom=field[:, 1:],
             **kwargs,
         )
+
+    def _finite_resolution_candidate_window(
+        self,
+        *,
+        policy: Route2FiniteResolutionPolicy,
+        iteration_history: list[Route2SCFHistoryRecord],
+        density_history: list[np.ndarray],
+        residual_history: list[np.ndarray],
+        field_history: list[np.ndarray],
+        intrinsic_energy_history: list[float],
+    ) -> dict[str, float | int] | None:
+        window_size = policy.history_length
+        if len(iteration_history) < window_size:
+            return None
+        window_records = iteration_history[-window_size:]
+        if any(
+            record["arrived_by"] != SAFEGUARDED_ANDERSON_SOLVER
+            or record["anderson_history_reset"]
+            for record in window_records
+        ):
+            return None
+        energy_deltas = [record["energy_residual_ev"] for record in window_records]
+        if any(
+            delta is None or delta > self.settings.scf_energy_tolerance_ev
+            for delta in energy_deltas
+        ):
+            return None
+        density_window = np.stack(density_history[-window_size:], axis=0)
+        residual_window = np.stack(residual_history[-window_size:], axis=0)
+        field_window = np.stack(field_history[-window_size:], axis=0)
+        intrinsic_energy_window = intrinsic_energy_history[-window_size:]
+
+        monopole_residual_max = float(np.max(np.abs(residual_window[:, :, 0])))
+        dipole_residual_max = float(np.max(np.abs(residual_window[:, :, 1:])))
+        if (
+            monopole_residual_max > policy.monopole_residual_ceiling_e
+            or dipole_residual_max > policy.dipole_residual_ceiling_e_angstrom
+        ):
+            return None
+        residual_reference = residual_window[-1]
+        for residual in residual_window[:-1]:
+            for current_channel, reference_channel in (
+                (residual[:, 0], residual_reference[:, 0]),
+                (residual[:, 1:].reshape(-1), residual_reference[:, 1:].reshape(-1)),
+            ):
+                reference_norm = float(np.linalg.norm(reference_channel))
+                current_norm = float(np.linalg.norm(current_channel))
+                if reference_norm <= 0.0:
+                    if current_norm > 0.0:
+                        return None
+                    continue
+                if float(np.dot(current_channel, reference_channel)) < 0.0:
+                    return None
+
+        root_monopole_span_e = self._maximum_component_span(
+            density_window[:, :, 0]
+        )
+        root_dipole_span_e_angstrom = self._maximum_component_span(
+            density_window[:, :, 1:]
+        )
+        residual_monopole_span_e = self._maximum_component_span(
+            residual_window[:, :, 0]
+        )
+        residual_dipole_span_e_angstrom = self._maximum_component_span(
+            residual_window[:, :, 1:]
+        )
+        dipole_tolerance_e_angstrom = cast(
+            float,
+            self.settings.scf_dipole_tolerance_e_angstrom,
+        )
+        if (
+            root_monopole_span_e > self.settings.scf_density_tolerance
+            or root_dipole_span_e_angstrom
+            > dipole_tolerance_e_angstrom
+            or residual_monopole_span_e > self.settings.scf_density_tolerance
+            or residual_dipole_span_e_angstrom
+            > dipole_tolerance_e_angstrom
+        ):
+            return None
+
+        potential_span_ev = self._maximum_component_span(
+            field_window[:, :, 0]
+        )
+        gradient_span_ev_per_angstrom = self._maximum_component_span(
+            field_window[:, :, 1:]
+        )
+        if (
+            potential_span_ev > policy.potential_span_tolerance_ev
+            or gradient_span_ev_per_angstrom
+            > policy.gradient_span_tolerance_ev_per_angstrom
+        ):
+            return None
+
+        intrinsic_span_ev = float(
+            max(intrinsic_energy_window) - min(intrinsic_energy_window)
+        )
+        if intrinsic_span_ev > self.settings.scf_energy_tolerance_ev:
+            return None
+
+        return {
+            "start_iteration": window_records[0]["iteration"],
+            "end_iteration": window_records[-1]["iteration"],
+            "maximum_monopole_residual_e": monopole_residual_max,
+            "maximum_dipole_residual_e_angstrom": dipole_residual_max,
+            "root_monopole_span_e": root_monopole_span_e,
+            "root_dipole_span_e_angstrom": root_dipole_span_e_angstrom,
+            "residual_monopole_span_e": residual_monopole_span_e,
+            "residual_dipole_span_e_angstrom": residual_dipole_span_e_angstrom,
+            "potential_span_ev": potential_span_ev,
+            "gradient_span_ev_per_angstrom": gradient_span_ev_per_angstrom,
+            "maximum_energy_delta_ev": max(
+                float(delta) for delta in energy_deltas if delta is not None
+            ),
+            "intrinsic_energy_span_ev": intrinsic_span_ev,
+        }
+
+    def _run_finite_resolution_map_replays(
+        self,
+        *,
+        atoms,
+        calculator,
+        gas_state,
+        policy: Route2FiniteResolutionPolicy,
+        candidate_reaction_field,
+        candidate_density: np.ndarray,
+        candidate_field: np.ndarray,
+        candidate_drive_signature: tuple[Any, ...],
+        candidate_response: np.ndarray,
+        candidate_residual: np.ndarray,
+        candidate_intrinsic_energy_ev: float,
+    ) -> dict[str, Any]:
+        atom_count = len(atoms)
+        field_reference = np.array(candidate_field, copy=True)
+        response_reference = np.array(candidate_response, copy=True)
+        candidate_residual = np.array(candidate_residual, copy=True)
+
+        replay_fields: list[np.ndarray] = []
+        replay_responses: list[np.ndarray] = []
+        replay_residuals: list[np.ndarray] = []
+        candidate_pcm_polarization_hartree = float(
+            candidate_reaction_field.scf_polarization_energy_hartree(
+                candidate_density,
+            )
+        )
+        candidate_paired_energy_ev = 0.5 * float(
+            MACE_POLAR_L1_PAIRING.pair(
+                candidate_density,
+                candidate_field,
+            )
+        )
+        candidate_provider_energy_ev = candidate_pcm_polarization_hartree * Hartree
+        candidate_polarization_identity_error_ev = abs(
+            candidate_paired_energy_ev - candidate_provider_energy_ev
+        )
+        candidate_electrostatic_ledger_ev = (
+            candidate_intrinsic_energy_ev - float(gas_state.energy_ev)
+        ) + candidate_provider_energy_ev
+        candidate_scalars = {
+            "online intrinsic energy": candidate_intrinsic_energy_ev,
+            "online PCM polarization energy": candidate_pcm_polarization_hartree,
+            "online electrostatic ledger": candidate_electrostatic_ledger_ev,
+            "online polarization identity error": (
+                candidate_polarization_identity_error_ev
+            ),
+        }
+        if any(not math.isfinite(value) for value in candidate_scalars.values()):
+            raise Route2SCFConvergenceError(
+                "Finite-resolution online map evidence contains a non-finite "
+                "energy scalar.",
+                history=[],
+            )
+
+        observed_intrinsic_energies_ev = [candidate_intrinsic_energy_ev]
+        observed_pcm_polarization_hartree = [
+            candidate_pcm_polarization_hartree
+        ]
+        observed_electrostatic_ledger_ev = [
+            candidate_electrostatic_ledger_ev
+        ]
+        observed_polarization_identity_errors_ev = [
+            candidate_polarization_identity_error_ev
+        ]
+
+        for _ in range(policy.map_replay_count):
+            replay_reaction_field = self.reaction_field_factory(atoms)
+            replay_drive = self._reaction_field_drive(
+                replay_reaction_field,
+                candidate_density,
+                atom_count,
+            )
+            if self._reaction_field_signature(replay_drive) != (
+                candidate_drive_signature
+            ):
+                raise Route2SCFConvergenceError(
+                    "Finite-resolution replay identity did not match the online "
+                    "candidate reaction-field signature.",
+                    history=[],
+                )
+            replay_field = replay_drive.density_dual_field_ev
+            replay_solvent_state, _ = self._polarize(
+                calculator,
+                atoms,
+                replay_drive,
+            )
+            replay_response_raw = self.validate_density(
+                replay_solvent_state.density_coefficients,
+                atom_count,
+                name="Map-replay MACE-POLAR density",
+            )
+            replay_response = project_density_total_charge(
+                replay_response_raw,
+                total_charge_e=self.settings.scf_total_charge_e,
+            )
+            replay_residual = replay_response - candidate_density
+            replay_fields.append(replay_field)
+            replay_responses.append(replay_response)
+            replay_residuals.append(replay_residual)
+            replay_intrinsic = float(replay_solvent_state.energy_ev)
+            replay_pcm_polarization = float(
+                replay_reaction_field.scf_polarization_energy_hartree(
+                    candidate_density,
+                )
+            )
+            paired_energy_ev = 0.5 * float(
+                MACE_POLAR_L1_PAIRING.pair(
+                    candidate_density,
+                    replay_field,
+                )
+            )
+            provider_energy_ev = replay_pcm_polarization * Hartree
+            replay_polarization_identity_error_ev = abs(
+                paired_energy_ev - provider_energy_ev
+            )
+            replay_electrostatic_ledger_ev = (
+                (replay_intrinsic - float(gas_state.energy_ev))
+                + provider_energy_ev
+            )
+            replay_scalars = {
+                "replayed intrinsic energy": replay_intrinsic,
+                "replayed PCM polarization energy": replay_pcm_polarization,
+                "replayed electrostatic ledger": replay_electrostatic_ledger_ev,
+                "replayed polarization identity error": (
+                    replay_polarization_identity_error_ev
+                ),
+            }
+            if any(not math.isfinite(value) for value in replay_scalars.values()):
+                raise Route2SCFConvergenceError(
+                    "Finite-resolution map replay contains a non-finite energy "
+                    "scalar.",
+                    history=[],
+                )
+            observed_intrinsic_energies_ev.append(replay_intrinsic)
+            observed_pcm_polarization_hartree.append(
+                replay_pcm_polarization
+            )
+            observed_electrostatic_ledger_ev.append(
+                replay_electrostatic_ledger_ev
+            )
+            observed_polarization_identity_errors_ev.append(
+                replay_polarization_identity_error_ev
+            )
+
+        all_field_arrays_identical = all(
+            np.array_equal(field_reference, replay_field)
+            for replay_field in replay_fields
+        )
+        all_response_arrays_identical = all(
+            np.array_equal(response_reference, replay_response)
+            for replay_response in replay_responses
+        )
+        maximum_monopole_residual_e = float(
+            np.max(np.abs(candidate_residual[:, 0]))
+        )
+        maximum_dipole_residual_e_angstrom = float(
+            np.max(np.abs(candidate_residual[:, 1:]))
+        )
+        for replay_residual in replay_residuals:
+            maximum_monopole_residual_e = max(
+                maximum_monopole_residual_e,
+                float(np.max(np.abs(replay_residual[:, 0]))),
+            )
+            maximum_dipole_residual_e_angstrom = max(
+                maximum_dipole_residual_e_angstrom,
+                float(np.max(np.abs(replay_residual[:, 1:]))),
+            )
+
+        if np.any(
+            np.abs(candidate_residual[:, 0]) > policy.monopole_residual_ceiling_e
+        ):
+            raise Route2SCFConvergenceError(
+                "Finite-resolution map-replay monopole residual exceeds policy "
+                "ceiling.",
+                history=[],
+            )
+        if np.any(
+            np.abs(candidate_residual[:, 1:]) > policy.dipole_residual_ceiling_e_angstrom
+        ):
+            raise Route2SCFConvergenceError(
+                "Finite-resolution map-replay dipole residual exceeds policy "
+                "ceiling.",
+                history=[],
+            )
+        for replay_residual in replay_residuals:
+            if np.any(
+                np.abs(replay_residual[:, 0]) > policy.monopole_residual_ceiling_e
+            ):
+                raise Route2SCFConvergenceError(
+                    "Finite-resolution map-replay monopole residual exceeds policy "
+                    "ceiling.",
+                    history=[],
+                )
+            if np.any(
+                np.abs(replay_residual[:, 1:])
+                > policy.dipole_residual_ceiling_e_angstrom
+            ):
+                raise Route2SCFConvergenceError(
+                    "Finite-resolution map-replay dipole residual exceeds policy "
+                    "ceiling.",
+                    history=[],
+                )
+
+        intrinsic_span_ev = float(
+            max(observed_intrinsic_energies_ev)
+            - min(observed_intrinsic_energies_ev)
+        )
+        observed_pcm_energies_ev = [
+            energy * Hartree for energy in observed_pcm_polarization_hartree
+        ]
+        pcm_span_ev = float(
+            max(observed_pcm_energies_ev) - min(observed_pcm_energies_ev)
+        )
+        electrostatic_span_ev = float(
+            max(observed_electrostatic_ledger_ev)
+            - min(observed_electrostatic_ledger_ev)
+        )
+        maximum_polarization_identity_error_ev = max(
+            observed_polarization_identity_errors_ev
+        )
+        if (
+            intrinsic_span_ev > policy.ledger_span_tolerance_ev
+            or pcm_span_ev > policy.ledger_span_tolerance_ev
+            or electrostatic_span_ev > policy.ledger_span_tolerance_ev
+        ):
+            raise Route2SCFConvergenceError(
+                "Finite-resolution online/map-replay ledger span exceeded "
+                "policy tolerance.",
+                history=[],
+            )
+        if (
+            maximum_polarization_identity_error_ev
+            > self.settings.energy_identity_tolerance_ev
+        ):
+            raise Route2SCFConvergenceError(
+                "Finite-resolution online/map-replay evidence failed the "
+                "polarization-energy identity.",
+                history=[],
+            )
+        if not all_field_arrays_identical:
+            raise Route2SCFConvergenceError(
+                "Finite-resolution map-replay field arrays are not byte-identical.",
+                history=[],
+            )
+        if not all_response_arrays_identical:
+            raise Route2SCFConvergenceError(
+                "Finite-resolution map-replay response arrays are not byte-identical.",
+                history=[],
+            )
+
+        return {
+            "replay_count": policy.map_replay_count,
+            "evaluation_count": policy.map_replay_count + 1,
+            "includes_online_candidate": True,
+            "all_field_arrays_identical": all_field_arrays_identical,
+            "all_response_arrays_identical": all_response_arrays_identical,
+            "field_sha256": self._array_sha256(field_reference),
+            "response_sha256": self._array_sha256(response_reference),
+            "maximum_monopole_residual_e": maximum_monopole_residual_e,
+            "maximum_dipole_residual_e_angstrom": maximum_dipole_residual_e_angstrom,
+            "intrinsic_ledger_span_ev": intrinsic_span_ev,
+            "pcm_ledger_span_ev": pcm_span_ev,
+            "electrostatic_ledger_span_ev": electrostatic_span_ev,
+            "maximum_polarization_identity_error_ev": (
+                maximum_polarization_identity_error_ev
+            ),
+        }
 
     @staticmethod
     def gas_state(calculator, atoms, *, need_forces: bool) -> Any:
@@ -404,6 +918,7 @@ class Route2ContinuumEngine:
         gas_state,
         *,
         provider_cache_signature: Hashable,
+        finite_resolution_runtime_identity: dict[str, object] | None = None,
     ) -> Route2CoupledState:
         settings = self.settings
         reaction_field = self.reaction_field_factory(atoms)
@@ -415,10 +930,15 @@ class Route2ContinuumEngine:
             ),
             total_charge_e=settings.scf_total_charge_e,
         )
+        scf_convergence: dict[str, Any] = {}
         previous_energy_ev: float | None = None
         previous_density_residual: float | None = None
         previous_update_method: str | None = None
         history: list[Route2SCFHistoryRecord] = []
+        density_history: list[np.ndarray] = []
+        residual_history: list[np.ndarray] = []
+        field_history: list[np.ndarray] = []
+        intrinsic_energy_history: list[float] = []
         fixed_point_samples: list[FixedPointSample] = []
         best_iteration_state: Route2SCFIterationState | None = None
 
@@ -443,7 +963,12 @@ class Route2ContinuumEngine:
                 raw_response_density,
                 total_charge_e=settings.scf_total_charge_e,
             )
-            density_residual = float(np.max(np.abs(response_density - density)))
+            residual = response_density - density
+            density_residual = float(np.max(np.abs(residual)))
+            monopole_residual_e = float(np.max(np.abs(residual[:, 0])))
+            dipole_residual_e_angstrom = float(
+                np.max(np.abs(residual[:, 1:]))
+            )
             current_energy_ev = float(solvent_state.energy_ev)
             if not math.isfinite(current_energy_ev):
                 raise RuntimeError("Field-polarized MACE-POLAR energy is non-finite.")
@@ -467,6 +992,8 @@ class Route2ContinuumEngine:
             record: Route2SCFHistoryRecord = {
                 "iteration": iteration,
                 "density_residual_e": density_residual,
+                "monopole_residual_e": monopole_residual_e,
+                "dipole_residual_e_angstrom": dipole_residual_e_angstrom,
                 "energy_residual_ev": energy_residual,
                 "intrinsic_energy_ev": current_energy_ev,
                 "root_total_charge_e": float(np.sum(density[:, 0])),
@@ -486,6 +1013,10 @@ class Route2ContinuumEngine:
                 "anderson_fallback_reason": None,
             }
             history.append(record)
+            density_history.append(np.array(density, copy=True))
+            residual_history.append(np.array(residual, copy=True))
+            field_history.append(np.array(field, copy=True))
+            intrinsic_energy_history.append(current_energy_ev)
             if (
                 best_iteration_state is None
                 or density_residual < best_iteration_state.density_residual_e
@@ -504,43 +1035,153 @@ class Route2ContinuumEngine:
                 energy_converged = not settings.scf_require_two_energy_samples
             else:
                 energy_converged = energy_residual <= settings.scf_energy_tolerance_ev
-            if density_residual <= settings.scf_density_tolerance and energy_converged:
+            if (
+                monopole_residual_e <= settings.scf_density_tolerance
+                and dipole_residual_e_angstrom
+                <= cast(float, settings.scf_dipole_tolerance_e_angstrom)
+                and energy_converged
+            ):
                 record["next_density_update"] = "converged"
+                scf_convergence = {
+                    "reason": "nominal-density-and-energy-v1",
+                    "online_candidate_iteration": iteration,
+                    "final_monopole_residual_e": monopole_residual_e,
+                    "final_dipole_residual_e_angstrom": (
+                        dipole_residual_e_angstrom
+                    ),
+                    "runtime_identity": None,
+                    "history_window": None,
+                    "fresh_map_replay": None,
+                }
                 break
+
+            finite_resolution_policy = settings.scf_finite_resolution_policy
+            if (
+                finite_resolution_policy is not None
+                and finite_resolution_runtime_identity is not None
+                and not scf_convergence
+            ):
+                window = self._finite_resolution_candidate_window(
+                    policy=finite_resolution_policy,
+                    iteration_history=history,
+                    density_history=density_history,
+                    residual_history=residual_history,
+                    field_history=field_history,
+                    intrinsic_energy_history=intrinsic_energy_history,
+                )
+                if window is not None:
+                    try:
+                        replay = self._run_finite_resolution_map_replays(
+                            atoms=atoms,
+                            calculator=calculator,
+                            gas_state=gas_state,
+                            policy=finite_resolution_policy,
+                            candidate_reaction_field=reaction_field,
+                            candidate_density=np.array(density, copy=True),
+                            candidate_field=np.array(field, copy=True),
+                            candidate_drive_signature=(
+                                self._reaction_field_signature(drive)
+                            ),
+                            candidate_response=np.array(
+                                response_density,
+                                copy=True,
+                            ),
+                            candidate_residual=np.array(residual, copy=True),
+                            candidate_intrinsic_energy_ev=current_energy_ev,
+                        )
+                    except Route2SCFConvergenceError as exc:
+                        raise Route2SCFConvergenceError(
+                            str(exc),
+                            history=history,
+                            best_state=best_iteration_state,
+                        ) from exc
+                    record["next_density_update"] = (
+                        "converged-finite-resolution"
+                    )
+                    scf_convergence = {
+                        "reason": finite_resolution_policy.version,
+                        "online_candidate_iteration": iteration,
+                        "final_monopole_residual_e": (
+                            monopole_residual_e
+                        ),
+                        "final_dipole_residual_e_angstrom": (
+                            dipole_residual_e_angstrom
+                        ),
+                        "runtime_identity": dict(
+                            finite_resolution_runtime_identity,
+                        ),
+                        "history_window": {
+                            "start_iteration": int(window["start_iteration"]),
+                            "end_iteration": int(window["end_iteration"]),
+                            "root_monopole_span_e": (
+                                window["root_monopole_span_e"]
+                            ),
+                            "root_dipole_span_e_angstrom": (
+                                window["root_dipole_span_e_angstrom"]
+                            ),
+                            "residual_monopole_span_e": (
+                                window["residual_monopole_span_e"]
+                            ),
+                            "residual_dipole_span_e_angstrom": (
+                                window["residual_dipole_span_e_angstrom"]
+                            ),
+                            "potential_span_ev": window["potential_span_ev"],
+                            "gradient_span_ev_per_angstrom": (
+                                window["gradient_span_ev_per_angstrom"]
+                            ),
+                            "maximum_monopole_residual_e": (
+                                window["maximum_monopole_residual_e"]
+                            ),
+                            "maximum_dipole_residual_e_angstrom": (
+                                window[
+                                    "maximum_dipole_residual_e_angstrom"
+                                ]
+                            ),
+                            "maximum_energy_delta_ev": (
+                                window["maximum_energy_delta_ev"]
+                            ),
+                            "intrinsic_energy_span_ev": (
+                                window["intrinsic_energy_span_ev"]
+                            ),
+                        },
+                        "fresh_map_replay": replay,
+                    }
+                    break
             fixed_point_samples.append(
                 FixedPointSample(
                     density=density,
-                    residual=response_density - density,
+                    residual=residual,
                 )
             )
             fixed_point_samples = fixed_point_samples[
                 -(settings.scf_anderson_depth + 1) :
             ]
-            step = next_fixed_point_density(
-                fixed_point_samples,
-                solver=settings.scf_solver,
-                mixing=settings.scf_mixing,
-                anderson_depth=settings.scf_anderson_depth,
-                anderson_regularization=(settings.scf_anderson_regularization),
-                anderson_coefficient_l1_limit=(
-                    settings.scf_anderson_coefficient_l1_limit
-                ),
-                anderson_step_ratio_limit=(settings.scf_anderson_step_ratio_limit),
-            )
-            record.update(
-                {
-                    "next_density_update": step.method,
-                    "fixed_point_history_size": step.history_size,
-                    "anderson_predicted_residual_l2": (step.predicted_residual_l2),
-                    "anderson_coefficient_l1": step.coefficient_l1,
-                    "anderson_step_ratio_to_picard": (step.step_ratio_to_picard),
-                    "anderson_fallback_reason": step.fallback_reason,
-                }
-            )
-            density = step.density
-            previous_energy_ev = current_energy_ev
-            previous_density_residual = density_residual
-            previous_update_method = step.method
+            if iteration < settings.scf_max_iterations:
+                step = next_fixed_point_density(
+                    fixed_point_samples,
+                    solver=settings.scf_solver,
+                    mixing=settings.scf_mixing,
+                    anderson_depth=settings.scf_anderson_depth,
+                    anderson_regularization=(settings.scf_anderson_regularization),
+                    anderson_coefficient_l1_limit=(
+                        settings.scf_anderson_coefficient_l1_limit
+                    ),
+                    anderson_step_ratio_limit=(settings.scf_anderson_step_ratio_limit),
+                )
+                record.update(
+                    {
+                        "next_density_update": step.method,
+                        "fixed_point_history_size": step.history_size,
+                        "anderson_predicted_residual_l2": (step.predicted_residual_l2),
+                        "anderson_coefficient_l1": step.coefficient_l1,
+                        "anderson_step_ratio_to_picard": (step.step_ratio_to_picard),
+                        "anderson_fallback_reason": step.fallback_reason,
+                    }
+                )
+                density = step.density
+                previous_energy_ev = current_energy_ev
+                previous_density_residual = density_residual
+                previous_update_method = step.method
         else:
             last = history[-1]
             minimum_density_residual = min(
@@ -550,9 +1191,12 @@ class Route2ContinuumEngine:
                 "MACE-POLAR/"
                 f"{settings.continuum_label} reaction-field SCF did not "
                 f"converge in {settings.scf_max_iterations} iterations "
-                f"(density residual={last['density_residual_e']:.3e} e, "
+                f"(monopole residual={last['monopole_residual_e']:.3e} e, "
+                "dipole residual="
+                f"{last['dipole_residual_e_angstrom']:.3e} e angstrom, "
                 f"energy residual={last['energy_residual_ev']!r} eV, "
-                f"minimum density residual={minimum_density_residual:.3e} e).",
+                f"minimum density residual={minimum_density_residual:.3e} "
+                "(legacy raw-component scalar)).",
                 history=history,
                 best_state=best_iteration_state,
             )
@@ -597,6 +1241,7 @@ class Route2ContinuumEngine:
             energy_identity_error_ev=identity_error_ev,
             cds_result=cds_result,
             history=tuple(history),
+            scf_convergence=scf_convergence,
         )
 
     def solvent_correction_force(
@@ -607,6 +1252,16 @@ class Route2ContinuumEngine:
         coupled: Route2CoupledState,
     ) -> tuple[np.ndarray, dict[str, Any]]:
         settings = self.settings
+        finite_resolution_policy = settings.scf_finite_resolution_policy
+        if (
+            finite_resolution_policy is not None
+            and coupled.scf_convergence.get("reason")
+            == finite_resolution_policy.version
+        ):
+            raise RuntimeError(
+                "Finite-resolution approximate fixed-point acceptance is "
+                "energy-only; Route-2 forces require nominal SCF convergence."
+            )
         if (
             coupled.model_field_features is not None
             or coupled.model_local_field_values_ev is not None

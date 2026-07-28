@@ -670,11 +670,40 @@ aggregate-only and strips local checkpoint paths. Missing/duplicate indices,
 mixed or nonexistent commits, fingerprints, input-shard hashes, continuum
 profiles, checkpoints, prior-pilot overlap flags, or ledger identities abort
 aggregation. Existing isolated shards that predate the required continuum
-metadata are intentionally incompatible. No complete 505-row development or
-148-row confirmation artifact has been produced yet. This artifact rejects
-confirmation selections outright; a separately reviewed, hash-bound
-freeze/unseal gate is required before the sealed confirmation partition can
-be evaluated.
+metadata are intentionally incompatible.
+
+For `mace_scf_l1`, every completed shard must carry dimension-separated SCF
+convergence evidence. A nominal row records separate monopole and dipole
+residuals and no fallback evidence. A finite-resolution row for
+`smd-ddpcm-l15-n1202-multisolv-v1` must additionally record the earliest
+online seven-step Anderson/no-reset window satisfying every predicate, the
+frozen enumerated runtime identity gate (including
+`torch==2.12.0+cu130`), and three fresh reaction-map reevaluations at the
+retained density. These are not independent cold SCF starts. The online
+candidate plus all three reevaluations must contain finite energy-ledger
+scalars, reproduce identical field/response hashes, and keep separate channel
+residuals, the intrinsic/PCM/electrostatic ledger spans, and the half-coupling
+identity inside the frozen policy gates. This finite-resolution branch is
+energy-only; force requests require nominal convergence. Response-ablation
+shards carrying this evidence use artifact/schema v2 and the explicit
+`route2-scf-convergence-evidence-v1` contract.
+
+The retained index-004 diagnostic candidate records zero ledger span at the
+locked `1e-12` map-reevaluation tolerance, but it is not a prospectively
+counted shard. The retained private trajectory and map-reevaluation
+diagnostics are
+`.omx/diagnostics/mnsol-development-index004-trajectory-4d09ba74-root-v1/trajectory.json`
+and
+`.omx/diagnostics/mnsol-development-index004-iter023-cold-map-4d09ba74-root-v1/diagnostic.json`.
+The older post-hoc best-state map reevaluation,
+`.omx/diagnostics/mnsol-development-index004-cold-map-4d09ba74-root-v1/diagnostic.json`,
+remains failed and uncounted; it is a diagnostic witness, not an aggregatable
+row result.
+
+No complete 505-row development or 148-row confirmation artifact has been
+produced yet. This artifact rejects confirmation selections outright; a
+separately reviewed, hash-bound freeze/unseal gate is required before the
+sealed confirmation partition can be evaluated.
 
 ## AIMNet2 fixed point-charge baseline
 

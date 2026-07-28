@@ -389,6 +389,7 @@ def _evaluate_method(
         "smd_cds_energy_kcal_mol": (float(components["cds"]) * HARTREE_TO_KCAL_MOL),
         "scf_iterations": int(audit["scf"]["iterations"]),
         "unmixed_density_residual_inf_e": float(last_scf["density_residual_e"]),
+        "scf_convergence": dict(audit["scf"]["convergence"]),
         "half_coupling_identity_error_ev": float(
             audit["polarization_energy_identity_error_ev"]
         ),

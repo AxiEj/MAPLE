@@ -11,9 +11,10 @@ different continuum equations are never mixed.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 import numpy as np
 
@@ -33,6 +34,7 @@ from ....route2_solvents import (
 )
 from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
 from .pyddx_pcm_response import (
+    TESTED_PYDDX_VERSION,
     PyDDXCOSMOReactionFieldLinearMap,
     PyDDXPCMReactionFieldLinearMap,
 )
@@ -43,6 +45,7 @@ from .route2_engine import (
     Route2ContinuumEngine,
     Route2CoupledState,
     Route2EngineSettings,
+    Route2FiniteResolutionPolicy,
     Route2SCFConvergenceError,
     Route2SCFHistoryRecord,
 )
@@ -56,6 +59,7 @@ DDPCM_SOLVER_TOLERANCE = 1.0e-12
 DDPCM_ETA = 0.1
 SCF_MIXING = 1.0
 SCF_DENSITY_TOLERANCE = 2.0e-12
+SCF_DIPOLE_TOLERANCE_E_ANGSTROM = 2.0e-12
 SCF_ENERGY_TOLERANCE_EV = 1.0e-10
 SCF_MAX_ITERATIONS = 100
 SCF_SOLVER = SAFEGUARDED_ANDERSON_SOLVER
@@ -65,6 +69,14 @@ SCF_ANDERSON_COEFFICIENT_L1_LIMIT = 100.0
 SCF_ANDERSON_STEP_RATIO_LIMIT = 100.0
 SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT = 2.0
 SCF_TOTAL_CHARGE_E = 0.0
+SCF_FINITE_RESOLUTION_POLICY_VERSION = "finite-resolution-stagnation-v1"
+SCF_FINITE_RESOLUTION_HISTORY_LENGTH = 7
+SCF_FINITE_RESOLUTION_MAP_REPLAY_COUNT = 3
+SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E = 1.0e-10
+SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM = 1.0e-10
+SCF_FINITE_RESOLUTION_POTENTIAL_SPAN_TOLERANCE_EV = 1.0e-10
+SCF_FINITE_RESOLUTION_GRADIENT_SPAN_TOLERANCE_EV_PER_ANGSTROM = 1.0e-10
+SCF_FINITE_RESOLUTION_LEDGER_SPAN_TOLERANCE_EV = 1.0e-10
 ADJOINT_RELATIVE_TOLERANCE = 1.0e-10
 ADJOINT_ABSOLUTE_TOLERANCE = 1.0e-13
 ADJOINT_MAX_ITERATIONS = 100
@@ -72,10 +84,49 @@ ENERGY_IDENTITY_TOLERANCE_EV = 2.0e-10
 FORCE_STATE_ENERGY_TOLERANCE_EV = 1.0e-9
 NEUTRAL_DENSITY_TOLERANCE = 1.0e-8
 
+_MACE_POLAR_IDENTIFIER = "polar-1-m"
+_MACE_POLAR_RELEASE_URL = (
+    "https://github.com/ACEsuit/mace-foundations/releases/download/"
+    "mace_polar_1/MACE-POLAR-1-M.model"
+)
+_MACE_POLAR_CHECKPOINT_SHA256 = (
+    "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+)
+_MACE_POLAR_CHECKPOINT_SIZE_BYTES = 68_133_235
+_MACE_TORCH_VERSION = "0.3.16"
+_GRAPH_LONGRANGE_VERSION = "0.4.0"
+_TORCH_VERSION = "2.12.0+cu130"
+
+_MULTISOLVENT_DDPCM_FINITE_RESOLUTION_POLICY = (
+    Route2FiniteResolutionPolicy(
+        version=SCF_FINITE_RESOLUTION_POLICY_VERSION,
+        history_length=SCF_FINITE_RESOLUTION_HISTORY_LENGTH,
+        map_replay_count=SCF_FINITE_RESOLUTION_MAP_REPLAY_COUNT,
+        monopole_residual_ceiling_e=(
+            SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E
+        ),
+        dipole_residual_ceiling_e_angstrom=(
+            SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM
+        ),
+        potential_span_tolerance_ev=(
+            SCF_FINITE_RESOLUTION_POTENTIAL_SPAN_TOLERANCE_EV
+        ),
+        gradient_span_tolerance_ev_per_angstrom=(
+            SCF_FINITE_RESOLUTION_GRADIENT_SPAN_TOLERANCE_EV_PER_ANGSTROM
+        ),
+        ledger_span_tolerance_ev=(
+            SCF_FINITE_RESOLUTION_LEDGER_SPAN_TOLERANCE_EV
+        ),
+    )
+)
+
 _DDPCM_ENGINE_SETTINGS = Route2EngineSettings(
     continuum_label="ddPCM",
     scf_mixing=SCF_MIXING,
     scf_density_tolerance=SCF_DENSITY_TOLERANCE,
+    scf_dipole_tolerance_e_angstrom=(
+        SCF_DIPOLE_TOLERANCE_E_ANGSTROM
+    ),
     scf_energy_tolerance_ev=SCF_ENERGY_TOLERANCE_EV,
     scf_max_iterations=SCF_MAX_ITERATIONS,
     adjoint_relative_tolerance=ADJOINT_RELATIVE_TOLERANCE,
@@ -100,7 +151,10 @@ _CONTINUUM_LABELS = {
 }
 
 
-def _engine_settings(electrostatics_model: str) -> Route2EngineSettings:
+def _engine_settings(
+    electrostatics_model: str,
+    profile: str,
+) -> Route2EngineSettings:
     try:
         label = _CONTINUUM_LABELS[electrostatics_model]
     except KeyError as exc:
@@ -108,12 +162,36 @@ def _engine_settings(electrostatics_model: str) -> Route2EngineSettings:
             "The pyddx Route-2 provider requires electrostatics_model="
             "ddpcm or ddcosmo."
         ) from exc
-    if label == _DDPCM_ENGINE_SETTINGS.continuum_label:
-        return _DDPCM_ENGINE_SETTINGS
+    policy = (
+        _MULTISOLVENT_DDPCM_FINITE_RESOLUTION_POLICY
+        if (
+            label == _DDPCM_ENGINE_SETTINGS.continuum_label
+            and profile == DDPCM_MULTISOLVENT_SMD_PROFILE
+        )
+        else None
+    )
     return replace(
         _DDPCM_ENGINE_SETTINGS,
         continuum_label=label,
+        scf_finite_resolution_policy=policy,
     )
+
+
+def _torch_thread_count() -> int:
+    import torch
+
+    return int(torch.get_num_threads())
+
+
+def _torch_version() -> str:
+    import torch
+
+    return str(torch.__version__)
+
+
+def _array_sha256(values: np.ndarray, *, dtype: str) -> str:
+    canonical = np.ascontiguousarray(np.asarray(values, dtype=dtype))
+    return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
 
 
 def _normalized_mol2_atom_types(atoms) -> tuple[str, ...] | None:
@@ -175,7 +253,10 @@ class PyDDXSMDImplicitSolvation:
         self._engine = Route2ContinuumEngine(
             reaction_field_factory=self._build_reaction_field,
             cds_evaluator=self._evaluate_cds,
-            settings=_engine_settings(self.electrostatics_model),
+            settings=_engine_settings(
+                self.electrostatics_model,
+                self.profile,
+            ),
         )
         self._cached_state: Route2CoupledState | None = None
 
@@ -194,6 +275,9 @@ class PyDDXSMDImplicitSolvation:
             "pyddx_eta": DDPCM_ETA,
             "scf_mixing": SCF_MIXING,
             "scf_density_tolerance_e": SCF_DENSITY_TOLERANCE,
+            "scf_dipole_tolerance_e_angstrom": (
+                SCF_DIPOLE_TOLERANCE_E_ANGSTROM
+            ),
             "scf_energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
             "scf_maximum_iterations": SCF_MAX_ITERATIONS,
             "scf_solver": SCF_SOLVER,
@@ -203,6 +287,11 @@ class PyDDXSMDImplicitSolvation:
             "scf_anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
             "scf_anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
             "scf_total_charge_e": SCF_TOTAL_CHARGE_E,
+            "scf_finite_resolution_policy": (
+                None
+                if self._engine.settings.scf_finite_resolution_policy is None
+                else self._engine.settings.scf_finite_resolution_policy.as_dict()
+            ),
             "adjoint_relative_tolerance": ADJOINT_RELATIVE_TOLERANCE,
             "adjoint_absolute_tolerance": ADJOINT_ABSOLUTE_TOLERANCE,
             "adjoint_maximum_iterations": ADJOINT_MAX_ITERATIONS,
@@ -404,6 +493,95 @@ class PyDDXSMDImplicitSolvation:
                 "MACE response API; missing: " + ", ".join(missing) + "."
             )
 
+    def _finite_resolution_runtime_identity(
+        self,
+        calculator,
+        atoms,
+    ) -> dict[str, Any] | None:
+        """Return the exact runtime lock that arms the profile-local fallback."""
+
+        if self._engine.settings.scf_finite_resolution_policy is None:
+            return None
+        checkpoint = getattr(
+            calculator,
+            "mace_polar_checkpoint_provenance",
+            None,
+        )
+        if not isinstance(checkpoint, Mapping):
+            return None
+        exact_checkpoint = {
+            "identifier": _MACE_POLAR_IDENTIFIER,
+            "release_url": _MACE_POLAR_RELEASE_URL,
+            "sha256": _MACE_POLAR_CHECKPOINT_SHA256,
+            "size_bytes": _MACE_POLAR_CHECKPOINT_SIZE_BYTES,
+        }
+        if any(checkpoint.get(key) != value for key, value in exact_checkpoint.items()):
+            return None
+        runtime = {
+            "mace_torch_version": str(
+                getattr(calculator, "mace_torch_version", "")
+            ),
+            "graph_longrange_version": str(
+                getattr(calculator, "graph_longrange_version", "")
+            ),
+            "mace_long_range_evaluator_profile": str(
+                getattr(
+                    calculator,
+                    "long_range_evaluator_profile",
+                    "",
+                )
+            ),
+            "mace_dtype": str(getattr(calculator, "dtype", "")),
+            "device": str(getattr(calculator, "device", "")),
+            "torch_threads": _torch_thread_count(),
+            "torch_version": _torch_version(),
+        }
+        expected_runtime = {
+            "mace_torch_version": _MACE_TORCH_VERSION,
+            "graph_longrange_version": _GRAPH_LONGRANGE_VERSION,
+            "mace_long_range_evaluator_profile": (
+                self.profile_spec.mace_long_range_evaluator
+            ),
+            "mace_dtype": "torch.float64",
+            "device": "cpu",
+            "torch_threads": 1,
+            "torch_version": _TORCH_VERSION,
+        }
+        if runtime != expected_runtime:
+            return None
+        positions = np.asarray(atoms.get_positions(), dtype=float)
+        numbers = np.asarray(atoms.numbers, dtype=np.int64)
+        radii = np.asarray(self.coulomb_radii_angstrom, dtype=float)
+        return {
+            "profile": self.profile,
+            "solvent": self.solvent,
+            "continuum_equation": self.electrostatics_model,
+            "mace_checkpoint_identifier": exact_checkpoint["identifier"],
+            "mace_checkpoint_release_url": exact_checkpoint["release_url"],
+            "mace_checkpoint_sha256": exact_checkpoint["sha256"],
+            "mace_checkpoint_size_bytes": exact_checkpoint["size_bytes"],
+            **runtime,
+            "pyddx_version": TESTED_PYDDX_VERSION,
+            "pyddx_n_proc": self.profile_spec.ddpcm_n_proc,
+            "pyddx_solver_tolerance": DDPCM_SOLVER_TOLERANCE,
+            "continuum_dielectric": self.continuum_dielectric,
+            "lmax": DDPCM_LMAX,
+            "n_lebedev": DDPCM_N_LEBEDEV,
+            "eta": DDPCM_ETA,
+            "atomic_numbers_sha256": _array_sha256(
+                numbers,
+                dtype="<i8",
+            ),
+            "positions_angstrom_sha256": _array_sha256(
+                positions,
+                dtype="<f8",
+            ),
+            "cavity_radii_angstrom_sha256": _array_sha256(
+                radii,
+                dtype="<f8",
+            ),
+        }
+
     def _validate_density(
         self,
         values: np.ndarray,
@@ -463,6 +641,12 @@ class PyDDXSMDImplicitSolvation:
                     self.electrostatics_model,
                     self._reference_mol2_atom_types,
                 ),
+                finite_resolution_runtime_identity=(
+                    self._finite_resolution_runtime_identity(
+                        calculator,
+                        atoms,
+                    )
+                ),
             )
         except Route2SCFConvergenceError as exc:
             self._write_scf_failure_audit(
@@ -472,30 +656,51 @@ class PyDDXSMDImplicitSolvation:
             )
             raise
 
-    @staticmethod
     def _scf_audit_payload(
+        self,
         history: tuple[Route2SCFHistoryRecord, ...],
+        *,
+        convergence: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
+        settings = self._engine.settings
+        policy = settings.scf_finite_resolution_policy
         return {
-            "solver": SCF_SOLVER,
-            "mixing": SCF_MIXING,
-            "density_tolerance_e": SCF_DENSITY_TOLERANCE,
-            "energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
-            "maximum_iterations": SCF_MAX_ITERATIONS,
-            "anderson_depth": SCF_ANDERSON_DEPTH,
-            "anderson_regularization": SCF_ANDERSON_REGULARIZATION,
+            "solver": settings.scf_solver,
+            "mixing": settings.scf_mixing,
+            "density_tolerance_e": settings.scf_density_tolerance,
+            "dipole_density_tolerance_e_angstrom": (
+                settings.scf_dipole_tolerance_e_angstrom
+            ),
+            "energy_tolerance_ev": settings.scf_energy_tolerance_ev,
+            "maximum_iterations": settings.scf_max_iterations,
+            "anderson_depth": settings.scf_anderson_depth,
+            "anderson_regularization": settings.scf_anderson_regularization,
             "anderson_coefficient_l1_limit": (
-                SCF_ANDERSON_COEFFICIENT_L1_LIMIT
+                settings.scf_anderson_coefficient_l1_limit
             ),
             "anderson_step_ratio_limit": (
-                SCF_ANDERSON_STEP_RATIO_LIMIT
+                settings.scf_anderson_step_ratio_limit
             ),
             "anderson_residual_growth_limit": (
-                SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT
+                settings.scf_anderson_residual_growth_limit
             ),
-            "total_charge_e": SCF_TOTAL_CHARGE_E,
+            "total_charge_e": settings.scf_total_charge_e,
             "residual_definition": (
                 "unmixed neutral-tangent Pi0[M(P(c))-c]"
+            ),
+            "coefficient_units": {
+                "monopole": "e",
+                "dipole": "e angstrom",
+            },
+            "field_units": {
+                "potential": "eV/e",
+                "gradient": "eV/(e angstrom)",
+            },
+            "finite_resolution_policy": (
+                None if policy is None else policy.as_dict()
+            ),
+            "convergence": (
+                None if convergence is None else dict(convergence)
             ),
             "iterations": len(history),
             "history": list(history),
@@ -622,6 +827,9 @@ class PyDDXSMDImplicitSolvation:
                 dtype=float,
             ),
             "density_coefficients": coupled.density_coefficients,
+            "response_density_coefficients": (
+                coupled.response_density_coefficients
+            ),
             "reaction_field_values_ev": (coupled.reaction_field_values_ev),
         }
         if derivative is not None:
@@ -647,7 +855,10 @@ class PyDDXSMDImplicitSolvation:
             "gas_mace_energy_ev": float(gas_state.energy_ev),
             "solvent_intrinsic_mace_energy_ev": float(coupled.solvent_state.energy_ev),
             "polarization_energy_identity_error_ev": (coupled.energy_identity_error_ev),
-            "scf": self._scf_audit_payload(coupled.history),
+            "scf": self._scf_audit_payload(
+                coupled.history,
+                convergence=coupled.scf_convergence,
+            ),
             "providers": {
                 "continuum": dict(coupled.reaction_field.runtime_provenance),
                 "cds": dict(coupled.cds_result.runtime_provenance),
@@ -714,6 +925,7 @@ class PyDDXSMDImplicitSolvation:
             **self.provenance,
             "converged": True,
             "iterations": len(coupled.history),
+            "scf_convergence": dict(coupled.scf_convergence),
             "continuum_provider": dict(coupled.reaction_field.runtime_provenance),
             "cds_provider": dict(coupled.cds_result.runtime_provenance),
             "calculator_profile": getattr(

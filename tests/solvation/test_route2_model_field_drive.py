@@ -14,6 +14,7 @@ from maple.function.calculator.extra_correction.implicit.electrostatic_pairing i
 from maple.function.calculator.extra_correction.implicit.route2_engine import (
     Route2ContinuumEngine,
     Route2EngineSettings,
+    Route2FiniteResolutionPolicy,
     Route2SCFConvergenceError,
     Route2SCFIterationState,
 )
@@ -125,9 +126,11 @@ class _IdentityReactionMap:
     atom_count = 2
 
     def __init__(self):
+        self.last_density = None
         self.last_drive = None
 
     def apply_scf_drive(self, density):
+        self.last_density = np.asarray(density, dtype=float).copy()
         dual_field = np.asarray(density, dtype=float).copy()
         self.last_drive = ReactionFieldDrive.local_jet(dual_field)
         return self.last_drive
@@ -172,6 +175,43 @@ class _ChargeNoisyCalculator:
         return _State(energy_ev=0.0, density_coefficients=response), {}
 
 
+class _FiniteResolutionCalculator:
+    def __init__(
+        self,
+        residuals: list[np.ndarray],
+        *,
+        energies_ev: list[float] | None = None,
+    ):
+        self.residuals = [
+            np.asarray(residual, dtype=float).copy() for residual in residuals
+        ]
+        self.energies_ev = (
+            [-9.9] * len(self.residuals)
+            if energies_ev is None
+            else [float(value) for value in energies_ev]
+        )
+        if len(self.energies_ev) != len(self.residuals):
+            raise ValueError("Energy and residual schedules must have equal length.")
+        self.calls = 0
+
+    def polar_state(self, _atoms, **kwargs):
+        density = np.column_stack(
+            (
+                np.asarray(kwargs["node_potential_ev"], dtype=float),
+                np.asarray(
+                    kwargs["node_gradient_ev_per_angstrom"],
+                    dtype=float,
+                ),
+            )
+        )
+        if self.calls >= len(self.residuals):
+            raise RuntimeError("Finite-resolution response schedule exhausted.")
+        response = density + self.residuals[self.calls]
+        energy_ev = self.energies_ev[self.calls]
+        self.calls += 1
+        return _State(energy_ev=energy_ev, density_coefficients=response), {}
+
+
 def _settings() -> Route2EngineSettings:
     return Route2EngineSettings(
         continuum_label="synthetic exact GTO",
@@ -186,6 +226,91 @@ def _settings() -> Route2EngineSettings:
         force_state_energy_tolerance_ev=1.0e-12,
         neutral_density_tolerance=1.0e-12,
         scf_solver=DAMPED_PICARD_SOLVER,
+    )
+
+
+def _finite_resolution_policy() -> Route2FiniteResolutionPolicy:
+    return Route2FiniteResolutionPolicy(
+        version="finite-resolution-stagnation-v1",
+        history_length=7,
+        map_replay_count=3,
+        monopole_residual_ceiling_e=1.0e-10,
+        dipole_residual_ceiling_e_angstrom=1.0e-10,
+        potential_span_tolerance_ev=1.0e-10,
+        gradient_span_tolerance_ev_per_angstrom=1.0e-10,
+        ledger_span_tolerance_ev=1.0e-10,
+    )
+
+
+def _finite_resolution_case(
+    monkeypatch,
+    *,
+    residuals: list[np.ndarray],
+    energies_ev: list[float] | None = None,
+    maximum_iterations: int = 8,
+    policy: Route2FiniteResolutionPolicy | None,
+    runtime_identity: dict[str, object] | None,
+):
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    gas_density = np.asarray(
+        [[-0.2, 0.1, -0.3, 0.4], [0.2, -0.5, 0.6, -0.7]],
+        dtype=float,
+    )
+    gas_state = _State(energy_ev=-10.0, density_coefficients=gas_density)
+    calculator = _FiniteResolutionCalculator(
+        residuals,
+        energies_ev=energies_ev,
+    )
+    reaction_maps: list[_IdentityReactionMap] = []
+
+    def reaction_field_factory(_atoms):
+        reaction_map = _IdentityReactionMap()
+        reaction_maps.append(reaction_map)
+        return reaction_map
+
+    roots = []
+    for step in range(1, maximum_iterations):
+        delta = step * 1.0e-13
+        root = gas_density.copy()
+        root[:, 0] += np.asarray([delta, -delta])
+        root[:, 1:] += delta
+        roots.append(root)
+    proposed_roots = iter(roots)
+
+    def controlled_step(samples, **_kwargs):
+        return FixedPointStep(
+            density=next(proposed_roots),
+            method=SAFEGUARDED_ANDERSON_SOLVER,
+            history_size=len(samples),
+        )
+
+    monkeypatch.setattr(
+        route2_engine_module,
+        "next_fixed_point_density",
+        controlled_step,
+    )
+    settings = replace(
+        _settings(),
+        continuum_label="finite-resolution synthetic ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=2.0e-12,
+        scf_energy_tolerance_ev=1.0e-10,
+        scf_max_iterations=maximum_iterations,
+        scf_solver=SAFEGUARDED_ANDERSON_SOLVER,
+        scf_finite_resolution_policy=policy,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=reaction_field_factory,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+    return (
+        engine,
+        atoms,
+        calculator,
+        gas_state,
+        reaction_maps,
+        runtime_identity,
     )
 
 
@@ -500,4 +625,422 @@ def test_engine_nonconvergence_exposes_the_complete_numerical_history():
     assert (
         caught.value.best_state.response_density_coefficients.flags.writeable
         is False
+    )
+
+
+def test_engine_accepts_the_earliest_online_window_satisfying_all_predicates(
+    monkeypatch,
+):
+    warm_residuals = []
+    for step in range(8):
+        delta = step * 1.0e-13
+        warm_residuals.append(
+            np.asarray(
+                [
+                    [5.0e-11 + delta, 4.0e-11 + delta, 0.0, 0.0],
+                    [-5.0e-11 - delta, -4.0e-11 - delta, 0.0, 0.0],
+                ]
+            )
+        )
+    replay_residual = warm_residuals[-1]
+    runtime_identity = {
+        "profile": "synthetic-frozen-profile",
+        "device": "cpu",
+        "dtype": "torch.float64",
+        "torch_threads": 1,
+    }
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=warm_residuals + [replay_residual] * 3,
+        policy=_finite_resolution_policy(),
+        runtime_identity=runtime_identity,
+    )
+    engine, atoms, calculator, gas_state, reaction_maps, identity = case
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("finite-resolution",),
+        finite_resolution_runtime_identity=identity,
+    )
+
+    assert len(coupled.history) == 8
+    assert coupled.history[-1]["next_density_update"] == (
+        "converged-finite-resolution"
+    )
+    assert len(reaction_maps) == 4
+    assert calculator.calls == 11
+    assert coupled.scf_convergence["reason"] == (
+        "finite-resolution-stagnation-v1"
+    )
+    assert coupled.scf_convergence["online_candidate_iteration"] == 8
+    assert coupled.scf_convergence["final_monopole_residual_e"] <= 1.0e-10
+    assert (
+        coupled.scf_convergence["final_dipole_residual_e_angstrom"]
+        <= 1.0e-10
+    )
+    assert coupled.scf_convergence["runtime_identity"] == runtime_identity
+    window = coupled.scf_convergence["history_window"]
+    assert window["start_iteration"] == 2
+    assert window["end_iteration"] == 8
+    assert window["root_monopole_span_e"] <= 2.0e-12
+    assert window["root_dipole_span_e_angstrom"] <= 2.0e-12
+    assert window["residual_monopole_span_e"] <= 2.0e-12
+    assert window["residual_dipole_span_e_angstrom"] <= 2.0e-12
+    assert window["potential_span_ev"] <= 1.0e-10
+    assert window["gradient_span_ev_per_angstrom"] <= 1.0e-10
+    replay = coupled.scf_convergence["fresh_map_replay"]
+    assert replay["replay_count"] == 3
+    assert replay["evaluation_count"] == 4
+    assert replay["includes_online_candidate"] is True
+    assert replay["all_field_arrays_identical"] is True
+    assert replay["all_response_arrays_identical"] is True
+    assert replay["maximum_monopole_residual_e"] <= 1.0e-10
+    assert replay["maximum_dipole_residual_e_angstrom"] <= 1.0e-10
+    assert replay["electrostatic_ledger_span_ev"] <= 1.0e-10
+    assert replay["maximum_polarization_identity_error_ev"] <= 1.0e-12
+    assert len(replay["field_sha256"]) == 64
+    assert len(replay["response_sha256"]) == 64
+    np.testing.assert_allclose(
+        coupled.density_coefficients,
+        reaction_maps[0].last_density,
+    )
+
+
+@pytest.mark.parametrize(
+    ("policy", "runtime_identity"),
+    (
+        (None, {"profile": "synthetic-frozen-profile"}),
+        (_finite_resolution_policy(), None),
+    ),
+)
+def test_engine_finite_resolution_branch_is_both_configured_and_runtime_armed(
+    monkeypatch,
+    policy,
+    runtime_identity,
+):
+    residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[residual] * 8,
+        policy=policy,
+        runtime_identity=runtime_identity,
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(Route2SCFConvergenceError):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-disabled",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_engine_rejects_a_stable_residual_norm_with_changing_directions(
+    monkeypatch,
+):
+    residuals = []
+    for step in range(8):
+        sign = -1.0 if step % 2 else 1.0
+        residuals.append(
+            np.asarray(
+                [
+                    [sign * 5.0e-11, sign * 4.0e-11, 0.0, 0.0],
+                    [-sign * 5.0e-11, -sign * 4.0e-11, 0.0, 0.0],
+                ]
+            )
+        )
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=residuals,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(Route2SCFConvergenceError):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-cycle",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_engine_rejects_direction_reversal_in_either_physical_channel(
+    monkeypatch,
+):
+    residuals = []
+    for step in range(8):
+        dipole_sign = -1.0 if step % 2 else 1.0
+        residuals.append(
+            np.asarray(
+                [
+                    [5.0e-11, dipole_sign * 5.0e-13, 0.0, 0.0],
+                    [-5.0e-11, -dipole_sign * 5.0e-13, 0.0, 0.0],
+                ]
+            )
+        )
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=residuals,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(Route2SCFConvergenceError):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-channel-cycle",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_engine_rejects_nonrepeatable_fresh_map_replay(
+    monkeypatch,
+):
+    warm_residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    replay_residuals = [
+        warm_residual,
+        warm_residual + np.asarray(
+            [[0.0, 3.0e-12, 0.0, 0.0], [0.0, -3.0e-12, 0.0, 0.0]]
+        ),
+        warm_residual,
+    ]
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[warm_residual] * 8 + replay_residuals,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(Route2SCFConvergenceError):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-replay-mismatch",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_engine_rejects_online_to_map_replay_ledger_drift(monkeypatch):
+    residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[residual] * 11,
+        energies_ev=[-9.9] * 8 + [-8.9] * 3,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(
+        Route2SCFConvergenceError,
+        match="online/map-replay ledger span",
+    ):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-ledger-drift",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_engine_rejects_nonfinite_map_replay_energy(monkeypatch):
+    residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[residual] * 11,
+        energies_ev=[-9.9] * 8 + [float("nan")] * 3,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(
+        Route2SCFConvergenceError,
+        match="non-finite energy scalar",
+    ):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-nonfinite-replay",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_engine_rejects_forces_from_finite_resolution_candidate(monkeypatch):
+    residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[residual] * 11,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("finite-resolution-energy-only",),
+        finite_resolution_runtime_identity=identity,
+    )
+
+    calls_before_force = calculator.calls
+    with pytest.raises(RuntimeError, match="energy-only"):
+        engine.solvent_correction_force(
+            atoms,
+            calculator,
+            gas_state,
+            coupled,
+        )
+    assert calculator.calls == calls_before_force
+
+
+def test_engine_reports_nominal_channel_specific_convergence():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    gas_density = np.asarray(
+        [[-0.2, 0.1, -0.3, 0.4], [0.2, -0.5, 0.6, -0.7]],
+        dtype=float,
+    )
+    residual = np.asarray(
+        [[5.0e-13, 1.5e-12, 0.0, 0.0], [-5.0e-13, -1.5e-12, 0.0, 0.0]]
+    )
+    gas_state = _State(energy_ev=-10.0, density_coefficients=gas_density)
+    calculator = _FiniteResolutionCalculator([residual])
+    reaction_map = _IdentityReactionMap()
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=replace(
+            _settings(),
+            scf_density_tolerance=1.0e-12,
+            scf_dipole_tolerance_e_angstrom=2.0e-12,
+            scf_max_iterations=1,
+        ),
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("nominal-channel-specific",),
+    )
+
+    assert coupled.history[-1]["next_density_update"] == "converged"
+    assert coupled.history[-1]["monopole_residual_e"] == pytest.approx(5.0e-13)
+    assert coupled.history[-1]["dipole_residual_e_angstrom"] == pytest.approx(
+        1.5e-12
+    )
+    assert coupled.scf_convergence == {
+        "reason": "nominal-density-and-energy-v1",
+        "online_candidate_iteration": 1,
+        "final_monopole_residual_e": pytest.approx(5.0e-13),
+        "final_dipole_residual_e_angstrom": pytest.approx(1.5e-12),
+        "runtime_identity": None,
+        "history_window": None,
+        "fresh_map_replay": None,
+    }
+
+
+def test_engine_rejects_component_drift_hidden_by_a_constant_peak_norm(
+    monkeypatch,
+):
+    residuals = []
+    for step in range(8):
+        first = 5.0e-11 if step % 2 == 0 else 4.0e-11
+        second = 4.0e-11 if step % 2 == 0 else 5.0e-11
+        residuals.append(
+            np.asarray(
+                [
+                    [5.0e-11, first, 0.0, 0.0],
+                    [-5.0e-11, -second, 0.0, 0.0],
+                ]
+            )
+        )
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=residuals,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    with pytest.raises(Route2SCFConvergenceError):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("finite-resolution-component-drift",),
+            finite_resolution_runtime_identity=identity,
+        )
+
+
+def test_finite_resolution_energy_span_uses_only_the_triggering_window(
+    monkeypatch,
+):
+    residual = np.asarray(
+        [
+            [5.0e-11, 4.0e-11, 0.0, 0.0],
+            [-5.0e-11, -4.0e-11, 0.0, 0.0],
+        ]
+    )
+    case = _finite_resolution_case(
+        monkeypatch,
+        residuals=[residual] * 12,
+        energies_ev=[-9.0] + [-9.9] * 11,
+        maximum_iterations=9,
+        policy=_finite_resolution_policy(),
+        runtime_identity={"profile": "synthetic-frozen-profile"},
+    )
+    engine, atoms, calculator, gas_state, _, identity = case
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("finite-resolution-window-energy",),
+        finite_resolution_runtime_identity=identity,
+    )
+
+    assert coupled.scf_convergence["online_candidate_iteration"] == 9
+    assert (
+        coupled.scf_convergence["history_window"]["intrinsic_energy_span_ev"]
+        == pytest.approx(0.0)
     )

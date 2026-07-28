@@ -9,9 +9,16 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import sys
 from typing import Any, Mapping, Sequence
 
 import numpy as np
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+BENCHMARK_DIR = Path(__file__).resolve().parent
+for search_path in (REPO_ROOT, BENCHMARK_DIR):
+    if str(search_path) not in sys.path:
+        sys.path.insert(0, str(search_path))
 
 from benchmark_core import canonical_json_bytes, sha256_file, write_json_atomic
 from mnsol_dataset import load_mnsol_protocol, load_mnsol_v2012
@@ -23,18 +30,17 @@ from mnsol_response_ablation import (
     aggregate_method_metrics,
     paired_method_comparison,
 )
+from maple.function.route2_solvents import route2_solvent_spec
 import run_mnsol_macepolar_response_ablation as runner
-
-REPO_ROOT = Path(__file__).resolve().parents[3]
 
 ALLOWED_METHODS = ("mace_fixed_l1", "mace_scf_l1")
 FULL_METHODS = tuple(runner.ABLATION_METHODS)
 SUPPORTED_PARTITIONS = frozenset({"development"})
-AGGREGATOR_ARTIFACT_NAME = "route2-mnsol-macepolar-two-member-matrix-v1"
+AGGREGATOR_ARTIFACT_NAME = "route2-mnsol-macepolar-two-member-matrix-v2"
 SOURCE_RUN_KIND = "partition-record-shard"
 AGGREGATE_RUN_KIND = "partition-two-member-matrix"
 REQUIRED_STAGE = "scf"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 REQUIRED_CONTINUUM_EQUATION = "ddpcm"
 SOURCE_RUNNER_PATH = (
     "docs/implicit-solvation/benchmarks/run_mnsol_macepolar_response_ablation.py"
@@ -48,6 +54,20 @@ EXPECTED_MACE_POLAR_CHECKPOINT = {
     "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
     "size_bytes": 68133235,
 }
+EXPECTED_MACE_TORCH_VERSION = "0.3.16"
+EXPECTED_GRAPH_LONGRANGE_VERSION = "0.4.0"
+EXPECTED_TORCH_VERSION = "2.12.0+cu130"
+EXPECTED_MACE_LONG_RANGE_EVALUATOR_PROFILE = (
+    "graph-longrange-molecular-realspace-v1"
+)
+EXPECTED_PYDDX_VERSION = "0.8.0"
+EXPECTED_RUNTIME_DEVICE = "cpu"
+EXPECTED_MACE_DTYPE = "torch.float64"
+EXPECTED_SCF_RUNTIME_THREADS = 1
+EXPECTED_SOLVER_TOLERANCE = 1.0e-12
+EXPECTED_MACE_LONG_RANGE_LMAX = 15
+EXPECTED_MACE_LONG_RANGE_N_LEBEDEV = 1202
+EXPECTED_MACE_LONG_RANGE_ETA = 0.1
 
 DATASET_HASH_FIELDS = (
     "source_artifact_sha256",
@@ -64,6 +84,47 @@ METHOD_FIELDS = (
     "electrostatic_kcal_mol",
     "smd_cds_kcal_mol",
 )
+MACE_SCF_NOMINAL_REASON = "nominal-density-and-energy-v1"
+MACE_SCF_FINITE_RESOLUTION_REASON = "finite-resolution-stagnation-v1"
+MACE_SCF_CONVERGENCE_REASONS = frozenset(
+    {MACE_SCF_NOMINAL_REASON, MACE_SCF_FINITE_RESOLUTION_REASON}
+)
+MACE_SCF_NOMINAL_MONOPOLE_TOLERANCE_E = 2.0e-12
+MACE_SCF_NOMINAL_DIPOLE_TOLERANCE_E_ANGSTROM = 2.0e-12
+MACE_SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E = 1.0e-10
+MACE_SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM = 1.0e-10
+MACE_SCF_FINITE_RESOLUTION_FIELD_SPAN_TOLERANCE = 1.0e-10
+MACE_SCF_FINITE_RESOLUTION_ENERGY_TOLERANCE_EV = 1.0e-10
+MACE_SCF_POLARIZATION_IDENTITY_TOLERANCE_EV = 2.0e-10
+MACE_SCF_CONVERGENCE_HISTORY_FIELDS = (
+    "start_iteration",
+    "end_iteration",
+    "root_monopole_span_e",
+    "root_dipole_span_e_angstrom",
+    "residual_monopole_span_e",
+    "residual_dipole_span_e_angstrom",
+    "potential_span_ev",
+    "gradient_span_ev_per_angstrom",
+    "maximum_monopole_residual_e",
+    "maximum_dipole_residual_e_angstrom",
+    "maximum_energy_delta_ev",
+    "intrinsic_energy_span_ev",
+)
+MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS = (
+    "replay_count",
+    "evaluation_count",
+    "includes_online_candidate",
+    "all_field_arrays_identical",
+    "all_response_arrays_identical",
+    "field_sha256",
+    "response_sha256",
+    "maximum_monopole_residual_e",
+    "maximum_dipole_residual_e_angstrom",
+    "intrinsic_ledger_span_ev",
+    "pcm_ledger_span_ev",
+    "electrostatic_ledger_span_ev",
+    "maximum_polarization_identity_error_ev",
+)
 PUBLIC_SOURCE_FILES = (
     "docs/implicit-solvation/benchmarks/aggregate_mnsol_response_partition.py",
     "docs/implicit-solvation/benchmarks/benchmark_core.py",
@@ -75,6 +136,34 @@ PUBLIC_SOURCE_FILES = (
 CONTINUUM_EQUATION_TO_PROFILE = {
     equation: arm.profile for equation, arm in runner.CONTINUUM_ARMS.items()
 }
+EXPECTED_FINITE_RESOLUTION_RUNTIME_IDENTITY = {
+    "profile": CONTINUUM_EQUATION_TO_PROFILE[REQUIRED_CONTINUUM_EQUATION],
+    "continuum_equation": REQUIRED_CONTINUUM_EQUATION,
+    "mace_checkpoint_identifier": EXPECTED_MACE_POLAR_CHECKPOINT["identifier"],
+    "mace_checkpoint_release_url": EXPECTED_MACE_POLAR_CHECKPOINT["release_url"],
+    "mace_checkpoint_sha256": EXPECTED_MACE_POLAR_CHECKPOINT["sha256"],
+    "mace_checkpoint_size_bytes": EXPECTED_MACE_POLAR_CHECKPOINT["size_bytes"],
+    "mace_torch_version": EXPECTED_MACE_TORCH_VERSION,
+    "graph_longrange_version": EXPECTED_GRAPH_LONGRANGE_VERSION,
+    "mace_long_range_evaluator_profile": (
+        EXPECTED_MACE_LONG_RANGE_EVALUATOR_PROFILE
+    ),
+    "mace_dtype": EXPECTED_MACE_DTYPE,
+    "device": EXPECTED_RUNTIME_DEVICE,
+    "torch_threads": EXPECTED_SCF_RUNTIME_THREADS,
+    "torch_version": EXPECTED_TORCH_VERSION,
+    "pyddx_version": EXPECTED_PYDDX_VERSION,
+    "pyddx_n_proc": 1,
+    "pyddx_solver_tolerance": EXPECTED_SOLVER_TOLERANCE,
+    "lmax": EXPECTED_MACE_LONG_RANGE_LMAX,
+    "n_lebedev": EXPECTED_MACE_LONG_RANGE_N_LEBEDEV,
+    "eta": EXPECTED_MACE_LONG_RANGE_ETA,
+}
+FINITE_RESOLUTION_RUNTIME_DIGEST_FIELDS = (
+    "atomic_numbers_sha256",
+    "positions_angstrom_sha256",
+    "cavity_radii_angstrom_sha256",
+)
 
 
 @dataclass(frozen=True)
@@ -119,6 +208,427 @@ def _finite_float(value: object, *, label: str) -> float:
     if not np.isfinite(number):
         raise ValueError(f"{label} must be finite.")
     return number
+
+
+def _nonnegative_float(value: object, *, label: str) -> float:
+    number = _finite_float(value, label=label)
+    if number < 0.0:
+        raise ValueError(f"{label} must be non-negative.")
+    return number
+
+
+def _require_mapping(
+    value: object,
+    *,
+    label: str,
+) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{label} must be a JSON object.")
+    return dict(value)
+
+
+def _validated_finite_resolution_runtime_identity(
+    value: Mapping[str, Any],
+    *,
+    selection_index: int,
+    method: str,
+    canonical_solvent: str,
+) -> dict[str, Any]:
+    label = (
+        f"Record {selection_index} method {method} finite-resolution "
+        "runtime_identity"
+    )
+    identity = dict(value)
+    expected = {
+        **EXPECTED_FINITE_RESOLUTION_RUNTIME_IDENTITY,
+        "solvent": canonical_solvent,
+    }
+    drifted = [
+        field
+        for field, expected_value in expected.items()
+        if identity.get(field) != expected_value
+    ]
+    if drifted:
+        raise ValueError(
+            f"{label} drifted from the frozen runtime lock: "
+            + ", ".join(drifted)
+            + "."
+        )
+    dielectric = _finite_float(
+        identity.get("continuum_dielectric"),
+        label=f"{label} continuum_dielectric",
+    )
+    expected_dielectric = route2_solvent_spec(
+        canonical_solvent
+    ).descriptors.dielectric
+    if dielectric != expected_dielectric:
+        raise ValueError(
+            f"{label} continuum_dielectric does not match the frozen "
+            f"{canonical_solvent} descriptor."
+        )
+    normalized = {
+        field: identity[field]
+        for field in EXPECTED_FINITE_RESOLUTION_RUNTIME_IDENTITY
+    }
+    normalized["solvent"] = canonical_solvent
+    normalized["continuum_dielectric"] = dielectric
+    for field in FINITE_RESOLUTION_RUNTIME_DIGEST_FIELDS:
+        normalized[field] = _require_hex(
+            identity.get(field),
+            length=64,
+            label=f"{label} {field}",
+        )
+    return normalized
+
+
+def _require_not_above(
+    value: float,
+    *,
+    ceiling: float,
+    label: str,
+) -> None:
+    if value > ceiling:
+        raise ValueError(f"{label} exceeds the frozen convergence gate.")
+
+
+def _validate_scf_convergence(
+    value: Mapping[str, Any],
+    *,
+    selection_index: int,
+    method: str,
+    canonical_solvent: str,
+    scf_iterations: int,
+) -> dict[str, Any]:
+    if method != "mace_scf_l1":
+        raise ValueError(f"Record {selection_index} method {method} cannot validate scf_convergence.")
+
+    reason = str(value.get("reason", "")).strip()
+    if reason not in MACE_SCF_CONVERGENCE_REASONS:
+        raise ValueError(
+            f"Record {selection_index} method {method} SCF convergence "
+            f"reason is unsupported."
+        )
+
+    online_candidate_iteration = _require_int(
+        value.get("online_candidate_iteration"),
+        label=f"Record {selection_index} method {method} online_candidate_iteration",
+    )
+    if online_candidate_iteration <= 0:
+        raise ValueError(
+            f"Record {selection_index} method {method} online_candidate_iteration "
+            "must be a positive integer."
+        )
+    if online_candidate_iteration != scf_iterations:
+        raise ValueError(
+            f"Record {selection_index} method {method} scf_iterations must "
+            "equal online_candidate_iteration."
+        )
+
+    final_monopole_residual_e = _nonnegative_float(
+        value.get("final_monopole_residual_e"),
+        label=(
+            f"Record {selection_index} method {method} "
+            "final_monopole_residual_e"
+        ),
+    )
+    final_dipole_residual_e_angstrom = _nonnegative_float(
+        value.get("final_dipole_residual_e_angstrom"),
+        label=(
+            f"Record {selection_index} method {method} "
+            "final_dipole_residual_e_angstrom"
+        ),
+    )
+
+    result: dict[str, Any] = {
+        "reason": reason,
+        "online_candidate_iteration": online_candidate_iteration,
+        "final_monopole_residual_e": final_monopole_residual_e,
+        "final_dipole_residual_e_angstrom": final_dipole_residual_e_angstrom,
+        "runtime_identity": None,
+        "history_window": None,
+        "fresh_map_replay": None,
+    }
+
+    if reason == MACE_SCF_NOMINAL_REASON:
+        _require_not_above(
+            final_monopole_residual_e,
+            ceiling=MACE_SCF_NOMINAL_MONOPOLE_TOLERANCE_E,
+            label=(
+                f"Record {selection_index} method {method} "
+                "final_monopole_residual_e"
+            ),
+        )
+        _require_not_above(
+            final_dipole_residual_e_angstrom,
+            ceiling=MACE_SCF_NOMINAL_DIPOLE_TOLERANCE_E_ANGSTROM,
+            label=(
+                f"Record {selection_index} method {method} "
+                "final_dipole_residual_e_angstrom"
+            ),
+        )
+        for field in ("runtime_identity", "history_window", "fresh_map_replay"):
+            if field not in value or value.get(field) is not None:
+                raise ValueError(
+                    f"Record {selection_index} method {method} "
+                    f"{field} must be null for reason {reason}."
+                )
+        return result
+
+    runtime_identity = _require_mapping(
+        value.get("runtime_identity"),
+        label=f"Record {selection_index} method {method} runtime_identity",
+    )
+    if not runtime_identity:
+        raise ValueError(
+            f"Record {selection_index} method {method} runtime_identity cannot be empty."
+        )
+    runtime_identity = _validated_finite_resolution_runtime_identity(
+        runtime_identity,
+        selection_index=selection_index,
+        method=method,
+        canonical_solvent=canonical_solvent,
+    )
+    _require_not_above(
+        final_monopole_residual_e,
+        ceiling=MACE_SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E,
+        label=(
+            f"Record {selection_index} method {method} "
+            "final_monopole_residual_e"
+        ),
+    )
+    _require_not_above(
+        final_dipole_residual_e_angstrom,
+        ceiling=MACE_SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM,
+        label=(
+            f"Record {selection_index} method {method} "
+            "final_dipole_residual_e_angstrom"
+        ),
+    )
+
+    history_window = _require_mapping(
+        value.get("history_window"),
+        label=f"Record {selection_index} method {method} history_window",
+    )
+    start_iteration = _require_int(
+        history_window.get("start_iteration"),
+        label=(
+            f"Record {selection_index} method {method} history_window "
+            "start_iteration"
+        ),
+    )
+    end_iteration = _require_int(
+        history_window.get("end_iteration"),
+        label=(
+            f"Record {selection_index} method {method} history_window "
+            "end_iteration"
+        ),
+    )
+    if start_iteration <= 0 or end_iteration <= 0:
+        raise ValueError(
+            f"Record {selection_index} method {method} history_window "
+            "iteration bounds must be positive."
+        )
+    if start_iteration > end_iteration:
+        raise ValueError(
+            f"Record {selection_index} method {method} history_window "
+            "start_iteration must not exceed end_iteration."
+        )
+    if end_iteration != online_candidate_iteration:
+        raise ValueError(
+            f"Record {selection_index} method {method} history_window "
+            "must end at online_candidate_iteration."
+        )
+    if end_iteration - start_iteration + 1 != 7:
+        raise ValueError(
+            f"Record {selection_index} method {method} history_window "
+            "must contain exactly seven online iterations."
+        )
+    normalized_history: dict[str, float | int] = {
+        "start_iteration": start_iteration,
+        "end_iteration": end_iteration,
+    }
+    for field in MACE_SCF_CONVERGENCE_HISTORY_FIELDS:
+        if field in ("start_iteration", "end_iteration"):
+            continue
+        metric = _nonnegative_float(
+            history_window.get(field),
+            label=(
+                f"Record {selection_index} method {method} "
+                f"history_window {field}"
+            ),
+        )
+        normalized_history[field] = metric
+        if field in (
+            "root_monopole_span_e",
+            "residual_monopole_span_e",
+        ):
+            ceiling = MACE_SCF_NOMINAL_MONOPOLE_TOLERANCE_E
+        elif field in (
+            "root_dipole_span_e_angstrom",
+            "residual_dipole_span_e_angstrom",
+        ):
+            ceiling = MACE_SCF_NOMINAL_DIPOLE_TOLERANCE_E_ANGSTROM
+        elif field == "maximum_monopole_residual_e":
+            ceiling = MACE_SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E
+        elif field == "maximum_dipole_residual_e_angstrom":
+            ceiling = MACE_SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM
+        elif field in ("potential_span_ev", "gradient_span_ev_per_angstrom"):
+            ceiling = MACE_SCF_FINITE_RESOLUTION_FIELD_SPAN_TOLERANCE
+        else:
+            ceiling = MACE_SCF_FINITE_RESOLUTION_ENERGY_TOLERANCE_EV
+        _require_not_above(
+            metric,
+            ceiling=ceiling,
+            label=(
+                f"Record {selection_index} method {method} "
+                f"history_window {field}"
+            ),
+        )
+
+    fresh_map_replay = _require_mapping(
+        value.get("fresh_map_replay"),
+        label=f"Record {selection_index} method {method} fresh_map_replay",
+    )
+    replay_count = _require_int(
+        fresh_map_replay.get("replay_count"),
+        label=(
+            f"Record {selection_index} method {method} "
+            "fresh_map_replay replay_count"
+        ),
+    )
+    if replay_count != 3:
+        raise ValueError(
+            f"Record {selection_index} method {method} fresh_map_replay "
+            "replay_count must be 3."
+        )
+    evaluation_count = _require_int(
+        fresh_map_replay.get("evaluation_count"),
+        label=(
+            f"Record {selection_index} method {method} "
+            "fresh_map_replay evaluation_count"
+        ),
+    )
+    if evaluation_count != replay_count + 1:
+        raise ValueError(
+            f"Record {selection_index} method {method} fresh_map_replay "
+            "evaluation_count must include the online candidate."
+        )
+    for field in (
+        "includes_online_candidate",
+        "all_field_arrays_identical",
+        "all_response_arrays_identical",
+    ):
+        flag = fresh_map_replay.get(field)
+        if flag is not True:
+            raise ValueError(
+                f"Record {selection_index} method {method} "
+                f"fresh_map_replay {field} must be true."
+            )
+    _require_hex(
+        fresh_map_replay.get("field_sha256"),
+        length=64,
+        label=f"Record {selection_index} method {method} fresh_map_replay field_sha256",
+    )
+    _require_hex(
+        fresh_map_replay.get("response_sha256"),
+        length=64,
+        label=f"Record {selection_index} method {method} fresh_map_replay response_sha256",
+    )
+    for field in MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS:
+        if field in (
+            "replay_count",
+            "evaluation_count",
+            "includes_online_candidate",
+            "all_field_arrays_identical",
+            "all_response_arrays_identical",
+        ):
+            continue
+        if field in ("field_sha256", "response_sha256"):
+            continue
+        metric = _nonnegative_float(
+            fresh_map_replay.get(field),
+            label=(
+                f"Record {selection_index} method {method} "
+                f"fresh_map_replay {field}"
+            ),
+        )
+        ceiling = (
+            MACE_SCF_POLARIZATION_IDENTITY_TOLERANCE_EV
+            if field == "maximum_polarization_identity_error_ev"
+            else (
+                MACE_SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E
+                if field == "maximum_monopole_residual_e"
+                else (
+                    MACE_SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM
+                    if field == "maximum_dipole_residual_e_angstrom"
+                    else MACE_SCF_FINITE_RESOLUTION_ENERGY_TOLERANCE_EV
+                )
+            )
+        )
+        _require_not_above(
+            metric,
+            ceiling=ceiling,
+            label=(
+                f"Record {selection_index} method {method} "
+                f"fresh_map_replay {field}"
+            ),
+        )
+
+    normalized_fresh_map_replay: dict[str, Any] = {
+        "replay_count": replay_count,
+        "evaluation_count": evaluation_count,
+        "includes_online_candidate": True,
+        "all_field_arrays_identical": True,
+        "all_response_arrays_identical": True,
+        "field_sha256": _require_hex(
+            fresh_map_replay["field_sha256"],
+            length=64,
+            label="field_sha256",
+        ),
+        "response_sha256": _require_hex(
+            fresh_map_replay["response_sha256"],
+            length=64,
+            label="response_sha256",
+        ),
+    }
+    for field in MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS:
+        if field in normalized_fresh_map_replay:
+            continue
+        normalized_fresh_map_replay[field] = float(fresh_map_replay[field])
+    result["runtime_identity"] = runtime_identity
+    result["history_window"] = normalized_history
+    result["fresh_map_replay"] = normalized_fresh_map_replay
+    if final_monopole_residual_e > float(
+        normalized_history["maximum_monopole_residual_e"]
+    ):
+        raise ValueError(
+            f"Record {selection_index} method {method} final monopole "
+            "residual exceeds its history-window maximum."
+        )
+    if final_dipole_residual_e_angstrom > float(
+        normalized_history["maximum_dipole_residual_e_angstrom"]
+    ):
+        raise ValueError(
+            f"Record {selection_index} method {method} final dipole "
+            "residual exceeds its history-window maximum."
+        )
+    if final_monopole_residual_e != float(
+        normalized_fresh_map_replay["maximum_monopole_residual_e"]
+    ):
+        raise ValueError(
+            f"Record {selection_index} method {method} fresh-map monopole "
+            "residual does not reproduce the online candidate."
+        )
+    if final_dipole_residual_e_angstrom != float(
+        normalized_fresh_map_replay[
+            "maximum_dipole_residual_e_angstrom"
+        ]
+    ):
+        raise ValueError(
+            f"Record {selection_index} method {method} fresh-map dipole "
+            "residual does not reproduce the online candidate."
+        )
+    return result
 
 
 def _dataset_hashes(
@@ -247,7 +757,10 @@ def _validated_shard(
 ) -> _Shard:
     exact = {
         "artifact": runner.ARTIFACT_NAME,
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": runner.SCHEMA_VERSION,
+        "scf_convergence_contract_version": (
+            runner.SCF_CONVERGENCE_CONTRACT_VERSION
+        ),
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
         "status": "complete",
@@ -325,28 +838,112 @@ def _validated_methods(
     methods: Mapping[str, Any],
     *,
     selection_index: int,
+    canonical_solvent: str,
     experimental_kcal_mol: float,
-) -> dict[str, dict[str, float]]:
+) -> dict[str, dict[str, Any]]:
     if tuple(methods) != FULL_METHODS:
         raise ValueError(
             f"Record {selection_index} does not contain the full SCF "
             "method set in source-runner order."
         )
 
-    normalized: dict[str, dict[str, float]] = {}
+    normalized: dict[str, dict[str, Any]] = {}
     for method in FULL_METHODS:
         payload = methods[method]
         if not isinstance(payload, Mapping):
             raise ValueError(f"Record {selection_index} method {method} is malformed.")
         if not set(METHOD_FIELDS).issubset(payload):
             raise ValueError(f"Record {selection_index} method {method} field drifted.")
-        row = {
+        row: dict[str, Any] = {
             field: _finite_float(
                 payload[field],
                 label=f"Record {selection_index} method {method} {field}",
             )
             for field in METHOD_FIELDS
         }
+        if method == "mace_scf_l1":
+            scf_iterations = _require_int(
+                payload.get("scf_iterations"),
+                label=(
+                    f"Record {selection_index} method {method} scf_iterations"
+                ),
+            )
+            if scf_iterations <= 0:
+                raise ValueError(
+                    f"Record {selection_index} method {method} "
+                    "scf_iterations must be positive."
+                )
+            unmixed_density_residual = _nonnegative_float(
+                payload.get("unmixed_density_residual_inf_e"),
+                label=(
+                    f"Record {selection_index} method {method} "
+                    "unmixed_density_residual_inf_e"
+                ),
+            )
+            half_coupling_identity_error_ev = _nonnegative_float(
+                payload.get("half_coupling_identity_error_ev"),
+                label=(
+                    f"Record {selection_index} method {method} "
+                    "half_coupling_identity_error_ev"
+                ),
+            )
+            _require_not_above(
+                half_coupling_identity_error_ev,
+                ceiling=MACE_SCF_POLARIZATION_IDENTITY_TOLERANCE_EV,
+                label=(
+                    f"Record {selection_index} method {method} "
+                    "half_coupling_identity_error_ev"
+                ),
+            )
+            if "scf_convergence" not in payload:
+                raise ValueError(
+                    f"Record {selection_index} method {method} scf_convergence "
+                    "is required."
+                )
+            row["scf_convergence"] = _validate_scf_convergence(
+                _require_mapping(
+                    payload["scf_convergence"],
+                    label=(
+                        f"Record {selection_index} method {method} scf_convergence"
+                    ),
+                ),
+                selection_index=selection_index,
+                method=method,
+                canonical_solvent=canonical_solvent,
+                scf_iterations=scf_iterations,
+            )
+            convergence = row["scf_convergence"]
+            channel_maximum = max(
+                float(convergence["final_monopole_residual_e"]),
+                float(convergence["final_dipole_residual_e_angstrom"]),
+            )
+            if unmixed_density_residual != channel_maximum:
+                raise ValueError(
+                    f"Record {selection_index} method {method} legacy "
+                    "unmixed_density_residual_inf_e does not match the "
+                    "channel maximum."
+                )
+            if convergence["reason"] == MACE_SCF_FINITE_RESOLUTION_REASON:
+                replay_identity_maximum = float(
+                    convergence["fresh_map_replay"][
+                        "maximum_polarization_identity_error_ev"
+                    ]
+                )
+                if (
+                    half_coupling_identity_error_ev
+                    > replay_identity_maximum
+                ):
+                    raise ValueError(
+                        f"Record {selection_index} method {method} final "
+                        "half-coupling identity exceeds fresh-map evidence."
+                    )
+            row["scf_iterations"] = scf_iterations
+            row["unmixed_density_residual_inf_e"] = (
+                unmixed_density_residual
+            )
+            row["half_coupling_identity_error_ev"] = (
+                half_coupling_identity_error_ev
+            )
         if row["wall_seconds"] < 0.0:
             raise ValueError(
                 f"Record {selection_index} method {method} wall time " "is negative."
@@ -386,6 +983,77 @@ def _validated_methods(
                 )
         normalized[method] = row
     return {method: normalized[method] for method in ALLOWED_METHODS}
+
+
+def _aggregate_scf_convergence(
+    records: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    reasons: dict[str, int] = {}
+    history_maxima: dict[str, float] = {
+        field: 0.0 for field in MACE_SCF_CONVERGENCE_HISTORY_FIELDS
+    }
+    replay_maxima: dict[str, float] = {
+        field: 0.0 for field in MACE_SCF_CONVERGENCE_MAP_REPLAY_FIELDS
+        if field
+        not in (
+            "replay_count",
+            "evaluation_count",
+            "includes_online_candidate",
+            "all_field_arrays_identical",
+            "all_response_arrays_identical",
+            "field_sha256",
+            "response_sha256",
+        )
+    }
+    nominal_count = 0
+    finite_count = 0
+    max_final_monopole_residual_e = 0.0
+    max_final_dipole_residual_e_angstrom = 0.0
+
+    for record in records:
+        convergence = record["methods"]["mace_scf_l1"]["scf_convergence"]
+        reason = str(convergence["reason"])
+        reasons[reason] = reasons.get(reason, 0) + 1
+
+        if reason == MACE_SCF_NOMINAL_REASON:
+            nominal_count += 1
+        else:
+            finite_count += 1
+
+        max_final_monopole_residual_e = max(
+            max_final_monopole_residual_e,
+            float(convergence["final_monopole_residual_e"]),
+        )
+        max_final_dipole_residual_e_angstrom = max(
+            max_final_dipole_residual_e_angstrom,
+            float(convergence["final_dipole_residual_e_angstrom"]),
+        )
+
+        if reason == MACE_SCF_FINITE_RESOLUTION_REASON:
+            history_window = convergence["history_window"]
+            for field in MACE_SCF_CONVERGENCE_HISTORY_FIELDS:
+                candidate = history_window[field]
+                value = float(candidate)
+                if value > history_maxima[field]:
+                    history_maxima[field] = value
+
+            fresh_map_replay = convergence["fresh_map_replay"]
+            for field in replay_maxima:
+                candidate = fresh_map_replay[field]
+                value = float(candidate)
+                if value > replay_maxima[field]:
+                    replay_maxima[field] = value
+
+    return {
+        "record_count": len(records),
+        "reason_counts": reasons,
+        "nominal_count": nominal_count,
+        "finite_count": finite_count,
+        "max_final_monopole_residual_e": max_final_monopole_residual_e,
+        "max_final_dipole_residual_e_angstrom": max_final_dipole_residual_e_angstrom,
+        "finite_history_window_maximums": history_maxima,
+        "finite_map_replay_maximums": replay_maxima,
+    }
 
 
 def _validated_record(
@@ -442,6 +1110,7 @@ def _validated_record(
         "methods": _validated_methods(
             methods,
             selection_index=index,
+            canonical_solvent=str(actual_identity["canonical_solvent"]),
             experimental_kcal_mol=experimental,
         ),
     }
@@ -693,7 +1362,11 @@ def aggregate_private_two_member_shards(
         "paired_methods": list(ALLOWED_METHODS),
         "methods": {
             "mace_fixed_l1": "gas MACE l<=1; U(c0)+G_CDS",
-            "mace_scf_l1": ("same-root c*=M(P(c*)); DeltaE_model+U(c*)+G_CDS"),
+            "mace_scf_l1": (
+                "nominal same-root c*=M(P(c*)) or energy-only "
+                "finite-resolution approximate candidate under the frozen "
+                "residual policy; DeltaE_model+U(c*)+G_CDS"
+            ),
         },
         "reaction_field_projector": "local-jet",
         "shared_electrostatics": "pyddx ddPCM",
@@ -709,6 +1382,10 @@ def aggregate_private_two_member_shards(
         "complete_partition": True,
         "run_kind": AGGREGATE_RUN_KIND,
         "source_run_kind": SOURCE_RUN_KIND,
+        "source_shard_schema_version": runner.SCHEMA_VERSION,
+        "scf_convergence_contract_version": (
+            runner.SCF_CONVERGENCE_CONTRACT_VERSION
+        ),
         "source_runner_evaluated_methods": list(FULL_METHODS),
         "maximum_response_stage": REQUIRED_STAGE,
         "protocol_fingerprint": protocol_hash,
@@ -720,6 +1397,7 @@ def aggregate_private_two_member_shards(
             "count": len(fragments),
             "canonical_set_sha256": source_shard_set_hash,
         },
+        "scf_convergence_summary": _aggregate_scf_convergence(records),
         "continuum_equation": equation,
         "continuum_profile": profile,
         "dataset": dataset_hashes,
@@ -741,7 +1419,11 @@ def aggregate_private_two_member_shards(
             "and exactly two preregistered members. It is not full-653 MNSol "
             f"evidence; {len(overlap_records)} records reuse geometries already "
             f"inspected in the pilot ({overlap_unique_geometry_count} unique "
-            "geometries), and confirmation remains sealed."
+            "geometries), and confirmation remains sealed. Finite-resolution "
+            "acceptance records a repeatable, energy-only, finite-precision "
+            "approximate fixed-point candidate under the frozen residual "
+            "policy; it does not establish energetic accuracy or force "
+            "agreement."
         ),
         "member_checkpoint": checkpoints["mace_polar"],
         "source_runner_checkpoints": checkpoints,
@@ -757,7 +1439,10 @@ def aggregate_private_two_member_shards(
             "exactly two preregistered members. It contains no row-level MNSol "
             f"values; {len(overlap_records)} records reuse geometries already "
             f"inspected in the pilot ({overlap_unique_geometry_count} unique "
-            "geometries). It is not full-653 MNSol certification and does not "
+            "geometries). Finite-resolution acceptance records a repeatable, "
+            "energy-only, finite-precision approximate fixed-point candidate "
+            "under the frozen residual policy; it does not establish energetic "
+            "accuracy or force agreement. It is not full-653 MNSol certification and does not "
             "unseal the confirmation partition."
         ),
         "member_checkpoint": checkpoints["mace_polar"],

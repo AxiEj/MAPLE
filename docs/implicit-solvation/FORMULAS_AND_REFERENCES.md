@@ -267,6 +267,62 @@ solve and sets \(\Delta E_{\mathrm{solute}}=0\); it is a diagnostic, not the
 public default. Float64 is required because this response energy is a small
 difference between large absolute MLIP energies.
 
+The exact multi-solvent ddPCM profile
+`smd-ddpcm-l15-n1202-multisolv-v1` adds one tighter, profile-local
+finite-resolution, energy-only acceptance contract for an approximate
+fixed-point candidate of the frozen discrete operator only.
+Its safeguarded-Anderson loop is a numerical root finder in the sense of
+Walker--Ni, not part of the physical residual, variational PCM functional, or
+ddPCM force definition of Lipparini et al. and Gatto et al. The nominal gate
+is evaluated first and remains dimension-separated:
+
+\[
+\max_i |r_{q,i}| \le 2\times10^{-12}\ e,\qquad
+\max_{i\alpha}|r_{\mu,i\alpha}|
+\le 2\times10^{-12}\ e\,\mathring{\mathrm A},
+\]
+
+with the configured intrinsic-energy change at most \(10^{-10}\) eV. A single
+maximum over the mixed monopole/dipole coefficient array is not an acceptance
+criterion.
+
+Only when that nominal gate is not reached can the runtime-gated
+finite-resolution branch inspect trailing seven-iterate windows online. The
+accepted candidate is the **earliest window satisfying every predicate**, not
+merely the first seven records produced by Anderson. All seven records must
+have arrived by Anderson with no history reset and must pass the energy-change
+gate. Per-component root and residual spans must stay below the corresponding
+nominal monopole and dipole tolerances. Monopole and dipole residual maxima
+must remain below `1e-10 e` and `1e-10 e angstrom`; conjugate
+reaction-potential and reaction-gradient component spans must remain below
+`1e-10 eV/e` and `1e-10 eV/(e angstrom)`; and the intrinsic-energy span must
+remain below `1e-10 eV`.
+
+The retained candidate is then checked with three fresh reaction-map
+reevaluations at the same candidate density. These are fresh continuum-map
+instances, **not** independent cold SCF restarts and not model reloads. The
+frozen enumerated runtime identity gate includes the official unfine-tuned
+MACE-POLAR-1-M checkpoint, `mace-torch==0.3.16`,
+`graph-longrange==0.4.0`, `torch==2.12.0+cu130`, `torch.float64`,
+`device=cpu`, `torch_threads=1`, `pyddx==0.8.0`, `n_proc=1`, `lmax=15`,
+`n_lebedev=1202`, `eta=0.1`, solver tolerance `1e-12`, and hashed
+atomic-number, coordinate, and cavity-radius arrays. The three fresh map
+reevaluations must reproduce the online field and response arrays byte for
+byte. The online candidate plus all three reevaluations must have finite
+intrinsic, PCM-polarization, and electrostatic ledger values; their spans must
+remain at or below `1e-10 eV`, their separate residual-channel maxima must
+remain below `1e-10`, and every half-coupling polarization identity must stay
+within `2e-10 eV`.
+
+This stopping rule is a versioned engineering inference from inexact-solve
+theory and the observed precision floor. Dembo--Eisenstat--Steihaug and
+Eisenstat--Walker do not prescribe these profile-specific window lengths or
+thresholds. The rule records only a repeatable finite-precision approximate
+fixed-point candidate under this residual policy. It is energy-only: an
+analytic-force request fails closed unless the nominal SCF gate is reached.
+It does **not** certify chemical accuracy, analytic forces, a smooth PES, or
+any broader benchmark completion.
+
 ### Native aqueous SMD CDS term
 
 MAPLE evaluates the SMD cavity/dispersion/solvent-structure contribution as
@@ -2072,6 +2128,15 @@ Route-2 references:
 - PCMSolver public interface and implementation: R. Di Remigio et al.,
   *JOSS* **4**, 1190 (2019), DOI `10.21105/joss.01190`;
   `arXiv:1804.05895`.
+- H. F. Walker and P. Ni, “Anderson Acceleration for Fixed-Point
+  Iterations,” *SIAM J. Numer. Anal.* **49**, 1715--1735 (2011),
+  DOI `10.1137/10078356X`.
+- R. S. Dembo, S. C. Eisenstat, and T. Steihaug, “Inexact Newton Methods,”
+  *SIAM J. Numer. Anal.* **19**, 400--408 (1982),
+  DOI `10.1137/0719025`.
+- S. C. Eisenstat and H. F. Walker, “Choosing the Forcing Terms in an Inexact
+  Newton Method,” *SIAM J. Sci. Comput.* **17**, 16--32 (1996),
+  DOI `10.1137/0917003`.
 - F. Lipparini, G. Scalmani, B. Mennucci, E. Cancès, M. Caricato, and
   M. J. Frisch, “A variational formulation of the polarizable continuum
   model,” *J. Chem. Phys.* **133**, 014106 (2010),

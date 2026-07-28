@@ -30,6 +30,97 @@ CURRENT_HEAD = subprocess.run(
 ).stdout.strip()
 
 
+def _scf_convergence(
+    *,
+    online_candidate_iteration: int,
+    solvent: str,
+    scale: float = 1.0,
+    reason: str = "finite-resolution-stagnation-v1",
+):
+    finite_resolution = reason == "finite-resolution-stagnation-v1"
+    convergence = {
+        "reason": reason,
+        "online_candidate_iteration": online_candidate_iteration,
+        "final_monopole_residual_e": (
+            (4.0e-11 if finite_resolution else 5.0e-13) * scale
+        ),
+        "final_dipole_residual_e_angstrom": (
+            (3.0e-11 if finite_resolution else 4.0e-13) * scale
+        ),
+    }
+    if reason == "nominal-density-and-energy-v1":
+        convergence["runtime_identity"] = None
+        convergence["history_window"] = None
+        convergence["fresh_map_replay"] = None
+        return convergence
+
+    convergence["runtime_identity"] = {
+        "profile": aggregation.CONTINUUM_EQUATION_TO_PROFILE["ddpcm"],
+        "solvent": solvent,
+        "continuum_equation": "ddpcm",
+        "mace_checkpoint_identifier": "polar-1-m",
+        "mace_checkpoint_release_url": (
+            "https://github.com/ACEsuit/mace-foundations/releases/download/"
+            "mace_polar_1/MACE-POLAR-1-M.model"
+        ),
+        "mace_checkpoint_sha256": (
+            "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+        ),
+        "mace_checkpoint_size_bytes": 68_133_235,
+        "mace_torch_version": "0.3.16",
+        "graph_longrange_version": "0.4.0",
+        "mace_long_range_evaluator_profile": (
+            "graph-longrange-molecular-realspace-v1"
+        ),
+        "mace_dtype": "torch.float64",
+        "device": "cpu",
+        "torch_threads": 1,
+        "torch_version": "2.12.0+cu130",
+        "pyddx_version": "0.8.0",
+        "pyddx_n_proc": 1,
+        "pyddx_solver_tolerance": 1.0e-12,
+        "continuum_dielectric": (
+            aggregation.route2_solvent_spec(solvent).descriptors.dielectric
+        ),
+        "lmax": 15,
+        "n_lebedev": 1202,
+        "eta": 0.1,
+        "atomic_numbers_sha256": "cc" * 32,
+        "positions_angstrom_sha256": "dd" * 32,
+        "cavity_radii_angstrom_sha256": "ee" * 32,
+    }
+    convergence["history_window"] = {
+        "start_iteration": online_candidate_iteration - 6,
+        "end_iteration": online_candidate_iteration,
+        "root_monopole_span_e": 5.0e-13 * scale,
+        "root_dipole_span_e_angstrom": 6.0e-13 * scale,
+        "residual_monopole_span_e": 7.0e-13 * scale,
+        "residual_dipole_span_e_angstrom": 8.0e-13 * scale,
+        "potential_span_ev": 3.0e-11 * scale,
+        "gradient_span_ev_per_angstrom": 4.0e-11 * scale,
+        "maximum_monopole_residual_e": 4.0e-11 * scale,
+        "maximum_dipole_residual_e_angstrom": 3.0e-11 * scale,
+        "maximum_energy_delta_ev": 3.0e-11 * scale,
+        "intrinsic_energy_span_ev": 2.0e-11 * scale,
+    }
+    convergence["fresh_map_replay"] = {
+        "replay_count": 3,
+        "evaluation_count": 4,
+        "includes_online_candidate": True,
+        "all_field_arrays_identical": True,
+        "all_response_arrays_identical": True,
+        "field_sha256": "aa" * 32,
+        "response_sha256": "bb" * 32,
+        "maximum_monopole_residual_e": 4.0e-11 * scale,
+        "maximum_dipole_residual_e_angstrom": 3.0e-11 * scale,
+        "intrinsic_ledger_span_ev": 2.0e-11 * scale,
+        "pcm_ledger_span_ev": 3.0e-11 * scale,
+        "electrostatic_ledger_span_ev": 4.0e-11 * scale,
+        "maximum_polarization_identity_error_ev": 5.0e-11 * scale,
+    }
+    return convergence
+
+
 def _dataset(fingerprint: str = DEFAULT_DATASET_FINGERPRINT):
     return {
         "source_artifact_sha256": fingerprint,
@@ -83,9 +174,12 @@ def _fragment(
     continuum_equation: str = "ddpcm",
     continuum_profile: str = aggregation.CONTINUUM_EQUATION_TO_PROFILE["ddpcm"],
     include_resolved_paths: bool = True,
+    include_scf_convergence: bool = True,
+    scf_reason: str | None = None,
 ):
+    canonical_solvent = "water" if shard_index == 0 else "methanol"
     total = -4.0 + 0.8 * method_scale
-    method_rows = {
+    method_rows: dict[str, dict[str, object]] = {
         method: {
             "total_solvation_kcal_mol": total,
             "signed_error_kcal_mol": 0.8 * method_scale,
@@ -98,6 +192,28 @@ def _fragment(
         }
         for method in methods
     }
+    if include_scf_convergence:
+        scf = _scf_convergence(
+            online_candidate_iteration=7 + shard_index,
+            solvent=canonical_solvent,
+            scale=method_scale,
+            reason=scf_reason or "finite-resolution-stagnation-v1",
+        )
+        method_rows["mace_scf_l1"]["scf_convergence"] = scf
+        method_rows["mace_scf_l1"].update(
+            {
+                "scf_iterations": scf["online_candidate_iteration"],
+                "unmixed_density_residual_inf_e": max(
+                    scf["final_monopole_residual_e"],
+                    scf["final_dipole_residual_e_angstrom"],
+                ),
+                "half_coupling_identity_error_ev": (
+                    5.0e-11 * method_scale
+                    if scf["fresh_map_replay"] is not None
+                    else 1.0e-13 * method_scale
+                ),
+            }
+        )
     checkpoint_aimnet = {
         "sha256": "3" * 64,
         "size_bytes": 123,
@@ -113,8 +229,11 @@ def _fragment(
         checkpoint_mace.pop("resolved_path")
 
     return {
-        "artifact": "route2-mnsol-macepolar-response-ablation-v1",
-        "schema_version": 1,
+        "artifact": aggregation.runner.ARTIFACT_NAME,
+        "schema_version": aggregation.runner.SCHEMA_VERSION,
+        "scf_convergence_contract_version": (
+            aggregation.runner.SCF_CONVERGENCE_CONTRACT_VERSION
+        ),
         "status": status,
         "complete_panel": False,
         "run_kind": run_kind,
@@ -139,7 +258,7 @@ def _fragment(
         "records": [
             {
                 "selection_index": shard_index,
-                "canonical_solvent": "water" if shard_index == 0 else "methanol",
+                "canonical_solvent": canonical_solvent,
                 "partition": "development",
                 "opaque_record_id": "0" * 64 if shard_index == 0 else "1" * 64,
                 "geometry_sha256": "a" * 64 if shard_index == 0 else "b" * 64,
@@ -165,6 +284,26 @@ def _run_aggregation(
         protocol_fingerprint=PROTOCOL_FINGERPRINT,
         dataset=_dataset() if dataset is None else dataset,
     )
+
+
+def test_aggregator_cli_imports_the_checkout_when_run_as_a_script():
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(
+                BENCHMARK_DIR
+                / "aggregate_mnsol_response_partition.py"
+            ),
+            "--help",
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "--private-shard" in completed.stdout
 
 
 def test_partition_selection_manifest_validation_covers_complete_indices_once():
@@ -275,6 +414,186 @@ def test_aggregate_rejects_cross_partition_or_bad_provenance_and_method_gates():
         )
 
 
+def test_aggregate_rejects_missing_mace_scf_l1_scf_convergence_evidence():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    missing = _fragment(0)
+    missing["records"][0]["methods"]["mace_scf_l1"].pop("scf_convergence")
+
+    with pytest.raises(ValueError, match="scf_convergence is required"):
+        _run_aggregation(
+            [_fragment(1), missing],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_unknown_mace_scf_l1_scf_convergence_reason():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad_reason = _fragment(1, scf_reason="unknown")
+
+    with pytest.raises(ValueError, match="reason is unsupported"):
+        _run_aggregation(
+            [_fragment(0), bad_reason],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_nominal_with_extra_scf_convergence_evidence():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad_nominal = _fragment(0, scf_reason="nominal-density-and-energy-v1")
+    bad_nominal["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "runtime_identity"
+    ] = {
+        "profile": "synthetic",
+        "device": "cpu",
+        "dtype": "torch.float64",
+        "torch_threads": 1,
+    }
+
+    with pytest.raises(ValueError, match="must be null"):
+        _run_aggregation(
+            [_fragment(1), bad_nominal],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_incomplete_mace_scf_l1_scf_convergence_evidence():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    incomplete = _fragment(1)
+    del incomplete["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]
+
+    with pytest.raises(ValueError, match="fresh_map_replay"):
+        _run_aggregation(
+            [_fragment(0), incomplete],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_finite_non_true_replay_flags():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"]["fresh_map_replay"][
+        "all_field_arrays_identical"
+    ] = False
+
+    with pytest.raises(ValueError, match="fresh_map_replay all_field_arrays_identical"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_finite_bad_replay_digest():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"]["fresh_map_replay"][
+        "field_sha256"
+    ] = "zz" * 32
+
+    with pytest.raises(ValueError, match="field_sha256"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_finite_metric_above_frozen_gate():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "history_window"
+    ]["root_monopole_span_e"] = 2.1e-12
+
+    with pytest.raises(ValueError, match="exceeds the frozen convergence gate"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_finite_runtime_identity_drift():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "runtime_identity"
+    ]["pyddx_version"] = "0.8.1"
+
+    with pytest.raises(ValueError, match="drifted from the frozen runtime lock"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_wrong_solvent_dielectric():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(0)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "runtime_identity"
+    ]["continuum_dielectric"] = 2.0
+
+    with pytest.raises(ValueError, match="frozen water descriptor"):
+        _run_aggregation(
+            [_fragment(1, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_missing_scf_iterations():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"].pop("scf_iterations")
+
+    with pytest.raises(ValueError, match="scf_iterations"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_final_residual_above_history_maximum():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    method = bad["records"][0]["methods"]["mace_scf_l1"]
+    method["scf_convergence"]["final_monopole_residual_e"] = 9.0e-11
+    method["unmixed_density_residual_inf_e"] = 9.0e-11
+
+    with pytest.raises(ValueError, match="history-window maximum"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_map_replay_residual_contradiction():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "fresh_map_replay"
+    ]["maximum_monopole_residual_e"] = 0.0
+
+    with pytest.raises(ValueError, match="does not reproduce"):
+        _run_aggregation(
+            [_fragment(0, scf_reason="nominal-density-and-energy-v1"), bad],
+            selection_records=selection_records,
+        )
+
+
+def test_aggregate_rejects_nonfinite_mace_scf_l1_scf_convergence_metric():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    bad = _fragment(1)
+    bad["records"][0]["methods"]["mace_scf_l1"]["scf_convergence"][
+        "history_window"
+    ]["root_dipole_span_e_angstrom"] = float("inf")
+
+    with pytest.raises(ValueError, match="history_window root_dipole_span_e_angstrom"):
+        _run_aggregation(
+            [_fragment(0), bad],
+            selection_records=selection_records,
+        )
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     (
@@ -301,11 +620,19 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
     selection_records = aggregation._selection_records(selection)
 
     private, public = _run_aggregation(
-        [_fragment(0, method_scale=1.0), _fragment(1, method_scale=2.0)],
+        [
+            _fragment(0, method_scale=1.0, scf_reason="nominal-density-and-energy-v1"),
+            _fragment(1, method_scale=2.0),
+        ],
         selection_records=selection_records,
     )
 
-    assert private["artifact"] == "route2-mnsol-macepolar-two-member-matrix-v1"
+    assert private["artifact"] == "route2-mnsol-macepolar-two-member-matrix-v2"
+    assert private["schema_version"] == 2
+    assert (
+        private["scf_convergence_contract_version"]
+        == "route2-scf-convergence-evidence-v1"
+    )
     assert private["run_kind"] == "partition-two-member-matrix"
     assert private["source_run_kind"] == "partition-record-shard"
     assert private["status"] == "complete"
@@ -321,6 +648,36 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
     assert {frozenset(record["methods"].keys()) for record in private["records"]} == {
         frozenset(ALLOWED_METHODS)
     }
+    scf_summary = private["scf_convergence_summary"]
+    assert scf_summary["record_count"] == 2
+    assert scf_summary["nominal_count"] == 1
+    assert scf_summary["finite_count"] == 1
+    assert scf_summary["reason_counts"] == {
+        "nominal-density-and-energy-v1": 1,
+        "finite-resolution-stagnation-v1": 1,
+    }
+    assert scf_summary["max_final_monopole_residual_e"] == pytest.approx(
+        8.0e-11
+    )
+    assert scf_summary["max_final_dipole_residual_e_angstrom"] == pytest.approx(
+        6.0e-11
+    )
+    assert (
+        scf_summary["finite_history_window_maximums"]["root_dipole_span_e_angstrom"]
+        == pytest.approx(1.2e-12)
+    )
+    assert (
+        scf_summary["finite_history_window_maximums"]["gradient_span_ev_per_angstrom"]
+        == pytest.approx(8.0e-11)
+    )
+    assert (
+        scf_summary["finite_map_replay_maximums"]["electrostatic_ledger_span_ev"]
+        == pytest.approx(8.0e-11)
+    )
+    assert (
+        "finite-precision approximate fixed-point candidate"
+        in private["claim_boundary"]
+    )
 
     metrics = public["aggregate_metrics"]
     for method in ALLOWED_METHODS:
@@ -328,7 +685,7 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
         assert "ge_1_0_count" in metrics[method]
         assert "ge_1_5_fraction" in metrics[method]
 
-    assert public["artifact"] == "route2-mnsol-macepolar-two-member-matrix-v1"
+    assert public["artifact"] == "route2-mnsol-macepolar-two-member-matrix-v2"
     assert public["run_kind"] == "partition-two-member-matrix"
     assert public["source_run_kind"] == "partition-record-shard"
     assert public["status"] == "complete"
@@ -352,6 +709,11 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
     assert len(public["source_execution"]["execution_git_tree_sha1"]) == 40
     assert len(public["source_execution"]["source_runner_git_blob_sha1"]) == 40
     assert len(public["source_execution"]["source_runner_sha256"]) == 64
+    assert public["scf_convergence_summary"] == scf_summary
+    assert (
+        "finite-precision approximate fixed-point candidate"
+        in public["claim_boundary"]
+    )
     assert all(
         "resolved_path" not in checkpoint
         for checkpoint in private["source_runner_checkpoints"].values()
@@ -376,6 +738,41 @@ def test_aggregate_accepts_full_five_method_input_and_outputs_only_two_members()
         "sha256",
         "size_bytes",
     ]
+
+
+def test_private_rows_retain_full_mace_scf_l1_scf_convergence_evidence():
+    selection_records = aggregation._selection_records(_selection_manifest())
+    private, _ = _run_aggregation(
+        [_fragment(0, scf_reason="nominal-density-and-energy-v1"), _fragment(1)],
+        selection_records=selection_records,
+    )
+
+    row = private["records"][0]["methods"]["mace_scf_l1"]
+    assert row["scf_convergence"]["reason"] == "nominal-density-and-energy-v1"
+    assert row["scf_convergence"]["online_candidate_iteration"] == 7
+    assert row["scf_convergence"]["runtime_identity"] is None
+    assert row["scf_convergence"]["history_window"] is None
+    assert row["scf_convergence"]["fresh_map_replay"] is None
+    assert row["scf_convergence"]["final_monopole_residual_e"] == pytest.approx(
+        5.0e-13
+    )
+    assert row["scf_convergence"]["final_dipole_residual_e_angstrom"] == pytest.approx(
+        4.0e-13
+    )
+    finite_row = private["records"][1]["methods"]["mace_scf_l1"]
+    assert finite_row["scf_convergence"]["reason"] == "finite-resolution-stagnation-v1"
+    assert (
+        finite_row["scf_convergence"]["fresh_map_replay"]["replay_count"]
+        == 3
+    )
+    assert isinstance(
+        finite_row["scf_convergence"]["history_window"]["start_iteration"],
+        int,
+    )
+    assert isinstance(
+        finite_row["scf_convergence"]["history_window"]["end_iteration"],
+        int,
+    )
 
 
 def test_threshold_metrics_treat_exact_targets_as_failures_of_strict_bounds():

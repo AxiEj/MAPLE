@@ -1220,6 +1220,70 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     executed, the production energy is unchanged, and the thermodynamic
     release gate remains open.
 
+49. The exact `smd-ddpcm-l15-n1202-multisolv-v1` profile now carries a
+    fail-closed, energy-only finite-resolution acceptance contract for an
+    approximate fixed-point candidate of the frozen discrete
+    MACE-POLAR/ddPCM operator. In Walker--Ni terms this is a numerical
+    Anderson/inexact-Newton acceptance rule, not a new physical free-energy or
+    force statement; the variational PCM and ddPCM-force references remain the
+    Lipparini et al. and Gatto et al. papers already cited in the formula
+    ledger. The profile arms this branch only under its frozen enumerated
+    runtime identity gate:
+    official unfine-tuned MACE-POLAR-1-M checkpoint, `mace-torch==0.3.16`,
+    `graph-longrange==0.4.0`, `torch==2.12.0+cu130`, `torch.float64`, `device=cpu`,
+    `torch_threads=1`, `pyddx==0.8.0`, `n_proc=1`, `lmax=15`,
+    `n_lebedev=1202`, `eta=0.1`, solver tolerance `1e-12`, and hashed atomic
+    numbers, coordinates, and cavity radii.
+
+    The unchanged nominal gate is checked first: monopole residual
+    `<= 2e-12 e`, dipole residual `<= 2e-12 e angstrom`, and configured
+    intrinsic-energy change `<= 1e-10 eV`. The fallback accepts only the
+    **earliest online seven-iteration window satisfying every predicate**;
+    merely being the first Anderson/no-reset window is insufficient. Its
+    dimensions are checked separately: monopole and dipole residual ceilings
+    `1e-10 e` and `1e-10 e angstrom`; per-component root and residual spans
+    below their corresponding nominal `2e-12` channel tolerances;
+    conjugate reaction-potential and gradient spans `<= 1e-10 eV/e` and
+    `<= 1e-10 eV/(e angstrom)`; intrinsic-energy span `<= 1e-10 eV`. The
+    accepted state must also pass three fresh reaction-map reevaluations at
+    the retained density. These are not independent cold SCF starts. The
+    online candidate plus all three reevaluations must have finite ledger
+    scalars, byte-identical fields/responses, separate channel-residual
+    ceilings, bounded energy-ledger spans, and the half-coupling identity.
+    Finite-resolution acceptance is energy-only; force evaluation fails closed
+    unless nominal convergence was reached.
+
+    The preregistration diagnostic found the first eligible
+    development-index-4 dimethylformamide window at iterations 17--23, with
+    the online candidate at iteration 23. Three fresh diagnostic map
+    reevaluations
+    reproduced identical field/response hashes. Their archived mixed
+    raw-\(l\le1\)-component maximum was `2.6204635683590993e-11`; the
+    half-coupling identity error was `4.53e-14 eV`, and the
+    intrinsic/PCM/electrostatic ledger spans were zero at the locked `1e-12`
+    reevaluation tolerance. This is design evidence, not yet a prospectively counted
+    partition row. The retained private diagnostics are
+    `.omx/diagnostics/mnsol-development-index004-trajectory-4d09ba74-root-v1/trajectory.json`
+    and
+    `.omx/diagnostics/mnsol-development-index004-iter023-cold-map-4d09ba74-root-v1/diagnostic.json`.
+
+    The earlier post-hoc best-residual index-4 artifact,
+    `.omx/diagnostics/mnsol-development-index004-cold-map-4d09ba74-root-v1/diagnostic.json`,
+    is intentionally preserved as a **failed, uncounted diagnostic**. It
+    explored the same frozen operator under tighter replay tolerances and did
+    reproduce one archived best-state residual near `2.53e-11 e`, but it was
+    selected after the fact rather than as the earliest online window
+    satisfying the complete frozen predicate set. It therefore cannot count
+    toward the two-member matrix or any partition aggregate.
+
+    A future prospectively accepted result under this gate can record only a
+    repeatable finite-precision approximate fixed-point candidate under the
+    frozen residual policy. The current
+    archived index-4 source shard remains failed and uncounted until that
+    rerun. Neither the diagnostic nor the new rule certifies chemistry
+    accuracy, forces, a smooth PES, solvent-population performance, or a
+    completed 505-row development or 148-row confirmation rerun.
+
 ## Secondary diagnostics
 
 - FreeSolv fixed-conformer hydration errors remain useful for detecting gross

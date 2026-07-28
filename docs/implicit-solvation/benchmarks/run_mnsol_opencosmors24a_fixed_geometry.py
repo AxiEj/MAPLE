@@ -416,15 +416,8 @@ def _validated_executable(
 
 
 def _inspect_orca_version(orca_executable: Path) -> str:
-    completed = subprocess.run(
-        [str(orca_executable)],
-        capture_output=True,
-        text=True,
-        timeout=30,
-        check=False,
-    )
-    combined = completed.stdout + "\n" + completed.stderr
-    versions = _ORCA_VERSION_RE.findall(combined)
+    binary_text = orca_executable.read_bytes().decode("latin-1")
+    versions = _ORCA_VERSION_RE.findall(binary_text)
     if versions != [ORCA_VERSION]:
         raise ValueError(
             f"Expected ORCA {ORCA_VERSION}, observed version markers {versions!r}."

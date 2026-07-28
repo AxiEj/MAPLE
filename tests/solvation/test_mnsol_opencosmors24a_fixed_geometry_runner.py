@@ -153,16 +153,12 @@ def test_baseline_record_binding_is_exact():
         runner._validate_record_binding(record, selected, selection_index=0)
 
 
-def test_orca_version_and_child_completion_fail_closed(monkeypatch):
-    monkeypatch.setattr(
-        runner.subprocess,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(
-            stdout="Program Version 6.1.0-f.0 - RELEASE",
-            stderr="",
-        ),
+def test_orca_version_and_child_completion_fail_closed(tmp_path):
+    executable = tmp_path / "orca"
+    executable.write_bytes(
+        b"binary-prefix\x00Program Version 6.1.0-f.0 - RELEASE\x00binary-suffix"
     )
-    assert runner._inspect_orca_version(Path("/audited/orca")) == "6.1.0-f.0"
+    assert runner._inspect_orca_version(executable) == "6.1.0-f.0"
 
     runner._validate_child_output(
         "child result\n****ORCA TERMINATED NORMALLY****\n",

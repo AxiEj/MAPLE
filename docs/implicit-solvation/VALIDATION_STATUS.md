@@ -1154,6 +1154,30 @@ Research/Innovation Route, not a complete solution-phase PES.
     separate sigma-profile/statistical-thermodynamic workflow and was not
     relabelled as another surface equation. The aggregate-only evidence is
     `benchmarks/route2-mnsol-fixed-source-pyscf-pcm-family-v1.json`.
+47. The separately preregistered ORCA 6.1.0/openCOSMO-RS 24a arm then ran the
+    same ten MNSol geometries incrementally from clean commit `6421f18`. Each
+    record used the ORCA `COSMORS` workflow at BP86/def2-TZVPD and 298.15 K.
+    All ten main jobs and all thirty gas/conductor child jobs terminated
+    normally; the aggregation at `eb5b7e1` re-rendered every input, reparsed
+    every result, rehashed every asset, and reconstructed every frozen
+    baseline comparison without rerunning QC.
+
+    Fixed-geometry openCOSMO-RS gives MAE/RMSE/mean-signed/max errors of
+    `0.6460/0.8038/+0.5792/1.5081 kcal/mol`. This is lower than the six
+    fixed-source IEFPCM/C-PCM/COSMO MAEs (`0.8738--1.1297 kcal/mol`) on this
+    panel. It wins `6--8` of ten paired rows depending on the baseline. The
+    summed serial ORCA wall time is `258.03 s` (`25.80 s/record`); comparison
+    with the fixed-source continuum timings is not end-to-end because those
+    timings exclude frozen source inference.
+
+    This is explicitly **not** independent generalization evidence:
+    openCOSMO-RS 24a was fitted using the Marenich/Minnesota solvation data.
+    It also uses one fixed MNSol gas geometry rather than the complete
+    published conformer and geometry protocol, and one molecule per solvent
+    still confounds chemistry with solvent. COSMO-RS remains external to the
+    Route-2 profile registry, no default changes, and forces/PES claims remain
+    excluded. The aggregate-only evidence is
+    `benchmarks/route2-mnsol-opencosmors24a-fixed-geometry-v1.json`.
 
 ## Secondary diagnostics
 

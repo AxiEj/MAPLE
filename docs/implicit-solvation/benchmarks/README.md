@@ -485,6 +485,39 @@ independent confirmation: the published 24a parameterization used the
 Marenich/Minnesota solvation-free-energy data in fitting. The runner therefore
 reports the overlap explicitly and forbids a blind-generalization claim.
 
+The ten records were then executed incrementally from clean scientific-code
+commit `6421f18`, not as one uninspected batch. A separately committed
+aggregator re-rendered every input, rebound every QC asset, reparsed every main
+output, checked all 30 child outputs, and reconstructed every comparison
+against the frozen PCM-family artifact before emitting
+[`route2-mnsol-opencosmors24a-fixed-geometry-v1.json`](route2-mnsol-opencosmors24a-fixed-geometry-v1.json).
+All 10 main and 30 child calculations terminated normally.
+
+| method | MAE | RMSE | mean signed error | maximum absolute error |
+|---|---:|---:|---:|---:|
+| ORCA/openCOSMO-RS 24a, fixed MNSol geometry | **0.6460** | **0.8038** | +0.5792 | **1.5081** |
+| AIMNet2 fixed \(l=0\) + IEFPCM | 1.1297 | 1.3547 | +1.0387 | 2.2727 |
+| AIMNet2 fixed \(l=0\) + C-PCM | 1.0396 | 1.2953 | +0.8905 | 2.2434 |
+| AIMNet2 fixed \(l=0\) + COSMO | 1.1142 | 1.3519 | +1.0249 | 2.2855 |
+| MACE fixed \(l\leq1\) + IEFPCM | 0.8780 | 1.0021 | +0.3555 | 1.6458 |
+| MACE fixed \(l\leq1\) + C-PCM | 0.9127 | 1.0291 | +0.1674 | 1.6456 |
+| MACE fixed \(l\leq1\) + COSMO | 0.8738 | 1.0004 | +0.3490 | 1.6457 |
+
+All values are in kcal/mol. openCOSMO-RS has the lower absolute error on
+`8/10`, `6/10`, and `7/10` rows relative to the AIMNet2 IEFPCM, C-PCM, and
+COSMO arms, and on `7/10` rows relative to each MACE arm. Its summed serial
+wall time is `258.03 s` (`25.80 s/record`). The fixed-source continuum timings
+exclude AIMNet2/MACE inference and are therefore not an end-to-end speed
+comparison.
+
+The lower error is descriptive only. openCOSMO-RS was fitted using the
+Minnesota/Marenich data, whereas the fixed-source arms were not fitted in this
+experiment, and the one-row-per-solvent design still confounds solvent and
+chemistry. No default is changed. The public artifact SHA256 is
+`13c78bdaf72a61b830a5535882ada87fd32acf196a4aa78a8f9e840a84531125`;
+the complete private row-level artifact remains below `.omx` with SHA256
+`f9110f74767b06ce77a67e707656fa60d2717ed449ecab5ebcb6082f2a750148`.
+
 ## MNSol ten-solvent AIMNet2 pilot
 
 [`route2-mnsol-aimnet2-multisolvent-pilot-v1.json`](route2-mnsol-aimnet2-multisolvent-pilot-v1.json)

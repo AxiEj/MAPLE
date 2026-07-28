@@ -405,9 +405,56 @@ The private row-level artifact has SHA256
 `de912de10d71401229434381d5dea429486327acfba5838269956259fe742c3a`
 and remains below `.omx` because it contains user-supplied MNSol records. With
 only two development points and an equation effect below
-`0.064 kcal/mol`, this screen does not trigger another ten-solvent full scan.
-The existing preregistered ten-solvent AIMNet2 ddPCM/ddCOSMO pilot remains the
-broader diagnostic evidence.
+`0.064 kcal/mol`, this screen alone did not justify a broader claim. A later
+separately preregistered source-by-equation panel, described below, answered
+the broader AIMNet2/MACE and ten-solvent comparison question without altering
+this historical screen.
+
+## MNSol fixed-source PySCF PCM-family panel
+
+[`route2-mnsol-fixed-source-pyscf-pcm-family-prereg-v1.json`](route2-mnsol-fixed-source-pyscf-pcm-family-prereg-v1.json)
+froze a same-surface comparison before any new PySCF equation result was
+observed. It reuses the exact ten-record AIMNet2/MACE source artifact, then
+changes only the PySCF 2.13.1 SWIG boundary equation among IEFPCM, C-PCM, and
+COSMO. Every record recomputes and verifies the MNSol identity, geometry,
+solvent-specific SMD Coulomb radii, dielectric, and SMD-CDS value. AIMNet2
+contributes fixed monopoles; MACE-POLAR contributes fixed atom-centred
+\(l\leq1\) coarse residual-charge multipoles. Neither source is polarized by
+the continuum in this experiment.
+
+The clean-head run at `da9d3ba` completed all 60 fixed-source evaluations. All
+three equations used exactly the same SWIG points and areas for each record,
+and the maximum half-coupling identity error was
+\(1.67\times10^{-16}\) eV. The aggregate-only result is
+[`route2-mnsol-fixed-source-pyscf-pcm-family-v1.json`](route2-mnsol-fixed-source-pyscf-pcm-family-v1.json):
+
+| frozen source and equation | MAE | RMSE | mean signed error | maximum absolute error |
+|---|---:|---:|---:|---:|
+| AIMNet2 \(l=0\) + IEFPCM | 1.1297 | 1.3547 | +1.0387 | 2.2727 |
+| AIMNet2 \(l=0\) + C-PCM | **1.0396** | **1.2953** | +0.8905 | **2.2434** |
+| AIMNet2 \(l=0\) + COSMO | 1.1142 | 1.3519 | +1.0249 | 2.2855 |
+| MACE \(l\leq1\) + IEFPCM | 0.8780 | 1.0021 | +0.3555 | 1.6458 |
+| MACE \(l\leq1\) + C-PCM | 0.9127 | 1.0291 | +0.1674 | **1.6456** |
+| MACE \(l\leq1\) + COSMO | **0.8738** | **1.0004** | +0.3490 | 1.6457 |
+
+All errors are in kcal/mol. C-PCM lowers the AIMNet2 MAE by
+`0.0901 kcal/mol` relative to IEFPCM and has lower absolute error on 8/10
+rows. For fixed MACE \(l\leq1\), COSMO lowers the IEFPCM MAE by only
+`0.0042 kcal/mol`; each equation wins five paired rows. The MACE source lowers
+the same-equation MAE relative to AIMNet2 by `0.1269--0.2517 kcal/mol`, but
+the paired win count ranges from 5/10 to 7/10.
+
+These are descriptive results from one different molecule in each of ten
+different solvents and ten post-selection functional-group labels. They do
+not separate solvent from chemistry, establish per-solvent generalization, or
+support changing a production default. The `5.27 s` total and per-method
+timings exclude frozen AIMNet2/MACE inference and were not randomized.
+COSMO-RS is not included because it requires a separate quantum-chemical
+sigma-profile and statistical-thermodynamic workflow rather than another
+switch on the same PCM surface. The public artifact SHA256 is
+`d387adb6d3e2e1fa082685948911eb45fbf60ba8ff5cc3c313d758df46d8179f`;
+the private row-level artifact remains below `.omx` with SHA256
+`7ea80dbf4f9b7e75106b41f3f7f1d42f7b9d38bbded12da1e581c6cf5a696e5f`.
 
 ## COSMO-RS external evidence boundary
 

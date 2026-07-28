@@ -1091,9 +1091,11 @@ Research/Innovation Route, not a complete solution-phase PES.
     ddCOSMO give `2.2756` and `2.2212 kcal/mol`. The largest within-backend
     prediction shift is only `0.0635 kcal/mol`, all half-coupling errors are
     below `1.9e-14 eV`, and the three PySCF arms use identical points and
-    areas. This is too small and too underpowered to justify another
-    ten-solvent equation scan. Cross-backend values are not a pure equation
-    comparison because their cavity discretizations differ.
+    areas. This screen alone was too small and underpowered to justify an
+    equation ranking. Cross-backend values are not a pure equation comparison
+    because their cavity discretizations differ. A later separately
+    preregistered fixed-source panel addressed the broader ten-solvent
+    comparison without changing this historical screen.
 
     The same stage adds a fail-closed COSMO-RS evidence boundary. It hashes the
     three ORCA/openCOSMO-RS 24a inputs, locks the audited
@@ -1122,6 +1124,31 @@ Research/Innovation Route, not a complete solution-phase PES.
     hashes match landed commit `f833d8e`, but the private summaries did not
     retain a checkpoint hash. The public anonymous evidence is
     `benchmarks/route2-matrix-free-feedback-gain-two-state-v1.json`.
+46. A separate preregistration froze the same ten MNSol records, their exact
+    AIMNet2 monopoles and MACE-POLAR \(l\leq1\) coefficients, the
+    solvent-specific SMD radii/dielectric/CDS values, PySCF 2.13.1, SWIG order
+    17, and the IEFPCM/C-PCM/COSMO equation set before any new equation result
+    was observed. The clean-head run at `da9d3ba` completed all 60
+    fixed-source evaluations. For every record, the three equations used
+    exactly identical surface points and areas; the maximum half-coupling
+    identity error was `1.67e-16 eV`.
+
+    AIMNet2 fixed \(l=0\) gives MAEs of `1.1297`, `1.0396`, and
+    `1.1142 kcal/mol` for IEFPCM, C-PCM, and COSMO. MACE fixed \(l\leq1\)
+    gives `0.8780`, `0.9127`, and `0.8738 kcal/mol`. C-PCM therefore has the
+    lowest AIMNet2 MAE and improves 8/10 paired rows relative to IEFPCM.
+    COSMO has the lowest MACE MAE, but the improvement over IEFPCM is only
+    `0.0042 kcal/mol` with a 5/10 versus 5/10 paired split. Across the same
+    equation, MACE lowers MAE relative to AIMNet2 by
+    `0.1269--0.2517 kcal/mol`.
+
+    This one-row-per-solvent panel does not separate solvent from chemistry,
+    establish per-solvent generalization, validate a polarizable fixed point,
+    or authorize a default equation. The `5.27 s` wall time excludes frozen
+    source inference and is not a randomized speed ranking. COSMO-RS remains a
+    separate sigma-profile/statistical-thermodynamic workflow and was not
+    relabelled as another surface equation. The aggregate-only evidence is
+    `benchmarks/route2-mnsol-fixed-source-pyscf-pcm-family-v1.json`.
 
 ## Secondary diagnostics
 

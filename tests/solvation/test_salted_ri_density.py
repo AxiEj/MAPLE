@@ -5,6 +5,7 @@ import pytest
 
 from maple.function.calculator.extra_correction.implicit.salted_ri_density import (
     project_ri_coefficients_to_electron_count,
+    pyscf_auxiliary_l1_slices,
     pyscf_coefficients_to_salted_order,
     salted_coefficients_to_pyscf_order,
     salted_ri_surface_mep,
@@ -88,18 +89,10 @@ def test_salted_ri_surface_mep_matches_direct_pyscf_ri_contraction():
 
     # Discover the same l=1 blocks used by the production adapter, then
     # simulate one SALTED prediction vector.
-    l1_slices = []
-    ao_locations = auxiliary.ao_loc_nr()
-    for shell in range(auxiliary.nbas):
-        if auxiliary.bas_angular(shell) != 1:
-            continue
-        start = int(ao_locations[shell])
-        for contraction in range(auxiliary.bas_nctr(shell)):
-            offset = start + 3 * contraction
-            l1_slices.append(slice(offset, offset + 3))
+    l1_slices = pyscf_auxiliary_l1_slices(auxiliary)
     coefficients_salted = pyscf_coefficients_to_salted_order(
         coefficients_pyscf,
-        l1_slices=tuple(l1_slices),
+        l1_slices=l1_slices,
     )
 
     points_bohr = np.asarray(
@@ -179,18 +172,10 @@ def test_salted_ri_surface_mep_can_apply_explicit_charge_projection():
             density_matrix,
         ),
     )
-    l1_slices = []
-    ao_locations = auxiliary.ao_loc_nr()
-    for shell in range(auxiliary.nbas):
-        if auxiliary.bas_angular(shell) != 1:
-            continue
-        start = int(ao_locations[shell])
-        for contraction in range(auxiliary.bas_nctr(shell)):
-            offset = start + 3 * contraction
-            l1_slices.append(slice(offset, offset + 3))
+    l1_slices = pyscf_auxiliary_l1_slices(auxiliary)
     coefficients_salted = pyscf_coefficients_to_salted_order(
         coefficients_pyscf,
-        l1_slices=tuple(l1_slices),
+        l1_slices=l1_slices,
     )
 
     result = salted_ri_surface_mep(

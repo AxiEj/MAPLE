@@ -205,7 +205,11 @@ def salted_coefficients_to_pyscf_order(
     return result
 
 
-def _pyscf_l1_slices(auxiliary_molecule: Any) -> tuple[slice, ...]:
+def pyscf_auxiliary_l1_slices(
+    auxiliary_molecule: Any,
+) -> tuple[slice, ...]:
+    """Return PySCF p-shell slices that require SALTED reordering."""
+
     ao_locations = np.asarray(auxiliary_molecule.ao_loc_nr(), dtype=int)
     if ao_locations.shape != (int(auxiliary_molecule.nbas) + 1,):
         raise RuntimeError("PySCF auxiliary AO locations have an unexpected shape.")
@@ -253,7 +257,7 @@ def salted_ri_surface_mep(
     if not auxiliary_basis:
         raise ValueError("SALTED RI density requires a PySCF auxiliary basis.")
     if not source_model:
-        raise ValueError("SALTED RI density requires a trained-model identity.")
+        raise ValueError("SALTED RI density requires a source identity.")
     if charge_constraint not in {"strict", "coulomb-metric"}:
         raise ValueError(
             "SALTED RI charge constraint must be 'strict' or 'coulomb-metric'."
@@ -315,7 +319,7 @@ def salted_ri_surface_mep(
         )
     pyscf_coefficients = salted_coefficients_to_pyscf_order(
         coefficients,
-        l1_slices=_pyscf_l1_slices(auxiliary),
+        l1_slices=pyscf_auxiliary_l1_slices(auxiliary),
     )
 
     zero_wavevector = np.zeros((1, 3), dtype=float)
@@ -418,6 +422,7 @@ __all__ = [
     "SaltedRISurfaceMEP",
     "RIChargeProjection",
     "project_ri_coefficients_to_electron_count",
+    "pyscf_auxiliary_l1_slices",
     "pyscf_coefficients_to_salted_order",
     "salted_coefficients_to_pyscf_order",
     "salted_ri_surface_mep",

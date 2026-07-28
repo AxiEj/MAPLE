@@ -1186,6 +1186,39 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     Route-2 profile registry, no default changes, and forces/PES claims remain
     excluded. The aggregate-only evidence is
     `benchmarks/route2-mnsol-opencosmors24a-fixed-geometry-v1.json`.
+48. The next no-fit MNSol milestone is now locked to exactly two same-profile
+    members: gas MACE-POLAR \(l\leq1\) fixed density and the full
+    self-consistent Route-2 \(l\leq1\) response. A new partition aggregator
+    accepts only complete, current-schema one-record SCF shards from the
+    frozen development partition and one verified execution commit. It
+    hard-binds the official unfine-tuned MACE-POLAR-1-M checkpoint, ddPCM
+    equation/profile, input-shard set, protocol, selection, dataset, row
+    identity including prior-pilot overlap, five-method source-runner schema,
+    and every retained energy/error ledger; it then emits only the two
+    approved members. Public output contains no row-level MNSol values or
+    local checkpoint paths and reports MAE, RMSE, maximum error, and the
+    counts/fractions at or above 1.0 and 1.5 kcal/mol (the failures of the
+    strict \(<1.0\) and \(<1.5\) targets).
+
+    This is execution infrastructure, not a new accuracy result. No complete
+    505-row development or 148-row confirmation matrix has been generated,
+    and older isolated shards that predate the required continuum provenance
+    are rejected rather than mixed into a new artifact. The confirmation
+    partition is rejected by this development-only artifact and remains
+    sealed.
+
+    Separately, the data-only `route2_charging_path_diagnostics.py` module
+    evaluates the
+    preregistered identity
+    \(\Delta E_{\mathrm{model}}+U(c_1)
+      =\int_0^1U(c_\lambda)\,d\lambda\)
+    on a uniform, nested \(4k+1\) coupling grid. It reports the fine/coarse
+    Simpson refinement difference and Richardson quadrature-error estimate so
+    a nonzero defect is not misclassified as nonvariational before numerical
+    convergence. Synthetic polynomial, non-polynomial variational, and
+    invalid-grid tests pass. No real MACE-POLAR charging path has yet been
+    executed, the production energy is unchanged, and the thermodynamic
+    release gate remains open.
 
 ## Secondary diagnostics
 

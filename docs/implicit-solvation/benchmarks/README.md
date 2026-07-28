@@ -635,6 +635,47 @@ method; execution order was not randomized, so they are diagnostic metadata,
 not a hardware speed ranking. The public artifact SHA256 is
 `2d7e7d2ea5356ad97344e77316d1c4c30dae3cfa2642892ff5b1c93cd8168c52`.
 
+### Frozen-partition two-member aggregation
+
+`aggregate_mnsol_response_partition.py` is the fail-closed,
+development-only finalizer for the next full-partition milestone. Its source
+shards must all come from the current response-ablation runner with
+`--maximum-response-stage scf`, one common clean execution commit, the frozen
+development selection, official unfine-tuned MACE-POLAR-1-M checkpoint, and
+the fixed ddPCM profile. The source runner evaluates its complete five-method
+audit schema; the finalizer validates that schema and every component/error
+identity, then retains only `mace_fixed_l1` and `mace_scf_l1`.
+
+After every index in one partition has completed, aggregate the private shards
+with repeated `--private-shard` arguments:
+
+```bash
+SHARD_ARGS=()
+for SHARD in .omx/benchmarks/mnsol-development-*/private.json; do
+  SHARD_ARGS+=(--private-shard "$SHARD")
+done
+
+python docs/implicit-solvation/benchmarks/aggregate_mnsol_response_partition.py \
+  --source .omx/datasets/mnsol-v2012/MNSolDatabase_v2012.zip \
+  --protocol docs/implicit-solvation/benchmarks/route2-mnsol-protocol-v1.json \
+  --selection .omx/benchmarks/route2-mnsol-development-selection-v1.private.json \
+  --pilot-selection docs/implicit-solvation/benchmarks/route2-mnsol-pilot-selection-v1.json \
+  "${SHARD_ARGS[@]}" \
+  --private-output .omx/benchmarks/route2-mnsol-development-two-member-v1.private.json \
+  --public-output docs/implicit-solvation/benchmarks/route2-mnsol-development-two-member-v1.json
+```
+
+The private output must stay below `.omx/benchmarks`; the public output is
+aggregate-only and strips local checkpoint paths. Missing/duplicate indices,
+mixed or nonexistent commits, fingerprints, input-shard hashes, continuum
+profiles, checkpoints, prior-pilot overlap flags, or ledger identities abort
+aggregation. Existing isolated shards that predate the required continuum
+metadata are intentionally incompatible. No complete 505-row development or
+148-row confirmation artifact has been produced yet. This artifact rejects
+confirmation selections outright; a separately reviewed, hash-bound
+freeze/unseal gate is required before the sealed confirmation partition can
+be evaluated.
+
 ## AIMNet2 fixed point-charge baseline
 
 [`route2-aimnet2-point-charge-ddpcm-canary-v1.json`](route2-aimnet2-point-charge-ddpcm-canary-v1.json)

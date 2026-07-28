@@ -806,6 +806,73 @@ energy profile now has separately tested model-side and continuum-side
 feature response adjoints, but they are not yet composed into the same
 fixed-point audit or a coordinate derivative.
 
+The endpoint scalar now also has a data-only charging-path discriminator.  At
+each coupling value \(\lambda\), the intended real-model experiment solves
+
+\[
+c_\lambda=\mathcal M(\lambda\mathcal P c_\lambda)
+\]
+
+and records the *unscaled* continuum polarization energy
+
+\[
+U(c_\lambda)=\frac12\langle c_\lambda,\mathcal P c_\lambda\rangle.
+\]
+
+If the coupled system were stationary for a joint functional
+
+\[
+F_\lambda[c]=E_0[c]+\lambda U(c),
+\]
+
+the envelope theorem would give
+
+\[
+F_1[c_1]-F_0[c_0]
+=\int_0^1U(c_\lambda)\,d\lambda.
+\]
+
+Consequently the current endpoint candidate
+
+\[
+A=\Delta E_{\mathrm{model}}+U(c_1)
+\]
+
+must agree with the charging integral \(C\), while the model-scalar change
+must obey
+
+\[
+\Delta E_{\mathrm{model}}
+=C-U(c_1).
+\]
+
+Here \(E_{\mathrm{model}}\) means exactly the same field-conditioned model
+scalar used in the endpoint Route-2 ledger before the explicit continuum
+polarization energy is added.  Calling it \(E_{\mathrm{model}}\) does not
+classify it as an intrinsic or variational energy; the charging test probes
+that candidate interpretation.
+
+`route2_charging_path_diagnostics.charging_path_energy_diagnostic()` evaluates
+these two algebraically equivalent signed defects using a fail-closed,
+uniform \(4k+1\)-sample composite Simpson rule.  It evaluates both the full
+grid and the nested every-other-point grid and reports the Richardson estimate
+\(\lvert S_h-S_{2h}\rvert/15\) for the fine-grid quadrature error.  Its
+relative defect uses the symmetric normalization
+\(\lvert A-C\rvert/(\lvert A\rvert+\lvert C\rvert)\).  It neither changes the
+production solver nor selects an alternative energy ledger.  A zero defect
+would establish only internal
+charging-path consistency for the sampled operational scalar; it would not
+establish QM accuracy or make the learned density variational.  Conversely, a
+nonzero defect alone is inconclusive unless it is stable under further grid
+refinement and materially exceeds the reported quadrature error.  Exact
+quadratic and non-polynomial variational paths plus invalid-grid behavior are
+tested, but a real MACE-POLAR
+\(\lambda\)-path has not yet been executed, so the charging-path release gate
+remains open.  This separation follows the PCM literature's requirement that
+mutual polarization be tied to a variational functional; published treatments
+of non-variational polarizable models repair the energy algebra explicitly
+rather than assuming the ordinary half-coupling identity.
+
 \[
 \mathcal R(c,\mathbf R)
 =c-\mathcal M\!\left(\mathcal P(c,\mathbf R),\mathbf R\right)=0.
@@ -2005,6 +2072,13 @@ Route-2 references:
 - PCMSolver public interface and implementation: R. Di Remigio et al.,
   *JOSS* **4**, 1190 (2019), DOI `10.21105/joss.01190`;
   `arXiv:1804.05895`.
+- F. Lipparini, G. Scalmani, B. Mennucci, E. Cancès, M. Caricato, and
+  M. J. Frisch, “A variational formulation of the polarizable continuum
+  model,” *J. Chem. Phys.* **133**, 014106 (2010),
+  DOI `10.1063/1.3454683`.
+- F. Lipparini et al., “Polarizable Molecular Dynamics in a Polarizable
+  Continuum Solvent,” *J. Chem. Theory Comput.* **11**, 623--634 (2015),
+  DOI `10.1021/ct500998q`.
 - PySCF PCM implementation and analytic gradients:
   `https://github.com/pyscf/pyscf/tree/c63a953ba603a5ad8c1d65d88da72aaf05ede4d8/pyscf/solvent`;
   audited PySCF 2.14 source snapshot `c63a953`.

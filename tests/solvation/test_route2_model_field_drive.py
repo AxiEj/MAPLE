@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import dataclass, replace
+import json
 
 import numpy as np
 import pytest
@@ -17,6 +19,7 @@ from maple.function.calculator.extra_correction.implicit.route2_engine import (
     Route2EngineSettings,
     Route2FiniteResolutionPolicy,
     Route2SCFConvergenceError,
+    Route2SCFHistoryRecord,
     Route2SCFIterationState,
 )
 from maple.function.calculator.extra_correction.implicit.route2_fixed_point import (
@@ -208,6 +211,49 @@ class _FiniteResolutionCalculator:
         if self.calls >= len(self.residuals):
             raise RuntimeError("Finite-resolution response schedule exhausted.")
         response = density + self.residuals[self.calls]
+        energy_ev = self.energies_ev[self.calls]
+        self.calls += 1
+        return _State(energy_ev=energy_ev, density_coefficients=response), {}
+
+
+class _ScheduledDensityCalculator:
+    def __init__(
+        self,
+        responses: list[np.ndarray],
+        *,
+        energies_ev: list[float] | None = None,
+    ):
+        self.responses = [
+            np.asarray(response, dtype=float).copy() for response in responses
+        ]
+        self.energies_ev = (
+            [0.0] * len(self.responses)
+            if energies_ev is None
+            else [float(value) for value in energies_ev]
+        )
+        if len(self.energies_ev) != len(self.responses):
+            raise ValueError("Energy and response schedules must align.")
+        self.calls = 0
+        self.polar_calls: list[np.ndarray] = []
+
+    def polar_state(self, _atoms, **kwargs):
+        if self.calls >= len(self.responses):
+            raise RuntimeError("Scheduled response set exhausted.")
+        if "model_field_features" in kwargs:
+            raise RuntimeError(
+                "Scheduled calculator only supports node-potential calls."
+            )
+        density = np.column_stack(
+            (
+                np.asarray(kwargs["node_potential_ev"], dtype=float),
+                np.asarray(
+                    kwargs["node_gradient_ev_per_angstrom"],
+                    dtype=float,
+                ),
+            )
+        )
+        self.polar_calls.append(np.array(density, copy=True))
+        response = self.responses[self.calls]
         energy_ev = self.energies_ev[self.calls]
         self.calls += 1
         return _State(energy_ev=energy_ev, density_coefficients=response), {}
@@ -546,6 +592,95 @@ def test_engine_uses_anderson_acceleration_for_unit_mixing_fixed_point_iteration
     assert coupled.history[-1]["next_density_update"] == "converged"
 
 
+def test_engine_does_not_reject_zero_over_zero_actual_residual_growth():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    gas_density = np.zeros((2, 4), dtype=float)
+    first_residual = np.asarray(
+        [[1.0e-2, 0.0, 0.0, 0.0], [-1.0e-2, 0.0, 0.0, 0.0]]
+    )
+    zero_residual = np.zeros_like(first_residual)
+    calculator = _FiniteResolutionCalculator(
+        [first_residual, zero_residual, zero_residual],
+        energies_ev=[0.0, 1.0, 1.0],
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: _IdentityReactionMap(),
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=replace(
+            _settings(),
+            continuum_label="synthetic zero-baseline ddPCM",
+            scf_density_tolerance=1.0e-12,
+            scf_energy_tolerance_ev=1.0e-12,
+            scf_max_iterations=3,
+            scf_solver=SAFEGUARDED_ANDERSON_SOLVER,
+        ),
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        _State(energy_ev=0.0, density_coefficients=gas_density),
+        provider_cache_signature=("zero-over-zero-growth",),
+    )
+
+    final = coupled.history[-1]
+    assert final["arrived_by"] == SAFEGUARDED_ANDERSON_SOLVER
+    assert final["actual_residual_objective"] == 0.0
+    assert final["actual_residual_growth_baseline_objective"] == 0.0
+    assert final["actual_residual_growth_ratio"] is None
+    assert final["attempt_status"] == "accepted"
+    assert final["accepted"] is True
+    assert final["rejected"] is False
+    assert final["next_density_update"] == "converged"
+    json.dumps(coupled.history, allow_nan=False)
+
+
+def test_engine_rejects_positive_actual_residual_growth_from_zero_baseline():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    gas_density = np.zeros((2, 4), dtype=float)
+    first_residual = np.asarray(
+        [[1.0e-2, 0.0, 0.0, 0.0], [-1.0e-2, 0.0, 0.0, 0.0]]
+    )
+    zero_residual = np.zeros_like(first_residual)
+    positive_residual = np.asarray(
+        [[1.0e-15, 0.0, 0.0, 0.0], [-1.0e-15, 0.0, 0.0, 0.0]]
+    )
+    calculator = _FiniteResolutionCalculator(
+        [first_residual, zero_residual, positive_residual],
+        energies_ev=[0.0, 1.0, 1.0],
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: _IdentityReactionMap(),
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=replace(
+            _settings(),
+            continuum_label="synthetic positive-over-zero ddPCM",
+            scf_density_tolerance=1.0e-16,
+            scf_energy_tolerance_ev=1.0e-12,
+            scf_max_iterations=3,
+            scf_solver=SAFEGUARDED_ANDERSON_SOLVER,
+        ),
+    )
+
+    with pytest.raises(Route2SCFConvergenceError) as caught:
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            _State(energy_ev=0.0, density_coefficients=gas_density),
+            provider_cache_signature=("positive-over-zero-growth",),
+        )
+
+    rejected = caught.value.history[-1]
+    assert rejected["actual_residual_growth_baseline_objective"] == 0.0
+    assert rejected["actual_residual_growth_ratio"] is None
+    assert rejected["accepted"] is False
+    assert rejected["rejected"] is True
+    assert rejected["attempt_status"] == (
+        "rejected-anderson-actual-residual-growth"
+    )
+    json.dumps(caught.value.history, allow_nan=False)
+
+
 def test_engine_converges_with_the_neutral_tangent_unmixed_residual():
     atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
     fixed_point = np.asarray(
@@ -613,13 +748,16 @@ def test_engine_resets_anderson_history_after_observed_residual_growth(
         )
     )
 
-    def _controlled_step(samples, **_kwargs):
+    def _controlled_step(samples, **kwargs):
         density = next(proposed_densities)
-        method = (
-            SAFEGUARDED_ANDERSON_SOLVER
-            if len(samples) == 1 and np.allclose(samples[-1].density, 0.0)
-            else DAMPED_PICARD_SOLVER
-        )
+        if kwargs.get("solver") == DAMPED_PICARD_SOLVER:
+            method = DAMPED_PICARD_SOLVER
+        else:
+            method = (
+                SAFEGUARDED_ANDERSON_SOLVER
+                if len(samples) == 1 and np.allclose(samples[-1].density, 0.0)
+                else DAMPED_PICARD_SOLVER
+            )
         return FixedPointStep(
             density=density,
             method=method,
@@ -654,9 +792,111 @@ def test_engine_resets_anderson_history_after_observed_residual_growth(
     )
 
     assert coupled.history[1]["arrived_by"] == SAFEGUARDED_ANDERSON_SOLVER
-    assert coupled.history[1]["anderson_history_reset"] is True
     assert coupled.history[1]["fixed_point_history_size"] == 1
+    assert coupled.history[1]["accepted"] is False
+    assert coupled.history[1]["rejected"] is True
+    assert coupled.history[1]["attempt_status"] == (
+        "rejected-anderson-actual-residual-growth"
+    )
+    assert coupled.history[1]["anderson_history_reset"] is True
+    assert coupled.history[1]["accepted_parent_attempt"] == 1
+    assert coupled.history[1]["rollback_anchor_attempt"] == 1
+    assert coupled.history[1]["next_density_update"] == DAMPED_PICARD_SOLVER
+    assert coupled.history[1]["anderson_fallback_reason"] == (
+        "anderson-actual-residual-growth-rejected"
+    )
+    assert coupled.history[2]["anderson_history_reset"] is False
+    assert coupled.history[2]["rejected"] is False
+    assert coupled.history[2]["accepted"] is True
+    assert coupled.history[2]["accepted_parent_attempt"] == 1
+    assert coupled.history[2]["rollback_anchor_attempt"] is None
     assert coupled.history[-1]["next_density_update"] == "converged"
+
+
+def test_engine_rolls_back_anderson_attempt_to_anchor_picard_step(
+    monkeypatch,
+):
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]
+    )
+    anchor_candidate = 2.0 * fixed_point
+    anchor_step = 0.25 * fixed_point
+
+    response_1 = fixed_point.copy()
+    response_2 = 0.5 * fixed_point
+    response_3 = 100.0 * fixed_point
+    response_4 = anchor_candidate + (response_2 - anchor_step)
+    calculator = _ScheduledDensityCalculator(
+        responses=[response_1, response_2, response_3, response_4],
+    )
+
+    reaction_map = _IdentityReactionMap()
+    proposed = iter((anchor_step, anchor_candidate, response_4))
+
+    def _controlled_step(samples, **kwargs):
+        density = np.array(next(proposed), copy=True)
+        if kwargs.get("solver") == DAMPED_PICARD_SOLVER:
+            method = DAMPED_PICARD_SOLVER
+        else:
+            method = (
+                SAFEGUARDED_ANDERSON_SOLVER
+                if len(samples) == 1
+                else DAMPED_PICARD_SOLVER
+            )
+        return FixedPointStep(
+            density=density,
+            method=method,
+            history_size=len(samples),
+        )
+
+    monkeypatch.setattr(
+        route2_engine_module,
+        "next_fixed_point_density",
+        _controlled_step,
+    )
+    settings = replace(
+        _settings(),
+        continuum_label="synthetic rollback ddPCM",
+        scf_mixing=1.0,
+        scf_density_tolerance=1.0e-12,
+        scf_energy_tolerance_ev=1.0e-12,
+        scf_max_iterations=8,
+        scf_solver=SAFEGUARDED_ANDERSON_SOLVER,
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=settings,
+    )
+
+    gas_state = _State(energy_ev=0.0, density_coefficients=np.zeros_like(fixed_point))
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("synthetic-anchor-rollback",),
+    )
+
+    rollback_density = anchor_candidate + (response_2 - anchor_step)
+    assert len(calculator.polar_calls) >= 4
+    np.testing.assert_allclose(
+        calculator.polar_calls[3],
+        rollback_density,
+    )
+    np.testing.assert_allclose(
+        coupled.density_coefficients,
+        rollback_density,
+    )
+    assert all(
+        event["accepted"] is False
+        for event in coupled.history
+        if event["rejected"]
+    )
+    assert any(
+        event["accepted"] and event["rollback_anchor_attempt"] is None
+        for event in coupled.history
+    )
 
 
 def test_engine_nonconvergence_exposes_the_complete_numerical_history():
@@ -1321,4 +1561,170 @@ def test_finite_resolution_energy_span_uses_only_the_triggering_window(
     assert (
         coupled.scf_convergence["history_window"]["intrinsic_energy_span_ev"]
         == pytest.approx(0.0)
+    )
+
+
+def test_finite_resolution_window_rejects_nonaccepted_or_inconsistent_parentage():
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: _IdentityReactionMap(),
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=replace(
+            _settings(),
+            scf_density_tolerance=1.0,
+            scf_dipole_tolerance_e_angstrom=1.0,
+            scf_energy_tolerance_ev=1.0,
+        ),
+    )
+    policy = replace(
+        _finite_resolution_policy(),
+        history_length=3,
+        map_replay_count=1,
+    )
+    density_records = [
+        np.asarray([[-0.4, 0.2, -0.1, 0.3], [0.4, -0.2, 0.1, -0.3]]),
+        np.asarray(
+            [
+                [-0.40000000005, 0.20000000005, -0.1, 0.30000000005],
+                [0.4, -0.2, 0.10000000005, -0.30000000005],
+            ]
+        ),
+        np.asarray(
+            [
+                [-0.40000000009, 0.20000000009, -0.10000000009, 0.30000000009],
+                [0.40000000009, -0.20000000009, 0.10000000009, -0.30000000009],
+            ]
+        ),
+    ]
+    residual_records = [
+        np.asarray(
+            [
+                [1.0e-11, 5.0e-12, -3.0e-12, 4.0e-12],
+                [-1.0e-11, -5.0e-12, 3.0e-12, -4.0e-12],
+            ]
+        ),
+        np.asarray(
+            [
+                [8.0e-12, 4.0e-12, -2.0e-12, 3.0e-12],
+                [-8.0e-12, -4.0e-12, 2.0e-12, -3.0e-12],
+            ]
+        ),
+        np.asarray(
+            [
+                [5.0e-12, 2.0e-12, -1.0e-12, 2.0e-12],
+                [-5.0e-12, -2.0e-12, 1.0e-12, -2.0e-12],
+            ]
+        ),
+    ]
+    field_records = [
+        np.asarray(
+            [
+                [1.0e-12, 1.0e-12, 1.0e-12, 1.0e-12],
+                [1.0e-12, 1.0e-12, 1.0e-12, 1.0e-12],
+            ]
+        ),
+        np.asarray(
+            [
+                [1.2e-12, 1.0e-12, 1.0e-12, 1.0e-12],
+                [1.0e-12, 1.1e-12, 1.0e-12, 1.0e-12],
+            ]
+        ),
+        np.asarray(
+            [
+                [1.1e-12, 1.2e-12, 1.0e-12, 1.0e-12],
+                [1.0e-12, 1.0e-12, 1.1e-12, 1.0e-12],
+            ]
+        ),
+    ]
+    energies = [-10.0, -10.0, -10.0]
+    base_records: list[Route2SCFHistoryRecord] = []
+    for iteration, (density, residual, field, energy) in enumerate(
+        zip(density_records, residual_records, field_records, energies),
+        start=1,
+    ):
+        base_records.append(
+            {
+                "iteration": iteration,
+                "density_residual_e": 0.1,
+                "monopole_residual_e": 0.1,
+                "dipole_residual_e_angstrom": 0.02,
+                "energy_residual_ev": 0.0,
+                "intrinsic_energy_ev": energy,
+                "root_total_charge_e": 0.0,
+                "raw_response_total_charge_e": 0.0,
+                "response_charge_projection_max_e": 0.0,
+                "arrived_by": SAFEGUARDED_ANDERSON_SOLVER,
+                "anderson_history_reset": False,
+                "attempt_status": "accepted",
+                "accepted": True,
+                "rejected": False,
+                "actual_residual_objective": 0.0,
+                "actual_residual_growth_baseline_objective": 0.0,
+                "actual_residual_growth_ratio": None,
+                "accepted_parent_attempt": 41 if iteration == 1 else iteration - 1,
+                "accepted_state_index": iteration - 1,
+                "solver_epoch": 0,
+                "rollback_anchor_attempt": None,
+                "next_density_update": SAFEGUARDED_ANDERSON_SOLVER,
+                "fixed_point_history_size": 2,
+                "anderson_predicted_residual_l2": None,
+                "anderson_coefficient_l1": None,
+                "anderson_step_ratio_to_picard": None,
+                "anderson_fallback_reason": None,
+                "density_sha256": "ignored",
+                "response_sha256": "ignored",
+                "field_sha256": "ignored",
+            }
+        )
+    assert (
+        engine._finite_resolution_candidate_window(
+            policy=policy,
+            iteration_history=base_records,
+            density_history=density_records,
+            residual_history=residual_records,
+            field_history=field_records,
+            intrinsic_energy_history=energies,
+        )
+        is not None
+    )
+
+    inconsistent_records = deepcopy(base_records)
+    inconsistent_records[1]["accepted"] = False
+    assert (
+        engine._finite_resolution_candidate_window(
+            policy=policy,
+            iteration_history=inconsistent_records,
+            density_history=density_records,
+            residual_history=residual_records,
+            field_history=field_records,
+            intrinsic_energy_history=energies,
+        )
+        is None
+    )
+
+    inconsistent_parentage = deepcopy(base_records)
+    inconsistent_parentage[2]["accepted_parent_attempt"] = 1
+    assert (
+        engine._finite_resolution_candidate_window(
+            policy=policy,
+            iteration_history=inconsistent_parentage,
+            density_history=density_records,
+            residual_history=residual_records,
+            field_history=field_records,
+            intrinsic_energy_history=energies,
+        )
+        is None
+    )
+
+    inconsistent_epoch = deepcopy(base_records)
+    inconsistent_epoch[1]["solver_epoch"] = 1
+    assert (
+        engine._finite_resolution_candidate_window(
+            policy=policy,
+            iteration_history=inconsistent_epoch,
+            density_history=density_records,
+            residual_history=residual_records,
+            field_history=field_records,
+            intrinsic_energy_history=energies,
+        )
+        is None
     )

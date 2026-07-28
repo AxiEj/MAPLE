@@ -1221,17 +1221,21 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     release gate remains open.
 
 49. The exact `smd-ddpcm-l15-n1202-multisolv-v1` profile now carries the
-    fail-closed, energy-only finite-resolution replay v2 contract for an
+    integrated `safeguarded-anderson-v2` actual-residual rejection,
+    rollback, and one-Picard-restart policy together with the unchanged,
+    fail-closed, energy-only `finite-resolution-stagnation-v2` contract for an
     approximate fixed-point candidate of the frozen discrete MACE-POLAR/ddPCM
     operator. In Walker--Ni terms this remains a numerical
     Anderson/inexact-Newton acceptance rule, not a new physical free-energy or
     force statement; the variational PCM and ddPCM-force references remain the
     Lipparini et al. and Gatto et al. papers already cited in the formula
-    ledger. The profile binds policy `finite-resolution-stagnation-v2`,
-    convergence contract `route2-scf-convergence-evidence-v2`, and
-    response-ablation runner/artifact schema v3 under the same frozen
-    enumerated runtime identity gate: official unfine-tuned MACE-POLAR-1-M
-    checkpoint, `mace-torch==0.3.16`, `graph-longrange==0.4.0`,
+    ledger, and the newer safeguarded/restarted Anderson literature motivates
+    but does not prove global convergence for this unproven Route-2 map. The
+    profile now binds policy `finite-resolution-stagnation-v2`, convergence
+    contract `route2-scf-convergence-evidence-v3`, and response-ablation
+    runner/artifact schema v4 under the same frozen enumerated runtime identity
+    gate: official unfine-tuned MACE-POLAR-1-M checkpoint,
+    `mace-torch==0.3.16`, `graph-longrange==0.4.0`,
     `torch==2.12.0+cu130`, `torch.float64`, `device=cpu`, `torch_threads=1`,
     `pyddx==0.8.0`, `n_proc=1`, `lmax=15`, `n_lebedev=1202`, `eta=0.1`,
     solver tolerance `1e-12`, and hashed atomic numbers, coordinates, and
@@ -1239,22 +1243,39 @@ self-consistency, and is not a public calculator or accuracy-certified method.
 
     The unchanged nominal gate is checked first: monopole residual
     `<= 2e-12 e`, dipole residual `<= 2e-12 e angstrom`, and configured
-    intrinsic-energy change `<= 1e-10 eV`. The fallback still accepts only the
-    **earliest online seven-iteration window satisfying every predicate**;
-    merely being the first Anderson/no-reset window is insufficient. Its
-    dimensions remain separated: monopole and dipole residual ceilings
-    `1e-10 e` and `1e-10 e angstrom`; per-component root and residual spans
-    below their corresponding nominal `2e-12` channel tolerances;
-    conjugate reaction-potential and gradient spans `<= 1e-10 eV/e` and
-    `<= 1e-10 eV/(e angstrom)`; intrinsic-energy span `<= 1e-10 eV`.
+    intrinsic-energy change `<= 1e-10 eV`. The accepted-state actual-residual
+    objective is `Phi = max(monopole/tau_mono, dipole/tau_dipole)` with the
+    same nominal channel tolerances in the denominator. If an evaluated
+    physical trial arrives by Anderson and `Phi_k > 2 Phi_anchor` for the most
+    recent accepted anchor, that trial is rejected. Rejected attempts still
+    count toward the existing 100-attempt bound, but they are excluded from
+    Anderson samples, best-state selection, and finite-resolution windows. The
+    runtime rolls back to the prior accepted anchor, takes exactly one Picard
+    step, then rebuilds Anderson from accepted-only history. Accepted-parent
+    lineage and solver epochs are audited. The zero-anchor case is evaluated
+    without division: zero-to-zero is not rejected, positive-over-zero is
+    rejected with a `null` finite-ratio field, and non-finite JSON scalars fail
+    closed.
 
-    Replay v2 changes only the online-versus-cold acceptance rule. Three fresh
-    reaction-map reevaluations at the retained density are still required, and
-    these are still not independent cold SCF starts. The three fresh-cold
-    field arrays must have identical canonical little-endian float64 digests,
-    and the three fresh-cold response arrays must have identical canonical
-    little-endian float64 digests. The online warm candidate is then compared
-    against each fresh-cold replay with bounded deltas rather than
+    The fallback still accepts only the **earliest online seven-iteration
+    window satisfying every predicate**; merely being the first
+    Anderson/no-reset window is insufficient. Because the finite-resolution
+    policy itself remains v2, its dimensions are unchanged: monopole and
+    dipole residual ceilings `1e-10 e` and `1e-10 e angstrom`; per-component
+    root and residual spans below their corresponding nominal `2e-12` channel
+    tolerances; conjugate reaction-potential and gradient spans
+    `<= 1e-10 eV/e` and `<= 1e-10 eV/(e angstrom)`; intrinsic-energy span
+    `<= 1e-10 eV`. The accepted seven-state window must now also stay within
+    one solver epoch, contain only accepted Anderson-arrived states, and carry
+    an unbroken accepted-parent chain.
+
+    Replay v2 still changes only the online-versus-cold acceptance rule.
+    Three fresh reaction-map reevaluations at the retained density are still
+    required, and these are still not independent cold SCF starts. The three
+    fresh-cold field arrays must have identical canonical little-endian float64
+    digests, and the three fresh-cold response arrays must have identical
+    canonical little-endian float64 digests. The online warm candidate is then
+    compared against each fresh-cold replay with bounded deltas rather than
     online-to-cold byte identity: reaction-potential and
     reaction-gradient component deltas `<= 1e-10 eV/e` and
     `<= 1e-10 eV/(e angstrom)`, response monopole deltas `<= 2e-12 e`, and
@@ -1276,18 +1297,13 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     raw-\(l\le1\) component infinity norm `2.6204635683590993e-11`, not a
     channel-separated v2 quantity),
     half-coupling identity error (`4.526934382909076e-14 eV`), and locked
-    `1e-12` intrinsic/PCM/electrostatic ledger spans at zero.
-
-    The older post-hoc best-residual artifact,
+    `1e-12` intrinsic/PCM/electrostatic ledger spans at zero. The older
+    post-hoc best-residual artifact,
     `.omx/diagnostics/mnsol-development-index004-cold-map-4d09ba74-root-v1/diagnostic.json`,
     remains intentionally preserved as a **failed, uncounted diagnostic**.
-    It explored the same frozen operator after the fact and therefore cannot
-    count toward the two-member matrix or any partition aggregate even though
-    its archived best-state residual was near `2.53e-11 e`.
 
-    Separately, the clean byte-identity failure that motivated replay v2 is
-    now archived in
-    `.omx/diagnostics/mnsol-development-index004-map-replay-norm-965aeb8-v2/`.
+    The clean byte-identity failure that motivated replay v2 is still archived
+    in `.omx/diagnostics/mnsol-development-index004-map-replay-norm-965aeb8-v2/`.
     In that diagnostic-only run, all six actual `np.array_equal` checks were
     false even though the measured deltas stayed small. The online-warm versus
     fresh-cold field comparisons recorded
@@ -1302,15 +1318,31 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     `pcm_ledger_span_ev = 9.71445146547012e-14`,
     `electrostatic_ledger_span_ev = 9.71445146547012e-14`, and
     `maximum_polarization_identity_error_ev = 4.526934382909076e-14`.
-    This is diagnostic evidence only. A prospectively counted index-4 rerun
-    under replay v2 is still pending, so no new partition row has been added.
+    This remains diagnostic evidence only.
+
+    New index-180 evidence is also preserved as **uncounted monkeypatch-only
+    diagnostics**. The archived best failed root in
+    `.omx/diagnostics/index180-picard-from-best-16bf09b-v2/diagnostic.json`
+    had base residual `3.1794e-12`; a full Picard trial rose to
+    `6.937e-11`; and a damped `alpha=0.25` Picard trial reached
+    `2.4996e-12`, still outside the nominal gate. The rollback diagnostic in
+    `.omx/diagnostics/index180-rollback-picard-16bf09b-v1/` then succeeded at
+    attempt 33 under the unchanged finite-resolution-v2 policy with final
+    monopole residual `1.1485e-12` and dipole residual `2.36193e-12`.
+    Its four rejected Anderson growth ratios were `21.88`, `27.57`, `27.87`,
+    and `28.69`. The same one-record shard reported absolute error `0.3790
+    kcal/mol`, but that is not an accuracy certification. Because this was a
+    runtime monkeypatch diagnostic rather than a prospectively executed public
+    solver run, it cannot count toward the exact two-member matrix, the frozen
+    505-row development partition, or the sealed 148-row confirmation
+    partition. The prospective integrated rerun is still pending.
 
     A future prospectively accepted result under this gate can still record
     only a repeatable finite-precision approximate fixed-point candidate under
     the frozen residual policy. Neither the preserved diagnostics nor the new
     rule certifies chemistry accuracy, forces, a smooth PES,
-    solvent-population performance, or a completed 505-row development or
-    148-row confirmation rerun.
+    solvent-population performance, any fitting/UQ/public-API claim, or a
+    completed 505-row development or 148-row confirmation rerun.
 
 ## Secondary diagnostics
 

@@ -456,12 +456,25 @@ def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
             "response_charge_projection_max_e": 0.0,
             "arrived_by": None,
             "anderson_history_reset": False,
+            "attempt_status": "accepted",
+            "accepted": True,
+            "rejected": False,
+            "actual_residual_objective": 1.0e6,
+            "actual_residual_growth_baseline_objective": None,
+            "actual_residual_growth_ratio": None,
+            "accepted_parent_attempt": None,
+            "accepted_state_index": 0,
+            "solver_epoch": 0,
+            "rollback_anchor_attempt": None,
             "next_density_update": "damped-picard-v1",
             "fixed_point_history_size": 1,
             "anderson_predicted_residual_l2": None,
             "anderson_coefficient_l1": None,
             "anderson_step_ratio_to_picard": None,
             "anderson_fallback_reason": None,
+            "density_sha256": "0" * 64,
+            "response_sha256": "1" * 64,
+            "field_sha256": "2" * 64,
         }
     ]
     error = Route2SCFConvergenceError(
@@ -491,11 +504,29 @@ def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
         )
     )
     assert payload["converged"] is False
-    assert payload["schema_version"] == 2
+    assert payload["schema_version"] == 3
     assert payload["error"] == "synthetic nonconvergence"
     assert payload["scf"]["history"] == history
     assert payload["scf"]["residual_definition"] == (
         "unmixed neutral-tangent Pi0[M(P(c))-c]"
+    )
+    assert payload["scf"]["anderson_residual_growth_objective"] == (
+        "max(monopole/tau_monopole,dipole/tau_dipole)"
+    )
+    assert payload["scf"]["anderson_residual_growth_rejection_inequality"] == (
+        "Phi_trial > residual_growth_limit * Phi_anchor"
+    )
+    assert payload["scf"]["anderson_accepted_residual_source"] == (
+        "evaluated-actual-unmixed-physical-residual"
+    )
+    assert payload["scf"]["anderson_actual_growth_action"] == (
+        "reject-trial-rollback-prior-accepted-anchor-one-picard-restart"
+    )
+    assert payload["scf"][
+        "rejected_trials_count_toward_maximum_iterations"
+    ] is True
+    assert payload["scf"]["finite_resolution_history_source"] == (
+        "accepted-solver-states-only"
     )
     assert payload["best_iteration_state"] == {
         "array_artifact": "route2-ddpcm-failure-best-state.npz",
@@ -515,6 +546,14 @@ def test_ddpcm_provider_persists_fail_closed_scf_history(tmp_path):
             1.0e-6,
         )
         np.testing.assert_allclose(arrays["reaction_field_values_ev"], 1.0)
+
+    error.history[0]["actual_residual_objective"] = float("inf")
+    with pytest.raises(ValueError, match="Out of range float values"):
+        provider._write_scf_failure_audit(
+            atoms=atoms,
+            gas_state=SimpleNamespace(energy_ev=-10.0),
+            error=error,
+        )
 
 
 def test_public_parser_keeps_pcmsolver_energy_only():
@@ -1172,6 +1211,7 @@ def test_multisolvent_provider_routes_dielectric_radii_and_cds_together(
     audit = json.loads(
         (tmp_path / "route2-ddpcm-result.json").read_text(encoding="utf-8")
     )
+    assert audit["schema_version"] == 2
     assert audit["scf"]["coefficient_units"] == {
         "monopole": "e",
         "dipole": "e angstrom",

@@ -36,11 +36,11 @@ import run_mnsol_macepolar_response_ablation as runner
 ALLOWED_METHODS = ("mace_fixed_l1", "mace_scf_l1")
 FULL_METHODS = tuple(runner.ABLATION_METHODS)
 SUPPORTED_PARTITIONS = frozenset({"development"})
-AGGREGATOR_ARTIFACT_NAME = "route2-mnsol-macepolar-two-member-matrix-v3"
+AGGREGATOR_ARTIFACT_NAME = "route2-mnsol-macepolar-two-member-matrix-v4"
 SOURCE_RUN_KIND = "partition-record-shard"
 AGGREGATE_RUN_KIND = "partition-two-member-matrix"
 REQUIRED_STAGE = "scf"
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 REQUIRED_CONTINUUM_EQUATION = "ddpcm"
 SOURCE_RUNNER_PATH = (
     "docs/implicit-solvation/benchmarks/run_mnsol_macepolar_response_ablation.py"
@@ -924,6 +924,14 @@ def _checkpoints(
     return normalized
 
 
+def _validated_scf_solver_contract(value: object) -> dict[str, Any]:
+    contract = _require_mapping(value, label="scf_solver_contract")
+    expected = runner.SCF_SOLVER_CONTRACT
+    if contract != expected:
+        raise ValueError("Private fragment scf_solver_contract drifted.")
+    return contract
+
+
 def _validated_shard(
     fragment: Mapping[str, Any],
     *,
@@ -937,6 +945,7 @@ def _validated_shard(
         "scf_convergence_contract_version": (
             runner.SCF_CONVERGENCE_CONTRACT_VERSION
         ),
+        "scf_solver_contract": runner.SCF_SOLVER_CONTRACT,
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
         "status": "complete",
@@ -988,6 +997,8 @@ def _validated_shard(
         != dataset
     ):
         raise ValueError("Private fragment dataset metadata drifted.")
+
+    _validated_scf_solver_contract(fragment.get("scf_solver_contract"))
 
     checkpoint_value = fragment.get("checkpoints")
     if not isinstance(checkpoint_value, Mapping):
@@ -1584,6 +1595,7 @@ def aggregate_private_two_member_shards(
         "scf_convergence_contract_version": (
             runner.SCF_CONVERGENCE_CONTRACT_VERSION
         ),
+        "scf_solver_contract": runner.SCF_SOLVER_CONTRACT,
         "source_runner_evaluated_methods": list(FULL_METHODS),
         "maximum_response_stage": REQUIRED_STAGE,
         "protocol_fingerprint": protocol_hash,

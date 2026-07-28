@@ -675,15 +675,27 @@ metadata are intentionally incompatible.
 For `mace_scf_l1`, every completed shard must carry dimension-separated SCF
 convergence evidence. A nominal row records separate monopole and dipole
 residuals and no fallback evidence. A finite-resolution row for
-`smd-ddpcm-l15-n1202-multisolv-v1` must additionally record the earliest
-online seven-step Anderson/no-reset window satisfying every predicate, the
-frozen enumerated runtime identity gate (including
-`torch==2.12.0+cu130`), and three fresh reaction-map reevaluations at the
-retained density. These are not independent cold SCF starts. Under
-`finite-resolution-stagnation-v2`, the three fresh-cold field arrays must have
-identical canonical little-endian float64 digests, and the three fresh-cold
-response arrays must have identical canonical little-endian float64 digests.
-The online warm candidate is compared against each
+`smd-ddpcm-l15-n1202-multisolv-v1` now uses response-ablation artifact/schema
+v4 and the explicit `route2-scf-convergence-evidence-v3` contract. The
+finite-resolution policy itself remains `finite-resolution-stagnation-v2`, but
+the integrated solver policy is `safeguarded-anderson-v2`: the accepted-state
+actual-residual objective is `Phi = max(monopole/tau_mono, dipole/tau_dipole)`
+with the nominal channel tolerances in the denominator, and any Anderson
+arrival with `Phi_k > 2 Phi_anchor` is rejected, rolled back to the prior
+accepted anchor, advanced by exactly one Picard step, and restarted with an
+accepted-only Anderson history. Rejected attempts still count toward the
+existing 100-attempt bound, but they are excluded from Anderson samples,
+best-state selection, and finite-resolution windows.
+
+Accordingly, a finite-resolution row must additionally record the earliest
+online seven-step accepted Anderson window satisfying every predicate, the
+frozen enumerated runtime identity gate (including `torch==2.12.0+cu130`), the
+accepted-parent lineage, the solver epoch, and three fresh reaction-map
+reevaluations at the retained density. These are not independent cold SCF
+starts. Under `finite-resolution-stagnation-v2`, the three fresh-cold field
+arrays must have identical canonical little-endian float64 digests, and the
+three fresh-cold response arrays must have identical canonical little-endian
+float64 digests. The online warm candidate is compared against each
 fresh-cold replay with bounded deltas only: reaction-potential and
 reaction-gradient component deltas must stay within the existing
 `1e-10 eV/e` and `1e-10 eV/(e angstrom)` gates, while response monopole and
@@ -694,9 +706,7 @@ identity gate are unchanged. The shard records four per-evaluation hashes
 (online warm plus three fresh-cold) for fields and for responses, plus the
 four maximum online-to-cold ULP metrics, as diagnostics only. This
 finite-resolution branch is energy-only; force requests require nominal
-convergence. Response-ablation shards carrying this evidence use
-artifact/schema v3 and the explicit `route2-scf-convergence-evidence-v2`
-contract. Aggregation rejects ULP values outside the finite float64 range,
+convergence. Aggregation rejects ULP values outside the finite float64 range,
 delta/ULP zero-status contradictions, and identical online/cold hashes paired
 with nonzero delta or ULP metrics.
 
@@ -729,13 +739,30 @@ max-absolute/L2/max-relative differences of `1.936228954946273e-12` /
 `pcm_ledger_span_ev = 9.71445146547012e-14`,
 `electrostatic_ledger_span_ev = 9.71445146547012e-14`, and
 `maximum_polarization_identity_error_ev = 4.526934382909076e-14`.
-A prospectively counted replay-v2 rerun is still pending, so index-004 cannot
-be aggregated yet.
+That replay-v2 rerun is still not countable.
+
+New index-180 rollback evidence is preserved separately as uncounted runtime
+monkeypatch diagnostics. The archived best failed root in
+`.omx/diagnostics/index180-picard-from-best-16bf09b-v2/diagnostic.json`
+started from residual `3.1794e-12`; a full Picard trial rose to `6.937e-11`;
+and a damped `alpha=0.25` trial reached `2.4996e-12`, still not nominal. The
+rollback diagnostic in `.omx/diagnostics/index180-rollback-picard-16bf09b-v1/`
+then reached attempt 33 under the unchanged finite-resolution-v2 policy with
+final monopole residual `1.1485e-12`, final dipole residual `2.36193e-12`,
+and four rejected growth ratios `21.88`, `27.57`, `27.87`, and `28.69`.
+Its one-record shard reported absolute error `0.3790 kcal/mol`, but that value
+is diagnostic only and is not an accuracy certification. Because the run used a
+runtime monkeypatch instead of the prospectively integrated public solver, it
+cannot count toward the exact two-member matrix, the frozen 505-row
+development partition, or the sealed 148-row confirmation partition. The
+prospective integrated rerun is still pending.
 
 No complete 505-row development or 148-row confirmation artifact has been
-produced yet. This artifact rejects confirmation selections outright; a
-separately reviewed, hash-bound freeze/unseal gate is required before the
-sealed confirmation partition can be evaluated.
+produced yet. This benchmark lane remains the exact two-member matrix only;
+it does not authorize fitting, UQ calibration, response tempering, density
+mixing retuning, or any public-API claim. This artifact rejects confirmation
+selections outright; a separately reviewed, hash-bound freeze/unseal gate is
+required before the sealed confirmation partition can be evaluated.
 
 ## AIMNet2 fixed point-charge baseline
 

@@ -46,6 +46,10 @@ from .route2_engine import (
     Route2CoupledState,
     Route2EngineSettings,
     Route2FiniteResolutionPolicy,
+    SCF_ACCEPTED_RESIDUAL_SOURCE,
+    SCF_ACTUAL_RESIDUAL_OBJECTIVE_FORMULA,
+    SCF_FINITE_RESOLUTION_HISTORY_SOURCE,
+    SCF_REJECTED_GROWTH_ACTION,
     Route2SCFConvergenceError,
     Route2SCFHistoryRecord,
 )
@@ -684,6 +688,20 @@ class PyDDXSMDImplicitSolvation:
             "anderson_residual_growth_limit": (
                 settings.scf_anderson_residual_growth_limit
             ),
+            "anderson_residual_growth_objective": (
+                SCF_ACTUAL_RESIDUAL_OBJECTIVE_FORMULA
+            ),
+            "anderson_residual_growth_rejection_inequality": (
+                "Phi_trial > residual_growth_limit * Phi_anchor"
+            ),
+            "anderson_accepted_residual_source": SCF_ACCEPTED_RESIDUAL_SOURCE,
+            "anderson_actual_growth_action": SCF_REJECTED_GROWTH_ACTION,
+            "rejected_trials_count_toward_maximum_iterations": True,
+            "rejected_trials_in_anderson_history": False,
+            "rejected_trials_eligible_for_best_state": False,
+            "finite_resolution_history_source": (
+                SCF_FINITE_RESOLUTION_HISTORY_SOURCE
+            ),
             "total_charge_e": settings.scf_total_charge_e,
             "residual_definition": (
                 "unmixed neutral-tangent Pi0[M(P(c))-c]"
@@ -745,7 +763,7 @@ class PyDDXSMDImplicitSolvation:
                 "array_keys": sorted(arrays),
             }
         payload = {
-            "schema_version": 2,
+            "schema_version": 3,
             "converged": False,
             "error": str(error),
             "profile": self.profile,
@@ -763,7 +781,7 @@ class PyDDXSMDImplicitSolvation:
             "best_iteration_state": best_state_payload,
         }
         (self.audit_dir / f"{audit_stem}-failure.json").write_text(
-            json.dumps(payload, indent=2, sort_keys=True),
+            json.dumps(payload, allow_nan=False, indent=2, sort_keys=True),
             encoding="utf-8",
         )
 
@@ -846,7 +864,7 @@ class PyDDXSMDImplicitSolvation:
         np.savez_compressed(state_path, **archive_arrays)
 
         payload = {
-            "schema_version": 1,
+            "schema_version": 2,
             "converged": True,
             "forces_evaluated": derivative is not None,
             "profile": self.profile,
@@ -867,7 +885,7 @@ class PyDDXSMDImplicitSolvation:
             "array_archive": str(state_path),
         }
         (self.audit_dir / f"{audit_stem}-result.json").write_text(
-            json.dumps(payload, indent=2, sort_keys=True),
+            json.dumps(payload, allow_nan=False, indent=2, sort_keys=True),
             encoding="utf-8",
         )
 

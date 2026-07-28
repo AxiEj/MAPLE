@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 import subprocess
 import sys
@@ -32,21 +33,81 @@ CURRENT_HEAD = subprocess.run(
 
 def test_replay_v2_artifact_contract_is_versioned():
     assert aggregation.runner.ARTIFACT_NAME == (
-        "route2-mnsol-macepolar-response-ablation-v3"
+        "route2-mnsol-macepolar-response-ablation-v4"
     )
-    assert aggregation.runner.SCHEMA_VERSION == 3
+    assert aggregation.runner.SCHEMA_VERSION == 4
     assert aggregation.runner.SCF_CONVERGENCE_CONTRACT_VERSION == (
-        "route2-scf-convergence-evidence-v2"
+        "route2-scf-convergence-evidence-v3"
     )
     assert aggregation.AGGREGATOR_ARTIFACT_NAME == (
-        "route2-mnsol-macepolar-two-member-matrix-v3"
+        "route2-mnsol-macepolar-two-member-matrix-v4"
     )
-    assert aggregation.SCHEMA_VERSION == 3
+    assert aggregation.SCHEMA_VERSION == 4
     assert aggregation.MACE_SCF_FINITE_RESOLUTION_REASON == (
         "finite-resolution-stagnation-v2"
     )
     assert aggregation.MACE_SCF_MAX_FINITE_FLOAT64_ULP_DISTANCE == (
         0xFFDFFFFFFFFFFFFE
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT[
+            "scf_actual_residual_objective_formula"
+        ]
+        == "max(monopole/tau_monopole,dipole/tau_dipole)"
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT[
+            "scf_growth_rejection_inequality"
+        ]
+        == "Phi_trial > growth_limit * Phi_anchor"
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT["scf_accepted_residual_source"]
+        == "evaluated-actual-unmixed-physical-residual"
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT["scf_rejected_growth_action"]
+        == "reject-trial-rollback-prior-accepted-anchor-one-picard-restart"
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT["scf_rejected_attempt_status"]
+        == "rejected-anderson-actual-residual-growth"
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT[
+            "scf_rejected_attempts_count_toward_max_iterations"
+        ]
+        is True
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT[
+            "scf_rejected_attempts_excluded_from_anderson_samples"
+        ]
+        is True
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT[
+            "scf_rejected_attempts_excluded_from_best_state_selection"
+        ]
+        is True
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT[
+            "scf_rejected_attempts_excluded_from_finite_resolution_window"
+        ]
+        is True
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT[
+            "scf_finite_resolution_history_source"
+        ]
+        == "accepted-solver-states-only"
+    )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT[
+            "scf_finite_resolution_policy_version"
+        ]
+        == "finite-resolution-stagnation-v2"
     )
 
 
@@ -264,6 +325,7 @@ def _fragment(
         "scf_convergence_contract_version": (
             aggregation.runner.SCF_CONVERGENCE_CONTRACT_VERSION
         ),
+        "scf_solver_contract": copy.deepcopy(aggregation.runner.SCF_SOLVER_CONTRACT),
         "status": status,
         "complete_panel": False,
         "run_kind": run_kind,
@@ -392,6 +454,22 @@ def test_aggregate_rejects_cross_partition_or_bad_provenance_and_method_gates():
     with pytest.raises(ValueError, match="status"):
         _run_aggregation(
             [_fragment(0), _fragment(1, status="running")],
+            selection_records=selection_records,
+        )
+
+    with pytest.raises(ValueError, match="scf_solver_contract"):
+        missing = _fragment(1)
+        missing.pop("scf_solver_contract")
+        _run_aggregation(
+            [_fragment(0), missing],
+            selection_records=selection_records,
+        )
+
+    with pytest.raises(ValueError, match="scf_solver_contract"):
+        drifted = _fragment(1)
+        drifted["scf_solver_contract"]["scf_mixing"] = 0.75
+        _run_aggregation(
+            [_fragment(0), drifted],
             selection_records=selection_records,
         )
 
@@ -762,6 +840,7 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
         private["scf_convergence_contract_version"]
         == aggregation.runner.SCF_CONVERGENCE_CONTRACT_VERSION
     )
+    assert private["scf_solver_contract"] == aggregation.runner.SCF_SOLVER_CONTRACT
     assert private["run_kind"] == "partition-two-member-matrix"
     assert private["source_run_kind"] == "partition-record-shard"
     assert private["status"] == "complete"
@@ -807,6 +886,7 @@ def test_aggregate_private_and_public_outputs_include_two_member_metrics_and_no_
         "finite-precision approximate fixed-point candidate"
         in private["claim_boundary"]
     )
+    assert public["scf_solver_contract"] == aggregation.runner.SCF_SOLVER_CONTRACT
 
     metrics = public["aggregate_metrics"]
     for method in ALLOWED_METHODS:

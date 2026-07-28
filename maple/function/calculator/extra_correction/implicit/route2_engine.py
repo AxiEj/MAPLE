@@ -12,7 +12,7 @@ from collections.abc import Callable, Hashable
 from dataclasses import dataclass, field
 import hashlib
 import math
-from typing import Any, TypedDict, cast
+from typing import Any, Literal, TypedDict, cast
 
 import numpy as np
 from ase.units import Hartree
@@ -37,6 +37,15 @@ from .route2_response import (
     solve_adjoint,
 )
 
+SCF_ACTUAL_RESIDUAL_OBJECTIVE_FORMULA = (
+    "max(monopole/tau_monopole,dipole/tau_dipole)"
+)
+SCF_ACCEPTED_RESIDUAL_SOURCE = "evaluated-actual-unmixed-physical-residual"
+SCF_REJECTED_GROWTH_ACTION = (
+    "reject-trial-rollback-prior-accepted-anchor-one-picard-restart"
+)
+SCF_FINITE_RESOLUTION_HISTORY_SOURCE = "accepted-solver-states-only"
+
 
 class Route2SCFHistoryRecord(TypedDict):
     """One complete JSON-serializable fixed-point iteration record."""
@@ -52,12 +61,28 @@ class Route2SCFHistoryRecord(TypedDict):
     response_charge_projection_max_e: float
     arrived_by: str | None
     anderson_history_reset: bool
+    attempt_status: Literal[
+        "accepted",
+        "rejected-anderson-actual-residual-growth",
+    ]
+    accepted: bool
+    rejected: bool
+    actual_residual_objective: float
+    actual_residual_growth_baseline_objective: float | None
+    actual_residual_growth_ratio: float | None
+    accepted_parent_attempt: int | None
+    accepted_state_index: int | None
+    solver_epoch: int
+    rollback_anchor_attempt: int | None
     next_density_update: str | None
     fixed_point_history_size: int | None
     anderson_predicted_residual_l2: float | None
     anderson_coefficient_l1: float | None
     anderson_step_ratio_to_picard: float | None
     anderson_fallback_reason: str | None
+    density_sha256: str
+    response_sha256: str
+    field_sha256: str
 
 
 @dataclass(frozen=True)
@@ -469,6 +494,21 @@ class Route2ContinuumEngine:
         return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
 
     @staticmethod
+    def _normalized_actual_residual_objective(
+        *,
+        monopole_residual_e: float,
+        dipole_residual_e_angstrom: float,
+        density_tolerance_e: float,
+        dipole_tolerance_e_angstrom: float,
+    ) -> float:
+        return float(
+            max(
+                monopole_residual_e / density_tolerance_e,
+                dipole_residual_e_angstrom / dipole_tolerance_e_angstrom,
+            )
+        )
+
+    @staticmethod
     def _maximum_ulp_distance(left: np.ndarray, right: np.ndarray) -> int:
         left_values = np.asarray(left, dtype=np.float64).copy()
         right_values = np.asarray(right, dtype=np.float64).copy()
@@ -545,12 +585,30 @@ class Route2ContinuumEngine:
         if len(iteration_history) < window_size:
             return None
         window_records = iteration_history[-window_size:]
+        solver_epoch = window_records[0]["solver_epoch"]
         if any(
             record["arrived_by"] != SAFEGUARDED_ANDERSON_SOLVER
             or record["anderson_history_reset"]
+            or record["solver_epoch"] != solver_epoch
             for record in window_records
         ):
             return None
+        if (
+            window_records[0]["attempt_status"] != "accepted"
+            or not window_records[0]["accepted"]
+            or window_records[0]["rejected"]
+        ):
+            return None
+        for index in range(1, len(window_records)):
+            prior = window_records[index - 1]
+            current = window_records[index]
+            if (
+                not current["accepted"]
+                or current["rejected"]
+                or current["attempt_status"] != "accepted"
+                or current["accepted_parent_attempt"] != prior["iteration"]
+            ):
+                return None
         energy_deltas = [record["energy_residual_ev"] for record in window_records]
         if any(
             delta is None or delta > self.settings.scf_energy_tolerance_ev
@@ -1061,15 +1119,25 @@ class Route2ContinuumEngine:
         )
         scf_convergence: dict[str, Any] = {}
         previous_energy_ev: float | None = None
-        previous_density_residual: float | None = None
         previous_update_method: str | None = None
         history: list[Route2SCFHistoryRecord] = []
-        density_history: list[np.ndarray] = []
-        residual_history: list[np.ndarray] = []
-        field_history: list[np.ndarray] = []
-        intrinsic_energy_history: list[float] = []
+        accepted_attempts: list[Route2SCFHistoryRecord] = []
+        accepted_density_history: list[np.ndarray] = []
+        accepted_residual_history: list[np.ndarray] = []
+        accepted_field_history: list[np.ndarray] = []
+        accepted_intrinsic_energy_history: list[float] = []
         fixed_point_samples: list[FixedPointSample] = []
         best_iteration_state: Route2SCFIterationState | None = None
+        last_accepted_actual_residual: float | None = None
+        last_accepted_sample: FixedPointSample | None = None
+        last_accepted_field: np.ndarray | None = None
+        last_accepted_density: np.ndarray | None = None
+        last_accepted_residual: np.ndarray | None = None
+        last_accepted_intrinsic_energy: float | None = None
+        last_accepted_attempt: int | None = None
+        last_accepted_history: Route2SCFHistoryRecord | None = None
+        accepted_state_count = 0
+        solver_epoch = 0
 
         for iteration in range(1, settings.scf_max_iterations + 1):
             drive = self._reaction_field_drive(
@@ -1095,29 +1163,43 @@ class Route2ContinuumEngine:
             residual = response_density - density
             density_residual = float(np.max(np.abs(residual)))
             monopole_residual_e = float(np.max(np.abs(residual[:, 0])))
-            dipole_residual_e_angstrom = float(
-                np.max(np.abs(residual[:, 1:]))
-            )
+            dipole_residual_e_angstrom = float(np.max(np.abs(residual[:, 1:])))
             current_energy_ev = float(solvent_state.energy_ev)
             if not math.isfinite(current_energy_ev):
                 raise RuntimeError("Field-polarized MACE-POLAR energy is non-finite.")
+
+            actual_residual_objective = self._normalized_actual_residual_objective(
+                monopole_residual_e=monopole_residual_e,
+                dipole_residual_e_angstrom=dipole_residual_e_angstrom,
+                density_tolerance_e=settings.scf_density_tolerance,
+                dipole_tolerance_e_angstrom=cast(
+                    float,
+                    settings.scf_dipole_tolerance_e_angstrom,
+                ),
+            )
+            growth_baseline = None
+            if (
+                settings.scf_solver == SAFEGUARDED_ANDERSON_SOLVER
+                and previous_update_method == SAFEGUARDED_ANDERSON_SOLVER
+                and last_accepted_actual_residual is not None
+            ):
+                growth_baseline = last_accepted_actual_residual
+            growth_ratio = (
+                None
+                if growth_baseline is None or growth_baseline == 0.0
+                else actual_residual_objective / growth_baseline
+            )
+            should_reject_anderson = (
+                growth_baseline is not None
+                and actual_residual_objective
+                > settings.scf_anderson_residual_growth_limit * growth_baseline
+            )
             energy_residual = (
                 None
                 if previous_energy_ev is None
                 else abs(current_energy_ev - previous_energy_ev)
             )
-            reset_anderson_history = (
-                settings.scf_solver == SAFEGUARDED_ANDERSON_SOLVER
-                and previous_update_method == SAFEGUARDED_ANDERSON_SOLVER
-                and previous_density_residual is not None
-                and density_residual
-                > (
-                    settings.scf_anderson_residual_growth_limit
-                    * previous_density_residual
-                )
-            )
-            if reset_anderson_history:
-                fixed_point_samples.clear()
+
             record: Route2SCFHistoryRecord = {
                 "iteration": iteration,
                 "density_residual_e": density_residual,
@@ -1133,19 +1215,122 @@ class Route2ContinuumEngine:
                     np.max(np.abs(response_density - raw_response_density))
                 ),
                 "arrived_by": previous_update_method,
-                "anderson_history_reset": reset_anderson_history,
+                "anderson_history_reset": bool(should_reject_anderson),
+                "attempt_status": (
+                    "rejected-anderson-actual-residual-growth"
+                    if should_reject_anderson
+                    else "accepted"
+                ),
+                "accepted": False,
+                "rejected": bool(should_reject_anderson),
+                "actual_residual_objective": actual_residual_objective,
+                "actual_residual_growth_baseline_objective": growth_baseline,
+                "actual_residual_growth_ratio": growth_ratio,
+                "accepted_parent_attempt": last_accepted_attempt,
+                "accepted_state_index": None,
+                "solver_epoch": solver_epoch,
+                "rollback_anchor_attempt": (
+                    last_accepted_attempt if should_reject_anderson else None
+                ),
                 "next_density_update": None,
                 "fixed_point_history_size": None,
                 "anderson_predicted_residual_l2": None,
                 "anderson_coefficient_l1": None,
                 "anderson_step_ratio_to_picard": None,
                 "anderson_fallback_reason": None,
+                "density_sha256": self._array_sha256(density),
+                "response_sha256": self._array_sha256(response_density),
+                "field_sha256": self._array_sha256(field),
             }
             history.append(record)
-            density_history.append(np.array(density, copy=True))
-            residual_history.append(np.array(residual, copy=True))
-            field_history.append(np.array(field, copy=True))
-            intrinsic_energy_history.append(current_energy_ev)
+
+            if should_reject_anderson:
+                if (
+                    last_accepted_sample is None
+                    or last_accepted_field is None
+                    or last_accepted_density is None
+                    or last_accepted_residual is None
+                    or last_accepted_intrinsic_energy is None
+                    or last_accepted_history is None
+                ):
+                    raise RuntimeError(
+                        "Failed to recover a prior accepted Route-2 SCF state "
+                        "for Anderson rollback."
+                    )
+                fallback_step = next_fixed_point_density(
+                    [last_accepted_sample],
+                    solver=DAMPED_PICARD_SOLVER,
+                    mixing=settings.scf_mixing,
+                    anderson_depth=settings.scf_anderson_depth,
+                    anderson_regularization=(
+                        settings.scf_anderson_regularization
+                    ),
+                    anderson_coefficient_l1_limit=(
+                        settings.scf_anderson_coefficient_l1_limit
+                    ),
+                    anderson_step_ratio_limit=(
+                        settings.scf_anderson_step_ratio_limit
+                    ),
+                )
+                fixed_point_samples = [last_accepted_sample]
+                solver_epoch += 1
+                anchor_record = cast(
+                    Route2SCFHistoryRecord,
+                    dict(last_accepted_history),
+                )
+                anchor_record["solver_epoch"] = solver_epoch
+                accepted_attempts = [anchor_record]
+                accepted_density_history = [
+                    np.array(last_accepted_density, copy=True),
+                ]
+                accepted_residual_history = [
+                    np.array(last_accepted_residual, copy=True),
+                ]
+                accepted_field_history = [
+                    np.array(last_accepted_field, copy=True),
+                ]
+                accepted_intrinsic_energy_history = [
+                    float(last_accepted_intrinsic_energy)
+                ]
+                record.update(
+                    {
+                        "next_density_update": fallback_step.method,
+                        "fixed_point_history_size": fallback_step.history_size,
+                        "anderson_fallback_reason": (
+                            "anderson-actual-residual-growth-rejected"
+                        ),
+                    }
+                )
+                density = fallback_step.density
+                previous_update_method = DAMPED_PICARD_SOLVER
+                continue
+
+            accepted_sample = FixedPointSample(
+                density=density,
+                residual=residual,
+            )
+            fixed_point_samples.append(accepted_sample)
+            fixed_point_samples = fixed_point_samples[
+                -(settings.scf_anderson_depth + 1) :
+            ]
+            accepted_attempts.append(record)
+            accepted_density_history.append(np.array(density, copy=True))
+            accepted_residual_history.append(np.array(residual, copy=True))
+            accepted_field_history.append(np.array(field, copy=True))
+            accepted_intrinsic_energy_history.append(current_energy_ev)
+            record["accepted"] = True
+            record["rejected"] = False
+            record["accepted_parent_attempt"] = last_accepted_attempt
+            record["accepted_state_index"] = accepted_state_count
+            accepted_state_count += 1
+            last_accepted_sample = accepted_sample
+            last_accepted_field = np.array(field, copy=True)
+            last_accepted_density = np.array(density, copy=True)
+            last_accepted_residual = np.array(residual, copy=True)
+            last_accepted_actual_residual = actual_residual_objective
+            last_accepted_attempt = iteration
+            last_accepted_history = record
+            last_accepted_intrinsic_energy = current_energy_ev
             if (
                 best_iteration_state is None
                 or density_residual < best_iteration_state.density_residual_e
@@ -1160,29 +1345,34 @@ class Route2ContinuumEngine:
                     model_local_field_values_ev=drive.model_local_field_ev,
                     model_field_features=drive.model_field_features,
                 )
-            if energy_residual is None:
-                energy_converged = not settings.scf_require_two_energy_samples
-            else:
-                energy_converged = energy_residual <= settings.scf_energy_tolerance_ev
+
             if (
-                monopole_residual_e <= settings.scf_density_tolerance
+                not scf_convergence
+                and monopole_residual_e <= settings.scf_density_tolerance
                 and dipole_residual_e_angstrom
                 <= cast(float, settings.scf_dipole_tolerance_e_angstrom)
-                and energy_converged
             ):
-                record["next_density_update"] = "converged"
-                scf_convergence = {
-                    "reason": "nominal-density-and-energy-v1",
-                    "online_candidate_iteration": iteration,
-                    "final_monopole_residual_e": monopole_residual_e,
-                    "final_dipole_residual_e_angstrom": (
-                        dipole_residual_e_angstrom
-                    ),
-                    "runtime_identity": None,
-                    "history_window": None,
-                    "fresh_map_replay": None,
-                }
-                break
+                energy_converged = (
+                    energy_residual is None
+                    and not settings.scf_require_two_energy_samples
+                ) or (
+                    energy_residual is not None
+                    and energy_residual <= settings.scf_energy_tolerance_ev
+                )
+                if energy_converged:
+                    record["next_density_update"] = "converged"
+                    scf_convergence = {
+                        "reason": "nominal-density-and-energy-v1",
+                        "online_candidate_iteration": iteration,
+                        "final_monopole_residual_e": monopole_residual_e,
+                        "final_dipole_residual_e_angstrom": (
+                            dipole_residual_e_angstrom
+                        ),
+                        "runtime_identity": None,
+                        "history_window": None,
+                        "fresh_map_replay": None,
+                    }
+                    break
 
             finite_resolution_policy = settings.scf_finite_resolution_policy
             if (
@@ -1192,11 +1382,11 @@ class Route2ContinuumEngine:
             ):
                 window = self._finite_resolution_candidate_window(
                     policy=finite_resolution_policy,
-                    iteration_history=history,
-                    density_history=density_history,
-                    residual_history=residual_history,
-                    field_history=field_history,
-                    intrinsic_energy_history=intrinsic_energy_history,
+                    iteration_history=accepted_attempts,
+                    density_history=accepted_density_history,
+                    residual_history=accepted_residual_history,
+                    field_history=accepted_field_history,
+                    intrinsic_energy_history=accepted_intrinsic_energy_history,
                 )
                 if window is not None:
                     try:
@@ -1211,10 +1401,7 @@ class Route2ContinuumEngine:
                             candidate_drive_signature=(
                                 self._reaction_field_signature(drive)
                             ),
-                            candidate_response=np.array(
-                                response_density,
-                                copy=True,
-                            ),
+                            candidate_response=np.array(response_density, copy=True),
                             candidate_residual=np.array(residual, copy=True),
                             candidate_intrinsic_energy_ev=current_energy_ev,
                         )
@@ -1230,9 +1417,7 @@ class Route2ContinuumEngine:
                     scf_convergence = {
                         "reason": finite_resolution_policy.version,
                         "online_candidate_iteration": iteration,
-                        "final_monopole_residual_e": (
-                            monopole_residual_e
-                        ),
+                        "final_monopole_residual_e": monopole_residual_e,
                         "final_dipole_residual_e_angstrom": (
                             dipole_residual_e_angstrom
                         ),
@@ -1262,9 +1447,7 @@ class Route2ContinuumEngine:
                                 window["maximum_monopole_residual_e"]
                             ),
                             "maximum_dipole_residual_e_angstrom": (
-                                window[
-                                    "maximum_dipole_residual_e_angstrom"
-                                ]
+                                window["maximum_dipole_residual_e_angstrom"]
                             ),
                             "maximum_energy_delta_ev": (
                                 window["maximum_energy_delta_ev"]
@@ -1276,46 +1459,52 @@ class Route2ContinuumEngine:
                         "fresh_map_replay": replay,
                     }
                     break
-            fixed_point_samples.append(
-                FixedPointSample(
-                    density=density,
-                    residual=residual,
-                )
-            )
-            fixed_point_samples = fixed_point_samples[
-                -(settings.scf_anderson_depth + 1) :
-            ]
+
+            previous_energy_ev = current_energy_ev
             if iteration < settings.scf_max_iterations:
                 step = next_fixed_point_density(
                     fixed_point_samples,
                     solver=settings.scf_solver,
                     mixing=settings.scf_mixing,
                     anderson_depth=settings.scf_anderson_depth,
-                    anderson_regularization=(settings.scf_anderson_regularization),
+                    anderson_regularization=(
+                        settings.scf_anderson_regularization
+                    ),
                     anderson_coefficient_l1_limit=(
                         settings.scf_anderson_coefficient_l1_limit
                     ),
-                    anderson_step_ratio_limit=(settings.scf_anderson_step_ratio_limit),
+                    anderson_step_ratio_limit=(
+                        settings.scf_anderson_step_ratio_limit
+                    ),
                 )
                 record.update(
                     {
                         "next_density_update": step.method,
                         "fixed_point_history_size": step.history_size,
-                        "anderson_predicted_residual_l2": (step.predicted_residual_l2),
+                        "anderson_predicted_residual_l2": (
+                            step.predicted_residual_l2
+                        ),
                         "anderson_coefficient_l1": step.coefficient_l1,
-                        "anderson_step_ratio_to_picard": (step.step_ratio_to_picard),
+                        "anderson_step_ratio_to_picard": (
+                            step.step_ratio_to_picard
+                        ),
                         "anderson_fallback_reason": step.fallback_reason,
                     }
                 )
                 density = step.density
-                previous_energy_ev = current_energy_ev
-                previous_density_residual = density_residual
                 previous_update_method = step.method
+
         else:
             last = history[-1]
-            minimum_density_residual = min(
-                record["density_residual_e"] for record in history
-            )
+            accepted_minima = [
+                entry["density_residual_e"] for entry in history if entry["accepted"]
+            ]
+            if accepted_minima:
+                minimum_density_residual = min(accepted_minima)
+            else:
+                minimum_density_residual = min(
+                    entry["density_residual_e"] for entry in history
+                )
             raise Route2SCFConvergenceError(
                 "MACE-POLAR/"
                 f"{settings.continuum_label} reaction-field SCF did not "
@@ -1335,7 +1524,8 @@ class Route2ContinuumEngine:
         )
         if not math.isfinite(polarization_energy_hartree):
             raise RuntimeError(
-                f"{settings.continuum_label} polarization energy is " "non-finite."
+                f"{settings.continuum_label} polarization energy is "
+                "non-finite."
             )
         paired_energy_ev = 0.5 * float(MACE_POLAR_L1_PAIRING.pair(density, field))
         provider_energy_ev = polarization_energy_hartree * Hartree

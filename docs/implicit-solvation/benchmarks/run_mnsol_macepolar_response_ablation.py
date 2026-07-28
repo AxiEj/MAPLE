@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from copy import deepcopy
 from dataclasses import dataclass
 from importlib import import_module
 from importlib.metadata import version
@@ -65,6 +66,11 @@ from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     DDPCM_SOLVER_TOLERANCE,
     ENERGY_IDENTITY_TOLERANCE_EV,
     NEUTRAL_DENSITY_TOLERANCE,
+    SCF_ANDERSON_COEFFICIENT_L1_LIMIT,
+    SCF_ANDERSON_DEPTH,
+    SCF_ANDERSON_REGULARIZATION,
+    SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT,
+    SCF_ANDERSON_STEP_RATIO_LIMIT,
     SCF_DENSITY_TOLERANCE,
     SCF_DIPOLE_TOLERANCE_E_ANGSTROM,
     SCF_ENERGY_TOLERANCE_EV,
@@ -78,11 +84,18 @@ from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     SCF_FINITE_RESOLUTION_POTENTIAL_SPAN_TOLERANCE_EV,
     SCF_MAX_ITERATIONS,
     SCF_MIXING,
+    SCF_SOLVER,
 )
 from maple.function.calculator.extra_correction.implicit.pyddx_pcm_response import (
     PyDDXCOSMOReactionFieldLinearMap,
     PyDDXPCMReactionFieldLinearMap,
     PyDDXReactionFieldLinearMap,
+)
+from maple.function.calculator.extra_correction.implicit.route2_engine import (
+    SCF_ACCEPTED_RESIDUAL_SOURCE,
+    SCF_ACTUAL_RESIDUAL_OBJECTIVE_FORMULA,
+    SCF_FINITE_RESOLUTION_HISTORY_SOURCE,
+    SCF_REJECTED_GROWTH_ACTION,
 )
 from maple.function.calculator.extra_correction.implicit.pyscf_smd_cds import (
     pyscf_smd_cds,
@@ -97,9 +110,41 @@ from maple.function.route2_smd_profiles import (
 )
 from maple.function.route2_solvents import route2_solvent_spec
 
-ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v3"
-SCHEMA_VERSION = 3
-SCF_CONVERGENCE_CONTRACT_VERSION = "route2-scf-convergence-evidence-v2"
+ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v4"
+SCHEMA_VERSION = 4
+SCF_CONVERGENCE_CONTRACT_VERSION = "route2-scf-convergence-evidence-v3"
+SCF_SOLVER_CONTRACT = {
+    "scf_solver": SCF_SOLVER,
+    "scf_mixing": SCF_MIXING,
+    "scf_actual_residual_objective_formula": (
+        SCF_ACTUAL_RESIDUAL_OBJECTIVE_FORMULA
+    ),
+    "scf_growth_rejection_inequality": (
+        "Phi_trial > growth_limit * Phi_anchor"
+    ),
+    "scf_density_tolerance_e": SCF_DENSITY_TOLERANCE,
+    "scf_dipole_tolerance_e_angstrom": SCF_DIPOLE_TOLERANCE_E_ANGSTROM,
+    "scf_energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
+    "scf_maximum_iterations": SCF_MAX_ITERATIONS,
+    "scf_accepted_residual_source": SCF_ACCEPTED_RESIDUAL_SOURCE,
+    "scf_rejected_growth_action": SCF_REJECTED_GROWTH_ACTION,
+    "scf_rejected_attempt_status": (
+        "rejected-anderson-actual-residual-growth"
+    ),
+    "scf_rejected_attempts_count_toward_max_iterations": True,
+    "scf_rejected_attempts_excluded_from_anderson_samples": True,
+    "scf_rejected_attempts_excluded_from_best_state_selection": True,
+    "scf_rejected_attempts_excluded_from_finite_resolution_window": True,
+    "scf_finite_resolution_history_source": (
+        SCF_FINITE_RESOLUTION_HISTORY_SOURCE
+    ),
+    "scf_finite_resolution_policy_version": SCF_FINITE_RESOLUTION_POLICY_VERSION,
+    "scf_anderson_depth": SCF_ANDERSON_DEPTH,
+    "scf_anderson_regularization": SCF_ANDERSON_REGULARIZATION,
+    "scf_anderson_coefficient_l1_limit": SCF_ANDERSON_COEFFICIENT_L1_LIMIT,
+    "scf_anderson_step_ratio_limit": SCF_ANDERSON_STEP_RATIO_LIMIT,
+    "scf_anderson_residual_growth_limit": SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT,
+}
 EV_TO_KCAL_MOL = HARTREE_TO_KCAL_MOL * EV2HARTREE
 FUNCTIONAL_GROUP_COVERAGE = (
     "halogenated-hydrocarbon",
@@ -503,6 +548,7 @@ def _private_artifact(
         "scf_convergence_contract_version": (
             SCF_CONVERGENCE_CONTRACT_VERSION
         ),
+        "scf_solver_contract": deepcopy(SCF_SOLVER_CONTRACT),
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
         "status": status,
@@ -1014,6 +1060,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "scf_convergence_contract_version": (
             SCF_CONVERGENCE_CONTRACT_VERSION
         ),
+        "scf_solver_contract": deepcopy(SCF_SOLVER_CONTRACT),
         "visibility": (
             "public-aggregate-only"
             if complete_panel

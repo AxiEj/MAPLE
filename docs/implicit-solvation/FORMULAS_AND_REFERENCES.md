@@ -270,11 +270,16 @@ difference between large absolute MLIP energies.
 The exact multi-solvent ddPCM profile
 `smd-ddpcm-l15-n1202-multisolv-v1` adds one tighter, profile-local
 finite-resolution, energy-only acceptance contract for an approximate
-fixed-point candidate of the frozen discrete operator only.
-Its safeguarded-Anderson loop is a numerical root finder in the sense of
-Walker--Ni, not part of the physical residual, variational PCM functional, or
-ddPCM force definition of Lipparini et al. and Gatto et al. The nominal gate
-is evaluated first and remains dimension-separated:
+fixed-point candidate of the frozen discrete operator only. Its integrated
+`safeguarded-anderson-v2` loop is a numerical root finder in the sense of
+Walker--Ni and later safeguarded/restarted Anderson-acceleration analyses by
+Zhang et al. and Ouyang et al., not part of the physical residual,
+variational PCM functional, or ddPCM force definition of Lipparini et al. and
+Gatto et al. That literature motivates safeguards and restarts, but it does
+**not** prove global convergence for this unproven Route-2 MACE-POLAR/ddPCM
+fixed-point map.
+
+The nominal gate is evaluated first and remains dimension-separated:
 
 \[
 \max_i |r_{q,i}| \le 2\times10^{-12}\ e,\qquad
@@ -284,16 +289,46 @@ is evaluated first and remains dimension-separated:
 
 with the configured intrinsic-energy change at most \(10^{-10}\) eV. A single
 maximum over the mixed monopole/dipole coefficient array is not an acceptance
-criterion.
+criterion. The accepted-state actual-residual objective is instead
 
-Only when that nominal gate is not reached can the runtime-gated
-finite-resolution branch inspect trailing seven-iterate windows online. The
-accepted candidate is the **earliest window satisfying every predicate**, not
-merely the first seven records produced by Anderson. All seven records must
-have arrived by Anderson with no history reset and must pass the energy-change
-gate. Per-component root and residual spans must stay below the corresponding
-nominal monopole and dipole tolerances. Monopole and dipole residual maxima
-must remain below `1e-10 e` and `1e-10 e angstrom`; conjugate
+\[
+\Phi_k=
+\max\left(
+\frac{\max_i |r_{q,i}^{(k)}|}{\tau_{\mathrm{mono}}},
+\frac{\max_{i\alpha}|r_{\mu,i\alpha}^{(k)}|}{\tau_{\mathrm{dipole}}}
+\right),
+\]
+
+with \(\tau_{\mathrm{mono}}=2\times10^{-12}\ e\) and
+\(\tau_{\mathrm{dipole}}=2\times10^{-12}\ e\,\mathring{\mathrm A}\). This
+objective is evaluated from the actual evaluated unmixed physical residual,
+not from an Anderson-predicted norm.
+
+The profile keeps its existing 100-attempt bound. When an evaluated physical
+trial arrives by Anderson and \(\Phi_k > 2\,\Phi_{\mathrm{anchor}}\) for the
+most recent accepted anchor, that trial is rejected. Rejected attempts still
+count toward the 100-attempt bound, but they are excluded from Anderson
+samples, best-state selection, and finite-resolution windows. The runtime then
+rolls back to the prior accepted anchor, takes exactly one damped Picard step,
+and rebuilds the Anderson history from accepted-only states. The audit trail
+records whether a history reset occurred, the rollback anchor attempt, the
+accepted-parent lineage, and the solver epoch.
+The rejection decision uses the multiplication form above rather than dividing
+by \(\Phi_{\mathrm{anchor}}\): a zero-to-zero trial is not growth, whereas a
+positive trial from a zero anchor is rejected. The latter has no finite ratio,
+so its audit ratio is `null`; provider audit writers reject `NaN` and
+`Infinity` rather than emitting non-standard JSON.
+
+Only when the nominal gate is not reached can the runtime-gated
+`finite-resolution-stagnation-v2` branch inspect trailing seven-iterate
+windows online. The accepted candidate is the **earliest window satisfying
+every predicate**, not merely the first seven records produced by Anderson.
+All seven records must be accepted Anderson-arrived states from one solver
+epoch with no history reset, and each accepted state must name the previous
+accepted attempt as its parent. All seven records must also pass the
+energy-change gate. Per-component root and residual spans must stay below the
+corresponding nominal monopole and dipole tolerances. Monopole and dipole
+residual maxima must remain below `1e-10 e` and `1e-10 e angstrom`; conjugate
 reaction-potential and reaction-gradient component spans must remain below
 `1e-10 eV/e` and `1e-10 eV/(e angstrom)`; and the intrinsic-energy span must
 remain below `1e-10 eV`.
@@ -310,12 +345,12 @@ atomic-number, coordinate, and cavity-radius arrays. Under
 `finite-resolution-stagnation-v2`, the **three fresh-cold reevaluations** must
 be mutually byte-identical in canonical little-endian float64 form: all
 fresh-cold field digests match, and all fresh-cold response digests match. The
-online warm candidate is then compared against each
-fresh-cold replay with bounded, unit-aware gates instead of online-to-cold
-byte identity: reaction-potential and reaction-gradient component deltas must
-remain at or below `1e-10 eV/e` and `1e-10 eV/(e angstrom)`, while response
-monopole and dipole deltas must remain at or below the nominal
-`2e-12 e` and `2e-12 e angstrom` tolerances.
+online warm candidate is then compared against each fresh-cold replay with
+bounded, unit-aware gates instead of online-to-cold byte identity:
+reaction-potential and reaction-gradient component deltas must remain at or
+below `1e-10 eV/e` and `1e-10 eV/(e angstrom)`, while response monopole and
+dipole deltas must remain at or below the nominal `2e-12 e` and
+`2e-12 e angstrom` tolerances.
 
 The online candidate plus all three fresh-cold reevaluations must still have
 finite intrinsic, PCM-polarization, and electrostatic ledger values; their
@@ -328,20 +363,20 @@ post-hoc evidence only; those hash/ULP records are not additional online
 acceptance predicates. The ULP ordering is monotone across signed finite
 float64 values and normalizes `+0.0`/`-0.0` as the same numerical zero; the
 hashes retain their distinct byte encodings. Aggregation nevertheless rejects
-representationally impossible evidence: ULP values outside the finite float64 range,
-delta/ULP zero-status contradictions, or identical online/cold hashes paired
-with nonzero delta or ULP metrics. Response-ablation outputs carrying this
-branch bind the `route2-scf-convergence-evidence-v2` contract and
-runner/artifact schema v3.
+representationally impossible evidence: ULP values outside the finite float64
+range, delta/ULP zero-status contradictions, or identical online/cold hashes
+paired with nonzero delta or ULP metrics. Response-ablation outputs carrying
+this branch bind the `route2-scf-convergence-evidence-v3` contract and
+runner/artifact schema v4.
 
 This stopping rule is a versioned engineering inference from inexact-solve
-theory and the observed precision floor. Dembo--Eisenstat--Steihaug and
-Eisenstat--Walker do not prescribe these profile-specific window lengths or
-thresholds. The rule records only a repeatable finite-precision approximate
-fixed-point candidate under this residual policy. It is energy-only: an
-analytic-force request fails closed unless the nominal SCF gate is reached.
-It does **not** certify chemical accuracy, analytic forces, a smooth PES, or
-any broader benchmark completion.
+theory, safeguarded Anderson-restart literature, and the observed precision
+floor. Dembo--Eisenstat--Steihaug and Eisenstat--Walker do not prescribe these
+profile-specific window lengths or thresholds. The rule records only a
+repeatable finite-precision approximate fixed-point candidate under this
+residual policy. It is energy-only: an analytic-force request fails closed
+unless the nominal SCF gate is reached. It does **not** certify chemical
+accuracy, analytic forces, a smooth PES, or any broader benchmark completion.
 
 ### Native aqueous SMD CDS term
 
@@ -2151,6 +2186,12 @@ Route-2 references:
 - H. F. Walker and P. Ni, “Anderson Acceleration for Fixed-Point
   Iterations,” *SIAM J. Numer. Anal.* **49**, 1715--1735 (2011),
   DOI `10.1137/10078356X`.
+- J. Zhang, B. O'Donoghue, and S. Boyd, “Globally Convergent Type-I Anderson
+  Acceleration for Nonsmooth Fixed-Point Iterations,” *SIAM J. Optim.* **30**,
+  3170--3197 (2020), DOI `10.1137/18M1232772`.
+- W. Ouyang, J. Tao, A. Milzarek, and B. Deng, “Nonmonotone Globalization for
+  Anderson Acceleration via Adaptive Regularization,” *J. Sci. Comput.* **96**,
+  5 (2023), DOI `10.1007/s10915-023-02231-4`.
 - R. S. Dembo, S. C. Eisenstat, and T. Steihaug, “Inexact Newton Methods,”
   *SIAM J. Numer. Anal.* **19**, 400--408 (1982),
   DOI `10.1137/0719025`.

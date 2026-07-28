@@ -16,7 +16,7 @@ from typing import Sequence
 import numpy as np
 
 DAMPED_PICARD_SOLVER = "damped-picard-v1"
-SAFEGUARDED_ANDERSON_SOLVER = "safeguarded-anderson-v1"
+SAFEGUARDED_ANDERSON_SOLVER = "safeguarded-anderson-v2"
 SUPPORTED_FIXED_POINT_SOLVERS = frozenset(
     {
         DAMPED_PICARD_SOLVER,

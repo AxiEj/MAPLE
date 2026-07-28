@@ -1186,6 +1186,56 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     Route-2 profile registry, no default changes, and forces/PES claims remain
     excluded. The aggregate-only evidence is
     `benchmarks/route2-mnsol-opencosmors24a-fixed-geometry-v1.json`.
+48. A separately preregistered frozen-full-density diagnostic then kept the
+    same ten MNSol records, geometries, solvent-specific radii, dielectric,
+    SMD-CDS, and PySCF SWIG IEFPCM/C-PCM/COSMO equations fixed while replacing
+    only the solute electrostatic source. The two new sources are a frozen gas
+    \(\omega\)B97M-V/def2-SVPD AO density and the same density represented in
+    a charge-constrained, SALTED-compatible def2-SVP-JKFIT RI Gaussian basis.
+    The historical MACE-POLAR \(l\leq1\) ledgers were rebound to the same
+    immutable baseline artifact.
+
+    The first execution failed before producing its first electronic-structure
+    result because PySCF's `sg1_prune` radius table stops before bromine. The
+    failure was retained rather than hidden. Preregistered version 2 changed
+    only the nonlocal-correlation grid to an unpruned 50-by-194 atom grid. Its
+    clean-head run at `f9c354f` completed all ten records in `1593.41 s`.
+
+    For IEFPCM, MACE \(l\leq1\), direct AO density, and RI/SALTED-space density
+    give MAEs of `0.8780`, `0.4867`, and `0.4791 kcal/mol`. The corresponding
+    C-PCM MAEs are `0.9127`, `0.5914`, and `0.6153 kcal/mol`; COSMO gives
+    `0.8738`, `0.4836`, and `0.4760 kcal/mol`. Full density lowers the
+    same-equation MAE by `0.2975--0.3989 kcal/mol` and wins 7--9 of ten paired
+    rows. Direct AO and RI are nearly tied. Their mean cavity-MEP RMSE is
+    `2.918e-4 hartree/e`, and Coulomb-metric projection reduces the maximum
+    RI electron-count residual from `1.129e-3 e` to `1.42e-14 e`.
+
+    This is evidence that replacing the present MACE \(l\leq1\) source with a
+    QM-quality full density materially improves this panel and that the tested
+    RI basis can preserve the resulting cavity potential. Because both the
+    density model and representation changed, this run does not isolate MACE
+    density error from low-order truncation. It is **not** a learned SALTED
+    result:
+    upstream SALTED 3.0.0 at reviewed commit `fd5adaa` supplied the
+    representation convention, but no general pretrained SALTED checkpoint
+    was available or imported. The RI arm is a representation upper bound.
+    The panel is development-only, fixed-geometry, one molecule per solvent,
+    and has known MNSol training-domain overlap; it does not establish blind
+    generalization, original-SMD equivalence, self-consistent polarization,
+    forces, conformer thermodynamics, or a production default. Aggregate-only
+    evidence is
+    `benchmarks/route2-mnsol-frozen-full-density-pcm-family-v2.json`.
+
+    A separate post-hoc connector smoke trained upstream SALTED 3.0.0 on eight
+    PBE/def2-SVP water monomers and predicted two held-out monomers. Its
+    SALTED-order coefficients passed through the MAPLE Gaussian-density bridge
+    and PySCF IEFPCM without atom-charge fitting. The deliberately tiny model
+    has `12.22%` density-validation RMSE; its mean cavity-MEP RMSE and mean
+    absolute PCM polarization error relative to reference RI densities are
+    `1.003e-3 hartree/e` and `0.1171 kcal/mol`. This establishes interface
+    execution only, not broad learned-SALTED accuracy or transferability.
+    Aggregate-only evidence is
+    `benchmarks/route2-salted-learned-water-pcm-smoke-v1.json`.
 
 ## Secondary diagnostics
 

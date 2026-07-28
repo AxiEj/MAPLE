@@ -459,6 +459,96 @@ SHA256 is
 the private row-level artifact remains below `.omx` with SHA256
 `7ea80dbf4f9b7e75106b41f3f7f1d42f7b9d38bbded12da1e581c6cf5a696e5f`.
 
+## MNSol frozen full-density / SALTED-compatible RI panel
+
+[`route2-mnsol-frozen-full-density-pcm-family-prereg-v2.json`](route2-mnsol-frozen-full-density-pcm-family-prereg-v2.json)
+freezes a representation diagnostic on exactly the same ten MNSol records,
+functional-group labels, geometries, solvent-specific SMD Coulomb radii,
+dielectrics, SMD-CDS values, and PySCF SWIG IEFPCM/C-PCM/COSMO equations as
+the fixed-source panel above. Only the frozen solute electrostatic source
+changes:
+
+* the existing gas MACE-POLAR atom-centred \(l\leq1\) coarse residual
+  multipoles;
+* a fixed gas-phase \(\omega\)B97M-V/def2-SVPD density evaluated directly on
+  the cavity;
+* the same QM density fitted into the SALTED-compatible def2-SVP-JKFIT RI
+  Gaussian basis, with an explicit Coulomb-metric electron-count projection.
+
+The first preregistered execution stopped before its first electronic-structure
+result because PySCF's `sg1_prune` table does not cover the panel's bromine
+atom. That failure is retained in
+[`route2-mnsol-frozen-full-density-pcm-family-prereg-v1-disposition.json`](route2-mnsol-frozen-full-density-pcm-family-prereg-v1-disposition.json).
+Version 2 changed only the nonlocal-correlation integration grid to an
+unpruned 50-by-194 atom grid and reran the complete panel.
+
+The clean-head run at `f9c354f` completed all ten records:
+
+| frozen source and equation | MAE | RMSE | mean signed error | maximum absolute error |
+|---|---:|---:|---:|---:|
+| MACE \(l\leq1\) + IEFPCM | 0.8780 | 1.0021 | +0.3555 | 1.6458 |
+| QM AO density + IEFPCM | 0.4867 | **0.5864** | +0.0262 | 0.9684 |
+| QM RI/SALTED-space density + IEFPCM | **0.4791** | 0.5882 | -0.0199 | **0.9543** |
+| MACE \(l\leq1\) + C-PCM | 0.9127 | 1.0291 | +0.1674 | 1.6456 |
+| QM AO density + C-PCM | **0.5914** | **0.6836** | -0.1699 | **1.2351** |
+| QM RI/SALTED-space density + C-PCM | 0.6153 | 0.6990 | -0.2180 | 1.2553 |
+| MACE \(l\leq1\) + COSMO | 0.8738 | 1.0004 | +0.3490 | 1.6457 |
+| QM AO density + COSMO | 0.4836 | **0.5818** | +0.0229 | 0.9665 |
+| QM RI/SALTED-space density + COSMO | **0.4760** | 0.5839 | -0.0226 | **0.9477** |
+
+All errors are in kcal/mol. The AO and RI full-density sources lower the
+same-equation MAE by `0.2975--0.3989 kcal/mol`. They have lower paired
+absolute error on 7--9 of ten records, depending on equation. RI and direct AO
+are essentially tied: RI changes MAE by `-0.0076`, `+0.0238`, and
+`-0.0076 kcal/mol` for IEFPCM, C-PCM, and COSMO. Across the ten cavities, the
+mean AO-to-RI surface-MEP RMSE is
+`2.918e-4 hartree/e`; the maximum is `3.446e-4 hartree/e`. The explicit
+charge projection reduces the largest fitted electron-count residual from
+`1.129e-3 e` to `1.42e-14 e`.
+
+The result supports two narrow conclusions. First, replacing the present
+MACE \(l\leq1\) source with a QM-quality full density materially improves this
+development panel. This comparison changes both the density model and its
+representation, so it does not isolate MACE density error from \(l\leq1\)
+truncation. Second, the tested SALTED-compatible RI basis preserves the
+QM-density cavity potential and PCM accuracy closely enough to serve as a
+density-model interface. It does **not** measure learned SALTED accuracy:
+no general pretrained SALTED checkpoint was available, and the runner did not
+import a SALTED predictor. The RI arm is therefore a representation upper
+bound, not a new ML method result.
+
+An additional post-hoc engineering smoke trained upstream SALTED 3.0.0 on
+eight PBE/def2-SVP water monomers and predicted two held-out water monomers.
+The emitted SALTED-order coefficients passed through MAPLE's charge projection,
+Gaussian surface-MEP bridge, and PySCF IEFPCM solve without an intermediate
+charge or multipole fit. With this intentionally tiny model, upstream density
+validation RMSE was `12.22%`; nevertheless, the learned-versus-reference RI
+cavity-MEP RMSE was `1.003e-3 hartree/e` and the mean absolute IEFPCM
+polarization-energy difference was `0.1171 kcal/mol`. This proves the actual
+learned-coefficient connector executes, not that the water model is accurate
+or transferable. The aggregate-only smoke is
+[`route2-salted-learned-water-pcm-smoke-v1.json`](route2-salted-learned-water-pcm-smoke-v1.json),
+SHA256
+`b207033f844e5c5a3e869c2cdd354e0711eed984d20948e48840e7d8c12c156c`.
+
+The complete run took `1593.41 s` (`26.56 min`). Gas-phase QM density
+generation dominates: mean per-record AO and RI ledgers are both about
+`159 s`, whereas the RI fit costs only about `0.05--0.18 s` and its surface
+MEP evaluation about `0.01--0.03 s`. The precomputed MACE ledger excludes
+checkpoint inference, so these values are not an end-to-end MACE-versus-SALTED
+speed comparison.
+
+This remains a ten-record, one-molecule-per-solvent, fixed-geometry
+development diagnostic with known MNSol training-domain overlap. It cannot
+certify blind generalization, conformer ensembles, learned SALTED inference,
+original-SMD equivalence, mutual polarization, forces, or a production
+default. The aggregate-only result is
+[`route2-mnsol-frozen-full-density-pcm-family-v2.json`](route2-mnsol-frozen-full-density-pcm-family-v2.json),
+SHA256
+`3233fb575b4e0ac0f69695a3acf9b8e7445e6c71a86cc8a0a2b66c47e64d700b`.
+The row-level artifact remains below `.omx` with SHA256
+`c4325ffc4ba299fac091d00d7f1c13c95bfe94b8fb210dcb0104b59831e3efb2`.
+
 ## COSMO-RS QM reference and MLIP-surface research boundary
 
 COSMO-RS is intentionally absent from the Route-2 profile registry. The

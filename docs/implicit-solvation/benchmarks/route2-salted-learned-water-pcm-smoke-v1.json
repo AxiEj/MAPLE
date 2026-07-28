@@ -1,0 +1,46 @@
+{
+  "aggregate": {
+    "maximum_absolute_pcm_polarization_error_kcal_mol": 0.11783138018353156,
+    "maximum_projected_charge_residual_e": 1.7763568394002505e-15,
+    "mean_absolute_pcm_polarization_error_kcal_mol": 0.11713546603682401,
+    "mean_surface_mep_rmse_hartree_per_e": 0.0010032837724772382
+  },
+  "artifact": "route2-salted-learned-water-pcm-smoke-v1",
+  "claim_boundary": "This post-hoc two-geometry water-only smoke proves that coefficients emitted by an actual trained SALTED model can pass through the MAPLE SALTED-order adapter, explicit Coulomb-metric charge projection, exact Gaussian surface-MEP evaluation, and PySCF IEFPCM solve. Eight training structures intentionally give a poor 12.22% density validation error, so the PCM comparison is an interface diagnostic only. It cannot establish broad SALTED accuracy, transferability to the ten-functional-group MNSol panel, experimental solvation accuracy, mutual polarization, forces, or a production default.",
+  "do_not_commit": false,
+  "post_hoc_engineering_smoke": true,
+  "provenance": {
+    "derived_prediction_xyz_sha256": "7a1daec9b3dfe325233504187fe8ba5744aaf998b48dec1dbec8fa2e9cc478e5",
+    "derived_training_xyz_sha256": "3cef9c677fecbe3905ad3896cb0444d4d589fe6c7efa7cd8808ec1c7004b4f9d",
+    "maple_bridge_implementation_commit": "262f2df998877d52bc652d1b9bcee5af4fb26061",
+    "private_bridge_script_sha256": "b9b297cd4a7e2329f6a5d4f076ed8dea02aa48a281d6dd6ba14002c58e2d3de6",
+    "private_input_yaml_sha256": "a1128b74f58b9d0f514ea476bb96b7cfa848d349ee8e16a3bc7aadc99c9e75da",
+    "private_result_sha256": "9f5eed9d07e109f90a899227182cf975d0f57db0ace769990a28ef4475eb3c7e",
+    "salted_repository": "https://github.com/andreagrisafi/SALTED",
+    "salted_upstream_commit": "fd5adaa1c682ae7f4ce580798d79bfe499783784",
+    "salted_version": "3.0.0",
+    "trained_weights_sha256": "3bc3e00d25da9212904814c52d356116d782e7d5b21d1cd01bfa8cc5240a4138",
+    "upstream_water_dataset_sha256": "f2315e6d870cb2dd02ae04128d6b460f668e02fe5bdbd7ee4ae64efc974ccf6d"
+  },
+  "record_count": 2,
+  "row_level_data_emitted": false,
+  "schema_version": 1,
+  "scientific_identity": {
+    "continuum_equation": "IEFPCM",
+    "continuum_provider": "PySCF 2.13.1 SWIG",
+    "fixed_density_one_shot": true,
+    "model_scope": "water monomers only",
+    "mutual_polarization": false,
+    "solute_source": "learned SALTED 3.0.0 RI Gaussian density",
+    "solvent": "water"
+  },
+  "training": {
+    "auxiliary_basis": "def2-SVP-JKFIT",
+    "electronic_structure_method": "PBE/def2-SVP",
+    "sparse_environment_count": 8,
+    "training_molecule_count": 8,
+    "validation_density_rmse_percent": 12.22,
+    "validation_molecule_count": 2
+  },
+  "visibility": "public-aggregate-only"
+}

@@ -75,6 +75,15 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "C1 but not C2" in molecular["smoothness_boundary"]
     assert "total solvation free energy" in molecular["not_a_physical_liquid_backend"]
     assert "accuracy result" in molecular["not_a_physical_liquid_backend"]
+    ideal_gas = foundation["molecular_ideal_gas_variational_control"]
+    assert ideal_gas["module"].endswith("route2_v0_molecular_ideal_gas")
+    assert "8*pi^2 orientation measure" in ideal_gas["capability"]
+    assert "analytic stationary density" in ideal_gas["capability"]
+    assert "exactly equal" in ideal_gas["source_boundary"]
+    assert "rho_bulk/(8*pi^2)" in ideal_gas["source_boundary"]
+    assert "total solvation free energy" in ideal_gas[
+        "not_a_physical_liquid_backend"
+    ]
     hnc = foundation["site_hnc_variational_reference"]
     assert hnc["module"].endswith("route2_v0_site_hnc")
     assert "synthetic-only periodic multi-site HNC" in hnc["capability"]
@@ -155,5 +164,9 @@ def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_on
     assert any("Thomas-Fermi nonadditive kinetic Pauli scalar" in item for item in validation)
     assert any(
         "whole-molecule rather than sitewise Thomas-Fermi density" in item
+        for item in validation
+    )
+    assert any(
+        "exact molecular ideal-gas configuration scalar" in item
         for item in validation
     )

@@ -856,6 +856,83 @@ force, PES, nor solvation/accuracy result.  Linear radial interpolation and
 the \(C^1\)-but-not-\(C^2\) Thomas--Fermi integrand keep it energy-only until
 one source-provenanced stationary molecular-liquid functional is derived.
 
+#### 4.2.13 Exact rigid-molecule ideal-gas configuration functional
+
+The configuration energy in Section 4.2.12 is not itself a liquid free
+energy.  Let
+\(\Gamma=(\mathbf X,\mathbf\Omega)\) denote the translation and rigid
+orientation of one solvent molecule, and use the unnormalised Haar measure
+
+\[
+\int d\mathbf\Omega=8\pi^2.
+\]
+
+For bulk molecular number density \(\rho_b\), the uniform
+configuration-density convention is
+
+\[
+\nu_b=\frac{\rho_b}{8\pi^2}.
+\]
+
+The exact ideal-gas grand-potential difference for the external energy
+\(u_{\mathcal S}^{\mathrm{V0}}(\Gamma)\) is
+
+\[
+\Delta\Omega_{\mathrm{id}}[\nu;u]
+=\int d^3X\,d\mathbf\Omega\,
+\left\{
+k_BT\left[
+\nu\ln\frac{\nu}{\nu_b}-(\nu-\nu_b)
+\right]
++\nu u
+\right\}.
+\]
+
+It has the exact variational derivative and stationary state
+
+\[
+\frac{\delta\Delta\Omega_{\mathrm{id}}}{\delta\nu}
+=k_BT\ln\frac{\nu}{\nu_b}+u=0,
+\qquad
+\nu^*(\Gamma)=\nu_b\exp[-\beta u(\Gamma)],
+\]
+
+with stationary scalar
+
+\[
+\Delta\Omega_{\mathrm{id}}^*
+=-k_BT\nu_b
+\int d^3X\,d\mathbf\Omega\,
+\left[\exp[-\beta u(\Gamma)]-1\right].
+\]
+
+`route2_v0_molecular_ideal_gas.py` discretizes this **one scalar** with fixed
+positive configuration-space weights \(w_i\) for
+\(d^3X\,d\mathbf\Omega\).  It locks the \(8\pi^2\) orientation convention,
+the exact configuration grid shared with the MACE-plus-TF external potential,
+the analytic stationary density, and the finite-difference gradient identity.
+There is no mixing parameter in this minimizer.
+
+This still intentionally omits liquid physics.  A physical molecular branch
+must add one source-provenanced excess functional with its bulk tangent,
+
+\[
+\Delta\Omega[\nu;u]
+=\Delta\Omega_{\mathrm{id}}[\nu;u]
++F_{\mathrm{ex}}[\nu]-F_{\mathrm{ex}}[\nu_b]
+-\int d^3X\,d\mathbf\Omega\,
+\left.
+\frac{\delta F_{\mathrm{ex}}}{\delta\nu}
+\right|_{\nu_b}
+(\nu-\nu_b).
+\]
+
+The final term is required to make the declared bulk state stationary at
+\(u=0\); omitting it would silently change the chemical-potential convention.
+Until a frozen molecular correlation/EOS/dispersion asset defines
+\(F_{\mathrm{ex}}\), the ideal result is not a liquid calculation, a
+standard-state correction, a force, or a solvation/accuracy result.
+
 ### 4.3 Separate auxiliary-QM liquid-difference route
 
 V0-FD deliberately freezes the MACE source and varies only the solvent.  A
@@ -1007,3 +1084,9 @@ substitute for these gates.
     position-and-orientation dependent molecular functional motivates the
     configuration convention above, not a claim that the present direct
     quadrature control is a molecular-liquid free-energy calculation.
+19. R. Sundararaman and T. A. Arias, *Efficient classical density-functional
+    theories of rigid-molecular fluids and a simplified free energy functional
+    for liquid water*, [arXiv:1302.0026](https://arxiv.org/abs/1302.0026).
+    It motivates a configuration-space formulation for rigid molecular fluids;
+    the present ideal term is only the exact common starting point before a
+    source-provenanced excess functional is admitted.

@@ -45,6 +45,15 @@ custom-solvent information contract, and blind-test gates are in
 `ROUTE2_V0_FD_THEORY.md` and
 `benchmarks/route2-v0-fd-multisolvent-prereg-v1.json`.
 
+A separate **V0-Q** fixed-geometry KKT kernel now makes a possible
+no-training induced-density functional structurally testable.  It uses a
+caller-supplied symmetric gas-phase curvature in the same GTO coefficient/dual
+space as the reciprocal PCM operator; it has no default curvature, no
+chemistry, force, PES, or accuracy result, and cannot use the rejected learned
+MACE response.  Its preregistration and theory boundary are
+`ROUTE2_V0_VARIATIONAL_QUADRATIC_THEORY.md` and
+`benchmarks/route2-v0-variational-quadratic-prereg-v1.json`.
+
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental
 `mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening

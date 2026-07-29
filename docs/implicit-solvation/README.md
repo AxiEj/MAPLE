@@ -30,6 +30,15 @@ requirements, and strict per-record blind-test gates are recorded in
 [`ROUTE2_V0_FD_THEORY.md`](ROUTE2_V0_FD_THEORY.md) and
 [`route2-v0-fd-multisolvent-prereg-v1.json`](benchmarks/route2-v0-fd-multisolvent-prereg-v1.json).
 
+The distinct no-training **V0-Q** kernel adds an induced density only through
+an explicit quadratic electronic scalar and the same-basis reciprocal GTO PCM
+operator.  It never invokes or repairs the rejected MACE field update.  It has
+no default physical curvature and therefore cannot report chemistry yet; its
+KKT stability, charge, reciprocity, and passivity gates are recorded in
+[`ROUTE2_V0_VARIATIONAL_QUADRATIC_THEORY.md`](ROUTE2_V0_VARIATIONAL_QUADRATIC_THEORY.md)
+and
+[`route2-v0-variational-quadratic-prereg-v1.json`](benchmarks/route2-v0-variational-quadratic-prereg-v1.json).
+
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot
 fixed-density acetone scalar canary passed at commit `da89ab8`: the

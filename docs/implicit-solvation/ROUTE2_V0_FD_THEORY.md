@@ -2,8 +2,9 @@
 
 ## Status and scope
 
-This document defines the only no-training successor that is admissible after
-the frozen field-space scalar V0 falsifier.  It is **not** a public profile,
+This document defines the first separately preregistered no-training successor
+that is admissible after the frozen field-space scalar V0 falsifier.  It is
+**not** a public profile,
 chemical-accuracy result, force/PES implementation, or replacement for the
 legacy Route-2 fixed point.
 

@@ -1,0 +1,55 @@
+{
+  "protocol_id": "route2-v0-variational-quadratic-prereg-v1",
+  "schema_version": 1,
+  "status": "structural-kernel-preregistered-before-physical-curvature-binding",
+  "claim_boundary": "This protocol records a no-training fixed-geometry variational KKT kernel only. It supplies no default electronic curvature, no nonpolar term, no public Route-2 profile, and no chemistry, force, PES, or accuracy result.",
+  "construction": {
+    "name": "route2-v0-variational-quadratic-kkt-v1",
+    "frozen_solute_source": "c0(R) is the unmodified zero-reaction-field MACE-POLAR l<=1 density",
+    "induced_density": "delta_c is an explicit variational degree of freedom constrained by u^T delta_c=0; the legacy learned local-jet and exact-GTO response updates are forbidden",
+    "electronic_functional": "F_ind(delta_c)=0.5 delta_c^T H_R delta_c, where H_R is a separately declared symmetric gas-phase coefficient/dual curvature",
+    "continuum_functional": "G_pcm(c)=0.5 c^T P_R c from one reciprocal same-basis GTO Galerkin continuum operator",
+    "joint_stationarity": "(H_R + P_R) delta_c + P_R c0 + lambda u = 0, u^T delta_c = 0",
+    "energy_ledger": "G_ind=0.5 delta_c^T H_R delta_c; G_pcm=0.5(c0+delta_c)^T P_R(c0+delta_c); only G_ind+G_pcm is reported as the fixed-geometry solute-continuum correction"
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "density_projection_or_radial_decomposition": false,
+    "learned_response_jacobian_symmetrization": false,
+    "response_tempering_or_eigenvalue_clipping": false,
+    "per_record_or_per_solvent_method_selection_from_error": false,
+    "legacy_public_route_changed": false
+  },
+  "physical_curvature_binding_gate": {
+    "required_before_any_chemistry_score": [
+      "A versioned H_R construction in the exact GTO coefficient/dual units used by the kernel.",
+      "Independent gas-phase physical provenance for every parameter or ab-initio response datum used to construct H_R.",
+      "An explicit treatment of any vacuum Coulomb, charge-transfer, hardness, polarizability, and reference-state assumptions.",
+      "A frozen record showing that no target solvation value, MNSol, FreeSolv, SMD parameter, or observed solvation error selected H_R."
+    ],
+    "forbidden_shortcuts": [
+      "Do not interpret an arbitrary diagonal curvature as a physical electronic model.",
+      "Do not use isolated-atom hardness or polarizability alone as evidence that a molecular curvature is adequate.",
+      "Do not infer H_R from the rejected MACE learned field update or repair that update into H_R.",
+      "Do not choose a curvature scale, cavity, or nonpolar coefficient from a development or confirmation solvation error."
+    ]
+  },
+  "structural_acceptance_gates": [
+    "The frozen density has the declared total charge before solving; the induced density has exactly zero total charge within the registered tolerance.",
+    "H_R is symmetric in the declared coefficient/dual pairing; material asymmetry rejects the candidate.",
+    "Q0^T H_R Q0 and Q0^T(H_R+P_R)Q0 are strictly positive definite; a failed stability gate rejects the candidate without damping or clipping.",
+    "The KKT stationarity residual and continuum same-basis half-coupling identity meet their registered numerical tolerances.",
+    "The response to an external coefficient dual is symmetric and nonpositive in the same energy pairing, and agrees with a finite-difference KKT check.",
+    "No force/PES gate is attempted before a smooth cavity and the full explicit coordinate derivative of the same scalar are available."
+  ],
+  "benchmark_policy": {
+    "before_physical_curvature_binding": "No chemistry score is permitted.",
+    "after_physical_curvature_binding": "Follow the frozen 11-solvent development, disjoint confirmation, and external blind rules in route2-v0-fd-multisolvent-prereg-v1.json. Every record must satisfy the per-record maximum-error gate without a method change.",
+    "no_ranking_rule": "V0-Q's Gaussian same-basis source is a distinct representation from the V0-FD point-multipole control. Their scores may not be ranked as a one-variable response ablation."
+  },
+  "decision_rule": "Any failed structural gate rejects that physical-curvature binding before chemistry metrics. A chemistry failure rejects the frozen binding and does not authorize an error-driven rescale, retraining, or post-hoc correction."
+}

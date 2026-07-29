@@ -12,6 +12,16 @@ SMD intrinsic Coulomb-sphere electrostatic cavity (`probe=0`, no added
 spheres, explicit water dielectric). None is yet a complete MAPLE solution-phase PES.
 All calculations therefore require `experimental=true`.
 
+The no-training Route-2 V0 scalar-response alternative is also frozen as a
+rejected diagnostic, not a new profile.  Its preregistered one-water CUDA
+canary preserved the gas density at zero field and matched finite differences
+of its anchored scalar, but failed the base-field total-charge gate
+(`-5.61e-4 e`) and the neutral-response passivity gate
+(`lambda_max=1.97e-2 eV`, threshold `1e-6 eV`).  The result changes no public
+energy, response, provider, or schema and does not authorize V1, post-training,
+or fine-tuning.  The immutable evidence is
+[`route2-v0-scalar-response-water-v1.json`](benchmarks/route2-v0-scalar-response-water-v1.json).
+
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot
 fixed-density acetone scalar canary passed at commit `da89ab8`: the

@@ -1,0 +1,450 @@
+{
+  "artifact": "route2-v0-scalar-response-water-v1",
+  "checkpoint": {
+    "identifier": "polar-1-m",
+    "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "size_bytes": 68133235
+  },
+  "claim_boundary": "This protocol tests only the frozen-checkpoint, fixed-geometry, local-potential-gradient Route 2V0 scalar construction at the already archived one-water ddPCM field. It does not change the public Route 2 fixed point or energy, solve a V0 continuum fixed point, validate exact-GTO features, establish QM accuracy, fit experiment, certify a smooth cavity, provide forces, or authorize PES, OPT, TS, scan, MD, or NVE use.",
+  "execution_git_head": "9913d43cb7b5389cb74904bc7ac026df2187ed39",
+  "failed_gates": [
+    "base_field_charge",
+    "neutral_response_reciprocity",
+    "neutral_response_passivity"
+  ],
+  "field_summary": {
+    "gradient_l2_ev_per_angstrom": 2.3545002752331072,
+    "potential_max_ev": 0.6603974562492541,
+    "potential_min_ev": -0.291031925174674
+  },
+  "frozen_input": {
+    "artifact": "route2-mace-local-field-thermodynamic-canary-v1",
+    "path": "docs/implicit-solvation/benchmarks/route2-mace-local-field-thermodynamic-canary-v1.json",
+    "sha256": "518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6"
+  },
+  "gates": {
+    "passed": {
+      "base_field_charge": false,
+      "dipole_scalar_gradient": true,
+      "monopole_scalar_gradient": true,
+      "neutral_response_passivity": false,
+      "neutral_response_reciprocity": false,
+      "zero_field_anchor": true,
+      "zero_field_charge": true
+    },
+    "thresholds": {
+      "base_response_total_charge_absolute_max_e": 1e-08,
+      "finite_difference_step": 0.0001,
+      "maximum_dipole_scalar_gradient_error_e_angstrom": 1e-05,
+      "maximum_monopole_scalar_gradient_error_e": 1e-05,
+      "neutral_response_antisymmetric_frobenius_ratio": 1e-05,
+      "neutral_response_maximum_eigenvalue_ev": 1e-06,
+      "zero_field_anchor_maximum_absolute_error_e": 1e-10,
+      "zero_field_response_total_charge_absolute_max_e": 1e-08
+    }
+  },
+  "generated_at_utc": "2026-07-29T06:10:12+00:00",
+  "molecule": {
+    "atom_count": 3,
+    "formula": "H2O",
+    "geometry_sha256": "178fe0c8df79b72be93f689af33453140d85103a246060a08f7ad1df3bfc9227",
+    "geometry_source": "ASE G2 molecule collection",
+    "name": "water",
+    "positions_angstrom": [
+      [
+        0.0,
+        0.0,
+        0.119262
+      ],
+      [
+        0.0,
+        0.763239,
+        -0.477047
+      ],
+      [
+        0.0,
+        -0.763239,
+        -0.477047
+      ]
+    ]
+  },
+  "neutral_response": {
+    "antisymmetric_frobenius_norm_ev": 2.037039993024031e-06,
+    "antisymmetric_to_symmetric_frobenius_ratio": 5.618413050008762e-05,
+    "dimension": 11,
+    "eigenvalues_ev": [
+      -0.02277592319825096,
+      -0.01779809128587996,
+      -0.0031601678586465317,
+      -0.0003954015003445451,
+      -0.0002887341398275268,
+      -1.1833086382857422e-18,
+      0.0,
+      1.2337988706230706e-34,
+      2.0752668304882735e-19,
+      0.008962059951896636,
+      0.019709750294421874
+    ],
+    "finite_difference_step": 0.0001,
+    "maximum_eigenvalue_ev": 0.019709750294421874,
+    "minimum_eigenvalue_ev": -0.02277592319825096,
+    "symmetric_frobenius_norm_ev": 0.036256501166656914
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-scalar-response-water-prereg-v1.json",
+    "protocol_id": "route2-v0-scalar-response-water-prereg-v1",
+    "sha256": "7782352a2ffa48e968387b44aaad781ff3f9c4c113b1c3735ba6ab69997deb05"
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "graph_longrange": "0.4.0",
+    "ld_preload": "/home/axie/miniconda3/envs/maple/lib/libstdc++.so.6.0.34",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "timing_seconds": {
+      "base_and_zero_v0": 1.1278950449777767,
+      "finite_difference_dense_response": 6.427342200011481,
+      "model_load": 4.3439151080092415,
+      "total": 14.345873842015862,
+      "zero_reference": 2.2502036129590124
+    },
+    "torch": "2.12.0+cu130",
+    "v0_evaluation_count": 26
+  },
+  "scalar_response": {
+    "base": {
+      "anchored_field_scalar_change_ev": -0.8930058402470232,
+      "construction": "anchored-frozen-checkpoint-scalar-response-v0",
+      "density_response_cotangent": [
+        [
+          -0.0001287958421089057,
+          0.0,
+          0.0,
+          -0.01999573444805162
+        ],
+        [
+          -0.00028919819444617976,
+          0.0,
+          0.005711318529731784,
+          -0.003939827273550384
+        ],
+        [
+          -0.0002929072777727589,
+          0.0,
+          -0.0057058335317124705,
+          -0.0039435570291763734
+        ]
+      ],
+      "electrostatic_energy_ev": -0.4246241921377393,
+      "field_conditioned_energy_field_gradient": [
+        [
+          0.00035705687285421227,
+          0.0,
+          0.0,
+          0.010239573956626398
+        ],
+        [
+          -4.436567355659502e-05,
+          0.0,
+          0.00047940356280015234,
+          -0.001546079288988152
+        ],
+        [
+          -4.573454575691783e-05,
+          0.0,
+          -0.0004941632652010355,
+          -0.0015434042029681765
+        ]
+      ],
+      "field_conditioned_model_energy_ev": -2079.8527397849284,
+      "field_interface": "local-potential-gradient-v1",
+      "model_density_coefficients": [
+        [
+          -0.055371620544317206,
+          0.0,
+          -0.10506651880077178,
+          0.0
+        ],
+        [
+          0.02766711756743982,
+          0.22061422688918886,
+          -0.15007951228774408,
+          0.0
+        ],
+        [
+          0.027704502976877387,
+          -0.22063887158408169,
+          -0.15008756496156667,
+          0.0
+        ]
+      ],
+      "model_density_field_coupling_ev": -0.9144149664688342,
+      "reaction_field_values_ev": [
+        [
+          0.6603974562492541,
+          4.986212686222297e-17,
+          0.00011781485876771413,
+          1.0279601235949425
+        ],
+        [
+          -0.2908142020131078,
+          1.479398662924616e-17,
+          -0.8871234169271945,
+          1.2067243827038499
+        ],
+        [
+          -0.291031925174674,
+          3.763051503173016e-17,
+          0.8874025745018267,
+          1.2067785607086616
+        ]
+      ],
+      "response_density_coefficients": [
+        [
+          -0.0558604350184678,
+          0.0,
+          -0.13534617195584944,
+          0.0
+        ],
+        [
+          0.02763408919916776,
+          0.21688186047482141,
+          -0.14907109502959304,
+          0.0
+        ],
+        [
+          0.027665419359009857,
+          -0.21689303252363762,
+          -0.1490701787897005,
+          0.0
+        ]
+      ],
+      "response_density_field_coupling_ev": -0.9367632962185679,
+      "response_total_charge_e": -0.0005609264602901808,
+      "scalar_field_gradient": [
+        [
+          -0.0558604350184678,
+          0.0,
+          0.0,
+          -0.13534617195584944
+        ],
+        [
+          0.02763408919916776,
+          0.0,
+          0.21688186047482141,
+          -0.14907109502959304
+        ],
+        [
+          0.027665419359009857,
+          0.0,
+          -0.21689303252363762,
+          -0.1490701787897005
+        ]
+      ],
+      "zero_field_anchor_work_ev": -0.011569662542938466,
+      "zero_field_energy_field_gradient": [
+        [
+          0.0007170755048959011,
+          0.0,
+          0.0,
+          0.020523492663652432
+        ],
+        [
+          -0.0003005354997307141,
+          0.0,
+          0.009923088506899385,
+          -0.006494323820689575
+        ],
+        [
+          -0.00029955820566214455,
+          0.0,
+          -0.00994583585735758,
+          -0.006504347404010699
+        ]
+      ],
+      "zero_field_model_energy_ev": -2079.8625792486073
+    },
+    "maximum_dipole_scalar_gradient_error_e_angstrom": 2.3429963055821013e-06,
+    "maximum_monopole_scalar_gradient_error_e": 2.2330792981348213e-06,
+    "zero": {
+      "anchored_field_scalar_change_ev": 0.0,
+      "construction": "anchored-frozen-checkpoint-scalar-response-v0",
+      "density_response_cotangent": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "electrostatic_energy_ev": 0.0,
+      "field_conditioned_energy_field_gradient": [
+        [
+          0.0007170755048957685,
+          0.0,
+          0.0,
+          0.020523492663650434
+        ],
+        [
+          -0.000300535499730798,
+          0.0,
+          0.00992308850690558,
+          -0.006494323820692978
+        ],
+        [
+          -0.0002995582056623044,
+          0.0,
+          -0.009945835857364737,
+          -0.006504347404014793
+        ]
+      ],
+      "field_conditioned_model_energy_ev": -2079.8625792486073,
+      "field_interface": "local-potential-gradient-v1",
+      "model_density_coefficients": [
+        [
+          -0.0349005780815389,
+          0.0,
+          -0.1015102458860041,
+          0.0
+        ],
+        [
+          0.01743798806948482,
+          0.20797942922888668,
+          -0.14076582457872883,
+          0.0
+        ],
+        [
+          0.01746259001205408,
+          -0.20802025163541416,
+          -0.14078720315534204,
+          0.0
+        ]
+      ],
+      "model_density_field_coupling_ev": 0.0,
+      "reaction_field_values_ev": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "response_density_coefficients": [
+        [
+          -0.034900578081539034,
+          0.0,
+          -0.1015102458860061,
+          0.0
+        ],
+        [
+          0.017437988069484732,
+          0.20797942922889287,
+          -0.14076582457873224,
+          0.0
+        ],
+        [
+          0.01746259001205392,
+          -0.20802025163542132,
+          -0.14078720315534612,
+          0.0
+        ]
+      ],
+      "response_density_field_coupling_ev": 0.0,
+      "response_total_charge_e": -3.8163916471489756e-16,
+      "scalar_field_gradient": [
+        [
+          -0.034900578081539034,
+          0.0,
+          0.0,
+          -0.1015102458860061
+        ],
+        [
+          0.017437988069484732,
+          0.0,
+          0.20797942922889287,
+          -0.14076582457873224
+        ],
+        [
+          0.01746259001205392,
+          0.0,
+          -0.20802025163542132,
+          -0.14078720315534612
+        ]
+      ],
+      "zero_field_anchor_work_ev": 0.0,
+      "zero_field_energy_field_gradient": [
+        [
+          0.0007170755048959011,
+          0.0,
+          0.0,
+          0.020523492663652432
+        ],
+        [
+          -0.0003005354997307141,
+          0.0,
+          0.009923088506899385,
+          -0.006494323820689575
+        ],
+        [
+          -0.00029955820566214455,
+          0.0,
+          -0.00994583585735758,
+          -0.006504347404010699
+        ]
+      ],
+      "zero_field_model_energy_ev": -2079.8625792486073
+    },
+    "zero_field_anchor_maximum_absolute_error_e": 7.16093850883226e-15
+  },
+  "schema_version": 1,
+  "scientific_identity": {
+    "construction": "anchored-frozen-checkpoint-scalar-response-v0",
+    "continuum_field_source": "archived pyddx ddPCM root",
+    "continuum_fixed_point_solved": false,
+    "field_interface": "local-potential-gradient-v1",
+    "geometry_policy": "fixed archived ASE G2 water",
+    "public_route_changed": false,
+    "reaction_field_projector": "local-jet",
+    "solute_response_model": "official MACE-POLAR-1-M",
+    "training_or_fine_tuning": false
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/route2-v0-scalar-response-water-prereg-v1.json": "7782352a2ffa48e968387b44aaad781ff3f9c4c113b1c3735ba6ab69997deb05",
+    "docs/implicit-solvation/benchmarks/run_route2_v0_scalar_response_water.py": "8b3370f228313be62fd83c7e9a4bb99792384c6d5978850a9b7670631d82bcd3",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "42d8111cd338fe2bb8e5a6117c68080626656c46f4294dc4e782e745ee837da1",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_scalar_response.py": "8cc25b9f191bfc890fb00b80b7ed99bcacf940d93013ff56e271a5be9c04fae5",
+    "maple/function/calculator/mace/_macepol_calculator.py": "4e93cd005c67087fd60374eb84935bcb2be770595420a762dc125005d1fde3a4"
+  },
+  "status": "fail",
+  "stop_condition": "If any gate fails, reject Route 2V0 for this frozen checkpoint and retain the legacy fixed-point route only as a nonvariational diagnostic. Do not proceed to V1, post-training, or fine-tuning."
+}

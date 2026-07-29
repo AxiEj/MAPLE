@@ -8,6 +8,35 @@ candidates, including one explicit multi-solvent parameter profile. The
 independent PySCF SWIG/IEFPCM adapter remains private. Route 2 is still a
 Research/Innovation Route, not a complete solution-phase PES.
 
+## Frozen no-training V0 disposition
+
+The preregistered frozen-checkpoint V0 experiment defined one anchored
+field-space scalar,
+
+\[
+W_0(f)=E_{\mathrm{fc}}(f)-E_{\mathrm{fc}}(0)
+       +\langle c_M(f),f\rangle-\nabla_fE_{\mathrm{fc}}(0)^\mathsf T f,
+\]
+
+and used its pairing-aware gradient as the candidate response.  A source-bound
+one-water CUDA canary at `9913d43` passed the zero-field anchor
+(`7.16e-15 e` maximum error), zero-field charge, and scalar-gradient
+finite-difference gates.  It failed three preregistered gates:
+
+- the base-field candidate charge is `-5.6093e-4 e`, versus the `1e-8 e`
+  ceiling;
+- the finite-difference neutral-response antisymmetric/symmetric Frobenius
+  ratio is `5.6184e-5`, versus the `1e-5` ceiling;
+- the symmetrized neutral response has
+  `lambda_max=1.97098e-2 eV`, versus the `1e-6 eV` passivity ceiling.
+
+The protocol therefore rejects this Route-2 V0 construction for the frozen
+checkpoint.  No V0 continuum fixed point was solved, no production result was
+changed, and the stop rule forbids falling through to V1, post-training, or
+fine-tuning.  The immutable preregistration and result are
+`benchmarks/route2-v0-scalar-response-water-prereg-v1.json` and
+`benchmarks/route2-v0-scalar-response-water-v1.json`.
+
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental
 `mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening

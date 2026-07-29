@@ -1047,9 +1047,9 @@ long-range coefficient is selected from solvation labels.
 This is still only a mathematical assembly gate.  The local cSPC/E parser
 control is not a complete frozen solvent asset; a real endpoint still needs a
 source-provenanced molecular correlation, production-grid certification, the
-admitted MACE-cluster-to-liquid connector in Section 4.2.16, thermodynamic
-pressure and standard-state conventions, and all 11 pre-registered solvent
-assets.
+admitted asset-bound MACE-cluster-to-liquid connector in Section 4.2.17,
+thermodynamic pressure and standard-state conventions, and all 11
+pre-registered solvent assets.
 
 #### 4.2.16 Zero-field MACE molecular external-potential control
 
@@ -1129,6 +1129,59 @@ same source ledger.  The current checkout has no such 11-solvent bundle, no
 production molecular quadrature/grid certification, no pressure or
 standard-state term, and no benchmark result.  It therefore remains a
 zero-training external-potential control, not a claimed accuracy improvement.
+
+#### 4.2.17 Asset-bound MACE-cluster/RISM molecular-HNC bridge
+
+The previous controls establish the two terms of a prospective liquid scalar,
+but neither a solvent name nor a raw `Cvv` table proves that they describe the
+same declared liquid convention.  The bridge therefore admits only
+
+\[
+\boxed{
+\Omega_{\mathrm{hyb}}[\nu;\mathbf R]
+=\Omega_{\mathrm{id}}[\nu;u_{\mathrm{MACE}}(\mathbf R,\Gamma)]
++F_{\mathrm{ex}}^{\mathrm{RISM}}[P\nu]
+}
+\]
+
+when all source identities are already frozen.  Here \(P\) is the same
+configuration-to-site projection used in Section 4.2.14; it is not an
+energy-changing adapter.  The RISM term is built only by splitting the
+hash-locked radial source at its native SMEAR, transforming the declared
+short-range remainder subject to its frozen tail and radial-Nyquist gates, and
+joining it to the matching zero-average periodic smeared Coulomb operator.
+Thus the molecular stationarity equation is the derivative of one scalar,
+
+\[
+\beta\frac{\partial\Omega_{\mathrm{hyb}}}{\partial\nu_i}
+=\log\!\frac{\nu_i}{\nu_\mathrm{bulk}/8\pi^2}
++\beta u_{\mathrm{MACE},i}
+-\left[P^T C_{\mathrm{RISM}}(P\nu-n_\mathrm{bulk})\right]_i=0.
+\]
+
+`route2_v0_mace_cluster_rism_bridge.py` creates this assembly.  It rejects a
+changed solvent-side hash, a reciprocal kernel derived from another radial
+asset or tail convention, an external grid different from the RISM grid, a
+molecular-site map whose named multiplicities disagree with the XVV source,
+and a molecular-reference declaration not tied to the frozen `site_model`
+digest.  The MACE vector itself carries the exact official checkpoint, runtime
+profile, and long-range-evaluator provenance on every configuration, so a
+hand-assembled three-energy ledger cannot impersonate this source.
+
+The site-model digest is an explicit **binding declaration**, not a claim that
+MAPLE can parse every upstream molecular-model syntax or infer a geometry from
+a solvent name.  A physical asset must still provide a human-auditable mapping
+from that hashed model source to the rigid geometry and named site types.  This
+is intentionally stricter than a dielectric-only custom-solvent input: a
+macroscopic \(\epsilon\) alone fixes neither molecular geometry, finite-\(k\)
+correlation, nor the non-electrostatic liquid functional.
+
+The bridge is therefore a structural common-energy result, not a liquid
+endpoint.  It has no registered physical 11-solvent asset, production
+orientation/grid certificate, closure/EOS pressure correction, standard-state
+term, complete solvation force, or chemistry score.  In particular, the
+synthetic test asset proves only source binding and scalar/derivative pairing;
+it may not be relabelled as a cSPC/E or general-water solvation prediction.
 
 ### 4.3 Separate auxiliary-QM liquid-difference route
 

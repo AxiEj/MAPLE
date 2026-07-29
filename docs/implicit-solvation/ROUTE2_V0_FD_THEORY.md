@@ -999,12 +999,56 @@ bulk map, projection adjoint, scalar/gradient identity, and zero-correlation
 ideal-gas limit.
 
 This is deliberately only a bridge control.  The current `Route2V0SiteHNCAsset`
-is synthetic; a raw 1D-RISM \(C_{vv}\) table remains inadmissible because its
-source-SMEAR Coulomb tail needs the separate energy-conjugate long-range
-operator already specified in Section 4.2.  No frozen physical molecular
-correlation, solvent-side short-range source, pressure/standard-state
-convention, real liquid solve, force, PES, or accuracy result follows from
-this scalar.
+is synthetic; a raw 1D-RISM \(C_{vv}\) table remains inadmissible here until
+its source-SMEAR Coulomb tail is assembled through the exact energy-conjugate
+operator in Section 4.2.15.  No frozen physical molecular correlation,
+solvent-side short-range source, pressure/standard-state convention, real
+liquid solve, force, PES, or accuracy result follows from this scalar.
+
+#### 4.2.15 Energy-conjugate periodic RISM kernel control
+
+Amber's source convention is not a fitted decomposition.  After the declared
+short-range transform, its direct correlation is
+
+\[
+C^{\mathrm{full}}_{ab}(\mathbf k)
+=C^{\mathrm{sr}}_{ab}(\mathbf k)
+-q_aq_bG_\eta(\mathbf k),
+\]
+
+where \(q_a\) is Amber's native QV scale converted only from Angstrom to
+Bohr length units and \(G_\eta\) is the zero-average periodic
+\(4\pi e^{-\eta^2k^2/4}/k^2\) multiplier using that same source SMEAR.
+The matching excess scalar is
+
+\[
+\Delta F_{\mathrm{ex}}
+=-\frac{k_BT}{2}\Delta V
+\sum_{ag}\delta n_{ag}
+\left(C^{\mathrm{sr}}*\delta n\right)_{ag}
++\frac{k_BT}{2}\Delta V
+\sum_g\rho_Q(\mathbf r_g)V_Q(\mathbf r_g),
+\]
+
+with \(\rho_Q=\sum_aq_a\delta n_a\).  Its site derivative is
+
+\[
+\beta\frac{\delta\Delta F_{\mathrm{ex}}}{\delta n_a}
+=-\left(C^{\mathrm{sr}}*\delta n\right)_a+q_aV_Q.
+\]
+
+`route2_v0_rism_energy_conjugate.py` constructs the equivalent full periodic
+direct correlation and proves that its existing HNC convolution, split scalar,
+and split derivative agree.  It rejects a mismatched grid or SMEAR and makes
+the resulting full `Route2V0SiteHNCAsset` available to the molecular
+projection in Section 4.2.14.  Thus no Coulomb prefactor, tail smoothing, or
+long-range coefficient is selected from solvation labels.
+
+This is still only a mathematical assembly gate.  The local cSPC/E parser
+control is not a complete frozen solvent asset; a real endpoint still needs a
+source-provenanced molecular correlation, production-grid certification,
+MACE-native solvent short-range source, thermodynamic pressure and
+standard-state conventions, and all 11 pre-registered solvent assets.
 
 ### 4.3 Separate auxiliary-QM liquid-difference route
 

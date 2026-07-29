@@ -180,3 +180,13 @@ def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_on
         for item in validation
     )
     assert any("projected molecular-site HNC bridge" in item for item in validation)
+    rism_kernel = foundation["rism_energy_conjugate_periodic_kernel_control"]
+    assert rism_kernel["module"].endswith("route2_v0_rism_energy_conjugate")
+    assert "short-range-plus-long-range scalar" in rism_kernel["capability"]
+    assert "Amber QV is converted only by its length unit" in rism_kernel["capability"]
+    assert "must match exactly" in rism_kernel["source_boundary"]
+    assert "never passed directly" in rism_kernel["source_boundary"]
+    assert "total solvation free energy" in rism_kernel[
+        "not_a_physical_liquid_backend"
+    ]
+    assert any("energy-conjugate RISM periodic-kernel assembly" in item for item in validation)

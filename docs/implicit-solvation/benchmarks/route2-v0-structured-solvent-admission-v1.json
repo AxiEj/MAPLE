@@ -1,0 +1,90 @@
+{
+  "protocol_id": "route2-v0-structured-solvent-admission-v1",
+  "schema_version": 1,
+  "status": "preregistered-before-implementation",
+  "claim_boundary": "This is an admission contract for a no-training fixed-density structured-solvent research branch. It does not implement a liquid functional, does not authorize a chemistry or force claim, and does not replace the legacy Route-2 fixed point or the V0-FD continuum control.",
+  "construction": {
+    "name": "route2-v0-fixed-density-structured-solvent-v1",
+    "electronic_state": "c0(R) is the unmodified zero-reaction-field MACE-POLAR l<=1 density; it is frozen throughout the liquid solve.",
+    "electrostatic_source": "The all-space MACE Gaussian multipole potential phi_c0^G is evaluated with gaussian_multipole_potential on the liquid grid.",
+    "short_range_source": "n_ref(R,r) is a separately provenanced nonnegative promolecular reference density used only to define u_sr; it is not represented as MACE electron density and does not replace phi_c0^G.",
+    "solute_solvent_potential": "u_alpha,s(r) = z_alpha,s phi_c0^G(r) + u_alpha,s^sr[n_ref](r).",
+    "liquid_state": "The solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
+    "primary_free_energy": "The declared KH/MDFT excess-free-energy functional plus a thermodynamic pressure correction derived from the same frozen bulk asset and a declared standard-state correction.",
+    "current_kernel_scope": "preregistration and source-contract validation only"
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "density_projection": false,
+    "response_tempering_or_eigenvalue_clipping": false,
+    "error_driven_cavity_or_dispersion_adjustment": false,
+    "per_record_closure_or_model_selection": false,
+    "smd_cds_in_no_fit_core": false,
+    "amber_gaff_or_am1bcc_solute_substitution": false,
+    "legacy_public_route_changed": false
+  },
+  "source_equivalence_contract": {
+    "required_electrostatic_provenance": "unmodified MACE-POLAR zero-field Gaussian l<=1 source",
+    "required_grid_interface": "The liquid backend must consume the MACE-native all-space grid potential, not a fitted atom-charge substitute.",
+    "ambertools_stock_endpoint": "forbidden: a PDB/prmtop/XVV run whose prmtop contributes GAFF, AM1-BCC, or other non-MACE solute charges or Lennard-Jones terms is not a Route-2 V0-FD-S result.",
+    "route1_all_site_rism": "separate research control only; it must not be relabelled or imported as a Route-2 MACE-source result.",
+    "point_multipole_exterior_shortcut": "forbidden: it is not the declared all-space Gaussian grid source.",
+    "smd_cds_combination": "forbidden: structured-liquid exclusion and dispersion are already part of u_sr and the liquid free energy."
+  },
+  "structured_solvent_contract": {
+    "eligible_liquid_models": [
+      "MDFT with a frozen molecular solvent functional",
+      "3D-RISM with a MACE-native-potential adapter and frozen bulk susceptibility/direct correlations"
+    ],
+    "primary_closure": "Kovalenko-Hirata closure with a versioned closed excess-free-energy convention",
+    "pressure_correction": "primary: thermodynamic pressure correction derived from the same bulk liquid functional; pressure, partial molar volume, sign convention, and standard state are versioned with the solvent asset.",
+    "pc_plus_policy": "diagnostic-only; it cannot be selected from target solvation errors or mixed into the primary result.",
+    "custom_solvent_policy": "fail closed for total free energy unless the complete molecular solvent asset is supplied before any target-solute result is inspected."
+  },
+  "solvent_asset_contract": {
+    "registered_default_solvents": [
+      "water",
+      "methanol",
+      "ethanol",
+      "acetonitrile",
+      "dimethylsulfoxide",
+      "dimethylformamide",
+      "tetrahydrofuran",
+      "chloroform",
+      "dichloromethane",
+      "toluene",
+      "hexane"
+    ],
+    "minimum_registered_solvent_count": 11,
+    "required_before_target_scoring": [
+      "temperature and pressure",
+      "molecular site geometry, charges, and non-electrostatic site interactions",
+      "bulk number density and an equation of state or equivalent thermodynamic pressure definition",
+      "bulk susceptibility or direct-correlation data with an immutable version and provenance",
+      "standard-state convention",
+      "independent provenance showing that the asset was not fitted to target MNSol, FreeSolv, development, confirmation, or blind records"
+    ],
+    "custom_solvent_rule": "A dielectric constant, solvent name, or Gaussian-like descriptor alone is insufficient. Missing any required asset rejects total-free-energy execution while allowing only a clearly labelled electrostatics diagnostic."
+  },
+  "benchmark_and_review_contract": {
+    "target_solvation_labels_read_before_implementation": false,
+    "development_manifest": "Freeze replicated records spanning all 11 registered solvent strata before scores are read; the independently versioned neutral-absolute methanol extension remains required.",
+    "confirmation_manifest": "Freeze a disjoint 11-or-more-solvent confirmation manifest before its scores are read.",
+    "external_blind_manifest": "Freeze an external final blind dataset absent from construction, development, confirmation, and model-selection work.",
+    "accuracy_gate": "Every record must be strictly below 1.5 kcal/mol on development, confirmation, and external blind data; the later stricter target is every record strictly below 1.0 kcal/mol.",
+    "independent_review": "Before any accuracy claim, independently review source equivalence, liquid-functional/free-energy consistency, solvent-asset provenance, and benchmark provenance. Review findings may reject a candidate but may not choose a per-record correction or method."
+  },
+  "validation_sequence": [
+    "Validate the Gaussian MACE source against analytic values and verify that the grid-potential adapter consumes it without a charge/Lennard-Jones fallback.",
+    "Validate the nonnegative short-range reference-density provenance and prove that it cannot overwrite the MACE electrostatic source.",
+    "Validate the molecular liquid residual, closure convention, free-energy differential/thermodynamic identity, charge/gauge behavior, and grid convergence before reading target solvation labels.",
+    "Freeze all solvent assets, all method conventions, and the 11-solvent development manifest before chemistry scoring.",
+    "Require the per-record development, confirmation, and external-blind gates without parameter or method changes.",
+    "Require the independent review recorded above before a total-solvation accuracy statement."
+  ],
+  "decision_rule": "Any source-equivalence, liquid-functional, provenance, structural, or per-record accuracy failure rejects this frozen candidate. It does not authorize fine-tuning, post-training, response modification, empirical correction, error-driven solvent-asset changes, or a fallback to a Route-1 solute topology. A different physical functional requires a new preregistration."
+}

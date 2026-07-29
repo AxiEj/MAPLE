@@ -22,6 +22,8 @@ tempering, or experimental-solvation fitting.
 
 The machine-readable commitment is
 [`route2-v0-fd-multisolvent-prereg-v1.json`](benchmarks/route2-v0-fd-multisolvent-prereg-v1.json).
+The separately preregistered structured-solvent admission boundary is
+[`route2-v0-structured-solvent-admission-v1.json`](benchmarks/route2-v0-structured-solvent-admission-v1.json).
 
 ## 1. Fixed-density variational construction
 
@@ -210,6 +212,110 @@ correlations, temperature, pressure, and provenance are supplied.  It is an
 independent continuum-backend candidate, not an equation switch, and must be
 pre-registered before chemistry evaluation.
 
+#### 4.2.1 V0-FD-S: admissible fixed-density structured-solvent branch
+
+The first admissible no-training branch is named **V0-FD-S**.  It freezes the
+same MACE-POLAR zero-field source \(c_0\) as V0-FD, but replaces the
+macroscopic cavity/PCM approximation with a molecular liquid functional.  It
+does **not** update \(c_0\), introduce a learned electronic response, or add
+the SMD CDS term.
+
+The electrostatic solute potential must be generated directly from the
+unmodified MACE Gaussian multipoles over the whole solvent grid,
+
+\[
+\phi^G_{c_0}(\mathbf r)
+=\sum_a\left[q_a g_{\sigma_a}(\mathbf r-\mathbf R_a)
++\boldsymbol\mu_a\!\cdot\!\nabla
+g_{\sigma_a}(\mathbf r-\mathbf R_a)\right],
+\]
+
+using the declared all-space Gaussian convention in
+`gaussian_multipole_potential`.  The current point-multipole exterior field
+is not an interchangeable source for this purpose.  A distinct, positive,
+independently sourced promolecular reference density
+
+\[
+n_{\mathrm{ref}}(\mathbf r;\mathbf R)
+=\sum_a n_a^{\mathrm{ref}}(|\mathbf r-\mathbf R_a|)\geq0
+\]
+
+may define short-range exclusion/repulsion, but it must never be relabelled
+as a MACE electron density or used to replace the MACE electrostatic source.
+For solvent site \(\alpha\), the frozen solute--solvent interaction is then
+
+\[
+u_{\alpha s}(\mathbf r)
+=z_{\alpha s}\phi^G_{c_0}(\mathbf r)
++u^{\mathrm{sr}}_{\alpha s}[n_{\mathrm{ref}}](\mathbf r).
+\]
+
+For example, a 3D-RISM/MDFT implementation may combine the bulk solvent
+susceptibility \(\chi_{\alpha\gamma,s}\) with this potential through
+
+\[
+h_{\gamma s}=\sum_\alpha c_{\alpha s}*\chi_{\alpha\gamma,s},
+\qquad
+d_{\alpha s}=-\beta u_{\alpha s}+h_{\alpha s}-c_{\alpha s},
+\]
+
+and the Kovalenko--Hirata closure
+
+\[
+g_{\alpha s}=
+\begin{cases}
+\exp(d_{\alpha s}),&d_{\alpha s}\leq0,\\
+1+d_{\alpha s},&d_{\alpha s}>0.
+\end{cases}
+\]
+
+The corresponding closed KH excess-free-energy convention is
+
+\[
+\beta\mu_{\mathrm{KH}}^{\mathrm{ex}}
+=\sum_\alpha\rho_{\alpha s}\!\int\!d\mathbf r
+\left[
+\tfrac12h_{\alpha s}^2\Theta(-h_{\alpha s})
+-c_{\alpha s}-\tfrac12h_{\alpha s}c_{\alpha s}
+\right].
+\]
+
+If the frozen bulk asset supplies a thermodynamic pressure and partial molar
+volume from the *same* liquid functional, the primary correction convention
+is the corresponding thermodynamic pressure correction,
+
+\[
+G_{\mathrm{V0-FD-S}}
+=E_{\mathrm{MACE,gas}}+\mu_{\mathrm{KH}}^{\mathrm{ex}}
+-P_s\bar V+\Delta G^\circ.
+\]
+
+The sign, standard state, and definitions of \(P_s\) and \(\bar V\) must be
+versioned with the solvent asset before a score is read.  PC+ and any other
+empirical extension may be retained only as a labelled diagnostic; no
+per-record selection between PC, PC+, closures, or liquid models is allowed.
+
+#### 4.2.2 Source equivalence is a hard boundary
+
+Stock AmberTools `rism3d.snglpnt` consumes a PDB, an AMBER `prmtop`, and an
+XVV bulk-solvent file.  A GAFF/AM1-BCC `prmtop` therefore changes the solute
+Hamiltonian and cannot be silently used as a Route-2 V0-FD-S endpoint.  The
+existing Route-1 all-site 3D-RISM pilot is valuable as a separately scoped
+control, but is not source-equivalent to the frozen MACE Gaussian source.
+
+V0-FD-S needs a MACE-native grid-potential adapter and an independently
+provenanced positive short-range source before a structured-solvent
+calculation may be run.  Reusing an Amber bulk susceptibility is potentially
+admissible only when its solvent provenance is frozen and its interface acts
+on the MACE-native potential; the AMBER solute charges/Lennard-Jones terms
+must not enter by fallback.  This is deliberately a fail-closed precondition,
+not a request to tune a GAFF mapping.
+
+The molecular functional already contains molecular exclusion and dispersion
+physics through \(u^{\mathrm{sr}}\) and its liquid free energy.  Adding
+SMD-CDS to it would double count those effects and would reintroduce an
+experiment-parameterized comparator into the no-fit core.
+
 ### 4.3 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-
@@ -287,3 +393,11 @@ substitute for these gates.
    [DOI:10.13020/3eks-j059](https://doi.org/10.13020/3eks-j059).  MNSol
    supplies experimental coverage across many solvents, but may never be used
    to fit the V0-FD functional.
+8. S. M. Kast *et al.*, *Molecular Solvation in 3D-RISM: A New Method for
+   Calculating Solvation Free Energies*, [PMC2861832](https://pmc.ncbi.nlm.nih.gov/articles/PMC2861832/).
+   This provides the KH closure and closed excess-chemical-potential context;
+   it does not make a GAFF/AM1-BCC solute source equivalent to MACE-POLAR.
+9. D. S. Palmer *et al.*, *The Amber molecular dynamics package*,
+   [PMC10598796](https://pmc.ncbi.nlm.nih.gov/articles/PMC10598796/).  Its
+   3D-RISM workflow illustrates the distinct AMBER topology and bulk-solvent
+   asset contract that V0-FD-S must not substitute for the MACE source.

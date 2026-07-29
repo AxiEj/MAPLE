@@ -523,7 +523,8 @@ def main() -> int:
             ),
             "electronic_response": (
                 "reference-shifted published-hardness monopole tangent; QEq "
-                "electronegativity linear terms are intentionally absent"
+                "electronegativity linear terms are intentionally absent, so "
+                "this is not full QEq"
             ),
             "response_subspace": "monopoles only; every induced l=1 coefficient is an exact KKT constraint",
             "continuum": operator_provenance,

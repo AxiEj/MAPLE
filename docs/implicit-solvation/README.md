@@ -41,7 +41,12 @@ and
 Its first frozen physical control is a published-QEq-hardness, same-MACE-GTO,
 **monopole-only** tangent; it freezes every dipole response channel exactly and
 remains structural/fixed-geometry only.  It is explicitly not a complete QEq
-or solvation model.
+or solvation model.  Its source-bound acetone canary now passes the frozen
+charge, reciprocal-operator, KKT stationarity, positive-curvature, passive
+response, and same-basis half-coupling gates using an archived unmodified
+MACE-POLAR gas density and the same PCMSolver cavity.  It contains no
+experimental solvation metric or total-solvation claim; the immutable evidence
+is [`route2-v0-qeq-monopole-acetone-v1.json`](benchmarks/route2-v0-qeq-monopole-acetone-v1.json).
 
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot

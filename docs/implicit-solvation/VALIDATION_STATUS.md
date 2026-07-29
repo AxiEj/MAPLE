@@ -57,6 +57,13 @@ The first frozen curvature control uses only published Rappé--Goddard QEq
 hardness rows and the same MACE Gaussian monopole metric, with all induced
 dipoles exactly constrained to zero.  It is a fixed-geometry structural
 falsifier, not a full QEq, chemistry, force, PES, or accuracy result.
+Its preregistered source-bound acetone execution passes the frozen total-charge,
+reciprocal-continuum, KKT residual, stability, passive-response, and
+same-basis half-coupling gates without training, fine-tuning, experimental
+fitting, response clipping, or cavity selection.  The result deliberately
+contains no experimental solvation value or total-solvation score; it validates
+only this structural control at one fixed geometry.  Immutable evidence:
+`benchmarks/route2-v0-qeq-monopole-acetone-v1.json`.
 
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental

@@ -316,6 +316,39 @@ physics through \(u^{\mathrm{sr}}\) and its liquid free energy.  Adding
 SMD-CDS to it would double count those effects and would reintroduce an
 experiment-parameterized comparator into the no-fit core.
 
+#### 4.2.3 Implemented MACE-native electrostatic grid primitive
+
+`route2_v0_structured_solvent.py` now implements the first, deliberately
+narrow V0-FD-S primitive.  For a regular Bohr grid
+
+\[
+\mathbf r_{ijk}=\mathbf r_0+(i\Delta x,j\Delta y,k\Delta z),
+\]
+
+it evaluates and preserves the exact MACE Gaussian source,
+
+\[
+\Phi_{ijk}=\phi^G_{c_0}(\mathbf r_{ijk}),
+\qquad
+u_{\alpha s}^{\mathrm{el}}(\mathbf r_{ijk})
+=z_{\alpha s}\Phi_{ijk}.
+\]
+
+The source is checked for the declared total charge, stores immutable values
+in an explicit \((x,y,z)\) C-order layout, remains finite at atomic centres,
+and has translation-covariance tests.  The grid width is fixed at the
+checkpoint-native MACE Gaussian width; changing it is a different source
+model, not a numerical grid-refinement parameter.
+
+This primitive does **not** expose \(u^{\mathrm{sr}}\), a liquid-state
+minimizer, an excess chemical potential, a force, or an accuracy result.  It
+therefore cannot yet be called a 3D-RISM/MDFT calculation.  That separation is
+also consistent with an existing density-coupled 3D-RISM design: AMS documents
+direct use of a fitted solute electron density for electrostatics while still
+requiring declared solute--solvent Lennard-Jones inputs for the short-range
+interaction.  Direct density electrostatics does not make short-range
+repulsion/dispersion disappear.
+
 ### 4.3 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-
@@ -401,3 +434,8 @@ substitute for these gates.
    [PMC10598796](https://pmc.ncbi.nlm.nih.gov/articles/PMC10598796/).  Its
    3D-RISM workflow illustrates the distinct AMBER topology and bulk-solvent
    asset contract that V0-FD-S must not substitute for the MACE source.
+10. SCM, *3D-RISM: 3D Reference Interaction Site Model*,
+    [ADF 2026.1 documentation](https://www.scm.com/doc/ADF/Input/3D-RISM.html).
+    It documents density-based electrostatic coupling together with separate
+    short-range Lennard-Jones inputs, motivating the explicit source split
+    retained here.

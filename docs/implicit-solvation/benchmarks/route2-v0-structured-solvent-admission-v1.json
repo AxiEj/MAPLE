@@ -1,7 +1,7 @@
 {
   "protocol_id": "route2-v0-structured-solvent-admission-v1",
   "schema_version": 1,
-  "status": "preregistered-before-implementation",
+  "status": "preregistered-before-liquid-functional-execution",
   "claim_boundary": "This is an admission contract for a no-training fixed-density structured-solvent research branch. It does not implement a liquid functional, does not authorize a chemistry or force claim, and does not replace the legacy Route-2 fixed point or the V0-FD continuum control.",
   "construction": {
     "name": "route2-v0-fixed-density-structured-solvent-v1",
@@ -11,7 +11,7 @@
     "solute_solvent_potential": "u_alpha,s(r) = z_alpha,s phi_c0^G(r) + u_alpha,s^sr[n_ref](r).",
     "liquid_state": "The solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
     "primary_free_energy": "The declared KH/MDFT excess-free-energy functional plus a thermodynamic pressure correction derived from the same frozen bulk asset and a declared standard-state correction.",
-    "current_kernel_scope": "preregistration and source-contract validation only"
+    "current_kernel_scope": "MACE Gaussian electrostatic grid-source only; no short-range interaction, liquid minimization, solvation energy, force, or benchmark score."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -86,5 +86,18 @@
     "Require the per-record development, confirmation, and external-blind gates without parameter or method changes.",
     "Require the independent review recorded above before a total-solvation accuracy statement."
   ],
-  "decision_rule": "Any source-equivalence, liquid-functional, provenance, structural, or per-record accuracy failure rejects this frozen candidate. It does not authorize fine-tuning, post-training, response modification, empirical correction, error-driven solvent-asset changes, or a fallback to a Route-1 solute topology. A different physical functional requires a new preregistration."
+  "decision_rule": "Any source-equivalence, liquid-functional, provenance, structural, or per-record accuracy failure rejects this frozen candidate. It does not authorize fine-tuning, post-training, response modification, empirical correction, error-driven solvent-asset changes, or a fallback to a Route-1 solute topology. A different physical functional requires a new preregistration.",
+  "implemented_foundation": {
+    "module": "maple.function.calculator.extra_correction.implicit.route2_v0_structured_solvent",
+    "capability": "A fixed-density, all-space MACE Gaussian l<=1 electrostatic potential is evaluated on a declared regular Cartesian grid and exposed as the electrostatic site-energy summand z*phi_c0^G.",
+    "fixed_source_width_policy": "The checkpoint-native MACE Gaussian width is fixed; it cannot be used as a grid-refinement or error-adjustment parameter.",
+    "not_implemented": [
+      "positive promolecular short-range reference density",
+      "solute-solvent short-range potential",
+      "MDFT or 3D-RISM liquid-state minimization",
+      "excess chemical potential or pressure correction",
+      "force, PES, optimization, scan, MD, or NVE capability",
+      "chemistry benchmark or accuracy claim"
+    ]
+  }
 }

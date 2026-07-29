@@ -20,7 +20,7 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     protocol = _protocol()
 
     assert protocol["protocol_id"] == "route2-v0-structured-solvent-admission-v1"
-    assert protocol["status"] == "preregistered-before-implementation"
+    assert protocol["status"] == "preregistered-before-liquid-functional-execution"
     assert protocol["construction"]["name"] == (
         "route2-v0-fixed-density-structured-solvent-v1"
     )
@@ -39,6 +39,11 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
         "amber_gaff_or_am1bcc_solute_substitution": False,
         "legacy_public_route_changed": False,
     }
+    foundation = protocol["implemented_foundation"]
+    assert foundation["module"].endswith("route2_v0_structured_solvent")
+    assert "MACE Gaussian l<=1 electrostatic potential" in foundation["capability"]
+    assert any("short-range" in item for item in foundation["not_implemented"])
+    assert "chemistry benchmark or accuracy claim" in foundation["not_implemented"]
 
 
 def test_structured_solvent_admission_preserves_the_mace_source_boundary():

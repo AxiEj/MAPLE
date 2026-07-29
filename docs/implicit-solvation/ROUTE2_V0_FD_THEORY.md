@@ -1180,12 +1180,40 @@ a dielectric-only custom-solvent input: a macroscopic \(\epsilon\) alone fixes
 neither molecular geometry, finite-\(k\) correlation, nor the
 non-electrostatic liquid functional.
 
+At a stationary \(\nu^*(\mathbf R)\), the frozen-asset control also has an
+unambiguous **external MACE envelope-force** identity.  Since the fixed RISM
+asset, Cartesian grid, configuration quadrature, and projection do not depend
+on a solute Cartesian coordinate \(R_I\),
+
+\[
+\frac{d\Omega_{\mathrm{hyb}}}{dR_I}
+=
+\left.\frac{\partial\Omega_{\mathrm{hyb}}}{\partial R_I}\right|_{\nu^*}
+=
+\sum_i w_i\nu_i^*\frac{\partial u_{\mathrm{MACE},i}}{\partial R_I},
+\qquad
+\boxed{
+F_I^{\mathrm{MACE-env}}
+=\sum_i w_i\nu_i^* f_{I,i}^{\mathrm{MACE}}
+}.
+\]
+
+`stationary_mace_solute_force_ev_per_angstrom` implements exactly that finite
+sum only after checking the HNC residual and the availability of the
+configuration-wise three-energy MACE forces.  No \(d\nu^*/d\mathbf R\) or
+fixed-point adjoint appears: its coefficient is the verified stationary
+residual.  This is deliberately not yet a complete physical liquid force.
+Any moving cavity, coordinate-dependent solvent functional, or production
+quadrature requires its own explicit derivative in the same scalar before a
+PES claim is allowed.
+
 The bridge is therefore a structural common-energy result, not a liquid
 endpoint.  It has no registered physical 11-solvent asset, production
 orientation/grid certificate, closure/EOS pressure correction, standard-state
 term, complete solvation force, or chemistry score.  In particular, the
-synthetic test asset proves only source binding and scalar/derivative pairing;
-it may not be relabelled as a cSPC/E or general-water solvation prediction.
+synthetic test asset proves only source binding, scalar/derivative pairing, and
+the fixed-asset envelope identity; it may not be relabelled as a cSPC/E or
+general-water solvation prediction.
 
 ### 4.3 Separate auxiliary-QM liquid-difference route
 

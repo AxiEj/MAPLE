@@ -20,12 +20,14 @@ def test_asset_bound_mace_cluster_rism_bridge_is_explicitly_no_fit_and_nonphysic
     assert "checkpoint-locked zero-field MACE cluster" in bridge["capability"]
     assert "asset canonical molecular reference" in bridge["capability"]
     assert "XVV multiplicity" in bridge["capability"]
+    assert "MACE envelope-force" in bridge["capability"]
     assert (
         "MACE field-conditioned response density" in bridge["hybrid_reference_boundary"]
     )
     assert "does not claim" in bridge["hybrid_reference_boundary"]
     assert "scalar dielectric constant" in bridge["custom_solvent_boundary"]
     assert "total solvation free energy" in bridge["not_a_physical_liquid_backend"]
+    assert "moving-cavity" in bridge["not_a_physical_liquid_backend"]
     assert "accuracy result" in bridge["not_a_physical_liquid_backend"]
     assert any(
         "asset-bound zero-field-MACE/RISM bridge" in item

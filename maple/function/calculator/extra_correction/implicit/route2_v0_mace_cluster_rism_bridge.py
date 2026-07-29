@@ -39,6 +39,7 @@ from .route2_v0_molecular_ideal_gas import Route2V0MolecularConfigurationQuadrat
 from .route2_v0_molecular_site_hnc import (
     Route2V0MolecularSiteHNCFunctional,
     Route2V0MolecularSiteProjection,
+    Route2V0MolecularSiteHNCState,
 )
 from .route2_v0_periodic_coulomb import Route2V0PeriodicCoulombOperator
 from .route2_v0_rism_energy_conjugate import Route2V0RismEnergyConjugateKernel
@@ -128,6 +129,20 @@ def _same_molecular_reference(left: object, right: object) -> bool:
     return all(
         np.array_equal(getattr(left, name), getattr(right, name)) for name in arrays
     )
+
+
+def _positive_finite(value: object, *, name: str) -> float:
+    """Validate one positive finite numerical tolerance."""
+
+    if isinstance(value, (bool, np.bool_)):
+        raise ValueError(f"{name} must be finite and positive.")
+    try:
+        result = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"{name} must be finite and positive.") from exc
+    if not math.isfinite(result) or result <= 0.0:
+        raise ValueError(f"{name} must be finite and positive.")
+    return result
 
 
 def _molecular_site_type_indices(
@@ -338,6 +353,64 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
         """Recheck the solvent files before a downstream liquid-state operation."""
 
         self.frozen_solvent_asset.verify_integrity()
+
+    def stationary_mace_solute_force_ev_per_angstrom(
+        self,
+        state: Route2V0MolecularSiteHNCState,
+        *,
+        residual_tolerance: float = 1.0e-10,
+    ) -> np.ndarray:
+        """Return the fixed-asset envelope force from the stationary scalar.
+
+        With the frozen RISM asset, Cartesian grid, configuration quadrature,
+        and occupancy projection all independent of the solute coordinates,
+        the only explicit nuclear-coordinate dependence of the hybrid scalar
+        is ``u_MACE``.  At a stationary configuration density ``nu*``,
+
+        ``F_I = sum_i w_i nu_i* f_I^MACE(Gamma_i)``.
+
+        This is a discrete fixed-asset control only.  A physical liquid force
+        still needs the explicit coordinate derivatives of any moving cavity,
+        coordinate-dependent solvent functional, and production quadrature.
+        """
+
+        if not isinstance(state, Route2V0MolecularSiteHNCState):
+            raise TypeError("MACE/RISM envelope force requires a molecular HNC state.")
+        if state.projection is not self.projection:
+            raise ValueError(
+                "MACE/RISM envelope force requires a state from this exact bridge "
+                "projection."
+            )
+        tolerance = _positive_finite(
+            residual_tolerance,
+            name="MACE/RISM envelope-force residual tolerance",
+        )
+        if state.residual_inf > tolerance:
+            raise ValueError(
+                "MACE/RISM envelope force requires a stationary molecular HNC "
+                "state within the declared residual tolerance."
+            )
+        source_forces = (
+            self.external_potential.solute_interaction_forces_ev_per_angstrom
+        )
+        if source_forces is None:
+            raise ValueError(
+                "MACE/RISM envelope force requires zero-field MACE interaction "
+                "forces at every configuration."
+            )
+        self.verify_integrity()
+        force = np.einsum(
+            "i,i,iaj->aj",
+            self.quadrature.phase_space_weights_bohr3,
+            state.configuration_density_bohr3,
+            source_forces,
+            optimize=True,
+        )
+        result = np.array(force, dtype=float, copy=True)
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError("MACE/RISM envelope force is non-finite.")
+        result.setflags(write=False)
+        return result
 
 
 __all__ = [

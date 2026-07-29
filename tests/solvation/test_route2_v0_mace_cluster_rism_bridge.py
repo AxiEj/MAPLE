@@ -223,7 +223,12 @@ def _asset(tmp_path: Path):
     return load_route2_v0_frozen_solvent_registry(manifest).asset_for("water")
 
 
-def _bridge_inputs(tmp_path: Path):
+def _bridge_inputs(
+    tmp_path: Path,
+    *,
+    compute_forces: bool = False,
+    solute_x_angstrom: float = -1.0,
+):
     asset = _asset(tmp_path)
     grid = RegularCartesianGrid(
         origin_bohr=np.zeros(3),
@@ -239,9 +244,10 @@ def _bridge_inputs(tmp_path: Path):
         calculator=_FakeZeroFieldMACE(),
         integration_grid=grid,
         solute_atomic_numbers=np.array([1]),
-        solute_atom_positions_angstrom=np.array([[-1.0, 0.0, 0.0]]),
+        solute_atom_positions_angstrom=np.array([[solute_x_angstrom, 0.0, 0.0]]),
         solvent=solvent,
         configurations=configurations,
+        compute_forces=compute_forces,
     )
     quadrature = Route2V0MolecularConfigurationQuadrature(
         configurations=configurations,
@@ -257,6 +263,29 @@ def _bridge_inputs(tmp_path: Path):
     occupancy[0] = 1.0 / grid.point_count
     occupancy[1] = 2.0 / grid.point_count
     return asset, grid, external, quadrature, occupancy
+
+
+def _bridge(
+    tmp_path: Path,
+    *,
+    compute_forces: bool = False,
+    solute_x_angstrom: float = -1.0,
+):
+    asset, grid, external, quadrature, occupancy = _bridge_inputs(
+        tmp_path,
+        compute_forces=compute_forces,
+        solute_x_angstrom=solute_x_angstrom,
+    )
+    return Route2V0MaceClusterRismMolecularHNCBridge(
+        frozen_solvent_asset=asset,
+        external_potential=external,
+        rism_kernel=build_route2_v0_asset_bound_rism_kernel(
+            frozen_solvent_asset=asset,
+            grid=grid,
+        ),
+        quadrature=quadrature,
+        site_occupancy_weights=occupancy,
+    )
 
 
 def test_asset_bound_bridge_uses_one_checkpoint_locked_mace_source_and_one_frozen_rism_kernel(
@@ -299,6 +328,62 @@ def test_asset_bound_bridge_uses_one_checkpoint_locked_mace_source_and_one_froze
         * direction
     )
     assert finite_difference == pytest.approx(analytic, rel=3.0e-9, abs=3.0e-15)
+
+
+def test_asset_bound_bridge_stationary_mace_envelope_force_matches_minimized_scalar(
+    tmp_path,
+):
+    bridge = _bridge(tmp_path / "center", compute_forces=True)
+    state = bridge.functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.2,
+        max_iterations=1000,
+    )
+    force = bridge.stationary_mace_solute_force_ev_per_angstrom(
+        state,
+        residual_tolerance=1.0e-12,
+    )
+
+    step_angstrom = 1.0e-5
+    plus = _bridge(
+        tmp_path / "plus",
+        solute_x_angstrom=-1.0 + step_angstrom,
+    )
+    minus = _bridge(
+        tmp_path / "minus",
+        solute_x_angstrom=-1.0 - step_angstrom,
+    )
+    plus_state = plus.functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.2,
+        max_iterations=1000,
+    )
+    minus_state = minus.functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.2,
+        max_iterations=1000,
+    )
+    finite_difference_force = (
+        -Hartree
+        * (plus_state.grand_potential_hartree - minus_state.grand_potential_hartree)
+        / (2.0 * step_angstrom)
+    )
+    assert force.shape == (1, 3)
+    assert force[0, 0] == pytest.approx(
+        finite_difference_force,
+        rel=3.0e-8,
+        abs=3.0e-10,
+    )
+
+    with pytest.raises(ValueError, match="stationary molecular HNC"):
+        bridge.stationary_mace_solute_force_ev_per_angstrom(
+            bridge.functional.stationary_state(
+                bridge.projection.uniform_configuration_density_bohr3
+                * np.array([1.1, 0.9]),
+                iterations=0,
+            ),
+            residual_tolerance=1.0e-12,
+        )
 
 
 def test_asset_bound_bridge_rejects_noncanonical_geometry_or_mutated_source(

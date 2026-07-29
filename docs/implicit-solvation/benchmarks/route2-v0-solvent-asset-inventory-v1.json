@@ -1,0 +1,53 @@
+{
+  "protocol_id": "route2-v0-solvent-asset-inventory-v1",
+  "schema_version": 1,
+  "status": "inventory-only-zero-admitted-physical-default-assets",
+  "claim_boundary": "This is a local source-availability inventory, not a molecular-liquid calculation, physical solvent endpoint, solvation-energy result, or accuracy result. It records why the Route-2 V0 branch fails closed instead of filling missing solvent assets with a proxy.",
+  "asset_registry_protocol": "route2-v0-frozen-solvent-asset-v1",
+  "required_default_solvents": [
+    "water",
+    "methanol",
+    "ethanol",
+    "acetonitrile",
+    "dimethylsulfoxide",
+    "dimethylformamide",
+    "tetrahydrofuran",
+    "chloroform",
+    "dichloromethane",
+    "toluene",
+    "hexane"
+  ],
+  "admitted_physical_default_assets": [],
+  "available_parser_control": {
+    "solvent": "water",
+    "model": "cSPCE",
+    "producer": "AmberTools 26.0 rism1d",
+    "available_source_files": [
+      "dat/rism1d/mdl/cSPCE.mdl",
+      "bulk-only cSPCE input/XVV/Cvv/thermodynamic control recorded in route2-v0-rism1d-cspce-bulk-control-v1.json"
+    ],
+    "role": "bulk 1D-RISM parser, source-SMEAR split, periodic-Poisson, and small-grid reciprocal-transform control only",
+    "not_an_admitted_asset": "It lacks the frozen complete molecular-liquid short-range source, production-grid mapping certificate, and full thermodynamic/free-energy endpoint required for target-solute execution."
+  },
+  "missing_default_assets": [
+    "water",
+    "methanol",
+    "ethanol",
+    "acetonitrile",
+    "dimethylsulfoxide",
+    "dimethylformamide",
+    "tetrahydrofuran",
+    "chloroform",
+    "dichloromethane",
+    "toluene",
+    "hexane"
+  ],
+  "execution_policy": "Total-free-energy execution is rejected until all required frozen solvent-side assets exist and later liquid-functional/force gates pass. No GAFF/AM1-BCC solute fallback, training, fine-tuning, MAP/UQ, calibration, response modification, or experiment-selected parameter change is permitted.",
+  "hard_constraints": {
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "amber_gaff_or_am1bcc_solute_substitution": false
+  }
+}

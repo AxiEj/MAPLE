@@ -630,6 +630,38 @@ establish a production-grid convergence threshold, define
 \(u^{\mathrm{sr}}\), run a molecular liquid solve, or make a thermodynamic or
 accuracy claim.
 
+#### 4.2.9 Content-addressed frozen solvent-asset boundary
+
+The next physical input is a *solvent-side* asset, not a new solute charge
+model and not a trainable correction.  `route2_v0_solvent_asset.py` accepts a
+registry only when each solvent manifest hash-locks all of the following:
+
+- the molecular site-model source and the bulk 1D-RISM input;
+- matching `.xvv` and `.cvv` files, which are reparsed using the native-QV,
+  source-`SMEAR` checks above;
+- the thermodynamic-output source and the separately sourced short-range
+  interaction record;
+- a provenance statement explicitly declaring that MNSol, FreeSolv,
+  development, confirmation, and blind target labels were not used; and
+- temperature, pressure, closure, standard-state, pressure,
+  partial-molar-volume, sign, and Coulomb-tail conventions.
+
+Changing any file causes a SHA-256 failure; a missing field, a state mismatch,
+an unregistered Coulomb tail, a path outside the asset root, or a target-label
+declaration other than explicit `false` also fails closed.  The registry does
+not infer an absent solvent from a dielectric constant, substitute a GAFF or
+AM1-BCC **solute** topology, or choose a surrogate from an observed error.
+Before future target-solute scoring, its 11 pre-registered solvent IDs must be
+present as one frozen panel rather than selected record by record.
+
+[`route2-v0-solvent-asset-inventory-v1.json`](benchmarks/route2-v0-solvent-asset-inventory-v1.json)
+records the current deliberately incomplete state: the local cSPC/E data is a
+bulk/parser control, while **zero** physical default-solvent assets are
+registered.  Consequently total-free-energy execution remains rejected.  This
+new registry is provenance infrastructure only: it neither defines the
+MACE-native \(u^{\mathrm{sr}}\), maps a production short-range kernel,
+minimizes a liquid functional, nor changes an accuracy number.
+
 ### 4.3 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-

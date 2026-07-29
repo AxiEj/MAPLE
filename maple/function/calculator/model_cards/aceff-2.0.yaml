@@ -1,0 +1,49 @@
+{
+  "model_id": "aceff-2.0",
+  "version": "2.0",
+  "availability": "public-checkpoint",
+  "source": {
+    "repository": "https://huggingface.co/Acellera/AceFF-2.0",
+    "revision": "67ad6a3b06ee9b44cfbac3bc32117dd6276e9122",
+    "checkpoint_path": "aceff_v2.0.ckpt"
+  },
+  "unit_evidence": {
+    "repository": "https://github.com/Acellera/aceff_examples",
+    "revision": "3c59fb367903011e58abc51a7445cff85f7bf3df",
+    "path": "notebooks/aceff_batched_minimization_and_md.ipynb",
+    "contract": "official example labels model energy as eV; TorchMD-Net differentiates that energy with angstrom coordinates, yielding eV/angstrom forces"
+  },
+  "checkpoint_sha256": "877af6bf84cc69d6d5cbd377a61cfc19c45fb87a00583f7c867e2f9d244cc8fd",
+  "license": {
+    "checkpoint_and_repository": "Apache-2.0",
+    "runtime": "torchmd-net package terms"
+  },
+  "capabilities": {
+    "energy": true,
+    "forces": true,
+    "conservative_forces": true,
+    "hessian": "finite_difference",
+    "supports_md": true,
+    "supports_pbc": false,
+    "supports_charge": true,
+    "supports_multiplicity": false,
+    "supports_multifragment": false,
+    "requires_topology": true,
+    "requires_partial_charges": false,
+    "solvation_mode": "none",
+    "energy_reference": "absolute",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "elements": ["H", "B", "C", "N", "O", "F", "Si", "P", "S", "Cl", "Br", "I"],
+  "charge_range": [-2, 2],
+  "domain": "small molecules; proteins and water are outside the published training domain",
+  "recommended_tasks": ["sp", "opt", "numerical_frequency", "short_md"],
+  "forbidden_tasks": [
+    "open_shell_system",
+    "multi_fragment_system",
+    "periodic_system_until_domain_validation",
+    "protein_or_bulk_water_system",
+    "absolute_solvation_free_energy_without_a_free_energy_protocol"
+  ]
+}

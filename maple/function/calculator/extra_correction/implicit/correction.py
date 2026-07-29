@@ -64,6 +64,13 @@ class ImplicitSolvationCorrection:
             )
             self.charge_result = None
             self.supported_properties = set(self.provider.supported_properties)
+            self.conservative_forces = bool(
+                getattr(self.provider, "conservative_forces", False)
+            )
+            self.supports_pbc = bool(getattr(self.provider, "supports_pbc", False))
+            self.energy_reference = getattr(
+                self.provider, "energy_reference", "unknown"
+            )
             self._write_audit_manifest()
             return
 
@@ -112,6 +119,13 @@ class ImplicitSolvationCorrection:
         if self.mode == "polarizable" and self.charge_result.method != "qeq-gto":
             raise ValueError("mode=polarizable requires #charge(source=maple,method=qeq-gto).")
         self.supported_properties = set(self.provider.supported_properties)
+        self.conservative_forces = bool(
+            getattr(self.provider, "conservative_forces", False)
+        )
+        self.supports_pbc = bool(getattr(self.provider, "supports_pbc", False))
+        self.energy_reference = getattr(
+            self.provider, "energy_reference", "unknown"
+        )
         self._write_audit_manifest()
 
     def _write_audit_manifest(self) -> None:

@@ -1,0 +1,64 @@
+{
+  "model_id": "gnnis-reference",
+  "version": "upstream-5f849bab",
+  "availability": "public-checkpoint",
+  "source": {
+    "repository": "https://github.com/rinikerlab/GNNImplicitSolvent",
+    "revision": "5f849bab475570aeaf129ec2e5672f4afbef6bbe",
+    "checkpoint_path": "MachineLearning/trained_models/GNN.pt"
+  },
+  "checkpoint_size_bytes": 1268543,
+  "checkpoint_sha256": "304a6cb2e1f804d30dcc4e1b135be1aa768074b4cb268ba26ee34acaa513e5f6",
+  "license": {
+    "repository": "MIT-0 as stated by the upstream README",
+    "checkpoint_license": "not-separately-stated"
+  },
+  "capabilities": {
+    "energy": true,
+    "forces": true,
+    "conservative_forces": true,
+    "hessian": "finite_difference",
+    "supports_md": true,
+    "supports_pbc": false,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": false,
+    "requires_topology": true,
+    "requires_partial_charges": true,
+    "solvation_mode": "native",
+    "energy_reference": "unknown",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "reference_hamiltonian": "OpenFF-2.0.0 + GNNIS",
+  "solvent_scope": {
+    "mode": "multi",
+    "count": 39,
+    "registry_source": "Simulation/solvents.yml at the pinned revision"
+  },
+  "recommended_tasks": [
+    "solvent-state optimization",
+    "solvent-state conformer sampling",
+    "molecular dynamics with the upstream reference Hamiltonian",
+    "finite-difference effective-solution-PMF Hessian"
+  ],
+  "forbidden_tasks": [
+    "absolute_solvation_free_energy",
+    "arbitrary_mlip_gnnis_correction",
+    "analytic_frequency",
+    "periodic_simulation",
+    "standalone_cross-molecule_energy_comparison"
+  ],
+  "training_datasets": [
+    "upstream GNNIS force-matching datasets; exact benchmark overlap requires audit"
+  ],
+  "known_benchmark_overlap": [
+    "unknown; classify benchmark rows as overlap_unknown until audited"
+  ],
+  "notes": [
+    "This adapter exposes the complete upstream OpenFF-2.0.0 plus GNNIS Hamiltonian, not an additive correction for an arbitrary MAPLE MLIP.",
+    "The GNNIS term is physically additive, but solvation_mode=native describes the sealed executable reference composition and prevents a second solvent term.",
+    "Energy offsets across chemical species are not certified, so absolute solvation free energies fail closed.",
+    "Current upstream runtime validation is restricted to neutral molecules; ionic solvation is rejected until dedicated smoke tests are complete."
+  ]
+}

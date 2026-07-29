@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "name": "MNSol",
+    "version": "2012",
+    "homepage": "https://comp.chem.umn.edu/mnsol/",
+    "license": "https://comp.chem.umn.edu/mnsol/lic.htm",
+    "redistribution": "MAPLE does not redistribute the archive, labels, or row-level source data.",
+    "normalized_bundle_sha256": "6465a65a024cd06872cb9812381184ed6e9b1a528adfe12be9d5d43b4aec75d8",
+    "table_sha256": "6dba4397764d1ca665c5dac653b9963bd64f784c353311a72c15e42897b90156"
+  },
+  "source": {
+    "worktree_role": "route2-member-matrix",
+    "git_commit": "b6be031c3e87fe367b2ee86f31719d3f2683e1a6",
+    "note": "Route 4 references the frozen opaque selections; it does not create a new split."
+  },
+  "partitions": {
+    "development": {
+      "record_count": 505,
+      "unique_solute_count": 312,
+      "selection_fingerprint": "059c6524f8fb8c488d7db3a36b2e2409695cb3e15572aaac3e235773b057f04b",
+      "source_artifact": "route2-mnsol-development-selection-v1.json",
+      "source_artifact_sha256": "d05130aa8f38d0d1c292b43d769bb021f0b6ce7d2c29cb0af7479246913ec6a4"
+    },
+    "confirmation": {
+      "record_count": 148,
+      "unique_solute_count": 83,
+      "selection_fingerprint": "b53f46f71d2ea63a671078806a452a28009d94d203a7e9dddf53e114acd8aa2a",
+      "source_artifact": "route2-mnsol-confirmation-selection-v1.json",
+      "source_artifact_sha256": "7b52d379fb5ece0b6244eab6191e918592cedd2e2934849a57a6befa6eba5353"
+    }
+  },
+  "total": {
+    "record_count": 653,
+    "unique_solute_count": 395
+  },
+  "confirmation_policy": {
+    "sealed": true,
+    "requires_preregistered_protocol_lock": true,
+    "failed_confirmation_must_not_trigger_tuning": true
+  }
+}

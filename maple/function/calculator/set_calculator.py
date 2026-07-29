@@ -18,6 +18,12 @@ from .calculator_base import (
     load_calculator_plugins_from_env,
     normalize_none_option,
 )
+from .model_capabilities import (
+    CombinationValidator,
+    ModelCardError,
+    SolvationCapabilities,
+    load_model_provenance_card,
+)
 
 
 HF_REPO_ID = 'Wayne7815/MAPLE_models'
@@ -38,11 +44,14 @@ _BUILTIN_NAME_TO_MODULE = {
     'maceoff23s': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23m': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23l': 'maple.function.calculator.mace._mace_calculator',
+    'mace-off24-medium': 'maple.function.calculator.mace._maceoff24_calculator',
     'egret': 'maple.function.calculator.mace._mace_calculator',
     'maceomol': 'maple.function.calculator.mace._mace_general_calculator',
     'macepols': 'maple.function.calculator.mace._macepol_calculator',
     'macepolm': 'maple.function.calculator.mace._macepol_calculator',
     'macepoll': 'maple.function.calculator.mace._macepol_calculator',
+    'aimnet2-cpcms-v2': 'maple.function.calculator.aimnet._aimnet2_cpcms_calculator',
+    'aceff-2.0': 'maple.function.calculator.aceff._aceff2_calculator',
     'uma': 'maple.function.calculator.uma._uma_calculator',
 }
 
@@ -60,6 +69,7 @@ def _compact_model_name(name: str) -> str:
         .replace(' ', '')
         .replace('(', '')
         .replace(')', '')
+        .replace('.', '')
     )
 
 
@@ -139,6 +149,9 @@ class SetCalculator:
             return f'{model_dir} (resolved: {resolved_dir})'
         return str(model_dir)
 
+    def _model_card_root(self) -> Path:
+        return Path(__file__).parent / 'model_cards'
+
     def _log_model_error(self, message: str) -> None:
         self._model_error_logged = True
         self.log_error(message)
@@ -171,10 +184,10 @@ class SetCalculator:
                 "Implicit-solvent selector mismatch: "
                 f"implicit={self.implicit!r}, solv.method={configured_method!r}."
             )
-        if self.model_options.get('hessian') is not None and self.implicit in {'gb', 'pb'}:
-            raise ValueError(
-                "Implicit PB/GB does not yet support Hessian/HVP workflows."
-            )
+        hessian_mode = self.model_options.get('hessian')
+        if hessian_mode is not None and self.implicit in {'gb', 'pb'}:
+            if hessian_mode != 'numerical':
+                raise ValueError("Implicit PB/GB currently supports numerical Hessian only.")
 
         if self.atoms is not None and atoms_has_pbc(self.atoms):
             raise ValueError(
@@ -560,7 +573,40 @@ class SetCalculator:
             calculator.chargecalc = None
 
         self._apply_hessian_mode(calculator)
+        self._apply_conservative_solvent_hessian_metadata(calculator)
         return calculator
+
+    def _apply_conservative_solvent_hessian_metadata(self, calculator) -> None:
+        mode = self.model_options.get('hessian')
+        if mode is None:
+            return
+
+        # PB/GB+numerical hessian is only allowed when the model provenance
+        # card explicitly allows conservative combined energy/force workflows.
+        if self.implicit in {'gb', 'pb'} and mode == 'numerical':
+            try:
+                model_card = load_model_provenance_card(self.model, self._model_card_root())
+            except ModelCardError as exc:
+                raise ValueError(
+                    f"Failed to load provenance card for model '{self.model}': {exc}"
+                ) from exc
+
+            profile = CombinationValidator(
+                model_capabilities=model_card.capabilities,
+                implicit=self.implicit,
+                hessian_mode=mode,
+                solvation_capabilities=SolvationCapabilities.from_backend(
+                    calculator.solvent_correction
+                ),
+                task="frequency",
+            ).validate()
+            if profile is None:
+                raise ValueError(
+                    "Numerical solvent hessian requires a conservative-profile model card "
+                    f"for '{self.model}' with implicit='{self.implicit}'."
+                )
+            if profile.frequency_type is not None:
+                calculator.frequency_type = profile.frequency_type
 
     def _apply_hessian_mode(self, calculator) -> None:
         mode = self.model_options.get('hessian')

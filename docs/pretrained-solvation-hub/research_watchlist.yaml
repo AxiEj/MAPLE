@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-07-29",
+  "models": [
+    {
+      "model_id": "consolv",
+      "availability": "paper_only",
+      "adapter_status": "blocked_by_public_runtime_and_weights",
+      "source": "https://arxiv.org/abs/2606.24983",
+      "solvent_scope": "66 nonaqueous organic solvents reported",
+      "forbidden_tasks": ["all_runtime_tasks"]
+    },
+    {
+      "model_id": "twin",
+      "availability": "paper_only",
+      "adapter_status": "blocked_by_public_runtime_and_weights",
+      "source": "https://arxiv.org/abs/2607.10887",
+      "solvent_scope": "water reported",
+      "forbidden_tasks": ["all_runtime_tasks"]
+    },
+    {
+      "model_id": "mace-off24-sc",
+      "availability": "paper_backed_artifact_unpinned",
+      "adapter_status": "blocked_by_checkpoint_identity",
+      "source": "https://pubs.acs.org/doi/10.1021/jacs.5c10940",
+      "forbidden_tasks": ["ordinary_calculator", "reproducibility_claim"]
+    },
+    {
+      "model_id": "mace-off23-sc",
+      "availability": "public_checkpoint_pinned",
+      "adapter_status": "protocol_bridge_pending_openmm_ml_openmmtools",
+      "source": "https://github.com/jharrymoore/MACE-OFF23-SC",
+      "forbidden_tasks": [
+        "ordinary_calculator",
+        "implicit_solvent",
+        "claiming_mace_off24_sc_results"
+      ]
+    }
+  ],
+  "property_only_baselines": {
+    "registry": "benchmark_only",
+    "forbidden_tasks": ["sp_energy_surface", "opt", "freq", "md"],
+    "examples": ["SolvBERT", "MLSolv-A"]
+  }
+}

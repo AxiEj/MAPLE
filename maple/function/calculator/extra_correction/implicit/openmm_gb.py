@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 
 from .result import SolvationResult
+from .topology import TopologyProvider
 
 
 KJ_PER_MOL_PER_HARTREE = 2625.4996394799
@@ -24,30 +25,9 @@ GB_MODELS: dict[str, dict[str, Any]] = {
 
 
 def build_openmm_topology(atoms):
-    try:
-        from openmm import app
-    except ImportError as exc:
-        raise ImportError(
-            "OpenMM GB requires the optional dependency. Install with "
-            "`pip install 'maple[implicit-gb]'`."
-        ) from exc
-
-    metadata = atoms.info.get("mol2")
-    if not metadata:
-        raise ValueError("OpenMM GB requires MOL2 topology metadata.")
-    topology = app.Topology()
-    chain = topology.addChain("A")
-    # MOL2 molecule names are identifiers, not biomolecular residue types.
-    # A synthetic name prevents an arbitrary input name such as "DA" from
-    # selecting GBn2's nucleic-acid-specific parameter branch.
-    residue = topology.addResidue("MOL", chain)
-    omm_atoms = []
-    names = metadata.get("atom_names") or atoms.get_chemical_symbols()
-    for name, symbol in zip(names, atoms.get_chemical_symbols()):
-        omm_atoms.append(topology.addAtom(str(name), app.Element.getBySymbol(symbol), residue))
-    for i, j, _bond_type in metadata.get("bonds", []):
-        topology.addBond(omm_atoms[int(i)], omm_atoms[int(j)])
-    return topology
+    topology = TopologyProvider.from_mol2_atoms(atoms)
+    topology.validate_atoms(atoms)
+    return topology.to_openmm_topology()
 
 
 class _ContextBundle:
@@ -139,6 +119,10 @@ class OpenMMGB:
     """HCT/OBC-I/OBC-II/GBn/GBn2 correction with upstream OpenMM forces."""
 
     supported_properties = frozenset({"energy", "forces"})
+    conservative_forces = True
+    supports_pbc = False
+    energy_reference = "relative"
+    supports_absolute_solvation = False
 
     def __init__(
         self,

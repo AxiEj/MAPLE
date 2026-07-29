@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "audited_on": "2026-07-29",
+  "artifacts": [
+    {
+      "model_id": "aimnet2-cpcms-v2",
+      "source_revision": "3f1c3fe015ca07b0d7f907d8f6ebc4b5dea7ba83",
+      "source_path": "src/megalodon/metrics/aimnet2/cpcm_model/wb97m_cpcms_v2_0.jpt",
+      "size_bytes": 9280334,
+      "sha256": "32f73fcd68e76f67a6e088841304ca0adc96066cca83216dd9ed992e9e4dec87",
+      "runtime_energy_unit": "eV",
+      "runtime_force_unit": "eV/angstrom",
+      "repository_license": "Apache-2.0",
+      "artifact_license": "not separately stated",
+      "solvent_evidence": "checkpoint-internal cpcm/thf metadata",
+      "scientific_status": "experimental"
+    },
+    {
+      "model_id": "gnnis-reference",
+      "source_revision": "5f849bab475570aeaf129ec2e5672f4afbef6bbe",
+      "source_path": "MachineLearning/trained_models/GNN.pt",
+      "size_bytes": 1268543,
+      "sha256": "304a6cb2e1f804d30dcc4e1b135be1aa768074b4cb268ba26ee34acaa513e5f6",
+      "runtime_energy_unit": "kJ/mol through OpenMM",
+      "runtime_force_unit": "kJ/mol/nm through OpenMM",
+      "repository_license": "MIT-0",
+      "artifact_license": "not separately stated",
+      "solvent_evidence": "39 identifiers pinned from Simulation/solvents.yml",
+      "scientific_status": "reference-hamiltonian-only"
+    },
+    {
+      "model_id": "lsnn-v1-state-dict",
+      "source_revision": "1768d068dcb1ea65e8585af3f4a0cbf4047d9125",
+      "source_path": "Best_Trained_Models/280KDATASET2Kv3model.dict",
+      "size_bytes": 295423,
+      "sha256": "5b7f9ec224f9264c0220e072ed917201e84e702bab62b331bade37c1ede3a83b",
+      "runtime_energy_unit": "upstream protocol stores reduced potentials in kT and reports kcal/mol",
+      "runtime_force_unit": "not exposed by the MAPLE protocol scaffold",
+      "repository_license": "MIT",
+      "artifact_license": "not separately stated",
+      "solvent_evidence": "water LSNN-TI/LSNN-MBAR protocol",
+      "scientific_status": "runtime-not-yet-integrated"
+    },
+    {
+      "model_id": "lsnn-v1-full-model",
+      "source_revision": "1768d068dcb1ea65e8585af3f4a0cbf4047d9125",
+      "source_path": "Best_Trained_Models/280KDATASET2Kv3.pt",
+      "size_bytes": 314297,
+      "sha256": "82e05c684be961eea59c6deb0a8d989ba84809419004ddc16864c3e45fbb8cf5",
+      "runtime_energy_unit": "companion artifact; upstream config selects the state dict",
+      "runtime_force_unit": "not exposed by the MAPLE protocol scaffold",
+      "repository_license": "MIT",
+      "artifact_license": "not separately stated",
+      "solvent_evidence": "water LSNN-TI/LSNN-MBAR protocol",
+      "scientific_status": "companion-artifact"
+    },
+    {
+      "model_id": "mace-off24-medium",
+      "source_revision": "91a78c5a9c300d1104700d9352c8bfe449227737",
+      "source_path": "mace_off24/MACE-OFF24_medium.model",
+      "size_bytes": 18375569,
+      "sha256": "e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69",
+      "runtime_energy_unit": "eV",
+      "runtime_force_unit": "eV/angstrom",
+      "repository_license": "MIT runtime code",
+      "artifact_license": "ASL academic-only non-commercial",
+      "solvent_evidence": "none; complete ordinary PES",
+      "scientific_status": "adapter-smoke-verified"
+    },
+    {
+      "model_id": "mace-off23-sc",
+      "source_revision": "efbb20c930462bc37a247998a27814dff35d474f",
+      "source_path": "MACE-OFF23-SC_swa.model",
+      "protocol_revision": "c3056287622ba18f9b905e9df45affdff46cb147",
+      "size_bytes": 10360353,
+      "sha256": "32c9fb51704f96da855c67e0cdc9894f3e41694e98b7a0ed8813388b9f21db33",
+      "runtime_energy_unit": "eV through MACE/OpenMM-ML",
+      "runtime_force_unit": "eV/angstrom through MACE/OpenMM-ML",
+      "repository_license": "Academic Software License",
+      "artifact_license": "ASL academic-only non-commercial",
+      "solvent_evidence": "explicit-solvent mace-md replica-exchange hydration protocol",
+      "scientific_status": "checkpoint-pinned-protocol-bridge-pending"
+    },
+    {
+      "model_id": "aceff-2.0",
+      "source_revision": "67ad6a3b06ee9b44cfbac3bc32117dd6276e9122",
+      "source_path": "aceff_v2.0.ckpt",
+      "size_bytes": 12047031,
+      "sha256": "877af6bf84cc69d6d5cbd377a61cfc19c45fb87a00583f7c867e2f9d244cc8fd",
+      "runtime_energy_unit": "eV",
+      "runtime_force_unit": "eV/angstrom",
+      "unit_evidence": "Acellera/aceff_examples@3c59fb367903011e58abc51a7445cff85f7bf3df notebooks/aceff_batched_minimization_and_md.ipynb labels energy as eV; forces are its gradient with angstrom coordinates",
+      "repository_license": "Apache-2.0",
+      "artifact_license": "Apache-2.0 repository declaration",
+      "solvent_evidence": "none; complete ordinary PES",
+      "scientific_status": "adapter-unit-tested-runtime-not-installed"
+    }
+  ]
+}

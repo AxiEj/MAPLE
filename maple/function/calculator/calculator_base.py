@@ -79,6 +79,8 @@ def reject_implicit_solvent_derivatives(calculator, properties):
     unsupported = requested.intersection(IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES)
     if "forces" in supported:
         unsupported.difference_update({"forces", "force"})
+        if getattr(calculator, "frequency_type", None) is not None:
+            unsupported.discard("hessian")
     if unsupported:
         raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
     return normalized
@@ -340,7 +342,9 @@ class CalcABC(ase.calculators.calculator.Calculator):
         structured_solvation_result = None
 
         if getattr(self, 'solvent_correction', None) is not None:
-            if hessian is not None:
+            if hessian is not None and getattr(
+                self, 'frequency_type', None
+            ) is None:
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             if hasattr(self.solvent_correction, "evaluate"):
                 try:
@@ -385,11 +389,13 @@ class CalcABC(ase.calculators.calculator.Calculator):
             self.results['hessian'] = hessian
         if structured_solvation_result is not None:
             result = structured_solvation_result
+            frequency_type = getattr(self, 'frequency_type', None)
             self.results['solvation'] = {
                 'energy_hartree': float(result.energy_hartree),
                 'delta_g_solv_hartree': float(result.energy_hartree),
                 'gas_energy_hartree': gas_energy_ha,
                 'combined_energy_hartree': float(energy_ha),
+                'frequency_type': frequency_type,
                 'components_hartree': dict(result.components_hartree),
                 'provenance': dict(result.provenance),
                 'ase_free_energy_is_thermochemical_gibbs': False,
@@ -406,7 +412,10 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             return np.asarray(self._analytic_hessian(atoms))
         if mode == 'numerical':
-            if getattr(self, 'solvent_correction', None) is not None:
+            solvent_correction = getattr(self, 'solvent_correction', None)
+            if solvent_correction is not None and getattr(
+                self, 'frequency_type', None
+            ) is None:
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             return numerical_hessian_from_atoms(self, atoms, delta)
         raise ValueError(f"Unknown hessian mode: {mode!r}")

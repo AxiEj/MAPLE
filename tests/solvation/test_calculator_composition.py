@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 from ase import Atoms
+import pytest
 
-from maple.function.calculator.calculator_base import CalcABC
+from maple.function.calculator.calculator_base import (
+    CalcABC,
+    reject_implicit_solvent_derivatives,
+)
 from maple.function.calculator.extra_correction.implicit.result import SolvationResult
 from maple.function.dispatcher.sp.sp import SinglePoint
 
@@ -69,3 +73,98 @@ def test_shared_finalizer_does_not_leak_a_previous_solvation_result():
     assert calc.results["energy"] == 2.0
     assert "solvation" not in calc.results
     assert not hasattr(calc, "solvation_result")
+
+
+def test_shared_finalizer_records_frequency_type_when_present():
+    class FakeCorrection(DummyCorrection):
+        pass
+
+    calc = CalcABC()
+    calc.solvent_correction = FakeCorrection()
+    calc.frequency_type = "effective_solution_pmf"
+    atoms = Atoms("H", positions=[[0, 0, 0]])
+    calc._finalize_results(
+        atoms,
+        energy=1.0,
+        forces=np.asarray([[1.0, 2.0, 3.0]]),
+        unit="hartree",
+    )
+
+    solvation = calc.results["solvation"]
+    assert solvation["frequency_type"] == "effective_solution_pmf"
+
+
+def test_numerical_hessian_blocked_with_implicit_correction_without_frequency_type(
+    monkeypatch,
+):
+    called = {"ok": False}
+
+    def _raise_if_called(*_args, **_kwargs):
+        called["ok"] = True
+        return np.zeros((3, 3))
+
+    monkeypatch.setattr("maple.function.calculator.calculator_base.numerical_hessian_from_atoms", _raise_if_called)
+
+    class FakeCorrection:
+        supported_properties = {"energy", "forces"}
+
+    calc = CalcABC()
+    calc.solvent_correction = FakeCorrection()
+    calc.hessian = "numerical"
+    atoms = Atoms("H2", positions=[[0, 0, 0], [1, 0, 0]])
+
+    with pytest.raises(NotImplementedError, match="implicit-solvent provider"):
+        calc.get_hessian(atoms)
+
+    assert called["ok"] is False
+
+
+def test_numerical_hessian_with_frequency_type_uses_numerical_solver(
+    monkeypatch,
+):
+    output = np.arange(36, dtype=float).reshape(6, 6)
+
+    def _fake_numerical_hessian_from_atoms(_calc, _atoms, delta=0.002):
+        return output
+
+    monkeypatch.setattr("maple.function.calculator.calculator_base.numerical_hessian_from_atoms", _fake_numerical_hessian_from_atoms)
+
+    class FakeCorrection:
+        supported_properties = {"energy", "forces"}
+
+    calc = CalcABC()
+    calc.solvent_correction = FakeCorrection()
+    calc.frequency_type = "effective_solution_pmf"
+    calc.hessian = "numerical"
+    atoms = Atoms("H2", positions=[[0, 0, 0], [1, 0, 0]])
+    hessian = calc.get_hessian(atoms)
+
+    assert hessian is output
+
+
+def test_frequency_type_allows_combined_hessian_through_shared_finalizer():
+    calc = CalcABC()
+    calc.solvent_correction = DummyCorrection()
+    calc.frequency_type = "effective_solution_pmf"
+    atoms = Atoms("H", positions=[[0, 0, 0]])
+    hessian = np.eye(3)
+
+    calc._finalize_results(
+        atoms,
+        energy=1.0,
+        hessian=hessian,
+        unit="hartree",
+    )
+
+    np.testing.assert_allclose(calc.results["hessian"], hessian)
+    assert calc.results["solvation"]["frequency_type"] == "effective_solution_pmf"
+
+
+def test_frequency_type_allows_hessian_request_but_not_hvp():
+    calc = CalcABC()
+    calc.solvent_correction = DummyCorrection()
+    calc.frequency_type = "effective_solution_pmf"
+
+    assert reject_implicit_solvent_derivatives(calc, ["hessian"]) == ["hessian"]
+    with pytest.raises(NotImplementedError, match="implicit-solvent provider"):
+        calc.get_hvp(Atoms("H", positions=[[0, 0, 0]]), np.ones(3))

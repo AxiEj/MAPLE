@@ -1,0 +1,49 @@
+{
+  "model_id": "mace-off24-medium",
+  "version": "MACE-OFF24(M)",
+  "availability": "public-checkpoint",
+  "source": {
+    "repository": "https://github.com/ACEsuit/mace-off",
+    "revision": "91a78c5a9c300d1104700d9352c8bfe449227737",
+    "checkpoint_path": "mace_off24/MACE-OFF24_medium.model",
+    "checkpoint_url": "https://raw.githubusercontent.com/ACEsuit/mace-off/91a78c5a9c300d1104700d9352c8bfe449227737/mace_off24/MACE-OFF24_medium.model"
+  },
+  "checkpoint_sha256": "e5ccf5837f685899811a68754e7c994393bfd1a81720393b03c643b46c70bc69",
+  "elements": ["H", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I"],
+  "element_evidence": {
+    "contract": "atomic_numbers tensor embedded in the pinned checkpoint",
+    "atomic_numbers": [1, 6, 7, 8, 9, 15, 16, 17, 35, 53]
+  },
+  "license": {
+    "runtime_code": "MIT",
+    "checkpoint": "ASL academic-only non-commercial"
+  },
+  "capabilities": {
+    "energy": true,
+    "forces": true,
+    "conservative_forces": true,
+    "hessian": "finite_difference",
+    "supports_md": true,
+    "supports_pbc": false,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": false,
+    "requires_topology": true,
+    "requires_partial_charges": false,
+    "solvation_mode": "none",
+    "energy_reference": "absolute",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "elements": ["H", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I"],
+  "recommended_tasks": ["sp", "opt", "numerical_frequency", "short_md"],
+  "forbidden_tasks": [
+    "charged_system",
+    "open_shell_system",
+    "periodic_system_until_api_contract_audit",
+    "absolute_solvation_free_energy_without_a_free_energy_protocol"
+  ],
+  "notes": [
+    "mace_off(model='medium') resolves MACE-OFF23 in the audited upstream helper; this adapter requires the explicit OFF24 checkpoint."
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "model_id": "lsnn-v1",
+  "version": "v1",
+  "source_revision": "1768d068dcb1ea65e8585af3f4a0cbf4047d9125",
+  "source_url": "https://github.com/Popov-Lab-UNC/LSNN-v1",
+  "paper": "https://arxiv.org/abs/2510.20103",
+  "model_checksum_sha256": null,
+  "weight_artifacts": [
+    {
+      "filename": "280KDATASET2Kv3model.dict",
+      "source_path": "Best_Trained_Models/280KDATASET2Kv3model.dict",
+      "sha256": "5b7f9ec224f9264c0220e072ed917201e84e702bab62b331bade37c1ede3a83b"
+    },
+    {
+      "filename": "280KDATASET2Kv3.pt",
+      "source_path": "Best_Trained_Models/280KDATASET2Kv3.pt",
+      "sha256": "82e05c684be961eea59c6deb0a8d989ba84809419004ddc16864c3e45fbb8cf5"
+    }
+  ],
+  "license": "MIT",
+  "elements": [],
+  "element_scope": "not independently audited from the public training manifest",
+  "charge_range": null,
+  "audited_domain": {
+    "enabled": false,
+    "elements": [],
+    "charge_range": null,
+    "multiplicities": []
+  },
+  "spin_support": false,
+  "solvent": "water",
+  "temperature_kelvin": 298.15,
+  "energy_reference": "relative",
+  "solvent_scope": "water-only",
+  "supports_absolute_solvation": false,
+  "supports_alchemical_lambda": true,
+  "supports_ti": true,
+  "supports_mbar": true,
+  "supports_water_only": true,
+  "scientific_status": "experimental-prototype",
+  "default_eligible": false
+}

@@ -186,6 +186,8 @@ examples/md/**/*.xyz
 !/docs/implicit-solvation/benchmarks/*.md
 !/docs/implicit-solvation/benchmarks/*.json
 !/docs/implicit-solvation/benchmarks/*.py
+!/docs/pretrained-solvation-hub/
+!/docs/pretrained-solvation-hub/**
 
 # Frozen provider-parity evidence includes the original provider logs.
 !/tests/solvation/data/amber_gb_reference/audit/**/*.log

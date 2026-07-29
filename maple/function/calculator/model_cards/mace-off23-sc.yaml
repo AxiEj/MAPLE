@@ -1,0 +1,52 @@
+{
+  "model_id": "mace-off23-sc",
+  "version": "MACE-OFF23-SC_swa",
+  "availability": "public-checkpoint",
+  "source": {
+    "repository": "https://github.com/jharrymoore/MACE-OFF23-SC",
+    "revision": "efbb20c930462bc37a247998a27814dff35d474f",
+    "checkpoint_path": "MACE-OFF23-SC_swa.model"
+  },
+  "protocol_source": {
+    "repository": "https://github.com/jharrymoore/mace-md",
+    "revision": "c3056287622ba18f9b905e9df45affdff46cb147",
+    "lambda_parameter": "lambda_interpolate"
+  },
+  "checkpoint_sha256": "32c9fb51704f96da855c67e0cdc9894f3e41694e98b7a0ed8813388b9f21db33",
+  "license": {
+    "checkpoint": "ASL academic-only non-commercial",
+    "protocol_runtime": "mace-md/openmm-ml/openmmtools terms apply separately"
+  },
+  "capabilities": {
+    "energy": true,
+    "forces": true,
+    "conservative_forces": true,
+    "hessian": "none",
+    "supports_md": true,
+    "supports_pbc": true,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": true,
+    "requires_topology": true,
+    "requires_partial_charges": false,
+    "solvation_mode": "alchemical",
+    "energy_reference": "relative",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": true
+  },
+  "scientific_status": "checkpoint-pinned-protocol-bridge-pending",
+  "recommended_tasks": [
+    "explicit-solvent alchemical control after mace-md protocol reproduction"
+  ],
+  "forbidden_tasks": [
+    "ordinary_maple_calculator",
+    "implicit_solvent",
+    "frequency",
+    "free_energy_result_without_sampling_mbar_and_uncertainty",
+    "claiming_mace_off24_sc_paper_results"
+  ],
+  "notes": [
+    "The public checkpoint is MACE-OFF23-SC, not the OFF24-SC model used for some paper results.",
+    "The reference workflow uses OpenMM-ML interpolation, lambda_interpolate, replica exchange, and an MBAR-style multistate analysis; those optional runtimes are not integrated in this branch."
+  ]
+}

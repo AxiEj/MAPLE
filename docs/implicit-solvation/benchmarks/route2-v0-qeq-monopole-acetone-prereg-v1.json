@@ -1,0 +1,88 @@
+{
+  "claim_boundary": "This one-acetone protocol is a fixed-geometry structural falsifier for a no-training V0-Q control. It cannot report an experimental solvation score, a nonpolar term, total solvation free energy, force, PES, optimization, scan, MD, NVE, smooth-cavity result, or public Route-2 profile.",
+  "decision_rule": "Every structural gate must pass before this frozen control can advance to a separate physical validation stage. A failure rejects the control; it does not authorize a parameter rescale, experimental-error fit, response damping, eigenvalue clipping, post-training, fine-tuning, or a changed cavity.",
+  "execution_contract": {
+    "input_sha256": {
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/@route2-smd-stability-fallback.pcm": "4f4c56677bb99967855a4821937e74be94dafd9cc2ab59e1de70fb0d9eb8c069",
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/manifest.json": "1547a0d1a8edb9490828754aa7ff944990e98d90f538da345fc50980de87229b",
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/route2-result.json": "67b4c6b4bbed20d9bd9297cf580edfc0305ca56461934067079c225d2fd4e14b",
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/route2-state.npz": "68b7f77c66d51f7c48cde12be9117622848493ef9606d645b8bffc01ae106c30"
+    },
+    "pcmsolver_library_sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3",
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_qeq_monopole_acetone.py": "4c8ee9df8ebf357fbd61eefb59f569c8ee9760849d2262441ce1291757e24bba",
+      "maple/function/calculator/extra_correction/charge/data/qeq.dat": "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618",
+      "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+      "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+      "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+      "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_qeq_monopole.py": "9baa4bd1e2d213e667027973a241ee194644eb8a3bf7f6a9a54ce4ed1912fe60",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_variational_quadratic.py": "c693e370c5d09512c4d9f6cd24f2169b20b62a82b8f148b2aef71b56f66f5a5a"
+    }
+  },
+  "frozen_input_identity": {
+    "archived_source": "route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727",
+    "compound_id": "mobley_3867265",
+    "mace_checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "molecule": "acetone",
+    "reaction_field_projector": "exact-gto-v1"
+  },
+  "hard_constraints": {
+    "density_projection_or_radial_decomposition": false,
+    "error_selected_parameter_or_cavity": false,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "learned_response_jacobian_symmetrization": false,
+    "legacy_public_route_changed": false,
+    "map_or_uq_calibration": false,
+    "official_mace_checkpoint_unmodified": true,
+    "post_training": false,
+    "response_tempering_or_eigenvalue_clipping": false
+  },
+  "method": {
+    "construction": "route2-v0-rappe-goddard-hardness-same-basis-monopole-v1",
+    "continuum": "The archived fixed PCMSolver IEFPCM cavity is reopened through the reciprocal energy-conjugate response and compressed with an identical source/receiver 1.5-A l<=1 GTO basis.",
+    "electronic_functional": "A reference-shifted quadratic monopole tangent uses published Rappe-Goddard local hardness rows plus same-1.5-A-MACE-Gaussian off-diagonal vacuum Coulomb terms. The QEq electronegativity linear term is deliberately absent, so this is not full QEq.",
+    "frozen_solute": "Archived unmodified MACE-POLAR-1-M zero-reaction-field l<=1 density from one exact-GTO acetone state; the learned reaction-field update is forbidden.",
+    "parameter_provenance": {
+      "allowed_elements": [
+        "H",
+        "Li",
+        "C",
+        "N",
+        "O",
+        "F",
+        "Na",
+        "Si",
+        "P",
+        "S",
+        "Cl",
+        "K",
+        "Br",
+        "Rb",
+        "I",
+        "Cs"
+      ],
+      "qeq_hardness_source": "10.1021/j100161a070",
+      "qeq_parameter_table_sha256": "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618"
+    },
+    "response_subspace": "Only monopoles vary; every induced l=1 coefficient is imposed as an exact homogeneous KKT constraint."
+  },
+  "protocol_id": "route2-v0-qeq-monopole-acetone-prereg-v1",
+  "schema_version": 1,
+  "status": "frozen-before-execution",
+  "structural_gates": {
+    "additional_constraint_residual_inf_max": 1e-12,
+    "charge_constraint_residual_abs_e_max": 1e-10,
+    "electronic_minimum_curvature_hartree_min": 1e-08,
+    "frozen_total_charge_abs_e_max": 1e-10,
+    "half_coupling_identity_error_hartree_max": 1e-10,
+    "induced_l1_max_abs_e_max": 1e-12,
+    "joint_minimum_curvature_hartree_min": 1e-08,
+    "operator_maximum_eigenvalue_hartree_max": 1e-08,
+    "response_antisymmetry_norm_hartree_max": 1e-12,
+    "response_maximum_eigenvalue_hartree_max": 1e-10,
+    "stationarity_residual_inf_max": 1e-10
+  }
+}

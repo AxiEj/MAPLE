@@ -16,7 +16,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Mapping, Sequence, cast
 
-
 _LSNN_DEFAULT_CARD = (
     Path(__file__).resolve().parent.parent
     / "calculator"
@@ -110,7 +109,9 @@ def _parse_multiplicity_values(value: object, field_name: str) -> tuple[int, ...
         return (parsed,)
 
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
-        raise LSNNConfigError(f"{field_name} must be an integer or sequence of integers.")
+        raise LSNNConfigError(
+            f"{field_name} must be an integer or sequence of integers."
+        )
 
     parsed_values: set[int] = set()
     for item in value:
@@ -128,7 +129,9 @@ def _canonical_element_sequence(value: object, field_name: str) -> tuple[str, ..
         raise LSNNConfigError(f"{field_name} must be a non-empty sequence.")
     canonical = tuple(str(item).strip() for item in value)
     if not canonical or any(not item for item in canonical):
-        raise LSNNConfigError(f"{field_name} must contain at least one non-empty symbol.")
+        raise LSNNConfigError(
+            f"{field_name} must contain at least one non-empty symbol."
+        )
     return tuple(canonical)
 
 
@@ -205,7 +208,9 @@ class LSNNModelCard:
 
         audited_domain = payload.get("audited_domain", {})
         if not isinstance(audited_domain, Mapping):
-            raise LSNNConfigError("model_card.audited_domain must be a mapping when present.")
+            raise LSNNConfigError(
+                "model_card.audited_domain must be a mapping when present."
+            )
 
         audited_domain_enabled = bool(audited_domain.get("enabled", False))
         if audited_domain_enabled:
@@ -249,8 +254,12 @@ class LSNNModelCard:
             temperature_kelvin=_optional_float(payload.get("temperature_kelvin")),
             energy_reference=str(payload.get("energy_reference", "unknown")),
             solvent_scope=str(payload.get("solvent_scope", "unknown")),
-            supports_absolute_solvation=bool(payload.get("supports_absolute_solvation", False)),
-            supports_alchemical_lambda=bool(payload.get("supports_alchemical_lambda", True)),
+            supports_absolute_solvation=bool(
+                payload.get("supports_absolute_solvation", False)
+            ),
+            supports_alchemical_lambda=bool(
+                payload.get("supports_alchemical_lambda", True)
+            ),
             supports_ti=bool(payload.get("supports_ti", True)),
             supports_mbar=bool(payload.get("supports_mbar", True)),
             supports_water_only=bool(payload.get("supports_water_only", True)),
@@ -320,7 +329,10 @@ def _expect_water_only(solvent: str) -> None:
 
 
 def _finite_sequence(values: Sequence[object], field_name: str) -> tuple[float, ...]:
-    return tuple(_finite_float(value, f"{field_name}[{index}]") for index, value in enumerate(values))
+    return tuple(
+        _finite_float(value, f"{field_name}[{index}]")
+        for index, value in enumerate(values)
+    )
 
 
 @dataclass(frozen=True)
@@ -338,11 +350,12 @@ class LSNNProtocolRequest:
     temperature_kelvin: float = 298.15
 
     def __post_init__(self) -> None:
-        if not self.symbols:
-            raise LSNNConfigError("LSNN request requires at least one atom.")
-        if len(self.positions_angstrom) != len(self.symbols) * 3:
+        symbols = _canonical_element_sequence(self.symbols, "symbols")
+        positions = _finite_sequence(self.positions_angstrom, "positions_angstrom")
+        if len(positions) != len(symbols) * 3:
             raise LSNNConfigError("positions_angstrom must have 3 values per atom.")
-        _finite_sequence(self.positions_angstrom, "positions_angstrom")
+        object.__setattr__(self, "symbols", symbols)
+        object.__setattr__(self, "positions_angstrom", positions)
 
         for label, value in {
             "lambda_electrostatics": self.lambda_electrostatics,
@@ -372,6 +385,24 @@ class LSNNProtocolRequest:
         )
         if self.multiplicity is not None and self.multiplicity <= 0:
             raise LSNNConfigError("multiplicity must be >= 1.")
+
+    @property
+    def system_fingerprint(self) -> str:
+        """Exact identity for the scaffold's single-geometry path."""
+        payload = {
+            "symbols": self.symbols,
+            "positions_angstrom": self.positions_angstrom,
+            "solvent": str(self.solvent).strip().lower(),
+            "total_charge": self.total_charge,
+            "multiplicity": self.multiplicity,
+            "temperature_kelvin": float(self.temperature_kelvin),
+        }
+        serialized = json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        return hashlib.sha256(serialized).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -506,11 +537,20 @@ class LSNNProtocolAdapter:
             )
         return LSNNProtocolResult(
             request=request,
-            energy=float(_finite_float(response.energy_hartree, "runtime.energy_hartree")),
+            energy=float(
+                _finite_float(response.energy_hartree, "runtime.energy_hartree")
+            ),
             lambda_electrostatics=float(request.lambda_electrostatics),
             lambda_sterics=float(request.lambda_sterics),
-            dU_dlambda_electrostatics=float(_finite_float(response.dU_dlambda_electrostatics, "runtime.dU_dlambda_electrostatics")),
-            dU_dlambda_sterics=float(_finite_float(response.dU_dlambda_sterics, "runtime.dU_dlambda_sterics")),
+            dU_dlambda_electrostatics=float(
+                _finite_float(
+                    response.dU_dlambda_electrostatics,
+                    "runtime.dU_dlambda_electrostatics",
+                )
+            ),
+            dU_dlambda_sterics=float(
+                _finite_float(response.dU_dlambda_sterics, "runtime.dU_dlambda_sterics")
+            ),
         )
 
     def evaluate_ti(
@@ -549,9 +589,7 @@ class LSNNProtocolAdapter:
             reverse_delta = self._integrate_ti_path(reverse_states, direction="reverse")
 
         hysteresis = (
-            None
-            if reverse_delta is None
-            else abs(forward_delta + reverse_delta) * 0.5
+            None if reverse_delta is None else abs(forward_delta + reverse_delta) * 0.5
         )
 
         ordered_states = tuple(states)
@@ -561,12 +599,16 @@ class LSNNProtocolAdapter:
             points=len(ordered_states),
             delta_g_hartree=forward_delta,
             hysteresis_hartree=hysteresis,
-            lambda_start=float(_finite_float(ordered_states[0].progress, "first state progress"))
-            if ordered_states[0].progress is not None
-            else 0.0,
-            lambda_end=float(_finite_float(ordered_states[-1].progress, "last state progress"))
-            if ordered_states[-1].progress is not None
-            else float(len(ordered_states) - 1),
+            lambda_start=(
+                float(_finite_float(ordered_states[0].progress, "first state progress"))
+                if ordered_states[0].progress is not None
+                else 0.0
+            ),
+            lambda_end=(
+                float(_finite_float(ordered_states[-1].progress, "last state progress"))
+                if ordered_states[-1].progress is not None
+                else float(len(ordered_states) - 1)
+            ),
             reverse_delta_g_hartree=reverse_delta,
         )
 
@@ -575,6 +617,11 @@ class LSNNProtocolAdapter:
         forward_states: Sequence[LSNNProtocolRequest],
         reverse_states: Sequence[LSNNProtocolRequest],
     ) -> None:
+        if forward_states[0].system_fingerprint != reverse_states[0].system_fingerprint:
+            raise LSNNConfigError(
+                "Forward and reverse TI paths must share one exact system identity."
+            )
+
         def endpoint(state: LSNNProtocolRequest) -> tuple[float, float, str, float]:
             return (
                 float(state.lambda_electrostatics),
@@ -583,10 +630,9 @@ class LSNNProtocolAdapter:
                 float(state.temperature_kelvin),
             )
 
-        if (
-            endpoint(reverse_states[0]) != endpoint(forward_states[-1])
-            or endpoint(reverse_states[-1]) != endpoint(forward_states[0])
-        ):
+        if endpoint(reverse_states[0]) != endpoint(forward_states[-1]) or endpoint(
+            reverse_states[-1]
+        ) != endpoint(forward_states[0]):
             raise LSNNConfigError(
                 "Reverse TI endpoints must exactly reverse the forward lambda, "
                 "solvent, and temperature endpoints."
@@ -601,6 +647,7 @@ class LSNNProtocolAdapter:
         ordered = tuple(states)
         if not ordered:
             raise LSNNConfigError("TI path may not be empty.")
+        self._validate_system_identity(ordered, f"{direction} TI")
 
         result_points = tuple(self.evaluate(state) for state in ordered)
 
@@ -627,16 +674,25 @@ class LSNNProtocolAdapter:
                     "TI forward states must progress forward and reverse states must progress in reverse."
                 )
 
-            scale_e = (float(current.lambda_electrostatics) - float(prev.lambda_electrostatics)) / delta_progress
-            scale_s = (float(current.lambda_sterics) - float(prev.lambda_sterics)) / delta_progress
+            scale_e = (
+                float(current.lambda_electrostatics) - float(prev.lambda_electrostatics)
+            ) / delta_progress
+            scale_s = (
+                float(current.lambda_sterics) - float(prev.lambda_sterics)
+            ) / delta_progress
             integrand = 0.5 * (
-                (float(prev.dU_dlambda_electrostatics) + float(current.dU_dlambda_electrostatics))
+                (
+                    float(prev.dU_dlambda_electrostatics)
+                    + float(current.dU_dlambda_electrostatics)
+                )
                 * scale_e
                 + (float(prev.dU_dlambda_sterics) + float(current.dU_dlambda_sterics))
                 * scale_s
             )
             if not math.isfinite(integrand):
-                raise LSNNConfigError("TI derivative accumulation produced non-finite value.")
+                raise LSNNConfigError(
+                    "TI derivative accumulation produced non-finite value."
+                )
             if not math.isfinite(delta_progress):
                 raise LSNNConfigError("TI progress spacing must be finite.")
             total += float(integrand * delta_progress)
@@ -656,6 +712,10 @@ class LSNNProtocolAdapter:
                 "Runtime does not provide an MBAR estimator hook."
             )
         state_tuple = tuple(states)
+        self._validate_system_identity(
+            tuple(state.request for state in state_tuple),
+            "MBAR",
+        )
         _ = tuple(self.evaluate(state.request) for state in state_tuple)
         payload = cast(Mapping[str, object], mbar(state_tuple))
         if not isinstance(payload, Mapping):
@@ -675,11 +735,18 @@ class LSNNProtocolAdapter:
         )
         if not (0.0 <= overlap <= 1.0):
             raise LSNNConfigError("MBAR payload overlap must be in [0, 1].")
-        ess = float(_finite_float(payload.get("effective_sample_size"), "MBAR payload effective_sample_size"))
+        ess = float(
+            _finite_float(
+                payload.get("effective_sample_size"),
+                "MBAR payload effective_sample_size",
+            )
+        )
         if ess < 0.0:
             raise LSNNConfigError("MBAR payload effective_sample_size must be >= 0.")
 
-        uncertainty = float(_finite_float(payload.get("uncertainty"), "MBAR payload uncertainty"))
+        uncertainty = float(
+            _finite_float(payload.get("uncertainty"), "MBAR payload uncertainty")
+        )
         uncertainty_units = _optional_str(payload.get("uncertainty_units"))
         if uncertainty_units not in {"hartree", "kcal/mol", "kJ/mol"}:
             raise LSNNConfigError(
@@ -688,16 +755,22 @@ class LSNNProtocolAdapter:
 
         sampling_raw = payload.get("sampling")
         if not isinstance(sampling_raw, Mapping) or not sampling_raw:
-            raise LSNNConfigError("MBAR payload must provide non-empty sampling metadata.")
+            raise LSNNConfigError(
+                "MBAR payload must provide non-empty sampling metadata."
+            )
         sampling: dict[str, float] = {}
         for key, value in sampling_raw.items():
             if not isinstance(key, str) or not key:
-                raise LSNNConfigError("MBAR payload sampling keys must be non-empty strings.")
+                raise LSNNConfigError(
+                    "MBAR payload sampling keys must be non-empty strings."
+                )
             sampling[key] = _finite_float(value, f"sampling[{key}]")
 
         provenance_raw = payload.get("provenance")
         if not isinstance(provenance_raw, Mapping) or not provenance_raw:
-            raise LSNNConfigError("MBAR payload must provide non-empty provenance metadata.")
+            raise LSNNConfigError(
+                "MBAR payload must provide non-empty provenance metadata."
+            )
         provenance = dict(provenance_raw)
 
         diagnostics: dict[str, float] = {}
@@ -728,6 +801,22 @@ class LSNNProtocolAdapter:
             protocol_status="scaffold",
             diagnostics=diagnostics,
         )
+
+    @staticmethod
+    def _validate_system_identity(
+        states: Sequence[LSNNProtocolRequest],
+        path_name: str,
+    ) -> None:
+        if not states:
+            raise LSNNConfigError(f"{path_name} path may not be empty.")
+        expected = states[0].system_fingerprint
+        for index, state in enumerate(states[1:], start=1):
+            if state.system_fingerprint != expected:
+                raise LSNNConfigError(
+                    f"{path_name} states must share identical symbols, coordinates, "
+                    "charge, multiplicity, solvent, and temperature; "
+                    f"state index {index} differs."
+                )
 
     def _validate_audited_domain(self, request: LSNNProtocolRequest) -> None:
         if not self.model_card.audited_domain_enabled:

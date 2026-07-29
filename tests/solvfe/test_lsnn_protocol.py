@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -18,7 +19,6 @@ from maple.function.solvfe import (
     LSNNTiResult,
     load_lsnn_model_card,
 )
-
 
 UPSTREAM_REVISION = "1768d068dcb1ea65e8585af3f4a0cbf4047d9125"
 WEIGHT_DICT_SHA = "5b7f9ec224f9264c0220e072ed917201e84e702bab62b331bade37c1ede3a83b"
@@ -94,9 +94,12 @@ def _json_card_with_checksum(
     return path
 
 
-def _runtime_with_constant_response(request: LSNNProtocolRequest) -> LSNNRuntimeResponse:
+def _runtime_with_constant_response(
+    request: LSNNProtocolRequest,
+) -> LSNNRuntimeResponse:
     return LSNNRuntimeResponse(
-        energy_hartree=1.0 + 0.1 * (request.lambda_electrostatics + request.lambda_sterics),
+        energy_hartree=1.0
+        + 0.1 * (request.lambda_electrostatics + request.lambda_sterics),
         dU_dlambda_electrostatics=request.lambda_electrostatics,
         dU_dlambda_sterics=request.lambda_sterics,
     )
@@ -125,9 +128,7 @@ def _build_runtime_with_mbar(include_companion: bool = False):
             }
             if include_companion:
                 diagnostics["n_states"] = len(requests)
-                diagnostics["effective_frames"] = sum(
-                    req.n_frames for req in requests
-                )
+                diagnostics["effective_frames"] = sum(req.n_frames for req in requests)
             return diagnostics
 
     return _Runtime()
@@ -159,7 +160,9 @@ def test_default_card_is_json_and_pinned():
 def test_water_only_gate_and_lam_contract(tmp_path):
     weight = tmp_path / "weights.ckpt"
     weight.write_text("lsnn")
-    card = _json_card_with_checksum(tmp_path, weight.name, hashlib.sha256(weight.read_bytes()).hexdigest())
+    card = _json_card_with_checksum(
+        tmp_path, weight.name, hashlib.sha256(weight.read_bytes()).hexdigest()
+    )
     adapter = LSNNProtocolAdapter(
         model_path=weight,
         card_path=card,
@@ -259,10 +262,16 @@ def test_checksum_gate_is_fail_closed(tmp_path):
     real = hashlib.sha256(weight.read_bytes()).hexdigest()
     bad_card = _json_card_with_checksum(tmp_path, weight.name, "0" * 64)
     with pytest.raises(LSNNConfigError, match="checksum mismatch"):
-        LSNNProtocolAdapter(model_path=weight, card_path=bad_card, runtime=_runtime_with_constant_response)
+        LSNNProtocolAdapter(
+            model_path=weight,
+            card_path=bad_card,
+            runtime=_runtime_with_constant_response,
+        )
 
     good_card = _json_card_with_checksum(tmp_path, weight.name, real)
-    adapter = LSNNProtocolAdapter(model_path=weight, card_path=good_card, runtime=_runtime_with_constant_response)
+    adapter = LSNNProtocolAdapter(
+        model_path=weight, card_path=good_card, runtime=_runtime_with_constant_response
+    )
     assert adapter.model_path == weight
 
 
@@ -275,13 +284,17 @@ def test_runtime_artifact_must_be_pinned(tmp_path):
         hashlib.sha256(weight.read_bytes()).hexdigest(),
     )
     with pytest.raises(LSNNConfigError, match="not a pinned artifact"):
-        LSNNProtocolAdapter(model_path=weight, card_path=card, runtime=_runtime_with_constant_response)
+        LSNNProtocolAdapter(
+            model_path=weight, card_path=card, runtime=_runtime_with_constant_response
+        )
 
 
 def test_runtime_required_for_execution(tmp_path):
     weight = tmp_path / "weights.ckpt"
     weight.write_text("weights")
-    card = _json_card_with_checksum(tmp_path, weight.name, hashlib.sha256(weight.read_bytes()).hexdigest())
+    card = _json_card_with_checksum(
+        tmp_path, weight.name, hashlib.sha256(weight.read_bytes()).hexdigest()
+    )
 
     with pytest.raises(LSNNRuntimeMissingError, match="runtime"):
         LSNNProtocolAdapter(model_path=weight, card_path=card)
@@ -361,7 +374,9 @@ def test_ti_accepts_forward_and_reverse_paths(tmp_path):
 def test_ti_validates_reverse_ordering(tmp_path):
     weight = tmp_path / "weights.ckpt"
     weight.write_text("weights")
-    card = _json_card_with_checksum(tmp_path, weight.name, hashlib.sha256(weight.read_bytes()).hexdigest())
+    card = _json_card_with_checksum(
+        tmp_path, weight.name, hashlib.sha256(weight.read_bytes()).hexdigest()
+    )
 
     adapter = LSNNProtocolAdapter(
         model_path=weight,
@@ -431,6 +446,50 @@ def test_ti_validates_reverse_ordering(tmp_path):
         adapter.evaluate_ti(forward, reverse_states=wrong_endpoints)
 
 
+def test_ti_rejects_mixed_system_identity(tmp_path):
+    weight = tmp_path / "weights.ckpt"
+    weight.write_text("weights")
+    card = _json_card_with_checksum(
+        tmp_path, weight.name, hashlib.sha256(weight.read_bytes()).hexdigest()
+    )
+    adapter = LSNNProtocolAdapter(
+        model_path=weight,
+        card_path=card,
+        runtime=_build_runtime_with_mbar(),
+    )
+    start = replace(
+        _water_request(),
+        lambda_electrostatics=0.0,
+        lambda_sterics=0.0,
+        progress=0.0,
+    )
+    mismatched_geometry = replace(
+        start,
+        positions_angstrom=(
+            0.1,
+            *start.positions_angstrom[1:],
+        ),
+        lambda_electrostatics=1.0,
+        lambda_sterics=1.0,
+        progress=1.0,
+    )
+    with pytest.raises(LSNNConfigError, match="identical symbols, coordinates"):
+        adapter.evaluate_ti((start, mismatched_geometry))
+
+    end = replace(
+        start,
+        lambda_electrostatics=1.0,
+        lambda_sterics=1.0,
+        progress=1.0,
+    )
+    reverse_wrong_charge = (
+        replace(end, total_charge=1),
+        replace(start, total_charge=1),
+    )
+    with pytest.raises(LSNNConfigError, match="exact system identity"):
+        adapter.evaluate_ti((start, end), reverse_states=reverse_wrong_charge)
+
+
 def test_mbar_collects_payload_and_diagnostics(tmp_path):
     weight = tmp_path / "weights.ckpt"
     weight.write_text("weights")
@@ -453,7 +512,17 @@ def test_mbar_collects_payload_and_diagnostics(tmp_path):
             LSNNMbarRequest(
                 request=LSNNProtocolRequest(
                     symbols=("H", "O", "H"),
-                    positions_angstrom=(0.0, 0.0, 0.0, 0.0, 0.75, 0.58, 0.0, -0.75, 0.58),
+                    positions_angstrom=(
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.75,
+                        0.58,
+                        0.0,
+                        -0.75,
+                        0.58,
+                    ),
                     lambda_electrostatics=0.0,
                     lambda_sterics=0.0,
                     total_charge=0,
@@ -465,7 +534,17 @@ def test_mbar_collects_payload_and_diagnostics(tmp_path):
             LSNNMbarRequest(
                 request=LSNNProtocolRequest(
                     symbols=("H", "O", "H"),
-                    positions_angstrom=(0.0, 0.0, 0.0, 0.0, 0.75, 0.58, 0.0, -0.75, 0.58),
+                    positions_angstrom=(
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.75,
+                        0.58,
+                        0.0,
+                        -0.75,
+                        0.58,
+                    ),
                     lambda_electrostatics=1.0,
                     lambda_sterics=1.0,
                     total_charge=0,
@@ -490,3 +569,37 @@ def test_mbar_collects_payload_and_diagnostics(tmp_path):
     assert mbar.diagnostics is not None
     assert mbar.diagnostics["n_states"] == 2
     assert mbar.diagnostics["effective_frames"] == 8
+
+
+def test_mbar_rejects_mixed_system_identity(tmp_path):
+    weight = tmp_path / "weights.ckpt"
+    weight.write_text("weights")
+    card = _json_card_with_checksum(
+        tmp_path, weight.name, hashlib.sha256(weight.read_bytes()).hexdigest()
+    )
+    adapter = LSNNProtocolAdapter(
+        model_path=weight,
+        card_path=card,
+        runtime=_build_runtime_with_mbar(),
+    )
+    start = replace(
+        _water_request(),
+        lambda_electrostatics=0.0,
+        lambda_sterics=0.0,
+        progress=0.0,
+    )
+    end = replace(
+        start,
+        lambda_electrostatics=1.0,
+        lambda_sterics=1.0,
+        progress=1.0,
+        temperature_kelvin=310.0,
+    )
+
+    with pytest.raises(LSNNConfigError, match="identical symbols, coordinates"):
+        adapter.evaluate_mbar(
+            (
+                LSNNMbarRequest(start),
+                LSNNMbarRequest(end),
+            )
+        )

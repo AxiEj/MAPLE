@@ -164,16 +164,32 @@ class ModelCapabilities:
             )
 
     def validate_task(self, task: str) -> None:
-        task = str(task).strip().lower()
-        if task in {"sp", "single_point", "energy"} and not self.energy:
+        task = _normalize_task_name(task)
+        supported_tasks = {
+            "sp",
+            "opt",
+            "frequency",
+            "md",
+            "scan",
+            "ts",
+            "irc",
+            "absolute_solvation_free_energy",
+            "alchemical_free_energy",
+        }
+        if task not in supported_tasks:
+            raise ValueError(
+                f"Unsupported or unaudited model task {task!r}; "
+                "task capability validation is fail-closed."
+            )
+        if task == "sp" and not self.energy:
             raise ValueError("The model card does not enable energy evaluation.")
-        if task in {"opt", "optimization"} and not (
+        if task in {"opt", "scan", "ts", "irc"} and not (
             self.energy and self.forces and self.conservative_forces
         ):
             raise ValueError(
-                "Optimization requires energy-derived conservative forces."
+                f"Task {task!r} requires energy-derived conservative forces."
             )
-        if task in {"frequency", "freq"} and not (
+        if task == "frequency" and not (
             self.energy
             and self.forces
             and self.conservative_forces
@@ -185,19 +201,13 @@ class ModelCapabilities:
         if task == "md" and not self.supports_md:
             raise ValueError("The model card does not enable molecular dynamics.")
         if (
-            task
-            in {
-                "absolute_solvation",
-                "absolute_solvation_free_energy",
-            }
+            task == "absolute_solvation_free_energy"
             and not self.supports_absolute_solvation
         ):
             raise ValueError(
                 "The model card does not enable absolute solvation free energy."
             )
-        if task in {"alchemical", "alchemical_free_energy"} and not (
-            self.supports_alchemical_lambda
-        ):
+        if task == "alchemical_free_energy" and not self.supports_alchemical_lambda:
             raise ValueError("The model card does not enable alchemical lambda.")
 
 

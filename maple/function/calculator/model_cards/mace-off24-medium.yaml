@@ -35,7 +35,6 @@
     "supports_absolute_solvation": false,
     "supports_alchemical_lambda": false
   },
-  "elements": ["H", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I"],
   "recommended_tasks": ["sp", "opt", "numerical_frequency", "short_md"],
   "forbidden_tasks": [
     "charged_system",

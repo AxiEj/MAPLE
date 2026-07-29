@@ -20,6 +20,7 @@ from .calculator_base import (
 )
 from .model_capabilities import (
     CombinationValidator,
+    MODEL_CARD_EXTENSIONS,
     ModelCardError,
     SolvationCapabilities,
     load_model_provenance_card,
@@ -121,6 +122,7 @@ class SetCalculator:
         model_options: Optional[dict] = None,
         solvation_options: Optional[dict] = None,
         charge_options: Optional[dict] = None,
+        task: Optional[str] = None,
     ) -> None:
         self.output = output
         self.model = str(model).strip().lower()
@@ -137,6 +139,7 @@ class SetCalculator:
             charge_options = atom_info.get('_maple_charge_options', {})
         self.solvation_options = dict(solvation_options)
         self.charge_options = dict(charge_options)
+        self.task = str(task).strip().lower() if task is not None else None
         self._model_error_logged = False
 
     def _model_dir(self) -> Path:
@@ -151,6 +154,30 @@ class SetCalculator:
 
     def _model_card_root(self) -> Path:
         return Path(__file__).parent / 'model_cards'
+
+    def _validate_registered_model_task(self, cls) -> None:
+        """Validate Route 4 tasks before resolving or loading model weights."""
+        if self.task is None:
+            return
+        model_names = tuple(getattr(cls, 'MODEL_NAMES', ()))
+        if not model_names:
+            return
+
+        canonical_name = str(model_names[0]).strip().lower().replace('_', '-')
+        card_root = self._model_card_root()
+        if not any(
+            (card_root / f'{canonical_name}{extension}').is_file()
+            for extension in MODEL_CARD_EXTENSIONS
+        ):
+            return
+
+        try:
+            card = load_model_provenance_card(canonical_name, card_root)
+        except ModelCardError as exc:
+            raise ValueError(
+                f"Failed to load provenance card for model '{canonical_name}': {exc}"
+            ) from exc
+        card.validate_task(self.task)
 
     def _log_model_error(self, message: str) -> None:
         self._model_error_logged = True
@@ -511,6 +538,7 @@ class SetCalculator:
 
         cls = self._discover_calculator_class(requested_name)
         name = self.model
+        self._validate_registered_model_task(cls)
         self._validate_model_options(cls)
         self._validate_against_class(cls)
         options = dict(self.model_options)

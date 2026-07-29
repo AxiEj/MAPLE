@@ -39,14 +39,20 @@ potential registry and composition boundary.  Route 4 adds:
 
 Route 4 does not duplicate the Route 3 `#solvfe` sampling engine and does not add a public `#bindfe` task.
 
-## Initial executable lanes
+## Initial engineering integration lanes
 
-| Lane | Backend | Initial claim |
+This milestone implements architecture, pinned provenance, adapters, and
+fail-closed unit contracts.  It does **not** complete the four scientific
+verticals: no real-checkpoint NVE certification, FreeSolv/MNSol accuracy run,
+SAMPL host--guest calculation, or protein--ligand free-energy calculation is
+claimed here.
+
+| Lane | Backend | Engineering status |
 | --- | --- | --- |
-| Conservative PES | MACE-OFF24(M), AceFF 2.0 | SP, OPT, numerical Hessian, short MD inside the declared domain |
-| Native solution PES | AIMNet2-CPCMS v2 | Experimental only until solvent, license, and energy-reference metadata close |
-| Additive/reference solvent PMF | OpenFF + GNNIS | Reference Hamiltonian, conformational sampling, no absolute solvation-free-energy claim |
-| Alchemical solvation | LSNN-v1 | Water-only TI/MBAR protocol adapter, not a normal calculator |
+| Conservative PES | MACE-OFF24(M), AceFF 2.0 | Adapter SP/force/numerical-Hessian contracts are unit-tested; live-checkpoint MD/NVE certification remains pending |
+| Native solution PES | AIMNet2-CPCMS v2 | Neutral-singlet mechanics probe only; MD is disabled until real-checkpoint stability evidence and solvent/license/reference metadata close |
+| Additive/reference solvent PMF | OpenFF + GNNIS | Sealed reference-Hamiltonian contract; live upstream runtime/MD validation remains pending and absolute solvation free energy is forbidden |
+| Alchemical solvation | LSNN-v1 | Scaffold-only water TI/MBAR protocol contract; default execution remains disabled until the model domain and runtime are audited |
 
 GNNIS is an additive solvent PMF physically, but the executable
 `gnnis-reference` adapter seals it to the upstream OpenFF-2.0.0 vacuum
@@ -63,9 +69,9 @@ MACE-OFF24-SC result is not assigned to that public OFF23-SC checkpoint.
 
 - FreeSolv and MNSol are independent panels and are never ranked against one
   another.
-- A paired comparison requires identical record, geometry/conformer, solvent,
-  potential, cavity/PMF, sampling, estimator, standard-state, and experimental
-  provenance.
+- A paired comparison may differ in potential/model identity, but requires
+  identical records, geometry/conformer policy, solvent protocol/backend,
+  cavity/PMF, sampling, estimator, standard-state, and experimental provenance.
 - Training overlap defaults to `overlap_unknown`.  Absence of evidence is not a
   strict holdout.
 - The frozen MNSol split is referenced by

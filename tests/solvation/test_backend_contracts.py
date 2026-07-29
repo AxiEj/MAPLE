@@ -79,10 +79,7 @@ def test_composite_calculator_combines_energy_force_and_numerical_hessian():
     np.testing.assert_allclose(calc.get_forces(atoms), [[-1.5, 0.0, 0.0]])
     calc.calculate(atoms, properties=("hessian",))
     assert calc.results["hessian"] == pytest.approx(np.eye(3) * 1.5, abs=1e-8)
-    assert (
-        calc.results["solvation"]["frequency_type"]
-        == "effective_solution_pmf"
-    )
+    assert calc.results["solvation"]["frequency_type"] == "effective_solution_pmf"
 
 
 def test_native_potential_cannot_be_double_solvated():

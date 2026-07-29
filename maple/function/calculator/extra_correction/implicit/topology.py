@@ -4,7 +4,7 @@ import importlib.util
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 from ase.data import atomic_numbers, chemical_symbols
 
@@ -135,7 +135,9 @@ class TopologyProvider:
         return (i_i, j_j, order)
 
     @staticmethod
-    def _validate_mappings(mappings: Iterable[Any], natoms: int) -> tuple[int | None, ...]:
+    def _validate_mappings(
+        mappings: Iterable[Any], natoms: int
+    ) -> tuple[int | None, ...]:
         normalized: list[int | None] = []
         used: set[int] = set()
         for item in mappings:
@@ -181,7 +183,9 @@ class TopologyProvider:
         return tuple(normalized)
 
     @staticmethod
-    def _component_ids(natoms: int, bonds: Sequence[tuple[int, int, float]]) -> tuple[int, ...]:
+    def _component_ids(
+        natoms: int, bonds: Sequence[tuple[int, int, float]]
+    ) -> tuple[int, ...]:
         if natoms == 0:
             return tuple()
         adjacency: list[list[int]] = [[] for _ in range(natoms)]
@@ -220,6 +224,8 @@ class TopologyProvider:
     ) -> CanonicalTopology:
         symbols_tuple = tuple(symbols)
         natoms = len(symbols_tuple)
+        if natoms == 0:
+            raise ValueError(f"{source}: topology must contain at least one atom.")
 
         if len(atom_names) != natoms:
             raise ValueError(
@@ -230,13 +236,19 @@ class TopologyProvider:
                 f"{source}: atom_types length {len(atom_types)} must match atom count {natoms}."
             )
 
-        bonds_tuple = tuple(TopologyProvider._validate_bond(edge, natoms) for edge in bonds)
+        bonds_tuple = tuple(
+            TopologyProvider._validate_bond(edge, natoms) for edge in bonds
+        )
         mapping_tuple = TopologyProvider._validate_mappings(mappings, natoms)
-        formal_charge_tuple = TopologyProvider._validate_formal_charges(formal_charges, natoms)
+        formal_charge_tuple = TopologyProvider._validate_formal_charges(
+            formal_charges, natoms
+        )
         normalized_total_charge = (
             None
             if total_formal_charge is None
-            else _integral_charge(total_formal_charge, field=f"{source} total formal charge")
+            else _integral_charge(
+                total_formal_charge, field=f"{source} total formal charge"
+            )
         )
         known_formal_sum = (
             None
@@ -245,7 +257,9 @@ class TopologyProvider:
         )
         if normalized_total_charge is None:
             normalized_total_charge = known_formal_sum
-        elif known_formal_sum is not None and known_formal_sum != normalized_total_charge:
+        elif (
+            known_formal_sum is not None and known_formal_sum != normalized_total_charge
+        ):
             raise ValueError(
                 f"{source}: per-atom formal charges sum to {known_formal_sum}, "
                 f"not declared total charge {normalized_total_charge}."
@@ -276,7 +290,9 @@ class TopologyProvider:
         try:
             n = int(number)
         except (TypeError, ValueError) as exc:
-            raise ValueError(f"Unsupported atomic number {number!r} in topology data.") from exc
+            raise ValueError(
+                f"Unsupported atomic number {number!r} in topology data."
+            ) from exc
         if n < 1 or n >= len(chemical_symbols):
             raise ValueError(f"Unsupported atomic number {n} in topology data.")
         symbol = chemical_symbols[n]
@@ -285,7 +301,9 @@ class TopologyProvider:
         return symbol
 
     @classmethod
-    def from_mol2_atoms(cls, atoms, *, require_single_fragment: bool = True) -> CanonicalTopology:
+    def from_mol2_atoms(
+        cls, atoms, *, require_single_fragment: bool = True
+    ) -> CanonicalTopology:
         metadata = atoms.info.get("mol2") if getattr(atoms, "info", None) else None
         if not isinstance(metadata, dict):
             raise ValueError("MOL2 topology requires atoms.info['mol2'] metadata.")
@@ -314,7 +332,9 @@ class TopologyProvider:
         )
 
     @classmethod
-    def from_openmm_topology(cls, topology, *, require_single_fragment: bool = True) -> CanonicalTopology:
+    def from_openmm_topology(
+        cls, topology, *, require_single_fragment: bool = True
+    ) -> CanonicalTopology:
         try:
             app = __import__("openmm.app", fromlist=["Topology"])
         except ModuleNotFoundError as exc:
@@ -323,7 +343,9 @@ class TopologyProvider:
             ) from exc
 
         if not isinstance(topology, app.Topology):
-            raise ValueError("from_openmm_topology expects an openmm.app.Topology object.")
+            raise ValueError(
+                "from_openmm_topology expects an openmm.app.Topology object."
+            )
 
         topology_atoms = list(topology.atoms())
         if not topology_atoms:
@@ -340,10 +362,15 @@ class TopologyProvider:
                 raise ValueError(f"OpenMM atom {idx} does not expose element symbol.")
             symbol = atom.element.symbol
             if symbol not in atomic_numbers:
-                raise ValueError(f"OpenMM atom {idx} has unsupported element symbol {symbol!r}.")
+                raise ValueError(
+                    f"OpenMM atom {idx} has unsupported element symbol {symbol!r}."
+                )
             symbols.append(symbol)
             names.append(str(atom.name))
-            mappings.append(None if atom.id is None else atom.id if isinstance(atom.id, int) else None)
+            atom_id = getattr(atom, "id", None)
+            mappings.append(
+                atom_id if isinstance(atom_id, int) and atom_id > 0 else None
+            )
             raw_charge = getattr(atom, "formal_charge", None)
             formal_charges.append(raw_charge)
 
@@ -359,7 +386,9 @@ class TopologyProvider:
             try:
                 order = float(raw_order)
             except (TypeError, ValueError) as exc:
-                raise ValueError(f"Cannot parse OpenMM bond order for bond {i}-{j}.") from exc
+                raise ValueError(
+                    f"Cannot parse OpenMM bond order for bond {i}-{j}."
+                ) from exc
             bonds.append((i, j, order))
 
         return cls._validate_open_atoms(
@@ -376,7 +405,9 @@ class TopologyProvider:
         )
 
     @classmethod
-    def from_openff_molecule(cls, molecule, *, require_single_fragment: bool = True) -> CanonicalTopology:
+    def from_openff_molecule(
+        cls, molecule, *, require_single_fragment: bool = True
+    ) -> CanonicalTopology:
         if not hasattr(molecule, "atoms"):
             raise ValueError("OpenFF molecules should provide an atoms collection.")
 
@@ -389,20 +420,35 @@ class TopologyProvider:
         mappings: list[int | None] = []
         formal_charges: list[int | None] = []
         atom_types: list[str] = []
+        properties = getattr(molecule, "properties", {})
+        molecule_atom_map = (
+            properties.get("atom_map", {}) if isinstance(properties, Mapping) else {}
+        )
+        if not isinstance(molecule_atom_map, Mapping):
+            raise ValueError(
+                "OpenFF molecule properties['atom_map'] must be a mapping."
+            )
 
         for index, atom in enumerate(mol_atoms):
-            symbol = getattr(atom, "element_symbol", None) or getattr(atom, "symbol", None)
+            symbol = getattr(atom, "element_symbol", None) or getattr(
+                atom, "symbol", None
+            )
             if symbol is None:
                 atomic_number = getattr(atom, "atomic_number", None)
                 if atomic_number is None:
-                    raise ValueError(f"OpenFF atom {index} missing atomic symbol/number.")
+                    raise ValueError(
+                        f"OpenFF atom {index} missing atomic symbol/number."
+                    )
                 symbol = cls._element_from_int(atomic_number)
-            names.append(str(getattr(atom, "atom_name", f"{index+1}")))
+            atom_name = getattr(atom, "atom_name", None)
+            if atom_name is None:
+                atom_name = getattr(atom, "name", None)
+            names.append(str(atom_name or index + 1))
             symbols.append(symbol)
             atom_types.append(str(getattr(atom, "atom_type", "")))
-            mapping = getattr(atom, "molecule_atom_index", None)
+            mapping = getattr(atom, "atom_map", None)
             if mapping is None:
-                mapping = getattr(atom, "atom_map", None)
+                mapping = molecule_atom_map.get(index)
             mappings.append(mapping)
             raw_formal_charge = getattr(atom, "formal_charge", None)
             formal_charges.append(raw_formal_charge)
@@ -418,11 +464,17 @@ class TopologyProvider:
             if i is None or j is None:
                 a1 = getattr(bond, "atom1", None)
                 a2 = getattr(bond, "atom2", None)
-                if a1 is not None and a2 is not None and hasattr(a1, "molecule_atom_index"):
+                if (
+                    a1 is not None
+                    and a2 is not None
+                    and hasattr(a1, "molecule_atom_index")
+                ):
                     i = a1.molecule_atom_index
                     j = a2.molecule_atom_index
             if i is None or j is None:
-                raise ValueError(f"OpenFF bond entry {bond!r} does not expose atom indices.")
+                raise ValueError(
+                    f"OpenFF bond entry {bond!r} does not expose atom indices."
+                )
             order = (
                 getattr(bond, "bond_order", None)
                 or getattr(bond, "order", None)
@@ -471,9 +523,7 @@ class TopologyProvider:
             atom.GetProp("atomLabel") if atom.HasProp("atomLabel") else str(i + 1)
             for i, atom in enumerate(mol.GetAtoms())
         ]
-        atom_types: list[str] = [
-            atom.GetSymbol() for atom in mol.GetAtoms()
-        ]
+        atom_types: list[str] = [atom.GetSymbol() for atom in mol.GetAtoms()]
         formal_charges = [atom.GetFormalCharge() for atom in mol.GetAtoms()]
         mapping_props = [
             atom.GetAtomMapNum() if atom.HasProp("molAtomMapNumber") else None
@@ -497,10 +547,19 @@ class TopologyProvider:
             metadata={"source": str(candidate), "rdkit_name": str(type(mol).__name__)},
         )
 
+
 def canonicalize_topology(topology_source: Any) -> CanonicalTopology:
     """Auto-dispatch to canonical providers; raise for unsupported source objects."""
     if isinstance(topology_source, CanonicalTopology):
         return topology_source
+
+    info = getattr(topology_source, "info", None)
+    if (
+        hasattr(topology_source, "get_chemical_symbols")
+        and isinstance(info, dict)
+        and isinstance(info.get("mol2"), dict)
+    ):
+        return TopologyProvider.from_mol2_atoms(topology_source)
 
     module = type(topology_source).__module__
     if module.startswith("openff"):

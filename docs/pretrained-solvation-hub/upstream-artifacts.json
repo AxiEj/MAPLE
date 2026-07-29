@@ -65,7 +65,7 @@
       "repository_license": "MIT runtime code",
       "artifact_license": "ASL academic-only non-commercial",
       "solvent_evidence": "none; complete ordinary PES",
-      "scientific_status": "adapter-smoke-verified"
+      "scientific_status": "adapter-unit-tested-live-runtime-pending"
     },
     {
       "model_id": "mace-off23-sc",

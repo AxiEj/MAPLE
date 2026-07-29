@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 HUB = ROOT / "docs/pretrained-solvation-hub"
 
@@ -19,9 +18,10 @@ def test_mnsol_reference_preserves_the_frozen_route2_split_without_rows():
     assert reference["partitions"]["confirmation"]["unique_solute_count"] == 83
     assert reference["total"] == {"record_count": 653, "unique_solute_count": 395}
     assert reference["confirmation_policy"]["sealed"] is True
-    assert reference["confirmation_policy"][
-        "failed_confirmation_must_not_trigger_tuning"
-    ] is True
+    assert (
+        reference["confirmation_policy"]["failed_confirmation_must_not_trigger_tuning"]
+        is True
+    )
     assert "records" not in reference
 
 
@@ -47,12 +47,12 @@ def test_hub_document_keeps_free_energy_and_route_boundaries_explicit():
     assert "does not duplicate the Route 3 `#solvfe`" in text
     assert "does not add a public `#bindfe`" in text
     assert "never ranked against" in text
+    assert "does **not** complete the four scientific" in text
+    assert "MD is disabled" in text
 
 
 def test_upstream_artifact_manifest_pins_real_files_and_unknowns():
-    payload = json.loads(
-        (HUB / "upstream-artifacts.json").read_text(encoding="utf-8")
-    )
+    payload = json.loads((HUB / "upstream-artifacts.json").read_text(encoding="utf-8"))
     artifacts = payload["artifacts"]
     assert len(artifacts) >= 7
     assert len({item["model_id"] for item in artifacts}) == len(artifacts)
@@ -67,6 +67,10 @@ def test_upstream_artifact_manifest_pins_real_files_and_unknowns():
     assert by_id["aimnet2-cpcms-v2"]["size_bytes"] == 9280334
     assert by_id["gnnis-reference"]["repository_license"] == "MIT-0"
     assert by_id["mace-off24-medium"]["sha256"].startswith("e5ccf583")
+    assert (
+        by_id["mace-off24-medium"]["scientific_status"]
+        == "adapter-unit-tested-live-runtime-pending"
+    )
     assert by_id["mace-off23-sc"]["scientific_status"].endswith(
         "protocol-bridge-pending"
     )

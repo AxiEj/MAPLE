@@ -70,7 +70,10 @@ class BenchmarkIdentity:
         ):
             if not str(getattr(self, field)).strip():
                 raise ValueError(f"{field} must be explicit and non-empty.")
-        if not math.isfinite(float(self.temperature_kelvin)) or self.temperature_kelvin <= 0:
+        if (
+            not math.isfinite(float(self.temperature_kelvin))
+            or self.temperature_kelvin <= 0
+        ):
             raise ValueError("temperature_kelvin must be finite and positive.")
         object.__setattr__(
             self,
@@ -227,9 +230,7 @@ def _correlation(left: np.ndarray, right: np.ndarray) -> float:
         return float("nan")
     left_centered = left - left.mean()
     right_centered = right - right.mean()
-    denominator = float(
-        np.sqrt(np.sum(left_centered**2) * np.sum(right_centered**2))
-    )
+    denominator = float(np.sqrt(np.sum(left_centered**2) * np.sum(right_centered**2)))
     if denominator == 0.0:
         return float("nan")
     return float(np.sum(left_centered * right_centered) / denominator)
@@ -252,8 +253,7 @@ def _kendall_tau_b(left: np.ndarray, right: np.ndarray) -> float:
             else:
                 discordant += 1
     denominator = math.sqrt(
-        (concordant + discordant + ties_left)
-        * (concordant + discordant + ties_right)
+        (concordant + discordant + ties_left) * (concordant + discordant + ties_right)
     )
     if denominator == 0:
         return float("nan")
@@ -265,9 +265,7 @@ def _metric_bundle(reference: np.ndarray, prediction: np.ndarray) -> dict[str, f
     absolute = np.abs(error)
     ss_total = float(np.sum((reference - reference.mean()) ** 2))
     r_squared = (
-        float(1.0 - np.sum(error**2) / ss_total)
-        if ss_total > 0
-        else float("nan")
+        float(1.0 - np.sum(error**2) / ss_total) if ss_total > 0 else float("nan")
     )
     return {
         "mae_kcal_mol": float(absolute.mean()),
@@ -309,11 +307,21 @@ def summarize_predictions(
         prediction = record.get("predicted_kcal_mol")
         try:
             reference_value = float(reference)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"Benchmark record {record_id!r} has invalid experimental_kcal_mol."
+            ) from exc
+        if not math.isfinite(reference_value):
+            raise ValueError(
+                f"Benchmark record {record_id!r} has non-finite experimental_kcal_mol."
+            )
+
+        try:
             prediction_value = float(prediction)
         except (TypeError, ValueError):
             failures += 1
             continue
-        if not (math.isfinite(reference_value) and math.isfinite(prediction_value)):
+        if not math.isfinite(prediction_value):
             failures += 1
             continue
         usable.append((reference_value, prediction_value))
@@ -394,7 +402,9 @@ def paired_comparison(
                 raise ValueError(
                     f"Paired record {record_id!r} lacks a finite prediction/reference."
                 ) from exc
-            if not (record_id and math.isfinite(reference) and math.isfinite(prediction)):
+            if not (
+                record_id and math.isfinite(reference) and math.isfinite(prediction)
+            ):
                 raise ValueError(
                     f"Paired record {record_id!r} lacks a finite prediction/reference."
                 )

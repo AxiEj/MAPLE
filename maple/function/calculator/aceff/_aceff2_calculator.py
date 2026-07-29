@@ -74,8 +74,7 @@ def _validate_official_card(card: dict) -> ModelProvenanceCard:
         )
     unit_evidence = card.get("unit_evidence")
     if not isinstance(unit_evidence, dict) or (
-        str(unit_evidence.get("revision", "")).strip()
-        != ACEFF2_UNIT_EVIDENCE_REVISION
+        str(unit_evidence.get("revision", "")).strip() != ACEFF2_UNIT_EVIDENCE_REVISION
     ):
         raise ValueError(
             "AceFF 2.0 model card must retain the pinned official unit evidence."
@@ -159,6 +158,19 @@ class AceFF2Calculator(CalcABC):
         calculator_factory: Callable[[str, str], object] | None = None,
     ) -> None:
         super().__init__()
+        requested_model = (
+            str(model)
+            .strip()
+            .lower()
+            .replace("-", "")
+            .replace("_", "")
+            .replace(".", "")
+        )
+        if requested_model != "aceff20":
+            raise ValueError(
+                "AceFF 2.0 is pinned to model identity 'aceff-2.0'; "
+                f"received {model!r}."
+            )
         implicit = str(implicit).strip().lower()
         solvent = str(solvent).strip().lower()
         if implicit not in {"none", "gb", "pb"}:
@@ -194,7 +206,7 @@ class AceFF2Calculator(CalcABC):
             )
 
         self.device = device
-        self.model_name = model
+        self.model_name = ACEFF2_OFFICIAL_IDENTITY["model_id"]
         self.model_path = str(checkpoint)
         self.model_card_path = str(card_path)
         self.model_card = card
@@ -204,8 +216,11 @@ class AceFF2Calculator(CalcABC):
         self._delegate = factory(self.model_path, str(device))
 
     def _validate_system(self, atoms) -> None:
-        if "charge" not in atoms.info:
-            raise ValueError("AceFF 2.0 requires explicit atoms.info['charge'].")
+        if "charge" not in atoms.info or "mult" not in atoms.info:
+            raise ValueError(
+                "AceFF 2.0 requires explicit atoms.info['charge'] and "
+                "atoms.info['mult']; MAPLE will not assume neutral singlet metadata."
+            )
         charge_raw = float(atoms.info["charge"])
         if not math.isfinite(charge_raw) or not charge_raw.is_integer():
             raise ValueError("AceFF 2.0 total charge must be a finite integer.")
@@ -215,7 +230,7 @@ class AceFF2Calculator(CalcABC):
             raise ValueError(
                 "AceFF 2.0 total charge must be an integer in {-2,-1,0,1,2}."
             )
-        multiplicity = float(atoms.info.get("mult", 1))
+        multiplicity = float(atoms.info["mult"])
         if (
             not math.isfinite(multiplicity)
             or not multiplicity.is_integer()
@@ -290,15 +305,22 @@ class AceFF2Calculator(CalcABC):
         raw = getattr(self._delegate, "results", {})
         if "energy" not in raw:
             raise RuntimeError("AceFF 2.0 delegate did not return energy.")
+        energy = float(raw["energy"])
+        if not np.isfinite(energy):
+            raise ValueError("AceFF 2.0 delegate energy must be finite.")
         forces = None
         if "forces" in properties:
             if "forces" not in raw:
                 raise RuntimeError("AceFF 2.0 delegate did not return forces.")
             forces = np.asarray(raw["forces"], dtype=float)
+            if forces.shape != (len(atoms), 3) or not np.isfinite(forces).all():
+                raise ValueError(
+                    "AceFF 2.0 delegate forces must be finite with shape (N, 3)."
+                )
         hessian = self.get_hessian(atoms) if "hessian" in properties else None
         self._finalize_results(
             atoms,
-            energy=float(raw["energy"]),
+            energy=energy,
             forces=forces,
             hessian=hessian,
         )

@@ -169,6 +169,54 @@ def test_aimnet2_cpcms_rejects_non_singleton_multiplicity_and_pbc(
         calc.get_potential_energy(_water_pbc_atoms())
 
 
+def test_aimnet2_cpcms_requires_explicit_charge_and_multiplicity(
+    tmp_path, official_sha
+):
+    model = _write_model(tmp_path / "model.pt")
+    calc = AIMNet2CPCMSCalculator(device="cpu", model_path=str(model))
+    for present_field, present_value in (("charge", 0), ("mult", 1)):
+        atoms = Atoms("H", positions=[[0, 0, 0]])
+        atoms.info[present_field] = present_value
+        with pytest.raises(ValueError, match=r"explicit atoms\.info"):
+            calc.get_potential_energy(atoms)
+
+
+def test_aimnet2_cpcms_rejects_unaudited_charged_domain(tmp_path, official_sha):
+    model = _write_model(tmp_path / "model.pt")
+    calc = AIMNet2CPCMSCalculator(device="cpu", model_path=str(model))
+    atoms = _water_atoms()
+    atoms.info["charge"] = 1
+
+    with pytest.raises(ValueError, match="neutral molecules only"):
+        calc.get_potential_energy(atoms)
+
+
+def test_aimnet2_cpcms_fixed_identity_and_md_gate(tmp_path, official_sha):
+    model = _write_model(tmp_path / "model.pt")
+    with pytest.raises(ValueError, match="pinned to model identity"):
+        AIMNet2CPCMSCalculator(
+            device="cpu",
+            model="forged-identity",
+            model_path=str(model),
+        )
+
+    calc = AIMNet2CPCMSCalculator(
+        device="cpu",
+        model="aimnet2cpcmsv2",
+        model_path=str(model),
+    )
+    assert calc.model_name == "aimnet2-cpcms-v2"
+    with pytest.raises(ValueError, match="forbids task 'md'"):
+        calc.validate_task("md")
+
+
+def test_aimnet2_cpcms_rejects_nonfinite_energy(tmp_path, official_sha):
+    model = _write_model(tmp_path / "model.pt", offset=float("nan"))
+    calc = AIMNet2CPCMSCalculator(device="cpu", model_path=str(model))
+    with pytest.raises(ValueError, match="energy must be finite"):
+        calc.get_potential_energy(_water_atoms())
+
+
 def test_aimnet2_cpcms_attests_model_metadata_and_provenance(tmp_path, official_sha):
     model = _write_model(tmp_path / "model.pt", offset=0.3)
     atoms = _water_atoms()

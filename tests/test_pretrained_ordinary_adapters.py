@@ -20,6 +20,24 @@ class HarmonicDelegate:
             self.results["forces"] = -2.0 * positions
 
 
+class InvalidDelegate:
+    def __init__(self, failure_mode):
+        self.failure_mode = failure_mode
+        self.results = {}
+
+    def calculate(self, atoms, properties, system_changes):
+        del system_changes
+        self.results = {
+            "energy": np.nan if self.failure_mode == "energy" else 0.0,
+        }
+        if "forces" in properties:
+            self.results["forces"] = (
+                np.full((len(atoms), 3), np.inf)
+                if self.failure_mode == "forces"
+                else np.zeros((len(atoms), 3))
+            )
+
+
 def _single_h_mol2():
     return {
         "atom_names": ["H1"],
@@ -119,6 +137,94 @@ def test_mace_off24_rejects_user_signed_card_and_non_neutral_input(
         calc.get_potential_energy(charged)
 
 
+@pytest.mark.parametrize(
+    ("module_name", "class_name", "sha_symbol"),
+    [
+        (
+            "maple.function.calculator.mace._maceoff24_calculator",
+            "MACEOFF24MediumCalculator",
+            "MACE_OFF24_MEDIUM_SHA256",
+        ),
+        (
+            "maple.function.calculator.aceff._aceff2_calculator",
+            "AceFF2Calculator",
+            "ACEFF2_SHA256",
+        ),
+    ],
+)
+def test_ordinary_adapters_require_explicit_charge_and_multiplicity(
+    tmp_path,
+    monkeypatch,
+    module_name,
+    class_name,
+    sha_symbol,
+):
+    module = __import__(module_name, fromlist=[class_name])
+    calculator_class = getattr(module, class_name)
+    checkpoint = tmp_path / f"{class_name}.ckpt"
+    checkpoint.write_bytes(b"test-checkpoint")
+    monkeypatch.setattr(module, "_sha256", lambda _path: getattr(module, sha_symbol))
+    calc = calculator_class(
+        "cpu",
+        model_path=str(checkpoint),
+        calculator_factory=lambda *_args: HarmonicDelegate(),
+    )
+
+    for present_field, present_value in (("charge", 0), ("mult", 1)):
+        atoms = Atoms("H", positions=[[0, 0, 0]])
+        atoms.info[present_field] = present_value
+        atoms.info["mol2"] = _single_h_mol2()
+        with pytest.raises(ValueError, match=r"explicit atoms\.info"):
+            calc.get_potential_energy(atoms)
+
+
+@pytest.mark.parametrize(
+    ("module_name", "class_name", "sha_symbol"),
+    [
+        (
+            "maple.function.calculator.mace._maceoff24_calculator",
+            "MACEOFF24MediumCalculator",
+            "MACE_OFF24_MEDIUM_SHA256",
+        ),
+        (
+            "maple.function.calculator.aceff._aceff2_calculator",
+            "AceFF2Calculator",
+            "ACEFF2_SHA256",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    ("failure_mode", "message"), [("energy", "energy"), ("forces", "forces")]
+)
+def test_ordinary_adapters_reject_nonfinite_delegate_results(
+    tmp_path,
+    monkeypatch,
+    module_name,
+    class_name,
+    sha_symbol,
+    failure_mode,
+    message,
+):
+    module = __import__(module_name, fromlist=[class_name])
+    calculator_class = getattr(module, class_name)
+    checkpoint = tmp_path / f"{class_name}-{failure_mode}.ckpt"
+    checkpoint.write_bytes(b"test-checkpoint")
+    monkeypatch.setattr(module, "_sha256", lambda _path: getattr(module, sha_symbol))
+    calc = calculator_class(
+        "cpu",
+        model_path=str(checkpoint),
+        calculator_factory=lambda *_args: InvalidDelegate(failure_mode),
+    )
+    atoms = Atoms("H", positions=[[0, 0, 0]])
+    atoms.info.update(charge=0, mult=1, mol2=_single_h_mol2())
+
+    with pytest.raises(ValueError, match=message):
+        if failure_mode == "forces":
+            calc.get_forces(atoms)
+        else:
+            calc.get_potential_energy(atoms)
+
+
 def test_aceff_requires_official_card_charge_range_singlet_and_mol2_topology(
     tmp_path, monkeypatch
 ):
@@ -153,7 +259,7 @@ def test_aceff_requires_official_card_charge_range_singlet_and_mol2_topology(
 
     out_of_range = missing.copy()
     out_of_range.info.update(charge=3, mult=1, mol2=_single_h_mol2())
-    with pytest.raises(ValueError, match="\{-2,-1,0,1,2\}"):
+    with pytest.raises(ValueError, match=r"\{-2,-1,0,1,2\}"):
         calc.get_potential_energy(out_of_range)
 
     fragments = Atoms("HH", positions=[[0, 0, 0], [10, 0, 0]])
@@ -178,9 +284,61 @@ def test_default_ordinary_model_cards_are_json_and_fail_closed():
     ace = json.loads(ACEFF2_CARD.read_text(encoding="utf-8"))
     assert mace["checkpoint_sha256"].startswith("e5ccf583")
     assert "mace_off(model='medium')" in mace["notes"][0]
+    assert MACE_OFF24_CARD.read_text(encoding="utf-8").count('"elements"') == 1
     assert ace["checkpoint_sha256"].startswith("877af6bf")
     assert ace["capabilities"]["supports_multifragment"] is False
     assert ace["capabilities"]["requires_topology"] is True
+
+
+@pytest.mark.parametrize(
+    ("module_name", "class_name", "sha_symbol", "canonical", "alias"),
+    [
+        (
+            "maple.function.calculator.mace._maceoff24_calculator",
+            "MACEOFF24MediumCalculator",
+            "MACE_OFF24_MEDIUM_SHA256",
+            "mace-off24-medium",
+            "maceoff24medium",
+        ),
+        (
+            "maple.function.calculator.aceff._aceff2_calculator",
+            "AceFF2Calculator",
+            "ACEFF2_SHA256",
+            "aceff-2.0",
+            "aceff20",
+        ),
+    ],
+)
+def test_fixed_ordinary_adapters_reject_forged_identity_and_report_canonical_name(
+    tmp_path,
+    monkeypatch,
+    module_name,
+    class_name,
+    sha_symbol,
+    canonical,
+    alias,
+):
+    module = __import__(module_name, fromlist=[class_name])
+    calculator_class = getattr(module, class_name)
+    checkpoint = tmp_path / f"{class_name}.ckpt"
+    checkpoint.write_bytes(b"test-checkpoint")
+    monkeypatch.setattr(module, "_sha256", lambda _path: getattr(module, sha_symbol))
+
+    with pytest.raises(ValueError, match="pinned to model identity"):
+        calculator_class(
+            "cpu",
+            model="forged-identity",
+            model_path=str(checkpoint),
+            calculator_factory=lambda *_args: HarmonicDelegate(),
+        )
+
+    calc = calculator_class(
+        "cpu",
+        model=alias,
+        model_path=str(checkpoint),
+        calculator_factory=lambda *_args: HarmonicDelegate(),
+    )
+    assert calc.model_name == canonical
 
 
 @pytest.mark.parametrize(

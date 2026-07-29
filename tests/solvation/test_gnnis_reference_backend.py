@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -71,19 +72,42 @@ def test_gnnis_reference_adapter_requires_explicit_model_and_topology(
             atoms.get_initial_charges(),
             topology,
             model_path="",
+            solvent="water",
         )
 
     model_path, _checksum = _checkpoint(tmp_path)
     monkeypatch.setattr(
         gnnis_module, "_sha256", lambda _path: gnnis_module.GNNIS_CHECKPOINT_SHA256
     )
+    with pytest.raises(ValueError, match="explicit solvent"):
+        GNNISReferenceBackend(
+            atoms,
+            atoms.get_initial_charges(),
+            topology,
+            model_path=str(model_path),
+            runtime_factory=fake_factory,
+        )
+
     with pytest.raises(ValueError, match="topology"):
         GNNISReferenceBackend(
             atoms,
             atoms.get_initial_charges(),
             None,
             model_path=str(model_path),
+            solvent="water",
             checkpoint_sha256=gnnis_module.GNNIS_CHECKPOINT_SHA256,
+            runtime_factory=fake_factory,
+        )
+
+    missing_metadata = atoms.copy()
+    del missing_metadata.info["mult"]
+    with pytest.raises(ValueError, match=r"explicit atoms\.info"):
+        GNNISReferenceBackend(
+            missing_metadata,
+            missing_metadata.get_initial_charges(),
+            topology,
+            model_path=str(model_path),
+            solvent="water",
             runtime_factory=fake_factory,
         )
 
@@ -93,6 +117,7 @@ def test_gnnis_reference_adapter_requires_explicit_model_and_topology(
             np.array([0.0, 0.0]),
             topology,
             model_path=str(model_path),
+            solvent="water",
             checkpoint_sha256=gnnis_module.GNNIS_CHECKPOINT_SHA256,
             runtime_factory=fake_factory,
         )
@@ -119,6 +144,7 @@ def test_gnnis_checkpoint_is_sha256_pinned(
             atoms.get_initial_charges(),
             topology,
             model_path=str(model_path),
+            solvent="water",
             checkpoint_sha256="0" * 64,
             runtime_factory=fake_factory,
         )
@@ -176,6 +202,7 @@ def test_gnnis_reference_adapter_rejects_coordinate_topology_drift_and_pbc(
         atoms.get_initial_charges(),
         topology,
         model_path=str(model_path),
+        solvent="water",
         checkpoint_sha256=gnnis_module.GNNIS_CHECKPOINT_SHA256,
         runtime_factory=fake_factory,
     )
@@ -241,6 +268,7 @@ def test_gnnis_reference_rejects_declared_charge_mismatch(
             atoms.get_initial_charges(),
             topology,
             model_path=str(model_path),
+            solvent="water",
             checkpoint_sha256=gnnis_module.GNNIS_CHECKPOINT_SHA256,
             runtime_factory=fake_factory,
         )
@@ -268,6 +296,7 @@ def test_gnnis_reference_rejects_nonzero_total_charge_with_matching_partial_sum(
             atoms.get_initial_charges(),
             topology,
             model_path=str(model_path),
+            solvent="water",
             checkpoint_sha256=gnnis_module.GNNIS_CHECKPOINT_SHA256,
             runtime_factory=fake_factory,
         )
@@ -293,6 +322,136 @@ def test_gnnis_canonical_topology_to_rdkit_preserves_formal_charge_metadata(tmp_
         rdmol.GetAtomWithIdx(i).GetFormalCharge() for i in range(rdmol.GetNumAtoms())
     ]
     assert formal == [1, 0, 0, 0, 0]
+
+
+def test_gnnis_canonical_topology_to_rdkit_preserves_aromaticity():
+    topology = TopologyProvider._validate_open_atoms(
+        ("C",) * 6,
+        tuple(f"C{index + 1}" for index in range(6)),
+        ("C.ar",) * 6,
+        tuple((index, (index + 1) % 6, 1.5) for index in range(6)),
+        (None,) * 6,
+        (0,) * 6,
+        total_formal_charge=0,
+        source="test-benzene",
+        require_single_fragment=True,
+    )
+    atoms = Atoms("C6", positions=np.zeros((6, 3), dtype=float))
+
+    molecule = _canonical_topology_to_rdkit(atoms, topology)
+
+    assert all(atom.GetIsAromatic() for atom in molecule.GetAtoms())
+    assert all(bond.GetIsAromatic() for bond in molecule.GetBonds())
+
+
+@pytest.mark.parametrize(
+    ("result", "message"),
+    [
+        (GNNISReferenceResult(energy_hartree=np.nan), "energy must be finite"),
+        (
+            GNNISReferenceResult(
+                energy_hartree=-0.42,
+                forces_hartree_per_angstrom=np.full((3, 3), np.inf),
+            ),
+            "forces must be finite",
+        ),
+    ],
+)
+def test_gnnis_reference_rejects_nonfinite_runtime_results(
+    result,
+    message,
+    tmp_path,
+    water_mol2,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        gnnis_module, "_sha256", lambda _path: gnnis_module.GNNIS_CHECKPOINT_SHA256
+    )
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    topology = TopologyProvider.from_mol2_atoms(atoms)
+    model_path, _ = _checkpoint(tmp_path)
+
+    class NonfiniteRuntime:
+        def evaluate(self, _positions, *, need_forces):
+            del need_forces
+            return result
+
+    backend = GNNISReferenceBackend(
+        atoms,
+        atoms.get_initial_charges(),
+        topology,
+        model_path=str(model_path),
+        solvent="water",
+        runtime_factory=lambda **_kwargs: NonfiniteRuntime(),
+    )
+
+    with pytest.raises(ValueError, match=message):
+        backend.evaluate(
+            atoms, need_forces=result.forces_hartree_per_angstrom is not None
+        )
+
+
+def test_gnnis_reference_revalidates_charge_and_multiplicity_at_runtime(
+    tmp_path, water_mol2, fake_runtime_factory, monkeypatch
+):
+    monkeypatch.setattr(
+        gnnis_module, "_sha256", lambda _path: gnnis_module.GNNIS_CHECKPOINT_SHA256
+    )
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    topology = TopologyProvider.from_mol2_atoms(atoms)
+    model_path, _ = _checkpoint(tmp_path)
+    fake_factory, _ = fake_runtime_factory
+    backend = GNNISReferenceBackend(
+        atoms,
+        atoms.get_initial_charges(),
+        topology,
+        model_path=str(model_path),
+        solvent="water",
+        runtime_factory=fake_factory,
+    )
+
+    changed_multiplicity = atoms.copy()
+    changed_multiplicity.info["mult"] = 3
+    with pytest.raises(ValueError, match="runtime multiplicity"):
+        backend.evaluate(changed_multiplicity)
+
+    changed_charges = atoms.copy()
+    changed_charges.set_initial_charges([0.1, 0.0, 0.0])
+    with pytest.raises(ValueError, match="runtime partial charges"):
+        backend.evaluate(changed_charges)
+
+    missing_metadata = atoms.copy()
+    del missing_metadata.info["charge"]
+    with pytest.raises(ValueError, match="runtime requires explicit"):
+        backend.evaluate(missing_metadata)
+
+
+def test_gnnis_reference_revalidates_charge_when_topology_charge_is_unknown(
+    tmp_path, water_mol2, fake_runtime_factory, monkeypatch
+):
+    monkeypatch.setattr(
+        gnnis_module, "_sha256", lambda _path: gnnis_module.GNNIS_CHECKPOINT_SHA256
+    )
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    topology = replace(
+        TopologyProvider.from_mol2_atoms(atoms),
+        total_formal_charge=None,
+    )
+    model_path, _ = _checkpoint(tmp_path)
+    fake_factory, _ = fake_runtime_factory
+    backend = GNNISReferenceBackend(
+        atoms,
+        atoms.get_initial_charges(),
+        topology,
+        model_path=str(model_path),
+        solvent="water",
+        runtime_factory=fake_factory,
+    )
+
+    changed_charge = atoms.copy()
+    changed_charge.info["charge"] = 1
+    with pytest.raises(ValueError, match="runtime total charge"):
+        backend.evaluate(changed_charge)
 
 
 def test_gnnis_reference_adapter_route_is_reference_only():

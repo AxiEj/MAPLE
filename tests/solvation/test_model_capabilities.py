@@ -36,6 +36,15 @@ def test_model_capabilities_reject_tasks_without_explicit_evidence():
         ModelCapabilities(energy=True, forces=True).validate_task("md")
     with pytest.raises(ValueError, match="absolute solvation"):
         _full_pes().validate_task("absolute_solvation_free_energy")
+    with pytest.raises(ValueError, match="Unsupported or unaudited"):
+        _full_pes().validate_task("binding_free_energy")
+
+
+@pytest.mark.parametrize("task", ["scan", "ts", "irc"])
+def test_path_tasks_require_conservative_energy_derived_forces(task):
+    with pytest.raises(ValueError, match="conservative forces"):
+        ModelCapabilities(energy=True, forces=True).validate_task(task)
+    _full_pes().validate_task(task)
 
 
 def test_native_solution_potential_rejects_additive_solvent():

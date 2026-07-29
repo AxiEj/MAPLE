@@ -151,6 +151,19 @@ class MACEOFF24MediumCalculator(CalcABC):
         calculator_factory: Callable[[str, str], object] | None = None,
     ) -> None:
         super().__init__()
+        requested_model = (
+            str(model)
+            .strip()
+            .lower()
+            .replace("-", "")
+            .replace("_", "")
+            .replace(".", "")
+        )
+        if requested_model != "maceoff24medium":
+            raise ValueError(
+                "MACE-OFF24 Medium is pinned to model identity "
+                f"'mace-off24-medium'; received {model!r}."
+            )
         implicit = str(implicit).strip().lower()
         solvent = str(solvent).strip().lower()
         if implicit not in {"none", "gb", "pb"}:
@@ -193,7 +206,7 @@ class MACEOFF24MediumCalculator(CalcABC):
             )
 
         self.device = device
-        self.model_name = model
+        self.model_name = MACE_OFF24_OFFICIAL_IDENTITY["model_id"]
         self.model_path = str(checkpoint)
         self.model_card_path = str(card_path)
         self.model_card = card
@@ -203,9 +216,14 @@ class MACEOFF24MediumCalculator(CalcABC):
         self._delegate = factory(self.model_path, str(device))
 
     def _validate_system(self, atoms) -> None:
+        if "charge" not in atoms.info or "mult" not in atoms.info:
+            raise ValueError(
+                "MACE-OFF24 Medium requires explicit atoms.info['charge'] and "
+                "atoms.info['mult']; MAPLE will not assume neutral singlet metadata."
+            )
         try:
-            charge = float(atoms.info.get("charge", 0))
-            multiplicity = float(atoms.info.get("mult", 1))
+            charge = float(atoms.info["charge"])
+            multiplicity = float(atoms.info["mult"])
         except (TypeError, ValueError) as exc:
             raise ValueError(
                 "MACE-OFF24 Medium requires finite integer charge and multiplicity."
@@ -289,15 +307,22 @@ class MACEOFF24MediumCalculator(CalcABC):
         raw = getattr(self._delegate, "results", {})
         if "energy" not in raw:
             raise RuntimeError("MACE-OFF24 delegate did not return energy.")
+        energy = float(raw["energy"])
+        if not np.isfinite(energy):
+            raise ValueError("MACE-OFF24 delegate energy must be finite.")
         forces = None
         if "forces" in properties:
             if "forces" not in raw:
                 raise RuntimeError("MACE-OFF24 delegate did not return forces.")
             forces = np.asarray(raw["forces"], dtype=float)
+            if forces.shape != (len(atoms), 3) or not np.isfinite(forces).all():
+                raise ValueError(
+                    "MACE-OFF24 delegate forces must be finite with shape (N, 3)."
+                )
         hessian = self.get_hessian(atoms) if "hessian" in properties else None
         self._finalize_results(
             atoms,
-            energy=float(raw["energy"]),
+            energy=energy,
             forces=forces,
             hessian=hessian,
         )

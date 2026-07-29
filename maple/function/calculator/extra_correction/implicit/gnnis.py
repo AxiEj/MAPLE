@@ -26,6 +26,7 @@ GNNIS_CHECKPOINT_SHA256 = (
 GNNIS_REFERENCE_CARD = "maple/function/calculator/model_cards/gnnis-reference.yaml"
 KJ_PER_MOL_PER_HARTREE = 2625.4996394799
 GNNIS_TOTAL_CHARGE_TOLERANCE = 1.0e-4
+GNNIS_PARTIAL_CHARGE_TOLERANCE = 1.0e-8
 
 
 @dataclass(frozen=True)
@@ -156,6 +157,7 @@ def _canonical_topology_to_rdkit(atoms, topology: CanonicalTopology):
             atom.SetFormalCharge(int(formal_charge))
         molecule.AddAtom(atom)
     for i, j, order in topology.bonds:
+        is_aromatic = order == 1.5
         if order == 1.5:
             bond_type = Chem.BondType.AROMATIC
         elif order == 1.0:
@@ -169,6 +171,10 @@ def _canonical_topology_to_rdkit(atoms, topology: CanonicalTopology):
                 f"GNNIS RDKit conversion does not support bond order {order!r}."
             )
         molecule.AddBond(i, j, bond_type)
+        if is_aromatic:
+            molecule.GetAtomWithIdx(i).SetIsAromatic(True)
+            molecule.GetAtomWithIdx(j).SetIsAromatic(True)
+            molecule.GetBondBetweenAtoms(i, j).SetIsAromatic(True)
     molecule = molecule.GetMol()
     conformer = Chem.Conformer(topology.natoms)
     for index, xyz in enumerate(np.asarray(atoms.get_positions(), dtype=float)):
@@ -270,7 +276,7 @@ class GNNISReferenceBackend:
     charges: np.ndarray
     topology: CanonicalTopology
     model_path: str
-    solvent: str = "water"
+    solvent: str | None = None
     device: str = "cpu"
     forcefield: str = "openff-2.0.0"
     runtime_factory: RuntimeFactory | None = None
@@ -295,6 +301,10 @@ class GNNISReferenceBackend:
     )
 
     def __post_init__(self) -> None:
+        if self.solvent is None or not str(self.solvent).strip():
+            raise ValueError(
+                "GNNIS reference mode requires an explicit solvent identifier."
+            )
         self.solvent_spec = resolve_gnnis_solvent(self.solvent)
         if not self.model_path or not str(self.model_path).strip():
             raise ValueError("GNNIS reference mode requires an explicit model_path.")
@@ -332,11 +342,14 @@ class GNNISReferenceBackend:
                 "GNNIS topology atom count does not match atoms: "
                 f"{self.topology.natoms} != {len(self.atoms)}"
             )
-        declared_charge_raw = 0.0
-        multiplicity_raw = 1.0
-        if isinstance(getattr(self.atoms, "info", {}), dict):
-            declared_charge_raw = self.atoms.info.get("charge", 0.0)
-            multiplicity_raw = self.atoms.info.get("mult", 1.0)
+        info = getattr(self.atoms, "info", {})
+        if not isinstance(info, dict) or "charge" not in info or "mult" not in info:
+            raise ValueError(
+                "GNNIS reference mode requires explicit atoms.info['charge'] and "
+                "atoms.info['mult']; MAPLE will not assume neutral singlet metadata."
+            )
+        declared_charge_raw = info["charge"]
+        multiplicity_raw = info["mult"]
         declared_charge = float(declared_charge_raw)
         if not np.isfinite(declared_charge) or not declared_charge.is_integer():
             raise ValueError(
@@ -369,6 +382,8 @@ class GNNISReferenceBackend:
             raise ValueError(
                 "GNNIS reference backend is neutral-only in the current release; non-zero total charge inputs are rejected."
             )
+        self._declared_charge = int(declared_charge)
+        self._multiplicity = int(multiplicity)
         self.topology.validate_atoms(self.atoms)
 
         factory = self.runtime_factory or _UpstreamOpenFFGNNISRuntime
@@ -407,6 +422,53 @@ class GNNISReferenceBackend:
         need_hessian: bool = False,
     ) -> GNNISReferenceResult:
         self.topology.validate_atoms(atoms)
+        info = getattr(atoms, "info", {})
+        if not isinstance(info, dict) or "charge" not in info or "mult" not in info:
+            raise ValueError(
+                "GNNIS runtime requires explicit atoms.info['charge'] and "
+                "atoms.info['mult']; metadata may not disappear after initialization."
+            )
+        charge_raw = info["charge"]
+        multiplicity_raw = info["mult"]
+        try:
+            charge = float(charge_raw)
+            multiplicity = float(multiplicity_raw)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "GNNIS runtime charge and multiplicity must be finite integers."
+            ) from exc
+        if (
+            not np.isfinite(charge)
+            or not charge.is_integer()
+            or int(charge) != self._declared_charge
+        ):
+            raise ValueError(
+                "GNNIS runtime total charge differs from the audited neutral reference input."
+            )
+        if (
+            not np.isfinite(multiplicity)
+            or not multiplicity.is_integer()
+            or int(multiplicity) != self._multiplicity
+        ):
+            raise ValueError(
+                "GNNIS runtime multiplicity differs from the audited singlet reference input."
+            )
+        has_array = getattr(atoms, "has", None)
+        if callable(has_array) and atoms.has("initial_charges"):
+            current_charges = np.asarray(atoms.get_initial_charges(), dtype=np.float64)
+            if (
+                current_charges.shape != self.charges.shape
+                or not np.isfinite(current_charges).all()
+                or not np.allclose(
+                    current_charges,
+                    self.charges,
+                    rtol=0.0,
+                    atol=GNNIS_PARTIAL_CHARGE_TOLERANCE,
+                )
+            ):
+                raise ValueError(
+                    "GNNIS runtime partial charges differ from the audited reference input."
+                )
         if bool(np.any(getattr(atoms, "pbc", False))):
             raise NotImplementedError(
                 "GNNIS reference mode is non-periodic; periodic cells are unsupported."
@@ -415,8 +477,13 @@ class GNNISReferenceBackend:
             raise NotImplementedError(
                 "GNNIS reference Hessian is available only through finite differences of forces."
             )
+        positions = np.asarray(atoms.get_positions(), dtype=np.float64)
+        if positions.shape != (len(atoms), 3) or not np.isfinite(positions).all():
+            raise ValueError(
+                "GNNIS reference positions must be finite with shape (N, 3)."
+            )
         raw = self._runtime.evaluate(
-            np.asarray(atoms.get_positions(), dtype=np.float64),
+            positions,
             need_forces=need_forces,
         )
         if isinstance(raw, GNNISReferenceResult):
@@ -436,14 +503,19 @@ class GNNISReferenceBackend:
             )
         if need_forces and result.forces_hartree_per_angstrom is None:
             raise NotImplementedError("GNNIS reference runtime did not return forces.")
+        energy = float(result.energy_hartree)
+        if not np.isfinite(energy):
+            raise ValueError("GNNIS reference energy must be finite.")
         forces = result.forces_hartree_per_angstrom
-        if forces is not None and np.asarray(forces).shape != (len(atoms), 3):
-            raise ValueError("GNNIS reference forces must have shape (N, 3).")
+        if forces is not None:
+            forces = np.asarray(forces, dtype=float)
+            if forces.shape != (len(atoms), 3):
+                raise ValueError("GNNIS reference forces must have shape (N, 3).")
+            if not np.isfinite(forces).all():
+                raise ValueError("GNNIS reference forces must be finite.")
         return GNNISReferenceResult(
-            energy_hartree=float(result.energy_hartree),
-            forces_hartree_per_angstrom=(
-                None if forces is None else np.asarray(forces, dtype=float)
-            ),
+            energy_hartree=energy,
+            forces_hartree_per_angstrom=forces,
             provenance={**self.provenance, **dict(result.provenance)},
         )
 

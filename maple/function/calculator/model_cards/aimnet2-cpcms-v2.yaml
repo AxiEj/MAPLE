@@ -18,7 +18,8 @@
   },
   "elements": ["H", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I"],
   "element_scope_note": "drug-like subset used by the LoQI workflow; exact training manifest remains unaudited",
-  "charge_range": "not independently audited",
+  "charge_range": [0, 0],
+  "charge_scope_note": "upstream charge range is not independently audited; Route 4 execution is restricted to neutral molecules",
   "spin_support": [1],
   "solvent_scope": {
     "mode": "fixed",
@@ -37,9 +38,9 @@
     "hessian": "finite_difference",
     "supports_numerical_hessian": true,
     "supports_single_point": true,
-    "supports_md": true,
+    "supports_md": false,
     "supports_pbc": false,
-    "supports_charge": true,
+    "supports_charge": false,
     "supports_multiplicity": false,
     "supports_multifragment": false,
     "requires_topology": false,
@@ -52,10 +53,10 @@
   "recommended_tasks": [
     "single_point",
     "geometry_optimization",
-    "numerical_frequency_as_native_continuum_solution_curvature",
-    "short_md_after_stability_smoke"
+    "numerical_frequency_as_native_continuum_solution_curvature"
   ],
   "forbidden_tasks": [
+    "md",
     "absolute_solvation_free_energy",
     "binding_free_energy_without_sampling_and_thermodynamic_protocol",
     "analytic_frequency",

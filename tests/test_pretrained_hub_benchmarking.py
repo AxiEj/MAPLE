@@ -59,8 +59,14 @@ def test_identity_is_stable_and_changes_with_any_protocol_dimension():
     assert identity.fingerprint == _identity().fingerprint
     assert identity.fingerprint != _identity(cavity_model="different").fingerprint
     assert identity.fingerprint != _identity(potential="alternative").fingerprint
-    assert identity.panel_fingerprint == _identity(potential="alternative").panel_fingerprint
-    assert identity.panel_fingerprint != _identity(solvent_protocol="methanol").panel_fingerprint
+    assert (
+        identity.panel_fingerprint
+        == _identity(potential="alternative").panel_fingerprint
+    )
+    assert (
+        identity.panel_fingerprint
+        != _identity(solvent_protocol="methanol").panel_fingerprint
+    )
 
 
 def test_identity_rejects_duplicate_or_implicit_records():
@@ -123,6 +129,15 @@ def test_metrics_count_nonfinite_predictions_as_failures():
     assert summary["coverage"] == 0.5
 
 
+@pytest.mark.parametrize("invalid_reference", [None, "not-a-number", float("nan")])
+def test_metrics_reject_invalid_experimental_references(invalid_reference):
+    records = _records()
+    records[1]["experimental_kcal_mol"] = invalid_reference
+
+    with pytest.raises(ValueError, match="experimental_kcal_mol"):
+        summarize_predictions(records, bootstrap_samples=0)
+
+
 def test_paired_comparison_requires_panel_identity_match():
     with pytest.raises(ValueError, match="scientific panel identities"):
         paired_comparison(
@@ -151,9 +166,9 @@ def test_paired_comparison_reports_wins_and_delta():
     assert comparison.benchmark_fingerprint == _identity().panel_fingerprint
     assert comparison.panel_fingerprint == _identity().panel_fingerprint
     assert comparison.run_fingerprint_a == _identity().fingerprint
-    assert comparison.run_fingerprint_b == _identity(
-        potential="alternative"
-    ).fingerprint
+    assert (
+        comparison.run_fingerprint_b == _identity(potential="alternative").fingerprint
+    )
 
 
 def test_paired_comparison_rejects_solvent_protocol_or_backend_mismatch():

@@ -5,14 +5,21 @@ import importlib.util
 import numpy as np
 import pytest
 
-from maple.function.calculator.extra_correction.implicit.topology import TopologyProvider
+from maple.function.calculator.extra_correction.implicit.topology import (
+    TopologyProvider,
+    canonicalize_topology,
+)
 from maple.function.read.filereader.mol2_reader import MOL2Reader
 
 
 @pytest.mark.parametrize("require_single_fragment", [True, False])
-def test_mol2_metadata_provider_validates_counts_and_fragments(water_mol2, require_single_fragment):
+def test_mol2_metadata_provider_validates_counts_and_fragments(
+    water_mol2, require_single_fragment
+):
     atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
-    topology = TopologyProvider.from_mol2_atoms(atoms, require_single_fragment=require_single_fragment)
+    topology = TopologyProvider.from_mol2_atoms(
+        atoms, require_single_fragment=require_single_fragment
+    )
 
     assert topology.source == "MOL2"
     assert topology.symbols == tuple(atoms.get_chemical_symbols())
@@ -38,7 +45,8 @@ def test_openff_like_object_accepts_programmatic_atoms_and_bonds_and_mappings():
         def __init__(self, atomic_number, name, mapping=None):
             self.atomic_number = atomic_number
             self.atom_name = name
-            self.molecule_atom_index = mapping
+            self.molecule_atom_index = None
+            self.atom_map = mapping
 
     class FakeBond:
         def __init__(self, i, j, order):
@@ -71,7 +79,8 @@ def test_openff_like_mapping_validation_is_fail_closed(tmp_path):
         def __init__(self, atomic_number, name, mapping):
             self.atomic_number = atomic_number
             self.atom_name = name
-            self.molecule_atom_index = mapping
+            self.molecule_atom_index = None
+            self.atom_map = mapping
 
     class FakeBond:
         def __init__(self, i, j, order):
@@ -86,6 +95,45 @@ def test_openff_like_mapping_validation_is_fail_closed(tmp_path):
 
     with pytest.raises(ValueError, match="Duplicate mapping"):
         TopologyProvider.from_openff_molecule(FakeMolecule())
+
+
+def test_openff_zero_based_atom_indices_are_not_treated_as_atom_maps():
+    class FakeAtom:
+        def __init__(self, atomic_number, index):
+            self.atomic_number = atomic_number
+            self.molecule_atom_index = index
+
+    class FakeBond:
+        atom1_index = 0
+        atom2_index = 1
+        bond_order = 1
+
+    class FakeMolecule:
+        atoms = [FakeAtom(8, 0), FakeAtom(1, 1)]
+        bonds = [FakeBond()]
+
+    topology = TopologyProvider.from_openff_molecule(FakeMolecule())
+    assert topology.mappings == (None, None)
+
+
+def test_canonicalize_topology_dispatches_ase_mol2_metadata(water_mol2):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    topology = canonicalize_topology(atoms)
+    assert topology.source == "MOL2"
+    assert topology.symbols == tuple(atoms.get_chemical_symbols())
+
+
+def test_topology_rejects_empty_atom_collections():
+    with pytest.raises(ValueError, match="at least one atom"):
+        TopologyProvider._validate_open_atoms(
+            (),
+            (),
+            (),
+            (),
+            (),
+            source="test",
+            require_single_fragment=True,
+        )
 
 
 def test_openmm_topology_provider_and_openmm_topology_export(tmp_path):
@@ -107,6 +155,7 @@ def test_openmm_topology_provider_and_openmm_topology_export(tmp_path):
     assert topo.symbols == ("O", "H", "H")
     assert topo.atom_names == ("O", "H1", "H2")
     assert topo.bonds == ((0, 1, 1.0), (0, 2, 1.0))
+    assert topo.mappings == (None, None, None)
     assert topo.nfragments == 1
     assert np.array_equal(np.array(topo.fragments), [0, 0, 0])
 

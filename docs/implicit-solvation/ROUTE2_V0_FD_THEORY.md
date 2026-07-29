@@ -385,6 +385,12 @@ hand-chosen overlap coefficient would be a new empirical potential, and is
 not admitted.  The next physical decision is the coupling functional itself,
 not a numerical rescaling of this reference density.
 
+Section 4.2.11 supplies one deliberately generic, parameter-free
+frozen-density kinetic-overlap **control** for that decision.  It consumes two
+explicit electron-reference-density grids; it does not silently couple the
+current solute-only promolecular table to an invented solvent density or
+declare a physical \(u^{\mathrm{sr}}\).
+
 #### 4.2.5 Synthetic variational site-HNC reference kernel
 
 Before a real molecular-solvent asset is admitted, the code now contains a
@@ -737,6 +743,63 @@ those physical 11-solvent assets.  This control also rejects charged solutes;
 a charged periodic branch requires a separately preregistered background,
 finite-size, and standard-state free-energy derivation.
 
+#### 4.2.11 Parameter-free frozen-density Pauli-overlap control
+
+The first short-range **scalar control** is the Thomas--Fermi nonadditive
+kinetic energy from frozen-density embedding.  For separately declared,
+nonnegative solute and solvent *electron* reference densities on one common
+grid, it is
+
+\[
+T_{\mathrm{TF}}^{\mathrm{nad}}[n_{\mathrm{sol}},n_{\mathrm{liq}}]
+=C_{\mathrm{TF}}\int d\mathbf r\,
+\left[
+(n_{\mathrm{sol}}+n_{\mathrm{liq}})^{5/3}
+-n_{\mathrm{sol}}^{5/3}-n_{\mathrm{liq}}^{5/3}
+\right],
+\qquad
+C_{\mathrm{TF}}=\frac3{10}(3\pi^2)^{2/3}.
+\]
+
+This coefficient is fixed by the atomic-unit Thomas--Fermi functional; it is
+not an overlap radius, a solvent scale, or a fitted replacement for the
+missing liquid physics.  Convexity gives
+
+\[
+T_{\mathrm{TF}}^{\mathrm{nad}}\ge0,
+\]
+
+with equality for pointwise-disjoint density support.  The two exact discrete
+functional derivatives are
+
+\[
+\frac{\delta T_{\mathrm{TF}}^{\mathrm{nad}}}{\delta n_{\mathrm{sol}}}
+=\frac53C_{\mathrm{TF}}
+\left[(n_{\mathrm{sol}}+n_{\mathrm{liq}})^{2/3}
+-n_{\mathrm{sol}}^{2/3}\right],
+\]
+
+and the corresponding solvent expression under
+\(n_{\mathrm{sol}}\leftrightarrow n_{\mathrm{liq}}\).  Thus this is one
+energy/derivative-conjugate Pauli-repulsion primitive rather than a
+post-hoc exclusion energy.
+
+`route2_v0_frozen_density_embedding.py` implements this scalar, both
+functional derivatives, immutable nonnegative inputs, and construction/scope
+tags.  Its tests lock nonnegativity, the exact disjoint-support limit,
+exchange symmetry, finite-difference derivatives, translation covariance,
+and rejection of invalid densities.  It has no trainable weights and does
+not inspect target solvation labels.
+
+This still does **not** define the V0-FD-S short-range site potential.  The
+checked-in promolecular table is a solute-side reference only, and the
+checkout has no frozen solvent electron-density asset, solvent embedding
+construction, dispersion term, or common liquid free-energy functional.
+Moreover, the Thomas--Fermi integrand is \(C^1\) but not \(C^2\) at zero
+density.  It is therefore deliberately excluded from Newton/Hessian and
+production-PES claims until a smooth source-provenanced functional and its
+stationary liquid state are derived together.
+
 ### 4.3 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-
@@ -747,6 +810,9 @@ finite-size, and standard-state free-energy derivation.
 - Post-hoc charge projection, response symmetrization, eigenvalue clipping,
   response scaling, cavity-radius tuning, and error regressions are not
   physical candidate families.
+- Post-training and fine-tuning are deferred outside V0.  A future learned
+  electronic-functional head must be a separately preregistered route, not a
+  fallback used to rescue a failed V0 structural or benchmark gate.
 
 ## 5. Accuracy evidence and falsification gates
 

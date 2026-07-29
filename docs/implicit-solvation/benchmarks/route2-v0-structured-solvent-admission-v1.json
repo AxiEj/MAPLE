@@ -2,7 +2,7 @@
   "protocol_id": "route2-v0-structured-solvent-admission-v1",
   "schema_version": 1,
   "status": "preregistered-before-physical-liquid-functional-execution",
-  "claim_boundary": "This is an admission contract for a no-training fixed-density structured-solvent research branch. It does not supply a physical solvent asset, authorize a chemistry or force claim, or replace the legacy Route-2 fixed point or the V0-FD continuum control. A synthetic variational HNC reference kernel may test a discrete scalar and its derivative, but is not a physical liquid calculation or a total solvation result.",
+  "claim_boundary": "This is an admission contract for a no-training fixed-density structured-solvent research branch. It does not supply a physical solvent asset, authorize a chemistry or force claim, or replace the legacy Route-2 fixed point or the V0-FD continuum control. A synthetic variational HNC reference kernel and a parameter-free frozen-density Pauli-overlap control may test discrete scalars and their derivatives, but are not physical liquid calculations or total solvation results.",
   "construction": {
     "name": "route2-v0-fixed-density-structured-solvent-v1",
     "electronic_state": "c0(R) is the unmodified zero-reaction-field MACE-POLAR l<=1 density; it is frozen throughout the liquid solve.",
@@ -11,7 +11,7 @@
     "solute_solvent_potential": "u_alpha,s(r) = z_alpha,s phi_c0^G(r) + u_alpha,s^sr[n_ref](r).",
     "liquid_state": "For an admitted physical backend, the solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
     "primary_free_energy": "The declared KH/MDFT excess-free-energy functional plus a thermodynamic pressure correction derived from the same frozen bulk asset and a declared standard-state correction.",
-    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, synthetic-only reciprocal site-HNC scalar/solver, a bulk-only 1D-RISM direct-correlation parser with a source-SMEAR analytic Coulomb split, a neutral periodic Poisson scalar/derivative control for that long-range term, a small-grid radial-to-reciprocal short-range transform control, a fixed-neutral-density nonlocal-dielectric reaction scalar/derivative control requiring a full real-even passive Fourier spectrum, and a fail-closed content-addressed solvent-asset registry schema; no short-range solute interaction, frozen physical multisolvent asset contents, physical liquid free energy, force, or benchmark score."
+    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, parameter-free frozen-density Thomas-Fermi nonadditive kinetic Pauli-overlap scalar/derivatives, synthetic-only reciprocal site-HNC scalar/solver, a bulk-only 1D-RISM direct-correlation parser with a source-SMEAR analytic Coulomb split, a neutral periodic Poisson scalar/derivative control for that long-range term, a small-grid radial-to-reciprocal short-range transform control, a fixed-neutral-density nonlocal-dielectric reaction scalar/derivative control requiring a full real-even passive Fourier spectrum, and a fail-closed content-addressed solvent-asset registry schema; no physical short-range solute interaction, frozen physical multisolvent asset contents, physical liquid free energy, force, or benchmark score."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -86,6 +86,7 @@
   "validation_sequence": [
     "Validate the Gaussian MACE source against analytic values and verify that the grid-potential adapter consumes it without a charge/Lennard-Jones fallback.",
     "Validate the nonnegative short-range reference-density provenance and prove that it cannot overwrite the MACE electrostatic source.",
+    "Validate the parameter-free frozen-density Thomas-Fermi nonadditive kinetic Pauli scalar, both density derivatives, exchange/translation covariance, nonnegativity, and the disjoint-support zero; it remains a short-range control until a frozen solvent electron-density asset and one common liquid functional are declared.",
     "Validate the synthetic reciprocal site-HNC scalar, finite-difference derivative, and ideal-gas stationarity before any physical solvent asset is admitted.",
     "Validate a bulk-only 1D-RISM .xvv/.cvv asset, exact site-pair coverage, the native Coulomb-tail residual, and the source-SMEAR analytic origin rule before a physical liquid backend is admitted.",
     "Validate the neutral source-SMEAR periodic Poisson long-range scalar, finite-difference derivative, reciprocal pairing, zero-mode gauge, translation covariance, and fixed-cell grid refinement before it is joined to any Cvv short-range mapping.",
@@ -103,7 +104,7 @@
     "capability": "A fixed-density, all-space MACE Gaussian l<=1 electrostatic potential is evaluated on a declared regular Cartesian grid and exposed as the electrostatic site-energy summand z*phi_c0^G.",
     "fixed_source_width_policy": "The checkpoint-native MACE Gaussian width is fixed; it cannot be used as a grid-refinement or error-adjustment parameter.",
     "not_implemented": [
-      "promolecular-density coupling into a solute-solvent short-range potential",
+      "promolecular-density coupling to a frozen physical solvent electron-density asset or a solute-solvent short-range potential",
       "solute-solvent short-range potential",
       "frozen physical multisolvent asset contents for the 11-solvent panel",
       "source-provenanced physical short-range RISM grid mapping and production-scale grid-convergence certification",
@@ -116,6 +117,13 @@
       "artifact": "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1",
       "capability": "A source-bound, nonnegative spherical free-atom reference-density table is available for H, C, N, O, S, and Cl and is evaluated independently from the MACE electrostatic source.",
       "not_coupled": "The table does not yet define u_sr, dispersion, a liquid-state solve, or a total solvation free energy."
+    },
+    "frozen_density_pauli_overlap_control": {
+      "module": "maple.function.calculator.extra_correction.implicit.route2_v0_frozen_density_embedding",
+      "capability": "A parameter-free Thomas-Fermi nonadditive kinetic scalar and both exact grid-density derivatives provide a nonnegative, exchange-symmetric frozen-density Pauli-overlap control.",
+      "source_boundary": "It accepts only independently declared nonnegative electron-density grids and does not relabel the MACE Gaussian coefficients or couple the solute-only promolecular table to an invented solvent density.",
+      "smoothness_boundary": "The Thomas-Fermi integrand is C1 but not C2 at zero density, so this control is excluded from Newton/Hessian and production-PES claims until a smooth source-provenanced functional and stationary liquid state are derived.",
+      "not_a_physical_liquid_backend": "No frozen solvent electron-density asset, site-resolved short-range potential, dispersion term, liquid-state minimization, force, total solvation free energy, or accuracy result is supplied."
     },
     "site_hnc_variational_reference": {
       "module": "maple.function.calculator.extra_correction.implicit.route2_v0_site_hnc",

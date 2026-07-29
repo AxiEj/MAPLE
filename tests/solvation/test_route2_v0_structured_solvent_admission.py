@@ -20,7 +20,9 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     protocol = _protocol()
 
     assert protocol["protocol_id"] == "route2-v0-structured-solvent-admission-v1"
-    assert protocol["status"] == "preregistered-before-liquid-functional-execution"
+    assert protocol["status"] == (
+        "preregistered-before-physical-liquid-functional-execution"
+    )
     assert protocol["construction"]["name"] == (
         "route2-v0-fixed-density-structured-solvent-v1"
     )
@@ -48,6 +50,11 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert promolecular["artifact"] == "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1"
     assert "H, C, N, O, S, and Cl" in promolecular["capability"]
     assert "does not yet define u_sr" in promolecular["not_coupled"]
+    hnc = foundation["site_hnc_variational_reference"]
+    assert hnc["module"].endswith("route2_v0_site_hnc")
+    assert "synthetic-only periodic multi-site HNC" in hnc["capability"]
+    assert "MACE Gaussian grid potential" in hnc["mace_coupling_boundary"]
+    assert "No frozen physical direct correlations" in hnc["not_a_physical_solvent_asset"]
 
 
 def test_structured_solvent_admission_preserves_the_mace_source_boundary():
@@ -79,6 +86,7 @@ def test_structured_solvent_admission_requires_a_frozen_liquid_asset_and_review(
     assert liquid["primary_closure"].startswith("Kovalenko-Hirata")
     assert "thermodynamic pressure correction" in liquid["pressure_correction"]
     assert "diagnostic-only" in liquid["pc_plus_policy"]
+    assert "discrete energy/derivative control only" in liquid["reference_kernel"]
     assert solvent["minimum_registered_solvent_count"] == 11
     assert len(solvent["registered_default_solvents"]) == 11
     assert "methanol" in solvent["registered_default_solvents"]

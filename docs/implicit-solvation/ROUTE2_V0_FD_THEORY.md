@@ -385,6 +385,67 @@ hand-chosen overlap coefficient would be a new empirical potential, and is
 not admitted.  The next physical decision is the coupling functional itself,
 not a numerical rescaling of this reference density.
 
+#### 4.2.5 Synthetic variational site-HNC reference kernel
+
+Before a real molecular-solvent asset is admitted, the code now contains a
+strictly **synthetic-only** multi-site HNC reference functional.  It exists to
+lock the discrete scalar/gradient relation that the eventual liquid backend
+must preserve; it is not a physical solvent model or a solvation endpoint.
+For periodic site densities \(\rho_a(\mathbf r)\), bulk number densities
+\(\rho_a^b\), external site potentials \(u_a\), and a frozen direct
+correlation \(c_{ab}\), its declared grand-potential difference is
+
+\[
+\begin{aligned}
+\Omega_{\mathrm{HNC}}[\rho;u]
+={}&k_{\mathrm B}T\sum_a\int
+\left[\rho_a\ln\frac{\rho_a}{\rho_a^b}
+-\left(\rho_a-\rho_a^b\right)\right]d\mathbf r\\
+&-\frac{k_{\mathrm B}T}{2}\sum_{ab}\iint
+\delta\rho_a(\mathbf r)c_{ab}(\mathbf r-\mathbf r')
+\delta\rho_b(\mathbf r')d\mathbf r\,d\mathbf r'
++\sum_a\int\rho_a(\mathbf r)u_a(\mathbf r)d\mathbf r,
+\end{aligned}
+\]
+
+where \(\delta\rho_a=\rho_a-\rho_a^b\).  The frozen asset must obey the
+reciprocal discrete pairing condition
+
+\[
+c_{ab}(\mathbf r)=c_{ba}(-\mathbf r).
+\]
+
+That condition makes the quadratic term a scalar rather than merely an
+iteration map.  The Euler equation is then the derivative of exactly the same
+stored scalar,
+
+\[
+\frac{1}{k_{\mathrm B}T}
+\frac{\delta\Omega_{\mathrm{HNC}}}{\delta\rho_a}
+=\ln\frac{\rho_a}{\rho_a^b}
+-\sum_b c_{ab}*\delta\rho_b
++\beta u_a=0.
+\]
+
+`route2_v0_site_hnc.py` evaluates this expression with the declared Cartesian
+cell volume in both the scalar and its FFT convolution.  It rejects a
+nonreciprocal direct-correlation array, keeps the physical residual separate
+from optional Picard mixing, and tests the finite-difference derivative, the
+reciprocal convolution pairing, and the ideal-gas stationary solution.  The
+MACE Gaussian grid potential can enter only as the electrostatic summand of
+\(u_a\); no charge/Lennard-Jones substitute is introduced.
+
+This is the mathematical form used by HNC molecular density functional theory:
+the standard functional is minimized with respect to solvent density and its
+excess term is a direct-correlation quadratic form.  The present site-only
+kernel deliberately omits orientational degrees of freedom, bridge terms, a
+short-range \(u^{\mathrm{sr}}\), a physical \(c_{ab}\) asset, and a
+thermodynamic pressure convention.  In particular, HNC pressure can be badly
+overestimated, so this reference does **not** choose HNC as the primary
+free-energy closure or authorize a chemistry score.  It is a falsifiable
+energy/derivative control while the frozen KH/MDFT physical asset contract is
+being built.
+
 ### 4.3 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-
@@ -484,3 +545,14 @@ substitute for these gates.
     [PMC3719162](https://pmc.ncbi.nlm.nih.gov/articles/PMC3719162/).  It
     describes the promolecular density as a superposition of reference atomic
     densities; that convention does not make it an actual molecular density.
+13. L. Ding, M. Levesque, D. Borgis, and L. Belloni, *Efficient molecular
+    density functional theory using generalized spherical harmonics
+    expansions*, *J. Chem. Phys.* **147**, 094107 (2017),
+    [arXiv:1707.01385](https://arxiv.org/abs/1707.01385).  It states the HNC
+    density functional and its variational minimization; the reduced
+    site-only reference here is not claimed to reproduce its full molecular
+    orientational model.
+14. J. Johnson *et al.*, *Small Molecule Hydration Energy and Entropy from
+    3D-RISM*, [PMC5118872](https://pmc.ncbi.nlm.nih.gov/articles/PMC5118872/).
+    It documents the large HNC pressure contribution motivating a separately
+    declared pressure convention rather than an error-selected correction.

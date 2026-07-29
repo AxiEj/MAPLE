@@ -1,17 +1,17 @@
 {
   "protocol_id": "route2-v0-structured-solvent-admission-v1",
   "schema_version": 1,
-  "status": "preregistered-before-liquid-functional-execution",
-  "claim_boundary": "This is an admission contract for a no-training fixed-density structured-solvent research branch. It does not implement a liquid functional, does not authorize a chemistry or force claim, and does not replace the legacy Route-2 fixed point or the V0-FD continuum control.",
+  "status": "preregistered-before-physical-liquid-functional-execution",
+  "claim_boundary": "This is an admission contract for a no-training fixed-density structured-solvent research branch. It does not supply a physical solvent asset, authorize a chemistry or force claim, or replace the legacy Route-2 fixed point or the V0-FD continuum control. A synthetic variational HNC reference kernel may test a discrete scalar and its derivative, but is not a physical liquid calculation or a total solvation result.",
   "construction": {
     "name": "route2-v0-fixed-density-structured-solvent-v1",
     "electronic_state": "c0(R) is the unmodified zero-reaction-field MACE-POLAR l<=1 density; it is frozen throughout the liquid solve.",
     "electrostatic_source": "The all-space MACE Gaussian multipole potential phi_c0^G is evaluated with gaussian_multipole_potential on the liquid grid.",
-    "short_range_source": "n_ref(R,r) is a separately provenanced nonnegative promolecular reference density used only to define u_sr; it is not represented as MACE electron density and does not replace phi_c0^G.",
+    "short_range_source": "n_ref(R,r) is a separately provenanced nonnegative promolecular reference density reserved only for a future u_sr; it is not represented as MACE electron density and does not replace phi_c0^G.",
     "solute_solvent_potential": "u_alpha,s(r) = z_alpha,s phi_c0^G(r) + u_alpha,s^sr[n_ref](r).",
-    "liquid_state": "The solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
+    "liquid_state": "For an admitted physical backend, the solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
     "primary_free_energy": "The declared KH/MDFT excess-free-energy functional plus a thermodynamic pressure correction derived from the same frozen bulk asset and a declared standard-state correction.",
-    "current_kernel_scope": "MACE Gaussian electrostatic grid-source only; no short-range interaction, liquid minimization, solvation energy, force, or benchmark score."
+    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, and a synthetic-only reciprocal site-HNC scalar/solver using synthetic assets; no short-range interaction, physical solvent asset, physical liquid free energy, force, or benchmark score."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -43,7 +43,8 @@
     "primary_closure": "Kovalenko-Hirata closure with a versioned closed excess-free-energy convention",
     "pressure_correction": "primary: thermodynamic pressure correction derived from the same bulk liquid functional; pressure, partial molar volume, sign convention, and standard state are versioned with the solvent asset.",
     "pc_plus_policy": "diagnostic-only; it cannot be selected from target solvation errors or mixed into the primary result.",
-    "custom_solvent_policy": "fail closed for total free energy unless the complete molecular solvent asset is supplied before any target-solute result is inspected."
+    "custom_solvent_policy": "fail closed for total free energy unless the complete molecular solvent asset is supplied before any target-solute result is inspected.",
+    "reference_kernel": "The synthetic reciprocal site-HNC scalar is a discrete energy/derivative control only. It cannot be promoted to a physical liquid model without a frozen source-provenanced solvent asset, a declared short-range potential, and a pre-registered free-energy and pressure convention."
   },
   "solvent_asset_contract": {
     "registered_default_solvents": [
@@ -81,6 +82,7 @@
   "validation_sequence": [
     "Validate the Gaussian MACE source against analytic values and verify that the grid-potential adapter consumes it without a charge/Lennard-Jones fallback.",
     "Validate the nonnegative short-range reference-density provenance and prove that it cannot overwrite the MACE electrostatic source.",
+    "Validate the synthetic reciprocal site-HNC scalar, finite-difference derivative, and ideal-gas stationarity before any physical solvent asset is admitted.",
     "Validate the molecular liquid residual, closure convention, free-energy differential/thermodynamic identity, charge/gauge behavior, and grid convergence before reading target solvation labels.",
     "Freeze all solvent assets, all method conventions, and the 11-solvent development manifest before chemistry scoring.",
     "Require the per-record development, confirmation, and external-blind gates without parameter or method changes.",
@@ -94,8 +96,8 @@
     "not_implemented": [
       "promolecular-density coupling into a solute-solvent short-range potential",
       "solute-solvent short-range potential",
-      "MDFT or 3D-RISM liquid-state minimization",
-      "excess chemical potential or pressure correction",
+      "physical MDFT or 3D-RISM liquid-state minimization using a frozen real solvent asset",
+      "physical excess chemical potential or thermodynamic pressure correction",
       "force, PES, optimization, scan, MD, or NVE capability",
       "chemistry benchmark or accuracy claim"
     ],
@@ -103,6 +105,12 @@
       "artifact": "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1",
       "capability": "A source-bound, nonnegative spherical free-atom reference-density table is available for H, C, N, O, S, and Cl and is evaluated independently from the MACE electrostatic source.",
       "not_coupled": "The table does not yet define u_sr, dispersion, a liquid-state solve, or a total solvation free energy."
+    },
+    "site_hnc_variational_reference": {
+      "module": "maple.function.calculator.extra_correction.implicit.route2_v0_site_hnc",
+      "capability": "A synthetic-only periodic multi-site HNC grand-potential scalar accepts a reciprocal direct-correlation array, exposes the derivative of that scalar, and verifies the ideal-gas stationary limit and finite-difference consistency.",
+      "mace_coupling_boundary": "The MACE Gaussian grid potential can supply only the electrostatic site-energy summand; no charge, Lennard-Jones, or short-range substitute is synthesized.",
+      "not_a_physical_solvent_asset": "No frozen physical direct correlations, site model, short-range coupling, pressure convention, standard-state term, force, or chemistry score is supplied."
     }
   }
 }

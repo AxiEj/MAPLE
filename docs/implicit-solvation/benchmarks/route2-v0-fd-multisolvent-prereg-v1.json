@@ -1,0 +1,94 @@
+{
+  "protocol_id": "route2-v0-fd-multisolvent-prereg-v1",
+  "schema_version": 1,
+  "status": "preregistered-before-physics-execution",
+  "claim_boundary": "This protocol defines a no-training Route-2 V0-FD research path. It does not change any public Route-2 profile, does not claim a chemical-accuracy result, does not authorize force/PES use, and does not reinterpret the failed scalar-response V0 experiment as passing.",
+  "construction": {
+    "name": "route2-v0-fixed-density-v1",
+    "solute_state": "c0(R) is the unmodified MACE-POLAR gas-phase density evaluated at zero reaction field",
+    "solute_response": "forbidden: c0 is not updated from a solvent reaction field",
+    "continuum_state": "sigma*(R,c0)=argmin_sigma [0.5 sigma^T A_R sigma + sigma^T B_R c0]",
+    "electrostatic_energy": "U_pol(R,c0)=0.5 <c0, P_R c0> = 0.5 v_R(c0)^T q_energy(v_R(c0))",
+    "source_receiver_rule": "A source-to-surface map and its energy dual must use one declared density basis and one declared continuum operator.",
+    "coordinate_derivative_rule": "Any future force must be the full derivative of the same scalar, including dc0/dR and every explicit continuum/cavity derivative.",
+    "current_kernel_scope": "fixed-geometry energy-conjugate continuum scalar only"
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "density_projection": false,
+    "response_tempering_or_eigenvalue_clipping": false,
+    "per_molecule_or_per_solvent_method_selection_from_error": false,
+    "legacy_public_route_changed": false
+  },
+  "prohibited_actions": [
+    "Do not update c0 with the legacy learned local-jet or exact-GTO field response.",
+    "Do not repair charge, reciprocity, or passivity by projecting density, symmetrizing a response Jacobian, clipping eigenvalues, damping response, or fitting a scale factor.",
+    "Do not use MNSol, FreeSolv, MNSol-derived SMD parameters, or a held-out benchmark score to choose a cavity threshold, dispersion coefficient, solvent correction, or equation arm.",
+    "Do not use the best of several methods per record as a reported V0-FD result.",
+    "Do not promote a fixed-geometry scalar to a force, PES, optimization, scan, MD, or NVE claim before its independent smooth-cavity derivative gates pass."
+  ],
+  "solvent_information_contract": {
+    "registered_default_solvents": [
+      "water",
+      "methanol",
+      "ethanol",
+      "acetonitrile",
+      "dimethylsulfoxide",
+      "dimethylformamide",
+      "tetrahydrofuran",
+      "chloroform",
+      "dichloromethane",
+      "toluene",
+      "hexane"
+    ],
+    "minimum_registered_solvent_count": 11,
+    "dielectric_only_custom_solvent_policy": "A custom solvent specified only by static dielectric may run electrostatics-only diagnostics. It must fail closed for a total solvation-free-energy prediction because dielectric response does not determine cavity, dispersion, or molecular solvent structure.",
+    "total_free_energy_custom_solvent_requirements": [
+      "temperature and pressure",
+      "static and optical dielectric response",
+      "bulk number density or an equation of state",
+      "cavity/free-energy functional data derived independently of target solvation values",
+      "dispersion response data or a solvent molecular polarizability model with provenance",
+      "for molecular-structure solvent models, a site model and bulk direct-correlation/susceptibility data with provenance"
+    ],
+    "parameter_provenance_rule": "Every parameter must be independently measured, ab-initio derived, or supplied by a versioned upstream solvent theory before any target solvation result is inspected."
+  },
+  "benchmark_coverage_contract": {
+    "runtime_supported_solvent_count": 11,
+    "mnsol_v2012_neutral_absolute_solvent_count": 10,
+    "mnsol_v2012_neutral_absolute_solvents": [
+      "water",
+      "ethanol",
+      "acetonitrile",
+      "dimethylsulfoxide",
+      "dimethylformamide",
+      "tetrahydrofuran",
+      "chloroform",
+      "dichloromethane",
+      "toluene",
+      "hexane"
+    ],
+    "mnsol_methanol_limitation": "MNSol-v2012 contains no neutral absolute methanol rows in the frozen Route-2 domain. It cannot by itself certify the 11th registered solvent.",
+    "methanol_neutral_absolute_extension": "required-before-11-solvent-chemistry-scoring: independently versioned experimental records, geometry/conformer policy, standard-state convention, and provenance must be frozen before any V0-FD score is read",
+    "accuracy_claim_rule": "No statement that V0-FD has passed an 11-solvent accuracy gate is permitted until the methanol extension and all 11 runtime solvent strata are frozen and evaluated."
+  },
+  "candidate_nonpolar_policy": {
+    "smd_cds": "retained only as an explicitly empirical comparator; it is not evidence for a no-fit V0-FD core",
+    "weighted_density_cavity_dispersion": "admissible only if every cavity and dispersion input is sourced independently of target solvation free energies",
+    "molecular_density_functional_or_rism": "admissible as an independent structured-solvent backend only when the solvent site/correlation model is frozen before solvation scoring"
+  },
+  "validation_sequence": [
+    "Prove source-to-surface/energy-dual pairing, total-charge conservation, energy-conjugate half-coupling, and stationary continuum residual on synthetic and real fixed-density cases.",
+    "Prove coordinate derivatives only after adopting a smooth cavity/operator; current active-set providers remain energy-only controls.",
+    "Freeze an 11-solvent development manifest with replicated chemistry per solvent before any V0-FD chemistry score is read. MNSol-v2012 supplies ten neutral-absolute strata only, so the independently versioned methanol extension is a prerequisite rather than a replaceable gap.",
+    "Require every development record to have absolute error strictly below 1.5 kcal/mol; report the maximum error, not only MAE/RMSE.",
+    "Freeze a disjoint 11-or-more-solvent confirmation manifest and require every record to remain strictly below 1.5 kcal/mol without any change.",
+    "Freeze an external final blind dataset absent from construction, development, confirmation, and model-selection work; require every record to remain strictly below 1.5 kcal/mol.",
+    "The stricter future target is every record strictly below 1.0 kcal/mol on development, confirmation, and final blind data."
+  ],
+  "decision_rule": "Failure of any structural gate rejects the candidate before chemistry metrics. Failure of any per-record accuracy gate rejects the frozen candidate; it does not authorize an error-driven adjustment. A new physical functional requires a new preregistration and an independent review."
+}

@@ -22,6 +22,14 @@ energy, response, provider, or schema and does not authorize V1, post-training,
 or fine-tuning.  The immutable evidence is
 [`route2-v0-scalar-response-water-v1.json`](benchmarks/route2-v0-scalar-response-water-v1.json).
 
+The separate no-training **V0-FD** research contract freezes the solute density
+at zero field and varies only an energy-conjugate continuum state.  It is not a
+reinterpretation of the failed scalar-response V0 canary and does not change a
+public profile.  Its mathematical boundary, custom-solvent information
+requirements, and strict per-record blind-test gates are recorded in
+[`ROUTE2_V0_FD_THEORY.md`](ROUTE2_V0_FD_THEORY.md) and
+[`route2-v0-fd-multisolvent-prereg-v1.json`](benchmarks/route2-v0-fd-multisolvent-prereg-v1.json).
+
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot
 fixed-density acetone scalar canary passed at commit `da89ab8`: the

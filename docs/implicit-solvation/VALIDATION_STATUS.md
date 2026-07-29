@@ -37,6 +37,14 @@ fine-tuning.  The immutable preregistration and result are
 `benchmarks/route2-v0-scalar-response-water-prereg-v1.json` and
 `benchmarks/route2-v0-scalar-response-water-v1.json`.
 
+A distinct **V0-FD** research kernel is preregistered separately.  It freezes
+the zero-field MACE density and minimizes only an energy-conjugate continuum
+state; it does not revive the rejected field-conditioned V0 response and has
+no chemistry, force, PES, or accuracy result yet.  Its no-fit boundary,
+custom-solvent information contract, and blind-test gates are in
+`ROUTE2_V0_FD_THEORY.md` and
+`benchmarks/route2-v0-fd-multisolvent-prereg-v1.json`.
+
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental
 `mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening

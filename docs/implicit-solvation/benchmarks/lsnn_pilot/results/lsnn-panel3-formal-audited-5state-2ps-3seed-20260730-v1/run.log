@@ -1,0 +1,30 @@
+Warning on use of the timeseries module: If the inherent timescales of the system are long compared to those being analyzed, this statistical inefficiency may be an underestimate.  The estimate presumes the use of many statistically independent samples.  Tests should be performed to assess whether this condition is satisfied.   Be cautious in the interpretation of the data.
+
+********* JAX NOT FOUND *********
+ PyMBAR can run faster with JAX
+ But will work fine without it
+Either install with pip or conda:
+      pip install pybar[jax]
+               OR
+      conda install pymbar
+*********************************
+Warning: importing 'simtk.openmm' is deprecated.  Import 'openmm' instead.
+Failed to reach a solution to within tolerance with hybr: trying next method
+Failed to reach a solution to within tolerance with hybr: trying next method
+Failed to reach a solution to within tolerance with hybr: trying next method
+{
+  "bootstrap_resamples": 10000,
+  "bootstrap_seed": 20260729,
+  "coverage": 0.6666666666666666,
+  "mae_bootstrap_95_ci_kcal_mol": [
+    0.9479336581301538,
+    1.622934306455901
+  ],
+  "mae_kcal_mol": 1.2854339822930274,
+  "maximum_absolute_error_kcal_mol": 1.622934306455901,
+  "mean_signed_error_kcal_mol": 0.33750032416287357,
+  "median_absolute_error_kcal_mol": 1.2854339822930274,
+  "n_requested": 3,
+  "n_success": 2,
+  "rmse_kcal_mol": 1.3290022541906223
+}

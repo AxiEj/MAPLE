@@ -1,0 +1,18 @@
+{
+  "logical_cpu_count": 20,
+  "machine": "x86_64",
+  "numpy": "1.26.4",
+  "openmm": "8.5.2",
+  "openmm_cpu_threads": "10",
+  "openmm_platforms": [
+    "Reference",
+    "CPU"
+  ],
+  "openmmtorch": "1.5",
+  "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "pymbar": "4.0.3",
+  "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+  "torch": "2.9.1+cu130",
+  "torch_num_interop_threads": 10,
+  "torch_num_threads": 10
+}

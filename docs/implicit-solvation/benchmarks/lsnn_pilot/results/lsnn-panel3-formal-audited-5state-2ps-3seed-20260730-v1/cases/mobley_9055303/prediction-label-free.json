@@ -1,0 +1,422 @@
+{
+  "build": [
+    {
+      "atom_count": 5,
+      "gbn2_feature_shape": [
+        5,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "a3f09406dde35435a7ba1315a89b81b776d214509864b99d9b2d07ef300748c1"
+    },
+    {
+      "atom_count": 5,
+      "gbn2_feature_shape": [
+        5,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "9cc607f71c56c3e393d3e2377148718d03528ab1ce0f96624d864c72a088bea2"
+    },
+    {
+      "atom_count": 5,
+      "gbn2_feature_shape": [
+        5,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "a58ac82b777b11f6d58b852e4e928478b3afc50d5a7b767c89075ffdb75795ff"
+    },
+    {
+      "atom_count": 5,
+      "gbn2_feature_shape": [
+        5,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "e8f6afff1c585377ebec984fdfa012795f6a6b36a932876ac6d3bef9390e8fa1"
+    },
+    {
+      "atom_count": 5,
+      "force_finite_difference": {
+        "coordinates_checked": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          14
+        ],
+        "force_group": 31,
+        "maximum_absolute_error_kj_mol_nm": 0.024158477783203125,
+        "relative_l2_error": 0.00022681505370875015,
+        "rms_error_kj_mol_nm": 0.012132694968744077,
+        "step_nm": 0.0001
+      },
+      "gbn2_feature_shape": [
+        5,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "daa783080501aac1af249b0060b21daf368a999c48d3a4b2d616a88e2af9e635"
+    }
+  ],
+  "combined_uncertainty_kcal_mol": 0.0034417081731891418,
+  "combined_uncertainty_method": "quadrature of the mean within-seed MBAR variance and between-seed SEM; sampling-only heuristic, not a calibrated model-error interval",
+  "compound_id": "mobley_9055303",
+  "elapsed_seconds": 526.6114291590002,
+  "name": "methane",
+  "prediction_kcal_mol": 1.0520663418698462,
+  "quality_failures": [],
+  "quality_notes": [],
+  "replicate_count": 3,
+  "replicate_sd_kcal_mol": 0.005328272672624384,
+  "replicate_sem_kcal_mol": 0.003076279661855415,
+  "run_mode": "formal",
+  "seed_results": [
+    {
+      "converged": true,
+      "decorrelation": [
+        {
+          "equilibration_frame": 2,
+          "estimated_effective_samples": 153.3338623046875,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 153,
+          "statistical_inefficiency": 1.2978216409683228
+        },
+        {
+          "equilibration_frame": 9,
+          "estimated_effective_samples": 90.72210693359375,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 91,
+          "statistical_inefficiency": 2.1163530349731445
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 201.0,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 200,
+          "statistical_inefficiency": 1.0
+        },
+        {
+          "equilibration_frame": 1,
+          "estimated_effective_samples": 136.3790740966797,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 136,
+          "statistical_inefficiency": 1.4665006399154663
+        },
+        {
+          "equilibration_frame": 22,
+          "estimated_effective_samples": 119.83615112304688,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 119,
+          "statistical_inefficiency": 1.493706226348877
+        }
+      ],
+      "delta_g_kcal_mol": 1.0573308667595611,
+      "mbar_uncertainty_kcal_mol": 0.002986265079467556,
+      "minimum_adjacent_overlap": 0.12993019405094633,
+      "n_k": [
+        153,
+        91,
+        200,
+        136,
+        119
+      ],
+      "overlap_matrix": [
+        [
+          0.22061136358683256,
+          0.12993019405094633,
+          0.2846543896032445,
+          0.1945349999749947,
+          0.17026905278398302
+        ],
+        [
+          0.21845406252521746,
+          0.1339710749632342,
+          0.28646357025859054,
+          0.19321971774298966,
+          0.16789157450996783
+        ],
+        [
+          0.21776060804648206,
+          0.1303409244676587,
+          0.28759098374206915,
+          0.19444880911191442,
+          0.16985867463187507
+        ],
+        [
+          0.21885187497186906,
+          0.12928672290155926,
+          0.28595413104693296,
+          0.19502865544847597,
+          0.17087861563116316
+        ],
+        [
+          0.21891735357940675,
+          0.1283876746252695,
+          0.285476764087185,
+          0.19528984643561503,
+          0.17192836127252434
+        ]
+      ],
+      "quality_failures": [],
+      "raw_energy_artifact": {
+        "array_layout": "[sampled_lambda_state, evaluated_lambda_state, raw_frame]",
+        "energy_unit": "kJ/mol",
+        "path": "cases/mobley_9055303/raw-u-kln-seed-20260729.npz",
+        "selected_index_arrays": [
+          "selected_frame_indices_state_0",
+          "selected_frame_indices_state_1",
+          "selected_frame_indices_state_2",
+          "selected_frame_indices_state_3",
+          "selected_frame_indices_state_4"
+        ],
+        "sha256": "35c63cf0608991e737f55ca9312899034f60164294c87d89cf842ca2474c2a48",
+        "shape": [
+          5,
+          5,
+          200
+        ]
+      },
+      "seed": 20260729
+    },
+    {
+      "converged": true,
+      "decorrelation": [
+        {
+          "equilibration_frame": 29,
+          "estimated_effective_samples": 139.94178771972656,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 139,
+          "statistical_inefficiency": 1.229082465171814
+        },
+        {
+          "equilibration_frame": 75,
+          "estimated_effective_samples": 61.97170639038086,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 62,
+          "statistical_inefficiency": 2.0331859588623047
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 201.0,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 200,
+          "statistical_inefficiency": 1.0
+        },
+        {
+          "equilibration_frame": 14,
+          "estimated_effective_samples": 164.8965301513672,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 164,
+          "statistical_inefficiency": 1.1340445280075073
+        },
+        {
+          "equilibration_frame": 57,
+          "estimated_effective_samples": 144.0,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 143,
+          "statistical_inefficiency": 1.0
+        }
+      ],
+      "delta_g_kcal_mol": 1.0521916277814123,
+      "mbar_uncertainty_kcal_mol": 0.0025559270198469916,
+      "minimum_adjacent_overlap": 0.08742131807015428,
+      "n_k": [
+        139,
+        62,
+        200,
+        164,
+        143
+      ],
+      "overlap_matrix": [
+        [
+          0.1974749476522307,
+          0.08742131807015428,
+          0.2817545914974687,
+          0.23159513982877974,
+          0.2017540029513662
+        ],
+        [
+          0.19599295502824912,
+          0.0890305428718292,
+          0.28325769389337485,
+          0.23107275127007057,
+          0.20064605693647708
+        ],
+        [
+          0.19581944109074073,
+          0.08780988510694619,
+          0.28316531313389814,
+          0.2315398624932313,
+          0.20166549817518356
+        ],
+        [
+          0.19629100265975843,
+          0.08735677182161204,
+          0.28236568596735523,
+          0.23180583653092268,
+          0.2021807030203517
+        ],
+        [
+          0.19611053433734196,
+          0.08699339531511593,
+          0.2820496477974595,
+          0.23187157549187187,
+          0.20297484705821206
+        ]
+      ],
+      "quality_failures": [],
+      "raw_energy_artifact": {
+        "array_layout": "[sampled_lambda_state, evaluated_lambda_state, raw_frame]",
+        "energy_unit": "kJ/mol",
+        "path": "cases/mobley_9055303/raw-u-kln-seed-20260730.npz",
+        "selected_index_arrays": [
+          "selected_frame_indices_state_0",
+          "selected_frame_indices_state_1",
+          "selected_frame_indices_state_2",
+          "selected_frame_indices_state_3",
+          "selected_frame_indices_state_4"
+        ],
+        "sha256": "f1586b8006630a86ad4bffe7e2224d7b1af9fb2de93f4db6edb45debaeec2e63",
+        "shape": [
+          5,
+          5,
+          200
+        ]
+      },
+      "seed": 20260730
+    },
+    {
+      "converged": true,
+      "decorrelation": [
+        {
+          "equilibration_frame": 12,
+          "estimated_effective_samples": 171.55252075195312,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 171,
+          "statistical_inefficiency": 1.101703405380249
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 154.7736358642578,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 154,
+          "statistical_inefficiency": 1.298670768737793
+        },
+        {
+          "equilibration_frame": 32,
+          "estimated_effective_samples": 166.34226989746094,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 165,
+          "statistical_inefficiency": 1.0159775018692017
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 152.9396209716797,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 152,
+          "statistical_inefficiency": 1.3142441511154175
+        },
+        {
+          "equilibration_frame": 5,
+          "estimated_effective_samples": 131.32534790039062,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 131,
+          "statistical_inefficiency": 1.492476463317871
+        }
+      ],
+      "delta_g_kcal_mol": 1.046676531068565,
+      "mbar_uncertainty_kcal_mol": 0.0024466681972498384,
+      "minimum_adjacent_overlap": 0.17004833826060986,
+      "n_k": [
+        171,
+        154,
+        165,
+        152,
+        131
+      ],
+      "overlap_matrix": [
+        [
+          0.22256145621066095,
+          0.19825174632050702,
+          0.21281736454562533,
+          0.19671906080729165,
+          0.1696503721159141
+        ],
+        [
+          0.22013667935588768,
+          0.20328791159864795,
+          0.21353918833013918,
+          0.19552145042377328,
+          0.16751477029155212
+        ],
+        [
+          0.22055617780182987,
+          0.19930324244146325,
+          0.2141253214800943,
+          0.19665836995067276,
+          0.16935688832593865
+        ],
+        [
+          0.22130894340820312,
+          0.19809410108724398,
+          0.21347783580171714,
+          0.19707078144222612,
+          0.17004833826060986
+        ],
+        [
+          0.22145201245665122,
+          0.1969257604954124,
+          0.21331211125022806,
+          0.19730799553902825,
+          0.17100212025868106
+        ]
+      ],
+      "quality_failures": [],
+      "raw_energy_artifact": {
+        "array_layout": "[sampled_lambda_state, evaluated_lambda_state, raw_frame]",
+        "energy_unit": "kJ/mol",
+        "path": "cases/mobley_9055303/raw-u-kln-seed-20260731.npz",
+        "selected_index_arrays": [
+          "selected_frame_indices_state_0",
+          "selected_frame_indices_state_1",
+          "selected_frame_indices_state_2",
+          "selected_frame_indices_state_3",
+          "selected_frame_indices_state_4"
+        ],
+        "sha256": "b2b1e646ba25fb461fc286d6c59eac86a9790a27c1a2024b27958ad6d9df02f1",
+        "shape": [
+          5,
+          5,
+          200
+        ]
+      },
+      "seed": 20260731
+    }
+  ],
+  "smiles": "C",
+  "status": "ok"
+}

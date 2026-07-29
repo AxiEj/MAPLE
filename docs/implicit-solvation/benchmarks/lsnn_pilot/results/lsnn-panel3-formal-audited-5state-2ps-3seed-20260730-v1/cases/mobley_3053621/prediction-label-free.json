@@ -1,0 +1,429 @@
+{
+  "build": [
+    {
+      "atom_count": 12,
+      "gbn2_feature_shape": [
+        12,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "50639082183d8bf3a9541a34e898f5a25d603489fdaba3b5c594dba8ecf8dae8"
+    },
+    {
+      "atom_count": 12,
+      "gbn2_feature_shape": [
+        12,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "9cedd3eeed3c0b2de97044ae483cbed607c7bb1f28609957a9c8ec62ab8ee1ea"
+    },
+    {
+      "atom_count": 12,
+      "gbn2_feature_shape": [
+        12,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "0f03ca3e3038a91d373a11108f34ae8b69efc26de62a9cbe2b684b39153c3a7c"
+    },
+    {
+      "atom_count": 12,
+      "gbn2_feature_shape": [
+        12,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "4d6a541254179e3c4627077d58b4dbf5c449dca3cbb4e0e34d7e30bc03ad6a8c"
+    },
+    {
+      "atom_count": 12,
+      "force_finite_difference": {
+        "coordinates_checked": [
+          0,
+          3,
+          6,
+          9,
+          12,
+          15,
+          19,
+          22,
+          25,
+          28,
+          31,
+          35
+        ],
+        "force_group": 31,
+        "maximum_absolute_error_kj_mol_nm": 0.05320167541503906,
+        "relative_l2_error": 0.002551375273015355,
+        "rms_error_kj_mol_nm": 0.029401999024351987,
+        "step_nm": 0.0001
+      },
+      "gbn2_feature_shape": [
+        12,
+        7
+      ],
+      "lambda_zero_energy_kj_mol": 0.0,
+      "scripted_model_sha256": "7a290122c7096de27205954e60a8d452feac557b26dd3e1cb49eb960c81371ac"
+    }
+  ],
+  "combined_uncertainty_kcal_mol": 0.004179630346261762,
+  "combined_uncertainty_method": "quadrature of the mean within-seed MBAR variance and between-seed SEM; sampling-only heuristic, not a calibrated model-error interval",
+  "compound_id": "mobley_3053621",
+  "elapsed_seconds": 835.0539275670008,
+  "name": "benzene",
+  "prediction_kcal_mol": -1.0318180192978272,
+  "quality_failures": [
+    "seed_20260730:decorrelated_frames_below_20",
+    "seed_20260731:decorrelated_frames_below_20"
+  ],
+  "quality_notes": [],
+  "replicate_count": 3,
+  "replicate_sd_kcal_mol": 0.006049248061897438,
+  "replicate_sem_kcal_mol": 0.0034925349969313077,
+  "run_mode": "formal",
+  "seed_results": [
+    {
+      "converged": true,
+      "decorrelation": [
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 25.599077224731445,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 26,
+          "statistical_inefficiency": 7.8518452644348145
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 25.57763671875,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 26,
+          "statistical_inefficiency": 7.85842752456665
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 29.624229431152344,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 30,
+          "statistical_inefficiency": 6.78498649597168
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 25.897869110107422,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 26,
+          "statistical_inefficiency": 7.761256217956543
+        },
+        {
+          "equilibration_frame": 8,
+          "estimated_effective_samples": 27.11299705505371,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 27,
+          "statistical_inefficiency": 7.118357181549072
+        }
+      ],
+      "delta_g_kcal_mol": -1.0334160899313316,
+      "mbar_uncertainty_kcal_mol": 0.003605667983182935,
+      "minimum_adjacent_overlap": 0.19135587139041368,
+      "n_k": [
+        26,
+        26,
+        30,
+        26,
+        27
+      ],
+      "overlap_matrix": [
+        [
+          0.19459585267512625,
+          0.19203252706473167,
+          0.21892702673677394,
+          0.192984683540441,
+          0.20145990998292676
+        ],
+        [
+          0.19203252706473167,
+          0.1931651733100082,
+          0.22354172246666318,
+          0.19184368018377804,
+          0.19941689697481885
+        ],
+        [
+          0.18973675650520408,
+          0.1937361594711081,
+          0.2280722896402642,
+          0.19135587139041368,
+          0.19709892299300913
+        ],
+        [
+          0.192984683540441,
+          0.19184368018377804,
+          0.2207952362197081,
+          0.19380270068008762,
+          0.20057369937598568
+        ],
+        [
+          0.19399843183541093,
+          0.1920310859757515,
+          0.2189988033255657,
+          0.19314504384354178,
+          0.2018266350197303
+        ]
+      ],
+      "quality_failures": [],
+      "raw_energy_artifact": {
+        "array_layout": "[sampled_lambda_state, evaluated_lambda_state, raw_frame]",
+        "energy_unit": "kJ/mol",
+        "path": "cases/mobley_3053621/raw-u-kln-seed-20260729.npz",
+        "selected_index_arrays": [
+          "selected_frame_indices_state_0",
+          "selected_frame_indices_state_1",
+          "selected_frame_indices_state_2",
+          "selected_frame_indices_state_3",
+          "selected_frame_indices_state_4"
+        ],
+        "sha256": "8b5b7ed3d8fe03a17503f047f6933a166c43fbf931eed9ba14b1cebda8faeec2",
+        "shape": [
+          5,
+          5,
+          200
+        ]
+      },
+      "seed": 20260729
+    },
+    {
+      "converged": false,
+      "decorrelation": [
+        {
+          "equilibration_frame": 33,
+          "estimated_effective_samples": 31.906997680664062,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 32,
+          "statistical_inefficiency": 5.265302658081055
+        },
+        {
+          "equilibration_frame": 149,
+          "estimated_effective_samples": 52.0,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 51,
+          "statistical_inefficiency": 1.0
+        },
+        {
+          "equilibration_frame": 1,
+          "estimated_effective_samples": 17.78827667236328,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 18,
+          "statistical_inefficiency": 11.243359565734863
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 28.0684757232666,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 28,
+          "statistical_inefficiency": 7.16105842590332
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 19.164424896240234,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 20,
+          "statistical_inefficiency": 10.48818302154541
+        }
+      ],
+      "delta_g_kcal_mol": -1.025130178516287,
+      "mbar_uncertainty_kcal_mol": 0.004897990742664481,
+      "minimum_adjacent_overlap": 0.12040299331406495,
+      "n_k": [
+        32,
+        51,
+        18,
+        28,
+        20
+      ],
+      "overlap_matrix": [
+        [
+          0.21757281036388607,
+          0.34084616376061844,
+          0.11838116714753162,
+          0.18776882013651938,
+          0.1354310385914446
+        ],
+        [
+          0.21386425961450567,
+          0.3436553181922205,
+          0.12185197191053276,
+          0.18701028960879612,
+          0.13361816067394605
+        ],
+        [
+          0.21045540826227843,
+          0.3452472537465095,
+          0.12582462080467854,
+          0.18729354515521213,
+          0.13117917203132154
+        ],
+        [
+          0.2145929372988793,
+          0.3406258846445929,
+          0.12040299331406495,
+          0.18988166295819453,
+          0.13449652178426824
+        ],
+        [
+          0.21668966174631135,
+          0.34072630971856244,
+          0.11806125482818938,
+          0.18829513049797555,
+          0.13622764320896197
+        ]
+      ],
+      "quality_failures": [
+        "decorrelated_frames_below_20"
+      ],
+      "raw_energy_artifact": {
+        "array_layout": "[sampled_lambda_state, evaluated_lambda_state, raw_frame]",
+        "energy_unit": "kJ/mol",
+        "path": "cases/mobley_3053621/raw-u-kln-seed-20260730.npz",
+        "selected_index_arrays": [
+          "selected_frame_indices_state_0",
+          "selected_frame_indices_state_1",
+          "selected_frame_indices_state_2",
+          "selected_frame_indices_state_3",
+          "selected_frame_indices_state_4"
+        ],
+        "sha256": "235abaf07ff49dc5ea3c996834053f995c33b498267e0fde6e86d79001c77ac2",
+        "shape": [
+          5,
+          5,
+          200
+        ]
+      },
+      "seed": 20260730
+    },
+    {
+      "converged": false,
+      "decorrelation": [
+        {
+          "equilibration_frame": 1,
+          "estimated_effective_samples": 18.283782958984375,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 19,
+          "statistical_inefficiency": 10.938655853271484
+        },
+        {
+          "equilibration_frame": 1,
+          "estimated_effective_samples": 22.836471557617188,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 23,
+          "statistical_inefficiency": 8.757920265197754
+        },
+        {
+          "equilibration_frame": 1,
+          "estimated_effective_samples": 20.409351348876953,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 21,
+          "statistical_inefficiency": 9.799429893493652
+        },
+        {
+          "equilibration_frame": 0,
+          "estimated_effective_samples": 20.346311569213867,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 21,
+          "statistical_inefficiency": 9.87894058227539
+        },
+        {
+          "equilibration_frame": 99,
+          "estimated_effective_samples": 102.0,
+          "fallback": false,
+          "raw_frames": 200,
+          "selected_frames": 101,
+          "statistical_inefficiency": 1.0
+        }
+      ],
+      "delta_g_kcal_mol": -1.0369077894458631,
+      "mbar_uncertainty_kcal_mol": 0.0032330213762427817,
+      "minimum_adjacent_overlap": 0.10247742111582504,
+      "n_k": [
+        19,
+        23,
+        21,
+        21,
+        101
+      ],
+      "overlap_matrix": [
+        [
+          0.10341189413864786,
+          0.1240516150349461,
+          0.11239428969771698,
+          0.11334118023454612,
+          0.5468010208941424
+        ],
+        [
+          0.10247742111582504,
+          0.12477310637835398,
+          0.11438335191893576,
+          0.11344808744350872,
+          0.5449180331433765
+        ],
+        [
+          0.10169007163126775,
+          0.12527700448264392,
+          0.11654869326922161,
+          0.11393367301043905,
+          0.5425505576064286
+        ],
+        [
+          0.1025467821169703,
+          0.12425266720003336,
+          0.11393367301043905,
+          0.11394122090262769,
+          0.5453256567699291
+        ],
+        [
+          0.10286355838602679,
+          0.12409024517126396,
+          0.11280754168054455,
+          0.11338454249671791,
+          0.5468541122654466
+        ]
+      ],
+      "quality_failures": [
+        "decorrelated_frames_below_20"
+      ],
+      "raw_energy_artifact": {
+        "array_layout": "[sampled_lambda_state, evaluated_lambda_state, raw_frame]",
+        "energy_unit": "kJ/mol",
+        "path": "cases/mobley_3053621/raw-u-kln-seed-20260731.npz",
+        "selected_index_arrays": [
+          "selected_frame_indices_state_0",
+          "selected_frame_indices_state_1",
+          "selected_frame_indices_state_2",
+          "selected_frame_indices_state_3",
+          "selected_frame_indices_state_4"
+        ],
+        "sha256": "68566abfb478d8c5ab058a79a6b1ef8ad780c677c0d0efa3e62879492dfecc5b",
+        "shape": [
+          5,
+          5,
+          200
+        ]
+      },
+      "seed": 20260731
+    }
+  ],
+  "smiles": "c1ccccc1",
+  "status": "unconverged"
+}

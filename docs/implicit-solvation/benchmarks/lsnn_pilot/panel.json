@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "pilot_id": "lsnn-v1-freesolv-smoke-panel",
+  "description": "Predeclared three-molecule FreeSolv pilot for real LSNN-v1 MD/MBAR execution",
+  "scope": "water hydration",
+  "source": {
+    "dataset_name": "FreeSolv",
+    "dataset_version": "0.52",
+    "dataset_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+    "dataset_artifacts_sha256": {
+      "database.txt": "2d13f095713bc39b85f85dd7b4e5483fbb12fc694bf253bb1d92a4c4d484f260",
+      "database.json": "9133b2438af6081d4cf6ac040cb201c2e3ec953988a45248586f20f2f159c78a",
+      "amber.tar.gz": "f1a72d5e2328b3a28dfee3c3590667b756a3ac9c0527e8ddf945044e664389a2"
+    }
+  },
+  "upstream": {
+    "project": "Popov-Lab-UNC/LSNN-v1",
+    "source_revision_prefix": "1768d",
+    "source_revision": "1768d068dcb1ea65e8585af3f4a0cbf4047d9125",
+    "state_dict": {
+      "filename": "280KDATASET2Kv3model.dict",
+      "source_path": "Best_Trained_Models/280KDATASET2Kv3model.dict",
+      "sha256": "5b7f9ec224f9264c0220e072ed917201e84e702bab62b331bade37c1ede3a83b",
+      "size_bytes": 295423
+    },
+    "compatibility_note": "The pinned upstream CLI is incomplete. This pilot executes the public state dict in a separately recorded torch-only graph reconstruction; it does not alter MAPLE's production LSNN gate."
+  },
+  "molecules": [
+    {
+      "compound_id": "mobley_9055303",
+      "name": "methane",
+      "smiles": "C",
+      "charge": 0,
+      "multiplicity": 1
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "name": "methanol",
+      "smiles": "CO",
+      "charge": 0,
+      "multiplicity": 1
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "name": "benzene",
+      "smiles": "c1ccccc1",
+      "charge": 0,
+      "multiplicity": 1
+    }
+  ]
+}

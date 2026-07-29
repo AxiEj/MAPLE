@@ -62,6 +62,9 @@ V0_MACE_CLUSTER_MOLECULAR_EXTERNAL_POTENTIAL_SCOPE = (
 V0_MACE_CLUSTER_MOLECULAR_EXTERNAL_POTENTIAL_COORDINATE_POLICY = (
     "zero-field-mace-force-per-configuration-no-liquid-force-v1"
 )
+V0_MACE_ZERO_FIELD_SOURCE_PROVENANCE_CONSTRUCTION = (
+    "route2-v0-mace-zero-field-source-provenance-v1"
+)
 
 # Keep this content-addressed V0 source on the exact Route-2 checkpoint rather
 # than accepting an arbitrary checkpoint that happens to expose polar_state().
@@ -75,6 +78,67 @@ _MACE_POLAR_1_M_CHECKPOINT = {
     "size_bytes": 68_133_235,
 }
 _MACE_TORCH_VERSION = "0.3.16"
+
+
+@dataclass(frozen=True)
+class Route2V0MaceZeroFieldSourceProvenance:
+    """Exact runtime identity of the immutable V0 MACE scalar source.
+
+    A three-energy difference alone does not establish that the reported
+    scalar came from the frozen official checkpoint.  This small immutable
+    record travels with every cluster interaction so a downstream molecular
+    liquid object cannot accept a hand-assembled ledger from another model or
+    runtime under the same construction name.
+    """
+
+    checkpoint_identifier: str
+    checkpoint_release_url: str
+    checkpoint_sha256: str
+    checkpoint_size_bytes: int
+    mace_torch_version: str
+    route2_smd_profile: str
+    long_range_evaluator_profile: str
+    construction: str = V0_MACE_ZERO_FIELD_SOURCE_PROVENANCE_CONSTRUCTION
+
+    def __post_init__(self) -> None:
+        expected = _MACE_POLAR_1_M_CHECKPOINT
+        if self.checkpoint_identifier != expected["identifier"]:
+            raise ValueError(
+                "V0 MACE source provenance requires the official MACE-POLAR-1-M "
+                "checkpoint identifier."
+            )
+        if self.checkpoint_release_url != expected["release_url"]:
+            raise ValueError(
+                "V0 MACE source provenance requires the official MACE-POLAR-1-M "
+                "release URL."
+            )
+        if self.checkpoint_sha256 != expected["sha256"]:
+            raise ValueError(
+                "V0 MACE source provenance requires the official MACE-POLAR-1-M "
+                "checkpoint SHA-256."
+            )
+        if self.checkpoint_size_bytes != expected["size_bytes"]:
+            raise ValueError(
+                "V0 MACE source provenance requires the official MACE-POLAR-1-M "
+                "checkpoint byte size."
+            )
+        if self.mace_torch_version != _MACE_TORCH_VERSION:
+            raise ValueError(
+                "V0 MACE source provenance requires mace-torch "
+                f"{_MACE_TORCH_VERSION}."
+            )
+        if self.route2_smd_profile != ROUTE2_SMD_CALCULATOR_PROFILE:
+            raise ValueError(
+                "V0 MACE source provenance requires the Route-2 float64 "
+                "MACE-POLAR calculator profile."
+            )
+        if self.long_range_evaluator_profile != MACEPOL_MOLECULAR_REALSPACE_PROFILE:
+            raise ValueError(
+                "V0 MACE source provenance requires the default molecular "
+                "real-space long-range evaluator."
+            )
+        if self.construction != V0_MACE_ZERO_FIELD_SOURCE_PROVENANCE_CONSTRUCTION:
+            raise ValueError("Unsupported Route-2 V0 MACE source provenance.")
 
 
 def _immutable_array(
@@ -191,8 +255,10 @@ def _combined_neutral_singlet(solute: Atoms, solvent: Atoms) -> Atoms:
     )
 
 
-def _validate_route2_mace_calculator(calculator: object) -> None:
-    """Require the immutable Route-2 MACE-POLAR-1-M zero-field source."""
+def _validate_route2_mace_calculator(
+    calculator: object,
+) -> Route2V0MaceZeroFieldSourceProvenance:
+    """Require and return the immutable Route-2 zero-field MACE source."""
 
     if not callable(getattr(calculator, "polar_state", None)):
         raise TypeError(
@@ -224,6 +290,18 @@ def _validate_route2_mace_calculator(calculator: object) -> None:
             "The V0 MACE cluster source requires the default molecular "
             "real-space long-range evaluator."
         )
+    return Route2V0MaceZeroFieldSourceProvenance(
+        checkpoint_identifier=checkpoint["identifier"],
+        checkpoint_release_url=checkpoint["release_url"],
+        checkpoint_sha256=checkpoint["sha256"],
+        checkpoint_size_bytes=checkpoint["size_bytes"],
+        mace_torch_version=getattr(calculator, "mace_torch_version"),
+        route2_smd_profile=getattr(calculator, "route2_smd_profile"),
+        long_range_evaluator_profile=getattr(
+            calculator,
+            "long_range_evaluator_profile",
+        ),
+    )
 
 
 def _evaluate_zero_field_state(
@@ -274,10 +352,18 @@ class Route2V0MaceZeroFieldClusterInteraction:
     interaction_energy_ev: float
     solute_interaction_forces_ev_per_angstrom: np.ndarray | None
     solvent_interaction_forces_ev_per_angstrom: np.ndarray | None
+    source_provenance: Route2V0MaceZeroFieldSourceProvenance
     construction: str = V0_MACE_CLUSTER_EXTERNAL_POTENTIAL_CONSTRUCTION
     interaction_scope: str = V0_MACE_CLUSTER_EXTERNAL_POTENTIAL_SCOPE
 
     def __post_init__(self) -> None:
+        if not isinstance(
+            self.source_provenance,
+            Route2V0MaceZeroFieldSourceProvenance,
+        ):
+            raise TypeError(
+                "MACE cluster interaction requires zero-field source provenance."
+            )
         solute_numbers = _atomic_numbers(
             self.solute_atomic_numbers,
             name="MACE cluster solute atomic numbers",
@@ -379,7 +465,7 @@ def evaluate_route2_v0_mace_zero_field_cluster_interaction(
     old MACE Gaussian electrostatics or Thomas--Fermi control on top of it.
     """
 
-    _validate_route2_mace_calculator(calculator)
+    source_provenance = _validate_route2_mace_calculator(calculator)
     solute_atoms = _neutral_singlet_fragment(solute, name="Solute")
     solvent_atoms = _neutral_singlet_fragment(solvent, name="Solvent")
     cluster_atoms = _combined_neutral_singlet(solute_atoms, solvent_atoms)
@@ -432,6 +518,7 @@ def evaluate_route2_v0_mace_zero_field_cluster_interaction(
         ),
         solute_interaction_forces_ev_per_angstrom=solute_forces,
         solvent_interaction_forces_ev_per_angstrom=solvent_forces,
+        source_provenance=source_provenance,
     )
 
 
@@ -494,6 +581,15 @@ class Route2V0MaceClusterMolecularExternalPotential(
             raise ValueError(
                 "MACE molecular external potential requires one cluster interaction "
                 "for every declared configuration."
+            )
+        source_provenance = interaction_values[0].source_provenance
+        if any(
+            interaction.source_provenance != source_provenance
+            for interaction in interaction_values
+        ):
+            raise ValueError(
+                "MACE molecular external potential requires one common zero-field "
+                "source provenance for every configuration."
             )
         expected_solvent_positions = (
             self.configurations.site_positions_bohr(self.solvent) * Bohr
@@ -617,6 +713,12 @@ class Route2V0MaceClusterMolecularExternalPotential(
 
         return self.solute_interaction_forces_ev_per_angstrom is not None
 
+    @property
+    def source_provenance(self) -> Route2V0MaceZeroFieldSourceProvenance:
+        """Return the one frozen MACE source identity shared by the vector."""
+
+        return self.interactions[0].source_provenance
+
 
 def evaluate_route2_v0_mace_cluster_molecular_external_potential(
     *,
@@ -704,11 +806,13 @@ def evaluate_route2_v0_mace_cluster_molecular_external_potential(
 __all__ = [
     "Route2V0MaceClusterMolecularExternalPotential",
     "Route2V0MaceZeroFieldClusterInteraction",
+    "Route2V0MaceZeroFieldSourceProvenance",
     "V0_MACE_CLUSTER_EXTERNAL_POTENTIAL_CONSTRUCTION",
     "V0_MACE_CLUSTER_EXTERNAL_POTENTIAL_SCOPE",
     "V0_MACE_CLUSTER_MOLECULAR_EXTERNAL_POTENTIAL_CONSTRUCTION",
     "V0_MACE_CLUSTER_MOLECULAR_EXTERNAL_POTENTIAL_COORDINATE_POLICY",
     "V0_MACE_CLUSTER_MOLECULAR_EXTERNAL_POTENTIAL_SCOPE",
+    "V0_MACE_ZERO_FIELD_SOURCE_PROVENANCE_CONSTRUCTION",
     "evaluate_route2_v0_mace_cluster_molecular_external_potential",
     "evaluate_route2_v0_mace_zero_field_cluster_interaction",
 ]

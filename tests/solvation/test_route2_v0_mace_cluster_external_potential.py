@@ -129,6 +129,8 @@ def test_zero_field_cluster_interaction_is_the_exact_three_energy_difference():
     assert state.interaction_energy_hartree == pytest.approx(
         state.interaction_energy_ev / Hartree
     )
+    assert state.source_provenance.checkpoint_identifier == "polar-1-m"
+    assert state.source_provenance.mace_torch_version == "0.3.16"
     assert state.forces_available is False
     assert state.solute_interaction_forces_ev_per_angstrom is None
     assert state.solvent_interaction_forces_ev_per_angstrom is None
@@ -193,6 +195,14 @@ def test_zero_field_cluster_interaction_rejects_response_or_fragment_shortcuts()
     with pytest.raises(ValueError, match="real-space long-range evaluator"):
         _evaluate(calculator=calculator)
 
+    calculator = _FakeZeroFieldMACE()
+    calculator.mace_polar_checkpoint_provenance = {
+        **calculator.mace_polar_checkpoint_provenance,
+        "sha256": "0" * 64,
+    }
+    with pytest.raises(ValueError, match="content-addressed official"):
+        _evaluate(calculator=calculator)
+
     charged = _solute()
     charged.info["charge"] = 1.0
     with pytest.raises(ValueError, match="must be neutral"):
@@ -218,6 +228,10 @@ def test_zero_field_cluster_state_rejects_a_broken_energy_or_force_ledger():
         replace(state, interaction_energy_ev=state.interaction_energy_ev + 0.1)
     with pytest.raises(ValueError, match="supplied together"):
         replace(state, solvent_interaction_forces_ev_per_angstrom=None)
+    with pytest.raises(TypeError, match="source provenance"):
+        replace(state, source_provenance=None)
+    with pytest.raises(ValueError, match="requires mace-torch"):
+        replace(state.source_provenance, mace_torch_version="0.0.0")
 
 
 def test_cluster_source_is_a_whole_molecular_external_potential_for_the_stationary_hnc_scalar():

@@ -22,9 +22,16 @@ def test_rism_bulk_control_is_bulk_only_and_cannot_claim_a_route2_solvent_result
     assert "no solute PDB, prmtop" in control["generator"]["input_mode"]
     assert control["generator"]["parameters"]["theory"] == "DRISM"
     assert control["generator"]["parameters"]["closure"] == "PSE3"
+    assert control["generator"]["parameters"]["coulomb_smear_angstrom"] == 1.0
     assert control["generator"]["parameters"]["observed_final_residual"] < 1.0e-12
     assert control["parsed_bulk_state"]["site_names"] == ["O", "H1"]
     assert control["parsed_bulk_state"]["site_multiplicity"] == [1, 2]
+    assert control["parsed_bulk_state"]["coulomb_smear_angstrom"] == 1.0
+    assert control["parsed_bulk_state"]["coulomb_smear_bohr"] > 1.88
+    assert control["parsed_bulk_state"]["short_range_origin_oo_dimensionless"] > 0.0
+    assert control["parsed_bulk_state"][
+        "full_radial_range_angstrom_after_smooth_split"
+    ] == [0.0, 409.575]
     assert control["parsed_bulk_state"]["raw_cvv_shape"] == [2, 2, 16384]
     assert (
         control["parsed_bulk_state"][
@@ -32,9 +39,9 @@ def test_rism_bulk_control_is_bulk_only_and_cannot_claim_a_route2_solvent_result
         ]
         < 1.0e-8
     )
-    assert "excluded from c_sr" in control["mathematical_boundary"]["origin_policy"]
+    assert "analytic limit" in control["mathematical_boundary"]["origin_policy"]
     assert (
-        "cannot enter the finite Cartesian HNC FFT"
+        "source SMEAR must be carried"
         in control["mathematical_boundary"]["cartesian_policy"]
     )
     assert control["hard_constraints"] == {

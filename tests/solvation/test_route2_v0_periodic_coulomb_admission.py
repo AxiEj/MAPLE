@@ -24,7 +24,7 @@ def test_periodic_coulomb_control_is_admitted_only_as_a_neutral_math_gate():
         in control["not_a_physical_liquid_backend"]
     )
     assert any(
-        "neutral periodic Poisson long-range scalar" in item
+        "neutral source-SMEAR periodic Poisson long-range scalar" in item
         for item in protocol["validation_sequence"]
     )
     assert any(

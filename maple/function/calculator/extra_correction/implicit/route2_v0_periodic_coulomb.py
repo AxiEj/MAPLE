@@ -1,20 +1,22 @@
 """Neutral periodic Coulomb operator for the Route-2 V0 liquid reference.
 
-The radial 1D-RISM direct correlation has the native long-range convention
-``c_ab^lr(r) = -q_a q_b / r``.  This module supplies the *positive*
-``q_a q_b / r`` term as one reciprocal, zero-average periodic Poisson
+The radial 1D-RISM direct correlation has a source-defined long-range
+convention ``c_ab^lr(r) = -q_a q_b erf(r / eta) / r``.  This module supplies
+the matching positive term as one reciprocal, zero-average periodic Poisson
 operator.  Its scalar and derivative are deliberately implemented together:
 
 ``E_lr = 1/2 int rho_Q(r) V_Q(r) dr`` and
 ``delta E_lr / delta delta_rho_a = q_a V_Q``.
 
 Here ``rho_Q = sum_a q_a delta_rho_a`` and ``V_Q`` solves the periodic
-Poisson equation with its zero Fourier mode omitted.  The input must therefore
-be neutral; silently adding a uniform compensating background would introduce
-a different free-energy convention.  The operator is a mathematical control
-for the future RISM long-range term only.  It does not interpolate a radial
-short-range Cvv asset, define a physical liquid functional, or make a
-solvation/force claim.
+Poisson equation with its zero Fourier mode omitted.  A nonzero
+``smear_bohr`` multiplies its Green function by
+``exp(-smear_bohr**2 * k**2 / 4)``, the Fourier transform of
+``erf(r / smear_bohr) / r``; zero retains a bare-Coulomb mathematical control.
+The input must be neutral; silently adding a uniform compensating background
+would introduce a different free-energy convention.  The operator does not
+interpolate a radial short-range Cvv asset, define a physical liquid
+functional, or make a solvation/force claim.
 """
 
 from __future__ import annotations
@@ -27,7 +29,7 @@ from ase.units import Bohr
 
 from .route2_v0_structured_solvent import RegularCartesianGrid
 
-V0_PERIODIC_COULOMB_CONSTRUCTION = "route2-v0-periodic-coulomb-poisson-v1"
+V0_PERIODIC_COULOMB_CONSTRUCTION = "route2-v0-periodic-coulomb-poisson-v2"
 
 
 def _immutable_real_array(
@@ -76,19 +78,26 @@ class Route2V0PeriodicCoulombOperator:
     """One neutral, zero-average periodic inverse-distance operator.
 
     ``grid`` defines the periodic cell as ``shape * spacing`` in Bohr.  The
-    Fourier Green function is ``4*pi/k^2`` for all nonzero reciprocal vectors
-    and is exactly zero at ``k=0``.  Inputs are rejected unless their integral
-    is neutral within the declared relative tolerance, so that the omitted
-    mode is a gauge choice rather than an unannounced background convention.
+    Fourier Green function is ``4*pi*exp(-eta^2*k^2/4)/k^2`` for all nonzero
+    reciprocal vectors and is exactly zero at ``k=0``.  ``eta=0`` recovers the
+    bare periodic operator.  Inputs are rejected unless their integral is
+    neutral within the declared relative tolerance, so that the omitted mode
+    is a gauge choice rather than an unannounced background convention.
     """
 
     grid: RegularCartesianGrid
+    smear_bohr: float = 0.0
     construction: str = V0_PERIODIC_COULOMB_CONSTRUCTION
     _fourier_green_bohr2: np.ndarray = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         if self.construction != V0_PERIODIC_COULOMB_CONSTRUCTION:
             raise ValueError("Unsupported Route-2 periodic Coulomb construction.")
+        smear = float(self.smear_bohr)
+        if not math.isfinite(smear) or smear < 0.0:
+            raise ValueError(
+                "Periodic Coulomb SMEAR must be finite and nonnegative in Bohr."
+            )
         reciprocal_axes = tuple(
             2.0
             * math.pi
@@ -101,9 +110,15 @@ class Route2V0PeriodicCoulombOperator:
         )
         green = np.zeros(self.grid.shape, dtype=float)
         nonzero = wavevector_squared > 0.0
-        green[nonzero] = 4.0 * math.pi / wavevector_squared[nonzero]
+        green[nonzero] = (
+            4.0
+            * math.pi
+            * np.exp(-0.25 * smear**2 * wavevector_squared[nonzero])
+            / wavevector_squared[nonzero]
+        )
         green.setflags(write=False)
         object.__setattr__(self, "_fourier_green_bohr2", green)
+        object.__setattr__(self, "smear_bohr", smear)
 
     @property
     def cell_lengths_bohr(self) -> np.ndarray:
@@ -116,7 +131,7 @@ class Route2V0PeriodicCoulombOperator:
 
     @property
     def fourier_green_bohr2(self) -> np.ndarray:
-        """Return the immutable ``4*pi/k^2`` multiplier with zero mode omitted."""
+        """Return the immutable smeared ``4*pi/k^2`` multiplier without k=0."""
 
         return self._fourier_green_bohr2
 

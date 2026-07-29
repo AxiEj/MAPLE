@@ -6,12 +6,13 @@ accepts an AMBER solute topology, atom charges, Lennard-Jones parameters, or a
 3D-RISM solute calculation.  The result is therefore a source-bound liquid
 asset that may later couple to the MACE Gaussian grid potential.
 
-A raw ionic-site direct correlation has the analytic large-distance form
-``c_ab(r) = c_ab^sr(r) - q_a q_b / r`` in Amber's ``QV`` convention.  A finite
-Cartesian FFT cannot consume that raw tail safely: wrapping it changes the
-operator and subtracting it at ``r = 0`` invents a value.  The parser exposes
-only the positive-radius short-range remainder and deliberately supplies no
-3D interpolation until a separately declared Coulomb/Ewald operator exists.
+A raw ionic-site direct correlation has the analytic Amber long-range form
+``c_ab(r) = c_ab^sr(r) - q_a q_b erf(r / eta) / r`` in the native ``QV`` and
+``SMEAR`` convention.  A finite Cartesian FFT cannot consume that raw tail
+safely: wrapping it changes the operator.  The source-defined smooth split is
+finite at ``r = 0`` and therefore does not invent an origin value, but it still
+supplies no 3D interpolation until a separately declared Coulomb/Ewald or
+Poisson operator exists.
 
 This is an asset boundary, not a total-solvation backend, a physical solvent
 registry, or an accuracy claim.
@@ -25,6 +26,7 @@ from pathlib import Path
 import re
 
 import numpy as np
+from scipy.special import erf
 
 V0_RISM_BULK_DIRECT_CORRELATION_CONSTRUCTION = (
     "route2-v0-rism1d-bulk-direct-correlation-v1"
@@ -135,6 +137,21 @@ def _require_xvv_block(
     return values
 
 
+def _smoothed_coulomb_kernel(
+    radii_angstrom: np.ndarray,
+    *,
+    smear_angstrom: float,
+) -> np.ndarray:
+    """Return ``erf(r / eta) / r`` with its analytic finite origin limit."""
+
+    radii = np.asarray(radii_angstrom, dtype=float)
+    kernel = np.empty_like(radii)
+    positive = radii > 0.0
+    kernel[positive] = erf(radii[positive] / smear_angstrom) / radii[positive]
+    kernel[~positive] = 2.0 / (math.sqrt(math.pi) * smear_angstrom)
+    return kernel
+
+
 @dataclass(frozen=True)
 class Route2V0RismXvvMetadata:
     """Physical-state metadata read from a frozen 1D-RISM ``.xvv`` file.
@@ -150,6 +167,7 @@ class Route2V0RismXvvMetadata:
     site_charges_sqrt_kT_angstrom: np.ndarray
     temperature_kelvin: float
     dielectric_constant: float
+    coulomb_smear_angstrom: float
     radial_spacing_angstrom: float
     radial_point_count: int
     component_count: int
@@ -195,11 +213,16 @@ class Route2V0RismXvvMetadata:
             )
         temperature = float(self.temperature_kelvin)
         dielectric = float(self.dielectric_constant)
+        smear = float(self.coulomb_smear_angstrom)
         spacing = float(self.radial_spacing_angstrom)
         if not math.isfinite(temperature) or temperature <= 0.0:
             raise ValueError("RISM temperature must be finite and positive in K.")
         if not math.isfinite(dielectric) or dielectric <= 0.0:
             raise ValueError("RISM dielectric constant must be finite and positive.")
+        if not math.isfinite(smear) or smear <= 0.0:
+            raise ValueError(
+                "RISM Coulomb SMEAR must be finite and positive in Angstrom."
+            )
         if not math.isfinite(spacing) or spacing <= 0.0:
             raise ValueError(
                 "RISM radial spacing must be finite and positive in Angstrom."
@@ -222,6 +245,7 @@ class Route2V0RismXvvMetadata:
         object.__setattr__(self, "site_charges_sqrt_kT_angstrom", charges)
         object.__setattr__(self, "temperature_kelvin", temperature)
         object.__setattr__(self, "dielectric_constant", dielectric)
+        object.__setattr__(self, "coulomb_smear_angstrom", smear)
         object.__setattr__(self, "radial_spacing_angstrom", spacing)
         object.__setattr__(self, "radial_point_count", point_count)
         object.__setattr__(self, "component_count", component_count)
@@ -235,12 +259,14 @@ class Route2V0RismXvvMetadata:
 
 @dataclass(frozen=True)
 class Route2V0RismShortRangeDirectCorrelation:
-    """Positive-radius direct correlation after an analytic Coulomb split.
+    """Finite direct correlation after Amber's source-defined smooth split.
 
-    The omitted origin is intentional: a raw RISM table may contain a finite
-    smeared value at zero separation while ``q_a q_b / r`` is singular.  A
-    later Cartesian backend must define that value through its declared
-    Coulomb/Ewald discretization, not interpolation by convenience.
+    Amber's ``SMEAR`` parameter declares the long-range
+    ``q_a q_b erf(r / eta) / r`` kernel.  Its analytic origin limit is finite,
+    so the returned radial data includes the source-table ``r=0`` sample
+    without interpolation or a guessed replacement.  A later Cartesian
+    backend still needs a separately admitted reciprocal interpolation and
+    periodic operator before this asset can enter a liquid functional.
     """
 
     metadata: Route2V0RismXvvMetadata
@@ -252,10 +278,16 @@ class Route2V0RismShortRangeDirectCorrelation:
         radii = _immutable_real_array(
             self.radii_angstrom,
             name="RISM short-range radial grid",
-            positive=True,
         )
-        if radii.ndim != 1 or np.any(np.diff(radii) <= 0.0):
-            raise ValueError("RISM short-range radii must be strictly increasing.")
+        if (
+            radii.ndim != 1
+            or radii.size < 2
+            or radii[0] < 0.0
+            or np.any(np.diff(radii) <= 0.0)
+        ):
+            raise ValueError(
+                "RISM short-range radii must start at zero or above and increase strictly."
+            )
         values = _immutable_real_array(
             self.values_dimensionless,
             name="RISM short-range direct correlation",
@@ -276,9 +308,9 @@ class Route2V0RismBulkDirectCorrelation:
     """A frozen radial bulk direct-correlation table from 1D-RISM.
 
     This object is deliberately not convertible to
-    :class:`Route2V0SiteHNCAsset` yet.  Raw ``c(r)`` carries an unscreened
-    site-charge tail and needs an energy-conjugate Coulomb operator before it
-    can be represented on a finite Cartesian grid.
+    :class:`Route2V0SiteHNCAsset` yet.  Raw ``c(r)`` carries a source-defined
+    smeared site-charge tail and needs an energy-conjugate Coulomb operator
+    before it can be represented on a finite Cartesian grid.
     """
 
     metadata: Route2V0RismXvvMetadata
@@ -334,20 +366,33 @@ class Route2V0RismBulkDirectCorrelation:
         tail = -np.multiply.outer(charges, charges)[..., None] / radii
         return float(np.max(np.abs(self.values_dimensionless[..., indices] - tail)))
 
-    def split_coulomb_long_range(self) -> Route2V0RismShortRangeDirectCorrelation:
-        """Return ``c^sr = c + q_a q_b/r`` on strictly positive radii only."""
+    def smoothed_coulomb_tail_dimensionless(self) -> np.ndarray:
+        """Return the source-defined negative ``-q_a q_b erf(r/eta)/r`` tail."""
 
-        indices = self.radii_angstrom > 0.0
-        if not np.any(indices):
-            raise ValueError("RISM direct correlation has no positive radial samples.")
-        radii = self.radii_angstrom[indices]
-        charges = self.metadata.site_charges_sqrt_kT_angstrom
-        short_range = self.values_dimensionless[..., indices] + (
-            np.multiply.outer(charges, charges)[..., None] / radii
+        kernel = _smoothed_coulomb_kernel(
+            self.radii_angstrom,
+            smear_angstrom=self.metadata.coulomb_smear_angstrom,
+        )
+        result = (
+            -np.multiply.outer(
+                self.metadata.site_charges_sqrt_kT_angstrom,
+                self.metadata.site_charges_sqrt_kT_angstrom,
+            )[..., None]
+            * kernel
+        )
+        result = np.array(result, copy=True)
+        result.setflags(write=False)
+        return result
+
+    def split_coulomb_long_range(self) -> Route2V0RismShortRangeDirectCorrelation:
+        """Return the full-grid ``c^sr = c - c^lr`` from the declared SMEAR."""
+
+        short_range = (
+            self.values_dimensionless - self.smoothed_coulomb_tail_dimensionless()
         )
         return Route2V0RismShortRangeDirectCorrelation(
             metadata=self.metadata,
-            radii_angstrom=radii,
+            radii_angstrom=self.radii_angstrom,
             values_dimensionless=short_range,
         )
 
@@ -366,9 +411,9 @@ def parse_rism1d_xvv_metadata(text: str) -> Route2V0RismXvvMetadata:
         raise ValueError("RISM XVV POINTERS contain invalid dimensions.")
 
     thermo = _fortran_floats(_require_xvv_block(blocks, "THERMO"), name="XVV THERMO")
-    if len(thermo) < 5:
+    if len(thermo) < 6:
         raise ValueError(
-            "RISM XVV THERMO must contain temperature, dielectric, and DR."
+            "RISM XVV THERMO must contain temperature, dielectric, DR, and SMEAR."
         )
     names = tuple(" ".join(_require_xvv_block(blocks, "ATOM_NAME")).split())
     if len(names) != site_count:
@@ -389,6 +434,7 @@ def parse_rism1d_xvv_metadata(text: str) -> Route2V0RismXvvMetadata:
         site_charges_sqrt_kT_angstrom=np.asarray(charges),
         temperature_kelvin=thermo[0],
         dielectric_constant=thermo[1],
+        coulomb_smear_angstrom=thermo[5],
         radial_spacing_angstrom=thermo[4],
         radial_point_count=point_count,
         component_count=component_count,

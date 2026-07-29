@@ -67,6 +67,26 @@ def test_periodic_poisson_matches_one_exact_reciprocal_mode_and_zero_gauge():
     assert operator.construction == V0_PERIODIC_COULOMB_CONSTRUCTION
 
 
+def test_periodic_poisson_preserves_the_source_defined_gaussian_smear_factor():
+    grid = _grid()
+    smear_bohr = 0.8
+    operator = Route2V0PeriodicCoulombOperator(grid, smear_bohr=smear_bohr)
+    x = grid.spacing_bohr[0] * np.arange(grid.shape[0])
+    wavevector = 2.0 * math.pi / operator.cell_lengths_bohr[0]
+    charge_density = (
+        0.02
+        * np.cos(wavevector * x)[:, None, None]
+        * np.ones((1, grid.shape[1], grid.shape[2]))
+    )
+    damping = math.exp(-0.25 * smear_bohr**2 * wavevector**2)
+
+    potential = operator.potential_from_charge_density(charge_density)
+    expected = 4.0 * math.pi * damping * charge_density / wavevector**2
+
+    np.testing.assert_allclose(potential, expected, rtol=0.0, atol=3.0e-15)
+    assert operator.smear_bohr == pytest.approx(smear_bohr)
+
+
 def test_periodic_coulomb_pairing_is_reciprocal_and_translation_covariant():
     rng = np.random.default_rng(20260729)
     operator = Route2V0PeriodicCoulombOperator(_grid())
@@ -161,6 +181,8 @@ def test_periodic_coulomb_rejects_non_neutral_density_instead_of_background():
             np.zeros(operator.grid.shape),
             neutrality_relative_tolerance=0.0,
         )
+    with pytest.raises(ValueError, match="SMEAR"):
+        Route2V0PeriodicCoulombOperator(_grid(), smear_bohr=-0.1)
 
 
 def test_rism_qv_length_conversion_and_site_shape_validation_are_explicit():

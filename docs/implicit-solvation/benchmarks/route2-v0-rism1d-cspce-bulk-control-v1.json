@@ -16,6 +16,7 @@
       "molecular_density_molar": 55.345,
       "radial_point_count": 16384,
       "radial_spacing_angstrom": 0.025,
+      "coulomb_smear_angstrom": 1.0,
       "residual_tolerance": 1e-12,
       "observed_final_residual": 5.288642389482695e-13
     },
@@ -40,8 +41,11 @@
       0.0666590311323
     ],
     "qv_units": "sqrt(kT Angstrom)",
-    "positive_radius_range_angstrom_after_split": [
-      0.025,
+    "coulomb_smear_angstrom": 1.0,
+    "coulomb_smear_bohr": 1.8897261258369282,
+    "short_range_origin_oo_dimensionless": 72.68225631083396,
+    "full_radial_range_angstrom_after_smooth_split": [
+      0.0,
       409.575
     ],
     "raw_cvv_shape": [
@@ -56,9 +60,9 @@
     ]
   },
   "mathematical_boundary": {
-    "raw_direct_correlation": "c_ab^raw(r) = c_ab^sr(r) - q_a^QV q_b^QV / r for r > 0 in the native RISM convention",
-    "origin_policy": "The r=0 raw table sample is excluded from c_sr. No interpolation or clipping may invent the singular Coulomb split at the origin.",
-    "cartesian_policy": "A raw cvv table cannot enter the finite Cartesian HNC FFT. A future energy-conjugate periodic Coulomb/Ewald or Poisson operator must be pre-registered and pass scalar/gradient, gauge, and grid-refinement gates first.",
+    "raw_direct_correlation": "c_ab^raw(r) = c_ab^sr(r) - q_a^QV q_b^QV erf(r / eta) / r in the native RISM QV plus source-SMEAR convention",
+    "origin_policy": "The source-defined positive SMEAR gives erf(r / eta) / r -> 2 / (sqrt(pi) eta), so c_sr at r=0 is recovered from the raw sample plus that analytic limit. No interpolation, clipping, or guessed origin value is allowed.",
+    "cartesian_policy": "A raw cvv table cannot enter the finite Cartesian HNC FFT. Its source SMEAR must be carried by the energy-conjugate periodic Coulomb/Ewald or Poisson operator, and a separate Cvv short-range interpolation/origin/reciprocity/refinement admission must pass before coupling.",
     "current_parser_module": "maple.function.calculator.extra_correction.implicit.route2_v0_rism_bulk"
   },
   "hard_constraints": {

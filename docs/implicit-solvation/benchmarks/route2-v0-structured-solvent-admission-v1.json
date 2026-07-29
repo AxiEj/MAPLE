@@ -11,7 +11,7 @@
     "solute_solvent_potential": "u_alpha,s(r) = z_alpha,s phi_c0^G(r) + u_alpha,s^sr[n_ref](r).",
     "liquid_state": "For an admitted physical backend, the solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
     "primary_free_energy": "The declared KH/MDFT excess-free-energy functional plus a thermodynamic pressure correction derived from the same frozen bulk asset and a declared standard-state correction.",
-    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, synthetic-only reciprocal site-HNC scalar/solver, a bulk-only 1D-RISM direct-correlation parser with an analytic Coulomb-tail split, and a neutral periodic Poisson scalar/derivative control for that long-range term; no short-range interaction, frozen physical multisolvent asset registry, physical liquid free energy, force, or benchmark score."
+    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, synthetic-only reciprocal site-HNC scalar/solver, a bulk-only 1D-RISM direct-correlation parser with a source-SMEAR analytic Coulomb split, and a neutral periodic Poisson scalar/derivative control for that long-range term; no short-range interaction, frozen physical multisolvent asset registry, physical liquid free energy, force, or benchmark score."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -45,7 +45,7 @@
     "pc_plus_policy": "diagnostic-only; it cannot be selected from target solvation errors or mixed into the primary result.",
     "custom_solvent_policy": "fail closed for total free energy unless the complete molecular solvent asset is supplied before any target-solute result is inspected.",
     "reference_kernel": "The synthetic reciprocal site-HNC scalar is a discrete energy/derivative control only. It cannot be promoted to a physical liquid model without a frozen source-provenanced solvent asset, a declared short-range potential, and a pre-registered free-energy and pressure convention.",
-    "rism_bulk_correlation_asset": "A physical neutral 1D-RISM asset requires matching input/model provenance plus .xvv, .cvv, and thermodynamic output. XVV site multiplicities and QV charges must be multiplicity-weighted neutral. The raw direct correlation must preserve the native QV Coulomb-tail split; a raw cvv table is forbidden from a finite Cartesian FFT until the pre-registered energy-conjugate periodic Poisson control and a separate short-range interpolation/origin/reciprocity/refinement admission both pass."
+    "rism_bulk_correlation_asset": "A physical neutral 1D-RISM asset requires matching input/model provenance plus .xvv, .cvv, and thermodynamic output. XVV site multiplicities and QV charges must be multiplicity-weighted neutral, and its source SMEAR must be finite and positive. The raw direct correlation must preserve the native QV erf(r / SMEAR) Coulomb split; a raw cvv table is forbidden from a finite Cartesian FFT until the pre-registered energy-conjugate periodic Poisson control carries that SMEAR and a separate short-range interpolation/origin/reciprocity/refinement admission both pass."
   },
   "solvent_asset_contract": {
     "registered_default_solvents": [
@@ -84,8 +84,8 @@
     "Validate the Gaussian MACE source against analytic values and verify that the grid-potential adapter consumes it without a charge/Lennard-Jones fallback.",
     "Validate the nonnegative short-range reference-density provenance and prove that it cannot overwrite the MACE electrostatic source.",
     "Validate the synthetic reciprocal site-HNC scalar, finite-difference derivative, and ideal-gas stationarity before any physical solvent asset is admitted.",
-    "Validate a bulk-only 1D-RISM .xvv/.cvv asset, exact site-pair coverage, the native Coulomb-tail residual, and the no-origin-imputation rule before a physical liquid backend is admitted.",
-    "Validate the neutral periodic Poisson long-range scalar, finite-difference derivative, reciprocal pairing, zero-mode gauge, translation covariance, and fixed-cell grid refinement before it is joined to any Cvv short-range mapping.",
+    "Validate a bulk-only 1D-RISM .xvv/.cvv asset, exact site-pair coverage, the native Coulomb-tail residual, and the source-SMEAR analytic origin rule before a physical liquid backend is admitted.",
+    "Validate the neutral source-SMEAR periodic Poisson long-range scalar, finite-difference derivative, reciprocal pairing, zero-mode gauge, translation covariance, and fixed-cell grid refinement before it is joined to any Cvv short-range mapping.",
     "Validate the molecular liquid residual, closure convention, free-energy differential/thermodynamic identity, charge/gauge behavior, and grid convergence before reading target solvation labels.",
     "Freeze all solvent assets, all method conventions, and the 11-solvent development manifest before chemistry scoring.",
     "Require the per-record development, confirmation, and external-blind gates without parameter or method changes.",
@@ -100,7 +100,7 @@
       "promolecular-density coupling into a solute-solvent short-range potential",
       "solute-solvent short-range potential",
       "frozen physical multisolvent bulk-asset registry",
-      "positive-radius RISM short-range direct-correlation interpolation, origin convention, and reciprocal Cartesian coupling",
+      "source-defined full-radial RISM short-range direct-correlation interpolation and reciprocal Cartesian coupling",
       "physical MDFT or 3D-RISM liquid-state minimization using a frozen real solvent asset",
       "physical excess chemical potential or thermodynamic pressure correction",
       "force, PES, optimization, scan, MD, or NVE capability",
@@ -119,13 +119,13 @@
     },
     "rism_bulk_direct_correlation_parser": {
       "module": "maple.function.calculator.extra_correction.implicit.route2_v0_rism_bulk",
-      "capability": "Parses matching bulk-only 1D-RISM XVV metadata and Cvv site-pair direct correlations, requires the declared radial grid and site reciprocity, and exposes the strictly positive-radius short-range remainder after the analytic native-QV Coulomb split.",
+      "capability": "Parses matching bulk-only 1D-RISM XVV metadata and Cvv site-pair direct correlations, requires the declared radial grid, positive source SMEAR, and site reciprocity, and exposes the finite full-radial short-range remainder after the analytic native-QV Coulomb split.",
       "control_artifact": "route2-v0-rism1d-cspce-bulk-control-v1.json",
       "not_a_cartesian_liquid_backend": "The raw direct-correlation tail cannot be wrapped, truncated, or origin-imputed on the HNC Cartesian grid. No physical multisolvent asset is registered."
     },
     "periodic_coulomb_long_range_control": {
       "module": "maple.function.calculator.extra_correction.implicit.route2_v0_periodic_coulomb",
-      "capability": "A neutral periodic FFT Poisson inverse supplies one zero-average QV long-range scalar and the derivative of that same scalar, with exact reciprocal-mode, finite-difference, reciprocity, translation, and fixed-cell refinement controls.",
+      "capability": "A neutral periodic FFT Poisson inverse supplies one zero-average QV long-range scalar and the derivative of that same scalar, including the source-SMEAR reciprocal Gaussian factor, with exact reciprocal-mode, finite-difference, reciprocity, translation, and fixed-cell refinement controls.",
       "charged_branch_boundary": "A non-neutral weighted site-density field is rejected. Any charged-solute Ewald background, finite-size, and standard-state convention needs a separate preregistration.",
       "not_a_physical_liquid_backend": "The control does not interpolate Cvv short-range data, define its origin, provide a physical solvent asset, couple a liquid solve, calculate forces, or make a solvation accuracy claim."
     }

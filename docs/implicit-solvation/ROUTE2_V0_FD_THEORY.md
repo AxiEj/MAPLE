@@ -459,22 +459,34 @@ must also be multiplicity-weighted neutral; a charged or partially specified
 bulk asset is rejected rather than neutralized numerically.
 
 The direct correlation cannot be naively interpolated from a finite radial
-table onto a periodic Cartesian grid.  In the native `QV` convention stored in
-an Amber `.xvv` file, the raw site direct correlation has the analytic
-large-distance decomposition
+table onto a periodic Cartesian grid.  In the native `QV` plus source-defined
+`SMEAR` convention stored in an Amber `.xvv` file, the raw site direct
+correlation has the analytic smooth decomposition
 
 \[
 c^{\mathrm{raw}}_{ab}(r)
 =c^{\mathrm{sr}}_{ab}(r)
--\frac{q^{\mathrm{QV}}_a q^{\mathrm{QV}}_b}{r},
-\qquad r>0.
+-q^{\mathrm{QV}}_a q^{\mathrm{QV}}_b
+\frac{\operatorname{erf}(r/\eta)}{r},
+\qquad r\ge0.
 \]
 
 Here \(q^{\mathrm{QV}}\) and \(r\) use the source file's
-\(\sqrt{k_{\mathrm B}T\,\mathrm{\AA}}\) and Angstrom conventions, so the
-right-hand side is dimensionless.  This is not a fit: it is the exact Coulomb
-asymptotic convention of the bulk RISM model.  Substitution into the HNC
-quadratic term gives the required energy partition,
+\(\sqrt{k_{\mathrm B}T\,\mathrm{\AA}}\) and Angstrom conventions, and
+\(\eta\) is Amber's positive `SMEAR` parameter, so the right-hand side is
+dimensionless.  Its source-defined origin is finite,
+
+\[
+\lim_{r\to0}\frac{\operatorname{erf}(r/\eta)}r
+=\frac2{\sqrt\pi\eta}.
+\]
+
+At large distance it approaches the usual bare
+\(-q^{\mathrm{QV}}_a q^{\mathrm{QV}}_b/r\) asymptote, which remains an
+independent bulk-control diagnostic.  This is not a fit: it is the exact
+Coulomb asymptotic convention of the bulk RISM model with its declared
+short/long-range split.  Substitution into the HNC quadratic term gives the
+required energy partition,
 
 \[
 \begin{aligned}
@@ -484,23 +496,26 @@ quadratic term gives the required energy partition,
 \sum_{ab}\delta\rho_a*c^{\mathrm{sr}}_{ab}*\delta\rho_b\\
 &+\frac{k_{\mathrm B}T}{2}
 \sum_{ab}\delta\rho_a*
-\frac{q^{\mathrm{QV}}_a q^{\mathrm{QV}}_b}{r}*\delta\rho_b.
+q^{\mathrm{QV}}_a q^{\mathrm{QV}}_b
+\frac{\operatorname{erf}(r/\eta)}{r}*\delta\rho_b.
 \end{aligned}
 \]
 
 The second term requires one declared periodic Coulomb/Ewald or Poisson
-operator.  Simply wrapping the \(1/r\) tail with an FFT changes that operator;
-subtracting the singular term at \(r=0\) and inventing an interpolated value
-would change it again.  Therefore raw `.cvv` data is *not* admitted to
-`Route2V0SiteHNCFunctional` yet.  Its `r=0` sample remains intentionally
-unassigned after the analytic split, until the long-range operator and its
-energy pairing are implemented and tested.
+operator that uses the **same** source `SMEAR`.  Simply wrapping the raw
+radial table with an FFT changes that operator.  Conversely, the smooth split
+does not require origin imputation: it uses the stored raw `r=0` value plus
+the analytic \(2/(\sqrt\pi\eta)\) limit.  Therefore raw `.cvv` data is *not*
+admitted to `Route2V0SiteHNCFunctional` yet; the finite short-range remainder
+still needs a separate reciprocal Cartesian interpolation and refinement
+proof before it can be coupled to the long-range scalar.
 
 `route2_v0_rism_bulk.py` now parses the 1D-RISM `.xvv` metadata and `.cvv`
 site-pair table, requires exact site-pair coverage and matching radial grid,
-checks site reciprocity, and exposes the strictly positive-radius
-\(c^{\mathrm{sr}}\) remainder plus a measurable Coulomb-tail residual.  It
-does not run 3D-RISM, accept a solute topology, construct a Cartesian kernel,
+checks site reciprocity, and exposes the full radial \(c^{\mathrm{sr}}\)
+remainder, including the analytically determined source origin, plus a
+measurable Coulomb-tail residual.  It does not run 3D-RISM, accept a solute
+topology, construct a Cartesian kernel,
 or report a solvation energy.  A local cSPC/E bulk-only control confirms that
 the installed 1D-RISM producer emits both files and follows this tail identity;
 [`route2-v0-rism1d-cspce-bulk-control-v1.json`](benchmarks/route2-v0-rism1d-cspce-bulk-control-v1.json)
@@ -512,17 +527,21 @@ parser control, not one of the required eleven frozen solvent assets.
 The analytic split now has one explicit, independent long-range operator.
 `route2_v0_periodic_coulomb.py` interprets a Cartesian grid as one periodic
 cell of side lengths \(L_i=N_i\Delta_i\) in Bohr.  It converts the radial
-length factor in Amber's native QV convention only,
+length factor and the source `SMEAR` in Amber's native QV convention only,
 
 \[
 \widetilde q_a=\frac{q^{\mathrm{QV}}_a}{\sqrt{a_0/\mathrm{\AA}}},
+\qquad
+\widetilde\eta=\frac{\eta}{a_0/\mathrm{\AA}},
 \]
 
 so that
 
 \[
-\frac{q^{\mathrm{QV}}_a q^{\mathrm{QV}}_b}{r_{\mathrm{\AA}}}
-=\frac{\widetilde q_a\widetilde q_b}{r_{a_0}}.
+q^{\mathrm{QV}}_a q^{\mathrm{QV}}_b
+\frac{\operatorname{erf}(r_{\mathrm{\AA}}/\eta)}{r_{\mathrm{\AA}}}
+=\widetilde q_a\widetilde q_b
+\frac{\operatorname{erf}(r_{a_0}/\widetilde\eta)}{r_{a_0}}.
 \]
 
 No elementary-charge reinterpretation or adjustable electrostatic prefactor
@@ -535,7 +554,8 @@ For a site-density difference the operator forms
 \qquad
 \widehat V_Q(\mathbf k)=
 \begin{cases}
-4\pi\widehat\rho_Q(\mathbf k)/|\mathbf k|^2,&\mathbf k\ne0,\\
+4\pi e^{-\widetilde\eta^2|\mathbf k|^2/4}
+\widehat\rho_Q(\mathbf k)/|\mathbf k|^2,&\mathbf k\ne0,\\
 0,&\mathbf k=0.
 \end{cases}
 \]
@@ -554,8 +574,10 @@ The declared dimensionless scalar and its site derivative are therefore
 When this term is eventually joined to the HNC scalar, it contributes
 \(+k_{\mathrm B}T\mathcal E_{\mathrm{lr}}\), exactly the second term of the
 split in Section 4.2.6.  The code evaluates both expressions through the same
-zero-average FFT Poisson inverse; it does not assemble an energy from one
-kernel and a residual from another.
+zero-average, source-smeared FFT Poisson inverse; it does not assemble an
+energy from one kernel and a residual from another.  The unsmeared
+\(\widetilde\eta=0\) path is retained only as a mathematical periodic-control
+limit and is not the physical path for an Amber `.cvv` asset.
 
 The omitted zero Fourier mode is a gauge only for a neutral field.  The
 operator therefore rejects a non-neutral \(\rho_Q\) rather than silently
@@ -565,8 +587,8 @@ free-energy convention; it cannot inherit this neutral control by accident.
 The current tests lock an exact reciprocal Fourier mode, zero-mean gauge,
 reciprocal pairing, translation covariance, finite-difference scalar/gradient
 agreement, and fixed-cell grid refinement.  They do **not** yet interpolate
-the positive-radius \(c^{\mathrm{sr}}\) table, assign its origin, attach a
-physical liquid functional, or report a solvent/accuracy result.
+the finite \(c^{\mathrm{sr}}\) table onto a Cartesian reciprocal grid, attach
+a physical liquid functional, or report a solvent/accuracy result.
 
 ### 4.3 Explicit exclusions
 

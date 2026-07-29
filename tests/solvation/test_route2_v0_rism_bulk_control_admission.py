@@ -57,3 +57,15 @@ def test_rism_bulk_control_is_bulk_only_and_cannot_claim_a_route2_solvent_result
     assert (
         "solvation-energy, MAE, or all-record accuracy result" in control["not_claimed"]
     )
+    reciprocal = control["reciprocal_control"]
+    assert reciprocal["status"] == (
+        "small-grid-source-transform-control-not-a-physical-liquid-run"
+    )
+    assert reciprocal["source_smear_angstrom"] == 1.0
+    assert (
+        reciprocal["observed_maximum_tail_abs"]
+        < reciprocal["tail_tolerance_dimensionless"]
+    )
+    assert reciprocal["direct_kernel_shape"] == [2, 2, 4, 4, 4]
+    assert reciprocal["observed_reciprocity_residual"] == 0.0
+    assert "not a physical production-grid mapping" in reciprocal["claim_boundary"]

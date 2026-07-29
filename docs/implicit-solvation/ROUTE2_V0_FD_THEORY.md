@@ -507,8 +507,8 @@ radial table with an FFT changes that operator.  Conversely, the smooth split
 does not require origin imputation: it uses the stored raw `r=0` value plus
 the analytic \(2/(\sqrt\pi\eta)\) limit.  Therefore raw `.cvv` data is *not*
 admitted to `Route2V0SiteHNCFunctional` yet; the finite short-range remainder
-still needs a separate reciprocal Cartesian interpolation and refinement
-proof before it can be coupled to the long-range scalar.
+must pass the separate reciprocal Cartesian control and physical-grid
+refinement proof before it can be coupled to the long-range scalar.
 
 `route2_v0_rism_bulk.py` now parses the 1D-RISM `.xvv` metadata and `.cvv`
 site-pair table, requires exact site-pair coverage and matching radial grid,
@@ -587,8 +587,48 @@ free-energy convention; it cannot inherit this neutral control by accident.
 The current tests lock an exact reciprocal Fourier mode, zero-mean gauge,
 reciprocal pairing, translation covariance, finite-difference scalar/gradient
 agreement, and fixed-cell grid refinement.  They do **not** yet interpolate
-the finite \(c^{\mathrm{sr}}\) table onto a Cartesian reciprocal grid, attach
-a physical liquid functional, or report a solvent/accuracy result.
+an actual source-provenanced \(c^{\mathrm{sr}}\) asset onto a production
+Cartesian grid, attach a physical liquid functional, or report a
+solvent/accuracy result.
+
+#### 4.2.8 Reciprocal short-range radial-transform control
+
+The finite source-SMEAR remainder now has a second, separate mathematical
+control in `route2_v0_rism_reciprocal.py`.  It does not wrap radial samples
+onto a Cartesian minimum-image grid or interpolate a new origin.  Instead it
+uses the source radial grid directly in the spherical transform
+
+\[
+\widetilde c^{\mathrm{sr}}_{ab}(k)
+=4\pi\int_0^{R_{\max}}r^2
+c^{\mathrm{sr}}_{ab}(r)\operatorname{sinc}(kr)\,dr.
+\]
+
+For the Cartesian FFT convention used by the HNC reference, the periodic grid
+kernel \(c^P\) is normalized by
+
+\[
+\Delta V\,\operatorname{FFT}[c^P_{ab}](\mathbf k)
+=\widetilde c^{\mathrm{sr}}_{ab}(|\mathbf k|).
+\]
+
+The same discrete object therefore appears in the quadratic scalar and in its
+density derivative; radial site symmetry gives
+\(c^P_{ab}(\mathbf r)=c^P_{ba}(-\mathbf r)\) by construction.  The control
+uses source-grid trapezoidal quadrature, not a fit.  It rejects a source grid
+without the analytic \(r=0\) value, a Cartesian reciprocal grid beyond the
+source radial Nyquist limit, or a source-tail maximum above a caller-declared
+and preregistered numerical tolerance.  That tolerance is a representation
+gate fixed before any solvation result, never an error-selected solvent
+parameter.
+
+Synthetic Gaussian data verifies the transform normalization at every FFT
+mode, the reciprocal real-space pairing, and the finite-difference derivative
+after the generated kernel is passed through the HNC scalar.  This is still a
+small-grid reference control: it does not register a physical solvent,
+establish a production-grid convergence threshold, define
+\(u^{\mathrm{sr}}\), run a molecular liquid solve, or make a thermodynamic or
+accuracy claim.
 
 ### 4.3 Explicit exclusions
 

@@ -62,8 +62,22 @@
   "mathematical_boundary": {
     "raw_direct_correlation": "c_ab^raw(r) = c_ab^sr(r) - q_a^QV q_b^QV erf(r / eta) / r in the native RISM QV plus source-SMEAR convention",
     "origin_policy": "The source-defined positive SMEAR gives erf(r / eta) / r -> 2 / (sqrt(pi) eta), so c_sr at r=0 is recovered from the raw sample plus that analytic limit. No interpolation, clipping, or guessed origin value is allowed.",
-    "cartesian_policy": "A raw cvv table cannot enter the finite Cartesian HNC FFT. Its source SMEAR must be carried by the energy-conjugate periodic Coulomb/Ewald or Poisson operator, and a separate Cvv short-range interpolation/origin/reciprocity/refinement admission must pass before coupling.",
+    "cartesian_policy": "A raw cvv table cannot enter the finite Cartesian HNC FFT. Its source SMEAR must be carried by the energy-conjugate periodic Coulomb/Ewald or Poisson operator, and the reference radial transform's source-tail/origin/Nyquist/reciprocity gates plus a physical-grid refinement admission must pass before coupling.",
     "current_parser_module": "maple.function.calculator.extra_correction.implicit.route2_v0_rism_bulk"
+  },
+  "reciprocal_control": {
+    "status": "small-grid-source-transform-control-not-a-physical-liquid-run",
+    "module": "maple.function.calculator.extra_correction.implicit.route2_v0_rism_reciprocal",
+    "source_smear_angstrom": 1.0,
+    "tail_start_angstrom": 100.0,
+    "tail_tolerance_dimensionless": 1e-7,
+    "observed_maximum_tail_abs": 5.768477695511365e-09,
+    "grid_shape": [4, 4, 4],
+    "grid_spacing_bohr": [10.0, 10.0, 10.0],
+    "direct_kernel_shape": [2, 2, 4, 4, 4],
+    "direct_kernel_max_abs": 2.5311717859798852,
+    "observed_reciprocity_residual": 0.0,
+    "claim_boundary": "This verifies only the source-defined radial-to-reciprocal transform, tail gate, and discrete pairing on a small test cell. It is not a physical production-grid mapping, MACE-coupled liquid solve, force calculation, or solvation-energy result."
   },
   "hard_constraints": {
     "target_solvation_labels_read_before_control": false,

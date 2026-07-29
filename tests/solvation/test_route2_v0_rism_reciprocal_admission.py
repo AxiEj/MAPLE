@@ -10,24 +10,24 @@ ADMISSION = (
 )
 
 
-def test_periodic_coulomb_control_is_admitted_only_as_a_neutral_math_gate():
+def test_rism_reciprocal_control_is_a_preregistered_math_gate_only():
     protocol = json.loads(ADMISSION.read_text(encoding="utf-8"))
     foundation = protocol["implemented_foundation"]
-    control = foundation["periodic_coulomb_long_range_control"]
+    control = foundation["rism_short_range_reciprocal_control"]
 
-    assert control["module"].endswith("route2_v0_periodic_coulomb")
-    assert "same scalar" in control["capability"]
-    assert "finite-difference" in control["capability"]
-    assert "non-neutral" in control["charged_branch_boundary"]
+    assert control["module"].endswith("route2_v0_rism_reciprocal")
+    assert "radial-Nyquist" in control["capability"]
+    assert "HNC scalar/gradient" in control["capability"]
+    assert "frozen before any target-solute calculation" in control["tail_policy"]
     assert (
-        "does not interpolate Cvv short-range"
+        "not a registered real-solvent mapping"
         in control["not_a_physical_liquid_backend"]
     )
     assert any(
-        "neutral source-SMEAR periodic Poisson long-range scalar" in item
+        "source-defined short-range radial transform" in item
         for item in protocol["validation_sequence"]
     )
     assert any(
-        "physical short-range RISM grid mapping" in item
+        "production-scale grid-convergence" in item
         for item in foundation["not_implemented"]
     )

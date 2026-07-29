@@ -933,6 +933,79 @@ Until a frozen molecular correlation/EOS/dispersion asset defines
 \(F_{\mathrm{ex}}\), the ideal result is not a liquid calculation, a
 standard-state correction, a force, or a solvation/accuracy result.
 
+#### 4.2.14 Projected molecular-site HNC scalar control
+
+The ideal molecular density \(\nu(\mathbf X,\mathbf\Omega)\) and the
+site-density HNC reference in Section 4.2 use different state spaces.  They
+must not be added as unrelated corrections.  On a declared periodic Cartesian
+cell, define one fixed discrete map from molecular configurations \(i\) to
+site densities \((a,g)\),
+
+\[
+n_{a g}
+=\frac{1}{\Delta V}
+\sum_i w_i A_{a g i}\nu_i,
+\]
+
+where \(w_i\) integrates \(d^3X\,d\mathbf\Omega\), \(A_{agi}\geq0\)
+is a dimensionless site-occupancy weight, and \(\Delta V\) is a Cartesian
+grid-voxel volume.  For distinct site type \(a\) with molecular multiplicity
+\(m_a\), the map is admitted only when
+
+\[
+\sum_g A_{agi}=m_a,
+\qquad
+\sum_i w_i=V\,8\pi^2,
+\qquad
+\rho_a^b=m_a\rho_b.
+\]
+
+It then maps the uniform configuration reference
+\(\nu_b=\rho_b/(8\pi^2)\) exactly to the declared HNC bulk density.  Its
+discrete adjoint is fixed by the pairing identity
+
+\[
+\Delta V\sum_{ag} v_{ag}\,\delta n_{ag}
+=\sum_i w_i
+\left[\sum_{ag} A_{agi}v_{ag}\right]\delta\nu_i.
+\]
+
+For one reciprocal Cartesian direct-correlation kernel, this permits the
+single projected scalar
+
+\[
+\Delta\Omega_{\mathrm{mHNC}}[\nu;u]
+=\Delta\Omega_{\mathrm{id}}[\nu;u]
+-\frac{k_BT}{2}\Delta V
+\sum_{ag}\delta n_{ag}
+\left(c*\delta n\right)_{ag},
+\qquad
+\delta n=n-n_b.
+\]
+
+Its exact dimensionless configuration derivative is
+
+\[
+\beta\frac{\delta\Delta\Omega_{\mathrm{mHNC}}}{\delta\nu_i}
+=\ln\frac{\nu_i}{\nu_b}+\beta u_i
+-\sum_{ag}A_{agi}\left(c*\delta n\right)_{ag}.
+\]
+
+Thus a numerical Picard factor can only accelerate the update; it cannot
+alter the stationary equation or be selected from solvation errors.
+`route2_v0_molecular_site_hnc.py` locks the common Cartesian grid, exact
+periodic-cell orientation measure, molecular-site multiplicities, uniform
+bulk map, projection adjoint, scalar/gradient identity, and zero-correlation
+ideal-gas limit.
+
+This is deliberately only a bridge control.  The current `Route2V0SiteHNCAsset`
+is synthetic; a raw 1D-RISM \(C_{vv}\) table remains inadmissible because its
+source-SMEAR Coulomb tail needs the separate energy-conjugate long-range
+operator already specified in Section 4.2.  No frozen physical molecular
+correlation, solvent-side short-range source, pressure/standard-state
+convention, real liquid solve, force, PES, or accuracy result follows from
+this scalar.
+
 ### 4.3 Separate auxiliary-QM liquid-difference route
 
 V0-FD deliberately freezes the MACE source and varies only the solvent.  A

@@ -84,6 +84,15 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "total solvation free energy" in ideal_gas[
         "not_a_physical_liquid_backend"
     ]
+    molecular_hnc = foundation["molecular_site_hnc_variational_bridge_control"]
+    assert molecular_hnc["module"].endswith("route2_v0_molecular_site_hnc")
+    assert "periodic-cell times 8*pi^2 measure" in molecular_hnc["capability"]
+    assert "projection adjoint" in molecular_hnc["capability"]
+    assert "exactly equal" in molecular_hnc["source_boundary"]
+    assert "raw 1D-RISM Cvv table is rejected" in molecular_hnc["source_boundary"]
+    assert "total solvation free energy" in molecular_hnc[
+        "not_a_physical_liquid_backend"
+    ]
     hnc = foundation["site_hnc_variational_reference"]
     assert hnc["module"].endswith("route2_v0_site_hnc")
     assert "synthetic-only periodic multi-site HNC" in hnc["capability"]
@@ -170,3 +179,4 @@ def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_on
         "exact molecular ideal-gas configuration scalar" in item
         for item in validation
     )
+    assert any("projected molecular-site HNC bridge" in item for item in validation)

@@ -42,6 +42,28 @@
     "toluene",
     "hexane"
   ],
+  "v0_aq_l_provider_audit": {
+    "snapshot_utc": "2026-07-29T13:27:33Z",
+    "scope": "This is a host-local availability audit for the independently parameterized V0-AQ-L molecular-liquid branch. It is not a statement that an upstream theory is invalid, a request to install a dependency, or a substitute for a frozen physical solvent asset.",
+    "jdftx_classical_dft": {
+      "checked_executables": [
+        "jdftx",
+        "jdftx_gpu"
+      ],
+      "status": "not-installed-on-this-host-path",
+      "consequence": "The documented JDFTx ClassicalDFT/fluid-solvent upstream route cannot be executed locally without a separately authorized, version-pinned installation and frozen asset source."
+    },
+    "ambertools_rism": {
+      "runtime": "AmberTools 26.0 conda-forge cuda_None_nompi_py311h232f31e_100",
+      "rism3d_binary_sha256": "a6e8c906be86e3da4d99c1790447986d3fac9d0f586500cc0c950608ec47ad40",
+      "rism1d_binary_sha256": "7c5c87d61ead9802c7a2df1a71a4d528d4da2db357e654d5514c603fd4c6918d",
+      "stock_rism3d_requirement": "The local rism3d.snglpnt help requires --pdb, --prmtop, and --xvv. Its stock solute interface therefore cannot be relabelled as a MACE-native auxiliary-QM or Gaussian-MACE source.",
+      "bundled_bulk_models": "The installed rism1d data directory contains only the cSPCE bulk control plus ion models, not complete frozen assets for the eleven required default solvents.",
+      "cspce_kh_xvv_sha256": "91eebf40114c6f4b2216887b519d33b8dcd63a7f6c2ca2ee27823ce33a07fd77",
+      "consequence": "AmberTools may remain a bulk-parser/control provenance source, but it is not an admissible V0-AQ-L physical endpoint without a separately derived MACE-native solute interaction, complete frozen solvent assets, and a common liquid free-energy/force functional."
+    },
+    "decision": "No local executable plus admitted eleven-solvent physical asset set exists for V0-AQ-L. Do not create a proxy endpoint, substitute a GAFF/AM1-BCC solute topology, or treat the rejected V0-AQ-E PCM control as a molecular-liquid result."
+  },
   "execution_policy": "Total-free-energy execution is rejected until all required frozen solvent-side assets exist and later liquid-functional/force gates pass. No GAFF/AM1-BCC solute fallback, training, fine-tuning, MAP/UQ, calibration, response modification, or experiment-selected parameter change is permitted.",
   "hard_constraints": {
     "post_training": false,

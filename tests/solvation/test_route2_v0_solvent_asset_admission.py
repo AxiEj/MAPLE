@@ -60,3 +60,22 @@ def test_current_solvent_inventory_fails_closed_until_all_assets_exist():
         "amber_gaff_or_am1bcc_solute_substitution": False,
     }
     assert "Total-free-energy execution is rejected" in inventory["execution_policy"]
+
+
+def test_v0_aq_liquid_provider_audit_does_not_convert_local_tools_into_a_proxy():
+    inventory = _json(INVENTORY)
+    audit = inventory["v0_aq_l_provider_audit"]
+
+    assert "host-local availability audit" in audit["scope"]
+    jdftx = audit["jdftx_classical_dft"]
+    assert jdftx["checked_executables"] == ["jdftx", "jdftx_gpu"]
+    assert jdftx["status"] == "not-installed-on-this-host-path"
+    assert "separately authorized, version-pinned installation" in jdftx["consequence"]
+    amber = audit["ambertools_rism"]
+    assert amber["runtime"].startswith("AmberTools 26.0")
+    assert "--pdb, --prmtop, and --xvv" in amber["stock_rism3d_requirement"]
+    assert "cannot be relabelled as a MACE-native" in amber["stock_rism3d_requirement"]
+    assert "only the cSPCE bulk control" in amber["bundled_bulk_models"]
+    assert "not an admissible V0-AQ-L physical endpoint" in amber["consequence"]
+    assert "No local executable plus admitted eleven-solvent" in audit["decision"]
+    assert "GAFF/AM1-BCC" in audit["decision"]

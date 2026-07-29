@@ -3,7 +3,7 @@
   "schema_version": 1,
   "status": "inventory-only-zero-admitted-physical-default-assets",
   "claim_boundary": "This is a local source-availability inventory, not a molecular-liquid calculation, physical solvent endpoint, solvation-energy result, or accuracy result. It records why the Route-2 V0 branch fails closed instead of filling missing solvent assets with a proxy.",
-  "asset_registry_protocol": "route2-v0-frozen-solvent-asset-v1",
+  "asset_registry_protocol": "route2-v0-frozen-solvent-asset-v2",
   "required_default_solvents": [
     "water",
     "methanol",
@@ -27,7 +27,7 @@
       "bulk-only cSPCE input/XVV/Cvv/thermodynamic control recorded in route2-v0-rism1d-cspce-bulk-control-v1.json"
     ],
     "role": "bulk 1D-RISM parser, source-SMEAR split, periodic-Poisson, and small-grid reciprocal-transform control only",
-    "not_an_admitted_asset": "It lacks the frozen complete molecular-liquid short-range source, production-grid mapping certificate, and full thermodynamic/free-energy endpoint required for target-solute execution."
+    "not_an_admitted_asset": "It lacks a schema-v2 hash-locked canonical molecular reference with exact RISM-site multiplicities, the frozen complete molecular-liquid short-range source, production-grid mapping certificate, and full thermodynamic/free-energy endpoint required for target-solute execution."
   },
   "missing_default_assets": [
     "water",

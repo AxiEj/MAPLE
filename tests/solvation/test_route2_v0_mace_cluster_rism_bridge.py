@@ -167,7 +167,7 @@ def _asset(tmp_path: Path):
 
     payload = {
         "protocol_id": V0_FROZEN_SOLVENT_ASSET_CONSTRUCTION,
-        "schema_version": 1,
+        "schema_version": 2,
         "assets": [
             {
                 "solvent_id": "water",
@@ -192,6 +192,18 @@ def _asset(tmp_path: Path):
                     "thermodynamic_output": entry("bulk/cSPCE.thermo"),
                     "short_range_interaction": entry("short-range/cSPCE.txt"),
                     "provenance_statement": entry("provenance/cSPCE.txt"),
+                },
+                "molecular_reference": {
+                    "atomic_numbers": [8, 1, 1],
+                    "site_charges_e": [-0.8, 0.4, 0.4],
+                    "reference_positions_bohr": [
+                        [0.0, 0.0, 0.0],
+                        [1.5, 0.0, 0.0],
+                        [-0.5, 1.4, 0.0],
+                    ],
+                    "rism_site_type_names": ["O", "H1", "H1"],
+                    "site_model_sha256": entry("model/cSPCE.mdl")["sha256"],
+                    "target_total_charge_e": 0.0,
                 },
                 "provenance": {
                     "target_solvation_labels_used": False,
@@ -218,14 +230,7 @@ def _bridge_inputs(tmp_path: Path):
         spacing_bohr=np.full(3, 8.0),
         shape=(2, 2, 2),
     )
-    solvent = Route2V0MolecularSolventReference(
-        atomic_numbers=np.array([8, 1, 1]),
-        site_charges_e=np.array([-0.8, 0.4, 0.4]),
-        reference_positions_bohr=np.array(
-            [[0.0, 0.0, 0.0], [1.5, 0.0, 0.0], [-0.5, 1.4, 0.0]]
-        ),
-        provenance_label="cSPCE molecular geometry declared from frozen site model",
-    )
+    solvent = asset.molecular_reference.molecular_reference
     configurations = Route2V0MolecularConfigurations(
         translations_bohr=np.array([[8.0, 0.0, 0.0], [9.0, 0.0, 0.0]]),
         rotations=np.repeat(np.eye(3)[None], 2, axis=0),
@@ -267,9 +272,7 @@ def test_asset_bound_bridge_uses_one_checkpoint_locked_mace_source_and_one_froze
         external_potential=external,
         rism_kernel=kernel,
         quadrature=quadrature,
-        molecular_site_type_names=("O", "H1", "H1"),
         site_occupancy_weights=occupancy,
-        molecular_reference_site_model_sha256=asset.file_for("site_model").sha256,
     )
 
     assert bridge.construction == V0_MACE_CLUSTER_RISM_BRIDGE_CONSTRUCTION
@@ -298,7 +301,7 @@ def test_asset_bound_bridge_uses_one_checkpoint_locked_mace_source_and_one_froze
     assert finite_difference == pytest.approx(analytic, rel=3.0e-9, abs=3.0e-15)
 
 
-def test_asset_bound_bridge_rejects_unbound_geometry_mapping_or_mutated_source(
+def test_asset_bound_bridge_rejects_noncanonical_geometry_or_mutated_source(
     tmp_path,
 ):
     asset, grid, external, quadrature, occupancy = _bridge_inputs(tmp_path)
@@ -313,17 +316,27 @@ def test_asset_bound_bridge_rejects_unbound_geometry_mapping_or_mutated_source(
         "quadrature": quadrature,
         "site_occupancy_weights": occupancy,
     }
-    with pytest.raises(ValueError, match="site-model SHA-256"):
-        Route2V0MaceClusterRismMolecularHNCBridge(
-            **common,
-            molecular_site_type_names=("O", "H1", "H1"),
-            molecular_reference_site_model_sha256="0" * 64,
+    noncanonical_solvent = Route2V0MolecularSolventReference(
+        atomic_numbers=np.array([8, 1, 1]),
+        site_charges_e=np.array([-0.8, 0.4, 0.4]),
+        reference_positions_bohr=np.array(
+            [[0.1, 0.0, 0.0], [1.5, 0.0, 0.0], [-0.5, 1.4, 0.0]]
+        ),
+        provenance_label=asset.molecular_reference.molecular_reference.provenance_label,
+    )
+    noncanonical_external = (
+        evaluate_route2_v0_mace_cluster_molecular_external_potential(
+            calculator=_FakeZeroFieldMACE(),
+            integration_grid=grid,
+            solute_atomic_numbers=np.array([1]),
+            solute_atom_positions_angstrom=np.array([[-1.0, 0.0, 0.0]]),
+            solvent=noncanonical_solvent,
+            configurations=quadrature.configurations,
         )
-    with pytest.raises(ValueError, match="multiplicities"):
+    )
+    with pytest.raises(ValueError, match="canonical molecular reference"):
         Route2V0MaceClusterRismMolecularHNCBridge(
-            **common,
-            molecular_site_type_names=("O", "O", "H1"),
-            molecular_reference_site_model_sha256=asset.file_for("site_model").sha256,
+            **{**common, "external_potential": noncanonical_external},
         )
 
     changed_tail_control = Route2V0RismShortRangeReciprocalControl.from_radial(
@@ -344,14 +357,10 @@ def test_asset_bound_bridge_rejects_unbound_geometry_mapping_or_mutated_source(
     with pytest.raises(ValueError, match="does not derive"):
         Route2V0MaceClusterRismMolecularHNCBridge(
             **{**common, "rism_kernel": changed_tail_kernel},
-            molecular_site_type_names=("O", "H1", "H1"),
-            molecular_reference_site_model_sha256=asset.file_for("site_model").sha256,
         )
 
     asset.file_for("site_model").path.write_text("mutated\n", encoding="utf-8")
     with pytest.raises(ValueError, match="hash mismatch"):
         Route2V0MaceClusterRismMolecularHNCBridge(
             **common,
-            molecular_site_type_names=("O", "H1", "H1"),
-            molecular_reference_site_model_sha256=asset.file_for("site_model").sha256,
         )

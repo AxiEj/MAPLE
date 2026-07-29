@@ -18,7 +18,8 @@ def test_asset_bound_mace_cluster_rism_bridge_is_explicitly_no_fit_and_nonphysic
     assert bridge["module"].endswith("route2_v0_mace_cluster_rism_bridge")
     assert "source-SMEAR energy-conjugate RISM kernel" in bridge["capability"]
     assert "checkpoint-locked zero-field MACE cluster" in bridge["capability"]
-    assert "site-model SHA-256 binding declaration" in bridge["capability"]
+    assert "asset canonical molecular reference" in bridge["capability"]
+    assert "XVV multiplicity" in bridge["capability"]
     assert (
         "MACE field-conditioned response density" in bridge["hybrid_reference_boundary"]
     )

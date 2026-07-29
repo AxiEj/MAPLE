@@ -29,6 +29,8 @@ def test_solvent_asset_registry_is_provenance_only_and_no_fit():
     )
     assert registry["module"].endswith("route2_v0_solvent_asset")
     assert "SHA-256" in registry["capability"]
+    assert "canonical rigid molecular geometry" in registry["capability"]
+    assert "XVV MTV" in registry["capability"]
     assert (
         "MNSol, FreeSolv, development, confirmation, and blind"
         in registry["capability"]
@@ -49,7 +51,7 @@ def test_current_solvent_inventory_fails_closed_until_all_assets_exist():
     assert inventory["missing_default_assets"] == list(V0_DEFAULT_SOLVENT_IDS)
     assert inventory["available_parser_control"]["model"] == "cSPCE"
     assert (
-        "lacks the frozen complete molecular-liquid short-range source"
+        "lacks a schema-v2 hash-locked canonical molecular reference"
         in inventory["available_parser_control"]["not_an_admitted_asset"]
     )
     assert inventory["hard_constraints"] == {

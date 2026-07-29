@@ -1161,20 +1161,24 @@ Thus the molecular stationarity equation is the derivative of one scalar,
 
 `route2_v0_mace_cluster_rism_bridge.py` creates this assembly.  It rejects a
 changed solvent-side hash, a reciprocal kernel derived from another radial
-asset or tail convention, an external grid different from the RISM grid, a
-molecular-site map whose named multiplicities disagree with the XVV source,
-and a molecular-reference declaration not tied to the frozen `site_model`
-digest.  The MACE vector itself carries the exact official checkpoint, runtime
-profile, and long-range-evaluator provenance on every configuration, so a
-hand-assembled three-energy ledger cannot impersonate this source.
+asset or tail convention, an external grid different from the RISM grid, or a
+MACE solvent geometry/charge record that differs from the **canonical
+molecular reference stored in the frozen asset**.  Schema-v2 validation binds
+that record to the exact `site_model` digest and requires its named per-atom
+RISM site map to reproduce the XVV multiplicities before the bridge is even
+constructed.  The MACE vector itself carries the exact official checkpoint,
+runtime profile, and long-range-evaluator provenance on every configuration,
+so a hand-assembled three-energy ledger cannot impersonate this source.
 
-The site-model digest is an explicit **binding declaration**, not a claim that
-MAPLE can parse every upstream molecular-model syntax or infer a geometry from
-a solvent name.  A physical asset must still provide a human-auditable mapping
-from that hashed model source to the rigid geometry and named site types.  This
-is intentionally stricter than a dielectric-only custom-solvent input: a
-macroscopic \(\epsilon\) alone fixes neither molecular geometry, finite-\(k\)
-correlation, nor the non-electrostatic liquid functional.
+This is a hash-locked source declaration, not a claim that MAPLE can parse
+every upstream molecular-model syntax or infer a geometry from a solvent name.
+The physical asset must provide a human-auditable transcription from the hashed
+model source to the canonical rigid geometry, charges, and named site types;
+the manifest records that transcription and rejects a mismatch rather than
+allowing bridge callers to hand-supply it.  This is intentionally stricter than
+a dielectric-only custom-solvent input: a macroscopic \(\epsilon\) alone fixes
+neither molecular geometry, finite-\(k\) correlation, nor the
+non-electrostatic liquid functional.
 
 The bridge is therefore a structural common-energy result, not a liquid
 endpoint.  It has no registered physical 11-solvent asset, production

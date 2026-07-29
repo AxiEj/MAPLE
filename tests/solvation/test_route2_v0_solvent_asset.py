@@ -5,6 +5,7 @@ import json
 import math
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from maple.function.calculator.extra_correction.implicit.route2_v0_solvent_asset import (
@@ -95,7 +96,7 @@ def _write_manifest(tmp_path: Path) -> tuple[Path, dict]:
 
     payload = {
         "protocol_id": V0_FROZEN_SOLVENT_ASSET_CONSTRUCTION,
-        "schema_version": 1,
+        "schema_version": 2,
         "assets": [
             {
                 "solvent_id": "water",
@@ -123,6 +124,18 @@ def _write_manifest(tmp_path: Path) -> tuple[Path, dict]:
                     "thermodynamic_output": entry("bulk/cSPCE.thermo"),
                     "short_range_interaction": entry("short-range/cSPCE-source.txt"),
                     "provenance_statement": entry("provenance/cSPCE.txt"),
+                },
+                "molecular_reference": {
+                    "atomic_numbers": [8, 1, 1],
+                    "site_charges_e": [-0.8, 0.4, 0.4],
+                    "reference_positions_bohr": [
+                        [0.0, 0.0, 0.0],
+                        [1.5, 0.0, 0.0],
+                        [-0.5, 1.4, 0.0],
+                    ],
+                    "rism_site_type_names": ["O", "H1", "H1"],
+                    "site_model_sha256": entry("model/cSPCE.mdl")["sha256"],
+                    "target_total_charge_e": 0.0,
                 },
                 "provenance": {
                     "target_solvation_labels_used": False,
@@ -154,6 +167,14 @@ def test_frozen_solvent_asset_binds_hashed_bulk_and_liquid_provenance(tmp_path):
         298.0
     )
     assert asset.file_for("short_range_interaction").path.name == "cSPCE-source.txt"
+    assert asset.molecular_reference.rism_site_type_names == ("O", "H1", "H1")
+    np.testing.assert_array_equal(
+        asset.molecular_reference.molecular_reference.atomic_numbers,
+        np.array([8, 1, 1]),
+    )
+    assert asset.molecular_reference.molecular_reference.provenance_label == (
+        "frozen-site-model:" + asset.file_for("site_model").sha256
+    )
     assert set(asset.excluded_target_label_sets) == {
         "mnsol",
         "freesolv",
@@ -195,4 +216,39 @@ def test_frozen_solvent_asset_rejects_missing_source_or_path_escape(tmp_path):
     payload["assets"][0]["source_files"]["site_model"]["path"] = "../escape.mdl"
     manifest.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     with pytest.raises(ValueError, match="relative path inside the asset root"):
+        load_route2_v0_frozen_solvent_registry(manifest)
+
+
+def test_frozen_solvent_asset_rejects_unbound_or_nonphysical_molecular_reference(
+    tmp_path,
+):
+    manifest, payload = _write_manifest(tmp_path)
+    del payload["assets"][0]["molecular_reference"]
+    manifest.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    with pytest.raises(ValueError, match="molecular reference"):
+        load_route2_v0_frozen_solvent_registry(manifest)
+
+    manifest, payload = _write_manifest(tmp_path / "wrong-site-model")
+    payload["assets"][0]["molecular_reference"]["site_model_sha256"] = "0" * 64
+    manifest.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    with pytest.raises(ValueError, match="site-model SHA-256"):
+        load_route2_v0_frozen_solvent_registry(manifest)
+
+    manifest, payload = _write_manifest(tmp_path / "wrong-multiplicity")
+    payload["assets"][0]["molecular_reference"]["rism_site_type_names"] = [
+        "O",
+        "O",
+        "H1",
+    ]
+    manifest.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    with pytest.raises(ValueError, match="multiplicities"):
+        load_route2_v0_frozen_solvent_registry(manifest)
+
+
+def test_frozen_solvent_asset_rejects_precanonical_schema_v1_manifest(tmp_path):
+    manifest, payload = _write_manifest(tmp_path)
+    payload["schema_version"] = 1
+    manifest.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="registry schema"):
         load_route2_v0_frozen_solvent_registry(manifest)

@@ -13,11 +13,12 @@ HNC functional,
 ``Omega[nu] = Omega_id[nu; u_MACE] + F_ex^RISM[P nu]``.
 
 The bridge is deliberately narrow.  It verifies that the RISM reciprocal
-kernel was derived from the hash-locked solvent asset, that the molecular site
-map has the source-declared RISM multiplicities, and that the MACE vector uses
-one checkpoint-locked source.  It is a declared *hybrid reference functional*,
-not evidence that the gas MACE cluster model and the bulk RISM model came from
-one microscopic force field.  No pressure correction, standard-state term,
+kernel was derived from the hash-locked solvent asset, that the MACE solvent
+geometry equals the asset's canonical molecular reference with its
+source-declared RISM multiplicities, and that the MACE vector uses one
+checkpoint-locked source.  It is a declared *hybrid reference functional*, not
+evidence that the gas MACE cluster model and the bulk RISM model came from one
+microscopic force field.  No pressure correction, standard-state term,
 production quadrature, physical liquid result, force, solvation free energy,
 or accuracy claim is supplied here.
 """
@@ -117,6 +118,18 @@ def _kernel_matches_frozen_asset(
     )
 
 
+def _same_molecular_reference(left: object, right: object) -> bool:
+    """Require exact equality with the molecular reference frozen in the asset."""
+
+    attributes = ("provenance_label", "target_total_charge_e")
+    if any(getattr(left, name) != getattr(right, name) for name in attributes):
+        return False
+    arrays = ("atomic_numbers", "site_charges_e", "reference_positions_bohr")
+    return all(
+        np.array_equal(getattr(left, name), getattr(right, name)) for name in arrays
+    )
+
+
 def _molecular_site_type_indices(
     *,
     molecular_site_type_names: tuple[str, ...] | list[str],
@@ -192,20 +205,17 @@ def build_route2_v0_asset_bound_rism_kernel(
 class Route2V0MaceClusterRismMolecularHNCBridge:
     """One fail-closed assembly of the MACE scalar and frozen RISM scalar.
 
-    ``molecular_reference_site_model_sha256`` is an explicit declaration that
-    the rigid molecular geometry used to query MACE was taken from the same
-    content-addressed site-model source as the RISM asset.  The bridge cannot
-    parse every upstream site-model syntax itself, so it records and verifies
-    the binding digest instead of inferring geometry from a solvent name.
+    The frozen asset owns the canonical geometry, atom identity, neutral
+    site-charge convention, site-model digest, and RISM site-type mapping.  A
+    caller may not independently declare any of those molecular-liquid inputs
+    at bridge construction time.
     """
 
     frozen_solvent_asset: Route2V0FrozenSolventAsset
     external_potential: Route2V0MaceClusterMolecularExternalPotential
     rism_kernel: Route2V0RismEnergyConjugateKernel
     quadrature: Route2V0MolecularConfigurationQuadrature
-    molecular_site_type_names: tuple[str, ...]
     site_occupancy_weights: np.ndarray
-    molecular_reference_site_model_sha256: str
     cross_model_reference: str = V0_MACE_CLUSTER_RISM_CROSS_MODEL_REFERENCE
     construction: str = V0_MACE_CLUSTER_RISM_BRIDGE_CONSTRUCTION
     _site_type_indices: np.ndarray = field(init=False, repr=False, compare=False)
@@ -263,22 +273,19 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
                 "MACE/RISM bridge kernel does not derive from the frozen solvent "
                 "asset's exact bulk direct correlation and tail controls."
             )
-        expected_site_model_sha256 = self.frozen_solvent_asset.file_for(
-            "site_model"
-        ).sha256
-        if self.molecular_reference_site_model_sha256 != expected_site_model_sha256:
+        canonical_reference = self.frozen_solvent_asset.molecular_reference
+        if not _same_molecular_reference(
+            self.external_potential.solvent,
+            canonical_reference.molecular_reference,
+        ):
             raise ValueError(
-                "MACE/RISM bridge molecular reference must cite the frozen asset's "
-                "site-model SHA-256."
-            )
-        if abs(self.external_potential.solvent.total_charge_e) > 1.0e-12:
-            raise ValueError(
-                "MACE/RISM bridge requires a neutral molecular solvent reference."
+                "MACE/RISM bridge solvent geometry and charges must equal the "
+                "frozen asset's canonical molecular reference."
             )
 
         metadata = self.rism_kernel.short_range.radial.metadata
         type_indices = _molecular_site_type_indices(
-            molecular_site_type_names=self.molecular_site_type_names,
+            molecular_site_type_names=canonical_reference.rism_site_type_names,
             source_site_names=metadata.site_names,
             source_site_multiplicity=metadata.site_multiplicity,
             molecular_site_count=self.external_potential.solvent.site_count,
@@ -295,9 +302,6 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
                 "MACE/RISM bridge projection does not preserve frozen RISM site "
                 "multiplicities."
             )
-        object.__setattr__(
-            self, "molecular_site_type_names", tuple(self.molecular_site_type_names)
-        )
         object.__setattr__(self, "_site_type_indices", type_indices)
         object.__setattr__(self, "_projection", projection)
         object.__setattr__(

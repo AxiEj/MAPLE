@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import math
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -16,9 +16,15 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_ide
     Route2V0MolecularConfigurationQuadrature,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_site_hnc import (
+    V0_MOLECULAR_SITE_HNC_CONSTRUCTION,
     Route2V0MolecularSiteHNCFunctional,
     Route2V0MolecularSiteProjection,
-    V0_MOLECULAR_SITE_HNC_CONSTRUCTION,
+)
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_thermodynamics import (
+    V0_MOLECULAR_HNC_FIXED_SOLUTE_THERMODYNAMICS,
+    Route2V0MolecularHNCFixedSoluteThermodynamics,
+    evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics,
+    molecular_hnc_bulk_functional_pressure_hartree_per_bohr3,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_promolecular_density import (
     Route2V0PromolecularDensityTable,
@@ -31,7 +37,10 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_structured_so
 )
 
 
-def _external_potential():
+def _external_potential(
+    *,
+    solvent: Route2V0MolecularSolventReference | None = None,
+):
     grid = RegularCartesianGrid(
         origin_bohr=np.array([-0.5, 0.0, 0.0]),
         spacing_bohr=np.ones(3),
@@ -47,6 +56,13 @@ def _external_potential():
         translations_bohr=np.array([[0.0, 0.0, 0.0], [0.5, 0.0, 0.0]]),
         rotations=np.repeat(np.eye(3)[None], 2, axis=0),
     )
+    if solvent is None:
+        solvent = Route2V0MolecularSolventReference(
+            atomic_numbers=np.array([1]),
+            site_charges_e=np.array([0.0]),
+            reference_positions_bohr=np.zeros((1, 3)),
+            provenance_label="synthetic one-site molecular HNC bridge control",
+        )
     return evaluate_route2_v0_molecular_external_potential(
         integration_grid=grid,
         promolecular_table=table,
@@ -56,12 +72,7 @@ def _external_potential():
             density_coefficients=np.zeros((1, 4)),
             atom_positions_angstrom=np.zeros((1, 3)),
         ),
-        solvent=Route2V0MolecularSolventReference(
-            atomic_numbers=np.array([1]),
-            site_charges_e=np.array([0.0]),
-            reference_positions_bohr=np.zeros((1, 3)),
-            provenance_label="synthetic one-site molecular HNC bridge control",
-        ),
+        solvent=solvent,
         configurations=configurations,
     )
 
@@ -97,6 +108,41 @@ def _projection(*, direct_correlation: np.ndarray | None = None):
 def _functional(*, direct_correlation: np.ndarray | None = None):
     projection = _projection(direct_correlation=direct_correlation)
     return Route2V0MolecularSiteHNCFunctional(projection)
+
+
+def _two_site_one_type_functional():
+    external = _external_potential(
+        solvent=Route2V0MolecularSolventReference(
+            atomic_numbers=np.array([1, 1]),
+            site_charges_e=np.array([0.0, 0.0]),
+            reference_positions_bohr=np.array([[-0.5, 0.0, 0.0], [0.5, 0.0, 0.0]]),
+            provenance_label="synthetic two-site molecular pressure control",
+        )
+    )
+    grid = external.integration_grid
+    asset = Route2V0SiteHNCAsset(
+        grid=grid,
+        site_names=("X",),
+        bulk_number_density_bohr3=np.array([0.04]),
+        direct_correlation_dimensionless=np.zeros((1, 1, *grid.shape)),
+        kbt_hartree=0.1,
+    )
+    quadrature = Route2V0MolecularConfigurationQuadrature(
+        configurations=external.configurations,
+        phase_space_weights_bohr3=np.full(2, RIGID_MOLECULAR_ORIENTATION_MEASURE),
+    )
+    occupancy = np.zeros((1, *grid.shape, 2))
+    occupancy[0, 0, 0, 0, 0] = 2.0
+    occupancy[0, 1, 0, 0, 1] = 2.0
+    return Route2V0MolecularSiteHNCFunctional(
+        Route2V0MolecularSiteProjection(
+            quadrature=quadrature,
+            external_potential=external,
+            site_hnc_asset=asset,
+            solvent_site_type_indices=np.array([0, 0]),
+            site_occupancy_weights=occupancy,
+        )
+    )
 
 
 def test_molecular_site_projection_preserves_bulk_and_its_discrete_adjoint_pairing():
@@ -228,6 +274,160 @@ def test_molecular_site_hnc_hessian_is_self_adjoint_and_the_scalar_second_deriva
         rtol=3.0e-9,
         atol=3.0e-13,
     )
+
+
+def test_molecular_site_hnc_bulk_pressure_is_the_same_functional_vacuum_limit():
+    direct = np.zeros((1, 1, 2, 1, 1))
+    direct[0, 0, :, 0, 0] = np.array([0.03, 0.03])
+    functional = _functional(direct_correlation=direct)
+    density = np.full(
+        functional.projection.quadrature.configuration_count,
+        1.0e-12 * functional.projection.uniform_configuration_density_bohr3,
+    )
+    ideal, excess, _ = functional.energy_components(density)
+    cell_volume = (
+        functional.projection.site_hnc_asset.grid.point_count
+        * functional.projection.site_hnc_asset.grid.volume_element_bohr3
+    )
+    expected_pressure = 0.1 * (0.02 - 0.5 * 0.02**2 * (0.03 + 0.03))
+
+    pressure = molecular_hnc_bulk_functional_pressure_hartree_per_bohr3(functional)
+    assert pressure == pytest.approx(
+        expected_pressure,
+        rel=2.0e-14,
+        abs=2.0e-16,
+    )
+    assert (ideal + excess) / cell_volume == pytest.approx(
+        expected_pressure,
+        rel=3.0e-11,
+        abs=3.0e-14,
+    )
+
+
+def test_molecular_hnc_bulk_pressure_has_one_ideal_term_per_molecule_not_site():
+    functional = _two_site_one_type_functional()
+
+    assert functional.projection.site_multiplicity.tolist() == [2]
+    assert functional.projection.molecular_bulk_number_density_bohr3 == pytest.approx(
+        0.02
+    )
+    assert molecular_hnc_bulk_functional_pressure_hartree_per_bohr3(
+        functional
+    ) == pytest.approx(0.1 * 0.02)
+
+
+def test_molecular_site_hnc_fixed_solute_thermodynamics_uses_one_stationary_scalar():
+    functional = _functional()
+    state = functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.5,
+        max_iterations=300,
+    )
+    result = evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+        functional,
+        state,
+        residual_tolerance=1.0e-12,
+    )
+    weights = functional.projection.quadrature.phase_space_weights_bohr3
+    observed_molecules = float(np.sum(weights * state.configuration_density_bohr3))
+    cell_volume = (
+        functional.projection.site_hnc_asset.grid.point_count
+        * functional.projection.site_hnc_asset.grid.volume_element_bohr3
+    )
+    bulk_molecules = (
+        functional.projection.molecular_bulk_number_density_bohr3 * cell_volume
+    )
+    expected_volume = (
+        bulk_molecules - observed_molecules
+    ) / functional.projection.molecular_bulk_number_density_bohr3
+    expected_pressure = (
+        functional.projection.molecular_bulk_number_density_bohr3
+        * functional.projection.site_hnc_asset.kbt_hartree
+    )
+    expected_work = expected_pressure * expected_volume
+
+    assert isinstance(result, Route2V0MolecularHNCFixedSoluteThermodynamics)
+    assert result.construction == V0_MOLECULAR_HNC_FIXED_SOLUTE_THERMODYNAMICS
+    assert result.functional is functional
+    assert result.state is state
+    assert result.residual_tolerance == pytest.approx(1.0e-12)
+    assert result.bulk_reference_molecule_count == pytest.approx(bulk_molecules)
+    assert result.stationary_molecule_count == pytest.approx(observed_molecules)
+    assert result.partial_molar_volume_bohr3 == pytest.approx(expected_volume)
+    assert result.bulk_functional_pressure_hartree_per_bohr3 == pytest.approx(
+        expected_pressure
+    )
+    assert result.bulk_functional_pressure_work_hartree == pytest.approx(expected_work)
+    assert result.fixed_solute_pressure_corrected_free_energy_hartree == pytest.approx(
+        state.grand_potential_hartree - expected_work
+    )
+
+
+def test_molecular_site_hnc_fixed_solute_thermodynamics_fails_closed():
+    functional = _functional()
+    nonstationary = functional.stationary_state(
+        np.full(
+            functional.projection.quadrature.configuration_count,
+            functional.projection.uniform_configuration_density_bohr3,
+        ),
+        iterations=0,
+    )
+    with pytest.raises(ValueError, match="stationary molecular HNC state"):
+        evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+            functional,
+            nonstationary,
+            residual_tolerance=1.0e-12,
+        )
+
+    other = _functional()
+    state = functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.5,
+        max_iterations=300,
+    )
+    ledger = evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+        functional,
+        state,
+        residual_tolerance=1.0e-12,
+    )
+    with pytest.raises(ValueError, match="exact molecular HNC projection"):
+        replace(ledger, functional=other)
+    with pytest.raises(ValueError, match="exact molecular HNC projection"):
+        evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+            other,
+            state,
+            residual_tolerance=1.0e-12,
+        )
+    with pytest.raises(ValueError, match="finite and positive"):
+        evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+            functional,
+            state,
+            residual_tolerance=0.0,
+        )
+    with pytest.raises(ValueError, match="independently verifies"):
+        evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+            functional,
+            replace(
+                nonstationary,
+                residual_inf=0.0,
+            ),
+            residual_tolerance=1.0e-12,
+        )
+    with pytest.raises(ValueError, match="energy components"):
+        forged_ideal = state.ideal_contribution_hartree + 1.0
+        evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+            functional,
+            replace(
+                state,
+                ideal_contribution_hartree=forged_ideal,
+                grand_potential_hartree=(
+                    forged_ideal
+                    + state.excess_contribution_hartree
+                    + state.external_contribution_hartree
+                ),
+            ),
+            residual_tolerance=1.0e-12,
+        )
 
 
 def test_molecular_site_hnc_rejects_inconsistent_measure_or_occupancy_and_bad_iterations():

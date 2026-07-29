@@ -18,15 +18,17 @@ geometry equals the asset's canonical molecular reference with its
 source-declared RISM multiplicities, and that the MACE vector uses one
 checkpoint-locked source.  It is a declared *hybrid reference functional*, not
 evidence that the gas MACE cluster model and the bulk RISM model came from one
-microscopic force field.  No pressure correction, standard-state term,
-production quadrature, physical liquid result, force, solvation free energy,
-or accuracy claim is supplied here.
+microscopic force field.  The same discrete scalar now exposes its own
+vacuum-limit pressure, stationary molecule deficit, partial molar volume, and
+fixed-solute ``DeltaOmega - P_F Vbar`` identity.  No PC+, fitted correction,
+standard-state term, production quadrature, physical liquid result, complete
+force, solvation free energy, or accuracy claim is supplied here.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import math
+from dataclasses import dataclass, field
 
 import numpy as np
 from ase.units import Bohr
@@ -38,8 +40,12 @@ from .route2_v0_mace_cluster_external_potential import (
 from .route2_v0_molecular_ideal_gas import Route2V0MolecularConfigurationQuadrature
 from .route2_v0_molecular_site_hnc import (
     Route2V0MolecularSiteHNCFunctional,
-    Route2V0MolecularSiteProjection,
     Route2V0MolecularSiteHNCState,
+    Route2V0MolecularSiteProjection,
+)
+from .route2_v0_molecular_thermodynamics import (
+    Route2V0MolecularHNCFixedSoluteThermodynamics,
+    evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics,
 )
 from .route2_v0_periodic_coulomb import Route2V0PeriodicCoulombOperator
 from .route2_v0_rism_energy_conjugate import Route2V0RismEnergyConjugateKernel
@@ -354,6 +360,32 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
 
         self.frozen_solvent_asset.verify_integrity()
 
+    def stationary_fixed_solute_thermodynamics(
+        self,
+        state: Route2V0MolecularSiteHNCState,
+        *,
+        residual_tolerance: float = 1.0e-10,
+    ) -> Route2V0MolecularHNCFixedSoluteThermodynamics:
+        """Return the fixed-asset, same-functional pressure/PMV identity.
+
+        The bulk pressure is the analytic zero-density limit of this bridge's
+        molecular configuration-density HNC scalar, and the partial molar
+        volume is its stationary molecule deficit divided by the molecular
+        bulk density.  The result contains only
+
+        ``DeltaOmega[nu*] - P_functional * Vbar``.
+
+        It deliberately excludes PC+, UC, MILC, target-data fitting, the gas
+        MACE energy, external-pressure work, and every standard-state term.
+        """
+
+        self.verify_integrity()
+        return evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+            self.functional,
+            state,
+            residual_tolerance=residual_tolerance,
+        )
+
     def stationary_mace_solute_force_ev_per_angstrom(
         self,
         state: Route2V0MolecularSiteHNCState,
@@ -414,8 +446,8 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
 
 
 __all__ = [
-    "Route2V0MaceClusterRismMolecularHNCBridge",
     "V0_MACE_CLUSTER_RISM_BRIDGE_CONSTRUCTION",
     "V0_MACE_CLUSTER_RISM_CROSS_MODEL_REFERENCE",
+    "Route2V0MaceClusterRismMolecularHNCBridge",
     "build_route2_v0_asset_bound_rism_kernel",
 ]

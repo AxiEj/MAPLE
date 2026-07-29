@@ -16,9 +16,9 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_mace_cluster_
     evaluate_route2_v0_mace_cluster_molecular_external_potential,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_mace_cluster_rism_bridge import (
-    Route2V0MaceClusterRismMolecularHNCBridge,
     V0_MACE_CLUSTER_RISM_BRIDGE_CONSTRUCTION,
     V0_MACE_CLUSTER_RISM_CROSS_MODEL_REFERENCE,
+    Route2V0MaceClusterRismMolecularHNCBridge,
     build_route2_v0_asset_bound_rism_kernel,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_external_potential import (
@@ -28,6 +28,9 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_ext
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_ideal_gas import (
     RIGID_MOLECULAR_ORIENTATION_MEASURE,
     Route2V0MolecularConfigurationQuadrature,
+)
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_thermodynamics import (
+    V0_MOLECULAR_HNC_FIXED_SOLUTE_THERMODYNAMICS,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_periodic_coulomb import (
     Route2V0PeriodicCoulombOperator,
@@ -382,6 +385,41 @@ def test_asset_bound_bridge_stationary_mace_envelope_force_matches_minimized_sca
                 * np.array([1.1, 0.9]),
                 iterations=0,
             ),
+            residual_tolerance=1.0e-12,
+        )
+
+
+def test_asset_bound_bridge_exposes_only_same_functional_fixed_solute_thermodynamics(
+    tmp_path,
+):
+    bridge = _bridge(tmp_path)
+    state = bridge.functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.2,
+        max_iterations=1000,
+    )
+    ledger = bridge.stationary_fixed_solute_thermodynamics(
+        state,
+        residual_tolerance=1.0e-12,
+    )
+
+    assert ledger.construction == V0_MOLECULAR_HNC_FIXED_SOLUTE_THERMODYNAMICS
+    assert ledger.state is state
+    assert ledger.bulk_functional_pressure_work_hartree == pytest.approx(
+        ledger.bulk_functional_pressure_hartree_per_bohr3
+        * ledger.partial_molar_volume_bohr3
+    )
+    assert ledger.fixed_solute_pressure_corrected_free_energy_hartree == pytest.approx(
+        state.grand_potential_hartree - ledger.bulk_functional_pressure_work_hartree
+    )
+
+    bridge.frozen_solvent_asset.file_for("thermodynamic_output").path.write_text(
+        "mutated\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="hash mismatch"):
+        bridge.stationary_fixed_solute_thermodynamics(
+            state,
             residual_tolerance=1.0e-12,
         )
 

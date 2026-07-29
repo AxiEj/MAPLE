@@ -1147,9 +1147,11 @@ from one microscopic force field.  Before physical execution, the frozen
 solvent asset must bind its molecular geometry, bulk \(C_{vv}\), closure,
 thermodynamic convention, and explicit cross-model reference statement to the
 same source ledger.  The current checkout has no such 11-solvent bundle, no
-production molecular quadrature/grid certification, no pressure or
-standard-state term, and no benchmark result.  It therefore remains a
-zero-training external-potential control, not a claimed accuracy improvement.
+production molecular quadrature/grid certification, no physical
+closure/EOS certificate or standard-state term, and no benchmark result.  The
+same-functional discrete pressure identity below does not fill those physical
+asset gates.  This therefore remains a zero-training external-potential
+control, not a claimed accuracy improvement.
 
 #### 4.2.17 Asset-bound MACE-cluster/RISM molecular-HNC bridge
 
@@ -1230,11 +1232,109 @@ PES claim is allowed.
 
 The bridge is therefore a structural common-energy result, not a liquid
 endpoint.  It has no registered physical 11-solvent asset, production
-orientation/grid certificate, closure/EOS pressure correction, standard-state
-term, complete solvation force, or chemistry score.  In particular, the
-synthetic test asset proves only source binding, scalar/derivative pairing, and
-the fixed-asset envelope identity; it may not be relabelled as a cSPC/E or
-general-water solvation prediction.
+orientation/grid certificate, independently certified physical closure/EOS,
+standard-state term, complete solvation force, or chemistry score.  In
+particular, the synthetic test asset proves only source binding,
+scalar/derivative pairing, the fixed-asset envelope identity, and the
+same-functional thermodynamic identities below; it may not be relabelled as a
+cSPC/E or general-water solvation prediction.
+
+#### 4.2.18 Same-functional pressure and fixed-solute ensemble identity
+
+The stationary value of the molecular HNC scalar is a grand-potential
+difference \(\Delta\Omega[\nu^*]\).  A pressure term may not be copied from a
+different site-density 3D-RISM functional or read from the external
+\(1\ {\rm bar}\) state label.  It must be derived from the scalar actually
+minimized.
+
+Let the periodic cell volume be \(V=N_g\Delta v\), the bulk molecular number
+density be \(\rho_b\), the uniform configuration density be
+\(\nu_b=\rho_b/(8\pi^2)\), and the bulk density of site type \(a\) be
+\(n_a^b=m_a\rho_b\).  Emptying this exact molecular functional gives its
+vacuum-limit pressure:
+
+\[
+\begin{aligned}
+P_F V
+&=
+\lim_{\epsilon\rightarrow0^+}
+\left[
+\Delta\Omega_{\rm id}[\epsilon\nu_b;0]
+-\frac{k_BT}{2}\Delta v
+\sum_{ag}\delta n_{ag}
+(C*\delta n)_{ag}
+\right] \\
+&=
+k_BT\rho_bV
+-\frac{k_BT}{2}\Delta v
+\sum_{ag}(-n_a^b)
+\left[C*(-n^b)\right]_{ag}.
+\end{aligned}
+\]
+
+For a translationally invariant continuum kernel this is equivalently
+
+\[
+\boxed{
+P_F
+=k_BT\left[
+\rho_b
+-\frac12\sum_{ab}n_a^b n_b^b\widehat c_{ab}(0)
+\right].
+}
+\]
+
+The first term occurs **once per solvent molecule** because the variational
+state is \(\nu(\mathbf X,\mathbf\Omega)\).  The
+\((n_s+1)\rho_bk_BT/2\) ideal term derived for the distinct stock
+site-density 3D-RISM functional is therefore not interchangeable with this
+one, even when the frozen correlation table originated in a RISM solve.
+MAPLE evaluates the vacuum-limit quadratic form through the same discrete
+convolution used in \(\Delta\Omega\), avoiding a second FFT normalization or
+\(k=0\) transcription.
+
+At the stationary state,
+
+\[
+N^*=\sum_iw_i\nu_i^*,
+\qquad
+N_b=\rho_bV,
+\qquad
+\boxed{
+\bar V_F=\frac{N_b-N^*}{\rho_b}.
+}
+\]
+
+The fixed-solute \(\mu VT\rightarrow NPT\) ensemble identity associated with
+this approximate functional is then
+
+\[
+\boxed{
+\Delta G_F^{\rm fixed}
+=\Delta\Omega[\nu^*]-P_F\bar V_F.
+}
+\]
+
+`route2_v0_molecular_thermodynamics.py` implements these equations, and
+`stationary_fixed_solute_thermodynamics` binds them to the exact
+asset-verified MACE/RISM bridge.  Both reject a nonstationary state or a state
+from another projection.  The result contains no fitted coefficient.
+
+This classification is strict:
+
+- PC+ adds an additional ideal-density volume term; the primary derivation
+  later described that microscopic-solute term as an empirical adjustment.
+  It is not present here.
+- UC, MILC, and linear partial-volume regressions use fitted coefficients and
+  are excluded.
+- the external physical-pressure work
+  \(P_{\rm ext}\bar V_{\rm phys}\), mobile-solute translational convention,
+  and gas/solution standard-state conversion are separate thermodynamic
+  categories.  None is silently set from `pressure_bar` or folded into this
+  object.
+- a physical result still requires cell/quadrature convergence and an
+  all-atom frozen solvent asset.  The exact discrete identity does not prove
+  the hybrid functional chemically accurate.
 
 ### 4.3 Separate auxiliary-QM liquid-difference route
 
@@ -1393,3 +1493,17 @@ substitute for these gates.
     It motivates a configuration-space formulation for rigid molecular fluids;
     the present ideal term is only the exact common starting point before a
     source-provenanced excess functional is admitted.
+20. V. P. Sergiievskyi, G. Jeanmairet, M. Levesque, and D. Borgis, *Fast
+    Computation of Solvation Free Energies with Molecular Density Functional
+    Theory: Thermodynamic-Ensemble Partial Molar Volume Corrections*,
+    *J. Phys. Chem. Lett.* **5**, 1935--1942 (2014),
+    [DOI:10.1021/jz500428s](https://doi.org/10.1021/jz500428s).
+    It derives the molecular-HRF pressure from the vacuum functional and the
+    particle-deficit partial molar volume used in Section 4.2.18.
+21. V. P. Sergiievskyi, G. Jeanmairet, M. Levesque, and D. Borgis,
+    *Solvation free-energy pressure corrections in the Three Dimensional
+    Reference Interaction Site Model*, *J. Chem. Phys.* **143**, 184116
+    (2015), [DOI:10.1063/1.4935065](https://doi.org/10.1063/1.4935065).
+    It derives the different site-3D-RISM pressure, showing why functional
+    identity matters, and distinguishes the rigorous macroscopic PC term from
+    the additional microscopic PC+ adjustment.

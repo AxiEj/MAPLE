@@ -133,6 +133,14 @@ analytic nuclear gradients, then takes their difference.  It does not call
 MACE, inspect a solvation label, or certify a force/PES; the separate V0-AQ
 ledger owns the future addition to an unchanged MACE gas term.
 
+The exact frozen water control was rejected before its PCM-SCF phase because
+the gas auxiliary-QM translation-gradient gate failed.  The failure record
+[`route2-v0-aq-water-pcm-control-v1.json`](benchmarks/route2-v0-aq-water-pcm-control-v1.json)
+binds the original runner, geometry, runtime, threshold, and fail-closed
+error.  No grid, radius, tolerance, score, or MACE component was changed to
+rescue it.  This rejects that finite-grid control; it neither establishes a
+MACE-response defect nor validates or invalidates the physical V0-AQ-L branch.
+
 ## 3. Physical completion: V0-AQ-L
 
 The full V0-AQ-L branch replaces the PCM control with a molecular liquid

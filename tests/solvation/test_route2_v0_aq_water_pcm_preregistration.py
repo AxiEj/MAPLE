@@ -9,6 +9,7 @@ BENCHMARKS = ROOT / "docs/implicit-solvation/benchmarks"
 PREREGISTRATION = BENCHMARKS / "route2-v0-aq-water-pcm-prereg-v1.json"
 GEOMETRY = BENCHMARKS / "route2-v0-aq-water-geometry-v1.json"
 RUNNER = BENCHMARKS / "run_route2_v0_auxiliary_qm_pcm_water.py"
+RESULT = BENCHMARKS / "route2-v0-aq-water-pcm-control-v1.json"
 
 
 def _sha256(path: Path) -> str:
@@ -99,3 +100,44 @@ def test_v0_aq_water_pcm_runner_never_uses_an_isolated_pcm_component():
     assert "A_aux^(PCM-SCF)-A_aux^(gas-SCF)" in source
     assert "with_solvent.e" not in source
     assert "SMD CDS or another empirical non-electrostatic term" in source
+
+
+def test_v0_aq_water_pcm_failed_control_is_preserved_without_retuning():
+    result = json.loads(RESULT.read_text(encoding="utf-8"))
+    protocol = _protocol()
+
+    assert result["artifact_id"] == "route2-v0-aq-water-pcm-control-v1"
+    assert result["status"] == "rejected-numerical-gate-before-pcm-state"
+    assert "not a solvation value" in result["claim_boundary"]
+    assert result["preregistration"] == {
+        "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-water-pcm-prereg-v1.json",
+        "sha256": _sha256(PREREGISTRATION),
+        "protocol_id": protocol["protocol_id"],
+    }
+    assert result["source_and_input"]["runner"] == {
+        "path": "docs/implicit-solvation/benchmarks/run_route2_v0_auxiliary_qm_pcm_water.py",
+        "sha256": _sha256(RUNNER),
+    }
+    assert result["source_and_input"]["geometry"] == {
+        "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-water-geometry-v1.json",
+        "sha256": _sha256(GEOMETRY),
+    }
+    execution = result["execution"]
+    assert execution["exit_code"] == 1
+    assert execution["failure_phase"] == "gas auxiliary QM stationary-state validation"
+    assert (
+        execution["error_message"]
+        == "The gas auxiliary QM translation gradient failed."
+    )
+    assert result["failed_gate"]["registered_threshold"] == 1.0e-8
+    assert result["failed_gate"]["observed_value"] is None
+    assert "aborts before serializing" in result["failed_gate"]["why_null"]
+    assert result["frozen_response"] == {
+        "method_or_grid_changed_after_failure": False,
+        "radius_or_threshold_changed_after_failure": False,
+        "experimental_label_used": False,
+        "post_training_or_fine_tuning_used": False,
+        "mace_field_response_used": False,
+        "retry_with_changed_parameters": False,
+    }
+    assert "Do not relax this threshold" in result["decision_rule"]

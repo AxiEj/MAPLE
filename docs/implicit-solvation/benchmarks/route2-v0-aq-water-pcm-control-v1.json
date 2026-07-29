@@ -1,0 +1,55 @@
+{
+  "artifact_id": "route2-v0-aq-water-pcm-control-v1",
+  "schema_version": 1,
+  "status": "rejected-numerical-gate-before-pcm-state",
+  "claim_boundary": "This is a fail-closed execution record for the preregistered fixed-geometry V0-AQ-E water control. It is not a solvation value, a MACE result, a total free-energy calculation, a force/PES result, or an accuracy metric.",
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-water-pcm-prereg-v1.json",
+    "sha256": "4129f6807c253c393874b46c1cbba5009bad97c484a64e4c03ab4a3b87489283",
+    "protocol_id": "route2-v0-aq-water-pcm-prereg-v1"
+  },
+  "source_and_input": {
+    "git_head": "15ad9a5558fe7aa8e77dcf606935f28889781507",
+    "runner": {
+      "path": "docs/implicit-solvation/benchmarks/run_route2_v0_auxiliary_qm_pcm_water.py",
+      "sha256": "ff83a2dd00ce8237dd398b6c8602648601163d9c6c27c7ba19cbc98d4c0d80d7"
+    },
+    "geometry": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-water-geometry-v1.json",
+      "sha256": "992ac7f8b4c3759ca6d9929c6c682618a770b429358ec8c0fad58e6df385b4f4"
+    },
+    "runtime": {
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+      "pyscf_version": "2.13.1",
+      "threads": 8,
+      "max_memory_mb": 8000
+    }
+  },
+  "execution": {
+    "completed_at_utc": "2026-07-29T13:27:33Z",
+    "command": "OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 MKL_NUM_THREADS=8 /home/axie/.cache/maple-envs/pyscf-smd-qmref/bin/python docs/implicit-solvation/benchmarks/run_route2_v0_auxiliary_qm_pcm_water.py --output /tmp/route2-v0-aq-water-pcm-control-repeat.json",
+    "exit_code": 1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "7ccac65ae31d93e88fc0bc4f5f59aa9ae93953eee12cd9d6f9404bfde663389d",
+    "failure_phase": "gas auxiliary QM stationary-state validation",
+    "error_type": "RuntimeError",
+    "error_message": "The gas auxiliary QM translation gradient failed."
+  },
+  "failed_gate": {
+    "name": "translation_gradient_inf_hartree_per_bohr_max",
+    "registered_threshold": 1e-08,
+    "observed_value": null,
+    "why_null": "The source-bound runner intentionally aborts before serializing a state when this gate fails. The recorded failure is therefore exact, but it is not an energy or gradient measurement artifact."
+  },
+  "interpretation": "The exact preregistered V0-AQ-E water control is rejected before the PCM-SCF phase. This does not diagnose an electronic reciprocity failure and does not validate or invalidate V0-AQ-L. It only proves that this finite-grid auxiliary-QM control does not meet its own strict translational derivative gate.",
+  "frozen_response": {
+    "method_or_grid_changed_after_failure": false,
+    "radius_or_threshold_changed_after_failure": false,
+    "experimental_label_used": false,
+    "post_training_or_fine_tuning_used": false,
+    "mace_field_response_used": false,
+    "retry_with_changed_parameters": false
+  },
+  "decision_rule": "Do not relax this threshold, grid, radius, or other source-bound setting to rescue the control. Any future auxiliary-QM derivative experiment must be separately preregistered and cannot be reported as a continuation or a pass of this rejected control."
+}

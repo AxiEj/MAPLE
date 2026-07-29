@@ -53,6 +53,10 @@ chemistry, force, PES, or accuracy result, and cannot use the rejected learned
 MACE response.  Its preregistration and theory boundary are
 `ROUTE2_V0_VARIATIONAL_QUADRATIC_THEORY.md` and
 `benchmarks/route2-v0-variational-quadratic-prereg-v1.json`.
+The first frozen curvature control uses only published Rappé--Goddard QEq
+hardness rows and the same MACE Gaussian monopole metric, with all induced
+dipoles exactly constrained to zero.  It is a fixed-geometry structural
+falsifier, not a full QEq, chemistry, force, PES, or accuracy result.
 
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental

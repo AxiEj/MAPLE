@@ -164,6 +164,18 @@ def test_quadratic_preregistration_locks_the_no_training_physical_boundary():
     gates = " ".join(protocol["structural_acceptance_gates"])
     assert "strictly positive definite" in gates
     assert "symmetric and nonpositive" in gates
+    qeq = protocol["frozen_physical_bindings"][
+        "rappe_goddard_hardness_same_basis_monopole_tangent"
+    ]
+    assert qeq["construction"] == (
+        "route2-v0-rappe-goddard-hardness-same-basis-monopole-v1"
+    )
+    assert qeq["parameter_table_sha256"] == (
+        "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618"
+    )
+    assert "Every l=1 coefficient is an exact homogeneous KKT constraint" in (
+        qeq["response_subspace"]
+    )
 
 
 def test_quadratic_kkt_state_is_stationary_charge_conserving_and_one_ledger():
@@ -254,6 +266,40 @@ def test_joint_response_is_reciprocal_passive_and_matches_kkt_finite_difference(
         response @ direction,
         rtol=2.0e-9,
         atol=2.0e-10,
+    )
+
+
+def test_additional_linear_constraints_freeze_unmodeled_dipole_response_exactly():
+    operator = _operator()
+    frozen = _frozen_density(operator)
+    coefficient_shape = frozen.shape
+    dipole_indices = [
+        np.ravel_multi_index((atom, radial, component), coefficient_shape)
+        for atom in range(coefficient_shape[0])
+        for radial in range(coefficient_shape[1])
+        for component in (1, 2, 3)
+    ]
+    dipole_constraints = np.eye(operator.coefficient_count)[dipole_indices]
+
+    state = solve_route2_v0_variational_quadratic(
+        frozen_density_coefficients=frozen,
+        operator=operator,
+        electronic_curvature_coefficient_dual=_stable_curvature(operator),
+        induced_constraints=dipole_constraints,
+    )
+
+    assert state.additional_constraint_residual_inf < 1.0e-12
+    np.testing.assert_allclose(
+        state.induced_density_coefficients[:, :, 1:],
+        np.zeros_like(state.induced_density_coefficients[:, :, 1:]),
+        rtol=0.0,
+        atol=1.0e-12,
+    )
+    np.testing.assert_allclose(
+        state.induced_constraint_matrix @ state.joint_external_dual_response,
+        np.zeros((len(dipole_indices) + 1, operator.coefficient_count)),
+        rtol=0.0,
+        atol=2.0e-14,
     )
 
 

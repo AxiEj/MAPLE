@@ -2,7 +2,7 @@
   "protocol_id": "route2-v0-variational-quadratic-prereg-v1",
   "schema_version": 1,
   "status": "structural-kernel-preregistered-before-physical-curvature-binding",
-  "claim_boundary": "This protocol records a no-training fixed-geometry variational KKT kernel only. It supplies no default electronic curvature, no nonpolar term, no public Route-2 profile, and no chemistry, force, PES, or accuracy result.",
+  "claim_boundary": "This protocol records a no-training fixed-geometry variational KKT kernel and one deliberately limited frozen QEq-hardness monopole tangent. Neither supplies a public Route-2 profile, a nonpolar term, a chemistry score, force, PES, or accuracy result.",
   "construction": {
     "name": "route2-v0-variational-quadratic-kkt-v1",
     "frozen_solute_source": "c0(R) is the unmodified zero-reaction-field MACE-POLAR l<=1 density",
@@ -37,6 +37,28 @@
       "Do not infer H_R from the rejected MACE learned field update or repair that update into H_R.",
       "Do not choose a curvature scale, cavity, or nonpolar coefficient from a development or confirmation solvation error."
     ]
+  },
+  "frozen_physical_bindings": {
+    "rappe_goddard_hardness_same_basis_monopole_tangent": {
+      "construction": "route2-v0-rappe-goddard-hardness-same-basis-monopole-v1",
+      "status": "fixed-geometry-structural-control-only",
+      "local_input_provenance": "Published Rappé-Goddard QEq hardness rows from the byte-pinned local qeq.dat table; only H, Li, C, N, O, F, Na, Si, P, S, Cl, K, Br, Rb, I, and Cs are admitted.",
+      "local_parameter_source": "10.1021/j100161a070",
+      "parameter_table_sha256": "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618",
+      "pair_metric": "The off-diagonal vacuum Coulomb term is evaluated in the native 1.5 Angstrom MACE Gaussian monopole basis, not through a second element-radius density representation.",
+      "response_subspace": "Only l=0 monopoles vary. Every l=1 coefficient is an exact homogeneous KKT constraint, not a large penalty.",
+      "reference_shift": "QEq electronegativity is not used as a linear energy term; the model is a curvature-only tangent about frozen MACE c0 and is not full QEq.",
+      "known_limitations": [
+        "It omits induced dipoles, higher multipoles, environment-dependent hardness, and explicit charge-transfer locality.",
+        "It uses the documented fixed-neutral-hydrogen Gaussian-QEq approximation rather than the original charge-dependent hydrogen parameters.",
+        "It has no nonpolar free-energy functional or total-solvation accuracy result."
+      ],
+      "not_authorized": [
+        "Do not report chemical accuracy, a free-energy benchmark score, a force, PES, optimization, scan, MD, or NVE result.",
+        "Do not widen to unpublished UFF-derived QEq rows or select a parameter row from solvation error.",
+        "Do not compare its score as a one-variable response ablation against V0-FD's point-multipole source."
+      ]
+    }
   },
   "structural_acceptance_gates": [
     "The frozen density has the declared total charge before solving; the induced density has exactly zero total charge within the registered tolerance.",

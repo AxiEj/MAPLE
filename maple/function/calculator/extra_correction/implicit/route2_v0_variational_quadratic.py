@@ -10,7 +10,12 @@ defines the induced-density cost
 At fixed geometry, a reciprocal GTO Galerkin continuum supplies ``P`` and the
 joint stationary state solves
 
-``argmin_{u.T @ dc = 0} 0.5 dc.T H dc + 0.5 (c0 + dc).T P (c0 + dc)``.
+``argmin_{C @ dc = 0} 0.5 dc.T H dc + 0.5 (c0 + dc).T P (c0 + dc)``,
+
+where ``C`` always contains the total-charge row and may contain declared
+additional frozen-response rows.  This lets a physically limited response
+model, such as a monopole-only QEq curvature, freeze unsupported dipole
+channels exactly rather than with an arbitrary large penalty.
 
 This is deliberately a research kernel, not a public Route-2 profile or a
 source of default physical parameters.  In particular, a caller must freeze
@@ -99,12 +104,42 @@ def _validated_symmetric_curvature(
     return 0.5 * (matrix + matrix.T), antisymmetric_norm
 
 
-def _neutral_basis(charge_constraint: np.ndarray) -> np.ndarray:
-    vector = _finite_array(charge_constraint, name="Charge constraint")
-    if vector.ndim != 1 or float(np.linalg.norm(vector)) <= 0.0:
-        raise ValueError("Charge constraint must be one nonzero finite vector.")
-    _, _, right_vectors = np.linalg.svd(vector[None, :], full_matrices=True)
-    return right_vectors[1:, :].T.copy()
+def _constraint_nullspace(constraint_matrix: np.ndarray) -> np.ndarray:
+    constraints = _finite_array(constraint_matrix, name="Induced constraints")
+    if constraints.ndim != 2 or constraints.shape[0] == 0:
+        raise ValueError("Induced constraints must have at least one finite row.")
+    singular_values = np.linalg.svd(constraints, compute_uv=False)
+    scale = max(1.0, float(np.max(singular_values)))
+    rank = int(np.count_nonzero(singular_values > 1.0e-12 * scale))
+    if rank != constraints.shape[0]:
+        raise ValueError("Induced constraints must be linearly independent.")
+    if rank >= constraints.shape[1]:
+        raise ValueError("Induced constraints leave no response degrees of freedom.")
+    _, _, right_vectors = np.linalg.svd(constraints, full_matrices=True)
+    return right_vectors[rank:, :].T.copy()
+
+
+def _additional_constraint_rows(
+    values: np.ndarray | None,
+    *,
+    coefficient_count: int,
+) -> np.ndarray:
+    if values is None:
+        return np.empty((0, coefficient_count), dtype=float)
+    constraints = _finite_array(
+        values,
+        name="Additional induced constraints",
+    )
+    if constraints.ndim != 2 or constraints.shape[1] != coefficient_count:
+        raise ValueError(
+            "Additional induced constraints must be finite with shape "
+            f"(n_constraints, {coefficient_count})."
+        )
+    if constraints.shape[0] == 0:
+        raise ValueError("Additional induced constraints must not be empty.")
+    if np.any(np.linalg.norm(constraints, axis=1) <= 0.0):
+        raise ValueError("Additional induced constraints must have nonzero rows.")
+    return np.array(constraints, dtype=float, copy=True)
 
 
 def _positive_neutral_curvature(
@@ -121,7 +156,7 @@ def _positive_neutral_curvature(
     threshold = relative_tolerance * _relative_matrix_scale(projected)
     if minimum <= threshold:
         raise RuntimeError(
-            f"{name} is not positive definite in the charge-conserving "
+            f"{name} is not positive definite in the allowed response "
             "subspace; the variational state is rejected."
         )
     return minimum, threshold, eigenvalues, eigenvectors
@@ -194,6 +229,7 @@ class Route2V0VariationalQuadraticState:
     stationary_density_coefficients: np.ndarray
     external_coefficient_dual_hartree: np.ndarray
     charge_constraint_vector: np.ndarray
+    induced_constraint_matrix: np.ndarray
     electronic_curvature_coefficient_dual: np.ndarray
     joint_hessian_coefficient_dual: np.ndarray
     joint_external_dual_response: np.ndarray
@@ -213,6 +249,7 @@ class Route2V0VariationalQuadraticState:
     electronic_curvature_antisymmetry_norm: float
     stationarity_residual_inf: float
     charge_constraint_residual_e: float
+    additional_constraint_residual_inf: float
     construction: str = V0_VARIATIONAL_QUADRATIC_CONSTRUCTION
 
     def __post_init__(self) -> None:
@@ -242,18 +279,29 @@ class Route2V0VariationalQuadraticState:
                 name,
                 _immutable_array(getattr(self, name), name=name, shape=shape),
             )
-        for name in (
-            "charge_constraint_vector",
+        charge_constraint = _immutable_array(
+            self.charge_constraint_vector,
+            name="charge_constraint_vector",
+            shape=(coefficient_count,),
+        )
+        if float(np.linalg.norm(charge_constraint)) <= 0.0:
+            raise ValueError("charge_constraint_vector must be nonzero.")
+        object.__setattr__(self, "charge_constraint_vector", charge_constraint)
+        induced_constraints = _immutable_array(
+            self.induced_constraint_matrix,
+            name="induced_constraint_matrix",
+        )
+        if (
+            induced_constraints.ndim != 2
+            or induced_constraints.shape[1] != coefficient_count
+            or induced_constraints.shape[0] == 0
+            or not np.array_equal(induced_constraints[0], charge_constraint)
         ):
-            object.__setattr__(
-                self,
-                name,
-                _immutable_array(
-                    getattr(self, name),
-                    name=name,
-                    shape=(coefficient_count,),
-                ),
+            raise ValueError(
+                "induced_constraint_matrix must begin with the total-charge row."
             )
+        _constraint_nullspace(induced_constraints)
+        object.__setattr__(self, "induced_constraint_matrix", induced_constraints)
         for name in (
             "electronic_curvature_coefficient_dual",
             "joint_hessian_coefficient_dual",
@@ -290,6 +338,7 @@ class Route2V0VariationalQuadraticState:
                 "electronic_curvature_antisymmetry_norm",
                 "stationarity_residual_inf",
                 "charge_constraint_residual_e",
+                "additional_constraint_residual_inf",
             ) and value < 0.0:
                 raise ValueError(f"{name} must be nonnegative.")
             object.__setattr__(self, name, value)
@@ -334,6 +383,15 @@ class Route2V0VariationalQuadraticState:
                 "Joint external-field response must be nonpositive in the "
                 "energy pairing."
             )
+        if not np.allclose(
+            self.induced_constraint_matrix @ self.joint_external_dual_response,
+            0.0,
+            rtol=0.0,
+            atol=1.0e-12,
+        ):
+            raise ValueError(
+                "Joint external-field response violates an induced constraint."
+            )
 
 
 def solve_route2_v0_variational_quadratic(
@@ -343,7 +401,9 @@ def solve_route2_v0_variational_quadratic(
     electronic_curvature_coefficient_dual: np.ndarray,
     target_total_charge_e: float = 0.0,
     external_coefficient_dual_hartree: np.ndarray | None = None,
+    induced_constraints: np.ndarray | None = None,
     total_charge_tolerance_e: float = 1.0e-10,
+    induced_constraint_tolerance: float = 1.0e-10,
     curvature_symmetry_relative_tolerance: float = 1.0e-12,
     stability_relative_tolerance: float = 1.0e-10,
     stationarity_relative_tolerance: float = 1.0e-10,
@@ -357,6 +417,11 @@ def solve_route2_v0_variational_quadratic(
     coefficient dual ``f``, the scalar minimized is
 
     ``0.5 dc.T H dc + 0.5 (c0 + dc).T P (c0 + dc) + (c0 + dc).T f``.
+
+    The total-charge row is always imposed.  ``induced_constraints`` may add
+    independent homogeneous rows, for example to freeze dipole coordinates in
+    a monopole-only response model.  These are exact constraints, not a
+    large-curvature surrogate.
 
     The returned response matrix is ``dc / df`` after continuum feedback.  It
     is generated from the inverse of the symmetric projected Hessian and is
@@ -375,6 +440,11 @@ def solve_route2_v0_variational_quadratic(
         or stability_relative_tolerance <= 0.0
     ):
         raise ValueError("Stability tolerance must be finite and positive.")
+    if (
+        not math.isfinite(induced_constraint_tolerance)
+        or induced_constraint_tolerance <= 0.0
+    ):
+        raise ValueError("Induced-constraint tolerance must be finite and positive.")
     if (
         not math.isfinite(stationarity_relative_tolerance)
         or stationarity_relative_tolerance <= 0.0
@@ -408,7 +478,14 @@ def solve_route2_v0_variational_quadratic(
             "Frozen density violates its declared total-charge constraint "
             f"(observed={frozen_charge:.16e} e, target={target_charge:.16e} e)."
         )
-    neutral_basis = _neutral_basis(charge_constraint)
+    additional_constraints = _additional_constraint_rows(
+        induced_constraints,
+        coefficient_count=coefficient_count,
+    )
+    constraint_matrix = np.vstack(
+        (charge_constraint[None, :], additional_constraints)
+    )
+    neutral_basis = _constraint_nullspace(constraint_matrix)
     (
         electronic_minimum,
         electronic_threshold,
@@ -441,38 +518,51 @@ def solve_route2_v0_variational_quadratic(
             name="External coefficient dual",
         )
     external_vector = np.asarray(external_block).reshape(-1)
-    kkt_matrix = np.empty((coefficient_count + 1, coefficient_count + 1))
-    kkt_matrix[:-1, :-1] = joint_hessian
-    kkt_matrix[:-1, -1] = charge_constraint
-    kkt_matrix[-1, :-1] = charge_constraint
-    kkt_matrix[-1, -1] = 0.0
+    constraint_count = constraint_matrix.shape[0]
+    kkt_matrix = np.zeros(
+        (coefficient_count + constraint_count, coefficient_count + constraint_count)
+    )
+    kkt_matrix[:coefficient_count, :coefficient_count] = joint_hessian
+    kkt_matrix[:coefficient_count, coefficient_count:] = constraint_matrix.T
+    kkt_matrix[coefficient_count:, :coefficient_count] = constraint_matrix
     right_hand_side = np.concatenate(
-        (-continuum_matrix @ frozen_vector - external_vector, [0.0])
+        (
+            -continuum_matrix @ frozen_vector - external_vector,
+            np.zeros(constraint_count),
+        )
     )
     try:
         solution = np.linalg.solve(kkt_matrix, right_hand_side)
     except np.linalg.LinAlgError as error:
         raise RuntimeError("V0-Q KKT system is singular.") from error
-    induced_vector = solution[:-1]
-    lagrange_multiplier = float(solution[-1])
+    induced_vector = solution[:coefficient_count]
+    lagrange_multiplier = float(solution[coefficient_count])
     stationary_vector = frozen_vector + induced_vector
     stationarity = (
         joint_hessian @ induced_vector
         + continuum_matrix @ frozen_vector
         + external_vector
-        + lagrange_multiplier * charge_constraint
+        + constraint_matrix.T @ solution[coefficient_count:]
     )
     stationarity_residual = float(np.linalg.norm(stationarity, ord=np.inf))
     residual_scale = max(
         1.0,
-        float(np.linalg.norm(right_hand_side[:-1], ord=np.inf)),
+        float(np.linalg.norm(right_hand_side[:coefficient_count], ord=np.inf)),
         float(np.linalg.norm(joint_hessian @ induced_vector, ord=np.inf)),
     )
     if stationarity_residual > stationarity_relative_tolerance * residual_scale:
         raise RuntimeError("V0-Q KKT stationarity residual exceeds its tolerance.")
-    charge_residual = abs(float(np.dot(charge_constraint, induced_vector)))
+    constraint_residual = constraint_matrix @ induced_vector
+    charge_residual = abs(float(constraint_residual[0]))
     if charge_residual > total_charge_tolerance_e:
         raise RuntimeError("V0-Q induced density violates charge conservation.")
+    additional_constraint_residual = (
+        float(np.linalg.norm(constraint_residual[1:], ord=np.inf))
+        if constraint_count > 1
+        else 0.0
+    )
+    if additional_constraint_residual > induced_constraint_tolerance:
+        raise RuntimeError("V0-Q induced density violates an additional constraint.")
 
     # This spectral form is the inverse of the positive projected Hessian.  It
     # is a consequence of the scalar functional, not a symmetrization of a
@@ -507,6 +597,7 @@ def solve_route2_v0_variational_quadratic(
         stationary_density_coefficients=stationary_block,
         external_coefficient_dual_hartree=external_block,
         charge_constraint_vector=charge_constraint,
+        induced_constraint_matrix=constraint_matrix,
         electronic_curvature_coefficient_dual=curvature,
         joint_hessian_coefficient_dual=joint_hessian,
         joint_external_dual_response=joint_response,
@@ -526,6 +617,7 @@ def solve_route2_v0_variational_quadratic(
         electronic_curvature_antisymmetry_norm=curvature_antisymmetry_norm,
         stationarity_residual_inf=stationarity_residual,
         charge_constraint_residual_e=charge_residual,
+        additional_constraint_residual_inf=additional_constraint_residual,
     )
 
 

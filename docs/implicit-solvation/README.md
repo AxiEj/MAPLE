@@ -38,6 +38,10 @@ KKT stability, charge, reciprocity, and passivity gates are recorded in
 [`ROUTE2_V0_VARIATIONAL_QUADRATIC_THEORY.md`](ROUTE2_V0_VARIATIONAL_QUADRATIC_THEORY.md)
 and
 [`route2-v0-variational-quadratic-prereg-v1.json`](benchmarks/route2-v0-variational-quadratic-prereg-v1.json).
+Its first frozen physical control is a published-QEq-hardness, same-MACE-GTO,
+**monopole-only** tangent; it freezes every dipole response channel exactly and
+remains structural/fixed-geometry only.  It is explicitly not a complete QEq
+or solvation model.
 
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot

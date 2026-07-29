@@ -164,7 +164,57 @@ After physical inputs are frozen, it must still pass the preregistered
 structural gates, per-record multi-solvent development gate, disjoint
 confirmation gate, and external blind gate described by the V0-FD protocol.
 
-## 6. Literature boundary
+## 6. First frozen curvature binding: QEq-hardness monopole tangent
+
+The first admissible no-training binding is deliberately narrow:
+`route2-v0-rappe-goddard-hardness-same-basis-monopole-v1`.  It is a
+**falsifier**, not a claim that QEq is an adequate molecular response model.
+
+For elements with published Rappé--Goddard rows only
+
+\[
+\{\mathrm{H,Li,C,N,O,F,Na,Si,P,S,Cl,K,Br,Rb,I,Cs}\},
+\]
+
+it sets the monopole tangent curvature to
+
+\[
+H^{(q)}_{ij}=
+\delta_{ij}\frac{\eta_i^{\mathrm{QEq}}}{E_h}
++(1-\delta_{ij})
+\frac{\operatorname{erf}\!\left(R_{ij}/2\sigma_{\mathrm{MACE}}\right)}
+{R_{ij}},
+\qquad \sigma_{\mathrm{MACE}}=1.5\ \text{\AA},
+\]
+
+where distances are in bohr in the second term.  The hardness diagonals are
+from the pinned local QEq table; the off-diagonal Coulomb metric deliberately
+uses the **same MACE Gaussian density basis**, not the element-dependent QEq
+screening radii.  This preserves the source/receiver basis rule for PCM while
+using independently sourced atomic hardness as a local response scale.
+
+The full electronic state remains
+
+\[
+c=c_0+\delta q, \qquad \delta\mu=0,
+\]
+
+with all raw \(l=1\) coefficients imposed as exact homogeneous KKT
+constraints.  A large artificial dipole stiffness is forbidden.  QEq's
+electronegativity linear term is intentionally not copied: the construction is
+a reference-shifted tangent about frozen MACE \(c_0\), so its gas-phase
+minimum is declared at \(\delta q=0\).  It is therefore not the full QEq
+charge model and must never be marketed as one.
+
+The original QEq paper takes atomic ionization potentials, electron affinities
+and radii as input.  The implementation pins the local table bytes and refuses
+the Open Babel rows that its own documentation labels unpublished UFF-derived
+values.  It also inherits the documented fixed-neutral-hydrogen approximation
+of the Gaussian QEq table.  These limits are why the binding is an independent
+structural/physical control only; it does not authorize a chemistry score,
+nonpolar term, force, or PES.
+
+## 7. Literature boundary
 
 1. I. Batatia *et al.*, *MACE-POLAR-1: A Polarisable Electrostatic Foundation
    Model for Molecular Chemistry* (2026),
@@ -184,3 +234,14 @@ confirmation gate, and external blind gate described by the V0-FD protocol.
    (1983), [DOI:10.1021/ja00364a005](https://doi.org/10.1021/ja00364a005).
    It motivates possible future independently sourced hardness data, but does
    not by itself validate a molecular curvature matrix.
+5. A. K. Rappé and W. A. Goddard III, *Charge equilibration for molecular
+   dynamics simulations*, *J. Phys. Chem.* **95**, 3358--3363 (1991),
+   [DOI:10.1021/j100161a070](https://doi.org/10.1021/j100161a070).  It is the
+   independent source of the published atomic QEq input family, not a
+   solvation-data fit.
+6. J. Chen and T. J. Martínez, *QTPIE: Charge transfer with polarization
+   current equalization*, *J. Chem. Phys.* **131**, 044114 (2009),
+   [DOI:10.1063/1.3183167](https://doi.org/10.1063/1.3183167).  The Open Babel
+   Gaussian QEq implementation documents its relation to this screened
+   integral representation; V0-Q uses it only as a provenance control and
+   retains the MACE-GTO metric for the actual pair term.

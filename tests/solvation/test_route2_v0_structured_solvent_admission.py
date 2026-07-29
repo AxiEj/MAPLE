@@ -44,6 +44,10 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "MACE Gaussian l<=1 electrostatic potential" in foundation["capability"]
     assert any("short-range" in item for item in foundation["not_implemented"])
     assert "chemistry benchmark or accuracy claim" in foundation["not_implemented"]
+    promolecular = foundation["independent_promolecular_input"]
+    assert promolecular["artifact"] == "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1"
+    assert "H, C, N, O, S, and Cl" in promolecular["capability"]
+    assert "does not yet define u_sr" in promolecular["not_coupled"]
 
 
 def test_structured_solvent_admission_preserves_the_mace_source_boundary():

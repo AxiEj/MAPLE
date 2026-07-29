@@ -1,0 +1,122 @@
+{
+  "artifact": "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1",
+  "claim_boundary": "This artifact is a frozen, positive, spherically averaged free-atom HF promolecular reference-density source. It is not a MACE-POLAR electron density, a fitted solvation component, a short-range solute-solvent potential, a liquid functional, a force/PES result, or a solvation-accuracy claim.",
+  "executed_at_utc": "2026-07-29T11:07:40.197215+00:00",
+  "execution_git_head": "7adfeb9a3af51d0afe6ce5686c6e564b1cbcadfd",
+  "hard_constraints": {
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "mace_density_absolute_value_or_clipping": false,
+    "mace_density_relabelled_as_electron_density": false,
+    "map_or_uq_calibration": false,
+    "post_training": false,
+    "public_route_changed": false,
+    "target_record_or_error_selected_parameter": false
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-prereg-v1.json",
+    "sha256": "5325d6ec57a5310848d409a8253dcdd28499a861bbc3538644f533bacd64850d"
+  },
+  "radial_grid_sha256": "12e486ad4e0cdc357aad7c8d15aa49743dd57b44019f0448a27980cbe9e03f82",
+  "results": [
+    {
+      "atomic_number": 1,
+      "density_sha256": "829d43424bef1ac0cec04e6b765e4cfb803797f18ba3cac112fbc1b7b66d4e01",
+      "electron_count_integral": 0.9999999999999997,
+      "electron_count_integral_absolute_error": 3.3306690738754696e-16,
+      "energy_hartree": -0.35614020714720673,
+      "minimum_density_e_per_bohr3": 1.5899221871135177e-83,
+      "neutral_electron_count": 1.0,
+      "radial_tail_density_e_per_bohr3": 1.5899221871135177e-83,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 1,
+      "symbol": "H"
+    },
+    {
+      "atomic_number": 6,
+      "density_sha256": "55ffa27e92951e54eab7efe9609da65dc5f5af0d96f94e9e96f99e898dd111e4",
+      "electron_count_integral": 5.999999999999996,
+      "electron_count_integral_absolute_error": 4.440892098500626e-15,
+      "energy_hartree": -37.340111690265,
+      "minimum_density_e_per_bohr3": 3.9701237480990915e-46,
+      "neutral_electron_count": 6.0,
+      "radial_tail_density_e_per_bohr3": 3.9701237480990915e-46,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 3.469446951953614e-18,
+      "spin_2s": 2,
+      "symbol": "C"
+    },
+    {
+      "atomic_number": 7,
+      "density_sha256": "882e425b2a7f0049e568d36bc2623174f6c74d43c92c6403d11cd7dfa03eb560",
+      "electron_count_integral": 6.999999999999994,
+      "electron_count_integral_absolute_error": 6.217248937900877e-15,
+      "energy_hartree": -53.84808763103807,
+      "minimum_density_e_per_bohr3": 1.3949023109263396e-61,
+      "neutral_electron_count": 7.0,
+      "radial_tail_density_e_per_bohr3": 1.3949023109263396e-61,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 3,
+      "symbol": "N"
+    },
+    {
+      "atomic_number": 8,
+      "density_sha256": "80c8ed422bda79e704a295dec404373371921d923f9b921410a58520e8284e44",
+      "electron_count_integral": 7.999999999999985,
+      "electron_count_integral_absolute_error": 1.509903313490213e-14,
+      "energy_hartree": -74.29503580753095,
+      "minimum_density_e_per_bohr3": 1.5935317516723633e-43,
+      "neutral_electron_count": 8.0,
+      "radial_tail_density_e_per_bohr3": 1.5935317516723633e-43,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 2,
+      "symbol": "O"
+    },
+    {
+      "atomic_number": 16,
+      "density_sha256": "c476f121116de4a1c7f0e24eca82ede06c304faabeeae6daad1e02334949d5e4",
+      "electron_count_integral": 15.999999999999902,
+      "electron_count_integral_absolute_error": 9.769962616701378e-14,
+      "energy_hartree": -397.1916594692034,
+      "minimum_density_e_per_bohr3": 9.439340709333867e-28,
+      "neutral_electron_count": 16.0,
+      "radial_tail_density_e_per_bohr3": 9.439340709333867e-28,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 6.938893903907228e-18,
+      "spin_2s": 2,
+      "symbol": "S"
+    },
+    {
+      "atomic_number": 17,
+      "density_sha256": "61efa48a173926396847553ae86468b6826a5c1d36b0d041b838dda20e171408",
+      "electron_count_integral": 16.99999999999988,
+      "electron_count_integral_absolute_error": 1.2079226507921703e-13,
+      "energy_hartree": -459.2738264494765,
+      "minimum_density_e_per_bohr3": 5.791251098452042e-32,
+      "neutral_electron_count": 17.0,
+      "radial_tail_density_e_per_bohr3": 5.791251098452042e-32,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 1,
+      "symbol": "Cl"
+    }
+  ],
+  "runtime": {
+    "numpy": "2.4.6",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "pyscf": "2.13.1",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]"
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/generate_route2_v0_promolecular_density.py": "1053273260bc08102123f6f749e357393f20d4aaa06e69df70530a70d382d22e"
+  },
+  "status": "pass",
+  "table": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-v1.npz",
+    "sha256": "1a63ae8a5d939e00f0a8dba1951a8099dad8ba2a068be61431046c880d7aae28"
+  }
+}

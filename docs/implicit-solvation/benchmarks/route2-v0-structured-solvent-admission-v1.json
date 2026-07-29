@@ -92,12 +92,17 @@
     "capability": "A fixed-density, all-space MACE Gaussian l<=1 electrostatic potential is evaluated on a declared regular Cartesian grid and exposed as the electrostatic site-energy summand z*phi_c0^G.",
     "fixed_source_width_policy": "The checkpoint-native MACE Gaussian width is fixed; it cannot be used as a grid-refinement or error-adjustment parameter.",
     "not_implemented": [
-      "positive promolecular short-range reference density",
+      "promolecular-density coupling into a solute-solvent short-range potential",
       "solute-solvent short-range potential",
       "MDFT or 3D-RISM liquid-state minimization",
       "excess chemical potential or pressure correction",
       "force, PES, optimization, scan, MD, or NVE capability",
       "chemistry benchmark or accuracy claim"
-    ]
+    ],
+    "independent_promolecular_input": {
+      "artifact": "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1",
+      "capability": "A source-bound, nonnegative spherical free-atom reference-density table is available for H, C, N, O, S, and Cl and is evaluated independently from the MACE electrostatic source.",
+      "not_coupled": "The table does not yet define u_sr, dispersion, a liquid-state solve, or a total solvation free energy."
+    }
   }
 }

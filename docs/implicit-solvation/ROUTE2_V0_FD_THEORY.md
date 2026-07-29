@@ -371,9 +371,14 @@ H, C, N, O, S, and Cl: the elements required by the eleven registered default
 solvents.  Isolated-atom superpositions are the conventional definition of a
 promolecular density, but they are a reference input rather than a claim that
 the molecular density is spherical or that its short-range interaction has
-already been determined.  The generator must demonstrate nonnegativity,
-radial normalization to each neutral atom's electron count, spherical
-symmetry, and a negligible frozen radial tail before the table is admitted.
+already been determined.  The generated
+[`route2-v0-promolecular-atomic-hf-def2-tzvpd-v1.json`](benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-v1.json)
+records a passing source-bound table: each of the six neutral atom densities
+is nonnegative, spherically averaged, radially normalized to its electron
+count within the preregistered tolerance, and negligible at the frozen radial
+boundary.  `route2_v0_promolecular_density.py` verifies the table and per-
+element hashes before it evaluates the superposition, and fails closed for
+unsupported elements.
 
 The resulting table is still not a density-overlap free-energy model.  A
 hand-chosen overlap coefficient would be a new empirical potential, and is

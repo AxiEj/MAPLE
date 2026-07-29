@@ -65,6 +65,24 @@ contains no experimental solvation value or total-solvation score; it validates
 only this structural control at one fixed geometry.  Immutable evidence:
 `benchmarks/route2-v0-qeq-monopole-acetone-v1.json`.
 
+The corresponding source-frozen gas-phase QM screen is now complete.  At the
+same acetone geometry, ωB97M-V/def2-TZVPD finite fields pass the registered
+antisymmetry (`4.15e-7`), energy/dipole (`1.00e-4`), field-step consistency
+(`2.87e-5`), and positive-eigenvalue checks.  The fixed QEq-monopole
+polarizability nevertheless fails all three scientific gates:
+
+- relative Frobenius mismatch `1.4295` (maximum `0.2`);
+- trace ratio `1.9768` (allowed `0.8`--`1.2`);
+- maximum principal-value relative error `2.2244` (maximum `0.3`).
+
+The registered verdict is therefore
+`reject-fixed-qeq-monopole-curvature`.  No hardness, scale, field step, cavity,
+MACE weight, or experimental correction may be selected from this result.
+This does not invalidate the variational KKT implementation; it means the
+first no-training physical curvature is unavailable for chemistry or
+multi-solvent scoring.  Immutable evidence:
+`benchmarks/route2-v0-qeq-acetone-qm-field-v1.json`.
+
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental
 `mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening

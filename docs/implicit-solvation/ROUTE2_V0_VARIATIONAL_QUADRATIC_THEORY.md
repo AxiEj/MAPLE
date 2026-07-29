@@ -214,6 +214,46 @@ of the Gaussian QEq table.  These limits are why the binding is an independent
 structural/physical control only; it does not authorize a chemistry score,
 nonpolar term, force, or PES.
 
+### 6.1 Frozen physical verdict
+
+The structural acetone KKT canary passed, but that result tested only
+variational consistency and stability.  It did not establish that the
+published-hardness curvature represents the molecule's physical response.
+
+A separate protocol was therefore frozen before execution:
+`benchmarks/route2-v0-qeq-acetone-qm-field-prereg-v1.json`.  It compares the
+analytic gas-phase V0-Q polarizability with an independent
+ωB97M-V/def2-TZVPD central finite-field calculation at the identical archived
+acetone geometry.  No experimental solvation value, response scale, fitted
+hardness, field selection, MACE update, or continuum contribution enters the
+comparison.
+
+The QM calculation passed every registered numerical check.  The fixed
+QEq-monopole response then failed every physical rejection gate:
+
+\[
+\frac{\|\alpha_{\mathrm{QEq}}-\alpha_{\mathrm{QM}}\|_F}
+     {\|\alpha_{\mathrm{QM}}\|_F}
+=1.4295>0.2,
+\]
+
+\[
+\frac{\operatorname{tr}\alpha_{\mathrm{QEq}}}
+     {\operatorname{tr}\alpha_{\mathrm{QM}}}
+=1.9768\notin[0.8,1.2],
+\]
+
+and the maximum relative principal-value error is
+\(2.2244>0.3\).  The frozen decision is
+`reject-fixed-qeq-monopole-curvature`.
+
+This is a negative physical result, not a failure of the common-energy KKT
+formulation.  The V0-Q kernel remains structurally valid, but this curvature
+must not be used for chemistry, solvation scoring, forces, or a public
+profile.  Rescaling it or modifying its atomic hardnesses after observing the
+QM result is explicitly forbidden.  The immutable result is
+`benchmarks/route2-v0-qeq-acetone-qm-field-v1.json`.
+
 ## 7. Literature boundary
 
 1. I. Batatia *et al.*, *MACE-POLAR-1: A Polarisable Electrostatic Foundation

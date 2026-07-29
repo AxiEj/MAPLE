@@ -47,6 +47,15 @@ response, and same-basis half-coupling gates using an archived unmodified
 MACE-POLAR gas density and the same PCMSolver cavity.  It contains no
 experimental solvation metric or total-solvation claim; the immutable evidence
 is [`route2-v0-qeq-monopole-acetone-v1.json`](benchmarks/route2-v0-qeq-monopole-acetone-v1.json).
+That structural pass did **not** validate the physical curvature.  A separately
+frozen ωB97M-V/def2-TZVPD acetone finite-field screen passed every QM numerical
+gate but rejected the fixed QEq-monopole response: its polarizability trace is
+`1.9768` times the QM trace, its relative tensor mismatch is `1.4295`, and its
+largest principal-value relative error is `2.2244`.  The preregistered rule
+forbids rescaling or changing the hardnesses after this result.  V0-Q therefore
+retains a structurally valid variational kernel but has no accepted physical
+curvature.  Evidence:
+[`route2-v0-qeq-acetone-qm-field-v1.json`](benchmarks/route2-v0-qeq-acetone-qm-field-v1.json).
 
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot

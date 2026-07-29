@@ -1,0 +1,568 @@
+{
+  "artifact": "route2-v0-qeq-acetone-qm-field-v1",
+  "claim_boundary": "This one-acetone gas-phase finite-field comparison is a physical falsifier for the frozen no-training QEq-monopole V0-Q curvature. It uses no experimental solvation value and cannot certify total solvation accuracy, a nonpolar functional, solution-phase forces, a smooth PES, optimization, scan, MD, NVE, or a public profile.",
+  "executed_at_utc": "2026-07-29T10:31:36.090918+00:00",
+  "execution_git_head": "8e50e36c42a51b5b9acca0d64ddbcbd0edfd4dd0",
+  "hard_constraints": {
+    "experimental_solvation_fit": false,
+    "field_or_tolerance_selection_after_execution": false,
+    "fine_tuning": false,
+    "legacy_public_route_changed": false,
+    "map_or_uq_calibration": false,
+    "official_mace_checkpoint_unmodified": true,
+    "post_training": false,
+    "qeq_response_rescaling": false,
+    "response_tempering_or_eigenvalue_clipping": false
+  },
+  "official_references": {
+    "acks2": "https://doi.org/10.1063/1.4791569",
+    "pyscf_dipole_implementation": "https://pyscf.org/_modules/pyscf/scf/hf.html",
+    "pyscf_integral_api": "https://pyscf.org/pyscf_api_docs/pyscf.gto.html",
+    "qeq_polarizability_scaling_limit": "https://doi.org/10.1063/1.2908071",
+    "rappe_goddard_qeq": "https://doi.org/10.1021/j100161a070"
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-prereg-v1.json",
+    "protocol_id": "route2-v0-qeq-acetone-qm-field-prereg-v1",
+    "sha256": "d36d03fec186c70ae0e73917f22680251033ebb2b52b2da6b84cc1df6130868c"
+  },
+  "qeq_control": {
+    "charge_constraint_residual_e_max": 2.6020852139652106e-18,
+    "construction": "route2-v0-rappe-goddard-hardness-same-basis-monopole-gas-response-v1",
+    "eigenvalues_bohr3": [
+      32.92543105900633,
+      68.58498851454091,
+      149.23920977537182
+    ],
+    "minimum_neutral_curvature_hartree_per_e2": 0.17823541796958414,
+    "parameter_table_sha256": "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618",
+    "polarizability_bohr3": [
+      [
+        54.32810177933643,
+        20.63636492416427,
+        39.44302692097075
+      ],
+      [
+        20.63636492416427,
+        88.43567753968867,
+        28.842217519346853
+      ],
+      [
+        39.44302692097075,
+        28.842217519346853,
+        107.9858500298939
+      ]
+    ],
+    "stationarity_residual_hartree_per_e_max": 3.3034284942917713e-19
+  },
+  "qm_reference": {
+    "field_records": [
+      {
+        "dipole_e_bohr": [
+          -0.19563096804531988,
+          1.0567323283573948,
+          -0.6005079406151452
+        ],
+        "direction": "x",
+        "elapsed_seconds": 84.59146007899994,
+        "energy_hartree": -193.14024398767154,
+        "field_au": [
+          -0.0003,
+          0.0,
+          0.0
+        ],
+        "scf_cycles": 9,
+        "sign": -1,
+        "step_au": 0.0003
+      },
+      {
+        "dipole_e_bohr": [
+          -0.17352460473481823,
+          1.057231608524436,
+          -0.5977646825503768
+        ],
+        "direction": "x",
+        "elapsed_seconds": 99.42043047599986,
+        "energy_hartree": -193.1401332406924,
+        "field_au": [
+          0.0003,
+          0.0,
+          0.0
+        ],
+        "scf_cycles": 9,
+        "sign": 1,
+        "step_au": 0.0003
+      },
+      {
+        "dipole_e_bohr": [
+          -0.18482775631640713,
+          1.0431309182375124,
+          -0.5989844434823084
+        ],
+        "direction": "y",
+        "elapsed_seconds": 89.67802342899995,
+        "energy_hartree": -193.13987193910214,
+        "field_au": [
+          0.0,
+          -0.0003,
+          0.0
+        ],
+        "scf_cycles": 9,
+        "sign": -1,
+        "step_au": 0.0003
+      },
+      {
+        "dipole_e_bohr": [
+          -0.18432849959928532,
+          1.0708324506214524,
+          -0.5992857089830892
+        ],
+        "direction": "y",
+        "elapsed_seconds": 79.46565618099999,
+        "energy_hartree": -193.1405061285331,
+        "field_au": [
+          0.0,
+          0.0003,
+          0.0
+        ],
+        "scf_cycles": 9,
+        "sign": 1,
+        "step_au": 0.0003
+      },
+      {
+        "dipole_e_bohr": [
+          -0.18595026895706024,
+          1.0571326567181671,
+          -0.612286165755421
+        ],
+        "direction": "z",
+        "elapsed_seconds": 61.41429866699991,
+        "energy_hartree": -193.1403686692103,
+        "field_au": [
+          0.0,
+          0.0,
+          -0.0003
+        ],
+        "scf_cycles": 9,
+        "sign": -1,
+        "step_au": 0.0003
+      },
+      {
+        "dipole_e_bohr": [
+          -0.18320700250997923,
+          1.0568313836936056,
+          -0.5859854273847276
+        ],
+        "direction": "z",
+        "elapsed_seconds": 61.07510870600004,
+        "energy_hartree": -193.14000918801585,
+        "field_au": [
+          0.0,
+          0.0,
+          0.0003
+        ],
+        "scf_cycles": 9,
+        "sign": 1,
+        "step_au": 0.0003
+      },
+      {
+        "dipole_e_bohr": [
+          -0.22141720199329118,
+          1.0561446181372567,
+          -0.6037111332247775
+        ],
+        "direction": "x",
+        "elapsed_seconds": 59.023923048999904,
+        "energy_hartree": -193.14038995434143,
+        "field_au": [
+          -0.001,
+          0.0,
+          0.0
+        ],
+        "scf_cycles": 10,
+        "sign": -1,
+        "step_au": 0.001
+      },
+      {
+        "dipole_e_bohr": [
+          -0.1477279079919347,
+          1.0578088565558552,
+          -0.5945664827988821
+        ],
+        "direction": "x",
+        "elapsed_seconds": 46.38050754699998,
+        "energy_hartree": -193.1400208021532,
+        "field_au": [
+          0.001,
+          0.0,
+          0.0
+        ],
+        "scf_cycles": 10,
+        "sign": 1,
+        "step_au": 0.001
+      },
+      {
+        "dipole_e_bohr": [
+          -0.1854086241029167,
+          1.0108030171563378,
+          -0.598623120074194
+        ],
+        "direction": "y",
+        "elapsed_seconds": 42.65198906399996,
+        "energy_hartree": -193.139153061422,
+        "field_au": [
+          0.0,
+          -0.001,
+          0.0
+        ],
+        "scf_cycles": 10,
+        "sign": -1,
+        "step_au": 0.001
+      },
+      {
+        "dipole_e_bohr": [
+          -0.18374406181339076,
+          1.1031441204312316,
+          -0.5996270271207038
+        ],
+        "direction": "y",
+        "elapsed_seconds": 42.96775620499989,
+        "energy_hartree": -193.14126702002403,
+        "field_au": [
+          0.0,
+          0.001,
+          0.0
+        ],
+        "scf_cycles": 10,
+        "sign": 1,
+        "step_au": 0.001
+      },
+      {
+        "dipole_e_bohr": [
+          -0.18915453184677666,
+          1.0574795291802062,
+          -0.64296916297792
+        ],
+        "direction": "z",
+        "elapsed_seconds": 41.348282218999884,
+        "energy_hartree": -193.1408080085703,
+        "field_au": [
+          0.0,
+          0.0,
+          -0.001
+        ],
+        "scf_cycles": 10,
+        "sign": -1,
+        "step_au": 0.001
+      },
+      {
+        "dipole_e_bohr": [
+          -0.1800095657120524,
+          1.0564752419870551,
+          -0.5552972348842502
+        ],
+        "direction": "z",
+        "elapsed_seconds": 42.451842496000154,
+        "energy_hartree": -193.13960973916087,
+        "field_au": [
+          0.0,
+          0.0,
+          0.001
+        ],
+        "scf_cycles": 10,
+        "sign": 1,
+        "step_au": 0.001
+      }
+    ],
+    "field_step_consistency_relative_frobenius": 2.8671213616132298e-05,
+    "method": {
+      "basis": "def2-tzvpd",
+      "charge": 0,
+      "density_fitting": true,
+      "electronic_structure": "omegaB97M-V",
+      "maximum_scf_cycles": 100,
+      "nonlocal_grid_profile": "50x194-SG1",
+      "pyscf_xc_token": "wb97m-v",
+      "reference": "RKS",
+      "scf_energy_tolerance_hartree": 1e-10,
+      "scf_gradient_tolerance": 1e-07,
+      "semilocal_grid_level": 3,
+      "spin": 0
+    },
+    "polarizability_by_step": {
+      "1.0e-03": {
+        "antisymmetry_relative_frobenius": 2.8283671121176173e-06,
+        "dipole_derivative_tensor_bohr3": [
+          [
+            36.84464700067824,
+            0.8322811447629697,
+            4.572483067362132
+          ],
+          [
+            0.8321192092992646,
+            46.17055163744688,
+            -0.5021435965755217
+          ],
+          [
+            4.572325212947703,
+            -0.5019535232548833,
+            43.835964046834874
+          ]
+        ],
+        "energy_dipole_diagonal_relative_max": 3.5016924270123183e-05,
+        "energy_second_derivative_diagonal_bohr3": [
+          36.843983480139286,
+          46.16893488673668,
+          43.83522002626705
+        ],
+        "symmetric_eigenvalues_bohr3": [
+          34.50433581583391,
+          46.06123598526341,
+          46.2855908838627
+        ],
+        "symmetric_tensor_bohr3": [
+          [
+            36.84464700067824,
+            0.8322001770311171,
+            4.572404140154918
+          ],
+          [
+            0.8322001770311171,
+            46.17055163744688,
+            -0.5020485599152025
+          ],
+          [
+            4.572404140154918,
+            -0.5020485599152025,
+            43.835964046834874
+          ]
+        ]
+      },
+      "3.0e-04": {
+        "antisymmetry_relative_frobenius": 4.151327010133138e-07,
+        "dipole_derivative_tensor_bohr3": [
+          [
+            36.843938850836075,
+            0.8320945285363498,
+            4.572110745135009
+          ],
+          [
+            0.8321336117352492,
+            46.16922063990004,
+            -0.5021217076025172
+          ],
+          [
+            4.572096774613973,
+            -0.5021091679680012,
+            43.83456395115578
+          ]
+        ],
+        "energy_dipole_diagonal_relative_max": 0.00010031794210245954,
+        "energy_second_derivative_diagonal_bohr3": [
+          36.842808665622016,
+          46.1680454261821,
+          43.83016655790724
+        ],
+        "symmetric_eigenvalues_bohr3": [
+          34.503733210724754,
+          46.05969417314208,
+          46.28429605802508
+        ],
+        "symmetric_tensor_bohr3": [
+          [
+            36.843938850836075,
+            0.8321140701357995,
+            4.572103759874491
+          ],
+          [
+            0.8321140701357995,
+            46.16922063990004,
+            -0.5021154377852592
+          ],
+          [
+            4.572103759874491,
+            -0.5021154377852592,
+            43.83456395115578
+          ]
+        ]
+      }
+    },
+    "selected_eigenvalues_bohr3": [
+      34.503733210724754,
+      46.05969417314208,
+      46.28429605802508
+    ],
+    "selected_step_au": 0.0003,
+    "selected_symmetric_polarizability_bohr3": [
+      [
+        36.843938850836075,
+        0.8321140701357995,
+        4.572103759874491
+      ],
+      [
+        0.8321140701357995,
+        46.16922063990004,
+        -0.5021154377852592
+      ],
+      [
+        4.572103759874491,
+        -0.5021154377852592,
+        43.83456395115578
+      ]
+    ],
+    "zero_field": {
+      "dipole_e_bohr": [
+        -0.18457829166560735,
+        1.056982469849121,
+        -0.5991360499853329
+      ],
+      "elapsed_seconds": 104.20696607600007,
+      "energy_hartree": -193.14018695625558,
+      "nonlocal_grid_point_count": 42864,
+      "scf_cycles": 14,
+      "semilocal_grid_point_count": 115288
+    }
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "helper_command": [
+      "/home/axie/.cache/maple-envs/pyscf-smd-qmref/bin/python",
+      "/home/axie/MAPLE/MAPLE-implicitsolv-route2/docs/implicit-solvation/benchmarks/route2_v0_qm_finite_field.py",
+      "--manifest",
+      "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/manifest.json",
+      "--threads",
+      "8",
+      "--max-memory-mb",
+      "8000",
+      "--output",
+      "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-qeq-acetone-qm-field-v1-8e50e36/qm-field.json"
+    ],
+    "helper_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "helper_stdout_sha256": "43c7ee247d7302392fa4738e6aa82799e42bb51133e85b8e0c14093213e01b02",
+    "main_numpy": "2.4.6",
+    "main_python": "3.11.14",
+    "main_python_executable": "/home/axie/miniconda3/envs/maple/bin/python3.11",
+    "pyscf_helper": {
+      "numpy": "2.4.6",
+      "pyscf": "2.13.1",
+      "pyscf_init_path": "/home/axie/.cache/maple-envs/pyscf-smd-qmref/lib/python3.11/site-packages/pyscf/__init__.py",
+      "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+      "python": "3.11.14",
+      "python_executable": "/home/axie/miniconda3/envs/maple/bin/python3.11",
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "threads": 8,
+      "total_elapsed_seconds": 854.888905269
+    },
+    "raw_qm_sha256": "43c7ee247d7302392fa4738e6aa82799e42bb51133e85b8e0c14093213e01b02",
+    "total_elapsed_seconds": 855.735990333
+  },
+  "schema_version": 1,
+  "scientific_falsification": {
+    "checks": {
+      "principal_value_relative_max": {
+        "maximum": 0.3,
+        "passes": false,
+        "value": 2.224402712926121
+      },
+      "relative_frobenius_mismatch": {
+        "maximum": 0.2,
+        "passes": false,
+        "value": 1.4295333806787403
+      },
+      "trace_ratio": {
+        "maximum": 1.2,
+        "minimum": 0.8,
+        "passes": false,
+        "value": 1.9767767410014712
+      }
+    },
+    "decision_rule": "If a QM numerical gate fails, the comparison is invalid. If any scientific falsification gate fails, reject this fixed published-hardness QEq-monopole curvature. Do not rescale it, change its hardnesses, choose another field step, add an error correction, fine-tune MACE, or select a cavity from the result. A replacement physical functional requires a new literature-backed preregistration.",
+    "passes_all_registered_checks": false,
+    "verdict": "reject-fixed-qeq-monopole-curvature"
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/route2_v0_qm_finite_field.py": "fd336057bdfe950d06b9af9a40243f19b939278170f694e6753c91f23b1a4342",
+    "docs/implicit-solvation/benchmarks/run_route2_v0_qeq_acetone_qm_field.py": "df0d6f646a94285a6e9660eb253ccbe20273ef90862b98ee24361b5d00b28c7e",
+    "maple/function/calculator/extra_correction/charge/data/qeq.dat": "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_qeq_gas_response.py": "bb7155648ae710899453a4d5d4b6c59e3d1daec60bc4e33cd90d4f4e4077dce5",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_qeq_monopole.py": "9baa4bd1e2d213e667027973a241ee194644eb8a3bf7f6a9a54ce4ed1912fe60"
+  },
+  "status": "pass",
+  "system": {
+    "atom_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "compound_id": "mobley_3867265",
+    "frozen_mace_gas_density_sha256": "b03808ee3615914a82bd844380e05cea48a839508706c033b8288acbeb6b9e06",
+    "mace_checkpoint": {
+      "identifier": "polar-1-m",
+      "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "size_bytes": 68133235
+    },
+    "name": "acetone",
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ]
+  }
+}

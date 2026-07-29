@@ -1,0 +1,258 @@
+{
+  "artifact": "route2-v0-qeq-monopole-acetone-v1",
+  "claim_boundary": "This source-bound acetone result validates only a fixed-geometry, no-training structural V0-Q control: frozen MACE-POLAR gas density, published QEq hardness curvature, a same-basis reciprocal PCMSolver operator, and the resulting KKT state. It is not full QEq and it does not report or validate experimental solvation accuracy, a nonpolar term, a total solvation free energy, force, PES, optimization, scan, MD, NVE, smooth-cavity behavior, or a public Route-2 profile.",
+  "construction": {
+    "continuum": {
+      "antisymmetric_norm_hartree": 1.5917511022782744e-16,
+      "atom_count": 10,
+      "basis_layout": "atom-radial-raw-mace-l1-v1",
+      "coefficient_count": 40,
+      "fixed_geometry_only": true,
+      "maximum_eigenvalue_hartree": -8.783569157023157e-09,
+      "minimum_eigenvalue_hartree": -1.503760636679473,
+      "operator": "fixed-cavity-gto-galerkin-v1",
+      "production_profile": false,
+      "sigmas_angstrom": [
+        1.5
+      ],
+      "source_receiver_basis_identical": true,
+      "surface_point_count": 516,
+      "surface_response": "energy-conjugate"
+    },
+    "electronic_response": "reference-shifted published-hardness monopole tangent; QEq electronegativity linear terms are intentionally absent, so this is not full QEq",
+    "frozen_solute": "unmodified archived MACE-POLAR-1-M zero-reaction-field l<=1 coefficients",
+    "name": "route2-v0-rappe-goddard-hardness-same-basis-monopole-v1",
+    "parameter_table_sha256": "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618",
+    "response_subspace": "monopoles only; every induced l=1 coefficient is an exact KKT constraint"
+  },
+  "diagnostics": {
+    "curvature_stability_threshold": 1e-10,
+    "electronic_curvature_antisymmetry_norm": 0.0,
+    "frozen_total_charge_e": 3.9898639947466563e-17,
+    "operator_antisymmetric_norm_hartree": 1.5917511022782744e-16,
+    "operator_minimum_eigenvalue_hartree": -1.503760636679473,
+    "qeq_monopole_hardness_eigenvalues_hartree_per_e2": [
+      0.17808855820744884,
+      0.19109375158576836,
+      0.2202572437831703,
+      0.3173598568927338,
+      0.31853184919268906,
+      0.32212375893924433,
+      0.34399785585865233,
+      0.3701610015093824,
+      0.4806465666832601,
+      1.9280051544840298
+    ],
+    "qeq_monopole_hardness_sha256": "c9a542d236c486d689aae71422c38ce0ea045eaa709f4f4dc31da8cb57026d19",
+    "stationary_total_charge_e": 4.0766001685454967e-17
+  },
+  "energy_ledger_hartree": {
+    "continuum_polarization": -0.001849889720685548,
+    "electronic_induction": 0.00025374762926041837,
+    "solute_continuum": -0.0015961420914251297,
+    "stationary_total": -0.0015961420914251297
+  },
+  "executed_at_utc": "2026-07-29T07:31:17.909717+00:00",
+  "execution_git_head": "701c5e57762bb5c35fa8d6cab1e0ba6d69036d1d",
+  "frozen_inputs": {
+    "archived_exact_gto_result": {
+      "checkpoint": {
+        "identifier": "polar-1-m",
+        "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+        "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+        "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+        "size_bytes": 68133235
+      },
+      "relative_path": ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/route2-result.json",
+      "sha256": "67b4c6b4bbed20d9bd9297cf580edfc0305ca56461934067079c225d2fd4e14b"
+    },
+    "archived_exact_gto_state": {
+      "gas_density_coefficients_sha256": "b03808ee3615914a82bd844380e05cea48a839508706c033b8288acbeb6b9e06",
+      "relative_path": ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/route2-state.npz",
+      "sha256": "68b7f77c66d51f7c48cde12be9117622848493ef9606d645b8bffc01ae106c30"
+    },
+    "archived_geometry_manifest": {
+      "relative_path": ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/manifest.json",
+      "sha256": "1547a0d1a8edb9490828754aa7ff944990e98d90f538da345fc50980de87229b"
+    },
+    "parsed_pcmsolver_input": {
+      "cavity_radii_angstrom": [
+        1.849999998754871,
+        1.849999998754871,
+        1.519999998976975,
+        1.849999998754871,
+        1.1999999991923487,
+        1.1999999991923487,
+        1.1999999991923487,
+        1.1999999991923487,
+        1.1999999991923487,
+        1.1999999991923487
+      ],
+      "relative_path": ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/@route2-smd-stability-fallback.pcm",
+      "sha256": "4f4c56677bb99967855a4821937e74be94dafd9cc2ab59e1de70fb0d9eb8c069"
+    },
+    "pcmsolver_library": {
+      "loaded_source": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "resolved_path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+    }
+  },
+  "hard_constraints": {
+    "density_projection_or_radial_decomposition": false,
+    "error_selected_parameter_or_cavity": false,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "learned_response_jacobian_symmetrization": false,
+    "legacy_public_route_changed": false,
+    "map_or_uq_calibration": false,
+    "official_mace_checkpoint_unmodified": true,
+    "post_training": false,
+    "response_tempering_or_eigenvalue_clipping": false
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-qeq-monopole-acetone-prereg-v1.json",
+    "protocol_id": "route2-v0-qeq-monopole-acetone-prereg-v1",
+    "sha256": "15d46f782aadcf47cae2dc03f3686a69199834dc41bda0c6ff35328a3d1b9ac9"
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "elapsed_seconds": 0.9238288119668141,
+    "numpy": "2.4.6",
+    "python": "3.11.14"
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_route2_v0_qeq_monopole_acetone.py": "554f626cc57bcbf953f29542dad6ab6d2a352b3581280fdf94b14aec65ef59e0",
+    "maple/function/calculator/extra_correction/charge/data/qeq.dat": "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+    "maple/function/calculator/extra_correction/implicit/pcmsolver.py": "83c3115e2a082f89c6e99ca398a9d04f6f8a736e8ae1a35d75268a967e8160a6",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_qeq_monopole.py": "9baa4bd1e2d213e667027973a241ee194644eb8a3bf7f6a9a54ce4ed1912fe60",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_variational_quadratic.py": "c693e370c5d09512c4d9f6cd24f2169b20b62a82b8f148b2aef71b56f66f5a5a"
+  },
+  "status": "pass",
+  "structural_gates": {
+    "additional_constraint_residual_inf": {
+      "threshold": 1e-12,
+      "value": 0.0
+    },
+    "charge_constraint_residual_abs_e": {
+      "threshold": 1e-10,
+      "value": 2.6020852139652106e-18
+    },
+    "electronic_minimum_curvature_hartree": {
+      "threshold": 1e-08,
+      "value": 0.17823541796958414
+    },
+    "frozen_total_charge_abs_e": {
+      "threshold": 1e-10,
+      "value": 3.9898639947466563e-17
+    },
+    "half_coupling_identity_error_hartree": {
+      "threshold": 1e-10,
+      "value": 2.168404344971009e-19
+    },
+    "induced_l1_max_abs_e": {
+      "threshold": 1e-12,
+      "value": 0.0
+    },
+    "joint_minimum_curvature_hartree": {
+      "threshold": 1e-08,
+      "value": 0.17500216390832452
+    },
+    "operator_maximum_eigenvalue_hartree": {
+      "threshold": 1e-08,
+      "value": -8.783569157023157e-09
+    },
+    "response_antisymmetry_norm_hartree": {
+      "threshold": 1e-12,
+      "value": 0.0
+    },
+    "response_maximum_eigenvalue_hartree": {
+      "threshold": 1e-10,
+      "value": 1.9748870847961372e-15
+    },
+    "stationarity_residual_inf": {
+      "threshold": 1e-10,
+      "value": 3.2526065174565133e-18
+    }
+  },
+  "system": {
+    "atom_count": 10,
+    "atom_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "cavity_size": 516,
+    "compound_id": "mobley_3867265",
+    "frozen_density_shape": [
+      10,
+      1,
+      4
+    ],
+    "name": "acetone",
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ],
+    "target_total_charge_e": 0.0
+  }
+}

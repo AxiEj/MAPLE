@@ -1,0 +1,65 @@
+{
+  "protocol_id": "route2-v0-auxiliary-qm-liquid-prereg-v1",
+  "schema_version": 1,
+  "status": "preregistered-before-auxiliary-execution",
+  "claim_boundary": "This protocol defines a no-training auxiliary quantum--liquid difference route. It preserves the gas MACE branch exactly but does not assert that an auxiliary QM density is a MACE density. It does not change a public Route-2 profile, supply a physical liquid asset, authorize a total-solvation, force, PES, optimization, scan, MD, NVE, or accuracy claim.",
+  "construction": {
+    "name": "route2-v0-auxiliary-qm-liquid-difference-v1",
+    "gas_mace_term": "E_MACE,gas(R) is evaluated by the unmodified official MACE-POLAR checkpoint at zero reaction field.",
+    "auxiliary_gas_state": "A_aux^gas(R)=min_n A_aux^gas[n;R] with a declared auxiliary QM functional, basis, charge, spin, geometry, and numerical settings.",
+    "auxiliary_liquid_state": "A_aux^sol(R;s)=stat_{n,N,lambda}[A_aux^gas[n;R]+Phi_s[N]+U_s[n,N;R]+lambda C[n,N]], where all auxiliary electronic and liquid degrees of freedom are stationary in one declared scalar.",
+    "required_energy_ledger": "G_V0-AQ(R;s)=E_MACE,gas(R)+[A_aux^sol(R;s)-A_aux^gas(R)]+DeltaG_s^circ. The auxiliary gas subtraction is mandatory; DeltaG_s^circ is present only in a declared physical liquid standard-state convention.",
+    "auxiliary_state_boundary": "The auxiliary electronic density is neither MACE density coefficients nor a projected/relabelled MACE density. It must not be injected into MACE field features or used to update MACE-POLAR.",
+    "v0_aq_e_control": "A source-bound self-consistent auxiliary QM--PCM gas-to-PCM-SCF total-energy difference is permitted only as a fixed-geometry electronic-continuum stationarity control. It contains no SMD CDS, target-solvation label, standard-state term, total-solvation claim, or solvent ranking.",
+    "v0_aq_l_completion": "A physical total free-energy calculation requires one molecular liquid functional with frozen solvent assets for Phi_s, U_s, pressure/cavity/dispersion physics, and the standard-state convention before target-solvation records are inspected."
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "mace_density_relabelling_or_projection": false,
+    "mace_field_response_or_feature_feedback": false,
+    "response_tempering_or_eigenvalue_clipping": false,
+    "extra_pcm_half_coupling_outside_auxiliary_difference": false,
+    "smd_cds_in_no_fit_core": false,
+    "error_driven_cavity_dispersion_or_solvent_property_adjustment": false,
+    "per_record_or_per_solvent_model_selection_from_error": false,
+    "amber_gaff_or_am1bcc_solute_substitution": false,
+    "legacy_public_route_changed": false
+  },
+  "stationarity_and_force_contract": {
+    "pcm_control_lagrangian": "L_aux,PCM[n,sigma]=A_aux^gas[n;R]+0.5 sigma^T A_R sigma+sigma^T B_R n.",
+    "pcm_control_stationarity": "delta A_aux^gas/delta n+B_R^T sigma=0 and A_R sigma+B_R n=0.",
+    "pcm_control_energy": "DeltaA_aux^PCM=A_aux^(PCM-SCF)-A_aux^(gas-SCF), using fully converged stationary total energies rather than an implementation-specific isolated PCM component.",
+    "derivative_rule": "dG_V0-AQ/dR=dE_MACE,gas/dR+partial_R L_aux^sol|_* - partial_R A_aux^gas|_*. No legacy MACE field-response derivative is permitted.",
+    "force_gate": "An analytic auxiliary gradient at a fixed geometry is insufficient for a force/PES claim. Full same-scalar coordinate derivatives, smooth-cavity/operator, central-difference refinement, rigid-motion, and closed-loop-work gates are required first."
+  },
+  "liquid_asset_contract": {
+    "minimum_registered_solvent_count": 11,
+    "required_before_target_scoring": [
+      "A versioned molecular solvent site model or classical liquid density functional.",
+      "Bulk temperature, pressure, number density, and an equation of state or equivalent thermodynamic-pressure definition.",
+      "Frozen bulk correlations/susceptibility or the complete declared classical excess functional.",
+      "A source-provenanced short-range and dispersion interaction in the same liquid free-energy convention.",
+      "A standard-state convention and a declaration that no target MNSol, FreeSolv, development, confirmation, or blind label selected any input."
+    ],
+    "dielectric_only_rule": "A solvent name or scalar dielectric may support an explicitly labelled electrostatic diagnostic only. It rejects V0-AQ-L total-free-energy execution.",
+    "upstream_family_policy": {
+      "joint_or_classical_dft": "Admissible only with frozen independently sourced liquid assets. JDFTx ClassicalDFT/fluid-solvent is an upstream asset interface, not authority to tune property overrides from solvation errors.",
+      "qm_3drism_scf_or_mdft": "Admissible only with a jointly stationary auxiliary QM--liquid scalar, frozen bulk/site assets, a declared closure/free-energy convention, and no GAFF/AM1-BCC substitution for the claimed solute source.",
+      "salsa": "Electric-response reference only: published SaLSA retains a fitted dispersion contribution, so it is not a strictly no-fit total-free-energy endpoint in this protocol."
+    },
+    "current_inventory": "No physical 11-solvent V0-AQ-L asset is registered in this checkout. The V0-AQ-E PCM control may not bypass that blocker."
+  },
+  "validation_sequence": [
+    "Source-bind the same auxiliary QM gas and liquid electronic functional, basis, geometry, charge, spin, and numerical settings; require convergence of every stationary state.",
+    "Verify the auxiliary gas subtraction and reject a duplicate gas term, a standalone PCM component, an extra half-coupling, SMD CDS, a MACE-field update, or a fitted scale.",
+    "Treat V0-AQ-E only as a fixed-geometry electronic-continuum structural control and do not read target-solvation labels for it.",
+    "Register complete frozen physical liquid assets for at least eleven solvent strata before V0-AQ-L target scoring.",
+    "Before any force claim, prove the same-scalar gradient, smooth-cavity/operator, central-difference refinement, rigid-motion, and nuclear closed-loop-work gates.",
+    "Freeze development, disjoint confirmation, and external-blind record manifests only after structural validation; every record must satisfy the preregistered maximum-error gate without method changes."
+  ],
+  "decision_rule": "Failure of a stationarity, source-boundary, liquid-asset, force, or per-record accuracy gate rejects the frozen candidate. It does not authorize post-training, fine-tuning, experimental fitting, MAP/UQ calibration, response repair, or error-driven parameter selection."
+}

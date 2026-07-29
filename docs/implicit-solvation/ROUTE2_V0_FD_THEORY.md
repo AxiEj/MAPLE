@@ -800,7 +800,22 @@ density.  It is therefore deliberately excluded from Newton/Hessian and
 production-PES claims until a smooth source-provenanced functional and its
 stationary liquid state are derived together.
 
-### 4.3 Explicit exclusions
+### 4.3 Separate auxiliary-QM liquid-difference route
+
+V0-FD deliberately freezes the MACE source and varies only the solvent.  A
+separate no-training route, V0-AQ, retains the MACE gas potential but obtains
+an **auxiliary** electronic response from a joint electronic--liquid scalar
+and adds only its gas-to-liquid difference.  It does not relabel the auxiliary
+density as MACE density, repair the legacy MACE field map, or bypass the
+physical liquid-asset gate.  Its exact subtraction ledger, stationary
+electronic-continuum control, force boundary, and liquid-functional admission
+requirements are defined in
+[`ROUTE2_V0_AQ_THEORY.md`](ROUTE2_V0_AQ_THEORY.md).  V0-AQ-E remains a
+fixed-geometry electronic-continuum control; a physical V0-AQ-L total free
+energy still requires one frozen molecular-liquid functional and its solvent
+assets.
+
+### 4.4 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-
   source ten-solvent panel found only small equation differences and does not

@@ -800,6 +800,62 @@ density.  It is therefore deliberately excluded from Newton/Hessian and
 production-PES claims until a smooth source-provenanced functional and its
 stationary liquid state are derived together.
 
+#### 4.2.12 Molecular-orientation external-potential control
+
+A molecular solvent cannot obtain its short-range contribution by adding a
+separate Thomas--Fermi nonadditive scalar for each site: the density
+nonadditivity is nonlinear.  For a declared rigid solvent reference
+
+\[
+\mathcal S=\{Z_\alpha,z_\alpha,\mathbf r_\alpha\}_{\alpha=1}^{N_s}
+\]
+
+and a configuration \((\mathbf X,\mathbf\Omega)\), define its global site
+positions and one **whole-molecule** promolecular reference density as
+
+\[
+\mathbf x_\alpha=\mathbf X+\mathbf\Omega\mathbf r_\alpha,
+\qquad
+n_{\mathcal S}^{\mathrm{ref}}
+(\mathbf r;\mathbf X,\mathbf\Omega)
+=\sum_{\alpha=1}^{N_s}
+n_{Z_\alpha}^{\mathrm{ref}}(\mathbf r-\mathbf x_\alpha).
+\]
+
+The configuration-wise V0 control is then the one declared scalar
+
+\[
+u_{\mathcal S}^{\mathrm{V0}}(\mathbf X,\mathbf\Omega)
+=\sum_{\alpha=1}^{N_s}z_\alpha
+\phi^G_{c_0}(\mathbf x_\alpha)
++T_{\mathrm{TF}}^{\mathrm{nad}}
+\!\left[n_{\mathrm{ref}},
+n_{\mathcal S}^{\mathrm{ref}}(\mathbf X,\mathbf\Omega)\right].
+\]
+
+The first term uses the unmodified all-space MACE Gaussian potential; the
+second uses the independent positive reference densities from Section 4.2.4.
+The latter is specifically **not**
+\(\sum_\alpha T_{\mathrm{TF}}^{\mathrm{nad}}
+[n_{\mathrm{ref}},n_{Z_\alpha}^{\mathrm{ref}}]\).  The site charges,
+geometry, and their total-charge convention must be content-addressed by a
+future physical solvent asset before they may be used for a liquid result.
+Thus this introduces no new fit, overlap radius, density relabelling, or
+MACE field update; it does not assert that the promolecule is MACE density or
+that it contains a bonded molecular electron density.
+
+`route2_v0_molecular_external_potential.py` implements this direct discrete
+control.  Its checks require a proper rotation, a declared molecular total
+charge, the same nuclear geometry for the MACE Gaussian and solute
+promolecule, and an exact Pauli-plus-electrostatic ledger.  Its tests lock the
+disjoint-support zero, joint-translation covariance, and invariance to a
+change of molecular reference origin.  It is deliberately configuration-wise:
+it provides neither an MDFT/3D-RISM excess functional, orientational measure,
+bulk correlation, dispersion term, liquid minimization, standard-state term,
+force, PES, nor solvation/accuracy result.  Linear radial interpolation and
+the \(C^1\)-but-not-\(C^2\) Thomas--Fermi integrand keep it energy-only until
+one source-provenanced stationary molecular-liquid functional is derived.
+
 ### 4.3 Separate auxiliary-QM liquid-difference route
 
 V0-FD deliberately freezes the MACE source and varies only the solvent.  A
@@ -939,3 +995,15 @@ substitute for these gates.
     long-range appendix writes the direct-correlation Coulomb asymptote as
     \(-\beta u\), motivating the analytic tail split rather than a finite-box
     radial wrap.
+17. T. A. Wesolowski, *Frozen-Density Embedding Strategy for Multilevel
+    Simulations of Electronic Structure*, *Chem. Rev.* **115**, 5891--5928
+    (2015), [DOI:10.1021/cr500502v](https://doi.org/10.1021/cr500502v).
+    It supplies the frozen-density embedding boundary; the present
+    Thomas--Fermi term remains a deliberately limited frozen-density control.
+18. S. Zhao, R. Ramirez, R. Vuilleumier, and D. Borgis, *Molecular density
+    functional theory of solvation: from polar solvents to water*, *J. Chem.
+    Phys.* **134**, 194102 (2011),
+    [PMID:21599039](https://pubmed.ncbi.nlm.nih.gov/21599039/).  Its
+    position-and-orientation dependent molecular functional motivates the
+    configuration convention above, not a claim that the present direct
+    quadrature control is a molecular-liquid free-energy calculation.

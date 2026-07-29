@@ -49,7 +49,9 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     promolecular = foundation["independent_promolecular_input"]
     assert promolecular["artifact"] == "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1"
     assert "H, C, N, O, S, and Cl" in promolecular["capability"]
-    assert "does not yet define u_sr" in promolecular["not_coupled"]
+    assert "energy-only molecular Thomas-Fermi control" in promolecular[
+        "not_coupled"
+    ]
     pauli = foundation["frozen_density_pauli_overlap_control"]
     assert pauli["module"].endswith("route2_v0_frozen_density_embedding")
     assert "parameter-free Thomas-Fermi nonadditive kinetic scalar" in pauli[
@@ -61,6 +63,18 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "C1 but not C2" in pauli["smoothness_boundary"]
     assert "total solvation free energy" in pauli["not_a_physical_liquid_backend"]
     assert "accuracy result" in pauli["not_a_physical_liquid_backend"]
+    molecular = foundation["molecular_promolecular_external_potential_control"]
+    assert molecular["module"].endswith("route2_v0_molecular_external_potential")
+    assert "whole-molecule nonnegative promolecular solvent density" in molecular[
+        "capability"
+    ]
+    assert "not as a sum of sitewise nonadditive scalars" in molecular[
+        "source_boundary"
+    ]
+    assert "content-addressed" in molecular["source_boundary"]
+    assert "C1 but not C2" in molecular["smoothness_boundary"]
+    assert "total solvation free energy" in molecular["not_a_physical_liquid_backend"]
+    assert "accuracy result" in molecular["not_a_physical_liquid_backend"]
     hnc = foundation["site_hnc_variational_reference"]
     assert hnc["module"].endswith("route2_v0_site_hnc")
     assert "synthetic-only periodic multi-site HNC" in hnc["capability"]
@@ -139,3 +153,7 @@ def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_on
     ]
     assert any("full nonlocal dielectric spectrum" in item for item in validation)
     assert any("Thomas-Fermi nonadditive kinetic Pauli scalar" in item for item in validation)
+    assert any(
+        "whole-molecule rather than sitewise Thomas-Fermi density" in item
+        for item in validation
+    )

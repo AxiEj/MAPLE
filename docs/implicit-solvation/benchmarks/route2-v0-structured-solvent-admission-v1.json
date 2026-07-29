@@ -2,16 +2,16 @@
   "protocol_id": "route2-v0-structured-solvent-admission-v1",
   "schema_version": 1,
   "status": "preregistered-before-physical-liquid-functional-execution",
-  "claim_boundary": "This is an admission contract for a no-training fixed-density structured-solvent research branch. It does not supply a physical solvent asset, authorize a chemistry or force claim, or replace the legacy Route-2 fixed point or the V0-FD continuum control. A synthetic variational HNC reference kernel and a parameter-free frozen-density Pauli-overlap control may test discrete scalars and their derivatives, but are not physical liquid calculations or total solvation results.",
+  "claim_boundary": "This is an admission contract for a no-training fixed-density structured-solvent research branch. It does not supply a physical solvent asset, authorize a chemistry or force claim, or replace the legacy Route-2 fixed point or the V0-FD continuum control. A synthetic variational HNC reference kernel, a parameter-free frozen-density Pauli-overlap control, and a configuration-wise whole-molecule promolecular external-potential control may test discrete scalars and their derivatives where declared, but are not physical liquid calculations or total solvation results.",
   "construction": {
     "name": "route2-v0-fixed-density-structured-solvent-v1",
     "electronic_state": "c0(R) is the unmodified zero-reaction-field MACE-POLAR l<=1 density; it is frozen throughout the liquid solve.",
     "electrostatic_source": "The all-space MACE Gaussian multipole potential phi_c0^G is evaluated with gaussian_multipole_potential on the liquid grid.",
-    "short_range_source": "n_ref(R,r) is a separately provenanced nonnegative promolecular reference density reserved only for a future u_sr; it is not represented as MACE electron density and does not replace phi_c0^G.",
+    "short_range_source": "n_ref(R,r) is a separately provenanced nonnegative promolecular reference density. It is used only by the energy-only molecular Thomas-Fermi control and is reserved for a future physical u_sr; it is not represented as MACE electron density and does not replace phi_c0^G.",
     "solute_solvent_potential": "u_alpha,s(r) = z_alpha,s phi_c0^G(r) + u_alpha,s^sr[n_ref](r).",
     "liquid_state": "For an admitted physical backend, the solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
     "primary_free_energy": "The declared KH/MDFT excess-free-energy functional plus a thermodynamic pressure correction derived from the same frozen bulk asset and a declared standard-state correction.",
-    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, parameter-free frozen-density Thomas-Fermi nonadditive kinetic Pauli-overlap scalar/derivatives, synthetic-only reciprocal site-HNC scalar/solver, a bulk-only 1D-RISM direct-correlation parser with a source-SMEAR analytic Coulomb split, a neutral periodic Poisson scalar/derivative control for that long-range term, a small-grid radial-to-reciprocal short-range transform control, a fixed-neutral-density nonlocal-dielectric reaction scalar/derivative control requiring a full real-even passive Fourier spectrum, and a fail-closed content-addressed solvent-asset registry schema; no physical short-range solute interaction, frozen physical multisolvent asset contents, physical liquid free energy, force, or benchmark score."
+    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, a configuration-wise whole-molecule promolecular Thomas-Fermi-plus-MACE external-potential control, parameter-free frozen-density Thomas-Fermi nonadditive kinetic Pauli-overlap scalar/derivatives, synthetic-only reciprocal site-HNC scalar/solver, a bulk-only 1D-RISM direct-correlation parser with a source-SMEAR analytic Coulomb split, a neutral periodic Poisson scalar/derivative control for that long-range term, a small-grid radial-to-reciprocal short-range transform control, a fixed-neutral-density nonlocal-dielectric reaction scalar/derivative control requiring a full real-even passive Fourier spectrum, and a fail-closed content-addressed solvent-asset registry schema; no physical short-range solute interaction, frozen physical multisolvent asset contents, physical liquid free energy, force, or benchmark score."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -87,6 +87,7 @@
     "Validate the Gaussian MACE source against analytic values and verify that the grid-potential adapter consumes it without a charge/Lennard-Jones fallback.",
     "Validate the nonnegative short-range reference-density provenance and prove that it cannot overwrite the MACE electrostatic source.",
     "Validate the parameter-free frozen-density Thomas-Fermi nonadditive kinetic Pauli scalar, both density derivatives, exchange/translation covariance, nonnegativity, and the disjoint-support zero; it remains a short-range control until a frozen solvent electron-density asset and one common liquid functional are declared.",
+    "Validate the configuration-wise molecular external-potential control: proper rotations, declared molecular charge, whole-molecule rather than sitewise Thomas-Fermi density, exact Pauli-plus-electrostatic ledger, disjoint-support zero, joint-translation covariance, and molecular-reference-origin invariance; retain it as energy-only until one frozen stationary molecular-liquid functional is derived.",
     "Validate the synthetic reciprocal site-HNC scalar, finite-difference derivative, and ideal-gas stationarity before any physical solvent asset is admitted.",
     "Validate a bulk-only 1D-RISM .xvv/.cvv asset, exact site-pair coverage, the native Coulomb-tail residual, and the source-SMEAR analytic origin rule before a physical liquid backend is admitted.",
     "Validate the neutral source-SMEAR periodic Poisson long-range scalar, finite-difference derivative, reciprocal pairing, zero-mode gauge, translation covariance, and fixed-cell grid refinement before it is joined to any Cvv short-range mapping.",
@@ -104,8 +105,8 @@
     "capability": "A fixed-density, all-space MACE Gaussian l<=1 electrostatic potential is evaluated on a declared regular Cartesian grid and exposed as the electrostatic site-energy summand z*phi_c0^G.",
     "fixed_source_width_policy": "The checkpoint-native MACE Gaussian width is fixed; it cannot be used as a grid-refinement or error-adjustment parameter.",
     "not_implemented": [
-      "promolecular-density coupling to a frozen physical solvent electron-density asset or a solute-solvent short-range potential",
-      "solute-solvent short-range potential",
+      "source-provenanced physical solvent electron-density asset or physical molecular short-range interaction beyond the energy-only promolecular control",
+      "dispersion or source-provenanced physical molecular short-range interaction",
       "frozen physical multisolvent asset contents for the 11-solvent panel",
       "source-provenanced physical short-range RISM grid mapping and production-scale grid-convergence certification",
       "physical MDFT or 3D-RISM liquid-state minimization using a frozen real solvent asset",
@@ -116,7 +117,7 @@
     "independent_promolecular_input": {
       "artifact": "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1",
       "capability": "A source-bound, nonnegative spherical free-atom reference-density table is available for H, C, N, O, S, and Cl and is evaluated independently from the MACE electrostatic source.",
-      "not_coupled": "The table does not yet define u_sr, dispersion, a liquid-state solve, or a total solvation free energy."
+      "not_coupled": "The table supports only the energy-only molecular Thomas-Fermi control; by itself it does not define dispersion, a liquid-state solve, or a total solvation free energy."
     },
     "frozen_density_pauli_overlap_control": {
       "module": "maple.function.calculator.extra_correction.implicit.route2_v0_frozen_density_embedding",
@@ -124,6 +125,13 @@
       "source_boundary": "It accepts only independently declared nonnegative electron-density grids and does not relabel the MACE Gaussian coefficients or couple the solute-only promolecular table to an invented solvent density.",
       "smoothness_boundary": "The Thomas-Fermi integrand is C1 but not C2 at zero density, so this control is excluded from Newton/Hessian and production-PES claims until a smooth source-provenanced functional and stationary liquid state are derived.",
       "not_a_physical_liquid_backend": "No frozen solvent electron-density asset, site-resolved short-range potential, dispersion term, liquid-state minimization, force, total solvation free energy, or accuracy result is supplied."
+    },
+    "molecular_promolecular_external_potential_control": {
+      "module": "maple.function.calculator.extra_correction.implicit.route2_v0_molecular_external_potential",
+      "capability": "A configuration-wise molecular external-potential control pairs the unmodified all-space MACE Gaussian potential with declared molecular site charges and one whole-molecule nonnegative promolecular solvent density through the parameter-free Thomas-Fermi nonadditive kinetic scalar; it introduces no new fitted solvation coefficient.",
+      "source_boundary": "The Thomas-Fermi term is evaluated once on the total rotated molecular promolecule, not as a sum of sitewise nonadditive scalars. The MACE Gaussian source remains electrostatic only, and a future physical solvent geometry and charges must be content-addressed by its frozen solvent asset before a liquid result is permitted.",
+      "smoothness_boundary": "Linear radial interpolation and the C1 but not C2 Thomas-Fermi integrand make this a discrete energy-only control, excluded from Newton/Hessian, force, PES, optimization, scan, MD, and NVE claims.",
+      "not_a_physical_liquid_backend": "No molecular-liquid excess functional, orientational measure, bulk correlation, dispersion term, stationary liquid minimization, standard-state term, force, total solvation free energy, or accuracy result is supplied."
     },
     "site_hnc_variational_reference": {
       "module": "maple.function.calculator.extra_correction.implicit.route2_v0_site_hnc",

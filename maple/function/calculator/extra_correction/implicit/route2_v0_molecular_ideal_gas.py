@@ -29,7 +29,10 @@ import numpy as np
 
 from .route2_v0_molecular_external_potential import (
     Route2V0MolecularConfigurations,
-    Route2V0MolecularExternalPotential,
+)
+from .route2_v0_molecular_external_potential_contract import (
+    Route2V0MolecularExternalPotentialContract,
+    require_molecular_external_potential_values,
 )
 
 V0_MOLECULAR_IDEAL_GAS_CONSTRUCTION = "route2-v0-molecular-ideal-gas-v1"
@@ -73,10 +76,12 @@ def _positive_scalar(value: float, *, name: str) -> float:
 
 def _same_configurations(
     left: Route2V0MolecularConfigurations,
-    right: Route2V0MolecularConfigurations,
+    right: object,
 ) -> bool:
     """Require exactly the same declared quadrature configurations."""
 
+    if not isinstance(right, Route2V0MolecularConfigurations):
+        return False
     return bool(
         np.array_equal(left.translations_bohr, right.translations_bohr)
         and np.array_equal(left.rotations, right.rotations)
@@ -146,7 +151,7 @@ class Route2V0MolecularIdealGasState:
     """One stationary or trial state of the declared molecular ideal scalar."""
 
     quadrature: Route2V0MolecularConfigurationQuadrature
-    external_potential: Route2V0MolecularExternalPotential
+    external_potential: Route2V0MolecularExternalPotentialContract
     configuration_density_bohr3: np.ndarray
     grand_potential_hartree: float
     ideal_contribution_hartree: float
@@ -157,11 +162,14 @@ class Route2V0MolecularIdealGasState:
     def __post_init__(self) -> None:
         if not isinstance(self.quadrature, Route2V0MolecularConfigurationQuadrature):
             raise TypeError("Molecular ideal-gas state requires a quadrature.")
-        if not isinstance(self.external_potential, Route2V0MolecularExternalPotential):
+        if not isinstance(
+            self.external_potential,
+            Route2V0MolecularExternalPotentialContract,
+        ):
             raise TypeError("Molecular ideal-gas state requires an external potential.")
         if not _same_configurations(
             self.quadrature.configurations,
-            self.external_potential.configurations,
+            getattr(self.external_potential, "configurations", None),
         ):
             raise ValueError(
                 "Molecular ideal-gas quadrature and external potential configurations differ."
@@ -173,6 +181,10 @@ class Route2V0MolecularIdealGasState:
             name="Molecular configuration density",
             shape=(self.quadrature.configuration_count,),
             positive=True,
+        )
+        require_molecular_external_potential_values(
+            self.external_potential,
+            configuration_count=self.quadrature.configuration_count,
         )
         values = {
             "grand_potential_hartree": self.grand_potential_hartree,
@@ -199,7 +211,7 @@ class Route2V0MolecularIdealGasFunctional:
     """Exact discrete ideal contribution for one molecular external potential."""
 
     quadrature: Route2V0MolecularConfigurationQuadrature
-    external_potential: Route2V0MolecularExternalPotential
+    external_potential: Route2V0MolecularExternalPotentialContract
     bulk_molecular_number_density_bohr3: float
     kbt_hartree: float
     construction: str = V0_MOLECULAR_IDEAL_GAS_CONSTRUCTION
@@ -207,19 +219,26 @@ class Route2V0MolecularIdealGasFunctional:
     def __post_init__(self) -> None:
         if not isinstance(self.quadrature, Route2V0MolecularConfigurationQuadrature):
             raise TypeError("Molecular ideal-gas functional requires a quadrature.")
-        if not isinstance(self.external_potential, Route2V0MolecularExternalPotential):
+        if not isinstance(
+            self.external_potential,
+            Route2V0MolecularExternalPotentialContract,
+        ):
             raise TypeError(
                 "Molecular ideal-gas functional requires an external potential."
             )
         if not _same_configurations(
             self.quadrature.configurations,
-            self.external_potential.configurations,
+            getattr(self.external_potential, "configurations", None),
         ):
             raise ValueError(
                 "Molecular ideal-gas quadrature and external potential configurations differ."
             )
         if self.construction != V0_MOLECULAR_IDEAL_GAS_CONSTRUCTION:
             raise ValueError("Unsupported Route-2 molecular ideal-gas construction.")
+        require_molecular_external_potential_values(
+            self.external_potential,
+            configuration_count=self.quadrature.configuration_count,
+        )
         object.__setattr__(
             self,
             "bulk_molecular_number_density_bohr3",
@@ -243,6 +262,15 @@ class Route2V0MolecularIdealGasFunctional:
             / self.quadrature.orientation_measure
         )
 
+    @property
+    def _external_energy_hartree(self) -> np.ndarray:
+        """Return the one validated scalar source vector for this quadrature."""
+
+        return require_molecular_external_potential_values(
+            self.external_potential,
+            configuration_count=self.quadrature.configuration_count,
+        )
+
     def _density(self, values: np.ndarray) -> np.ndarray:
         return _immutable_array(
             values,
@@ -258,9 +286,7 @@ class Route2V0MolecularIdealGasFunctional:
 
         density = self._density(configuration_density_bohr3)
         gradient = np.log(density / self.uniform_configuration_density_bohr3)
-        gradient += (
-            self.external_potential.external_potential_hartree / self.kbt_hartree
-        )
+        gradient += self._external_energy_hartree / self.kbt_hartree
         result = np.array(gradient, dtype=float, copy=True)
         result.setflags(write=False)
         return result
@@ -277,11 +303,7 @@ class Route2V0MolecularIdealGasFunctional:
         ideal = self.kbt_hartree * float(
             np.sum(weights * (density * np.log(density / bulk) - (density - bulk)))
         )
-        external = float(
-            np.sum(
-                weights * density * self.external_potential.external_potential_hartree
-            )
-        )
+        external = float(np.sum(weights * density * self._external_energy_hartree))
         if not all(math.isfinite(value) for value in (ideal, external)):
             raise RuntimeError("Molecular ideal-gas energy components are non-finite.")
         return ideal, external
@@ -318,9 +340,7 @@ class Route2V0MolecularIdealGasFunctional:
         control for a future molecular excess-functional implementation.
         """
 
-        exponent = (
-            -self.external_potential.external_potential_hartree / self.kbt_hartree
-        )
+        exponent = -self._external_energy_hartree / self.kbt_hartree
         if not np.all(np.isfinite(exponent)) or np.any(exponent > 700.0):
             raise RuntimeError(
                 "Molecular ideal-gas external potential produces an unsafe exponent."

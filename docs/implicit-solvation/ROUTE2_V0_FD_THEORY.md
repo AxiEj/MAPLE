@@ -1046,9 +1046,89 @@ long-range coefficient is selected from solvation labels.
 
 This is still only a mathematical assembly gate.  The local cSPC/E parser
 control is not a complete frozen solvent asset; a real endpoint still needs a
-source-provenanced molecular correlation, production-grid certification,
-MACE-native solvent short-range source, thermodynamic pressure and
-standard-state conventions, and all 11 pre-registered solvent assets.
+source-provenanced molecular correlation, production-grid certification, the
+admitted MACE-cluster-to-liquid connector in Section 4.2.16, thermodynamic
+pressure and standard-state conventions, and all 11 pre-registered solvent
+assets.
+
+#### 4.2.16 Zero-field MACE molecular external-potential control
+
+The current MACE-POLAR field-response map cannot supply a variational
+electronic state.  That observation does **not** invalidate the model's
+ordinary zero-field energy, which is already one scalar of nuclear geometry.
+For a neutral singlet solute \(A\) and a rigid neutral-singlet solvent molecule
+\(B_\Gamma\) at configuration
+\(\Gamma=(\mathbf X,\Omega)\), define instead the complete zero-field molecular
+external potential
+
+\[
+u_{\mathrm{MACE}}(A,B_\Gamma)
+=E^0_{\mathrm{MACE}}(A\cup B_\Gamma)
+-E^0_{\mathrm{MACE}}(A)
+-E^0_{\mathrm{MACE}}(B_\Gamma).
+\]
+
+All three evaluations use the same content-addressed official MACE-POLAR-1-M
+checkpoint, its float64 Route-2 profile, and its default molecular real-space
+long-range evaluator.  No local reaction potential, field feature, induced
+density, or response iterate is passed to any evaluation.  Thus the isolated
+fragment references cancel identically; no atom-charge, Lennard-Jones,
+Thomas--Fermi, damping, switching, or solvation-label coefficient is added.
+
+This object has the exact force ledger
+
+\[
+\mathbf F_A^{\mathrm{int}}
+=\mathbf F_{A\cup B_\Gamma,A}^{0}
+-\mathbf F_A^{0},
+\qquad
+\mathbf F_{B}^{\mathrm{int}}
+=\mathbf F_{A\cup B_\Gamma,B}^{0}
+-\mathbf F_{B_\Gamma}^{0},
+\]
+
+so \(\mathbf F_A^{\mathrm{int}}=-\partial_Au_{\mathrm{MACE}}\) whenever the
+zero-field MACE force is the derivative of its reported scalar.  If this
+external potential later enters the stationary molecular functional of Section
+4.2.14, envelope differentiation gives the solvation-force contribution
+
+\[
+\mathbf F_A^{\mathrm{liq}}
+=\sum_iw_i\nu_i^*\mathbf F_A^{\mathrm{int}}(\Gamma_i),
+\]
+
+without differentiating a liquid response iterate.  This is precisely why the
+source is a safer V0 route than trying to interpret the nonreciprocal
+field-conditioned density as a physical charge response.
+
+The route2_v0_mace_cluster_external_potential.py module implements this
+three-energy scalar and, when requested, the matching three-force difference.
+It fails closed for a changed checkpoint, an unsupported runtime profile,
+periodic, charged, or open-shell fragments, and any attempt to call a
+field-response interface.  The resulting \(u_{\mathrm{MACE}}\) must be used
+as one whole molecular external potential; adding the older
+MACE-Gaussian-plus-Thomas--Fermi control would double count a distinct source
+definition.
+
+Both source definitions now implement one narrow molecular-external-potential
+contract.  Consequently the MACE cluster vector can enter the exact ideal
+configuration scalar and the projected molecular-site HNC scalar without an
+adapter that changes its energy.  The zero-correlation limit recovers the same
+analytic ideal stationary density, while the nonzero HNC derivative remains
+the adjoint projection of the same configuration-space scalar.  This is an
+interface result, not a liquid-physics claim: it prevents accidental mixing of
+two external-potential ledgers while retaining one variational liquid route.
+
+The source is not yet a total liquid theory.  Pairing an MACE solute--solvent
+external potential with a frozen solvent-side RISM correlation defines a
+declared **hybrid reference functional**, not an assertion that both terms came
+from one microscopic force field.  Before physical execution, the frozen
+solvent asset must bind its molecular geometry, bulk \(C_{vv}\), closure,
+thermodynamic convention, and explicit cross-model reference statement to the
+same source ledger.  The current checkout has no such 11-solvent bundle, no
+production molecular quadrature/grid certification, no pressure or
+standard-state term, and no benchmark result.  It therefore remains a
+zero-training external-potential control, not a claimed accuracy improvement.
 
 ### 4.3 Separate auxiliary-QM liquid-difference route
 

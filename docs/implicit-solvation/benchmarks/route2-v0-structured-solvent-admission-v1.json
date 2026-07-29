@@ -88,6 +88,7 @@
     "Validate the nonnegative short-range reference-density provenance and prove that it cannot overwrite the MACE electrostatic source.",
     "Validate the parameter-free frozen-density Thomas-Fermi nonadditive kinetic Pauli scalar, both density derivatives, exchange/translation covariance, nonnegativity, and the disjoint-support zero; it remains a short-range control until a frozen solvent electron-density asset and one common liquid functional are declared.",
     "Validate the configuration-wise molecular external-potential control: proper rotations, declared molecular charge, whole-molecule rather than sitewise Thomas-Fermi density, exact Pauli-plus-electrostatic ledger, disjoint-support zero, joint-translation covariance, and molecular-reference-origin invariance; retain it as energy-only until one frozen stationary molecular-liquid functional is derived.",
+    "Validate the zero-field MACE cluster external-potential control: exact cluster-minus-fragment scalar ledger, exact zero-field interaction-force difference, joint-translation covariance, checkpoint/runtime identity, neutral-singlet/nonperiodic fragment gate, and explicit exclusion of the field-conditioned response density; it cannot be added to the older Gaussian-plus-Thomas-Fermi control.",
     "Validate the exact molecular ideal-gas configuration scalar: fixed 8*pi^2 orientation convention, positive phase-space weights, configuration grid exactly equal to the external-potential grid, analytic stationary density, and scalar/gradient identity; it remains nonphysical until a frozen molecular excess functional and its bulk tangent are supplied.",
     "Validate the projected molecular-site HNC bridge: one shared Cartesian grid, periodic-cell times 8*pi^2 configuration measure, molecular-site multiplicity, uniform bulk map, exact projection adjoint, zero-correlation ideal limit, and scalar/gradient identity; reject a raw Cvv table and retain this as synthetic until a frozen energy-conjugate physical correlation plus long-range, pressure, and standard-state conventions are supplied.",
     "Validate the synthetic reciprocal site-HNC scalar, finite-difference derivative, and ideal-gas stationarity before any physical solvent asset is admitted.",
@@ -108,13 +109,11 @@
     "capability": "A fixed-density, all-space MACE Gaussian l<=1 electrostatic potential is evaluated on a declared regular Cartesian grid and exposed as the electrostatic site-energy summand z*phi_c0^G.",
     "fixed_source_width_policy": "The checkpoint-native MACE Gaussian width is fixed; it cannot be used as a grid-refinement or error-adjustment parameter.",
     "not_implemented": [
-      "source-provenanced physical solvent electron-density asset or physical molecular short-range interaction beyond the energy-only promolecular control",
-      "dispersion or source-provenanced physical molecular short-range interaction",
-      "frozen physical multisolvent asset contents for the 11-solvent panel",
-      "source-provenanced physical short-range RISM grid mapping and production-scale grid-convergence certification",
+      "frozen physical multisolvent asset contents and a source-provenanced cross-model liquid-reference convention for the 11-solvent panel",
+      "source-provenanced physical short-range RISM grid mapping/quadrature connector from the MACE cluster external potential and production-scale grid-convergence certification",
       "physical MDFT or 3D-RISM liquid-state minimization using a frozen real solvent asset",
       "physical excess chemical potential or thermodynamic pressure correction",
-      "force, PES, optimization, scan, MD, or NVE capability",
+      "total-solvation force, PES, optimization, scan, MD, or NVE capability",
       "chemistry benchmark or accuracy claim"
     ],
     "independent_promolecular_input": {
@@ -176,14 +175,14 @@
       "module": "maple.function.calculator.extra_correction.implicit.route2_v0_rism_energy_conjugate",
       "capability": "A source-SMEAR-matched periodic Coulomb operator and the audited short-range RISM reciprocal transform are composed into one full reciprocal direct correlation. Its short-range-plus-long-range scalar, derivative, and full HNC convolution agree exactly; Amber QV is converted only by its length unit and no fitted coefficient is introduced.",
       "source_boundary": "Only a Route2V0RismShortRangeReciprocalControl with its exact native SMEAR may enter, and the periodic grid and SMEAR must match exactly. A raw 1D-RISM Cvv table is never passed directly to the HNC or molecular projection.",
-      "not_a_physical_liquid_backend": "No complete frozen real-solvent asset, production-grid certification, MACE-native solvent short-range source, pressure correction, standard-state term, physical liquid result, force, total solvation free energy, or accuracy result is supplied."
+      "not_a_physical_liquid_backend": "No complete frozen real-solvent asset, production-grid certification, admitted MACE-cluster-to-liquid external-potential connector, pressure correction, standard-state term, physical liquid result, force, total solvation free energy, or accuracy result is supplied."
     },
     "frozen_solvent_asset_registry": {
       "module": "maple.function.calculator.extra_correction.implicit.route2_v0_solvent_asset",
       "capability": "A fail-closed manifest loader binds each solvent-side site-model source, 1D-RISM input, XVV, Cvv, thermodynamic output, short-range-interaction source, and provenance statement to a SHA-256 digest; it verifies the native bulk parser, temperature, declared Coulomb-tail residual, and explicit exclusion of MNSol, FreeSolv, development, confirmation, and blind target labels.",
       "inventory_artifact": "route2-v0-solvent-asset-inventory-v1.json",
       "current_inventory": "No physical 11-solvent asset is registered in this checkout. The local cSPC/E data remains a water-only bulk/parser control, not a target-solute liquid endpoint or a default water asset.",
-      "not_a_physical_liquid_backend": "The registry does not define the MACE-native short-range solute potential, map a production Cvv grid, minimize a molecular liquid functional, provide forces, or calculate a solvation free energy or accuracy score."
+      "not_a_physical_liquid_backend": "The registry does not define the MACE-native short-range solute potential or yet bind the MACE zero-field cluster external potential to a solvent molecular geometry or a cross-model liquid-reference convention, map a production Cvv grid, minimize a molecular liquid functional, provide forces, or calculate a solvation free energy or accuracy score."
     },
     "nonlocal_dielectric_electrostatic_control": {
       "module": "maple.function.calculator.extra_correction.implicit.route2_v0_nonlocal_dielectric",
@@ -191,6 +190,13 @@
       "custom_solvent_boundary": "A scalar dielectric constant or solvent name is rejected as a molecular solvent asset. A complete frozen finite-k response is still electrostatic-only until it is coupled through one declared molecular liquid functional.",
       "charged_branch_boundary": "A non-neutral source is rejected. A periodic background, finite-size correction, and ionic standard-state convention require a separate preregistration.",
       "not_a_physical_liquid_backend": "The control does not derive a density from MACE coefficients, define a cavity, short-range interaction, dispersion, molecular liquid-state minimization, force, or total solvation free energy or accuracy result."
+    },
+    "mace_zero_field_cluster_external_potential_control": {
+      "module": "maple.function.calculator.extra_correction.implicit.route2_v0_mace_cluster_external_potential",
+      "capability": "For one neutral singlet solute and one neutral singlet rigid solvent configuration, the exact zero-field official MACE-POLAR-1-M scalar E(cluster)-E(solute)-E(solvent) is evaluated under the frozen float64 molecular-real-space checkpoint contract. Its optional interaction force is the matching difference of the three zero-field MACE force fields. A named molecular-external-potential contract admits that whole vector, without an energy-changing adapter, to the existing exact ideal configuration scalar and projected molecular-site HNC scalar.",
+      "variational_boundary": "The MACE field-conditioned response density is never read. The cluster difference is a fixed scalar external potential for the stationary molecular-liquid equations; it must be used as one whole potential and must not be added to the older MACE-Gaussian-plus-Thomas-Fermi control.",
+      "source_boundary": "The control accepts only the content-addressed official MACE-POLAR-1-M checkpoint, mace-torch 0.3.16, the Route-2 float64 calculator profile, and the default molecular real-space evaluator. Both fragments must be neutral, singlet, and nonperiodic; charged and open-shell branches require separate preregistration.",
+      "not_a_physical_liquid_backend": "No frozen solvent-side Cvv/EOS/pressure asset is bound to this cross interaction, no 11-solvent liquid registry is admitted, no molecular HNC/MDFT minimization or thermodynamic standard-state term is performed, and no total solvation free energy, chemistry benchmark, or accuracy result is supplied."
     }
   }
 }

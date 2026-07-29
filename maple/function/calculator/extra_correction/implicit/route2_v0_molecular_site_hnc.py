@@ -37,7 +37,11 @@ import numpy as np
 
 from .route2_v0_molecular_external_potential import (
     Route2V0MolecularConfigurations,
-    Route2V0MolecularExternalPotential,
+    Route2V0MolecularSolventReference,
+)
+from .route2_v0_molecular_external_potential_contract import (
+    Route2V0MolecularExternalPotentialContract,
+    require_molecular_external_potential_values,
 )
 from .route2_v0_molecular_ideal_gas import (
     RIGID_MOLECULAR_ORIENTATION_MEASURE,
@@ -85,10 +89,12 @@ def _immutable_array(
 
 def _same_configurations(
     left: Route2V0MolecularConfigurations,
-    right: Route2V0MolecularConfigurations,
+    right: object,
 ) -> bool:
     """Return whether two configuration grids have exactly equal coordinates."""
 
+    if not isinstance(right, Route2V0MolecularConfigurations):
+        return False
     return bool(
         np.array_equal(left.translations_bohr, right.translations_bohr)
         and np.array_equal(left.rotations, right.rotations)
@@ -185,7 +191,7 @@ class Route2V0MolecularSiteProjection:
     """
 
     quadrature: Route2V0MolecularConfigurationQuadrature
-    external_potential: Route2V0MolecularExternalPotential
+    external_potential: Route2V0MolecularExternalPotentialContract
     site_hnc_asset: Route2V0SiteHNCAsset
     solvent_site_type_indices: np.ndarray
     site_occupancy_weights: np.ndarray
@@ -200,7 +206,10 @@ class Route2V0MolecularSiteProjection:
     def __post_init__(self) -> None:
         if not isinstance(self.quadrature, Route2V0MolecularConfigurationQuadrature):
             raise TypeError("Molecular site projection requires a quadrature.")
-        if not isinstance(self.external_potential, Route2V0MolecularExternalPotential):
+        if not isinstance(
+            self.external_potential,
+            Route2V0MolecularExternalPotentialContract,
+        ):
             raise TypeError("Molecular site projection requires an external potential.")
         if not isinstance(self.site_hnc_asset, Route2V0SiteHNCAsset):
             raise TypeError("Molecular site projection requires a site-HNC asset.")
@@ -208,25 +217,39 @@ class Route2V0MolecularSiteProjection:
             raise ValueError("Unsupported Route-2 molecular site-HNC construction.")
         if not _same_configurations(
             self.quadrature.configurations,
-            self.external_potential.configurations,
+            getattr(self.external_potential, "configurations", None),
         ):
             raise ValueError(
                 "Molecular site projection quadrature and external-potential "
                 "configurations differ."
             )
-        if not _same_grid(
-            self.external_potential.integration_grid, self.site_hnc_asset.grid
-        ):
+        external_grid = getattr(self.external_potential, "integration_grid", None)
+        if not isinstance(external_grid, RegularCartesianGrid):
+            raise TypeError(
+                "Molecular site projection external potential requires a regular "
+                "Cartesian integration grid."
+            )
+        if not _same_grid(external_grid, self.site_hnc_asset.grid):
             raise ValueError(
                 "Molecular site projection requires one shared external-potential "
                 "and site-HNC Cartesian grid."
             )
 
         site_count = self.site_hnc_asset.site_count
+        solvent = getattr(self.external_potential, "solvent", None)
+        if not isinstance(solvent, Route2V0MolecularSolventReference):
+            raise TypeError(
+                "Molecular site projection external potential requires a declared "
+                "molecular solvent reference."
+            )
+        require_molecular_external_potential_values(
+            self.external_potential,
+            configuration_count=self.quadrature.configuration_count,
+        )
         type_indices = _site_type_indices(
             self.solvent_site_type_indices,
             site_count=site_count,
-            solvent_site_count=self.external_potential.solvent.site_count,
+            solvent_site_count=solvent.site_count,
         )
         multiplicity = np.bincount(type_indices, minlength=site_count).astype(
             np.int64,

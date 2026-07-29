@@ -44,7 +44,10 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     foundation = protocol["implemented_foundation"]
     assert foundation["module"].endswith("route2_v0_structured_solvent")
     assert "MACE Gaussian l<=1 electrostatic potential" in foundation["capability"]
-    assert any("short-range" in item for item in foundation["not_implemented"])
+    assert any(
+        "MACE cluster external potential" in item
+        for item in foundation["not_implemented"]
+    )
     assert "chemistry benchmark or accuracy claim" in foundation["not_implemented"]
     promolecular = foundation["independent_promolecular_input"]
     assert promolecular["artifact"] == "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1"
@@ -75,6 +78,25 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "C1 but not C2" in molecular["smoothness_boundary"]
     assert "total solvation free energy" in molecular["not_a_physical_liquid_backend"]
     assert "accuracy result" in molecular["not_a_physical_liquid_backend"]
+    mace_cluster = foundation["mace_zero_field_cluster_external_potential_control"]
+    assert mace_cluster["module"].endswith("route2_v0_mace_cluster_external_potential")
+    assert "exact zero-field official MACE-POLAR-1-M scalar" in mace_cluster[
+        "capability"
+    ]
+    assert "named molecular-external-potential contract" in mace_cluster[
+        "capability"
+    ]
+    assert "field-conditioned response density is never read" in mace_cluster[
+        "variational_boundary"
+    ]
+    assert "must not be added" in mace_cluster["variational_boundary"]
+    assert "content-addressed official MACE-POLAR-1-M checkpoint" in mace_cluster[
+        "source_boundary"
+    ]
+    assert "neutral, singlet, and nonperiodic" in mace_cluster["source_boundary"]
+    assert "total solvation free energy" in mace_cluster[
+        "not_a_physical_liquid_backend"
+    ]
     ideal_gas = foundation["molecular_ideal_gas_variational_control"]
     assert ideal_gas["module"].endswith("route2_v0_molecular_ideal_gas")
     assert "8*pi^2 orientation measure" in ideal_gas["capability"]
@@ -186,7 +208,11 @@ def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_on
     assert "Amber QV is converted only by its length unit" in rism_kernel["capability"]
     assert "must match exactly" in rism_kernel["source_boundary"]
     assert "never passed directly" in rism_kernel["source_boundary"]
+    assert "MACE-cluster-to-liquid external-potential connector" in rism_kernel[
+        "not_a_physical_liquid_backend"
+    ]
     assert "total solvation free energy" in rism_kernel[
         "not_a_physical_liquid_backend"
     ]
     assert any("energy-conjugate RISM periodic-kernel assembly" in item for item in validation)
+    assert any("zero-field MACE cluster external-potential control" in item for item in validation)

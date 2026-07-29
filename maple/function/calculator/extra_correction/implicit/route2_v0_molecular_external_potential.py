@@ -30,6 +30,9 @@ from ase.units import Bohr
 
 from .gto_density import gaussian_multipole_potential
 from .route2_v0_frozen_density_embedding import Route2V0FrozenDensityPauliOverlap
+from .route2_v0_molecular_external_potential_contract import (
+    Route2V0MolecularExternalPotentialContract,
+)
 from .route2_v0_promolecular_density import Route2V0PromolecularDensityTable
 from .route2_v0_structured_solvent import RegularCartesianGrid
 
@@ -328,7 +331,7 @@ class Route2V0FrozenMaceGaussianSource:
 
 
 @dataclass(frozen=True)
-class Route2V0MolecularExternalPotential:
+class Route2V0MolecularExternalPotential(Route2V0MolecularExternalPotentialContract):
     """One molecular external-potential evaluation with an explicit source split.
 
     ``pauli_repulsion_hartree`` is the exact discrete Thomas--Fermi

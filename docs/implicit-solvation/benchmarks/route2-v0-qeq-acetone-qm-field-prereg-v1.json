@@ -1,0 +1,90 @@
+{
+  "protocol_id": "route2-v0-qeq-acetone-qm-field-prereg-v1",
+  "schema_version": 1,
+  "status": "frozen-before-execution",
+  "claim_boundary": "This protocol compares one frozen no-training QEq-monopole gas response with an independent fixed-geometry QM finite-field polarizability. It is not a solvation benchmark and cannot certify a nonpolar functional, total solvation accuracy, forces, PES, optimization, scans, MD, NVE, or a public profile.",
+  "hard_constraints": {
+    "official_mace_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "qeq_response_rescaling": false,
+    "response_tempering_or_eigenvalue_clipping": false,
+    "field_or_tolerance_selection_after_execution": false,
+    "legacy_public_route_changed": false
+  },
+  "qm_method": {
+    "electronic_structure": "omegaB97M-V",
+    "pyscf_xc_token": "wb97m-v",
+    "basis": "def2-tzvpd",
+    "reference": "RKS",
+    "density_fitting": true,
+    "charge": 0,
+    "spin": 0,
+    "semilocal_grid_level": 3,
+    "nonlocal_grid_profile": "50x194-SG1",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "maximum_scf_cycles": 100
+  },
+  "finite_field_protocol": {
+    "field_units": "Hartree per e Bohr",
+    "field_steps_au": [
+      0.0003,
+      0.001
+    ],
+    "directions": [
+      "x",
+      "y",
+      "z"
+    ],
+    "signs": [
+      -1,
+      1
+    ],
+    "dipole_formula": "mu=sum_A Z_A R_A-Tr[P r] in e Bohr",
+    "energy_field_term": "electronic h_core += E dot r and nuclear energy += -E dot sum_A Z_A R_A",
+    "tensor_from_dipole": "alpha_ij=[mu_i(+h e_j)-mu_i(-h e_j)]/(2h)",
+    "diagonal_from_energy": "alpha_jj=-[E(+h e_j)+E(-h e_j)-2E(0)]/h^2",
+    "selected_reporting_step_au": 0.0003
+  },
+  "numerical_gates": {
+    "qm_antisymmetry_relative_frobenius_max": 0.02,
+    "energy_dipole_diagonal_relative_max": 0.02,
+    "field_step_consistency_relative_frobenius_max": 0.02,
+    "qm_minimum_eigenvalue_bohr3_min": -0.01,
+    "qeq_charge_constraint_residual_e_max": 1e-10,
+    "qeq_stationarity_residual_hartree_per_e_max": 1e-10
+  },
+  "scientific_falsification_gates": {
+    "relative_frobenius_mismatch_max": 0.2,
+    "trace_ratio_min": 0.8,
+    "trace_ratio_max": 1.2,
+    "principal_value_relative_max": 0.3,
+    "interpretation": "These are pre-execution rejection gates for gross gas-response error, not a claim of chemical or solvation accuracy. Passing still requires broader QM density, molecular diversity, PCM-component, force, and blind-solvation gates."
+  },
+  "decision_rule": "If a QM numerical gate fails, the comparison is invalid. If any scientific falsification gate fails, reject this fixed published-hardness QEq-monopole curvature. Do not rescale it, change its hardnesses, choose another field step, add an error correction, fine-tune MACE, or select a cavity from the result. A replacement physical functional requires a new literature-backed preregistration.",
+  "execution_contract": {
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_qeq_acetone_qm_field.py": "df0d6f646a94285a6e9660eb253ccbe20273ef90862b98ee24361b5d00b28c7e",
+      "docs/implicit-solvation/benchmarks/route2_v0_qm_finite_field.py": "fd336057bdfe950d06b9af9a40243f19b939278170f694e6753c91f23b1a4342",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_qeq_gas_response.py": "bb7155648ae710899453a4d5d4b6c59e3d1daec60bc4e33cd90d4f4e4077dce5",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_qeq_monopole.py": "9baa4bd1e2d213e667027973a241ee194644eb8a3bf7f6a9a54ce4ed1912fe60",
+      "maple/function/calculator/extra_correction/charge/data/qeq.dat": "5d2b405b78dd59b95da89b69fb10b409bcb3f0f85921fc8cc4a67dd2aba8a618"
+    },
+    "input_sha256": {
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/route2-state.npz": "68b7f77c66d51f7c48cde12be9117622848493ef9606d645b8bffc01ae106c30",
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/route2-result.json": "67b4c6b4bbed20d9bd9297cf580edfc0305ca56461934067079c225d2fd4e14b",
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/manifest.json": "1547a0d1a8edb9490828754aa7ff944990e98d90f538da345fc50980de87229b"
+    },
+    "runtime": {
+      "pyscf_version": "2.13.1",
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+      "threads": 8,
+      "max_memory_mb": 8000
+    }
+  }
+}

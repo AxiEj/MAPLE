@@ -1,0 +1,81 @@
+{
+  "protocol_id": "route2-v0-promolecular-atomic-hf-def2-tzvpd-v1-prereg",
+  "schema_version": 1,
+  "status": "frozen-before-asset-generation",
+  "claim_boundary": "This preregistration freezes an independently generated positive free-atom promolecular reference-density source for the Route-2 V0-FD-S short-range channel. It is not an all-electron MACE density, a fitted cavity, a solvent interaction, a liquid functional, a solvation calculation, a force/PES result, or an accuracy claim.",
+  "generation_contract": {
+    "method": "PySCF AtomSphAverageRHF",
+    "pyscf_version": "2.13.1",
+    "basis": "def2-TZVPD",
+    "radial_grid": {
+      "coordinate_rule": "r_max * (i / (n - 1))**2",
+      "point_count": 2049,
+      "radius_max_bohr": 30.0
+    },
+    "elements": [
+      {
+        "symbol": "H",
+        "atomic_number": 1,
+        "neutral_electron_count": 1,
+        "spin_2s": 1
+      },
+      {
+        "symbol": "C",
+        "atomic_number": 6,
+        "neutral_electron_count": 6,
+        "spin_2s": 2
+      },
+      {
+        "symbol": "N",
+        "atomic_number": 7,
+        "neutral_electron_count": 7,
+        "spin_2s": 3
+      },
+      {
+        "symbol": "O",
+        "atomic_number": 8,
+        "neutral_electron_count": 8,
+        "spin_2s": 2
+      },
+      {
+        "symbol": "S",
+        "atomic_number": 16,
+        "neutral_electron_count": 16,
+        "spin_2s": 2
+      },
+      {
+        "symbol": "Cl",
+        "atomic_number": 17,
+        "neutral_electron_count": 17,
+        "spin_2s": 1
+      }
+    ],
+    "validation_gates": {
+      "scf_convergence_tolerance_hartree": 1e-12,
+      "electron_count_absolute_error_max": 1e-8,
+      "spherical_probe_radius_bohr": 2.0,
+      "spherical_probe_maximum_difference_max": 1e-12,
+      "radial_tail_density_max_e_per_bohr3": 1e-20
+    }
+  },
+  "hard_constraints": {
+    "mace_density_relabelled_as_electron_density": false,
+    "mace_density_absolute_value_or_clipping": false,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "target_record_or_error_selected_parameter": false,
+    "public_route_changed": false
+  },
+  "declared_use": {
+    "electrostatic_channel": "Only the unmodified MACE Gaussian source provides solute electrostatics.",
+    "short_range_channel": "The positive promolecular density may later be used only as an independently sourced input to a separately admitted short-range functional.",
+    "element_domain": "H, C, N, O, S, and Cl cover the declared chemistry of the eleven registered default solvents. Other elements and ionic reference states fail closed until separately preregistered.",
+    "scope_limit": "The asset is not a total solvent model and cannot be combined with a hand-chosen overlap coefficient, SMD-CDS, GAFF/AM1-BCC substitution, or a benchmark-selected correction."
+  },
+  "source_sha256": {
+    "docs/implicit-solvation/benchmarks/generate_route2_v0_promolecular_density.py": "1053273260bc08102123f6f749e357393f20d4aaa06e69df70530a70d382d22e"
+  },
+  "decision_rule": "A failed SCF, negative density sample, electron-count normalization failure, spherical-average failure, radial-tail failure, source hash mismatch, or provenance violation rejects the asset. Passing the asset gates says only that a positive independent reference density is available; it does not admit a short-range functional or any solvation score."
+}

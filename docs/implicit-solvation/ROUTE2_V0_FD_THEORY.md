@@ -349,6 +349,37 @@ requiring declared solute--solvent Lennard-Jones inputs for the short-range
 interaction.  Direct density electrostatics does not make short-range
 repulsion/dispersion disappear.
 
+#### 4.2.4 Independent promolecular reference-density pre-registration
+
+The next required input is not an absolute value, clipping, or reinterpretation
+of the signed MACE coefficients.  It is a separately generated positive
+promolecular reference density,
+
+\[
+n_{\mathrm{ref}}(\mathbf r;\mathbf R)
+=\sum_a n^{\mathrm{atom}}_{Z_a}(|\mathbf r-\mathbf R_a|),
+\qquad n^{\mathrm{atom}}_{Z_a}\geq0,
+\]
+
+which may later enter only a separately admitted short-range coupling
+functional.  In particular, \(n_{\mathrm{ref}}\) never replaces
+\(\phi^G_{c_0}\) in the electrostatic channel.
+
+[`route2-v0-promolecular-atomic-hf-def2-tzvpd-prereg-v1.json`](benchmarks/route2-v0-promolecular-atomic-hf-def2-tzvpd-prereg-v1.json)
+freezes a spherically averaged isolated-atom HF/def2-TZVPD construction for
+H, C, N, O, S, and Cl: the elements required by the eleven registered default
+solvents.  Isolated-atom superpositions are the conventional definition of a
+promolecular density, but they are a reference input rather than a claim that
+the molecular density is spherical or that its short-range interaction has
+already been determined.  The generator must demonstrate nonnegativity,
+radial normalization to each neutral atom's electron count, spherical
+symmetry, and a negligible frozen radial tail before the table is admitted.
+
+The resulting table is still not a density-overlap free-energy model.  A
+hand-chosen overlap coefficient would be a new empirical potential, and is
+not admitted.  The next physical decision is the coupling functional itself,
+not a numerical rescaling of this reference density.
+
 ### 4.3 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-
@@ -439,3 +470,12 @@ substitute for these gates.
     It documents density-based electrostatic coupling together with separate
     short-range Lennard-Jones inputs, motivating the explicit source split
     retained here.
+11. PySCF developers, *Atomic Hartree--Fock module*,
+    [PySCF API documentation](https://pyscf.org/pyscf_api_docs/pyscf.scf.html).
+    `AtomSphAverageRHF` supplies the declared spherical fractional-occupation
+    isolated-atom construction used solely for the frozen reference table.
+12. T. A. Manz and D. S. Sholl, *Polarized Protein-Specific Charges from
+    Atoms-in-Molecule Electron Density Partitioning*,
+    [PMC3719162](https://pmc.ncbi.nlm.nih.gov/articles/PMC3719162/).  It
+    describes the promolecular density as a superposition of reference atomic
+    densities; that convention does not make it an actual molecular density.

@@ -179,6 +179,57 @@ def test_molecular_site_hnc_gradient_is_the_derivative_of_the_projected_scalar()
     assert state.residual_inf < 1.0e-11
 
 
+def test_molecular_site_hnc_hessian_is_self_adjoint_and_the_scalar_second_derivative():
+    direct = np.zeros((1, 1, 2, 1, 1))
+    direct[0, 0, :, 0, 0] = np.array([0.03, 0.03])
+    functional = _functional(direct_correlation=direct)
+    bulk = functional.projection.uniform_configuration_density_bohr3
+    density = bulk * np.array([1.2, 0.8])
+    left_direction = bulk * np.array([0.25, -0.1])
+    right_direction = bulk * np.array([-0.15, 0.2])
+    hessian_left = functional.dimensionless_hessian_matvec(
+        density,
+        left_direction,
+    )
+    hessian_right = functional.dimensionless_hessian_matvec(
+        density,
+        right_direction,
+    )
+    weights = functional.projection.quadrature.phase_space_weights_bohr3
+
+    left_pairing = np.sum(weights * left_direction * hessian_right)
+    right_pairing = np.sum(weights * right_direction * hessian_left)
+    assert left_pairing == pytest.approx(right_pairing, rel=2.0e-13, abs=2.0e-15)
+
+    step = 5.0e-3
+    scalar_second_derivative = (
+        functional.grand_potential_hartree(density + step * left_direction)
+        - 2.0 * functional.grand_potential_hartree(density)
+        + functional.grand_potential_hartree(density - step * left_direction)
+    ) / step**2
+    hessian_quadratic = functional.hessian_quadratic_hartree(
+        density,
+        left_direction,
+    )
+    assert scalar_second_derivative == pytest.approx(
+        hessian_quadratic,
+        rel=2.0e-6,
+        abs=3.0e-14,
+    )
+
+    gradient_step = 1.0e-5
+    gradient_derivative = (
+        functional.dimensionless_gradient(density + gradient_step * left_direction)
+        - functional.dimensionless_gradient(density - gradient_step * left_direction)
+    ) / (2.0 * gradient_step)
+    np.testing.assert_allclose(
+        gradient_derivative,
+        hessian_left,
+        rtol=3.0e-9,
+        atol=3.0e-13,
+    )
+
+
 def test_molecular_site_hnc_rejects_inconsistent_measure_or_occupancy_and_bad_iterations():
     external = _external_potential()
     grid = external.integration_grid

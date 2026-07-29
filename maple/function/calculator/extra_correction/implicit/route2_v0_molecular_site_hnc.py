@@ -383,6 +383,15 @@ class Route2V0MolecularSiteProjection:
             positive=True,
         )
 
+    def _configuration_direction(self, values: np.ndarray) -> np.ndarray:
+        """Validate one signed configuration-density tangent direction."""
+
+        return _immutable_array(
+            values,
+            name="Molecular configuration-density direction",
+            shape=(self.quadrature.configuration_count,),
+        )
+
     def _site_field(self, values: np.ndarray, *, name: str) -> np.ndarray:
         return _immutable_array(
             values,
@@ -410,6 +419,34 @@ class Route2V0MolecularSiteProjection:
                 occupancy,
                 self.quadrature.phase_space_weights_bohr3,
                 density,
+                optimize=True,
+            )
+            / self.site_hnc_asset.grid.volume_element_bohr3
+        ).reshape((self.site_hnc_asset.site_count, *self.site_hnc_asset.grid.shape))
+        result = np.array(projected, dtype=float, copy=True)
+        result.setflags(write=False)
+        return result
+
+    def project_configuration_direction(
+        self,
+        configuration_density_direction_bohr3: np.ndarray,
+    ) -> np.ndarray:
+        """Project one signed density tangent through the fixed linear map."""
+
+        direction = self._configuration_direction(configuration_density_direction_bohr3)
+        occupancy = self.site_occupancy_weights.reshape(
+            (
+                self.site_hnc_asset.site_count,
+                self.site_hnc_asset.grid.point_count,
+                self.quadrature.configuration_count,
+            )
+        )
+        projected = (
+            np.einsum(
+                "agi,i,i->ag",
+                occupancy,
+                self.quadrature.phase_space_weights_bohr3,
+                direction,
                 optimize=True,
             )
             / self.site_hnc_asset.grid.volume_element_bohr3
@@ -543,6 +580,9 @@ class Route2V0MolecularSiteHNCFunctional:
     def _density(self, values: np.ndarray) -> np.ndarray:
         return self.projection._configuration_density(values)
 
+    def _direction(self, values: np.ndarray) -> np.ndarray:
+        return self.projection._configuration_direction(values)
+
     def projected_site_density(
         self,
         configuration_density_bohr3: np.ndarray,
@@ -584,6 +624,60 @@ class Route2V0MolecularSiteHNCFunctional:
         result = np.array(gradient, dtype=float, copy=True)
         result.setflags(write=False)
         return result
+
+    def dimensionless_hessian_matvec(
+        self,
+        configuration_density_bohr3: np.ndarray,
+        direction_bohr3: np.ndarray,
+    ) -> np.ndarray:
+        """Return the exact dimensionless HNC Hessian action.
+
+        For a signed configuration-density direction ``d``, the derivative of
+        ``beta * delta Omega / delta nu`` is
+
+        ``d / nu - P^T C P d``.
+
+        The fixed occupancy map and reciprocal direct-correlation symmetry make
+        this action self-adjoint in the molecular quadrature pairing.  It is a
+        stability diagnostic for a stationary scalar, not a fitted response
+        model or an unconstrained claim of positive definiteness.
+        """
+
+        density = self._density(configuration_density_bohr3)
+        direction = self._direction(direction_bohr3)
+        projected_direction = self.projection.project_configuration_direction(direction)
+        correlation = self.convolve_direct_correlation(projected_direction)
+        action = direction / density
+        action -= self.projection.site_field_adjoint_dimensionless(correlation)
+        result = np.array(action, dtype=float, copy=True)
+        result.setflags(write=False)
+        return result
+
+    def hessian_quadratic_hartree(
+        self,
+        configuration_density_bohr3: np.ndarray,
+        direction_bohr3: np.ndarray,
+    ) -> float:
+        """Return ``d^2 Omega[nu](direction, direction)`` in Hartree."""
+
+        direction = self._direction(direction_bohr3)
+        action = self.dimensionless_hessian_matvec(
+            configuration_density_bohr3,
+            direction,
+        )
+        value = float(
+            self.projection.site_hnc_asset.kbt_hartree
+            * np.sum(
+                self.projection.quadrature.phase_space_weights_bohr3
+                * direction
+                * action
+            )
+        )
+        if not math.isfinite(value):
+            raise RuntimeError(
+                "Molecular site-HNC Hessian quadratic form is non-finite."
+            )
+        return value
 
     def energy_components(
         self,

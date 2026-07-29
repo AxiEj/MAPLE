@@ -110,6 +110,9 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert molecular_hnc["module"].endswith("route2_v0_molecular_site_hnc")
     assert "periodic-cell times 8*pi^2 measure" in molecular_hnc["capability"]
     assert "projection adjoint" in molecular_hnc["capability"]
+    assert "quadrature-self-adjoint HNC Hessian-vector product" in molecular_hnc[
+        "capability"
+    ]
     assert "exactly equal" in molecular_hnc["source_boundary"]
     assert "raw 1D-RISM Cvv table is rejected" in molecular_hnc["source_boundary"]
     assert "total solvation free energy" in molecular_hnc[

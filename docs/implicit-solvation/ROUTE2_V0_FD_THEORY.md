@@ -991,6 +991,27 @@ Its exact dimensionless configuration derivative is
 -\sum_{ag}A_{agi}\left(c*\delta n\right)_{ag}.
 \]
 
+The same scalar fixes the local stability operator.  For a signed molecular
+configuration-density tangent \(d\),
+
+\[
+(\mathcal H_{\nu}d)_i
+=\frac{d_i}{\nu_i}
+-\left[P^T C_{\mathrm{RISM}}P d\right]_i,
+\qquad
+\delta^2\Omega[d,d]
+=k_BT\sum_i w_i d_i(\mathcal H_{\nu}d)_i.
+\]
+
+Reciprocity of the fixed occupancy adjoint and of the RISM kernel gives
+\(\sum_iw_i a_i(\mathcal H_\nu b)_i=\sum_iw_i b_i(\mathcal H_\nu a)_i\).  Therefore a
+converged HNC residual is admitted as a stable liquid state only after the
+relevant allowed tangent space has positive quadratic form; a Picard spectral
+radius or mixing factor is not a thermodynamic stability criterion.
+`route2_v0_molecular_site_hnc.py` exposes the Hessian-vector product and the
+quadratic form, and locks their finite-difference scalar and reciprocity
+identities.  It does not add a fitted response term.
+
 Thus a numerical Picard factor can only accelerate the update; it cannot
 alter the stationary equation or be selected from solvation errors.
 `route2_v0_molecular_site_hnc.py` locks the common Cartesian grid, exact

@@ -260,14 +260,6 @@ def _normalize_forbidden_tasks(raw: object) -> tuple[str, ...]:
     return tuple(sorted(normalized))
 
 
-def _capability_enables_task(capabilities: ModelCapabilities, task: str) -> bool:
-    try:
-        capabilities.validate_task(task)
-    except ValueError:
-        return False
-    return True
-
-
 @dataclass(frozen=True)
 class ModelProvenanceCard:
     """Structured model metadata used for scientific capability checks."""
@@ -290,22 +282,13 @@ class ModelProvenanceCard:
         if not model_id:
             raise ModelCardError("Model card model_id cannot be empty.")
         version = str(payload.get("version", "unknown")).strip() or "unknown"
-        card = cls(
+        return cls(
             model_id=model_id,
             version=version,
             capabilities=ModelCapabilities.from_payload(payload),
             payload=dict(payload),
             forbidden_tasks=_normalize_forbidden_tasks(payload.get("forbidden_tasks")),
         )
-        card._validate_consistency()
-        return card
-
-    def _validate_consistency(self) -> None:
-        # `forbidden_tasks` is an explicit runtime authority layer. A card may
-        # advertise broad model capabilities while still failing closed for
-        # route-specific tasks such as certified frequency, MD, or free-energy
-        # workflows.
-        return None
 
     def validate_task(self, task: str) -> None:
         normalized = _normalize_task_name(task)

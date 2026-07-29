@@ -55,6 +55,11 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "synthetic-only periodic multi-site HNC" in hnc["capability"]
     assert "MACE Gaussian grid potential" in hnc["mace_coupling_boundary"]
     assert "No frozen physical direct correlations" in hnc["not_a_physical_solvent_asset"]
+    rism = foundation["rism_bulk_direct_correlation_parser"]
+    assert rism["module"].endswith("route2_v0_rism_bulk")
+    assert "bulk-only 1D-RISM XVV metadata" in rism["capability"]
+    assert rism["control_artifact"] == "route2-v0-rism1d-cspce-bulk-control-v1.json"
+    assert "cannot be wrapped" in rism["not_a_cartesian_liquid_backend"]
 
 
 def test_structured_solvent_admission_preserves_the_mace_source_boundary():
@@ -87,6 +92,11 @@ def test_structured_solvent_admission_requires_a_frozen_liquid_asset_and_review(
     assert "thermodynamic pressure correction" in liquid["pressure_correction"]
     assert "diagnostic-only" in liquid["pc_plus_policy"]
     assert "discrete energy/derivative control only" in liquid["reference_kernel"]
+    assert "matching input/model provenance" in liquid["rism_bulk_correlation_asset"]
+    assert "multiplicity-weighted neutral" in liquid["rism_bulk_correlation_asset"]
+    assert (
+        "forbidden from a finite Cartesian FFT" in liquid["rism_bulk_correlation_asset"]
+    )
     assert solvent["minimum_registered_solvent_count"] == 11
     assert len(solvent["registered_default_solvents"]) == 11
     assert "methanol" in solvent["registered_default_solvents"]

@@ -11,7 +11,7 @@
     "solute_solvent_potential": "u_alpha,s(r) = z_alpha,s phi_c0^G(r) + u_alpha,s^sr[n_ref](r).",
     "liquid_state": "For an admitted physical backend, the solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
     "primary_free_energy": "The declared KH/MDFT excess-free-energy functional plus a thermodynamic pressure correction derived from the same frozen bulk asset and a declared standard-state correction.",
-    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, and a synthetic-only reciprocal site-HNC scalar/solver using synthetic assets; no short-range interaction, physical solvent asset, physical liquid free energy, force, or benchmark score."
+    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, synthetic-only reciprocal site-HNC scalar/solver, and a bulk-only 1D-RISM direct-correlation parser with an analytic Coulomb-tail split; no short-range interaction, frozen physical multisolvent asset registry, physical liquid free energy, force, or benchmark score."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -44,7 +44,8 @@
     "pressure_correction": "primary: thermodynamic pressure correction derived from the same bulk liquid functional; pressure, partial molar volume, sign convention, and standard state are versioned with the solvent asset.",
     "pc_plus_policy": "diagnostic-only; it cannot be selected from target solvation errors or mixed into the primary result.",
     "custom_solvent_policy": "fail closed for total free energy unless the complete molecular solvent asset is supplied before any target-solute result is inspected.",
-    "reference_kernel": "The synthetic reciprocal site-HNC scalar is a discrete energy/derivative control only. It cannot be promoted to a physical liquid model without a frozen source-provenanced solvent asset, a declared short-range potential, and a pre-registered free-energy and pressure convention."
+    "reference_kernel": "The synthetic reciprocal site-HNC scalar is a discrete energy/derivative control only. It cannot be promoted to a physical liquid model without a frozen source-provenanced solvent asset, a declared short-range potential, and a pre-registered free-energy and pressure convention.",
+    "rism_bulk_correlation_asset": "A physical neutral 1D-RISM asset requires matching input/model provenance plus .xvv, .cvv, and thermodynamic output. XVV site multiplicities and QV charges must be multiplicity-weighted neutral. The raw direct correlation must preserve the native QV Coulomb-tail split; raw cvv data is forbidden from a finite Cartesian FFT until a pre-registered energy-conjugate Ewald or Poisson operator exists."
   },
   "solvent_asset_contract": {
     "registered_default_solvents": [
@@ -83,6 +84,7 @@
     "Validate the Gaussian MACE source against analytic values and verify that the grid-potential adapter consumes it without a charge/Lennard-Jones fallback.",
     "Validate the nonnegative short-range reference-density provenance and prove that it cannot overwrite the MACE electrostatic source.",
     "Validate the synthetic reciprocal site-HNC scalar, finite-difference derivative, and ideal-gas stationarity before any physical solvent asset is admitted.",
+    "Validate a bulk-only 1D-RISM .xvv/.cvv asset, exact site-pair coverage, the native Coulomb-tail residual, and the no-origin-imputation rule before a physical liquid backend is admitted.",
     "Validate the molecular liquid residual, closure convention, free-energy differential/thermodynamic identity, charge/gauge behavior, and grid convergence before reading target solvation labels.",
     "Freeze all solvent assets, all method conventions, and the 11-solvent development manifest before chemistry scoring.",
     "Require the per-record development, confirmation, and external-blind gates without parameter or method changes.",
@@ -96,6 +98,8 @@
     "not_implemented": [
       "promolecular-density coupling into a solute-solvent short-range potential",
       "solute-solvent short-range potential",
+      "frozen physical multisolvent bulk-asset registry",
+      "energy-conjugate periodic Coulomb/Ewald or Poisson operator for a raw RISM direct-correlation tail",
       "physical MDFT or 3D-RISM liquid-state minimization using a frozen real solvent asset",
       "physical excess chemical potential or thermodynamic pressure correction",
       "force, PES, optimization, scan, MD, or NVE capability",
@@ -111,6 +115,12 @@
       "capability": "A synthetic-only periodic multi-site HNC grand-potential scalar accepts a reciprocal direct-correlation array, exposes the derivative of that scalar, and verifies the ideal-gas stationary limit and finite-difference consistency.",
       "mace_coupling_boundary": "The MACE Gaussian grid potential can supply only the electrostatic site-energy summand; no charge, Lennard-Jones, or short-range substitute is synthesized.",
       "not_a_physical_solvent_asset": "No frozen physical direct correlations, site model, short-range coupling, pressure convention, standard-state term, force, or chemistry score is supplied."
+    },
+    "rism_bulk_direct_correlation_parser": {
+      "module": "maple.function.calculator.extra_correction.implicit.route2_v0_rism_bulk",
+      "capability": "Parses matching bulk-only 1D-RISM XVV metadata and Cvv site-pair direct correlations, requires the declared radial grid and site reciprocity, and exposes the strictly positive-radius short-range remainder after the analytic native-QV Coulomb split.",
+      "control_artifact": "route2-v0-rism1d-cspce-bulk-control-v1.json",
+      "not_a_cartesian_liquid_backend": "The raw direct-correlation tail cannot be wrapped, truncated, or origin-imputed on the HNC Cartesian grid. No physical multisolvent asset is registered."
     }
   }
 }

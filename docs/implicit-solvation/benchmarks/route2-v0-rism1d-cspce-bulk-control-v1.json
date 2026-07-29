@@ -1,0 +1,81 @@
+{
+  "protocol_id": "route2-v0-rism1d-cspce-bulk-control-v1",
+  "schema_version": 1,
+  "status": "bulk-only-parser-control-not-a-physical-route2-solvent-asset",
+  "claim_boundary": "This records a source-bound cSPC/E 1D-RISM bulk-data control used to verify the Route-2 V0 parser and analytic Coulomb-tail split. It is not a MACE-coupled 3D-RISM calculation, not a physical Route-2 solvent endpoint, not a multisolvent asset registry, and not a solvation-energy or accuracy result.",
+  "generator": {
+    "solver": "AmberTools 26.0 conda-forge cuda_None_nompi_py311h232f31e_100",
+    "binary": "/home/axie/miniconda3/envs/maple-ambertools/bin/rism1d",
+    "source_model": "cSPC/E model distributed with the installed AmberTools rism1d data",
+    "input_mode": "bulk-only 1D-RISM; no solute PDB, prmtop, solute charge, or solute Lennard-Jones input",
+    "parameters": {
+      "theory": "DRISM",
+      "closure": "PSE3",
+      "temperature_kelvin": 298.0,
+      "dielectric_constant": 78.497,
+      "molecular_density_molar": 55.345,
+      "radial_point_count": 16384,
+      "radial_spacing_angstrom": 0.025,
+      "residual_tolerance": 1e-12,
+      "observed_final_residual": 5.288642389482695e-13
+    },
+    "command": "rism1d cspce, with OUTLIST='xc' and the frozen cSPCE.inp/cSPCE.mdl pair"
+  },
+  "source_files": {
+    "cspce_inp_sha256": "7f6d9df63d0c6e83aa71ea3862d6490cdcfb9540fd3fd3e77fb86f1b78cccb97",
+    "cspce_mdl_sha256": "bbb50363d96bb8a377840d9e355995b3a76e55e178c8a24e46b4b43c92a31ddd",
+    "generated_xvv_sha256": "ad273812861647190b1b083d77024302dd446a5290dd55a7954f33a60785d954",
+    "generated_cvv_sha256": "4d6d2c497c50bf6df5a563c701ad38905350852836f522dd03ad8b614bb3b1ac",
+    "generated_self_test_sha256": "009fb5d4e1bee325fb8fe8022d247a4b099ec5aaff1bea286d42574d129775b3"
+  },
+  "parsed_bulk_state": {
+    "site_names": [
+      "O",
+      "H1"
+    ],
+    "site_count": 2,
+    "xvv_version_stamp": "V0001.001",
+    "site_number_density_angstrom3": [
+      0.03332951556615,
+      0.0666590311323
+    ],
+    "qv_units": "sqrt(kT Angstrom)",
+    "positive_radius_range_angstrom_after_split": [
+      0.025,
+      409.575
+    ],
+    "raw_cvv_shape": [
+      2,
+      2,
+      16384
+    ],
+    "observed_max_coulomb_tail_residual_at_r_ge_400_angstrom": 4.984504364813347e-09,
+    "site_multiplicity": [
+      1,
+      2
+    ]
+  },
+  "mathematical_boundary": {
+    "raw_direct_correlation": "c_ab^raw(r) = c_ab^sr(r) - q_a^QV q_b^QV / r for r > 0 in the native RISM convention",
+    "origin_policy": "The r=0 raw table sample is excluded from c_sr. No interpolation or clipping may invent the singular Coulomb split at the origin.",
+    "cartesian_policy": "A raw cvv table cannot enter the finite Cartesian HNC FFT. A future energy-conjugate periodic Coulomb/Ewald or Poisson operator must be pre-registered and pass scalar/gradient, gauge, and grid-refinement gates first.",
+    "current_parser_module": "maple.function.calculator.extra_correction.implicit.route2_v0_rism_bulk"
+  },
+  "hard_constraints": {
+    "target_solvation_labels_read_before_control": false,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "solute_gaff_or_am1bcc_substitution": false,
+    "raw_cvv_fft_interpolation": false,
+    "coulomb_origin_imputation": false
+  },
+  "not_claimed": [
+    "eleven-solvent physical asset coverage",
+    "MACE-source 3D-RISM or MDFT solve",
+    "short-range solute-solvent potential",
+    "KH/MDFT excess chemical potential or pressure correction",
+    "force, PES, optimization, scan, MD, or NVE capability",
+    "solvation-energy, MAE, or all-record accuracy result"
+  ]
+}

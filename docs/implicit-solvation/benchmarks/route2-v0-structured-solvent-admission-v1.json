@@ -11,7 +11,7 @@
     "solute_solvent_potential": "u_alpha,s(r) = z_alpha,s phi_c0^G(r) + u_alpha,s^sr[n_ref](r).",
     "liquid_state": "For an admitted physical backend, the solvent site densities are the sole variational state of a declared MDFT or MACE-native-potential 3D-RISM liquid functional.",
     "primary_free_energy": "The declared KH/MDFT excess-free-energy functional plus a thermodynamic pressure correction derived from the same frozen bulk asset and a declared standard-state correction.",
-    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, synthetic-only reciprocal site-HNC scalar/solver, a bulk-only 1D-RISM direct-correlation parser with a source-SMEAR analytic Coulomb split, a neutral periodic Poisson scalar/derivative control for that long-range term, a small-grid radial-to-reciprocal short-range transform control, and a fail-closed content-addressed solvent-asset registry schema; no short-range solute interaction, frozen physical multisolvent asset contents, physical liquid free energy, force, or benchmark score."
+    "current_kernel_scope": "MACE Gaussian electrostatic grid source, independent promolecular reference-density table, synthetic-only reciprocal site-HNC scalar/solver, a bulk-only 1D-RISM direct-correlation parser with a source-SMEAR analytic Coulomb split, a neutral periodic Poisson scalar/derivative control for that long-range term, a small-grid radial-to-reciprocal short-range transform control, a fixed-neutral-density nonlocal-dielectric reaction scalar/derivative control requiring a full real-even passive Fourier spectrum, and a fail-closed content-addressed solvent-asset registry schema; no short-range solute interaction, frozen physical multisolvent asset contents, physical liquid free energy, force, or benchmark score."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -72,7 +72,8 @@
     ],
     "custom_solvent_rule": "A dielectric constant, solvent name, or Gaussian-like descriptor alone is insufficient. Missing any required asset rejects total-free-energy execution while allowing only a clearly labelled electrostatics diagnostic.",
     "registry_protocol": "route2-v0-frozen-solvent-asset-v1: each asset manifest must hash-lock the site-model source, bulk 1D-RISM input, XVV, Cvv, thermodynamic output, short-range-interaction source, and provenance statement; it also records temperature, pressure, closure, standard state, pressure/partial-molar-volume definitions, sign convention, a pre-registered Coulomb-tail gate, and an explicit false target-label-use declaration.",
-    "current_inventory_policy": "The checked-in inventory currently admits zero physical default-solvent assets. The local cSPC/E files are a bulk-parser control only. A missing asset or any hash/provenance mismatch rejects total-free-energy execution; it does not authorize a proxy model, GAFF/AM1-BCC solute substitution, or an error-selected solvent parameter."
+    "current_inventory_policy": "The checked-in inventory currently admits zero physical default-solvent assets. The local cSPC/E files are a bulk-parser control only. A missing asset or any hash/provenance mismatch rejects total-free-energy execution; it does not authorize a proxy model, GAFF/AM1-BCC solute substitution, or an error-selected solvent parameter.",
+    "nonlocal_dielectric_response_rule": "A full real-even passive reciprocal dielectric spectrum or equivalent molecular susceptibility may support only the separately labelled fixed-density electrostatic reaction control. A scalar macroscopic dielectric constant fixes only its k->0 limit and cannot define a molecular-liquid or total-solvation result."
   },
   "benchmark_and_review_contract": {
     "target_solvation_labels_read_before_implementation": false,
@@ -88,6 +89,7 @@
     "Validate the synthetic reciprocal site-HNC scalar, finite-difference derivative, and ideal-gas stationarity before any physical solvent asset is admitted.",
     "Validate a bulk-only 1D-RISM .xvv/.cvv asset, exact site-pair coverage, the native Coulomb-tail residual, and the source-SMEAR analytic origin rule before a physical liquid backend is admitted.",
     "Validate the neutral source-SMEAR periodic Poisson long-range scalar, finite-difference derivative, reciprocal pairing, zero-mode gauge, translation covariance, and fixed-cell grid refinement before it is joined to any Cvv short-range mapping.",
+    "Validate any frozen full nonlocal dielectric spectrum for real-even reciprocal symmetry, passivity, exact Fourier-mode response, scalar/derivative consistency, translation covariance, and a neutral-source zero-mode gauge; report it only as an electrostatic control until a common molecular liquid functional is derived.",
     "Validate the source-defined short-range radial transform at Cartesian FFT modes, its tail/origin/Nyquist gates, reciprocal real-space pairing, and the HNC scalar/gradient identity before an actual physical Cvv asset is mapped.",
     "Validate the molecular liquid residual, closure convention, free-energy differential/thermodynamic identity, charge/gauge behavior, and grid convergence before reading target solvation labels.",
     "Before any physical liquid backend is admitted, verify every solvent-side asset hash, native bulk parse, state match, Coulomb-tail gate, source files, and explicit no-target-label provenance; reject any missing default asset.",
@@ -145,6 +147,13 @@
       "inventory_artifact": "route2-v0-solvent-asset-inventory-v1.json",
       "current_inventory": "No physical 11-solvent asset is registered in this checkout. The local cSPC/E data remains a water-only bulk/parser control, not a target-solute liquid endpoint or a default water asset.",
       "not_a_physical_liquid_backend": "The registry does not define the MACE-native short-range solute potential, map a production Cvv grid, minimize a molecular liquid functional, provide forces, or calculate a solvation free energy or accuracy score."
+    },
+    "nonlocal_dielectric_electrostatic_control": {
+      "module": "maple.function.calculator.extra_correction.implicit.route2_v0_nonlocal_dielectric",
+      "capability": "A fixed neutral charge-density periodic FFT reaction scalar and the derivative of that same scalar consume a caller-supplied full real-even relative dielectric spectrum with epsilon(k) >= 1, enforcing reciprocal pairing and non-positive polarization energy without a fitted coefficient.",
+      "custom_solvent_boundary": "A scalar dielectric constant or solvent name is rejected as a molecular solvent asset. A complete frozen finite-k response is still electrostatic-only until it is coupled through one declared molecular liquid functional.",
+      "charged_branch_boundary": "A non-neutral source is rejected. A periodic background, finite-size correction, and ionic standard-state convention require a separate preregistration.",
+      "not_a_physical_liquid_backend": "The control does not derive a density from MACE coefficients, define a cavity, short-range interaction, dispersion, molecular liquid-state minimization, force, or total solvation free energy or accuracy result."
     }
   }
 }

@@ -662,6 +662,81 @@ new registry is provenance infrastructure only: it neither defines the
 MACE-native \(u^{\mathrm{sr}}\), maps a production short-range kernel,
 minimizes a liquid functional, nor changes an accuracy number.
 
+
+#### 4.2.10 Frozen nonlocal-dielectric electrostatic control
+
+The next zero-training control is deliberately narrower than a molecular
+liquid functional.  For a fixed, neutral solute charge density
+\(\rho_0(\mathbf r)\) on a periodic Cartesian grid, and for a separately
+frozen solvent response spectrum \(\epsilon_{\mathcal S}(\mathbf k)\), define
+
+\[
+\widehat V_{\mathrm{reac}}(\mathbf k)=
+\begin{cases}
+\dfrac{4\pi}{k^2}
+\left[\epsilon_{\mathcal S}(\mathbf k)^{-1}-1\right]
+\widehat\rho_0(\mathbf k), & \mathbf k\ne0,\\
+0, & \mathbf k=0,
+\end{cases}
+\qquad
+G_{\mathrm{pol}}^{(0)}[\rho_0]
+=\frac12\int\rho_0(\mathbf r)V_{\mathrm{reac}}(\mathbf r)d\mathbf r.
+\]
+
+The admitted numerical conditions are not fit parameters:
+
+\[
+\epsilon_{\mathcal S}(\mathbf k)\in\mathbb R,\qquad
+\epsilon_{\mathcal S}(-\mathbf k)=\epsilon_{\mathcal S}(\mathbf k),\qquad
+\epsilon_{\mathcal S}(\mathbf k)\ge1,\qquad
+\int\rho_0=0.
+\]
+
+They make the discrete FFT operator self-adjoint and passive:
+
+\[
+\frac{\delta G_{\mathrm{pol}}^{(0)}}{\delta\rho_0}
+=V_{\mathrm{reac}},\qquad
+\langle\rho_1,V_{\mathrm{reac}}[\rho_2]\rangle
+=\langle\rho_2,V_{\mathrm{reac}}[\rho_1]\rangle,\qquad
+G_{\mathrm{pol}}^{(0)}\le0.
+\]
+
+`route2_v0_nonlocal_dielectric.py` implements exactly this one scalar and its
+one derivative.  Its tests lock an exact reciprocal Fourier mode,
+finite-difference differentiation, reciprocal pairing, passivity,
+translation covariance, the zero-mode gauge, and rejection of non-even,
+active, scalar-spectrum, or non-neutral inputs.  It has no trainable weights
+and cannot inspect experimental solvation records.
+
+This is **not** an alternative name for the RISM long-range control in Section
+4.2.7.  That term is a positive source-SMEAR Poisson contribution needed to
+reconstruct the RISM direct-correlation split.  The present term is the
+negative vacuum-subtracted reaction component of a frozen dielectric response.
+They may be joined only by a later, explicitly derived common liquid
+functional; adding their scalars ad hoc would double-count or change the
+reference convention.
+
+Nor does a reported macroscopic dielectric constant identify this response:
+
+\[
+\epsilon_s=\lim_{k\to0}\epsilon_{\mathcal S}(\mathbf k)
+\not\Rightarrow
+\bigl\{\epsilon_{\mathcal S}(\mathbf k\ne0),
+ u^{\mathrm{sr}}_{\alpha},G_{\mathrm{cav}},G_{\mathrm{disp}}\bigr\}.
+\]
+
+Therefore a custom solvent supplied only as a name or scalar \(\epsilon_s\)
+may run this class solely as an explicitly labelled continuum-electrostatics
+diagnostic, never as a molecular-liquid or total-solvation result.  A future
+physical branch must freeze the full reciprocal response (or an equivalent
+molecular susceptibility) together with the site model, short-range
+interaction, cavity/non-electrostatic terms, thermodynamic convention, and
+provenance required by Section 4.2.9.  The current inventory contains none of
+those physical 11-solvent assets.  This control also rejects charged solutes;
+a charged periodic branch requires a separately preregistered background,
+finite-size, and standard-state free-energy derivation.
+
 ### 4.3 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-

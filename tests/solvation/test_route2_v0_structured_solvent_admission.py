@@ -106,3 +106,24 @@ def test_structured_solvent_admission_requires_a_frozen_liquid_asset_and_review(
     assert "external final blind dataset" in benchmark["external_blind_manifest"]
     assert "strictly below 1.5 kcal/mol" in benchmark["accuracy_gate"]
     assert "independently review source equivalence" in benchmark["independent_review"]
+
+
+def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_only():
+    protocol = _protocol()
+    solvent = protocol["solvent_asset_contract"]
+    foundation = protocol["implemented_foundation"]
+    validation = protocol["validation_sequence"]
+
+    assert "k->0 limit" in solvent["nonlocal_dielectric_response_rule"]
+    assert "cannot define a molecular-liquid" in solvent[
+        "nonlocal_dielectric_response_rule"
+    ]
+    dielectric = foundation["nonlocal_dielectric_electrostatic_control"]
+    assert dielectric["module"].endswith("route2_v0_nonlocal_dielectric")
+    assert "epsilon(k) >= 1" in dielectric["capability"]
+    assert "scalar dielectric constant" in dielectric["custom_solvent_boundary"]
+    assert "non-neutral source is rejected" in dielectric["charged_branch_boundary"]
+    assert "total solvation free energy or accuracy result" in dielectric[
+        "not_a_physical_liquid_backend"
+    ]
+    assert any("full nonlocal dielectric spectrum" in item for item in validation)

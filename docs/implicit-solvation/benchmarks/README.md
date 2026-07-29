@@ -676,7 +676,7 @@ For `mace_scf_l1`, every completed shard must carry dimension-separated SCF
 convergence evidence. A nominal row records separate monopole and dipole
 residuals and no fallback evidence. A finite-resolution row for
 `smd-ddpcm-l15-n1202-multisolv-v1` now uses response-ablation artifact/schema
-v4 and the explicit `route2-scf-convergence-evidence-v3` contract. The
+v5 and the explicit `route2-scf-convergence-evidence-v4` contract. The
 finite-resolution policy itself remains `finite-resolution-stagnation-v2`, but
 the integrated solver policy is `safeguarded-anderson-v2`: the accepted-state
 actual-residual objective is `Phi = max(monopole/tau_mono, dipole/tau_dipole)`
@@ -689,7 +689,8 @@ best-state selection, and finite-resolution windows.
 
 Accordingly, a finite-resolution row must additionally record the earliest
 online seven-step accepted Anderson window satisfying every predicate, the
-frozen enumerated runtime identity gate (including `torch==2.12.0+cu130`), the
+frozen enumerated runtime identity gate (including `torch==2.12.0+cu130` and
+the nested pyddx relative-iterate tolerance `1e-14`), the
 accepted-parent lineage, the solver epoch, and three fresh reaction-map
 reevaluations at the retained density. These are not independent cold SCF
 starts. Under `finite-resolution-stagnation-v2`, the three fresh-cold field

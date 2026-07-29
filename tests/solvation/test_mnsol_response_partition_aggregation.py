@@ -31,18 +31,19 @@ CURRENT_HEAD = subprocess.run(
 ).stdout.strip()
 
 
-def test_replay_v2_artifact_contract_is_versioned():
+def test_nested_ddpcm_precision_artifact_contract_is_versioned():
     assert aggregation.runner.ARTIFACT_NAME == (
-        "route2-mnsol-macepolar-response-ablation-v4"
+        "route2-mnsol-macepolar-response-ablation-v5"
     )
-    assert aggregation.runner.SCHEMA_VERSION == 4
+    assert aggregation.runner.SCHEMA_VERSION == 5
     assert aggregation.runner.SCF_CONVERGENCE_CONTRACT_VERSION == (
-        "route2-scf-convergence-evidence-v3"
+        "route2-scf-convergence-evidence-v4"
     )
     assert aggregation.AGGREGATOR_ARTIFACT_NAME == (
-        "route2-mnsol-macepolar-two-member-matrix-v4"
+        "route2-mnsol-macepolar-two-member-matrix-v5"
     )
-    assert aggregation.SCHEMA_VERSION == 4
+    assert aggregation.SCHEMA_VERSION == 5
+    assert aggregation.EXPECTED_SOLVER_TOLERANCE == 1.0e-14
     assert aggregation.MACE_SCF_FINITE_RESOLUTION_REASON == (
         "finite-resolution-stagnation-v2"
     )
@@ -109,6 +110,10 @@ def test_replay_v2_artifact_contract_is_versioned():
         ]
         == "finite-resolution-stagnation-v2"
     )
+    assert (
+        aggregation.runner.SCF_SOLVER_CONTRACT["pyddx_solver_tolerance"]
+        == 1.0e-14
+    )
 
 
 def _scf_convergence(
@@ -159,7 +164,7 @@ def _scf_convergence(
         "torch_version": "2.12.0+cu130",
         "pyddx_version": "0.8.0",
         "pyddx_n_proc": 1,
-        "pyddx_solver_tolerance": 1.0e-12,
+        "pyddx_solver_tolerance": 1.0e-14,
         "continuum_dielectric": (
             aggregation.route2_solvent_spec(solvent).descriptors.dielectric
         ),

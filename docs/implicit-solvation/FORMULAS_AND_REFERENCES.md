@@ -333,6 +333,65 @@ reaction-potential and reaction-gradient component spans must remain below
 `1e-10 eV/e` and `1e-10 eV/(e angstrom)`; and the intrinsic-energy span must
 remain below `1e-10 eV`.
 
+For the nested ddX solve, version 0.8.0 stops its inner iterate
+\(\mathbf x^{(j)}\) when
+
+\[
+\eta_j
+=
+\frac{
+  \left\|\mathbf x^{(j+1)}-\mathbf x^{(j)}\right\|_{h,\mathrm{ddX}}
+}{
+  \left\|\mathbf x^{(j+1)}\right\|_{h,\mathrm{ddX}}
+}
+\le \tau_{\mathrm{ddX}}.
+\]
+
+For \(N_{\mathrm{sph}}\) spheres and real spherical-harmonic coefficients
+\(x_{A\ell m}\), the ddPCM solver passes ddX's global Sobolev
+\(H^{-1/2}\) RMS norm
+
+\[
+\|\mathbf x\|_{h,\mathrm{ddX}}
+=
+\left[
+\frac{1}{N_{\mathrm{sph}}}
+\sum_{A=1}^{N_{\mathrm{sph}}}
+\sum_{\ell=0}^{\ell_{\max}}
+\frac{1}{1+\ell}
+\sum_{m=-\ell}^{\ell}
+x_{A\ell m}^{\,2}
+\right]^{1/2}.
+\]
+
+ddX defines the zero-solution corner case by the convention \(0/0:=0\).
+This is not the outer Route-2 density residual. If
+\(\widetilde P_{\tau}\) denotes the numerically truncated continuum operator,
+the evaluated outer residual is
+
+\[
+\widetilde R_{\tau}(\mathbf c)
+=
+\Pi_0\!\left[
+\mathbf c-M\!\left(\widetilde P_{\tau}(\mathbf c)\right)
+\right].
+\]
+
+Here \(P\) is the corresponding exact continuum operator and
+\(R(\mathbf c)=\Pi_0[\mathbf c-M(P(\mathbf c))]\).
+Under a local field-response Lipschitz constant \(L_M\),
+\[
+\left\|\widetilde R_{\tau}(\mathbf c)-R(\mathbf c)\right\|_2
+\le
+\|\Pi_0\|_2 L_M
+\left\|\widetilde P_{\tau}(\mathbf c)-P(\mathbf c)\right\|_2.
+\]
+The iterate-change quantity \(\eta_j\) is not an a-posteriori bound on the last
+operator error, so no theorem converts \(\tau_{\mathrm{ddX}}\) directly into
+the outer residual tolerance. The tighter `1e-14` setting therefore separates
+the inner numerical floor empirically; it does not replace any outer residual,
+history-window, or replay predicate.
+
 The retained candidate is then checked with three fresh reaction-map
 reevaluations at the same candidate density. These are fresh continuum-map
 instances, **not** independent cold SCF restarts and not model reloads. The
@@ -340,7 +399,7 @@ frozen enumerated runtime identity gate includes the official unfine-tuned
 MACE-POLAR-1-M checkpoint, `mace-torch==0.3.16`,
 `graph-longrange==0.4.0`, `torch==2.12.0+cu130`, `torch.float64`,
 `device=cpu`, `torch_threads=1`, `pyddx==0.8.0`, `n_proc=1`, `lmax=15`,
-`n_lebedev=1202`, `eta=0.1`, solver tolerance `1e-12`, and hashed
+`n_lebedev=1202`, `eta=0.1`, solver tolerance `1e-14`, and hashed
 atomic-number, coordinate, and cavity-radius arrays. Under
 `finite-resolution-stagnation-v2`, the **three fresh-cold reevaluations** must
 be mutually byte-identical in canonical little-endian float64 form: all
@@ -366,8 +425,8 @@ hashes retain their distinct byte encodings. Aggregation nevertheless rejects
 representationally impossible evidence: ULP values outside the finite float64
 range, delta/ULP zero-status contradictions, or identical online/cold hashes
 paired with nonzero delta or ULP metrics. Response-ablation outputs carrying
-this branch bind the `route2-scf-convergence-evidence-v3` contract and
-runner/artifact schema v4.
+this branch bind the `route2-scf-convergence-evidence-v4` contract and
+runner/artifact schema v5.
 
 This stopping rule is a versioned engineering inference from inexact-solve
 theory, safeguarded Anderson-restart literature, and the observed precision
@@ -2242,6 +2301,15 @@ Route-2 references:
   “ddX: Polarizable continuum solvation from small molecules to proteins,”
   *WIREs Comput. Mol. Sci.* **14**, e1726 (2024),
   DOI `10.1002/wcms.1726`.
+- ddX v0.8.0 iterative-solver and Python-interface sources:
+  [`ddx_solvers.f90`](https://github.com/ddsolvation/ddX/blob/v0.8.0/src/ddx_solvers.f90)
+  for the relative iterate-change stopping rule,
+  [`ddx_pcm.f90`](https://github.com/ddsolvation/ddX/blob/v0.8.0/src/ddx_pcm.f90)
+  for ddPCM's selection of `hnorm`,
+  [`ddx_core.f90`](https://github.com/ddsolvation/ddX/blob/v0.8.0/src/ddx_core.f90)
+  for that global Sobolev \(H^{-1/2}\) RMS norm, and
+  [`pyddx_classes.cpp`](https://github.com/ddsolvation/ddX/blob/v0.8.0/src/pyddx_classes.cpp)
+  for the preserved-solution warm-start contract.
 - A. Mikhalev, M. Nottoli, and B. Stamm, “Linearly scaling computation of
   ddPCM solvation energy and forces using the fast multipole method,”
   *J. Chem. Phys.* **157**, 114103 (2022), DOI `10.1063/5.0104536`.

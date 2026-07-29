@@ -1232,14 +1232,27 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     ledger, and the newer safeguarded/restarted Anderson literature motivates
     but does not prove global convergence for this unproven Route-2 map. The
     profile now binds policy `finite-resolution-stagnation-v2`, convergence
-    contract `route2-scf-convergence-evidence-v3`, and response-ablation
-    runner/artifact schema v4 under the same frozen enumerated runtime identity
+    contract `route2-scf-convergence-evidence-v4`, and response-ablation
+    runner/artifact schema v5 under the same frozen enumerated runtime identity
     gate: official unfine-tuned MACE-POLAR-1-M checkpoint,
     `mace-torch==0.3.16`, `graph-longrange==0.4.0`,
     `torch==2.12.0+cu130`, `torch.float64`, `device=cpu`, `torch_threads=1`,
     `pyddx==0.8.0`, `n_proc=1`, `lmax=15`, `n_lebedev=1202`, `eta=0.1`,
-    solver tolerance `1e-12`, and hashed atomic numbers, coordinates, and
+    solver tolerance `1e-14`, and hashed atomic numbers, coordinates, and
     cavity radii.
+
+    The pyddx tolerance is a relative iterate-change threshold for the inner
+    continuum solve, not an outer Route-2 density-residual tolerance. A frozen
+    index-248 diagnostic at the prior `1e-12` setting reproduced the 100-attempt
+    failure exactly. Keeping every outer SCF, Anderson, finite-resolution, and
+    replay threshold unchanged, otherwise identical warm-start diagnostics at
+    `1e-13`, `1e-14`, and `1e-15` all reached the earliest valid seven-state
+    window at iterations 24--30. The `1e-14` setting is retained because it
+    reduced the archived continuum linearity defect by more than one order of
+    magnitude relative to `1e-13`, matched the qualitative `1e-15` convergence
+    result, and avoided moving the inner solve unnecessarily close to float64
+    precision. These post-failure diagnostics are numerical evidence only;
+    they do not count as prospective chemistry or matrix-completion evidence.
 
     The unchanged nominal gate is checked first: monopole residual
     `<= 2e-12 e`, dipole residual `<= 2e-12 e angstrom`, and configured

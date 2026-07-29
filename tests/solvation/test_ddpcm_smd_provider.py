@@ -247,7 +247,7 @@ def test_finite_resolution_runtime_identity_fails_closed_on_any_lock_drift(
     assert identity["torch_version"] == "2.12.0+cu130"
     assert identity["pyddx_version"] == "0.8.0"
     assert identity["pyddx_n_proc"] == 1
-    assert identity["pyddx_solver_tolerance"] == pytest.approx(1.0e-12)
+    assert identity["pyddx_solver_tolerance"] == 1.0e-14
     assert identity["continuum_dielectric"] == pytest.approx(78.355)
     assert len(identity["atomic_numbers_sha256"]) == 64
     assert len(identity["positions_angstrom_sha256"]) == 64

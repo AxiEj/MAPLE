@@ -36,11 +36,11 @@ import run_mnsol_macepolar_response_ablation as runner
 ALLOWED_METHODS = ("mace_fixed_l1", "mace_scf_l1")
 FULL_METHODS = tuple(runner.ABLATION_METHODS)
 SUPPORTED_PARTITIONS = frozenset({"development"})
-AGGREGATOR_ARTIFACT_NAME = "route2-mnsol-macepolar-two-member-matrix-v4"
+AGGREGATOR_ARTIFACT_NAME = "route2-mnsol-macepolar-two-member-matrix-v5"
 SOURCE_RUN_KIND = "partition-record-shard"
 AGGREGATE_RUN_KIND = "partition-two-member-matrix"
 REQUIRED_STAGE = "scf"
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 REQUIRED_CONTINUUM_EQUATION = "ddpcm"
 SOURCE_RUNNER_PATH = (
     "docs/implicit-solvation/benchmarks/run_mnsol_macepolar_response_ablation.py"
@@ -64,7 +64,7 @@ EXPECTED_PYDDX_VERSION = "0.8.0"
 EXPECTED_RUNTIME_DEVICE = "cpu"
 EXPECTED_MACE_DTYPE = "torch.float64"
 EXPECTED_SCF_RUNTIME_THREADS = 1
-EXPECTED_SOLVER_TOLERANCE = 1.0e-12
+EXPECTED_SOLVER_TOLERANCE = 1.0e-14
 EXPECTED_MACE_LONG_RANGE_LMAX = 15
 EXPECTED_MACE_LONG_RANGE_N_LEBEDEV = 1202
 EXPECTED_MACE_LONG_RANGE_ETA = 0.1

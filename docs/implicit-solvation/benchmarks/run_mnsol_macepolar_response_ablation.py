@@ -110,12 +110,13 @@ from maple.function.route2_smd_profiles import (
 )
 from maple.function.route2_solvents import route2_solvent_spec
 
-ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v4"
-SCHEMA_VERSION = 4
-SCF_CONVERGENCE_CONTRACT_VERSION = "route2-scf-convergence-evidence-v3"
+ARTIFACT_NAME = "route2-mnsol-macepolar-response-ablation-v5"
+SCHEMA_VERSION = 5
+SCF_CONVERGENCE_CONTRACT_VERSION = "route2-scf-convergence-evidence-v4"
 SCF_SOLVER_CONTRACT = {
     "scf_solver": SCF_SOLVER,
     "scf_mixing": SCF_MIXING,
+    "pyddx_solver_tolerance": DDPCM_SOLVER_TOLERANCE,
     "scf_actual_residual_objective_formula": (
         SCF_ACTUAL_RESIDUAL_OBJECTIVE_FORMULA
     ),

@@ -59,7 +59,9 @@ from .smd_cds import route2_coulomb_radii
 WATER_STATIC_DIELECTRIC = 78.39
 DDPCM_LMAX = 15
 DDPCM_N_LEBEDEV = 1202
-DDPCM_SOLVER_TOLERANCE = 1.0e-12
+# ddX stops on a relative hnorm iterate change; 1e-14 is the empirical inner
+# resolution selected by the archived index248 diagnostic.
+DDPCM_SOLVER_TOLERANCE = 1.0e-14
 DDPCM_ETA = 0.1
 SCF_MIXING = 1.0
 SCF_DENSITY_TOLERANCE = 2.0e-12

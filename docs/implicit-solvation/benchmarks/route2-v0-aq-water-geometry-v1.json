@@ -1,0 +1,29 @@
+{
+  "geometry_id": "route2-v0-aq-water-ase-g2-v1",
+  "schema_version": 1,
+  "source": "ASE 3.27.0, ase.build.molecule('H2O') G2 reference geometry; frozen only for the auxiliary-QM PCM structural control and not selected from a solvation result.",
+  "elements": [
+    "O",
+    "H",
+    "H"
+  ],
+  "positions_angstrom": [
+    [
+      0.0,
+      0.0,
+      0.119262
+    ],
+    [
+      0.0,
+      0.763239,
+      -0.477047
+    ],
+    [
+      0.0,
+      -0.763239,
+      -0.477047
+    ]
+  ],
+  "charge": 0,
+  "spin": 0
+}

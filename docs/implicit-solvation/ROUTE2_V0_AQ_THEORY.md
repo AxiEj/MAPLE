@@ -124,6 +124,15 @@ V0-AQ-E has the following hard limits:
 * no auxiliary density may be relabelled as a MACE density or be sent into a
   MACE field-feature interface.
 
+The first execution is deliberately a source-bound water control, frozen in
+[`route2-v0-aq-water-pcm-prereg-v1.json`](benchmarks/route2-v0-aq-water-pcm-prereg-v1.json)
+and run by
+[`run_route2_v0_auxiliary_qm_pcm_water.py`](benchmarks/run_route2_v0_auxiliary_qm_pcm_water.py).
+It records the gas and PCM-SCF **total** stationary energies and their
+analytic nuclear gradients, then takes their difference.  It does not call
+MACE, inspect a solvation label, or certify a force/PES; the separate V0-AQ
+ledger owns the future addition to an unchanged MACE gas term.
+
 ## 3. Physical completion: V0-AQ-L
 
 The full V0-AQ-L branch replaces the PCM control with a molecular liquid

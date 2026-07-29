@@ -1,0 +1,62 @@
+{
+  "protocol_id": "route2-v0-aq-water-pcm-prereg-v1",
+  "schema_version": 1,
+  "status": "frozen-before-execution",
+  "claim_boundary": "This preregisters one source-bound water V0-AQ-E fixed-geometry auxiliary QM--PCM stationarity control. It does not evaluate MACE gas energy, alter the MACE checkpoint, identify an auxiliary density with MACE density, use experimental solvation labels, provide a total solvation free energy, certify forces/PES, or report accuracy.",
+  "qm_method": {
+    "implementation": "PySCF",
+    "pyscf_version": "2.13.1",
+    "electronic_structure": "omegaB97M-V",
+    "pyscf_xc_token": "wb97m-v",
+    "basis": "def2-tzvpd",
+    "reference": "RKS",
+    "density_fitting": true,
+    "charge": 0,
+    "spin": 0,
+    "semilocal_grid_level": 3,
+    "nonlocal_grid_profile": "50x194-SG1",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "maximum_scf_cycles": 100
+  },
+  "pcm_control": {
+    "method": "IEFPCM",
+    "dielectric_constant": 78.3553,
+    "vdw_scale": 1.0,
+    "probe_radius_angstrom": 0.0,
+    "lebedev_order": 17,
+    "surface_discretization_method": "SWIG",
+    "standard_state_energy_included": false,
+    "empirical_cds_included": false
+  },
+  "numerical_gates": {
+    "orbital_gradient_inf_max": 1e-06,
+    "translation_gradient_inf_hartree_per_bohr_max": 1e-08
+  },
+  "fixed_energy_ledger": {
+    "auxiliary_difference": "A_aux^(PCM-SCF)-A_aux^(gas-SCF), using fully converged total stationary energies of the same auxiliary QM method and geometry.",
+    "future_mace_composite": "E_MACE,gas+[A_aux^(PCM-SCF)-A_aux^(gas-SCF)]",
+    "forbidden": [
+      "An isolated implementation-specific PCM energy component in place of the stationary total-energy difference.",
+      "An extra PCM half-coupling, SMD CDS, fitted non-electrostatic term, or standard-state correction in this V0-AQ-E control.",
+      "MACE field response, auxiliary-density feature feedback, density projection, post-training, fine-tuning, MAP/UQ, response clipping, or target-label use."
+    ]
+  },
+  "force_boundary": "Both auxiliary stationary-state analytic nuclear gradients are recorded only as same-scalar derivative evidence. No force, PES, optimization, scan, MD, or NVE claim is authorized before smooth-cavity/operator and independent central-difference, rigid-motion, and closed-loop-work gates pass.",
+  "execution_contract": {
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_auxiliary_qm_pcm_water.py": "ff83a2dd00ce8237dd398b6c8602648601163d9c6c27c7ba19cbc98d4c0d80d7"
+    },
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/route2-v0-aq-water-geometry-v1.json": "992ac7f8b4c3759ca6d9929c6c682618a770b429358ec8c0fad58e6df385b4f4"
+    },
+    "runtime": {
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+      "pyscf_version": "2.13.1",
+      "threads": 8,
+      "max_memory_mb": 8000
+    }
+  },
+  "decision_rule": "A failed runtime, source, input, convergence, or numerical gate rejects this exact control. It does not authorize a retry with changed method/basis/grid/radius, a post-result parameter adjustment, or use of a benchmark score. A passed control only establishes its stated fixed-geometry auxiliary-QM stationarity evidence."
+}

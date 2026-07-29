@@ -1,0 +1,43 @@
+{
+  "claim_boundary": "This protocol tests only the frozen-checkpoint, fixed-geometry, local-potential-gradient Route 2V0 scalar construction at the already archived one-water ddPCM field. It does not change the public Route 2 fixed point or energy, solve a V0 continuum fixed point, validate exact-GTO features, establish QM accuracy, fit experiment, certify a smooth cavity, provide forces, or authorize PES, OPT, TS, scan, MD, or NVE use.",
+  "construction": {
+    "anchored_field_scalar": "W0(f)=E_fc(f)-E_fc(0)+<c_M(f),f>-grad_f(E_fc)(0).f",
+    "electrostatic_candidate": "DeltaG_V0(f)=W0(f)-0.5<c_V0(f),f>",
+    "field_interface": "local-potential-gradient-v1",
+    "response_source": "c_V0(f)=Q^-T grad_f W0(f)",
+    "zero_field_anchor": "c_V0(0)=c_M(0)"
+  },
+  "frozen_input": {
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "continuum": "pyddx ddPCM",
+    "field_source_artifact": "docs/implicit-solvation/benchmarks/route2-mace-local-field-thermodynamic-canary-v1.json",
+    "field_source_artifact_sha256": "518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6",
+    "molecule": "ASE G2 water",
+    "reaction_field_projector": "local-jet",
+    "solute_response_model": "official MACE-POLAR-1-M"
+  },
+  "gates": {
+    "base_response_total_charge_absolute_max_e": 1e-08,
+    "finite_difference_step": 0.0001,
+    "maximum_dipole_scalar_gradient_error_e_angstrom": 1e-05,
+    "maximum_monopole_scalar_gradient_error_e": 1e-05,
+    "neutral_response_antisymmetric_frobenius_ratio": 1e-05,
+    "neutral_response_maximum_eigenvalue_ev": 1e-06,
+    "zero_field_anchor_maximum_absolute_error_e": 1e-10,
+    "zero_field_response_total_charge_absolute_max_e": 1e-08
+  },
+  "prohibited_actions": [
+    "train or fine-tune MACE-POLAR",
+    "fit MAP or uncertainty weights",
+    "temper the response",
+    "mix model and derived densities",
+    "tune radii, half factors, or the field step after seeing the result",
+    "use FreeSolv or MNSol to select this construction",
+    "change a public provider, parser option, result schema, or runtime API",
+    "fall through to V1 when a gate fails"
+  ],
+  "protocol_id": "route2-v0-scalar-response-water-prereg-v1",
+  "schema_version": 1,
+  "status": "preregistered-before-execution",
+  "stop_condition": "If any gate fails, reject Route 2V0 for this frozen checkpoint and retain the legacy fixed-point route only as a nonvariational diagnostic. Do not proceed to V1, post-training, or fine-tuning."
+}

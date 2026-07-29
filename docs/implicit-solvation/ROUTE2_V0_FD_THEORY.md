@@ -507,6 +507,67 @@ the installed 1D-RISM producer emits both files and follows this tail identity;
 records its source hashes and structural checks.  It remains a water-only
 parser control, not one of the required eleven frozen solvent assets.
 
+#### 4.2.7 Neutral periodic Poisson long-range control
+
+The analytic split now has one explicit, independent long-range operator.
+`route2_v0_periodic_coulomb.py` interprets a Cartesian grid as one periodic
+cell of side lengths \(L_i=N_i\Delta_i\) in Bohr.  It converts the radial
+length factor in Amber's native QV convention only,
+
+\[
+\widetilde q_a=\frac{q^{\mathrm{QV}}_a}{\sqrt{a_0/\mathrm{\AA}}},
+\]
+
+so that
+
+\[
+\frac{q^{\mathrm{QV}}_a q^{\mathrm{QV}}_b}{r_{\mathrm{\AA}}}
+=\frac{\widetilde q_a\widetilde q_b}{r_{a_0}}.
+\]
+
+No elementary-charge reinterpretation or adjustable electrostatic prefactor
+is introduced: the QV product is already the dimensionless
+\(-\beta u^{\mathrm{lr}}\) tail convention of the RISM direct correlation.
+For a site-density difference the operator forms
+
+\[
+\rho_Q(\mathbf r)=\sum_a\widetilde q_a\,\delta\rho_a(\mathbf r),
+\qquad
+\widehat V_Q(\mathbf k)=
+\begin{cases}
+4\pi\widehat\rho_Q(\mathbf k)/|\mathbf k|^2,&\mathbf k\ne0,\\
+0,&\mathbf k=0.
+\end{cases}
+\]
+
+The declared dimensionless scalar and its site derivative are therefore
+
+\[
+\mathcal E_{\mathrm{lr}}
+=\frac12\int\rho_Q(\mathbf r)V_Q(\mathbf r)d\mathbf r,
+\qquad
+\frac{\delta\mathcal E_{\mathrm{lr}}}
+{\delta\,\delta\rho_a(\mathbf r)}
+=\widetilde q_aV_Q(\mathbf r).
+\]
+
+When this term is eventually joined to the HNC scalar, it contributes
+\(+k_{\mathrm B}T\mathcal E_{\mathrm{lr}}\), exactly the second term of the
+split in Section 4.2.6.  The code evaluates both expressions through the same
+zero-average FFT Poisson inverse; it does not assemble an energy from one
+kernel and a residual from another.
+
+The omitted zero Fourier mode is a gauge only for a neutral field.  The
+operator therefore rejects a non-neutral \(\rho_Q\) rather than silently
+adding a uniform compensating background.  A charged-solute branch needs a
+separately preregistered Ewald-background, finite-size, and standard-state
+free-energy convention; it cannot inherit this neutral control by accident.
+The current tests lock an exact reciprocal Fourier mode, zero-mean gauge,
+reciprocal pairing, translation covariance, finite-difference scalar/gradient
+agreement, and fixed-cell grid refinement.  They do **not** yet interpolate
+the positive-radius \(c^{\mathrm{sr}}\) table, assign its origin, attach a
+physical liquid functional, or report a solvent/accuracy result.
+
 ### 4.3 Explicit exclusions
 
 - Selecting IEFPCM/CPCM/COSMO per record is forbidden.  The existing same-
@@ -622,3 +683,9 @@ substitute for these gates.
     file-format section identifies `.xvv` as the reusable bulk susceptibility
     asset and documents the radial site--site correlation outputs; this does
     not authorize its solute `prmtop` workflow for Route-2 V0-FD-S.
+16. A. P. Lyubartsev *et al.*, *Simple electrolyte solutions: Comparison of
+    DRISM and molecular dynamics results for alkali halide solutions*,
+    [PMC3568087](https://pmc.ncbi.nlm.nih.gov/articles/PMC3568087/).  Its
+    long-range appendix writes the direct-correlation Coulomb asymptote as
+    \(-\beta u\), motivating the analytic tail split rather than a finite-box
+    radial wrap.

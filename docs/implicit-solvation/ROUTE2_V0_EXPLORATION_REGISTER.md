@@ -126,8 +126,11 @@ The immutable future gates are preserved rather than weakened:
 
 ## F. Active source-representation gate
 
-**2026-07-31 — GFN2 zero-field MOLDEN permanent source.**  The active gate
-reconstructs the closed-shell valence AO metric, electron count, effective-core
-charge, and xTB dipole without field, solvent, or output calibration.  The
-rejected GFN2 field response remains excluded.  The next gate is a frozen QM
-static MEP comparison, not PCM or an accuracy calculation.
+**2026-07-31 — GFN2 zero-field MOLDEN permanent source.**  The representation
+round trip passed, but the frozen all-point static-QM-MEP gate rejected the
+source: relative Frobenius \(0.219999>0.20\) and relative maximum
+\(0.376056>0.30\), while the dipole screen passed.  Preserve its artifacts and
+the rejected GFN2 field response, but do not alter its cores, coefficients,
+points, thresholds, response, or attach it to PCM/KKT.  The active replacement
+research item is V0-ARSP, a separately stationary atomic-response permanent
+source; it has no physics or accuracy result yet.

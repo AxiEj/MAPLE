@@ -115,12 +115,14 @@ electron density. This is now registered and executable in
 No raw MACE density/fixed point, free-atom promolecule, or response covariance
 may be used as that reference. The next admissible step is a separately
 source-bound stationary electronic scalar, not another PCM backend or a
-solvation-error-selected source.  A newly isolated subcase is a **zero-field
-GFN2 MOLDEN permanent-source audit**: its AO density, effective-core charge,
-and dipole round trip can supply a candidate affine origin only after it passes
-a frozen QM static-MEP gate.  Its previously rejected xTB field response stays
-excluded from \(C\); the source round trip is not a response or accuracy pass.
-See [`ROUTE2_V0_GFN2_MOLDEN_PERMANENT_SOURCE_THEORY.md`](ROUTE2_V0_GFN2_MOLDEN_PERMANENT_SOURCE_THEORY.md).
+solvation-error-selected source.  The **zero-field GFN2 MOLDEN
+permanent-source audit** has now completed that first static-MEP test and is
+rejected: despite representation and dipole compatibility gates passing, its
+516-point static-MEP errors are \(0.219999>0.20\) and \(0.376056>0.30\).
+Its rejected xTB field response remains excluded from \(C\), and no GFN2
+source may enter PCM/KKT or an accuracy test.  The live replacement candidate
+is the separately stationary atomic-response construction in
+[`ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md`](ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md); it has no result yet.
 
 Let:
 

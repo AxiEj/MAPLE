@@ -1,0 +1,87 @@
+{
+  "protocol_id": "route2-v0-gfn2-xtb-acetone-field-prereg-v1",
+  "schema_version": 1,
+  "status": "frozen-before-execution",
+  "claim_boundary": "This one-acetone gas-phase GFN2-xTB external-field comparison is a no-runtime-QM physical screen only. It contains no implicit solvent, xTB COSMO/GBSA/ALPB/CPCM-X calculation, experimental solvation value, target calibration, force/PES certificate, total-solvation prediction, or public Route-2 profile. A pass can admit only the next common-energy/PCM coupling investigation; it cannot establish chemical accuracy.",
+  "hard_constraints": {
+    "gas_phase_gfn2_xtb_only": true,
+    "xtb_builtin_solvation_disabled": true,
+    "experimental_solvation_labels_read": false,
+    "post_training": false,
+    "fine_tuning": false,
+    "target_fit_or_calibration": false,
+    "response_rescaling_or_eigenvalue_clipping": false,
+    "field_step_or_pair_distance_selection_after_execution": false,
+    "legacy_public_route_changed": false,
+    "no_runtime_qm_in_candidate": true
+  },
+  "candidate_identity": {
+    "electronic_method": "GFN2-xTB",
+    "role": "candidate frozen self-consistent gas electronic energy functional, pending this and later common-energy PCM gates",
+    "excluded_interfaces": [
+      "xTB --alpha output, which reports D4 atomic polarizabilities rather than the required response tensor",
+      "xTB --efield, unavailable for GFN2-xTB in the installed 6.7.1 executable",
+      "xTB --alpb, --gbsa, --cosmo, --cpcmx, --gb, and --gbe"
+    ]
+  },
+  "finite_field_protocol": {
+    "construction": "For requested signed field s*h*e_j at the frozen geometry centroid C, write a +q point charge at C-s*D*e_j and a -q point charge at C+s*D*e_j, with q=h*D^2/2. Positions are in bohr and gamma=1e8 invokes the xTB documented real-point-charge limit. This is an asymptotically uniform external perturbation; no bare point-charge energy is spliced into the xTB energy.",
+    "field_units": "Hartree per e Bohr",
+    "field_steps_au": [
+      0.0003,
+      0.001
+    ],
+    "directions": [
+      "x",
+      "y",
+      "z"
+    ],
+    "signs": [
+      -1,
+      1
+    ],
+    "pair_distance_bohr": 200.0,
+    "point_charge_gamma": 100000000.0,
+    "selected_reporting_step_au": 0.0003,
+    "dipole_tensor": "alpha_ij=[mu_i(+h e_j)-mu_i(-h e_j)]/(2h), using xTB total molecular dipoles in e bohr",
+    "energy_diagonal": "alpha_jj=-[E(+h e_j)+E(-h e_j)-2E(0)]/h^2",
+    "uniformity_proxy": "(max_A |R_A-C|/D)^2; this is an a-priori geometry-scale diagnostic, not a fitted correction"
+  },
+  "numerical_gates": {
+    "pair_inhomogeneity_proxy_max": 0.001,
+    "response_antisymmetry_relative_frobenius_max": 0.03,
+    "energy_dipole_diagonal_relative_max": 0.05,
+    "field_step_consistency_relative_frobenius_max": 0.03,
+    "minimum_polarizability_eigenvalue_bohr3_min": -0.01
+  },
+  "scientific_falsification_gates": {
+    "relative_frobenius_mismatch_max": 0.2,
+    "trace_ratio_min": 0.8,
+    "trace_ratio_max": 1.2,
+    "principal_value_relative_max": 0.3,
+    "interpretation": "These are pre-execution rejection gates for gross gas-response error against the existing fixed omegaB97M-V/def2-TZVPD finite-field reference. They are not a solvation-accuracy claim; passing still requires a same-kernel electronic/continuum scalar, source-complete nonpolar physics, force/PES gates, full historical FreeSolv10 and 12-record/ten-functional-group panels, multisolvent validation, and an independent blind set."
+  },
+  "decision_rule": "If any numerical gate fails, the embedded-pair interface is invalid for this screen and GFN2-xTB is not admitted. If any scientific gate fails, reject frozen gas GFN2-xTB as the V0 electronic candidate; do not rescale its response, alter the published parameters, change field steps/pair geometry, add a correction, or select an implicit-solvent construction from the result. If all gates pass, admit only a subsequent same-energy, xTB-kernel-compatible continuum investigation. Do not run an accuracy panel from this screen.",
+  "execution_contract": {
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_gfn2_xtb_acetone_field.py": "32a59b4140cf205d410bb67284ccd6f587e4a8d9df3bacc02875259e853cdb56"
+    },
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8",
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/manifest.json": "1547a0d1a8edb9490828754aa7ff944990e98d90f538da345fc50980de87229b"
+    },
+    "runtime": {
+      "xtb_path": "/home/axie/xtb/xtb-dist/bin/xtb",
+      "xtb_binary_sha256": "debf27a9e0fa4bfb5ca75aafe4b90d8211f08ec2f4a482f375a4987212eaa12a",
+      "xtb_version": "6.7.1 (edcfbbe)",
+      "omp_num_threads": 1,
+      "parallel_processes": 1
+    }
+  },
+  "official_references": {
+    "gfn2_xtb": "https://doi.org/10.1021/acs.jctc.8b01176",
+    "xtb_external_embedding": "https://xtb-docs.readthedocs.io/en/latest/pcem.html",
+    "xtb_cli_manual": "https://github.com/grimme-lab/xtb/blob/main/man/xtb.1.adoc",
+    "xtb_property_output": "https://xtb-docs.readthedocs.io/en/latest/properties.html"
+  }
+}

@@ -1,0 +1,2777 @@
+{
+  "acceptance_eligible": false,
+  "benchmark_status": "upstream-supplied FreeSolv water result reproduction only; not a MAPLE runtime benchmark, strict holdout, absolute-solvation calculation, or acceptance result",
+  "evaluation_type": "static_upstream_energy_table_audit_no_checkpoint_inference",
+  "model_id": "g-nequip-smdw-water",
+  "provenance": {
+    "archive_members": [
+      "solvation_free_energies/experimental/experimental_sfe.csv",
+      "solvation_free_energies/NNP_energies/gas_geom_gas_NNP.csv",
+      "solvation_free_energies/NNP_energies/SMD_geom_SMD_NNP.csv",
+      "solvation_free_energies/results/bootstrap_metrics_summary.csv",
+      "solvation_free_energies/README.md"
+    ],
+    "archive_sha256": "76522218fcadc921706ba489ab0b7ff1c5e28b335029f07ac7c5ce5877dae055",
+    "archive_size_bytes": 474332,
+    "archive_url": "https://zenodo.org/api/records/20690503/files/solvation_free_energies.zip/content",
+    "smdw_checkpoint_sha256": "5615c0002a24ee3485368b59721198b2ca2e0432c1c6f7b73b5a31f6fe662484",
+    "source_repository": "https://github.com/otayfuroglu/deepPotential",
+    "source_revision": "c6d43de9630c98486ff7ed904c4c54cdeb7e14ad"
+  },
+  "quantity_boundary": {
+    "energy_gauge": "not established across independently trained gas and SMD models",
+    "sampling_estimator": "none; supplied single-point energy difference",
+    "standard_state": null,
+    "temperature_kelvin": null,
+    "upstream_formula": "(E_SMD_NNP - E_gas_NNP) * 23.060548 kcal/mol",
+    "upstream_geometry_policy": "separate supplied gas/SMD geometry tables"
+  },
+  "records": [
+    {
+      "experimental_kcal_mol": -2.49,
+      "gas_nnp_energy_ev": -98.36612501222605,
+      "predicted_kcal_mol": -2.0601088830242693,
+      "record_id": "mobley_1017962",
+      "smd_nnp_energy_ev": -98.4554597879228
+    },
+    {
+      "experimental_kcal_mol": -4.72,
+      "gas_nnp_energy_ev": -60.645385103017915,
+      "predicted_kcal_mol": -4.884730951579978,
+      "record_id": "mobley_1019269",
+      "smd_nnp_energy_ev": -60.85720708363954
+    },
+    {
+      "experimental_kcal_mol": -4.59,
+      "gas_nnp_energy_ev": -83.9372188153475,
+      "predicted_kcal_mol": -3.2272936239788126,
+      "record_id": "mobley_1036761",
+      "smd_nnp_energy_ev": -84.07716751144869
+    },
+    {
+      "experimental_kcal_mol": -3.82,
+      "gas_nnp_energy_ev": -75.45686596331471,
+      "predicted_kcal_mol": -3.4303634213611605,
+      "record_id": "mobley_1046331",
+      "smd_nnp_energy_ev": -75.60562059921327
+    },
+    {
+      "experimental_kcal_mol": -2.93,
+      "gas_nnp_energy_ev": -60.02374996143888,
+      "predicted_kcal_mol": -3.074920906368868,
+      "record_id": "mobley_1075836",
+      "smd_nnp_energy_ev": -60.157091151178555
+    },
+    {
+      "experimental_kcal_mol": 2.89,
+      "gas_nnp_energy_ev": -107.52353373678542,
+      "predicted_kcal_mol": 3.32105085378545,
+      "record_id": "mobley_1139153",
+      "smd_nnp_energy_ev": -107.37951934242734
+    },
+    {
+      "experimental_kcal_mol": -1.59,
+      "gas_nnp_energy_ev": -60.35543931832832,
+      "predicted_kcal_mol": -2.3587669687686756,
+      "record_id": "mobley_1144156",
+      "smd_nnp_energy_ev": -60.45772513429283
+    },
+    {
+      "experimental_kcal_mol": -2.82,
+      "gas_nnp_energy_ev": -77.5341203619265,
+      "predicted_kcal_mol": -2.0078389559411094,
+      "record_id": "mobley_1235151",
+      "smd_nnp_energy_ev": -77.62118849907316
+    },
+    {
+      "experimental_kcal_mol": -5.48,
+      "gas_nnp_energy_ev": -93.50143422039616,
+      "predicted_kcal_mol": -4.455945408434305,
+      "record_id": "mobley_1244778",
+      "smd_nnp_energy_ev": -93.69466230016401
+    },
+    {
+      "experimental_kcal_mol": 2.51,
+      "gas_nnp_energy_ev": -69.2953700800697,
+      "predicted_kcal_mol": 1.8400886019012612,
+      "record_id": "mobley_1261349",
+      "smd_nnp_energy_ev": -69.2155762867088
+    },
+    {
+      "experimental_kcal_mol": -0.83,
+      "gas_nnp_energy_ev": -111.45641079056199,
+      "predicted_kcal_mol": -1.1073727419788424,
+      "record_id": "mobley_129464",
+      "smd_nnp_energy_ev": -111.50443101722698
+    },
+    {
+      "experimental_kcal_mol": -6.88,
+      "gas_nnp_energy_ev": -96.7571807968582,
+      "predicted_kcal_mol": -3.782470502715425,
+      "record_id": "mobley_1328936",
+      "smd_nnp_energy_ev": -96.92120424082472
+    },
+    {
+      "experimental_kcal_mol": -4.84,
+      "gas_nnp_energy_ev": -79.5991040240426,
+      "predicted_kcal_mol": -2.676233405039618,
+      "record_id": "mobley_1363784",
+      "smd_nnp_energy_ev": -79.71515648754172
+    },
+    {
+      "experimental_kcal_mol": -0.83,
+      "gas_nnp_energy_ev": -85.08102926056283,
+      "predicted_kcal_mol": -0.29654520379851207,
+      "record_id": "mobley_1424265",
+      "smd_nnp_energy_ev": -85.0938886775983
+    },
+    {
+      "experimental_kcal_mol": -0.68,
+      "gas_nnp_energy_ev": -110.64950654583927,
+      "predicted_kcal_mol": 0.8335605527972246,
+      "record_id": "mobley_1449384",
+      "smd_nnp_energy_ev": -110.61335993940142
+    },
+    {
+      "experimental_kcal_mol": -2.49,
+      "gas_nnp_energy_ev": -119.13402475070173,
+      "predicted_kcal_mol": -3.7768612933166885,
+      "record_id": "mobley_1502181",
+      "smd_nnp_energy_ev": -119.29780495632896
+    },
+    {
+      "experimental_kcal_mol": -4.93,
+      "gas_nnp_energy_ev": -66.76443966376321,
+      "predicted_kcal_mol": -2.854769152547852,
+      "record_id": "mobley_1520842",
+      "smd_nnp_energy_ev": -66.8882341699713
+    },
+    {
+      "experimental_kcal_mol": -6.16,
+      "gas_nnp_energy_ev": -89.59077060896372,
+      "predicted_kcal_mol": -3.428419296516052,
+      "record_id": "mobley_1571523",
+      "smd_nnp_energy_ev": -89.73944093963046
+    },
+    {
+      "experimental_kcal_mol": -2.23,
+      "gas_nnp_energy_ev": -111.23913660169441,
+      "predicted_kcal_mol": -3.047291285948126,
+      "record_id": "mobley_1592519",
+      "smd_nnp_energy_ev": -111.3712796577028
+    },
+    {
+      "experimental_kcal_mol": -0.53,
+      "gas_nnp_energy_ev": -86.10869573563936,
+      "predicted_kcal_mol": -1.4799858519971287,
+      "record_id": "mobley_1615431",
+      "smd_nnp_energy_ev": -86.17287399593036
+    },
+    {
+      "experimental_kcal_mol": -5.1,
+      "gas_nnp_energy_ev": -22.182908038070178,
+      "predicted_kcal_mol": -5.34785381856058,
+      "record_id": "mobley_1636752",
+      "smd_nnp_energy_ev": -22.414812926824798
+    },
+    {
+      "experimental_kcal_mol": -4.47,
+      "gas_nnp_energy_ev": -60.94805713719648,
+      "predicted_kcal_mol": -4.291008779561427,
+      "record_id": "mobley_1650157",
+      "smd_nnp_energy_ev": -61.13413288784913
+    },
+    {
+      "experimental_kcal_mol": -7.17,
+      "gas_nnp_energy_ev": -62.027014346801984,
+      "predicted_kcal_mol": -5.970833513163417,
+      "record_id": "mobley_1659169",
+      "smd_nnp_energy_ev": -62.28593419177546
+    },
+    {
+      "experimental_kcal_mol": 1.38,
+      "gas_nnp_energy_ev": -49.995059452608,
+      "predicted_kcal_mol": 0.34503385406663006,
+      "record_id": "mobley_1662128",
+      "smd_nnp_energy_ev": -49.9800973687032
+    },
+    {
+      "experimental_kcal_mol": 0.29,
+      "gas_nnp_energy_ev": -68.7677697002058,
+      "predicted_kcal_mol": -0.4390513986464441,
+      "record_id": "mobley_1674094",
+      "smd_nnp_energy_ev": -68.78680877068437
+    },
+    {
+      "experimental_kcal_mol": -2.78,
+      "gas_nnp_energy_ev": -34.15476471951076,
+      "predicted_kcal_mol": -2.5240092955512243,
+      "record_id": "mobley_1717215",
+      "smd_nnp_energy_ev": -34.26421612090639
+    },
+    {
+      "experimental_kcal_mol": -2.49,
+      "gas_nnp_energy_ev": -85.67520351191764,
+      "predicted_kcal_mol": -3.9703196537052956,
+      "record_id": "mobley_1722522",
+      "smd_nnp_energy_ev": -85.8473728659896
+    },
+    {
+      "experimental_kcal_mol": -11.0,
+      "gas_nnp_energy_ev": -79.1617600700718,
+      "predicted_kcal_mol": -7.848067700350621,
+      "record_id": "mobley_1728386",
+      "smd_nnp_energy_ev": -79.5020844934268
+    },
+    {
+      "experimental_kcal_mol": -3.15,
+      "gas_nnp_energy_ev": -116.38567253599811,
+      "predicted_kcal_mol": -1.3126899494549173,
+      "record_id": "mobley_172879",
+      "smd_nnp_energy_ev": -116.44259615938533
+    },
+    {
+      "experimental_kcal_mol": -6.21,
+      "gas_nnp_energy_ev": -85.82147956771836,
+      "predicted_kcal_mol": -9.46304720097651,
+      "record_id": "mobley_1735893",
+      "smd_nnp_energy_ev": -86.23183612997249
+    },
+    {
+      "experimental_kcal_mol": -5.26,
+      "gas_nnp_energy_ev": -89.57965052100718,
+      "predicted_kcal_mol": -4.4972022420044535,
+      "record_id": "mobley_1755375",
+      "smd_nnp_energy_ev": -89.77466766639351
+    },
+    {
+      "experimental_kcal_mol": -2.4,
+      "gas_nnp_energy_ev": -85.59170372945209,
+      "predicted_kcal_mol": -2.877970455849945,
+      "record_id": "mobley_1781152",
+      "smd_nnp_energy_ev": -85.71650433938773
+    },
+    {
+      "experimental_kcal_mol": 2.38,
+      "gas_nnp_energy_ev": -69.2089136280717,
+      "predicted_kcal_mol": 1.9726612936155006,
+      "record_id": "mobley_1803862",
+      "smd_nnp_energy_ev": -69.1233709387299
+    },
+    {
+      "experimental_kcal_mol": -5.88,
+      "gas_nnp_energy_ev": -94.1968943536761,
+      "predicted_kcal_mol": -2.3085347134149385,
+      "record_id": "mobley_1821184",
+      "smd_nnp_energy_ev": -94.29700189289915
+    },
+    {
+      "experimental_kcal_mol": -2.81,
+      "gas_nnp_energy_ev": -80.51580129994268,
+      "predicted_kcal_mol": -3.007543738416777,
+      "record_id": "mobley_1827204",
+      "smd_nnp_energy_ev": -80.64622073916922
+    },
+    {
+      "experimental_kcal_mol": -6.79,
+      "gas_nnp_energy_ev": -89.26066103782155,
+      "predicted_kcal_mol": -5.555259195891235,
+      "record_id": "mobley_1858644",
+      "smd_nnp_energy_ev": -89.50155987491299
+    },
+    {
+      "experimental_kcal_mol": -0.9,
+      "gas_nnp_energy_ev": -72.2180354783807,
+      "predicted_kcal_mol": -0.40656274471418463,
+      "record_id": "mobley_1873346",
+      "smd_nnp_energy_ev": -72.23566570749382
+    },
+    {
+      "experimental_kcal_mol": -3.41,
+      "gas_nnp_energy_ev": -68.01197222695355,
+      "predicted_kcal_mol": -5.264199716138669,
+      "record_id": "mobley_1875719",
+      "smd_nnp_energy_ev": -68.24024953051713
+    },
+    {
+      "experimental_kcal_mol": -3.52,
+      "gas_nnp_energy_ev": -68.02124639312001,
+      "predicted_kcal_mol": -5.076306190297132,
+      "record_id": "mobley_1881249",
+      "smd_nnp_energy_ev": -68.24137586230249
+    },
+    {
+      "experimental_kcal_mol": 1.47,
+      "gas_nnp_energy_ev": -75.69471005925787,
+      "predicted_kcal_mol": 1.117897208380669,
+      "record_id": "mobley_1899443",
+      "smd_nnp_energy_ev": -75.6462334485381
+    },
+    {
+      "experimental_kcal_mol": -4.62,
+      "gas_nnp_energy_ev": -60.797128435313674,
+      "predicted_kcal_mol": -4.6734965739363,
+      "record_id": "mobley_1903702",
+      "smd_nnp_energy_ev": -60.999790426430984
+    },
+    {
+      "experimental_kcal_mol": 2.1,
+      "gas_nnp_energy_ev": -56.38971242325813,
+      "predicted_kcal_mol": 1.0603642889517313,
+      "record_id": "mobley_1923244",
+      "smd_nnp_energy_ev": -56.343730676035484
+    },
+    {
+      "experimental_kcal_mol": -4.02,
+      "gas_nnp_energy_ev": -26.287353499113575,
+      "predicted_kcal_mol": -0.7282132312812002,
+      "record_id": "mobley_1952272",
+      "smd_nnp_energy_ev": -26.318931813353167
+    },
+    {
+      "experimental_kcal_mol": -10.0,
+      "gas_nnp_energy_ev": -50.35297241629147,
+      "predicted_kcal_mol": -9.076415549320691,
+      "record_id": "mobley_1963873",
+      "smd_nnp_energy_ev": -50.74656304342317
+    },
+    {
+      "experimental_kcal_mol": -3.5,
+      "gas_nnp_energy_ev": -29.376011996704005,
+      "predicted_kcal_mol": -3.8386978676912524,
+      "record_id": "mobley_1967551",
+      "smd_nnp_energy_ev": -29.542473689968677
+    },
+    {
+      "experimental_kcal_mol": -4.61,
+      "gas_nnp_energy_ev": -61.59080653178133,
+      "predicted_kcal_mol": -5.5753940200434,
+      "record_id": "mobley_197466",
+      "smd_nnp_energy_ev": -61.83257849747978
+    },
+    {
+      "experimental_kcal_mol": -2.07,
+      "gas_nnp_energy_ev": -118.84783420254072,
+      "predicted_kcal_mol": -2.080873679105656,
+      "record_id": "mobley_1976156",
+      "smd_nnp_energy_ev": -118.9380694250127
+    },
+    {
+      "experimental_kcal_mol": -0.9,
+      "gas_nnp_energy_ev": -97.9277464878944,
+      "predicted_kcal_mol": -0.5474100510292154,
+      "record_id": "mobley_1987439",
+      "smd_nnp_energy_ev": -97.95148443423588
+    },
+    {
+      "experimental_kcal_mol": -2.7,
+      "gas_nnp_energy_ev": -113.5919603922791,
+      "predicted_kcal_mol": -1.4600856853837063,
+      "record_id": "mobley_2005792",
+      "smd_nnp_energy_ev": -113.65527569967699
+    },
+    {
+      "experimental_kcal_mol": 1.83,
+      "gas_nnp_energy_ev": -30.81865538326404,
+      "predicted_kcal_mol": 0.2218410694837001,
+      "record_id": "mobley_2008055",
+      "smd_nnp_energy_ev": -30.809035444072496
+    },
+    {
+      "experimental_kcal_mol": -3.9,
+      "gas_nnp_energy_ev": -100.96708648262512,
+      "predicted_kcal_mol": -4.569203717220311,
+      "record_id": "mobley_2043882",
+      "smd_nnp_energy_ev": -101.16522590746534
+    },
+    {
+      "experimental_kcal_mol": -6.6,
+      "gas_nnp_energy_ev": -63.87903522861195,
+      "predicted_kcal_mol": -5.0195149741809955,
+      "record_id": "mobley_20524",
+      "smd_nnp_energy_ev": -64.09670199759684
+    },
+    {
+      "experimental_kcal_mol": 2.0,
+      "gas_nnp_energy_ev": -43.59204648558876,
+      "predicted_kcal_mol": 0.25083480707378436,
+      "record_id": "mobley_2068538",
+      "smd_nnp_energy_ev": -43.581169258947234
+    },
+    {
+      "experimental_kcal_mol": -10.17,
+      "gas_nnp_energy_ev": -72.49323490005412,
+      "predicted_kcal_mol": -8.337938912295161,
+      "record_id": "mobley_2123854",
+      "smd_nnp_energy_ev": -72.85480214955292
+    },
+    {
+      "experimental_kcal_mol": -5.66,
+      "gas_nnp_energy_ev": -89.52066193130175,
+      "predicted_kcal_mol": -3.83191874038193,
+      "record_id": "mobley_2126135",
+      "smd_nnp_energy_ev": -89.68682965378527
+    },
+    {
+      "experimental_kcal_mol": 1.83,
+      "gas_nnp_energy_ev": -62.82118508098599,
+      "predicted_kcal_mol": 1.2617306675949351,
+      "record_id": "mobley_2143011",
+      "smd_nnp_energy_ev": -62.7664712611932
+    },
+    {
+      "experimental_kcal_mol": -2.75,
+      "gas_nnp_energy_ev": -16.13740032795588,
+      "predicted_kcal_mol": -4.431834278640462,
+      "record_id": "mobley_2146331",
+      "smd_nnp_energy_ev": -16.32958285018564
+    },
+    {
+      "experimental_kcal_mol": -0.45,
+      "gas_nnp_energy_ev": -110.61435150289606,
+      "predicted_kcal_mol": 1.3335764590887333,
+      "record_id": "mobley_2183616",
+      "smd_nnp_energy_ev": -110.55652215473448
+    },
+    {
+      "experimental_kcal_mol": 2.51,
+      "gas_nnp_energy_ev": -81.9827073867116,
+      "predicted_kcal_mol": 2.686651804594733,
+      "record_id": "mobley_2213823",
+      "smd_nnp_energy_ev": -81.86620313865146
+    },
+    {
+      "experimental_kcal_mol": -4.5,
+      "gas_nnp_energy_ev": -60.680671495669834,
+      "predicted_kcal_mol": -4.500909321602781,
+      "record_id": "mobley_2245668",
+      "smd_nnp_energy_ev": -60.87584939524112
+    },
+    {
+      "experimental_kcal_mol": -3.15,
+      "gas_nnp_energy_ev": -113.8215114828268,
+      "predicted_kcal_mol": -3.2202535853610352,
+      "record_id": "mobley_2261979",
+      "smd_nnp_energy_ev": -113.96115489396175
+    },
+    {
+      "experimental_kcal_mol": -4.42,
+      "gas_nnp_energy_ev": -68.56709186203551,
+      "predicted_kcal_mol": -3.6604542312600756,
+      "record_id": "mobley_2279874",
+      "smd_nnp_energy_ev": -68.72582417972632
+    },
+    {
+      "experimental_kcal_mol": -2.56,
+      "gas_nnp_energy_ev": -47.05157919012813,
+      "predicted_kcal_mol": -3.248738276383041,
+      "record_id": "mobley_2294995",
+      "smd_nnp_energy_ev": -47.19245781436477
+    },
+    {
+      "experimental_kcal_mol": -9.51,
+      "gas_nnp_energy_ev": -93.16377765195529,
+      "predicted_kcal_mol": -7.2678561220044005,
+      "record_id": "mobley_2295058",
+      "smd_nnp_energy_ev": -93.4789417201294
+    },
+    {
+      "experimental_kcal_mol": -5.0,
+      "gas_nnp_energy_ev": -35.08028115529226,
+      "predicted_kcal_mol": -5.868418463773023,
+      "record_id": "mobley_2310185",
+      "smd_nnp_energy_ev": -35.334759863420665
+    },
+    {
+      "experimental_kcal_mol": 2.55,
+      "gas_nnp_energy_ev": -127.4053060788314,
+      "predicted_kcal_mol": 2.477440325396889,
+      "record_id": "mobley_2328633",
+      "smd_nnp_energy_ev": -127.29787409909714
+    },
+    {
+      "experimental_kcal_mol": -2.56,
+      "gas_nnp_energy_ev": -85.58100971737171,
+      "predicted_kcal_mol": -2.6300694434959095,
+      "record_id": "mobley_2341732",
+      "smd_nnp_energy_ev": -85.69506032204494
+    },
+    {
+      "experimental_kcal_mol": -6.25,
+      "gas_nnp_energy_ev": -89.5228523208055,
+      "predicted_kcal_mol": -4.658505019216586,
+      "record_id": "mobley_2354112",
+      "smd_nnp_energy_ev": -89.72486421658597
+    },
+    {
+      "experimental_kcal_mol": -2.64,
+      "gas_nnp_energy_ev": -85.69176334337254,
+      "predicted_kcal_mol": -3.249449652683625,
+      "record_id": "mobley_2364370",
+      "smd_nnp_energy_ev": -85.83267281580501
+    },
+    {
+      "experimental_kcal_mol": -5.22,
+      "gas_nnp_energy_ev": -79.6869921118019,
+      "predicted_kcal_mol": -1.3071908348384937,
+      "record_id": "mobley_2371092",
+      "smd_nnp_energy_ev": -79.7436772710114
+    },
+    {
+      "experimental_kcal_mol": -2.92,
+      "gas_nnp_energy_ev": -93.54487644013157,
+      "predicted_kcal_mol": -5.273472038147629,
+      "record_id": "mobley_2390199",
+      "smd_nnp_energy_ev": -93.77355582963037
+    },
+    {
+      "experimental_kcal_mol": -4.5,
+      "gas_nnp_energy_ev": -38.09575777585272,
+      "predicted_kcal_mol": -4.805611302384628,
+      "record_id": "mobley_2410897",
+      "smd_nnp_energy_ev": -38.30414880378426
+    },
+    {
+      "experimental_kcal_mol": -1.66,
+      "gas_nnp_energy_ev": -60.22809006097105,
+      "predicted_kcal_mol": -1.9648483235204035,
+      "record_id": "mobley_2422586",
+      "smd_nnp_energy_ev": -60.31329394786569
+    },
+    {
+      "experimental_kcal_mol": -4.1,
+      "gas_nnp_energy_ev": -67.92133937792133,
+      "predicted_kcal_mol": -3.805478954349708,
+      "record_id": "mobley_2451097",
+      "smd_nnp_energy_ev": -68.08636056277564
+    },
+    {
+      "experimental_kcal_mol": -7.66,
+      "gas_nnp_energy_ev": -80.74973311696398,
+      "predicted_kcal_mol": -5.950456207104242,
+      "record_id": "mobley_2457863",
+      "smd_nnp_energy_ev": -81.00776931831983
+    },
+    {
+      "experimental_kcal_mol": -3.28,
+      "gas_nnp_energy_ev": -80.79255965995074,
+      "predicted_kcal_mol": -4.94915653185305,
+      "record_id": "mobley_2487143",
+      "smd_nnp_energy_ev": -81.00717539813064
+    },
+    {
+      "experimental_kcal_mol": 2.88,
+      "gas_nnp_energy_ev": -94.81275949464741,
+      "predicted_kcal_mol": 2.7773262894741504,
+      "record_id": "mobley_252413",
+      "smd_nnp_energy_ev": -94.69232322880177
+    },
+    {
+      "experimental_kcal_mol": -2.26,
+      "gas_nnp_energy_ev": -111.25806613241997,
+      "predicted_kcal_mol": -2.3551633588740675,
+      "record_id": "mobley_2607611",
+      "smd_nnp_energy_ev": -111.36019568107051
+    },
+    {
+      "experimental_kcal_mol": 2.56,
+      "gas_nnp_energy_ev": -94.80247210219251,
+      "predicted_kcal_mol": 3.7236096067222175,
+      "record_id": "mobley_2609604",
+      "smd_nnp_energy_ev": -94.64100110823685
+    },
+    {
+      "experimental_kcal_mol": -5.33,
+      "gas_nnp_energy_ev": -92.77952639568748,
+      "predicted_kcal_mol": -3.800931399715374,
+      "record_id": "mobley_2613240",
+      "smd_nnp_energy_ev": -92.94435037991003
+    },
+    {
+      "experimental_kcal_mol": -9.76,
+      "gas_nnp_energy_ev": -116.98062500359626,
+      "predicted_kcal_mol": -6.805855010805615,
+      "record_id": "mobley_2659552",
+      "smd_nnp_energy_ev": -117.27575480757167
+    },
+    {
+      "experimental_kcal_mol": -9.65,
+      "gas_nnp_energy_ev": -72.43789730981418,
+      "predicted_kcal_mol": -7.937434264368226,
+      "record_id": "mobley_2661134",
+      "smd_nnp_energy_ev": -72.78209703413852
+    },
+    {
+      "experimental_kcal_mol": 1.23,
+      "gas_nnp_energy_ev": -76.6007561063219,
+      "predicted_kcal_mol": 1.893301894423143,
+      "record_id": "mobley_2689721",
+      "smd_nnp_energy_ev": -76.51865476621397
+    },
+    {
+      "experimental_kcal_mol": -5.04,
+      "gas_nnp_energy_ev": -99.55749594817173,
+      "predicted_kcal_mol": -4.187641089502632,
+      "record_id": "mobley_2693089",
+      "smd_nnp_energy_ev": -99.73908925157036
+    },
+    {
+      "experimental_kcal_mol": -9.8,
+      "gas_nnp_energy_ev": -82.97008513912866,
+      "predicted_kcal_mol": -9.52711073326556,
+      "record_id": "mobley_2725802",
+      "smd_nnp_energy_ev": -83.38321975905467
+    },
+    {
+      "experimental_kcal_mol": -10.64,
+      "gas_nnp_energy_ev": -72.13091515188731,
+      "predicted_kcal_mol": -7.7059260341852935,
+      "record_id": "mobley_2751110",
+      "smd_nnp_energy_ev": -72.4650757292589
+    },
+    {
+      "experimental_kcal_mol": -2.22,
+      "gas_nnp_energy_ev": -89.07554334988612,
+      "predicted_kcal_mol": -2.1037051815667196,
+      "record_id": "mobley_2763835",
+      "smd_nnp_energy_ev": -89.16676864000354
+    },
+    {
+      "experimental_kcal_mol": -7.77,
+      "gas_nnp_energy_ev": -77.69103850143489,
+      "predicted_kcal_mol": -7.68063908569918,
+      "record_id": "mobley_2771569",
+      "smd_nnp_energy_ev": -78.02410253294443
+    },
+    {
+      "experimental_kcal_mol": -9.61,
+      "gas_nnp_energy_ev": -85.69440768705758,
+      "predicted_kcal_mol": -6.626184598908491,
+      "record_id": "mobley_2782339",
+      "smd_nnp_energy_ev": -85.98174624461954
+    },
+    {
+      "experimental_kcal_mol": 0.75,
+      "gas_nnp_energy_ev": -36.97846177411024,
+      "predicted_kcal_mol": -1.5590799117148912,
+      "record_id": "mobley_2784376",
+      "smd_nnp_energy_ev": -37.046069877426554
+    },
+    {
+      "experimental_kcal_mol": -3.68,
+      "gas_nnp_energy_ev": -74.37861656239023,
+      "predicted_kcal_mol": -2.913880348546915,
+      "record_id": "mobley_2792521",
+      "smd_nnp_energy_ev": -74.50497437264465
+    },
+    {
+      "experimental_kcal_mol": -2.4,
+      "gas_nnp_energy_ev": -93.77594225085609,
+      "predicted_kcal_mol": -3.7659970167566854,
+      "record_id": "mobley_282648",
+      "smd_nnp_energy_ev": -93.93925133686552
+    },
+    {
+      "experimental_kcal_mol": -4.78,
+      "gas_nnp_energy_ev": -46.621811123851494,
+      "predicted_kcal_mol": -3.2224158728054944,
+      "record_id": "mobley_2837389",
+      "smd_nnp_energy_ev": -46.76154830064389
+    },
+    {
+      "experimental_kcal_mol": -4.68,
+      "gas_nnp_energy_ev": -75.33532164948592,
+      "predicted_kcal_mol": -7.805154222603599,
+      "record_id": "mobley_2850833",
+      "smd_nnp_energy_ev": -75.6737851683322
+    },
+    {
+      "experimental_kcal_mol": -1.24,
+      "gas_nnp_energy_ev": -78.66539500547773,
+      "predicted_kcal_mol": -1.3687208970671787,
+      "record_id": "mobley_2859600",
+      "smd_nnp_energy_ev": -78.72474836070013
+    },
+    {
+      "experimental_kcal_mol": -4.39,
+      "gas_nnp_energy_ev": -73.57057528420023,
+      "predicted_kcal_mol": -4.4136647709620505,
+      "record_id": "mobley_2864987",
+      "smd_nnp_energy_ev": -73.76196990201079
+    },
+    {
+      "experimental_kcal_mol": -1.88,
+      "gas_nnp_energy_ev": -67.98403868194853,
+      "predicted_kcal_mol": -1.8759005346661906,
+      "record_id": "mobley_2881590",
+      "smd_nnp_energy_ev": -68.06538542768355
+    },
+    {
+      "experimental_kcal_mol": -9.94,
+      "gas_nnp_energy_ev": -105.28946453873415,
+      "predicted_kcal_mol": -10.426618597294391,
+      "record_id": "mobley_2913224",
+      "smd_nnp_energy_ev": -105.74160551115573
+    },
+    {
+      "experimental_kcal_mol": -6.13,
+      "gas_nnp_energy_ev": -89.50929783954315,
+      "predicted_kcal_mol": -4.499155457866513,
+      "record_id": "mobley_2923700",
+      "smd_nnp_energy_ev": -89.70439968438511
+    },
+    {
+      "experimental_kcal_mol": -6.13,
+      "gas_nnp_energy_ev": -76.73662549755674,
+      "predicted_kcal_mol": -4.793609806525561,
+      "record_id": "mobley_2925352",
+      "smd_nnp_energy_ev": -76.94449609137462
+    },
+    {
+      "experimental_kcal_mol": -6.09,
+      "gas_nnp_energy_ev": -73.07483766743151,
+      "predicted_kcal_mol": -9.34341711282494,
+      "record_id": "mobley_2929847",
+      "smd_nnp_energy_ev": -73.48000657811069
+    },
+    {
+      "experimental_kcal_mol": -3.65,
+      "gas_nnp_energy_ev": -88.97463680731089,
+      "predicted_kcal_mol": -3.568759837102342,
+      "record_id": "mobley_2958326",
+      "smd_nnp_energy_ev": -89.12939287976425
+    },
+    {
+      "experimental_kcal_mol": -4.69,
+      "gas_nnp_energy_ev": -53.788462072839565,
+      "predicted_kcal_mol": -4.250415915251233,
+      "record_id": "mobley_296847",
+      "smd_nnp_energy_ev": -53.97277755030572
+    },
+    {
+      "experimental_kcal_mol": -3.78,
+      "gas_nnp_energy_ev": -133.88874432914258,
+      "predicted_kcal_mol": -1.0728895788217068,
+      "record_id": "mobley_2972345",
+      "smd_nnp_energy_ev": -133.93526922433682
+    },
+    {
+      "experimental_kcal_mol": 1.16,
+      "gas_nnp_energy_ev": -50.13355889305852,
+      "predicted_kcal_mol": -0.18966016670349195,
+      "record_id": "mobley_299266",
+      "smd_nnp_energy_ev": -50.14178333623756
+    },
+    {
+      "experimental_kcal_mol": 1.32,
+      "gas_nnp_energy_ev": -37.20795633744407,
+      "predicted_kcal_mol": -0.5207646820054074,
+      "record_id": "mobley_303222",
+      "smd_nnp_energy_ev": -37.23053883123413
+    },
+    {
+      "experimental_kcal_mol": -6.69,
+      "gas_nnp_energy_ev": -34.67251656722902,
+      "predicted_kcal_mol": -10.789422868059214,
+      "record_id": "mobley_3034976",
+      "smd_nnp_energy_ev": -35.14039022175185
+    },
+    {
+      "experimental_kcal_mol": -0.85,
+      "gas_nnp_energy_ev": -97.8570700960541,
+      "predicted_kcal_mol": 0.912753087390685,
+      "record_id": "mobley_3040612",
+      "smd_nnp_energy_ev": -97.81748937631619
+    },
+    {
+      "experimental_kcal_mol": -0.9,
+      "gas_nnp_energy_ev": -59.316568521814986,
+      "predicted_kcal_mol": -1.2417296092228742,
+      "record_id": "mobley_3053621",
+      "smd_nnp_energy_ev": -59.37041501363395
+    },
+    {
+      "experimental_kcal_mol": 2.93,
+      "gas_nnp_energy_ev": -120.3878733630721,
+      "predicted_kcal_mol": 3.4245835681805357,
+      "record_id": "mobley_3060426",
+      "smd_nnp_energy_ev": -120.23936936532753
+    },
+    {
+      "experimental_kcal_mol": -2.93,
+      "gas_nnp_energy_ev": -51.536493802834414,
+      "predicted_kcal_mol": -2.930367877628372,
+      "record_id": "mobley_3083321",
+      "smd_nnp_energy_ev": -51.66356658001336
+    },
+    {
+      "experimental_kcal_mol": -4.85,
+      "gas_nnp_energy_ev": -47.85214181933174,
+      "predicted_kcal_mol": -5.393642876847194,
+      "record_id": "mobley_313406",
+      "smd_nnp_energy_ev": -48.08603230956845
+    },
+    {
+      "experimental_kcal_mol": 2.88,
+      "gas_nnp_energy_ev": -107.50699952673058,
+      "predicted_kcal_mol": 2.455450941010145,
+      "record_id": "mobley_3167746",
+      "smd_nnp_energy_ev": -107.40052109694608
+    },
+    {
+      "experimental_kcal_mol": -5.53,
+      "gas_nnp_energy_ev": -79.82916069687349,
+      "predicted_kcal_mol": -3.156655675512091,
+      "record_id": "mobley_3187514",
+      "smd_nnp_energy_ev": -79.96604624163643
+    },
+    {
+      "experimental_kcal_mol": 0.14,
+      "gas_nnp_energy_ev": -70.30898250476814,
+      "predicted_kcal_mol": 0.6714677893931641,
+      "record_id": "mobley_3211679",
+      "smd_nnp_energy_ev": -70.27986490576775
+    },
+    {
+      "experimental_kcal_mol": -0.8,
+      "gas_nnp_energy_ev": -85.08723436332083,
+      "predicted_kcal_mol": 0.0863467930509542,
+      "record_id": "mobley_3234716",
+      "smd_nnp_energy_ev": -85.08349001201353
+    },
+    {
+      "experimental_kcal_mol": -13.43,
+      "gas_nnp_energy_ev": -56.515084429133346,
+      "predicted_kcal_mol": -14.706435681868058,
+      "record_id": "mobley_3259411",
+      "smd_nnp_energy_ev": -57.15281583438304
+    },
+    {
+      "experimental_kcal_mol": -7.47,
+      "gas_nnp_energy_ev": -101.32044342219419,
+      "predicted_kcal_mol": -6.241997397108618,
+      "record_id": "mobley_3264884",
+      "smd_nnp_energy_ev": -101.59112204601131
+    },
+    {
+      "experimental_kcal_mol": -2.01,
+      "gas_nnp_energy_ev": -60.3477038723645,
+      "predicted_kcal_mol": -1.5162706227271838,
+      "record_id": "mobley_3269565",
+      "smd_nnp_energy_ev": -60.41345558922427
+    },
+    {
+      "experimental_kcal_mol": -4.04,
+      "gas_nnp_energy_ev": -122.75101710579688,
+      "predicted_kcal_mol": -3.438942392191747,
+      "record_id": "mobley_3325209",
+      "smd_nnp_energy_ev": -122.90014376107808
+    },
+    {
+      "experimental_kcal_mol": -5.26,
+      "gas_nnp_energy_ev": -119.09047108038821,
+      "predicted_kcal_mol": -4.529992364446413,
+      "record_id": "mobley_3359593",
+      "smd_nnp_energy_ev": -119.28691014005177
+    },
+    {
+      "experimental_kcal_mol": -3.88,
+      "gas_nnp_energy_ev": -124.54102401219934,
+      "predicted_kcal_mol": -3.13827398318961,
+      "record_id": "mobley_3378420",
+      "smd_nnp_energy_ev": -124.67711245134613
+    },
+    {
+      "experimental_kcal_mol": -3.12,
+      "gas_nnp_energy_ev": -67.73781197199007,
+      "predicted_kcal_mol": -2.655085102678275,
+      "record_id": "mobley_3395921",
+      "smd_nnp_energy_ev": -67.85294735830779
+    },
+    {
+      "experimental_kcal_mol": -3.92,
+      "gas_nnp_energy_ev": -86.46428929768783,
+      "predicted_kcal_mol": -3.7074837572434025,
+      "record_id": "mobley_3414356",
+      "smd_nnp_energy_ev": -86.62506100863084
+    },
+    {
+      "experimental_kcal_mol": -1.21,
+      "gas_nnp_energy_ev": -97.89817642976105,
+      "predicted_kcal_mol": 0.8785219722342507,
+      "record_id": "mobley_3452749",
+      "smd_nnp_energy_ev": -97.86008011165819
+    },
+    {
+      "experimental_kcal_mol": -4.7,
+      "gas_nnp_energy_ev": -96.72382525693419,
+      "predicted_kcal_mol": -4.446554826135107,
+      "record_id": "mobley_349850",
+      "smd_nnp_energy_ev": -96.91664612251532
+    },
+    {
+      "experimental_kcal_mol": -5.94,
+      "gas_nnp_energy_ev": -80.73526046881075,
+      "predicted_kcal_mol": -3.8627581364650005,
+      "record_id": "mobley_3515580",
+      "smd_nnp_energy_ev": -80.90276551407095
+    },
+    {
+      "experimental_kcal_mol": -0.23,
+      "gas_nnp_energy_ev": -123.32936792828065,
+      "predicted_kcal_mol": 0.5434343475334578,
+      "record_id": "mobley_3525176",
+      "smd_nnp_energy_ev": -123.30580238475872
+    },
+    {
+      "experimental_kcal_mol": -4.4,
+      "gas_nnp_energy_ev": -86.21004818251225,
+      "predicted_kcal_mol": -3.9871101632612125,
+      "record_id": "mobley_3546460",
+      "smd_nnp_energy_ev": -86.38294564198551
+    },
+    {
+      "experimental_kcal_mol": -2.11,
+      "gas_nnp_energy_ev": -111.24022074721752,
+      "predicted_kcal_mol": -2.981419237889632,
+      "record_id": "mobley_3572203",
+      "smd_nnp_energy_ev": -111.36950732088826
+    },
+    {
+      "experimental_kcal_mol": -3.04,
+      "gas_nnp_energy_ev": -93.57393715283857,
+      "predicted_kcal_mol": -4.511482319367457,
+      "record_id": "mobley_3573480",
+      "smd_nnp_energy_ev": -93.7695735409837
+    },
+    {
+      "experimental_kcal_mol": -4.09,
+      "gas_nnp_energy_ev": -111.76286594831154,
+      "predicted_kcal_mol": -3.447013385059533,
+      "record_id": "mobley_36119",
+      "smd_nnp_energy_ev": -111.91234259496623
+    },
+    {
+      "experimental_kcal_mol": -8.11,
+      "gas_nnp_energy_ev": -98.29218446905183,
+      "predicted_kcal_mol": -7.408365009167399,
+      "record_id": "mobley_3663158",
+      "smd_nnp_energy_ev": -98.61344157921103
+    },
+    {
+      "experimental_kcal_mol": -4.91,
+      "gas_nnp_energy_ev": -75.38536377422446,
+      "predicted_kcal_mol": -4.789121710666161,
+      "record_id": "mobley_3682850",
+      "smd_nnp_energy_ev": -75.59303974578707
+    },
+    {
+      "experimental_kcal_mol": -3.28,
+      "gas_nnp_energy_ev": -90.18314661959865,
+      "predicted_kcal_mol": -4.589864081642183,
+      "record_id": "mobley_3686115",
+      "smd_nnp_energy_ev": -90.38218196262875
+    },
+    {
+      "experimental_kcal_mol": -2.28,
+      "gas_nnp_energy_ev": -98.44234703600709,
+      "predicted_kcal_mol": -3.8297293926176614,
+      "record_id": "mobley_3690931",
+      "smd_nnp_energy_ev": -98.60841981938664
+    },
+    {
+      "experimental_kcal_mol": 2.06,
+      "gas_nnp_energy_ev": -113.8897234675175,
+      "predicted_kcal_mol": 2.0488749126792434,
+      "record_id": "mobley_3709920",
+      "smd_nnp_energy_ev": -113.80087584287826
+    },
+    {
+      "experimental_kcal_mol": -2.82,
+      "gas_nnp_energy_ev": -119.45763722021641,
+      "predicted_kcal_mol": -2.1685119482301483,
+      "record_id": "mobley_3715043",
+      "smd_nnp_energy_ev": -119.55167279769836
+    },
+    {
+      "experimental_kcal_mol": -6.5,
+      "gas_nnp_energy_ev": -61.68310988236042,
+      "predicted_kcal_mol": -6.491852811465182,
+      "record_id": "mobley_3727287",
+      "smd_nnp_energy_ev": -61.96462326233149
+    },
+    {
+      "experimental_kcal_mol": -1.24,
+      "gas_nnp_energy_ev": -91.51205666639792,
+      "predicted_kcal_mol": -0.3211575070319335,
+      "record_id": "mobley_3746675",
+      "smd_nnp_energy_ev": -91.5259833739086
+    },
+    {
+      "experimental_kcal_mol": -2.89,
+      "gas_nnp_energy_ev": -59.21519659804418,
+      "predicted_kcal_mol": -2.25116127231997,
+      "record_id": "mobley_3775790",
+      "smd_nnp_energy_ev": -59.31281618940515
+    },
+    {
+      "experimental_kcal_mol": -8.84,
+      "gas_nnp_energy_ev": -75.11953267487061,
+      "predicted_kcal_mol": -8.094761793099584,
+      "record_id": "mobley_3777264",
+      "smd_nnp_energy_ev": -75.47055476650085
+    },
+    {
+      "experimental_kcal_mol": -1.66,
+      "gas_nnp_energy_ev": -93.55733204981598,
+      "predicted_kcal_mol": 0.45968877434590766,
+      "record_id": "mobley_3802803",
+      "smd_nnp_energy_ev": -93.53739805803288
+    },
+    {
+      "experimental_kcal_mol": -7.28,
+      "gas_nnp_energy_ev": -101.3024230908695,
+      "predicted_kcal_mol": -6.6270926955806075,
+      "record_id": "mobley_3843583",
+      "smd_nnp_energy_ev": -101.58980102722992
+    },
+    {
+      "experimental_kcal_mol": -3.8,
+      "gas_nnp_energy_ev": -42.46451964237511,
+      "predicted_kcal_mol": -5.205840729711467,
+      "record_id": "mobley_3867265",
+      "smd_nnp_energy_ev": -42.69026626078641
+    },
+    {
+      "experimental_kcal_mol": -4.7,
+      "gas_nnp_energy_ev": -62.48795560772777,
+      "predicted_kcal_mol": -3.7376446022888428,
+      "record_id": "mobley_3968043",
+      "smd_nnp_energy_ev": -62.650035216689744
+    },
+    {
+      "experimental_kcal_mol": -3.92,
+      "gas_nnp_energy_ev": -88.61227178010017,
+      "predicted_kcal_mol": -2.4599373024995743,
+      "record_id": "mobley_3968739",
+      "smd_nnp_energy_ev": -88.71894475693054
+    },
+    {
+      "experimental_kcal_mol": -4.02,
+      "gas_nnp_energy_ev": -70.79896396502231,
+      "predicted_kcal_mol": -4.052497950758447,
+      "record_id": "mobley_3969312",
+      "smd_nnp_energy_ev": -70.97469690730792
+    },
+    {
+      "experimental_kcal_mol": -3.64,
+      "gas_nnp_energy_ev": -101.49282594944265,
+      "predicted_kcal_mol": -3.2051736628149596,
+      "record_id": "mobley_397645",
+      "smd_nnp_energy_ev": -101.63181543324914
+    },
+    {
+      "experimental_kcal_mol": -3.13,
+      "gas_nnp_energy_ev": -47.24817119188417,
+      "predicted_kcal_mol": -3.0859588949232535,
+      "record_id": "mobley_3982371",
+      "smd_nnp_energy_ev": -47.38199103410662
+    },
+    {
+      "experimental_kcal_mol": -2.74,
+      "gas_nnp_energy_ev": -93.58421105402499,
+      "predicted_kcal_mol": -4.581597030024153,
+      "record_id": "mobley_4013838",
+      "smd_nnp_energy_ev": -93.78288790376959
+    },
+    {
+      "experimental_kcal_mol": -5.9,
+      "gas_nnp_energy_ev": -76.75732694826301,
+      "predicted_kcal_mol": -4.4179358954692765,
+      "record_id": "mobley_4035953",
+      "smd_nnp_energy_ev": -76.94890677956057
+    },
+    {
+      "experimental_kcal_mol": 1.68,
+      "gas_nnp_energy_ev": -62.78533745957264,
+      "predicted_kcal_mol": 0.9858327348736664,
+      "record_id": "mobley_4043951",
+      "smd_nnp_energy_ev": -62.742587706406596
+    },
+    {
+      "experimental_kcal_mol": 2.93,
+      "gas_nnp_energy_ev": -94.7599319308852,
+      "predicted_kcal_mol": 2.5236170601036134,
+      "record_id": "mobley_4043987",
+      "smd_nnp_energy_ev": -94.65049753842828
+    },
+    {
+      "experimental_kcal_mol": -7.58,
+      "gas_nnp_energy_ev": -90.21442158674238,
+      "predicted_kcal_mol": -8.422709910787217,
+      "record_id": "mobley_4059279",
+      "smd_nnp_energy_ev": -90.57966485462947
+    },
+    {
+      "experimental_kcal_mol": 2.56,
+      "gas_nnp_energy_ev": -107.51535426495286,
+      "predicted_kcal_mol": 3.960042193891995,
+      "record_id": "mobley_4177472",
+      "smd_nnp_energy_ev": -107.34363058371632
+    },
+    {
+      "experimental_kcal_mol": -9.29,
+      "gas_nnp_energy_ev": -104.12785021674092,
+      "predicted_kcal_mol": -6.448643207614494,
+      "record_id": "mobley_4188615",
+      "smd_nnp_energy_ev": -104.40748985096013
+    },
+    {
+      "experimental_kcal_mol": -4.12,
+      "gas_nnp_energy_ev": -67.52565670366128,
+      "predicted_kcal_mol": -3.214607449140885,
+      "record_id": "mobley_4193752",
+      "smd_nnp_energy_ev": -67.66505527515841
+    },
+    {
+      "experimental_kcal_mol": -7.48,
+      "gas_nnp_energy_ev": -83.7091622205744,
+      "predicted_kcal_mol": -5.2012683904694725,
+      "record_id": "mobley_4218209",
+      "smd_nnp_energy_ev": -83.93471056359164
+    },
+    {
+      "experimental_kcal_mol": 0.16,
+      "gas_nnp_energy_ev": -110.60569995676755,
+      "predicted_kcal_mol": 0.5079971839450034,
+      "record_id": "mobley_4252724",
+      "smd_nnp_energy_ev": -110.58367111409022
+    },
+    {
+      "experimental_kcal_mol": -4.63,
+      "gas_nnp_energy_ev": -66.77566011554777,
+      "predicted_kcal_mol": -3.227538863582677,
+      "record_id": "mobley_4287564",
+      "smd_nnp_energy_ev": -66.91561944624462
+    },
+    {
+      "experimental_kcal_mol": 0.01,
+      "gas_nnp_energy_ev": -56.000840795375225,
+      "predicted_kcal_mol": -0.33955956297638995,
+      "record_id": "mobley_430089",
+      "smd_nnp_energy_ev": -56.01556549155228
+    },
+    {
+      "experimental_kcal_mol": -3.84,
+      "gas_nnp_energy_ev": -39.40897639854802,
+      "predicted_kcal_mol": -3.720297761461021,
+      "record_id": "mobley_4305650",
+      "smd_nnp_energy_ev": -39.570303777301596
+    },
+    {
+      "experimental_kcal_mol": 3.13,
+      "gas_nnp_energy_ev": -120.28556839373812,
+      "predicted_kcal_mol": 2.77616788800014,
+      "record_id": "mobley_4375719",
+      "smd_nnp_energy_ev": -120.16518236093438
+    },
+    {
+      "experimental_kcal_mol": -4.97,
+      "gas_nnp_energy_ev": -89.5494191767854,
+      "predicted_kcal_mol": -6.670792602707203,
+      "record_id": "mobley_4463913",
+      "smd_nnp_energy_ev": -89.83869212045991
+    },
+    {
+      "experimental_kcal_mol": -2.78,
+      "gas_nnp_energy_ev": -132.91354852534693,
+      "predicted_kcal_mol": -1.5770694380852752,
+      "record_id": "mobley_4479135",
+      "smd_nnp_energy_ev": -132.9819367283543
+    },
+    {
+      "experimental_kcal_mol": 2.34,
+      "gas_nnp_energy_ev": -81.9906159923055,
+      "predicted_kcal_mol": 2.774005267374791,
+      "record_id": "mobley_4561957",
+      "smd_nnp_energy_ev": -81.8703237396073
+    },
+    {
+      "experimental_kcal_mol": -4.59,
+      "gas_nnp_energy_ev": -79.7182322848842,
+      "predicted_kcal_mol": -2.811469605672249,
+      "record_id": "mobley_4584540",
+      "smd_nnp_energy_ev": -79.84014914504174
+    },
+    {
+      "experimental_kcal_mol": -9.2,
+      "gas_nnp_energy_ev": -106.05122173603897,
+      "predicted_kcal_mol": -7.736335931833011,
+      "record_id": "mobley_4609460",
+      "smd_nnp_energy_ev": -106.38670101137245
+    },
+    {
+      "experimental_kcal_mol": -7.63,
+      "gas_nnp_energy_ev": -108.32515930257256,
+      "predicted_kcal_mol": -5.787168241420105,
+      "record_id": "mobley_4613090",
+      "smd_nnp_energy_ev": -108.57611466761506
+    },
+    {
+      "experimental_kcal_mol": -4.1,
+      "gas_nnp_energy_ev": -66.33385064428255,
+      "predicted_kcal_mol": -3.7014331966148624,
+      "record_id": "mobley_4620651",
+      "smd_nnp_energy_ev": -66.49435997808567
+    },
+    {
+      "experimental_kcal_mol": -4.84,
+      "gas_nnp_energy_ev": -64.00819200441825,
+      "predicted_kcal_mol": -5.208991786674766,
+      "record_id": "mobley_4630641",
+      "smd_nnp_energy_ev": -64.23407526559117
+    },
+    {
+      "experimental_kcal_mol": -9.3,
+      "gas_nnp_energy_ev": -39.29660198676374,
+      "predicted_kcal_mol": -11.214884067351433,
+      "record_id": "mobley_4639255",
+      "smd_nnp_energy_ev": -39.78292538494801
+    },
+    {
+      "experimental_kcal_mol": -5.21,
+      "gas_nnp_energy_ev": -102.28224108780167,
+      "predicted_kcal_mol": -4.536145967801746,
+      "record_id": "mobley_4683624",
+      "smd_nnp_energy_ev": -102.47894699296063
+    },
+    {
+      "experimental_kcal_mol": -6.4,
+      "gas_nnp_energy_ev": -77.31502818709701,
+      "predicted_kcal_mol": -8.181816530991975,
+      "record_id": "mobley_4687447",
+      "smd_nnp_energy_ev": -77.66982532942824
+    },
+    {
+      "experimental_kcal_mol": -3.54,
+      "gas_nnp_energy_ev": -89.79669954805028,
+      "predicted_kcal_mol": -5.618443653065751,
+      "record_id": "mobley_4690963",
+      "smd_nnp_energy_ev": -90.04033832250897
+    },
+    {
+      "experimental_kcal_mol": -2.29,
+      "gas_nnp_energy_ev": -106.07061426721661,
+      "predicted_kcal_mol": -2.3828777071528697,
+      "record_id": "mobley_4694328",
+      "smd_nnp_energy_ev": -106.17394562374608
+    },
+    {
+      "experimental_kcal_mol": 1.58,
+      "gas_nnp_energy_ev": -102.15799264286092,
+      "predicted_kcal_mol": 2.6085870891973815,
+      "record_id": "mobley_4715906",
+      "smd_nnp_energy_ev": -102.04487360123201
+    },
+    {
+      "experimental_kcal_mol": 1.66,
+      "gas_nnp_energy_ev": -88.33356647265623,
+      "predicted_kcal_mol": 1.4106077520098113,
+      "record_id": "mobley_4762983",
+      "smd_nnp_energy_ev": -88.27239673150308
+    },
+    {
+      "experimental_kcal_mol": -6.01,
+      "gas_nnp_energy_ev": -89.59982156869896,
+      "predicted_kcal_mol": -4.4106608109281185,
+      "record_id": "mobley_4780078",
+      "smd_nnp_energy_ev": -89.79108592247442
+    },
+    {
+      "experimental_kcal_mol": -6.16,
+      "gas_nnp_energy_ev": -73.03527346177356,
+      "predicted_kcal_mol": -10.036157102337043,
+      "record_id": "mobley_4792268",
+      "smd_nnp_energy_ev": -73.47048242134976
+    },
+    {
+      "experimental_kcal_mol": -6.96,
+      "gas_nnp_energy_ev": -97.33000070593975,
+      "predicted_kcal_mol": -6.262504365447589,
+      "record_id": "mobley_486214",
+      "smd_nnp_energy_ev": -97.60156859606307
+    },
+    {
+      "experimental_kcal_mol": -5.49,
+      "gas_nnp_energy_ev": -66.98224958760375,
+      "predicted_kcal_mol": -3.3120084431410155,
+      "record_id": "mobley_4883284",
+      "smd_nnp_energy_ev": -67.12587186592692
+    },
+    {
+      "experimental_kcal_mol": -4.59,
+      "gas_nnp_energy_ev": -79.52554354329219,
+      "predicted_kcal_mol": -2.097869417403623,
+      "record_id": "mobley_4884177",
+      "smd_nnp_energy_ev": -79.61651577072597
+    },
+    {
+      "experimental_kcal_mol": -3.52,
+      "gas_nnp_energy_ev": -64.990178163554,
+      "predicted_kcal_mol": -3.0137834690386374,
+      "record_id": "mobley_4893032",
+      "smd_nnp_energy_ev": -65.12086818310769
+    },
+    {
+      "experimental_kcal_mol": -2.13,
+      "gas_nnp_energy_ev": -85.45129405349401,
+      "predicted_kcal_mol": -1.1645765874045055,
+      "record_id": "mobley_4924862",
+      "smd_nnp_energy_ev": -85.50179487365685
+    },
+    {
+      "experimental_kcal_mol": 0.6,
+      "gas_nnp_energy_ev": -81.54532163783195,
+      "predicted_kcal_mol": -0.08768488505541296,
+      "record_id": "mobley_49274",
+      "smd_nnp_energy_ev": -81.54912401429999
+    },
+    {
+      "experimental_kcal_mol": -5.99,
+      "gas_nnp_energy_ev": -53.825056180238825,
+      "predicted_kcal_mol": -6.181337850147576,
+      "record_id": "mobley_4964807",
+      "smd_nnp_energy_ev": -54.093104357157586
+    },
+    {
+      "experimental_kcal_mol": -6.02,
+      "gas_nnp_energy_ev": -62.341882949322965,
+      "predicted_kcal_mol": -4.347306500155313,
+      "record_id": "mobley_5026370",
+      "smd_nnp_energy_ev": -62.53040000018209
+    },
+    {
+      "experimental_kcal_mol": -3.3,
+      "gas_nnp_energy_ev": -67.64690430215116,
+      "predicted_kcal_mol": -2.1496340325829344,
+      "record_id": "mobley_5056289",
+      "smd_nnp_energy_ev": -67.74012125573712
+    },
+    {
+      "experimental_kcal_mol": -4.58,
+      "gas_nnp_energy_ev": -71.72870390845176,
+      "predicted_kcal_mol": -8.80413013801007,
+      "record_id": "mobley_5063386",
+      "smd_nnp_energy_ev": -72.1104871227106
+    },
+    {
+      "experimental_kcal_mol": -6.12,
+      "gas_nnp_energy_ev": -83.71754378119986,
+      "predicted_kcal_mol": -3.672012179470417,
+      "record_id": "mobley_5072416",
+      "smd_nnp_energy_ev": -83.876777298958
+    },
+    {
+      "experimental_kcal_mol": -4.21,
+      "gas_nnp_energy_ev": -98.98620787727965,
+      "predicted_kcal_mol": -3.718134498443756,
+      "record_id": "mobley_5079234",
+      "smd_nnp_energy_ev": -99.14744144807094
+    },
+    {
+      "experimental_kcal_mol": -1.46,
+      "gas_nnp_energy_ev": -92.30935099954074,
+      "predicted_kcal_mol": 1.1761050865528906,
+      "record_id": "mobley_5094777",
+      "smd_nnp_energy_ev": -92.25835025634275
+    },
+    {
+      "experimental_kcal_mol": -2.63,
+      "gas_nnp_energy_ev": -119.49839614375205,
+      "predicted_kcal_mol": -3.0276176158040258,
+      "record_id": "mobley_5110043",
+      "smd_nnp_energy_ev": -119.62968606868375
+    },
+    {
+      "experimental_kcal_mol": 0.56,
+      "gas_nnp_energy_ev": -43.781970371614264,
+      "predicted_kcal_mol": 0.10816421200524823,
+      "record_id": "mobley_511661",
+      "smd_nnp_energy_ev": -43.77727992748409
+    },
+    {
+      "experimental_kcal_mol": -3.73,
+      "gas_nnp_energy_ev": -86.36700568990231,
+      "predicted_kcal_mol": -3.4731610007648763,
+      "record_id": "mobley_5123639",
+      "smd_nnp_energy_ev": -86.5176162044818
+    },
+    {
+      "experimental_kcal_mol": 2.3,
+      "gas_nnp_energy_ev": -56.42127878878982,
+      "predicted_kcal_mol": 0.8569215770996642,
+      "record_id": "mobley_5157661",
+      "smd_nnp_energy_ev": -56.38411915246636
+    },
+    {
+      "experimental_kcal_mol": -5.45,
+      "gas_nnp_energy_ev": -73.98044534210382,
+      "predicted_kcal_mol": -3.5383054113552297,
+      "record_id": "mobley_5220185",
+      "smd_nnp_energy_ev": -74.13388078567417
+    },
+    {
+      "experimental_kcal_mol": -2.4,
+      "gas_nnp_energy_ev": -119.3706060481885,
+      "predicted_kcal_mol": -2.5633230668028486,
+      "record_id": "mobley_5263791",
+      "smd_nnp_energy_ev": -119.48176225604631
+    },
+    {
+      "experimental_kcal_mol": -5.73,
+      "gas_nnp_energy_ev": -53.822586533733094,
+      "predicted_kcal_mol": -0.2843885634342017,
+      "record_id": "mobley_52782",
+      "smd_nnp_energy_ev": -53.83491878895245
+    },
+    {
+      "experimental_kcal_mol": 1.58,
+      "gas_nnp_energy_ev": -75.56016936531587,
+      "predicted_kcal_mol": 1.1814296584699797,
+      "record_id": "mobley_5310099",
+      "smd_nnp_energy_ev": -75.50893772682792
+    },
+    {
+      "experimental_kcal_mol": -6.62,
+      "gas_nnp_energy_ev": -76.37012833399514,
+      "predicted_kcal_mol": -6.562017064313241,
+      "record_id": "mobley_5311804",
+      "smd_nnp_energy_ev": -76.65468432391842
+    },
+    {
+      "experimental_kcal_mol": -3.45,
+      "gas_nnp_energy_ev": -91.87250935761169,
+      "predicted_kcal_mol": -2.8102174084226927,
+      "record_id": "mobley_5326154",
+      "smd_nnp_energy_ev": -91.99437191735757
+    },
+    {
+      "experimental_kcal_mol": -3.11,
+      "gas_nnp_energy_ev": -80.80593569216506,
+      "predicted_kcal_mol": -4.778175040402427,
+      "record_id": "mobley_5346580",
+      "smd_nnp_energy_ev": -81.01313697118074
+    },
+    {
+      "experimental_kcal_mol": -2.83,
+      "gas_nnp_energy_ev": -72.80224224448034,
+      "predicted_kcal_mol": -2.9414531531433603,
+      "record_id": "mobley_5390332",
+      "smd_nnp_energy_ev": -72.92979572469874
+    },
+    {
+      "experimental_kcal_mol": -0.3,
+      "gas_nnp_energy_ev": -97.80232388976243,
+      "predicted_kcal_mol": 0.7141057686594584,
+      "record_id": "mobley_5445548",
+      "smd_nnp_energy_ev": -97.77135733299806
+    },
+    {
+      "experimental_kcal_mol": 2.3,
+      "gas_nnp_energy_ev": -69.17624938554782,
+      "predicted_kcal_mol": 1.5210741751987686,
+      "record_id": "mobley_5449201",
+      "smd_nnp_energy_ev": -69.11028936693947
+    },
+    {
+      "experimental_kcal_mol": -5.91,
+      "gas_nnp_energy_ev": -115.0218456502134,
+      "predicted_kcal_mol": -4.510530095704256,
+      "record_id": "mobley_5467162",
+      "smd_nnp_energy_ev": -115.21744074603264
+    },
+    {
+      "experimental_kcal_mol": -2.21,
+      "gas_nnp_energy_ev": -98.49557085073445,
+      "predicted_kcal_mol": -2.8856808482701743,
+      "record_id": "mobley_5471704",
+      "smd_nnp_energy_ev": -98.62070581492829
+    },
+    {
+      "experimental_kcal_mol": -2.78,
+      "gas_nnp_energy_ev": -119.50884799356851,
+      "predicted_kcal_mol": -2.604815164896054,
+      "record_id": "mobley_547634",
+      "smd_nnp_energy_ev": -119.62180346908002
+    },
+    {
+      "experimental_kcal_mol": -8.41,
+      "gas_nnp_energy_ev": -54.08796645751148,
+      "predicted_kcal_mol": -6.100707252289848,
+      "record_id": "mobley_5499659",
+      "smd_nnp_energy_ev": -54.35251816080534
+    },
+    {
+      "experimental_kcal_mol": -4.42,
+      "gas_nnp_energy_ev": -81.43255185409794,
+      "predicted_kcal_mol": -3.7483096664719127,
+      "record_id": "mobley_550662",
+      "smd_nnp_energy_ev": -81.5950939440115
+    },
+    {
+      "experimental_kcal_mol": -5.57,
+      "gas_nnp_energy_ev": -79.79043002741939,
+      "predicted_kcal_mol": -3.7427631676000526,
+      "record_id": "mobley_5518547",
+      "smd_nnp_energy_ev": -79.95273159837946
+    },
+    {
+      "experimental_kcal_mol": -5.21,
+      "gas_nnp_energy_ev": -92.63976231896054,
+      "predicted_kcal_mol": -3.324686858863326,
+      "record_id": "mobley_5571660",
+      "smd_nnp_energy_ev": -92.78393438542068
+    },
+    {
+      "experimental_kcal_mol": -11.01,
+      "gas_nnp_energy_ev": -120.94822549357028,
+      "predicted_kcal_mol": -8.518402732317647,
+      "record_id": "mobley_5600967",
+      "smd_nnp_energy_ev": -121.31761839491493
+    },
+    {
+      "experimental_kcal_mol": -2.86,
+      "gas_nnp_energy_ev": -54.95334228387313,
+      "predicted_kcal_mol": -3.6951574846691275,
+      "record_id": "mobley_5627459",
+      "smd_nnp_energy_ev": -55.11357947705124
+    },
+    {
+      "experimental_kcal_mol": -4.29,
+      "gas_nnp_energy_ev": -12.804867548997464,
+      "predicted_kcal_mol": -5.209965796967428,
+      "record_id": "mobley_5631798",
+      "smd_nnp_energy_ev": -13.030793047253942
+    },
+    {
+      "experimental_kcal_mol": -2.47,
+      "gas_nnp_energy_ev": -119.47658168341418,
+      "predicted_kcal_mol": -2.8786374806582025,
+      "record_id": "mobley_5665561",
+      "smd_nnp_energy_ev": -119.60141121828292
+    },
+    {
+      "experimental_kcal_mol": 1.01,
+      "gas_nnp_energy_ev": -69.17967085705708,
+      "predicted_kcal_mol": 0.6984446516741699,
+      "record_id": "mobley_5690766",
+      "smd_nnp_energy_ev": -69.14938343059721
+    },
+    {
+      "experimental_kcal_mol": -4.29,
+      "gas_nnp_energy_ev": -37.75353709901507,
+      "predicted_kcal_mol": -3.783588457406175,
+      "record_id": "mobley_5692472",
+      "smd_nnp_energy_ev": -37.91760902208499
+    },
+    {
+      "experimental_kcal_mol": -10.27,
+      "gas_nnp_energy_ev": -54.41609864706291,
+      "predicted_kcal_mol": -6.48548646934135,
+      "record_id": "mobley_5732611",
+      "smd_nnp_energy_ev": -54.697335956312514
+    },
+    {
+      "experimental_kcal_mol": -3.58,
+      "gas_nnp_energy_ev": -80.32127274917609,
+      "predicted_kcal_mol": -3.3176013407703153,
+      "record_id": "mobley_5747188",
+      "smd_nnp_energy_ev": -80.4651375584933
+    },
+    {
+      "experimental_kcal_mol": -5.73,
+      "gas_nnp_energy_ev": -97.88551888138907,
+      "predicted_kcal_mol": -7.353862474652329,
+      "record_id": "mobley_5747981",
+      "smd_nnp_energy_ev": -98.20441253797748
+    },
+    {
+      "experimental_kcal_mol": -4.57,
+      "gas_nnp_energy_ev": -73.42998268545749,
+      "predicted_kcal_mol": -4.4091213514841625,
+      "record_id": "mobley_5759258",
+      "smd_nnp_energy_ev": -73.62118028195364
+    },
+    {
+      "experimental_kcal_mol": -6.62,
+      "gas_nnp_energy_ev": -51.65523195346485,
+      "predicted_kcal_mol": -8.13033299113553,
+      "record_id": "mobley_5816127",
+      "smd_nnp_energy_ev": -52.0077965582234
+    },
+    {
+      "experimental_kcal_mol": 1.59,
+      "gas_nnp_energy_ev": -76.3185808218749,
+      "predicted_kcal_mol": 1.5788832291126258,
+      "record_id": "mobley_5852491",
+      "smd_nnp_energy_ev": -76.25011396544492
+    },
+    {
+      "experimental_kcal_mol": -5.72,
+      "gas_nnp_energy_ev": -88.31092893987427,
+      "predicted_kcal_mol": -5.964121582704511,
+      "record_id": "mobley_5857",
+      "smd_nnp_energy_ev": -88.5695577279978
+    },
+    {
+      "experimental_kcal_mol": -6.25,
+      "gas_nnp_energy_ev": -90.09868472854028,
+      "predicted_kcal_mol": -7.73639270359816,
+      "record_id": "mobley_5880265",
+      "smd_nnp_energy_ev": -90.43416646573048
+    },
+    {
+      "experimental_kcal_mol": -0.04,
+      "gas_nnp_energy_ev": -136.11061182958727,
+      "predicted_kcal_mol": 0.9052898735074864,
+      "record_id": "mobley_588781",
+      "smd_nnp_energy_ev": -136.0713547454318
+    },
+    {
+      "experimental_kcal_mol": -2.44,
+      "gas_nnp_energy_ev": -85.66759519713904,
+      "predicted_kcal_mol": -3.88037671209731,
+      "record_id": "mobley_5890803",
+      "smd_nnp_energy_ev": -85.83586425614394
+    },
+    {
+      "experimental_kcal_mol": -5.8,
+      "gas_nnp_energy_ev": -93.55901980076028,
+      "predicted_kcal_mol": -4.521120742054208,
+      "record_id": "mobley_5917842",
+      "smd_nnp_energy_ev": -93.75507415046846
+    },
+    {
+      "experimental_kcal_mol": 2.51,
+      "gas_nnp_energy_ev": -82.04724817384152,
+      "predicted_kcal_mol": 2.7954752359786648,
+      "record_id": "mobley_5935995",
+      "smd_nnp_energy_ev": -81.92602489519356
+    },
+    {
+      "experimental_kcal_mol": -7.37,
+      "gas_nnp_energy_ev": -75.21293540868997,
+      "predicted_kcal_mol": -7.095580663045874,
+      "record_id": "mobley_5948990",
+      "smd_nnp_energy_ev": -75.52062890595838
+    },
+    {
+      "experimental_kcal_mol": -4.42,
+      "gas_nnp_energy_ev": -73.45693021314513,
+      "predicted_kcal_mol": -4.078881864917119,
+      "record_id": "mobley_5973402",
+      "smd_nnp_energy_ev": -73.63380727022621
+    },
+    {
+      "experimental_kcal_mol": -4.77,
+      "gas_nnp_energy_ev": -66.7206588562253,
+      "predicted_kcal_mol": -2.87297313129332,
+      "record_id": "mobley_5977084",
+      "smd_nnp_energy_ev": -66.84524276165952
+    },
+    {
+      "experimental_kcal_mol": -3.09,
+      "gas_nnp_energy_ev": -64.7532036839303,
+      "predicted_kcal_mol": -2.3474725948054496,
+      "record_id": "mobley_6006813",
+      "smd_nnp_energy_ev": -64.85499972948851
+    },
+    {
+      "experimental_kcal_mol": -3.95,
+      "gas_nnp_energy_ev": -89.22420213457536,
+      "predicted_kcal_mol": -3.202634800579881,
+      "record_id": "mobley_6060301",
+      "smd_nnp_energy_ev": -89.36308152289605
+    },
+    {
+      "experimental_kcal_mol": -3.43,
+      "gas_nnp_energy_ev": -99.91196336023323,
+      "predicted_kcal_mol": -2.813956951869221,
+      "record_id": "mobley_6081058",
+      "smd_nnp_energy_ev": -100.03398808192975
+    },
+    {
+      "experimental_kcal_mol": -9.82,
+      "gas_nnp_energy_ev": -75.19029894177828,
+      "predicted_kcal_mol": -9.537367139387575,
+      "record_id": "mobley_6082662",
+      "smd_nnp_energy_ev": -75.60387832156525
+    },
+    {
+      "experimental_kcal_mol": 1.28,
+      "gas_nnp_energy_ev": -24.289366919491712,
+      "predicted_kcal_mol": -0.3564547964924324,
+      "record_id": "mobley_6091882",
+      "smd_nnp_energy_ev": -24.304824262330765
+    },
+    {
+      "experimental_kcal_mol": -2.87,
+      "gas_nnp_energy_ev": -117.65958906992505,
+      "predicted_kcal_mol": -1.6362548015400613,
+      "record_id": "mobley_6102880",
+      "smd_nnp_energy_ev": -117.73054379318401
+    },
+    {
+      "experimental_kcal_mol": -4.27,
+      "gas_nnp_energy_ev": -83.69613239628222,
+      "predicted_kcal_mol": -3.8844278416380984,
+      "record_id": "mobley_6175884",
+      "smd_nnp_energy_ev": -83.86457712888954
+    },
+    {
+      "experimental_kcal_mol": -9.37,
+      "gas_nnp_energy_ev": -118.82453113011759,
+      "predicted_kcal_mol": -7.737913970498878,
+      "record_id": "mobley_6201330",
+      "smd_nnp_energy_ev": -119.16007883568378
+    },
+    {
+      "experimental_kcal_mol": -7.1,
+      "gas_nnp_energy_ev": -65.2461415622619,
+      "predicted_kcal_mol": -6.566855509223084,
+      "record_id": "mobley_6232400",
+      "smd_nnp_energy_ev": -65.53090736701307
+    },
+    {
+      "experimental_kcal_mol": -18.06,
+      "gas_nnp_energy_ev": -59.61256250821234,
+      "predicted_kcal_mol": -16.067517121452422,
+      "record_id": "mobley_6239320",
+      "smd_nnp_energy_ev": -60.309315990456234
+    },
+    {
+      "experimental_kcal_mol": -3.65,
+      "gas_nnp_energy_ev": -114.77717547031308,
+      "predicted_kcal_mol": -2.6500006528812023,
+      "record_id": "mobley_6248915",
+      "smd_nnp_energy_ev": -114.89209037402141
+    },
+    {
+      "experimental_kcal_mol": -5.56,
+      "gas_nnp_energy_ev": -44.3091158114935,
+      "predicted_kcal_mol": -4.115724186895782,
+      "record_id": "mobley_6266306",
+      "smd_nnp_energy_ev": -44.48759050285364
+    },
+    {
+      "experimental_kcal_mol": -4.73,
+      "gas_nnp_energy_ev": -79.55809080811146,
+      "predicted_kcal_mol": -2.088584439616421,
+      "record_id": "mobley_6303022",
+      "smd_nnp_energy_ev": -79.64866040080355
+    },
+    {
+      "experimental_kcal_mol": -5.11,
+      "gas_nnp_energy_ev": -70.87929167677844,
+      "predicted_kcal_mol": -2.411637610909604,
+      "record_id": "mobley_6309289",
+      "smd_nnp_energy_ev": -70.98387018076323
+    },
+    {
+      "experimental_kcal_mol": -4.4,
+      "gas_nnp_energy_ev": -100.7012161842857,
+      "predicted_kcal_mol": -6.520248034040402,
+      "record_id": "mobley_632905",
+      "smd_nnp_energy_ev": -100.98396089763945
+    },
+    {
+      "experimental_kcal_mol": -8.26,
+      "gas_nnp_energy_ev": -78.31262137437702,
+      "predicted_kcal_mol": -7.051658705808759,
+      "record_id": "mobley_6353617",
+      "smd_nnp_energy_ev": -78.61841023532727
+    },
+    {
+      "experimental_kcal_mol": -3.88,
+      "gas_nnp_energy_ev": -83.42522711874527,
+      "predicted_kcal_mol": -2.802619454769917,
+      "record_id": "mobley_63712",
+      "smd_nnp_energy_ev": -83.54676020003934
+    },
+    {
+      "experimental_kcal_mol": -3.95,
+      "gas_nnp_energy_ev": -128.0547304273884,
+      "predicted_kcal_mol": -4.390261965562743,
+      "record_id": "mobley_637522",
+      "smd_nnp_energy_ev": -128.24511020351352
+    },
+    {
+      "experimental_kcal_mol": 2.13,
+      "gas_nnp_energy_ev": -101.84886540703144,
+      "predicted_kcal_mol": 1.868511170646011,
+      "record_id": "mobley_6416775",
+      "smd_nnp_energy_ev": -101.76783909444572
+    },
+    {
+      "experimental_kcal_mol": -0.53,
+      "gas_nnp_energy_ev": -97.77551485775211,
+      "predicted_kcal_mol": 0.1835765466919715,
+      "record_id": "mobley_6430250",
+      "smd_nnp_energy_ev": -97.76755422530348
+    },
+    {
+      "experimental_kcal_mol": -1.69,
+      "gas_nnp_energy_ev": -111.2654445752,
+      "predicted_kcal_mol": -3.720451800270429,
+      "record_id": "mobley_6456034",
+      "smd_nnp_energy_ev": -111.42677863370851
+    },
+    {
+      "experimental_kcal_mol": -5.48,
+      "gas_nnp_energy_ev": -57.82944449692445,
+      "predicted_kcal_mol": -2.4080881188838252,
+      "record_id": "mobley_646007",
+      "smd_nnp_energy_ev": -57.93386908036817
+    },
+    {
+      "experimental_kcal_mol": -4.22,
+      "gas_nnp_energy_ev": -48.85290112357334,
+      "predicted_kcal_mol": -3.847636961500044,
+      "record_id": "mobley_6497672",
+      "smd_nnp_energy_ev": -49.019750452630916
+    },
+    {
+      "experimental_kcal_mol": 0.67,
+      "gas_nnp_energy_ev": -83.2021594171467,
+      "predicted_kcal_mol": 1.3495230630939568,
+      "record_id": "mobley_6571751",
+      "smd_nnp_energy_ev": -83.14363855879182
+    },
+    {
+      "experimental_kcal_mol": -2.49,
+      "gas_nnp_energy_ev": -98.45421446817637,
+      "predicted_kcal_mol": -3.6165561656722196,
+      "record_id": "mobley_6619554",
+      "smd_nnp_energy_ev": -98.611043185589
+    },
+    {
+      "experimental_kcal_mol": -3.43,
+      "gas_nnp_energy_ev": -42.17322150189212,
+      "predicted_kcal_mol": -3.841819669930091,
+      "record_id": "mobley_6632459",
+      "smd_nnp_energy_ev": -42.33981856931351
+    },
+    {
+      "experimental_kcal_mol": -4.55,
+      "gas_nnp_energy_ev": -25.24645950898039,
+      "predicted_kcal_mol": -4.4074837247254335,
+      "record_id": "mobley_6714389",
+      "smd_nnp_energy_ev": -25.43758609125959
+    },
+    {
+      "experimental_kcal_mol": -8.18,
+      "gas_nnp_energy_ev": -46.60108248292481,
+      "predicted_kcal_mol": -6.619057360475573,
+      "record_id": "mobley_6727159",
+      "smd_nnp_energy_ev": -46.888111974178685
+    },
+    {
+      "experimental_kcal_mol": -5.06,
+      "gas_nnp_energy_ev": -58.83229958289447,
+      "predicted_kcal_mol": -5.556706287062044,
+      "record_id": "mobley_6739648",
+      "smd_nnp_energy_ev": -59.073261171797824
+    },
+    {
+      "experimental_kcal_mol": -6.5,
+      "gas_nnp_energy_ev": -89.61608463228107,
+      "predicted_kcal_mol": -3.9438889113306725,
+      "record_id": "mobley_6743808",
+      "smd_nnp_energy_ev": -89.78710784089392
+    },
+    {
+      "experimental_kcal_mol": -7.62,
+      "gas_nnp_energy_ev": -78.27785417537707,
+      "predicted_kcal_mol": -6.266446439467525,
+      "record_id": "mobley_6794076",
+      "smd_nnp_energy_ev": -78.54959301000787
+    },
+    {
+      "experimental_kcal_mol": 2.48,
+      "gas_nnp_energy_ev": -81.95308712664753,
+      "predicted_kcal_mol": 1.8553906699483669,
+      "record_id": "mobley_6812653",
+      "smd_nnp_energy_ev": -81.87262977281759
+    },
+    {
+      "experimental_kcal_mol": -2.02,
+      "gas_nnp_energy_ev": -59.957109560624914,
+      "predicted_kcal_mol": -2.9746242795712523,
+      "record_id": "mobley_6854178",
+      "smd_nnp_energy_ev": -60.08610147701698
+    },
+    {
+      "experimental_kcal_mol": -9.13,
+      "gas_nnp_energy_ev": -111.82949235870512,
+      "predicted_kcal_mol": -9.793908995450108,
+      "record_id": "mobley_6861308",
+      "smd_nnp_energy_ev": -112.25419644619906
+    },
+    {
+      "experimental_kcal_mol": 2.97,
+      "gas_nnp_energy_ev": -107.52426642876,
+      "predicted_kcal_mol": 3.0975088154936348,
+      "record_id": "mobley_6896128",
+      "smd_nnp_energy_ev": -107.38994573458163
+    },
+    {
+      "experimental_kcal_mol": -2.1,
+      "gas_nnp_energy_ev": -47.45244803858496,
+      "predicted_kcal_mol": -2.31949223350654,
+      "record_id": "mobley_6911232",
+      "smd_nnp_energy_ev": -47.553030740848
+    },
+    {
+      "experimental_kcal_mol": -6.55,
+      "gas_nnp_energy_ev": -54.71821975357393,
+      "predicted_kcal_mol": -6.293541487878629,
+      "record_id": "mobley_6917738",
+      "smd_nnp_energy_ev": -54.991133540699835
+    },
+    {
+      "experimental_kcal_mol": -2.94,
+      "gas_nnp_energy_ev": -60.13243978366559,
+      "predicted_kcal_mol": -3.9515644738879043,
+      "record_id": "mobley_6973347",
+      "smd_nnp_energy_ev": -60.30379583617084
+    },
+    {
+      "experimental_kcal_mol": -3.3,
+      "gas_nnp_energy_ev": -105.75405406181908,
+      "predicted_kcal_mol": -2.2838608057145615,
+      "record_id": "mobley_6978427",
+      "smd_nnp_energy_ev": -105.85309163914441
+    },
+    {
+      "experimental_kcal_mol": -2.64,
+      "gas_nnp_energy_ev": -73.03505209688046,
+      "predicted_kcal_mol": -3.7540191742970483,
+      "record_id": "mobley_6981465",
+      "smd_nnp_energy_ev": -73.1978417744847
+    },
+    {
+      "experimental_kcal_mol": -4.33,
+      "gas_nnp_energy_ev": -79.57009595530602,
+      "predicted_kcal_mol": -2.177682695854438,
+      "record_id": "mobley_6988468",
+      "smd_nnp_energy_ev": -79.664529214041
+    },
+    {
+      "experimental_kcal_mol": -6.27,
+      "gas_nnp_energy_ev": -89.61662800612935,
+      "predicted_kcal_mol": -4.879939508731705,
+      "record_id": "mobley_7009711",
+      "smd_nnp_energy_ev": -89.82824221012535
+    },
+    {
+      "experimental_kcal_mol": -5.46,
+      "gas_nnp_energy_ev": -80.98629615667109,
+      "predicted_kcal_mol": -4.104294335141324,
+      "record_id": "mobley_7010316",
+      "smd_nnp_energy_ev": -81.16427520275192
+    },
+    {
+      "experimental_kcal_mol": -1.91,
+      "gas_nnp_energy_ev": -34.54553797571216,
+      "predicted_kcal_mol": -2.228932184316044,
+      "record_id": "mobley_7015518",
+      "smd_nnp_energy_ev": -34.6421936225908
+    },
+    {
+      "experimental_kcal_mol": -3.88,
+      "gas_nnp_energy_ev": -128.2785279122871,
+      "predicted_kcal_mol": -5.8042931449825765,
+      "record_id": "mobley_7017274",
+      "smd_nnp_energy_ev": -128.53022588342736
+    },
+    {
+      "experimental_kcal_mol": -7.67,
+      "gas_nnp_energy_ev": -98.31666783857284,
+      "predicted_kcal_mol": -7.382557327945578,
+      "record_id": "mobley_7039935",
+      "smd_nnp_energy_ev": -98.63680582176151
+    },
+    {
+      "experimental_kcal_mol": 2.51,
+      "gas_nnp_energy_ev": -81.98339908444609,
+      "predicted_kcal_mol": 2.209147120264878,
+      "record_id": "mobley_7106722",
+      "smd_nnp_energy_ev": -81.88760139914109
+    },
+    {
+      "experimental_kcal_mol": -4.09,
+      "gas_nnp_energy_ev": -76.44870712998461,
+      "predicted_kcal_mol": -3.46527076304524,
+      "record_id": "mobley_7142697",
+      "smd_nnp_energy_ev": -76.59897549147564
+    },
+    {
+      "experimental_kcal_mol": -9.62,
+      "gas_nnp_energy_ev": -72.028946463429,
+      "predicted_kcal_mol": -8.168193649705852,
+      "record_id": "mobley_7176290",
+      "smd_nnp_energy_ev": -72.38315286172039
+    },
+    {
+      "experimental_kcal_mol": -3.79,
+      "gas_nnp_energy_ev": -101.99982475075258,
+      "predicted_kcal_mol": -2.928157715075608,
+      "record_id": "mobley_718988",
+      "smd_nnp_energy_ev": -102.1268016862129
+    },
+    {
+      "experimental_kcal_mol": -9.31,
+      "gas_nnp_energy_ev": -88.90061733694841,
+      "predicted_kcal_mol": -8.38729924357144,
+      "record_id": "mobley_7203421",
+      "smd_nnp_energy_ev": -89.26432505298237
+    },
+    {
+      "experimental_kcal_mol": -4.35,
+      "gas_nnp_energy_ev": -73.57324921757979,
+      "predicted_kcal_mol": -4.2738757951244555,
+      "record_id": "mobley_7227357",
+      "smd_nnp_energy_ev": -73.7585820117148
+    },
+    {
+      "experimental_kcal_mol": -9.3,
+      "gas_nnp_energy_ev": -19.163816968567737,
+      "predicted_kcal_mol": -4.507164295697093,
+      "record_id": "mobley_7261305",
+      "smd_nnp_energy_ev": -19.359266109485684
+    },
+    {
+      "experimental_kcal_mol": -2.45,
+      "gas_nnp_energy_ev": -76.18801275354382,
+      "predicted_kcal_mol": -1.7089078250317575,
+      "record_id": "mobley_7295828",
+      "smd_nnp_energy_ev": -76.26211801006382
+    },
+    {
+      "experimental_kcal_mol": -3.45,
+      "gas_nnp_energy_ev": -80.42665474857262,
+      "predicted_kcal_mol": -3.1687940584644254,
+      "record_id": "mobley_7298388",
+      "smd_nnp_energy_ev": -80.56406666343537
+    },
+    {
+      "experimental_kcal_mol": -4.74,
+      "gas_nnp_energy_ev": -48.010922119193324,
+      "predicted_kcal_mol": -5.416322676390862,
+      "record_id": "mobley_7326982",
+      "smd_nnp_energy_ev": -48.245796098614406
+    },
+    {
+      "experimental_kcal_mol": -5.18,
+      "gas_nnp_energy_ev": -107.81979829668693,
+      "predicted_kcal_mol": -6.714214269789056,
+      "record_id": "mobley_7364468",
+      "smd_nnp_energy_ev": -108.11095418204529
+    },
+    {
+      "experimental_kcal_mol": -12.64,
+      "gas_nnp_energy_ev": -113.56021260770873,
+      "predicted_kcal_mol": -16.01750901213681,
+      "record_id": "mobley_7378987",
+      "smd_nnp_energy_ev": -114.25479753310326
+    },
+    {
+      "experimental_kcal_mol": -5.33,
+      "gas_nnp_energy_ev": -105.45827043863578,
+      "predicted_kcal_mol": -4.483807096420437,
+      "record_id": "mobley_7393673",
+      "smd_nnp_energy_ev": -105.65270671553694
+    },
+    {
+      "experimental_kcal_mol": -11.95,
+      "gas_nnp_energy_ev": -112.27539011091636,
+      "predicted_kcal_mol": -8.432311646961713,
+      "record_id": "mobley_7415647",
+      "smd_nnp_energy_ev": -112.64104974948877
+    },
+    {
+      "experimental_kcal_mol": -5.31,
+      "gas_nnp_energy_ev": -89.59821261732635,
+      "predicted_kcal_mol": -6.638383563278794,
+      "record_id": "mobley_7417968",
+      "smd_nnp_energy_ev": -89.88608017204703
+    },
+    {
+      "experimental_kcal_mol": -2.22,
+      "gas_nnp_energy_ev": -72.66868433139747,
+      "predicted_kcal_mol": -1.9803685981702972,
+      "record_id": "mobley_7455579",
+      "smd_nnp_energy_ev": -72.75456124109495
+    },
+    {
+      "experimental_kcal_mol": -6.92,
+      "gas_nnp_energy_ev": -102.04542012515667,
+      "predicted_kcal_mol": -5.435172002472533,
+      "record_id": "mobley_7463799",
+      "smd_nnp_energy_ev": -102.28111148871284
+    },
+    {
+      "experimental_kcal_mol": -4.58,
+      "gas_nnp_energy_ev": -83.84218195790565,
+      "predicted_kcal_mol": -4.375926086091738,
+      "record_id": "mobley_7497999",
+      "smd_nnp_energy_ev": -84.03194007146357
+    },
+    {
+      "experimental_kcal_mol": -3.88,
+      "gas_nnp_energy_ev": -26.637196746391755,
+      "predicted_kcal_mol": -4.300520802873606,
+      "record_id": "mobley_7532833",
+      "smd_nnp_energy_ev": -26.823684977411833
+    },
+    {
+      "experimental_kcal_mol": -1.16,
+      "gas_nnp_energy_ev": -85.88827418108201,
+      "predicted_kcal_mol": -1.9916745827230127,
+      "record_id": "mobley_7542832",
+      "smd_nnp_energy_ev": -85.97464136466859
+    },
+    {
+      "experimental_kcal_mol": -7.29,
+      "gas_nnp_energy_ev": -83.81364709065149,
+      "predicted_kcal_mol": -5.580852142809631,
+      "record_id": "mobley_755351",
+      "smd_nnp_energy_ev": -84.0556557429528
+    },
+    {
+      "experimental_kcal_mol": -2.79,
+      "gas_nnp_energy_ev": -72.90235762497932,
+      "predicted_kcal_mol": -3.7520695535831994,
+      "record_id": "mobley_7573149",
+      "smd_nnp_energy_ev": -73.06506275902831
+    },
+    {
+      "experimental_kcal_mol": -3.88,
+      "gas_nnp_energy_ev": -86.3530224955611,
+      "predicted_kcal_mol": -3.3151196249549537,
+      "record_id": "mobley_7610437",
+      "smd_nnp_energy_ev": -86.49677968749579
+    },
+    {
+      "experimental_kcal_mol": -9.52,
+      "gas_nnp_energy_ev": -75.32885749535752,
+      "predicted_kcal_mol": -8.10521603770082,
+      "record_id": "mobley_7688753",
+      "smd_nnp_energy_ev": -75.6803329259371
+    },
+    {
+      "experimental_kcal_mol": -9.63,
+      "gas_nnp_energy_ev": -41.43373868531967,
+      "predicted_kcal_mol": -8.079714864579625,
+      "record_id": "mobley_7735340",
+      "smd_nnp_energy_ev": -41.78410828037784
+    },
+    {
+      "experimental_kcal_mol": -6.46,
+      "gas_nnp_energy_ev": -47.46575804941051,
+      "predicted_kcal_mol": -10.731691715375248,
+      "record_id": "mobley_7758918",
+      "smd_nnp_energy_ev": -47.931128244228745
+    },
+    {
+      "experimental_kcal_mol": -4.69,
+      "gas_nnp_energy_ev": -79.44561310208782,
+      "predicted_kcal_mol": -2.4660893905709353,
+      "record_id": "mobley_7774695",
+      "smd_nnp_energy_ev": -79.55255285870466
+    },
+    {
+      "experimental_kcal_mol": 1.31,
+      "gas_nnp_energy_ev": -62.95668417542365,
+      "predicted_kcal_mol": 0.4473029559781971,
+      "record_id": "mobley_778352",
+      "smd_nnp_energy_ev": -62.93728728355542
+    },
+    {
+      "experimental_kcal_mol": -2.67,
+      "gas_nnp_energy_ev": -93.29315446154287,
+      "predicted_kcal_mol": -2.6824310670358673,
+      "record_id": "mobley_7859387",
+      "smd_nnp_energy_ev": -93.40947568110087
+    },
+    {
+      "experimental_kcal_mol": -3.24,
+      "gas_nnp_energy_ev": -114.52849051837444,
+      "predicted_kcal_mol": -2.9761895391523825,
+      "record_id": "mobley_7860938",
+      "smd_nnp_energy_ev": -114.65755031084565
+    },
+    {
+      "experimental_kcal_mol": -1.82,
+      "gas_nnp_energy_ev": -68.16016138690283,
+      "predicted_kcal_mol": -1.219457567380365,
+      "record_id": "mobley_7869158",
+      "smd_nnp_energy_ev": -68.21304207158475
+    },
+    {
+      "experimental_kcal_mol": -0.44,
+      "gas_nnp_energy_ev": -110.51838142472471,
+      "predicted_kcal_mol": 0.2690697502782412,
+      "record_id": "mobley_7893124",
+      "smd_nnp_energy_ev": -110.50671345611103
+    },
+    {
+      "experimental_kcal_mol": -8.72,
+      "gas_nnp_energy_ev": -131.62261729878125,
+      "predicted_kcal_mol": -7.073717136024139,
+      "record_id": "mobley_7912193",
+      "smd_nnp_energy_ev": -131.92936270379175
+    },
+    {
+      "experimental_kcal_mol": -5.73,
+      "gas_nnp_energy_ev": -103.14010572862605,
+      "predicted_kcal_mol": -5.580875399348856,
+      "record_id": "mobley_7913234",
+      "smd_nnp_energy_ev": -103.38211538942635
+    },
+    {
+      "experimental_kcal_mol": -2.68,
+      "gas_nnp_energy_ev": -72.89954435522027,
+      "predicted_kcal_mol": -4.047973663203479,
+      "record_id": "mobley_7943327",
+      "smd_nnp_energy_ev": -73.07508110583017
+    },
+    {
+      "experimental_kcal_mol": -4.06,
+      "gas_nnp_energy_ev": -86.34442677606131,
+      "predicted_kcal_mol": -3.9291113689372525,
+      "record_id": "mobley_7977115",
+      "smd_nnp_energy_ev": -86.51480916979008
+    },
+    {
+      "experimental_kcal_mol": -4.42,
+      "gas_nnp_energy_ev": -73.45899086428604,
+      "predicted_kcal_mol": -3.6061105591139286,
+      "record_id": "mobley_7983227",
+      "smd_nnp_energy_ev": -73.61536661733032
+    },
+    {
+      "experimental_kcal_mol": -8.83,
+      "gas_nnp_energy_ev": -75.3845307609674,
+      "predicted_kcal_mol": -8.985739142152504,
+      "record_id": "mobley_7988076",
+      "smd_nnp_energy_ev": -75.77418928695526
+    },
+    {
+      "experimental_kcal_mol": 1.2,
+      "gas_nnp_energy_ev": -63.49178495368494,
+      "predicted_kcal_mol": 1.186708013465967,
+      "record_id": "mobley_8006582",
+      "smd_nnp_energy_ev": -63.4403244240624
+    },
+    {
+      "experimental_kcal_mol": -7.81,
+      "gas_nnp_energy_ev": -49.84074912124865,
+      "predicted_kcal_mol": -8.105335817219677,
+      "record_id": "mobley_8011706",
+      "smd_nnp_energy_ev": -50.19222974595972
+    },
+    {
+      "experimental_kcal_mol": -9.71,
+      "gas_nnp_energy_ev": -37.80206141853503,
+      "predicted_kcal_mol": -9.133516864431494,
+      "record_id": "mobley_8048190",
+      "smd_nnp_energy_ev": -38.198128193029355
+    },
+    {
+      "experimental_kcal_mol": -5.03,
+      "gas_nnp_energy_ev": -41.40895425058156,
+      "predicted_kcal_mol": -5.836350202129118,
+      "record_id": "mobley_8118832",
+      "smd_nnp_energy_ev": -41.662042347279396
+    },
+    {
+      "experimental_kcal_mol": -0.79,
+      "gas_nnp_energy_ev": -85.00420933739154,
+      "predicted_kcal_mol": 0.22103128815784212,
+      "record_id": "mobley_8127829",
+      "smd_nnp_energy_ev": -84.99462451364157
+    },
+    {
+      "experimental_kcal_mol": -6.35,
+      "gas_nnp_energy_ev": -60.25819373856039,
+      "predicted_kcal_mol": -10.41635387958948,
+      "record_id": "mobley_820789",
+      "smd_nnp_energy_ev": -60.70988959069666
+    },
+    {
+      "experimental_kcal_mol": -3.64,
+      "gas_nnp_energy_ev": -52.215899584972476,
+      "predicted_kcal_mol": -3.1890382358535447,
+      "record_id": "mobley_8221999",
+      "smd_nnp_energy_ev": -52.35418937044737
+    },
+    {
+      "experimental_kcal_mol": -0.48,
+      "gas_nnp_energy_ev": -30.44775932932259,
+      "predicted_kcal_mol": -1.2459998898291629,
+      "record_id": "mobley_8260524",
+      "smd_nnp_energy_ev": -30.50179099803355
+    },
+    {
+      "experimental_kcal_mol": -3.71,
+      "gas_nnp_energy_ev": -39.13574352613649,
+      "predicted_kcal_mol": -3.551785021189927,
+      "record_id": "mobley_8320545",
+      "smd_nnp_energy_ev": -39.28976350090855
+    },
+    {
+      "experimental_kcal_mol": -3.05,
+      "gas_nnp_energy_ev": -80.80629156940843,
+      "predicted_kcal_mol": -4.12185149633331,
+      "record_id": "mobley_8337977",
+      "smd_nnp_energy_ev": -80.98503196605179
+    },
+    {
+      "experimental_kcal_mol": -4.07,
+      "gas_nnp_energy_ev": -63.46653305850459,
+      "predicted_kcal_mol": -2.9346740186391624,
+      "record_id": "mobley_8426916",
+      "smd_nnp_energy_ev": -63.59379256762983
+    },
+    {
+      "experimental_kcal_mol": -9.4,
+      "gas_nnp_energy_ev": -50.58514357522845,
+      "predicted_kcal_mol": -9.232704692324425,
+      "record_id": "mobley_8427539",
+      "smd_nnp_energy_ev": -50.98551154099945
+    },
+    {
+      "experimental_kcal_mol": 2.83,
+      "gas_nnp_energy_ev": -94.79382904315278,
+      "predicted_kcal_mol": 2.947331561410334,
+      "record_id": "mobley_8436428",
+      "smd_nnp_energy_ev": -94.6660206510274
+    },
+    {
+      "experimental_kcal_mol": -3.22,
+      "gas_nnp_energy_ev": -88.72764661090203,
+      "predicted_kcal_mol": -1.597676320299888,
+      "record_id": "mobley_8449031",
+      "smd_nnp_energy_ev": -88.79692841289129
+    },
+    {
+      "experimental_kcal_mol": 1.68,
+      "gas_nnp_energy_ev": -88.44144577790571,
+      "predicted_kcal_mol": 1.3179043334892213,
+      "record_id": "mobley_8467917",
+      "smd_nnp_energy_ev": -88.38429603742733
+    },
+    {
+      "experimental_kcal_mol": -3.03,
+      "gas_nnp_energy_ev": -67.73417555470424,
+      "predicted_kcal_mol": -3.453030043020989,
+      "record_id": "mobley_8492526",
+      "smd_nnp_energy_ev": -67.88391310834004
+    },
+    {
+      "experimental_kcal_mol": -2.51,
+      "gas_nnp_energy_ev": -98.47663119154919,
+      "predicted_kcal_mol": -2.8011577591581514,
+      "record_id": "mobley_8514745",
+      "smd_nnp_energy_ev": -98.59810088772285
+    },
+    {
+      "experimental_kcal_mol": 0.71,
+      "gas_nnp_energy_ev": -94.32193102820372,
+      "predicted_kcal_mol": 0.19720531177038556,
+      "record_id": "mobley_8522124",
+      "smd_nnp_energy_ev": -94.31337939656989
+    },
+    {
+      "experimental_kcal_mol": -6.32,
+      "gas_nnp_energy_ev": -74.55241146431233,
+      "predicted_kcal_mol": -7.073193391803374,
+      "record_id": "mobley_8558116",
+      "smd_nnp_energy_ev": -74.85913415762401
+    },
+    {
+      "experimental_kcal_mol": -3.18,
+      "gas_nnp_energy_ev": -54.95756321186644,
+      "predicted_kcal_mol": -3.6012291115158885,
+      "record_id": "mobley_8573194",
+      "smd_nnp_energy_ev": -55.11372728530979
+    },
+    {
+      "experimental_kcal_mol": -2.36,
+      "gas_nnp_energy_ev": -85.72172628966229,
+      "predicted_kcal_mol": -3.455937924119851,
+      "record_id": "mobley_859464",
+      "smd_nnp_energy_ev": -85.87158994095626
+    },
+    {
+      "experimental_kcal_mol": 2.67,
+      "gas_nnp_energy_ev": -94.72926631769906,
+      "predicted_kcal_mol": 2.147834427682631,
+      "record_id": "mobley_8614858",
+      "smd_nnp_energy_ev": -94.63612740236701
+    },
+    {
+      "experimental_kcal_mol": 2.52,
+      "gas_nnp_energy_ev": -94.75905367733156,
+      "predicted_kcal_mol": 3.584714642823196,
+      "record_id": "mobley_8668219",
+      "smd_nnp_energy_ev": -94.60360573902484
+    },
+    {
+      "experimental_kcal_mol": -5.49,
+      "gas_nnp_energy_ev": -76.75881250906473,
+      "predicted_kcal_mol": -4.610215179835145,
+      "record_id": "mobley_8691603",
+      "smd_nnp_energy_ev": -76.95873035923182
+    },
+    {
+      "experimental_kcal_mol": -3.22,
+      "gas_nnp_energy_ev": -89.13947126385408,
+      "predicted_kcal_mol": -1.235106385295264,
+      "record_id": "mobley_8705848",
+      "smd_nnp_energy_ev": -89.19303054550234
+    },
+    {
+      "experimental_kcal_mol": -3.24,
+      "gas_nnp_energy_ev": -68.00837091899245,
+      "predicted_kcal_mol": -5.34386425909046,
+      "record_id": "mobley_8739734",
+      "smd_nnp_energy_ev": -68.2401028040756
+    },
+    {
+      "experimental_kcal_mol": -4.82,
+      "gas_nnp_energy_ev": -79.6987760342204,
+      "predicted_kcal_mol": -1.2562620869196652,
+      "record_id": "mobley_8746821",
+      "smd_nnp_energy_ev": -79.75325271391247
+    },
+    {
+      "experimental_kcal_mol": -2.48,
+      "gas_nnp_energy_ev": -59.84820794149669,
+      "predicted_kcal_mol": -2.3802427309642744,
+      "record_id": "mobley_8754702",
+      "smd_nnp_energy_ev": -59.95142503464488
+    },
+    {
+      "experimental_kcal_mol": -6.75,
+      "gas_nnp_energy_ev": -62.36612406650481,
+      "predicted_kcal_mol": -5.592689197955907,
+      "record_id": "mobley_8764620",
+      "smd_nnp_energy_ev": -62.60864602209563
+    },
+    {
+      "experimental_kcal_mol": 0.68,
+      "gas_nnp_energy_ev": -56.67298956177414,
+      "predicted_kcal_mol": 0.9301409262540637,
+      "record_id": "mobley_8765203",
+      "smd_nnp_energy_ev": -56.63265483398475
+    },
+    {
+      "experimental_kcal_mol": -2.92,
+      "gas_nnp_energy_ev": -80.5724905022298,
+      "predicted_kcal_mol": -1.9938052282848504,
+      "record_id": "mobley_8785107",
+      "smd_nnp_energy_ev": -80.65895007935194
+    },
+    {
+      "experimental_kcal_mol": -6.4,
+      "gas_nnp_energy_ev": -90.00095508446186,
+      "predicted_kcal_mol": -5.609391764107725,
+      "record_id": "mobley_8789864",
+      "smd_nnp_energy_ev": -90.24420133186707
+    },
+    {
+      "experimental_kcal_mol": -7.0,
+      "gas_nnp_energy_ev": -65.21938390316035,
+      "predicted_kcal_mol": -5.320172667970544,
+      "record_id": "mobley_8798016",
+      "smd_nnp_energy_ev": -65.45008842362407
+    },
+    {
+      "experimental_kcal_mol": -0.4,
+      "gas_nnp_energy_ev": -110.55344038741774,
+      "predicted_kcal_mol": 0.33957629194798045,
+      "record_id": "mobley_8809190",
+      "smd_nnp_energy_ev": -110.53871496580382
+    },
+    {
+      "experimental_kcal_mol": -4.86,
+      "gas_nnp_energy_ev": -79.69011011608781,
+      "predicted_kcal_mol": -3.248201884486829,
+      "record_id": "mobley_8861672",
+      "smd_nnp_energy_ev": -79.83096548017052
+    },
+    {
+      "experimental_kcal_mol": -3.47,
+      "gas_nnp_energy_ev": -54.71444581517979,
+      "predicted_kcal_mol": -2.287038203048572,
+      "record_id": "mobley_8882696",
+      "smd_nnp_energy_ev": -54.813621177493324
+    },
+    {
+      "experimental_kcal_mol": -3.93,
+      "gas_nnp_energy_ev": -83.66147620625155,
+      "predicted_kcal_mol": -3.311131223858919,
+      "record_id": "mobley_8883511",
+      "smd_nnp_energy_ev": -83.80506044474662
+    },
+    {
+      "experimental_kcal_mol": 0.56,
+      "gas_nnp_energy_ev": -57.27812811847945,
+      "predicted_kcal_mol": 0.3524837354212332,
+      "record_id": "mobley_8885088",
+      "smd_nnp_energy_ev": -57.262842977145375
+    },
+    {
+      "experimental_kcal_mol": -5.49,
+      "gas_nnp_energy_ev": -67.8990088803028,
+      "predicted_kcal_mol": -4.70437630045588,
+      "record_id": "mobley_8899867",
+      "smd_nnp_energy_ev": -68.10300994309003
+    },
+    {
+      "experimental_kcal_mol": -5.51,
+      "gas_nnp_energy_ev": -61.15594154834906,
+      "predicted_kcal_mol": -5.061985795268647,
+      "record_id": "mobley_8966374",
+      "smd_nnp_energy_ev": -61.375450026433306
+    },
+    {
+      "experimental_kcal_mol": 0.4,
+      "gas_nnp_energy_ev": -69.39913816521342,
+      "predicted_kcal_mol": 0.8437481092329615,
+      "record_id": "mobley_900088",
+      "smd_nnp_energy_ev": -69.36254978451956
+    },
+    {
+      "experimental_kcal_mol": -9.45,
+      "gas_nnp_energy_ev": -130.6022926290036,
+      "predicted_kcal_mol": -11.13024904101063,
+      "record_id": "mobley_9007496",
+      "smd_nnp_energy_ev": -131.0849459051101
+    },
+    {
+      "experimental_kcal_mol": -2.09,
+      "gas_nnp_energy_ev": -67.98339270239974,
+      "predicted_kcal_mol": -0.6628944047138117,
+      "record_id": "mobley_902954",
+      "smd_nnp_energy_ev": -68.01213852425592
+    },
+    {
+      "experimental_kcal_mol": 2.0,
+      "gas_nnp_energy_ev": -18.15738913224413,
+      "predicted_kcal_mol": 1.7222098827482752,
+      "record_id": "mobley_9055303",
+      "smd_nnp_energy_ev": -18.08270704391092
+    },
+    {
+      "experimental_kcal_mol": 1.7,
+      "gas_nnp_energy_ev": -89.41390257396903,
+      "predicted_kcal_mol": 2.092342672134501,
+      "record_id": "mobley_9100956",
+      "smd_nnp_energy_ev": -89.32317000889145
+    },
+    {
+      "experimental_kcal_mol": 1.31,
+      "gas_nnp_energy_ev": -62.838535893100584,
+      "predicted_kcal_mol": 0.34010349830844,
+      "record_id": "mobley_9112978",
+      "smd_nnp_energy_ev": -62.82378760965526
+    },
+    {
+      "experimental_kcal_mol": -6.72,
+      "gas_nnp_energy_ev": -55.63214275793289,
+      "predicted_kcal_mol": -5.97840028319862,
+      "record_id": "mobley_9114381",
+      "smd_nnp_energy_ev": -55.89139072910854
+    },
+    {
+      "experimental_kcal_mol": -0.16,
+      "gas_nnp_energy_ev": -43.199142129404684,
+      "predicted_kcal_mol": -0.9181906408863674,
+      "record_id": "mobley_9121449",
+      "smd_nnp_energy_ev": -43.23895864377747
+    },
+    {
+      "experimental_kcal_mol": 2.11,
+      "gas_nnp_energy_ev": -102.23014066386665,
+      "predicted_kcal_mol": 2.520492682495332,
+      "record_id": "mobley_9139060",
+      "smd_nnp_energy_ev": -102.12084175724503
+    },
+    {
+      "experimental_kcal_mol": -4.39,
+      "gas_nnp_energy_ev": -50.88602273817194,
+      "predicted_kcal_mol": -4.3490110556985,
+      "record_id": "mobley_9185328",
+      "smd_nnp_energy_ev": -51.07461370555478
+    },
+    {
+      "experimental_kcal_mol": 1.92,
+      "gas_nnp_energy_ev": -101.11124059233386,
+      "predicted_kcal_mol": 1.7205316564890383,
+      "record_id": "mobley_9197172",
+      "smd_nnp_energy_ev": -101.03663127877856
+    },
+    {
+      "experimental_kcal_mol": -3.2,
+      "gas_nnp_energy_ev": -50.35672479667949,
+      "predicted_kcal_mol": -3.404753311175826,
+      "record_id": "mobley_9209581",
+      "smd_nnp_energy_ev": -50.50436887309848
+    },
+    {
+      "experimental_kcal_mol": 0.93,
+      "gas_nnp_energy_ev": -56.392691365148394,
+      "predicted_kcal_mol": 0.3448781616024132,
+      "record_id": "mobley_9246215",
+      "smd_nnp_energy_ev": -56.377736032707794
+    },
+    {
+      "experimental_kcal_mol": -2.88,
+      "gas_nnp_energy_ev": -106.35474058624823,
+      "predicted_kcal_mol": -4.119833444220058,
+      "record_id": "mobley_9407874",
+      "smd_nnp_energy_ev": -106.53339347187003
+    },
+    {
+      "experimental_kcal_mol": -2.44,
+      "gas_nnp_energy_ev": -106.62014754011328,
+      "predicted_kcal_mol": -3.0131444553194364,
+      "record_id": "mobley_9414831",
+      "smd_nnp_energy_ev": -106.75080984940963
+    },
+    {
+      "experimental_kcal_mol": -0.9,
+      "gas_nnp_energy_ev": -85.1042400872035,
+      "predicted_kcal_mol": 0.7144207978667277,
+      "record_id": "mobley_9478823",
+      "smd_nnp_energy_ev": -85.07325986947984
+    },
+    {
+      "experimental_kcal_mol": -4.72,
+      "gas_nnp_energy_ev": -79.64726052634143,
+      "predicted_kcal_mol": -3.030939132736129,
+      "record_id": "mobley_9507933",
+      "smd_nnp_energy_ev": -79.77869448587856
+    },
+    {
+      "experimental_kcal_mol": -7.4,
+      "gas_nnp_energy_ev": -65.18298734198484,
+      "predicted_kcal_mol": -6.298892302607952,
+      "record_id": "mobley_951560",
+      "smd_nnp_energy_ev": -65.45613316239674
+    },
+    {
+      "experimental_kcal_mol": -3.35,
+      "gas_nnp_energy_ev": -121.0519814961321,
+      "predicted_kcal_mol": -1.8174809848295077,
+      "record_id": "mobley_9565165",
+      "smd_nnp_energy_ev": -121.13079493043685
+    },
+    {
+      "experimental_kcal_mol": -6.69,
+      "gas_nnp_energy_ev": -64.55152075502173,
+      "predicted_kcal_mol": -8.293362256089178,
+      "record_id": "mobley_9626434",
+      "smd_nnp_energy_ev": -64.91115497776826
+    },
+    {
+      "experimental_kcal_mol": -3.13,
+      "gas_nnp_energy_ev": -52.071309478591324,
+      "predicted_kcal_mol": -3.7438418236288906,
+      "record_id": "mobley_967099",
+      "smd_nnp_energy_ev": -52.233657824503524
+    },
+    {
+      "experimental_kcal_mol": -3.34,
+      "gas_nnp_energy_ev": -51.9471631014118,
+      "predicted_kcal_mol": -3.0564686150850657,
+      "record_id": "mobley_9671033",
+      "smd_nnp_energy_ev": -52.079704124074624
+    },
+    {
+      "experimental_kcal_mol": -0.99,
+      "gas_nnp_energy_ev": -70.58094427221907,
+      "predicted_kcal_mol": -1.0410322393515747,
+      "record_id": "mobley_9729792",
+      "smd_nnp_energy_ev": -70.62608770243381
+    },
+    {
+      "experimental_kcal_mol": -4.24,
+      "gas_nnp_energy_ev": -63.673391250006134,
+      "predicted_kcal_mol": -3.693577546268973,
+      "record_id": "mobley_9733743",
+      "smd_nnp_energy_ev": -63.83355993057127
+    },
+    {
+      "experimental_kcal_mol": -2.21,
+      "gas_nnp_energy_ev": -73.23373485241537,
+      "predicted_kcal_mol": -0.49722003759320565,
+      "record_id": "mobley_9794857",
+      "smd_nnp_energy_ev": -73.2552963537983
+    },
+    {
+      "experimental_kcal_mol": -4.43,
+      "gas_nnp_energy_ev": -73.71306232025523,
+      "predicted_kcal_mol": -3.610841122792736,
+      "record_id": "mobley_9838013",
+      "smd_nnp_energy_ev": -73.8696432099545
+    },
+    {
+      "experimental_kcal_mol": 2.71,
+      "gas_nnp_energy_ev": -94.74295943475573,
+      "predicted_kcal_mol": 3.2672148137752086,
+      "record_id": "mobley_9883303",
+      "smd_nnp_energy_ev": -94.60127959203147
+    },
+    {
+      "experimental_kcal_mol": -0.95,
+      "gas_nnp_energy_ev": -97.85942582365504,
+      "predicted_kcal_mol": 0.4041223804855654,
+      "record_id": "mobley_9942801",
+      "smd_nnp_energy_ev": -97.84190141874994
+    }
+  ],
+  "schema_version": 1,
+  "source_panel_b_reproduction": {
+    "recomputed_metrics_match": {
+      "mae_kcal_mol": true,
+      "pearson_r": true,
+      "rmse_kcal_mol": true
+    },
+    "reported_metrics": {
+      "mae_kcal_mol": 1.0826894689651625,
+      "pearson_r": 0.9131458341113273,
+      "rmse_kcal_mol": 1.4257915529837608
+    }
+  },
+  "summary": {
+    "coverage": 1.0,
+    "metrics": {
+      "mae_kcal_mol": 1.0826894689651556,
+      "maximum_absolute_error_kcal_mol": 5.445611436565799,
+      "mean_signed_error_kcal_mol": 0.30820968292349155,
+      "pearson_r": 0.913145834111328,
+      "rmse_kcal_mol": 1.4257915529837544
+    }
+  },
+  "validation_panel": {
+    "dataset": "FreeSolv selected molecules from supplied Zenodo archive",
+    "record_accounting_complete": false,
+    "record_count": 388,
+    "selection": "intersection of supplied experimental, gas-NNP, and SMD-NNP tables",
+    "training_overlap_status": "overlap_unknown"
+  }
+}

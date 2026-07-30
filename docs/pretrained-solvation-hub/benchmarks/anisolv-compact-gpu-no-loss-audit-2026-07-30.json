@@ -1,0 +1,571 @@
+{
+  "acceptance_eligible": false,
+  "artifact_kind": "negative_physical_hardware_observation_not_gpu_admission_evidence",
+  "audited_on": "2026-07-30",
+  "comparison_manifest": {
+    "checkpoint_sha256s": [
+      "b79be343c55a7cc06579aa4778753156bc71f99b3a00f046a270bc3427c1498f"
+    ],
+    "comparison_manifest_id": "anisolv-compact-upstream-water-six-cpu-cuda-v1",
+    "model_id": "anisolv-compact",
+    "model_version": "0.2.0-66f36dc",
+    "observable_counts": {
+      "energy": 12
+    },
+    "records": [
+      {
+        "configuration_sha256": "edf7901bc024cbba4b62fe778c03e193fd5ac2ea7a9c57aa757e081b34715f33",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "028a1cba3c01438e6d52984b635d11ac34cf6f00a5e51f2709e9504c4c8b9324",
+            "reference": "70dadb1b221e1ce46953349f3c8c5c8687276b2f89a03442555c53dce60b47e7"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float64:CH4"
+      },
+      {
+        "configuration_sha256": "623ec2b6b3917e81b364395a042628a574cdd3519ccd8dabe00865e207f041d4",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "78cca9383040599a6afc13ec928342d26b772a9fb372817dc01825f3613ed8c3",
+            "reference": "f2d34ffb43fab2ba48ecf7a5436aa5823974112b80d848bb73ebefb7790823fe"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float64:C2H6"
+      },
+      {
+        "configuration_sha256": "1a55ac289622ba81f474f8552a332b8f6a83f1542dea01116c388d79da34e902",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "e8197b97682a80c37bfa1ccf524844ba0d36cbeef9db146e2a34c2a57f3d9e11",
+            "reference": "7e2b90eeff7780d19357a2e1ea81360789d7ba1546fd93a850390730cbdb26a9"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float64:NH3"
+      },
+      {
+        "configuration_sha256": "2546018a67c5672b2366fbe9324d66485c7f4b57897fd6a5973570f34814f7bd",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "af409b562ace798c92c69f8b6f33a2aaeb50e89272e4790cde800651b7f3ae0d",
+            "reference": "7167b6d038c20e304f771e8b23fc23de5cb563d42ce5056e370a4001eb030f47"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float64:H2O"
+      },
+      {
+        "configuration_sha256": "0e4b340ae91d7c6d83fd44c2aaf61be33fd4a052e59f2be65de1280ea91ff938",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "a352672f08f9209febe1c4ba70fa2efe2cac1e022617d81eff57ea2a69c7bb07",
+            "reference": "91e2477e316f25aad6b25f40cdf772f6b0afd2524482576ae58905a15cf5b4ba"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float64:CH3OH"
+      },
+      {
+        "configuration_sha256": "cb7d49cf98a79413eb1cc51d88c8be6dcb5db72ce275931363ec8f775b2727b1",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "b43eb476b03bccbfee8562169ffeca9f2524d14691d8f7a4404337b03093a203",
+            "reference": "5dca22222ad3a4259df168b5c74fb645a1b5624c81d84435730f80931e5f4e98"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float64:CH3CN"
+      },
+      {
+        "configuration_sha256": "1049064741b341903207410c1435f04d23c064ed077b6b52e2601d387442928f",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "3bd9901630deb1253e9f2af3e08f241234acefac4b6a34511a49e8ed8abc9a59",
+            "reference": "359f1f1fb037956ec6e0ccf00115e59d837cb2f05143f91282e1cda9e5fcbd48"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float32:CH4"
+      },
+      {
+        "configuration_sha256": "59cbce52678d0af5c8d6c35798ed6726feb050f0119526b27c20c11ce405237f",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "a16339e2b1da3c4be6cc027ad6c64a2f2d63c9b949caffcde6f37b0040bff0f0",
+            "reference": "8ed55446536c289af34d4c4e5e2db8b6ebe3a160daf443e4a23d26621dc84df8"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float32:C2H6"
+      },
+      {
+        "configuration_sha256": "353a95b5078bf3aba1b8e3e9d4fcd8de03f2f16af4b7a9f0f8dabf8adca561de",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "be2f45b21f2c13a26e3aebec37688d8bc7f64295b5d5cc93675f2e8458c0671c",
+            "reference": "fc328e0e991166df99d82b5d6388a893e37ec5312a8bd9432dbce20b58cd8311"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float32:NH3"
+      },
+      {
+        "configuration_sha256": "07e8fd70cda5ba7512a60def8e8073e054fb511c7b5ab3613e45a5815e5513ac",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "8c03fcebe491d6c700809c1abd53ea530dcf45c78fe26db6075985c04125c56c",
+            "reference": "876f578833c688f535d056cb3e86df16b28fce61bdd2f0480bed79bbb851224b"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float32:H2O"
+      },
+      {
+        "configuration_sha256": "c5e2c5ca25e38ac2ab96d1d3ab971202887f86799813d0f55f058bd9052d3194",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "ad26bc220844605d226bfd4a6361101bd3569d258fbb5265c9a37639d1862c54",
+            "reference": "5afd41950b612cb7191c1e7402746787d326c9c440747f61b118116e5628852f"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float32:CH3OH"
+      },
+      {
+        "configuration_sha256": "f45dbeeae21a35a12bd0e1b60b0ff5285c25d2fadbfe5f1dc6b87cfb6fd1d0f1",
+        "observable_output_sha256s": {
+          "energy": {
+            "accelerator": "e522a2bc79f9e94557d7e63b17c2c7aef99daa82b9881c641993fc5c0324f930",
+            "reference": "5e51fe44c8f939b3fd0bcb13ba327c7741c4749a818cef39525455936bf4a324"
+          }
+        },
+        "panel_id": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+        "record_id": "float32:CH3CN"
+      }
+    ],
+    "schema_version": 1,
+    "task_modes": [
+      "sp:default"
+    ]
+  },
+  "comparison_manifest_sha256": "7748966a61e927090a03209c64d70375f22e8581cafaeb732323d33b95703ace",
+  "gpu_admission": {
+    "accuracy_panel_eligible": false,
+    "allowed_inference_modes": [],
+    "allowed_tasks": [],
+    "card_evidence_must_remain_null": true,
+    "no_loss_parity_verified": false,
+    "smaller_panel_can_reject_but_never_unlock": true,
+    "status": "blocked_nonzero_cpu_cuda_scalar_difference"
+  },
+  "identity": {
+    "checkpoint": {
+      "path": "models/model1_compact.pt",
+      "sha256": "b79be343c55a7cc06579aa4778753156bc71f99b3a00f046a270bc3427c1498f",
+      "size_bytes": 25522563,
+      "verified": true
+    },
+    "repository": "https://github.com/Ant-on-knee/anisolv",
+    "revision": "66f36dc7d4134c78b718255bb2abfed14482acb0",
+    "tree": "522a9cfacb6f0fc00935e2d4d140020b8007c295"
+  },
+  "lanes": {
+    "float32": {
+      "energy_parity": {
+        "comparison_count": 6,
+        "nonzero_difference_count": 6,
+        "observed_maximum_abs_difference_ev": 4.3986372960658215e-08,
+        "paired_outputs": [
+          {
+            "absolute_energy_difference_ev": 1.1996283530999255e-08,
+            "accelerator_energy_ev": 0.0012574064533662794,
+            "accelerator_sha256": "3bd9901630deb1253e9f2af3e08f241234acefac4b6a34511a49e8ed8abc9a59",
+            "energy_exactly_equal": false,
+            "label": "methane",
+            "record_id": "float32:CH4",
+            "reference_energy_ev": 0.0012573944570827484,
+            "reference_sha256": "359f1f1fb037956ec6e0ccf00115e59d837cb2f05143f91282e1cda9e5fcbd48"
+          },
+          {
+            "absolute_energy_difference_ev": 2.399256706243219e-08,
+            "accelerator_energy_ev": 0.006132922010447978,
+            "accelerator_sha256": "a16339e2b1da3c4be6cc027ad6c64a2f2d63c9b949caffcde6f37b0040bff0f0",
+            "energy_exactly_equal": false,
+            "label": "ethane",
+            "record_id": "float32:C2H6",
+            "reference_energy_ev": 0.006132898017880916,
+            "reference_sha256": "8ed55446536c289af34d4c4e5e2db8b6ebe3a160daf443e4a23d26621dc84df8"
+          },
+          {
+            "absolute_energy_difference_ev": 4.3986372960658215e-08,
+            "accelerator_energy_ev": -0.18501610769870994,
+            "accelerator_sha256": "be2f45b21f2c13a26e3aebec37688d8bc7f64295b5d5cc93675f2e8458c0671c",
+            "energy_exactly_equal": false,
+            "label": "ammonia",
+            "record_id": "float32:NH3",
+            "reference_energy_ev": -0.1850161516850829,
+            "reference_sha256": "fc328e0e991166df99d82b5d6388a893e37ec5312a8bd9432dbce20b58cd8311"
+          },
+          {
+            "absolute_energy_difference_ev": 3.1990089466304994e-08,
+            "accelerator_energy_ev": -0.419381530896492,
+            "accelerator_sha256": "8c03fcebe491d6c700809c1abd53ea530dcf45c78fe26db6075985c04125c56c",
+            "energy_exactly_equal": false,
+            "label": "water",
+            "record_id": "float32:H2O",
+            "reference_energy_ev": -0.41938149890640253,
+            "reference_sha256": "876f578833c688f535d056cb3e86df16b28fce61bdd2f0480bed79bbb851224b"
+          },
+          {
+            "absolute_energy_difference_ev": 1.3995664127630647e-08,
+            "accelerator_energy_ev": -0.19890348136699437,
+            "accelerator_sha256": "ad26bc220844605d226bfd4a6361101bd3569d258fbb5265c9a37639d1862c54",
+            "energy_exactly_equal": false,
+            "label": "methanol",
+            "record_id": "float32:CH3OH",
+            "reference_energy_ev": -0.19890346737133024,
+            "reference_sha256": "5afd41950b612cb7191c1e7402746787d326c9c440747f61b118116e5628852f"
+          },
+          {
+            "absolute_energy_difference_ev": 7.997522366576248e-09,
+            "accelerator_energy_ev": -0.19013040028226733,
+            "accelerator_sha256": "e522a2bc79f9e94557d7e63b17c2c7aef99daa82b9881c641993fc5c0324f930",
+            "energy_exactly_equal": false,
+            "label": "acetonitrile",
+            "record_id": "float32:CH3CN",
+            "reference_energy_ev": -0.19013039228474496,
+            "reference_sha256": "5e51fe44c8f939b3fd0bcb13ba327c7741c4749a818cef39525455936bf4a324"
+          }
+        ],
+        "passed_exact_equality": false,
+        "threshold_ev": 0.0
+      },
+      "no_loss_passed": false,
+      "precision_controls": {
+        "accelerator_dtype": "float32",
+        "autocast": false,
+        "bfloat16": false,
+        "fast_math": false,
+        "float16": false,
+        "matmul_precision": "highest",
+        "reduced_matmul": false,
+        "reference_dtype": "float32",
+        "relaxed_convergence": false,
+        "same_scalar_precision": true,
+        "shortened_sampling": false,
+        "tf32": false
+      },
+      "timing_diagnostic_not_an_admission_observable": {
+        "accelerator_median_seconds": 0.29322784400210367,
+        "accelerator_repetitions_seconds": [
+          0.3383685940025316,
+          0.29322784400210367,
+          0.2799163980016601
+        ],
+        "reference_median_seconds": 0.15075312400222174,
+        "reference_repetitions_seconds": [
+          0.15809422400343465,
+          0.15075312400222174,
+          0.14867882500038831
+        ],
+        "speedup_reference_over_accelerator": 0.5141159923446431,
+        "useful_acceleration_observed": false
+      },
+      "verdict": "fail_no_loss"
+    },
+    "float64": {
+      "energy_parity": {
+        "comparison_count": 6,
+        "nonzero_difference_count": 5,
+        "observed_maximum_abs_difference_ev": 1.1102230246251565e-16,
+        "paired_outputs": [
+          {
+            "absolute_energy_difference_ev": 1.1058862159352145e-17,
+            "accelerator_energy_ev": 0.0012573950610226588,
+            "accelerator_sha256": "028a1cba3c01438e6d52984b635d11ac34cf6f00a5e51f2709e9504c4c8b9324",
+            "energy_exactly_equal": false,
+            "label": "methane",
+            "record_id": "float64:CH4",
+            "reference_energy_ev": 0.0012573950610226478,
+            "reference_sha256": "70dadb1b221e1ce46953349f3c8c5c8687276b2f89a03442555c53dce60b47e7"
+          },
+          {
+            "absolute_energy_difference_ev": 2.2551405187698492e-17,
+            "accelerator_energy_ev": 0.00613292430088612,
+            "accelerator_sha256": "78cca9383040599a6afc13ec928342d26b772a9fb372817dc01825f3613ed8c3",
+            "energy_exactly_equal": false,
+            "label": "ethane",
+            "record_id": "float64:C2H6",
+            "reference_energy_ev": 0.006132924300886143,
+            "reference_sha256": "f2d34ffb43fab2ba48ecf7a5436aa5823974112b80d848bb73ebefb7790823fe"
+          },
+          {
+            "absolute_energy_difference_ev": 2.7755575615628914e-17,
+            "accelerator_energy_ev": -0.18501610151208614,
+            "accelerator_sha256": "e8197b97682a80c37bfa1ccf524844ba0d36cbeef9db146e2a34c2a57f3d9e11",
+            "energy_exactly_equal": false,
+            "label": "ammonia",
+            "record_id": "float64:NH3",
+            "reference_energy_ev": -0.18501610151208617,
+            "reference_sha256": "7e2b90eeff7780d19357a2e1ea81360789d7ba1546fd93a850390730cbdb26a9"
+          },
+          {
+            "absolute_energy_difference_ev": 1.1102230246251565e-16,
+            "accelerator_energy_ev": -0.41938148176686,
+            "accelerator_sha256": "af409b562ace798c92c69f8b6f33a2aaeb50e89272e4790cde800651b7f3ae0d",
+            "energy_exactly_equal": false,
+            "label": "water",
+            "record_id": "float64:H2O",
+            "reference_energy_ev": -0.4193814817668599,
+            "reference_sha256": "7167b6d038c20e304f771e8b23fc23de5cb563d42ce5056e370a4001eb030f47"
+          },
+          {
+            "absolute_energy_difference_ev": 8.326672684688674e-17,
+            "accelerator_energy_ev": -0.19890348286205867,
+            "accelerator_sha256": "a352672f08f9209febe1c4ba70fa2efe2cac1e022617d81eff57ea2a69c7bb07",
+            "energy_exactly_equal": false,
+            "label": "methanol",
+            "record_id": "float64:CH3OH",
+            "reference_energy_ev": -0.19890348286205858,
+            "reference_sha256": "91e2477e316f25aad6b25f40cdf772f6b0afd2524482576ae58905a15cf5b4ba"
+          },
+          {
+            "absolute_energy_difference_ev": 0.0,
+            "accelerator_energy_ev": -0.19013039208853477,
+            "accelerator_sha256": "b43eb476b03bccbfee8562169ffeca9f2524d14691d8f7a4404337b03093a203",
+            "energy_exactly_equal": true,
+            "label": "acetonitrile",
+            "record_id": "float64:CH3CN",
+            "reference_energy_ev": -0.19013039208853477,
+            "reference_sha256": "5dca22222ad3a4259df168b5c74fb645a1b5624c81d84435730f80931e5f4e98"
+          }
+        ],
+        "passed_exact_equality": false,
+        "threshold_ev": 0.0
+      },
+      "no_loss_passed": false,
+      "precision_controls": {
+        "accelerator_dtype": "float64",
+        "autocast": false,
+        "bfloat16": false,
+        "fast_math": false,
+        "float16": false,
+        "matmul_precision": "highest",
+        "reduced_matmul": false,
+        "reference_dtype": "float64",
+        "relaxed_convergence": false,
+        "same_scalar_precision": true,
+        "shortened_sampling": false,
+        "tf32": false
+      },
+      "timing_diagnostic_not_an_admission_observable": {
+        "accelerator_median_seconds": 0.27679219499987084,
+        "accelerator_repetitions_seconds": [
+          0.29831215900048846,
+          0.27679219499987084,
+          0.2737130960013019
+        ],
+        "reference_median_seconds": 0.22931284200240043,
+        "reference_repetitions_seconds": [
+          0.22931284200240043,
+          0.22446761700120987,
+          0.23816167499899166
+        ],
+        "speedup_reference_over_accelerator": 0.8284657087332518,
+        "useful_acceleration_observed": false
+      },
+      "verdict": "fail_no_loss"
+    }
+  },
+  "model_id": "anisolv-compact",
+  "model_runtime_fingerprints": [
+    {
+      "buffer_devices": [
+        "cpu"
+      ],
+      "buffer_dtypes": [
+        "torch.float32",
+        "torch.int64"
+      ],
+      "device": "cpu",
+      "dtype": "torch.float32",
+      "inference_settings": "InferenceSettings(tf32=False, activation_checkpointing=False, merge_mole=False, compile=False, external_graph_gen=True, internal_graph_gen_version=2, use_quaternion_wigner=False, execution_mode='general', edge_chunk_size=None, predict_untrained_forces=set(), predict_untrained_stress=set(), predict_untrained_hessian=set(), auto_add_default_untrained_tasks=True)",
+      "parameter_devices": [
+        "cpu"
+      ],
+      "parameter_dtypes": [
+        "torch.float32"
+      ]
+    },
+    {
+      "buffer_devices": [
+        "cuda:0"
+      ],
+      "buffer_dtypes": [
+        "torch.float32",
+        "torch.int64"
+      ],
+      "device": "cuda:0",
+      "dtype": "torch.float32",
+      "inference_settings": "InferenceSettings(tf32=False, activation_checkpointing=False, merge_mole=False, compile=False, external_graph_gen=True, internal_graph_gen_version=2, use_quaternion_wigner=False, execution_mode='general', edge_chunk_size=None, predict_untrained_forces=set(), predict_untrained_stress=set(), predict_untrained_hessian=set(), auto_add_default_untrained_tasks=True)",
+      "parameter_devices": [
+        "cuda:0"
+      ],
+      "parameter_dtypes": [
+        "torch.float32"
+      ]
+    },
+    {
+      "buffer_devices": [
+        "cpu"
+      ],
+      "buffer_dtypes": [
+        "torch.float64",
+        "torch.int64"
+      ],
+      "device": "cpu",
+      "dtype": "torch.float64",
+      "inference_settings": "InferenceSettings(tf32=False, activation_checkpointing=False, merge_mole=False, compile=False, external_graph_gen=True, internal_graph_gen_version=2, use_quaternion_wigner=False, execution_mode='general', edge_chunk_size=None, predict_untrained_forces=set(), predict_untrained_stress=set(), predict_untrained_hessian=set(), auto_add_default_untrained_tasks=True)",
+      "parameter_devices": [
+        "cpu"
+      ],
+      "parameter_dtypes": [
+        "torch.float64"
+      ]
+    },
+    {
+      "buffer_devices": [
+        "cuda:0"
+      ],
+      "buffer_dtypes": [
+        "torch.float64",
+        "torch.int64"
+      ],
+      "device": "cuda:0",
+      "dtype": "torch.float64",
+      "inference_settings": "InferenceSettings(tf32=False, activation_checkpointing=False, merge_mole=False, compile=False, external_graph_gen=True, internal_graph_gen_version=2, use_quaternion_wigner=False, execution_mode='general', edge_chunk_size=None, predict_untrained_forces=set(), predict_untrained_stress=set(), predict_untrained_hessian=set(), auto_add_default_untrained_tasks=True)",
+      "parameter_devices": [
+        "cuda:0"
+      ],
+      "parameter_dtypes": [
+        "torch.float64"
+      ]
+    }
+  ],
+  "model_version": "0.2.0-66f36dc",
+  "panel": {
+    "accuracy_metric_reporting_allowed": false,
+    "experimental_label_values_used_for_identity": false,
+    "functional_group_accuracy_gate": {
+      "functional_group_taxonomy": null,
+      "minimum_distinct_functional_groups": 10,
+      "minimum_record_count": 10,
+      "observed_distinct_functional_groups": 0,
+      "observed_record_count": 6,
+      "passes": false,
+      "record_assignments_predeclared": false
+    },
+    "geometry_and_source_row_sha256": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+    "record_count_per_dtype": 6,
+    "reference_sample_artifact": "benchmarks/anisolv-compact-upstream-sample-audit-2026-07-30.json",
+    "reference_sample_artifact_sha256": "9018364bef21b7d672f0a1404954b26702a096d0be4da266af719195349b07f6",
+    "training_overlap": "unknown",
+    "water_only": true
+  },
+  "precision_backend_state": {
+    "autocast_cpu": false,
+    "autocast_cuda": false,
+    "bf16_reduced_precision_reduction": false,
+    "cuda_matmul_allow_tf32": false,
+    "cudnn_allow_tf32": false,
+    "float32_matmul_precision": "highest",
+    "fp16_accumulation": false,
+    "fp16_reduced_precision_reduction": false
+  },
+  "runtime": {
+    "accelerator_backend": "cuda",
+    "ase_version": "3.27.0",
+    "cublas_workspace_config": ":4096:8",
+    "cuda_runtime_version": "13.0",
+    "cudnn_version": 92000,
+    "dependency_origins_within_active_environment": {
+      "ase": "lib/python3.11/site-packages/ase/__init__.py",
+      "numpy": "lib/python3.11/site-packages/numpy/__init__.py",
+      "torch": "lib/python3.11/site-packages/torch/__init__.py"
+    },
+    "deterministic_algorithms": true,
+    "gpu": {
+      "compute_capability": "8.9",
+      "cuda_device_index": 0,
+      "driver_version": "580.88",
+      "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "pci_bus_id": 1,
+      "pci_device_id": 0,
+      "total_memory_bytes": 8585216000,
+      "uuid": "GPU-7783c689-6dd3-9d48-1c7e-1d9191da1151"
+    },
+    "host": {
+      "cpu_model": "13th Gen Intel(R) Core(TM) i7-13700H",
+      "machine": "x86_64",
+      "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35"
+    },
+    "numpy_version": "2.4.6",
+    "python_version": "3.11.14",
+    "torch_force_no_weights_only_load": true,
+    "torch_version": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "scientific_scope": {
+    "accuracy_metric_reporting_allowed": false,
+    "experimental_labels_used": false,
+    "independent_experimental_holdout": false,
+    "no_fitting_or_calibration_performed": true,
+    "no_training_or_fine_tuning_performed": true,
+    "performance_can_override_scientific_failure": false,
+    "strict_literal_zero_loss_required": true,
+    "upstream_forces_admitted": false
+  },
+  "source_execution_isolation": {
+    "git_archive_from_verified_tree": true,
+    "isolated_import_parent": true,
+    "isolated_pycache_root": true,
+    "loaded_anisolv_module_origins": {
+      "anisolv": "__init__.py",
+      "anisolv._backbone": "_backbone/__init__.py",
+      "anisolv._backbone._compat": "_backbone/_compat/__init__.py",
+      "anisolv._backbone._compat.base": "_backbone/_compat/base.py",
+      "anisolv._backbone._compat.gp_utils": "_backbone/_compat/gp_utils.py",
+      "anisolv._backbone._compat.graph_compute": "_backbone/_compat/graph_compute.py",
+      "anisolv._backbone._compat.inference": "_backbone/_compat/inference.py",
+      "anisolv._backbone._compat.registry": "_backbone/_compat/registry.py",
+      "anisolv._backbone._compat.utils": "_backbone/_compat/utils.py",
+      "anisolv._backbone.common": "_backbone/common/__init__.py",
+      "anisolv._backbone.common.rotation": "_backbone/common/rotation.py",
+      "anisolv._backbone.common.so3": "_backbone/common/so3.py",
+      "anisolv._backbone.escn_md": "_backbone/escn_md.py",
+      "anisolv._backbone.escn_md_block": "_backbone/escn_md_block.py",
+      "anisolv._backbone.escn_moe": "_backbone/escn_moe.py",
+      "anisolv._backbone.nn": "_backbone/nn/__init__.py",
+      "anisolv._backbone.nn.activation": "_backbone/nn/activation.py",
+      "anisolv._backbone.nn.embedding": "_backbone/nn/embedding.py",
+      "anisolv._backbone.nn.execution_backends": "_backbone/nn/execution_backends.py",
+      "anisolv._backbone.nn.layer_norm": "_backbone/nn/layer_norm.py",
+      "anisolv._backbone.nn.mole": "_backbone/nn/mole.py",
+      "anisolv._backbone.nn.mole_utils": "_backbone/nn/mole_utils.py",
+      "anisolv._backbone.nn.radial": "_backbone/nn/radial.py",
+      "anisolv._backbone.nn.so2_layers": "_backbone/nn/so2_layers.py",
+      "anisolv._backbone.nn.so3_layers": "_backbone/nn/so3_layers.py",
+      "anisolv._backbone.nn.unified_radial": "_backbone/nn/unified_radial.py",
+      "anisolv._backbone.outputs": "_backbone/outputs.py",
+      "anisolv.data": "data.py",
+      "anisolv.model": "model.py",
+      "anisolv.predict": "predict.py",
+      "anisolv.solvent": "solvent.py"
+    },
+    "loaded_anisolv_module_origins_sha256": "6fa8fa0e3df399e5e52bb7f4f904f306e7f6dfbdfb6f58d2302365bc55963cbd"
+  },
+  "verdict": "fail_no_loss"
+}

@@ -1,0 +1,299 @@
+{
+  "acceptance_eligible": false,
+  "benchmark_status": "runtime smoke only; chemical classes are not a functional-group accuracy taxonomy; overlap-unknown and not acceptance evidence",
+  "created_at_utc": "2026-07-30T10:31:46+00:00",
+  "input": {
+    "path": "docs/implicit-solvation/benchmarks/freesolv10-2026-07-22.json",
+    "sha256": "619ea1eb4e8a86d0cbc880012d86a5d233bf38053828bdc7f57d7ad2c89117b6"
+  },
+  "records": [
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "alkane",
+      "name": "methane",
+      "predicted_kcal_mol": 1.48,
+      "record_id": "mobley_9055303",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61453
+      },
+      "smiles": "C"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "aromatic hydrocarbon",
+      "name": "benzene",
+      "predicted_kcal_mol": -1.231,
+      "record_id": "mobley_3053621",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61454
+      },
+      "smiles": "c1ccccc1"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "alcohol",
+      "name": "methanol",
+      "predicted_kcal_mol": -5.987,
+      "record_id": "mobley_1636752",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61455
+      },
+      "smiles": "CO"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "ether",
+      "name": "methoxymethane",
+      "predicted_kcal_mol": -1.931,
+      "record_id": "mobley_7015518",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61456
+      },
+      "smiles": "COC"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "ketone",
+      "name": "acetone",
+      "predicted_kcal_mol": -4.151,
+      "record_id": "mobley_3867265",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61457
+      },
+      "smiles": "CC(=O)C"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "ester",
+      "name": "ethyl acetate",
+      "predicted_kcal_mol": -3.266,
+      "record_id": "mobley_6973347",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61458
+      },
+      "smiles": "CCOC(=O)C"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "nitrile",
+      "name": "acetonitrile",
+      "predicted_kcal_mol": -4.097,
+      "record_id": "mobley_7532833",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61459
+      },
+      "smiles": "CC#N"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "aromatic amine",
+      "name": "aniline",
+      "predicted_kcal_mol": -5.072,
+      "record_id": "mobley_4883284",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61460
+      },
+      "smiles": "c1ccc(cc1)N"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "haloalkane",
+      "name": "chloroethane",
+      "predicted_kcal_mol": -0.654,
+      "record_id": "mobley_2198613",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61461
+      },
+      "smiles": "CCCl"
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "water",
+        "solvent_id": 102,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "chemical_class": "sulfoxide",
+      "name": "methylsulfinylmethane",
+      "predicted_kcal_mol": -5.372,
+      "record_id": "mobley_8578590",
+      "sdf_generation": {
+        "max_uff_iterations": 500,
+        "method": "RDKit ETKDGv3 followed by UFF minimization",
+        "random_seed": 61462
+      },
+      "smiles": "CS(=O)C"
+    }
+  ],
+  "schema_version": 1,
+  "software": {
+    "rdkit_version": "2024.09.2"
+  },
+  "summary": {
+    "accuracy_evaluation_performed": false,
+    "accuracy_metric_reporting_allowed": false,
+    "coverage": 1.0,
+    "evaluated_count": 10,
+    "failure_count": 0,
+    "failure_rate": 0.0,
+    "functional_group_coverage": {
+      "functional_group_taxonomy": null,
+      "minimum_distinct_functional_groups": 10,
+      "minimum_record_count": 10,
+      "observed_count": 0,
+      "observed_functional_groups": [],
+      "observed_record_count": 10,
+      "passes": false,
+      "record_assignments_complete": false,
+      "record_count_passes": true
+    },
+    "identity_fingerprint": "377ae072277cbd2e1518c916ddaca2cd77ea2dc4d3cd58b8af0927195f10bec7",
+    "metrics": null,
+    "per_record_errors": null,
+    "record_count": 10,
+    "scope": "runtime_or_interface_smoke_only",
+    "target_quantity": "property_prediction"
+  },
+  "validation_panel": {
+    "identity": {
+      "cavity_model": "not applicable to a scalar property predictor",
+      "conformer_policy": "one RDKit ETKDGv3 conformer per SMILES, seed 0xf00d plus row index, followed by UFF minimization",
+      "dataset": "FreeSolv",
+      "dataset_version": "0.52 / fixed MAPLE 10-molecule chemistry-stratified pilot",
+      "estimator": "C3Net direct scalar output (not TI/BAR/MBAR/FEP)",
+      "experimental_provenance": "FreeSolv v0.52 entries pinned by the fixed pilot input",
+      "functional_group_taxonomy": null,
+      "geometry_protocol": "RDKit ETKDGv3 + UFF, generated at execution time",
+      "potential": "C3Net checkpoint-1 @ 191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+      "protonation_policy": "neutral molecules encoded by the fixed FreeSolv pilot SMILES",
+      "record_functional_groups": [],
+      "record_ids": [
+        "mobley_9055303",
+        "mobley_3053621",
+        "mobley_1636752",
+        "mobley_7015518",
+        "mobley_3867265",
+        "mobley_6973347",
+        "mobley_7532833",
+        "mobley_4883284",
+        "mobley_2198613",
+        "mobley_8578590"
+      ],
+      "record_solvent_compositions": [],
+      "sampling_protocol": "not applicable; one deterministic property prediction per supplied geometry",
+      "solvation_backend": "C3Net direct scalar property head",
+      "solvent_protocol": "C3Net exact upstream identifier water",
+      "standard_state": "FreeSolv experimental convention; property prediction only",
+      "target_quantity": "property_prediction",
+      "tautomer_policy": "as represented by the fixed FreeSolv pilot SMILES",
+      "temperature_kelvin": 298.15
+    },
+    "identity_fingerprint": "377ae072277cbd2e1518c916ddaca2cd77ea2dc4d3cd58b8af0927195f10bec7",
+    "leakage_audit": {
+      "evidence_source": "C3Net arXiv:2309.15334 reports a random pair split but does not publish complete record-level training accounting for checkpoint-1.",
+      "overlapping_record_ids": [],
+      "rationale": "Training evidence does not completely account for every benchmark record; absence of a documented overlap is not holdout proof.",
+      "status": "overlap_unknown"
+    },
+    "model_id": "c3net-checkpoint-1",
+    "selection_allowed": true,
+    "stage": "development",
+    "training_evidence": {
+      "evidence_source": "C3Net arXiv:2309.15334 reports a random pair split but does not publish complete record-level training accounting for checkpoint-1.",
+      "record_accounting_complete": false
+    }
+  }
+}

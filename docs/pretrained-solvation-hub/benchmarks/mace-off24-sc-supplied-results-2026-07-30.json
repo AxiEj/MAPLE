@@ -1,0 +1,174 @@
+{
+  "acceptance_eligible": false,
+  "acceptance_gate": {
+    "maximum_absolute_error_target_kcal_mol": 1.5,
+    "overall_passes": false,
+    "reasons": [
+      "the public MACE-OFF24-SC checkpoint is not pinned or released for reproduction",
+      "the audit recomputes rounded supplied tables rather than model inference",
+      "training overlap and record-complete accounting are unavailable",
+      "neither panel is a never-used independent experimental extrapolation set",
+      "the hydration panel maximum absolute error exceeds the strict 1.5 kcal/mol Route 4 target",
+      "the exact rounded official hydration CSV does not reproduce both article Table 1 aggregate metrics",
+      "the hydration aggregate gaps exceed the conservative rounding bound, so rounded-table precision alone cannot explain them"
+    ]
+  },
+  "article_table_1_hydration_comparison": {
+    "interpretation": "both absolute metric gaps exceed the conservative 0.03 kcal/mol combined displayed-value bound, so rounded-table precision alone cannot explain the discrepancy; the underlying source-analysis difference remains unknown",
+    "metric_gaps_recomputed_minus_reported_kcal_mol": {
+      "mae_kcal_mol": 0.07388888888888889,
+      "rmse_kcal_mol": 0.03438933092145635
+    },
+    "reported_metrics": {
+      "mae_kcal_mol": 0.69,
+      "rmse_kcal_mol": 0.8
+    },
+    "rounded_csv_recomputed_metrics_match": {
+      "mae_kcal_mol": false,
+      "rmse_kcal_mol": false
+    },
+    "rounding_alone_can_explain": false,
+    "rounding_bounds_kcal_mol": {
+      "combined_conservative_display_upper_bound": 0.03,
+      "reported_aggregate_conservative_truncation_upper_bound": 0.01,
+      "reported_aggregate_nearest_rounding_upper_bound": 0.005,
+      "row_values_conservative_truncation_aggregate_shift_upper_bound": 0.02,
+      "row_values_nearest_rounding_aggregate_shift_upper_bound": 0.01
+    }
+  },
+  "benchmark_status": "official rounded supporting-table audit only; not a MAPLE runtime benchmark, checkpoint reproduction, strict holdout, or admission result",
+  "checkpoint_identity": {
+    "public_protocol_repository_checkpoint": "MACE-OFF23-SC only; it must not be substituted for MACE-OFF24-SC",
+    "status": "unreleased_or_unpinned_for_public_reproduction"
+  },
+  "evaluation_type": "static_official_supporting_information_audit_no_checkpoint_inference",
+  "model_id": "mace-off24-sc",
+  "provenance": {
+    "artifacts": {
+      "hydration_csv": {
+        "doi": "10.1021/jacs.5c10940.s002",
+        "download_url": "https://ndownloader.figshare.com/files/61402002",
+        "figshare_article_id": 31158975,
+        "figshare_file_id": 61402002,
+        "figshare_md5": "d614cd9c6385195484eb6ed84c385a67",
+        "file_name": "ja5c10940_si_002.csv",
+        "license": "CC BY-NC 4.0",
+        "sha256": "0b44cb14b4d1c97413c7f6fad45655ddf2b15b44370fa0f89b049eb9af19ff6a",
+        "size_bytes": 2650
+      },
+      "supporting_information_pdf": {
+        "doi": "10.1021/jacs.5c10940.s001",
+        "download_url": "https://ndownloader.figshare.com/files/61401999",
+        "figshare_article_id": 31158972,
+        "figshare_file_id": 61401999,
+        "figshare_md5": "493ed524b036ebe1055bb144bcbc9335",
+        "file_name": "ja5c10940_si_001.pdf",
+        "license": "CC BY-NC 4.0",
+        "sha256": "7c675c6657a3b5b92a317ea8a3c17241f5738cc44113440caefe882227b535b1",
+        "size_bytes": 1704085
+      }
+    },
+    "paper_doi": "10.1021/jacs.5c10940",
+    "paper_url": "https://doi.org/10.1021/jacs.5c10940",
+    "protocol_source_repository": "https://github.com/jharrymoore/mace-md",
+    "protocol_source_revision": "c3056287622ba18f9b905e9df45affdff46cb147"
+  },
+  "quantity_boundary": {
+    "alchemical_protocol_rerun": false,
+    "checkpoint_inference_performed": false,
+    "full_precision_author_values_available": false,
+    "reported_uncertainties_recomputed": false,
+    "source": "rounded official supporting-information tables"
+  },
+  "schema_version": 1,
+  "validation_panels": {
+    "hydration": {
+      "dataset": "FreeSolv selected 36-record article panel",
+      "evidence_identity": {
+        "cavity_or_pmf": "explicit-solvent soft-core lambda Hamiltonian; no continuum cavity",
+        "conformer_policy": "unknown from the supplied-result table",
+        "estimator": "MBAR; not rerun by this audit",
+        "experimental_provenance": {
+          "dataset": "FreeSolv",
+          "exact_release": null,
+          "status": "dataset named by the article; exact release and record identifiers are not stated in the supplied-result table"
+        },
+        "potential_identity": "article MACE-OFF24-SC checkpoint; exact public checkpoint identity unavailable",
+        "protonation_policy": "article selection required unambiguous neutrality at pH 7 according to Schrodinger Epik",
+        "quantity": "absolute hydration free energy",
+        "sampling_protocol": "16-replica Hamiltonian replica-exchange molecular dynamics over lambda windows; not rerun by this audit",
+        "solvent_state": "explicit pure water",
+        "standard_state": null,
+        "standard_state_status": "not explicitly identified in the audited supplied-result table",
+        "tautomer_policy": "unknown from the supplied-result table",
+        "temperature_kelvin": null,
+        "temperature_status": "not explicitly identified in the audited supplied-result table"
+      },
+      "evidence_identity_complete": false,
+      "maximum_error_record": {
+        "absolute_error_kcal_mol": 1.6000000000000014,
+        "record_name": "methylsulfinylmethane"
+      },
+      "metrics": {
+        "mae_kcal_mol": 0.7638888888888888,
+        "maximum_absolute_error_kcal_mol": 1.6000000000000014,
+        "mean_signed_error_kcal_mol": -0.3677777777777778,
+        "pearson_r": 0.9765254681489935,
+        "rmse_kcal_mol": 0.8343893309214564
+      },
+      "passes_maximum_error_target": false,
+      "record_accounting_complete": false,
+      "record_count": 36,
+      "record_set_sha256": "76526981b545469c380f69e5ca57986679404909011b57d1dbed20c88c82c4d6",
+      "selection": "records selected and supplied by the article authors",
+      "solvent": "water",
+      "source_value_precision": "rounded supporting-information table values",
+      "strict_independent_extrapolation": false,
+      "training_overlap_status": "overlap_unknown"
+    },
+    "octanol": {
+      "dataset": "MNSol selected 10-record article panel",
+      "evidence_identity": {
+        "cavity_or_pmf": "explicit-solvent soft-core lambda Hamiltonian; no continuum cavity",
+        "conformer_policy": "unknown from the supplied-result table",
+        "estimator": "MBAR; not rerun by this audit",
+        "experimental_provenance": {
+          "dataset": "MNSol",
+          "exact_release": null,
+          "status": "dataset named by the article; exact release and record identifiers are not stated in the supplied-result table"
+        },
+        "potential_identity": "article MACE-OFF24-SC checkpoint; exact public checkpoint identity unavailable",
+        "protonation_policy": "unknown from the supplied-result table",
+        "quantity": "absolute solvation free energy in 1-octanol",
+        "sampling_protocol": "16-replica Hamiltonian replica-exchange molecular dynamics over lambda windows; not rerun by this audit",
+        "solvent_state": "explicit pure 1-octanol",
+        "standard_state": null,
+        "standard_state_status": "not explicitly identified in the audited supplied-result table",
+        "tautomer_policy": "unknown from the supplied-result table",
+        "temperature_kelvin": null,
+        "temperature_status": "not explicitly identified in the audited supplied-result table"
+      },
+      "evidence_identity_complete": false,
+      "maximum_error_record": {
+        "absolute_error_kcal_mol": 0.9299999999999997,
+        "record_name": "phthalimide"
+      },
+      "metrics": {
+        "mae_kcal_mol": 0.47399999999999964,
+        "maximum_absolute_error_kcal_mol": 0.9299999999999997,
+        "mean_signed_error_kcal_mol": 0.21600000000000003,
+        "pearson_r": 0.9904348520924893,
+        "rmse_kcal_mol": 0.587928567089574
+      },
+      "passes_maximum_error_target": true,
+      "record_accounting_complete": false,
+      "record_count": 10,
+      "record_set_sha256": "638361852dbdf566df30d8eaac82df9de41487cb8875678f39483cce4cdfed6f",
+      "selection": "records selected and supplied by the article authors",
+      "solvent": "1-octanol",
+      "source_value_precision": "rounded supporting-information table values",
+      "strict_independent_extrapolation": false,
+      "training_overlap_status": "overlap_unknown"
+    }
+  }
+}

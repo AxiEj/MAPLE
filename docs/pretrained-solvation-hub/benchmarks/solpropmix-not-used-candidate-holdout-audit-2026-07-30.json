@@ -1,0 +1,320 @@
+{
+  "acceptance_eligible": false,
+  "audited_on": "2026-07-30",
+  "candidate_holdout": true,
+  "candidate_panels": {
+    "not_used_from_3_component_vle": {
+      "all_inchi_identifiers_use_standard_prefix": true,
+      "composition_roundoff_adjustment_count": 0,
+      "duplicate_record_identity_count": 42,
+      "experimental_label_values_embedded": false,
+      "header_sha256": "f5ee55522e06d00d38911152b891d4e4559648c64da7cdad936700e5e623537a",
+      "label_cells_present_but_values_not_decoded": 25833,
+      "maximum_composition_roundoff_adjustment": 0.0,
+      "missing_optional_provenance_cells": {
+        "Issue": 7755,
+        "Pages": 32,
+        "Title": 7,
+        "Volume": 1637,
+        "Year": 41
+      },
+      "mixture_identity_basis": "positive-fraction physical components; nominal source-system cardinality and zero-fraction declarations remain provenance",
+      "models_scored": [],
+      "ordered_record_identity_sha256": "26e7bcb6debec283f3f2fdbb50864e24ceb202675c389dc0b8a7c1f2869a5ed0",
+      "pressure_range_kPa": [
+        1.44,
+        18399.999
+      ],
+      "record_count": 25833,
+      "record_identities_embedded": false,
+      "records_with_incomplete_core_provenance": 48,
+      "records_with_zero_fraction_declared_components": 27,
+      "sheet_name": "Not used - From 3-comp VLE",
+      "solute_liquid_mole_fraction_range": [
+        2.6e-06,
+        0.2499
+      ],
+      "solvent_component_count": 2,
+      "solvent_fraction_range": [
+        0.0,
+        1.0
+      ],
+      "source_family": "VLE",
+      "source_system_component_count": 3,
+      "temperature_range_K": [
+        288.15,
+        646.75
+      ],
+      "unique_citation_count": 774,
+      "unique_mixture_count": 24233,
+      "unique_record_identity_count": 25791,
+      "unique_solute_count": 281,
+      "unique_solute_mixture_count": 24799,
+      "unique_solvent_count": 269,
+      "worksheet_sha256": "fd00cb0d2009da2d552880de0faa9e989086646a86fd82d7e948092f53aa88a9",
+      "worksheet_size_bytes": 29709431,
+      "zero_fraction_declared_component_count": 27
+    },
+    "not_used_from_4_component_vle": {
+      "all_inchi_identifiers_use_standard_prefix": true,
+      "composition_roundoff_adjustment_count": 3,
+      "duplicate_record_identity_count": 0,
+      "experimental_label_values_embedded": false,
+      "header_sha256": "b1e3e14739bdda190136bdcd4669966f6b7262036ac0ae9b236330beafcff584",
+      "label_cells_present_but_values_not_decoded": 4351,
+      "maximum_composition_roundoff_adjustment": 1e-16,
+      "missing_optional_provenance_cells": {
+        "Issue": 1019,
+        "Volume": 164
+      },
+      "mixture_identity_basis": "positive-fraction physical components; nominal source-system cardinality and zero-fraction declarations remain provenance",
+      "models_scored": [],
+      "ordered_record_identity_sha256": "e20713ba9e768d0bcbb307db89920f3a76eaef8d84aa804e1e1b850cfb62593f",
+      "pressure_range_kPa": [
+        0.12978,
+        500.0
+      ],
+      "record_count": 4351,
+      "record_identities_embedded": false,
+      "records_with_incomplete_core_provenance": 0,
+      "records_with_zero_fraction_declared_components": 20,
+      "sheet_name": "Not used - From 4-comp VLE",
+      "solute_liquid_mole_fraction_range": [
+        0.0001,
+        0.2498
+      ],
+      "solvent_component_count": 3,
+      "solvent_fraction_range": [
+        0.0,
+        0.9998
+      ],
+      "source_family": "VLE",
+      "source_system_component_count": 4,
+      "temperature_range_K": [
+        303.15,
+        529.9
+      ],
+      "unique_citation_count": 87,
+      "unique_mixture_count": 4319,
+      "unique_record_identity_count": 4351,
+      "unique_solute_count": 79,
+      "unique_solute_mixture_count": 4319,
+      "unique_solvent_count": 80,
+      "worksheet_sha256": "745400d626a7557f1a9fd03d9752c3c0cc9fbe3a281c7eeca733737bb875b3dd",
+      "worksheet_size_bytes": 5735891,
+      "zero_fraction_declared_component_count": 20
+    }
+  },
+  "candidate_union": {
+    "composition_roundoff_adjustment_count": 3,
+    "duplicate_record_identity_count": 43,
+    "experimental_label_values_embedded": false,
+    "label_cells_present_but_values_not_decoded": 30184,
+    "maximum_composition_roundoff_adjustment": 1e-16,
+    "mixture_identity_basis": "positive-fraction physical components; nominal source-system cardinality and zero-fraction declarations remain provenance",
+    "models_scored": [],
+    "ordered_record_identity_sha256": "23d66442a68fcf531f3e8ea421b0ed8b2bd867e56aae28bcfe5ed479900474e0",
+    "pressure_range_kPa": [
+      0.12978,
+      18399.999
+    ],
+    "record_count": 30184,
+    "record_identities_embedded": false,
+    "records_with_incomplete_core_provenance": 48,
+    "records_with_zero_fraction_declared_components": 47,
+    "solute_liquid_mole_fraction_range": [
+      2.6e-06,
+      0.2499
+    ],
+    "solvent_fraction_range": [
+      0.0,
+      1.0
+    ],
+    "temperature_range_K": [
+      288.15,
+      646.75
+    ],
+    "unique_citation_count": 833,
+    "unique_mixture_count": 28551,
+    "unique_record_identity_count": 30141,
+    "unique_solute_count": 293,
+    "unique_solute_mixture_count": 29117,
+    "unique_solvent_count": 279,
+    "zero_fraction_declared_component_count": 47
+  },
+  "dataset": "SolProp-mix not-used VLE candidate holdout",
+  "final_holdout_gates": {
+    "complete_core_provenance": {
+      "passes": false,
+      "records_with_incomplete_core_provenance": 48
+    },
+    "minimum_solvent_coverage": {
+      "minimum_required": 10,
+      "observed_unique_solvents": 279,
+      "passes": true
+    },
+    "passes_all": false,
+    "training_overlap_absent": {
+      "passes": false,
+      "status": "pending"
+    },
+    "unique_record_identities": {
+      "duplicate_record_identity_count": 43,
+      "passes": false
+    }
+  },
+  "gpu_acceleration": {
+    "gpu_execution_performed": false,
+    "no_precision_loss_claim": false,
+    "relevant_to_static_audit": false
+  },
+  "identity": {
+    "archive": {
+      "sha256": "670915e5bf86d5457bc2f43301e5a02e77a66b529535fcd0eddfadeb72ed73a5",
+      "size_bytes": 288947625,
+      "source_repository": "https://gitlab.kuleuven.be/creas/vermeiregroup/solprop",
+      "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+      "verified": true,
+      "zenodo_record": "https://zenodo.org/records/14238055"
+    },
+    "members": {
+      "Files/Data/solprop-mix.xlsx": {
+        "crc32": "7e4b3d2a",
+        "sha256": "a20e5720b3a395386dbf522137378435f464a4cbd21574d36d3f713eb0fa0e16",
+        "size_bytes": 12342482,
+        "verified": true
+      },
+      "Files/DataPreparation/inchi_dictionaries/DDB_to_inchi_Dortmund_key.csv": {
+        "crc32": "c130a571",
+        "sha256": "47dcb97393d9abbe0bd415a730f5f5ecc8b3ab18dd7083bc2eeb6dba17fcf363",
+        "size_bytes": 217440,
+        "verified": true
+      },
+      "Files/README.txt": {
+        "crc32": "da436916",
+        "sha256": "b7b1627f9a8ee6cd8f2949c88a3008aa6ec25a6f9dcf997023eb3840e2cf4fdd",
+        "size_bytes": 9677,
+        "verified": true
+      },
+      "Files/SolProp_ML-StaticCodeGsolv/README.md": {
+        "crc32": "8a8d346a",
+        "sha256": "5af355681ae5ed606eac01916a387f18642f0ee84b1b866259dadba5665f69a0",
+        "size_bytes": 7770,
+        "verified": true
+      }
+    },
+    "workbook_members": {
+      "xl/_rels/workbook.xml.rels": {
+        "crc32": "8ac9313d",
+        "sha256": "fe9dd6b9a3e7f9c94edec3f1fe3f84d61f5332f263442af9d2ad2acca5535e46",
+        "size_bytes": 1973,
+        "verified": true
+      },
+      "xl/workbook.xml": {
+        "crc32": "d0101792",
+        "sha256": "72e277382291e1df898056ae9d187991e799e8928415946e7199f32e4b54cd3b",
+        "size_bytes": 1405,
+        "verified": true
+      },
+      "xl/worksheets/sheet10.xml": {
+        "crc32": "4183538b",
+        "sha256": "fd00cb0d2009da2d552880de0faa9e989086646a86fd82d7e948092f53aa88a9",
+        "size_bytes": 29709431,
+        "verified": true
+      },
+      "xl/worksheets/sheet11.xml": {
+        "crc32": "3498d940",
+        "sha256": "745400d626a7557f1a9fd03d9752c3c0cc9fbe3a281c7eeca733737bb875b3dd",
+        "size_bytes": 5735891,
+        "verified": true
+      }
+    },
+    "worksheet_names_and_order_verified": true
+  },
+  "overlap_audit": {
+    "blocking_reason": "record-complete canonical training and test ledgers are not locally pinned for every candidate model family",
+    "candidate_identity_available_without_labels": {
+      "exact_record_fields": [
+        "solute standard InChI",
+        "positive-fraction physical solvent InChI/composition pairs",
+        "temperature",
+        "pressure",
+        "solute liquid mole fraction",
+        "citation tuple"
+      ],
+      "experimental_target_required_for_join": false,
+      "record_values_embedded": false,
+      "solute_structure_key": "standard InChI",
+      "solvent_structure_key": "standard InChI"
+    },
+    "published_solprop_mix_model_data_boundary": {
+      "fine_tuning_datasets": [
+        "CombiSolv-Exp"
+      ],
+      "pretraining_datasets": [
+        "CombiSolv-QM",
+        "BinarySolv-QM"
+      ],
+      "published_test_datasets": [
+        "BinarySolv-Exp",
+        "TernarySolv-Exp"
+      ],
+      "published_test_solute_overlap": {
+        "synthetic_cosmo_rs_datasets": "some_overlap_reported"
+      },
+      "published_test_solutes_excluded_from": [
+        "CombiSolv-Exp"
+      ],
+      "scope_warning": "The published exclusions apply to BinarySolv-Exp and TernarySolv-Exp. They do not certify either Not used worksheet audited here.",
+      "source": "https://arxiv.org/abs/2412.01982",
+      "split_unit": "solute"
+    },
+    "required_canonical_joins": [
+      "FreeSolv",
+      "MNSol",
+      "dGsolvDB",
+      "CombiSolv",
+      "Solv@TUM",
+      "SolProp",
+      "QM-derived candidate training corpora",
+      "every admitted candidate model training and test family"
+    ],
+    "required_join_levels": {
+      "exact_record": "solute + physical solvent composition + temperature + pressure + solute liquid mole fraction + citation",
+      "solute_structure": "canonical solute identity regardless of solvent or condition",
+      "solvent_system": "canonical positive-fraction solvent identities and mole fractions",
+      "source_provenance": "authors + journal + year + title"
+    },
+    "status": "pending",
+    "training_overlap_proven_absent": false
+  },
+  "paper": {
+    "candidate_sheet_interpretation": "the upstream Not used labels are provenance metadata only; they do not prove absence from every model training or test family",
+    "url": "https://arxiv.org/abs/2412.01982"
+  },
+  "route4_decision": {
+    "allowed_future_use": "overlap auditing before any separately authorized blind scoring",
+    "forbidden_uses": [
+      "training",
+      "fine_tuning",
+      "calibration",
+      "model_selection",
+      "scoring_before_overlap_accounting",
+      "claiming_strict_final_holdout",
+      "claiming_never_used_from_sheet_names_alone"
+    ],
+    "status": "metadata_only_candidate_not_consumed_for_scoring"
+  },
+  "schema_version": 1,
+  "strict_final_holdout": false,
+  "validation_scope": {
+    "experimental_label_cells_counted_without_decoding_values": true,
+    "experimental_label_values_embedded": false,
+    "experimental_label_values_used_for_model_selection": false,
+    "maximum_error_computed": false,
+    "model_prediction_sheets_read": false,
+    "model_predictions_read": false,
+    "models_scored": [],
+    "record_identities_embedded": false
+  }
+}

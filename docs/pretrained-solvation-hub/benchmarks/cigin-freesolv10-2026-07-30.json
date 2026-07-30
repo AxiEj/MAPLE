@@ -1,0 +1,249 @@
+{
+  "acceptance_eligible": false,
+  "benchmark_status": "runtime smoke only; chemical classes are not a functional-group accuracy taxonomy; known training dataset provenance with unresolved record overlap; not acceptance evidence",
+  "created_at_utc": "2026-07-30T10:32:08+00:00",
+  "input": {
+    "path": "docs/implicit-solvation/benchmarks/freesolv10-2026-07-22.json",
+    "sha256": "619ea1eb4e8a86d0cbc880012d86a5d233bf38053828bdc7f57d7ad2c89117b6"
+  },
+  "records": [
+    {
+      "canonical_solute_smiles": "C",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "alkane",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "C",
+      "name": "methane",
+      "predicted_kcal_mol": 0.8333852887153625,
+      "record_id": "mobley_9055303"
+    },
+    {
+      "canonical_solute_smiles": "c1ccccc1",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "aromatic hydrocarbon",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "c1ccccc1",
+      "name": "benzene",
+      "predicted_kcal_mol": -0.6950390338897705,
+      "record_id": "mobley_3053621"
+    },
+    {
+      "canonical_solute_smiles": "CO",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "alcohol",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "CO",
+      "name": "methanol",
+      "predicted_kcal_mol": -5.398163318634033,
+      "record_id": "mobley_1636752"
+    },
+    {
+      "canonical_solute_smiles": "COC",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "ether",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "COC",
+      "name": "methoxymethane",
+      "predicted_kcal_mol": -2.2239742279052734,
+      "record_id": "mobley_7015518"
+    },
+    {
+      "canonical_solute_smiles": "CC(C)=O",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "ketone",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "CC(=O)C",
+      "name": "acetone",
+      "predicted_kcal_mol": -3.9525842666625977,
+      "record_id": "mobley_3867265"
+    },
+    {
+      "canonical_solute_smiles": "CCOC(C)=O",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "ester",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "CCOC(=O)C",
+      "name": "ethyl acetate",
+      "predicted_kcal_mol": -2.9442896842956543,
+      "record_id": "mobley_6973347"
+    },
+    {
+      "canonical_solute_smiles": "CC#N",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "nitrile",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "CC#N",
+      "name": "acetonitrile",
+      "predicted_kcal_mol": -4.09279727935791,
+      "record_id": "mobley_7532833"
+    },
+    {
+      "canonical_solute_smiles": "Nc1ccccc1",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "aromatic amine",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "c1ccc(cc1)N",
+      "name": "aniline",
+      "predicted_kcal_mol": -5.452188968658447,
+      "record_id": "mobley_4883284"
+    },
+    {
+      "canonical_solute_smiles": "CCCl",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "haloalkane",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "CCCl",
+      "name": "chloroethane",
+      "predicted_kcal_mol": -0.5031957626342773,
+      "record_id": "mobley_2198613"
+    },
+    {
+      "canonical_solute_smiles": "CS(C)=O",
+      "canonical_solvent_smiles": "O",
+      "chemical_class": "sulfoxide",
+      "cigin": {
+        "checkpoint_sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "cuda_disabled_for_upstream_device_consistency": true,
+        "execution_device": "cpu",
+        "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+        "unit": "kcal/mol"
+      },
+      "input_smiles": "CS(=O)C",
+      "name": "methylsulfinylmethane",
+      "predicted_kcal_mol": -4.603863716125488,
+      "record_id": "mobley_8578590"
+    }
+  ],
+  "schema_version": 1,
+  "summary": {
+    "accuracy_evaluation_performed": false,
+    "accuracy_metric_reporting_allowed": false,
+    "coverage": 1.0,
+    "evaluated_count": 10,
+    "failure_count": 0,
+    "failure_rate": 0.0,
+    "functional_group_coverage": {
+      "functional_group_taxonomy": null,
+      "minimum_distinct_functional_groups": 10,
+      "minimum_record_count": 10,
+      "observed_count": 0,
+      "observed_functional_groups": [],
+      "observed_record_count": 10,
+      "passes": false,
+      "record_assignments_complete": false,
+      "record_count_passes": true
+    },
+    "identity_fingerprint": "c5a5ef5b48977182bddbb4d962dd8aa20bf07e2563bd7e0479bc2e56502aa9eb",
+    "metrics": null,
+    "per_record_errors": null,
+    "record_count": 10,
+    "scope": "runtime_or_interface_smoke_only",
+    "target_quantity": "property_prediction"
+  },
+  "validation_panel": {
+    "identity": {
+      "cavity_model": "not applicable to a scalar property predictor",
+      "conformer_policy": "not applicable; CIGIN takes direct canonical SMILES",
+      "dataset": "FreeSolv",
+      "dataset_version": "0.52 / fixed MAPLE 10-molecule chemistry-stratified pilot",
+      "estimator": "CIGIN direct scalar output (not TI/BAR/MBAR/FEP)",
+      "experimental_provenance": "FreeSolv v0.52 entries pinned by the fixed pilot input",
+      "functional_group_taxonomy": null,
+      "geometry_protocol": "not applicable; no supplied coordinates or conformers",
+      "potential": "CIGIN cigin.tar @ 9990f826f1a17590f1925dfd470423633275840c",
+      "protonation_policy": "neutral molecules encoded by the fixed FreeSolv pilot SMILES",
+      "record_functional_groups": [],
+      "record_ids": [
+        "mobley_9055303",
+        "mobley_3053621",
+        "mobley_1636752",
+        "mobley_7015518",
+        "mobley_3867265",
+        "mobley_6973347",
+        "mobley_7532833",
+        "mobley_4883284",
+        "mobley_2198613",
+        "mobley_8578590"
+      ],
+      "record_solvent_compositions": [],
+      "sampling_protocol": "not applicable; one deterministic CPU property prediction per SMILES pair",
+      "solvation_backend": "CIGIN direct scalar property head",
+      "solvent_protocol": "canonical water SMILES O passed to the exact CIGIN checkpoint",
+      "standard_state": "FreeSolv experimental convention; property prediction only",
+      "target_quantity": "property_prediction",
+      "tautomer_policy": "as represented by the fixed FreeSolv pilot SMILES",
+      "temperature_kelvin": 298.15
+    },
+    "identity_fingerprint": "c5a5ef5b48977182bddbb4d962dd8aa20bf07e2563bd7e0479bc2e56502aa9eb",
+    "leakage_audit": {
+      "evidence_source": "The official CIGIN author page identifies FreeSolv training and reports an RMSE, but does not publish complete record-level accounting for cigin.tar.",
+      "overlapping_record_ids": [],
+      "rationale": "The benchmark dataset is named in training evidence, but exact record overlap cannot be resolved.",
+      "status": "overlap_unknown"
+    },
+    "model_id": "cigin-cigin.tar",
+    "selection_allowed": true,
+    "stage": "development",
+    "training_evidence": {
+      "evidence_source": "The official CIGIN author page identifies FreeSolv training and reports an RMSE, but does not publish complete record-level accounting for cigin.tar.",
+      "record_accounting_complete": false,
+      "training_datasets": [
+        "FreeSolv"
+      ]
+    }
+  }
+}

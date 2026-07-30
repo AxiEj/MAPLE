@@ -1,0 +1,687 @@
+{
+  "acceptance_eligible": false,
+  "audited_on": "2026-07-30",
+  "evaluation_type": "upstream_six_example_water_single_point_correction_development_audit",
+  "functional_group_accuracy_gate": {
+    "accuracy_metric_reporting_allowed": false,
+    "functional_group_taxonomy": null,
+    "minimum_distinct_functional_groups": 10,
+    "minimum_record_count": 10,
+    "observed_distinct_functional_groups": 0,
+    "observed_record_count": 6,
+    "passes": false,
+    "record_assignments_predeclared": false,
+    "scope": "runtime_or_interface_smoke_only"
+  },
+  "gpu_acceleration": {
+    "gpu_executed": false,
+    "gpu_parity_demonstrated": false,
+    "no_loss_gpu_admission_status": "blocked_until_complete_cpu_gpu_scalar_energy_and_scientific_parity",
+    "reduced_precision_controls": {
+      "autocast_cpu": false,
+      "autocast_cuda": false,
+      "bf16_reduced_precision_reduction": false,
+      "cuda_matmul_allow_tf32": false,
+      "cudnn_allow_tf32": false,
+      "float32_matmul_precision": "highest",
+      "fp16_accumulation": false,
+      "fp16_reduced_precision_reduction": false
+    }
+  },
+  "identity": {
+    "checkpoint": {
+      "path": "models/model1_compact.pt",
+      "sha256": "b79be343c55a7cc06579aa4778753156bc71f99b3a00f046a270bc3427c1498f",
+      "size_bytes": 25522563,
+      "verified": true
+    },
+    "repository": "https://github.com/Ant-on-knee/anisolv",
+    "revision": "66f36dc7d4134c78b718255bb2abfed14482acb0",
+    "source_blobs": {
+      "backbone": {
+        "path": "_backbone/escn_md.py",
+        "sha256": "db8c2d04f1a737c793bdccb35980eb7c1485998b590ebc472035e955b5889931",
+        "size_bytes": 48766,
+        "verified": true
+      },
+      "data": {
+        "path": "data.py",
+        "sha256": "9f3fcbb9109c4d3c2cf7bb989aaaec598b5d199a9067844012fe38a9ba7c2fa9",
+        "size_bytes": 6625,
+        "verified": true
+      },
+      "model": {
+        "path": "model.py",
+        "sha256": "1ccec6adc1d1c61936c1ace6d4dcc42542fe9c33e4263254d0ce46389c0e5a0c",
+        "size_bytes": 12476,
+        "verified": true
+      },
+      "package_api": {
+        "path": "__init__.py",
+        "sha256": "df90259889cd313d1520f012f758c30e1ae9873ae7846effb9dad227d7dbd6dd",
+        "size_bytes": 815,
+        "verified": true
+      },
+      "package_metadata": {
+        "path": "pyproject.toml",
+        "sha256": "c04577d7f8c82374c2abe18a0b28e7e01588d3f9ed1570fdf46c09f279bde9b5",
+        "size_bytes": 1376,
+        "verified": true
+      },
+      "predict": {
+        "path": "predict.py",
+        "sha256": "5194307dbee41f3f112dd3863c65c81009566de8e7031f0483ef0b2a12f0fd05",
+        "size_bytes": 3581,
+        "verified": true
+      },
+      "readme": {
+        "path": "README.md",
+        "sha256": "891d59e886d7952f358682ecbbaea461ffc46305733ae8fff603358c4ea3c409",
+        "size_bytes": 10895,
+        "verified": true
+      },
+      "sample": {
+        "path": "samples/H2O_single_point.py",
+        "sha256": "f511925b35298eca868143fa8a98dff18bbf90edef24e276d3421a5d852c5c1b",
+        "size_bytes": 5218,
+        "verified": true
+      },
+      "solvent": {
+        "path": "solvent.py",
+        "sha256": "b69b9ff778a4ec76062121410960c1fe3e6c42025f4f6869fd1e018007e9f0ca",
+        "size_bytes": 3695,
+        "verified": true
+      },
+      "wigner_data": {
+        "path": "_backbone/Jd.pt",
+        "sha256": "b4059c45be246dcb6c49c545670b65c56550eb0c2e7a9c92b4b50a92d370dbe2",
+        "size_bytes": 21697,
+        "verified": true
+      }
+    },
+    "tree": "522a9cfacb6f0fc00935e2d4d140020b8007c295"
+  },
+  "metrics": null,
+  "model_runtime_fingerprint": {
+    "buffer_devices": [
+      "cpu"
+    ],
+    "buffer_dtypes": [
+      "torch.float32",
+      "torch.int64"
+    ],
+    "cache_key": {
+      "checkpoint": "models/model1_compact.pt",
+      "device": "cpu",
+      "dtype": "torch.float32",
+      "inference_settings": "InferenceSettings(tf32=False, activation_checkpointing=False, merge_mole=False, compile=False, external_graph_gen=True, internal_graph_gen_version=2, use_quaternion_wigner=False, execution_mode='general', edge_chunk_size=None, predict_untrained_forces=set(), predict_untrained_stress=set(), predict_untrained_hessian=set(), auto_add_default_untrained_tasks=True)"
+    },
+    "loaded_source_modules": {
+      "anisolv": "__init__.py",
+      "anisolv._backbone": "_backbone/__init__.py",
+      "anisolv._backbone._compat": "_backbone/_compat/__init__.py",
+      "anisolv._backbone._compat.base": "_backbone/_compat/base.py",
+      "anisolv._backbone._compat.gp_utils": "_backbone/_compat/gp_utils.py",
+      "anisolv._backbone._compat.graph_compute": "_backbone/_compat/graph_compute.py",
+      "anisolv._backbone._compat.inference": "_backbone/_compat/inference.py",
+      "anisolv._backbone._compat.registry": "_backbone/_compat/registry.py",
+      "anisolv._backbone._compat.utils": "_backbone/_compat/utils.py",
+      "anisolv._backbone.common": "_backbone/common/__init__.py",
+      "anisolv._backbone.common.rotation": "_backbone/common/rotation.py",
+      "anisolv._backbone.common.so3": "_backbone/common/so3.py",
+      "anisolv._backbone.escn_md": "_backbone/escn_md.py",
+      "anisolv._backbone.escn_md_block": "_backbone/escn_md_block.py",
+      "anisolv._backbone.escn_moe": "_backbone/escn_moe.py",
+      "anisolv._backbone.nn": "_backbone/nn/__init__.py",
+      "anisolv._backbone.nn.activation": "_backbone/nn/activation.py",
+      "anisolv._backbone.nn.embedding": "_backbone/nn/embedding.py",
+      "anisolv._backbone.nn.execution_backends": "_backbone/nn/execution_backends.py",
+      "anisolv._backbone.nn.layer_norm": "_backbone/nn/layer_norm.py",
+      "anisolv._backbone.nn.mole": "_backbone/nn/mole.py",
+      "anisolv._backbone.nn.mole_utils": "_backbone/nn/mole_utils.py",
+      "anisolv._backbone.nn.radial": "_backbone/nn/radial.py",
+      "anisolv._backbone.nn.so2_layers": "_backbone/nn/so2_layers.py",
+      "anisolv._backbone.nn.so3_layers": "_backbone/nn/so3_layers.py",
+      "anisolv._backbone.nn.unified_radial": "_backbone/nn/unified_radial.py",
+      "anisolv._backbone.outputs": "_backbone/outputs.py",
+      "anisolv.data": "data.py",
+      "anisolv.model": "model.py",
+      "anisolv.predict": "predict.py",
+      "anisolv.solvent": "solvent.py"
+    },
+    "loaded_source_modules_sha256": "6fa8fa0e3df399e5e52bb7f4f904f306e7f6dfbdfb6f58d2302365bc55963cbd",
+    "parameter_devices": [
+      "cpu"
+    ],
+    "parameter_dtypes": [
+      "torch.float32"
+    ]
+  },
+  "panel": {
+    "experimental_label_values_embedded": false,
+    "experimental_label_values_used_for_identity": false,
+    "geometry_and_source_row_sha256": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+    "geometry_source": "ASE g2",
+    "record_count": 6,
+    "recorded_forces_are_identity_diagnostics_only": true,
+    "records": [
+      {
+        "atomic_numbers": [
+          6,
+          1,
+          1,
+          1,
+          1
+        ],
+        "charge": 0,
+        "correction_energy_ev": 0.0012573944570827484,
+        "correction_forces_ev_per_angstrom": [
+          [
+            -5.474866782151366e-09,
+            -1.5307758394200732e-09,
+            -2.1868225008603304e-09
+          ],
+          [
+            -0.006129286717623472,
+            -0.0061292946338653564,
+            -0.006129286251962185
+          ],
+          [
+            0.006129290908575058,
+            0.006129297893494368,
+            -0.006129289511591196
+          ],
+          [
+            -0.006129285786300898,
+            0.0061292932368814945,
+            0.0061292885802686214
+          ],
+          [
+            0.006129287648946047,
+            -0.006129294168204069,
+            0.006129289511591196
+          ]
+        ],
+        "correction_forces_sha256": "ec6ea3098997dac2e70b438e132c796cdec07771dbe02fcdb4749d66afe6b923",
+        "formula": "CH4",
+        "g2_name": "CH4",
+        "label": "methane",
+        "multiplicity": 1,
+        "n_atoms": 5,
+        "positions_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.629118,
+            0.629118,
+            0.629118
+          ],
+          [
+            -0.629118,
+            -0.629118,
+            0.629118
+          ],
+          [
+            0.629118,
+            -0.629118,
+            -0.629118
+          ],
+          [
+            -0.629118,
+            0.629118,
+            -0.629118
+          ]
+        ],
+        "solvent": "water"
+      },
+      {
+        "atomic_numbers": [
+          6,
+          6,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "charge": 0,
+        "correction_energy_ev": 0.006132898017880916,
+        "correction_forces_ev_per_angstrom": [
+          [
+            -1.6244967593337378e-09,
+            1.0513149817370504e-07,
+            0.024392414838075638
+          ],
+          [
+            -1.6244967593337378e-09,
+            -8.072499468880778e-08,
+            -0.024392420426011086
+          ],
+          [
+            -6.667953130090609e-05,
+            -0.005268102511763573,
+            -0.006876579951494932
+          ],
+          [
+            0.004595606587827206,
+            0.0025762668810784817,
+            -0.006876572035253048
+          ],
+          [
+            -0.004528925288468599,
+            0.002691764384508133,
+            -0.006876569706946611
+          ],
+          [
+            -6.668156129308045e-05,
+            0.005268089007586241,
+            0.00687657343223691
+          ],
+          [
+            0.004595610778778791,
+            -0.002576273400336504,
+            0.006876574829220772
+          ],
+          [
+            -0.004528929479420185,
+            -0.0026917699724435806,
+            0.006876575760543346
+          ]
+        ],
+        "correction_forces_sha256": "1667c6de63224151f5e49d276943ed26865d0be4e3cd9d1c1833113238b4d981",
+        "formula": "C2H6",
+        "g2_name": "C2H6",
+        "label": "ethane",
+        "multiplicity": 1,
+        "n_atoms": 8,
+        "positions_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.762209
+          ],
+          [
+            0.0,
+            0.0,
+            -0.762209
+          ],
+          [
+            0.0,
+            1.018957,
+            1.157229
+          ],
+          [
+            -0.882443,
+            -0.509479,
+            1.157229
+          ],
+          [
+            0.882443,
+            -0.509479,
+            1.157229
+          ],
+          [
+            0.0,
+            -1.018957,
+            -1.157229
+          ],
+          [
+            -0.882443,
+            0.509479,
+            -1.157229
+          ],
+          [
+            0.882443,
+            0.509479,
+            -1.157229
+          ]
+        ],
+        "solvent": "water"
+      },
+      {
+        "atomic_numbers": [
+          7,
+          1,
+          1,
+          1
+        ],
+        "charge": 0,
+        "correction_energy_ev": -0.1850161516850829,
+        "correction_forces_ev_per_angstrom": [
+          [
+            -7.997522644132005e-09,
+            -1.6095013677386305e-07,
+            0.09974899142980576
+          ],
+          [
+            -2.9990709915495017e-09,
+            -0.04040182754397392,
+            -0.03324968367815018
+          ],
+          [
+            -0.03498886153101921,
+            0.02020098641514778,
+            -0.03324965760111809
+          ],
+          [
+            0.034988872706890106,
+            0.020201003178954124,
+            -0.03324965387582779
+          ]
+        ],
+        "correction_forces_sha256": "85f82f19525c0c1985008387a4a204568de63141e8fc75046933c18de820b464",
+        "formula": "H3N",
+        "g2_name": "NH3",
+        "label": "ammonia",
+        "multiplicity": 1,
+        "n_atoms": 4,
+        "positions_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.116489
+          ],
+          [
+            0.0,
+            0.939731,
+            -0.271808
+          ],
+          [
+            0.813831,
+            -0.469865,
+            -0.271808
+          ],
+          [
+            -0.813831,
+            -0.469865,
+            -0.271808
+          ]
+        ],
+        "solvent": "water"
+      },
+      {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "charge": 0,
+        "correction_energy_ev": -0.41938149890640253,
+        "correction_forces_ev_per_angstrom": [
+          [
+            -2.749148464431528e-09,
+            1.599504528826401e-08,
+            0.21382609009742737
+          ],
+          [
+            -0.0046366616152226925,
+            0.10232945531606674,
+            -0.1069130226969719
+          ],
+          [
+            0.004636664409190416,
+            -0.10232947021722794,
+            -0.10691305994987488
+          ]
+        ],
+        "correction_forces_sha256": "42f30878027ba7e7874a227514dfaf183020472b49a3d52ebf501668b1e2b7a7",
+        "formula": "H2O",
+        "g2_name": "H2O",
+        "label": "water",
+        "multiplicity": 1,
+        "n_atoms": 3,
+        "positions_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.119262
+          ],
+          [
+            0.0,
+            0.763239,
+            -0.477047
+          ],
+          [
+            0.0,
+            -0.763239,
+            -0.477047
+          ]
+        ],
+        "solvent": "water"
+      },
+      {
+        "atomic_numbers": [
+          6,
+          8,
+          1,
+          1,
+          1,
+          1
+        ],
+        "charge": 0,
+        "correction_energy_ev": -0.19890346737133024,
+        "correction_forces_ev_per_angstrom": [
+          [
+            0.02862643264234066,
+            0.2217971831560135,
+            0.0020875856280326843
+          ],
+          [
+            -0.1552329659461975,
+            -0.08979637175798416,
+            -0.002498519141227007
+          ],
+          [
+            -0.000866854505147785,
+            0.009977752342820168,
+            0.00032090459717437625
+          ],
+          [
+            0.1709074079990387,
+            -0.043292053043842316,
+            -5.7316246966365725e-05
+          ],
+          [
+            -0.021894924342632294,
+            -0.048091016709804535,
+            -0.022353259846568108
+          ],
+          [
+            -0.02153909020125866,
+            -0.050595518201589584,
+            0.02250060625374317
+          ]
+        ],
+        "correction_forces_sha256": "658f6d703896896bd2e18672a13b1b110ea35f6c0a5a8901b3822f02025b3312",
+        "formula": "CH4O",
+        "g2_name": "CH3OH",
+        "label": "methanol",
+        "multiplicity": 1,
+        "n_atoms": 6,
+        "positions_angstrom": [
+          [
+            -0.047131,
+            0.664389,
+            0.0
+          ],
+          [
+            -0.047131,
+            -0.758551,
+            0.0
+          ],
+          [
+            -1.092995,
+            0.969785,
+            0.0
+          ],
+          [
+            0.878534,
+            -1.048458,
+            0.0
+          ],
+          [
+            0.437145,
+            1.080376,
+            0.891772
+          ],
+          [
+            0.437145,
+            1.080376,
+            -0.891772
+          ]
+        ],
+        "solvent": "water"
+      },
+      {
+        "atomic_numbers": [
+          6,
+          6,
+          7,
+          1,
+          1,
+          1
+        ],
+        "charge": 0,
+        "correction_energy_ev": -0.19013039228474496,
+        "correction_forces_ev_per_angstrom": [
+          [
+            1.6994736284914325e-08,
+            -3.9487769498691705e-08,
+            0.10095593333244324
+          ],
+          [
+            -1.7744502756045222e-08,
+            -2.249303188150975e-09,
+            -0.7606162428855896
+          ],
+          [
+            8.9972127526039e-09,
+            5.623258303444345e-09,
+            0.484856516122818
+          ],
+          [
+            -6.373025662753662e-09,
+            0.016040341928601265,
+            0.05826791003346443
+          ],
+          [
+            0.013891376554965973,
+            -0.008020153269171715,
+            0.05826791003346443
+          ],
+          [
+            -0.013891379348933697,
+            -0.008020150475203991,
+            0.05826790630817413
+          ]
+        ],
+        "correction_forces_sha256": "b18176faf128e885c685fae3b4c121d6dd6df87f8cb1976c04d2724589d37862",
+        "formula": "C2H3N",
+        "g2_name": "CH3CN",
+        "label": "acetonitrile",
+        "multiplicity": 1,
+        "n_atoms": 6,
+        "positions_angstrom": [
+          [
+            0.0,
+            0.0,
+            -1.18693
+          ],
+          [
+            0.0,
+            0.0,
+            0.273874
+          ],
+          [
+            0.0,
+            0.0,
+            1.452206
+          ],
+          [
+            0.0,
+            1.024986,
+            -1.56237
+          ],
+          [
+            0.887664,
+            -0.512493,
+            -1.56237
+          ],
+          [
+            -0.887664,
+            -0.512493,
+            -1.56237
+          ]
+        ],
+        "solvent": "water"
+      }
+    ],
+    "sample_source": "samples/H2O_single_point.py",
+    "solvent_count": 1,
+    "split_membership": "unknown",
+    "training_overlap": "unknown",
+    "vacuum_gate": {
+      "correction_energy_ev": 0.0,
+      "correction_forces_exactly_zero": true,
+      "correction_forces_shape": [
+        3,
+        3
+      ],
+      "solute": "water"
+    }
+  },
+  "route4_accuracy_gate": {
+    "accuracy_metric_reporting_allowed": false,
+    "evaluated": false,
+    "ideal_max_error_kcal_mol": 1.0,
+    "ideal_passed": false,
+    "reason": "Accuracy evaluation is forbidden: this panel has six records and no predeclared ten-functional-group taxonomy.",
+    "required_max_error_kcal_mol": 1.5,
+    "required_passed": false
+  },
+  "runtime": {
+    "ase_version": "3.27.0",
+    "dependency_origins_within_active_environment": {
+      "ase": "lib/python3.11/site-packages/ase/__init__.py",
+      "numpy": "lib/python3.11/site-packages/numpy/__init__.py",
+      "torch": "lib/python3.11/site-packages/torch/__init__.py"
+    },
+    "deterministic_algorithms": true,
+    "device": "cpu",
+    "dtype": "torch.float32",
+    "inference_settings": "default",
+    "interop_threads": 1,
+    "numpy_version": "2.4.6",
+    "python_version": "3.11.14",
+    "threads": 1,
+    "torch_force_no_weights_only_load": true,
+    "torch_version": "2.12.0+cu130"
+  },
+  "scientific_scope": {
+    "absolute_thermodynamic_free_energy_certified": false,
+    "complete_standard_state_cycle_executed": false,
+    "experimental_labels_described_upstream_as": "FreeSolv / MNSol compilations",
+    "experimental_labels_used_for_accuracy": false,
+    "independent_experimental_holdout": false,
+    "literature_accuracy_certification": false,
+    "maximum_error_gate_passed": null,
+    "multi_solvent_validation": false,
+    "no_fitting_or_calibration_performed": true,
+    "no_training_or_fine_tuning_performed": true,
+    "runtime_exposure": "single_point_scalar_energy_only",
+    "upstream_force_consistency_certified": false,
+    "upstream_forces_exposed_by_maple": false,
+    "warning": "The upstream source describes experimental hydration-free-energy labels, but this audit intentionally does not use their numeric values to calculate, compare, report, or fingerprint accuracy. Exact record IDs, training overlap, split identity, and a complete thermodynamic standard-state cycle are unavailable, so these six rows are runtime evidence only and cannot support an accuracy claim. Force arrays are frozen only as runtime-identity diagnostics and are not admitted for optimization, frequency, or dynamics."
+  },
+  "source_execution_isolation": {
+    "git_archive_from_verified_tree": true,
+    "ignored_checkout_files_excluded_from_execution": true,
+    "isolated_import_parent": true,
+    "isolated_pycache_root": true,
+    "loaded_anisolv_module_origins_verified": true
+  }
+}

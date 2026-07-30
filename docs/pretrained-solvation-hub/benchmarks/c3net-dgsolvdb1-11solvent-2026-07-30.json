@@ -1,0 +1,915 @@
+{
+  "acceptance_eligible": false,
+  "benchmark_status": "runtime-only multi-solvent property-prediction smoke panel; functional-group accuracy coverage was not predeclared, so no accuracy metrics or acceptance claim are permitted",
+  "created_at_utc": "2026-07-30T10:10:29+00:00",
+  "input": {
+    "archive_filename": "Solvation_data-1.0.0.zip",
+    "archive_sha256": "d912a59697c4e8013ff77ac18e42ddff1167c6afe0e18efbb34ef8cb58f10d8b",
+    "source_url": "https://zenodo.org/records/5792296",
+    "standard_state": "1 mol/L gas and 1 mol/L liquid",
+    "temperature_kelvin": 298.0,
+    "workbook_member": "Solvation_data-1.0.0/all_data/dGsolvDB1_all.xlsx"
+  },
+  "records": [
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.445,
+          -4.408,
+          -4.386,
+          -4.397,
+          -4.374
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "acetone",
+        "solvent_id": 25,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.54,
+      "experimental_std_kcal_mol": 0.016,
+      "predicted_kcal_mol": -4.402,
+      "record_id": "1aeedef9dea9beb246b992bbd539d63093e1c010465173de7dd19d23842c68de",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50151
+      },
+      "selection_hash": "09313c3e408613d82f912690173168cf7b7a91ee1deff0d3e3194343e0e41370",
+      "solute_inchi": "InChI=1/C8H16/c1-2-8-6-4-3-5-7-8/h8H,2-7H2,1H3",
+      "solute_smiles": "CCC1CCCCC1",
+      "solvent": "acetone",
+      "solvent_inchi": "InChI=1/C3H6O/c1-3(2)4/h1-2H3",
+      "solvent_smiles": "CC(=O)C",
+      "source_all": "['Ref. AA12', 'Ref. AA4', 'CompSol Binary (entry number=25829)', 'CompSol Binary (entry number=25830)']",
+      "source_count": 4
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.344,
+          -4.368,
+          -4.416,
+          -4.372,
+          -4.367
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "acetone",
+        "solvent_id": 25,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.41,
+      "experimental_std_kcal_mol": 0.02,
+      "predicted_kcal_mol": -4.3734,
+      "record_id": "e8056869e3004a922f7302045bbcafd075c565b6ecb17d8218251e489a78b29d",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50156
+      },
+      "selection_hash": "0b4ec4829f5a2df581a1e98a28da4db37c8de2942ab0f6ad17d3a43526dcab52",
+      "solute_inchi": "InChI=1/C8H18/c1-3-5-7-8-6-4-2/h3-8H2,1-2H3",
+      "solute_smiles": "CCCCCCCC",
+      "solvent": "acetone",
+      "solvent_inchi": "InChI=1/C3H6O/c1-3(2)4/h1-2H3",
+      "solvent_smiles": "CC(=O)C",
+      "source_all": "['Ref. AA12', 'Ref. AA4', 'CompSol Binary (entry number=26004)', 'CompSol Binary (entry number=26005)', 'CompSol Binary (entry number=26010)', 'CompSol Binary (entry number=26015)', 'CompSol Binary (entry number=26016)']",
+      "source_count": 7
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -2.488,
+          -2.452,
+          -2.569,
+          -2.438,
+          -2.45
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "acetonitrile",
+        "solvent_id": 26,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -2.5,
+      "experimental_std_kcal_mol": 0.123,
+      "predicted_kcal_mol": -2.4793999999999996,
+      "record_id": "0186115e417be43efeee203b2494e8f67ccbf96ac5be2ffa3a00f84ed2439777",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50161
+      },
+      "selection_hash": "0174e4765d1355b12182816a347ad682e9da01faa3cc467d93258ca80a0885f4",
+      "solute_inchi": "InChI=1/C5H10/c1-3-5-4-2/h3H,1,4-5H2,2H3",
+      "solute_smiles": "CCCC=C",
+      "solvent": "acetonitrile",
+      "solvent_inchi": "InChI=1/C2H3N/c1-2-3/h1H3",
+      "solvent_smiles": "CC#N",
+      "source_all": "['CompSol Binary (entry number=31293)', 'CompSol Binary (entry number=31294)', 'CompSol Binary (entry number=31295)']",
+      "source_count": 3
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -3.391,
+          -3.439,
+          -3.444,
+          -3.421,
+          -3.411
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "acetonitrile",
+        "solvent_id": 26,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -3.81,
+      "experimental_std_kcal_mol": null,
+      "predicted_kcal_mol": -3.4212000000000002,
+      "record_id": "e7184a8e6b8cff653591760fe8bfa7f93c812d7ef9001076d97a5f9881d96364",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50166
+      },
+      "selection_hash": "018e67936d34dc9c48b3c56958b21fb47be4740478780fdad4e460e17c215678",
+      "solute_inchi": "InChI=1/C2H5I/c1-2-3/h2H2,1H3",
+      "solute_smiles": "CCI",
+      "solvent": "acetonitrile",
+      "solvent_inchi": "InChI=1/C2H3N/c1-2-3/h1H3",
+      "solvent_smiles": "CC#N",
+      "source_all": "['CompSol Binary (entry number=31553)']",
+      "source_count": 1
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -2.391,
+          -2.391,
+          -2.391,
+          -2.391,
+          -2.391
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "benzene",
+        "solvent_id": 29,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": 1.24,
+      "experimental_std_kcal_mol": 0.0,
+      "predicted_kcal_mol": -2.391,
+      "record_id": "2ea17d37e7b565810b9d42b76f53ba673d9892994d257863fdee274293486ad6",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50171
+      },
+      "selection_hash": "010ff0bcd3aa1767d46253ae449734daf5186473baeae4d8243b9db37640f944",
+      "solute_inchi": "InChI=1/N2/c1-2",
+      "solute_smiles": "N#N",
+      "solvent": "benzene",
+      "solvent_inchi": "InChI=1/C6H6/c1-2-4-6-5-3-1/h1-6H",
+      "solvent_smiles": "C1=CC=CC=C1",
+      "source_all": "['CompSol Binary (entry number=33305)', 'CompSol Binary (entry number=33306)', 'CompSol Binary (entry number=33309)']",
+      "source_count": 3
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.435,
+          -4.588,
+          -4.426,
+          -4.416,
+          -4.422
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "benzene",
+        "solvent_id": 29,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.68,
+      "experimental_std_kcal_mol": 0.006,
+      "predicted_kcal_mol": -4.457400000000001,
+      "record_id": "7eb76897f6c61722fc9a5abe84f268e0ef4570837e36680cbd25df6eee5d6560",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50176
+      },
+      "selection_hash": "01b1e5ceea7dc41c3944fe056122b45a2554ce992e45d9a5b75b4b7e95a765be",
+      "solute_inchi": "InChI=1/C2H4Cl2/c3-1-2-4/h1-2H2",
+      "solute_smiles": "C(CCl)Cl",
+      "solvent": "benzene",
+      "solvent_inchi": "InChI=1/C6H6/c1-2-4-6-5-3-1/h1-6H",
+      "solvent_smiles": "C1=CC=CC=C1",
+      "source_all": "['CompSol Binary (entry number=32181)', 'CompSol Binary (entry number=32182)']",
+      "source_count": 2
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -2.796,
+          -2.814,
+          -2.776,
+          -2.785,
+          -2.77
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "carbon_tetrachloride",
+        "solvent_id": 36,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -2.89,
+      "experimental_std_kcal_mol": null,
+      "predicted_kcal_mol": -2.7882,
+      "record_id": "dd575026af5f9e13e1b1bda480a7e88048ecf703b9a1fb0f24661e93c257b4d7",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50181
+      },
+      "selection_hash": "018eb4624dbf85b6398a2119db3ab0d986583464a114b921c6a5a686ff8349e7",
+      "solute_inchi": "InChI=1/C3H9N/c1-4(2)3/h1-3H3",
+      "solute_smiles": "CN(C)C",
+      "solvent": "carbon_tetrachloride",
+      "solvent_inchi": "InChI=1/CCl4/c2-1(3,4)5",
+      "solvent_smiles": "ClC(Cl)(Cl)Cl",
+      "source_all": "['Ref. AA7']",
+      "source_count": 1
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.391,
+          -4.38,
+          -4.327,
+          -4.368,
+          -4.4
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "carbon_tetrachloride",
+        "solvent_id": 36,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.29,
+      "experimental_std_kcal_mol": 0.029,
+      "predicted_kcal_mol": -4.3732,
+      "record_id": "28d4a1fa35cad7c6a21ab8b3ca89ed1e170d6022bccc1ffc28fdcbc3a3d0e927",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50186
+      },
+      "selection_hash": "06fac2a809ac027f7713717f66613ee9b84ce0694f7865cb37563de60b4bb051",
+      "solute_inchi": "InChI=1/C7H16/c1-6(2)5-7(3)4/h6-7H,5H2,1-4H3",
+      "solute_smiles": "CC(C)CC(C)C",
+      "solvent": "carbon_tetrachloride",
+      "solvent_inchi": "InChI=1/CCl4/c2-1(3,4)5",
+      "solvent_smiles": "ClC(Cl)(Cl)Cl",
+      "source_all": "['Ref. AA7', 'CompSol Binary (entry number=57563)', 'CompSol Binary (entry number=57564)']",
+      "source_count": 3
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.13,
+          -4.186,
+          -4.178,
+          -4.169,
+          -4.193
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "chloroform",
+        "solvent_id": 38,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -3.96,
+      "experimental_std_kcal_mol": 0.04,
+      "predicted_kcal_mol": -4.171200000000001,
+      "record_id": "3df03bb098c75350ac7a2f10d9d07dbfb775fe547a855ef484ee00ddb0617e9e",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50191
+      },
+      "selection_hash": "064bc41ecfa1431b5dc5da6e73971b1e19978d0b03882b65308a16cec9988e69",
+      "solute_inchi": "InChI=1/C2H6O/c1-2-3/h3H,2H2,1H3",
+      "solute_smiles": "CCO",
+      "solvent": "chloroform",
+      "solvent_inchi": "InChI=1/CHCl3/c2-1(3)4/h1H",
+      "solvent_smiles": "C(Cl)(Cl)Cl",
+      "source_all": "['Ref. AA7', 'CompSol Binary (entry number=61488)', 'CompSol Binary (entry number=61490)']",
+      "source_count": 3
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.545,
+          -4.557,
+          -4.477,
+          -4.527,
+          -4.488
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "chloroform",
+        "solvent_id": 38,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.08,
+      "experimental_std_kcal_mol": null,
+      "predicted_kcal_mol": -4.518800000000001,
+      "record_id": "03a7c9bbeb5543e89bf672fea3ff189be050b23f6300c2f1bb3fb595419d4471",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50196
+      },
+      "selection_hash": "0aa11c70ea681d5a079f103b0840f72339135fa5e65dd8a76ac84cc28b489076",
+      "solute_inchi": "InChI=1/C2H6S/c1-3-2/h1-2H3",
+      "solute_smiles": "CSC",
+      "solvent": "chloroform",
+      "solvent_inchi": "InChI=1/CHCl3/c2-1(3)4/h1H",
+      "solvent_smiles": "C(Cl)(Cl)Cl",
+      "source_all": "['CompSol Binary (entry number=61609)']",
+      "source_count": 1
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -3.024,
+          -3.039,
+          -3.056,
+          -3.048,
+          -3.011
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "dichloromethane",
+        "solvent_id": 43,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -2.83,
+      "experimental_std_kcal_mol": 0.01,
+      "predicted_kcal_mol": -3.0356,
+      "record_id": "c58505a8d54a45504938b9ec7dd40adc9c6fb9f2427d0b28b81c2e5616201852",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50201
+      },
+      "selection_hash": "00ec7b1a5d9d927b7591eda5dbf2c57c5d6fd8edc9bf4130e59f1b2da313b3dc",
+      "solute_inchi": "InChI=1/C4H6/c1-3-4-2/h3-4H,1-2H2",
+      "solute_smiles": "C=CC=C",
+      "solvent": "dichloromethane",
+      "solvent_inchi": "InChI=1/CH2Cl2/c2-1-3/h1H2",
+      "solvent_smiles": "C(Cl)Cl",
+      "source_all": "['CompSol Binary (entry number=37566)', 'CompSol Binary (entry number=37567)', 'CompSol Binary (entry number=37568)']",
+      "source_count": 3
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.689,
+          -4.727,
+          -4.613,
+          -4.701,
+          -4.736
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "dichloromethane",
+        "solvent_id": 43,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.74,
+      "experimental_std_kcal_mol": 0.007,
+      "predicted_kcal_mol": -4.6932,
+      "record_id": "f32e45a89951fc8eaf1d1f280dfb923dcf28ccd1743cca8eb235207127a5cfdb",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50206
+      },
+      "selection_hash": "0ba7ac7147ba6917037233bc369f52e59abf75b31a29a75d353db169e1c90f12",
+      "solute_inchi": "InChI=1/C8H18/c1-6(2)8(5)7(3)4/h6-8H,1-5H3",
+      "solute_smiles": "CC(C)C(C)C(C)C",
+      "solvent": "dichloromethane",
+      "solvent_inchi": "InChI=1/CH2Cl2/c2-1-3/h1H2",
+      "solvent_smiles": "ClCCl",
+      "source_all": "['Ref. AA7', 'CompSol Binary (entry number=37582)', 'CompSol Binary (entry number=37583)']",
+      "source_count": 3
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.601,
+          -4.806,
+          -4.721,
+          -4.551,
+          -4.557
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "dimethylsulfoxide",
+        "solvent_id": 48,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.42,
+      "experimental_std_kcal_mol": 0.066,
+      "predicted_kcal_mol": -4.647200000000001,
+      "record_id": "bc417a527690c0a1f06eeff06654b27ab7e7565aca9a2cbb0c476603b69ee3c3",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50211
+      },
+      "selection_hash": "055a8c895d3273742512166cf778ea9727b4550e4e421f50ffb06a026e48f4b5",
+      "solute_inchi": "InChI=1/C8H14/c1-3-5-7-8-6-4-2/h1H,4-8H2,2H3",
+      "solute_smiles": "CCCCCCC#C",
+      "solvent": "dimethylsulfoxide",
+      "solvent_inchi": "InChI=1/C2H6OS/c1-4(2)3/h1-2H3",
+      "solvent_smiles": "CS(=O)C",
+      "source_all": "['CompSol Binary (entry number=56823)', 'CompSol Binary (entry number=56824)']",
+      "source_count": 2
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -5.2,
+          -5.214,
+          -5.209,
+          -5.177,
+          -5.25
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "dimethylsulfoxide",
+        "solvent_id": 48,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -5.24,
+      "experimental_std_kcal_mol": 0.091,
+      "predicted_kcal_mol": -5.21,
+      "record_id": "d8292343442c6e7837433023ba564c926ff2f4ef2e311e5f2e910cab79fc5415",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50216
+      },
+      "selection_hash": "0eb2445df10bc8c07f4fb9a31f79435003831858b398edb608b36ac3b3c11627",
+      "solute_inchi": "InChI=1/C2H6O/c1-2-3/h3H,2H2,1H3",
+      "solute_smiles": "CCO",
+      "solvent": "dimethylsulfoxide",
+      "solvent_inchi": "InChI=1/C2H6OS/c1-4(2)3/h1-2H3",
+      "solvent_smiles": "CS(=O)C",
+      "source_all": "['CompSol Binary (entry number=57031)', 'CompSol Binary (entry number=57032)', 'CompSol Binary (entry number=57036)']",
+      "source_count": 3
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.113,
+          -4.134,
+          -4.139,
+          -4.149,
+          -4.1
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "ethanol",
+        "solvent_id": 51,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.06,
+      "experimental_std_kcal_mol": 0.001,
+      "predicted_kcal_mol": -4.127,
+      "record_id": "5ce59741981fcab767b2b2211c7c77f4b2689b1e7cb7d37d40c8cfb095d2aa3c",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50221
+      },
+      "selection_hash": "0132bcbcfaf856f5b5d547f24e09f20a9592c0156732b83901331650e58724c4",
+      "solute_inchi": "InChI=1/C4H8O2/c1-3-6-4(2)5/h3H2,1-2H3",
+      "solute_smiles": "CCOC(=O)C",
+      "solvent": "ethanol",
+      "solvent_inchi": "InChI=1/C2H6O/c1-2-3/h3H,2H2,1H3",
+      "solvent_smiles": "CCO",
+      "source_all": "['Ref. AA12', 'Ref. AA2', 'CompSol Binary (entry number=39427)']",
+      "source_count": 3
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -3.267,
+          -3.291,
+          -3.326,
+          -3.223,
+          -3.334
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "ethanol",
+        "solvent_id": 51,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -3.03,
+      "experimental_std_kcal_mol": 0.0,
+      "predicted_kcal_mol": -3.2882,
+      "record_id": "0b8d2299f7d744a54e68e50393bd4aa789dd00a835f4934756b788c51f5ffb0f",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50226
+      },
+      "selection_hash": "021818f6e873bf489752e09d0dbae07923d82b11b194eb9d8568afd192ad057c",
+      "solute_inchi": "InChI=1/C2H5Br/c1-2-3/h2H2,1H3",
+      "solute_smiles": "CCBr",
+      "solvent": "ethanol",
+      "solvent_inchi": "InChI=1/C2H6O/c1-2-3/h3H,2H2,1H3",
+      "solvent_smiles": "CCO",
+      "source_all": "['Ref. AA12', 'Ref. AA2']",
+      "source_count": 2
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -2.799,
+          -2.916,
+          -2.801,
+          -2.905,
+          -2.904
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "methanol",
+        "solvent_id": 63,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -2.68,
+      "experimental_std_kcal_mol": 0.017,
+      "predicted_kcal_mol": -2.8649999999999998,
+      "record_id": "30df7060b5dfb0c6df2f836150363db8cc1b5f1e8e6f47506dfd342d5ee5537c",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50231
+      },
+      "selection_hash": "014ad07b620ed7dc86cc73d4ea9e008a203433f7076326a95de70f708343cf9e",
+      "solute_inchi": "InChI=1/C6H14/c1-4-5-6(2)3/h6H,4-5H2,1-3H3",
+      "solute_smiles": "CCCC(C)C",
+      "solvent": "methanol",
+      "solvent_inchi": "InChI=1/CH4O/c1-2/h2H,1H3",
+      "solvent_smiles": "CO",
+      "source_all": "['Ref. AA12', 'Ref. AA2', 'CompSol Binary (entry number=46879)', 'CompSol Binary (entry number=46880)']",
+      "source_count": 4
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -12.932,
+          -12.841,
+          -12.712,
+          -12.845,
+          -12.951
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "methanol",
+        "solvent_id": 63,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -12.72,
+      "experimental_std_kcal_mol": 0.0,
+      "predicted_kcal_mol": -12.856200000000001,
+      "record_id": "2cc0a052390cc3a7f0f834f2d5ba59c4d64d9f5429ba52fd3b31795677b0bb39",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50236
+      },
+      "selection_hash": "05a90b735677ed1c06ed564f0198132f4223315f693dcf8e313f926fa4f85abd",
+      "solute_inchi": "InChI=1/C7H5NO4/c9-7(10)5-2-1-3-6(4-5)8(11)12/h1-4H,(H,9,10)/f/h9H",
+      "solute_smiles": "C1=CC(=CC(=C1)[N+](=O)[O-])C(=O)O",
+      "solvent": "methanol",
+      "solvent_inchi": "InChI=1/CH4O/c1-2/h2H,1H3",
+      "solvent_smiles": "CO",
+      "source_all": "['Ref. AA12', 'Ref. AA2']",
+      "source_count": 2
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -9.271,
+          -9.387,
+          -9.336,
+          -9.399,
+          -9.329
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "tetrahydrofuran",
+        "solvent_id": 96,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -9.3,
+      "experimental_std_kcal_mol": null,
+      "predicted_kcal_mol": -9.3444,
+      "record_id": "b54e99952e0611620c85b028bf299ecc5e48437dc03cd6dcee1e79a2faacfce8",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50241
+      },
+      "selection_hash": "01188ad29189716e1261167f1ff676faf80be5523cf13007611f85c4266462af",
+      "solute_inchi": "InChI=1/C8H8O2/c1-6-4-2-3-5-7(6)8(9)10/h2-5H,1H3,(H,9,10)/f/h9H",
+      "solute_smiles": "CC1=CC=CC=C1C(=O)O",
+      "solvent": "tetrahydrofuran",
+      "solvent_inchi": "InChI=1/C4H8O/c1-2-4-5-3-1/h1-4H2",
+      "solvent_smiles": "O1CCCC1",
+      "source_all": "['Ref. AA33']",
+      "source_count": 1
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -4.166,
+          -4.182,
+          -4.152,
+          -4.155,
+          -4.162
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "tetrahydrofuran",
+        "solvent_id": 96,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.35,
+      "experimental_std_kcal_mol": null,
+      "predicted_kcal_mol": -4.1634,
+      "record_id": "ca41c23c53d9c9f42ed8b04b5a456f14090185610f1443f45adc8fc8dd55189e",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50246
+      },
+      "selection_hash": "014c9daedc4a1c4f0ecb6da4d5d94d0c54eb54973e958506e68f40b022cec673",
+      "solute_inchi": "InChI=1/C2H3Cl3/c1-2(3,4)5/h1H3",
+      "solute_smiles": "CC(Cl)(Cl)Cl",
+      "solvent": "tetrahydrofuran",
+      "solvent_inchi": "InChI=1/C4H8O/c1-2-4-5-3-1/h1-4H2",
+      "solvent_smiles": "O1CCCC1",
+      "source_all": "['Ref. AA33']",
+      "source_count": 1
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -5.36,
+          -5.364,
+          -5.323,
+          -5.43,
+          -5.356
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "toluene",
+        "solvent_id": 99,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -5.29,
+      "experimental_std_kcal_mol": 0.048,
+      "predicted_kcal_mol": -5.3666,
+      "record_id": "d5019387f20202428b6a27896f319b5d2f9e338118542e0172763f1e8b3f4326",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50251
+      },
+      "selection_hash": "03c2d9f641ca8d72da856682e09be37b7cf74f89c3436ebc45ef160d5b76b19c",
+      "solute_inchi": "InChI=1/C8H18/c1-3-5-7-8-6-4-2/h3-8H2,1-2H3",
+      "solute_smiles": "CCCCCCCC",
+      "solvent": "toluene",
+      "solvent_inchi": "InChI=1/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
+      "solvent_smiles": "CC1=CC=CC=C1",
+      "source_all": "['CompSol Binary (entry number=49038)', 'CompSol Binary (entry number=49052)', 'CompSol Binary (entry number=49053)', 'CompSol Binary (entry number=49054)']",
+      "source_count": 4
+    },
+    {
+      "c3net": {
+        "checkpoint_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+        "component_predictions_kcal_mol": [
+          -5.224,
+          -5.262,
+          -5.259,
+          -5.233,
+          -5.234
+        ],
+        "embedding_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+        "numpy_int_compatibility_shim": true,
+        "solvent": "toluene",
+        "solvent_id": 99,
+        "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+        "unit": "kcal/mol"
+      },
+      "experimental_kcal_mol": -4.85,
+      "experimental_std_kcal_mol": 0.024,
+      "predicted_kcal_mol": -5.242400000000001,
+      "record_id": "56f8b02f45ca9103a2daa0d012b095fba068113b7dc05ac845fd7a55c2ca1f0a",
+      "sdf_generation": {
+        "conformer_count": 5,
+        "max_uff_iterations": 500,
+        "method": "five RDKit ETKDGv3 conformers, each UFF minimized",
+        "seed_base": 50256
+      },
+      "selection_hash": "08721c98628a0390b1c891119d19f26fbaee9d14ed07b15f8dbd84bf97095fe3",
+      "solute_inchi": "InChI=1/C8H18/c1-6(2)8(5)7(3)4/h6-8H,1-5H3",
+      "solute_smiles": "CC(C)C(C)C(C)C",
+      "solvent": "toluene",
+      "solvent_inchi": "InChI=1/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
+      "solvent_smiles": "CC1=CC=CC=C1",
+      "source_all": "['CompSol Binary (entry number=48307)', 'CompSol Binary (entry number=48308)']",
+      "source_count": 2
+    }
+  ],
+  "schema_version": 1,
+  "selection": {
+    "conformers_per_solute": 5,
+    "records_per_solvent": 2,
+    "rule": "two lowest SHA256(inchi_solvent + '|' + inchi_solute) records per listed solvent after fixed neutral/domain filters; model outputs never enter selection",
+    "solvents": {
+      "acetone": "CC(=O)C",
+      "acetonitrile": "CC#N",
+      "benzene": "c1ccccc1",
+      "carbon_tetrachloride": "ClC(Cl)(Cl)Cl",
+      "chloroform": "ClC(Cl)Cl",
+      "dichloromethane": "ClCCl",
+      "dimethylsulfoxide": "CS(C)=O",
+      "ethanol": "CCO",
+      "methanol": "CO",
+      "tetrahydrofuran": "C1CCOC1",
+      "toluene": "Cc1ccccc1"
+    }
+  },
+  "software": {
+    "rdkit_version": "2024.09.2"
+  },
+  "summary": {
+    "accuracy_evaluation_performed": false,
+    "accuracy_metric_reporting_allowed": false,
+    "coverage": 1.0,
+    "evaluated_count": 22,
+    "failure_count": 0,
+    "failure_rate": 0.0,
+    "functional_group_coverage": {
+      "functional_group_taxonomy": null,
+      "minimum_distinct_functional_groups": 10,
+      "minimum_record_count": 10,
+      "observed_count": 0,
+      "observed_functional_groups": [],
+      "observed_record_count": 22,
+      "passes": false,
+      "record_assignments_complete": false,
+      "record_count_passes": true
+    },
+    "identity_fingerprint": "f87a30d2cc5d902f854185bfaeb8b649e83016fe661822b78610bc2a722d5a99",
+    "metrics": null,
+    "per_record_errors": null,
+    "record_count": 22,
+    "scope": "runtime_or_interface_smoke_only",
+    "target_quantity": "property_prediction"
+  },
+  "validation_panel": {
+    "identity": {
+      "cavity_model": "not applicable to a scalar property predictor",
+      "conformer_policy": "five RDKit ETKDGv3 conformers per solute; seed 0xc3e7 plus five times record index plus conformer index; each UFF-minimized; C3Net arithmetic mean",
+      "dataset": "dGsolvDB1",
+      "dataset_version": "Solvation_data-1.0.0 / Zenodo 5792296",
+      "estimator": "C3Net paper arithmetic mean of five direct scalar predictions",
+      "experimental_provenance": "dGsolvDB1 experimental 298 K, 1M/1M aggregates",
+      "functional_group_taxonomy": null,
+      "geometry_protocol": "RDKit ETKDGv3 + UFF, generated at execution time",
+      "potential": "C3Net checkpoint-1 @ 191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+      "protonation_policy": "neutral structures as supplied by the pinned dGsolvDB1 workbook",
+      "record_functional_groups": [],
+      "record_ids": [
+        "1aeedef9dea9beb246b992bbd539d63093e1c010465173de7dd19d23842c68de",
+        "e8056869e3004a922f7302045bbcafd075c565b6ecb17d8218251e489a78b29d",
+        "0186115e417be43efeee203b2494e8f67ccbf96ac5be2ffa3a00f84ed2439777",
+        "e7184a8e6b8cff653591760fe8bfa7f93c812d7ef9001076d97a5f9881d96364",
+        "2ea17d37e7b565810b9d42b76f53ba673d9892994d257863fdee274293486ad6",
+        "7eb76897f6c61722fc9a5abe84f268e0ef4570837e36680cbd25df6eee5d6560",
+        "dd575026af5f9e13e1b1bda480a7e88048ecf703b9a1fb0f24661e93c257b4d7",
+        "28d4a1fa35cad7c6a21ab8b3ca89ed1e170d6022bccc1ffc28fdcbc3a3d0e927",
+        "3df03bb098c75350ac7a2f10d9d07dbfb775fe547a855ef484ee00ddb0617e9e",
+        "03a7c9bbeb5543e89bf672fea3ff189be050b23f6300c2f1bb3fb595419d4471",
+        "c58505a8d54a45504938b9ec7dd40adc9c6fb9f2427d0b28b81c2e5616201852",
+        "f32e45a89951fc8eaf1d1f280dfb923dcf28ccd1743cca8eb235207127a5cfdb",
+        "bc417a527690c0a1f06eeff06654b27ab7e7565aca9a2cbb0c476603b69ee3c3",
+        "d8292343442c6e7837433023ba564c926ff2f4ef2e311e5f2e910cab79fc5415",
+        "5ce59741981fcab767b2b2211c7c77f4b2689b1e7cb7d37d40c8cfb095d2aa3c",
+        "0b8d2299f7d744a54e68e50393bd4aa789dd00a835f4934756b788c51f5ffb0f",
+        "30df7060b5dfb0c6df2f836150363db8cc1b5f1e8e6f47506dfd342d5ee5537c",
+        "2cc0a052390cc3a7f0f834f2d5ba59c4d64d9f5429ba52fd3b31795677b0bb39",
+        "b54e99952e0611620c85b028bf299ecc5e48437dc03cd6dcee1e79a2faacfce8",
+        "ca41c23c53d9c9f42ed8b04b5a456f14090185610f1443f45adc8fc8dd55189e",
+        "d5019387f20202428b6a27896f319b5d2f9e338118542e0172763f1e8b3f4326",
+        "56f8b02f45ca9103a2daa0d012b095fba068113b7dc05ac845fd7a55c2ca1f0a"
+      ],
+      "record_solvent_compositions": [],
+      "sampling_protocol": "not applicable; five deterministic supplied conformers",
+      "solvation_backend": "C3Net direct scalar property head",
+      "solvent_protocol": "exact C3Net solvent identifier selected from pinned canonical SMILES",
+      "standard_state": "1 mol/L gas and 1 mol/L liquid",
+      "target_quantity": "property_prediction",
+      "tautomer_policy": "as represented by the pinned dGsolvDB1 solute SMILES",
+      "temperature_kelvin": 298.0
+    },
+    "identity_fingerprint": "f87a30d2cc5d902f854185bfaeb8b649e83016fe661822b78610bc2a722d5a99",
+    "leakage_audit": {
+      "evidence_source": "C3Net arXiv:2309.15334 reports a random pair split but does not publish complete record-level training accounting for checkpoint-1.",
+      "overlapping_record_ids": [],
+      "rationale": "Training evidence does not completely account for every benchmark record; absence of a documented overlap is not holdout proof.",
+      "status": "overlap_unknown"
+    },
+    "model_id": "c3net-checkpoint-1",
+    "selection_allowed": true,
+    "stage": "development",
+    "training_evidence": {
+      "evidence_source": "C3Net arXiv:2309.15334 reports a random pair split but does not publish complete record-level training accounting for checkpoint-1.",
+      "record_accounting_complete": false
+    }
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "acceptance_eligible": false,
+  "audited_on": "2026-07-30",
+  "candidate_external_confirmation": true,
+  "coverage_gate": {
+    "minimum_required_pure_solvents": 10,
+    "observed_pure_solvents": 7,
+    "passes": false,
+    "scope": "pure-solvent DeltaGsolv references"
+  },
+  "dataset": "FlexiSol",
+  "gpu_acceleration": {
+    "gpu_execution_performed": false,
+    "no_precision_loss_claim": false,
+    "relevant_to_static_audit": false
+  },
+  "identity": {
+    "commit_date": "2026-04-02T07:31:28+02:00",
+    "files": {
+      "LICENSE.txt": {
+        "sha256": "d682927491968a96bff8adc618af6adb3d92eae54b7a9c3ac80bb685bf684c0f",
+        "size_bytes": 1093,
+        "verified": true
+      },
+      "README.md": {
+        "sha256": "64f64dfbcae4c767e5b66247ae7275453f01d1c84b701678d7896f2518181bfb",
+        "size_bytes": 9474,
+        "verified": true
+      },
+      "data/references/dgsolv-references.csv": {
+        "sha256": "73a6f25ea9a9fae31bcb7e7c0fb04e452b0df2d24308e25419b98f01daa6ed5f",
+        "size_bytes": 85925,
+        "verified": true
+      },
+      "data/references/logkab-references.csv": {
+        "sha256": "52c0e0a70b5c57a8d46838d8ab5316a3f754783f6a0a6b1d585d923fc19de626",
+        "size_bytes": 63281,
+        "verified": true
+      },
+      "flexisol_cli/registry.json": {
+        "sha256": "dd71210cf545612bc4eab8141bdb2ddd146ff1171ee041b76f67ae33258e36ea",
+        "size_bytes": 1194,
+        "verified": true
+      }
+    },
+    "license": "MIT",
+    "repository": "https://github.com/grimme-lab/flexisol",
+    "revision": "7b44798f26c888ef541faa6143a813136921483f",
+    "source_isolation": "exact_pinned_revision_Git_blobs",
+    "tree": "8cf4879bc1435ca1061acfffd0daf10784445984"
+  },
+  "independence_gate": {
+    "never_used_independent_final_panel_demonstrated": false,
+    "passes": false,
+    "published_benchmark_already_registers_route4_models": [
+      "cigin",
+      "directml"
+    ],
+    "strict_model_specific_intersection_ledger_present": false,
+    "training_overlap_status": "unknown_for_each_candidate_model"
+  },
+  "panels": {
+    "dgsolv": {
+      "ordered_identity_sha256": "ef90f9f575dcc805dbc1a7b2f4e98ffa3b2197fee89ae81a84b13ef0f3ff6d19",
+      "record_count": 530,
+      "records_embedded": false,
+      "solvent_or_pair_counts": {
+        "dmf": 1,
+        "ethanol": 5,
+        "hexadecane": 24,
+        "hexane": 1,
+        "methanol": 5,
+        "octanol": 197,
+        "water": 297
+      },
+      "source_doi_count": 11,
+      "source_dois": [
+        "10.1016/j.cej.2021.129307",
+        "10.1016/j.fluid.2010.07.007",
+        "10.1016/j.fluid.2010.09.043",
+        "10.1021/acs.est.2c06170",
+        "10.1021/acs.est.3c02545",
+        "10.1021/ci100299m",
+        "10.1021/es8005783",
+        "10.1063/5.0059652",
+        "10.1093/nar/gkae1059",
+        "10.3390/liquids4010011",
+        "10.5194/acp-23-10901-2023"
+      ],
+      "unique_flexisol_name_count": 476,
+      "unique_record_identity_count": 530,
+      "unique_smiles_count": 460,
+      "unique_solvent_or_pair_count": 7
+    },
+    "logkab": {
+      "ordered_identity_sha256": "ae9c079204fff6ab5c6b20cd1e3c684e7cea6682def34ae3d86e86f98a0d489c",
+      "record_count": 294,
+      "records_embedded": false,
+      "solvent_or_pair_counts": {
+        "benzene,water": 1,
+        "chloroform,water": 8,
+        "ethanol,water": 10,
+        "octanol,water": 249,
+        "toluene,water": 24,
+        "water,methanol": 2
+      },
+      "source_doi_count": 9,
+      "source_dois": [
+        "10.1016/j.chemosphere.2016.07.028",
+        "10.1016/j.chroma.2023.464213",
+        "10.1016/j.fluid.2010.07.007",
+        "10.1021/jp980017s",
+        "10.1039/D3CP01428B",
+        "10.1093/nar/gkab1062",
+        "10.1093/nar/gkj067",
+        "10.1186/s12302-025-01072-2",
+        "10.3390/liquids4010011"
+      ],
+      "unique_flexisol_name_count": 285,
+      "unique_record_identity_count": 294,
+      "unique_smiles_count": 283,
+      "unique_solvent_or_pair_count": 6
+    }
+  },
+  "paper": {
+    "doi": "10.1039/D5SC06406F",
+    "publication_year": 2025,
+    "title": "A diverse and chemically relevant solvation model benchmark set with flexible molecules and conformer ensembles"
+  },
+  "registry": {
+    "model_specific_independence_required": true,
+    "registered_electronic_methods": [
+      "el_gfn2",
+      "el_gxtb",
+      "el_r2scan-3c",
+      "el_wb97m-v_def2-tzvppd"
+    ],
+    "registered_solvation_methods": [
+      "alpb",
+      "cigin",
+      "cosmors",
+      "cpcm",
+      "cpcm-x",
+      "dcosmors",
+      "ddcosmo",
+      "directml",
+      "ese-ee-dnn",
+      "ese-gb-dnn",
+      "ese-pm7",
+      "opencosmors",
+      "smd",
+      "solv-pc",
+      "solv-spts",
+      "solv-sptv",
+      "uese"
+    ],
+    "route4_models_already_registered": [
+      "cigin",
+      "directml"
+    ]
+  },
+  "release_boundary": {
+    "corrected_hexadecane_references_pinned": true,
+    "readme_correction_notice_verified": true,
+    "reason_for_pinning_head_instead_of_tag": "the pinned HEAD contains the official post-release hexadecane reference correction"
+  },
+  "route4_decision": {
+    "allowed_future_use": "external confirmation only after exact candidate-specific training/test overlap accounting",
+    "forbidden_uses": [
+      "training",
+      "fine_tuning",
+      "calibration",
+      "model_selection",
+      "claiming_a_never_used_final_holdout",
+      "claiming_the_ten_solvent_coverage_gate_passes"
+    ],
+    "status": "metadata_only_not_consumed_for_scoring"
+  },
+  "schema_version": 1,
+  "strict_final_holdout": false,
+  "validation_scope": {
+    "experimental_reference_values_verified_as_finite": true,
+    "maximum_error_computed": false,
+    "model_predictions_read": false,
+    "model_selection_performed": false,
+    "models_scored": [],
+    "records_redistributed": false,
+    "static_release_identity_only": true
+  }
+}

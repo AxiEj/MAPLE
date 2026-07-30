@@ -1,0 +1,157 @@
+{
+  "acceptance_eligible": false,
+  "audited_on": "2026-07-30",
+  "evaluation_type": "static_release_identity_and_protocol_source_audit_no_inference",
+  "gpu_acceleration": {
+    "admission_status": "blocked_until_no_loss_reference_gpu_parity",
+    "fennol_generic_precision_controls": {
+      "ase_float64_option_present": true,
+      "md_default_matmul_precision": "highest",
+      "md_default_scalar_dtype": "float32",
+      "md_double_precision_option_present": true,
+      "reduced_matmul_warning_present": true
+    },
+    "no_precision_loss_demonstrated": false,
+    "official_gpu_interface_source_present": true,
+    "parity_executed": {
+      "coverage": false,
+      "energy": false,
+      "final_free_energy_and_uncertainty": false,
+      "forces": false,
+      "lambda_derivatives": false,
+      "maximum_error": false,
+      "trajectory_or_sampled_observables": false,
+      "virial": false
+    },
+    "required_before_enablement": [
+      "same checkpoint, equations, cutoffs, lambda schedule, estimator, and convergence criteria on reference and GPU paths",
+      "no float16, bfloat16, TF32, fast-math, reduced-matmul, or relaxed-convergence substitution",
+      "paired energy, force, virial, alch_elambda, and alch_vlambda numerical-equivalence audit on frozen configurations",
+      "paired final free-energy and uncertainty audit with no degradation in maximum error or literature-panel metrics"
+    ],
+    "tinker_gpu_bridge_static_contract": {
+      "coordinate_dtype": "float32",
+      "lambda_dtype": "float32",
+      "matmul_precision": "highest",
+      "runtime_precision_switch_exposed": false
+    }
+  },
+  "identity": {
+    "model_distribution_revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3",
+    "paper_doi": "10.26434/chemrxiv-2025-f1hgn-v4",
+    "weights": {
+      "medium": {
+        "local_file_verified": true,
+        "sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+        "size_bytes": 38124300,
+        "upstream_path": "FENNIX-BIO1/fennix-bio1M.fnx"
+      },
+      "small": {
+        "local_file_verified": true,
+        "sha256": "82c570c57e95cf164b1a1b0ac2122133cb435c89b07d495246773091541c2f07",
+        "size_bytes": 29772732,
+        "upstream_path": "FENNIX-BIO1/fennix-bio1S.fnx"
+      }
+    }
+  },
+  "model_id": "fennix-bio1",
+  "negative_admission_reasons": [
+    "no unchanged installed environment was executed by this static audit",
+    "the exact paper system inputs, lambda schedule, sampling controls, convergence evidence, standard-state treatment, and row ledger are not verified as one public bundle",
+    "GPU availability is not evidence of no-loss numerical or scientific parity",
+    "published solvation evidence is water-only and supplies neither multi-solvent validation nor a maximum-error ledger",
+    "training overlap and a never-used independent experimental panel remain unresolved"
+  ],
+  "paper_protocol_packaging": {
+    "exact_fennix_bio1_freesolv_bundle_verified": false,
+    "named_artifact_path_matches_at_exact_tinker_revision": [],
+    "path_search_scope": "exact Tinker-HP Git tree path names only; no claim about unsearched external, author-held, or generically named artifacts",
+    "shipped_gpu_example_model": "ani2x.fnx"
+  },
+  "runtime_sources": {
+    "fennol": {
+      "license": "LGPL-3.0",
+      "revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+      "verified_blobs": {
+        "ase_calculator": {
+          "path": "src/fennol/ase.py",
+          "sha256": "6d6a9dbf40fce96b8589a3702de7de190f8301d0827f629fbfad2c1e4a2f97d7",
+          "size_bytes": 8386,
+          "verified": true
+        },
+        "md_runtime": {
+          "path": "src/fennol/md/dynamic.py",
+          "sha256": "666dd2ebaf4f459d66961fc575f26c041ec2179e27becc2cafe4392828a0342c",
+          "size_bytes": 25690,
+          "verified": true
+        },
+        "package_metadata": {
+          "path": "pyproject.toml",
+          "sha256": "adce74494f77d993bd38402bb0ae2e2c1957e1d8f720438815fa61cadff9d569",
+          "size_bytes": 1300,
+          "verified": true
+        }
+      }
+    },
+    "tinker_hp": {
+      "license": "Tinker academic source license",
+      "revision": "384bb7d451f85f2ea825dabd888e64ad4448674b",
+      "verified_blobs": {
+        "deep_hp_documentation": {
+          "path": "v1.3/GPU/Deep-HP.md",
+          "sha256": "38077bbd469f987efda4b7b389a97bcc615d46b715a60e73baea6c704c9865a8",
+          "size_bytes": 4722,
+          "verified": true
+        },
+        "fortran_gpu_lambda_bridge": {
+          "path": "v1.3/GPU/source/mlpot.f90",
+          "sha256": "7e18fca4ce1e6c75941cbad8d33d1614838740b1a33125c834c53bd4633a9d84",
+          "size_bytes": 9572,
+          "verified": true
+        },
+        "generic_gpu_example_key": {
+          "path": "v1.3/GPU/examples/Deep-HP_example.key",
+          "sha256": "b0d3bcf471b6491bd8058756983b9474864bda91db6d651416ce1c7ab3f24712",
+          "size_bytes": 622,
+          "verified": true
+        },
+        "gpu_fennol_lambda_header": {
+          "path": "v1.3/GPU/source/mlinterface.h",
+          "sha256": "17c781e21bb900f1fbd6fc32114e9ebe8f184dc80d1a2b9d6aac236029a113b6",
+          "size_bytes": 749,
+          "verified": true
+        },
+        "gpu_fennol_lambda_interface": {
+          "path": "v1.3/GPU/source/mlinterface.py",
+          "sha256": "4437e0b93a55156d554ba13a3d7c974a4c537a0792b15c3ec3cac7d2d8758967",
+          "size_bytes": 16624,
+          "verified": true
+        },
+        "lambda_abf_documentation": {
+          "path": "html/md_lambda-ABF.html",
+          "sha256": "fb2aa2e30b417bb54ce74a49d36025d48d717e9b50c9d6abbad7ae8c6aa783a0",
+          "size_bytes": 16824,
+          "verified": true
+        }
+      }
+    }
+  },
+  "schema_version": 1,
+  "source_capabilities": {
+    "combined_fennol_tinker_gpu_source_present": true,
+    "fennol_model_load_present": true,
+    "generic_lambda_abf_documentation_present": true,
+    "lambda_energy_and_vdw_derivative_outputs_present": true,
+    "lambda_energy_and_vdw_inputs_present": true,
+    "lambda_group_and_ligand_charge_inputs_present": true
+  },
+  "validation_scope": {
+    "checkpoint_inference_performed": false,
+    "free_energy_protocol_executed": false,
+    "maximum_error_available": false,
+    "multi_solvent_evidence": false,
+    "predicted_rows_in_artifact": false,
+    "published_solvent_scope": "water only",
+    "strict_never_used_holdout_proven": false
+  }
+}

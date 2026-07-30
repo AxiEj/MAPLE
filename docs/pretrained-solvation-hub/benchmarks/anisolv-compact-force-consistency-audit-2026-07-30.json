@@ -1,0 +1,602 @@
+{
+  "acceptance_eligible": false,
+  "audited_on": "2026-07-30",
+  "disposition": {
+    "maple_runtime_scope": "single_point_scalar_energy_only",
+    "optimization_frequency_md_forbidden": true,
+    "upstream_force_admission": "rejected"
+  },
+  "finite_difference": {
+    "formula": "F_i=-[E(R+h*e_i)-E(R-h*e_i)]/(2h)",
+    "step_angstrom": 1e-05
+  },
+  "identity": {
+    "checkpoint": {
+      "path": "models/model1_compact.pt",
+      "sha256": "b79be343c55a7cc06579aa4778753156bc71f99b3a00f046a270bc3427c1498f",
+      "size_bytes": 25522563,
+      "verified": true
+    },
+    "experimental_label_values_used_for_identity": false,
+    "panel_geometry_and_source_row_sha256": "3a1e02417a6b6e47f05b2842f06e080a459771c277fb78343e8f72ece2e91c85",
+    "repository": "https://github.com/Ant-on-knee/anisolv",
+    "revision": "66f36dc7d4134c78b718255bb2abfed14482acb0",
+    "tree": "522a9cfacb6f0fc00935e2d4d140020b8007c295"
+  },
+  "metrics": {
+    "energy_rotation_max_abs_drift_ev": 0.0,
+    "energy_rotation_tolerance_ev": 1e-12,
+    "energy_rotation_tolerance_passed": true,
+    "force_consistency_tolerance_ev_per_angstrom": 1e-06,
+    "original_orientation_max_abs_difference_ev_per_angstrom": 0.005704464218729888,
+    "original_orientation_passed": false,
+    "rotated_orientation_max_abs_difference_ev_per_angstrom": 1.0869843358740638e-09,
+    "rotated_orientation_passed": true
+  },
+  "model_runtime_fingerprint": {
+    "cache_key": {
+      "checkpoint": "models/model1_compact.pt",
+      "device": "cpu",
+      "dtype": "torch.float64",
+      "inference_settings": "InferenceSettings(tf32=False, activation_checkpointing=False, merge_mole=False, compile=False, external_graph_gen=True, internal_graph_gen_version=2, use_quaternion_wigner=False, execution_mode='general', edge_chunk_size=None, predict_untrained_forces=set(), predict_untrained_stress=set(), predict_untrained_hessian=set(), auto_add_default_untrained_tasks=True)"
+    },
+    "parameter_devices": [
+      "cpu"
+    ],
+    "parameter_dtypes": [
+      "torch.float64"
+    ]
+  },
+  "records": [
+    {
+      "atomic_numbers": [
+        8,
+        1,
+        1
+      ],
+      "energy_ev": -0.4193814817668599,
+      "energy_rotation_abs_drift_ev": 0.0,
+      "formula": "H2O",
+      "g2_name": "H2O",
+      "label": "water",
+      "original": {
+        "autograd_forces_ev_per_angstrom": {
+          "sha256": "c99a5e576fd62cec4e995b5ab6f6b425793ac30a5a0801b99836e19a596eba47",
+          "values": [
+            [
+              -3.9568950893631435e-18,
+              1.4896546218778893e-17,
+              0.2138260304967927
+            ],
+            [
+              -0.004636661189615213,
+              0.10232899596978763,
+              -0.10691301524839635
+            ],
+            [
+              0.004636661189615216,
+              -0.10232899596978766,
+              -0.10691301524839635
+            ]
+          ]
+        },
+        "finite_difference_forces_ev_per_angstrom": {
+          "sha256": "3976fbd39149c38d9e9acfec9838cb1b40d1d833f849c39a5ce5b1ad60b252a4",
+          "values": [
+            [
+              -0.0,
+              -0.0,
+              0.21382603047070955
+            ],
+            [
+              -3.991251773527438e-09,
+              0.10232899593232146,
+              -0.10691301522980366
+            ],
+            [
+              3.988476215965875e-09,
+              -0.1023289959295459,
+              -0.10691301523535478
+            ]
+          ]
+        },
+        "max_abs_force_difference_ev_per_angstrom": 0.004636657201139,
+        "worst_component_zero_based": [
+          2,
+          0
+        ]
+      },
+      "positions_angstrom": {
+        "sha256": "5aadafb0943d81ee832980119d858d8e722d54d3cbc4cf6bb14719670fa8db30",
+        "values": [
+          [
+            0.0,
+            0.0,
+            0.119262
+          ],
+          [
+            0.0,
+            0.763239,
+            -0.477047
+          ],
+          [
+            0.0,
+            -0.763239,
+            -0.477047
+          ]
+        ]
+      },
+      "rotated": {
+        "autograd_forces_ev_per_angstrom": {
+          "sha256": "e4e8b449aab41aff6780be8e7cb5d3fb95577dcb3c03b3424319af652fed6fe1",
+          "values": [
+            [
+              0.0880115240543427,
+              -0.014739144305269155,
+              0.1943149520155244
+            ],
+            [
+              -0.0950457711287882,
+              0.09102404971475024,
+              -0.06769446070210855
+            ],
+            [
+              0.0070342470744455,
+              -0.07628490540948107,
+              -0.12662049131341582
+            ]
+          ]
+        },
+        "energy_ev": -0.4193814817668599,
+        "finite_difference_forces_ev_per_angstrom": {
+          "sha256": "dd700b26b8a4f609cda76320dc1a4f5c037314c40c0db7ae39d9a067205994b2",
+          "values": [
+            [
+              0.08801152407145184,
+              -0.014739144318931528,
+              0.1943149520067244
+            ],
+            [
+              -0.09504577112018352,
+              0.09102404970040555,
+              -0.06769446068144447
+            ],
+            [
+              0.007034247062609466,
+              -0.07628490539257626,
+              -0.12662049130862663
+            ]
+          ]
+        },
+        "max_abs_force_difference_ev_per_angstrom": 2.0664081556986957e-11,
+        "positions_angstrom": {
+          "sha256": "0cb275b9832166d0d82a190c41a941fbe56c8341040555ba8e80aabef6763447",
+          "values": [
+            [
+              0.04908864630457829,
+              -0.00822079437218651,
+              0.10837964747993158
+            ],
+            [
+              -0.5770451511576726,
+              0.6568348946080013,
+              -0.21376254601944328
+            ],
+            [
+              0.18433680392787333,
+              -0.5910686774915944,
+              -0.6532728163148949
+            ]
+          ]
+        },
+        "worst_component_zero_based": [
+          1,
+          2
+        ]
+      },
+      "rotation_covariance": {
+        "max_abs_force_difference_ev_per_angstrom": 0.004636661189615229,
+        "rotated_forces_mapped_back_ev_per_angstrom": {
+          "sha256": "8fa4b377dcdb647d51c299a9e07277c5d2597f8059cf9f074f3c984c1b330aca",
+          "values": [
+            [
+              1.1465709007856635e-17,
+              1.7206889613400883e-17,
+              0.2138260304967925
+            ],
+            [
+              -3.365435257127621e-18,
+              0.10232899596978769,
+              -0.10691301524839623
+            ],
+            [
+              -1.3015966109532883e-17,
+              -0.10232899596978767,
+              -0.10691301524839623
+            ]
+          ]
+        },
+        "worst_component_zero_based": [
+          2,
+          0
+        ]
+      }
+    },
+    {
+      "atomic_numbers": [
+        6,
+        8,
+        1,
+        1,
+        1,
+        1
+      ],
+      "energy_ev": -0.19890348286205858,
+      "energy_rotation_abs_drift_ev": 0.0,
+      "formula": "CH4O",
+      "g2_name": "CH3OH",
+      "label": "methanol",
+      "original": {
+        "autograd_forces_ev_per_angstrom": {
+          "sha256": "1f00aa522bf47cdc6d4711fdd4f0e87dcfefe1ab544bcfec3be4316168498174",
+          "values": [
+            [
+              0.028626416349810387,
+              0.22179748782843892,
+              0.0020875789507285697
+            ],
+            [
+              -0.15523289251219602,
+              -0.0897966359677409,
+              -0.0024985200875715717
+            ],
+            [
+              -0.0008668471677376417,
+              0.009977741193279174,
+              0.00032090707502203583
+            ],
+            [
+              0.1709073297838259,
+              -0.043292073667953276,
+              -5.731673243553282e-05
+            ],
+            [
+              -0.02189492022637665,
+              -0.04809100799242276,
+              -0.02235323671098913
+            ],
+            [
+              -0.021539086227325966,
+              -0.05059551139360113,
+              0.02250058750524563
+            ]
+          ]
+        },
+        "finite_difference_forces_ev_per_angstrom": {
+          "sha256": "f0ec816fc28c1612f4c1c1838804ccd6936580995fca34d341b6ef78cbfad67a",
+          "values": [
+            [
+              0.022921952173848844,
+              0.2217974897716912,
+              0.0009777118059606238
+            ],
+            [
+              -0.14952842829346613,
+              -0.08979663800173786,
+              -0.0013886529426354597
+            ],
+            [
+              -0.0008668471787598441,
+              0.00997774120409245,
+              0.00032090707868803747
+            ],
+            [
+              0.17090732976343667,
+              -0.04329207365511011,
+              -5.731672497732986e-05
+            ],
+            [
+              -0.021894920226861455,
+              -0.048091007986972294,
+              -0.022353236711625254
+            ],
+            [
+              -0.02153908622432032,
+              -0.050595511391637864,
+              0.022500587502916055
+            ]
+          ]
+        },
+        "max_abs_force_difference_ev_per_angstrom": 0.005704464218729888,
+        "worst_component_zero_based": [
+          1,
+          0
+        ]
+      },
+      "positions_angstrom": {
+        "sha256": "e18e9fd8ce8028533866bf6c804004ce53c6955744705bbb59ada3cee3bb5923",
+        "values": [
+          [
+            -0.047131,
+            0.664389,
+            0.0
+          ],
+          [
+            -0.047131,
+            -0.758551,
+            0.0
+          ],
+          [
+            -1.092995,
+            0.969785,
+            0.0
+          ],
+          [
+            0.878534,
+            -1.048458,
+            0.0
+          ],
+          [
+            0.437145,
+            1.080376,
+            0.891772
+          ],
+          [
+            0.437145,
+            1.080376,
+            -0.891772
+          ]
+        ]
+      },
+      "rotated": {
+        "autograd_forces_ev_per_angstrom": {
+          "sha256": "0a17d32a957a5ff6abffcad8d573e8b8d19b1f9bcfe944f747148c70f05e1937",
+          "values": [
+            [
+              -0.09274260906683844,
+              0.19435953565571268,
+              0.05782453679835551
+            ],
+            [
+              -0.06983630677366762,
+              -0.15881106580315668,
+              0.018056923296269626
+            ],
+            [
+              -0.005505839115792459,
+              0.007639087071174011,
+              0.0034263404724437533
+            ],
+            [
+              0.15193047998852358,
+              0.062334091342460284,
+              -0.06414914347427714
+            ],
+            [
+              -0.0019141658859426,
+              -0.05029293237358725,
+              -0.027545538570357513
+            ],
+            [
+              0.01806844085371753,
+              -0.05522871589260308,
+              0.012386881477565762
+            ]
+          ]
+        },
+        "energy_ev": -0.19890348286205858,
+        "finite_difference_forces_ev_per_angstrom": {
+          "sha256": "4d88b74bc645f753b1978eb914bd438fb3199ede905709e7178b38011e903361",
+          "values": [
+            [
+              -0.09274260928116006,
+              0.19435953668017755,
+              0.0578245368365593
+            ],
+            [
+              -0.06983630645995831,
+              -0.15881106689014102,
+              0.018056923241360767
+            ],
+            [
+              -0.005505839124897437,
+              0.007639087071242833,
+              0.003426340472456601
+            ],
+            [
+              0.15193047996769904,
+              0.06233409133721279,
+              -0.06414914347080414
+            ],
+            [
+              -0.0019141658841315132,
+              -0.05029293237007736,
+              -0.02754553856260111
+            ],
+            [
+              0.018068440850449452,
+              -0.05522871589225264,
+              0.012386881476089682
+            ]
+          ]
+        },
+        "max_abs_force_difference_ev_per_angstrom": 1.0869843358740638e-09,
+        "positions_angstrom": {
+          "sha256": "2aa63fca2bb6912cd9d264ed8f988d7b76654857b633bfba995620cdb8b9752a",
+          "values": [
+            [
+              -0.36733571764908807,
+              0.5161927763741055,
+              0.20553238830029236
+            ],
+            [
+              0.342403197140006,
+              -0.6470679511852819,
+              -0.20416676492314734
+            ],
+            [
+              -1.3174019062526503,
+              0.16784998731765488,
+              0.6094256438724469
+            ],
+            [
+              1.1930611425410071,
+              -0.35479037777868483,
+              -0.5672874623278791
+            ],
+            [
+              0.16161799168452523,
+              1.0716939573184523,
+              0.9894023645595234
+            ],
+            [
+              -0.5724948068988692,
+              1.1946346129987782,
+              -0.631397806366229
+            ]
+          ]
+        },
+        "worst_component_zero_based": [
+          1,
+          1
+        ]
+      },
+      "rotation_covariance": {
+        "max_abs_force_difference_ev_per_angstrom": 0.0057044582499419585,
+        "rotated_forces_mapped_back_ev_per_angstrom": {
+          "sha256": "1e12597b241f31a3326f1ad9e0f1bab662769ec735e1ef4cbefc61a9cf4d569e",
+          "values": [
+            [
+              0.02292195809986843,
+              0.22179748782843975,
+              0.0009777129609685115
+            ],
+            [
+              -0.1495284342622541,
+              -0.08979663596774173,
+              -0.0013886540978115132
+            ],
+            [
+              -0.0008668471677376521,
+              0.009977741193279184,
+              0.00032090707502203594
+            ],
+            [
+              0.1709073297838259,
+              -0.04329207366795334,
+              -5.7316732435490376e-05
+            ],
+            [
+              -0.02189492022637665,
+              -0.04809100799242276,
+              -0.022353236710989155
+            ],
+            [
+              -0.02153908622732596,
+              -0.05059551139360112,
+              0.022500587505245615
+            ]
+          ]
+        },
+        "worst_component_zero_based": [
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "rotation": {
+    "angle_rad": 0.731,
+    "applied_as": "positions @ matrix.T",
+    "axis_before_normalization": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "center": "origin_without_recentering",
+    "matrix": {
+      "sha256": "7a70f36606bd6a8ba099556a80e8ecdda09c74099c89a5ce1436685db4b4a983",
+      "values": [
+        [
+          0.7627566487885672,
+          -0.4987834446913391,
+          0.41160341353137037
+        ],
+        [
+          0.5717813989102416,
+          0.817505114452744,
+          -0.06893054260524316
+        ],
+        [
+          -0.3021064822030168,
+          0.2879244052619504,
+          0.9087525572263719
+        ]
+      ]
+    }
+  },
+  "runtime": {
+    "ase_version": "3.27.0",
+    "dependency_origins_within_active_environment": {
+      "ase": "lib/python3.11/site-packages/ase/__init__.py",
+      "numpy": "lib/python3.11/site-packages/numpy/__init__.py",
+      "torch": "lib/python3.11/site-packages/torch/__init__.py"
+    },
+    "device": "cpu",
+    "dtype": "torch.float64",
+    "inference_settings": "default",
+    "numpy_version": "2.4.6",
+    "precision_controls": {
+      "autocast_cpu": false,
+      "autocast_cuda": false,
+      "bf16_reduced_precision_reduction": false,
+      "cuda_matmul_allow_tf32": false,
+      "cudnn_allow_tf32": false,
+      "float32_matmul_precision": "highest",
+      "fp16_accumulation": false,
+      "fp16_reduced_precision_reduction": false
+    },
+    "python_version": "3.11.14",
+    "torch_version": "2.12.0+cu130"
+  },
+  "source_execution_isolation": {
+    "git_archive_from_verified_tree": true,
+    "ignored_checkout_files_excluded_from_execution": true,
+    "isolated_import_parent": true,
+    "isolated_pycache_root": true,
+    "loaded_source_modules": {
+      "anisolv": "__init__.py",
+      "anisolv._backbone": "_backbone/__init__.py",
+      "anisolv._backbone._compat": "_backbone/_compat/__init__.py",
+      "anisolv._backbone._compat.base": "_backbone/_compat/base.py",
+      "anisolv._backbone._compat.gp_utils": "_backbone/_compat/gp_utils.py",
+      "anisolv._backbone._compat.graph_compute": "_backbone/_compat/graph_compute.py",
+      "anisolv._backbone._compat.inference": "_backbone/_compat/inference.py",
+      "anisolv._backbone._compat.registry": "_backbone/_compat/registry.py",
+      "anisolv._backbone._compat.utils": "_backbone/_compat/utils.py",
+      "anisolv._backbone.common": "_backbone/common/__init__.py",
+      "anisolv._backbone.common.rotation": "_backbone/common/rotation.py",
+      "anisolv._backbone.common.so3": "_backbone/common/so3.py",
+      "anisolv._backbone.escn_md": "_backbone/escn_md.py",
+      "anisolv._backbone.escn_md_block": "_backbone/escn_md_block.py",
+      "anisolv._backbone.escn_moe": "_backbone/escn_moe.py",
+      "anisolv._backbone.nn": "_backbone/nn/__init__.py",
+      "anisolv._backbone.nn.activation": "_backbone/nn/activation.py",
+      "anisolv._backbone.nn.embedding": "_backbone/nn/embedding.py",
+      "anisolv._backbone.nn.execution_backends": "_backbone/nn/execution_backends.py",
+      "anisolv._backbone.nn.layer_norm": "_backbone/nn/layer_norm.py",
+      "anisolv._backbone.nn.mole": "_backbone/nn/mole.py",
+      "anisolv._backbone.nn.mole_utils": "_backbone/nn/mole_utils.py",
+      "anisolv._backbone.nn.radial": "_backbone/nn/radial.py",
+      "anisolv._backbone.nn.so2_layers": "_backbone/nn/so2_layers.py",
+      "anisolv._backbone.nn.so3_layers": "_backbone/nn/so3_layers.py",
+      "anisolv._backbone.nn.unified_radial": "_backbone/nn/unified_radial.py",
+      "anisolv._backbone.outputs": "_backbone/outputs.py",
+      "anisolv.data": "data.py",
+      "anisolv.model": "model.py",
+      "anisolv.predict": "predict.py",
+      "anisolv.solvent": "solvent.py"
+    },
+    "loaded_source_modules_sha256": "6fa8fa0e3df399e5e52bb7f4f904f306e7f6dfbdfb6f58d2302365bc55963cbd"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "protocol_id": "route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1-prereg",
+  "schema_version": 1,
+  "status": "frozen-before-asset-generation",
+  "claim_boundary": "This preregistration freezes one offline spherical free-atom Hartree-Fock independent-particle response construction. It reads no target-solvation labels and is not a molecular response functional, continuum calculation, force/PES result, solvation calculation, performance result, or accuracy result. A pass freezes only a neutral positive baseline C0 for the separately preregistered V0-RK acetone gas-phase MEP falsifier.",
+  "generation_contract": {
+    "method": "PySCF AtomSphAverageRHF canonical-orbital independent-particle static response",
+    "basis": "def2-TZVPD",
+    "pyscf_version": "2.13.1",
+    "scf_convergence_tolerance_hartree": 1e-12,
+    "numerical_relative_tolerance": 1e-10,
+    "transition_rule": "Sort canonical spatial orbitals by ascending energy with a stable sort. For every pair i< a with n_i-n_a > numerical_relative_tolerance and epsilon_a-epsilon_i > numerical_relative_tolerance*max(1, ||epsilon||_2), retain tau_ia(r)=phi_i(r)phi_a(r)+phi_a(r)phi_i(r) with w_ia=(n_i-n_a)/(2*(epsilon_a-epsilon_i)). Retain every such pair; do not screen a transition by QM-MEP, continuum, or solvation error.",
+    "elements": [
+      {
+        "atomic_number": 1,
+        "neutral_electron_count": 1,
+        "spin_2s": 1,
+        "symbol": "H"
+      },
+      {
+        "atomic_number": 6,
+        "neutral_electron_count": 6,
+        "spin_2s": 2,
+        "symbol": "C"
+      },
+      {
+        "atomic_number": 7,
+        "neutral_electron_count": 7,
+        "spin_2s": 3,
+        "symbol": "N"
+      },
+      {
+        "atomic_number": 8,
+        "neutral_electron_count": 8,
+        "spin_2s": 2,
+        "symbol": "O"
+      },
+      {
+        "atomic_number": 16,
+        "neutral_electron_count": 16,
+        "spin_2s": 2,
+        "symbol": "S"
+      },
+      {
+        "atomic_number": 17,
+        "neutral_electron_count": 17,
+        "spin_2s": 1,
+        "symbol": "Cl"
+      }
+    ],
+    "validation_gates": {
+      "maximum_transition_charge_e_max": 1e-10,
+      "atomic_dipole_covariance_isotropy_error_max": 1e-10,
+      "atomic_dipole_covariance_minimum_eigenvalue_min": 1e-12
+    },
+    "deterministic_archive": {
+      "compression": "ZIP_DEFLATED-level-9",
+      "format": "npz",
+      "member_order": "lexicographic-array-key",
+      "zip_member_timestamp_utc": "1980-01-01T00:00:00+00:00"
+    },
+    "runtime": {
+      "threads": 1,
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+      "thread_environment": {
+        "BLIS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1"
+      }
+    }
+  },
+  "hard_constraints": {
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "atomic_transition_selected_from_qm_mep_error": false,
+    "atomic_transition_selected_from_solvation_error": false,
+    "response_eigenvalue_clipping": false,
+    "response_rescaling": false,
+    "continuum_or_pcm_invoked": false,
+    "solvation_labels_read": false,
+    "mace_density_relabelled_as_electron_density": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "public_route_changed": false
+  },
+  "decision_rule": "A failed atomic SCF, canonical-orbital orthonormality, transition neutrality, positive atomic dipole covariance, isotropy, source hash, runtime, deterministic archive, manifest hash, or repeated table hash rejects the candidate baseline. Passing freezes only isolated-atom independent-particle C0. It does not license a width choice, a response fit, a molecular response claim, a continuum, an energy/force claim, or any experimental solvation panel.",
+  "source_sha256": {
+    "docs/implicit-solvation/benchmarks/generate_route2_v0_atomic_independent_particle_response.py": "5ddad832ec13344e0c8bae9998327bd785038be1a860a8e672e9c7b0498ff8f4",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_response.py": "9d6f2f3892b57e57ea3db6f70a350fbb81b2a0fad22414c58625f7f2b38bebd3"
+  }
+}

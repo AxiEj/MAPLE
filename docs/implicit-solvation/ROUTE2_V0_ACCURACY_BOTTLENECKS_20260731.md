@@ -101,8 +101,8 @@ cannot be made energy-conjugate without an arbitrary projection.
 Let:
 
 * \(C_{0,\mathbf R}\succeq0\) be a fixed, independently sourced
-  atom-centred GTO density-response kernel;
-* \(A_{\mathbf R}\) map GTO coefficients to the stacked \(3N\) atomic induced
+  source/dual density-response kernel;
+* \(A_{\mathbf R}\) map its declared response coefficients to the stacked \(3N\) atomic induced
   dipoles;
 * \(W_{\mathbf R}\) stack the already audited MACE-MDP atomic partitions
   \(W_a=\alpha_a\alpha^{-1}\);
@@ -136,7 +136,7 @@ fixed-point update.
 
 This is not a hidden fit:
 
-* \(C_0\), its GTO basis, supported elements/charge states, and the support
+* \(C_0\), its declared source/dual basis, supported elements/charge states, and the support
   convention must be content-addressed before any solvation label is read.
 * The formula has no adjustable width, solvation coefficient, MEP regression,
   response rescaling, or post-solve correction.
@@ -153,6 +153,14 @@ expensive construction of \(C_0\) is offline. This is a design expectation,
 not a performance result. A candidate is rejected as a production route if
 its measured cold or warm same-geometry calculation is not faster than the
 declared QM reference.
+
+The next concrete candidate is the preregistered frozen atomic-HF
+independent-particle transition-density source in
+[`ROUTE2_V0_ATOMIC_INDEPENDENT_PARTICLE_RESPONSE_THEORY.md`](ROUTE2_V0_ATOMIC_INDEPENDENT_PARTICLE_RESPONSE_THEORY.md).
+It supplies a broad neutral \(C_0\) without a fitted radial width and is
+completed only through the existing MACE moment constraint.  Until the
+hash-bound table and its frozen acetone source falsifier have executed, it is
+still only a source candidate; it has no physical-continuum or accuracy claim.
 
 ## Ordered evidence, before any experimental score
 

@@ -131,10 +131,12 @@ class Route2V0ResponseKernelCompletion:
     ``response_covariance_coefficient_dual`` is the positive susceptibility
     ``C`` in ``dc = -C f``.  ``electronic_curvature_coefficient_dual`` is its
     Moore--Penrose inverse on the declared support. A future same-basis KKT
-    must impose ``response_support_constraints @ dc = 0`` in addition to its
-    separate total-charge constraint. The returned rows span only the kernel
-    directions independent of that charge row; zero response modes are never
-    regularized by an arbitrary curvature.
+    must impose ``response_support_constraints @ dc = 0``.  When
+    ``charge_constraint_vector`` is present, its generic total-charge KKT row
+    is separate and the returned rows span only the remaining kernel
+    directions.  When it is ``None``, every response mode is intrinsically
+    neutral and the returned rows span the complete kernel.  Zero response
+    modes are never regularized by an arbitrary curvature.
     """
 
     baseline_response_covariance_coefficient_dual: np.ndarray
@@ -149,7 +151,7 @@ class Route2V0ResponseKernelCompletion:
     target_atom_dipole_covariance_bohr3: np.ndarray
     conditional_null_covariance_coefficient_dual: np.ndarray
     lifting_map_coefficient_per_ebohr: np.ndarray
-    charge_constraint_vector: np.ndarray
+    charge_constraint_vector: np.ndarray | None
     baseline_symmetry_error: float
     completed_symmetry_error: float
     baseline_minimum_eigenvalue: float
@@ -202,7 +204,6 @@ class Route2V0ResponseKernelCompletion:
             ("target_atom_dipole_covariance_bohr3", (atomic_count, atomic_count)),
             ("conditional_null_covariance_coefficient_dual", baseline.shape),
             ("lifting_map_coefficient_per_ebohr", (coefficient_count, atomic_count)),
-            ("charge_constraint_vector", (coefficient_count,)),
         ):
             values = np.asarray(getattr(self, name), dtype=float)
             if shape[0] is None:
@@ -217,6 +218,16 @@ class Route2V0ResponseKernelCompletion:
                     name,
                     _immutable_array(values, name=name, shape=shape),
                 )
+        if self.charge_constraint_vector is not None:
+            object.__setattr__(
+                self,
+                "charge_constraint_vector",
+                _immutable_array(
+                    self.charge_constraint_vector,
+                    name="charge_constraint_vector",
+                    shape=(coefficient_count,),
+                ),
+            )
         object.__setattr__(
             self,
             "baseline_response_covariance_coefficient_dual",
@@ -271,7 +282,7 @@ def complete_route2_v0_response_kernel(
     atom_dipole_map_coefficient_to_ebohr: np.ndarray,
     atomic_dipole_partition_molecular_to_ebohr: np.ndarray,
     molecular_polarizability_bohr3: np.ndarray,
-    charge_constraint_vector: np.ndarray,
+    charge_constraint_vector: np.ndarray | None = None,
     numerical_relative_tolerance: float = 1.0e-10,
 ) -> Route2V0ResponseKernelCompletion:
     """Complete a physical response kernel without fitting a response value.
@@ -315,24 +326,28 @@ def complete_route2_v0_response_kernel(
         name="Baseline response covariance",
         relative_tolerance=numerical_relative_tolerance,
     )
-    charge_constraint = _immutable_array(
-        charge_constraint_vector,
-        name="Charge constraint vector",
-        shape=(coefficient_count,),
-    )
-    if float(np.linalg.norm(charge_constraint)) == 0.0:
-        raise ValueError("Charge constraint vector must be nonzero.")
-    baseline_charge_error = float(np.linalg.norm(baseline @ charge_constraint))
-    baseline_charge_tolerance = _error_tolerance(
-        baseline,
-        charge_constraint[:, None],
-        relative_tolerance=numerical_relative_tolerance,
-    )
-    if baseline_charge_error > baseline_charge_tolerance:
-        raise ValueError(
-            "Baseline response covariance violates the exact charge-neutral "
-            "response constraint."
+    if charge_constraint_vector is None:
+        charge_constraint = None
+        baseline_charge_error = 0.0
+    else:
+        charge_constraint = _immutable_array(
+            charge_constraint_vector,
+            name="Charge constraint vector",
+            shape=(coefficient_count,),
         )
+        if float(np.linalg.norm(charge_constraint)) == 0.0:
+            raise ValueError("Charge constraint vector must be nonzero.")
+        baseline_charge_error = float(np.linalg.norm(baseline @ charge_constraint))
+        baseline_charge_tolerance = _error_tolerance(
+            baseline,
+            charge_constraint[:, None],
+            relative_tolerance=numerical_relative_tolerance,
+        )
+        if baseline_charge_error > baseline_charge_tolerance:
+            raise ValueError(
+                "Baseline response covariance violates the exact charge-neutral "
+                "response constraint."
+            )
 
     atom_map = _immutable_array(
         atom_dipole_map_coefficient_to_ebohr,
@@ -433,17 +448,20 @@ def complete_route2_v0_response_kernel(
         relative_tolerance=numerical_relative_tolerance,
     )
 
-    completed_charge_error = float(np.linalg.norm(completed @ charge_constraint))
-    completed_charge_tolerance = _error_tolerance(
-        completed,
-        charge_constraint[:, None],
-        relative_tolerance=numerical_relative_tolerance,
-    )
-    if completed_charge_error > completed_charge_tolerance:
-        raise RuntimeError(
-            "Response-kernel completion lost the exact charge-neutral response "
-            "constraint."
+    if charge_constraint is None:
+        completed_charge_error = 0.0
+    else:
+        completed_charge_error = float(np.linalg.norm(completed @ charge_constraint))
+        completed_charge_tolerance = _error_tolerance(
+            completed,
+            charge_constraint[:, None],
+            relative_tolerance=numerical_relative_tolerance,
         )
+        if completed_charge_error > completed_charge_tolerance:
+            raise RuntimeError(
+                "Response-kernel completion lost the exact charge-neutral response "
+                "constraint."
+            )
     atom_covariance_error = float(
         np.linalg.norm(
             atom_map @ completed @ atom_map.T - target_atom_covariance,
@@ -488,27 +506,33 @@ def complete_route2_v0_response_kernel(
         support_vectors / eigenvalues[support][None, :]
     ) @ support_vectors.T
     null_vectors = eigenvectors[:, ~support]
-    charge_null_projection = null_vectors @ (null_vectors.T @ charge_constraint)
-    charge_nullspace_projection_error = float(
-        np.linalg.norm(charge_constraint - charge_null_projection)
-    )
-    charge_nullspace_tolerance = _error_tolerance(
-        charge_constraint[:, None],
-        charge_null_projection[:, None],
-        relative_tolerance=numerical_relative_tolerance,
-    )
-    if charge_nullspace_projection_error > charge_nullspace_tolerance:
-        raise RuntimeError(
-            "Charge constraint is not contained in the completed response "
-            "kernel null space."
+    if charge_constraint is None:
+        # Every transition-density response mode is neutral by construction.
+        # Therefore no generic charge KKT row exists in this coordinate space.
+        charge_nullspace_projection_error = 0.0
+        response_support_constraints = null_vectors.T
+    else:
+        charge_null_projection = null_vectors @ (null_vectors.T @ charge_constraint)
+        charge_nullspace_projection_error = float(
+            np.linalg.norm(charge_constraint - charge_null_projection)
         )
-    _, _, charge_null_right_vectors = np.linalg.svd(
-        (null_vectors.T @ charge_constraint)[None, :],
-        full_matrices=True,
-    )
-    # The total-charge row is imposed by the generic KKT solver. Return only
-    # the remaining kernel rows so that additional constraints stay independent.
-    response_support_constraints = charge_null_right_vectors[1:] @ null_vectors.T
+        charge_nullspace_tolerance = _error_tolerance(
+            charge_constraint[:, None],
+            charge_null_projection[:, None],
+            relative_tolerance=numerical_relative_tolerance,
+        )
+        if charge_nullspace_projection_error > charge_nullspace_tolerance:
+            raise RuntimeError(
+                "Charge constraint is not contained in the completed response "
+                "kernel null space."
+            )
+        _, _, charge_null_right_vectors = np.linalg.svd(
+            (null_vectors.T @ charge_constraint)[None, :],
+            full_matrices=True,
+        )
+        # The total-charge row is imposed by the generic KKT solver. Return only
+        # the remaining kernel rows so that additional constraints stay independent.
+        response_support_constraints = charge_null_right_vectors[1:] @ null_vectors.T
     moore_penrose_error = float(
         np.linalg.norm(
             electronic_curvature @ completed - response_support_projector,

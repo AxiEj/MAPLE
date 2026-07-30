@@ -145,6 +145,25 @@ def test_response_kernel_separates_a_rotated_charge_null_mode_from_kkt_rows():
     )
 
 
+def test_response_kernel_accepts_an_intrinsically_neutral_mode_basis():
+    inputs = _inputs()
+    inputs.pop("charge_constraint_vector")
+    state = response_kernel.complete_route2_v0_response_kernel(**inputs)
+    response = state.response_covariance_coefficient_dual
+
+    assert state.charge_constraint_vector is None
+    assert state.charge_nullspace_projection_error == pytest.approx(0.0)
+    np.testing.assert_allclose(
+        state.response_support_constraints @ response,
+        0.0,
+        rtol=0.0,
+        atol=1.0e-12,
+    )
+    assert np.linalg.matrix_rank(state.response_support_constraints) == (
+        response.shape[0] - np.linalg.matrix_rank(state.response_support_projector)
+    )
+
+
 def test_response_kernel_rejects_a_partition_that_does_not_sum_to_identity():
     inputs = _inputs()
     inputs["atomic_dipole_partition_molecular_to_ebohr"][3:] = 0.5 * np.eye(3)

@@ -1,0 +1,82 @@
+{
+  "protocol_id": "route2-v0-molecular-rism-bulk-state-source-v1",
+  "schema_version": 1,
+  "status": "source-only-molecular-rism-state-not-liquid-or-accuracy-admitted",
+  "solvent_id": "dichloromethane",
+  "model": {
+    "identifier": "scm-adf-3drism-2026.1-table-12-dichloromethane-amber-mdl",
+    "source_sha256": "efacc15b6d9fed5ba28be58916f66e76b1087149ffe7b2e261f98f4a913343ed"
+  },
+  "state": {
+    "temperature_kelvin": 298.15,
+    "pressure_bar": 1.01325,
+    "molecular_number_density_angstrom3": 0.009338466243871424,
+    "static_dielectric_constant": 8.93,
+    "isothermal_compressibility_pa_inverse": 1.0264001973846534e-08,
+    "surface_tension_newton_per_meter": 0.0272
+  },
+  "property_sources": [
+    {
+      "property": "temperature_kelvin",
+      "origin": "independent_measurement",
+      "document_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3729351/?report=xml",
+      "document_sha256": "9039075ae55e05e8443d5841312d25cddb472bee2f192071612596aacf7ae887",
+      "source_locator": "Table 3 caption: liquid properties for chloromethanes calculated at 298.15 K and 1 atm; CH2Cl2 Expt. row.",
+      "retrieved_utc": "2026-07-30T03:45:00Z"
+    },
+    {
+      "property": "pressure_bar",
+      "origin": "independent_measurement",
+      "document_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3729351/?report=xml",
+      "document_sha256": "9039075ae55e05e8443d5841312d25cddb472bee2f192071612596aacf7ae887",
+      "source_locator": "Table 3 caption: 1 atm; converted exactly to 1.01325 bar.",
+      "retrieved_utc": "2026-07-30T03:45:00Z"
+    },
+    {
+      "property": "molecular_number_density_angstrom3",
+      "origin": "independent_measurement",
+      "document_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3729351/?report=xml",
+      "document_sha256": "9039075ae55e05e8443d5841312d25cddb472bee2f192071612596aacf7ae887",
+      "source_locator": "Table 3 CH2Cl2 Expt. density 1317 kg m^-3; converted with N_A and the source-model molecular weight 84.93 g mol^-1.",
+      "retrieved_utc": "2026-07-30T03:45:00Z"
+    },
+    {
+      "property": "static_dielectric_constant",
+      "origin": "independent_measurement",
+      "document_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3729351/?report=xml",
+      "document_sha256": "9039075ae55e05e8443d5841312d25cddb472bee2f192071612596aacf7ae887",
+      "source_locator": "Table 3 CH2Cl2 Expt. epsilon(0)=8.93 at 298.15 K and 1 atm.",
+      "retrieved_utc": "2026-07-30T03:45:00Z"
+    },
+    {
+      "property": "isothermal_compressibility_pa_inverse",
+      "origin": "independent_measurement",
+      "document_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3729351/?report=xml",
+      "document_sha256": "9039075ae55e05e8443d5841312d25cddb472bee2f192071612596aacf7ae887",
+      "source_locator": "Table 3 CH2Cl2 Expt. kappa_T=104 x 10^-5 atm^-1; converted exactly with 1 atm=101325 Pa.",
+      "retrieved_utc": "2026-07-30T03:45:00Z"
+    },
+    {
+      "property": "surface_tension_newton_per_meter",
+      "origin": "independent_measurement",
+      "document_url": "https://mediatum.ub.tum.de/doc/1403533/file.pdf",
+      "document_sha256": "27d232471e89543d44b1b9811d0bdabe52c7ce0a2baecf09a351bbd6295f6542",
+      "source_locator": "Thesis Table 3.4, CH2Cl2 Expt. surface tension r=27.20 x 10^-3 N m^-1 at 298.15 K.",
+      "retrieved_utc": "2026-07-30T03:45:00Z"
+    }
+  ],
+  "no_target_policy": {
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "target_solvation_labels_used": false
+  },
+  "claim_boundary": "This record binds independent pure-liquid state anchors to the exact SCM-table-derived Amber MDL used by a future fixed-charge molecular-RISM calculation. It is not a finite-k molecular susceptibility/direct-correlation asset, a closure selection, a short-range solute interaction, a bridge, a liquid free-energy functional, a total solvation result, or an accuracy result.",
+  "not_claimed": [
+    "The fixed-charge molecular-RISM branch does not consume an optical dielectric constant; epsilon(infinity) remains a requirement only of the separate nonlocal-dielectric continuum control.",
+    "The scalar state and its compressibility zero mode do not determine C_ab(k), orientation-dependent liquid structure, or a molecular liquid functional.",
+    "This record does not admit the SCM source model as an AmberTools RISM asset, because generator/closure/long-range provenance and residual-converged finite-k correlations remain independent gates.",
+    "No MNSol, FreeSolv, development, confirmation, blind, or other target-solvation value was read to make this state record."
+  ]
+}

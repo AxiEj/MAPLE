@@ -1,0 +1,54 @@
+{
+  "protocol_id": "route2-v0-molecular-rism-bulk-state-prereg-v1",
+  "schema_version": 1,
+  "status": "preregistered-before-finite-k-molecular-liquid-assets",
+  "claim_boundary": "This contract isolates the scalar pure-liquid state required by the fixed-charge molecular-RISM branch. It is not a nonlocal-dielectric continuum state, finite-k liquid functional, total solvation calculation, force/PES result, or accuracy result.",
+  "construction": {
+    "module": "maple.function.calculator.extra_correction.implicit.route2_v0_molecular_rism_state_source",
+    "source_construction": "route2-v0-molecular-rism-bulk-state-source-v1",
+    "source_status": "source-only-molecular-rism-state-not-liquid-or-accuracy-admitted",
+    "rism_observable_state": "Fixed-charge RISM consumes T, molecular number density, and static epsilon(0). Pressure, compressibility, and surface tension are independent pure-liquid thermodynamic anchors. Optical epsilon(infinity) is deliberately absent because this branch has no separate solvent-electronic polarization variable.",
+    "nonlocal_continuum_separation": "The separate route2-v0-bulk-liquid-state-source-v1 retains epsilon(infinity) for a nonlocal-dielectric continuum control. Neither source record may manufacture a finite-k C_ab(k), a closure, or a total free energy.",
+    "zero_mode_constraint": "S_NN(0)=rho k_B T kappa_T=[1-rho c_NN(0)]^-1 fixes one projected scalar zero mode only; it does not identify a molecular site/orientational direct-correlation matrix."
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "target_solvation_labels_used": false,
+    "error_driven_property_selection": false,
+    "dielectric_only_total_free_energy": false,
+    "optical_dielectric_proxy_for_molecular_rism": false
+  },
+  "required_state_fields": [
+    "temperature_kelvin",
+    "pressure_bar",
+    "molecular_number_density_angstrom3",
+    "static_dielectric_constant",
+    "isothermal_compressibility_pa_inverse",
+    "surface_tension_newton_per_meter"
+  ],
+  "current_inventory": {
+    "source_only_molecular_rism_state_records": [
+      "route2-v0-molecular-rism-state-sources/dichloromethane-scm-adf-3drism-v1.json"
+    ],
+    "physical_molecular_rism_assets": [],
+    "decision": "The DCM record only locks independent scalar state to one exact source-model serialization. Its source model remains below finite-k correlation, generator-compatibility, common-scalar, force, eleven-solvent, and accuracy gates."
+  },
+  "required_before_molecular_liquid_or_total_free_energy": [
+    "one source-complete all-atom molecular model bound to the exact state-source digest",
+    "a residual-converged source-provenanced finite-k molecular susceptibility/direct-correlation asset from a generator compatible with that model",
+    "a frozen solvent-side short-range and dispersion interaction in the same stationary liquid scalar",
+    "a source-bound bridge/kernel/planar-interface certificate when a weighted-density bridge is used",
+    "one common stationary liquid free-energy, standard-state, force, and production grid/orientation contract"
+  ],
+  "validation_sequence": [
+    "Verify strict per-property provenance, exact model digest binding, units, physical limits, and explicit false no-target/no-training policy.",
+    "Cross-check exactly T, molecular number density, and epsilon(0) against a parsed fixed-charge rism1d input; never inject epsilon(infinity) into that RISM state equation.",
+    "Require finite-k C_ab(k), generator compatibility, source-defined closure/long-range convention, and residual convergence independently; do not infer them from any scalar state field.",
+    "Only after molecular-liquid, bridge, common-scalar, force, standard-state, grid/orientation, eleven-solvent, and blind-validation gates pass may a total-free-energy claim be evaluated."
+  ],
+  "decision_rule": "Any missing source, model mismatch, RISM-state mismatch, finite-k correlation, generator-compatibility evidence, structural gate, or accuracy gate rejects the candidate. It does not authorize a guessed property, optical-dielectric proxy, closure switch selected from solvation errors, proxy solvent, post-training, fine-tuning, solvation-label fitting, MAP/UQ calibration, response modification, or per-record model choice."
+}

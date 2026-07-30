@@ -84,11 +84,17 @@ def test_current_solvent_inventory_fails_closed_until_all_assets_exist():
         candidate["source_record"].endswith(".json") for candidate in source_only
     )
     assert all(candidate["generated_mdl"].endswith(".mdl") for candidate in source_only)
-    assert all(
-        "lacks independently source-bound bulk density/dielectric"
-        in candidate["not_an_admitted_asset"]
-        for candidate in source_only
+    source_only_by_solvent = {candidate["solvent"]: candidate for candidate in source_only}
+    assert "lacks independently source-bound bulk density/dielectric" in (
+        source_only_by_solvent["chloroform"]["not_an_admitted_asset"]
     )
+    dcm = source_only_by_solvent["dichloromethane"]
+    assert "separate source-only scalar bulk-state binding" in dcm[
+        "not_an_admitted_asset"
+    ]
+    assert any("fixed-charge molecular-RISM bulk-state record" in item for item in dcm[
+        "verified_source_chain"
+    ])
     for candidate in source_only:
         source_record = BENCHMARKS / candidate["source_record"]
         generated_mdl = BENCHMARKS / candidate["generated_mdl"]

@@ -64,9 +64,10 @@
         "hash-pinned SCM ADF 2026.1 3D-RISM documentation page and Table 12 locator",
         "explicit massive C, H, and Cl sites with all atomic positions, charges, sigma, and epsilon values from that table",
         "exact neutral molecular charge sum and source molecular-weight cross-check",
-        "deterministic Amber MDL serialization with no density, dielectric, closure, RISM, solute topology, or target-solvation-label input"
+        "deterministic Amber MDL serialization with no density, dielectric, closure, RISM, solute topology, or target-solvation-label input",
+        "separate source-only fixed-charge molecular-RISM bulk-state record, hash-bound to this exact generated MDL, with independently recorded T, p, density, static dielectric, compressibility, and surface tension"
       ],
-      "not_an_admitted_asset": "The record lacks independently source-bound bulk density/dielectric state, a frozen rism1d input/XVV/Cvv/thermodynamic two-run certificate, a MACE-native short-range source, a physical stationary liquid functional and force certification, the remaining default-solvent assets, and frozen chemistry maximum-error evidence."
+      "not_an_admitted_asset": "The record has a separate source-only scalar bulk-state binding but still lacks a frozen rism1d input/XVV/Cvv/thermodynamic two-run certificate, a MACE-native short-range source, a physical stationary liquid functional and force certification, the remaining default-solvent assets, and frozen chemistry maximum-error evidence."
     }
   ],
   "available_parser_control": {
@@ -129,5 +130,16 @@
     "status": "preregistered-contract-zero-physical-state-records",
     "physical_state_source_records": [],
     "not_an_admitted_asset": "A source-only state certificate can validate independent scalar anchors and their RISM T/density/static-dielectric cross-check. It cannot derive finite-k direct correlations, a closure, short-range interaction, bridge, liquid functional, total solvation free energy, force, or accuracy result."
+  },
+  "molecular_rism_bulk_state_source_contract": {
+    "protocol": "route2-v0-molecular-rism-state-prereg-v1.json",
+    "module": "maple.function.calculator.extra_correction.implicit.route2_v0_molecular_rism_state_source",
+    "status": "source-only-state-records-not-physical-molecular-rism-assets",
+    "source_only_state_records": [
+      "route2-v0-molecular-rism-state-sources/dichloromethane-scm-adf-3drism-v1.json"
+    ],
+    "physical_molecular_rism_assets": [],
+    "state_domain_boundary": "A fixed-charge molecular-RISM input cross-checks only T, molecular number density, and static epsilon(0). It has no separate solvent-electronic polarization variable, so epsilon(infinity) belongs only to the distinct nonlocal-dielectric continuum control. Neither state contract determines finite-k C_ab(k).",
+    "not_an_admitted_asset": "The DCM source-only scalar state record validates per-property provenance and exact MDL binding only. It cannot provide a residual-converged finite-k correlation, a closure, a short-range interaction, bridge, stationary liquid functional, total solvation free energy, force, or accuracy result."
   }
 }

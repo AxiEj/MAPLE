@@ -239,6 +239,53 @@ separately labelled electrostatic control until it is joined to one stationary
 molecular liquid scalar with the short-range, bridge, and standard-state
 terms.
 
+### 3.2 State-domain separation: fixed-charge molecular RISM versus a nonlocal dielectric control
+
+The full source-only record above retains the optical dielectric
+\(\epsilon_\infty\) because the separately labelled nonlocal-dielectric
+continuum control represents a macroscopic electronic-response limit.  That
+is **not** a requirement that can be imported into a fixed-charge molecular
+RISM model.  A fixed-charge site model has no independent solvent-electronic
+polarization degree of freedom: the bulk `rism1d` state it can cross-check is
+only
+
+\[
+(T,\rho_m,\epsilon_s),
+\]
+
+alongside independently recorded \(p,\kappa_T,\gamma\).  In particular, adding
+\(\epsilon_\infty\) to an Amber-style fixed-charge RISM input would not create
+a missing electronic mode, would not identify a closure, and would not turn
+scalar anchors into \(C_{ab}(k)\).
+
+`route2_v0_molecular_rism_state_source.py` therefore enforces a distinct,
+strict six-field source contract
+
+\[
+(T,p,\rho_m,\epsilon_s,\kappa_T,\gamma),
+\]
+
+with no optical-dielectric field.  It may test the same number-channel zero
+mode
+
+\[
+S_{NN}(0)=\rho_m k_{\rm B}T\kappa_T,
+\]
+
+and the `rism1d` \(T,\rho_m,\epsilon_s\) serialization only.  It cannot load,
+derive, or infer a finite-\(k\) correlation, orientational response,
+solute--solvent short-range interaction, bridge, stationary molecular scalar,
+or total free energy.  The initial
+[`route2-v0-molecular-rism-state-prereg-v1.json`](benchmarks/route2-v0-molecular-rism-state-prereg-v1.json)
+contains one **source-only** dichloromethane record bound to its exact
+SCM-table-derived AMBER MDL.  It is not a converged AmberTools asset and does
+not change the zero-admitted-asset or zero-accuracy-result status.
+
+This separation prevents two opposite category errors: treating a continuum
+optical limit as a fixed-charge RISM input, or treating a RISM static
+dielectric as a complete continuum spectrum.  Both branches remain
+fail-closed until their own finite-wavevector/functional requirements are met.
+
 ## 4. Nonpolar and structured-solvent candidates
 
 ### 4.1 Density-derived cavity plus weighted-density nonpolar free energy

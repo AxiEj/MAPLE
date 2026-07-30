@@ -1,0 +1,55 @@
+{
+  "artifact": "route2-v0-atomic-response-stationary-source-acetone-preflight-failure-v1",
+  "execution_git_head": "600c6c4c2a41c75084cd6b5ceaf9ecd989fca8d3",
+  "failure": {
+    "cause": "The V1 parent runner registered static gate names but indexed those names directly in the helper comparison record, whose deliberately shorter fields are mep_relative_frobenius, mep_relative_max_abs, and dipole_relative_frobenius.",
+    "exception_type": "KeyError",
+    "message": "static_mep_relative_frobenius"
+  },
+  "input_files_sha256": {
+    "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-bohr.npy": "84d922d165965e92978bfc99c8435fd384f53868d61959d368737e5fa946f023",
+    "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-provenance.json": "f6e8afaaba80b7c9e2940f173d9b141b3cd0c7a532bc7b933dd6f04ae5603617",
+    "docs/implicit-solvation/benchmarks/reproducers/route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc",
+    "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-prereg-v1.json": "7fae0d620038677c36e4b7b7eb67d4389b344bc73af0f27a2eb221b5ce233544",
+    "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.json": "fb385369e00bcd25b69dc8e6aadd169497acdce845fce6f60cbf9bc1584ee25a",
+    "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.npz": "a606cd7b2bf4a11d37e63ad1563c28fcf984eb8246c6adf07c98a33e5dd60f2b",
+    "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+    "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0"
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-prereg-v1.json",
+    "protocol_id": "route2-v0-atomic-response-stationary-source-acetone-prereg-v1",
+    "sha256": "d831001975ab42bf5aebe3a94a2829c4b9ad9ad17f243a8d78ed24eca085d723"
+  },
+  "result_handling": {
+    "candidate_definition_changed": false,
+    "density_grid_changed": false,
+    "final_registered_gate_values_accessed_or_decided": false,
+    "helper_output_preserved": true,
+    "source_points_changed": false,
+    "thresholds_changed": false,
+    "v1_final_artifact_written": false
+  },
+  "schema_version": 1,
+  "sealed_helper_output": {
+    "bytes": 5412,
+    "handling": "preserved byte-for-byte and not used for a gate decision or candidate selection",
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-helper-preflight-v1.json",
+    "sha256": "a982f42216301c3358cfee85589801bfe9d7e6140139a3f21fce9b924e2dbcab"
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/route2_v0_atomic_response_stationary_static_mep.py": "1c80ee9c1066c2652389de478065d910aac3d09dee4081e71357014255bf53be",
+    "docs/implicit-solvation/benchmarks/run_route2_v0_atomic_response_stationary_source_acetone.py": "dc2d1126d9325ebd7d3fc5f2f666b7585507650fc0090ffbdb0dfe49d72ed5f7",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_response.py": "9d6f2f3892b57e57ea3db6f70a350fbb81b2a0fad22414c58625f7f2b38bebd3",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_surface.py": "45a38c3d8875c0cc1cccf9ddefe82c019300a8af21db82e195e00c3389cc668b",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_response_stationary_source.py": "1139a8ba5ea70d8f18d06eeec4091675ebff302ec315426ca21ce1eaac8f1abc",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_response_kernel.py": "22e361c5852225aa733eb321f47986072090ef1d864e8808ad229099d4cb8268"
+  },
+  "stage": "parent-scientific-gate-key-lookup",
+  "status": "preflight-failed-after-helper-evaluation-no-final-gate-verdict-v1",
+  "successor_protocol": {
+    "forbidden_changes": "No candidate, source input, MACE moment input, density grid, QM comparator, point set, threshold, response, continuum, or experimental label change.",
+    "permitted_change": "Map each preregistered static gate name to the unchanged helper field name before indexing it.",
+    "protocol_id": "route2-v0-atomic-response-stationary-source-acetone-prereg-v2"
+  }
+}

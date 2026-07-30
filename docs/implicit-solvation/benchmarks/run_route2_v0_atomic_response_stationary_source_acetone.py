@@ -25,13 +25,17 @@ from typing import Any
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-ARTIFACT_ID = "route2-v0-atomic-response-stationary-source-acetone-v1"
+ARTIFACT_ID = "route2-v0-atomic-response-stationary-source-acetone-v2"
 PREREGISTRATION_PROTOCOL_ID = (
-    "route2-v0-atomic-response-stationary-source-acetone-prereg-v1"
+    "route2-v0-atomic-response-stationary-source-acetone-prereg-v2"
 )
 PREREG_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
-    "route2-v0-atomic-response-stationary-source-acetone-prereg-v1.json"
+    "route2-v0-atomic-response-stationary-source-acetone-prereg-v2.json"
+)
+PREFLIGHT_FAILURE_RELATIVE_PATH = (
+    "docs/implicit-solvation/benchmarks/"
+    "route2-v0-atomic-response-stationary-source-acetone-preflight-failure-v1.json"
 )
 RUNNER_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
@@ -105,6 +109,7 @@ INPUT_RELATIVE_PATHS = (
     POINTS_RELATIVE_PATH,
     POINTS_PROVENANCE_RELATIVE_PATH,
     RAW_QM_RELATIVE_PATH,
+    PREFLIGHT_FAILURE_RELATIVE_PATH,
 )
 DEFAULT_PREREGISTRATION = REPO_ROOT / PREREG_RELATIVE_PATH
 DEFAULT_PYSCF_PYTHON = Path("/home/axie/miniconda3/envs/maple/bin/python3.11")
@@ -172,6 +177,11 @@ SCIENTIFIC_GATE_NAMES = (
     "static_mep_relative_max_abs",
     "static_dipole_relative_frobenius",
 )
+SCIENTIFIC_GATE_HELPER_FIELDS = {
+    "static_mep_relative_frobenius": "mep_relative_frobenius",
+    "static_mep_relative_max_abs": "mep_relative_max_abs",
+    "static_dipole_relative_frobenius": "dipole_relative_frobenius",
+}
 
 
 def _parse_args() -> argparse.Namespace:
@@ -299,6 +309,11 @@ def _validate_preregistration() -> tuple[dict[str, Any], dict[str, str], str]:
         raise RuntimeError("The V0-ARSP numerical-gate schema changed.")
     if set(scientific) != {f"{name}_max" for name in SCIENTIFIC_GATE_NAMES}:
         raise RuntimeError("The V0-ARSP scientific-gate schema changed.")
+    revision = preregistration.get("protocol_revision")
+    if not isinstance(revision, dict) or revision.get("supersedes_protocol_id") != (
+        "route2-v0-atomic-response-stationary-source-acetone-prereg-v1"
+    ):
+        raise RuntimeError("The V0-ARSP V2 preflight provenance is invalid.")
     return preregistration, input_hashes, _sha256(DEFAULT_PREREGISTRATION)
 
 
@@ -527,11 +542,11 @@ def _helper_scientific_checks(
     if not isinstance(comparison, dict):
         raise RuntimeError("The V0-ARSP helper output omits the static comparison.")
     return {
-        name: _upper_check(
-            float(comparison[name]),
-            float(scientific_gates[f"{name}_max"]),
+        registered_name: _upper_check(
+            float(comparison[helper_name]),
+            float(scientific_gates[f"{registered_name}_max"]),
         )
-        for name in SCIENTIFIC_GATE_NAMES
+        for registered_name, helper_name in SCIENTIFIC_GATE_HELPER_FIELDS.items()
     }
 
 

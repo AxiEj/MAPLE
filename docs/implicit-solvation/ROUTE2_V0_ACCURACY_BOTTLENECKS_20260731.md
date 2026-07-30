@@ -122,7 +122,7 @@ rejected: despite representation and dipole compatibility gates passing, its
 Its rejected xTB field response remains excluded from \(C\), and no GFN2
 source may enter PCM/KKT or an accuracy test.  The live replacement candidate
 is the separately stationary atomic-response construction in
-[`ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md`](ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md); it has no result yet.
+[`ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md`](ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md). Its V1 parent runner stopped on a field-name mapping preflight after sealing, but not deciding, helper output; V2 preserves that evidence and reruns the unchanged source. It has no physical source verdict yet.
 
 Let:
 

@@ -133,4 +133,4 @@ source: relative Frobenius \(0.219999>0.20\) and relative maximum
 the rejected GFN2 field response, but do not alter its cores, coefficients,
 points, thresholds, response, or attach it to PCM/KKT.  The active replacement
 research item is V0-ARSP, a separately stationary atomic-response permanent
-source; it has no physics or accuracy result yet.
+source. Its V1 parent gate mapping failed after sealing helper output but before a final verdict; V2 leaves candidate and thresholds unchanged and reruns it. It has no physics or accuracy result yet.

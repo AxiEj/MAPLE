@@ -1,0 +1,117 @@
+{
+  "claim_boundary": "This one-acetone gas-phase source falsifier evaluates only the unchanged V0-ARSP permanent electron-number density: the frozen all-electron spherical atomic-HF reference, frozen V0-RK MACE-MDP moment completion, and exact support-stationary other-atom electrostatic dual. It compares that all-electron permanent potential and dipole with one hash-pinned omegaB97M-V/def2-TZVPD checkpoint at all 516 immutable exterior points. It invokes no continuum, PCM, cavity, solvation free energy, force, runtime comparison, experimental solvation label, new QM SCF, post-training, fine tuning, target fit, calibration, QEq, or charge-transfer fit. The real-space density nonnegativity canary is used without clipping or electron-count renormalization. This V2 successor repairs only V1 parent gate-key mapping after V1 stopped without a final registered verdict. A pass cannot establish chemical accuracy or a production PES.",
+  "decision_rule": "If any frozen-source identity, stationarity, density-conservation, real-space density-nonnegativity, QM-checkpoint, or all-point static-MEP/dipole gate fails, reject this exact unchanged V0-ARSP source. Do not alter atomic orbitals, occupations, transition selection, MACE moment inputs, density grid, source points, threshold, response, continuum, or use an experimental label. A pass admits only the same source to separately preregistered broad QM physics and same-basis common-scalar/KKT gates; it does not admit PCM, force/PES, speed, or solvation accuracy.",
+  "execution_contract": {
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-bohr.npy": "84d922d165965e92978bfc99c8435fd384f53868d61959d368737e5fa946f023",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-provenance.json": "f6e8afaaba80b7c9e2940f173d9b141b3cd0c7a532bc7b933dd6f04ae5603617",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-prereg-v1.json": "7fae0d620038677c36e4b7b7eb67d4389b344bc73af0f27a2eb221b5ce233544",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.json": "fb385369e00bcd25b69dc8e6aadd169497acdce845fce6f60cbf9bc1584ee25a",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.npz": "a606cd7b2bf4a11d37e63ad1563c28fcf984eb8246c6adf07c98a33e5dd60f2b",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-preflight-failure-v1.json": "fbd5ed5dca45a9550592be58ed6e5cc09306af0f431167e1515f27365fed5130",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0"
+    },
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/route2_v0_atomic_response_stationary_static_mep.py": "1c80ee9c1066c2652389de478065d910aac3d09dee4081e71357014255bf53be",
+      "docs/implicit-solvation/benchmarks/run_route2_v0_atomic_response_stationary_source_acetone.py": "a27f5f58845445664d2de7bd7649ce5a8116118c2b7489b55c40545e56048be9",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_response.py": "9d6f2f3892b57e57ea3db6f70a350fbb81b2a0fad22414c58625f7f2b38bebd3",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_surface.py": "45a38c3d8875c0cc1cccf9ddefe82c019300a8af21db82e195e00c3389cc668b",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_response_stationary_source.py": "1139a8ba5ea70d8f18d06eeec4091675ebff302ec315426ca21ce1eaac8f1abc",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_response_kernel.py": "22e361c5852225aa733eb321f47986072090ef1d864e8808ad229099d4cb8268"
+    }
+  },
+  "hard_constraints": {
+    "all_electron_atomic_reference_only": true,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "legacy_public_route_changed": false,
+    "mace_density_relabelled_as_electron_density": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "new_qm_scf_executed": false,
+    "post_training": false,
+    "qeq_or_fitted_charge_transfer_added": false,
+    "response_eigenvalue_clipping": false,
+    "response_rescaling_or_tempering": false,
+    "source_point_subset_selected_after_execution": false,
+    "target_fit_or_calibration": false
+  },
+  "numerical_gates": {
+    "maximum_atomic_mo_metric_max": 1e-10,
+    "permanent_density_electron_count_error_max": 1e-08,
+    "permanent_density_grid_minimum_electron_number_density_min": -1e-10,
+    "permanent_density_symmetry_error_max": 1e-10,
+    "qm_checkpoint_dipole_compatibility_max": 1e-08,
+    "qm_checkpoint_electron_count_error_max": 1e-07,
+    "qm_checkpoint_energy_compatibility_max": 1e-09,
+    "qm_checkpoint_geometry_max_abs_error_bohr_max": 1e-08,
+    "qm_checkpoint_mo_metric_max": 1e-07,
+    "qm_checkpoint_total_charge_max": 1e-07,
+    "reference_electron_count_error_max": 1e-08,
+    "stationarity_residual_inf_max": 1e-08,
+    "stationary_energy_identity_error_max": 1e-08,
+    "support_constraint_residual_inf_max": 1e-08
+  },
+  "protocol_id": "route2-v0-atomic-response-stationary-source-acetone-prereg-v2",
+  "protocol_revision": {
+    "candidate_definition_changed": false,
+    "density_grid_changed": false,
+    "preflight_failure": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-preflight-failure-v1.json",
+      "sha256": "fbd5ed5dca45a9550592be58ed6e5cc09306af0f431167e1515f27365fed5130"
+    },
+    "qm_comparator_changed": false,
+    "reason": "V1 parent runner completed its helper then raised KeyError while looking up registered static gate names directly in helper fields. V2 maps the unchanged registered names to the helper fields before indexing. The V1 helper output is retained but not used for a final decision or candidate selection.",
+    "response_or_continuum_added": false,
+    "scientific_thresholds_changed": false,
+    "sealed_unread_helper_output": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-response-stationary-source-acetone-helper-preflight-v1.json",
+      "sha256": "a982f42216301c3358cfee85589801bfe9d7e6140139a3f21fce9b924e2dbcab"
+    },
+    "source_points_changed": false,
+    "supersedes_protocol_id": "route2-v0-atomic-response-stationary-source-acetone-prereg-v1"
+  },
+  "qm_reference": {
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "maximum_scf_cycles": 100,
+    "nonlocal_grid_profile": "pyscf-official-50x194-sg1",
+    "phase": "gas",
+    "reference": "RKS",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3,
+    "spin": 0
+  },
+  "runtime_identity": {
+    "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+    "pyscf_python_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+    "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0",
+    "qm_ledger_sha256": "4143e5bfb6e603ea74acb7b0498dfd92c0bf4fdad104c798d57c4badecdc6213"
+  },
+  "schema_version": 1,
+  "scientific_falsification_gates": {
+    "static_dipole_relative_frobenius_max": 0.2,
+    "static_mep_relative_frobenius_max": 0.2,
+    "static_mep_relative_max_abs_max": 0.3
+  },
+  "source_definition": {
+    "atomic_reference": "Frozen spherical AtomSphAverageRHF H/C/N/O/S/Cl table; no effective core or fitted atom charge.",
+    "candidate": "n0(r)=sum_A n_A^HF(r-R_A)+sum_m x0_m tau_m(r), where b_m=integral tau_m[-V_nuc,other+J[n_other]] and x0=-C b on the exact V0-RK support; all densities are represented in the same frozen atom-centred def2-TZVPD AO-product space.",
+    "density_positivity_grid": {
+      "buffer_bohr": 5.0,
+      "construction": "Cartesian nuclear-coordinate bounding box plus buffer, evaluated without clipping, projection, or electron-count renormalization.",
+      "spacing_bohr": 0.4
+    },
+    "qm_comparator": "Hash-pinned all-electron gas-phase omegaB97M-V/def2-TZVPD RKS checkpoint; energy and permanent dipole must independently agree with frozen zero-field finite-field record.",
+    "response_completion": "Pre-existing V0-RK covariance completion uses only frozen MACE-MDP canonical dipole polarizability and audited atomic moment partition.",
+    "source_points": "All 516 frozen exterior QM-MEP points; no subset, cavity, surface, or continuum is built or selected."
+  },
+  "status": "frozen-before-execution",
+  "threshold_provenance": "V2 retains V1 unchanged: 0.20 global static-MEP/dipole and 0.30 maximum-MEP rejection scales; 1e-8 to 1e-10 algebraic identity gates; and a fixed nuclear-coordinate bounding box plus 5.0 bohr, 0.4 bohr-spaced Cartesian density grid with only a -1e-10 e/a0^3 floating-point floor. None was selected from V1 helper output."
+}

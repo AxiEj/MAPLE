@@ -16,9 +16,12 @@ are the independently frozen spherical atomic-HF table, the already admitted
 MACE-MDP **moment** covariance/partition, and exact AO Coulomb integrals.
 
 The next admissible result is a preregistered one-acetone *gas-phase* static
-MEP falsifier.  A pass remains only a source admission to a broad QM physics
-panel and same-basis continuum/KKT gate.  It cannot be presented as a
-solvation-accuracy result.
+MEP falsifier.  V1 preserved a helper output but stopped in its parent
+field-name mapping before a final registered gate verdict; that sealed output
+is not used to select the candidate or thresholds.  V2 changes only that
+name-to-field mapping and reruns the unchanged frozen source.  A pass remains
+only a source admission to a broad QM physics panel and same-basis
+continuum/KKT gate.  It cannot be presented as a solvation-accuracy result.
 
 ## 1. Why this construction is needed
 

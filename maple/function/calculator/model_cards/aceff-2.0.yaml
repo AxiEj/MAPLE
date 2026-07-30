@@ -18,6 +18,15 @@
     "checkpoint_and_repository": "Apache-2.0",
     "runtime": "torchmd-net package terms"
   },
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "blocked_pending_upstream_dtype_audit_and_cpu_gpu_parity",
+    "compute_dtype": "upstream_runtime_unspecified",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
   "capabilities": {
     "energy": true,
     "forces": true,

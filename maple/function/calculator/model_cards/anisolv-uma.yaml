@@ -1,0 +1,95 @@
+{
+  "model_id": "anisolv-uma",
+  "version": "uma-s-1p2-plus-anisolv-compact-energy-only-66f36dc",
+  "availability": "authenticated-base-plus-public-solvent-correction",
+  "audited": true,
+  "audit_scope": "sealed locally authorized UMA-S-1P2 compatibility checkpoint plus public AniSolv compact identity, scalar-energy composition, and solvent/electronic-state gates; upstream AniSolv forces are explicitly rejected and experimental free-energy accuracy is not certified",
+  "source": {
+    "base_potential": {
+      "repository": "https://github.com/facebookresearch/fairchem",
+      "checkpoint": "locally authorized UMA-S-1P2 compatibility checkpoint",
+      "checkpoint_sha256": "41d0354c9d8635859b13b05c719b39a368f158c638c0960380990c8455e094cb",
+      "access_note": "The upstream Hugging Face UMA release is access-controlled. MAPLE never downloads or bypasses it; the user must supply the already-authorized local compatibility checkpoint matching this hash."
+    },
+    "solvent_correction": {
+      "repository": "https://github.com/Ant-on-knee/anisolv",
+      "revision": "66f36dc7d4134c78b718255bb2abfed14482acb0",
+      "checkpoint_path": "models/model1_compact.pt",
+      "checkpoint_sha256": "b79be343c55a7cc06579aa4778753156bc71f99b3a00f046a270bc3427c1498f"
+    }
+  },
+  "composition": "U_UMA-S-1P2(R) + Delta_U_AniSolv-compact(R; solvent)",
+  "charge_range": [0, 0],
+  "spin_support": [1],
+  "solvent_scope": {
+    "mode": "multi",
+    "count": 21,
+    "reference_card": "anisolv-compact.yaml",
+    "evidence": "only the 21 solvent identifiers explicitly trained and validated by the upstream compact model card are enabled"
+  },
+  "energy_reference": "relative",
+  "supports_absolute_solvation": false,
+  "supports_free_energy": false,
+  "scientific_status": "single-point-energy-only-experimental",
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "blocked_pending_uma_default_and_anisolv_scalar_energy_cpu_gpu_parity",
+    "compute_dtype": "fairchem_predictor_base_precision_plus_upstream_anisolv",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
+  "force_consistency_evidence": {
+    "artifact": "docs/pretrained-solvation-hub/benchmarks/anisolv-compact-force-consistency-audit-2026-07-30.json",
+    "artifact_sha256": "44b095002282b80f5f4e9f8a16bbccded0f9bf105e020b8b8f243900c1edfb35",
+    "status": "rejected_orientation_dependent_upstream_forces"
+  },
+  "capabilities": {
+    "energy": true,
+    "forces": false,
+    "conservative_forces": false,
+    "hessian": "none",
+    "supports_md": false,
+    "supports_pbc": false,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": false,
+    "requires_topology": true,
+    "requires_partial_charges": false,
+    "solvation_mode": "additive",
+    "energy_reference": "relative",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "recommended_tasks": [
+    "single_point_scalar_solution_correction"
+  ],
+  "forbidden_tasks": [
+    "md",
+    "ts",
+    "irc",
+    "geometry_optimization",
+    "scan",
+    "frequency",
+    "hessian",
+    "force_evaluation",
+    "absolute_solvation_free_energy",
+    "alchemical_free_energy",
+    "binding_free_energy_without_sampling_and_thermodynamic_protocol",
+    "periodic_simulation",
+    "charged_system",
+    "open_shell_system",
+    "arbitrary_base_mlip_or_checkpoint",
+    "unvalidated_solvent_descriptor_extrapolation",
+    "experiment_accuracy_claim_without_identity_isolated_panel"
+  ],
+  "notes": [
+    "The exposed value is a paired geometry-level scalar solution correction, not a standard-state absolute solvation free energy.",
+    "The base potential is sealed to the hash-pinned, locally authorized UMA-S-1P2 compatibility checkpoint; custom checkpoint_path/model_path and D4 are disabled.",
+    "base_model_path and solvation_model_path are both mandatory and independently hash-checked before runtime construction.",
+    "solvation_model_path must point to the public AniSolv model1_compact.pt file and is verified against the pinned SHA256 before runtime construction.",
+    "The compact correction is restricted to neutral singlet, non-periodic molecules and to its upstream 21-solvent validation list.",
+    "Optimization, scans, transition-state/IRC work, frequencies, Hessians, and MD are disabled because exact-upstream AniSolv forces are not rotation-covariant at Euler-chart pole orientations."
+  ]
+}

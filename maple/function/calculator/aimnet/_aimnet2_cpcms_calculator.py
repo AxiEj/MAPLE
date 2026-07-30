@@ -161,6 +161,7 @@ class AIMNet2CPCMSCalculator(CalcABC):
         implicit: Literal["gbsa", "none"] = "none",
         solvent: str = "none",
         model_card_path: str | None = None,
+        execution_task: str | None = None,
     ):
         super().__init__()
 
@@ -222,6 +223,8 @@ class AIMNet2CPCMSCalculator(CalcABC):
             payload,
             model_name=OFFICIAL_IDENTITY["model_id"],
         )
+        self.model_provenance.validate_device(self.device, task=execution_task)
+        self.execution_task = execution_task
         self.capabilities = self.model_provenance.capabilities
         expected_checksum = DEFAULT_CHECKPOINT_SHA256
         actual_checksum = _sha256_for_path(self.model_path)

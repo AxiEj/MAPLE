@@ -23,6 +23,7 @@ from .model_capabilities import (
     MODEL_CARD_EXTENSIONS,
     ModelCardError,
     SolvationCapabilities,
+    is_explicit_cpu_device,
     load_model_provenance_card,
 )
 
@@ -45,6 +46,7 @@ _BUILTIN_NAME_TO_MODULE = {
     'maceoff23s': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23m': 'maple.function.calculator.mace._mace_calculator',
     'maceoff23l': 'maple.function.calculator.mace._mace_calculator',
+    'mace-off23-sc': 'maple.function.calculator.mace._maceoff23_sc_calculator',
     'mace-off24-medium': 'maple.function.calculator.mace._maceoff24_calculator',
     'egret': 'maple.function.calculator.mace._mace_calculator',
     'maceomol': 'maple.function.calculator.mace._mace_general_calculator',
@@ -54,6 +56,7 @@ _BUILTIN_NAME_TO_MODULE = {
     'aimnet2-cpcms-v2': 'maple.function.calculator.aimnet._aimnet2_cpcms_calculator',
     'aceff-2.0': 'maple.function.calculator.aceff._aceff2_calculator',
     'uma': 'maple.function.calculator.uma._uma_calculator',
+    'anisolv-uma': 'maple.function.calculator.uma._anisolv_uma_calculator',
 }
 
 
@@ -179,6 +182,43 @@ class SetCalculator:
             ) from exc
         card.validate_task(self.task)
 
+    def _validate_registered_model_acceleration(self, cls) -> None:
+        """Reject unverified Route 4 GPU paths before resolving model weights."""
+        model_names = tuple(getattr(cls, "MODEL_NAMES", ()))
+        if not model_names:
+            if is_explicit_cpu_device(self.device):
+                return
+            raise ValueError(
+                "Accelerator execution is disabled for a calculator without a "
+                "stable MODEL_NAMES identity and frozen no-loss CPU/GPU parity card."
+            )
+
+        canonical_name = str(model_names[0]).strip().lower().replace("_", "-")
+        card_root = self._model_card_root()
+        if not any(
+            (card_root / f"{canonical_name}{extension}").is_file()
+            for extension in MODEL_CARD_EXTENSIONS
+        ):
+            if is_explicit_cpu_device(self.device):
+                return
+            raise ValueError(
+                f"Accelerator execution for '{canonical_name}' is disabled: no frozen "
+                "no-loss CPU/GPU parity evidence card is registered."
+            )
+
+        try:
+            card = load_model_provenance_card(canonical_name, card_root)
+        except ModelCardError as exc:
+            raise ValueError(
+                f"Failed to load provenance card for model '{canonical_name}': {exc}"
+            ) from exc
+        card.validate_device(
+            self.device,
+            task=self.task,
+            inference_mode=self.model_options.get("inference"),
+            evidence_root=Path(__file__).resolve().parents[3],
+        )
+
     def _log_model_error(self, message: str) -> None:
         self._model_error_logged = True
         self.log_error(message)
@@ -194,11 +234,11 @@ class SetCalculator:
                 "Legacy method=gbsa is not a production implicit model. Use method=gb or method=pb "
                 "with explicit #charge(...), model, nonpolar, and profile selections."
             )
-        if self.implicit not in {'gb', 'pb', 'smd'}:
+        if self.implicit not in {'gb', 'pb', 'smd', 'anisolv'}:
             raise ValueError(
-                f"Unsupported implicit solvation method: {self.implicit!r}; choose gb, pb, or smd."
+                f"Unsupported implicit solvation method: {self.implicit!r}; choose gb, pb, smd, or anisolv."
             )
-        if self.solvent != 'water':
+        if self.implicit != 'anisolv' and self.solvent != 'water':
             raise ValueError("The first implicit-solvation release supports water only.")
         if self.solvation_options.get('experimental') is not True:
             raise ValueError(
@@ -225,6 +265,65 @@ class SetCalculator:
             raise ValueError("Implicit solvation requires one MOL2 molecule with explicit topology.")
         if self.implicit in {'gb', 'pb'} and not self.charge_options:
             raise ValueError("Implicit PB/GB requires an explicit #charge(...) configuration.")
+        if self.implicit == "anisolv":
+            if _compact_model_name(self.model) != "anisolvuma":
+                raise ValueError(
+                    "AniSolv compact is exposed only through the sealed "
+                    "#model=anisolv-uma composition."
+                )
+            if self.d4:
+                raise ValueError("AniSolv UMA does not compose D4.")
+            if self.charge_options:
+                raise ValueError(
+                    "AniSolv UMA does not consume a #charge(...) model; remove it."
+                )
+            if self.model_options.get("checkpoint_path") or self.model_options.get(
+                "model_path"
+            ):
+                raise ValueError(
+                    "AniSolv UMA uses a hash-pinned UMA-S-1P2 checkpoint; "
+                    "custom base-model checkpoint options are disabled."
+                )
+            if self.model_options.get("overrides") is not None:
+                raise ValueError(
+                    "AniSolv UMA uses an unmodified hash-pinned UMA-S-1P2 checkpoint; "
+                    "overrides are disabled."
+                )
+            if self.model_options.get("size") not in {None, "uma-s-1p2"}:
+                raise ValueError("AniSolv UMA is pinned to base size='uma-s-1p2'.")
+            task = self.model_options.get("task")
+            if task not in {None, "omol"}:
+                raise ValueError(
+                    "AniSolv UMA is molecular and requires task='omol' if specified."
+                )
+            if self.task not in {None, "sp"}:
+                raise ValueError(
+                    "AniSolv UMA supports scalar single-point energy only because "
+                    "upstream AniSolv forces are not rotation-covariant."
+                )
+            if self.model_options.get("hessian") is not None:
+                raise ValueError(
+                    "AniSolv UMA does not expose a Hessian or force-derived task; "
+                    "remove hessian=."
+                )
+            if not self.model_options.get("solvation_model_path"):
+                raise ValueError(
+                    "AniSolv UMA requires model option solvation_model_path=<official "
+                    "model1_compact.pt>."
+                )
+            if not self.model_options.get("base_model_path"):
+                raise ValueError(
+                    "AniSolv UMA requires model option base_model_path=<verified "
+                    "UMA-S-1P2 compatibility checkpoint>."
+                )
+            if self.atoms is not None:
+                charge = self.atoms.info.get("charge")
+                mult = self.atoms.info.get("mult")
+                if charge != 0 or mult != 1:
+                    raise ValueError(
+                        "AniSolv UMA is currently limited to explicit neutral-singlet "
+                        "atoms.info charge=0 and mult=1."
+                    )
         if self.implicit == 'smd':
             if _compact_model_name(self.model) != 'macepolm':
                 raise ValueError(
@@ -540,6 +639,7 @@ class SetCalculator:
         name = self.model
         self._validate_registered_model_task(cls)
         self._validate_model_options(cls)
+        self._validate_registered_model_acceleration(cls)
         self._validate_against_class(cls)
         options = dict(self.model_options)
         options.setdefault('d4', self.d4)
@@ -553,7 +653,11 @@ class SetCalculator:
         # is given and the requested size has a known HF fallback, prefer a
         # locally-cached MAPLE copy if present. Handle the coercion here so that
         # UMACalculator only receives clean kwargs.
-        if cls.__name__ == 'UMACalculator':
+        is_uma_class = cls.__module__.startswith('maple.function.calculator.uma.')
+        if is_uma_class:
+            from .uma._uma_calculator import UMACalculator
+
+        if is_uma_class and issubclass(cls, UMACalculator):
             from .uma._uma_calculator import UMACalculator, UMA_DEFAULT_SIZE, UMA_FALLBACK_HF_MODELS
 
             inference = options.get('inference')
@@ -572,7 +676,7 @@ class SetCalculator:
             elif resolved_model_path is not None:
                 checkpoint_path = str(resolved_model_path)
             effective_size = str(options.get('size')).lower() if options.get('size') else UMA_DEFAULT_SIZE
-            if checkpoint_path is None and effective_size in UMA_FALLBACK_HF_MODELS:
+            if cls is UMACalculator and checkpoint_path is None and effective_size in UMA_FALLBACK_HF_MODELS:
                 local_checkpoint = self._local_model_file(f'{effective_size}.pt')
                 if local_checkpoint is not None:
                     checkpoint_path = str(local_checkpoint)
@@ -580,6 +684,8 @@ class SetCalculator:
 
         resolved_path_str = str(resolved_model_path) if resolved_model_path is not None else None
         kwargs = cls.build_kwargs_from_options(name, options, resolved_model_path=resolved_path_str)
+        if "execution_task" in inspect.signature(cls.__init__).parameters:
+            kwargs["execution_task"] = self.task
 
         calculator = cls(
             device=self.device,
@@ -611,7 +717,7 @@ class SetCalculator:
 
         # PB/GB+numerical hessian is only allowed when the model provenance
         # card explicitly allows conservative combined energy/force workflows.
-        if self.implicit in {'gb', 'pb'} and mode == 'numerical':
+        if self.implicit in {'gb', 'pb', 'anisolv'} and mode == 'numerical':
             try:
                 model_card = load_model_provenance_card(self.model, self._model_card_root())
             except ModelCardError as exc:

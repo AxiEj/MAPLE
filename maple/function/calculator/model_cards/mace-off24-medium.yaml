@@ -18,6 +18,15 @@
     "runtime_code": "MIT",
     "checkpoint": "ASL academic-only non-commercial"
   },
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "blocked_pending_float64_cpu_gpu_energy_force_hessian_and_md_parity",
+    "compute_dtype": "float64",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
   "capabilities": {
     "energy": true,
     "forces": true,

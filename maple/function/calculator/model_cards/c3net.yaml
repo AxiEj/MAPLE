@@ -1,0 +1,49 @@
+{
+  "model_id": "c3net",
+  "version": "checkpoint-1",
+  "source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+  "source_url": "https://github.com/SehanLee/C3Net",
+  "paper": "https://arxiv.org/abs/2309.15334",
+  "license": "GPL-3.0 upstream source; MAPLE does not vendor or modify it",
+  "weight_artifacts": [
+    {
+      "source_path": "prediction/model/checkpoint-1.pth.tar",
+      "sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab"
+    },
+    {
+      "source_path": "module/input/embedding.pt",
+      "sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4"
+    }
+  ],
+  "input_contract": "one supplied three-dimensional SDF record, or one to five records for one neutral single-fragment solute aggregated by the paper's arithmetic-mean convention; elements H/C/N/O/F/P/S/Cl/Br/I",
+  "solvent_scope": "103 exact upstream solvent identifiers; no aliases; logp and pampa are excluded",
+  "prediction_unit": "kcal/mol",
+  "capabilities": {
+    "energy": false,
+    "forces": false,
+    "conservative_forces": false,
+    "hessian": "none",
+    "supports_md": false,
+    "supports_pbc": false,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": false,
+    "solvation_mode": "property_only",
+    "energy_reference": "unknown",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "forbidden_tasks": [
+    "sp",
+    "opt",
+    "scan",
+    "frequency",
+    "ts",
+    "irc",
+    "md",
+    "absolute_solvation_free_energy",
+    "alchemical_free_energy"
+  ],
+  "scientific_status": "property-prediction-only; published random-pair validation is not a MAPLE record-isolated acceptance panel; frozen dGsolvDB1 11-solvent development pilot fails the maximum-error gate",
+  "default_eligible": false
+}

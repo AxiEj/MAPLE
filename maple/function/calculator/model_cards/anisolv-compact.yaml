@@ -1,0 +1,100 @@
+{
+  "model_id": "anisolv-compact",
+  "version": "0.2.0-66f36dc",
+  "availability": "public-checkpoint",
+  "audited": true,
+  "audit_scope": "artifact identity, source-isolated public compact runtime, solvent whitelist, exact vacuum gate, and scalar single-point energy; upstream forces are explicitly rejected and experimental free-energy accuracy is not certified",
+  "source": {
+    "repository": "https://github.com/Ant-on-knee/anisolv",
+    "revision": "66f36dc7d4134c78b718255bb2abfed14482acb0",
+    "checkpoint_path": "models/model1_compact.pt",
+    "model_card": "https://huggingface.co/antonknee/anisolv"
+  },
+  "checkpoint_size_bytes": 25522563,
+  "checkpoint_sha256": "b79be343c55a7cc06579aa4778753156bc71f99b3a00f046a270bc3427c1498f",
+  "license": {
+    "repository_code": "MIT",
+    "checkpoint": "MIT; compact checkpoint is trained from scratch according to the upstream README"
+  },
+  "solvent_scope": {
+    "mode": "multi",
+    "count": 21,
+    "identifiers": [
+      "water", "acetone", "acetonitrile", "aniline", "benzaldehyde", "benzene",
+      "dichloromethane", "chloroform", "carbon disulfide", "1,4-dioxane",
+      "N,N-dimethylformamide", "dimethyl sulfoxide (DMSO)", "diethyl ether",
+      "ethyl ethanoate", "n-hexadecane", "n-hexane", "methanol", "nitromethane",
+      "1-octanol", "tetrahydrofuran", "toluene"
+    ],
+    "evidence": "upstream model card lists these 21 as trained and validated; additional descriptor-table entries are deliberately disabled"
+  },
+  "energy_reference": "relative",
+  "supports_absolute_solvation": false,
+  "supports_free_energy": false,
+  "scientific_status": "single-point-energy-only-experimental",
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "blocked_pending_cpu_gpu_scalar_correction_energy_parity",
+    "compute_dtype": "upstream_runtime_controlled",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
+  "force_consistency_evidence": {
+    "artifact": "docs/pretrained-solvation-hub/benchmarks/anisolv-compact-force-consistency-audit-2026-07-30.json",
+    "artifact_sha256": "44b095002282b80f5f4e9f8a16bbccded0f9bf105e020b8b8f243900c1edfb35",
+    "status": "rejected_orientation_dependent_upstream_forces"
+  },
+  "charge_range": [0, 0],
+  "spin_support": [1],
+  "electronic_state_scope_note": "the upstream API accepts charge and spin inputs, but the public compact checkpoint does not provide an auditable charged/open-shell validation panel; execution is fail-closed to neutral singlets",
+  "capabilities": {
+    "energy": true,
+    "forces": false,
+    "conservative_forces": false,
+    "hessian": "none",
+    "supports_md": false,
+    "supports_pbc": false,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": false,
+    "requires_topology": false,
+    "requires_partial_charges": false,
+    "solvation_mode": "additive",
+    "energy_reference": "relative",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "recommended_tasks": [
+    "single_point_scalar_solution_correction"
+  ],
+  "forbidden_tasks": [
+    "geometry_optimization",
+    "scan",
+    "transition_state_search",
+    "intrinsic_reaction_coordinate",
+    "frequency",
+    "hessian",
+    "force_evaluation",
+    "absolute_solvation_free_energy",
+    "binding_free_energy_without_sampling_and_thermodynamic_protocol",
+    "molecular_dynamics",
+    "periodic_simulation",
+    "unvalidated_solvent_descriptor_extrapolation",
+    "experiment_accuracy_claim_without_identity_isolated_panel"
+  ],
+  "known_benchmark_overlap": [
+    "unknown; complete upstream training-record manifest is unavailable"
+  ],
+  "notes": [
+    "The upstream public model computes a geometry-level additive E_solv - E_gas correction in eV and eV/angstrom.",
+    "MAPLE exposes only the scalar correction energy. Exact-upstream forces are disabled because pole-aligned edges in the Euler/Jd rotation chart produce orientation-dependent forces that disagree with central finite differences.",
+    "The upstream vacuum output gate returns exactly zero correction. MAPLE uses it only to define the paired gas/solution potential, not as proof of a converged absolute solvation free energy.",
+    "The upstream H2O_single_point.py comparison of raw correction energies with experiment and its one-water harmonic-cycle sample are illustrative only; neither is a MAPLE acceptance benchmark.",
+    "MAPLE's pinned six-row CPU/default reproduction of H2O_single_point.py is runtime smoke only. It does not calculate or report experimental errors, MAE, RMSE, maximum error, model ranking, or an accuracy verdict.",
+    "A physical RTX 4060 CPU/CUDA audit with matching float32 and float64 dtypes and all reduced-precision controls disabled found nonzero scalar-energy differences in both lanes. No experimental accuracy was calculated on the ineligible six-row panel; the negative artifact does not populate this card's GPU evidence fields, so accelerator execution remains blocked.",
+    "The optional full model1 weights are gated and FAIR-Chemistry-licensed; this adapter is pinned only to the bundled public model1_compact checkpoint.",
+    "Charge and multiplicity are explicit upstream API inputs, but accuracy coverage by electronic state has not been independently audited; MAPLE therefore rejects non-neutral or open-shell inputs."
+  ]
+}

@@ -5,17 +5,34 @@
   "source": {
     "repository": "https://github.com/jharrymoore/MACE-OFF23-SC",
     "revision": "efbb20c930462bc37a247998a27814dff35d474f",
+    "tree": "25c1aa63e7960b71c7a5c0b2d7be4739cf621c94",
     "checkpoint_path": "MACE-OFF23-SC_swa.model"
   },
   "protocol_source": {
     "repository": "https://github.com/jharrymoore/mace-md",
     "revision": "c3056287622ba18f9b905e9df45affdff46cb147",
+    "tree": "a0f401a102c5f1614174a6f7cd0e03d470c955f9",
     "lambda_parameter": "lambda_interpolate"
   },
   "checkpoint_sha256": "32c9fb51704f96da855c67e0cdc9894f3e41694e98b7a0ed8813388b9f21db33",
+  "elements": ["H", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I"],
+  "element_evidence": {
+    "contract": "atomic_numbers tensor embedded in the pinned checkpoint",
+    "atomic_numbers": [1, 6, 7, 8, 9, 15, 16, 17, 35, 53]
+  },
   "license": {
+    "runtime_code": "MACE MIT",
     "checkpoint": "ASL academic-only non-commercial",
     "protocol_runtime": "mace-md/openmm-ml/openmmtools terms apply separately"
+  },
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "cuda_runtime_verified_formal_experimental_accuracy_admission_pending",
+    "compute_dtype": "float64",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
   },
   "capabilities": {
     "energy": true,
@@ -27,26 +44,30 @@
     "supports_charge": false,
     "supports_multiplicity": false,
     "supports_multifragment": true,
-    "requires_topology": true,
+    "requires_topology": false,
     "requires_partial_charges": false,
-    "solvation_mode": "alchemical",
+    "solvation_mode": "none",
     "energy_reference": "relative",
     "supports_absolute_solvation": false,
-    "supports_alchemical_lambda": true
+    "supports_alchemical_lambda": false
   },
-  "scientific_status": "checkpoint-pinned-protocol-bridge-pending",
-  "recommended_tasks": [
-    "explicit-solvent alchemical control after mace-md protocol reproduction"
-  ],
+  "scientific_status": "full-coupling-pes-adapter-cpu-and-cuda-live-runtime-verified-cuda-formal-accuracy-admission-pending-protocol-bridge-pending",
+  "recommended_tasks": ["sp", "opt", "short_md"],
   "forbidden_tasks": [
-    "ordinary_maple_calculator",
-    "implicit_solvent",
     "frequency",
+    "implicit_solvent",
+    "absolute_solvation_free_energy",
+    "alchemical_free_energy",
     "free_energy_result_without_sampling_mbar_and_uncertainty",
-    "claiming_mace_off24_sc_paper_results"
+    "claiming_mace_off24_sc_paper_results",
+    "gpu_enablement_without_ten_functional_group_experimental_no_degradation"
   ],
   "notes": [
-    "The public checkpoint is MACE-OFF23-SC, not the OFF24-SC model used for some paper results.",
-    "The reference workflow uses OpenMM-ML interpolation, lambda_interpolate, replica exchange, and an MBAR-style multistate analysis; those optional runtimes are not integrated in this branch."
+    "The MAPLE adapter exposes only the official full-coupling explicit-system PES through the unchanged MACE float64 runtime.",
+    "The public checkpoint is MACE-OFF23-SC, not the MACE-OFF24-SC identity used by the later article result tables.",
+    "The separate mace-md workflow uses OpenMM-ML interpolation, replica exchange, and MBAR; those optional runtimes and the lambda path are not exposed by this adapter, whose solvation_mode is therefore none.",
+    "The official float64 CUDA runtime executed successfully on the controlled 192-atom water box and was about 2.9 times faster than CPU; MACE-OFF23-SC therefore supports GPU execution.",
+    "That diagnostic observed a 2.6193447411060333e-10 eV CPU/CUDA energy difference and a 1.0769163338864018e-14 eV/angstrom maximum force difference, but it contains no experimental labels and cannot decide chemical accuracy.",
+    "MAPLE keeps production CUDA selection fail-closed until at least 10 records spanning at least 10 distinct primary functional groups show no degradation against experiment; the block is an accuracy-admission gate, not missing GPU support."
   ]
 }

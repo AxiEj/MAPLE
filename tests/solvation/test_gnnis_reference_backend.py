@@ -183,6 +183,53 @@ def test_gnnis_reference_adapter_evaluates_full_reference_hamiltonian(
     assert runtime.calls[0].shape == (3, 3)
 
 
+def test_gnnis_reference_gpu_request_is_blocked_before_runtime_construction(
+    water_mol2, tmp_path, fake_runtime_factory, monkeypatch
+):
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    topology = TopologyProvider.from_mol2_atoms(atoms)
+    model_path, _ = _checkpoint(tmp_path)
+    monkeypatch.setattr(
+        gnnis_module, "_sha256", lambda _path: gnnis_module.GNNIS_CHECKPOINT_SHA256
+    )
+    fake_factory, _ = fake_runtime_factory
+
+    with pytest.raises(ValueError, match="no frozen no-loss CPU/GPU parity"):
+        GNNISReferenceBackend(
+            atoms,
+            atoms.get_initial_charges(),
+            topology,
+            model_path=str(model_path),
+            solvent="water",
+            device="cuda:0",
+            execution_task="sp",
+            runtime_factory=fake_factory,
+        )
+
+
+def test_gnnis_original_runtime_rejects_upstream_cuda_autoselection(
+    water_mol2, tmp_path, monkeypatch
+):
+    import torch
+
+    atoms = MOL2Reader(str(water_mol2), charge=0, mult=1)
+    topology = TopologyProvider.from_mol2_atoms(atoms)
+    model_path, _ = _checkpoint(tmp_path)
+    monkeypatch.setattr(
+        gnnis_module, "_sha256", lambda _path: gnnis_module.GNNIS_CHECKPOINT_SHA256
+    )
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+
+    with pytest.raises(RuntimeError, match="auto-selects CUDA"):
+        GNNISReferenceBackend(
+            atoms,
+            atoms.get_initial_charges(),
+            topology,
+            model_path=str(model_path),
+            solvent="water",
+        )
+
+
 def test_gnnis_reference_adapter_rejects_coordinate_topology_drift_and_pbc(
     water_mol2, tmp_path, fake_runtime_factory, monkeypatch
 ):
@@ -243,7 +290,9 @@ def test_gnnis_reference_model_card_declares_key_boundaries():
     assert content["checkpoint_sha256"].startswith("304a6cb2")
     assert content["capabilities"]["supports_absolute_solvation"] is False
     assert content["capabilities"]["supports_charge"] is False
+    assert content["gpu_acceleration"]["no_loss_parity_verified"] is False
     assert "arbitrary_mlip_gnnis_correction" in content["forbidden_tasks"]
+    assert any("openmoltools" in note for note in content["notes"])
 
 
 def test_gnnis_reference_rejects_declared_charge_mismatch(

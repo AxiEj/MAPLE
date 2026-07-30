@@ -30,6 +30,7 @@ from ..calculator_base import (
     reject_implicit_solvent_derivatives,
     register_calculator,
 )
+from ..model_capabilities import is_explicit_cpu_device
 
 
 UMA_DEFAULT_SIZE = "uma-s-1p1"
@@ -227,6 +228,11 @@ class UMACalculator(FAIRChemCalculator):
         checkpoint_path=None,
         inference_settings=None,
     ):
+        if not is_explicit_cpu_device(device):
+            raise ValueError(
+                "Accelerator execution for 'uma' is disabled: no frozen no-loss "
+                "CPU/GPU parity evidence card is registered."
+            )
         if size is not None:
             size = str(size).lower()
         checkpoint = UMA_MODELS_MAP.get(size, size) if size else UMA_MODELS_MAP.get(model, UMA_DEFAULT_SIZE)

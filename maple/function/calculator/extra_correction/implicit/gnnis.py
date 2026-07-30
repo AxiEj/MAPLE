@@ -16,7 +16,7 @@ from typing import Any, Callable, Mapping
 
 import numpy as np
 
-from ...model_capabilities import ModelCapabilities
+from ...model_capabilities import ModelCapabilities, load_model_provenance_card
 from .topology import CanonicalTopology, canonicalize_topology
 
 GNNIS_SOURCE_REVISION = "5f849bab475570aeaf129ec2e5672f4afbef6bbe"
@@ -24,6 +24,7 @@ GNNIS_CHECKPOINT_SHA256 = (
     "304a6cb2e1f804d30dcc4e1b135be1aa768074b4cb268ba26ee34acaa513e5f6"
 )
 GNNIS_REFERENCE_CARD = "maple/function/calculator/model_cards/gnnis-reference.yaml"
+GNNIS_MODEL_CARD_ROOT = Path(__file__).resolve().parents[2] / "model_cards"
 KJ_PER_MOL_PER_HARTREE = 2625.4996394799
 GNNIS_TOTAL_CHARGE_TOLERANCE = 1.0e-4
 GNNIS_PARTIAL_CHARGE_TOLERANCE = 1.0e-8
@@ -198,7 +199,23 @@ class _UpstreamOpenFFGNNISRuntime:
         device: str,
         forcefield: str,
     ) -> None:
-        del device  # upstream selects CPU/CUDA internally
+        if str(device).strip().lower() != "cpu":
+            raise ValueError(
+                "GNNIS original runtime is CPU-only until upstream accelerator "
+                "selection has frozen no-loss parity evidence."
+            )
+        try:
+            import torch
+        except ImportError as exc:
+            raise ImportError(
+                "GNNIS reference mode requires the upstream PyTorch runtime."
+            ) from exc
+        if torch.cuda.is_available():
+            raise RuntimeError(
+                "GNNIS original runtime is disabled in this process: the pinned "
+                "upstream helper auto-selects CUDA when visible, but no frozen "
+                "CPU/GPU parity evidence is admitted."
+            )
         try:
             helper = importlib.import_module("Simulation.helper_functions")
         except ImportError:
@@ -237,6 +254,21 @@ class _UpstreamOpenFFGNNISRuntime:
             constraints=None,
             num_confs=1,
         )._simulation
+        try:
+            platform_name = (
+                self._simulation.context.getPlatform().getName().strip().lower()
+            )
+        except (AttributeError, TypeError) as exc:
+            raise RuntimeError(
+                "GNNIS could not prove the active OpenMM platform; execution is "
+                "blocked rather than assuming CPU precision."
+            ) from exc
+        if platform_name not in {"cpu", "reference"}:
+            raise RuntimeError(
+                "GNNIS selected an unverified accelerator OpenMM platform "
+                f"{platform_name!r}; only CPU/Reference execution is admitted."
+            )
+        self.platform_name = platform_name
 
     def evaluate(self, positions_angstrom, *, need_forces: bool):
         from openmm import unit
@@ -281,6 +313,7 @@ class GNNISReferenceBackend:
     forcefield: str = "openff-2.0.0"
     runtime_factory: RuntimeFactory | None = None
     checkpoint_sha256: str = GNNIS_CHECKPOINT_SHA256
+    execution_task: str | None = None
 
     capabilities = ModelCapabilities(
         energy=True,
@@ -301,6 +334,10 @@ class GNNISReferenceBackend:
     )
 
     def __post_init__(self) -> None:
+        provenance = load_model_provenance_card(
+            "gnnis-reference", GNNIS_MODEL_CARD_ROOT
+        )
+        provenance.validate_device(self.device, task=self.execution_task)
         if self.solvent is None or not str(self.solvent).strip():
             raise ValueError(
                 "GNNIS reference mode requires an explicit solvent identifier."

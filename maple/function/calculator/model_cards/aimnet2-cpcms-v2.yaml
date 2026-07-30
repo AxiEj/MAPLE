@@ -13,7 +13,7 @@
   "checkpoint_size_bytes": 9280334,
   "checkpoint_sha256": "32f73fcd68e76f67a6e088841304ca0adc96066cca83216dd9ed992e9e4dec87",
   "license": {
-    "repository_code": "Apache-2.0",
+    "repository_code": "MIT",
     "checkpoint": "not separately stated"
   },
   "elements": ["H", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I"],
@@ -30,6 +30,15 @@
   "supports_absolute_solvation": false,
   "supports_free_energy": false,
   "scientific_status": "experimental",
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "blocked_pending_float32_cpu_gpu_energy_force_hessian_parity",
+    "compute_dtype": "float32",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
   "capabilities": {
     "energy": true,
     "forces": true,

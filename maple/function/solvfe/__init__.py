@@ -1,5 +1,28 @@
 """Utilities for pretrained solvent free-energy workflows."""
 
+from .c3net_property import (
+    C3NET_CHECKPOINT_SHA256,
+    C3NET_EMBEDDING_SHA256,
+    C3NET_SOLVENT_COUNT,
+    C3NET_SOURCE_REVISION,
+    C3NET_SOURCE_URL,
+    C3NET_SUPPORTED_ELEMENTS,
+    C3NetConfigError,
+    C3NetPropertyAdapter,
+    C3NetPropertyResult,
+    C3NetRuntimeError,
+)
+from .cigin_property import (
+    CIGIN_CHECKPOINT_SHA256,
+    CIGIN_SOURCE_REVISION,
+    CIGIN_SOURCE_URL,
+    CIGIN_SUPPORTED_ELEMENTS,
+    CIGINConfigError,
+    CIGINPropertyAdapter,
+    CIGINPropertyResult,
+    CIGINRuntimeError,
+)
+
 from .lsnn_protocol import (
     LSNNConfigError,
     LSNNMbarRequest,
@@ -16,6 +39,24 @@ from .lsnn_protocol import (
 )
 
 __all__ = [
+    "C3NET_CHECKPOINT_SHA256",
+    "C3NET_EMBEDDING_SHA256",
+    "C3NET_SOLVENT_COUNT",
+    "C3NET_SOURCE_REVISION",
+    "C3NET_SOURCE_URL",
+    "C3NET_SUPPORTED_ELEMENTS",
+    "C3NetConfigError",
+    "C3NetPropertyAdapter",
+    "C3NetPropertyResult",
+    "C3NetRuntimeError",
+    "CIGIN_CHECKPOINT_SHA256",
+    "CIGIN_SOURCE_REVISION",
+    "CIGIN_SOURCE_URL",
+    "CIGIN_SUPPORTED_ELEMENTS",
+    "CIGINConfigError",
+    "CIGINPropertyAdapter",
+    "CIGINPropertyResult",
+    "CIGINRuntimeError",
     "LSNNMbarRequest",
     "LSNNMbarResult",
     "LSNNConfigError",

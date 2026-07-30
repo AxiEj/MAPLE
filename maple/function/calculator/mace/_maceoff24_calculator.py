@@ -149,6 +149,7 @@ class MACEOFF24MediumCalculator(CalcABC):
         solvent: str = "none",
         model_card_path: str | None = None,
         calculator_factory: Callable[[str, str], object] | None = None,
+        execution_task: str | None = None,
     ) -> None:
         super().__init__()
         requested_model = (
@@ -196,6 +197,8 @@ class MACEOFF24MediumCalculator(CalcABC):
         card_path = MACE_OFF24_CARD
         card = _load_card(card_path)
         self.model_provenance = _validate_official_card(card)
+        self.model_provenance.validate_device(device, task=execution_task)
+        self.execution_task = execution_task
         self.capabilities = self.model_provenance.capabilities
         expected = MACE_OFF24_MEDIUM_SHA256
         actual = _sha256(checkpoint)

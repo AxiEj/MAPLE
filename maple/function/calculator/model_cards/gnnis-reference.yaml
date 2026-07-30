@@ -13,6 +13,15 @@
     "repository": "MIT-0 as stated by the upstream README",
     "checkpoint_license": "not-separately-stated"
   },
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "blocked_pending_upstream_device_control_and_cpu_gpu_energy_force_hessian_md_parity",
+    "compute_dtype": "upstream-controlled",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
   "capabilities": {
     "energy": true,
     "forces": true,
@@ -59,6 +68,8 @@
     "This adapter exposes the complete upstream OpenFF-2.0.0 plus GNNIS Hamiltonian, not an additive correction for an arbitrary MAPLE MLIP.",
     "The GNNIS term is physically additive, but solvation_mode=native describes the sealed executable reference composition and prevents a second solvent term.",
     "Energy offsets across chemical species are not certified, so absolute solvation free energies fail closed.",
-    "Current upstream runtime validation is restricted to neutral molecules; ionic solvation is rejected until dedicated smoke tests are complete."
+    "Current upstream runtime validation is restricted to neutral molecules; ionic solvation is rejected until dedicated smoke tests are complete.",
+    "The pinned upstream helper auto-selects CUDA whenever torch reports it visible. MAPLE therefore rejects accelerator requests and blocks the original runtime in CUDA-visible processes until frozen no-loss CPU/GPU parity is admitted.",
+    "2026-07-30 original-runtime audit: the clean pinned source import currently fails before simulation because openmoltools is absent; openff.toolkit and torch_geometric are also absent from every installed MAPLE environment. The adapter contract is unit-tested, but this is not a live 39-solvent upstream-runtime certificate."
   ]
 }

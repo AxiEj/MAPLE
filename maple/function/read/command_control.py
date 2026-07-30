@@ -661,8 +661,8 @@ class CommandControl:
                 )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
-            if method not in {"gb", "pb", "smd"}:
-                msg = "Implicit solvation method must be 'gb', 'pb', or 'smd'."
+            if method not in {"gb", "pb", "smd", "anisolv"}:
+                msg = "Implicit solvation method must be 'gb', 'pb', 'smd', or 'anisolv'."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
 
@@ -672,12 +672,15 @@ class CommandControl:
             raise ValueError(msg)
 
         if implicit is not None:
-            if method not in {"gb", "pb", "smd"}:
-                msg = "Implicit solvation requires method=gb, method=pb, or method=smd."
+            if method not in {"gb", "pb", "smd", "anisolv"}:
+                msg = (
+                    "Implicit solvation requires method=gb, method=pb, method=smd, "
+                    "or method=anisolv."
+                )
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
             implicit = str(implicit).lower()
-            if implicit != "water":
+            if method != "anisolv" and implicit != "water":
                 msg = "The first implicit-solvation release supports implicit=water only."
                 cls._log_error(output_path, msg)
                 raise ValueError(msg)
@@ -814,6 +817,97 @@ class CommandControl:
                     response=response,
                     standard_state=standard_state,
                 )
+            elif method == "anisolv":
+                if task != "sp":
+                    msg = (
+                        "AniSolv UMA is restricted to scalar single-point energy: "
+                        "upstream forces are not rotation-covariant, so optimization, "
+                        "scan, frequency, TS/IRC, MD, and free-energy tasks are disabled."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                model_name = str(params.get("model") or "").lower()
+                compact_model = re.sub(r"[-_ ()]", "", model_name)
+                if compact_model != "anisolvuma":
+                    msg = (
+                        "AniSolv compact is exposed only through the sealed "
+                        "#model=anisolv-uma composition."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if params.get("d4") is True:
+                    msg = "AniSolv UMA does not compose D4; remove #d4."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if "charge" in params:
+                    msg = (
+                        "AniSolv UMA does not consume a #charge(...) model; remove it. "
+                        "The common implicit-solvent input boundary supplies only explicit "
+                        "neutral-singlet metadata."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                model_options = params.get("model_options") or {}
+                allowed_model_options = {
+                    "base_model_path",
+                    "solvation_model_path",
+                    "size",
+                    "task",
+                    "inference",
+                }
+                model_conflicts = sorted(
+                    set(model_options).difference(allowed_model_options)
+                )
+                if model_conflicts:
+                    msg = (
+                        "AniSolv UMA accepts only base_model_path/solvation_model_path plus fixed-base "
+                        "size/task/inference options: "
+                        + ", ".join(model_conflicts)
+                        + "."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if not model_options.get("solvation_model_path"):
+                    msg = (
+                        "AniSolv UMA requires #model=anisolv-uma("
+                        "solvation_model_path=/path/to/model1_compact.pt)."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if not model_options.get("base_model_path"):
+                    msg = (
+                        "AniSolv UMA requires #model=anisolv-uma("
+                        "base_model_path=/path/to/verified-uma-s-1p2.pt,...)."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if model_options.get("size") not in {None, "uma-s-1p2"}:
+                    msg = "AniSolv UMA is pinned to size=uma-s-1p2."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if model_options.get("task") not in {None, "omol"}:
+                    msg = "AniSolv UMA is molecular and only permits task=omol."
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if int(params.get("verbose", 0)) >= 1:
+                    msg = (
+                        "AniSolv UMA SP gradients are disabled because upstream "
+                        "AniSolv forces are not rotation-covariant; use #sp(verbose=0)."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                allowed_anisolv_options = {"method", "implicit", "experimental"}
+                route_conflicts = sorted(
+                    set(solv_params).difference(allowed_anisolv_options)
+                )
+                if route_conflicts:
+                    msg = (
+                        "AniSolv UMA does not accept continuum/provider or endpoint options: "
+                        + ", ".join(route_conflicts)
+                        + "."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
             else:
                 cls._validate_charge(params, required=True, output_path=output_path)
                 charge = params["charge"]
@@ -921,6 +1015,12 @@ class CommandControl:
             elif method == "smd":
                 # Route 2 is calibrated separately from the fixed-charge path; keep the
                 # command contract explicit even though charge generation is not required.
+                pass
+            elif method == "anisolv":
+                # The sealed AniSolv compact adapter takes total electronic-state
+                # metadata, not user-supplied partial charges.  InputReader keeps the
+                # explicit neutral-singlet metadata requirement for the common implicit
+                # solvent boundary.
                 pass
 
             for key in ("grid_spacing", "probe_radius", "surface_tension", "pressure", "timeout"):

@@ -59,6 +59,24 @@ class SinglePoint(JobABC):
         if gas is None or delta is None or combined is None:
             return []
         provenance = solvation.get("provenance", {})
+        if solvation.get("quantity") == "geometry_level_solution_pmf":
+            return [
+                f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",
+                (
+                    "Geometry-level solvent correction W_solv(R) "
+                    "(not an absolute Delta G_solv): "
+                    f"{float(delta):.10f} Hartree\n"
+                ),
+                (
+                    "Combined effective solution PMF "
+                    "E_MLIP(gas)+W_solv(R): "
+                    f"{float(combined):.10f} Hartree\n"
+                ),
+                (
+                    "ASE free_energy is the combined solution-PMF value, "
+                    "not a thermochemical Gibbs free energy.\n"
+                ),
+            ]
         standard_state = provenance.get("standard_state", "provider-defined")
         return [
             f"Gas-phase MLIP energy: {float(gas):.10f} Hartree\n",

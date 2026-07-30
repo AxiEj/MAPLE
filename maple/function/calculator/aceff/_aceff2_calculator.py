@@ -156,6 +156,7 @@ class AceFF2Calculator(CalcABC):
         solvent: str = "none",
         model_card_path: str | None = None,
         calculator_factory: Callable[[str, str], object] | None = None,
+        execution_task: str | None = None,
     ) -> None:
         super().__init__()
         requested_model = (
@@ -197,6 +198,8 @@ class AceFF2Calculator(CalcABC):
         card_path = ACEFF2_CARD
         card = _load_card(card_path)
         self.model_provenance = _validate_official_card(card)
+        self.model_provenance.validate_device(device, task=execution_task)
+        self.execution_task = execution_task
         self.capabilities = self.model_provenance.capabilities
         actual = _sha256(checkpoint)
         if actual != ACEFF2_SHA256:

@@ -1,0 +1,45 @@
+{
+  "model_id": "cigin",
+  "version": "cigin.tar",
+  "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+  "source_url": "https://github.com/devalab/CIGIN",
+  "paper": "https://hai.iiit.ac.in/d4.html",
+  "license": "MIT upstream source; checkpoint license not separately stated",
+  "weight_artifacts": [
+    {
+      "source_path": "weights/cigin.tar",
+      "sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce"
+    }
+  ],
+  "input_contract": "two supplied neutral, radical-free, single-fragment canonical SMILES (solute and solvent); C/N/O/S/F/P/Cl/Br/I/Si only; upstream atom features permit degree at most four",
+  "solvent_scope": "the checkpoint syntactically accepts one solvent SMILES, but its exact multi-solvent training record manifest and coverage are not published",
+  "prediction_unit": "kcal/mol",
+  "capabilities": {
+    "energy": false,
+    "forces": false,
+    "conservative_forces": false,
+    "hessian": "none",
+    "supports_md": false,
+    "supports_pbc": false,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": false,
+    "solvation_mode": "property_only",
+    "energy_reference": "unknown",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "forbidden_tasks": [
+    "sp",
+    "opt",
+    "scan",
+    "frequency",
+    "ts",
+    "irc",
+    "md",
+    "absolute_solvation_free_energy",
+    "alchemical_free_energy"
+  ],
+  "scientific_status": "property-prediction-only; author-reported FreeSolv RMSE is not a MAPLE identity-matched benchmark; original upstream runtime is CPU-forced because its CUDA branch mixes CPU and CUDA tensors",
+  "default_eligible": false
+}

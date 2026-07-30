@@ -287,6 +287,42 @@ source-complete \(\Phi_s\) is available.  The preserved PBE0/RHF ddCOSMO
 preflight record distinguishes numerical stationarity from chemical accuracy;
 it does not authorize a FreeSolv or multi-solvent score.
 
+### 3.4 Implemented fixed-occupancy reaction block
+
+[`route2_v0_diffuse_continuum.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_diffuse_continuum.py)
+now implements the deliberately narrow electrostatic part of this scalar on a
+periodic Cartesian grid.  Given a **supplied** smooth occupancy \(m\), it uses
+the same finite-volume operator for both fields,
+
+\[
+A_\epsilon\phi_\epsilon=4\pi\rho,\qquad
+A_\epsilon=-\nabla_h\!\cdot\!\left(\epsilon_f\nabla_h\right),\qquad
+\epsilon_f=\tfrac12(\epsilon_i+\epsilon_j),
+\]
+
+and reports only
+
+\[
+G_{\rm reac,h}=\tfrac12\Delta V\,\rho^\mathsf T
+(\phi_\epsilon-\phi_1).
+\]
+
+Its returned reaction potential is the density derivative of that exact
+discrete scalar.  Its returned \(m\)-derivative is the envelope derivative of
+the same scalar; it contains no response solve or separately chosen force
+term.  A non-neutral periodic density fails closed rather than receiving an
+unphysical neutralizing background.
+
+The accompanying
+[`test_route2_v0_diffuse_continuum.py`](../../tests/solvation/test_route2_v0_diffuse_continuum.py)
+locks the structural claims: homogeneous-dielectric scaling against the same
+discrete vacuum operator, reciprocal reaction pairings, passive reaction
+energy, density finite-difference conjugacy, and occupancy-envelope
+finite-difference conjugacy.  This is **not** a total V0-AQ-C calculation:
+\(m\) is not yet stationary, there is no auxiliary electronic minimization,
+and \(\Phi_s\) is absent.  Accordingly the implementation cannot emit a
+solvation free energy, force certificate, or accuracy value.
+
 ## 4. Archived molecular-liquid completion: V0-AQ-L
 
 The full V0-AQ-L branch replaces the PCM control with a molecular liquid

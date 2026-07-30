@@ -127,6 +127,17 @@ This is only inner pure-liquid mathematical evidence: it has no physical
 solvent source, planar interface, surface-tension result, total-solvation
 calculation, force/PES result, or accuracy claim.
 
+The corresponding planar restriction is now implemented as a separate
+synthetic control.  It embeds a \((z,\Omega)\) profile into the exact
+Cartesian--full-\(SO(3)\) scalar, reduces the gradient by the matched
+transverse quadrature average, and uses an equimolar molecular-count constraint
+only to follow a periodic two-interface branch.  It rejects a surviving
+Lagrange multiplier or transverse nonuniformity, and its local delta-kernel
+control returns zero surface excess rather than inventing a positive tension.
+This verifies the common-scalar planar algebra only.  It does **not** add a
+physical liquid source, a source-bound physical certificate, an outer
+surface-tension root, or any FreeSolv/MNSol/accuracy result.
+
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental
 `mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening

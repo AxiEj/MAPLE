@@ -65,6 +65,8 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
     assert "float64/grid digests for D and K" in requirements
     assert "homogeneous liquid/gas coexistence evidence" in requirements
     assert "B_low/B_root/B_high" in requirements
+    assert "stationary full-SO(3) planar residuals" in requirements
+    assert "zero constraint multiplier" in requirements
     assert "explicit evidence scope" in requirements
     assert (
         "parsed route2-v0-pure-solvent-bridge-certificate-v1"
@@ -102,6 +104,8 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
     assert "same-functional vacuum-limit pressure" in sequence
     assert "Hessian reciprocity" in sequence
     assert "homogeneous liquid/gas phase gate" in sequence
+    assert "exact embedding of the full Cartesian-Euler scalar" in sequence
+    assert "full/transverse residuals" in sequence
     assert "do not infer gamma uniqueness" in sequence
     assert "external-blind maximum-error gates" in sequence
     assert "post-hoc PC+" in protocol["decision_rule"]

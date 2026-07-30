@@ -39,7 +39,7 @@
       "exact SI-to-atomic-unit pressure and surface-tension identities",
       "all frozen solvent-source hashes plus canonical float64/grid digests for D and K",
       "same-scalar homogeneous liquid/gas coexistence evidence at every inner continuation point: zero external potential, full-gradient residuals, uniformity residuals, positive curvatures, selected low-density branch, and the signed grand-potential-density gap",
-      "B_low/B_root/B_high with C_low<0, C_root approximately zero, C_high>0 and positive same-scalar envelope derivatives; then any outer kernel-length bracket, stationary planar residuals, interface count, transverse area, and coarse/fine grid convergence",
+      "B_low/B_root/B_high with C_low<0, C_root approximately zero, C_high>0 and positive same-scalar envelope derivatives; then any outer kernel-length bracket, stationary full-SO(3) planar residuals, zero constraint multiplier, transverse-gradient residual, interface count, transverse area, and coarse/fine grid convergence",
       "explicit evidence scope: v1 synthetic-control only; a future physical-pure-liquid-admission schema must retain nested coexistence-continuation and constrained-planar evidence",
       "statement that no MNSol, FreeSolv, development, confirmation, or blind solvation values were read"
     ],
@@ -71,7 +71,7 @@
     "Verify the cubic coefficient from P_HNC and P_s exactly restores the declared same-functional vacuum-limit pressure.",
     "Verify the exact no-solute homogeneous liquid/gas phase gate: zero external potential, full configuration-space stationarity, gradient uniformity, positive curvatures, and grand-potential-density coexistence. Then determine the cubic-plus-quartic B_s only from a negative-to-positive same-scalar coexistence-gap continuation with positive envelope derivative. Do not treat the vacuum-limit pressure identity as coexistence.",
     "Verify bridge scalar, gradient, Hessian-vector action, Hessian reciprocity, and scalar second derivative by finite differences before any solvent asset is admitted.",
-    "For a remaining kernel length, verify a source-frozen stationary planar branch only after the inner B_s coexistence continuation; retain outer endpoint/root/residual/grid evidence plus a predeclared branch-selection rule, and do not infer gamma uniqueness from a positivity-only envelope argument.",
+    "For a remaining kernel length, verify a source-frozen stationary planar branch only after the inner B_s coexistence continuation. Its (z,SO(3)) restriction must be an exact embedding of the full Cartesian-Euler scalar, retain zero constraint multiplier, full/transverse residuals, outer endpoint/root/grid evidence, and a predeclared branch-selection rule; do not infer gamma uniqueness from a positivity-only envelope argument.",
     "For each physical solvent, verify the frozen pure-liquid planar-interface/surface-tension certificate before any target-solute label is read.",
     "Verify the full HNC-plus-bridge stationary liquid scalar, stability, forces, grid/orientation convergence, standard state, and 11-solvent asset panel before chemistry scoring.",
     "Apply the already frozen all-record development, confirmation, and external-blind maximum-error gates without any bridge, kernel, or liquid-asset change."

@@ -109,6 +109,18 @@ gap**, not \(d\gamma/dB_s\).  If a Gaussian width remains unknown, the future
 outer root must solve \(\gamma(B_s^*(\sigma_s),\sigma_s)=\gamma_s\) only
 after this inner gate, retaining every coexistence and planar branch point.
 
+The inner result now feeds an exact **control** planar restriction rather than
+a new 1D surrogate: \(\nu(x,y,z,\Omega)\) is constrained only to be invariant
+in \(x,y\), retaining the complete Euler \(SO(3)\) quadrature at each \(z\).
+The reduced gradient is the exact transverse-average derivative of the same
+scalar.  A fixed equimolar molecule count can stabilize a periodic slab
+numerically, but it is accepted only if the associated multiplier and full
+unconstrained residual both return to zero.  The synthetic local control has
+zero surface excess, which is the required negative control.  This makes the
+planar algebra auditable, not physical: a source-bound all-atom correlation,
+outer length-scale branch, grid/orientation convergence, and physical
+certificate are still absent.
+
 ## Next evidence needed before any accuracy assertion
 
 1. Produce one physical, closure-aligned HNC source with a reproducible

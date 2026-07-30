@@ -1878,6 +1878,48 @@ The tempting expression \(A^{-1}\int\bar\rho^2(\bar\rho-\rho_b)^4\) omits
 both finite-density gas and liquid bulk terms and is not a proof of
 monotonicity or uniqueness.
 
+The planar restriction itself must retain every molecular orientation.  On an
+exact Cartesian--Euler product quadrature with normal coordinate \(z\), write
+the full configuration density as \(\nu_{i_x i_y i_z o}\), where \(o\) ranges
+over the unchanged full-\(SO(3)\) rule.  The admitted restricted variable is
+only
+
+\[
+\nu_{i_x i_y i_z o}=n_{i_z o},
+\]
+
+not a scalar \(n(z)\), one preferred solvent pose, or an independently
+discretized 1D model.  If \(E\) denotes that exact replication map, then
+
+\[
+\Omega_{\rm pl}[n]=\Omega[En],\qquad
+g_{\rm pl}(i_z,o)=\frac{1}{N_xN_y}
+\sum_{i_x,i_y}g(En)_{i_xi_yi_zo}.
+\]
+
+With the corresponding reduced quadrature weights, this is the exact
+restricted derivative of the full scalar.  A numerical slab can hold the
+equimolar molecular-centre count \(N[n]=N_*\) with
+
+\[
+g_{\rm pl}+\beta\lambda=0.
+\]
+
+That constraint is **not** an extra liquid term.  The resulting profile is
+admitted as an interface only when the constraint multiplier, the restricted
+residual, the full scalar residual, and the discarded transverse-gradient
+residual all vanish within frozen tolerances.  The equimolar lever rule fixes
+\(V_\ell,V_g\), and the displayed \(\gamma\) formula then subtracts both
+same-scalar bulk branches.  The periodic molecular-centre profile must also
+show the declared (normally two) liquid/gas threshold crossings.
+
+`route2_v0_molecular_planar_interface.py` now implements this exact
+full-\(SO(3)\) embedding and fixed-count Picard control.  Its synthetic
+delta-kernel negative control is stationary with a numerically zero surface
+excess, as it must be: the control proves the restricted pairing and rejects a
+nonzero multiplier, but it neither supplies a physical correlation nor creates
+a surface-tension or solvation-accuracy result.
+
 If a remaining pure-liquid kernel length \(\sigma_s\) is to be determined
 from independently sourced \(\gamma_s\), the allowed construction is
 **nested**, not a direct \(B_s\)-to-\(\gamma\) fit:
@@ -1909,11 +1951,11 @@ the branches are differentiable,
 \]
 
 which explicitly shows why the old positive integrand cannot be used as a
-planar-tension derivative.  Until that constrained planar solver exists, a
-certificate may not claim a physical root merely by varying \(B_s\) against
-\(\gamma_s\); it may only record the inner homogeneous evidence.  Neither
-inner nor outer construction may select a root from a solute cavity or
-solvation error.
+planar-tension derivative.  The implemented planar layer is presently a
+synthetic control only; until a **source-bound physical** constrained planar
+solve and its v2 certificate exist, a certificate may not claim a physical
+root merely by varying \(B_s\) against \(\gamma_s\).  Neither inner nor outer
+construction may select a root from a solute cavity or solvation error.
 
 The positive quartic coefficient $B_s$ and $K$ remain admissible only through
 this content-addressed **pure-solvent** construction using frozen bulk

@@ -1,0 +1,169 @@
+{
+  "artifact": "route2-v0-gfn2-molden-permanent-source-acetone-v2",
+  "candidate": {
+    "construction": "route2-v0-gfn2-molden-permanent-source-v1",
+    "electronic_method": "GFN2-xTB",
+    "parameter_file_sha256": "f6f05c6c5264cb2f75c54f8ac6838044541c1e493b16f1a4d4ee4fa64de5f545",
+    "scope": "zero-field-permanent-source-only-not-xtb-response-v1",
+    "xtb_version": "6.7.1 (edcfbbe)"
+  },
+  "claim_boundary": "This is a zero-field GFN2-xTB MOLDEN permanent-source round-trip only. It does not admit xTB response, a PCM calculation, a cavity, a force, a solvation energy, a runtime claim, or an experimental accuracy claim.",
+  "decision": {
+    "rule": "A passing round trip proves only that the zero-field GFN2 MOLDEN AO density and effective cores reconstruct the xTB permanent source. Do not reuse the rejected xTB external-field response or run a PCM/accuracy calculation. The next required gate is a frozen QM static-MEP comparison, followed by an all-electron cavity-density completion.",
+    "verdict": "admit-only-to-preregistered-static-qm-mep-source-gate"
+  },
+  "execution_git_head": "b0a4a52617e86dae619383d74814d896eccb8755",
+  "hard_constraints": {
+    "experimental_solvation_labels_read": false,
+    "external_embedding_disabled": true,
+    "field_step_or_pair_distance_selection_after_execution": false,
+    "fine_tuning": false,
+    "gas_phase_gfn2_xtb_only": true,
+    "legacy_public_route_changed": false,
+    "no_runtime_qm_in_candidate": true,
+    "post_training": false,
+    "response_rescaling_or_eigenvalue_clipping": false,
+    "target_fit_or_calibration": false,
+    "xtb_builtin_solvation_disabled": true,
+    "xtb_field_response_used": false
+  },
+  "input_files_sha256": {
+    "docs/implicit-solvation/benchmarks/reproducers/route2-v0-gfn2-molden-permanent-source-acetone-v1/acetone.xyz": "d316df7075729d5327e181f2c447155335b3d9efb7839b5e2b57af816e895cbf",
+    "gfn2_parameter_file": "f6f05c6c5264cb2f75c54f8ac6838044541c1e493b16f1a4d4ee4fa64de5f545",
+    "xtb_binary": "debf27a9e0fa4bfb5ca75aafe4b90d8211f08ec2f4a482f375a4987212eaa12a"
+  },
+  "numerical_gates": {
+    "dipole_round_trip_e_bohr_max": 1e-06,
+    "effective_charge_absolute_max": 5e-08,
+    "mo_metric_relative_operator_max": 5e-08,
+    "valence_electron_count_absolute_max": 5e-08
+  },
+  "permanent_source_round_trip": {
+    "ao_count": 22,
+    "dipole_round_trip_error_e_bohr": 6.163250724448719e-09,
+    "effective_core_charges_e": [
+      4.0,
+      4.0,
+      6.0,
+      4.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "mo_metric_error": 2.600774111135364e-10,
+    "molden_sha256": "6f114e412b4d620bf0f3f6bc63dde1242db660bb5c0925827d56d35b6fc4db03",
+    "reconstructed_total_dipole_e_bohr": [
+      -0.2346253521611974,
+      1.166225845964492,
+      -0.6426650641266889
+    ],
+    "reported_total_dipole_e_bohr": [
+      -0.23462535,
+      1.16622585,
+      -0.64266506
+    ],
+    "stdout_sha256": "805fa47bd0d5a9ede7a3649de27b8e500499964a7aa098f9d7f4dd1e794ebaac",
+    "total_effective_charge_e": 9.317204785475042e-10,
+    "valence_electron_count_e": 23.99999999906828,
+    "valence_electron_count_error_e": 9.317204785475042e-10,
+    "xtbout_json_sha256": "d0fc9a02a480db6ba5b424739634b816d2d4196b7f131dc35f32c3f16ad568eb"
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2.json",
+    "sha256": "3d266ce9a07cbe5adcdd0499d754c68dff95c3a6b41c5f68e796de8e1143b74d"
+  },
+  "runtime": {
+    "command": [
+      "/home/axie/xtb/xtb-dist/bin/xtb",
+      "acetone.xyz",
+      "--gfn",
+      "2",
+      "--parallel",
+      "1",
+      "--molden",
+      "--json"
+    ],
+    "elapsed_seconds": 0.015664243008359335,
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "returncode": 0,
+    "work_dir": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-v2-b0a4a52"
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_route2_v0_gfn2_molden_permanent_source_acetone.py": "78bc67c1b91b606c85df1895845eb30e13d4be052179cab594f2235c4b115bc8",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_gfn2_molden_permanent_source.py": "bc00ad2fedfb43d17e74a3048a2715bb75d96a3b1b57d76752bc4b23384aab73"
+  },
+  "status": "pass",
+  "system": {
+    "atom_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "compound_id": "mobley_3867265",
+    "geometry_sha256": "d316df7075729d5327e181f2c447155335b3d9efb7839b5e2b57af816e895cbf",
+    "name": "acetone",
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ]
+  }
+}

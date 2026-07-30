@@ -1,0 +1,49 @@
+{
+  "protocol_id": "route2-v0-response-kernel-completion-prereg-v1",
+  "schema_version": 1,
+  "status": "structural-kernel-implemented-before-source-bound-response-data",
+  "claim_boundary": "This protocol implements only the algebraic completion of a pre-existing, independently source-bound density-response covariance. Unit tests use synthetic matrices. No physical response-kernel asset, MACE production calculation, PCM calculation, QM solvent-physics calculation, force, PES, solvation free energy, or experimental accuracy result is performed.",
+  "construction": {
+    "name": "route2-v0-response-kernel-completion-v1",
+    "baseline": "C0 is supplied by the caller in one declared coefficient/dual pairing and must be symmetric positive semidefinite with exact neutral response C0 q = 0.",
+    "moment_constraint": "A maps density coefficients to stacked atomic dipoles; W maps a molecular dipole to the same stacked atomic convention with G W = I. The frozen target covariance is Gamma = W alpha_theta W^T.",
+    "completion": "For S0 = A C0 A^T positive definite and L = C0 A^T S0^-1, C = C0 - L S0 L^T + L Gamma L^T. It preserves C >= 0, A C A^T = Gamma, M C M^T = alpha_theta, and C q = 0.",
+    "scalar": "On Ran(C), F_RK(dc) = 0.5 dc^T C^+ dc gives dc/df = -C. Kernel-null modes are exact constraints, not large-curvature or eigenvalue-clipping repairs."
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "response_eigenvalue_clipping": false,
+    "response_tempering_or_rescaling": false,
+    "radial_width_selected_from_error": false,
+    "physical_response_kernel_execution": false,
+    "physical_continuum_execution": false,
+    "experimental_solvation_labels_read": false
+  },
+  "required_structural_gates": [
+    "C0 is symmetric positive semidefinite and has exact charge-neutral response in the declared coefficient/dual pairing.",
+    "The baseline atom-dipole covariance S0 = A C0 A^T is positive definite; a singular S0 is rejected rather than pseudoinverted.",
+    "The frozen atomic partition sums exactly to the molecular dipole.",
+    "The completed C is symmetric positive semidefinite and exactly preserves charge neutrality, atomic covariance, and molecular polarizability.",
+    "The curvature is the Moore-Penrose inverse only on the declared support; the total-charge row plus returned independent null rows span every null response mode exactly.",
+    "A future same-basis KKT must bind C, C^+, c0, and the physical continuum to one scalar before any physics or accuracy calculation."
+  ],
+  "forbidden_shortcuts": [
+    "Do not invent C0 from the rejected MACE fixed point, a Gaussian or radial width, an error-selected atom partition, or a continuum receiver map.",
+    "Do not use a pseudoinverse to repair a singular baseline atom covariance or clip a negative response eigenvalue.",
+    "Do not select any kernel, cavity, continuum, radius, dispersion term, or numerical rank from FreeSolv, MNSol, or another solvation error.",
+    "Do not call a per-molecule runtime QM response oracle a faster production Route-2 method without an end-to-end speed certificate.",
+    "Do not call this structural kernel a physical response model, a PCM result, a force/PES result, or an accuracy result."
+  ],
+  "physical_binding_required_before_any_accuracy_run": [
+    "An immutable, independently source-bound C0 with coefficient/dual, geometry, charge, and rigid-motion provenance.",
+    "A same-basis permanent source c0 and energy-conjugate smooth continuum with complete coordinate derivatives.",
+    "The frozen twelve-record, ten-actual-functional-group QM density, MEP, induced-dipole, reaction-potential, force, and runtime gates without experimental solvation labels.",
+    "Source-complete physical solvent assets for the requested multi-solvent and custom-solvent protocol.",
+    "The immutable historical FreeSolv10 all-record maximum-error test, then broad development, confirmation, and disjoint blind experimental panels."
+  ],
+  "decision_rule": "Failure of any source, symmetry, positivity, support, common-scalar, force, runtime, physical-solvent, or all-record accuracy gate rejects the candidate. It never authorizes fitting, retraining, calibration, response modification, radial-width selection, cavity/radius tuning, or per-record model selection."
+}

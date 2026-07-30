@@ -311,6 +311,20 @@ itself a valid \(D\): its current MACE density embedding preserves a frozen
 `l<=1` density but does not prescribe how a molecular induced dipole is
 distributed across that density.
 
+## Full response-kernel fallback
+
+The no-training fallback does not invent a radial GTO representer. It starts
+only from an independently source-bound full neutral response covariance
+\(C_0\) in the eventual source/dual basis, then replaces its atom-dipole
+covariance by the frozen MACE-MDP moment covariance
+\(W\alpha_\theta W^\mathsf T\) through an exact Schur-complement identity.
+The resulting \(C\succeq0\) has an electronic scalar
+\(\frac12\delta c^\mathsf TC^+\delta c\) on its declared support and returns
+kernel-null modes as constraints rather than adding an arbitrary hardness.
+It is implemented as a synthetic structural gate only; no physical \(C_0\)
+asset is checked in. The derivation, limitations, and source requirements are
+in [`ROUTE2_V0_RESPONSE_KERNEL_THEORY.md`](ROUTE2_V0_RESPONSE_KERNEL_THEORY.md).
+
 ## Force and performance gates
 
 At a joint stationary state, the force must be the envelope derivative of the

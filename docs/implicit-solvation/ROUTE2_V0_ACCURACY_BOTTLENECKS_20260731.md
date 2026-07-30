@@ -93,9 +93,10 @@ induced-only and frozen-permanent-source direct-sum KKT constructions are now
 executable, but neither is a physical PCM or total-solvation model. Its next
 **physical** gate is binding the direct-sum source to an actual reciprocal,
 source-bound continuum. A future full density-functional formulation remains
-separate. **V0-RK** remains the fallback full-kernel construction if V0-ADT
-fails the frozen multi-molecule QM physics panel or cannot be made
-energy-conjugate without an arbitrary projection.
+separate. **V0-RK** now has an algebraic covariance-completion structural
+kernel, but no independently source-bound physical \(C_0\) asset; it remains
+the fallback if V0-ADT fails the frozen multi-molecule QM physics panel or
+cannot be made energy-conjugate without an arbitrary projection.
 
 Let:
 

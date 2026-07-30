@@ -122,5 +122,12 @@
     "experimental_solvation_fit": false,
     "map_or_uq_calibration": false,
     "amber_gaff_or_am1bcc_solute_substitution": false
+  },
+  "bulk_liquid_state_source_contract": {
+    "protocol": "route2-v0-bulk-liquid-state-prereg-v1.json",
+    "module": "maple.function.calculator.extra_correction.implicit.route2_v0_bulk_liquid_state_source",
+    "status": "preregistered-contract-zero-physical-state-records",
+    "physical_state_source_records": [],
+    "not_an_admitted_asset": "A source-only state certificate can validate independent scalar anchors and their RISM T/density/static-dielectric cross-check. It cannot derive finite-k direct correlations, a closure, short-range interaction, bridge, liquid functional, total solvation free energy, force, or accuracy result."
   }
 }

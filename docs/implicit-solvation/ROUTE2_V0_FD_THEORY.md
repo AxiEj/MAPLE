@@ -170,6 +170,75 @@ This is stricter than accepting a Gaussian-like solvent name with only a
 dielectric.  It prevents hidden empirical parameters from entering through a
 custom-solvent shortcut.
 
+### 3.1 What the pure-liquid scalar state fixes -- and what it cannot fix
+
+The restriction is not merely a provenance preference.  In the scalar
+one-component reduction, the compressibility sum rule gives
+
+\[
+S_{NN}(0)=\rho_m k_{\rm B}T\kappa_T
+=\frac{1}{1-\rho_m\widehat c_{NN}(0)},
+\qquad
+\widehat c_{NN}(0)
+=\frac{1-S_{NN}(0)^{-1}}{\rho_m}.
+\]
+
+Thus \(T,\rho_m,\kappa_T\) determine **one projected zero mode** of the
+number-number direct correlation.  The static dielectric similarly determines
+only a long-wavelength polarization projection,
+\(\epsilon_s=1+4\pi\chi_L(k\!\to\!0)\), under a declared macroscopic
+boundary convention.  The optical dielectric adds another scalar limit.  A
+surface tension is one planar-interface integral constraint.  None of these
+quantities supplies the site/orientation-resolved finite-wavevector kernel
+\(C_{ab}(\mathbf k)\).
+
+The non-uniqueness has a direct constructive form.  If
+\(C_{ab}^{(0)}(\mathbf k)\) is a stable reciprocal kernel, then for any real
+symmetric site matrix \(A_{ab}\), length \(\ell>0\), and sufficiently small
+\(t\),
+
+\[
+\delta C_{ab}(\mathbf k)
+=t A_{ab} k^2 e^{-(k\ell)^2},
+\qquad
+C_{ab}^{(t)}=C_{ab}^{(0)}+\delta C_{ab},
+\]
+
+is real, even, reciprocal, and has \(\delta C_{ab}(0)=0\).  It leaves the
+above zero-mode constraints unchanged while changing the finite-\(k\)
+quadratic liquid term sampled by any cavity or solute perturbation with
+nonzero Fourier support.  Stability persists for small enough \(t\) by
+continuity.  Therefore no finite list of macroscopic scalars can identify the
+molecular liquid functional needed for a total solvation free energy.
+
+To make this boundary executable,
+`route2_v0_bulk_liquid_state_source.py` accepts a **source-only** pure-liquid
+state certificate only when all of the following are independently
+content-addressed and bound to the exact molecular-model digest:
+
+- \(T,p,\rho_m,\epsilon_s,\epsilon_\infty,\kappa_T,\gamma\);
+- one source locator and origin for every individual property; and
+- explicit false no-training, no-fine-tuning, no-solvation-fit, no-MAP/UQ, and
+  no-target-label flags.
+
+It exposes the scalar compressibility zero mode only and can cross-check the
+three quantities a 1D-RISM input actually contains
+(\(T,\rho_m,\epsilon_s\)).  It deliberately has no conversion from these
+scalars to \(C_{ab}(k)\), no closure selection, no short-range potential, and
+no `total_free_energy` operation.  The machine-readable contract is
+[`route2-v0-bulk-liquid-state-prereg-v1.json`](benchmarks/route2-v0-bulk-liquid-state-prereg-v1.json).
+It begins with **zero** physical state records: this is a guard against
+inventing density/dielectric values for the checked-in chloroform and
+dichloromethane molecular models, not an asset-admission claim.
+
+Molecular DFT explicitly requires pure-solvent direct correlations (or an
+alternative declared liquid functional), and JDFTx likewise distinguishes a
+classical-DFT liquid functional from linear/nonlinear dielectric modes.
+Accordingly, a complete finite-\(k\) susceptibility can at most enter the
+separately labelled electrostatic control until it is joined to one stationary
+molecular liquid scalar with the short-range, bridge, and standard-state
+terms.
+
 ## 4. Nonpolar and structured-solvent candidates
 
 ### 4.1 Density-derived cavity plus weighted-density nonpolar free energy
@@ -1858,3 +1927,14 @@ substitute for these gates.
     derives a cubic coexistence constraint from the HNC pressure, and anchors
     the remaining barrier against a pure-liquid surface tension rather than a
     molecular solvation-error regression.
+23. G. Jeanmairet, *A molecular density functional theory to study solvation in
+    water*, [arXiv:1408.7008](https://arxiv.org/abs/1408.7008).  It states the
+    pure-solvent direct-correlation requirement of a molecular density
+    functional; macroscopic dielectric data are not a replacement for that
+    input.
+24. JDFTx developers, [fluid](https://jdftx.org/CommandFluid.html) and
+    [fluid-solvent](https://jdftx.org/CommandFluidSolvent.html) documentation.
+    The interface distinguishes linear/nonlinear dielectric modes from a
+    `ClassicalDFT` fluid with an explicitly selected excess functional,
+    matching the V0 separation between an electrostatic control and a
+    molecular-liquid endpoint.

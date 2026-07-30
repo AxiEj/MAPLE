@@ -1,0 +1,57 @@
+{
+  "protocol_id": "route2-v0-bulk-liquid-state-prereg-v1",
+  "schema_version": 1,
+  "status": "preregistered-before-independent-bulk-liquid-state-sources",
+  "claim_boundary": "This contract source-binds pure-liquid macroscopic state anchors to an exact molecular-model digest. It is not a molecular direct-correlation asset, a liquid free-energy functional, a total solvation calculation, a force/PES result, an accuracy result, or a way to infer an absent solvent from a dielectric constant.",
+  "construction": {
+    "module": "maple.function.calculator.extra_correction.implicit.route2_v0_bulk_liquid_state_source",
+    "source_construction": "route2-v0-bulk-liquid-state-source-v1",
+    "source_status": "source-only-bulk-state-not-molecular-liquid-or-accuracy-admitted",
+    "model_binding": "Every state record hash-binds its values to one exact all-atom molecular-model source. A state record for one charge/Lennard-Jones/geometry model cannot be reused for another model.",
+    "macroscopic_state": "The source records temperature, pressure, molecular number density, static and optical dielectric limits, isothermal compressibility, and surface tension. Every field carries its own HTTPS, content-addressed source locator and an origin restricted to independent measurement, ab initio calculation, or upstream-model validation.",
+    "zero_mode_constraint": "For a one-component number channel, S_NN(0) = rho k_B T kappa_T = [1-rho c_NN(0)]^-1. The implementation exposes this one zero-mode consequence only; it does not promote c_NN(0) to a molecular site-site C_ab(k).",
+    "finite_k_nonidentifiability": "A real reciprocal perturbation delta C_ab(k)=t A_ab k^2 exp[-(k ell)^2] leaves k=0 constraints unchanged. For a stable baseline and sufficiently small t it changes finite-k solvent response while retaining the scalar state anchors. Therefore the source is insufficient by construction for cavity, dispersion, orientational structure, or total solvation."
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "target_solvation_labels_used": false,
+    "error_driven_property_selection": false,
+    "dielectric_only_total_free_energy": false
+  },
+  "required_state_fields": [
+    "temperature_kelvin",
+    "pressure_bar",
+    "molecular_number_density_angstrom3",
+    "static_dielectric_constant",
+    "optical_dielectric_constant",
+    "isothermal_compressibility_pa_inverse",
+    "surface_tension_newton_per_meter"
+  ],
+  "required_before_molecular_liquid_or_total_free_energy": [
+    "one content-addressed source-only bulk-state record matching the exact molecular model",
+    "a frozen all-atom molecular site model and canonical rigid geometry",
+    "a source-provenanced finite-k molecular susceptibility/direct-correlation matrix or declared molecular liquid functional",
+    "a frozen solvent-side short-range and dispersion interaction compatible with the same liquid scalar",
+    "a source-bound bridge/kernel/planar-interface certificate when the weighted-density bridge is used",
+    "one common stationary liquid free-energy, standard-state, force, and production grid/orientation contract"
+  ],
+  "current_inventory": {
+    "physical_state_source_records": [],
+    "source_only_molecular_models": [
+      "chloroform-scm-adf-3drism-v1",
+      "dichloromethane-scm-adf-3drism-v1"
+    ],
+    "decision": "No physical bulk-state source record is checked in. The two all-atom molecular records remain below liquid-asset admission and cannot be combined with guessed density, dielectric, compressibility, surface tension, closure, or finite-k correlation data."
+  },
+  "validation_sequence": [
+    "Validate strict per-property provenance, exact molecular-model digest binding, physical units and limits, and explicit false no-target/no-training policy.",
+    "When a RISM input exists, cross-check exactly its temperature, molecular number density, and static dielectric against the source record; retain pressure, optical dielectric, compressibility, and surface-tension provenance separately.",
+    "Require a finite-k correlation/liquid-functional asset independently; do not reconstruct it from scalar state values or from the one-component compressibility zero mode.",
+    "Only after all molecular-liquid, bridge, common-scalar, force, standard-state, grid/orientation, 11-solvent, and blind-validation gates pass may a total-free-energy claim be evaluated."
+  ],
+  "decision_rule": "A missing state field, source digest, model binding, RISM-state mismatch, finite-k liquid asset, or later structural/accuracy gate rejects the candidate. It does not authorize a guessed property, a proxy solvent, post-training, fine-tuning, solvation-label fitting, MAP/UQ calibration, response modification, or per-record model choice."
+}

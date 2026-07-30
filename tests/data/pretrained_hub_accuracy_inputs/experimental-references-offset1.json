@@ -1,0 +1,12 @@
+{
+  "record_0": {"value": 1.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-0"},
+  "record_1": {"value": 2.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-1"},
+  "record_2": {"value": 3.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-2"},
+  "record_3": {"value": 4.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-3"},
+  "record_4": {"value": 5.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-4"},
+  "record_5": {"value": 6.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-5"},
+  "record_6": {"value": 7.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-6"},
+  "record_7": {"value": 8.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-7"},
+  "record_8": {"value": 9.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-8"},
+  "record_9": {"value": 10.0, "unit": "kcal/mol", "provenance": "alternative-literature-source-9"}
+}

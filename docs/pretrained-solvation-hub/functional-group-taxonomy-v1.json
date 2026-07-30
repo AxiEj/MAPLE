@@ -1,0 +1,213 @@
+{
+  "taxonomy_id": "maple-rdkit-structural-functional-groups",
+  "version": "1.0.0",
+  "source_citation": "RDKit 2024.09.2 Data/Functional_Group_Hierarchy.txt SHA256 3f50f5169183643cd88d60e5212968277f96e4a5a7b77858d3729d58342611c3 and Data/FragmentDescriptors.csv SHA256 f491d016a2bbf7cb0c3ca4ab23662c0b0ad4e358b028938433ef3b44253a569c; BSD-3-Clause source definitions frozen by MAPLE review",
+  "assignment_policy": "Before any model output is inspected, canonicalize the dataset-supplied solute structure, match every frozen SMARTS, retain all matched families, and assign exactly one primary family using primary_precedence. Accuracy coverage counts distinct primary families only; chemical classes, aromaticity, ring systems, charge classes, and secondary subtype labels never count as additional functional groups.",
+  "definitions": [
+    {
+      "group_id": "acid_chloride",
+      "label": "acid chloride",
+      "smarts": "C(=O)Cl",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:AcidChloride"
+    },
+    {
+      "group_id": "alcohol",
+      "label": "alcohol",
+      "smarts": "[O;H1;$(O-!@[#6;!$(C=!@[O,N,S])])]",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:Alcohol"
+    },
+    {
+      "group_id": "aldehyde",
+      "label": "aldehyde",
+      "smarts": "[CH;D2;!$(C-[!#6;!#1])]=O",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:Aldehyde"
+    },
+    {
+      "group_id": "amide",
+      "label": "amide",
+      "smarts": "C(=O)-N",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_amide"
+    },
+    {
+      "group_id": "amine",
+      "label": "amine",
+      "smarts": "[N;$(N-[#6]);!$(N-[!#6;!#1]);!$(N-C=[O,N,S])]",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:Amine"
+    },
+    {
+      "group_id": "azide",
+      "label": "azide",
+      "smarts": "[N;H0;$(N-[#6]);D2]=[N;D2]=[N;D1]",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:Azide"
+    },
+    {
+      "group_id": "boronic_acid",
+      "label": "boronic acid",
+      "smarts": "[$(B-!@[#6])](O)(O)",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:BoronicAcid"
+    },
+    {
+      "group_id": "carboxylic_acid",
+      "label": "carboxylic acid",
+      "smarts": "[CX3](=O)[OX1H0-,OX2H1]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_COO2"
+    },
+    {
+      "group_id": "epoxide",
+      "label": "epoxide",
+      "smarts": "O1CC1",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_epoxide"
+    },
+    {
+      "group_id": "ester",
+      "label": "ester",
+      "smarts": "[#6][CX3](=O)[OX2H0][#6]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_ester"
+    },
+    {
+      "group_id": "ether",
+      "label": "ether",
+      "smarts": "[OD2]([#6])[#6]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_ether"
+    },
+    {
+      "group_id": "imide",
+      "label": "imide",
+      "smarts": "N(-C(=O))-C=O",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_imide"
+    },
+    {
+      "group_id": "isocyanate",
+      "label": "isocyanate",
+      "smarts": "[$(N-!@[#6])](=!@C=!@O)",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:Isocyanate"
+    },
+    {
+      "group_id": "isothiocyanate",
+      "label": "isothiocyanate",
+      "smarts": "N=C=S",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_isothiocyan"
+    },
+    {
+      "group_id": "ketone",
+      "label": "ketone",
+      "smarts": "[#6][CX3](=O)[#6]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_ketone"
+    },
+    {
+      "group_id": "lactone",
+      "label": "lactone",
+      "smarts": "[C&R1](=O)[O&R1][C&R1]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_lactone"
+    },
+    {
+      "group_id": "nitrile",
+      "label": "nitrile",
+      "smarts": "[NX1]#[CX2]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_nitrile"
+    },
+    {
+      "group_id": "nitro",
+      "label": "nitro",
+      "smarts": "[$([NX3](=O)=O),$([NX3+](=O)[O-])][!#8]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_nitro"
+    },
+    {
+      "group_id": "organohalogen",
+      "label": "carbon-bound halogen",
+      "smarts": "[$([F,Cl,Br,I]-!@[#6]);!$([F,Cl,Br,I]-!@C-!@[F,Cl,Br,I]);!$([F,Cl,Br,I]-[C,S](=[O,S,N]))]",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:Halogen"
+    },
+    {
+      "group_id": "phenol",
+      "label": "phenol",
+      "smarts": "[OX2H]-c1ccccc1",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_phenol"
+    },
+    {
+      "group_id": "phosphate_ester",
+      "label": "phosphate ester",
+      "smarts": "[$(P(=[OX1])([OX2][#6])([$([OX2H]),$([OX1-]),$([OX2][#6])])[$([OX2H]),$([OX1-]),$([OX2][#6]),$([OX2]P)]),$([P+]([OX1-])([OX2][#6])([$([OX2H]),$([OX1-]),$([OX2][#6])])[$([OX2H]),$([OX1-]),$([OX2][#6]),$([OX2]P)])]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_phos_ester"
+    },
+    {
+      "group_id": "phosphoric_acid",
+      "label": "phosphoric acid",
+      "smarts": "[$(P(=[OX1])([$([OX2H]),$([OX1-]),$([OX2]P)])([$([OX2H]),$([OX1-]),$([OX2]P)])[$([OX2H]),$([OX1-]),$([OX2]P)]),$([P+]([OX1-])([$([OX2H]),$([OX1-]),$([OX2]P)])([$([OX2H]),$([OX1-]),$([OX2]P)])[$([OX2H]),$([OX1-]),$([OX2]P)])]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_phos_acid"
+    },
+    {
+      "group_id": "sulfone",
+      "label": "sulfone",
+      "smarts": "S(=,-[OX1;+0,-1])(=,-[OX1;+0,-1])(-[#6])-[#6]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_sulfone"
+    },
+    {
+      "group_id": "sulfonamide",
+      "label": "sulfonamide",
+      "smarts": "N-S(=,-[OX1;+0,-1])(=,-[OX1;+0,-1])-[#6]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_sulfonamd"
+    },
+    {
+      "group_id": "sulfonyl_chloride",
+      "label": "sulfonyl chloride",
+      "smarts": "[$(S-!@[#6])](=O)(=O)(Cl)",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:SulfonylChloride"
+    },
+    {
+      "group_id": "terminal_alkyne",
+      "label": "terminal alkyne",
+      "smarts": "[C;$(C#[CH])]",
+      "source_entry": "RDKit Functional_Group_Hierarchy.txt:TerminalAlkyne"
+    },
+    {
+      "group_id": "thioether",
+      "label": "thioether",
+      "smarts": "[SX2](-[#6])-C",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_sulfide"
+    },
+    {
+      "group_id": "thiol",
+      "label": "thiol",
+      "smarts": "[SH]",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_SH"
+    },
+    {
+      "group_id": "urea",
+      "label": "urea",
+      "smarts": "C(=O)(-N)-N",
+      "source_entry": "RDKit FragmentDescriptors.csv:fr_urea"
+    }
+  ],
+  "primary_precedence": [
+    "acid_chloride",
+    "sulfonyl_chloride",
+    "sulfonamide",
+    "sulfone",
+    "urea",
+    "imide",
+    "amide",
+    "isocyanate",
+    "isothiocyanate",
+    "lactone",
+    "ester",
+    "carboxylic_acid",
+    "aldehyde",
+    "ketone",
+    "phenol",
+    "alcohol",
+    "epoxide",
+    "ether",
+    "amine",
+    "nitrile",
+    "nitro",
+    "azide",
+    "boronic_acid",
+    "thiol",
+    "thioether",
+    "organohalogen",
+    "terminal_alkyne",
+    "phosphate_ester",
+    "phosphoric_acid"
+  ]
+}

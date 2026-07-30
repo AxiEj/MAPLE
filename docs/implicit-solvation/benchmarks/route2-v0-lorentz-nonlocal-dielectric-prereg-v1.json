@@ -1,0 +1,69 @@
+{
+  "protocol_id": "route2-v0-lorentz-nonlocal-dielectric-prereg-v1",
+  "schema_version": 1,
+  "status": "preregistered-custom-solvent-electrostatic-control-before-liquid-admission",
+  "claim_boundary": "This locks a passive Lorentz/Yukawa nonlocal dielectric spectrum as a Route-2 V0 custom-solvent electrostatic control. It is not a cavity model, molecular liquid functional, dispersion model, standard-state convention, total solvation calculation, force/PES result, chemistry score, or accuracy claim.",
+  "literature": [
+    {
+      "doi": "10.1103/PhysRevE.94.012114",
+      "title": "A Nonlocal Poisson-Fermi Model for Ionic Solvent",
+      "role": "The Lorentz/Yukawa permittivity form fixes epsilon(k) from static and optical limits plus a physical polarization-correlation length; its electrostatic state is variational."
+    },
+    {
+      "doi": "10.1021/acs.jpcb.0c04496",
+      "title": "Simple Parameter-Free Bridge Functionals for Molecular Density Functional Theory",
+      "role": "A physically sourced dielectric response does not remove the separate need for a pressure/surface-tension-consistent cavity liquid functional."
+    },
+    {
+      "arxiv": "1410.2273",
+      "title": "Spicing up continuum solvation models with SaLSA",
+      "role": "Nonlocal liquid response can be derived from a molecular susceptibility, but its reported total model contains a fitted dispersion contribution and is not imported into V0."
+    }
+  ],
+  "construction": {
+    "name": "route2-v0-lorentz-nonlocal-dielectric-v1",
+    "spectrum": "epsilon_s(k) = epsilon_infinity + (epsilon_0-epsilon_infinity)/(1 + lambda_s^2 |k|^2)",
+    "limits": "epsilon_s(0)=epsilon_0 and epsilon_s(|k|->infinity)=epsilon_infinity, with epsilon_0 >= epsilon_infinity >= 1.",
+    "orientational_scalar": "For chi_or=(epsilon_0-epsilon_infinity)/(4 pi), minimize F_or[P;E] = integral[(|P|^2+lambda_s^2|grad P|^2)/(2 chi_or)-P dot E] d^3r. Its stationary P(k)=chi_or E(k)/(1+lambda_s^2|k|^2) yields the Lorentz spectrum on an epsilon_infinity electronic background.",
+    "reaction_scalar": "G_pol[rho]=1/2 integral rho V_reac[rho] d^3r, with V_reac(k)=4 pi (epsilon_s(k)^(-1)-1) rho(k)/|k|^2 for k!=0 and a neutral-source zero-mode gauge.",
+    "derivative": "delta G_pol/d rho = V_reac; real-even epsilon_s(k) makes the operator reciprocal and epsilon_s(k)>=1 makes G_pol nonpositive.",
+    "correlation_length_rule": "lambda_s is an independently sourced finite-wavevector dielectric/polarization correlation length. It cannot be inferred from epsilon_0, epsilon_infinity, a solvation error, a cavity radius, or a target molecule. If epsilon_0=epsilon_infinity, lambda_s is unidentifiable and must be absent."
+  },
+  "source_contract": {
+    "bulk_state_binding": "A Route2V0BulkLiquidStateSource may hash-bind epsilon_0 and epsilon_infinity to independently sourced pure-liquid state records. The spectrum constructor must reject any mismatch.",
+    "required_before_physical_custom_electrostatic_use": [
+      "content-addressed pure-liquid static dielectric source",
+      "content-addressed pure-liquid optical dielectric source",
+      "content-addressed finite-wavevector dielectric, ab-initio susceptibility, or independent polarization-correlation source for lambda_s",
+      "temperature, pressure, density, compressibility, and surface-tension state sources bound to the same solvent model"
+    ],
+    "current_physical_state_records": [],
+    "forbidden_inputs": [
+      "FreeSolv values",
+      "MNSol values",
+      "development, confirmation, or blind solvation values",
+      "target-solute cavity sizes",
+      "target-solute errors",
+      "post-training or fine-tuning data"
+    ]
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "error_driven_correlation_length_or_radius_selection": false,
+    "dielectric_only_total_free_energy": false,
+    "legacy_public_route_changed": false
+  },
+  "validation_sequence": [
+    "Verify the exact k=0 static limit, high-wavevector optical limit, real-even reciprocal spectrum, and epsilon(k)>=1 passivity condition on the declared FFT grid.",
+    "Verify the same reaction scalar, finite-difference density derivative, reciprocal pairing, nonpositive polarization energy, translation covariance, and neutral-source zero-mode gauge.",
+    "Verify a bulk-state-bound source record and independent lambda_s source before calling the result a physical custom-solvent electrostatic diagnostic.",
+    "Keep the result separate from fixed-charge molecular-RISM inputs: optical epsilon and lambda_s do not construct C_ab(k), choose a closure, or create a molecular liquid functional.",
+    "Before any total-solvation calculation, join this response to one source-bound cavity, dispersion, liquid free-energy, and standard-state scalar and satisfy force/PES gates.",
+    "Only then run the immutable route2-v0-historical-freesolv10-regression-v1 panel including ethyl acetate, all 11-or-more solvent strata, disjoint confirmation, and an external blind set; every record must remain strictly below 1.5 kcal/mol."
+  ],
+  "decision_rule": "A source, limit, correlation-length, reciprocity, passivity, scalar, force, historical-panel, multi-solvent, confirmation, or blind failure rejects the frozen candidate. It does not authorize a local dielectric substitution, a target-selected lambda_s, a post-hoc free-energy correction, a fitted cavity/dispersion parameter, post-training, fine-tuning, or per-record method selection."
+}

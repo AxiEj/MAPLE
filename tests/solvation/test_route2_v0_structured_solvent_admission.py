@@ -250,6 +250,18 @@ def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_on
     assert "total solvation free energy or accuracy result" in dielectric[
         "not_a_physical_liquid_backend"
     ]
+    lorentz = foundation["lorentz_nonlocal_dielectric_custom_control"]
+    assert lorentz["module"].endswith("route2_v0_nonlocal_dielectric")
+    assert lorentz["preregistration"] == (
+        "route2-v0-lorentz-nonlocal-dielectric-prereg-v1.json"
+    )
+    assert "10.1103/PhysRevE.94.012114" in lorentz["literature"]
+    assert "epsilon_infinity" in lorentz["capability"]
+    assert "independently sourced orientational correlation length" in lorentz[
+        "capability"
+    ]
+    assert "cannot be inferred" in lorentz["source_boundary"]
+    assert "total solvation free energy" in lorentz["not_a_physical_liquid_backend"]
     assert any("full nonlocal dielectric spectrum" in item for item in validation)
     assert any("Thomas-Fermi nonadditive kinetic Pauli scalar" in item for item in validation)
     assert any(

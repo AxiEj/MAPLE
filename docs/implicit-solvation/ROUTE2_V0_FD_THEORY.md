@@ -286,6 +286,100 @@ optical limit as a fixed-charge RISM input, or treating a RISM static
 dielectric as a complete continuum spectrum.  Both branches remain
 fail-closed until their own finite-wavevector/functional requirements are met.
 
+### 3.3 A source-bound Lorentz/Yukawa spectrum is a custom electrostatic control
+
+There is a useful intermediate object between a scalar dielectric and a fully
+tabulated molecular susceptibility.  For a polar liquid with independently
+sourced static and optical limits and one independently sourced orientational
+correlation length \(\lambda_s\), the standard Lorentz/Yukawa nonlocal
+permittivity is
+
+\[
+\boxed{
+\epsilon_s(\mathbf k)
+=\epsilon_\infty+
+\frac{\epsilon_0-\epsilon_\infty}
+{1+\lambda_s^2|\mathbf k|^2},
+\qquad
+\epsilon_0\geq\epsilon_\infty\geq1.
+}
+\]
+
+It has the two required physical limits
+
+\[
+\epsilon_s(0)=\epsilon_0,
+\qquad
+\lim_{|\mathbf k|\to\infty}\epsilon_s(\mathbf k)=\epsilon_\infty,
+\]
+
+and is real, even, and passive at every wavevector.  It is not merely a
+convenient interpolation.  Let
+
+\[
+\chi_{\rm or}=\frac{\epsilon_0-\epsilon_\infty}{4\pi}>0
+\]
+
+and define the quadratic orientational-polarization functional in a declared
+electric field \(\mathbf E\),
+
+\[
+\mathcal F_{\rm or}[\mathbf P;\mathbf E]
+=\int d^3r\left[
+\frac{|\mathbf P|^2+\lambda_s^2|\nabla\mathbf P|^2}
+{2\chi_{\rm or}}
+-\mathbf P\cdot\mathbf E
+\right].
+\]
+
+Its stationary equation is
+
+\[
+(1-\lambda_s^2\nabla^2)\mathbf P=\chi_{\rm or}\mathbf E,
+\qquad
+\mathbf P(\mathbf k)=
+\frac{\chi_{\rm or}}{1+\lambda_s^2|\mathbf k|^2}\mathbf E(\mathbf k),
+\]
+
+which, combined with the local electronic background
+\(\epsilon_\infty\), gives the displayed \(\epsilon_s(\mathbf k)\).  The
+fixed-density reaction field is therefore still the derivative of one scalar,
+
+\[
+G_{\rm pol}[\rho]
+=\frac12\int\rho(\mathbf r)V_{\rm reac}[\rho](\mathbf r)d^3r,
+\qquad
+V_{\rm reac}(\mathbf k)
+=\frac{4\pi}{|\mathbf k|^2}
+\left[\epsilon_s(\mathbf k)^{-1}-1\right]\rho(\mathbf k),
+\]
+
+for nonzero \(\mathbf k\) and a separately declared neutral-source zero-mode
+gauge.  Since \(\epsilon_s(\mathbf k)\geq1\), this scalar is nonpositive;
+since the spectrum is real-even, its Hessian is reciprocal.  This gives a
+mathematically controlled custom-solvent electrostatic diagnostic without
+changing the MACE checkpoint or creating a response iterate.
+
+`Route2V0LorentzNonlocalDielectricSpectrum` implements the spectrum and may
+bind \(\epsilon_0\) and \(\epsilon_\infty\) to a
+`Route2V0BulkLiquidStateSource`.  The constructor deliberately requires
+\(\lambda_s\) when \(\epsilon_0>\epsilon_\infty\), and rejects it when the
+two limits coincide: a correlation length cannot be inferred from a static
+dielectric or left as a hidden cavity parameter.  The corresponding
+machine-readable no-fit boundary is
+[`route2-v0-lorentz-nonlocal-dielectric-prereg-v1.json`](benchmarks/route2-v0-lorentz-nonlocal-dielectric-prereg-v1.json).
+
+This spectrum does **not** identify a molecular solvent.  In particular,
+many different reciprocal site/orientational susceptibilities share the same
+\(\epsilon_0,\epsilon_\infty,\lambda_s\) reduction, and the formula contains
+no cavity, excluded-volume, dispersion, hydrogen-bond, standard-state, or
+ionic-reference physics.  It may make the user-facing custom-solvent
+electrostatic interface more physical than a constant dielectric, but it
+cannot enter a total \(\Delta G_{\rm solv}\) ledger until those terms are
+derived and stationary in the same molecular liquid functional.  It therefore
+cannot be scored on the historical FreeSolv10, 11-solvent, confirmation, or
+blind maximum-error gates by itself.
+
 ## 4. Nonpolar and structured-solvent candidates
 
 ### 4.1 Density-derived cavity plus weighted-density nonpolar free energy

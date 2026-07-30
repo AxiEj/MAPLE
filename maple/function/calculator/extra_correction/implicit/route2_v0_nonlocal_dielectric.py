@@ -24,16 +24,24 @@ the free-energy convention.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import math
+from dataclasses import dataclass, field
+from typing import cast
 
 import numpy as np
 
+from .route2_v0_bulk_liquid_state_source import Route2V0BulkLiquidStateSource
 from .route2_v0_structured_solvent import RegularCartesianGrid
 
 V0_NONLOCAL_DIELECTRIC_CONSTRUCTION = "route2-v0-nonlocal-dielectric-v1"
 V0_NONLOCAL_DIELECTRIC_SCOPE = "electrostatic-reaction-control-only-v1"
 V0_NONLOCAL_DIELECTRIC_RECIPROCITY_RELATIVE_TOLERANCE = 1.0e-12
+V0_LORENTZ_NONLOCAL_DIELECTRIC_CONSTRUCTION = (
+    "route2-v0-lorentz-nonlocal-dielectric-v1"
+)
+V0_LORENTZ_NONLOCAL_DIELECTRIC_SCOPE = (
+    "custom-solvent-electrostatic-control-only-v1"
+)
 
 
 def _immutable_real_array(
@@ -65,6 +73,212 @@ def _reciprocal_partner(values: np.ndarray) -> np.ndarray:
 
     axes = tuple((-np.arange(length)) % length for length in values.shape)
     return values[np.ix_(*axes)]
+
+
+def _finite_scalar(value: object, *, name: str) -> float:
+    """Return one finite scalar without silently accepting a boolean."""
+
+    if isinstance(value, (bool, np.bool_)) or not isinstance(
+        value,
+        (int, float, np.integer, np.floating),
+    ):
+        raise TypeError(f"{name} must be a finite real number.")
+    result = float(cast(float, value))
+    if not math.isfinite(result):
+        raise ValueError(f"{name} must be finite.")
+    return result
+
+
+def _positive_scalar(value: object, *, name: str) -> float:
+    """Return one finite, strictly positive scalar."""
+
+    result = _finite_scalar(value, name=name)
+    if result <= 0.0:
+        raise ValueError(f"{name} must be finite and positive.")
+    return result
+
+
+def _wavevector_squared(grid: RegularCartesianGrid) -> np.ndarray:
+    """Return the reciprocal-grid ``|k|^2`` used by every spectrum here."""
+
+    reciprocal_axes = tuple(
+        2.0
+        * math.pi
+        * np.fft.fftfreq(grid.shape[axis], d=grid.spacing_bohr[axis])
+        for axis in range(3)
+    )
+    result = sum(
+        axis_values**2
+        for axis_values in np.meshgrid(*reciprocal_axes, indexing="ij")
+    )
+    immutable = np.array(result, dtype=float, copy=True)
+    immutable.setflags(write=False)
+    return immutable
+
+
+@dataclass(frozen=True)
+class Route2V0LorentzNonlocalDielectricSpectrum:
+    """One passive custom-solvent spectrum fixed by two dielectric limits.
+
+    This is the standard Lorentz/Yukawa nonlocal dielectric form
+
+    ``epsilon(k) = epsilon_inf + (epsilon_s-epsilon_inf)/(1 + lambda**2 k**2)``.
+
+    It is the longitudinal response obtained by minimizing a quadratic
+    orientational-polarization functional with a positive gradient penalty.
+    Thus real ``lambda`` and ``epsilon_s >= epsilon_inf >= 1`` guarantee a
+    real-even, passive response before it reaches the common electrostatic
+    scalar.  ``lambda`` is a physical correlation length, not a cavity radius
+    or an error-selected fit parameter.  A bulk-state record may bind the two
+    dielectric limits, but neither direct construction nor a state record is a
+    molecular-liquid or total-solvation asset.
+    """
+
+    grid: RegularCartesianGrid
+    static_dielectric_constant: float
+    optical_dielectric_constant: float
+    correlation_length_bohr: float | None
+    bulk_state_source: Route2V0BulkLiquidStateSource | None = None
+    construction: str = V0_LORENTZ_NONLOCAL_DIELECTRIC_CONSTRUCTION
+    response_scope: str = V0_LORENTZ_NONLOCAL_DIELECTRIC_SCOPE
+    _dielectric_spectrum: np.ndarray = field(init=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.grid, RegularCartesianGrid):
+            raise TypeError("Lorentz nonlocal dielectric spectrum requires a grid.")
+        if self.construction != V0_LORENTZ_NONLOCAL_DIELECTRIC_CONSTRUCTION:
+            raise ValueError("Unsupported Route-2 Lorentz dielectric construction.")
+        if self.response_scope != V0_LORENTZ_NONLOCAL_DIELECTRIC_SCOPE:
+            raise ValueError("Unsupported Route-2 Lorentz dielectric response scope.")
+        static = _positive_scalar(
+            self.static_dielectric_constant,
+            name="Lorentz static dielectric constant",
+        )
+        optical = _positive_scalar(
+            self.optical_dielectric_constant,
+            name="Lorentz optical dielectric constant",
+        )
+        if static <= 1.0:
+            raise ValueError("Lorentz static dielectric constant must exceed one.")
+        if optical < 1.0 or optical > static:
+            raise ValueError(
+                "Lorentz optical dielectric constant must lie in [1, static dielectric]."
+            )
+        orientational_increment = static - optical
+        length = self.correlation_length_bohr
+        if orientational_increment == 0.0:
+            if length is not None:
+                raise ValueError(
+                    "A constant Lorentz dielectric spectrum must not carry an "
+                    "unidentifiable orientational correlation length."
+                )
+            normalized_length: float | None = None
+        else:
+            if length is None:
+                raise ValueError(
+                    "A dispersive Lorentz dielectric spectrum requires an "
+                    "independently sourced orientational correlation length."
+                )
+            normalized_length = _positive_scalar(
+                length,
+                name="Lorentz orientational correlation length",
+            )
+        state_source = self.bulk_state_source
+        if state_source is not None:
+            if not isinstance(state_source, Route2V0BulkLiquidStateSource):
+                raise TypeError(
+                    "Lorentz dielectric spectrum bulk state must be a Route-2 "
+                    "bulk-liquid state source."
+                )
+            scale = max(1.0, abs(static), abs(optical))
+            if (
+                abs(state_source.static_dielectric_constant - static) > 1.0e-12 * scale
+                or abs(state_source.optical_dielectric_constant - optical)
+                > 1.0e-12 * scale
+            ):
+                raise ValueError(
+                    "Lorentz dielectric limits must equal the attached bulk-state "
+                    "source."
+                )
+        spectrum = np.full(self.grid.shape, optical, dtype=float)
+        if normalized_length is not None:
+            spectrum += orientational_increment / (
+                1.0 + normalized_length**2 * _wavevector_squared(self.grid)
+            )
+        spectrum = _immutable_real_array(
+            spectrum,
+            name="Lorentz nonlocal dielectric spectrum",
+            shape=self.grid.shape,
+        )
+        object.__setattr__(self, "static_dielectric_constant", static)
+        object.__setattr__(self, "optical_dielectric_constant", optical)
+        object.__setattr__(self, "correlation_length_bohr", normalized_length)
+        object.__setattr__(self, "_dielectric_spectrum", spectrum)
+
+    @classmethod
+    def from_bulk_liquid_state_source(
+        cls,
+        *,
+        grid: RegularCartesianGrid,
+        bulk_state_source: Route2V0BulkLiquidStateSource,
+        orientational_correlation_length_bohr: float | None,
+    ) -> Route2V0LorentzNonlocalDielectricSpectrum:
+        """Bind the dielectric limits to one source-only liquid-state record.
+
+        The caller must still supply the correlation length from independent
+        finite-wavevector dielectric evidence.  It cannot be inferred from
+        ``epsilon(0)`` or selected from any solvation error.
+        """
+
+        if not isinstance(bulk_state_source, Route2V0BulkLiquidStateSource):
+            raise TypeError(
+                "Lorentz dielectric spectrum requires a Route-2 bulk-liquid "
+                "state source."
+            )
+        return cls(
+            grid=grid,
+            static_dielectric_constant=bulk_state_source.static_dielectric_constant,
+            optical_dielectric_constant=bulk_state_source.optical_dielectric_constant,
+            correlation_length_bohr=orientational_correlation_length_bohr,
+            bulk_state_source=bulk_state_source,
+        )
+
+    @property
+    def dielectric_spectrum(self) -> np.ndarray:
+        """Return the immutable real-even relative dielectric spectrum."""
+
+        return self._dielectric_spectrum
+
+    @property
+    def is_bulk_state_bound(self) -> bool:
+        """Return whether both dielectric limits came from one state record."""
+
+        return self.bulk_state_source is not None
+
+    @property
+    def is_total_solvation_asset(self) -> bool:
+        """Return false: electrostatic response alone is never a liquid endpoint."""
+
+        return False
+
+    def require_bulk_state_source(self) -> Route2V0BulkLiquidStateSource:
+        """Return the attached state record or reject a synthetic spectrum."""
+
+        source = self.bulk_state_source
+        if source is None:
+            raise ValueError(
+                "Physical custom-solvent electrostatic use requires a source-bound "
+                "bulk liquid-state record."
+            )
+        return source
+
+    def as_operator(self) -> Route2V0NonlocalDielectricOperator:
+        """Return the energy-conjugate reaction operator for this spectrum."""
+
+        return Route2V0NonlocalDielectricOperator(
+            grid=self.grid,
+            dielectric_spectrum=self.dielectric_spectrum,
+        )
 
 
 @dataclass(frozen=True)
@@ -118,16 +332,7 @@ class Route2V0NonlocalDielectricOperator:
                 "Nonlocal dielectric spectrum must be reciprocal-even under k -> -k."
             )
 
-        reciprocal_axes = tuple(
-            2.0
-            * math.pi
-            * np.fft.fftfreq(self.grid.shape[axis], d=self.grid.spacing_bohr[axis])
-            for axis in range(3)
-        )
-        wavevector_squared = sum(
-            axis_values**2
-            for axis_values in np.meshgrid(*reciprocal_axes, indexing="ij")
-        )
+        wavevector_squared = _wavevector_squared(self.grid)
         green = np.zeros(self.grid.shape, dtype=float)
         nonzero = wavevector_squared > 0.0
         green[nonzero] = (
@@ -269,8 +474,11 @@ class Route2V0NonlocalDielectricOperator:
 
 
 __all__ = [
-    "Route2V0NonlocalDielectricOperator",
+    "V0_LORENTZ_NONLOCAL_DIELECTRIC_CONSTRUCTION",
+    "V0_LORENTZ_NONLOCAL_DIELECTRIC_SCOPE",
     "V0_NONLOCAL_DIELECTRIC_CONSTRUCTION",
     "V0_NONLOCAL_DIELECTRIC_RECIPROCITY_RELATIVE_TOLERANCE",
     "V0_NONLOCAL_DIELECTRIC_SCOPE",
+    "Route2V0LorentzNonlocalDielectricSpectrum",
+    "Route2V0NonlocalDielectricOperator",
 ]

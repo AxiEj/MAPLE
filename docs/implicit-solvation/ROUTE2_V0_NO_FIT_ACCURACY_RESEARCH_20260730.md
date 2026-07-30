@@ -36,6 +36,7 @@ subset.
 | Candidate | Mathematical status | V0 decision | Reason |
 | --- | --- | --- | --- |
 | HNC-plus-weighted-density molecular bridge | Variational if inserted into \(\Omega\) before stationarity; \(A_s\) follows from the HNC vacuum pressure and \(B_s\) can be fixed by a pure-liquid planar-interface root. | **Active V0 path** | It targets the HNC cavity/liquid--vapour defect without a solvation-label regression.  The source-bound certificate now binds all solvent sources, the SI unit identities, planar root/residual/grid evidence, and discrete \(D,K\) operators. |
+| Lorentz/Yukawa nonlocal dielectric spectrum | A positive quadratic orientational-polarization functional gives \(\epsilon_s(k)=\epsilon_\infty+(\epsilon_0-\epsilon_\infty)/(1+\lambda_s^2k^2)\); its reaction field is the derivative of one passive scalar. | **Active custom-solvent electrostatic control only** | It supplies a mathematically constrained finite-\(k\) response from independently sourced \(\epsilon_0,\epsilon_\infty,\lambda_s\), with no target fit.  It has no cavity, dispersion, molecular \(C_{ab}(k)\), or standard-state term, so it cannot be scored as a total solvation method. |
 | LCW-style two-reference cDFT | A common cDFT scalar with slowly varying reference density and direct-correlation/surface-tension inputs. | **Deferred research path** | Bui--Cox provides a genuinely variational length-scale construction, but it needs a complete, source-provenanced multi-field liquid functional.  It must retain every term and pass scalar/force checks before it can replace the current bridge; importing only a coarse-graining kernel would be an unjustified hybrid. |
 | Full orientational mDFT / angular correlation functional | Variational in the full molecular configuration density when the angular direct-correlation functional is frozen. | **Deferred research path** | Route-2 already preserves a full \(SO(3)\) quadrature convention.  A new angular functional needs a real all-atom solvent source and its own common-scalar, grid/orientation, and force proof; a site-HNC table cannot be relabelled as that functional. |
 | 3D-RISM PC, PC+, UC, PMV correction | Often useful empirically, but applied after a base 3D-RISM energy or selected against errors. | **Excluded from V0 core** | It fails the route's no-post-hoc-ledger/no-error-fit boundary.  Pressure must instead be repaired inside the scalar before minimisation. |
@@ -84,6 +85,10 @@ claim.  The current synthetic test source remains synthetic by design.
    alone remain insufficient; the required inputs are a molecular model,
    density, pressure, surface tension, correlation or liquid functional,
    source-bound \(D,K\), and source-complete solute--solvent interaction.
+   For a custom Lorentz nonlocal electrostatic diagnostic, \(\epsilon_0\),
+   \(\epsilon_\infty\), and a finite-\(k\) polarization-correlation length
+   must each be independently source-bound; this remains below the
+   total-free-energy boundary.
 4. Freeze the method before reading target values, then run the historical
    FreeSolv10 gate, 11-solvent development, disjoint confirmation, and an
    independent final blind dataset.  Every record, not just the MAE, must be
@@ -128,3 +133,9 @@ claim.  The current synthetic test source remains synthetic by design.
    [DOI:10.1021/jz500428s](https://doi.org/10.1021/jz500428s).  It explains
    the pressure/PMV issue, but V0 keeps that repair inside the scalar rather
    than adopting a post-hoc correction.
+8. D. Xie, J.-L. Liu, and B. Eisenberg, *A Nonlocal Poisson-Fermi Model for
+   Ionic Solvent*, *Phys. Rev. E* **94**, 012114 (2016),
+   [DOI:10.1103/PhysRevE.94.012114](https://doi.org/10.1103/PhysRevE.94.012114).
+   It provides the Lorentz/Yukawa finite-wavevector dielectric construction;
+   V0 uses it only for a source-bound fixed-density electrostatic control,
+   never as a cavity or fitted total-solvation correction.

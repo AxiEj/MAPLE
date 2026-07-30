@@ -1,14 +1,23 @@
 from __future__ import annotations
 
+import json
 import math
 
 import numpy as np
 import pytest
 
+from maple.function.calculator.extra_correction.implicit.route2_v0_bulk_liquid_state_source import (
+    V0_BULK_LIQUID_STATE_SOURCE_CONSTRUCTION,
+    V0_BULK_LIQUID_STATE_SOURCE_STATUS,
+    parse_route2_v0_bulk_liquid_state_source,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_nonlocal_dielectric import (
-    Route2V0NonlocalDielectricOperator,
+    V0_LORENTZ_NONLOCAL_DIELECTRIC_CONSTRUCTION,
+    V0_LORENTZ_NONLOCAL_DIELECTRIC_SCOPE,
     V0_NONLOCAL_DIELECTRIC_CONSTRUCTION,
     V0_NONLOCAL_DIELECTRIC_SCOPE,
+    Route2V0LorentzNonlocalDielectricSpectrum,
+    Route2V0NonlocalDielectricOperator,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_structured_solvent import (
     RegularCartesianGrid,
@@ -46,6 +55,74 @@ def _reciprocal_even_dielectric(grid: RegularCartesianGrid) -> np.ndarray:
     return 1.0 + 3.0 * np.exp(-0.18 * wavevector_squared)
 
 
+def _bulk_state_source(*, static: float = 30.0, optical: float = 1.8):
+    property_names = (
+        "temperature_kelvin",
+        "pressure_bar",
+        "molecular_number_density_angstrom3",
+        "static_dielectric_constant",
+        "optical_dielectric_constant",
+        "isothermal_compressibility_pa_inverse",
+        "surface_tension_newton_per_meter",
+    )
+    return parse_route2_v0_bulk_liquid_state_source(
+        json.dumps(
+            {
+                "protocol_id": V0_BULK_LIQUID_STATE_SOURCE_CONSTRUCTION,
+                "schema_version": 1,
+                "status": V0_BULK_LIQUID_STATE_SOURCE_STATUS,
+                "solvent_id": "lorentz-fixture",
+                "model": {
+                    "identifier": "lorentz-fixture-all-atom-v1",
+                    "source_sha256": "a" * 64,
+                },
+                "state": {
+                    "temperature_kelvin": 298.15,
+                    "pressure_bar": 1.0,
+                    "molecular_number_density_angstrom3": 0.025,
+                    "static_dielectric_constant": static,
+                    "optical_dielectric_constant": optical,
+                    "isothermal_compressibility_pa_inverse": 5.0e-10,
+                    "surface_tension_newton_per_meter": 0.03,
+                },
+                "property_sources": [
+                    {
+                        "property": name,
+                        "origin": "upstream_model_validation",
+                        "document_url": "https://example.org/lorentz-fixture.pdf",
+                        "document_sha256": "b" * 64,
+                        "source_locator": f"Table 1, {name}",
+                        "retrieved_utc": "2026-07-30T00:00:00Z",
+                    }
+                    for name in property_names
+                ],
+                "no_target_policy": {
+                    "post_training": False,
+                    "fine_tuning": False,
+                    "experimental_solvation_fit": False,
+                    "map_or_uq_calibration": False,
+                    "target_solvation_labels_used": False,
+                },
+                "claim_boundary": (
+                    "This is a source-only state fixture, not a molecular liquid "
+                    "or solvation endpoint."
+                ),
+                "not_claimed": [
+                    "The state does not determine a finite-wavevector liquid functional."
+                ],
+            }
+        )
+    )
+
+
+def _wavevector_squared(grid: RegularCartesianGrid) -> np.ndarray:
+    axes = tuple(
+        2.0 * math.pi * np.fft.fftfreq(grid.shape[axis], d=grid.spacing_bohr[axis])
+        for axis in range(3)
+    )
+    return sum(axis**2 for axis in np.meshgrid(*axes, indexing="ij"))
+
+
 def test_nonlocal_dielectric_matches_one_exact_reciprocal_mode_and_zero_gauge():
     grid = _grid()
     dielectric = _reciprocal_even_dielectric(grid)
@@ -78,6 +155,123 @@ def test_nonlocal_dielectric_matches_one_exact_reciprocal_mode_and_zero_gauge():
     )
     with pytest.raises(ValueError, match="read-only"):
         operator.fourier_dielectric_spectrum[1, 0, 0] = 1.0
+
+
+def test_lorentz_nonlocal_dielectric_fixes_the_full_spectrum_from_physical_limits():
+    grid = _grid()
+    static = 28.0
+    optical = 1.7
+    correlation_length = 0.85
+    model = Route2V0LorentzNonlocalDielectricSpectrum(
+        grid=grid,
+        static_dielectric_constant=static,
+        optical_dielectric_constant=optical,
+        correlation_length_bohr=correlation_length,
+    )
+    expected = optical + (static - optical) / (
+        1.0 + correlation_length**2 * _wavevector_squared(grid)
+    )
+
+    assert model.construction == V0_LORENTZ_NONLOCAL_DIELECTRIC_CONSTRUCTION
+    assert model.response_scope == V0_LORENTZ_NONLOCAL_DIELECTRIC_SCOPE
+    assert model.is_bulk_state_bound is False
+    assert model.is_total_solvation_asset is False
+    np.testing.assert_allclose(
+        model.dielectric_spectrum,
+        expected,
+        rtol=0.0,
+        atol=4.0e-15,
+    )
+    assert model.dielectric_spectrum[0, 0, 0] == pytest.approx(static)
+    assert np.all(model.dielectric_spectrum >= optical)
+    assert model.dielectric_spectrum[1, 0, 0] < static
+    with pytest.raises(ValueError, match="source-bound"):
+        model.require_bulk_state_source()
+    with pytest.raises(ValueError, match="read-only"):
+        model.dielectric_spectrum[1, 0, 0] = 1.0
+
+
+def test_lorentz_spectrum_binds_only_source_state_limits_and_inherits_one_scalar():
+    source = _bulk_state_source(static=30.0, optical=1.8)
+    model = Route2V0LorentzNonlocalDielectricSpectrum.from_bulk_liquid_state_source(
+        grid=_grid(),
+        bulk_state_source=source,
+        orientational_correlation_length_bohr=0.65,
+    )
+    operator = model.as_operator()
+    rng = np.random.default_rng(20260730)
+    left = _neutral_field(model.grid, rng)
+    right = _neutral_field(model.grid, rng)
+
+    assert model.is_bulk_state_bound is True
+    assert model.require_bulk_state_source() is source
+    assert model.static_dielectric_constant == pytest.approx(
+        source.static_dielectric_constant
+    )
+    assert model.optical_dielectric_constant == pytest.approx(
+        source.optical_dielectric_constant
+    )
+    np.testing.assert_allclose(
+        operator.fourier_dielectric_spectrum,
+        model.dielectric_spectrum,
+        rtol=0.0,
+        atol=0.0,
+    )
+    assert operator.reaction_pairing_hartree(left, right) == pytest.approx(
+        operator.reaction_pairing_hartree(right, left),
+        rel=2.0e-13,
+        abs=2.0e-13,
+    )
+    assert operator.polarization_energy_hartree(left) <= 1.0e-14
+
+    with pytest.raises(ValueError, match="must equal the attached bulk-state"):
+        Route2V0LorentzNonlocalDielectricSpectrum(
+            grid=_grid(),
+            static_dielectric_constant=source.static_dielectric_constant + 0.1,
+            optical_dielectric_constant=source.optical_dielectric_constant,
+            correlation_length_bohr=0.65,
+            bulk_state_source=source,
+        )
+
+
+def test_lorentz_nonlocal_dielectric_rejects_unidentified_or_nonpassive_inputs():
+    grid = _grid()
+
+    with pytest.raises(ValueError, match="requires an independently sourced"):
+        Route2V0LorentzNonlocalDielectricSpectrum(
+            grid=grid,
+            static_dielectric_constant=20.0,
+            optical_dielectric_constant=1.8,
+            correlation_length_bohr=None,
+        )
+    with pytest.raises(ValueError, match="unidentifiable"):
+        Route2V0LorentzNonlocalDielectricSpectrum(
+            grid=grid,
+            static_dielectric_constant=1.8,
+            optical_dielectric_constant=1.8,
+            correlation_length_bohr=0.5,
+        )
+    constant = Route2V0LorentzNonlocalDielectricSpectrum(
+        grid=grid,
+        static_dielectric_constant=1.8,
+        optical_dielectric_constant=1.8,
+        correlation_length_bohr=None,
+    )
+    np.testing.assert_allclose(constant.dielectric_spectrum, 1.8)
+    with pytest.raises(ValueError, match="optical dielectric"):
+        Route2V0LorentzNonlocalDielectricSpectrum(
+            grid=grid,
+            static_dielectric_constant=1.8,
+            optical_dielectric_constant=2.0,
+            correlation_length_bohr=None,
+        )
+    with pytest.raises(ValueError, match="static dielectric"):
+        Route2V0LorentzNonlocalDielectricSpectrum(
+            grid=grid,
+            static_dielectric_constant=1.0,
+            optical_dielectric_constant=1.0,
+            correlation_length_bohr=None,
+        )
 
 
 def test_nonlocal_dielectric_scalar_derivative_is_its_reaction_potential():

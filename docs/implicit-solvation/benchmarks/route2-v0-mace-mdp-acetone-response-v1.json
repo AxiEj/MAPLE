@@ -1,0 +1,306 @@
+{
+  "artifact": "route2-v0-mace-mdp-acetone-response-v1",
+  "claim_boundary": "This one-acetone gas-phase MACE-MDP coefficient comparison is a no-runtime-QM physical screen only. MACE-MDP supplies published frozen dipole/polarizability coefficients, not an energy or force. The calculation invokes no continuum, PCM, implicit solvent, experimental solvation value, target calibration, force/PES certificate, total-solvation prediction, or public Route-2 profile. A pass can admit only the separate construction and testing of a new explicit moment-space scalar; it cannot establish chemical accuracy.",
+  "executed_at_utc": "2026-07-30T13:57:12.415415+00:00",
+  "execution_git_head": "41ca2135a675f4c032b4c5069ca7c16a052469eb",
+  "hard_constraints": {
+    "continuum_or_pcm_invoked": false,
+    "eigenvalue_clipping_or_shift": false,
+    "experimental_solvation_labels_read": false,
+    "field_or_threshold_selection_after_execution": false,
+    "fine_tuning": false,
+    "legacy_public_route_changed": false,
+    "mace_mdp_treated_as_an_energy_or_force_model": false,
+    "no_runtime_qm_in_candidate": true,
+    "post_training": false,
+    "raw_tensor_symmetrization_to_pass": false,
+    "response_rescaling": false,
+    "target_fit_or_calibration": false
+  },
+  "input_files_sha256": {
+    "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8"
+  },
+  "mace_mdp_response": {
+    "canonical_eigenvalues_bohr3": [
+      34.64389156992711,
+      45.952168224616884,
+      46.094258968738515
+    ],
+    "canonical_polarizability_bohr3": [
+      [
+        36.905898997635774,
+        0.8876925817469359,
+        4.436610841831118
+      ],
+      [
+        0.8876925817469359,
+        45.9880541355774,
+        -0.4850378146052545
+      ],
+      [
+        4.436610841831118,
+        -0.4850378146052545,
+        43.79636563006934
+      ]
+    ],
+    "canonical_polarizability_eangstrom2_per_volt": [
+      [
+        0.3797933777444473,
+        0.009135118590173219,
+        0.045656533592763004
+      ],
+      [
+        0.009135118590173219,
+        0.4732565495062002,
+        -0.004991455429781444
+      ],
+      [
+        0.045656533592763004,
+        -0.004991455429781444,
+        0.4507021936151837
+      ]
+    ],
+    "canonicalization_boundary": "The raw tensor is used for every acceptance comparison. The listed canonical tensor is only the float64 symmetric form needed for a later scalar-function construction, and is permitted only after the raw antisymmetry gate passes. It is not a response repair, rescaling, clipping, or fitted edit.",
+    "dipole_eangstrom": [
+      -0.09731520309731044,
+      0.5581792379950091,
+      -0.31677343925811663
+    ],
+    "dipole_ebohr": [
+      -0.1838990816162502,
+      1.0548058882628741,
+      -0.5986150437536175
+    ],
+    "model_type": "DipolePolarizabilityMACE",
+    "polarizability_bohr3": [
+      [
+        36.905898997635774,
+        0.8876925817469359,
+        4.436610841831118
+      ],
+      [
+        0.8876925817469359,
+        45.9880541355774,
+        -0.48503781460525397
+      ],
+      [
+        4.436610841831118,
+        -0.4850378146052551,
+        43.79636563006934
+      ]
+    ],
+    "raw_polarizability_eangstrom2_per_volt": [
+      [
+        0.3797933777444473,
+        0.009135118590173219,
+        0.045656533592763
+      ],
+      [
+        0.009135118590173219,
+        0.4732565495062002,
+        -0.004991455429781438
+      ],
+      [
+        0.045656533592763004,
+        -0.00499145542978145,
+        0.4507021936151837
+      ]
+    ]
+  },
+  "non_gating_diagnostics": {
+    "dipole_relative_error": 0.0019031854490309961,
+    "runtime": {
+      "boundary": "This is a single fixed-geometry coefficient-screen timing, not an end-to-end implicit-solvation runtime or throughput claim.",
+      "coefficient_inference_seconds": 0.24511819500185084,
+      "frozen_qm_reference_total_seconds": 855.735990333,
+      "model_initialization_seconds": 0.12576335400081007,
+      "screen_to_qm_runtime_ratio": 0.005073991250865421,
+      "screen_total_seconds": 4.341996928000299
+    }
+  },
+  "numerical_checks": {
+    "minimum_canonical_eigenvalue": {
+      "minimum": 0.0,
+      "passes": true,
+      "value": 34.64389156992711
+    },
+    "raw_polarizability_antisymmetry": {
+      "maximum": 1e-10,
+      "passes": true,
+      "value": 2.467644845869402e-17
+    }
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-prereg-v1.json",
+    "protocol_id": "route2-v0-mace-mdp-acetone-response-prereg-v1",
+    "sha256": "86ff3dd6a070a960098dd85b7da3cf6a750c15e5e4860f32b584e64d064097ea"
+  },
+  "qm_reference": {
+    "dipole_ebohr": [
+      -0.18457829166560735,
+      1.056982469849121,
+      -0.5991360499853329
+    ],
+    "method": {
+      "basis": "def2-tzvpd",
+      "charge": 0,
+      "density_fitting": true,
+      "electronic_structure": "omegaB97M-V",
+      "maximum_scf_cycles": 100,
+      "nonlocal_grid_profile": "50x194-SG1",
+      "pyscf_xc_token": "wb97m-v",
+      "reference": "RKS",
+      "scf_energy_tolerance_hartree": 1e-10,
+      "scf_gradient_tolerance": 1e-07,
+      "semilocal_grid_level": 3,
+      "spin": 0
+    },
+    "selected_eigenvalues_bohr3": [
+      34.503733210724754,
+      46.05969417314208,
+      46.28429605802508
+    ],
+    "selected_step_au": 0.0003,
+    "selected_symmetric_polarizability_bohr3": [
+      [
+        36.843938850836075,
+        0.8321140701357995,
+        4.572103759874491
+      ],
+      [
+        0.8321140701357995,
+        46.16922063990004,
+        -0.5021154377852592
+      ],
+      [
+        4.572103759874491,
+        -0.5021154377852592,
+        43.83456395115578
+      ]
+    ],
+    "source_artifact": "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json"
+  },
+  "runtime": {
+    "default_dtype": "float64",
+    "device": "cpu",
+    "model_path": "/home/axie/.cache/mace/MACE-MDP.model",
+    "model_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "model_size_bytes": 51716861,
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python",
+    "torch_force_no_weights_only_load": "1",
+    "versions": {
+      "ase": "3.27.0",
+      "mace_torch": "0.3.16",
+      "numpy": "2.4.6",
+      "torch": "2.12.0+cu130"
+    }
+  },
+  "schema_version": 1,
+  "scientific_falsification": {
+    "admission_boundary": "Admission is limited to defining and testing a new explicit moment-space scalar with an energy-conjugate source map, a common continuum functional, coordinate derivatives, and force gates. MACE-MDP is not thereby an energy/force model, and this does not permit an experimental-solvation accuracy panel.",
+    "checks": {
+      "principal_value_relative_max": {
+        "maximum": 0.3,
+        "passes": true,
+        "value": 0.004105865390030329
+      },
+      "relative_frobenius_mismatch": {
+        "maximum": 0.2,
+        "passes": true,
+        "value": 0.0038678621612867163
+      },
+      "trace_ratio": {
+        "maximum": 1.2,
+        "minimum": 0.8,
+        "passes": true,
+        "value": 0.998759105214202
+      }
+    },
+    "passes_all_registered_checks": true,
+    "verdict": "admit-frozen-mace-mdp-response-coefficients-only"
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_route2_v0_mace_mdp_acetone_response.py": "94f5c2557eb91f82d9abfa246b128dd40678da077dbe80f3be30f656cc7c6e56"
+  },
+  "status": "pass",
+  "system": {
+    "atom_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "compound_id": "mobley_3867265",
+    "name": "acetone",
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ]
+  },
+  "unit_conversion": {
+    "atomic_field_volt_per_angstrom": 51.42206747632595,
+    "bohr_radius_angstrom": 0.529177210903,
+    "bohr_radius_meters": 5.29177210903e-11,
+    "eangstrom2_per_volt_to_bohr3": 97.1736242922823,
+    "elementary_charge_coulomb": 1.602176634e-19,
+    "hartree_joule": 4.3597447222071e-18,
+    "source_unit": "e angstrom^2 / volt",
+    "target_unit": "bohr^3"
+  }
+}

@@ -85,3 +85,44 @@ def test_mace_mdp_preregistration_binds_the_runner_and_frozen_qm_input():
     assert contract["model"]["sha256"] == (
         "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
     )
+
+
+def test_mace_mdp_artifact_admits_only_frozen_response_coefficients():
+    artifact = json.loads(
+        (BENCHMARKS / "route2-v0-mace-mdp-acetone-response-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert artifact["status"] == "pass"
+    assert artifact["scientific_falsification"]["verdict"] == (
+        "admit-frozen-mace-mdp-response-coefficients-only"
+    )
+    assert (
+        artifact["hard_constraints"]["mace_mdp_treated_as_an_energy_or_force_model"]
+        is False
+    )
+    assert artifact["hard_constraints"]["experimental_solvation_labels_read"] is False
+    assert artifact["hard_constraints"]["continuum_or_pcm_invoked"] is False
+    assert (
+        artifact["numerical_checks"]["raw_polarizability_antisymmetry"]["value"]
+        < 1.0e-10
+    )
+    assert artifact["numerical_checks"]["minimum_canonical_eigenvalue"]["value"] > 0.0
+    checks = artifact["scientific_falsification"]["checks"]
+    assert all(check["passes"] for check in checks.values())
+    assert checks["relative_frobenius_mismatch"]["value"] < 0.2
+    assert 0.8 < checks["trace_ratio"]["value"] < 1.2
+    assert checks["principal_value_relative_max"]["value"] < 0.3
+    assert (
+        "does not permit an experimental-solvation accuracy panel"
+        in artifact["scientific_falsification"]["admission_boundary"]
+    )
+
+    runner = BENCHMARKS / "run_route2_v0_mace_mdp_acetone_response.py"
+    assert artifact["source_files_sha256"] == {
+        "docs/implicit-solvation/benchmarks/"
+        "run_route2_v0_mace_mdp_acetone_response.py": hashlib.sha256(
+            runner.read_bytes()
+        ).hexdigest()
+    }

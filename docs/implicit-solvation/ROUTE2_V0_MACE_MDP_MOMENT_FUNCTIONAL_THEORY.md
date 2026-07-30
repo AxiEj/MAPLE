@@ -2,10 +2,11 @@
 
 ## Status and boundary
 
-This document defines the only new V0 electronic branch admitted by the
-frozen MACE-MDP acetone coefficient screen. It is a **theory and admission
-contract**, not a public Route-2 calculator, a total-solvation result, or an
-accuracy claim.
+This document records the coefficient-only V0 branch opened by the frozen
+MACE-MDP acetone screen. Its first attempted induced-density realization has
+now been **rejected before PCM**. Consequently this is a **theory and
+admission contract**, not an admitted electronic implementation, a public
+Route-2 calculator, a total-solvation result, or an accuracy claim.
 
 The sealed artifact
 [`route2-v0-mace-mdp-acetone-response-v1.json`](benchmarks/route2-v0-mace-mdp-acetone-response-v1.json)
@@ -50,7 +51,37 @@ properties to machine precision: atomic dipole closure is
 induced-dipole partition.  It does **not** yet specify how those atom moments
 become a radial GTO density or an electrostatic source.
 
-## One explicit scalar
+That missing radial information is now a measured, rather than merely
+theoretical, obstruction. The preregistered one-radial \(l=1\) GTO map using
+the inherited 1.5-\(\mathring{\rm A}\) width passed all algebraic identities
+(charge, induced-dipole, source-potential, source-duality, and atomic-partition
+errors were at most \(2.26\times10^{-16}\)). It nevertheless failed against
+the frozen acetone QM finite-field exterior potential **in vacuum, before any
+cavity or solvent calculation**:
+
+\[
+\frac{\|\partial_E V_{D_1}-\partial_E V_{\rm QM}\|_F}
+     {\|\partial_E V_{\rm QM}\|_F}=0.4597926523>0.20,
+\qquad
+\max_{\hat E}\operatorname{relerr}(V_{D_1},V_{\rm QM})
+=0.4965624773>0.30.
+\]
+
+The independent induced-dipole tensor still agrees at \(0.0038678622\), so
+the failure is specifically a spatial-response failure, not a polarizability
+or source-duality failure. The immutable execution record is
+[route2-v0-mace-mdp-induced-source-acetone-v1.json](benchmarks/route2-v0-mace-mdp-induced-source-acetone-v1.json);
+its QM-dipole bookkeeping erratum is preserved separately and does not change
+either failed MEP gate. The rejected map must not enter a KKT solve, a PCM
+calculation, or any experimental accuracy panel.
+
+## Conditional rank-three scalar
+
+The following rank-three construction explains the common-energy requirement,
+but it is **not admitted**: its only concrete one-radial \(D_{\mathbf R}\)
+realization was rejected above. A full response-kernel successor will use
+\(\delta c=-C_{\mathbf R}f\) rather than infer the entire response from three
+columns of \(D_{\mathbf R}\).
 
 Let \(c_0(\mathbf R)\) be a frozen gas-phase density coefficient vector in a
 single GTO source/dual basis. It must already satisfy
@@ -128,12 +159,27 @@ it is not imposed on a learned fixed-point Jacobian.
 ## Non-negotiable source-map rule
 
 The **radial density representer** in \(D_{\mathbf R}\) remains unresolved;
-the atomic Cartesian partition is no longer guessed.  A point dipole, a
-guessed Gaussian width, an error-selected atomic partition, or a projection
-that changes after viewing solvation errors is forbidden. Any implementation
-must use the frozen \(p_a=W_ap\) partition above and provide a
-source-provenanced, geometry-differentiable GTO representer satisfying all of
-the following before it is connected to a PCM:
+the one-radial candidate has been rejected and the atomic Cartesian partition
+is no longer guessed. A point dipole, another guessed Gaussian width, an
+error-selected atomic partition, a higher-multipole add-on, or a projection
+that changes after viewing solvation errors is forbidden.
+
+This is an identifiability boundary, not a request to search widths. The
+MACE-MDP tensor fixes only the three-dimensional projected response
+\(M_{\mathbf R}C_{\mathbf R}M_{\mathbf R}^{\mathsf T}=\alpha_\theta\), where
+\(C_{\mathbf R}\) is a full induced-density susceptibility. It does not fix
+the high-dimensional null space of \(M_{\mathbf R}\), which controls the
+near-field potential. The one-radial failure is the executable counterexample:
+matching the complete molecular dipole response does not identify a correct
+response density. A successor therefore needs a separately source-provenanced
+full response kernel, not another moment-preserving representer.
+
+Any future rank-three representer must reproduce the frozen
+\(p_a=W_ap\) partition above under a uniform field and provide a
+source-provenanced, geometry-differentiable GTO map satisfying all of the
+following before it is connected to a PCM. A full-kernel successor must
+instead prove the corresponding charge neutrality, source duality, covariance,
+and uniform-field partition identities for \(C_{\mathbf R}\).
 
 1. **Charge and moment identity:** \(q^\mathsf TD=0\) and
    \(M_{\mathbf R}D=I_3\) at float64 precision.
@@ -142,8 +188,9 @@ the following before it is connected to a PCM:
    same `B` and transpose as the permanent source.
 3. **Euclidean covariance:** translation leaves the induced neutral density's
    dipole invariant, and a rigid rotation covaries both \(D\) and \(p\).
-4. **No hidden response correction:** a failed raw MACE-MDP tensor cannot be
-   made eligible by clipping, shifting, rescaling, or a source-map choice.
+4. **No hidden response correction:** a failed raw MACE-MDP tensor or source
+   cannot be made eligible by clipping, shifting, rescaling, changing a
+   width, adding moments, or a source-map choice.
 5. **Physical validation:** the representer's vacuum potential, reaction
    potential, and induced density/moment must be compared with preregistered
    QM quantities before it is allowed to influence a solvation result.
@@ -191,8 +238,10 @@ advantage.
 
 ## Ordered admission path to accuracy
 
-1. Pre-register and implement a non-arbitrary \(D_{\mathbf R}\) with the
-   identities above; do not select it from experimental solvation errors.
+1. Source-bind and pre-register a full induced-density kernel, then implement
+   its non-arbitrary \(D_{\mathbf R}\) with the identities above. The rejected
+   one-radial map is not a starting point for a parameter sweep and may not be
+   used to choose its successor.
 2. Couple it to the existing reciprocal GTO/continuum primitive and demonstrate
    \(K_p\succ0\), one energy ledger, and envelope forces.
 3. Extend the **physics** validation over the frozen twelve-record,

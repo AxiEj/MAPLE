@@ -326,6 +326,33 @@ finite-difference conjugacy.  This is **not** a total V0-AQ-C calculation:
 and \(\Phi_s\) is absent.  Accordingly the implementation cannot emit a
 solvation free energy, force certificate, or accuracy value.
 
+### 3.4A Open-boundary isolated-source reaction block
+
+The periodic control is deliberately not the direct endpoint for a finite AO
+molecular density: it requires neutral charge on the discrete torus and must
+reject any finite-box electron-count residual instead of adding an unphysical
+background.  The separate
+[`ROUTE2_V0_OPEN_BOUNDARY_CONTINUUM_THEORY.md`](ROUTE2_V0_OPEN_BOUNDARY_CONTINUUM_THEORY.md)
+and
+[`route2_v0_open_diffuse_continuum.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_diffuse_continuum.py)
+therefore implement a cell-centred zero-Dirichlet-face finite-volume operator.
+The matching non-wrapping cubic B-spline nuclear map is in
+[`route2_v0_open_bspline.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_bspline.py): a nuclear support that reaches the
+box edge fails and requires a larger buffer rather than periodic wrapping.
+It is symmetric positive definite for any source charge, reports the same
+vacuum-subtracted reaction scalar, and includes the required exterior-face
+terms in the occupancy envelope derivative.  Its tests prove scaling,
+reciprocity, passivity, and both finite-difference identities for a
+deliberately non-neutral source, then prove that its electron reaction
+potential pulls back to the AO density dual with the matching central
+AO-density finite difference.
+
+This removes a **boundary-condition mismatch**, not an accuracy obstacle: the
+finite box, AO density count, solvent kernel/cavity, nonpolar scalar, and
+stationary electronic functional each remain independent convergence or
+physics gates.  In particular, no density is normalised and no periodic
+neutralising background is introduced.
+
 ### 3.5 Nonlocal density-defined cavity closure
 
 There is a second mathematically valid way to close the cavity without adding

@@ -1,0 +1,49 @@
+{
+  "claim_boundary": "This protocol fixes a full induced-response common-scalar KKT kernel in the frozen atomic independent-particle coefficient space. Its synthetic unit controls prove exact source/dual pairing, support constraints, continuum reciprocity/passivity, stationarity, and envelope identities. They do not bind a physical continuum, stationary permanent density, gas energy, nonpolar functional, coordinate derivative, force/PES, experimental solvation label, total solvation prediction, or chemistry accuracy metric.",
+  "construction": {
+    "continuum_term": "0.5 (v0 + B_R x)^T Q_R (v0 + B_R x), where Q_R is a matching energy-conjugate reciprocal passive surface response and v0 is an explicitly provenance-pending permanent surface potential.",
+    "electronic_term": "0.5 x^T C_R^+ x on the exact V0-RK support, where C_R is the frozen positive semidefinite atomic independent-particle response completion.",
+    "external_term": "x^T f in the frozen transition-density coefficient/dual convention.",
+    "name": "route2-v0-full-response-kkt-v1",
+    "source": "B_R maps the exact frozen atomic-HF GTO transition-density coefficients to electronic surface MEP and B_R^T is the only surface-charge-to-coefficient dual.",
+    "stationarity": "[H_R,N_R^T;N_R,0][x;eta]=-[B_R^T Q_R v0+f;0], with H_R=C_R^+ + B_R^T Q_R B_R and N_R spanning exactly ker(C_R)."
+  },
+  "decision_rule": "A failed structural, physical, force, runtime, or chemistry gate rejects the current frozen physical binding. No failed gate authorizes fitting, retraining, calibration, response damping, eigenvalue clipping, cavity/radius tuning, or a post-hoc correction.",
+  "forbidden_shortcuts": [
+    "Do not re-use the rejected one-radial MACE l=1 Gaussian source.",
+    "Do not convert MACE-MDP into a density or energy/force model, alter MACE weights, alter atomic-HF transitions, rescale a response, or repair an eigenvalue to pass a gate.",
+    "Do not use a synthetic continuum control as a physical continuum, total solvation free energy, force model, or accuracy result.",
+    "Do not run a FreeSolv, MNSol, multi-solvent, or other experimental accuracy panel from this structural gate."
+  ],
+  "hard_constraints": {
+    "atomic_transition_selection_from_qm_or_solvation_error": false,
+    "continuum_parameter_or_cavity_selection_from_solvation_error": false,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "learned_response_jacobian_symmetrization": false,
+    "legacy_public_route_changed": false,
+    "mace_density_relabelled_as_electron_density": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "permanent_density_claim": false,
+    "physical_continuum_execution": false,
+    "post_training": false,
+    "response_tempering_or_eigenvalue_clipping": false
+  },
+  "physical_binding_required_before_any_accuracy_run": [
+    "A stationary, separately provenance-bound permanent electronic source in the same coefficient/surface dual convention.",
+    "A physical smooth-coordinate reciprocal continuum with source/dual, cavity, and coordinate-derivative certificates.",
+    "Twelve-record, ten-actual-functional-group QM density/MEP/reaction-potential physics gates that read no experimental solvation label.",
+    "Full envelope-force, coordinate-loop, grid/cavity refinement, and runtime gates.",
+    "Frozen all-record historical, multi-solvent/custom-solvent, confirmation, and never-used blind experimental protocols."
+  ],
+  "required_structural_gates": [
+    "The V0-RK completion exactly matches the frozen atomic-IP coefficient space and N_R spans its response-kernel null space.",
+    "The GTO source map and its transpose satisfy q^T B_R x=x^T B_R^Tq without a separately written VJP.",
+    "The continuum has matching atomic numbers, geometry, and surface points; it is linear, reciprocal, and passive in the declared full source support.",
+    "C_R^+ and H_R are symmetric, and H_R is strictly positive on Ran(C_R).",
+    "The returned state recomputes the KKT residual, support residual, surface linearity, half-coupling ledger, reciprocal/passive external response, and both envelope identities."
+  ],
+  "schema_version": 1,
+  "status": "structural-kernel-implemented-before-physical-continuum-binding"
+}

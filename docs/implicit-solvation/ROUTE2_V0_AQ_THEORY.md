@@ -348,10 +348,11 @@ potential pulls back to the AO density dual with the matching central
 AO-density finite difference.
 
 This removes a **boundary-condition mismatch**, not an accuracy obstacle: the
-finite box, AO density count, solvent kernel/cavity, nonpolar scalar, and
-stationary electronic functional each remain independent convergence or
-physics gates.  In particular, no density is normalised and no periodic
-neutralising background is introduced.
+matching open electrostatic cavity and bulk-continued cavitation calculus now
+exist, but their physical solvent kernels, their mutual occupancy semantics,
+the finite box/AO density count, and the stationary electronic functional each
+remain independent convergence or physics gates.  In particular, no density
+is normalised and no periodic neutralising background is introduced.
 
 ### 3.5 Nonlocal density-defined cavity closure
 
@@ -408,6 +409,14 @@ derivative of \(G_{\rm reac}[\rho_{\rm nuc}-n,m_s[n]]\), including the
 nonzero cavity chain term.  The test kernel is synthetic by design.  No
 physical solvent kernel or threshold is silently supplied, and the object
 refuses promotion to a total-solvent asset.
+
+For an isolated AO source, the periodic map is only a control.  The matching
+[`route2_v0_open_iso_density_cavity.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_iso_density_cavity.py)
+uses the same chain rule with a zero-extended **linear** convolution, so that
+no density tail appears through the opposite box face.  Its direct-loop,
+adjoint, composed reaction, and AO-pullback finite-difference tests are
+structural only; a physical solvent density kernel/threshold and open
+grid-buffer convergence remain mandatory.
 
 The density-overlap idea is physically motivated by the non-bonded Pauli
 overlap construction in SaLSA.  It is admissible here only when the isolated
@@ -565,6 +574,38 @@ covariance, self-adjoint shell pairing, immutability, and crossed-state
 rejection.  This is a genuine \(\Phi_{\rm cav}\) candidate in the **implicit**
 V0-AQ-C route; it is not the archived molecular-HNC/WDA bridge and needs no
 GROMACS, 3D-RISM, or explicit-liquid trajectory.
+
+### 3.6A Open bulk-continued weighted-density scalar
+
+For the same isolated-source domain as Section 3.4A, the exterior is bulk
+liquid rather than periodic solvent or vacuum.  The matching open scalar is
+implemented in
+[`route2_v0_open_weighted_density_cavity.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_weighted_density_cavity.py):
+
+\[
+d=s_{\rm c}-1,
+\qquad
+\bar s_{\rm c}=1+W_{\rm open}d,
+\qquad
+d\vert_{\mathbb R^3\setminus\Omega_h}=0.
+\]
+
+Here \(W_{\rm open}\) is a normalized centrosymmetric linear convolution. The
+local density is summed over its complete finite convolution support, so the
+scalar retains the same \(G_{\rm cav}=\Delta V\sum f_s(\bar s_{\rm c})\)
+without dropping the exterior bulk shell, and has exact derivative
+
+\[
+\frac{\delta G_{\rm cav}}{\delta s_{\rm c}}
+=W_{\rm open}^\dagger f_s'(\bar s_{\rm c}).
+\]
+
+The all-bulk limit is exactly zero, while a finite void at an exterior face
+sees the explicitly declared bulk continuation.  The test locks direct-loop
+and adjoint identities, this boundary condition, and the finite-difference
+derivative.  It does **not** equate the electrostatic iso-density occupancy
+with \(s_{\rm c}\); that is still a separate solvent-side physical admission
+gate.
 
 It is still deliberately below total admission.  The current
 iso-density-product occupancy is an electrostatic-cavity candidate, whereas

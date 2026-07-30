@@ -1,11 +1,13 @@
-# Route-2 V0-AQ-C: open-boundary reciprocal reaction scalar
+# Route-2 V0-AQ-C: open-boundary reciprocal solvent scalars
 
 ## Scope and status
 
 This document defines the isolated-source electrostatic block implemented in
 [`route2_v0_open_diffuse_continuum.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_diffuse_continuum.py)
 and its matching open density-defined cavity composition in
-[`route2_v0_open_iso_density_cavity.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_iso_density_cavity.py).
+[`route2_v0_open_iso_density_cavity.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_iso_density_cavity.py),
+plus the matching open bulk-continued weighted-density cavitation scalar in
+[`route2_v0_open_weighted_density_cavity.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_weighted_density_cavity.py).
 It exists because an AO molecular density on a finite box generally has a
 visible quadrature/domain electron-count residual.  A periodic Poisson solve
 must reject that source rather than introduce a neutralising background; it
@@ -14,12 +16,14 @@ source.
 
 The open block has a zero-potential boundary at the *exterior faces* of a
 finite cell-centred box.  It is symmetric, energy-conjugate, and supports a
-non-neutral source.  The matching cavity has a zero-extended rather than a
-periodically wrapped convolution.  Together they are still only a
-**structural electrostatic control**: they supply no permanent electronic
-functional, physical solvent density kernel or overlap threshold, cavitation,
-Pauli/dispersion term, standard-state term, force/PES certificate, runtime
-result, or experimental solvation value.
+non-neutral source.  The matching cavities have zero-extended rather than
+periodically wrapped convolutions; the cavitation scalar continues its
+occupancy to bulk liquid outside the finite box.  Together they are still only
+**structural solvent controls**: they supply no permanent electronic
+functional, physical solvent density/shell kernels or overlap threshold,
+source-bound relation between the electrostatic and solvent-centre
+occupancies, Pauli/dispersion term, force/PES certificate, runtime result, or
+experimental solvation value.
 
 In particular, removing the periodic neutrality restriction does **not**
 repair an AO electron-count error.  The source must report
@@ -236,7 +240,60 @@ not an infinite-domain proof: buffer and grid-refinement convergence must
 expose the residual truncation error before this block can enter a physical
 calculation.
 
-## 5. Evidence and remaining gates
+## 5. Matching open weighted-density cavitation scalar
+
+The periodic weighted-density cavitation control has the opposite exterior
+condition from a finite isolated solute: a periodic convolution creates
+periodic solute images, while zero-extending the occupancy itself would put
+vacuum outside the box.  The correct finite-box convention for a solute in a
+bulk liquid is instead
+
+\[
+d_i=s_{{\rm c},i}-1,
+\qquad d_i=0\quad\text{outside }\Omega_h,
+\qquad
+\bar s_{{\rm c},i}=1+(W d)_i,
+\]
+
+where \(s_{\rm c}=1\) denotes bulk solvent-centre occupancy and the same
+kind of odd-shape, normalized, centrosymmetric relative kernel is used:
+
+\[
+(Wd)_i=\Delta V\sum_{j\in\Omega_h}w_{i-j}d_j,
+\qquad
+\Delta V\sum_\Delta w_\Delta=1.
+\]
+
+Thus a completely bulk finite box gives \(\bar s_{\rm c}=1\) and zero
+cavitation free energy exactly.  The code evaluates \(f_s\) over the full
+finite convolution support \(\Omega_h\oplus\operatorname{supp}w\), so a
+finite cavity near a box face includes its exterior bulk shell rather than
+discarding it.  It is neither a periodic image nor a hidden exterior vacuum
+cavity.  The AO density and electrostatic reaction block still require their
+own grid/buffer convergence certificates.
+
+For the already declared pure-liquid local density \(f_s\), the scalar and
+its derivative are
+
+\[
+G_{{\rm cav},h}[s_{\rm c}]
+=\Delta V\sum_{i\in\Omega_h\oplus\operatorname{supp}w}
+f_s(\bar s_{{\rm c},i}),
+\qquad
+\boxed{
+\frac{\delta G_{{\rm cav},h}}{\delta s_{\rm c}}
+=W^\dagger f_s'(\bar s_{\rm c}).
+}
+\]
+
+This is again a pre-minimisation derivative of the reported scalar, not an
+area correction added after an electrostatic solve.  The density-defined
+electrostatic occupancy \(m[n]\) and the solvent-centre field \(s_{\rm c}\)
+are intentionally **not** identified by this code.  An equality or map
+between them needs independent solvent-side provenance; otherwise combining
+their scalar terms would invent a physical relation.
+
+## 6. Evidence and remaining gates
 
 [`test_route2_v0_open_diffuse_continuum.py`](../../tests/solvation/test_route2_v0_open_diffuse_continuum.py)
 proves only the fixed-occupancy discrete claims: a deliberately non-neutral
@@ -253,6 +310,13 @@ the cavity VJP finite difference, the composed non-neutral reaction finite
 difference, and the exact AO density-dual pullback.  These tests use an
 arbitrary structural kernel and threshold and do not use a solvation label or
 select a numerical parameter from any error.
+
+[`test_route2_v0_open_weighted_density_cavity.py`](../../tests/solvation/test_route2_v0_open_weighted_density_cavity.py)
+proves the independent direct-loop and adjoint identities of the open shell
+map, the bulk-one exterior condition, the finite-void boundary behavior, the
+central occupancy finite difference, and crossed-state rejection.  Its shell
+kernel and thermodynamic values are structural test data, not an admitted
+physical solvent asset.
 
 The physical motivation is consistent with the variational solute--continuum
 derivations in [Chai and Luber (2024)](https://arxiv.org/abs/2407.20404), which
@@ -272,9 +336,11 @@ needs all of the following:
 2. a physical solvent density kernel and overlap threshold fixed from
    independent evidence, then open-domain grid/buffer convergence for the
    matching smooth cavity already implemented here;
-3. a pre-minimisation nonpolar/Pauli/dispersion and standard-state scalar from
-   independent solvent physics;
-4. KKT residual, stability, force, grid/buffer, rigid-motion, and closed-loop
+3. independently source-bound pure-liquid shell/thermodynamic data and a
+   proven relation between the electrostatic occupancy and solvent-centre
+   occupancy before the two cavity scalars are joined;
+4. a pre-minimisation Pauli/dispersion scalar from independent solvent physics;
+5. KKT residual, stability, force, grid/buffer, rigid-motion, and closed-loop
    work gates; and then
-5. the immutable all-record 10+ functional-group/11-solvent/blind experiment
+6. the immutable all-record 10+ functional-group/11-solvent/blind experiment
    protocol, with every absolute error below the declared threshold.

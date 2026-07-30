@@ -131,6 +131,18 @@ round trip passed, but the frozen all-point static-QM-MEP gate rejected the
 source: relative Frobenius \(0.219999>0.20\) and relative maximum
 \(0.376056>0.30\), while the dipole screen passed.  Preserve its artifacts and
 the rejected GFN2 field response, but do not alter its cores, coefficients,
-points, thresholds, response, or attach it to PCM/KKT.  The active replacement
-research item is V0-ARSP, a separately stationary atomic-response permanent
-source. Its V1 parent gate mapping failed after sealing helper output but before a final verdict; V2 leaves candidate and thresholds unchanged and reruns it. It has no physics or accuracy result yet.
+points, thresholds, response, or attach it to PCM/KKT.
+
+**2026-07-31 — V0-ARSP atomic-response stationary permanent source.**  The
+V1 parent mapping failure and sealed undecided helper output are preserved;
+the V2 successor changed only that mapping.  Its final frozen receipt,
+[`route2-v0-atomic-response-stationary-source-acetone-v2.json`](benchmarks/route2-v0-atomic-response-stationary-source-acetone-v2.json),
+rejects the exact candidate independently of solver convergence: stationarity
+is machine precision, but the unmodified density grid minimum is
+\(-8.64\times10^{-6}\,e/a_0^3\), and static-QM-MEP/dipole Frobenius errors
+are \(1.20879\) and \(1.08414\), respectively, above the frozen 0.20 gates.
+The MEP relative maximum is \(1.27083>0.30\).  The runner's separate
+checkpoint-count literal (48 instead of the recorded 32) is a preserved,
+non-decisive bookkeeping defect; it does not excuse or alter the independent
+scientific rejection.  Do not rerun or tune V0-ARSP, and do not attach it to
+PCM/KKT, accuracy, or speed testing.

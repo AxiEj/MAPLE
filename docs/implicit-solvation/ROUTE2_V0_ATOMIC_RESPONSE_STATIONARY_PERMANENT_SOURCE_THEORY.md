@@ -15,13 +15,28 @@ orbitals, effective cores, response, or thresholds.  The only reusable inputs
 are the independently frozen spherical atomic-HF table, the already admitted
 MACE-MDP **moment** covariance/partition, and exact AO Coulomb integrals.
 
-The next admissible result is a preregistered one-acetone *gas-phase* static
-MEP falsifier.  V1 preserved a helper output but stopped in its parent
-field-name mapping before a final registered gate verdict; that sealed output
-is not used to select the candidate or thresholds.  V2 changes only that
-name-to-field mapping and reruns the unchanged frozen source.  A pass remains
-only a source admission to a broad QM physics panel and same-basis
-continuum/KKT gate.  It cannot be presented as a solvation-accuracy result.
+The preregistered one-acetone *gas-phase* static-MEP falsifier has now
+completed as
+[`route2-v0-atomic-response-stationary-source-acetone-v2.json`](benchmarks/route2-v0-atomic-response-stationary-source-acetone-v2.json)
+and rejects this exact source.  V1 preserved a helper output but stopped in
+its parent field-name mapping before a final registered gate verdict; V2
+changed only that mapping and reran the unchanged frozen source.  Its scalar
+stationarity residual is \(4.04\times10^{-15}\) Hartree and its support
+constraint residual is \(9.54\times10^{-17}\), but the unmodified source
+fails the no-clipping density canary (minimum
+\(-8.64\times10^{-6}\,e/a_0^3<-10^{-10}\)) and all three frozen static
+comparators: MEP Frobenius \(1.20879>0.20\), MEP maximum
+\(1.27083>0.30\), and dipole Frobenius \(1.08414>0.20\).  It is therefore
+excluded from the broad QM panel, continuum/KKT coupling, and every accuracy
+or speed test.  No source, grid, point, comparator, or threshold was altered
+after seeing this result.
+
+The V2 receipt also exposes a non-decisive bookkeeping defect: the parent
+runner compared the checkpoint's correct 32-electron acetone count to a
+hard-coded 48.  That false numerical flag does not affect the independently
+failed density and static-QM gates, so the frozen V2 result is preserved and
+not rerun.  A future distinct candidate must derive its checkpoint count from
+the declared molecule rather than reuse that literal.
 
 ## 1. Why this construction is needed
 

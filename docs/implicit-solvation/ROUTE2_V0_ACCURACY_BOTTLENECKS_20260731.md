@@ -120,9 +120,16 @@ permanent-source audit** has now completed that first static-MEP test and is
 rejected: despite representation and dipole compatibility gates passing, its
 516-point static-MEP errors are \(0.219999>0.20\) and \(0.376056>0.30\).
 Its rejected xTB field response remains excluded from \(C\), and no GFN2
-source may enter PCM/KKT or an accuracy test.  The live replacement candidate
-is the separately stationary atomic-response construction in
-[`ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md`](ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md). Its V1 parent runner stopped on a field-name mapping preflight after sealing, but not deciding, helper output; V2 preserves that evidence and reruns the unchanged source. It has no physical source verdict yet.
+source may enter PCM/KKT or an accuracy test.  The separately stationary
+atomic-response replacement has also now been rejected in its frozen V2
+source gate: despite a machine-precision stationary scalar, its unmodified
+density becomes negative on the registered real-space grid and its 516-point
+static-QM-MEP errors are \(1.20879>0.20\) Frobenius and
+\(1.27083>0.30\) maximum, with a \(1.08414>0.20\) dipole error.  The full
+receipt is linked from
+[`ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md`](ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md).
+It is not eligible for PCM/KKT, accuracy, or speed work; no post-result tuning
+or retry is permitted.
 
 Let:
 

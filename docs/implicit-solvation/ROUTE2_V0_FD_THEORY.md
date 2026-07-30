@@ -1849,6 +1849,99 @@ It does **not** make a synthetic certificate physical, prove an HNC liquid
 model accurate, or relax any later force, multi-solvent, historical-outlier, or
 blind-data gate.
 
+##### 4.2.19b The literature-exact cubic Gaussian WDA is a separate V0 branch
+
+The cubic-plus-quartic bridge above follows the earlier pure-liquid
+pressure/surface-tension construction.  It must not be relabelled as the
+later simple molecular-WDA form merely because both are variational weighted
+density bridges.  Borgis *et al.*'s 2021 construction instead takes the
+lowest nonzero angular-independent bridge order,
+
+\[
+F_{\rm B}^{\rm cWDA}[\nu]
+=k_BT\rho_b\Delta v\sum_g
+a_s\left(\frac{(K_\sigma D\nu)_g-\rho_b}{\rho_b}\right)^3
+=\Delta v\sum_gA_s(\bar\rho_g-\rho_b)^3,
+\]
+
+with a Gaussian coarse graining
+
+\[
+K_\sigma(\mathbf r)
+=(2\pi\sigma_s^2)^{-3/2}
+\exp\!\left(-\frac{|\mathbf r|^2}{2\sigma_s^2}\right).
+\]
+
+Its pure-liquid number-channel compressibility fixes the dimensionless cubic
+coefficient rather than a solute benchmark:
+
+\[
+S_{NN}(0)=\rho_b k_BT\chi_T,
+\qquad
+\boxed{a_s=\frac12\left(1+\frac{1}{S_{NN}(0)}\right).}
+\]
+
+For the exact molecular-HNC zero mode, this supplies a second derivation of
+the vacuum pressure,
+
+\[
+P_{\rm HNC}=\rho_bk_BT a_s,
+\qquad
+\boxed{
+A_s=\frac{P_{\rm HNC}-P_s}{\rho_b^3}
+=\frac{\rho_bk_BT a_s-P_s}{\rho_b^3}.
+}
+\]
+
+At liquid--vapour coexistence \(P_s=0\), this reduces to the literature
+cubic-WDA expression.  For a declared finite physical pressure, the two
+forms must still agree; otherwise the scalar's actual HNC zero mode and the
+independently sourced compressibility describe different liquids and the
+candidate fails closed.  The finite-grid implementation uses a positive
+periodic Gaussian image sum and normalizes it in the same \(\Delta v\)
+pairing as the HNC convolution.  Its only local derivatives are
+
+\[
+b'(\bar\rho)=3A_s(\bar\rho-\rho_b)^2,
+\qquad
+b''(\bar\rho)=6A_s(\bar\rho-\rho_b),
+\]
+
+so the same \(D^TK_\sigma\) gradient and self-adjoint Hessian proof in
+Section 4.2.19 applies without response symmetrization.
+
+`Route2V0MolecularWeightedDensityBridgeAsset.from_molecular_cubic_wda_anchors`
+implements this branch.  It rejects a non-Gaussian live kernel, a nonzero
+quartic coefficient, an absent compressibility, or disagreement between the
+compressibility zero mode and the exact molecular-HNC pressure.  It therefore
+is a real common-scalar control, but **not yet a physical liquid endpoint**:
+the present direct constructor has no parsed source-bound cubic-WDA
+certificate, and cannot pass `require_physical_pure_solvent_asset()`.
+
+Physical admission must later bind, before any target-solute result, one exact
+all-atom solvent model, finite-wavevector/orientational correlation,
+independent \(\chi_T\), \(P_s\), and \(\gamma_s\), a stationary planar
+surface-tension determination of \(\sigma_s\), and the content digests of
+the Gaussian kernel and centre projection.  The one-component
+compressibility number alone still cannot reconstruct the molecular
+direct-correlation tensor.  No MNSol, FreeSolv, development, confirmation, or
+blind solvation value may select \(\sigma_s\), \(A_s\), or the underlying
+liquid source.
+
+The 2021 paper also explored a separate solute--water electrostatic bridge
+whose coefficient was set from the bulk-water excess chemical potential.  It
+is **not** silently adopted here: it is a different solute-density-coupled
+functional term, and the paper itself reports limitations for ionic solvation.
+V0 needs a distinct source-bound excess-chemical-potential and multi-solvent
+falsification contract before that term can enter a physical endpoint.  This
+keeps the current branch free of a disguised response correction.
+
+The paper's reported comparison is against simulations with its own frozen
+water model and geometry convention.  It is useful evidence that the
+pure-liquid cubic-WDA structure is worth testing, but it is not evidence that
+Route-2 has met the immutable historical ten-record maximum-error gate, the
+11-solvent gate, or the independent experimental blind gate.
+
 #### 4.2.20 Unified no-training V0 variational and stability theorem
 
 The preceding modules form one admissible mathematical trunk only when they

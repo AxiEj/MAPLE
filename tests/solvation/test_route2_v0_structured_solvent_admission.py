@@ -139,6 +139,19 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
         "not_a_physical_liquid_backend"
     ]
 
+    cubic_wda = foundation["molecular_cubic_wda_control"]
+    assert cubic_wda["module"].endswith("route2_v0_molecular_weighted_density_bridge")
+    assert cubic_wda["preregistration"] == (
+        "route2-v0-molecular-cubic-wda-prereg-v1.json"
+    )
+    assert "10.1063/5.0057506" in cubic_wda["literature"]
+    assert "molecular-cubic-wda-2021" in cubic_wda["capability"]
+    assert "compressibility zero mode" in cubic_wda["capability"]
+    assert "periodic Gaussian" in cubic_wda["source_boundary"]
+    assert "exactly zero" in cubic_wda["source_boundary"]
+    assert "No physical cubic-WDA bridge asset" in cubic_wda[
+        "not_a_physical_liquid_backend"
+    ]
 
     hessian = foundation["molecular_hessian_stability_diagnostic"]
     assert hessian["module"].endswith("route2_v0_molecular_stability")

@@ -28,10 +28,12 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_the
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_weighted_density_bridge import (
     V0_MOLECULAR_CENTER_PROJECTION_CONSTRUCTION,
     V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_CONSTRUCTION,
+    V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_WDA_2021,
     Route2V0MolecularCenterProjection,
     Route2V0MolecularWeightedDensityBridgeAsset,
     Route2V0MolecularWeightedDensityBridgeFunctional,
     Route2V0PeriodicWeightedDensityKernel,
+    periodic_gaussian_weighted_density_kernel,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_promolecular_density import (
     Route2V0PromolecularDensityTable,
@@ -134,6 +136,28 @@ def _bridge_functional(*, direct_correlation: np.ndarray | None = None):
         quartic_coefficient_hartree_bohr15=2.0e7,
         target_surface_tension_hartree_per_bohr2=0.001,
         pure_solvent_certificate_sha256="2" * 64,
+    )
+    return Route2V0MolecularWeightedDensityBridgeFunctional(
+        hnc_functional=base,
+        bridge_asset=asset,
+    )
+
+
+def _molecular_cubic_wda_functional():
+    base = _base_functional()
+    center = _center_projection(base)
+    density = center.molecular_bulk_number_density_bohr3
+    kbt = base.projection.site_hnc_asset.kbt_hartree
+    asset = (
+        Route2V0MolecularWeightedDensityBridgeAsset.from_molecular_cubic_wda_anchors(
+            hnc_functional=base,
+            center_projection=center,
+            target_bulk_pressure_hartree_per_bohr3=0.0002,
+            isothermal_compressibility_hartree_inverse_bohr3=1.0 / (density * kbt),
+            gaussian_width_bohr=0.75,
+            target_surface_tension_hartree_per_bohr2=0.001,
+            pure_solvent_certificate_sha256="3" * 64,
+        )
     )
     return Route2V0MolecularWeightedDensityBridgeFunctional(
         hnc_functional=base,
@@ -244,6 +268,118 @@ def test_bridge_cubic_coefficient_and_pressure_are_same_functional_identities():
     assert asset.is_physical_pure_solvent_asset is False
     with pytest.raises(ValueError, match="requires a source-bound"):
         asset.require_physical_pure_solvent_asset()
+
+
+def test_molecular_cubic_wda_uses_the_pure_liquid_compressibility_and_gaussian_kernel():
+    functional = _molecular_cubic_wda_functional()
+    asset = functional.bridge_asset
+    density = asset.molecular_bulk_number_density_bohr3
+    kbt = functional.kbt_hartree
+    compressibility = asset.isothermal_compressibility_hartree_inverse_bohr3
+    gaussian_width = asset.gaussian_width_bohr
+    dimensionless_cubic = asset.molecular_cubic_wda_dimensionless_coefficient
+
+    assert compressibility is not None
+    assert gaussian_width is not None
+    assert dimensionless_cubic is not None
+
+    assert (
+        asset.bridge_family
+        == V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_WDA_2021
+    )
+    assert asset.is_molecular_cubic_wda is True
+    assert asset.quartic_coefficient_hartree_bohr15 == 0.0
+    assert asset.dimensionless_number_structure_factor_zero_mode == pytest.approx(1.0)
+    assert dimensionless_cubic == pytest.approx(1.0)
+    assert asset.hnc_bulk_pressure_hartree_per_bohr3 == pytest.approx(density * kbt)
+    assert asset.cubic_coefficient_hartree_bohr6 == pytest.approx(
+        (
+            density * kbt * dimensionless_cubic
+            - asset.target_bulk_pressure_hartree_per_bohr3
+        )
+        / density**3
+    )
+    np.testing.assert_allclose(
+        asset.kernel.kernel_bohr_minus3,
+        periodic_gaussian_weighted_density_kernel(
+            asset.kernel.grid,
+            gaussian_width_bohr=gaussian_width,
+        ),
+        rtol=0.0,
+        atol=2.0e-16,
+    )
+    assert functional.bulk_functional_pressure_hartree_per_bohr3 == pytest.approx(
+        asset.target_bulk_pressure_hartree_per_bohr3,
+        rel=2.0e-14,
+        abs=2.0e-16,
+    )
+    assert asset.is_source_bound_pure_solvent_asset is False
+    assert asset.is_physical_pure_solvent_asset is False
+
+
+def test_molecular_cubic_wda_is_a_single_reciprocal_scalar_before_physical_admission():
+    functional = _molecular_cubic_wda_functional()
+    bulk = functional.projection.uniform_configuration_density_bohr3
+    density = bulk * np.array([1.16, 0.88])
+    direction = bulk * np.array([0.13, -0.09])
+    other_direction = bulk * np.array([-0.07, 0.11])
+    weights = functional.projection.quadrature.phase_space_weights_bohr3
+    step = 1.0e-5
+
+    finite_difference = (
+        functional.grand_potential_hartree(density + step * direction)
+        - functional.grand_potential_hartree(density - step * direction)
+    ) / (2.0 * step)
+    analytic = functional.kbt_hartree * np.sum(
+        weights * functional.dimensionless_gradient(density) * direction
+    )
+    assert finite_difference == pytest.approx(analytic, rel=4.0e-9, abs=2.0e-14)
+
+    hessian_direction = functional.dimensionless_hessian_matvec(density, direction)
+    hessian_other = functional.dimensionless_hessian_matvec(
+        density,
+        other_direction,
+    )
+    assert np.sum(weights * direction * hessian_other) == pytest.approx(
+        np.sum(weights * other_direction * hessian_direction),
+        rel=2.0e-12,
+        abs=2.0e-15,
+    )
+
+
+def test_molecular_cubic_wda_rejects_a_mismatched_zero_mode_or_kernel():
+    functional = _molecular_cubic_wda_functional()
+    asset = functional.bridge_asset
+    center = functional.center_projection
+    compressibility = asset.isothermal_compressibility_hartree_inverse_bohr3
+    gaussian_width = asset.gaussian_width_bohr
+
+    assert compressibility is not None
+    assert gaussian_width is not None
+
+    with pytest.raises(ValueError, match="zero mode"):
+        Route2V0MolecularWeightedDensityBridgeAsset.from_molecular_cubic_wda_anchors(
+            hnc_functional=functional.hnc_functional,
+            center_projection=center,
+            target_bulk_pressure_hartree_per_bohr3=(
+                asset.target_bulk_pressure_hartree_per_bohr3
+            ),
+            isothermal_compressibility_hartree_inverse_bohr3=compressibility * 0.5,
+            gaussian_width_bohr=gaussian_width,
+            target_surface_tension_hartree_per_bohr2=(
+                asset.target_surface_tension_hartree_per_bohr2
+            ),
+            pure_solvent_certificate_sha256="3" * 64,
+        )
+
+    non_gaussian_kernel = Route2V0PeriodicWeightedDensityKernel(
+        grid=center.grid,
+        kernel_bohr_minus3=np.array([[[0.5]], [[0.5]]]),
+    )
+    with pytest.raises(ValueError, match="declared periodic Gaussian"):
+        replace(asset, kernel=non_gaussian_kernel)
+    with pytest.raises(ValueError, match="exactly zero quartic"):
+        replace(asset, quartic_coefficient_hartree_bohr15=1.0e-8)
 
 
 def test_bridge_gradient_and_hessian_are_the_derivatives_of_one_scalar():

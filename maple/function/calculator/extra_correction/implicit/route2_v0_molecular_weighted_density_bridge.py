@@ -55,6 +55,17 @@ V0_MOLECULAR_CENTER_PROJECTION_CONSTRUCTION = "route2-v0-molecular-center-projec
 V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_CONSTRUCTION = (
     "route2-v0-molecular-weighted-density-bridge-v1"
 )
+V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_PLUS_QUARTIC = (
+    "cubic-plus-quartic-pure-liquid-v1"
+)
+V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_WDA_2021 = "molecular-cubic-wda-2021"
+V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILIES = frozenset(
+    {
+        V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_PLUS_QUARTIC,
+        V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_WDA_2021,
+    }
+)
+_PERIODIC_GAUSSIAN_TAIL_SIGMAS = 10.0
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -196,6 +207,52 @@ def _periodic_inverse(values: np.ndarray) -> np.ndarray:
 
     indices = tuple((-np.arange(length)) % length for length in values.shape)
     return values[np.ix_(*indices)]
+
+
+def periodic_gaussian_weighted_density_kernel(
+    grid: RegularCartesianGrid,
+    *,
+    gaussian_width_bohr: float,
+) -> np.ndarray:
+    """Return a normalized periodic sampling of the cubic-WDA Gaussian kernel.
+
+    The 2021 molecular-DFT WDA bridge uses a Gaussian coarse-graining kernel.
+    On a finite periodic Cartesian grid, this helper evaluates a positive
+    periodic image sum in every direction and normalizes the resulting stencil
+    in the *same* ``dv`` convention used by ``convolve``.  It is a numerical
+    representation of a frozen pure-liquid kernel, not a cavity- or
+    solvation-error-selected length scale.
+    """
+
+    width = _positive(gaussian_width_bohr, name="Gaussian WDA width")
+    axis_weights: list[np.ndarray] = []
+    for length, spacing in zip(grid.shape, grid.spacing_bohr, strict=True):
+        cell_length = length * spacing
+        image_count = max(
+            1,
+            math.ceil(_PERIODIC_GAUSSIAN_TAIL_SIGMAS * width / cell_length) + 1,
+        )
+        images = cell_length * np.arange(-image_count, image_count + 1, dtype=float)
+        coordinate = spacing * np.arange(length, dtype=float)
+        axis_weights.append(
+            np.sum(
+                np.exp(-0.5 * ((coordinate[:, None] + images[None, :]) / width) ** 2),
+                axis=1,
+            )
+        )
+    kernel = np.ones(grid.shape, dtype=float)
+    for axis, weights in enumerate(axis_weights):
+        shape = [1, 1, 1]
+        shape[axis] = weights.size
+        kernel *= weights.reshape(shape)
+    kernel *= (2.0 * math.pi * width**2) ** (-1.5)
+    normalization = float(grid.volume_element_bohr3 * np.sum(kernel))
+    if not math.isfinite(normalization) or normalization <= 0.0:
+        raise RuntimeError("Gaussian weighted-density kernel normalization is invalid.")
+    kernel /= normalization
+    immutable = np.array(kernel, dtype=float, copy=True)
+    immutable.setflags(write=False)
+    return immutable
 
 
 @dataclass(frozen=True)
@@ -395,9 +452,13 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
 
     ``cubic_coefficient_hartree_bohr6`` is not a tunable parameter.  It must
     equal ``(P_HNC - P_target) / rho_bulk**3`` for the source-bound molecular
-    HNC scalar.  The positive quartic coefficient and kernel are admitted only
-    with a content-addressed pure-solvent surface-tension/correlation
-    certificate; the bridge module does not accept a solvation-label source.
+    HNC scalar.  The ``cubic-plus-quartic-pure-liquid-v1`` family adds a
+    positive quartic barrier whose coefficient and kernel require a
+    content-addressed pure-solvent surface-tension/correlation certificate.
+    The separate ``molecular-cubic-wda-2021`` family instead fixes its cubic
+    coefficient independently from the pure-liquid compressibility zero mode
+    and uses an exactly Gaussian kernel whose width is a pure-liquid
+    surface-tension anchor.  Neither family accepts a solvation-label source.
     """
 
     center_projection: Route2V0MolecularCenterProjection
@@ -415,6 +476,9 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         compare=False,
     )
     construction: str = V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_CONSTRUCTION
+    bridge_family: str = V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_PLUS_QUARTIC
+    isothermal_compressibility_hartree_inverse_bohr3: float | None = None
+    gaussian_width_bohr: float | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.center_projection, Route2V0MolecularCenterProjection):
@@ -425,6 +489,12 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
             raise TypeError("Weighted-density bridge asset requires a periodic kernel.")
         if self.construction != V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_CONSTRUCTION:
             raise ValueError("Unsupported Route-2 weighted-density bridge asset.")
+        family = self.bridge_family
+        if (
+            not isinstance(family, str)
+            or family not in V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILIES
+        ):
+            raise ValueError("Unsupported Route-2 weighted-density bridge family.")
         if not _same_grid(self.center_projection.grid, self.kernel.grid):
             raise ValueError(
                 "Weighted-density bridge requires one shared centre and kernel grid."
@@ -446,7 +516,7 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
             self.cubic_coefficient_hartree_bohr6,
             name="Weighted-density cubic coefficient",
         )
-        quartic = _positive(
+        quartic = _nonnegative(
             self.quartic_coefficient_hartree_bohr15,
             name="Weighted-density quartic coefficient",
         )
@@ -455,7 +525,87 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
             name="Target pure-solvent surface tension",
         )
         density = self.center_projection.molecular_bulk_number_density_bohr3
-        expected_cubic = (hnc_pressure - target_pressure) / density**3
+        compressibility: float | None = None
+        gaussian_width: float | None = None
+        if family == V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_PLUS_QUARTIC:
+            if quartic <= 0.0:
+                raise ValueError(
+                    "Cubic-plus-quartic weighted-density bridge requires a positive "
+                    "quartic coefficient."
+                )
+            if self.isothermal_compressibility_hartree_inverse_bohr3 is not None:
+                raise ValueError(
+                    "Cubic-plus-quartic weighted-density bridge must not carry a "
+                    "cubic-WDA compressibility anchor."
+                )
+            if self.gaussian_width_bohr is not None:
+                raise ValueError(
+                    "Cubic-plus-quartic weighted-density bridge must not carry a "
+                    "cubic-WDA Gaussian-width anchor."
+                )
+            expected_cubic = (hnc_pressure - target_pressure) / density**3
+        else:
+            if quartic != 0.0:
+                raise ValueError(
+                    "Molecular cubic-WDA bridge requires an exactly zero quartic "
+                    "coefficient."
+                )
+            if self.isothermal_compressibility_hartree_inverse_bohr3 is None:
+                raise ValueError(
+                    "Molecular cubic-WDA bridge requires an isothermal "
+                    "compressibility anchor."
+                )
+            if self.gaussian_width_bohr is None:
+                raise ValueError(
+                    "Molecular cubic-WDA bridge requires a Gaussian-width anchor."
+                )
+            compressibility = _positive(
+                self.isothermal_compressibility_hartree_inverse_bohr3,
+                name="Molecular cubic-WDA isothermal compressibility",
+            )
+            gaussian_width = _positive(
+                self.gaussian_width_bohr,
+                name="Molecular cubic-WDA Gaussian width",
+            )
+            expected_kernel = periodic_gaussian_weighted_density_kernel(
+                self.kernel.grid,
+                gaussian_width_bohr=gaussian_width,
+            )
+            if not np.allclose(
+                self.kernel.kernel_bohr_minus3,
+                expected_kernel,
+                rtol=1.0e-12,
+                atol=1.0e-14
+                * max(
+                    1.0,
+                    float(np.max(np.abs(expected_kernel))),
+                    float(np.max(np.abs(self.kernel.kernel_bohr_minus3))),
+                ),
+            ):
+                raise ValueError(
+                    "Molecular cubic-WDA bridge kernel must be the declared "
+                    "periodic Gaussian."
+                )
+            kbt = self.center_projection.projection.site_hnc_asset.kbt_hartree
+            structure_factor_zero = density * kbt * compressibility
+            if not math.isfinite(structure_factor_zero) or structure_factor_zero <= 0.0:
+                raise ValueError(
+                    "Molecular cubic-WDA compressibility gives an invalid "
+                    "number-channel zero mode."
+                )
+            dimensionless_cubic = 0.5 * (1.0 + 1.0 / structure_factor_zero)
+            pressure_from_zero_mode = density * kbt * dimensionless_cubic
+            pressure_tolerance = 1.0e-12 * max(
+                1.0,
+                abs(hnc_pressure),
+                abs(pressure_from_zero_mode),
+            )
+            if abs(hnc_pressure - pressure_from_zero_mode) > pressure_tolerance:
+                raise ValueError(
+                    "Molecular cubic-WDA compressibility zero mode does not match "
+                    "the exact molecular-HNC vacuum pressure."
+                )
+            expected_cubic = (pressure_from_zero_mode - target_pressure) / density**3
         tolerance = 1.0e-12 * max(1.0, abs(expected_cubic), abs(cubic))
         if abs(cubic - expected_cubic) > tolerance:
             raise ValueError(
@@ -479,6 +629,13 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
                 name="Pure-solvent bridge certificate",
             ),
         )
+        object.__setattr__(self, "bridge_family", family)
+        object.__setattr__(
+            self,
+            "isothermal_compressibility_hartree_inverse_bohr3",
+            compressibility,
+        )
+        object.__setattr__(self, "gaussian_width_bohr", gaussian_width)
         object.__setattr__(self, "pure_solvent_certificate", None)
 
     @classmethod
@@ -519,6 +676,105 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         )
 
     @classmethod
+    def from_molecular_cubic_wda_anchors(
+        cls,
+        *,
+        hnc_functional: Route2V0MolecularSiteHNCFunctional,
+        center_projection: Route2V0MolecularCenterProjection,
+        target_bulk_pressure_hartree_per_bohr3: float,
+        isothermal_compressibility_hartree_inverse_bohr3: float,
+        gaussian_width_bohr: float,
+        target_surface_tension_hartree_per_bohr2: float,
+        pure_solvent_certificate_sha256: str,
+    ) -> Route2V0MolecularWeightedDensityBridgeAsset:
+        """Construct the cubic Gaussian WDA from pure-liquid anchors only.
+
+        This is the angular-independent, third-order WDA form used in the
+        2021 molecular-DFT hydration work.  Its dimensionless coefficient is
+
+        ``a = 1/2 * [1 + 1/(rho_bulk * kBT * chi_T)]``
+
+        and the scalar coefficient multiplying ``(rho_bar-rho_bulk)**3`` is
+        ``(P_HNC - P_target) / rho_bulk**3``.  Requiring both forms to agree
+        binds the bulk compressibility zero mode to the exact molecular-HNC
+        pressure instead of treating either as a solute-error fit.  The
+        Gaussian width is still only a pure-liquid surface-tension anchor; a
+        direct construction remains a synthetic/control object until a
+        content-addressed physical certificate is attached.
+        """
+
+        if not isinstance(hnc_functional, Route2V0MolecularSiteHNCFunctional):
+            raise TypeError("Molecular cubic-WDA requires a molecular HNC functional.")
+        if not isinstance(center_projection, Route2V0MolecularCenterProjection):
+            raise TypeError("Molecular cubic-WDA requires a centre projection.")
+        if center_projection.projection is not hnc_functional.projection:
+            raise ValueError(
+                "Molecular cubic-WDA must use the exact molecular HNC projection."
+            )
+        compressibility = _positive(
+            isothermal_compressibility_hartree_inverse_bohr3,
+            name="Molecular cubic-WDA isothermal compressibility",
+        )
+        width = _positive(
+            gaussian_width_bohr, name="Molecular cubic-WDA Gaussian width"
+        )
+        target_pressure = _nonnegative(
+            target_bulk_pressure_hartree_per_bohr3,
+            name="Target pure-solvent bulk pressure",
+        )
+        density = center_projection.molecular_bulk_number_density_bohr3
+        kbt = hnc_functional.projection.site_hnc_asset.kbt_hartree
+        structure_factor_zero = density * kbt * compressibility
+        if not math.isfinite(structure_factor_zero) or structure_factor_zero <= 0.0:
+            raise ValueError(
+                "Molecular cubic-WDA compressibility gives an invalid "
+                "number-channel zero mode."
+            )
+        dimensionless_cubic = 0.5 * (1.0 + 1.0 / structure_factor_zero)
+        hnc_pressure = molecular_hnc_bulk_functional_pressure_hartree_per_bohr3(
+            hnc_functional
+        )
+        pressure_from_zero_mode = density * kbt * dimensionless_cubic
+        pressure_tolerance = 1.0e-12 * max(
+            1.0,
+            abs(hnc_pressure),
+            abs(pressure_from_zero_mode),
+        )
+        if abs(hnc_pressure - pressure_from_zero_mode) > pressure_tolerance:
+            raise ValueError(
+                "Molecular cubic-WDA compressibility zero mode does not match the "
+                "exact molecular-HNC vacuum pressure."
+            )
+        if target_pressure >= hnc_pressure:
+            raise ValueError(
+                "Target pure-solvent pressure must be below the source HNC pressure "
+                "for a stabilizing coexistence bridge."
+            )
+        kernel = Route2V0PeriodicWeightedDensityKernel(
+            grid=center_projection.grid,
+            kernel_bohr_minus3=periodic_gaussian_weighted_density_kernel(
+                center_projection.grid,
+                gaussian_width_bohr=width,
+            ),
+        )
+        return cls(
+            center_projection=center_projection,
+            kernel=kernel,
+            hnc_bulk_pressure_hartree_per_bohr3=hnc_pressure,
+            target_bulk_pressure_hartree_per_bohr3=target_pressure,
+            cubic_coefficient_hartree_bohr6=(hnc_pressure - target_pressure)
+            / density**3,
+            quartic_coefficient_hartree_bohr15=0.0,
+            target_surface_tension_hartree_per_bohr2=(
+                target_surface_tension_hartree_per_bohr2
+            ),
+            pure_solvent_certificate_sha256=pure_solvent_certificate_sha256,
+            bridge_family=V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_WDA_2021,
+            isothermal_compressibility_hartree_inverse_bohr3=compressibility,
+            gaussian_width_bohr=width,
+        )
+
+    @classmethod
     def from_source_bound_pure_solvent_certificate(
         cls,
         *,
@@ -529,14 +785,16 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         kernel: Route2V0PeriodicWeightedDensityKernel,
         certificate: Route2V0PureSolventBridgeCertificate,
     ) -> Route2V0MolecularWeightedDensityBridgeAsset:
-        """Build the only source-bound physical-admission bridge asset.
+        """Build the source-bound cubic-plus-quartic physical-admission asset.
 
-        The legacy direct constructor remains useful for synthetic scalar and
-        derivative controls.  It cannot constitute a physical liquid asset:
-        this constructor instead binds a loaded certificate to the exact HNC
-        projection, source-locked RISM kernel, centre map, and weighted kernel
-        that will enter the common scalar.  No solute result, cavity error, or
-        user-selected bridge coefficient participates in this operation.
+        The direct constructors remain useful for synthetic scalar and
+        derivative controls.  They cannot constitute a physical liquid asset:
+        this constructor instead binds the existing cubic-plus-quartic
+        certificate to the exact HNC projection, source-locked RISM kernel,
+        centre map, and weighted kernel that will enter the common scalar.  A
+        future physical cubic-WDA certificate has a separate contract.  No
+        solute result, cavity error, or user-selected bridge coefficient
+        participates in this operation.
         """
 
         if not isinstance(hnc_functional, Route2V0MolecularSiteHNCFunctional):
@@ -640,6 +898,37 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         return self.center_projection.molecular_bulk_number_density_bohr3
 
     @property
+    def is_molecular_cubic_wda(self) -> bool:
+        """Return whether this is the pure cubic Gaussian WDA family."""
+
+        return (
+            self.bridge_family
+            == V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_WDA_2021
+        )
+
+    @property
+    def dimensionless_number_structure_factor_zero_mode(self) -> float | None:
+        """Return ``rho_bulk * kBT * chi_T`` for the cubic-WDA family only."""
+
+        compressibility = self.isothermal_compressibility_hartree_inverse_bohr3
+        if compressibility is None:
+            return None
+        return (
+            self.molecular_bulk_number_density_bohr3
+            * self.center_projection.projection.site_hnc_asset.kbt_hartree
+            * compressibility
+        )
+
+    @property
+    def molecular_cubic_wda_dimensionless_coefficient(self) -> float | None:
+        """Return the literature cubic coefficient ``a`` for the WDA family."""
+
+        structure_factor_zero = self.dimensionless_number_structure_factor_zero_mode
+        if structure_factor_zero is None:
+            return None
+        return 0.5 * (1.0 + 1.0 / structure_factor_zero)
+
+    @property
     def is_source_bound_pure_solvent_asset(self) -> bool:
         """Return whether this asset carries a parsed, matching source certificate."""
 
@@ -661,7 +950,8 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
 
         certificate = self.pure_solvent_certificate
         return bool(
-            certificate is not None
+            not self.is_molecular_cubic_wda
+            and certificate is not None
             and certificate.is_physical_pure_liquid_admission
         )
 
@@ -1140,9 +1430,13 @@ class Route2V0MolecularWeightedDensityBridgeFunctional:
 __all__ = [
     "V0_MOLECULAR_CENTER_PROJECTION_CONSTRUCTION",
     "V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_CONSTRUCTION",
+    "V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILIES",
+    "V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_PLUS_QUARTIC",
+    "V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_FAMILY_CUBIC_WDA_2021",
     "Route2V0MolecularCenterProjection",
     "Route2V0MolecularWeightedDensityBridgeAsset",
     "Route2V0MolecularWeightedDensityBridgeFunctional",
     "Route2V0MolecularWeightedDensityBridgeState",
     "Route2V0PeriodicWeightedDensityKernel",
+    "periodic_gaussian_weighted_density_kernel",
 ]

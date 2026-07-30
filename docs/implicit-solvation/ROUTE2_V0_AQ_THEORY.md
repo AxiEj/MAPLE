@@ -160,6 +160,44 @@ parameterized liquid assets:
    free energy.  JDFTx documents a `ClassicalDFT` fluid mode and named
    `fluid-solvent` assets, but those assets are inputs to freeze before
    scoring, not free parameters to tune after observing errors.
+
+   The upstream name catalogue is not itself an eleven-solvent result.  Its
+   documented `H2O`, `Methanol`, `Ethanol`, `CH3CN`, `DMSO`, `DMF`, `THF`,
+   `CHCl3`, and `CH2Cl2` entries overlap nine Route-2 default strata, but it
+   has no named `toluene` or `hexane` entry.  Thus even a source-pinned JDFTx
+   installation would still require two independently sourced custom liquid
+   assets and the same physical-liquid admission gates for all eleven.  The
+   documented `FittedCorrelations` functional and property overrides such as
+   `epsBulk`, `epsInf`, `pMol`, `Pvap`, `sigmaBulk`, `Rvdw`, and `Res` do not
+   authorize a no-fit custom solvent: the former requires a separate
+   source-policy review, and the latter do not determine a molecular excess
+   functional, short-range interaction, or standard-state ledger.
+
+   In particular, if \(\mathcal A_J^{\mathrm{sol}}[n,N;\mathbf R]\) is a
+   JDFTx joint electronic--liquid scalar, then
+
+   \[
+   E_{\mathrm{MACE,gas}}(\mathbf R)
+   +\min_{n,N}\mathcal A_J^{\mathrm{sol}}[n,N;\mathbf R]
+   \]
+
+   would double-count an unrelated auxiliary gas solute energy.  The only
+   admissible ledger is the already declared stationary difference
+
+   \[
+   E_{\mathrm{MACE,gas}}(\mathbf R)
+   +\left[
+   \min_{n,N}\mathcal A_J^{\mathrm{sol}}[n,N;\mathbf R]
+   -\min_n\mathcal A_J^{\mathrm{gas}}[n;\mathbf R]
+   \right]
+   +\Delta G_s^\circ.
+   \]
+
+   It neither identifies the auxiliary density with MACE coefficients nor
+   feeds it into MACE field features.  The current host has no `jdftx` or
+   `jdftx_gpu` executable; this remains an audited upstream possibility, not
+   an executable backend.  [JDFTx `fluid`](https://jdftx.org/CommandFluid.html),
+   [JDFTx `fluid-solvent`](https://jdftx.org/CommandFluidSolvent.html).
 2. **QM--3D-RISM-SCF/MDFT.**  A molecular liquid density or RISM site-density
    functional can be jointly stationary with an auxiliary QM state.  The
    actual MACE source may not be substituted by GAFF/AM1-BCC topology charges;

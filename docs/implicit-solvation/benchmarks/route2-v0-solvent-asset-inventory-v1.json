@@ -112,7 +112,7 @@
     "hexane"
   ],
   "v0_aq_l_provider_audit": {
-    "snapshot_utc": "2026-07-29T13:27:33Z",
+    "snapshot_utc": "2026-07-30T08:18:55Z",
     "scope": "This is a host-local availability audit for the independently parameterized V0-AQ-L molecular-liquid branch. It is not a statement that an upstream theory is invalid, a request to install a dependency, or a substitute for a frozen physical solvent asset.",
     "jdftx_classical_dft": {
       "checked_executables": [
@@ -120,7 +120,73 @@
         "jdftx_gpu"
       ],
       "status": "not-installed-on-this-host-path",
-      "consequence": "The documented JDFTx ClassicalDFT/fluid-solvent upstream route cannot be executed locally without a separately authorized, version-pinned installation and frozen asset source."
+      "consequence": "The documented JDFTx ClassicalDFT/fluid-solvent upstream route cannot be executed locally without a separately authorized, version-pinned installation and frozen asset source.",
+      "official_documentation": [
+        "https://jdftx.org/CommandFluid.html",
+        "https://jdftx.org/CommandFluidSolvent.html"
+      ],
+      "documented_fluid_mode": "ClassicalDFT",
+      "documented_named_solvents": [
+        "CarbonDisulfide",
+        "CCl4",
+        "CH2Cl2",
+        "CH3CN",
+        "CHCl3",
+        "Chlorobenzene",
+        "DMC",
+        "DMF",
+        "DMSO",
+        "EC",
+        "Ethanol",
+        "EthyleneGlycol",
+        "EthylEther",
+        "Glyme",
+        "H2O",
+        "Isobutanol",
+        "Methanol",
+        "Octanol",
+        "PC",
+        "THF"
+      ],
+      "required_default_named_catalog_coverage": {
+        "supported_route2_solvent_ids": [
+          "water",
+          "methanol",
+          "ethanol",
+          "acetonitrile",
+          "dimethylsulfoxide",
+          "dimethylformamide",
+          "tetrahydrofuran",
+          "chloroform",
+          "dichloromethane"
+        ],
+        "upstream_names_by_route2_solvent_id": {
+          "water": "H2O",
+          "methanol": "Methanol",
+          "ethanol": "Ethanol",
+          "acetonitrile": "CH3CN",
+          "dimethylsulfoxide": "DMSO",
+          "dimethylformamide": "DMF",
+          "tetrahydrofuran": "THF",
+          "chloroform": "CHCl3",
+          "dichloromethane": "CH2Cl2"
+        },
+        "missing_route2_solvent_ids": [
+          "toluene",
+          "hexane"
+        ],
+        "coverage_count": 9,
+        "coverage_boundary": "This is documented named-catalog overlap only, not host runtime support, a frozen physical asset, total-free-energy execution, or an accuracy result. Even after an authorized installation, custom source-complete assets or another verified functional are required for the two missing default solvents and all eleven still need the V0 physical-liquid admission gates."
+      },
+      "documented_classical_excess_functionals": [
+        "BondedVoids",
+        "FittedCorrelations",
+        "MeanFieldLJ",
+        "ScalarEOS"
+      ],
+      "fitted_functional_policy": "The name FittedCorrelations is not automatically admissible to the strict no-fit V0 core. It must remain excluded unless a separately reviewed source record proves that its fixed upstream construction is compatible with the V0 no-target/no-post-training policy; it may never be selected or retuned using Route-2 solvation errors.",
+      "custom_property_override_policy": "The documented epsBulk, epsInf, pMol, Pvap, sigmaBulk, Rvdw, Res, orientation-quadrature, and related overrides are an upstream input interface, not a custom-solvent constructor. A scalar property override cannot replace the Route-2 requirement for a source-bound molecular model or complete excess functional, bulk thermodynamics, short-range/dispersion convention, standard state, and no-target provenance.",
+      "mace_common_scalar_boundary": "A JDFTx joint electron-liquid scalar contains its own auxiliary electronic density and cannot be added directly to frozen MACE gas energy or to a MACE/RISM scalar. It can enter only through the separately declared V0-AQ gas-to-liquid auxiliary difference with identical auxiliary gas/liquid functionals and all stationary degrees of freedom; it must never relabel its density as MACE density or feed it into MACE field features."
     },
     "ambertools_rism": {
       "runtime": "AmberTools 26.0 conda-forge cuda_None_nompi_py311h232f31e_100",

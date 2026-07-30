@@ -183,6 +183,46 @@ def test_v0_aq_liquid_provider_audit_does_not_convert_local_tools_into_a_proxy()
     assert jdftx["checked_executables"] == ["jdftx", "jdftx_gpu"]
     assert jdftx["status"] == "not-installed-on-this-host-path"
     assert "separately authorized, version-pinned installation" in jdftx["consequence"]
+    assert jdftx["official_documentation"] == [
+        "https://jdftx.org/CommandFluid.html",
+        "https://jdftx.org/CommandFluidSolvent.html",
+    ]
+    assert jdftx["documented_fluid_mode"] == "ClassicalDFT"
+    assert jdftx["documented_classical_excess_functionals"] == [
+        "BondedVoids",
+        "FittedCorrelations",
+        "MeanFieldLJ",
+        "ScalarEOS",
+    ]
+    coverage = jdftx["required_default_named_catalog_coverage"]
+    assert coverage["coverage_count"] == 9
+    assert coverage["supported_route2_solvent_ids"] == list(
+        V0_DEFAULT_SOLVENT_IDS[:-2]
+    )
+    assert coverage["missing_route2_solvent_ids"] == ["toluene", "hexane"]
+    assert coverage["upstream_names_by_route2_solvent_id"] == {
+        "water": "H2O",
+        "methanol": "Methanol",
+        "ethanol": "Ethanol",
+        "acetonitrile": "CH3CN",
+        "dimethylsulfoxide": "DMSO",
+        "dimethylformamide": "DMF",
+        "tetrahydrofuran": "THF",
+        "chloroform": "CHCl3",
+        "dichloromethane": "CH2Cl2",
+    }
+    assert "not host runtime support" in coverage["coverage_boundary"]
+    assert "FittedCorrelations" in jdftx["fitted_functional_policy"]
+    assert "solvation errors" in jdftx["fitted_functional_policy"]
+    assert "not a custom-solvent constructor" in jdftx[
+        "custom_property_override_policy"
+    ]
+    assert "cannot be added directly to frozen MACE gas energy" in jdftx[
+        "mace_common_scalar_boundary"
+    ]
+    assert "V0-AQ gas-to-liquid auxiliary difference" in jdftx[
+        "mace_common_scalar_boundary"
+    ]
     amber = audit["ambertools_rism"]
     assert amber["runtime"].startswith("AmberTools 26.0")
     assert "--pdb, --prmtop, and --xvv" in amber["stock_rism3d_requirement"]

@@ -1796,6 +1796,64 @@ any nonzero solute external potential and never changes \(A_s\), \(B_s\), or
 \(K\) when the phase gate fails.  The current synthetic controls exercise the
 gate only; they are not physical-liquid results.
 
+##### 4.2.19a The quartic barrier is first determined by coexistence, not by \(\gamma\)
+
+There is a narrower signed derivative that **is** valid and gives a non-fitted
+way to determine the quartic barrier on a declared pure-liquid state.  Hold
+the all-atom liquid model, \(T\), chemical-potential convention, \(A_s\),
+\(D\), and \(K\) fixed.  Let \(\nu_g(B_s)\) be the explicitly selected
+*lowest-density stable homogeneous* branch, not merely the lowest
+grand-potential numerical root, and define
+
+\[
+\begin{aligned}
+S[\nu]
+&=\Delta v\sum_g
+\bar\rho_g^2(\bar\rho_g-\rho_b)^4,\\
+C(B_s)
+&=\frac{\Omega_{B_s}[\nu_g(B_s);0]
+-\Omega_{B_s}[\nu_b;0]}{V}.
+\end{aligned}
+\]
+
+Both states are stationary under the *same* full configuration scalar.
+Consequently the envelope theorem gives
+
+\[
+\boxed{
+\frac{dC}{dB_s}
+=\frac{S[\nu_g(B_s)]-S[\nu_b]}{V}.
+}
+\]
+
+The discrete centre projection and normalized kernel make
+\(KD\nu_b=\rho_b\) exactly, hence \(S[\nu_b]=0\).  On the declared finite
+gas branch \(0<x_g<1\), the homogeneous limit is
+
+\[
+\frac{S[\nu_g]}{V}
+=x_g^2(1-x_g)^4\rho_b^6>0.
+\]
+
+Therefore \(C(B_s)\) has a positive local derivative **only while that
+stable gas branch is continuous and retained**.  A negative-to-positive
+same-scalar bracket for \(C\) can then determine \(B_s^*\) by bisection,
+with a full-gradient/curvature gate at every trial point.  This derives the
+barrier from coexistence alone: it reads neither a solvation result nor a
+surface-tension value.  It is also why a vacuum endpoint is inadequate: at
+\(x=0\) the gas functional vanishes and the actual finite-gas branch would
+be lost.
+
+`route2_v0_molecular_coexistence_continuation.py` implements this inner
+continuation as an evidence-only calculation.  It copies exactly one scalar
+and varies only \(B_s\), re-solves the full homogeneous gate, records the
+gas-minus-liquid gap and its exact envelope derivative, and refuses a missing
+or unstable low-density branch.  It intentionally detaches every trial point
+from its source certificate: a certificate is allowed to bind the final,
+frozen coefficient, never a trial value.  Present tests prove this identity
+on a translation-invariant synthetic scalar only; no physical coefficient or
+solvation result has been produced.
+
 Only after this full-scalar coexistence gate passes can a stationary planar
 profile \(\nu^*_{B_s}\) be interpreted as a liquid--gas interface.  For a
 periodic cell with \(N_{\rm int}\) interfaces and liquid/gas plateau volumes
@@ -1820,13 +1878,42 @@ The tempting expression \(A^{-1}\int\bar\rho^2(\bar\rho-\rho_b)^4\) omits
 both finite-density gas and liquid bulk terms and is not a proof of
 monotonicity or uniqueness.
 
-A later planar root implementation must first declare a coexistence-preserving
-path (including its chemical-potential convention), an interface dividing
-surface, and a constrained or symmetry-restricted stationary solve.  Only then
-may it derive and verify the corresponding complete derivative from the same
-scalar.  Until that protocol exists, a certificate may record independently
-resolved stationary endpoints and a root, but it may not infer a unique root
-from positivity or select a root from a solute cavity or solvation error.
+If a remaining pure-liquid kernel length \(\sigma_s\) is to be determined
+from independently sourced \(\gamma_s\), the allowed construction is
+**nested**, not a direct \(B_s\)-to-\(\gamma\) fit:
+
+\[
+C(B_s^*(\sigma_s),\sigma_s)=0,
+\qquad
+\Gamma(\sigma_s)=\gamma(B_s^*(\sigma_s),\sigma_s),
+\qquad
+\Gamma(\sigma_s^*)=\gamma_s.
+\]
+
+The inner continuation supplies the coexistence-preserving barrier for each
+fixed \(\sigma_s\).  The outer planar calculation must use a declared
+chemical-potential convention, Gibbs/dividing-surface convention, interface
+count, and a constrained or exact planar-symmetry stationary solve.  It must
+evaluate the complete bulk-subtracted \(\gamma\) at every outer endpoint;
+no sign or uniqueness of \(d\Gamma/d\sigma_s\) is assumed.  Formally, when
+the branches are differentiable,
+
+\[
+\frac{dB_s^*}{d\sigma_s}
+=-\frac{\partial C/\partial\sigma_s}{\partial C/\partial B_s},
+\qquad
+\frac{d\Gamma}{d\sigma_s}
+=\frac{\partial\gamma}{\partial\sigma_s}
++\frac{\partial\gamma}{\partial B_s}
+  \frac{dB_s^*}{d\sigma_s},
+\]
+
+which explicitly shows why the old positive integrand cannot be used as a
+planar-tension derivative.  Until that constrained planar solver exists, a
+certificate may not claim a physical root merely by varying \(B_s\) against
+\(\gamma_s\); it may only record the inner homogeneous evidence.  Neither
+inner nor outer construction may select a root from a solute cavity or
+solvation error.
 
 The positive quartic coefficient $B_s$ and $K$ remain admissible only through
 this content-addressed **pure-solvent** construction using frozen bulk
@@ -1892,7 +1979,7 @@ state, force terms, and the preregistered 11-solvent/blind validation sequence.
 If $D$, $K$, or any bridge anchor moves with a solute coordinate, its
 explicit derivative must be added to the same scalar before any force claim.
 
-##### 4.2.19a Certificate binding is a numerical reproducibility gate, not a fitted term
+##### 4.2.19b Certificate binding is a numerical reproducibility gate, not a fitted term
 
 The words "content-addressed certificate" have a precise implementation
 meaning.  For the declared pressure $p_s$ in bar and independently sourced
@@ -1915,31 +2002,42 @@ A_s\ne\frac{P_{\rm HNC}-P_s}{\rho_b^3}.
 \]
 
 This prevents a nominally physical pressure or a surface tension from becoming
-a hidden second fitting knob.  The certificate also stores the complete
-stationary planar bracket
+a hidden second fitting knob.  A future physical certificate must first store
+the **inner** coexistence continuation
 
 \[
 (B_{\rm low},B_*,B_{\rm high};\;
-\gamma_{\rm low},\gamma_*,\gamma_{\rm high};\;
+C_{\rm low}<0,\ C_*\simeq0,\ C_{\rm high}>0;\;
+x_{g,\rm low},x_{g,*},x_{g,\rm high}),
+\]
+
+with full homogeneous stationarity, branch-selection, and positive
+\(dC/dB_s\) evidence at every retained point.  Only after that may it store
+the **outer** stationary-planar bracket
+
+\[
+(\sigma_{\rm low},\sigma_*,\sigma_{\rm high};\;
+\Gamma_{\rm low},\Gamma_*,\Gamma_{\rm high};\;
 r_{\rm low},r_*,r_{\rm high}),
 \]
 
 and accepts it only when
 
 \[
-B_{\rm low}\le B_*\le B_{\rm high},\quad
-\min(\gamma_{\rm low},\gamma_{\rm high})\le\gamma_s
-\le\max(\gamma_{\rm low},\gamma_{\rm high}),\quad
-|\gamma_*-\gamma_s|\le\tau_\gamma,\quad
+\sigma_{\rm low}\le\sigma_*\le\sigma_{\rm high},\quad
+\min(\Gamma_{\rm low},\Gamma_{\rm high})\le\gamma_s
+\le\max(\Gamma_{\rm low},\Gamma_{\rm high}),\quad
+|\Gamma_*-\gamma_s|\le\tau_\gamma,\quad
 \max_jr_j\le\tau_{\rm stat}.
 \]
 
 It additionally retains transverse area, interface count, coarse/fine grid
-surface tensions and their convergence tolerance.  The endpoint ordering is
-not assumed: finite-density gas plateaux invalidate the old positivity-only
-monotonicity shortcut.  A physical certificate must instead retain a
-predeclared stationary-branch selection rule and the complete homogeneous
-phase-coexistence evidence before it can interpret the planar record.
+surface tensions and their convergence tolerance.  The outer endpoint ordering
+is not assumed: finite-density gas plateaux invalidate the old positivity-only
+monotonicity shortcut.  A physical certificate must instead retain the inner
+coexistence continuation, a predeclared stationary-branch selection rule, and
+the complete homogeneous phase-coexistence evidence before it can interpret
+the planar record.
 
 The discrete operators are not identified by a mutable Python object or by a
 lossy text dump.  Their values are hashed as little-endian C-order float64
@@ -1966,21 +2064,21 @@ matching the live asset and operators componentwise.  Any changed source,
 operator, closure, pressure, or planar root fails closed.  The loaded
 certificate is re-hashed and re-parsed at physical admission, so a changed JSON
 file or a manually assembled certificate-shaped object cannot stand in for the
-content-addressed evidence.  It also carries an explicit evidence scope:
-`synthetic-control` remains useful only for scalar/derivative tests, whereas
-`physical-pure-liquid-admission` is required by any physical endpoint and is
-rejected if the frozen solvent provenance itself explicitly lists a physical
-liquid as not claimed.  A physical-scope certificate additionally requires
-the zero-external-potential residual, full-gradient stationarity/uniformity,
-positive liquid and gas curvatures, and the same-scalar coexistence gap from
-the phase gate above.  Thus source binding alone cannot silently upgrade a
-test fixture into liquid physics.  The parser also
+content-addressed evidence.  The current v1 certificate is explicitly
+`synthetic-control`: it remains useful only for scalar/derivative tests and
+fails closed if relabelled `physical-pure-liquid-admission`.  A future physical
+schema must bind the zero-external-potential residual, full-gradient
+stationarity/uniformity, positive liquid and gas curvatures, the inner
+same-scalar quartic continuation, and the constrained outer planar evidence;
+it must also reject frozen provenance that explicitly lists a physical liquid
+as not claimed.  Thus source binding alone cannot silently upgrade a test
+fixture into liquid physics.  The parser also
 requires explicit `false` declarations for post-training, fine-tuning,
 experimental-solvation fitting, MAP/UQ calibration, and error-driven
 cavity/dispersion adjustment, together with the full excluded
 MNSol/FreeSolv/development/confirmation/blind label set.
 
-This contract is implemented by
+The v1 control contract is implemented by
 `route2_v0_pure_solvent_bridge_certificate.py` and by
 `Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate`.
 It does **not** make a synthetic certificate physical, prove an HNC liquid

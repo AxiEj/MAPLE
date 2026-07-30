@@ -35,7 +35,7 @@ subset.
 
 | Candidate | Mathematical status | V0 decision | Reason |
 | --- | --- | --- | --- |
-| HNC-plus-weighted-density molecular bridge | Variational if inserted into \(\Omega\) before stationarity; \(A_s\) follows from the HNC vacuum pressure, while \(B_s\) requires a pure-liquid phase-coexistence gate before any planar-interface root may be interpreted. | **Active V0 path** | It targets the HNC cavity/liquid--vapour defect without a solvation-label regression.  The source-bound certificate now binds solvent sources, SI identities, full-scalar homogeneous coexistence evidence, planar root/residual/grid evidence, and discrete \(D,K\) operators. |
+| HNC-plus-weighted-density molecular bridge | Variational if inserted into \(\Omega\) before stationarity; \(A_s\) follows from the HNC vacuum pressure, while \(B_s\) is first fixed by the finite-density same-scalar coexistence continuation and only a remaining liquid length scale may be checked against pure-liquid \(\gamma_s\). | **Active V0 path** | It targets the HNC cavity/liquid--vapour defect without a solvation-label regression.  The source-bound certificate must bind solvent sources, SI identities, the inner coexistence branch, outer planar root/residual/grid evidence, and discrete \(D,K\) operators. |
 | Lorentz/Yukawa nonlocal dielectric spectrum | A positive quadratic orientational-polarization functional gives \(\epsilon_s(k)=\epsilon_\infty+(\epsilon_0-\epsilon_\infty)/(1+\lambda_s^2k^2)\); its reaction field is the derivative of one passive scalar. | **Active custom-solvent electrostatic control only** | It supplies a mathematically constrained finite-\(k\) response from independently sourced \(\epsilon_0,\epsilon_\infty,\lambda_s\), with no target fit.  It has no cavity, dispersion, molecular \(C_{ab}(k)\), or standard-state term, so it cannot be scored as a total solvation method. |
 | LCW-style two-reference cDFT | A common cDFT scalar with slowly varying reference density and direct-correlation/surface-tension inputs. | **Deferred research path** | Bui--Cox provides a genuinely variational length-scale construction, but it needs a complete, source-provenanced multi-field liquid functional.  It must retain every term and pass scalar/force checks before it can replace the current bridge; importing only a coarse-graining kernel would be an unjustified hybrid. |
 | Full orientational mDFT / angular correlation functional | Variational in the full molecular configuration density when the angular direct-correlation functional is frozen. | **Deferred research path** | Route-2 already preserves a full \(SO(3)\) quadrature convention.  A new angular functional needs a real all-atom solvent source and its own common-scalar, grid/orientation, and force proof; a site-HNC table cannot be relabelled as that functional. |
@@ -79,18 +79,43 @@ bulk-phase terms; changing \(B_s\) can also move the gas phase or break
 coexistence.  Thus neither monotonicity nor unique-root claims are accepted
 without a predeclared coexistence-preserving path, dividing-surface convention,
 and stationary branch proof.  The implementation requires the actual
-phase/coexistence record before a physical-scope certificate and rejects a
-source, grid, operator, closure, pressure, surface-tension conversion, or
-no-label-policy mismatch.  It does not yet contain a physical certificate, a
+phase/coexistence record before a future physical-scope certificate and rejects
+a source, grid, operator, closure, pressure, surface-tension conversion, or
+no-label-policy mismatch.  The current v1 certificate is control-only and
+fails closed for physical admission.  There is no physical certificate, a
 complete liquid backend, a chemistry score, or a force/PES claim.  The current
 synthetic test source remains synthetic by design.
+
+The new inner continuation makes the allowed barrier construction precise.
+For the quartic coefficient functional
+
+\[
+S[\nu]=\Delta v\sum_g\bar\rho_g^2(\bar\rho_g-\rho_b)^4,
+\qquad
+C(B_s)=\frac{\Omega_{B_s}[\nu_g(B_s)]-\Omega_{B_s}[\nu_b]}{V},
+\]
+
+stationarity of both homogeneous branches gives
+
+\[
+\frac{dC}{dB_s}=\frac{S[\nu_g]-S[\nu_b]}{V}>0
+\]
+
+on the declared continuous finite-density gas branch.  The liquid term is
+exactly zero and the finite gas term is positive, so a negative-to-positive
+coexistence-gap bracket determines \(B_s\) without reading \(\gamma_s\) or
+any solvation label.  This result is deliberately about the **coexistence
+gap**, not \(d\gamma/dB_s\).  If a Gaussian width remains unknown, the future
+outer root must solve \(\gamma(B_s^*(\sigma_s),\sigma_s)=\gamma_s\) only
+after this inner gate, retaining every coexistence and planar branch point.
 
 ## Next evidence needed before any accuracy assertion
 
 1. Produce one physical, closure-aligned HNC source with a reproducible
-   all-atom liquid model, bulk direct correlation, pressure, independent
-   surface tension, an exact homogeneous liquid/gas coexistence record, and a
-   stationary planar-interface certificate.
+   all-atom liquid model, bulk direct correlation, a saturation/coexistence
+   state convention, independent surface tension, an exact homogeneous
+   liquid/gas continuation record that determines \(B_s\), and a stationary
+   planar-interface certificate for any remaining liquid length scale.
 2. Verify the same scalar's derivative, Hessian reciprocity, stability,
    Cartesian/orientation/grid convergence, envelope forces, and energy
    conservation.

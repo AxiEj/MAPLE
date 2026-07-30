@@ -3,6 +3,12 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_coexistence_continuation import (
+    V0_MOLECULAR_CUBIC_PLUS_QUARTIC_COEXISTENCE_CONTINUATION,
+    V0_MOLECULAR_LOW_DENSITY_STABLE_GAS_BRANCH_SELECTION,
+    evaluate_route2_v0_molecular_quartic_coexistence_point,
+    solve_route2_v0_molecular_quartic_coexistence_continuation,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_external_potential import (
     Route2V0FrozenMaceGaussianSource,
     Route2V0MolecularConfigurations,
@@ -274,4 +280,118 @@ def test_phase_gate_argument_ranges_fail_closed():
         evaluate_route2_v0_molecular_homogeneous_phase(
             functional,
             density_scale=0.0,
+        )
+
+
+def test_quartic_continuation_derives_coexistence_before_any_surface_tension_use():
+    """The finite gas branch fixes B without using a planar-tension target."""
+
+    functional = _translation_invariant_pure_liquid_functional()
+    exact_coexistent_coefficient = (
+        functional.bridge_asset.quartic_coefficient_hartree_bohr15
+    )
+    continuation = solve_route2_v0_molecular_quartic_coexistence_continuation(
+        functional,
+        lower_quartic_coefficient_hartree_bohr15=(0.5 * exact_coexistent_coefficient),
+        upper_quartic_coefficient_hartree_bohr15=(1.5 * exact_coexistent_coefficient),
+        coexistence_tolerance_hartree_per_bohr3=1.0e-10,
+        coefficient_relative_tolerance=1.0e-8,
+        maximum_iterations=64,
+        minimum_density_scale=1.0e-5,
+        root_sample_count=513,
+        directional_derivative_tolerance_hartree_per_bohr3=1.0e-13,
+        curvature_tolerance_hartree_per_bohr3=1.0e-13,
+    )
+
+    assert (
+        continuation.construction
+        == V0_MOLECULAR_CUBIC_PLUS_QUARTIC_COEXISTENCE_CONTINUATION
+    )
+    assert (
+        continuation.branch_selection
+        == V0_MOLECULAR_LOW_DENSITY_STABLE_GAS_BRANCH_SELECTION
+    )
+    assert continuation.passes is True
+    assert continuation.root.phase_gate.passes is True
+    assert continuation.root.stable_gas_candidate_count == 1
+    assert continuation.root.gas_phase.density_scale == pytest.approx(
+        0.0457932428,
+        rel=2.0e-6,
+    )
+    assert continuation.root.quartic_coefficient_hartree_bohr15 == pytest.approx(
+        exact_coexistent_coefficient,
+        rel=3.0e-6,
+    )
+    assert abs(continuation.root.coexistence_gap_hartree_per_bohr3) <= 1.0e-10
+    assert continuation.lower.coexistence_gap_hartree_per_bohr3 < 0.0
+    assert continuation.upper.coexistence_gap_hartree_per_bohr3 > 0.0
+    assert (
+        continuation.root.liquid_quartic_functional_hartree_per_hartree_bohr15
+        == pytest.approx(0.0, abs=1.0e-22)
+    )
+    assert continuation.root.gas_quartic_functional_hartree_per_hartree_bohr15 > 0.0
+    assert continuation.root.coexistence_gap_envelope_derivative_bohr_minus18 > 0.0
+
+
+def test_quartic_coexistence_envelope_derivative_matches_a_branch_finite_difference():
+    """The signed gap derivative includes the moving finite-density gas state."""
+
+    functional = _translation_invariant_pure_liquid_functional()
+    coefficient = functional.bridge_asset.quartic_coefficient_hartree_bohr15
+    step = 1.0e-5 * coefficient
+    point_kwargs = {
+        "minimum_density_scale": 1.0e-5,
+        "root_sample_count": 513,
+        "directional_derivative_tolerance_hartree_per_bohr3": 1.0e-13,
+        "curvature_tolerance_hartree_per_bohr3": 1.0e-13,
+        "coexistence_tolerance_hartree_per_bohr3": 1.0e-10,
+    }
+    lower = evaluate_route2_v0_molecular_quartic_coexistence_point(
+        functional,
+        quartic_coefficient_hartree_bohr15=coefficient - step,
+        **point_kwargs,
+    )
+    root = evaluate_route2_v0_molecular_quartic_coexistence_point(
+        functional,
+        quartic_coefficient_hartree_bohr15=coefficient,
+        **point_kwargs,
+    )
+    upper = evaluate_route2_v0_molecular_quartic_coexistence_point(
+        functional,
+        quartic_coefficient_hartree_bohr15=coefficient + step,
+        **point_kwargs,
+    )
+    finite_difference = (
+        upper.coexistence_gap_hartree_per_bohr3
+        - lower.coexistence_gap_hartree_per_bohr3
+    ) / (2.0 * step)
+
+    assert root.phase_gate.passes is True
+    assert finite_difference == pytest.approx(
+        root.coexistence_gap_envelope_derivative_bohr_minus18,
+        rel=3.0e-5,
+        abs=1.0e-18,
+    )
+
+
+def test_quartic_continuation_rejects_an_unbracketed_or_reversed_gap():
+    functional = _translation_invariant_pure_liquid_functional()
+    coefficient = functional.bridge_asset.quartic_coefficient_hartree_bohr15
+
+    with pytest.raises(ValueError, match="lower coefficient < upper"):
+        solve_route2_v0_molecular_quartic_coexistence_continuation(
+            functional,
+            lower_quartic_coefficient_hartree_bohr15=coefficient,
+            upper_quartic_coefficient_hartree_bohr15=coefficient,
+        )
+
+    with pytest.raises(ValueError, match="lower endpoint does not have a negative"):
+        solve_route2_v0_molecular_quartic_coexistence_continuation(
+            functional,
+            lower_quartic_coefficient_hartree_bohr15=(1.1 * coefficient),
+            upper_quartic_coefficient_hartree_bohr15=(1.2 * coefficient),
+            minimum_density_scale=1.0e-5,
+            root_sample_count=513,
+            directional_derivative_tolerance_hartree_per_bohr3=1.0e-13,
+            curvature_tolerance_hartree_per_bohr3=1.0e-13,
         )

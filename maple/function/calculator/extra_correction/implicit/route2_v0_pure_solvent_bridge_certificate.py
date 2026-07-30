@@ -1,10 +1,18 @@
 """Hash-bound pure-liquid evidence for the Route-2 V0 weighted-density bridge.
 
-The bridge is admissible only when its pressure coefficient, quartic root, and
-operators were fixed from one pure-liquid HNC scalar before solute scoring.  A
-certificate is therefore metadata that binds the frozen solvent sources, the
-planar-interface evidence, and the exact discrete ``D``/``K`` operators.  It
-is not an energy term, a physical-liquid result, or an accuracy claim.
+This v1 schema remains useful for source-bound scalar controls, but its old
+flat ``B``-to-planar-surface-tension bracket cannot establish physical-liquid
+admission.  A finite-density gas branch moves with the quartic coefficient,
+so a physical construction must first retain the same-scalar coexistence
+continuation for ``B`` and then solve any remaining planar surface-tension
+condition on that coexistence-preserving branch.  That nested evidence needs a
+future schema together with the constrained planar solver; v1 fails closed for
+physical-liquid admission rather than giving its legacy fields a false
+thermodynamic meaning.
+
+A v1 certificate is therefore metadata binding frozen solvent sources,
+control-planar evidence, and exact discrete ``D``/``K`` operators.  It is not
+an energy term, a physical-liquid result, or an accuracy claim.
 """
 
 from __future__ import annotations
@@ -30,6 +38,9 @@ V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_CONSTRUCTION = (
     "route2-v0-pure-solvent-bridge-certificate-v1"
 )
 V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_SCHEMA_VERSION = 1
+V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_V1_PHYSICAL_ADMISSION_REJECTED = (
+    "route2-v0-pure-solvent-bridge-certificate-v1-no-physical-admission"
+)
 V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_SYNTHETIC_CONTROL = (
     "synthetic-control"
 )
@@ -897,6 +908,15 @@ def load_route2_v0_pure_solvent_bridge_certificate(
             == V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID
         ),
     )
+    if (
+        evidence_scope
+        == V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID
+    ):
+        raise ValueError(
+            "Pure-solvent bridge certificate v1 cannot claim physical-liquid "
+            "admission: it lacks the required nested same-scalar quartic "
+            "coexistence continuation and constrained planar-interface schema."
+        )
     return Route2V0PureSolventBridgeCertificate(
         certificate_path=path,
         content_sha256=content_sha256,
@@ -944,6 +964,7 @@ __all__ = [
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID",
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_SYNTHETIC_CONTROL",
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_SCHEMA_VERSION",
+    "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_V1_PHYSICAL_ADMISSION_REJECTED",
     "V0_WEIGHTED_DENSITY_OPERATOR_DIGEST_CONSTRUCTION",
     "Route2V0PureSolventBridgeCertificate",
     "Route2V0PureSolventHomogeneousPhaseEvidence",

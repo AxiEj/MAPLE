@@ -109,9 +109,23 @@ Its homogeneous-phase gate evaluates the existing HNC-plus-bridge scalar along
 the uniform configuration-density ray, then requires a zero pure-liquid
 external potential, full configuration-space stationarity/uniformity, positive
 liquid and gas curvatures, and equal grand-potential densities before any
-planar profile may be called an interface.  Physical-scope bridge certificates
-must carry this evidence; there are still **zero** physical bridge assets and
-no total-solvation, multi-solvent, historical-panel, or accuracy result.
+planar profile may be called an interface.  The current v1 bridge certificate
+is control-only and now rejects a physical-scope label; a future physical
+certificate must carry this evidence plus the nested continuation/planar
+protocol.  There are still **zero** physical bridge assets and no
+total-solvation, multi-solvent, historical-panel, or accuracy result.
+
+The next mathematical gate is now explicit rather than an informal quartic
+fit: on a fixed pure-liquid scalar, the implementation follows the selected
+finite-density stable gas branch and solves the same-scalar gas-minus-liquid
+coexistence gap \(C(B_s)=0\) for the quartic bridge coefficient.  Its exact
+stationary-branch envelope derivative is positive,
+\(dC/dB_s=[S(\nu_g)-S(\nu_b)]/V>0\); this does **not** imply a signed
+\(d\gamma/dB_s\).  A synthetic translation-invariant control verifies the
+coexistence root and the derivative against a branch finite difference.
+This is only inner pure-liquid mathematical evidence: it has no physical
+solvent source, planar interface, surface-tension result, total-solvation
+calculation, force/PES result, or accuracy claim.
 
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental

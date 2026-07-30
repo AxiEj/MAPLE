@@ -611,18 +611,10 @@ def test_weighted_density_certificate_rejects_ambiguous_evidence_admission(
         load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
 
 
-def test_weighted_density_certificate_cannot_upgrade_a_nonphysical_source_asset(
+def test_v1_weighted_density_certificate_cannot_claim_physical_liquid_admission(
     tmp_path,
 ):
-    (
-        asset,
-        rism_kernel,
-        hnc_functional,
-        center,
-        weighted_kernel,
-        certificate_path,
-        payload,
-    ) = _source_bound_weighted_density_inputs(tmp_path)
+    *_, certificate_path, payload = _source_bound_weighted_density_inputs(tmp_path)
     payload["admission"] = {
         "evidence_scope": "physical-pure-liquid-admission",
         "physical_liquid_admitted": True,
@@ -632,18 +624,9 @@ def test_weighted_density_certificate_cannot_upgrade_a_nonphysical_source_asset(
         _synthetic_homogeneous_phase_coexistence_evidence()
     )
     certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    certificate = load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
-    assert certificate.has_homogeneous_phase_coexistence is True
 
-    with pytest.raises(ValueError, match="explicit nonphysical claim"):
-        Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate(
-            hnc_functional=hnc_functional,
-            frozen_solvent_asset=asset,
-            rism_kernel=rism_kernel,
-            center_projection=center,
-            kernel=weighted_kernel,
-            certificate=certificate,
-        )
+    with pytest.raises(ValueError, match="certificate v1 cannot claim"):
+        load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
 
 
 def test_physical_scope_certificate_requires_full_homogeneous_phase_evidence(tmp_path):

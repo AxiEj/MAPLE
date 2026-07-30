@@ -74,16 +74,20 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
         "cannot establish a physical-liquid or accuracy claim"
         in anchors["source_bound_constructor"]
     )
-    assert "physical-pure-liquid-admission" in anchors["source_bound_constructor"]
+    assert (
+        "future physical-pure-liquid-admission schema"
+        in anchors["source_bound_constructor"]
+    )
 
     resolution = anchors["planar_interface_quartic_resolution"]
-    assert "gamma(B_s)" in resolution["stationary_surface_tension"]
+    assert "gamma(B_s^*)" in resolution["stationary_surface_tension"]
     assert "V_liquid omega(1)" in resolution["stationary_surface_tension"]
     assert "No generic signed d gamma / d B_s" in resolution["envelope_derivative"]
     assert "coexistence-preserving" in resolution["envelope_derivative"]
     assert "No positivity-only monotonicity" in resolution["strict_monotonicity"]
     assert "homogeneous coexistence evidence" in resolution["strict_monotonicity"]
-    assert "min(gamma(B_low), gamma(B_high))" in resolution["certificate_rule"]
+    assert "C(B_low)<0" in resolution["certificate_rule"]
+    assert "min(Gamma_low, Gamma_high)" in resolution["certificate_rule"]
     assert "No MNSol, FreeSolv" in resolution["prohibited_selection"]
 
     custom = protocol["custom_solvent_contract"]
@@ -98,6 +102,6 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
     assert "same-functional vacuum-limit pressure" in sequence
     assert "Hessian reciprocity" in sequence
     assert "homogeneous liquid/gas phase gate" in sequence
-    assert "do not infer uniqueness" in sequence
+    assert "do not infer gamma uniqueness" in sequence
     assert "external-blind maximum-error gates" in sequence
     assert "post-hoc PC+" in protocol["decision_rule"]

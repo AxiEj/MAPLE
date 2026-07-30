@@ -785,14 +785,16 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         kernel: Route2V0PeriodicWeightedDensityKernel,
         certificate: Route2V0PureSolventBridgeCertificate,
     ) -> Route2V0MolecularWeightedDensityBridgeAsset:
-        """Build the source-bound cubic-plus-quartic physical-admission asset.
+        """Build the source-bound cubic-plus-quartic scalar-control asset.
 
         The direct constructors remain useful for synthetic scalar and
         derivative controls.  They cannot constitute a physical liquid asset:
-        this constructor instead binds the existing cubic-plus-quartic
-        certificate to the exact HNC projection, source-locked RISM kernel,
-        centre map, and weighted kernel that will enter the common scalar.  A
-        future physical cubic-WDA certificate has a separate contract.  No
+        this constructor instead binds the existing cubic-plus-quartic v1
+        control certificate to the exact HNC projection, source-locked RISM
+        kernel, centre map, and weighted kernel that will enter the common
+        scalar.  A future physical cubic-plus-quartic certificate must add the
+        nested coexistence-continuation and constrained-planar contract; a
+        physical cubic-WDA certificate has a separate contract.  No
         solute result, cavity error, or user-selected bridge coefficient
         participates in this operation.
         """
@@ -946,7 +948,11 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
 
     @property
     def is_physical_pure_solvent_asset(self) -> bool:
-        """Return whether the attached source-bound record is physically admitted."""
+        """Return whether a future attached source-bound record is admitted.
+
+        The current v1 certificate parser fails closed for physical admission,
+        so every present source-bound asset remains a scalar control.
+        """
 
         certificate = self.pure_solvent_certificate
         return bool(

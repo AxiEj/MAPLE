@@ -1,0 +1,52 @@
+{
+  "artifact": "route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1",
+  "claim_boundary": "This is a preflight record, not a permanent-source accept/reject result. The runner stopped before forming or reading the registered static-MEP or dipole falsification norms and did not write a scientific verdict artifact.",
+  "decision": {
+    "prohibited_followups": [
+      "do not use the preserved helper potentials as a V1 source-pass or source-reject result",
+      "do not alter the GFN2 source, effective cores, point set, response, continuum, or static-MEP scientific thresholds",
+      "do not run a continuum, force, speed, or experimental-solvation benchmark from this preflight"
+    ],
+    "reason": "V1 incorrectly required bitwise equality between a density digest emitted by an independent zero-field SCF execution and a density reconstructed from the frozen checkpoint. The two frozen executions agree in energy and permanent dipole, but their byte-level density arrays differ. The checkpoint file hash remains the comparator identity; a successor preregistration must retain that hash and add predeclared energy/dipole compatibility gates instead of silently accepting or rewriting the V1 result.",
+    "verdict": "no-static-mep-scientific-verdict"
+  },
+  "evidence": {
+    "checkpoint_energy_hartree": -193.14018695625597,
+    "checkpoint_file_identity_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0",
+    "checkpoint_loaded_density_sha256": "709552331b9bcf5da2b867cfd1b3d419e6e5db503885f78ea7d0aa1d3b1a8699",
+    "checkpoint_total_dipole_e_bohr": [
+      -0.18457829166541906,
+      1.0569824698489505,
+      -0.5991360499858729
+    ],
+    "dipole_l2_error_e_bohr": 4.133533127768899e-13,
+    "energy_abs_error_hartree": 3.410605131648481e-13,
+    "frozen_qm_checkpoint_ledger_sha256": "4143e5bfb6e603ea74acb7b0498dfd92c0bf4fdad104c798d57c4badecdc6213",
+    "frozen_qm_induced_mep_record_sha256": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc",
+    "frozen_zero_field_dipole_e_bohr": [
+      -0.18457829166536577,
+      1.0569824698487231,
+      -0.5991360499855318
+    ],
+    "frozen_zero_field_energy_hartree": -193.14018695625631,
+    "independent_zero_field_density_sha256": "1f2f16b3a870db390aa60e5036dbf745dedea5989af5429d26d772b73abb39b8",
+    "static_helper_output": {
+      "path": ".omx/benchmarks/route2-v0-gfn2-molden-static-mep-acetone-v1-f84c81f/static-mep-helper.json",
+      "preserved": true,
+      "sha256": "832d0829c74bf3e20803ab19966be8e0958033802c88b214e78584394c226ce8"
+    },
+    "xtb_molden_sha256": "6f114e412b4d620bf0f3f6bc63dde1242db660bb5c0925827d56d35b6fc4db03",
+    "xtb_stdout_sha256": "1d20047581e5c03633c61a43afeb429795ec66889ce4dfdabc7629c9d1f5e6c8",
+    "xtbout_json_sha256": "d0fc9a02a480db6ba5b424739634b816d2d4196b7f131dc35f32c3f16ad568eb"
+  },
+  "executed_at_utc": "2026-07-30T22:42:43.488507+00:00",
+  "execution_git_head": "f84c81fb14b3f62840288d831a7e7132310a9947",
+  "failure_stage": "cross-execution-qm-density-digest-binding",
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-static-mep-acetone-prereg-v1.json",
+    "protocol_id": "route2-v0-gfn2-molden-static-mep-acetone-prereg-v1",
+    "sha256": "f87905ce36a2c42fe2eb78dccc398ea745302472686985ca4b201f7313ee4f35"
+  },
+  "schema_version": 1,
+  "status": "preflight-failure"
+}

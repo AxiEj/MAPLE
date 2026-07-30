@@ -264,6 +264,12 @@ def _checkpoint_density(checkpoint: Path):
             "PySCF is required only for this static-MEP helper."
         ) from error
     molecule = lib.chkfile.load_mol(str(checkpoint))
+    try:
+        energy_hartree = float(lib.chkfile.load(str(checkpoint), "scf/e_tot"))
+    except (KeyError, OSError, TypeError, ValueError) as error:
+        raise RuntimeError("QM checkpoint has no finite SCF energy.") from error
+    if not np.isfinite(energy_hartree):
+        raise RuntimeError("QM checkpoint has no finite SCF energy.")
     coefficients = _immutable_array(
         lib.chkfile.load(str(checkpoint), "scf/mo_coeff"),
         name="QM checkpoint MO coefficients",
@@ -299,6 +305,7 @@ def _checkpoint_density(checkpoint: Path):
             "mo_metric_error": metric_error,
             "electron_count_e": electron_count,
             "electron_count_error_e": abs(electron_count - occupation_count),
+            "energy_hartree": energy_hartree,
         },
     )
 

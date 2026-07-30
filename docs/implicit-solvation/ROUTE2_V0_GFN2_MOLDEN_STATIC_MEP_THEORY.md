@@ -15,6 +15,18 @@ points.  No continuum surface is generated or selected in this step; these
 points were copied from the existing exact-GTO canary only as a fixed
 source-representation validation set.
 
+The first registered execution stopped at a **preflight** condition, preserved
+in
+[`route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1.json`](benchmarks/route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1.json).
+It incorrectly required bytewise equality between a density produced by an
+independent finite-field SCF and a density reconstructed from the frozen
+checkpoint.  No registered static-MEP norm was formed or read.  The successor
+[`route2-v0-gfn2-molden-static-mep-acetone-prereg-v2.json`](benchmarks/route2-v0-gfn2-molden-static-mep-acetone-prereg-v2.json)
+does not alter the source, point set, response prohibition, or the
+\(0.20/0.30\) scientific gates: it uses the already hash-pinned checkpoint as
+the identity and adds predeclared energy/dipole compatibility checks with the
+independent frozen record.
+
 The test does **not** use:
 
 - xTB finite-field response, xTB implicit solvation, a PCM solve, cavity, or
@@ -110,9 +122,11 @@ I_{\mu\nu}(\mathbf s_k)=
 \]
 
 The checkpoint must retain its closed-shell AO metric, electron count, total
-charge, method/grid identity, and geometry identity.  Its AO density hash is
-also bound to the pre-existing QM finite-field record, so a static reference
-cannot be swapped after inspecting the candidate result.
+charge, method/grid identity, geometry identity, and preregistered checkpoint
+file hash.  Its total energy and permanent dipole must independently agree
+with the frozen finite-field record.  A byte-level density digest emitted by a
+separate SCF execution is not used as a cross-execution identity, so the
+reference cannot be silently swapped after inspecting the candidate result.
 
 ## 4. Registered source-physics metrics
 

@@ -28,11 +28,11 @@ from typing import Any
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-ARTIFACT_ID = "route2-v0-gfn2-molden-static-mep-acetone-v1"
-PREREGISTRATION_PROTOCOL_ID = "route2-v0-gfn2-molden-static-mep-acetone-prereg-v1"
+ARTIFACT_ID = "route2-v0-gfn2-molden-static-mep-acetone-v2"
+PREREGISTRATION_PROTOCOL_ID = "route2-v0-gfn2-molden-static-mep-acetone-prereg-v2"
 PREREG_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
-    "route2-v0-gfn2-molden-static-mep-acetone-prereg-v1.json"
+    "route2-v0-gfn2-molden-static-mep-acetone-prereg-v2.json"
 )
 RUNNER_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
@@ -71,6 +71,10 @@ RAW_INDUCED_MEP_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/reproducers/"
     "route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json"
 )
+PREFLIGHT_FAILURE_RELATIVE_PATH = (
+    "docs/implicit-solvation/benchmarks/"
+    "route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1.json"
+)
 SOURCE_RELATIVE_PATHS = (
     RUNNER_RELATIVE_PATH,
     STATIC_HELPER_RELATIVE_PATH,
@@ -83,6 +87,7 @@ INPUT_RELATIVE_PATHS = (
     POINTS_RELATIVE_PATH,
     POINTS_PROVENANCE_RELATIVE_PATH,
     RAW_INDUCED_MEP_RELATIVE_PATH,
+    PREFLIGHT_FAILURE_RELATIVE_PATH,
 )
 DEFAULT_XTB = Path("/home/axie/xtb/xtb-dist/bin/xtb")
 DEFAULT_PARAMETER_FILE = Path("/home/axie/xtb/xtb-dist/share/xtb/param_gfn2-xtb.txt")
@@ -108,6 +113,20 @@ EXPECTED_QM_REFERENCE = {
     "phase": "gas",
     "semilocal_grid_level": 3,
     "nonlocal_grid_profile": "pyscf-official-50x194-sg1",
+    "scf_energy_tolerance_hartree": 1.0e-10,
+    "scf_gradient_tolerance": 1.0e-7,
+    "maximum_scf_cycles": 100,
+}
+EXPECTED_QM_INDUCED_MEP_METHOD = {
+    "electronic_structure": "omegaB97M-V",
+    "pyscf_xc_token": "wb97m-v",
+    "basis": "def2-tzvpd",
+    "reference": "RKS",
+    "density_fitting": True,
+    "charge": 0,
+    "spin": 0,
+    "semilocal_grid_level": 3,
+    "nonlocal_grid_profile": "50x194-SG1",
     "scf_energy_tolerance_hartree": 1.0e-10,
     "scf_gradient_tolerance": 1.0e-7,
     "maximum_scf_cycles": 100,
@@ -374,12 +393,15 @@ def _validate_preregistration(
         "qm_checkpoint_electron_count_e_max": 1.0e-7,
         "qm_checkpoint_total_charge_e_max": 1.0e-7,
         "geometry_max_abs_error_bohr_max": 1.0e-8,
+        "qm_checkpoint_energy_abs_error_hartree_max": 1.0e-9,
+        "qm_zero_field_dipole_e_bohr_abs_error_max": 1.0e-8,
     }
     expected_scientific_gates = {
         "static_mep_relative_frobenius_max": 0.2,
         "static_mep_relative_max_abs_max": 0.3,
         "static_dipole_relative_frobenius_max": 0.2,
     }
+    protocol_revision = preregistration.get("protocol_revision")
     contract = preregistration.get("execution_contract")
     if (
         preregistration.get("protocol_id") != PREREGISTRATION_PROTOCOL_ID
@@ -393,6 +415,14 @@ def _validate_preregistration(
         or preregistration.get("numerical_gates") != expected_numerical_gates
         or preregistration.get("scientific_falsification_gates")
         != expected_scientific_gates
+        or not isinstance(protocol_revision, dict)
+        or protocol_revision.get("supersedes_protocol_id")
+        != "route2-v0-gfn2-molden-static-mep-acetone-prereg-v1"
+        or protocol_revision.get("preflight_failure")
+        != {
+            "path": PREFLIGHT_FAILURE_RELATIVE_PATH,
+            "sha256": _sha256(REPO_ROOT / PREFLIGHT_FAILURE_RELATIVE_PATH),
+        }
     ):
         raise RuntimeError("The GFN2 static-MEP protocol is not frozen.")
     return preregistration, source_hashes, input_hashes
@@ -559,8 +589,19 @@ def _representation_checks(
     return checks
 
 
-def _validate_qm_density_binding(helper: dict[str, Any]) -> None:
-    """Bind the checkpoint density to the pre-existing QM finite-field record."""
+def _validate_qm_reference_record(
+    helper: dict[str, Any], gates: dict[str, Any]
+) -> dict[str, dict[str, float | bool]]:
+    """Bind the checkpoint to the frozen finite-field QM state observables.
+
+    The older finite-field record stores a density *digest* from an independent
+    SCF execution, while this gate intentionally loads a frozen checkpoint
+    rather than rerunning SCF.  Its byte-level density digest is therefore not
+    a valid cross-execution identity.  The checkpoint's preregistered file hash
+    is the immutable identity; this check additionally requires the two frozen
+    executions to agree in total energy and permanent dipole well below the
+    scientific source-screen scale.
+    """
 
     raw_induced = _load_json(
         REPO_ROOT / RAW_INDUCED_MEP_RELATIVE_PATH,
@@ -568,21 +609,49 @@ def _validate_qm_density_binding(helper: dict[str, Any]) -> None:
     )
     zero_field = raw_induced.get("zero_field")
     qm_reference = helper.get("qm_reference")
-    if not isinstance(zero_field, dict) or not isinstance(qm_reference, dict):
-        raise RuntimeError("Static-MEP checkpoint density binding is incomplete.")
-    checkpoint_density = qm_reference.get("checkpoint_ao_density")
-    if not isinstance(checkpoint_density, dict):
-        raise RuntimeError("Static-MEP checkpoint density binding is incomplete.")
-    expected = zero_field.get("density_sha256")
-    actual = checkpoint_density.get("density_sha256")
     if (
         raw_induced.get("status") != "pass"
-        or not isinstance(expected, str)
-        or actual != expected
+        or raw_induced.get("method") != EXPECTED_QM_INDUCED_MEP_METHOD
+        or not isinstance(zero_field, dict)
+        or not isinstance(qm_reference, dict)
     ):
+        raise RuntimeError("Static-MEP QM reference record is incompatible.")
+    checkpoint_density = qm_reference.get("checkpoint_ao_density")
+    if not isinstance(checkpoint_density, dict):
+        raise RuntimeError("Static-MEP QM checkpoint record is incomplete.")
+    try:
+        reference_energy = float(zero_field["energy_hartree"])
+        checkpoint_energy = float(checkpoint_density["energy_hartree"])
+        reference_dipole = np.asarray(zero_field["dipole_e_bohr"], dtype=float)
+        checkpoint_dipole = np.asarray(qm_reference["total_dipole_e_bohr"], dtype=float)
+    except (KeyError, TypeError, ValueError) as error:
         raise RuntimeError(
-            "Static-MEP checkpoint density is not bound to the frozen QM record."
+            "Static-MEP QM reference observables are incomplete."
+        ) from error
+    if (
+        not np.isfinite(reference_energy)
+        or not np.isfinite(checkpoint_energy)
+        or reference_dipole.shape != (3,)
+        or checkpoint_dipole.shape != (3,)
+        or not np.all(np.isfinite(reference_dipole))
+        or not np.all(np.isfinite(checkpoint_dipole))
+    ):
+        raise RuntimeError("Static-MEP QM reference observables are invalid.")
+    checks = {
+        "qm_checkpoint_energy_abs_error_hartree": _upper_check(
+            abs(checkpoint_energy - reference_energy),
+            float(gates["qm_checkpoint_energy_abs_error_hartree_max"]),
+        ),
+        "qm_zero_field_dipole_e_bohr_abs_error": _upper_check(
+            float(np.linalg.norm(checkpoint_dipole - reference_dipole)),
+            float(gates["qm_zero_field_dipole_e_bohr_abs_error_max"]),
+        ),
+    }
+    if not all(check["passes"] for check in checks.values()):
+        raise RuntimeError(
+            "Static-MEP QM checkpoint is not physically bound to the frozen record."
         )
+    return checks
 
 
 def _validate_helper_runtime(helper: dict[str, Any]) -> None:
@@ -645,10 +714,12 @@ def main() -> int:
         work_dir=work_dir,
         qm_checkpoint=qm_checkpoint,
     )
+    _validate_helper_runtime(helper)
+    qm_record_identity = _validate_qm_reference_record(
+        helper, preregistration["numerical_gates"]
+    )
     candidate, qm = _helper_arrays(helper, point_count=len(points))
     representation = _representation_checks(helper, preregistration["numerical_gates"])
-    _validate_qm_density_binding(helper)
-    _validate_helper_runtime(helper)
     candidate_representation = helper["candidate_representation"]
     prior_round_trip = prior_source["permanent_source_round_trip"]
     if candidate_representation.get("molden_sha256") != prior_round_trip.get(
@@ -682,8 +753,10 @@ def main() -> int:
             float(scientific_gates["static_dipole_relative_frobenius_max"]),
         ),
     }
-    passes_all = all(check["passes"] for check in representation.values()) and all(
-        check["passes"] for check in scientific_checks.values()
+    passes_all = (
+        all(check["passes"] for check in qm_record_identity.values())
+        and all(check["passes"] for check in representation.values())
+        and all(check["passes"] for check in scientific_checks.values())
     )
     artifact = {
         "schema_version": 1,
@@ -716,6 +789,7 @@ def main() -> int:
             ),
             "molden_sha256": prior_round_trip["molden_sha256"],
         },
+        "qm_record_identity_checks": qm_record_identity,
         "representation_checks": representation,
         "scientific_falsification": {
             "checks": scientific_checks,

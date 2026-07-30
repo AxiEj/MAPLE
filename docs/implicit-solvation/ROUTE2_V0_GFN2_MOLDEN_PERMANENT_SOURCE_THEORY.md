@@ -153,8 +153,10 @@ possibility alone.
 2. **QM permanent-MEP source gate.**  Compare the total source (effective cores
    plus valence density) against the existing frozen exterior QM-MEP geometry
    set before any continuum calculation.  The current acetone protocol is
-   [`route2-v0-gfn2-molden-static-mep-acetone-prereg-v1.json`](benchmarks/route2-v0-gfn2-molden-static-mep-acetone-prereg-v1.json)
-   and its mathematical scope is recorded in
+   [`route2-v0-gfn2-molden-static-mep-acetone-prereg-v2.json`](benchmarks/route2-v0-gfn2-molden-static-mep-acetone-prereg-v2.json).
+   Its V1 byte-digest preflight stop is retained in
+   [`route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1.json`](benchmarks/route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1.json),
+   rather than being overwritten.  Its mathematical scope is recorded in
    [`ROUTE2_V0_GFN2_MOLDEN_STATIC_MEP_THEORY.md`](ROUTE2_V0_GFN2_MOLDEN_STATIC_MEP_THEORY.md).
    It must be preregistered before reading the result and then repeated over
    the broad ten-functional-group QM panel.  A dipole round trip is necessary

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import runpy
@@ -75,20 +76,74 @@ def test_static_mep_representation_checks_require_every_registered_identity():
     assert all(check["passes"] for check in checks.values())
 
 
-def test_static_mep_checkpoint_density_must_match_the_prior_qm_record():
+def test_static_mep_checkpoint_must_match_the_prior_qm_observables():
     raw_path = (
         _REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks/reproducers/"
         "route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json"
     )
     raw = json.loads(raw_path.read_text(encoding="utf-8"))
-    expected = raw["zero_field"]["density_sha256"]
-    validator = _RUNNER["_validate_qm_density_binding"]
+    zero_field = raw["zero_field"]
+    validator = _RUNNER["_validate_qm_reference_record"]
+    gates = {
+        "qm_checkpoint_energy_abs_error_hartree_max": 1.0e-9,
+        "qm_zero_field_dipole_e_bohr_abs_error_max": 1.0e-8,
+    }
 
-    validator({"qm_reference": {"checkpoint_ao_density": {"density_sha256": expected}}})
-    with pytest.raises(RuntimeError, match="not bound"):
+    checks = validator(
+        {
+            "qm_reference": {
+                "checkpoint_ao_density": {
+                    "energy_hartree": zero_field["energy_hartree"]
+                },
+                "total_dipole_e_bohr": zero_field["dipole_e_bohr"],
+            }
+        },
+        gates,
+    )
+    assert all(check["passes"] for check in checks.values())
+
+    with pytest.raises(RuntimeError, match="not physically bound"):
         validator(
-            {"qm_reference": {"checkpoint_ao_density": {"density_sha256": "0" * 64}}}
+            {
+                "qm_reference": {
+                    "checkpoint_ao_density": {
+                        "energy_hartree": zero_field["energy_hartree"] + 1.0e-6
+                    },
+                    "total_dipole_e_bohr": zero_field["dipole_e_bohr"],
+                }
+            },
+            gates,
         )
+
+
+def test_static_mep_v1_preflight_is_preserved_before_the_v2_protocol():
+    benchmark_directory = _REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
+    failure_path = (
+        benchmark_directory
+        / "route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1.json"
+    )
+    v1_path = (
+        benchmark_directory / "route2-v0-gfn2-molden-static-mep-acetone-prereg-v1.json"
+    )
+    v2_path = (
+        benchmark_directory / "route2-v0-gfn2-molden-static-mep-acetone-prereg-v2.json"
+    )
+    failure = json.loads(failure_path.read_text(encoding="utf-8"))
+    v1 = json.loads(v1_path.read_text(encoding="utf-8"))
+    v2 = json.loads(v2_path.read_text(encoding="utf-8"))
+
+    assert failure["status"] == "preflight-failure"
+    assert failure["decision"]["verdict"] == "no-static-mep-scientific-verdict"
+    assert v2["protocol_revision"]["supersedes_protocol_id"] == v1["protocol_id"]
+    assert v2["protocol_revision"]["scientific_static_mep_thresholds_changed"] is False
+    assert v2["scientific_falsification_gates"] == v1["scientific_falsification_gates"]
+    assert (
+        v2["execution_contract"]["input_sha256"][
+            "docs/implicit-solvation/benchmarks/"
+            "route2-v0-gfn2-molden-static-mep-acetone-preflight-failure-v1.json"
+        ]
+        == hashlib.sha256(failure_path.read_bytes()).hexdigest()
+    )
 
 
 def test_static_mep_helper_runtime_is_version_bound():

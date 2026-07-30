@@ -45,7 +45,11 @@
       "target-solute cavity sizes",
       "target-solute errors",
       "post-training or fine-tuning data"
-    ]
+    ],
+    "response_source_construction": "route2-v0-lorentz-nonlocal-dielectric-source-v1",
+    "response_source_status": "source-only-lorentz-response-not-liquid-or-accuracy-admitted",
+    "response_source_binding": "A Route2V0LorentzNonlocalDielectricSource must content-address lambda_s and exactly match solvent id, molecular-model digest, epsilon_0, and epsilon_infinity in the attached Route2V0BulkLiquidStateSource. If epsilon_0=epsilon_infinity, lambda_s and its source must both be absent. Only Route2V0LorentzNonlocalDielectricSpectrum.from_source_bound_records is a source-bound custom-solvent electrostatic diagnostic.",
+    "current_correlation_length_source_records": []
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,

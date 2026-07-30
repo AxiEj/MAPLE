@@ -11,6 +11,11 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_bulk_liquid_s
     V0_BULK_LIQUID_STATE_SOURCE_STATUS,
     parse_route2_v0_bulk_liquid_state_source,
 )
+from maple.function.calculator.extra_correction.implicit.route2_v0_lorentz_dielectric_source import (
+    V0_LORENTZ_DIELECTRIC_SOURCE_CONSTRUCTION,
+    V0_LORENTZ_DIELECTRIC_SOURCE_STATUS,
+    parse_route2_v0_lorentz_nonlocal_dielectric_source,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_nonlocal_dielectric import (
     V0_LORENTZ_NONLOCAL_DIELECTRIC_CONSTRUCTION,
     V0_LORENTZ_NONLOCAL_DIELECTRIC_SCOPE,
@@ -115,6 +120,58 @@ def _bulk_state_source(*, static: float = 30.0, optical: float = 1.8):
     )
 
 
+def _lorentz_response_source(
+    *,
+    static: float = 30.0,
+    optical: float = 1.8,
+    correlation_length_bohr: float | None = 0.65,
+):
+    return parse_route2_v0_lorentz_nonlocal_dielectric_source(
+        json.dumps(
+            {
+                "protocol_id": V0_LORENTZ_DIELECTRIC_SOURCE_CONSTRUCTION,
+                "schema_version": 1,
+                "status": V0_LORENTZ_DIELECTRIC_SOURCE_STATUS,
+                "solvent_id": "lorentz-fixture",
+                "model": {
+                    "identifier": "lorentz-fixture-all-atom-v1",
+                    "source_sha256": "a" * 64,
+                },
+                "response": {
+                    "static_dielectric_constant": static,
+                    "optical_dielectric_constant": optical,
+                    "orientational_correlation_length_bohr": correlation_length_bohr,
+                },
+                "correlation_length_source": (
+                    {
+                        "origin": "ab_initio",
+                        "document_url": "https://example.org/lorentz-correlation.pdf",
+                        "document_sha256": "c" * 64,
+                        "source_locator": "Figure 3, longitudinal response fit",
+                        "retrieved_utc": "2026-07-30T00:00:00Z",
+                    }
+                    if correlation_length_bohr is not None
+                    else None
+                ),
+                "no_target_policy": {
+                    "post_training": False,
+                    "fine_tuning": False,
+                    "experimental_solvation_fit": False,
+                    "map_or_uq_calibration": False,
+                    "target_solvation_labels_used": False,
+                },
+                "claim_boundary": (
+                    "This is a source-only response fixture, not a molecular liquid "
+                    "or solvation endpoint."
+                ),
+                "not_claimed": [
+                    "The response does not determine a molecular liquid functional."
+                ],
+            }
+        )
+    )
+
+
 def _wavevector_squared(grid: RegularCartesianGrid) -> np.ndarray:
     axes = tuple(
         2.0 * math.pi * np.fft.fftfreq(grid.shape[axis], d=grid.spacing_bohr[axis])
@@ -191,12 +248,24 @@ def test_lorentz_nonlocal_dielectric_fixes_the_full_spectrum_from_physical_limit
         model.dielectric_spectrum[1, 0, 0] = 1.0
 
 
-def test_lorentz_spectrum_binds_only_source_state_limits_and_inherits_one_scalar():
-    source = _bulk_state_source(static=30.0, optical=1.8)
-    model = Route2V0LorentzNonlocalDielectricSpectrum.from_bulk_liquid_state_source(
+def test_lorentz_spectrum_requires_both_state_and_correlation_sources():
+    bulk_source = _bulk_state_source(static=30.0, optical=1.8)
+    state_bound_only = (
+        Route2V0LorentzNonlocalDielectricSpectrum.from_bulk_liquid_state_source(
+            grid=_grid(),
+            bulk_state_source=bulk_source,
+            orientational_correlation_length_bohr=0.65,
+        )
+    )
+    response_source = _lorentz_response_source(
+        static=30.0,
+        optical=1.8,
+        correlation_length_bohr=0.65,
+    )
+    model = Route2V0LorentzNonlocalDielectricSpectrum.from_source_bound_records(
         grid=_grid(),
-        bulk_state_source=source,
-        orientational_correlation_length_bohr=0.65,
+        bulk_state_source=bulk_source,
+        lorentz_response_source=response_source,
     )
     operator = model.as_operator()
     rng = np.random.default_rng(20260730)
@@ -204,12 +273,17 @@ def test_lorentz_spectrum_binds_only_source_state_limits_and_inherits_one_scalar
     right = _neutral_field(model.grid, rng)
 
     assert model.is_bulk_state_bound is True
-    assert model.require_bulk_state_source() is source
+    assert model.is_fully_source_bound is True
+    assert model.require_bulk_state_source() is bulk_source
+    assert model.require_source_bound_records() == (bulk_source, response_source)
+    assert state_bound_only.is_fully_source_bound is False
+    with pytest.raises(ValueError, match="correlation length"):
+        state_bound_only.require_source_bound_records()
     assert model.static_dielectric_constant == pytest.approx(
-        source.static_dielectric_constant
+        bulk_source.static_dielectric_constant
     )
     assert model.optical_dielectric_constant == pytest.approx(
-        source.optical_dielectric_constant
+        bulk_source.optical_dielectric_constant
     )
     np.testing.assert_allclose(
         operator.fourier_dielectric_spectrum,
@@ -227,10 +301,20 @@ def test_lorentz_spectrum_binds_only_source_state_limits_and_inherits_one_scalar
     with pytest.raises(ValueError, match="must equal the attached bulk-state"):
         Route2V0LorentzNonlocalDielectricSpectrum(
             grid=_grid(),
-            static_dielectric_constant=source.static_dielectric_constant + 0.1,
-            optical_dielectric_constant=source.optical_dielectric_constant,
+            static_dielectric_constant=bulk_source.static_dielectric_constant + 0.1,
+            optical_dielectric_constant=bulk_source.optical_dielectric_constant,
             correlation_length_bohr=0.65,
-            bulk_state_source=source,
+            bulk_state_source=bulk_source,
+        )
+
+    with pytest.raises(ValueError, match="correlation length must equal"):
+        Route2V0LorentzNonlocalDielectricSpectrum(
+            grid=_grid(),
+            static_dielectric_constant=bulk_source.static_dielectric_constant,
+            optical_dielectric_constant=bulk_source.optical_dielectric_constant,
+            correlation_length_bohr=0.7,
+            bulk_state_source=bulk_source,
+            lorentz_response_source=response_source,
         )
 
 
@@ -258,6 +342,25 @@ def test_lorentz_nonlocal_dielectric_rejects_unidentified_or_nonpassive_inputs()
         correlation_length_bohr=None,
     )
     np.testing.assert_allclose(constant.dielectric_spectrum, 1.8)
+    constant_bulk_source = _bulk_state_source(static=1.8, optical=1.8)
+    constant_response_source = _lorentz_response_source(
+        static=1.8,
+        optical=1.8,
+        correlation_length_bohr=None,
+    )
+    constant_source_bound = (
+        Route2V0LorentzNonlocalDielectricSpectrum.from_source_bound_records(
+            grid=grid,
+            bulk_state_source=constant_bulk_source,
+            lorentz_response_source=constant_response_source,
+        )
+    )
+    assert constant_source_bound.is_fully_source_bound is True
+    assert constant_source_bound.require_source_bound_records() == (
+        constant_bulk_source,
+        constant_response_source,
+    )
+    np.testing.assert_allclose(constant_source_bound.dielectric_spectrum, 1.8)
     with pytest.raises(ValueError, match="optical dielectric"):
         Route2V0LorentzNonlocalDielectricSpectrum(
             grid=grid,

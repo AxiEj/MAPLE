@@ -51,6 +51,15 @@ def test_lorentz_preregistration_preserves_the_no_fit_and_no_total_endpoint_boun
     }
     source = protocol["source_contract"]
     assert source["current_physical_state_records"] == []
+    assert source["response_source_construction"] == (
+        "route2-v0-lorentz-nonlocal-dielectric-source-v1"
+    )
+    assert source["response_source_status"] == (
+        "source-only-lorentz-response-not-liquid-or-accuracy-admitted"
+    )
+    assert source["current_correlation_length_source_records"] == []
+    assert "from_source_bound_records" in source["response_source_binding"]
+    assert "epsilon_infinity" in source["response_source_binding"]
     required = " ".join(source["required_before_physical_custom_electrostatic_use"])
     assert "static dielectric" in required
     assert "optical dielectric" in required

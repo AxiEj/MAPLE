@@ -360,13 +360,18 @@ since the spectrum is real-even, its Hessian is reciprocal.  This gives a
 mathematically controlled custom-solvent electrostatic diagnostic without
 changing the MACE checkpoint or creating a response iterate.
 
-`Route2V0LorentzNonlocalDielectricSpectrum` implements the spectrum and may
-bind \(\epsilon_0\) and \(\epsilon_\infty\) to a
-`Route2V0BulkLiquidStateSource`.  The constructor deliberately requires
-\(\lambda_s\) when \(\epsilon_0>\epsilon_\infty\), and rejects it when the
-two limits coincide: a correlation length cannot be inferred from a static
-dielectric or left as a hidden cavity parameter.  The corresponding
-machine-readable no-fit boundary is
+`Route2V0LorentzNonlocalDielectricSpectrum` separates numerical controls from
+physical provenance.  Its direct constructor and its
+`from_bulk_liquid_state_source` helper are only mathematical controls.  A
+source-bound custom-solvent electrostatic diagnostic must use
+`from_source_bound_records` with both a `Route2V0BulkLiquidStateSource` for
+\(\epsilon_0,\epsilon_\infty\) and a content-addressed
+`Route2V0LorentzNonlocalDielectricSource` for \(\lambda_s\).  The latter must
+match the solvent identity, molecular-model digest, and both limits exactly.
+The constructor requires \(\lambda_s\) when
+\(\epsilon_0>\epsilon_\infty\), and rejects it when the two limits coincide:
+a correlation length cannot be inferred from a static dielectric or left as a
+hidden cavity parameter.  The corresponding machine-readable no-fit boundary is
 [`route2-v0-lorentz-nonlocal-dielectric-prereg-v1.json`](benchmarks/route2-v0-lorentz-nonlocal-dielectric-prereg-v1.json).
 
 This spectrum does **not** identify a molecular solvent.  In particular,

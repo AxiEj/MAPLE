@@ -31,6 +31,9 @@ from typing import cast
 import numpy as np
 
 from .route2_v0_bulk_liquid_state_source import Route2V0BulkLiquidStateSource
+from .route2_v0_lorentz_dielectric_source import (
+    Route2V0LorentzNonlocalDielectricSource,
+)
 from .route2_v0_structured_solvent import RegularCartesianGrid
 
 V0_NONLOCAL_DIELECTRIC_CONSTRUCTION = "route2-v0-nonlocal-dielectric-v1"
@@ -129,9 +132,10 @@ class Route2V0LorentzNonlocalDielectricSpectrum:
     Thus real ``lambda`` and ``epsilon_s >= epsilon_inf >= 1`` guarantee a
     real-even, passive response before it reaches the common electrostatic
     scalar.  ``lambda`` is a physical correlation length, not a cavity radius
-    or an error-selected fit parameter.  A bulk-state record may bind the two
-    dielectric limits, but neither direct construction nor a state record is a
-    molecular-liquid or total-solvation asset.
+    or an error-selected fit parameter.  Direct construction and a
+    bulk-state-only record remain numerical controls; a source-bound custom
+    electrostatic diagnostic must also attach a Lorentz response-source record.
+    Neither form is a molecular-liquid or total-solvation asset.
     """
 
     grid: RegularCartesianGrid
@@ -139,6 +143,7 @@ class Route2V0LorentzNonlocalDielectricSpectrum:
     optical_dielectric_constant: float
     correlation_length_bohr: float | None
     bulk_state_source: Route2V0BulkLiquidStateSource | None = None
+    lorentz_response_source: Route2V0LorentzNonlocalDielectricSource | None = None
     construction: str = V0_LORENTZ_NONLOCAL_DIELECTRIC_CONSTRUCTION
     response_scope: str = V0_LORENTZ_NONLOCAL_DIELECTRIC_SCOPE
     _dielectric_spectrum: np.ndarray = field(init=False, repr=False, compare=False)
@@ -200,6 +205,35 @@ class Route2V0LorentzNonlocalDielectricSpectrum:
                     "Lorentz dielectric limits must equal the attached bulk-state "
                     "source."
                 )
+        response_source = self.lorentz_response_source
+        if response_source is not None:
+            if not isinstance(
+                response_source,
+                Route2V0LorentzNonlocalDielectricSource,
+            ):
+                raise TypeError(
+                    "Lorentz dielectric response must be a Route-2 source record."
+                )
+            if state_source is None:
+                raise ValueError(
+                    "A Lorentz dielectric response source requires its matching "
+                    "bulk liquid-state source."
+                )
+            response_source.verify_bulk_liquid_state_source(state_source)
+            source_length = response_source.orientational_correlation_length_bohr
+            if normalized_length is None:
+                if source_length is not None:
+                    raise ValueError(
+                        "A constant Lorentz spectrum requires an absent response "
+                        "correlation length."
+                    )
+            elif source_length is None or abs(source_length - normalized_length) > (
+                1.0e-12 * max(1.0, abs(source_length), abs(normalized_length))
+            ):
+                raise ValueError(
+                    "Lorentz correlation length must equal the attached response "
+                    "source."
+                )
         spectrum = np.full(self.grid.shape, optical, dtype=float)
         if normalized_length is not None:
             spectrum += orientational_increment / (
@@ -225,9 +259,10 @@ class Route2V0LorentzNonlocalDielectricSpectrum:
     ) -> Route2V0LorentzNonlocalDielectricSpectrum:
         """Bind the dielectric limits to one source-only liquid-state record.
 
-        The caller must still supply the correlation length from independent
-        finite-wavevector dielectric evidence.  It cannot be inferred from
-        ``epsilon(0)`` or selected from any solvation error.
+        This is a state-bound numerical control only: the raw correlation
+        length cannot be inferred from ``epsilon(0)`` or selected from any
+        solvation error.  Use :meth:`from_source_bound_records` for a
+        provenance-bound custom-solvent electrostatic diagnostic.
         """
 
         if not isinstance(bulk_state_source, Route2V0BulkLiquidStateSource):
@@ -243,6 +278,45 @@ class Route2V0LorentzNonlocalDielectricSpectrum:
             bulk_state_source=bulk_state_source,
         )
 
+    @classmethod
+    def from_source_bound_records(
+        cls,
+        *,
+        grid: RegularCartesianGrid,
+        bulk_state_source: Route2V0BulkLiquidStateSource,
+        lorentz_response_source: Route2V0LorentzNonlocalDielectricSource,
+    ) -> Route2V0LorentzNonlocalDielectricSpectrum:
+        """Bind every Lorentz parameter to its declared independent source.
+
+        This is the only constructor for a source-bound custom-solvent
+        electrostatic diagnostic.  It does not promote either source record to
+        a molecular liquid or total-solvation asset.
+        """
+
+        if not isinstance(bulk_state_source, Route2V0BulkLiquidStateSource):
+            raise TypeError(
+                "Lorentz dielectric spectrum requires a Route-2 bulk-liquid "
+                "state source."
+            )
+        if not isinstance(
+            lorentz_response_source,
+            Route2V0LorentzNonlocalDielectricSource,
+        ):
+            raise TypeError(
+                "Lorentz dielectric spectrum requires a Route-2 response source."
+            )
+        lorentz_response_source.verify_bulk_liquid_state_source(bulk_state_source)
+        return cls(
+            grid=grid,
+            static_dielectric_constant=bulk_state_source.static_dielectric_constant,
+            optical_dielectric_constant=bulk_state_source.optical_dielectric_constant,
+            correlation_length_bohr=(
+                lorentz_response_source.orientational_correlation_length_bohr
+            ),
+            bulk_state_source=bulk_state_source,
+            lorentz_response_source=lorentz_response_source,
+        )
+
     @property
     def dielectric_spectrum(self) -> np.ndarray:
         """Return the immutable real-even relative dielectric spectrum."""
@@ -254,6 +328,15 @@ class Route2V0LorentzNonlocalDielectricSpectrum:
         """Return whether both dielectric limits came from one state record."""
 
         return self.bulk_state_source is not None
+
+    @property
+    def is_fully_source_bound(self) -> bool:
+        """Return whether both dielectric limits and correlation length are bound."""
+
+        return (
+            self.bulk_state_source is not None
+            and self.lorentz_response_source is not None
+        )
 
     @property
     def is_total_solvation_asset(self) -> bool:
@@ -271,6 +354,24 @@ class Route2V0LorentzNonlocalDielectricSpectrum:
                 "bulk liquid-state record."
             )
         return source
+
+    def require_source_bound_records(
+        self,
+    ) -> tuple[
+        Route2V0BulkLiquidStateSource,
+        Route2V0LorentzNonlocalDielectricSource,
+    ]:
+        """Return both matching sources or reject an unproven correlation length."""
+
+        bulk_state_source = self.require_bulk_state_source()
+        response_source = self.lorentz_response_source
+        if response_source is None:
+            raise ValueError(
+                "Physical custom-solvent electrostatic use requires an "
+                "independently source-bound Lorentz correlation length."
+            )
+        response_source.verify_bulk_liquid_state_source(bulk_state_source)
+        return bulk_state_source, response_source
 
     def as_operator(self) -> Route2V0NonlocalDielectricOperator:
         """Return the energy-conjugate reaction operator for this spectrum."""

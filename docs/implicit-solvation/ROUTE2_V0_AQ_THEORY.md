@@ -457,9 +457,41 @@ occupancy.  Setting the two fields equal would silently discard the distinct
 electrostatic/solvent-centre separation that the construction is meant to
 represent.  In addition, a physical source record must bind the shell kernel,
 \(p_{\rm vap}\), and \(R_{\rm vdW}\) to the same solvent state; the Pauli and
-dispersion scalar and the standard-state term remain absent.  Consequently
-this component cannot yet be added to a reaction energy, called a total
-\(\Delta G_{\rm solv}\), or scored against FreeSolv/MNSol.
+dispersion scalar remain absent.  The independent standard-state conversion is
+specified below, but does not make this cavitation component total.
+Consequently this component cannot yet be added to a reaction energy, called a
+total \(\Delta G_{\rm solv}\), or scored against FreeSolv/MNSol.
+
+### 3.7 Exact standard-state scalar
+
+The standard-state term is neither a solvent-specific fitted offset nor a
+post-solve calibration.  Once the stationary auxiliary difference is declared
+as an infinite-dilution excess free energy, conversion from an ideal-gas
+pressure standard \(p^\circ\) to an ideal-solution concentration standard
+\(c^\circ\) is the exact thermodynamic scalar
+
+\[
+\boxed{
+\Delta G^\circ_{p\to c}(T)
+=RT\log\!\left(\frac{c^\circ RT}{p^\circ}\right).
+}
+\]
+
+The concentration is in mol/m\(^3\), so the logarithm is dimensionless.  For
+the usual \(1\ \mathrm{atm}\to1\ \mathrm{mol\,L^{-1}}\) convention at
+298.15 K, the term is positive (about \(1.893\ \mathrm{kcal\,mol^{-1}}\)).
+It can be placed inside \(\Phi_{\rm std,s}\) before the stationary notation
+because it is constant in \(n,m,\phi_s,\phi_0\); its nuclear-coordinate
+derivative is exactly zero.  It may be used only in the declared direction.
+Negating it, changing its pressure/concentration convention after an error is
+known, or using it to compensate a missing nonpolar term is prohibited.
+
+[`route2_v0_standard_state.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_standard_state.py)
+computes this SI-defined scalar and its temperature derivative without a
+solvent name, solvation label, radius, or adjustable coefficient.  This closes
+only the standard-state *formula*: a total V0-AQ-C asset must still bind its
+auxiliary excess-free-energy reference to the same \((p^\circ,c^\circ,T)\)
+convention and supply the missing short-range/dispersion physics.
 
 ## 4. Archived molecular-liquid completion: V0-AQ-L
 

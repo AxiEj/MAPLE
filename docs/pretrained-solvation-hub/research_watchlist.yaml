@@ -1,14 +1,209 @@
 {
   "schema_version": 1,
-  "as_of": "2026-07-29",
+  "as_of": "2026-07-30",
+  "functional_group_accuracy_taxonomy": {
+    "artifact": "functional-group-taxonomy-v1.json",
+    "artifact_sha256": "46e073d0e253d7534b7f516f1cc2096ba0abfea84ddc170c95fc86634c917b36",
+    "semantic_fingerprint": "4928108edfe8529a9302484cca01d60860bb5bc53458db668c79994c91f65db2",
+    "taxonomy_id": "maple-rdkit-structural-functional-groups",
+    "version": "1.0.0",
+    "accuracy_counting_rule": "distinct predeclared primary functional-group families only; chemical classes and subtypes do not count",
+    "record_input_binding_rule": "every formal accuracy record derives its experimental value, unit, provenance, source hash and locator from a reverified JSON artifact; run_accuracy_panel starts a fresh bubblewrap-confined interpreter from reverified adapter, featurizer, checkpoint, and dependency-lock artifacts, passes only a label-free protocol snapshot plus path-free parent-verified molecular-input bytes, mounts runtime trees and exact declared model artifacts but not benchmark-data directories, seals all predictions before the parent reads experimental references, rejects free callables and prediction tables, fails closed without bubblewrap, and computes the summary internally"
+  },
   "models": [
+    {
+      "model_id": "anisolv-compact",
+      "availability": "public_solvent_checkpoint_pinned",
+      "adapter_status": "sealed_uma_single_point_energy_runtime_verified",
+      "source": "https://github.com/Ant-on-knee/anisolv",
+      "runtime_prerequisites": "The compact correction is bundled upstream; the sealed MAPLE composition additionally requires a user-authorized, hash-pinned UMA-S-1P2 compatibility checkpoint because the upstream UMA weights are access-controlled.",
+      "runtime_evidence": "2026-07-30: the exact public compact checkpoint and official source revision evaluated finite scalar corrections for all 21 enabled identifiers on a neutral methanol geometry. Upstream force arrays are not admitted because a source-bound central-difference audit found an orientation-chart defect.",
+      "development_audit": {
+        "artifact": "benchmarks/anisolv-compact-upstream-sample-audit-2026-07-30.json",
+        "artifact_sha256": "9018364bef21b7d672f0a1404954b26702a096d0be4da266af719195349b07f6",
+        "execution": "exact upstream six-example H2O_single_point.py identities through a Git-archive-isolated official public compact runtime; deterministic CPU float32 default inference with TF32, autocast, reduced-precision reductions, compilation, and fast modes disabled",
+        "status": "six_record_runtime_smoke_only_no_experimental_accuracy_calculation_not_absolute_free_energy_or_gpu_parity"
+      },
+      "force_consistency_audit": {
+        "artifact": "benchmarks/anisolv-compact-force-consistency-audit-2026-07-30.json",
+        "artifact_sha256": "44b095002282b80f5f4e9f8a16bbccded0f9bf105e020b8b8f243900c1edfb35",
+        "execution": "exact upstream H2O and CH3OH geometries through a Git-archive-isolated official public compact runtime; deterministic CPU float64 default inference, central finite differences at 1e-5 angstrom, and a fixed proper rotation with all reduced-precision and fast modes disabled",
+        "metrics": {
+          "energy_rotation_max_abs_drift_ev": 0.0,
+          "original_orientation_max_abs_force_difference_ev_per_angstrom": 0.005704464218729888,
+          "rotated_orientation_max_abs_force_difference_ev_per_angstrom": 1.0869843358740638e-09
+        },
+        "status": "upstream_force_rejected_orientation_chart_defect_single_point_scalar_energy_only"
+      },
+      "gpu_no_loss_audit": {
+        "artifact": "benchmarks/anisolv-compact-gpu-no-loss-audit-2026-07-30.json",
+        "artifact_sha256": "5164e7ff38b9533ed9dd06d6f64e5ef53c555deb3fd346bf648a0d6b8d99462b",
+        "execution": "exact upstream six-example water identities through a Git-archive-isolated official public compact runtime on the same physical host; paired CPU and NVIDIA RTX 4060 Laptop GPU default inference at matching float32 and float64 dtypes, deterministic algorithms, highest matmul precision, and TF32, autocast, float16, bfloat16, reduced-precision reductions, compilation, and fast modes disabled",
+        "gpu_admitted": false,
+        "no_loss_parity_verified": false,
+        "observations": {
+          "float32_max_abs_energy_difference_ev": 4.3986372960658215e-08,
+          "float64_max_abs_energy_difference_ev": 1.1102230246251565e-16
+        },
+        "status": "physical_rtx4060_float32_and_float64_failed_literal_zero_loss_six_record_panel_can_reject_but_never_unlock_gpu"
+      },
+      "solvent_scope": "21 upstream-trained-and-validated solvent identifiers; broader descriptor table intentionally disabled",
+      "free_energy_form": "geometry-level scalar additive E_solv minus E_gas correction with an exact vacuum output gate; not an absolute solvation-free-energy model and no released MAPLE sampling protocol",
+      "forbidden_tasks": [
+        "forces",
+        "opt",
+        "scan",
+        "ts",
+        "irc",
+        "frequency",
+        "hessian",
+        "absolute_solvation_free_energy",
+        "md",
+        "periodic_simulation",
+        "unvalidated_solvent_extrapolation"
+      ]
+    },
+    {
+      "model_id": "gnnis-chem-sci-water-2024",
+      "availability": "public_checkpoint_pinned",
+      "adapter_status": "screened_separate_upstream_runtime_not_integrated",
+      "source": "https://github.com/rinikerlab/GNNImplicitSolvent/tree/Chem._Sci.,_2024",
+      "source_revision": "b05075cbcd8cf0ee92e48605587619f7640b0a65",
+      "checkpoint": {
+        "path": "MachineLearning/trained_models/GNN.model",
+        "sha256": "393917c43ba5f527eba8a3e8cc3b4f548e234e22eb4f19b46ca6bea6aefbad06",
+        "size_bytes": 247228
+      },
+      "solvent_scope": "water only; the released paper and upstream simulation entry point do not expose a general multi-solvent selector",
+      "free_energy_form": "OpenFF vacuum reference plus a learned water solution-PMF term for sampling; no released gas-to-water standard-state transfer protocol or absolute-solvation estimator",
+      "runtime_prerequisites": "the unmodified upstream environment requires torch_geometric-family packages; the official example generates an OpenMM-Torch runtime on CUDA, while MAPLE will not patch or substitute that runtime",
+      "screening_reason": "A separate 2024 water checkpoint, not a replacement for the MAPLE-pinned 2025 39-solvent GNNIS reference checkpoint. It is retained as a high-quality water-PMF/MD research control only after an exact upstream-runtime audit.",
+      "forbidden_tasks": [
+        "absolute_solvation_free_energy",
+        "multi_solvent_extrapolation",
+        "replacement_of_gnnis_reference",
+        "runtime_reimplementation"
+      ]
+    },
+    {
+      "model_id": "g-nequip-smdw-water",
+      "availability": "public_source_and_tracked_checkpoint_pinned",
+      "adapter_status": "blocked_by_uninstalled_official_nequip_runtime",
+      "source": "https://github.com/otayfuroglu/deepPotential",
+      "source_revision": "c6d43de9630c98486ff7ed904c4c54cdeb7e14ad",
+      "checkpoint": {
+        "path": "all_NNP_MODELS/G_NequIP_smdW.pth",
+        "sha256": "5615c0002a24ee3485368b59721198b2ca2e0432c1c6f7b73b5a31f6fe662484",
+        "size_bytes": 11436716
+      },
+      "solvent_scope": "SMD-water only; the separate G_NequIP_smdW checkpoint has no solvent selector or nonaqueous/mixed-solvent condition",
+      "free_energy_form": "geometry-level water-SMD NequIP energy only. The repository also tracks a separately trained gas-phase G_NequIP checkpoint, but independent learned energy gauges cannot be subtracted as an absolute solvation free energy; no common lambda path, dU/dlambda, sampled estimator, or standard-state protocol is released.",
+      "runtime_prerequisites": "The clean source environment requests nequip==0.11.1. Current MAPLE has torch/e3nn/ASE but no nequip.ase; MAPLE will not install it or replace the original NequIP loader without explicit authorization.",
+      "benchmark_status": "The supplied Zenodo water-SMD result archive has 388 jointly available FreeSolv records. MAPLE independently reproduces its reported central experimental-panel statistics from the supplied tables: MAE 1.082689, RMSE 1.425792, and Pearson R 0.913146 kcal/mol-scale comparison. The static table has maximum absolute error 5.445611 kcal/mol, incomplete training-record accounting, and an unestablished cross-model energy gauge; it is not a MAPLE accuracy or acceptance result.",
+      "forbidden_tasks": [
+        "dependency_installation_without_user_authorization",
+        "runtime_reimplementation",
+        "absolute_solvation_free_energy",
+        "difference_of_independently_gauged_gas_and_smd_models",
+        "multi_solvent_extrapolation"
+      ],
+      "supplied_result_archive": {
+        "zenodo_record": "https://zenodo.org/records/20690503",
+        "path": "solvation_free_energies.zip",
+        "archive_size_bytes": 474332,
+        "archive_sha256": "76522218fcadc921706ba489ab0b7ff1c5e28b335029f07ac7c5ce5877dae055",
+        "purpose": "static upstream SMD-minus-gas energy-table audit only; not model inference or a thermodynamic protocol"
+      }
+    },
+    {
+      "model_id": "ml-for-charges-pbe0-esp-water",
+      "availability": "public_source_and_trained_xgboost_weight",
+      "adapter_status": "excluded_charge_provider_runtime_blocked_by_uninstalled_xgboost",
+      "source": "https://github.com/mathilfiker/ml_for_charges",
+      "source_revision": "e8407cc7e500d89cf66ed0673d6cd7421ab5637d",
+      "checkpoint": {
+        "path": "charge_prediction/model/xgb_chgs.json",
+        "size_bytes": 91849931,
+        "source_git_blob_sha1": "8d8ae6e35496ed5587685fa3a24c9a598dec2565"
+      },
+      "solvent_scope": "water hydration only in the reported downstream application; the pretrained model takes a gas-phase solute geometry and has no solvent identity or mixture input",
+      "free_energy_form": "PBE0-D3(BJ)/def2-TZVP-quality atomic-charge prediction conditioned on MACE-OFF23-large descriptors; downstream absolute hydration values require a separate explicit-solvent alchemical MD protocol and are not a model energy, force, endpoint pair, or estimator",
+      "runtime_prerequisites": "The unmodified predict.py imports mace.calculators.MACECalculator, xgboost, and ASE and explicitly requests MACE-OFF23_large.model. MAPLE has the MACE runtime and a cached MACE-OFF23-large file, but xgboost is absent from every installed MAPLE environment; no dependency will be installed or source path reimplemented without explicit authorization.",
+      "benchmark_status": "The paper reports final 30-FreeSolv-molecule absolute-hydration RMSE 1.69 kcal/mol for its Boltzmann-percentile charge protocol versus 3.05 kcal/mol for AM1-BCC. This is author protocol evidence, not a MAPLE reproduction, strict holdout, multi-solvent score, or Route 4 acceptance result.",
+      "screening_reason": "A real pretrained artifact is public, but it predicts charge parameters rather than a solvation potential or dGsolv scalar. It belongs, if ever authorized and independently validated, to an explicit-water Route 1 protocol study; Route 4 must not recast it as an implicit multi-solvent backend.",
+      "forbidden_tasks": [
+        "route4_ordinary_calculator",
+        "route4_absolute_solvation_free_energy",
+        "multi_solvent_extrapolation",
+        "dependency_installation_without_user_authorization",
+        "runtime_reimplementation",
+        "charge_calibration_or_fitting"
+      ]
+    },
+    {
+      "model_id": "organic-mpnice-mlff-hfe-water",
+      "availability": "proprietary_organic_mpnice_mlff_with_public_generic_hfe_protocol",
+      "adapter_status": "blocked_by_unreleased_official_model_and_incomplete_protocol_runtime",
+      "source": "https://doi.org/10.1021/acs.jctc.5c02019",
+      "source_repository": "https://github.com/leifjacobson/MLFF_HFE",
+      "source_revision": "872ed7b5f5dcf45696090604383d777acbfd8d70",
+      "solvent_scope": "water hydration only; the public generic toolkit accepts one user-provided TorchScript force module and no solvent identity or mixture input",
+      "free_energy_form": "the publication describes an explicit-water FEP/replica-exchange hydration protocol with lambda-dependent TorchForce inputs, but the released repository contains no Organic_MPNICE or other model checkpoint and no Route 4 implicit-solvent potential",
+      "runtime_prerequisites": "The unmodified public toolkit requires openmm, openmmtools, openmmtorch, torch, and a user-supplied TorchScript model implementing its lambda_lj/lambda_nn/solute_temp interface. MAPLE has OpenMM, OpenMM-Torch, and torch but lacks openmmtools; no dependency will be installed without explicit authorization.",
+      "release_evidence": "The paper identifies Organic_MPNICE as available in the commercial Schrödinger Suite 2025-3 release. The public MLFF_HFE repository is a CC-BY-4.0-licensed generic protocol source whose pyproject metadata instead declares MIT, so the model/checkpoint and source-license identity are not admission-ready.",
+      "benchmark_status": "The paper reports sub-kcal/mol average errors over 59 organic molecules. That publication panel is not a MAPLE executable model artifact, record-isolated holdout, multi-solvent score, or Route 4 acceptance result.",
+      "forbidden_tasks": [
+        "route4_ordinary_calculator",
+        "route4_absolute_solvation_free_energy",
+        "multi_solvent_extrapolation",
+        "commercial_model_substitution",
+        "dependency_installation_without_user_authorization",
+        "generic_protocol_reimplementation"
+      ]
+    },
+    {
+      "model_id": "abcg2-gaff2-explicit-multisolv",
+      "availability": "official_ambertools_charge_model_and_published_explicit_solvent_protocol",
+      "adapter_status": "official_runtime_smoke_verified_route1_only",
+      "source": "https://doi.org/10.1021/acs.jctc.5c00038",
+      "source_release": "ABCG2 charge method released in AmberTools24; current local audit used conda-forge AmberTools 26.0",
+      "model_type": "published fixed AM1-BCC-GAFF2 parameter set, not an MLIP",
+      "artifacts": {
+        "bcc_parameters": {
+          "path": "dat/antechamber/BCCPARM_ABCG2.DAT",
+          "size_bytes": 15057,
+          "sha256": "7412ef2c6283aa96a12ab44a881a2e755bbdaa4318a55bec5cebc7895fe8a94f"
+        },
+        "atom_type_definitions": {
+          "path": "dat/antechamber/ATOMTYPE_ABCG2.DEF",
+          "size_bytes": 11131,
+          "sha256": "7fb77a85268789c59995540ecadc0322d67fb6de8c9dd3e59e8fc460c483b6f4"
+        }
+      },
+      "solvent_scope": "published explicit-solvent evidence includes water and diverse neutral organic solvent-solute pairs; the charge assignment itself is solvent-independent, and every solvent topology, liquid model, temperature, and alchemical protocol must be made explicit",
+      "free_energy_form": "official Antechamber -c abcg2 assigns fixed charges; absolute solvation requires a separate GAFF2 explicit solvent/gas-phase alchemical TI/BAR/MBAR calculation and standard-state ledger, not an endpoint scalar or an implicit-solvent potential",
+      "runtime_prerequisites": "The immutable official Antechamber charge path is available in the existing maple-ambertools environment. Two clean -c abcg2 runs on a neutral methanol MOL2 were byte-identical and conserved zero net charge; this is assignment smoke evidence only, not a free-energy validation.",
+      "benchmark_status": "The 2025 paper reports RMSE 0.99 kcal/mol on 642 FreeSolv solutes and RMSE 0.89 kcal/mol on 2,068 MNSol pairs, while the earlier paper reports MUE 0.51/RMSE 0.65 kcal/mol for 895 neutral organic solvent-solute pairs. These author panels are not a MAPLE strict holdout or independent extrapolation panel; their distinct identities must never be pooled or ranked.",
+      "screening_reason": "This is the strongest directly runnable multi-solvent physics reference found in the screen, but it is a fixed-charge GAFF2 protocol rather than a pretrained MLIP and belongs only to a separately governed Route 1 explicit-solvent control. It may not be renamed or substituted as Route 4.",
+      "forbidden_tasks": [
+        "route4_ordinary_calculator",
+        "route4_absolute_solvation_free_energy",
+        "implicit_solvent_backend",
+        "new_bcc_parameter_fitting",
+        "cross_panel_accuracy_ranking"
+      ]
+    },
     {
       "model_id": "consolv",
       "availability": "paper_only",
       "adapter_status": "blocked_by_public_runtime_and_weights",
       "source": "https://arxiv.org/abs/2606.24983",
       "solvent_scope": "66 nonaqueous organic solvents reported",
-      "forbidden_tasks": ["all_runtime_tasks"]
+      "free_energy_form": "published U_vac to U_solv differentiable free-energy path; execution artifact unavailable",
+      "release_evidence": "The v1 manuscript Data and Software Availability section defers code and data release until acceptance.",
+      "forbidden_tasks": [
+        "all_runtime_tasks"
+      ]
     },
     {
       "model_id": "twin",
@@ -16,30 +211,505 @@
       "adapter_status": "blocked_by_public_runtime_and_weights",
       "source": "https://arxiv.org/abs/2607.10887",
       "solvent_scope": "water reported",
-      "forbidden_tasks": ["all_runtime_tasks"]
+      "release_evidence": "The v1 manuscript states that both simulation data and code will be made publicly available only upon article publication.",
+      "forbidden_tasks": [
+        "all_runtime_tasks"
+      ]
+    },
+    {
+      "model_id": "schake-gnn-protein-ism",
+      "availability": "public_source_and_checkpoint_pinned",
+      "adapter_status": "blocked_by_uninstalled_upstream_runtime_dependencies",
+      "source": "https://arxiv.org/abs/2601.05388",
+      "source_repository": "https://github.com/ZhangGroup-MITChemistry/Schake_GNN",
+      "source_revision": "62d8e2381edb2a84822f33530ed9364ea2543cd0",
+      "checkpoint": {
+        "path": "Schake/v2/Schake_trained_weights.pt",
+        "sha256": "1be539766161b396f2dbaeabf87cf26b6f98b8c91ac26a47d5263e385ecec8b4",
+        "size_bytes": 212619
+      },
+      "solvent_scope": "protein-backbone implicit-solvent correction only; it is combined with GBn2 electrostatics and does not provide solute/solvent free-energy prediction or multi-solvent coverage",
+      "free_energy_form": "a learned protein structural correction used with GBn2 for conformational free-energy landscapes; not a standalone solvation-free-energy estimator",
+      "runtime_prerequisites": "the official v2 runtime imports torch_scatter and torch_geometric before model construction, while its ML/MD example additionally uses OpenMM-Torch. The former two dependencies are absent from every installed MAPLE environment; MAPLE will not install them or rewrite the source path without explicit authorization.",
+      "screening_reason": "The current upstream repository supersedes the manuscript's future-release language: it now provides source, checkpoint, JIT-tracing example, and OpenMM-Torch example. Its own README still says the model is not production-ready and restricts its compatible representation to backbone CA/C/N plus ff14SBonlysc, GBn2, and gamma=0.175.",
+      "forbidden_tasks": [
+        "replacement_of_general_route4_backend",
+        "ordinary_small_molecule_calculator",
+        "absolute_solvation_free_energy",
+        "multi_solvent_extrapolation"
+      ]
+    },
+    {
+      "model_id": "c3net",
+      "availability": "public_source_and_checkpoint_pinned",
+      "adapter_status": "property_only_live_runtime_verified_formal_flexisol_development_accuracy_rejected",
+      "source": "https://github.com/SehanLee/C3Net",
+      "solvent_scope": "103 exact upstream solvent identifiers; logp and pampa heads excluded",
+      "free_energy_form": "direct scalar property prediction in kcal/mol; no potential-energy surface, force field, endpoint pair, sampling protocol, or thermodynamic estimator",
+      "runtime_prerequisites": "an unmodified official GPL-3.0 source checkout at the pinned revision with the two pinned artifacts; current NumPy requires a process-local historical np.int alias. Formal execution also verifies the exact observed runtime lock c3net-formal-runtime-lock-2026-07-30.json (SHA256 3db89924dae337c6cb5de7cabc67f87b7c32ef6a05d5a7321927ff443fc342d6), which is explicitly distinct from the upstream historical Python 3.7/Torch 1.7 environment.yaml and fails closed on Python/Torch/NumPy/RDKit/build drift.",
+      "benchmark_status": "The formal output-blind FlexiSol development panel executed 19 records spanning 19 distinct primary functional groups and three selected pure solvents. It produced MAE 2.148012556778758 kcal/mol and maximum absolute error 8.459287071228028 kcal/mol from raw checkpoint tensor outputs, so it fails the strict <1.5 kcal/mol maximum-error gate. Record-level training accounting remains incomplete and the panel remains overlap_unknown.",
+      "training_manifest_status": "incomplete_public_release; the paper describes 5718 solvation-free-energy values for 890 solutes and 103 solvents, but the only checked-in train/output/training/Train_validation_idx_1.txt at revision 191d5a928fb4787d8a6dfb9d0851ee3f74b074d0 is a 186-byte file with SHA256 01bdf4c15fbd49384286f86ff35337984a8f189b2f9e61ae566e0c31ac265f10 and contains 41 training and 10 validation indices rather than a paper-scale canonical record ledger",
+      "strict_holdout_status": "not_provable_from_public_release; no experimental panel may be called never-used until canonical checkpoint-training record IDs permit an exact record-level intersection audit",
+      "development_pilot": "FreeSolv-10 contains ten predeclared chemical classes, not ten audited functional groups, so it and the unclassified dGsolvDB1 11-solvent/22-record artifact are runtime smoke with metrics=null; neither can support accuracy, ranking, admission, or generalization.",
+      "development_pilot_artifacts": [
+        {
+          "accuracy_evaluation_performed": false,
+          "artifact": "benchmarks/c3net-freesolv10-2026-07-30.json",
+          "artifact_sha256": "589152f305fc091eeb962200705a69e56813813297f1d17f59e734236f8cc464",
+          "scope": "runtime_or_interface_smoke_only"
+        },
+        {
+          "accuracy_evaluation_performed": false,
+          "artifact": "benchmarks/c3net-dgsolvdb1-11solvent-2026-07-30.json",
+          "artifact_sha256": "bd88566ac074a17068d03a82b6691b505a04d89e5dcc1c81bec3307b871ace0d",
+          "scope": "runtime_or_interface_smoke_only"
+        }
+      ],
+      "formal_development_accuracy": {
+        "artifact": "benchmarks/c3net-flexisol-formal-2026-07-30/result.json",
+        "artifact_sha256": "fdd2f535b2e8be04788323283812f20c817e3641d783339f6b80b3c92db3884e",
+        "reproducibility_receipt": {
+          "artifact": "benchmarks/c3net-flexisol-formal-2026-07-30-reproducibility.json",
+          "artifact_sha256": "d54f7b09848330bd51d9263355b7fdd7f08c284f02306bf1d9c666b80bf82a7c",
+          "file_count": 21,
+          "tree_manifest_sha256": "4abf09fbaca5170f3a8e03831caec526c1cffa6c38b0d9c620e5d9efca20f8c5",
+          "full_tree_byte_identical": true,
+          "artifact_spans_are_wall_clock_or_matched_qm_performance_evidence": false
+        },
+        "record_count": 19,
+        "distinct_primary_functional_group_count": 19,
+        "selected_solvents": [
+          "hexadecane",
+          "octanol",
+          "water"
+        ],
+        "leakage_status": "overlap_unknown",
+        "observed_runtime_lock": {
+          "artifact": "c3net-formal-runtime-lock-2026-07-30.json",
+          "artifact_sha256": "3db89924dae337c6cb5de7cabc67f87b7c32ef6a05d5a7321927ff443fc342d6",
+          "upstream_historical_environment_reproduced": false
+        },
+        "conformer_protocol": "deterministic output-blind upstream-structured adaptation: 50 EmbedMultipleConfs candidates using observed runtime defaults except for the deterministic seed, default UFF, hydrogen-stripped alignment, greedy 0.5 Angstrom heavy-atom RMSD deduplication, and one to five retained conformers",
+        "uff_status_diagnostic": "83 of 950 candidate relaxations and 9 of 80 retained conformers returned the upstream default non-convergence status; statuses and energies are retained without post-label protocol alteration",
+        "mae_kcal_mol": 2.148012556778758,
+        "maximum_absolute_error_kcal_mol": 8.459287071228028,
+        "accuracy_gate_passed": false,
+        "matched_qm_speed_gate_status": "not_eligible_due_to_accuracy_failure",
+        "reproducibility": "two fresh deterministic isolated runs emitted byte-identical 21-file artifact trees; the complete manifest and equal tree digests are retained in the separate receipt without three-decimal output re-ingestion"
+      },
+      "forbidden_tasks": [
+        "ordinary_calculator",
+        "sp_energy_surface",
+        "opt",
+        "freq",
+        "md",
+        "absolute_solvation_free_energy",
+        "matched_qm_performance_admission_without_passing_accuracy",
+        "strict_holdout_claim_from_public_release"
+      ]
+    },
+    {
+      "model_id": "cigin",
+      "availability": "public_source_and_checkpoint_pinned",
+      "adapter_status": "property_only_cpu_runtime_verified",
+      "source": "https://github.com/devalab/CIGIN",
+      "source_revision": "9990f826f1a17590f1925dfd470423633275840c",
+      "checkpoint": {
+        "path": "weights/cigin.tar",
+        "sha256": "79f07c6475f8adfce6913b61a7e1e911d5a049f031954aeeb1eae986d2ce4cce",
+        "size_bytes": 4105491
+      },
+      "solvent_scope": "the exact model accepts a solvent SMILES syntactically, but the authors identify FreeSolv training only and do not publish a complete record-level or multi-solvent coverage manifest",
+      "free_energy_form": "direct scalar property prediction in kcal/mol; no potential-energy surface, force field, endpoint pair, sampling protocol, standard-state convention, or thermodynamic estimator",
+      "runtime_prerequisites": "a clean official MIT checkout at the pinned revision; the unmodified source must run in a CPU-only child because its CUDA path mixes device-local learned tensors with CPU interaction maps; the interpreter library directory is prepended only to satisfy the existing binary ABI",
+      "benchmark_status": "the author-reported FreeSolv RMSE is publication evidence only; MAPLE FreeSolv-10 contains ten chemical classes but no audited ten-functional-group taxonomy, so its overlap_unknown output is runtime smoke with metrics=null and no accuracy or generalization claim",
+      "development_pilot_artifacts": [
+        {
+          "accuracy_evaluation_performed": false,
+          "artifact": "benchmarks/cigin-freesolv10-2026-07-30.json",
+          "artifact_sha256": "982e69b610833d0344d54d5cbc6a479fc4e32575289fd503edd236eb043642f6",
+          "scope": "runtime_or_interface_smoke_only"
+        }
+      ],
+      "forbidden_tasks": [
+        "ordinary_calculator",
+        "sp_energy_surface",
+        "opt",
+        "freq",
+        "md",
+        "absolute_solvation_free_energy",
+        "multi_solvent_extrapolation"
+      ]
+    },
+    {
+      "model_id": "solvbert",
+      "availability": "public_source_and_training_data_without_released_inference_checkpoint",
+      "adapter_status": "blocked_by_required_local_pretraining_and_finetuning",
+      "source": "https://github.com/su-group/SolvBERT",
+      "source_revision": "77706db56a15403a93a8b9b3083bd385976e1ba0",
+      "solvent_scope": "the published CombiSolv-QM training data cover 284 solvents, but no pretrained or task-finetuned inference weights are tracked in the official source tree",
+      "release_evidence": "The official README requires users to train a language model, save its best model, then fine-tune and save another best model before prediction; only source and training data are released.",
+      "forbidden_tasks": [
+        "local_pretraining",
+        "local_finetuning",
+        "checkpoint_reconstruction",
+        "property_runtime"
+      ]
+    },
+    {
+      "model_id": "moletosolv",
+      "availability": "public_source_data_and_precomputed_predictions_without_pretrained_artifacts",
+      "adapter_status": "blocked_by_missing_pretrained_artifacts_and_required_local_training",
+      "source": "https://github.com/lyjia-bnu/MoletoSolv",
+      "source_revision": "04e6229ec414dcb66fa46c1e26f89f3ea91ba5e2",
+      "solvent_scope": "the paper covers neutral, anionic, and cationic solvation in aqueous and nonaqueous solvents; the public descriptor table lists 92 solvents, but the ionic source path hard-codes only water, acetonitrile, DMSO, and methanol",
+      "free_energy_form": "descriptor-based direct scalar DeltaGsolv regression in kcal/mol; no geometry-dependent potential-energy surface, forces, endpoint pair, sampling protocol, or published standard-state contract",
+      "release_evidence": "the official tree publishes source, descriptor/data tables, solute geometries, and precomputed predictions but no serialized trained estimator, scaler, feature-selection artifact, tag, or release; the code creates and loads local joblib artifacts, and model/neutral/dataset.csv is empty at the pinned HEAD",
+      "benchmark_status": "the paper reports MAE 0.44, 1.72, and 1.60 kcal/mol for neutral, anionic, and cationic solutes. No public maximum-error table, immutable record-level split ledger, independent holdout manifest, or no-loss GPU parity artifact is released.",
+      "forbidden_tasks": [
+        "local_training",
+        "local_scaler_or_feature_artifact_reconstruction",
+        "checkpoint_reconstruction",
+        "property_runtime",
+        "ordinary_calculator",
+        "gpu_execution_without_no_loss_parity"
+      ]
+    },
+    {
+      "model_id": "solprop-ml-gsolv",
+      "availability": "public_source_and_zenodo_checkpoint_bundle_pinned",
+      "adapter_status": "blocked_by_uninstalled_upstream_runtime_dependencies",
+      "source": "https://github.com/fhvermei/SolProp_ML",
+      "source_revision": "d345646c827b4e577e1dc485ae76d7b6d7f266c3",
+      "checkpoint_bundle": {
+        "zenodo_record": "https://zenodo.org/records/5970538",
+        "path": "SolProp_v1.2.zip / Machine_learning_models/Gsolv/model_Gsolv_0.pt through model_Gsolv_9.pt",
+        "archive_size_bytes": 268574239,
+        "archive_sha256": "f66bb046bc1d5b8471d36436e485d0cb9d95fb7111aa2db4deb85fdbbea6b766",
+        "gsolv_member_count": 10,
+        "gsolv_member_total_bytes": 36539307
+      },
+      "solvent_scope": "neutral solvent/solute SMILES pairs; the released CombiSolv-Exp source describes 291 solvents at 298 K, but exact checkpoint training-record membership is not published",
+      "free_energy_form": "ten-member direct scalar ensemble for gas-liquid dGsolv at 298 K and 1 mol/L; no potential-energy surface, force field, endpoint pair, sampled estimator, or absolute-solvation protocol",
+      "runtime_prerequisites": "the unmodified official high-level source imports tensorboardX and chemprop_solvation before its Gsolv-only path; both are absent from the current environment, and its full calculate_solubility entry point additionally imports CoolProp. MAPLE will not install dependencies or bypass/reimplement that source path without explicit authorization.",
+      "benchmark_status": "the bundle's own data provenance identifies FreeSolv, CompSol, and Abraham sources in CombiSolv-Exp. Training-record accounting for the exact ensemble is incomplete, so no MAPLE strict holdout or identity-matched accuracy claim follows.",
+      "forbidden_tasks": [
+        "dependency_installation_without_user_authorization",
+        "runtime_reimplementation",
+        "ordinary_calculator",
+        "absolute_solvation_free_energy",
+        "multi_solvent_extrapolation"
+      ]
+    },
+    {
+      "model_id": "solprop-mix-exp",
+      "availability": "public_source_and_zenodo_checkpoint_bundle_pinned",
+      "adapter_status": "blocked_by_uninstalled_upstream_runtime_dependencies",
+      "source": "https://gitlab.kuleuven.be/creas/vermeiregroup/solprop",
+      "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+      "checkpoint_bundle": {
+        "zenodo_record": "https://zenodo.org/records/14238055",
+        "path": "Files.zip / Files/ModelWeights/SolPropmixExp/model0.pt through model9.pt",
+        "archive_size_bytes": 288947625,
+        "archive_sha256": "670915e5bf86d5457bc2f43301e5a02e77a66b529535fcd0eddfadeb72ed73a5",
+        "selected_ensemble_member_count": 10,
+        "selected_ensemble_total_bytes": 36170142
+      },
+      "solvent_scope": "neutral solutes containing H/B/C/N/O/S/P/F/Cl/Br/I and nonionic liquid solvents; the released SolPropmixExp ensemble supports pure and mixed-solvent scalar predictions, but no MAPLE coverage or extrapolation claim is admitted before an original-runtime audit",
+      "free_energy_form": "ten-member direct scalar infinite-dilution dGsolv property prediction in kcal/mol for pure or mixed liquid solvents; no potential-energy surface, force field, endpoint pair, sampled estimator, or standard-state protocol is exposed",
+      "runtime_prerequisites": "The official README requires its Python 3.9 conda environment and copying the selected weight folder. Its unmodified source imports Tap and memory_profiler before prediction/loading, and DGL during model construction; Tap, memory_profiler, DGL, tensorboardX, and CoolProp are absent from the current environment. MAPLE will not install them or bypass/reimplement the source path without explicit authorization.",
+      "benchmark_status": "The authors report 0.25 kcal/mol MAE and 0.37 kcal/mol RMSE for nonaqueous mixed solvents, but that publication-level result has no MAPLE-matched frozen record ledger, training-overlap audit, or independent extrapolation identity. The authors own the released transfer-learning/fine-tuning history; MAPLE will use only the final supplied weights and will never train or fine-tune them.",
+      "candidate_holdout_audit": {
+        "artifact": "benchmarks/solpropmix-not-used-candidate-holdout-audit-2026-07-30.json",
+        "artifact_sha256": "2cf068492206bbc01fa3841c9b2daa9b67885294d8c848f555111de707f9a62c",
+        "scope": "static identity, mixture coverage, and provenance audit of only the pinned Not used - From 3-comp VLE and Not used - From 4-comp VLE worksheets",
+        "experimental_label_values_decoded": false,
+        "model_scoring_performed": false,
+        "overlap_audit_status": "pending",
+        "strict_final_holdout": false
+      },
+      "forbidden_tasks": [
+        "dependency_installation_without_user_authorization",
+        "runtime_reimplementation",
+        "ordinary_calculator",
+        "sp_energy_surface",
+        "opt",
+        "freq",
+        "md",
+        "absolute_solvation_protocol_ledger",
+        "unvalidated_extrapolation"
+      ]
+    },
+    {
+      "model_id": "mlsolv-a",
+      "availability": "public_source_and_data_without_released_inference_checkpoint",
+      "adapter_status": "blocked_by_missing_pretrained_checkpoint",
+      "source": "https://github.com/ht0620/mlsolva",
+      "source_revision": "aed2bc5a515cc78b89c2224c1727c0319563b32c",
+      "solvent_scope": "the publication reports solvent-nonspecific pair prediction, but the official tree contains code, examples, and data only; no trained model artifact is tracked",
+      "release_evidence": "The official checkout has no model checkpoint among its tracked files; its only serialized example asset is a Mol2vec token file, not a solvation predictor.",
+      "forbidden_tasks": [
+        "local_training",
+        "checkpoint_reconstruction",
+        "property_runtime"
+      ]
+    },
+    {
+      "model_id": "fennix-bio1",
+      "availability": "public_source_and_two_pretrained_checkpoints_pinned",
+      "adapter_status": "blocked_by_uninstalled_runtime_missing_paper_bundle_and_unproven_gpu_parity",
+      "source": "https://doi.org/10.26434/chemrxiv-2025-f1hgn-v4",
+      "model_distribution": {
+        "repository": "https://github.com/FeNNol-tools/FeNNol-PMC",
+        "revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3",
+        "license": "Academic Software License; academic non-commercial use only"
+      },
+      "runtime_source": {
+        "repository": "https://github.com/FeNNol-tools/FeNNol",
+        "revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+        "license": "LGPL-3.0"
+      },
+      "protocol_runtime_source": {
+        "repository": "https://github.com/TinkerTools/tinker-hp",
+        "revision": "384bb7d451f85f2ea825dabd888e64ad4448674b",
+        "license": "Tinker academic source license",
+        "gpu_lambda_interface_path": "v1.3/GPU/source/mlinterface.py",
+        "gpu_lambda_interface_sha256": "4437e0b93a55156d554ba13a3d7c974a4c537a0792b15c3ec3cac7d2d8758967"
+      },
+      "checkpoints": {
+        "small": {
+          "path": "FENNIX-BIO1/fennix-bio1S.fnx",
+          "size_bytes": 29772732,
+          "sha256": "82c570c57e95cf164b1a1b0ac2122133cb435c89b07d495246773091541c2f07"
+        },
+        "medium": {
+          "path": "FENNIX-BIO1/fennix-bio1M.fnx",
+          "size_bytes": 38124300,
+          "sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a"
+        }
+      },
+      "model_type": "general explicit-system pretrained MLIP with energy-derived forces, learned charge equilibration, long-range electrostatics, and dispersion",
+      "task_scope": "the official FeNNol ASE calculator exposes energy, forces, and stress for mechanics and MD; MAPLE has not certified geometry, frequency, TS, IRC, or alchemical task behavior",
+      "solvent_scope": "published solvation evidence is explicit water only. The ordinary MLIP has no solvent selector, and no released nonaqueous or mixed-solvent free-energy panel establishes multi-solvent scope.",
+      "free_energy_form": "the v4 paper uses Lambda-ABF with lambda-scaled solute-solvent graph switches, softcore distances, and separate solute/solvent charge equilibration. Exact Tinker-HP GPU source loads FeNNol .fnx models, passes alch_elambda/alch_vlambda/group/ligand-charge state, and returns both lambda derivatives; generic Lambda-ABF/Colvars support is public. No named FeNNix-Bio1/FreeSolv input bundle, exact paper launcher, or row ledger is verified in that exact tree.",
+      "benchmark_status": "The paper reports the medium model on 625 retained FreeSolv molecules at MAE 0.70 and RMSE 0.98 kcal/mol. Its 452-molecule H/C/N/O/S/P subset is reported at MAE 0.59 and RMSE 0.82. Maximum absolute error, row-complete predictions, and a never-used independent panel are unavailable, so these average metrics do not pass the Route 4 acceptance gate.",
+      "training_overlap_status": "overlap_unknown; the model is trained on an augmented SPICE2 quantum dataset and the public release does not map molecule-level training membership to the FreeSolv panels",
+      "runtime_prerequisites": "No single existing MAPLE environment contains the unchanged stack: maple-resolv has CPU-only JAX 0.4.23 but lacks FeNNol/ASE/OpenMM, while the OpenMM-bearing environments lack JAX/FeNNol; openmmml/openmmtools and the original Tinker-HP GPU compiler/bridge stack are also absent. MAPLE does not install, splice environments, or reimplement the JAX runtime without authorization.",
+      "gpu_precision_status": "official GPU source present but no-loss parity unproven; the Tinker bridge requests highest JAX matmul precision while passing coordinates and lambda variables as float32 and exposing no precision switch. Energy, force, virial, lambda-derivative, trajectory, free-energy, and uncertainty parity against a reference route have not been executed.",
+      "forbidden_tasks": [
+        "dependency_installation_without_user_authorization",
+        "runtime_reimplementation",
+        "absolute_solvation_free_energy_without_original_protocol_reproduction",
+        "claiming_multi_solvent_validation",
+        "silent_substitution_with_finetune_ions",
+        "route4_acceptance_without_maximum_error_and_holdout",
+        "gpu_enablement_without_no_loss_reference_parity",
+        "reduced_precision_or_relaxed_convergence_for_acceleration"
+      ]
+    },
+    {
+      "model_id": "atomicese",
+      "availability": "official_packaged_executables_pinned_gpu_capability_unverified_supporting_information_bytes_unavailable",
+      "adapter_status": "audit_only_dedicated_scalar_candidate_blocked",
+      "source": "https://github.com/vyboishchikov/AtomicESE",
+      "source_revision": "31e643c7e8974497c78fc2fb6f3c17778d61fa10",
+      "source_tree": "e08ce8bfaf73ca9c35c2b85929067e639d7bf048",
+      "paper": "https://doi.org/10.1002/jcc.70104",
+      "model_type": "dedicated scalar multi-organic-solvent predictor; not an MLIP, PES, force model, calculator, or thermodynamic sampling protocol",
+      "solvent_scope": "the article targets molecules and ions in organic solvents and conditions predictions on five solvent properties; the pinned CLI exposes named solvents, but MAPLE has not admitted or exhaustively audited its solvent registry",
+      "free_energy_form": "a dense 13x30x28x1 atomic network sums per-atom contributions into a scalar labeled standard solvation free energy; the article reports 1317 adjustable parameters, but the exact quantitative standard-state convention is unresolved from the pinned release",
+      "paper_evidence": {
+        "architecture": "13 inputs, hidden layers of 30 and 28 neurons, and one atomic-contribution output; 1258 weights plus 59 biases equals 1317 adjustable parameters",
+        "supporting_information_advertisement": "jcc70104-sup-0001-supinfo.zip is advertised to contain scaling factors, weights, biases, and AtomicESE-calculated solvation-free-energy predictions",
+        "supporting_information_byte_status": "unavailable_to_this_audit_due_http_403",
+        "evidence_boundary": "article and supporting-information descriptions are publication claims only until the ZIP bytes are acquired, hash-pinned, parsed, and independently audited"
+      },
+      "release_audit": {
+        "artifact": "benchmarks/atomicese-release-audit-2026-07-31.json",
+        "artifact_sha256": "efae3cd8355d6221a3814e6f1a8abdc06adb108d95d084f0589dbe3d0bfa708a",
+        "status": "release_identity_and_sandboxed_scalar_cli_boundary_only_no_accuracy_or_speed_evidence"
+      },
+      "release_boundary": "The pinned Git tree packages x86_64 Linux and Windows executables, a README, and one input example. In that exact pinned official Git tree only, no repository license file, source code, separately identifiable checkpoint or checkpoint ledger, or record-level training/split ledger is present; this makes no absence claim about the article or currently unavailable supporting-information bytes. No selected GPU/CUDA ASCII marker was found and no GPU runtime was verified, which does not prove CPU-only capability.",
+      "validation_status": {
+        "standard_state": "unresolved",
+        "record_level_training_and_split_membership": "unresolved",
+        "accuracy_panel": "not_run",
+        "gpu_admission": "false_no_documented_or_verified_packaged_gpu_path_capability_unverified",
+        "matched_qm_timing": "not_run",
+        "integration": "not_performed",
+        "model_card": "absent",
+        "adapter": "absent"
+      },
+      "admission_sequence": "Rejected and blocked unless a formal accuracy panel first passes with at least 10 records and at least 10 distinct predeclared primary functional groups; only then may a same-task, same-precision, at-least-three-repeat end-to-end matched-QM timing be evaluated, with speedup = median(QM full-task seconds) / median(AtomicESE full-task seconds) strictly greater than 1.",
+      "runtime_note": "The deterministic packaged-binary sample and any sample CPU timing are release/runtime smoke only. Binary sample timing is not speed evidence.",
+      "forbidden_tasks": [
+        "maple_integration",
+        "model_card_or_adapter_creation",
+        "accuracy_claim_from_article_aggregates_or_sample_output",
+        "gpu_admission",
+        "speed_claim_from_binary_sample_timing",
+        "matched_qm_timing_before_formal_accuracy_pass",
+        "route4_acceptance_without_record_level_split_resolution",
+        "checkpoint_reconstruction_or_training",
+        "license_assumption_beyond_the_pinned_git_tree"
+      ]
     },
     {
       "model_id": "mace-off24-sc",
-      "availability": "paper_backed_artifact_unpinned",
+      "availability": "official_supporting_results_pinned_but_checkpoint_unreleased_or_unpinned",
       "adapter_status": "blocked_by_checkpoint_identity",
       "source": "https://pubs.acs.org/doi/10.1021/jacs.5c10940",
-      "forbidden_tasks": ["ordinary_calculator", "reproducibility_claim"]
+      "protocol_source": {
+        "repository": "https://github.com/jharrymoore/mace-md",
+        "revision": "c3056287622ba18f9b905e9df45affdff46cb147",
+        "checkpoint_boundary": "the public protocol repository identifies MACE-OFF23-SC, not the MACE-OFF24-SC checkpoint used by the article"
+      },
+      "checkpoint": {
+        "status": "unreleased_or_unpinned_for_public_reproduction",
+        "substitution_forbidden": "MACE-OFF23-SC and the ordinary public MACE-OFF24 checkpoints are different model identities"
+      },
+      "solvent_scope": "article-selected 36-record FreeSolv hydration panel plus 10-record MNSol 1-octanol panel; this is supplied-result scope, not a public runtime solvent selector",
+      "free_energy_form": "the article reports a rigorous explicit-solvent replica-exchange alchemical protocol, but the released supporting files contain rounded result tables and an example protocol rather than the exact MACE-OFF24-SC checkpoint",
+      "benchmark_status": "The exact official rounded tables statically recompute to FreeSolv n=36, MAE 0.763889, RMSE 0.834389, maximum absolute error 1.600000 kcal/mol and MNSol octanol n=10, MAE 0.474000, RMSE 0.587929, maximum absolute error 0.930000 kcal/mol. The hydration maximum exceeds the strict 1.5 kcal/mol target. The rounded hydration CSV also does not reproduce the article Table 1 MAE 0.69 and RMSE 0.80: the recomputed-minus-reported gaps are 0.073889 and 0.034389 kcal/mol, both beyond a conservative 0.03 kcal/mol combined displayed-value bound. Rounding alone cannot explain the discrepancy; its underlying source-analysis cause remains unknown.",
+      "supporting_results": {
+        "hydration_csv": {
+          "figshare_article_id": 31158975,
+          "figshare_file_id": 61402002,
+          "doi": "10.1021/jacs.5c10940.s002",
+          "size_bytes": 2650,
+          "sha256": "0b44cb14b4d1c97413c7f6fad45655ddf2b15b44370fa0f89b049eb9af19ff6a",
+          "license": "CC BY-NC 4.0"
+        },
+        "supporting_information_pdf": {
+          "figshare_article_id": 31158972,
+          "figshare_file_id": 61401999,
+          "doi": "10.1021/jacs.5c10940.s001",
+          "size_bytes": 1704085,
+          "sha256": "7c675c6657a3b5b92a317ea8a3c17241f5738cc44113440caefe882227b535b1",
+          "license": "CC BY-NC 4.0"
+        },
+        "purpose": "aggregate-only static official supporting-information audit; no checkpoint inference or row-level redistribution"
+      },
+      "runtime_prerequisites": "The original protocol source uses OpenMM-ML/OpenMMTools; openmmtools is absent locally. MAPLE does not install it, substitute a different checkpoint, or reconstruct the runtime.",
+      "forbidden_tasks": [
+        "ordinary_calculator",
+        "reproducibility_claim",
+        "checkpoint_substitution",
+        "route4_acceptance",
+        "cross_panel_accuracy_ranking"
+      ]
     },
     {
       "model_id": "mace-off23-sc",
       "availability": "public_checkpoint_pinned",
-      "adapter_status": "protocol_bridge_pending_openmm_ml_openmmtools",
+      "adapter_status": "full_coupling_pes_cpu_and_cuda_live_runtime_verified_cuda_formal_accuracy_admission_pending_protocol_bridge_pending",
       "source": "https://github.com/jharrymoore/MACE-OFF23-SC",
+      "source_revision": "efbb20c930462bc37a247998a27814dff35d474f",
+      "checkpoint_sha256": "32c9fb51704f96da855c67e0cdc9894f3e41694e98b7a0ed8813388b9f21db33",
+      "runtime_scope": {
+        "allowed": [
+          "explicit_system_single_point_energy",
+          "explicit_system_conservative_forces",
+          "explicit_system_geometry_optimization",
+          "explicit_system_short_md"
+        ],
+        "device": "cpu_production_default_cuda_runtime_verified_accuracy_admission_pending",
+        "precision": "float64",
+        "not_exposed": [
+          "lambda_interpolation",
+          "replica_exchange",
+          "MBAR",
+          "absolute_solvation_free_energy"
+        ]
+      },
+      "gpu_no_loss_audit": {
+        "artifact": "benchmarks/mace-off23-sc-gpu-no-loss-audit-2026-07-30.json",
+        "artifact_sha256": "e8f50b38786dd1b27bda4179b1947f52c8728e5fffa6e0f41a55d017f4a87fb4",
+        "status": "cuda_runtime_verified_nonidentical_float64_outputs_formal_experimental_accuracy_admission_pending",
+        "no_loss_parity_verified": false,
+        "gpu_admitted": false,
+        "experimental_accuracy_evaluated": false,
+        "cuda_runtime_supported": true,
+        "observed_speedup_cpu_over_cuda": 2.9,
+        "observed_energy_difference_ev": 2.6193447411060333e-10,
+        "observed_maximum_force_difference_ev_per_angstrom": 1.0769163338864018e-14
+      },
+      "formal_accuracy_status": {
+        "model_scoring_performed": false,
+        "minimum_record_count": 10,
+        "minimum_distinct_functional_groups": 10,
+        "strict_final_holdout": false
+      },
       "forbidden_tasks": [
-        "ordinary_calculator",
         "implicit_solvent",
+        "alchemical_free_energy_without_the_original_mace_md_protocol",
+        "absolute_solvation_free_energy_without_sampling_mbar_and_uncertainty",
+        "experimental_accuracy_claim_without_a_predeclared_ten_functional_group_panel",
+        "gpu_enablement_without_ten_functional_group_experimental_no_degradation",
         "claiming_mace_off24_sc_results"
+      ]
+    }
+  ],
+  "benchmark_datasets": [
+    {
+      "dataset_id": "flexisol",
+      "availability": "public_experimental_references_structures_and_evaluator_pinned",
+      "adapter_status": "static_identity_audit_only_not_scored",
+      "source": "https://github.com/grimme-lab/flexisol",
+      "source_revision": "7b44798f26c888ef541faa6143a813136921483f",
+      "source_tree": "8cf4879bc1435ca1061acfffd0daf10784445984",
+      "paper": "https://doi.org/10.1039/D5SC06406F",
+      "audit_artifact": "benchmarks/flexisol-release-audit-2026-07-30.json",
+      "audit_artifact_sha256": "cf2cd04845390e7b7574232b43207f352cc8e32c58469a799d8f21592bbd5ca4",
+      "dgsolv_scope": {
+        "record_count": 530,
+        "pure_solvent_count": 7,
+        "solvents": [
+          "dmf",
+          "ethanol",
+          "hexadecane",
+          "hexane",
+          "methanol",
+          "octanol",
+          "water"
+        ]
+      },
+      "logkab_scope": {
+        "record_count": 294,
+        "solvent_pair_count": 6
+      },
+      "known_published_registry_overlap": [
+        "cigin",
+        "directml"
+      ],
+      "training_overlap_status": "candidate_specific_intersection_unknown",
+      "strict_final_holdout": false,
+      "candidate_external_confirmation": true,
+      "forbidden_uses": [
+        "training",
+        "fine_tuning",
+        "calibration",
+        "model_selection",
+        "claiming_ten_solvent_coverage",
+        "claiming_never_used_final_holdout"
       ]
     }
   ],
   "property_only_baselines": {
     "registry": "benchmark_only",
-    "forbidden_tasks": ["sp_energy_surface", "opt", "freq", "md"],
-    "examples": ["SolvBERT", "MLSolv-A"]
+    "forbidden_tasks": [
+      "sp_energy_surface",
+      "opt",
+      "freq",
+      "md"
+    ],
+    "examples": [
+      "C3Net",
+      "CIGIN",
+      "SolProp_ML Gsolv",
+      "SolProp-mix",
+      "SolvBERT",
+      "MLSolv-A"
+    ]
   }
 }

@@ -176,14 +176,19 @@ cSPC/E HNC control, and no matching cSPC/E state record exists.  Therefore the
 new binding contributes no physical liquid, chemistry score, historical-panel
 result, or accuracy claim.
 
-The historical FreeSolv10 evaluator now makes the chemistry-diversity
-boundary executable: the ten frozen records contain ten distinct
-chemical-function or scaffold classes and are compared per record to their
-locked experimental values.  It rejects a lower diversity count, missing or
-extra records, MAE/RMSE-only reporting, threshold equality, and removal of the
-ethyl-acetate 7.041442082076966 kcal/mol historical outlier.  Consequently,
-small structural controls and partial numerical regressions are never reported
-as accuracy evidence.
+The historical FreeSolv10 evaluator makes the original chemistry-diversity
+boundary executable: its ten frozen records contain ten distinct
+chemical-function or scaffold classes and are compared per record to locked
+experimental values.  Its methane and benzene controls are not actual
+functional groups, so a second immutable FreeSolv12 evaluator embeds all ten
+historical records (including the ethyl-acetate 7.041442082076966 kcal/mol
+outlier) and adds amide plus carboxylic-acid representatives.  The twelve
+records contain ten distinct source-labelled actual functional groups; the two
+nonfunctional controls are reported but cannot count toward that minimum.  The
+two evaluators reject a lower diversity count, missing or extra records,
+MAE/RMSE-only reporting, threshold equality, and removal of the historical
+outlier.  Consequently, small structural controls and partial numerical
+regressions are never reported as accuracy evidence.
 
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental

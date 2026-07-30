@@ -30,8 +30,14 @@ calculation; any V0 candidate must recompute **all ten** and put every record
 strictly below 1.5 kcal/mol.  The locked ten are also explicitly one each from
 ten distinct chemical-function or scaffold classes: alkane, aromatic
 hydrocarbon, alcohol, ether, ketone, ester, nitrile, aromatic amine,
-haloalkane, and sulfoxide.  The evaluator rejects a weakened diversity gate;
-there is no valid “accuracy test” with fewer than ten such classes.  This is
+haloalkane, and sulfoxide.  Because alkane and aromatic hydrocarbon are
+nonfunctional scaffolds, they are not allowed to satisfy the user's separate
+ten-**actual**-functional-group requirement.  The frozen FreeSolv12 superset
+therefore retains all historical ten (including ethyl acetate) and adds an
+amide plus a carboxylic acid: it has ten source-labelled actual functional
+groups and two separately reported nonpolar controls.  Both validators reject
+a weakened diversity gate; there is no valid “accuracy test” with fewer than
+ten actual functional groups or without the historical outlier.  This is
 additional to the future 11-solvent, confirmation, and disjoint blind panels;
 it cannot be replaced by a lower-MAE subset.
 
@@ -148,10 +154,12 @@ certificate are still absent.
    \(\epsilon_\infty\), and a finite-\(k\) polarization-correlation length
    must each be independently source-bound; this remains below the
    total-free-energy boundary.
-4. Freeze the method before reading target values, then run the historical
-   FreeSolv10 gate, 11-solvent development, disjoint confirmation, and an
-   independent final blind dataset.  Every record, not just the MAE, must be
-   below 1.5 kcal/mol; the stricter final objective is below 1 kcal/mol.
+4. Freeze the method before reading target values, then run both the historical
+   FreeSolv10 gate and the twelve-record, ten-actual-functional-group
+   FreeSolv12 superset, followed by 11-solvent development, disjoint
+   confirmation, and an independent final blind dataset.  Every record, not
+   just the MAE, must be below 1.5 kcal/mol; the stricter final objective is
+   below 1 kcal/mol.
 
 ## External sources screened
 

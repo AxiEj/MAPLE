@@ -2731,10 +2731,38 @@ regression is mandatory in addition to—not instead of—the 11-solvent,
 confirmation, and blind panels.  Passing it alone remains insufficient for a
 physical or broad-accuracy claim.
 
+### 5.2 A distinct ten-actual-functional-group minimum is also mandatory
+
+The historical ten contain methane and benzene as indispensable nonpolar
+scaffold controls.  They are useful physics controls, but they are **not**
+functional groups and therefore cannot be counted toward a literal
+ten-functional-group accuracy claim.  To prevent that semantic shortcut, V0
+also freezes
+[`route2-v0-freesolv12-functional-groups-v1.json`](benchmarks/route2-v0-freesolv12-functional-groups-v1.json)
+and requires
+[`route2_v0_freesolv12_functional_groups.py`](benchmarks/route2_v0_freesolv12_functional_groups.py).
+It is a strict superset of the historical ten—so the ethyl-acetate outlier is
+still mandatory—and adds acetamide and acetic acid.  The complete twelve
+records contain exactly ten distinct source-labelled **actual functional
+groups**:
+
+\[
+\{\text{primary alcohol, dialkyl ether, ketone, ester, nitrile,
+primary aromatic amine, alkyl chloride, sulfoxide, amide, carboxylic acid}\}.
+\]
+
+Methane and benzene remain in the report as nonfunctional controls but are
+explicitly excluded from that count.  Every one of the twelve recomputed
+errors must be strictly below \(1.5\) kcal/mol.  Missing, extra, duplicate,
+non-finite, post-hoc excluded, substituted-geometry, or threshold-equal
+records fail.  Thus neither the old ten-class/scaffold panel nor any smaller
+functional-group subset may be called a V0 accuracy test.
+
 The required progression is therefore:
 
 1. pass structural energy, charge, pairing, and smoothness gates;
-2. pass the immutable historical ten-record FreeSolv regression, including the
+2. pass both the immutable historical ten-record FreeSolv regression and its
+   twelve-record, ten-actual-functional-group superset, including the
    ethyl-acetate historical outlier, with every record strictly below
    \(1.5\) kcal/mol;
 3. freeze a replicated **11-solvent** development design before looking at

@@ -34,6 +34,24 @@ python docs/implicit-solvation/benchmarks/route2_v0_historical_freesolv10.py \
   --output "$WORK/v0-historical-freesolv10-evaluation.json"
 ```
 
+### Mandatory twelve-record, ten-actual-functional-group FreeSolv gate
+
+The historical ten include methane and benzene as nonpolar controls; neither
+is an actual functional group.  Therefore they cannot be used to evade the
+separate requirement for at least ten different functional groups.  The frozen
+[`route2-v0-freesolv12-functional-groups-v1.json`](route2-v0-freesolv12-functional-groups-v1.json)
+is a strict superset of the historical ten and adds acetamide and acetic acid.
+It preserves the old ethyl-acetate outlier record and contains ten distinct
+source-labelled actual functional groups plus the two nonfunctional controls.
+**All twelve** recomputed experimental errors must be strictly below
+**1.5 kcal/mol**; a lower-MAE subset cannot pass.
+
+```bash
+python docs/implicit-solvation/benchmarks/route2_v0_freesolv12_functional_groups.py \
+  --predictions "$WORK/v0-freesolv12-functional-groups-predictions.json" \
+  --output "$WORK/v0-freesolv12-functional-groups-evaluation.json"
+```
+
 The prediction input is a JSON object containing a `predictions` list, each
 with only `compound_id` and `predicted_kcal_mol`; the validator obtains
 experimental values only from the immutable manifest and returns nonzero on a

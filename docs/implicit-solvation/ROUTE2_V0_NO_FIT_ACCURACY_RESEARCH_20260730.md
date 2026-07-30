@@ -142,6 +142,9 @@ certificate are still absent.
    \(C(B_s,\sigma)=0\), freeze \(B_s^*(\sigma)\), then solve the exact
    planar branch; only a separate outer evidence record may compare the
    resulting \(\Gamma(\sigma)\) to the independent pure-liquid target.
+   The IAPWS ordinary-water $\gamma(298\,\mathrm{K})$ source is now frozen
+   separately, but it cannot be relabelled as a cSPC/E state or substitute for
+   the missing model-matched state/correlation evidence.
 2. Verify the same scalar's derivative, Hessian reciprocity, stability,
    Cartesian/orientation/grid convergence, envelope forces, and energy
    conservation.

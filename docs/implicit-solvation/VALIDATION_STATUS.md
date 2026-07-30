@@ -152,6 +152,16 @@ physical kernel length nor an outer root.  Thus the physical-liquid,
 multi-solvent, force/PES, and accuracy gates remain open.
 
 
+The exact IAPWS R1-76(2014) ordinary-water surface-tension source is now
+content-addressed at
+`benchmarks/route2-v0-ordinary-water-surface-tension-iapws-r1-76-2014-v1.json`;
+it independently reproduces $0.07199532948823899\,\mathrm{N\,m^{-1}}$ at
+298 K from the declared formula.  It is intentionally source-only and not a
+cSPC/E RISM state: the cSPC/E model's coincident hydrogen Lennard--Jones sites
+prevent ordinary-water IAPWS thermophysics from satisfying the required
+model-identity join.  Thus it provides no physical-liquid admission, outer
+width/root, chemistry score, or accuracy datum.
+
 The zero-external branch is now also a concrete fail-closed assembly rather
 than an informal condition.  `route2_v0_molecular_pure_liquid_external_potential.py`
 requires \(u_{

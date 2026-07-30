@@ -1,0 +1,36 @@
+{
+    "protocol_id": "route2-v0-ordinary-water-surface-tension-source-v1",
+    "schema_version": 1,
+    "status": "source-only-ordinary-water-surface-tension-not-molecular-rism-or-accuracy-admitted",
+    "substance": "ordinary-water-liquid-vapor-interface",
+    "state": {"temperature_kelvin": 298.0},
+    "formula": {
+        "critical_temperature_kelvin": 647.096,
+        "prefactor_newton_per_meter": 0.2358,
+        "exponent": 1.256,
+        "linear_coefficient": -0.625
+    },
+    "surface_tension_newton_per_meter": 0.07199532948823899,
+    "property_source": {
+        "property": "surface_tension_newton_per_meter",
+        "origin": "independent_measurement",
+        "document_url": "https://iapws.org/documents/release/Surf-H2O.download",
+        "document_sha256": "77d07ae4c6d473806b73f982d4c031b927db02a5718bd3c25cd7a03c3321587d",
+        "source_locator": "p. 3, Representation of the Surface Tension of Ordinary Water Substance; sigma = B tau^mu (1 + b tau), B=235.8 mN/m, b=-0.625, mu=1.256, Tc=647.096 K",
+        "retrieved_utc": "2026-07-30T11:03:08Z"
+    },
+    "no_target_policy": {
+        "post_training": false,
+        "fine_tuning": false,
+        "experimental_solvation_fit": false,
+        "map_or_uq_calibration": false,
+        "target_solvation_labels_used": false
+    },
+    "claim_boundary": "This source is the IAPWS ordinary-water liquid-vapor surface-tension target at 298.0 K. It can become an independently sourced target for a future same-scalar outer planar-interface certificate; it is not a cSPC/E molecular-RISM state, an HNC correlation, a bridge width selection, a liquid asset, a solvation free energy, a force/PES result, or an accuracy result.",
+    "not_claimed": [
+        "The cSPC/E RISM model has coincident hydrogen Lennard-Jones sites and must not inherit this ordinary-water target as a model state.",
+        "This source does not determine a finite-k molecular direct correlation, a closure, a short-range solvent interaction, or a molecular liquid functional.",
+        "This source does not choose a Gaussian kernel width; the width must follow a nested same-scalar coexistence and planar stationary certificate.",
+        "This source uses no solvation target labels and does not establish a solvation accuracy result."
+    ]
+}

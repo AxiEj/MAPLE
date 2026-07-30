@@ -2001,6 +2001,22 @@ development, confirmation, or blind solvation value may enter it.  This is a
 pure-liquid thermodynamic boundary-value problem, not target-solvation
 fitting.
 
+The checked-in [`route2-v0-ordinary-water-surface-tension-iapws-r1-76-2014-v1.json`](benchmarks/route2-v0-ordinary-water-surface-tension-iapws-r1-76-2014-v1.json) now makes one such **external ordinary-water** target reproducible: the official [IAPWS R1-76(2014)](https://iapws.org/documents/release/Surf-H2O.download) formula
+
+\[
+\gamma=B\tau^{\mu}(1+b\tau),\qquad\tau=1-T/T_c,
+\]
+
+with $T_c=647.096\,\mathrm{K}$, $B=0.2358\,\mathrm{N\,m^{-1}}$,
+$b=-0.625$, and $\mu=1.256$ gives $\gamma(298\,\mathrm{K})=
+0.07199532948823899\,\mathrm{N\,m^{-1}}$.  Its strict loader hashes the
+release and recomputes this value, with every solvation-label/training flag
+false.  This is deliberately **not** a cSPC/E state source: cSPC/E adds
+coincident hydrogen Lennard--Jones sites, so ordinary-water thermophysics
+cannot bind the cSPC/E HNC candidate.  It therefore supplies neither the
+missing model-matched $p,\kappa_T,\rho_m$ state nor a physical liquid
+admission, a width, an outer root, or an accuracy result.
+
 For clarity, write $\Delta\bar\rho=\bar\rho-\rho_b$.  The local first and second
 derivatives are
 

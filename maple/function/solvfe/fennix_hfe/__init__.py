@@ -1,6 +1,7 @@
 """Native FeNNix-Bio1 alchemical mechanics boundary (not an HFE protocol)."""
 
 from .kernel import FeNNixAlchemicalKernel, upcast_parameter_tree_float64
+from .protocol import FeNNixHFEProtocol, FeNNixProtocolProvenance
 from .system import (
     FENNIX_ALCHEMICAL_CUTOFF_ANGSTROM,
     validate_fennix_alchemical_system,
@@ -30,7 +31,9 @@ __all__ = [
     "FeNNixAlchemicalParameters",
     "FeNNixAlchemicalSystem",
     "FeNNixKernelIdentity",
+    "FeNNixHFEProtocol",
     "FeNNixKernelResult",
+    "FeNNixProtocolProvenance",
     "FeNNixLambdaState",
     "FeNNixParameterTreeReceipt",
     "upcast_parameter_tree_float64",

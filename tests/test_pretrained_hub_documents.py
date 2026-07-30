@@ -358,7 +358,7 @@ def test_hub_document_keeps_free_energy_and_route_boundaries_explicit():
     )
     assert "live fingerprint hook" in normalized
     assert "auto-selects CUDA" in normalized
-    assert "FeNNix-Bio1: public GPU/Lambda source, paper FE integration blocked" in text
+    assert "FeNNix-Bio1: real CPU/GPU mechanics, paper FE integration blocked" in text
     assert "v1.0-finetuneIons" in text
     assert "GPU availability or speed alone is not" in normalized
     assert (
@@ -413,11 +413,11 @@ def test_admission_record_assigns_each_candidate_to_a_scientific_route():
     assert "MACE-OFF24-SC: rigorous article protocol, unreleased checkpoint" in text
     assert "never substitute MACE-OFF23-SC" in text
     assert (
-        "FeNNix-Bio1: public weights and GPU/Lambda source, execution still blocked"
+        "FeNNix-Bio1: real mechanics execution, scientific admission still blocked"
         in text
     )
     assert "No-loss acceleration" in text
-    assert "blocked by gate 7" in text
+    assert "GPU therefore remains fail-closed" in text
     assert "not the same identity as the official 36-record" in text
     assert "ML-for-charges PBE0-ESP: public pretrained charge regressor" in text
     assert "Organic_MPNICE plus MLFF_HFE: published protocol" in text

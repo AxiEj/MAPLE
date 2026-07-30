@@ -38,22 +38,10 @@ class FeNNixAlchemicalParameters:
     graph_softcore_v_angstrom: float = 0.5
     repulsion_softcore_angstrom: float = 0.5
     repulsion_power_m: int = 2
-    graph_softcore_provenance: str = field(
-        default=FENNIX_GRAPH_SOFTCORE_PROVENANCE,
-        init=False,
-    )
-    repulsion_power_provenance: str = field(
-        default=FENNIX_REPULSION_POWER_PROVENANCE,
-        init=False,
-    )
-    repulsion_softcore_provenance: str = field(
-        default=FENNIX_REPULSION_SOFTCORE_PROVENANCE,
-        init=False,
-    )
-    scientific_scope: str = field(
-        default=FENNIX_ALCHEMICAL_RECONSTRUCTION_SCOPE,
-        init=False,
-    )
+    graph_softcore_provenance: str = FENNIX_GRAPH_SOFTCORE_PROVENANCE
+    repulsion_power_provenance: str = FENNIX_REPULSION_POWER_PROVENANCE
+    repulsion_softcore_provenance: str = FENNIX_REPULSION_SOFTCORE_PROVENANCE
+    scientific_scope: str = FENNIX_ALCHEMICAL_RECONSTRUCTION_SCOPE
 
     def __post_init__(self) -> None:
         for name in ("graph_softcore_v_angstrom", "repulsion_softcore_angstrom"):
@@ -72,6 +60,51 @@ class FeNNixAlchemicalParameters:
         ):
             raise ValueError("FeNNix repulsion_power_m must be a positive integer.")
         object.__setattr__(self, "repulsion_power_m", int(power))
+
+        string_fields = (
+            "graph_softcore_provenance",
+            "repulsion_power_provenance",
+            "repulsion_softcore_provenance",
+            "scientific_scope",
+        )
+        for name in string_fields:
+            raw = getattr(self, name)
+            if not isinstance(raw, str) or not raw.strip():
+                raise ValueError(f"FeNNix {name} must be a nonempty string.")
+            object.__setattr__(self, name, raw.strip())
+
+        changed_parameters = (
+            (
+                self.graph_softcore_v_angstrom != 0.5,
+                "graph_softcore_provenance",
+            ),
+            (
+                self.repulsion_softcore_angstrom != 0.5,
+                "repulsion_softcore_provenance",
+            ),
+            (
+                self.repulsion_power_m != 2,
+                "repulsion_power_provenance",
+            ),
+        )
+        base_provenance = {
+            FENNIX_GRAPH_SOFTCORE_PROVENANCE,
+            FENNIX_REPULSION_POWER_PROVENANCE,
+            FENNIX_REPULSION_SOFTCORE_PROVENANCE,
+        }
+        for changed, provenance_name in changed_parameters:
+            if changed and getattr(self, provenance_name) in base_provenance:
+                raise ValueError(
+                    f"Nondefault FeNNix parameter requires explicit non-default "
+                    f"{provenance_name}."
+                )
+        if any(changed for changed, _ in changed_parameters) and (
+            self.scientific_scope == FENNIX_ALCHEMICAL_RECONSTRUCTION_SCOPE
+        ):
+            raise ValueError(
+                "Nondefault FeNNix parameters require an explicit non-default "
+                "reconstruction scientific_scope."
+            )
 
 
 @dataclass(frozen=True)

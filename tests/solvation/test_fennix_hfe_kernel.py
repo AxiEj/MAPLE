@@ -650,14 +650,111 @@ def test_kernel_rejects_pinned_tree_or_species_encoding_constant_drift(
         )
 
 
-def test_raw_inputs_bind_explicit_softcore_values_and_dtypes(
-    tmp_path, monkeypatch, fake_jax
-):
-    parameters = FeNNixAlchemicalParameters(
+def _nondefault_alchemical_parameters() -> FeNNixAlchemicalParameters:
+    return FeNNixAlchemicalParameters(
         graph_softcore_v_angstrom=0.75,
         repulsion_softcore_angstrom=0.875,
         repulsion_power_m=3,
+        graph_softcore_provenance="sensitivity_graph_softcore_v_0p75",
+        repulsion_softcore_provenance="sensitivity_repulsion_softcore_0p875",
+        repulsion_power_provenance="sensitivity_repulsion_power_m_3",
+        scientific_scope=(
+            "maple_sensitivity_analysis_nondefault_softcore_parameters_"
+            "not_paper_reproduction"
+        ),
     )
+
+
+def test_default_softcore_parameters_retain_base_provenance_and_scope():
+    parameters = FeNNixAlchemicalParameters()
+
+    assert parameters.graph_softcore_v_angstrom == 0.5
+    assert parameters.repulsion_softcore_angstrom == 0.5
+    assert parameters.repulsion_power_m == 2
+    assert parameters.graph_softcore_provenance == "pinned_fennol_source_default"
+    assert parameters.repulsion_power_provenance == "pinned_fennol_source_default"
+    assert parameters.repulsion_softcore_provenance == (
+        "maple_output_blind_reconstruction_not_paper_exact"
+    )
+    assert parameters.scientific_scope == (
+        "maple_owned_softcore_reconstruction_mechanics_not_paper_reproduction"
+    )
+
+
+@pytest.mark.parametrize(
+    ("value_field", "value", "provenance_field", "provenance"),
+    [
+        (
+            "graph_softcore_v_angstrom",
+            0.75,
+            "graph_softcore_provenance",
+            "sensitivity_graph_softcore_v_0p75",
+        ),
+        (
+            "repulsion_softcore_angstrom",
+            0.875,
+            "repulsion_softcore_provenance",
+            "sensitivity_repulsion_softcore_0p875",
+        ),
+        (
+            "repulsion_power_m",
+            3,
+            "repulsion_power_provenance",
+            "sensitivity_repulsion_power_m_3",
+        ),
+    ],
+)
+def test_nondefault_parameter_rejects_base_provenance(
+    value_field, value, provenance_field, provenance
+):
+    with pytest.raises(ValueError, match=provenance_field):
+        FeNNixAlchemicalParameters(
+            **{
+                value_field: value,
+                "scientific_scope": "maple_sensitivity_not_paper_reproduction",
+            }
+        )
+
+
+@pytest.mark.parametrize(
+    ("value_field", "value", "provenance_field", "provenance"),
+    [
+        (
+            "graph_softcore_v_angstrom",
+            0.75,
+            "graph_softcore_provenance",
+            "sensitivity_graph_softcore_v_0p75",
+        ),
+        (
+            "repulsion_softcore_angstrom",
+            0.875,
+            "repulsion_softcore_provenance",
+            "sensitivity_repulsion_softcore_0p875",
+        ),
+        (
+            "repulsion_power_m",
+            3,
+            "repulsion_power_provenance",
+            "sensitivity_repulsion_power_m_3",
+        ),
+    ],
+)
+def test_nondefault_parameter_rejects_base_reconstruction_scope(
+    value_field, value, provenance_field, provenance
+):
+    with pytest.raises(ValueError, match="scientific_scope"):
+        FeNNixAlchemicalParameters(
+            **{
+                value_field: value,
+                provenance_field: provenance,
+            }
+        )
+
+
+def test_raw_inputs_bind_explicit_softcore_values_and_dtypes(
+    tmp_path, monkeypatch, fake_jax
+):
+    parameters = _nondefault_alchemical_parameters()
     kernel = _build_toy_kernel(tmp_path, monkeypatch, parameters)
 
     raw = kernel._raw_inputs(validate_fennix_alchemical_system(_valid_system()))
@@ -674,34 +771,27 @@ def test_raw_inputs_bind_explicit_softcore_values_and_dtypes(
 def test_identity_and_result_bind_softcore_values_and_provenance(
     tmp_path, monkeypatch, fake_jax
 ):
-    parameters = FeNNixAlchemicalParameters(
-        graph_softcore_v_angstrom=0.75,
-        repulsion_softcore_angstrom=0.875,
-        repulsion_power_m=3,
-    )
+    parameters = _nondefault_alchemical_parameters()
     kernel = _build_toy_kernel(tmp_path, monkeypatch, parameters)
 
     result = kernel.evaluate(_valid_system(), 0.25)
 
     assert kernel.identity.alchemical_parameters == parameters
     assert result.alchemical_parameters == parameters
-    assert parameters.graph_softcore_provenance == "pinned_fennol_source_default"
-    assert parameters.repulsion_power_provenance == "pinned_fennol_source_default"
+    assert parameters.graph_softcore_provenance == ("sensitivity_graph_softcore_v_0p75")
     assert parameters.repulsion_softcore_provenance == (
-        "maple_output_blind_reconstruction_not_paper_exact"
+        "sensitivity_repulsion_softcore_0p875"
     )
+    assert parameters.repulsion_power_provenance == "sensitivity_repulsion_power_m_3"
     assert parameters.scientific_scope == (
-        "maple_owned_softcore_reconstruction_mechanics_not_paper_reproduction"
+        "maple_sensitivity_analysis_nondefault_softcore_parameters_"
+        "not_paper_reproduction"
     )
 
 
 def test_identity_rejects_softcore_value_or_provenance_drift(toy_kernel):
     expected = toy_kernel.identity
-    drifted = FeNNixAlchemicalParameters(
-        graph_softcore_v_angstrom=0.75,
-        repulsion_softcore_angstrom=0.5,
-        repulsion_power_m=2,
-    )
+    drifted = _nondefault_alchemical_parameters()
 
     with pytest.raises(ValueError, match="alchemical reconstruction"):
         expected.verify_observed(replace(expected, alchemical_parameters=drifted))
@@ -716,13 +806,17 @@ def test_identity_rejects_softcore_value_or_provenance_drift(toy_kernel):
         "scientific_scope",
     ],
 )
-def test_identity_rejects_softcore_provenance_drift(toy_kernel, field):
-    expected = toy_kernel.identity
-    drifted = FeNNixAlchemicalParameters()
+def test_identity_rejects_nondefault_softcore_provenance_drift(
+    tmp_path, monkeypatch, fake_jax, field
+):
+    parameters = _nondefault_alchemical_parameters()
+    kernel = _build_toy_kernel(tmp_path, monkeypatch, parameters)
+    drifted = replace(parameters)
     object.__setattr__(drifted, field, "wrong")
+    observed = replace(kernel.identity, alchemical_parameters=drifted)
 
     with pytest.raises(ValueError, match="alchemical reconstruction"):
-        expected.verify_observed(replace(expected, alchemical_parameters=drifted))
+        kernel.identity.verify_observed(observed)
 
 
 def test_kernel_identity_pins_checkpoint_source_runtime_and_float64_tree(toy_kernel):

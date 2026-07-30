@@ -1,0 +1,2013 @@
+{
+  "acceptance_eligible": false,
+  "audited_on": "2026-07-31",
+  "cpu_receipt": {
+    "checkpoint": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+    "checkpoint_file_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+    "close_contact_canary": {
+      "mechanics_only": true,
+      "neighbor_overflow_observed": false,
+      "p_equals_one_evaluated": false,
+      "progress_states": [
+        0.0,
+        0.25
+      ],
+      "rows": [
+        {
+          "cell_gradient_ev_per_angstrom": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "denergy_dlambda_e_ev": 4.440892098500626e-16,
+          "denergy_dlambda_v_ev": 0.0,
+          "denergy_dprogress_ev": 0.0,
+          "energy_ev": -1.2382679338505447,
+          "forces_ev_per_angstrom": [
+            [
+              0.061391864400332175,
+              0.12403505046042129,
+              -0.0
+            ],
+            [
+              -0.013192078818233144,
+              -0.06219773203832968,
+              -0.0
+            ],
+            [
+              -0.04819978558209914,
+              -0.061837318422091725,
+              -0.0
+            ],
+            [
+              0.061391864400332175,
+              0.12403505046042129,
+              -0.0
+            ],
+            [
+              -0.013192078818233144,
+              -0.06219773203832968,
+              -0.0
+            ],
+            [
+              -0.04819978558209914,
+              -0.061837318422091725,
+              -0.0
+            ]
+          ],
+          "formal_admission": {
+            "accuracy_admitted": false,
+            "gpu_admitted": false,
+            "hfe_admitted": false,
+            "mechanics_evidence_only": true,
+            "performance_admitted": false
+          },
+          "lambda_e": 0.0,
+          "lambda_v": 0.0,
+          "progress": 0.0,
+          "virial_ev": [
+            [
+              0.0021202718046444496,
+              0.0893910331418546,
+              0.0
+            ],
+            [
+              0.089391033141848,
+              0.1146831197217012,
+              0.0
+            ],
+            [
+              4.440892098500626e-16,
+              4.440892098500626e-16,
+              0.0
+            ]
+          ]
+        },
+        {
+          "cell_gradient_ev_per_angstrom": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "denergy_dlambda_e_ev": 4.440892098500626e-16,
+          "denergy_dlambda_v_ev": 172.17638589002345,
+          "denergy_dprogress_ev": 344.3527717800469,
+          "energy_ev": 15.39040814902933,
+          "forces_ev_per_angstrom": [
+            [
+              -0.28816822262093067,
+              -0.3256846071574695,
+              -0.0
+            ],
+            [
+              0.45280927859899567,
+              -0.06223846856622649,
+              -0.0
+            ],
+            [
+              -0.164641055978065,
+              0.3879230757236958,
+              -0.0
+            ],
+            [
+              -0.2881682226209309,
+              -0.3256846071574695,
+              -0.0
+            ],
+            [
+              0.4528092785989959,
+              -0.06223846856622649,
+              -0.0
+            ],
+            [
+              -0.164641055978065,
+              0.3879230757236958,
+              -0.0
+            ]
+          ],
+          "formal_admission": {
+            "accuracy_admitted": false,
+            "gpu_admitted": false,
+            "hfe_admitted": false,
+            "mechanics_evidence_only": true,
+            "performance_admitted": false
+          },
+          "lambda_e": 0.0,
+          "lambda_v": 0.5,
+          "progress": 0.25,
+          "virial_ev": [
+            [
+              -0.9458815091519337,
+              0.30534231457059147,
+              0.0
+            ],
+            [
+              0.30534231457058336,
+              -0.7194398086987108,
+              0.0
+            ],
+            [
+              0.0,
+              8.881784197001252e-16,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "scope": "coincident_two_water_softcore_mechanics_canary_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+      "system": {
+        "atomic_numbers": [
+          8,
+          1,
+          1,
+          8,
+          1,
+          1
+        ],
+        "cell_angstrom": [
+          [
+            18.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            18.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            18.0
+          ]
+        ],
+        "coordinates_angstrom": [
+          [
+            6.0,
+            2.0,
+            2.0
+          ],
+          [
+            6.9572,
+            2.0,
+            2.0
+          ],
+          [
+            5.760013,
+            2.927297,
+            2.0
+          ],
+          [
+            6.0,
+            2.0,
+            2.0
+          ],
+          [
+            6.9572,
+            2.0,
+            2.0
+          ],
+          [
+            5.760013,
+            2.927297,
+            2.0
+          ]
+        ],
+        "inside_cutoff": true,
+        "molecule_ids": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ],
+        "solute_atom_indices": [
+          0,
+          1,
+          2
+        ],
+        "solute_solvent_oxygen_distance_angstrom": 0.0
+      }
+    },
+    "device_request": "cpu",
+    "formal_gates": {
+      "absolute_hydration_free_energy_protocol_run": false,
+      "cpu_gpu_experimental_no_degradation_verified": false,
+      "experimental_accuracy_evaluated": false,
+      "gpu_production_admitted": false,
+      "matched_qm_timing_eligible": false,
+      "performance_claim_allowed": false,
+      "ten_record_ten_distinct_primary_functional_group_panel_run": false
+    },
+    "identity": {
+      "alchemical_parameters": {
+        "graph_softcore_provenance": "pinned_fennol_source_default",
+        "graph_softcore_v_angstrom": 0.5,
+        "repulsion_power_m": 2,
+        "repulsion_power_provenance": "pinned_fennol_source_default",
+        "repulsion_softcore_angstrom": 0.5,
+        "repulsion_softcore_provenance": "maple_output_blind_reconstruction_not_paper_exact",
+        "scientific_scope": "maple_owned_softcore_reconstruction_mechanics_not_paper_reproduction"
+      },
+      "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+      "checkpoint_source_revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3",
+      "derived_parameter_tree_fingerprint": "0fe05dfdbe83b110a3a7c4bc42c3d5c7400645169721ad2d9aa3bf836e735d5c",
+      "energy_unit": "eV",
+      "fennol_package_tree_file_count": 71,
+      "fennol_package_tree_sha256": "b0ff2b138cdfa5f406b332ddcf12380bd981cee0be3986715827e6d7dacb4262",
+      "fixed_species_encoding_float64_sha256": "6e9ddf0e4b7c91aa0c8b6fdd4af617ec87f5abc0f51c0c7262395569c22dbe5b",
+      "gpu_production_admitted": false,
+      "jax_enable_x64": true,
+      "length_unit": "angstrom",
+      "matmul_precision": "highest",
+      "model_id": "fennix-bio1",
+      "model_variant": "medium",
+      "original_parameter_tree_fingerprint": "e0554dc2af0a652de5f42be138eb69449d519c89bad972e56c88403488e06e11",
+      "repulsion_nlh_coefficients_provenance": "pinned_nlh_coeffs_data_float32_origin_promoted_to_float64_for_model_execution",
+      "runtime_distribution": "FeNNol",
+      "runtime_package_versions": {
+        "flax": "0.12.8",
+        "jax": "0.10.2",
+        "jax-cuda12-pjrt": "N/A",
+        "jax-cuda12-plugin": "N/A",
+        "jaxlib": "0.10.2",
+        "numpy": "2.4.6"
+      },
+      "runtime_source_sha256": {
+        "fennol/ase.py": "6d6a9dbf40fce96b8589a3702de7de190f8301d0827f629fbfad2c1e4a2f97d7",
+        "fennol/models/embeddings/charge_embeddings.py": "b6e731a217bca04d9ed0b3a472175839283fce4b2f34edd14c25e0b3ecd96114",
+        "fennol/models/fennix.py": "2e092b782b2fcabf2b1d355274d34888faa3b6aca8bee60e44fcea71245991af",
+        "fennol/models/misc/encodings.py": "cfe1a486efc1f0a35d16a50dc09c5f28f717bb25d0cc63254f9e201aee3f1aae",
+        "fennol/models/modules.py": "afa28295acf9935cfa633d7ad03bec7100b1c7788f2b80ec0fa89db4e2cb19f0",
+        "fennol/models/physics/nlh_coeffs.dat": "9f6ad25db062dec6552e6a2132d17484da2e4bfd30e70611a94a8a886cd1e32a",
+        "fennol/models/physics/repulsion.py": "ee952d840432090a38bf9eedda2429b7f3a94c4b2f0d1f9dac27d2297f165c22",
+        "fennol/models/preprocessing.py": "153519f469e112b6f1d2bfe7f243c241db476f273543abd0540ab658d59c96d4",
+        "fennol/utils/periodic_table.py": "e6b2dd254305c0c065fdcb41249fa80ed92e8b0e00b16dfa0a039ea3f313006c"
+      },
+      "runtime_version": "2026.6.29",
+      "scientific_scope": "maple_owned_softcore_reconstruction_mechanics_not_paper_reproduction_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+      "source_revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+      "tf32_enabled": false
+    },
+    "maple_kernel_source_sha256": {
+      "__init__.py": "791b98745a3dd1107a788b3ab0af8cf94cef94ec0d15ce3eba69cc2c864275ee",
+      "kernel.py": "cb6608bc1fc8a8be6f2b5bec51d0bb6ad65aac03a7c49c497fd39ef30c53a536",
+      "system.py": "fb18b37ad5f93567bb7b4d982f798113f244ea80003569a8b4063b26c12edfe8",
+      "types.py": "198e5f704cc79302f72909edc32865d82d8a020f0ee0065a329a1181d735bb39"
+    },
+    "rows": [
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": 4.440892098500626e-16,
+        "denergy_dlambda_v_ev": 0.0,
+        "denergy_dprogress_ev": 0.0,
+        "energy_ev": -1.238267933850545,
+        "forces_ev_per_angstrom": [
+          [
+            0.06139186440031419,
+            0.12403505046041308,
+            -0.0
+          ],
+          [
+            -0.013192078818210273,
+            -0.062197732038331774,
+            -0.0
+          ],
+          [
+            -0.048199785582103916,
+            -0.06183731842208129,
+            -0.0
+          ],
+          [
+            0.061391864400332175,
+            0.12403505046042129,
+            -0.0
+          ],
+          [
+            -0.013192078818233144,
+            -0.06219773203832968,
+            -0.0
+          ],
+          [
+            -0.04819978558209914,
+            -0.061837318422091725,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 0.0,
+        "lambda_v": 0.0,
+        "progress": 0.0,
+        "virial_ev": [
+          [
+            0.0021202718046206908,
+            0.08939103314185838,
+            0.0
+          ],
+          [
+            0.08939103314185222,
+            0.11468311972169126,
+            0.0
+          ],
+          [
+            2.220446049250313e-16,
+            1.942890293094024e-16,
+            0.0
+          ]
+        ]
+      },
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": 4.440892098500626e-16,
+        "denergy_dlambda_v_ev": 1.1333683468293793e-06,
+        "denergy_dprogress_ev": 2.2667366936587585e-06,
+        "energy_ev": -1.2382677699531648,
+        "forces_ev_per_angstrom": [
+          [
+            0.06139186440031419,
+            0.12403505046041308,
+            -0.0
+          ],
+          [
+            -0.013193834843539642,
+            -0.06219773205175004,
+            -0.0
+          ],
+          [
+            -0.048199785582103916,
+            -0.06183731842208129,
+            -0.0
+          ],
+          [
+            0.061393620385103986,
+            0.12403505046042129,
+            -0.0
+          ],
+          [
+            -0.013192078818233144,
+            -0.06219773203832968,
+            -0.0
+          ],
+          [
+            -0.048199785541541584,
+            -0.06183731840867335,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 0.0,
+        "lambda_v": 0.5,
+        "progress": 0.25,
+        "virial_ev": [
+          [
+            0.002114928580481787,
+            0.08939103310424895,
+            0.0
+          ],
+          [
+            0.08939103310424332,
+            0.11468311970924822,
+            0.0
+          ],
+          [
+            2.220446049250313e-16,
+            -2.7755575615628914e-17,
+            0.0
+          ]
+        ]
+      },
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": 4.440892098500626e-16,
+        "denergy_dlambda_v_ev": 5.707016037527087e-07,
+        "denergy_dprogress_ev": 1.1414032075054174e-06,
+        "energy_ev": -1.2382670341544668,
+        "forces_ev_per_angstrom": [
+          [
+            0.06139186440031419,
+            0.12403505046041308,
+            -0.0
+          ],
+          [
+            -0.0132016525470251,
+            -0.06219773212621292,
+            -0.0
+          ],
+          [
+            -0.048199785582103916,
+            -0.06183731842208129,
+            -0.0
+          ],
+          [
+            0.06140143786352059,
+            0.12403505046042129,
+            -0.0
+          ],
+          [
+            -0.013192078818233144,
+            -0.06219773203832968,
+            -0.0
+          ],
+          [
+            -0.048199785316472954,
+            -0.061837318334210245,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 0.0,
+        "lambda_v": 1.0,
+        "progress": 0.5,
+        "virial_ev": [
+          [
+            0.002091140926331141,
+            0.08939103289554204,
+            0.0
+          ],
+          [
+            0.08939103289553829,
+            0.11468311964019837,
+            0.0
+          ],
+          [
+            6.661338147750939e-16,
+            -4.718447854656915e-16,
+            0.0
+          ]
+        ]
+      },
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": -0.049377455221383815,
+        "denergy_dlambda_v_ev": -0.0006794111843362054,
+        "denergy_dprogress_ev": -0.09875491044276763,
+        "energy_ev": -1.2596034941750798,
+        "forces_ev_per_angstrom": [
+          [
+            0.043307410568609095,
+            0.15541570309882413,
+            -0.0
+          ],
+          [
+            0.02609499300464102,
+            -0.10572057122985706,
+            -0.0
+          ],
+          [
+            -0.0542756976174929,
+            -0.06992733751116598,
+            -0.0
+          ],
+          [
+            0.007436243806407283,
+            0.1376415503060926,
+            -0.0
+          ],
+          [
+            -0.015150572002141205,
+            -0.06840587758309559,
+            -0.0
+          ],
+          [
+            -0.0074123777600231255,
+            -0.049003467080797725,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 0.5,
+        "lambda_v": 1.0,
+        "progress": 0.75,
+        "virial_ev": [
+          [
+            0.03522648789381109,
+            0.057203167233348756,
+            0.0
+          ],
+          [
+            0.05720316723334414,
+            0.11028417830571341,
+            0.0
+          ],
+          [
+            -3.3306690738754696e-16,
+            -7.494005416219807e-16,
+            0.0
+          ]
+        ]
+      },
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": -2.2552929407721025e-16,
+        "denergy_dlambda_v_ev": -0.001051094634274975,
+        "denergy_dprogress_ev": -4.510585881544205e-16,
+        "energy_ev": -1.2716359727512163,
+        "forces_ev_per_angstrom": [
+          [
+            0.03911918720716545,
+            0.185480593733089,
+            -0.0
+          ],
+          [
+            0.05294752182976881,
+            -0.1462044415184937,
+            -0.0
+          ],
+          [
+            -0.06573374451359953,
+            -0.07623887604913082,
+            -0.0
+          ],
+          [
+            -0.0340286923228148,
+            0.14938106618480118,
+            -0.0
+          ],
+          [
+            -0.020930007154930985,
+            -0.07316269699626493,
+            -0.0
+          ],
+          [
+            0.028625734954411286,
+            -0.03925564535400139,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 1.0,
+        "lambda_v": 1.0,
+        "progress": 1.0,
+        "virial_ev": [
+          [
+            0.06577925315650192,
+            0.034410145940215305,
+            0.0
+          ],
+          [
+            0.03441014594020614,
+            0.10709772321356159,
+            0.0
+          ],
+          [
+            -4.440892098500626e-16,
+            1.3322676295501878e-15,
+            0.0
+          ]
+        ]
+      }
+    ],
+    "scope": "interacting_native_fennix_bio1m_mechanics_only_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+    "system": {
+      "atomic_numbers": [
+        8,
+        1,
+        1,
+        8,
+        1,
+        1
+      ],
+      "cell_angstrom": [
+        [
+          18.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          18.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          18.0
+        ]
+      ],
+      "coordinates_angstrom": [
+        [
+          2.0,
+          2.0,
+          2.0
+        ],
+        [
+          2.9572,
+          2.0,
+          2.0
+        ],
+        [
+          1.760013,
+          2.927297,
+          2.0
+        ],
+        [
+          6.0,
+          2.0,
+          2.0
+        ],
+        [
+          6.9572,
+          2.0,
+          2.0
+        ],
+        [
+          5.760013,
+          2.927297,
+          2.0
+        ]
+      ],
+      "inside_cutoff": true,
+      "molecule_ids": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+      ],
+      "solute_atom_indices": [
+        0,
+        1,
+        2
+      ],
+      "solute_solvent_oxygen_distance_angstrom": 4.0
+    }
+  },
+  "formal_gates": {
+    "absolute_hydration_free_energy_protocol_run": false,
+    "cpu_gpu_experimental_no_degradation_verified": false,
+    "experimental_accuracy_evaluated": false,
+    "gpu_production_admitted": false,
+    "matched_qm_timing_eligible": false,
+    "performance_claim_allowed": false,
+    "ten_record_ten_distinct_primary_functional_group_panel_run": false
+  },
+  "gpu_receipt": {
+    "checkpoint": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+    "checkpoint_file_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+    "close_contact_canary": {
+      "mechanics_only": true,
+      "neighbor_overflow_observed": false,
+      "p_equals_one_evaluated": false,
+      "progress_states": [
+        0.0,
+        0.25
+      ],
+      "rows": [
+        {
+          "cell_gradient_ev_per_angstrom": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "denergy_dlambda_e_ev": 0.0,
+          "denergy_dlambda_v_ev": 0.0,
+          "denergy_dprogress_ev": 0.0,
+          "energy_ev": -1.238267933850545,
+          "forces_ev_per_angstrom": [
+            [
+              0.06139186440032951,
+              0.12403505046042107,
+              -0.0
+            ],
+            [
+              -0.01319207881823048,
+              -0.062197732038329734,
+              -0.0
+            ],
+            [
+              -0.04819978558209903,
+              -0.0618373184220915,
+              -0.0
+            ],
+            [
+              0.06139186440033173,
+              0.1240350504604204,
+              -0.0
+            ],
+            [
+              -0.013192078818232256,
+              -0.062197732038329664,
+              -0.0
+            ],
+            [
+              -0.048199785582099364,
+              -0.061837318422090615,
+              -0.0
+            ]
+          ],
+          "formal_admission": {
+            "accuracy_admitted": false,
+            "gpu_admitted": false,
+            "hfe_admitted": false,
+            "mechanics_evidence_only": true,
+            "performance_admitted": false
+          },
+          "lambda_e": 0.0,
+          "lambda_v": 0.0,
+          "progress": 0.0,
+          "virial_ev": [
+            [
+              0.002120271804638956,
+              0.08939103314185387,
+              0.0
+            ],
+            [
+              0.08939103314184743,
+              0.11468311972169962,
+              0.0
+            ],
+            [
+              -2.220446049250313e-16,
+              8.326672684688674e-17,
+              0.0
+            ]
+          ]
+        },
+        {
+          "cell_gradient_ev_per_angstrom": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "denergy_dlambda_e_ev": 0.0,
+          "denergy_dlambda_v_ev": 172.1763858900235,
+          "denergy_dprogress_ev": 344.352771780047,
+          "energy_ev": 15.39040814902933,
+          "forces_ev_per_angstrom": [
+            [
+              -0.28816822262093056,
+              -0.32568460715747105,
+              -0.0
+            ],
+            [
+              0.45280927859899645,
+              -0.06223846856622672,
+              -0.0
+            ],
+            [
+              -0.16464105597806566,
+              0.38792307572369766,
+              -0.0
+            ],
+            [
+              -0.28816822262093156,
+              -0.3256846071574713,
+              -0.0
+            ],
+            [
+              0.4528092785989972,
+              -0.06223846856622656,
+              -0.0
+            ],
+            [
+              -0.16464105597806555,
+              0.3879230757236978,
+              -0.0
+            ]
+          ],
+          "formal_admission": {
+            "accuracy_admitted": false,
+            "gpu_admitted": false,
+            "hfe_admitted": false,
+            "mechanics_evidence_only": true,
+            "performance_admitted": false
+          },
+          "lambda_e": 0.0,
+          "lambda_v": 0.5,
+          "progress": 0.25,
+          "virial_ev": [
+            [
+              -0.9458815091519379,
+              0.30534231457059147,
+              0.0
+            ],
+            [
+              0.3053423145705839,
+              -0.7194398086987149,
+              0.0
+            ],
+            [
+              -6.661338147750939e-16,
+              3.3306690738754696e-16,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "scope": "coincident_two_water_softcore_mechanics_canary_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+      "system": {
+        "atomic_numbers": [
+          8,
+          1,
+          1,
+          8,
+          1,
+          1
+        ],
+        "cell_angstrom": [
+          [
+            18.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            18.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            18.0
+          ]
+        ],
+        "coordinates_angstrom": [
+          [
+            6.0,
+            2.0,
+            2.0
+          ],
+          [
+            6.9572,
+            2.0,
+            2.0
+          ],
+          [
+            5.760013,
+            2.927297,
+            2.0
+          ],
+          [
+            6.0,
+            2.0,
+            2.0
+          ],
+          [
+            6.9572,
+            2.0,
+            2.0
+          ],
+          [
+            5.760013,
+            2.927297,
+            2.0
+          ]
+        ],
+        "inside_cutoff": true,
+        "molecule_ids": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ],
+        "solute_atom_indices": [
+          0,
+          1,
+          2
+        ],
+        "solute_solvent_oxygen_distance_angstrom": 0.0
+      }
+    },
+    "device_request": "cuda:0",
+    "formal_gates": {
+      "absolute_hydration_free_energy_protocol_run": false,
+      "cpu_gpu_experimental_no_degradation_verified": false,
+      "experimental_accuracy_evaluated": false,
+      "gpu_production_admitted": false,
+      "matched_qm_timing_eligible": false,
+      "performance_claim_allowed": false,
+      "ten_record_ten_distinct_primary_functional_group_panel_run": false
+    },
+    "identity": {
+      "alchemical_parameters": {
+        "graph_softcore_provenance": "pinned_fennol_source_default",
+        "graph_softcore_v_angstrom": 0.5,
+        "repulsion_power_m": 2,
+        "repulsion_power_provenance": "pinned_fennol_source_default",
+        "repulsion_softcore_angstrom": 0.5,
+        "repulsion_softcore_provenance": "maple_output_blind_reconstruction_not_paper_exact",
+        "scientific_scope": "maple_owned_softcore_reconstruction_mechanics_not_paper_reproduction"
+      },
+      "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+      "checkpoint_source_revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3",
+      "derived_parameter_tree_fingerprint": "0fe05dfdbe83b110a3a7c4bc42c3d5c7400645169721ad2d9aa3bf836e735d5c",
+      "energy_unit": "eV",
+      "fennol_package_tree_file_count": 71,
+      "fennol_package_tree_sha256": "b0ff2b138cdfa5f406b332ddcf12380bd981cee0be3986715827e6d7dacb4262",
+      "fixed_species_encoding_float64_sha256": "6e9ddf0e4b7c91aa0c8b6fdd4af617ec87f5abc0f51c0c7262395569c22dbe5b",
+      "gpu_production_admitted": false,
+      "jax_enable_x64": true,
+      "length_unit": "angstrom",
+      "matmul_precision": "highest",
+      "model_id": "fennix-bio1",
+      "model_variant": "medium",
+      "original_parameter_tree_fingerprint": "e0554dc2af0a652de5f42be138eb69449d519c89bad972e56c88403488e06e11",
+      "repulsion_nlh_coefficients_provenance": "pinned_nlh_coeffs_data_float32_origin_promoted_to_float64_for_model_execution",
+      "runtime_distribution": "FeNNol",
+      "runtime_package_versions": {
+        "flax": "0.12.8",
+        "jax": "0.10.2",
+        "jax-cuda12-pjrt": "0.10.2",
+        "jax-cuda12-plugin": "0.10.2",
+        "jaxlib": "0.10.2",
+        "numpy": "2.4.6"
+      },
+      "runtime_source_sha256": {
+        "fennol/ase.py": "6d6a9dbf40fce96b8589a3702de7de190f8301d0827f629fbfad2c1e4a2f97d7",
+        "fennol/models/embeddings/charge_embeddings.py": "b6e731a217bca04d9ed0b3a472175839283fce4b2f34edd14c25e0b3ecd96114",
+        "fennol/models/fennix.py": "2e092b782b2fcabf2b1d355274d34888faa3b6aca8bee60e44fcea71245991af",
+        "fennol/models/misc/encodings.py": "cfe1a486efc1f0a35d16a50dc09c5f28f717bb25d0cc63254f9e201aee3f1aae",
+        "fennol/models/modules.py": "afa28295acf9935cfa633d7ad03bec7100b1c7788f2b80ec0fa89db4e2cb19f0",
+        "fennol/models/physics/nlh_coeffs.dat": "9f6ad25db062dec6552e6a2132d17484da2e4bfd30e70611a94a8a886cd1e32a",
+        "fennol/models/physics/repulsion.py": "ee952d840432090a38bf9eedda2429b7f3a94c4b2f0d1f9dac27d2297f165c22",
+        "fennol/models/preprocessing.py": "153519f469e112b6f1d2bfe7f243c241db476f273543abd0540ab658d59c96d4",
+        "fennol/utils/periodic_table.py": "e6b2dd254305c0c065fdcb41249fa80ed92e8b0e00b16dfa0a039ea3f313006c"
+      },
+      "runtime_version": "2026.6.29",
+      "scientific_scope": "maple_owned_softcore_reconstruction_mechanics_not_paper_reproduction_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+      "source_revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+      "tf32_enabled": false
+    },
+    "maple_kernel_source_sha256": {
+      "__init__.py": "791b98745a3dd1107a788b3ab0af8cf94cef94ec0d15ce3eba69cc2c864275ee",
+      "kernel.py": "cb6608bc1fc8a8be6f2b5bec51d0bb6ad65aac03a7c49c497fd39ef30c53a536",
+      "system.py": "fb18b37ad5f93567bb7b4d982f798113f244ea80003569a8b4063b26c12edfe8",
+      "types.py": "198e5f704cc79302f72909edc32865d82d8a020f0ee0065a329a1181d735bb39"
+    },
+    "rows": [
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": 4.440892098500626e-16,
+        "denergy_dlambda_v_ev": 0.0,
+        "denergy_dprogress_ev": 0.0,
+        "energy_ev": -1.2382679338505451,
+        "forces_ev_per_angstrom": [
+          [
+            0.0613918644003153,
+            0.1240350504604133,
+            -0.0
+          ],
+          [
+            -0.013192078818212272,
+            -0.06219773203833111,
+            -0.0
+          ],
+          [
+            -0.048199785582102805,
+            -0.061837318422081955,
+            -0.0
+          ],
+          [
+            0.0613918644003324,
+            0.12403505046042018,
+            -0.0
+          ],
+          [
+            -0.013192078818233144,
+            -0.0621977320383295,
+            -0.0
+          ],
+          [
+            -0.04819978558209925,
+            -0.06183731842209084,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 0.0,
+        "lambda_v": 0.0,
+        "progress": 0.0,
+        "virial_ev": [
+          [
+            0.0021202718046217746,
+            0.08939103314185744,
+            0.0
+          ],
+          [
+            0.08939103314185062,
+            0.11468311972169072,
+            0.0
+          ],
+          [
+            -4.440892098500626e-16,
+            -1.6653345369377348e-16,
+            0.0
+          ]
+        ]
+      },
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": 0.0,
+        "denergy_dlambda_v_ev": 1.1333683468293386e-06,
+        "denergy_dprogress_ev": 2.2667366936586772e-06,
+        "energy_ev": -1.2382677699531652,
+        "forces_ev_per_angstrom": [
+          [
+            0.061391864400313745,
+            0.12403505046041263,
+            -0.0
+          ],
+          [
+            -0.013193834843540087,
+            -0.062197732051749444,
+            -0.0
+          ],
+          [
+            -0.04819978558210303,
+            -0.06183731842208151,
+            -0.0
+          ],
+          [
+            0.061393620385103986,
+            0.12403505046042018,
+            -0.0
+          ],
+          [
+            -0.013192078818232922,
+            -0.06219773203832958,
+            -0.0
+          ],
+          [
+            -0.04819978554154175,
+            -0.06183731840867268,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 0.0,
+        "lambda_v": 0.5,
+        "progress": 0.25,
+        "virial_ev": [
+          [
+            0.0021149285804818578,
+            0.08939103310425055,
+            0.0
+          ],
+          [
+            0.08939103310424253,
+            0.11468311970924866,
+            0.0
+          ],
+          [
+            1.1102230246251565e-16,
+            8.049116928532385e-16,
+            0.0
+          ]
+        ]
+      },
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": 4.440892098500626e-16,
+        "denergy_dlambda_v_ev": 5.707016037527069e-07,
+        "denergy_dprogress_ev": 1.1414032075054138e-06,
+        "energy_ev": -1.2382670341544668,
+        "forces_ev_per_angstrom": [
+          [
+            0.06139186440031286,
+            0.1240350504604133,
+            -0.0
+          ],
+          [
+            -0.013201652547024656,
+            -0.062197732126212366,
+            -0.0
+          ],
+          [
+            -0.048199785582102916,
+            -0.06183731842208218,
+            -0.0
+          ],
+          [
+            0.06140143786352059,
+            0.12403505046041974,
+            -0.0
+          ],
+          [
+            -0.013192078818233144,
+            -0.06219773203832954,
+            -0.0
+          ],
+          [
+            -0.048199785316473176,
+            -0.061837318334209135,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 0.0,
+        "lambda_v": 1.0,
+        "progress": 0.5,
+        "virial_ev": [
+          [
+            0.002091140926331976,
+            0.08939103289554358,
+            0.0
+          ],
+          [
+            0.08939103289553779,
+            0.114683119640199,
+            0.0
+          ],
+          [
+            8.881784197001252e-16,
+            3.608224830031759e-16,
+            0.0
+          ]
+        ]
+      },
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": -0.049377455221383315,
+        "denergy_dlambda_v_ev": -0.0006794111843362103,
+        "denergy_dprogress_ev": -0.09875491044276663,
+        "energy_ev": -1.25960349417508,
+        "forces_ev_per_angstrom": [
+          [
+            0.04330741056860887,
+            0.1554157030988237,
+            -0.0
+          ],
+          [
+            0.0260949930046408,
+            -0.10572057122985679,
+            -0.0
+          ],
+          [
+            -0.05427569761749251,
+            -0.06992733751116598,
+            -0.0
+          ],
+          [
+            0.007436243806407061,
+            0.1376415503060937,
+            -0.0
+          ],
+          [
+            -0.015150572002141649,
+            -0.0684058775830958,
+            -0.0
+          ],
+          [
+            -0.0074123777600227925,
+            -0.049003467080798835,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 0.5,
+        "lambda_v": 1.0,
+        "progress": 0.75,
+        "virial_ev": [
+          [
+            0.035226487893814024,
+            0.05720316723335004,
+            0.0
+          ],
+          [
+            0.057203167233344246,
+            0.11028417830571519,
+            0.0
+          ],
+          [
+            4.440892098500626e-16,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      {
+        "cell_gradient_ev_per_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "denergy_dlambda_e_ev": 2.1855991577285236e-16,
+        "denergy_dlambda_v_ev": -0.0010510946342750058,
+        "denergy_dprogress_ev": 4.3711983154570473e-16,
+        "energy_ev": -1.2716359727512168,
+        "forces_ev_per_angstrom": [
+          [
+            0.03911918720716434,
+            0.185480593733089,
+            -0.0
+          ],
+          [
+            0.05294752182976992,
+            -0.14620444151849335,
+            -0.0
+          ],
+          [
+            -0.06573374451359887,
+            -0.07623887604913149,
+            -0.0
+          ],
+          [
+            -0.034028692322813026,
+            0.14938106618480007,
+            -0.0
+          ],
+          [
+            -0.020930007154932984,
+            -0.07316269699626515,
+            -0.0
+          ],
+          [
+            0.02862573495441062,
+            -0.03925564535399961,
+            -0.0
+          ]
+        ],
+        "formal_admission": {
+          "accuracy_admitted": false,
+          "gpu_admitted": false,
+          "hfe_admitted": false,
+          "mechanics_evidence_only": true,
+          "performance_admitted": false
+        },
+        "lambda_e": 1.0,
+        "lambda_v": 1.0,
+        "progress": 1.0,
+        "virial_ev": [
+          [
+            0.06577925315650676,
+            0.0344101459402134,
+            0.0
+          ],
+          [
+            0.034410145940206575,
+            0.10709772321356029,
+            0.0
+          ],
+          [
+            0.0,
+            1.0547118733938987e-15,
+            0.0
+          ]
+        ]
+      }
+    ],
+    "scope": "interacting_native_fennix_bio1m_mechanics_only_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+    "system": {
+      "atomic_numbers": [
+        8,
+        1,
+        1,
+        8,
+        1,
+        1
+      ],
+      "cell_angstrom": [
+        [
+          18.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          18.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          18.0
+        ]
+      ],
+      "coordinates_angstrom": [
+        [
+          2.0,
+          2.0,
+          2.0
+        ],
+        [
+          2.9572,
+          2.0,
+          2.0
+        ],
+        [
+          1.760013,
+          2.927297,
+          2.0
+        ],
+        [
+          6.0,
+          2.0,
+          2.0
+        ],
+        [
+          6.9572,
+          2.0,
+          2.0
+        ],
+        [
+          5.760013,
+          2.927297,
+          2.0
+        ]
+      ],
+      "inside_cutoff": true,
+      "molecule_ids": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+      ],
+      "solute_atom_indices": [
+        0,
+        1,
+        2
+      ],
+      "solute_solvent_oxygen_distance_angstrom": 4.0
+    }
+  },
+  "identity": {
+    "alchemical_parameters": {
+      "graph_softcore_provenance": "pinned_fennol_source_default",
+      "graph_softcore_v_angstrom": 0.5,
+      "repulsion_power_m": 2,
+      "repulsion_power_provenance": "pinned_fennol_source_default",
+      "repulsion_softcore_angstrom": 0.5,
+      "repulsion_softcore_provenance": "maple_output_blind_reconstruction_not_paper_exact",
+      "scientific_scope": "maple_owned_softcore_reconstruction_mechanics_not_paper_reproduction"
+    },
+    "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+    "checkpoint_source_revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3",
+    "derived_parameter_tree_fingerprint": "0fe05dfdbe83b110a3a7c4bc42c3d5c7400645169721ad2d9aa3bf836e735d5c",
+    "fennol_package_tree_file_count": 71,
+    "fennol_package_tree_sha256": "b0ff2b138cdfa5f406b332ddcf12380bd981cee0be3986715827e6d7dacb4262",
+    "fennol_source_revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+    "fixed_species_encoding_float64_sha256": "6e9ddf0e4b7c91aa0c8b6fdd4af617ec87f5abc0f51c0c7262395569c22dbe5b",
+    "maple_kernel_source_sha256": {
+      "__init__.py": "791b98745a3dd1107a788b3ab0af8cf94cef94ec0d15ce3eba69cc2c864275ee",
+      "kernel.py": "cb6608bc1fc8a8be6f2b5bec51d0bb6ad65aac03a7c49c497fd39ef30c53a536",
+      "system.py": "fb18b37ad5f93567bb7b4d982f798113f244ea80003569a8b4063b26c12edfe8",
+      "types.py": "198e5f704cc79302f72909edc32865d82d8a020f0ee0065a329a1181d735bb39"
+    },
+    "original_parameter_tree_fingerprint": "e0554dc2af0a652de5f42be138eb69449d519c89bad972e56c88403488e06e11",
+    "repulsion_nlh_coefficients_provenance": "pinned_nlh_coeffs_data_float32_origin_promoted_to_float64_for_model_execution",
+    "runtime_source_sha256": {
+      "fennol/ase.py": "6d6a9dbf40fce96b8589a3702de7de190f8301d0827f629fbfad2c1e4a2f97d7",
+      "fennol/models/embeddings/charge_embeddings.py": "b6e731a217bca04d9ed0b3a472175839283fce4b2f34edd14c25e0b3ecd96114",
+      "fennol/models/fennix.py": "2e092b782b2fcabf2b1d355274d34888faa3b6aca8bee60e44fcea71245991af",
+      "fennol/models/misc/encodings.py": "cfe1a486efc1f0a35d16a50dc09c5f28f717bb25d0cc63254f9e201aee3f1aae",
+      "fennol/models/modules.py": "afa28295acf9935cfa633d7ad03bec7100b1c7788f2b80ec0fa89db4e2cb19f0",
+      "fennol/models/physics/nlh_coeffs.dat": "9f6ad25db062dec6552e6a2132d17484da2e4bfd30e70611a94a8a886cd1e32a",
+      "fennol/models/physics/repulsion.py": "ee952d840432090a38bf9eedda2429b7f3a94c4b2f0d1f9dac27d2297f165c22",
+      "fennol/models/preprocessing.py": "153519f469e112b6f1d2bfe7f243c241db476f273543abd0540ab658d59c96d4",
+      "fennol/utils/periodic_table.py": "e6b2dd254305c0c065fdcb41249fa80ed92e8b0e00b16dfa0a039ea3f313006c"
+    },
+    "system_sha256": "56af7a42f997964b41fb9feaf52630ec4e764c0ab28e8893be2473b443fb7925"
+  },
+  "recomputed_same_system_comparison": {
+    "close_contact_canary": {
+      "all_full_arrays_finite": true,
+      "cpu_nontrivial_active_softcore_response": {
+        "maximum_absolute_active_derivative_ev": 344.3527717800469,
+        "maximum_energy_change_from_p0_ev": 16.628676082879874,
+        "minimum_active_derivative_ev_exclusive": 0.001,
+        "minimum_energy_change_from_p0_ev_exclusive": 0.001,
+        "passed": true
+      },
+      "global_max_abs_diff": 1.1368683772161603e-13,
+      "gpu_nontrivial_active_softcore_response": {
+        "maximum_absolute_active_derivative_ev": 344.352771780047,
+        "maximum_energy_change_from_p0_ev": 16.628676082879874,
+        "minimum_active_derivative_ev_exclusive": 0.001,
+        "minimum_energy_change_from_p0_ev_exclusive": 0.001,
+        "passed": true
+      },
+      "mechanics_only": true,
+      "neighbor_overflow_observed": false,
+      "p_equals_one_evaluated": false,
+      "per_progress": [
+        {
+          "max_abs_diff": {
+            "cell_gradient_ev_per_angstrom": 0.0,
+            "denergy_dlambda_e_ev": 4.440892098500626e-16,
+            "denergy_dlambda_v_ev": 0.0,
+            "denergy_dprogress_ev": 0.0,
+            "energy_ev": 2.220446049250313e-16,
+            "forces_ev_per_angstrom": 2.6645352591003757e-15,
+            "virial_ev": 5.493435567549554e-15
+          },
+          "progress": 0.0
+        },
+        {
+          "max_abs_diff": {
+            "cell_gradient_ev_per_angstrom": 0.0,
+            "denergy_dlambda_e_ev": 4.440892098500626e-16,
+            "denergy_dlambda_v_ev": 5.684341886080802e-14,
+            "denergy_dprogress_ev": 1.1368683772161603e-13,
+            "energy_ev": 0.0,
+            "forces_ev_per_angstrom": 1.9984014443252818e-15,
+            "virial_ev": 4.218847493575595e-15
+          },
+          "progress": 0.25
+        }
+      ],
+      "progress_states": [
+        0.0,
+        0.25
+      ],
+      "same_system": true
+    },
+    "cpu_nontrivial_coupling": {
+      "energy_span_ev": 0.0333689385967495,
+      "maximum_absolute_active_derivative_ev": 0.09875491044276763,
+      "minimum_active_derivative_ev_exclusive": 0.001,
+      "minimum_energy_span_ev_exclusive": 0.001,
+      "passed": true
+    },
+    "formal_gates": {
+      "absolute_hydration_free_energy_protocol_run": false,
+      "cpu_gpu_experimental_no_degradation_verified": false,
+      "experimental_accuracy_evaluated": false,
+      "gpu_production_admitted": false,
+      "matched_qm_timing_eligible": false,
+      "performance_claim_allowed": false,
+      "ten_record_ten_distinct_primary_functional_group_panel_run": false
+    },
+    "global_max_abs_diff": 4.8433479449272454e-15,
+    "gpu_nontrivial_coupling": {
+      "energy_span_ev": 0.03336893859674994,
+      "maximum_absolute_active_derivative_ev": 0.09875491044276663,
+      "minimum_active_derivative_ev_exclusive": 0.001,
+      "minimum_energy_span_ev_exclusive": 0.001,
+      "passed": true
+    },
+    "inside_cutoff": true,
+    "per_progress": [
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 0.0,
+          "denergy_dlambda_v_ev": 0.0,
+          "denergy_dprogress_ev": 0.0,
+          "energy_ev": 2.220446049250313e-16,
+          "forces_ev_per_angstrom": 1.9984014443252818e-15,
+          "virial_ev": 1.5959455978986625e-15
+        },
+        "progress": 0.0
+      },
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 4.440892098500626e-16,
+          "denergy_dlambda_v_ev": 4.0657581468206416e-20,
+          "denergy_dprogress_ev": 8.131516293641283e-20,
+          "energy_ev": 4.440892098500626e-16,
+          "forces_ev_per_angstrom": 1.1102230246251565e-15,
+          "virial_ev": 1.5959455978986625e-15
+        },
+        "progress": 0.25
+      },
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 0.0,
+          "denergy_dlambda_v_ev": 1.7999450129153882e-21,
+          "denergy_dprogress_ev": 3.5998900258307764e-21,
+          "energy_ev": 0.0,
+          "forces_ev_per_angstrom": 1.5543122344752192e-15,
+          "virial_ev": 1.5404344466674047e-15
+        },
+        "progress": 0.5
+      },
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 4.996003610813204e-16,
+          "denergy_dlambda_v_ev": 4.9873299934333204e-18,
+          "denergy_dprogress_ev": 9.992007221626409e-16,
+          "energy_ev": 2.220446049250313e-16,
+          "forces_ev_per_angstrom": 1.1102230246251565e-15,
+          "virial_ev": 2.9351521213527576e-15
+        },
+        "progress": 0.75
+      },
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 4.440892098500626e-16,
+          "denergy_dlambda_v_ev": 3.0791341698588326e-17,
+          "denergy_dprogress_ev": 8.881784197001252e-16,
+          "energy_ev": 4.440892098500626e-16,
+          "forces_ev_per_angstrom": 1.9984014443252818e-15,
+          "virial_ev": 4.8433479449272454e-15
+        },
+        "progress": 1.0
+      }
+    ],
+    "same_alchemical_parameters": true,
+    "same_checkpoint": true,
+    "same_derived_parameter_tree_fingerprint": true,
+    "same_fennol_package_tree_sha256": true,
+    "same_fixed_species_encoding_float64_sha256": true,
+    "same_maple_kernel_source_sha256": true,
+    "same_original_parameter_tree_fingerprint": true,
+    "same_repulsion_nlh_coefficients_provenance": true,
+    "same_system": true,
+    "scope": "interacting_cpu_gpu_native_kernel_mechanics_parity_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+    "solute_solvent_oxygen_distance_angstrom": 4.0,
+    "system_sha256": "56af7a42f997964b41fb9feaf52630ec4e764c0ab28e8893be2473b443fb7925"
+  },
+  "reproduction": {
+    "commands": {
+      "combine": "python run_fennix_bio1_native_kernel_smoke.py combine --cpu CPU_JSON --gpu GPU_JSON --comparison SOURCE_COMPARISON_JSON --output ARTIFACT_JSON",
+      "run": "python run_fennix_bio1_native_kernel_smoke.py run --python PINNED_FENNOL_PYTHON --checkpoint FENNIX_BIO1M --output-dir RECEIPTS"
+    },
+    "runner": "docs/pretrained-solvation-hub/run_fennix_bio1_native_kernel_smoke.py",
+    "worker_isolation": "one_process_per_cpu_or_gpu_backend"
+  },
+  "schema_version": 1,
+  "scientific_boundary": {
+    "close_contact_nontrivial_active_softcore_response_required": true,
+    "close_contact_p_equals_one_evaluated": false,
+    "distinct_primary_functional_groups_used": 0,
+    "experimental_records_used": 0,
+    "explicit_graph_softcore_provenance_bound": true,
+    "explicit_repulsion_softcore_provenance_bound": true,
+    "full_energy_force_cell_gradient_virial_lambda_arrays_saved": true,
+    "gpu_admitted": false,
+    "hfe_estimated": false,
+    "lambda_abf_run": false,
+    "matched_qm_timing_eligible": false,
+    "mechanics_only": true,
+    "nontrivial_interacting_coupling_required": true,
+    "performance_claim_allowed": false,
+    "protocol_reconstruction_not_paper_reproduction": true,
+    "real_pinned_close_contact_softcore_canary_run": true,
+    "sampling_run": false
+  },
+  "scope": "production_fennix_native_kernel_mechanics_only_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+  "source_comparison_receipt": {
+    "close_contact_canary": {
+      "all_full_arrays_finite": true,
+      "cpu_nontrivial_active_softcore_response": {
+        "maximum_absolute_active_derivative_ev": 344.3527717800469,
+        "maximum_energy_change_from_p0_ev": 16.628676082879874,
+        "minimum_active_derivative_ev_exclusive": 0.001,
+        "minimum_energy_change_from_p0_ev_exclusive": 0.001,
+        "passed": true
+      },
+      "global_max_abs_diff": 1.1368683772161603e-13,
+      "gpu_nontrivial_active_softcore_response": {
+        "maximum_absolute_active_derivative_ev": 344.352771780047,
+        "maximum_energy_change_from_p0_ev": 16.628676082879874,
+        "minimum_active_derivative_ev_exclusive": 0.001,
+        "minimum_energy_change_from_p0_ev_exclusive": 0.001,
+        "passed": true
+      },
+      "mechanics_only": true,
+      "neighbor_overflow_observed": false,
+      "p_equals_one_evaluated": false,
+      "per_progress": [
+        {
+          "max_abs_diff": {
+            "cell_gradient_ev_per_angstrom": 0.0,
+            "denergy_dlambda_e_ev": 4.440892098500626e-16,
+            "denergy_dlambda_v_ev": 0.0,
+            "denergy_dprogress_ev": 0.0,
+            "energy_ev": 2.220446049250313e-16,
+            "forces_ev_per_angstrom": 2.6645352591003757e-15,
+            "virial_ev": 5.493435567549554e-15
+          },
+          "progress": 0.0
+        },
+        {
+          "max_abs_diff": {
+            "cell_gradient_ev_per_angstrom": 0.0,
+            "denergy_dlambda_e_ev": 4.440892098500626e-16,
+            "denergy_dlambda_v_ev": 5.684341886080802e-14,
+            "denergy_dprogress_ev": 1.1368683772161603e-13,
+            "energy_ev": 0.0,
+            "forces_ev_per_angstrom": 1.9984014443252818e-15,
+            "virial_ev": 4.218847493575595e-15
+          },
+          "progress": 0.25
+        }
+      ],
+      "progress_states": [
+        0.0,
+        0.25
+      ],
+      "same_system": true
+    },
+    "cpu_nontrivial_coupling": {
+      "energy_span_ev": 0.0333689385967495,
+      "maximum_absolute_active_derivative_ev": 0.09875491044276763,
+      "minimum_active_derivative_ev_exclusive": 0.001,
+      "minimum_energy_span_ev_exclusive": 0.001,
+      "passed": true
+    },
+    "cpu_receipt": "/tmp/fennix-native-active-softcore.73y9oM/native-kernel-interacting-cpu.json",
+    "cpu_receipt_sha256": "173f36762e74be8c85cc9ac12f4cc51b65ce749df5ceee80ba5b0380345d4773",
+    "formal_gates": {
+      "absolute_hydration_free_energy_protocol_run": false,
+      "cpu_gpu_experimental_no_degradation_verified": false,
+      "experimental_accuracy_evaluated": false,
+      "gpu_production_admitted": false,
+      "matched_qm_timing_eligible": false,
+      "performance_claim_allowed": false,
+      "ten_record_ten_distinct_primary_functional_group_panel_run": false
+    },
+    "global_max_abs_diff": 4.8433479449272454e-15,
+    "gpu_nontrivial_coupling": {
+      "energy_span_ev": 0.03336893859674994,
+      "maximum_absolute_active_derivative_ev": 0.09875491044276663,
+      "minimum_active_derivative_ev_exclusive": 0.001,
+      "minimum_energy_span_ev_exclusive": 0.001,
+      "passed": true
+    },
+    "gpu_receipt": "/tmp/fennix-native-active-softcore.73y9oM/native-kernel-interacting-gpu.json",
+    "gpu_receipt_sha256": "b2f9cdf1b85ba619d80833199fca0ce4ebdbb64dfc691f2a8cc9568973742cf3",
+    "inside_cutoff": true,
+    "per_progress": [
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 0.0,
+          "denergy_dlambda_v_ev": 0.0,
+          "denergy_dprogress_ev": 0.0,
+          "energy_ev": 2.220446049250313e-16,
+          "forces_ev_per_angstrom": 1.9984014443252818e-15,
+          "virial_ev": 1.5959455978986625e-15
+        },
+        "progress": 0.0
+      },
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 4.440892098500626e-16,
+          "denergy_dlambda_v_ev": 4.0657581468206416e-20,
+          "denergy_dprogress_ev": 8.131516293641283e-20,
+          "energy_ev": 4.440892098500626e-16,
+          "forces_ev_per_angstrom": 1.1102230246251565e-15,
+          "virial_ev": 1.5959455978986625e-15
+        },
+        "progress": 0.25
+      },
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 0.0,
+          "denergy_dlambda_v_ev": 1.7999450129153882e-21,
+          "denergy_dprogress_ev": 3.5998900258307764e-21,
+          "energy_ev": 0.0,
+          "forces_ev_per_angstrom": 1.5543122344752192e-15,
+          "virial_ev": 1.5404344466674047e-15
+        },
+        "progress": 0.5
+      },
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 4.996003610813204e-16,
+          "denergy_dlambda_v_ev": 4.9873299934333204e-18,
+          "denergy_dprogress_ev": 9.992007221626409e-16,
+          "energy_ev": 2.220446049250313e-16,
+          "forces_ev_per_angstrom": 1.1102230246251565e-15,
+          "virial_ev": 2.9351521213527576e-15
+        },
+        "progress": 0.75
+      },
+      {
+        "max_abs_diff": {
+          "cell_gradient_ev_per_angstrom": 0.0,
+          "denergy_dlambda_e_ev": 4.440892098500626e-16,
+          "denergy_dlambda_v_ev": 3.0791341698588326e-17,
+          "denergy_dprogress_ev": 8.881784197001252e-16,
+          "energy_ev": 4.440892098500626e-16,
+          "forces_ev_per_angstrom": 1.9984014443252818e-15,
+          "virial_ev": 4.8433479449272454e-15
+        },
+        "progress": 1.0
+      }
+    ],
+    "runner": "/home/axie/MAPLE/MAPLE-implicitsolv-route4/docs/pretrained-solvation-hub/run_fennix_bio1_native_kernel_smoke.py",
+    "runner_sha256": "e101fbe779a95b2b9666343c59f2f994613a5147d66b9458559a33861d0faf4a",
+    "same_alchemical_parameters": true,
+    "same_checkpoint": true,
+    "same_derived_parameter_tree_fingerprint": true,
+    "same_fennol_package_tree_sha256": true,
+    "same_fixed_species_encoding_float64_sha256": true,
+    "same_maple_kernel_source_sha256": true,
+    "same_original_parameter_tree_fingerprint": true,
+    "same_repulsion_nlh_coefficients_provenance": true,
+    "same_system": true,
+    "scope": "interacting_cpu_gpu_native_kernel_mechanics_parity_not_hfe_not_accuracy_not_gpu_admission_not_performance",
+    "solute_solvent_oxygen_distance_angstrom": 4.0,
+    "system_sha256": "56af7a42f997964b41fb9feaf52630ec4e764c0ab28e8893be2473b443fb7925"
+  },
+  "source_sha256": {
+    "comparison_receipt": "a5b70d241f7e8e776bfb4d9421602950bd6cef839eee0ad6ff2de9615dc55c48",
+    "cpu_receipt": "173f36762e74be8c85cc9ac12f4cc51b65ce749df5ceee80ba5b0380345d4773",
+    "gpu_receipt": "b2f9cdf1b85ba619d80833199fca0ce4ebdbb64dfc691f2a8cc9568973742cf3",
+    "runner": "e101fbe779a95b2b9666343c59f2f994613a5147d66b9458559a33861d0faf4a"
+  },
+  "verdict": "production_native_kernel_mechanics_available_admission_blocked"
+}

@@ -390,12 +390,33 @@ real MAPLE CPU call also produced finite forces and a finite, symmetric `9 x
 9` numerical Hessian.  These are mechanics observations, not solvation
 free-energy or experimental-accuracy results.
 
-A native-JAX two-water periodic kernel also ran the five-point paper lambda
-schedule on CPU and GPU.  Energy, coordinate/cell gradients, and both lambda
-derivatives were finite float64 outputs on both devices, again with
-machine-scale non-bit-exact differences.  This establishes a mechanics path
-that avoids the Tinker ABI; it does not execute sampling, Lambda-ABF, an HFE
-estimator, or uncertainty analysis.
+A production native-JAX two-water periodic kernel now runs the five-point
+article lambda schedule on CPU and GPU.  It does not rely on FeNNol's silent
+alchemical defaults: graph softcore `0.5 angstrom` and repulsion exponent
+`m = 2` are frozen as FeNNol-source defaults, while repulsion softcore
+`0.5 angstrom` is explicitly labeled an output-blind MAPLE reconstruction
+because the v4 article does not publish alpha.  The identity additionally
+binds the complete 71-file installed FeNNol source/data tree, SHA256
+`b0ff2b138cdfa5f406b332ddcf12380bd981cee0be3986715827e6d7dacb4262`,
+and `nlh_coeffs.dat`, SHA256
+`9f6ad25db062dec6552e6a2132d17484da2e4bfd30e70611a94a8a886cd1e32a`.
+The latter is disclosed as a pinned float32-origin coefficient table promoted
+to float64 for model execution; it is not misrepresented as float64-origin
+source data.
+
+The dedicated immutable record
+`benchmarks/fennix-bio1-native-kernel-mechanics-2026-07-31.json`, regenerated
+by `run_fennix_bio1_native_kernel_smoke.py`, retains complete energy, force,
+cell-gradient, virial, and lambda-derivative arrays.  Its interacting
+five-state CPU/GPU maximum absolute difference is
+`4.8433479449272454e-15`.  A real coincident-water softcore canary at
+`p = 0.25` remains finite without neighbor overflow and changes the energy by
+`16.628676082879874 eV` from `p = 0`; the active derivative is
+`344.3527717800469 eV` on CPU and `344.352771780047 eV` on GPU.  The canary's
+full-array CPU/GPU maximum difference is `1.1368683772161603e-13`.
+This establishes an active softcore mechanics path that avoids the Tinker ABI;
+it does not execute sampling, Lambda-ABF, an HFE estimator, uncertainty
+analysis, experimental validation, GPU production admission, or timing.
 
 A separate diagnostic upcast all floating checkpoint parameters into a
 derived in-memory float64 runtime identity while leaving the hash-pinned file

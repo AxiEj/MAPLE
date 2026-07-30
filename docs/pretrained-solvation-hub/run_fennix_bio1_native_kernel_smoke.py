@@ -47,6 +47,15 @@ COORDINATES_ANGSTROM = (
     (6.9572, 2.0, 2.0),
     (5.760013, 2.927297, 2.0),
 )
+CLOSE_CONTACT_COORDINATES_ANGSTROM = (
+    (6.0, 2.0, 2.0),
+    (6.9572, 2.0, 2.0),
+    (5.760013, 2.927297, 2.0),
+    (6.0, 2.0, 2.0),
+    (6.9572, 2.0, 2.0),
+    (5.760013, 2.927297, 2.0),
+)
+CLOSE_CONTACT_PROGRESS = (0.0, 0.25)
 CELL_ANGSTROM = (
     (18.0, 0.0, 0.0),
     (0.0, 18.0, 0.0),
@@ -71,6 +80,9 @@ EXPECTED_RUNTIME_SOURCE_SHA256 = {
     "fennol/models/physics/repulsion.py": (
         "ee952d840432090a38bf9eedda2429b7f3a94c4b2f0d1f9dac27d2297f165c22"
     ),
+    "fennol/models/physics/nlh_coeffs.dat": (
+        "9f6ad25db062dec6552e6a2132d17484da2e4bfd30e70611a94a8a886cd1e32a"
+    ),
     "fennol/models/preprocessing.py": (
         "153519f469e112b6f1d2bfe7f243c241db476f273543abd0540ab658d59c96d4"
     ),
@@ -79,11 +91,18 @@ EXPECTED_RUNTIME_SOURCE_SHA256 = {
     ),
 }
 EXPECTED_MAPLE_KERNEL_SOURCE_SHA256 = {
-    "__init__.py": "1c37c43276769db8cbb5e6c1cf3599acafe90f7ea6670a1af9d62c03efa127d7",
-    "kernel.py": "5d0aa3f31d293529849f7747bd47089656b8dbfca76865777c7935b3291c874d",
+    "__init__.py": "791b98745a3dd1107a788b3ab0af8cf94cef94ec0d15ce3eba69cc2c864275ee",
+    "kernel.py": "cb6608bc1fc8a8be6f2b5bec51d0bb6ad65aac03a7c49c497fd39ef30c53a536",
     "system.py": "fb18b37ad5f93567bb7b4d982f798113f244ea80003569a8b4063b26c12edfe8",
-    "types.py": "eb724276ff0ffbc328ebce000dd12ea7fc48750e98561c26fa99f5532b115d1c",
+    "types.py": "198e5f704cc79302f72909edc32865d82d8a020f0ee0065a329a1181d735bb39",
 }
+EXPECTED_FENNOL_PACKAGE_TREE_SHA256 = (
+    "b0ff2b138cdfa5f406b332ddcf12380bd981cee0be3986715827e6d7dacb4262"
+)
+EXPECTED_FENNOL_PACKAGE_TREE_FILE_COUNT = 71
+EXPECTED_REPULSION_NLH_COEFFICIENTS_PROVENANCE = (
+    "pinned_nlh_coeffs_data_float32_origin_promoted_to_float64_for_model_execution"
+)
 FORMAL_GATES = {
     "absolute_hydration_free_energy_protocol_run": False,
     "experimental_accuracy_evaluated": False,
@@ -196,30 +215,18 @@ def _worker(checkpoint: Path, output: Path, device: str) -> None:
         molecule_ids=MOLECULE_IDS,
         solute_atom_indices=SOLUTE_ATOM_INDICES,
     )
-    rows = []
-    for progress in PROGRESS:
-        result = kernel.evaluate(system, progress)
-        rows.append(
-            {
-                "progress": progress,
-                "lambda_e": result.lambda_state.lambda_e,
-                "lambda_v": result.lambda_state.lambda_v,
-                "energy_ev": result.energy_ev,
-                "forces_ev_per_angstrom": result.forces_ev_per_angstrom,
-                "cell_gradient_ev_per_angstrom": (result.cell_gradient_ev_per_angstrom),
-                "virial_ev": result.virial_ev,
-                "denergy_dlambda_e_ev": result.denergy_dlambda_e_ev,
-                "denergy_dlambda_v_ev": result.denergy_dlambda_v_ev,
-                "denergy_dprogress_ev": result.denergy_dprogress_ev,
-                "formal_admission": {
-                    "mechanics_evidence_only": True,
-                    "hfe_admitted": result.hfe_admitted,
-                    "accuracy_admitted": result.accuracy_admitted,
-                    "gpu_admitted": result.gpu_admitted,
-                    "performance_admitted": result.performance_admitted,
-                },
-            }
-        )
+    rows = [_result_row(kernel.evaluate(system, progress)) for progress in PROGRESS]
+    close_contact_system = FeNNixAlchemicalSystem(
+        atomic_numbers=ATOMIC_NUMBERS,
+        coordinates_angstrom=CLOSE_CONTACT_COORDINATES_ANGSTROM,
+        cell_angstrom=CELL_ANGSTROM,
+        molecule_ids=MOLECULE_IDS,
+        solute_atom_indices=SOLUTE_ATOM_INDICES,
+    )
+    close_contact_rows = [
+        _result_row(kernel.evaluate(close_contact_system, progress))
+        for progress in CLOSE_CONTACT_PROGRESS
+    ]
     identity = {
         name: getattr(kernel.identity, name)
         for name in kernel.identity.__dataclass_fields__
@@ -254,10 +261,52 @@ def _worker(checkpoint: Path, output: Path, device: str) -> None:
             "inside_cutoff": distance < CUTOFF_ANGSTROM,
         },
         "rows": rows,
+        "close_contact_canary": {
+            "scope": (
+                "coincident_two_water_softcore_mechanics_canary_"
+                "not_hfe_not_accuracy_not_gpu_admission_not_performance"
+            ),
+            "system": {
+                "atomic_numbers": ATOMIC_NUMBERS,
+                "coordinates_angstrom": CLOSE_CONTACT_COORDINATES_ANGSTROM,
+                "cell_angstrom": CELL_ANGSTROM,
+                "molecule_ids": MOLECULE_IDS,
+                "solute_atom_indices": SOLUTE_ATOM_INDICES,
+                "solute_solvent_oxygen_distance_angstrom": 0.0,
+                "inside_cutoff": True,
+            },
+            "progress_states": CLOSE_CONTACT_PROGRESS,
+            "rows": close_contact_rows,
+            "neighbor_overflow_observed": False,
+            "p_equals_one_evaluated": False,
+            "mechanics_only": True,
+        },
         "formal_gates": FORMAL_GATES,
     }
     validate_receipt(payload, expected_platform="gpu" if is_gpu else "cpu")
     _write_json(output, payload)
+
+
+def _result_row(result: Any) -> dict[str, Any]:
+    return {
+        "progress": result.lambda_state.progress,
+        "lambda_e": result.lambda_state.lambda_e,
+        "lambda_v": result.lambda_state.lambda_v,
+        "energy_ev": result.energy_ev,
+        "forces_ev_per_angstrom": result.forces_ev_per_angstrom,
+        "cell_gradient_ev_per_angstrom": result.cell_gradient_ev_per_angstrom,
+        "virial_ev": result.virial_ev,
+        "denergy_dlambda_e_ev": result.denergy_dlambda_e_ev,
+        "denergy_dlambda_v_ev": result.denergy_dlambda_v_ev,
+        "denergy_dprogress_ev": result.denergy_dprogress_ev,
+        "formal_admission": {
+            "mechanics_evidence_only": True,
+            "hfe_admitted": result.hfe_admitted,
+            "accuracy_admitted": result.accuracy_admitted,
+            "gpu_admitted": result.gpu_admitted,
+            "performance_admitted": result.performance_admitted,
+        },
+    }
 
 
 def _flatten_numbers(value: Any) -> Iterable[float]:
@@ -296,6 +345,20 @@ def _expected_system() -> dict[str, Any]:
     }
 
 
+def _expected_close_contact_system() -> dict[str, Any]:
+    return {
+        "atomic_numbers": list(ATOMIC_NUMBERS),
+        "coordinates_angstrom": [
+            list(row) for row in CLOSE_CONTACT_COORDINATES_ANGSTROM
+        ],
+        "cell_angstrom": [list(row) for row in CELL_ANGSTROM],
+        "molecule_ids": list(MOLECULE_IDS),
+        "solute_atom_indices": list(SOLUTE_ATOM_INDICES),
+        "solute_solvent_oxygen_distance_angstrom": 0.0,
+        "inside_cutoff": True,
+    }
+
+
 def _nontrivial_metrics(receipt: dict[str, Any]) -> dict[str, float | bool]:
     energies = [float(row["energy_ev"]) for row in receipt["rows"]]
     energy_span = max(energies) - min(energies)
@@ -310,6 +373,30 @@ def _nontrivial_metrics(receipt: dict[str, Any]) -> dict[str, float | bool]:
         "energy_span_ev": energy_span,
         "maximum_absolute_active_derivative_ev": active_derivative,
         "minimum_energy_span_ev_exclusive": MINIMUM_ENERGY_SPAN_EV,
+        "minimum_active_derivative_ev_exclusive": MINIMUM_ACTIVE_DERIVATIVE_EV,
+        "passed": passed,
+    }
+
+
+def _close_contact_response_metrics(
+    canary: dict[str, Any],
+) -> dict[str, float | bool]:
+    rows = canary["rows"]
+    reference_energy = float(rows[0]["energy_ev"])
+    maximum_energy_change = max(
+        abs(float(row["energy_ev"]) - reference_energy) for row in rows[1:]
+    )
+    maximum_active_derivative = max(
+        abs(float(row["denergy_dprogress_ev"])) for row in rows[1:]
+    )
+    passed = (
+        maximum_energy_change > MINIMUM_ENERGY_SPAN_EV
+        and maximum_active_derivative > MINIMUM_ACTIVE_DERIVATIVE_EV
+    )
+    return {
+        "maximum_energy_change_from_p0_ev": maximum_energy_change,
+        "maximum_absolute_active_derivative_ev": maximum_active_derivative,
+        "minimum_energy_change_from_p0_ev_exclusive": MINIMUM_ENERGY_SPAN_EV,
         "minimum_active_derivative_ev_exclusive": MINIMUM_ACTIVE_DERIVATIVE_EV,
         "passed": passed,
     }
@@ -337,6 +424,11 @@ def _validate_identity(identity: dict[str, Any], platform: str) -> None:
         "gpu_production_admitted": False,
         "scientific_scope": EXPECTED_KERNEL_SCOPE,
         "alchemical_parameters": EXPECTED_ALCHEMICAL_PARAMETERS,
+        "fennol_package_tree_sha256": EXPECTED_FENNOL_PACKAGE_TREE_SHA256,
+        "fennol_package_tree_file_count": EXPECTED_FENNOL_PACKAGE_TREE_FILE_COUNT,
+        "repulsion_nlh_coefficients_provenance": (
+            EXPECTED_REPULSION_NLH_COEFFICIENTS_PROVENANCE
+        ),
     }
     for name, expected_value in expected.items():
         if identity.get(name) != expected_value:
@@ -367,26 +459,16 @@ def _validate_identity(identity: dict[str, Any], platform: str) -> None:
         raise ValueError("FeNNix platform runtime package identity mismatch.")
 
 
-def validate_receipt(
-    receipt: dict[str, Any],
+def _validate_observable_rows(
+    rows: list[dict[str, Any]],
     *,
-    expected_platform: str,
-) -> dict[str, float | bool]:
-    """Validate identity, full observables, system geometry, and coupling."""
-
-    if receipt.get("checkpoint_file_sha256") != CHECKPOINT_SHA256:
-        raise ValueError("FeNNix checkpoint file identity mismatch.")
-    _validate_identity(receipt.get("identity", {}), expected_platform)
-    distance = float(receipt["system"]["solute_solvent_oxygen_distance_angstrom"])
-    if not distance < CUTOFF_ANGSTROM:
-        raise ValueError("FeNNix smoke system is outside the 7.5 angstrom cutoff.")
-    if _canonical_bytes(receipt.get("system")) != _canonical_bytes(_expected_system()):
-        raise ValueError("FeNNix interacting-system identity mismatch.")
-    if receipt.get("maple_kernel_source_sha256") != EXPECTED_MAPLE_KERNEL_SOURCE_SHA256:
-        raise ValueError("FeNNix MAPLE kernel source identity mismatch.")
-    if [float(row["progress"]) for row in receipt.get("rows", [])] != list(PROGRESS):
-        raise ValueError("FeNNix smoke must use the frozen five-state schedule.")
-    for row in receipt["rows"]:
+    expected_progress: tuple[float, ...],
+) -> None:
+    if [float(row["progress"]) for row in rows] != list(expected_progress):
+        raise ValueError(
+            "FeNNix mechanics receipt uses an unexpected progress schedule."
+        )
+    for row in rows:
         for name in (
             "energy_ev",
             "denergy_dlambda_e_ev",
@@ -412,6 +494,48 @@ def validate_receipt(
             "performance_admitted": False,
         }:
             raise ValueError("FeNNix row admission boundary changed.")
+
+
+def validate_receipt(
+    receipt: dict[str, Any],
+    *,
+    expected_platform: str,
+) -> dict[str, float | bool]:
+    """Validate identity, full observables, system geometry, and coupling."""
+
+    if receipt.get("checkpoint_file_sha256") != CHECKPOINT_SHA256:
+        raise ValueError("FeNNix checkpoint file identity mismatch.")
+    _validate_identity(receipt.get("identity", {}), expected_platform)
+    distance = float(receipt["system"]["solute_solvent_oxygen_distance_angstrom"])
+    if not distance < CUTOFF_ANGSTROM:
+        raise ValueError("FeNNix smoke system is outside the 7.5 angstrom cutoff.")
+    if _canonical_bytes(receipt.get("system")) != _canonical_bytes(_expected_system()):
+        raise ValueError("FeNNix interacting-system identity mismatch.")
+    if receipt.get("maple_kernel_source_sha256") != EXPECTED_MAPLE_KERNEL_SOURCE_SHA256:
+        raise ValueError("FeNNix MAPLE kernel source identity mismatch.")
+    _validate_observable_rows(receipt.get("rows", []), expected_progress=PROGRESS)
+    canary = receipt.get("close_contact_canary", {})
+    if _canonical_bytes(canary.get("system")) != _canonical_bytes(
+        _expected_close_contact_system()
+    ):
+        raise ValueError("FeNNix close-contact canary system identity mismatch.")
+    if canary.get("neighbor_overflow_observed") is not False:
+        raise ValueError("FeNNix close-contact canary observed neighbor overflow.")
+    if canary.get("p_equals_one_evaluated") is not False:
+        raise ValueError("FeNNix close-contact canary must not evaluate p=1.")
+    if canary.get("mechanics_only") is not True:
+        raise ValueError("FeNNix close-contact canary must remain mechanics-only.")
+    _validate_observable_rows(
+        canary.get("rows", []),
+        expected_progress=CLOSE_CONTACT_PROGRESS,
+    )
+    close_contact_metrics = _close_contact_response_metrics(canary)
+    if not close_contact_metrics["passed"]:
+        raise ValueError(
+            "FeNNix close-contact canary lacks a nontrivial active-softcore "
+            "response: both the energy change from p=0 and active derivative "
+            "must exceed 1e-3 eV."
+        )
     if receipt.get("formal_gates") != FORMAL_GATES:
         raise ValueError("FeNNix formal gates must remain closed.")
     metrics = _nontrivial_metrics(receipt)
@@ -426,8 +550,18 @@ def validate_receipt(
 def compare_receipts(cpu: dict[str, Any], gpu: dict[str, Any]) -> dict[str, Any]:
     cpu_metrics = validate_receipt(cpu, expected_platform="cpu")
     gpu_metrics = validate_receipt(gpu, expected_platform="gpu")
+    cpu_close_contact_metrics = _close_contact_response_metrics(
+        cpu["close_contact_canary"]
+    )
+    gpu_close_contact_metrics = _close_contact_response_metrics(
+        gpu["close_contact_canary"]
+    )
     if cpu["system"] != gpu["system"]:
         raise ValueError("FeNNix CPU/GPU receipts do not use the same system.")
+    if cpu["close_contact_canary"]["system"] != gpu["close_contact_canary"]["system"]:
+        raise ValueError(
+            "FeNNix CPU/GPU close-contact canaries do not use the same system."
+        )
     identity_fields = (
         "checkpoint_sha256",
         "source_revision",
@@ -435,6 +569,9 @@ def compare_receipts(cpu: dict[str, Any], gpu: dict[str, Any]) -> dict[str, Any]
         "original_parameter_tree_fingerprint",
         "derived_parameter_tree_fingerprint",
         "fixed_species_encoding_float64_sha256",
+        "fennol_package_tree_sha256",
+        "fennol_package_tree_file_count",
+        "repulsion_nlh_coefficients_provenance",
     )
     for name in identity_fields:
         if cpu["identity"][name] != gpu["identity"][name]:
@@ -471,6 +608,25 @@ def compare_receipts(cpu: dict[str, Any], gpu: dict[str, Any]) -> dict[str, Any]
         for row in per_progress
         for difference in row["max_abs_diff"].values()
     )
+    canary_per_progress = []
+    for cpu_row, gpu_row in zip(
+        cpu["close_contact_canary"]["rows"],
+        gpu["close_contact_canary"]["rows"],
+    ):
+        canary_per_progress.append(
+            {
+                "progress": cpu_row["progress"],
+                "max_abs_diff": {
+                    name: _max_nested_difference(cpu_row[name], gpu_row[name])
+                    for name in observable_names
+                },
+            }
+        )
+    canary_global_max = max(
+        difference
+        for row in canary_per_progress
+        for difference in row["max_abs_diff"].values()
+    )
     return {
         "scope": (
             "interacting_cpu_gpu_native_kernel_mechanics_parity_"
@@ -482,6 +638,8 @@ def compare_receipts(cpu: dict[str, Any], gpu: dict[str, Any]) -> dict[str, Any]
         "same_original_parameter_tree_fingerprint": True,
         "same_derived_parameter_tree_fingerprint": True,
         "same_fixed_species_encoding_float64_sha256": True,
+        "same_fennol_package_tree_sha256": True,
+        "same_repulsion_nlh_coefficients_provenance": True,
         "same_maple_kernel_source_sha256": True,
         "same_alchemical_parameters": True,
         "inside_cutoff": True,
@@ -490,6 +648,21 @@ def compare_receipts(cpu: dict[str, Any], gpu: dict[str, Any]) -> dict[str, Any]
         "gpu_nontrivial_coupling": gpu_metrics,
         "per_progress": per_progress,
         "global_max_abs_diff": global_max,
+        "close_contact_canary": {
+            "same_system": (
+                cpu["close_contact_canary"]["system"]
+                == gpu["close_contact_canary"]["system"]
+            ),
+            "progress_states": list(CLOSE_CONTACT_PROGRESS),
+            "neighbor_overflow_observed": False,
+            "p_equals_one_evaluated": False,
+            "per_progress": canary_per_progress,
+            "global_max_abs_diff": canary_global_max,
+            "all_full_arrays_finite": True,
+            "cpu_nontrivial_active_softcore_response": (cpu_close_contact_metrics),
+            "gpu_nontrivial_active_softcore_response": (gpu_close_contact_metrics),
+            "mechanics_only": True,
+        },
         "formal_gates": FORMAL_GATES,
     }
 
@@ -514,6 +687,11 @@ def build_artifact(
         != comparison["global_max_abs_diff"]
     ):
         raise ValueError("FeNNix source comparison observable mismatch.")
+    if (
+        source_comparison.get("close_contact_canary")
+        != comparison["close_contact_canary"]
+    ):
+        raise ValueError("FeNNix source close-contact comparison mismatch.")
     if source_comparison.get("formal_gates") != FORMAL_GATES:
         raise ValueError("FeNNix source comparison formal gates changed.")
     return {
@@ -562,6 +740,11 @@ def build_artifact(
                 FIXED_SPECIES_ENCODING_FLOAT64_SHA256
             ),
             "runtime_source_sha256": EXPECTED_RUNTIME_SOURCE_SHA256,
+            "fennol_package_tree_sha256": EXPECTED_FENNOL_PACKAGE_TREE_SHA256,
+            "fennol_package_tree_file_count": (EXPECTED_FENNOL_PACKAGE_TREE_FILE_COUNT),
+            "repulsion_nlh_coefficients_provenance": (
+                EXPECTED_REPULSION_NLH_COEFFICIENTS_PROVENANCE
+            ),
             "maple_kernel_source_sha256": cpu["maple_kernel_source_sha256"],
             "alchemical_parameters": EXPECTED_ALCHEMICAL_PARAMETERS,
             "system_sha256": comparison["system_sha256"],
@@ -577,6 +760,9 @@ def build_artifact(
             "explicit_graph_softcore_provenance_bound": True,
             "explicit_repulsion_softcore_provenance_bound": True,
             "protocol_reconstruction_not_paper_reproduction": True,
+            "real_pinned_close_contact_softcore_canary_run": True,
+            "close_contact_nontrivial_active_softcore_response_required": True,
+            "close_contact_p_equals_one_evaluated": False,
             "mechanics_only": True,
             "sampling_run": False,
             "lambda_abf_run": False,

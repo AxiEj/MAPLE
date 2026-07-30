@@ -492,14 +492,49 @@ outputs are not bit-exact: the observed absolute energy difference is
 `1.7763568394002505e-15 eV/angstrom`.
 
 The same record freezes a real MAPLE CPU energy/force call and a finite,
-symmetric `9 x 9` numerical Hessian.  It also freezes a native-JAX, two-water
-periodic alchemical-kernel smoke at progress `0, 0.25, 0.5, 0.75, 1`, using
-the paper schedule `lambda_e=max(0,2p-1)` and `lambda_v=min(1,2p)`.  CPU and
-GPU energy, coordinate/cell gradients, and both lambda derivatives were finite
-float64 outputs, with machine-scale non-bit-exact differences.  This native
-path avoids the float32 Tinker ABI; the Tinker bridge remains rejected for the
-no-loss route because it passes coordinates and lambda values as float32
-without a precision switch.
+symmetric `9 x 9` numerical Hessian.  Its earlier low-level alchemical smoke is
+diagnostic only and is not the production Hamiltonian receipt.
+
+The production native-JAX path is frozen separately in
+`benchmarks/fennix-bio1-native-kernel-mechanics-2026-07-31.json`, regenerated
+by `run_fennix_bio1_native_kernel_smoke.py`.  It uses progress
+`0, 0.25, 0.5, 0.75, 1` and the article schedule
+`lambda_e=max(0,2p-1)`, `lambda_v=min(1,2p)`.  All floating parameters and
+inputs execute as float64 with `highest` matrix precision; the unchanged
+checkpoint file and the derived in-memory parameter tree have separate fixed
+fingerprints.  The complete 71-file installed FeNNol source/data tree is
+content-bound at SHA256
+`b0ff2b138cdfa5f406b332ddcf12380bd981cee0be3986715827e6d7dacb4262`.
+The executed `nlh_coeffs.dat` is separately pinned at SHA256
+`9f6ad25db062dec6552e6a2132d17484da2e4bfd30e70611a94a8a886cd1e32a`
+and disclosed as float32-origin coefficient data promoted to float64 for model
+execution.
+
+The alchemical contract never relies on silent runtime defaults.  Graph
+softcore `0.5 angstrom` and repulsion exponent `m = 2` are identified as
+FeNNol-source defaults.  Repulsion softcore `0.5 angstrom` is an output-blind
+MAPLE reconstruction, not a value authenticated by the v4 article and not a
+paper-reproduction claim.  Any nondefault sensitivity value must carry its
+own nondefault provenance and reconstruction scope.
+
+For the interacting system, the full energy, force, cell-gradient, virial, and
+lambda-derivative arrays differ between CPU and GPU by at most
+`4.8433479449272454e-15`.  A real coincident-water active-softcore canary at
+`p = 0.25` is finite with no neighbor overflow: its energy changes by
+`16.628676082879874 eV` from `p = 0`, and `dE/dp` is
+`344.3527717800469 eV` on CPU versus `344.352771780047 eV` on GPU.  Its
+full-array CPU/GPU maximum difference is `1.1368683772161603e-13`.  The
+canary deliberately does not evaluate the physically singular fully coupled
+coincident state.  This native path avoids the float32 Tinker ABI; the Tinker
+bridge remains rejected for the no-loss route because it passes coordinates
+and lambda values as float32 without a precision switch.
+
+```bash
+python docs/pretrained-solvation-hub/run_fennix_bio1_native_kernel_smoke.py run \
+  --python /absolute/path/to/the/pinned/fennol/python \
+  --checkpoint /absolute/path/to/fennix-bio1M.fnx \
+  --output-dir /absolute/path/to/native-kernel-receipts
+```
 
 ```bash
 python docs/pretrained-solvation-hub/run_fennix_bio1_runtime_smoke.py run \

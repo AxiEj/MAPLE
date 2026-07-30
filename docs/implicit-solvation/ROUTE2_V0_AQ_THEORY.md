@@ -390,6 +390,77 @@ confirms why the nonlocal convolution and its full functional derivative are
 needed to prevent unphysical solvent islands, but its published density
 thresholds are likewise not imported as defaults.
 
+### 3.6 No-label weighted-density cavitation scalar
+
+The missing \(\Phi_{\rm cav,s}\) must not be replaced by an atom-surface
+tension or a fitted area coefficient.  A directly relevant implicit-continuum
+construction is the weighted-density cavity functional of Sundararaman,
+Gunceler, and Arias.  It constrains a fourth-order local free-energy density
+by the small-cavity, small-droplet, and planar-interface limits of the **pure
+solvent**.  Let \(s_{\rm c}\) be a solvent-*centre* occupancy, let \(W_s\) be
+the normalized even nearest-neighbour shell average at the solvent van der
+Waals diameter, and write
+
+\[
+\bar s_{\rm c}=W_ss_{\rm c},\qquad
+\Gamma_s=\log\!\frac{N_sT_s}{p_{\rm vap,s}}-1,
+\qquad
+A_s=\frac{\sigma_s}{N_sT_sR_{\rm vdW,s}}
+-\frac{1+\Gamma_s}{6}.
+\]
+
+Then the scalar is
+
+\[
+\boxed{
+G_{\rm cav,s}[s_{\rm c}]
+=\int\!\left\{
+p_s(1-\bar s_{\rm c})
++N_sT_s\bar s_{\rm c}(1-\bar s_{\rm c})
+\left[
+\bar s_{\rm c}+(1-\bar s_{\rm c})\Gamma_s
++15\bar s_{\rm c}(1-\bar s_{\rm c})A_s
+\right]\right\}\,d\mathbf r .
+}
+\]
+
+Its inputs are \((T_s,p_s,N_s,p_{\rm vap,s},\sigma_s,R_{\rm vdW,s})\), all
+of which must come from independently sourced pure-liquid or equation-of-state
+evidence.  There is no solvation-label coefficient in this term.  Its exact
+functional derivative is also closed:
+
+\[
+\frac{\delta G_{\rm cav,s}}{\delta s_{\rm c}}
+=W_s^\dagger f_s'(\bar s_{\rm c}),
+\]
+
+where, with \(x=\bar s_{\rm c}\), \(q=x(1-x)\), and
+\(B=x+(1-x)\Gamma_s+15qA_s\),
+
+\[
+f_s'(x)=-p_s+N_sT_s
+\left[(1-2x)B+q\{1-\Gamma_s+15(1-2x)A_s\}\right].
+\]
+
+[`route2_v0_weighted_density_cavity.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_weighted_density_cavity.py)
+implements this scalar and its exact periodic discrete VJP; its dedicated test
+locks the empty/bulk limits, central finite-difference derivative, translation
+covariance, self-adjoint shell pairing, immutability, and crossed-state
+rejection.  This is a genuine \(\Phi_{\rm cav}\) candidate in the **implicit**
+V0-AQ-C route; it is not the archived molecular-HNC/WDA bridge and needs no
+GROMACS, 3D-RISM, or explicit-liquid trajectory.
+
+It is still deliberately below total admission.  The current
+iso-density-product occupancy is an electrostatic-cavity candidate, whereas
+the weighted-density scalar requires a source-derived solvent-centre
+occupancy.  Setting the two fields equal would silently discard the distinct
+electrostatic/solvent-centre separation that the construction is meant to
+represent.  In addition, a physical source record must bind the shell kernel,
+\(p_{\rm vap}\), and \(R_{\rm vdW}\) to the same solvent state; the Pauli and
+dispersion scalar and the standard-state term remain absent.  Consequently
+this component cannot yet be added to a reaction energy, called a total
+\(\Delta G_{\rm solv}\), or scored against FreeSolv/MNSol.
+
 ## 4. Archived molecular-liquid completion: V0-AQ-L
 
 The full V0-AQ-L branch replaces the PCM control with a molecular liquid

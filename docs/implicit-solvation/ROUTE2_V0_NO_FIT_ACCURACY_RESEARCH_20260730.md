@@ -57,6 +57,7 @@ it cannot be replaced by a lower-MAE subset.
 | --- | --- | --- | --- |
 | HNC-plus-weighted-density molecular bridge | Variational only as a molecular-liquid theory. | **Archived; excluded from implicit V0 main path** | It is not needed for a PCM model and may not become a substitute electronic functional, nonpolar term, or accuracy shortcut. |
 | Lorentz/Yukawa nonlocal dielectric spectrum | A positive quadratic orientational-polarization functional gives \(\epsilon_s(k)=\epsilon_\infty+(\epsilon_0-\epsilon_\infty)/(1+\lambda_s^2k^2)\); its reaction field is the derivative of one passive scalar. | **Active custom-solvent electrostatic control only** | It supplies a mathematically constrained finite-\(k\) response from independently sourced \(\epsilon_0,\epsilon_\infty,\lambda_s\), with no target fit.  It has no cavity, dispersion, molecular \(C_{ab}(k)\), or standard-state term, so it cannot be scored as a total solvation method. |
+| V0-AQ-C diffuse stationary auxiliary continuum | One auxiliary electronic functional, smooth solvent-occupancy field, reaction-field difference, and nonpolar/standard-state functional are stationary in a single scalar. | **Active implicit-continuum architecture; physical assets and implementation pending** | It preserves the MACE gas branch and requires neither GROMACS nor a molecular-liquid trajectory.  It admits no SMD-CDS, fitted cavity threshold, fitted dispersion scale, or post-hoc ledger; its complete \(\Phi_s\) and source-bound custom-solvent assets must exist before any accuracy run.  See [`ROUTE2_V0_AQ_THEORY.md`](ROUTE2_V0_AQ_THEORY.md). |
 | LCW-style two-reference cDFT | A common cDFT scalar with slowly varying reference density and direct-correlation/surface-tension inputs. | **Deferred research path** | Bui--Cox provides a genuinely variational length-scale construction, but it needs a complete, source-provenanced multi-field liquid functional.  It must retain every term and pass scalar/force checks before it can replace the current bridge; importing only a coarse-graining kernel would be an unjustified hybrid. |
 | Full orientational mDFT / angular correlation functional | Variational in the full molecular configuration density when the angular direct-correlation functional is frozen. | **Deferred research path** | Route-2 already preserves a full \(SO(3)\) quadrature convention.  A new angular functional needs a real all-atom solvent source and its own common-scalar, grid/orientation, and force proof; a site-HNC table cannot be relabelled as that functional. |
 | Native PSE-\(n\) / 3D-RISM | PSE-\(n\) has a closure-matched, path-independent **site-3D-RISM on-shell** chemical-potential expression. | **Excluded from the current MACE molecular V0 bridge** | The PSE3 `Cvv` is only a bulk site correlation, while the MACE source is one whole-molecule cluster potential.  Neither supplies the site \(u_\alpha,h_\alpha,c_\alpha\) state required by native PSE3.  Feeding `Cvv` into molecular HNC or adding the PSE3 correction afterward would break common-scalar stationarity.  Direct PSE3 literature results also give no basis for the hard all-record \(<1.5\) target without the prohibited empirical corrections; see [`ROUTE2_V0_PSE_N_ADMISSION_AUDIT_20260730.md`](ROUTE2_V0_PSE_N_ADMISSION_AUDIT_20260730.md). |
@@ -143,33 +144,27 @@ certificate are still absent.
 
 ## Next evidence needed before any accuracy assertion
 
-1. Produce one physical, closure-aligned HNC source with a reproducible
-   all-atom liquid model, bulk direct correlation, a saturation/coexistence
-   state convention, independent surface tension, an exact homogeneous
-   liquid/gas continuation record that determines \(B_s\), and a stationary
-   planar-interface certificate for any remaining liquid length scale.  The
-   current executable one-width order is fixed: build \(K_\sigma\), solve
-   \(C(B_s,\sigma)=0\), freeze \(B_s^*(\sigma)\), then solve the exact
-   planar branch; only a separate outer evidence record may compare the
-   resulting \(\Gamma(\sigma)\) to the independent pure-liquid target.
-   The IAPWS ordinary-water $\gamma(298\,\mathrm{K})$ source is now frozen
-   separately, but it cannot be relabelled as a cSPC/E state or substitute for
-   the missing model-matched state/correlation evidence.
+1. Build one source-complete **V0-AQ-C** implicit-continuum functional:
+   a stationary auxiliary electronic state, reaction-field subtraction,
+   smooth occupancy/cavity state, and one pre-minimisation nonpolar and
+   standard-state scalar.  Its solvent inputs must be frozen from
+   independently sourced physical data or a pure-solvent theory; it does not
+   require GROMACS, 3D-RISM, MDFT, or a molecular-liquid trajectory.
 2. Verify the same scalar's derivative, Hessian reciprocity, stability,
    Cartesian/orientation/grid convergence, envelope forces, and energy
-   conservation.
+   conservation.  A numerical SCF/continuum control is not enough.
 3. Build source-complete physical assets for the pre-registered 11-solvent
    panel plus a strict custom-solvent admission route.  Dielectric constants
-   alone remain insufficient; the required inputs are a molecular model,
-   density, pressure, surface tension, correlation or liquid functional,
-   source-bound \(D,K\), and source-complete solute--solvent interaction.
-   For a custom Lorentz nonlocal electrostatic diagnostic, \(\epsilon_0\),
-   \(\epsilon_\infty\), and a finite-\(k\) polarization-correlation length
-   must each be independently source-bound; this remains below the
-   total-free-energy boundary.
-4. Freeze the method before reading target values, then run both the historical
-   FreeSolv10 gate and the twelve-record, ten-actual-functional-group
-   FreeSolv12 superset, followed by 11-solvent development, disjoint
+   alone remain insufficient; the required inputs include bulk state,
+   electrostatic response, smooth-cavity/nonpolar functional, short-range and
+   dispersion physics, and a standard-state convention.  For a custom Lorentz
+   nonlocal electrostatic diagnostic, \(\epsilon_0\), \(\epsilon_\infty\),
+   and a finite-\(k\) polarization-correlation length must each be
+   independently source-bound; this remains below the total-free-energy
+   boundary.
+4. Freeze the method before reading target values, then run both the
+   historical FreeSolv10 gate and the twelve-record, ten-actual-functional-
+   group FreeSolv12 superset, followed by 11-solvent development, disjoint
    confirmation, and an independent final blind dataset.  Every record, not
    just the MAE, must be below 1.5 kcal/mol; the stricter final objective is
    below 1 kcal/mol.

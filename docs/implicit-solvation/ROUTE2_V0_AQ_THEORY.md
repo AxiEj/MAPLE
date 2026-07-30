@@ -141,7 +141,153 @@ error.  No grid, radius, tolerance, score, or MACE component was changed to
 rescue it.  This rejects that finite-grid control; it neither establishes a
 MACE-response defect nor validates or invalidates the physical V0-AQ-L branch.
 
-## 3. Physical completion: V0-AQ-L
+## 3. Main implicit-continuum completion: V0-AQ-C
+
+The V0 main line does **not** require an explicit molecular-liquid trajectory,
+GROMACS, 3D-RISM, or MDFT.  The required replacement for the rejected learned
+fixed point can instead be a diffuse, variational continuum coupled to the
+auxiliary electronic state.  This is called V0-AQ-C below.  It is a mathematical
+architecture, not a claim that the present code already supplies all of its
+physical solvent inputs.
+
+Let \(m(\mathbf r)\in[0,1]\) be a smooth solvent-occupancy field, with
+\(m=0\) inside the solute and \(m=1\) in bulk solvent.  Let
+\(\rho[n;\mathbf R]\) be the total auxiliary charge density and define
+
+\[
+\mathscr E_{\epsilon}[\rho,\phi]
+=-\frac{1}{8\pi}\int
+\epsilon(\mathbf r)|\nabla\phi(\mathbf r)|^2\,d\mathbf r
++\int\rho(\mathbf r)\phi(\mathbf r)\,d\mathbf r.
+\]
+
+The sign is intentional: \(\phi\) is a stationary saddle variable.  Its
+Euler equation is
+
+\[
+-\nabla\!\cdot\!\bigl[\epsilon(\mathbf r)\nabla\phi(\mathbf r)\bigr]
+=4\pi\rho(\mathbf r),
+\]
+
+and at the stationary solution
+\(\mathscr E_{\epsilon}^*=\tfrac12\int\rho\phi\).  Because the auxiliary
+gas functional already contains vacuum Coulomb energy, the continuum must add
+**the reaction difference**, rather than a second total electrostatic energy.
+A valid one-scalar formulation is therefore
+
+\[
+\begin{aligned}
+\mathcal L_{s}^{\rm C}[n,m,\phi_s,\phi_0;\mathbf R]
+={}&A_{\rm aux}^{\rm gas}[n;\mathbf R]
++\mathscr E_{\epsilon_s(m)}[\rho[n;\mathbf R],\phi_s]
+-\mathscr E_{1}[\rho[n;\mathbf R],\phi_0]\\
+&+\Phi_s[m;n,\mathbf R],\\
+\epsilon_s(m)={}&1+(\epsilon_{s,0}-1)m.
+\end{aligned}
+\]
+
+Here \(\phi_0\) is not an independent physical gas calculation: it is the
+vacuum stationary field required to subtract the vacuum Coulomb part already
+present in \(A_{\rm aux}^{\rm gas}\).  The electronic/continuum correction is
+
+\[
+\Delta A_{\rm aux,s}^{\rm C}(\mathbf R)
+=\operatorname*{stat}_{n,m,\phi_s,\phi_0}
+\mathcal L_s^{\rm C}
+-\min_n A_{\rm aux}^{\rm gas}[n;\mathbf R].
+\]
+
+The Route-2 ledger remains
+
+\[
+G_{\rm V0-AQ-C}(\mathbf R;s)
+=E_{\rm MACE,gas}(\mathbf R)
++\Delta A_{\rm aux,s}^{\rm C}(\mathbf R)
++\Delta G_s^\circ.
+\]
+
+Thus MACE remains the untouched gas potential, while the added solvent
+response is a stationary scalar.  Neither \(n\) nor \(m\) is a MACE density,
+and neither is allowed to enter MACE field features.
+
+### 3.1 What the solvent functional must contain
+
+\(\Phi_s\) is where a total implicit-solvent model either remains physical or
+quietly becomes a fitted correction.  It must contain the *pre-minimisation*
+liquid/cavity, short-range repulsion, dispersion, and standard-state physics:
+
+\[
+\Phi_s[m;n,\mathbf R]
+=\Phi_{\rm bulk,cav,s}[m]
++\Phi_{\rm sr,s}[m;n,\mathbf R]
++\Phi_{\rm disp,s}[m;n,\mathbf R]
++\Phi_{\rm std,s}[m].
+\]
+
+A term such as \(pV+\gamma A+\kappa C+\bar\kappa X\) is permissible only as
+a declared approximation to \(\Phi_{\rm bulk,cav,s}\), with its dividing
+surface and every coefficient sourced from a pure-liquid model or independent
+bulk/interfacial measurement **before** target solvation values are read.
+Appending a surface-area correction, a dispersion scale, SMD-CDS, or a
+standard-state offset after solving the electrostatic state breaks this
+contract.  For molecular-sized cavities, omitting curvature or dispersion is
+an approximation to be tested, not a justification for target scoring.
+
+The stationary equations make the coupling explicit:
+
+\[
+\frac{\delta\mathcal L_s^{\rm C}}{\delta n}=0,\qquad
+\frac{\delta\mathcal L_s^{\rm C}}{\delta m}=0,\qquad
+\frac{\delta\mathcal L_s^{\rm C}}{\delta\phi_s}=0,\qquad
+\frac{\delta\mathcal L_s^{\rm C}}{\delta\phi_0}=0.
+\]
+
+In particular, \(\delta\mathcal L/\delta m\) contains the dielectric-field
+term \(-\frac{\epsilon_{s,0}-1}{8\pi}|\nabla\phi_s|^2\) and the derivative of
+the same nonpolar functional.  The cavity cannot be moved independently after
+an electrostatic result has been observed.
+
+### 3.2 Custom-solvent contract
+
+A scalar dielectric constant is enough only for a *linear-electrostatic
+control*.  A custom **total** V0-AQ-C solvent needs a frozen provenance record
+for at least
+
+\[
+(T,p,\rho_{\rm bulk},\epsilon_0,\epsilon_\infty,
+\chi_s(k)\ \text{or a declared local limit},
+\Phi_{\rm bulk,cav,s},\Phi_{\rm sr,s},\Phi_{\rm disp,s},
+\Delta G_s^\circ).
+\]
+
+The input may be supplied through independently measured bulk/interfacial
+properties or an independently parameterised pure-solvent theory, but never
+by changing a cavity radius, surface coefficient, dispersion scale, or
+finite-\(k\) length after inspecting a solvation error.  This is the strict
+version of the user-facing “Gaussian-style custom solvent” requirement: users
+may specify physical solvent properties, but insufficient properties fail
+closed rather than silently selecting a proxy solvent.
+
+### 3.3 Literature boundary and immediate implication
+
+Joint density-functional theory provides the relevant variational template:
+it joins electronic and liquid density functionals in one free-energy
+principle without fitting solvation data in its basic construction.
+SaLSA shows that nonlocal dielectric response can be derived without empirical
+*dielectric* parameters, but its published total model still fitted a
+solvent-dependent dispersion scale; it may not be imported as a no-fit V0
+total endpoint.  The weighted-density cavity work likewise supplies useful
+physical cavity ideas, but its published practical model retains a density
+threshold and dispersion scale fitted to solvation data.  These are design
+references, not licence to copy their fitted constants.
+
+The immediate consequence is narrow: a self-consistent auxiliary QM--PCM
+state can be used only as an electronic/continuum **control** until a smooth,
+source-complete \(\Phi_s\) is available.  The preserved PBE0/RHF ddCOSMO
+preflight record distinguishes numerical stationarity from chemical accuracy;
+it does not authorize a FreeSolv or multi-solvent score.
+
+## 4. Archived molecular-liquid completion: V0-AQ-L
 
 The full V0-AQ-L branch replaces the PCM control with a molecular liquid
 functional \(\Phi_s[N]+U_s[n,N]\) that contains the solvent structure,
@@ -211,9 +357,9 @@ can be derived without empirical dielectric parameters, but its published
 solvation model retains a fitted dispersion contribution and is therefore not
 a strictly zero-fit total-free-energy endpoint here.
 
-## 4. Conserved derivatives and acceptance gates
+## 5. Conserved derivatives and acceptance gates
 
-At stationary auxiliary gas and liquid states, the envelope theorem gives
+At a stationary auxiliary gas/continuum or gas/liquid state, the envelope theorem gives
 
 \[
 \frac{dG_{\mathrm{V0\text{-}AQ}}}{d\mathbf R}
@@ -239,14 +385,15 @@ The prerequisite order is:
    states;
 2. verify the exact gas subtraction and the absence of an extra half-coupling,
    CDS, fitted response scale, or MACE-field update;
-3. for V0-AQ-L, register complete liquid assets for at least the frozen
-   11-solvent set before inspecting target-solvation labels;
+3. for V0-AQ-C, register complete source-bound continuum/nonpolar assets for
+   at least the frozen 11-solvent set before inspecting target-solvation labels;
+   the archived V0-AQ-L route has the stricter molecular-liquid asset contract;
 4. prove scalar/gradient/force gates, then freeze development, disjoint
    confirmation, and external-blind records; and
 5. reject any failed structural or per-record accuracy gate without tuning,
    retraining, fine-tuning, response clipping, or per-record model selection.
 
-## 5. Literature and upstream boundary
+## 6. Literature and upstream boundary
 
 1. S. Petrosyan *et al.*, *Joint density-functional theory for electronic
    structure of solvated systems*,
@@ -268,3 +415,15 @@ The prerequisite order is:
    [arXiv:1410.2273](https://arxiv.org/abs/1410.2273).  Its dielectric response
    is parameter-free, while the reported full solvation model retains a
    dispersion fit; this is why it is not a no-fit total endpoint here.
+5. R. Sundararaman, D. Gunceler, and T. A. Arias, *Weighted-density
+   functionals for cavity formation and dispersion energies in continuum
+   solvation models*, *J. Chem. Phys.* **141**, 134102 (2014),
+   [arXiv:1407.4011](https://arxiv.org/abs/1407.4011).  Its physically motivated
+   cavity construction is useful design evidence, but the published practical
+   model retains fitted density-threshold and dispersion-scale parameters and
+   cannot be copied into the no-fit V0 endpoint.
+6. [PySCF solvent documentation](https://pyscf.org/user/solvent.html) and
+   [ddCOSMO gradient API](https://pyscf.org/pyscf_api_docs/pyscf.solvent.grad.html).
+   PySCF documents stationary PCM/ddCOSMO energy and analytic gradient
+   machinery; this supports the numerical-control boundary only, not a smooth
+   production cavity or an accuracy claim.

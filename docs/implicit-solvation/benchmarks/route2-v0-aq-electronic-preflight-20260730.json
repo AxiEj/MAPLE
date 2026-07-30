@@ -1,0 +1,73 @@
+{
+  "artifact_id": "route2-v0-aq-electronic-preflight-20260730",
+  "schema_version": 1,
+  "status": "informational-preflight-not-admitted",
+  "claim_boundary": "This is an implementation-only, fixed-water numerical preflight for auxiliary stationary electronic-continuum scalars. It does not use experimental solvation data and is not a source-bound preregistered control, a Route-2 public profile, a total solvation free-energy calculation, a force/PES certificate, a solvent model, or an accuracy result.",
+  "purpose": "Distinguish the old rejected omegaB97M-V/IEFPCM/SWIG control from a separate numerical question: whether a no-training auxiliary SCF plus a self-consistent continuum can satisfy the strict translational-gradient diagnostic before any chemistry or nonpolar model is considered.",
+  "geometry": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-aq-water-geometry-v1.json",
+    "sha256": "992ac7f8b4c3759ca6d9929c6c682618a770b429358ec8c0fad58e6df385b4f4",
+    "geometry_id": "route2-v0-aq-water-ase-g2-v1",
+    "charge": 0,
+    "spin": 0
+  },
+  "runtime": {
+    "python": "/home/axie/.cache/maple-envs/pyscf-smd-qmref/bin/python",
+    "pyscf_version": "2.13.1",
+    "threads": 4,
+    "experimental_solvation_labels_read": false,
+    "mace_checkpoint_called": false,
+    "mace_field_response_called": false,
+    "post_training_or_fine_tuning": false,
+    "parameter_selection_from_solvation_error": false
+  },
+  "common_numerical_gate": {
+    "name": "translation_gradient_inf_hartree_per_bohr",
+    "threshold": 1e-08,
+    "reason": "A stationary scalar must be invariant under rigid translation to the declared numerical tolerance before it is allowed to contribute derivative evidence."
+  },
+  "preflights": [
+    {
+      "id": "pbe0-ddcosmo-grid-discriminator",
+      "classification": "rejected-numerical-preflight",
+      "gas_electronic_functional": "PySCF RKS PBE0/def2-TZVPD, atom-centred numerical grid level 4",
+      "continuum": "PySCF ddCOSMO, epsilon=78.3553, default UFF*1.1 radii, Lebedev order 17, lmax=6",
+      "gas": {
+        "energy_hartree": -76.38074286672068,
+        "orbital_gradient_inf": 3.726146081554991e-09,
+        "translation_gradient_inf_hartree_per_bohr": 1.105272074752861e-06
+      },
+      "solvated": {
+        "energy_hartree": -76.38742186241343,
+        "orbital_gradient_inf": 3.1531789878787353e-09,
+        "translation_gradient_inf_hartree_per_bohr": 1.0984168745979336e-06
+      },
+      "decision": "Fails the fixed translational gate before any solvation or accuracy interpretation. The result does not authorize grid selection by later target errors or a retry of the old source-bound omegaB97M-V control."
+    },
+    {
+      "id": "rhf-ddcosmo-integral-discriminator",
+      "classification": "passes-numerical-preflight-only",
+      "gas_electronic_functional": "PySCF RHF/def2-TZVPD with integral-exact Hartree-Fock terms",
+      "continuum": "PySCF ddCOSMO, epsilon=78.3553, default UFF*1.1 radii, Lebedev order 17, lmax=6",
+      "gas": {
+        "energy_hartree": -76.06033156588636,
+        "orbital_gradient_inf": 1.925745853136137e-10,
+        "translation_gradient_inf_hartree_per_bohr": 7.313594174718219e-15
+      },
+      "solvated": {
+        "energy_hartree": -76.06767124864173,
+        "orbital_gradient_inf": 2.0838587847070946e-10,
+        "translation_gradient_inf_hartree_per_bohr": 8.500145032286355e-15
+      },
+      "stationary_difference_hartree": -0.007339682755368005,
+      "decision": "Passes only the implementation-level translation diagnostic. It establishes neither chemical accuracy nor a physical no-fit total solvent model: the default ddCOSMO cavity is still a discretized source-defined approximation and no cavitation, dispersion, standard-state, finite-k liquid response, force/PES, multi-solvent, or experimental gate has been supplied."
+    }
+  ],
+  "non_promotion_rules": [
+    "Neither preflight may enter the FreeSolv12, MNSol, 11-solvent, confirmation, or blind accuracy leaderboard.",
+    "The passing RHF preflight may not be selected as a final method because it passed this one numerical gate.",
+    "No result may be combined with SMD-CDS, xTB COSMO components, a fitted cavity radius, or a target-derived correction.",
+    "The old omegaB97M-V/IEFPCM/SWIG source-bound failure remains frozen and is not modified or rerun by this artifact."
+  ],
+  "next_mathematical_requirement": "A final V0 endpoint must supply a single physical solvent free-energy functional with source-bound nonpolar and standard-state terms, a smooth reciprocal continuum/cavity, and a stationary auxiliary electronic response. Only after those structural gates can the immutable twelve-record functional-group panel and subsequent multi-solvent/blind gates be run."
+}

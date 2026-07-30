@@ -316,3 +316,48 @@ def test_xtb_cosmo_source_screen_stays_outside_the_no_fit_core():
         "exclude-xtb-cosmo-and-alpb-cpcmx-from-route2-v0-no-fit-core"
     )
     assert "1.5569E+01 dyn/cm" in observed["surface_tension_line"]
+
+
+def test_auxiliary_qm_preflight_is_preserved_but_cannot_be_promoted():
+    artifact_path = (
+        ROOT / "docs/implicit-solvation/benchmarks/"
+        "route2-v0-aq-electronic-preflight-20260730.json"
+    )
+    artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+
+    assert artifact["status"] == "informational-preflight-not-admitted"
+    assert "not a source-bound preregistered control" in artifact["claim_boundary"]
+    assert artifact["runtime"]["experimental_solvation_labels_read"] is False
+    assert artifact["runtime"]["mace_field_response_called"] is False
+    assert artifact["common_numerical_gate"]["threshold"] == 1.0e-8
+    pbe0, rhf = artifact["preflights"]
+    assert pbe0["classification"] == "rejected-numerical-preflight"
+    assert (
+        pbe0["gas"]["translation_gradient_inf_hartree_per_bohr"]
+        > artifact["common_numerical_gate"]["threshold"]
+    )
+    assert rhf["classification"] == "passes-numerical-preflight-only"
+    assert (
+        rhf["solvated"]["translation_gradient_inf_hartree_per_bohr"]
+        < artifact["common_numerical_gate"]["threshold"]
+    )
+    assert "FreeSolv12" in " ".join(artifact["non_promotion_rules"])
+    assert "physical no-fit total solvent model" in rhf["decision"]
+
+
+def test_v0_aq_c_is_the_active_implicit_continuum_architecture_not_a_liquid_detour():
+    theory = (ROOT / "docs/implicit-solvation/ROUTE2_V0_AQ_THEORY.md").read_text(
+        encoding="utf-8"
+    )
+    research = (
+        ROOT / "docs/implicit-solvation/ROUTE2_V0_NO_FIT_ACCURACY_RESEARCH_20260730.md"
+    ).read_text(encoding="utf-8")
+
+    assert "## 3. Main implicit-continuum completion: V0-AQ-C" in theory
+    assert "does **not** require an explicit molecular-liquid trajectory" in theory
+    assert "GROMACS, 3D-RISM, or MDFT" in theory
+    assert "reaction difference" in theory
+    assert "-\\mathscr E_{1}" in theory
+    assert "fitted cavity threshold" in research
+    assert "V0-AQ-C diffuse stationary auxiliary continuum" in research
+    assert "requires neither GROMACS nor a molecular-liquid trajectory" in research

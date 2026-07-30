@@ -1895,6 +1895,75 @@ grid/orientation-converged minimum-eigenvalue evidence. The diagnostic does
 not read the field-conditioned MACE response or introduce post-training,
 fine-tuning, experimental fitting, or calibration.
 
+#### 4.2.22 Deterministic full-\(SO(3)\) orientation quadrature
+
+The molecular density is a function of the full rigid orientation, not a
+single preferred solvent pose.  To make the existing unnormalised convention
+
+\[
+\int_{SO(3)}d\Omega=8\pi^2
+\]
+
+executable without a random sample, V0 now fixes the Euler parameterisation
+
+\[
+R(\alpha,x,\gamma)
+=R_z(\alpha)R_y(\arccos x)R_z(\gamma),
+\qquad
+\alpha,\gamma\in[0,2\pi),\quad x\in[-1,1],
+\]
+
+for which the Haar integral is
+
+\[
+\int_{SO(3)}f(R)d\Omega
+=\int_0^{2\pi}d\alpha
+ \int_{-1}^{1}dx
+ \int_0^{2\pi}d\gamma\;f(R(\alpha,x,\gamma)).
+\]
+
+For a declared integer \(n\), the `Route2V0EulerSO3Quadrature` rule uses the
+\(n\) Gauss--Legendre nodes \((x_p,w_p)\) and \(2n\) equally spaced values of
+each periodic angle.  Its \(4n^3\) orientations have weights
+
+\[
+\omega_{pab}=w_p\left(\frac{2\pi}{2n}\right)^2,
+\qquad
+\sum_{pab}\omega_{pab}=8\pi^2.
+\]
+
+The product rule has the documented Wigner-rank bandlimit \(2n-1\); this is
+the rigid-molecular Euler/Legendre construction used by Sundararaman and Arias
+for molecular classical DFT.  The newer orientation-average analysis by Blech
+*et al.* likewise emphasizes that quadrature choice and convergence must be
+resolved for the interaction being averaged, rather than inferred from one
+convenient orientation.  [Sundararaman and Arias, *Comput. Phys. Commun.*
+**185**, 818 (2014)](https://doi.org/10.1016/j.cpc.2013.11.013), [Blech *et
+al.*, *J. Chem. Phys.* **161**, 131501 (2024)](https://doi.org/10.1063/5.0230569).
+
+`Route2V0CartesianEulerProductQuadrature` takes its exact Cartesian product
+with the declared periodic grid, so every configuration weight is
+\(\Delta V\omega_{pab}\) and the total measure is
+\(V\,8\pi^2\).  The implementation verifies proper rotations, positive weights,
+and the exact phase-space convention consumed by the existing ideal/HNC scalar;
+its nontrivial-order regression controls verify the first and second Haar
+moments.  It neither
+uses a random seed nor applies an automatic water or solvent point-group
+quotient: a symmetry reduction requires a separately frozen proof that the
+specific molecular source and all energy terms share that symmetry.
+
+This is a refinement construction, not a convergence assertion.  Before any
+physical target-solute calculation, the frozen source asset, closure, solute
+set, and standard-state ledger must be held fixed while independently refining
+both \(n\) and the Cartesian grid.  The stationary free energy, site-density
+observables, minimum-curvature evidence, and any permitted envelope force must
+converge across that preregistered sequence and across rigid solute
+orientations.  No orientation order, symmetry quotient, or stopping threshold
+may be selected from a solvation error.  The current explicit product is a
+controlled reference representation; production-scale use still requires a
+separately validated matrix-free implementation that preserves the same
+quadrature and adjoint identities.
+
 
 ### 4.3 Separate auxiliary-QM liquid-difference route
 

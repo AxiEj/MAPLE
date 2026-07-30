@@ -105,6 +105,14 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "total solvation free energy" in ideal_gas[
         "not_a_physical_liquid_backend"
     ]
+    so3 = foundation["molecular_so3_euler_quadrature_control"]
+    assert so3["module"].endswith("route2_v0_molecular_so3_quadrature")
+    assert "Sundararaman and Arias" in so3["literature"]
+    assert "4*n^3 proper rotations" in so3["capability"]
+    assert "2*n-1 Wigner-rank bandlimit" in so3["capability"]
+    assert "no random seed" in so3["source_boundary"]
+    assert "automatic solvent-symmetry quotient" in so3["source_boundary"]
+    assert "matrix-free production representation" in so3["not_a_physical_liquid_backend"]
     molecular_hnc = foundation["molecular_site_hnc_variational_bridge_control"]
     assert molecular_hnc["module"].endswith("route2_v0_molecular_site_hnc")
     assert "periodic-cell times 8*pi^2 measure" in molecular_hnc["capability"]
@@ -234,6 +242,7 @@ def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_on
     )
     assert any("projected molecular-site HNC bridge" in item for item in validation)
     assert any("pure-solvent weighted-density bridge" in item for item in validation)
+    assert any("deterministic full-SO(3) Euler/Legendre quadrature" in item for item in validation)
     rism_kernel = foundation["rism_energy_conjugate_periodic_kernel_control"]
     assert rism_kernel["module"].endswith("route2_v0_rism_energy_conjugate")
     assert "short-range-plus-long-range scalar" in rism_kernel["capability"]

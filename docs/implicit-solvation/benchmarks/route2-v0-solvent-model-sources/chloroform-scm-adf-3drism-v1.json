@@ -1,0 +1,86 @@
+{
+  "construction": "route2-v0-all-atom-solvent-model-source-v1",
+  "status": "all-atom-model-source-only-not-liquid-or-accuracy-admitted",
+  "claim_boundary": "This record freezes only the explicit all-atom geometry, charges, masses, and Lennard-Jones values reported in the cited source table. It excludes target-solvation labels and is not a liquid-state asset, a 1D-RISM result, a MACE-native short-range interaction, a variational liquid functional, a force result, a total solvation result, or an accuracy result.",
+  "solvent_id": "chloroform",
+  "model": {
+    "family": "scm-adf-3drism-compiled-all-atom-table",
+    "identifier": "scm-adf-3drism-2026.1-table-13-chloroform"
+  },
+  "molecular_weight_g_mol": 119.38,
+  "source": {
+    "document_url": "https://www.scm.com/doc/ADF/Input/3D-RISM.html",
+    "document_sha256": "da85b31eb884865c9e7a5af1a172df304b7e264ef016045461de0b5029fc1470",
+    "source_locator": "SCM ADF 2026.1 3D-RISM documentation, Table 13 (Chloroform Weight=119.38 nAtoms=3).",
+    "retrieved_utc": "2026-07-30T02:58:37Z"
+  },
+  "site_types": [
+    {
+      "label": "C",
+      "atomic_number": 6,
+      "mass_amu": 12.011,
+      "charge_e": -0.386,
+      "sigma_angstrom": 3.4,
+      "epsilon_kcal_per_mol": 0.1094,
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.463135
+        ]
+      ]
+    },
+    {
+      "label": "H",
+      "atomic_number": 1,
+      "mass_amu": 1.008,
+      "charge_e": 0.266,
+      "sigma_angstrom": 2.115,
+      "epsilon_kcal_per_mol": 0.0157,
+      "positions_angstrom": [
+        [
+          0.0,
+          0.0,
+          1.56301
+        ]
+      ]
+    },
+    {
+      "label": "Cl",
+      "atomic_number": 17,
+      "mass_amu": 35.45,
+      "charge_e": 0.04,
+      "sigma_angstrom": 3.564,
+      "epsilon_kcal_per_mol": 0.255,
+      "positions_angstrom": [
+        [
+          1.607217,
+          -0.475149,
+          -0.067114
+        ],
+        [
+          -0.392118,
+          1.629465,
+          -0.067114
+        ],
+        [
+          -1.215099,
+          -1.154317,
+          -0.067114
+        ]
+      ]
+    }
+  ],
+  "no_target_policy": {
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "target_solvation_labels_used": false
+  },
+  "not_claimed": [
+    "A complete all-atom molecular source does not admit a physical liquid endpoint.",
+    "Bulk density, dielectric constant, closure, and two-run 1D-RISM reproduction remain independently source-bound gates.",
+    "A MACE-native solute-solvent short-range source, common stationary liquid scalar, analytic forces, multi-solvent panel, and frozen experimental audit remain separate gates."
+  ]
+}

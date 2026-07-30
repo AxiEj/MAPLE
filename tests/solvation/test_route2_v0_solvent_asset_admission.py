@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 import numpy as np
 import pytest
 
+from maple.function.calculator.extra_correction.implicit.route2_v0_all_atom_solvent_model_source import (
+    V0_ALL_ATOM_SOLVENT_MODEL_SOURCE_STATUS,
+    load_route2_v0_all_atom_solvent_model_source,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_solvent_asset import (
     V0_DEFAULT_SOLVENT_IDS,
     V0_FROZEN_SOLVENT_ASSET_CONSTRUCTION,
@@ -17,6 +22,7 @@ BENCHMARKS = ROOT / "docs/implicit-solvation/benchmarks"
 ADMISSION = BENCHMARKS / "route2-v0-structured-solvent-admission-v1.json"
 INVENTORY = BENCHMARKS / "route2-v0-solvent-asset-inventory-v1.json"
 CSPCE_CANDIDATE = BENCHMARKS / "route2-v0-solvent-assets/water-cspce-pse3/manifest.json"
+MODEL_SOURCES = BENCHMARKS / "route2-v0-solvent-model-sources"
 
 
 def _json(path: Path) -> dict:
@@ -65,6 +71,35 @@ def test_current_solvent_inventory_fails_closed_until_all_assets_exist():
         "route2-v0-solvent-assets/water-cspce-pse3/manifest.json"
     )
     assert "not-production-or-accuracy-admitted" in candidates[0]["status"]
+    source_only = inventory["all_atom_model_source_candidates"]
+    assert [candidate["solvent"] for candidate in source_only] == [
+        "chloroform",
+        "dichloromethane",
+    ]
+    assert all(
+        candidate["status"] == V0_ALL_ATOM_SOLVENT_MODEL_SOURCE_STATUS
+        for candidate in source_only
+    )
+    assert all(
+        candidate["source_record"].endswith(".json") for candidate in source_only
+    )
+    assert all(candidate["generated_mdl"].endswith(".mdl") for candidate in source_only)
+    assert all(
+        "lacks independently source-bound bulk density/dielectric"
+        in candidate["not_an_admitted_asset"]
+        for candidate in source_only
+    )
+    for candidate in source_only:
+        source_record = BENCHMARKS / candidate["source_record"]
+        generated_mdl = BENCHMARKS / candidate["generated_mdl"]
+        assert (
+            hashlib.sha256(source_record.read_bytes()).hexdigest()
+            == candidate["source_record_sha256"]
+        )
+        assert (
+            hashlib.sha256(generated_mdl.read_bytes()).hexdigest()
+            == candidate["generated_mdl_sha256"]
+        )
     assert inventory["hard_constraints"] == {
         "post_training": False,
         "fine_tuning": False,
@@ -73,6 +108,35 @@ def test_current_solvent_inventory_fails_closed_until_all_assets_exist():
         "amber_gaff_or_am1bcc_solute_substitution": False,
     }
     assert "Total-free-energy execution is rejected" in inventory["execution_policy"]
+
+
+def test_source_only_all_atom_models_remain_below_frozen_liquid_asset_admission():
+    protocol = _json(ADMISSION)
+    foundation = protocol["implemented_foundation"][
+        "all_atom_solvent_model_source_registry"
+    ]
+
+    assert foundation["module"].endswith("route2_v0_all_atom_solvent_model_source")
+    assert "real-element atomic number and matching mass" in foundation["capability"]
+    assert "not frozen liquid assets" in foundation["current_inventory"]
+    assert "do not choose a bulk density" in foundation["not_a_physical_liquid_backend"]
+    assert (
+        "two SCM 3D-RISM table-derived"
+        in protocol["solvent_asset_contract"]["current_inventory_policy"]
+    )
+
+    for stem, solvent_id in (
+        ("chloroform-scm-adf-3drism-v1", "chloroform"),
+        ("dichloromethane-scm-adf-3drism-v1", "dichloromethane"),
+    ):
+        source = load_route2_v0_all_atom_solvent_model_source(
+            MODEL_SOURCES / f"{stem}.json"
+        )
+        assert source.solvent_id == solvent_id
+        assert source.status == V0_ALL_ATOM_SOLVENT_MODEL_SOURCE_STATUS
+        assert source.to_amber_mdl_text() == (MODEL_SOURCES / f"{stem}.mdl").read_text(
+            encoding="utf-8"
+        )
 
 
 def test_v0_aq_liquid_provider_audit_does_not_convert_local_tools_into_a_proxy():

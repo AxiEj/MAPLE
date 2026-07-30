@@ -641,8 +641,19 @@ accuracy claim.
 #### 4.2.9 Content-addressed frozen solvent-asset boundary
 
 The next physical input is a *solvent-side* asset, not a new solute charge
-model and not a trainable correction.  `route2_v0_solvent_asset.py` accepts a
-registry only when each solvent manifest hash-locks all of the following:
+model and not a trainable correction.  Before such an asset exists,
+`route2_v0_all_atom_solvent_model_source.py` may freeze a narrower
+**source-only** all-atom molecular record: real-element mass identity,
+explicit rigid Cartesian sites, charges, \(\sigma\), \(\epsilon\), a neutral
+charge sum, source molecular-weight agreement, an HTTPS document hash/locator,
+and a deterministic AMBER-MDL serialization.  This rejects united atoms,
+virtual sites, target-label provenance, post-training, and fine-tuning.  It
+does **not** select density, dielectric constant, closure, a 1D-RISM result,
+or a liquid functional.  Thus the checked-in chloroform and dichloromethane
+records are source evidence only, not assets in the physical 11-solvent panel.
+
+`route2_v0_solvent_asset.py` accepts a registry only when each solvent manifest
+hash-locks all of the following:
 
 - the molecular site-model source and the bulk 1D-RISM input;
 - matching `.xvv` and `.cvv` files, which are reparsed using the native-QV,

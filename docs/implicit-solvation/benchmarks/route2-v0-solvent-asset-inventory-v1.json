@@ -2,7 +2,7 @@
   "protocol_id": "route2-v0-solvent-asset-inventory-v1",
   "schema_version": 1,
   "status": "inventory-only-zero-admitted-physical-default-assets",
-  "claim_boundary": "This is a local source-availability inventory, not a molecular-liquid calculation, physical solvent endpoint, solvation-energy result, or accuracy result. A source-complete candidate proves file identity and reproducibility only; it does not enter admitted_physical_default_assets. The inventory records why the Route-2 V0 branch fails closed instead of filling missing physical gates with a proxy.",
+  "claim_boundary": "This is a local source-availability inventory, not a molecular-liquid calculation, physical solvent endpoint, solvation-energy result, or accuracy result. A source-complete candidate proves file identity and reproducibility only; an all-atom model-source candidate proves only the cited molecule-level site model. Neither enters admitted_physical_default_assets. The inventory records why the Route-2 V0 branch fails closed instead of filling missing physical gates with a proxy.",
   "asset_registry_protocol": "route2-v0-frozen-solvent-asset-v2",
   "required_default_solvents": [
     "water",
@@ -33,6 +33,40 @@
         "canonical exact-neutral charge projection derived only from MDL decimal serialization"
       ],
       "not_an_admitted_asset": "The candidate still lacks a production Cartesian grid and rigid-orientation convergence certificate, a complete MACE-native solute-solvent short-range potential, a physical molecular-liquid minimization and force certification, the other ten default-solvent candidates, and frozen chemistry maximum-error evidence."
+    }
+  ],
+  "all_atom_model_source_candidates": [
+    {
+      "solvent": "chloroform",
+      "model": "SCM-ADF-3D-RISM-2026.1-Table-13-all-atom-source",
+      "source_record": "route2-v0-solvent-model-sources/chloroform-scm-adf-3drism-v1.json",
+      "source_record_sha256": "645eba3fe2831968631a16a6fbf6528710c963f0dc439218d7fa8d299a5a00b0",
+      "generated_mdl": "route2-v0-solvent-model-sources/chloroform-scm-adf-3drism-v1.mdl",
+      "generated_mdl_sha256": "166d8323369bf456561cbd6403dcc16c5f625a90acb7e2bdc384b608ace4d389",
+      "status": "all-atom-model-source-only-not-liquid-or-accuracy-admitted",
+      "verified_source_chain": [
+        "hash-pinned SCM ADF 2026.1 3D-RISM documentation page and Table 13 locator",
+        "explicit massive C, H, and Cl sites with all atomic positions, charges, sigma, and epsilon values from that table",
+        "exact neutral molecular charge sum and source molecular-weight cross-check",
+        "deterministic Amber MDL serialization with no density, dielectric, closure, RISM, solute topology, or target-solvation-label input"
+      ],
+      "not_an_admitted_asset": "The record lacks independently source-bound bulk density/dielectric state, a frozen rism1d input/XVV/Cvv/thermodynamic two-run certificate, a MACE-native short-range source, a physical stationary liquid functional and force certification, the remaining default-solvent assets, and frozen chemistry maximum-error evidence."
+    },
+    {
+      "solvent": "dichloromethane",
+      "model": "SCM-ADF-3D-RISM-2026.1-Table-12-all-atom-source",
+      "source_record": "route2-v0-solvent-model-sources/dichloromethane-scm-adf-3drism-v1.json",
+      "source_record_sha256": "92d93250856ec97b02415a6b0880b25c44a6a191f5a42ddf0ad45ce5f72b131b",
+      "generated_mdl": "route2-v0-solvent-model-sources/dichloromethane-scm-adf-3drism-v1.mdl",
+      "generated_mdl_sha256": "efacc15b6d9fed5ba28be58916f66e76b1087149ffe7b2e261f98f4a913343ed",
+      "status": "all-atom-model-source-only-not-liquid-or-accuracy-admitted",
+      "verified_source_chain": [
+        "hash-pinned SCM ADF 2026.1 3D-RISM documentation page and Table 12 locator",
+        "explicit massive C, H, and Cl sites with all atomic positions, charges, sigma, and epsilon values from that table",
+        "exact neutral molecular charge sum and source molecular-weight cross-check",
+        "deterministic Amber MDL serialization with no density, dielectric, closure, RISM, solute topology, or target-solvation-label input"
+      ],
+      "not_an_admitted_asset": "The record lacks independently source-bound bulk density/dielectric state, a frozen rism1d input/XVV/Cvv/thermodynamic two-run certificate, a MACE-native short-range source, a physical stationary liquid functional and force certification, the remaining default-solvent assets, and frozen chemistry maximum-error evidence."
     }
   ],
   "available_parser_control": {

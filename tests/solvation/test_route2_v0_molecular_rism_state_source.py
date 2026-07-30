@@ -221,7 +221,11 @@ def test_molecular_rism_preregistration_preserves_state_domain_separation():
         V0_MOLECULAR_RISM_BULK_STATE_REQUIRED_PROPERTIES
     )
     assert preregistration["hard_constraints"]["optical_dielectric_proxy_for_molecular_rism"] is False
+    assert preregistration["construction"]["state_asset_binding_module"].endswith(
+        "route2_v0_molecular_rism_state_asset_binding"
+    )
     assert preregistration["current_inventory"]["physical_molecular_rism_assets"] == []
+    assert preregistration["current_inventory"]["source_bound_state_asset_bindings"] == []
     assert preregistration["current_inventory"]["source_only_molecular_rism_state_records"] == [
         "route2-v0-molecular-rism-state-sources/dichloromethane-scm-adf-3drism-v1.json"
     ]
@@ -234,6 +238,10 @@ def test_molecular_rism_preregistration_preserves_state_domain_separation():
         "route2-v0-molecular-rism-state-sources/dichloromethane-scm-adf-3drism-v1.json"
     ]
     assert contract["physical_molecular_rism_assets"] == []
+    assert contract["source_bound_state_asset_bindings"] == []
+    assert contract["state_asset_binding_module"].endswith(
+        "route2_v0_molecular_rism_state_asset_binding"
+    )
     assert "epsilon(infinity)" in contract["state_domain_boundary"]
 
     foundation = admission["implemented_foundation"][

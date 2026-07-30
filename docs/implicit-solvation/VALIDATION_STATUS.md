@@ -152,6 +152,17 @@ still not a physical-liquid admission or an accuracy datum because the required
 independent state, bridge/planar, force, multi-solvent, and frozen-panel gates
 remain open.
 
+The independent fixed-charge molecular-RISM state can now be joined to a
+frozen solvent asset only through
+`route2_v0_molecular_rism_state_asset_binding.py`.  That join verifies exact
+solvent/model/site-model-digest identity, pressure, the three RISM-observable
+state fields, and site-density multiplicities before converting the independent
+\(p,\gamma,\kappa_T,\rho_m\) anchors to atomic units.  It is explicitly
+source-only: the currently checked-in DCM state record fails to join the water
+cSPC/E HNC control, and no matching cSPC/E state record exists.  Therefore the
+new binding contributes no physical liquid, chemistry score, historical-panel
+result, or accuracy claim.
+
 The historical FreeSolv10 evaluator now makes the chemistry-diversity
 boundary executable: the ten frozen records contain ten distinct
 chemical-function or scaffold classes and are compared per record to their

@@ -5,6 +5,7 @@
   "claim_boundary": "This contract isolates the scalar pure-liquid state required by the fixed-charge molecular-RISM branch. It is not a nonlocal-dielectric continuum state, finite-k liquid functional, total solvation calculation, force/PES result, or accuracy result.",
   "construction": {
     "module": "maple.function.calculator.extra_correction.implicit.route2_v0_molecular_rism_state_source",
+    "state_asset_binding_module": "maple.function.calculator.extra_correction.implicit.route2_v0_molecular_rism_state_asset_binding",
     "source_construction": "route2-v0-molecular-rism-bulk-state-source-v1",
     "source_status": "source-only-molecular-rism-state-not-liquid-or-accuracy-admitted",
     "rism_observable_state": "Fixed-charge RISM consumes T, molecular number density, and static epsilon(0). Pressure, compressibility, and surface tension are independent pure-liquid thermodynamic anchors. Optical epsilon(infinity) is deliberately absent because this branch has no separate solvent-electronic polarization variable.",
@@ -35,6 +36,7 @@
       "route2-v0-molecular-rism-state-sources/dichloromethane-scm-adf-3drism-v1.json"
     ],
     "physical_molecular_rism_assets": [],
+    "source_bound_state_asset_bindings": [],
     "decision": "The DCM record locks independent scalar state to one exact source-model serialization. Its source-frozen AmberTools KH/DRISM feasibility audit entered a deterministic printed residual three-cycle and is rejected as a finite-k asset without changing a solver or closure. The source model remains below generator-compatibility, common-scalar, force, eleven-solvent, and accuracy gates.",
     "rejected_source_frozen_numerical_audits": [
       "route2-v0-dcm-kh-source-frozen-feasibility-audit-v1.json"
@@ -42,6 +44,7 @@
   },
   "required_before_molecular_liquid_or_total_free_energy": [
     "one source-complete all-atom molecular model bound to the exact state-source digest",
+    "one exact state--asset binding that verifies solvent/model identity, site-model SHA-256, pressure, RISM T/density/static-epsilon fields, site-density multiplicities, and atomic-unit conversions",
     "a residual-converged source-provenanced finite-k molecular susceptibility/direct-correlation asset from a generator compatible with that model",
     "a frozen solvent-side short-range and dispersion interaction in the same stationary liquid scalar",
     "a source-bound bridge/kernel/planar-interface certificate when a weighted-density bridge is used",
@@ -50,6 +53,7 @@
   "validation_sequence": [
     "Verify strict per-property provenance, exact model digest binding, units, physical limits, and explicit false no-target/no-training policy.",
     "Cross-check exactly T, molecular number density, and epsilon(0) against a parsed fixed-charge rism1d input; never inject epsilon(infinity) into that RISM state equation.",
+    "Bind the source-only state record to one frozen solvent asset only after exact solvent/model/site-model-digest/pressure agreement and matching frozen site-density multiplicities; the binding remains source-only.",
     "Require finite-k C_ab(k), generator compatibility, source-defined closure/long-range convention, and residual convergence independently; do not infer them from any scalar state field.",
     "When a source-frozen numerical probe fails, record its exact model/state/input/runtime/cycle evidence as a negative audit. Reject only that declared candidate; do not perform a mixing or closure sweep selected from a solvation result.",
     "Only after molecular-liquid, bridge, common-scalar, force, standard-state, grid/orientation, eleven-solvent, and blind-validation gates pass may a total-free-energy claim be evaluated."

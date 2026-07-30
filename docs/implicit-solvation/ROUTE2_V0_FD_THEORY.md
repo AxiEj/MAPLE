@@ -286,6 +286,30 @@ optical limit as a fixed-charge RISM input, or treating a RISM static
 dielectric as a complete continuum spectrum.  Both branches remain
 fail-closed until their own finite-wavevector/functional requirements are met.
 
+Before either pressure, surface tension, or compressibility can enter a
+molecular bridge, `route2_v0_molecular_rism_state_asset_binding.py` makes the
+state--asset join executable.  It requires one exact solvent ID and model
+identifier, the state record's model digest to equal the frozen `site_model`
+digest, matching asset pressure, and matching RISM
+`(T, rho_m, epsilon_s)` serialization.  It also checks that every frozen
+site density equals its declared molecular multiplicity times \(\rho_m\).
+Only then may it expose the independently sourced anchors in the atomic units
+of the common scalar:
+
+\[
+\rho_m^{a_0^{-3}}=\rho_m^{\AA^{-3}}a_0^3,\qquad
+p^{E_h/a_0^3}=\frac{10^5p^{\rm bar}}{E_h/a_0^3},\qquad
+\gamma^{E_h/a_0^2}=\frac{\gamma^{\rm N/m}}{E_h/a_0^2},\qquad
+\kappa_T^{a_0^3/E_h}=\kappa_T^{\rm Pa^{-1}}\frac{E_h}{a_0^3}.
+\]
+
+This is an identity and provenance gate, not a fit or a liquid construction.
+It does not infer \(C_{ab}(k)\), select a closure or bridge parameter, or
+promote the object to a total free energy.  In particular, the checked-in DCM
+state record cannot bind the separate water cSPC/E HNC candidate, and no
+matching state source has been recorded for that candidate; both remain below
+physical-liquid and accuracy admission.
+
 ### 3.3 A source-bound Lorentz/Yukawa spectrum is a custom electrostatic control
 
 There is a useful intermediate object between a scalar dielectric and a fully

@@ -217,11 +217,13 @@
   "molecular_rism_bulk_state_source_contract": {
     "protocol": "route2-v0-molecular-rism-state-prereg-v1.json",
     "module": "maple.function.calculator.extra_correction.implicit.route2_v0_molecular_rism_state_source",
+    "state_asset_binding_module": "maple.function.calculator.extra_correction.implicit.route2_v0_molecular_rism_state_asset_binding",
     "status": "source-only-state-records-not-physical-molecular-rism-assets",
     "source_only_state_records": [
       "route2-v0-molecular-rism-state-sources/dichloromethane-scm-adf-3drism-v1.json"
     ],
     "physical_molecular_rism_assets": [],
+    "source_bound_state_asset_bindings": [],
     "state_domain_boundary": "A fixed-charge molecular-RISM input cross-checks only T, molecular number density, and static epsilon(0). It has no separate solvent-electronic polarization variable, so epsilon(infinity) belongs only to the distinct nonlocal-dielectric continuum control. Neither state contract determines finite-k C_ab(k).",
     "not_an_admitted_asset": "The DCM source-only scalar state record validates per-property provenance and exact MDL binding only. Its source-frozen KH/DRISM feasibility audit is a rejection of that exact nonconverged numerical candidate, not an admission or a parameter-search prompt. Neither record can provide a residual-converged finite-k correlation, a closure, a short-range interaction, bridge, stationary liquid functional, total solvation free energy, force, or accuracy result.",
     "rejected_source_frozen_numerical_audits": [

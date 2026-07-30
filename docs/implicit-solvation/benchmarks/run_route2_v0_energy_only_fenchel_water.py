@@ -126,7 +126,7 @@ def _sync(device: str) -> None:
 
 
 def _write_exclusive_json(path: Path, payload: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=False)
+    path.parent.mkdir(parents=True, exist_ok=True)
     serialized = json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n"
     with path.open("x", encoding="utf-8") as handle:
         handle.write(serialized)

@@ -43,10 +43,10 @@ The subsequent sealed
 audit resolved one part of the \(D\) problem without choosing a width or a
 cavity.  The official frozen readouts reconstruct their public molecular
 properties to machine precision: atomic dipole closure is
-\(6.41	imes10^{-17}\), atomic polarizability closure is
-\(1.07	imes10^{-16}\), and the Cartesian partition
-\(W_a=lpha_alpha^{-1}\) satisfies \(\sum_aW_a=I\) to
-\(4.06	imes10^{-17}\).  Thus \(p_a=W_ap\) is an identity-bound atomic
+\(6.41\times10^{-17}\), atomic polarizability closure is
+\(1.07\times10^{-16}\), and the Cartesian partition
+\(W_a=\alpha_a\alpha^{-1}\) satisfies \(\sum_aW_a=I\) to
+\(4.06\times10^{-17}\).  Thus \(p_a=W_ap\) is an identity-bound atomic
 induced-dipole partition.  It does **not** yet specify how those atom moments
 become a radial GTO density or an electrostatic source.
 
@@ -165,11 +165,16 @@ same scalar:
 \]
 
 It therefore includes explicit derivatives of \(E_{\rm gas}\),
-\(\alpha_\theta^{-1}\), \(c_0\), \(D\), \(B\), and \(A\). The following are
-mandatory before a force or PES claim:
+\(\alpha_\theta^{-1}\), \(c_0\), \(D\), \(B\), and \(A\). The first
+coefficient-derivative gate has passed: the sealed all-Cartesian MACE-MDP
+artifact reports \(2.28\times10^{-8}\) relative error for \(d\mu/dR\) and
+\(3.98\times10^{-8}\) for \(d\alpha/dR\) against a fixed \(10^{-4}\,
+\mathring{\rm A}\) central difference, with translation and tensor-symmetry
+identities at machine precision. This makes the frozen \(\alpha_\theta\)
+coordinate derivative available as one explicit term; it does not eliminate
+any other term in the envelope derivative. The following are still mandatory
+before a force or PES claim:
 
-* frozen-model coordinate derivatives of \(\alpha_\theta\) checked against
-  central differences;
 * KKT residual, charge, source-duality, reciprocal/passive response, and
   \(K_p\) positivity checks;
 * multi-direction Cartesian force finite differences with second-order

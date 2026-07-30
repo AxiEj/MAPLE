@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 BENCHMARKS = ROOT / "docs/implicit-solvation/benchmarks"
 
@@ -81,3 +83,44 @@ def test_mace_mdp_derivative_preregistration_binds_runner_and_dependencies():
     ):
         assert name in " ".join(inputs)
     assert "/mace/modules/utils.py" in " ".join(inputs)
+
+
+def test_mace_mdp_derivative_artifact_admits_only_property_coefficients():
+    artifact = json.loads(
+        (BENCHMARKS / "route2-v0-mace-mdp-acetone-derivatives-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert artifact["status"] == "pass"
+    assert artifact["decision"]["verdict"] == (
+        "admit-mace-mdp-property-coordinate-derivatives-only"
+    )
+    assert (
+        artifact["hard_constraints"]["mace_mdp_treated_as_an_energy_or_force_model"]
+        is False
+    )
+    assert artifact["hard_constraints"]["continuum_or_pcm_invoked"] is False
+    assert artifact["hard_constraints"]["experimental_solvation_labels_read"] is False
+    assert (
+        artifact["finite_difference_protocol"]["central_difference_evaluations"] == 60
+    )
+    assert all(check["passes"] for check in artifact["numerical_checks"].values())
+    assert artifact["numerical_checks"]["dipole_derivative_finite_difference"][
+        "value"
+    ] == pytest.approx(2.2778223475587386e-08)
+    assert artifact["numerical_checks"]["polarizability_derivative_finite_difference"][
+        "value"
+    ] == pytest.approx(3.984714474887568e-08)
+    assert (
+        "does not create a model energy, force"
+        in artifact["decision"]["admission_boundary"]
+    )
+
+    runner = BENCHMARKS / "run_route2_v0_mace_mdp_acetone_derivatives.py"
+    assert artifact["source_files_sha256"] == {
+        "docs/implicit-solvation/benchmarks/"
+        "run_route2_v0_mace_mdp_acetone_derivatives.py": hashlib.sha256(
+            runner.read_bytes()
+        ).hexdigest()
+    }

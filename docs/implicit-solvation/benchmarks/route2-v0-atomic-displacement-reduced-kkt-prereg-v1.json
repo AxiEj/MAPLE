@@ -1,0 +1,49 @@
+{
+  "protocol_id": "route2-v0-atomic-displacement-reduced-kkt-prereg-v1",
+  "schema_version": 1,
+  "status": "structural-kernel-implemented-before-physical-continuum-binding",
+  "claim_boundary": "This protocol fixes only an induced-response reduced KKT gate for the V0 atomic-displacement tangent. Its synthetic unit controls prove source/dual and common-scalar algebra. They do not use a physical continuum run, permanent solute density, gas energy, nonpolar functional, force, PES, experimental solvation label, total solvation prediction, or chemistry accuracy metric.",
+  "construction": {
+    "name": "route2-v0-atomic-displacement-reduced-kkt-v1",
+    "source": "B_R is assembled column-by-column from the frozen V0-ADT free-atom translation-tangent potential at the exact continuum surface points; its transpose B_R^T is the only surface-charge-to-dipole dual.",
+    "electronic_term": "0.5 p^T alpha_theta(R)^-1 p, where alpha_theta is a raw frozen positive molecular polarizability in bohr^3 and p is the induced molecular dipole in e bohr.",
+    "continuum_term": "0.5 (B_R p)^T Q_R (B_R p), where Q_R is the declared energy-conjugate reciprocal surface response.",
+    "external_term": "p^T f in the explicitly declared external dipole-dual convention.",
+    "stationarity": "K_R p + f = 0 with K_R=alpha_theta^-1+B_R^T Q_R B_R; the continuum surface state has been eliminated, so this is a reduced KKT system rather than the final joint density/surface KKT system."
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "radial_width_selection": false,
+    "density_projection_or_radial_decomposition": false,
+    "learned_response_jacobian_symmetrization": false,
+    "response_tempering_or_eigenvalue_clipping": false,
+    "per_record_or_per_solvent_method_selection_from_error": false,
+    "legacy_public_route_changed": false
+  },
+  "required_structural_gates": [
+    "The atomic dipole partition sums to the molecular dipole identity and the direct V0-ADT surface map is finite.",
+    "The reported source dual is the exact transpose of that same surface map: q^T B_R p = p^T B_R^T q.",
+    "The supplied polarizability is reciprocal and positive definite before inversion; material asymmetry or nonpositive curvature is a rejection, not an opportunity to repair the tensor.",
+    "The declared continuum has matching atomic numbers, geometry, and surface points, and B_R^T Q_R B_R is reciprocal in the V0-ADT source subspace.",
+    "Both electronic curvature and K_R are strictly positive definite under frozen relative thresholds.",
+    "The returned state independently recomputes surface potential, continuum dual, stationarity residual, half-coupling energy ledger, inverse-Hessian response, reciprocity, passivity, and the external-dual finite-difference identity."
+  ],
+  "forbidden_shortcuts": [
+    "Do not use the rejected one-radial MACE l=1 Gaussian source.",
+    "Do not change the V0-ADT radial table, select a width, rescale polarizability, add error-selected multipoles, or choose a continuum/cavity from a solvation error.",
+    "Do not promote the reduced induced-only scalar to a permanent-density functional, a MACE-MDP energy, a total solvation free energy, or a force model.",
+    "Do not run a FreeSolv, MNSol, or other experimental accuracy panel from this structural gate."
+  ],
+  "physical_binding_required_before_any_accuracy_run": [
+    "Identity-bound frozen MACE-MDP polarizability and V0-ADT source at each preregistered geometry.",
+    "A physical reciprocal continuum execution with a source/dual and smooth-coordinate certificate.",
+    "Twelve-record, ten-functional-group QM density/MEP/reaction-potential physics gates that read no experimental solvation label.",
+    "A full permanent-density/source-dual and joint electronic-continuum stationary functional, or an explicit rejection of V0-ADT in favor of the separately source-bound V0-RK route.",
+    "Envelope-force and runtime gates before immutable multi-solvent and blind experimental validation."
+  ],
+  "decision_rule": "A failed gate rejects the current frozen physical binding. No failed structural, physical, force, runtime, or chemistry gate authorizes fitting, retraining, calibration, damping, clipping, radius tuning, or a post-hoc correction."
+}

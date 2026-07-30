@@ -5,11 +5,12 @@
 This document records the coefficient-only V0 branch opened by the frozen
 MACE-MDP acetone screen. Its inherited one-radial Gaussian induced-density
 realization has been **rejected before PCM**. A distinct physical free-atom
-translation-tangent source now passes one acetone gas-phase QM-MEP falsifier,
-but still has no same-basis dual, KKT/continuum, force, or broad physics
-certificate. Consequently this remains a **theory and admission contract**,
-not an admitted electronic implementation, a public Route-2 calculator, a
-total-solvation result, or an accuracy claim.
+translation-tangent source now passes one acetone gas-phase QM-MEP falsifier.
+It also has an induced-only reduced source-space KKT structural kernel, but
+still has no permanent-density/source dual, physical continuum binding, force,
+or broad physics certificate. Consequently this remains a **theory and
+admission contract**, not an admitted electronic implementation, a public
+Route-2 calculator, a total-solvation result, or an accuracy claim.
 
 The sealed artifact
 [`route2-v0-mace-mdp-acetone-response-v1.json`](benchmarks/route2-v0-mace-mdp-acetone-response-v1.json)
@@ -115,10 +116,37 @@ The molecular induced-dipole mismatch is still
 \(0.0038678622<0.20\). This is a positive **source-level** result: replacing
 the guessed radial shape resolves the observed acetone near-field failure
 without fitting or retraining. It is not a density-basis or scalar result.
-The table is not yet a GTO coefficient vector, does not expose an exact
-continuum transpose, and has not been tested on the frozen twelve-record
-physics panel. It must not enter PCM/KKT, force, or experimental-accuracy
+The table is not yet a GTO coefficient vector and has not been tested on the
+frozen twelve-record physics panel. The new reduced source-space kernel exposes
+an exact surface transpose only for the **induced** rank-three map; it does not
+supply a permanent-density dual or a full electronic functional. It must not
+enter a physical PCM/total-KKT calculation, force, or experimental-accuracy
 work yet.
+
+## Reduced induced-only source-space KKT gate
+
+The real-space V0-ADT map can now be evaluated directly at a declared
+continuum surface. Let \(B_{\mathbf R}\in\mathbb R^{m\times3}\) contain its
+three Cartesian unit-dipole surface-potential columns and let
+\(Q_{\mathbf R}\) be the continuum's energy-conjugate response. Then the
+reduced scalar
+
+\[
+g_{\mathbf R}(p;f)=\tfrac12p^\mathsf T\alpha_\theta^{-1}p
++\tfrac12(B_{\mathbf R}p)^\mathsf TQ_{\mathbf R}(B_{\mathbf R}p)
++p^\mathsf Tf
+\]
+
+has the stationary Hessian
+\(K_p=\alpha_\theta^{-1}+B_{\mathbf R}^\mathsf TQ_{\mathbf R}B_{\mathbf R}\).
+The implementation enforces that the source pullback is exactly
+\(B_{\mathbf R}^{\mathsf T}\), that \(K_p\succ0\), and that the induced
+response \(-K_p^{-1}\) is reciprocal and passive. This is a strict lower
+structural gate: its unit controls use a synthetic reciprocal continuum and it
+contains no permanent solute source, gas energy, nonpolar term, coordinate
+derivative, or experimental solvation value. The complete derivation and
+boundaries are in
+[`ROUTE2_V0_ATOMIC_DISPLACEMENT_REDUCED_KKT_THEORY.md`](ROUTE2_V0_ATOMIC_DISPLACEMENT_REDUCED_KKT_THEORY.md).
 
 ## Conditional rank-three scalar
 
@@ -287,14 +315,15 @@ advantage.
 
 ## Ordered admission path to accuracy
 
-1. Convert the source-provenanced V0-ADT real-space tangent into one
-   non-arbitrary source/dual basis and verify every identity above. The
-   rejected one-radial map is not a starting point for a parameter sweep and
-   may not be used to choose a projection. If V0-ADT cannot pass this gate,
-   source-bind and pre-register the full induced-density-kernel fallback.
-2. Couple the admitted representation to the reciprocal GTO/continuum
-   primitive and demonstrate \(K_p\succ0\), one energy ledger, and envelope
-   forces.
+1. Bind the reduced V0-ADT source-space gate to a physical reciprocal continuum
+   and test it over the frozen QM physics set. The reduced gate is not a
+   permanent-density or total-solvation representation. The rejected
+   one-radial map is not a starting point for a parameter sweep and may not be
+   used to choose a projection.
+2. Convert the source-provenanced V0-ADT real-space tangent into one full
+   non-arbitrary permanent-density/source dual, or reject it and source-bind
+   the full induced-density-kernel fallback. Then demonstrate the joint scalar,
+   \(K_p\succ0\), one energy ledger, and envelope forces.
 3. Extend the **physics** validation over the frozen twelve-record,
    ten-actual-functional-group geometries with QM response/MEP/PCM component
    references. This is not an experimental accuracy panel and must not read

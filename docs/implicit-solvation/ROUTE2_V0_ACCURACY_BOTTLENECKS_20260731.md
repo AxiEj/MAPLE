@@ -4,10 +4,10 @@
 
 There is **no valid current Route-2V0 solvation-accuracy value**. A
 free-atom translation-tangent source has now passed one preregistered acetone
-**gas-phase QM-MEP physics canary**, but it is not yet in a common
-source/dual basis, has no KKT/continuum/force proof, and has not passed the
-required multi-functional-group physics panel. It therefore cannot be used to
-quote a solvation error.
+**gas-phase QM-MEP physics canary**. An induced-only reduced source-space KKT
+structural kernel also exists, but it has no permanent-density/source dual,
+physical continuum binding, force proof, or multi-functional-group physics
+certificate. It therefore cannot be used to quote a solvation error.
 
 Two retained historical values must not be confused with progress:
 
@@ -85,11 +85,13 @@ without choosing a width or looking at solvation errors.
 ## The remaining no-fit electronic construction
 
 The passing source is called **V0-ADT** (atomic displacement tangent). It is
-the first concrete physical radial response candidate, but it is not admitted
-to PCM. Its next gate is a same-basis source/dual construction. **V0-RK**
-remains the fallback full-kernel construction if V0-ADT fails the frozen
-multi-molecule QM physics panel or cannot be made energy-conjugate without an
-arbitrary projection.
+the first concrete physical radial response candidate. Its reduced
+induced-only source-space KKT construction is now executable, but is not a
+physical PCM or total-solvation model. Its next **physical** gate is binding
+that source to an actual reciprocal continuum, followed by a same-basis
+permanent-density/source-dual construction. **V0-RK** remains the fallback
+full-kernel construction if V0-ADT fails the frozen multi-molecule QM physics
+panel or cannot be made energy-conjugate without an arbitrary projection.
 
 Let:
 
@@ -149,10 +151,12 @@ declared QM reference.
 
 ## Ordered evidence, before any experimental score
 
-1. **Source provenance:** freeze V0-ADT's physical radial tables, one
-   source/dual basis, supported elements/charge states, and hashes. If that
-   route fails, freeze one physical \(C_0\) construction instead. No FreeSolv,
-   MNSol, or target-solvent labels may participate.
+1. **Source provenance:** freeze V0-ADT's physical radial tables, its exact
+   reduced surface-source dual, supported elements/charge states, and hashes.
+   Bind one physical reciprocal continuum before claiming anything beyond the
+   synthetic KKT control. If that route fails, freeze one physical \(C_0\)
+   construction instead. No FreeSolv, MNSol, or target-solvent labels may
+   participate.
 2. **Response physics:** prove charge conservation, Euclidean covariance,
    atom/molecule moment identities, source/continuum duality, and reciprocal/
    passive response. A full-kernel fallback must additionally prove

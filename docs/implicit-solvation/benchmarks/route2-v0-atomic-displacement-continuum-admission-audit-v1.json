@@ -1,0 +1,58 @@
+{
+  "protocol_id": "route2-v0-atomic-displacement-continuum-admission-audit-v1",
+  "schema_version": 1,
+  "status": "rejected-before-v0-adt-physical-continuum-execution",
+  "claim_boundary": "This is a local admission audit for the next V0-ADT continuum binding. It records why no checked-in provider/cavity combination may be called the no-fit V0 physical continuum. It performs no PCM solve, no QM calculation, no force calculation, and no experimental-solvation or accuracy evaluation.",
+  "v0_adt_input": {
+    "source_artifact": "route2-v0-atomic-displacement-hf-def2-tzvpd-v2",
+    "source_canary": "route2-v0-atomic-displacement-source-acetone-v1.json",
+    "required_continuum_contract": "A reciprocal energy-conjugate response with identical atomic identities, geometry, and surface points; independent cavity/solvent provenance; and a smooth-coordinate certificate before a physical V0-ADT binding."
+  },
+  "audited_source_files_sha256": {
+    "docs/implicit-solvation/ROUTE2_CONTINUUM_ENGINE.md": "7f7720cbd3eba3168b75f6f43793093d314ba82516a77107e51e565e5a1fb376",
+    "docs/implicit-solvation/ROUTE2_V0_AQ_THEORY.md": "2dd505e55b6bd574a7327f3ee2d2355f7ff319bb8e886374abdd1677d8ae3f6d",
+    "maple/function/calculator/extra_correction/implicit/continuum_response.py": "00f34492f0895c2217b92592aea4241d7f5e84ee77806116c7fbb9ce2848e498",
+    "maple/function/calculator/extra_correction/implicit/pyscf_swig_response.py": "03a30deed870d7fa8a94abee5b2a7ca59324dfc75b9665839286eb38074e2197",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_diffuse_continuum.py": "c71e113c6023dbbac954164dcb6758735d9dbf66a4744e182e29464d5c9f123c",
+    "maple/function/calculator/extra_correction/implicit/smd.py": "4949095b5d453ff1bbbdfc4e365f9556db027b6ccb110337a472f18a2f4e439f"
+  },
+  "audited_candidates": [
+    {
+      "name": "PCMSolverExternalMEPCavityResponse",
+      "local_source": "maple/function/calculator/extra_correction/implicit/continuum_response.py",
+      "positive_boundary": "It exposes a fixed-geometry energy-conjugate external-MEP response when PCMSolver MATRIXSYMM=TRUE.",
+      "rejection_boundary": "The adapter accepts externally supplied per-atom cavity radii but contains no independent V0 cavity-source record. The existing Route-2 profile is the SMD/PCM research path, whose SMD radii/CDS belong only to the explicit empirical comparator. The provider also lacks the complete same-energy coordinate derivative required for a V0 force/PES claim.",
+      "admitted_for_v0_adt_physical_binding": false
+    },
+    {
+      "name": "PySCFSWIGPCMResponse",
+      "local_source": "maple/function/calculator/extra_correction/implicit/pyscf_swig_response.py",
+      "positive_boundary": "It keeps direct, transpose, and energy-conjugate external-MEP responses distinct and exposes a research coordinate-operator VJP.",
+      "rejection_boundary": "The constructor requires caller-supplied per-atom cavity radii and therefore supplies no independent no-fit V0 cavity provenance. Existing Route-2 SWIG/ISWIG orientation and active-set investigations remain research controls, not a V0 smooth-cavity admission certificate.",
+      "admitted_for_v0_adt_physical_binding": false
+    },
+    {
+      "name": "Route2V0DiffuseLocalDielectricOperator",
+      "local_source": "maple/function/calculator/extra_correction/implicit/route2_v0_diffuse_continuum.py",
+      "positive_boundary": "It is a reciprocal finite-volume reaction scalar for a supplied smooth occupancy and declared bulk dielectric limit.",
+      "rejection_boundary": "It has no source-bound solvent occupancy, cavity/nonpolar functional, stationary auxiliary electronic density, or direct V0-ADT surface-source interface. Its own API labels it a fixed-occupancy reaction block rather than a total-solvation asset.",
+      "admitted_for_v0_adt_physical_binding": false
+    }
+  ],
+  "admitted_physical_continuum_bindings": [],
+  "decision": {
+    "physical_continuum_execution_performed": false,
+    "qm_physics_panel_execution_performed": false,
+    "experimental_solvation_labels_read": false,
+    "accuracy_result_reported": false,
+    "next_action": "Do not select or tune a radius/cavity from an error. Admit a new continuum only after its solvent/cavity inputs and smooth-coordinate evidence are independently source-bound before execution."
+  },
+  "hard_constraints": {
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "radius_or_cavity_selection_from_solvation_error": false,
+    "small_experimental_accuracy_panel": false
+  }
+}

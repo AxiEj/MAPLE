@@ -40,6 +40,33 @@ A failure rejects this particular GFN2 permanent-source candidate.  It does not
 justify retuning the source.  A pass only admits it to all-electron cavity and
 common-scalar/KKT gates.
 
+## V2 decision: reject this permanent source
+
+The frozen V2 execution is recorded in
+[`route2-v0-gfn2-molden-static-mep-acetone-v2.json`](benchmarks/route2-v0-gfn2-molden-static-mep-acetone-v2.json).
+Every algebraic transfer, geometry, checkpoint-identity, electron-count, and
+charge gate passed.  In particular, the two independent frozen QM executions
+agree in energy to \(3.41\times10^{-13}\ E_h\) and in permanent dipole to
+\(4.13\times10^{-13}\ e\,a_0\); the failure is therefore not attributed to
+the MOLDEN-to-PySCF carrier or a swapped QM reference.
+
+The candidate's permanent dipole screen passes,
+\(\epsilon_\mu=0.103996\), but both registered exterior-potential screens
+fail:
+
+\[
+\epsilon_2=0.219999>0.20,
+\qquad
+\epsilon_\infty=0.376056>0.30.
+\]
+
+Accordingly the zero-field GFN2 MOLDEN effective-core-plus-valence source is
+**rejected** for Route-2 V0.  No all-electron cavity completion, continuum
+solve, KKT coupling, force/PES check, speed comparison, or experimental
+solvation benchmark may use this source.  The recorded failure is evidence for
+selecting a different stationary permanent electronic source, not permission
+to alter the rejected source convention or thresholds.
+
 ## 1. Candidate potential is fixed before the comparison
 
 The zero-field MOLDEN export gives the previously certified closed-shell

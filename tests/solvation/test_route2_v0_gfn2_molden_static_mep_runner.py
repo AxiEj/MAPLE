@@ -146,6 +146,38 @@ def test_static_mep_v1_preflight_is_preserved_before_the_v2_protocol():
     )
 
 
+def test_static_mep_v2_artifact_preserves_the_registered_rejection():
+    benchmark_directory = _REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks"
+    artifact_path = (
+        benchmark_directory / "route2-v0-gfn2-molden-static-mep-acetone-v2.json"
+    )
+    preregistration_path = (
+        benchmark_directory / "route2-v0-gfn2-molden-static-mep-acetone-prereg-v2.json"
+    )
+    artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+    preregistration = json.loads(preregistration_path.read_text(encoding="utf-8"))
+    checks = artifact["scientific_falsification"]["checks"]
+
+    assert artifact["status"] == "reject"
+    assert artifact["scientific_falsification"]["verdict"] == (
+        "reject-gfn2-molden-permanent-source"
+    )
+    assert artifact["preregistration"]["protocol_id"] == preregistration["protocol_id"]
+    assert (
+        artifact["preregistration"]["sha256"]
+        == hashlib.sha256(preregistration_path.read_bytes()).hexdigest()
+    )
+    assert checks["static_dipole_relative_frobenius"]["passes"] is True
+    assert checks["static_mep_relative_frobenius"]["value"] == pytest.approx(
+        0.2199987982771258
+    )
+    assert checks["static_mep_relative_frobenius"]["passes"] is False
+    assert checks["static_mep_relative_max_abs"]["value"] == pytest.approx(
+        0.3760559033685002
+    )
+    assert checks["static_mep_relative_max_abs"]["passes"] is False
+
+
 def test_static_mep_helper_runtime_is_version_bound():
     validator = _RUNNER["_validate_helper_runtime"]
 

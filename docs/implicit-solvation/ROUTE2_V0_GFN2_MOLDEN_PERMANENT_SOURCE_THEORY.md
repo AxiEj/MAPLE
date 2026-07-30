@@ -179,9 +179,16 @@ possibility alone.
 
 ## 4. Current conclusion
 
-The zero-field MOLDEN route is an admissible *candidate way to close the
+The zero-field MOLDEN route was an admissible *candidate way to close the
 permanent-reference gap* because it derives a reproducible stationary xTB
-valence density and exact effective-core electrostatic ledger.  It is not yet
-an accepted V0 electronic functional or a solution to accuracy.  Its next
-honest test is static QM MEP—not a small FreeSolv panel and not an xTB solvent
-calculation.
+valence density and exact effective-core electrostatic ledger.  Its frozen
+static-QM-MEP gate now rejects that exact effective-core-plus-valence source:
+the permanent dipole passes but the global and maximum exterior MEP errors do
+not.  The result is recorded in
+[`route2-v0-gfn2-molden-static-mep-acetone-v2.json`](benchmarks/route2-v0-gfn2-molden-static-mep-acetone-v2.json).
+
+It is therefore not an accepted V0 electronic functional, not a candidate for
+all-electron cavity/KKT work, and not a solution to accuracy.  The next honest
+branch is a different stationary permanent-source construction, not a small
+FreeSolv panel, an xTB solvent calculation, or a retuning of this rejected
+source.

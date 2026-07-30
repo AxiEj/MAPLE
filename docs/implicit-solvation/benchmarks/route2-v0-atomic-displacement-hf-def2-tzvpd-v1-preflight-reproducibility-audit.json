@@ -1,0 +1,68 @@
+{
+  "artifact": "route2-v0-atomic-displacement-hf-def2-tzvpd-v1-preflight-reproducibility-audit",
+  "claim_boundary": "This audit preserves two raw executions of the v1 free-atom translation-tangent asset generator and records why neither is admitted as a source for a QM-MEP, continuum, KKT, force, or solvation-accuracy calculation. It makes no chemical-accuracy claim and does not alter either raw output.",
+  "decision": {
+    "status": "preflight-not-admitted",
+    "verdict": "freeze-v2-single-thread-runtime-before-any-source-falsifier",
+    "reason": "The v1 preregistration did not freeze the numerical thread runtime. Two executions at the same tracked source revision and Python/PySCF versions produce non-identical enclosed-electron tables, so a v1 table must not be selected for the next physical gate."
+  },
+  "execution_comparison": {
+    "identical_arrays": [
+      "atomic_numbers",
+      "enclosed_electrons_Z1",
+      "radial_grid_bohr"
+    ],
+    "nonidentical_enclosed_electron_arrays": {
+      "enclosed_electrons_Z6": {
+        "maximum_absolute_difference": 3.7019711740526873e-09,
+        "nonidentical_value_count": 1209
+      },
+      "enclosed_electrons_Z7": {
+        "maximum_absolute_difference": 4.796163466380676e-14,
+        "nonidentical_value_count": 2047
+      },
+      "enclosed_electrons_Z8": {
+        "maximum_absolute_difference": 1.2523315717771766e-13,
+        "nonidentical_value_count": 977
+      },
+      "enclosed_electrons_Z16": {
+        "maximum_absolute_difference": 1.3181415070562252e-08,
+        "nonidentical_value_count": 1741
+      },
+      "enclosed_electrons_Z17": {
+        "maximum_absolute_difference": 1.7763568394002505e-14,
+        "nonidentical_value_count": 769
+      }
+    },
+    "unchanged_contract": {
+      "git_head": "dac1fada0e119dcefe8bfce63ddeb4b48715d3d6",
+      "pyscf": "2.13.1",
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d"
+    }
+  },
+  "hard_constraints": {
+    "asset_selected_from_qm_mep_error": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "post_training": false,
+    "solvation_accuracy_panel_run": false,
+    "v1_outputs_deleted": false
+  },
+  "raw_outputs": {
+    "execution_a": {
+      "manifest_path": "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-hf-def2-tzvpd-v1-preflight/execution-a.json",
+      "manifest_sha256": "01e6555a68c0bcd50362b951a9d5ec0d7b29485a766e514b690543b10059fcfc",
+      "table_path": "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-hf-def2-tzvpd-v1-preflight/execution-a.npz",
+      "table_sha256": "712ca2bce288f2962da5b7bb4dcaa29f63a310d5203e68686af1485e5026056f"
+    },
+    "execution_b": {
+      "manifest_path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v1.json",
+      "manifest_sha256": "bcf04cf94bff62c8f1101ae37bc5c73559efee981b0fae7dda67a0d8d4d3bcbd",
+      "table_path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v1.npz",
+      "table_sha256": "d5c1766551497ba1fcb89dfe1d9067ab1e2c754bb87ec44cf64da79b8870ee75"
+    }
+  },
+  "required_next_step": "A separately preregistered v2 generator must fix the thread count before NumPy/PySCF import, enforce the declared PySCF library thread count, emit a deterministic archive, and reproduce its table hash in a second independent execution before its source can be compared with frozen QM-MEP data.",
+  "schema_version": 1
+}

@@ -188,6 +188,8 @@ examples/md/**/*.xyz
 !/docs/implicit-solvation/benchmarks/*.py
 !/docs/pretrained-solvation-hub/
 !/docs/pretrained-solvation-hub/**
+/docs/pretrained-solvation-hub/**/__pycache__/
+/docs/pretrained-solvation-hub/**/*.py[cod]
 
 # Frozen provider-parity evidence includes the original provider logs.
 !/tests/solvation/data/amber_gb_reference/audit/**/*.log

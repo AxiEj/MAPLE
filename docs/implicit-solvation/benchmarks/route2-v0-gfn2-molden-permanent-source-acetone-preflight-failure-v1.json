@@ -1,0 +1,36 @@
+{
+  "artifact": "route2-v0-gfn2-molden-permanent-source-acetone-preflight-failure-v1",
+  "claim_boundary": "This record preserves an execution-engine failure. It contains no permanent-source acceptance result, no QM comparison, no continuum calculation, and no accuracy claim.",
+  "decision": {
+    "rule": "Do not reinterpret this preflight failure as a source pass or failure. Retain v1 and use only the separately frozen v2 protocol, whose scientific contract is unchanged and whose loader correction is explicit.",
+    "verdict": "preserve-failure-and-rerun-only-under-new-frozen-v2-protocol"
+  },
+  "execution_git_head": "f833fc9d265c9781338dde9ec0f4df8132e791d9",
+  "failure": {
+    "cause": "The v1 runner used spec_from_file_location for a module that contains a package-relative import, so Python did not establish the module package.",
+    "exception_type": "ImportError",
+    "message": "attempted relative import with no known parent package"
+  },
+  "frozen_inputs": {
+    "geometry_sha256": "d316df7075729d5327e181f2c447155335b3d9efb7839b5e2b57af816e895cbf",
+    "gfn2_parameter_sha256": "f6f05c6c5264cb2f75c54f8ac6838044541c1e493b16f1a4d4ee4fa64de5f545",
+    "runner_source_sha256": "d2475719e8659d6dd29d5d37bb763e1da48430d30cfbc4767d7ff282c5b466de",
+    "source_module_sha256": "bc00ad2fedfb43d17e74a3048a2715bb75d96a3b1b57d76752bc4b23384aab73",
+    "xtb_binary_sha256": "debf27a9e0fa4bfb5ca75aafe4b90d8211f08ec2f4a482f375a4987212eaa12a"
+  },
+  "protocol": {
+    "id": "route2-v0-gfn2-molden-permanent-source-acetone-prereg-v1",
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-prereg-v1.json",
+    "sha256": "8330f38b3938af5777b426a15ae31ba37fb1b9d04a31e069429ac5c3d08c2299"
+  },
+  "result_handling": {
+    "decision_artifact_written": false,
+    "numerical_gates_evaluated": false,
+    "raw_xtb_output_used_for_acceptance_or_selection": false,
+    "source_representation_evaluated": false,
+    "successor_protocol": "route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2"
+  },
+  "schema_version": 1,
+  "stage": "runner-source-module-import",
+  "status": "preflight-failed-no-source-gate-evaluated"
+}

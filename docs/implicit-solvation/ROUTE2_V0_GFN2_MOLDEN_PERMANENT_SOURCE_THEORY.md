@@ -146,7 +146,10 @@ possibility alone.
    solvent, \(C^\mathsf TSC=I\), \(\operatorname{Tr}D_0S=N_{\rm val}\),
    the effective total charge, and xTB dipole round trip.  The frozen acetone
    protocol is
-   [`route2-v0-gfn2-molden-permanent-source-acetone-prereg-v1.json`](benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-prereg-v1.json).
+   [`route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2.json`](benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2.json).
+   The v1 runner-import preflight failure is retained separately in
+   [`route2-v0-gfn2-molden-permanent-source-acetone-preflight-failure-v1.json`](benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-preflight-failure-v1.json);
+   v2 changes only that package-import defect, not the scientific contract.
 2. **QM permanent-MEP source gate.**  Compare the total source (effective cores
    plus valence density) against the existing frozen exterior QM-MEP geometry
    set before any continuum calculation.  This must be preregistered before

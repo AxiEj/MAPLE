@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "protocol_id": "route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2",
+  "status": "frozen-before-execution",
+  "claim_boundary": "This preregistration permits only a zero-field GFN2-xTB MOLDEN permanent-source representation round trip. It supersedes a recorded v1 runner-import preflight failure; the v2 change is confined to importing the frozen source in its package context. It forbids reuse of the rejected xTB response and forbids continuum, solvation, force, runtime, or experimental-accuracy claims.",
+  "candidate_identity": {
+    "electronic_method": "GFN2-xTB",
+    "mode": "zero-field-closed-shell-permanent-source",
+    "molden_output": true,
+    "xtbout_json_output": true,
+    "response_role": "forbidden"
+  },
+  "hard_constraints": {
+    "gas_phase_gfn2_xtb_only": true,
+    "xtb_builtin_solvation_disabled": true,
+    "external_embedding_disabled": true,
+    "xtb_field_response_used": false,
+    "experimental_solvation_labels_read": false,
+    "post_training": false,
+    "fine_tuning": false,
+    "target_fit_or_calibration": false,
+    "response_rescaling_or_eigenvalue_clipping": false,
+    "field_step_or_pair_distance_selection_after_execution": false,
+    "legacy_public_route_changed": false,
+    "no_runtime_qm_in_candidate": true
+  },
+  "numerical_gates": {
+    "mo_metric_relative_operator_max": 5e-08,
+    "valence_electron_count_absolute_max": 5e-08,
+    "effective_charge_absolute_max": 5e-08,
+    "dipole_round_trip_e_bohr_max": 1e-06
+  },
+  "execution_contract": {
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_gfn2_molden_permanent_source_acetone.py": "78bc67c1b91b606c85df1895845eb30e13d4be052179cab594f2235c4b115bc8",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_gfn2_molden_permanent_source.py": "bc00ad2fedfb43d17e74a3048a2715bb75d96a3b1b57d76752bc4b23384aab73"
+    },
+    "geometry_sha256": "d316df7075729d5327e181f2c447155335b3d9efb7839b5e2b57af816e895cbf"
+  },
+  "runtime_identity": {
+    "xtb_binary_sha256": "debf27a9e0fa4bfb5ca75aafe4b90d8211f08ec2f4a482f375a4987212eaa12a",
+    "gfn2_parameter_sha256": "f6f05c6c5264cb2f75c54f8ac6838044541c1e493b16f1a4d4ee4fa64de5f545",
+    "xtb_version": "6.7.1 (edcfbbe)"
+  },
+  "decision_rule": "If every representation gate passes, admit the GFN2 MOLDEN state only as a permanent-reference candidate to a separately preregistered static QM-MEP source test. Do not use xTB field response, interpolate its response, run a PCM calculation, construct a solvation ledger, or report an accuracy value. If any representation gate fails, reject the MOLDEN source rather than changing the shell convention, effective core, cutoff, or tolerance from this result.",
+  "preflight_provenance": {
+    "supersedes_protocol_id": "route2-v0-gfn2-molden-permanent-source-acetone-prereg-v1",
+    "preflight_failure_record": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-preflight-failure-v1.json",
+    "reason": "The v1 runner loaded the source module outside its package context and raised ImportError before evaluating the source representation or writing a decision artifact. V2 changes only the module loader: it imports the named source package from the frozen checkout and verifies that module path. Candidate identity, geometry, xTB runtime, hard constraints, numerical gates, and scientific decision rule are unchanged."
+  }
+}

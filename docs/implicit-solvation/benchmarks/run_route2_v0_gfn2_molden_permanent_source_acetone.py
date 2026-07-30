@@ -23,10 +23,11 @@ from typing import Any
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-ARTIFACT_ID = "route2-v0-gfn2-molden-permanent-source-acetone-v1"
+ARTIFACT_ID = "route2-v0-gfn2-molden-permanent-source-acetone-v2"
+PREREGISTRATION_PROTOCOL_ID = "route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2"
 PREREG_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
-    "route2-v0-gfn2-molden-permanent-source-acetone-prereg-v1.json"
+    "route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2.json"
 )
 RUNNER_RELATIVE_PATH = (
     "docs/implicit-solvation/benchmarks/"
@@ -59,11 +60,6 @@ def _sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
-
-
-def _sha256_array(values: np.ndarray) -> str:
-    array = np.ascontiguousarray(np.asarray(values))
-    return hashlib.sha256(array.view(np.uint8)).hexdigest()
 
 
 def _load_json(path: Path, *, label: str) -> dict[str, Any]:
@@ -115,8 +111,7 @@ def _validate_preregistration(
     expected_geometry = _sha256(REPO_ROOT / GEOMETRY_RELATIVE_PATH)
     contract = preregistration.get("execution_contract")
     if (
-        preregistration.get("protocol_id")
-        != "route2-v0-gfn2-molden-permanent-source-acetone-prereg-v1"
+        preregistration.get("protocol_id") != PREREGISTRATION_PROTOCOL_ID
         or preregistration.get("status") != "frozen-before-execution"
         or not isinstance(contract, dict)
         or contract.get("source_sha256") != expected_sources
@@ -201,18 +196,21 @@ def _write_exclusive_json(path: Path, payload: object) -> None:
 
 
 def _load_source_module() -> Any:
-    import importlib.util
+    import importlib
 
     path = REPO_ROOT / SOURCE_MODULE_RELATIVE_PATH
-    specification = importlib.util.spec_from_file_location(
-        "route2_v0_gfn2_molden_permanent_source_frozen",
-        path,
+    root = str(REPO_ROOT)
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    module = importlib.import_module(
+        "maple.function.calculator.extra_correction.implicit."
+        "route2_v0_gfn2_molden_permanent_source"
     )
-    if specification is None or specification.loader is None:
-        raise RuntimeError("Cannot load the frozen GFN2 MOLDEN source module.")
-    module = importlib.util.module_from_spec(specification)
-    sys.modules[specification.name] = module
-    specification.loader.exec_module(module)
+    module_path = Path(module.__file__).resolve()
+    if module_path != path.resolve():
+        raise RuntimeError(
+            "GFN2 MOLDEN source module was not imported from the frozen checkout."
+        )
     return module
 
 

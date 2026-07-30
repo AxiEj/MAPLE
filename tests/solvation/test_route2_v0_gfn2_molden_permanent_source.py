@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
+import runpy
 
 import numpy as np
 import pytest
@@ -16,6 +17,16 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_gfn2_molden_p
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_structured_solvent import (
     RegularCartesianGrid,
+)
+
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+_RUNNER_PATH = (
+    _REPOSITORY_ROOT / "docs/implicit-solvation/benchmarks/"
+    "run_route2_v0_gfn2_molden_permanent_source_acetone.py"
+)
+_SOURCE_MODULE_PATH = (
+    _REPOSITORY_ROOT / "maple/function/calculator/extra_correction/implicit/"
+    "route2_v0_gfn2_molden_permanent_source.py"
 )
 
 
@@ -158,6 +169,13 @@ def test_gfn2_molden_closed_shell_source_round_trips_metric_count_and_dipole(
         < 2.0e-14
     )
     assert state.ao_electron_count_e == pytest.approx(2.0, abs=2.0e-14)
+
+
+def test_gfn2_molden_runner_loads_the_frozen_source_as_a_package():
+    namespace = runpy.run_path(str(_RUNNER_PATH))
+    source_module = namespace["_load_source_module"]()
+
+    assert Path(source_module.__file__).resolve() == _SOURCE_MODULE_PATH.resolve()
 
 
 def test_gfn2_effective_core_model_is_derived_from_parameter_shells(tmp_path: Path):

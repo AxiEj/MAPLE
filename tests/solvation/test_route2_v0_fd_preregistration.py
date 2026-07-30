@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 PREREG = (
     ROOT
@@ -55,6 +54,17 @@ def test_v0_fixed_density_protocol_requires_more_than_ten_solvents_and_max_gates
     assert any("dispersion" in item for item in requirements)
 
     coverage = protocol["benchmark_coverage_contract"]
+    historical = coverage["historical_freesolv10_regression"]
+    assert historical["manifest"] == "route2-v0-historical-freesolv10-regression-v1.json"
+    assert historical["status"] == "frozen-mandatory-regression-before-v0-acceptance"
+    assert historical["historical_maximum_absolute_error_kcal_mol"] == 7.041442082076966
+    assert historical["historical_worst_record"] == "mobley_6973347 (ethyl acetate)"
+    assert historical["required_record_count"] == 10
+    assert "strictly below 1.5 kcal/mol" in historical["required_rule"]
+    assert historical["mae_or_rmse_alone_is_insufficient"] is True
+    assert historical["replacement_by_smaller_or_different_panel_forbidden"] is True
+    assert "in addition to" in historical["relationship_to_11_solvent_gate"]
+
     assert coverage["runtime_supported_solvent_count"] == 11
     assert coverage["mnsol_v2012_neutral_absolute_solvent_count"] == 10
     assert "methanol" not in coverage["mnsol_v2012_neutral_absolute_solvents"]
@@ -65,6 +75,9 @@ def test_v0_fixed_density_protocol_requires_more_than_ten_solvents_and_max_gates
     assert "No statement" in coverage["accuracy_claim_rule"]
 
     sequence = " ".join(protocol["validation_sequence"])
+    assert "historical ten-record FreeSolv regression" in sequence
+    assert "7.041442082076966" in sequence
+    assert "smaller or different subset, MAE, or RMSE cannot substitute" in sequence
     assert "every development record" in sequence
     assert "strictly below 1.5 kcal/mol" in sequence
     assert "strictly below 1.0 kcal/mol" in sequence

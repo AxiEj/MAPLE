@@ -211,9 +211,11 @@
     ],
     "one_shot": true,
     "failed_confirmation_must_not_trigger_tuning": true,
-    "predeclared_accuracy_gate": "MAE <= 1.5 kcal/mol and failure_rate == 0",
+    "predeclared_accuracy_gate": "all records: max_absolute_error < 1.5 kcal/mol and failure_rate == 0 (MAE/RMSE alone cannot pass)",
     "predeclared_runtime_gate": "median(total_route2_wall_time/gas_mace_wall_time) <= 2.0",
-    "policy": "Failure leaves route2 experimental; no shifts, refits, or post-hoc confirmation tuning."
+    "policy": "Failure leaves route2 experimental; no shifts, refits, or post-hoc confirmation tuning.",
+    "historical_freesolv10_regression_manifest": "route2-v0-historical-freesolv10-regression-v1.json",
+    "historical_freesolv10_regression_policy": "The ten prior-inspected development records, including the historical 7.041442082076966 kcal/mol ethyl-acetate outlier, remain a separately mandatory all-record strict <1.5 kcal/mol regression for V0 acceptance; they may not be replaced by a smaller or different panel."
   },
   "provider_parity": {
     "pcmsolver_control": "real-libpcm-water-smoke-plus-0.5-dot-convention-and-point-multipole-ASC-reciprocity",

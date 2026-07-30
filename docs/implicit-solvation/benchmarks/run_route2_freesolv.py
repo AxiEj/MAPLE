@@ -746,10 +746,13 @@ def summarize(args: argparse.Namespace) -> None:
                 seed_key=f"{args.partition}/route2/{dimension}/{label}",
             )
 
+    # A small aggregate MAE can hide a chemically unacceptable outlier.  The
+    # protocol's promotion rule is deliberately strict: the complete partition
+    # must have no failure and every individual record must remain below 1.5.
     accuracy_pass = (
         overall["failure_rate"] == 0.0
-        and overall["mae"] is not None
-        and overall["mae"] <= 1.5
+        and overall["max_absolute_error"] is not None
+        and overall["max_absolute_error"] < 1.5
     )
     runtime_pass = (
         timings["median_total_over_gas"] is not None

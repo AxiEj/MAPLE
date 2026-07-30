@@ -1941,21 +1941,47 @@ These are different benchmark identities and are not ranked against one
 another.  They do establish that a panel MAE below \(1\) does not meet the
 requested all-record maximum-error condition.
 
+### 5.1 Mandatory recovery of the historical \(7.0414\) kcal/mol outlier panel
+
+The later ten-record MNSol and ten-record exact-GTO FreeSolv diagnostics do
+**not** have the same membership as the original ten-class FreeSolv screen.
+That original screen's fixed GTO/QEq--GBn2 member reached
+\(7.041442082076966\) kcal/mol absolute error on ethyl acetate
+(`mobley_6973347`).  Its retired GTO/QEq/GBn2 calculation is not a V0
+candidate or a parameter source, but its ten experimental records and exact
+FreeSolv MOL2 conformers are an irreplaceable regression set.  They are frozen
+with the historical Git commit/blob/content hashes in
+[`route2-v0-historical-freesolv10-regression-v1.json`](benchmarks/route2-v0-historical-freesolv10-regression-v1.json).
+
+A candidate V0 result must run the validator
+[`route2_v0_historical_freesolv10.py`](benchmarks/route2_v0_historical_freesolv10.py)
+on **all and only** these ten records.  It passes that gate only if every
+recomputed absolute error is strictly below \(1.5\) kcal/mol.  The validator
+rejects a missing, extra, duplicate, non-finite, or substituted record and
+recomputes every error from the locked experimental value; a reported MAE,
+RMSE, or a favorable subset can never override an outlier.  This water
+regression is mandatory in addition to—not instead of—the 11-solvent,
+confirmation, and blind panels.  Passing it alone remains insufficient for a
+physical or broad-accuracy claim.
+
 The required progression is therefore:
 
 1. pass structural energy, charge, pairing, and smoothness gates;
-2. freeze a replicated **11-solvent** development design before looking at
+2. pass the immutable historical ten-record FreeSolv regression, including the
+   ethyl-acetate historical outlier, with every record strictly below
+   \(1.5\) kcal/mol;
+3. freeze a replicated **11-solvent** development design before looking at
    V0-FD scores.  The current MNSol-v2012 neutral-absolute partition has only
    ten solvent strata because it has no neutral absolute methanol rows in the
    frozen Route-2 domain; a separately versioned methanol extension is a
    prerequisite, not a gap to hide behind aggregate metrics;
-3. require every development record to satisfy
+4. require every development record to satisfy
    \(|\Delta G_{\mathrm{calc}}-\Delta G_{\mathrm{exp}}|<1.5\) kcal/mol;
-4. freeze a disjoint multi-solvent confirmation set and impose the same
+5. freeze a disjoint multi-solvent confirmation set and impose the same
    per-record condition without changing the method;
-5. freeze an external final blind dataset absent from construction,
+6. freeze an external final blind dataset absent from construction,
    development, and confirmation; require the same condition there;
-6. treat all-record \(<1.0\) kcal/mol as the stricter final target.
+7. treat all-record \(<1.0\) kcal/mol as the stricter final target.
 
 No aggregate MAE, a lucky subset, or an experiment-selected model choice can
 substitute for these gates.

@@ -11,6 +11,34 @@ runtime measurement, and confirmation gates. The ten structures previously
 inspected during route-1 development remain development-only; this prevents
 prior human review from leaking into Route-2 confirmation.
 
+### Mandatory historical FreeSolv-10 regression for V0
+
+The original ten-class FreeSolv screen is not allowed to disappear merely
+because later MNSol, FreeSolv, or 11-solvent panels have different membership.
+Its historical GTO/QEq `GBn2` result reached **7.041442082076966 kcal/mol** on
+ethyl acetate. That retired method is not reused, but the exact ten
+experimental records and hash-bound MOL2 conformers are frozen in
+[`route2-v0-historical-freesolv10-regression-v1.json`](route2-v0-historical-freesolv10-regression-v1.json).
+
+For a V0 result, all ten original records must be supplied to
+[`route2_v0_historical_freesolv10.py`](route2_v0_historical_freesolv10.py), and
+each recomputed absolute error must be **strictly less than 1.5 kcal/mol**.
+Missing, extra, duplicate, substituted, or error-selected records fail; MAE or
+RMSE cannot override one outlier. This mandatory water regression is in
+addition to—not a substitute for—the pre-registered 11-solvent development,
+confirmation, and final-blind gates.
+
+```bash
+python docs/implicit-solvation/benchmarks/route2_v0_historical_freesolv10.py \
+  --predictions "$WORK/v0-historical-freesolv10-predictions.json" \
+  --output "$WORK/v0-historical-freesolv10-evaluation.json"
+```
+
+The prediction input is a JSON object containing a `predictions` list, each
+with only `compound_id` and `predicted_kcal_mol`; the validator obtains
+experimental values only from the immutable manifest and returns nonzero on a
+failed strict gate.
+
 Canonical commands:
 
 ```bash
@@ -61,7 +89,7 @@ Before confirmation, freeze the exact reviewed proposal and pass rule:
 python docs/implicit-solvation/benchmarks/run_route2_freesolv.py \
   freeze-confirmation --protocol "$PROTOCOL" --work-dir "$WORK" \
   --proposed-default 'macepol-m/smd-iefpcm-water/scf' \
-  --pass-rule 'MAE <= 1.5 kcal/mol; failure_rate == 0; median total/gas <= 2.0'
+  --pass-rule 'all records: max_absolute_error < 1.5 kcal/mol; failure_rate == 0; median total/gas <= 2.0'
 ```
 
 The protocol also records separate open Dip146 (`MAE <= 0.25 D`) and HR46

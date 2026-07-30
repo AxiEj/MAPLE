@@ -2,7 +2,7 @@
   "protocol_id": "route2-v0-fd-multisolvent-prereg-v1",
   "schema_version": 1,
   "status": "preregistered-before-physics-execution",
-  "claim_boundary": "This protocol defines a no-training Route-2 V0-FD research path. It does not change any public Route-2 profile, does not claim a chemical-accuracy result, does not authorize force/PES use, and does not reinterpret the failed scalar-response V0 experiment as passing.",
+  "claim_boundary": "This protocol defines a no-training Route-2 V0-FD research path. It does not change any public Route-2 profile, does not claim a chemical-accuracy result, force/PES implementation, or replacement for the legacy Route-2 fixed point. No V0 acceptance claim is permitted without the immutable historical FreeSolv-10 regression panel that contains the prior 7.041442082076966 kcal/mol outlier.",
   "construction": {
     "name": "route2-v0-fixed-density-v1",
     "solute_state": "c0(R) is the unmodified MACE-POLAR gas-phase density evaluated at zero reaction field",
@@ -74,7 +74,18 @@
     ],
     "mnsol_methanol_limitation": "MNSol-v2012 contains no neutral absolute methanol rows in the frozen Route-2 domain. It cannot by itself certify the 11th registered solvent.",
     "methanol_neutral_absolute_extension": "required-before-11-solvent-chemistry-scoring: independently versioned experimental records, geometry/conformer policy, standard-state convention, and provenance must be frozen before any V0-FD score is read",
-    "accuracy_claim_rule": "No statement that V0-FD has passed an 11-solvent accuracy gate is permitted until the methanol extension and all 11 runtime solvent strata are frozen and evaluated."
+    "accuracy_claim_rule": "No statement that V0-FD has passed an 11-solvent accuracy gate is permitted until the methanol extension and all 11 runtime solvent strata are frozen and evaluated.",
+    "historical_freesolv10_regression": {
+      "manifest": "route2-v0-historical-freesolv10-regression-v1.json",
+      "status": "frozen-mandatory-regression-before-v0-acceptance",
+      "historical_maximum_absolute_error_kcal_mol": 7.041442082076966,
+      "historical_worst_record": "mobley_6973347 (ethyl acetate)",
+      "required_record_count": 10,
+      "required_rule": "every one of the exact ten locked records, using its hash-bound original FreeSolv MOL2 conformer, must have absolute error strictly below 1.5 kcal/mol",
+      "mae_or_rmse_alone_is_insufficient": true,
+      "replacement_by_smaller_or_different_panel_forbidden": true,
+      "relationship_to_11_solvent_gate": "mandatory in addition to—not a replacement for—the separately frozen 11-solvent development, confirmation, and blind panels"
+    }
   },
   "candidate_nonpolar_policy": {
     "smd_cds": "retained only as an explicitly empirical comparator; it is not evidence for a no-fit V0-FD core",
@@ -84,11 +95,12 @@
   "validation_sequence": [
     "Prove source-to-surface/energy-dual pairing, total-charge conservation, energy-conjugate half-coupling, and stationary continuum residual on synthetic and real fixed-density cases.",
     "Prove coordinate derivatives only after adopting a smooth cavity/operator; current active-set providers remain energy-only controls.",
+    "Evaluate the immutable historical ten-record FreeSolv regression manifest route2-v0-historical-freesolv10-regression-v1.json on exactly its original hash-bound MOL2 conformers, including ethyl acetate—the previous 7.041442082076966 kcal/mol outlier—and require every record to have absolute error strictly below 1.5 kcal/mol; a smaller or different subset, MAE, or RMSE cannot substitute.",
     "Freeze an 11-solvent development manifest with replicated chemistry per solvent before any V0-FD chemistry score is read. MNSol-v2012 supplies ten neutral-absolute strata only, so the independently versioned methanol extension is a prerequisite rather than a replaceable gap.",
     "Require every development record to have absolute error strictly below 1.5 kcal/mol; report the maximum error, not only MAE/RMSE.",
     "Freeze a disjoint 11-or-more-solvent confirmation manifest and require every record to remain strictly below 1.5 kcal/mol without any change.",
     "Freeze an external final blind dataset absent from construction, development, confirmation, and model-selection work; require every record to remain strictly below 1.5 kcal/mol.",
     "The stricter future target is every record strictly below 1.0 kcal/mol on development, confirmation, and final blind data."
   ],
-  "decision_rule": "Failure of any structural gate rejects the candidate before chemistry metrics. Failure of any per-record accuracy gate rejects the frozen candidate; it does not authorize an error-driven adjustment. A new physical functional requires a new preregistration and an independent review."
+  "decision_rule": "Failure of any structural gate rejects the candidate before chemistry metrics. Failure of the immutable historical FreeSolv-10 all-record strict maximum-error gate, any 11-solvent per-record gate, confirmation gate, or blind gate rejects the frozen candidate; it does not authorize an error-driven adjustment. A new physical functional requires a new preregistration and an independent review."
 }

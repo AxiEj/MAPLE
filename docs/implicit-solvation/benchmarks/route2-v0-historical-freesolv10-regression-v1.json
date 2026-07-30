@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "panel_id": "route2-v0-historical-freesolv10-regression-v1",
+  "status": "frozen-mandatory-regression-before-v0-acceptance",
+  "claim_boundary": "This exact historical ten-record FreeSolv panel is a mandatory regression gate for Route-2 V0 acceptance because the prior GTO/QEq fixed-charge screen observed a 7.041442082076966 kcal/mol outlier on ethyl acetate. It preserves the experimental record identities and fixed MOL2 geometries, not the retired GTO/QEq/GBn2 method. Passing it alone does not establish variational correctness, multi-solvent coverage, force/PES validity, or blind generalization.",
+  "historical_source": {
+    "repository_relative_artifact": "docs/implicit-solvation/benchmarks/freesolv10-qeq-gto-full-h-2026-07-22.json",
+    "git_commit": "c77eb6a295cbb39a1b6e66d21190a192cc8ef050",
+    "git_blob_oid": "8a7c5f2ff8b52a4ccbb03f6385efe6db1d2ee2e4",
+    "content_sha256": "893ad62e476e6375602d82231def6b0ad22cab60128c8068894daaf4a6ee8c4c",
+    "benchmark": "MAPLE FreeSolv 10-molecule corrected QEq-GTO fixed-charge pilot",
+    "date": "2026-07-22",
+    "historical_method": {
+      "charge_method": "qeq-gto-full-h",
+      "gb_model": "gbn2",
+      "purpose": "historical error source only; it is not a V0 component, a candidate method, or a parameter source"
+    }
+  },
+  "dataset_identity": {
+    "name": "FreeSolv",
+    "version": "0.52",
+    "repository_commit": "6c7d19b4b565537365ffd22006aa2cd4643200c6",
+    "database_url": "https://github.com/MobleyLab/FreeSolv/blob/master/database.txt",
+    "mol2_archive_url": "https://github.com/MobleyLab/FreeSolv/blob/master/mol2files_gaff.tar.gz",
+    "geometry_policy": "the exact pinned FreeSolv GAFF MOL2 conformer named and SHA256-bound for every locked record; no optimization or conformer substitution",
+    "solvent": "water",
+    "standard_state": "the original FreeSolv experimental record convention"
+  },
+  "locked_records": [
+    {
+      "ordinal": 1,
+      "compound_id": "mobley_9055303",
+      "smiles": "C",
+      "name": "methane",
+      "chemical_class": "alkane",
+      "experimental_kcal_mol": 2.0,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "experimental_reference": "10.1039/P29900000291",
+      "mol2_archive_member": "mol2files_gaff/mobley_9055303.mol2",
+      "mol2_sha256": "d3444794acbe124f7d423a564286d58a8ad7f98e559ccd08c002f1333516662b",
+      "natoms": 5
+    },
+    {
+      "ordinal": 2,
+      "compound_id": "mobley_3053621",
+      "smiles": "c1ccccc1",
+      "name": "benzene",
+      "chemical_class": "aromatic hydrocarbon",
+      "experimental_kcal_mol": -0.9,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "experimental_reference": "10.1039/P29900000291",
+      "mol2_archive_member": "mol2files_gaff/mobley_3053621.mol2",
+      "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "natoms": 12
+    },
+    {
+      "ordinal": 3,
+      "compound_id": "mobley_1636752",
+      "smiles": "CO",
+      "name": "methanol",
+      "chemical_class": "alcohol",
+      "experimental_kcal_mol": -5.1,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_1636752.mol2",
+      "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "natoms": 6
+    },
+    {
+      "ordinal": 4,
+      "compound_id": "mobley_7015518",
+      "smiles": "COC",
+      "name": "methoxymethane",
+      "chemical_class": "ether",
+      "experimental_kcal_mol": -1.91,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_7015518.mol2",
+      "mol2_sha256": "43fc0e1859c4536b1e5c6ccddbb5b370af168cb759a17ec927aa4e77dd2aedbb",
+      "natoms": 9
+    },
+    {
+      "ordinal": 5,
+      "compound_id": "mobley_3867265",
+      "smiles": "CC(=O)C",
+      "name": "acetone",
+      "chemical_class": "ketone",
+      "experimental_kcal_mol": -3.8,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_3867265.mol2",
+      "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+      "natoms": 10
+    },
+    {
+      "ordinal": 6,
+      "compound_id": "mobley_6973347",
+      "smiles": "CCOC(=O)C",
+      "name": "ethyl acetate",
+      "chemical_class": "ester",
+      "experimental_kcal_mol": -2.94,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_6973347.mol2",
+      "mol2_sha256": "4f7ff04fca2240112ead2c9cc8d94a91f79b27d44ae5b2ea3f76ddf8531f7af8",
+      "natoms": 14
+    },
+    {
+      "ordinal": 7,
+      "compound_id": "mobley_7532833",
+      "smiles": "CC#N",
+      "name": "acetonitrile",
+      "chemical_class": "nitrile",
+      "experimental_kcal_mol": -3.88,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/jp0264477",
+      "mol2_archive_member": "mol2files_gaff/mobley_7532833.mol2",
+      "mol2_sha256": "21e4c6f42cbc2791b6fdbdaaa7a044f352503ff5675efb879ba7351265666b60",
+      "natoms": 6
+    },
+    {
+      "ordinal": 8,
+      "compound_id": "mobley_4883284",
+      "smiles": "c1ccc(cc1)N",
+      "name": "aniline",
+      "chemical_class": "aromatic amine",
+      "experimental_kcal_mol": -5.49,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_4883284.mol2",
+      "mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+      "natoms": 14
+    },
+    {
+      "ordinal": 9,
+      "compound_id": "mobley_2198613",
+      "smiles": "CCCl",
+      "name": "chloroethane",
+      "chemical_class": "haloalkane",
+      "experimental_kcal_mol": -0.63,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "experimental_reference": "10.1021/ct050097l",
+      "mol2_archive_member": "mol2files_gaff/mobley_2198613.mol2",
+      "mol2_sha256": "8324d857045111c381fce8b3b9cf6b5c5499eebd7adc2dd2fe2a2fd2b6165a30",
+      "natoms": 8
+    },
+    {
+      "ordinal": 10,
+      "compound_id": "mobley_8578590",
+      "smiles": "CS(=O)C",
+      "name": "methylsulfinylmethane",
+      "chemical_class": "sulfoxide",
+      "experimental_kcal_mol": -9.28,
+      "experimental_uncertainty_kcal_mol": 0.57,
+      "experimental_reference": "10.1080/09593338709384509 and 10.1038/313384a0",
+      "mol2_archive_member": "mol2files_gaff/mobley_8578590.mol2",
+      "mol2_sha256": "eb17e4989468f9f100a4a299960279da0c8a011c8cc5798496c9b548214fec9d",
+      "natoms": 10
+    }
+  ],
+  "locked_records_canonical_sha256": "6bedf0b04ee32a31eb7a3acec2b33e03c640a128b328cc7871f2e9afb86e80b6",
+  "historical_observed_maximum_error": {
+    "absolute_error_kcal_mol": 7.041442082076966,
+    "signed_error_kcal_mol": -7.041442082076966,
+    "compound_id": "mobley_6973347",
+    "name": "ethyl acetate",
+    "chemical_class": "ester",
+    "experimental_kcal_mol": -2.94,
+    "predicted_kcal_mol": -9.981442082076965,
+    "historical_method": {
+      "charge_method": "qeq-gto-full-h",
+      "gb_model": "gbn2"
+    }
+  },
+  "candidate_result_contract": {
+    "input_record_fields": [
+      "compound_id",
+      "predicted_kcal_mol"
+    ],
+    "experimental_value_source": "locked_records only; candidate outputs cannot replace it",
+    "per_record_method_selection_forbidden": true,
+    "post_hoc_record_exclusion_forbidden": true,
+    "post_hoc_geometry_or_conformer_substitution_forbidden": true
+  },
+  "acceptance_gate": {
+    "expected_record_count": 10,
+    "all_locked_records_required": true,
+    "extra_records_fail": true,
+    "maximum_absolute_error_threshold_kcal_mol": 1.5,
+    "comparison": "strictly_less_than",
+    "all_records_must_individually_satisfy_threshold": true,
+    "mae_or_rmse_alone_is_never_sufficient": true,
+    "missing_record_is_failure": true,
+    "historical_maximum_error_record_must_remain_included": "mobley_6973347",
+    "validator_module": "route2_v0_historical_freesolv10.py"
+  },
+  "relationship_to_other_v0_gates": {
+    "required_in_addition_to": [
+      "11-solvent development panel",
+      "disjoint multi-solvent confirmation panel",
+      "external final blind panel"
+    ],
+    "replacement_by_smaller_or_different_panel_forbidden": true,
+    "successful_status_requires": "this exact panel plus every separately preregistered structural, multi-solvent, confirmation, and blind gate"
+  }
+}

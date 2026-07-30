@@ -138,8 +138,25 @@ def test_route2_protocol_locks_model_continuum_standard_state_and_gates():
         "force_compatible": False,
     }
     assert protocol["providers"]["pcmsolver"]["bundled"] is False
-    assert "MAE <= 1.5 kcal/mol" in protocol["confirmation"][
+    assert "max_absolute_error < 1.5 kcal/mol" in protocol["confirmation"][
         "predeclared_accuracy_gate"
+    ]
+    assert "MAE/RMSE alone cannot pass" in protocol["confirmation"][
+        "predeclared_accuracy_gate"
+    ]
+    assert protocol["confirmation"]["historical_freesolv10_regression_manifest"] == (
+        "route2-v0-historical-freesolv10-regression-v1.json"
+    )
+    assert "7.041442082076966" in protocol["confirmation"][
+        "historical_freesolv10_regression_policy"
+    ]
+    historical_manifest = json.loads(
+        (
+            BENCHMARK_DIR / "route2-v0-historical-freesolv10-regression-v1.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert protocol["partition"]["pilot_development_only"] == [
+        record["compound_id"] for record in historical_manifest["locked_records"]
     ]
     assert "median(total_route2_wall_time/gas_mace_wall_time) <= 2.0" == protocol[
         "confirmation"
@@ -692,7 +709,7 @@ def test_route2_summary_marks_scientifically_certified_when_gates_pass_in_confir
         "protocol_id": protocol["protocol_id"],
         "protocol_fingerprint": fingerprint,
         "proposed_default": "standard",
-        "pass_rule": "mae <= 1.5",
+        "pass_rule": "all records: max_absolute_error < 1.5 kcal/mol",
         "frozen_at_utc": "2026-07-23T00:00:00+00:00",
         "one_shot": True,
         "failed_confirmation_must_not_trigger_tuning": True,
@@ -733,3 +750,96 @@ def test_route2_summary_marks_scientifically_certified_when_gates_pass_in_confir
 
     summary = core.load_json(output)
     assert summary["predeclared_gates"]["scientifically_certified"] is True
+
+
+def test_route2_summary_rejects_an_exact_one_point_five_outlier(tmp_path):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    _protocol, fingerprint = core.load_protocol(protocol_path)
+    prepared = core.load_json(work / "prepared.json")
+    candidate_id = prepared["candidates"][0]["compound_id"]
+
+    record_dir = work / "records" / "development"
+    record_dir.mkdir(parents=True)
+    core.write_json_atomic(
+        record_dir / f"{candidate_id}.json",
+        {
+            "schema_version": 1,
+            "attempt_id": candidate_id,
+            "protocol_fingerprint": fingerprint,
+            "partition": "development",
+            "compound_id": candidate_id,
+            "status": "success",
+            "signed_error_kcal_mol": 1.5,
+            "timing_seconds": {
+                "total_over_gas": 1.0,
+                "gas_mace": 0.5,
+                "route2_total": 0.5,
+            },
+        },
+    )
+
+    output = tmp_path / "route2-summary.json"
+    route2_runner.summarize(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            work_dir=str(work),
+            partition="development",
+            output=str(output),
+        )
+    )
+
+    summary = core.load_json(output)
+    assert summary["overall"]["mae"] == pytest.approx(1.5)
+    assert summary["overall"]["max_absolute_error"] == pytest.approx(1.5)
+    assert summary["predeclared_gates"]["accuracy"]["passed_on_this_partition"] is False
+
+
+def test_route2_summary_rejects_a_low_mae_when_one_record_is_an_outlier(tmp_path):
+    protocol_path, work = _prepare_route2_fixture(tmp_path)
+    _protocol, fingerprint = core.load_protocol(protocol_path)
+    prepared = core.load_json(work / "prepared.json")
+    first = prepared["candidates"][0]
+    second = dict(first)
+    second["compound_id"] = "mobley_test_second"
+    second["name"] = "second fixture molecule"
+    prepared["candidates"] = [first, second]
+    prepared["candidate_count"] = 2
+    prepared["partition_counts"] = {"development": 2, "confirmation": 0}
+    core.write_json_atomic(work / "prepared.json", prepared)
+
+    record_dir = work / "records" / "development"
+    record_dir.mkdir(parents=True)
+    for candidate, signed_error in ((first, 0.0), (second, 2.0)):
+        compound_id = candidate["compound_id"]
+        core.write_json_atomic(
+            record_dir / f"{compound_id}.json",
+            {
+                "schema_version": 1,
+                "attempt_id": compound_id,
+                "protocol_fingerprint": fingerprint,
+                "partition": "development",
+                "compound_id": compound_id,
+                "status": "success",
+                "signed_error_kcal_mol": signed_error,
+                "timing_seconds": {
+                    "total_over_gas": 1.0,
+                    "gas_mace": 0.5,
+                    "route2_total": 0.5,
+                },
+            },
+        )
+
+    output = tmp_path / "route2-summary.json"
+    route2_runner.summarize(
+        argparse.Namespace(
+            protocol=str(protocol_path),
+            work_dir=str(work),
+            partition="development",
+            output=str(output),
+        )
+    )
+
+    summary = core.load_json(output)
+    assert summary["overall"]["mae"] == pytest.approx(1.0)
+    assert summary["overall"]["max_absolute_error"] == pytest.approx(2.0)
+    assert summary["predeclared_gates"]["accuracy"]["passed_on_this_partition"] is False

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "protocol_id": "route2-v0-gfn2-molden-static-mep-acetone-prereg-v1",
+  "status": "frozen-before-execution",
+  "claim_boundary": "This one-acetone gas-phase source falsifier compares only the zero-field GFN2-xTB MOLDEN valence-density plus parameter-derived effective-core electrostatic potential with the frozen omegaB97M-V/def2-TZVPD all-electron static MEP at every one of 516 immutable exterior points. It invokes no response, continuum, PCM, cavity, solvation energy, force, experimental solvation label, post-training, fine tuning, source fit, point selection, or new QM SCF calculation. A pass cannot establish a speed advantage or chemical accuracy.",
+  "decision_rule": "If any source-transfer, QM-binding, or registered static-MEP gate fails, reject this exact GFN2 MOLDEN permanent-source candidate. Do not change effective cores, Gaussian coefficients, MOLDEN convention, points, threshold, response, continuum, or use a solvation label. A pass admits only the same source to separately preregistered all-electron cavity completion and common-scalar/KKT gates.",
+  "execution_contract": {
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_gfn2_molden_static_mep_acetone.py": "51e9e959d29e43b40a36af3a889cfb2484b412b58812c843e8adf9108f1d1d72",
+      "docs/implicit-solvation/benchmarks/route2_v0_gfn2_molden_static_mep.py": "c5a359f3bb3168b7d1ac36629f0b921c20fec297b1db0f9986d193e60beeff74",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_gfn2_molden_permanent_source.py": "bc00ad2fedfb43d17e74a3048a2715bb75d96a3b1b57d76752bc4b23384aab73"
+    },
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-v2.json": "170762e1bc2a119061badb05379f183e9fa3298e154cb827877211ca2df41d21",
+      "docs/implicit-solvation/benchmarks/route2-v0-gfn2-molden-permanent-source-acetone-prereg-v2.json": "3d266ce9a07cbe5adcdd0499d754c68dff95c3a6b41c5f68e796de8e1143b74d",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-gfn2-molden-permanent-source-acetone-v1/acetone.xyz": "d316df7075729d5327e181f2c447155335b3d9efb7839b5e2b57af816e895cbf",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-bohr.npy": "84d922d165965e92978bfc99c8435fd384f53868d61959d368737e5fa946f023",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-provenance.json": "f6e8afaaba80b7c9e2940f173d9b141b3cd0c7a532bc7b933dd6f04ae5603617",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc"
+    }
+  },
+  "runtime_identity": {
+    "xtb_binary_sha256": "debf27a9e0fa4bfb5ca75aafe4b90d8211f08ec2f4a482f375a4987212eaa12a",
+    "gfn2_parameter_sha256": "f6f05c6c5264cb2f75c54f8ac6838044541c1e493b16f1a4d4ee4fa64de5f545",
+    "pyscf_python_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+    "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+    "qm_checkpoint_sha256": "b1bfc58d3389e637fcc6000e928025dee8ac24ee58b090e096c4f26120ce43c0",
+    "qm_ledger_sha256": "4143e5bfb6e603ea74acb7b0498dfd92c0bf4fdad104c798d57c4badecdc6213"
+  },
+  "qm_reference": {
+    "electronic_structure": "omegaB97M-V",
+    "basis": "def2-tzvpd",
+    "reference": "RKS",
+    "density_fitting": true,
+    "charge": 0,
+    "spin": 0,
+    "phase": "gas",
+    "semilocal_grid_level": 3,
+    "nonlocal_grid_profile": "pyscf-official-50x194-sg1",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "maximum_scf_cycles": 100
+  },
+  "hard_constraints": {
+    "gas_phase_gfn2_xtb_only": true,
+    "xtb_builtin_solvation_disabled": true,
+    "external_embedding_disabled": true,
+    "xtb_field_response_used": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "post_training": false,
+    "fine_tuning": false,
+    "target_fit_or_calibration": false,
+    "response_rescaling_or_eigenvalue_clipping": false,
+    "mep_point_subset_selected_after_execution": false,
+    "new_qm_scf_executed": false,
+    "legacy_public_route_changed": false
+  },
+  "numerical_gates": {
+    "candidate_pyscf_overlap_relative_frobenius_max": 5e-08,
+    "candidate_pyscf_overlap_max_abs_max": 5e-08,
+    "candidate_pyscf_mo_metric_max": 5e-08,
+    "candidate_pyscf_electronic_dipole_e_bohr_max": 1e-06,
+    "candidate_pyscf_total_dipole_e_bohr_max": 1e-06,
+    "qm_checkpoint_mo_metric_max": 1e-07,
+    "qm_checkpoint_electron_count_e_max": 1e-07,
+    "qm_checkpoint_total_charge_e_max": 1e-07,
+    "geometry_max_abs_error_bohr_max": 1e-08
+  },
+  "scientific_falsification_gates": {
+    "static_mep_relative_frobenius_max": 0.2,
+    "static_mep_relative_max_abs_max": 0.3,
+    "static_dipole_relative_frobenius_max": 0.2
+  },
+  "threshold_provenance": "The 0.20 global relative-MEP/dipole and 0.30 maximum-relative-MEP falsification scales are frozen before execution. They extend the existing Route-2 V0 source-representation rejection scale without becoming a solvation-accuracy target. The 1e-8 to 1e-6 representation thresholds are algebraic transfer/geometry gates, not fitted tolerances.",
+  "source_definition": {
+    "candidate": "zero-field GFN2-xTB closed-shell MOLDEN valence AO density plus effective cores derived from the version-bound GFN2 ao= declarations",
+    "candidate_response": "forbidden; the previously rejected xTB field response is not loaded or compared",
+    "candidate_points": "all 516 frozen exterior points; no subset, cavity, or continuum is constructed",
+    "qm_comparator": "frozen all-electron gas-phase omegaB97M-V/def2-TZVPD RKS checkpoint, density hash bound to the prior QM finite-field record",
+    "integral_transfer": "printed MOLDEN coefficients are divided by the known PySCF primitive radial normalization and then required to reproduce the raw MOLDEN AO overlap and dipole"
+  }
+}

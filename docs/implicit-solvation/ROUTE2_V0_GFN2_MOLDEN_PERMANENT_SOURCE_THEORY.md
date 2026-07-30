@@ -152,10 +152,13 @@ possibility alone.
    v2 changes only that package-import defect, not the scientific contract.
 2. **QM permanent-MEP source gate.**  Compare the total source (effective cores
    plus valence density) against the existing frozen exterior QM-MEP geometry
-   set before any continuum calculation.  This must be preregistered before
-   reading the result and must be repeated over the broad ten-functional-group
-   QM panel.  A dipole round trip is necessary but not sufficient for a
-   near-field potential.
+   set before any continuum calculation.  The current acetone protocol is
+   [`route2-v0-gfn2-molden-static-mep-acetone-prereg-v1.json`](benchmarks/route2-v0-gfn2-molden-static-mep-acetone-prereg-v1.json)
+   and its mathematical scope is recorded in
+   [`ROUTE2_V0_GFN2_MOLDEN_STATIC_MEP_THEORY.md`](ROUTE2_V0_GFN2_MOLDEN_STATIC_MEP_THEORY.md).
+   It must be preregistered before reading the result and then repeated over
+   the broad ten-functional-group QM panel.  A dipole round trip is necessary
+   but not sufficient for a near-field potential.
 3. **All-electron cavity completion.**  The valence density is sufficient for
    its effective-core electrostatic ledger but is not an all-electron
    iso-density cavity field.  A core-density completion must be source-bound,

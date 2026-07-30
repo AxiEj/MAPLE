@@ -1,0 +1,77 @@
+{
+  "protocol_id": "route2-v0-mace-mdp-atomic-map-prereg-v1",
+  "schema_version": 1,
+  "status": "frozen-before-execution",
+  "claim_boundary": "This one-acetone MACE-MDP white-box decomposition audit tests only whether the frozen checkpoint's atom-resolved readouts reconstruct its own public molecular dipole and polarizability exactly. It invokes no GTO width, density basis, PCM/continuum, solvation free energy, energy model, force model, experimental solvation label, target fitting, calibration, or response repair. A pass can admit only an atom-resolved induced-moment partition to later source-map gates; it does not create an electronic density, a common energy, a force, or chemical accuracy.",
+  "hard_constraints": {
+    "mace_mdp_treated_as_an_energy_or_force_model": false,
+    "model_weights_or_forward_equations_modified": false,
+    "readout_hook_changes_model_output": false,
+    "gto_width_or_density_projection_selected": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "post_training": false,
+    "fine_tuning": false,
+    "target_fit_or_calibration": false,
+    "atomic_partition_rescaling_or_clipping": false,
+    "legacy_public_route_changed": false
+  },
+  "candidate_identity": {
+    "checkpoint": "MACE-MDP.model",
+    "calculator": "mace.calculators.mace.MACECalculator",
+    "model_type": "DipolePolarizabilityMACE",
+    "role": "candidate no-fit atom-resolved induced-moment partition, contingent on exact reconstruction of the frozen public molecular response",
+    "observation_contract": "The adapter attaches observation-only forward hooks to every frozen readout, reconstructs each atom's six polarizability components exactly as AtomicDielectricMACE.forward does, converts them using the model's frozen change_of_basis tensor, and removes all hooks before returning. It rejects a changed readout count/layout or any mismatch with the direct/public totals. It does not edit model weights, mutate outputs, add a learned head, or claim that atomic contributions are a density.",
+    "official_model_repository": {
+      "url": "https://github.com/Nilsgoe/MACE-MDP",
+      "inspected_revision": "91ca3140b25a272aad79a8baece2563c166fd766",
+      "model_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
+    }
+  },
+  "protocol": {
+    "system": "The frozen acetone geometry mobley_3867265 in route2-v0-qeq-acetone-qm-field-v1.json.",
+    "prerequisite": "The sealed route2-v0-mace-mdp-acetone-response-v1 artifact must pass its raw-tensor QM coefficient gates before this adapter can run.",
+    "public_properties": "Evaluate the public MACECalculator dipole and polarizability at the frozen geometry.",
+    "direct_properties": "Run the same frozen model once through the calculator's frozen atom-to-batch adapter, capture only readout outputs, and require direct model dipole/polarizability agreement with the public properties.",
+    "atomic_dipole_identity": "The source implementation constructs the permanent molecular dipole as sum_a(q_a R_a + d_a); verify that identity without changing charges or atomic dipoles.",
+    "atomic_polarizability_identity": "For readout vector o_a, concatenate o_a[1] and o_a[5:] from every interaction, sum over interactions, apply the checkpoint change_of_basis tensor, and require sum_a alpha_a = alpha_total.",
+    "candidate_moment_partition": "For a Cartesian total induced dipole p in e angstrom, define p_a = alpha_a alpha_total^{-1} p. This audit requires sum_a alpha_a alpha_total^{-1}=I exactly to numerical tolerance. It does not yet map p_a to GTO coefficients or an electrostatic source."
+  },
+  "numerical_gates": {
+    "public_direct_relative_max": 1e-12,
+    "atomic_reconstruction_relative_max": 1e-12,
+    "net_charge_absolute_max_e": 1e-12,
+    "moment_identity_frobenius_max": 1e-12,
+    "interpretation": "These are pure implementation/identity gates. A failure rejects this internal atomic partition as an auditable source-map input; it must not be repaired by atom weights, symmetrization, clipping, projection, or error fitting."
+  },
+  "decision_rule": "If any identity gate fails, reject the MACE-MDP internal atomic partition. Do not change the hook, select a different layer, fit atom weights, impose a GTO width, or use the partial result in a continuum calculation. If all gates pass, admit only the identity-bound Cartesian atomic moment partition to a separately preregistered GTO/density representer and common-scalar KKT test. It remains ineligible for energy, force, PCM, and all experimental solvation accuracy panels.",
+  "preexecution_disclosure": "The AtomicDielectricMACE source code was inspected to define this exact reconstruction before execution. No atomic readout hook has been run before this preregistration, and no numerical output was used to choose these machine-identity thresholds.",
+  "execution_contract": {
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_mace_mdp_atomic_map.py": "39c24f46357672365a2f6fee91a3fc408158dd82a8e2ff7f890d80edd9d1fe49"
+    },
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+      "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8",
+      "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/modules/models.py": "a1e0958611bb4475b1739e6a9225677617c05d3df2b2724f27ba3c048240f1d7",
+      "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/calculators/mace.py": "97b17cef8d5880071068d1a05a97f1d432ffc57db00d23ba86c2c3049114a8ad",
+      "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/tools/torch_tools.py": "3f4317f5ba6721f9092c4d7975d90364ad9789452c157ce863f310d69f6c4fa6"
+    },
+    "model": {
+      "path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+      "size_bytes": 51716861
+    },
+    "runtime": {
+      "versions": {
+        "ase": "3.27.0",
+        "mace_torch": "0.3.16",
+        "numpy": "2.4.6",
+        "torch": "2.12.0+cu130"
+      },
+      "device": "cpu",
+      "default_dtype": "float64",
+      "torch_force_no_weights_only_load": "1"
+    }
+  }
+}

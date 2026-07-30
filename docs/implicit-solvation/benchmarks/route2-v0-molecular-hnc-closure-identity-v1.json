@@ -14,8 +14,9 @@
   },
   "pse_n_boundary": {
     "existing_source_candidate": "route2-v0-solvent-assets/water-cspce-pse3/manifest.json",
-    "reason_rejected_by_current_bridge": "PSE-n/KH closures have their own path-independent excess-chemical-potential expressions. A PSE3 direct correlation cannot be silently inserted into the molecular-HNC scalar merely because the site model, temperature, and Coulomb convention match.",
-    "future_rule": "A future PSE-n or KH branch must preregister, implement, and finite-difference certify a matched configuration-space scalar, its source closure, pressure/standard-state convention, and all force terms before it can consume a PSE-n/KH source. It may not bypass this gate or select a closure from target errors.",
+    "native_admission_audit": "route2-v0-pse3-native-admission-audit-v1.json",
+    "reason_rejected_by_current_bridge": "PSE-n/KH closures have their own path-independent excess-chemical-potential expressions. The native PSE-n scalar needs site-resolved solute u_alpha(r), h_alpha(r), and c_alpha(r) on a converged PSE-n solution; a bulk PSE3 Cvv and a whole-molecule MACE cluster potential do not provide those variables. A PSE3 direct correlation therefore cannot be silently inserted into the molecular-HNC scalar merely because the site model, temperature, and Coulomb convention match.",
+    "future_rule": "A future PSE-n or KH branch must preregister, implement, and finite-difference certify either a source-bound native site-PSE scalar or a separately derived orientational molecular matched configuration-space scalar, together with its closure, pressure/standard-state convention, and all force terms before it can consume a PSE-n/KH source. It may not bypass this gate, decompose the MACE cluster energy into invented site potentials, or select a closure from target errors.",
     "literature": [
       {
         "title": "Free Energies from Integral Equation Theories: Enforcing Path Independence",

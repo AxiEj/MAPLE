@@ -37,6 +37,17 @@ fine-tuning.  The immutable preregistration and result are
 `benchmarks/route2-v0-scalar-response-water-prereg-v1.json` and
 `benchmarks/route2-v0-scalar-response-water-v1.json`.
 
+The retained cSPC/E PSE3 bulk source is separately rejected as a shortcut for
+this V0 branch.  Native PSE3 has a closure-matched on-shell 3D-RISM chemical
+potential, but requires site-resolved \(u_\alpha,h_\alpha,c_\alpha\) fields;
+the checked-in bulk `Cvv` and whole-molecule MACE cluster potential do not
+provide them.  It therefore may not be inserted into molecular HNC or added
+as a post-stationary correction.  The admission audit also records that raw
+published cSPC/E 3D-RISM-PSE3 statistics do not justify the immutable
+all-record \(<1.5\) kcal/mol gate without excluded empirical corrections.
+This is not a Route-2 accuracy result:
+`benchmarks/route2-v0-pse3-native-admission-audit-v1.json`.
+
 A distinct **V0-FD** research kernel is preregistered separately.  It freezes
 the zero-field MACE density and minimizes only an energy-conjugate continuum
 state; it does not revive the rejected field-conditioned V0 response and has

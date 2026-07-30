@@ -23,7 +23,7 @@
       "solvent": "water",
       "model": "AmberTools26-cSPCE-PSE3-298K-source-candidate",
       "manifest": "route2-v0-solvent-assets/water-cspce-pse3/manifest.json",
-      "status": "source-complete-PSE3-candidate-future-matched-PSE-functional-only",
+      "status": "source-complete-PSE3-candidate-future-matched-PSE-functional-only-native-site-or-derived-orientational-scalar-required",
       "verified_source_chain": [
         "hash-bound all-atom cSPC/E MDL source",
         "matching DRISM/PSE3 rism1d input, XVV, and Cvv",
@@ -31,9 +31,9 @@
         "strict native-SMEAR short-range certificate",
         "two independent AmberTools 26 runs with distinct raw XVV/transcript evidence, identical DATE-normalized XVV with every non-DATE byte preserved, exact Cvv, exact self-test, and final residuals below 1e-12",
         "canonical exact-neutral charge projection derived only from MDL decimal serialization",
-        "PSE3 closure identity retained only for a future matched PSE-n configuration-space functional; current molecular-HNC bridge rejects it before kernel assembly"
+        "PSE3 closure identity retained only for a future native site-PSE or separately derived orientational scalar; current molecular-HNC bridge rejects it before kernel assembly"
       ],
-      "not_an_admitted_asset": "The PSE3 source cannot enter the current molecular-HNC bridge because its closure does not match the implemented scalar. It remains a source-complete candidate only for a future separately preregistered and finite-difference-certified PSE-n configuration-space scalar; it still lacks a production Cartesian grid and rigid-orientation convergence certificate, a complete MACE-native solute-solvent short-range potential, a physical molecular-liquid minimization and force certification, the other ten default-solvent candidates, and frozen chemistry maximum-error evidence."
+      "not_an_admitted_asset": "The PSE3 source cannot enter the current molecular-HNC bridge because its closure does not match the implemented scalar. Native PSE3 needs site-resolved solute potentials and 3D-RISM solution fields, while the source supplies only a bulk Cvv and the current MACE source is one whole-molecule cluster scalar. It remains a source-complete candidate only for a future separately preregistered and finite-difference-certified native site-PSE or derived orientational scalar; it still lacks a production Cartesian grid and rigid-orientation convergence certificate, a complete MACE-native solute-solvent short-range potential, a physical molecular-liquid minimization and force certification, the other ten default-solvent candidates, and frozen chemistry maximum-error evidence."
     },
     {
       "solvent": "water",

@@ -1,0 +1,69 @@
+{
+  "protocol_id": "route2-v0-pse3-native-admission-audit-v1",
+  "schema_version": 1,
+  "status": "reject-current-mace-molecular-hnc-pse3-shortcut",
+  "claim_boundary": "This is a mathematical and literature admission audit. It is not a 3D-RISM execution, a physical liquid asset admission, a Route-2 V0 result, a force/PES result, a chemistry benchmark, or an accuracy result.",
+  "native_pse_n_identity": {
+    "closure_variables": "Native site 3D-RISM needs u_alpha(r), h_alpha(r), c_alpha(r), and Xi_alpha(r)=-beta*u_alpha(r)+h_alpha(r)-c_alpha(r).",
+    "closure": "g_alpha=exp(Xi_alpha) for Xi_alpha<=0; g_alpha=sum_{j=0}^n Xi_alpha^j/j! for Xi_alpha>0.",
+    "matched_on_shell_chemical_potential": "Delta_mu_PSE-n=Delta_mu_HNC-kBT*sum_alpha rho_alpha*integral Theta(Xi_alpha)*Xi_alpha^(n+1)/(n+1)! dr, evaluated only on a converged native PSE-n solution.",
+    "hnc_reference": "Delta_mu_HNC=kBT*sum_alpha rho_alpha*integral [1/2*h_alpha^2-c_alpha-1/2*c_alpha*h_alpha] dr.",
+    "meaning": "PSE-n has a closure-matched path-independent on-shell chemical-potential expression; this does not license evaluating it from a bulk Cvv alone or adding it to a different stationary scalar."
+  },
+  "current_route2_state_space": {
+    "molecular_scalar": "Omega_mHNC[nu]=Omega_id[nu;u_MACE]-kBT/2 <P nu-rho_bulk,C_HNC(P nu-rho_bulk)>.",
+    "mace_source": "u_MACE(A,B_X_Omega) is one whole-molecule zero-field MACE cluster energy difference at each rigid solvent configuration.",
+    "mismatch": "A whole-molecule cluster scalar cannot be decomposed into native site potentials u_alpha(r) without inventing an energy partition. A 1D DRISM/PSE3 bulk Cvv is not a solute PSE3 solution and cannot reconstruct u_alpha, h_alpha, or c_alpha.",
+    "prohibited_shortcuts": [
+      "insert a PSE3 Cvv into the molecular-HNC quadratic scalar",
+      "add the PSE3 on-shell correction after molecular-HNC stationarity",
+      "decompose a whole MACE cluster energy into site potentials",
+      "select a PSE order, PC/PC+, UC, NgB, or another correction from target-solvation errors"
+    ]
+  },
+  "checked_in_source_control": {
+    "manifest": "route2-v0-solvent-assets/water-cspce-pse3/manifest.json",
+    "model_identifier": "AmberTools26-cSPCE-PSE3-298K-source-candidate",
+    "asset_role": "hash-bound bulk 1D DRISM/PSE3 source control only",
+    "current_bridge_policy": "Route2V0MaceClusterRismMolecularHNCBridge must reject closure PSE3 before kernel assembly."
+  },
+  "external_accuracy_context": {
+    "source": "Johnson et al., J. Phys.: Condens. Matter 28, 344002 (2016), DOI 10.1088/0953-8984/28/34/344002",
+    "direct_cspce_3drism_pse3_study_scope": "1123 small drug-like molecules; not the Route-2 historical FreeSolv10 panel and not a Route-2 result.",
+    "reported_direct_pse3_mue_kcal_per_mol": 19.693,
+    "reported_direct_pse3_rmse_kcal_per_mol": 20.473,
+    "interpretation": "The published direct PSE3 statistics do not establish an error for any Route-2 record. They show that raw PSE3 is not evidence for the required all-record <1.5 kcal/mol gate; lower corrected results cannot enter V0 because they use excluded post-hoc and/or fitted corrections."
+  },
+  "future_admission_prerequisites": [
+    "A source-bound native site-PSE solver with complete site potentials, bulk susceptibility, closure residual, matched scalar, pressure, standard-state convention, and coordinate derivatives; or a separately derived orientational molecular functional with frozen angular correlations.",
+    "Finite-difference proof that energy, response, and forces arise from the same stationary scalar.",
+    "Source-complete physical assets for all eleven default solvents and the existing custom-solvent contract.",
+    "The exact historical FreeSolv10 records and every later preregistered record strictly below 1.5 kcal/mol, then a disjoint blind set, with no result-driven method change."
+  ],
+  "hard_constraints": {
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "posthoc_pse3_correction": false,
+    "pse3_into_hnc_hybrid": false,
+    "closure_selected_from_target_error": false
+  },
+  "literature": [
+    {
+      "title": "Closed-Form Expressions of the Chemical Potential for Integral Equation Closures with Certain Bridge Functions",
+      "doi": "10.1063/1.3041709",
+      "url": "https://doi.org/10.1063/1.3041709"
+    },
+    {
+      "title": "Solvation Thermodynamics of Organic Molecules by the Molecular Integral Equation Theory: Approaching Chemical Accuracy",
+      "doi": "10.1021/cr5000283",
+      "url": "https://doi.org/10.1021/cr5000283"
+    },
+    {
+      "title": "Small Molecule Hydration Energy and Entropy from 3D-RISM",
+      "doi": "10.1088/0953-8984/28/34/344002",
+      "url": "https://doi.org/10.1088/0953-8984/28/34/344002"
+    }
+  ]
+}

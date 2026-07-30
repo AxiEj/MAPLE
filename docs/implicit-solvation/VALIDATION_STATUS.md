@@ -103,6 +103,16 @@ only a controlled mathematical diagnostic: no physical liquid asset, production
 grid/orientation stability certificate, force, chemistry score, or accuracy
 claim has been admitted.
 
+The weighted-density liquid branch now separately rejects the common but
+invalid shortcut “vacuum-limit pressure identity = liquid--gas coexistence.”
+Its homogeneous-phase gate evaluates the existing HNC-plus-bridge scalar along
+the uniform configuration-density ray, then requires a zero pure-liquid
+external potential, full configuration-space stationarity/uniformity, positive
+liquid and gas curvatures, and equal grand-potential densities before any
+planar profile may be called an interface.  Physical-scope bridge certificates
+must carry this evidence; there are still **zero** physical bridge assets and
+no total-solvation, multi-solvent, historical-panel, or accuracy result.
+
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental
 `mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening

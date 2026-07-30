@@ -11,7 +11,8 @@
     "bridge_scalar": "F_B = dv sum_g [A_s (rho_bar-rho_bulk)^3 + B_s rho_bar^2 (rho_bar-rho_bulk)^4]",
     "cubic_constraint": "A_s = (P_HNC - P_s) / rho_bulk^3",
     "stationarity": "beta d(Omega_HNC + F_B)/d nu = 0",
-    "response_rule": "the bridge gradient and Hessian are exact derivatives of F_B; no response symmetrization, clipping, or damping is a model term"
+    "response_rule": "the bridge gradient and Hessian are exact derivatives of F_B; no response symmetrization, clipping, or damping is a model term",
+    "homogeneous_phase_gate": "Before planar-interface use, evaluate nu_x=x nu_bulk from the exact HNC-plus-bridge scalar. Require zero external potential, full configuration gradient stationarity and uniformity, positive homogeneous curvatures, and |omega(x_gas)-omega(1)| within a frozen coexistence tolerance; a zero of the projected ray derivative alone is insufficient."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -26,7 +27,7 @@
   },
   "pure_solvent_anchor_contract": {
     "cubic_coefficient": "Derived exactly from the matching molecular-HNC vacuum-limit pressure, the frozen bulk molecular density, and the independently declared pure-liquid pressure. It is never a fitted field.",
-    "quartic_coefficient": "Must be fixed before target-solute execution by one content-addressed pure-solvent planar-interface certificate that reproduces an independently sourced surface tension using the declared scalar. It cannot be optimized against solvation values.",
+    "quartic_coefficient": "Must be fixed before target-solute execution by one content-addressed pure-solvent homogeneous-phase-plus-planar-interface certificate that first establishes a stable coexisting liquid/gas pair and then reproduces an independently sourced surface tension using the declared scalar. It cannot be optimized against solvation values.",
     "weighted_density_kernel": "Must be content-addressed and derived from the frozen pure-liquid correlation/length-scale convention before target-solute execution; it cannot be selected from cavity or solvation errors.",
     "required_certificate_contents": [
       "all-atom solvent model and source digest",
@@ -37,17 +38,18 @@
       "A_s pressure identity and B_s planar-interface residual",
       "exact SI-to-atomic-unit pressure and surface-tension identities",
       "all frozen solvent-source hashes plus canonical float64/grid digests for D and K",
+      "same-scalar homogeneous liquid/gas coexistence evidence: zero external potential, full-gradient residuals, uniformity residuals, positive curvatures, and the grand-potential-density gap",
       "B_low/B_root/B_high, all three stationary residuals, interface count, transverse area, and coarse/fine grid convergence",
       "explicit evidence scope: synthetic-control or physical-pure-liquid-admission; only the latter may enter a physical endpoint",
       "statement that no MNSol, FreeSolv, development, confirmation, or blind solvation values were read"
     ],
-    "source_bound_constructor": "A source-bound bridge asset must be built only from a parsed route2-v0-pure-solvent-bridge-certificate-v1 record whose frozen source hashes, HNC pressure, molecular bulk density, D digest, and K digest exactly match the live scalar. Direct synthetic constructors remain derivative controls. A source-bound synthetic-control certificate cannot establish a physical-liquid or accuracy claim; any physical endpoint must require the distinct physical-pure-liquid-admission scope and reject a source asset that explicitly says physical liquid is not claimed.",
+    "source_bound_constructor": "A source-bound bridge asset must be built only from a parsed route2-v0-pure-solvent-bridge-certificate-v1 record whose frozen source hashes, HNC pressure, molecular bulk density, D digest, and K digest exactly match the live scalar. Direct synthetic constructors remain derivative controls. A physical-pure-liquid-admission record must additionally carry parser-validated same-scalar homogeneous phase-coexistence evidence; a source-bound synthetic-control certificate cannot establish a physical-liquid or accuracy claim, and any physical endpoint must reject a source asset that explicitly says physical liquid is not claimed.",
     "physical_bridge_assets": [],
     "planar_interface_quartic_resolution": {
-      "stationary_surface_tension": "gamma(B_s) = [Omega_B_s[nu_B_s^*] - Omega_bulk] / A, with nu_B_s^* stationary under the declared planar boundary conditions and the same frozen HNC, D, and K operators.",
-      "envelope_derivative": "d gamma / d B_s = (1 / A) integral d^3r rho_bar_B_s^2 (rho_bar_B_s-rho_bulk)^4 >= 0 because the liquid and gas bulk terms of the quartic bridge vanish.",
-      "strict_monotonicity": "For a nontrivial resolved interface, rho_bar takes values other than 0 and rho_bulk on a set of nonzero measure, so the envelope derivative is strictly positive on the declared stationary interface branch and a bracketed surface-tension root is unique on that branch.",
-      "certificate_rule": "Before target-solute execution, freeze B_low >= 0, B_high, gamma(B_low), gamma(B_high), gamma_target, planar stationarity residuals, transverse-area convention, interface count, and grid-refinement evidence. Require gamma(B_low) <= gamma_target <= gamma(B_high), a declared stationary interface branch, and a root residual.",
+      "stationary_surface_tension": "After same-scalar homogeneous coexistence passes, gamma(B_s) = [Omega_B_s[nu_B_s^*] - V_liquid omega(1) - V_gas omega(x_gas)] / (N_interface A), with nu_B_s^* stationary under declared planar boundary conditions and the same frozen HNC, D, and K operators.",
+      "envelope_derivative": "No generic signed d gamma / d B_s is admitted under the current contract: varying B_s can move the finite-density gas phase or destroy coexistence at fixed chemical potential. A future derivative requires a predeclared coexistence-preserving chemical-potential path, dividing-surface convention, and complete same-scalar bulk subtractions.",
+      "strict_monotonicity": "No positivity-only monotonicity or uniqueness claim is admissible. The empty-gas integral omits finite-density bulk terms, and a physical certificate must preserve a predeclared stationary branch, a coexistence-preserving/root-selection protocol, and homogeneous coexistence evidence.",
+      "certificate_rule": "Before target-solute execution, require same-scalar liquid/gas coexistence, freeze B_low >= 0, B_high, gamma(B_low), gamma(B_high), gamma_target, planar stationarity residuals, transverse-area convention, interface count, grid-refinement evidence, and a predeclared branch-selection rule. Require min(gamma(B_low), gamma(B_high)) <= gamma_target <= max(gamma(B_low), gamma(B_high)) and a declared root residual.",
       "prohibited_selection": "The bracket may be constructed only from the same pure-liquid scalar and an independently sourced pure-liquid surface tension. No MNSol, FreeSolv, development, confirmation, blind, solute cavity, or solvation-error value may enter B_s, K, or the bracket."
     }
   },
@@ -58,6 +60,7 @@
       "temperature, pressure, bulk molecular number density, and independent pure-liquid surface tension",
       "frozen bulk direct correlation or a declared molecular liquid functional",
       "source-bound molecular-centre projection and periodic-even weighted-density kernel",
+      "same-scalar homogeneous liquid/gas coexistence evidence before a planar surface-tension root",
       "certificate-derived cubic and quartic bridge coefficients",
       "complete MACE-native solute-solvent external-potential, standard-state, force, and grid/orientation convergence contracts"
     ]
@@ -66,11 +69,12 @@
     "Verify D maps the uniform configuration density to the molecular bulk density and prove its exact discrete adjoint pairing.",
     "Verify K has unit discrete integral, periodic inversion symmetry, and an exact self-adjoint convolution pairing.",
     "Verify the cubic coefficient from P_HNC and P_s exactly restores the declared same-functional vacuum-limit pressure.",
+    "Verify the exact no-solute homogeneous liquid/gas phase gate: zero external potential, full configuration-space stationarity, gradient uniformity, positive curvatures, and grand-potential-density coexistence. Do not treat the vacuum-limit pressure identity as coexistence.",
     "Verify bridge scalar, gradient, Hessian-vector action, Hessian reciprocity, and scalar second derivative by finite differences before any solvent asset is admitted.",
-    "For the quartic coefficient, verify the planar stationary surface-tension envelope derivative is nonnegative, require a source-frozen bracket with a unique root on the declared nontrivial stationary-interface branch, and retain the full bracket/residual/grid evidence in the pure-solvent certificate.",
+    "For the quartic coefficient, verify a source-frozen stationary planar branch only after the homogeneous coexistence gate, retain endpoint/root/residual/grid evidence plus a predeclared branch-selection rule, and do not infer uniqueness from a positivity-only envelope argument.",
     "For each physical solvent, verify the frozen pure-liquid planar-interface/surface-tension certificate before any target-solute label is read.",
     "Verify the full HNC-plus-bridge stationary liquid scalar, stability, forces, grid/orientation convergence, standard state, and 11-solvent asset panel before chemistry scoring.",
     "Apply the already frozen all-record development, confirmation, and external-blind maximum-error gates without any bridge, kernel, or liquid-asset change."
   ],
-  "decision_rule": "A failed pure-solvent certificate, scalar/derivative identity, source digest, structural gate, or accuracy gate rejects this frozen candidate. It does not authorize a post-hoc PC+, a changed B_s or K, a cavity/radius adjustment, a solvation-label regression, post-training, fine-tuning, or per-record method selection. A new bridge functional requires a new preregistration and independent review."
+  "decision_rule": "A failed pure-solvent certificate, homogeneous-phase coexistence gate, scalar/derivative identity, source digest, structural gate, or accuracy gate rejects this frozen candidate. It does not authorize a post-hoc PC+, a changed B_s or K, a cavity/radius adjustment, a solvation-label regression, post-training, fine-tuning, or per-record method selection. A new bridge functional requires a new preregistration and independent review."
 }

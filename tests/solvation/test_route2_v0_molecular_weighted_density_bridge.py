@@ -252,10 +252,15 @@ def test_bridge_cubic_coefficient_and_pressure_are_same_functional_identities():
 
     assert functional.construction == V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_CONSTRUCTION
     assert asset.cubic_coefficient_hartree_bohr6 == pytest.approx(expected_cubic)
-    assert asset.coexistence_pressure_hartree_per_bohr3 == pytest.approx(
+    assert asset.vacuum_limit_pressure_hartree_per_bohr3 == pytest.approx(
         asset.target_bulk_pressure_hartree_per_bohr3,
         rel=2.0e-14,
         abs=2.0e-16,
+    )
+    assert asset.coexistence_pressure_hartree_per_bohr3 == pytest.approx(
+        asset.vacuum_limit_pressure_hartree_per_bohr3,
+        rel=0.0,
+        abs=0.0,
     )
     assert functional.bulk_functional_pressure_hartree_per_bohr3 == pytest.approx(
         asset.target_bulk_pressure_hartree_per_bohr3,

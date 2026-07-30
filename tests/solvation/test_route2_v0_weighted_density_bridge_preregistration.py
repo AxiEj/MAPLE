@@ -26,6 +26,11 @@ def test_weighted_density_bridge_preregistration_locks_the_no_fit_boundary():
     assert "periodic-even" in construction["weighted_density"]
     assert "(P_HNC - P_s) / rho_bulk^3" in construction["cubic_constraint"]
     assert "exact derivatives" in construction["response_rule"]
+    assert "full configuration gradient" in construction["homogeneous_phase_gate"]
+    assert (
+        "zero of the projected ray derivative alone is insufficient"
+        in construction["homogeneous_phase_gate"]
+    )
 
     assert protocol["hard_constraints"] == {
         "official_checkpoint_unmodified": True,
@@ -58,6 +63,7 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
     assert "no MNSol, FreeSolv" in requirements
     assert "SI-to-atomic-unit" in requirements
     assert "float64/grid digests for D and K" in requirements
+    assert "homogeneous liquid/gas coexistence evidence" in requirements
     assert "B_low/B_root/B_high" in requirements
     assert "explicit evidence scope" in requirements
     assert (
@@ -72,13 +78,12 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
 
     resolution = anchors["planar_interface_quartic_resolution"]
     assert "gamma(B_s)" in resolution["stationary_surface_tension"]
-    assert "d gamma / d B_s" in resolution["envelope_derivative"]
-    assert "strictly positive" in resolution["strict_monotonicity"]
-    assert "stationary interface branch" in resolution["strict_monotonicity"]
-    assert (
-        "gamma(B_low) <= gamma_target <= gamma(B_high)"
-        in resolution["certificate_rule"]
-    )
+    assert "V_liquid omega(1)" in resolution["stationary_surface_tension"]
+    assert "No generic signed d gamma / d B_s" in resolution["envelope_derivative"]
+    assert "coexistence-preserving" in resolution["envelope_derivative"]
+    assert "No positivity-only monotonicity" in resolution["strict_monotonicity"]
+    assert "homogeneous coexistence evidence" in resolution["strict_monotonicity"]
+    assert "min(gamma(B_low), gamma(B_high))" in resolution["certificate_rule"]
     assert "No MNSol, FreeSolv" in resolution["prohibited_selection"]
 
     custom = protocol["custom_solvent_contract"]
@@ -92,5 +97,7 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
     assert "exact discrete adjoint pairing" in sequence
     assert "same-functional vacuum-limit pressure" in sequence
     assert "Hessian reciprocity" in sequence
+    assert "homogeneous liquid/gas phase gate" in sequence
+    assert "do not infer uniqueness" in sequence
     assert "external-blind maximum-error gates" in sequence
     assert "post-hoc PC+" in protocol["decision_rule"]

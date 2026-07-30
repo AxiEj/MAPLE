@@ -510,7 +510,7 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         if target_pressure >= hnc_pressure:
             raise ValueError(
                 "Target pure-solvent pressure must be below the source HNC pressure "
-                "for a stabilizing coexistence bridge."
+                "for a stabilizing pressure bridge."
             )
         cubic = _positive(
             self.cubic_coefficient_hartree_bohr6,
@@ -748,7 +748,7 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         if target_pressure >= hnc_pressure:
             raise ValueError(
                 "Target pure-solvent pressure must be below the source HNC pressure "
-                "for a stabilizing coexistence bridge."
+                "for a stabilizing pressure bridge."
             )
         kernel = Route2V0PeriodicWeightedDensityKernel(
             grid=center_projection.grid,
@@ -893,7 +893,7 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
 
     @property
     def molecular_bulk_number_density_bohr3(self) -> float:
-        """Return the exact bulk density used in the coexistence construction."""
+        """Return the exact bulk density used in the pressure construction."""
 
         return self.center_projection.molecular_bulk_number_density_bohr3
 
@@ -953,6 +953,7 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
             not self.is_molecular_cubic_wda
             and certificate is not None
             and certificate.is_physical_pure_liquid_admission
+            and certificate.has_homogeneous_phase_coexistence
         )
 
     def require_physical_pure_solvent_asset(self) -> None:
@@ -1038,13 +1039,31 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         return -self.cubic_coefficient_hartree_bohr6 * density**3
 
     @property
-    def coexistence_pressure_hartree_per_bohr3(self) -> float:
-        """Return the same-functional vacuum-limit pressure after the bridge."""
+    def vacuum_limit_pressure_hartree_per_bohr3(self) -> float:
+        """Return the same-functional vacuum-limit pressure after the bridge.
+
+        This identity evaluates the empty-density limit only.  It does not
+        prove that the augmented scalar has a stationary gas phase degenerate
+        with the liquid; that stronger condition is checked by
+        :mod:`route2_v0_molecular_phase_coexistence` before a planar-interface
+        result can be interpreted as a surface tension.
+        """
 
         return (
             self.hnc_bulk_pressure_hartree_per_bohr3
             + self.vacuum_bridge_free_energy_density_hartree_per_bohr3
         )
+
+    @property
+    def coexistence_pressure_hartree_per_bohr3(self) -> float:
+        """Return the legacy vacuum-limit-pressure alias without a phase claim.
+
+        Retained only so existing synthetic scalar controls do not break.  New
+        code must use :attr:`vacuum_limit_pressure_hartree_per_bohr3`; equal
+        vacuum-limit pressure alone is not liquid--gas coexistence.
+        """
+
+        return self.vacuum_limit_pressure_hartree_per_bohr3
 
 
 @dataclass(frozen=True)
@@ -1338,7 +1357,7 @@ class Route2V0MolecularWeightedDensityBridgeFunctional:
     def bulk_functional_pressure_hartree_per_bohr3(self) -> float:
         """Return the bridge vacuum-limit pressure from the same scalar."""
 
-        pressure = self.bridge_asset.coexistence_pressure_hartree_per_bohr3
+        pressure = self.bridge_asset.vacuum_limit_pressure_hartree_per_bohr3
         target = self.bridge_asset.target_bulk_pressure_hartree_per_bohr3
         tolerance = 1.0e-12 * max(1.0, abs(pressure), abs(target))
         if abs(pressure - target) > tolerance:

@@ -39,6 +39,11 @@ def test_molecular_cubic_wda_preregistration_locks_the_common_scalar_form():
         in construction["surface_tension_constraint"]
     )
     assert "exact D^T K_sigma" in construction["response_rule"]
+    assert "not coexistence" in construction["homogeneous_phase_gate"]
+    assert (
+        "full configuration-gradient stationarity"
+        in construction["homogeneous_phase_gate"]
+    )
 
 
 def test_molecular_cubic_wda_preregistration_excludes_response_and_label_repairs():
@@ -66,6 +71,7 @@ def test_molecular_cubic_wda_preregistration_excludes_response_and_label_repairs
     assert "all-atom solvent model" in required
     assert "orientational liquid correlation" in required
     assert "isothermal compressibility" in required
+    assert "homogeneous liquid/gas coexistence" in required
     assert "stationary planar-interface" in required
     assert "MACE-native" in required
     forbidden = " ".join(admission["forbidden_inputs"])
@@ -84,6 +90,7 @@ def test_molecular_cubic_wda_preregistration_keeps_the_historical_outlier_gate()
     sequence = " ".join(protocol["validation_sequence"])
 
     assert "Hessian-vector action" in sequence
+    assert "full configuration gradient and Hessian" in sequence
     assert "source-bound physical pure-liquid certificate" in sequence
     assert "route2-v0-historical-freesolv10-regression-v1" in sequence
     assert "ethyl acetate" in sequence

@@ -35,7 +35,7 @@ subset.
 
 | Candidate | Mathematical status | V0 decision | Reason |
 | --- | --- | --- | --- |
-| HNC-plus-weighted-density molecular bridge | Variational if inserted into \(\Omega\) before stationarity; \(A_s\) follows from the HNC vacuum pressure and \(B_s\) can be fixed by a pure-liquid planar-interface root. | **Active V0 path** | It targets the HNC cavity/liquid--vapour defect without a solvation-label regression.  The source-bound certificate now binds all solvent sources, the SI unit identities, planar root/residual/grid evidence, and discrete \(D,K\) operators. |
+| HNC-plus-weighted-density molecular bridge | Variational if inserted into \(\Omega\) before stationarity; \(A_s\) follows from the HNC vacuum pressure, while \(B_s\) requires a pure-liquid phase-coexistence gate before any planar-interface root may be interpreted. | **Active V0 path** | It targets the HNC cavity/liquid--vapour defect without a solvation-label regression.  The source-bound certificate now binds solvent sources, SI identities, full-scalar homogeneous coexistence evidence, planar root/residual/grid evidence, and discrete \(D,K\) operators. |
 | Lorentz/Yukawa nonlocal dielectric spectrum | A positive quadratic orientational-polarization functional gives \(\epsilon_s(k)=\epsilon_\infty+(\epsilon_0-\epsilon_\infty)/(1+\lambda_s^2k^2)\); its reaction field is the derivative of one passive scalar. | **Active custom-solvent electrostatic control only** | It supplies a mathematically constrained finite-\(k\) response from independently sourced \(\epsilon_0,\epsilon_\infty,\lambda_s\), with no target fit.  It has no cavity, dispersion, molecular \(C_{ab}(k)\), or standard-state term, so it cannot be scored as a total solvation method. |
 | LCW-style two-reference cDFT | A common cDFT scalar with slowly varying reference density and direct-correlation/surface-tension inputs. | **Deferred research path** | Bui--Cox provides a genuinely variational length-scale construction, but it needs a complete, source-provenanced multi-field liquid functional.  It must retain every term and pass scalar/force checks before it can replace the current bridge; importing only a coarse-graining kernel would be an unjustified hybrid. |
 | Full orientational mDFT / angular correlation functional | Variational in the full molecular configuration density when the angular direct-correlation functional is frozen. | **Deferred research path** | Route-2 already preserves a full \(SO(3)\) quadrature convention.  A new angular functional needs a real all-atom solvent source and its own common-scalar, grid/orientation, and force proof; a site-HNC table cannot be relabelled as that functional. |
@@ -61,23 +61,36 @@ the pure-liquid source fixes
 
 \[
 A_s=\frac{P_{\rm HNC}-P_s}{\rho_b^3},
-\qquad
-\frac{d\gamma}{dB_s}=
-\frac{1}{A}\int\bar\rho^2(\bar\rho-\rho_b)^4\,d^3r\ge0.
 \]
 
-Thus a nontrivial stationary interface gives one bracketed \(B_s\) root on
-that branch.  The new implementation requires the *actual record* of that
-root and rejects a source, grid, operator, closure, pressure, surface-tension
-conversion, or no-label-policy mismatch.  It does not yet contain a physical
-certificate, a complete liquid backend, a chemistry score, or a force/PES
-claim.  The current synthetic test source remains synthetic by design.
+This only fixes the empty-density pressure identity; it does **not** establish
+a finite-density stationary gas phase or liquid--gas coexistence.  Before a
+planar-interface result is admissible, the exact same scalar must show a
+zero-external-potential liquid \(x=1\) and gas \(0<x_g<1\) with full
+configuration-gradient stationarity, positive curvatures, and
+
+\[
+|\Omega[\nu_{x_g};0]/V-\Omega[\nu_{1};0]/V|
+\le\tau_{\rm coex}.
+\]
+
+At finite gas density, a positivity-only \(d\gamma/dB_s\) formula omits
+bulk-phase terms; changing \(B_s\) can also move the gas phase or break
+coexistence.  Thus neither monotonicity nor unique-root claims are accepted
+without a predeclared coexistence-preserving path, dividing-surface convention,
+and stationary branch proof.  The implementation requires the actual
+phase/coexistence record before a physical-scope certificate and rejects a
+source, grid, operator, closure, pressure, surface-tension conversion, or
+no-label-policy mismatch.  It does not yet contain a physical certificate, a
+complete liquid backend, a chemistry score, or a force/PES claim.  The current
+synthetic test source remains synthetic by design.
 
 ## Next evidence needed before any accuracy assertion
 
 1. Produce one physical, closure-aligned HNC source with a reproducible
    all-atom liquid model, bulk direct correlation, pressure, independent
-   surface tension, and a stationary planar-interface certificate.
+   surface tension, an exact homogeneous liquid/gas coexistence record, and a
+   stationary planar-interface certificate.
 2. Verify the same scalar's derivative, Hessian reciprocity, stability,
    Cartesian/orientation/grid convergence, envelope forces, and energy
    conservation.

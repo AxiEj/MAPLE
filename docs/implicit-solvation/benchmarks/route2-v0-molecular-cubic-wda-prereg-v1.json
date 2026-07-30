@@ -18,7 +18,8 @@
     "pressure_cross_check": "A_s = (P_HNC-P_s)/rho_bulk^3 = (rho_bulk kBT a_s-P_s)/rho_bulk^3. Any mismatch between the frozen molecular-HNC zero mode and chi_T fails closed.",
     "surface_tension_constraint": "sigma_s is frozen only by a stationary pure-liquid planar-interface calculation against an independently sourced gamma_s; neither sigma_s nor K_sigma can be selected from a solute cavity or solvation error.",
     "stationarity": "beta d(Omega_HNC + F_B^cWDA)/d nu = 0",
-    "response_rule": "Use exact D^T K_sigma derivatives and the same-scalar Hessian; no response symmetrization, clipping, or damping is a model term."
+    "response_rule": "Use exact D^T K_sigma derivatives and the same-scalar Hessian; no response symmetrization, clipping, or damping is a model term.",
+    "homogeneous_phase_gate": "A vacuum-limit pressure identity is not coexistence. Before a planar gamma determination, establish a zero-external-potential pure-liquid homogeneous gas/liquid pair with full configuration-gradient stationarity, positive curvatures, and equal same-scalar grand-potential densities."
   },
   "hard_constraints": {
     "official_checkpoint_unmodified": true,
@@ -38,6 +39,7 @@
       "the exact source-provenanced finite-wavevector and orientational liquid correlation used by the HNC scalar",
       "independent pure-liquid pressure, isothermal compressibility, and liquid-gas surface tension bound to that exact model",
       "a stationary planar-interface determination of the Gaussian width, with residual and grid-refinement evidence",
+      "a same-scalar homogeneous liquid/gas coexistence certificate before planar surface-tension use",
       "content digests for the centre projection, Gaussian kernel, liquid sources, and source-bound cubic-WDA certificate",
       "a complete MACE-native solute-solvent external potential, standard-state ledger, force terms, and Cartesian/orientation convergence evidence"
     ],
@@ -59,6 +61,7 @@
   "validation_sequence": [
     "Verify the Gaussian kernel's discrete normalization, periodic inversion symmetry, convolution self-adjointness, and content digest.",
     "Verify the pure-liquid compressibility zero mode, dimensionless cubic coefficient, molecular-HNC pressure, and cubic coefficient cross identity.",
+    "Verify the no-solute homogeneous liquid/gas coexistence gate from the full configuration gradient and Hessian; do not relabel the vacuum-limit pressure identity as coexistence.",
     "Verify scalar energy, gradient, Hessian-vector action, Hessian reciprocity, and scalar second derivative by finite differences before physical admission.",
     "Verify a source-bound physical pure-liquid certificate with stationary planar gamma and grid/orientation convergence before target-solute execution.",
     "Verify stationary liquid forces, standard state, and the complete pre-registered solvent panel before chemistry scoring.",

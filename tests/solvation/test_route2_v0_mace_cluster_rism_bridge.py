@@ -446,6 +446,48 @@ def _source_bound_weighted_density_inputs(tmp_path: Path):
     )
 
 
+def _synthetic_homogeneous_phase_coexistence_evidence() -> dict[str, object]:
+    """Return parser-only phase evidence for a nonphysical source-upgrade test.
+
+    These values are intentionally confined to a temporary test certificate.
+    They do not describe the fixture's liquid and cannot promote its explicitly
+    nonphysical source asset; the test verifies that this second protection
+    still rejects the attempted scope upgrade.
+    """
+
+    return {
+        "construction": "route2-v0-molecular-homogeneous-phase-gate-v1",
+        "same_scalar_all_terms_retained": True,
+        "zero_external_potential": {
+            "residual_hartree": 0.0,
+            "tolerance_hartree": 1.0e-12,
+        },
+        "tolerances": {
+            "stationarity": 1.0e-10,
+            "gradient_uniformity": 1.0e-10,
+            "curvature_hartree_per_bohr3": 1.0e-12,
+        },
+        "liquid": {
+            "density_scale": 1.0,
+            "grand_potential_density_hartree_per_bohr3": 0.0,
+            "stationarity_residual": 0.0,
+            "gradient_uniformity_residual": 0.0,
+            "curvature_hartree_per_bohr3": 1.0e-6,
+        },
+        "gas": {
+            "density_scale": 0.1,
+            "grand_potential_density_hartree_per_bohr3": 0.0,
+            "stationarity_residual": 0.0,
+            "gradient_uniformity_residual": 0.0,
+            "curvature_hartree_per_bohr3": 1.0e-6,
+        },
+        "coexistence": {
+            "grand_potential_density_difference_hartree_per_bohr3": 0.0,
+            "tolerance_hartree_per_bohr3": 1.0e-12,
+        },
+    }
+
+
 def test_weighted_density_bridge_requires_a_live_source_bound_certificate(tmp_path):
     (
         asset,
@@ -475,6 +517,7 @@ def test_weighted_density_bridge_requires_a_live_source_bound_certificate(tmp_pa
     assert bridge_asset.is_source_bound_pure_solvent_asset is True
     bridge_asset.require_source_bound_pure_solvent_asset()
     assert certificate.is_physical_pure_liquid_admission is False
+    assert certificate.has_homogeneous_phase_coexistence is False
     assert bridge_asset.is_physical_pure_solvent_asset is False
     with pytest.raises(ValueError, match="physical pure-liquid admission"):
         bridge_asset.require_physical_pure_solvent_asset()
@@ -585,8 +628,12 @@ def test_weighted_density_certificate_cannot_upgrade_a_nonphysical_source_asset(
         "physical_liquid_admitted": True,
         "claim_boundary": "Attempted upgrade of a nonphysical source asset.",
     }
+    payload["homogeneous_phase_coexistence"] = (
+        _synthetic_homogeneous_phase_coexistence_evidence()
+    )
     certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     certificate = load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+    assert certificate.has_homogeneous_phase_coexistence is True
 
     with pytest.raises(ValueError, match="explicit nonphysical claim"):
         Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate(
@@ -597,6 +644,57 @@ def test_weighted_density_certificate_cannot_upgrade_a_nonphysical_source_asset(
             kernel=weighted_kernel,
             certificate=certificate,
         )
+
+
+def test_physical_scope_certificate_requires_full_homogeneous_phase_evidence(tmp_path):
+    *_, certificate_path, payload = _source_bound_weighted_density_inputs(tmp_path)
+    payload["admission"] = {
+        "evidence_scope": "physical-pure-liquid-admission",
+        "physical_liquid_admitted": True,
+        "claim_boundary": "Missing phase evidence must fail before source admission.",
+    }
+    certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="requires homogeneous phase coexistence"):
+        load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            lambda payload: payload["homogeneous_phase_coexistence"]["gas"].update(
+                {"curvature_hartree_per_bohr3": 0.0}
+            ),
+            "gas phase is not a strict local minimum",
+        ),
+        (
+            lambda payload: payload["homogeneous_phase_coexistence"][
+                "coexistence"
+            ].update({"grand_potential_density_difference_hartree_per_bohr3": 1.0e-5}),
+            "coexistence gap must equal",
+        ),
+    ],
+)
+def test_physical_scope_certificate_rejects_invalid_homogeneous_phase_evidence(
+    tmp_path,
+    mutation,
+    message,
+):
+    *_, certificate_path, payload = _source_bound_weighted_density_inputs(tmp_path)
+    payload["admission"] = {
+        "evidence_scope": "physical-pure-liquid-admission",
+        "physical_liquid_admitted": True,
+        "claim_boundary": "Temporary parser-only physical-scope validation control.",
+    }
+    payload["homogeneous_phase_coexistence"] = (
+        _synthetic_homogeneous_phase_coexistence_evidence()
+    )
+    mutation(payload)
+    certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
 
 
 def test_weighted_density_bridge_rechecks_certificate_content_before_admission(

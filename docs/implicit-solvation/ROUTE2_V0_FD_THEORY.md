@@ -1751,56 +1751,89 @@ Consequently
 \]
 
 This is an identity of the scalar actually minimized.  It is neither the
-stock site-3D-RISM pressure formula nor a post-hoc volume correction.  The
-positive quartic coefficient $B_s$ controls the barrier between liquid and
-gas-like densities; its value and $K$ are admissible only through a
-content-addressed **pure-solvent** planar-interface certificate which uses
-the frozen bulk correlation and independently sourced surface tension.  No
-MNSol, FreeSolv, development, confirmation, or blind solvation value may
-enter that certificate.  Thus matching a bulk pressure/surface tension is a
-predeclared thermodynamic boundary condition, not target-solvation fitting.
+stock site-3D-RISM pressure formula nor a post-hoc volume correction.  It is
+also **not** a proof of liquid--gas coexistence: the empty limit is not a
+finite-density stationary gas phase.  Conflating these statements would turn
+the desired phase physics into an unverified semantic label.
 
-The quartic anchor has a direct uniqueness certificate rather than a
-trial-and-error search.  On a predeclared bracket, let
-\(\nu^*_{B_s}\) be the selected stationary planar-interface profile of the
-same frozen scalar and define the excess grand potential per transverse area
+For the exact no-solute configuration scalar, define the homogeneous ray
 
 \[
-\gamma(B_s)
-=\frac{\Omega_{B_s}[\nu^*_{B_s}]-\Omega_{\rm bulk}}{A}.
+\nu_x(\Gamma)=x\nu_b(\Gamma),\qquad
+\omega_{B_s}(x)=\frac{\Omega_{B_s}[\nu_x;0]}{V},
 \]
 
-Provided the selected interface branch remains stationary on that bracket,
-the envelope theorem gives
+where \(\nu_b=\rho_b/(8\pi^2)\).  With
+\(g_i=\beta\,\delta\Omega/\delta\nu_i\) and the exact same-scalar
+Hessian action \(H_x\), the only admissible one-dimensional diagnostics are
+
+\[
+\omega'_{B_s}(x)=\frac{k_BT}{V}\sum_i w_i\nu_b g_i(\nu_x),
+\qquad
+\omega''_{B_s}(x)=\frac{k_BT}{V}\sum_iw_i\nu_b[H_x\nu_b]_i.
+\]
+
+A zero of \(\omega'\) alone is insufficient: a finite orientation or
+translation quadrature could hide a nonstationary configuration density.
+Therefore a liquid or gas phase is admitted only if, at its declared scale,
+
+\[
+\max_i|g_i|\le\tau_{\rm stat},\qquad
+\max_i|g_i-\langle g\rangle_w|\le\tau_{\rm unif},\qquad
+\omega''(x)>\tau_\kappa.
+\]
+
+The liquid reference is \(x=1\); the gas candidate must have \(0<x_g<1\).
+Their grand-potential densities must additionally obey
+
+\[
+\boxed{|\omega_{B_s}(x_g)-\omega_{B_s}(1)|\le\tau_{\rm coex}.}
+\]
+
+`route2_v0_molecular_phase_coexistence.py` evaluates these quantities from
+the existing HNC-plus-bridge value, gradient, and Hessian action.  It refuses
+any nonzero solute external potential and never changes \(A_s\), \(B_s\), or
+\(K\) when the phase gate fails.  The current synthetic controls exercise the
+gate only; they are not physical-liquid results.
+
+Only after this full-scalar coexistence gate passes can a stationary planar
+profile \(\nu^*_{B_s}\) be interpreted as a liquid--gas interface.  For a
+periodic cell with \(N_{\rm int}\) interfaces and liquid/gas plateau volumes
+\(V_\ell,V_g\), its excess is
 
 \[
 \boxed{
-\frac{d\gamma}{dB_s}
-=\frac1A\int d^3r\,
-\bar\rho_{B_s}^{*2}(\mathbf r)
-\bigl(\bar\rho^*_{B_s}(\mathbf r)-\rho_b\bigr)^4
-\ge0.
+\gamma(B_s)=
+\frac{
+\Omega_{B_s}[\nu^*_{B_s}]
+-V_\ell\omega_{B_s}(1)-V_g\omega_{B_s}(x_g)
+}{N_{\rm int}A}.
 }
 \]
 
-The bulk liquid and gas contributions vanish because the quartic bridge is
-zero at both \(\bar\rho=\rho_b\) and \(\bar\rho=0\).  For a nontrivial,
-resolved interface the integrand is positive on a set of nonzero measure, so
-the derivative is strictly positive and the surface-tension equation has at
-most one root on that stationary branch.  A valid certificate must therefore
-freeze \(B_{\rm low}\), \(B_{\rm high}\), the two endpoint surface tensions,
-the independent target surface tension, planar residuals, transverse-area and
-interface-count conventions, grid refinement, and the declared root residual;
-it must establish
+At verified coexistence the two bulk terms are equal, so this reduces to the
+familiar bulk-subtracted expression.  Crucially, the gas plateau generally
+has \(\bar\rho_g\ne0\), and changing \(B_s\) generally changes that phase
+or destroys coexistence at fixed chemical potential.  Therefore the present
+contract has **no generic signed envelope derivative** \(d\gamma/dB_s\).
+The tempting expression \(A^{-1}\int\bar\rho^2(\bar\rho-\rho_b)^4\) omits
+both finite-density gas and liquid bulk terms and is not a proof of
+monotonicity or uniqueness.
 
-\[
-\gamma(B_{\rm low})\le\gamma_{\rm target}
-\le\gamma(B_{\rm high}).
-\]
+A later planar root implementation must first declare a coexistence-preserving
+path (including its chemical-potential convention), an interface dividing
+surface, and a constrained or symmetry-restricted stationary solve.  Only then
+may it derive and verify the corresponding complete derivative from the same
+scalar.  Until that protocol exists, a certificate may record independently
+resolved stationary endpoints and a root, but it may not infer a unique root
+from positivity or select a root from a solute cavity or solvation error.
 
-This is a pure-liquid thermodynamic boundary-value inversion, not a
-solvation-label fit: a solute cavity, MNSol/FreeSolv record, development,
-confirmation, or blind error may not select \(B_s\), \(K\), or the bracket.
+The positive quartic coefficient $B_s$ and $K$ remain admissible only through
+this content-addressed **pure-solvent** construction using frozen bulk
+correlation and independently sourced surface tension.  No MNSol, FreeSolv,
+development, confirmation, or blind solvation value may enter it.  This is a
+pure-liquid thermodynamic boundary-value problem, not target-solvation
+fitting.
 
 For clarity, write $\Delta\bar\rho=\bar\rho-\rho_b$.  The local first and second
 derivatives are
@@ -1895,15 +1928,18 @@ and accepts it only when
 
 \[
 B_{\rm low}\le B_*\le B_{\rm high},\quad
-\gamma_{\rm low}\le\gamma_s\le\gamma_{\rm high},\quad
+\min(\gamma_{\rm low},\gamma_{\rm high})\le\gamma_s
+\le\max(\gamma_{\rm low},\gamma_{\rm high}),\quad
 |\gamma_*-\gamma_s|\le\tau_\gamma,\quad
 \max_jr_j\le\tau_{\rm stat}.
 \]
 
 It additionally retains transverse area, interface count, coarse/fine grid
-surface tensions and their convergence tolerance.  Thus the monotonic-envelope
-argument above is tied to a numerically stationary, resolved branch rather
-than to a bare scalar $B_s$ copied into a configuration file.
+surface tensions and their convergence tolerance.  The endpoint ordering is
+not assumed: finite-density gas plateaux invalidate the old positivity-only
+monotonicity shortcut.  A physical certificate must instead retain a
+predeclared stationary-branch selection rule and the complete homogeneous
+phase-coexistence evidence before it can interpret the planar record.
 
 The discrete operators are not identified by a mutable Python object or by a
 lossy text dump.  Their values are hashed as little-endian C-order float64
@@ -1934,7 +1970,10 @@ content-addressed evidence.  It also carries an explicit evidence scope:
 `synthetic-control` remains useful only for scalar/derivative tests, whereas
 `physical-pure-liquid-admission` is required by any physical endpoint and is
 rejected if the frozen solvent provenance itself explicitly lists a physical
-liquid as not claimed.  Thus source binding alone cannot silently upgrade a
+liquid as not claimed.  A physical-scope certificate additionally requires
+the zero-external-potential residual, full-gradient stationarity/uniformity,
+positive liquid and gas curvatures, and the same-scalar coexistence gap from
+the phase gate above.  Thus source binding alone cannot silently upgrade a
 test fixture into liquid physics.  The parser also
 requires explicit `false` declarations for post-training, fine-tuning,
 experimental-solvation fitting, MAP/UQ calibration, and error-driven

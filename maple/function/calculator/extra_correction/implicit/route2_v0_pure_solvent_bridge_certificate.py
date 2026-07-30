@@ -48,6 +48,9 @@ V0_CANONICAL_NUMERIC_ARRAY_DIGEST_CONSTRUCTION = (
 V0_WEIGHTED_DENSITY_OPERATOR_DIGEST_CONSTRUCTION = (
     "route2-v0-weighted-density-operator-digest-v1"
 )
+V0_MOLECULAR_HOMOGENEOUS_PHASE_CONSTRUCTION = (
+    "route2-v0-molecular-homogeneous-phase-gate-v1"
+)
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _SOLVENT_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -263,6 +266,36 @@ def weighted_density_operator_sha256(
 
 
 @dataclass(frozen=True)
+class Route2V0PureSolventHomogeneousPhaseEvidence:
+    """Content-addressed coexistence evidence for one physical liquid scalar.
+
+    The vacuum-limit pressure identity alone cannot establish a stationary
+    low-density phase.  This record preserves the full-gradient and curvature
+    evidence needed before a planar profile is allowed to represent a
+    liquid--gas interface.  It is evidence metadata, not an energy term.
+    """
+
+    zero_external_potential_residual_hartree: float
+    zero_external_potential_tolerance_hartree: float
+    stationarity_tolerance: float
+    gradient_uniformity_tolerance: float
+    curvature_tolerance_hartree_per_bohr3: float
+    coexistence_tolerance_hartree_per_bohr3: float
+    liquid_density_scale: float
+    gas_density_scale: float
+    liquid_grand_potential_density_hartree_per_bohr3: float
+    gas_grand_potential_density_hartree_per_bohr3: float
+    liquid_stationarity_residual: float
+    gas_stationarity_residual: float
+    liquid_gradient_uniformity_residual: float
+    gas_gradient_uniformity_residual: float
+    liquid_curvature_hartree_per_bohr3: float
+    gas_curvature_hartree_per_bohr3: float
+    grand_potential_density_difference_hartree_per_bohr3: float
+    construction: str = V0_MOLECULAR_HOMOGENEOUS_PHASE_CONSTRUCTION
+
+
+@dataclass(frozen=True)
 class Route2V0PureSolventBridgeCertificate:
     """A parsed pure-liquid certificate for one HNC-plus-bridge scalar."""
 
@@ -302,6 +335,7 @@ class Route2V0PureSolventBridgeCertificate:
     fine_surface_tension_hartree_per_bohr2: float
     grid_refinement_tolerance_hartree_per_bohr2: float
     excluded_target_label_sets: tuple[str, ...]
+    homogeneous_phase_coexistence: Route2V0PureSolventHomogeneousPhaseEvidence | None
 
     @property
     def is_physical_pure_liquid_admission(self) -> bool:
@@ -314,6 +348,12 @@ class Route2V0PureSolventBridgeCertificate:
             self.evidence_scope
             == V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID
         )
+
+    @property
+    def has_homogeneous_phase_coexistence(self) -> bool:
+        """Return whether the certificate carries the required phase evidence."""
+
+        return self.homogeneous_phase_coexistence is not None
 
     @property
     def source_hashes_by_role(self) -> dict[str, str]:
@@ -481,7 +521,11 @@ def _read_planar_interface(
         name="Surface-tension root tolerance",
         positive=True,
     )
-    if low_gamma > high_gamma or not low_gamma <= target_surface_tension <= high_gamma:
+    if (
+        not min(low_gamma, high_gamma)
+        <= target_surface_tension
+        <= max(low_gamma, high_gamma)
+    ):
         raise ValueError("Target surface tension must lie inside the frozen bracket.")
     if abs(root_gamma - target_surface_tension) > root_tolerance:
         raise ValueError("Planar-interface root misses the target surface tension.")
@@ -542,6 +586,218 @@ def _read_planar_interface(
         "grid_refinement_tolerance_hartree_per_bohr2": refinement_tolerance,
     }
     return values
+
+
+def _read_homogeneous_phase_coexistence(
+    entry: Mapping[str, object],
+    *,
+    required: bool,
+) -> Route2V0PureSolventHomogeneousPhaseEvidence | None:
+    """Read full-scalar coexistence evidence before a planar phase is admitted.
+
+    A source-bound synthetic control may omit this record.  A certificate that
+    claims physical pure-liquid admission may not: the empty-density pressure
+    identity is weaker than a stable, coexisting low-density phase.
+    """
+
+    raw = entry.get("homogeneous_phase_coexistence")
+    if raw is None:
+        if required:
+            raise ValueError(
+                "Physical pure-liquid admission requires homogeneous phase "
+                "coexistence evidence before a planar-interface claim."
+            )
+        return None
+    phase = _mapping(raw, name="homogeneous_phase_coexistence")
+    expected = {
+        "construction",
+        "same_scalar_all_terms_retained",
+        "zero_external_potential",
+        "tolerances",
+        "liquid",
+        "gas",
+        "coexistence",
+    }
+    if set(phase) != expected:
+        missing = sorted(expected.difference(phase))
+        extra = sorted(set(phase).difference(expected))
+        raise ValueError(
+            "Homogeneous phase-coexistence evidence keys differ; "
+            f"missing={missing}, extra={extra}."
+        )
+    if (
+        _text(phase.get("construction"), name="Homogeneous phase construction")
+        != V0_MOLECULAR_HOMOGENEOUS_PHASE_CONSTRUCTION
+    ):
+        raise ValueError("Unsupported homogeneous phase-coexistence construction.")
+    if phase.get("same_scalar_all_terms_retained") is not True:
+        raise ValueError(
+            "Homogeneous phase evidence must retain every liquid-scalar term."
+        )
+    zero_external = _mapping(
+        phase.get("zero_external_potential"),
+        name="homogeneous zero_external_potential",
+    )
+    if set(zero_external) != {"residual_hartree", "tolerance_hartree"}:
+        raise ValueError(
+            "Homogeneous zero-external-potential evidence has unsupported keys."
+        )
+    external_residual = _number(
+        zero_external.get("residual_hartree"),
+        name="Homogeneous zero-external-potential residual",
+        nonnegative=True,
+    )
+    external_tolerance = _number(
+        zero_external.get("tolerance_hartree"),
+        name="Homogeneous zero-external-potential tolerance",
+        positive=True,
+    )
+    if external_residual > external_tolerance:
+        raise ValueError(
+            "Homogeneous phase evidence has a nonzero pure-liquid external "
+            "potential beyond its tolerance."
+        )
+    tolerances = _mapping(phase.get("tolerances"), name="homogeneous tolerances")
+    if set(tolerances) != {
+        "stationarity",
+        "gradient_uniformity",
+        "curvature_hartree_per_bohr3",
+    }:
+        raise ValueError("Homogeneous phase tolerances have unsupported keys.")
+    stationarity_tolerance = _number(
+        tolerances.get("stationarity"),
+        name="Homogeneous phase stationarity tolerance",
+        positive=True,
+    )
+    uniformity_tolerance = _number(
+        tolerances.get("gradient_uniformity"),
+        name="Homogeneous phase gradient-uniformity tolerance",
+        positive=True,
+    )
+    curvature_tolerance = _number(
+        tolerances.get("curvature_hartree_per_bohr3"),
+        name="Homogeneous phase curvature tolerance",
+        positive=True,
+    )
+
+    def read_phase(
+        key: str,
+        *,
+        liquid: bool,
+    ) -> tuple[float, float, float, float, float]:
+        record = _mapping(phase.get(key), name=f"homogeneous {key} phase")
+        required_keys = {
+            "density_scale",
+            "grand_potential_density_hartree_per_bohr3",
+            "stationarity_residual",
+            "gradient_uniformity_residual",
+            "curvature_hartree_per_bohr3",
+        }
+        if set(record) != required_keys:
+            raise ValueError(f"Homogeneous {key} phase has unsupported keys.")
+        density_scale = _number(
+            record.get("density_scale"),
+            name=f"Homogeneous {key} density scale",
+            positive=True,
+        )
+        if liquid:
+            if not _close(density_scale, 1.0):
+                raise ValueError(
+                    "Homogeneous liquid phase must use the declared bulk density "
+                    "scale one."
+                )
+        elif density_scale >= 1.0:
+            raise ValueError(
+                "Homogeneous gas phase must be below the declared liquid density "
+                "scale one."
+            )
+        omega = _number(
+            record.get("grand_potential_density_hartree_per_bohr3"),
+            name=f"Homogeneous {key} grand-potential density",
+        )
+        stationarity = _number(
+            record.get("stationarity_residual"),
+            name=f"Homogeneous {key} stationarity residual",
+            nonnegative=True,
+        )
+        uniformity = _number(
+            record.get("gradient_uniformity_residual"),
+            name=f"Homogeneous {key} gradient-uniformity residual",
+            nonnegative=True,
+        )
+        curvature = _number(
+            record.get("curvature_hartree_per_bohr3"),
+            name=f"Homogeneous {key} curvature",
+        )
+        if stationarity > stationarity_tolerance:
+            raise ValueError(
+                f"Homogeneous {key} phase is not stationary within its tolerance."
+            )
+        if uniformity > uniformity_tolerance:
+            raise ValueError(
+                f"Homogeneous {key} phase is not configuration-uniform within its "
+                "tolerance."
+            )
+        if curvature <= curvature_tolerance:
+            raise ValueError(f"Homogeneous {key} phase is not a strict local minimum.")
+        return density_scale, omega, stationarity, uniformity, curvature
+
+    (
+        liquid_scale,
+        liquid_omega,
+        liquid_stationarity,
+        liquid_uniformity,
+        liquid_curvature,
+    ) = read_phase("liquid", liquid=True)
+    gas_scale, gas_omega, gas_stationarity, gas_uniformity, gas_curvature = read_phase(
+        "gas", liquid=False
+    )
+    coexistence = _mapping(phase.get("coexistence"), name="homogeneous coexistence")
+    if set(coexistence) != {
+        "grand_potential_density_difference_hartree_per_bohr3",
+        "tolerance_hartree_per_bohr3",
+    }:
+        raise ValueError("Homogeneous coexistence evidence has unsupported keys.")
+    difference = _number(
+        coexistence.get("grand_potential_density_difference_hartree_per_bohr3"),
+        name="Homogeneous coexistence grand-potential density difference",
+    )
+    tolerance = _number(
+        coexistence.get("tolerance_hartree_per_bohr3"),
+        name="Homogeneous coexistence tolerance",
+        positive=True,
+    )
+    expected_difference = gas_omega - liquid_omega
+    difference_tolerance = 1.0e-12 * max(1.0, abs(difference), abs(expected_difference))
+    if abs(difference - expected_difference) > difference_tolerance:
+        raise ValueError(
+            "Homogeneous coexistence gap must equal the gas-minus-liquid "
+            "grand-potential density."
+        )
+    if abs(difference) > tolerance:
+        raise ValueError(
+            "Homogeneous gas and liquid phases are not coexistent within the "
+            "declared tolerance."
+        )
+    return Route2V0PureSolventHomogeneousPhaseEvidence(
+        zero_external_potential_residual_hartree=external_residual,
+        zero_external_potential_tolerance_hartree=external_tolerance,
+        stationarity_tolerance=stationarity_tolerance,
+        gradient_uniformity_tolerance=uniformity_tolerance,
+        curvature_tolerance_hartree_per_bohr3=curvature_tolerance,
+        coexistence_tolerance_hartree_per_bohr3=tolerance,
+        liquid_density_scale=liquid_scale,
+        gas_density_scale=gas_scale,
+        liquid_grand_potential_density_hartree_per_bohr3=liquid_omega,
+        gas_grand_potential_density_hartree_per_bohr3=gas_omega,
+        liquid_stationarity_residual=liquid_stationarity,
+        gas_stationarity_residual=gas_stationarity,
+        liquid_gradient_uniformity_residual=liquid_uniformity,
+        gas_gradient_uniformity_residual=gas_uniformity,
+        liquid_curvature_hartree_per_bohr3=liquid_curvature,
+        gas_curvature_hartree_per_bohr3=gas_curvature,
+        grand_potential_density_difference_hartree_per_bohr3=difference,
+    )
 
 
 def load_route2_v0_pure_solvent_bridge_certificate(
@@ -634,6 +890,13 @@ def load_route2_v0_pure_solvent_bridge_certificate(
         raise ValueError(
             "Cubic bridge coefficient must satisfy the HNC pressure identity."
         )
+    homogeneous_phase_coexistence = _read_homogeneous_phase_coexistence(
+        entry,
+        required=(
+            evidence_scope
+            == V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID
+        ),
+    )
     return Route2V0PureSolventBridgeCertificate(
         certificate_path=path,
         content_sha256=content_sha256,
@@ -668,19 +931,22 @@ def load_route2_v0_pure_solvent_bridge_certificate(
         excluded_target_label_sets=_excluded_label_sets(
             policy.get("excluded_target_label_sets")
         ),
+        homogeneous_phase_coexistence=homogeneous_phase_coexistence,
         **_read_planar_interface(entry, target_surface_tension=target_gamma),
     )
 
 
 __all__ = [
     "V0_CANONICAL_NUMERIC_ARRAY_DIGEST_CONSTRUCTION",
+    "V0_MOLECULAR_HOMOGENEOUS_PHASE_CONSTRUCTION",
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_CONSTRUCTION",
+    "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPES",
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID",
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_SYNTHETIC_CONTROL",
-    "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPES",
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_SCHEMA_VERSION",
     "V0_WEIGHTED_DENSITY_OPERATOR_DIGEST_CONSTRUCTION",
     "Route2V0PureSolventBridgeCertificate",
+    "Route2V0PureSolventHomogeneousPhaseEvidence",
     "canonical_float64_array_sha256",
     "load_route2_v0_pure_solvent_bridge_certificate",
     "weighted_density_operator_sha256",

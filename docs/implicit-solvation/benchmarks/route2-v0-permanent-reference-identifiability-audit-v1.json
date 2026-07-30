@@ -1,0 +1,42 @@
+{
+  "audit_id": "route2-v0-permanent-reference-identifiability-audit-v1",
+  "schema_version": 1,
+  "status": "current-response-assets-rejected-as-a-complete-permanent-reference",
+  "claim_boundary": "This is a mathematical/source-provenance gate. It contains no PCM production calculation, force result, runtime result, experimental solvation label, fit, or accuracy score.",
+  "mathematical_finding": {
+    "induced_kernel": "A neutral response covariance C and its source map B determine only the local induced-response curvature. They do not identify a molecular permanent electron density/reference state.",
+    "reference_shift": "For every admissible neutral reference shift a, F_a(x)=1/2 (x-a)^T C^+ (x-a) has the same field response dx*/df=-C in the declared support, while B a changes the permanent surface potential.",
+    "continuum_extension": "With Omega_a(x;f)=1/2 (x-a)^T C^+ (x-a)+1/2 (B x)^T Q (B x)+x^T f, the coupled response is -[C^+ + B^T Q B]^{-1} on support and remains independent of a. On-shell energy and continuum charge depend on B a.",
+    "transition_space_boundary": "The frozen atomic independent-particle modes are individually neutral transition densities. They provide induced tangent directions, not the electron-number-bearing molecular reference density or its stationary gas-state functional."
+  },
+  "current_asset_disposition": {
+    "raw_mace_density_or_fixed_point": "rejected: the field-conditioned MACE fixed point failed the common-scalar/reciprocity gate and cannot be relabelled as a stationary permanent electron density.",
+    "atomic_independent_particle_response_covariance": "induced-response-only: it passes a one-acetone source gate for transition response, but C and B do not determine the permanent reference.",
+    "free_atom_promolecular_density": "source-control-only: it is a frozen positive free-atom source, not a molecular stationary electronic state.",
+    "published_qeq_curvature": "rejected: it fails the frozen acetone QM finite-field response gate and must not be repaired by hardness or response rescaling.",
+    "harris_like_or_other_nonselfconsistent_energy": "rejected: a nonselfconsistent density/energy construction does not establish the required stationary molecular source."
+  },
+  "admission_requirements_before_physical_continuum_or_accuracy": [
+    "A molecular permanent electron reference and exact nuclear source must be derived from one declared stationary electronic scalar in the same density/source dual space.",
+    "The source must be independently provenance-bound before any continuum calculation; it cannot be selected from a solvation error, a response error, or a convenience density.",
+    "The joined electronic-plus-continuum scalar must pass KKT, reciprocity, passivity, source-duality, coordinate-envelope, and force/PES gates.",
+    "Only after the frozen QM physics panel and runtime comparison may the immutable all-record multi-solvent and blind experimental protocols run."
+  ],
+  "literature_boundary": {
+    "mace_polar_1": "https://arxiv.org/abs/2602.19411",
+    "self_consistent_mlip_design_space": "https://arxiv.org/abs/2603.14700",
+    "mace_field_common_enthalpy_example": "https://arxiv.org/abs/2508.17870"
+  },
+  "hard_constraints": {
+    "experimental_solvation_labels_read": false,
+    "post_training_or_fine_tuning": false,
+    "map_or_uq_calibration": false,
+    "mace_density_relabelled_as_stationary_electron_density": false,
+    "mace_fixed_point_relabelled_as_energy_functional": false,
+    "permanent_reference_selected_from_error": false,
+    "qeq_or_response_rescaling": false,
+    "radius_or_cavity_tuning": false,
+    "response_jacobian_symmetrization": false
+  },
+  "decision_rule": "Until a separately source-bound stationary permanent reference exists, current V0 response assets may remain only induced-response or frozen-source structural controls. They must not be coupled to a physical continuum, scored against experiment, or called total solvation."
+}

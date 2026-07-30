@@ -136,11 +136,26 @@ The tests independently lock:
 * the permanent-potential envelope identity
   \(dG^*(a v_0,f)/da=v_0^\mathsf Tq^*\).
 
-## 4. What this permits next
+## 4. Permanent-reference identifiability is an independent gate
 
-This gate permits only a source-consistent next implementation: bind a
-separately provenance-checked stationary permanent source to \(v_0\), and use
-one smooth-coordinate, reciprocal continuum whose \(B_{\mathbf R}\) and
+The optional \(v_0\) input makes the common scalar algebra explicit; it does
+not identify, validate, or create the physical permanent source. A response
+covariance and its source map determine the induced curvature but not the
+affine molecular electronic reference. Two distinct neutral references can
+therefore have identical reciprocal/passive external response while producing
+different permanent surface potential, continuum charge, and on-shell energy.
+
+[ROUTE2_V0_PERMANENT_REFERENCE_IDENTIFIABILITY.md](ROUTE2_V0_PERMANENT_REFERENCE_IDENTIFIABILITY.md)
+states and tests this reference-shift nonidentifiability. It rejects the raw
+MACE fixed point, a promolecular source, or the response covariance alone as a
+complete permanent reference. This structural kernel remains a synthetic
+control until that independent gate passes.
+
+## 5. What this permits next
+
+Only after the permanent-reference gate passes may a source-consistent next
+implementation bind the stationary permanent source to \(v_0\) and use one
+smooth-coordinate, reciprocal continuum whose \(B_{\mathbf R}\) and
 \(B_{\mathbf R}^{\mathsf T}\) remain conjugate as nuclei move. It does not
 permit taking a MACE density head as \(v_0\), borrowing a cavity radius from a
 solvation error, or adding a fitted nonpolar correction.

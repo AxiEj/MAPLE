@@ -95,11 +95,27 @@ atomic HF.  It is a physical baseline \(C_0\), not a chosen radial width.  Its
 727-mode acetone direct sum is completed only through the frozen MACE moment
 constraint and passes the same 516-point source gate more tightly:
 \(0.0966763794<0.20\) Frobenius and \(0.1100924547<0.30\) worst direction.
-The result is deliberately only one molecule.  Both V0-ADT and V0-AIPR still
-lack a physical PCM/total-solvation model; their next **physical** gate is a
-same-basis reciprocal, source-bound continuum and common scalar, followed by
-the frozen broad QM physics panel.  A future full density-functional
-formulation remains separate.
+The result is deliberately only one molecule. Both V0-ADT and V0-AIPR still
+lack a physical PCM/total-solvation model. Their first physical gate is a
+stationary permanent electronic reference in the same source/dual space; only
+then can a same-basis reciprocal, source-bound continuum and common scalar be
+considered, followed by the frozen broad QM physics panel. A future full
+density-functional formulation remains separate.
+
+### Permanent-reference identifiability gate
+
+The full response covariance \(C_0\) and source map \(B\) are not a permanent
+molecular electronic state. A neutral affine shift of the reference density
+changes \(B a\), continuum charge, and the on-shell scalar while leaving
+\(\partial c^*/\partial f\) unchanged. Therefore passing reciprocity,
+passivity, source duality, and KKT residuals cannot identify the permanent
+electron density. This is now registered and executable in
+[ROUTE2_V0_PERMANENT_REFERENCE_IDENTIFIABILITY.md](ROUTE2_V0_PERMANENT_REFERENCE_IDENTIFIABILITY.md).
+
+No raw MACE density/fixed point, free-atom promolecule, or response covariance
+may be used as that reference. The next admissible step is a separately
+source-bound stationary electronic scalar, not another PCM backend or a
+solvation-error-selected source.
 
 Let:
 
@@ -166,12 +182,12 @@ previously missing physical-\(C_0\) prerequisite for the next gate.
 
 ## Ordered evidence, before any experimental score
 
-1. **Source provenance:** freeze V0-ADT's physical radial tables, its exact
-   direct-sum surface-source dual with the frozen permanent MACE source,
-   supported elements/charge states, and hashes. Bind one physical reciprocal
-   continuum before claiming anything beyond the synthetic KKT control. If that
-   route fails, freeze one physical \(C_0\) construction instead. No FreeSolv,
-   MNSol, or target-solvent labels may participate.
+1. **Permanent-source provenance:** derive and freeze a molecular stationary
+   permanent electron reference plus its exact nuclear source in the same
+   density/source dual space as the neutral response. Neither a raw MACE
+   fixed point, a free-atom promolecule, nor \(C_0\) alone is admissible.
+   Only after this gate may one bind a physical reciprocal continuum. No
+   FreeSolv, MNSol, or target-solvent labels may participate.
 2. **Response physics:** prove charge conservation, Euclidean covariance,
    atom/molecule moment identities, source/continuum duality, and reciprocal/
    passive response. A full-kernel fallback must additionally prove

@@ -276,6 +276,49 @@ def test_full_response_kkt_obeys_external_and_permanent_envelope_identities():
     )
 
 
+def test_full_response_kkt_response_does_not_identify_permanent_reference():
+    coupling = _coupling()
+    completion = _completion()
+    continuum = _continuum()
+    external = np.asarray([0.02, -0.01, 0.03, -0.02, 0.01, 0.04])
+    reference_coefficients = np.asarray(
+        [0.09, -0.03, 0.06, 0.02, -0.04, 0.05]
+    )
+    absent_reference = full_kkt.solve_route2_v0_full_response_kkt(
+        coupling=coupling,
+        completion=completion,
+        continuum=continuum,
+        external_coefficient_dual_hartree=external,
+    )
+    shifted_reference = full_kkt.solve_route2_v0_full_response_kkt(
+        coupling=coupling,
+        completion=completion,
+        continuum=continuum,
+        permanent_surface_potential_hartree_per_e=coupling.surface_potential(
+            reference_coefficients
+        ),
+        external_coefficient_dual_hartree=external,
+    )
+
+    # The stationary linear response is set by the curvature only.  A neutral
+    # reference-state shift changes the permanent source and on-shell scalar,
+    # but cannot be inferred from reciprocity/passivity of that response.
+    np.testing.assert_allclose(
+        shifted_reference.external_response_coefficient_dual,
+        absent_reference.external_response_coefficient_dual,
+        rtol=0.0,
+        atol=1.0e-14,
+    )
+    assert np.linalg.norm(
+        shifted_reference.total_surface_charge_e
+        - absent_reference.total_surface_charge_e
+    ) > 1.0e-8
+    assert shifted_reference.stationary_total_energy_hartree != pytest.approx(
+        absent_reference.stationary_total_energy_hartree,
+        abs=1.0e-12,
+    )
+
+
 def test_full_response_kkt_rejects_nonreciprocal_or_unstable_continuum():
     coupling = _coupling()
     positions, numbers, points, _ = _geometry()

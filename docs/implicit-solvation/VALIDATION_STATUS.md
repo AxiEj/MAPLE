@@ -83,6 +83,15 @@ first no-training physical curvature is unavailable for chemistry or
 multi-solvent scoring.  Immutable evidence:
 `benchmarks/route2-v0-qeq-acetone-qm-field-v1.json`.
 
+
+The V0 liquid controls now also expose a fail-closed dense Hessian diagnostic
+for a declared finite configuration grid. It validates the supplied scalar
+Hessian in the quadrature pairing and records positive, negative, or
+numerically singular curvature without symmetrising or clipping it. This closes
+only a controlled mathematical diagnostic: no physical liquid asset, production
+grid/orientation stability certificate, force, chemistry score, or accuracy
+claim has been admitted.
+
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental
 `mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening

@@ -19,6 +19,9 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_sit
     Route2V0MolecularSiteHNCFunctional,
     Route2V0MolecularSiteProjection,
 )
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_stability import (
+    certify_route2_v0_molecular_hessian_stability,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_thermodynamics import (
     molecular_hnc_bulk_functional_pressure_hartree_per_bohr3,
 )
@@ -245,6 +248,41 @@ def test_bridge_gradient_and_hessian_are_the_derivatives_of_one_scalar():
         abs=3.0e-13,
     )
 
+
+def test_bridge_hessian_stability_certificate_uses_the_same_scalar_hessian_action():
+    functional = _bridge_functional()
+    state = functional.solve_picard(
+        residual_tolerance=1.0e-11,
+        picard_mixing=0.05,
+        max_iterations=3000,
+    )
+    certificate = certify_route2_v0_molecular_hessian_stability(
+        functional,
+        state.configuration_density_bohr3,
+        maximum_dimension=2,
+    )
+    density = state.configuration_density_bohr3
+    direction = density * np.array([0.17, -0.09])
+    weights = functional.projection.quadrature.phase_space_weights_bohr3
+    transformed_direction = np.sqrt(weights) * direction
+
+    assert (
+        certificate.reciprocity_relative_frobenius_residual
+        <= certificate.reciprocity_relative_tolerance
+    )
+    assert certificate.classification in {
+        "positive-definite",
+        "negative-mode",
+        "numerically-singular",
+    }
+    assert transformed_direction @ certificate.weighted_hessian_matrix @ (
+        transformed_direction
+    ) == pytest.approx(
+        functional.hessian_quadratic_hartree(density, direction)
+        / functional.kbt_hartree,
+        rel=2.0e-12,
+        abs=2.0e-15,
+    )
 
 def test_bridge_state_and_picard_solver_keep_all_four_scalar_components():
     functional = _bridge_functional()

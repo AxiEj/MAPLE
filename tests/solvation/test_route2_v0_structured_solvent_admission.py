@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 ADMISSION = (
     ROOT
@@ -131,6 +130,18 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "No physical weighted-density bridge asset" in weighted_density[
         "not_a_physical_liquid_backend"
     ]
+
+
+    hessian = foundation["molecular_hessian_stability_diagnostic"]
+    assert hessian["module"].endswith("route2_v0_molecular_stability")
+    assert "rejects material nonreciprocity before diagonalisation" in hessian[
+        "capability"
+    ]
+    assert "128*machine-epsilon" in hessian["capability"]
+    assert "capped at 256 configuration degrees of freedom" in hessian[
+        "source_boundary"
+    ]
+    assert "total solvation free energy" in hessian["not_a_physical_liquid_backend"]
     hnc = foundation["site_hnc_variational_reference"]
     assert hnc["module"].endswith("route2_v0_site_hnc")
     assert "synthetic-only periodic multi-site HNC" in hnc["capability"]

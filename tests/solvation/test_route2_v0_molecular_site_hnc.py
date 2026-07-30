@@ -20,6 +20,9 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_sit
     Route2V0MolecularSiteHNCFunctional,
     Route2V0MolecularSiteProjection,
 )
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_stability import (
+    certify_route2_v0_molecular_hessian_stability,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_thermodynamics import (
     V0_MOLECULAR_HNC_FIXED_SOLUTE_THERMODYNAMICS,
     Route2V0MolecularHNCFixedSoluteThermodynamics,
@@ -275,6 +278,44 @@ def test_molecular_site_hnc_hessian_is_self_adjoint_and_the_scalar_second_deriva
         atol=3.0e-13,
     )
 
+
+def test_molecular_site_hnc_hessian_stability_certificate_is_the_exact_weighted_action():
+    functional = _functional()
+    state = functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.5,
+        max_iterations=300,
+    )
+    certificate = certify_route2_v0_molecular_hessian_stability(
+        functional,
+        state.configuration_density_bohr3,
+        maximum_dimension=2,
+    )
+    density = state.configuration_density_bohr3
+    direction = density * np.array([0.2, -0.1])
+    weights = functional.projection.quadrature.phase_space_weights_bohr3
+    transformed_direction = np.sqrt(weights) * direction
+
+    assert certificate.classification == "positive-definite"
+    assert certificate.is_positive_definite
+    assert (
+        certificate.reciprocity_relative_frobenius_residual
+        <= certificate.reciprocity_relative_tolerance
+    )
+    np.testing.assert_allclose(
+        certificate.weighted_hessian_matrix,
+        np.diag(1.0 / density),
+        rtol=2.0e-15,
+        atol=3.0e-12,
+    )
+    assert transformed_direction @ certificate.weighted_hessian_matrix @ (
+        transformed_direction
+    ) == pytest.approx(
+        functional.hessian_quadratic_hartree(density, direction)
+        / functional.projection.site_hnc_asset.kbt_hartree,
+        rel=2.0e-13,
+        abs=2.0e-15,
+    )
 
 def test_molecular_site_hnc_bulk_pressure_is_the_same_functional_vacuum_limit():
     direct = np.zeros((1, 1, 2, 1, 1))

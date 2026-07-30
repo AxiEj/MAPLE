@@ -1847,6 +1847,52 @@ the exact Hessian action and quadratic form, but a physical asset still needs a
 grid/orientation-converged minimum-eigenvalue certificate before this stability
 gate is considered passed.
 
+#### 4.2.21 Controlled finite-dimensional Hessian certificate
+
+For a declared positive configuration quadrature W = diag(w_i) and the exact
+dimensionless Hessian action H already exposed by the molecular HNC or
+HNC-plus-bridge scalar, the small-grid diagnostic in
+route2_v0_molecular_stability.py assembles the weighted matrix
+
+A = W^(1/2) H W^(-1/2).
+
+Because H maps a density direction to a dimensionless gradient, A and its
+spectrum have Bohr^3 units. Accordingly, the numeric 1 in the tolerance below
+means 1 Bohr^3 in this atomic-unit representation.
+
+The current molecular liquid scalar is grand-canonical, so this controlled
+certificate acts on the full configuration-density space. A future canonical
+fixed-number branch must register an explicit constrained tangent projector; it
+must not silently discard a mode here.
+
+For x = W^(1/2) d, the same scalar has second variation
+kBT * x.T A x. The diagnostic therefore first measures the raw reciprocity
+residual
+
+rho_A = ||A - A.T||_F / max(1, ||A||_F).
+
+It rejects the action when rho_A is larger than 128 * eps_machine * n. It does
+not symmetrise A before this gate. Only after that rejection test does it use
+the raw accepted matrix with eigvalsh and classify its minimum eigenvalue using
+
+tau_A = 128 * eps_machine * n * max(1, ||A||_2).
+
+A minimum eigenvalue above tau_A is positive-definite on that declared finite
+grid; one below -tau_A records a negative mode; the remaining interval is
+numerically singular. The matrix, spectrum, weights, density, raw
+antisymmetric residual (Bohr^3), and two numerical tolerances are frozen in
+the returned record. Eigenvalue clipping, response damping, density projection,
+and selection from a solvation error are not available operations.
+
+This is deliberately capped at 256 configuration degrees of freedom. It is a
+controlled-discretisation certificate, not a production-grid claim: before a
+physical liquid state passes the stability gate, it still needs an independently
+verified stationary residual, source-complete liquid asset, and
+grid/orientation-converged minimum-eigenvalue evidence. The diagnostic does
+not read the field-conditioned MACE response or introduce post-training,
+fine-tuning, experimental fitting, or calibration.
+
+
 ### 4.3 Separate auxiliary-QM liquid-difference route
 
 V0-FD deliberately freezes the MACE source and varies only the solvent.  A

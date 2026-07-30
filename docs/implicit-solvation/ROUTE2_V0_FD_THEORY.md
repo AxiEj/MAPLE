@@ -526,7 +526,9 @@ or report a solvation energy.  A local cSPC/E bulk-only control confirms that
 the installed 1D-RISM producer emits both files and follows this tail identity;
 [`route2-v0-rism1d-cspce-bulk-control-v1.json`](benchmarks/route2-v0-rism1d-cspce-bulk-control-v1.json)
 records its source hashes and structural checks.  It remains a water-only
-parser control, not one of the required eleven frozen solvent assets.
+parser control.  The separate schema-v2 source-complete water candidate in
+Section 4.2.9 adds molecular/source binding, but neither object is one of the
+required eleven **production-admitted physical** solvent assets.
 
 #### 4.2.7 Neutral periodic Poisson long-range control
 
@@ -645,8 +647,9 @@ registry only when each solvent manifest hash-locks all of the following:
 - the molecular site-model source and the bulk 1D-RISM input;
 - matching `.xvv` and `.cvv` files, which are reparsed using the native-QV,
   source-`SMEAR` checks above;
-- the thermodynamic-output source and the separately sourced short-range
-  interaction record;
+- the thermodynamic-output source and a strict solvent-side short-range
+  certificate that binds the model, input, XVV, Cvv, thermodynamic output,
+  and provenance hashes;
 - a provenance statement explicitly declaring that MNSol, FreeSolv,
   development, confirmation, and blind target labels were not used; and
 - temperature, pressure, closure, standard-state, pressure,
@@ -660,12 +663,65 @@ AM1-BCC **solute** topology, or choose a surrogate from an observed error.
 Before future target-solute scoring, its 11 pre-registered solvent IDs must be
 present as one frozen panel rather than selected record by record.
 
+The provenance document is itself parsed rather than treated as an opaque
+note.  It must record exactly two source-identical `rism1d` executions.  Both
+runs must reproduce Cvv and the thermodynamic self-test exactly, reproduce XVV
+after normalizing only the `DATE` value in its first `%VERSION` line, and expose
+complete primary and temperature-derivative residual sequences whose final
+values pass the tolerance declared in the frozen input.  The two raw XVV and
+transcript hashes must differ, while all non-`DATE` XVV bytes, Cvv, and
+thermodynamic output reproduce exactly.  Each raw first line is retained, so
+every run's XVV hash remains reconstructible from that line and the frozen
+body.  Package, binary, command, literature, source hashes, package-relative
+site-model path, and the no-training/no-target policy are part of the same
+content-addressed certificate.  This establishes deterministic source
+generation; it does not establish a converged three-dimensional liquid or an
+accuracy result.
+
+The source audit treats the AMBER MDL, its `rism1d` namelists, and the
+generated XVV metadata as three serializations of one molecular liquid.
+Atom/site counts, multiplicities, masses, charges, Lennard--Jones parameters,
+labelled rigid geometry, density, dielectric, temperature, grid, source
+`SMEAR`, closure, generation controls (`SELFTEST`, `OUTLIST`, `MAXSTEP`), and
+model filename must agree.  The canonical manifest-to-MDL boundary is
+chirality preserving and therefore requires congruence under a **proper**
+rotation.  The MDL-to-XVV boundary instead compares the complete labelled
+pairwise-distance matrix: AmberTools may independently choose principal-axis
+signs and serialize an equivalent reflected coordinate frame.  Thus an
+arbitrary reflected manifest still fails, while an AmberTools axis-sign
+reflection in generated XVV coordinates does not falsely reject the same
+molecular source.
+
+AMBER's decimal MDL charge serialization may leave a residual of the order of
+its final printed digit.  Such a residual is first required to pass a fixed
+source-rounding gate and is then removed by the unique Euclidean projection
+onto exact neutrality,
+
+\[
+\boxed{
+\widetilde{\mathbf q}
+=
+\mathbf q^{\rm serial}
+-\mathbf 1
+\frac{\mathbf 1^T\mathbf q^{\rm serial}}{N}
+},
+\qquad
+\mathbf 1^T\widetilde{\mathbf q}=0.
+\]
+
+The projected vector, the unmodified serialized vector, and the algebraic rule
+are all retained.  After evaluating the orthogonal projection, its last
+component absorbs only the floating-point summation residue needed to serialize
+an exactly zero sum.  This prevents an \(O(10^{-9}e)\) text-rounding residue
+from entering a periodic zero mode; it is a fixed constraint projection, not a
+solvation-error fit or a charge-model adjustment.
+
 [`route2-v0-solvent-asset-inventory-v1.json`](benchmarks/route2-v0-solvent-asset-inventory-v1.json)
-records the current deliberately incomplete state: the local cSPC/E data is a
-bulk/parser control, while **zero** physical default-solvent assets are
-registered.  Consequently total-free-energy execution remains rejected.  This
-new registry is provenance infrastructure only: it neither defines the
-MACE-native \(u^{\mathrm{sr}}\), maps a production short-range kernel,
+records the current deliberately incomplete state.  The checkout may contain a
+source-complete cSPC/E **candidate**, while **zero** physical default-solvent
+assets remain admitted.  Consequently total-free-energy execution remains
+rejected.  This registry is provenance infrastructure only: it neither defines
+the MACE-native \(u^{\mathrm{sr}}\), maps a production short-range kernel,
 minimizes a liquid functional, nor changes an accuracy number.
 
 
@@ -1065,12 +1121,12 @@ the resulting full `Route2V0SiteHNCAsset` available to the molecular
 projection in Section 4.2.14.  Thus no Coulomb prefactor, tail smoothing, or
 long-range coefficient is selected from solvation labels.
 
-This is still only a mathematical assembly gate.  The local cSPC/E parser
-control is not a complete frozen solvent asset; a real endpoint still needs a
-source-provenanced molecular correlation, production-grid certification, the
-admitted asset-bound MACE-cluster-to-liquid connector in Section 4.2.17,
-thermodynamic pressure and standard-state conventions, and all 11
-pre-registered solvent assets.
+This is still only a mathematical assembly gate.  A source-complete cSPC/E
+candidate does not supply production-grid certification, a complete
+MACE-native short-range liquid potential, force certification, or the other ten
+pre-registered solvent candidates.  A real endpoint still needs those gates,
+the asset-bound MACE-cluster-to-liquid connector in Section 4.2.17, and one
+frozen same-functional thermodynamic/standard-state convention.
 
 #### 4.2.16 Zero-field MACE molecular external-potential control
 
@@ -1176,7 +1232,7 @@ joining it to the matching zero-average periodic smeared Coulomb operator.
 Thus the molecular stationarity equation is the derivative of one scalar,
 
 \[
-\beta\frac{\partial\Omega_{\mathrm{hyb}}}{\partial\nu_i}
+\frac{\beta}{w_i}\frac{\partial\Omega_{\mathrm{hyb}}}{\partial\nu_i}
 =\log\!\frac{\nu_i}{\nu_\mathrm{bulk}/8\pi^2}
 +\beta u_{\mathrm{MACE},i}
 -\left[P^T C_{\mathrm{RISM}}(P\nu-n_\mathrm{bulk})\right]_i=0.
@@ -1336,6 +1392,113 @@ This classification is strict:
   all-atom frozen solvent asset.  The exact discrete identity does not prove
   the hybrid functional chemically accurate.
 
+#### 4.2.19 Unified no-training V0 variational and stability theorem
+
+The preceding modules form one admissible mathematical trunk only when they
+are read as derivatives and decompositions of the **same** frozen scalar.  For
+one hash-bound solvent asset, fixed Cartesian grid, rigid-configuration
+quadrature with positive weights \(w_i\), projection \(P\), and zero-field MACE
+molecular external potential, define
+
+\[
+\boxed{
+\Omega_{\rm V0}[\nu;\mathbf R]
+=
+\Omega_{\rm id}
+[\nu;u_{\rm MACE}(\mathbf R,\Gamma)]
++F_{\rm ex}^{\rm RISM}[P\nu].
+}
+\]
+
+The source files and their certificates are admissibility metadata for this
+definition; they are not additional energy terms.  Here
+\(\nu_i>0\) is the molecular configuration density and
+\(\nu_b=\rho_b/(8\pi^2)\) is its uniform bulk value, with
+\(n_b=P\nu_b\) the corresponding site-density field.  The projection and its
+adjoint use the exact discrete pairing
+\(\Delta V\langle v,Pd\rangle_{\rm site}
+=\sum_i w_i\,(P^Tv)_i\,d_i\).  With \(\delta n=P\nu-n_b\), the source-`SMEAR`
+decomposition is
+
+\[
+F_{\rm ex}^{\rm RISM}
+=-\frac{k_BT}{2}\Delta V
+\sum_{ag}\delta n_{ag}(C^{\rm sr}*\delta n)_{ag}
++\frac{k_BT}{2}\Delta V
+\sum_g\rho_Q(\mathbf r_g)V_Q(\mathbf r_g),
+\qquad
+\rho_Q=\sum_a q_a\delta n_a .
+\]
+
+The exact configuration derivative is therefore
+
+\[
+\boxed{
+\frac{\beta}{w_i}
+\frac{\partial\Omega_{\rm V0}}{\partial\nu_i}
+=
+\log\!\frac{\nu_i}{\nu_b}
++\beta u_{{\rm MACE},i}
+-\left[P^TC_{\rm RISM}(P\nu-n_b)\right]_i
+=0.
+}
+\]
+
+This equation, rather than a mixing update, defines the liquid state.  At a
+verified stationary solution \(\nu^*(\mathbf R)\), the envelope theorem gives
+
+\[
+\boxed{
+\frac{d\Omega_{\rm V0}[\nu^*(\mathbf R);\mathbf R]}{dR_I}
+=
+\sum_i w_i\nu_i^*
+\frac{\partial u_{{\rm MACE},i}}{\partial R_I}.
+}
+\]
+
+Equivalently, when
+\(f^{\rm MACE}_{I,i}=-\partial u_{{\rm MACE},i}/\partial R_I\), the nuclear
+force is
+\[
+\mathbf F_I
+=\sum_iw_i\nu_i^*\mathbf f^{\rm MACE}_{I,i}.
+\]
+
+No \(d\nu^*/dR_I\) term may be restored as a separate correction: its
+coefficient is precisely the stationary residual.  Conversely, any
+coordinate-dependent grid, cavity, quadrature, projection, or solvent
+functional must contribute its explicit derivative to this same scalar before
+a force or PES claim is permitted.
+
+Stationarity is necessary but not sufficient.  On the declared admissible
+tangent space \(\mathcal T\), the same scalar fixes
+
+\[
+\boxed{
+\delta^2\Omega_{\rm V0}[d,d]
+=k_BT\sum_iw_i d_i
+\left[
+\frac{d_i}{\nu_i}
+-\left(P^TC_{\rm RISM}Pd\right)_i
+\right],
+\qquad d\in\mathcal T .
+}
+\]
+
+The V0 state is admitted as a locally stable minimum only when this quadratic
+form is positive for every nonzero allowed tangent and the Hessian pairing is
+reciprocal.  Residual convergence, a favorable Picard spectral radius, or a
+chosen mixing coefficient cannot replace this thermodynamic gate.
+
+This theorem is deliberately conditional.  It proves the internal
+common-energy, envelope-force, and stability identities of a frozen
+no-training construction.  It does not prove that a source-complete candidate
+is a production liquid asset, that the 11-solvent panel exists, or that any
+experimental maximum-error target has been met.  The checked-in bridge exposes
+the exact Hessian action and quadratic form, but a physical asset still needs a
+grid/orientation-converged minimum-eigenvalue certificate before this stability
+gate is considered passed.
+
 ### 4.3 Separate auxiliary-QM liquid-difference route
 
 V0-FD deliberately freezes the MACE source and varies only the solvent.  A
@@ -1358,9 +1521,11 @@ assets.
   establish a chemical-accuracy winner.
 - COSMO-RS/openCOSMO-RS remains an external comparator: its current parameter
   family was fitted to solvation data and cannot certify a no-fit V0-FD core.
-- Post-hoc charge projection, response symmetrization, eigenvalue clipping,
-  response scaling, cavity-radius tuning, and error regressions are not
-  physical candidate families.
+- Target-observed or response-output charge projection, response
+  symmetrization, eigenvalue clipping, response scaling, cavity-radius tuning,
+  and error regressions are not physical candidate families.  The fixed
+  source-rounding neutrality projection in Section 4.2.9 is a preregistered
+  algebraic zero-mode constraint and is not selected from a solvation result.
 - Post-training and fine-tuning are deferred outside V0.  A future learned
   electronic-functional head must be a separately preregistered route, not a
   fallback used to rescue a failed V0 structural or benchmark gate.

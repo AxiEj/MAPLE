@@ -1,0 +1,104 @@
+{
+  "protocol_id": "route2-v0-frozen-solvent-asset-v2",
+  "schema_version": 2,
+  "assets": [
+    {
+      "solvent_id": "water",
+      "model": {
+        "family": "coincident-SPC/E",
+        "identifier": "AmberTools26-cSPCE-PSE3-298K-source-candidate"
+      },
+      "state": {
+        "temperature_kelvin": 298.0,
+        "pressure_bar": 1.0
+      },
+      "liquid_convention": {
+        "closure": "PSE3",
+        "standard_state": "1 M solute / pure-liquid solvent",
+        "pressure_definition": "both rism1d self-test free-energy and virial routes retained; no accuracy-selected route",
+        "partial_molar_volume_definition": "future endpoint derivative of the same stationary molecular-liquid scalar",
+        "sign_convention": "future endpoint must preregister one same-functional pressure-volume Legendre convention"
+      },
+      "bulk_correlation": {
+        "xvv": {
+          "path": "bulk/cspce.xvv",
+          "sha256": "a664b4fa1f56f92630f405dc0bebdeecbce8bd627aa17251637daaf85c5d9c5c"
+        },
+        "cvv": {
+          "path": "bulk/cspce.cvv",
+          "sha256": "4d6d2c497c50bf6df5a563c701ad38905350852836f522dd03ad8b614bb3b1ac"
+        },
+        "coulomb_tail_start_angstrom": 100.0,
+        "coulomb_tail_tolerance_dimensionless": 1e-07
+      },
+      "source_files": {
+        "site_model": {
+          "path": "model/cSPCE.mdl",
+          "sha256": "15464c0c53e7a2e774438316853c7381dcd6ab5fa9b098c29d73bf3c8479b0c1"
+        },
+        "rism1d_input": {
+          "path": "bulk/cspce.inp",
+          "sha256": "ca0c081cfcdfe700a357441963d1a22521c08cf9381f486f3956e6f0bb7a56a5"
+        },
+        "thermodynamic_output": {
+          "path": "bulk/cspce.self.test",
+          "sha256": "009fb5d4e1bee325fb8fe8022d247a4b099ec5aaff1bea286d42574d129775b3"
+        },
+        "short_range_interaction": {
+          "path": "short-range/water-cspce-short-range-source.json",
+          "sha256": "893d8ea6ecacb3d5c71ec94ac596c8574f23a0ba115489af7d03bc4f78173758"
+        },
+        "provenance_statement": {
+          "path": "provenance/water-cspce-generation.json",
+          "sha256": "a1222d13beb863b05943735bcb860e3386f75b1c584462464d4a786782bac860"
+        }
+      },
+      "molecular_reference": {
+        "atomic_numbers": [
+          8,
+          1,
+          1
+        ],
+        "site_charges_e": [
+          -0.8476000007317042,
+          0.4238000003658521,
+          0.4238000003658521
+        ],
+        "reference_positions_bohr": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            1.8897261258369282,
+            0.0,
+            0.0
+          ],
+          [
+            -0.62987217390721,
+            1.7816640270570694,
+            0.0
+          ]
+        ],
+        "rism_site_type_names": [
+          "O",
+          "H1",
+          "H1"
+        ],
+        "site_model_sha256": "15464c0c53e7a2e774438316853c7381dcd6ab5fa9b098c29d73bf3c8479b0c1",
+        "target_total_charge_e": 0.0
+      },
+      "provenance": {
+        "target_solvation_labels_used": false,
+        "excluded_target_label_sets": [
+          "mnsol",
+          "freesolv",
+          "development",
+          "confirmation",
+          "blind"
+        ]
+      }
+    }
+  ]
+}

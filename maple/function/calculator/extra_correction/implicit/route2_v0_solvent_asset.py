@@ -18,15 +18,17 @@ them as if they were a reproducible physical asset.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import hashlib
 import json
 import math
-from pathlib import Path
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 import numpy as np
+from ase.units import Bohr
 
 from .route2_v0_molecular_external_potential import (
     Route2V0MolecularSolventReference,
@@ -34,6 +36,23 @@ from .route2_v0_molecular_external_potential import (
 from .route2_v0_rism_bulk import (
     Route2V0RismBulkDirectCorrelation,
     load_rism1d_bulk_direct_correlation,
+)
+from .route2_v0_rism_generation_source import (
+    Route2V0RismGenerationSource,
+    load_route2_v0_rism_generation_source,
+)
+from .route2_v0_rism_molecular_source import (
+    Route2V0MolecularRismSource,
+    load_route2_v0_rism_molecular_source,
+    same_labelled_rigid_geometry,
+)
+from .route2_v0_rism_short_range_source import (
+    Route2V0RismShortRangeSource,
+    load_route2_v0_rism_short_range_source,
+)
+from .route2_v0_rism_thermodynamic_source import (
+    Route2V0RismSelfTest,
+    load_route2_v0_rism_self_test,
 )
 
 V0_FROZEN_SOLVENT_ASSET_CONSTRUCTION = "route2-v0-frozen-solvent-asset-v2"
@@ -92,10 +111,10 @@ def _mapping(value: object, *, name: str) -> Mapping[str, Any]:
 def _finite_positive(value: object, *, name: str) -> float:
     """Return one finite positive floating-point manifest value."""
 
-    if isinstance(value, bool):
-        raise ValueError(f"{name} must be finite and positive.")
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        raise TypeError(f"{name} must be finite and positive.")
     try:
-        result = float(value)  # type: ignore[arg-type]
+        result = float(value)
     except (TypeError, ValueError, OverflowError) as exc:
         raise ValueError(f"{name} must be finite and positive.") from exc
     if not math.isfinite(result) or result <= 0.0:
@@ -109,6 +128,31 @@ def _strict_false(value: object, *, name: str) -> bool:
     if value is not False:
         raise ValueError(f"{name} must be explicitly false.")
     return False
+
+
+def _same_rism_metadata(left: object, right: object) -> bool:
+    """Return whether two parsed records describe the exact same XVV source."""
+
+    scalars = (
+        "site_names",
+        "temperature_kelvin",
+        "dielectric_constant",
+        "coulomb_smear_angstrom",
+        "radial_spacing_angstrom",
+        "radial_point_count",
+        "component_count",
+    )
+    arrays = (
+        "site_multiplicity",
+        "bulk_number_density_angstrom3",
+        "site_charges_sqrt_kT_angstrom",
+    )
+    return bool(
+        all(getattr(left, name) == getattr(right, name) for name in scalars)
+        and all(
+            np.array_equal(getattr(left, name), getattr(right, name)) for name in arrays
+        )
+    )
 
 
 def _sha256(path: Path) -> str:
@@ -213,9 +257,8 @@ class Route2V0FrozenSolventMolecularReference:
                 "lowercase SHA-256 digest."
             )
         if not isinstance(self.rism_site_type_names, (tuple, list)):
-            raise ValueError(
-                "Frozen solvent molecular-reference RISM site types must be a "
-                "sequence."
+            raise TypeError(
+                "Frozen solvent molecular-reference RISM site types must be a sequence."
             )
         names = tuple(
             _nonempty_string(
@@ -287,6 +330,10 @@ class Route2V0FrozenSolventAsset:
     files: tuple[Route2V0FrozenSolventAssetFile, ...]
     bulk_direct_correlation: Route2V0RismBulkDirectCorrelation
     molecular_reference: Route2V0FrozenSolventMolecularReference
+    molecular_source: Route2V0MolecularRismSource
+    thermodynamic_source: Route2V0RismSelfTest
+    short_range_source: Route2V0RismShortRangeSource
+    generation_source: Route2V0RismGenerationSource
     coulomb_tail_start_angstrom: float
     coulomb_tail_tolerance_dimensionless: float
     construction: str = V0_FROZEN_SOLVENT_ASSET_CONSTRUCTION
@@ -349,6 +396,95 @@ class Route2V0FrozenSolventAsset:
             raise TypeError(
                 "Frozen solvent asset requires a canonical molecular reference."
             )
+        if not isinstance(self.molecular_source, Route2V0MolecularRismSource):
+            raise TypeError(
+                "Frozen solvent asset requires a parsed molecular RISM source."
+            )
+        if not isinstance(self.thermodynamic_source, Route2V0RismSelfTest):
+            raise TypeError(
+                "Frozen solvent asset requires parsed RISM thermodynamic output."
+            )
+        if not isinstance(self.short_range_source, Route2V0RismShortRangeSource):
+            raise TypeError(
+                "Frozen solvent asset requires a parsed solvent-side short-range source."
+            )
+        if not isinstance(self.generation_source, Route2V0RismGenerationSource):
+            raise TypeError(
+                "Frozen solvent asset requires parsed two-run generation provenance."
+            )
+        files_by_role = {file.role: file for file in files}
+        generation_source = self.generation_source
+        if set(excluded) != set(generation_source.excluded_target_label_sets):
+            raise ValueError(
+                "Frozen solvent manifest and generation provenance target-label "
+                "exclusions must match."
+            )
+        for role, digest in generation_source.frozen_source_sha256.items():
+            if files_by_role[role].sha256 != digest:
+                raise ValueError(
+                    "Frozen solvent generation provenance must bind the exact "
+                    f"{role} source hash."
+                )
+        if (
+            generation_source.residual_tolerance
+            != self.molecular_source.rism1d_input.residual_tolerance
+        ):
+            raise ValueError(
+                "Frozen solvent generation tolerance must match the rism1d input."
+            )
+        maximum_steps = self.molecular_source.rism1d_input.maximum_steps
+        if any(
+            run.primary_iterations > maximum_steps
+            or run.temperature_derivative_iterations > maximum_steps
+            for run in generation_source.runs
+        ):
+            raise ValueError(
+                "Frozen solvent generation iterations exceed rism1d MAXSTEP."
+            )
+        generation_source.verify_xvv_reproduction(files_by_role["xvv"].path)
+        short_range_source = self.short_range_source
+        for role, digest in short_range_source.source_sha256.items():
+            if files_by_role[role].sha256 != digest:
+                raise ValueError(
+                    "Frozen solvent short-range certificate must bind the exact "
+                    f"{role} source hash."
+                )
+        if short_range_source.closure.casefold() != closure.casefold():
+            raise ValueError(
+                "Frozen solvent short-range certificate closure must match the asset."
+            )
+        if not math.isclose(
+            short_range_source.temperature_kelvin,
+            temperature,
+            rel_tol=0.0,
+            abs_tol=0.0,
+        ):
+            raise ValueError(
+                "Frozen solvent short-range certificate temperature must match the asset."
+            )
+        if not math.isclose(
+            short_range_source.pressure_bar,
+            pressure,
+            rel_tol=0.0,
+            abs_tol=0.0,
+        ):
+            raise ValueError(
+                "Frozen solvent short-range certificate pressure must match the asset."
+            )
+        if not math.isclose(
+            short_range_source.coulomb_tail_start_angstrom,
+            tail_start,
+            rel_tol=0.0,
+            abs_tol=0.0,
+        ) or not math.isclose(
+            short_range_source.coulomb_tail_tolerance_dimensionless,
+            tail_tolerance,
+            rel_tol=0.0,
+            abs_tol=0.0,
+        ):
+            raise ValueError(
+                "Frozen solvent short-range certificate tail gate must match the asset."
+            )
         site_model_sha256 = next(
             file.sha256 for file in files if file.role == "site_model"
         )
@@ -362,7 +498,48 @@ class Route2V0FrozenSolventAsset:
             raise ValueError(
                 "Frozen solvent molecular reference must be electrically neutral."
             )
+        source = self.molecular_source
+        canonical = molecular_reference.molecular_reference
+        if not np.array_equal(canonical.atomic_numbers, source.atomic_numbers):
+            raise ValueError(
+                "Frozen solvent molecular-reference atomic numbers must equal "
+                "the parsed MDL atomic identities."
+            )
+        if not np.allclose(
+            canonical.site_charges_e,
+            source.site_charges_e,
+            rtol=1.0e-10,
+            atol=1.0e-12,
+        ):
+            raise ValueError(
+                "Frozen solvent molecular-reference site charges must equal "
+                "the parsed MDL charges."
+            )
+        if molecular_reference.rism_site_type_names != source.atom_site_names:
+            raise ValueError(
+                "Frozen solvent molecular-reference RISM site map must equal "
+                "the parsed MDL atom-site order."
+            )
+        if not same_labelled_rigid_geometry(
+            canonical.reference_positions_bohr * Bohr,
+            molecular_reference.rism_site_type_names,
+            source.reference_positions_bohr * Bohr,
+            source.atom_site_names,
+        ):
+            raise ValueError(
+                "Frozen solvent molecular-reference geometry must be rigidly "
+                "equivalent by a proper rotation to the parsed MDL geometry."
+            )
+        if closure.casefold() != source.rism1d_input.closure.casefold():
+            raise ValueError(
+                "Frozen solvent asset closure must match the parsed rism1d input."
+            )
         metadata = self.bulk_direct_correlation.metadata
+        if not _same_rism_metadata(metadata, source.metadata):
+            raise ValueError(
+                "Frozen solvent molecular source and bulk correlation must use "
+                "the same XVV metadata."
+            )
         site_lookup = {name: index for index, name in enumerate(metadata.site_names)}
         try:
             site_type_indices = np.asarray(
@@ -422,6 +599,9 @@ class Route2V0FrozenSolventAsset:
         object.__setattr__(self, "excluded_target_label_sets", excluded)
         object.__setattr__(self, "files", files)
         object.__setattr__(self, "molecular_reference", molecular_reference)
+        object.__setattr__(self, "molecular_source", source)
+        object.__setattr__(self, "short_range_source", short_range_source)
+        object.__setattr__(self, "generation_source", generation_source)
         object.__setattr__(self, "coulomb_tail_start_angstrom", tail_start)
         object.__setattr__(
             self,
@@ -522,7 +702,7 @@ def _molecular_reference_from_manifest(
     entry = _mapping(value, name="Frozen solvent molecular reference")
     site_type_names = entry.get("rism_site_type_names")
     if not isinstance(site_type_names, list):
-        raise ValueError(
+        raise TypeError(
             "Frozen solvent molecular-reference RISM site types must be a list."
         )
     return Route2V0FrozenSolventMolecularReference(
@@ -561,7 +741,7 @@ def _asset_from_manifest(
     )
     excluded_values = provenance.get("excluded_target_label_sets")
     if not isinstance(excluded_values, list):
-        raise ValueError("excluded_target_label_sets must be a list.")
+        raise TypeError("excluded_target_label_sets must be a list.")
 
     files_by_role = {
         "xvv": _file_from_manifest(root=root, role="xvv", value=bulk.get("xvv")),
@@ -582,6 +762,20 @@ def _asset_from_manifest(
     direct_correlation = load_rism1d_bulk_direct_correlation(
         xvv_path=files_by_role["xvv"].path,
         cvv_path=files_by_role["cvv"].path,
+    )
+    molecular_source = load_route2_v0_rism_molecular_source(
+        mdl_path=files_by_role["site_model"].path,
+        rism1d_input_path=files_by_role["rism1d_input"].path,
+        xvv_path=files_by_role["xvv"].path,
+    )
+    thermodynamic_source = load_route2_v0_rism_self_test(
+        files_by_role["thermodynamic_output"].path
+    )
+    short_range_source = load_route2_v0_rism_short_range_source(
+        files_by_role["short_range_interaction"].path
+    )
+    generation_source = load_route2_v0_rism_generation_source(
+        files_by_role["provenance_statement"].path
     )
     molecular_reference = _molecular_reference_from_manifest(
         value=entry.get("molecular_reference"),
@@ -622,6 +816,10 @@ def _asset_from_manifest(
         files=tuple(files_by_role.values()),
         bulk_direct_correlation=direct_correlation,
         molecular_reference=molecular_reference,
+        molecular_source=molecular_source,
+        thermodynamic_source=thermodynamic_source,
+        short_range_source=short_range_source,
+        generation_source=generation_source,
         coulomb_tail_start_angstrom=_finite_positive(
             bulk.get("coulomb_tail_start_angstrom"),
             name="bulk_correlation.coulomb_tail_start_angstrom",
@@ -660,7 +858,7 @@ def load_route2_v0_frozen_solvent_registry(
         raise ValueError("Unsupported Route-2 frozen solvent registry schema.")
     entries = registry.get("assets")
     if not isinstance(entries, list):
-        raise ValueError("Frozen solvent registry assets must be a list.")
+        raise TypeError("Frozen solvent registry assets must be a list.")
     return Route2V0FrozenSolventRegistry(
         assets=tuple(
             _asset_from_manifest(root=manifest.parent, value=entry) for entry in entries
@@ -669,15 +867,15 @@ def load_route2_v0_frozen_solvent_registry(
 
 
 __all__ = [
+    "V0_DEFAULT_SOLVENT_IDS",
+    "V0_FROZEN_SOLVENT_ASSET_CONSTRUCTION",
+    "V0_FROZEN_SOLVENT_ASSET_SCHEMA_VERSION",
+    "V0_FROZEN_SOLVENT_MOLECULAR_REFERENCE_CONSTRUCTION",
+    "V0_REQUIRED_ASSET_FILE_ROLES",
+    "V0_REQUIRED_EXCLUDED_TARGET_LABEL_SETS",
     "Route2V0FrozenSolventAsset",
     "Route2V0FrozenSolventAssetFile",
     "Route2V0FrozenSolventMolecularReference",
     "Route2V0FrozenSolventRegistry",
-    "V0_DEFAULT_SOLVENT_IDS",
-    "V0_FROZEN_SOLVENT_ASSET_CONSTRUCTION",
-    "V0_FROZEN_SOLVENT_MOLECULAR_REFERENCE_CONSTRUCTION",
-    "V0_FROZEN_SOLVENT_ASSET_SCHEMA_VERSION",
-    "V0_REQUIRED_ASSET_FILE_ROLES",
-    "V0_REQUIRED_EXCLUDED_TARGET_LABEL_SETS",
     "load_route2_v0_frozen_solvent_registry",
 ]

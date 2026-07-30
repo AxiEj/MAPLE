@@ -1,0 +1,19 @@
+{
+  "construction": "route2-v0-rism-short-range-source-v1",
+  "source_scope": "solvent-side",
+  "derivation": "native-smear-split-from-rism1d-cvv-v1",
+  "closure": "PSE3",
+  "temperature_kelvin": 298.0,
+  "pressure_bar": 1.0,
+  "coulomb_tail_start_angstrom": 100.0,
+  "coulomb_tail_tolerance_dimensionless": 1e-07,
+  "target_solvation_labels_used": false,
+  "source_sha256": {
+    "site_model": "15464c0c53e7a2e774438316853c7381dcd6ab5fa9b098c29d73bf3c8479b0c1",
+    "rism1d_input": "ca0c081cfcdfe700a357441963d1a22521c08cf9381f486f3956e6f0bb7a56a5",
+    "xvv": "a664b4fa1f56f92630f405dc0bebdeecbce8bd627aa17251637daaf85c5d9c5c",
+    "cvv": "4d6d2c497c50bf6df5a563c701ad38905350852836f522dd03ad8b614bb3b1ac",
+    "thermodynamic_output": "009fb5d4e1bee325fb8fe8022d247a4b099ec5aaff1bea286d42574d129775b3",
+    "provenance_statement": "a1222d13beb863b05943735bcb860e3386f75b1c584462464d4a786782bac860"
+  }
+}

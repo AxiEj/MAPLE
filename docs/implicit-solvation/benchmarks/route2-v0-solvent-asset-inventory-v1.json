@@ -2,7 +2,7 @@
   "protocol_id": "route2-v0-solvent-asset-inventory-v1",
   "schema_version": 1,
   "status": "inventory-only-zero-admitted-physical-default-assets",
-  "claim_boundary": "This is a local source-availability inventory, not a molecular-liquid calculation, physical solvent endpoint, solvation-energy result, or accuracy result. It records why the Route-2 V0 branch fails closed instead of filling missing solvent assets with a proxy.",
+  "claim_boundary": "This is a local source-availability inventory, not a molecular-liquid calculation, physical solvent endpoint, solvation-energy result, or accuracy result. A source-complete candidate proves file identity and reproducibility only; it does not enter admitted_physical_default_assets. The inventory records why the Route-2 V0 branch fails closed instead of filling missing physical gates with a proxy.",
   "asset_registry_protocol": "route2-v0-frozen-solvent-asset-v2",
   "required_default_solvents": [
     "water",
@@ -18,6 +18,23 @@
     "hexane"
   ],
   "admitted_physical_default_assets": [],
+  "source_complete_candidate_assets": [
+    {
+      "solvent": "water",
+      "model": "AmberTools26-cSPCE-PSE3-298K-source-candidate",
+      "manifest": "route2-v0-solvent-assets/water-cspce-pse3/manifest.json",
+      "status": "source-complete-candidate-not-production-or-accuracy-admitted",
+      "verified_source_chain": [
+        "hash-bound all-atom cSPC/E MDL source",
+        "matching DRISM/PSE3 rism1d input, XVV, and Cvv",
+        "parsed thermodynamic self-test with both pressure routes retained",
+        "strict native-SMEAR short-range certificate",
+        "two independent AmberTools 26 runs with distinct raw XVV/transcript evidence, identical DATE-normalized XVV with every non-DATE byte preserved, exact Cvv, exact self-test, and final residuals below 1e-12",
+        "canonical exact-neutral charge projection derived only from MDL decimal serialization"
+      ],
+      "not_an_admitted_asset": "The candidate still lacks a production Cartesian grid and rigid-orientation convergence certificate, a complete MACE-native solute-solvent short-range potential, a physical molecular-liquid minimization and force certification, the other ten default-solvent candidates, and frozen chemistry maximum-error evidence."
+    }
+  ],
   "available_parser_control": {
     "solvent": "water",
     "model": "cSPCE",
@@ -26,8 +43,8 @@
       "dat/rism1d/mdl/cSPCE.mdl",
       "bulk-only cSPCE input/XVV/Cvv/thermodynamic control recorded in route2-v0-rism1d-cspce-bulk-control-v1.json"
     ],
-    "role": "bulk 1D-RISM parser, source-SMEAR split, periodic-Poisson, and small-grid reciprocal-transform control only",
-    "not_an_admitted_asset": "It lacks a schema-v2 hash-locked canonical molecular reference with exact RISM-site multiplicities, the frozen complete molecular-liquid short-range source, production-grid mapping certificate, and full thermodynamic/free-energy endpoint required for target-solute execution."
+    "role": "legacy bulk 1D-RISM parser, source-SMEAR split, periodic-Poisson, and small-grid reciprocal-transform control; source completeness is now recorded separately by route2-v0-solvent-assets/water-cspce-pse3/manifest.json",
+    "not_an_admitted_asset": "Neither this legacy control nor the separate source-complete candidate supplies the production-grid mapping, MACE-native solute-solvent short-range functional, molecular-liquid force certification, eleven-solvent panel, or chemistry evidence required for target-solute execution."
   },
   "missing_default_assets": [
     "water",

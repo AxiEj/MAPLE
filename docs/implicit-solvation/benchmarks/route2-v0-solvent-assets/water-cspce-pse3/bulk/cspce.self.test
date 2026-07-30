@@ -1,0 +1,29 @@
+NET CHARGE NEUTRALITY [sqrt(kT A)]
+  ZERO Input from MDL          0.0000000000000000E+00
+  ZERO Sum of excess charges   4.0783888266560098E-08
+
+EXCESS CHEMICAL POTENTIAL [kT]
+  Equation                                  O                        H1  
+  Pettitt-Rossky (PR)   -1.1988603301683053E+01  6.3352252572422012E+00
+  Singer-Chandler (SC)  -1.6725834591508658E+01  5.1443673849019698E+00
+  Schmeer-Maurer (SM)   -1.5008644390925495E+01  6.0179833774532581E+00
+Relative difference [kT]
+  ZERO ExChem SC to PR   3.9514455275708016E-01 -1.8797403785743619E-01
+  ZERO ExChem SM to PR   2.5190933532836685E-01 -5.0075864220657927E-02
+  ZERO ExChem SM to SC  -1.0266693665946829E-01  1.6981990732528832E-01
+
+TOTAL EXCESS FREE ENERGY PER UNIT VOLUME [kT/A^3]
+  Free energy                           -3.8826435474256121E-01
+  Sum of ExChem (PR) - Excess pressure  -2.7703433007879003E-01
+  Sum of ExChem (SC) - Excess pressure  -4.7461467008672137E-01
+  Sum of ExChem (SM) - Excess pressure  -3.8826435474376891E-01
+Relative difference [kT/A^3]
+  ZERO ExChem (PR) - ExP to Free Energy  2.8648013474613782E-01
+  ZERO ExChem (SC) - ExP to Free Energy -2.2240083151958351E-01
+  ZERO ExChem (SM) - ExP to Free Energy -3.1105111541542655E-12
+
+Pressure [kT/A^3]
+  Pressure (free energy)   1.2193949411141802E-01
+  Pressure (virial)        5.2406569568823602E-01
+Relative difference [kT/A^3]
+  ZERO Pressure           -3.2977519261264852E+00

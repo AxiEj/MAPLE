@@ -15,6 +15,10 @@ V1_AUDIT = (
     BENCHMARKS / "route2-v0-atomic-displacement-hf-def2-tzvpd-v1-"
     "preflight-reproducibility-audit.json"
 )
+V2_AUDIT = (
+    BENCHMARKS / "route2-v0-atomic-displacement-hf-def2-tzvpd-v2-"
+    "reproducibility-audit.json"
+)
 GENERATOR = BENCHMARKS / "generate_route2_v0_atomic_displacement_response_v2.py"
 SOURCE = (
     ROOT / "maple/function/calculator/extra_correction/implicit/"
@@ -120,4 +124,28 @@ def test_atomic_displacement_v1_preflight_outputs_are_preserved_but_not_admitted
         assert _sha256(ROOT / raw["manifest_path"]) == raw["manifest_sha256"]
         assert _sha256(ROOT / raw["table_path"]) == raw["table_sha256"]
     assert audit["hard_constraints"]["v1_outputs_deleted"] is False
+    assert audit["hard_constraints"]["solvation_accuracy_panel_run"] is False
+
+
+def test_atomic_displacement_v2_repeat_is_byte_identical_before_qm_mep_use():
+    audit = json.loads(V2_AUDIT.read_text(encoding="utf-8"))
+
+    assert audit["decision"]["status"] == "pass"
+    assert (
+        audit["decision"]["verdict"]
+        == "admit-v2-free-atom-translation-tangent-asset-to-separately-"
+        "preregistered-gas-phase-qm-mep-source-falsifier-only"
+    )
+    assert audit["deterministic_repeat"] == {
+        "array_and_archive_byte_identity": True,
+        "identical_element_records": True,
+        "identical_runtime_evidence": True,
+        "identical_table_sha256": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319",
+        "independent_execution_count": 2,
+    }
+    for execution in (audit["primary_execution"], audit["repeat_execution"]):
+        assert (
+            _sha256(ROOT / execution["manifest_path"]) == execution["manifest_sha256"]
+        )
+        assert _sha256(ROOT / execution["table_path"]) == execution["table_sha256"]
     assert audit["hard_constraints"]["solvation_accuracy_panel_run"] is False

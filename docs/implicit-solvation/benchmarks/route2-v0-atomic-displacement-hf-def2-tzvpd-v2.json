@@ -1,0 +1,137 @@
+{
+  "artifact": "route2-v0-atomic-displacement-hf-def2-tzvpd-v2",
+  "claim_boundary": "This artifact is a frozen free-atom HF translation-tangent spatial-response source. It is not a MACE electron density, a fitted response, a common GTO/continuum basis, a PCM source, a total solvation model, a force/PES result, or an accuracy claim.",
+  "executed_at_utc": "2026-07-30T17:08:49.688293+00:00",
+  "execution_git_head": "d8d55093954a9f42244686ba64b97f7106be49f2",
+  "hard_constraints": {
+    "atomic_response_fit_to_qm_mep": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "mace_density_relabelled_as_electron_density": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "post_training": false,
+    "public_route_changed": false,
+    "solvation_labels_read": false,
+    "width_or_multipole_selected_from_error": false
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-prereg-v2.json",
+    "sha256": "d995730243d3d6deec55ba7166f455dbd404c62327f829f1333b89292810673b"
+  },
+  "radial_grid_sha256": "12e486ad4e0cdc357aad7c8d15aa49743dd57b44019f0448a27980cbe9e03f82",
+  "results": [
+    {
+      "atomic_number": 1,
+      "density_sha256": "474e79e2eb28429e08b11b2346970761ec1d5a9fa33f6167a8a6da8972c53f18",
+      "electron_count_integral_absolute_error": 3.3306690738754696e-16,
+      "electron_count_integral_before_normalization": 0.9999999999999997,
+      "enclosed_electrons_sha256": "3a3197ae8a4fe629af01fcb93eb9b4075f402a7eefcd6ee4611aefb6237c7480",
+      "energy_hartree": -0.35614020714720684,
+      "normalization_scale": 1.0000000000000004,
+      "radial_tail_density_e_per_bohr3": 1.5899221871135203e-83,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 1,
+      "symbol": "H"
+    },
+    {
+      "atomic_number": 6,
+      "density_sha256": "6d5333a46383bda4d4c055c5f9419b2f7e45c18932c56ebd4627e73f06289a15",
+      "electron_count_integral_absolute_error": 2.042810365310288e-14,
+      "electron_count_integral_before_normalization": 5.99999999999998,
+      "enclosed_electrons_sha256": "06a5b56dcd1b5ef1940029c09e60ae70fd338bca85d85e5e9caa87f0ae5025ec",
+      "energy_hartree": -37.34011169026502,
+      "normalization_scale": 1.0000000000000033,
+      "radial_tail_density_e_per_bohr3": 3.9701237480814726e-46,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 2,
+      "symbol": "C"
+    },
+    {
+      "atomic_number": 7,
+      "density_sha256": "191f5fc23fe8deb3ecd2710ceb307760f2aed69844918f2237d92f019449d864",
+      "electron_count_integral_absolute_error": 7.993605777301127e-15,
+      "electron_count_integral_before_normalization": 6.999999999999992,
+      "enclosed_electrons_sha256": "580d3b979ffe302c95fa0ca8512e1c9508e342335b02c9d4f5d6fef978f95943",
+      "energy_hartree": -53.84808763103803,
+      "normalization_scale": 1.000000000000001,
+      "radial_tail_density_e_per_bohr3": 1.3949023109409873e-61,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 3,
+      "symbol": "N"
+    },
+    {
+      "atomic_number": 8,
+      "density_sha256": "6b295f432ed03a57ccaa866c128466bb683cd562729c86b778c777762263507f",
+      "electron_count_integral_absolute_error": 2.842170943040401e-14,
+      "electron_count_integral_before_normalization": 7.999999999999972,
+      "enclosed_electrons_sha256": "720c9abf23d6653913a2fd84d9e85221a5a60aa0e70cc25ffd876ef2535cc1b1",
+      "energy_hartree": -74.29503580753098,
+      "normalization_scale": 1.0000000000000036,
+      "radial_tail_density_e_per_bohr3": 1.5935317516696224e-43,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 2,
+      "symbol": "O"
+    },
+    {
+      "atomic_number": 16,
+      "density_sha256": "73855ae6eb6ca56221f30528393d045cabc0a26d62d7e385aca123fbec814c69",
+      "electron_count_integral_absolute_error": 9.059419880941277e-14,
+      "electron_count_integral_before_normalization": 15.99999999999991,
+      "enclosed_electrons_sha256": "ca3d4cd6f65f6653b5b3640753aebcd6daf13cc66bbe0ee82b1ec104a11f4def",
+      "energy_hartree": -397.19165946920333,
+      "normalization_scale": 1.0000000000000058,
+      "radial_tail_density_e_per_bohr3": 9.439350490901544e-28,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 2,
+      "symbol": "S"
+    },
+    {
+      "atomic_number": 17,
+      "density_sha256": "167eef1e24d21f9e73b4502658a49691d11a3dec90b6ece8a2dfc9033cb4f11c",
+      "electron_count_integral_absolute_error": 1.3145040611561853e-13,
+      "electron_count_integral_before_normalization": 16.99999999999987,
+      "enclosed_electrons_sha256": "ac831c342b74e3752a5029d9f695f89efcef35adb678d63c8faec33b77add7da",
+      "energy_hartree": -459.27382644947636,
+      "normalization_scale": 1.0000000000000078,
+      "radial_tail_density_e_per_bohr3": 5.791251098451293e-32,
+      "scf_converged": true,
+      "spherical_probe_maximum_difference_e_per_bohr3": 0.0,
+      "spin_2s": 1,
+      "symbol": "Cl"
+    }
+  ],
+  "runtime": {
+    "numpy": "2.4.6",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "pyscf": "2.13.1",
+    "pyscf_lib_num_threads": 1,
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+    "thread_environment": {
+      "BLIS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    },
+    "threads": 1
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/generate_route2_v0_atomic_displacement_response_v2.py": "eb3c99b6f1d13deda2e6e7d9aec236ebf0a23bca0be708024735b89372e4ae2a",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_response.py": "044bdf69a03db6b80f6de0cc30ba30ad7c6ae01cde9a65a868784525ff73046f"
+  },
+  "status": "pass",
+  "table": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.npz",
+    "sha256": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319"
+  }
+}

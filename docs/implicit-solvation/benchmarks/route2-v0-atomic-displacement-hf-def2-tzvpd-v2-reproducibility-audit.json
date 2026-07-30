@@ -1,0 +1,38 @@
+{
+  "artifact": "route2-v0-atomic-displacement-hf-def2-tzvpd-v2-reproducibility-audit",
+  "claim_boundary": "This audit verifies repeatability of one frozen, free-atom Hartree-Fock translation-tangent radial source asset. It is not a molecular electron-density proof, a QM-MEP comparison, a common-scalar/KKT validation, a continuum calculation, a force/PES result, or an experimental solvation-accuracy result.",
+  "decision": {
+    "status": "pass",
+    "verdict": "admit-v2-free-atom-translation-tangent-asset-to-separately-preregistered-gas-phase-qm-mep-source-falsifier-only",
+    "admission_boundary": "The next gate must use the complete frozen asset and its no-fit atomic MACE-MDP dipole partition against independent frozen QM induced-MEP data. It may not invoke PCM, KKT, force, FreeSolv, MNSol, a width/multipole selection, or any response correction."
+  },
+  "deterministic_repeat": {
+    "array_and_archive_byte_identity": true,
+    "identical_table_sha256": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319",
+    "identical_element_records": true,
+    "identical_runtime_evidence": true,
+    "independent_execution_count": 2
+  },
+  "hard_constraints": {
+    "atomic_response_fit_to_qm_mep": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "post_training": false,
+    "solvation_accuracy_panel_run": false,
+    "width_or_multipole_selected_from_error": false
+  },
+  "primary_execution": {
+    "manifest_path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.json",
+    "manifest_sha256": "6e51af89844fdd4a29ae10e9b3dc1ab5c5437b1d6d93aec894313dedfff9f9d0",
+    "table_path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.npz",
+    "table_sha256": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319"
+  },
+  "repeat_execution": {
+    "manifest_path": "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-hf-def2-tzvpd-v2-independent-repeat/execution-b.json",
+    "manifest_sha256": "b1b6672488205c4687777bc0a9d8e42b6be47849b0eb4964af97e8455fd6329c",
+    "table_path": "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-hf-def2-tzvpd-v2-independent-repeat/execution-b.npz",
+    "table_sha256": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319"
+  },
+  "schema_version": 1
+}

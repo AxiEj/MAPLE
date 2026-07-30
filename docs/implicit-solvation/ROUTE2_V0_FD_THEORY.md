@@ -1831,7 +1831,12 @@ matching the live asset and operators componentwise.  Any changed source,
 operator, closure, pressure, or planar root fails closed.  The loaded
 certificate is re-hashed and re-parsed at physical admission, so a changed JSON
 file or a manually assembled certificate-shaped object cannot stand in for the
-content-addressed evidence.  The parser also
+content-addressed evidence.  It also carries an explicit evidence scope:
+`synthetic-control` remains useful only for scalar/derivative tests, whereas
+`physical-pure-liquid-admission` is required by any physical endpoint and is
+rejected if the frozen solvent provenance itself explicitly lists a physical
+liquid as not claimed.  Thus source binding alone cannot silently upgrade a
+test fixture into liquid physics.  The parser also
 requires explicit `false` declarations for post-training, fine-tuning,
 experimental-solvation fitting, MAP/UQ calibration, and error-driven
 cavity/dispersion adjustment, together with the full excluded

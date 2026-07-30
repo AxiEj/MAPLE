@@ -231,6 +231,13 @@ def _source_bound_weighted_density_inputs(tmp_path: Path):
     certificate_payload = {
         "construction": "route2-v0-pure-solvent-bridge-certificate-v1",
         "schema_version": 1,
+        "admission": {
+            "evidence_scope": "synthetic-control",
+            "physical_liquid_admitted": False,
+            "claim_boundary": (
+                "Synthetic source-bound test control; no physical-liquid claim."
+            ),
+        },
         "liquid_source": {
             "solvent_id": asset.solvent_id,
             "model_identifier": asset.model_identifier,
@@ -348,6 +355,10 @@ def test_weighted_density_bridge_requires_a_live_source_bound_certificate(tmp_pa
     assert bridge_asset.pure_solvent_certificate_sha256 == certificate.content_sha256
     assert bridge_asset.is_source_bound_pure_solvent_asset is True
     bridge_asset.require_source_bound_pure_solvent_asset()
+    assert certificate.is_physical_pure_liquid_admission is False
+    assert bridge_asset.is_physical_pure_solvent_asset is False
+    with pytest.raises(ValueError, match="physical pure-liquid admission"):
+        bridge_asset.require_physical_pure_solvent_asset()
     assert bridge_asset.quartic_coefficient_hartree_bohr15 == pytest.approx(
         certificate.quartic_coefficient_hartree_bohr15
     )
@@ -416,6 +427,59 @@ def test_weighted_density_certificate_rejects_solvation_label_policy(tmp_path):
         load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
 
 
+@pytest.mark.parametrize(
+    ("scope", "physical", "message"),
+    [
+        ("synthetic-control", True, "scope and physical-liquid admission flag"),
+        ("not-a-known-scope", False, "Unsupported pure-solvent bridge evidence"),
+    ],
+)
+def test_weighted_density_certificate_rejects_ambiguous_evidence_admission(
+    tmp_path,
+    scope,
+    physical,
+    message,
+):
+    *_, certificate_path, payload = _source_bound_weighted_density_inputs(tmp_path)
+    payload["admission"]["evidence_scope"] = scope
+    payload["admission"]["physical_liquid_admitted"] = physical
+    certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+
+
+def test_weighted_density_certificate_cannot_upgrade_a_nonphysical_source_asset(
+    tmp_path,
+):
+    (
+        asset,
+        rism_kernel,
+        hnc_functional,
+        center,
+        weighted_kernel,
+        certificate_path,
+        payload,
+    ) = _source_bound_weighted_density_inputs(tmp_path)
+    payload["admission"] = {
+        "evidence_scope": "physical-pure-liquid-admission",
+        "physical_liquid_admitted": True,
+        "claim_boundary": "Attempted upgrade of a nonphysical source asset.",
+    }
+    certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    certificate = load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+
+    with pytest.raises(ValueError, match="explicit nonphysical claim"):
+        Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate(
+            hnc_functional=hnc_functional,
+            frozen_solvent_asset=asset,
+            rism_kernel=rism_kernel,
+            center_projection=center,
+            kernel=weighted_kernel,
+            certificate=certificate,
+        )
+
+
 def test_weighted_density_bridge_rechecks_certificate_content_before_admission(
     tmp_path,
 ):
@@ -429,11 +493,21 @@ def test_weighted_density_bridge_rechecks_certificate_content_before_admission(
         payload,
     ) = _source_bound_weighted_density_inputs(tmp_path)
     certificate = load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+    bridge_asset = Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate(
+        hnc_functional=hnc_functional,
+        frozen_solvent_asset=asset,
+        rism_kernel=rism_kernel,
+        center_projection=center,
+        kernel=weighted_kernel,
+        certificate=certificate,
+    )
     certificate_path.write_text(
         json.dumps(payload, sort_keys=True),
         encoding="utf-8",
     )
 
+    with pytest.raises(ValueError, match="content changed"):
+        bridge_asset.require_source_bound_pure_solvent_asset()
     with pytest.raises(ValueError, match="content changed"):
         Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate(
             hnc_functional=hnc_functional,

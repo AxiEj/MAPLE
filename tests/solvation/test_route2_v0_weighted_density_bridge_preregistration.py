@@ -59,6 +59,7 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
     assert "SI-to-atomic-unit" in requirements
     assert "float64/grid digests for D and K" in requirements
     assert "B_low/B_root/B_high" in requirements
+    assert "explicit evidence scope" in requirements
     assert (
         "parsed route2-v0-pure-solvent-bridge-certificate-v1"
         in anchors["source_bound_constructor"]
@@ -67,6 +68,7 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
         "cannot establish a physical-liquid or accuracy claim"
         in anchors["source_bound_constructor"]
     )
+    assert "physical-pure-liquid-admission" in anchors["source_bound_constructor"]
 
     resolution = anchors["planar_interface_quartic_resolution"]
     assert "gamma(B_s)" in resolution["stationary_surface_tension"]

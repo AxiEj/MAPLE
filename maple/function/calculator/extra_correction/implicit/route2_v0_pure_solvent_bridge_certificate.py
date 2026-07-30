@@ -30,6 +30,18 @@ V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_CONSTRUCTION = (
     "route2-v0-pure-solvent-bridge-certificate-v1"
 )
 V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_SCHEMA_VERSION = 1
+V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_SYNTHETIC_CONTROL = (
+    "synthetic-control"
+)
+V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID = (
+    "physical-pure-liquid-admission"
+)
+V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPES = frozenset(
+    {
+        V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_SYNTHETIC_CONTROL,
+        V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID,
+    }
+)
 V0_CANONICAL_NUMERIC_ARRAY_DIGEST_CONSTRUCTION = (
     "route2-v0-canonical-float64-array-digest-v1"
 )
@@ -149,6 +161,33 @@ def _excluded_label_sets(value: object) -> tuple[str, ...]:
     return labels
 
 
+def _admission(value: object) -> tuple[str, str]:
+    """Read the evidence tier without letting a synthetic control pass as physical."""
+
+    entry = _mapping(value, name="admission")
+    expected = {"evidence_scope", "physical_liquid_admitted", "claim_boundary"}
+    if set(entry) != expected:
+        missing = sorted(expected.difference(entry))
+        extra = sorted(set(entry).difference(expected))
+        raise ValueError(
+            f"Pure-solvent bridge admission keys differ; missing={missing}, extra={extra}."
+        )
+    scope = _text(entry.get("evidence_scope"), name="admission.evidence_scope")
+    if scope not in V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPES:
+        raise ValueError("Unsupported pure-solvent bridge evidence scope.")
+    physical = entry.get("physical_liquid_admitted")
+    if not isinstance(physical, bool):
+        raise TypeError("admission.physical_liquid_admitted must be a boolean.")
+    expected_physical = (
+        scope == V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID
+    )
+    if physical is not expected_physical:
+        raise ValueError(
+            "Pure-solvent bridge evidence scope and physical-liquid admission flag disagree."
+        )
+    return scope, _text(entry.get("claim_boundary"), name="admission.claim_boundary")
+
+
 def canonical_float64_array_sha256(values: np.ndarray, *, name: str) -> str:
     """Hash finite real values as little-endian, C-order float64 bytes."""
 
@@ -229,6 +268,8 @@ class Route2V0PureSolventBridgeCertificate:
 
     certificate_path: Path
     content_sha256: str
+    evidence_scope: str
+    admission_claim_boundary: str
     solvent_id: str
     model_identifier: str
     closure: str
@@ -261,6 +302,18 @@ class Route2V0PureSolventBridgeCertificate:
     fine_surface_tension_hartree_per_bohr2: float
     grid_refinement_tolerance_hartree_per_bohr2: float
     excluded_target_label_sets: tuple[str, ...]
+
+    @property
+    def is_physical_pure_liquid_admission(self) -> bool:
+        """Return whether this record claims physical-liquid rather than control.
+
+        Synthetic controls remain useful for scalar and derivative tests only.
+        """
+
+        return (
+            self.evidence_scope
+            == V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID
+        )
 
     @property
     def source_hashes_by_role(self) -> dict[str, str]:
@@ -511,6 +564,7 @@ def load_route2_v0_pure_solvent_bridge_certificate(
     if entry.get("schema_version") != V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_SCHEMA_VERSION:
         raise ValueError("Unsupported pure-solvent bridge certificate schema version.")
     liquid = _mapping(entry.get("liquid_source"), name="liquid_source")
+    evidence_scope, admission_claim_boundary = _admission(entry.get("admission"))
     pressure = _mapping(entry.get("pure_liquid_pressure"), name="pure_liquid_pressure")
     surface = _mapping(entry.get("surface_tension"), name="surface_tension")
     bridge = _mapping(entry.get("bridge"), name="bridge")
@@ -583,6 +637,8 @@ def load_route2_v0_pure_solvent_bridge_certificate(
     return Route2V0PureSolventBridgeCertificate(
         certificate_path=path,
         content_sha256=content_sha256,
+        evidence_scope=evidence_scope,
+        admission_claim_boundary=admission_claim_boundary,
         solvent_id=solvent_id,
         model_identifier=_text(
             liquid.get("model_identifier"), name="Liquid model identifier"
@@ -619,6 +675,9 @@ def load_route2_v0_pure_solvent_bridge_certificate(
 __all__ = [
     "V0_CANONICAL_NUMERIC_ARRAY_DIGEST_CONSTRUCTION",
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_CONSTRUCTION",
+    "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_PHYSICAL_LIQUID",
+    "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPE_SYNTHETIC_CONTROL",
+    "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_EVIDENCE_SCOPES",
     "V0_PURE_SOLVENT_BRIDGE_CERTIFICATE_SCHEMA_VERSION",
     "V0_WEIGHTED_DENSITY_OPERATOR_DIGEST_CONSTRUCTION",
     "Route2V0PureSolventBridgeCertificate",

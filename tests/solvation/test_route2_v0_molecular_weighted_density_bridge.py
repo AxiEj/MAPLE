@@ -241,6 +241,9 @@ def test_bridge_cubic_coefficient_and_pressure_are_same_functional_identities():
     assert asset.is_source_bound_pure_solvent_asset is False
     with pytest.raises(ValueError, match="requires a source-bound"):
         asset.require_source_bound_pure_solvent_asset()
+    assert asset.is_physical_pure_solvent_asset is False
+    with pytest.raises(ValueError, match="requires a source-bound"):
+        asset.require_physical_pure_solvent_asset()
 
 
 def test_bridge_gradient_and_hessian_are_the_derivatives_of_one_scalar():

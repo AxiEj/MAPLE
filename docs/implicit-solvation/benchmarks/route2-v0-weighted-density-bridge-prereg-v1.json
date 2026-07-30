@@ -38,9 +38,10 @@
       "exact SI-to-atomic-unit pressure and surface-tension identities",
       "all frozen solvent-source hashes plus canonical float64/grid digests for D and K",
       "B_low/B_root/B_high, all three stationary residuals, interface count, transverse area, and coarse/fine grid convergence",
+      "explicit evidence scope: synthetic-control or physical-pure-liquid-admission; only the latter may enter a physical endpoint",
       "statement that no MNSol, FreeSolv, development, confirmation, or blind solvation values were read"
     ],
-    "source_bound_constructor": "A physical-admission bridge asset must be built only from a parsed route2-v0-pure-solvent-bridge-certificate-v1 record whose frozen source hashes, HNC pressure, molecular bulk density, D digest, and K digest exactly match the live scalar. Direct synthetic constructors remain derivative controls and cannot establish a physical-liquid or accuracy claim.",
+    "source_bound_constructor": "A source-bound bridge asset must be built only from a parsed route2-v0-pure-solvent-bridge-certificate-v1 record whose frozen source hashes, HNC pressure, molecular bulk density, D digest, and K digest exactly match the live scalar. Direct synthetic constructors remain derivative controls. A source-bound synthetic-control certificate cannot establish a physical-liquid or accuracy claim; any physical endpoint must require the distinct physical-pure-liquid-admission scope and reject a source asset that explicitly says physical liquid is not claimed.",
     "physical_bridge_assets": [],
     "planar_interface_quartic_resolution": {
       "stationary_surface_tension": "gamma(B_s) = [Omega_B_s[nu_B_s^*] - Omega_bulk] / A, with nu_B_s^* stationary under the declared planar boundary conditions and the same frozen HNC, D, and K operators.",

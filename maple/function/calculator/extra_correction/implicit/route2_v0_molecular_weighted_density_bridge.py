@@ -409,6 +409,7 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
     target_surface_tension_hartree_per_bohr2: float
     pure_solvent_certificate_sha256: str
     pure_solvent_certificate: Route2V0PureSolventBridgeCertificate | None = field(
+        init=False,
         default=None,
         repr=False,
         compare=False,
@@ -461,56 +462,6 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
                 "Weighted-density cubic coefficient must be derived from the exact "
                 "source HNC and target pure-solvent pressures."
             )
-        certificate = self.pure_solvent_certificate
-        if certificate is not None:
-            if not isinstance(certificate, Route2V0PureSolventBridgeCertificate):
-                raise TypeError(
-                    "Weighted-density bridge source binding requires a parsed "
-                    "pure-solvent certificate."
-                )
-            certificate_values = (
-                (
-                    "HNC pressure",
-                    hnc_pressure,
-                    certificate.hnc_bulk_pressure_hartree_per_bohr3,
-                ),
-                (
-                    "target pressure",
-                    target_pressure,
-                    certificate.target_bulk_pressure_hartree_per_bohr3,
-                ),
-                (
-                    "cubic coefficient",
-                    cubic,
-                    certificate.cubic_coefficient_hartree_bohr6,
-                ),
-                (
-                    "quartic coefficient",
-                    quartic,
-                    certificate.quartic_coefficient_hartree_bohr15,
-                ),
-                (
-                    "surface tension",
-                    surface_tension,
-                    certificate.target_surface_tension_hartree_per_bohr2,
-                ),
-            )
-            for name, actual, certified in certificate_values:
-                if not math.isclose(
-                    actual,
-                    certified,
-                    rel_tol=1.0e-12,
-                    abs_tol=1.0e-14 * max(1.0, abs(actual), abs(certified)),
-                ):
-                    raise ValueError(
-                        "Weighted-density bridge source binding does not match "
-                        f"its certificate {name}."
-                    )
-            if self.pure_solvent_certificate_sha256 != certificate.content_sha256:
-                raise ValueError(
-                    "Weighted-density bridge certificate digest does not match "
-                    "its parsed source binding."
-                )
         object.__setattr__(self, "hnc_bulk_pressure_hartree_per_bohr3", hnc_pressure)
         object.__setattr__(
             self, "target_bulk_pressure_hartree_per_bohr3", target_pressure
@@ -528,7 +479,7 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
                 name="Pure-solvent bridge certificate",
             ),
         )
-        object.__setattr__(self, "pure_solvent_certificate", certificate)
+        object.__setattr__(self, "pure_solvent_certificate", None)
 
     @classmethod
     def from_pure_solvent_anchors(
@@ -654,7 +605,14 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
             center_projection_sha256=center_digest,
             weighted_density_kernel_sha256=kernel_digest,
         )
-        return cls(
+        if certificate.is_physical_pure_liquid_admission and any(
+            label.casefold() == "physical liquid"
+            for label in frozen_solvent_asset.generation_source.not_claimed
+        ):
+            raise ValueError(
+                "Physical pure-liquid admission contradicts the frozen solvent source's explicit nonphysical claim."
+            )
+        result = cls(
             center_projection=center_projection,
             kernel=kernel,
             hnc_bulk_pressure_hartree_per_bohr3=hnc_pressure,
@@ -671,8 +629,9 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
                 certificate.target_surface_tension_hartree_per_bohr2
             ),
             pure_solvent_certificate_sha256=certificate.content_sha256,
-            pure_solvent_certificate=certificate,
         )
+        object.__setattr__(result, "pure_solvent_certificate", certificate)
+        return result
 
     @property
     def molecular_bulk_number_density_bohr3(self) -> float:
@@ -687,12 +646,32 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
         return self.pure_solvent_certificate is not None
 
     def require_source_bound_pure_solvent_asset(self) -> None:
-        """Reject a synthetic bridge before a physical-liquid calculation."""
+        """Require a parsed certificate attached by the source-bound constructor."""
 
-        if not self.is_source_bound_pure_solvent_asset:
+        certificate = self.pure_solvent_certificate
+        if certificate is None:
             raise ValueError(
-                "Physical weighted-density bridge use requires a source-bound "
-                "pure-solvent certificate."
+                "Physical weighted-density bridge use requires a source-bound pure-solvent certificate."
+            )
+        certificate.verify_content_integrity()
+
+    @property
+    def is_physical_pure_solvent_asset(self) -> bool:
+        """Return whether the attached source-bound record is physically admitted."""
+
+        certificate = self.pure_solvent_certificate
+        return bool(
+            certificate is not None
+            and certificate.is_physical_pure_liquid_admission
+        )
+
+    def require_physical_pure_solvent_asset(self) -> None:
+        """Reject control evidence before a physical-liquid endpoint is evaluated."""
+
+        self.require_source_bound_pure_solvent_asset()
+        if not self.is_physical_pure_solvent_asset:
+            raise ValueError(
+                "Physical weighted-density bridge use requires a physical pure-liquid admission, not a synthetic control certificate."
             )
 
     def free_energy_density_hartree_per_bohr3(

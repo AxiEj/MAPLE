@@ -1,0 +1,97 @@
+{
+  "flexisol-alcohol-1318f363003c90ae": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 102; original experimental reference 10.1021/acs.est.2c06170; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -19.49
+  },
+  "flexisol-aldehyde-23fef3f4c2bbec56": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 445; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -4.69
+  },
+  "flexisol-amide-061374658cf1a4eb": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 337; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -12.6
+  },
+  "flexisol-amine-2067d595535e8841": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 272; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -10.2
+  },
+  "flexisol-carboxylic_acid-1a12fb700e0b7683": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 522; original experimental reference 10.1021/acs.est.2c06170; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -15.69
+  },
+  "flexisol-epoxide-0d0b517a4dfce0b0": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 435; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -5.99
+  },
+  "flexisol-ester-08a31fdfb3b2581f": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 471; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -5.6
+  },
+  "flexisol-ether-0b5535a49c7c187f": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 273; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -6.74
+  },
+  "flexisol-ketone-050d2a5f500700b3": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 300; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -4.74
+  },
+  "flexisol-lactone-31ac4a8aef7904b8": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 428; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -1.36
+  },
+  "flexisol-nitrile-21d922beb70136cc": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 351; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -9.07
+  },
+  "flexisol-nitro-12be98721c5f6018": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 329; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -7.36
+  },
+  "flexisol-organohalogen-04bbdd8746e901e7": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 134; original experimental reference 10.1021/acs.est.2c06170; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -18.42
+  },
+  "flexisol-phenol-3d316fd7822ca908": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 504; original experimental reference 10.1016/j.fluid.2010.09.043; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -15.16
+  },
+  "flexisol-phosphate_ester-534d2b9e08b6ed63": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 511; original experimental reference 10.1016/j.fluid.2010.09.043; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -9.1
+  },
+  "flexisol-sulfonamide-1916aa5d37130c97": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 152; original experimental reference 10.1021/acs.est.3c02545; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -3.89
+  },
+  "flexisol-terminal_alkyne-b864b81b04ad4b88": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 436; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -2.18
+  },
+  "flexisol-thioether-0840c04cc633a86f": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 516; original experimental reference 10.1021/es8005783; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": 4.86
+  },
+  "flexisol-urea-2aeaa3693bc70255": {
+    "provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 46; original experimental reference 10.1021/acs.est.2c06170; FlexiSol paper DOI 10.1039/D5SC06406F",
+    "unit": "kcal/mol",
+    "value": -15.68
+  }
+}

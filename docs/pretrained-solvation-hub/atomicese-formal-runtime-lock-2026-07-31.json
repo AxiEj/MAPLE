@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "runtime_id": "maple-atomicese-formal-linux-x86_64-2026-07-31",
+  "scope": "formal AtomicESE scalar property prediction from the exact pinned packaged Linux executable",
+  "source_repository": "https://github.com/vyboishchikov/AtomicESE",
+  "source_revision": "31e643c7e8974497c78fc2fb6f3c17778d61fa10",
+  "source_tree": "e08ce8bfaf73ca9c35c2b85929067e639d7bf048",
+  "binary_path": "AtomicESE.x",
+  "binary_sha256": "4e300a5875d5f95ed0491816487d0df2ea696f22d2ab6af9bfae04c547da4d0c",
+  "release_audit_path": "benchmarks/atomicese-release-audit-2026-07-31.json",
+  "release_audit_sha256": "efae3cd8355d6221a3814e6f1a8abdc06adb108d95d084f0589dbe3d0bfa708a",
+  "platform": {
+    "architecture": "x86_64",
+    "binary_format": "ELF64_little_endian",
+    "system": "Linux"
+  },
+  "input_contract": {
+    "accuracy_precision_policy": "provider_packaged_unspecified",
+    "charge": 0,
+    "molecular_input_format": "headerless_xyz",
+    "molecular_scope": "one neutral closed-shell connected graph",
+    "target_quantity": "property_prediction"
+  },
+  "solvent_aliases": {
+    "dmf": "n,n-dimethylformamide",
+    "ethanol": "ethanol",
+    "hexadecane": "n-hexadecane",
+    "hexane": "n-hexane",
+    "methanol": "methanol",
+    "octanol": "1-octanol"
+  },
+  "explicitly_unsupported_solvents": [
+    "water"
+  ],
+  "execution_controls": {
+    "binary_source_mode_unchanged": true,
+    "executable_copy_chmod_only": true,
+    "isolated_temporary_working_directory": true,
+    "network_required": false,
+    "stderr_must_be_empty": true,
+    "stdout_must_match_one_scalar_result": true,
+    "zero_exit_code_required": true
+  },
+  "wall_times_recorded": false
+}

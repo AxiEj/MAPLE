@@ -1,0 +1,75 @@
+{
+  "audited_on": "2026-07-31",
+  "bound_sources": {
+    "accuracy_adapter_fingerprint": "b6e473e38f33c0319852ef35bb30c4ac0967daffa77947dcf391c22d86d9c324",
+    "c3net_source_bundle_sha256": "d13990d5ee93c810438b66ac267267eb648babcfd2befbb6c45987288cd455ac",
+    "c3net_source_revision": "191d5a928fb4787d8a6dfb9d0851ee3f74b074d0",
+    "flexisol_reference_sha256": "73a6f25ea9a9fae31bcb7e7c0fb04e452b0df2d24308e25419b98f01daa6ed5f",
+    "flexisol_source_revision": "7b44798f26c888ef541faa6143a813136921483f",
+    "flexisol_source_tree": "8cf4879bc1435ca1061acfffd0daf10784445984",
+    "formal_accuracy_precision_policy": "float32",
+    "functional_group_taxonomy_sha256": "46e073d0e253d7534b7f516f1cc2096ba0abfea84ddc170c95fc86634c917b36",
+    "observed_runtime_lock_sha256": "3db89924dae337c6cb5de7cabc67f87b7c32ef6a05d5a7321927ff443fc342d6",
+    "panel_runner_sha256": "83676280fcabecbd784616d5c6fd9ed31b556f5faba4fe0dc97b5046b450657d"
+  },
+  "canonical_artifact": "benchmarks/c3net-flexisol-formal-2026-07-30",
+  "command": {
+    "c3net_source_bundle": "/home/axie/.cache/maple-benchmarks/c3net/c3net-191d5a928fb4787d.bundle",
+    "c3net_source_root": "/home/axie/.cache/maple-benchmarks/c3net/source",
+    "flexisol_source_root": "/home/axie/.cache/maple-benchmarks/flexisol",
+    "output_directory_policy": "two distinct nonexistent same-filesystem directories",
+    "python": "/home/axie/miniconda3/envs/maple/bin/python",
+    "script": "docs/pretrained-solvation-hub/run_c3net_flexisol_formal_accuracy.py"
+  },
+  "diagnostics": {
+    "artifact_span_definition": "filesystem mtime span from the first emitted panel file to result.json; a positive reproducibility diagnostic and lower bound only",
+    "artifact_span_is_wall_clock_or_performance_evidence": false,
+    "cold_warm_host_cache_state_controlled": false,
+    "strict_performance_admission_requires_separate_trusted_full_task_receipts": true,
+    "timings_are_matched_qm_performance_evidence": false,
+    "timings_are_reproducibility_diagnostics_only": true
+  },
+  "file_count": 21,
+  "file_manifest_sha256": "4abf09fbaca5170f3a8e03831caec526c1cffa6c38b0d9c620e5d9efca20f8c5",
+  "file_manifest_sha256_algorithm": "sha256(canonical compact sorted JSON of relative_file_sha256)",
+  "full_tree_byte_identical": true,
+  "relative_file_sha256": {
+    "experimental-references.json": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+    "inputs/flexisol-alcohol-1318f363003c90ae.sdf": "6c5291619e8248f31a8e08cfc85b9c229db07e002804695e358e9a3801e90a47",
+    "inputs/flexisol-aldehyde-23fef3f4c2bbec56.sdf": "aff025ea4fb1e7c1598da45ee98bbd13396255f0716510d2749f2c8feec218d1",
+    "inputs/flexisol-amide-061374658cf1a4eb.sdf": "022afffcd73df0c1b665cb9ad6ce0c8227865d085129756dec2ef2e36dbde9ad",
+    "inputs/flexisol-amine-2067d595535e8841.sdf": "e8a3034de6d932b3c969dfbb0e2c5aa5de6f698fbc54cef41d8e5c4e24eb7ee9",
+    "inputs/flexisol-carboxylic_acid-1a12fb700e0b7683.sdf": "08f5ce527a6a8b1fbf760ba0c40c3b6582e2b37b20ec06c7adb370a443d704ee",
+    "inputs/flexisol-epoxide-0d0b517a4dfce0b0.sdf": "93c4f0ee0ee655fddfa9921602a69b9c7800f3309f368e81cc752c5b00d6decb",
+    "inputs/flexisol-ester-08a31fdfb3b2581f.sdf": "4b5dcefb331cac6370441af30be42d65d5ed1c5cb909f032f72356a6f981706e",
+    "inputs/flexisol-ether-0b5535a49c7c187f.sdf": "d211549a46d4fb1ff161ff069cba96197f03348ede90f3b6445971fe18cedf36",
+    "inputs/flexisol-ketone-050d2a5f500700b3.sdf": "80bdfefc1ab08b3e87f007e64f7dcb51f495936441ec052037c49e013c3d2295",
+    "inputs/flexisol-lactone-31ac4a8aef7904b8.sdf": "289081fe2e904d53f95149d4cfb605cf5233bb23ae761d20696b8b112e89490e",
+    "inputs/flexisol-nitrile-21d922beb70136cc.sdf": "8299696eb5949db28efc49ce1742cacc836f1324e06db76f9376306ac868ef2c",
+    "inputs/flexisol-nitro-12be98721c5f6018.sdf": "5ac497f532d6b68f118414edf112dab2992cb2e9600ce5aaad3efb8002bf4ea1",
+    "inputs/flexisol-organohalogen-04bbdd8746e901e7.sdf": "af0bd49fbb949b0edec9116e6982f4e0d2d182cf33a0dfd66435985f6f177ea6",
+    "inputs/flexisol-phenol-3d316fd7822ca908.sdf": "9e20bf8d1efc8b41d15e913f0894b6eb1f23c77a371917673473bb4b6cd38289",
+    "inputs/flexisol-phosphate_ester-534d2b9e08b6ed63.sdf": "a34c6b2d57f9e72f8fa0cf597983d14d0eb519971553e7103150470cab537d48",
+    "inputs/flexisol-sulfonamide-1916aa5d37130c97.sdf": "99cd91900359ed42233ed7849a1573764938edf7939025a104e2ba95cc461f9e",
+    "inputs/flexisol-terminal_alkyne-b864b81b04ad4b88.sdf": "d18f2b66c4132d97f5c9035e28aa5fa77af4880dc547c737aa7b103c2fb5c498",
+    "inputs/flexisol-thioether-0840c04cc633a86f.sdf": "785f7acef1a6fb3bf0d09c302a374183ad9c0bf57e009721b8f0989e20f89fa5",
+    "inputs/flexisol-urea-2aeaa3693bc70255.sdf": "368f3dee418bb52dddcec9ae6d196906116b5aa445d8d81a9fbf48a071c0f919",
+    "result.json": "fdd2f535b2e8be04788323283812f20c817e3641d783339f6b80b3c92db3884e"
+  },
+  "result_sha256": "fdd2f535b2e8be04788323283812f20c817e3641d783339f6b80b3c92db3884e",
+  "runs": [
+    {
+      "artifact_write_span_seconds": 174.80396,
+      "file_count": 21,
+      "file_manifest_sha256": "4abf09fbaca5170f3a8e03831caec526c1cffa6c38b0d9c620e5d9efca20f8c5",
+      "run_label": "precision-receipt-a"
+    },
+    {
+      "artifact_write_span_seconds": 164.851994,
+      "file_count": 21,
+      "file_manifest_sha256": "4abf09fbaca5170f3a8e03831caec526c1cffa6c38b0d9c620e5d9efca20f8c5",
+      "run_label": "precision-receipt-b"
+    }
+  ],
+  "schema_version": 2
+}

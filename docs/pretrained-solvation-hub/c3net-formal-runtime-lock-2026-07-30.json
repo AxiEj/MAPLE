@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "runtime_id": "maple-c3net-formal-cpu-2026-07-30",
+  "scope": "observed executable runtime for formal C3Net accuracy; distinct from the upstream historical environment.yaml",
+  "python": {
+    "implementation": "CPython",
+    "version": "3.11.14"
+  },
+  "packages": {
+    "numpy": "2.4.6",
+    "rdkit": "2024.09.2",
+    "torch": "2.12.0+cu130"
+  },
+  "platform": {
+    "byteorder": "little",
+    "machine": "x86_64",
+    "system": "Linux"
+  },
+  "build_fingerprints": {
+    "numpy_config_sha256": "d4be266556fe97be34505d19fd07970d24c86c83a528ad126cc4bc5792380ea6",
+    "rdkit_build": "Linux|6.5.0-1025-azure|UNIX|GNU|64-bit",
+    "torch_build_settings_sha256": "737c760cbec9be571b30737c29b1a9e7b50ad5932d08f27b3a8faf6ce87261b1"
+  },
+  "required_controls": {
+    "deterministic_algorithms": true,
+    "interop_threads": 1,
+    "matmul_precision": "highest",
+    "numpy_random_seed": 0,
+    "python_random_seed": 0,
+    "torch_random_seed": 0,
+    "torch_threads": 1
+  }
+}

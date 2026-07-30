@@ -1,0 +1,149 @@
+{
+  "acceptance_eligible": false,
+  "admission_gates": {
+    "acceptance_eligible": false,
+    "accuracy_admission_eligible": false,
+    "gpu_admission_eligible": false,
+    "matched_qm_speed_eligible": false
+  },
+  "artifact": "AtomicESE",
+  "audit_type": "release_identity_and_sandboxed_scalar_cli_boundary",
+  "audited_on": "2026-07-31",
+  "capability_boundary": {
+    "forces": false,
+    "free_energy_sampling_protocol": false,
+    "mlip": false,
+    "potential_energy_surface": false,
+    "scalar_solvation_estimator_only": true,
+    "thermodynamic_protocol": false
+  },
+  "cli_contract": {
+    "coordinate_unit": "angstrom",
+    "default_charge": 0,
+    "documented_syntax": "AtomicESE.exe xyz-file -solvent solvent [-charge charge] [-PrintAtomicContributions]",
+    "exact_standard_state_definition_exposed": false,
+    "geometry_format": "headerless atomic symbols or numbers and Cartesian coordinates",
+    "optional_atomic_contributions": true,
+    "quantity_label": "standard solvation free energy DeltaG\u00b0solv",
+    "solvation_output_unit": "kcal/mol",
+    "standard_state_status": "unknown_from_pinned_release"
+  },
+  "identity": {
+    "checkout_clean": true,
+    "files": {
+      "AtomicESE.exe": {
+        "git_blob": "1c9fa5a93943704e8394df6e7991dce4b35367c0",
+        "sha256": "7951aacd8560d7e49eed8dddfeefa4015a2ec026ba8207024ebc50ba3dca3805",
+        "size_bytes": 2147977,
+        "verified": true
+      },
+      "AtomicESE.x": {
+        "git_blob": "fc56f822a20a55ba598e61a1088847c9b0b27d3d",
+        "sha256": "4e300a5875d5f95ed0491816487d0df2ea696f22d2ab6af9bfae04c547da4d0c",
+        "size_bytes": 1525368,
+        "verified": true
+      },
+      "README.md": {
+        "git_blob": "f7641a138fbbc281f3e126c719e46b06fbaa71b5",
+        "sha256": "cf1c6d212af52dd70c177176d7246d30b43a78c0889ac9d44b04e175c1113b25",
+        "size_bytes": 4496,
+        "verified": true
+      },
+      "input-example-0423brt.xyz": {
+        "git_blob": "d6e95c81ade5b571a8b6eb5c27675428a652b89b",
+        "sha256": "f374fad795e7a1da572d9d7505733870936cbf402a69dcc9c6b6da6219aae579",
+        "size_bytes": 212,
+        "verified": true
+      }
+    },
+    "repository": "https://github.com/vyboishchikov/AtomicESE",
+    "revision": "31e643c7e8974497c78fc2fb6f3c17778d61fa10",
+    "tree": "e08ce8bfaf73ca9c35c2b85929067e639d7bf048"
+  },
+  "packaged_compute_evidence": {
+    "gpu_runtime_verified": false,
+    "linux_binary": {
+      "architecture": "x86_64",
+      "format": "ELF64_little_endian",
+      "statically_linked_no_dynamic_segment": true
+    },
+    "packaged_gpu_capability_status": "unverified_no_selected_gpu_or_cuda_ascii_markers",
+    "runtime_reports_cpu_time": true,
+    "selected_gpu_or_cuda_ascii_markers_checked": [
+      "cuda",
+      "cudnn",
+      "cublas",
+      "nvidia",
+      "opencl"
+    ],
+    "selected_gpu_or_cuda_ascii_markers_present": false,
+    "windows_binary_format": "PE32+_x86_64_console"
+  },
+  "release_boundary": {
+    "checkpoint_identity_ledger_present_in_pinned_git_tree": false,
+    "external_publication_or_supporting_information_audited": false,
+    "license_file_present_in_pinned_git_tree": false,
+    "license_terms_verified_for_pinned_git_release": false,
+    "model_identity_packaged_only_within_pinned_git_tree": true,
+    "model_training_or_overlap_ledger_present_in_pinned_git_tree": false,
+    "publication_declared_external_supporting_information": {
+      "bytes_audited": false,
+      "locator": "https://onlinelibrary.wiley.com/doi/suppl/10.1002/jcc.70104/supinfo/jcc70104-sup-0001-supinfo.zip",
+      "reported_contents": "scaling factors, weights, biases, and calculated solvation free energies",
+      "sha256": null
+    },
+    "scope": "exact_pinned_official_git_tree_only",
+    "separate_checkpoint_artifact_present_in_pinned_git_tree": false,
+    "source_code_present_in_pinned_git_tree": false,
+    "tree_paths": [
+      "AtomicESE.exe",
+      "AtomicESE.x",
+      "README.md",
+      "input-example-0423brt.xyz"
+    ]
+  },
+  "route4_decision": {
+    "allowed_use": "release provenance and CLI boundary evidence only",
+    "integration_performed": false,
+    "status": "audit_only_not_integrated"
+  },
+  "runtime": {
+    "failure_semantics": {
+      "controlled_error_exit_code": 0,
+      "exit_code_alone_is_success_evidence": false,
+      "unknown_solvent_diagnostic_verified": true,
+      "water_diagnostic_verified": true,
+      "water_supported": false
+    },
+    "sample": {
+      "arguments": [
+        "input-example-0423brt.xyz",
+        "-solvent",
+        "acetone"
+      ],
+      "deterministic_for_repeated_identical_cli_inputs": true,
+      "repeat_count": 3,
+      "scalar_result": -5.92,
+      "unique_scalar_result_count": 1,
+      "unit": "kcal/mol",
+      "wall_times_recorded_as_admission_evidence": false
+    },
+    "sandbox": {
+      "bubblewrap_path": "/usr/bin/bwrap",
+      "environment_cleared": true,
+      "network_namespace": "unshared",
+      "pinned_cache_executed": false,
+      "temporary_binary_copy_chmod": "0700",
+      "temporary_tree_mounted_read_only": true
+    }
+  },
+  "schema_version": 1,
+  "validation_scope": {
+    "accuracy_validated": false,
+    "experimental_records_read": false,
+    "experimental_scoring_performed": false,
+    "matched_qm_benchmark_performed": false,
+    "maximum_error_computed": false,
+    "wall_time_used_for_admission": false
+  }
+}

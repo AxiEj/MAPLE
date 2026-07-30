@@ -1,0 +1,5891 @@
+{
+  "accuracy": {
+    "accuracy_adapter_fingerprint": "b6e473e38f33c0319852ef35bb30c4ac0967daffa77947dcf391c22d86d9c324",
+    "accuracy_adapter_id": "c3net-formal-v1",
+    "accuracy_evaluation_performed": true,
+    "accuracy_metric_reporting_allowed": true,
+    "accuracy_precision_policy": "float32",
+    "coverage": 1.0,
+    "evaluated_count": 19,
+    "experimental_references_verified_from_artifacts": true,
+    "failure_count": 0,
+    "failure_rate": 0.0,
+    "functional_group_coverage": {
+      "accuracy_adapter_identity_declared": true,
+      "assignment_basis": "distinct predeclared primary functional-group families",
+      "experimental_references_complete": true,
+      "functional_group_taxonomy": "maple-rdkit-structural-functional-groups",
+      "functional_group_taxonomy_fingerprint": "4928108edfe8529a9302484cca01d60860bb5bc53458db668c79994c91f65db2",
+      "minimum_distinct_functional_groups": 10,
+      "minimum_record_count": 10,
+      "observed_count": 19,
+      "observed_functional_groups": [
+        "alcohol",
+        "aldehyde",
+        "amide",
+        "amine",
+        "carboxylic_acid",
+        "epoxide",
+        "ester",
+        "ether",
+        "ketone",
+        "lactone",
+        "nitrile",
+        "nitro",
+        "organohalogen",
+        "phenol",
+        "phosphate_ester",
+        "sulfonamide",
+        "terminal_alkyne",
+        "thioether",
+        "urea"
+      ],
+      "observed_record_count": 19,
+      "passes": true,
+      "record_assignments_complete": true,
+      "record_count_passes": true,
+      "record_inputs_complete": true
+    },
+    "identity_fingerprint": "ebeb871cb9b7767a362cc7bf54ed16471b76c60745e1a59fe53b7691566c5075",
+    "mae_bootstrap_95_ci_kcal_mol": [
+      1.292102422845991,
+      3.1776270897639427
+    ],
+    "matched_task_fingerprint": "c808146e8381e925cf4111a881b7efbaa8a062ad26e1442c6367a2557fd0a04f",
+    "metrics": {
+      "kendall_tau_b": 0.8011695906432749,
+      "mae_kcal_mol": 2.148012556778758,
+      "maximum_absolute_error_kcal_mol": 8.459287071228028,
+      "mean_signed_error_kcal_mol": -1.1833794694197806,
+      "median_absolute_error_kcal_mol": 1.7136420631408695,
+      "r_squared": 0.7665276107273293,
+      "rmse_kcal_mol": 2.9857217677885237,
+      "spearman_rho": 0.9192982456140351
+    },
+    "molecular_inputs_passed_as_verified_bytes_without_source_paths": true,
+    "panel_fingerprint": "c4d8fb2efaf7c00dcff04f3e93b0a170e56a190b20cb1205810afec1f1c32722",
+    "per_record_errors": [
+      {
+        "absolute_error_kcal_mol": 2.2363150024414047,
+        "experimental_kcal_mol": -19.49,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 102; original experimental reference 10.1021/acs.est.2c06170; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-alcohol-1318f363003c90ae",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:OCC(O)C(O)C(O)C(O)CO",
+        "functional_groups": [
+          "alcohol"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L102;generated:flexisol-alcohol-1318f363003c90ae.sdf",
+        "molecular_input_sha256": "6c5291619e8248f31a8e08cfc85b9c229db07e002804695e358e9a3801e90a47",
+        "predicted_kcal_mol": -17.253684997558594,
+        "primary_functional_group": "alcohol",
+        "record_id": "flexisol-alcohol-1318f363003c90ae",
+        "signed_error_kcal_mol": 2.2363150024414047,
+        "solute_structure_identifier": "SMILES:OCC(O)C(O)C(O)C(O)CO"
+      },
+      {
+        "absolute_error_kcal_mol": 3.0843411064147945,
+        "experimental_kcal_mol": -4.69,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 445; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-aldehyde-23fef3f4c2bbec56",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:O=Cc1ccccc1O",
+        "functional_groups": [
+          "alcohol",
+          "aldehyde",
+          "phenol"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L445;generated:flexisol-aldehyde-23fef3f4c2bbec56.sdf",
+        "molecular_input_sha256": "aff025ea4fb1e7c1598da45ee98bbd13396255f0716510d2749f2c8feec218d1",
+        "predicted_kcal_mol": -7.774341106414795,
+        "primary_functional_group": "aldehyde",
+        "record_id": "flexisol-aldehyde-23fef3f4c2bbec56",
+        "signed_error_kcal_mol": -3.0843411064147945,
+        "solute_structure_identifier": "SMILES:O=Cc1ccccc1O"
+      },
+      {
+        "absolute_error_kcal_mol": 1.8680263519287106,
+        "experimental_kcal_mol": -12.6,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 337; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-amide-061374658cf1a4eb",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:CNC(=O)Oc1ccccc1C1OCCO1",
+        "functional_groups": [
+          "amide",
+          "ether"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L337;generated:flexisol-amide-061374658cf1a4eb.sdf",
+        "molecular_input_sha256": "022afffcd73df0c1b665cb9ad6ce0c8227865d085129756dec2ef2e36dbde9ad",
+        "predicted_kcal_mol": -14.46802635192871,
+        "primary_functional_group": "amide",
+        "record_id": "flexisol-amide-061374658cf1a4eb",
+        "signed_error_kcal_mol": -1.8680263519287106,
+        "solute_structure_identifier": "SMILES:CNC(=O)Oc1ccccc1C1OCCO1"
+      },
+      {
+        "absolute_error_kcal_mol": 2.917912864685059,
+        "experimental_kcal_mol": -10.2,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 272; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-amine-2067d595535e8841",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:O=[N+]([O-])c1ccc(Nc2ccccc2)c([N+](=O)[O-])c1",
+        "functional_groups": [
+          "amine",
+          "nitro"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L272;generated:flexisol-amine-2067d595535e8841.sdf",
+        "molecular_input_sha256": "e8a3034de6d932b3c969dfbb0e2c5aa5de6f698fbc54cef41d8e5c4e24eb7ee9",
+        "predicted_kcal_mol": -13.117912864685058,
+        "primary_functional_group": "amine",
+        "record_id": "flexisol-amine-2067d595535e8841",
+        "signed_error_kcal_mol": -2.917912864685059,
+        "solute_structure_identifier": "SMILES:O=[N+]([O-])c1ccc(Nc2ccccc2)c([N+](=O)[O-])c1"
+      },
+      {
+        "absolute_error_kcal_mol": 0.37787872314453175,
+        "experimental_kcal_mol": -15.69,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 522; original experimental reference 10.1021/acs.est.2c06170; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-carboxylic_acid-1a12fb700e0b7683",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:Nc1c(Cl)c(Cl)nc(C(=O)O)c1Cl",
+        "functional_groups": [
+          "amine",
+          "carboxylic_acid",
+          "organohalogen"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L522;generated:flexisol-carboxylic_acid-1a12fb700e0b7683.sdf",
+        "molecular_input_sha256": "08f5ce527a6a8b1fbf760ba0c40c3b6582e2b37b20ec06c7adb370a443d704ee",
+        "predicted_kcal_mol": -16.06787872314453,
+        "primary_functional_group": "carboxylic_acid",
+        "record_id": "flexisol-carboxylic_acid-1a12fb700e0b7683",
+        "signed_error_kcal_mol": -0.37787872314453175,
+        "solute_structure_identifier": "SMILES:Nc1c(Cl)c(Cl)nc(C(=O)O)c1Cl"
+      },
+      {
+        "absolute_error_kcal_mol": 0.6642195320129396,
+        "experimental_kcal_mol": -5.99,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 435; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-epoxide-0d0b517a4dfce0b0",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:c1ccc(OCC2CO2)cc1",
+        "functional_groups": [
+          "epoxide",
+          "ether"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L435;generated:flexisol-epoxide-0d0b517a4dfce0b0.sdf",
+        "molecular_input_sha256": "93c4f0ee0ee655fddfa9921602a69b9c7800f3309f368e81cc752c5b00d6decb",
+        "predicted_kcal_mol": -6.65421953201294,
+        "primary_functional_group": "epoxide",
+        "record_id": "flexisol-epoxide-0d0b517a4dfce0b0",
+        "signed_error_kcal_mol": -0.6642195320129396,
+        "solute_structure_identifier": "SMILES:c1ccc(OCC2CO2)cc1"
+      },
+      {
+        "absolute_error_kcal_mol": 8.459287071228028,
+        "experimental_kcal_mol": -5.6,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 471; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-ester-08a31fdfb3b2581f",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:CCOC(=O)C1CC(=O)C(=C(O)C2CC2)C(=O)C1",
+        "functional_groups": [
+          "alcohol",
+          "ester",
+          "ether",
+          "ketone"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L471;generated:flexisol-ester-08a31fdfb3b2581f.sdf",
+        "molecular_input_sha256": "4b5dcefb331cac6370441af30be42d65d5ed1c5cb909f032f72356a6f981706e",
+        "predicted_kcal_mol": -14.059287071228027,
+        "primary_functional_group": "ester",
+        "record_id": "flexisol-ester-08a31fdfb3b2581f",
+        "signed_error_kcal_mol": -8.459287071228028,
+        "solute_structure_identifier": "SMILES:CCOC(=O)C1CC(=O)C(=C(O)C2CC2)C(=O)C1"
+      },
+      {
+        "absolute_error_kcal_mol": 1.7136420631408695,
+        "experimental_kcal_mol": -6.74,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 273; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-ether-0b5535a49c7c187f",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:CC1CN(N=O)CC(C)O1",
+        "functional_groups": [
+          "ether"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L273;generated:flexisol-ether-0b5535a49c7c187f.sdf",
+        "molecular_input_sha256": "d211549a46d4fb1ff161ff069cba96197f03348ede90f3b6445971fe18cedf36",
+        "predicted_kcal_mol": -5.026357936859131,
+        "primary_functional_group": "ether",
+        "record_id": "flexisol-ether-0b5535a49c7c187f",
+        "signed_error_kcal_mol": 1.7136420631408695,
+        "solute_structure_identifier": "SMILES:CC1CN(N=O)CC(C)O1"
+      },
+      {
+        "absolute_error_kcal_mol": 0.3434551620483397,
+        "experimental_kcal_mol": -4.74,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 300; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-ketone-050d2a5f500700b3",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:CC(=O)C=CC1=C(C)CCCC1(C)C",
+        "functional_groups": [
+          "ketone"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L300;generated:flexisol-ketone-050d2a5f500700b3.sdf",
+        "molecular_input_sha256": "80bdfefc1ab08b3e87f007e64f7dcb51f495936441ec052037c49e013c3d2295",
+        "predicted_kcal_mol": -4.3965448379516605,
+        "primary_functional_group": "ketone",
+        "record_id": "flexisol-ketone-050d2a5f500700b3",
+        "signed_error_kcal_mol": 0.3434551620483397,
+        "solute_structure_identifier": "SMILES:CC(=O)C=CC1=C(C)CCCC1(C)C"
+      },
+      {
+        "absolute_error_kcal_mol": 0.823903622627258,
+        "experimental_kcal_mol": -1.36,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 428; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-lactone-31ac4a8aef7904b8",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:O=C1CCCCCCCCCCCCCCO1",
+        "functional_groups": [
+          "ester",
+          "ether",
+          "lactone"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L428;generated:flexisol-lactone-31ac4a8aef7904b8.sdf",
+        "molecular_input_sha256": "289081fe2e904d53f95149d4cfb605cf5233bb23ae761d20696b8b112e89490e",
+        "predicted_kcal_mol": -2.183903622627258,
+        "primary_functional_group": "lactone",
+        "record_id": "flexisol-lactone-31ac4a8aef7904b8",
+        "signed_error_kcal_mol": -0.823903622627258,
+        "solute_structure_identifier": "SMILES:O=C1CCCCCCCCCCCCCCO1"
+      },
+      {
+        "absolute_error_kcal_mol": 0.881417102813721,
+        "experimental_kcal_mol": -9.07,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 351; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-nitrile-21d922beb70136cc",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:N#Cc1c[nH]cc1-c1cccc(Cl)c1Cl",
+        "functional_groups": [
+          "nitrile",
+          "organohalogen"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L351;generated:flexisol-nitrile-21d922beb70136cc.sdf",
+        "molecular_input_sha256": "8299696eb5949db28efc49ce1742cacc836f1324e06db76f9376306ac868ef2c",
+        "predicted_kcal_mol": -8.18858289718628,
+        "primary_functional_group": "nitrile",
+        "record_id": "flexisol-nitrile-21d922beb70136cc",
+        "signed_error_kcal_mol": 0.881417102813721,
+        "solute_structure_identifier": "SMILES:N#Cc1c[nH]cc1-c1cccc(Cl)c1Cl"
+      },
+      {
+        "absolute_error_kcal_mol": 0.04867540359497102,
+        "experimental_kcal_mol": -7.36,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 329; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-nitro-12be98721c5f6018",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:COP(=S)(OC)Oc1ccc([N+](=O)[O-])cc1Cl",
+        "functional_groups": [
+          "nitro",
+          "organohalogen"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L329;generated:flexisol-nitro-12be98721c5f6018.sdf",
+        "molecular_input_sha256": "5ac497f532d6b68f118414edf112dab2992cb2e9600ce5aaad3efb8002bf4ea1",
+        "predicted_kcal_mol": -7.311324596405029,
+        "primary_functional_group": "nitro",
+        "record_id": "flexisol-nitro-12be98721c5f6018",
+        "signed_error_kcal_mol": 0.04867540359497102,
+        "solute_structure_identifier": "SMILES:COP(=S)(OC)Oc1ccc([N+](=O)[O-])cc1Cl"
+      },
+      {
+        "absolute_error_kcal_mol": 1.175744934082033,
+        "experimental_kcal_mol": -18.42,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 134; original experimental reference 10.1021/acs.est.2c06170; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-organohalogen-04bbdd8746e901e7",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:O=P(OCC(Br)CBr)(OCC(Br)CBr)OCC(Br)CBr",
+        "functional_groups": [
+          "organohalogen",
+          "phosphate_ester",
+          "phosphoric_acid"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L134;generated:flexisol-organohalogen-04bbdd8746e901e7.sdf",
+        "molecular_input_sha256": "af0bd49fbb949b0edec9116e6982f4e0d2d182cf33a0dfd66435985f6f177ea6",
+        "predicted_kcal_mol": -17.24425506591797,
+        "primary_functional_group": "organohalogen",
+        "record_id": "flexisol-organohalogen-04bbdd8746e901e7",
+        "signed_error_kcal_mol": 1.175744934082033,
+        "solute_structure_identifier": "SMILES:O=P(OCC(Br)CBr)(OCC(Br)CBr)OCC(Br)CBr"
+      },
+      {
+        "absolute_error_kcal_mol": 0.9660757446289061,
+        "experimental_kcal_mol": -15.16,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 504; original experimental reference 10.1016/j.fluid.2010.09.043; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-phenol-3d316fd7822ca908",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:CC12CCC3c4ccc(O)cc4CCC3C1CCC2O",
+        "functional_groups": [
+          "alcohol",
+          "phenol"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L504;generated:flexisol-phenol-3d316fd7822ca908.sdf",
+        "molecular_input_sha256": "9e20bf8d1efc8b41d15e913f0894b6eb1f23c77a371917673473bb4b6cd38289",
+        "predicted_kcal_mol": -16.126075744628906,
+        "primary_functional_group": "phenol",
+        "record_id": "flexisol-phenol-3d316fd7822ca908",
+        "signed_error_kcal_mol": -0.9660757446289061,
+        "solute_structure_identifier": "SMILES:CC12CCC3c4ccc(O)cc4CCC3C1CCC2O"
+      },
+      {
+        "absolute_error_kcal_mol": 2.8366708755493164,
+        "experimental_kcal_mol": -9.1,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 511; original experimental reference 10.1016/j.fluid.2010.09.043; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-phosphate_ester-534d2b9e08b6ed63",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:CCOP(=O)(OCC)OP(=O)(OCC)OCC",
+        "functional_groups": [
+          "phosphate_ester",
+          "phosphoric_acid"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L511;generated:flexisol-phosphate_ester-534d2b9e08b6ed63.sdf",
+        "molecular_input_sha256": "a34c6b2d57f9e72f8fa0cf597983d14d0eb519971553e7103150470cab537d48",
+        "predicted_kcal_mol": -11.936670875549316,
+        "primary_functional_group": "phosphate_ester",
+        "record_id": "flexisol-phosphate_ester-534d2b9e08b6ed63",
+        "signed_error_kcal_mol": -2.8366708755493164,
+        "solute_structure_identifier": "SMILES:CCOP(=O)(OCC)OP(=O)(OCC)OCC"
+      },
+      {
+        "absolute_error_kcal_mol": 2.0863845968246464,
+        "experimental_kcal_mol": -3.89,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 152; original experimental reference 10.1021/acs.est.3c02545; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-sulfonamide-1916aa5d37130c97",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:CNS(=O)(=O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F",
+        "functional_groups": [
+          "sulfonamide"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L152;generated:flexisol-sulfonamide-1916aa5d37130c97.sdf",
+        "molecular_input_sha256": "99cd91900359ed42233ed7849a1573764938edf7939025a104e2ba95cc461f9e",
+        "predicted_kcal_mol": -1.803615403175354,
+        "primary_functional_group": "sulfonamide",
+        "record_id": "flexisol-sulfonamide-1916aa5d37130c97",
+        "signed_error_kcal_mol": 2.0863845968246464,
+        "solute_structure_identifier": "SMILES:CNS(=O)(=O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F"
+      },
+      {
+        "absolute_error_kcal_mol": 0.6783800649642946,
+        "experimental_kcal_mol": -2.18,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 436; original experimental reference 10.5194/acp-23-10901-2023; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-terminal_alkyne-b864b81b04ad4b88",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:C#Cc1ccccc1",
+        "functional_groups": [
+          "terminal_alkyne"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L436;generated:flexisol-terminal_alkyne-b864b81b04ad4b88.sdf",
+        "molecular_input_sha256": "d18f2b66c4132d97f5c9035e28aa5fa77af4880dc547c737aa7b103c2fb5c498",
+        "predicted_kcal_mol": -1.5016199350357056,
+        "primary_functional_group": "terminal_alkyne",
+        "record_id": "flexisol-terminal_alkyne-b864b81b04ad4b88",
+        "signed_error_kcal_mol": 0.6783800649642946,
+        "solute_structure_identifier": "SMILES:C#Cc1ccccc1"
+      },
+      {
+        "absolute_error_kcal_mol": 6.319289383888245,
+        "experimental_kcal_mol": 4.86,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 516; original experimental reference 10.1021/es8005783; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-thioether-0840c04cc633a86f",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:C=CCSCC=C",
+        "functional_groups": [
+          "thioether"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L516;generated:flexisol-thioether-0840c04cc633a86f.sdf",
+        "molecular_input_sha256": "785f7acef1a6fb3bf0d09c302a374183ad9c0bf57e009721b8f0989e20f89fa5",
+        "predicted_kcal_mol": -1.4592893838882446,
+        "primary_functional_group": "thioether",
+        "record_id": "flexisol-thioether-0840c04cc633a86f",
+        "signed_error_kcal_mol": -6.319289383888245,
+        "solute_structure_identifier": "SMILES:C=CCSCC=C"
+      },
+      {
+        "absolute_error_kcal_mol": 3.3306189727783213,
+        "experimental_kcal_mol": -15.68,
+        "experimental_provenance": "FlexiSol 7b44798f26c888ef541faa6143a813136921483f data/references/dgsolv-references.csv line 46; original experimental reference 10.1021/acs.est.2c06170; FlexiSol paper DOI 10.1039/D5SC06406F",
+        "experimental_source_artifact_sha256": "f0e4d02c8880f052183310139e73828415a5a0ffd76e14a0ca17fcdc814ce410",
+        "experimental_source_record_locator": "$.flexisol-urea-2aeaa3693bc70255",
+        "experimental_unit": "kcal/mol",
+        "functional_group_assignment_evidence": "frozen taxonomy SMARTS applied to the exact generated SDF graph before any C3Net output",
+        "functional_group_structure_identifier": "SMILES:CN(C)C(=O)Nc1ccc(Oc2ccc(Cl)cc2)cc1",
+        "functional_groups": [
+          "amide",
+          "ether",
+          "organohalogen",
+          "urea"
+        ],
+        "molecular_input_format": "sdf_conformers",
+        "molecular_input_locator": "flexisol-git:7b44798f26c888ef541faa6143a813136921483f:data/references/dgsolv-references.csv#L46;generated:flexisol-urea-2aeaa3693bc70255.sdf",
+        "molecular_input_sha256": "368f3dee418bb52dddcec9ae6d196906116b5aa445d8d81a9fbf48a071c0f919",
+        "predicted_kcal_mol": -19.01061897277832,
+        "primary_functional_group": "urea",
+        "record_id": "flexisol-urea-2aeaa3693bc70255",
+        "signed_error_kcal_mol": -3.3306189727783213,
+        "solute_structure_identifier": "SMILES:CN(C)C(=O)Nc1ccc(Oc2ccc(Cl)cc2)cc1"
+      }
+    ],
+    "predictions_executed_in_filesystem_sandbox": true,
+    "predictions_executed_in_label_free_spawned_interpreter": true,
+    "record_count": 19,
+    "target_quantity": "property_prediction"
+  },
+  "accuracy_adapter_fingerprint": "b6e473e38f33c0319852ef35bb30c4ac0967daffa77947dcf391c22d86d9c324",
+  "accuracy_adapter_id": "c3net-formal-v1",
+  "accuracy_gate": {
+    "evaluated_before_speed": true,
+    "maximum_absolute_error_limit_kcal_mol": 1.5,
+    "passed": false,
+    "strict_inequality_required": true
+  },
+  "audited_on": "2026-07-30",
+  "dataset": {
+    "name": "FlexiSol-dGsolv",
+    "paper_doi": "10.1039/D5SC06406F",
+    "reference_path": "data/references/dgsolv-references.csv",
+    "reference_sha256": "73a6f25ea9a9fae31bcb7e7c0fb04e452b0df2d24308e25419b98f01daa6ed5f",
+    "source_revision": "7b44798f26c888ef541faa6143a813136921483f",
+    "source_tree": "8cf4879bc1435ca1061acfffd0daf10784445984",
+    "source_url": "https://github.com/grimme-lab/flexisol"
+  },
+  "implementation_artifacts": [
+    {
+      "artifact_sha256": "b73646113aff5c5633d7f804416f798a703e97ac5bb4b8966573a8105273d392",
+      "role": "adapter_code"
+    },
+    {
+      "artifact_sha256": "9d018d4af7f4c2626f6d9524a9d6cc027083004c6532d1db713fe121eb9dcfab",
+      "role": "checkpoint"
+    },
+    {
+      "artifact_sha256": "a70be56dc19999cc51be9fb20941ac84ee5f0aa463c7c3ab4683b13766c702b3",
+      "role": "dependency_lock"
+    },
+    {
+      "artifact_sha256": "6db6c78271032851b4073f792d50f41d27fa1c8ffb6e90218955c6246aa0f8b4",
+      "role": "embedding"
+    },
+    {
+      "artifact_sha256": "d13990d5ee93c810438b66ac267267eb648babcfd2befbb6c45987288cd455ac",
+      "role": "featurizer_code"
+    },
+    {
+      "artifact_sha256": "b2caa92fd9f4040446246f717d18a789a6328ff614620cf8ec4a7d3ab5a437bc",
+      "role": "property_adapter_code"
+    },
+    {
+      "artifact_sha256": "261c4db329ed7d0a6a55d56cf31aba3446578ff19ed1be88040a6c086678cbbf",
+      "role": "runner_code"
+    },
+    {
+      "artifact_sha256": "3db89924dae337c6cb5de7cabc67f87b7c32ef6a05d5a7321927ff443fc342d6",
+      "role": "runtime_lock"
+    }
+  ],
+  "leakage_audit": {
+    "evidence_source": "The official C3Net source does not publish complete canonical record identities for checkpoint-1 training.",
+    "overlapping_record_ids": [],
+    "rationale": "Training evidence does not completely account for every benchmark record; absence of a documented overlap is not holdout proof.",
+    "status": "overlap_unknown"
+  },
+  "model_id": "c3net-checkpoint-1",
+  "panel_generation_artifacts": [
+    {
+      "artifact_sha256": "83676280fcabecbd784616d5c6fd9ed31b556f5faba4fe0dc97b5046b450657d",
+      "execution_scope": "parent_only",
+      "mounted_in_prediction_sandbox": false,
+      "registered_with_label_free_adapter": false,
+      "role": "panel_runner_code"
+    },
+    {
+      "artifact_sha256": "46e073d0e253d7534b7f516f1cc2096ba0abfea84ddc170c95fc86634c917b36",
+      "execution_scope": "parent_only",
+      "mounted_in_prediction_sandbox": false,
+      "registered_with_label_free_adapter": false,
+      "role": "functional_group_taxonomy"
+    }
+  ],
+  "schema_version": 1,
+  "scientific_status": "development_accuracy_only_overlap_unknown_not_final_holdout",
+  "selection": {
+    "output_blind": true,
+    "policy": "neutral single-fragment 2-20-heavy-atom C3Net-domain rows; frozen taxonomy; one minimum SHA256 identity per primary group; experimental value and model output excluded from selection",
+    "records": [
+      {
+        "canonical_smiles": "OCC(O)C(O)C(O)C(O)CO",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 320402275,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 21.37183095027124,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 18.475441860422016,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 21.896754612869263,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 26.76724977041349,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 19.46705620111098,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 23.424220853978028,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 19.068208690638183,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 21.474462131488067,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 21.89967795288659,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 25.36282181906716,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 21.24244839018019,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 22.188509497137638,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 24.221401480201997,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 24.151838466368563,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 19.75497732226967,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 18.539286526785002,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 20.69003034517634,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 19.563548011625898,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 20.47275107883352,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 19.38170250539198,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 21.56255271988352,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 24.701162491050717,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 22.262622826330723,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 19.212760272206854,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 18.889636584699822,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 22.005098944811024,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 18.14147277637959,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 21.455215473709995,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 28.398802574106558,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 22.189857954067627,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 22.520245621892276,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 22.19780128154324,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 21.799307120960343,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 20.560342749408473,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 20.263473555531938,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 22.96294630117798,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 20.887804225510596,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 21.032549462078393,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 22.830666905943275,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 19.67154578442264,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 23.897015687374683,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 24.097665275989986,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 23.657955869252856,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 24.522108339618054,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 19.49559695018555,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 21.4878201755469,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 23.998463492708087,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 19.022781232712,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 23.516793698913567,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 19.97964439212596,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "mannitol",
+        "matched_functional_groups": [
+          "alcohol"
+        ],
+        "molecular_input_sha256": "6c5291619e8248f31a8e08cfc85b9c229db07e002804695e358e9a3801e90a47",
+        "primary_functional_group": "alcohol",
+        "record_id": "flexisol-alcohol-1318f363003c90ae",
+        "selection_hash": "1318f363003c90ae8e2b67fd70e380e5dd0b6636494d7f1e4cb75945f62143c8",
+        "solvent": "octanol",
+        "source_line": 102,
+        "source_reference": "10.1021/acs.est.2c06170"
+      },
+      {
+        "canonical_smiles": "O=Cc1ccccc1O",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 2,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 603911156,
+          "selected_conformer_ids": [
+            0,
+            8
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 16.595021050881456,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 16.595021049376317,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 14.007803914899883,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 14.007803915095101,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 14.007803915110227,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 14.007803914864603,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 16.595021049990045,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 14.007803915440768,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 18.473805577356295,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 16.595021049615017,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 14.00780391700559,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 14.624402915082147,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 16.595021050341625,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 16.595021051273953,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 16.595021051088516,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 16.595021049794013,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 18.473805573538435,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 14.624402900920595,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 14.624402900192445,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 18.47380557419895,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 14.624402899985654,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 18.47380557408967,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 16.595021049428617,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 18.47380557523197,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 14.007803914879299,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 16.59502104960388,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 16.5950210538127,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 16.595021050901476,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 14.624402900694157,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 14.007803915260435,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 16.595021049889407,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 16.595021050137138,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 14.007803915024532,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 14.007803914867388,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 14.624402899277792,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 16.59502104994296,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 14.007803917640175,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 14.624402901216175,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 14.624402901728743,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 18.473805575307953,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 18.473805579810417,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 14.62440289963007,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 18.473805573357737,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 14.624402902809297,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 18.473805573965933,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 16.595021050618403,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 16.595021049399165,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 16.595021050348496,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 14.624402899766123,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 16.595021049508983,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "salicylaldehyde",
+        "matched_functional_groups": [
+          "alcohol",
+          "aldehyde",
+          "phenol"
+        ],
+        "molecular_input_sha256": "aff025ea4fb1e7c1598da45ee98bbd13396255f0716510d2749f2c8feec218d1",
+        "primary_functional_group": "aldehyde",
+        "record_id": "flexisol-aldehyde-23fef3f4c2bbec56",
+        "selection_hash": "23fef3f4c2bbec56b82733530d596a4301944e4528a97039244887c16a94d1a6",
+        "solvent": "water",
+        "source_line": 445,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "CNC(=O)Oc1ccccc1C1OCCO1",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 101938277,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 25.557280251330816,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 26.602619623249094,
+              "status": 1
+            },
+            {
+              "conformer_id": 2,
+              "energy": 26.621833440144268,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 26.605027036916695,
+              "status": 1
+            },
+            {
+              "conformer_id": 4,
+              "energy": 25.557280257681306,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 26.602558412349456,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 26.602606975498517,
+              "status": 1
+            },
+            {
+              "conformer_id": 7,
+              "energy": 25.55728026031905,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 29.205401239505427,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 25.577775933449285,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 29.205401235972197,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 29.204183154750172,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 26.621996002414235,
+              "status": 1
+            },
+            {
+              "conformer_id": 13,
+              "energy": 26.602558392390623,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 25.577775941123882,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 26.621833429216068,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 25.55728024944393,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 29.20540124332229,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 26.60368495887722,
+              "status": 1
+            },
+            {
+              "conformer_id": 19,
+              "energy": 29.204183160749125,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 26.621833432439217,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 29.20418316449987,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 29.20540124305365,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 25.557280251266246,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 26.602558403672365,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 26.602672896678357,
+              "status": 1
+            },
+            {
+              "conformer_id": 26,
+              "energy": 26.60255840313168,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 25.55728025755097,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 25.557280256355984,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 25.57777594289893,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 25.557280246377523,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 26.621833431003612,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 25.577775992140328,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 29.204183154961708,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 26.62183343478687,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 26.603348161973333,
+              "status": 1
+            },
+            {
+              "conformer_id": 36,
+              "energy": 29.204183162362323,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 26.60255840342327,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 26.602570221541356,
+              "status": 1
+            },
+            {
+              "conformer_id": 39,
+              "energy": 26.602558392595583,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 26.605024093349098,
+              "status": 1
+            },
+            {
+              "conformer_id": 41,
+              "energy": 26.60255840804254,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 25.577775941372614,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 29.20418316218149,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 26.602565231553683,
+              "status": 1
+            },
+            {
+              "conformer_id": 45,
+              "energy": 26.602558398729634,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 26.621833428029817,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 26.602558390182374,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 25.557280246536525,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 25.577775954364956,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "dioxacarb",
+        "matched_functional_groups": [
+          "amide",
+          "ether"
+        ],
+        "molecular_input_sha256": "022afffcd73df0c1b665cb9ad6ce0c8227865d085129756dec2ef2e36dbde9ad",
+        "primary_functional_group": "amide",
+        "record_id": "flexisol-amide-061374658cf1a4eb",
+        "selection_hash": "061374658cf1a4eb2ddd3cd8070ab0f0decbfa646a1cb4ccb67f8dff98b88343",
+        "solvent": "water",
+        "source_line": 337,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "O=[N+]([O-])c1ccc(Nc2ccccc2)c([N+](=O)[O-])c1",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 543675797,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 39.9398061704807,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 40.60241103125367,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 39.89626523208868,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 39.93721493144039,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 39.89887081634846,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 39.939806172496574,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 39.93980619416686,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 39.937214934020346,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 39.89626520665302,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 39.896265207043534,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 39.898870815129264,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 39.939806185183244,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 39.93980617786162,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 39.8962652063127,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 40.64273186431915,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 39.939806187220555,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 39.89887080886424,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 40.642731861519984,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 39.93721491815633,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 39.93980620306484,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 40.64075634223885,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 39.89887082329843,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 39.9398061769196,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 40.60043268298512,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 39.89626521374046,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 39.93721495417897,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 40.6407563691851,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 40.64273187567934,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 40.60043260238863,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 39.93980617531825,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 39.93980617367132,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 39.89626521367818,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 39.89626522005118,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 39.898870816826225,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 39.896265229122235,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 39.93721492312665,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 39.89626521289007,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 40.64075637028525,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 39.93980617425758,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 40.64273187752808,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 40.60241106136133,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 39.89887081972068,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 40.64075635413182,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 40.60241099639002,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 39.89626521162082,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 40.60043260269758,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 39.89626522626919,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 40.602411005004235,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 39.93721493992653,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 40.60241106390529,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "2,4-dinitro-n-phenyl-benzenamine",
+        "matched_functional_groups": [
+          "amine",
+          "nitro"
+        ],
+        "molecular_input_sha256": "e8a3034de6d932b3c969dfbb0e2c5aa5de6f698fbc54cef41d8e5c4e24eb7ee9",
+        "primary_functional_group": "amine",
+        "record_id": "flexisol-amine-2067d595535e8841",
+        "selection_hash": "2067d595535e8841f2f43ca400ea890379741809323a2d1e297d6149a5bd7659",
+        "solvent": "water",
+        "source_line": 272,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "Nc1c(Cl)c(Cl)nc(C(=O)O)c1Cl",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 2,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 437451632,
+          "selected_conformer_ids": [
+            0,
+            3
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 21.84928725011354,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 21.849287247991004,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 21.84928724618301,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 22.010260083883416,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 21.849287250894104,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 21.84928724954859,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 22.01026009659622,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 22.010260083974785,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 22.010260083734895,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 22.010260085589053,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 21.849287249068055,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 21.849287248653923,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 22.010260083931133,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 21.849287248733834,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 22.010260084176544,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 22.010260084746438,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 22.01026008439712,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 21.849287248997136,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 21.849287245056605,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 22.01026008541549,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 22.010260083665294,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 21.849287244811624,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 21.849287247405933,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 21.84928724940581,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 21.849287245681488,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 22.010260086944037,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 22.010260083998,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 22.010260084519118,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 22.010260083884877,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 21.84928724718011,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 22.01026008566853,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 22.010260101790063,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 21.849287245535248,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 21.849287248283833,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 22.010260084351845,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 21.84928724961231,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 21.849287246732043,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 21.84928724514358,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 22.010260084882525,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 21.849287245625433,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 21.84928724655489,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 22.010260100120902,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 22.010260083722866,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 22.01026008593616,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 21.849287245997584,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 21.849287247264666,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 21.84928724618915,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 22.010260084322308,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 21.84928724496819,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 21.84928724630812,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "picloram",
+        "matched_functional_groups": [
+          "amine",
+          "carboxylic_acid",
+          "organohalogen"
+        ],
+        "molecular_input_sha256": "08f5ce527a6a8b1fbf760ba0c40c3b6582e2b37b20ec06c7adb370a443d704ee",
+        "primary_functional_group": "carboxylic_acid",
+        "record_id": "flexisol-carboxylic_acid-1a12fb700e0b7683",
+        "selection_hash": "1a12fb700e0b7683dd50c1c043a6e01d8362023f4910683422b53bbb01ba58da",
+        "solvent": "octanol",
+        "source_line": 522,
+        "source_reference": "10.1021/acs.est.2c06170"
+      },
+      {
+        "canonical_smiles": "c1ccc(OCC2CO2)cc1",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 218845562,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 350.1172507255704,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 350.11725067787063,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 350.1172507052363,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 350.28287374979163,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 348.9163605452069,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 350.28287237588614,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 348.8479714096143,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 349.9592300235783,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 348.91636825097623,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 348.91636431850094,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 349.9592353395629,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 350.28286896086587,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 350.11725089369446,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 350.0424093358644,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 349.95923459940155,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 348.84797201636854,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 348.84797108345623,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 350.2828721274082,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 348.84797061123817,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 348.8479727669072,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 348.9163666435152,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 349.95923349108796,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 348.91635994420204,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 348.9163639684128,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 348.91636186724753,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 350.2828683349523,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 350.21873439210964,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 350.2828719987764,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 350.0424095538806,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 348.84797175811127,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 349.9592336880094,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 348.8479694728016,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 350.2828694840247,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 350.1172668756643,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 348.84797383981766,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 350.282872127593,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 350.28286864343346,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 348.8479711196602,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 349.95923301993264,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 348.9163605117067,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 349.95923077602544,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 348.8479718365168,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 350.282868353607,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 349.9592300444478,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 350.0424097534913,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 348.84797063388913,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 348.91636114724787,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 348.8479701123211,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 348.847969493985,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 350.0424088293058,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "phenoxymethyl-oxirane",
+        "matched_functional_groups": [
+          "epoxide",
+          "ether"
+        ],
+        "molecular_input_sha256": "93c4f0ee0ee655fddfa9921602a69b9c7800f3309f368e81cc752c5b00d6decb",
+        "primary_functional_group": "epoxide",
+        "record_id": "flexisol-epoxide-0d0b517a4dfce0b0",
+        "selection_hash": "0d0b517a4dfce0b09cdde95d3a8253b45de25ee5f5409133972fcf399bc0bf0a",
+        "solvent": "water",
+        "source_line": 435,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "CCOC(=O)C1CC(=O)C(=C(O)C2CC2)C(=O)C1",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 144908255,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 300.0092863767015,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 294.95779546155205,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 316.1380676483712,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 294.9577951958091,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 300.37977257366515,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 300.71209357026635,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 296.31278050445786,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 295.05231672176325,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 321.8857344191557,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 296.3081397932624,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 300.02536790465115,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 296.0026117750269,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 295.94984769777653,
+              "status": 1
+            },
+            {
+              "conformer_id": 13,
+              "energy": 300.5177692334134,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 296.0027256980077,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 300.5177694708748,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 296.00261612786056,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 296.31277546312896,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 300.1548087068772,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 300.6102394126298,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 296.0027312766856,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 301.1910236355803,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 301.0679202451364,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 295.35783731846834,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 295.94948812523256,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 315.7739499195891,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 296.3081417450713,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 296.8185033077424,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 300.51776864481184,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 294.95779641767916,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 300.9786315236981,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 300.612575929863,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 296.30813828063077,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 297.5637451598934,
+              "status": 1
+            },
+            {
+              "conformer_id": 34,
+              "energy": 300.51776898664554,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 300.15239327646225,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 297.50713232688935,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 322.1756560054233,
+              "status": 1
+            },
+            {
+              "conformer_id": 38,
+              "energy": 300.71179772511834,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 300.712094580462,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 300.71179741179554,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 300.5177693798109,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 300.11458483442675,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 301.0679209122097,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 300.0092829077291,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 296.31277712281627,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 300.02536797574624,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 300.9796329328666,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 300.01264684451326,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 295.0523184228692,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "trinexapac-ethyl",
+        "matched_functional_groups": [
+          "alcohol",
+          "ester",
+          "ether",
+          "ketone"
+        ],
+        "molecular_input_sha256": "4b5dcefb331cac6370441af30be42d65d5ed1c5cb909f032f72356a6f981706e",
+        "primary_functional_group": "ester",
+        "record_id": "flexisol-ester-08a31fdfb3b2581f",
+        "selection_hash": "08a31fdfb3b2581f8a28a2ba540c8d1ea6a78741b228c614f4445fd0b74b505d",
+        "solvent": "water",
+        "source_line": 471,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "CC1CN(N=O)CC(C)O1",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 190133668,
+          "selected_conformer_ids": [
+            0,
+            1,
+            8,
+            13,
+            20
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 15.495008346520429,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 15.495008345463358,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 15.495008346451346,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 15.49500834618111,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 15.495008350674741,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 21.535901422885413,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 21.024344142340734,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 21.024344143567657,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 19.40483652429991,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 15.495008349172886,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 15.495008346236956,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 15.495008346574126,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 21.02434414980123,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 26.215161900223066,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 15.495008350277793,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 15.495008366274702,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 15.495008345089019,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 15.495008345043514,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 15.495008348343095,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 21.024344141559506,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 19.365066469182203,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 19.4048365472139,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 15.49500834610137,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 15.495008346396252,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 19.40483652600515,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 21.02434414980313,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 21.535901424923416,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 15.495008345661699,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 19.365066486298474,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 15.49500834525752,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 21.53590147572636,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 19.365066468647456,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 15.49500834811305,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 19.404836526606076,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 21.535901417987926,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 15.49500834982356,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 21.535901420016483,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 21.53590142692324,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 15.495008347731876,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 19.404836524352632,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 19.365066473469366,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 15.495008361076774,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 19.40483652491356,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 21.024344162411115,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 21.02434414242142,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 21.53590143347004,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 15.495008347233359,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 15.495008347661685,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 19.404836537652017,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 19.365066469118783,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "2,6-dimethylnitrosomorpholine",
+        "matched_functional_groups": [
+          "ether"
+        ],
+        "molecular_input_sha256": "d211549a46d4fb1ff161ff069cba96197f03348ede90f3b6445971fe18cedf36",
+        "primary_functional_group": "ether",
+        "record_id": "flexisol-ether-0b5535a49c7c187f",
+        "selection_hash": "0b5535a49c7c187fcfa2b166cd64c12705d6ad5864b71cd6bb974f1c787c71bb",
+        "solvent": "water",
+        "source_line": 273,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "CC(=O)/C=C/C1=C(C)CCCC1(C)C",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 84748895,
+          "selected_conformer_ids": [
+            0,
+            1,
+            7,
+            8,
+            12
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 33.34703799374371,
+              "status": 1
+            },
+            {
+              "conformer_id": 1,
+              "energy": 33.98560278323836,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 34.14474426931783,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 34.14527555500502,
+              "status": 1
+            },
+            {
+              "conformer_id": 4,
+              "energy": 34.14474443767954,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 33.985602774683905,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 33.34703718206918,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 33.50251119137267,
+              "status": 1
+            },
+            {
+              "conformer_id": 8,
+              "energy": 34.14474424617654,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 33.34703717248785,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 33.50237542341846,
+              "status": 1
+            },
+            {
+              "conformer_id": 11,
+              "energy": 33.50258791861674,
+              "status": 1
+            },
+            {
+              "conformer_id": 12,
+              "energy": 34.144744235941026,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 34.14474430165347,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 33.9856029297283,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 34.144744252933265,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 33.98560277421931,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 34.144744221776996,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 33.985602813504386,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 33.34707201637688,
+              "status": 1
+            },
+            {
+              "conformer_id": 20,
+              "energy": 33.985602776602846,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 33.3470440061172,
+              "status": 1
+            },
+            {
+              "conformer_id": 22,
+              "energy": 34.14474422562626,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 33.49826747998248,
+              "status": 1
+            },
+            {
+              "conformer_id": 24,
+              "energy": 33.49821265770677,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 33.34703718653986,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 33.502100999863714,
+              "status": 1
+            },
+            {
+              "conformer_id": 27,
+              "energy": 33.347037181281664,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 34.14474451088453,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 33.985602772359876,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 33.34703718741694,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 33.3470371809809,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 33.34703719931692,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 34.14474430477777,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 34.144744268842736,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 34.144744248104146,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 34.14474425141718,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 34.1447442193311,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 33.347037188430726,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 33.347037178103555,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 33.49821269341593,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 33.98560278051231,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 34.144744243783634,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 33.98560281620708,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 34.14474425132934,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 34.144744249353465,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 34.14474422168421,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 33.34703717579097,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 34.147207808526595,
+              "status": 1
+            },
+            {
+              "conformer_id": 49,
+              "energy": 33.34703719509914,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "beta-ionone",
+        "matched_functional_groups": [
+          "ketone"
+        ],
+        "molecular_input_sha256": "80bdfefc1ab08b3e87f007e64f7dcb51f495936441ec052037c49e013c3d2295",
+        "primary_functional_group": "ketone",
+        "record_id": "flexisol-ketone-050d2a5f500700b3",
+        "selection_hash": "050d2a5f500700b36fe286503268e627ee5a52f06af7dd4b18c006060e329eb2",
+        "solvent": "water",
+        "source_line": 300,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "O=C1CCCCCCCCCCCCCCO1",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 833374858,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 31.96729429863977,
+              "status": 1
+            },
+            {
+              "conformer_id": 1,
+              "energy": 30.312676344446267,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 27.918091795499677,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 21.965967052571397,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 26.2549053188388,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 24.6665314337878,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 24.408686904952788,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 22.441200399495873,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 26.753862376358718,
+              "status": 1
+            },
+            {
+              "conformer_id": 9,
+              "energy": 26.29828957841961,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 27.885653646230413,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 21.746432306790982,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 26.364020100242257,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 26.313060927570426,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 27.83555930016839,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 22.567001887548518,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 24.48026826476418,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 26.421423445170184,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 26.022547800459378,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 23.33100204977981,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 26.5005840092329,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 25.18004871464304,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 27.624318611384904,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 25.29011955047535,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 25.368719048220957,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 26.609889776721744,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 26.436081228751835,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 22.01425056608096,
+              "status": 1
+            },
+            {
+              "conformer_id": 28,
+              "energy": 26.92105467909906,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 27.42955271666502,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 28.848529167648927,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 34.71963114164149,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 29.737322887808048,
+              "status": 1
+            },
+            {
+              "conformer_id": 33,
+              "energy": 25.239857547503494,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 21.682498880970808,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 30.68676964552242,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 24.655006089596423,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 25.968427428236527,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 30.893390783966964,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 24.50539371517733,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 27.07569339756698,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 31.353510458789774,
+              "status": 1
+            },
+            {
+              "conformer_id": 42,
+              "energy": 24.27635994203409,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 24.450714255143286,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 28.487686599970054,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 24.89610766136298,
+              "status": 1
+            },
+            {
+              "conformer_id": 46,
+              "energy": 25.583850827391505,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 22.226732269051674,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 21.590607960360668,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 26.90384658958132,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "pentadecalacetone",
+        "matched_functional_groups": [
+          "ester",
+          "ether",
+          "lactone"
+        ],
+        "molecular_input_sha256": "289081fe2e904d53f95149d4cfb605cf5233bb23ae761d20696b8b112e89490e",
+        "primary_functional_group": "lactone",
+        "record_id": "flexisol-lactone-31ac4a8aef7904b8",
+        "selection_hash": "31ac4a8aef7904b8b222d7a7a3e15e5e86f3981b66fec4a4261a12d4d6b4e725",
+        "solvent": "water",
+        "source_line": 428,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "N#Cc1c[nH]cc1-c1cccc(Cl)c1Cl",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 4,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 567878334,
+          "selected_conformer_ids": [
+            0,
+            1,
+            4,
+            32
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 55.51429806425563,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 55.514298083018446,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 55.51429807079714,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 55.51429806174404,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 55.0021213557474,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 55.514298064980125,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 55.514298063991696,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 55.51429806642599,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 55.51429805665124,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 55.51429809351047,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 55.51429805875476,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 55.51429806451837,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 55.514298139860095,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 55.51429806493826,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 55.514298109679444,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 55.51429809297334,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 55.51429805973093,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 55.51429807826683,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 55.51429805902096,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 55.51429808100831,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 55.00212127928305,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 55.51429806298732,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 55.514298103808045,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 55.002121267902254,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 55.51429806222462,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 55.51429805805383,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 55.0021213902489,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 55.51429806788087,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 55.514298084699426,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 55.51429807716671,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 55.51429805591309,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 55.51429807442836,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 55.00212129601405,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 55.514298091981914,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 55.002121283816074,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 55.51429811837628,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 55.514298065482116,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 55.51429810659877,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 55.51429811488846,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 55.51429808323336,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 55.51429805915657,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 55.514298107966226,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 55.51429808854744,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 55.51429808558938,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 55.514298057657186,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 55.51429809352552,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 55.51429806606137,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 55.51429808049261,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 55.514298074529066,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 55.514298070559356,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "fenpiclonil",
+        "matched_functional_groups": [
+          "nitrile",
+          "organohalogen"
+        ],
+        "molecular_input_sha256": "8299696eb5949db28efc49ce1742cacc836f1324e06db76f9376306ac868ef2c",
+        "primary_functional_group": "nitrile",
+        "record_id": "flexisol-nitrile-21d922beb70136cc",
+        "selection_hash": "21d922beb70136cca8fff1adc7da5de8631bdae24bf3a1fef0aa88f51b7bd98d",
+        "solvent": "water",
+        "source_line": 351,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "COP(=S)(OC)Oc1ccc([N+](=O)[O-])cc1Cl",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 314480754,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 23.945999878816124,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 23.05050901880141,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 24.79327645270314,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 23.945834942694145,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 23.604109588500812,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 23.050509016157918,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 25.338590148943194,
+              "status": 1
+            },
+            {
+              "conformer_id": 7,
+              "energy": 23.604109586965766,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 30.712198225591774,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 23.603800790568215,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 30.102434628483874,
+              "status": 1
+            },
+            {
+              "conformer_id": 11,
+              "energy": 24.24521713846654,
+              "status": 1
+            },
+            {
+              "conformer_id": 12,
+              "energy": 23.609224254177438,
+              "status": 1
+            },
+            {
+              "conformer_id": 13,
+              "energy": 23.603800791677426,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 30.712198212769568,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 25.044894755989258,
+              "status": 1
+            },
+            {
+              "conformer_id": 16,
+              "energy": 24.793276451506024,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 23.945834941852397,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 23.945834948396513,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 24.793424687241323,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 24.793276471252018,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 23.945834950480492,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 23.396112409859693,
+              "status": 1
+            },
+            {
+              "conformer_id": 23,
+              "energy": 23.94583494200945,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 30.71219821552687,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 24.793276455425616,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 32.53203658553671,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 24.793424685374127,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 24.793276452461587,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 25.195017464037047,
+              "status": 1
+            },
+            {
+              "conformer_id": 30,
+              "energy": 23.6919290139057,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 23.876334780496055,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 23.604131330145286,
+              "status": 1
+            },
+            {
+              "conformer_id": 33,
+              "energy": 24.79327646488711,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 23.050509013689677,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 23.050681436083025,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 26.28217843205057,
+              "status": 1
+            },
+            {
+              "conformer_id": 37,
+              "energy": 23.945834942709887,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 31.731180265153164,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 24.793424685931868,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 23.858060637573367,
+              "status": 1
+            },
+            {
+              "conformer_id": 41,
+              "energy": 23.050681434551755,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 30.274491158919176,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 24.02504283462443,
+              "status": 1
+            },
+            {
+              "conformer_id": 44,
+              "energy": 30.395934245363748,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 23.60380079076618,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 23.299531441537336,
+              "status": 1
+            },
+            {
+              "conformer_id": 47,
+              "energy": 24.793424698262413,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 23.9458349421813,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 25.349475041375328,
+              "status": 1
+            }
+          ]
+        },
+        "flexisol_name": "dicapthon",
+        "matched_functional_groups": [
+          "nitro",
+          "organohalogen"
+        ],
+        "molecular_input_sha256": "5ac497f532d6b68f118414edf112dab2992cb2e9600ce5aaad3efb8002bf4ea1",
+        "primary_functional_group": "nitro",
+        "record_id": "flexisol-nitro-12be98721c5f6018",
+        "selection_hash": "12be98721c5f6018d73fc0dc488136bc6dcce4891633406452570e7fd0031ade",
+        "solvent": "water",
+        "source_line": 329,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "O=P(OCC(Br)CBr)(OCC(Br)CBr)OCC(Br)CBr",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 79420807,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 14.468756999080655,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 13.946994781326493,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 14.633462583143297,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 15.087595397446185,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 14.388690284895105,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 15.158310580076629,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 16.88244919822022,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 16.777993531288413,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 14.18875053931288,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 13.747511074244057,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 16.92181532197976,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 16.715039613966404,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 16.51523554458685,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 14.326704127265277,
+              "status": 1
+            },
+            {
+              "conformer_id": 14,
+              "energy": 15.753637404244452,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 14.215701128857107,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 15.622111358418222,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 15.230123412619493,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 15.961783288073592,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 15.447457144268263,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 15.922452473967537,
+              "status": 1
+            },
+            {
+              "conformer_id": 21,
+              "energy": 17.013242197094115,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 16.01140207813347,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 16.772493852405862,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 16.115596107926677,
+              "status": 1
+            },
+            {
+              "conformer_id": 25,
+              "energy": 16.35424441572613,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 17.3003402189982,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 16.044921045481008,
+              "status": 1
+            },
+            {
+              "conformer_id": 28,
+              "energy": 15.276030656229635,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 16.319076385426484,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 15.665045611714367,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 16.627567403529582,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 15.586624758293283,
+              "status": 1
+            },
+            {
+              "conformer_id": 33,
+              "energy": 16.152084101733255,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 15.813311522175505,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 16.10976540840743,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 14.138520295186595,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 16.116784048319225,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 14.978714209186498,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 15.040648138060426,
+              "status": 1
+            },
+            {
+              "conformer_id": 40,
+              "energy": 14.964449835616985,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 14.808717452322732,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 15.528251591169987,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 16.294930125416958,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 17.385737693019788,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 16.986536155005822,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 15.765484620868941,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 15.26838168886342,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 13.243846880427554,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 13.553507133578497,
+              "status": 1
+            }
+          ]
+        },
+        "flexisol_name": "tris-2,3-dibromopropyl-phosphate",
+        "matched_functional_groups": [
+          "organohalogen",
+          "phosphate_ester",
+          "phosphoric_acid"
+        ],
+        "molecular_input_sha256": "af0bd49fbb949b0edec9116e6982f4e0d2d182cf33a0dfd66435985f6f177ea6",
+        "primary_functional_group": "organohalogen",
+        "record_id": "flexisol-organohalogen-04bbdd8746e901e7",
+        "selection_hash": "04bbdd8746e901e76b06dd47ecaa66dc49d21d5cbfc8022608196a0d68b09cff",
+        "solvent": "octanol",
+        "source_line": 134,
+        "source_reference": "10.1021/acs.est.2c06170"
+      },
+      {
+        "canonical_smiles": "C[C@]12CC[C@@H]3c4ccc(O)cc4CC[C@H]3[C@@H]1CC[C@@H]2O",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 1,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 1026650071,
+          "selected_conformer_ids": [
+            0
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 63.990370820067454,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 63.99037084830341,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 61.28658661192548,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 63.99141129834032,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 61.45468008918417,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 61.45364196887272,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 61.28762430023134,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 61.45468007240264,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 61.454680072010646,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 61.453641917079366,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 61.28762426888786,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 61.28762425758825,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 61.45468006347396,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 61.28658661480159,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 61.45468006102034,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 61.45468006436842,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 63.99037083645291,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 61.28658659430111,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 61.28658658748266,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 61.45468006160107,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 61.45468011642026,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 61.28762419656994,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 61.45364194326485,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 61.45364201174417,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 61.4536419307826,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 61.28658658944154,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 63.99141129867359,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 61.45364193457442,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 61.45364192773737,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 61.45468022259478,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 61.45468007307059,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 61.28658663404594,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 63.99141134924918,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 61.28658662601662,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 61.45364193644741,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 61.28762422806152,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 63.99037082684217,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 61.45364191695712,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 61.287624206993506,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 61.454680063393674,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 61.45468010343724,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 61.28762423803721,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 63.99037081557022,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 61.28762425888148,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 61.28762432906736,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 61.45468007261763,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 63.991411293624004,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 63.99141129907081,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 61.45364192359023,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 61.28658672441728,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "estradiol",
+        "matched_functional_groups": [
+          "alcohol",
+          "phenol"
+        ],
+        "molecular_input_sha256": "9e20bf8d1efc8b41d15e913f0894b6eb1f23c77a371917673473bb4b6cd38289",
+        "primary_functional_group": "phenol",
+        "record_id": "flexisol-phenol-3d316fd7822ca908",
+        "selection_hash": "3d316fd7822ca908bc13633ff625d12f8aeeefebcb55e8b5f2b36da3b390874f",
+        "solvent": "hexadecane",
+        "source_line": 504,
+        "source_reference": "10.1016/j.fluid.2010.09.043"
+      },
+      {
+        "canonical_smiles": "CCOP(=O)(OCC)OP(=O)(OCC)OCC",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 1397566366,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 13.817484275517412,
+              "status": 1
+            },
+            {
+              "conformer_id": 1,
+              "energy": 15.497748678372298,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 12.603224224562862,
+              "status": 1
+            },
+            {
+              "conformer_id": 3,
+              "energy": 13.97994760387527,
+              "status": 1
+            },
+            {
+              "conformer_id": 4,
+              "energy": 13.8603952562691,
+              "status": 1
+            },
+            {
+              "conformer_id": 5,
+              "energy": 13.591240437500195,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 13.591256945609217,
+              "status": 1
+            },
+            {
+              "conformer_id": 7,
+              "energy": 14.678816978802901,
+              "status": 1
+            },
+            {
+              "conformer_id": 8,
+              "energy": 14.672213539388748,
+              "status": 1
+            },
+            {
+              "conformer_id": 9,
+              "energy": 13.014745225456126,
+              "status": 1
+            },
+            {
+              "conformer_id": 10,
+              "energy": 13.591240437914879,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 13.352852781953542,
+              "status": 1
+            },
+            {
+              "conformer_id": 12,
+              "energy": 14.02830583233427,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 13.816717623594926,
+              "status": 1
+            },
+            {
+              "conformer_id": 14,
+              "energy": 13.81663951856263,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 15.285022072019492,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 15.497748680607115,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 14.67215994447676,
+              "status": 1
+            },
+            {
+              "conformer_id": 18,
+              "energy": 15.285022099053817,
+              "status": 1
+            },
+            {
+              "conformer_id": 19,
+              "energy": 13.591245797643083,
+              "status": 1
+            },
+            {
+              "conformer_id": 20,
+              "energy": 13.410689447945963,
+              "status": 1
+            },
+            {
+              "conformer_id": 21,
+              "energy": 12.473411952089666,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 14.67375102063699,
+              "status": 1
+            },
+            {
+              "conformer_id": 23,
+              "energy": 13.053277317512565,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 15.285022107366775,
+              "status": 1
+            },
+            {
+              "conformer_id": 25,
+              "energy": 12.95388082864442,
+              "status": 1
+            },
+            {
+              "conformer_id": 26,
+              "energy": 13.680766809143597,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 13.451155538421398,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 13.837928975534282,
+              "status": 1
+            },
+            {
+              "conformer_id": 29,
+              "energy": 13.591245487143684,
+              "status": 1
+            },
+            {
+              "conformer_id": 30,
+              "energy": 15.49774869084065,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 13.979933574018434,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 13.591240441408143,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 12.617718707178195,
+              "status": 1
+            },
+            {
+              "conformer_id": 34,
+              "energy": 15.285022070206658,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 13.591350065398757,
+              "status": 1
+            },
+            {
+              "conformer_id": 36,
+              "energy": 13.591364961817261,
+              "status": 1
+            },
+            {
+              "conformer_id": 37,
+              "energy": 12.825468375692608,
+              "status": 1
+            },
+            {
+              "conformer_id": 38,
+              "energy": 13.591240779179023,
+              "status": 1
+            },
+            {
+              "conformer_id": 39,
+              "energy": 14.672981516553195,
+              "status": 1
+            },
+            {
+              "conformer_id": 40,
+              "energy": 13.859536983199362,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 16.8718772611886,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 13.255291443365435,
+              "status": 1
+            },
+            {
+              "conformer_id": 43,
+              "energy": 14.589637323492807,
+              "status": 1
+            },
+            {
+              "conformer_id": 44,
+              "energy": 12.473411953349602,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 12.617764935382112,
+              "status": 1
+            },
+            {
+              "conformer_id": 46,
+              "energy": 15.360405108885717,
+              "status": 1
+            },
+            {
+              "conformer_id": 47,
+              "energy": 14.58946911416973,
+              "status": 1
+            },
+            {
+              "conformer_id": 48,
+              "energy": 13.59151591962145,
+              "status": 1
+            },
+            {
+              "conformer_id": 49,
+              "energy": 13.487076021351466,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "tepp",
+        "matched_functional_groups": [
+          "phosphate_ester",
+          "phosphoric_acid"
+        ],
+        "molecular_input_sha256": "a34c6b2d57f9e72f8fa0cf597983d14d0eb519971553e7103150470cab537d48",
+        "primary_functional_group": "phosphate_ester",
+        "record_id": "flexisol-phosphate_ester-534d2b9e08b6ed63",
+        "selection_hash": "534d2b9e08b6ed630ce9f32ede76c29333ac976a077b5391774313ec558c9da5",
+        "solvent": "hexadecane",
+        "source_line": 511,
+        "source_reference": "10.1016/j.fluid.2010.09.043"
+      },
+      {
+        "canonical_smiles": "CNS(=O)(=O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 420915805,
+          "selected_conformer_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 14.017877743030798,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 10.508317302846974,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 16.228268273361532,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 14.943870517539137,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 10.462257565655076,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 12.559692522756883,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 11.888265353840724,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 12.25675101056322,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 9.581497463208782,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 10.50831730290892,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 12.681994220798991,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 10.462257566041004,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 13.458694843544421,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 11.219387700500745,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 14.896869456675864,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 12.999463044830035,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 12.5596925260848,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 12.2976194996218,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 12.505945836966477,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 13.031481554261795,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 16.228268274491715,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 10.462257570472453,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 10.508317303713588,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 10.508317304350467,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 11.219387699702683,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 14.943870516302177,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 10.508317302202192,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 12.999463044915764,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 13.040987668609235,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 14.943870516050511,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 12.256751013763786,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 12.559692522814789,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 13.458694842847121,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 11.734684531902552,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 12.256751013473794,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 10.50831730359266,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 12.806488611935404,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 13.339674839404992,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 12.350653562418211,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 12.8064886066147,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 15.403053817317637,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 16.228268273971366,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 15.711475446112727,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 18.15358596577525,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 14.0178777424517,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 11.888265355637213,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 11.219387701148243,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 12.147494062857271,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 13.040987667599511,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 12.350653562292328,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "mefbsa",
+        "matched_functional_groups": [
+          "sulfonamide"
+        ],
+        "molecular_input_sha256": "99cd91900359ed42233ed7849a1573764938edf7939025a104e2ba95cc461f9e",
+        "primary_functional_group": "sulfonamide",
+        "record_id": "flexisol-sulfonamide-1916aa5d37130c97",
+        "selection_hash": "1916aa5d37130c97ae66310caf1b68ea15daa66f981450079f8c6931db4bce46",
+        "solvent": "water",
+        "source_line": 152,
+        "source_reference": "10.1021/acs.est.3c02545"
+      },
+      {
+        "canonical_smiles": "C#Cc1ccccc1",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 1,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 946124827,
+          "selected_conformer_ids": [
+            0
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 10.655823402574306,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 10.655823408218263,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 10.655823404560186,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 10.655823402607748,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 10.655823402533262,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 10.655823402944181,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 10.655823406335442,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 10.655823405794163,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 10.655823403045407,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 10.65582340245816,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 10.65582340252239,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 10.655823402543815,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 10.655823402850881,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 10.655823404370715,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 10.65582340706642,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 10.655823402444986,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 10.655823407599476,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 10.655823402469032,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 10.655823402511349,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 10.655823402466595,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 10.65582341222668,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 10.655823402535201,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 10.655823406520717,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 10.65582340273687,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 10.655823413562912,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 10.655823414695645,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 10.655823402538273,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 10.655823415683814,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 10.655823408913578,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 10.65582340271386,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 10.655823403402769,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 10.655823402856463,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 10.655823409215905,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 10.655823403354473,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 10.655823402528187,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 10.655823402597296,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 10.655823405708976,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 10.65582340278516,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 10.655823402463772,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 10.65582340247425,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 10.655823403797438,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 10.655823403038317,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 10.655823411957481,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 10.655823437301901,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 10.655823402450928,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 10.655823408188992,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 10.655823402763971,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 10.655823402541976,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 10.655823405445368,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 10.65582340280195,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "phenylacetylene",
+        "matched_functional_groups": [
+          "terminal_alkyne"
+        ],
+        "molecular_input_sha256": "d18f2b66c4132d97f5c9035e28aa5fa77af4880dc547c737aa7b103c2fb5c498",
+        "primary_functional_group": "terminal_alkyne",
+        "record_id": "flexisol-terminal_alkyne-b864b81b04ad4b88",
+        "selection_hash": "b864b81b04ad4b88a094f0e0a49648120746973946e7d52f4fcd9c6bb0b34c5f",
+        "solvent": "water",
+        "source_line": 436,
+        "source_reference": "10.5194/acp-23-10901-2023"
+      },
+      {
+        "canonical_smiles": "C=CCSCC=C",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 138461260,
+          "selected_conformer_ids": [
+            0,
+            1,
+            3,
+            4,
+            5
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 3.022346281444512,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 2.4682975238784417,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 4.200791244146751,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 2.9532458358050544,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 3.0223462812058512,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 5.094774316099405,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 3.876315639767569,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 3.614853745992093,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 3.8317213472138745,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 3.022346281412403,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 4.418433816307197,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 5.094774316778463,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 2.468297530830791,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 3.022346281784338,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 2.9532458340896723,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 4.54126446997422,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 3.876315639769513,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 2.4682975223563997,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 2.4682975233501057,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 3.8317213473872176,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 3.6148537464970687,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 3.611917838530731,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 3.0223462816921947,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 3.8763156389077444,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 3.022346281911108,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 3.022346280866775,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 2.477363797117658,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 3.6119178380017924,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 2.95324583688506,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 2.9532458346604074,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 2.4682975235681726,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 3.8763156394519305,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 3.8317213475947245,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 3.614853747508164,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 3.614853746222672,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 2.4682975222888084,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 4.418433815603934,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 3.6148537456626135,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 3.8317213504957914,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 2.468297523084321,
+              "status": 0
+            },
+            {
+              "conformer_id": 40,
+              "energy": 3.8317213491348916,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 2.4773637951415264,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 2.4773637957666246,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 2.4773637942320295,
+              "status": 0
+            },
+            {
+              "conformer_id": 44,
+              "energy": 3.876315640691318,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 3.611917838831238,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 3.6148537477144975,
+              "status": 0
+            },
+            {
+              "conformer_id": 47,
+              "energy": 2.4773637944957008,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 3.876315639898915,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 2.468297527912678,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "diallylsulfide",
+        "matched_functional_groups": [
+          "thioether"
+        ],
+        "molecular_input_sha256": "785f7acef1a6fb3bf0d09c302a374183ad9c0bf57e009721b8f0989e20f89fa5",
+        "primary_functional_group": "thioether",
+        "record_id": "flexisol-thioether-0840c04cc633a86f",
+        "selection_hash": "0840c04cc633a86f5f5128b6687713366c1e690e1bc9f51fa4d8c07a7ee2d6f8",
+        "solvent": "water",
+        "source_line": 516,
+        "source_reference": "10.1021/es8005783"
+      },
+      {
+        "canonical_smiles": "CN(C)C(=O)Nc1ccc(Oc2ccc(Cl)cc2)cc1",
+        "conformer_generation": {
+          "candidate_count": 50,
+          "conformer_count": 5,
+          "heavy_atom_rmsd_threshold_angstrom": 0.5,
+          "random_seed": 720020329,
+          "selected_conformer_ids": [
+            0,
+            1,
+            3,
+            4,
+            5
+          ],
+          "uff_optimization_statuses": [
+            {
+              "conformer_id": 0,
+              "energy": 42.80050381639386,
+              "status": 0
+            },
+            {
+              "conformer_id": 1,
+              "energy": 42.751271661645006,
+              "status": 0
+            },
+            {
+              "conformer_id": 2,
+              "energy": 42.80050383549344,
+              "status": 0
+            },
+            {
+              "conformer_id": 3,
+              "energy": 42.75127165683177,
+              "status": 0
+            },
+            {
+              "conformer_id": 4,
+              "energy": 42.8033854822602,
+              "status": 0
+            },
+            {
+              "conformer_id": 5,
+              "energy": 42.8033854835088,
+              "status": 0
+            },
+            {
+              "conformer_id": 6,
+              "energy": 42.8005038239283,
+              "status": 0
+            },
+            {
+              "conformer_id": 7,
+              "energy": 42.80050382618754,
+              "status": 0
+            },
+            {
+              "conformer_id": 8,
+              "energy": 42.80050382077134,
+              "status": 0
+            },
+            {
+              "conformer_id": 9,
+              "energy": 42.72369398150765,
+              "status": 0
+            },
+            {
+              "conformer_id": 10,
+              "energy": 42.803385475735034,
+              "status": 0
+            },
+            {
+              "conformer_id": 11,
+              "energy": 42.80338551750567,
+              "status": 0
+            },
+            {
+              "conformer_id": 12,
+              "energy": 42.80338547627579,
+              "status": 0
+            },
+            {
+              "conformer_id": 13,
+              "energy": 42.751271663695206,
+              "status": 0
+            },
+            {
+              "conformer_id": 14,
+              "energy": 42.80338569434379,
+              "status": 0
+            },
+            {
+              "conformer_id": 15,
+              "energy": 42.800503838326435,
+              "status": 0
+            },
+            {
+              "conformer_id": 16,
+              "energy": 42.723693978977266,
+              "status": 0
+            },
+            {
+              "conformer_id": 17,
+              "energy": 42.80050381619731,
+              "status": 0
+            },
+            {
+              "conformer_id": 18,
+              "energy": 42.75127166878624,
+              "status": 0
+            },
+            {
+              "conformer_id": 19,
+              "energy": 42.751271658830234,
+              "status": 0
+            },
+            {
+              "conformer_id": 20,
+              "energy": 42.800503814648906,
+              "status": 0
+            },
+            {
+              "conformer_id": 21,
+              "energy": 42.80050381721881,
+              "status": 0
+            },
+            {
+              "conformer_id": 22,
+              "energy": 42.800503849327704,
+              "status": 0
+            },
+            {
+              "conformer_id": 23,
+              "energy": 42.80050381119015,
+              "status": 0
+            },
+            {
+              "conformer_id": 24,
+              "energy": 42.80050383662193,
+              "status": 0
+            },
+            {
+              "conformer_id": 25,
+              "energy": 42.75127165530144,
+              "status": 0
+            },
+            {
+              "conformer_id": 26,
+              "energy": 42.75127165992465,
+              "status": 0
+            },
+            {
+              "conformer_id": 27,
+              "energy": 42.723693982926406,
+              "status": 0
+            },
+            {
+              "conformer_id": 28,
+              "energy": 42.80050381856843,
+              "status": 0
+            },
+            {
+              "conformer_id": 29,
+              "energy": 42.72369400490554,
+              "status": 0
+            },
+            {
+              "conformer_id": 30,
+              "energy": 42.72369398151333,
+              "status": 0
+            },
+            {
+              "conformer_id": 31,
+              "energy": 42.800504007067886,
+              "status": 0
+            },
+            {
+              "conformer_id": 32,
+              "energy": 42.751271747992604,
+              "status": 0
+            },
+            {
+              "conformer_id": 33,
+              "energy": 42.8005038138368,
+              "status": 0
+            },
+            {
+              "conformer_id": 34,
+              "energy": 42.75127169989147,
+              "status": 0
+            },
+            {
+              "conformer_id": 35,
+              "energy": 42.800503831149875,
+              "status": 0
+            },
+            {
+              "conformer_id": 36,
+              "energy": 42.7236940684036,
+              "status": 0
+            },
+            {
+              "conformer_id": 37,
+              "energy": 42.72369398499015,
+              "status": 0
+            },
+            {
+              "conformer_id": 38,
+              "energy": 42.751271652591086,
+              "status": 0
+            },
+            {
+              "conformer_id": 39,
+              "energy": 42.800580570356885,
+              "status": 1
+            },
+            {
+              "conformer_id": 40,
+              "energy": 42.800503814623895,
+              "status": 0
+            },
+            {
+              "conformer_id": 41,
+              "energy": 42.751271660860986,
+              "status": 0
+            },
+            {
+              "conformer_id": 42,
+              "energy": 42.80050385611846,
+              "status": 0
+            },
+            {
+              "conformer_id": 43,
+              "energy": 42.80055441813906,
+              "status": 1
+            },
+            {
+              "conformer_id": 44,
+              "energy": 42.800503818209926,
+              "status": 0
+            },
+            {
+              "conformer_id": 45,
+              "energy": 42.723694059795235,
+              "status": 0
+            },
+            {
+              "conformer_id": 46,
+              "energy": 42.80065750538889,
+              "status": 1
+            },
+            {
+              "conformer_id": 47,
+              "energy": 42.75127165185129,
+              "status": 0
+            },
+            {
+              "conformer_id": 48,
+              "energy": 42.80338562937685,
+              "status": 0
+            },
+            {
+              "conformer_id": 49,
+              "energy": 42.80050387110536,
+              "status": 0
+            }
+          ]
+        },
+        "flexisol_name": "chloroxuron",
+        "matched_functional_groups": [
+          "amide",
+          "ether",
+          "organohalogen",
+          "urea"
+        ],
+        "molecular_input_sha256": "368f3dee418bb52dddcec9ae6d196906116b5aa445d8d81a9fbf48a071c0f919",
+        "primary_functional_group": "urea",
+        "record_id": "flexisol-urea-2aeaa3693bc70255",
+        "selection_hash": "2aeaa3693bc702559913b275975adbb85fb5919dea4762ed2dfead3c65defbec",
+        "solvent": "octanol",
+        "source_line": 46,
+        "source_reference": "10.1021/acs.est.2c06170"
+      }
+    ],
+    "selected_primary_group_count": 19,
+    "selected_record_count": 19
+  },
+  "speed_gate": {
+    "matched_end_to_end_qm_speedup_required": ">1",
+    "required_only_after_accuracy_passes": true,
+    "status": "not_eligible_due_to_accuracy_failure"
+  }
+}

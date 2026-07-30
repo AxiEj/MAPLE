@@ -1,0 +1,63 @@
+{
+  "protocol_id": "route2-v0-weighted-density-bridge-prereg-v1",
+  "schema_version": 1,
+  "status": "preregistered-before-pure-solvent-bridge-asset",
+  "claim_boundary": "This protocol registers a no-training weighted-density bridge inside the existing molecular HNC scalar. It is a mathematical cavity/pressure candidate, not a physical solvent asset, total solvation calculation, chemistry score, force/PES result, or accuracy claim.",
+  "construction": {
+    "name": "route2-v0-molecular-weighted-density-bridge-v1",
+    "base_scalar": "Omega_HNC[nu] = Omega_id[nu; u_MACE_zero_field] + F_HNC[P nu]",
+    "centre_projection": "rho = D nu, with D nu_bulk = rho_bulk and dv <q, D d> = sum_i w_i (D^T q)_i d_i",
+    "weighted_density": "rho_bar = K rho, where K is real, nonnegative, normalized, and periodic-even",
+    "bridge_scalar": "F_B = dv sum_g [A_s (rho_bar-rho_bulk)^3 + B_s rho_bar^2 (rho_bar-rho_bulk)^4]",
+    "cubic_constraint": "A_s = (P_HNC - P_s) / rho_bulk^3",
+    "stationarity": "beta d(Omega_HNC + F_B)/d nu = 0",
+    "response_rule": "the bridge gradient and Hessian are exact derivatives of F_B; no response symmetrization, clipping, or damping is a model term"
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "error_driven_cavity_or_dispersion_adjustment": false,
+    "pc_plus_or_posthoc_volume_correction": false,
+    "per_record_bridge_or_kernel_selection": false,
+    "legacy_public_route_changed": false
+  },
+  "pure_solvent_anchor_contract": {
+    "cubic_coefficient": "Derived exactly from the matching molecular-HNC vacuum-limit pressure, the frozen bulk molecular density, and the independently declared pure-liquid pressure. It is never a fitted field.",
+    "quartic_coefficient": "Must be fixed before target-solute execution by one content-addressed pure-solvent planar-interface certificate that reproduces an independently sourced surface tension using the declared scalar. It cannot be optimized against solvation values.",
+    "weighted_density_kernel": "Must be content-addressed and derived from the frozen pure-liquid correlation/length-scale convention before target-solute execution; it cannot be selected from cavity or solvation errors.",
+    "required_certificate_contents": [
+      "all-atom solvent model and source digest",
+      "temperature, pressure, and bulk molecular number density",
+      "source-provenanced direct correlation or classical-liquid functional",
+      "independent pure-liquid surface tension and units",
+      "periodic-even normalized K kernel and source/derivation",
+      "A_s pressure identity and B_s planar-interface residual",
+      "statement that no MNSol, FreeSolv, development, confirmation, or blind solvation values were read"
+    ],
+    "physical_bridge_assets": []
+  },
+  "custom_solvent_contract": {
+    "dielectric_only": "A solvent name, static dielectric, or optical dielectric alone is insufficient and must fail closed for bridge or total-free-energy use.",
+    "required_before_total_free_energy": [
+      "complete all-atom molecular/site model and geometry",
+      "temperature, pressure, bulk molecular number density, and independent pure-liquid surface tension",
+      "frozen bulk direct correlation or a declared molecular liquid functional",
+      "source-bound molecular-centre projection and periodic-even weighted-density kernel",
+      "certificate-derived cubic and quartic bridge coefficients",
+      "complete MACE-native solute-solvent external-potential, standard-state, force, and grid/orientation convergence contracts"
+    ]
+  },
+  "validation_sequence": [
+    "Verify D maps the uniform configuration density to the molecular bulk density and prove its exact discrete adjoint pairing.",
+    "Verify K has unit discrete integral, periodic inversion symmetry, and an exact self-adjoint convolution pairing.",
+    "Verify the cubic coefficient from P_HNC and P_s exactly restores the declared same-functional vacuum-limit pressure.",
+    "Verify bridge scalar, gradient, Hessian-vector action, Hessian reciprocity, and scalar second derivative by finite differences before any solvent asset is admitted.",
+    "For each physical solvent, verify the frozen pure-liquid planar-interface/surface-tension certificate before any target-solute label is read.",
+    "Verify the full HNC-plus-bridge stationary liquid scalar, stability, forces, grid/orientation convergence, standard state, and 11-solvent asset panel before chemistry scoring.",
+    "Apply the already frozen all-record development, confirmation, and external-blind maximum-error gates without any bridge, kernel, or liquid-asset change."
+  ],
+  "decision_rule": "A failed pure-solvent certificate, scalar/derivative identity, source digest, structural gate, or accuracy gate rejects this frozen candidate. It does not authorize a post-hoc PC+, a changed B_s or K, a cavity/radius adjustment, a solvation-label regression, post-training, fine-tuning, or per-record method selection. A new bridge functional requires a new preregistration and independent review."
+}

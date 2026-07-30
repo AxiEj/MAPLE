@@ -118,6 +118,19 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "total solvation free energy" in molecular_hnc[
         "not_a_physical_liquid_backend"
     ]
+    weighted_density = foundation["molecular_weighted_density_bridge_control"]
+    assert weighted_density["module"].endswith(
+        "route2_v0_molecular_weighted_density_bridge"
+    )
+    assert weighted_density["preregistration"] == (
+        "route2-v0-weighted-density-bridge-prereg-v1.json"
+    )
+    assert "cubic-plus-quartic bridge" in weighted_density["capability"]
+    assert "exactly from the same molecular-HNC" in weighted_density["capability"]
+    assert "target-solvation-selected B/K" in weighted_density["source_boundary"]
+    assert "No physical weighted-density bridge asset" in weighted_density[
+        "not_a_physical_liquid_backend"
+    ]
     hnc = foundation["site_hnc_variational_reference"]
     assert hnc["module"].endswith("route2_v0_site_hnc")
     assert "synthetic-only periodic multi-site HNC" in hnc["capability"]
@@ -159,6 +172,8 @@ def test_structured_solvent_admission_requires_a_frozen_liquid_asset_and_review(
     assert liquid["primary_closure"].startswith("Kovalenko-Hirata")
     assert "thermodynamic pressure correction" in liquid["pressure_correction"]
     assert "diagnostic-only" in liquid["pc_plus_policy"]
+    assert "pre-minimisation scalar term" in liquid["weighted_density_bridge_policy"]
+    assert "not PC+" in liquid["weighted_density_bridge_policy"]
     assert "discrete energy/derivative control only" in liquid["reference_kernel"]
     assert "matching input/model provenance" in liquid["rism_bulk_correlation_asset"]
     assert "multiplicity-weighted neutral" in liquid["rism_bulk_correlation_asset"]
@@ -205,6 +220,7 @@ def test_structured_solvent_admission_keeps_nonlocal_dielectric_electrostatic_on
         for item in validation
     )
     assert any("projected molecular-site HNC bridge" in item for item in validation)
+    assert any("pure-solvent weighted-density bridge" in item for item in validation)
     rism_kernel = foundation["rism_energy_conjugate_periodic_kernel_control"]
     assert rism_kernel["module"].endswith("route2_v0_rism_energy_conjugate")
     assert "short-range-plus-long-range scalar" in rism_kernel["capability"]

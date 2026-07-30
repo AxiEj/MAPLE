@@ -1392,7 +1392,149 @@ This classification is strict:
   all-atom frozen solvent asset.  The exact discrete identity does not prove
   the hybrid functional chemically accurate.
 
-#### 4.2.19 Unified no-training V0 variational and stability theorem
+#### 4.2.19 Pure-solvent weighted-density bridge: repair the HNC cavity *before* stationarity
+
+The HNC reference is useful because its scalar, derivative, and Hessian are
+explicit, but a quadratic expansion about the liquid bulk state has a known
+cavity/pressure defect.  In particular, an HNC-only liquid can assign a very
+large vacuum-limit pressure and therefore overestimate the work of making a
+hydrophobic cavity.  This is a structural candidate for the observed
+large-error tail; it is not evidence that a radius, a half factor, or a
+solvation-label correction should be tuned.
+
+The admissible V0 repair is a **bridge term inside the scalar before the
+liquid is minimized**.  It follows the weighted-density molecular-DFT form of
+Gageat *et al.* rather than an a-posteriori PC/PC+ adjustment.  Let $D$ be a
+second, source-bound projection from the configuration density to molecular
+centres:
+
+
+\[
+\rho_g=(D\nu)_g
+=\frac{1}{\Delta v}\sum_iw_iD_{gi}\nu_i,
+\qquad
+\sum_gD_{gi}=1,
+\qquad
+D\nu_b=\rho_b.
+\]
+
+The exact discrete pairing is
+
+\[
+\Delta v\sum_gq_g(Dd)_g
+=\sum_iw_i(D^Tq)_i d_i.
+\]
+
+It is intentionally a molecular-centre map, not an average of RISM site
+densities: site multiplicity and displaced atomic sites do not define a
+molecular cavity field.  Let $K$ be a real, nonnegative, normalized, and
+periodic-even kernel,
+
+\[
+\Delta v\sum_gK_g=1,
+\qquad K_g=K_{-g},
+\qquad \bar\rho=K*\rho.
+\]
+
+The bridge scalar is then
+
+\[
+\boxed{
+F_{\rm B}[\nu]
+=\Delta v\sum_g\left[
+A_s(\bar\rho_g-\rho_b)^3
++B_s\bar\rho_g^2(\bar\rho_g-\rho_b)^4
+\right].
+}
+\]
+
+Its cubic coefficient is **not free**.  Let $P_{\rm HNC}$ be the
+vacuum-limit pressure evaluated by Section 4.2.18 from the exact molecular
+HNC convolution, with its one-molecule ideal term, and let $P_s$ be the
+independently frozen pressure of the pure liquid state.  The empty-state
+condition for the augmented scalar gives
+
+\[
+\boxed{
+A_s=\frac{P_{\rm HNC}-P_s}{\rho_b^3}.
+}
+\]
+
+Consequently
+
+\[
+\frac{\Omega_{\rm HNC+B}[0;0]}{V}
+=P_{\rm HNC}-A_s\rho_b^3=P_s.
+\]
+
+This is an identity of the scalar actually minimized.  It is neither the
+stock site-3D-RISM pressure formula nor a post-hoc volume correction.  The
+positive quartic coefficient $B_s$ controls the barrier between liquid and
+gas-like densities; its value and $K$ are admissible only through a
+content-addressed **pure-solvent** planar-interface certificate which uses
+the frozen bulk correlation and independently sourced surface tension.  No
+MNSol, FreeSolv, development, confirmation, or blind solvation value may
+enter that certificate.  Thus matching a bulk pressure/surface tension is a
+predeclared thermodynamic boundary condition, not target-solvation fitting.
+
+For clarity, write $\Delta\bar\rho=\bar\rho-\rho_b$.  The local first and second
+derivatives are
+
+\[
+\begin{aligned}
+b'(\bar\rho)
+&=3A_s\Delta\bar\rho^2
++B_s\left(2\bar\rho\Delta\bar\rho^4
++4\bar\rho^2\Delta\bar\rho^3\right),\\
+b''(\bar\rho)
+&=6A_s\Delta\bar\rho
++B_s\left(
+2\Delta\bar\rho^4
++16\bar\rho\Delta\bar\rho^3
++12\bar\rho^2\Delta\bar\rho^2
+\right).
+\end{aligned}
+\]
+
+Because both $D$ and $K$ retain their exact adjoints, the bridge supplies
+
+\[
+\boxed{
+\frac{\beta}{w_i}\frac{\partial F_{\rm B}}{\partial\nu_i}
+=\beta\left[D^TK\,b'(KD\nu)\right]_i
+}
+\]
+
+and, for any signed configuration-density direction $d$, the Hessian action
+
+\[
+\boxed{
+\delta\!\left(
+\frac{\beta}{w_i}\frac{\partial F_{\rm B}}{\partial\nu_i}
+\right)[d]
+=\beta\left[
+D^TK\left\{b''(KD\nu)\,KDd\right\}
+\right]_i.
+}
+\]
+
+The action is self-adjoint in the same quadrature pairing; therefore the
+HNC-plus-bridge response remains reciprocal by construction.  The production
+code in `route2_v0_molecular_weighted_density_bridge.py` validates the centre
+map, the kernel normalization/evenness, the pressure-derived $A_s$, the
+source certificate digest, finite-difference gradient/Hessian identities, and
+the same-functional pressure identity.  Its Picard mixing remains numerical
+only.
+
+This control does **not** establish a chemical result yet.  A physical bridge
+asset still needs a frozen all-atom solvent model, source-provenanced
+correlation, pressure, surface tension, kernel/certificate, production
+orientation/grid convergence, full MACE-cluster external potential, standard
+state, force terms, and the preregistered 11-solvent/blind validation sequence.
+If $D$, $K$, or any bridge anchor moves with a solute coordinate, its
+explicit derivative must be added to the same scalar before any force claim.
+
+#### 4.2.20 Unified no-training V0 variational and stability theorem
 
 The preceding modules form one admissible mathematical trunk only when they
 are read as derivatives and decompositions of the **same** frozen scalar.  For
@@ -1402,7 +1544,7 @@ molecular external potential, define
 
 \[
 \boxed{
-\Omega_{\rm V0}[\nu;\mathbf R]
+\Omega_{\rm V0,HNC}[\nu;\mathbf R]
 =
 \Omega_{\rm id}
 [\nu;u_{\rm MACE}(\mathbf R,\Gamma)]
@@ -1435,7 +1577,7 @@ The exact configuration derivative is therefore
 \[
 \boxed{
 \frac{\beta}{w_i}
-\frac{\partial\Omega_{\rm V0}}{\partial\nu_i}
+\frac{\partial\Omega_{\rm V0,HNC}}{\partial\nu_i}
 =
 \log\!\frac{\nu_i}{\nu_b}
 +\beta u_{{\rm MACE},i}
@@ -1449,7 +1591,7 @@ verified stationary solution \(\nu^*(\mathbf R)\), the envelope theorem gives
 
 \[
 \boxed{
-\frac{d\Omega_{\rm V0}[\nu^*(\mathbf R);\mathbf R]}{dR_I}
+\frac{d\Omega_{\rm V0,HNC}[\nu^*(\mathbf R);\mathbf R]}{dR_I}
 =
 \sum_i w_i\nu_i^*
 \frac{\partial u_{{\rm MACE},i}}{\partial R_I}.
@@ -1475,7 +1617,7 @@ tangent space \(\mathcal T\), the same scalar fixes
 
 \[
 \boxed{
-\delta^2\Omega_{\rm V0}[d,d]
+\delta^2\Omega_{\rm V0,HNC}[d,d]
 =k_BT\sum_iw_i d_i
 \left[
 \frac{d_i}{\nu_i}
@@ -1489,6 +1631,31 @@ The V0 state is admitted as a locally stable minimum only when this quadratic
 form is positive for every nonzero allowed tangent and the Hessian pairing is
 reciprocal.  Residual convergence, a favorable Picard spectral radius, or a
 chosen mixing coefficient cannot replace this thermodynamic gate.
+
+The weighted-density extension is not a separate ledger.  It replaces the
+base scalar by
+
+\[
+\Omega_{\rm V0,B}[\nu;\mathbf R]
+=\Omega_{\rm V0,HNC}[\nu;\mathbf R]+F_{\rm B}[D\nu],
+\]
+
+and replaces the HNC gradient and Hessian by the exact additions in Section
+4.2.19.  In particular, for $d\in\mathcal T$,
+
+\[
+\delta^2\Omega_{\rm V0,B}[d,d]
+=\delta^2\Omega_{\rm V0,HNC}[d,d]
++\Delta v\sum_g
+\left[KDd\right]_g^2 b''\!\left([KD\nu]_g\right).
+\]
+
+The final term is the scalar second variation of the bridge, so it cannot be
+replaced by a response filter or an error-selected post-correction.  The
+same envelope-force statement holds only while $D,K,A_s,B_s$, and their
+source assets are fixed with respect to the solute coordinate; otherwise the
+explicit derivative of each coordinate-dependent term belongs in the common
+scalar force.
 
 This theorem is deliberately conditional.  It proves the internal
 common-energy, envelope-force, and stability identities of a frozen
@@ -1672,3 +1839,11 @@ substitute for these gates.
     It derives the different site-3D-RISM pressure, showing why functional
     identity matters, and distinguishes the rigorous macroscopic PC term from
     the additional microscopic PC+ adjustment.
+22. C. Gageat, L. Belloni, D. Borgis, and M. Levesque, *Bridge functional for
+    the molecular density functional theory with consistent pressure and
+    surface tension and its importance for solvation in water*,
+    [arXiv:1709.10139](https://arxiv.org/abs/1709.10139).  It motivates a
+    coarse-grained weighted-density bridge inserted before minimisation,
+    derives a cubic coexistence constraint from the HNC pressure, and anchors
+    the remaining barrier against a pure-liquid surface tension rather than a
+    molecular solvation-error regression.

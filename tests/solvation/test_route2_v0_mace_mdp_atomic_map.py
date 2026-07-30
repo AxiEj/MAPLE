@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 BENCHMARKS = ROOT / "docs/implicit-solvation/benchmarks"
 
@@ -87,3 +89,42 @@ def test_atomic_map_preregistration_binds_runner_model_and_implementation():
     assert "/mace/modules/models.py" in " ".join(inputs)
     assert "/mace/calculators/mace.py" in " ".join(inputs)
     assert "/mace/tools/torch_tools.py" in " ".join(inputs)
+
+
+def test_atomic_map_artifact_admits_only_an_identity_bound_partition():
+    artifact = json.loads(
+        (BENCHMARKS / "route2-v0-mace-mdp-atomic-map-acetone-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert artifact["status"] == "pass"
+    assert artifact["decision"]["verdict"] == (
+        "admit-atomic-moment-partition-for-source-map-gates-only"
+    )
+    assert (
+        artifact["hard_constraints"]["gto_width_or_density_projection_selected"]
+        is False
+    )
+    assert artifact["hard_constraints"]["continuum_or_pcm_invoked"] is False
+    assert artifact["hard_constraints"]["experimental_solvation_labels_read"] is False
+    assert all(check["passes"] for check in artifact["numerical_checks"].values())
+    assert artifact["numerical_checks"]["net_charge"]["value"] == pytest.approx(
+        0.0, abs=1.0e-12
+    )
+    assert (
+        artifact["numerical_checks"]["atomic_dipole_weight_moment_identity"]["value"]
+        < 1.0e-12
+    )
+    assert (
+        "does not create a density/GTO representer"
+        in artifact["decision"]["admission_boundary"]
+    )
+
+    runner = BENCHMARKS / "run_route2_v0_mace_mdp_atomic_map.py"
+    assert artifact["source_files_sha256"] == {
+        "docs/implicit-solvation/benchmarks/"
+        "run_route2_v0_mace_mdp_atomic_map.py": hashlib.sha256(
+            runner.read_bytes()
+        ).hexdigest()
+    }

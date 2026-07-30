@@ -1,0 +1,662 @@
+{
+  "artifact": "route2-v0-mace-mdp-atomic-map-acetone-v1",
+  "claim_boundary": "This one-acetone MACE-MDP white-box decomposition audit tests only whether the frozen checkpoint's atom-resolved readouts reconstruct its own public molecular dipole and polarizability exactly. It invokes no GTO width, density basis, PCM/continuum, solvation free energy, energy model, force model, experimental solvation label, target fitting, calibration, or response repair. A pass can admit only an atom-resolved induced-moment partition to later source-map gates; it does not create an electronic density, a common energy, a force, or chemical accuracy.",
+  "decision": {
+    "admission_boundary": "A pass proves only that the frozen model's observed atomic readouts close exactly to its public molecular moments. It does not create a density/GTO representer, a continuum source, an energy, a force, or a solvation prediction.",
+    "passes_all_registered_checks": true,
+    "verdict": "admit-atomic-moment-partition-for-source-map-gates-only"
+  },
+  "executed_at_utc": "2026-07-30T14:10:15.798711+00:00",
+  "execution_git_head": "b97084df242af5ba249121ed54878e97dd7b5467",
+  "hard_constraints": {
+    "atomic_partition_rescaling_or_clipping": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "gto_width_or_density_projection_selected": false,
+    "legacy_public_route_changed": false,
+    "mace_mdp_treated_as_an_energy_or_force_model": false,
+    "model_weights_or_forward_equations_modified": false,
+    "post_training": false,
+    "readout_hook_changes_model_output": false,
+    "target_fit_or_calibration": false
+  },
+  "input_files_sha256": {
+    "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/calculators/mace.py": "97b17cef8d5880071068d1a05a97f1d432ffc57db00d23ba86c2c3049114a8ad",
+    "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/modules/models.py": "a1e0958611bb4475b1739e6a9225677617c05d3df2b2724f27ba3c048240f1d7",
+    "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/tools/torch_tools.py": "3f4317f5ba6721f9092c4d7975d90364ad9789452c157ce863f310d69f6c4fa6",
+    "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+    "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8"
+  },
+  "mace_mdp_atomic_decomposition": {
+    "atomic_dipole_weight_moment_identity": [
+      [
+        1.0,
+        2.6020852139652106e-18,
+        -8.673617379884035e-18
+      ],
+      [
+        -6.288372600415926e-18,
+        1.0,
+        1.3010426069826053e-18
+      ],
+      [
+        3.903127820947816e-17,
+        -8.673617379884035e-19,
+        1.0
+      ]
+    ],
+    "atomic_dipole_weights": [
+      [
+        [
+          0.19797939287822722,
+          0.0016205616840187895,
+          0.003142249862086965
+        ],
+        [
+          0.0020625104204090817,
+          0.15340937280295133,
+          0.008215289706489227
+        ],
+        [
+          0.00433573103129239,
+          0.008336434811488125,
+          0.19108648435208772
+        ]
+      ],
+      [
+        [
+          0.1399823418340813,
+          0.001992576888714308,
+          0.028079972593233627
+        ],
+        [
+          0.002758485197798591,
+          0.22279130046536316,
+          -0.02193079189446143
+        ],
+        [
+          0.027706668493969216,
+          -0.021491928309599166,
+          0.19078079944040513
+        ]
+      ],
+      [
+        [
+          0.06944738483821628,
+          -0.005605464473397632,
+          0.008816135646007804
+        ],
+        [
+          -0.005224044947018672,
+          0.12175245553821909,
+          -0.0260769571692432
+        ],
+        [
+          0.00861485614526883,
+          -0.02583306963519215,
+          0.09059559442483925
+        ]
+      ],
+      [
+        [
+          0.18672033593348925,
+          0.005776020476809303,
+          -0.008716725320018007
+        ],
+        [
+          0.004788468205526181,
+          0.17925301654035644,
+          0.02248604789022931
+        ],
+        [
+          -0.009710032667301577,
+          0.022033764936960173,
+          0.17640520936674048
+        ]
+      ],
+      [
+        [
+          0.07094452168000319,
+          -0.0010754717995492434,
+          -0.004363546144693865
+        ],
+        [
+          -0.0011358758565891008,
+          0.052900684762897526,
+          0.002388203459674529
+        ],
+        [
+          -0.003378390717462819,
+          0.002258889512027983,
+          0.055638137325832226
+        ]
+      ],
+      [
+        [
+          0.06670914334623726,
+          0.0006763966794931371,
+          -0.00519392841195873
+        ],
+        [
+          0.0007771380423388611,
+          0.056178688961590034,
+          0.0032214335336669714
+        ],
+        [
+          -0.005315889915242727,
+          0.003274487139075671,
+          0.058927909284379874
+        ]
+      ],
+      [
+        [
+          0.06564279502110233,
+          -0.0007906783260585387,
+          -0.005937945791859931
+        ],
+        [
+          -0.000991073943129842,
+          0.053236620415728644,
+          0.003179840445749748
+        ],
+        [
+          -0.00635517241735039,
+          0.0031198713340332817,
+          0.05935351872638059
+        ]
+      ],
+      [
+        [
+          0.06674678364305196,
+          -0.003018135454324829,
+          -0.006832482069548121
+        ],
+        [
+          -0.0038849442178084874,
+          0.05365979031757341,
+          0.004397595825101282
+        ],
+        [
+          -0.007233775144847079,
+          0.00400919129884978,
+          0.05900124796583446
+        ]
+      ],
+      [
+        [
+          0.06756069213456849,
+          -7.482108155719457e-05,
+          -0.004109658927419016
+        ],
+        [
+          7.56396141766529e-05,
+          0.05346934939900394,
+          0.0018639670646819558
+        ],
+        [
+          -0.004132299565254307,
+          0.0019414753251186753,
+          0.06098607068440297
+        ]
+      ],
+      [
+        [
+          0.0682666086910228,
+          0.0004990154058519025,
+          -0.00488407143583073
+        ],
+        [
+          0.0007736974842967291,
+          0.053348720796316425,
+          0.0022553711381116115
+        ],
+        [
+          -0.004531695243071496,
+          0.0023508835872376277,
+          0.05722502842909721
+        ]
+      ]
+    ],
+    "atomic_dipoles_eangstrom": [
+      [
+        -0.014388433206926279,
+        -0.007225963088387622,
+        -0.02258770618543978
+      ],
+      [
+        -0.02322344564030592,
+        0.14244551657239038,
+        -0.08168714095256953
+      ],
+      [
+        -0.04615700451710226,
+        0.29876098469570106,
+        -0.17269029936914482
+      ],
+      [
+        0.008786236607516125,
+        0.019498626592460443,
+        0.01784168006283287
+      ],
+      [
+        -0.08038912330422894,
+        0.008695816091719516,
+        -0.0011099026051460876
+      ],
+      [
+        0.023891302051761962,
+        0.053042472970781795,
+        -0.04380971928605487
+      ],
+      [
+        0.008943435189566898,
+        -0.06553245845319254,
+        -0.04664020153521792
+      ],
+      [
+        -0.054318835598105034,
+        0.039685217721204195,
+        0.045003721252713784
+      ],
+      [
+        0.018478841156262454,
+        0.050094024240538014,
+        -0.04946673030574593
+      ],
+      [
+        0.06345711883862797,
+        -0.0013137628370383007,
+        0.05028681109936993
+      ]
+    ],
+    "atomic_polarizabilities_eangstrom2_per_volt": [
+      [
+        [
+          0.07534953060456832,
+          0.002559822263057946,
+          0.010447182745932218
+        ],
+        [
+          0.0025598222630579454,
+          0.07257982545950628,
+          0.0030310801213371077
+        ],
+        [
+          0.01044718274593222,
+          0.003031080121337114,
+          0.08627944117437397
+        ]
+      ],
+      [
+        [
+          0.05446460306790886,
+          0.002081595424494621,
+          0.01903686787803557
+        ],
+        [
+          0.0020815954244946208,
+          0.10557210777792901,
+          -0.010870365988869332
+        ],
+        [
+          0.019036867878035574,
+          -0.010870365988869356,
+          0.08735759125054487
+        ]
+      ],
+      [
+        [
+          0.026726964473787494,
+          -0.002062418026925205,
+          0.00717215795974248
+        ],
+        [
+          -0.0020624180269252046,
+          0.05770258670126781,
+          -0.012599175537886231
+        ],
+        [
+          0.007172157959742482,
+          -0.012599175537886259,
+          0.04135390222383835
+        ]
+      ],
+      [
+        [
+          0.07056993624740042,
+          0.004482761078609851,
+          0.004567525318354716
+        ],
+        [
+          0.0044827610786098504,
+          0.08476416921555367,
+          0.009458402526630843
+        ],
+        [
+          0.004567525318354717,
+          0.009458402526630863,
+          0.07895290783844108
+        ]
+      ],
+      [
+        [
+          0.026735210567744527,
+          0.0001608929920210793,
+          0.0012777892875044032
+        ],
+        [
+          0.00016089299202107929,
+          0.02501329856562423,
+          0.0007604569736721913
+        ],
+        [
+          0.0012777892875044034,
+          0.0007604569736721931,
+          0.024910709785814007
+        ]
+      ],
+      [
+        [
+          0.025104733074768144,
+          0.0009554303563248829,
+          0.0007014171115033548
+        ],
+        [
+          0.0009554303563248827,
+          0.026577952100018554,
+          0.0012069751672901439
+        ],
+        [
+          0.0007014171115033549,
+          0.0012069751672901465,
+          0.026299888416525762
+        ]
+      ],
+      [
+        [
+          0.024652369883857564,
+          0.0002551000125129268,
+          0.00032472391766831055
+        ],
+        [
+          0.00025510001251292675,
+          0.025169653675458172,
+          0.0011221838454309732
+        ],
+        [
+          0.00032472391766831055,
+          0.0011221838454309756,
+          0.02644503324708858
+        ]
+      ],
+      [
+        [
+          0.02501046794094579,
+          -0.0007845085572392525,
+          -1.69229983725568e-05
+        ],
+        [
+          -0.0007845085572392523,
+          0.02533740738321593,
+          0.001536792547078153
+        ],
+        [
+          -1.6922998372556805e-05,
+          0.0015367925470781561,
+          0.026241711086654105
+        ]
+      ],
+      [
+        [
+          0.02547078718821291,
+          0.0006022785471632017,
+          0.0012327281824880728
+        ],
+        [
+          0.0006022785471632016,
+          0.025296106869233705,
+          0.0005766576130796734
+        ],
+        [
+          0.001232728182488073,
+          0.0005766576130796747,
+          0.027288198575961323
+        ]
+      ],
+      [
+        [
+          0.02570877469525331,
+          0.0008841645001531681,
+          0.0009130641899064347
+        ],
+        [
+          0.000884164500153168,
+          0.025243441758392847,
+          0.0007855373024550391
+        ],
+        [
+          0.0009130641899064348,
+          0.0007855373024550408,
+          0.025572810015941604
+        ]
+      ]
+    ],
+    "charges_e": [
+      -0.003146097855117748,
+      -0.0045824802917896895,
+      -0.0076920231467397975,
+      -0.0031284084090477757,
+      0.0028919359618914935,
+      0.003450894207408465,
+      0.002933174065960855,
+      0.002834045375804886,
+      0.003447684475321138,
+      0.0029912756163081675
+    ],
+    "direct_dipole_eangstrom": [
+      -0.09731520309731044,
+      0.5581792379950091,
+      -0.31677343925811663
+    ],
+    "direct_polarizability_eangstrom2_per_volt": [
+      [
+        0.3797933777444473,
+        0.009135118590173219,
+        0.045656533592763
+      ],
+      [
+        0.009135118590173219,
+        0.4732565495062002,
+        -0.004991455429781438
+      ],
+      [
+        0.045656533592763004,
+        -0.00499145542978145,
+        0.4507021936151837
+      ]
+    ],
+    "public_dipole_eangstrom": [
+      -0.09731520309731044,
+      0.5581792379950091,
+      -0.31677343925811663
+    ],
+    "public_polarizability_eangstrom2_per_volt": [
+      [
+        0.3797933777444473,
+        0.009135118590173219,
+        0.045656533592763
+      ],
+      [
+        0.009135118590173219,
+        0.4732565495062002,
+        -0.004991455429781438
+      ],
+      [
+        0.045656533592763004,
+        -0.00499145542978145,
+        0.4507021936151837
+      ]
+    ],
+    "reconstructed_dipole_eangstrom": [
+      -0.0973152030973104,
+      0.5581792379950091,
+      -0.31677343925811663
+    ],
+    "reconstructed_polarizability_eangstrom2_per_volt": [
+      [
+        0.37979337774444727,
+        0.00913511859017322,
+        0.04565653359276301
+      ],
+      [
+        0.009135118590173219,
+        0.4732565495062002,
+        -0.004991455429781437
+      ],
+      [
+        0.04565653359276302,
+        -0.004991455429781452,
+        0.45070219361518365
+      ]
+    ],
+    "weight_definition": "For a Cartesian total induced dipole p in e angstrom, atom a receives p_a=alpha_a @ inv(alpha_total) @ p. This is an identity-bound moment partition only; no GTO width, PCM source, continuum energy, or force is chosen here."
+  },
+  "numerical_checks": {
+    "atomic_dipole_reconstruction": {
+      "maximum": 1e-12,
+      "passes": true,
+      "value": 6.413641507447851e-17
+    },
+    "atomic_dipole_weight_moment_identity": {
+      "maximum": 1e-12,
+      "passes": true,
+      "value": 4.058856763659466e-17
+    },
+    "atomic_polarizability_reconstruction": {
+      "maximum": 1e-12,
+      "passes": true,
+      "value": 1.067512180784059e-16
+    },
+    "net_charge": {
+      "absolute_maximum": 1e-12,
+      "passes": true,
+      "value": -6.938893903907228e-18
+    },
+    "public_direct_dipole": {
+      "maximum": 1e-12,
+      "passes": true,
+      "value": 0.0
+    },
+    "public_direct_polarizability": {
+      "maximum": 1e-12,
+      "passes": true,
+      "value": 0.0
+    }
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-prereg-v1.json",
+    "protocol_id": "route2-v0-mace-mdp-atomic-map-prereg-v1",
+    "sha256": "b2036f30e87cd9aab4741eee5e0e091a275e3e6f9582c1d7f07068f5368e095f"
+  },
+  "prerequisite_response_artifact": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json",
+    "sha256": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+    "verdict": "admit-frozen-mace-mdp-response-coefficients-only"
+  },
+  "runtime": {
+    "default_dtype": "float64",
+    "device": "cpu",
+    "mace_calculator_source_path": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/calculators/mace.py",
+    "mace_calculator_source_sha256": "97b17cef8d5880071068d1a05a97f1d432ffc57db00d23ba86c2c3049114a8ad",
+    "mace_models_source_path": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/modules/models.py",
+    "mace_models_source_sha256": "a1e0958611bb4475b1739e6a9225677617c05d3df2b2724f27ba3c048240f1d7",
+    "mace_torch_tools_source_path": "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/tools/torch_tools.py",
+    "mace_torch_tools_source_sha256": "3f4317f5ba6721f9092c4d7975d90364ad9789452c157ce863f310d69f6c4fa6",
+    "model_path": "/home/axie/.cache/mace/MACE-MDP.model",
+    "model_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+    "model_size_bytes": 51716861,
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python",
+    "torch_force_no_weights_only_load": "1",
+    "versions": {
+      "ase": "3.27.0",
+      "mace_torch": "0.3.16",
+      "numpy": "2.4.6",
+      "torch": "2.12.0+cu130"
+    }
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_route2_v0_mace_mdp_atomic_map.py": "39c24f46357672365a2f6fee91a3fc408158dd82a8e2ff7f890d80edd9d1fe49"
+  },
+  "status": "pass",
+  "system": {
+    "atom_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "compound_id": "mobley_3867265",
+    "name": "acetone",
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ]
+  }
+}

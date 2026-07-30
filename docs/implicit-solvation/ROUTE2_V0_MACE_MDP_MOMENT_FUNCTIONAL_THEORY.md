@@ -38,6 +38,18 @@ acetone agreement (relative error \(0.001903\)) is a non-gating interface
 diagnostic only. A permanent source must remain an independently auditable,
 energy-conjugate density representation.
 
+The subsequent sealed
+[`route2-v0-mace-mdp-atomic-map-acetone-v1.json`](benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json)
+audit resolved one part of the \(D\) problem without choosing a width or a
+cavity.  The official frozen readouts reconstruct their public molecular
+properties to machine precision: atomic dipole closure is
+\(6.41	imes10^{-17}\), atomic polarizability closure is
+\(1.07	imes10^{-16}\), and the Cartesian partition
+\(W_a=lpha_alpha^{-1}\) satisfies \(\sum_aW_a=I\) to
+\(4.06	imes10^{-17}\).  Thus \(p_a=W_ap\) is an identity-bound atomic
+induced-dipole partition.  It does **not** yet specify how those atom moments
+become a radial GTO density or an electrostatic source.
+
 ## One explicit scalar
 
 Let \(c_0(\mathbf R)\) be a frozen gas-phase density coefficient vector in a
@@ -115,11 +127,13 @@ it is not imposed on a learned fixed-point Jacobian.
 
 ## Non-negotiable source-map rule
 
-The map \(D_{\mathbf R}\) is the unresolved physical object. A point dipole,
-a guessed Gaussian width, an error-selected atomic partition, or a projection
+The **radial density representer** in \(D_{\mathbf R}\) remains unresolved;
+the atomic Cartesian partition is no longer guessed.  A point dipole, a
+guessed Gaussian width, an error-selected atomic partition, or a projection
 that changes after viewing solvation errors is forbidden. Any implementation
-must instead provide a source-provenanced, geometry-differentiable GTO
-representer satisfying all of the following before it is connected to a PCM:
+must use the frozen \(p_a=W_ap\) partition above and provide a
+source-provenanced, geometry-differentiable GTO representer satisfying all of
+the following before it is connected to a PCM:
 
 1. **Charge and moment identity:** \(q^\mathsf TD=0\) and
    \(M_{\mathbf R}D=I_3\) at float64 precision.

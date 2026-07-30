@@ -1,0 +1,49 @@
+{
+  "protocol_id": "route2-v0-atomic-displacement-frozen-kkt-prereg-v1",
+  "schema_version": 1,
+  "status": "structural-kernel-implemented-before-physical-continuum-binding",
+  "claim_boundary": "This protocol defines only a fixed-geometry, frozen-permanent-source direct-sum KKT structural gate. It uses a synthetic reciprocal continuum in unit tests. It does not perform a physical PCM calculation, make the MACE permanent source variational, provide a total solvation free energy, force, PES, QM solvent-physics result, or experimental accuracy result.",
+  "construction": {
+    "name": "route2-v0-atomic-displacement-frozen-kkt-v1",
+    "permanent_source": "The unmodified zero-field MACE-POLAR raw point monopole/dipole coefficients c0 are mapped to the declared surface only by the existing point_multipole_potential convention.",
+    "induced_source": "The V0-ADT free-atom translation tangent maps the induced molecular dipole p to the same surface directly from the frozen radial table; it is not GTO-projected.",
+    "direct_sum_dual": "For one surface charge q, (S^T q, B^T q) is built from exactly the dense forward maps (S,B), so q^T(S c0+B p)=c0^T S^Tq+p^T B^Tq.",
+    "stationary_scalar": "g(p;c0)=0.5 p^T alpha_theta^-1 p + 0.5 (S c0+B p)^T Q (S c0+B p), with c0 frozen and p stationary.",
+    "linearity_gate": "The returned total surface charge must equal Q(S c0)+Q(B p) to the declared tolerance; an affine/nonlinear response is rejected even if its restricted induced Hessian appears reciprocal."
+  },
+  "hard_constraints": {
+    "official_checkpoint_unmodified": true,
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "gto_projection_of_atomic_displacement_source": false,
+    "radial_width_or_projection_metric_selected_from_error": false,
+    "mace_field_response_used": false,
+    "density_projection_or_charge_repair": false,
+    "physical_continuum_execution": false,
+    "experimental_solvation_labels_read": false
+  },
+  "required_structural_gates": [
+    "Point-multipole and V0-ADT sources have exactly the same atomic geometry and surface points.",
+    "Both permanent and induced source duals are the transpose of their corresponding forward surface maps.",
+    "The frozen MACE source meets its declared total-charge constraint without projection.",
+    "The reduced V0-ADT polarizability, continuum reciprocity, joint curvature, stationary residual, passive response, and energy ledger gates pass.",
+    "The full [S|B]-restricted continuum response is reciprocal, maps the zero source to zero, satisfies linear superposition at the declared frozen source and stationary induced response, and passes the direct-sum pairing identity.",
+    "A frozen-source scaling finite difference satisfies the stationary envelope identity."
+  ],
+  "forbidden_shortcuts": [
+    "Do not fit or project V0-ADT into a GTO radial channel.",
+    "Do not rescale the permanent source or polarizability in a physical calculation.",
+    "Do not select a continuum equation, cavity, radius, grid, or tolerance from a solvation error.",
+    "Do not call c0 a stationary all-electron density or call this a full Route-2V functional.",
+    "Do not run FreeSolv, MNSol, or another experimental accuracy panel from this structural gate."
+  ],
+  "physical_binding_required_before_any_accuracy_run": [
+    "An independently source-bound physical continuum/cavity with a smooth-coordinate certificate.",
+    "The frozen twelve-record, ten-functional-group QM density/MEP/reaction-potential physics gates with no experimental solvation labels.",
+    "A declared treatment of the frozen permanent MACE source versus a full electronic functional, plus all force and runtime gates.",
+    "The immutable historical FreeSolv10 all-record maximum-error test, then broad development, confirmation, and blind experimental panels."
+  ],
+  "decision_rule": "Failure of any source/dual, linearity, curvature, stationarity, physical, force, runtime, or all-record accuracy gate rejects the frozen candidate. It does not authorize fitting, retraining, calibration, response modification, GTO-width selection, or cavity/radius tuning."
+}

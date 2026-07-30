@@ -5,9 +5,10 @@
 There is **no valid current Route-2V0 solvation-accuracy value**. A
 free-atom translation-tangent source has now passed one preregistered acetone
 **gas-phase QM-MEP physics canary**. An induced-only reduced source-space KKT
-structural kernel also exists, but it has no permanent-density/source dual,
-physical continuum binding, force proof, or multi-functional-group physics
-certificate. It therefore cannot be used to quote a solvation error.
+structural kernel and a direct-sum frozen-permanent-source KKT gate also
+exist. Neither has a physical continuum binding, force proof, stationary
+permanent electronic density, or multi-functional-group physics certificate.
+They therefore cannot be used to quote a solvation error.
 
 Two retained historical values must not be confused with progress:
 
@@ -78,20 +79,23 @@ correction or a MACE-MDP re-fit.
 It is nevertheless only a **single-molecule source falsifier**. It is not a
 proof of transferable response, a full susceptibility kernel, a GTO
 coefficient representation, a continuum source, an energy functional, a
-force, or an accuracy result. The next implementation gate is to place this
-physical real-space source and its continuum dual in one differentiable basis
-without choosing a width or looking at solvation errors.
+force, or an accuracy result. V0-ADT now has an exact **direct-sum**
+point-multipole-plus-radial-tangent surface/dual representation, which avoids
+choosing a GTO width. The remaining issue is a stationary permanent electronic
+functional and a source-bound physical continuum, not a missing algebraic
+transpose.
 
 ## The remaining no-fit electronic construction
 
 The passing source is called **V0-ADT** (atomic displacement tangent). It is
 the first concrete physical radial response candidate. Its reduced
-induced-only source-space KKT construction is now executable, but is not a
-physical PCM or total-solvation model. Its next **physical** gate is binding
-that source to an actual reciprocal continuum, followed by a same-basis
-permanent-density/source-dual construction. **V0-RK** remains the fallback
-full-kernel construction if V0-ADT fails the frozen multi-molecule QM physics
-panel or cannot be made energy-conjugate without an arbitrary projection.
+induced-only and frozen-permanent-source direct-sum KKT constructions are now
+executable, but neither is a physical PCM or total-solvation model. Its next
+**physical** gate is binding the direct-sum source to an actual reciprocal,
+source-bound continuum. A future full density-functional formulation remains
+separate. **V0-RK** remains the fallback full-kernel construction if V0-ADT
+fails the frozen multi-molecule QM physics panel or cannot be made
+energy-conjugate without an arbitrary projection.
 
 Let:
 
@@ -152,11 +156,11 @@ declared QM reference.
 ## Ordered evidence, before any experimental score
 
 1. **Source provenance:** freeze V0-ADT's physical radial tables, its exact
-   reduced surface-source dual, supported elements/charge states, and hashes.
-   Bind one physical reciprocal continuum before claiming anything beyond the
-   synthetic KKT control. If that route fails, freeze one physical \(C_0\)
-   construction instead. No FreeSolv, MNSol, or target-solvent labels may
-   participate.
+   direct-sum surface-source dual with the frozen permanent MACE source,
+   supported elements/charge states, and hashes. Bind one physical reciprocal
+   continuum before claiming anything beyond the synthetic KKT control. If that
+   route fails, freeze one physical \(C_0\) construction instead. No FreeSolv,
+   MNSol, or target-solvent labels may participate.
 2. **Response physics:** prove charge conservation, Euclidean covariance,
    atom/molecule moment identities, source/continuum duality, and reciprocal/
    passive response. A full-kernel fallback must additionally prove

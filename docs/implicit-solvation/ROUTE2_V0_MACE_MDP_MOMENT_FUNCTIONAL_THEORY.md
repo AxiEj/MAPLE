@@ -6,8 +6,10 @@ This document records the coefficient-only V0 branch opened by the frozen
 MACE-MDP acetone screen. Its inherited one-radial Gaussian induced-density
 realization has been **rejected before PCM**. A distinct physical free-atom
 translation-tangent source now passes one acetone gas-phase QM-MEP falsifier.
-It also has an induced-only reduced source-space KKT structural kernel, but
-still has no permanent-density/source dual, physical continuum binding, force,
+It has both an induced-only reduced KKT gate and a frozen-permanent-source
+direct-sum KKT gate. The latter provides an exact permanent/induced *surface*
+source dual without forcing the radial tangent into a GTO width. It still has
+no stationary permanent electronic density, physical continuum binding, force,
 or broad physics certificate. Consequently this remains a **theory and
 admission contract**, not an admitted electronic implementation, a public
 Route-2 calculator, a total-solvation result, or an accuracy claim.
@@ -118,10 +120,11 @@ the guessed radial shape resolves the observed acetone near-field failure
 without fitting or retraining. It is not a density-basis or scalar result.
 The table is not yet a GTO coefficient vector and has not been tested on the
 frozen twelve-record physics panel. The new reduced source-space kernel exposes
-an exact surface transpose only for the **induced** rank-three map; it does not
-supply a permanent-density dual or a full electronic functional. It must not
-enter a physical PCM/total-KKT calculation, force, or experimental-accuracy
-work yet.
+an exact surface transpose only for the **induced** rank-three map. A separate
+direct-sum construction now supplies a frozen permanent source dual without a
+GTO projection, but neither construction supplies a full stationary electronic
+functional. It must not enter a physical PCM/total-KKT calculation, force, or
+experimental-accuracy work yet.
 
 ## Reduced induced-only source-space KKT gate
 
@@ -148,13 +151,43 @@ derivative, or experimental solvation value. The complete derivation and
 boundaries are in
 [`ROUTE2_V0_ATOMIC_DISPLACEMENT_REDUCED_KKT_THEORY.md`](ROUTE2_V0_ATOMIC_DISPLACEMENT_REDUCED_KKT_THEORY.md).
 
+## Frozen-permanent-source direct-sum KKT gate
+
+The no-training V0-FD source and V0-ADT tangent can be joined without a
+Gaussian projection.  The direct-sum surface map is
+
+\[
+v=S_{\mathbf R}c_0+B_{\mathbf R}p,
+\]
+
+where \(c_0\) is the unchanged zero-field MACE point-multipole source and
+\(p\) is the V0-ADT induced dipole.  Both `S` and `B` are evaluated directly,
+and their transposes are the only allowed surface-charge duals.  With \(c_0\)
+frozen, the scalar
+
+\[
+g(p;c_0)=\tfrac12p^\mathsf T\alpha_\theta^{-1}p+
+\tfrac12(S c_0+B p)^\mathsf TQ(S c_0+B p)
+\]
+
+gives one stationary induced response and one energy ledger. The structural
+implementation verifies direct-sum duality, full \([S\;B]\)-restricted
+continuum reciprocity and homogeneous linearity, KKT stationarity, passivity,
+and a frozen-source envelope identity.
+It is not a claim that \(c_0\) minimizes an electronic functional.  Full
+details and non-claims are in
+[`ROUTE2_V0_ATOMIC_DISPLACEMENT_FROZEN_KKT_THEORY.md`](ROUTE2_V0_ATOMIC_DISPLACEMENT_FROZEN_KKT_THEORY.md).
+
 ## Conditional rank-three scalar
 
-The following rank-three construction explains the common-energy requirement,
-but it is **not admitted**: V0-ADT has only a real-space source potential, not
-the required one-basis \(D_{\mathbf R}\) and transpose. A full response-kernel
-successor will use \(\delta c=-C_{\mathbf R}f\) rather than infer the entire
-response from three columns of \(D_{\mathbf R}\).
+The following rank-three construction explains the target *single-GTO-basis*
+common-energy requirement, but it is **not admitted**: V0-ADT has only a
+real-space source potential, not the required one-basis \(D_{\mathbf R}\) and
+transpose. The direct-sum frozen-source gate above is an exact alternative
+surface representation, not a replacement for this full electronic-density
+functional. A full response-kernel successor will use
+\(\delta c=-C_{\mathbf R}f\) rather than infer the entire response from three
+columns of \(D_{\mathbf R}\).
 
 Let \(c_0(\mathbf R)\) be a frozen gas-phase density coefficient vector in a
 single GTO source/dual basis. It must already satisfy
@@ -315,15 +348,16 @@ advantage.
 
 ## Ordered admission path to accuracy
 
-1. Bind the reduced V0-ADT source-space gate to a physical reciprocal continuum
-   and test it over the frozen QM physics set. The reduced gate is not a
-   permanent-density or total-solvation representation. The rejected
-   one-radial map is not a starting point for a parameter sweep and may not be
-   used to choose a projection.
-2. Convert the source-provenanced V0-ADT real-space tangent into one full
-   non-arbitrary permanent-density/source dual, or reject it and source-bind
-   the full induced-density-kernel fallback. Then demonstrate the joint scalar,
-   \(K_p\succ0\), one energy ledger, and envelope forces.
+1. Bind the direct-sum V0-ADT frozen-source gate to a physical reciprocal
+   continuum and test it over the frozen QM physics set. The gate has no
+   source-bound cavity and is not a total-solvation representation. The
+   rejected one-radial map is not a starting point for a parameter sweep and
+   may not be used to choose a projection.
+2. Either preserve the explicitly frozen permanent source as a bounded V0
+   approximation or construct a full non-arbitrary stationary electronic
+   density functional; do not silently relabel the direct sum as the latter.
+   Then demonstrate the joint scalar, \(K_p\succ0\), one energy ledger, and
+   envelope forces.
 3. Extend the **physics** validation over the frozen twelve-record,
    ten-actual-functional-group geometries with QM response/MEP/PCM component
    references. This is not an experimental accuracy panel and must not read

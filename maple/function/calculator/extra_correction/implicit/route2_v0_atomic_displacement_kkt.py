@@ -542,10 +542,12 @@ class Route2V0AtomicDisplacementReducedKKTState:
             raise ValueError("External dipole response must be passive.")
 
 
-def _validated_continuum(
+def validate_atomic_displacement_continuum(
     coupling: AtomicDisplacementSurfaceCoupling,
     continuum: ExternalMEPCavityResponse,
 ) -> None:
+    """Require one continuum to be exactly compatible with a V0-ADT source."""
+
     if (
         getattr(continuum, "contract_version", None)
         != EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
@@ -617,7 +619,7 @@ def solve_route2_v0_atomic_displacement_reduced_kkt(
 
     if not isinstance(coupling, AtomicDisplacementSurfaceCoupling):
         raise TypeError("coupling must be an AtomicDisplacementSurfaceCoupling.")
-    _validated_continuum(coupling, continuum)
+    validate_atomic_displacement_continuum(coupling, continuum)
     alpha, alpha_antisymmetry = _symmetric_positive_definite(
         polarizability_bohr3,
         name="Electronic polarizability",
@@ -743,4 +745,5 @@ __all__ = [
     "AtomicDisplacementSurfaceCoupling",
     "Route2V0AtomicDisplacementReducedKKTState",
     "solve_route2_v0_atomic_displacement_reduced_kkt",
+    "validate_atomic_displacement_continuum",
 ]

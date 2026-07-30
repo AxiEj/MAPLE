@@ -323,6 +323,73 @@ finite-difference conjugacy.  This is **not** a total V0-AQ-C calculation:
 and \(\Phi_s\) is absent.  Accordingly the implementation cannot emit a
 solvation free energy, force certificate, or accuracy value.
 
+### 3.5 Nonlocal density-defined cavity closure
+
+There is a second mathematically valid way to close the cavity without adding
+an independently moved radius field: make it a differentiable functional of
+the **auxiliary** electron density.  Let \(n_s^{(0)}\) be the spherical,
+isolated-electron-density kernel of solvent \(s\), let \(K_s\) denote its
+convolution, and let \(\bar q_s>0\) be a frozen electron-density-overlap
+threshold.  The iso-density-product closure is
+
+\[
+q_s[n](\mathbf r)=(K_sn)(\mathbf r)
+=\int n_s^{(0)}(\mathbf r-\mathbf r')n(\mathbf r')\,d\mathbf r',
+\qquad
+m_s[n](\mathbf r)
+=\frac12\operatorname{erfc}
+\!\left[\log\frac{q_s[n](\mathbf r)}{\bar q_s}\right].
+\]
+
+It is a *composed scalar functional*, not a post-processed cavity.  For the
+electrostatic reaction difference,
+
+\[
+G_{\rm reac}[n]
+=\frac12\int[\rho_{\rm nuc}-n]
+\bigl(\phi_{\epsilon(m_s[n])}-\phi_1\bigr)\,d\mathbf r,
+\]
+
+the exact chain rule is
+
+\[
+\boxed{
+\frac{\delta G_{\rm reac}}{\delta n}
+=-\phi_{\rm reac}
++K_s^\dagger\!\left[
+h'(K_sn)\frac{\delta G_{\rm reac}}{\delta m}
+\right],\qquad
+h'(q)=-\frac{e^{-[\log(q/\bar q_s)]^2}}{\sqrt\pi\,q},
+\quad h'(0)=0.
+}
+\]
+
+The first term is the ordinary electronic charge response and the second is
+the cavity response.  Omitting either one would again give a response that is
+not the derivative of the reported scalar.  This closure differs from the
+joint \(m\)-stationarity option above only in variable choice: \(m\) is
+eliminated analytically as \(m_s[n]\), so its derivative must be retained in
+the electronic Euler equation.
+
+[`route2_v0_iso_density_cavity.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_iso_density_cavity.py)
+implements this exact periodic-grid composition and the adjoint \(K_s^\dagger\).
+Its tests verify the cavity VJP and the *full* central finite-difference
+derivative of \(G_{\rm reac}[\rho_{\rm nuc}-n,m_s[n]]\), including the
+nonzero cavity chain term.  The test kernel is synthetic by design.  No
+physical solvent kernel or threshold is silently supplied, and the object
+refuses promotion to a total-solvent asset.
+
+The density-overlap idea is physically motivated by the non-bonded Pauli
+overlap construction in SaLSA.  It is admissible here only when the isolated
+solvent kernel and \(\bar q_s\) have an independently recorded pre-label
+provenance (for example an ab-initio isolated-solvent density plus a frozen
+non-bonded-contact rule).  The published SaLSA **dispersion** scale remains
+excluded; neither its fitted scale nor its published RMS can become a V0
+parameter or accuracy claim.  The recent solvent-aware SCCS work independently
+confirms why the nonlocal convolution and its full functional derivative are
+needed to prevent unphysical solvent islands, but its published density
+thresholds are likewise not imported as defaults.
+
 ## 4. Archived molecular-liquid completion: V0-AQ-L
 
 The full V0-AQ-L branch replaces the PCM control with a molecular liquid

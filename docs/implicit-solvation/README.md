@@ -57,6 +57,18 @@ retains a structurally valid variational kernel but has no accepted physical
 curvature.  Evidence:
 [`route2-v0-qeq-acetone-qm-field-v1.json`](benchmarks/route2-v0-qeq-acetone-qm-field-v1.json).
 
+The active no-training **V0-AQ-C** research line instead keeps MACE as the
+untouched gas branch and adds only a stationary auxiliary-electronic/
+implicit-continuum free-energy difference.  Its first two code blocks now
+lock a symmetric diffuse reaction scalar and a nonlocal iso-density-product
+cavity whose chain-rule contribution is included in the electronic derivative.
+They are structural mathematics only: no source-bound solvent electron-density
+kernel/overlap rule, auxiliary electronic minimization, nonpolar/dispersion
+functional, standard-state term, public profile, force/PES certificate, or
+accuracy value exists yet.  It neither requires nor invokes GROMACS,
+molecular-liquid trajectories, 3D-RISM, or MDFT.  The complete boundary and
+admission tests are in [`ROUTE2_V0_AQ_THEORY.md`](ROUTE2_V0_AQ_THEORY.md).
+
 The first provider-feasibility experiment is frozen separately in
 [`ROUTE2_PROVIDER_CANARY.md`](ROUTE2_PROVIDER_CANARY.md). Its one-shot
 fixed-density acetone scalar canary passed at commit `da89ab8`: the

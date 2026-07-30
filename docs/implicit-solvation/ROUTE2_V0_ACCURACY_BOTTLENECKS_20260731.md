@@ -3,10 +3,11 @@
 ## Status
 
 There is **no valid current Route-2V0 solvation-accuracy value**. A
-free-atom translation-tangent source has now passed one preregistered acetone
+free-atom translation-tangent source and a frozen atomic
+independent-particle V0-RK source have each passed one preregistered acetone
 **gas-phase QM-MEP physics canary**. An induced-only reduced source-space KKT
 structural kernel and a direct-sum frozen-permanent-source KKT gate also
-exist. Neither has a physical continuum binding, force proof, stationary
+exist. None has a physical continuum binding, force proof, stationary
 permanent electronic density, or multi-functional-group physics certificate.
 They therefore cannot be used to quote a solvation error.
 
@@ -87,16 +88,18 @@ transpose.
 
 ## The remaining no-fit electronic construction
 
-The passing source is called **V0-ADT** (atomic displacement tangent). It is
-the first concrete physical radial response candidate. Its reduced
-induced-only and frozen-permanent-source direct-sum KKT constructions are now
-executable, but neither is a physical PCM or total-solvation model. Its next
-**physical** gate is binding the direct-sum source to an actual reciprocal,
-source-bound continuum. A future full density-functional formulation remains
-separate. **V0-RK** now has an algebraic covariance-completion structural
-kernel, but no independently source-bound physical \(C_0\) asset; it remains
-the fallback if V0-ADT fails the frozen multi-molecule QM physics panel or
-cannot be made energy-conjugate without an arbitrary projection.
+The first passing source is **V0-ADT** (atomic displacement tangent).  A
+second, independent construction now supplies **V0-AIPR**: a direct sum of
+every positive occupation-over-gap transition density from frozen spherical
+atomic HF.  It is a physical baseline \(C_0\), not a chosen radial width.  Its
+727-mode acetone direct sum is completed only through the frozen MACE moment
+constraint and passes the same 516-point source gate more tightly:
+\(0.0966763794<0.20\) Frobenius and \(0.1100924547<0.30\) worst direction.
+The result is deliberately only one molecule.  Both V0-ADT and V0-AIPR still
+lack a physical PCM/total-solvation model; their next **physical** gate is a
+same-basis reciprocal, source-bound continuum and common scalar, followed by
+the frozen broad QM physics panel.  A future full density-functional
+formulation remains separate.
 
 Let:
 
@@ -154,13 +157,12 @@ not a performance result. A candidate is rejected as a production route if
 its measured cold or warm same-geometry calculation is not faster than the
 declared QM reference.
 
-The next concrete candidate is the preregistered frozen atomic-HF
-independent-particle transition-density source in
-[`ROUTE2_V0_ATOMIC_INDEPENDENT_PARTICLE_RESPONSE_THEORY.md`](ROUTE2_V0_ATOMIC_INDEPENDENT_PARTICLE_RESPONSE_THEORY.md).
+The V0-AIPR candidate and its frozen acetone source falsifier are now recorded
+in [`ROUTE2_V0_ATOMIC_INDEPENDENT_PARTICLE_RESPONSE_THEORY.md`](ROUTE2_V0_ATOMIC_INDEPENDENT_PARTICLE_RESPONSE_THEORY.md).
 It supplies a broad neutral \(C_0\) without a fitted radial width and is
-completed only through the existing MACE moment constraint.  Until the
-hash-bound table and its frozen acetone source falsifier have executed, it is
-still only a source candidate; it has no physical-continuum or accuracy claim.
+completed only through the existing MACE moment constraint.  Its hash-bound
+source pass has no physical-continuum or accuracy claim; it only removes the
+previously missing physical-\(C_0\) prerequisite for the next gate.
 
 ## Ordered evidence, before any experimental score
 

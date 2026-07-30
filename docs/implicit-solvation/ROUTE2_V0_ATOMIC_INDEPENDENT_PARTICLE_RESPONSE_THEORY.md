@@ -3,9 +3,12 @@
 ## Status and non-claim
 
 `route2_v0_atomic_independent_particle_response.py` defines the algebra and
-the preregistered generator for an offline atom-response asset.  It is not yet
-a molecular response model, a continuum binding, a force/PES result, a
-solvation calculation, or an accuracy result.  In particular, an
+the preregistered generator for an offline atom-response asset.  The frozen
+one-thread H/C/N/O/S/Cl table now exists and its independent repeated
+generation produced the same NPZ SHA-256.  Its V0-RK acetone direct sum has
+also passed one preregistered 516-point gas-phase QM-MEP falsifier.  Neither
+result is a molecular response model, a continuum binding, a force/PES result,
+a solvation calculation, or an accuracy result.  In particular, an
 independent-particle response of isolated spherical atoms omits bonding,
 charge transfer, molecular screening, and all solvent short-range physics.
 
@@ -219,9 +222,12 @@ Before any experimental solvation value is read, this candidate must pass:
    nonpolar ledger, KKT/envelope-force/PES proof, and runtime gate; then only
 5. the immutable all-record experimental and disjoint blind panels.
 
-A passing single acetone source test would only advance step 2.  It cannot
-erase the historical (7.0414420821\) kcal/mol ethyl-acetate outlier or claim
-that every record is below (1.5\) kcal/mol.
+The executed single-acetone source test has advanced only step 2: it reports
+\(0.0966763794\) relative MEP Frobenius error, \(0.1100924547\) worst
+directional error, and \(0.0038678622\) induced-dipole error on the frozen
+516-point source set.  It cannot erase the historical \(7.0414420821\)
+kcal/mol ethyl-acetate outlier or claim that every record is below
+\(1.5\) kcal/mol.
 
 ## 6. Relation to density-defined continuum work
 

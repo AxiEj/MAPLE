@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -55,3 +56,33 @@ def test_gfn2_xtb_field_preregistration_keeps_the_qm_comparison_and_rejection_ga
     assert scientific["trace_ratio_max"] == 1.2
     assert scientific["principal_value_relative_max"] == 0.3
     assert "Do not run an accuracy panel" in preregistration["decision_rule"]
+
+
+def test_gfn2_xtb_field_artifact_rejects_the_fast_candidate_before_pcm():
+    artifact = json.loads(
+        (BENCHMARKS / "route2-v0-gfn2-xtb-acetone-field-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert artifact["status"] == "invalid-numerics"
+    assert artifact["scientific_falsification"]["verdict"] == (
+        "invalid-embedded-field-numerics"
+    )
+    assert artifact["numerical_checks"]["response_antisymmetry"]["passes"]
+    assert artifact["numerical_checks"]["field_step_consistency"]["passes"]
+    assert not artifact["numerical_checks"]["energy_dipole_diagonal"]["passes"]
+    checks = artifact["scientific_falsification"]["checks"]
+    assert not any(check["passes"] for check in checks.values())
+    assert checks["relative_frobenius_mismatch"]["value"] > 0.2
+    assert checks["trace_ratio"]["value"] < 0.8
+    assert checks["principal_value_relative_max"]["value"] > 0.3
+    assert artifact["hard_constraints"]["experimental_solvation_labels_read"] is False
+    assert artifact["hard_constraints"]["xtb_builtin_solvation_disabled"] is True
+    runner = BENCHMARKS / "run_route2_v0_gfn2_xtb_acetone_field.py"
+    assert (
+        artifact["source_files_sha256"][
+            "docs/implicit-solvation/benchmarks/run_route2_v0_gfn2_xtb_acetone_field.py"
+        ]
+        == hashlib.sha256(runner.read_bytes()).hexdigest()
+    )

@@ -1,0 +1,734 @@
+{
+  "artifact": "route2-v0-gfn2-xtb-acetone-field-v1",
+  "claim_boundary": "This one-acetone gas-phase GFN2-xTB external-field comparison is a no-runtime-QM physical screen only. It contains no implicit solvent, xTB COSMO/GBSA/ALPB/CPCM-X calculation, experimental solvation value, target calibration, force/PES certificate, total-solvation prediction, or public Route-2 profile. A pass can admit only the next common-energy/PCM coupling investigation; it cannot establish chemical accuracy.",
+  "executed_at_utc": "2026-07-30T13:36:39.987620+00:00",
+  "execution_git_head": "3a159c0314cfb066dcc4313d64b88cb843dd2745",
+  "external_field_interface": {
+    "construction": "For requested signed field s*h*e_j at the frozen geometry centroid C, write a +q point charge at C-s*D*e_j and a -q point charge at C+s*D*e_j, with q=h*D^2/2. Positions are in bohr and gamma=1e8 invokes the xTB documented real-point-charge limit. This is an asymptotically uniform external perturbation; no bare point-charge energy is spliced into the xTB energy.",
+    "directions": [
+      "x",
+      "y",
+      "z"
+    ],
+    "field_steps_au": [
+      0.0003,
+      0.001
+    ],
+    "pair_charge_magnitude_e_by_step": {
+      "1.0e-03": 20.0,
+      "3.0e-04": 5.999999999999999
+    },
+    "pair_distance_bohr": 200.0,
+    "point_charge_gamma": 100000000.0,
+    "signs": [
+      -1,
+      1
+    ]
+  },
+  "field_cases": [
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.23965021,
+        1.16594032,
+        -0.6444378
+      ],
+      "direction": "x",
+      "elapsed_seconds": 0.015363405997049995,
+      "field_sign": -1,
+      "field_step_au": 0.0003,
+      "json_sha256": "d765802439d916252c00a55b5823328066e00c482e4a563fcd0e81ae398cd431",
+      "pair_charge_magnitude_e": 5.999999999999999,
+      "pcharge_sha256": "3b7ada1924e1a65a904ce6457f04af62577119906e3c87ee20f7fe4bcfb69887",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "9768fc49839ed0ed47d1d59594fbde27de95c9a7f4fb67d85ca9fb43e09b25c0",
+      "total_energy_hartree": -13.53153885,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.22960158,
+        1.16651164,
+        -0.64089471
+      ],
+      "direction": "x",
+      "elapsed_seconds": 0.01765624000108801,
+      "field_sign": 1,
+      "field_step_au": 0.0003,
+      "json_sha256": "0813405e10b4cb95dcee8c5e57d3a6e0983256c2348ddc802d54440154ec3b2e",
+      "pair_charge_magnitude_e": 5.999999999999999,
+      "pcharge_sha256": "a452f93e7ff999d6c02fc574b4b73a099541331d830f8d9ddcdd4b7bdb1f75bf",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "35653b5165f22cea0dc27c962fbad6739761318770efb125ed4f11384f9ec0cd",
+      "total_energy_hartree": -13.53142527,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.23493694,
+        1.15798515,
+        -0.64270439
+      ],
+      "direction": "y",
+      "elapsed_seconds": 0.012457112003176007,
+      "field_sign": -1,
+      "field_step_au": 0.0003,
+      "json_sha256": "467433176f7b37bfbe67239ca72e7898b2a2958360733cb2927f7a5afd65fb9f",
+      "pair_charge_magnitude_e": 5.999999999999999,
+      "pcharge_sha256": "aeff94e0bda95d61252eb7409d79345cb7dfee001dd098ed0323c962d34fccc5",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "7d9a2139ae65f8d464f3568eb02c994fa1e3c3d12dedd5df10299a554ac1b914",
+      "total_energy_hartree": -13.53118481,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.23431215,
+        1.1744719,
+        -0.64262159
+      ],
+      "direction": "y",
+      "elapsed_seconds": 0.013778309999906924,
+      "field_sign": 1,
+      "field_step_au": 0.0003,
+      "json_sha256": "91d01be7f9acd9b79f48805e3fadfe6630d0056357f5afb31bd2aae6cdf548a2",
+      "pair_charge_magnitude_e": 5.999999999999999,
+      "pcharge_sha256": "f266b00d6e6d0483dbdd022ef1f028135f9e9ea2887d34576f30a3c6a87f3535",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "f5a7bbd996e3a5a953244dcb51fed1892ffc37298208f61e5e45845f5c4f724f",
+      "total_energy_hartree": -13.53178063,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.2363751,
+        1.16616315,
+        -0.65021198
+      ],
+      "direction": "z",
+      "elapsed_seconds": 0.020517152996035293,
+      "field_sign": -1,
+      "field_step_au": 0.0003,
+      "json_sha256": "c1ea42ce6fd61eafb35c65c0eb561cebbfee55b9bfe2b592ada8af9cc3c0e565",
+      "pair_charge_magnitude_e": 5.999999999999999,
+      "pcharge_sha256": "a4b08adae8573fbf6c5e0232d5fa5894ff1e82d5dddf00de06f65cce15099fc2",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "3b0da55aa26438509957b753e325e256287d90d239bdad08c493646407133f68",
+      "total_energy_hartree": -13.53164814,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.23287886,
+        1.16629019,
+        -0.6351231
+      ],
+      "direction": "z",
+      "elapsed_seconds": 0.01879844200448133,
+      "field_sign": 1,
+      "field_step_au": 0.0003,
+      "json_sha256": "94a0fe2f31fb6d7864b28de2fc9e86fe6eb836801ee971caf76313c0fd46c4cc",
+      "pair_charge_magnitude_e": 5.999999999999999,
+      "pcharge_sha256": "833d2e0fcfa1f1cb040c68c97643f218090477b11e6da3139a2c97fb89b91012",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "784613594830df3e3591ca4d6b4182ddbcafe673e42e83ef0fbb219d92ebc89b",
+      "total_energy_hartree": -13.53131707,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.25137909,
+        1.16527518,
+        -0.64858348
+      ],
+      "direction": "x",
+      "elapsed_seconds": 0.015826046001166105,
+      "field_sign": -1,
+      "field_step_au": 0.001,
+      "json_sha256": "e97fd095257bcfb9d2a780a057d6b36f29dc991a8a1f8cfd202bfdde1a8c8dcd",
+      "pair_charge_magnitude_e": 20.0,
+      "pcharge_sha256": "c05609c1d29c8e9dc0a35044f0caf6493b7a74c3d639d1bf58a112014dca114a",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "07de62e7b736ee50e6a3e5e6a3c7ec188a937124f097e12a4e0babb8217e6c81",
+      "total_energy_hartree": -13.53168263,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.2178837,
+        1.1671796,
+        -0.63677314
+      ],
+      "direction": "x",
+      "elapsed_seconds": 0.019553420999727678,
+      "field_sign": 1,
+      "field_step_au": 0.001,
+      "json_sha256": "6802a3391b4ede959559ebf440d75da9bef15be3b6e134ef7f45e1c5e430e417",
+      "pair_charge_magnitude_e": 20.0,
+      "pcharge_sha256": "f78915f93232e957ce3420055ff7c6bfee8ee5a6cec892bb4a3e6bd5e3fa7454",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "adff810060473287b2bb3caf7b7e92a1105f78b04cfc3e232ed105a7c33901b3",
+      "total_energy_hartree": -13.53130404,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.23565781,
+        1.13877751,
+        -0.64278018
+      ],
+      "direction": "y",
+      "elapsed_seconds": 0.018198486999608576,
+      "field_sign": -1,
+      "field_step_au": 0.001,
+      "json_sha256": "0b7ae7ef87b6c1aa2ae41ef3e4cbce1cde0e4870cd87e3660c6639ad56a3cd05",
+      "pair_charge_magnitude_e": 20.0,
+      "pcharge_sha256": "48b864a04cfe30e745775e7f4b500f54245d48c212cd04ac2d821c689e4c8b87",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "afed1ca7d8ca3749bfe124372cacdee5326190cef62394a271ae509ac1ec71ed",
+      "total_energy_hartree": -13.53050765,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.23357504,
+        1.19373363,
+        -0.64250389
+      ],
+      "direction": "y",
+      "elapsed_seconds": 0.01886144499439979,
+      "field_sign": 1,
+      "field_step_au": 0.001,
+      "json_sha256": "fbe78929970a128cf2b5a10f2a1d4551c17e5a41866caacd66775c084a391a89",
+      "pair_charge_magnitude_e": 20.0,
+      "pcharge_sha256": "c3ef126c4415d42d27ebf17d2d6f9f9b4ac9a245ab2949c27e5a388ff57f4b9e",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "09f3ac616c976fc3e88edfb429fd60b22a92ebb4bf81c514a673240ff9fa4fa2",
+      "total_energy_hartree": -13.53249374,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.24047057,
+        1.16602323,
+        -0.66784085
+      ],
+      "direction": "z",
+      "elapsed_seconds": 0.020951428996340837,
+      "field_sign": -1,
+      "field_step_au": 0.001,
+      "json_sha256": "760379adb278c40be4b9bebd8b035dc05e6b99a4a4e2fd36f946f899712f7dab",
+      "pair_charge_magnitude_e": 20.0,
+      "pcharge_sha256": "1bbe8f69758739fd9e5feaa7ce1c7d24cd0f03311133c08f46af583ba4bb82ab",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "487e956e4d4a9a99abd625b8770e854eb0b86cc31a6b5fa1223ec9ac0ef0254f",
+      "total_energy_hartree": -13.53205119,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    },
+    {
+      "command": [
+        "/home/axie/xtb/xtb-dist/bin/xtb",
+        "acetone.xyz",
+        "--gfn",
+        "2",
+        "--parallel",
+        "1",
+        "--json",
+        "--input",
+        "xcontrol"
+      ],
+      "dipole_e_bohr": [
+        -0.22881625,
+        1.16644682,
+        -0.61754425
+      ],
+      "direction": "z",
+      "elapsed_seconds": 0.02146871099830605,
+      "field_sign": 1,
+      "field_step_au": 0.001,
+      "json_sha256": "c67ea365b9a23c386477c0cafad22a5539d0b1f09a4be6c2fb254be84fee974f",
+      "pair_charge_magnitude_e": 20.0,
+      "pcharge_sha256": "e483c157787fa0ff0ad7dfa0f4879e8aa43c92d101682a2ac5691aefca0cd617",
+      "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+      "stdout_sha256": "dc287f8dfa2f8d45c6b52369e4b0f6d019f355e1c815b822cbaa39b9266fd5db",
+      "total_energy_hartree": -13.53094762,
+      "xcontrol_sha256": "e4acec291adfbdb87dd60889d2476136f3f1de6a3accb10d7673f3d56c8b6173"
+    }
+  ],
+  "hard_constraints": {
+    "experimental_solvation_labels_read": false,
+    "field_step_or_pair_distance_selection_after_execution": false,
+    "fine_tuning": false,
+    "gas_phase_gfn2_xtb_only": true,
+    "legacy_public_route_changed": false,
+    "no_runtime_qm_in_candidate": true,
+    "post_training": false,
+    "response_rescaling_or_eigenvalue_clipping": false,
+    "target_fit_or_calibration": false,
+    "xtb_builtin_solvation_disabled": true
+  },
+  "input_files_sha256": {
+    ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/manifest.json": "1547a0d1a8edb9490828754aa7ff944990e98d90f538da345fc50980de87229b",
+    "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8"
+  },
+  "numerical_checks": {
+    "energy_dipole_diagonal": {
+      "maximum": 0.05,
+      "passes": false,
+      "value": 0.48610639831653285
+    },
+    "field_step_consistency": {
+      "maximum": 0.03,
+      "passes": true,
+      "value": 6.7675147728059466e-06
+    },
+    "minimum_polarizability_eigenvalue": {
+      "minimum": -0.01,
+      "passes": true,
+      "value": 13.68588705717252
+    },
+    "response_antisymmetry": {
+      "maximum": 0.03,
+      "passes": true,
+      "value": 0.0023664680206880355
+    }
+  },
+  "official_references": {
+    "gfn2_xtb": "https://doi.org/10.1021/acs.jctc.8b01176",
+    "xtb_cli_manual": "https://github.com/grimme-lab/xtb/blob/main/man/xtb.1.adoc",
+    "xtb_external_embedding": "https://xtb-docs.readthedocs.io/en/latest/pcem.html",
+    "xtb_property_output": "https://xtb-docs.readthedocs.io/en/latest/properties.html"
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-gfn2-xtb-acetone-field-prereg-v1.json",
+    "protocol_id": "route2-v0-gfn2-xtb-acetone-field-prereg-v1",
+    "sha256": "24c353724a77bc496f4760fd9a2b7ea79eb6cab1ac3c56fca4401333335a7c19"
+  },
+  "qm_reference": {
+    "method": {
+      "basis": "def2-tzvpd",
+      "charge": 0,
+      "density_fitting": true,
+      "electronic_structure": "omegaB97M-V",
+      "maximum_scf_cycles": 100,
+      "nonlocal_grid_profile": "50x194-SG1",
+      "pyscf_xc_token": "wb97m-v",
+      "reference": "RKS",
+      "scf_energy_tolerance_hartree": 1e-10,
+      "scf_gradient_tolerance": 1e-07,
+      "semilocal_grid_level": 3,
+      "spin": 0
+    },
+    "selected_eigenvalues_bohr3": [
+      34.503733210724754,
+      46.05969417314208,
+      46.28429605802508
+    ],
+    "selected_step_au": 0.0003,
+    "selected_symmetric_polarizability_bohr3": [
+      [
+        36.843938850836075,
+        0.8321140701357995,
+        4.572103759874491
+      ],
+      [
+        0.8321140701357995,
+        46.16922063990004,
+        -0.5021154377852592
+      ],
+      [
+        4.572103759874491,
+        -0.5021154377852592,
+        43.83456395115578
+      ]
+    ],
+    "source_artifact": "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json"
+  },
+  "runtime": {
+    "frozen_qm_reference_total_elapsed_seconds": 855.735990333,
+    "main_python": "3.11.14",
+    "main_python_executable": "/home/axie/miniconda3/envs/maple/bin/python3.11",
+    "numpy": "2.4.6",
+    "omp_num_threads": 1,
+    "parallel_processes": 1,
+    "screen_total_elapsed_seconds": 0.2417335530044511,
+    "wall_time_comparison_boundary": "The xTB screen and the archived QM reference used different processes and timings; this is a fixed-geometry feasibility observation, not a production end-to-end throughput claim.",
+    "xtb_binary_sha256": "debf27a9e0fa4bfb5ca75aafe4b90d8211f08ec2f4a482f375a4987212eaa12a",
+    "xtb_path": "/home/axie/xtb/xtb-dist/bin/xtb",
+    "xtb_version": "6.7.1 (edcfbbe)"
+  },
+  "schema_version": 1,
+  "scientific_falsification": {
+    "checks": {
+      "principal_value_relative_max": {
+        "maximum": 0.3,
+        "passes": false,
+        "value": 0.6033505425749538
+      },
+      "relative_frobenius_mismatch": {
+        "maximum": 0.2,
+        "passes": false,
+        "value": 0.4504564944731302
+      },
+      "trace_ratio": {
+        "maximum": 1.2,
+        "minimum": 0.8,
+        "passes": false,
+        "value": 0.5469058867142074
+      }
+    },
+    "decision_rule": "If any numerical gate fails, the embedded-pair interface is invalid for this screen and GFN2-xTB is not admitted. If any scientific gate fails, reject frozen gas GFN2-xTB as the V0 electronic candidate; do not rescale its response, alter the published parameters, change field steps/pair geometry, add a correction, or select an implicit-solvent construction from the result. If all gates pass, admit only a subsequent same-energy, xTB-kernel-compatible continuum investigation. Do not run an accuracy panel from this screen.",
+    "passes_all_registered_checks": false,
+    "verdict": "invalid-embedded-field-numerics"
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_route2_v0_gfn2_xtb_acetone_field.py": "32a59b4140cf205d410bb67284ccd6f587e4a8d9df3bacc02875259e853cdb56"
+  },
+  "status": "invalid-numerics",
+  "system": {
+    "atom_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "center_bohr": [
+      -0.26191604098845495,
+      0.16497309075246833,
+      3.3599330510640186
+    ],
+    "compound_id": "mobley_3867265",
+    "maximum_radius_bohr": 4.089578243223181,
+    "name": "acetone",
+    "pair_inhomogeneity_proxy": 0.0004181162551861099,
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ]
+  },
+  "xtb_response": {
+    "field_step_consistency_relative_frobenius": 6.7675147728059466e-06,
+    "polarizability_by_step": {
+      "1.0e-03": {
+        "antisymmetry_relative_frobenius": 0.0023656464813029744,
+        "dipole_derivative_tensor_bohr3": [
+          [
+            16.747695000000007,
+            1.0413849999999918,
+            5.8271599999999975
+          ],
+          [
+            0.9522100000000089,
+            27.47806000000008,
+            0.2117950000000146
+          ],
+          [
+            5.905170000000015,
+            0.13814500000003394,
+            25.148300000000013
+          ]
+        ],
+        "energy_dipole_diagonal_relative_max": 0.48020369377505345,
+        "energy_second_derivative_diagonal_bohr3": [
+          24.790000001218004,
+          39.510000000575474,
+          36.93000000026814
+        ],
+        "symmetric_eigenvalues_bohr3": [
+          13.685860452107706,
+          27.155619649628964,
+          28.532574898263444
+        ],
+        "symmetric_tensor_bohr3": [
+          [
+            16.747695000000007,
+            0.9967975000000003,
+            5.866165000000006
+          ],
+          [
+            0.9967975000000003,
+            27.47806000000008,
+            0.17497000000002427
+          ],
+          [
+            5.866165000000006,
+            0.17497000000002427,
+            25.148300000000013
+          ]
+        ]
+      },
+      "3.0e-04": {
+        "antisymmetry_relative_frobenius": 0.0023664680206880355,
+        "dipole_derivative_tensor_bohr3": [
+          [
+            16.747716666666673,
+            1.04131666666669,
+            5.827066666666687
+          ],
+          [
+            0.9521999999998847,
+            27.477916666666474,
+            0.21173333333327865
+          ],
+          [
+            5.905149999999952,
+            0.1380000000000825,
+            25.148133333333288
+          ]
+        ],
+        "energy_dipole_diagonal_relative_max": 0.48610639831653285,
+        "energy_second_derivative_diagonal_bohr3": [
+          24.888888895525778,
+          39.5555555520054,
+          37.00000002184981
+        ],
+        "symmetric_eigenvalues_bohr3": [
+          13.68588705717252,
+          27.15556461451255,
+          28.53231499498135
+        ],
+        "symmetric_tensor_bohr3": [
+          [
+            16.747716666666673,
+            0.9967583333332873,
+            5.866108333333319
+          ],
+          [
+            0.9967583333332873,
+            27.477916666666474,
+            0.17486666666668058
+          ],
+          [
+            5.866108333333319,
+            0.17486666666668058,
+            25.148133333333288
+          ]
+        ]
+      }
+    },
+    "selected_eigenvalues_bohr3": [
+      13.68588705717252,
+      27.15556461451255,
+      28.53231499498135
+    ],
+    "selected_step_au": 0.0003,
+    "selected_symmetric_polarizability_bohr3": [
+      [
+        16.747716666666673,
+        0.9967583333332873,
+        5.866108333333319
+      ],
+      [
+        0.9967583333332873,
+        27.477916666666474,
+        0.17486666666668058
+      ],
+      [
+        5.866108333333319,
+        0.17486666666668058,
+        25.148133333333288
+      ]
+    ]
+  },
+  "zero_field": {
+    "command": [
+      "/home/axie/xtb/xtb-dist/bin/xtb",
+      "acetone.xyz",
+      "--gfn",
+      "2",
+      "--parallel",
+      "1",
+      "--json"
+    ],
+    "dipole_e_bohr": [
+      -0.23462535,
+      1.16622585,
+      -0.64266506
+    ],
+    "direction": null,
+    "elapsed_seconds": 0.01736003900441574,
+    "field_sign": null,
+    "field_step_au": null,
+    "json_sha256": "45301c907fde8d86e4fc5cdeb59fc959b75182550108ad4cdf0027ff920d537d",
+    "pair_charge_magnitude_e": null,
+    "pcharge_sha256": null,
+    "stderr_sha256": "db41edc1c74dad5a3527d5c6e4a48bfce3c2cabc0f0ad20acb5e420ad2a68ea9",
+    "stdout_sha256": "438224d7a7c872fa0a6eb978323cb8f20ad080b99bbe45216b455708a0350c29",
+    "total_energy_hartree": -13.53148094,
+    "xcontrol_sha256": null
+  }
+}

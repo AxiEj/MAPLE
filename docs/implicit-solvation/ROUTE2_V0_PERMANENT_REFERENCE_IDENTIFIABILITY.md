@@ -113,7 +113,12 @@ There are only three honest classes of next step:
    a molecular reference density, its nuclear pairing, and its response in
    the common density space.  It remains a V0 candidate only if it passes the
    physics and measured runtime gates; an on-the-fly QM calculation is not a
-   production answer when it is slower than the declared QM reference.
+   production answer when it is slower than the declared QM reference.  The
+   zero-field GFN2 MOLDEN route is now a narrowly audited candidate for this
+   **permanent-source** role: it must reconstruct its effective-core dipole,
+   pass a frozen QM static-MEP gate, and may not import the already rejected
+   GFN2 field response.  Its exact boundary is recorded in
+   [`ROUTE2_V0_GFN2_MOLDEN_PERMANENT_SOURCE_THEORY.md`](ROUTE2_V0_GFN2_MOLDEN_PERMANENT_SOURCE_THEORY.md).
 3. A future trained variational electronic-functional head.  That is V1, not
    V0, and is explicitly deferred under the current no-post-training rule.
 

@@ -123,3 +123,11 @@ The immutable future gates are preserved rather than weakened:
 - The next useful main-line evidence is a frozen physical gas electronic
   functional that passes the executable QM response gate and can be coupled to
   the same energy-conjugate, smooth implicit continuum scalar.
+
+## F. Active source-representation gate
+
+**2026-07-31 — GFN2 zero-field MOLDEN permanent source.**  The active gate
+reconstructs the closed-shell valence AO metric, electron count, effective-core
+charge, and xTB dipole without field, solvent, or output calibration.  The
+rejected GFN2 field response remains excluded.  The next gate is a frozen QM
+static MEP comparison, not PCM or an accuracy calculation.

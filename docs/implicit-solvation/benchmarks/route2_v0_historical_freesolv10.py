@@ -4,8 +4,10 @@
 The old fixed-charge GTO/QEq screen observed a 7.041442082076966 kcal/mol
 absolute error on ethyl acetate.  That old method is not a V0 candidate, but
 its exact ten FreeSolv record identities and fixed MOL2 conformers remain a
-mandatory regression panel.  A V0 result may pass this panel only when every
-one of the ten recomputed errors is *strictly* below 1.5 kcal/mol.
+mandatory regression and chemistry-diversity panel.  Its ten records cover
+ten distinct chemical-function or scaffold classes.  A V0 result may pass
+this panel only when every one of the ten recomputed errors is *strictly*
+below 1.5 kcal/mol.
 
 This module deliberately recomputes errors from frozen experimental labels. It
 never trusts a candidate-provided error, MAE, RMSE, or subset declaration.
@@ -49,6 +51,23 @@ HISTORICAL_FREE_SOLV10_IDS = (
     "mobley_2198613",
     "mobley_8578590",
 )
+# The locked panel deliberately has one representative for each listed
+# functional-group or hydrocarbon/scaffold class.  A hydrocarbon has no
+# functional group, so the invariant explicitly includes scaffolds rather than
+# pretending methane or benzene is a functional group.
+HISTORICAL_FUNCTIONAL_GROUP_OR_SCAFFOLD_CLASSES = (
+    "alkane",
+    "aromatic hydrocarbon",
+    "alcohol",
+    "ether",
+    "ketone",
+    "ester",
+    "nitrile",
+    "aromatic amine",
+    "haloalkane",
+    "sulfoxide",
+)
+MINIMUM_DISTINCT_FUNCTIONAL_GROUP_OR_SCAFFOLD_CLASSES = 10
 HISTORICAL_WORST_RECORD_ID = "mobley_6973347"
 HISTORICAL_WORST_ABSOLUTE_ERROR_KCAL_MOL = 7.041442082076966
 STRICT_ABSOLUTE_ERROR_THRESHOLD_KCAL_MOL = 1.5
@@ -79,6 +98,7 @@ class HistoricalFreeSolv10PanelEvaluation:
     manifest_sha256: str
     record_count: int
     threshold_kcal_mol: float
+    distinct_functional_group_or_scaffold_class_count: int
     maximum_absolute_error_kcal_mol: float
     worst_compound_id: str
     strict_all_records_under_threshold: bool
@@ -98,6 +118,12 @@ class HistoricalFreeSolv10PanelEvaluation:
             "status": self.status,
             "acceptance": {
                 "record_count": self.record_count,
+                "minimum_distinct_functional_group_or_scaffold_classes": (
+                    MINIMUM_DISTINCT_FUNCTIONAL_GROUP_OR_SCAFFOLD_CLASSES
+                ),
+                "distinct_functional_group_or_scaffold_class_count": (
+                    self.distinct_functional_group_or_scaffold_class_count
+                ),
                 "threshold_kcal_mol": self.threshold_kcal_mol,
                 "comparison": "strictly_less_than",
                 "maximum_absolute_error_kcal_mol": self.maximum_absolute_error_kcal_mol,
@@ -187,11 +213,37 @@ def load_historical_freesolv10_manifest(
     if observed_ids != HISTORICAL_FREE_SOLV10_IDS:
         raise ValueError("Historical FreeSolv-10 record membership or order changed.")
 
+    observed_classes = tuple(
+        record.get("chemical_class") if isinstance(record, dict) else None
+        for record in records
+    )
+    if observed_classes != HISTORICAL_FUNCTIONAL_GROUP_OR_SCAFFOLD_CLASSES:
+        raise ValueError(
+            "Historical FreeSolv-10 functional-group/scaffold diversity changed."
+        )
+    if (
+        len(set(observed_classes))
+        != MINIMUM_DISTINCT_FUNCTIONAL_GROUP_OR_SCAFFOLD_CLASSES
+    ):
+        raise ValueError(
+            "Historical FreeSolv-10 must retain ten distinct functional-group "
+            "or scaffold classes."
+        )
+
     gate = manifest.get("acceptance_gate")
     if not isinstance(gate, dict):
         raise TypeError("Historical FreeSolv-10 acceptance_gate must be an object.")
     if gate.get("expected_record_count") != len(HISTORICAL_FREE_SOLV10_IDS):
         raise ValueError("Historical FreeSolv-10 expected record count changed.")
+    if (
+        gate.get("functional_group_or_scaffold_field") != "chemical_class"
+        or gate.get("minimum_distinct_functional_group_or_scaffold_classes")
+        != MINIMUM_DISTINCT_FUNCTIONAL_GROUP_OR_SCAFFOLD_CLASSES
+        or gate.get("functional_group_or_scaffold_diversity_is_mandatory") is not True
+    ):
+        raise ValueError(
+            "Historical FreeSolv-10 functional-group/scaffold gate changed."
+        )
     if (
         gate.get("maximum_absolute_error_threshold_kcal_mol")
         != STRICT_ABSOLUTE_ERROR_THRESHOLD_KCAL_MOL
@@ -307,6 +359,9 @@ def evaluate_historical_freesolv10_predictions(
         manifest_sha256=_sha256_file(path),
         record_count=len(evaluated),
         threshold_kcal_mol=threshold,
+        distinct_functional_group_or_scaffold_class_count=len(
+            {record.chemical_class for record in evaluated}
+        ),
         maximum_absolute_error_kcal_mol=worst.absolute_error_kcal_mol,
         worst_compound_id=worst.compound_id,
         strict_all_records_under_threshold=all(

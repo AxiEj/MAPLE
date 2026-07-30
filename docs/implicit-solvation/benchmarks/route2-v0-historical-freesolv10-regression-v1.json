@@ -2,7 +2,7 @@
   "schema_version": 1,
   "panel_id": "route2-v0-historical-freesolv10-regression-v1",
   "status": "frozen-mandatory-regression-before-v0-acceptance",
-  "claim_boundary": "This exact historical ten-record FreeSolv panel is a mandatory regression gate for Route-2 V0 acceptance because the prior GTO/QEq fixed-charge screen observed a 7.041442082076966 kcal/mol outlier on ethyl acetate. It preserves the experimental record identities and fixed MOL2 geometries, not the retired GTO/QEq/GBn2 method. Passing it alone does not establish variational correctness, multi-solvent coverage, force/PES validity, or blind generalization.",
+  "claim_boundary": "This exact historical ten-record FreeSolv panel is a mandatory regression and minimum chemistry-diversity gate for Route-2 V0 acceptance because the prior GTO/QEq fixed-charge screen observed a 7.041442082076966 kcal/mol outlier on ethyl acetate. It preserves the experimental record identities and fixed MOL2 geometries, not the retired GTO/QEq/GBn2 method. The ten records span ten distinct chemical-function or scaffold classes; no smaller or chemically narrowed subset can be called an accuracy test. Passing it alone does not establish variational correctness, multi-solvent coverage, force/PES validity, or blind generalization.",
   "historical_source": {
     "repository_relative_artifact": "docs/implicit-solvation/benchmarks/freesolv10-qeq-gto-full-h-2026-07-22.json",
     "git_commit": "c77eb6a295cbb39a1b6e66d21190a192cc8ef050",
@@ -192,7 +192,10 @@
     "mae_or_rmse_alone_is_never_sufficient": true,
     "missing_record_is_failure": true,
     "historical_maximum_error_record_must_remain_included": "mobley_6973347",
-    "validator_module": "route2_v0_historical_freesolv10.py"
+    "validator_module": "route2_v0_historical_freesolv10.py",
+    "functional_group_or_scaffold_field": "chemical_class",
+    "minimum_distinct_functional_group_or_scaffold_classes": 10,
+    "functional_group_or_scaffold_diversity_is_mandatory": true
   },
   "relationship_to_other_v0_gates": {
     "required_in_addition_to": [

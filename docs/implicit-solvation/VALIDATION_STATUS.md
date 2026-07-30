@@ -138,6 +138,29 @@ This verifies the common-scalar planar algebra only.  It does **not** add a
 physical liquid source, a source-bound physical certificate, an outer
 surface-tension root, or any FreeSolv/MNSol/accuracy result.
 
+
+The zero-external branch is now also a concrete fail-closed assembly rather
+than an informal condition.  `route2_v0_molecular_pure_liquid_external_potential.py`
+requires \(u_{
+m pure}(\Gamma)=0\) exactly, while
+`route2_v0_molecular_pure_liquid_hnc.py` binds an HNC frozen asset, canonical
+molecular reference, full Cartesian--\(SO(3)\) quadrature, energy-conjugate
+kernel, and compact \(C^2\) site map before exposing a molecular HNC scalar.
+The checked-in cSPC/E HNC candidate passes only this source/control construction;
+PSE3, source relabelling, and any nonzero external term are rejected.  It is
+still not a physical-liquid admission or an accuracy datum because the required
+independent state, bridge/planar, force, multi-solvent, and frozen-panel gates
+remain open.
+
+The historical FreeSolv10 evaluator now makes the chemistry-diversity
+boundary executable: the ten frozen records contain ten distinct
+chemical-function or scaffold classes and are compared per record to their
+locked experimental values.  It rejects a lower diversity count, missing or
+extra records, MAE/RMSE-only reporting, threshold equality, and removal of the
+ethyl-acetate 7.041442082076966 kcal/mol historical outlier.  Consequently,
+small structural controls and partial numerical regressions are never reported
+as accuracy evidence.
+
 The version-locked ORCA/openCOSMO-RS 24a path is now explicitly classified as a
 QM reference oracle, not as the Route-2 target. A separate experimental
 `mlip_cosmo_rs` bridge can generate the **solute** perfect-conductor screening

@@ -84,7 +84,10 @@
       "required_rule": "every one of the exact ten locked records, using its hash-bound original FreeSolv MOL2 conformer, must have absolute error strictly below 1.5 kcal/mol",
       "mae_or_rmse_alone_is_insufficient": true,
       "replacement_by_smaller_or_different_panel_forbidden": true,
-      "relationship_to_11_solvent_gate": "mandatory in addition to—not a replacement for—the separately frozen 11-solvent development, confirmation, and blind panels"
+      "relationship_to_11_solvent_gate": "mandatory in addition to\u2014not a replacement for\u2014the separately frozen 11-solvent development, confirmation, and blind panels",
+      "functional_group_or_scaffold_field": "chemical_class",
+      "minimum_distinct_functional_group_or_scaffold_classes": 10,
+      "functional_group_or_scaffold_diversity_is_mandatory": true
     }
   },
   "candidate_nonpolar_policy": {
@@ -95,7 +98,7 @@
   "validation_sequence": [
     "Prove source-to-surface/energy-dual pairing, total-charge conservation, energy-conjugate half-coupling, and stationary continuum residual on synthetic and real fixed-density cases.",
     "Prove coordinate derivatives only after adopting a smooth cavity/operator; current active-set providers remain energy-only controls.",
-    "Evaluate the immutable historical ten-record FreeSolv regression manifest route2-v0-historical-freesolv10-regression-v1.json on exactly its original hash-bound MOL2 conformers, including ethyl acetate—the previous 7.041442082076966 kcal/mol outlier—and require every record to have absolute error strictly below 1.5 kcal/mol; a smaller or different subset, MAE, or RMSE cannot substitute.",
+    "Evaluate the immutable historical ten-record FreeSolv regression manifest route2-v0-historical-freesolv10-regression-v1.json on exactly its original hash-bound MOL2 conformers, including ethyl acetate\u2014the previous 7.041442082076966 kcal/mol outlier\u2014and require every record to have absolute error strictly below 1.5 kcal/mol. The ten records must retain ten distinct chemical-function or scaffold classes. A smaller or different subset, MAE, or RMSE cannot substitute; neither can a chemically narrowed subset.",
     "Freeze an 11-solvent development manifest with replicated chemistry per solvent before any V0-FD chemistry score is read. MNSol-v2012 supplies ten neutral-absolute strata only, so the independently versioned methanol extension is a prerequisite rather than a replaceable gap.",
     "Require every development record to have absolute error strictly below 1.5 kcal/mol; report the maximum error, not only MAE/RMSE.",
     "Freeze a disjoint 11-or-more-solvent confirmation manifest and require every record to remain strictly below 1.5 kcal/mol without any change.",

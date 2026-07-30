@@ -27,9 +27,13 @@ No V0 calculation has passed the immutable historical FreeSolv10 gate.  That
 same ten-record panel contains the historical ethyl-acetate outlier
 `mobley_6973347` at 7.041442082076966 kcal/mol in the retired GTO/QEq--GBn2
 calculation; any V0 candidate must recompute **all ten** and put every record
-strictly below 1.5 kcal/mol.  This is additional to the future 11-solvent,
-confirmation, and disjoint blind panels; it cannot be replaced by a lower-MAE
-subset.
+strictly below 1.5 kcal/mol.  The locked ten are also explicitly one each from
+ten distinct chemical-function or scaffold classes: alkane, aromatic
+hydrocarbon, alcohol, ether, ketone, ester, nitrile, aromatic amine,
+haloalkane, and sulfoxide.  The evaluator rejects a weakened diversity gate;
+there is no valid “accuracy test” with fewer than ten such classes.  This is
+additional to the future 11-solvent, confirmation, and disjoint blind panels;
+it cannot be replaced by a lower-MAE subset.
 
 ## Candidate screen
 

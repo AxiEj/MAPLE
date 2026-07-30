@@ -2127,6 +2127,23 @@ It does **not** make a synthetic certificate physical, prove an HNC liquid
 model accurate, or relax any later force, multi-solvent, historical-outlier, or
 blind-data gate.
 
+
+Before that future certificate is even assembled, the executable V0 control now
+has a separately named zero-external-potential source:
+`route2_v0_molecular_pure_liquid_external_potential.py` accepts only
+\(u_{m pure}(\Gamma)=0\) bit-for-bit, and
+`route2_v0_molecular_pure_liquid_hnc.py` binds that source to one HNC frozen
+asset, its exact Cartesian--full-\(SO(3)\) rule, canonical molecular reference,
+reciprocal kernel, and periodic \(C^2\) site deposition.  It rejects PSE3,
+reference relabelling, nonzero entries, and asset/kernel mismatch.  The checked-in
+cSPC/E HNC candidate can enter this **source control** because its closure is
+aligned, but it remains explicitly source-complete/not-production-or-accuracy-
+admitted: this assembly has no independently admitted physical bulk-state
+record, bridge coefficient, planar root, surface-tension certificate, force,
+or solvation score.  Naming the zero-potential branch prevents a solute MACE
+external potential from being mistaken for the pure-liquid scalar; it does not
+supply liquid physics by itself.
+
 ##### 4.2.19b The literature-exact cubic Gaussian WDA is a separate V0 branch
 
 The cubic-plus-quartic bridge above follows the earlier pure-liquid

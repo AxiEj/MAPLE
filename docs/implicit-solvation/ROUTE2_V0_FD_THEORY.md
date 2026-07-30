@@ -1843,7 +1843,10 @@ common-energy, envelope-force, and stability identities of a frozen
 no-training construction.  It does not prove that a source-complete candidate
 is a production liquid asset, that the 11-solvent panel exists, or that any
 experimental maximum-error target has been met.  The checked-in bridge exposes
-the exact Hessian action and quadratic form, but a physical asset still needs a
+the exact Hessian action and quadratic form.  Its
+``stationary_hessian_stability_certificate`` first rechecks every frozen asset
+hash, the exact bridge projection, and the scalar state/residual before it
+invokes this controlled diagnostic.  A physical asset still needs a
 grid/orientation-converged minimum-eigenvalue certificate before this stability
 gate is considered passed.
 

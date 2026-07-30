@@ -45,19 +45,31 @@ _NUMERICAL_FACTOR = 128.0
 class _MolecularQuadrature(Protocol):
     """The positive configuration-space measure of one molecular functional."""
 
-    phase_space_weights_bohr3: np.ndarray
+    @property
+    def phase_space_weights_bohr3(self) -> np.ndarray:
+        """Return the declared positive configuration-space weights."""
+
+        ...
 
 
 class _MolecularProjection(Protocol):
     """The projection handle required to recover that exact measure."""
 
-    quadrature: _MolecularQuadrature
+    @property
+    def quadrature(self) -> _MolecularQuadrature:
+        """Return the configuration-space quadrature."""
+
+        ...
 
 
 class _MolecularHessianFunctional(Protocol):
     """Minimal molecular-liquid Hessian interface used by this diagnostic."""
 
-    projection: _MolecularProjection
+    @property
+    def projection(self) -> _MolecularProjection:
+        """Return the projection defining the Hessian pairing."""
+
+        ...
 
     def dimensionless_hessian_matvec(
         self,

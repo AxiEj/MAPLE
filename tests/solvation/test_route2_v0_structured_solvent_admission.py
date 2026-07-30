@@ -141,6 +141,8 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "capped at 256 configuration degrees of freedom" in hessian[
         "source_boundary"
     ]
+    assert "asset-bound MACE/RISM bridge" in hessian["source_boundary"]
+    assert "rechecks every frozen source hash" in hessian["source_boundary"]
     assert "total solvation free energy" in hessian["not_a_physical_liquid_backend"]
     hnc = foundation["site_hnc_variational_reference"]
     assert hnc["module"].endswith("route2_v0_site_hnc")

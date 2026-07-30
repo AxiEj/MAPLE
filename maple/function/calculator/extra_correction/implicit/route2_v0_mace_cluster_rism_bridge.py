@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from typing import SupportsFloat, SupportsIndex, cast
 
 import numpy as np
 from ase.units import Bohr
@@ -42,6 +43,10 @@ from .route2_v0_molecular_site_hnc import (
     Route2V0MolecularSiteHNCFunctional,
     Route2V0MolecularSiteHNCState,
     Route2V0MolecularSiteProjection,
+)
+from .route2_v0_molecular_stability import (
+    Route2V0MolecularHessianStabilityCertificate,
+    certify_route2_v0_molecular_hessian_stability,
 )
 from .route2_v0_molecular_thermodynamics import (
     Route2V0MolecularHNCFixedSoluteThermodynamics,
@@ -141,9 +146,11 @@ def _positive_finite(value: object, *, name: str) -> float:
     """Validate one positive finite numerical tolerance."""
 
     if isinstance(value, (bool, np.bool_)):
-        raise ValueError(f"{name} must be finite and positive.")
+        raise TypeError(f"{name} must be a finite positive real number.")
     try:
-        result = float(value)  # type: ignore[arg-type]
+        result = float(
+            cast(str | bytes | bytearray | SupportsFloat | SupportsIndex, value)
+        )
     except (TypeError, ValueError, OverflowError) as exc:
         raise ValueError(f"{name} must be finite and positive.") from exc
     if not math.isfinite(result) or result <= 0.0:
@@ -384,6 +391,49 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
             self.functional,
             state,
             residual_tolerance=residual_tolerance,
+        )
+
+    def stationary_hessian_stability_certificate(
+        self,
+        state: Route2V0MolecularSiteHNCState,
+        *,
+        residual_tolerance: float = 1.0e-10,
+        maximum_dimension: int = 256,
+    ) -> Route2V0MolecularHessianStabilityCertificate:
+        """Return source-bound finite-grid curvature, never a physical admission."""
+
+        if not isinstance(state, Route2V0MolecularSiteHNCState):
+            raise TypeError(
+                "MACE/RISM Hessian certificate requires a molecular HNC state."
+            )
+        if state.projection is not self.projection:
+            raise ValueError(
+                "MACE/RISM Hessian certificate requires a state from this exact "
+                "bridge projection."
+            )
+        tolerance = _positive_finite(
+            residual_tolerance,
+            name="MACE/RISM Hessian-certificate residual tolerance",
+        )
+        if state.residual_inf > tolerance:
+            raise ValueError(
+                "MACE/RISM Hessian certificate requires a stationary molecular "
+                "HNC state within the declared residual tolerance."
+            )
+        # Recompute the scalar ledger and residual rather than trusting a label
+        # carried by a public state dataclass.  The returned thermodynamic object
+        # is intentionally not used here; construction is the shared exact-state
+        # verification already used by the fixed-solute ledger.
+        _ = evaluate_route2_v0_molecular_hnc_fixed_solute_thermodynamics(
+            self.functional,
+            state,
+            residual_tolerance=tolerance,
+        )
+        self.verify_integrity()
+        return certify_route2_v0_molecular_hessian_stability(
+            self.functional,
+            state.configuration_density_bohr3,
+            maximum_dimension=maximum_dimension,
         )
 
     def stationary_mace_solute_force_ev_per_angstrom(

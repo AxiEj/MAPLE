@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import ClassVar
@@ -202,6 +203,78 @@ def test_asset_bound_bridge_uses_one_checkpoint_locked_mace_source_and_one_froze
         * direction
     )
     assert finite_difference == pytest.approx(analytic, rel=3.0e-9, abs=3.0e-15)
+
+
+def test_asset_bound_bridge_hessian_certificate_requires_its_stationary_source_bound_state(
+    tmp_path,
+):
+    bridge = _bridge(tmp_path / "certificate")
+    state = bridge.functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.2,
+        max_iterations=1000,
+    )
+    certificate = bridge.stationary_hessian_stability_certificate(
+        state,
+        residual_tolerance=1.0e-12,
+        maximum_dimension=2,
+    )
+
+    assert certificate.classification == "positive-definite"
+    assert certificate.is_positive_definite
+    assert certificate.minimum_eigenvalue_bohr3 > (
+        certificate.numerical_eigenvalue_tolerance_bohr3
+    )
+    assert (
+        certificate.reciprocity_relative_frobenius_residual
+        <= certificate.reciprocity_relative_tolerance
+    )
+
+    nonstationary = bridge.functional.stationary_state(
+        bridge.projection.uniform_configuration_density_bohr3 * np.array([1.1, 0.9]),
+        iterations=0,
+    )
+    with pytest.raises(ValueError, match="stationary molecular HNC"):
+        bridge.stationary_hessian_stability_certificate(
+            nonstationary,
+            residual_tolerance=1.0e-12,
+        )
+    with pytest.raises(ValueError, match="independently verifies molecular HNC"):
+        bridge.stationary_hessian_stability_certificate(
+            replace(nonstationary, residual_inf=0.0),
+            residual_tolerance=1.0e-12,
+        )
+    with pytest.raises(TypeError, match="finite positive real number"):
+        bridge.stationary_hessian_stability_certificate(
+            state,
+            residual_tolerance=True,
+        )
+    with pytest.raises(ValueError, match="dense diagnostic limit"):
+        bridge.stationary_hessian_stability_certificate(
+            state,
+            residual_tolerance=1.0e-12,
+            maximum_dimension=1,
+        )
+
+    other = _bridge(tmp_path / "other")
+    other_state = other.functional.solve_picard(
+        residual_tolerance=1.0e-12,
+        picard_mixing=0.2,
+        max_iterations=1000,
+    )
+    with pytest.raises(ValueError, match="exact bridge projection"):
+        bridge.stationary_hessian_stability_certificate(
+            other_state,
+            residual_tolerance=1.0e-12,
+        )
+
+    source_file = bridge.frozen_solvent_asset.files[0].path
+    source_file.write_bytes(source_file.read_bytes() + b"\n")
+    with pytest.raises(ValueError, match="hash mismatch"):
+        bridge.stationary_hessian_stability_certificate(
+            state,
+            residual_tolerance=1.0e-12,
+        )
 
 
 def test_asset_bound_bridge_stationary_mace_envelope_force_matches_minimized_scalar(

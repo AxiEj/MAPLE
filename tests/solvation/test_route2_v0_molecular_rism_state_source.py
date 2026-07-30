@@ -24,6 +24,9 @@ DCM_STATE_SOURCE = (
     / "route2-v0-molecular-rism-state-sources"
     / "dichloromethane-scm-adf-3drism-v1.json"
 )
+DCM_KH_AUDIT = (
+    BENCHMARKS / "route2-v0-dcm-kh-source-frozen-feasibility-audit-v1.json"
+)
 
 
 def _property_source(name: str) -> dict[str, str]:
@@ -239,3 +242,70 @@ def test_molecular_rism_preregistration_preserves_state_domain_separation():
     assert foundation["module"].endswith("route2_v0_molecular_rism_state_source")
     assert "fixed-charge" in foundation["capability"]
     assert "C_ab(k)" in foundation["source_boundary"]
+
+
+def test_source_frozen_dcm_kh_probe_is_rejected_without_parameter_search():
+    audit = json.loads(DCM_KH_AUDIT.read_text(encoding="utf-8"))
+
+    assert audit["protocol_id"] == "route2-v0-dcm-kh-source-frozen-feasibility-audit-v1"
+    assert audit["status"] == (
+        "rejected-source-frozen-kh-drism-numerical-probe-not-a-liquid-asset"
+    )
+    assert "not a finite-k liquid asset" in audit["claim_boundary"]
+
+    binding = audit["source_binding"]
+    assert binding["molecular_state_record"] == (
+        "route2-v0-molecular-rism-state-sources/"
+        "dichloromethane-scm-adf-3drism-v1.json"
+    )
+    assert binding["generated_mdl_sha256"] == (
+        "efacc15b6d9fed5ba28be58916f66e76b1087149ffe7b2e261f98f4a913343ed"
+    )
+    assert len(binding["rism1d_binary_sha256"]) == 64
+
+    source_input = audit["source_frozen_input"]
+    assert source_input["theory"] == "DRISM"
+    assert source_input["closure"] == "KH"
+    assert source_input["radial_point_count"] == 16384
+    assert source_input["radial_spacing_angstrom"] == pytest.approx(0.025)
+    assert source_input["residual_tolerance"] == pytest.approx(1.0e-12)
+    assert source_input["maximum_steps"] == 10000
+    assert source_input["mdiis_nvec"] == 20
+    assert source_input["mdiis_del"] == pytest.approx(0.3)
+    state = load_route2_v0_molecular_rism_bulk_state_source(DCM_STATE_SOURCE)
+    assert binding["generated_mdl_sha256"] == state.model_source_sha256
+    assert source_input["molecular_density_molar"] == pytest.approx(
+        state.molecular_number_density_angstrom3 / 6.02214076e-4
+    )
+
+    observed = audit["observed_numerics"]
+    assert "auditor-terminated" in observed["termination"]
+    assert observed["minimum_residual"] > source_input["residual_tolerance"]
+    assert observed["cycle_start_step"] == 27
+    assert observed["complete_cycle_count"] == 689
+    cycle = observed["residual_cycle"]
+    witness = observed["cycle_witness_steps"]
+    assert [item["residual"] for item in witness[-6:]] == cycle * 2
+
+    assert all(value is False for value in audit["no_target_policy"].values())
+    assert "does not authorize a mixing sweep" in audit["decision"]
+    assert "closure switch chosen from solvation error" in audit["decision"]
+    assert "emitted no XVV/Cvv output" in audit["decision"]
+
+    preregistration = json.loads(
+        (
+            BENCHMARKS / "route2-v0-molecular-rism-state-prereg-v1.json"
+        ).read_text(encoding="utf-8")
+    )
+    inventory = json.loads(
+        (BENCHMARKS / "route2-v0-solvent-asset-inventory-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    audit_name = DCM_KH_AUDIT.name
+    assert audit_name in preregistration["current_inventory"][
+        "rejected_source_frozen_numerical_audits"
+    ]
+    assert audit_name in inventory["molecular_rism_bulk_state_source_contract"][
+        "rejected_source_frozen_numerical_audits"
+    ]

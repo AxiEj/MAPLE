@@ -1,0 +1,104 @@
+{
+  "protocol_id": "route2-v0-dcm-kh-source-frozen-feasibility-audit-v1",
+  "schema_version": 1,
+  "status": "rejected-source-frozen-kh-drism-numerical-probe-not-a-liquid-asset",
+  "claim_boundary": "This is a negative numerical-feasibility audit for one exact all-atom dichloromethane model, one source-bound scalar state, and one preregistered KH/DRISM rism1d input. It is not a finite-k liquid asset, a claim that the physical model is invalid, a closure comparison, a solvent-model comparison, a total solvation calculation, force/PES result, or accuracy result.",
+  "source_binding": {
+    "molecular_state_record": "route2-v0-molecular-rism-state-sources/dichloromethane-scm-adf-3drism-v1.json",
+    "molecular_model_record": "route2-v0-solvent-model-sources/dichloromethane-scm-adf-3drism-v1.json",
+    "generated_mdl": "route2-v0-solvent-model-sources/dichloromethane-scm-adf-3drism-v1.mdl",
+    "generated_mdl_sha256": "efacc15b6d9fed5ba28be58916f66e76b1087149ffe7b2e261f98f4a913343ed",
+    "rism1d_binary_sha256": "7c5c87d61ead9802c7a2df1a71a4d528d4da2db357e654d5514c603fd4c6918d"
+  },
+  "source_frozen_input": {
+    "input_sha256": "58f63976d0083330505a86bc82f647aefc479882068238c53b37d4c67eec7cbc",
+    "command": "rism1d dcm",
+    "theory": "DRISM",
+    "closure": "KH",
+    "temperature_kelvin": 298.15,
+    "molecular_density_molar": 15.506888025432709,
+    "static_dielectric_constant": 8.93,
+    "radial_point_count": 16384,
+    "radial_spacing_angstrom": 0.025,
+    "mdiis_nvec": 20,
+    "mdiis_del": 0.3,
+    "residual_tolerance": 1e-12,
+    "maximum_steps": 10000,
+    "coulomb_smear_angstrom": 1.0,
+    "adcor": 0.5
+  },
+  "observed_numerics": {
+    "output_sha256": "2e15c68b633eb2e85b401f7f85bdaca2466077f12899fd0260bab74e4246bbab",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "termination": "auditor-terminated after the printed residual entered an exact three-cycle; maxstep was not reached",
+    "observed_step_count": 2093,
+    "minimum_residual": 0.029432246181282908,
+    "minimum_residual_step": 13,
+    "cycle_start_step": 27,
+    "complete_cycle_count": 689,
+    "residual_cycle": [
+      0.09494971667856128,
+      0.031307312708437396,
+      3.4377169625593362
+    ],
+    "cycle_witness_steps": [
+      {
+        "step": 2082,
+        "residual": 0.09494971667856128
+      },
+      {
+        "step": 2083,
+        "residual": 0.031307312708437396
+      },
+      {
+        "step": 2084,
+        "residual": 3.4377169625593362
+      },
+      {
+        "step": 2085,
+        "residual": 0.09494971667856128
+      },
+      {
+        "step": 2086,
+        "residual": 0.031307312708437396
+      },
+      {
+        "step": 2087,
+        "residual": 3.4377169625593362
+      },
+      {
+        "step": 2088,
+        "residual": 0.09494971667856128
+      },
+      {
+        "step": 2089,
+        "residual": 0.031307312708437396
+      },
+      {
+        "step": 2090,
+        "residual": 3.4377169625593362
+      },
+      {
+        "step": 2091,
+        "residual": 0.09494971667856128
+      },
+      {
+        "step": 2092,
+        "residual": 0.031307312708437396
+      },
+      {
+        "step": 2093,
+        "residual": 3.4377169625593362
+      }
+    ]
+  },
+  "no_target_policy": {
+    "post_training": false,
+    "fine_tuning": false,
+    "experimental_solvation_fit": false,
+    "map_or_uq_calibration": false,
+    "target_solvation_labels_used": false,
+    "closure_or_mixing_selected_from_solvation_error": false
+  },
+  "decision": "This exact AmberTools KH/DRISM source-frozen run is rejected as a finite-k molecular-RISM asset because it did not meet its declared residual tolerance and emitted no XVV/Cvv output. The observed cycle does not authorize a mixing sweep, closure switch chosen from solvation error, model mutation, proxy solvent, or a claim about the physical validity of the SCM source model. A later candidate must be source-complete and separately preregistered before execution."
+}

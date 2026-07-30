@@ -580,6 +580,18 @@ input to this asset path.  The `.xvv` site multiplicities and `QV` charges
 must also be multiplicity-weighted neutral; a charged or partially specified
 bulk asset is rejected rather than neutralized numerically.
 
+The checked-in dichloromethane state record now also has one negative,
+source-frozen numerical feasibility audit:
+[`route2-v0-dcm-kh-source-frozen-feasibility-audit-v1.json`](benchmarks/route2-v0-dcm-kh-source-frozen-feasibility-audit-v1.json).
+For the exact SCM all-atom model, source-bound scalar state, and predeclared
+AmberTools `DRISM`/`KH` input, `rism1d` entered a printed residual three-cycle
+after step 27 and never emitted `.xvv` or `.cvv`.  The audit therefore rejects
+that exact nonconverged numerical candidate as a finite-\(k\) asset.  It is
+not a verdict on the physical validity of the SCM model, a closure comparison,
+or permission to search mixing/closure settings from solvation errors.  Any
+later generator candidate must be source-complete and preregistered before its
+execution; no target-solvation quantity may choose it.
+
 The direct correlation cannot be naively interpolated from a finite radial
 table onto a periodic Cartesian grid.  In the native `QV` plus source-defined
 `SMEAR` convention stored in an Amber `.xvv` file, the raw site direct
@@ -1604,6 +1616,48 @@ MNSol, FreeSolv, development, confirmation, or blind solvation value may
 enter that certificate.  Thus matching a bulk pressure/surface tension is a
 predeclared thermodynamic boundary condition, not target-solvation fitting.
 
+The quartic anchor has a direct uniqueness certificate rather than a
+trial-and-error search.  On a predeclared bracket, let
+\(\nu^*_{B_s}\) be the selected stationary planar-interface profile of the
+same frozen scalar and define the excess grand potential per transverse area
+
+\[
+\gamma(B_s)
+=\frac{\Omega_{B_s}[\nu^*_{B_s}]-\Omega_{\rm bulk}}{A}.
+\]
+
+Provided the selected interface branch remains stationary on that bracket,
+the envelope theorem gives
+
+\[
+\boxed{
+\frac{d\gamma}{dB_s}
+=\frac1A\int d^3r\,
+\bar\rho_{B_s}^{*2}(\mathbf r)
+\bigl(\bar\rho^*_{B_s}(\mathbf r)-\rho_b\bigr)^4
+\ge0.
+}
+\]
+
+The bulk liquid and gas contributions vanish because the quartic bridge is
+zero at both \(\bar\rho=\rho_b\) and \(\bar\rho=0\).  For a nontrivial,
+resolved interface the integrand is positive on a set of nonzero measure, so
+the derivative is strictly positive and the surface-tension equation has at
+most one root on that stationary branch.  A valid certificate must therefore
+freeze \(B_{\rm low}\), \(B_{\rm high}\), the two endpoint surface tensions,
+the independent target surface tension, planar residuals, transverse-area and
+interface-count conventions, grid refinement, and the declared root residual;
+it must establish
+
+\[
+\gamma(B_{\rm low})\le\gamma_{\rm target}
+\le\gamma(B_{\rm high}).
+\]
+
+This is a pure-liquid thermodynamic boundary-value inversion, not a
+solvation-label fit: a solute cavity, MNSol/FreeSolv record, development,
+confirmation, or blind error may not select \(B_s\), \(K\), or the bracket.
+
 For clarity, write $\Delta\bar\rho=\bar\rho-\rho_b$.  The local first and second
 derivatives are
 
@@ -1985,3 +2039,26 @@ substitute for these gates.
     `ClassicalDFT` fluid with an explicitly selected excess functional,
     matching the V0 separation between an electrostatic control and a
     molecular-liquid endpoint.
+25. D. Borgis, S. Luukkonen, L. Belloni, and G. Jeanmairet, *Simple
+    Parameter-Free Bridge Functionals for Molecular Density Functional Theory.
+    Application to Hydrophobic Solvation*, *J. Phys. Chem. B* **124**,
+    6885--6893 (2020),
+    [DOI:10.1021/acs.jpcb.0c04496](https://doi.org/10.1021/acs.jpcb.0c04496).
+    Its weighted-density bridge fixes the water variables from pure-liquid
+    pressure, compressibility, and liquid--gas surface tension rather than
+    solvation labels; it is a water-model precedent, not a V0 accuracy claim.
+26. D. Borgis, S. Luukkonen, L. Belloni, and G. Jeanmairet, *Accurate
+    Prediction of Hydration Free Energies and Solvation Structures Using
+    Molecular Density Functional Theory with a Simple Bridge Functional*,
+    *J. Chem. Phys.* **155**, 024117 (2021),
+    [DOI:10.1063/5.0057506](https://doi.org/10.1063/5.0057506).
+    Its hydration comparisons are against a specific frozen water model and
+    geometry convention; they do not establish the required multi-solvent
+    experimental maximum-error gate for Route-2 V0.
+27. G. Jeanmairet, M. Levesque, and D. Borgis, *Tackling Solvent Effects by
+    Coupling Electronic and Molecular Density Functional Theory*, *J. Chem.
+    Theory Comput.* **16**, 7123--7134 (2020),
+    [DOI:10.1021/acs.jctc.0c00729](https://doi.org/10.1021/acs.jctc.0c00729).
+    Its jointly stationary electronic and molecular densities illustrate the
+    common-functional direction, but cannot be attributed to the frozen,
+    nonvariational MACE response retained in V0.

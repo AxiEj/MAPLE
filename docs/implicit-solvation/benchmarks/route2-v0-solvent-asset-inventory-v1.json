@@ -140,6 +140,9 @@
     ],
     "physical_molecular_rism_assets": [],
     "state_domain_boundary": "A fixed-charge molecular-RISM input cross-checks only T, molecular number density, and static epsilon(0). It has no separate solvent-electronic polarization variable, so epsilon(infinity) belongs only to the distinct nonlocal-dielectric continuum control. Neither state contract determines finite-k C_ab(k).",
-    "not_an_admitted_asset": "The DCM source-only scalar state record validates per-property provenance and exact MDL binding only. It cannot provide a residual-converged finite-k correlation, a closure, a short-range interaction, bridge, stationary liquid functional, total solvation free energy, force, or accuracy result."
+    "not_an_admitted_asset": "The DCM source-only scalar state record validates per-property provenance and exact MDL binding only. Its source-frozen KH/DRISM feasibility audit is a rejection of that exact nonconverged numerical candidate, not an admission or a parameter-search prompt. Neither record can provide a residual-converged finite-k correlation, a closure, a short-range interaction, bridge, stationary liquid functional, total solvation free energy, force, or accuracy result.",
+    "rejected_source_frozen_numerical_audits": [
+      "route2-v0-dcm-kh-source-frozen-feasibility-audit-v1.json"
+    ]
   }
 }

@@ -35,7 +35,10 @@
       "route2-v0-molecular-rism-state-sources/dichloromethane-scm-adf-3drism-v1.json"
     ],
     "physical_molecular_rism_assets": [],
-    "decision": "The DCM record only locks independent scalar state to one exact source-model serialization. Its source model remains below finite-k correlation, generator-compatibility, common-scalar, force, eleven-solvent, and accuracy gates."
+    "decision": "The DCM record locks independent scalar state to one exact source-model serialization. Its source-frozen AmberTools KH/DRISM feasibility audit entered a deterministic printed residual three-cycle and is rejected as a finite-k asset without changing a solver or closure. The source model remains below generator-compatibility, common-scalar, force, eleven-solvent, and accuracy gates.",
+    "rejected_source_frozen_numerical_audits": [
+      "route2-v0-dcm-kh-source-frozen-feasibility-audit-v1.json"
+    ]
   },
   "required_before_molecular_liquid_or_total_free_energy": [
     "one source-complete all-atom molecular model bound to the exact state-source digest",
@@ -48,7 +51,8 @@
     "Verify strict per-property provenance, exact model digest binding, units, physical limits, and explicit false no-target/no-training policy.",
     "Cross-check exactly T, molecular number density, and epsilon(0) against a parsed fixed-charge rism1d input; never inject epsilon(infinity) into that RISM state equation.",
     "Require finite-k C_ab(k), generator compatibility, source-defined closure/long-range convention, and residual convergence independently; do not infer them from any scalar state field.",
+    "When a source-frozen numerical probe fails, record its exact model/state/input/runtime/cycle evidence as a negative audit. Reject only that declared candidate; do not perform a mixing or closure sweep selected from a solvation result.",
     "Only after molecular-liquid, bridge, common-scalar, force, standard-state, grid/orientation, eleven-solvent, and blind-validation gates pass may a total-free-energy claim be evaluated."
   ],
-  "decision_rule": "Any missing source, model mismatch, RISM-state mismatch, finite-k correlation, generator-compatibility evidence, structural gate, or accuracy gate rejects the candidate. It does not authorize a guessed property, optical-dielectric proxy, closure switch selected from solvation errors, proxy solvent, post-training, fine-tuning, solvation-label fitting, MAP/UQ calibration, response modification, or per-record model choice."
+  "decision_rule": "Any missing source, model mismatch, RISM-state mismatch, finite-k correlation, generator-compatibility evidence, structural gate, or accuracy gate rejects the candidate. It does not authorize a guessed property, optical-dielectric proxy, closure switch or mixing sweep selected from solvation errors, proxy solvent, post-training, fine-tuning, solvation-label fitting, MAP/UQ calibration, response modification, or per-record model choice."
 }

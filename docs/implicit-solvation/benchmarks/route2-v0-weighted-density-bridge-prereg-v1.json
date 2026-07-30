@@ -37,7 +37,14 @@
       "A_s pressure identity and B_s planar-interface residual",
       "statement that no MNSol, FreeSolv, development, confirmation, or blind solvation values were read"
     ],
-    "physical_bridge_assets": []
+    "physical_bridge_assets": [],
+    "planar_interface_quartic_resolution": {
+      "stationary_surface_tension": "gamma(B_s) = [Omega_B_s[nu_B_s^*] - Omega_bulk] / A, with nu_B_s^* stationary under the declared planar boundary conditions and the same frozen HNC, D, and K operators.",
+      "envelope_derivative": "d gamma / d B_s = (1 / A) integral d^3r rho_bar_B_s^2 (rho_bar_B_s-rho_bulk)^4 >= 0 because the liquid and gas bulk terms of the quartic bridge vanish.",
+      "strict_monotonicity": "For a nontrivial resolved interface, rho_bar takes values other than 0 and rho_bulk on a set of nonzero measure, so the envelope derivative is strictly positive on the declared stationary interface branch and a bracketed surface-tension root is unique on that branch.",
+      "certificate_rule": "Before target-solute execution, freeze B_low >= 0, B_high, gamma(B_low), gamma(B_high), gamma_target, planar stationarity residuals, transverse-area convention, interface count, and grid-refinement evidence. Require gamma(B_low) <= gamma_target <= gamma(B_high), a declared stationary interface branch, and a root residual.",
+      "prohibited_selection": "The bracket may be constructed only from the same pure-liquid scalar and an independently sourced pure-liquid surface tension. No MNSol, FreeSolv, development, confirmation, blind, solute cavity, or solvation-error value may enter B_s, K, or the bracket."
+    }
   },
   "custom_solvent_contract": {
     "dielectric_only": "A solvent name, static dielectric, or optical dielectric alone is insufficient and must fail closed for bridge or total-free-energy use.",
@@ -55,6 +62,7 @@
     "Verify K has unit discrete integral, periodic inversion symmetry, and an exact self-adjoint convolution pairing.",
     "Verify the cubic coefficient from P_HNC and P_s exactly restores the declared same-functional vacuum-limit pressure.",
     "Verify bridge scalar, gradient, Hessian-vector action, Hessian reciprocity, and scalar second derivative by finite differences before any solvent asset is admitted.",
+    "For the quartic coefficient, verify the planar stationary surface-tension envelope derivative is nonnegative, require a source-frozen bracket with a unique root on the declared nontrivial stationary-interface branch, and retain the full bracket/residual/grid evidence in the pure-solvent certificate.",
     "For each physical solvent, verify the frozen pure-liquid planar-interface/surface-tension certificate before any target-solute label is read.",
     "Verify the full HNC-plus-bridge stationary liquid scalar, stability, forces, grid/orientation convergence, standard state, and 11-solvent asset panel before chemistry scoring.",
     "Apply the already frozen all-record development, confirmation, and external-blind maximum-error gates without any bridge, kernel, or liquid-asset change."

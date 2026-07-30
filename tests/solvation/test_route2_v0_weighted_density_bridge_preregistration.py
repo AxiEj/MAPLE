@@ -57,6 +57,17 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
     assert "all-atom solvent model" in requirements
     assert "no MNSol, FreeSolv" in requirements
 
+    resolution = anchors["planar_interface_quartic_resolution"]
+    assert "gamma(B_s)" in resolution["stationary_surface_tension"]
+    assert "d gamma / d B_s" in resolution["envelope_derivative"]
+    assert "strictly positive" in resolution["strict_monotonicity"]
+    assert "stationary interface branch" in resolution["strict_monotonicity"]
+    assert (
+        "gamma(B_low) <= gamma_target <= gamma(B_high)"
+        in resolution["certificate_rule"]
+    )
+    assert "No MNSol, FreeSolv" in resolution["prohibited_selection"]
+
     custom = protocol["custom_solvent_contract"]
     assert "insufficient" in custom["dielectric_only"]
     total_requirements = " ".join(custom["required_before_total_free_energy"])

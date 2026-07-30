@@ -49,11 +49,13 @@ from .route2_v0_molecular_ideal_gas import (
     Route2V0MolecularConfigurationQuadrature,
     Route2V0MolecularIdealGasFunctional,
 )
+from .route2_v0_molecular_site_bspline import (
+    Route2V0MolecularSiteCubicBSplineDeposition,
+    build_route2_v0_cartesian_euler_cubic_bspline_site_deposition,
+    validate_route2_v0_molecular_site_type_indices,
+)
 from .route2_v0_molecular_so3_quadrature import (
     Route2V0CartesianEulerProductQuadrature,
-)
-from .route2_v0_periodic_bspline import (
-    build_route2_v0_periodic_cubic_bspline_stencil,
 )
 from .route2_v0_site_hnc import (
     Route2V0SiteHNCAsset,
@@ -119,43 +121,22 @@ def _same_grid(left: RegularCartesianGrid, right: RegularCartesianGrid) -> bool:
     )
 
 
-def _site_type_indices(
-    values: np.ndarray,
-    *,
-    site_count: int,
-    solvent_site_count: int,
-) -> np.ndarray:
-    """Validate one complete molecular-site to HNC-site-type mapping."""
+def _same_solvent_reference(
+    left: Route2V0MolecularSolventReference,
+    right: object,
+) -> bool:
+    """Return whether two solvent references have one exact source convention."""
 
-    raw = np.asarray(values)
-    if raw.shape != (solvent_site_count,) or np.iscomplexobj(raw):
-        raise ValueError(
-            "Molecular solvent-site type indices must have shape "
-            f"({solvent_site_count},)."
+    return bool(
+        isinstance(right, Route2V0MolecularSolventReference)
+        and left.provenance_label == right.provenance_label
+        and left.target_total_charge_e == right.target_total_charge_e
+        and np.array_equal(left.atomic_numbers, right.atomic_numbers)
+        and np.array_equal(left.site_charges_e, right.site_charges_e)
+        and np.array_equal(
+            left.reference_positions_bohr, right.reference_positions_bohr
         )
-    try:
-        numeric = np.asarray(raw, dtype=float)
-    except (TypeError, ValueError) as exc:
-        raise ValueError(
-            "Molecular solvent-site type indices must be integers."
-        ) from exc
-    rounded = np.rint(numeric)
-    if (
-        not np.all(np.isfinite(numeric))
-        or not np.array_equal(numeric, rounded)
-        or np.any(rounded < 0.0)
-        or np.any(rounded >= site_count)
-    ):
-        raise ValueError(
-            "Molecular solvent-site type indices must be valid nonnegative integers."
-        )
-    result = rounded.astype(np.int64, copy=True)
-    if np.any(np.bincount(result, minlength=site_count) == 0):
-        raise ValueError(
-            "Every HNC site type must map to at least one molecular solvent site."
-        )
-    result.setflags(write=False)
-    return result
+    )
 
 
 def _finite_positive_integer(value: object, *, name: str) -> int:
@@ -201,46 +182,13 @@ def build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy(
             "Cubic B-spline molecular site occupancy requires a Cartesian Euler "
             "product quadrature."
         )
-    if not isinstance(solvent, Route2V0MolecularSolventReference):
-        raise TypeError(
-            "Cubic B-spline molecular site occupancy requires a solvent reference."
-        )
-    count = _finite_positive_integer(site_count, name="Molecular HNC site count")
-    type_indices = _site_type_indices(
-        solvent_site_type_indices,
-        site_count=count,
-        solvent_site_count=solvent.site_count,
+    deposition = build_route2_v0_cartesian_euler_cubic_bspline_site_deposition(
+        cartesian_euler_quadrature=cartesian_euler_quadrature,
+        solvent=solvent,
+        solvent_site_type_indices=solvent_site_type_indices,
+        site_count=site_count,
     )
-    grid = cartesian_euler_quadrature.grid
-    configurations = cartesian_euler_quadrature.configurations
-    occupancy = np.zeros(
-        (count, *grid.shape, configurations.configuration_count),
-        dtype=float,
-    )
-    site_positions = configurations.site_positions_bohr(solvent)
-    for molecule_site, site_type in enumerate(type_indices):
-        stencil = build_route2_v0_periodic_cubic_bspline_stencil(
-            grid=grid,
-            positions_bohr=site_positions[:, molecule_site, :],
-        )
-        occupancy[site_type] += stencil.dense_occupancy_weights()
-    multiplicity = np.bincount(type_indices, minlength=count)
-    occupancy_flat = occupancy.reshape(
-        (count, grid.point_count, configurations.configuration_count)
-    )
-    if not np.allclose(
-        np.sum(occupancy_flat, axis=1),
-        multiplicity[:, None],
-        rtol=0.0,
-        atol=1.0e-12 * max(1.0, float(np.max(multiplicity))),
-    ):
-        raise RuntimeError(
-            "Periodic cubic B-spline molecular site occupancy violates its "
-            "declared site multiplicities."
-        )
-    result = np.array(occupancy, dtype=float, copy=True)
-    result.setflags(write=False)
-    return result
+    return deposition.dense_occupancy_weights_reference()
 
 
 def _nonnegative_integer(value: object, *, name: str) -> int:
@@ -261,18 +209,21 @@ def _nonnegative_integer(value: object, *, name: str) -> int:
 class Route2V0MolecularSiteProjection:
     """A fixed molecular-configuration to periodic site-density map.
 
-    ``site_occupancy_weights[a, g, i]`` is dimensionless.  Its spatial sum is
-    the number of molecular sites of type ``a`` in configuration ``i``.  The
+    The projection is held either as a controlled dense reference tensor
+    ``site_occupancy_weights[a, g, i]`` or as an exact compact periodic cubic
+    B-spline deposition.  Both have the same dimensionless spatial sums: the
+    number of molecular sites of type ``a`` in configuration ``i``.  The
     configuration quadrature weights carry both the translation volume and the
     unnormalised orientation measure; the resulting site density has units of
-    Bohr to the power minus three.
+    Bohr to the power minus three.  Exactly one representation is required.
     """
 
     quadrature: Route2V0MolecularConfigurationQuadrature
     external_potential: Route2V0MolecularExternalPotentialContract
     site_hnc_asset: Route2V0SiteHNCAsset
     solvent_site_type_indices: np.ndarray
-    site_occupancy_weights: np.ndarray
+    site_occupancy_weights: np.ndarray | None = None
+    compact_site_deposition: Route2V0MolecularSiteCubicBSplineDeposition | None = None
     construction: str = V0_MOLECULAR_SITE_HNC_CONSTRUCTION
     _site_multiplicity: np.ndarray = field(init=False, repr=False, compare=False)
     _molecular_bulk_number_density_bohr3: float = field(
@@ -324,7 +275,7 @@ class Route2V0MolecularSiteProjection:
             self.external_potential,
             configuration_count=self.quadrature.configuration_count,
         )
-        type_indices = _site_type_indices(
+        type_indices = validate_route2_v0_molecular_site_type_indices(
             self.solvent_site_type_indices,
             site_count=site_count,
             solvent_site_count=solvent.site_count,
@@ -334,35 +285,83 @@ class Route2V0MolecularSiteProjection:
             copy=True,
         )
         multiplicity.setflags(write=False)
-        occupancy = _immutable_array(
-            self.site_occupancy_weights,
-            name="Molecular site occupancy weights",
-            shape=(
-                site_count,
-                *self.site_hnc_asset.grid.shape,
-                self.quadrature.configuration_count,
-            ),
-            nonnegative=True,
-        )
-        occupancy_flat = occupancy.reshape(
-            (
-                site_count,
-                self.site_hnc_asset.grid.point_count,
-                self.quadrature.configuration_count,
-            )
-        )
-        occupancy_sum = np.sum(occupancy_flat, axis=1)
-        scale = max(1.0, float(np.max(multiplicity)))
-        if not np.allclose(
-            occupancy_sum,
-            multiplicity[:, None],
-            rtol=0.0,
-            atol=1.0e-12 * scale,
-        ):
+        raw_occupancy = self.site_occupancy_weights
+        has_dense_occupancy = raw_occupancy is not None
+        compact = self.compact_site_deposition
+        has_compact_deposition = compact is not None
+        if has_dense_occupancy == has_compact_deposition:
             raise ValueError(
-                "Molecular site occupancy weights must sum to each declared site "
-                "multiplicity for every configuration."
+                "Molecular site projection requires exactly one dense occupancy "
+                "tensor or compact site deposition."
             )
+        occupancy: np.ndarray | None = None
+        if raw_occupancy is not None:
+            occupancy = _immutable_array(
+                raw_occupancy,
+                name="Molecular site occupancy weights",
+                shape=(
+                    site_count,
+                    *self.site_hnc_asset.grid.shape,
+                    self.quadrature.configuration_count,
+                ),
+                nonnegative=True,
+            )
+            occupancy_flat = occupancy.reshape(
+                (
+                    site_count,
+                    self.site_hnc_asset.grid.point_count,
+                    self.quadrature.configuration_count,
+                )
+            )
+            occupancy_sum = np.sum(occupancy_flat, axis=1)
+            scale = max(1.0, float(np.max(multiplicity)))
+            if not np.allclose(
+                occupancy_sum,
+                multiplicity[:, None],
+                rtol=0.0,
+                atol=1.0e-12 * scale,
+            ):
+                raise ValueError(
+                    "Molecular site occupancy weights must sum to each declared site "
+                    "multiplicity for every configuration."
+                )
+        else:
+            if not isinstance(compact, Route2V0MolecularSiteCubicBSplineDeposition):
+                raise TypeError(
+                    "Molecular site projection compact deposition has an invalid type."
+                )
+            if not _same_grid(compact.grid, self.site_hnc_asset.grid):
+                raise ValueError(
+                    "Molecular site projection compact deposition must share the "
+                    "site-HNC Cartesian grid."
+                )
+            if not _same_configurations(
+                compact.configurations, self.quadrature.configurations
+            ):
+                raise ValueError(
+                    "Molecular site projection compact deposition configuration grid "
+                    "differs from the quadrature."
+                )
+            if not _same_solvent_reference(compact.solvent, solvent):
+                raise ValueError(
+                    "Molecular site projection compact deposition solvent reference "
+                    "differs from the external potential."
+                )
+            if compact.site_count != site_count:
+                raise ValueError(
+                    "Molecular site projection compact deposition site count differs "
+                    "from the site-HNC asset."
+                )
+            if not np.array_equal(compact.solvent_site_type_indices, type_indices):
+                raise ValueError(
+                    "Molecular site projection compact deposition site-type map "
+                    "differs from the declared molecular mapping."
+                )
+            if not np.array_equal(compact.site_multiplicity, multiplicity):
+                raise ValueError(
+                    "Molecular site projection compact deposition does not preserve "
+                    "the declared site multiplicities."
+                )
 
         expected_measure = (
             self.site_hnc_asset.grid.volume_element_bohr3
@@ -398,18 +397,15 @@ class Route2V0MolecularSiteProjection:
         uniform_configuration_density = (
             molecular_bulk_density / RIGID_MOLECULAR_ORIENTATION_MEASURE
         )
-        projected_bulk = (
-            np.einsum(
-                "agi,i,i->ag",
-                occupancy_flat,
-                self.quadrature.phase_space_weights_bohr3,
-                np.full(
-                    self.quadrature.configuration_count, uniform_configuration_density
-                ),
-                optimize=True,
+        object.__setattr__(self, "solvent_site_type_indices", type_indices)
+        object.__setattr__(self, "site_occupancy_weights", occupancy)
+        object.__setattr__(self, "_site_multiplicity", multiplicity)
+        projected_bulk = self._project_configuration_values(
+            np.full(
+                self.quadrature.configuration_count,
+                uniform_configuration_density,
             )
-            / self.site_hnc_asset.grid.volume_element_bohr3
-        ).reshape((site_count, *self.site_hnc_asset.grid.shape))
+        )
         expected_bulk = site_bulk.reshape((site_count, 1, 1, 1))
         bulk_scale = max(1.0, float(np.max(np.abs(expected_bulk))))
         if not np.allclose(
@@ -423,9 +419,6 @@ class Route2V0MolecularSiteProjection:
                 "configuration density to the declared HNC bulk density."
             )
 
-        object.__setattr__(self, "solvent_site_type_indices", type_indices)
-        object.__setattr__(self, "site_occupancy_weights", occupancy)
-        object.__setattr__(self, "_site_multiplicity", multiplicity)
         object.__setattr__(
             self,
             "_molecular_bulk_number_density_bohr3",
@@ -453,6 +446,12 @@ class Route2V0MolecularSiteProjection:
             / RIGID_MOLECULAR_ORIENTATION_MEASURE
         )
 
+    @property
+    def is_matrix_free(self) -> bool:
+        """Return whether this projection stores the compact exact B-spline map."""
+
+        return self.compact_site_deposition is not None
+
     def _configuration_density(self, values: np.ndarray) -> np.ndarray:
         return _immutable_array(
             values,
@@ -477,26 +476,31 @@ class Route2V0MolecularSiteProjection:
             shape=(self.site_hnc_asset.site_count, *self.site_hnc_asset.grid.shape),
         )
 
-    def project_configuration_density(
-        self,
-        configuration_density_bohr3: np.ndarray,
-    ) -> np.ndarray:
-        """Project a molecular configuration density to Cartesian site densities."""
+    def _project_configuration_values(self, values: np.ndarray) -> np.ndarray:
+        """Apply the one validated dense or compact molecular-to-site map."""
 
-        density = self._configuration_density(configuration_density_bohr3)
-        occupancy = self.site_occupancy_weights.reshape(
-            (
-                self.site_hnc_asset.site_count,
-                self.site_hnc_asset.grid.point_count,
-                self.quadrature.configuration_count,
+        compact = self.compact_site_deposition
+        if compact is not None:
+            return compact._project_configuration_values_validated(
+                values,
+                phase_space_weights_bohr3=self.quadrature.phase_space_weights_bohr3,
+                volume_element_bohr3=self.site_hnc_asset.grid.volume_element_bohr3,
             )
-        )
+        occupancy = self.site_occupancy_weights
+        if occupancy is None:
+            raise RuntimeError("Molecular site projection has no occupancy map.")
         projected = (
             np.einsum(
                 "agi,i,i->ag",
-                occupancy,
+                occupancy.reshape(
+                    (
+                        self.site_hnc_asset.site_count,
+                        self.site_hnc_asset.grid.point_count,
+                        self.quadrature.configuration_count,
+                    )
+                ),
                 self.quadrature.phase_space_weights_bohr3,
-                density,
+                values,
                 optimize=True,
             )
             / self.site_hnc_asset.grid.volume_element_bohr3
@@ -504,6 +508,42 @@ class Route2V0MolecularSiteProjection:
         result = np.array(projected, dtype=float, copy=True)
         result.setflags(write=False)
         return result
+
+    def _site_field_adjoint(self, site_field: np.ndarray) -> np.ndarray:
+        """Apply the matched dense or compact field adjoint."""
+
+        compact = self.compact_site_deposition
+        if compact is not None:
+            return compact._site_field_adjoint_dimensionless_validated(site_field)
+        occupancy = self.site_occupancy_weights
+        if occupancy is None:
+            raise RuntimeError("Molecular site projection has no occupancy map.")
+        adjoint = np.einsum(
+            "agi,ag->i",
+            occupancy.reshape(
+                (
+                    self.site_hnc_asset.site_count,
+                    self.site_hnc_asset.grid.point_count,
+                    self.quadrature.configuration_count,
+                )
+            ),
+            site_field.reshape(
+                (self.site_hnc_asset.site_count, self.site_hnc_asset.grid.point_count)
+            ),
+            optimize=True,
+        )
+        result = np.array(adjoint, dtype=float, copy=True)
+        result.setflags(write=False)
+        return result
+
+    def project_configuration_density(
+        self,
+        configuration_density_bohr3: np.ndarray,
+    ) -> np.ndarray:
+        """Project a molecular configuration density to Cartesian site densities."""
+
+        density = self._configuration_density(configuration_density_bohr3)
+        return self._project_configuration_values(density)
 
     def project_configuration_direction(
         self,
@@ -512,26 +552,7 @@ class Route2V0MolecularSiteProjection:
         """Project one signed density tangent through the fixed linear map."""
 
         direction = self._configuration_direction(configuration_density_direction_bohr3)
-        occupancy = self.site_occupancy_weights.reshape(
-            (
-                self.site_hnc_asset.site_count,
-                self.site_hnc_asset.grid.point_count,
-                self.quadrature.configuration_count,
-            )
-        )
-        projected = (
-            np.einsum(
-                "agi,i,i->ag",
-                occupancy,
-                self.quadrature.phase_space_weights_bohr3,
-                direction,
-                optimize=True,
-            )
-            / self.site_hnc_asset.grid.volume_element_bohr3
-        ).reshape((self.site_hnc_asset.site_count, *self.site_hnc_asset.grid.shape))
-        result = np.array(projected, dtype=float, copy=True)
-        result.setflags(write=False)
-        return result
+        return self._project_configuration_values(direction)
 
     def site_field_adjoint_dimensionless(self, site_field: np.ndarray) -> np.ndarray:
         """Return the configuration-space adjoint in the quadrature pairing.
@@ -541,24 +562,7 @@ class Route2V0MolecularSiteProjection:
         """
 
         field_values = self._site_field(site_field, name="Molecular site field")
-        occupancy = self.site_occupancy_weights.reshape(
-            (
-                self.site_hnc_asset.site_count,
-                self.site_hnc_asset.grid.point_count,
-                self.quadrature.configuration_count,
-            )
-        )
-        adjoint = np.einsum(
-            "agi,ag->i",
-            occupancy,
-            field_values.reshape(
-                (self.site_hnc_asset.site_count, self.site_hnc_asset.grid.point_count)
-            ),
-            optimize=True,
-        )
-        result = np.array(adjoint, dtype=float, copy=True)
-        result.setflags(write=False)
-        return result
+        return self._site_field_adjoint(field_values)
 
 
 @dataclass(frozen=True)

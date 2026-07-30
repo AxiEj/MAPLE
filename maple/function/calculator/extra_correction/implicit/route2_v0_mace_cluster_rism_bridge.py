@@ -47,6 +47,10 @@ from .route2_v0_mace_cluster_external_potential import (
 )
 from .route2_v0_molecular_external_potential import Route2V0MolecularConfigurations
 from .route2_v0_molecular_ideal_gas import Route2V0MolecularConfigurationQuadrature
+from .route2_v0_molecular_site_bspline import (
+    Route2V0MolecularSiteCubicBSplineDeposition,
+    build_route2_v0_cartesian_euler_cubic_bspline_site_deposition,
+)
 from .route2_v0_molecular_site_hnc import (
     Route2V0MolecularSiteHNCFunctional,
     Route2V0MolecularSiteHNCState,
@@ -304,6 +308,84 @@ def verify_route2_v0_asset_bound_rism_kernel(
         )
 
 
+def _cartesian_euler_product_site_type_indices(
+    *,
+    frozen_solvent_asset: Route2V0FrozenSolventAsset,
+    external_potential: Route2V0MaceClusterMolecularExternalPotential,
+    rism_kernel: Route2V0RismEnergyConjugateKernel,
+    cartesian_euler_quadrature: Route2V0CartesianEulerProductQuadrature,
+) -> np.ndarray:
+    """Validate one standard product assembly and return its frozen site map.
+
+    Both dense-reference and compact-deposition factories enter through this
+    exact preparation step.  It prevents a representation choice from
+    changing the source asset, Cartesian grid, SO(3) configuration grid, or
+    molecular-to-RISM site mapping.
+    """
+
+    if not isinstance(frozen_solvent_asset, Route2V0FrozenSolventAsset):
+        raise TypeError("MACE/RISM product bridge requires a frozen solvent asset.")
+    if not isinstance(
+        external_potential,
+        Route2V0MaceClusterMolecularExternalPotential,
+    ):
+        raise TypeError(
+            "MACE/RISM product bridge requires a zero-field MACE molecular "
+            "external potential."
+        )
+    if not isinstance(rism_kernel, Route2V0RismEnergyConjugateKernel):
+        raise TypeError("MACE/RISM product bridge requires an RISM kernel.")
+    if not isinstance(
+        cartesian_euler_quadrature,
+        Route2V0CartesianEulerProductQuadrature,
+    ):
+        raise TypeError(
+            "MACE/RISM product bridge requires a Cartesian Euler product quadrature."
+        )
+    if not _same_grid(cartesian_euler_quadrature.grid, rism_kernel.grid):
+        raise ValueError(
+            "MACE/RISM product bridge requires its Cartesian Euler grid to "
+            "equal the RISM grid."
+        )
+    if not _same_grid(
+        cartesian_euler_quadrature.grid,
+        external_potential.integration_grid,
+    ):
+        raise ValueError(
+            "MACE/RISM product bridge requires its Cartesian Euler grid to "
+            "equal the MACE external-potential grid."
+        )
+    if not _same_configurations(
+        cartesian_euler_quadrature.configurations,
+        external_potential.configurations,
+    ):
+        raise ValueError(
+            "MACE/RISM product bridge requires its Cartesian Euler "
+            "configurations to equal the MACE external-potential grid."
+        )
+    _require_molecular_hnc_closure(frozen_solvent_asset)
+    verify_route2_v0_asset_bound_rism_kernel(
+        frozen_solvent_asset=frozen_solvent_asset,
+        rism_kernel=rism_kernel,
+    )
+    canonical_reference = frozen_solvent_asset.molecular_reference
+    if not _same_molecular_reference(
+        external_potential.solvent,
+        canonical_reference.molecular_reference,
+    ):
+        raise ValueError(
+            "MACE/RISM product bridge solvent geometry and charges must equal "
+            "the frozen asset's canonical molecular reference."
+        )
+    metadata = rism_kernel.short_range.radial.metadata
+    return _molecular_site_type_indices(
+        molecular_site_type_names=canonical_reference.rism_site_type_names,
+        source_site_names=metadata.site_names,
+        source_site_multiplicity=metadata.site_multiplicity,
+        molecular_site_count=external_potential.solvent.site_count,
+    )
+
+
 @dataclass(frozen=True)
 class Route2V0MaceClusterRismMolecularHNCBridge:
     """One fail-closed assembly of the MACE scalar and frozen RISM scalar.
@@ -318,7 +400,8 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
     external_potential: Route2V0MaceClusterMolecularExternalPotential
     rism_kernel: Route2V0RismEnergyConjugateKernel
     quadrature: Route2V0MolecularConfigurationQuadrature
-    site_occupancy_weights: np.ndarray
+    site_occupancy_weights: np.ndarray | None = None
+    compact_site_deposition: Route2V0MolecularSiteCubicBSplineDeposition | None = None
     cross_model_reference: str = V0_MACE_CLUSTER_RISM_CROSS_MODEL_REFERENCE
     construction: str = V0_MACE_CLUSTER_RISM_BRIDGE_CONSTRUCTION
     _site_type_indices: np.ndarray = field(init=False, repr=False, compare=False)
@@ -396,6 +479,7 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
             site_hnc_asset=self.rism_kernel.site_hnc_asset,
             solvent_site_type_indices=type_indices,
             site_occupancy_weights=self.site_occupancy_weights,
+            compact_site_deposition=self.compact_site_deposition,
         )
         if not np.array_equal(projection.site_multiplicity, metadata.site_multiplicity):
             raise ValueError(
@@ -429,56 +513,11 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
         than silently changing the liquid scalar.
         """
 
-        if not isinstance(frozen_solvent_asset, Route2V0FrozenSolventAsset):
-            raise TypeError("MACE/RISM product bridge requires a frozen solvent asset.")
-        if not isinstance(
-            external_potential,
-            Route2V0MaceClusterMolecularExternalPotential,
-        ):
-            raise TypeError(
-                "MACE/RISM product bridge requires a zero-field MACE molecular "
-                "external potential."
-            )
-        if not isinstance(rism_kernel, Route2V0RismEnergyConjugateKernel):
-            raise TypeError("MACE/RISM product bridge requires an RISM kernel.")
-        if not isinstance(
-            cartesian_euler_quadrature,
-            Route2V0CartesianEulerProductQuadrature,
-        ):
-            raise TypeError(
-                "MACE/RISM product bridge requires a Cartesian Euler product "
-                "quadrature."
-            )
-        if not _same_grid(cartesian_euler_quadrature.grid, rism_kernel.grid):
-            raise ValueError(
-                "MACE/RISM product bridge requires its Cartesian Euler grid to "
-                "equal the RISM grid."
-            )
-        if not _same_grid(
-            cartesian_euler_quadrature.grid,
-            external_potential.integration_grid,
-        ):
-            raise ValueError(
-                "MACE/RISM product bridge requires its Cartesian Euler grid to "
-                "equal the MACE external-potential grid."
-            )
-        if not _same_configurations(
-            cartesian_euler_quadrature.configurations,
-            external_potential.configurations,
-        ):
-            raise ValueError(
-                "MACE/RISM product bridge requires its Cartesian Euler "
-                "configurations to equal the MACE external-potential grid."
-            )
-        frozen_solvent_asset.verify_integrity()
-        _require_molecular_hnc_closure(frozen_solvent_asset)
-        metadata = rism_kernel.short_range.radial.metadata
-        canonical_reference = frozen_solvent_asset.molecular_reference
-        type_indices = _molecular_site_type_indices(
-            molecular_site_type_names=canonical_reference.rism_site_type_names,
-            source_site_names=metadata.site_names,
-            source_site_multiplicity=metadata.site_multiplicity,
-            molecular_site_count=external_potential.solvent.site_count,
+        type_indices = _cartesian_euler_product_site_type_indices(
+            frozen_solvent_asset=frozen_solvent_asset,
+            external_potential=external_potential,
+            rism_kernel=rism_kernel,
+            cartesian_euler_quadrature=cartesian_euler_quadrature,
         )
         occupancy = build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy(
             cartesian_euler_quadrature=cartesian_euler_quadrature,
@@ -492,6 +531,44 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
             rism_kernel=rism_kernel,
             quadrature=cartesian_euler_quadrature.quadrature,
             site_occupancy_weights=occupancy,
+        )
+
+    @classmethod
+    def from_cartesian_euler_cubic_bspline_matrix_free(
+        cls,
+        *,
+        frozen_solvent_asset: Route2V0FrozenSolventAsset,
+        external_potential: Route2V0MaceClusterMolecularExternalPotential,
+        rism_kernel: Route2V0RismEnergyConjugateKernel,
+        cartesian_euler_quadrature: Route2V0CartesianEulerProductQuadrature,
+    ) -> Route2V0MaceClusterRismMolecularHNCBridge:
+        """Construct the bridge with the exact compact full-SO(3) site map.
+
+        The representation changes only storage and evaluation order.  It
+        shares the dense factory's source checks, Cartesian--SO(3) product
+        rule, periodic ``C2`` cardinal B-spline, site multiplicities, and
+        projected HNC scalar.  It is not a physical-liquid or accuracy claim.
+        """
+
+        type_indices = _cartesian_euler_product_site_type_indices(
+            frozen_solvent_asset=frozen_solvent_asset,
+            external_potential=external_potential,
+            rism_kernel=rism_kernel,
+            cartesian_euler_quadrature=cartesian_euler_quadrature,
+        )
+        deposition = build_route2_v0_cartesian_euler_cubic_bspline_site_deposition(
+            cartesian_euler_quadrature=cartesian_euler_quadrature,
+            solvent=external_potential.solvent,
+            solvent_site_type_indices=type_indices,
+            site_count=rism_kernel.site_hnc_asset.site_count,
+        )
+        return cls(
+            frozen_solvent_asset=frozen_solvent_asset,
+            external_potential=external_potential,
+            rism_kernel=rism_kernel,
+            quadrature=cartesian_euler_quadrature.quadrature,
+            site_occupancy_weights=None,
+            compact_site_deposition=deposition,
         )
 
     @property
@@ -511,6 +588,12 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
         """Return the one validated molecular-to-site density projection."""
 
         return self._projection
+
+    @property
+    def is_matrix_free(self) -> bool:
+        """Return whether this bridge uses the compact exact B-spline map."""
+
+        return self.projection.is_matrix_free
 
     @property
     def functional(self) -> Route2V0MolecularSiteHNCFunctional:

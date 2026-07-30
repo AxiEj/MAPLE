@@ -285,6 +285,11 @@ class Route2V0PeriodicCubicBSplineStencil:
             name="Periodic cubic B-spline deposition values",
             shape=(self.point_count,),
         )
+        return self._deposit_validated(coefficients)
+
+    def _deposit_validated(self, coefficients: np.ndarray) -> np.ndarray:
+        """Apply the stencil after its caller has validated coefficients."""
+
         result = np.zeros(self.grid.point_count, dtype=float)
         np.add.at(
             result,
@@ -303,7 +308,15 @@ class Route2V0PeriodicCubicBSplineStencil:
             name="Periodic cubic B-spline grid field",
             shape=self.grid.shape,
         ).reshape(self.grid.point_count)
-        result = np.sum(self.weights * values[self.node_linear_indices], axis=1)
+        return self._field_adjoint_validated(values)
+
+    def _field_adjoint_validated(self, field_values: np.ndarray) -> np.ndarray:
+        """Apply the adjoint after its caller has validated the flattened field."""
+
+        result = np.sum(
+            self.weights * field_values[self.node_linear_indices],
+            axis=1,
+        )
         result.setflags(write=False)
         return result
 

@@ -210,9 +210,22 @@ def test_mace_rism_bridge_derives_its_standard_full_so3_cubic_bspline_map(
         ),
         cartesian_euler_quadrature=product,
     )
+    compact_bridge = Route2V0MaceClusterRismMolecularHNCBridge.from_cartesian_euler_cubic_bspline_matrix_free(
+        frozen_solvent_asset=asset,
+        external_potential=external,
+        rism_kernel=bridge.rism_kernel,
+        cartesian_euler_quadrature=product,
+    )
 
     assert bridge.quadrature is product.quadrature
+    assert bridge.is_matrix_free is False
+    assert compact_bridge.is_matrix_free is True
+    assert compact_bridge.projection.site_occupancy_weights is None
     assert bridge.projection.site_multiplicity.tolist() == [1, 2]
+    np.testing.assert_array_equal(
+        compact_bridge.projection.site_multiplicity,
+        bridge.projection.site_multiplicity,
+    )
     occupancy = bridge.projection.site_occupancy_weights.reshape(
         (2, grid.point_count, product.configurations.configuration_count)
     )
@@ -239,6 +252,35 @@ def test_mace_rism_bridge_derives_its_standard_full_so3_cubic_bspline_map(
         ),
         rtol=1.0e-12,
         atol=1.0e-14,
+    )
+    np.testing.assert_allclose(
+        compact_bridge.projection.project_configuration_density(uniform),
+        bridge.projection.project_configuration_density(uniform),
+        rtol=2.0e-14,
+        atol=2.0e-14,
+    )
+    density = uniform * (
+        1.0 + 0.02 * np.sin(np.arange(product.configurations.configuration_count))
+    )
+    direction = (
+        uniform * 0.05 * np.cos(np.arange(product.configurations.configuration_count))
+    )
+    np.testing.assert_allclose(
+        compact_bridge.functional.dimensionless_gradient(density),
+        bridge.functional.dimensionless_gradient(density),
+        rtol=3.0e-14,
+        atol=3.0e-14,
+    )
+    np.testing.assert_allclose(
+        compact_bridge.functional.dimensionless_hessian_matvec(density, direction),
+        bridge.functional.dimensionless_hessian_matvec(density, direction),
+        rtol=4.0e-14,
+        atol=4.0e-14,
+    )
+    assert compact_bridge.functional.grand_potential_hartree(density) == pytest.approx(
+        bridge.functional.grand_potential_hartree(density),
+        rel=3.0e-14,
+        abs=3.0e-16,
     )
 
     mismatched_product = build_route2_v0_cartesian_euler_product_quadrature(

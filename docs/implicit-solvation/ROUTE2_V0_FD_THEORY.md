@@ -2351,6 +2351,84 @@ does not certify a liquid force: explicit coordinate derivatives of any moving
 cavity, coordinate-dependent liquid functional, or approximation to the MACE
 external potential still belong to the same scalar before a PES claim.
 
+#### 4.2.24 Exact matrix-free molecular-site HNC representation
+
+Let \(S\) be the number of HNC site types, \(M\) the number of rigid solvent
+atoms, \(N_g\) the Cartesian grid-point count, and
+\(N_\Gamma=N_gN_\Omega\) the full Cartesian--orientation configuration count.
+The dense reference stores
+
+\[
+A_{a g i}=\sum_{s:\,t(s)=a}D^{(s)}_{g i},
+\qquad
+A\in\mathbb R^{S\times N_g\times N_\Gamma},
+\]
+
+where \(t(s)\) is the immutable molecular-atom-to-HNC-site map and
+\(D^{(s)}\) is the 64-node periodic cardinal cubic B-spline stencil for atom
+\(s\).  The projected density entering the existing molecular HNC scalar is
+
+\[
+(P\nu)_{a g}
+=\frac{1}{\Delta V}\sum_i w_i A_{a g i}\nu_i
+=\frac{1}{\Delta V}\sum_i w_i
+  \sum_{s:\,t(s)=a}D^{(s)}_{g i}\nu_i.
+\]
+
+The production representation stores the stencils \(D^{(s)}\), not \(A\),
+and evaluates the right-hand expression directly.  It uses the matching
+field action
+
+\[
+(P^Tv)_i
+=\sum_{a g}A_{a g i}v_{a g}
+=\sum_s\sum_g D^{(s)}_{g i}v_{t(s)g}.
+\]
+
+Consequently, without an approximation or changed convention,
+
+\[
+\boxed{
+\Delta V\sum_{a g}v_{a g}(P\nu)_{a g}
+=\sum_i w_i(P^Tv)_i\nu_i
+}
+\]
+
+holds in the same quadrature pairing used by the molecular HNC gradient and
+Hessian.  This proves that replacing a dense occupancy tensor by the compact
+map leaves the ideal term, HNC excess scalar, gradient, Hessian-vector action,
+and stationary equations mathematically unchanged.  Differences between the
+two float64 paths can only arise from the order of finite additions and are
+bounded in tests at roundoff scale; the discrete pairing itself is tested
+directly.
+
+The dense storage scales as \(\Theta(SN_gN_\Gamma)\), i.e.
+\(\Theta(SN_g^2N_\Omega)\) for the product rule.  The compact stencil arrays
+scale as \(\Theta(64MN_\Gamma)\), i.e.
+\(\Theta(64MN_gN_\Omega)\); their reported bytes include stored deposited
+positions, float64 weights, and integer node indices.  On deliberately tiny
+regression grids the 64-node stencil can use more bytes than a dense tensor,
+so no false universal memory claim is made.  Once \(N_g\) exceeds the
+representation's fixed stencil overhead, the compact representation is
+smaller and, crucially, removes the dense \(N_g^2\) growth that blocks
+independent grid refinement.
+
+`route2_v0_molecular_site_bspline.py` owns this representation;
+`Route2V0MolecularSiteProjection` accepts exactly one dense reference tensor
+or one compact deposition and rejects a mixture, absent map, altered grid,
+altered configuration grid, solvent reference, site map, or multiplicity.
+The MACE/RISM bridge exposes corresponding dense-reference and compact
+factories which share the same source-bound asset checks.  The dense path is
+retained only as an equivalence oracle.  The separate weighted-density bridge
+still owns a dense molecular-centre map and is explicitly **not** upgraded by
+this result.
+
+This establishes a numerical prerequisite for a physical liquid grid study;
+it does not supply a physical solvent asset, source-complete short-range
+solute potential, total solvation free energy, force/PES certification, or an
+experimental accuracy result.  In particular, no 1.5 kcal/mol claim follows
+from this representation theorem.
+
 
 ### 4.3 Separate auxiliary-QM liquid-difference route
 

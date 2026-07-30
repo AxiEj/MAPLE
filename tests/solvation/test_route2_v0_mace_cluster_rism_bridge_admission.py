@@ -20,6 +20,7 @@ def test_asset_bound_mace_cluster_rism_bridge_is_explicitly_no_fit_and_nonphysic
     assert "checkpoint-locked zero-field MACE cluster" in bridge["capability"]
     assert "asset canonical molecular reference" in bridge["capability"]
     assert "XVV multiplicity" in bridge["capability"]
+    assert "exact compact 64-node periodic C2 B-spline" in bridge["capability"]
     assert "MACE envelope-force" in bridge["capability"]
     assert "fixed-solute pressure/partial-volume ledger" in bridge["capability"]
     assert (

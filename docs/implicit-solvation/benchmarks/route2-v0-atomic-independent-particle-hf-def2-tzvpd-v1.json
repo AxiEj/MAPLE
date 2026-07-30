@@ -1,0 +1,367 @@
+{
+  "artifact": "route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1",
+  "claim_boundary": "This is a frozen isolated-atom independent-particle response baseline. It is not a molecular electronic functional, a continuum, a force/PES result, a total solvation method, or an accuracy result. It reads no solvation labels and is eligible only for the separately preregistered V0-RK gas-phase source falsifier.",
+  "executed_at_utc": "2026-07-30T18:54:48.628714+00:00",
+  "execution_git_head": "5366a9221df71324834997c4b207dc5dcd97b28d",
+  "generation_contract": {
+    "basis": "def2-TZVPD",
+    "deterministic_archive": {
+      "compression": "ZIP_DEFLATED-level-9",
+      "format": "npz",
+      "member_order": "lexicographic-array-key",
+      "zip_member_timestamp_utc": "1980-01-01T00:00:00+00:00"
+    },
+    "elements": [
+      {
+        "atomic_number": 1,
+        "neutral_electron_count": 1,
+        "spin_2s": 1,
+        "symbol": "H"
+      },
+      {
+        "atomic_number": 6,
+        "neutral_electron_count": 6,
+        "spin_2s": 2,
+        "symbol": "C"
+      },
+      {
+        "atomic_number": 7,
+        "neutral_electron_count": 7,
+        "spin_2s": 3,
+        "symbol": "N"
+      },
+      {
+        "atomic_number": 8,
+        "neutral_electron_count": 8,
+        "spin_2s": 2,
+        "symbol": "O"
+      },
+      {
+        "atomic_number": 16,
+        "neutral_electron_count": 16,
+        "spin_2s": 2,
+        "symbol": "S"
+      },
+      {
+        "atomic_number": 17,
+        "neutral_electron_count": 17,
+        "spin_2s": 1,
+        "symbol": "Cl"
+      }
+    ],
+    "method": "PySCF AtomSphAverageRHF canonical-orbital independent-particle static response",
+    "numerical_relative_tolerance": 1e-10,
+    "pyscf_version": "2.13.1",
+    "runtime": {
+      "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "thread_environment": {
+        "BLIS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1"
+      },
+      "threads": 1
+    },
+    "scf_convergence_tolerance_hartree": 1e-12,
+    "transition_rule": "Sort canonical spatial orbitals by ascending energy with a stable sort. For every pair i< a with n_i-n_a > numerical_relative_tolerance and epsilon_a-epsilon_i > numerical_relative_tolerance*max(1, ||epsilon||_2), retain tau_ia(r)=phi_i(r)phi_a(r)+phi_a(r)phi_i(r) with w_ia=(n_i-n_a)/(2*(epsilon_a-epsilon_i)). Retain every such pair; do not screen a transition by QM-MEP, continuum, or solvation error.",
+    "validation_gates": {
+      "atomic_dipole_covariance_isotropy_error_max": 1e-10,
+      "atomic_dipole_covariance_minimum_eigenvalue_min": 1e-12,
+      "maximum_transition_charge_e_max": 1e-10
+    }
+  },
+  "hard_constraints": {
+    "atomic_transition_selected_from_qm_mep_error": false,
+    "atomic_transition_selected_from_solvation_error": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "mace_density_relabelled_as_electron_density": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "post_training": false,
+    "public_route_changed": false,
+    "response_eigenvalue_clipping": false,
+    "response_rescaling": false,
+    "solvation_labels_read": false
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-prereg-v1.json",
+    "protocol_id": "route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1-prereg",
+    "sha256": "7fae0d620038677c36e4b7b7eb67d4389b344bc73af0f27a2eb221b5ce233544"
+  },
+  "results": [
+    {
+      "array_sha256": {
+        "mo_coefficients": "619eb657db88eee9474ed0d3db119c5886fab7b66630a8dfe72dd75dfee51931",
+        "orbital_energies_hartree": "40478603b840dd63e2924a5b6f115dd52f7f093fdcf32a0ead46e2f9c88e20a8",
+        "orbital_occupations": "d12aeae94aacf42beb35a5fb53626edf372564db271e49281a888dcee1148561",
+        "transition_charges_e": "c63d36e3e250116720679570d424b44125f46eaecfd864cde3931044faa9c3e6",
+        "transition_dipoles_ebohr": "6b7913c2564a5fa78d958d9ac796ad7e930b104beb3de65dd736abe755161c2d",
+        "transition_lower_indices": "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b",
+        "transition_upper_indices": "808ae425ef1615c92cf1d1aa51060f80f18d74e3466639524eff94cdcf8564fa",
+        "transition_weights_hartree_inverse": "245ba644af363b479d1205a73cf6e46baa354f580ca0dbeebfb0a65f0e6741fb"
+      },
+      "atomic_dipole_covariance_bohr3": [
+        [
+          6.08152902494136,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          6.08152902494136,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          6.081529024941362
+        ]
+      ],
+      "atomic_dipole_covariance_isotropy_error": 8.881784197001252e-16,
+      "atomic_dipole_covariance_minimum_eigenvalue": 6.08152902494136,
+      "atomic_number": 1,
+      "energy_hartree": -0.35614020714720684,
+      "maximum_transition_charge_e": 1.1102230246251565e-15,
+      "mo_count": 9,
+      "nao": 9,
+      "scf_converged": true,
+      "spin_2s": 1,
+      "symbol": "H",
+      "transition_count": 8
+    },
+    {
+      "array_sha256": {
+        "mo_coefficients": "407951905338a4990346f18148e6459b5a8430d4538e953ed5067e4063fec6d6",
+        "orbital_energies_hartree": "4d09d64a1878837fc2ef880962d94872a1aee71df71224edc5b6eef86f61b32f",
+        "orbital_occupations": "28c1d77c6aba960ccbf6b9f4b71359f149033495eb673fbe1f3d2145eb5fe2db",
+        "transition_charges_e": "f86fb05f82a906b5493895cdab9dd52800069534d396ed805718d26c3de4bc70",
+        "transition_dipoles_ebohr": "c58de28cd609b634b76584e879d49f4b866c16aaccfcb2d1ed33d7445258eee7",
+        "transition_lower_indices": "8f36bfbc43671479bb6a3d86dee3b3defb50561b4ed98d96379415b6c7ce9ab7",
+        "transition_upper_indices": "e563bc1f763b63ba252d0c25c7df9ad804c6b3d4ac8760f42d6caf194b4fe5ec",
+        "transition_weights_hartree_inverse": "c1587e605e4adb76a49d81237835b8057958779d5bb7e9fadd18c664e16fb0f0"
+      },
+      "atomic_dipole_covariance_bohr3": [
+        [
+          17.636415568919404,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          17.636415568919407,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          17.636415568919407
+        ]
+      ],
+      "atomic_dipole_covariance_isotropy_error": 3.552713678800501e-15,
+      "atomic_dipole_covariance_minimum_eigenvalue": 17.636415568919404,
+      "atomic_number": 6,
+      "energy_hartree": -37.34011169026502,
+      "maximum_transition_charge_e": 1.7763568394002505e-15,
+      "mo_count": 37,
+      "nao": 37,
+      "scf_converged": true,
+      "spin_2s": 2,
+      "symbol": "C",
+      "transition_count": 166
+    },
+    {
+      "array_sha256": {
+        "mo_coefficients": "4298237f16bfbbe2c55f67c20a6e756b9c8c168a6af8752bc064fc94f67490c0",
+        "orbital_energies_hartree": "95e3ab91794f7b78792ae92230445da0a00257811c078871acaa6cbba518352d",
+        "orbital_occupations": "8a8b1041f6b888365dc2aaad42f6a3274bf12b0c56fc33dfa10a3d1a118d84fa",
+        "transition_charges_e": "e280a625d3f203d03dde23f23811652497325b295a91be8349b36efdb6cb297d",
+        "transition_dipoles_ebohr": "b0b566c4477b4c626ce5c497e247d5697963d470ba3b26418dbbf5a4b00d3b15",
+        "transition_lower_indices": "8f36bfbc43671479bb6a3d86dee3b3defb50561b4ed98d96379415b6c7ce9ab7",
+        "transition_upper_indices": "e563bc1f763b63ba252d0c25c7df9ad804c6b3d4ac8760f42d6caf194b4fe5ec",
+        "transition_weights_hartree_inverse": "b52abb786b6f65c066ef2dc7ad02ee8e1fd755313368dd6ec7379d8b1c4670da"
+      },
+      "atomic_dipole_covariance_bohr3": [
+        [
+          8.882310460764886,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          8.882310460764888,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          8.882310460764888
+        ]
+      ],
+      "atomic_dipole_covariance_isotropy_error": 1.7763568394002505e-15,
+      "atomic_dipole_covariance_minimum_eigenvalue": 8.882310460764886,
+      "atomic_number": 7,
+      "energy_hartree": -53.84808763103803,
+      "maximum_transition_charge_e": 1.1102230246251565e-15,
+      "mo_count": 37,
+      "nao": 37,
+      "scf_converged": true,
+      "spin_2s": 3,
+      "symbol": "N",
+      "transition_count": 166
+    },
+    {
+      "array_sha256": {
+        "mo_coefficients": "6a5000bcefb6ef7bf430f23095c7793182a033623b1eea26a391cdb319d9d3a0",
+        "orbital_energies_hartree": "3abff0cf92dfbbbb3f3725c57c942dcccbb492d65c79aa4f01822950f5dd06bf",
+        "orbital_occupations": "6ed22bc0ffc3142a2c7f2c95cf2d527309e397d66784fce21af5360fb39a3257",
+        "transition_charges_e": "8d9e8788cce18ad8e5fcc4a87b4fc39fb63527f7698485522fff5f0af51e7ec7",
+        "transition_dipoles_ebohr": "ec8bb40eb289ee7cfc18a53329e7a29398db9f1e1c089f054610d22adf5bf3f4",
+        "transition_lower_indices": "d743d7c1627ef6f075fb9964c199422e37e1ebeac3575d489ee3697936ca75a6",
+        "transition_upper_indices": "9a58240d98c718d7d52e8ba1a46ae1fbc0acaa4798bff295474f1e36ad709d95",
+        "transition_weights_hartree_inverse": "d560ad7602d0a9244aed8488c2218dd4f1c7119c688d479834668fcbd42c2d97"
+      },
+      "atomic_dipole_covariance_bohr3": [
+        [
+          5.465066911773799,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          5.465066911773799,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          5.465066911773797
+        ]
+      ],
+      "atomic_dipole_covariance_isotropy_error": 1.7763568394002505e-15,
+      "atomic_dipole_covariance_minimum_eigenvalue": 5.465066911773797,
+      "atomic_number": 8,
+      "energy_hartree": -74.29503580753098,
+      "maximum_transition_charge_e": 8.881784197001252e-16,
+      "mo_count": 40,
+      "nao": 40,
+      "scf_converged": true,
+      "spin_2s": 2,
+      "symbol": "O",
+      "transition_count": 181
+    },
+    {
+      "array_sha256": {
+        "mo_coefficients": "fd7dbd7d1d6d40567d5a53726eac9f3a88e1537b0ce543b63f75c8a018b497ac",
+        "orbital_energies_hartree": "40dd51f17b1e6513bd28676dc009f45f878cdf71b15722a663b5314fc90f8430",
+        "orbital_occupations": "8879199a0f7839ccf6859af98789f57ab583d44458d3346370db15afcdbff9ef",
+        "transition_charges_e": "0bfdc337e186366d3aa29642abaa892f77028284c9b9742f4d94218866f8de27",
+        "transition_dipoles_ebohr": "2c4feb5485dddfd5a570cbe59ea2c45846987c6a09069cd70ace885590b8d92e",
+        "transition_lower_indices": "9338bc3b905858e4da84ea3245b772c17c5c5b29cf2ce92fd1b198eb3f9cfeba",
+        "transition_upper_indices": "b9aff16da6172114ea6432bbfffda4d906350cd7108d023ceecbe342914f3f22",
+        "transition_weights_hartree_inverse": "5bc21680db4182a568570d8798e1290d6b0c87548706b89f105fede002c20ee9"
+      },
+      "atomic_dipole_covariance_bohr3": [
+        [
+          23.23769866518239,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          23.23769866518239,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          23.237698665182386
+        ]
+      ],
+      "atomic_dipole_covariance_isotropy_error": 3.552713678800501e-15,
+      "atomic_dipole_covariance_minimum_eigenvalue": 23.237698665182386,
+      "atomic_number": 16,
+      "energy_hartree": -397.19165946920333,
+      "maximum_transition_charge_e": 8.881784197001252e-16,
+      "mo_count": 46,
+      "nao": 46,
+      "scf_converged": true,
+      "spin_2s": 2,
+      "symbol": "S",
+      "transition_count": 351
+    },
+    {
+      "array_sha256": {
+        "mo_coefficients": "6820512fc2b0bab298c218fe66e8ff1a7e28cabbf25cfaf5bef6443e8973a571",
+        "orbital_energies_hartree": "3bd618dc4084bce2bfd1d89618f2b0e782ff9e3e57eabd216793dab083cfd23a",
+        "orbital_occupations": "51c02d04a67ec8905b6e6560312a8394510f19becaa949941de1707ec280140e",
+        "transition_charges_e": "5581525246534d86ceeee71b6fe130de732fe50c1e4ccff51c3e33c056120130",
+        "transition_dipoles_ebohr": "8df60e76d2655058c7f8f7ab778385aad47ad32c8390a33b9ff59584f9ed9c56",
+        "transition_lower_indices": "9338bc3b905858e4da84ea3245b772c17c5c5b29cf2ce92fd1b198eb3f9cfeba",
+        "transition_upper_indices": "b9aff16da6172114ea6432bbfffda4d906350cd7108d023ceecbe342914f3f22",
+        "transition_weights_hartree_inverse": "8cfb01a07f2acdd10ffe6759266e6b7c5ce033b455a3396ecf82d56a3cc9505c"
+      },
+      "atomic_dipole_covariance_bohr3": [
+        [
+          15.042573333808026,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          15.042573333808026,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          15.042573333808024
+        ]
+      ],
+      "atomic_dipole_covariance_isotropy_error": 1.7763568394002505e-15,
+      "atomic_dipole_covariance_minimum_eigenvalue": 15.042573333808024,
+      "atomic_number": 17,
+      "energy_hartree": -459.27382644947636,
+      "maximum_transition_charge_e": 1.3322676295501878e-15,
+      "mo_count": 46,
+      "nao": 46,
+      "scf_converged": true,
+      "spin_2s": 1,
+      "symbol": "Cl",
+      "transition_count": 351
+    }
+  ],
+  "runtime": {
+    "numpy": "2.4.6",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "pyscf": "2.13.1",
+    "pyscf_init_path": "/home/axie/.cache/maple-envs/pyscf-smd-qmref/lib/python3.11/site-packages/pyscf/__init__.py",
+    "pyscf_init_sha256": "9c06579656d120a595ce5b84a5066aa78d6eec547a7c6a6388799f909a461f92",
+    "pyscf_lib_num_threads": 1,
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+    "thread_environment": {
+      "BLIS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    },
+    "threads": 1
+  },
+  "schema_version": 1,
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/generate_route2_v0_atomic_independent_particle_response.py": "5ddad832ec13344e0c8bae9998327bd785038be1a860a8e672e9c7b0498ff8f4",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_response.py": "9d6f2f3892b57e57ea3db6f70a350fbb81b2a0fad22414c58625f7f2b38bebd3"
+  },
+  "status": "pass",
+  "table": {
+    "path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.npz",
+    "sha256": "a606cd7b2bf4a11d37e63ad1563c28fcf984eb8246c6adf07c98a33e5dd60f2b"
+  }
+}

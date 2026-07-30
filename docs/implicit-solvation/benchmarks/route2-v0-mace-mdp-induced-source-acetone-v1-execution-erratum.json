@@ -1,0 +1,82 @@
+{
+  "artifact": "route2-v0-mace-mdp-induced-source-acetone-v1-execution-erratum",
+  "corrected_numerical_check": {
+    "current_qm_dipole_response_bohr3": [
+      [
+        36.84393885122095,
+        0.8320945283054234,
+        4.572110744701282
+      ],
+      [
+        0.8321336110069429,
+        46.16922064071124,
+        -0.5021217073123789
+      ],
+      [
+        4.5720967736428975,
+        -0.5021091672574585,
+        43.834563947982026
+      ]
+    ],
+    "maximum": 1e-05,
+    "name": "qm_dipole_reproduction_relative_frobenius",
+    "passes": true,
+    "prior_qm_selected_symmetric_polarizability_bohr3": [
+      [
+        36.843938850836075,
+        0.8321140701357995,
+        4.572103759874491
+      ],
+      [
+        0.8321140701357995,
+        46.16922063990004,
+        -0.5021154377852592
+      ],
+      [
+        4.572103759874491,
+        -0.5021154377852592,
+        43.83456395115578
+      ]
+    ],
+    "value": 4.15131233128762e-07
+  },
+  "defect": {
+    "effect": "The numerical QM-dipole-reproduction check incorrectly reported the frozen MACE-MDP/QM polarizability mismatch (0.003867862161286716) instead of QM-helper reproduction.",
+    "location_at_execution": "run_route2_v0_mace_mdp_induced_source_acetone.py: current_qm_alpha was assigned from the candidate dipole-by-step array rather than the independent QM dipole-response array.",
+    "repair": "Extract the selected tensor exclusively from the frozen QM helper response, with a regression test for candidate/QM separation."
+  },
+  "original_result": {
+    "execution_git_head": "813c5274d03e6921e11e1c9738e3fcceee200d8a",
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-induced-source-acetone-v1.json",
+    "sha256": "503d268592a16bf2fbb99b1444f8ede65309f5421b443e8f98d2a64f25a94046"
+  },
+  "prohibited_rescue_actions": [
+    "do not change the 1.5 Angstrom width",
+    "do not add charge or higher multipoles",
+    "do not select a point subset",
+    "do not rescale or temper the response",
+    "do not use solvation labels or run an accuracy panel for this source"
+  ],
+  "raw_qm_helper": {
+    "original_temporary_path": "/tmp/route2-v0-mace-mdp-induced-source-acetone-20260730/qm-induced-mep.json",
+    "path": "docs/implicit-solvation/benchmarks/reproducers/route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json",
+    "sha256": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc"
+  },
+  "schema_version": 1,
+  "scope": "This erratum preserves the original V1 raw finite-field record and corrects only a postprocessing bookkeeping defect. It changes no geometry, field step, exterior points, radial width, atomic partition, QM values, MACE-MDP values, threshold, solvent quantity, or scientific decision.",
+  "status": "reporting-defect-corrected-scientific-rejection-unchanged",
+  "unchanged_independent_scientific_rejection": {
+    "mep_response_relative_direction_max": {
+      "maximum": 0.3,
+      "passes": false,
+      "value": 0.49656247725907093
+    },
+    "mep_response_relative_frobenius": {
+      "maximum": 0.2,
+      "passes": false,
+      "value": 0.459792652338564
+    },
+    "reason": "Both MEP checks are calculated independently from the source potential and frozen QM exterior-potential response. Each exceeds its preregistered ceiling, so the source remains rejected even after the numerical bookkeeping correction.",
+    "verdict": "reject-frozen-mace-mdp-one-radial-l1-source"
+  }
+}

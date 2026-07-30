@@ -394,6 +394,32 @@ def _validate_qm_helper_result(
     return parsed
 
 
+def _qm_response_tensor(
+    responses: dict[float, dict[str, dict[str, np.ndarray]]],
+    *,
+    step: float,
+    observable: str,
+) -> np.ndarray:
+    """Stack a frozen QM response by Cartesian field direction.
+
+    Keeping this extraction separate prevents a candidate response array from
+    being accidentally substituted for the independent QM reproduction check.
+    ``observable`` is deliberately limited to the two arrays emitted by the
+    isolated helper.
+    """
+
+    if observable not in {"potential", "dipole"}:
+        raise ValueError(f"Unsupported QM response observable: {observable}.")
+    try:
+        columns = [responses[step][axis][observable] for axis in DIRECTIONS]
+    except KeyError as error:
+        raise RuntimeError("The frozen QM response tensor is incomplete.") from error
+    tensor = np.column_stack(columns)
+    if tensor.ndim != 2 or not np.all(np.isfinite(tensor)):
+        raise RuntimeError("The frozen QM response tensor is invalid.")
+    return tensor
+
+
 def _source_map_checks(
     *,
     weights: np.ndarray,
@@ -583,21 +609,21 @@ def main() -> int:
         dipole_by_step[step] = np.column_stack(dipole_columns)
         candidate_records[f"{step:.1e}"] = per_direction
 
+    qm_mep_by_step = {
+        step: _qm_response_tensor(qm_responses, step=step, observable="potential")
+        for step in EXPECTED_FIELD_STEPS
+    }
+    qm_dipole_by_step = {
+        step: _qm_response_tensor(qm_responses, step=step, observable="dipole")
+        for step in EXPECTED_FIELD_STEPS
+    }
     qm_mep_step_consistency = _relative_frobenius(
-        np.column_stack(
-            [qm_responses[EXPECTED_FIELD_STEPS[0]][axis]["potential"] for axis in DIRECTIONS]
-        ),
-        np.column_stack(
-            [qm_responses[EXPECTED_FIELD_STEPS[1]][axis]["potential"] for axis in DIRECTIONS]
-        ),
+        qm_mep_by_step[EXPECTED_FIELD_STEPS[0]],
+        qm_mep_by_step[EXPECTED_FIELD_STEPS[1]],
     )
     qm_dipole_step_consistency = _relative_frobenius(
-        np.column_stack(
-            [qm_responses[EXPECTED_FIELD_STEPS[0]][axis]["dipole"] for axis in DIRECTIONS]
-        ),
-        np.column_stack(
-            [qm_responses[EXPECTED_FIELD_STEPS[1]][axis]["dipole"] for axis in DIRECTIONS]
-        ),
+        qm_dipole_by_step[EXPECTED_FIELD_STEPS[0]],
+        qm_dipole_by_step[EXPECTED_FIELD_STEPS[1]],
     )
     prior_qm = qm_polarizability_artifact.get("qm_reference", {})
     prior_alpha = np.asarray(
@@ -605,7 +631,7 @@ def main() -> int:
     )
     if prior_alpha.shape != (3, 3):
         raise RuntimeError("The frozen prior QM polarizability is invalid.")
-    current_qm_alpha = dipole_by_step[selected_step]
+    current_qm_alpha = qm_dipole_by_step[selected_step]
     numerical_checks: dict[str, dict[str, float | bool]] = {
         **source_checks,
         "qm_mep_step_consistency_relative_frobenius": _upper_check(
@@ -629,13 +655,9 @@ def main() -> int:
         dict[str, dict[str, object]], candidate_records[f"{selected_step:.1e}"]
     )
     selected_mep = mep_by_step[selected_step]
-    selected_qm_mep = np.column_stack(
-        [qm_responses[selected_step][axis]["potential"] for axis in DIRECTIONS]
-    )
+    selected_qm_mep = qm_mep_by_step[selected_step]
     selected_dipole = dipole_by_step[selected_step]
-    selected_qm_dipole = np.column_stack(
-        [qm_responses[selected_step][axis]["dipole"] for axis in DIRECTIONS]
-    )
+    selected_qm_dipole = qm_dipole_by_step[selected_step]
     per_direction_errors: list[float] = []
     for direction in DIRECTIONS:
         value = selected_direction_records[direction].get(

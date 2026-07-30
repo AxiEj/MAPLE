@@ -1,0 +1,96 @@
+{
+  "claim_boundary": "This one-acetone gas-phase source-representer falsifier constructs a full neutral transition-density response directly from a frozen spherical atomic Hartree--Fock independent-particle table. Its response covariance is completed solely to the already frozen MACE-MDP molecular dipole covariance and audited atom-dipole partition, then compared with independent fixed-geometry QM finite-field electronic potential at all 516 immutable exterior points. It invokes no continuum, PCM energy, implicit solvent, experimental solvation label, parameter fit, model-weight update, force/PES claim, total solvation calculation, or public Route-2 profile. A pass can admit only this exact gas-phase source to a later same-basis common-scalar/KKT gate; it cannot establish chemical accuracy.",
+  "decision_rule": "If any numerical or scientific gate fails, reject this exact frozen atomic independent-particle source candidate. Do not alter transition selection, orbitals, response weights, source points, MACE weights, atom partition, polarizability, continuum, or gate after observing QM-MEP error. Do not add fitted density modes, induced monopoles, empirical damping, response rescaling/clipping/symmetrization, a solvation label, or an accuracy panel. A pass permits only a separately preregistered same-basis common-scalar/KKT, continuum-duality, and force gate; it does not establish a final molecular density, electronic functional, total solvation method, or experimental solvation accuracy.",
+  "execution_contract": {
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-bohr.npy": "84d922d165965e92978bfc99c8435fd384f53868d61959d368737e5fa946f023",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-provenance.json": "f6e8afaaba80b7c9e2940f173d9b141b3cd0c7a532bc7b933dd6f04ae5603617",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-prereg-v1.json": "7fae0d620038677c36e4b7b7eb67d4389b344bc73af0f27a2eb221b5ce233544",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.json": "fb385369e00bcd25b69dc8e6aadd169497acdce845fce6f60cbf9bc1584ee25a",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-independent-particle-hf-def2-tzvpd-v1.npz": "a606cd7b2bf4a11d37e63ad1563c28fcf984eb8246c6adf07c98a33e5dd60f2b",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0"
+    },
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_atomic_independent_particle_source_acetone.py": "4b9088dd88c47af79636b5a035760edc7a31cdb52dda79e66f697f534ef1088d",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_independent_particle_response.py": "9d6f2f3892b57e57ea3db6f70a350fbb81b2a0fad22414c58625f7f2b38bebd3",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_response_kernel.py": "22e361c5852225aa733eb321f47986072090ef1d864e8808ad229099d4cb8268"
+    }
+  },
+  "finite_field_protocol": {
+    "directions": [
+      "x",
+      "y",
+      "z"
+    ],
+    "field_steps_au": [
+      0.0003,
+      0.001
+    ],
+    "selected_reporting_step_au": 0.0003,
+    "signs": [
+      -1,
+      1
+    ]
+  },
+  "hard_constraints": {
+    "atomic_response_fit_to_qm_mep": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "induced_monopoles_or_higher_multipoles_added": false,
+    "legacy_public_route_changed": false,
+    "mace_density_relabelled_as_electron_density": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "post_training": false,
+    "response_eigenvalue_clipping": false,
+    "response_rescaling_or_tempering": false,
+    "source_point_subset_selected_after_execution": false,
+    "target_fit_or_calibration": false,
+    "transition_selection_from_qm_or_solvation_error": false
+  },
+  "numerical_gates": {
+    "atomic_partition_moment_identity_max": 1e-12,
+    "completed_atom_covariance_relative_error_max": 1e-08,
+    "completed_molecular_polarizability_relative_error_max": 1e-08,
+    "completed_moore_penrose_relative_error_max": 1e-08,
+    "maximum_transition_charge_max": 1e-10,
+    "qm_dipole_step_consistency_relative_frobenius_max": 0.02,
+    "qm_mep_step_consistency_relative_frobenius_max": 0.02,
+    "support_constraint_response_relative_error_max": 1e-08,
+    "uniform_field_molecular_dipole_relative_error_max": 1e-08
+  },
+  "protocol_id": "route2-v0-atomic-independent-particle-source-acetone-prereg-v1",
+  "qm_method": {
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "maximum_scf_cycles": 100,
+    "nonlocal_grid_profile": "50x194-SG1",
+    "pyscf_xc_token": "wb97m-v",
+    "reference": "RKS",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3,
+    "spin": 0
+  },
+  "schema_version": 1,
+  "scientific_falsification_gates": {
+    "induced_dipole_response_relative_frobenius_max": 0.2,
+    "interpretation": "These frozen 0.20/0.30 gates are copied unchanged from the earlier one-radial induced-source and QEq gas-response falsifiers. They reject a grossly inaccurate source representation without selecting this candidate. Passing remains insufficient for a molecular energy functional, continuum coupling, force, PES, or experimental solvation claim.",
+    "mep_response_relative_direction_max": 0.3,
+    "mep_response_relative_frobenius_max": 0.2
+  },
+  "source_representation": {
+    "atomic_response": "All positive occupation-over-gap transition densities of frozen spherical AtomSphAverageRHF def2-TZVPD H/C/N/O/S/Cl; each is intrinsically neutral by orbital orthogonality.",
+    "baseline_covariance": "C0=diag((n_i-n_a)/(2(epsilon_a-epsilon_i))) in the transition-density coefficient/dual pairing.",
+    "completion": "C=C0-LS0L^T+L(W alpha W^T)L^T with S0=A C0 A^T and L=C0 A^T S0^-1; this is the pre-existing no-fit V0-RK moment completion.",
+    "molecular_response": "The frozen MACE-MDP canonical polarizability and raw audited atom-dipole partition are used only as fixed dipole-moment constraints after their prior gates; no MACE density is called an electron density.",
+    "potential": "delta V_e(s)=-sum_m x_m integral tau_m(r)/|r-s|dr, x=-C f, and f_m,k=integral tau_m(r)r_kdr for a uniform electric field.",
+    "source_points": "All 516 immutable exterior QM-MEP validation points are used; no PCM surface, cavity, or continuum response is constructed or selected."
+  },
+  "status": "frozen-before-execution"
+}

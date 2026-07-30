@@ -18,6 +18,7 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_mace_cluster_
 from maple.function.calculator.extra_correction.implicit.route2_v0_mace_cluster_rism_bridge import (
     V0_MACE_CLUSTER_RISM_BRIDGE_CONSTRUCTION,
     V0_MACE_CLUSTER_RISM_CROSS_MODEL_REFERENCE,
+    V0_MOLECULAR_HNC_REQUIRED_RISM_CLOSURE,
     Route2V0MaceClusterRismMolecularHNCBridge,
     build_route2_v0_asset_bound_rism_kernel,
 )
@@ -94,6 +95,7 @@ def _asset(tmp_path: Path):
     manifest, _ = write_route2_v0_test_manifest(
         tmp_path,
         model_identifier="cSPCE",
+        closure="HNC",
     )
     return load_route2_v0_frozen_solvent_registry(manifest).asset_for("water")
 
@@ -161,6 +163,37 @@ def _bridge(
         quadrature=quadrature,
         site_occupancy_weights=occupancy,
     )
+
+
+def test_asset_bound_molecular_hnc_bridge_rejects_a_pse3_bulk_source(tmp_path):
+    hnc_asset, grid, external, quadrature, occupancy = _bridge_inputs(tmp_path / "hnc")
+    hnc_kernel = build_route2_v0_asset_bound_rism_kernel(
+        frozen_solvent_asset=hnc_asset,
+        grid=grid,
+    )
+    pse3_manifest, _ = write_route2_v0_test_manifest(
+        tmp_path / "pse3",
+        model_identifier="cSPCE-pse3",
+        closure="PSE3",
+    )
+    pse3_asset = load_route2_v0_frozen_solvent_registry(pse3_manifest).asset_for(
+        "water"
+    )
+
+    assert V0_MOLECULAR_HNC_REQUIRED_RISM_CLOSURE == "HNC"
+    with pytest.raises(ValueError, match="requires an HNC bulk closure"):
+        build_route2_v0_asset_bound_rism_kernel(
+            frozen_solvent_asset=pse3_asset,
+            grid=grid,
+        )
+    with pytest.raises(ValueError, match="requires an HNC bulk closure"):
+        Route2V0MaceClusterRismMolecularHNCBridge(
+            frozen_solvent_asset=pse3_asset,
+            external_potential=external,
+            rism_kernel=hnc_kernel,
+            quadrature=quadrature,
+            site_occupancy_weights=occupancy,
+        )
 
 
 def test_asset_bound_bridge_uses_one_checkpoint_locked_mace_source_and_one_frozen_rism_kernel(

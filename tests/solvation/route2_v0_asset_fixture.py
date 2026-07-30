@@ -148,10 +148,10 @@ O   H1
 """
 
 
-def _rism1d_input() -> str:
+def _rism1d_input(*, closure: str) -> str:
     density_molar = 0.033 / AVOGADRO_PER_ANGSTROM3_PER_MOLAR
     return f"""&PARAMETERS
-  THEORY='DRISM', CLOSURE='PSE3',
+  THEORY='DRISM', CLOSURE='{closure}',
   NR=4, DR=2.0,
   SMEAR=1.0, TEMPERATURE=298.0, DIEPS=78.497, NSP=1,
   SELFTEST=-1, OUTLIST='xc', MAXSTEP=100,
@@ -288,12 +288,17 @@ def write_route2_v0_test_manifest(
     tmp_path: Path,
     *,
     model_identifier: str = "cSPCE-test-control",
+    closure: str = "PSE3",
 ) -> tuple[Path, dict]:
     """Write one complete synthetic source-bound registry manifest."""
 
+    normalized_closure = closure.strip().upper()
+    if not normalized_closure:
+        raise ValueError("Synthetic RISM closure must be nonempty.")
+
     for name, contents in {
         "model/cSPCE.mdl": _mdl(),
-        "bulk/cSPCE.inp": _rism1d_input(),
+        "bulk/cSPCE.inp": _rism1d_input(closure=normalized_closure),
         "bulk/cSPCE.xvv": _xvv(),
         "bulk/cSPCE.cvv": _cvv(),
         "bulk/cSPCE.thermo": _thermodynamic_output(),
@@ -310,7 +315,7 @@ def write_route2_v0_test_manifest(
                 "construction": V0_RISM_SHORT_RANGE_SOURCE_CONSTRUCTION,
                 "source_scope": V0_RISM_SHORT_RANGE_SOURCE_SCOPE,
                 "derivation": V0_RISM_SHORT_RANGE_DERIVATION,
-                "closure": "PSE3",
+                "closure": normalized_closure,
                 "temperature_kelvin": 298.0,
                 "pressure_bar": 1.0,
                 "coulomb_tail_start_angstrom": 6.0,
@@ -345,7 +350,7 @@ def write_route2_v0_test_manifest(
                 },
                 "state": {"temperature_kelvin": 298.0, "pressure_bar": 1.0},
                 "liquid_convention": {
-                    "closure": "PSE3",
+                    "closure": normalized_closure,
                     "standard_state": "1M solute / pure-liquid solvent",
                     "pressure_definition": "source bulk thermodynamic pressure",
                     "partial_molar_volume_definition": "source functional derivative",

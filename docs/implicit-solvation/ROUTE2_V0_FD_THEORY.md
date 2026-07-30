@@ -856,10 +856,11 @@ from entering a periodic zero mode; it is a fixed constraint projection, not a
 solvation-error fit or a charge-model adjustment.
 
 [`route2-v0-solvent-asset-inventory-v1.json`](benchmarks/route2-v0-solvent-asset-inventory-v1.json)
-records the current deliberately incomplete state.  The checkout may contain a
-source-complete cSPC/E **candidate**, while **zero** physical default-solvent
-assets remain admitted.  Consequently total-free-energy execution remains
-rejected.  This registry is provenance infrastructure only: it neither defines
+records the current deliberately incomplete state.  The checkout may contain
+source-complete cSPC/E **candidates** with distinct closure roles, while
+**zero** physical default-solvent assets remain admitted.  Consequently
+total-free-energy execution remains rejected.  This registry is provenance
+infrastructure only: it neither defines
 the MACE-native \(u^{\mathrm{sr}}\), maps a production short-range kernel,
 minimizes a liquid functional, nor changes an accuracy number.
 
@@ -1221,6 +1222,48 @@ operator in Section 4.2.15.  No frozen physical molecular correlation,
 solvent-side short-range source, pressure/standard-state convention, real
 liquid solve, force, PES, or accuracy result follows from this scalar.
 
+#### 4.2.14a Closure identity: HNC scalar versus PSE-\(n\) bulk source
+
+The symbol \(C_{\mathrm{RISM}}\) in Section 4.2.14 is not an arbitrary
+site--site direct correlation.  The quadratic excess term and its displayed
+derivative are specifically the **HNC** functional, so the source must be
+\(C_{\mathrm{HNC}}\).  Matching solvent name, temperature, site model,
+charges, radial grid, or Coulomb split cannot make a source produced by a
+different closure an HNC functional.
+
+For example, with the usual PSE-\(n\) closure variable \(\Xi_\alpha\), the
+positive branch is instead truncated,
+
+\[
+g_\alpha(\mathbf r)=
+\begin{cases}
+\exp\!\left[\Xi_\alpha(\mathbf r)\right],
+    & \Xi_\alpha\leq0,\\
+\displaystyle\sum_{j=0}^{n}
+\frac{\Xi_\alpha(\mathbf r)^j}{j!},
+    & \Xi_\alpha>0.
+\end{cases}
+\]
+
+Its path-independent excess-chemical-potential expression has the associated
+closure-specific positive-\(\Xi\) correction proportional to
+\(\Theta(\Xi_\alpha)\Xi_\alpha^{n+1}/(n+1)!\), rather than the HNC
+quadratic scalar alone [6, 28].  Thus a PSE3 `Cvv` is not rejected because it
+is numerically inaccurate; it is rejected because silently placing it in
+\(\Delta\Omega_{\mathrm{mHNC}}\) would report the derivative of one closure
+and the free energy of another.
+
+Accordingly, `route2_v0_mace_cluster_rism_bridge.py` requires the frozen
+asset to declare `closure == "HNC"` **before** it builds either the reciprocal
+kernel or the MACE/RISM bridge.  The checked-in cSPC/E PSE3 source is retained
+only as a source-complete control for a future, separately preregistered
+PSE-\(n\) configuration-space scalar.  The closure-aligned cSPC/E HNC source
+is likewise only source-complete: it has not passed production
+Cartesian/orientation convergence, physical liquid/EOS/standard-state, force,
+eleven-solvent, or chemistry gates.  The source choice follows the scalar
+identity before reading any target-solvation result; no closure search or
+error-selected substitution is allowed.
+
 #### 4.2.15 Energy-conjugate periodic RISM kernel control
 
 Amber's source convention is not a fitted decomposition.  After the declared
@@ -1260,12 +1303,13 @@ the resulting full `Route2V0SiteHNCAsset` available to the molecular
 projection in Section 4.2.14.  Thus no Coulomb prefactor, tail smoothing, or
 long-range coefficient is selected from solvation labels.
 
-This is still only a mathematical assembly gate.  A source-complete cSPC/E
-candidate does not supply production-grid certification, a complete
+This is still only a mathematical assembly gate.  The source-complete cSPC/E
+PSE3 and HNC candidates do not supply production-grid certification, a complete
 MACE-native short-range liquid potential, force certification, or the other ten
-pre-registered solvent candidates.  A real endpoint still needs those gates,
-the asset-bound MACE-cluster-to-liquid connector in Section 4.2.17, and one
-frozen same-functional thermodynamic/standard-state convention.
+pre-registered solvent candidates.  The current molecular-HNC bridge accepts
+only the HNC candidate; a real endpoint still needs those gates, the
+asset-bound MACE-cluster-to-liquid connector in Section 4.2.17, and one frozen
+same-functional thermodynamic/standard-state convention.
 
 #### 4.2.16 Zero-field MACE molecular external-potential control
 
@@ -1378,9 +1422,10 @@ Thus the molecular stationarity equation is the derivative of one scalar,
 \]
 
 `route2_v0_mace_cluster_rism_bridge.py` creates this assembly.  It rejects a
-changed solvent-side hash, a reciprocal kernel derived from another radial
-asset or tail convention, an external grid different from the RISM grid, or a
-MACE solvent geometry/charge record that differs from the **canonical
+changed solvent-side hash, a source whose declared closure is not HNC, a
+reciprocal kernel derived from another radial asset or tail convention, an
+external grid different from the RISM grid, or a MACE solvent geometry/charge
+record that differs from the **canonical
 molecular reference stored in the frozen asset**.  Schema-v2 validation binds
 that record to the exact `site_model` digest and requires its named per-atom
 RISM site map to reproduce the XVV multiplicities before the bridge is even
@@ -2206,3 +2251,8 @@ substitute for these gates.
     Its jointly stationary electronic and molecular densities illustrate the
     common-functional direction, but cannot be attributed to the frozen,
     nonvariational MACE response retained in V0.
+28. S. M. Kast, *Free Energies from Integral Equation Theories: Enforcing
+    Path Independence*, *Phys. Rev. E* **67**, 041203 (2003),
+    [DOI:10.1103/PhysRevE.67.041203](https://doi.org/10.1103/PhysRevE.67.041203).
+    It distinguishes closure-consistent free-energy expressions; it does not
+    authorize inserting a PSE-\(n\) correlation into the HNC scalar above.

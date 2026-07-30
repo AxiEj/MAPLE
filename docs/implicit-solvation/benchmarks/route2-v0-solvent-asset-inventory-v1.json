@@ -23,16 +23,33 @@
       "solvent": "water",
       "model": "AmberTools26-cSPCE-PSE3-298K-source-candidate",
       "manifest": "route2-v0-solvent-assets/water-cspce-pse3/manifest.json",
-      "status": "source-complete-candidate-not-production-or-accuracy-admitted",
+      "status": "source-complete-PSE3-candidate-future-matched-PSE-functional-only",
       "verified_source_chain": [
         "hash-bound all-atom cSPC/E MDL source",
         "matching DRISM/PSE3 rism1d input, XVV, and Cvv",
         "parsed thermodynamic self-test with both pressure routes retained",
         "strict native-SMEAR short-range certificate",
         "two independent AmberTools 26 runs with distinct raw XVV/transcript evidence, identical DATE-normalized XVV with every non-DATE byte preserved, exact Cvv, exact self-test, and final residuals below 1e-12",
-        "canonical exact-neutral charge projection derived only from MDL decimal serialization"
+        "canonical exact-neutral charge projection derived only from MDL decimal serialization",
+        "PSE3 closure identity retained only for a future matched PSE-n configuration-space functional; current molecular-HNC bridge rejects it before kernel assembly"
       ],
-      "not_an_admitted_asset": "The candidate still lacks a production Cartesian grid and rigid-orientation convergence certificate, a complete MACE-native solute-solvent short-range potential, a physical molecular-liquid minimization and force certification, the other ten default-solvent candidates, and frozen chemistry maximum-error evidence."
+      "not_an_admitted_asset": "The PSE3 source cannot enter the current molecular-HNC bridge because its closure does not match the implemented scalar. It remains a source-complete candidate only for a future separately preregistered and finite-difference-certified PSE-n configuration-space scalar; it still lacks a production Cartesian grid and rigid-orientation convergence certificate, a complete MACE-native solute-solvent short-range potential, a physical molecular-liquid minimization and force certification, the other ten default-solvent candidates, and frozen chemistry maximum-error evidence."
+    },
+    {
+      "solvent": "water",
+      "model": "AmberTools26-cSPCE-HNC-298K-source-candidate",
+      "manifest": "route2-v0-solvent-assets/water-cspce-hnc/manifest.json",
+      "status": "source-complete-HNC-candidate-not-production-or-accuracy-admitted",
+      "verified_source_chain": [
+        "hash-bound all-atom cSPC/E MDL source",
+        "matching DRISM/HNC rism1d input, XVV, and Cvv selected solely because the current molecular configuration scalar is HNC",
+        "parsed thermodynamic self-test with both pressure routes retained",
+        "strict native-SMEAR short-range certificate",
+        "two independent AmberTools 26 runs with distinct raw XVV/transcript evidence, identical DATE-normalized XVV with every non-DATE byte preserved, exact Cvv, exact self-test, and final residuals below 1e-12",
+        "canonical exact-neutral charge projection derived only from MDL decimal serialization",
+        "current MACE/RISM molecular-HNC bridge closure identity: only HNC sources may enter the existing common scalar"
+      ],
+      "not_an_admitted_asset": "The closure-aligned candidate still lacks a production Cartesian grid and rigid-orientation convergence certificate, a complete MACE-native solute-solvent short-range potential, a physical molecular-liquid minimization and force certification, the other ten default-solvent candidates, and frozen chemistry maximum-error evidence."
     }
   ],
   "all_atom_model_source_candidates": [
@@ -78,8 +95,8 @@
       "dat/rism1d/mdl/cSPCE.mdl",
       "bulk-only cSPCE input/XVV/Cvv/thermodynamic control recorded in route2-v0-rism1d-cspce-bulk-control-v1.json"
     ],
-    "role": "legacy bulk 1D-RISM parser, source-SMEAR split, periodic-Poisson, and small-grid reciprocal-transform control; source completeness is now recorded separately by route2-v0-solvent-assets/water-cspce-pse3/manifest.json",
-    "not_an_admitted_asset": "Neither this legacy control nor the separate source-complete candidate supplies the production-grid mapping, MACE-native solute-solvent short-range functional, molecular-liquid force certification, eleven-solvent panel, or chemistry evidence required for target-solute execution."
+    "role": "legacy bulk 1D-RISM parser, source-SMEAR split, periodic-Poisson, and small-grid reciprocal-transform control; source completeness is recorded separately by the PSE3 and closure-aligned HNC cSPC/E source manifests.",
+    "not_an_admitted_asset": "Neither this legacy control nor either separate source-complete candidate supplies the production-grid mapping, MACE-native solute-solvent short-range functional, molecular-liquid force certification, eleven-solvent panel, or chemistry evidence required for target-solute execution."
   },
   "missing_default_assets": [
     "water",

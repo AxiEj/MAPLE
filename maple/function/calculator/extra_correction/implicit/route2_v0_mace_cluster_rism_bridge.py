@@ -23,6 +23,13 @@ vacuum-limit pressure, stationary molecule deficit, partial molar volume, and
 fixed-solute ``DeltaOmega - P_F Vbar`` identity.  No PC+, fitted correction,
 standard-state term, production quadrature, physical liquid result, complete
 force, solvation free energy, or accuracy claim is supplied here.
+
+The scalar uses the HNC excess functional. A bulk direct-correlation source
+generated with a different closure, such as PSE-3 or KH, is not
+interchangeable with that scalar merely because it has the same site model and
+temperature. Those closures have their own free-energy expressions. Until a
+matched configuration-space scalar is implemented and independently verified,
+this bridge accepts only a source whose declared bulk closure is HNC.
 """
 
 from __future__ import annotations
@@ -62,6 +69,22 @@ V0_MACE_CLUSTER_RISM_BRIDGE_CONSTRUCTION = "route2-v0-mace-cluster-rism-bridge-v
 V0_MACE_CLUSTER_RISM_CROSS_MODEL_REFERENCE = (
     "zero-field-mace-cluster-plus-frozen-rism-hybrid-reference-functional-v1"
 )
+V0_MOLECULAR_HNC_REQUIRED_RISM_CLOSURE = "HNC"
+
+
+def _require_molecular_hnc_closure(asset: Route2V0FrozenSolventAsset) -> None:
+    """Reject a bulk source whose closure does not match this HNC scalar.
+
+    A PSE-n source can be scientifically useful, but it must enter its own
+    matched PSE-n configuration-space functional. Reusing it here would turn
+    closure selection into an unrecorded hybrid rather than one common scalar.
+    """
+
+    if asset.closure.casefold() != V0_MOLECULAR_HNC_REQUIRED_RISM_CLOSURE.casefold():
+        raise ValueError(
+            "MACE/RISM molecular-HNC bridge requires an HNC bulk closure; "
+            f"the frozen asset declares {asset.closure!r}."
+        )
 
 
 def _same_grid(left: RegularCartesianGrid, right: RegularCartesianGrid) -> bool:
@@ -210,6 +233,7 @@ def build_route2_v0_asset_bound_rism_kernel(
         raise TypeError("Asset-bound RISM kernel requires a frozen solvent asset.")
     if not isinstance(grid, RegularCartesianGrid):
         raise TypeError("Asset-bound RISM kernel requires a regular Cartesian grid.")
+    _require_molecular_hnc_closure(frozen_solvent_asset)
     frozen_solvent_asset.verify_integrity()
     radial = frozen_solvent_asset.bulk_direct_correlation.split_coulomb_long_range()
     short_range = Route2V0RismShortRangeReciprocalControl.from_radial(
@@ -261,6 +285,7 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
     def __post_init__(self) -> None:
         if not isinstance(self.frozen_solvent_asset, Route2V0FrozenSolventAsset):
             raise TypeError("MACE/RISM bridge requires a frozen solvent asset.")
+        _require_molecular_hnc_closure(self.frozen_solvent_asset)
         if not isinstance(
             self.external_potential,
             Route2V0MaceClusterMolecularExternalPotential,
@@ -498,6 +523,7 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
 __all__ = [
     "V0_MACE_CLUSTER_RISM_BRIDGE_CONSTRUCTION",
     "V0_MACE_CLUSTER_RISM_CROSS_MODEL_REFERENCE",
+    "V0_MOLECULAR_HNC_REQUIRED_RISM_CLOSURE",
     "Route2V0MaceClusterRismMolecularHNCBridge",
     "build_route2_v0_asset_bound_rism_kernel",
 ]

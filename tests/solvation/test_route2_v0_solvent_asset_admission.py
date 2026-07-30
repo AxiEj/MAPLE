@@ -11,17 +11,29 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_all_atom_solv
     V0_ALL_ATOM_SOLVENT_MODEL_SOURCE_STATUS,
     load_route2_v0_all_atom_solvent_model_source,
 )
+from maple.function.calculator.extra_correction.implicit.route2_v0_mace_cluster_rism_bridge import (
+    build_route2_v0_asset_bound_rism_kernel,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_solvent_asset import (
     V0_DEFAULT_SOLVENT_IDS,
     V0_FROZEN_SOLVENT_ASSET_CONSTRUCTION,
     load_route2_v0_frozen_solvent_registry,
+)
+from maple.function.calculator.extra_correction.implicit.route2_v0_structured_solvent import (
+    RegularCartesianGrid,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
 BENCHMARKS = ROOT / "docs/implicit-solvation/benchmarks"
 ADMISSION = BENCHMARKS / "route2-v0-structured-solvent-admission-v1.json"
 INVENTORY = BENCHMARKS / "route2-v0-solvent-asset-inventory-v1.json"
-CSPCE_CANDIDATE = BENCHMARKS / "route2-v0-solvent-assets/water-cspce-pse3/manifest.json"
+CLOSURE_IDENTITY = BENCHMARKS / "route2-v0-molecular-hnc-closure-identity-v1.json"
+CSPCE_PSE3_CANDIDATE = (
+    BENCHMARKS / "route2-v0-solvent-assets/water-cspce-pse3/manifest.json"
+)
+CSPCE_HNC_CANDIDATE = (
+    BENCHMARKS / "route2-v0-solvent-assets/water-cspce-hnc/manifest.json"
+)
 MODEL_SOURCES = BENCHMARKS / "route2-v0-solvent-model-sources"
 
 
@@ -62,15 +74,32 @@ def test_current_solvent_inventory_fails_closed_until_all_assets_exist():
     assert inventory["missing_default_assets"] == list(V0_DEFAULT_SOLVENT_IDS)
     assert inventory["available_parser_control"]["model"] == "cSPCE"
     assert (
-        "Neither this legacy control nor the separate source-complete candidate"
+        "Neither this legacy control nor either separate source-complete candidate"
         in inventory["available_parser_control"]["not_an_admitted_asset"]
     )
     candidates = inventory["source_complete_candidate_assets"]
-    assert [candidate["solvent"] for candidate in candidates] == ["water"]
-    assert candidates[0]["manifest"] == (
-        "route2-v0-solvent-assets/water-cspce-pse3/manifest.json"
-    )
-    assert "not-production-or-accuracy-admitted" in candidates[0]["status"]
+    assert [
+        (candidate["solvent"], candidate["model"], candidate["manifest"])
+        for candidate in candidates
+    ] == [
+        (
+            "water",
+            "AmberTools26-cSPCE-PSE3-298K-source-candidate",
+            "route2-v0-solvent-assets/water-cspce-pse3/manifest.json",
+        ),
+        (
+            "water",
+            "AmberTools26-cSPCE-HNC-298K-source-candidate",
+            "route2-v0-solvent-assets/water-cspce-hnc/manifest.json",
+        ),
+    ]
+    pse3_candidate, hnc_candidate = candidates
+    assert "future-matched-PSE-functional-only" in pse3_candidate["status"]
+    assert "cannot enter the current molecular-HNC bridge" in pse3_candidate[
+        "not_an_admitted_asset"
+    ]
+    assert "not-production-or-accuracy-admitted" in hnc_candidate["status"]
+    assert "closure-aligned candidate" in hnc_candidate["not_an_admitted_asset"]
     source_only = inventory["all_atom_model_source_candidates"]
     assert [candidate["solvent"] for candidate in source_only] == [
         "chloroform",
@@ -164,8 +193,8 @@ def test_v0_aq_liquid_provider_audit_does_not_convert_local_tools_into_a_proxy()
     assert "GAFF/AM1-BCC" in audit["decision"]
 
 
-def test_checked_in_cspce_source_candidate_is_exact_but_not_panel_admitted():
-    registry = load_route2_v0_frozen_solvent_registry(CSPCE_CANDIDATE)
+def test_checked_in_cspce_pse3_source_candidate_is_exact_but_not_panel_admitted():
+    registry = load_route2_v0_frozen_solvent_registry(CSPCE_PSE3_CANDIDATE)
     water = registry.asset_for("water")
 
     assert water.model_identifier == "AmberTools26-cSPCE-PSE3-298K-source-candidate"
@@ -216,3 +245,82 @@ def test_checked_in_cspce_source_candidate_is_exact_but_not_panel_admitted():
 
     with pytest.raises(ValueError, match="missing default assets"):
         registry.require_default_solvent_panel()
+
+
+def test_checked_in_cspce_hnc_source_is_bridge_compatible_but_not_panel_admitted():
+    registry = load_route2_v0_frozen_solvent_registry(CSPCE_HNC_CANDIDATE)
+    water = registry.asset_for("water")
+
+    assert water.model_identifier == "AmberTools26-cSPCE-HNC-298K-source-candidate"
+    assert water.closure == "HNC"
+    assert water.temperature_kelvin == pytest.approx(298.0)
+    assert water.short_range_source.target_solvation_labels_used is False
+    assert water.generation_source.status == (
+        "source-complete-candidate-not-production-or-accuracy-admitted"
+    )
+    assert len(water.generation_source.runs) == 2
+    assert {run.primary_iterations for run in water.generation_source.runs} == {85}
+    assert {
+        run.temperature_derivative_iterations for run in water.generation_source.runs
+    } == {38}
+    assert (
+        max(run.primary_final_residual for run in water.generation_source.runs)
+        < water.generation_source.residual_tolerance
+    )
+    assert (
+        max(
+            run.temperature_derivative_final_residual
+            for run in water.generation_source.runs
+        )
+        < water.generation_source.residual_tolerance
+    )
+    assert water.generation_source.normalized_xvv_sha256 == (
+        "ca4aa6d73e5b1b074b4f4ef32bd91f2c428cfebcd0f698de2fc7c21ace7b6904"
+    )
+    assert water.thermodynamic_source.sm_identity_relative_residual == pytest.approx(
+        -1.291825537381714e-12
+    )
+    assert (
+        water.bulk_direct_correlation.coulomb_tail_residual(
+            minimum_radius_angstrom=water.coulomb_tail_start_angstrom
+        )
+        < water.coulomb_tail_tolerance_dimensionless
+    )
+
+    grid = RegularCartesianGrid(
+        origin_bohr=np.zeros(3),
+        spacing_bohr=np.full(3, 8.0),
+        shape=(2, 2, 2),
+    )
+    kernel = build_route2_v0_asset_bound_rism_kernel(
+        frozen_solvent_asset=water,
+        grid=grid,
+    )
+    assert kernel.grid.shape == grid.shape
+    assert kernel.direct_correlation_dimensionless.shape == (2, 2, *grid.shape)
+    assert np.all(np.isfinite(kernel.direct_correlation_dimensionless))
+    registry.verify_integrity()
+
+    with pytest.raises(ValueError, match="missing default assets"):
+        registry.require_default_solvent_panel()
+
+
+def test_molecular_hnc_closure_identity_contract_forbids_a_pse3_hybrid():
+    contract = _json(CLOSURE_IDENTITY)
+
+    assert contract["protocol_id"] == "route2-v0-molecular-hnc-closure-identity-v1"
+    identity = contract["mathematical_identity"]
+    assert identity["required_bulk_closure"] == "HNC"
+    assert "reject any frozen asset" in identity["implementation_gate"]
+    assert "before any target-solvation score" in identity["selection_rule"]
+    pse_n = contract["pse_n_boundary"]
+    assert pse_n["existing_source_candidate"] == (
+        "route2-v0-solvent-assets/water-cspce-pse3/manifest.json"
+    )
+    assert "cannot be silently inserted" in pse_n["reason_rejected_by_current_bridge"]
+    assert "matched configuration-space scalar" in pse_n["future_rule"]
+    hnc = contract["hnc_source"]
+    assert hnc["manifest"] == "route2-v0-solvent-assets/water-cspce-hnc/manifest.json"
+    assert hnc["closure"] == "HNC"
+    assert contract["hard_constraints"]["target_solvation_labels_used"] is False
+    assert contract["hard_constraints"]["pse3_into_hnc_hybrid"] is False

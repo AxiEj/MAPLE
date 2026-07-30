@@ -1,0 +1,21 @@
+&PARAMETERS
+	exchem_sc=1
+	exchem_sm=1
+	exchem_pr=1
+	selftest=-1
+	THEORY='DRISM', CLOSURE='HNC',	! HNC selected before execution to match the molecular-HNC scalar.
+	NR=16384, DR=0.025,		! Same source discretisation as the PSE3 candidate.
+	OUTLIST='xc', ROUT=0, KOUT=0,	! Output.
+	MDIIS_NVEC=20, MDIIS_DEL=0.3, TOLERANCE=1.e-12,	! MDIIS.
+	KSAVE=-1,			! Check pointing.
+	PROGRESS=1,			! Output frequency.
+	MAXSTEP=10000,		! Maximum iterations.
+	SMEAR=1, ADBCOR=0.5,		! Electrostatics.
+	TEMPERATURE=298, DIEPS=78.497, NSP=1
+/
+&SPECIES
+	! cSPC/E water; exact bundled AmberTools model, no target solvation labels.
+	DENSITY=55.345,
+	UNITS='M'
+	MODEL="cSPCE.mdl"
+/

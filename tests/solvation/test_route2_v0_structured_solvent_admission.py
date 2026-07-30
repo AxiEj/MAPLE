@@ -190,7 +190,14 @@ def test_structured_solvent_admission_requires_a_frozen_liquid_asset_and_review(
     solvent = protocol["solvent_asset_contract"]
     benchmark = protocol["benchmark_and_review_contract"]
 
-    assert liquid["primary_closure"].startswith("Kovalenko-Hirata")
+    assert liquid["primary_closure"].startswith(
+        "The current molecular-HNC bridge accepts only an HNC bulk source"
+    )
+    assert "matched configuration-space scalar" in liquid["primary_closure"]
+    assert "route2-v0-molecular-hnc-closure-identity-v1.json" in liquid[
+        "closure_identity_policy"
+    ]
+    assert "PSE3 and KH assets are rejected" in liquid["closure_identity_policy"]
     assert "thermodynamic pressure correction" in liquid["pressure_correction"]
     assert "diagnostic-only" in liquid["pc_plus_policy"]
     assert "pre-minimisation scalar term" in liquid["weighted_density_bridge_policy"]

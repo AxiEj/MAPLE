@@ -1,0 +1,35 @@
+{
+  "protocol_id": "route2-v0-energy-only-fenchel-water-prereg-v1",
+  "schema_version": 1,
+  "status": "preregistered-before-execution",
+  "claim_boundary": "This is a frozen-checkpoint, fixed-water structural falsifier for the MACE intrinsic local-field energy alone. It does not solve PCM, use MACE density outputs, compare any experimental solvation value, establish QM accuracy, create a public Route-2 profile, certify forces/PES, or authorize an accuracy panel.",
+  "construction": {
+    "energy_scalar": "W_E(f)=E_theta(R,f)-E_theta(R,0)-grad_f E_theta(R,0).f",
+    "density_source_if_admissible": "c_E(f)=Q^-T grad_f W_E(f)",
+    "internal_functional_if_admissible": "F_E(c)=sup_f[W_E(f)-<c,f>] on the charge-conserving coefficient space",
+    "field_interface": "local-potential-gradient-v1",
+    "neutral_space": "NeutralDensityCoordinates with the canonical density-field pairing",
+    "curvature_identity": "d c_E/d f=Q^-T Hessian_f E_theta Q^-1; the linear anchor cannot change this curvature"
+  },
+  "frozen_input": {
+    "checkpoint_sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "input_artifact": "docs/implicit-solvation/benchmarks/route2-mace-local-field-thermodynamic-canary-v1.json",
+    "input_artifact_sha256": "518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6",
+    "molecule": "ASE G2 water",
+    "solute_response_model": "official MACE-POLAR-1-M"
+  },
+  "gates": {
+    "neutral_hessian_antisymmetric_frobenius_ratio_max": 1e-08,
+    "neutral_hessian_maximum_eigenvalue_ev_max": 1e-08
+  },
+  "prohibited_actions": [
+    "train or fine-tune the checkpoint",
+    "use a MACE density output, its VJP, or a legacy fixed-point response",
+    "clip, rescale, symmetrize, or shift individual Hessian eigenvalues",
+    "replace the failed scalar with a sampled concave envelope after this result",
+    "use FreeSolv, MNSol, or any solvation result to choose a construction or threshold",
+    "run an accuracy panel, force/PES calculation, or PCM solve from this structural canary",
+    "fall through to an auxiliary-QM runtime route as a production-speed substitute"
+  ],
+  "stop_condition": "If either gate fails, this frozen checkpoint's local intrinsic-energy scalar is rejected as a MACE-only V0-FE electronic functional. Retain it only as a documented negative result; do not repair it by post-hoc response modification."
+}

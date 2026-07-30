@@ -393,6 +393,92 @@ confirms why the nonlocal convolution and its full functional derivative are
 needed to prevent unphysical solvent islands, but its published density
 thresholds are likewise not imported as defaults.
 
+### 3.5A Exact auxiliary AO-to-grid source/dual bridge
+
+The preceding density functional is useful only if a stationary auxiliary
+electronic state can enter it without changing representation by an
+untracked interpolation.  Let (D_{mu\nu}) be a real spin-summed AO density
+matrix, (S_{mu\nu}) the AO overlap of the **same** electronic method, and
+(\chi_\mu(\mathbf r_g)) its AO values at the nodes of a Cartesian grid of
+cell volume (\Delta V).  Define the discrete density projection
+
+\[
+(\mathcal P D)_g
+=n_D(\mathbf r_g)
+=\sum_{\mu\nu}
+\chi_\mu(\mathbf r_g)D_{\mu\nu}\chi_\nu(\mathbf r_g).
+\]
+
+For a grid potential (u_g=\delta\mathcal A/\delta n_g), the unique AO
+pullback in the declared trace pairing is
+
+\[
+\boxed{
+\bigl(\mathcal P^\ast u\bigr)_{\mu\nu}
+=\Delta V\sum_g
+\chi_\mu(\mathbf r_g)u_g\chi_\nu(\mathbf r_g).
+}
+\]
+
+It obeys the exact discrete identity
+
+\[
+\boxed{
+\Delta V\sum_g(\mathcal P D)_g u_g
+=\operatorname{Tr}\!\left[D\,\mathcal P^\ast u\right].
+}
+\]
+
+This is not a numerical convenience: if the electron-density reaction
+derivative from Section 3.5 is
+
+\[
+u_{\rm reac}
+=-\phi_{\rm reac}
++K_s^\dagger\!\left[
+h'(K_sn)\frac{\delta G_{\rm reac}}{\delta m}
+\right],
+\]
+
+then the reaction contribution to the auxiliary AO Euler/Fock matrix must be
+
+\[
+F_{\rm reac}=\mathcal P^\ast u_{\rm reac}.
+\]
+
+Thus a future stationary auxiliary electronic functional
+(A_{\rm aux}^{\rm gas}[D;\mathbf R]) and the V0-AQ-C reaction scalar obey
+
+\[
+\frac{\partial}{\partial D}
+\left[
+A_{\rm aux}^{\rm gas}[D;\mathbf R]
++G_{\rm reac}[\rho_{\rm nuc}-\mathcal P D]
+\right]
+=\frac{\partial A_{\rm aux}^{\rm gas}}{\partial D}
++\mathcal P^\ast u_{\rm reac},
+\]
+
+up to the electronic-method's occupancy/orthonormality constraints.  No
+separate field interpolation, density rescaling, or post-hoc reaction Fock
+term is admissible.
+
+[`route2_v0_auxiliary_ao_grid.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_auxiliary_ao_grid.py)
+implements (\mathcal P), (\mathcal P^\ast), representation fingerprints,
+and both AO and finite-grid electron counts.  The count mismatch
+
+\[
+\Delta N_h=\Delta V\sum_g n_D(\mathbf r_g)-\operatorname{Tr}[DS]
+\]
+
+is reported rather than normalized away; it is a grid/domain convergence gate
+for any physical calculation.  Its dedicated test combines this exact
+pullback with the full nonlocal-cavity reaction derivative and verifies the
+finite-difference identity in AO-density directions.  The test uses a
+synthetic density and solvent kernel only.  It establishes neither a physical
+RHF/DFT source, a solvent asset, a complete nonpolar scalar, forces, nor an
+accuracy result.
+
 ### 3.6 No-label weighted-density cavitation scalar
 
 The missing \(\Phi_{\rm cav,s}\) must not be replaced by an atom-surface

@@ -213,7 +213,7 @@ Primary sources:
 | GNNImplicitSolvent Chem. Sci. 2024 | yes, distinct water checkpoint | water only | learned solution PMF for sampling; no released gas-to-water standard-state transfer protocol | separate water-PMF/MD audit candidate; it must not replace the 39-solvent GNNIS control |
 | G-NequIP SMD-water | yes, tracked water-SMD checkpoint | water SMD only | geometry-level water energy; separate gas and water models have no released common gauge or free-energy protocol | pinned water-mechanics research control only; it cannot be converted to ΔG by subtracting model outputs |
 | MACE-OFF24-SC | **no exact public checkpoint**; official result tables and protocol source are public | article panels in water and 1-octanol | the article defines a rigorous replica-exchange alchemical protocol, but the exact potential identity cannot be executed from the public release | aggregate-only static supporting-result audit; never substitute MACE-OFF23-SC or ordinary MACE-OFF24 |
-| FeNNix-Bio1 | yes, base S/M checkpoints | explicit-water HFE is published; no validated nonaqueous selector or panel | Lambda-ABF and alchemical graph/charge operations are public, but the exact end-to-end paper protocol is not packaged as a MAPLE-ready workflow | checkpoint-pinned, high-priority water candidate blocked by absent original runtime and protocol validation |
+| FeNNix-Bio1 | yes, base S/M checkpoints | explicit-water HFE is published; no validated nonaqueous selector or panel | real CPU/GPU mechanics and native-JAX alchemical derivatives run, but no sampling or exact end-to-end paper protocol is packaged as a MAPLE-ready workflow | checkpoint-pinned water candidate; GPU remains fail-closed pending the formal experimental panel and protocol validation |
 | ML-for-charges PBE0-ESP | yes, XGBoost charge regressor | no solvent input; water only in the published downstream hydration protocol | atomic-charge parameters plus a separate explicit-water alchemical workflow; no potential, endpoint pair, or estimator | excluded from Route 4; an authorization-gated future Route 1 charge-provider study only |
 | Organic_MPNICE + MLFF_HFE | no public Organic_MPNICE checkpoint; public generic HFE protocol only | water only | published explicit-water FEP/replica-exchange protocol, but the released source requires a user-provided lambda-aware TorchScript model | excluded from Route 4; no model may be substituted for the proprietary release |
 | ABCG2/GAFF2 | yes, official AmberTools fixed BCC parameters | water and diverse neutral organic-solvent protocols reported | explicit-solvent gas/solution alchemical simulation is possible, but the charge model is not an MLIP or implicit potential | direct runnable Route 1 physics control only; never a Route 4 substitution |
@@ -333,7 +333,7 @@ official-table audit only.  It performs no checkpoint inference or alchemical
 rerun, proves no training isolation or independent extrapolation, and cannot
 admit MACE-OFF24-SC into the runtime registry.
 
-### FeNNix-Bio1: public weights and GPU/Lambda source, execution still blocked
+### FeNNix-Bio1: real mechanics execution, scientific admission still blocked
 
 FeNNix-Bio1 is the strongest newly verified public water-alchemical candidate.
 The official FeNNol-PMC revision
@@ -380,27 +380,40 @@ acceptance.  The paper also mentions a 37-record comparison with
 MACE-OFF24-SC, but it is not the same identity as the official 36-record
 FreeSolv supporting table audited above and is not cross-ranked here.
 
-No single existing MAPLE environment contains the unchanged stack:
-`maple-resolv` has CPU-only JAX 0.4.23 but not FeNNol, ASE, or OpenMM, while
-the OpenMM-bearing environments have no JAX or FeNNol.  The original Deep-HP
-GPU build also needs FeNNol's bridge dependencies and the Tinker-HP GPU
-compiler toolchain; the required NVIDIA HPC compiler is not installed.  MAPLE
-therefore pins both weights and both runtime revisions without installing
-dependencies, splicing incompatible environments, porting the JAX runtime, or
-adding a placeholder calculator.
+The unchanged FeNNol `2026.6.29` runtime and pinned medium checkpoint have now
+executed in an isolated environment on CPU and GPU.  The direct README-water
+smoke requested float64 coordinates and outputs with `highest` matrix
+precision; the checkpoint parameters are float32.  CPU/GPU results were
+machine-scale close but not bit-exact: `3.3306690738754696e-16 eV` in energy
+and `1.7763568394002505e-15 eV/angstrom` in the largest force component.  A
+real MAPLE CPU call also produced finite forces and a finite, symmetric `9 x
+9` numerical Hessian.  These are mechanics observations, not solvation
+free-energy or experimental-accuracy results.
+
+A native-JAX two-water periodic kernel also ran the five-point paper lambda
+schedule on CPU and GPU.  Energy, coordinate/cell gradients, and both lambda
+derivatives were finite float64 outputs on both devices, again with
+machine-scale non-bit-exact differences.  This establishes a mechanics path
+that avoids the Tinker ABI; it does not execute sampling, Lambda-ABF, an HFE
+estimator, or uncertainty analysis.
+
+A separate diagnostic upcast all floating checkpoint parameters into a
+derived in-memory float64 runtime identity while leaving the hash-pinned file
+unchanged.  CPU/GPU scalar and gradient-summary differences stayed at
+machine scale, but the upcast changed original-model summaries by up to
+`3.537531757802359e-08`, and the receipts did not preserve complete force or
+cell-gradient arrays.  It cannot be relabeled as a no-loss result or an
+accuracy improvement.
 
 The Tinker bridge statically sets JAX matrix multiplication to `highest`, but
 passes coordinates and lambda variables as float32 and exposes no bridge-level
-precision switch.  FeNNol's generic ASE/MD code separately offers float64
-controls and warns that default float32 matrix multiplication may invoke
-float16 operations.  Static source inspection cannot prove no-loss GPU
-behavior.  No paired reference/GPU energies, forces, virials, lambda
-derivatives, trajectories, free energies, or uncertainties have been
-generated; consequently the accelerator is explicitly blocked by gate 7.
-Ordinary SP/OPT/frequency/TS/IRC/MD and water-HFE tasks remain disabled until
-the unchanged runtime can be executed, GPU parity is proven without reduced
-precision or looser convergence, and each task contract is validated.  No
-nonaqueous or mixed-solvent literature panel currently justifies a
+precision switch, so that bridge is rejected for the no-loss route.  The
+native-JAX mechanics result is not a substitute for formal accuracy evidence.
+No experimental panel of at least ten records spanning at least ten distinct
+primary functional groups was run; no HFE, maximum error, or CPU/GPU
+experimental no-degradation result exists.  GPU therefore remains fail-closed,
+and the candidate is not eligible for matched-QM timing or any speedup claim.
+No nonaqueous or mixed-solvent literature panel currently justifies a
 multi-solvent claim.
 
 `run_fennix_bio1_release_audit.py` regenerates the identity-only
@@ -409,6 +422,13 @@ files and exact FeNNol/Tinker-HP Git trees.  The artifact records the public
 GPU/Lambda source as present while keeping protocol execution, GPU parity,
 maximum error, strict holdout, multi-solvent evidence, and Route 4 acceptance
 false.
+
+`run_fennix_bio1_runtime_smoke.py` runs CPU and GPU in separate processes and
+deterministically combines the real mechanics receipts into
+`benchmarks/fennix-bio1-runtime-smoke-2026-07-31.json`.  The timing-free frozen
+artifact includes exact values and receipt hashes while keeping HFE,
+experimental accuracy, the ten-group gate, GPU admission, matched-QM timing,
+multi-solvent validation, and performance claims false.
 
 ### ML-for-charges PBE0-ESP: public pretrained charge regressor, not Route 4
 
@@ -820,7 +840,7 @@ calculator/free-energy capability.
 | G-NequIP SMD-water | public SMD-water geometry-level checkpoint with a separate gas checkpoint | water-only scope, unavailable original NequIP runtime, and no common energy gauge, thermodynamic path, or independent ledger | blocked water mechanics control; never ΔG from single-point model subtraction or a multi-solvent backend |
 | MACE-OFF23-SC | exact public soft-core checkpoint; live official-MACE float64 CPU energy/force execution for full-coupling explicit systems | original OpenMM-ML/OpenMMTools lambda protocol, replica exchange, MBAR/uncertainty, independent 10-group experimental panel, and literal CPU/GPU parity | CPU-only explicit-system PES endpoint; never an absolute-solvation result or a substitute for MACE-OFF24-SC |
 | MACE-OFF24-SC | rigorous explicit-solvent alchemical protocol and official rounded water/octanol result tables | exact public checkpoint identity, original runtime reproduction, record-isolated panel, and hydration maximum-error gate | static negative-admission evidence only; never substitute MACE-OFF23-SC |
-| FeNNix-Bio1 | public base S/M energy-and-force checkpoints plus original alchemical graph and charge operations | installed unchanged runtime, exact paper protocol bundle, maximum-error evidence, independent ledger, and nonaqueous validation | checkpoint-pinned high-priority water candidate; no placeholder calculator or multi-solvent claim |
+| FeNNix-Bio1 | public base S/M checkpoints; real CPU/GPU mechanics, MAPLE CPU Hessian, and native-JAX alchemical derivatives | exact paper sampling/protocol bundle, >=10-record/>=10-primary-group experimental no-degradation panel, maximum-error evidence, independent ledger, and nonaqueous validation | checkpoint-pinned water mechanics candidate; GPU, timing, HFE, and multi-solvent admission remain closed |
 | ML-for-charges PBE0-ESP | pretrained atomic charge prediction from MACE-OFF23-large descriptors | unavailable unmodified XGBoost runtime, no solvent input/PES/endpoints, and a separate explicit-water alchemical protocol | excluded from Route 4; a future authorization-gated Route 1 charge-provider audit only, with no fitting |
 | Organic_MPNICE + MLFF_HFE | published water-HFE FEP/replica-exchange protocol plus a proprietary pretrained MLFF result | no public Organic_MPNICE checkpoint, user-supplied lambda-aware TorchScript requirement, missing `openmmtools`, and no solvent selector | excluded from Route 4; neither a surrogate checkpoint nor a reconstructed protocol may be used |
 | ABCG2/GAFF2 | official AmberTools fixed-charge assignment, smoke-verified with no local fitting | a separately constructed explicit solvent/gas TI/BAR/MBAR protocol, record ledger, and independent panel; it is not an MLIP | Route 1 explicit-solvent physics control only; never Route 4 `#model` or a cross-panel score |

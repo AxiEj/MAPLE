@@ -55,6 +55,9 @@ _BUILTIN_NAME_TO_MODULE = {
     'macepoll': 'maple.function.calculator.mace._macepol_calculator',
     'aimnet2-cpcms-v2': 'maple.function.calculator.aimnet._aimnet2_cpcms_calculator',
     'aceff-2.0': 'maple.function.calculator.aceff._aceff2_calculator',
+    'fennix-bio1': 'maple.function.calculator.fennol._fennix_bio1_calculator',
+    'fennix-bio1-small': 'maple.function.calculator.fennol._fennix_bio1_calculator',
+    'fennix-bio1-medium': 'maple.function.calculator.fennol._fennix_bio1_calculator',
     'uma': 'maple.function.calculator.uma._uma_calculator',
     'anisolv-uma': 'maple.function.calculator.uma._anisolv_uma_calculator',
 }

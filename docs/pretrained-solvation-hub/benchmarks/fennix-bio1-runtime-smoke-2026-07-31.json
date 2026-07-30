@@ -1,0 +1,1186 @@
+{
+  "acceptance_eligible": false,
+  "audited_on": "2026-07-31",
+  "environment_receipts": {
+    "nvidia_smi_csv": "NVIDIA GeForce RTX 4060 Laptop GPU, GPU-7783c689-6dd3-9d48-1c7e-1d9191da1151, 580.88, 8188 MiB, 8.9",
+    "original_artifact_sha256_manifest": [
+      "f5d2786931459c119680aae67e7cd93b5be4978ed0972fcc345a927a4b860d85  /tmp/run_fennix_smoke.py",
+      "f2e394ac425f5ec5cf9526c784447f391a51d949a9350a902495025b0890b776  /home/axie/.cache/maple-benchmarks/fennix/runtime-smoke-2026-07-31/cpu-float64.json",
+      "5496e47947f5d0dfaab712aeba75b41677de8989b79a3661521fc50d3c4ab9bb  /home/axie/.cache/maple-benchmarks/fennix/runtime-smoke-2026-07-31/gpu-float64.json",
+      "d6ee098611804a83295e1e9f92e485112766ba87c5f0d1d5951c2ddd2a80fd01  /home/axie/.cache/maple-benchmarks/fennix/runtime-smoke-2026-07-31/comparison.json",
+      "fae38f6c406026603406a23af7a0284bc04a8879a5ab9ddd8d9d127d1bb8132e  /home/axie/.cache/maple-benchmarks/fennix/runtime-smoke-2026-07-31/pip-freeze.txt",
+      "dccb9d145c55297f09463f62feedf00c3ec2535bbef5827a3984c31accf849c5  /home/axie/.cache/maple-benchmarks/fennix/runtime-smoke-2026-07-31/nvidia-smi.csv"
+    ],
+    "pip_freeze": [
+      "absl-py==2.5.0",
+      "aiofiles==25.1.0",
+      "ase==3.29.0",
+      "contourpy==1.3.3",
+      "cycler==0.12.1",
+      "etils==1.14.0",
+      "fennol==2026.6.29",
+      "flax==0.12.8",
+      "fonttools==4.63.0",
+      "fsspec==2026.7.0",
+      "h5py==3.16.0",
+      "humanize==4.16.0",
+      "iniconfig==2.3.0",
+      "jax==0.10.2",
+      "jax-cuda12-pjrt==0.10.2",
+      "jax-cuda12-plugin==0.10.2",
+      "jaxlib==0.10.2",
+      "kiwisolver==1.5.0",
+      "llvmlite==0.48.0",
+      "markdown-it-py==4.2.0",
+      "matplotlib==3.11.1",
+      "mdurl==0.1.2",
+      "ml-dtypes==0.5.4",
+      "mpmath==1.3.0",
+      "msgpack==1.2.1",
+      "numba==0.66.0",
+      "numpy==2.4.6",
+      "opt-einsum==3.4.0",
+      "optax==0.2.8",
+      "orbax-checkpoint==0.12.1",
+      "packaging==26.2",
+      "pillow==12.3.0",
+      "pluggy==1.6.0",
+      "prometheus-client==0.26.0",
+      "protobuf==7.35.1",
+      "psutil==7.2.2",
+      "pygments==2.20.0",
+      "pyparsing==3.3.2",
+      "pytest==9.1.1",
+      "python-dateutil==2.9.0.post0",
+      "pyyaml==6.0.3",
+      "rich==15.0.0",
+      "scipy==1.17.1",
+      "simplejson==4.1.1",
+      "six==1.17.0",
+      "sympy==1.14.0",
+      "tensorstore==0.1.84",
+      "tomlkit==0.15.1",
+      "treescope==0.1.10",
+      "typing-extensions==4.16.0",
+      "uvloop==0.22.1",
+      "zipp==4.1.0"
+    ]
+  },
+  "formal_gates": {
+    "absolute_hydration_free_energy_protocol_run": false,
+    "cpu_gpu_experimental_no_degradation_verified": false,
+    "experimental_accuracy_evaluated": false,
+    "gpu_admitted": false,
+    "matched_qm_accuracy_passed": false,
+    "matched_qm_timing_eligible": false,
+    "multi_solvent_validated": false,
+    "performance_claim_allowed": false,
+    "ten_record_ten_distinct_primary_functional_group_panel_run": false
+  },
+  "identity": {
+    "checkpoint_parameter_dtypes": [
+      "float32"
+    ],
+    "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+    "fennol_revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+    "model_distribution_revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3"
+  },
+  "native_alchemical_kernel_mechanics_only": {
+    "all_energy_coordinate_cell_and_lambda_derivatives_finite": true,
+    "all_reported_output_dtypes_float64": true,
+    "cpu_gpu_bitwise_exact": false,
+    "cpu_gpu_maximum_absolute_differences": {
+      "atomic_energy_sum": 7.771561172376096e-16,
+      "dE_dlambda_e_model_units": 1.2212453270876722e-15,
+      "dE_dlambda_v_model_units": 2.0599841277224584e-17,
+      "max_coordinate_gradient": 2.220446049250313e-15
+    },
+    "interpretation": "native JAX avoids the rejected Tinker float32 ABI, but this kernel smoke performs no sampling or free-energy estimation",
+    "lambda_e_definition": "max(0, 2*progress - 1)",
+    "lambda_v_definition": "min(1, 2*progress)",
+    "progress_schedule": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "system": "two_water_periodic_box"
+  },
+  "precision_observation": {
+    "absolute_energy_difference_ev": 3.3306690738754696e-16,
+    "cpu_gpu_bitwise_exact": false,
+    "cpu_output_dtypes": [
+      "bool",
+      "float64",
+      "int32",
+      "int64"
+    ],
+    "cpu_preprocessed_coordinate_dtype": "float64",
+    "gpu_output_dtypes": [
+      "bool",
+      "float64",
+      "int32",
+      "int64"
+    ],
+    "gpu_preprocessed_coordinate_dtype": "float64",
+    "interpretation": "machine-scale non-bit-exact mechanics differences; not experimental accuracy or no-degradation evidence",
+    "maximum_absolute_force_difference_ev_per_angstrom": 1.7763568394002505e-15,
+    "reduced_precision_enabled_by_maple": false,
+    "requested_precision": "float64"
+  },
+  "rejected_paths": {
+    "tinker_float32_bridge": "rejected for the no-loss route because the pinned bridge passes coordinates and lambda values as float32 without a bridge precision switch; the native JAX kernel is the retained mechanics path"
+  },
+  "runtime_parameter_upcast_mechanics_only": {
+    "derived_runtime_parameter_dtypes": [
+      "float64"
+    ],
+    "full_cell_gradient_arrays_saved": false,
+    "full_force_arrays_saved": false,
+    "interpretation": "diagnostic derived runtime identity only; upcasting changes outputs and cannot establish precision, accuracy, or GPU admission",
+    "largest_original_vs_upcast_reported_summary_difference": 3.537531757802359e-08,
+    "original_checkpoint_file_unchanged": true,
+    "original_checkpoint_parameter_dtypes": [
+      "float32"
+    ],
+    "upcast_cpu_gpu_maximum_absolute_differences": {
+      "atomic_energy_sum": 1.1102230246251565e-15,
+      "dE_dlambda_e_model_units": 8.881784197001252e-16,
+      "dE_dlambda_v_model_units": 1.3444106938820255e-17,
+      "max_coordinate_gradient": 1.3322676295501878e-15
+    },
+    "upcast_vs_original_changes_model_outputs": true
+  },
+  "runtime_receipts": {
+    "comparison": {
+      "absolute_differences": {
+        "energy_ev": 3.3306690738754696e-16,
+        "gpu_repeat_energy_ev": 1.1102230246251565e-16,
+        "gpu_repeat_max_force_ev_per_angstrom": 1.3322676295501878e-15,
+        "max_force_ev_per_angstrom": 1.7763568394002505e-15
+      },
+      "checkpoint_parameter_dtypes": [
+        "float32"
+      ],
+      "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+      "cpu_gpu_bitwise_exact": false,
+      "cpu_repeat_exact": true,
+      "formal_gates": {
+        "absolute_hydration_free_energy_protocol_run": false,
+        "cpu_gpu_experimental_no_degradation_verified": false,
+        "matched_qm_accuracy_passed": false,
+        "matched_qm_end_to_end_speedup_verified": false,
+        "ten_distinct_primary_functional_groups_experimental_panel_run": false
+      },
+      "gpu_repeat_exact": false,
+      "notes": [
+        "The public checkpoint parameters are float32 even when JAX x64 is enabled; model outputs and preprocessed coordinates were float64 in this smoke.",
+        "Machine-scale CPU/GPU and repeat differences cannot prove or disprove experimental solvation accuracy.",
+        "GPU remains fail-closed until the same >=10-record, >=10-distinct-functional-group experimental HFE panel proves no degradation."
+      ],
+      "output_dtypes_cpu": [
+        "bool",
+        "float64",
+        "int32",
+        "int64"
+      ],
+      "output_dtypes_gpu": [
+        "bool",
+        "float64",
+        "int32",
+        "int64"
+      ],
+      "preprocessed_coordinate_dtype_cpu": "float64",
+      "preprocessed_coordinate_dtype_gpu": "float64",
+      "requested_precision": "float64",
+      "schema_version": 1,
+      "scope": "official_readme_water_runtime_mechanics_only_not_accuracy_not_hfe_not_gpu_admission_not_performance_admission",
+      "verdict": "runtime_mechanics_available_gpu_admission_blocked"
+    },
+    "cpu": {
+      "checkpoint_parameter_dtypes": [
+        "float32"
+      ],
+      "checkpoint_path": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+      "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+      "chosen_device": "cpu:0",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": null,
+        "JAX_DEFAULT_MATMUL_PRECISION": "highest",
+        "JAX_ENABLE_X64": "1",
+        "JAX_PLATFORMS": "cpu"
+      },
+      "jax_backend": "cpu",
+      "jax_devices": [
+        "cpu:0"
+      ],
+      "measured_repeat_identity": true,
+      "official_readme_input": {
+        "coordinates_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ]
+        ],
+        "source_path": "README.md",
+        "source_revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+        "species": [
+          8,
+          1,
+          1
+        ]
+      },
+      "precision_controls": {
+        "gpu_preprocessing": false,
+        "jax_default_matmul_precision": "highest",
+        "jax_enable_x64": true,
+        "tf32_or_reduced_mode_enabled_by_maple": false
+      },
+      "preprocessed_dtypes": {
+        "batch_index": "int32",
+        "coordinates": "float64",
+        "natoms": "int32",
+        "species": "int32"
+      },
+      "raw_output_dtypes": [
+        "bool",
+        "float64",
+        "int32",
+        "int64"
+      ],
+      "repeats": [
+        {
+          "energy_ev": -0.40386284165138375,
+          "forces_dtype_after_numpy": "float64",
+          "forces_ev_per_angstrom": [
+            [
+              2.6429349063294536,
+              2.642934906329468,
+              -0.0
+            ],
+            [
+              -1.538272560525994,
+              -1.1046623458034621,
+              -0.0
+            ],
+            [
+              -1.1046623458034592,
+              -1.5382725605260061,
+              -0.0
+            ]
+          ],
+          "index": 0,
+          "observable_sha256": "383690989432945c4ce576c2e8c52b991e975fcec1bfc02fd4bda3fce880112e",
+          "phase": "warmup"
+        },
+        {
+          "energy_ev": -0.40386284165138375,
+          "forces_dtype_after_numpy": "float64",
+          "forces_ev_per_angstrom": [
+            [
+              2.6429349063294536,
+              2.642934906329468,
+              -0.0
+            ],
+            [
+              -1.538272560525994,
+              -1.1046623458034621,
+              -0.0
+            ],
+            [
+              -1.1046623458034592,
+              -1.5382725605260061,
+              -0.0
+            ]
+          ],
+          "index": 1,
+          "observable_sha256": "383690989432945c4ce576c2e8c52b991e975fcec1bfc02fd4bda3fce880112e",
+          "phase": "measured"
+        },
+        {
+          "energy_ev": -0.40386284165138375,
+          "forces_dtype_after_numpy": "float64",
+          "forces_ev_per_angstrom": [
+            [
+              2.6429349063294536,
+              2.642934906329468,
+              -0.0
+            ],
+            [
+              -1.538272560525994,
+              -1.1046623458034621,
+              -0.0
+            ],
+            [
+              -1.1046623458034592,
+              -1.5382725605260061,
+              -0.0
+            ]
+          ],
+          "index": 2,
+          "observable_sha256": "383690989432945c4ce576c2e8c52b991e975fcec1bfc02fd4bda3fce880112e",
+          "phase": "measured"
+        }
+      ],
+      "requested_device": "cpu",
+      "requested_precision": "float64",
+      "scope": "official_readme_water_runtime_smoke_not_accuracy_not_hfe_not_gpu_admission",
+      "versions": {
+        "ase": "3.29.0",
+        "fennol": "unknown",
+        "jax": "0.10.2",
+        "jaxlib": "0.10.2",
+        "numpy": "2.4.6",
+        "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "python": "3.11.14"
+      }
+    },
+    "gpu": {
+      "checkpoint_parameter_dtypes": [
+        "float32"
+      ],
+      "checkpoint_path": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+      "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+      "chosen_device": "cuda:0",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "JAX_DEFAULT_MATMUL_PRECISION": "highest",
+        "JAX_ENABLE_X64": "1",
+        "JAX_PLATFORMS": "cuda"
+      },
+      "jax_backend": "gpu",
+      "jax_devices": [
+        "cuda:0"
+      ],
+      "measured_repeat_identity": false,
+      "official_readme_input": {
+        "coordinates_angstrom": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ]
+        ],
+        "source_path": "README.md",
+        "source_revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+        "species": [
+          8,
+          1,
+          1
+        ]
+      },
+      "precision_controls": {
+        "gpu_preprocessing": false,
+        "jax_default_matmul_precision": "highest",
+        "jax_enable_x64": true,
+        "tf32_or_reduced_mode_enabled_by_maple": false
+      },
+      "preprocessed_dtypes": {
+        "batch_index": "int32",
+        "coordinates": "float64",
+        "natoms": "int32",
+        "species": "int32"
+      },
+      "raw_output_dtypes": [
+        "bool",
+        "float64",
+        "int32",
+        "int64"
+      ],
+      "repeats": [
+        {
+          "energy_ev": -0.4038628416513842,
+          "forces_dtype_after_numpy": "float64",
+          "forces_ev_per_angstrom": [
+            [
+              2.6429349063294554,
+              2.642934906329468,
+              -0.0
+            ],
+            [
+              -1.5382725605259957,
+              -1.1046623458034623,
+              -0.0
+            ],
+            [
+              -1.1046623458034597,
+              -1.5382725605260053,
+              -0.0
+            ]
+          ],
+          "index": 0,
+          "observable_sha256": "b2e32dfb76ec7905d8785995d1c8eae4e4b42150afae375a075a0d704d670af2",
+          "phase": "warmup"
+        },
+        {
+          "energy_ev": -0.4038628416513841,
+          "forces_dtype_after_numpy": "float64",
+          "forces_ev_per_angstrom": [
+            [
+              2.6429349063294545,
+              2.6429349063294665,
+              -0.0
+            ],
+            [
+              -1.538272560525995,
+              -1.1046623458034621,
+              -0.0
+            ],
+            [
+              -1.1046623458034595,
+              -1.5382725605260044,
+              -0.0
+            ]
+          ],
+          "index": 1,
+          "observable_sha256": "f361d810bcc753098d30d0c2685f49d353a4c420a5b9e07634a54182f015c28c",
+          "phase": "measured"
+        },
+        {
+          "energy_ev": -0.403862841651384,
+          "forces_dtype_after_numpy": "float64",
+          "forces_ev_per_angstrom": [
+            [
+              2.6429349063294545,
+              2.642934906329468,
+              -0.0
+            ],
+            [
+              -1.5382725605259948,
+              -1.1046623458034626,
+              -0.0
+            ],
+            [
+              -1.10466234580346,
+              -1.5382725605260053,
+              -0.0
+            ]
+          ],
+          "index": 2,
+          "observable_sha256": "59d3b146351bff3249274e750e2d5f5c3c47a56cc58353d325bad7e37fefdab5",
+          "phase": "measured"
+        }
+      ],
+      "requested_device": "gpu",
+      "requested_precision": "float64",
+      "scope": "official_readme_water_runtime_smoke_not_accuracy_not_hfe_not_gpu_admission",
+      "versions": {
+        "ase": "3.29.0",
+        "fennol": "unknown",
+        "jax": "0.10.2",
+        "jaxlib": "0.10.2",
+        "numpy": "2.4.6",
+        "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "python": "3.11.14"
+      }
+    },
+    "maple_adapter_cpu": {
+      "energy_hartree": -0.014841685682622237,
+      "forces_hartree_per_angstrom": [
+        [
+          0.09712606636198563,
+          0.09712606636198616,
+          -0.0
+        ],
+        [
+          -0.056530473920739496,
+          -0.040595592441246234,
+          -0.0
+        ],
+        [
+          -0.04059559244124613,
+          -0.05653047392073994,
+          -0.0
+        ]
+      ],
+      "hessian_finite": true,
+      "hessian_shape": [
+        9,
+        9
+      ],
+      "hessian_symmetric": true,
+      "provenance": {
+        "checkpoint_path": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+        "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a",
+        "checkpoint_source_revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3",
+        "model_card": "/home/axie/MAPLE/MAPLE-implicitsolv-route4/maple/function/calculator/model_cards/fennix-bio1.yaml",
+        "precision": {
+          "cpu_neighborlist_coordinate_dtype": "float32",
+          "effective_precision": "unverified_mixed_or_checkpoint_serialized",
+          "end_to_end_float64_verified": false,
+          "gpu_preprocessing": false,
+          "matmul_precision": "highest",
+          "requested_float64": true
+        },
+        "provider": "fennix-bio1",
+        "runtime_receipt": {
+          "ase_sha256": "6d6a9dbf40fce96b8589a3702de7de190f8301d0827f629fbfad2c1e4a2f97d7",
+          "distribution": "FeNNol",
+          "preprocessing_sha256": "153519f469e112b6f1d2bfe7f243c241db476f273543abd0540ab658d59c96d4",
+          "version": "2026.6.29"
+        },
+        "runtime_scope": "explicit_system_pes_only",
+        "source_revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+        "variant": "medium"
+      },
+      "scope": "maple_adapter_real_checkpoint_mechanics_only_not_hfe_not_accuracy_not_gpu_admission"
+    },
+    "native_alchemical_kernel_cpu": {
+      "checkpoint": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+      "device": "cpu:0",
+      "parameter_dtypes": [
+        "float32"
+      ],
+      "rows": [
+        {
+          "atomic_energy_sum": -0.8077256833027675,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 6.661338147750939e-16,
+          "dE_dlambda_v_model_units": 0.0,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077256833027675
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 0.0,
+          "max_coordinate_gradient": 2.642934906329468,
+          "progress": 0.0
+        },
+        {
+          "atomic_energy_sum": -0.8077253981436527,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 6.661338147750939e-16,
+          "dE_dlambda_v_model_units": 1.909179382887199e-06,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077253981436527
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 0.5,
+          "max_coordinate_gradient": 2.642937800569675,
+          "progress": 0.25
+        },
+        {
+          "atomic_energy_sum": -0.8077242821587833,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 6.661338147750939e-16,
+          "dE_dlambda_v_model_units": 5.758024645809244e-07,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077242821587833
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.6429490255475465,
+          "progress": 0.5
+        },
+        {
+          "atomic_energy_sum": -0.8393482045292011,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -0.07612905693847942,
+          "dE_dlambda_v_model_units": -0.0012507190737833269,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8393482045292011
+          ],
+          "lambda_e": 0.5,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.663215277608771,
+          "progress": 0.75
+        },
+        {
+          "atomic_energy_sum": -0.8585051109952453,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -6.718735632178988e-16,
+          "dE_dlambda_v_model_units": -0.00214895754849624,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8585051109952453
+          ],
+          "lambda_e": 1.0,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.680212083305682,
+          "progress": 1.0
+        }
+      ],
+      "scope": "two_water_native_jax_alchemical_kernel_smoke_not_hfe_not_accuracy_not_sampling"
+    },
+    "native_alchemical_kernel_gpu": {
+      "checkpoint": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+      "device": "cuda:0",
+      "parameter_dtypes": [
+        "float32"
+      ],
+      "rows": [
+        {
+          "atomic_energy_sum": -0.8077256833027675,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -4.440892098500626e-16,
+          "dE_dlambda_v_model_units": 0.0,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077256833027675
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 0.0,
+          "max_coordinate_gradient": 2.642934906329466,
+          "progress": 0.0
+        },
+        {
+          "atomic_energy_sum": -0.8077253981436527,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 0.0,
+          "dE_dlambda_v_model_units": 1.9091793828871406e-06,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077253981436527
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 0.5,
+          "max_coordinate_gradient": 2.6429378005696744,
+          "progress": 0.25
+        },
+        {
+          "atomic_energy_sum": -0.8077242821587833,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 0.0,
+          "dE_dlambda_v_model_units": 5.758024645809233e-07,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077242821587833
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.6429490255475487,
+          "progress": 0.5
+        },
+        {
+          "atomic_energy_sum": -0.8393482045292019,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -0.07612905693848064,
+          "dE_dlambda_v_model_units": -0.0012507190737833063,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8393482045292019
+          ],
+          "lambda_e": 0.5,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.663215277608771,
+          "progress": 0.75
+        },
+        {
+          "atomic_energy_sum": -0.8585051109952455,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -5.739748442804936e-18,
+          "dE_dlambda_v_model_units": -0.002148957548496255,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8585051109952455
+          ],
+          "lambda_e": 1.0,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.6802120833056833,
+          "progress": 1.0
+        }
+      ],
+      "scope": "two_water_native_jax_alchemical_kernel_smoke_not_hfe_not_accuracy_not_sampling"
+    },
+    "native_alchemical_kernel_upcast_comparison": {
+      "all_outputs_reported_float64": true,
+      "all_reported_values_finite": true,
+      "checkpoint": {
+        "file_unchanged_by_runtime_upcast": true,
+        "path": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+        "sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a"
+      },
+      "comparisons": {
+        "original_cpu_vs_original_gpu": {
+          "atomic_energy_sum": {
+            "max_abs_difference": 7.771561172376096e-16,
+            "per_progress_abs_difference": [
+              0.0,
+              0.0,
+              0.0,
+              7.771561172376096e-16,
+              2.220446049250313e-16
+            ]
+          },
+          "dE_dlambda_e_model_units": {
+            "max_abs_difference": 1.2212453270876722e-15,
+            "per_progress_abs_difference": [
+              1.1102230246251565e-15,
+              6.661338147750939e-16,
+              6.661338147750939e-16,
+              1.2212453270876722e-15,
+              6.661338147750938e-16
+            ]
+          },
+          "dE_dlambda_v_model_units": {
+            "max_abs_difference": 2.0599841277224584e-17,
+            "per_progress_abs_difference": [
+              0.0,
+              5.844527336054672e-20,
+              1.164670302474663e-21,
+              2.0599841277224584e-17,
+              1.474514954580286e-17
+            ]
+          },
+          "max_coordinate_gradient": {
+            "max_abs_difference": 2.220446049250313e-15,
+            "per_progress_abs_difference": [
+              1.7763568394002505e-15,
+              4.440892098500626e-16,
+              2.220446049250313e-15,
+              0.0,
+              1.3322676295501878e-15
+            ]
+          }
+        },
+        "original_cpu_vs_upcast_cpu": {
+          "atomic_energy_sum": {
+            "max_abs_difference": 2.7101279109764675e-08,
+            "per_progress_abs_difference": [
+              1.784287162465148e-10,
+              1.770568136549855e-10,
+              1.7230150639591102e-10,
+              1.999850618439325e-08,
+              2.7101279109764675e-08
+            ]
+          },
+          "dE_dlambda_e_model_units": {
+            "max_abs_difference": 3.5375316481678354e-08,
+            "per_progress_abs_difference": [
+              4.440892098500626e-16,
+              4.440892098500626e-16,
+              4.440892098500626e-16,
+              3.5375316481678354e-08,
+              4.4408920818277285e-16
+            ]
+          },
+          "dE_dlambda_v_model_units": {
+            "max_abs_difference": 6.176476196814717e-10,
+            "per_progress_abs_difference": [
+              0.0,
+              8.922124323649839e-12,
+              1.3564849950204139e-12,
+              3.0280682974080653e-10,
+              6.176476196814717e-10
+            ]
+          },
+          "max_coordinate_gradient": {
+            "max_abs_difference": 2.967153545085921e-08,
+            "per_progress_abs_difference": [
+              2.495398554458461e-09,
+              2.5017721227982292e-09,
+              2.52395437883024e-09,
+              1.895234502669041e-08,
+              2.967153545085921e-08
+            ]
+          }
+        },
+        "original_gpu_vs_upcast_gpu": {
+          "atomic_energy_sum": {
+            "max_abs_difference": 2.7101279442831583e-08,
+            "per_progress_abs_difference": [
+              1.7842982646953942e-10,
+              1.770577018334052e-10,
+              1.7230239457433072e-10,
+              1.999850707257167e-08,
+              2.7101279442831583e-08
+            ]
+          },
+          "dE_dlambda_e_model_units": {
+            "max_abs_difference": 3.537531757802359e-08,
+            "per_progress_abs_difference": [
+              4.440892098500626e-16,
+              2.220446049250313e-16,
+              0.0,
+              3.537531757802359e-08,
+              2.2204460325774152e-16
+            ]
+          },
+          "dE_dlambda_v_model_units": {
+            "max_abs_difference": 6.176476062373648e-10,
+            "per_progress_abs_difference": [
+              0.0,
+              8.92212428510984e-12,
+              1.3564849971379962e-12,
+              3.0280686378475474e-10,
+              6.176476062373648e-10
+            ]
+          },
+          "max_coordinate_gradient": {
+            "max_abs_difference": 2.967153722721605e-08,
+            "per_progress_abs_difference": [
+              2.4953981103692513e-09,
+              2.5017721227982292e-09,
+              2.5239561551870793e-09,
+              1.895234547077962e-08,
+              2.967153722721605e-08
+            ]
+          }
+        },
+        "upcast_cpu_vs_upcast_gpu": {
+          "atomic_energy_sum": {
+            "max_abs_difference": 1.1102230246251565e-15,
+            "per_progress_abs_difference": [
+              1.1102230246251565e-15,
+              8.881784197001252e-16,
+              8.881784197001252e-16,
+              1.1102230246251565e-16,
+              1.1102230246251565e-16
+            ]
+          },
+          "dE_dlambda_e_model_units": {
+            "max_abs_difference": 8.881784197001252e-16,
+            "per_progress_abs_difference": [
+              2.220446049250313e-16,
+              4.440892098500626e-16,
+              2.220446049250313e-16,
+              1.249000902703301e-16,
+              8.881784197001252e-16
+            ]
+          },
+          "dE_dlambda_v_model_units": {
+            "max_abs_difference": 1.3444106938820255e-17,
+            "per_progress_abs_difference": [
+              0.0,
+              1.9905274260476058e-20,
+              3.282252670610414e-21,
+              1.3444106938820255e-17,
+              1.3010426069826053e-18
+            ]
+          },
+          "max_coordinate_gradient": {
+            "max_abs_difference": 1.3322676295501878e-15,
+            "per_progress_abs_difference": [
+              1.3322676295501878e-15,
+              4.440892098500626e-16,
+              4.440892098500626e-16,
+              4.440892098500626e-16,
+              4.440892098500626e-16
+            ]
+          }
+        }
+      },
+      "derived_runtime_parameter_dtypes": [
+        "float64"
+      ],
+      "gpu_production_admission": "blocked_pending_formal_same_panel_cpu_gpu_hfe_validation_with_at_least_10_distinct_primary_functional_groups",
+      "original_checkpoint_parameter_dtypes": [
+        "float32"
+      ],
+      "receipt_sha256": {
+        "original_cpu": "0ad840e256e20479435204c63835ac47892b28ff78ab7fa5a4475e08fce7bf74",
+        "original_gpu": "83c3f4320844184a14611575310ae67881584a87928541bbc2d584e4108a1ab0",
+        "upcast_cpu": "cd2dd1a323b2b27f8f3202b85660c82b176e0aef0fda64c72c732343a47e0814",
+        "upcast_gpu": "f168cd5d88b5f30603954df8754f8f07bd015672d175b6bf9524f9d3b4637472"
+      },
+      "runner": {
+        "path": "/tmp/run_fennix_alchemical_kernel_smoke_upcast64.py",
+        "sha256": "8568c467c1bd2a39860d13b420c87bae5de6f0eb726885cd8eb746ecadf5eda0"
+      },
+      "schema_version": 1,
+      "scope": "mechanics_diagnostic_only_not_hfe_not_accuracy_not_sampling_not_gpu_admission_not_performance"
+    },
+    "native_alchemical_kernel_upcast_cpu": {
+      "checkpoint": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+      "device": "cpu:0",
+      "rows": [
+        {
+          "atomic_energy_sum": -0.8077256831243388,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 2.220446049250313e-16,
+          "dE_dlambda_v_model_units": 0.0,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077256831243388
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 0.0,
+          "max_coordinate_gradient": 2.6429349038340693,
+          "progress": 0.0
+        },
+        {
+          "atomic_energy_sum": -0.8077253979665959,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 2.220446049250313e-16,
+          "dE_dlambda_v_model_units": 1.9091704607628754e-06,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077253979665959
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 0.5,
+          "max_coordinate_gradient": 2.6429377980679027,
+          "progress": 0.25
+        },
+        {
+          "atomic_energy_sum": -0.8077242819864818,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 2.220446049250313e-16,
+          "dE_dlambda_v_model_units": 5.758011080959294e-07,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077242819864818
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.642949023023592,
+          "progress": 0.5
+        },
+        {
+          "atomic_energy_sum": -0.8393481845306949,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -0.07612902156316294,
+          "dE_dlambda_v_model_units": -0.0012507193765901566,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8393481845306949
+          ],
+          "lambda_e": 0.5,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.663215258656426,
+          "progress": 0.75
+        },
+        {
+          "atomic_energy_sum": -0.8585050838939662,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -1.1159627714006716e-15,
+          "dE_dlambda_v_model_units": -0.00214895816614386,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8585050838939662
+          ],
+          "lambda_e": 1.0,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.6802120536341465,
+          "progress": 1.0
+        }
+      ],
+      "runtime_parameter_dtypes": [
+        "float64"
+      ],
+      "scope": "two_water_native_jax_alchemical_kernel_smoke_not_hfe_not_accuracy_not_sampling"
+    },
+    "native_alchemical_kernel_upcast_gpu": {
+      "checkpoint": "/home/axie/.cache/maple-benchmarks/fennix/FeNNol-PMC/FENNIX-BIO1/fennix-bio1M.fnx",
+      "device": "cuda:0",
+      "rows": [
+        {
+          "atomic_energy_sum": -0.8077256831243377,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 0.0,
+          "dE_dlambda_v_model_units": 0.0,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077256831243377
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 0.0,
+          "max_coordinate_gradient": 2.642934903834068,
+          "progress": 0.0
+        },
+        {
+          "atomic_energy_sum": -0.807725397966595,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -2.220446049250313e-16,
+          "dE_dlambda_v_model_units": 1.9091704607628555e-06,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.807725397966595
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 0.5,
+          "max_coordinate_gradient": 2.6429377980679023,
+          "progress": 0.25
+        },
+        {
+          "atomic_energy_sum": -0.8077242819864809,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": 0.0,
+          "dE_dlambda_v_model_units": 5.758011080959261e-07,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8077242819864809
+          ],
+          "lambda_e": 0.0,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.6429490230235926,
+          "progress": 0.5
+        },
+        {
+          "atomic_energy_sum": -0.8393481845306948,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -0.07612902156316306,
+          "dE_dlambda_v_model_units": -0.00125071937659017,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8393481845306948
+          ],
+          "lambda_e": 0.5,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.6632152586564257,
+          "progress": 0.75
+        },
+        {
+          "atomic_energy_sum": -0.8585050838939661,
+          "cell_gradient_finite": true,
+          "dE_dlambda_e_model_units": -2.2778435170054645e-16,
+          "dE_dlambda_v_model_units": -0.002148958166143861,
+          "dtypes": {
+            "coordinates_gradient": "float64",
+            "energy": "float64",
+            "lambda_e_gradient": "float64",
+            "lambda_v_gradient": "float64"
+          },
+          "energy_model_units": [
+            -0.8585050838939661
+          ],
+          "lambda_e": 1.0,
+          "lambda_v": 1.0,
+          "max_coordinate_gradient": 2.680212053634146,
+          "progress": 1.0
+        }
+      ],
+      "runtime_parameter_dtypes": [
+        "float64"
+      ],
+      "scope": "two_water_native_jax_alchemical_kernel_smoke_not_hfe_not_accuracy_not_sampling"
+    }
+  },
+  "schema_version": 1,
+  "scope": "real_checkpoint_cpu_gpu_and_maple_cpu_mechanics_only_not_hfe_not_accuracy_not_performance",
+  "source_receipt_sha256": {
+    "alchemical_kernel_cpu_float64_json": "0ad840e256e20479435204c63835ac47892b28ff78ab7fa5a4475e08fce7bf74",
+    "alchemical_kernel_cpu_upcast64_json": "cd2dd1a323b2b27f8f3202b85660c82b176e0aef0fda64c72c732343a47e0814",
+    "alchemical_kernel_gpu_float64_json": "83c3f4320844184a14611575310ae67881584a87928541bbc2d584e4108a1ab0",
+    "alchemical_kernel_gpu_upcast64_json": "f168cd5d88b5f30603954df8754f8f07bd015672d175b6bf9524f9d3b4637472",
+    "alchemical_kernel_upcast64_comparison_json": "fd72bffa8b9c8aec518de2bc81223d2de3b4ee14132c8449c10377d7d791ca4d",
+    "artifact_sha256_txt": "780c99a731c236352da3ee7aa374580c7e87b099c446a87192d311b27fdcc11b",
+    "comparison_json": "d6ee098611804a83295e1e9f92e485112766ba87c5f0d1d5951c2ddd2a80fd01",
+    "cpu_float64_json": "f2e394ac425f5ec5cf9526c784447f391a51d949a9350a902495025b0890b776",
+    "gpu_float64_json": "5496e47947f5d0dfaab712aeba75b41677de8989b79a3661521fc50d3c4ab9bb",
+    "maple_adapter_cpu_float64_json": "ba6811125f2b3bf688424f6cf7dc6b9d09711188ba62cd68b93a6c7fa7050488",
+    "nvidia_smi_csv": "dccb9d145c55297f09463f62feedf00c3ec2535bbef5827a3984c31accf849c5",
+    "pip_freeze_txt": "fae38f6c406026603406a23af7a0284bc04a8879a5ab9ddd8d9d127d1bb8132e"
+  },
+  "verdict": "runtime_mechanics_available_gpu_admission_blocked"
+}

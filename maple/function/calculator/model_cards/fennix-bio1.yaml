@@ -1,0 +1,127 @@
+{
+  "model_id": "fennix-bio1",
+  "version": "Bio1 public checkpoints at FeNNol-PMC 83f299b",
+  "availability": "public-checkpoint",
+  "source": {
+    "repository": "https://github.com/FeNNol-tools/FeNNol",
+    "revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+    "release": "v2026.06.29",
+    "distribution_version": "2026.6.29",
+    "ase_adapter_path": "src/fennol/ase.py",
+    "ase_adapter_sha256": "6d6a9dbf40fce96b8589a3702de7de190f8301d0827f629fbfad2c1e4a2f97d7",
+    "preprocessing_path": "src/fennol/models/preprocessing.py",
+    "preprocessing_sha256": "153519f469e112b6f1d2bfe7f243c241db476f273543abd0540ab658d59c96d4"
+  },
+  "checkpoint_source": {
+    "repository": "https://github.com/FeNNol-tools/FeNNol-PMC",
+    "revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3",
+    "path": "FENNIX-BIO1"
+  },
+  "checkpoints": {
+    "small": {
+      "filename": "fennix-bio1S.fnx",
+      "checkpoint_sha256": "82c570c57e95cf164b1a1b0ac2122133cb435c89b07d495246773091541c2f07"
+    },
+    "medium": {
+      "filename": "fennix-bio1M.fnx",
+      "checkpoint_sha256": "5aac1aa309a387484b7ee4d61fe0229abba7d4af23845be17e204c1feb34870a"
+    }
+  },
+  "precision": {
+    "requested_float64": true,
+    "cpu_neighborlist_coordinate_dtype": "float32",
+    "checkpoint_parameter_dtype": "serialized_dtype_preserved_by_runtime",
+    "effective_precision": "unverified_mixed_or_checkpoint_serialized",
+    "end_to_end_float64_verified": false,
+    "matmul_precision": "highest",
+    "gpu_preprocessing": false,
+    "training_or_fine_tuning": false,
+    "additional_compile_or_fast_mode_enabled": false
+  },
+  "precision_evidence": {
+    "repository": "https://github.com/FeNNol-tools/FeNNol",
+    "revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+    "paths": {
+      "requested_x64": "src/fennol/ase.py:47-63",
+      "cpu_coordinate_cast": "src/fennol/models/preprocessing.py:81-82",
+      "cpu_cell_casts": "src/fennol/models/preprocessing.py:129-130"
+    },
+    "contract": "use_float64 requests x64 inputs, but CPU neighbor-list preprocessing explicitly casts coordinates, cells, and reciprocal cells to float32; checkpoint parameters retain their serialized dtype, so end-to-end float64 is not source-proven"
+  },
+  "domain_evidence": {
+    "repository": "https://github.com/FeNNol-tools/FeNNol-PMC",
+    "revision": "83f299b81c1d62e2a15c892280559a7c0cc2fac3",
+    "paths": [
+      "FENNIX-BIO1/v1.0/train_bio1S.yaml",
+      "FENNIX-BIO1/v1.0/train_bio1M.yaml"
+    ],
+    "atomic_number_range": [1, 86],
+    "contract": "pinned official configurations use electronic_structure encoding with zmax 86; this is only a representability boundary and is not evidence of validated chemical accuracy for every element or composition in that range"
+  },
+  "force_evidence": {
+    "repository": "https://github.com/FeNNol-tools/FeNNol",
+    "revision": "d62b8740343b803a2b864140ec79e347f8ba034e",
+    "path": "src/fennol/ase.py",
+    "contract": "official ASE forces are returned by the model energy-and-forces derivative path; MAPLE additionally checks F=-dE/dR before each numerical Hessian"
+  },
+  "license": {
+    "runtime_code": "GNU LGPL-3.0",
+    "checkpoint": "Academic Software License; academic non-commercial use only"
+  },
+  "gpu_acceleration": {
+    "no_loss_parity_verified": false,
+    "status": "jax_gpu_runtime_supported_effective_precision_unverified_and_formal_ten_functional_group_experimental_no_degradation_admission_pending",
+    "compute_dtype": "effective_precision_unverified",
+    "matmul_precision": "highest",
+    "evidence_artifact": null,
+    "evidence_sha256": null,
+    "allowed_tasks": [],
+    "allowed_inference_modes": []
+  },
+  "capabilities": {
+    "energy": true,
+    "forces": true,
+    "conservative_forces": true,
+    "hessian": "finite_difference",
+    "supports_md": true,
+    "supports_pbc": true,
+    "supports_charge": false,
+    "supports_multiplicity": false,
+    "supports_multifragment": true,
+    "requires_topology": false,
+    "requires_partial_charges": false,
+    "solvation_mode": "none",
+    "energy_reference": "relative",
+    "supports_absolute_solvation": false,
+    "supports_alchemical_lambda": false
+  },
+  "recommended_tasks": [],
+  "mechanically_exposed_tasks_pending_task_specific_validation": [
+    "sp",
+    "opt",
+    "scan",
+    "ts",
+    "irc",
+    "numerical_frequency_after_runtime_force_check",
+    "explicit_system_md"
+  ],
+  "forbidden_tasks": [
+    "charged_or_open_shell_system_until_separately_validated",
+    "additive_implicit_solvent",
+    "absolute_solvation_free_energy",
+    "alchemical_free_energy",
+    "claiming_the_paper_hydration_or_binding_free_energy_from_one_pes_evaluation",
+    "stress",
+    "npt",
+    "training",
+    "fine_tuning",
+    "gpu_enablement_without_ten_functional_group_experimental_no_degradation"
+  ],
+  "notes": [
+    "This adapter loads an unchanged official small or medium checkpoint with FeNNol FENNIXCalculator, use_float64=true, matmul_prec=highest, and gpu_preprocessing=false; use_float64 is a request, not proof of end-to-end float64 execution.",
+    "Pinned FeNNol CPU preprocessing hard-casts neighbor-list coordinates, cells, and reciprocal cells to float32, while checkpoint parameters preserve serialized dtype; effective end-to-end precision therefore remains unverified.",
+    "ASE free_energy is an optimizer alias of the PES energy and is not a thermochemical, hydration, binding, or alchemical free energy.",
+    "The paper's hydration and binding free energies require explicit-solvent sampling and alchemical analysis outside this calculator adapter.",
+    "FeNNol has GPU support; MAPLE intentionally keeps production accelerator selection fail-closed until a formal panel with at least 10 records spanning at least 10 distinct primary functional groups proves zero experimental-accuracy degradation."
+  ]
+}

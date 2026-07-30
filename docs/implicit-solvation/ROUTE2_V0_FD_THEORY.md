@@ -1981,6 +1981,19 @@ solve and its v2 certificate exist, a certificate may not claim a physical
 root merely by varying \(B_s\) against \(\gamma_s\).  Neither inner nor outer
 construction may select a root from a solute cavity or solvation error.
 
+The executable one-width preflight is now isolated in
+`route2_v0_molecular_surface_tension_continuation.py`.  For a declared
+Gaussian \(K_{\sigma}\), it first performs the full inner
+\(C(B_s,\sigma)=0\) continuation, freezes that root coefficient, and only
+then calls the existing exact planar solver.  This point evaluator has **no
+surface-tension-target argument**.  A separate evidence object can validate
+precomputed outer endpoints and a root against the source-bound target, while
+making no monotonicity or uniqueness claim.  It also rejects different
+\(\sigma\) values that collapse to the same discrete kernel on the frozen
+grid: such an unresolved numerical alias cannot determine a liquid length.
+The current control can exercise that rejection, but it is not a physical
+outer root, certificate, or accuracy result.
+
 The positive quartic coefficient $B_s$ and $K$ remain admissible only through
 this content-addressed **pure-solvent** construction using frozen bulk
 correlation and independently sourced surface tension.  No MNSol, FreeSolv,

@@ -138,6 +138,19 @@ This verifies the common-scalar planar algebra only.  It does **not** add a
 physical liquid source, a source-bound physical certificate, an outer
 surface-tension root, or any FreeSolv/MNSol/accuracy result.
 
+The next nested boundary is now executable at a single declared Gaussian
+kernel width through
+`route2_v0_molecular_surface_tension_continuation.py`: it recomputes the
+same-scalar inner coexistence root \(B_s^*(\sigma)\), freezes it, and only
+then obtains the planar surface excess.  That evaluator cannot receive a
+surface-tension target.  The companion outer-evidence validator reads the
+target only from the frozen bridge asset, preserves all three nested points,
+makes no global monotonicity/uniqueness claim, and rejects width endpoints
+that are numerically the same discrete kernel.  The checked-in delta-kernel
+control exercises this alias rejection; it supplies neither a resolved
+physical kernel length nor an outer root.  Thus the physical-liquid,
+multi-solvent, force/PES, and accuracy gates remain open.
+
 
 The zero-external branch is now also a concrete fail-closed assembly rather
 than an informal condition.  `route2_v0_molecular_pure_liquid_external_potential.py`

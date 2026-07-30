@@ -131,7 +131,11 @@ certificate are still absent.
    all-atom liquid model, bulk direct correlation, a saturation/coexistence
    state convention, independent surface tension, an exact homogeneous
    liquid/gas continuation record that determines \(B_s\), and a stationary
-   planar-interface certificate for any remaining liquid length scale.
+   planar-interface certificate for any remaining liquid length scale.  The
+   current executable one-width order is fixed: build \(K_\sigma\), solve
+   \(C(B_s,\sigma)=0\), freeze \(B_s^*(\sigma)\), then solve the exact
+   planar branch; only a separate outer evidence record may compare the
+   resulting \(\Gamma(\sigma)\) to the independent pure-liquid target.
 2. Verify the same scalar's derivative, Hessian reciprocity, stability,
    Cartesian/orientation/grid convergence, envelope forces, and energy
    conservation.

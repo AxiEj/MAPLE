@@ -28,6 +28,11 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_so3
     Route2V0CartesianEulerProductQuadrature,
     build_route2_v0_cartesian_euler_product_quadrature,
 )
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_surface_tension_continuation import (
+    Route2V0MolecularGaussianSurfaceTensionBracket,
+    Route2V0MolecularGaussianSurfaceTensionPoint,
+    evaluate_route2_v0_molecular_gaussian_surface_tension_point,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_thermodynamics import (
     molecular_hnc_bulk_functional_pressure_hartree_per_bohr3,
 )
@@ -406,4 +411,84 @@ def test_planar_interface_rejects_a_nonzero_external_scalar_after_root_freeze(
             coexistence_continuation=continuation,
             target_mean_density_scale=target_scale,
             maximum_iterations=1,
+        )
+
+
+def test_gaussian_point_runs_the_inner_coexistence_solve_before_planar_control(
+    planar_control,
+):
+    """The one-width Gaussian control has no access to a gamma target."""
+
+    template, product, _ = planar_control
+    coefficient = template.bridge_asset.quartic_coefficient_hartree_bohr15
+    point = evaluate_route2_v0_molecular_gaussian_surface_tension_point(
+        template,
+        cartesian_euler_quadrature=product,
+        gaussian_width_bohr=0.01,
+        lower_quartic_coefficient_hartree_bohr15=0.5 * coefficient,
+        upper_quartic_coefficient_hartree_bohr15=1.5 * coefficient,
+        coexistence_tolerance_hartree_per_bohr3=1.0e-10,
+        coefficient_relative_tolerance=1.0e-8,
+        maximum_coexistence_iterations=64,
+        minimum_density_scale=1.0e-5,
+        root_sample_count=129,
+        directional_derivative_tolerance_hartree_per_bohr3=1.0e-13,
+        curvature_tolerance_hartree_per_bohr3=1.0e-13,
+        planar_stationarity_tolerance=1.0e-8,
+        planar_transverse_uniformity_tolerance=1.0e-8,
+        planar_constraint_multiplier_tolerance=1.0e-8,
+        maximum_planar_iterations=20,
+    )
+
+    assert isinstance(point, Route2V0MolecularGaussianSurfaceTensionPoint)
+    assert point.coexistence_continuation.passes is True
+    assert point.planar_state.passes is True
+    assert point.surface_tension_hartree_per_bohr2 == pytest.approx(0.0, abs=2.0e-15)
+    assert point.physical_liquid_admitted is False
+    assert (
+        "target_surface_tension"
+        not in inspect.signature(
+            evaluate_route2_v0_molecular_gaussian_surface_tension_point
+        ).parameters
+    )
+
+    with pytest.raises(ValueError, match="kernel does not match"):
+        replace(point, gaussian_width_bohr=0.5)
+
+
+def test_gaussian_outer_bracket_refuses_unresolved_length_aliases(planar_control):
+    """A coarse grid cannot pretend that three aliased widths determine sigma."""
+
+    functional, product, continuation = planar_control
+    symmetry = Route2V0MolecularPlanarSymmetry(functional, product, normal_axis=2)
+    target_scale = 0.5 * (
+        continuation.root.gas_phase.density_scale
+        + continuation.root.liquid_phase.density_scale
+    )
+    state = solve_route2_v0_molecular_constrained_planar_interface(
+        functional,
+        planar_symmetry=symmetry,
+        coexistence_continuation=continuation,
+        target_mean_density_scale=target_scale,
+        stationarity_tolerance=1.0e-8,
+        transverse_uniformity_tolerance=1.0e-8,
+        constraint_multiplier_tolerance=1.0e-8,
+        maximum_iterations=20,
+    )
+    lower = Route2V0MolecularGaussianSurfaceTensionPoint(
+        gaussian_width_bohr=0.01,
+        functional=functional,
+        coexistence_continuation=continuation,
+        planar_symmetry=symmetry,
+        planar_state=state,
+    )
+    root = replace(lower, gaussian_width_bohr=0.015)
+    upper = replace(lower, gaussian_width_bohr=0.02)
+
+    with pytest.raises(ValueError, match="do not resolve distinct discrete kernels"):
+        Route2V0MolecularGaussianSurfaceTensionBracket(
+            lower=lower,
+            root=root,
+            upper=upper,
+            surface_tension_tolerance_hartree_per_bohr2=1.0e-10,
         )

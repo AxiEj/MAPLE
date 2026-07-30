@@ -1,0 +1,80 @@
+{
+  "claim_boundary": "This preregistration freezes a source-provenanced free-atom Hartree-Fock translation-tangent spatial response asset. It does not treat a promolecular density as a MACE electron density, does not invoke a continuum or solvation calculation, and does not establish energy, force, PES, KKT, or chemical-accuracy validity. The asset may be used only by a separately preregistered gas-phase QM-MEP source falsifier.",
+  "decision_rule": "A failed atomic SCF, normalization, isotropy, tail, source hash, or provenance check rejects this physical source asset. Passing says only that the specified free-atom translation-tangent radial data exist. It does not permit a GTO projection, a width selection, an energy functional, a continuum coupling, an experimental accuracy panel, or a response correction.",
+  "generation_contract": {
+    "basis": "def2-TZVPD",
+    "elements": [
+      {
+        "atomic_number": 1,
+        "neutral_electron_count": 1,
+        "spin_2s": 1,
+        "symbol": "H"
+      },
+      {
+        "atomic_number": 6,
+        "neutral_electron_count": 6,
+        "spin_2s": 2,
+        "symbol": "C"
+      },
+      {
+        "atomic_number": 7,
+        "neutral_electron_count": 7,
+        "spin_2s": 3,
+        "symbol": "N"
+      },
+      {
+        "atomic_number": 8,
+        "neutral_electron_count": 8,
+        "spin_2s": 2,
+        "symbol": "O"
+      },
+      {
+        "atomic_number": 16,
+        "neutral_electron_count": 16,
+        "spin_2s": 2,
+        "symbol": "S"
+      },
+      {
+        "atomic_number": 17,
+        "neutral_electron_count": 17,
+        "spin_2s": 1,
+        "symbol": "Cl"
+      }
+    ],
+    "method": "PySCF AtomSphAverageRHF",
+    "pyscf_version": "2.13.1",
+    "radial_grid": {
+      "coordinate_rule": "r_max * (i / (n - 1))**2",
+      "point_count": 2049,
+      "radius_max_bohr": 30.0
+    },
+    "response_construction": "For each neutral spherical atomic electron density n_Z(r), tabulate N_Z(r)=4*pi*integral_0^r n_Z(s)s^2 ds and normalize only the quadrature endpoint to the declared electron count. A later source map may use the exact translation tangent whose potential is (p_a dot r) N_Z(r)/(Z r^3). No radial width, response fit, molecule-specific factor, or solvation label is involved.",
+    "validation_gates": {
+      "electron_count_absolute_error_max": 1e-8,
+      "radial_tail_density_max_e_per_bohr3": 1e-20,
+      "scf_convergence_tolerance_hartree": 1e-12,
+      "spherical_probe_maximum_difference_max": 1e-12,
+      "spherical_probe_radius_bohr": 2.0
+    }
+  },
+  "hard_constraints": {
+    "atomic_response_fit_to_qm_mep": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "mace_density_relabelled_as_electron_density": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "post_training": false,
+    "public_route_changed": false,
+    "solvation_labels_read": false,
+    "width_or_multipole_selected_from_error": false
+  },
+  "protocol_id": "route2-v0-atomic-displacement-hf-def2-tzvpd-v1-prereg",
+  "schema_version": 1,
+  "source_sha256": {
+    "docs/implicit-solvation/benchmarks/generate_route2_v0_atomic_displacement_response.py": "2f2f1d04a2578e46d39baaec600f90b6dce49b4b4db6d176544d5ca5e085bd60",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_response.py": "cca413cd5c5b643afd4cfb1b8c81481c0acaaa937da84cd0ef101f18c4acaef1"
+  },
+  "status": "frozen-before-asset-generation"
+}

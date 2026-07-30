@@ -331,6 +331,7 @@ class Route2V0VariationalQuadraticState:
             "electronic_curvature_antisymmetry_norm",
             "stationarity_residual_inf",
             "charge_constraint_residual_e",
+            "additional_constraint_residual_inf",
         ):
             value = _finite_scalar(getattr(self, name), name=name)
             if name in (

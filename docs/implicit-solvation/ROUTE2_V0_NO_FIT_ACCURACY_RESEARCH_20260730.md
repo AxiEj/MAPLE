@@ -1,13 +1,23 @@
-# Route-2 V0: no-fit accuracy research decision record (2026-07-30)
+# Route-2 V0: archived no-fit research alternatives and current implicit-PCM decision record (2026-07-30)
 
-## Purpose and non-negotiable boundary
+## Current route decision and non-negotiable boundary
 
-This is a literature-screening record, not a benchmark result.  Route-2 V0
-may improve only by changing the **pre-minimisation common scalar** or by
-strengthening source-provenanced liquid physics.  It must not use target
-solvation energies, a fitted correction, fine tuning, post-training, MAP/UQ
-calibration, per-solute route selection, an error-selected cavity radius, or a
-post-hoc free-energy ledger.
+This is a literature-screening record, not a benchmark result.  The active
+Route-2 V0 main line is an **implicit PCM/continuum** construction: a
+stationary gas electronic functional plus an energy-conjugate smooth continuum
+operator and a separately declared implicit nonpolar/standard-state scalar.
+It does not require explicit solvent molecules, molecular-liquid simulation,
+GROMACS, 3D-RISM, or MDFT.  Those older molecular-liquid sections below are
+archived alternative research only and must not be invoked by the V0 main
+execution path or used to justify an accuracy test.
+
+Route-2 V0 may improve only by changing the **pre-minimisation common scalar**
+within that implicit route.  It must not use target solvation energies, a
+fitted correction, fine tuning, post-training, MAP/UQ calibration, per-solute
+route selection, an error-selected cavity radius, or a post-hoc free-energy
+ledger.  The executable electronic-admission conditions and current
+no-training verdict are recorded in
+[`ROUTE2_V0_VARIATIONAL_QUADRATIC_THEORY.md`](ROUTE2_V0_VARIATIONAL_QUADRATIC_THEORY.md).
 
 A future candidate is accepted only if it preserves one scalar
 
@@ -45,7 +55,7 @@ it cannot be replaced by a lower-MAE subset.
 
 | Candidate | Mathematical status | V0 decision | Reason |
 | --- | --- | --- | --- |
-| HNC-plus-weighted-density molecular bridge | Variational if inserted into \(\Omega\) before stationarity; \(A_s\) follows from the HNC vacuum pressure, while \(B_s\) is first fixed by the finite-density same-scalar coexistence continuation and only a remaining liquid length scale may be checked against pure-liquid \(\gamma_s\). | **Active V0 path** | It targets the HNC cavity/liquid--vapour defect without a solvation-label regression.  The source-bound certificate must bind solvent sources, SI identities, the inner coexistence branch, outer planar root/residual/grid evidence, and discrete \(D,K\) operators. |
+| HNC-plus-weighted-density molecular bridge | Variational only as a molecular-liquid theory. | **Archived; excluded from implicit V0 main path** | It is not needed for a PCM model and may not become a substitute electronic functional, nonpolar term, or accuracy shortcut. |
 | Lorentz/Yukawa nonlocal dielectric spectrum | A positive quadratic orientational-polarization functional gives \(\epsilon_s(k)=\epsilon_\infty+(\epsilon_0-\epsilon_\infty)/(1+\lambda_s^2k^2)\); its reaction field is the derivative of one passive scalar. | **Active custom-solvent electrostatic control only** | It supplies a mathematically constrained finite-\(k\) response from independently sourced \(\epsilon_0,\epsilon_\infty,\lambda_s\), with no target fit.  It has no cavity, dispersion, molecular \(C_{ab}(k)\), or standard-state term, so it cannot be scored as a total solvation method. |
 | LCW-style two-reference cDFT | A common cDFT scalar with slowly varying reference density and direct-correlation/surface-tension inputs. | **Deferred research path** | Bui--Cox provides a genuinely variational length-scale construction, but it needs a complete, source-provenanced multi-field liquid functional.  It must retain every term and pass scalar/force checks before it can replace the current bridge; importing only a coarse-graining kernel would be an unjustified hybrid. |
 | Full orientational mDFT / angular correlation functional | Variational in the full molecular configuration density when the angular direct-correlation functional is frozen. | **Deferred research path** | Route-2 already preserves a full \(SO(3)\) quadrature convention.  A new angular functional needs a real all-atom solvent source and its own common-scalar, grid/orientation, and force proof; a site-HNC table cannot be relabelled as that functional. |

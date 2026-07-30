@@ -285,3 +285,184 @@ QM result is explicitly forbidden.  The immutable result is
    Gaussian QEq implementation documents its relation to this screened
    integral representation; V0-Q uses it only as a provenance control and
    retains the MACE-GTO metric for the actual pair term.
+
+## 8. Executable electronic-admission gate and the implicit-solvent boundary
+
+### 8.1 What Route 2V0 does — and does not — require
+
+Route 2V0 is an **implicit-continuum** route.  Its main electrostatic
+functional contains no liquid trajectory, explicit solvent molecule,
+GROMACS run, 3D-RISM state, or molecular-density field.  At fixed geometry a
+continuum backend supplies a symmetric surface functional
+
+\[
+\mathcal L_{\rm el}(\mathbf R,c,\sigma,\lambda)
+=F_{\rm gas}(\mathbf R,c)
+ +\frac12\sigma^\mathsf T A_{\mathbf R}\sigma
+ +\sigma^\mathsf T B_{\mathbf R}c
+ +\lambda(u^\mathsf Tc-Q).
+\]
+
+Here \(A_{\mathbf R}\) is the energy-conjugate continuum operator and
+\(B_{\mathbf R}\) maps the one declared solute density basis to the cavity
+boundary.  Its stationary equations are
+
+\[
+\nabla_cF_{\rm gas}+B_{\mathbf R}^\mathsf T\sigma+\lambda u=0,
+\qquad
+A_{\mathbf R}\sigma+B_{\mathbf R}c=0,
+\qquad u^\mathsf Tc=Q.
+\]
+
+Eliminating \(\sigma\) gives the unique PCM ledger
+
+\[
+G_{\rm el}(\mathbf R,c)=F_{\rm gas}(\mathbf R,c)
++\frac12c^\mathsf TP_{\mathbf R}c,
+\qquad
+P_{\mathbf R}=-B_{\mathbf R}^\mathsf TA_{\mathbf R}^{-1}B_{\mathbf R}.
+\]
+
+The half factor is therefore a consequence of eliminating a stationary
+continuum variable, not an accuracy coefficient.  It also fixes the correct
+implicit-solvent force identity,
+
+\[
+\frac{dG_{\rm el}}{d\mathbf R}
+=\left.\frac{\partial\mathcal L_{\rm el}}{\partial\mathbf R}\right|_*,
+\]
+
+once the electronic functional and a smooth continuum/cavity derivative are
+available.  No legacy fixed-point adjoint is allowed in that derivative.
+
+For an actual total solvation free energy, a separately defined *implicit*
+nonpolar/standard-state scalar is still required:
+
+\[
+\Delta G_s^∘
+=G_{\rm el}(\epsilon_s,\text{cavity};\mathbf R)
++G_{{\rm np},s}(\mathbf R)+\Delta G_s^{\circ}.
+\]
+
+Its solvent inputs must be independently frozen physical data (for example
+bulk dielectric information and a declared cavity/nonpolar convention), not
+solvation-error-selected radii or coefficients.  This is not a requirement to
+construct a molecular-liquid functional.  Molecular RISM/MDFT code remains an
+archived alternative research line and is excluded from the Route 2V0 main
+execution path.
+
+### 8.2 Exact quadratic V0 condition
+
+The no-training quadratic candidate is a local gas electronic functional
+about the frozen MACE zero-field source:
+
+\[
+F_{\rm gas}^{(2)}(\mathbf R,c_0+\delta c)
+=E_{\rm MACE,gas}(\mathbf R)
++g_0^\mathsf T\delta c
++\frac12\delta c^\mathsf TH_{\mathbf R}\delta c.
+\]
+
+Let \(N\) span the exact allowed induced-response subspace, including total
+charge conservation and any declared homogeneous restrictions.  The required
+stationarity and stability conditions are
+
+\[
+N^\mathsf Tg_0=0,
+\qquad
+N^\mathsf TH_{\mathbf R}N\succ0,
+\qquad
+N^\mathsf T(H_{\mathbf R}+P_{\mathbf R})N\succ0.
+\]
+
+The first equation is deliberately the **constrained** condition: a component
+of \(g_0\) parallel to a charge constraint is a Lagrange multiplier, whereas
+a tangent component would move the stated gas reference.  Under these three
+conditions the coefficient-dual response is
+
+\[
+\frac{dc}{df}
+=-N\left[N^\mathsf T(H_{\mathbf R}+P_{\mathbf R})N\right]^{-1}N^\mathsf T,
+\]
+
+which is symmetric, nonpositive, and constraint preserving in the same
+pairing.  This is a mathematical guarantee, not a Jacobian symmetrization of
+the rejected MACE response.
+
+`route2_v0_variational_admission.py` now evaluates those conditions and
+separates three outcomes:
+
+1. **`structural-only`**: the KKT algebra is valid, but no independently
+   preregistered gas-response screen exists; synthetic test curvatures stay in
+   this class forever.
+2. **`rejected-gas-response`**: the common scalar exists, but its gas
+   polarizability disagrees with a numerically valid, matched-geometry QM
+   finite-field reference.  It cannot enter a Route 2 implicit PCM ledger.
+3. **`electronic-component-admitted`**: only an independently frozen,
+   no-training scalar candidate that passes the fixed QM screen may enter a
+   future implicit electrostatic composition.  This still does **not** permit
+   a total-solvation experiment score; nonpolar, standard-state,
+   multi-solvent, force, and broad per-record validation gates remain open.
+
+The screen is intentionally hard-coded to the preregistered V0-Q thresholds:
+
+\[
+\frac{\|\alpha_{\rm candidate}-\alpha_{\rm QM}\|_F}
+{\|\alpha_{\rm QM}\|_F}\le0.20,
+\qquad
+0.80\le\frac{\operatorname{tr}\alpha_{\rm candidate}}
+{\operatorname{tr}\alpha_{\rm QM}}\le1.20,
+\qquad
+\max_i\frac{|a_i-a_i^{\rm QM}|}{|a_i^{\rm QM}|}\le0.30.
+\]
+
+The screen additionally requires identical nuclear geometry, charge, spin,
+a preregistration made before execution, and passed QM numerical gates.  The
+limits are not runtime parameters: changing them requires a new scientific
+protocol rather than a response-specific relaxation.
+
+### 8.3 Current no-training verdict
+
+The published-hardness QEq monopole tangent passes the KKT algebra but fails
+the independent frozen acetone QM screen:
+
+\[
+\|\alpha_{\rm QEq}-\alpha_{\rm QM}\|_F/\|\alpha_{\rm QM}\|_F=1.4295,
+\quad
+\operatorname{tr}(\alpha_{\rm QEq})/\operatorname{tr}(\alpha_{\rm QM})=1.9768,
+\quad
+\max_i\delta a_i=2.2244.
+\]
+
+It is consequently fail-closed by the executable admission layer; it may not
+be composed with PCM, scored against FreeSolv/MNSol, rescaled, or repaired.
+This is evidence that a common quadratic scalar is necessary but insufficient:
+the **gas electronic curvature itself must be physical**.
+
+The currently released MACE-POLAR checkpoint is also not a replacement for
+that missing \(F_{\rm gas}\).  The official release describes its field
+formalism as non-self-consistent; the observed nonreciprocity is therefore not
+repaired by lower SCF tolerance.  [MACE release notes](https://github.com/ACEsuit/mace/releases)
+[and the self-consistent-MLIP design analysis](https://arxiv.org/abs/2603.14700)
+support preserving this distinction.  MACE-Field shows why a scalar
+field-aware energy can structurally give derivative-consistent response, but
+its reported models are trained inorganic-material models and are not an
+out-of-the-box molecular Route 2V0 replacement.  [MACE-Field](https://arxiv.org/abs/2508.17870)
+
+Therefore there is currently **no admissible general no-training polarizable
+electronic component** with which to run a scientifically honest 12-record or
+multi-solvent accuracy panel.  Running it with QEq, the legacy learned fixed
+point, a molecular-liquid surrogate, or a post-hoc correction would not be a
+test of the stated Route 2V0 theory.
+
+### 8.4 Next allowed transition
+
+The next forward transition is an official externally trained (not
+end-user-fine-tuned) molecular scalar electronic functional that exposes
+\(F_{\rm gas}(\mathbf R,c)\), its coefficient-space gradient/HVP, and a
+fixed density-basis convention.  Before it is coupled to implicit PCM it must
+pass the admission gate above at several geometries and functional groups,
+then use the same smooth reciprocal continuum operator in the stationary
+ledger.  Only after its complete total-free-energy definition is frozen may
+the strict twelve-record/ten-actual-functional-group panel, multi-solvent
+panel, and independent blind panel be run.

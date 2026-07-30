@@ -1,0 +1,61 @@
+{
+  "artifact": "route2-v0-xtb-cosmo-source-screen-v1",
+  "claim_boundary": "This is a local xTB command-semantics/source-capability screen on fixed water geometry, not a solvation accuracy, QM fidelity, force, PES, or total-solvation benchmark. It uses no experimental solvation value and does not preregister or validate a Route-2 candidate.",
+  "decision": {
+    "forbidden_followups": [
+      "Do not zero or tune the surface tension, radius, dielectric, or other xTB internal term after this screen.",
+      "Do not use ALPB, GBSA, or CPCM-X as a Route-2 V0 accuracy shortcut; CPCM-X additionally contains CDS-type free-energy terms.",
+      "Do not use this one-water source screen as a chemistry or accuracy test."
+    ],
+    "permitted_role": "optional external empirical comparator outside the Route-2 V0 no-fit core, subject to separate protocol and labelling",
+    "verdict": "exclude-xtb-cosmo-and-alpb-cpcmx-from-route2-v0-no-fit-core",
+    "why": [
+      "The documented ALPB family is parameterized by solvent and includes Gsasa/Ghb terms.",
+      "With a numeric --cosmo dielectric, the local command still enabled GBSA and reported a nonzero Gsasa plus internal GFN-xTB/COSMO parameters, surface tension, density, and solvent mass.",
+      "Taking only reported Gelec would splice an implementation component out of the xTB stationary energy, violating the one-scalar ledger.",
+      "Keeping the full xTB gas-to-COSMO difference would introduce that preparameterized solvation model into the no-fit core and does not supply the required independent accuracy proof."
+    ]
+  },
+  "executed_at_utc": "2026-07-30T12:06:55.632390+00:00",
+  "execution_git_head": "a7da4fe610b06bf243a16fb72146a232eb81a87a",
+  "input": {
+    "commands": [
+      "xtb water.xyz --gfn 2 --grad",
+      "xtb water.xyz --gfn 2 --cosmo 78.3553 --grad"
+    ],
+    "cosmo_argument": "78.3553",
+    "geometry": "ASE G2 water geometry used by the archived scalar-response canary",
+    "gfn": 2
+  },
+  "observed_command_semantics": {
+    "cosmo_minus_gas_total_energy_hartree": -0.005489471992000006,
+    "cosmo_total_energy_hartree": -5.075711758719,
+    "density_line": "Density                            1.0000E+00 kg/L",
+    "gas_total_energy_hartree": -5.070222286727,
+    "gbsa_enabled_line": ":  GBSA solvation                   true          :",
+    "parameter_file_line": "Parameter file                 internal GFN-xTB/COSMO",
+    "reported_gelectrostatic_hartree": -0.006334732456,
+    "reported_ghb_hartree": 0.0,
+    "reported_gsasa_hartree": 0.000300941983,
+    "reported_gsolv_hartree": -0.006033790473,
+    "solvation_model_line": "* Solvation model:               COSMO",
+    "solvent_mass_line": "Solvent mass                       1.8000E+01 g/mol",
+    "surface_tension_line": "Surface tension                    1.0000E-05 Eh       1.5569E+01 dyn/cm"
+  },
+  "official_sources": {
+    "xtb_cpcmx_source": "https://github.com/grimme-lab/CPCM-X",
+    "xtb_implicit_solvation": "https://xtb-docs.readthedocs.io/en/latest/gbsa.html"
+  },
+  "raw_output_sha256": {
+    "cosmo.out": "fea93a4d39ab1da3803064784534d75934766c70d4d9d290577095f66ebcedfe",
+    "gas.out": "48484ee2ba120b629d61e3ecd140646b6779592092402f35c828337421aec7cf"
+  },
+  "runtime": {
+    "binary_path": "/home/axie/xtb/xtb-dist/bin/xtb",
+    "binary_sha256": "debf27a9e0fa4bfb5ca75aafe4b90d8211f08ec2f4a482f375a4987212eaa12a",
+    "version": "6.7.1 (edcfbbe) compiled by 'albert@albert-system' on 2024-07-22",
+    "version_banner_sha256": "f47686023e4be88b6e2241c9a2660fffe132a193f8873d3890594b8f9ca0dd91"
+  },
+  "schema_version": 1,
+  "status": "excluded-from-no-fit-core-before-accuracy"
+}

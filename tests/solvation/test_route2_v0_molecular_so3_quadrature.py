@@ -6,6 +6,12 @@ from dataclasses import replace
 import numpy as np
 import pytest
 
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_external_potential import (
+    Route2V0MolecularSolventReference,
+)
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_site_hnc import (
+    build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_so3_quadrature import (
     Route2V0CartesianEulerProductQuadrature,
     Route2V0EulerSO3Quadrature,
@@ -133,4 +139,79 @@ def test_euler_so3_quadrature_is_deterministic_and_fails_closed_for_invalid_orde
         Route2V0CartesianEulerProductQuadrature(
             grid=_grid(),
             orientation_quadrature=None,
+        )
+
+
+def test_cartesian_euler_cubic_bspline_site_map_preserves_bulk_multiplicity():
+    grid = _grid()
+    product = build_route2_v0_cartesian_euler_product_quadrature(
+        grid=grid,
+        polar_order=2,
+    )
+    solvent = Route2V0MolecularSolventReference(
+        atomic_numbers=np.array([8, 1, 1]),
+        site_charges_e=np.array([-0.8, 0.4, 0.4]),
+        reference_positions_bohr=np.array(
+            [[0.0, 0.0, 0.0], [1.2, 0.1, 0.0], [-0.3, 1.1, 0.2]]
+        ),
+        provenance_label="synthetic rigid water-like B-spline projection control",
+    )
+    occupancy = build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy(
+        cartesian_euler_quadrature=product,
+        solvent=solvent,
+        solvent_site_type_indices=np.array([0, 1, 1]),
+        site_count=2,
+    )
+
+    assert occupancy.shape == (
+        2,
+        *grid.shape,
+        product.configurations.configuration_count,
+    )
+    assert np.all(occupancy >= 0.0)
+    flat = occupancy.reshape(
+        (2, grid.point_count, product.configurations.configuration_count)
+    )
+    np.testing.assert_allclose(
+        np.sum(flat, axis=1),
+        np.broadcast_to(
+            np.array([[1.0], [2.0]]), (2, product.configurations.configuration_count)
+        ),
+        rtol=0.0,
+        atol=2.0e-14,
+    )
+
+    molecular_density = 0.123
+    uniform_configuration_density = molecular_density / (8.0 * math.pi**2)
+    projected = (
+        np.einsum(
+            "agi,i,i->ag",
+            flat,
+            product.quadrature.phase_space_weights_bohr3,
+            np.full(
+                product.configurations.configuration_count,
+                uniform_configuration_density,
+            ),
+            optimize=True,
+        )
+        / grid.volume_element_bohr3
+    ).reshape((2, *grid.shape))
+    np.testing.assert_allclose(
+        projected,
+        np.stack(
+            (
+                np.full(grid.shape, molecular_density),
+                np.full(grid.shape, 2.0 * molecular_density),
+            )
+        ),
+        rtol=0.0,
+        atol=5.0e-14,
+    )
+
+    with pytest.raises(ValueError, match="Every HNC site type"):
+        build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy(
+            cartesian_euler_quadrature=product,
+            solvent=solvent,
+            solvent_site_type_indices=np.array([0, 0, 0]),
+            site_count=2,
         )

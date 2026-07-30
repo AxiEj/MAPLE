@@ -543,7 +543,7 @@ def test_molecular_site_hnc_rejects_inconsistent_measure_or_occupancy_and_bad_it
         )
 
     functional = _functional()
-    with pytest.raises(ValueError, match="nonnegative integer"):
+    with pytest.raises(TypeError, match="nonnegative integer"):
         functional.stationary_state(
             np.full(2, functional.projection.uniform_configuration_density_bohr3),
             iterations=True,

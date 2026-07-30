@@ -45,11 +45,16 @@ from .route2_v0_mace_cluster_external_potential import (
     Route2V0MaceClusterMolecularExternalPotential,
     Route2V0MaceZeroFieldSourceProvenance,
 )
+from .route2_v0_molecular_external_potential import Route2V0MolecularConfigurations
 from .route2_v0_molecular_ideal_gas import Route2V0MolecularConfigurationQuadrature
 from .route2_v0_molecular_site_hnc import (
     Route2V0MolecularSiteHNCFunctional,
     Route2V0MolecularSiteHNCState,
     Route2V0MolecularSiteProjection,
+    build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy,
+)
+from .route2_v0_molecular_so3_quadrature import (
+    Route2V0CartesianEulerProductQuadrature,
 )
 from .route2_v0_molecular_stability import (
     Route2V0MolecularHessianStabilityCertificate,
@@ -95,6 +100,19 @@ def _same_grid(left: RegularCartesianGrid, right: RegularCartesianGrid) -> bool:
         and left.layout == right.layout
         and np.array_equal(left.origin_bohr, right.origin_bohr)
         and np.array_equal(left.spacing_bohr, right.spacing_bohr)
+    )
+
+
+def _same_configurations(
+    left: Route2V0MolecularConfigurations,
+    right: object,
+) -> bool:
+    """Return whether two molecular configuration grids are exactly identical."""
+
+    return bool(
+        isinstance(right, Route2V0MolecularConfigurations)
+        and np.array_equal(left.translations_bohr, right.translations_bohr)
+        and np.array_equal(left.rotations, right.rotations)
     )
 
 
@@ -390,6 +408,90 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
             self,
             "_functional",
             Route2V0MolecularSiteHNCFunctional(projection),
+        )
+
+    @classmethod
+    def from_cartesian_euler_cubic_bspline_occupancy(
+        cls,
+        *,
+        frozen_solvent_asset: Route2V0FrozenSolventAsset,
+        external_potential: Route2V0MaceClusterMolecularExternalPotential,
+        rism_kernel: Route2V0RismEnergyConjugateKernel,
+        cartesian_euler_quadrature: Route2V0CartesianEulerProductQuadrature,
+    ) -> Route2V0MaceClusterRismMolecularHNCBridge:
+        """Construct the bridge from the fixed full-SO(3) ``C2`` reference map.
+
+        This is the only convenience construction that derives occupancy from
+        the declared Cartesian/Euler product rather than accepting a
+        hand-written tensor.  It preserves the current explicit dense control
+        representation; a later matrix-free production route must preserve the
+        same product measure, periodic cubic B-spline map, and adjoint rather
+        than silently changing the liquid scalar.
+        """
+
+        if not isinstance(frozen_solvent_asset, Route2V0FrozenSolventAsset):
+            raise TypeError("MACE/RISM product bridge requires a frozen solvent asset.")
+        if not isinstance(
+            external_potential,
+            Route2V0MaceClusterMolecularExternalPotential,
+        ):
+            raise TypeError(
+                "MACE/RISM product bridge requires a zero-field MACE molecular "
+                "external potential."
+            )
+        if not isinstance(rism_kernel, Route2V0RismEnergyConjugateKernel):
+            raise TypeError("MACE/RISM product bridge requires an RISM kernel.")
+        if not isinstance(
+            cartesian_euler_quadrature,
+            Route2V0CartesianEulerProductQuadrature,
+        ):
+            raise TypeError(
+                "MACE/RISM product bridge requires a Cartesian Euler product "
+                "quadrature."
+            )
+        if not _same_grid(cartesian_euler_quadrature.grid, rism_kernel.grid):
+            raise ValueError(
+                "MACE/RISM product bridge requires its Cartesian Euler grid to "
+                "equal the RISM grid."
+            )
+        if not _same_grid(
+            cartesian_euler_quadrature.grid,
+            external_potential.integration_grid,
+        ):
+            raise ValueError(
+                "MACE/RISM product bridge requires its Cartesian Euler grid to "
+                "equal the MACE external-potential grid."
+            )
+        if not _same_configurations(
+            cartesian_euler_quadrature.configurations,
+            external_potential.configurations,
+        ):
+            raise ValueError(
+                "MACE/RISM product bridge requires its Cartesian Euler "
+                "configurations to equal the MACE external-potential grid."
+            )
+        frozen_solvent_asset.verify_integrity()
+        _require_molecular_hnc_closure(frozen_solvent_asset)
+        metadata = rism_kernel.short_range.radial.metadata
+        canonical_reference = frozen_solvent_asset.molecular_reference
+        type_indices = _molecular_site_type_indices(
+            molecular_site_type_names=canonical_reference.rism_site_type_names,
+            source_site_names=metadata.site_names,
+            source_site_multiplicity=metadata.site_multiplicity,
+            molecular_site_count=external_potential.solvent.site_count,
+        )
+        occupancy = build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy(
+            cartesian_euler_quadrature=cartesian_euler_quadrature,
+            solvent=external_potential.solvent,
+            solvent_site_type_indices=type_indices,
+            site_count=rism_kernel.site_hnc_asset.site_count,
+        )
+        return cls(
+            frozen_solvent_asset=frozen_solvent_asset,
+            external_potential=external_potential,
+            rism_kernel=rism_kernel,
+            quadrature=cartesian_euler_quadrature.quadrature,
+            site_occupancy_weights=occupancy,
         )
 
     @property

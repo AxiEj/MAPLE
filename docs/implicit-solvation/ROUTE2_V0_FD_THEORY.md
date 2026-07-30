@@ -2290,6 +2290,67 @@ controlled reference representation; production-scale use still requires a
 separately validated matrix-free implementation that preserves the same
 quadrature and adjoint identities.
 
+#### 4.2.23 Periodic \(C^2\) molecular-site deposition
+
+The configuration-to-site map cannot be left as a hand-written occupancy
+tensor.  Nearest-grid-point deposition is discontinuous in a moving molecular
+site, and linear cloud-in-cell deposition has a derivative discontinuity at a
+grid plane.  Both defects would be numerical artifacts in the common scalar
+and would obstruct the later force/PES gate.  For the standard Cartesian/Euler
+product rule, V0 therefore uses the periodic cardinal cubic B-spline map
+
+\[
+D_{g i}=
+\prod_{\alpha\in\{x,y,z\}}
+B_3\!\left(
+\frac{r_{i\alpha}-r_{g\alpha}}{h_\alpha}
+\right),
+\]
+
+with the four compact support nodes in each Cartesian direction accumulated
+modulo the periodic grid extent.  The cardinal spline has
+
+\[
+B_3\ge0,
+\qquad
+\sum_g D_{g i}=1,
+\qquad
+D_{g i}\in C^2(\mathbf r_i).
+\]
+
+Its product stencil has \(4^3=64\) entries per deposited point.  Small
+periodic axes can map multiple stencil entries to the same node; those entries
+are **added**, not overwritten, so the partition-of-unity identity remains
+true for every controlled grid shape.  For any grid field \(v\) and pointwise
+coefficients \(d\), the implementation exposes the exact discrete adjoint
+
+\[
+\sum_g v_g(Dd)_g
+=
+\sum_i(D^Tv)_i d_i.
+\]
+
+`route2_v0_periodic_bspline.py` stores this compact stencil and provides both
+the forward/adjoint action and an explicit dense reference matrix.  The
+standard `Route2V0CartesianEulerProductQuadrature` construction uses it to
+derive the molecular-site occupancy directly from the frozen rigid solvent
+geometry, its source-bound site-type map, every Cartesian translation, and
+every positive Haar orientation weight.  Hence a uniform molecular
+configuration density maps exactly to the declared site-density bulk state;
+the `from_cartesian_euler_cubic_bspline_occupancy` MACE/RISM bridge path
+rejects any configuration or grid that differs from this product before it
+constructs the scalar.
+
+The spline has no solvent-dependent width, cavity radius, learned coefficient,
+or solvation-label adjustment.  It is a fixed numerical representation whose
+Cartesian/orientation refinements remain preregistered numerical convergence
+tests.  The dense tensor remains a controlled small-grid reference; a
+production implementation must be matrix-free but reproduce the same
+partition, product measure, and adjoint.  Finally, \(C^2\) deposition alone
+does not certify a liquid force: explicit coordinate derivatives of any moving
+cavity, coordinate-dependent liquid functional, or approximation to the MACE
+external potential still belong to the same scalar before a PES claim.
+
 
 ### 4.3 Separate auxiliary-QM liquid-difference route
 

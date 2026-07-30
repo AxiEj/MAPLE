@@ -31,6 +31,9 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_ide
     RIGID_MOLECULAR_ORIENTATION_MEASURE,
     Route2V0MolecularConfigurationQuadrature,
 )
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_so3_quadrature import (
+    build_route2_v0_cartesian_euler_product_quadrature,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_thermodynamics import (
     V0_MOLECULAR_HNC_FIXED_SOLUTE_THERMODYNAMICS,
     molecular_hnc_bulk_functional_pressure_hartree_per_bohr3,
@@ -175,6 +178,80 @@ def _bridge(
         quadrature=quadrature,
         site_occupancy_weights=occupancy,
     )
+
+
+def test_mace_rism_bridge_derives_its_standard_full_so3_cubic_bspline_map(
+    tmp_path: Path,
+):
+    asset = _asset(tmp_path)
+    grid = RegularCartesianGrid(
+        origin_bohr=np.array([-4.0, -4.0, -4.0]),
+        spacing_bohr=np.full(3, 8.0),
+        shape=(2, 2, 2),
+    )
+    product = build_route2_v0_cartesian_euler_product_quadrature(
+        grid=grid,
+        polar_order=1,
+    )
+    external = evaluate_route2_v0_mace_cluster_molecular_external_potential(
+        calculator=_FakeZeroFieldMACE(),
+        integration_grid=grid,
+        solute_atomic_numbers=np.array([1]),
+        solute_atom_positions_angstrom=np.array([[-1.0, 0.0, 0.0]]),
+        solvent=asset.molecular_reference.molecular_reference,
+        configurations=product.configurations,
+    )
+    bridge = Route2V0MaceClusterRismMolecularHNCBridge.from_cartesian_euler_cubic_bspline_occupancy(
+        frozen_solvent_asset=asset,
+        external_potential=external,
+        rism_kernel=build_route2_v0_asset_bound_rism_kernel(
+            frozen_solvent_asset=asset,
+            grid=grid,
+        ),
+        cartesian_euler_quadrature=product,
+    )
+
+    assert bridge.quadrature is product.quadrature
+    assert bridge.projection.site_multiplicity.tolist() == [1, 2]
+    occupancy = bridge.projection.site_occupancy_weights.reshape(
+        (2, grid.point_count, product.configurations.configuration_count)
+    )
+    np.testing.assert_allclose(
+        np.sum(occupancy, axis=1),
+        np.broadcast_to(
+            np.array([[1.0], [2.0]]),
+            (2, product.configurations.configuration_count),
+        ),
+        rtol=0.0,
+        atol=2.0e-14,
+    )
+    uniform = np.full(
+        product.configurations.configuration_count,
+        bridge.projection.uniform_configuration_density_bohr3,
+    )
+    np.testing.assert_allclose(
+        bridge.projection.project_configuration_density(uniform),
+        np.broadcast_to(
+            bridge.rism_kernel.site_hnc_asset.bulk_number_density_bohr3.reshape(
+                (2, 1, 1, 1)
+            ),
+            (2, *grid.shape),
+        ),
+        rtol=1.0e-12,
+        atol=1.0e-14,
+    )
+
+    mismatched_product = build_route2_v0_cartesian_euler_product_quadrature(
+        grid=grid,
+        polar_order=2,
+    )
+    with pytest.raises(ValueError, match="configurations to equal"):
+        Route2V0MaceClusterRismMolecularHNCBridge.from_cartesian_euler_cubic_bspline_occupancy(
+            frozen_solvent_asset=asset,
+            external_potential=external,
+            rism_kernel=bridge.rism_kernel,
+            cartesian_euler_quadrature=mismatched_product,
+        )
 
 
 def _source_bound_weighted_density_inputs(tmp_path: Path):

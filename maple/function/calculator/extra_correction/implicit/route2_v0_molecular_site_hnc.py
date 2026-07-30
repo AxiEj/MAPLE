@@ -30,8 +30,9 @@ a force, PES, solvation free energy, or accuracy result.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import math
+from dataclasses import dataclass, field
+from typing import Any, cast
 
 import numpy as np
 
@@ -47,6 +48,12 @@ from .route2_v0_molecular_ideal_gas import (
     RIGID_MOLECULAR_ORIENTATION_MEASURE,
     Route2V0MolecularConfigurationQuadrature,
     Route2V0MolecularIdealGasFunctional,
+)
+from .route2_v0_molecular_so3_quadrature import (
+    Route2V0CartesianEulerProductQuadrature,
+)
+from .route2_v0_periodic_bspline import (
+    build_route2_v0_periodic_cubic_bspline_stencil,
 )
 from .route2_v0_site_hnc import (
     Route2V0SiteHNCAsset,
@@ -155,9 +162,9 @@ def _finite_positive_integer(value: object, *, name: str) -> int:
     """Validate one finite strictly positive integer."""
 
     if isinstance(value, (bool, np.bool_)):
-        raise ValueError(f"{name} must be a positive integer.")
+        raise TypeError(f"{name} must be a positive integer.")
     try:
-        integer = int(value)
+        integer = int(cast(Any, value))
     except (TypeError, ValueError, OverflowError) as exc:
         raise ValueError(f"{name} must be a positive integer.") from exc
     if integer != value or integer < 1:
@@ -165,13 +172,84 @@ def _finite_positive_integer(value: object, *, name: str) -> int:
     return integer
 
 
+def build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy(
+    *,
+    cartesian_euler_quadrature: Route2V0CartesianEulerProductQuadrature,
+    solvent: Route2V0MolecularSolventReference,
+    solvent_site_type_indices: np.ndarray,
+    site_count: int,
+) -> np.ndarray:
+    """Build a conservative ``C2`` site map for the standard V0 product rule.
+
+    The full Cartesian-times-Euler quadrature fixes the translation and Haar
+    weights.  Each rigid molecular atom is then deposited through the exact
+    periodic cubic B-spline partition of unity.  Thus every configuration
+    retains its declared site multiplicities, while a uniform configuration
+    density maps to a uniform site density without a preferred orientation,
+    random sample, or a fitted smoothing parameter.
+
+    The returned dense tensor is intentionally a controlled-grid reference.
+    Its compact B-spline stencils define the same operator a later matrix-free
+    production representation must preserve.
+    """
+
+    if not isinstance(
+        cartesian_euler_quadrature,
+        Route2V0CartesianEulerProductQuadrature,
+    ):
+        raise TypeError(
+            "Cubic B-spline molecular site occupancy requires a Cartesian Euler "
+            "product quadrature."
+        )
+    if not isinstance(solvent, Route2V0MolecularSolventReference):
+        raise TypeError(
+            "Cubic B-spline molecular site occupancy requires a solvent reference."
+        )
+    count = _finite_positive_integer(site_count, name="Molecular HNC site count")
+    type_indices = _site_type_indices(
+        solvent_site_type_indices,
+        site_count=count,
+        solvent_site_count=solvent.site_count,
+    )
+    grid = cartesian_euler_quadrature.grid
+    configurations = cartesian_euler_quadrature.configurations
+    occupancy = np.zeros(
+        (count, *grid.shape, configurations.configuration_count),
+        dtype=float,
+    )
+    site_positions = configurations.site_positions_bohr(solvent)
+    for molecule_site, site_type in enumerate(type_indices):
+        stencil = build_route2_v0_periodic_cubic_bspline_stencil(
+            grid=grid,
+            positions_bohr=site_positions[:, molecule_site, :],
+        )
+        occupancy[site_type] += stencil.dense_occupancy_weights()
+    multiplicity = np.bincount(type_indices, minlength=count)
+    occupancy_flat = occupancy.reshape(
+        (count, grid.point_count, configurations.configuration_count)
+    )
+    if not np.allclose(
+        np.sum(occupancy_flat, axis=1),
+        multiplicity[:, None],
+        rtol=0.0,
+        atol=1.0e-12 * max(1.0, float(np.max(multiplicity))),
+    ):
+        raise RuntimeError(
+            "Periodic cubic B-spline molecular site occupancy violates its "
+            "declared site multiplicities."
+        )
+    result = np.array(occupancy, dtype=float, copy=True)
+    result.setflags(write=False)
+    return result
+
+
 def _nonnegative_integer(value: object, *, name: str) -> int:
     """Validate one finite nonnegative integer."""
 
     if isinstance(value, (bool, np.bool_)):
-        raise ValueError(f"{name} must be a nonnegative integer.")
+        raise TypeError(f"{name} must be a nonnegative integer.")
     try:
-        integer = int(value)
+        integer = int(cast(Any, value))
     except (TypeError, ValueError, OverflowError) as exc:
         raise ValueError(f"{name} must be a nonnegative integer.") from exc
     if integer != value or integer < 0:
@@ -795,8 +873,9 @@ class Route2V0MolecularSiteHNCFunctional:
 
 
 __all__ = [
+    "V0_MOLECULAR_SITE_HNC_CONSTRUCTION",
     "Route2V0MolecularSiteHNCFunctional",
     "Route2V0MolecularSiteHNCState",
     "Route2V0MolecularSiteProjection",
-    "V0_MOLECULAR_SITE_HNC_CONSTRUCTION",
+    "build_route2_v0_cartesian_euler_cubic_bspline_site_occupancy",
 ]

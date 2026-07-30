@@ -113,14 +113,22 @@ def test_structured_solvent_admission_locks_the_no_training_boundary():
     assert "no random seed" in so3["source_boundary"]
     assert "automatic solvent-symmetry quotient" in so3["source_boundary"]
     assert "matrix-free production representation" in so3["not_a_physical_liquid_backend"]
+    bspline = foundation["periodic_cubic_bspline_deposition_control"]
+    assert bspline["module"].endswith("route2_v0_periodic_bspline")
+    assert "4^3 nonnegative nodes" in bspline["capability"]
+    assert "C2" in bspline["capability"]
+    assert "hand-written physical occupancy tensor" in bspline["source_boundary"]
+    assert "production matrix-free scaling" in bspline["not_a_physical_liquid_backend"]
     molecular_hnc = foundation["molecular_site_hnc_variational_bridge_control"]
     assert molecular_hnc["module"].endswith("route2_v0_molecular_site_hnc")
     assert "periodic-cell times 8*pi^2 measure" in molecular_hnc["capability"]
+    assert "periodic C2 cubic B-spline" in molecular_hnc["capability"]
     assert "projection adjoint" in molecular_hnc["capability"]
     assert "quadrature-self-adjoint HNC Hessian-vector product" in molecular_hnc[
         "capability"
     ]
     assert "exactly equal" in molecular_hnc["source_boundary"]
+    assert "Cartesian-Euler construction rejects" in molecular_hnc["source_boundary"]
     assert "raw 1D-RISM Cvv table is rejected" in molecular_hnc["source_boundary"]
     assert "total solvation free energy" in molecular_hnc[
         "not_a_physical_liquid_backend"

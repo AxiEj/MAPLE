@@ -1,0 +1,70 @@
+{
+  "protocol_id": "route2-v0-mace-mdp-acetone-derivatives-prereg-v1",
+  "schema_version": 1,
+  "status": "frozen-before-execution",
+  "claim_boundary": "This one-acetone gas-phase MACE-MDP derivative audit tests only the frozen calculator's dipole/polarizability coordinate derivative path against central finite differences over all Cartesian nuclear components. It invokes no model energy, force, GTO/density source, PCM/continuum, experimental solvation label, fitting, calibration, or solvation prediction. A pass can admit only explicit frozen property-coefficient derivatives to later common-scalar force gates; it cannot certify a force, PES, runtime, or chemical accuracy.",
+  "hard_constraints": {
+    "mace_mdp_treated_as_an_energy_or_force_model": false,
+    "gto_density_or_pcm_source_constructed": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "post_training": false,
+    "fine_tuning": false,
+    "target_fit_or_calibration": false,
+    "finite_difference_step_selected_after_execution": false,
+    "derivative_rescaling_or_symmetrization": false,
+    "legacy_public_route_changed": false
+  },
+  "candidate_identity": {
+    "checkpoint": "MACE-MDP.model",
+    "calculator": "mace.calculators.mace.MACECalculator.get_dielectric_derivatives",
+    "model_type": "DipolePolarizabilityMACE",
+    "role": "candidate frozen coordinate derivatives of moment-functional coefficients only",
+    "strict_role_boundary": "The audit never requests a MACE-MDP energy or force. It cannot infer an energy from property derivatives, and it does not make a direct MACE-MDP force a valid Route-2 force."
+  },
+  "finite_difference_protocol": {
+    "system": "The frozen acetone geometry mobley_3867265 in route2-v0-qeq-acetone-qm-field-v1.json.",
+    "coordinate_step_angstrom": 0.0001,
+    "coordinates": "all 3N=30 Cartesian nuclear components",
+    "formula": "dX/dR_Ai=[X(R+h e_Ai)-X(R-h e_Ai)]/(2h), with X the public MACE-MDP dipole or row-major flattened 3x3 polarizability.",
+    "analytic_interface": "MACECalculator.get_dielectric_derivatives returns dmu/dR with shape (3,N,3) and dalpha/dR with shape (9,N,3).",
+    "translation_check": "For a translation-invariant property, sum_A dX/dR_Ai must vanish for every output component and Cartesian i."
+  },
+  "numerical_gates": {
+    "derivative_relative_frobenius_max": 1e-05,
+    "polarizability_derivative_antisymmetry_max": 1e-10,
+    "translation_relative_max": 1e-10,
+    "interpretation": "A failure rejects the frozen calculator derivative path as a coefficient derivative for this route. Do not change the finite-difference step, omit coordinates, smooth/symmetrize a derivative, add a force correction, or select an alternate property output after seeing the result."
+  },
+  "decision_rule": "If any numerical gate fails, reject the MACE-MDP property-coordinate derivative path for V0. Do not use it in an envelope force or compensate it with a fitted force/energy term. If all gates pass, admit only the derivative tensors as explicitly differentiated coefficients of a later independently defined moment/continuum scalar; a full KKT force must still include every c0, D, B, A, cavity, and gas-energy derivative and pass its own finite-difference/PES gates.",
+  "preexecution_disclosure": "The installed MACE source was inspected to establish the public derivative interface and declared tensor shapes. No derivative or coordinate finite-difference calculation has been executed before this preregistration, and no numerical result selected the step or thresholds.",
+  "execution_contract": {
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_mace_mdp_acetone_derivatives.py": "b5a4f277ad37e91db18c8c2c5951d52c0a35ce00e5a08ee62515ba0a51ce5fdf"
+    },
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0",
+      "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8",
+      "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/calculators/mace.py": "97b17cef8d5880071068d1a05a97f1d432ffc57db00d23ba86c2c3049114a8ad",
+      "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/modules/models.py": "a1e0958611bb4475b1739e6a9225677617c05d3df2b2724f27ba3c048240f1d7",
+      "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/mace/modules/utils.py": "3869dffa17a556365365ae56451143ff1808e053aa73f305db792548c566bff0"
+    },
+    "model": {
+      "path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+      "size_bytes": 51716861
+    },
+    "runtime": {
+      "versions": {
+        "ase": "3.27.0",
+        "mace_torch": "0.3.16",
+        "numpy": "2.4.6",
+        "torch": "2.12.0+cu130"
+      },
+      "device": "cpu",
+      "default_dtype": "float64",
+      "torch_force_no_weights_only_load": "1"
+    }
+  }
+}

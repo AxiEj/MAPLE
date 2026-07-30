@@ -1,0 +1,264 @@
+{
+  "artifact": "route2-v0-atomic-displacement-source-acetone-v1",
+  "candidate_by_direction": {
+    "x": {
+      "candidate_induced_dipole_bohr3": [
+        36.905898997635774,
+        0.8876925817469359,
+        4.436610841831118
+      ],
+      "candidate_potential_response_sha256": "5dfc60b186d3292b18e4b321e7e840de857399ece25efa692677047e37c6dde0"
+    },
+    "y": {
+      "candidate_induced_dipole_bohr3": [
+        0.8876925817469359,
+        45.9880541355774,
+        -0.4850378146052551
+      ],
+      "candidate_potential_response_sha256": "49bf46f7feb4739cf517cc4fd90aaf82ed61717f29462ccfaae48eff12b3b2cc"
+    },
+    "z": {
+      "candidate_induced_dipole_bohr3": [
+        4.436610841831118,
+        -0.48503781460525397,
+        43.79636563006934
+      ],
+      "candidate_potential_response_sha256": "f47d5da720091e6c885a7f3f2b2be95bc84e4e2823f47eaf3d42ae346679fe6f"
+    }
+  },
+  "claim_boundary": "This one-acetone gas-phase source-representer falsifier compares a frozen MACE-MDP raw polarizability and exact atomic induced-dipole partition, distributed through a reproducible free-atom Hartree-Fock electron-translation-tangent radial potential, against independent fixed-geometry QM finite-field induced electrostatic potential at all 516 frozen exterior points. It invokes no continuum response, PCM energy, implicit solvent, experimental solvation label, model-energy/force claim, radial width, parameter calibration, training, fine tuning, total solvation prediction, or public Route-2 profile. A pass can admit only this exact source to a later same-basis common-scalar/KKT gate; it cannot establish chemical accuracy.",
+  "comparison_by_qm_field_step": {
+    "1.0e-03": {
+      "x": {
+        "dipole_response_relative_error": 0.004279593802079507,
+        "mep_response_relative_error": 0.15238388636619613,
+        "qm_induced_dipole_bohr3": [
+          36.84464700080125,
+          0.8321192092797247,
+          4.572325213452189
+        ],
+        "qm_potential_response_sha256": "5bc3c7cf8fdc70ea532525fd60fdf5f8d3daa57ebd530981c9a5e7b0a61c9901"
+      },
+      "y": {
+        "dipole_response_relative_error": 0.004146161891467093,
+        "mep_response_relative_error": 0.1611107457730275,
+        "qm_induced_dipole_bohr3": [
+          0.8322811447656342,
+          46.170551637521484,
+          -0.5019535230204042
+        ],
+        "qm_potential_response_sha256": "ee7975fb4eaa6f56d9f711cc2bb691e950067fd2c8176821263a2930baef7a9a"
+      },
+      "z": {
+        "dipole_response_relative_error": 0.0032342498945526544,
+        "mep_response_relative_error": 0.12856733833532255,
+        "qm_induced_dipole_bohr3": [
+          4.572483067331934,
+          -0.5021435967051957,
+          43.83596404696988
+        ],
+        "qm_potential_response_sha256": "967bca67faca49f4802f7dfa8517112f66c14c2960a833d590fb67e34aea8f1d"
+      }
+    },
+    "3.0e-04": {
+      "x": {
+        "dipole_response_relative_error": 0.004281685231875234,
+        "mep_response_relative_error": 0.152390221966473,
+        "qm_induced_dipole_bohr3": [
+          36.84393885122095,
+          0.8321336110069429,
+          4.5720967736428975
+        ],
+        "qm_potential_response_sha256": "ca3891b587016a25a1ec7aae97c25a6b9664564c043786048f53a6b79823ff0e"
+      },
+      "y": {
+        "dipole_response_relative_error": 0.004120299666267765,
+        "mep_response_relative_error": 0.1611208414744773,
+        "qm_induced_dipole_bohr3": [
+          0.8320945283054234,
+          46.16922064071124,
+          -0.5021091672574585
+        ],
+        "qm_potential_response_sha256": "2c3174dae7c28cffc67ae4f245d9a0bb51653de7eb17ea7404771cf05650b9cc"
+      },
+      "z": {
+        "dipole_response_relative_error": 0.003217543382870505,
+        "mep_response_relative_error": 0.12857979668050606,
+        "qm_induced_dipole_bohr3": [
+          4.572110744701282,
+          -0.5021217073123789,
+          43.834563947982026
+        ],
+        "qm_potential_response_sha256": "b7f64688a2c620d5f9c349ee38938571418e8cee9943b23d91350bdfa0101765"
+      }
+    }
+  },
+  "executed_at_utc": "2026-07-30T17:17:26.323978+00:00",
+  "execution_git_head": "4aa493664ead9b16e10fafe172cda6c0e3ebddb9",
+  "hard_constraints": {
+    "atomic_response_fit_to_qm_mep": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "induced_monopoles_or_higher_multipoles_added": false,
+    "legacy_public_route_changed": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "post_training": false,
+    "raw_mace_mdp_response_symmetrized_rescaled_tempered_or_clipped": false,
+    "source_point_subset_selected_after_execution": false,
+    "target_fit_or_calibration": false,
+    "width_or_radial_response_selected_from_error": false
+  },
+  "input_files_sha256": {
+    "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-bohr.npy": "84d922d165965e92978bfc99c8435fd384f53868d61959d368737e5fa946f023",
+    "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-provenance.json": "f6e8afaaba80b7c9e2940f173d9b141b3cd0c7a532bc7b933dd6f04ae5603617",
+    "docs/implicit-solvation/benchmarks/reproducers/route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc",
+    "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-prereg-v2.json": "d995730243d3d6deec55ba7166f455dbd404c62327f829f1333b89292810673b",
+    "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2-reproducibility-audit.json": "5e4ff7e80f686126c200e890479fbed0ef74d6ad5431abc7f1e797a32e73c7eb",
+    "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.json": "6e51af89844fdd4a29ae10e9b3dc1ab5c5437b1d6d93aec894313dedfff9f9d0",
+    "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.npz": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319",
+    "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+    "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0"
+  },
+  "numerical_checks": {
+    "atomic_partition_moment_identity": {
+      "maximum": 1e-12,
+      "passes": true,
+      "value": 4.058856763659466e-17
+    },
+    "atomic_partition_response_identity": {
+      "maximum": 1e-12,
+      "passes": true,
+      "value": 9.019494489765868e-16
+    },
+    "qm_dipole_step_consistency_relative_frobenius": {
+      "maximum": 0.02,
+      "passes": true,
+      "value": 2.8671238698061033e-05
+    },
+    "qm_mep_step_consistency_relative_frobenius": {
+      "maximum": 0.02,
+      "passes": true,
+      "value": 1.5554962161830173e-05
+    }
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-source-acetone-prereg-v1.json",
+    "protocol_id": "route2-v0-atomic-displacement-source-acetone-prereg-v1",
+    "sha256": "5c448020ece45f42b35d9a12a3c5175306ebb2c9194264c899e061e37c8b7cf0"
+  },
+  "runtime": {
+    "boundary": "This is an array-level gas-phase QM-MEP source falsifier using frozen raw QM data; it is not an end-to-end Route-2 or QM runtime comparison.",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d"
+  },
+  "schema_version": 1,
+  "scientific_falsification": {
+    "admission_boundary": "A pass admits only this exact frozen source to a separately registered same-basis common-scalar/KKT, continuum-duality, and force gate. It does not establish a molecular density, stable energy functional, PCM result, force/PES result, nonpolar term, or experimental solvation accuracy.",
+    "checks": {
+      "induced_dipole_response_relative_frobenius": {
+        "maximum": 0.2,
+        "passes": true,
+        "value": 0.003867862176415407
+      },
+      "mep_response_relative_direction_max": {
+        "maximum": 0.3,
+        "passes": true,
+        "value": 0.1611208414744773
+      },
+      "mep_response_relative_frobenius": {
+        "maximum": 0.2,
+        "passes": true,
+        "value": 0.1484314508938934
+      }
+    },
+    "passes_all_registered_checks": true,
+    "verdict": "admit-frozen-atomic-displacement-source-to-same-basis-common-scalar-kkt-gates-only"
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/run_route2_v0_atomic_displacement_source_acetone.py": "8da533de9723fe03edc8073dd1601ac07bbba6213e65914314ff32f3e7dc0b78",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_response.py": "044bdf69a03db6b80f6de0cc30ba30ad7c6ae01cde9a65a868784525ff73046f"
+  },
+  "source_representation": {
+    "atomic_dipole_partition": "p_a=W_a p from frozen MACE-MDP atomic map; no reweighting",
+    "construction": "frozen-free-atom-electron-translation-tangent",
+    "molecular_dipole_response": "p=alpha_MDP f with the raw frozen MACE-MDP tensor; no symmetrization, rescaling, clipping, or fit",
+    "potential": "sum_a (p_a dot (r-R_a)) N_Za(|r-R_a|)/(Z_a |r-R_a|^3)",
+    "radial_asset": "route2-v0-atomic-displacement-hf-def2-tzvpd-v2",
+    "source_point_boundary": "All 516 frozen exterior points are QM-MEP validation points only; no PCM surface, cavity selection, or continuum response is evaluated.",
+    "table_manifest_sha256": "6e51af89844fdd4a29ae10e9b3dc1ab5c5437b1d6d93aec894313dedfff9f9d0",
+    "table_sha256": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319"
+  },
+  "status": "pass",
+  "system": {
+    "atom_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "compound_id": "mobley_3867265",
+    "name": "acetone",
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ],
+    "source_point_count": 516,
+    "source_points_bohr_sha256": "daf77eb1d38a5c47ff0025a59ba56b28488e6dd8ee3d7c1302e2ddaa78d92ea1"
+  }
+}

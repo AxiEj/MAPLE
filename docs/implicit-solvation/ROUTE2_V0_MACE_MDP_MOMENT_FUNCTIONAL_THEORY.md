@@ -3,10 +3,13 @@
 ## Status and boundary
 
 This document records the coefficient-only V0 branch opened by the frozen
-MACE-MDP acetone screen. Its first attempted induced-density realization has
-now been **rejected before PCM**. Consequently this is a **theory and
-admission contract**, not an admitted electronic implementation, a public
-Route-2 calculator, a total-solvation result, or an accuracy claim.
+MACE-MDP acetone screen. Its inherited one-radial Gaussian induced-density
+realization has been **rejected before PCM**. A distinct physical free-atom
+translation-tangent source now passes one acetone gas-phase QM-MEP falsifier,
+but still has no same-basis dual, KKT/continuum, force, or broad physics
+certificate. Consequently this remains a **theory and admission contract**,
+not an admitted electronic implementation, a public Route-2 calculator, a
+total-solvation result, or an accuracy claim.
 
 The sealed artifact
 [`route2-v0-mace-mdp-acetone-response-v1.json`](benchmarks/route2-v0-mace-mdp-acetone-response-v1.json)
@@ -75,13 +78,55 @@ its QM-dipole bookkeeping erratum is preserved separately and does not change
 either failed MEP gate. The rejected map must not enter a KKT solve, a PCM
 calculation, or any experimental accuracy panel.
 
+## V0-ADT: a source-provenanced radial successor
+
+The new
+[`route2-v0-atomic-displacement-source-acetone-v1.json`](benchmarks/route2-v0-atomic-displacement-source-acetone-v1.json)
+does not select a Gaussian width. For each supported atom it starts from a
+frozen, independently generated spherical free-atom HF electron density
+\(n_Z(r)\), tabulates
+
+\[
+N_Z(r)=4\pi\int_0^r n_Z(s)s^2\,ds,
+\]
+
+and uses the exact infinitesimal electron-translation tangent for the frozen
+atom dipole \(p_a=W_ap\):
+
+\[
+V_{\rm ADT}(\mathbf r)=
+\sum_a
+\frac{p_a\cdot(\mathbf r-\mathbf R_a)}
+     {Z_a|\mathbf r-\mathbf R_a|^3}
+N_{Z_a}(|\mathbf r-\mathbf R_a|).
+\]
+
+Two preregistered one-thread generations gave a byte-identical radial asset.
+At every one of the frozen 516 exterior acetone QM-MEP points, its field
+response passes the already registered gates:
+
+\[
+\operatorname{relerr}_F(V_{\rm ADT},V_{\rm QM})=0.1484314509<0.20,
+\qquad
+\max_{\hat E}\operatorname{relerr}=0.1611208415<0.30.
+\]
+
+The molecular induced-dipole mismatch is still
+\(0.0038678622<0.20\). This is a positive **source-level** result: replacing
+the guessed radial shape resolves the observed acetone near-field failure
+without fitting or retraining. It is not a density-basis or scalar result.
+The table is not yet a GTO coefficient vector, does not expose an exact
+continuum transpose, and has not been tested on the frozen twelve-record
+physics panel. It must not enter PCM/KKT, force, or experimental-accuracy
+work yet.
+
 ## Conditional rank-three scalar
 
 The following rank-three construction explains the common-energy requirement,
-but it is **not admitted**: its only concrete one-radial \(D_{\mathbf R}\)
-realization was rejected above. A full response-kernel successor will use
-\(\delta c=-C_{\mathbf R}f\) rather than infer the entire response from three
-columns of \(D_{\mathbf R}\).
+but it is **not admitted**: V0-ADT has only a real-space source potential, not
+the required one-basis \(D_{\mathbf R}\) and transpose. A full response-kernel
+successor will use \(\delta c=-C_{\mathbf R}f\) rather than infer the entire
+response from three columns of \(D_{\mathbf R}\).
 
 Let \(c_0(\mathbf R)\) be a frozen gas-phase density coefficient vector in a
 single GTO source/dual basis. It must already satisfy
@@ -158,11 +203,12 @@ it is not imposed on a learned fixed-point Jacobian.
 
 ## Non-negotiable source-map rule
 
-The **radial density representer** in \(D_{\mathbf R}\) remains unresolved;
-the one-radial candidate has been rejected and the atomic Cartesian partition
-is no longer guessed. A point dipole, another guessed Gaussian width, an
-error-selected atomic partition, a higher-multipole add-on, or a projection
-that changes after viewing solvation errors is forbidden.
+The **same-basis radial density representer** in \(D_{\mathbf R}\) remains
+unresolved. V0-ADT fixes a physical real-space radial translation tangent;
+the inherited one-radial Gaussian has been rejected and the atomic Cartesian
+partition is no longer guessed. A point dipole, another guessed Gaussian
+width, an error-selected atomic partition, a higher-multipole add-on, or a
+projection that changes after viewing solvation errors is forbidden.
 
 This is an identifiability boundary, not a request to search widths. The
 MACE-MDP tensor fixes only the three-dimensional projected response
@@ -171,8 +217,11 @@ MACE-MDP tensor fixes only the three-dimensional projected response
 the high-dimensional null space of \(M_{\mathbf R}\), which controls the
 near-field potential. The one-radial failure is the executable counterexample:
 matching the complete molecular dipole response does not identify a correct
-response density. A successor therefore needs a separately source-provenanced
-full response kernel, not another moment-preserving representer.
+response density. V0-ADT shows that independently sourced radial physics can
+resolve this ambiguity on acetone; it must now either acquire an exact
+source/dual basis and pass broad physics, or be rejected. A separately
+source-provenanced full response kernel remains the fallback, not an invitation
+to add an error-selected moment-preserving representer.
 
 Any future rank-three representer must reproduce the frozen
 \(p_a=W_ap\) partition above under a uniform field and provide a
@@ -238,12 +287,14 @@ advantage.
 
 ## Ordered admission path to accuracy
 
-1. Source-bind and pre-register a full induced-density kernel, then implement
-   its non-arbitrary \(D_{\mathbf R}\) with the identities above. The rejected
-   one-radial map is not a starting point for a parameter sweep and may not be
-   used to choose its successor.
-2. Couple it to the existing reciprocal GTO/continuum primitive and demonstrate
-   \(K_p\succ0\), one energy ledger, and envelope forces.
+1. Convert the source-provenanced V0-ADT real-space tangent into one
+   non-arbitrary source/dual basis and verify every identity above. The
+   rejected one-radial map is not a starting point for a parameter sweep and
+   may not be used to choose a projection. If V0-ADT cannot pass this gate,
+   source-bind and pre-register the full induced-density-kernel fallback.
+2. Couple the admitted representation to the reciprocal GTO/continuum
+   primitive and demonstrate \(K_p\succ0\), one energy ledger, and envelope
+   forces.
 3. Extend the **physics** validation over the frozen twelve-record,
    ten-actual-functional-group geometries with QM response/MEP/PCM component
    references. This is not an experimental accuracy panel and must not read

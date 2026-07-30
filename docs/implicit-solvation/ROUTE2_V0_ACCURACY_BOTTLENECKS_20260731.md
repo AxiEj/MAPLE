@@ -2,9 +2,12 @@
 
 ## Status
 
-There is **no valid current Route-2V0 solvation-accuracy value**. The only
-honest answer to an accuracy question today is that the required physical
-source and total free-energy scalar do not yet exist.
+There is **no valid current Route-2V0 solvation-accuracy value**. A
+free-atom translation-tangent source has now passed one preregistered acetone
+**gas-phase QM-MEP physics canary**, but it is not yet in a common
+source/dual basis, has no KKT/continuum/force proof, and has not passed the
+required multi-functional-group physics panel. It therefore cannot be used to
+quote a solvation error.
 
 Two retained historical values must not be confused with progress:
 
@@ -21,13 +24,12 @@ Neither number may be used to rank V0 or to justify an accuracy run.
 ## The observed bottleneck
 
 The frozen MACE-MDP tensor accurately predicts the acetone **molecular**
-dipole polarizability. Its first mathematically exact density embedding does
+dipole polarizability. Its first mathematically exact density embedding did
 not predict the corresponding **spatial** response: the preregistered vacuum
-QM MEP errors are \(0.4597926523\) in relative Frobenius norm and
+QM MEP errors were \(0.4597926523\) in relative Frobenius norm and
 \(0.4965624773\) in worst field direction, above the respective \(0.20\) and
-\(0.30\) ceilings. The source still preserves net charge, induced molecular
-dipole, source potential construction, and continuum duality at float64
-precision.
+\(0.30\) ceilings. That inherited one-radial Gaussian source remains
+permanently rejected.
 
 This is the key diagnosis:
 
@@ -48,11 +50,46 @@ polarizability densities retain information that can be hidden by the
 integral. See [ISA-Pol](https://arxiv.org/abs/1806.06737) and
 [origin-independent polarizability densities](https://doi.org/10.1021/acs.jpclett.1c02545).
 
-## The only fast no-fit electronic candidate worth testing next
+## What has now passed — and what has not
 
-The next candidate is called **V0-RK**. It is not implemented and is not
-admitted to PCM. Its purpose is to make the missing spatial response an
-explicit physical asset rather than a guessed Gaussian.
+The preregistered
+[`route2-v0-atomic-displacement-source-acetone-v1.json`](benchmarks/route2-v0-atomic-displacement-source-acetone-v1.json)
+uses no fitted width. It translates independently generated spherical
+free-atom HF electron densities infinitesimally and distributes the frozen
+raw MACE-MDP induced dipole by the already identity-checked atomic partition.
+The radial asset was generated twice with a preregistered one-thread runtime
+and byte-identical archives before it was used.
+
+Against **all 516** frozen exterior acetone QM-MEP points, this source passes
+the predeclared physics ceilings:
+
+\[
+\frac{\|\partial_E V_{\rm ADT}-\partial_E V_{\rm QM}\|_F}
+     {\|\partial_E V_{\rm QM}\|_F}=0.1484314509<0.20,
+\qquad
+\max_{\hat E}\operatorname{relerr}=0.1611208415<0.30,
+\]
+
+while its induced-dipole mismatch remains
+\(0.0038678622<0.20\). This is evidence that the original accuracy bottleneck
+was the guessed spatial radial response, not a need for an experimental
+correction or a MACE-MDP re-fit.
+
+It is nevertheless only a **single-molecule source falsifier**. It is not a
+proof of transferable response, a full susceptibility kernel, a GTO
+coefficient representation, a continuum source, an energy functional, a
+force, or an accuracy result. The next implementation gate is to place this
+physical real-space source and its continuum dual in one differentiable basis
+without choosing a width or looking at solvation errors.
+
+## The remaining no-fit electronic construction
+
+The passing source is called **V0-ADT** (atomic displacement tangent). It is
+the first concrete physical radial response candidate, but it is not admitted
+to PCM. Its next gate is a same-basis source/dual construction. **V0-RK**
+remains the fallback full-kernel construction if V0-ADT fails the frozen
+multi-molecule QM physics panel or cannot be made energy-conjugate without an
+arbitrary projection.
 
 Let:
 
@@ -112,21 +149,24 @@ declared QM reference.
 
 ## Ordered evidence, before any experimental score
 
-1. **Source provenance:** freeze one physical \(C_0\) construction, basis,
-   elements, charge states, and hashes. No FreeSolv, MNSol, or target-solvent
-   labels may participate.
+1. **Source provenance:** freeze V0-ADT's physical radial tables, one
+   source/dual basis, supported elements/charge states, and hashes. If that
+   route fails, freeze one physical \(C_0\) construction instead. No FreeSolv,
+   MNSol, or target-solvent labels may participate.
 2. **Response physics:** prove charge conservation, Euclidean covariance,
-   \(C\succeq0\), atom/molecule moment identities, source/continuum duality,
-   and reciprocal/passive response.
+   atom/molecule moment identities, source/continuum duality, and reciprocal/
+   passive response. A full-kernel fallback must additionally prove
+   \(C\succeq0\).
 3. **QM spatial gate:** run finite-field density, MEP, induced-dipole, and
    reaction-potential tests on the already frozen twelve-record,
    ten-actual-functional-group geometry set. This is a physics panel, not an
-   experimental accuracy panel; acetone alone cannot admit the method.
-4. **Common scalar:** only after step 3 passes, combine V0-RK with the smooth
-   density-defined cavity, nonpolar scalar, standard-state convention, and
-   reciprocal continuum. Then prove KKT residuals, positive Schur complement,
-   envelope forces, second-order finite differences, coordinate-loop work,
-   and grid/cavity refinement.
+   experimental accuracy panel; the acetone V0-ADT pass is a prerequisite,
+   not a substitute.
+4. **Common scalar:** only after step 3 passes, combine V0-ADT (or, if it is
+   rejected, V0-RK) with the smooth density-defined cavity, nonpolar scalar,
+   standard-state convention, and reciprocal continuum. Then prove KKT
+   residuals, positive Schur complement, envelope forces, second-order finite
+   differences, coordinate-loop work, and grid/cavity refinement.
 5. **Runtime gate:** measure cold and warm end-to-end cost against the same
    QM task. If it is slower, it has no production advantage and is rejected
    regardless of numerical accuracy.
@@ -147,7 +187,10 @@ molecular-liquid trajectory.
 
 ## Decision
 
-Do not run a new solvation panel now. It would be testing a source already
-shown to have the wrong spatial electronic response and would only create
-misleading errors. The productive next task is to source-bind and
-preregister \(C_0\), then try to falsify V0-RK on the full QM physics panel.
+Do not run a new solvation panel now. The previous one-radial source was
+indeed physically wrong; V0-ADT has repaired that **one source-level acetone
+test** without tuning, but still lacks the common scalar and the required
+multi-functional-group physics evidence. The productive next task is to
+construct and falsify its same-basis dual/KKT form, then run the full QM
+physics panel. If that fails, preserve V0-ADT as a bounded positive result
+and return to the separately source-bound \(C_0\) / V0-RK path.

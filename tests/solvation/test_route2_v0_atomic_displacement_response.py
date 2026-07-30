@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from ase.units import Bohr
 
 from maple.function.calculator.extra_correction.implicit.route2_v0_atomic_displacement_response import (
+    BOHR_ANGSTROM,
     Route2V0AtomicDisplacementResponseTable,
     atomic_induced_dipoles,
 )
@@ -63,7 +63,7 @@ def test_atomic_displacement_source_is_translation_covariant_and_linear():
         molecular,
     )
     shifted = table.induced_potential(
-        points + np.asarray([0.7, -0.4, 0.2]) / Bohr,
+        points + np.asarray([0.7, -0.4, 0.2]) / BOHR_ANGSTROM,
         numbers,
         positions + np.asarray([0.7, -0.4, 0.2]),
         weights,

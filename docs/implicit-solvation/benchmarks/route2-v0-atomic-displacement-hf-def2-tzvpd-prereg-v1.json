@@ -50,7 +50,7 @@
     },
     "response_construction": "For each neutral spherical atomic electron density n_Z(r), tabulate N_Z(r)=4*pi*integral_0^r n_Z(s)s^2 ds and normalize only the quadrature endpoint to the declared electron count. A later source map may use the exact translation tangent whose potential is (p_a dot r) N_Z(r)/(Z r^3). No radial width, response fit, molecule-specific factor, or solvation label is involved.",
     "validation_gates": {
-      "electron_count_absolute_error_max": 1e-8,
+      "electron_count_absolute_error_max": 1e-08,
       "radial_tail_density_max_e_per_bohr3": 1e-20,
       "scf_convergence_tolerance_hartree": 1e-12,
       "spherical_probe_maximum_difference_max": 1e-12,
@@ -73,8 +73,8 @@
   "protocol_id": "route2-v0-atomic-displacement-hf-def2-tzvpd-v1-prereg",
   "schema_version": 1,
   "source_sha256": {
-    "docs/implicit-solvation/benchmarks/generate_route2_v0_atomic_displacement_response.py": "2f2f1d04a2578e46d39baaec600f90b6dce49b4b4db6d176544d5ca5e085bd60",
-    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_response.py": "cca413cd5c5b643afd4cfb1b8c81481c0acaaa937da84cd0ef101f18c4acaef1"
+    "docs/implicit-solvation/benchmarks/generate_route2_v0_atomic_displacement_response.py": "290d475b0a5be84a1ed1367fbb82c1bbcf2119da954a2ad1f7dc8bb1ae3d399f",
+    "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_response.py": "044bdf69a03db6b80f6de0cc30ba30ad7c6ae01cde9a65a868784525ff73046f"
   },
   "status": "frozen-before-asset-generation"
 }

@@ -31,7 +31,6 @@ from pathlib import Path
 from types import MappingProxyType
 
 import numpy as np
-from ase.units import Bohr
 
 V0_ATOMIC_DISPLACEMENT_RESPONSE_ARTIFACT = (
     "route2-v0-atomic-displacement-hf-def2-tzvpd-v1"
@@ -40,6 +39,10 @@ V0_ATOMIC_DISPLACEMENT_RESPONSE_CONSTRUCTION = (
     "spherical-free-atom-electron-translation-tangent-v1"
 )
 _PARTITION_TOLERANCE = 1.0e-10
+# Keep the already-pinned ASE 2014 conversion while allowing the independent
+# PySCF reference environment, which intentionally has no ASE dependency, to
+# generate the frozen source asset.
+BOHR_ANGSTROM = 0.5291772105638411
 
 
 def _sha256(path: Path) -> str:
@@ -262,7 +265,7 @@ class Route2V0AtomicDisplacementResponseTable:
         )
 
         potential = np.zeros(points.shape[0], dtype=float)
-        positions_bohr = positions / Bohr
+        positions_bohr = positions / BOHR_ANGSTROM
         for number, center, dipole in zip(
             numbers,
             positions_bohr,
@@ -367,6 +370,7 @@ def load_route2_v0_atomic_displacement_response_table(
 
 
 __all__ = [
+    "BOHR_ANGSTROM",
     "V0_ATOMIC_DISPLACEMENT_RESPONSE_ARTIFACT",
     "V0_ATOMIC_DISPLACEMENT_RESPONSE_CONSTRUCTION",
     "Route2V0AtomicDisplacementResponseTable",

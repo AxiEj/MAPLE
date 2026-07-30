@@ -26,11 +26,8 @@ from pathlib import Path
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from maple.function.calculator.extra_correction.implicit.route2_v0_atomic_displacement_response import (
-    V0_ATOMIC_DISPLACEMENT_RESPONSE_ARTIFACT,
+V0_ATOMIC_DISPLACEMENT_RESPONSE_ARTIFACT = (
+    "route2-v0-atomic-displacement-hf-def2-tzvpd-v1"
 )
 
 PREREG_RELATIVE_PATH = (

@@ -1,0 +1,89 @@
+{
+  "claim_boundary": "This one-acetone gas-phase source-representer falsifier compares a frozen MACE-MDP raw polarizability and exact atomic induced-dipole partition, distributed through a reproducible free-atom Hartree-Fock electron-translation-tangent radial potential, against independent fixed-geometry QM finite-field induced electrostatic potential at all 516 frozen exterior points. It invokes no continuum response, PCM energy, implicit solvent, experimental solvation label, model-energy/force claim, radial width, parameter calibration, training, fine tuning, total solvation prediction, or public Route-2 profile. A pass can admit only this exact source to a later same-basis common-scalar/KKT gate; it cannot establish chemical accuracy.",
+  "decision_rule": "If any numerical or scientific gate fails, reject this exact frozen atomic translation-tangent source candidate. Do not change the radial data, select a subset of points, add induced monopoles/higher multipoles, rescale/clip/symmetrize the raw MACE-MDP response, refit atomic weights, use a solvation label, or run an accuracy panel. A pass permits only a separately preregistered same-basis common-scalar/KKT, continuum-duality, and force gate; it does not make the source a final molecular density representation or a total solvation method.",
+  "execution_contract": {
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-bohr.npy": "84d922d165965e92978bfc99c8435fd384f53868d61959d368737e5fa946f023",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-provenance.json": "f6e8afaaba80b7c9e2940f173d9b141b3cd0c7a532bc7b933dd6f04ae5603617",
+      "docs/implicit-solvation/benchmarks/reproducers/route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-prereg-v2.json": "d995730243d3d6deec55ba7166f455dbd404c62327f829f1333b89292810673b",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2-reproducibility-audit.json": "5e4ff7e80f686126c200e890479fbed0ef74d6ad5431abc7f1e797a32e73c7eb",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.json": "6e51af89844fdd4a29ae10e9b3dc1ab5c5437b1d6d93aec894313dedfff9f9d0",
+      "docs/implicit-solvation/benchmarks/route2-v0-atomic-displacement-hf-def2-tzvpd-v2.npz": "bc7b62eac01cc9d035257841d4533bcca504ecdb295e6665a5524b27e9db0319",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0"
+    },
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_atomic_displacement_source_acetone.py": "8da533de9723fe03edc8073dd1601ac07bbba6213e65914314ff32f3e7dc0b78",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_atomic_displacement_response.py": "044bdf69a03db6b80f6de0cc30ba30ad7c6ae01cde9a65a868784525ff73046f"
+    }
+  },
+  "finite_field_protocol": {
+    "directions": [
+      "x",
+      "y",
+      "z"
+    ],
+    "field_steps_au": [
+      0.0003,
+      0.001
+    ],
+    "selected_reporting_step_au": 0.0003,
+    "signs": [
+      -1,
+      1
+    ]
+  },
+  "hard_constraints": {
+    "atomic_response_fit_to_qm_mep": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "induced_monopoles_or_higher_multipoles_added": false,
+    "legacy_public_route_changed": false,
+    "mace_mdp_treated_as_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "post_training": false,
+    "raw_mace_mdp_response_symmetrized_rescaled_tempered_or_clipped": false,
+    "source_point_subset_selected_after_execution": false,
+    "target_fit_or_calibration": false,
+    "width_or_radial_response_selected_from_error": false
+  },
+  "numerical_gates": {
+    "atomic_partition_moment_identity_max": 1e-12,
+    "atomic_partition_response_identity_max": 1e-12,
+    "qm_dipole_step_consistency_relative_frobenius_max": 0.02,
+    "qm_mep_step_consistency_relative_frobenius_max": 0.02
+  },
+  "protocol_id": "route2-v0-atomic-displacement-source-acetone-prereg-v1",
+  "qm_method": {
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "maximum_scf_cycles": 100,
+    "nonlocal_grid_profile": "50x194-SG1",
+    "pyscf_xc_token": "wb97m-v",
+    "reference": "RKS",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3,
+    "spin": 0
+  },
+  "schema_version": 1,
+  "scientific_falsification_gates": {
+    "induced_dipole_response_relative_frobenius_max": 0.2,
+    "interpretation": "These frozen 0.20/0.30 gates are copied unchanged from the prior MACE-MDP one-radial induced-source and QEq gas-response falsifiers. They reject a grossly inaccurate source representation without selecting this candidate. Passing remains insufficient for an energy functional, continuum coupling, force, PES, or experimental solvation claim.",
+    "mep_response_relative_direction_max": 0.3,
+    "mep_response_relative_frobenius_max": 0.2
+  },
+  "source_representation": {
+    "atomic_dipole_partition": "p_a=W_a p from the frozen route2-v0-mace-mdp-atomic-map-acetone-v1 artifact; no reweighting",
+    "induced_density": "the exact infinitesimal translation tangent of independently generated neutral free-atom HF electron densities; fixed nuclei do not move",
+    "molecular_response": "p=alpha_MDP f using the raw frozen route2-v0-mace-mdp-acetone-response-v1 polarizability; no symmetry repair or response edit",
+    "potential": "sum_a (p_a dot (r-R_a)) N_Za(|r-R_a|)/(Z_a |r-R_a|^3)",
+    "radial_asset": "route2-v0-atomic-displacement-hf-def2-tzvpd-v2 with two byte-identical independent executions",
+    "source_points": "all 516 immutable exterior QM-MEP validation points copied from the pre-existing acetone canary; no continuum surface or cavity is constructed or selected"
+  },
+  "status": "frozen-before-execution"
+}

@@ -1,0 +1,23 @@
+{
+  "artifact": "route2-v0-atomic-displacement-source-acetone-v1-frozen-exterior-qm-mep-points",
+  "claim_boundary": "This is an immutable copy of the pre-existing 516-point exterior QM-MEP validation set. It is not a continuum surface, cavity choice, PCM invocation, or solvation calculation.",
+  "origin": {
+    "legacy_state_path": ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/route2-state.npz",
+    "legacy_state_sha256": "68b7f77c66d51f7c48cde12be9117622848493ef9606d645b8bffc01ae106c30",
+    "raw_qm_induced_mep_path": "docs/implicit-solvation/benchmarks/reproducers/route2-v0-mace-mdp-induced-source-acetone-v1/qm-induced-mep.json",
+    "raw_qm_induced_mep_sha256": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc"
+  },
+  "points": {
+    "array_sha256": "daf77eb1d38a5c47ff0025a59ba56b28488e6dd8ee3d7c1302e2ddaa78d92ea1",
+    "coordinate_unit": "bohr",
+    "count": 516,
+    "file_path": "docs/implicit-solvation/benchmarks/reproducers/route2-v0-atomic-displacement-source-acetone-v1/frozen-exterior-qm-mep-points-bohr.npy",
+    "file_sha256": "84d922d165965e92978bfc99c8435fd384f53868d61959d368737e5fa946f023",
+    "shape": [
+      516,
+      3
+    ]
+  },
+  "schema_version": 1,
+  "status": "pass"
+}

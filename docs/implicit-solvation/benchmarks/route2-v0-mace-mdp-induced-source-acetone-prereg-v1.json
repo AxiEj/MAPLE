@@ -1,0 +1,102 @@
+{
+  "claim_boundary": "This one-acetone gas-phase source-representer falsifier compares a frozen MACE-MDP atomic induced-moment partition, placed in the inherited one-radial MACE-POLAR Gaussian l<=1 basis, with an independent fixed-geometry QM finite-field induced electrostatic potential at a frozen exterior point set. It invokes no continuum response, PCM energy, implicit solvent, experimental solvation label, model-energy/force claim, fitted width, parameter calibration, training, fine tuning, total solvation prediction, or public Route-2 profile. A pass can admit only this exact source map to a later common-scalar KKT gate; it cannot establish chemical accuracy.",
+  "decision_rule": "If any numerical or scientific gate fails, reject this exact MACE-MDP atomic-partition plus one-radial 1.5 Angstrom Gaussian induced-source candidate. Do not change the width, select a subset of points, add induced monopoles/higher multipoles, rescale/clip the response, refit weights, use a solvation label, or run an accuracy panel. A pass permits only a separately preregistered common-scalar KKT/continuum and force gate; it does not make the source a final density representation or a total solvation method.",
+  "execution_contract": {
+    "input_sha256": {
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/manifest.json": "1547a0d1a8edb9490828754aa7ff944990e98d90f538da345fc50980de87229b",
+      ".omx/benchmarks/route2-exact-gto-fixed-geometry-canary-v1-408ca3f-20260727/maple.out.implicit/route2-state.npz": "68b7f77c66d51f7c48cde12be9117622848493ef9606d645b8bffc01ae106c30",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-acetone-response-v1.json": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+      "docs/implicit-solvation/benchmarks/route2-v0-mace-mdp-atomic-map-acetone-v1.json": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0",
+      "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8"
+    },
+    "runtime": {
+      "max_memory_mb": 8000,
+      "pyscf_version": "2.13.1",
+      "python_resolved_sha256": "7d68ade3cc070c3cd72717ea617a0565bd7fb9eb67cd8ed468dad9ac207add8d",
+      "threads": 8
+    },
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/route2_v0_qm_induced_mep.py": "1e42334c55166e04e05e4f4e05f1d5e3f46653d0928911a79d23bd046ac7a79f",
+      "docs/implicit-solvation/benchmarks/run_route2_v0_mace_mdp_induced_source_acetone.py": "921d0d739a5513fb6dc37188e86f46395a637bc383e811f8ba2e6e900e2f47ca",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+      "maple/function/calculator/extra_correction/implicit/gto_galerkin.py": "4f8cfce9bbd54cfb21f6660e30002542e10fb606f81f5110d3e18ff0bbbbeef1",
+      "maple/function/calculator/extra_correction/implicit/route2_v0_mace_mdp_moment_source.py": "a4f8467e2a93a64830140232fd20b6c7ce8efcff38ccceb1ed67f2fac69d8e45"
+    }
+  },
+  "finite_field_protocol": {
+    "directions": [
+      "x",
+      "y",
+      "z"
+    ],
+    "field_steps_au": [
+      0.0003,
+      0.001
+    ],
+    "field_units": "Hartree per e Bohr",
+    "selected_reporting_step_au": 0.0003,
+    "signs": [
+      -1,
+      1
+    ]
+  },
+  "hard_constraints": {
+    "cavity_or_source_points_selected_after_execution": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "gaussian_width_changed_or_error_selected": false,
+    "induced_monopoles_added": false,
+    "legacy_public_route_changed": false,
+    "mace_mdp_treated_as_an_energy_or_force_model": false,
+    "map_or_uq_calibration": false,
+    "post_training": false,
+    "response_rescaling_tempering_or_clipping": false,
+    "target_fit_or_calibration": false
+  },
+  "numerical_gates": {
+    "atomic_partition_moment_identity_max": 1e-12,
+    "gaussian_surface_source_identity_max": 1e-12,
+    "induced_charge_identity_max": 1e-12,
+    "induced_dipole_identity_ebohr_max": 1e-12,
+    "qm_dipole_reproduction_relative_frobenius_max": 1e-05,
+    "qm_dipole_step_consistency_relative_frobenius_max": 0.02,
+    "qm_mep_step_consistency_relative_frobenius_max": 0.02,
+    "surface_source_duality_hartree_max": 1e-12
+  },
+  "protocol_id": "route2-v0-mace-mdp-induced-source-acetone-prereg-v1",
+  "qm_method": {
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "maximum_scf_cycles": 100,
+    "nonlocal_grid_profile": "50x194-SG1",
+    "pyscf_xc_token": "wb97m-v",
+    "reference": "RKS",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3,
+    "spin": 0
+  },
+  "schema_version": 1,
+  "scientific_falsification_gates": {
+    "induced_dipole_response_relative_frobenius_max": 0.2,
+    "interpretation": "These pre-execution gates reject a grossly inaccurate induced source representer. Their 0.20/0.30 response tolerances are copied unchanged from the pre-existing frozen QEq/MACE-MDP gas-response falsification protocols, not selected from this candidate. Passing remains insufficient for a total solvent free energy or accuracy claim.",
+    "mep_response_relative_direction_max": 0.3,
+    "mep_response_relative_frobenius_max": 0.2
+  },
+  "source_representation": {
+    "basis": "one normalized atom-centred Gaussian l<=1 basis with raw MACE order [q,l1_0,l1_1,l1_2]",
+    "coefficient_unit": "e angstrom",
+    "duality_seed": 20260730,
+    "induced_moment_partition": "p_a=W_a p from the frozen route2-v0-mace-mdp-atomic-map-acetone-v1 artifact; no reweighting",
+    "induced_monopoles": "exactly zero",
+    "molecular_dipole_input_unit": "e bohr",
+    "radial_count": 1,
+    "sigma_angstrom": 1.5,
+    "sigma_provenance": "the tracked frozen MACE-POLAR l<=1 Gaussian density convention, tested here as a separate V0 source candidate rather than selected from solvation or QM-MEP errors",
+    "source_points": "all 516 frozen exterior points from the pre-existing acetone exact-GTO canary state; they are only a QM-MEP validation set, not a continuum invocation or cavity selection"
+  },
+  "status": "frozen-before-execution"
+}

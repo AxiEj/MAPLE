@@ -2,18 +2,21 @@
 
 ## Status and scope
 
-V0-AQ is the no-training route for restoring a **stationary electronic
-response** without claiming that the frozen MACE-POLAR field update is an
-energy gradient.  It leaves the gas MACE model untouched and introduces a
-separate, declared auxiliary electronic--liquid calculation only through a
-gas-to-liquid free-energy difference.
+V0-AQ is a no-training **reference architecture** for restoring a stationary
+electronic response without claiming that the frozen MACE-POLAR field update
+is an energy gradient.  It leaves the gas MACE model untouched and introduces
+a separate, declared auxiliary electronic--liquid calculation only through a
+gas-to-liquid free-energy difference.  If that auxiliary state requires an
+SCF/QM calculation at every geometry, it is not a production Route-2 speed
+endpoint; it is an offline physical oracle and a specification for a future
+pretrained variational electronic model.
 
 It is not a public Route-2 profile, a replacement for V0-FD, a total-solvation
-result, a force/PES implementation, or an accuracy result.  In particular,
-the first V0-AQ-E control below is a fixed-geometry electronic-continuum
-control: it contains neither an empirical SMD CDS term nor a complete liquid
-non-electrostatic free energy.  It cannot be compared with experimental
-solvation free energies.
+result, a force/PES implementation, an accuracy result, or a justification to
+ship a QM-speed method as an MLIP.  In particular, the first V0-AQ-E control
+below is a fixed-geometry electronic-continuum control: it contains neither
+an empirical SMD CDS term nor a complete liquid non-electrostatic free energy.
+It cannot be compared with experimental solvation free energies.
 
 The machine-readable commitment is
 [`route2-v0-auxiliary-qm-liquid-prereg-v1.json`](benchmarks/route2-v0-auxiliary-qm-liquid-prereg-v1.json).

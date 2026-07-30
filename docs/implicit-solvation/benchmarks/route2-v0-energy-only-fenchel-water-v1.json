@@ -1,0 +1,121 @@
+{
+  "artifact": "route2-v0-energy-only-fenchel-water-v1",
+  "checkpoint": {
+    "identifier": "polar-1-m",
+    "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+    "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+    "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+    "size_bytes": 68133235
+  },
+  "claim_boundary": "This is a frozen-checkpoint, fixed-water structural falsifier for the MACE intrinsic local-field energy alone. It does not solve PCM, use MACE density outputs, compare any experimental solvation value, establish QM accuracy, create a public Route-2 profile, certify forces/PES, or authorize an accuracy panel.",
+  "energy_scalar": {
+    "neutral_anchor_gradient_inf": 0.020523492663652432,
+    "neutral_hessian_antisymmetric_frobenius_norm_ev": 9.849594310439186e-12,
+    "neutral_hessian_antisymmetric_to_symmetric_frobenius_ratio": 2.6298638054946454e-10,
+    "neutral_hessian_dimension": 11,
+    "neutral_hessian_eigenvalues_ev": [
+      -0.00023881943386303375,
+      -0.00015994500475778587,
+      -2.1866459177607317e-18,
+      0.0,
+      4.814824860968038e-34,
+      5.982209136424882e-19,
+      0.00011873628136959224,
+      0.00020995071137733256,
+      0.0057465915915882685,
+      0.013597414029243233,
+      0.03441894210951571
+    ],
+    "neutral_hessian_maximum_eigenvalue_ev": 0.03441894210951571,
+    "neutral_hessian_minimum_eigenvalue_ev": -0.00023881943386303375,
+    "neutral_hessian_symmetric_frobenius_norm_ev": 0.03745286843318716,
+    "raw_hessian_antisymmetric_inf": 2.1449668620053194e-11,
+    "zero_field_intrinsic_energy_ev": -2079.8625792486073
+  },
+  "execution_git_head": "f94505a8ab5a28f01459908aa29e5de422705d6e",
+  "failed_gates": [
+    "neutral_hessian_concavity"
+  ],
+  "frozen_input": {
+    "artifact": "route2-mace-local-field-thermodynamic-canary-v1",
+    "path": "docs/implicit-solvation/benchmarks/route2-mace-local-field-thermodynamic-canary-v1.json",
+    "sha256": "518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6"
+  },
+  "gates": {
+    "passed": {
+      "neutral_hessian_concavity": false,
+      "neutral_hessian_reciprocity": true
+    },
+    "thresholds": {
+      "neutral_hessian_antisymmetric_frobenius_ratio_max": 1e-08,
+      "neutral_hessian_maximum_eigenvalue_ev_max": 1e-08
+    }
+  },
+  "generated_at_utc": "2026-07-30T13:20:59+00:00",
+  "molecule": {
+    "atom_count": 3,
+    "formula": "H2O",
+    "geometry_sha256": "178fe0c8df79b72be93f689af33453140d85103a246060a08f7ad1df3bfc9227",
+    "geometry_source": "ASE G2 molecule collection",
+    "name": "water",
+    "positions_angstrom": [
+      [
+        0.0,
+        0.0,
+        0.119262
+      ],
+      [
+        0.0,
+        0.763239,
+        -0.477047
+      ],
+      [
+        0.0,
+        -0.763239,
+        -0.477047
+      ]
+    ]
+  },
+  "preregistration": {
+    "path": "docs/implicit-solvation/benchmarks/route2-v0-energy-only-fenchel-water-prereg-v1.json",
+    "protocol_id": "route2-v0-energy-only-fenchel-water-prereg-v1",
+    "sha256": "cd6436ec0c35597141c9313ffe476e4224709cf0a9c69f1847b9f288f3d5075e"
+  },
+  "runtime": {
+    "ase": "3.27.0",
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "graph_longrange": "0.4.0",
+    "ld_preload": "",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "python": "3.11.14",
+    "timing_seconds": {
+      "energy_gradient_and_exact_hessian": 1.7224526589998277,
+      "model_load": 3.0090517349963193,
+      "total": 4.844128803000785
+    },
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "scientific_identity": {
+    "construction": "W_E(f)=E_theta(R,f)-E_theta(R,0)-grad_f E_theta(R,0).f",
+    "continuum_fixed_point_solved": false,
+    "experimental_solvation_labels_read": false,
+    "field_interface": "local-potential-gradient-v1",
+    "geometry_policy": "fixed archived ASE G2 water",
+    "mace_density_output_used": false,
+    "solute_response_model": "official MACE-POLAR-1-M",
+    "training_or_fine_tuning": false
+  },
+  "source_files_sha256": {
+    "docs/implicit-solvation/benchmarks/route2-v0-energy-only-fenchel-water-prereg-v1.json": "cd6436ec0c35597141c9313ffe476e4224709cf0a9c69f1847b9f288f3d5075e",
+    "docs/implicit-solvation/benchmarks/run_route2_v0_energy_only_fenchel_water.py": "d8cdb74dae9af7fc85526cb40b49274b13aae8d054ecbb73263ef2b5356537a6",
+    "maple/function/calculator/extra_correction/implicit/electrostatic_pairing.py": "da782e6b6005ee2726adde205db996f7c915c583a91404501589cdc73674fa67",
+    "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+    "maple/function/calculator/extra_correction/implicit/route2_response.py": "42d8111cd338fe2bb8e5a6117c68080626656c46f4294dc4e782e745ee837da1",
+    "maple/function/calculator/mace/_macepol_calculator.py": "4e93cd005c67087fd60374eb84935bcb2be770595420a762dc125005d1fde3a4"
+  },
+  "status": "fail",
+  "stop_condition": "If either gate fails, this frozen checkpoint's local intrinsic-energy scalar is rejected as a MACE-only V0-FE electronic functional. Retain it only as a documented negative result; do not repair it by post-hoc response modification."
+}

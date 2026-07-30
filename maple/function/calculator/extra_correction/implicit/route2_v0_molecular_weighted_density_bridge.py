@@ -33,6 +33,9 @@ from typing import Any, cast
 
 import numpy as np
 
+from .route2_v0_mace_cluster_rism_bridge import (
+    verify_route2_v0_asset_bound_rism_kernel,
+)
 from .route2_v0_molecular_site_hnc import (
     Route2V0MolecularSiteHNCFunctional,
     Route2V0MolecularSiteProjection,
@@ -40,6 +43,12 @@ from .route2_v0_molecular_site_hnc import (
 from .route2_v0_molecular_thermodynamics import (
     molecular_hnc_bulk_functional_pressure_hartree_per_bohr3,
 )
+from .route2_v0_pure_solvent_bridge_certificate import (
+    Route2V0PureSolventBridgeCertificate,
+    weighted_density_operator_sha256,
+)
+from .route2_v0_rism_energy_conjugate import Route2V0RismEnergyConjugateKernel
+from .route2_v0_solvent_asset import Route2V0FrozenSolventAsset
 from .route2_v0_structured_solvent import RegularCartesianGrid
 
 V0_MOLECULAR_CENTER_PROJECTION_CONSTRUCTION = "route2-v0-molecular-center-projection-v1"
@@ -399,6 +408,11 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
     quartic_coefficient_hartree_bohr15: float
     target_surface_tension_hartree_per_bohr2: float
     pure_solvent_certificate_sha256: str
+    pure_solvent_certificate: Route2V0PureSolventBridgeCertificate | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
     construction: str = V0_MOLECULAR_WEIGHTED_DENSITY_BRIDGE_CONSTRUCTION
 
     def __post_init__(self) -> None:
@@ -447,6 +461,56 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
                 "Weighted-density cubic coefficient must be derived from the exact "
                 "source HNC and target pure-solvent pressures."
             )
+        certificate = self.pure_solvent_certificate
+        if certificate is not None:
+            if not isinstance(certificate, Route2V0PureSolventBridgeCertificate):
+                raise TypeError(
+                    "Weighted-density bridge source binding requires a parsed "
+                    "pure-solvent certificate."
+                )
+            certificate_values = (
+                (
+                    "HNC pressure",
+                    hnc_pressure,
+                    certificate.hnc_bulk_pressure_hartree_per_bohr3,
+                ),
+                (
+                    "target pressure",
+                    target_pressure,
+                    certificate.target_bulk_pressure_hartree_per_bohr3,
+                ),
+                (
+                    "cubic coefficient",
+                    cubic,
+                    certificate.cubic_coefficient_hartree_bohr6,
+                ),
+                (
+                    "quartic coefficient",
+                    quartic,
+                    certificate.quartic_coefficient_hartree_bohr15,
+                ),
+                (
+                    "surface tension",
+                    surface_tension,
+                    certificate.target_surface_tension_hartree_per_bohr2,
+                ),
+            )
+            for name, actual, certified in certificate_values:
+                if not math.isclose(
+                    actual,
+                    certified,
+                    rel_tol=1.0e-12,
+                    abs_tol=1.0e-14 * max(1.0, abs(actual), abs(certified)),
+                ):
+                    raise ValueError(
+                        "Weighted-density bridge source binding does not match "
+                        f"its certificate {name}."
+                    )
+            if self.pure_solvent_certificate_sha256 != certificate.content_sha256:
+                raise ValueError(
+                    "Weighted-density bridge certificate digest does not match "
+                    "its parsed source binding."
+                )
         object.__setattr__(self, "hnc_bulk_pressure_hartree_per_bohr3", hnc_pressure)
         object.__setattr__(
             self, "target_bulk_pressure_hartree_per_bohr3", target_pressure
@@ -464,6 +528,7 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
                 name="Pure-solvent bridge certificate",
             ),
         )
+        object.__setattr__(self, "pure_solvent_certificate", certificate)
 
     @classmethod
     def from_pure_solvent_anchors(
@@ -502,11 +567,133 @@ class Route2V0MolecularWeightedDensityBridgeAsset:
             pure_solvent_certificate_sha256=pure_solvent_certificate_sha256,
         )
 
+    @classmethod
+    def from_source_bound_pure_solvent_certificate(
+        cls,
+        *,
+        hnc_functional: Route2V0MolecularSiteHNCFunctional,
+        frozen_solvent_asset: Route2V0FrozenSolventAsset,
+        rism_kernel: Route2V0RismEnergyConjugateKernel,
+        center_projection: Route2V0MolecularCenterProjection,
+        kernel: Route2V0PeriodicWeightedDensityKernel,
+        certificate: Route2V0PureSolventBridgeCertificate,
+    ) -> Route2V0MolecularWeightedDensityBridgeAsset:
+        """Build the only source-bound physical-admission bridge asset.
+
+        The legacy direct constructor remains useful for synthetic scalar and
+        derivative controls.  It cannot constitute a physical liquid asset:
+        this constructor instead binds a loaded certificate to the exact HNC
+        projection, source-locked RISM kernel, centre map, and weighted kernel
+        that will enter the common scalar.  No solute result, cavity error, or
+        user-selected bridge coefficient participates in this operation.
+        """
+
+        if not isinstance(hnc_functional, Route2V0MolecularSiteHNCFunctional):
+            raise TypeError(
+                "Source-bound weighted-density bridge requires a molecular HNC "
+                "functional."
+            )
+        if not isinstance(center_projection, Route2V0MolecularCenterProjection):
+            raise TypeError(
+                "Source-bound weighted-density bridge requires a centre projection."
+            )
+        if not isinstance(kernel, Route2V0PeriodicWeightedDensityKernel):
+            raise TypeError(
+                "Source-bound weighted-density bridge requires a periodic kernel."
+            )
+        if not isinstance(certificate, Route2V0PureSolventBridgeCertificate):
+            raise TypeError(
+                "Source-bound weighted-density bridge requires a parsed "
+                "pure-solvent certificate."
+            )
+        certificate.verify_content_integrity()
+        if center_projection.projection is not hnc_functional.projection:
+            raise ValueError(
+                "Source-bound weighted-density bridge must use the exact "
+                "molecular HNC projection."
+            )
+        verify_route2_v0_asset_bound_rism_kernel(
+            frozen_solvent_asset=frozen_solvent_asset,
+            rism_kernel=rism_kernel,
+        )
+        if hnc_functional.projection.site_hnc_asset is not rism_kernel.site_hnc_asset:
+            raise ValueError(
+                "Source-bound weighted-density bridge HNC functional does not "
+                "use the exact frozen RISM kernel asset."
+            )
+        hnc_pressure = molecular_hnc_bulk_functional_pressure_hartree_per_bohr3(
+            hnc_functional
+        )
+        center_digest = weighted_density_operator_sha256(
+            operator="molecular-centre-projection",
+            construction=center_projection.construction,
+            grid=center_projection.grid,
+            values=center_projection.center_occupancy_weights,
+        )
+        kernel_digest = weighted_density_operator_sha256(
+            operator="weighted-density-kernel",
+            construction=kernel.construction,
+            grid=kernel.grid,
+            values=kernel.kernel_bohr_minus3,
+        )
+        source_hashes = {
+            role: frozen_solvent_asset.file_for(role).sha256
+            for role in certificate.source_hashes_by_role
+        }
+        certificate.verify_bound_inputs(
+            solvent_id=frozen_solvent_asset.solvent_id,
+            model_identifier=frozen_solvent_asset.model_identifier,
+            closure=frozen_solvent_asset.closure,
+            temperature_kelvin=frozen_solvent_asset.temperature_kelvin,
+            pressure_bar=frozen_solvent_asset.pressure_bar,
+            source_file_sha256=source_hashes,
+            hnc_bulk_pressure_hartree_per_bohr3=hnc_pressure,
+            molecular_bulk_number_density_bohr3=(
+                center_projection.molecular_bulk_number_density_bohr3
+            ),
+            center_projection_sha256=center_digest,
+            weighted_density_kernel_sha256=kernel_digest,
+        )
+        return cls(
+            center_projection=center_projection,
+            kernel=kernel,
+            hnc_bulk_pressure_hartree_per_bohr3=hnc_pressure,
+            target_bulk_pressure_hartree_per_bohr3=(
+                certificate.target_bulk_pressure_hartree_per_bohr3
+            ),
+            cubic_coefficient_hartree_bohr6=(
+                certificate.cubic_coefficient_hartree_bohr6
+            ),
+            quartic_coefficient_hartree_bohr15=(
+                certificate.quartic_coefficient_hartree_bohr15
+            ),
+            target_surface_tension_hartree_per_bohr2=(
+                certificate.target_surface_tension_hartree_per_bohr2
+            ),
+            pure_solvent_certificate_sha256=certificate.content_sha256,
+            pure_solvent_certificate=certificate,
+        )
+
     @property
     def molecular_bulk_number_density_bohr3(self) -> float:
         """Return the exact bulk density used in the coexistence construction."""
 
         return self.center_projection.molecular_bulk_number_density_bohr3
+
+    @property
+    def is_source_bound_pure_solvent_asset(self) -> bool:
+        """Return whether this asset carries a parsed, matching source certificate."""
+
+        return self.pure_solvent_certificate is not None
+
+    def require_source_bound_pure_solvent_asset(self) -> None:
+        """Reject a synthetic bridge before a physical-liquid calculation."""
+
+        if not self.is_source_bound_pure_solvent_asset:
+            raise ValueError(
+                "Physical weighted-density bridge use requires a source-bound "
+                "pure-solvent certificate."
+            )
 
     def free_energy_density_hartree_per_bohr3(
         self,

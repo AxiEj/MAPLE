@@ -1760,6 +1760,90 @@ state, force terms, and the preregistered 11-solvent/blind validation sequence.
 If $D$, $K$, or any bridge anchor moves with a solute coordinate, its
 explicit derivative must be added to the same scalar before any force claim.
 
+##### 4.2.19a Certificate binding is a numerical reproducibility gate, not a fitted term
+
+The words "content-addressed certificate" have a precise implementation
+meaning.  For the declared pressure $p_s$ in bar and independently sourced
+surface tension $\gamma_s^{\rm SI}$ in N/m, the certificate stores their
+unambiguous atomic-unit forms,
+
+\[
+P_s=\frac{10^5p_s}
+{E_h/(a_0\times10^{-10}\,{\rm m})^3},
+\qquad
+\gamma_s=\frac{\gamma_s^{\rm SI}}
+{E_h/(a_0\times10^{-10}\,{\rm m})^2}.
+\]
+
+It rejects a record if either serialized atomic-unit value differs from this
+conversion, if $P_s\ge P_{\rm HNC}$, or if
+
+\[
+A_s\ne\frac{P_{\rm HNC}-P_s}{\rho_b^3}.
+\]
+
+This prevents a nominally physical pressure or a surface tension from becoming
+a hidden second fitting knob.  The certificate also stores the complete
+stationary planar bracket
+
+\[
+(B_{\rm low},B_*,B_{\rm high};\;
+\gamma_{\rm low},\gamma_*,\gamma_{\rm high};\;
+r_{\rm low},r_*,r_{\rm high}),
+\]
+
+and accepts it only when
+
+\[
+B_{\rm low}\le B_*\le B_{\rm high},\quad
+\gamma_{\rm low}\le\gamma_s\le\gamma_{\rm high},\quad
+|\gamma_*-\gamma_s|\le\tau_\gamma,\quad
+\max_jr_j\le\tau_{\rm stat}.
+\]
+
+It additionally retains transverse area, interface count, coarse/fine grid
+surface tensions and their convergence tolerance.  Thus the monotonic-envelope
+argument above is tied to a numerically stationary, resolved branch rather
+than to a bare scalar $B_s$ copied into a configuration file.
+
+The discrete operators are not identified by a mutable Python object or by a
+lossy text dump.  Their values are hashed as little-endian C-order float64
+arrays together with the periodic Cartesian layout, shape, origin, spacing,
+and construction identifier:
+
+\[
+h_D=H\!\left({\tt grid},D\right),\qquad
+h_K=H\!\left({\tt grid},K\right).
+\]
+
+Before constructing a source-bound bridge asset, the implementation requires
+the exact equality of the HNC closure, solvent/model identifiers, temperature,
+pressure, molecular bulk density, HNC vacuum-limit pressure, all seven frozen
+solvent-source hashes, $h_D$, and $h_K$.  Equivalently, the executable scalar
+is admitted only under
+
+\[
+\mathcal C_s\equiv
+(\mathcal S_s,\rho_b,P_{\rm HNC},P_s,\gamma_s,A_s,B_s,h_D,h_K)
+\]
+
+matching the live asset and operators componentwise.  Any changed source,
+operator, closure, pressure, or planar root fails closed.  The loaded
+certificate is re-hashed and re-parsed at physical admission, so a changed JSON
+file or a manually assembled certificate-shaped object cannot stand in for the
+content-addressed evidence.  The parser also
+requires explicit `false` declarations for post-training, fine-tuning,
+experimental-solvation fitting, MAP/UQ calibration, and error-driven
+cavity/dispersion adjustment, together with the full excluded
+MNSol/FreeSolv/development/confirmation/blind label set.
+
+This contract is implemented by
+`route2_v0_pure_solvent_bridge_certificate.py` and by
+`Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate`.
+It does **not** make a synthetic certificate physical, prove an HNC liquid
+model accurate, or relax any later force, multi-solvent, historical-outlier, or
+blind-data gate.
+
 #### 4.2.20 Unified no-training V0 variational and stability theorem
 
 The preceding modules form one admissible mathematical trunk only when they

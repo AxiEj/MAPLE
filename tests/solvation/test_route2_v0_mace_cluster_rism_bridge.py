@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -32,9 +33,20 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_ide
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_thermodynamics import (
     V0_MOLECULAR_HNC_FIXED_SOLUTE_THERMODYNAMICS,
+    molecular_hnc_bulk_functional_pressure_hartree_per_bohr3,
+)
+from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_weighted_density_bridge import (
+    Route2V0MolecularCenterProjection,
+    Route2V0MolecularWeightedDensityBridgeAsset,
+    Route2V0MolecularWeightedDensityBridgeFunctional,
+    Route2V0PeriodicWeightedDensityKernel,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_periodic_coulomb import (
     Route2V0PeriodicCoulombOperator,
+)
+from maple.function.calculator.extra_correction.implicit.route2_v0_pure_solvent_bridge_certificate import (
+    load_route2_v0_pure_solvent_bridge_certificate,
+    weighted_density_operator_sha256,
 )
 from maple.function.calculator.extra_correction.implicit.route2_v0_rism_energy_conjugate import (
     Route2V0RismEnergyConjugateKernel,
@@ -163,6 +175,325 @@ def _bridge(
         quadrature=quadrature,
         site_occupancy_weights=occupancy,
     )
+
+
+def _source_bound_weighted_density_inputs(tmp_path: Path):
+    """Build one source-bound synthetic control without claiming a real liquid."""
+
+    asset, grid, external, quadrature, occupancy = _bridge_inputs(tmp_path)
+    rism_kernel = build_route2_v0_asset_bound_rism_kernel(
+        frozen_solvent_asset=asset,
+        grid=grid,
+    )
+    hnc_bridge = Route2V0MaceClusterRismMolecularHNCBridge(
+        frozen_solvent_asset=asset,
+        external_potential=external,
+        rism_kernel=rism_kernel,
+        quadrature=quadrature,
+        site_occupancy_weights=occupancy,
+    )
+    center = Route2V0MolecularCenterProjection(
+        projection=hnc_bridge.projection,
+        center_occupancy_weights=np.full(
+            (*grid.shape, quadrature.configuration_count),
+            1.0 / grid.point_count,
+        ),
+    )
+    weighted_kernel = Route2V0PeriodicWeightedDensityKernel(
+        grid=grid,
+        kernel_bohr_minus3=np.full(
+            grid.shape,
+            1.0 / (grid.volume_element_bohr3 * grid.point_count),
+        ),
+    )
+    hnc_pressure = molecular_hnc_bulk_functional_pressure_hartree_per_bohr3(
+        hnc_bridge.functional
+    )
+    target_pressure = (
+        asset.pressure_bar * 1.0e5 / (Hartree * 1.602176634e-19 / (Bohr * 1.0e-10) ** 3)
+    )
+    surface_tension_n_per_m = 0.05
+    target_surface_tension = surface_tension_n_per_m / (
+        Hartree * 1.602176634e-19 / (Bohr * 1.0e-10) ** 2
+    )
+    center_digest = weighted_density_operator_sha256(
+        operator="molecular-centre-projection",
+        construction=center.construction,
+        grid=center.grid,
+        values=center.center_occupancy_weights,
+    )
+    kernel_digest = weighted_density_operator_sha256(
+        operator="weighted-density-kernel",
+        construction=weighted_kernel.construction,
+        grid=weighted_kernel.grid,
+        values=weighted_kernel.kernel_bohr_minus3,
+    )
+    certificate_payload = {
+        "construction": "route2-v0-pure-solvent-bridge-certificate-v1",
+        "schema_version": 1,
+        "liquid_source": {
+            "solvent_id": asset.solvent_id,
+            "model_identifier": asset.model_identifier,
+            "closure": asset.closure,
+            "temperature_kelvin": asset.temperature_kelvin,
+            "pressure_bar": asset.pressure_bar,
+            "molecular_bulk_number_density_bohr3": (
+                center.molecular_bulk_number_density_bohr3
+            ),
+            "source_file_sha256": {file.role: file.sha256 for file in asset.files},
+        },
+        "operators": {
+            "center_projection_sha256": center_digest,
+            "weighted_density_kernel_sha256": kernel_digest,
+        },
+        "pure_liquid_pressure": {
+            "target_hartree_per_bohr3": target_pressure,
+        },
+        "surface_tension": {
+            "target_n_per_m": surface_tension_n_per_m,
+            "target_hartree_per_bohr2": target_surface_tension,
+            "independent_reference": "synthetic control; no physical claim",
+        },
+        "bridge": {
+            "hnc_bulk_pressure_hartree_per_bohr3": hnc_pressure,
+            "cubic_coefficient_hartree_bohr6": (
+                (hnc_pressure - target_pressure)
+                / center.molecular_bulk_number_density_bohr3**3
+            ),
+        },
+        "planar_interface": {
+            "quartic_bracket": {
+                "low_hartree_bohr15": 0.0,
+                "high_hartree_bohr15": 2.0e7,
+                "root_hartree_bohr15": 1.0e7,
+            },
+            "surface_tension": {
+                "low_hartree_per_bohr2": 0.9 * target_surface_tension,
+                "high_hartree_per_bohr2": 1.1 * target_surface_tension,
+                "root_hartree_per_bohr2": target_surface_tension,
+                "root_tolerance_hartree_per_bohr2": 1.0e-12,
+            },
+            "stationarity": {
+                "low_residual": 1.0e-12,
+                "high_residual": 1.0e-12,
+                "root_residual": 1.0e-12,
+                "tolerance": 1.0e-10,
+            },
+            "transverse_area_bohr2": 64.0,
+            "interface_count": 2,
+            "grid_refinement": {
+                "coarse_hartree_per_bohr2": target_surface_tension,
+                "fine_hartree_per_bohr2": target_surface_tension,
+                "tolerance_hartree_per_bohr2": 1.0e-12,
+            },
+            "same_scalar_all_terms_retained": True,
+        },
+        "no_target_policy": {
+            "target_solvation_labels_used": False,
+            "post_training": False,
+            "fine_tuning": False,
+            "experimental_solvation_fit": False,
+            "map_or_uq_calibration": False,
+            "error_driven_cavity_or_dispersion_adjustment": False,
+            "excluded_target_label_sets": [
+                "mnsol",
+                "freesolv",
+                "development",
+                "confirmation",
+                "blind",
+            ],
+        },
+    }
+    certificate_path = tmp_path / "pure-solvent-bridge-certificate.json"
+    certificate_path.write_text(
+        json.dumps(certificate_payload, indent=2),
+        encoding="utf-8",
+    )
+    return (
+        asset,
+        rism_kernel,
+        hnc_bridge.functional,
+        center,
+        weighted_kernel,
+        certificate_path,
+        certificate_payload,
+    )
+
+
+def test_weighted_density_bridge_requires_a_live_source_bound_certificate(tmp_path):
+    (
+        asset,
+        rism_kernel,
+        hnc_functional,
+        center,
+        weighted_kernel,
+        certificate_path,
+        _,
+    ) = _source_bound_weighted_density_inputs(tmp_path)
+    certificate = load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+
+    bridge_asset = Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate(
+        hnc_functional=hnc_functional,
+        frozen_solvent_asset=asset,
+        rism_kernel=rism_kernel,
+        center_projection=center,
+        kernel=weighted_kernel,
+        certificate=certificate,
+    )
+    functional = Route2V0MolecularWeightedDensityBridgeFunctional(
+        hnc_functional=hnc_functional,
+        bridge_asset=bridge_asset,
+    )
+
+    assert bridge_asset.pure_solvent_certificate_sha256 == certificate.content_sha256
+    assert bridge_asset.is_source_bound_pure_solvent_asset is True
+    bridge_asset.require_source_bound_pure_solvent_asset()
+    assert bridge_asset.quartic_coefficient_hartree_bohr15 == pytest.approx(
+        certificate.quartic_coefficient_hartree_bohr15
+    )
+    assert bridge_asset.target_surface_tension_hartree_per_bohr2 == pytest.approx(
+        certificate.target_surface_tension_hartree_per_bohr2
+    )
+    assert functional.bulk_functional_pressure_hartree_per_bohr3 == pytest.approx(
+        certificate.target_bulk_pressure_hartree_per_bohr3,
+        rel=2.0e-13,
+        abs=2.0e-16,
+    )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            lambda payload: payload["liquid_source"]["source_file_sha256"].update(
+                {"cvv": "0" * 64}
+            ),
+            "source hashes do not match",
+        ),
+        (
+            lambda payload: payload["operators"].update(
+                {"center_projection_sha256": "0" * 64}
+            ),
+            "molecular-centre projection does not match",
+        ),
+    ],
+)
+def test_weighted_density_certificate_rejects_mutated_source_or_operator(
+    tmp_path,
+    mutation,
+    message,
+):
+    (
+        asset,
+        rism_kernel,
+        hnc_functional,
+        center,
+        weighted_kernel,
+        certificate_path,
+        payload,
+    ) = _source_bound_weighted_density_inputs(tmp_path)
+    mutation(payload)
+    certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    certificate = load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+
+    with pytest.raises(ValueError, match=message):
+        Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate(
+            hnc_functional=hnc_functional,
+            frozen_solvent_asset=asset,
+            rism_kernel=rism_kernel,
+            center_projection=center,
+            kernel=weighted_kernel,
+            certificate=certificate,
+        )
+
+
+def test_weighted_density_certificate_rejects_solvation_label_policy(tmp_path):
+    *_, certificate_path, payload = _source_bound_weighted_density_inputs(tmp_path)
+    payload["no_target_policy"]["experimental_solvation_fit"] = True
+    certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="experimental_solvation_fit"):
+        load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+
+
+def test_weighted_density_bridge_rechecks_certificate_content_before_admission(
+    tmp_path,
+):
+    (
+        asset,
+        rism_kernel,
+        hnc_functional,
+        center,
+        weighted_kernel,
+        certificate_path,
+        payload,
+    ) = _source_bound_weighted_density_inputs(tmp_path)
+    certificate = load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
+    certificate_path.write_text(
+        json.dumps(payload, sort_keys=True),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="content changed"):
+        Route2V0MolecularWeightedDensityBridgeAsset.from_source_bound_pure_solvent_certificate(
+            hnc_functional=hnc_functional,
+            frozen_solvent_asset=asset,
+            rism_kernel=rism_kernel,
+            center_projection=center,
+            kernel=weighted_kernel,
+            certificate=certificate,
+        )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            lambda payload: payload["bridge"].update(
+                {
+                    "cubic_coefficient_hartree_bohr6": (
+                        payload["bridge"]["cubic_coefficient_hartree_bohr6"] * 1.01
+                    )
+                }
+            ),
+            "pressure identity",
+        ),
+        (
+            lambda payload: payload["surface_tension"].update(
+                {
+                    "target_hartree_per_bohr2": (
+                        payload["surface_tension"]["target_hartree_per_bohr2"] * 1.01
+                    )
+                }
+            ),
+            "exact SI conversion",
+        ),
+        (
+            lambda payload: payload["planar_interface"]["surface_tension"].update(
+                {
+                    "root_hartree_per_bohr2": (
+                        payload["planar_interface"]["surface_tension"][
+                            "root_hartree_per_bohr2"
+                        ]
+                        * 1.2
+                    )
+                }
+            ),
+            "root misses",
+        ),
+    ],
+)
+def test_weighted_density_certificate_rejects_broken_pure_liquid_math(
+    tmp_path,
+    mutation,
+    message,
+):
+    *_, certificate_path, payload = _source_bound_weighted_density_inputs(tmp_path)
+    mutation(payload)
+    certificate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        load_route2_v0_pure_solvent_bridge_certificate(certificate_path)
 
 
 def test_asset_bound_molecular_hnc_bridge_rejects_a_pse3_bulk_source(tmp_path):

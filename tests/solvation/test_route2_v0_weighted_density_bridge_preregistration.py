@@ -56,6 +56,17 @@ def test_weighted_density_bridge_requires_pure_solvent_assets_not_solute_labels(
     requirements = " ".join(anchors["required_certificate_contents"])
     assert "all-atom solvent model" in requirements
     assert "no MNSol, FreeSolv" in requirements
+    assert "SI-to-atomic-unit" in requirements
+    assert "float64/grid digests for D and K" in requirements
+    assert "B_low/B_root/B_high" in requirements
+    assert (
+        "parsed route2-v0-pure-solvent-bridge-certificate-v1"
+        in anchors["source_bound_constructor"]
+    )
+    assert (
+        "cannot establish a physical-liquid or accuracy claim"
+        in anchors["source_bound_constructor"]
+    )
 
     resolution = anchors["planar_interface_quartic_resolution"]
     assert "gamma(B_s)" in resolution["stationary_surface_tension"]

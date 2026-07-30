@@ -36,6 +36,9 @@ from maple.function.calculator.extra_correction.implicit.route2_v0_molecular_wei
 from maple.function.calculator.extra_correction.implicit.route2_v0_promolecular_density import (
     Route2V0PromolecularDensityTable,
 )
+from maple.function.calculator.extra_correction.implicit.route2_v0_pure_solvent_bridge_certificate import (
+    weighted_density_operator_sha256,
+)
 from maple.function.calculator.extra_correction.implicit.route2_v0_site_hnc import (
     Route2V0SiteHNCAsset,
 )
@@ -176,6 +179,44 @@ def test_center_projection_and_periodic_kernel_preserve_the_exact_pairings():
     )
 
 
+def test_pure_solvent_operator_digests_bind_values_and_grid_convention():
+    functional = _bridge_functional()
+    center = functional.center_projection
+    kernel = functional.bridge_asset.kernel
+    center_digest = weighted_density_operator_sha256(
+        operator="molecular-centre-projection",
+        construction=center.construction,
+        grid=center.grid,
+        values=center.center_occupancy_weights,
+    )
+    kernel_digest = weighted_density_operator_sha256(
+        operator="weighted-density-kernel",
+        construction=kernel.construction,
+        grid=kernel.grid,
+        values=kernel.kernel_bohr_minus3,
+    )
+    moved_grid = RegularCartesianGrid(
+        origin_bohr=center.grid.origin_bohr + np.array([0.25, 0.0, 0.0]),
+        spacing_bohr=center.grid.spacing_bohr,
+        shape=center.grid.shape,
+    )
+    changed_kernel = np.array(kernel.kernel_bohr_minus3, copy=True)
+    changed_kernel[0, 0, 0] += 1.0e-4
+
+    assert center_digest != weighted_density_operator_sha256(
+        operator="molecular-centre-projection",
+        construction=center.construction,
+        grid=moved_grid,
+        values=center.center_occupancy_weights,
+    )
+    assert kernel_digest != weighted_density_operator_sha256(
+        operator="weighted-density-kernel",
+        construction=kernel.construction,
+        grid=kernel.grid,
+        values=changed_kernel,
+    )
+
+
 def test_bridge_cubic_coefficient_and_pressure_are_same_functional_identities():
     functional = _bridge_functional()
     asset = functional.bridge_asset
@@ -197,6 +238,9 @@ def test_bridge_cubic_coefficient_and_pressure_are_same_functional_identities():
         rel=2.0e-14,
         abs=2.0e-16,
     )
+    assert asset.is_source_bound_pure_solvent_asset is False
+    with pytest.raises(ValueError, match="requires a source-bound"):
+        asset.require_source_bound_pure_solvent_asset()
 
 
 def test_bridge_gradient_and_hessian_are_the_derivatives_of_one_scalar():
@@ -283,6 +327,7 @@ def test_bridge_hessian_stability_certificate_uses_the_same_scalar_hessian_actio
         rel=2.0e-12,
         abs=2.0e-15,
     )
+
 
 def test_bridge_state_and_picard_solver_keep_all_four_scalar_components():
     functional = _bridge_functional()

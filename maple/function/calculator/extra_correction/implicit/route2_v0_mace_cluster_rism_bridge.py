@@ -253,6 +253,39 @@ def build_route2_v0_asset_bound_rism_kernel(
     )
 
 
+def verify_route2_v0_asset_bound_rism_kernel(
+    *,
+    frozen_solvent_asset: Route2V0FrozenSolventAsset,
+    rism_kernel: Route2V0RismEnergyConjugateKernel,
+) -> None:
+    """Require that one live HNC kernel descends from one frozen asset.
+
+    This public verifier is deliberately narrower than construction.  A
+    pure-solvent bridge certificate needs to bind an already assembled
+    molecular HNC scalar to the exact source files without rebuilding a
+    potentially different reciprocal discretisation.  It therefore checks the
+    closure and all source-side radial/tail controls, but leaves grid ownership
+    to the caller that owns both operators.
+    """
+
+    if not isinstance(frozen_solvent_asset, Route2V0FrozenSolventAsset):
+        raise TypeError(
+            "Asset-bound RISM verification requires a frozen solvent asset."
+        )
+    if not isinstance(rism_kernel, Route2V0RismEnergyConjugateKernel):
+        raise TypeError("Asset-bound RISM verification requires an RISM kernel.")
+    _require_molecular_hnc_closure(frozen_solvent_asset)
+    frozen_solvent_asset.verify_integrity()
+    if not _kernel_matches_frozen_asset(
+        asset=frozen_solvent_asset,
+        kernel=rism_kernel,
+    ):
+        raise ValueError(
+            "MACE/RISM bridge kernel does not derive from the frozen solvent "
+            "asset's exact bulk direct correlation and tail controls."
+        )
+
+
 @dataclass(frozen=True)
 class Route2V0MaceClusterRismMolecularHNCBridge:
     """One fail-closed assembly of the MACE scalar and frozen RISM scalar.
@@ -318,14 +351,10 @@ class Route2V0MaceClusterRismMolecularHNCBridge:
                 "MACE/RISM bridge requires the MACE external potential and frozen "
                 "RISM kernel to share one Cartesian grid."
             )
-        if not _kernel_matches_frozen_asset(
-            asset=self.frozen_solvent_asset,
-            kernel=self.rism_kernel,
-        ):
-            raise ValueError(
-                "MACE/RISM bridge kernel does not derive from the frozen solvent "
-                "asset's exact bulk direct correlation and tail controls."
-            )
+        verify_route2_v0_asset_bound_rism_kernel(
+            frozen_solvent_asset=self.frozen_solvent_asset,
+            rism_kernel=self.rism_kernel,
+        )
         canonical_reference = self.frozen_solvent_asset.molecular_reference
         if not _same_molecular_reference(
             self.external_potential.solvent,
@@ -526,4 +555,5 @@ __all__ = [
     "V0_MOLECULAR_HNC_REQUIRED_RISM_CLOSURE",
     "Route2V0MaceClusterRismMolecularHNCBridge",
     "build_route2_v0_asset_bound_rism_kernel",
+    "verify_route2_v0_asset_bound_rism_kernel",
 ]

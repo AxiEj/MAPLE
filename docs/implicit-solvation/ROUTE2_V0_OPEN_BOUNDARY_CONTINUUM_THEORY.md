@@ -3,7 +3,9 @@
 ## Scope and status
 
 This document defines the isolated-source electrostatic block implemented in
-[`route2_v0_open_diffuse_continuum.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_diffuse_continuum.py).
+[`route2_v0_open_diffuse_continuum.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_diffuse_continuum.py)
+and its matching open density-defined cavity composition in
+[`route2_v0_open_iso_density_cavity.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_iso_density_cavity.py).
 It exists because an AO molecular density on a finite box generally has a
 visible quadrature/domain electron-count residual.  A periodic Poisson solve
 must reject that source rather than introduce a neutralising background; it
@@ -12,10 +14,12 @@ source.
 
 The open block has a zero-potential boundary at the *exterior faces* of a
 finite cell-centred box.  It is symmetric, energy-conjugate, and supports a
-non-neutral source.  It is still only a **fixed-occupancy electrostatic
-control**: it supplies no permanent electronic functional, solvent density
-kernel, overlap rule, cavitation, Pauli/dispersion term, standard-state term,
-force/PES certificate, runtime result, or experimental solvation value.
+non-neutral source.  The matching cavity has a zero-extended rather than a
+periodically wrapped convolution.  Together they are still only a
+**structural electrostatic control**: they supply no permanent electronic
+functional, physical solvent density kernel or overlap threshold, cavitation,
+Pauli/dispersion term, standard-state term, force/PES certificate, runtime
+result, or experimental solvation value.
 
 In particular, removing the periodic neutrality restriction does **not**
 repair an AO electron-count error.  The source must report
@@ -145,8 +149,8 @@ Every interior or exterior face incident on cell \(i\) appears once.  This is
 why the code must retain the exterior-face terms: omitting them yields a
 potential that is not the derivative of the reported open-box energy.
 
-For a later density-defined cavity \(m[n]\), the electronic potential is still
-the composed derivative
+For a density-defined cavity \(m[n]\), the electronic potential is the
+composed derivative
 
 \[
 u_n=-\phi_{\rm reac}
@@ -161,16 +165,94 @@ F_{\rm reac}=\mathcal P^*u_n.
 
 No grid-field interpolation or separately assembled half coupling is allowed.
 
-## 4. Evidence and remaining gates
+## 4. Matching open iso-density-product cavity
+
+The periodic cavity control cannot be combined with the open reaction scalar:
+a circular FFT would reintroduce a periodic image of an isolated AO density
+through the opposite box face.  The open map therefore uses a finite odd-shape
+relative kernel \(k_\Delta\), centered at \(\Delta=0\), and declares the
+zero-extension convention explicitly:
+
+\[
+(Kn)_i=\Delta V\sum_{j\in\Omega_h}k_{i-j}n_j,
+\qquad
+k_\Delta=0\quad\text{outside the stored relative support}.
+\]
+
+No index is taken modulo the simulation-box shape.  A positive,
+centrosymmetric \(k\) makes \(K\) self-adjoint in the same uniform grid
+pairing,
+
+\[
+\Delta V\sum_i (Kn)_i v_i
+=\Delta V\sum_i n_i(K^\dagger v)_i,
+\qquad K^\dagger=K.
+\]
+
+For a positive independently bound overlap threshold \(q_c\), the smooth
+occupancy is
+
+\[
+q_i=(Kn)_i,
+\qquad
+m_i[n]=\tfrac12\operatorname{erfc}\!\left(\log\frac{q_i}{q_c}\right),
+\]
+
+with
+
+\[
+h'(q_i)=-\frac{\exp[-\log^2(q_i/q_c)]}{\sqrt\pi\,q_i}
+\quad(q_i>0).
+\]
+
+The mathematical form is an iso-density-product cavity construction, not an
+import of its empirical numerical choices.  In particular, the universal
+continuum work of [Gunceler and Arias](https://arxiv.org/abs/1403.6465)
+illustrates the nonlocal density-overlap idea, but its fitted threshold and
+surface-tension choices are expressly **not** Route-2 V0 inputs.
+
+Let \(g_i=\partial G_{\rm reac,h}/\partial m_i\) be the coordinate
+derivative in Section 3.  Applying the chain rule in the declared grid
+pairing gives
+
+\[
+\begin{aligned}
+\delta G_{\rm reac,h}
+&=\sum_i g_i h'(q_i)(K\delta n)_i\\
+&=\Delta V\sum_j\delta n_j
+\left[K^\dagger\!\left(\frac{h'(q)g}{\Delta V}\right)\right]_j,
+\\
+\boxed{\quad
+u_n=-\phi_{\rm reac}
++K^\dagger\!\left(\frac{h'(q)g}{\Delta V}\right).
+\quad}
+\end{aligned}
+\]
+
+Thus both the direct charge term and the cavity term are derivatives of the
+same reported reaction scalar.  The code does not permit a post-solve cavity
+force, a fitted atomic radius, or a periodic shortcut.  An open boundary is
+not an infinite-domain proof: buffer and grid-refinement convergence must
+expose the residual truncation error before this block can enter a physical
+calculation.
+
+## 5. Evidence and remaining gates
 
 [`test_route2_v0_open_diffuse_continuum.py`](../../tests/solvation/test_route2_v0_open_diffuse_continuum.py)
-proves only the discrete mathematical claims: a deliberately non-neutral
+proves only the fixed-occupancy discrete claims: a deliberately non-neutral
 source is admitted without a background, uniform-dielectric scaling,
 reciprocity, passivity, density finite-difference conjugacy, and the full
 occupancy finite difference including boundary faces.  It also combines the
 open reaction potential with the exact AO/grid pullback and verifies the
-central AO-density directional derivative of the reaction scalar.  It does not
-use a solvation label or select a numerical parameter from any error.
+central AO-density directional derivative of the reaction scalar.
+
+[`test_route2_v0_open_iso_density_cavity.py`](../../tests/solvation/test_route2_v0_open_iso_density_cavity.py)
+adds an independent direct-loop reference for the zero-extended convolution,
+an opposite-face no-wrap check, the weighted convolution adjoint identity,
+the cavity VJP finite difference, the composed non-neutral reaction finite
+difference, and the exact AO density-dual pullback.  These tests use an
+arbitrary structural kernel and threshold and do not use a solvation label or
+select a numerical parameter from any error.
 
 The physical motivation is consistent with the variational solute--continuum
 derivations in [Chai and Luber (2024)](https://arxiv.org/abs/2407.20404), which
@@ -187,8 +269,9 @@ needs all of the following:
 1. a source-bound stationary molecular electronic functional and an
    AO/grid/domain convergence certificate, plus the matching non-wrapping
    nuclear source;
-2. a source-bound, smooth density-defined cavity with an **open** convolution
-   and its exact coordinate derivative;
+2. a physical solvent density kernel and overlap threshold fixed from
+   independent evidence, then open-domain grid/buffer convergence for the
+   matching smooth cavity already implemented here;
 3. a pre-minimisation nonpolar/Pauli/dispersion and standard-state scalar from
    independent solvent physics;
 4. KKT residual, stability, force, grid/buffer, rigid-motion, and closed-loop

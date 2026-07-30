@@ -1,0 +1,102 @@
+{
+  "protocol_id": "route2-v0-mace-mdp-acetone-response-prereg-v1",
+  "schema_version": 1,
+  "status": "frozen-before-execution",
+  "claim_boundary": "This one-acetone gas-phase MACE-MDP coefficient comparison is a no-runtime-QM physical screen only. MACE-MDP supplies published frozen dipole/polarizability coefficients, not an energy or force. The calculation invokes no continuum, PCM, implicit solvent, experimental solvation value, target calibration, force/PES certificate, total-solvation prediction, or public Route-2 profile. A pass can admit only the separate construction and testing of a new explicit moment-space scalar; it cannot establish chemical accuracy.",
+  "hard_constraints": {
+    "mace_mdp_treated_as_an_energy_or_force_model": false,
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "post_training": false,
+    "fine_tuning": false,
+    "target_fit_or_calibration": false,
+    "response_rescaling": false,
+    "eigenvalue_clipping_or_shift": false,
+    "raw_tensor_symmetrization_to_pass": false,
+    "field_or_threshold_selection_after_execution": false,
+    "legacy_public_route_changed": false,
+    "no_runtime_qm_in_candidate": true
+  },
+  "candidate_identity": {
+    "checkpoint": "MACE-MDP.model",
+    "checkpoint_role": "published frozen organic molecular dipole and fully anisotropic polarizability predictor",
+    "calculator": "mace.calculators.mace.MACECalculator",
+    "model_type": "DipolePolarizabilityMACE",
+    "inference_dtype": "float64",
+    "inference_device": "cpu",
+    "strict_role_boundary": "The MACE-MDP output is not interpreted as an energy gradient, a self-consistent density, a PCM source, a force, or a direct V0 functional. Its polarizability can only be considered later as a frozen coefficient in a newly declared scalar after this screen and separate energy-conjugate source-map, continuum, derivative, and force gates.",
+    "official_model_repository": {
+      "url": "https://github.com/Nilsgoe/MACE-MDP",
+      "inspected_revision": "91ca3140b25a272aad79a8baece2563c166fd766",
+      "model_sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692"
+    },
+    "official_documentation": {
+      "mace_foundation_models": "https://mace-docs.readthedocs.io/en/latest/guide/foundation_models.html",
+      "mace_mdp_repository": "https://github.com/Nilsgoe/MACE-MDP",
+      "mace_mdp_paper": "https://chemrxiv.org/doi/full/10.26434/chemrxiv.15000716"
+    }
+  },
+  "protocol": {
+    "system": "The frozen acetone geometry and omegaB97M-V/def2-TZVPD finite-field polarizability already sealed in route2-v0-qeq-acetone-qm-field-v1.json.",
+    "candidate_evaluation": "Run the official MACECalculator with the frozen MACE-MDP checkpoint once at that exact geometry and read its direct dipole and 3x3 polarizability properties. There is no finite applied field and no claim that the checkpoint supplies a field-dependent energy.",
+    "polarizability_source_unit": "e angstrom^2 / volt, as documented by the MACE-MDP repository",
+    "polarizability_comparison_unit": "bohr^3",
+    "raw_tensor_rule": "All acceptance comparisons use the raw converted model tensor. The canonical 0.5*(alpha+alpha^T) tensor may be recorded only after the raw antisymmetry gate passes, exclusively as a machine-precision representation for eigenvalue diagnostics and a possible later scalar definition; it cannot repair a failed response.",
+    "permanent_dipole_rule": "The direct MACE-MDP dipole is recorded only as a non-gating source-interface diagnostic. No permanent PCM source is selected by this screen; any later c0(R) must have its own exact energy-conjugate density/source-map evidence."
+  },
+  "unit_conversion": {
+    "source_unit": "e angstrom^2 / volt",
+    "target_unit": "bohr^3",
+    "bohr_radius_meters": 5.29177210903e-11,
+    "bohr_radius_angstrom": 0.529177210903,
+    "hartree_joule": 4.3597447222071e-18,
+    "elementary_charge_coulomb": 1.602176634e-19,
+    "formula": "alpha_bohr3 = alpha_eangstrom2_per_volt * [Eh/(e*a0)]_(volt/angstrom) / a0_(angstrom)",
+    "eangstrom2_per_volt_to_bohr3": 97.1736242922823
+  },
+  "numerical_gates": {
+    "raw_antisymmetry_relative_frobenius_max": 1e-10,
+    "minimum_canonical_eigenvalue_bohr3_min": 0.0,
+    "interpretation": "A failure means the checkpoint output cannot serve unchanged as the positive symmetric linear-response coefficient of the proposed scalar. Do not symmetrize, shift, clip, or rescale it to recover eligibility."
+  },
+  "scientific_falsification_gates": {
+    "relative_frobenius_mismatch_max": 0.2,
+    "trace_ratio_min": 0.8,
+    "trace_ratio_max": 1.2,
+    "principal_value_relative_max": 0.3,
+    "interpretation": "These are the pre-existing gross gas-response rejection gates already used for V0-Q against the fixed omegaB97M-V/def2-TZVPD acetone finite-field reference. They test whether this frozen polarizability is physically plausible enough to justify a later functional construction, not implicit-solvation accuracy."
+  },
+  "decision_rule": "If any numerical or scientific gate fails, reject frozen MACE-MDP as a response-coefficient source for Route 2V0. Do not alter the tensor, add a correction, fit to a solvation value, change the geometry/reference/gates, select a cavity, or run an accuracy panel. If all gates pass, admit only a separately preregistered explicit moment-space scalar with an energy-conjugate permanent-source/induced-dipole map, common variational continuum functional, coordinate derivatives, and force/PES gates. The direct MACE-MDP head remains non-energy/non-force in either outcome.",
+  "preexecution_disclosure": {
+    "prior_noncanonical_loader_smoke": "Before this formal preregistration, an unregistered local source-interface smoke loaded the official checkpoint through the generic MACECalculator and inspected output shape/units on the same frozen geometry. It did not create a committed artifact or an admission decision. This disclosure prevents treating that loader check as a hidden preregistered result.",
+    "threshold_provenance": "Every scientific threshold above is copied unchanged from the earlier frozen QEq acetone protocol, whose preregistration predates discovery of this generic MACE-MDP loader. No threshold was selected from MACE-MDP output.",
+    "threshold_source": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-prereg-v1.json",
+      "sha256": "d36d03fec186c70ae0e73917f22680251033ebb2b52b2da6b84cc1df6130868c"
+    }
+  },
+  "execution_contract": {
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/run_route2_v0_mace_mdp_acetone_response.py": "94f5c2557eb91f82d9abfa246b128dd40678da077dbe80f3be30f656cc7c6e56"
+    },
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/route2-v0-qeq-acetone-qm-field-v1.json": "482a20403917a2649d18b2da214019195b9c2f586c22afb94f6a816bbdcb88d8"
+    },
+    "model": {
+      "path": "/home/axie/.cache/mace/MACE-MDP.model",
+      "sha256": "126f8d1602549e6fa0df775c701a5119ddeb0e3738202af8e7aa736de6c2b692",
+      "size_bytes": 51716861
+    },
+    "runtime": {
+      "versions": {
+        "ase": "3.27.0",
+        "mace_torch": "0.3.16",
+        "numpy": "2.4.6",
+        "torch": "2.12.0+cu130"
+      },
+      "device": "cpu",
+      "default_dtype": "float64",
+      "torch_force_no_weights_only_load": "1"
+    }
+  }
+}

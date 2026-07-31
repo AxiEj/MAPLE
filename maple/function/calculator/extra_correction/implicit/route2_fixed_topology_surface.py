@@ -70,6 +70,29 @@ def amplitude_switch(t: np.ndarray) -> np.ndarray:
     return result
 
 
+def amplitude_switch_derivative(t: np.ndarray) -> np.ndarray:
+    """Return the exact derivative of :func:`amplitude_switch`.
+
+    The compact branch is
+
+    ``35*t**4 - 84*t**5 + 70*t**6 - 20*t**7``.
+
+    Its derivative, ``140*t**3*(1-t)**3``, vanishes at both endpoints.
+    Returning zero outside the open transition interval is therefore the
+    derivative of the same C3 piecewise function used for the energy; it is
+    not a threshold approximation.
+    """
+
+    values = np.asarray(t, dtype=float)
+    if not np.all(np.isfinite(values)):
+        raise ValueError("Normalized clearances must be finite.")
+    result = np.zeros_like(values)
+    transition = (values > 0.0) & (values < 1.0)
+    x = values[transition]
+    result[transition] = 140.0 * x**3 * (1.0 - x) ** 3
+    return result
+
+
 @dataclass(frozen=True)
 class FixedTopologyAmplitudeSWIGSurface:
     """One all-candidate amplitude-SWIG surface at a fixed geometry.
@@ -218,6 +241,97 @@ class FixedTopologyAmplitudeSWIGSurface:
 
         return np.array(self.exposure_amplitudes**2, copy=True)
 
+    def exposure_amplitude_position_vjp(
+        self,
+        amplitude_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate ``sum_i a_i g_i`` with respect to atom positions.
+
+        Coordinates are in bohr and the returned VJP is consequently in the
+        cotangent's units per bohr.  Every candidate node remains present;
+        buried nodes contribute a mathematically zero derivative because the
+        C3 amplitude and its first three endpoint derivatives vanish.
+
+        The calculation differentiates both roles of a coordinate: a node
+        translates with its parent atom and every other atom is a possible
+        occluding neighbour.  It deliberately uses products excluding one
+        neighbour rather than ``dg / g`` so exactly buried nodes never create
+        a 0/0 branch.
+        """
+
+        cotangent = np.asarray(amplitude_cotangent, dtype=float)
+        if cotangent.shape != (self.surface_size,) or not np.all(
+            np.isfinite(cotangent)
+        ):
+            raise ValueError(
+                "amplitude_cotangent must be finite with one value per surface node."
+            )
+
+        points = self.surface_points_bohr
+        positions = self.reference_positions_bohr
+        parents = self.parent_atom_indices
+        displacement = points[:, None, :] - positions[None, :, :]
+        distance = np.linalg.norm(displacement, axis=2)
+        if np.any(distance <= 1.0e-14):
+            # A candidate can coincide with a *different* atom only at a
+            # singular geometry.  The parent-centre distance is its radius and
+            # never triggers this branch.
+            rows, columns = np.where(distance <= 1.0e-14)
+            non_parent = columns != parents[rows]
+            if np.any(non_parent):
+                raise ValueError(
+                    "A fixed-topology SWIG candidate coincides with an "
+                    "occluding atomic centre."
+                )
+
+        clearances = (
+            distance - self.inner_radii_bohr[None, :]
+        ) / self.switching_widths_bohr[None, :]
+        # A parent's own rigid candidate is not occluded by that same sphere.
+        # Set both its switch and derivative exactly to the exposed branch.
+        row_indices = np.arange(self.surface_size)
+        clearances[row_indices, parents] = 1.0
+        switches = amplitude_switch(clearances)
+        switch_derivatives = amplitude_switch_derivative(clearances)
+
+        atom_count = self.atom_count
+        prefix = np.ones((self.surface_size, atom_count + 1), dtype=float)
+        suffix = np.ones((self.surface_size, atom_count + 1), dtype=float)
+        for atom_index in range(atom_count):
+            prefix[:, atom_index + 1] = (
+                prefix[:, atom_index] * switches[:, atom_index]
+            )
+        for atom_index in range(atom_count - 1, -1, -1):
+            suffix[:, atom_index] = (
+                suffix[:, atom_index + 1] * switches[:, atom_index]
+            )
+        excluding_neighbor = prefix[:, :-1] * suffix[:, 1:]
+        dg_dt = switch_derivatives * excluding_neighbor
+
+        # The compact branch makes the parent column identically zero.  This
+        # explicit assignment avoids carrying roundoff from the endpoint.
+        dg_dt[row_indices, parents] = 0.0
+        inverse_distance = np.zeros_like(distance)
+        nonzero = distance > 1.0e-14
+        inverse_distance[nonzero] = 1.0 / distance[nonzero]
+        direction = displacement * inverse_distance[:, :, None]
+        coefficient = (
+            cotangent[:, None]
+            * dg_dt
+            / self.switching_widths_bohr[None, :]
+        )
+        pair_gradient = coefficient[:, :, None] * direction
+
+        result = np.zeros((atom_count, 3), dtype=float)
+        # The surface candidate moves with its parent atom.
+        np.add.at(result, parents, np.sum(pair_gradient, axis=1))
+        # The neighbour centre enters with the opposite relative-coordinate
+        # derivative.
+        result -= np.sum(pair_gradient, axis=0)
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError("Fixed-topology SWIG amplitude VJP is non-finite.")
+        return result
+
 
 def build_fixed_topology_amplitude_swig_surface(
     atom_positions_bohr: np.ndarray,
@@ -339,6 +453,7 @@ def load_pyscf_amplitude_swig_angular_grid(
 __all__ = [
     "FixedTopologyAmplitudeSWIGSurface",
     "amplitude_switch",
+    "amplitude_switch_derivative",
     "build_fixed_topology_amplitude_swig_surface",
     "load_pyscf_amplitude_swig_angular_grid",
 ]

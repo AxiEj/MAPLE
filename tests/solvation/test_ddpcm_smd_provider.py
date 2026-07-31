@@ -35,8 +35,10 @@ from maple.function.route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     DDPCM_SMD_DIRECT_PCM_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
@@ -88,6 +90,22 @@ def _multisolvent_cosmo_options(solvent: str) -> dict[str, object]:
     }
 
 
+def _direct_multisolvent_options(solvent: str) -> dict[str, object]:
+    return {
+        **_options(),
+        "implicit": solvent,
+        "profile": DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    }
+
+
+def _direct_multisolvent_cosmo_options(solvent: str) -> dict[str, object]:
+    return {
+        **_options(),
+        "implicit": solvent,
+        "profile": DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    }
+
+
 def test_public_parser_accepts_explicit_ddpcm_energy_research_profile():
     params = _parse(
         "#model=macepol-m",
@@ -136,6 +154,40 @@ def test_public_parser_accepts_ddcosmo_as_a_separate_equation_profile(
     assert params["solv"] == _multisolvent_cosmo_options(solvent)
 
 
+@pytest.mark.parametrize("solvent", sorted(SUPPORTED_ROUTE2_SMD_SOLVENTS))
+def test_public_parser_accepts_direct_pcm_multisolvent_profile_for_each_solvent(
+    solvent,
+):
+    params = _parse(
+        "#model=macepol-m",
+        "#sp(verbose=1)",
+        (
+            f"#solv(implicit={solvent},method=smd,provider=pyddx,"
+            f"profile={DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE},response=scf,"
+            "standard_state=1m,experimental=true)"
+        ),
+    )
+
+    assert params["solv"] == _direct_multisolvent_options(solvent)
+
+
+@pytest.mark.parametrize("solvent", sorted(SUPPORTED_ROUTE2_SMD_SOLVENTS))
+def test_public_parser_accepts_direct_pcm_ddcosmo_profile_for_each_solvent(
+    solvent,
+):
+    params = _parse(
+        "#model=macepol-m",
+        "#sp(verbose=1)",
+        (
+            f"#solv(implicit={solvent},method=smd,provider=pyddx,"
+            f"profile={DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE},response=scf,"
+            "standard_state=1m,experimental=true)"
+        ),
+    )
+
+    assert params["solv"] == _direct_multisolvent_cosmo_options(solvent)
+
+
 def test_public_parser_canonicalizes_multisolvent_alias():
     params = _parse(
         "#model=macepol-m",
@@ -181,6 +233,11 @@ def test_finite_resolution_policy_is_scoped_to_the_exact_multisolvent_ddpcm_prof
         _multisolvent_cosmo_options("water"),
         audit_dir=tmp_path / "multisolvent-ddcosmo",
     )
+    direct_multisolvent = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _direct_multisolvent_options("water"),
+        audit_dir=tmp_path / "multisolvent-ddpcm-direct",
+    )
 
     policy = multisolvent._engine.settings.scf_finite_resolution_policy
     assert policy is not None
@@ -195,6 +252,7 @@ def test_finite_resolution_policy_is_scoped_to_the_exact_multisolvent_ddpcm_prof
     )
     assert legacy._engine.settings.scf_finite_resolution_policy is None
     assert ddcosmo._engine.settings.scf_finite_resolution_policy is None
+    assert direct_multisolvent._engine.settings.scf_finite_resolution_policy is not None
 
 
 def test_finite_resolution_runtime_identity_fails_closed_on_any_lock_drift(
@@ -1362,11 +1420,25 @@ def test_ddpcm_direct_pcm_profile_reports_only_pcm_half_coupling(
     assert audit["field_conditioned_mace_energy_change_hartree"] == pytest.approx(
         0.2 / Hartree
     )
-    with pytest.raises(NotImplementedError, match="PCM-only Route-2 ledger"):
-        provider.evaluate_single_point_derivative_evidence(
-            atoms,
-            calculator=calculator,
-        )
+    evidence = provider.evaluate_single_point_derivative_evidence(
+        atoms,
+        calculator=calculator,
+    )
+    expected_force = -(
+        np.asarray([[1.0e-4 / Hartree, 0.0, 0.0], [0.0, 0.0, 0.0]])
+        + _fake_cds(atoms).position_gradient_hartree_per_angstrom
+    )
+    np.testing.assert_allclose(
+        evidence.forces_hartree_per_angstrom,
+        expected_force,
+    )
+    assert evidence.provenance["forces_available"] is False
+    assert evidence.provenance["research_derivative_evidence"] is True
+    assert evidence.provenance["research_derivative_evidence_composition"] == (
+        "-d[0.5*<c,P_R c> + G_CDS]/dR evaluated with the "
+        "converged-density response eliminated by the direct-PCM "
+        "ledger-specific adjoint"
+    )
 
 
 def _coordinate_cds(atoms):

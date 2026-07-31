@@ -74,17 +74,63 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
 )
 from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.read.command_control import CommandControl
+from maple.function.route2_energy_ledger import (
+    LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+    PCM_HALF_COUPLING_ONLY_V1,
+    route2_energy_composition_description,
+    validate_route2_electrostatic_energy_ledger,
+)
 from maple.function.route2_smd_profiles import (
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
 )
 
 ARTIFACT_NAME = "route2-mnsol-macepolar-multisolvent-pilot-v1"
+DIRECT_PCM_ARTIFACT_NAME = (
+    "route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v1"
+)
 FULL_PANEL_RECORD_COUNT = 10
+# Backward-compatible legacy control used by the existing frozen artifacts.
 METHOD_PROFILES = (
     ("ddpcm", DDPCM_MULTISOLVENT_SMD_PROFILE),
     ("ddcosmo", DDCOSMO_MULTISOLVENT_SMD_PROFILE),
 )
+DIRECT_PCM_METHOD_PROFILES = (
+    ("ddpcm", DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE),
+    ("ddcosmo", DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE),
+)
+
+
+def method_profiles_for_energy_ledger(
+    energy_ledger: str,
+) -> tuple[tuple[str, str], ...]:
+    """Return the paired continuum equations for one frozen ledger.
+
+    The equation comparison changes only ``ddPCM`` versus ``ddCOSMO``.  The
+    cavity, solvent descriptor, MACE checkpoint path, local-jet receiver, and
+    ledger are otherwise profile-locked, so a paired error difference cannot
+    silently come from a different SMD parameter set.
+    """
+
+    selected = validate_route2_electrostatic_energy_ledger(energy_ledger)
+    if selected == LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1:
+        return METHOD_PROFILES
+    if selected == PCM_HALF_COUPLING_ONLY_V1:
+        return DIRECT_PCM_METHOD_PROFILES
+    raise AssertionError(f"Unhandled Route-2 energy ledger: {selected}.")
+
+
+def artifact_name_for_energy_ledger(energy_ledger: str) -> str:
+    """Return a distinct artifact identity for each immutable ledger."""
+
+    selected = validate_route2_electrostatic_energy_ledger(energy_ledger)
+    if selected == LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1:
+        return ARTIFACT_NAME
+    if selected == PCM_HALF_COUPLING_ONLY_V1:
+        return DIRECT_PCM_ARTIFACT_NAME
+    raise AssertionError(f"Unhandled Route-2 energy ledger: {selected}.")
 
 
 def _execution_git_head() -> str:
@@ -118,6 +164,7 @@ def _source_hashes() -> dict[str, str]:
         "maple/function/calculator/set_calculator.py",
         f"{implicit_root}/correction.py",
         f"{implicit_root}/ddpcm_smd.py",
+        "maple/function/route2_energy_ledger.py",
         f"{implicit_root}/electrostatic_pairing.py",
         f"{implicit_root}/pyddx_pcm_response.py",
         f"{implicit_root}/pyscf_smd_cds.py",
@@ -299,10 +346,12 @@ def _load_calculator(
     first_atoms: Atoms,
     first_solvent: str,
     work_dir: Path,
+    *,
+    method_profiles: tuple[tuple[str, str], ...],
 ):
     parameters = _settings(
         first_solvent,
-        DDPCM_MULTISOLVENT_SMD_PROFILE,
+        dict(method_profiles)["ddpcm"],
     )
     return SetCalculator(
         "cpu",
@@ -325,6 +374,7 @@ def _evaluate_method(
     selected,
     method: str,
     profile: str,
+    energy_ledger: str,
     work_dir: Path,
 ) -> dict[str, object]:
     parameters = _settings(selected.canonical_solvent, profile)
@@ -352,6 +402,8 @@ def _evaluate_method(
         raise RuntimeError("Public MAPLE path selected the wrong continuum equation.")
     if provenance.get("profile") != profile:
         raise RuntimeError("Public MAPLE path selected the wrong profile.")
+    if provenance.get("electrostatic_energy_ledger") != energy_ledger:
+        raise RuntimeError("Public MAPLE path selected the wrong energy ledger.")
     if abs(combined_energy_hartree - result["combined_energy_hartree"]) > 1.0e-12:
         raise RuntimeError("Common finalizer combined-energy ledger drifted.")
 
@@ -416,6 +468,18 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--public-output", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument(
+        "--energy-ledger",
+        choices=(
+            LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+            PCM_HALF_COUPLING_ONLY_V1,
+        ),
+        default=LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+        help=(
+            "Frozen energy ledger. The default retains the historical control; "
+            "use pcm-half-coupling-only-v1 for the direct-PCM paired run."
+        ),
+    )
+    parser.add_argument(
         "--record-index",
         type=int,
         help="Run one zero-based selected record as a private smoke test.",
@@ -465,6 +529,11 @@ def _validated_output_paths(
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
+    energy_ledger = validate_route2_electrostatic_energy_ledger(
+        args.energy_ledger
+    )
+    method_profiles = method_profiles_for_energy_ledger(energy_ledger)
+    artifact_name = artifact_name_for_energy_ledger(energy_ledger)
     execution_git_head = _execution_git_head()
 
     protocol = load_mnsol_protocol(args.protocol)
@@ -516,6 +585,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         _atoms(indexed_selection[0][1]),
         indexed_selection[0][1].canonical_solvent,
         work_dir,
+        method_profiles=method_profiles,
     )
     model_load_seconds = time.perf_counter() - load_started
     if str(calculator.dtype) != "torch.float64":
@@ -551,9 +621,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 selected=selected,
                 method=method,
                 profile=profile,
+                energy_ledger=energy_ledger,
                 work_dir=work_dir,
             )
-            for method, profile in METHOD_PROFILES
+            for method, profile in method_profiles
         }
         if (
             abs(
@@ -590,7 +661,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if complete_panel and len(records) != FULL_PANEL_RECORD_COUNT:
         raise RuntimeError("The full MNSol pilot did not produce all ten records.")
     method_metrics = {
-        method: _metrics(records, method) for method, _profile in METHOD_PROFILES
+        method: _metrics(records, method) for method, _profile in method_profiles
     }
     paired_comparison = _paired_method_comparison(records)
     checkpoint = dict(calculator.mace_polar_checkpoint_provenance)
@@ -629,7 +700,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "or MD claims."
         )
     private_artifact = {
-        "artifact": ARTIFACT_NAME,
+        "artifact": artifact_name,
         "schema_version": 1,
         "visibility": "private-user-supplied-mnsol-row-level",
         "do_not_commit": True,
@@ -645,6 +716,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "temperature_k": protocol.temperature_k,
         },
         "checkpoint": checkpoint,
+        "electrostatic_energy_ledger": energy_ledger,
         "aggregate_metrics": method_metrics,
         "paired_method_comparison": paired_comparison,
         "records": records,
@@ -658,12 +730,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 for record in records
             ]
         )
-        for method, _profile in METHOD_PROFILES
+        for method, _profile in method_profiles
     }
     pyddx_runtime = import_module("pyddx")
     pyscf_runtime = import_module("pyscf")
     public_artifact = {
-        "artifact": ARTIFACT_NAME,
+        "artifact": artifact_name,
         "schema_version": 1,
         "visibility": (
             "public-aggregate-only"
@@ -681,9 +753,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             "reaction_field_projector": "local-jet",
             "continuum_equations": ["pyddx ddPCM", "pyddx ddCOSMO"],
             "nonpolar_model": "PySCF 2.13.1 SMD-CDS",
-            "energy_composition": (
-                "DeltaG_solv = DeltaE_MACE_intrinsic + U_continuum " "+ G_SMD-CDS"
+            "energy_composition": route2_energy_composition_description(
+                energy_ledger
             ),
+            "electrostatic_energy_ledger": energy_ledger,
             "strict_original_smd_equivalence": False,
             "mutual_ml_continuum_polarization": True,
             "cpcm_included": False,
@@ -724,7 +797,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "redistributed": False,
         },
         "continuum_parameters": {
-            "profiles": {method: profile for method, profile in METHOD_PROFILES},
+            "profiles": {method: profile for method, profile in method_profiles},
             "coulomb_radii_policy": ("PySCF 2.13.1 SMD solvent-acidity-dependent"),
             "dielectric_source": "PySCF 2.13.1 SMD solvent_db",
             "lmax": DDPCM_LMAX,
@@ -758,7 +831,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "ddPCM-then-ddCOSMO order and process-level cache effects "
                 "are not randomized"
             ),
-            "method_execution_order": [method for method, _profile in METHOD_PROFILES],
+            "method_execution_order": [
+                method for method, _profile in method_profiles
+            ],
             "model_load": model_load_seconds,
             "methods": method_timings,
             "total_wall": total_wall_seconds,

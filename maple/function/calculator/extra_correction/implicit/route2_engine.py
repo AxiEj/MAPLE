@@ -27,6 +27,8 @@ from .route2_derivative import (
     assemble_total_solvation_coordinate_gradient,
     continuum_coupled_solvation_coordinate_gradient,
     fixed_cavity_energy_density_gradient,
+    pcm_half_coupling_continuum_coordinate_gradient,
+    pcm_half_coupling_energy_density_gradient,
 )
 from .route2_field_state import ReactionFieldDrive
 from .route2_fixed_point import (
@@ -1656,7 +1658,13 @@ class Route2ContinuumEngine:
         force_admission_policy: ForceAdmissionPolicy | None = None,
         multi_start_root_agreement: bool | None = None,
         operational_energy_semantics_closed: bool = False,
+        electrostatic_energy_ledger: str = (
+            LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+        ),
     ) -> tuple[np.ndarray, dict[str, Any]]:
+        selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
+            electrostatic_energy_ledger
+        )
         settings = self.settings
         finite_resolution_policy = settings.scf_finite_resolution_policy
         if (
@@ -1714,36 +1722,27 @@ class Route2ContinuumEngine:
                 f"(absolute error={force_state_energy_error_ev:.3e} eV)."
             )
 
-        gas_forces = getattr(
-            gas_state,
-            "fixed_field_forces_ev_per_angstrom",
-            None,
-        )
-        solvent_forces = getattr(
-            solvent_state,
-            "fixed_field_forces_ev_per_angstrom",
-            None,
-        )
-        if gas_forces is None or solvent_forces is None:
-            raise RuntimeError(
-                "MACE-POLAR omitted the gas or fixed-field force partial."
-            )
-
-        intrinsic_gradient = calculator.intrinsic_energy_field_gradient(
-            atoms,
-            node_potential_ev=field[:, 0],
-            node_gradient_ev_per_angstrom=field[:, 1:],
-        )
         density_response = calculator.linearize_density_response(
             atoms,
             node_potential_ev=field[:, 0],
             node_gradient_ev_per_angstrom=field[:, 1:],
         )
-        physical_rhs = fixed_cavity_energy_density_gradient(
-            coupled.reaction_field,
-            reaction_field_values=field,
-            intrinsic_energy_field_gradient=intrinsic_gradient,
-        )
+        if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1:
+            physical_rhs = pcm_half_coupling_energy_density_gradient(
+                coupled.reaction_field,
+                reaction_field_values=field,
+            )
+        else:
+            intrinsic_gradient = calculator.intrinsic_energy_field_gradient(
+                atoms,
+                node_potential_ev=field[:, 0],
+                node_gradient_ev_per_angstrom=field[:, 1:],
+            )
+            physical_rhs = fixed_cavity_energy_density_gradient(
+                coupled.reaction_field,
+                reaction_field_values=field,
+                intrinsic_energy_field_gradient=intrinsic_gradient,
+            )
         residual = UnmixedDensityResidualLinearization(
             atom_count=len(atoms),
             reaction_field=coupled.reaction_field,
@@ -1762,16 +1761,41 @@ class Route2ContinuumEngine:
             node_gradient_ev_per_angstrom=field[:, 1:],
             density_cotangent=adjoint.solution,
         )
-        continuum_gradient = continuum_coupled_solvation_coordinate_gradient(
-            coupled.reaction_field,
-            density_response,
-            density_coefficients=density,
-            intrinsic_energy_field_gradient=intrinsic_gradient,
-            adjoint_solution=adjoint.solution,
-            adjoint_density_position_vjp=density_position_vjp,
-            solvent_fixed_field_forces_ev_per_angstrom=solvent_forces,
-            gas_forces_ev_per_angstrom=gas_forces,
-        )
+        if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1:
+            continuum_gradient = (
+                pcm_half_coupling_continuum_coordinate_gradient(
+                    coupled.reaction_field,
+                    density_response,
+                    density_coefficients=density,
+                    adjoint_solution=adjoint.solution,
+                    adjoint_density_position_vjp=density_position_vjp,
+                )
+            )
+        else:
+            gas_forces = getattr(
+                gas_state,
+                "fixed_field_forces_ev_per_angstrom",
+                None,
+            )
+            solvent_forces = getattr(
+                solvent_state,
+                "fixed_field_forces_ev_per_angstrom",
+                None,
+            )
+            if gas_forces is None or solvent_forces is None:
+                raise RuntimeError(
+                    "MACE-POLAR omitted the gas or fixed-field force partial."
+                )
+            continuum_gradient = continuum_coupled_solvation_coordinate_gradient(
+                coupled.reaction_field,
+                density_response,
+                density_coefficients=density,
+                intrinsic_energy_field_gradient=intrinsic_gradient,
+                adjoint_solution=adjoint.solution,
+                adjoint_density_position_vjp=density_position_vjp,
+                solvent_fixed_field_forces_ev_per_angstrom=solvent_forces,
+                gas_forces_ev_per_angstrom=gas_forces,
+            )
         total = assemble_total_solvation_coordinate_gradient(
             continuum_gradient,
             coupled.cds_result.position_gradient_hartree_per_angstrom,

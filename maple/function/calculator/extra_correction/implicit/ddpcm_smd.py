@@ -27,8 +27,10 @@ from ....route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
     DDPCM_GAFF2_CARBONYL_O_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     DDPCM_SMD_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     SUPPORTED_PYDDX_SMD_PROFILES,
     route2_smd_profile_spec,
@@ -186,7 +188,11 @@ def _engine_settings(
         _MULTISOLVENT_DDPCM_FINITE_RESOLUTION_POLICY
         if (
             label == _DDPCM_ENGINE_SETTINGS.continuum_label
-            and profile == DDPCM_MULTISOLVENT_SMD_PROFILE
+            and profile
+            in {
+                DDPCM_MULTISOLVENT_SMD_PROFILE,
+                DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+            }
         )
         else None
     )
@@ -393,17 +399,14 @@ class PyDDXSMDImplicitSolvation:
             "scientific_status": "single-point-energy-research",
             "solution_phase_pes": False,
             "forces_available": False,
-            "research_derivative_evidence_available": (
-                self.profile_spec.electrostatic_energy_ledger
-                != PCM_HALF_COUPLING_ONLY_V1
-            ),
+            # Both frozen ledgers now have their own outer-adjoint derivative
+            # specification.  This advertises only an explicit single-point
+            # research check: pyddx's variable active surface topology still
+            # prevents a public PES/ASE force contract.
+            "research_derivative_evidence_available": True,
             "research_derivative_evidence_scope": (
                 "single-point validation only; not an ASE force or "
                 "solution-phase PES capability"
-                if self.profile_spec.electrostatic_energy_ledger
-                != PCM_HALF_COUPLING_ONLY_V1
-                else "not available: the PCM-only ledger has no matching "
-                "stationary-force implementation"
             ),
             "accuracy_certified": False,
             "default_eligible": False,
@@ -415,11 +418,13 @@ class PyDDXSMDImplicitSolvation:
                 continuum_symbol=self.continuum_label,
             ),
             "research_derivative_evidence_composition": (
-                "-d(delta_G_solv)/dR evaluated with the converged-density "
-                "response eliminated by one adjoint solve"
+                "-d[0.5*<c,P_R c> + G_CDS]/dR evaluated with the "
+                "converged-density response eliminated by the direct-PCM "
+                "ledger-specific adjoint"
                 if self.profile_spec.electrostatic_energy_ledger
-                != PCM_HALF_COUPLING_ONLY_V1
-                else "not implemented for the PCM-only ledger"
+                == PCM_HALF_COUPLING_ONLY_V1
+                else "-d(delta_G_solv)/dR evaluated with the "
+                "converged-density response eliminated by one adjoint solve"
             ),
             "numerics": numerics,
         }
@@ -863,6 +868,9 @@ class PyDDXSMDImplicitSolvation:
             force_admission_continuum=(
                 PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT
             ),
+            electrostatic_energy_ledger=(
+                self.profile_spec.electrostatic_energy_ledger
+            ),
         )
 
     def _write_result_audit(
@@ -964,16 +972,6 @@ class PyDDXSMDImplicitSolvation:
         calculator=None,
     ) -> SinglePointDerivativeEvidence:
         """Return explicitly labelled derivative evidence outside ASE/PES APIs."""
-
-        if (
-            self.profile_spec.electrostatic_energy_ledger
-            == PCM_HALF_COUPLING_ONLY_V1
-        ):
-            raise NotImplementedError(
-                "The PCM-only Route-2 ledger is energy-only: its legacy "
-                "fixed-point adjoint differentiates a different scalar and "
-                "cannot be reused as a direct-PCM force."
-            )
 
         result = self._evaluate(
             atoms,
@@ -1105,7 +1103,9 @@ __all__ = [
     "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
     "DDPCM_MULTISOLVENT_SMD_PROFILE",
+    "DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE",
     "DDCOSMO_MULTISOLVENT_SMD_PROFILE",
+    "DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE",
     "DDPCM_LMAX",
     "DDPCM_N_LEBEDEV",
     "DDPCM_SMD_PROFILE",

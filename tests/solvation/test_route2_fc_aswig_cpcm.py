@@ -14,6 +14,7 @@ from maple.function.calculator.extra_correction.implicit.route2_fc_aswig_cpcm im
 )
 from maple.function.calculator.extra_correction.implicit.route2_fixed_topology_surface import (
     amplitude_switch,
+    amplitude_switch_derivative,
 )
 
 
@@ -62,6 +63,17 @@ def test_amplitude_switch_is_compact_and_has_c3_endpoint_flatness():
     dense = amplitude_switch(np.linspace(-1.0, 2.0, 100_003))
     assert np.all(dense >= 0.0)
     assert np.all(dense <= 1.0)
+
+    derivative = amplitude_switch_derivative(
+        np.asarray([-1.0, 0.0, 0.25, 0.5, 0.75, 1.0, 2.0])
+    )
+    np.testing.assert_allclose(
+        derivative,
+        [0.0, 0.0, 140.0 * 0.25**3 * 0.75**3, 140.0 / 64.0,
+         140.0 * 0.75**3 * 0.25**3, 0.0, 0.0],
+        rtol=0.0,
+        atol=1.0e-15,
+    )
 
 
 def test_fixed_topology_retains_buried_nodes_and_regularizes_their_charge():
@@ -173,6 +185,98 @@ def test_fixed_topology_response_integrates_with_the_existing_energy_only_map():
         abs=1.0e-12,
     )
     provenance = response.runtime_provenance
-    assert provenance["force_capability"] == "energy-only-no-coordinate-vjp-yet"
+    assert (
+        provenance["force_capability"]
+        == "same-energy-full-continuum-vjp-experimental"
+    )
     assert provenance["upstream_equivalence"].startswith("new-discretization")
     assert math.isfinite(provider_energy_hartree)
+
+
+def test_operator_position_vjp_matches_bilinear_finite_difference_across_switch():
+    """The fixed-cardinality operator differentiates G and C_off together."""
+
+    positions = np.asarray([[0.0, 0.0, 0.0], [2.5, 0.2, -0.1]])
+    response = FixedTopologyAmplitudeSWIGCPCMResponse(
+        ("H", "H"),
+        positions,
+        np.asarray([1.1, 1.1]),
+        dielectric=78.39,
+        _unit_sphere=_SIX_POINT_SPHERE,
+        _switching_constant=_SWITCHING_CONSTANT,
+    )
+    left = np.linspace(-0.3, 0.4, response.surface_size)
+    right = np.linspace(0.27, -0.19, response.surface_size)
+    analytic = response.operator_position_vjp(left, right)
+
+    def bilinear(displaced_positions: np.ndarray) -> float:
+        displaced = FixedTopologyAmplitudeSWIGCPCMResponse(
+            ("H", "H"),
+            displaced_positions,
+            np.asarray([1.1, 1.1]),
+            dielectric=78.39,
+            _unit_sphere=_SIX_POINT_SPHERE,
+            _switching_constant=_SWITCHING_CONSTANT,
+        )
+        return float(np.dot(left, displaced.apply_energy_conjugate(right)))
+
+    step = 1.0e-5
+    finite_difference = np.empty_like(analytic)
+    for atom_index in range(2):
+        for cartesian_index in range(3):
+            plus = positions.copy()
+            minus = positions.copy()
+            plus[atom_index, cartesian_index] += step
+            minus[atom_index, cartesian_index] -= step
+            finite_difference[atom_index, cartesian_index] = (
+                bilinear(plus) - bilinear(minus)
+            ) / (2.0 * step)
+
+    np.testing.assert_allclose(analytic, finite_difference, rtol=0.0, atol=6.0e-9)
+    np.testing.assert_allclose(
+        np.sum(analytic, axis=0), np.zeros(3), rtol=0.0, atol=2.0e-13
+    )
+
+
+def test_full_reaction_field_position_vjp_matches_finite_difference():
+    """Source, receiver, surface motion and C-PCM operator share one scalar."""
+
+    positions = np.asarray([[0.0, 0.0, 0.0], [2.5, 0.2, -0.1]])
+    density = np.asarray(
+        [[0.3, 0.02, 0.01, -0.01], [-0.3, 0.01, -0.02, 0.03]]
+    )
+    field_cotangent = np.asarray(
+        [[0.12, 0.03, -0.05, 0.04], [-0.20, 0.02, 0.05, -0.03]]
+    )
+
+    def build(displaced_positions: np.ndarray):
+        response = FixedTopologyAmplitudeSWIGCPCMResponse(
+            ("H", "H"),
+            displaced_positions,
+            np.asarray([1.1, 1.1]),
+            dielectric=78.39,
+            _unit_sphere=_SIX_POINT_SPHERE,
+            _switching_constant=_SWITCHING_CONSTANT,
+        )
+        return response.reaction_field_linear_map(displaced_positions)
+
+    reaction_map = build(positions)
+    analytic = reaction_map.full_position_vjp(density, field_cotangent)
+
+    step = 1.0e-5
+    finite_difference = np.empty_like(analytic)
+    for atom_index in range(2):
+        for cartesian_index in range(3):
+            plus = positions.copy()
+            minus = positions.copy()
+            plus[atom_index, cartesian_index] += step
+            minus[atom_index, cartesian_index] -= step
+            finite_difference[atom_index, cartesian_index] = (
+                np.sum(field_cotangent * build(plus).apply(density))
+                - np.sum(field_cotangent * build(minus).apply(density))
+            ) / (2.0 * step)
+
+    np.testing.assert_allclose(analytic, finite_difference, rtol=0.0, atol=7.0e-8)
+    np.testing.assert_allclose(
+        np.sum(analytic, axis=0), np.zeros(3), rtol=0.0, atol=2.0e-12
+    )

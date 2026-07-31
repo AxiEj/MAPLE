@@ -15,8 +15,10 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
 )
 from maple.function.route2_smd_profiles import (
     DDPCM_MULTISOLVENT_SMD_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     DDPCM_SMD_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     SUPPORTED_DDPCM_SMD_PROFILES,
     SUPPORTED_PYDDX_SMD_PROFILES,
     route2_smd_profile_spec,
@@ -166,6 +168,36 @@ def test_ddpcm_and_ddcosmo_profiles_change_only_the_continuum_equation():
     }
     assert DDCOSMO_MULTISOLVENT_SMD_PROFILE in SUPPORTED_PYDDX_SMD_PROFILES
     assert DDCOSMO_MULTISOLVENT_SMD_PROFILE not in (
+        SUPPORTED_DDPCM_SMD_PROFILES
+    )
+
+
+def test_direct_pcm_multisolvent_profiles_change_only_the_continuum_equation():
+    ddpcm = route2_smd_profile_spec(DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE)
+    ddcosmo = route2_smd_profile_spec(
+        DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE
+    )
+
+    assert ddpcm.electrostatics_model == "ddpcm"
+    assert ddcosmo.electrostatics_model == "ddcosmo"
+    assert ddpcm.electrostatic_energy_ledger == "pcm-half-coupling-only-v1"
+    assert ddcosmo.electrostatic_energy_ledger == "pcm-half-coupling-only-v1"
+    assert {
+        key: value
+        for key, value in ddpcm.__dict__.items()
+        if key not in {"name", "electrostatics_model"}
+    } == {
+        key: value
+        for key, value in ddcosmo.__dict__.items()
+        if key not in {"name", "electrostatics_model"}
+    }
+    assert DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE in (
+        SUPPORTED_DDPCM_SMD_PROFILES
+    )
+    assert DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE in (
+        SUPPORTED_PYDDX_SMD_PROFILES
+    )
+    assert DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE not in (
         SUPPORTED_DDPCM_SMD_PROFILES
     )
 

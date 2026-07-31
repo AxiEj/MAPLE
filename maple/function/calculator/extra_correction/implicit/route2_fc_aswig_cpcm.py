@@ -9,8 +9,10 @@ matrix ``C = D + C_off``, it solves
 This avoids constructing the singular legacy diagonal ``D / F`` at a buried
 node.  It is intentionally C-PCM-only: the positive-definite construction
 does not authorize an implicit substitution for the nonsymmetric IEFPCM
-equation.  The class has no coordinate-derivative contract yet and therefore
-cannot enable public Route-2 forces.
+equation.  It provides a same-scalar operator coordinate VJP for research
+validation, but remains ineligible for public Route-2 forces until it is
+integrated with a same-geometry CDS term and passes the complete rotation,
+PES, root-uniqueness, and thermodynamic-semantics gates.
 """
 
 from __future__ import annotations
@@ -29,11 +31,15 @@ from .continuum_response import (
     EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION,
     SurfaceChargeState,
 )
+from .continuum_derivative import (
+    EXTERNAL_MEP_OPERATOR_DERIVATIVE_CONTRACT_VERSION,
+)
 from .route2_fixed_topology_surface import (
     FixedTopologyAmplitudeSWIGSurface,
     build_fixed_topology_amplitude_swig_surface,
     load_pyscf_amplitude_swig_angular_grid,
 )
+from .route2_pcm_response import ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION
 
 
 def _validated_vector(
@@ -92,6 +98,66 @@ def _gaussian_coulomb_off_diagonal(
     return kernel
 
 
+def _gaussian_coulomb_off_diagonal_point_vjp(
+    points_bohr: np.ndarray,
+    exponents_bohr_inverse: np.ndarray,
+    left_amplitude_charge_e: np.ndarray,
+    right_amplitude_charge_e: np.ndarray,
+) -> np.ndarray:
+    """Return ``d(left.T C_off right)/d(surface points)`` in hartree/bohr.
+
+    ``C_off`` is the symmetric Gaussian Coulomb matrix used verbatim in the
+    amplitude C-PCM curvature.  This is a bilinear VJP rather than a dense
+    third-rank derivative.  It is intentionally separate from the exposure
+    derivative, whose coordinates enter through ``G`` rather than ``C_off``.
+    """
+
+    points = np.asarray(points_bohr, dtype=float)
+    exponents = np.asarray(exponents_bohr_inverse, dtype=float)
+    left = _validated_vector(
+        left_amplitude_charge_e,
+        name="left_amplitude_charge_e",
+        length=len(points),
+    )
+    right = _validated_vector(
+        right_amplitude_charge_e,
+        name="right_amplitude_charge_e",
+        length=len(points),
+    )
+    displacement = points[:, None, :] - points[None, :, :]
+    distance = np.linalg.norm(displacement, axis=2)
+    np.fill_diagonal(distance, np.inf)
+    if np.any(distance <= 1.0e-12):
+        raise ValueError(
+            "Fixed-topology amplitude-SWIG has coincident candidate Gaussian "
+            "centres; reject this geometry rather than regularizing it."
+        )
+    pair_exponent = (
+        exponents[:, None]
+        * exponents[None, :]
+        / np.sqrt(exponents[:, None] ** 2 + exponents[None, :] ** 2)
+    )
+    radial_derivative = (
+        (2.0 * pair_exponent / math.sqrt(math.pi))
+        * np.exp(-(pair_exponent * distance) ** 2)
+        / distance
+        - erf(pair_exponent * distance) / distance**2
+    )
+    np.fill_diagonal(radial_derivative, 0.0)
+    radial_over_distance = radial_derivative / distance
+    np.fill_diagonal(radial_over_distance, 0.0)
+    pair_weight = (
+        left[:, None] * right[None, :]
+        + right[:, None] * left[None, :]
+    ) * radial_over_distance
+    result = np.einsum("ij,ijk->ik", pair_weight, displacement)
+    if not np.all(np.isfinite(result)):
+        raise RuntimeError(
+            "Fixed-topology amplitude C-PCM point-kernel VJP is non-finite."
+        )
+    return result
+
+
 @dataclass(frozen=True)
 class AmplitudeSurfaceChargeState:
     """One C-PCM amplitude solve retained for diagnostics and VJP development."""
@@ -138,14 +204,20 @@ class AmplitudeSurfaceChargeState:
 class FixedTopologyAmplitudeSWIGCPCMResponse:
     """One immutable fixed-topology C-PCM external-MEP response.
 
-    This experimental class implements the existing external-MEP response
-    contract for energy and fixed-cavity reaction maps.  It intentionally does
-    not expose ``operator_position_vjp`` or a surface-motion derivative
-    contract, so force admission remains fail-closed.
+    This experimental class implements one common C-PCM scalar for the energy,
+    reaction map, and ``operator_position_vjp``.  Its all-candidate surface
+    gives a fixed continuum dimension at a fixed atom count.  This mathematical
+    component is still not a public Route-2 force provider: the total model
+    lacks a same-geometry CDS implementation and has not passed the broader
+    PES/rotation/root/semantic admission gates.
     """
 
     contract_version = EXTERNAL_MEP_RESPONSE_CONTRACT_VERSION
     energy_response_is_reciprocal = True
+    operator_derivative_contract_version = (
+        EXTERNAL_MEP_OPERATOR_DERIVATIVE_CONTRACT_VERSION
+    )
+    surface_motion_contract_version = ATOM_CENTERED_SURFACE_MOTION_CONTRACT_VERSION
 
     def __init__(
         self,
@@ -232,12 +304,14 @@ class FixedTopologyAmplitudeSWIGCPCMResponse:
         self._dielectric = dielectric_value
         self._f_epsilon = (dielectric_value - 1.0) / dielectric_value
         self._surface = surface
+        self._off_diagonal = np.array(off_diagonal, dtype=float, copy=True)
         self._hessian = hessian
         self._factor = factor
         self._runtime_version = runtime_version
         self._lebedev_order = grid_order
         self.atom_count = atom_count
         self.surface_size = surface.surface_size
+        self._off_diagonal.setflags(write=False)
 
     @property
     def atomic_numbers(self) -> np.ndarray:
@@ -295,7 +369,7 @@ class FixedTopologyAmplitudeSWIGCPCMResponse:
             "switching_weight": "F=product(C3-amplitude-neighbor-switches)^2",
             "equation": "variational-amplitude-cpcm-v1",
             "upstream_equivalence": "new-discretization-not-pruned-swig-reparameterization",
-            "force_capability": "energy-only-no-coordinate-vjp-yet",
+            "force_capability": "same-energy-full-continuum-vjp-experimental",
         }
 
     def _validated_potential(self, values: np.ndarray) -> np.ndarray:
@@ -351,12 +425,80 @@ class FixedTopologyAmplitudeSWIGCPCMResponse:
             polarization_energy_hartree=state.polarization_energy_hartree,
         )
 
+    def operator_position_vjp(
+        self,
+        left_surface_potential_hartree_per_e: np.ndarray,
+        right_surface_potential_hartree_per_e: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate the exact amplitude-CPCM response operator.
+
+        With ``Q=-f G H^-1 G`` and the stationary amplitude states
+
+        ``H y_a=-f G a`` and ``H y_b=-f G b``, this evaluates
+
+        ``d(a.T Q b) = y_b.T dG a + y_a.T dG b + y_a.T dH y_b / f``.
+
+        Surface-potential values are held fixed in the candidate-node basis.
+        Thus this method owns precisely the exposure and Gaussian-kernel
+        terms of the same scalar C-PCM discretization; source and reaction
+        kernel motion are supplied by ``AtomCenteredSurfacePCMReactionFieldLinearMap``.
+        """
+
+        left = self._validated_potential(left_surface_potential_hartree_per_e)
+        right = self._validated_potential(right_surface_potential_hartree_per_e)
+        left_state = self.solve_amplitude_state(left)
+        right_state = self.solve_amplitude_state(right)
+        y_left = left_state.amplitude_charge_e
+        y_right = right_state.amplitude_charge_e
+        amplitudes = self._surface.exposure_amplitudes
+        left_weighted = amplitudes * y_left
+        right_weighted = amplitudes * y_right
+
+        # H = D + G C_off G.  Collect all dG terms before asking the surface
+        # object to differentiate the compact amplitude products.
+        amplitude_cotangent = (
+            y_left * (self._off_diagonal @ right_weighted)
+            + y_right * (self._off_diagonal @ left_weighted)
+        ) / self._f_epsilon
+        amplitude_cotangent += y_left * right + y_right * left
+        amplitude_gradient_bohr = self._surface.exposure_amplitude_position_vjp(
+            amplitude_cotangent
+        )
+
+        # The remaining dH term is G dC_off G.  Each candidate point moves
+        # rigidly with its parent atom; exposure motion has already been
+        # included above.
+        point_gradient_bohr = (
+            _gaussian_coulomb_off_diagonal_point_vjp(
+                self._surface.surface_points_bohr,
+                self._surface.charge_exponents_bohr_inverse,
+                left_weighted,
+                right_weighted,
+            )
+            / self._f_epsilon
+        )
+        np.add.at(
+            amplitude_gradient_bohr,
+            self._surface.parent_atom_indices,
+            point_gradient_bohr,
+        )
+        result = amplitude_gradient_bohr / Bohr
+        expected_shape = (self.atom_count, 3)
+        if result.shape != expected_shape or not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "Fixed-topology amplitude C-PCM operator VJP must be finite "
+                f"with shape {expected_shape}; received {result.shape}."
+            )
+        return result
+
     def reaction_field_linear_map(self, atom_positions_angstrom: np.ndarray):
-        """Build an energy-only Route-2 local-jet reaction-field map."""
+        """Build a same-energy local-jet reaction-field map with full VJP."""
 
-        from .route2_pcm_response import FixedCavityPCMReactionFieldLinearMap
+        from .route2_pcm_response import (
+            AtomCenteredSurfacePCMReactionFieldLinearMap,
+        )
 
-        return FixedCavityPCMReactionFieldLinearMap(
+        return AtomCenteredSurfacePCMReactionFieldLinearMap(
             self,
             atom_positions_angstrom,
         )

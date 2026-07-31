@@ -80,6 +80,60 @@ def test_single_record_smoke_metrics_are_descriptive_not_ten_only():
         runner._paired_method_comparison([])
 
 
+def test_energy_ledger_selects_a_locked_paired_equation_comparison():
+    legacy_profiles = runner.method_profiles_for_energy_ledger(
+        runner.LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+    )
+    direct_profiles = runner.method_profiles_for_energy_ledger(
+        runner.PCM_HALF_COUPLING_ONLY_V1
+    )
+
+    assert tuple(method for method, _profile in legacy_profiles) == (
+        "ddpcm",
+        "ddcosmo",
+    )
+    assert tuple(method for method, _profile in direct_profiles) == (
+        "ddpcm",
+        "ddcosmo",
+    )
+    assert legacy_profiles != direct_profiles
+    assert runner.artifact_name_for_energy_ledger(
+        runner.LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+    ) == runner.ARTIFACT_NAME
+    assert runner.artifact_name_for_energy_ledger(
+        runner.PCM_HALF_COUPLING_ONLY_V1
+    ) == runner.DIRECT_PCM_ARTIFACT_NAME
+
+
+def test_parser_keeps_legacy_control_default_and_accepts_direct_pcm():
+    common = [
+        "--source",
+        "source.tsv",
+        "--protocol",
+        "protocol.json",
+        "--selection",
+        "selection.json",
+        "--private-output",
+        ".omx/private.json",
+        "--public-output",
+        ".omx/public.json",
+        "--work-dir",
+        ".omx/work",
+    ]
+    parser = runner._build_parser()
+
+    assert parser.parse_args(common).energy_ledger == (
+        runner.LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+    )
+    assert parser.parse_args(
+        [
+            *common,
+            "--energy-ledger",
+            runner.PCM_HALF_COUPLING_ONLY_V1,
+        ]
+    ).energy_ledger == runner.PCM_HALF_COUPLING_ONLY_V1
+
+
 def test_single_record_smoke_forces_both_outputs_below_omx():
     private = ROOT / ".omx/test-smoke/private.json"
     public = ROOT / ".omx/test-smoke/summary.json"

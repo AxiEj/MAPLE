@@ -248,6 +248,41 @@ def fixed_cavity_energy_density_gradient(
     )
 
 
+def pcm_half_coupling_energy_density_gradient(
+    reaction_field: ReactionFieldLinearMap,
+    *,
+    reaction_field_values: np.ndarray,
+) -> np.ndarray:
+    """Return the direct-PCM ledger derivative in the neutral density space.
+
+    For the explicitly selected direct ledger
+
+    ``E_0(c, R) = 0.5 * <c, P_R c>``,
+
+    reciprocity gives ``dE_0/dc = P_R c``.  The MACE-POLAR fixed point still
+    supplies ``c`` and is differentiated through the outer adjoint later, but
+    the field-conditioned MACE energy and its field derivative do *not* enter
+    this right-hand side.  This separation prevents silently reusing the
+    legacy operational-energy adjoint for a different scalar ledger.
+    """
+
+    if getattr(reaction_field, "reciprocal_energy_pairing", False) is not True:
+        raise ValueError(
+            "The PCM half-coupling density gradient requires a reciprocal "
+            "reaction field energy pairing."
+        )
+    field = _validated_block(
+        reaction_field_values,
+        expected_shape=None,
+        name="reaction_field_values",
+    )
+    if reaction_field.atom_count != field.shape[0]:
+        raise ValueError(
+            "Reaction-field atom count does not match the energy-dual field."
+        )
+    return project_neutral_density_tangent(external_field_to_density_order(field))
+
+
 def fixed_cavity_model_feature_energy_density_gradient(
     reaction_field: ModelFeatureLinearMap,
     *,
@@ -540,6 +575,52 @@ def continuum_coupled_solvation_coordinate_gradient(
     )
 
 
+def pcm_half_coupling_continuum_coordinate_gradient(
+    reaction_field: FullReactionFieldPositionDerivative,
+    density_response: DensityResponseLinearization,
+    *,
+    density_coefficients: np.ndarray,
+    adjoint_solution: np.ndarray,
+    adjoint_density_position_vjp: np.ndarray,
+    neutral_tolerance: float = 1.0e-10,
+) -> np.ndarray:
+    """Differentiate the direct-PCM leaf ledger through the MACE fixed point.
+
+    This is the ledger-specific counterpart of
+    :func:`continuum_coupled_solvation_coordinate_gradient`.  It evaluates
+
+    ``d[0.5<c, P_R c>]/dR``
+
+    at a converged MACE fixed point using an outer adjoint.  Its combined field
+    cotangent is exactly
+
+    ``0.5 * D.T c + J_M.T lambda``.
+
+    The legacy field-conditioned MACE energy, its field gradient, and its
+    fixed-field coordinate partial are intentionally absent.  ``CDS`` also
+    remains a separately supplied same-profile scalar/gradient component.
+    """
+
+    density = _validated_block(
+        density_coefficients,
+        expected_shape=None,
+        name="density_coefficients",
+    )
+    zero_field_gradient = np.zeros_like(density)
+    zero_coordinates = np.zeros((density.shape[0], 3), dtype=float)
+    return continuum_coupled_solvation_coordinate_gradient(
+        reaction_field,
+        density_response,
+        density_coefficients=density,
+        intrinsic_energy_field_gradient=zero_field_gradient,
+        adjoint_solution=adjoint_solution,
+        adjoint_density_position_vjp=adjoint_density_position_vjp,
+        solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
+        gas_forces_ev_per_angstrom=zero_coordinates,
+        neutral_tolerance=neutral_tolerance,
+    )
+
+
 __all__ = [
     "FULL_REACTION_FIELD_POSITION_DERIVATIVE_CONTRACT_VERSION",
     "FixedSurfaceReactionField",
@@ -550,4 +631,6 @@ __all__ = [
     "fixed_cavity_energy_density_gradient",
     "fixed_cavity_model_feature_energy_density_gradient",
     "fixed_surface_solvation_coordinate_gradient",
+    "pcm_half_coupling_continuum_coordinate_gradient",
+    "pcm_half_coupling_energy_density_gradient",
 ]

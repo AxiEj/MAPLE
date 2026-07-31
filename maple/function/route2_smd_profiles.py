@@ -40,8 +40,14 @@ PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE = (
 DDPCM_SMD_PROFILE = "smd-ddpcm-l15-n1202-v1"
 DDPCM_SMD_DIRECT_PCM_PROFILE = "smd-ddpcm-l15-n1202-pcm-half-coupling-v1"
 DDPCM_MULTISOLVENT_SMD_PROFILE = "smd-ddpcm-l15-n1202-multisolv-v1"
+DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE = (
+    "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v1"
+)
 DDCOSMO_MULTISOLVENT_SMD_PROFILE = (
     "smd-ddcosmo-l15-n1202-multisolv-v1"
+)
+DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE = (
+    "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v1"
 )
 DDPCM_GAFF2_CARBONYL_O_PROFILE = "smd-ddpcm-l15-n1202-gaff2-o-v1"
 DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE = (
@@ -276,6 +282,21 @@ _PROFILE_SPECS = {
         coulomb_radii_policy="pyscf-smd-2.13.1",
         supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
     ),
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE: Route2SMDProfileSpec(
+        name=DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+        provider="pyddx",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="ddpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="pyscf-smd-cds",
+        dielectric_policy="pyscf-smd-2.13.1",
+        coulomb_radii_policy="pyscf-smd-2.13.1",
+        supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+    ),
     DDCOSMO_MULTISOLVENT_SMD_PROFILE: Route2SMDProfileSpec(
         name=DDCOSMO_MULTISOLVENT_SMD_PROFILE,
         provider="pyddx",
@@ -289,6 +310,21 @@ _PROFILE_SPECS = {
         dielectric_policy="pyscf-smd-2.13.1",
         coulomb_radii_policy="pyscf-smd-2.13.1",
         supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
+    ),
+    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE: Route2SMDProfileSpec(
+        name=DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+        provider="pyddx",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="ddcosmo",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="pyscf-smd-cds",
+        dielectric_policy="pyscf-smd-2.13.1",
+        coulomb_radii_policy="pyscf-smd-2.13.1",
+        supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
     ),
     DDPCM_GAFF2_CARBONYL_O_PROFILE: Route2SMDProfileSpec(
         name=DDPCM_GAFF2_CARBONYL_O_PROFILE,
@@ -397,10 +433,12 @@ def validate_route2_smd_profile(
 __all__ = [
     "CANONICAL_SMD_PROFILE",
     "DDCOSMO_MULTISOLVENT_SMD_PROFILE",
+    "DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
     "DDPCM_MULTISOLVENT_SMD_PROFILE",
+    "DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE",
     "DDPCM_SMD_DIRECT_PCM_PROFILE",
     "DDPCM_SMD_PROFILE",
     "GAFF2_CARBONYL_O_PROFILE",

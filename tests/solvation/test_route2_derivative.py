@@ -15,6 +15,8 @@ from maple.function.calculator.extra_correction.implicit.route2_derivative impor
     fixed_cavity_energy_density_gradient,
     fixed_cavity_model_feature_energy_density_gradient,
     fixed_surface_solvation_coordinate_gradient,
+    pcm_half_coupling_continuum_coordinate_gradient,
+    pcm_half_coupling_energy_density_gradient,
 )
 from maple.function.calculator.extra_correction.implicit.route2_response import (
     NeutralDensityCoordinates,
@@ -300,6 +302,60 @@ def test_fixed_cavity_energy_density_gradient_requires_reciprocity():
             reaction_field,
             reaction_field_values=np.zeros((3, 4)),
             intrinsic_energy_field_gradient=np.zeros((3, 4)),
+        )
+
+
+def test_pcm_half_coupling_density_gradient_matches_neutral_finite_difference():
+    atom_count = 3
+    dimension = 4 * atom_count
+    rng = np.random.default_rng(20260801)
+    order = _external_to_density_order_matrix(atom_count)
+    kernel_seed = rng.normal(scale=0.05, size=(dimension, dimension))
+    energy_kernel = kernel_seed + kernel_seed.T
+    reaction_field = _MatrixReactionField(order.T @ energy_kernel, atom_count)
+    density = rng.normal(scale=0.1, size=(atom_count, 4))
+    field = reaction_field.apply(density)
+
+    analytic = pcm_half_coupling_energy_density_gradient(
+        reaction_field,
+        reaction_field_values=field,
+    )
+    expected = project_neutral_density_tangent(
+        external_field_to_density_order(field)
+    )
+    np.testing.assert_allclose(analytic, expected, rtol=0.0, atol=1.0e-14)
+
+    direction = project_neutral_density_tangent(
+        rng.normal(size=(atom_count, 4))
+    )
+
+    def energy(coefficients: np.ndarray) -> float:
+        local_field = reaction_field.apply(coefficients).reshape(-1)
+        return float(
+            0.5
+            * coefficients.reshape(-1)
+            @ order
+            @ local_field
+        )
+
+    for step in (1.0e-3, 3.0e-4, 1.0e-4):
+        finite_difference = (
+            energy(density + step * direction)
+            - energy(density - step * direction)
+        ) / (2.0 * step)
+        assert finite_difference == pytest.approx(
+            np.vdot(analytic, direction),
+            rel=2.0e-10,
+            abs=2.0e-11,
+        )
+
+
+def test_pcm_half_coupling_gradient_requires_reciprocal_pairing():
+    reaction_field = _MatrixReactionField(np.eye(8), 2, reciprocal=False)
+    with pytest.raises(ValueError, match="reciprocal"):
+        pcm_half_coupling_energy_density_gradient(
+            reaction_field,
+            reaction_field_values=np.zeros((2, 4)),
         )
 
 
@@ -675,6 +731,120 @@ def test_continuum_coupled_gradient_uses_full_reaction_field_vjp():
     np.testing.assert_allclose(continuum, expected)
     assert reaction_field.fixed_surface_position_vjp_calls == 1
     assert reaction_field.full_position_vjp_calls == 1
+
+
+def test_pcm_half_coupling_continuum_gradient_matches_resolved_root_fd():
+    """The direct ledger must not inherit legacy MACE energy terms."""
+
+    atom_count = 2
+    dimension = 4 * atom_count
+    rng = np.random.default_rng(20260801)
+    order = _external_to_density_order_matrix(atom_count)
+    coordinates = NeutralDensityCoordinates(atom_count)
+    neutral_basis = np.column_stack(
+        [
+            coordinates.expand(np.eye(coordinates.dimension)[index]).reshape(-1)
+            for index in range(coordinates.dimension)
+        ]
+    )
+    kernel0_seed = rng.normal(scale=0.025, size=(dimension, dimension))
+    kernel1_seed = rng.normal(scale=0.008, size=(dimension, dimension))
+    response0 = order.T @ (kernel0_seed + kernel0_seed.T)
+    response1 = order.T @ (kernel1_seed + kernel1_seed.T)
+    density_response0 = neutral_basis @ rng.normal(
+        scale=0.018,
+        size=(coordinates.dimension, dimension),
+    )
+    density_response1 = neutral_basis @ rng.normal(
+        scale=0.006,
+        size=(coordinates.dimension, dimension),
+    )
+    base0 = neutral_basis @ rng.normal(scale=0.08, size=coordinates.dimension)
+    base1 = neutral_basis @ rng.normal(scale=0.025, size=coordinates.dimension)
+    coordinate_value = 0.23
+
+    def state_at(value: float):
+        response_matrix = response0 + value * response1
+        density_response_matrix = density_response0 + value * density_response1
+        base = base0 + value * base1
+        reduced_operator = (
+            np.eye(coordinates.dimension)
+            - neutral_basis.T
+            @ density_response_matrix
+            @ response_matrix
+            @ neutral_basis
+        )
+        density = neutral_basis @ np.linalg.solve(
+            reduced_operator,
+            neutral_basis.T @ base,
+        )
+        field = response_matrix @ density
+        np.testing.assert_allclose(
+            density - (base + density_response_matrix @ field),
+            np.zeros(dimension),
+            rtol=0.0,
+            atol=2.0e-14,
+        )
+        return density, field, response_matrix, density_response_matrix
+
+    def energy_at(value: float) -> float:
+        density, field, _, _ = state_at(value)
+        return float(0.5 * density @ order @ field)
+
+    density, field, response_matrix, density_response_matrix = state_at(
+        coordinate_value
+    )
+    reaction_field = _CoordinateDependentMatrixReactionField(
+        response_matrix,
+        response1,
+        atom_count,
+    )
+    density_response = _MatrixDensityResponse(
+        density_response_matrix,
+        atom_count,
+    )
+    physical_rhs = pcm_half_coupling_energy_density_gradient(
+        reaction_field,
+        reaction_field_values=field.reshape(atom_count, 4),
+    )
+    linearization = UnmixedDensityResidualLinearization(
+        atom_count=atom_count,
+        reaction_field=reaction_field,
+        density_response=density_response,
+    )
+    adjoint = solve_adjoint(
+        linearization,
+        physical_rhs,
+        relative_tolerance=1.0e-12,
+        absolute_tolerance=1.0e-13,
+    ).solution
+    direct_density_coordinate_derivative = base1 + density_response1 @ field
+    adjoint_density_position_vjp = np.zeros((atom_count, 3))
+    adjoint_density_position_vjp[0, 0] = np.vdot(
+        adjoint.reshape(-1),
+        direct_density_coordinate_derivative,
+    )
+    analytic = pcm_half_coupling_continuum_coordinate_gradient(
+        reaction_field,
+        density_response,
+        density_coefficients=density.reshape(atom_count, 4),
+        adjoint_solution=adjoint,
+        adjoint_density_position_vjp=adjoint_density_position_vjp,
+    )
+
+    for step in (1.0e-3, 3.0e-4, 1.0e-4):
+        finite_difference = (
+            energy_at(coordinate_value + step)
+            - energy_at(coordinate_value - step)
+        ) / (2.0 * step)
+        assert analytic[0, 0] == pytest.approx(
+            finite_difference,
+            rel=2.0e-9,
+            abs=2.0e-10,
+        )
+    np.testing.assert_allclose(
+        analytic[1:, :], np.zeros((atom_count - 1, 3)), rtol=0.0, atol=1.0e-14
+    )
 
 
 def test_continuum_coupled_gradient_fails_closed_without_full_derivative():

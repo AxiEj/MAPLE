@@ -178,7 +178,40 @@ checks without becoming a Route 4 potential backend.  It must be kept in the
 cannot use a low property error to waive the thermodynamic-gauge, sampling, or
 independent-holdout requirements above.
 
-## Current frontier candidate: ConSolv
+## Direct native-implicit lineage: DiffTRe -> ReSolv -> ConSolv
+
+The Route 4 search is deliberately narrower than Route 1.  An ordinary
+gas-phase MLIP followed by GB/PB/ALPB, a learned GB/SASA parameterization, or
+another additive continuum correction is not a new candidate here.  The direct
+method lineage is:
+
+1. **DiffTRe**, the differentiable trajectory-reweighting method;
+2. **ReSolv**, which combines a QM7-X-trained vacuum NequIP potential with a
+   water potential trained top-down against experimental FreeSolv hydration
+   free energies and evaluates the endpoint pair with BAR; and
+3. **ConSolv**, which explicitly states that it uses the ReSolv method and
+   extends the native solution potential to solvent-conditioned nonaqueous
+   chemistry.
+
+ReSolv is now exposed only through
+`maple.function.solvfe.resolv_protocol`: a dedicated, artifact-pinned
+endpoint-BAR sidecar.  It is not registered as `#model`, does not receive an
+additional continuum term, does not regenerate conformers, and does not run
+new MD in the released-trajectory audit.  The sidecar pins upstream revision
+`1d85bcc065003e083d2e95ab7091cb1762eeb1bf`, both public checkpoints, the
+FreeSolv database, and every selected 40-frame trajectory pair before any
+pickle/dill deserialization.  Its formal audit reconstructs the complete
+published 162-molecule test split, covering 26 classified primary FreeSolv
+functional groups plus 9 records whose source label is unclassified.  The
+unclassified bucket does not count as a functional group; a prefix or
+one-molecule smoke is explicitly ineligible as accuracy evidence.
+
+This executable control remains water-only at 298.15 K for neutral,
+closed-shell H/C/N/O/S/Cl molecules.  Its 162 records come from a
+FreeSolv-derived split used during model development, so even a faithful
+reproduction is not an independent blind validation.  GPU admission also
+requires record-wise float64 CPU/GPU parity; the current CPU-only JAX
+environment must report GPU as unavailable rather than silently falling back.
 
 The ConSolv preprint is the strongest *scientific* match found so far: one
 solvent-conditional MACE-style implicit potential, 66 non-aqueous solvents,
@@ -191,7 +224,7 @@ the filtered external CombiSolv panel has different scope; and the published
 figures do not provide a MAPLE-executable artifact or an independent sealed
 final panel.
 
-As of 2026-07-30, ConSolv **fails gate 1**.  The authors state that code and
+As of 2026-07-31, ConSolv **fails gate 1**.  The authors state that code and
 data will be released on GitHub upon manuscript acceptance; no official
 runtime, pretrained weights, architecture configuration, solvent-descriptor
 bundle, or checksum has been released.  Route 4 must therefore retain it as
@@ -222,9 +255,10 @@ Primary sources:
 | AIMNet2-CPCMS v2 | yes | fixed THF metadata | native solution PES; no released gas/solution pair or FE protocol | neutral-singlet mechanics probe only |
 | C3Net | yes | 103 upstream solvent identifiers | direct scalar solvation-property prediction; no energy surface, endpoint pair, or sampled estimator | SDF-only property-prediction sidecar, never an ordinary calculator or absolute-solvation backend |
 | CIGIN | yes | one syntactically accepted solvent SMILES; complete multi-solvent training coverage is unverified | direct scalar solvation-property prediction; no energy surface, endpoint pair, or sampled estimator | CPU-only SMILES property-prediction sidecar, never an ordinary calculator or absolute-solvation backend |
+| ReSolv | yes, two exact public checkpoints plus pinned endpoint trajectories | water only | native vacuum/water potential pair evaluated by BAR; released 162-molecule test split is FreeSolv-derived, not blind | dedicated endpoint-BAR sidecar and full-panel reproduction control only; never an ordinary calculator |
 | MoletoSolv | **no serialized trained estimators/scalers**; source, data, and precomputed predictions only | 92 public solvent descriptors, while the ionic code path hard-codes four solvents | descriptor-based direct scalar ΔGsolv regression; no PES, forces, endpoint pair, or sampled estimator | literature baseline only; unchanged use would require prohibited local training/artifact reconstruction |
 | SolProp_ML Gsolv | yes, ten-member Zenodo bundle | neutral pair input; CombiSolv-Exp reports 291 solvents but exact checkpoint record membership is unavailable | direct scalar gas-liquid dGsolv at 298 K / 1 M; no energy surface, endpoint pair, or sampled estimator | artifact-pinned candidate only: current unmodified official runtime has unavailable dependencies, so no adapter is exposed |
-| SolProp-mix Exp | yes, selected ten-member Zenodo ensemble | neutral solutes/nonionic liquids; pure, binary, and ternary mixtures are in the published task, but MAPLE coverage is unverified | direct infinite-dilution dGsolv scalar prediction; no energy surface, force field, endpoint pair, or sampled estimator | artifact-pinned mixture-property candidate only: current unmodified official runtime has unavailable dependencies, so no adapter is exposed |
+| SolProp-mix QMExp | yes, ten-member Zenodo v1.1 ensemble | development evidence covers 1,000 official nonaqueous pure/binary rows across 15 primary functional groups; training/holdout overlap remains unknown | live direct infinite-dilution dGsolv scalar property adapter; no PES, forces, OPT, FREQ, MD, endpoint pair, or sampled FE protocol | CPU development sidecar only: accuracy gates fail and literal zero-loss GPU admission fails |
 | Schake GNN v2 | yes, protein-backbone checkpoint | no solvent selector; only CA/C/N backbone representation coupled to GBn2 | learned structural correction for protein conformational landscapes; no direct solvation estimator | artifact-pinned protein research control only: upstream dependencies are unavailable and its own README says it is not production-ready |
 | ConSolv | **no** | 66 reported non-aqueous solvents | published mathematical form is suitable | watchlist only until official code and weights exist |
 | TWIN | **no** | water | reported implicit-water potential, but its v1 manuscript defers simulation data and code until publication | watchlist only; no runtime may be reconstructed |
@@ -771,61 +805,47 @@ complete exact-ensemble training ledger, so it cannot provide an independent
 holdout or a current acceptance score.  It remains an identity-pinned blocked
 candidate rather than a shortcut around either restriction.
 
-### SolProp-mix Exp: released mixture dGsolv ensemble, runtime not admitted
+### SolProp-mix QMExp: live property adapter, development accuracy and GPU rejected
 
-The current official SolProp source revision
-`80043ce09eb8802517c35b59254f8e9c181f2dac` instructs users to copy exactly the
-`SolPropmixExp` folder from the authors' Zenodo record into the original
-runtime.  MAPLE has verified the record's complete `Files.zip` archive
-(288,947,625 bytes; SHA256
-`670915e5bf86d5457bc2f43301e5a02e77a66b529535fcd0eddfadeb72ed73a5`) and its
-selected ten-member ensemble (36,170,142 bytes).  This is an authentic,
-already-trained direct scalar dGsolv artifact for neutral supported solutes in
-nonionic liquid pure or mixed solvents.  It is a stronger task match than
-pure-solvent pair predictors because its mathematical input includes solvent
-identity and composition, but it is still not a molecular potential, force
-model, endpoint pair, or sampled free-energy estimator.
+MAPLE executes the unchanged ten-member `SolPropmixQMExp` ensemble from the
+official v1.1 Zenodo record `15587866` (previous record `14238055`) against
+source revision `80043ce09eb8802517c35b59254f8e9c181f2dac`.  The public
+`ModelWeights.zip` is 175,360,920 bytes with SHA256
+`dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006`;
+the supplemental static-code archive has SHA256
+`8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326`.
+The live adapter is a direct scalar infinite-dilution dGsolv **property**
+sidecar.  It is not a PES or force model and exposes no OPT, FREQ, MD,
+endpoint pair, sampled estimator, or absolute-solvation FE protocol.  MAPLE
+does not fit, fine-tune, calibrate, or otherwise alter the released weights.
 
-The paper reports a `0.25 kcal/mol` MAE and `0.37 kcal/mol` RMSE for
-nonaqueous mixed-solvent predictions.  Those are author-level results, not a
-MAPLE reproduction: the corresponding record identities, exact training
-overlap, and a never-used experimental extrapolation panel have not been
-established here.  The official final weights embody the authors' historical
-transfer-learning and fine-tuning procedure; MAPLE may only execute that
-unchanged released ensemble, never fit, fine-tune, calibrate, or otherwise
-modify it.
+The primary development audit is the output-blind deterministic 1,000-row
+sample from the official v1.1 nonaqueous pure/binary sheets, spanning 15
+predeclared primary functional groups.  Its CPU MAE/RMSE/MaxAE are
+`0.2600320951491671 / 0.3768962032607486 / 1.8977049801370343 kcal/mol`.
+Both frozen acceptance thresholds, MAE `<=0.25` and RMSE `<=0.37 kcal/mol`,
+fail.  This panel is development evidence only: exact checkpoint-training and
+holdout overlap remain unknown, so it is neither independent validation nor a
+final blind holdout.  The separate balanced 10-group release sentinel is a
+supplemental fail-closed check and must not be generalized as the accuracy
+basis for chemical space.
 
-The pinned static candidate audit covers only the workbook worksheets
-`Not used - From 3-comp VLE` and `Not used - From 4-comp VLE`.  It verifies
-30,184 release rows and 279 declared solvent identities without decoding any
-experimental `Gsolv` value or reading model predictions.  This is not an
-independence certificate: the release contains 43 duplicate physical-record
-identities, 48 rows with incomplete core citation provenance, and no complete
-join against the candidate training/test families.  Zero-fraction declared
-components remain nominal source-cardinality provenance but are omitted from
-the physical mixture identity, exposing one duplicate across the two source
-worksheets.  Until the cross-dataset joins are complete, the only allowed
-status is candidate-only with overlap pending.
+CPU and GPU were run in deterministic float64 with TF32, AMP, FP16, BF16, and
+reduced-precision reductions disabled.  Nevertheless, GPU worsened absolute
+error exactly on 218/1,000 rows and produced 496/1,000 bitwise-different
+ensemble predictions.  No worsening exceeded `5e-12 kcal/mol`, but that is
+only a roundoff diagnostic; the required literal zero-loss condition is false,
+so GPU admission is false.  Since accuracy fails first, matched-QM timing is
+ineligible and no speed or Route 4 advantage may be claimed.
 
-The paper-level boundary is now frozen separately from that candidate claim.
-Its final workflow pretrains on CombiSolv-QM plus BinarySolv-QM, fine-tunes on
-CombiSolv-Exp, and tests on BinarySolv-Exp plus TernarySolv-Exp with
-solute-level splitting.  The reported experimental-test solutes are excluded
-from CombiSolv-Exp but retain some overlap with the synthetic COSMO-RS
-families.  Those exclusions do not mention or certify the two `Not used`
-worksheets, so exact-record and solute-structure joins remain mandatory before
-any label is consumed.
-
-The current environment cannot execute the clean upstream path.  Importing
-its `PredictArgs` aborts before prediction because `Tap` is absent; importing
-its original `load_checkpoint` aborts because `memory_profiler` is absent;
-model construction also depends on absent `DGL`.  The official requirements
-further name `tensorboardX` and `CoolProp`, which are also absent.  Installing
-or substituting those dependencies requires explicit authorization, and
-copying a reduced loader would be a prohibited reimplementation.  Therefore
-SolProp-mix remains a precisely pinned, blocked property-sidecar candidate:
-it is never `#model`, a geometry/PES/MD task, or an
-absolute-solvation-protocol ledger backend.
+A separate 100-row ternary run exercises a dynamically enlarged model slot.
+Official public prediction entrypoints document at most two solvent components,
+so this is an undocumented diagnostic, is not part of the supported
+pure/binary lane, and contributes nothing to admission.  The frozen runner and
+row-wise evidence are in `run_solpropmix_qmexp_broad_audit.py` and
+`benchmarks/solpropmix-qmexp-broad-audit-2026-07-31/result.json`; the balanced
+sentinel is in
+`benchmarks/solpropmix-qmexp-release-audit-2026-07-31/result.json`.
 
 ### Schake GNN v2: released protein correction, not a general solvation backend
 
@@ -856,7 +876,7 @@ calculator/free-energy capability.
 
 | candidate | strongest supported capability | missing gate | MAPLE assignment |
 | --- | --- | --- | --- |
-| ReSolv | a sampled, water-only hydration free-energy path with an implicit ML potential | multi-solvent release and a general calculator contract | Route 3 `#solvfe` only; never an ordinary Route 4 `#model` backend |
+| ReSolv | a pinned water-only vacuum/solution potential pair plus official endpoint trajectories and BAR | independent blind validation, GPU parity, matched-QM full-task timing, multi-solvent coverage, and a general calculator contract | dedicated `solvfe` sidecar/full-panel reproduction control only; never an ordinary Route 4 `#model` backend |
 | GNNIS | 39 solvent-conditioned, upstream OpenFF+GNNIS solution Hamiltonians for mechanics/MD | a transferable absolute-energy gauge and a record-isolated solvation-free-energy panel | sealed Route 4 reference-Hamiltonian control, not an arbitrary MLIP correction |
 | G-NequIP SMD-water | public SMD-water geometry-level checkpoint with a separate gas checkpoint | water-only scope, unavailable original NequIP runtime, and no common energy gauge, thermodynamic path, or independent ledger | blocked water mechanics control; never ΔG from single-point model subtraction or a multi-solvent backend |
 | MACE-OFF23-SC | exact public soft-core checkpoint; live official-MACE float64 CPU energy/force execution for full-coupling explicit systems | original OpenMM-ML/OpenMMTools lambda protocol, replica exchange, MBAR/uncertainty, independent 10-group experimental panel, and literal CPU/GPU parity | CPU-only explicit-system PES endpoint; never an absolute-solvation result or a substitute for MACE-OFF24-SC |
@@ -870,7 +890,7 @@ calculator/free-energy capability.
 | CIGIN | direct scalar prediction from one canonical solute SMILES and one canonical solvent SMILES | force/PES task contract, thermodynamic endpoint pair, and complete record-level training/multi-solvent accounting | CPU-only property-prediction sidecar; never `#model`, an absolute-solvation ledger backend, or a multi-solvent-coverage claim |
 | MoletoSolv | published neutral/anion/cation descriptor-regression study plus public data and precomputed predictions | no serialized pretrained estimators/scalers, incomplete neutral data asset, no maximum-error/holdout/GPU-parity evidence, and no PES/force contract | literature baseline only; local artifact reconstruction or training is prohibited |
 | SolProp_ML Gsolv | ten-member direct scalar pair-prediction ensemble from a pinned official bundle | uninstalled original runtime dependencies, force/PES task contract, and complete record-level training accounting | blocked property-only candidate; never `#model` or an absolute-solvation ledger backend |
-| SolProp-mix Exp | selected ten-member official direct dGsolv ensemble for pure and mixed solvents | uninstalled original runtime dependencies, force/PES task contract, and record-isolated benchmark identity | blocked mixture-property candidate; never `#model`, a geometry/MD path, or an absolute-solvation-protocol ledger backend |
+| SolProp-mix QMExp | live ten-member direct dGsolv property ensemble; 1,000-row/15-group v1.1 pure/binary development audit | MAE/RMSE gates, literal zero-loss GPU parity, training/holdout identity, final blind holdout, and matched-QM speed eligibility | CPU development sidecar only; never `#model`, PES/forces/OPT/FREQ/MD, an FE protocol, or a route-speed claim |
 | Schake GNN v2 | pretrained backbone CA/C/N structural correction coupled to GBn2 for protein landscapes | uninstalled original runtime dependencies, no solvent selector, and no small-molecule/PES/absolute-solvation contract | blocked protein research control only; never the general Route 4 backend |
 | ConSolv | a solvent-conditioned 66-solvent potential trained through a free-energy path | official inference runtime, weights, descriptor package, and artifact identity | watchlist only; audit immediately if the authors release artifacts |
 | TWIN | a water implicit potential spanning drug-like molecules, peptides, and proteins | public runtime/weights and non-water coverage | water-only watchlist; no reconstructed adapter |

@@ -30,6 +30,13 @@ class RequestPayload(TypedDict):
     precision: str
 
 
+class ModelPredictionPayload(TypedDict):
+    model_index: int
+    g298: float
+    h298: float
+    g_temperature: float
+
+
 STATIC_HASHES = {
     "solvation_predictor/data/__init__.py": "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78",
     "solvation_predictor/data/data.py": "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e",
@@ -180,16 +187,20 @@ def run(runtime_root: Path, request: RequestPayload) -> dict[str, object]:
         observed_static[relative] = observed
 
     sys.path.insert(0, str(source_root))
-    from solvation_predictor.data.Scaler import Scaler
-    from solvation_predictor.data.data import (
-        DataPoint,
-        DatapointList,
-        DataTensor,
-        MolencoderDatabase,
+    data_module = importlib.import_module("solvation_predictor.data.data")
+    scaler_module = importlib.import_module("solvation_predictor.data.Scaler")
+    input_module = importlib.import_module("solvation_predictor.inp")
+    model_module = importlib.import_module("solvation_predictor.models.Model")
+    evaluate_module = cast(
+        Any, importlib.import_module("solvation_predictor.train.evaluate")
     )
-    from solvation_predictor.inp import TrainArgs
-    from solvation_predictor.models.Model import Model
-    import solvation_predictor.train.evaluate as evaluate_module
+    DataPoint = data_module.DataPoint
+    DatapointList = data_module.DatapointList
+    DataTensor = data_module.DataTensor
+    MolencoderDatabase = data_module.MolencoderDatabase
+    Scaler = scaler_module.Scaler
+    TrainArgs = input_module.TrainArgs
+    Model = model_module.Model
 
     class PrecisionDataTensor(DataTensor):  # type: ignore[misc, valid-type]
         def make_tensor(self) -> None:
@@ -208,7 +219,7 @@ def run(runtime_root: Path, request: RequestPayload) -> dict[str, object]:
         type(np.dtype("float64")),
     ]
 
-    predictions: list[dict[str, object]] = []
+    predictions: list[ModelPredictionPayload] = []
     observed_checkpoints: list[str] = []
     for model_index, expected_hash in enumerate(CHECKPOINT_HASHES):
         checkpoint_bytes = (weights_root / f"model{model_index}.pt").read_bytes()

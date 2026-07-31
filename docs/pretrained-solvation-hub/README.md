@@ -207,6 +207,28 @@ potential registry and composition boundary.  Route 4 adds:
 
 Route 4 does not duplicate the Route 3 `#solvfe` sampling engine and does not add a public `#bindfe` task.
 
+### ReSolv -> ConSolv native-implicit research lane
+
+Route 4 excludes the Route 1 pattern of a gas-phase MLIP plus an additive
+GB/PB/ALPB correction.  Its direct native-implicit lineage is
+DiffTRe -> ReSolv -> ConSolv.
+
+ReSolv is available as a dedicated offline endpoint-BAR sidecar, not as an
+ordinary calculator.  The runner
+`run_resolv_endpoint_bar_audit.py` verifies the pinned upstream commit, both
+public model checkpoints, the FreeSolv database, and each selected official
+vacuum/water trajectory pair before deserialization.  It then recomputes the
+complete 162-molecule published test split and reports pooled plus all
+26 classified primary-functional-group errors plus the 9 unclassified
+records, which are retained as a non-group bucket.  It never generates a conformer or
+propagates new MD.  This is a paper-split reproduction control, not an
+independent blind-validation claim.
+
+ConSolv is the direct multi-solvent successor and the preferred future
+mainline candidate, but its current manuscript defers code and weights until
+acceptance.  No ConSolv runtime, checkpoint, solvent-descriptor bundle, or
+license is reconstructed locally.
+
 ## Initial engineering integration lanes
 
 This milestone implements architecture, pinned provenance, adapters, and

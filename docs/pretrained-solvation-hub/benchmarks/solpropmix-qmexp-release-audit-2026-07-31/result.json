@@ -1,0 +1,1491 @@
+{
+  "acceptance_eligible": false,
+  "admission_gates": {
+    "accuracy_admission_eligible": false,
+    "final_holdout_eligible": false,
+    "gpu_admission_eligible": false,
+    "gpu_f64_roundoff_parity_observed": true,
+    "gpu_strict_zero_loss_passes": false,
+    "matched_qm_speed_eligible": false,
+    "passes_all": false,
+    "ten_group_accuracy_gate_passes": false,
+    "upstream_oracle_reproduced": false
+  },
+  "audited_on": "2026-07-31",
+  "capability_boundary": {
+    "forces": false,
+    "free_energy_sampling_protocol": false,
+    "frequency": false,
+    "geometry_optimization": false,
+    "neutral_solute_and_solvents_only": true,
+    "official_public_entrypoint_documented_max_solvent_components": 2,
+    "one_to_three_solvent_components": true,
+    "potential_energy_surface": false,
+    "property_only_scalar_solvation_prediction": true,
+    "third_solvent_dynamic_slot_path": "code-compatible but not explicitly documented by the official public prediction entrypoints"
+  },
+  "evidence_provenance": {
+    "canonical_live_execution_evidence": true,
+    "origin": "execute_live",
+    "raw_input_normalization": "execute_live_json_with_volatile_worker_stream_receipt_keys_omitted",
+    "raw_input_sha256": "3125e7d95c43f8426ebf5f6fe1fffa343f041478aec87a9ee55e10a5193e3c28",
+    "trusted_fixture_not_independent_execution": false
+  },
+  "identity": {
+    "checkpoint_sha256": [
+      {
+        "filename": "model0.pt",
+        "model_index": 0,
+        "sha256": "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5"
+      },
+      {
+        "filename": "model1.pt",
+        "model_index": 1,
+        "sha256": "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d"
+      },
+      {
+        "filename": "model2.pt",
+        "model_index": 2,
+        "sha256": "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2"
+      },
+      {
+        "filename": "model3.pt",
+        "model_index": 3,
+        "sha256": "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb"
+      },
+      {
+        "filename": "model4.pt",
+        "model_index": 4,
+        "sha256": "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf"
+      },
+      {
+        "filename": "model5.pt",
+        "model_index": 5,
+        "sha256": "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1"
+      },
+      {
+        "filename": "model6.pt",
+        "model_index": 6,
+        "sha256": "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c"
+      },
+      {
+        "filename": "model7.pt",
+        "model_index": 7,
+        "sha256": "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853"
+      },
+      {
+        "filename": "model8.pt",
+        "model_index": 8,
+        "sha256": "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b"
+      },
+      {
+        "filename": "model9.pt",
+        "model_index": 9,
+        "sha256": "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+      }
+    ],
+    "execution_code": {
+      "adapter_path": "maple/function/solvfe/solpropmix_property.py",
+      "adapter_sha256": "0674b07888fc466fa3dd2c5adc17070d3434e513d44770e99b6af8485d4282e6",
+      "audit_runner_path": "docs/pretrained-solvation-hub/run_solpropmix_qmexp_release_audit.py",
+      "audit_runner_sha256": "1cebe117c255e777ab1e50ea4d849d8fe658d5fbb2e39e891f912c854c192e69",
+      "isolated_model_worker_path": "maple/function/solvfe/_solpropmix_worker.py",
+      "isolated_model_worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+    },
+    "experimental_references_sha256": "85b05948727afd3de8d1ef98fc67ab973d98428dd90e33f29c2ab3e7b67222aa",
+    "official_archive": {
+      "filename": "Data.zip",
+      "md5": "60831b5fd10e06f9f44845a2d6bc0367",
+      "sha256": "9aef449e30a85eca1636580a7741bbb828fddda434c4cb50443f26f4d28dcf1e",
+      "size_bytes": 118240334,
+      "zenodo_record": "https://zenodo.org/records/15587866"
+    },
+    "panel_inputs_sha256": "62b8281e7710967ec4fcee4e6f27e3fb1670c5221dd04f8f01d9189c42ab0085",
+    "release_mapping": {
+      "path": "docs/pretrained-solvation-hub/benchmarks/solpropmix-qmexp-release-audit-2026-07-31/v1.0-v1.1-exact-chemical-mapping.json",
+      "sha256": "945084372a4b004f2613460654f46076dd0e56bad3c54dd5d89a75a0def7babb"
+    },
+    "runtime_receipts": {
+      "cpu": {
+        "absolute_solvation_backend": false,
+        "amp_autocast_enabled": false,
+        "bf16_reduced_precision_reduction": false,
+        "checkpoint_family": "SolPropmixQMExp",
+        "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+        "checkpoint_sha256": [
+          "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+          "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+          "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+          "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+          "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+          "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+          "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+          "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+          "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+          "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+        ],
+        "checkpoints_byte_identical_across_v1_0_v1_1": true,
+        "cuda_matmul_allow_tf32": false,
+        "cuda_version": "13.0",
+        "cudnn_allow_tf32": false,
+        "data_release_record": 15587866,
+        "data_release_version": "v1.1",
+        "deterministic_algorithms": true,
+        "execution_device": "cpu",
+        "execution_dtype": "float64",
+        "float32_matmul_precision": "highest",
+        "fp16_reduced_precision_reduction": false,
+        "gpu_compute_capability": null,
+        "gpu_name": null,
+        "gpu_total_memory_bytes": null,
+        "gpu_uuid": null,
+        "isotope_free_structures_verified": true,
+        "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+        "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+        "modelweights_zip_size_bytes": 175360920,
+        "numpy_version": "2.4.6",
+        "precision": "float64_promoted",
+        "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+        "previous_data_release_record": 14238055,
+        "property_only": true,
+        "python_version": "3.11.14",
+        "rdkit_version": "2024.09.2",
+        "solute_carbon_requirement_verified": true,
+        "solvent_net_neutrality_verified": true,
+        "solvent_nonionic_liquid_phase_caller_requirement": true,
+        "solvent_nonionic_liquid_phase_structurally_verified": false,
+        "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+        "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+        "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+        "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+        "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+        "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+        "static_code_zip_size_bytes": 65183,
+        "static_sha256": [
+          [
+            "solvation_predictor/data/__init__.py",
+            "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+          ],
+          [
+            "solvation_predictor/data/data.py",
+            "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+          ],
+          [
+            "solvation_predictor/data/Scaler.py",
+            "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+          ],
+          [
+            "solvation_predictor/data/Splitter.py",
+            "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+          ]
+        ],
+        "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+        "torch_version": "2.12.0+cu130",
+        "workbook_oracle_reproduction_guaranteed": false,
+        "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+      },
+      "cuda:0": {
+        "absolute_solvation_backend": false,
+        "amp_autocast_enabled": false,
+        "bf16_reduced_precision_reduction": false,
+        "checkpoint_family": "SolPropmixQMExp",
+        "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+        "checkpoint_sha256": [
+          "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+          "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+          "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+          "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+          "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+          "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+          "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+          "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+          "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+          "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+        ],
+        "checkpoints_byte_identical_across_v1_0_v1_1": true,
+        "cuda_matmul_allow_tf32": false,
+        "cuda_version": "13.0",
+        "cudnn_allow_tf32": false,
+        "data_release_record": 15587866,
+        "data_release_version": "v1.1",
+        "deterministic_algorithms": true,
+        "execution_device": "cuda:0",
+        "execution_dtype": "float64",
+        "float32_matmul_precision": "highest",
+        "fp16_reduced_precision_reduction": false,
+        "gpu_compute_capability": "8.9",
+        "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+        "gpu_total_memory_bytes": 8585216000,
+        "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+        "isotope_free_structures_verified": true,
+        "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+        "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+        "modelweights_zip_size_bytes": 175360920,
+        "numpy_version": "2.4.6",
+        "precision": "float64_promoted",
+        "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+        "previous_data_release_record": 14238055,
+        "property_only": true,
+        "python_version": "3.11.14",
+        "rdkit_version": "2024.09.2",
+        "solute_carbon_requirement_verified": true,
+        "solvent_net_neutrality_verified": true,
+        "solvent_nonionic_liquid_phase_caller_requirement": true,
+        "solvent_nonionic_liquid_phase_structurally_verified": false,
+        "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+        "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+        "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+        "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+        "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+        "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+        "static_code_zip_size_bytes": 65183,
+        "static_sha256": [
+          [
+            "solvation_predictor/data/__init__.py",
+            "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+          ],
+          [
+            "solvation_predictor/data/data.py",
+            "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+          ],
+          [
+            "solvation_predictor/data/Scaler.py",
+            "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+          ],
+          [
+            "solvation_predictor/data/Splitter.py",
+            "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+          ]
+        ],
+        "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+        "torch_version": "2.12.0+cu130",
+        "workbook_oracle_reproduction_guaranteed": false,
+        "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+      }
+    },
+    "selection_provenance": {
+      "path": "docs/pretrained-solvation-hub/benchmarks/solpropmix-qmexp-release-audit-2026-07-31/selection-provenance.json",
+      "sha256": "ea297a5ce3244661a75cd2f6f882fecc4b5223a7eff815dc3a8b0ba231f323e3"
+    },
+    "source": {
+      "repository": "https://gitlab.kuleuven.be/creas/vermeiregroup/solprop",
+      "revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+      "tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2"
+    },
+    "supplemental_runtime_sha256": {
+      "solvation_predictor/data/Scaler.py": "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73",
+      "solvation_predictor/data/Splitter.py": "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac",
+      "solvation_predictor/data/__init__.py": "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78",
+      "solvation_predictor/data/data.py": "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+    },
+    "taxonomy": {
+      "path": "docs/pretrained-solvation-hub/functional-group-taxonomy-v1.json",
+      "sha256": "46e073d0e253d7534b7f516f1cc2096ba0abfea84ddc170c95fc86634c917b36"
+    },
+    "workbook": {
+      "md5": "b428a724a50fe66184746775cda0df24",
+      "member": "Data/solprop-mix_v1.1.xlsx",
+      "sha256": "793f325e6edddca3334b368f68edfc368027e472ad779e7e5d52ff5d1e1a001d",
+      "size_bytes": 15837066
+    }
+  },
+  "live_released_weight_execution": {
+    "cpu_metrics": {
+      "count": 10,
+      "mae_kcal_mol": 0.5098988620625835,
+      "maxae_kcal_mol": 1.6089863795855495,
+      "rmse_kcal_mol": 0.7100644511098742
+    },
+    "ensemble_size": 10,
+    "evidence_origin": "execute_live",
+    "gpu_metrics": {
+      "count": 10,
+      "mae_kcal_mol": 0.5098988620625837,
+      "maxae_kcal_mol": 1.6089863795855504,
+      "rmse_kcal_mol": 0.7100644511098745
+    },
+    "gpu_no_loss_policy": {
+      "bitwise_equal_claimed": false,
+      "exact_row_error_deteriorations": [
+        "From VLE - Bin Solv - no water!7874",
+        "From VLE - Bin Solv - no water!22181",
+        "From VLE - Ter Solv - no water!2429"
+      ],
+      "gpu_admission_granted": false,
+      "max_abs_per_model_gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+      "model_bitwise_mismatches": [
+        "From VLE - Bin Solv - no water!19430:model0",
+        "From VLE - Bin Solv - no water!19430:model1",
+        "From VLE - Bin Solv - no water!19430:model3",
+        "From VLE - Bin Solv - no water!19430:model6",
+        "From VLE - Bin Solv - no water!8583:model0",
+        "From VLE - Bin Solv - no water!8583:model1",
+        "From VLE - Bin Solv - no water!8583:model2",
+        "From VLE - Bin Solv - no water!8583:model4",
+        "From VLE - Bin Solv - no water!8583:model5",
+        "From VLE - Bin Solv - no water!8583:model8",
+        "From VLE - Bin Solv - no water!10789:model2",
+        "From VLE - Bin Solv - no water!10789:model4",
+        "From VLE - Bin Solv - no water!10789:model5",
+        "From VLE - Bin Solv - no water!11655:model2",
+        "From VLE - Bin Solv - no water!11655:model7",
+        "From VLE - Bin Solv - no water!11655:model8",
+        "From VLE - Bin Solv - no water!11655:model9",
+        "From VLE - Bin Solv - no water!7874:model1",
+        "From VLE - Bin Solv - no water!7874:model2",
+        "From VLE - Bin Solv - no water!7874:model3",
+        "From VLE - Bin Solv - no water!7874:model4",
+        "From VLE - Bin Solv - no water!7874:model5",
+        "From VLE - Bin Solv - no water!7874:model6",
+        "From VLE - Bin Solv - no water!7874:model8",
+        "From VLE - Bin Solv - no water!7874:model9",
+        "From VLE - Bin Solv - no water!16928:model0",
+        "From VLE - Bin Solv - no water!16928:model3",
+        "From VLE - Bin Solv - no water!16928:model4",
+        "From VLE - Bin Solv - no water!16928:model6",
+        "From VLE - Bin Solv - no water!16928:model7",
+        "From VLE - Bin Solv - no water!16928:model8",
+        "From VLE - Bin Solv - no water!16928:model9",
+        "From VLE - Bin Solv - no water!12343:model0",
+        "From VLE - Bin Solv - no water!12343:model2",
+        "From VLE - Bin Solv - no water!12343:model3",
+        "From VLE - Bin Solv - no water!12343:model5",
+        "From VLE - Bin Solv - no water!22181:model2",
+        "From VLE - Bin Solv - no water!22181:model4",
+        "From VLE - Bin Solv - no water!22181:model5",
+        "From VLE - Bin Solv - no water!22181:model7",
+        "From VLE - Bin Solv - no water!22181:model8",
+        "From VLE - Bin Solv - no water!22181:model9",
+        "From VLE - Bin Solv - no water!18610:model0",
+        "From VLE - Bin Solv - no water!18610:model2",
+        "From VLE - Bin Solv - no water!18610:model3",
+        "From VLE - Bin Solv - no water!18610:model7",
+        "From VLE - Bin Solv - no water!18610:model9",
+        "From VLE - Ter Solv - no water!2429:model0",
+        "From VLE - Ter Solv - no water!2429:model1",
+        "From VLE - Ter Solv - no water!2429:model2",
+        "From VLE - Ter Solv - no water!2429:model3",
+        "From VLE - Ter Solv - no water!2429:model5",
+        "From VLE - Ter Solv - no water!2429:model6",
+        "From VLE - Ter Solv - no water!2429:model7",
+        "From VLE - Ter Solv - no water!2429:model8"
+      ],
+      "model_deteriorations": [],
+      "passes_roundoff_parity": true,
+      "passes_strict_zero_loss": false,
+      "policy": "strict_zero_loss_required_for_gpu_admission; f64_roundoff_tolerance reported_as_diagnostic_only",
+      "prediction_bitwise_mismatches": [
+        "From VLE - Bin Solv - no water!7874",
+        "From VLE - Bin Solv - no water!16928",
+        "From VLE - Bin Solv - no water!22181",
+        "From VLE - Ter Solv - no water!2429"
+      ],
+      "row_error_deteriorations": [],
+      "tolerance_kcal_mol": 5e-12
+    },
+    "live_execution_claimed": true,
+    "precision": "float64_promoted",
+    "release_vs_workbook": {
+      "max_abs_delta_kcal_mol": 0.2105751123873958,
+      "mean_abs_delta_kcal_mol": 0.023138089950940088,
+      "upstream_oracle_reproduced": false,
+      "v1_0_max_abs_live_delta_kcal_mol": 0.5388906851377113,
+      "v1_0_mean_abs_live_delta_kcal_mol": 0.20559967169078072,
+      "v1_1_broadly_closer_than_v1_0_on_frozen_panel": true,
+      "v1_1_rows_closer_to_live_count": 9
+    },
+    "rows": [
+      {
+        "cpu_abs_error_kcal_mol": 0.5967072330645378,
+        "cpu_fp64_prediction_kcal_mol": -6.386692766935462,
+        "cpu_signed_error_kcal_mol": 0.5967072330645378,
+        "experimental_gsolv_kcal_mol": -6.9834,
+        "gpu_abs_error_kcal_mol": 0.5967072330645378,
+        "gpu_fp64_prediction_kcal_mol": -6.386692766935462,
+        "gpu_signed_error_kcal_mol": 0.5967072330645378,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.002760048854297814,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -6.568519204892582,
+            "gpu_g_temperature_kcal_mol": -6.568519204892581,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -6.171584329279943,
+            "gpu_g_temperature_kcal_mol": -6.171584329279942,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.505087199068904,
+            "gpu_g_temperature_kcal_mol": -6.505087199068904,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -6.383892726271121,
+            "gpu_g_temperature_kcal_mol": -6.383892726271123,
+            "gpu_minus_cpu_kcal_mol": -1.7763568394002505e-15,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.3662585834367755,
+            "gpu_g_temperature_kcal_mol": -6.3662585834367755,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.508392861957028,
+            "gpu_g_temperature_kcal_mol": -6.508392861957028,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -6.259162170219135,
+            "gpu_g_temperature_kcal_mol": -6.259162170219134,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.336360963313371,
+            "gpu_g_temperature_kcal_mol": -6.336360963313371,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.381134757965436,
+            "gpu_g_temperature_kcal_mol": -6.381134757965436,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.386534872950324,
+            "gpu_g_temperature_kcal_mol": -6.386534872950324,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "amide",
+        "published_workbook_qmexp_prediction_kcal_mol": -6.383932718081164,
+        "row_id": "From VLE - Bin Solv - no water!19430",
+        "solute": {
+          "inchi": "InChI=1S/C5H9NO/c1-6-4-2-3-5(6)7/h2-4H2,1H3",
+          "name": "284: N-Methyl-2-pyrrolidone"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C5H8/c1-4-5(2)3/h4H,1-2H2,3H3",
+            "mole_fraction": 0.6532,
+            "name": "98: Isoprene"
+          },
+          {
+            "inchi": "InChI=1S/C5H10/c1-3-5-4-2/h3H,1,4-5H2,2H3",
+            "mole_fraction": 0.3468,
+            "name": "257: 1-Pentene"
+          }
+        ],
+        "temperature_kelvin": 307.27
+      },
+      {
+        "cpu_abs_error_kcal_mol": 0.10068292368684695,
+        "cpu_fp64_prediction_kcal_mol": -4.462582923686847,
+        "cpu_signed_error_kcal_mol": -0.10068292368684695,
+        "experimental_gsolv_kcal_mol": -4.3619,
+        "gpu_abs_error_kcal_mol": 0.10068292368684695,
+        "gpu_fp64_prediction_kcal_mol": -4.462582923686847,
+        "gpu_signed_error_kcal_mol": -0.10068292368684695,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.0017969108467719153,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.4620311046003875,
+            "gpu_g_temperature_kcal_mol": -4.462031104600389,
+            "gpu_minus_cpu_kcal_mol": -1.7763568394002505e-15,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "cpu_g_temperature_kcal_mol": -4.401131344602815,
+            "gpu_g_temperature_kcal_mol": -4.401131344602818,
+            "gpu_minus_cpu_kcal_mol": -2.6645352591003757e-15,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.440876353040174,
+            "gpu_g_temperature_kcal_mol": -4.440876353040176,
+            "gpu_minus_cpu_kcal_mol": -1.7763568394002505e-15,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.403955472324898,
+            "gpu_g_temperature_kcal_mol": -4.403955472324898,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.431249806980059,
+            "gpu_g_temperature_kcal_mol": -4.43124980698006,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "cpu_g_temperature_kcal_mol": -4.6550343097712625,
+            "gpu_g_temperature_kcal_mol": -4.65503430977126,
+            "gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.423834660141708,
+            "gpu_g_temperature_kcal_mol": -4.423834660141708,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.4197795773102815,
+            "gpu_g_temperature_kcal_mol": -4.4197795773102815,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "cpu_g_temperature_kcal_mol": -4.538101318337417,
+            "gpu_g_temperature_kcal_mol": -4.53810131833742,
+            "gpu_minus_cpu_kcal_mol": -2.6645352591003757e-15,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.449835289759466,
+            "gpu_g_temperature_kcal_mol": -4.449835289759466,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "ester",
+        "published_workbook_qmexp_prediction_kcal_mol": -4.460786012840075,
+        "row_id": "From VLE - Bin Solv - no water!8583",
+        "solute": {
+          "inchi": "InChI=1S/C4H6O2/c1-3-6-4(2)5/h3H,1H2,2H3",
+          "name": "173: Vinyl acetate"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C2H4O/c1-2-3/h2H,1H3",
+            "mole_fraction": 0.9524,
+            "name": "1: Acetaldehyde"
+          },
+          {
+            "inchi": "InChI=1S/C3H6O/c1-3(2)4/h1-2H3",
+            "mole_fraction": 0.047599999999999976,
+            "name": "4: Acetone"
+          }
+        ],
+        "temperature_kelvin": 298.95
+      },
+      {
+        "cpu_abs_error_kcal_mol": 1.219034765243424,
+        "cpu_fp64_prediction_kcal_mol": -7.299534765243424,
+        "cpu_signed_error_kcal_mol": -1.219034765243424,
+        "experimental_gsolv_kcal_mol": -6.0805,
+        "gpu_abs_error_kcal_mol": 1.219034765243424,
+        "gpu_fp64_prediction_kcal_mol": -7.299534765243424,
+        "gpu_signed_error_kcal_mol": -1.219034765243424,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.00340661515020102,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -7.450219710016882,
+            "gpu_g_temperature_kcal_mol": -7.450219710016882,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -7.1851138089603594,
+            "gpu_g_temperature_kcal_mol": -7.1851138089603594,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -7.365890802342176,
+            "gpu_g_temperature_kcal_mol": -7.365890802342177,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -7.205062888498342,
+            "gpu_g_temperature_kcal_mol": -7.205062888498342,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -7.161850869598512,
+            "gpu_g_temperature_kcal_mol": -7.1618508695985135,
+            "gpu_minus_cpu_kcal_mol": -1.7763568394002505e-15,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -7.3840398747642615,
+            "gpu_g_temperature_kcal_mol": -7.384039874764262,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -7.767613293182322,
+            "gpu_g_temperature_kcal_mol": -7.767613293182322,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -7.243245720111916,
+            "gpu_g_temperature_kcal_mol": -7.243245720111916,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -7.373062175544928,
+            "gpu_g_temperature_kcal_mol": -7.373062175544928,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.859248509414534,
+            "gpu_g_temperature_kcal_mol": -6.859248509414534,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "carboxylic_acid",
+        "published_workbook_qmexp_prediction_kcal_mol": -7.296128150093223,
+        "row_id": "From VLE - Bin Solv - no water!10789",
+        "solute": {
+          "inchi": "InChI=1S/C4H6O2/c1-3(2)4(5)6/h1H2,2H3,(H,5,6)",
+          "name": "232: Methacrylic acid"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/CH4O/c1-2/h2H,1H3",
+            "mole_fraction": 0.9244,
+            "name": "110: Methanol"
+          },
+          {
+            "inchi": "InChI=1S/C5H8O2/c1-4(2)5(6)7-3/h1H2,2-3H3",
+            "mole_fraction": 0.0756,
+            "name": "262: Methacrylic acid methyl ester"
+          }
+        ],
+        "temperature_kelvin": 310.03
+      },
+      {
+        "cpu_abs_error_kcal_mol": 0.32227790630462394,
+        "cpu_fp64_prediction_kcal_mol": -6.323722093695376,
+        "cpu_signed_error_kcal_mol": 0.32227790630462394,
+        "experimental_gsolv_kcal_mol": -6.646,
+        "gpu_abs_error_kcal_mol": 0.32227790630462394,
+        "gpu_fp64_prediction_kcal_mol": -6.323722093695376,
+        "gpu_signed_error_kcal_mol": 0.32227790630462394,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.0024422922897651134,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.346509544879636,
+            "gpu_g_temperature_kcal_mol": -6.346509544879636,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.316820183762225,
+            "gpu_g_temperature_kcal_mol": -6.316820183762225,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -6.408122587286307,
+            "gpu_g_temperature_kcal_mol": -6.408122587286308,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.313286981453195,
+            "gpu_g_temperature_kcal_mol": -6.313286981453195,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.35230519594455,
+            "gpu_g_temperature_kcal_mol": -6.35230519594455,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.272030262313526,
+            "gpu_g_temperature_kcal_mol": -6.272030262313526,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -6.301358629464117,
+            "gpu_g_temperature_kcal_mol": -6.301358629464117,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -6.339314667520896,
+            "gpu_g_temperature_kcal_mol": -6.339314667520898,
+            "gpu_minus_cpu_kcal_mol": -1.7763568394002505e-15,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -6.204212987012255,
+            "gpu_g_temperature_kcal_mol": -6.204212987012253,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -6.383259897317056,
+            "gpu_g_temperature_kcal_mol": -6.383259897317058,
+            "gpu_minus_cpu_kcal_mol": -1.7763568394002505e-15,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "aldehyde",
+        "published_workbook_qmexp_prediction_kcal_mol": -6.321279801405611,
+        "row_id": "From VLE - Bin Solv - no water!11655",
+        "solute": {
+          "inchi": "InChI=1S/C5H4O2/c6-4-5-2-1-3-7-5/h1-4H",
+          "name": "85: Furfural"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C4H8O2/c1-3-6-4(2)5/h3H2,1-2H3",
+            "mole_fraction": 0.8722,
+            "name": "21: Ethyl acetate"
+          },
+          {
+            "inchi": "InChI=1S/CH4O/c1-2/h2H,1H3",
+            "mole_fraction": 0.12780000000000002,
+            "name": "110: Methanol"
+          }
+        ],
+        "temperature_kelvin": 298.15
+      },
+      {
+        "cpu_abs_error_kcal_mol": 0.048586411871996305,
+        "cpu_fp64_prediction_kcal_mol": -4.631213588128004,
+        "cpu_signed_error_kcal_mol": 0.048586411871996305,
+        "experimental_gsolv_kcal_mol": -4.6798,
+        "gpu_abs_error_kcal_mol": 0.04858641187199719,
+        "gpu_fp64_prediction_kcal_mol": -4.631213588128003,
+        "gpu_signed_error_kcal_mol": 0.04858641187199719,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.0015079790840024643,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.556140190084658,
+            "gpu_g_temperature_kcal_mol": -4.556140190084658,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.650920375757645,
+            "gpu_g_temperature_kcal_mol": -4.650920375757643,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "cpu_g_temperature_kcal_mol": -4.711013689162548,
+            "gpu_g_temperature_kcal_mol": -4.711013689162545,
+            "gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.64588961199982,
+            "gpu_g_temperature_kcal_mol": -4.645889611999819,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.630774397451953,
+            "gpu_g_temperature_kcal_mol": -4.630774397451954,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.494223255760907,
+            "gpu_g_temperature_kcal_mol": -4.494223255760906,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.641972391672693,
+            "gpu_g_temperature_kcal_mol": -4.641972391672692,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.5922632978629006,
+            "gpu_g_temperature_kcal_mol": -4.5922632978629006,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.742852759132736,
+            "gpu_g_temperature_kcal_mol": -4.742852759132735,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.6460859123941765,
+            "gpu_g_temperature_kcal_mol": -4.646085912394177,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "ketone",
+        "published_workbook_qmexp_prediction_kcal_mol": -4.629705609044001,
+        "row_id": "From VLE - Bin Solv - no water!7874",
+        "solute": {
+          "inchi": "InChI=1S/C4H8O/c1-3-4(2)5/h3H2,1-2H3",
+          "name": "40: 2-Butanone"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3",
+            "mole_fraction": 0.4372,
+            "name": "11: Ethanol"
+          },
+          {
+            "inchi": "InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H",
+            "mole_fraction": 0.5628,
+            "name": "31: Benzene"
+          }
+        ],
+        "temperature_kelvin": 298.15
+      },
+      {
+        "cpu_abs_error_kcal_mol": 0.03656164091067371,
+        "cpu_fp64_prediction_kcal_mol": -5.108561640910674,
+        "cpu_signed_error_kcal_mol": -0.03656164091067371,
+        "experimental_gsolv_kcal_mol": -5.072,
+        "gpu_abs_error_kcal_mol": 0.03656164091067282,
+        "gpu_fp64_prediction_kcal_mol": -5.108561640910673,
+        "gpu_signed_error_kcal_mol": -0.03656164091067282,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.0025862410958206183,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -5.090096007285389,
+            "gpu_g_temperature_kcal_mol": -5.09009600728539,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -5.308050914318258,
+            "gpu_g_temperature_kcal_mol": -5.308050914318258,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -5.186254270367014,
+            "gpu_g_temperature_kcal_mol": -5.186254270367014,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -5.141703338764777,
+            "gpu_g_temperature_kcal_mol": -5.141703338764778,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -5.0814824475743245,
+            "gpu_g_temperature_kcal_mol": -5.081482447574323,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -5.193203665750569,
+            "gpu_g_temperature_kcal_mol": -5.193203665750569,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -5.1115405138403665,
+            "gpu_g_temperature_kcal_mol": -5.111540513840365,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -5.045797151131425,
+            "gpu_g_temperature_kcal_mol": -5.045797151131424,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.942833217008582,
+            "gpu_g_temperature_kcal_mol": -4.942833217008583,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.984654883066028,
+            "gpu_g_temperature_kcal_mol": -4.984654883066026,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "alcohol",
+        "published_workbook_qmexp_prediction_kcal_mol": -5.105975399814853,
+        "row_id": "From VLE - Bin Solv - no water!16928",
+        "solute": {
+          "inchi": "InChI=1S/C7H16O2/c1-6(8)5-9-7(2,3)4/h6,8H,5H2,1-4H3",
+          "name": "3560: 1-tert-Butoxy-2-propanol"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C8H18/c1-7(2)6-8(3,4)5/h7H,6H2,1-5H3",
+            "mole_fraction": 0.9839,
+            "name": "97: 2,2,4-Trimethylpentane"
+          },
+          {
+            "inchi": "InChI=1S/C4H10O/c1-4(2,3)5/h5H,1-3H3",
+            "mole_fraction": 0.016100000000000003,
+            "name": "153: tert-Butanol"
+          }
+        ],
+        "temperature_kelvin": 318.13
+      },
+      {
+        "cpu_abs_error_kcal_mol": 0.48577819493359886,
+        "cpu_fp64_prediction_kcal_mol": -4.9542781949335986,
+        "cpu_signed_error_kcal_mol": -0.48577819493359886,
+        "experimental_gsolv_kcal_mol": -4.4685,
+        "gpu_abs_error_kcal_mol": 0.48577819493359886,
+        "gpu_fp64_prediction_kcal_mol": -4.9542781949335986,
+        "gpu_signed_error_kcal_mol": -0.48577819493359886,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.0021774121356017417,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.978623531102375,
+            "gpu_g_temperature_kcal_mol": -4.978623531102376,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.934912217320061,
+            "gpu_g_temperature_kcal_mol": -4.934912217320061,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -5.016734257310422,
+            "gpu_g_temperature_kcal_mol": -5.0167342573104206,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -5.001976835511466,
+            "gpu_g_temperature_kcal_mol": -5.001976835511465,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.9033913486574985,
+            "gpu_g_temperature_kcal_mol": -4.9033913486574985,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -5.07205643602908,
+            "gpu_g_temperature_kcal_mol": -5.0720564360290785,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.7160161357815085,
+            "gpu_g_temperature_kcal_mol": -4.7160161357815085,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -5.088824569890818,
+            "gpu_g_temperature_kcal_mol": -5.088824569890818,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.860901599425705,
+            "gpu_g_temperature_kcal_mol": -4.860901599425705,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.969345018307058,
+            "gpu_g_temperature_kcal_mol": -4.969345018307058,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "epoxide",
+        "published_workbook_qmexp_prediction_kcal_mol": -4.952100782797997,
+        "row_id": "From VLE - Bin Solv - no water!12343",
+        "solute": {
+          "inchi": "InChI=1S/C3H5ClO/c4-1-3-2-5-3/h3H,1-2H2",
+          "name": "442: Epichlorohydrin"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C4H8O2/c1-3-6-4(2)5/h3H2,1-2H3",
+            "mole_fraction": 0.1615,
+            "name": "21: Ethyl acetate"
+          },
+          {
+            "inchi": "InChI=1S/C3H5Cl/c1-2-3-4/h2H,1,3H2",
+            "mole_fraction": 0.8385,
+            "name": "330: 3-Chloro-1-propene"
+          }
+        ],
+        "temperature_kelvin": 323.15
+      },
+      {
+        "cpu_abs_error_kcal_mol": 1.6089863795855495,
+        "cpu_fp64_prediction_kcal_mol": -4.709113620414451,
+        "cpu_signed_error_kcal_mol": 1.6089863795855495,
+        "experimental_gsolv_kcal_mol": -6.3181,
+        "gpu_abs_error_kcal_mol": 1.6089863795855504,
+        "gpu_fp64_prediction_kcal_mol": -4.70911362041445,
+        "gpu_signed_error_kcal_mol": 1.6089863795855504,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.0019334025710309177,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.636884620985033,
+            "gpu_g_temperature_kcal_mol": -4.636884620985033,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.600518590542877,
+            "gpu_g_temperature_kcal_mol": -4.600518590542877,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.638973197533995,
+            "gpu_g_temperature_kcal_mol": -4.638973197533994,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.7866120132618715,
+            "gpu_g_temperature_kcal_mol": -4.7866120132618715,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.86136477541005,
+            "gpu_g_temperature_kcal_mol": -4.861364775410051,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "cpu_g_temperature_kcal_mol": -4.7810163962775745,
+            "gpu_g_temperature_kcal_mol": -4.781016396277572,
+            "gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.723046263983195,
+            "gpu_g_temperature_kcal_mol": -4.723046263983195,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.6724261879513,
+            "gpu_g_temperature_kcal_mol": -4.672426187951299,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.823243798783531,
+            "gpu_g_temperature_kcal_mol": -4.8232437987835315,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.567050359415075,
+            "gpu_g_temperature_kcal_mol": -4.5670503594150755,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "ether",
+        "published_workbook_qmexp_prediction_kcal_mol": -4.70718021784342,
+        "row_id": "From VLE - Bin Solv - no water!22181",
+        "solute": {
+          "inchi": "InChI=1S/C5H12O2/c1-6-4-3-5-7-2/h3-5H2,1-2H3",
+          "name": "44709: Trimethylene glycol dimethyl ether"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C3H8O2/c1-4-3-5-2/h3H2,1-2H3",
+            "mole_fraction": 0.5612,
+            "name": "73: Dimethoxymethane"
+          },
+          {
+            "inchi": "InChI=1S/CH4O/c1-2/h2H,1H3",
+            "mole_fraction": 0.43879999999999997,
+            "name": "110: Methanol"
+          }
+        ],
+        "temperature_kelvin": 301.01
+      },
+      {
+        "cpu_abs_error_kcal_mol": 0.45385501966526576,
+        "cpu_fp64_prediction_kcal_mol": -4.581244980334734,
+        "cpu_signed_error_kcal_mol": 0.45385501966526576,
+        "experimental_gsolv_kcal_mol": -5.0351,
+        "gpu_abs_error_kcal_mol": 0.45385501966526576,
+        "gpu_fp64_prediction_kcal_mol": -4.581244980334734,
+        "gpu_signed_error_kcal_mol": 0.45385501966526576,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.002194885094513488,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.508294502115428,
+            "gpu_g_temperature_kcal_mol": -4.508294502115427,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.681888769529506,
+            "gpu_g_temperature_kcal_mol": -4.681888769529506,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.590961715852569,
+            "gpu_g_temperature_kcal_mol": -4.590961715852571,
+            "gpu_minus_cpu_kcal_mol": -1.7763568394002505e-15,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 2.6645352591003757e-15,
+            "cpu_g_temperature_kcal_mol": -4.633676677713585,
+            "gpu_g_temperature_kcal_mol": -4.633676677713588,
+            "gpu_minus_cpu_kcal_mol": -2.6645352591003757e-15,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.68298233900001,
+            "gpu_g_temperature_kcal_mol": -4.68298233900001,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.5142064999101486,
+            "gpu_g_temperature_kcal_mol": -4.5142064999101486,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.620497296295349,
+            "gpu_g_temperature_kcal_mol": -4.620497296295349,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.45439797587009,
+            "gpu_g_temperature_kcal_mol": -4.454397975870088,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -4.5934582355051115,
+            "gpu_g_temperature_kcal_mol": -4.5934582355051115,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -4.532085791555547,
+            "gpu_g_temperature_kcal_mol": -4.532085791555545,
+            "gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "amine",
+        "published_workbook_qmexp_prediction_kcal_mol": -4.579050095240221,
+        "row_id": "From VLE - Bin Solv - no water!18610",
+        "solute": {
+          "inchi": "InChI=1S/C2H8N2/c3-1-2-4/h1-4H2",
+          "name": "5: Ethylenediamine"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H",
+            "mole_fraction": 0.8981,
+            "name": "31: Benzene"
+          },
+          {
+            "inchi": "InChI=1S/C6H14/c1-3-5-6-4-2/h3-6H2,1-2H3",
+            "mole_fraction": 0.10189999999999999,
+            "name": "89: Hexane"
+          }
+        ],
+        "temperature_kelvin": 293.15
+      },
+      {
+        "cpu_abs_error_kcal_mol": 0.22651814535931925,
+        "cpu_fp64_prediction_kcal_mol": -3.910281854640681,
+        "cpu_signed_error_kcal_mol": 0.22651814535931925,
+        "experimental_gsolv_kcal_mol": -4.1368,
+        "gpu_abs_error_kcal_mol": 0.2265181453593197,
+        "gpu_fp64_prediction_kcal_mol": -3.9102818546406803,
+        "gpu_signed_error_kcal_mol": 0.2265181453593197,
+        "live_cpu_minus_published_workbook_kcal_mol": -0.2105751123873958,
+        "model_deltas": [
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -3.8825268160798077,
+            "gpu_g_temperature_kcal_mol": -3.8825268160798068,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 0
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -3.888902537245114,
+            "gpu_g_temperature_kcal_mol": -3.888902537245113,
+            "gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "model_index": 1
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.7763568394002505e-15,
+            "cpu_g_temperature_kcal_mol": -3.9423231254103133,
+            "gpu_g_temperature_kcal_mol": -3.942323125410315,
+            "gpu_minus_cpu_kcal_mol": -1.7763568394002505e-15,
+            "model_index": 2
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 2.220446049250313e-15,
+            "cpu_g_temperature_kcal_mol": -3.8151009793338986,
+            "gpu_g_temperature_kcal_mol": -3.8151009793338964,
+            "gpu_minus_cpu_kcal_mol": 2.220446049250313e-15,
+            "model_index": 3
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -3.9346404900913488,
+            "gpu_g_temperature_kcal_mol": -3.9346404900913488,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 4
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 8.881784197001252e-16,
+            "cpu_g_temperature_kcal_mol": -4.084271221751175,
+            "gpu_g_temperature_kcal_mol": -4.084271221751176,
+            "gpu_minus_cpu_kcal_mol": -8.881784197001252e-16,
+            "model_index": 5
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.3322676295501878e-15,
+            "cpu_g_temperature_kcal_mol": -3.9027010385638854,
+            "gpu_g_temperature_kcal_mol": -3.902701038563884,
+            "gpu_minus_cpu_kcal_mol": 1.3322676295501878e-15,
+            "model_index": 6
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.3322676295501878e-15,
+            "cpu_g_temperature_kcal_mol": -3.9294427781506416,
+            "gpu_g_temperature_kcal_mol": -3.9294427781506402,
+            "gpu_minus_cpu_kcal_mol": 1.3322676295501878e-15,
+            "model_index": 7
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 1.3322676295501878e-15,
+            "cpu_g_temperature_kcal_mol": -3.9580648927034554,
+            "gpu_g_temperature_kcal_mol": -3.958064892703454,
+            "gpu_minus_cpu_kcal_mol": 1.3322676295501878e-15,
+            "model_index": 8
+          },
+          {
+            "abs_gpu_minus_cpu_kcal_mol": 0.0,
+            "cpu_g_temperature_kcal_mol": -3.764844667077169,
+            "gpu_g_temperature_kcal_mol": -3.764844667077169,
+            "gpu_minus_cpu_kcal_mol": 0.0,
+            "model_index": 9
+          }
+        ],
+        "primary_functional_group": "nitrile",
+        "published_workbook_qmexp_prediction_kcal_mol": -3.699706742253285,
+        "row_id": "From VLE - Ter Solv - no water!2429",
+        "solute": {
+          "inchi": "InChI=1S/C3H3N/c1-2-3-4/h2H,1H2",
+          "name": "228: Acrylonitrile"
+        },
+        "solvent_composition": [
+          {
+            "inchi": "InChI=1S/C8H10/c1-2-8-6-4-3-5-7-8/h3-7H,2H2,1H3",
+            "mole_fraction": 0.2703,
+            "name": "25: Ethylbenzene"
+          },
+          {
+            "inchi": "InChI=1S/C8H8/c1-2-8-6-4-3-5-7-8/h2-7H,1H2",
+            "mole_fraction": 0.448,
+            "name": "150: Styrene"
+          },
+          {
+            "inchi": "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
+            "mole_fraction": 0.28170000000000006,
+            "name": "161: Toluene"
+          }
+        ],
+        "temperature_kelvin": 301.05
+      }
+    ],
+    "scientific_or_admission_claim_eligible": true
+  },
+  "published_workbook_column_reproduction": {
+    "description": "Recomputed from official workbook experimental and SolProp-mix_QM_Exp_GsolvT columns; not live checkpoint execution.",
+    "panels": {
+      "binary_all": {
+        "count": 30030,
+        "mae_kcal_mol": 0.2899802382859586,
+        "maxae_kcal_mol": 6.945655406298665,
+        "prediction_source": "published_workbook_column_not_live_checkpoint_execution",
+        "rmse_kcal_mol": 0.4463043000208012,
+        "sheets": {
+          "From IDAC - has water": 748,
+          "From IDAC - no water": 209,
+          "From VLE - Bin Solv - has water": 6718,
+          "From VLE - Bin Solv - no water": 22355
+        }
+      },
+      "binary_nonaqueous": {
+        "count": 22564,
+        "mae_kcal_mol": 0.24954483260577912,
+        "maxae_kcal_mol": 3.7406858271985826,
+        "prediction_source": "published_workbook_column_not_live_checkpoint_execution",
+        "rmse_kcal_mol": 0.36882203382673406,
+        "sheets": {
+          "From IDAC - no water": 209,
+          "From VLE - Bin Solv - no water": 22355
+        }
+      },
+      "ternary_all": {
+        "count": 4242,
+        "mae_kcal_mol": 0.2350860982612734,
+        "maxae_kcal_mol": 1.9682797871997177,
+        "prediction_source": "published_workbook_column_not_live_checkpoint_execution",
+        "rmse_kcal_mol": 0.3438563818309633,
+        "sheets": {
+          "From VLE - Ter Solv - has water": 876,
+          "From VLE - Ter Solv - no water": 3366
+        }
+      }
+    },
+    "paper": "https://arxiv.org/abs/2412.01982"
+  },
+  "route4_decision": {
+    "adapter_may_be_used_as_unadmitted_research_property_backend": true,
+    "reason": "The v1.1 workbook is broadly closer to live released-weight execution, but the exact workbook oracle is not reproduced and the frozen ten-group accuracy gate still fails.",
+    "status": "rejected_for_admission"
+  },
+  "runtime_diagnostic": {
+    "admission_evidence": false,
+    "matched_qm_baseline": false,
+    "source": "separate frozen runtime-diagnostic.json",
+    "volatile_worker_stream_hashes_omitted_from_canonical_result": true
+  },
+  "schema_version": 1,
+  "validation_scope": {
+    "canonical_live_execution_evidence": true,
+    "distinct_primary_functional_group_count": 10,
+    "historical_output_blind_selection_is_author_attestation_not_independent_proof": true,
+    "imported_fixture_used": false,
+    "matched_qm_speed_test_performed": false,
+    "panel_role": "frozen_output_blind_development_panel_not_final_holdout",
+    "paper_dataset_aggregate_claimed_from_ten_rows": false,
+    "paper_or_workbook_published_column_reproduction_separate_from_live_weight_execution": true,
+    "row_count": 10,
+    "runtime_used_for_admission": false
+  }
+}

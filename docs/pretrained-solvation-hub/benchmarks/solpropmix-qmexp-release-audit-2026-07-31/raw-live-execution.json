@@ -1,0 +1,3162 @@
+{
+  "modes": {
+    "cpu": {
+      "rows": [
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -6.73484815294078,
+              "g_temperature_kcal_mol": -6.568519204892582,
+              "h298_kcal_mol": -12.172455155196282,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -6.341255549426631,
+              "g_temperature_kcal_mol": -6.171584329279943,
+              "h298_kcal_mol": -11.888127729989657,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -6.674604976373727,
+              "g_temperature_kcal_mol": -6.505087199068904,
+              "h298_kcal_mol": -12.216460821048383,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -6.539764204071388,
+              "g_temperature_kcal_mol": -6.383892726271121,
+              "h298_kcal_mol": -11.635496781500052,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -6.533093012073831,
+              "g_temperature_kcal_mol": -6.3662585834367755,
+              "h298_kcal_mol": -11.987225128097748,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -6.6737835488262265,
+              "g_temperature_kcal_mol": -6.508392861957028,
+              "h298_kcal_mol": -12.08071702361253,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -6.4091592539427396,
+              "g_temperature_kcal_mol": -6.259162170219135,
+              "h298_kcal_mol": -11.312846810104226,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -6.50343237009883,
+              "g_temperature_kcal_mol": -6.336360963313371,
+              "h298_kcal_mol": -11.965311748726474,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -6.536968121145858,
+              "g_temperature_kcal_mol": -6.381134757965436,
+              "h298_kcal_mol": -11.631454659768986,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -6.547439430292522,
+              "g_temperature_kcal_mol": -6.386534872950324,
+              "h298_kcal_mol": -11.807712870158333,
+              "model_index": 9
+            }
+          ],
+          "prediction": -6.386692766935462,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "CN1CCCC1=O",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "C=CC(=C)C",
+                "mole_fraction": 0.6532
+              },
+              {
+                "canonical_smiles": "C=CCCC",
+                "mole_fraction": 0.3468
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -4.471643920799368,
+              "g_temperature_kcal_mol": -4.4620311046003875,
+              "h298_kcal_mol": -8.05422035795675,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -4.410641312114353,
+              "g_temperature_kcal_mol": -4.401131344602815,
+              "h298_kcal_mol": -7.954887329070419,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -4.450748368219525,
+              "g_temperature_kcal_mol": -4.440876353040174,
+              "h298_kcal_mol": -8.129925025373886,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -4.413497847028646,
+              "g_temperature_kcal_mol": -4.403955472324898,
+              "h298_kcal_mol": -7.969821619431557,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -4.4408796133121555,
+              "g_temperature_kcal_mol": -4.431249806980059,
+              "h298_kcal_mol": -8.029788060705203,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.6648159080778395,
+              "g_temperature_kcal_mol": -4.6550343097712625,
+              "h298_kcal_mol": -8.310295326960388,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -4.433344843474607,
+              "g_temperature_kcal_mol": -4.423834660141708,
+              "h298_kcal_mol": -7.97767129435466,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -4.428920340696388,
+              "g_temperature_kcal_mol": -4.4197795773102815,
+              "h298_kcal_mol": -7.835568595156162,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -4.547607958701359,
+              "g_temperature_kcal_mol": -4.538101318337417,
+              "h298_kcal_mol": -8.090613989337783,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -4.459254027335987,
+              "g_temperature_kcal_mol": -4.449835289759466,
+              "h298_kcal_mol": -7.969499787885269,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.462582923686847,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "C=COC(C)=O",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CC(C)=O",
+                "mole_fraction": 0.047599999999999976
+              },
+              {
+                "canonical_smiles": "CC=O",
+                "mole_fraction": 0.9524
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -7.708765819787914,
+              "g_temperature_kcal_mol": -7.450219710016882,
+              "h298_kcal_mol": -14.197446175699783,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -7.45949152376534,
+              "g_temperature_kcal_mol": -7.1851138089603594,
+              "h298_kcal_mol": -14.34549452621526,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -7.617147315925552,
+              "g_temperature_kcal_mol": -7.365890802342176,
+              "h298_kcal_mol": -13.922882124417427,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -7.460845629858182,
+              "g_temperature_kcal_mol": -7.205062888498342,
+              "h298_kcal_mol": -13.880174277706338,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -7.425371262613435,
+              "g_temperature_kcal_mol": -7.161850869598512,
+              "h298_kcal_mol": -14.038890216939963,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -7.641328182951034,
+              "g_temperature_kcal_mol": -7.3840398747642615,
+              "h298_kcal_mol": -14.098441742369074,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -8.033024967054045,
+              "g_temperature_kcal_mol": -7.767613293182322,
+              "h298_kcal_mol": -14.69400902133472,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -7.492906430645627,
+              "g_temperature_kcal_mol": -7.243245720111916,
+              "h298_kcal_mol": -13.758591687011442,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -7.633994904511751,
+              "g_temperature_kcal_mol": -7.373062175544928,
+              "h298_kcal_mol": -14.182571768270874,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -7.1157328682255265,
+              "g_temperature_kcal_mol": -6.859248509414534,
+              "h298_kcal_mol": -13.552669869866746,
+              "model_index": 9
+            }
+          ],
+          "prediction": -7.299534765243424,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "C=C(C)C(=O)O",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "C=C(C)C(=O)OC",
+                "mole_fraction": 0.0756
+              },
+              {
+                "canonical_smiles": "CO",
+                "mole_fraction": 0.9244
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -6.346509544879636,
+              "g_temperature_kcal_mol": -6.346509544879636,
+              "h298_kcal_mol": -10.998380120223166,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -6.316820183762225,
+              "g_temperature_kcal_mol": -6.316820183762225,
+              "h298_kcal_mol": -11.204440385637112,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -6.408122587286307,
+              "g_temperature_kcal_mol": -6.408122587286307,
+              "h298_kcal_mol": -11.441255766600218,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -6.313286981453195,
+              "g_temperature_kcal_mol": -6.313286981453195,
+              "h298_kcal_mol": -11.177198678096874,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -6.35230519594455,
+              "g_temperature_kcal_mol": -6.35230519594455,
+              "h298_kcal_mol": -11.115988144871762,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -6.2720302623135264,
+              "g_temperature_kcal_mol": -6.272030262313526,
+              "h298_kcal_mol": -11.228725487051838,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -6.301358629464118,
+              "g_temperature_kcal_mol": -6.301358629464117,
+              "h298_kcal_mol": -11.12659361622104,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -6.339314667520896,
+              "g_temperature_kcal_mol": -6.339314667520896,
+              "h298_kcal_mol": -11.10692295315425,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -6.204212987012255,
+              "g_temperature_kcal_mol": -6.204212987012255,
+              "h298_kcal_mol": -10.912173400832998,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -6.383259897317056,
+              "g_temperature_kcal_mol": -6.383259897317056,
+              "h298_kcal_mol": -11.442347367500394,
+              "model_index": 9
+            }
+          ],
+          "prediction": -6.323722093695376,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "O=Cc1ccco1",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CCOC(C)=O",
+                "mole_fraction": 0.8722
+              },
+              {
+                "canonical_smiles": "CO",
+                "mole_fraction": 0.12780000000000002
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -4.556140190084658,
+              "g_temperature_kcal_mol": -4.556140190084658,
+              "h298_kcal_mol": -7.573993872242427,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -4.650920375757645,
+              "g_temperature_kcal_mol": -4.650920375757645,
+              "h298_kcal_mol": -7.5913728504390425,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -4.711013689162548,
+              "g_temperature_kcal_mol": -4.711013689162548,
+              "h298_kcal_mol": -7.783313633369872,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -4.64588961199982,
+              "g_temperature_kcal_mol": -4.64588961199982,
+              "h298_kcal_mol": -7.734578404667821,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -4.630774397451953,
+              "g_temperature_kcal_mol": -4.630774397451953,
+              "h298_kcal_mol": -7.628669697950148,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.494223255760907,
+              "g_temperature_kcal_mol": -4.494223255760907,
+              "h298_kcal_mol": -7.493878259418518,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -4.641972391672693,
+              "g_temperature_kcal_mol": -4.641972391672693,
+              "h298_kcal_mol": -7.682199272038396,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -4.5922632978629006,
+              "g_temperature_kcal_mol": -4.5922632978629006,
+              "h298_kcal_mol": -7.4154348603268785,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -4.742852759132736,
+              "g_temperature_kcal_mol": -4.742852759132736,
+              "h298_kcal_mol": -7.704201547768655,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -4.6460859123941765,
+              "g_temperature_kcal_mol": -4.6460859123941765,
+              "h298_kcal_mol": -7.661673859072986,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.631213588128004,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "CCC(C)=O",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CCO",
+                "mole_fraction": 0.4372
+              },
+              {
+                "canonical_smiles": "c1ccccc1",
+                "mole_fraction": 0.5628
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -5.4005243152202524,
+              "g_temperature_kcal_mol": -5.090096007285389,
+              "h298_kcal_mol": -10.032866658102103,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -5.611303071271594,
+              "g_temperature_kcal_mol": -5.308050914318258,
+              "h298_kcal_mol": -10.136559857840009,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -5.523415289149724,
+              "g_temperature_kcal_mol": -5.186254270367014,
+              "h298_kcal_mol": -10.554674435799615,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -5.469756258546732,
+              "g_temperature_kcal_mol": -5.141703338764777,
+              "h298_kcal_mol": -10.365100504442115,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -5.404448381901851,
+              "g_temperature_kcal_mol": -5.0814824475743245,
+              "h298_kcal_mol": -10.223882481989524,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -5.519163756803152,
+              "g_temperature_kcal_mol": -5.193203665750569,
+              "h298_kcal_mol": -10.383277928341066,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -5.430426422273432,
+              "g_temperature_kcal_mol": -5.1115405138403665,
+              "h298_kcal_mol": -10.188976652469545,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -5.362574022938249,
+              "g_temperature_kcal_mol": -5.045797151131425,
+              "h298_kcal_mol": -10.089652317693208,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -5.2727490084792334,
+              "g_temperature_kcal_mol": -4.942833217008582,
+              "h298_kcal_mol": -10.195891812632109,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -5.318120039868252,
+              "g_temperature_kcal_mol": -4.984654883066028,
+              "h298_kcal_mol": -10.294227972830363,
+              "model_index": 9
+            }
+          ],
+          "prediction": -5.108561640910674,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "CC(O)COC(C)(C)C",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CC(C)(C)O",
+                "mole_fraction": 0.016100000000000003
+              },
+              {
+                "canonical_smiles": "CC(C)CC(C)(C)C",
+                "mole_fraction": 0.9839
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -5.311566435520922,
+              "g_temperature_kcal_mol": -4.978623531102375,
+              "h298_kcal_mol": -9.282243513616491,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -5.265649140630298,
+              "g_temperature_kcal_mol": -4.934912217320061,
+              "h298_kcal_mol": -9.21001768802817,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -5.365146448694935,
+              "g_temperature_kcal_mol": -5.016734257310422,
+              "h298_kcal_mol": -9.520310243146614,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -5.333912831475997,
+              "g_temperature_kcal_mol": -5.001976835511466,
+              "h298_kcal_mol": -9.292581519348989,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -5.247035736250831,
+              "g_temperature_kcal_mol": -4.9033913486574985,
+              "h298_kcal_mol": -9.345338702688895,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -5.419761966542206,
+              "g_temperature_kcal_mol": -5.07205643602908,
+              "h298_kcal_mol": -9.566498123441725,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -5.032581992547355,
+              "g_temperature_kcal_mol": -4.7160161357815085,
+              "h298_kcal_mol": -8.807946400336828,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -5.418042663735601,
+              "g_temperature_kcal_mol": -5.088824569890818,
+              "h298_kcal_mol": -9.344297650928482,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -5.190350116900651,
+              "g_temperature_kcal_mol": -4.860901599425705,
+              "h298_kcal_mol": -9.119353136306842,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -5.30510791694174,
+              "g_temperature_kcal_mol": -4.969345018307058,
+              "h298_kcal_mol": -9.309416246058944,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.9542781949335986,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "ClCC1CO1",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "C=CCCl",
+                "mole_fraction": 0.8385
+              },
+              {
+                "canonical_smiles": "CCOC(C)=O",
+                "mole_fraction": 0.1615
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -4.6721993429015924,
+              "g_temperature_kcal_mol": -4.636884620985033,
+              "h298_kcal_mol": -8.353697363678545,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -4.637548516556882,
+              "g_temperature_kcal_mol": -4.600518590542877,
+              "h298_kcal_mol": -8.49785356588397,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -4.675001566202121,
+              "g_temperature_kcal_mol": -4.638973197533995,
+              "h298_kcal_mol": -8.430896013195678,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -4.82457884586521,
+              "g_temperature_kcal_mol": -4.7866120132618715,
+              "h298_kcal_mol": -8.782554769181694,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -4.899341265324729,
+              "g_temperature_kcal_mol": -4.86136477541005,
+              "h298_kcal_mol": -8.858323946465205,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.818318794181519,
+              "g_temperature_kcal_mol": -4.7810163962775745,
+              "h298_kcal_mol": -8.707028561685423,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -4.7581856163058855,
+              "g_temperature_kcal_mol": -4.723046263983195,
+              "h298_kcal_mol": -8.421401663512244,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -4.706663826000669,
+              "g_temperature_kcal_mol": -4.6724261879513,
+              "h298_kcal_mol": -8.275877736636765,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -4.859496022076736,
+              "g_temperature_kcal_mol": -4.823243798783531,
+              "h298_kcal_mol": -8.638726922380615,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -4.60472530037223,
+              "g_temperature_kcal_mol": -4.567050359415075,
+              "h298_kcal_mol": -8.532272029874362,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.709113620414451,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "COCCCOC",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CO",
+                "mole_fraction": 0.43879999999999997
+              },
+              {
+                "canonical_smiles": "COCOC",
+                "mole_fraction": 0.5612
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -4.432955217376973,
+              "g_temperature_kcal_mol": -4.508294502115428,
+              "h298_kcal_mol": -8.92543676633101,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -4.608502424466883,
+              "g_temperature_kcal_mol": -4.681888769529506,
+              "h298_kcal_mol": -8.984530180551143,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -4.5143672359498215,
+              "g_temperature_kcal_mol": -4.590961715852569,
+              "h298_kcal_mol": -9.081696072550656,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -4.5601260688164515,
+              "g_temperature_kcal_mol": -4.633676677713585,
+              "h298_kcal_mol": -8.94594887735257,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -4.604961142248882,
+              "g_temperature_kcal_mol": -4.68298233900001,
+              "h298_kcal_mol": -9.257365104518644,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.440790009834059,
+              "g_temperature_kcal_mol": -4.5142064999101486,
+              "h298_kcal_mol": -8.818615313071316,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -4.543783392623933,
+              "g_temperature_kcal_mol": -4.620497296295349,
+              "h298_kcal_mol": -9.118233468550455,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -4.382716323207751,
+              "g_temperature_kcal_mol": -4.45439797587009,
+              "h298_kcal_mol": -8.657093271463046,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -4.520378657640597,
+              "g_temperature_kcal_mol": -4.5934582355051115,
+              "h298_kcal_mol": -8.878113885701566,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -4.460135237089343,
+              "g_temperature_kcal_mol": -4.532085791555547,
+              "h298_kcal_mol": -8.750546799909088,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.581244980334734,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "NCCN",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CCCCCC",
+                "mole_fraction": 0.10189999999999999
+              },
+              {
+                "canonical_smiles": "c1ccccc1",
+                "mole_fraction": 0.8981
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -3.915133688694496,
+              "g_temperature_kcal_mol": -3.8825268160798077,
+              "h298_kcal_mol": -7.2674575059597,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -3.9232034098893074,
+              "g_temperature_kcal_mol": -3.888902537245114,
+              "h298_kcal_mol": -7.4496879543258485,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -3.976409780729166,
+              "g_temperature_kcal_mol": -3.9423231254103133,
+              "h298_kcal_mol": -7.480870568079366,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -3.8480029364160098,
+              "g_temperature_kcal_mol": -3.8151009793338986,
+              "h298_kcal_mol": -7.230664489530258,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -3.969588603114949,
+              "g_temperature_kcal_mol": -3.9346404900913488,
+              "h298_kcal_mol": -7.562616154144569,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.113795074496999,
+              "g_temperature_kcal_mol": -4.084271221751175,
+              "h298_kcal_mol": -7.149152555933939,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -3.9357537394139523,
+              "g_temperature_kcal_mol": -3.9027010385638854,
+              "h298_kcal_mol": -7.333913311292285,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -3.9625590824722643,
+              "g_temperature_kcal_mol": -3.9294427781506416,
+              "h298_kcal_mol": -7.367257749193514,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -3.9921023321270273,
+              "g_temperature_kcal_mol": -3.9580648927034554,
+              "h298_kcal_mol": -7.4915032163124105,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -3.797602502426316,
+              "g_temperature_kcal_mol": -3.764844667077169,
+              "h298_kcal_mol": -7.165446850477273,
+              "model_index": 9
+            }
+          ],
+          "prediction": -3.910281854640681,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "C=CC#N",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cpu",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": null,
+            "gpu_name": null,
+            "gpu_total_memory_bytes": null,
+            "gpu_uuid": null,
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "C=Cc1ccccc1",
+                "mole_fraction": 0.448
+              },
+              {
+                "canonical_smiles": "CCc1ccccc1",
+                "mole_fraction": 0.2703
+              },
+              {
+                "canonical_smiles": "Cc1ccccc1",
+                "mole_fraction": 0.28170000000000006
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        }
+      ]
+    },
+    "cuda:0": {
+      "rows": [
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -6.7348481529407795,
+              "g_temperature_kcal_mol": -6.568519204892581,
+              "h298_kcal_mol": -12.172455155196282,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -6.341255549426629,
+              "g_temperature_kcal_mol": -6.171584329279942,
+              "h298_kcal_mol": -11.888127729989655,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -6.674604976373727,
+              "g_temperature_kcal_mol": -6.505087199068904,
+              "h298_kcal_mol": -12.216460821048381,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -6.539764204071389,
+              "g_temperature_kcal_mol": -6.383892726271123,
+              "h298_kcal_mol": -11.635496781500052,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -6.533093012073831,
+              "g_temperature_kcal_mol": -6.3662585834367755,
+              "h298_kcal_mol": -11.987225128097748,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -6.6737835488262265,
+              "g_temperature_kcal_mol": -6.508392861957028,
+              "h298_kcal_mol": -12.080717023612529,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -6.409159253942739,
+              "g_temperature_kcal_mol": -6.259162170219134,
+              "h298_kcal_mol": -11.312846810104226,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -6.503432370098829,
+              "g_temperature_kcal_mol": -6.336360963313371,
+              "h298_kcal_mol": -11.965311748726474,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -6.536968121145858,
+              "g_temperature_kcal_mol": -6.381134757965436,
+              "h298_kcal_mol": -11.631454659768986,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -6.547439430292522,
+              "g_temperature_kcal_mol": -6.386534872950324,
+              "h298_kcal_mol": -11.807712870158333,
+              "model_index": 9
+            }
+          ],
+          "prediction": -6.386692766935462,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "CN1CCCC1=O",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "C=CC(=C)C",
+                "mole_fraction": 0.6532
+              },
+              {
+                "canonical_smiles": "C=CCCC",
+                "mole_fraction": 0.3468
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -4.4716439207993695,
+              "g_temperature_kcal_mol": -4.462031104600389,
+              "h298_kcal_mol": -8.054220357956751,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -4.410641312114356,
+              "g_temperature_kcal_mol": -4.401131344602818,
+              "h298_kcal_mol": -7.954887329070421,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -4.450748368219527,
+              "g_temperature_kcal_mol": -4.440876353040176,
+              "h298_kcal_mol": -8.129925025373886,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -4.413497847028646,
+              "g_temperature_kcal_mol": -4.403955472324898,
+              "h298_kcal_mol": -7.969821619431558,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -4.440879613312156,
+              "g_temperature_kcal_mol": -4.43124980698006,
+              "h298_kcal_mol": -8.029788060705204,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.664815908077838,
+              "g_temperature_kcal_mol": -4.65503430977126,
+              "h298_kcal_mol": -8.310295326960386,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -4.433344843474607,
+              "g_temperature_kcal_mol": -4.423834660141708,
+              "h298_kcal_mol": -7.977671294354659,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -4.428920340696388,
+              "g_temperature_kcal_mol": -4.4197795773102815,
+              "h298_kcal_mol": -7.835568595156162,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -4.547607958701361,
+              "g_temperature_kcal_mol": -4.53810131833742,
+              "h298_kcal_mol": -8.090613989337784,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -4.459254027335987,
+              "g_temperature_kcal_mol": -4.449835289759466,
+              "h298_kcal_mol": -7.96949978788527,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.462582923686847,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "C=COC(C)=O",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CC(C)=O",
+                "mole_fraction": 0.047599999999999976
+              },
+              {
+                "canonical_smiles": "CC=O",
+                "mole_fraction": 0.9524
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -7.708765819787914,
+              "g_temperature_kcal_mol": -7.450219710016882,
+              "h298_kcal_mol": -14.197446175699783,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -7.45949152376534,
+              "g_temperature_kcal_mol": -7.1851138089603594,
+              "h298_kcal_mol": -14.34549452621526,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -7.617147315925553,
+              "g_temperature_kcal_mol": -7.365890802342177,
+              "h298_kcal_mol": -13.922882124417429,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -7.460845629858182,
+              "g_temperature_kcal_mol": -7.205062888498342,
+              "h298_kcal_mol": -13.880174277706338,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -7.425371262613436,
+              "g_temperature_kcal_mol": -7.1618508695985135,
+              "h298_kcal_mol": -14.038890216939963,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -7.641328182951035,
+              "g_temperature_kcal_mol": -7.384039874764262,
+              "h298_kcal_mol": -14.098441742369074,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -8.033024967054045,
+              "g_temperature_kcal_mol": -7.767613293182322,
+              "h298_kcal_mol": -14.69400902133472,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -7.492906430645627,
+              "g_temperature_kcal_mol": -7.243245720111916,
+              "h298_kcal_mol": -13.758591687011442,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -7.63399490451175,
+              "g_temperature_kcal_mol": -7.373062175544928,
+              "h298_kcal_mol": -14.182571768270874,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -7.115732868225527,
+              "g_temperature_kcal_mol": -6.859248509414534,
+              "h298_kcal_mol": -13.552669869866746,
+              "model_index": 9
+            }
+          ],
+          "prediction": -7.299534765243424,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "C=C(C)C(=O)O",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "C=C(C)C(=O)OC",
+                "mole_fraction": 0.0756
+              },
+              {
+                "canonical_smiles": "CO",
+                "mole_fraction": 0.9244
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -6.346509544879636,
+              "g_temperature_kcal_mol": -6.346509544879636,
+              "h298_kcal_mol": -10.998380120223164,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -6.316820183762225,
+              "g_temperature_kcal_mol": -6.316820183762225,
+              "h298_kcal_mol": -11.204440385637112,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -6.408122587286308,
+              "g_temperature_kcal_mol": -6.408122587286308,
+              "h298_kcal_mol": -11.441255766600218,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -6.313286981453195,
+              "g_temperature_kcal_mol": -6.313286981453195,
+              "h298_kcal_mol": -11.177198678096875,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -6.35230519594455,
+              "g_temperature_kcal_mol": -6.35230519594455,
+              "h298_kcal_mol": -11.115988144871764,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -6.272030262313526,
+              "g_temperature_kcal_mol": -6.272030262313526,
+              "h298_kcal_mol": -11.228725487051836,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -6.301358629464118,
+              "g_temperature_kcal_mol": -6.301358629464117,
+              "h298_kcal_mol": -11.126593616221038,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -6.339314667520898,
+              "g_temperature_kcal_mol": -6.339314667520898,
+              "h298_kcal_mol": -11.106922953154253,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -6.204212987012253,
+              "g_temperature_kcal_mol": -6.204212987012253,
+              "h298_kcal_mol": -10.912173400832998,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -6.383259897317058,
+              "g_temperature_kcal_mol": -6.383259897317058,
+              "h298_kcal_mol": -11.442347367500396,
+              "model_index": 9
+            }
+          ],
+          "prediction": -6.323722093695376,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "O=Cc1ccco1",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CCOC(C)=O",
+                "mole_fraction": 0.8722
+              },
+              {
+                "canonical_smiles": "CO",
+                "mole_fraction": 0.12780000000000002
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -4.556140190084658,
+              "g_temperature_kcal_mol": -4.556140190084658,
+              "h298_kcal_mol": -7.5739938722424265,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -4.650920375757643,
+              "g_temperature_kcal_mol": -4.650920375757643,
+              "h298_kcal_mol": -7.591372850439042,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -4.711013689162545,
+              "g_temperature_kcal_mol": -4.711013689162545,
+              "h298_kcal_mol": -7.783313633369869,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -4.645889611999819,
+              "g_temperature_kcal_mol": -4.645889611999819,
+              "h298_kcal_mol": -7.734578404667819,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -4.630774397451954,
+              "g_temperature_kcal_mol": -4.630774397451954,
+              "h298_kcal_mol": -7.628669697950147,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.494223255760906,
+              "g_temperature_kcal_mol": -4.494223255760906,
+              "h298_kcal_mol": -7.4938782594185165,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -4.641972391672692,
+              "g_temperature_kcal_mol": -4.641972391672692,
+              "h298_kcal_mol": -7.682199272038393,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -4.5922632978629006,
+              "g_temperature_kcal_mol": -4.5922632978629006,
+              "h298_kcal_mol": -7.415434860326879,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -4.742852759132735,
+              "g_temperature_kcal_mol": -4.742852759132735,
+              "h298_kcal_mol": -7.704201547768652,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -4.646085912394177,
+              "g_temperature_kcal_mol": -4.646085912394177,
+              "h298_kcal_mol": -7.661673859072986,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.631213588128003,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "CCC(C)=O",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CCO",
+                "mole_fraction": 0.4372
+              },
+              {
+                "canonical_smiles": "c1ccccc1",
+                "mole_fraction": 0.5628
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -5.400524315220254,
+              "g_temperature_kcal_mol": -5.09009600728539,
+              "h298_kcal_mol": -10.032866658102105,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -5.611303071271594,
+              "g_temperature_kcal_mol": -5.308050914318258,
+              "h298_kcal_mol": -10.13655985784001,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -5.523415289149725,
+              "g_temperature_kcal_mol": -5.186254270367014,
+              "h298_kcal_mol": -10.554674435799614,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -5.469756258546733,
+              "g_temperature_kcal_mol": -5.141703338764778,
+              "h298_kcal_mol": -10.365100504442115,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -5.404448381901849,
+              "g_temperature_kcal_mol": -5.081482447574323,
+              "h298_kcal_mol": -10.223882481989522,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -5.519163756803152,
+              "g_temperature_kcal_mol": -5.193203665750569,
+              "h298_kcal_mol": -10.383277928341066,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -5.430426422273431,
+              "g_temperature_kcal_mol": -5.111540513840365,
+              "h298_kcal_mol": -10.188976652469545,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -5.362574022938248,
+              "g_temperature_kcal_mol": -5.045797151131424,
+              "h298_kcal_mol": -10.089652317693208,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -5.272749008479234,
+              "g_temperature_kcal_mol": -4.942833217008583,
+              "h298_kcal_mol": -10.195891812632109,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -5.318120039868251,
+              "g_temperature_kcal_mol": -4.984654883066026,
+              "h298_kcal_mol": -10.294227972830363,
+              "model_index": 9
+            }
+          ],
+          "prediction": -5.108561640910673,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "CC(O)COC(C)(C)C",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CC(C)(C)O",
+                "mole_fraction": 0.016100000000000003
+              },
+              {
+                "canonical_smiles": "CC(C)CC(C)(C)C",
+                "mole_fraction": 0.9839
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -5.311566435520922,
+              "g_temperature_kcal_mol": -4.978623531102376,
+              "h298_kcal_mol": -9.28224351361649,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -5.265649140630298,
+              "g_temperature_kcal_mol": -4.934912217320061,
+              "h298_kcal_mol": -9.21001768802817,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -5.365146448694933,
+              "g_temperature_kcal_mol": -5.0167342573104206,
+              "h298_kcal_mol": -9.52031024314661,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -5.333912831475997,
+              "g_temperature_kcal_mol": -5.001976835511465,
+              "h298_kcal_mol": -9.29258151934899,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -5.2470357362508295,
+              "g_temperature_kcal_mol": -4.9033913486574985,
+              "h298_kcal_mol": -9.345338702688892,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -5.419761966542204,
+              "g_temperature_kcal_mol": -5.0720564360290785,
+              "h298_kcal_mol": -9.566498123441724,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -5.032581992547355,
+              "g_temperature_kcal_mol": -4.7160161357815085,
+              "h298_kcal_mol": -8.807946400336824,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -5.418042663735601,
+              "g_temperature_kcal_mol": -5.088824569890818,
+              "h298_kcal_mol": -9.344297650928482,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -5.190350116900651,
+              "g_temperature_kcal_mol": -4.860901599425705,
+              "h298_kcal_mol": -9.119353136306843,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -5.30510791694174,
+              "g_temperature_kcal_mol": -4.969345018307058,
+              "h298_kcal_mol": -9.309416246058943,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.9542781949335986,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "ClCC1CO1",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "C=CCCl",
+                "mole_fraction": 0.8385
+              },
+              {
+                "canonical_smiles": "CCOC(C)=O",
+                "mole_fraction": 0.1615
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -4.6721993429015924,
+              "g_temperature_kcal_mol": -4.636884620985033,
+              "h298_kcal_mol": -8.353697363678549,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -4.6375485165568815,
+              "g_temperature_kcal_mol": -4.600518590542877,
+              "h298_kcal_mol": -8.497853565883972,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -4.675001566202119,
+              "g_temperature_kcal_mol": -4.638973197533994,
+              "h298_kcal_mol": -8.430896013195674,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -4.82457884586521,
+              "g_temperature_kcal_mol": -4.7866120132618715,
+              "h298_kcal_mol": -8.782554769181692,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -4.899341265324731,
+              "g_temperature_kcal_mol": -4.861364775410051,
+              "h298_kcal_mol": -8.858323946465212,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.8183187941815175,
+              "g_temperature_kcal_mol": -4.781016396277572,
+              "h298_kcal_mol": -8.707028561685423,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -4.7581856163058855,
+              "g_temperature_kcal_mol": -4.723046263983195,
+              "h298_kcal_mol": -8.421401663512242,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -4.706663826000668,
+              "g_temperature_kcal_mol": -4.672426187951299,
+              "h298_kcal_mol": -8.275877736636765,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -4.859496022076737,
+              "g_temperature_kcal_mol": -4.8232437987835315,
+              "h298_kcal_mol": -8.638726922380616,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -4.604725300372232,
+              "g_temperature_kcal_mol": -4.5670503594150755,
+              "h298_kcal_mol": -8.53227202987436,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.70911362041445,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "COCCCOC",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CO",
+                "mole_fraction": 0.43879999999999997
+              },
+              {
+                "canonical_smiles": "COCOC",
+                "mole_fraction": 0.5612
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -4.432955217376972,
+              "g_temperature_kcal_mol": -4.508294502115427,
+              "h298_kcal_mol": -8.925436766331007,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -4.608502424466883,
+              "g_temperature_kcal_mol": -4.681888769529506,
+              "h298_kcal_mol": -8.984530180551145,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -4.514367235949823,
+              "g_temperature_kcal_mol": -4.590961715852571,
+              "h298_kcal_mol": -9.08169607255066,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -4.560126068816453,
+              "g_temperature_kcal_mol": -4.633676677713588,
+              "h298_kcal_mol": -8.94594887735257,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -4.604961142248882,
+              "g_temperature_kcal_mol": -4.68298233900001,
+              "h298_kcal_mol": -9.257365104518644,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.440790009834059,
+              "g_temperature_kcal_mol": -4.5142064999101486,
+              "h298_kcal_mol": -8.818615313071314,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -4.543783392623933,
+              "g_temperature_kcal_mol": -4.620497296295349,
+              "h298_kcal_mol": -9.118233468550454,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -4.382716323207749,
+              "g_temperature_kcal_mol": -4.454397975870088,
+              "h298_kcal_mol": -8.657093271463044,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -4.520378657640597,
+              "g_temperature_kcal_mol": -4.5934582355051115,
+              "h298_kcal_mol": -8.878113885701566,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -4.460135237089341,
+              "g_temperature_kcal_mol": -4.532085791555545,
+              "h298_kcal_mol": -8.750546799909086,
+              "model_index": 9
+            }
+          ],
+          "prediction": -4.581244980334734,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "NCCN",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "CCCCCC",
+                "mole_fraction": 0.10189999999999999
+              },
+              {
+                "canonical_smiles": "c1ccccc1",
+                "mole_fraction": 0.8981
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        },
+        {
+          "models": [
+            {
+              "g298_kcal_mol": -3.915133688694495,
+              "g_temperature_kcal_mol": -3.8825268160798068,
+              "h298_kcal_mol": -7.2674575059597,
+              "model_index": 0
+            },
+            {
+              "g298_kcal_mol": -3.9232034098893065,
+              "g_temperature_kcal_mol": -3.888902537245113,
+              "h298_kcal_mol": -7.449687954325849,
+              "model_index": 1
+            },
+            {
+              "g298_kcal_mol": -3.976409780729168,
+              "g_temperature_kcal_mol": -3.942323125410315,
+              "h298_kcal_mol": -7.480870568079366,
+              "model_index": 2
+            },
+            {
+              "g298_kcal_mol": -3.848002936416008,
+              "g_temperature_kcal_mol": -3.8151009793338964,
+              "h298_kcal_mol": -7.230664489530257,
+              "model_index": 3
+            },
+            {
+              "g298_kcal_mol": -3.969588603114948,
+              "g_temperature_kcal_mol": -3.9346404900913488,
+              "h298_kcal_mol": -7.562616154144569,
+              "model_index": 4
+            },
+            {
+              "g298_kcal_mol": -4.113795074497,
+              "g_temperature_kcal_mol": -4.084271221751176,
+              "h298_kcal_mol": -7.149152555933939,
+              "model_index": 5
+            },
+            {
+              "g298_kcal_mol": -3.9357537394139506,
+              "g_temperature_kcal_mol": -3.902701038563884,
+              "h298_kcal_mol": -7.3339133112922825,
+              "model_index": 6
+            },
+            {
+              "g298_kcal_mol": -3.9625590824722634,
+              "g_temperature_kcal_mol": -3.9294427781506402,
+              "h298_kcal_mol": -7.3672577491935165,
+              "model_index": 7
+            },
+            {
+              "g298_kcal_mol": -3.9921023321270255,
+              "g_temperature_kcal_mol": -3.958064892703454,
+              "h298_kcal_mol": -7.491503216312409,
+              "model_index": 8
+            },
+            {
+              "g298_kcal_mol": -3.797602502426316,
+              "g_temperature_kcal_mol": -3.764844667077169,
+              "h298_kcal_mol": -7.165446850477273,
+              "model_index": 9
+            }
+          ],
+          "prediction": -3.9102818546406803,
+          "runtime_receipt": {
+            "absolute_solvation_backend": false,
+            "amp_autocast_enabled": false,
+            "bf16_reduced_precision_reduction": false,
+            "canonical_solute_smiles": "C=CC#N",
+            "checkpoint_family": "SolPropmixQMExp",
+            "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+            "checkpoint_sha256": [
+              "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+              "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+              "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+              "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+              "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+              "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+              "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+              "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+              "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+              "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+            ],
+            "checkpoints_byte_identical_across_v1_0_v1_1": true,
+            "cuda_matmul_allow_tf32": false,
+            "cuda_version": "13.0",
+            "cudnn_allow_tf32": false,
+            "data_release_record": 15587866,
+            "data_release_version": "v1.1",
+            "deterministic_algorithms": true,
+            "execution_device": "cuda:0",
+            "execution_dtype": "float64",
+            "float32_matmul_precision": "highest",
+            "fp16_reduced_precision_reduction": false,
+            "gpu_compute_capability": "8.9",
+            "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "gpu_total_memory_bytes": 8585216000,
+            "gpu_uuid": "7783c689-6dd3-9d48-1c7e-1d9191da1151",
+            "isotope_free_structures_verified": true,
+            "modelweights_zip_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+            "modelweights_zip_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+            "modelweights_zip_size_bytes": 175360920,
+            "numpy_version": "2.4.6",
+            "precision": "float64_promoted",
+            "precision_semantics": "MAPLE float64 runtime promotion of released float32 parameters; not additional learned precision",
+            "previous_data_release_record": 14238055,
+            "property_only": true,
+            "python_version": "3.11.14",
+            "rdkit_version": "2024.09.2",
+            "solute_carbon_requirement_verified": true,
+            "solvent_components": [
+              {
+                "canonical_smiles": "C=Cc1ccccc1",
+                "mole_fraction": 0.448
+              },
+              {
+                "canonical_smiles": "CCc1ccccc1",
+                "mole_fraction": 0.2703
+              },
+              {
+                "canonical_smiles": "Cc1ccccc1",
+                "mole_fraction": 0.28170000000000006
+              }
+            ],
+            "solvent_net_neutrality_verified": true,
+            "solvent_nonionic_liquid_phase_caller_requirement": true,
+            "solvent_nonionic_liquid_phase_structurally_verified": false,
+            "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+            "source_revision_scope": "Git revision identifies the archived core source only; the complete runtime identity also requires the supplemental-source, checkpoint, and worker hashes recorded here.",
+            "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+            "static_code_zip_md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+            "static_code_zip_name": "SolProp_ML-StaticCodeGsolv.zip",
+            "static_code_zip_sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326",
+            "static_code_zip_size_bytes": 65183,
+            "static_sha256": [
+              [
+                "solvation_predictor/data/__init__.py",
+                "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78"
+              ],
+              [
+                "solvation_predictor/data/data.py",
+                "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e"
+              ],
+              [
+                "solvation_predictor/data/Scaler.py",
+                "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73"
+              ],
+              [
+                "solvation_predictor/data/Splitter.py",
+                "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac"
+              ]
+            ],
+            "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+            "torch_version": "2.12.0+cu130",
+            "workbook_oracle_reproduction_guaranteed": false,
+            "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+          }
+        }
+      ]
+    }
+  },
+  "rows": [
+    {
+      "cpu_prediction_kcal_mol": -6.386692766935462,
+      "gpu_prediction_kcal_mol": -6.386692766935462,
+      "primary_functional_group": "amide",
+      "row_id": "From VLE - Bin Solv - no water!19430"
+    },
+    {
+      "cpu_prediction_kcal_mol": -4.462582923686847,
+      "gpu_prediction_kcal_mol": -4.462582923686847,
+      "primary_functional_group": "ester",
+      "row_id": "From VLE - Bin Solv - no water!8583"
+    },
+    {
+      "cpu_prediction_kcal_mol": -7.299534765243424,
+      "gpu_prediction_kcal_mol": -7.299534765243424,
+      "primary_functional_group": "carboxylic_acid",
+      "row_id": "From VLE - Bin Solv - no water!10789"
+    },
+    {
+      "cpu_prediction_kcal_mol": -6.323722093695376,
+      "gpu_prediction_kcal_mol": -6.323722093695376,
+      "primary_functional_group": "aldehyde",
+      "row_id": "From VLE - Bin Solv - no water!11655"
+    },
+    {
+      "cpu_prediction_kcal_mol": -4.631213588128004,
+      "gpu_prediction_kcal_mol": -4.631213588128003,
+      "primary_functional_group": "ketone",
+      "row_id": "From VLE - Bin Solv - no water!7874"
+    },
+    {
+      "cpu_prediction_kcal_mol": -5.108561640910674,
+      "gpu_prediction_kcal_mol": -5.108561640910673,
+      "primary_functional_group": "alcohol",
+      "row_id": "From VLE - Bin Solv - no water!16928"
+    },
+    {
+      "cpu_prediction_kcal_mol": -4.9542781949335986,
+      "gpu_prediction_kcal_mol": -4.9542781949335986,
+      "primary_functional_group": "epoxide",
+      "row_id": "From VLE - Bin Solv - no water!12343"
+    },
+    {
+      "cpu_prediction_kcal_mol": -4.709113620414451,
+      "gpu_prediction_kcal_mol": -4.70911362041445,
+      "primary_functional_group": "ether",
+      "row_id": "From VLE - Bin Solv - no water!22181"
+    },
+    {
+      "cpu_prediction_kcal_mol": -4.581244980334734,
+      "gpu_prediction_kcal_mol": -4.581244980334734,
+      "primary_functional_group": "amine",
+      "row_id": "From VLE - Bin Solv - no water!18610"
+    },
+    {
+      "cpu_prediction_kcal_mol": -3.910281854640681,
+      "gpu_prediction_kcal_mol": -3.9102818546406803,
+      "primary_functional_group": "nitrile",
+      "row_id": "From VLE - Ter Solv - no water!2429"
+    }
+  ]
+}

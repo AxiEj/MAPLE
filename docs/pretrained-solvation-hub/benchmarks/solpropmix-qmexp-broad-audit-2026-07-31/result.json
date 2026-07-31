@@ -1,0 +1,1275 @@
+{
+  "schema_version": 1,
+  "artifact_construction": {
+    "mode": "exact_canonical_reconstruction_from_fixed_scored_inputs",
+    "not_a_new_live_run": true,
+    "fixed_frozen_input_sha256": {
+      "adapter-crosscheck.json": "344657e8da67945a5c2fde3e6b7b877401a64631317d1e69809ea813327d1386",
+      "experimental-references.json": "96ae81e15db0ed5cdbafdc85f6d7d2ba53cebde8ab2cf13d34f1f82bbafe6906",
+      "panel-inputs.json": "6e593c52eadcc6f1d3793161e80a30e31fe5bb83e21dd0fa1379db2bbb43bd24",
+      "rows.csv": "626f4c7f1372b5036360654a7efb9b158eed00fda2809efc823f5d1947d82084",
+      "ternary-rows.csv": "87535555c65fead1f32e15e5a0f09e6eabacc5280754ef0bd73166f6c89dad8a"
+    }
+  },
+  "scientific_identity": {
+    "source_repository": "https://gitlab.kuleuven.be/creas/vermeiregroup/solprop",
+    "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
+    "source_tree": "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2",
+    "checkpoint_family": "SolPropmixQMExp",
+    "data_release_version": "v1.1",
+    "data_release_record": 15587866,
+    "previous_data_release_record": 14238055,
+    "supplemental_source_origin": "Zenodo record 15587866 (v1.1), supplemental static-code release",
+    "checkpoint_origin": "Zenodo record 15587866 (v1.1), ModelWeights.zip/ModelWeights/SolPropmixQMExp",
+    "checkpoints_byte_identical_across_v1_0_v1_1": true,
+    "workbook_member": "Data/solprop-mix_v1.1.xlsx",
+    "workbook_sha256": "793f325e6edddca3334b368f68edfc368027e472ad779e7e5d52ff5d1e1a001d",
+    "static_code_zip": {
+      "name": "SolProp_ML-StaticCodeGsolv.zip",
+      "size_bytes": 65183,
+      "md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+      "sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326"
+    },
+    "modelweights_zip": {
+      "size_bytes": 175360920,
+      "md5": "047cb1d69e3b51aced9eac2880eb10f6",
+      "sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006"
+    },
+    "checkpoint_sha256": [
+      "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+      "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+      "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+      "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+      "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+      "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+      "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+      "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+      "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+      "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+    ],
+    "static_module_sha256": {
+      "setup.py": "4df8465b40cf6e51f37a281eeab76f15ffcdb096d646d91b0788c0d8c418e6b1",
+      "solvation_predictor/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "solvation_predictor/data/Scaler.py": "5e4a65084db838238f14386af66672184d93764764b694b138fa97cf13dffa73",
+      "solvation_predictor/data/Splitter.py": "f5244d923b5afec61e22d6d9ded1bef081545415b9b0efefe7282d8ab5e7d1ac",
+      "solvation_predictor/data/__init__.py": "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78",
+      "solvation_predictor/data/data.py": "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e",
+      "solvation_predictor/features/MolEncoder.py": "8870322c62ee162c3c378eb2800587e3710188fd111ab1fffc12525f32aa91e2",
+      "solvation_predictor/features/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "solvation_predictor/features/calculated_features.py": "55300946dd269733de164ef75c1265f5b31243935d85104ea08377198f1cf29f",
+      "solvation_predictor/features/feature_vectors.py": "3b4d7e30fd48f9f2d213f936c10ca98a26290875f80178fa0f797187a39fded8",
+      "solvation_predictor/inp.py": "e46b809a992a382794858d7cdc6406cff017ac4b37fd5fda92b27055d5eca167",
+      "solvation_predictor/models/Concat.py": "fd914b664c29d748790d9fc1b0951f122c6557242021722679fb6de23f7d2898",
+      "solvation_predictor/models/FFN.py": "fafe31579a68d7e0a6881b0600279aba5b69a36cafd471f526e732a97e30efbc",
+      "solvation_predictor/models/MPN.py": "6f445b5860be280048f1c61567e7a0183f742419a83b767c616a9fdddf42a7f0",
+      "solvation_predictor/models/MPNNconv.py": "5c2d59464ebdc2d1285b7d8e2b376031e149d9a83ca7ff181be8862d8f80cade",
+      "solvation_predictor/models/Model.py": "959160d54628acdce76dabe573e4f857b4796d87f5c2c75e23232bfb3c455a9a",
+      "solvation_predictor/models/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "solvation_predictor/models/solvGNN.py": "ad7c31489069c285ce4b240e26d3e12869b9d7cd562fbb7a196f17b0d58acd38",
+      "solvation_predictor/predict.py": "58e982f203879a2278e37e616fa708f9a7e36f7d112e2940133ef2150454a49c",
+      "solvation_predictor/solubility/SolubilityCalculations.py": "58fef5e69288da458f9a5a8c1b59837663dbcc1f47d8b26f9350cb684a0903f3",
+      "solvation_predictor/solubility/SolubilityData.py": "3e4e941ceb19d951d3e736b9e31eeaa102c47088b50bff316745f622f1537294",
+      "solvation_predictor/solubility/SolubilityModels.py": "3fe8ebb9f2303c1cb98b8a447a34d207f0c0194ab50d954aa13f7bb9cac12718",
+      "solvation_predictor/solubility/SolubilityPredictions.py": "1d199488865ebd3c27624af87ea05455194a7756fef3ff1ddeebe4e1bbe9be16",
+      "solvation_predictor/solubility/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "solvation_predictor/solubility/calculate_solubility.py": "d83f150892c7f5c5f8fc577242e52d4aa128da3a8f249f03411b76179fd194e6",
+      "solvation_predictor/solubility_predict.py": "f5c119d8be3c7b363362eeed33083464978be7cebabfb058fd1a50717e846eeb",
+      "solvation_predictor/train.py": "34143553b309a083ee72fda3b9b203a2ea6e5e8de08878a2367f857d2f72c33e",
+      "solvation_predictor/train/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "solvation_predictor/train/evaluate.py": "e2e023e8f44a9c958b9986029ec0626f091ae97bea16aa25cdd8df582e5a2eae",
+      "solvation_predictor/train/train.py": "556fd9b8ed5dcd531d2e58b845ecc95fb43357faf31c28c7863a7a396cd8cab6",
+      "solvation_predictor/train/utils.py": "b00eb3d1ffd4ff9d5472aa17536a9f06714ab5166dc6cdfe7820b69163810957"
+    },
+    "taxonomy_sha256": "46e073d0e253d7534b7f516f1cc2096ba0abfea84ddc170c95fc86634c917b36",
+    "runner_relative_path": "docs/pretrained-solvation-hub/run_solpropmix_qmexp_broad_audit.py",
+    "runner_sha256": "21f09e5fa2e29d5b6f6c6dbc4fec8f8e6fed02fcf36b1b8edab745dc35a57c27",
+    "adapter_relative_path": "maple/function/solvfe/solpropmix_property.py",
+    "adapter_sha256": "0674b07888fc466fa3dd2c5adc17070d3434e513d44770e99b6af8485d4282e6",
+    "worker_relative_path": "maple/function/solvfe/_solpropmix_worker.py",
+    "worker_sha256": "849d9f73610a35da497b55b6e12358a097a8dd61e084d67b1044daa62d577cc7"
+  },
+  "selection_protocol": {
+    "label_separation": "read input columns, freeze deterministic row indices, then separately read labels by frozen sheet row",
+    "model_output_blind": true,
+    "deterministic": true,
+    "main": {
+      "selection_rule": "output-blind deterministic uniform sample from supported v1.1 active nonaqueous pure/binary sheets after adapter-domain and frozen-taxonomy filters; positions = unique(linspace(0,N-1,1000))",
+      "candidate_rows_after_concat": 22564,
+      "candidate_rows_after_filters": 12899,
+      "selected_row_count": 1000,
+      "distinct_primary_groups": [
+        "alcohol",
+        "aldehyde",
+        "amide",
+        "amine",
+        "carboxylic_acid",
+        "ester",
+        "ether",
+        "ketone",
+        "nitrile",
+        "nitro",
+        "organohalogen",
+        "phenol",
+        "terminal_alkyne",
+        "thioether",
+        "thiol"
+      ]
+    },
+    "ternary": {
+      "candidate_rows_after_filters": 3366,
+      "selected_row_count": 100,
+      "selection_rule": "output-blind deterministic uniform ternary diagnostic sample over supported rows"
+    }
+  },
+  "strict_float64_policy": {
+    "execution_dtype": "float64",
+    "deterministic_algorithms": true,
+    "tf32": false,
+    "amp": false,
+    "fp16": false,
+    "bf16": false,
+    "diagnostic_tolerance_kcal_mol": 5e-12,
+    "zero_loss_requires_exact_no_error_worsening": true
+  },
+  "main_supported_lane": {
+    "sheets": [
+      "From IDAC - no water",
+      "From VLE - Bin Solv - no water"
+    ],
+    "overall_cpu": {
+      "n": 1000,
+      "mae_kcal_mol": 0.2600320951491671,
+      "rmse_kcal_mol": 0.3768962032607486,
+      "maxae_kcal_mol": 1.8977049801370343
+    },
+    "overall_gpu": {
+      "n": 1000,
+      "mae_kcal_mol": 0.26003209514916703,
+      "rmse_kcal_mol": 0.3768962032607485,
+      "maxae_kcal_mol": 1.8977049801370343
+    },
+    "by_primary_functional_group": {
+      "alcohol": {
+        "n": 399,
+        "cpu": {
+          "n": 399,
+          "mae_kcal_mol": 0.3427807263442056,
+          "rmse_kcal_mol": 0.4664738540338701,
+          "maxae_kcal_mol": 1.8977049801370343
+        },
+        "gpu": {
+          "n": 399,
+          "mae_kcal_mol": 0.34278072634420553,
+          "rmse_kcal_mol": 0.46647385403387,
+          "maxae_kcal_mol": 1.8977049801370343
+        }
+      },
+      "aldehyde": {
+        "n": 14,
+        "cpu": {
+          "n": 14,
+          "mae_kcal_mol": 0.16959506609469083,
+          "rmse_kcal_mol": 0.2091036371539929,
+          "maxae_kcal_mol": 0.5053792957569945
+        },
+        "gpu": {
+          "n": 14,
+          "mae_kcal_mol": 0.1695950660946906,
+          "rmse_kcal_mol": 0.20910363715399255,
+          "maxae_kcal_mol": 0.5053792957569936
+        }
+      },
+      "amide": {
+        "n": 5,
+        "cpu": {
+          "n": 5,
+          "mae_kcal_mol": 0.7197897356528047,
+          "rmse_kcal_mol": 0.9372485939391916,
+          "maxae_kcal_mol": 1.833837668082575
+        },
+        "gpu": {
+          "n": 5,
+          "mae_kcal_mol": 0.7197897356528047,
+          "rmse_kcal_mol": 0.9372485939391916,
+          "maxae_kcal_mol": 1.833837668082575
+        }
+      },
+      "amine": {
+        "n": 12,
+        "cpu": {
+          "n": 12,
+          "mae_kcal_mol": 0.45959932707102613,
+          "rmse_kcal_mol": 0.6669792207485845,
+          "maxae_kcal_mol": 1.746407205136863
+        },
+        "gpu": {
+          "n": 12,
+          "mae_kcal_mol": 0.4595993270710259,
+          "rmse_kcal_mol": 0.6669792207485844,
+          "maxae_kcal_mol": 1.746407205136863
+        }
+      },
+      "carboxylic_acid": {
+        "n": 17,
+        "cpu": {
+          "n": 17,
+          "mae_kcal_mol": 0.4525499306873031,
+          "rmse_kcal_mol": 0.5953605100975111,
+          "maxae_kcal_mol": 1.1812385932859284
+        },
+        "gpu": {
+          "n": 17,
+          "mae_kcal_mol": 0.45254993068730326,
+          "rmse_kcal_mol": 0.5953605100975112,
+          "maxae_kcal_mol": 1.1812385932859284
+        }
+      },
+      "ester": {
+        "n": 103,
+        "cpu": {
+          "n": 103,
+          "mae_kcal_mol": 0.24220898830907192,
+          "rmse_kcal_mol": 0.3163041983611507,
+          "maxae_kcal_mol": 1.112092215640231
+        },
+        "gpu": {
+          "n": 103,
+          "mae_kcal_mol": 0.24220898830907184,
+          "rmse_kcal_mol": 0.3163041983611506,
+          "maxae_kcal_mol": 1.112092215640231
+        }
+      },
+      "ether": {
+        "n": 162,
+        "cpu": {
+          "n": 162,
+          "mae_kcal_mol": 0.17652836892697088,
+          "rmse_kcal_mol": 0.2519809697537347,
+          "maxae_kcal_mol": 1.6396228526265606
+        },
+        "gpu": {
+          "n": 162,
+          "mae_kcal_mol": 0.1765283689269709,
+          "rmse_kcal_mol": 0.25198096975373463,
+          "maxae_kcal_mol": 1.6396228526265597
+        }
+      },
+      "ketone": {
+        "n": 157,
+        "cpu": {
+          "n": 157,
+          "mae_kcal_mol": 0.16552591504454314,
+          "rmse_kcal_mol": 0.2269990762737729,
+          "maxae_kcal_mol": 1.0797885793720794
+        },
+        "gpu": {
+          "n": 157,
+          "mae_kcal_mol": 0.16552591504454311,
+          "rmse_kcal_mol": 0.2269990762737729,
+          "maxae_kcal_mol": 1.0797885793720794
+        }
+      },
+      "nitrile": {
+        "n": 17,
+        "cpu": {
+          "n": 17,
+          "mae_kcal_mol": 0.26094132570332035,
+          "rmse_kcal_mol": 0.33003484926251275,
+          "maxae_kcal_mol": 0.7802104684994409
+        },
+        "gpu": {
+          "n": 17,
+          "mae_kcal_mol": 0.26094132570332046,
+          "rmse_kcal_mol": 0.330034849262513,
+          "maxae_kcal_mol": 0.7802104684994418
+        }
+      },
+      "nitro": {
+        "n": 7,
+        "cpu": {
+          "n": 7,
+          "mae_kcal_mol": 0.34381502558739224,
+          "rmse_kcal_mol": 0.3757124724069938,
+          "maxae_kcal_mol": 0.6151293855952047
+        },
+        "gpu": {
+          "n": 7,
+          "mae_kcal_mol": 0.3438150255873924,
+          "rmse_kcal_mol": 0.3757124724069938,
+          "maxae_kcal_mol": 0.6151293855952038
+        }
+      },
+      "organohalogen": {
+        "n": 100,
+        "cpu": {
+          "n": 100,
+          "mae_kcal_mol": 0.14019675560380992,
+          "rmse_kcal_mol": 0.18235407730642944,
+          "maxae_kcal_mol": 0.6212809336818736
+        },
+        "gpu": {
+          "n": 100,
+          "mae_kcal_mol": 0.1401967556038099,
+          "rmse_kcal_mol": 0.18235407730642944,
+          "maxae_kcal_mol": 0.6212809336818745
+        }
+      },
+      "phenol": {
+        "n": 3,
+        "cpu": {
+          "n": 3,
+          "mae_kcal_mol": 1.124490676396088,
+          "rmse_kcal_mol": 1.1519375803599101,
+          "maxae_kcal_mol": 1.4508359239642044
+        },
+        "gpu": {
+          "n": 3,
+          "mae_kcal_mol": 1.124490676396088,
+          "rmse_kcal_mol": 1.1519375803599101,
+          "maxae_kcal_mol": 1.4508359239642044
+        }
+      },
+      "terminal_alkyne": {
+        "n": 1,
+        "cpu": {
+          "n": 1,
+          "mae_kcal_mol": 0.021455876772412896,
+          "rmse_kcal_mol": 0.021455876772412896,
+          "maxae_kcal_mol": 0.021455876772412896
+        },
+        "gpu": {
+          "n": 1,
+          "mae_kcal_mol": 0.021455876772412896,
+          "rmse_kcal_mol": 0.021455876772412896,
+          "maxae_kcal_mol": 0.021455876772412896
+        }
+      },
+      "thioether": {
+        "n": 2,
+        "cpu": {
+          "n": 2,
+          "mae_kcal_mol": 0.07173182255588761,
+          "rmse_kcal_mol": 0.0762300813566555,
+          "maxae_kcal_mol": 0.09753048408033438
+        },
+        "gpu": {
+          "n": 2,
+          "mae_kcal_mol": 0.07173182255588784,
+          "rmse_kcal_mol": 0.0762300813566558,
+          "maxae_kcal_mol": 0.09753048408033482
+        }
+      },
+      "thiol": {
+        "n": 1,
+        "cpu": {
+          "n": 1,
+          "mae_kcal_mol": 0.14729993618428816,
+          "rmse_kcal_mol": 0.14729993618428816,
+          "maxae_kcal_mol": 0.14729993618428816
+        },
+        "gpu": {
+          "n": 1,
+          "mae_kcal_mol": 0.14729993618428772,
+          "rmse_kcal_mol": 0.14729993618428772,
+          "maxae_kcal_mol": 0.14729993618428772
+        }
+      }
+    },
+    "gpu_vs_cpu": {
+      "gpu_worsens_abs_error_exact_count": 218,
+      "gpu_worsens_abs_error_over_5e12_count": 0,
+      "gpu_worsen_exact_row_ids": [
+        "From IDAC - no water!189",
+        "From VLE - Bin Solv - no water!165",
+        "From VLE - Bin Solv - no water!178",
+        "From VLE - Bin Solv - no water!582",
+        "From VLE - Bin Solv - no water!620",
+        "From VLE - Bin Solv - no water!691",
+        "From VLE - Bin Solv - no water!767",
+        "From VLE - Bin Solv - no water!816",
+        "From VLE - Bin Solv - no water!861",
+        "From VLE - Bin Solv - no water!874",
+        "From VLE - Bin Solv - no water!900",
+        "From VLE - Bin Solv - no water!918",
+        "From VLE - Bin Solv - no water!1045",
+        "From VLE - Bin Solv - no water!1090",
+        "From VLE - Bin Solv - no water!1187",
+        "From VLE - Bin Solv - no water!1242",
+        "From VLE - Bin Solv - no water!1323",
+        "From VLE - Bin Solv - no water!1637",
+        "From VLE - Bin Solv - no water!1718",
+        "From VLE - Bin Solv - no water!1866",
+        "From VLE - Bin Solv - no water!2025",
+        "From VLE - Bin Solv - no water!2080",
+        "From VLE - Bin Solv - no water!2109",
+        "From VLE - Bin Solv - no water!2190",
+        "From VLE - Bin Solv - no water!2363",
+        "From VLE - Bin Solv - no water!2414",
+        "From VLE - Bin Solv - no water!2553",
+        "From VLE - Bin Solv - no water!2711",
+        "From VLE - Bin Solv - no water!2773",
+        "From VLE - Bin Solv - no water!3043",
+        "From VLE - Bin Solv - no water!3085",
+        "From VLE - Bin Solv - no water!3268",
+        "From VLE - Bin Solv - no water!3361",
+        "From VLE - Bin Solv - no water!3384",
+        "From VLE - Bin Solv - no water!3477",
+        "From VLE - Bin Solv - no water!3493",
+        "From VLE - Bin Solv - no water!3670",
+        "From VLE - Bin Solv - no water!3689",
+        "From VLE - Bin Solv - no water!3843",
+        "From VLE - Bin Solv - no water!3999",
+        "From VLE - Bin Solv - no water!4630",
+        "From VLE - Bin Solv - no water!4645",
+        "From VLE - Bin Solv - no water!4711",
+        "From VLE - Bin Solv - no water!4811",
+        "From VLE - Bin Solv - no water!4905",
+        "From VLE - Bin Solv - no water!5001",
+        "From VLE - Bin Solv - no water!5022",
+        "From VLE - Bin Solv - no water!5170",
+        "From VLE - Bin Solv - no water!5226",
+        "From VLE - Bin Solv - no water!5822",
+        "From VLE - Bin Solv - no water!5951",
+        "From VLE - Bin Solv - no water!6016",
+        "From VLE - Bin Solv - no water!6320",
+        "From VLE - Bin Solv - no water!6629",
+        "From VLE - Bin Solv - no water!6665",
+        "From VLE - Bin Solv - no water!6678",
+        "From VLE - Bin Solv - no water!6701",
+        "From VLE - Bin Solv - no water!6736",
+        "From VLE - Bin Solv - no water!7207",
+        "From VLE - Bin Solv - no water!7243",
+        "From VLE - Bin Solv - no water!7499",
+        "From VLE - Bin Solv - no water!7525",
+        "From VLE - Bin Solv - no water!7614",
+        "From VLE - Bin Solv - no water!7627",
+        "From VLE - Bin Solv - no water!7882",
+        "From VLE - Bin Solv - no water!8290",
+        "From VLE - Bin Solv - no water!8347",
+        "From VLE - Bin Solv - no water!8519",
+        "From VLE - Bin Solv - no water!8668",
+        "From VLE - Bin Solv - no water!8681",
+        "From VLE - Bin Solv - no water!8719",
+        "From VLE - Bin Solv - no water!8819",
+        "From VLE - Bin Solv - no water!8832",
+        "From VLE - Bin Solv - no water!8912",
+        "From VLE - Bin Solv - no water!9042",
+        "From VLE - Bin Solv - no water!9184",
+        "From VLE - Bin Solv - no water!9422",
+        "From VLE - Bin Solv - no water!9531",
+        "From VLE - Bin Solv - no water!9739",
+        "From VLE - Bin Solv - no water!9753",
+        "From VLE - Bin Solv - no water!9819",
+        "From VLE - Bin Solv - no water!9832",
+        "From VLE - Bin Solv - no water!10048",
+        "From VLE - Bin Solv - no water!10074",
+        "From VLE - Bin Solv - no water!10100",
+        "From VLE - Bin Solv - no water!10226",
+        "From VLE - Bin Solv - no water!10465",
+        "From VLE - Bin Solv - no water!10490",
+        "From VLE - Bin Solv - no water!10652",
+        "From VLE - Bin Solv - no water!10841",
+        "From VLE - Bin Solv - no water!10870",
+        "From VLE - Bin Solv - no water!10952",
+        "From VLE - Bin Solv - no water!10972",
+        "From VLE - Bin Solv - no water!11306",
+        "From VLE - Bin Solv - no water!11582",
+        "From VLE - Bin Solv - no water!11615",
+        "From VLE - Bin Solv - no water!11853",
+        "From VLE - Bin Solv - no water!11866",
+        "From VLE - Bin Solv - no water!11935",
+        "From VLE - Bin Solv - no water!11991",
+        "From VLE - Bin Solv - no water!12189",
+        "From VLE - Bin Solv - no water!12327",
+        "From VLE - Bin Solv - no water!12463",
+        "From VLE - Bin Solv - no water!12522",
+        "From VLE - Bin Solv - no water!12617",
+        "From VLE - Bin Solv - no water!12685",
+        "From VLE - Bin Solv - no water!12851",
+        "From VLE - Bin Solv - no water!12925",
+        "From VLE - Bin Solv - no water!13187",
+        "From VLE - Bin Solv - no water!13282",
+        "From VLE - Bin Solv - no water!13301",
+        "From VLE - Bin Solv - no water!13497",
+        "From VLE - Bin Solv - no water!13523",
+        "From VLE - Bin Solv - no water!13826",
+        "From VLE - Bin Solv - no water!13865",
+        "From VLE - Bin Solv - no water!13929",
+        "From VLE - Bin Solv - no water!13981",
+        "From VLE - Bin Solv - no water!14014",
+        "From VLE - Bin Solv - no water!14169",
+        "From VLE - Bin Solv - no water!14182",
+        "From VLE - Bin Solv - no water!14195",
+        "From VLE - Bin Solv - no water!14208",
+        "From VLE - Bin Solv - no water!14247",
+        "From VLE - Bin Solv - no water!14272",
+        "From VLE - Bin Solv - no water!14285",
+        "From VLE - Bin Solv - no water!14337",
+        "From VLE - Bin Solv - no water!14473",
+        "From VLE - Bin Solv - no water!14529",
+        "From VLE - Bin Solv - no water!14557",
+        "From VLE - Bin Solv - no water!14651",
+        "From VLE - Bin Solv - no water!14677",
+        "From VLE - Bin Solv - no water!14759",
+        "From VLE - Bin Solv - no water!15061",
+        "From VLE - Bin Solv - no water!15091",
+        "From VLE - Bin Solv - no water!15143",
+        "From VLE - Bin Solv - no water!15163",
+        "From VLE - Bin Solv - no water!15244",
+        "From VLE - Bin Solv - no water!15298",
+        "From VLE - Bin Solv - no water!15311",
+        "From VLE - Bin Solv - no water!15466",
+        "From VLE - Bin Solv - no water!15491",
+        "From VLE - Bin Solv - no water!15517",
+        "From VLE - Bin Solv - no water!15556",
+        "From VLE - Bin Solv - no water!15582",
+        "From VLE - Bin Solv - no water!15621",
+        "From VLE - Bin Solv - no water!15723",
+        "From VLE - Bin Solv - no water!15739",
+        "From VLE - Bin Solv - no water!15768",
+        "From VLE - Bin Solv - no water!15910",
+        "From VLE - Bin Solv - no water!15961",
+        "From VLE - Bin Solv - no water!16062",
+        "From VLE - Bin Solv - no water!16075",
+        "From VLE - Bin Solv - no water!16101",
+        "From VLE - Bin Solv - no water!16165",
+        "From VLE - Bin Solv - no water!16178",
+        "From VLE - Bin Solv - no water!16191",
+        "From VLE - Bin Solv - no water!16328",
+        "From VLE - Bin Solv - no water!16397",
+        "From VLE - Bin Solv - no water!16504",
+        "From VLE - Bin Solv - no water!16535",
+        "From VLE - Bin Solv - no water!16672",
+        "From VLE - Bin Solv - no water!16909",
+        "From VLE - Bin Solv - no water!17068",
+        "From VLE - Bin Solv - no water!17154",
+        "From VLE - Bin Solv - no water!17177",
+        "From VLE - Bin Solv - no water!17198",
+        "From VLE - Bin Solv - no water!17287",
+        "From VLE - Bin Solv - no water!17321",
+        "From VLE - Bin Solv - no water!17609",
+        "From VLE - Bin Solv - no water!17644",
+        "From VLE - Bin Solv - no water!17690",
+        "From VLE - Bin Solv - no water!17703",
+        "From VLE - Bin Solv - no water!17730",
+        "From VLE - Bin Solv - no water!17869",
+        "From VLE - Bin Solv - no water!17895",
+        "From VLE - Bin Solv - no water!17933",
+        "From VLE - Bin Solv - no water!18098",
+        "From VLE - Bin Solv - no water!18328",
+        "From VLE - Bin Solv - no water!18354",
+        "From VLE - Bin Solv - no water!18497",
+        "From VLE - Bin Solv - no water!18538",
+        "From VLE - Bin Solv - no water!18620",
+        "From VLE - Bin Solv - no water!18709",
+        "From VLE - Bin Solv - no water!18912",
+        "From VLE - Bin Solv - no water!18999",
+        "From VLE - Bin Solv - no water!19091",
+        "From VLE - Bin Solv - no water!19313",
+        "From VLE - Bin Solv - no water!19349",
+        "From VLE - Bin Solv - no water!19458",
+        "From VLE - Bin Solv - no water!19784",
+        "From VLE - Bin Solv - no water!19796",
+        "From VLE - Bin Solv - no water!19809",
+        "From VLE - Bin Solv - no water!19878",
+        "From VLE - Bin Solv - no water!19974",
+        "From VLE - Bin Solv - no water!20006",
+        "From VLE - Bin Solv - no water!20060",
+        "From VLE - Bin Solv - no water!20106",
+        "From VLE - Bin Solv - no water!20163",
+        "From VLE - Bin Solv - no water!20202",
+        "From VLE - Bin Solv - no water!20240",
+        "From VLE - Bin Solv - no water!20370",
+        "From VLE - Bin Solv - no water!20434",
+        "From VLE - Bin Solv - no water!20555",
+        "From VLE - Bin Solv - no water!20669",
+        "From VLE - Bin Solv - no water!20696",
+        "From VLE - Bin Solv - no water!20791",
+        "From VLE - Bin Solv - no water!20907",
+        "From VLE - Bin Solv - no water!21062",
+        "From VLE - Bin Solv - no water!21506",
+        "From VLE - Bin Solv - no water!21562",
+        "From VLE - Bin Solv - no water!21613",
+        "From VLE - Bin Solv - no water!21802",
+        "From VLE - Bin Solv - no water!21929",
+        "From VLE - Bin Solv - no water!21963",
+        "From VLE - Bin Solv - no water!22021",
+        "From VLE - Bin Solv - no water!22047",
+        "From VLE - Bin Solv - no water!22165",
+        "From VLE - Bin Solv - no water!22302"
+      ],
+      "gpu_worsen_over_5e12_row_ids": [],
+      "max_abs_gpu_minus_cpu_prediction_kcal_mol": 1.9984014443252818e-15,
+      "max_abs_gpu_minus_cpu_model_kcal_mol": 6.661338147750939e-15,
+      "ensemble_prediction_bitwise_mismatch_count": 496,
+      "strict_zero_loss": false,
+      "gpu_admission": false,
+      "reason": "exact absolute error worsened on at least one row despite no delta exceeding the 5e-12 diagnostic tolerance"
+    },
+    "accuracy_gate": {
+      "mae_threshold_kcal_mol": 0.25,
+      "rmse_threshold_kcal_mol": 0.37,
+      "mae_pass": false,
+      "rmse_pass": false,
+      "overall_pass": false
+    },
+    "training_holdout_boundary": "training overlap is unknown in public assets; this is a development/non-blind benchmark, not a final blind holdout",
+    "matched_qm_speed_eligible": false,
+    "speed_boundary": "accuracy gates fail, so wall-clock timing cannot be used for admission"
+  },
+  "adapter_crosscheck": {
+    "rows": [
+      {
+        "row_id": "From IDAC - no water!2",
+        "device": "cpu",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From IDAC - no water!2",
+        "device": "cuda:0",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From IDAC - no water!3",
+        "device": "cpu",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From IDAC - no water!3",
+        "device": "cuda:0",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From IDAC - no water!4",
+        "device": "cpu",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From IDAC - no water!4",
+        "device": "cuda:0",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From VLE - Bin Solv - no water!2",
+        "device": "cpu",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From VLE - Bin Solv - no water!2",
+        "device": "cuda:0",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From VLE - Bin Solv - no water!3",
+        "device": "cpu",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From VLE - Bin Solv - no water!3",
+        "device": "cuda:0",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From VLE - Bin Solv - no water!4",
+        "device": "cpu",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      },
+      {
+        "row_id": "From VLE - Bin Solv - no water!4",
+        "device": "cuda:0",
+        "prediction_abs_delta_kcal_mol": 0.0,
+        "model_prediction_abs_deltas_kcal_mol": [
+          {
+            "model_index": 0,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 1,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 2,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 3,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 4,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 5,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 6,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 7,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 8,
+            "prediction_abs_delta_kcal_mol": 0.0
+          },
+          {
+            "model_index": 9,
+            "prediction_abs_delta_kcal_mol": 0.0
+          }
+        ],
+        "max_model_prediction_abs_delta_kcal_mol": 0.0,
+        "passes_5e12": true
+      }
+    ],
+    "row_design": "three pure plus three binary rows, each on CPU and GPU",
+    "threshold_kcal_mol": 5e-12,
+    "all_per_model_and_ensemble_pass": true
+  },
+  "ternary_undocumented_dynamic_slot_diagnostic": {
+    "sheet": "From VLE - Ter Solv - no water",
+    "not_part_of_main_lane_or_admission": true,
+    "selection": {
+      "candidate_rows_after_filters": 3366,
+      "selected_row_count": 100,
+      "selection_rule": "output-blind deterministic uniform ternary diagnostic sample over supported rows"
+    },
+    "overall_cpu": {
+      "n": 100,
+      "mae_kcal_mol": 0.18568599085530849,
+      "rmse_kcal_mol": 0.2630909605347411,
+      "maxae_kcal_mol": 1.426683398055653
+    },
+    "overall_gpu": {
+      "n": 100,
+      "mae_kcal_mol": 0.18568599085530835,
+      "rmse_kcal_mol": 0.2630909605347409,
+      "maxae_kcal_mol": 1.4266833980556521
+    },
+    "gpu_vs_cpu": {
+      "gpu_worsens_abs_error_exact_count": 14,
+      "gpu_worsens_abs_error_over_5e12_count": 0,
+      "gpu_worsen_exact_row_ids": [
+        "From VLE - Ter Solv - no water!2",
+        "From VLE - Ter Solv - no water!69",
+        "From VLE - Ter Solv - no water!205",
+        "From VLE - Ter Solv - no water!239",
+        "From VLE - Ter Solv - no water!647",
+        "From VLE - Ter Solv - no water!953",
+        "From VLE - Ter Solv - no water!987",
+        "From VLE - Ter Solv - no water!1429",
+        "From VLE - Ter Solv - no water!1769",
+        "From VLE - Ter Solv - no water!1837",
+        "From VLE - Ter Solv - no water!2279",
+        "From VLE - Ter Solv - no water!2347",
+        "From VLE - Ter Solv - no water!2415",
+        "From VLE - Ter Solv - no water!3333"
+      ],
+      "gpu_worsen_over_5e12_row_ids": [],
+      "max_abs_gpu_minus_cpu_prediction_kcal_mol": 1.3322676295501878e-15,
+      "max_abs_gpu_minus_cpu_model_kcal_mol": 5.551115123125783e-15,
+      "ensemble_prediction_bitwise_mismatch_count": 49
+    },
+    "mean_abs_live_cpu_vs_workbook_qmexp_gt_kcal_mol": 0.06220292400566668,
+    "max_abs_live_cpu_vs_workbook_qmexp_gt_kcal_mol": 0.38707916302832324
+  },
+  "artifact_sha256": {
+    "panel-inputs.json": "6e593c52eadcc6f1d3793161e80a30e31fe5bb83e21dd0fa1379db2bbb43bd24",
+    "experimental-references.json": "96ae81e15db0ed5cdbafdc85f6d7d2ba53cebde8ab2cf13d34f1f82bbafe6906",
+    "rows.csv": "626f4c7f1372b5036360654a7efb9b158eed00fda2809efc823f5d1947d82084",
+    "ternary-rows.csv": "87535555c65fead1f32e15e5a0f09e6eabacc5280754ef0bd73166f6c89dad8a",
+    "adapter-crosscheck.json": "344657e8da67945a5c2fde3e6b7b877401a64631317d1e69809ea813327d1386"
+  },
+  "canonical_result_exclusions": [
+    "wall-clock timings",
+    "absolute cache paths",
+    "stdout or stderr stream hashes",
+    "redundant per-model row JSON"
+  ]
+}

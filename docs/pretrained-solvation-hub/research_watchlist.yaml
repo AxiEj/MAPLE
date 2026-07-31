@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "as_of": "2026-07-30",
+  "as_of": "2026-07-31",
   "functional_group_accuracy_taxonomy": {
     "artifact": "functional-group-taxonomy-v1.json",
     "artifact_sha256": "46e073d0e253d7534b7f516f1cc2096ba0abfea84ddc170c95fc86634c917b36",
@@ -194,15 +194,84 @@
       ]
     },
     {
+      "model_id": "resolv",
+      "availability": "public_source_two_checkpoints_database_and_endpoint_trajectories_pinned",
+      "adapter_status": "dedicated_water_endpoint_bar_sidecar_full_panel_audit_in_progress",
+      "source": "https://github.com/tummfm/ReSolv",
+      "source_revision": "1d85bcc065003e083d2e95ab7091cb1762eeb1bf",
+      "direct_lineage": {
+        "method_predecessor": "DiffTRe",
+        "direct_successor": "ConSolv",
+        "evidence": "The ConSolv manuscript explicitly states that it trains the solvent-conditioned MLP using the ReSolv method."
+      },
+      "artifacts": {
+        "vacuum_model_sha256": "83618b7b4f6680e80936f68e5e2d02f9c6ff1c62750333ca28fc5733286347c4",
+        "water_model_sha256": "56a72b33e7aa3b26e06f7792924f2630a62f1d0a776f2843f5871195e88e3e13",
+        "database_sha256": "8a1dd006a54f0986f58b967bf7046fb72293dafa66954ec8529cdc5e68b4d405",
+        "endpoint_trajectories": "official 250_50ps vacuum/water pairs; 40 retained snapshots per endpoint; every selected file is checked against its pinned Git blob and recorded SHA256 before dill load"
+      },
+      "solvent_scope": "water only at 298.15 K; neutral closed-shell H/C/N/O/S/Cl chemistry",
+      "free_energy_form": "native U_vac and U_wat coordinate-dependent potential pair evaluated over the two official endpoint ensembles with the upstream BAR estimator; not a single-point subtraction and not gas MLIP plus GB/PB/ALPB",
+      "formal_audit_scope": "all 162 records in the published FreeSolv-derived test split, covering 26 classified primary FreeSolv functional groups plus 9 unclassified records; the unclassified bucket does not count as a functional group, and the split is development-associated rather than an independent blind holdout",
+      "publication_evidence": {
+        "effective_train_records": 375,
+        "test_records": 162,
+        "test_mae_kcal_mol": 0.63,
+        "test_rmse_kcal_mol": 0.96,
+        "within_experimental_uncertainty_fraction": 0.57,
+        "paper_hardware": "NVIDIA A100 80GB",
+        "paper_precision": "double",
+        "matched_pure_qm_full_task_timing": false
+      },
+      "runtime_prerequisites": "isolated pinned ReSolv Python/JAX environment with JAX x64 enabled; CPU execution is allowed, while GPU stays fail-closed until record-wise float64 parity is measured",
+      "forbidden_tasks": [
+        "ordinary_calculator",
+        "additive_continuum",
+        "fresh_conformer_generation_in_released_trajectory_audit",
+        "fresh_md_claim_from_endpoint_replay",
+        "opt",
+        "frequency",
+        "ts",
+        "irc",
+        "multi_solvent_extrapolation",
+        "independent_holdout_claim",
+        "gpu_claim_without_recordwise_parity",
+        "matched_qm_speed_claim_without_three_repeat_full_task_baseline"
+      ]
+    },
+    {
       "model_id": "consolv",
       "availability": "paper_only",
       "adapter_status": "blocked_by_public_runtime_and_weights",
       "source": "https://arxiv.org/abs/2606.24983",
       "solvent_scope": "66 nonaqueous organic solvents reported",
       "free_energy_form": "published U_vac to U_solv differentiable free-energy path; execution artifact unavailable",
-      "release_evidence": "The v1 manuscript Data and Software Availability section defers code and data release until acceptance.",
+      "direct_predecessor": "ReSolv; ConSolv keeps the two-stage vacuum/solution free-energy training method and adds solvent-conditioned MACE attention over solvent descriptors",
+      "publication_evidence": {
+        "solv_at_tum_filtered_records": 4577,
+        "train_records": 3596,
+        "test_records": 923,
+        "test_mae_kcal_mol": 0.5,
+        "test_rmse_kcal_mol": 0.64,
+        "external_filtered_combisolv_records": 471,
+        "external_filtered_combisolv_mae_kcal_mol": 0.8,
+        "external_filtered_combisolv_rmse_kcal_mol": 1.14,
+        "unseen_solvents": [
+          "o-xylene",
+          "acetonitrile",
+          "DMSO",
+          "nitromethane"
+        ],
+        "unseen_solvent_pair_count": 30,
+        "rtx4090_anti_fluorohydrin_chloroform_ns_per_day": 153,
+        "matched_pure_qm_full_task_timing": false
+      },
+      "release_evidence": "The v1 manuscript Data and Software Availability section defers code and data release until acceptance; as of 2026-07-31 no official runtime, checkpoint, descriptor bundle, or artifact license is public.",
       "forbidden_tasks": [
-        "all_runtime_tasks"
+        "all_runtime_tasks",
+        "paper_metric_as_deployed_capability",
+        "matched_qm_speed_claim",
+        "local_retraining_or_checkpoint_reconstruction"
       ]
     },
     {
@@ -403,40 +472,106 @@
     },
     {
       "model_id": "solprop-mix-exp",
-      "availability": "public_source_and_zenodo_checkpoint_bundle_pinned",
-      "adapter_status": "blocked_by_uninstalled_upstream_runtime_dependencies",
+      "availability": "public_v1_1_source_checkpoint_and_data_release_pinned",
+      "adapter_status": "property_only_live_runtime_verified_development_accuracy_and_gpu_rejected",
       "source": "https://gitlab.kuleuven.be/creas/vermeiregroup/solprop",
       "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
       "checkpoint_bundle": {
-        "zenodo_record": "https://zenodo.org/records/14238055",
-        "path": "Files.zip / Files/ModelWeights/SolPropmixExp/model0.pt through model9.pt",
-        "archive_size_bytes": 288947625,
-        "archive_sha256": "670915e5bf86d5457bc2f43301e5a02e77a66b529535fcd0eddfadeb72ed73a5",
+        "family": "SolPropmixQMExp",
+        "zenodo_record": "https://zenodo.org/records/15587866",
+        "previous_zenodo_record": "https://zenodo.org/records/14238055",
+        "path": "ModelWeights.zip / ModelWeights/SolPropmixQMExp/model0.pt through model9.pt",
+        "archive_size_bytes": 175360920,
+        "archive_md5": "047cb1d69e3b51aced9eac2880eb10f6",
+        "archive_sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
         "selected_ensemble_member_count": 10,
-        "selected_ensemble_total_bytes": 36170142
+        "selected_ensemble_total_bytes": 36189150,
+        "selected_ensemble_member_sha256": {
+          "model0.pt": "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+          "model1.pt": "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+          "model2.pt": "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+          "model3.pt": "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+          "model4.pt": "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+          "model5.pt": "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+          "model6.pt": "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+          "model7.pt": "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+          "model8.pt": "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+          "model9.pt": "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+        },
+        "checkpoints_byte_identical_across_v1_0_v1_1": true
       },
-      "solvent_scope": "neutral solutes containing H/B/C/N/O/S/P/F/Cl/Br/I and nonionic liquid solvents; the released SolPropmixExp ensemble supports pure and mixed-solvent scalar predictions, but no MAPLE coverage or extrapolation claim is admitted before an original-runtime audit",
-      "free_energy_form": "ten-member direct scalar infinite-dilution dGsolv property prediction in kcal/mol for pure or mixed liquid solvents; no potential-energy surface, force field, endpoint pair, sampled estimator, or standard-state protocol is exposed",
-      "runtime_prerequisites": "The official README requires its Python 3.9 conda environment and copying the selected weight folder. Its unmodified source imports Tap and memory_profiler before prediction/loading, and DGL during model construction; Tap, memory_profiler, DGL, tensorboardX, and CoolProp are absent from the current environment. MAPLE will not install them or bypass/reimplement the source path without explicit authorization.",
-      "benchmark_status": "The authors report 0.25 kcal/mol MAE and 0.37 kcal/mol RMSE for nonaqueous mixed solvents, but that publication-level result has no MAPLE-matched frozen record ledger, training-overlap audit, or independent extrapolation identity. The authors own the released transfer-learning/fine-tuning history; MAPLE will use only the final supplied weights and will never train or fine-tune them.",
-      "candidate_holdout_audit": {
-        "artifact": "benchmarks/solpropmix-not-used-candidate-holdout-audit-2026-07-30.json",
-        "artifact_sha256": "2cf068492206bbc01fa3841c9b2daa9b67885294d8c848f555111de707f9a62c",
-        "scope": "static identity, mixture coverage, and provenance audit of only the pinned Not used - From 3-comp VLE and Not used - From 4-comp VLE worksheets",
-        "experimental_label_values_decoded": false,
-        "model_scoring_performed": false,
-        "overlap_audit_status": "pending",
+      "data_release": {
+        "version": "v1.1",
+        "zenodo_record": "https://zenodo.org/records/15587866",
+        "workbook_path": "Data.zip / Data/solprop-mix_v1.1.xlsx",
+        "workbook_sha256": "793f325e6edddca3334b368f68edfc368027e472ad779e7e5d52ff5d1e1a001d",
+        "static_code_archive": {
+          "name": "SolProp_ML-StaticCodeGsolv.zip",
+          "size_bytes": 65183,
+          "md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+          "sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326"
+        }
+      },
+      "solvent_scope": "neutral supported solutes and nonionic liquid solvents; the admitted development lane covers official v1.1 nonaqueous pure and binary rows only",
+      "free_energy_form": "ten-member direct scalar infinite-dilution dGsolv property prediction in kcal/mol; no PES, forces, OPT, FREQ, MD, endpoint pair, sampled estimator, or absolute-solvation FE protocol",
+      "runtime_prerequisites": "The live MAPLE property adapter requires the exact hash-pinned v1.1 SolPropmixQMExp checkpoints, supplemental static code, and isolated dependency environment. It disables TF32, AMP, FP16, BF16, and reduced-precision reductions; it does not download assets or expose the model as an ordinary calculator.",
+      "development_accuracy_audit": {
+        "runner": "run_solpropmix_qmexp_broad_audit.py",
+        "runner_sha256": "21f09e5fa2e29d5b6f6c6dbc4fec8f8e6fed02fcf36b1b8edab745dc35a57c27",
+        "result": "benchmarks/solpropmix-qmexp-broad-audit-2026-07-31/result.json",
+        "result_sha256": "02f7dc64b6f4379c68dbb4999225b1400aefd50ab89df3a405ba864061a9f01c",
+        "data_release_record": 15587866,
+        "previous_data_release_record": 14238055,
+        "scope": "output-blind deterministic 1000-row official v1.1 nonaqueous pure/binary development panel spanning 15 primary functional groups",
+        "cpu_metrics_kcal_mol": {
+          "n": 1000,
+          "mae": 0.2600320951491671,
+          "rmse": 0.3768962032607486,
+          "maxae": 1.8977049801370343
+        },
+        "accuracy_thresholds_kcal_mol": {
+          "mae": 0.25,
+          "rmse": 0.37
+        },
+        "accuracy_admission_eligible": false,
+        "training_holdout_overlap": "unknown",
         "strict_final_holdout": false
       },
+      "gpu_no_loss_audit": {
+        "execution": "deterministic float64; TF32, AMP, FP16, BF16, and reduced-precision reductions disabled",
+        "exact_error_worsenings": 218,
+        "ensemble_prediction_bitwise_mismatches": 496,
+        "error_worsenings_over_5e12": 0,
+        "roundoff_tolerance_kcal_mol": 5e-12,
+        "strict_zero_loss": false,
+        "gpu_admission_eligible": false,
+        "matched_qm_speed_eligible": false,
+        "route_speed_advantage_claimed": false
+      },
+      "balanced_release_sentinel": {
+        "result": "benchmarks/solpropmix-qmexp-release-audit-2026-07-31/result.json",
+        "scope": "10 distinct primary functional groups; supplemental fail-closed sentinel only and not a basis for broad chemical-space accuracy claims"
+      },
+      "ternary_diagnostic": {
+        "rows": 100,
+        "status": "undocumented_dynamic_slot_diagnostic_not_part_of_admission",
+        "reason": "official public prediction entrypoints document at most two solvent components"
+      },
+      "benchmark_status": "Development only. Both 0.25 kcal/mol MAE and 0.37 kcal/mol RMSE gates fail; exact training/holdout overlap is unknown, GPU literal zero-loss fails, and matched-QM speed is ineligible. No scientific, GPU, final-holdout, or route-speed admission follows.",
       "forbidden_tasks": [
-        "dependency_installation_without_user_authorization",
-        "runtime_reimplementation",
+        "fit",
+        "fine_tune",
+        "calibration",
         "ordinary_calculator",
         "sp_energy_surface",
+        "forces",
         "opt",
         "freq",
         "md",
         "absolute_solvation_protocol_ledger",
+        "gpu_execution_as_admitted_path",
+        "matched_qm_speed_claim",
+        "ternary_admission",
         "unvalidated_extrapolation"
       ]
     },

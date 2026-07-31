@@ -110,6 +110,9 @@ def test_watchlist_has_no_executable_placeholder_backends():
     }
 
     assert statuses["consolv"] == "blocked_by_public_runtime_and_weights"
+    assert statuses["resolv"] == (
+        "dedicated_water_endpoint_bar_sidecar_full_panel_audit_in_progress"
+    )
     assert statuses["twin"] == "blocked_by_public_runtime_and_weights"
     assert statuses["schake-gnn-protein-ism"] == (
         "blocked_by_uninstalled_upstream_runtime_dependencies"
@@ -153,7 +156,7 @@ def test_watchlist_has_no_executable_placeholder_backends():
         "blocked_by_uninstalled_upstream_runtime_dependencies"
     )
     assert statuses["solprop-mix-exp"] == (
-        "blocked_by_uninstalled_upstream_runtime_dependencies"
+        "property_only_live_runtime_verified_development_accuracy_and_gpu_rejected"
     )
     datasets = {
         dataset["dataset_id"]: dataset for dataset in watchlist["benchmark_datasets"]
@@ -191,6 +194,23 @@ def test_model_admission_record_requires_a_released_energy_gauge_and_holdout():
     assert candidates["consolv"]["adapter_status"] == (
         "blocked_by_public_runtime_and_weights"
     )
+    assert candidates["consolv"]["publication_evidence"]["test_records"] == 923
+    assert (
+        candidates["consolv"]["publication_evidence"][
+            "matched_pure_qm_full_task_timing"
+        ]
+        is False
+    )
+    resolv = candidates["resolv"]
+    assert resolv["source_revision"] == (
+        "1d85bcc065003e083d2e95ab7091cb1762eeb1bf"
+    )
+    assert resolv["direct_lineage"]["direct_successor"] == "ConSolv"
+    assert "162 records" in resolv["formal_audit_scope"]
+    assert "26 classified primary" in resolv["formal_audit_scope"]
+    assert "9 unclassified" in resolv["formal_audit_scope"]
+    assert "ordinary_calculator" in resolv["forbidden_tasks"]
+    assert "additive_continuum" in resolv["forbidden_tasks"]
     assert "user-authorized" in candidates["anisolv-compact"]["runtime_prerequisites"]
     assert "upon article publication" in candidates["twin"]["release_evidence"]
     assert "free-energy path" in candidates["consolv"]["free_energy_form"]
@@ -235,10 +255,54 @@ def test_model_admission_record_requires_a_released_energy_gauge_and_holdout():
         "archive_sha256"
     ].startswith("f66bb046")
     solprop_mix = candidates["solprop-mix-exp"]
-    assert solprop_mix["checkpoint_bundle"]["archive_sha256"].startswith("670915e5")
+    assert solprop_mix["checkpoint_bundle"]["family"] == "SolPropmixQMExp"
+    assert solprop_mix["checkpoint_bundle"]["zenodo_record"].endswith("15587866")
+    assert solprop_mix["checkpoint_bundle"]["previous_zenodo_record"].endswith(
+        "14238055"
+    )
+    assert solprop_mix["checkpoint_bundle"]["archive_sha256"].startswith("dbd39106")
     assert solprop_mix["checkpoint_bundle"]["selected_ensemble_member_count"] == 10
-    assert "Tap" in solprop_mix["runtime_prerequisites"]
-    assert "runtime_reimplementation" in solprop_mix["forbidden_tasks"]
+    audit = solprop_mix["development_accuracy_audit"]
+    assert audit["cpu_metrics_kcal_mol"] == {
+        "n": 1000,
+        "mae": 0.2600320951491671,
+        "rmse": 0.3768962032607486,
+        "maxae": 1.8977049801370343,
+    }
+    assert audit["accuracy_admission_eligible"] is False
+    assert audit["training_holdout_overlap"] == "unknown"
+    gpu = solprop_mix["gpu_no_loss_audit"]
+    assert gpu["exact_error_worsenings"] == 218
+    assert gpu["ensemble_prediction_bitwise_mismatches"] == 496
+    assert gpu["error_worsenings_over_5e12"] == 0
+    assert gpu["strict_zero_loss"] is False
+    assert gpu["gpu_admission_eligible"] is False
+    assert gpu["matched_qm_speed_eligible"] is False
+    assert solprop_mix["ternary_diagnostic"]["status"].endswith("not_part_of_admission")
+    assert {"fit", "fine_tune", "calibration", "forces", "opt", "freq", "md"}.issubset(
+        solprop_mix["forbidden_tasks"]
+    )
+    broad = json.loads((HUB / audit["result"]).read_text(encoding="utf-8"))
+    assert broad["main_supported_lane"]["overall_cpu"] == {
+        "n": audit["cpu_metrics_kcal_mol"]["n"],
+        "mae_kcal_mol": audit["cpu_metrics_kcal_mol"]["mae"],
+        "rmse_kcal_mol": audit["cpu_metrics_kcal_mol"]["rmse"],
+        "maxae_kcal_mol": audit["cpu_metrics_kcal_mol"]["maxae"],
+    }
+    assert len(broad["selection_protocol"]["main"]["distinct_primary_groups"]) == 15
+    assert (
+        broad["main_supported_lane"]["gpu_vs_cpu"]["gpu_worsens_abs_error_exact_count"]
+        == gpu["exact_error_worsenings"]
+    )
+    assert (
+        broad["main_supported_lane"]["gpu_vs_cpu"][
+            "ensemble_prediction_bitwise_mismatch_count"
+        ]
+        == gpu["ensemble_prediction_bitwise_mismatches"]
+    )
+    assert broad["ternary_undocumented_dynamic_slot_diagnostic"][
+        "not_part_of_main_lane_or_admission"
+    ]
     charge_provider = candidates["ml-for-charges-pbe0-esp-water"]
     assert (
         charge_provider["source_revision"] == "e8407cc7e500d89cf66ed0673d6cd7421ab5637d"
@@ -398,9 +462,10 @@ def test_hub_document_keeps_free_energy_and_route_boundaries_explicit():
 
 def test_admission_record_assigns_each_candidate_to_a_scientific_route():
     text = (HUB / "MODEL_ADMISSION.md").read_text(encoding="utf-8")
+    normalized = " ".join(text.split())
 
     assert "## Research sweep and route assignment" in text
-    assert "Route 3 `#solvfe` only" in text
+    assert "dedicated `solvfe` sidecar/full-panel reproduction control only" in text
     assert "sealed `anisolv-uma` single-point energy control only" in text
     assert "official inference runtime, weights" in text
     assert "### GNNIS original-runtime audit: identity verified" in text
@@ -426,7 +491,15 @@ def test_admission_record_assigns_each_candidate_to_a_scientific_route():
     assert "silent checkpoint substitution" in text
     assert "CIGIN: FreeSolv-trained scalar sidecar" in text
     assert "SolProp_ML Gsolv: authentic multi-solvent model bundle" in text
-    assert "SolProp-mix Exp: released mixture dGsolv ensemble" in text
+    assert (
+        "SolProp-mix QMExp: live property adapter, development accuracy and GPU "
+        "rejected" in text
+    )
+    assert "1,000-row" in text
+    assert "15 predeclared primary functional groups" in normalized
+    assert "218/1,000 rows" in text
+    assert "496/1,000 bitwise-different" in text
+    assert "no speed or Route 4 advantage may be claimed" in text
     assert "Schake GNN v2: released protein correction" in text
     assert "AtomicESE: packaged scalar release, audit only" in text
     assert "record-level split membership remain unresolved" in " ".join(text.split())
@@ -494,6 +567,12 @@ def test_upstream_artifact_manifest_pins_real_files_and_unknowns():
 
     by_id = {item["model_id"]: item for item in artifacts}
     assert by_id["aimnet2-cpcms-v2"]["size_bytes"] == 9280334
+    assert by_id["resolv-u-vac"]["size_bytes"] == 142890900
+    assert by_id["resolv-u-vac"]["sha256"].startswith("83618b7b")
+    assert by_id["resolv-u-wat"]["size_bytes"] == 142890900
+    assert by_id["resolv-u-wat"]["sha256"].startswith("56a72b33")
+    assert by_id["resolv-freesolv-database"]["size_bytes"] == 370503
+    assert by_id["resolv-freesolv-database"]["sha256"].startswith("8a1dd006")
     assert by_id["gnnis-reference"]["repository_license"] == "MIT-0"
     assert by_id["g-nequip-smdw-water"]["size_bytes"] == 11436716
     assert by_id["g-nequip-smdw-water"]["sha256"].startswith("5615c000")
@@ -510,13 +589,22 @@ def test_upstream_artifact_manifest_pins_real_files_and_unknowns():
     assert by_id["cigin"]["sha256"].startswith("79f07c64")
     assert by_id["solprop-ml-gsolv-bundle"]["size_bytes"] == 268574239
     assert by_id["solprop-ml-gsolv-bundle"]["sha256"].startswith("f66bb046")
-    assert by_id["solprop-mix-exp-bundle"]["size_bytes"] == 288947625
-    assert by_id["solprop-mix-exp-bundle"]["sha256"].startswith("670915e5")
-    assert by_id["solprop-mix-exp-bundle"]["selected_ensemble_member_count"] == 10
-    assert len(by_id["solprop-mix-exp-bundle"]["selected_ensemble_member_sha256"]) == 10
-    assert by_id["solprop-mix-exp-bundle"]["selected_ensemble_member_sha256"][
-        "model0.pt"
-    ].startswith("8206cea9")
+    solprop_mix = by_id["solprop-mix-exp-bundle"]
+    assert solprop_mix["size_bytes"] == 175360920
+    assert solprop_mix["sha256"].startswith("dbd39106")
+    assert solprop_mix["zenodo_record"].endswith("15587866")
+    assert solprop_mix["previous_zenodo_record"].endswith("14238055")
+    assert solprop_mix["selected_ensemble_member_count"] == 10
+    assert len(solprop_mix["selected_ensemble_member_sha256"]) == 10
+    assert solprop_mix["selected_ensemble_member_sha256"]["model0.pt"].startswith(
+        "e887f9d4"
+    )
+    assert hashlib.sha256(
+        (ROOT / solprop_mix["runner_path"]).read_bytes()
+    ).hexdigest() == (solprop_mix["runner_sha256"])
+    assert hashlib.sha256(
+        (ROOT / solprop_mix["result_path"]).read_bytes()
+    ).hexdigest() == (solprop_mix["result_sha256"])
     assert by_id["schake-gnn-v2"]["size_bytes"] == 212619
     assert by_id["schake-gnn-v2"]["sha256"].startswith("1be53976")
     assert by_id["mace-off24-medium"]["sha256"].startswith("e5ccf583")

@@ -1,0 +1,332 @@
+{
+  "must_not_be_supplied_to_model_worker": true,
+  "records": [
+    {
+      "excel_row_number": 19430,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J19430",
+        "value_kcal_mol": -6.9834
+      },
+      "literature_reference": {
+        "authors": "Li D.; Zhang Z.; Yang Y.",
+        "journal": "Shiyou-huagong",
+        "title": "Measurement and Correlation of Vapor-Liquid Equilibrium Data of C5 Fraction and N-Methyl-2-Pyrrolidone at Atmospheric Pressure",
+        "year": "2009"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V19430",
+        "g298_value_kcal_mol": -6.549434757661041,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U19430",
+        "h298_value_kcal_mol": -11.86978079809295,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W19430",
+        "temperature_value_kcal_mol": -6.383932718081164
+      },
+      "row_id": "From VLE - Bin Solv - no water!19430",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 19428
+    },
+    {
+      "excel_row_number": 8583,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J8583",
+        "value_kcal_mol": -4.3619
+      },
+      "literature_reference": {
+        "authors": "Tikhonova N.K.; Timofeev V.S.; Serafimov L.A.; Kupriyanova Z.N.",
+        "journal": "Izv.Vyssh.Uchebn.Zaved.Khim.Khim.Tekhnol.",
+        "title": "Dampf-Flüssig-Gleichgewicht im ternären System Acetaldehyd-Aceton-Vinylacetat bei Atmosphärendruck",
+        "year": "1970"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V8583",
+        "g298_value_kcal_mol": -4.472135305342229,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U8583",
+        "h298_value_kcal_mol": -8.032229163912636,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W8583",
+        "temperature_value_kcal_mol": -4.460786012840075
+      },
+      "row_id": "From VLE - Bin Solv - no water!8583",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 8581
+    },
+    {
+      "excel_row_number": 10789,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J10789",
+        "value_kcal_mol": -6.0805
+      },
+      "literature_reference": {
+        "authors": "Shuliang Z.; Mingsi X.; Xugen Y.; Ying H.",
+        "journal": "Huadong-Huagong-Xueyuan-Xuebao",
+        "title": "Studies on the Vapor-Liquid Equilibrium of a Ternary System of Methyl Alcohol, Methyl Methacrylate, Methyl Methacrylic Acid and the Association Constant of Methyl Methacrylic Acid",
+        "year": "1986"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V10789",
+        "g298_value_kcal_mol": -7.558860773026359,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U10789",
+        "h298_value_kcal_mol": -14.06711693545986,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W10789",
+        "temperature_value_kcal_mol": -7.296128150093223
+      },
+      "row_id": "From VLE - Bin Solv - no water!10789",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 10787
+    },
+    {
+      "excel_row_number": 11655,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J11655",
+        "value_kcal_mol": -6.646
+      },
+      "literature_reference": {
+        "authors": "Staroske J.; Figurski G.",
+        "journal": "Chem.Techn.(Leipzig)",
+        "title": "Das Dampf-Flüssigkeits-Gleichgewicht des ternären Systems Furfural-Ethylacetat-Methanol und dessen binäre Randsysteme bei 298.15 K",
+        "year": "1992"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V11655",
+        "g298_value_kcal_mol": -6.323721922461186,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U11655",
+        "h298_value_kcal_mol": -11.17540241953823,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W11655",
+        "temperature_value_kcal_mol": -6.321279801405611
+      },
+      "row_id": "From VLE - Bin Solv - no water!11655",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 11653
+    },
+    {
+      "excel_row_number": 7874,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J7874",
+        "value_kcal_mol": -4.6798
+      },
+      "literature_reference": {
+        "authors": "Ohta T.; Koyabu J.; Nagata I.",
+        "journal": "Fluid Phase Equilib.",
+        "title": "Vapor-Liquid Equilibria for the Ternary Ethanol-2-Butanone-Benzene System at 298.15K",
+        "year": "1981"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V7874",
+        "g298_value_kcal_mol": -4.631213520961683,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U7874",
+        "h298_value_kcal_mol": -7.626931864091924,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W7874",
+        "temperature_value_kcal_mol": -4.629705609044001
+      },
+      "row_id": "From VLE - Bin Solv - no water!7874",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 7872
+    },
+    {
+      "excel_row_number": 16928,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J16928",
+        "value_kcal_mol": -5.072
+      },
+      "literature_reference": {
+        "authors": "Bernatova S.; Wichterle I.",
+        "journal": "Fluid Phase Equilib.",
+        "title": "Isothermal vapour-liquid equilibrium in the binary tert-butanol or 2,2,4-trimethylpentane + 1-tert-butoxy-2-propanol, and in the ternary tert-butanol + 2,2,4-trimethylpentane + 1-tert-butoxy-2-propanol systems",
+        "year": "2001"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V16928",
+        "g298_value_kcal_mol": -5.431248042640642,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U16928",
+        "h298_value_kcal_mol": -10.24651121015604,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W16928",
+        "temperature_value_kcal_mol": -5.105975399814853
+      },
+      "row_id": "From VLE - Bin Solv - no water!16928",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 16926
+    },
+    {
+      "excel_row_number": 12343,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J12343",
+        "value_kcal_mol": -4.4685
+      },
+      "literature_reference": {
+        "authors": "Egorenkov A.A.; Litvintsev I.Y.; Sapunov V.N.; Grishunin A.V.; Ponomarev V.N.; Timofeev V.S.",
+        "journal": "Osnovnoi Organ.Sintez.Neftekhim.",
+        "title": "Untersuchung und mathematische Modellierung der Dampf-Flüssig-Gleichgewicht in Systemen, die von Allylchlorid, Epychlorhydrin, Ethylacetat und Essigsäure gebildet werden",
+        "year": "1987"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V12343",
+        "g298_value_kcal_mol": -5.288915362044465,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U12343",
+        "h298_value_kcal_mol": -9.279799839795851,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W12343",
+        "temperature_value_kcal_mol": -4.952100782797997
+      },
+      "row_id": "From VLE - Bin Solv - no water!12343",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 12341
+    },
+    {
+      "excel_row_number": 22181,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J22181",
+        "value_kcal_mol": -6.3181
+      },
+      "literature_reference": {
+        "authors": "Li S.; Li X.; Yang F.; Xu X.; Ye Y.; Liu D.",
+        "journal": "J.Chem.Thermodyn.",
+        "title": "Isobaric vapour-liquid equilibrium data for the binary systems of polyoxymethylene dimethyl ethers with methanol, methylal and ternary system of methylal + methanol + polyoxymethylene dimethyl ethers at 50.0 kPa",
+        "year": "2021"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V22181",
+        "g298_value_kcal_mol": -4.745605769400124,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U22181",
+        "h298_value_kcal_mol": -8.549863033153652,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W22181",
+        "temperature_value_kcal_mol": -4.70718021784342
+      },
+      "row_id": "From VLE - Bin Solv - no water!22181",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 22179
+    },
+    {
+      "excel_row_number": 18610,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "J1",
+        "value_cell": "J18610",
+        "value_kcal_mol": -5.0351
+      },
+      "literature_reference": {
+        "authors": "Markuzin N.P.; Plekhotkin V.F.",
+        "journal": "Russ.J.Phys.Chem.",
+        "title": "The Occurence of Solutropism in the Ethylenediamine-Benzene-n-Hexane System",
+        "year": "1962"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "V1",
+        "g298_value_cell": "V18610",
+        "g298_value_kcal_mol": -4.50687156785971,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "U1",
+        "h298_value_cell": "U18610",
+        "h298_value_kcal_mol": -8.941758404847722,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "W1",
+        "temperature_value_cell": "W18610",
+        "temperature_value_kcal_mol": -4.579050095240221
+      },
+      "row_id": "From VLE - Bin Solv - no water!18610",
+      "sheet": "From VLE - Bin Solv - no water",
+      "zero_based_dataframe_row_index": 18608
+    },
+    {
+      "excel_row_number": 2429,
+      "experimental": {
+        "header": "Gsolv (kcal/mol)",
+        "header_cell": "M1",
+        "value_cell": "M2429",
+        "value_kcal_mol": -4.1368
+      },
+      "literature_reference": {
+        "authors": "Laevskaya N.S.; Bagrov I.V.; Dobroserdov L.L.",
+        "journal": "Viniti",
+        "title": "Dampf-Flüssig-Gleichgewicht in  Systemen, die bei der Styrolcopolymerherstellung gebildet werden",
+        "year": "1977"
+      },
+      "published_qmexp": {
+        "g298_header": "SolProp-mix_QM_Exp_Gsolv298",
+        "g298_header_cell": "Q1",
+        "g298_value_cell": "Q2429",
+        "g298_value_kcal_mol": -3.731975401206115,
+        "h298_header": "SolProp-mix_QM_Exp_Hsolv298",
+        "h298_header_cell": "P1",
+        "h298_value_cell": "P2429",
+        "h298_value_kcal_mol": -7.049527355270247,
+        "temperature_header": "SolProp-mix_QM_Exp_GsolvT",
+        "temperature_header_cell": "R1",
+        "temperature_value_cell": "R2429",
+        "temperature_value_kcal_mol": -3.699706742253285
+      },
+      "row_id": "From VLE - Ter Solv - no water!2429",
+      "sheet": "From VLE - Ter Solv - no water",
+      "zero_based_dataframe_row_index": 2427
+    }
+  ],
+  "schema_version": 1,
+  "workbook": {
+    "md5": "b428a724a50fe66184746775cda0df24",
+    "member": "Data/solprop-mix_v1.1.xlsx",
+    "sha256": "793f325e6edddca3334b368f68edfc368027e472ad779e7e5d52ff5d1e1a001d",
+    "size_bytes": 15837066
+  }
+}

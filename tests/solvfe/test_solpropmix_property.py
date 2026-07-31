@@ -10,24 +10,44 @@ from pathlib import Path
 import pytest
 
 from maple.function.solvfe import (
+    SOLPROPMIX_CHECKPOINT_FAMILY,
+    SOLPROPMIX_CHECKPOINT_ORIGIN,
     SOLPROPMIX_CHECKPOINT_SHA256,
+    SOLPROPMIX_CHECKPOINTS_BYTE_IDENTICAL_ACROSS_V1_0_V1_1,
+    SOLPROPMIX_DATA_RELEASE_RECORD,
+    SOLPROPMIX_DATA_RELEASE_VERSION,
+    SOLPROPMIX_MODELWEIGHTS_ZIP_MD5,
+    SOLPROPMIX_MODELWEIGHTS_ZIP_SHA256,
+    SOLPROPMIX_MODELWEIGHTS_ZIP_SIZE_BYTES,
     SOLPROPMIX_PRECISION_SEMANTICS,
+    SOLPROPMIX_PREVIOUS_DATA_RELEASE_RECORD,
     SOLPROPMIX_SOURCE_REVISION,
     SOLPROPMIX_SOURCE_TREE,
     SOLPROPMIX_SOURCE_URL,
+    SOLPROPMIX_STATIC_CODE_ZIP_MD5,
+    SOLPROPMIX_STATIC_CODE_ZIP_NAME,
+    SOLPROPMIX_STATIC_CODE_ZIP_SHA256,
+    SOLPROPMIX_STATIC_CODE_ZIP_SIZE_BYTES,
     SOLPROPMIX_STATIC_DATA_HASHES,
+    SOLPROPMIX_SUPPLEMENTAL_SOURCE_ORIGIN,
+    SOLPROPMIX_WORKBOOK_ORACLE_REPRODUCTION_GUARANTEED,
     SolPropMixConfigError,
     SolPropMixPropertyAdapter,
     SolPropMixRuntimeError,
 )
 from maple.function.solvfe import _solpropmix_worker as worker
 from maple.function.solvfe.solpropmix_property import (
-    _SnapshotEvidence,
     _normalize_origin,
     _normalize_solvents,
+    _SnapshotEvidence,
     _temperature_adjusted,
     _verify_file,
 )
+
+
+def _number(value: object) -> float:
+    assert isinstance(value, (int, float)) and not isinstance(value, bool)
+    return float(value)
 
 
 def _adapter(
@@ -47,7 +67,7 @@ def _payload(request: dict[str, object]) -> dict[str, object]:
     for index in range(10):
         g298 = -10.0 + index * 0.2
         h298 = -15.0 + index * 0.3
-        adjusted = _temperature_adjusted(g298, h298, float(request["temperature"]))
+        adjusted = _temperature_adjusted(g298, h298, _number(request["temperature"]))
         rows.append(
             {
                 "model_index": index,
@@ -56,8 +76,10 @@ def _payload(request: dict[str, object]) -> dict[str, object]:
                 "g_temperature": adjusted,
             }
         )
-    values = [float(row["g_temperature"]) for row in rows]
+    values = [_number(row["g_temperature"]) for row in rows]
     mean = math.fsum(values) / 10
+    precision = request["precision"]
+    assert isinstance(precision, str)
     worker_hash = "a" * 64
     snapshot = {
         "worker_sha256": worker_hash,
@@ -66,7 +88,7 @@ def _payload(request: dict[str, object]) -> dict[str, object]:
     }
     return {
         **request,
-        "dtype": "float64" if request["precision"] == "float64_promoted" else "float32",
+        "dtype": "float64" if precision == "float64_promoted" else "float32",
         "source_revision": SOLPROPMIX_SOURCE_REVISION,
         "source_tree": SOLPROPMIX_SOURCE_TREE,
         "worker_sha256": worker_hash,
@@ -108,6 +130,35 @@ def test_official_source_tree_and_artifact_set_are_pinned():
         _normalize_origin("git@gitlab.kuleuven.be:creas/vermeiregroup/solprop.git")
         == SOLPROPMIX_SOURCE_URL
     )
+
+
+def test_release_lineage_is_explicit_and_does_not_promise_workbook_oracle():
+    assert SOLPROPMIX_CHECKPOINT_FAMILY == "SolPropmixQMExp"
+    assert SOLPROPMIX_DATA_RELEASE_VERSION == "v1.1"
+    assert SOLPROPMIX_DATA_RELEASE_RECORD == 15587866
+    assert SOLPROPMIX_PREVIOUS_DATA_RELEASE_RECORD == 14238055
+    assert SOLPROPMIX_STATIC_CODE_ZIP_NAME == "SolProp_ML-StaticCodeGsolv.zip"
+    assert SOLPROPMIX_STATIC_CODE_ZIP_SIZE_BYTES == 65183
+    assert SOLPROPMIX_STATIC_CODE_ZIP_MD5 == "602e6b9b4da49ac6b788023d2a6cadcd"
+    assert (
+        SOLPROPMIX_STATIC_CODE_ZIP_SHA256
+        == "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326"
+    )
+    assert SOLPROPMIX_MODELWEIGHTS_ZIP_SIZE_BYTES == 175360920
+    assert SOLPROPMIX_MODELWEIGHTS_ZIP_MD5 == "047cb1d69e3b51aced9eac2880eb10f6"
+    assert (
+        SOLPROPMIX_MODELWEIGHTS_ZIP_SHA256
+        == "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006"
+    )
+    assert SOLPROPMIX_SUPPLEMENTAL_SOURCE_ORIGIN == (
+        "Zenodo record 15587866 (v1.1), supplemental static-code release"
+    )
+    assert SOLPROPMIX_CHECKPOINT_ORIGIN == (
+        "Zenodo record 15587866 (v1.1), ModelWeights.zip/"
+        "ModelWeights/SolPropmixQMExp"
+    )
+    assert SOLPROPMIX_CHECKPOINTS_BYTE_IDENTICAL_ACROSS_V1_0_V1_1 is True
+    assert SOLPROPMIX_WORKBOOK_ORACLE_REPRODUCTION_GUARANTEED is False
 
 
 @pytest.mark.parametrize(
@@ -164,7 +215,9 @@ def test_positive_request_shapes_preserve_component_count(tmp_path, monkeypatch,
 
     monkeypatch.setattr(adapter, "_run_script", fake_run)
     result = adapter.predict("CC", fractions)
-    assert len(seen["solvents"]) == count
+    seen_solvents = seen["solvents"]
+    assert isinstance(seen_solvents, list)
+    assert len(seen_solvents) == count
     assert len(result.solvent_components) == count
 
 
@@ -189,6 +242,16 @@ def test_result_receipt_states_precision_and_nonionic_boundary(tmp_path, monkeyp
     assert receipt.solvent_nonionic_liquid_phase_caller_requirement is True
     assert "caller responsibility" in result.solvent_nonionic_liquid_phase_requirement
     assert receipt.source_tree == SOLPROPMIX_SOURCE_TREE
+    assert "core source only" in receipt.source_revision_scope
+    assert receipt.checkpoint_family == "SolPropmixQMExp"
+    assert receipt.data_release_record == 15587866
+    assert receipt.static_code_zip_name == "SolProp_ML-StaticCodeGsolv.zip"
+    assert receipt.static_code_zip_size_bytes == 65183
+    assert receipt.static_code_zip_sha256 == SOLPROPMIX_STATIC_CODE_ZIP_SHA256
+    assert receipt.modelweights_zip_size_bytes == 175360920
+    assert receipt.modelweights_zip_sha256 == SOLPROPMIX_MODELWEIGHTS_ZIP_SHA256
+    assert receipt.checkpoints_byte_identical_across_v1_0_v1_1 is True
+    assert receipt.workbook_oracle_reproduction_guaranteed is False
     assert receipt.worker_sha256 == "a" * 64
 
 
@@ -292,6 +355,32 @@ def test_snapshot_worker_is_copied_by_exact_bytes(tmp_path, monkeypatch):
     original = Path(worker.__file__).read_bytes()
     assert copied == original
     assert evidence.worker_sha256 == hashlib.sha256(original).hexdigest()
+
+
+def test_snapshot_materialization_oserror_is_not_mislabeled_as_launch(
+    tmp_path, monkeypatch
+):
+    adapter = _adapter(tmp_path, monkeypatch)
+
+    def fail_materialization(_runtime_root):
+        raise OSError("snapshot write failed")
+
+    monkeypatch.setattr(adapter, "_materialize_snapshot", fail_materialization)
+    with pytest.raises(OSError, match="snapshot write failed"):
+        adapter._run_script("{}")
+
+
+def test_worker_launch_oserror_is_wrapped_at_launch_boundary(tmp_path, monkeypatch):
+    adapter = _adapter(tmp_path, monkeypatch)
+    evidence = _SnapshotEvidence("a" * 64, (), ())
+    monkeypatch.setattr(adapter, "_materialize_snapshot", lambda root: evidence)
+
+    def fail_launch(*args, **kwargs):
+        raise OSError("executable missing")
+
+    monkeypatch.setattr(subprocess, "run", fail_launch)
+    with pytest.raises(SolPropMixRuntimeError, match="Unable to start"):
+        adapter._run_script("{}")
 
 
 def test_source_identity_checks_pinned_tree(tmp_path, monkeypatch):

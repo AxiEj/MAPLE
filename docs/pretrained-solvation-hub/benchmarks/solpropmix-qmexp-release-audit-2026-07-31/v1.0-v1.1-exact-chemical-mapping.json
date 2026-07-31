@@ -1,0 +1,235 @@
+{
+  "match_semantics": "exact match on sheet, solute InChI, ordered solvent InChIs, solvent mole fractions, and temperature; not matched by legacy Excel row number",
+  "model_outputs_were_not_used_to_change_rows_after_mapping": true,
+  "records": [
+    {
+      "experimental_gsolv_kcal_mol": -6.9834,
+      "new_excel_row_v1_1": 19430,
+      "old_excel_row_v1_0": 19486,
+      "primary_functional_group": "amide",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": 0.3527082828066561,
+      "qmexp_prediction_v1_0_kcal_mol": -6.73664100088782,
+      "qmexp_prediction_v1_1_kcal_mol": -6.383932718081164,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C5H9NO/c1-6-4-2-3-5(6)7/h2-4H2,1H3",
+      "solute_name": "284: N-Methyl-2-pyrrolidone",
+      "solvent_inchis": [
+        "InChI=1S/C5H8/c1-4-5(2)3/h4H,1-2H2,3H3",
+        "InChI=1S/C5H10/c1-3-5-4-2/h3H,1,4-5H2,2H3"
+      ],
+      "solvent_mole_fractions": [
+        0.6532,
+        0.3468
+      ],
+      "temperature_kelvin": 307.27
+    },
+    {
+      "experimental_gsolv_kcal_mol": -4.3619,
+      "new_excel_row_v1_1": 8583,
+      "old_excel_row_v1_0": 8639,
+      "primary_functional_group": "ester",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": 0.10439475918559626,
+      "qmexp_prediction_v1_0_kcal_mol": -4.565180772025672,
+      "qmexp_prediction_v1_1_kcal_mol": -4.460786012840075,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C4H6O2/c1-3-6-4(2)5/h3H,1H2,2H3",
+      "solute_name": "173: Vinyl acetate",
+      "solvent_inchis": [
+        "InChI=1S/C2H4O/c1-2-3/h2H,1H3",
+        "InChI=1S/C3H6O/c1-3(2)4/h1-2H3"
+      ],
+      "solvent_mole_fractions": [
+        0.9524,
+        0.047599999999999976
+      ],
+      "temperature_kelvin": 298.95
+    },
+    {
+      "experimental_gsolv_kcal_mol": -6.0805,
+      "new_excel_row_v1_1": 10789,
+      "old_excel_row_v1_0": 10845,
+      "primary_functional_group": "carboxylic_acid",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": -0.5354840699875103,
+      "qmexp_prediction_v1_0_kcal_mol": -6.760644080105712,
+      "qmexp_prediction_v1_1_kcal_mol": -7.296128150093223,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C4H6O2/c1-3(2)4(5)6/h1H2,2H3,(H,5,6)",
+      "solute_name": "232: Methacrylic acid",
+      "solvent_inchis": [
+        "InChI=1S/CH4O/c1-2/h2H,1H3",
+        "InChI=1S/C5H8O2/c1-4(2)5(6)7-3/h1H2,2-3H3"
+      ],
+      "solvent_mole_fractions": [
+        0.9244,
+        0.0756
+      ],
+      "temperature_kelvin": 310.03
+    },
+    {
+      "experimental_gsolv_kcal_mol": -6.646,
+      "new_excel_row_v1_1": 11655,
+      "old_excel_row_v1_0": 11711,
+      "primary_functional_group": "aldehyde",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": 0.15967846632936045,
+      "qmexp_prediction_v1_0_kcal_mol": -6.480958267734971,
+      "qmexp_prediction_v1_1_kcal_mol": -6.321279801405611,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C5H4O2/c6-4-5-2-1-3-7-5/h1-4H",
+      "solute_name": "85: Furfural",
+      "solvent_inchis": [
+        "InChI=1S/C4H8O2/c1-3-6-4(2)5/h3H2,1-2H3",
+        "InChI=1S/CH4O/c1-2/h2H,1H3"
+      ],
+      "solvent_mole_fractions": [
+        0.8722,
+        0.12780000000000002
+      ],
+      "temperature_kelvin": 298.15
+    },
+    {
+      "experimental_gsolv_kcal_mol": -4.6798,
+      "new_excel_row_v1_1": 7874,
+      "old_excel_row_v1_0": 7930,
+      "primary_functional_group": "ketone",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": -0.14069804520790363,
+      "qmexp_prediction_v1_0_kcal_mol": -4.489007563836098,
+      "qmexp_prediction_v1_1_kcal_mol": -4.629705609044001,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C4H8O/c1-3-4(2)5/h3H2,1-2H3",
+      "solute_name": "40: 2-Butanone",
+      "solvent_inchis": [
+        "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3",
+        "InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"
+      ],
+      "solvent_mole_fractions": [
+        0.4372,
+        0.5628
+      ],
+      "temperature_kelvin": 298.15
+    },
+    {
+      "experimental_gsolv_kcal_mol": -5.072,
+      "new_excel_row_v1_1": 16928,
+      "old_excel_row_v1_0": 16984,
+      "primary_functional_group": "alcohol",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": 0.09460182428027686,
+      "qmexp_prediction_v1_0_kcal_mol": -5.20057722409513,
+      "qmexp_prediction_v1_1_kcal_mol": -5.105975399814853,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C7H16O2/c1-6(8)5-9-7(2,3)4/h6,8H,5H2,1-4H3",
+      "solute_name": "3560: 1-tert-Butoxy-2-propanol",
+      "solvent_inchis": [
+        "InChI=1S/C8H18/c1-7(2)6-8(3,4)5/h7H,6H2,1-5H3",
+        "InChI=1S/C4H10O/c1-4(2,3)5/h5H,1-3H3"
+      ],
+      "solvent_mole_fractions": [
+        0.9839,
+        0.016100000000000003
+      ],
+      "temperature_kelvin": 318.13
+    },
+    {
+      "experimental_gsolv_kcal_mol": -4.4685,
+      "new_excel_row_v1_1": 12343,
+      "old_excel_row_v1_0": 12399,
+      "primary_functional_group": "epoxide",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": 0.12258334090150314,
+      "qmexp_prediction_v1_0_kcal_mol": -5.0746841236995,
+      "qmexp_prediction_v1_1_kcal_mol": -4.952100782797997,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C3H5ClO/c4-1-3-2-5-3/h3H,1-2H2",
+      "solute_name": "442: Epichlorohydrin",
+      "solvent_inchis": [
+        "InChI=1S/C4H8O2/c1-3-6-4(2)5/h3H2,1-2H3",
+        "InChI=1S/C3H5Cl/c1-2-3-4/h2H,1,3H2"
+      ],
+      "solvent_mole_fractions": [
+        0.1615,
+        0.8385
+      ],
+      "temperature_kelvin": 323.15
+    },
+    {
+      "experimental_gsolv_kcal_mol": -6.3181,
+      "new_excel_row_v1_1": 22181,
+      "old_excel_row_v1_0": 22237,
+      "primary_functional_group": "ether",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": -0.23705008827955076,
+      "qmexp_prediction_v1_0_kcal_mol": -4.470130129563869,
+      "qmexp_prediction_v1_1_kcal_mol": -4.70718021784342,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C5H12O2/c1-6-4-3-5-7-2/h3-5H2,1-2H3",
+      "solute_name": "44709: Trimethylene glycol dimethyl ether",
+      "solvent_inchis": [
+        "InChI=1S/C3H8O2/c1-4-3-5-2/h3H2,1-2H3",
+        "InChI=1S/CH4O/c1-2/h2H,1H3"
+      ],
+      "solvent_mole_fractions": [
+        0.5612,
+        0.43879999999999997
+      ],
+      "temperature_kelvin": 301.01
+    },
+    {
+      "experimental_gsolv_kcal_mol": -5.0351,
+      "new_excel_row_v1_1": 18610,
+      "old_excel_row_v1_0": 18666,
+      "primary_functional_group": "amine",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": 0.10533252105359026,
+      "qmexp_prediction_v1_0_kcal_mol": -4.684382616293811,
+      "qmexp_prediction_v1_1_kcal_mol": -4.579050095240221,
+      "sheet": "From VLE - Bin Solv - no water",
+      "solute_inchi": "InChI=1S/C2H8N2/c3-1-2-4/h1-4H2",
+      "solute_name": "5: Ethylenediamine",
+      "solvent_inchis": [
+        "InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H",
+        "InChI=1S/C6H14/c1-3-5-6-4-2/h3-6H2,1-2H3"
+      ],
+      "solvent_mole_fractions": [
+        0.8981,
+        0.10189999999999999
+      ],
+      "temperature_kelvin": 293.15
+    },
+    {
+      "experimental_gsolv_kcal_mol": -4.1368,
+      "new_excel_row_v1_1": 2429,
+      "old_excel_row_v1_0": 2429,
+      "primary_functional_group": "nitrile",
+      "qmexp_prediction_delta_v1_1_minus_v1_0_kcal_mol": 0.0,
+      "qmexp_prediction_v1_0_kcal_mol": -3.699706742253285,
+      "qmexp_prediction_v1_1_kcal_mol": -3.699706742253285,
+      "sheet": "From VLE - Ter Solv - no water",
+      "solute_inchi": "InChI=1S/C3H3N/c1-2-3-4/h2H,1H2",
+      "solute_name": "228: Acrylonitrile",
+      "solvent_inchis": [
+        "InChI=1S/C8H10/c1-2-8-6-4-3-5-7-8/h3-7H,2H2,1H3",
+        "InChI=1S/C8H8/c1-2-8-6-4-3-5-7-8/h2-7H,1H2",
+        "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3"
+      ],
+      "solvent_mole_fractions": [
+        0.2703,
+        0.448,
+        0.28170000000000006
+      ],
+      "temperature_kelvin": 301.05
+    }
+  ],
+  "schema_version": 1,
+  "source_workbooks": {
+    "v1_0": {
+      "md5": "2443f86366fbf7a258eaca30c849d04a",
+      "member": "Files/Data/solprop-mix.xlsx",
+      "sha256": "a20e5720b3a395386dbf522137378435f464a4cbd21574d36d3f713eb0fa0e16",
+      "size_bytes": 12342482,
+      "zenodo_record": "https://zenodo.org/records/14238055"
+    },
+    "v1_1": {
+      "md5": "b428a724a50fe66184746775cda0df24",
+      "member": "Data/solprop-mix_v1.1.xlsx",
+      "sha256": "793f325e6edddca3334b368f68edfc368027e472ad779e7e5d52ff5d1e1a001d",
+      "size_bytes": 15837066,
+      "zenodo_record": "https://zenodo.org/records/15587866"
+    }
+  }
+}

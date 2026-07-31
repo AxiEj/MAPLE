@@ -1,0 +1,82 @@
+{
+  "admission_evidence": false,
+  "canonical_result_omits_volatile_worker_stream_hashes": true,
+  "diagnostic_only": true,
+  "environment": {
+    "asset_identity_source": "result.json hashes, not local extraction paths",
+    "asset_paths_canonical": false,
+    "python_environment_source": "result.json runtime receipts"
+  },
+  "matched_qm_baseline": false,
+  "modes": {
+    "cpu": {
+      "mean_runtime_seconds": 5.09368305879907,
+      "total_runtime_seconds": 50.9368305879907
+    },
+    "cuda:0": {
+      "mean_runtime_seconds": 4.984859958698507,
+      "total_runtime_seconds": 49.848599586985074
+    }
+  },
+  "release_identity_note": "Timing was observed with checkpoint and supplemental-module bytes verified identical to the official Zenodo v1.1 package. Local extraction paths are intentionally omitted because they are not release identities.",
+  "row_identity_version": "official v1.1 workbook sheet and Excel row",
+  "row_runtime_seconds": [
+    {
+      "cpu": 4.524104795011226,
+      "cuda:0": 5.211749950001831,
+      "row_id": "From VLE - Bin Solv - no water!19430"
+    },
+    {
+      "cpu": 5.374139057996217,
+      "cuda:0": 5.166685310003231,
+      "row_id": "From VLE - Bin Solv - no water!8583"
+    },
+    {
+      "cpu": 5.271075470998767,
+      "cuda:0": 4.834180436999304,
+      "row_id": "From VLE - Bin Solv - no water!10789"
+    },
+    {
+      "cpu": 4.4884431840037,
+      "cuda:0": 4.428469562990358,
+      "row_id": "From VLE - Bin Solv - no water!11655"
+    },
+    {
+      "cpu": 5.154423093001242,
+      "cuda:0": 4.807215021995944,
+      "row_id": "From VLE - Bin Solv - no water!7874"
+    },
+    {
+      "cpu": 5.647511406990816,
+      "cuda:0": 4.465455868994468,
+      "row_id": "From VLE - Bin Solv - no water!16928"
+    },
+    {
+      "cpu": 4.564346871993621,
+      "cuda:0": 4.465480192011455,
+      "row_id": "From VLE - Bin Solv - no water!12343"
+    },
+    {
+      "cpu": 5.09031318599591,
+      "cuda:0": 5.28452600298624,
+      "row_id": "From VLE - Bin Solv - no water!22181"
+    },
+    {
+      "cpu": 5.487031038006535,
+      "cuda:0": 5.966003562003607,
+      "row_id": "From VLE - Bin Solv - no water!18610"
+    },
+    {
+      "cpu": 5.335442483992665,
+      "cuda:0": 5.218833678998635,
+      "row_id": "From VLE - Ter Solv - no water!2429"
+    }
+  ],
+  "schema_version": 1,
+  "v1_1_official_package_byte_identity_verified": {
+    "cache_paths_are_release_identity": false,
+    "four_supplemental_runtime_modules": true,
+    "ten_qmexp_checkpoints": true
+  },
+  "volatile_wall_clock_fields_separated_from_canonical_result": true
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "audited_on": "2026-07-30",
+  "audited_on": "2026-07-31",
   "artifacts": [
     {
       "model_id": "aimnet2-cpcms-v2",
@@ -14,6 +14,45 @@
       "artifact_license": "not separately stated",
       "solvent_evidence": "checkpoint-internal cpcm/thf metadata",
       "scientific_status": "experimental"
+    },
+    {
+      "model_id": "resolv-u-vac",
+      "source_revision": "1d85bcc065003e083d2e95ab7091cb1762eeb1bf",
+      "source_path": "examples/FreeEnergyScripts/savedTrainers/261023_QM7x_Nequip_Nequip_QM7x_All_8epochs_iL5emin3_lrdecay1emin3_scaledTargets_LargeTrainingSet_Cutoff4A_mlp4_ShiftFalse_ScaleFalse_EnergiesAndForces.pkl",
+      "size_bytes": 142890900,
+      "sha256": "83618b7b4f6680e80936f68e5e2d02f9c6ff1c62750333ca28fc5733286347c4",
+      "runtime_energy_unit": "kcal/mol after the pinned upstream NequIP scaling path",
+      "runtime_force_unit": "not exposed by the Route 4 endpoint-BAR sidecar",
+      "repository_license": "Apache-2.0",
+      "artifact_license": "not separately stated",
+      "solvent_evidence": "vacuum endpoint of the published ReSolv water hydration-free-energy path",
+      "scientific_status": "dedicated-endpoint-bar-control-not-ordinary-calculator"
+    },
+    {
+      "model_id": "resolv-u-wat",
+      "source_revision": "1d85bcc065003e083d2e95ab7091cb1762eeb1bf",
+      "source_path": "examples/FreeEnergyScripts/QM7x Scripts/TrainFreeEnergy/checkpoints/080524_t_prod_250ps_t_equil_50ps_iL1e-06_lrd0.1_epochs500_seed7_train_389mem_0.97_epoch499.pkl",
+      "size_bytes": 142890900,
+      "sha256": "56a72b33e7aa3b26e06f7792924f2630a62f1d0a776f2843f5871195e88e3e13",
+      "runtime_energy_unit": "kcal/mol after the pinned upstream NequIP scaling path",
+      "runtime_force_unit": "not exposed by the Route 4 endpoint-BAR sidecar",
+      "repository_license": "Apache-2.0",
+      "artifact_license": "not separately stated",
+      "solvent_evidence": "native implicit-water endpoint trained through the published experimental hydration-free-energy protocol",
+      "scientific_status": "dedicated-endpoint-bar-control-not-ordinary-calculator"
+    },
+    {
+      "model_id": "resolv-freesolv-database",
+      "source_revision": "1d85bcc065003e083d2e95ab7091cb1762eeb1bf",
+      "source_path": "examples/FreeEnergyScripts/QM7x Scripts/FreeSolvDB/database.pickle",
+      "size_bytes": 370503,
+      "sha256": "8a1dd006a54f0986f58b967bf7046fb72293dafa66954ec8529cdc5e68b4d405",
+      "runtime_energy_unit": "experimental hydration free energies in kcal/mol with record-level uncertainty",
+      "runtime_force_unit": "not applicable",
+      "repository_license": "Apache-2.0 repository; embedded FreeSolv provenance remains record-specific",
+      "artifact_license": "not separately stated",
+      "solvent_evidence": "pinned record order reconstructs 559 compatible entries, 375 effective train, 162 test, and 22 failed",
+      "scientific_status": "development-associated-test-manifest-not-independent-blind-validation"
     },
     {
       "model_id": "gnnis-reference",
@@ -135,29 +174,45 @@
     {
       "model_id": "solprop-mix-exp-bundle",
       "source_revision": "80043ce09eb8802517c35b59254f8e9c181f2dac",
-      "source_path": "Files.zip / Files/ModelWeights/SolPropmixExp/model0.pt through model9.pt",
-      "size_bytes": 288947625,
-      "sha256": "670915e5bf86d5457bc2f43301e5a02e77a66b529535fcd0eddfadeb72ed73a5",
+      "source_path": "Zenodo 15587866 / ModelWeights.zip / ModelWeights/SolPropmixQMExp/model0.pt through model9.pt",
+      "size_bytes": 175360920,
+      "sha256": "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006",
+      "md5": "047cb1d69e3b51aced9eac2880eb10f6",
+      "zenodo_record": "https://zenodo.org/records/15587866",
+      "previous_zenodo_record": "https://zenodo.org/records/14238055",
+      "data_release_version": "v1.1",
+      "workbook_path": "Data.zip / Data/solprop-mix_v1.1.xlsx",
+      "workbook_sha256": "793f325e6edddca3334b368f68edfc368027e472ad779e7e5d52ff5d1e1a001d",
+      "static_code_archive": {
+        "name": "SolProp_ML-StaticCodeGsolv.zip",
+        "size_bytes": 65183,
+        "md5": "602e6b9b4da49ac6b788023d2a6cadcd",
+        "sha256": "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326"
+      },
       "selected_ensemble_member_count": 10,
-      "selected_ensemble_total_bytes": 36170142,
-      "runtime_energy_unit": "ten-member direct scalar infinite-dilution dGsolv property prediction in kcal/mol for pure or mixed liquid solvents; not an energy surface",
+      "selected_ensemble_total_bytes": 36189150,
+      "selected_ensemble_member_sha256": {
+        "model0.pt": "e887f9d424134250eb6ae871e2d142f5f5e04a6a9b2e41c37e2d96935f30ffd5",
+        "model1.pt": "c6f005771274988e6c8b4c28f12d6172d2514fd1bbe543031871f79ab60ab02d",
+        "model2.pt": "44277a9bbdd06122c039c58d051b19b5f8ea4d9b6fcebae5c6408d903883fce2",
+        "model3.pt": "ca7cd715b235c0c69366dda9c1d06aac837a6cfdb959dee4db8a8d0366407edb",
+        "model4.pt": "45d2a83015c4965adb982e8a6f07d48899b1d45050d375aa9e77bb9f46856fcf",
+        "model5.pt": "5881eddaef2c22b167ed0de043743a917b1a6fe852f642443b08ba41552f10c1",
+        "model6.pt": "a571f5e48f52f61a028c82fbd5c7857133c719f808892483c9b27b0ff17b4b3c",
+        "model7.pt": "47256bfc9bf66d9cca38c378aca3a307317b891580979f6d18694abf1e9ae853",
+        "model8.pt": "4d6db1fc5099708fba40df71e2517be8ebf9816caee2ad38f099c2a4d178f97b",
+        "model9.pt": "0decb8b662177edae77fa66007ba5f9ad1abfe3e6405ffbb35110dc837a1660b"
+      },
+      "runner_path": "docs/pretrained-solvation-hub/run_solpropmix_qmexp_broad_audit.py",
+      "runner_sha256": "21f09e5fa2e29d5b6f6c6dbc4fec8f8e6fed02fcf36b1b8edab745dc35a57c27",
+      "result_path": "docs/pretrained-solvation-hub/benchmarks/solpropmix-qmexp-broad-audit-2026-07-31/result.json",
+      "result_sha256": "02f7dc64b6f4379c68dbb4999225b1400aefd50ab89df3a405ba864061a9f01c",
+      "runtime_energy_unit": "ten-member direct scalar infinite-dilution dGsolv property prediction in kcal/mol for pure or binary liquid solvents; not an energy surface",
       "runtime_force_unit": "not exposed",
       "repository_license": "CC-BY-4.0 source README declaration",
       "artifact_license": "CC-BY-4.0 Zenodo record declaration",
-      "solvent_evidence": "official README limits use to neutral solutes and nonionic liquid solvents and identifies pure plus mixed-solvent dGsolv predictions; exact training-record membership is not audited",
-      "scientific_status": "property-only-artifact-pinned-runtime-blocked-by-uninstalled-official-dependencies",
-      "selected_ensemble_member_sha256": {
-        "model0.pt": "8206cea9a29f7c7bd7dd7f7a34564e9041a697f78ddd039e3855817960491ec4",
-        "model1.pt": "f79e48957b57a804dff73a47b642ea3f2c707d64ff3d5b776eca9d110f73ed8c",
-        "model2.pt": "48ec944ff3d02e4c9fc3c5cb7b17c5a844c7617d5bbe44be9850d31884bbb9f6",
-        "model3.pt": "83c50de3e3988ed02711a24a84d8923715252d738f3c15b72e5481f0a76379d5",
-        "model4.pt": "edddfcccaa59cb9b2683e8b133c52dc397ec3ab0c87916cc9d9c516bcfe456db",
-        "model5.pt": "1fc9da02c245e9a5adee1b4625cf117bdac3312908298b46a7501da47712622c",
-        "model6.pt": "f56508da8c4dd2f2b282562fdf650109aca9bf92673c4bd2ca9b46501fec41c9",
-        "model7.pt": "e50ef73e71ef59aafec101b8f431f5a2950853f3a6741c2d8bd473082c3011cb",
-        "model8.pt": "64fe7663faff708e3634b82986ce91028bb84690095b8942b7de7f686e26c2b5",
-        "model9.pt": "f0bc38f85e73a9d62bf899a568ae9bd6c70fbe0a28fc187725ecdcaf8d28c7b4"
-      }
+      "solvent_evidence": "official v1.1 nonaqueous pure/binary development audit covers 1000 rows and 15 primary functional groups; training/holdout overlap remains unknown; ternary is an undocumented diagnostic only",
+      "scientific_status": "property-only-live-runtime-verified-development-accuracy-rejected-gpu-zero-loss-rejected"
     },
     {
       "model_id": "schake-gnn-v2",

@@ -1,0 +1,265 @@
+{
+  "model_worker_may_read_only_this_file": true,
+  "records": [
+    {
+      "all_matched_groups": [
+        "amide"
+      ],
+      "canonical_nonisomeric_smiles": "CN1CCCC1=O",
+      "primary_functional_group": "amide",
+      "row_id": "From VLE - Bin Solv - no water!19430",
+      "solute_inchi": "InChI=1S/C5H9NO/c1-6-4-2-3-5(6)7/h2-4H2,1H3",
+      "solute_name": "284: N-Methyl-2-pyrrolidone",
+      "solvent_inchis": [
+        "InChI=1S/C5H8/c1-4-5(2)3/h4H,1-2H2,3H3",
+        "InChI=1S/C5H10/c1-3-5-4-2/h3H,1,4-5H2,2H3"
+      ],
+      "solvent_mole_fractions": [
+        0.6532,
+        0.3468
+      ],
+      "solvent_names": [
+        "98: Isoprene",
+        "257: 1-Pentene"
+      ],
+      "temperature_kelvin": 307.27
+    },
+    {
+      "all_matched_groups": [
+        "ester",
+        "ether"
+      ],
+      "canonical_nonisomeric_smiles": "C=COC(C)=O",
+      "primary_functional_group": "ester",
+      "row_id": "From VLE - Bin Solv - no water!8583",
+      "solute_inchi": "InChI=1S/C4H6O2/c1-3-6-4(2)5/h3H,1H2,2H3",
+      "solute_name": "173: Vinyl acetate",
+      "solvent_inchis": [
+        "InChI=1S/C2H4O/c1-2-3/h2H,1H3",
+        "InChI=1S/C3H6O/c1-3(2)4/h1-2H3"
+      ],
+      "solvent_mole_fractions": [
+        0.9524,
+        0.047599999999999976
+      ],
+      "solvent_names": [
+        "1: Acetaldehyde",
+        "4: Acetone"
+      ],
+      "temperature_kelvin": 298.95
+    },
+    {
+      "all_matched_groups": [
+        "carboxylic_acid"
+      ],
+      "canonical_nonisomeric_smiles": "C=C(C)C(=O)O",
+      "primary_functional_group": "carboxylic_acid",
+      "row_id": "From VLE - Bin Solv - no water!10789",
+      "solute_inchi": "InChI=1S/C4H6O2/c1-3(2)4(5)6/h1H2,2H3,(H,5,6)",
+      "solute_name": "232: Methacrylic acid",
+      "solvent_inchis": [
+        "InChI=1S/CH4O/c1-2/h2H,1H3",
+        "InChI=1S/C5H8O2/c1-4(2)5(6)7-3/h1H2,2-3H3"
+      ],
+      "solvent_mole_fractions": [
+        0.9244,
+        0.0756
+      ],
+      "solvent_names": [
+        "110: Methanol",
+        "262: Methacrylic acid methyl ester"
+      ],
+      "temperature_kelvin": 310.03
+    },
+    {
+      "all_matched_groups": [
+        "aldehyde"
+      ],
+      "canonical_nonisomeric_smiles": "O=Cc1ccco1",
+      "primary_functional_group": "aldehyde",
+      "row_id": "From VLE - Bin Solv - no water!11655",
+      "solute_inchi": "InChI=1S/C5H4O2/c6-4-5-2-1-3-7-5/h1-4H",
+      "solute_name": "85: Furfural",
+      "solvent_inchis": [
+        "InChI=1S/C4H8O2/c1-3-6-4(2)5/h3H2,1-2H3",
+        "InChI=1S/CH4O/c1-2/h2H,1H3"
+      ],
+      "solvent_mole_fractions": [
+        0.8722,
+        0.12780000000000002
+      ],
+      "solvent_names": [
+        "21: Ethyl acetate",
+        "110: Methanol"
+      ],
+      "temperature_kelvin": 298.15
+    },
+    {
+      "all_matched_groups": [
+        "ketone"
+      ],
+      "canonical_nonisomeric_smiles": "CCC(C)=O",
+      "primary_functional_group": "ketone",
+      "row_id": "From VLE - Bin Solv - no water!7874",
+      "solute_inchi": "InChI=1S/C4H8O/c1-3-4(2)5/h3H2,1-2H3",
+      "solute_name": "40: 2-Butanone",
+      "solvent_inchis": [
+        "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3",
+        "InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"
+      ],
+      "solvent_mole_fractions": [
+        0.4372,
+        0.5628
+      ],
+      "solvent_names": [
+        "11: Ethanol",
+        "31: Benzene"
+      ],
+      "temperature_kelvin": 298.15
+    },
+    {
+      "all_matched_groups": [
+        "alcohol",
+        "ether"
+      ],
+      "canonical_nonisomeric_smiles": "CC(O)COC(C)(C)C",
+      "primary_functional_group": "alcohol",
+      "row_id": "From VLE - Bin Solv - no water!16928",
+      "solute_inchi": "InChI=1S/C7H16O2/c1-6(8)5-9-7(2,3)4/h6,8H,5H2,1-4H3",
+      "solute_name": "3560: 1-tert-Butoxy-2-propanol",
+      "solvent_inchis": [
+        "InChI=1S/C8H18/c1-7(2)6-8(3,4)5/h7H,6H2,1-5H3",
+        "InChI=1S/C4H10O/c1-4(2,3)5/h5H,1-3H3"
+      ],
+      "solvent_mole_fractions": [
+        0.9839,
+        0.016100000000000003
+      ],
+      "solvent_names": [
+        "97: 2,2,4-Trimethylpentane",
+        "153: tert-Butanol"
+      ],
+      "temperature_kelvin": 318.13
+    },
+    {
+      "all_matched_groups": [
+        "epoxide",
+        "ether",
+        "organohalogen"
+      ],
+      "canonical_nonisomeric_smiles": "ClCC1CO1",
+      "primary_functional_group": "epoxide",
+      "row_id": "From VLE - Bin Solv - no water!12343",
+      "solute_inchi": "InChI=1S/C3H5ClO/c4-1-3-2-5-3/h3H,1-2H2",
+      "solute_name": "442: Epichlorohydrin",
+      "solvent_inchis": [
+        "InChI=1S/C4H8O2/c1-3-6-4(2)5/h3H2,1-2H3",
+        "InChI=1S/C3H5Cl/c1-2-3-4/h2H,1,3H2"
+      ],
+      "solvent_mole_fractions": [
+        0.1615,
+        0.8385
+      ],
+      "solvent_names": [
+        "21: Ethyl acetate",
+        "330: 3-Chloro-1-propene"
+      ],
+      "temperature_kelvin": 323.15
+    },
+    {
+      "all_matched_groups": [
+        "ether"
+      ],
+      "canonical_nonisomeric_smiles": "COCCCOC",
+      "primary_functional_group": "ether",
+      "row_id": "From VLE - Bin Solv - no water!22181",
+      "solute_inchi": "InChI=1S/C5H12O2/c1-6-4-3-5-7-2/h3-5H2,1-2H3",
+      "solute_name": "44709: Trimethylene glycol dimethyl ether",
+      "solvent_inchis": [
+        "InChI=1S/C3H8O2/c1-4-3-5-2/h3H2,1-2H3",
+        "InChI=1S/CH4O/c1-2/h2H,1H3"
+      ],
+      "solvent_mole_fractions": [
+        0.5612,
+        0.43879999999999997
+      ],
+      "solvent_names": [
+        "73: Dimethoxymethane",
+        "110: Methanol"
+      ],
+      "temperature_kelvin": 301.01
+    },
+    {
+      "all_matched_groups": [
+        "amine"
+      ],
+      "canonical_nonisomeric_smiles": "NCCN",
+      "primary_functional_group": "amine",
+      "row_id": "From VLE - Bin Solv - no water!18610",
+      "solute_inchi": "InChI=1S/C2H8N2/c3-1-2-4/h1-4H2",
+      "solute_name": "5: Ethylenediamine",
+      "solvent_inchis": [
+        "InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H",
+        "InChI=1S/C6H14/c1-3-5-6-4-2/h3-6H2,1-2H3"
+      ],
+      "solvent_mole_fractions": [
+        0.8981,
+        0.10189999999999999
+      ],
+      "solvent_names": [
+        "31: Benzene",
+        "89: Hexane"
+      ],
+      "temperature_kelvin": 293.15
+    },
+    {
+      "all_matched_groups": [
+        "nitrile"
+      ],
+      "canonical_nonisomeric_smiles": "C=CC#N",
+      "primary_functional_group": "nitrile",
+      "row_id": "From VLE - Ter Solv - no water!2429",
+      "solute_inchi": "InChI=1S/C3H3N/c1-2-3-4/h2H,1H2",
+      "solute_name": "228: Acrylonitrile",
+      "solvent_inchis": [
+        "InChI=1S/C8H10/c1-2-8-6-4-3-5-7-8/h3-7H,2H2,1H3",
+        "InChI=1S/C8H8/c1-2-8-6-4-3-5-7-8/h2-7H,1H2",
+        "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3"
+      ],
+      "solvent_mole_fractions": [
+        0.2703,
+        0.448,
+        0.28170000000000006
+      ],
+      "solvent_names": [
+        "25: Ethylbenzene",
+        "150: Styrene",
+        "161: Toluene"
+      ],
+      "temperature_kelvin": 301.05
+    }
+  ],
+  "schema_version": 1,
+  "selection_boundary": {
+    "development_panel_not_blind_holdout": true,
+    "exact_release_mapping_sha256": "945084372a4b004f2613460654f46076dd0e56bad3c54dd5d89a75a0def7babb",
+    "primary_group_precedence_frozen": [
+      "amide",
+      "ester",
+      "carboxylic_acid",
+      "aldehyde",
+      "ketone",
+      "alcohol",
+      "epoxide",
+      "ether",
+      "amine",
+      "nitrile"
+    ],
+    "selection_author_attests_chosen_without_experimental_or_model_outputs": true,
+    "selection_author_attests_rows_not_changed_after_outputs_were_read": true,
+    "taxonomy": {
+      "path": "docs/pretrained-solvation-hub/functional-group-taxonomy-v1.json",
+      "sha256": "46e073d0e253d7534b7f516f1cc2096ba0abfea84ddc170c95fc86634c917b36"
+    }
+  }
+}

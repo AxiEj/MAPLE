@@ -1,0 +1,590 @@
+[
+  {
+    "row_id": "From IDAC - no water!2",
+    "device": "cpu",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From IDAC - no water!2",
+    "device": "cuda:0",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From IDAC - no water!3",
+    "device": "cpu",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From IDAC - no water!3",
+    "device": "cuda:0",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From IDAC - no water!4",
+    "device": "cpu",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From IDAC - no water!4",
+    "device": "cuda:0",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From VLE - Bin Solv - no water!2",
+    "device": "cpu",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From VLE - Bin Solv - no water!2",
+    "device": "cuda:0",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From VLE - Bin Solv - no water!3",
+    "device": "cpu",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From VLE - Bin Solv - no water!3",
+    "device": "cuda:0",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From VLE - Bin Solv - no water!4",
+    "device": "cpu",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  },
+  {
+    "row_id": "From VLE - Bin Solv - no water!4",
+    "device": "cuda:0",
+    "prediction_abs_delta_kcal_mol": 0.0,
+    "model_prediction_abs_deltas_kcal_mol": [
+      {
+        "model_index": 0,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 1,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 2,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 3,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 4,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 5,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 6,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 7,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 8,
+        "prediction_abs_delta_kcal_mol": 0.0
+      },
+      {
+        "model_index": 9,
+        "prediction_abs_delta_kcal_mol": 0.0
+      }
+    ],
+    "max_model_prediction_abs_delta_kcal_mol": 0.0,
+    "passes_5e12": true
+  }
+]

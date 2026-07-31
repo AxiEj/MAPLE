@@ -17,16 +17,40 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from statistics import pstdev
-from typing import Mapping, Sequence, cast
+from typing import Protocol, cast
 
 from rdkit import Chem
 
 SOLPROPMIX_SOURCE_URL = "https://gitlab.kuleuven.be/creas/vermeiregroup/solprop"
 SOLPROPMIX_SOURCE_REVISION = "80043ce09eb8802517c35b59254f8e9c181f2dac"
 SOLPROPMIX_SOURCE_TREE = "bc7b933d6cf4c55c8ad10236383cfd09afbbfdc2"
+SOLPROPMIX_CHECKPOINT_FAMILY = "SolPropmixQMExp"
+SOLPROPMIX_DATA_RELEASE_VERSION = "v1.1"
+SOLPROPMIX_DATA_RELEASE_RECORD = 15587866
+SOLPROPMIX_PREVIOUS_DATA_RELEASE_RECORD = 14238055
+SOLPROPMIX_STATIC_CODE_ZIP_NAME = "SolProp_ML-StaticCodeGsolv.zip"
+SOLPROPMIX_STATIC_CODE_ZIP_SIZE_BYTES = 65183
+SOLPROPMIX_STATIC_CODE_ZIP_MD5 = "602e6b9b4da49ac6b788023d2a6cadcd"
+SOLPROPMIX_STATIC_CODE_ZIP_SHA256 = (
+    "8ec40ef77699f1e8589b50daedbb00fca6255df860ec93d8a589744e898bd326"
+)
+SOLPROPMIX_MODELWEIGHTS_ZIP_SIZE_BYTES = 175360920
+SOLPROPMIX_MODELWEIGHTS_ZIP_MD5 = "047cb1d69e3b51aced9eac2880eb10f6"
+SOLPROPMIX_MODELWEIGHTS_ZIP_SHA256 = (
+    "dbd391061829261e2485a6d6fcd864a8e39f14eff40a9a69bb70e2326a75b006"
+)
+SOLPROPMIX_SUPPLEMENTAL_SOURCE_ORIGIN = (
+    "Zenodo record 15587866 (v1.1), supplemental static-code release"
+)
+SOLPROPMIX_CHECKPOINT_ORIGIN = (
+    "Zenodo record 15587866 (v1.1), ModelWeights.zip/" "ModelWeights/SolPropmixQMExp"
+)
+SOLPROPMIX_CHECKPOINTS_BYTE_IDENTICAL_ACROSS_V1_0_V1_1 = True
+SOLPROPMIX_WORKBOOK_ORACLE_REPRODUCTION_GUARANTEED = False
 SOLPROPMIX_STATIC_DATA_HASHES = {
     "solvation_predictor/data/__init__.py": "2639b97ff1fe63a3c9e88402aa9d1369305be046762483db834325da22948a78",
     "solvation_predictor/data/data.py": "fd7bc4454b981686b3ef7fbb86d5069f9cb5eb7b4bbc454e3876ac61775aa83e",
@@ -105,6 +129,22 @@ class SolPropMixRuntimeReceipt:
     bf16_reduced_precision_reduction: bool
     source_revision: str
     source_tree: str
+    source_revision_scope: str
+    checkpoint_family: str
+    data_release_version: str
+    data_release_record: int
+    previous_data_release_record: int
+    static_code_zip_name: str
+    static_code_zip_size_bytes: int
+    static_code_zip_md5: str
+    static_code_zip_sha256: str
+    modelweights_zip_size_bytes: int
+    modelweights_zip_md5: str
+    modelweights_zip_sha256: str
+    supplemental_source_origin: str
+    checkpoint_origin: str
+    checkpoints_byte_identical_across_v1_0_v1_1: bool
+    workbook_oracle_reproduction_guaranteed: bool
     worker_sha256: str
     checkpoint_sha256: tuple[str, ...]
     static_sha256: tuple[tuple[str, str], ...]
@@ -151,36 +191,41 @@ class _SnapshotEvidence:
     checkpoint_sha256: tuple[str, ...]
 
 
+class _BinaryStream(Protocol):
+    def seek(self, offset: int, whence: int = 0, /) -> int: ...
+
+    def tell(self) -> int: ...
+
+    def read(self, size: int = -1, /) -> bytes: ...
+
+
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _hash_file(handle: object) -> str:
+def _hash_file(handle: _BinaryStream) -> str:
     digest = hashlib.sha256()
-    stream = cast("object", handle)
-    stream.seek(0)  # type: ignore[attr-defined]
-    for chunk in iter(lambda: stream.read(1024 * 1024), b""):  # type: ignore[attr-defined]
+    handle.seek(0)
+    for chunk in iter(lambda: handle.read(1024 * 1024), b""):
         digest.update(chunk)
-    stream.seek(0)  # type: ignore[attr-defined]
+    handle.seek(0)
     return digest.hexdigest()
 
 
 def _bounded_tail(
-    handle: object, limit: int = _MAX_FAILURE_TAIL_BYTES
+    handle: _BinaryStream, limit: int = _MAX_FAILURE_TAIL_BYTES
 ) -> tuple[str, bool]:
-    stream = cast("object", handle)
-    stream.seek(0, os.SEEK_END)  # type: ignore[attr-defined]
-    size = stream.tell()  # type: ignore[attr-defined]
+    handle.seek(0, os.SEEK_END)
+    size = handle.tell()
     truncated = size > limit
-    stream.seek(max(0, size - limit))  # type: ignore[attr-defined]
-    data = stream.read(limit)  # type: ignore[attr-defined]
+    handle.seek(max(0, size - limit))
+    data = handle.read(limit)
     return data.decode("utf-8", errors="replace"), truncated
 
 
-def _bounded_text(handle: object, limit: int = _MAX_OUTPUT_BYTES) -> str:
-    stream = cast("object", handle)
-    stream.seek(0)  # type: ignore[attr-defined]
-    data = stream.read(limit + 1)  # type: ignore[attr-defined]
+def _bounded_text(handle: _BinaryStream, limit: int = _MAX_OUTPUT_BYTES) -> str:
+    handle.seek(0)
+    data = handle.read(limit + 1)
     if len(data) > limit:
         raise SolPropMixRuntimeError(
             f"SolProp-mix worker output exceeded the {limit}-byte bound."
@@ -189,9 +234,7 @@ def _bounded_text(handle: object, limit: int = _MAX_OUTPUT_BYTES) -> str:
 
 
 def _normalize_origin(url: str) -> str:
-    value = str(url).strip().rstrip("/")
-    if value.endswith(".git"):
-        value = value[:-4]
+    value = str(url).strip().rstrip("/").removesuffix(".git")
     lowered = value.casefold()
     if lowered.startswith("git@gitlab.kuleuven.be:"):
         return "https://gitlab.kuleuven.be/" + value.split(":", 1)[1].casefold()
@@ -398,13 +441,19 @@ class SolPropMixPropertyAdapter:
         timeout_seconds: float = 300.0,
         python_executable: str | Path | None = None,
     ):
+        try:
+            timeout = float(timeout_seconds)
+        except (TypeError, ValueError) as exc:
+            raise SolPropMixConfigError(
+                "timeout_seconds must be finite and positive."
+            ) from exc
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise SolPropMixConfigError("timeout_seconds must be finite and positive.")
         self.source_root = Path(source_root).expanduser().resolve()
         self.static_source_root = Path(static_source_root).expanduser().resolve()
         self.weights_root = Path(weights_root).expanduser().resolve()
         self.python_executable = str(python_executable or sys.executable)
-        if not math.isfinite(float(timeout_seconds)) or timeout_seconds <= 0:
-            raise SolPropMixConfigError("timeout_seconds must be finite and positive.")
-        self.timeout_seconds = float(timeout_seconds)
+        self.timeout_seconds = timeout
         self.assert_artifact_identity()
 
     def assert_artifact_identity(self) -> None:
@@ -514,19 +563,24 @@ class SolPropMixPropertyAdapter:
     def _archive_source(self, runtime_root: Path) -> None:
         archive_path = runtime_root / "source.tar"
         with archive_path.open("w+b") as archive, tempfile.TemporaryFile() as stderr:
-            result = subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(self.source_root),
-                    "archive",
-                    "--format=tar",
-                    SOLPROPMIX_SOURCE_REVISION,
-                ],
-                check=False,
-                stdout=archive,
-                stderr=stderr,
-            )
+            try:
+                result = subprocess.run(
+                    [
+                        "git",
+                        "-C",
+                        str(self.source_root),
+                        "archive",
+                        "--format=tar",
+                        SOLPROPMIX_SOURCE_REVISION,
+                    ],
+                    check=False,
+                    stdout=archive,
+                    stderr=stderr,
+                )
+            except OSError as exc:
+                raise SolPropMixRuntimeError(
+                    "Unable to start git while archiving pinned SolProp-mix source."
+                ) from exc
             if result.returncode != 0:
                 detail, truncated = _bounded_tail(stderr)
                 suffix = " [truncated]" if truncated else ""
@@ -603,16 +657,16 @@ class SolPropMixPropertyAdapter:
         return environment
 
     def _run_script(self, request_json: str) -> Mapping[str, object]:
-        try:
-            with tempfile.TemporaryDirectory(prefix="maple-solpropmix-") as directory:
-                runtime_root = Path(directory)
-                snapshot = self._materialize_snapshot(runtime_root)
-                request_path = runtime_root / "request.json"
-                request_path.write_text(request_json, encoding="utf-8")
-                with (
-                    tempfile.TemporaryFile() as stdout,
-                    tempfile.TemporaryFile() as stderr,
-                ):
+        with tempfile.TemporaryDirectory(prefix="maple-solpropmix-") as directory:
+            runtime_root = Path(directory)
+            snapshot = self._materialize_snapshot(runtime_root)
+            request_path = runtime_root / "request.json"
+            request_path.write_text(request_json, encoding="utf-8")
+            with (
+                tempfile.TemporaryFile() as stdout,
+                tempfile.TemporaryFile() as stderr,
+            ):
+                try:
                     result = subprocess.run(
                         [
                             self.python_executable,
@@ -627,27 +681,28 @@ class SolPropMixPropertyAdapter:
                         stderr=stderr,
                         timeout=self.timeout_seconds,
                     )
-                    stdout_sha = _hash_file(stdout)
-                    stderr_sha = _hash_file(stderr)
-                    _, stderr_truncated = _bounded_tail(stderr)
-                    if result.returncode != 0:
-                        detail, truncated = _bounded_tail(stderr)
-                        if not detail:
-                            detail, truncated = _bounded_tail(stdout)
-                        marker = " [bounded tail; truncated]" if truncated else ""
-                        raise SolPropMixRuntimeError(
-                            "SolProp-mix inference failed"
-                            f" (stderr_sha256={stderr_sha}){marker}: {detail}"
-                        )
-                    output = _bounded_text(stdout)
-        except subprocess.TimeoutExpired as exc:
-            raise SolPropMixRuntimeError(
-                f"SolProp-mix inference exceeded its {self.timeout_seconds:g}-second timeout."
-            ) from exc
-        except OSError as exc:
-            raise SolPropMixRuntimeError(
-                "Unable to start SolProp-mix inference."
-            ) from exc
+                except subprocess.TimeoutExpired as exc:
+                    raise SolPropMixRuntimeError(
+                        "SolProp-mix inference exceeded its "
+                        f"{self.timeout_seconds:g}-second timeout."
+                    ) from exc
+                except OSError as exc:
+                    raise SolPropMixRuntimeError(
+                        "Unable to start SolProp-mix inference."
+                    ) from exc
+                stdout_sha = _hash_file(stdout)
+                stderr_sha = _hash_file(stderr)
+                _, stderr_truncated = _bounded_tail(stderr)
+                if result.returncode != 0:
+                    detail, truncated = _bounded_tail(stderr)
+                    if not detail:
+                        detail, truncated = _bounded_tail(stdout)
+                    marker = " [bounded tail; truncated]" if truncated else ""
+                    raise SolPropMixRuntimeError(
+                        "SolProp-mix inference failed"
+                        f" (stderr_sha256={stderr_sha}){marker}: {detail}"
+                    )
+                output = _bounded_text(stdout)
         payload: Mapping[str, object] | None = None
         for line in reversed(output.splitlines()):
             try:
@@ -846,6 +901,30 @@ class SolPropMixPropertyAdapter:
             ),
             source_revision=source_revision,
             source_tree=source_tree,
+            source_revision_scope=(
+                "Git revision identifies the archived core source only; the complete "
+                "runtime identity also requires the supplemental-source, checkpoint, "
+                "and worker hashes recorded here."
+            ),
+            checkpoint_family=SOLPROPMIX_CHECKPOINT_FAMILY,
+            data_release_version=SOLPROPMIX_DATA_RELEASE_VERSION,
+            data_release_record=SOLPROPMIX_DATA_RELEASE_RECORD,
+            previous_data_release_record=SOLPROPMIX_PREVIOUS_DATA_RELEASE_RECORD,
+            static_code_zip_name=SOLPROPMIX_STATIC_CODE_ZIP_NAME,
+            static_code_zip_size_bytes=SOLPROPMIX_STATIC_CODE_ZIP_SIZE_BYTES,
+            static_code_zip_md5=SOLPROPMIX_STATIC_CODE_ZIP_MD5,
+            static_code_zip_sha256=SOLPROPMIX_STATIC_CODE_ZIP_SHA256,
+            modelweights_zip_size_bytes=SOLPROPMIX_MODELWEIGHTS_ZIP_SIZE_BYTES,
+            modelweights_zip_md5=SOLPROPMIX_MODELWEIGHTS_ZIP_MD5,
+            modelweights_zip_sha256=SOLPROPMIX_MODELWEIGHTS_ZIP_SHA256,
+            supplemental_source_origin=SOLPROPMIX_SUPPLEMENTAL_SOURCE_ORIGIN,
+            checkpoint_origin=SOLPROPMIX_CHECKPOINT_ORIGIN,
+            checkpoints_byte_identical_across_v1_0_v1_1=(
+                SOLPROPMIX_CHECKPOINTS_BYTE_IDENTICAL_ACROSS_V1_0_V1_1
+            ),
+            workbook_oracle_reproduction_guaranteed=(
+                SOLPROPMIX_WORKBOOK_ORACLE_REPRODUCTION_GUARANTEED
+            ),
             worker_sha256=worker_hash,
             checkpoint_sha256=child_checkpoints,
             static_sha256=child_static,

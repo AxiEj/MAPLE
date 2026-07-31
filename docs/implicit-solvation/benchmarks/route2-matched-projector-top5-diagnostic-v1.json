@@ -1,0 +1,473 @@
+{
+  "artifact": "route2-matched-projector-top5-diagnostic-v1",
+  "claim_boundary": "This same-checkpoint, same-provider, same-cavity, same-nonpolar, same-gauge ablation isolates only local-jet versus exact-GTO reaction-field feature injection on five records selected by historical errors. It quantifies neither a V0 electronic functional nor a common scalar, and it cannot establish a general accuracy ranking or any all-record acceptance claim.",
+  "experimental_reference": {
+    "dataset": "FreeSolv",
+    "label_use_boundary": "The historical retired-method errors selected this user-requested diagnostic subset. They were not used to select weights or numerical parameters.",
+    "solvent": "water"
+  },
+  "method_controls": {
+    "only_intended_difference": "reaction_field_projector local-jet versus exact-gto-v1",
+    "same_cavity": "canonical SMD PCMSolver built-in water cavity",
+    "same_checkpoint": "polar-1-m",
+    "same_model_field_gauge": "atomic-center-mean-zero-v1",
+    "same_nonpolar": "native water SMD CDS",
+    "same_provider": "pcmsolver IEFPCM"
+  },
+  "no_target_policy": {
+    "experimental_labels_used_to_rank_current_method": false,
+    "experimental_labels_used_to_rank_diagnostic_records": true,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "half_coupling_adjustment": false,
+    "map_or_uq_calibration": false,
+    "post_selection_parameter_change": false,
+    "post_training": false,
+    "radius_adjustment": false
+  },
+  "records": [
+    {
+      "centered_local_jet": {
+        "absolute_error_kcal_mol": 2.4346141145007345,
+        "compound_id": "mobley_6973347",
+        "density_residual_inf_e": 8.01584837537006e-06,
+        "experimental_kcal_mol": -2.94,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "e4fcb87543686005c5ee431b39e892278af27cad102ddbe2a46cd324af191401",
+          "evaluation_manifest_sha256": "82ef682901e24deef44d5c7851ed609bd703b41118fe6ba62f26cadfcdf5222f",
+          "geometry_sha256": "b66400d3e4aa2ffb5f878f1554755655ab235f60cd1b6656485684e773de0879",
+          "public_record_sha256": "c7b64d503b8a3cb7f0d72d3b0dfd800b9895c943efd378ee692d37d7f8ed9921",
+          "raw_audit_sha256": "4447283f8635799c4362c9626693075ae695549fe10bf864791c2774ba137d20",
+          "result_content_sha256": "75bfe49f22c996c8d2d1672f2e23beedd7ff63e6e557bdb757cb0d9a2520647d",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": true,
+            "continuum_pairing_status": "point-multipole-local-jet-dual",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "common-electronic-scalar-energy-density-conjugacy-and-kkt",
+            "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "local-jet",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 17,
+        "label": "centered_local_jet",
+        "name": "ethyl acetate",
+        "predicted_kcal_mol": -5.3746141145007345,
+        "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+        "raw_audit_sha256": "4447283f8635799c4362c9626693075ae695549fe10bf864791c2774ba137d20",
+        "signed_error_kcal_mol": -2.4346141145007345,
+        "wall_seconds": 4.249000928000896
+      },
+      "compound_id": "mobley_6973347",
+      "exact_gto": {
+        "absolute_error_kcal_mol": 0.6963090734616988,
+        "compound_id": "mobley_6973347",
+        "density_residual_inf_e": 6.890431371725514e-06,
+        "experimental_kcal_mol": -2.94,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "536b9e4ea06742f6bfc49ebd311f4d1a601ca5fce5e44d5727b6c230b1a9d2dc",
+          "evaluation_manifest_sha256": "ecc26fdf8dfdbff723fe2086282d6b670abf249ea5705e05342f4c9c8acf7c9e",
+          "geometry_sha256": "b66400d3e4aa2ffb5f878f1554755655ab235f60cd1b6656485684e773de0879",
+          "public_record_sha256": "e63d0ef58fe527a9974b2fd05f6bd50f081fe644b9d03bde28454e1c78772ce1",
+          "raw_audit_sha256": "8f66e18b822812d2ead04a50764c0d46cc8b78c3b5b5619ae861fc29dd66675d",
+          "result_content_sha256": "078d757bf269e61642df6e4753f9c174ddccd9142e921d80a7c328941b5411a2",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": false,
+            "continuum_pairing_status": "known-nonconjugate-point-source-gto-receiver",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "same-basis-gto-galerkin-source-receiver-and-common-scalar",
+            "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "exact-gto-v1",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 12,
+        "label": "exact_gto",
+        "name": "ethyl acetate",
+        "predicted_kcal_mol": -3.6363090734616987,
+        "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+        "raw_audit_sha256": "8f66e18b822812d2ead04a50764c0d46cc8b78c3b5b5619ae861fc29dd66675d",
+        "signed_error_kcal_mol": -0.6963090734616988,
+        "wall_seconds": 2.3755131470097695
+      },
+      "exact_minus_local_absolute_error_kcal_mol": -1.7383050410390357,
+      "name": "ethyl acetate",
+      "winner": "exact_gto"
+    },
+    {
+      "centered_local_jet": {
+        "absolute_error_kcal_mol": 0.02979557969629365,
+        "compound_id": "mobley_4883284",
+        "density_residual_inf_e": 8.095603962282594e-06,
+        "experimental_kcal_mol": -5.49,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "1f50ee5ce8496bfb7eddfad587fb97360e6df6664f80d9a0e52647d6a1815c5e",
+          "evaluation_manifest_sha256": "29207361a7fbc75b676f78b27d63fc466d5a5563d0545926899109b92f8a7f16",
+          "geometry_sha256": "fe7a679a72e4e9aae3d4d577df217db27e32078694a7aad14314f980f9c9baad",
+          "public_record_sha256": "c4de06b749d3500157fc8e2efb85d62bcdc4dd476a4df2f0c785a41b286904d2",
+          "raw_audit_sha256": "d925a57042650c5093ceecd6744f5906b7a771f3ecc4d21c90b048e43346af53",
+          "result_content_sha256": "fc4f52e358ea1ded1e18738ac105b1adb487b25114851bae22d72061eb53fa7f",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": true,
+            "continuum_pairing_status": "point-multipole-local-jet-dual",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "common-electronic-scalar-energy-density-conjugacy-and-kkt",
+            "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "local-jet",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 17,
+        "label": "centered_local_jet",
+        "name": "aniline",
+        "predicted_kcal_mol": -5.519795579696294,
+        "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+        "raw_audit_sha256": "d925a57042650c5093ceecd6744f5906b7a771f3ecc4d21c90b048e43346af53",
+        "signed_error_kcal_mol": -0.02979557969629365,
+        "wall_seconds": 3.347693469011574
+      },
+      "compound_id": "mobley_4883284",
+      "exact_gto": {
+        "absolute_error_kcal_mol": 0.2214856905372482,
+        "compound_id": "mobley_4883284",
+        "density_residual_inf_e": 5.949759789847242e-06,
+        "experimental_kcal_mol": -5.49,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "14eac0de5beaae0e856b9682884d36aff09538ba3dcd01768a8a2dc359aeba4c",
+          "evaluation_manifest_sha256": "fad25ae32755d1bed97432182beb87d0ab8d80905f44b25b7a6588e913dd193f",
+          "geometry_sha256": "fe7a679a72e4e9aae3d4d577df217db27e32078694a7aad14314f980f9c9baad",
+          "public_record_sha256": "991a3ab8d6b52becf3dc4ccb2001dc97a786c9dbe63a2a18c18b90e98c5659ae",
+          "raw_audit_sha256": "d8a15cb5d33c93fdc79eb65683ba8f7067b75b200e58cd3f11eaad960c71c426",
+          "result_content_sha256": "a40645eacb828dfc4320f0776fe6b326208290452c7cee29a3b3c247e49a4f46",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": false,
+            "continuum_pairing_status": "known-nonconjugate-point-source-gto-receiver",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "same-basis-gto-galerkin-source-receiver-and-common-scalar",
+            "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "exact-gto-v1",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 15,
+        "label": "exact_gto",
+        "name": "aniline",
+        "predicted_kcal_mol": -5.268514309462752,
+        "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+        "raw_audit_sha256": "d8a15cb5d33c93fdc79eb65683ba8f7067b75b200e58cd3f11eaad960c71c426",
+        "signed_error_kcal_mol": 0.2214856905372482,
+        "wall_seconds": 3.2733620509970933
+      },
+      "exact_minus_local_absolute_error_kcal_mol": 0.19169011084095455,
+      "name": "aniline",
+      "winner": "centered_local_jet"
+    },
+    {
+      "centered_local_jet": {
+        "absolute_error_kcal_mol": 0.20484405347525758,
+        "compound_id": "mobley_7532833",
+        "density_residual_inf_e": 8.381756944286778e-06,
+        "experimental_kcal_mol": -3.88,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "776e7fafcb3dfea180d9bc064cb1e269e87fe613cb66da99917874f4c90e568e",
+          "evaluation_manifest_sha256": "f0424899670eb454fd7afead9988d27f1d36744b7ff827c6d7312130009b9e5d",
+          "geometry_sha256": "6ca5130bfe39f3959cc4d4124bd4733f14958e2ebea11d72f4f36b6299c9ae2e",
+          "public_record_sha256": "5b414c9fb95ea4afa99f45cdaca89255ae3211d6ad3d0d72bf4a90980c042227",
+          "raw_audit_sha256": "5ca33da90ae6a4c95a409588a431299795150bfa85765481a35bddbedcaa40d6",
+          "result_content_sha256": "dc08dcbbe78d5682c41a58e71cdb91132ba07556d1c5682a200f12bd78cf6dea",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": true,
+            "continuum_pairing_status": "point-multipole-local-jet-dual",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "common-electronic-scalar-energy-density-conjugacy-and-kkt",
+            "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "local-jet",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 16,
+        "label": "centered_local_jet",
+        "name": "acetonitrile",
+        "predicted_kcal_mol": -4.0848440534752575,
+        "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+        "raw_audit_sha256": "5ca33da90ae6a4c95a409588a431299795150bfa85765481a35bddbedcaa40d6",
+        "signed_error_kcal_mol": -0.20484405347525758,
+        "wall_seconds": 2.104876621000585
+      },
+      "compound_id": "mobley_7532833",
+      "exact_gto": {
+        "absolute_error_kcal_mol": 0.7063579951124037,
+        "compound_id": "mobley_7532833",
+        "density_residual_inf_e": 7.308144381157344e-06,
+        "experimental_kcal_mol": -3.88,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "2073d343de45e86ae7c6ca3e78cda8c9b33f1ec2ab2ed000fb8371800d93a0e3",
+          "evaluation_manifest_sha256": "e30d15e7aa776a02062a2eb707b40385956d8b705cdb0d945aea96c6023316d2",
+          "geometry_sha256": "6ca5130bfe39f3959cc4d4124bd4733f14958e2ebea11d72f4f36b6299c9ae2e",
+          "public_record_sha256": "2a6b7da5adb9b8981907196cdd01e19cff5cb1ce448439ea15d3bee18df2588b",
+          "raw_audit_sha256": "3890032d9f79d2912974ddf092cc38ae898ffffe1ce38fe2461d493a839e92ac",
+          "result_content_sha256": "b6caf7a9449fd248633e4ed3ef6acb4f20b6037524bb1ef3e20a000634636926",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": false,
+            "continuum_pairing_status": "known-nonconjugate-point-source-gto-receiver",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "same-basis-gto-galerkin-source-receiver-and-common-scalar",
+            "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "exact-gto-v1",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 13,
+        "label": "exact_gto",
+        "name": "acetonitrile",
+        "predicted_kcal_mol": -3.173642004887596,
+        "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+        "raw_audit_sha256": "3890032d9f79d2912974ddf092cc38ae898ffffe1ce38fe2461d493a839e92ac",
+        "signed_error_kcal_mol": 0.7063579951124037,
+        "wall_seconds": 1.5638282549916767
+      },
+      "exact_minus_local_absolute_error_kcal_mol": 0.5015139416371461,
+      "name": "acetonitrile",
+      "winner": "centered_local_jet"
+    },
+    {
+      "centered_local_jet": {
+        "absolute_error_kcal_mol": 0.034574206809241614,
+        "compound_id": "mobley_2198613",
+        "density_residual_inf_e": 9.865004278422629e-06,
+        "experimental_kcal_mol": -0.63,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "a9f9f8adce6a6e1a4ba85c72421767829fc60776dff44b2f11a2ed63d9972da0",
+          "evaluation_manifest_sha256": "b9e86a34040eaa6add463b2c934dde13ee19aee3e3e3c58c50eb1c15a2d190ca",
+          "geometry_sha256": "2335602844a12a04a977bb76fac851456a8442daceaefe3ad7d4fa85caa6d8b3",
+          "public_record_sha256": "cd7b1f7a8f19c4ae149fcd69dca9a5c11ea05490181684a827b7ede6fca3eda7",
+          "raw_audit_sha256": "6e31ec2848e9e41b53df773b7fec3416eeba6052889dc54fabef9fc3edf8c8c7",
+          "result_content_sha256": "a1e3bfd82e8ccbef3c54e7e939d4f5ecc45762e4b189480261415608d0125b74",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": true,
+            "continuum_pairing_status": "point-multipole-local-jet-dual",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "common-electronic-scalar-energy-density-conjugacy-and-kkt",
+            "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "local-jet",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 17,
+        "label": "centered_local_jet",
+        "name": "chloroethane",
+        "predicted_kcal_mol": -0.5954257931907584,
+        "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+        "raw_audit_sha256": "6e31ec2848e9e41b53df773b7fec3416eeba6052889dc54fabef9fc3edf8c8c7",
+        "signed_error_kcal_mol": 0.034574206809241614,
+        "wall_seconds": 2.424409614992328
+      },
+      "compound_id": "mobley_2198613",
+      "exact_gto": {
+        "absolute_error_kcal_mol": 0.4985664145471602,
+        "compound_id": "mobley_2198613",
+        "density_residual_inf_e": 8.306962680254548e-06,
+        "experimental_kcal_mol": -0.63,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "836a02f2b8d9f9215e3741e32d4a4161a54597ea412b2d71a680bc373fda1acd",
+          "evaluation_manifest_sha256": "6bf5d79cc4f3e126b5ceda92c258b70df96dc5ba89616bfe65a1abba70b44070",
+          "geometry_sha256": "2335602844a12a04a977bb76fac851456a8442daceaefe3ad7d4fa85caa6d8b3",
+          "public_record_sha256": "916668950156f80efd9f103eb3e49d3b80a1523ac6cf90ce5f13a967b2bed813",
+          "raw_audit_sha256": "58326ccc52c0de3f49f5debe4baec2236838012a3be64c313a4d822fd3ac2451",
+          "result_content_sha256": "82b7246ad9f2a91b0fbeeb20d387ae36e7b7d1a93c1ab3dd8307c1427ea7d9b8",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": false,
+            "continuum_pairing_status": "known-nonconjugate-point-source-gto-receiver",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "same-basis-gto-galerkin-source-receiver-and-common-scalar",
+            "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "exact-gto-v1",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 12,
+        "label": "exact_gto",
+        "name": "chloroethane",
+        "predicted_kcal_mol": -0.13143358545283979,
+        "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+        "raw_audit_sha256": "58326ccc52c0de3f49f5debe4baec2236838012a3be64c313a4d822fd3ac2451",
+        "signed_error_kcal_mol": 0.4985664145471602,
+        "wall_seconds": 1.9066394660039805
+      },
+      "exact_minus_local_absolute_error_kcal_mol": 0.4639922077379186,
+      "name": "chloroethane",
+      "winner": "centered_local_jet"
+    },
+    {
+      "centered_local_jet": {
+        "absolute_error_kcal_mol": 0.6068250170892664,
+        "compound_id": "mobley_7015518",
+        "density_residual_inf_e": 7.92187416815554e-06,
+        "experimental_kcal_mol": -1.91,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "5538ab71ea3b62a2e50495fa8d3a0f34342d60fff8ea277bd1f929a87d629917",
+          "evaluation_manifest_sha256": "ee7eb3609a6c837903be0e8a2eb8c3f8a66897fe5e8c9fd4b320a912bc4e7f94",
+          "geometry_sha256": "a2538293c3555d026cabadca01cbf6c2a46a4a268ae2f193ac74220d08cd843f",
+          "public_record_sha256": "3113e3485ca020155bc5cb0f6632b3f203eb13dce2bc6159d5362b50b87c22f4",
+          "raw_audit_sha256": "4b917681be3d05fc68a7d28d32e4a35058d4fdc3ef64f533ac811863663e5a06",
+          "result_content_sha256": "b0de1ff386f91e785746b67d5b9a816df346b97ca2978db6c03f7a1d0c779685",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": true,
+            "continuum_pairing_status": "point-multipole-local-jet-dual",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "common-electronic-scalar-energy-density-conjugacy-and-kkt",
+            "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "local-jet",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 16,
+        "label": "centered_local_jet",
+        "name": "methoxymethane",
+        "predicted_kcal_mol": -1.3031749829107335,
+        "profile": "smd-iefpcm-point-l1-local-jet-atomic-mean-v1",
+        "raw_audit_sha256": "4b917681be3d05fc68a7d28d32e4a35058d4fdc3ef64f533ac811863663e5a06",
+        "signed_error_kcal_mol": 0.6068250170892664,
+        "wall_seconds": 2.1325069859885843
+      },
+      "compound_id": "mobley_7015518",
+      "exact_gto": {
+        "absolute_error_kcal_mol": 1.0762969614701723,
+        "compound_id": "mobley_7015518",
+        "density_residual_inf_e": 8.953819628843007e-06,
+        "experimental_kcal_mol": -1.91,
+        "immutable_evaluation_record": {
+          "base_manifest_sha256": "c3b4a7843077d32ee95e648086a2de4eae76dbf9a325a9b416110887cac96cf5",
+          "evaluation_manifest_sha256": "8f6c9f399270e3a6db86da5627ea786dc7bf52db3c1724fbd933104466835f29",
+          "geometry_sha256": "a2538293c3555d026cabadca01cbf6c2a46a4a268ae2f193ac74220d08cd843f",
+          "public_record_sha256": "9afeffc86125c7d96a733f1edf19c48a90a43dd365a8d9f5cb967921d0357229",
+          "raw_audit_sha256": "3ba5c4dd0e955af4f2ef3325001105384921115784985693907dc2d2e003852d",
+          "result_content_sha256": "cbdbc3101775aabb35425bb7c6bb2f82ee5f2d0842fb3bfa40494aa65d9b9680",
+          "source_receiver_contract": {
+            "common_stationary_electronic_functional_established": false,
+            "continuum_pairing_established": false,
+            "continuum_pairing_status": "known-nonconjugate-point-source-gto-receiver",
+            "contract_version": "route2-source-receiver-contract-v1",
+            "next_required_physical_gate": "same-basis-gto-galerkin-source-receiver-and-common-scalar",
+            "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+            "prohibited_claims": [
+              "variational SCRF",
+              "common-energy stationary electronic state",
+              "solution-phase PES",
+              "analytic solution-phase forces"
+            ],
+            "public_capability": "experimental-energy-only",
+            "reaction_field_receiver": "exact-gto-v1",
+            "solute_source": "point-multipole-l1"
+          }
+        },
+        "iterations": 11,
+        "label": "exact_gto",
+        "name": "methoxymethane",
+        "predicted_kcal_mol": -0.8337030385298276,
+        "profile": "smd-iefpcm-point-l1-exact-gto-v1",
+        "raw_audit_sha256": "3ba5c4dd0e955af4f2ef3325001105384921115784985693907dc2d2e003852d",
+        "signed_error_kcal_mol": 1.0762969614701723,
+        "wall_seconds": 1.701197662987397
+      },
+      "exact_minus_local_absolute_error_kcal_mol": 0.4694719443809059,
+      "name": "methoxymethane",
+      "winner": "centered_local_jet"
+    }
+  ],
+  "runtime": {
+    "device": "cuda",
+    "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "git_head": "4191b505809a2a44990a563da74d292a33122382",
+    "model_load_seconds": 3.010924715999863,
+    "panel_wall_seconds": 25.105643019996933,
+    "runtime_results_path": ".omx/benchmarks/route2-matched-projector-top5-20260731/results.json",
+    "runtime_results_sha256": "4e8225792dd87b94f454b002f77b6263b662b57ead4e0ee71a8e1f0e89c5bdf1"
+  },
+  "schema_version": 1,
+  "selection": {
+    "ranking": "top five historical retired QEq-GTO/GBn2 absolute errors",
+    "source_commit": "c77eb6a295cbb39a1b6e66d21190a192cc8ef050",
+    "source_path": "docs/implicit-solvation/benchmarks/freesolv10-qeq-gto-full-h-2026-07-22.json",
+    "source_sha256": "893ad62e476e6375602d82231def6b0ad22cab60128c8068894daaf4a6ee8c4c"
+  },
+  "status": "diagnostic-only-not-an-acceptance-panel",
+  "summary": {
+    "exact_gto_mean_absolute_error_kcal_mol": 0.6398032270257366,
+    "exact_gto_wins": 1,
+    "local_jet_mean_absolute_error_kcal_mol": 0.6621305943141588,
+    "local_jet_wins": 4
+  }
+}

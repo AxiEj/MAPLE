@@ -119,6 +119,17 @@ selected by old errors, and the current profile remains the nonvariational,
 known-nonconjugate point-multipole-source/exact-GTO-receiver fixed point.  It
 does not establish V0 accuracy or weaken any all-record acceptance gate.
 
+**2026-07-31 — matched reaction-field-projector ablation.**  With the same
+frozen `polar-1-m` checkpoint, PCMSolver/IEFPCM, SMD-CDS term, canonical SMD
+cavity, and atomic-mean gauge, exact-GTO improves only ethyl acetate
+(`2.435 -> 0.696 kcal/mol`) while matched local-jet is lower for aniline,
+acetonitrile, chloroethane, and methoxymethane.  The five-record MAEs are
+`0.640` (exact-GTO) and `0.662 kcal/mol` (local-jet), so the small aggregate
+difference is dominated by the deliberately selected ethyl-acetate outlier.
+The exact-GTO receiver is therefore not a universal accuracy fix; it is one
+representation change within the legacy model.  See
+[`route2-matched-projector-top5-diagnostic-v1.json`](benchmarks/route2-matched-projector-top5-diagnostic-v1.json).
+
 The immutable future gates are preserved rather than weakened:
 
 1. [`route2-v0-historical-freesolv10-regression-v1.json`](benchmarks/route2-v0-historical-freesolv10-regression-v1.json) retains the historical ethyl-acetate record `mobley_6973347`, where the retired GTO/QEq/GBn2 calculation reached **7.041442082076966 kcal/mol** error.

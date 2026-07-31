@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
+import threading
 from typing import Any
+import uuid
 
 import numpy as np
 
@@ -14,10 +17,79 @@ from .result import SolvationResult
 from .smd import SMDImplicitSolvation
 
 
+def _json_ready(value: Any) -> Any:
+    """Preserve the existing JSON boundary before deriving an artifact hash."""
+
+    return json.loads(
+        json.dumps(
+            value,
+            sort_keys=True,
+            default=str,
+            allow_nan=False,
+        )
+    )
+
+
+def _canonical_json_sha256(value: Any) -> str:
+    payload = json.dumps(
+        _json_ready(value),
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _evaluation_geometry(atoms) -> dict[str, Any]:
+    """Return the complete current ASE geometry used by one evaluation."""
+
+    atomic_numbers = np.asarray(atoms.get_atomic_numbers(), dtype=int)
+    positions = np.asarray(atoms.get_positions(), dtype=float)
+    cell = np.asarray(atoms.get_cell(), dtype=float)
+    periodic = np.asarray(atoms.get_pbc(), dtype=bool)
+    if (
+        atomic_numbers.ndim != 1
+        or positions.shape != (len(atomic_numbers), 3)
+        or cell.shape != (3, 3)
+        or periodic.shape != (3,)
+        or not np.all(np.isfinite(positions))
+        or not np.all(np.isfinite(cell))
+    ):
+        raise ValueError(
+            "Route 2 evaluation geometry must contain finite ASE atoms, "
+            "positions, cell, and periodicity."
+        )
+    return {
+        "atomic_numbers": atomic_numbers.tolist(),
+        "chemical_symbols": list(atoms.get_chemical_symbols()),
+        "positions_angstrom": positions.tolist(),
+        "cell_angstrom": cell.tolist(),
+        "pbc": periodic.tolist(),
+    }
+
+
+def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
+    """Atomically publish one human-readable, canonically hashable JSON record."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    temporary_path.write_text(
+        json.dumps(
+            _json_ready(payload),
+            indent=2,
+            sort_keys=True,
+            allow_nan=False,
+        ),
+        encoding="utf-8",
+    )
+    temporary_path.replace(path)
+
+
 class ImplicitSolvationCorrection:
     """Prepare and evaluate one explicitly selected Route-2 SMD provider."""
 
     provider_api_version = 1
+    _audit_write_lock = threading.RLock()
 
     def __init__(
         self,
@@ -77,48 +149,96 @@ class ImplicitSolvationCorrection:
         provenance = getattr(self.provider, "provenance", None)
         if callable(provenance):
             provenance = provenance()
+        geometry = _evaluation_geometry(self.atoms)
         manifest = {
-            "schema_version": 2,
+            "schema_version": 3,
             "charge": None,
             "solvation": provenance,
             "charge_options": {},
             "solvation_options": self.solvation_options,
+            "solvation_options_sha256": _canonical_json_sha256(
+                self.solvation_options
+            ),
             "energy_composition": "E_MAPLE_gas + delta_G_solv",
             "response_lifecycle": f"density-coupled-{self.mode}",
-            "elements": self.atoms.get_chemical_symbols(),
-            "positions_angstrom": np.asarray(
-                self.atoms.get_positions(), dtype=float
-            ).tolist(),
+            "initial_geometry": geometry,
+            "initial_geometry_sha256": _canonical_json_sha256(geometry),
+            "public_evaluation_record_directory": "route2-public-results",
+            "public_evaluation_record_contract": (
+                "each record carries current-geometry and immutable "
+                "content/manifest integrity digests"
+            ),
         }
-        (self.audit_dir / "manifest.json").write_text(
-            json.dumps(manifest, indent=2, sort_keys=True, default=str),
-            encoding="utf-8",
+        self._manifest_sha256 = _canonical_json_sha256(manifest)
+        _atomic_write_json(
+            self.audit_dir / "manifest.json",
+            {
+                **manifest,
+                "manifest_sha256": self._manifest_sha256,
+            },
         )
 
-    def _write_public_result_ledger(self, result: SolvationResult) -> None:
+    def _write_public_result_ledger(self, atoms, result: SolvationResult) -> None:
         """Persist the checked leaf/derived energy split for one evaluation."""
 
         if not result.leaf_components_hartree:
             return
+        run_id = uuid.uuid4().hex
+        geometry = _evaluation_geometry(atoms)
+        geometry_sha256 = _canonical_json_sha256(geometry)
         payload = {
-            "schema_version": 1,
+            "schema_version": 2,
+            "run_id": run_id,
             "energy_hartree": float(result.energy_hartree),
             "leaf_components_hartree": dict(result.leaf_components_hartree),
             "derived_totals_hartree": dict(result.derived_totals_hartree),
             "profile": result.provenance.get("profile"),
             "provider": result.provenance.get("provider"),
+            "evaluation_geometry": geometry,
+            "geometry_sha256": geometry_sha256,
+            "solvation_options_sha256": _canonical_json_sha256(
+                self.solvation_options
+            ),
+            "base_manifest_sha256": self._manifest_sha256,
             "component_contract": (
                 "derived totals are checked from leaves; do not sum the "
                 "legacy flat components map"
             ),
         }
-        output_path = self.audit_dir / "route2-public-result-ledger.json"
-        temporary_path = output_path.with_suffix(".json.tmp")
-        temporary_path.write_text(
-            json.dumps(payload, indent=2, sort_keys=True, allow_nan=False),
-            encoding="utf-8",
-        )
-        temporary_path.replace(output_path)
+        result_content_sha256 = _canonical_json_sha256(payload)
+        evaluation_manifest = {
+            "schema_version": 1,
+            "run_id": run_id,
+            "base_manifest_sha256": self._manifest_sha256,
+            "geometry_sha256": geometry_sha256,
+            "solvation_options_sha256": payload["solvation_options_sha256"],
+            "result_content_sha256": result_content_sha256,
+        }
+        evaluation_manifest_sha256 = _canonical_json_sha256(evaluation_manifest)
+        record_directory = self.audit_dir / "route2-public-results"
+        manifest_path = record_directory / f"{run_id}.manifest.json"
+        record_path = record_directory / f"{run_id}.json"
+        published_payload = {
+            **payload,
+            "result_content_sha256": result_content_sha256,
+            "evaluation_manifest_path": str(
+                manifest_path.relative_to(self.audit_dir)
+            ),
+            "evaluation_manifest_sha256": evaluation_manifest_sha256,
+        }
+        with self._audit_write_lock:
+            _atomic_write_json(
+                manifest_path,
+                {
+                    **evaluation_manifest,
+                    "evaluation_manifest_sha256": evaluation_manifest_sha256,
+                },
+            )
+            _atomic_write_json(record_path, published_payload)
+            _atomic_write_json(
+                self.audit_dir / "route2-public-result-ledger.json",
+                published_payload,
+            )
 
     def evaluate(
         self,
@@ -137,5 +257,5 @@ class ImplicitSolvationCorrection:
             need_forces=need_forces,
             calculator=calculator,
         )
-        self._write_public_result_ledger(result)
+        self._write_public_result_ledger(atoms, result)
         return result

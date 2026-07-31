@@ -419,7 +419,11 @@ than written into the launch directory. Both provenance records label the
 model output correctly as a coarse-grained net charge density rather than a QM
 electron density. The common wrapper also writes
 `route2-public-result-ledger.json` with immutable leaf terms and their checked
-derived totals.
+derived totals. Each evaluation additionally receives a distinct immutable
+`route2-public-results/<run-id>.json` record containing the **current** ASE
+geometry, its SHA-256, the selected-profile digest, and linked manifest/content
+digests; `route2-public-result-ledger.json` is only the latest-record alias and
+must not be used to erase earlier evaluation evidence.
 
 FreeSolv remains a secondary energy diagnostic; it does not define Route 2 and
 cannot certify a solution-phase PES. The retained derivative evidence is not

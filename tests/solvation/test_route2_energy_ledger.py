@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 
 import numpy as np
@@ -25,6 +26,17 @@ def _components() -> dict[str, float]:
         "standard_state": 0.01,
         "delta_g_solv": -0.45,
     }
+
+
+def _canonical_sha256(payload) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode("utf-8")
+    ).hexdigest()
 
 
 def test_route2_energy_ledger_separates_leaves_from_checked_totals():
@@ -195,8 +207,14 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
             )
 
     monkeypatch.setattr(module, "SMDImplicitSolvation", _Provider)
+    initial_atoms = Atoms(
+        "H",
+        positions=[[0.0, 0.0, 0.0]],
+        cell=np.diag([12.0, 13.0, 14.0]),
+        pbc=[False, False, False],
+    )
     correction = ImplicitSolvationCorrection(
-        Atoms("H"),
+        initial_atoms,
         {},
         {
             "method": "smd",
@@ -208,13 +226,29 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
         output=tmp_path / "job.out",
     )
 
-    correction.evaluate(Atoms("H"))
+    first_atoms = initial_atoms.copy()
+    second_atoms = initial_atoms.copy()
+    second_atoms.positions[0, 0] = 0.25
+    correction.evaluate(first_atoms)
+    correction.evaluate(second_atoms)
+
+    audit_dir = tmp_path / "job.out.implicit"
+    manifest = json.loads((audit_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["schema_version"] == 3
+    assert manifest["initial_geometry"]["positions_angstrom"] == [[0.0, 0.0, 0.0]]
+    assert manifest["initial_geometry_sha256"] == _canonical_sha256(
+        manifest["initial_geometry"]
+    )
+    static_manifest = dict(manifest)
+    static_manifest.pop("manifest_sha256")
+    assert manifest["manifest_sha256"] == _canonical_sha256(static_manifest)
 
     payload = json.loads(
         (tmp_path / "job.out.implicit" / "route2-public-result-ledger.json").read_text(
             encoding="utf-8"
         )
     )
+    assert payload["schema_version"] == 2
     assert payload["energy_hartree"] == pytest.approx(-0.45)
     assert payload["leaf_components_hartree"] == {
         "solute_polarization": -0.20,
@@ -226,3 +260,41 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
         "electrostatic": -0.50,
         "delta_g_solv": -0.45,
     }
+    assert payload["evaluation_geometry"]["positions_angstrom"] == [
+        [0.25, 0.0, 0.0]
+    ]
+    assert payload["base_manifest_sha256"] == manifest["manifest_sha256"]
+    content = dict(payload)
+    for key in (
+        "result_content_sha256",
+        "evaluation_manifest_path",
+        "evaluation_manifest_sha256",
+    ):
+        content.pop(key)
+    assert payload["result_content_sha256"] == _canonical_sha256(content)
+
+    evaluation_manifest_path = audit_dir / payload["evaluation_manifest_path"]
+    evaluation_manifest = json.loads(
+        evaluation_manifest_path.read_text(encoding="utf-8")
+    )
+    manifest_content = dict(evaluation_manifest)
+    manifest_content.pop("evaluation_manifest_sha256")
+    assert evaluation_manifest["evaluation_manifest_sha256"] == _canonical_sha256(
+        manifest_content
+    )
+    assert payload["evaluation_manifest_sha256"] == evaluation_manifest[
+        "evaluation_manifest_sha256"
+    ]
+    assert evaluation_manifest["result_content_sha256"] == payload[
+        "result_content_sha256"
+    ]
+
+    result_records = sorted(
+        path
+        for path in (audit_dir / "route2-public-results").glob("*.json")
+        if not path.name.endswith(".manifest.json")
+    )
+    assert len(result_records) == 2
+    records = [json.loads(path.read_text(encoding="utf-8")) for path in result_records]
+    assert len({record["run_id"] for record in records}) == 2
+    assert len({record["geometry_sha256"] for record in records}) == 2

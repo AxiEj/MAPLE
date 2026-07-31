@@ -143,6 +143,32 @@ def test_calcabc_publishes_separate_route2_leaf_and_total_ledgers():
     }
 
 
+def test_calcabc_does_not_retry_internal_provider_type_errors():
+    class _Correction:
+        provider_api_version = 1
+        supported_properties = {"energy"}
+
+        def __init__(self):
+            self.calls = 0
+
+        def evaluate(self, _atoms, *, need_forces=False, calculator=None):
+            del need_forces, calculator
+            self.calls += 1
+            raise TypeError("synthetic provider implementation failure")
+
+    correction = _Correction()
+    calculator = CalcABC()
+    calculator.solvent_correction = correction
+
+    with pytest.raises(TypeError, match="synthetic provider implementation failure"):
+        calculator._finalize_results(
+            Atoms("H"),
+            energy=-1.0,
+            unit="hartree",
+        )
+    assert correction.calls == 1
+
+
 def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_path):
     import maple.function.calculator.extra_correction.implicit.correction as module
 

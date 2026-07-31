@@ -17,6 +17,8 @@ from .smd import SMDImplicitSolvation
 class ImplicitSolvationCorrection:
     """Prepare and evaluate one explicitly selected Route-2 SMD provider."""
 
+    provider_api_version = 1
+
     def __init__(
         self,
         atoms,

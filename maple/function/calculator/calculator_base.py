@@ -349,20 +349,24 @@ class CalcABC(ase.calculators.calculator.Calculator):
             if hessian is not None:
                 raise NotImplementedError(IMPLICIT_SOLVENT_FORCE_ERROR)
             if hasattr(self.solvent_correction, "evaluate"):
-                try:
+                if (
+                    getattr(
+                        self.solvent_correction,
+                        "provider_api_version",
+                        None,
+                    )
+                    == 1
+                ):
                     solvent_result = self.solvent_correction.evaluate(
                         atoms,
                         need_forces=forces_ha is not None,
                         calculator=self,
                     )
-                except TypeError as exc:
-                    try:
-                        solvent_result = self.solvent_correction.evaluate(
-                            atoms,
-                            need_forces=forces_ha is not None,
-                        )
-                    except TypeError:
-                        raise exc
+                else:
+                    solvent_result = self.solvent_correction.evaluate(
+                        atoms,
+                        need_forces=forces_ha is not None,
+                    )
                 energy_ha = energy_ha + float(solvent_result.energy_hartree)
                 if forces_ha is not None:
                     if solvent_result.forces_hartree_per_angstrom is None:

@@ -171,8 +171,19 @@ The density-dual field remains in the continuum zero-at-infinity gauge; only
 the model-driving copy is gauge-fixed. The current force path does not include
 \(dC/d\mathbf R\), so both atomic-mean profiles fail closed for forces.
 
+This division also fixes the exact-GTO semantic boundary: its point-multipole
+source and finite-width GTO receiver are **not** transpose maps in one common
+source/receiver pairing. The profile is therefore a known nonconjugate,
+energy-only operational experiment. PCMSolver's own ASC energy pairing may be
+reciprocal without making the learned point-source/GTO-receiver composite a
+variational SCRF state or providing the standard PCM analytic-force proof.
+The next eligible physics path is the separately implemented same-basis GTO
+Galerkin operator followed by a common electronic scalar/KKT gate, not a
+radius, half-factor, or fitted response adjustment.
+
 For either reaction-field projector, the returned quantity is the
-field-polarized **intrinsic** MACE energy and deliberately excludes the
+field-conditioned model energy (historically named **intrinsic** by the
+adapter) and deliberately excludes the
 explicit \(\langle\rho,V_{\mathrm{reac}}\rangle\) interaction:
 
 \[
@@ -185,6 +196,12 @@ This convention is why MAPLE does not subtract the density/reaction coupling a
 second time. It is locked by implementation and audit provenance; a future
 adapter whose energy includes the explicit coupling would require a different
 formula and profile name.
+
+The legacy word “intrinsic” in \(E_{\mathrm{MACE,intrinsic}}\) is an API and
+historical-artifact identifier, **not** a proof that this field-conditioned
+quantity is a field-independent electronic functional or that its field
+gradient equals the returned density. Public evidence records use
+`field_conditioned_model_energy` language for that reason.
 
 The exact-GTO profile remains energy-only. Its model response is taken with
 respect to the full feature tensor, whereas the current force candidate

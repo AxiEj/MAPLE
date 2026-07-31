@@ -242,6 +242,25 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
     static_manifest = dict(manifest)
     static_manifest.pop("manifest_sha256")
     assert manifest["manifest_sha256"] == _canonical_sha256(static_manifest)
+    assert manifest["source_receiver_contract"] == {
+        "contract_version": "route2-source-receiver-contract-v1",
+        "profile": "smd-iefpcm",
+        "solute_source": "point-multipole-l1",
+        "reaction_field_receiver": "local-jet",
+        "continuum_pairing_status": "point-multipole-local-jet-dual",
+        "continuum_pairing_established": True,
+        "common_stationary_electronic_functional_established": False,
+        "public_capability": "experimental-energy-only",
+        "next_required_physical_gate": (
+            "common-electronic-scalar-energy-density-conjugacy-and-kkt"
+        ),
+        "prohibited_claims": [
+            "variational SCRF",
+            "common-energy stationary electronic state",
+            "solution-phase PES",
+            "analytic solution-phase forces",
+        ],
+    }
 
     payload = json.loads(
         (tmp_path / "job.out.implicit" / "route2-public-result-ledger.json").read_text(
@@ -264,6 +283,9 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
         [0.25, 0.0, 0.0]
     ]
     assert payload["base_manifest_sha256"] == manifest["manifest_sha256"]
+    assert payload["source_receiver_contract"] == manifest[
+        "source_receiver_contract"
+    ]
     content = dict(payload)
     for key in (
         "result_content_sha256",

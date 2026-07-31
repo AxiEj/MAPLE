@@ -15,6 +15,7 @@ import numpy as np
 from .ddpcm_smd import PyDDXSMDImplicitSolvation
 from .result import SolvationResult
 from .smd import SMDImplicitSolvation
+from .source_receiver_contract import route2_source_receiver_contract
 
 
 def _json_ready(value: Any) -> Any:
@@ -134,6 +135,9 @@ class ImplicitSolvationCorrection:
 
         self.method = "smd"
         self.mode = str(self.solvation_options.get("response", "scf")).lower()
+        self.source_receiver_contract = route2_source_receiver_contract(
+            str(self.solvation_options["profile"])
+        )
         output_path = Path(output).resolve() if output else Path.cwd() / "maple.out"
         self.audit_dir = output_path.with_suffix(output_path.suffix + ".implicit")
         self.audit_dir.mkdir(parents=True, exist_ok=True)
@@ -159,6 +163,7 @@ class ImplicitSolvationCorrection:
             "solvation_options_sha256": _canonical_json_sha256(
                 self.solvation_options
             ),
+            "source_receiver_contract": self.source_receiver_contract.as_provenance(),
             "energy_composition": "E_MAPLE_gas + delta_G_solv",
             "response_lifecycle": f"density-coupled-{self.mode}",
             "initial_geometry": geometry,
@@ -200,6 +205,7 @@ class ImplicitSolvationCorrection:
                 self.solvation_options
             ),
             "base_manifest_sha256": self._manifest_sha256,
+            "source_receiver_contract": self.source_receiver_contract.as_provenance(),
             "component_contract": (
                 "derived totals are checked from leaves; do not sum the "
                 "legacy flat components map"

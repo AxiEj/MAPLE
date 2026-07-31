@@ -122,6 +122,16 @@ its release URL, byte size, and SHA-256 match the frozen contract. Its audit
 records that full checkpoint identity plus the versioned receiver-feature
 layout and live projection-matrix fingerprint.
 
+The exact-GTO profile remains an **energy-only operational diagnostic**, not a
+variational SCRF route: it keeps a point-\(l\le1\) multipole source while
+driving MACE through finite-width GTO receiver features. Those maps are known
+not to be a common transpose pair, so neither a common stationary free energy,
+conservative solution-phase forces, nor a PES claim follows. Each public
+result now writes this source/receiver contract explicitly. The replacement
+physics path is the fixed-geometry same-basis GTO Galerkin operator followed
+by a common electronic scalar/KKT admission—not empirical correction of the
+legacy exact-GTO output.
+
 The research objective is mutual polarization: the MACE-POLAR representation
 generates the solute electrostatic potential, PCM returns a reaction field, and
 that reaction field is fed back through the unmodified MACE-POLAR field-response

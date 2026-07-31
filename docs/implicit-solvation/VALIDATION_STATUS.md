@@ -241,7 +241,11 @@ self-consistency, and is not a public calculator or accuracy-certified method.
   three-dimensional quadrature check, the affine-field limit reproduces the
   upstream matrix, rotations transform the \(l=1\) channels covariantly, and
   both atomic-mean profiles fail closed in the legacy force path. These are
-  representation/engineering gates, not broad accuracy or PES validation.
+  representation/engineering gates, not broad accuracy or PES validation. In
+  particular, exact GTO retains a point-multipole source but consumes a
+  finite-width GTO receiver, so the public profile is explicitly
+  source/receiver nonconjugate and energy-only; it is not a variational SCRF
+  or common-energy force route.
 - Native aqueous SMD CDS matches static NWChem controls for water, methane, and
   methanol within the frozen 0.015 kcal/mol tolerance.
 - The explicit

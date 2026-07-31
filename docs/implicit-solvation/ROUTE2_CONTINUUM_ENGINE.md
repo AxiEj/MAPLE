@@ -156,6 +156,15 @@ local-versus-exact pair isolates the projector; the historical default is a
 separate gauge baseline. The point-\(l\le1\) solute source remains unchanged
 in all three profiles.
 
+For the public exact-GTO profile this is a deliberate source/receiver split,
+not a hidden same-basis construction: the cavity source is point multipoles
+while the MACE receiver is finite-width GTO features. They are known not to be
+transpose maps under one common pairing. Consequently, even though the
+underlying continuum ASC energy may be reciprocal, the full learned-response
+composite is an energy-only operational fixed point and cannot inherit a
+variational SCRF or solution-phase force/PES claim. The same-basis GTO
+Galerkin primitive is the separate replacement path.
+
 All half-coupling, energy-identity, and order conversions pass through one
 `ElectrostaticPairing` contract. Neither the gauge-fixed local field nor model
 features are substituted into that bilinear energy pairing. Both atomic-mean

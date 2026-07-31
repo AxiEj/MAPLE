@@ -1,0 +1,863 @@
+{
+  "artifact": "route2-fc-aswig-cpcm-grid-convergence-historical10-v1",
+  "claim_boundary": "This is an energy-only numerical experiment. It does not validate coordinate derivatives, a smooth production PES, an IEFPCM backend, a common stationary MACE--PCM electronic functional, multi-solvent accuracy, or Route2V acceptance.",
+  "conclusion": {
+    "all_tested_orders_have_five_records_at_or_above_1_5_kcal_mol": true,
+    "interpretation": "The fixed-cardinality amplitude-CPCM discretization removes candidate-node deletion by construction, but this frozen direct-PCM experiment does not improve FreeSolv accuracy enough to pass the mandatory all-record 1.5 kcal/mol gate. The L15-to-L21 values are still changing for some compounds, so no continuum-limit accuracy value is claimed. The failure is nevertheless robust: every tested order has five records at or above the gate.",
+    "l21_direct_pcm_mae_kcal_mol": 2.1327880208523973,
+    "l21_maximum_absolute_error_kcal_mol": 4.372862202054419,
+    "l21_worst_record": "methylsulfinylmethane",
+    "strict_gate_passed_at_any_tested_order": false
+  },
+  "generated_at_utc": "2026-07-31T16:23:41+00:00",
+  "grid_results": [
+    {
+      "grid_points_per_atom": 86,
+      "historical10_gate": {
+        "acceptance": {
+          "comparison": "strictly_less_than",
+          "distinct_functional_group_or_scaffold_class_count": 10,
+          "mae_or_rmse_alone_is_not_a_pass_condition": true,
+          "maximum_absolute_error_kcal_mol": 4.027832585223435,
+          "minimum_distinct_functional_group_or_scaffold_classes": 10,
+          "record_count": 10,
+          "strict_all_records_under_threshold": false,
+          "threshold_kcal_mol": 1.5,
+          "worst_compound_id": "mobley_3867265"
+        },
+        "manifest_sha256": "69ceb77397f15c945fb5e2e26f5729ee58f34fc22a0acaadfe9d87a6266b44a8",
+        "panel_id": "route2-v0-historical-freesolv10-regression-v1",
+        "schema_version": 1,
+        "status": "fail"
+      },
+      "lebedev_order": 15,
+      "records": [
+        {
+          "absolute_error_kcal_mol": 0.7277227155582704,
+          "chemical_class": "alkane",
+          "compound_id": "mobley_9055303",
+          "expected_fixed_surface_size": 430,
+          "experimental_kcal_mol": 2.0,
+          "fixed_cardinality_verified": true,
+          "name": "methane",
+          "prediction_kcal_mol": 1.2722772844417296,
+          "signed_error_kcal_mol": -0.7277227155582704,
+          "surface_size": 430
+        },
+        {
+          "absolute_error_kcal_mol": 2.1742060795221745,
+          "chemical_class": "aromatic hydrocarbon",
+          "compound_id": "mobley_3053621",
+          "expected_fixed_surface_size": 1032,
+          "experimental_kcal_mol": -0.9,
+          "fixed_cardinality_verified": true,
+          "name": "benzene",
+          "prediction_kcal_mol": -3.0742060795221744,
+          "signed_error_kcal_mol": -2.1742060795221745,
+          "surface_size": 1032
+        },
+        {
+          "absolute_error_kcal_mol": 0.4860613058986667,
+          "chemical_class": "alcohol",
+          "compound_id": "mobley_1636752",
+          "expected_fixed_surface_size": 516,
+          "experimental_kcal_mol": -5.1,
+          "fixed_cardinality_verified": true,
+          "name": "methanol",
+          "prediction_kcal_mol": -5.586061305898666,
+          "signed_error_kcal_mol": -0.4860613058986667,
+          "surface_size": 516
+        },
+        {
+          "absolute_error_kcal_mol": 0.5615630809802872,
+          "chemical_class": "ether",
+          "compound_id": "mobley_7015518",
+          "expected_fixed_surface_size": 774,
+          "experimental_kcal_mol": -1.91,
+          "fixed_cardinality_verified": true,
+          "name": "methoxymethane",
+          "prediction_kcal_mol": -2.471563080980287,
+          "signed_error_kcal_mol": -0.5615630809802872,
+          "surface_size": 774
+        },
+        {
+          "absolute_error_kcal_mol": 4.027832585223435,
+          "chemical_class": "ketone",
+          "compound_id": "mobley_3867265",
+          "expected_fixed_surface_size": 860,
+          "experimental_kcal_mol": -3.8,
+          "fixed_cardinality_verified": true,
+          "name": "acetone",
+          "prediction_kcal_mol": -7.827832585223435,
+          "signed_error_kcal_mol": -4.027832585223435,
+          "surface_size": 860
+        },
+        {
+          "absolute_error_kcal_mol": 3.6529757405309398,
+          "chemical_class": "ester",
+          "compound_id": "mobley_6973347",
+          "expected_fixed_surface_size": 1204,
+          "experimental_kcal_mol": -2.94,
+          "fixed_cardinality_verified": true,
+          "name": "ethyl acetate",
+          "prediction_kcal_mol": -6.59297574053094,
+          "signed_error_kcal_mol": -3.6529757405309398,
+          "surface_size": 1204
+        },
+        {
+          "absolute_error_kcal_mol": 1.378849796315313,
+          "chemical_class": "nitrile",
+          "compound_id": "mobley_7532833",
+          "expected_fixed_surface_size": 516,
+          "experimental_kcal_mol": -3.88,
+          "fixed_cardinality_verified": true,
+          "name": "acetonitrile",
+          "prediction_kcal_mol": -5.258849796315313,
+          "signed_error_kcal_mol": -1.378849796315313,
+          "surface_size": 516
+        },
+        {
+          "absolute_error_kcal_mol": 2.1216663552355293,
+          "chemical_class": "aromatic amine",
+          "compound_id": "mobley_4883284",
+          "expected_fixed_surface_size": 1204,
+          "experimental_kcal_mol": -5.49,
+          "fixed_cardinality_verified": true,
+          "name": "aniline",
+          "prediction_kcal_mol": -7.6116663552355295,
+          "signed_error_kcal_mol": -2.1216663552355293,
+          "surface_size": 1204
+        },
+        {
+          "absolute_error_kcal_mol": 0.36159527042044237,
+          "chemical_class": "haloalkane",
+          "compound_id": "mobley_2198613",
+          "expected_fixed_surface_size": 688,
+          "experimental_kcal_mol": -0.63,
+          "fixed_cardinality_verified": true,
+          "name": "chloroethane",
+          "prediction_kcal_mol": -0.9915952704204424,
+          "signed_error_kcal_mol": -0.36159527042044237,
+          "surface_size": 688
+        },
+        {
+          "absolute_error_kcal_mol": 3.8391225632772805,
+          "chemical_class": "sulfoxide",
+          "compound_id": "mobley_8578590",
+          "expected_fixed_surface_size": 860,
+          "experimental_kcal_mol": -9.28,
+          "fixed_cardinality_verified": true,
+          "name": "methylsulfinylmethane",
+          "prediction_kcal_mol": -13.11912256327728,
+          "signed_error_kcal_mol": -3.8391225632772805,
+          "surface_size": 860
+        }
+      ],
+      "source_artifact": "docs/implicit-solvation/benchmarks/route2-fc-aswig-cpcm-historical10-experimental-v1.json",
+      "source_artifact_sha256": "97c3f88fdb5c24b5f201012229cf9f51bb9cc6813c06f6c1278a40fa0d1c47af",
+      "summary": {
+        "all_records_strictly_below_1_5_kcal_mol": false,
+        "mae_kcal_mol": 1.933159549296234,
+        "maximum_absolute_error_kcal_mol": 4.027832585223435,
+        "mean_signed_error_kcal_mol": -1.933159549296234,
+        "records_at_or_above_1_5_kcal_mol": 5,
+        "rmse_kcal_mol": 2.3800910967580693,
+        "worst_compound_id": "mobley_3867265",
+        "worst_name": "acetone"
+      }
+    },
+    {
+      "grid_points_per_atom": 110,
+      "historical10_gate": {
+        "acceptance": {
+          "comparison": "strictly_less_than",
+          "distinct_functional_group_or_scaffold_class_count": 10,
+          "mae_or_rmse_alone_is_not_a_pass_condition": true,
+          "maximum_absolute_error_kcal_mol": 4.0782222218687565,
+          "minimum_distinct_functional_group_or_scaffold_classes": 10,
+          "record_count": 10,
+          "strict_all_records_under_threshold": false,
+          "threshold_kcal_mol": 1.5,
+          "worst_compound_id": "mobley_8578590"
+        },
+        "manifest_sha256": "69ceb77397f15c945fb5e2e26f5729ee58f34fc22a0acaadfe9d87a6266b44a8",
+        "panel_id": "route2-v0-historical-freesolv10-regression-v1",
+        "schema_version": 1,
+        "status": "fail"
+      },
+      "lebedev_order": 17,
+      "records": [
+        {
+          "absolute_error_kcal_mol": 0.7432263381473172,
+          "chemical_class": "alkane",
+          "compound_id": "mobley_9055303",
+          "expected_fixed_surface_size": 550,
+          "experimental_kcal_mol": 2.0,
+          "fixed_cardinality_verified": true,
+          "name": "methane",
+          "prediction_kcal_mol": 1.2567736618526828,
+          "signed_error_kcal_mol": -0.7432263381473172,
+          "surface_size": 550
+        },
+        {
+          "absolute_error_kcal_mol": 2.282177543605973,
+          "chemical_class": "aromatic hydrocarbon",
+          "compound_id": "mobley_3053621",
+          "expected_fixed_surface_size": 1320,
+          "experimental_kcal_mol": -0.9,
+          "fixed_cardinality_verified": true,
+          "name": "benzene",
+          "prediction_kcal_mol": -3.182177543605973,
+          "signed_error_kcal_mol": -2.282177543605973,
+          "surface_size": 1320
+        },
+        {
+          "absolute_error_kcal_mol": 0.5269993741908339,
+          "chemical_class": "alcohol",
+          "compound_id": "mobley_1636752",
+          "expected_fixed_surface_size": 660,
+          "experimental_kcal_mol": -5.1,
+          "fixed_cardinality_verified": true,
+          "name": "methanol",
+          "prediction_kcal_mol": -5.6269993741908335,
+          "signed_error_kcal_mol": -0.5269993741908339,
+          "surface_size": 660
+        },
+        {
+          "absolute_error_kcal_mol": 0.6525354832931283,
+          "chemical_class": "ether",
+          "compound_id": "mobley_7015518",
+          "expected_fixed_surface_size": 990,
+          "experimental_kcal_mol": -1.91,
+          "fixed_cardinality_verified": true,
+          "name": "methoxymethane",
+          "prediction_kcal_mol": -2.562535483293128,
+          "signed_error_kcal_mol": -0.6525354832931283,
+          "surface_size": 990
+        },
+        {
+          "absolute_error_kcal_mol": 4.063967786672058,
+          "chemical_class": "ketone",
+          "compound_id": "mobley_3867265",
+          "expected_fixed_surface_size": 1100,
+          "experimental_kcal_mol": -3.8,
+          "fixed_cardinality_verified": true,
+          "name": "acetone",
+          "prediction_kcal_mol": -7.863967786672058,
+          "signed_error_kcal_mol": -4.063967786672058,
+          "surface_size": 1100
+        },
+        {
+          "absolute_error_kcal_mol": 3.7106725609573634,
+          "chemical_class": "ester",
+          "compound_id": "mobley_6973347",
+          "expected_fixed_surface_size": 1540,
+          "experimental_kcal_mol": -2.94,
+          "fixed_cardinality_verified": true,
+          "name": "ethyl acetate",
+          "prediction_kcal_mol": -6.650672560957363,
+          "signed_error_kcal_mol": -3.7106725609573634,
+          "surface_size": 1540
+        },
+        {
+          "absolute_error_kcal_mol": 1.4091404644465655,
+          "chemical_class": "nitrile",
+          "compound_id": "mobley_7532833",
+          "expected_fixed_surface_size": 660,
+          "experimental_kcal_mol": -3.88,
+          "fixed_cardinality_verified": true,
+          "name": "acetonitrile",
+          "prediction_kcal_mol": -5.289140464446565,
+          "signed_error_kcal_mol": -1.4091404644465655,
+          "surface_size": 660
+        },
+        {
+          "absolute_error_kcal_mol": 2.3617469097107486,
+          "chemical_class": "aromatic amine",
+          "compound_id": "mobley_4883284",
+          "expected_fixed_surface_size": 1540,
+          "experimental_kcal_mol": -5.49,
+          "fixed_cardinality_verified": true,
+          "name": "aniline",
+          "prediction_kcal_mol": -7.851746909710749,
+          "signed_error_kcal_mol": -2.3617469097107486,
+          "surface_size": 1540
+        },
+        {
+          "absolute_error_kcal_mol": 0.3721881804628163,
+          "chemical_class": "haloalkane",
+          "compound_id": "mobley_2198613",
+          "expected_fixed_surface_size": 880,
+          "experimental_kcal_mol": -0.63,
+          "fixed_cardinality_verified": true,
+          "name": "chloroethane",
+          "prediction_kcal_mol": -1.0021881804628163,
+          "signed_error_kcal_mol": -0.3721881804628163,
+          "surface_size": 880
+        },
+        {
+          "absolute_error_kcal_mol": 4.0782222218687565,
+          "chemical_class": "sulfoxide",
+          "compound_id": "mobley_8578590",
+          "expected_fixed_surface_size": 1100,
+          "experimental_kcal_mol": -9.28,
+          "fixed_cardinality_verified": true,
+          "name": "methylsulfinylmethane",
+          "prediction_kcal_mol": -13.358222221868756,
+          "signed_error_kcal_mol": -4.0782222218687565,
+          "surface_size": 1100
+        }
+      ],
+      "source_artifact": ".omx/benchmarks/route2-fc-aswig-cpcm-l17-historical10-20260731/result.json",
+      "source_artifact_sha256": "2b38a6580c4c0007b1a7f209e79cc63eb9e9cf4afa9041bae0bc1162ab03598d",
+      "summary": {
+        "all_records_strictly_below_1_5_kcal_mol": false,
+        "mae_kcal_mol": 2.0200876863355566,
+        "maximum_absolute_error_kcal_mol": 4.0782222218687565,
+        "mean_signed_error_kcal_mol": -2.0200876863355566,
+        "records_at_or_above_1_5_kcal_mol": 5,
+        "rmse_kcal_mol": 2.471499979770357,
+        "worst_compound_id": "mobley_8578590",
+        "worst_name": "methylsulfinylmethane"
+      }
+    },
+    {
+      "grid_points_per_atom": 146,
+      "historical10_gate": {
+        "acceptance": {
+          "comparison": "strictly_less_than",
+          "distinct_functional_group_or_scaffold_class_count": 10,
+          "mae_or_rmse_alone_is_not_a_pass_condition": true,
+          "maximum_absolute_error_kcal_mol": 4.280983122250278,
+          "minimum_distinct_functional_group_or_scaffold_classes": 10,
+          "record_count": 10,
+          "strict_all_records_under_threshold": false,
+          "threshold_kcal_mol": 1.5,
+          "worst_compound_id": "mobley_8578590"
+        },
+        "manifest_sha256": "69ceb77397f15c945fb5e2e26f5729ee58f34fc22a0acaadfe9d87a6266b44a8",
+        "panel_id": "route2-v0-historical-freesolv10-regression-v1",
+        "schema_version": 1,
+        "status": "fail"
+      },
+      "lebedev_order": 19,
+      "records": [
+        {
+          "absolute_error_kcal_mol": 0.7613837780669561,
+          "chemical_class": "alkane",
+          "compound_id": "mobley_9055303",
+          "expected_fixed_surface_size": 730,
+          "experimental_kcal_mol": 2.0,
+          "fixed_cardinality_verified": true,
+          "name": "methane",
+          "prediction_kcal_mol": 1.2386162219330439,
+          "signed_error_kcal_mol": -0.7613837780669561,
+          "surface_size": 730
+        },
+        {
+          "absolute_error_kcal_mol": 2.345031600664075,
+          "chemical_class": "aromatic hydrocarbon",
+          "compound_id": "mobley_3053621",
+          "expected_fixed_surface_size": 1752,
+          "experimental_kcal_mol": -0.9,
+          "fixed_cardinality_verified": true,
+          "name": "benzene",
+          "prediction_kcal_mol": -3.245031600664075,
+          "signed_error_kcal_mol": -2.345031600664075,
+          "surface_size": 1752
+        },
+        {
+          "absolute_error_kcal_mol": 0.5585961305479437,
+          "chemical_class": "alcohol",
+          "compound_id": "mobley_1636752",
+          "expected_fixed_surface_size": 876,
+          "experimental_kcal_mol": -5.1,
+          "fixed_cardinality_verified": true,
+          "name": "methanol",
+          "prediction_kcal_mol": -5.658596130547943,
+          "signed_error_kcal_mol": -0.5585961305479437,
+          "surface_size": 876
+        },
+        {
+          "absolute_error_kcal_mol": 0.6899638466154177,
+          "chemical_class": "ether",
+          "compound_id": "mobley_7015518",
+          "expected_fixed_surface_size": 1314,
+          "experimental_kcal_mol": -1.91,
+          "fixed_cardinality_verified": true,
+          "name": "methoxymethane",
+          "prediction_kcal_mol": -2.5999638466154176,
+          "signed_error_kcal_mol": -0.6899638466154177,
+          "surface_size": 1314
+        },
+        {
+          "absolute_error_kcal_mol": 4.0919757969363095,
+          "chemical_class": "ketone",
+          "compound_id": "mobley_3867265",
+          "expected_fixed_surface_size": 1460,
+          "experimental_kcal_mol": -3.8,
+          "fixed_cardinality_verified": true,
+          "name": "acetone",
+          "prediction_kcal_mol": -7.891975796936309,
+          "signed_error_kcal_mol": -4.0919757969363095,
+          "surface_size": 1460
+        },
+        {
+          "absolute_error_kcal_mol": 3.766713418427796,
+          "chemical_class": "ester",
+          "compound_id": "mobley_6973347",
+          "expected_fixed_surface_size": 2044,
+          "experimental_kcal_mol": -2.94,
+          "fixed_cardinality_verified": true,
+          "name": "ethyl acetate",
+          "prediction_kcal_mol": -6.706713418427796,
+          "signed_error_kcal_mol": -3.766713418427796,
+          "surface_size": 2044
+        },
+        {
+          "absolute_error_kcal_mol": 1.4359471954741947,
+          "chemical_class": "nitrile",
+          "compound_id": "mobley_7532833",
+          "expected_fixed_surface_size": 876,
+          "experimental_kcal_mol": -3.88,
+          "fixed_cardinality_verified": true,
+          "name": "acetonitrile",
+          "prediction_kcal_mol": -5.315947195474195,
+          "signed_error_kcal_mol": -1.4359471954741947,
+          "surface_size": 876
+        },
+        {
+          "absolute_error_kcal_mol": 2.49733052934812,
+          "chemical_class": "aromatic amine",
+          "compound_id": "mobley_4883284",
+          "expected_fixed_surface_size": 2044,
+          "experimental_kcal_mol": -5.49,
+          "fixed_cardinality_verified": true,
+          "name": "aniline",
+          "prediction_kcal_mol": -7.98733052934812,
+          "signed_error_kcal_mol": -2.49733052934812,
+          "surface_size": 2044
+        },
+        {
+          "absolute_error_kcal_mol": 0.3919142948086133,
+          "chemical_class": "haloalkane",
+          "compound_id": "mobley_2198613",
+          "expected_fixed_surface_size": 1168,
+          "experimental_kcal_mol": -0.63,
+          "fixed_cardinality_verified": true,
+          "name": "chloroethane",
+          "prediction_kcal_mol": -1.0219142948086133,
+          "signed_error_kcal_mol": -0.3919142948086133,
+          "surface_size": 1168
+        },
+        {
+          "absolute_error_kcal_mol": 4.280983122250278,
+          "chemical_class": "sulfoxide",
+          "compound_id": "mobley_8578590",
+          "expected_fixed_surface_size": 1460,
+          "experimental_kcal_mol": -9.28,
+          "fixed_cardinality_verified": true,
+          "name": "methylsulfinylmethane",
+          "prediction_kcal_mol": -13.560983122250278,
+          "signed_error_kcal_mol": -4.280983122250278,
+          "surface_size": 1460
+        }
+      ],
+      "source_artifact": ".omx/benchmarks/route2-fc-aswig-cpcm-l19-r2-historical10-20260731/result.json",
+      "source_artifact_sha256": "2080c15ad04cfdb8c7dc4015a33a64523538d7262c0147b9ce38292fda97c2a2",
+      "summary": {
+        "all_records_strictly_below_1_5_kcal_mol": false,
+        "mae_kcal_mol": 2.0819839713139707,
+        "maximum_absolute_error_kcal_mol": 4.280983122250278,
+        "mean_signed_error_kcal_mol": -2.0819839713139707,
+        "records_at_or_above_1_5_kcal_mol": 5,
+        "rmse_kcal_mol": 2.541227489621189,
+        "worst_compound_id": "mobley_8578590",
+        "worst_name": "methylsulfinylmethane"
+      }
+    },
+    {
+      "grid_points_per_atom": 170,
+      "historical10_gate": {
+        "acceptance": {
+          "comparison": "strictly_less_than",
+          "distinct_functional_group_or_scaffold_class_count": 10,
+          "mae_or_rmse_alone_is_not_a_pass_condition": true,
+          "maximum_absolute_error_kcal_mol": 4.372862202054419,
+          "minimum_distinct_functional_group_or_scaffold_classes": 10,
+          "record_count": 10,
+          "strict_all_records_under_threshold": false,
+          "threshold_kcal_mol": 1.5,
+          "worst_compound_id": "mobley_8578590"
+        },
+        "manifest_sha256": "69ceb77397f15c945fb5e2e26f5729ee58f34fc22a0acaadfe9d87a6266b44a8",
+        "panel_id": "route2-v0-historical-freesolv10-regression-v1",
+        "schema_version": 1,
+        "status": "fail"
+      },
+      "lebedev_order": 21,
+      "records": [
+        {
+          "absolute_error_kcal_mol": 0.7648338337170599,
+          "chemical_class": "alkane",
+          "compound_id": "mobley_9055303",
+          "expected_fixed_surface_size": 850,
+          "experimental_kcal_mol": 2.0,
+          "fixed_cardinality_verified": true,
+          "name": "methane",
+          "prediction_kcal_mol": 1.23516616628294,
+          "signed_error_kcal_mol": -0.7648338337170599,
+          "surface_size": 850
+        },
+        {
+          "absolute_error_kcal_mol": 2.4517277600981187,
+          "chemical_class": "aromatic hydrocarbon",
+          "compound_id": "mobley_3053621",
+          "expected_fixed_surface_size": 2040,
+          "experimental_kcal_mol": -0.9,
+          "fixed_cardinality_verified": true,
+          "name": "benzene",
+          "prediction_kcal_mol": -3.3517277600981186,
+          "signed_error_kcal_mol": -2.4517277600981187,
+          "surface_size": 2040
+        },
+        {
+          "absolute_error_kcal_mol": 0.5772994261674231,
+          "chemical_class": "alcohol",
+          "compound_id": "mobley_1636752",
+          "expected_fixed_surface_size": 1020,
+          "experimental_kcal_mol": -5.1,
+          "fixed_cardinality_verified": true,
+          "name": "methanol",
+          "prediction_kcal_mol": -5.677299426167423,
+          "signed_error_kcal_mol": -0.5772994261674231,
+          "surface_size": 1020
+        },
+        {
+          "absolute_error_kcal_mol": 0.7251681378351329,
+          "chemical_class": "ether",
+          "compound_id": "mobley_7015518",
+          "expected_fixed_surface_size": 1530,
+          "experimental_kcal_mol": -1.91,
+          "fixed_cardinality_verified": true,
+          "name": "methoxymethane",
+          "prediction_kcal_mol": -2.635168137835133,
+          "signed_error_kcal_mol": -0.7251681378351329,
+          "surface_size": 1530
+        },
+        {
+          "absolute_error_kcal_mol": 4.104560376128642,
+          "chemical_class": "ketone",
+          "compound_id": "mobley_3867265",
+          "expected_fixed_surface_size": 1700,
+          "experimental_kcal_mol": -3.8,
+          "fixed_cardinality_verified": true,
+          "name": "acetone",
+          "prediction_kcal_mol": -7.904560376128642,
+          "signed_error_kcal_mol": -4.104560376128642,
+          "surface_size": 1700
+        },
+        {
+          "absolute_error_kcal_mol": 3.8041239545627623,
+          "chemical_class": "ester",
+          "compound_id": "mobley_6973347",
+          "expected_fixed_surface_size": 2380,
+          "experimental_kcal_mol": -2.94,
+          "fixed_cardinality_verified": true,
+          "name": "ethyl acetate",
+          "prediction_kcal_mol": -6.744123954562762,
+          "signed_error_kcal_mol": -3.8041239545627623,
+          "surface_size": 2380
+        },
+        {
+          "absolute_error_kcal_mol": 1.4469831653243022,
+          "chemical_class": "nitrile",
+          "compound_id": "mobley_7532833",
+          "expected_fixed_surface_size": 1020,
+          "experimental_kcal_mol": -3.88,
+          "fixed_cardinality_verified": true,
+          "name": "acetonitrile",
+          "prediction_kcal_mol": -5.326983165324302,
+          "signed_error_kcal_mol": -1.4469831653243022,
+          "surface_size": 1020
+        },
+        {
+          "absolute_error_kcal_mol": 2.674840615286472,
+          "chemical_class": "aromatic amine",
+          "compound_id": "mobley_4883284",
+          "expected_fixed_surface_size": 2380,
+          "experimental_kcal_mol": -5.49,
+          "fixed_cardinality_verified": true,
+          "name": "aniline",
+          "prediction_kcal_mol": -8.164840615286472,
+          "signed_error_kcal_mol": -2.674840615286472,
+          "surface_size": 2380
+        },
+        {
+          "absolute_error_kcal_mol": 0.4054807373496393,
+          "chemical_class": "haloalkane",
+          "compound_id": "mobley_2198613",
+          "expected_fixed_surface_size": 1360,
+          "experimental_kcal_mol": -0.63,
+          "fixed_cardinality_verified": true,
+          "name": "chloroethane",
+          "prediction_kcal_mol": -1.0354807373496393,
+          "signed_error_kcal_mol": -0.4054807373496393,
+          "surface_size": 1360
+        },
+        {
+          "absolute_error_kcal_mol": 4.372862202054419,
+          "chemical_class": "sulfoxide",
+          "compound_id": "mobley_8578590",
+          "expected_fixed_surface_size": 1700,
+          "experimental_kcal_mol": -9.28,
+          "fixed_cardinality_verified": true,
+          "name": "methylsulfinylmethane",
+          "prediction_kcal_mol": -13.652862202054418,
+          "signed_error_kcal_mol": -4.372862202054419,
+          "surface_size": 1700
+        }
+      ],
+      "source_artifact": ".omx/benchmarks/route2-fc-aswig-cpcm-l21-historical10-20260731/result.json",
+      "source_artifact_sha256": "91ac0443c6e3c3bc72ecb4f1cdcbd131a5324520d5bcd34e2342a04ab27fd1a8",
+      "summary": {
+        "all_records_strictly_below_1_5_kcal_mol": false,
+        "mae_kcal_mol": 2.1327880208523973,
+        "maximum_absolute_error_kcal_mol": 4.372862202054419,
+        "mean_signed_error_kcal_mol": -2.1327880208523973,
+        "records_at_or_above_1_5_kcal_mol": 5,
+        "rmse_kcal_mol": 2.5943925929939358,
+        "worst_compound_id": "mobley_8578590",
+        "worst_name": "methylsulfinylmethane"
+      }
+    }
+  ],
+  "grid_transition_summary": [
+    {
+      "from_lebedev_order": 15,
+      "maximum_absolute_prediction_change_kcal_mol": 0.24008055447521937,
+      "mean_absolute_prediction_change_kcal_mol": 0.0869281370393222,
+      "to_lebedev_order": 17
+    },
+    {
+      "from_lebedev_order": 17,
+      "maximum_absolute_prediction_change_kcal_mol": 0.20276090038152184,
+      "mean_absolute_prediction_change_kcal_mol": 0.06189628497841435,
+      "to_lebedev_order": 19
+    },
+    {
+      "from_lebedev_order": 19,
+      "maximum_absolute_prediction_change_kcal_mol": 0.17751008593835227,
+      "mean_absolute_prediction_change_kcal_mol": 0.050804049538426745,
+      "to_lebedev_order": 21
+    }
+  ],
+  "method": {
+    "continuum_equation": "variational-amplitude-cpcm-v1",
+    "energy_ledger": "pcm-half-coupling-only-v1",
+    "fitted_or_retuned_against_panel": false,
+    "force_capability": "energy-only-no-coordinate-vjp-yet",
+    "formula": "Delta G = 0.5*<c_MACE-POLAR, f_reac_FC-aSWIG-CPCM> + G_CDS",
+    "frozen_terms": [
+      "MACE-POLAR checkpoint",
+      "water dielectric 78.39",
+      "SMD Coulomb radii",
+      "PySCF SMD CDS",
+      "FreeSolv MOL2 geometries"
+    ],
+    "profile": "cpcm-fc-aswig-v1-experimental",
+    "provider": "fixed-topology-aswig"
+  },
+  "panel": {
+    "distinct_chemical_classes": 10,
+    "historical_max_error_record_included": "mobley_6973347",
+    "id": "route2-v0-historical-freesolv10-regression-v1",
+    "record_count": 10,
+    "strict_all_records_required": true,
+    "threshold_kcal_mol": 1.5
+  },
+  "per_record_l15_to_l21": [
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 0.7277227155582704,
+        "17": 0.7432263381473172,
+        "19": 0.7613837780669561,
+        "21": 0.7648338337170599
+      },
+      "chemical_class": "alkane",
+      "compound_id": "mobley_9055303",
+      "l15_to_l21_prediction_change_kcal_mol": -0.037111118158789536,
+      "name": "methane",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": 1.2722772844417296,
+        "17": 1.2567736618526828,
+        "19": 1.2386162219330439,
+        "21": 1.23516616628294
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 2.1742060795221745,
+        "17": 2.282177543605973,
+        "19": 2.345031600664075,
+        "21": 2.4517277600981187
+      },
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "l15_to_l21_prediction_change_kcal_mol": -0.2775216805759442,
+      "name": "benzene",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -3.0742060795221744,
+        "17": -3.182177543605973,
+        "19": -3.245031600664075,
+        "21": -3.3517277600981186
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 0.4860613058986667,
+        "17": 0.5269993741908339,
+        "19": 0.5585961305479437,
+        "21": 0.5772994261674231
+      },
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "l15_to_l21_prediction_change_kcal_mol": -0.09123812026875644,
+      "name": "methanol",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -5.586061305898666,
+        "17": -5.6269993741908335,
+        "19": -5.658596130547943,
+        "21": -5.677299426167423
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 0.5615630809802872,
+        "17": 0.6525354832931283,
+        "19": 0.6899638466154177,
+        "21": 0.7251681378351329
+      },
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "l15_to_l21_prediction_change_kcal_mol": -0.16360505685484572,
+      "name": "methoxymethane",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -2.471563080980287,
+        "17": -2.562535483293128,
+        "19": -2.5999638466154176,
+        "21": -2.635168137835133
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 4.027832585223435,
+        "17": 4.063967786672058,
+        "19": 4.0919757969363095,
+        "21": 4.104560376128642
+      },
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "l15_to_l21_prediction_change_kcal_mol": -0.0767277909052071,
+      "name": "acetone",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -7.827832585223435,
+        "17": -7.863967786672058,
+        "19": -7.891975796936309,
+        "21": -7.904560376128642
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 3.6529757405309398,
+        "17": 3.7106725609573634,
+        "19": 3.766713418427796,
+        "21": 3.8041239545627623
+      },
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "l15_to_l21_prediction_change_kcal_mol": -0.15114821403182255,
+      "name": "ethyl acetate",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -6.59297574053094,
+        "17": -6.650672560957363,
+        "19": -6.706713418427796,
+        "21": -6.744123954562762
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 1.378849796315313,
+        "17": 1.4091404644465655,
+        "19": 1.4359471954741947,
+        "21": 1.4469831653243022
+      },
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "l15_to_l21_prediction_change_kcal_mol": -0.06813336900898914,
+      "name": "acetonitrile",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -5.258849796315313,
+        "17": -5.289140464446565,
+        "19": -5.315947195474195,
+        "21": -5.326983165324302
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 2.1216663552355293,
+        "17": 2.3617469097107486,
+        "19": 2.49733052934812,
+        "21": 2.674840615286472
+      },
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "l15_to_l21_prediction_change_kcal_mol": -0.5531742600509428,
+      "name": "aniline",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -7.6116663552355295,
+        "17": -7.851746909710749,
+        "19": -7.98733052934812,
+        "21": -8.164840615286472
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 0.36159527042044237,
+        "17": 0.3721881804628163,
+        "19": 0.3919142948086133,
+        "21": 0.4054807373496393
+      },
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "l15_to_l21_prediction_change_kcal_mol": -0.043885466929196926,
+      "name": "chloroethane",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -0.9915952704204424,
+        "17": -1.0021881804628163,
+        "19": -1.0219142948086133,
+        "21": -1.0354807373496393
+      }
+    },
+    {
+      "absolute_errors_kcal_mol_by_lebedev_order": {
+        "15": 3.8391225632772805,
+        "17": 4.0782222218687565,
+        "19": 4.280983122250278,
+        "21": 4.372862202054419
+      },
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "l15_to_l21_prediction_change_kcal_mol": -0.5337396387771385,
+      "name": "methylsulfinylmethane",
+      "predictions_kcal_mol_by_lebedev_order": {
+        "15": -13.11912256327728,
+        "17": -13.358222221868756,
+        "19": -13.560983122250278,
+        "21": -13.652862202054418
+      }
+    }
+  ],
+  "schema_version": 1,
+  "status": "frozen-ten-class-direct-pcm-experiment-fails-strict-maximum-error-gate"
+}

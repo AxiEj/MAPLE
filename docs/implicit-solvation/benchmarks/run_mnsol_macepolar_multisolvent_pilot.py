@@ -382,6 +382,61 @@ def _load_calculator(
     ).set_calculator()
 
 
+def _terminal_scf_monitors(
+    audit: dict[str, object],
+    root_density: np.ndarray,
+) -> dict[str, float]:
+    """Extract the four fixed-point monitors from one provider audit.
+
+    A small residual of ``c - M(Pc)`` alone is insufficient evidence of a
+    stable Route-2 fixed point.  The persisted benchmark row therefore keeps
+    the density, reaction-field, ledger-energy, and total-charge monitors
+    separately, with units rather than an invalid mixed-unit norm.
+    """
+
+    scf = audit.get("scf")
+    if not isinstance(scf, dict):
+        raise RuntimeError("Route-2 audit omitted the SCF object.")
+    history = scf.get("history")
+    if not isinstance(history, list) or not history:
+        raise RuntimeError("Route-2 audit omitted a nonempty SCF history.")
+    terminal = history[-1]
+    if not isinstance(terminal, dict):
+        raise RuntimeError("Route-2 audit terminal SCF record is invalid.")
+    density = np.asarray(root_density, dtype=float)
+    if density.ndim != 2 or density.shape[1] != 4 or not np.all(np.isfinite(density)):
+        raise RuntimeError("Route-2 persisted root density is invalid.")
+    target_charge = float(scf["total_charge_e"])
+    root_charge = float(np.sum(density[:, 0]))
+    values = {
+        "unmixed_density_residual_inf_e": float(terminal["density_residual_e"]),
+        "reaction_potential_residual_ev": float(
+            terminal["reaction_potential_change_ev"]
+        ),
+        "reaction_gradient_residual_ev_per_angstrom": float(
+            terminal["reaction_gradient_change_ev_per_angstrom"]
+        ),
+        "ledger_energy_residual_ev": float(terminal["energy_residual_ev"]),
+        "root_total_charge_e": root_charge,
+        "total_charge_error_e": abs(root_charge - target_charge),
+    }
+    nonnegative_monitor_names = (
+        "unmixed_density_residual_inf_e",
+        "reaction_potential_residual_ev",
+        "reaction_gradient_residual_ev_per_angstrom",
+        "ledger_energy_residual_ev",
+        "total_charge_error_e",
+    )
+    if not all(
+        math.isfinite(values[name]) and values[name] >= 0.0
+        for name in nonnegative_monitor_names
+    ):
+        raise RuntimeError("Route-2 terminal SCF monitors must be finite.")
+    if not math.isfinite(root_charge):
+        raise RuntimeError("Route-2 root total charge must be finite.")
+    return values
+
+
 def _evaluate_method(
     *,
     calculator,
@@ -432,7 +487,7 @@ def _evaluate_method(
             state["density_coefficients"],
             dtype=float,
         )
-    last_scf = audit["scf"]["history"][-1]
+    terminal_scf = _terminal_scf_monitors(audit, root_density)
     delta_g_hartree = float(result["delta_g_solv_hartree"])
     delta_g_kcal_mol = delta_g_hartree * HARTREE_TO_KCAL_MOL
     experiment = selected.eligible_record.record.delta_g_kcal_mol
@@ -455,12 +510,11 @@ def _evaluate_method(
         ),
         "smd_cds_energy_kcal_mol": (float(components["cds"]) * HARTREE_TO_KCAL_MOL),
         "scf_iterations": int(audit["scf"]["iterations"]),
-        "unmixed_density_residual_inf_e": float(last_scf["density_residual_e"]),
+        **terminal_scf,
         "scf_convergence": dict(audit["scf"]["convergence"]),
         "half_coupling_identity_error_ev": float(
             audit["polarization_energy_identity_error_ev"]
         ),
-        "root_density_monopole_sum_e": float(np.sum(root_density[:, 0])),
         "runtime_provenance": provenance,
         "timing_seconds": {"public_energy": wall_seconds},
     }

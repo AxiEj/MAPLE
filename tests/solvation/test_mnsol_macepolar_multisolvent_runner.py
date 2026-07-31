@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 
+import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -138,6 +139,36 @@ def test_parser_keeps_legacy_control_default_and_accepts_direct_pcm():
             runner.PCM_HALF_COUPLING_ONLY_V1,
         ]
     ).energy_ledger == runner.PCM_HALF_COUPLING_ONLY_V1
+
+
+def test_terminal_scf_monitors_keep_each_residual_in_its_native_unit():
+    audit = {
+        "scf": {
+            "total_charge_e": 0.0,
+            "history": [
+                {
+                    "density_residual_e": 2.0e-12,
+                    "reaction_potential_change_ev": 3.0e-11,
+                    "reaction_gradient_change_ev_per_angstrom": 4.0e-11,
+                    "energy_residual_ev": 5.0e-12,
+                }
+            ],
+        }
+    }
+    density = np.array(
+        [[-0.2, 0.0, 0.0, 0.0], [0.2, 0.0, 0.0, 0.0]]
+    )
+
+    monitors = runner._terminal_scf_monitors(audit, density)
+
+    assert monitors == {
+        "unmixed_density_residual_inf_e": pytest.approx(2.0e-12),
+        "reaction_potential_residual_ev": pytest.approx(3.0e-11),
+        "reaction_gradient_residual_ev_per_angstrom": pytest.approx(4.0e-11),
+        "ledger_energy_residual_ev": pytest.approx(5.0e-12),
+        "root_total_charge_e": pytest.approx(0.0),
+        "total_charge_error_e": pytest.approx(0.0),
+    }
 
 
 def test_single_record_smoke_forces_both_outputs_below_omx():

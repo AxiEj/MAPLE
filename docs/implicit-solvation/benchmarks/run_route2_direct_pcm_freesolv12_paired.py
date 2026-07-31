@@ -61,8 +61,11 @@ from maple.function.route2_energy_ledger import (  # noqa: E402
 )
 
 
-ARTIFACT = "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v1"
-SCHEMA_VERSION = 1
+# v2 switches to the separately versioned paired-continuum numerical
+# acceptance contract.  The old v1 work directory remains a valid record of
+# its stricter nominal-only ddCOSMO outcome and is never resumed as v2.
+ARTIFACT = "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2"
+SCHEMA_VERSION = 2
 WATER_SOLVENT = "water"
 METHOD_PROFILES = paired_benchmark.method_profiles_for_energy_ledger(
     PCM_HALF_COUPLING_ONLY_V1

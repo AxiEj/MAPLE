@@ -38,9 +38,11 @@ def _row(compound_id: str, *, pcm: float, cosmo: float) -> dict[str, object]:
 
 def test_runner_is_locked_to_two_direct_pcm_equation_profiles():
     assert runner.METHOD_PROFILES == (
-        ("ddpcm", "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v1"),
-        ("ddcosmo", "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v1"),
+        ("ddpcm", "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2"),
+        ("ddcosmo", "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2"),
     )
+    assert runner.ARTIFACT == "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2"
+    assert runner.SCHEMA_VERSION == 2
     assert "0.5*<c_MACE-POLAR, f_reac_PCM>" in (
         runner.paired_benchmark.paired_energy_composition(
             runner.PCM_HALF_COUPLING_ONLY_V1

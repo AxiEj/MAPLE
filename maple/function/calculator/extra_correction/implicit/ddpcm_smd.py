@@ -28,9 +28,11 @@ from ....route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
     DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
     DDPCM_SMD_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     SUPPORTED_PYDDX_SMD_PROFILES,
     route2_smd_profile_spec,
@@ -93,6 +95,9 @@ SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM = 1.0e-10
 SCF_FINITE_RESOLUTION_POTENTIAL_SPAN_TOLERANCE_EV = 1.0e-10
 SCF_FINITE_RESOLUTION_GRADIENT_SPAN_TOLERANCE_EV_PER_ANGSTROM = 1.0e-10
 SCF_FINITE_RESOLUTION_LEDGER_SPAN_TOLERANCE_EV = 1.0e-10
+SCF_PAIRED_CONTINUUM_FINITE_RESOLUTION_POLICY_VERSION = (
+    "finite-resolution-stagnation-v3-paired-continuum"
+)
 ADJOINT_RELATIVE_TOLERANCE = 1.0e-10
 ADJOINT_ABSOLUTE_TOLERANCE = 1.0e-13
 ADJOINT_MAX_ITERATIONS = 100
@@ -122,6 +127,35 @@ _TORCH_VERSION = "2.12.0+cu130"
 _MULTISOLVENT_DDPCM_FINITE_RESOLUTION_POLICY = (
     Route2FiniteResolutionPolicy(
         version=SCF_FINITE_RESOLUTION_POLICY_VERSION,
+        history_length=SCF_FINITE_RESOLUTION_HISTORY_LENGTH,
+        map_replay_count=SCF_FINITE_RESOLUTION_MAP_REPLAY_COUNT,
+        monopole_residual_ceiling_e=(
+            SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E
+        ),
+        dipole_residual_ceiling_e_angstrom=(
+            SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM
+        ),
+        potential_span_tolerance_ev=(
+            SCF_FINITE_RESOLUTION_POTENTIAL_SPAN_TOLERANCE_EV
+        ),
+        gradient_span_tolerance_ev_per_angstrom=(
+            SCF_FINITE_RESOLUTION_GRADIENT_SPAN_TOLERANCE_EV_PER_ANGSTROM
+        ),
+        ledger_span_tolerance_ev=(
+            SCF_FINITE_RESOLUTION_LEDGER_SPAN_TOLERANCE_EV
+        ),
+    )
+)
+
+# This policy is intentionally identical in numerical thresholds to the
+# historic ddPCM-only v2 policy.  Its new identity is the scope: a direct-PCM
+# paired ddPCM/ddCOSMO study can accept an energy-only fixed-point plateau
+# only after the same accepted-window and fresh-map evidence for its own
+# equation.  The profile and equation are part of the runtime lock, so a
+# ddCOSMO result cannot inherit a ddPCM replay certificate.
+_MULTISOLVENT_PAIRED_CONTINUUM_FINITE_RESOLUTION_POLICY = (
+    Route2FiniteResolutionPolicy(
+        version=SCF_PAIRED_CONTINUUM_FINITE_RESOLUTION_POLICY_VERSION,
         history_length=SCF_FINITE_RESOLUTION_HISTORY_LENGTH,
         map_replay_count=SCF_FINITE_RESOLUTION_MAP_REPLAY_COUNT,
         monopole_residual_ceiling_e=(
@@ -184,18 +218,22 @@ def _engine_settings(
             "The pyddx Route-2 provider requires electrostatics_model="
             "ddpcm or ddcosmo."
         ) from exc
-    policy = (
-        _MULTISOLVENT_DDPCM_FINITE_RESOLUTION_POLICY
-        if (
-            label == _DDPCM_ENGINE_SETTINGS.continuum_label
-            and profile
-            in {
-                DDPCM_MULTISOLVENT_SMD_PROFILE,
-                DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
-            }
-        )
-        else None
-    )
+    if profile in {
+        DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
+        DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
+    }:
+        policy = _MULTISOLVENT_PAIRED_CONTINUUM_FINITE_RESOLUTION_POLICY
+    elif (
+        label == _DDPCM_ENGINE_SETTINGS.continuum_label
+        and profile
+        in {
+            DDPCM_MULTISOLVENT_SMD_PROFILE,
+            DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+        }
+    ):
+        policy = _MULTISOLVENT_DDPCM_FINITE_RESOLUTION_POLICY
+    else:
+        policy = None
     return replace(
         _DDPCM_ENGINE_SETTINGS,
         continuum_label=label,
@@ -1104,8 +1142,10 @@ __all__ = [
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
     "DDPCM_MULTISOLVENT_SMD_PROFILE",
     "DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE",
+    "DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE",
     "DDCOSMO_MULTISOLVENT_SMD_PROFILE",
     "DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE",
+    "DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE",
     "DDPCM_LMAX",
     "DDPCM_N_LEBEDEV",
     "DDPCM_SMD_PROFILE",
@@ -1116,6 +1156,7 @@ __all__ = [
     "PyDDXSMDImplicitSolvation",
     "SCF_DENSITY_TOLERANCE",
     "SCF_ENERGY_TOLERANCE_EV",
+    "SCF_PAIRED_CONTINUUM_FINITE_RESOLUTION_POLICY_VERSION",
     "SCF_MAX_ITERATIONS",
     "SCF_MIXING",
     "SCF_SOLVER",

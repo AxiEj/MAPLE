@@ -57,6 +57,50 @@ with only `compound_id` and `predicted_kcal_mol`; the validator obtains
 experimental values only from the immutable manifest and returns nonzero on a
 failed strict gate.
 
+### Paired direct-PCM / ddCOSMO energy study, v2
+
+The callable multi-solvent direct-energy pair is explicitly versioned rather
+than silently changing the historical v1 profiles:
+
+```text
+smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2
+smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2
+```
+
+They have the same MACE-POLAR checkpoint, point-`l<=1` source, local-jet
+receiver, PySCF-2.13.1 SMD Coulomb radii, PySCF-2.13.1 SMD-CDS term, solvent
+descriptor, and direct ledger
+
+\[
+\Delta G_\mathrm{elec}=\tfrac12\langle c,f_\mathrm{reac}\rangle.
+\]
+
+Only the pyddx continuum equation differs: `ddPCM` versus finite-dielectric
+`ddCOSMO`.  The latter is therefore a parallel continuum diagnostic, **not**
+a claim of strict original SMD equivalence or a COSMO-RS calculation.
+
+Both v2 profiles use the same energy-only finite-resolution acceptance rule:
+a seven-state accepted-Anderson plateau, component-wise residual/span bounds,
+the discrete half-coupling identity, and three independently constructed cold
+reaction-map replays must all pass under an exact profile/equation/runtime
+lock.  This permits neither force output nor an approximate-root PES; nominal
+SCF convergence remains mandatory for any future force candidate.  The v1
+profiles remain available unchanged as historical controls.
+
+The locked twelve-record water comparison is run only from a clean commit:
+
+```bash
+python docs/implicit-solvation/benchmarks/run_route2_direct_pcm_freesolv12_paired.py \
+  --mol2-root .omx/benchmarks/route2-macepolar-smd/dataset \
+  --work-dir .omx/benchmarks/route2-direct-pcm-freesolv12-<git-sha>
+```
+
+It always evaluates both equations on the same hash-locked geometries.  It
+records every row privately, includes ten actual functional groups plus the
+two historical controls, and returns success only when every row for both
+equations is strictly below `1.5 kcal/mol`; a lower MAE cannot override an
+outlier or a computational failure.
+
 Canonical commands:
 
 ```bash

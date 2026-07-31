@@ -36,9 +36,11 @@ from maple.function.route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
     DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
     DDPCM_SMD_DIRECT_PCM_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
@@ -103,6 +105,22 @@ def _direct_multisolvent_cosmo_options(solvent: str) -> dict[str, object]:
         **_options(),
         "implicit": solvent,
         "profile": DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    }
+
+
+def _direct_multisolvent_v2_options(solvent: str) -> dict[str, object]:
+    return {
+        **_options(),
+        "implicit": solvent,
+        "profile": DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
+    }
+
+
+def _direct_multisolvent_cosmo_v2_options(solvent: str) -> dict[str, object]:
+    return {
+        **_options(),
+        "implicit": solvent,
+        "profile": DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
     }
 
 
@@ -215,7 +233,7 @@ def test_legacy_ddpcm_profile_remains_water_only():
         )
 
 
-def test_finite_resolution_policy_is_scoped_to_the_exact_multisolvent_ddpcm_profile(
+def test_finite_resolution_policy_is_versioned_and_scoped_to_the_exact_profiles(
     tmp_path,
 ):
     multisolvent = DDPCMSMDImplicitSolvation(
@@ -238,6 +256,16 @@ def test_finite_resolution_policy_is_scoped_to_the_exact_multisolvent_ddpcm_prof
         _direct_multisolvent_options("water"),
         audit_dir=tmp_path / "multisolvent-ddpcm-direct",
     )
+    direct_multisolvent_v2 = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _direct_multisolvent_v2_options("water"),
+        audit_dir=tmp_path / "multisolvent-ddpcm-direct-v2",
+    )
+    direct_multisolvent_cosmo_v2 = DDPCMSMDImplicitSolvation(
+        _atoms(),
+        _direct_multisolvent_cosmo_v2_options("water"),
+        audit_dir=tmp_path / "multisolvent-ddcosmo-direct-v2",
+    )
 
     policy = multisolvent._engine.settings.scf_finite_resolution_policy
     assert policy is not None
@@ -253,6 +281,14 @@ def test_finite_resolution_policy_is_scoped_to_the_exact_multisolvent_ddpcm_prof
     assert legacy._engine.settings.scf_finite_resolution_policy is None
     assert ddcosmo._engine.settings.scf_finite_resolution_policy is None
     assert direct_multisolvent._engine.settings.scf_finite_resolution_policy is not None
+    paired_pcm_policy = direct_multisolvent_v2._engine.settings.scf_finite_resolution_policy
+    paired_cosmo_policy = (
+        direct_multisolvent_cosmo_v2._engine.settings.scf_finite_resolution_policy
+    )
+    assert paired_pcm_policy is not None
+    assert paired_cosmo_policy is not None
+    assert paired_pcm_policy == paired_cosmo_policy
+    assert paired_pcm_policy.version == "finite-resolution-stagnation-v3-paired-continuum"
 
 
 def test_finite_resolution_runtime_identity_fails_closed_on_any_lock_drift(

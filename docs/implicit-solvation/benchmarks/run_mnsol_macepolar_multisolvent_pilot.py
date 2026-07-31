@@ -81,15 +81,15 @@ from maple.function.route2_energy_ledger import (
     validate_route2_electrostatic_energy_ledger,
 )
 from maple.function.route2_smd_profiles import (
-    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
-    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
+    DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
 )
 
 ARTIFACT_NAME = "route2-mnsol-macepolar-multisolvent-pilot-v1"
 DIRECT_PCM_ARTIFACT_NAME = (
-    "route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v1"
+    "route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2"
 )
 FULL_PANEL_RECORD_COUNT = 10
 # Backward-compatible legacy control used by the existing frozen artifacts.
@@ -98,8 +98,8 @@ METHOD_PROFILES = (
     ("ddcosmo", DDCOSMO_MULTISOLVENT_SMD_PROFILE),
 )
 DIRECT_PCM_METHOD_PROFILES = (
-    ("ddpcm", DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE),
-    ("ddcosmo", DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE),
+    ("ddpcm", DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE),
+    ("ddcosmo", DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE),
 )
 
 

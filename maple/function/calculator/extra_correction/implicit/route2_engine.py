@@ -8,15 +8,20 @@ implicit-function adjoint, and component ledger.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Hashable
-from dataclasses import dataclass, field
 import hashlib
 import math
+from collections.abc import Callable, Hashable
+from dataclasses import dataclass, field
 from typing import Any, Literal, TypedDict, cast
 
 import numpy as np
 from ase.units import Hartree
 
+from ....route2_energy_ledger import (
+    LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+    PCM_HALF_COUPLING_ONLY_V1,
+    validate_route2_electrostatic_energy_ledger,
+)
 from .electrostatic_pairing import MACE_POLAR_L1_PAIRING
 from .route2_derivative import (
     assemble_total_solvation_coordinate_gradient,
@@ -32,6 +37,12 @@ from .route2_fixed_point import (
     next_fixed_point_density,
     project_density_total_charge,
 )
+from .route2_force_admission import (
+    ContinuumSmoothnessContract,
+    ForceAdmissionPolicy,
+    UNSPECIFIED_CONTINUUM_SMOOTHNESS_CONTRACT,
+    evaluate_force_admission,
+)
 from .route2_response import (
     UnmixedDensityResidualLinearization,
     solve_adjoint,
@@ -45,6 +56,8 @@ SCF_REJECTED_GROWTH_ACTION = (
     "reject-trial-rollback-prior-accepted-anchor-one-picard-restart"
 )
 SCF_FINITE_RESOLUTION_HISTORY_SOURCE = "accepted-solver-states-only"
+SCF_ENERGY_RESIDUAL_SOURCE_MACE_FIELD = "field-conditioned-mace-energy-v1"
+SCF_ENERGY_RESIDUAL_SOURCE_PCM_HALF_COUPLING = "pcm-half-coupling-v1"
 
 
 class Route2SCFHistoryRecord(TypedDict):
@@ -54,8 +67,12 @@ class Route2SCFHistoryRecord(TypedDict):
     density_residual_e: float
     monopole_residual_e: float
     dipole_residual_e_angstrom: float
+    reaction_potential_change_ev: float | None
+    reaction_gradient_change_ev_per_angstrom: float | None
     energy_residual_ev: float | None
     intrinsic_energy_ev: float
+    ledger_energy_ev: float
+    energy_residual_source: str
     root_total_charge_e: float
     raw_response_total_charge_e: float
     response_charge_projection_max_e: float
@@ -437,7 +454,7 @@ class Route2ContinuumEngine:
         if callable(apply_drive):
             drive = apply_drive(density)
             if not isinstance(drive, ReactionFieldDrive):
-                raise RuntimeError(
+                raise TypeError(
                     f"The {self.settings.continuum_label} reaction-field "
                     "provider returned an invalid model-drive state."
                 )
@@ -718,7 +735,13 @@ class Route2ContinuumEngine:
         candidate_response: np.ndarray,
         candidate_residual: np.ndarray,
         candidate_intrinsic_energy_ev: float,
+        electrostatic_energy_ledger: str = (
+            LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+        ),
     ) -> dict[str, Any]:
+        selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
+            electrostatic_energy_ledger
+        )
         atom_count = len(atoms)
         field_reference = np.array(candidate_field, copy=True)
         response_reference = np.array(candidate_response, copy=True)
@@ -742,9 +765,11 @@ class Route2ContinuumEngine:
         candidate_polarization_identity_error_ev = abs(
             candidate_paired_energy_ev - candidate_provider_energy_ev
         )
-        candidate_electrostatic_ledger_ev = (
-            candidate_intrinsic_energy_ev - float(gas_state.energy_ev)
-        ) + candidate_provider_energy_ev
+        candidate_electrostatic_ledger_ev = candidate_provider_energy_ev
+        if selected_energy_ledger == LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1:
+            candidate_electrostatic_ledger_ev += (
+                candidate_intrinsic_energy_ev - float(gas_state.energy_ev)
+            )
         candidate_scalars = {
             "online intrinsic energy": candidate_intrinsic_energy_ev,
             "online PCM polarization energy": candidate_pcm_polarization_hartree,
@@ -821,10 +846,11 @@ class Route2ContinuumEngine:
             replay_polarization_identity_error_ev = abs(
                 paired_energy_ev - provider_energy_ev
             )
-            replay_electrostatic_ledger_ev = (
-                (replay_intrinsic - float(gas_state.energy_ev))
-                + provider_energy_ev
-            )
+            replay_electrostatic_ledger_ev = provider_energy_ev
+            if selected_energy_ledger == LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1:
+                replay_electrostatic_ledger_ev += (
+                    replay_intrinsic - float(gas_state.energy_ev)
+                )
             replay_scalars = {
                 "replayed intrinsic energy": replay_intrinsic,
                 "replayed PCM polarization energy": replay_pcm_polarization,
@@ -1106,8 +1132,19 @@ class Route2ContinuumEngine:
         *,
         provider_cache_signature: Hashable,
         finite_resolution_runtime_identity: dict[str, object] | None = None,
+        electrostatic_energy_ledger: str = (
+            LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+        ),
     ) -> Route2CoupledState:
         settings = self.settings
+        selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
+            electrostatic_energy_ledger
+        )
+        energy_residual_source = (
+            SCF_ENERGY_RESIDUAL_SOURCE_PCM_HALF_COUPLING
+            if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1
+            else SCF_ENERGY_RESIDUAL_SOURCE_MACE_FIELD
+        )
         reaction_field = self.reaction_field_factory(atoms)
         density = project_density_total_charge(
             self.validate_density(
@@ -1164,9 +1201,19 @@ class Route2ContinuumEngine:
             density_residual = float(np.max(np.abs(residual)))
             monopole_residual_e = float(np.max(np.abs(residual[:, 0])))
             dipole_residual_e_angstrom = float(np.max(np.abs(residual[:, 1:])))
-            current_energy_ev = float(solvent_state.energy_ev)
-            if not math.isfinite(current_energy_ev):
+            current_intrinsic_energy_ev = float(solvent_state.energy_ev)
+            if not math.isfinite(current_intrinsic_energy_ev):
                 raise RuntimeError("Field-polarized MACE-POLAR energy is non-finite.")
+            if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1:
+                current_energy_ev = float(
+                    reaction_field.scf_polarization_energy_hartree(density)
+                ) * Hartree
+            else:
+                current_energy_ev = current_intrinsic_energy_ev
+            if not math.isfinite(current_energy_ev):
+                raise RuntimeError(
+                    "Selected Route-2 SCF energy ledger is non-finite."
+                )
 
             actual_residual_objective = self._normalized_actual_residual_objective(
                 monopole_residual_e=monopole_residual_e,
@@ -1199,14 +1246,30 @@ class Route2ContinuumEngine:
                 if previous_energy_ev is None
                 else abs(current_energy_ev - previous_energy_ev)
             )
+            reaction_potential_change_ev: float | None = None
+            reaction_gradient_change_ev_per_angstrom: float | None = None
+            if last_accepted_field is not None:
+                field_change = field - last_accepted_field
+                reaction_potential_change_ev = float(
+                    np.max(np.abs(field_change[:, 0]))
+                )
+                reaction_gradient_change_ev_per_angstrom = float(
+                    np.max(np.abs(field_change[:, 1:]))
+                )
 
             record: Route2SCFHistoryRecord = {
                 "iteration": iteration,
                 "density_residual_e": density_residual,
                 "monopole_residual_e": monopole_residual_e,
                 "dipole_residual_e_angstrom": dipole_residual_e_angstrom,
+                "reaction_potential_change_ev": reaction_potential_change_ev,
+                "reaction_gradient_change_ev_per_angstrom": (
+                    reaction_gradient_change_ev_per_angstrom
+                ),
                 "energy_residual_ev": energy_residual,
-                "intrinsic_energy_ev": current_energy_ev,
+                "intrinsic_energy_ev": current_intrinsic_energy_ev,
+                "ledger_energy_ev": current_energy_ev,
+                "energy_residual_source": energy_residual_source,
                 "root_total_charge_e": float(np.sum(density[:, 0])),
                 "raw_response_total_charge_e": float(
                     np.sum(raw_response_density[:, 0])
@@ -1338,7 +1401,7 @@ class Route2ContinuumEngine:
                 best_iteration_state = Route2SCFIterationState(
                     iteration=iteration,
                     density_residual_e=density_residual,
-                    intrinsic_energy_ev=current_energy_ev,
+                    intrinsic_energy_ev=current_intrinsic_energy_ev,
                     density_coefficients=density,
                     response_density_coefficients=response_density,
                     reaction_field_values_ev=field,
@@ -1368,6 +1431,13 @@ class Route2ContinuumEngine:
                         "final_dipole_residual_e_angstrom": (
                             dipole_residual_e_angstrom
                         ),
+                        "final_reaction_potential_change_ev": (
+                            reaction_potential_change_ev
+                        ),
+                        "final_reaction_gradient_change_ev_per_angstrom": (
+                            reaction_gradient_change_ev_per_angstrom
+                        ),
+                        "final_energy_residual_ev": energy_residual,
                         "runtime_identity": None,
                         "history_window": None,
                         "fresh_map_replay": None,
@@ -1403,7 +1473,10 @@ class Route2ContinuumEngine:
                             ),
                             candidate_response=np.array(response_density, copy=True),
                             candidate_residual=np.array(residual, copy=True),
-                            candidate_intrinsic_energy_ev=current_energy_ev,
+                            candidate_intrinsic_energy_ev=(
+                                current_intrinsic_energy_ev
+                            ),
+                            electrostatic_energy_ledger=selected_energy_ledger,
                         )
                     except Route2SCFConvergenceError as exc:
                         raise Route2SCFConvergenceError(
@@ -1421,6 +1494,13 @@ class Route2ContinuumEngine:
                         "final_dipole_residual_e_angstrom": (
                             dipole_residual_e_angstrom
                         ),
+                        "final_reaction_potential_change_ev": (
+                            reaction_potential_change_ev
+                        ),
+                        "final_reaction_gradient_change_ev_per_angstrom": (
+                            reaction_gradient_change_ev_per_angstrom
+                        ),
+                        "final_energy_residual_ev": energy_residual,
                         "runtime_identity": dict(
                             finite_resolution_runtime_identity,
                         ),
@@ -1514,7 +1594,7 @@ class Route2ContinuumEngine:
                 f"{last['dipole_residual_e_angstrom']:.3e} e angstrom, "
                 f"energy residual={last['energy_residual_ev']!r} eV, "
                 f"minimum density residual={minimum_density_residual:.3e} "
-                "(legacy raw-component scalar)).",
+                f"(energy ledger={last['energy_residual_source']})).",
                 history=history,
                 best_state=best_iteration_state,
             )
@@ -1569,6 +1649,13 @@ class Route2ContinuumEngine:
         calculator,
         gas_state,
         coupled: Route2CoupledState,
+        *,
+        force_admission_continuum: ContinuumSmoothnessContract = (
+            UNSPECIFIED_CONTINUUM_SMOOTHNESS_CONTRACT
+        ),
+        force_admission_policy: ForceAdmissionPolicy | None = None,
+        multi_start_root_agreement: bool | None = None,
+        operational_energy_semantics_closed: bool = False,
     ) -> tuple[np.ndarray, dict[str, Any]]:
         settings = self.settings
         finite_resolution_policy = settings.scf_finite_resolution_policy
@@ -1689,6 +1776,45 @@ class Route2ContinuumEngine:
             continuum_gradient,
             coupled.cds_result.position_gradient_hartree_per_angstrom,
         )
+        effective_force_admission_policy = force_admission_policy
+        if effective_force_admission_policy is None:
+            effective_force_admission_policy = ForceAdmissionPolicy(
+                maximum_primal_monopole_residual_e=(
+                    settings.scf_density_tolerance
+                ),
+                maximum_primal_dipole_residual_e_angstrom=cast(
+                    float,
+                    settings.scf_dipole_tolerance_e_angstrom,
+                ),
+                maximum_adjoint_relative_residual=(
+                    settings.adjoint_relative_tolerance
+                ),
+                maximum_continuum_identity_error_ev=(
+                    settings.energy_identity_tolerance_ev
+                ),
+            )
+        final_scf_record = coupled.history[-1]
+        force_admission = evaluate_force_admission(
+            residual,
+            nominal_root=(
+                coupled.scf_convergence.get("reason")
+                == "nominal-density-and-energy-v1"
+            ),
+            primal_monopole_residual_e=(
+                final_scf_record["monopole_residual_e"]
+            ),
+            primal_dipole_residual_e_angstrom=(
+                final_scf_record["dipole_residual_e_angstrom"]
+            ),
+            adjoint_relative_residual=adjoint.relative_residual,
+            continuum_identity_error_ev=coupled.energy_identity_error_ev,
+            continuum=force_admission_continuum,
+            multi_start_root_agreement=multi_start_root_agreement,
+            operational_energy_semantics_closed=(
+                operational_energy_semantics_closed
+            ),
+            policy=effective_force_admission_policy,
+        )
         derivative = {
             "continuum_position_gradient_ev_per_angstrom": (continuum_gradient),
             "cds_position_gradient_hartree_per_angstrom": (
@@ -1713,6 +1839,7 @@ class Route2ContinuumEngine:
                 "residual_norm": adjoint.residual_norm,
                 "relative_residual": adjoint.relative_residual,
             },
+            "force_admission": force_admission.as_dict(),
         }
         return (
             total.solvent_correction_forces_hartree_per_angstrom,
@@ -1726,10 +1853,29 @@ class Route2ContinuumEngine:
         solvent_energy_ev: float,
         polarization_energy_hartree: float,
         cds_energy_hartree: float,
+        electrostatic_energy_ledger: str = (
+            LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+        ),
     ) -> dict[str, float]:
-        """Compose the single Route-2 scalar-energy ledger."""
+        """Compose one versioned Route-2 scalar-energy ledger.
 
-        delta_e_solute = (float(solvent_energy_ev) - float(gas_energy_ev)) / Hartree
+        ``pcm-half-coupling-only-v1`` retains the MACE-POLAR fixed-point
+        density only as a source for the continuum and reports the PCM
+        half-coupling plus frozen CDS.  It deliberately excludes the
+        field-conditioned MACE energy difference from the leaf ledger.
+        """
+
+        selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
+            electrostatic_energy_ledger
+        )
+        field_conditioned_mace_energy_change = (
+            float(solvent_energy_ev) - float(gas_energy_ev)
+        ) / Hartree
+        delta_e_solute = (
+            0.0
+            if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1
+            else field_conditioned_mace_energy_change
+        )
         pcm_polarization = float(polarization_energy_hartree)
         electrostatic = delta_e_solute + pcm_polarization
         cds_energy = float(cds_energy_hartree)
@@ -1748,12 +1894,17 @@ class Route2ContinuumEngine:
         cls,
         gas_state,
         coupled: Route2CoupledState,
+        *,
+        electrostatic_energy_ledger: str = (
+            LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+        ),
     ) -> dict[str, float]:
         return cls.compose_energy_components(
             gas_energy_ev=float(gas_state.energy_ev),
             solvent_energy_ev=float(coupled.solvent_state.energy_ev),
             polarization_energy_hartree=(coupled.polarization_energy_hartree),
             cds_energy_hartree=float(coupled.cds_result.energy_hartree),
+            electrostatic_energy_ledger=electrostatic_energy_ledger,
         )
 
 

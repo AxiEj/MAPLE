@@ -1,0 +1,67 @@
+{
+  "artifact": "route2-v0-molecular-moment-acetone-oracle-20260731",
+  "claim_boundary": "One frozen acetone gas-phase QM-MEP comparison of two no-training response completions. It reads no experimental solvation label, invokes no PCM, and is neither a functional-group panel nor an accuracy/production claim.",
+  "decision": "The candidate is eligible only for the next preregistered nonuniform-response oracle if its structural identities pass. This single compound cannot select a model or establish multi-molecule response/solvation accuracy.",
+  "environment": {
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "python_executable": "/home/axie/miniconda3/envs/maple/bin/python3.11"
+  },
+  "executed_at_utc": "2026-07-31T07:16:03.350114+00:00",
+  "execution_git_dirty": true,
+  "execution_git_head": "8e48975ad9ab555acb0e1cdc88b130e3ef067aef",
+  "inputs": {
+    "aipr_table_sha256": "a606cd7b2bf4a11d37e63ad1563c28fcf984eb8246c6adf07c98a33e5dd60f2b",
+    "mace_mdp_atomic_map_sha256": "c872cc62a6b20b8a696bc221e039d053c17f2f7c19870db4eb90dda6cffda3d0",
+    "mace_mdp_response_sha256": "c53dc27ee76f9a41fe4a57a4e750e743e1af3aa4f2e3fc86ad2a0e9fe0022ec9",
+    "old_aipr_acetone_artifact_sha256": "90e8a6f2b6a020cdac8d55cb97fda823bd7e3cf486fbed6ac1f1a63c3cc291ab",
+    "qm_induced_mep_sha256": "19a04191efca58c6f935a1060fbf92719723ddf733220ca4876c27bd60ef97cc",
+    "response_kernel_sha256": "bae7b171a87e20c10c38764a307a90b538348621f4a155856b5735f25318d606",
+    "runner_sha256": "4b9088dd88c47af79636b5a035760edc7a31cdb52dda79e66f697f534ef1088d"
+  },
+  "results": {
+    "molecular_moment_candidate": {
+      "atomic_response_rank": 30,
+      "coefficients_sha256": "eef58a6d065fe08a02c1af0379ce38a4f7e9f6daff84dd6b01efda0e8b1c2f19",
+      "completed_minimum_eigenvalue": 0.014810734586679615,
+      "induced_mep_direction_relative_errors": {
+        "x": 0.12018824714481291,
+        "y": 0.18995503910037997,
+        "z": 0.13609928153380707
+      },
+      "induced_mep_relative_frobenius_error": 0.15508072896945388,
+      "mep_sha256": "0674d2a78f9a9670fd8f73d88597f0fd244aeaf32abc763ee5e76f25c48a8403",
+      "molecular_polarizability_error": 1.421707798936036e-14,
+      "moore_penrose_error": 5.346227131933918e-14,
+      "name": "molecular-moment-candidate",
+      "response_rank": 727,
+      "uniform_field_dipole_relative_error": 0.00386786217641552
+    },
+    "stacked_atomic_rank_three_control": {
+      "atomic_response_rank": 3,
+      "coefficients_sha256": "0440b48acdeb304aa9aa00c55d74125559f211dc9ca2c82f03f6852ef955e675",
+      "completed_minimum_eigenvalue": -3.4807532381399573e-16,
+      "induced_mep_direction_relative_errors": {
+        "x": 0.11009245472840734,
+        "y": 0.09546107737208546,
+        "z": 0.0851093147021405
+      },
+      "induced_mep_relative_frobenius_error": 0.09667637936478042,
+      "mep_sha256": "3ba2345897f6498fba19e31c3bdc59d77c488b6292ed161c7e6b1d3fe50dad8a",
+      "molecular_polarizability_error": 7.730831014393574e-15,
+      "moore_penrose_error": 7.909345194360936e-14,
+      "name": "stacked-atomic-control",
+      "response_rank": 700,
+      "uniform_field_dipole_relative_error": 0.0038678621764154297
+    }
+  },
+  "schema_version": 1,
+  "status": "diagnostic-only",
+  "system": {
+    "atom_count": 10,
+    "coefficient_count": 727,
+    "compound": "acetone / mobley_3867265",
+    "field_step_au": 0.0003,
+    "surface_oracle_point_count": 516
+  }
+}

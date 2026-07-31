@@ -33,7 +33,10 @@ from .route2_v0_atomic_independent_particle_surface import (
     AtomicIndependentParticleSurfaceCoupling,
     BOHR_ANGSTROM,
 )
-from .route2_v0_response_kernel import Route2V0ResponseKernelCompletion
+from .route2_v0_response_kernel import (
+    Route2V0MolecularMomentResponseKernelCompletion,
+    Route2V0ResponseKernelCompletion,
+)
 
 
 V0_FULL_RESPONSE_KKT_CONSTRUCTION = "route2-v0-full-response-kkt-v1"
@@ -90,7 +93,10 @@ def _symmetric_matrix(
 
 
 def _support_basis(
-    completion: Route2V0ResponseKernelCompletion,
+    completion: (
+        Route2V0ResponseKernelCompletion
+        | Route2V0MolecularMomentResponseKernelCompletion
+    ),
     *,
     relative_tolerance: float,
 ) -> tuple[np.ndarray, np.ndarray, float]:
@@ -112,11 +118,20 @@ def _support_basis(
 
 def _validate_completion_matches_coupling(
     coupling: AtomicIndependentParticleSurfaceCoupling,
-    completion: Route2V0ResponseKernelCompletion,
+    completion: (
+        Route2V0ResponseKernelCompletion
+        | Route2V0MolecularMomentResponseKernelCompletion
+    ),
     *,
     relative_tolerance: float,
 ) -> None:
-    if not isinstance(completion, Route2V0ResponseKernelCompletion):
+    if not isinstance(
+        completion,
+        (
+            Route2V0ResponseKernelCompletion,
+            Route2V0MolecularMomentResponseKernelCompletion,
+        ),
+    ):
         raise TypeError("completion must be a V0 response-kernel completion.")
     baseline = coupling.baseline
     expected_covariance = baseline.baseline_response_covariance_coefficient_dual
@@ -357,7 +372,10 @@ def _surface_charge(
 def solve_route2_v0_full_response_kkt(
     *,
     coupling: AtomicIndependentParticleSurfaceCoupling,
-    completion: Route2V0ResponseKernelCompletion,
+    completion: (
+        Route2V0ResponseKernelCompletion
+        | Route2V0MolecularMomentResponseKernelCompletion
+    ),
     continuum: ExternalMEPCavityResponse,
     permanent_surface_potential_hartree_per_e: np.ndarray | None = None,
     external_coefficient_dual_hartree: np.ndarray | None = None,

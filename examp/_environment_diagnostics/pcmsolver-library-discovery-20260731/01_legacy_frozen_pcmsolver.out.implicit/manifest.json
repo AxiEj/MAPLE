@@ -1,0 +1,179 @@
+{
+  "charge": null,
+  "charge_options": {},
+  "energy_composition": "E_MAPLE_gas + delta_G_solv",
+  "initial_geometry": {
+    "atomic_numbers": [
+      6,
+      6,
+      8,
+      6,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "cell_angstrom": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "chemical_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "pbc": [
+      false,
+      false,
+      false
+    ],
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ]
+  },
+  "initial_geometry_sha256": "2bbdc9b9fa3eafb2547afbb15287a8ad912990872ccfbaef91324b5568ebcc68",
+  "manifest_sha256": "cbf44763b9df2545c1fde124091ff759302bcf49bc5a11ee94731a820cecca38",
+  "public_evaluation_record_contract": "each record carries current-geometry and immutable content/manifest integrity digests",
+  "public_evaluation_record_directory": "route2-public-results",
+  "response_lifecycle": "density-coupled-frozen",
+  "schema_version": 3,
+  "solvation": {
+    "accuracy_certified": false,
+    "cavity_policy": "warning-fallback",
+    "cavity_policy_geometry_selection_branch_free": false,
+    "cavity_radii": "SMD Coulomb radii with revised Br=2.60 A and I=2.74 A",
+    "cavity_stability_policy": "Start with AREA=0.20 A^2 and no added spheres. If PCMSolver emits the native 'PCMSolver warning.' stderr marker, retry deterministically with AREA=0.28 A^2 and MINRADIUS=0.30 A; fail closed if a warning persists. PEDRA.OUT warnings are recorded separately and do not select a cavity branch. This warning-triggered branch is fixed-conformer energy infrastructure and is not a force/PES policy.",
+    "cavity_stability_policy_force_compatible": false,
+    "cds": "aqueous SMD atomic surface tensions with native NumPy SASA",
+    "cds_grid_points_per_atom": 5810,
+    "citations": {
+      "mace_polar": "MACE-POLAR-1, arXiv:2602.19411",
+      "pcmsolver": "Di Remigio et al., JOSS 2019, DOI:10.21105/joss.01190",
+      "smd": "Marenich, Cramer, Truhlar, JPCB 2009, DOI:10.1021/jp810292n"
+    },
+    "default_eligible": false,
+    "density_dual_field_gauge": "continuum-zero-at-infinity",
+    "density_interpretation": "coarse-grained net charge density, not a QM electron density",
+    "density_source": "official MACE-POLAR-1-M l<=1 residual charge density",
+    "dielectric_policy": "pcmsolver-water-keyword",
+    "electrostatic_cavity_generation": "legacy-builtin-solvent-probe-v1",
+    "electrostatics": "IEFPCM",
+    "energy_composition": "delta_G_solv = (E_MACE_intrinsic[V_reac]-E_MACE_gas) + 0.5*<V_solute,ASC> + G_CDS",
+    "forces_available": false,
+    "method": "smd",
+    "model_field_gauge": "continuum-zero-at-infinity",
+    "next_primary_milestone": "energy-consistent force derivative for the converged MACE-POLAR/PCM/SMD state",
+    "nonpolar_model": "native-water-smd-cds",
+    "pcm_mep_projection": "cavity-exterior point monopoles and dipoles; the model-internal 1.5 A GTO smearing is not extended across the dielectric boundary",
+    "profile": "smd-iefpcm",
+    "provider": "pcmsolver",
+    "reaction_field_projector": "local-jet",
+    "response": "frozen",
+    "route_role": "research-innovation",
+    "scientific_status": "energy-proof-of-concept",
+    "solute_source": "point-multipole-l1",
+    "solution_phase_pes": false,
+    "solvent": "water",
+    "standard_state": "1M(gas)->1M(solution)",
+    "standard_state_correction_hartree": 0.0,
+    "strict_original_smd_equivalence": false
+  },
+  "solvation_options": {
+    "experimental": true,
+    "implicit": "water",
+    "method": "smd",
+    "profile": "smd-iefpcm",
+    "provider": "pcmsolver",
+    "response": "frozen",
+    "standard_state": "1m"
+  },
+  "solvation_options_sha256": "f8131eae6176d37d87587b13287f7b8d7cb0504225c648f35ded61e4745e9aad",
+  "source_receiver_contract": {
+    "common_stationary_electronic_functional_established": false,
+    "continuum_pairing_established": true,
+    "continuum_pairing_status": "point-multipole-local-jet-dual",
+    "contract_version": "route2-source-receiver-contract-v1",
+    "next_required_physical_gate": "common-electronic-scalar-energy-density-conjugacy-and-kkt",
+    "profile": "smd-iefpcm",
+    "prohibited_claims": [
+      "variational SCRF",
+      "common-energy stationary electronic state",
+      "solution-phase PES",
+      "analytic solution-phase forces"
+    ],
+    "public_capability": "experimental-energy-only",
+    "reaction_field_receiver": "local-jet",
+    "solute_source": "point-multipole-l1"
+  }
+}

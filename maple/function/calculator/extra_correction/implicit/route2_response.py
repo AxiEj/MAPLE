@@ -57,12 +57,13 @@ def _validated_block(
     return array
 
 
-def project_neutral_density_tangent(values: np.ndarray) -> np.ndarray:
-    """Orthogonally project the monopole block onto zero total charge.
+def project_fixed_charge_tangent(values: np.ndarray) -> np.ndarray:
+    """Project a density *direction* onto the fixed-total-charge tangent.
 
     The three real-spherical ``l=1`` components are unchanged.  The operation
-    is the Euclidean projector used to define the discrete neutral tangent
-    space; it is not a modification of a converged physical density.
+    is independent of the value of the constrained total charge: every
+    allowed response direction has zero monopole sum.  It is not a
+    modification of a converged physical density.
     """
 
     array = np.asarray(values, dtype=float)
@@ -77,7 +78,14 @@ def project_neutral_density_tangent(values: np.ndarray) -> np.ndarray:
     return projected
 
 
-def _require_neutral_density_tangent(
+# ``neutral`` was the original Route-2 public spelling.  Keep the alias so
+# archived canaries and third-party diagnostic scripts continue to mean the
+# same tangent projection while the implementation also describes ionic
+# fixed-charge states correctly.
+project_neutral_density_tangent = project_fixed_charge_tangent
+
+
+def _require_fixed_charge_tangent(
     values: np.ndarray,
     *,
     name: str,
@@ -87,22 +95,22 @@ def _require_neutral_density_tangent(
     scale = max(1.0, float(np.linalg.norm(values[:, 0], ord=1)))
     if charge_sum > tolerance * scale:
         raise ValueError(
-            f"{name} must lie in the neutral density tangent space "
+            f"{name} must lie in the fixed-charge density tangent space "
             f"(monopole sum={float(np.sum(values[:, 0])):.6e})."
         )
 
 
 @dataclass(frozen=True)
 class UnmixedDensityResidualLinearization:
-    """Linearization of ``R(c)=Pi0[c-M(P(c))]`` at fixed geometry/cavity.
+    """Linearization of ``R(c)=Pi_Q[c-M(P(c))]`` at fixed geometry/cavity.
 
     ``P`` is the PCM reaction-field map and ``M`` is the MACE-POLAR density
     response.  Numerical SCF mixing is intentionally absent because it is a
     root-finding choice, not part of the converged physical residual.
 
-    Both operands live in the neutral density tangent space.  Node fields use
-    the external Cartesian order ``[V, dV/dx, dV/dy, dV/dz]``; the MACE
-    adapter owns any internal e3nn permutation and unit conversion.
+    Both operands live in the fixed-total-charge density tangent space.  Node
+    fields use the external Cartesian order ``[V, dV/dx, dV/dy, dV/dz]``; the
+    MACE adapter owns any internal e3nn permutation and unit conversion.
     """
 
     atom_count: int
@@ -114,17 +122,17 @@ class UnmixedDensityResidualLinearization:
         if self.atom_count <= 0:
             raise ValueError("Route-2 residual linearization requires atoms.")
         if self.neutral_tolerance <= 0.0:
-            raise ValueError("Neutral tangent tolerance must be positive.")
+            raise ValueError("Fixed-charge tangent tolerance must be positive.")
 
     def jvp(self, density_direction: np.ndarray) -> np.ndarray:
-        """Apply ``Pi0 (I - J_M J_P)`` without forming a dense Jacobian."""
+        """Apply ``Pi_Q (I - J_M J_P)`` without forming a dense Jacobian."""
 
         direction = _validated_block(
             density_direction,
             atom_count=self.atom_count,
             name="density_direction",
         )
-        _require_neutral_density_tangent(
+        _require_fixed_charge_tangent(
             direction,
             name="density_direction",
             tolerance=self.neutral_tolerance,
@@ -142,14 +150,14 @@ class UnmixedDensityResidualLinearization:
         return project_neutral_density_tangent(direction - response_direction)
 
     def vjp(self, density_cotangent: np.ndarray) -> np.ndarray:
-        """Apply ``Pi0 (I - J_P* J_M*)`` in the discrete neutral subspace."""
+        """Apply ``Pi_Q (I - J_P* J_M*)`` in the fixed-charge subspace."""
 
         cotangent = _validated_block(
             density_cotangent,
             atom_count=self.atom_count,
             name="density_cotangent",
         )
-        _require_neutral_density_tangent(
+        _require_fixed_charge_tangent(
             cotangent,
             name="density_cotangent",
             tolerance=self.neutral_tolerance,
@@ -167,14 +175,21 @@ class UnmixedDensityResidualLinearization:
         return project_neutral_density_tangent(cotangent - response_cotangent)
 
 
-class NeutralDensityCoordinates:
-    """Orthonormal coordinates for the zero-total-monopole tangent space."""
+class FixedChargeCoordinates:
+    """Orthonormal coordinates for a fixed-total-charge density tangent.
+
+    The absolute molecular charge belongs to the affine reference state
+    ``c_Q``.  This object represents only ``delta c`` and therefore always
+    enforces ``sum_A delta q_A = 0``.  The Helmert monopole basis is unchanged
+    from the historical neutral implementation; only its scientific meaning
+    is generalized.
+    """
 
     def __init__(self, atom_count: int, *, neutral_tolerance: float = 1.0e-10):
         if atom_count <= 0:
-            raise ValueError("Neutral density coordinates require atoms.")
+            raise ValueError("Fixed-charge density coordinates require atoms.")
         if neutral_tolerance <= 0.0:
-            raise ValueError("Neutral tangent tolerance must be positive.")
+            raise ValueError("Fixed-charge tangent tolerance must be positive.")
         self.atom_count = int(atom_count)
         self.neutral_tolerance = float(neutral_tolerance)
         self._charge_basis = self._build_charge_basis(self.atom_count)
@@ -196,7 +211,7 @@ class NeutralDensityCoordinates:
         vector = np.asarray(coordinates, dtype=float)
         if vector.shape != (self.dimension,) or not np.all(np.isfinite(vector)):
             raise ValueError(
-                "Neutral density coordinate vector must be finite with shape "
+                "Fixed-charge density coordinate vector must be finite with shape "
                 f"({self.dimension},); received {vector.shape}."
             )
         charge_dimension = self.atom_count - 1
@@ -206,14 +221,14 @@ class NeutralDensityCoordinates:
         return values
 
     def reduce(self, values: np.ndarray) -> np.ndarray:
-        """Map a neutral tangent into its orthonormal reduced coordinates."""
+        """Map a fixed-charge tangent into its orthonormal reduced coordinates."""
 
         tangent = _validated_block(
             values,
             atom_count=self.atom_count,
             name="density tangent",
         )
-        _require_neutral_density_tangent(
+        _require_fixed_charge_tangent(
             tangent,
             name="density tangent",
             tolerance=self.neutral_tolerance,
@@ -226,9 +241,14 @@ class NeutralDensityCoordinates:
         )
 
 
+# Backward-compatible name retained for pre-existing Route-2 diagnostic
+# artifacts.  New force/response code should use ``FixedChargeCoordinates``.
+NeutralDensityCoordinates = FixedChargeCoordinates
+
+
 @dataclass(frozen=True)
 class AdjointSolveResult:
-    """Verified solution of the neutral-subspace Route-2 adjoint equation."""
+    """Verified solution of the fixed-charge Route-2 adjoint equation."""
 
     solution: np.ndarray
     residual_callback_count: int
@@ -269,7 +289,7 @@ def solve_adjoint(
     if max_iterations <= 0:
         raise ValueError("Adjoint maximum iterations must be positive.")
 
-    coordinates = NeutralDensityCoordinates(
+    coordinates = FixedChargeCoordinates(
         linearization.atom_count,
         neutral_tolerance=linearization.neutral_tolerance,
     )
@@ -350,9 +370,11 @@ def solve_adjoint(
 __all__ = [
     "AdjointSolveResult",
     "DensityResponseLinearization",
+    "FixedChargeCoordinates",
     "NeutralDensityCoordinates",
     "ReactionFieldLinearMap",
     "UnmixedDensityResidualLinearization",
+    "project_fixed_charge_tangent",
     "project_neutral_density_tangent",
     "solve_adjoint",
 ]

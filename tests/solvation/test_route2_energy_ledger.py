@@ -6,6 +6,7 @@ import json
 import numpy as np
 import pytest
 from ase import Atoms
+from ase.units import Hartree
 
 from maple.function.calculator.calculator_base import CalcABC
 from maple.function.calculator.extra_correction.implicit.correction import (
@@ -14,6 +15,19 @@ from maple.function.calculator.extra_correction.implicit.correction import (
 from maple.function.calculator.extra_correction.implicit.result import (
     Route2EnergyLedger,
     SolvationResult,
+)
+from maple.function.calculator.extra_correction.implicit.route2_engine import (
+    Route2ContinuumEngine,
+)
+from maple.function.route2_energy_ledger import (
+    LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+    PCM_HALF_COUPLING_ONLY_V1,
+    route2_energy_composition_description,
+)
+from maple.function.route2_smd_profiles import (
+    DDPCM_SMD_DIRECT_PCM_PROFILE,
+    PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE,
+    route2_smd_profile_spec,
 )
 
 
@@ -320,3 +334,52 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
     records = [json.loads(path.read_text(encoding="utf-8")) for path in result_records]
     assert len({record["run_id"] for record in records}) == 2
     assert len({record["geometry_sha256"] for record in records}) == 2
+
+
+def test_pcm_half_coupling_ledger_excludes_field_conditioned_mace_delta():
+    common = {
+        "gas_energy_ev": -100.0,
+        "solvent_energy_ev": -99.5,
+        "polarization_energy_hartree": -0.020,
+        "cds_energy_hartree": 0.004,
+    }
+
+    legacy = Route2ContinuumEngine.compose_energy_components(
+        **common,
+        electrostatic_energy_ledger=LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+    )
+    direct_pcm = Route2ContinuumEngine.compose_energy_components(
+        **common,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+    )
+
+    field_conditioned_delta = 0.5 / Hartree
+    assert legacy["solute_polarization"] == pytest.approx(
+        field_conditioned_delta
+    )
+    assert direct_pcm["solute_polarization"] == 0.0
+    assert direct_pcm["pcm_polarization"] == legacy["pcm_polarization"]
+    assert direct_pcm["cds"] == legacy["cds"]
+    assert direct_pcm["delta_g_solv"] == pytest.approx(-0.016)
+    assert legacy["delta_g_solv"] == pytest.approx(
+        direct_pcm["delta_g_solv"] + field_conditioned_delta
+    )
+
+
+@pytest.mark.parametrize(
+    "profile",
+    (
+        DDPCM_SMD_DIRECT_PCM_PROFILE,
+        PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE,
+    ),
+)
+def test_direct_pcm_profiles_are_explicit_and_versioned(profile):
+    spec = route2_smd_profile_spec(profile)
+
+    assert spec.electrostatic_energy_ledger == PCM_HALF_COUPLING_ONLY_V1
+    description = route2_energy_composition_description(
+        spec.electrostatic_energy_ledger,
+        continuum_symbol="PCM",
+    )
+    assert "0.5*<c_MACE-POLAR, f_reac_PCM>" in description
+    assert "excluded" in description

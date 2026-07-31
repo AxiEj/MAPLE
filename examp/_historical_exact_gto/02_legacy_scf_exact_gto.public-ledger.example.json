@@ -1,0 +1,141 @@
+{
+  "base_manifest_sha256": "f140f2dcf06111910b6768885b0ebe9039cf2f421e4fb3caa31b86c1fc36e519",
+  "component_contract": "derived totals are checked from leaves; do not sum the legacy flat components map",
+  "derived_totals_hartree": {
+    "delta_g_solv": -0.007542933655908039,
+    "electrostatic": -0.013234008582306746
+  },
+  "energy_hartree": -0.007542933655908039,
+  "evaluation_geometry": {
+    "atomic_numbers": [
+      6,
+      6,
+      8,
+      6,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "cell_angstrom": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "chemical_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "pbc": [
+      false,
+      false,
+      false
+    ],
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ]
+  },
+  "evaluation_manifest_path": "route2-public-results/0d60bcb70f1b4eb0a82f505a135ee6a4.manifest.json",
+  "evaluation_manifest_sha256": "3d22807928d3a2cc25a497e53158d235c6b4d7d86b1768f700a97ec8f2290c24",
+  "geometry_sha256": "2bbdc9b9fa3eafb2547afbb15287a8ad912990872ccfbaef91324b5568ebcc68",
+  "leaf_components_hartree": {
+    "cds": 0.005691074926398708,
+    "pcm_polarization": -0.013363835188222277,
+    "solute_polarization": 0.0001298266059155303,
+    "standard_state": 0.0
+  },
+  "profile": "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1",
+  "provider": "pcmsolver",
+  "result_content_sha256": "1be382ce6da1b764878092e4a0bf79756448d570aa504371432abbf6151f6f23",
+  "run_id": "0d60bcb70f1b4eb0a82f505a135ee6a4",
+  "schema_version": 2,
+  "solvation_options_sha256": "c123711877f6b584d43dae54a77da6c69b940ff0aa9ef8ad2d1fcdc8c01f1587",
+  "source_receiver_contract": {
+    "common_stationary_electronic_functional_established": false,
+    "continuum_pairing_established": false,
+    "continuum_pairing_status": "known-nonconjugate-point-source-gto-receiver",
+    "contract_version": "route2-source-receiver-contract-v1",
+    "next_required_physical_gate": "same-basis-gto-galerkin-source-receiver-and-common-scalar",
+    "profile": "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1",
+    "prohibited_claims": [
+      "variational SCRF",
+      "common-energy stationary electronic state",
+      "solution-phase PES",
+      "analytic solution-phase forces"
+    ],
+    "public_capability": "experimental-energy-only",
+    "reaction_field_receiver": "exact-gto-v1",
+    "solute_source": "point-multipole-l1"
+  }
+}

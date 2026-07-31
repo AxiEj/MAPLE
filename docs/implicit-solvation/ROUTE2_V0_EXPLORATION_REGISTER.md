@@ -64,6 +64,7 @@ promoted later.
 | Exploration | Authoritative result | What was learned | Main-line disposition |
 | --- | --- | --- | --- |
 | Energy-conjugate PCM / GTO Galerkin operator | [`gto_galerkin.py`](../../maple/function/calculator/extra_correction/implicit/gto_galerkin.py) and V0-Q preregistration | A one-basis source/dual map preserves \(\sigma^\mathsf TBc=c^\mathsf TB^\mathsf T\sigma\); eliminating the stationary continuum gives \(P=-B^\mathsf TA^{-1}B\). | Reuse as the electrostatic pairing requirement. A smooth production cavity/coordinate derivative remains open. |
+| PySCF SWIG/IEFPCM frozen-source all-record coverage, grid, and rigid-rotation audit | [`route2-swig-iefpcm-frozen-source-coverage135-v1.json`](benchmarks/route2-swig-iefpcm-frozen-source-coverage135-v1.json) and [`route2-swig-iefpcm-frozen-source-rotation135-v1.json`](benchmarks/route2-swig-iefpcm-frozen-source-rotation135-v1.json): **pass, continuum-only fixed-geometry gates** | All 135 audit-directory identities (the 12 historical functional-group records plus all 123 confirmation records, including every former intrinsic-cavity rejection) completed with the same frozen zero-field MACE point-\(l\leq1\) source, SMD18 water radii, and PySCF SWIG/IEFPCM energy-conjugate operator. At uniform Lebedev 21/23, all 135 pass source-charge, half-coupling, reciprocity, passivity, and the predeclared adjacent-grid bound; maximum grid difference is \(0.0342275<0.05\) kcal/mol. Each exact source was then serialized before its original and proper-rotation (axis \((1,2,3)\), angle \(0.731\)) calculations; all 135 pass the fixed \(0.02\) kcal/mol rotation gate, with maximum drift \(0.0191851\) kcal/mol. The earlier 13-point-order execution failure, the source-digest fail-closed rotation attempt, and 15/17, 17/19, and 19/21 refinement receipts remain preserved under `.omx/benchmarks/route2-swig-continuum-coverage-135-20260731/`; PySCF 2.13.1 lacks the SWIG switching constant for its 74-point order-13 grid, now fail-closed by the provider. | Admit only the fixed-geometry SWIG coverage/grid/rotation evidence. It contains no field-conditioned MACE update, induced-response/KKT solve, CDS or total-solvation ledger, force/PES statement, coordinate-VJP certificate, experimental label, or accuracy metric. Do not call it a Route2V result yet. |
 | V0-AQ-C diffuse fixed-occupancy reaction block | [`route2_v0_diffuse_continuum.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_diffuse_continuum.py) and [`test_route2_v0_diffuse_continuum.py`](../../tests/solvation/test_route2_v0_diffuse_continuum.py): **pass, structural only** | One symmetric finite-volume Poisson operator now supplies the reaction scalar, its density derivative, and its occupancy envelope derivative. The tests lock homogeneous-dielectric scaling, reciprocity, passivity, and both finite-difference conjugacy identities. | Retain as the fixed-occupancy V0-AQ-C electrostatic building block. It has no stationary cavity, auxiliary electronic functional, nonpolar scalar, total free energy, force/PES certificate, or chemistry score. |
 | V0-AQ-C open-boundary diffuse reaction block | [`route2_v0_open_diffuse_continuum.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_diffuse_continuum.py), [`ROUTE2_V0_OPEN_BOUNDARY_CONTINUUM_THEORY.md`](ROUTE2_V0_OPEN_BOUNDARY_CONTINUUM_THEORY.md), and [`test_route2_v0_open_diffuse_continuum.py`](../../tests/solvation/test_route2_v0_open_diffuse_continuum.py): **pass, structural only** | A cell-centred zero-Dirichlet-face finite-volume operator gives a symmetric positive-definite vacuum/dielectric pair for an isolated, even non-neutral finite-box source. The same scalar supplies the density derivative and the occupancy envelope derivative including exterior-face terms; scaling, reciprocity, passivity, both finite-difference identities, and exact AO-density pullback composition pass. | Retain as the required open-boundary electrostatic candidate for a later AO permanent source. It must not hide finite-box electron-count error by renormalisation or a periodic background, and it has no solvent kernel, stationary electronic functional, nonpolar scalar, force/PES certificate, speed result, or accuracy score. |
 | V0-AQ-C open nuclear source map | [`route2_v0_open_bspline.py`](../../maple/function/calculator/extra_correction/implicit/route2_v0_open_bspline.py) and [`test_route2_v0_open_bspline.py`](../../tests/solvation/test_route2_v0_open_bspline.py): **pass, structural only** | A non-wrapping cardinal cubic B-spline map preserves total nuclear charge and its exact grid-field adjoint when all support lies in the declared open box. It fails if support reaches the boundary instead of clipping, normalising, or wrapping the source through an exterior face. | Retain as the nuclear-source companion for the open reaction block. It supplies no electronic state, physical solvent, coordinate-force certificate, speed result, or chemistry score. |
@@ -129,6 +130,26 @@ difference is dominated by the deliberately selected ethyl-acetate outlier.
 The exact-GTO receiver is therefore not a universal accuracy fix; it is one
 representation change within the legacy model.  See
 [`route2-matched-projector-top5-diagnostic-v1.json`](benchmarks/route2-matched-projector-top5-diagnostic-v1.json).
+
+**2026-07-31 — twelve-functional-group and broad confirmation expansion.**
+The current legacy exact-GTO profile was rerun without changing a weight,
+radius, coefficient, or energy factor on the frozen historical FreeSolv12
+functional-group panel.  It obtains MAE `0.790`, RMSE `1.126`, and 11/12
+records strictly below `1.5 kcal/mol`, but **fails** the all-record gate:
+acetic acid is `3.247 kcal/mol`.  The full receipt is
+[`route2-legacy-exact-gto-historical-freesolv12-diagnostic-v1.json`](benchmarks/route2-legacy-exact-gto-historical-freesolv12-diagnostic-v1.json).
+
+For a broader check, every member of the already prepared deterministic
+FreeSolv confirmation partition was evaluated with the same frozen profile
+(123 records; no molecule was selected by this profile or by its errors).
+Only 77/123 published an energy: 46/123 (`37.4%`) were fail-closed because
+PCMSolver warned for every intrinsic-cavity attempt.  Among the 77 published
+energies, MAE is `1.243`, RMSE `1.570`, maximum error is `3.974 kcal/mol`
+(2-iodophenol), and 24 are at or above `1.5 kcal/mol`.  The complete
+record-level result, including all provider rejections, is
+[`route2-legacy-exact-gto-confirmation123-diagnostic-v1.json`](benchmarks/route2-legacy-exact-gto-confirmation123-diagnostic-v1.json).
+This falsifies a broad-generalization claim for the legacy profile; it is not
+a one-shot V0 confirmation or a reason to tune its parameters.
 
 The immutable future gates are preserved rather than weakened:
 

@@ -34,6 +34,7 @@ from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
 from ....route2_smd_profiles import (
     route2_smd_profile_spec,
 )
+from ....route2_energy_ledger import route2_energy_composition_description
 from .continuum_response import (
     PCMSolverExternalMEPCavityResponse,
 )
@@ -438,9 +439,12 @@ class SMDImplicitSolvation:
             ),
             "accuracy_certified": False,
             "default_eligible": False,
-            "energy_composition": (
-                "delta_G_solv = (E_MACE_intrinsic[V_reac]-E_MACE_gas) "
-                "+ 0.5*<V_solute,ASC> + G_CDS"
+            "electrostatic_energy_ledger": (
+                self.profile_spec.electrostatic_energy_ledger
+            ),
+            "energy_composition": route2_energy_composition_description(
+                self.profile_spec.electrostatic_energy_ledger,
+                continuum_symbol="PCM",
             ),
             "citations": {
                 "smd": "Marenich, Cramer, Truhlar, JPCB 2009, DOI:10.1021/jp810292n",
@@ -877,8 +881,15 @@ class SMDImplicitSolvation:
                 "history": list(history),
             },
             "energies_hartree": components,
+            "electrostatic_energy_ledger": (
+                self.profile_spec.electrostatic_energy_ledger
+            ),
             "gas_mace_energy_ev": float(gas_state.energy_ev),
             "solvent_intrinsic_mace_energy_ev": float(solvent_state.energy_ev),
+            "field_conditioned_mace_energy_change_hartree": (
+                (float(solvent_state.energy_ev) - float(gas_state.energy_ev))
+                / Hartree
+            ),
             "density_reaction_coupling_hartree": (
                 pcm_state.density_reaction_coupling_hartree
             ),
@@ -1118,6 +1129,10 @@ class SMDImplicitSolvation:
                                         cds_energy_hartree=float(
                                             cds_result.energy_hartree
                                         ),
+                                        electrostatic_energy_ledger=(
+                                            self.profile_spec
+                                            .electrostatic_energy_ledger
+                                        ),
                                     )
                                 )
                             else:
@@ -1130,6 +1145,10 @@ class SMDImplicitSolvation:
                                             self.profile,
                                             self.cavity_policy,
                                             attempt_name,
+                                        ),
+                                        electrostatic_energy_ledger=(
+                                            self.profile_spec
+                                            .electrostatic_energy_ledger
                                         ),
                                     )
                                 )
@@ -1166,6 +1185,10 @@ class SMDImplicitSolvation:
                                 components = engine.energy_components(
                                     gas_state,
                                     coupled,
+                                    electrostatic_energy_ledger=(
+                                        self.profile_spec
+                                        .electrostatic_energy_ledger
+                                    ),
                                 )
                             attempt["response_evaluated"] = True
                             attempt["response_evaluation_seconds"] = (

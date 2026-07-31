@@ -1,11 +1,11 @@
-"""No-training full response-kernel completion for Route-2 V0-RK.
+"""No-training full response-kernel completions for Route-2 V0-RK.
 
 The frozen MACE-MDP model supplies a molecular polarizability and an audited
 map that partitions a molecular induced dipole across atoms.  It does *not*
 identify the high-dimensional density response that controls a near-field
 electrostatic potential.  This module therefore accepts an independently
 source-bound, positive-semidefinite baseline density-response kernel ``C0``
-and replaces only its atom-dipole covariance with the frozen MACE value.
+and replaces only a declared moment covariance with the frozen MACE value.
 
 With ``A`` mapping density coefficients to stacked atomic dipoles, ``W``
 mapping a molecular dipole to stacked atomic dipoles, and ``alpha`` the
@@ -20,6 +20,13 @@ kernel with ``A @ C @ A.T = W @ alpha @ W.T``.  Its electronic scalar on the
 numerical response support is ``0.5 * dc.T @ C^+ @ dc`` and consequently
 ``dc / df = -C`` before continuum feedback.  The construction is a fixed
 low-rank moment constraint, not a fitted response correction.
+
+``complete_route2_v0_response_kernel`` retains the original *stacked atomic*
+construction as a structural control.  Its target ``W alpha W.T`` has rank at
+most three, so it cannot be treated as a general nonuniform-field response.
+``complete_molecular_moment_response_kernel`` instead constrains only the
+total molecular dipole and retains the baseline conditional response outside
+that three-dimensional moment subspace.
 
 This module deliberately does not source ``C0``, infer a radial basis, load a
 checkpoint, create a continuum, or score chemistry.  Those operations remain
@@ -36,6 +43,9 @@ import numpy as np
 
 
 V0_RESPONSE_KERNEL_CONSTRUCTION = "route2-v0-response-kernel-completion-v1"
+V0_MOLECULAR_MOMENT_RESPONSE_KERNEL_CONSTRUCTION = (
+    "route2-v0-molecular-moment-response-kernel-completion-v1"
+)
 
 
 def _immutable_array(
@@ -274,6 +284,171 @@ class Route2V0ResponseKernelCompletion:
             raise ValueError("numerical_relative_tolerance must be positive.")
         if self.construction != V0_RESPONSE_KERNEL_CONSTRUCTION:
             raise ValueError("Unsupported Route-2 V0 response-kernel construction.")
+
+
+@dataclass(frozen=True)
+class Route2V0MolecularMomentResponseKernelCompletion:
+    """No-fit completion that constrains only the total molecular dipole.
+
+    ``atomic_dipole_map_coefficient_to_ebohr`` remains the actual map used by
+    the AIPR surface coupling.  The enclosed three-row completion is built on
+    ``molecular_dipole_map_coefficient_to_ebohr = G @ A`` rather than on the
+    full stacked atomic map ``A``.  It therefore has the same common scalar,
+    charge-neutrality, PSD, and Moore--Penrose guarantees as the structural
+    control without asserting an unsupported full ``3N x 3N`` atomic target.
+    """
+
+    molecular_moment_completion: Route2V0ResponseKernelCompletion
+    atom_dipole_map_coefficient_to_ebohr: np.ndarray
+    molecular_dipole_map_coefficient_to_ebohr: np.ndarray
+    construction: str = V0_MOLECULAR_MOMENT_RESPONSE_KERNEL_CONSTRUCTION
+
+    def __post_init__(self) -> None:
+        if self.construction != V0_MOLECULAR_MOMENT_RESPONSE_KERNEL_CONSTRUCTION:
+            raise ValueError(
+                "Unsupported Route-2 V0 molecular-moment response-kernel construction."
+            )
+        completion = self.molecular_moment_completion
+        if not isinstance(completion, Route2V0ResponseKernelCompletion):
+            raise TypeError("molecular_moment_completion must be a V0 completion.")
+        coefficient_count = completion.response_covariance_coefficient_dual.shape[0]
+        atom_map = _immutable_array(
+            self.atom_dipole_map_coefficient_to_ebohr,
+            name="Atom-dipole map",
+        )
+        if (
+            atom_map.ndim != 2
+            or atom_map.shape[0] == 0
+            or atom_map.shape[0] % 3 != 0
+            or atom_map.shape[1] != coefficient_count
+        ):
+            raise ValueError(
+                "Atom-dipole map must have shape (3*n_atoms, n_coefficients)."
+            )
+        molecular_map = _immutable_array(
+            self.molecular_dipole_map_coefficient_to_ebohr,
+            name="Molecular-dipole map",
+            shape=(3, coefficient_count),
+        )
+        atom_sum = np.hstack([np.eye(3) for _ in range(atom_map.shape[0] // 3)])
+        expected_molecular_map = atom_sum @ atom_map
+        tolerance = _error_tolerance(
+            expected_molecular_map,
+            molecular_map,
+            relative_tolerance=completion.numerical_relative_tolerance,
+        )
+        if np.linalg.norm(expected_molecular_map - molecular_map, ord=2) > tolerance:
+            raise ValueError(
+                "Molecular-dipole map must be the exact sum of atomic dipoles."
+            )
+        if not np.allclose(
+            completion.atom_dipole_map_coefficient_to_ebohr,
+            molecular_map,
+            rtol=0.0,
+            atol=tolerance,
+        ) or not np.allclose(
+            completion.atomic_dipole_partition_molecular_to_ebohr,
+            np.eye(3),
+            rtol=0.0,
+            atol=tolerance,
+        ):
+            raise ValueError(
+                "Molecular-moment completion does not use the declared total-dipole map."
+            )
+        object.__setattr__(self, "atom_dipole_map_coefficient_to_ebohr", atom_map)
+        object.__setattr__(
+            self,
+            "molecular_dipole_map_coefficient_to_ebohr",
+            molecular_map,
+        )
+
+    @property
+    def baseline_response_covariance_coefficient_dual(self) -> np.ndarray:
+        return self.molecular_moment_completion.baseline_response_covariance_coefficient_dual
+
+    @property
+    def response_covariance_coefficient_dual(self) -> np.ndarray:
+        return self.molecular_moment_completion.response_covariance_coefficient_dual
+
+    @property
+    def electronic_curvature_coefficient_dual(self) -> np.ndarray:
+        return self.molecular_moment_completion.electronic_curvature_coefficient_dual
+
+    @property
+    def response_support_projector(self) -> np.ndarray:
+        return self.molecular_moment_completion.response_support_projector
+
+    @property
+    def response_support_constraints(self) -> np.ndarray:
+        return self.molecular_moment_completion.response_support_constraints
+
+    @property
+    def charge_constraint_vector(self) -> np.ndarray | None:
+        return self.molecular_moment_completion.charge_constraint_vector
+
+    @property
+    def molecular_polarizability_bohr3(self) -> np.ndarray:
+        return self.molecular_moment_completion.molecular_polarizability_bohr3
+
+    @property
+    def baseline_molecular_polarizability_bohr3(self) -> np.ndarray:
+        return self.molecular_moment_completion.baseline_atom_dipole_covariance_bohr3
+
+    @property
+    def target_molecular_polarizability_bohr3(self) -> np.ndarray:
+        return self.molecular_moment_completion.target_atom_dipole_covariance_bohr3
+
+    @property
+    def conditional_null_covariance_coefficient_dual(self) -> np.ndarray:
+        return self.molecular_moment_completion.conditional_null_covariance_coefficient_dual
+
+    @property
+    def lifting_map_coefficient_per_ebohr(self) -> np.ndarray:
+        return self.molecular_moment_completion.lifting_map_coefficient_per_ebohr
+
+    @property
+    def baseline_symmetry_error(self) -> float:
+        return self.molecular_moment_completion.baseline_symmetry_error
+
+    @property
+    def completed_symmetry_error(self) -> float:
+        return self.molecular_moment_completion.completed_symmetry_error
+
+    @property
+    def baseline_minimum_eigenvalue(self) -> float:
+        return self.molecular_moment_completion.baseline_minimum_eigenvalue
+
+    @property
+    def completed_minimum_eigenvalue(self) -> float:
+        return self.molecular_moment_completion.completed_minimum_eigenvalue
+
+    @property
+    def baseline_molecular_polarizability_minimum_eigenvalue(self) -> float:
+        return self.molecular_moment_completion.baseline_atom_covariance_minimum_eigenvalue
+
+    @property
+    def baseline_charge_response_error(self) -> float:
+        return self.molecular_moment_completion.baseline_charge_response_error
+
+    @property
+    def completed_charge_response_error(self) -> float:
+        return self.molecular_moment_completion.completed_charge_response_error
+
+    @property
+    def molecular_polarizability_error(self) -> float:
+        return self.molecular_moment_completion.molecular_polarizability_error
+
+    @property
+    def moore_penrose_error(self) -> float:
+        return self.molecular_moment_completion.moore_penrose_error
+
+    @property
+    def charge_nullspace_projection_error(self) -> float:
+        return self.molecular_moment_completion.charge_nullspace_projection_error
+
+    @property
+    def numerical_relative_tolerance(self) -> float:
+        return self.molecular_moment_completion.numerical_relative_tolerance
 
 
 def complete_route2_v0_response_kernel(
@@ -580,8 +755,81 @@ def complete_route2_v0_response_kernel(
     )
 
 
+def complete_molecular_moment_response_kernel(
+    *,
+    baseline_response_covariance_coefficient_dual: np.ndarray,
+    atom_dipole_map_coefficient_to_ebohr: np.ndarray,
+    molecular_polarizability_bohr3: np.ndarray,
+    charge_constraint_vector: np.ndarray | None = None,
+    numerical_relative_tolerance: float = 1.0e-10,
+) -> Route2V0MolecularMomentResponseKernelCompletion:
+    """Replace only the total molecular-dipole covariance of ``C0``.
+
+    Let ``A`` map coefficients to stacked atomic dipoles and let ``G`` sum
+    those dipoles.  This routine completes the kernel with
+    ``T = G @ A`` and the frozen target ``alpha``:
+
+    ``S0 = T @ C0 @ T.T``
+    ``L = C0 @ T.T @ inv(S0)``
+    ``C = C0 - L @ S0 @ L.T + L @ alpha @ L.T``.
+
+    Thus ``T @ C @ T.T = alpha`` while the baseline conditional covariance
+    orthogonal to the *molecular* moment is retained.  Unlike the historical
+    stacked-atomic control, this routine makes no unsupported claim about the
+    full atom-dipole covariance and does not force that covariance to rank
+    three.  It is still a structural primitive: it neither supplies a
+    molecular charge-transfer model nor validates nonuniform QM response.
+    """
+
+    atom_map = _immutable_array(
+        atom_dipole_map_coefficient_to_ebohr,
+        name="Atom-dipole map",
+    )
+    baseline_values = np.asarray(
+        baseline_response_covariance_coefficient_dual,
+        dtype=float,
+    )
+    if baseline_values.ndim != 2 or baseline_values.shape[0] == 0:
+        raise ValueError(
+            "Baseline response covariance must be a nonempty square matrix."
+        )
+    coefficient_count = baseline_values.shape[0]
+    if (
+        atom_map.ndim != 2
+        or atom_map.shape[1] != coefficient_count
+        or atom_map.shape[0] == 0
+        or atom_map.shape[0] % 3 != 0
+    ):
+        raise ValueError(
+            "Atom-dipole map must have shape (3*n_atoms, n_coefficients)."
+        )
+    atom_sum = np.hstack([np.eye(3) for _ in range(atom_map.shape[0] // 3)])
+    molecular_map = atom_sum @ atom_map
+
+    # Reuse the fully audited algebra with one three-component "atom".  The
+    # wrapper restores the true stacked atomic map for the AIPR/KKT coupling.
+    molecular_completion = complete_route2_v0_response_kernel(
+        baseline_response_covariance_coefficient_dual=(
+            baseline_response_covariance_coefficient_dual
+        ),
+        atom_dipole_map_coefficient_to_ebohr=molecular_map,
+        atomic_dipole_partition_molecular_to_ebohr=np.eye(3),
+        molecular_polarizability_bohr3=molecular_polarizability_bohr3,
+        charge_constraint_vector=charge_constraint_vector,
+        numerical_relative_tolerance=numerical_relative_tolerance,
+    )
+    return Route2V0MolecularMomentResponseKernelCompletion(
+        molecular_moment_completion=molecular_completion,
+        atom_dipole_map_coefficient_to_ebohr=atom_map,
+        molecular_dipole_map_coefficient_to_ebohr=molecular_map,
+    )
+
+
 __all__ = [
+    "Route2V0MolecularMomentResponseKernelCompletion",
     "Route2V0ResponseKernelCompletion",
+    "V0_MOLECULAR_MOMENT_RESPONSE_KERNEL_CONSTRUCTION",
     "V0_RESPONSE_KERNEL_CONSTRUCTION",
+    "complete_molecular_moment_response_kernel",
     "complete_route2_v0_response_kernel",
 ]

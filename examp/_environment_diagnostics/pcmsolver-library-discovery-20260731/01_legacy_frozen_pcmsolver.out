@@ -1,0 +1,82 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+Parsing # commands...
+Global parameter: model = macepol-m
+Task set to 'sp'
+Global nested parameter: solv = {'implicit': 'water', 'method': 'smd', 'provider': 'pcmsolver', 'profile': 'smd-iefpcm', 'response': 'frozen', 'standard_state': '1m', 'experimental': True}
+Parsed configuration:
+----------------------------------------
+Task: sp
+model          : macepol-m
+solv           : {'implicit': 'water', 'method': 'smd', 'provider': 'pcmsolver', 'profile': 'smd-iefpcm', 'response': 'frozen', 'standard_state': '1m', 'experimental': True}
+
+                             Coordinates
+**********************************************************************
+
+Group 1 (MOL2: acetone.mol2)
+Charge: 0, Multiplicity: 1
+--------------------
+1    C             -0.703000            -0.411000             0.729000
+2    C             -0.057000            -0.447000             2.087000
+3    O              0.101000            -1.502000             2.699000
+4    C              0.385000             0.872000             2.662000
+5    H             -1.782000            -0.284000             0.840000
+6    H             -0.284000             0.412000             0.146000
+7    H             -0.509000            -1.351000             0.204000
+8    H             -0.430000             1.312000             3.244000
+9    H              0.648000             1.555000             1.851000
+10   H              1.245000             0.717000             3.318000
+ERROR: PCMSolverDiscoveryError: Unable to load PCMSolver libpcm.so. Checked PCMSOLVER_LIBRARY, ctypes.util.find_library('pcm'), and standard sonames. Attempted: libpcm.so, libpcm.so.1, pcm. Details: libpcm.so: libpcm.so: cannot open shared object file: No such file or directory; libpcm.so.1: libpcm.so.1: cannot open shared object file: No such file or directory; pcm: pcm: cannot open shared object file: No such file or directory.
+ERROR: Error during calculation: Unable to load PCMSolver libpcm.so. Checked PCMSOLVER_LIBRARY, ctypes.util.find_library('pcm'), and standard sonames. Attempted: libpcm.so, libpcm.so.1, pcm. Details: libpcm.so: libpcm.so: cannot open shared object file: No such file or directory; libpcm.so.1: libpcm.so.1: cannot open shared object file: No such file or directory; pcm: pcm: cannot open shared object file: No such file or directory.
+Traceback (most recent call last):
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/main.py", line 132, in main
+    eng(input_file, output_file)
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/engine.py", line 90, in __call__
+    self._jobtype_dispatcher(
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/engine.py", line 203, in _jobtype_dispatcher
+    dispatcher(commandcontrol, jobtype, atoms, output, extra)
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/dispatcher/dispatcher.py", line 51, in __call__
+    sp.run()
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/dispatcher/sp/sp.py", line 30, in run
+    self._run_single()
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/dispatcher/sp/sp.py", line 35, in _run_single
+    energy = self.atoms.get_potential_energy()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/atoms.py", line 1950, in get_potential_energy
+    energy = self._calc.get_potential_energy(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/calculators/abc.py", line 26, in get_potential_energy
+    return self.get_property(name, atoms)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/calculators/calculator.py", line 519, in get_property
+    self.calculate(atoms, [name], system_changes)
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/mace/_macepol_calculator.py", line 1186, in calculate
+    self._finalize_results(
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/calculator_base.py", line 360, in _finalize_results
+    solvent_result = self.solvent_correction.evaluate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/correction.py", line 261, in evaluate
+    result = self.provider.evaluate(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/smd.py", line 975, in evaluate
+    session.open()
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/pcmsolver.py", line 385, in open
+    self._library = load_pcmsolver_library(self.library_path)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/pcmsolver.py", line 240, in load_pcmsolver_library
+    raise PCMSolverDiscoveryError(
+maple.function.calculator.extra_correction.implicit.pcmsolver.PCMSolverDiscoveryError: Unable to load PCMSolver libpcm.so. Checked PCMSOLVER_LIBRARY, ctypes.util.find_library('pcm'), and standard sonames. Attempted: libpcm.so, libpcm.so.1, pcm. Details: libpcm.so: libpcm.so: cannot open shared object file: No such file or directory; libpcm.so.1: libpcm.so.1: cannot open shared object file: No such file or directory; pcm: pcm: cannot open shared object file: No such file or directory.

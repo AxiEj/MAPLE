@@ -159,6 +159,45 @@ def _generate_per_atom_radius_surface(
     )
 
 
+def _resolve_swig_grid_points(
+    runtime: _PySCFRuntime,
+    lebedev_order: int,
+) -> tuple[int, int]:
+    """Return an upstream-supported SWIG Lebedev order and point count.
+
+    PySCF's SWIG surface builder needs both a Lebedev angular grid and a
+    tabulated switching-width constant indexed by its number of points.  The
+    two upstream tables are not identical: in tested PySCF 2.13.1, for
+    example, order 13 maps to 74 points but no ``XI[74]`` exists.  Validate
+    both tables before constructing a surface so unsupported grids fail
+    explicitly instead of becoming a per-record ``KeyError`` inside PySCF.
+    """
+
+    order = int(lebedev_order)
+    try:
+        grid_points = int(runtime.gen_grid.LEBEDEV_ORDER[order])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError(
+            f"Unsupported PySCF Lebedev order: {lebedev_order}."
+        ) from exc
+
+    try:
+        switching_width = float(runtime.pcm.XI[grid_points])
+    except (AttributeError, KeyError, TypeError, ValueError) as exc:
+        raise ValueError(
+            "PySCF SWIG cannot use Lebedev order "
+            f"{order}: it maps to {grid_points} points, but the tested "
+            "PySCF SWIG switching table has no entry for that point count."
+        ) from exc
+    if not np.isfinite(switching_width) or switching_width <= 0.0:
+        raise ValueError(
+            "PySCF SWIG cannot use Lebedev order "
+            f"{order}: its switching-table entry for {grid_points} points "
+            "must be finite and positive."
+        )
+    return order, grid_points
+
+
 def _surface_parent_indices(
     slices: Sequence[Sequence[int]],
     *,
@@ -270,13 +309,10 @@ class PySCFSWIGPCMResponse:
         dielectric_value = float(dielectric)
         if not np.isfinite(dielectric_value) or dielectric_value <= 1.0:
             raise ValueError("The static dielectric must be finite and greater than 1.")
-        order = int(lebedev_order)
-        try:
-            grid_points_per_atom = int(runtime.gen_grid.LEBEDEV_ORDER[order])
-        except (KeyError, TypeError, ValueError) as exc:
-            raise ValueError(
-                f"Unsupported PySCF Lebedev order: {lebedev_order}."
-            ) from exc
+        order, grid_points_per_atom = _resolve_swig_grid_points(
+            runtime,
+            lebedev_order,
+        )
 
         atomic_numbers = _atomic_numbers(runtime, symbol_tuple)
         mol = runtime.gto.M(

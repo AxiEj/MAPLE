@@ -110,6 +110,81 @@ def test_response_kernel_completion_preserves_baseline_null_moment_response():
     )
 
 
+def test_stacked_atomic_completion_is_a_rank_three_structural_control():
+    """The legacy completion must retain its deliberately narrow semantics.
+
+    Matching a full stacked atomic covariance to ``W alpha W.T`` makes every
+    induced atomic-dipole response lie in the three-dimensional partition
+    range.  This is useful as a control, but it is not an adequate assertion
+    about an arbitrary nonuniform continuum field.
+    """
+
+    inputs = _inputs()
+    state = response_kernel.complete_route2_v0_response_kernel(**inputs)
+    atom_map = inputs["atom_dipole_map_coefficient_to_ebohr"]
+    partition = inputs["atomic_dipole_partition_molecular_to_ebohr"]
+
+    assert np.linalg.matrix_rank(atom_map @ state.response_covariance_coefficient_dual) <= 3
+    assert np.linalg.matrix_rank(
+        atom_map
+        @ inputs["baseline_response_covariance_coefficient_dual"]
+        @ atom_map.T
+    ) == 6
+
+    coefficient_dual = np.asarray([0.3, -0.2, 0.1, 0.5, -0.4, 0.2, 0.7, 0.6])
+    induced_atomic_dipole = -(
+        atom_map @ state.response_covariance_coefficient_dual @ coefficient_dual
+    )
+    partition_coefficients, *_ = np.linalg.lstsq(
+        partition,
+        induced_atomic_dipole,
+        rcond=None,
+    )
+    np.testing.assert_allclose(
+        induced_atomic_dipole,
+        partition @ partition_coefficients,
+        rtol=0.0,
+        atol=1.0e-12,
+    )
+
+
+def test_molecular_moment_completion_keeps_internal_atomic_response_support():
+    """Only the total molecular moment is frozen; internal response survives."""
+
+    inputs = _inputs()
+    state = response_kernel.complete_molecular_moment_response_kernel(
+        baseline_response_covariance_coefficient_dual=(
+            inputs["baseline_response_covariance_coefficient_dual"]
+        ),
+        atom_dipole_map_coefficient_to_ebohr=(
+            inputs["atom_dipole_map_coefficient_to_ebohr"]
+        ),
+        molecular_polarizability_bohr3=inputs["molecular_polarizability_bohr3"],
+        charge_constraint_vector=inputs["charge_constraint_vector"],
+    )
+    atom_map = inputs["atom_dipole_map_coefficient_to_ebohr"]
+    atom_sum = np.hstack((np.eye(3), np.eye(3)))
+    molecular_map = atom_sum @ atom_map
+    response = state.response_covariance_coefficient_dual
+
+    np.testing.assert_allclose(
+        molecular_map @ response @ molecular_map.T,
+        inputs["molecular_polarizability_bohr3"],
+        rtol=0.0,
+        atol=1.0e-12,
+    )
+    assert state.molecular_polarizability_error < 1.0e-12
+    assert state.completed_minimum_eigenvalue >= -1.0e-12
+    assert np.linalg.matrix_rank(atom_map @ response) == 6
+
+    # A contrast field on the two atomic dipoles leaves a nonzero internal
+    # component.  The stacked-atomic control above cannot represent it.
+    atom_dual_contrast = np.asarray([1.0, 0.0, 0.0, -1.0, 0.0, 0.0])
+    induced_atomic_dipole = -(atom_map @ response @ atom_map.T @ atom_dual_contrast)
+    internal_projector = np.eye(6) - 0.5 * atom_sum.T @ atom_sum
+    assert np.linalg.norm(internal_projector @ induced_atomic_dipole) > 1.0e-6
+
+
 def test_response_kernel_separates_a_rotated_charge_null_mode_from_kkt_rows():
     generator = np.random.default_rng(20260731)
     coefficient_count = 8

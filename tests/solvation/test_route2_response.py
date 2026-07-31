@@ -106,9 +106,9 @@ def test_unmixed_residual_rejects_non_neutral_tangent_vectors():
     non_neutral = np.zeros((atom_count, 4))
     non_neutral[0, 0] = 0.1
 
-    with pytest.raises(ValueError, match="neutral density tangent"):
+    with pytest.raises(ValueError, match="fixed-charge density tangent"):
         linearization.jvp(non_neutral)
-    with pytest.raises(ValueError, match="neutral density tangent"):
+    with pytest.raises(ValueError, match="fixed-charge density tangent"):
         linearization.vjp(non_neutral)
 
 
@@ -288,3 +288,21 @@ def test_adjoint_solver_uses_full_bounded_krylov_space(monkeypatch):
     assert captured["maxiter"] == 7
     assert limited_result.restart_size == 7
     assert limited_result.maximum_inner_iterations == 7
+
+
+def test_fixed_charge_coordinate_name_preserves_the_affine_charge_tangent():
+    coordinates = route2_response.FixedChargeCoordinates(3)
+    values = coordinates.expand(np.arange(coordinates.dimension, dtype=float))
+
+    np.testing.assert_allclose(np.sum(values[:, 0]), 0.0, atol=1.0e-14)
+    np.testing.assert_allclose(
+        coordinates.reduce(values),
+        np.arange(coordinates.dimension, dtype=float),
+        atol=1.0e-14,
+    )
+    assert route2_response.NeutralDensityCoordinates is coordinates.__class__
+    np.testing.assert_allclose(
+        route2_response.project_fixed_charge_tangent(values),
+        route2_response.project_neutral_density_tangent(values),
+        atol=0.0,
+    )

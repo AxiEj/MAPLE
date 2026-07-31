@@ -1,0 +1,766 @@
+{
+  "artifact": "route2-legacy-exact-gto-historical-freesolv12-diagnostic-v1",
+  "by_element_class": {
+    "halogen-containing": {
+      "mae_kcal_mol": 0.4996491248242827,
+      "max_absolute_error_kcal_mol": 0.4996491248242827,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "heteroatom": {
+      "mae_kcal_mol": 0.9365647269124062,
+      "max_absolute_error_kcal_mol": 3.2473279957153336,
+      "record_count": 9,
+      "success_count": 9
+    },
+    "hydrocarbon": {
+      "mae_kcal_mol": 0.2727969417118791,
+      "max_absolute_error_kcal_mol": 0.4033668756421944,
+      "record_count": 2,
+      "success_count": 2
+    }
+  },
+  "by_flexibility_bin": {
+    "limited": {
+      "mae_kcal_mol": 0.6866509988489415,
+      "max_absolute_error_kcal_mol": 0.6866509988489415,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "rigid": {
+      "mae_kcal_mol": 0.798879504691887,
+      "max_absolute_error_kcal_mol": 3.2473279957153336,
+      "record_count": 11,
+      "success_count": 11
+    }
+  },
+  "by_functional_group": {
+    "": {
+      "mae_kcal_mol": 0.4033668756421944,
+      "max_absolute_error_kcal_mol": 0.4033668756421944,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "alkyl chloride": {
+      "mae_kcal_mol": 0.4996491248242827,
+      "max_absolute_error_kcal_mol": 0.4996491248242827,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "aromatic": {
+      "mae_kcal_mol": 0.1846559523071773,
+      "max_absolute_error_kcal_mol": 0.22708489683279076,
+      "record_count": 2,
+      "success_count": 2
+    },
+    "carbonitrile": {
+      "mae_kcal_mol": 0.7075493098774315,
+      "max_absolute_error_kcal_mol": 0.7075493098774315,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "carboxylic acid": {
+      "mae_kcal_mol": 3.2473279957153336,
+      "max_absolute_error_kcal_mol": 3.2473279957153336,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "carboxylic acid ester": {
+      "mae_kcal_mol": 0.6866509988489415,
+      "max_absolute_error_kcal_mol": 0.6866509988489415,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "dialkyl ether": {
+      "mae_kcal_mol": 1.066442804586908,
+      "max_absolute_error_kcal_mol": 1.066442804586908,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "ketone": {
+      "mae_kcal_mol": 0.933262331332684,
+      "max_absolute_error_kcal_mol": 0.933262331332684,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "primary alcohol": {
+      "mae_kcal_mol": 0.7845788153941484,
+      "max_absolute_error_kcal_mol": 0.7845788153941484,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "primary amine": {
+      "mae_kcal_mol": 0.22708489683279076,
+      "max_absolute_error_kcal_mol": 0.22708489683279076,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "primary aromatic amine": {
+      "mae_kcal_mol": 0.22708489683279076,
+      "max_absolute_error_kcal_mol": 0.22708489683279076,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "primary carboxylic acid amide": {
+      "mae_kcal_mol": 0.01529093501976675,
+      "max_absolute_error_kcal_mol": 0.01529093501976675,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "sulfoxide": {
+      "mae_kcal_mol": 0.7608944546036529,
+      "max_absolute_error_kcal_mol": 0.7608944546036529,
+      "record_count": 1,
+      "success_count": 1
+    }
+  },
+  "by_heteroatom_bin": {
+    "multiple": {
+      "mae_kcal_mol": 1.1775410960469237,
+      "max_absolute_error_kcal_mol": 3.2473279957153336,
+      "record_count": 4,
+      "success_count": 4
+    },
+    "one": {
+      "mae_kcal_mol": 0.7030945471413742,
+      "max_absolute_error_kcal_mol": 1.066442804586908,
+      "record_count": 6,
+      "success_count": 6
+    },
+    "zero": {
+      "mae_kcal_mol": 0.2727969417118791,
+      "max_absolute_error_kcal_mol": 0.4033668756421944,
+      "record_count": 2,
+      "success_count": 2
+    }
+  },
+  "by_size_bin": {
+    "medium": {
+      "mae_kcal_mol": 0.22708489683279076,
+      "max_absolute_error_kcal_mol": 0.22708489683279076,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "small": {
+      "mae_kcal_mol": 0.8406582412388097,
+      "max_absolute_error_kcal_mol": 3.2473279957153336,
+      "record_count": 11,
+      "success_count": 11
+    }
+  },
+  "claim_boundary": "The current profile is a legacy nonvariational fixed point with a known nonconjugate point-multipole source and exact-GTO receiver. These runs are energy-only diagnostics, not a Route-2 V0/2V result, variational SCRF, solution-phase PES, analytic-force claim, or an acceptance-panel pass. They cannot justify parameter changes, post-training, or test-set selection.",
+  "current_method": {
+    "cavity": "intrinsic-smd-probe0-noaddsph-v1",
+    "device": "cuda",
+    "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "git_head": "8e48975ad9ab555acb0e1cdc88b130e3ef067aef",
+    "mace_checkpoint": {
+      "identifier": "polar-1-m",
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "size_bytes": 68133235
+    },
+    "nonpolar_term": "native-water-smd-cds",
+    "pcmsolver_library": {
+      "path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+    },
+    "pcmsolver_parser": {
+      "path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/python/pcmsolver/pcmparser.py",
+      "sha256": "f91b067a07d0198c3fb9cbc0426c8e6b21467aa74d8081c4a64875c07aff08b0"
+    },
+    "profile": "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1",
+    "prohibited_claims": [
+      "variational SCRF",
+      "common-energy stationary electronic state",
+      "solution-phase PES",
+      "analytic solution-phase forces",
+      "Route-2 V0 accuracy",
+      "acceptance-panel pass"
+    ],
+    "provider": "PCMSolver IEFPCM",
+    "public_capability": "experimental-energy-only",
+    "reaction_field_receiver": "exact-gto-v1",
+    "scientific_status": "legacy-nonvariational-fixedpoint-diagnostic",
+    "solute_source": "point-multipole-l1",
+    "source_receiver_contract": "known-nonconjugate-point-source-gto-receiver"
+  },
+  "execution_evidence": {
+    "model_load_seconds_last_resume": 3.1066643230005866,
+    "raw_results_path": ".omx/benchmarks/route2-legacy-exact-gto-historical-freesolv12-current-20260731/results.json",
+    "raw_results_sha256": "93d4d5df4383feb7bc8510ae43a71f8dcd4e508bd86def2c75616c1377326f9d",
+    "raw_runner_sha256": "65d756f1feecdf48476c967d592516f1c7e160bfaa1c90686b7abb0e2861b88f",
+    "raw_selection_sha256": "ad24808c8442a3c607f278dd8f9ab841061414daa555f674af20202af8f983ea",
+    "success_wall_seconds_total": 19.051741348012
+  },
+  "no_target_policy": {
+    "experimental_labels_used_to_rank_current_method": false,
+    "experimental_labels_used_to_select_panel": false,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "half_coupling_adjustment": false,
+    "label_use_boundary": "FreeSolv values were read only after the model/profile/cavity were fixed, to calculate reported errors. The historical12 set is frozen; the broad panel is every member of the already prepared deterministic confirmation partition.",
+    "map_or_uq_calibration": false,
+    "post_selection_parameter_change": false,
+    "post_training": false,
+    "radius_adjustment": false
+  },
+  "panel": {
+    "dataset": "FreeSolv 0.52",
+    "expected_record_count": 12,
+    "geometry_policy": "exact pinned FreeSolv GAFF MOL2 conformer; no optimization or conformer substitution",
+    "historical12_manifest": {
+      "path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-functional-groups-v1.json",
+      "sha256": "ff8f7fa425020968de65026c84fa863d64b25b8b4729d25be1b4f83cffd5306f"
+    },
+    "kind": "frozen-historical-freesolv12-functional-group-regression",
+    "selection_rule": "exact locked order from historical12 manifest",
+    "solvent": "water",
+    "source_prepared_manifest": {
+      "candidate_count": 642,
+      "partition_counts": {
+        "confirmation": 123,
+        "development": 519
+      },
+      "path": ".omx/benchmarks/route2-macepolar-smd/prepared.json",
+      "sha256": "f5a611f4ba1af2a9ac6f47df724d4d1cd713790bcc16be0777ae32dade688c01"
+    },
+    "standard_state": "original FreeSolv experimental record convention"
+  },
+  "provider_failure_summary": {
+    "count": 0,
+    "reason": null
+  },
+  "records": [
+    {
+      "compound_id": "mobley_9055303",
+      "dataset_record_sha256": "d33eefb2baa9852d673dabfe0720842ef21d928a47c93094f8e87518883ffca0",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.0,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "d3444794acbe124f7d423a564286d58a8ad7f98e559ccd08c002f1333516662b",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.4033668756421944,
+        "cavity_tesserae": 243,
+        "components_kcal_mol": {
+          "cds": 2.764796099834587,
+          "delta_g_solv": 1.5966331243578056,
+          "electrostatic": -1.1681629754767815,
+          "pcm_polarization": -1.1554017711374178,
+          "solute_polarization": -0.012761204339363535,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.951344367056802e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 1.5966331243578056,
+        "scf_iterations": 7,
+        "signed_error_kcal_mol": -0.4033668756421944,
+        "wall_seconds": 1.7533940519933822
+      },
+      "name": "methane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "dataset_record_sha256": "3bcbd06ebceb9cf1758e687f52fb2b78881c7d12c28c6dbacbe05704fcf91e12",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -0.9,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "functional_groups": [
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.14222700778156383,
+        "cavity_tesserae": 616,
+        "components_kcal_mol": {
+          "cds": 2.7063057983763086,
+          "delta_g_solv": -1.0422270077815639,
+          "electrostatic": -3.7485328061578724,
+          "pcm_polarization": -3.7509051808051166,
+          "solute_polarization": 0.002372374647243967,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.513525456252085e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -1.0422270077815639,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": -0.14222700778156383,
+        "wall_seconds": 1.8216228679957567
+      },
+      "name": "benzene",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "dataset_record_sha256": "abab64b2a69e813a120b0aa365675d7e4fc850d99e5427eb97c7167b73170391",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.1,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "functional_groups": [
+        "primary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7845788153941484,
+        "cavity_tesserae": 325,
+        "components_kcal_mol": {
+          "cds": 2.4844107743152,
+          "delta_g_solv": -4.315421184605851,
+          "electrostatic": -6.799831958921052,
+          "pcm_polarization": -6.696826904042055,
+          "solute_polarization": -0.10300505487899658,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.81821430256846e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.315421184605851,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": 0.7845788153941484,
+        "wall_seconds": 1.3110154840105679
+      },
+      "name": "methanol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "dataset_record_sha256": "6b2ae8d515e9017cd5a05ca93b2a607b78a75bbf4edeb7c23122810fb30e3948",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -1.91,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "43fc0e1859c4536b1e5c6ccddbb5b370af168cb759a17ec927aa4e77dd2aedbb",
+      "functional_groups": [
+        "dialkyl ether"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.066442804586908,
+        "cavity_tesserae": 458,
+        "components_kcal_mol": {
+          "cds": 3.381042086921798,
+          "delta_g_solv": -0.8435571954130917,
+          "electrostatic": -4.22459928233489,
+          "pcm_polarization": -4.2442621080101555,
+          "solute_polarization": 0.01966282567526548,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.99739178171488e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.8435571954130917,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": 1.066442804586908,
+        "wall_seconds": 1.3723585499974433
+      },
+      "name": "methoxymethane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "dataset_record_sha256": "61f8e4f8778918bf7f6c01c16647cc4c17172765d93c36559d13a7ee62e97aab",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.8,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+      "functional_groups": [
+        "ketone"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.933262331332684,
+        "cavity_tesserae": 516,
+        "components_kcal_mol": {
+          "cds": 3.5712034339181487,
+          "delta_g_solv": -4.733262331332684,
+          "electrostatic": -8.304465765250832,
+          "pcm_polarization": -8.385933190427311,
+          "solute_polarization": 0.08146742517647831,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.3546819750449615e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.733262331332684,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -0.933262331332684,
+        "wall_seconds": 1.6731536099978257
+      },
+      "name": "acetone",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "dataset_record_sha256": "ce464651b952cbda6db0b3df8a15bcd3dd98bf2226c7047f349b3a93641a37fe",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.94,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "4f7ff04fca2240112ead2c9cc8d94a91f79b27d44ae5b2ea3f76ddf8531f7af8",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.6866509988489415,
+        "cavity_tesserae": 718,
+        "components_kcal_mol": {
+          "cds": 4.520911764400721,
+          "delta_g_solv": -3.6266509988489415,
+          "electrostatic": -8.147562763249663,
+          "pcm_polarization": -8.103397713007237,
+          "solute_polarization": -0.04416505024242655,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.9050505451806465e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.6266509988489415,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -0.6866509988489415,
+        "wall_seconds": 1.726331078010844
+      },
+      "name": "ethyl acetate",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "dataset_record_sha256": "cec4fdf53239d14d786ad02bbad7b7928c68be2aca39a07dd869196ee73ffb43",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.88,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "21e4c6f42cbc2791b6fdbdaaa7a044f352503ff5675efb879ba7351265666b60",
+      "functional_groups": [
+        "carbonitrile"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7075493098774315,
+        "cavity_tesserae": 353,
+        "components_kcal_mol": {
+          "cds": 3.956939170258011,
+          "delta_g_solv": -3.1724506901225684,
+          "electrostatic": -7.129389860380579,
+          "pcm_polarization": -7.244051396470058,
+          "solute_polarization": 0.11466153608947956,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.300853780534133e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.1724506901225684,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": 0.7075493098774315,
+        "wall_seconds": 1.1667920180043438
+      },
+      "name": "acetonitrile",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "dataset_record_sha256": "05e8250858b2c95e342ab8befc2d9dc7ff0ba5088ec5122b86215c6b57e30fea",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.49,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+      "functional_groups": [
+        "aromatic",
+        "primary amine",
+        "primary aromatic amine"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.22708489683279076,
+        "cavity_tesserae": 692,
+        "components_kcal_mol": {
+          "cds": 3.050349933371554,
+          "delta_g_solv": -5.2629151031672095,
+          "electrostatic": -8.313265036538764,
+          "pcm_polarization": -8.342785091570757,
+          "solute_polarization": 0.029520055031993387,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.9677624866597e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -5.2629151031672095,
+        "scf_iterations": 15,
+        "signed_error_kcal_mol": 0.22708489683279076,
+        "wall_seconds": 2.031684524001321
+      },
+      "name": "aniline",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "dataset_record_sha256": "ba88917577a1fb88cfdbfff0303606e87f9d873286c85453de71003293f4ddde",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -0.63,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "8324d857045111c381fce8b3b9cf6b5c5499eebd7adc2dd2fe2a2fd2b6165a30",
+      "functional_groups": [
+        "alkyl chloride"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.4996491248242827,
+        "cavity_tesserae": 532,
+        "components_kcal_mol": {
+          "cds": 2.081350818501618,
+          "delta_g_solv": -0.1303508751757173,
+          "electrostatic": -2.2117016936773353,
+          "pcm_polarization": -2.3025186025957605,
+          "solute_polarization": 0.09081690891842516,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.319293104103176e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.1303508751757173,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": 0.4996491248242827,
+        "wall_seconds": 1.468696516007185
+      },
+      "name": "chloroethane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "dataset_record_sha256": "2e2bbfb6aba055fe4f1b47aefe6642077db23ffb83bc0be2f8c44e08a6df6d15",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -9.28,
+      "experimental_uncertainty_kcal_mol": 0.57,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "eb17e4989468f9f100a4a299960279da0c8a011c8cc5798496c9b548214fec9d",
+      "functional_groups": [
+        "sulfoxide"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7608944546036529,
+        "cavity_tesserae": 588,
+        "components_kcal_mol": {
+          "cds": 2.7896880652439062,
+          "delta_g_solv": -8.519105545396346,
+          "electrostatic": -11.308793610640253,
+          "pcm_polarization": -11.32317097544831,
+          "solute_polarization": 0.014377364808059363,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.5944457185718175e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -8.519105545396346,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": 0.7608944546036529,
+        "wall_seconds": 1.7996924509934615
+      },
+      "name": "methylsulfinylmethane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_8048190",
+      "dataset_record_sha256": "d28ba6b14c83eecde6d7827720efd7f004833179c48e6ef4eae42b3877eff3a7",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -9.71,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "04cfd88f681f2f77524301fe57bf450601c3c9e41c38a80e346e575e61d3f4f1",
+      "functional_groups": [
+        "primary carboxylic acid amide"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.01529093501976675,
+        "cavity_tesserae": 470,
+        "components_kcal_mol": {
+          "cds": 3.592358859395607,
+          "delta_g_solv": -9.694709064980234,
+          "electrostatic": -13.28706792437584,
+          "pcm_polarization": -13.2717243227569,
+          "solute_polarization": -0.015343601618942989,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.130790720566438e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -9.694709064980234,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": 0.01529093501976675,
+        "wall_seconds": 1.5097255410073558
+      },
+      "name": "acetamide",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_3034976",
+      "dataset_record_sha256": "feee64106ed1612866d2b4676cc54f9089906528526b3544b2ae98f0988ea1f3",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.69,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+      "functional_groups": [
+        "carboxylic acid"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 3.2473279957153336,
+        "cavity_tesserae": 454,
+        "components_kcal_mol": {
+          "cds": 3.81820771438186,
+          "delta_g_solv": -9.937327995715334,
+          "electrostatic": -13.755535710097194,
+          "pcm_polarization": -13.794488446820079,
+          "solute_polarization": 0.038952736722885226,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.831488717884415e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -9.937327995715334,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -3.2473279957153336,
+        "wall_seconds": 1.4172746559925145
+      },
+      "name": "acetic acid",
+      "size_bin": "small"
+    }
+  ],
+  "schema_version": 1,
+  "status": "diagnostic-only-not-route2v-acceptance",
+  "summary": {
+    "all_records_strictly_below_1_5_kcal_mol": false,
+    "expected_record_count": 12,
+    "failure_count": 0,
+    "failure_rate": 0.0,
+    "mae_kcal_mol": 0.7895271292049749,
+    "maximum_absolute_error_kcal_mol": 3.2473279957153336,
+    "mean_signed_error_kcal_mol": -0.11261207234847803,
+    "median_wall_seconds": 1.5914395755025907,
+    "records_at_or_above_1_5_kcal_mol": 1,
+    "records_strictly_below_1_0_kcal_mol": 10,
+    "records_strictly_below_1_5_kcal_mol": 11,
+    "rmse_kcal_mol": 1.1256273000770607,
+    "success_count": 12,
+    "total_wall_seconds": 19.051741348012,
+    "worst_compound_id": "mobley_3034976",
+    "worst_name": "acetic acid"
+  },
+  "worst_successful_records": [
+    {
+      "absolute_error_kcal_mol": 3.2473279957153336,
+      "compound_id": "mobley_3034976",
+      "functional_groups": [
+        "carboxylic acid"
+      ],
+      "name": "acetic acid"
+    },
+    {
+      "absolute_error_kcal_mol": 1.066442804586908,
+      "compound_id": "mobley_7015518",
+      "functional_groups": [
+        "dialkyl ether"
+      ],
+      "name": "methoxymethane"
+    },
+    {
+      "absolute_error_kcal_mol": 0.933262331332684,
+      "compound_id": "mobley_3867265",
+      "functional_groups": [
+        "ketone"
+      ],
+      "name": "acetone"
+    },
+    {
+      "absolute_error_kcal_mol": 0.7845788153941484,
+      "compound_id": "mobley_1636752",
+      "functional_groups": [
+        "primary alcohol"
+      ],
+      "name": "methanol"
+    },
+    {
+      "absolute_error_kcal_mol": 0.7608944546036529,
+      "compound_id": "mobley_8578590",
+      "functional_groups": [
+        "sulfoxide"
+      ],
+      "name": "methylsulfinylmethane"
+    },
+    {
+      "absolute_error_kcal_mol": 0.7075493098774315,
+      "compound_id": "mobley_7532833",
+      "functional_groups": [
+        "carbonitrile"
+      ],
+      "name": "acetonitrile"
+    },
+    {
+      "absolute_error_kcal_mol": 0.6866509988489415,
+      "compound_id": "mobley_6973347",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "name": "ethyl acetate"
+    },
+    {
+      "absolute_error_kcal_mol": 0.4996491248242827,
+      "compound_id": "mobley_2198613",
+      "functional_groups": [
+        "alkyl chloride"
+      ],
+      "name": "chloroethane"
+    },
+    {
+      "absolute_error_kcal_mol": 0.4033668756421944,
+      "compound_id": "mobley_9055303",
+      "functional_groups": [
+        ""
+      ],
+      "name": "methane"
+    },
+    {
+      "absolute_error_kcal_mol": 0.22708489683279076,
+      "compound_id": "mobley_4883284",
+      "functional_groups": [
+        "aromatic",
+        "primary amine",
+        "primary aromatic amine"
+      ],
+      "name": "aniline"
+    },
+    {
+      "absolute_error_kcal_mol": 0.14222700778156383,
+      "compound_id": "mobley_3053621",
+      "functional_groups": [
+        "aromatic"
+      ],
+      "name": "benzene"
+    },
+    {
+      "absolute_error_kcal_mol": 0.01529093501976675,
+      "compound_id": "mobley_8048190",
+      "functional_groups": [
+        "primary carboxylic acid amide"
+      ],
+      "name": "acetamide"
+    }
+  ]
+}

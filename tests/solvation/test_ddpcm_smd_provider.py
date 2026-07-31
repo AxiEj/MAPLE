@@ -35,6 +35,7 @@ from maple.function.route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
+    DDPCM_SMD_DIRECT_PCM_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
@@ -1203,6 +1204,9 @@ def test_multisolvent_provider_routes_dielectric_radii_and_cds_together(
         "online_candidate_iteration": 1,
         "final_monopole_residual_e": 0.0,
         "final_dipole_residual_e_angstrom": 0.0,
+        "final_reaction_potential_change_ev": None,
+        "final_reaction_gradient_change_ev_per_angstrom": None,
+        "final_energy_residual_ev": None,
         "runtime_identity": None,
         "history_window": None,
         "fresh_map_replay": None,
@@ -1214,7 +1218,7 @@ def test_multisolvent_provider_routes_dielectric_radii_and_cds_together(
     audit = json.loads(
         (tmp_path / "route2-ddpcm-result.json").read_text(encoding="utf-8")
     )
-    assert audit["schema_version"] == 2
+    assert audit["schema_version"] == 3
     assert audit["scf"]["coefficient_units"] == {
         "monopole": "e",
         "dipole": "e angstrom",
@@ -1315,6 +1319,56 @@ def _fake_cds(atoms):
     )
 
 
+def test_ddpcm_direct_pcm_profile_reports_only_pcm_half_coupling(
+    monkeypatch,
+    tmp_path,
+):
+    import maple.function.calculator.extra_correction.implicit.ddpcm_smd as module
+
+    atoms = _atoms()
+    calculator = _FakeMACEPolarCalculator(atoms)
+    _ScalarCoordinateReactionField.instances.clear()
+    monkeypatch.setattr(
+        module,
+        "PyDDXPCMReactionFieldLinearMap",
+        _ScalarCoordinateReactionField,
+    )
+    monkeypatch.setattr(
+        module,
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _fake_cds(atoms),
+    )
+    provider = DDPCMSMDImplicitSolvation(
+        atoms,
+        {**_options(), "profile": DDPCM_SMD_DIRECT_PCM_PROFILE},
+        audit_dir=tmp_path,
+    )
+
+    result = provider.evaluate(atoms, calculator=calculator)
+
+    expected_pcm = 0.5 * 0.12 * (0.1**2 + 0.1**2) / Hartree
+    assert result.components_hartree["solute_polarization"] == 0.0
+    assert result.components_hartree["pcm_polarization"] == pytest.approx(
+        expected_pcm
+    )
+    assert result.energy_hartree == pytest.approx(expected_pcm + 0.003)
+    assert result.provenance["electrostatic_energy_ledger"] == (
+        "pcm-half-coupling-only-v1"
+    )
+    audit = json.loads(
+        (tmp_path / "route2-ddpcm-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["electrostatic_energy_ledger"] == "pcm-half-coupling-only-v1"
+    assert audit["field_conditioned_mace_energy_change_hartree"] == pytest.approx(
+        0.2 / Hartree
+    )
+    with pytest.raises(NotImplementedError, match="PCM-only Route-2 ledger"):
+        provider.evaluate_single_point_derivative_evidence(
+            atoms,
+            calculator=calculator,
+        )
+
+
 def _coordinate_cds(atoms):
     coordinate = float(atoms.positions[0, 0])
     gradient = np.zeros((2, 3))
@@ -1396,7 +1450,17 @@ def test_ddpcm_provider_returns_research_derivative_evidence(
     assert reaction_field.scf_apply_calls == 1
     assert reaction_field.scf_energy_calls == 1
     assert reaction_field.cold_energy_calls == 0
-    assert reaction_field.cold_apply_calls == 0
+    assert reaction_field.cold_apply_calls == 4 * len(atoms) - 1
+    admission = evidence.provenance["force_admission"]
+    assert admission["release_admitted"] is False
+    assert admission["condition"]["exact_small_system"] is True
+    assert admission["condition"]["gate_passed"] is True
+    assert set(admission["failure_reasons"]) == {
+        "continuum-node-topology-is-not-fixed",
+        "continuum-geometry-path-smoothness-unverified",
+        "multi-start-root-uniqueness-unverified",
+        "common-energy-semantics-unresolved",
+    }
     assert (tmp_path / "route2-ddpcm-result.json").is_file()
     assert (tmp_path / "route2-ddpcm-state.npz").is_file()
 

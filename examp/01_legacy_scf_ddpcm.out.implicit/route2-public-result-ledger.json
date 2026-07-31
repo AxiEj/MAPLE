@@ -1,0 +1,141 @@
+{
+  "base_manifest_sha256": "f01e753a6a5b794c772a30fbd3173f795da9373846aae92bd7d1c0787f568a6c",
+  "component_contract": "derived totals are checked from leaves; do not sum the legacy flat components map",
+  "derived_totals_hartree": {
+    "delta_g_solv": -0.010777020563443353,
+    "electrostatic": -0.01645829265829417
+  },
+  "energy_hartree": -0.010777020563443353,
+  "evaluation_geometry": {
+    "atomic_numbers": [
+      6,
+      6,
+      8,
+      6,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "cell_angstrom": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "chemical_symbols": [
+      "C",
+      "C",
+      "O",
+      "C",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "pbc": [
+      false,
+      false,
+      false
+    ],
+    "positions_angstrom": [
+      [
+        -0.703,
+        -0.411,
+        0.729
+      ],
+      [
+        -0.057,
+        -0.447,
+        2.087
+      ],
+      [
+        0.101,
+        -1.502,
+        2.699
+      ],
+      [
+        0.385,
+        0.872,
+        2.662
+      ],
+      [
+        -1.782,
+        -0.284,
+        0.84
+      ],
+      [
+        -0.284,
+        0.412,
+        0.146
+      ],
+      [
+        -0.509,
+        -1.351,
+        0.204
+      ],
+      [
+        -0.43,
+        1.312,
+        3.244
+      ],
+      [
+        0.648,
+        1.555,
+        1.851
+      ],
+      [
+        1.245,
+        0.717,
+        3.318
+      ]
+    ]
+  },
+  "evaluation_manifest_path": "route2-public-results/3d7f620f353a4c37b10c747297c9c721.manifest.json",
+  "evaluation_manifest_sha256": "ba3673a4777cf6739ef85b0414f75c680c162605ea048109575a97ad74ebecc2",
+  "geometry_sha256": "2bbdc9b9fa3eafb2547afbb15287a8ad912990872ccfbaef91324b5568ebcc68",
+  "leaf_components_hartree": {
+    "cds": 0.005681272094850817,
+    "pcm_polarization": -0.018239070769249223,
+    "solute_polarization": 0.0017807781109550548,
+    "standard_state": 0.0
+  },
+  "profile": "smd-ddpcm-l15-n1202-v1",
+  "provider": "pyddx",
+  "result_content_sha256": "a7714cd91d0fabe636c61d2a7241175a396f5eae36e1f9ea60a69324391f05d3",
+  "run_id": "3d7f620f353a4c37b10c747297c9c721",
+  "schema_version": 2,
+  "solvation_options_sha256": "42ccd7991ec0b691f629902992048060fd1fa42c9a71e04f8dc83dacbed4a73f",
+  "source_receiver_contract": {
+    "common_stationary_electronic_functional_established": false,
+    "continuum_pairing_established": true,
+    "continuum_pairing_status": "point-multipole-local-jet-dual",
+    "contract_version": "route2-source-receiver-contract-v1",
+    "next_required_physical_gate": "common-electronic-scalar-energy-density-conjugacy-and-kkt",
+    "profile": "smd-ddpcm-l15-n1202-v1",
+    "prohibited_claims": [
+      "variational SCRF",
+      "common-energy stationary electronic state",
+      "solution-phase PES",
+      "analytic solution-phase forces"
+    ],
+    "public_capability": "experimental-energy-only",
+    "reaction_field_receiver": "local-jet",
+    "solute_source": "point-multipole-l1"
+  }
+}

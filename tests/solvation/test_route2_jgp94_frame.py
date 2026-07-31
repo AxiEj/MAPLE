@@ -1,21 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
-import sys
-
 import numpy as np
 import pytest
 
-BENCHMARK_DIRECTORY = (
-    Path(__file__).resolve().parents[2]
-    / "docs"
-    / "implicit-solvation"
-    / "benchmarks"
-)
-if str(BENCHMARK_DIRECTORY) not in sys.path:
-    sys.path.insert(0, str(BENCHMARK_DIRECTORY))
-
-from route2_jgp94_frame import (  # pyright: ignore[reportMissingImports]  # noqa: E402
+from maple.function.calculator.extra_correction.implicit.route2_body_frame import (
     body_dipoles,
     build_jgp94_frame,
     jgp94_frame_vjp,

@@ -42,7 +42,10 @@ from .route2_v0_atomic_independent_particle_response import (
     Route2V0AtomicIndependentParticleResponseTable,
 )
 from .route2_v0_atomic_independent_particle_surface import BOHR_ANGSTROM
-from .route2_v0_response_kernel import Route2V0ResponseKernelCompletion
+from .route2_v0_response_kernel import (
+    Route2V0MolecularMomentResponseKernelCompletion,
+    Route2V0ResponseKernelCompletion,
+)
 
 V0_ATOMIC_RESPONSE_STATIONARY_SOURCE_CONSTRUCTION = (
     "route2-v0-atomic-response-stationary-permanent-source-v1"
@@ -637,7 +640,10 @@ class Route2V0AtomicResponsePyscfReference:
 
 def solve_route2_v0_atomic_response_stationary_state(
     *,
-    completion: Route2V0ResponseKernelCompletion,
+    completion: (
+        Route2V0ResponseKernelCompletion
+        | Route2V0MolecularMomentResponseKernelCompletion
+    ),
     reference_coefficient_dual_hartree: np.ndarray,
 ) -> Route2V0AtomicResponseStationaryState:
     """Solve the unmodified support-constrained atomic-response stationarity.
@@ -648,7 +654,13 @@ def solve_route2_v0_atomic_response_stationary_state(
     mutually certified objects from ``complete_route2_v0_response_kernel``.
     """
 
-    if not isinstance(completion, Route2V0ResponseKernelCompletion):
+    if not isinstance(
+        completion,
+        (
+            Route2V0ResponseKernelCompletion,
+            Route2V0MolecularMomentResponseKernelCompletion,
+        ),
+    ):
         raise TypeError("completion must be a V0 response-kernel completion.")
     count = completion.response_covariance_coefficient_dual.shape[0]
     dual = _immutable_array(

@@ -11,8 +11,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from .route2_energy_ledger import (
+    LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+    PCM_HALF_COUPLING_ONLY_V1,
+    Route2ElectrostaticEnergyLedger,
+    validate_route2_electrostatic_energy_ledger,
+)
 from .route2_solvents import SUPPORTED_ROUTE2_SMD_SOLVENTS
-
 
 CANONICAL_SMD_PROFILE = "smd-iefpcm"
 GAFF2_CARBONYL_O_PROFILE = "smd-iefpcm-gaff2-o"
@@ -28,7 +33,12 @@ PCMSOLVER_INTRINSIC_CAVITY_PROFILE = (
 PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE = (
     "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1"
 )
+PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE = (
+    "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-"
+    "pcm-half-coupling-v1"
+)
 DDPCM_SMD_PROFILE = "smd-ddpcm-l15-n1202-v1"
+DDPCM_SMD_DIRECT_PCM_PROFILE = "smd-ddpcm-l15-n1202-pcm-half-coupling-v1"
 DDPCM_MULTISOLVENT_SMD_PROFILE = "smd-ddpcm-l15-n1202-multisolv-v1"
 DDCOSMO_MULTISOLVENT_SMD_PROFILE = (
     "smd-ddcosmo-l15-n1202-multisolv-v1"
@@ -82,6 +92,9 @@ class Route2SMDProfileSpec:
         "pyscf-smd-2.13.1",
     ]
     supported_solvents: frozenset[str]
+    electrostatic_energy_ledger: Route2ElectrostaticEnergyLedger = (
+        LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+    )
     strict_original_smd_equivalence: bool = False
     ddpcm_n_proc: int = 1
     default_eligible: bool = False
@@ -93,6 +106,11 @@ class Route2SMDProfileSpec:
     @property
     def uses_gaff2_carbonyl_oxygen(self) -> bool:
         return self.cavity == "gaff2-carbonyl-o"
+
+    def __post_init__(self) -> None:
+        validate_route2_electrostatic_energy_ledger(
+            self.electrostatic_energy_ledger
+        )
 
     def supports_solvent(self, solvent: str) -> bool:
         return str(solvent).strip().lower() in self.supported_solvents
@@ -199,6 +217,22 @@ _PROFILE_SPECS = {
         supported_solvents=_WATER_ONLY,
         pcmsolver_cavity_generation="intrinsic-probe0-noaddsph-v1",
     ),
+    PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE: Route2SMDProfileSpec(
+        name=PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE,
+        provider="pcmsolver",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="iefpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="exact-gto-v1",
+        model_field_gauge="atomic-center-mean-zero-v1",
+        nonpolar_model="native-water-smd-cds",
+        dielectric_policy="explicit-smd-water-78.355-v1",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
+        supported_solvents=_WATER_ONLY,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+        pcmsolver_cavity_generation="intrinsic-probe0-noaddsph-v1",
+    ),
     DDPCM_SMD_PROFILE: Route2SMDProfileSpec(
         name=DDPCM_SMD_PROFILE,
         provider="pyddx",
@@ -212,6 +246,21 @@ _PROFILE_SPECS = {
         dielectric_policy="legacy-water-78.39",
         coulomb_radii_policy="smd-water-reference-smd18-v1",
         supported_solvents=_WATER_ONLY,
+    ),
+    DDPCM_SMD_DIRECT_PCM_PROFILE: Route2SMDProfileSpec(
+        name=DDPCM_SMD_DIRECT_PCM_PROFILE,
+        provider="pyddx",
+        cavity="canonical-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="ddpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="pyscf-smd-cds",
+        dielectric_policy="legacy-water-78.39",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
+        supported_solvents=_WATER_ONLY,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
     ),
     DDPCM_MULTISOLVENT_SMD_PROFILE: Route2SMDProfileSpec(
         name=DDPCM_MULTISOLVENT_SMD_PROFILE,
@@ -347,24 +396,26 @@ def validate_route2_smd_profile(
 
 __all__ = [
     "CANONICAL_SMD_PROFILE",
-    "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE",
+    "DDCOSMO_MULTISOLVENT_SMD_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_OMP4_PROFILE",
+    "DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE",
     "DDPCM_GAFF2_CARBONYL_O_PROFILE",
     "DDPCM_MULTISOLVENT_SMD_PROFILE",
+    "DDPCM_SMD_DIRECT_PCM_PROFILE",
     "DDPCM_SMD_PROFILE",
-    "DDCOSMO_MULTISOLVENT_SMD_PROFILE",
     "GAFF2_CARBONYL_O_PROFILE",
     "MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE",
     "MACEPOL_MOLECULAR_REALSPACE_PROFILE",
     "PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE",
     "PCMSOLVER_EXACT_GTO_FIELD_PROFILE",
     "PCMSOLVER_INTRINSIC_CAVITY_PROFILE",
+    "PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE",
     "PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE",
-    "Route2SMDProfileSpec",
     "SUPPORTED_DDPCM_SMD_PROFILES",
     "SUPPORTED_PCMSOLVER_SMD_PROFILES",
     "SUPPORTED_PYDDX_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_PROFILES",
+    "Route2SMDProfileSpec",
     "route2_smd_profile_spec",
     "route2_smd_profiles_for_provider",
     "validate_route2_smd_profile",

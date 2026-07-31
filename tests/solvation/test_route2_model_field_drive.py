@@ -30,6 +30,7 @@ from maple.function.calculator.extra_correction.implicit.route2_fixed_point impo
 from maple.function.calculator.extra_correction.implicit.route2_field_state import (
     ReactionFieldDrive,
 )
+from maple.function.route2_energy_ledger import PCM_HALF_COUPLING_ONLY_V1
 
 
 @dataclass
@@ -724,6 +725,47 @@ def test_engine_converges_with_the_neutral_tangent_unmixed_residual():
     assert coupled.history[0]["next_density_update"] == "converged"
 
 
+def test_direct_pcm_scf_tracks_pcm_half_coupling_not_mace_energy_drift():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    density = np.asarray(
+        [[-0.2, 0.1, -0.3, 0.4], [0.2, -0.5, 0.6, -0.7]],
+        dtype=float,
+    )
+    gas_state = _State(energy_ev=-10.0, density_coefficients=density)
+    calculator = _ScheduledDensityCalculator(
+        [density, density],
+        energies_ev=[-9.9, 50.0],
+    )
+    reaction_map = _IdentityReactionMap()
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=replace(
+            _settings(),
+            scf_require_two_energy_samples=True,
+            scf_max_iterations=2,
+        ),
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("direct-pcm-energy-monitor",),
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+    )
+
+    assert coupled.history[-1]["next_density_update"] == "converged"
+    assert coupled.history[-1]["intrinsic_energy_ev"] == pytest.approx(50.0)
+    assert coupled.history[-1]["energy_residual_ev"] == pytest.approx(0.0)
+    assert coupled.history[-1]["energy_residual_source"] == (
+        "pcm-half-coupling-v1"
+    )
+    assert coupled.history[-1]["ledger_energy_ev"] == pytest.approx(
+        reaction_map.scf_polarization_energy_hartree(density) * Hartree
+    )
+
+
 def test_engine_resets_anderson_history_after_observed_residual_growth(
     monkeypatch,
 ):
@@ -1000,6 +1042,24 @@ def test_engine_accepts_the_earliest_online_window_satisfying_all_predicates(
     assert (
         coupled.scf_convergence["final_dipole_residual_e_angstrom"]
         <= 1.0e-10
+    )
+    assert coupled.history[0]["reaction_potential_change_ev"] is None
+    assert (
+        coupled.history[-1]["reaction_potential_change_ev"]
+        == coupled.scf_convergence["final_reaction_potential_change_ev"]
+    )
+    assert (
+        coupled.history[-1]["reaction_gradient_change_ev_per_angstrom"]
+        == coupled.scf_convergence[
+            "final_reaction_gradient_change_ev_per_angstrom"
+        ]
+    )
+    assert coupled.scf_convergence["final_energy_residual_ev"] == pytest.approx(
+        coupled.history[-1]["energy_residual_ev"]
+    )
+    assert all(
+        abs(record["root_total_charge_e"]) <= 1.0e-14
+        for record in coupled.history
     )
     assert coupled.scf_convergence["runtime_identity"] == runtime_identity
     window = coupled.scf_convergence["history_window"]
@@ -1491,6 +1551,9 @@ def test_engine_reports_nominal_channel_specific_convergence():
         "online_candidate_iteration": 1,
         "final_monopole_residual_e": pytest.approx(5.0e-13),
         "final_dipole_residual_e_angstrom": pytest.approx(1.5e-12),
+        "final_reaction_potential_change_ev": None,
+        "final_reaction_gradient_change_ev_per_angstrom": None,
+        "final_energy_residual_ev": None,
         "runtime_identity": None,
         "history_window": None,
         "fresh_map_replay": None,

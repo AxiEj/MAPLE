@@ -2,14 +2,16 @@
 
 ## Status and boundary
 
-`route2_v0_response_kernel.py` implements the **algebraic** V0-RK completion
-of a physical baseline density-response kernel. It has no checked-in physical
-kernel asset, no source-bound GTO basis, no continuum/cavity, no frozen
-permanent density, no force calculation, and no QM or experimental solvation
-run. Its unit tests use only synthetic matrices. Therefore it is **not a
-physical response-kernel asset**, a solvation method, or an accuracy result.
+`route2_v0_response_kernel.py` implements two **algebraic** V0-RK
+completions of a physical baseline density-response kernel: the historical
+stacked-atomic completion is retained as a rank-three structural control, and
+the molecular-moment completion constrains only the molecular three-component
+moment. Neither has a checked-in physical kernel asset, source-bound GTO
+basis, continuum/cavity, force calculation, or QM or experimental solvation
+run. Its unit tests use only synthetic matrices. Therefore neither is a
+**physical response-kernel asset**, a solvation method, or an accuracy result.
 
-The machine-readable boundary is
+The machine-readable boundary for the historical stacked-atomic control is
 [`route2-v0-response-kernel-completion-prereg-v1.json`](benchmarks/route2-v0-response-kernel-completion-prereg-v1.json).
 
 The purpose is narrow but necessary. A molecular polarizability is a
@@ -64,7 +66,7 @@ All maps must use the same source/dual convention as the eventual continuum.
 `A` and `W` cannot be inferred from a continuum grid, a response fit, or a
 solvation result.
 
-## 2. Schur-complement completion
+## 2. Stacked-atomic Schur-complement structural control
 
 Require the source-bound baseline atom covariance
 
@@ -117,7 +119,48 @@ The implementation checks each identity numerically before returning. It does
 not symmetrize a material antisymmetry, clip an eigenvalue, rescale
 \(\alpha_\theta\), or add a penalty to force a failed identity.
 
-## 3. One electronic scalar on the response support
+However, \(\operatorname{rank}(\Gamma)\leq3\).  Since
+
+\[
+AC=\Gamma L^\mathsf T,
+\]
+
+the atom-resolved response of this completion lies in the three-dimensional
+range of \(W\), even under a nonuniform field.  It can preserve the audited
+uniform-field molecular polarizability, but it must not be treated as a
+general atom-resolved response.  The code therefore retains it as
+`complete_route2_v0_response_kernel` for a structural control only.
+
+## 3. Molecular-moment completion candidate
+
+Let \(T=GA\in\mathbb R^{3\times m}\) be the total molecular-dipole map.  The
+alternative completion replaces only the covariance observed by the frozen
+MACE molecular polarizability:
+
+\[
+S_{\rm mol}=TC_0T^\mathsf T,
+\qquad
+L_{\rm mol}=C_0T^\mathsf TS_{\rm mol}^{-1},
+\]
+
+\[
+\boxed{
+C_{\rm mol}=C_0-L_{\rm mol}S_{\rm mol}L_{\rm mol}^\mathsf T
++L_{\rm mol}\alpha_\theta L_{\rm mol}^\mathsf T.}
+\]
+
+It exactly enforces
+\(TC_{\rm mol}T^\mathsf T=\alpha_\theta\), preserves PSD and charge
+neutrality, and retains the baseline conditional covariance outside the total
+molecular-moment subspace.  It makes no unsupported claim that the full
+\(3N\times3N\) atom-dipole covariance equals \(W\alpha_\theta W^\mathsf T\).
+Thus it avoids the rank-three collapse but does not create molecular bonding
+response or charge transfer.  Its first frozen acetone QM-MEP oracle is a
+structural/source observation only; it cannot select a kernel by a solvation
+error or establish transferability.  Broad nonuniform finite-field QM gates
+remain required.
+
+## 4. One electronic scalar on the response support
 
 For the positive support of \(C\), let \(C^+\) be the Moore--Penrose inverse
 and \(\Pi_C=CC^+\) the support projector. The gas electronic scalar is
@@ -149,24 +192,29 @@ The kernel module therefore returns only the remaining exact zero-mode rows
 \(\begin{bmatrix}q^\mathsf{T}\\N^\mathsf{T}\end{bmatrix}\) span
 \(\ker C\) without a duplicate charge constraint. They are never assigned an
 arbitrary large curvature.
-This output can later enter `route2_v0_variational_quadratic.py` only after a
-same-basis permanent density and reciprocal physical continuum have passed
-their independent gates.
+This output can later enter a common scalar only after a reciprocal physical
+continuum and a separately provenance-bound permanent source have passed their
+independent gates.  A frozen permanent source need not be represented in the
+induced \(x\) coefficient basis: it may enter directly as a total surface
+potential \(v_0\), provided \(B\) and \(B^\mathsf T\) remain exact duals in
+the induced coefficient/receiver pairing.  This narrower frozen-source
+statement is not a claim of a complete stationary permanent electronic state;
+see [ROUTE2_V0_FROZEN_SOURCE_KKT_BOUNDARY.md](ROUTE2_V0_FROZEN_SOURCE_KKT_BOUNDARY.md).
 
-With a continuum energy matrix \(P=P^\mathsf T\), the future common scalar is
+With a reciprocal continuum response \(Q=Q^\mathsf T\), the future common scalar is
 
 \[
 \mathcal G(x;\mathbf R)=E_{\rm gas}(\mathbf R)
 +\frac12x^\mathsf TC^+x
-+\frac12(c_0+x)^\mathsf TP_{\mathbf R}(c_0+x),
++\frac12(v_0+B_{\mathbf R}x)^\mathsf TQ_{\mathbf R}(v_0+B_{\mathbf R}x),
 \quad x\in\operatorname{Ran}C,\quad q^\mathsf Tx=0.
 \]
 
 Its stability condition is the positive definiteness of
-\(\Pi_C(C^++P)\Pi_C\) on the allowed response support, not an SCF mixing
+\(\Pi_C(C^++B^\mathsf TQB)\Pi_C\) on the allowed response support, not an SCF mixing
 spectral radius.
 
-## 4. What a physical source must prove
+## 5. What a physical source must prove
 
 An admissible \(C_0\) must be fixed **before** target solvation labels are
 read and must carry all of the following:
@@ -181,14 +229,15 @@ read and must carry all of the following:
 4. a production runtime path. Per-molecule runtime QM response may qualify an
    oracle but cannot be called a faster Route-2 endpoint unless the exact
    end-to-end runtime gate is met;
-5. exact coordinate derivatives of \(C_0,A,W,\alpha_\theta,c_0\), the source
-   map, and the continuum for envelope-force and PES certification.
+5. exact coordinate derivatives of \(C_0,A,W,\alpha_\theta\), the induced
+   source map, the permanent surface potential \(v_0\), and the continuum for
+   envelope-force and PES certification.
 
 No currently checked-in artifact meets these requirements. In particular,
 free-atom V0-ADT is a successful **rank-three source** canary, not the full
 positive-semidefinite \(C_0\) required here.
 
-## 5. Relation to literature and custom solvents
+## 6. Relation to literature and custom solvents
 
 The response-kernel construction addresses the **solute** side. It does not
 make a solvent model physical by itself. The 2026 self-consistent-MLIP design

@@ -49,6 +49,7 @@ class _FakePCMObject:
 
 class _FakePCM:
     PCM = _FakePCMObject
+    XI = {6: 4.84566077868}
     last_surface_elements = None
     last_surface_radii = None
 
@@ -136,7 +137,7 @@ def fake_runtime():
         runtime=_PySCFRuntime(
             version=TESTED_PYSCF_VERSION,
             gto=_FakeGTO,
-            gen_grid=types.SimpleNamespace(LEBEDEV_ORDER={17: 6}),
+            gen_grid=types.SimpleNamespace(LEBEDEV_ORDER={13: 74, 17: 6}),
             pcm=RecordingPCM,
             pcm_grad=_FakePCMGradient,
         ),
@@ -332,6 +333,25 @@ def test_pyscf_swig_generic_response_rejects_unknown_model(fake_runtime):
             continuum_model="unknown",
             dielectric=78.39,
             lebedev_order=17,
+            _runtime=fake_runtime.runtime,
+        )
+
+
+def test_pyscf_swig_response_rejects_grid_missing_upstream_swig_switching_data(
+    fake_runtime,
+):
+    """A Lebedev grid alone is insufficient for PySCF's SWIG construction."""
+
+    with pytest.raises(
+        ValueError,
+        match=r"Lebedev order 13: it maps to 74 points.*switching table",
+    ):
+        PySCFSWIGIEFPCMResponse(
+            ("H", "O"),
+            np.asarray([[-0.7, 0.0, 0.1], [0.8, 0.2, -0.1]]),
+            np.asarray([1.2, 1.5]),
+            dielectric=78.39,
+            lebedev_order=13,
             _runtime=fake_runtime.runtime,
         )
 

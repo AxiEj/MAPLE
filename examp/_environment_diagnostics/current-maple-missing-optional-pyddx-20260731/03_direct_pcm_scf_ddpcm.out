@@ -1,0 +1,114 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+Parsing # commands...
+Global parameter: model = macepol-m
+Task set to 'sp'
+Global nested parameter: solv = {'implicit': 'water', 'method': 'smd', 'provider': 'pyddx', 'profile': 'smd-ddpcm-l15-n1202-pcm-half-coupling-v1', 'response': 'scf', 'standard_state': '1m', 'experimental': True}
+Parsed configuration:
+----------------------------------------
+Task: sp
+model          : macepol-m
+solv           : {'implicit': 'water', 'method': 'smd', 'provider': 'pyddx', 'profile': 'smd-ddpcm-l15-n1202-pcm-half-coupling-v1', 'response': 'scf', 'standard_state': '1m', 'experimental': True}
+
+                             Coordinates
+**********************************************************************
+
+Group 1 (MOL2: acetone.mol2)
+Charge: 0, Multiplicity: 1
+--------------------
+1    C             -0.703000            -0.411000             0.729000
+2    C             -0.057000            -0.447000             2.087000
+3    O              0.101000            -1.502000             2.699000
+4    C              0.385000             0.872000             2.662000
+5    H             -1.782000            -0.284000             0.840000
+6    H             -0.284000             0.412000             0.146000
+7    H             -0.509000            -1.351000             0.204000
+8    H             -0.430000             1.312000             3.244000
+9    H              0.648000             1.555000             1.851000
+10   H              1.245000             0.717000             3.318000
+ERROR: RuntimeError: The optional pyddx Route-2 research adapter requires pyddx 0.8.0; MAPLE does not install it as a core dependency.
+ERROR: Error during calculation: The optional pyddx Route-2 research adapter requires pyddx 0.8.0; MAPLE does not install it as a core dependency.
+Traceback (most recent call last):
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py", line 48, in _load_pyddx_runtime
+    module = importlib.import_module("pyddx")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'pyddx'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/main.py", line 132, in main
+    eng(input_file, output_file)
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/engine.py", line 90, in __call__
+    self._jobtype_dispatcher(
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/engine.py", line 203, in _jobtype_dispatcher
+    dispatcher(commandcontrol, jobtype, atoms, output, extra)
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/dispatcher/dispatcher.py", line 51, in __call__
+    sp.run()
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/dispatcher/sp/sp.py", line 30, in run
+    self._run_single()
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/dispatcher/sp/sp.py", line 35, in _run_single
+    energy = self.atoms.get_potential_energy()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/atoms.py", line 1950, in get_potential_energy
+    energy = self._calc.get_potential_energy(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/calculators/abc.py", line 26, in get_potential_energy
+    return self.get_property(name, atoms)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/miniconda3/envs/maple/lib/python3.11/site-packages/ase/calculators/calculator.py", line 519, in get_property
+    self.calculate(atoms, [name], system_changes)
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/mace/_macepol_calculator.py", line 1186, in calculate
+    self._finalize_results(
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/calculator_base.py", line 360, in _finalize_results
+    solvent_result = self.solvent_correction.evaluate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/correction.py", line 261, in evaluate
+    result = self.provider.evaluate(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/ddpcm_smd.py", line 945, in evaluate
+    return self._evaluate(
+           ^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/ddpcm_smd.py", line 1013, in _evaluate
+    coupled = self._coupled_state(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/ddpcm_smd.py", line 840, in _coupled_state
+    state = self._solve_coupled_state(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/ddpcm_smd.py", line 671, in _solve_coupled_state
+    return self._engine.solve_coupled_state(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/route2_engine.py", line 1141, in solve_coupled_state
+    reaction_field = self.reaction_field_factory(atoms)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/ddpcm_smd.py", line 646, in _build_reaction_field
+    return reaction_field_type(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py", line 613, in __init__
+    super().__init__(
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py", line 206, in __init__
+    runtime = _load_pyddx_runtime() if _runtime is None else _runtime
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-implicitsolv-route2/maple/function/calculator/extra_correction/implicit/pyddx_pcm_response.py", line 50, in _load_pyddx_runtime
+    raise RuntimeError(
+RuntimeError: The optional pyddx Route-2 research adapter requires pyddx 0.8.0; MAPLE does not install it as a core dependency.

@@ -1,0 +1,9 @@
+{
+  "base_manifest_sha256": "f01e753a6a5b794c772a30fbd3173f795da9373846aae92bd7d1c0787f568a6c",
+  "evaluation_manifest_sha256": "ba3673a4777cf6739ef85b0414f75c680c162605ea048109575a97ad74ebecc2",
+  "geometry_sha256": "2bbdc9b9fa3eafb2547afbb15287a8ad912990872ccfbaef91324b5568ebcc68",
+  "result_content_sha256": "a7714cd91d0fabe636c61d2a7241175a396f5eae36e1f9ea60a69324391f05d3",
+  "run_id": "3d7f620f353a4c37b10c747297c9c721",
+  "schema_version": 1,
+  "solvation_options_sha256": "42ccd7991ec0b691f629902992048060fd1fa42c9a71e04f8dc83dacbed4a73f"
+}

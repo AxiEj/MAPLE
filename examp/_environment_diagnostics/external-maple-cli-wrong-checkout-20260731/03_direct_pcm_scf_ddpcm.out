@@ -1,0 +1,40 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+ERROR: Unknown solvation parameter: 'provider'.
+ERROR: Error during calculation: Unknown solvation parameter: 'provider'.
+Traceback (most recent call last):
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/main.py", line 132, in main
+    eng(input_file, output_file)
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/function/engine.py", line 74, in __call__
+    self._input_reader(input_file_name, output_file_name)
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/function/engine.py", line 116, in _input_reader
+    self.atoms = reader(input_file_name, output_file_name)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/function/read/input_reader.py", line 228, in __call__
+    self.settings_command(settings)
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/function/read/input_reader.py", line 329, in settings_command
+    cc = CommandControl.from_settings(settings, output_path=self.output)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/function/read/command_control.py", line 273, in from_settings
+    cls._validate(params, task, output_path)
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/function/read/command_control.py", line 800, in _validate
+    cls._validate_unknown_params(params, task, output_path)
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/function/read/command_control.py", line 469, in _validate_unknown_params
+    cls._raise_unknown_param(
+  File "/home/axie/MAPLE/MAPLE-evolution-batch/maple/function/read/command_control.py", line 423, in _raise_unknown_param
+    raise ValueError(msg)
+ValueError: Unknown solvation parameter: 'provider'.

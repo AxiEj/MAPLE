@@ -1,0 +1,6 @@
+#model=macepol-m
+#sp
+#solv(implicit=water,method=smd,provider=pcmsolver,profile=macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1,response=scf,standard_state=1m,experimental=true)
+
+0 1
+MOL2 acetone.mol2

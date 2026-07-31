@@ -1,0 +1,4354 @@
+{
+  "artifact": "route2-legacy-exact-gto-confirmation123-diagnostic-v1",
+  "by_element_class": {
+    "halogen-containing": {
+      "mae_kcal_mol": 1.1774509210729398,
+      "max_absolute_error_kcal_mol": 3.9737772496012496,
+      "record_count": 23,
+      "success_count": 20
+    },
+    "heteroatom": {
+      "mae_kcal_mol": 1.2903843186678983,
+      "max_absolute_error_kcal_mol": 3.595588608951509,
+      "record_count": 76,
+      "success_count": 46
+    },
+    "hydrocarbon": {
+      "mae_kcal_mol": 1.1651038472157789,
+      "max_absolute_error_kcal_mol": 3.2542685514762337,
+      "record_count": 24,
+      "success_count": 11
+    }
+  },
+  "by_flexibility_bin": {
+    "flexible": {
+      "mae_kcal_mol": 1.5140760238902795,
+      "max_absolute_error_kcal_mol": 3.2542685514762337,
+      "record_count": 32,
+      "success_count": 17
+    },
+    "limited": {
+      "mae_kcal_mol": 1.0813777479164135,
+      "max_absolute_error_kcal_mol": 2.8613965930644625,
+      "record_count": 55,
+      "success_count": 32
+    },
+    "rigid": {
+      "mae_kcal_mol": 1.2635521092891324,
+      "max_absolute_error_kcal_mol": 3.9737772496012496,
+      "record_count": 36,
+      "success_count": 28
+    }
+  },
+  "by_functional_group": {
+    "": {
+      "mae_kcal_mol": 2.4897370701094417,
+      "max_absolute_error_kcal_mol": 3.2542685514762337,
+      "record_count": 11,
+      "success_count": 3
+    },
+    "1,2-diol": {
+      "mae_kcal_mol": 1.7772777292602235,
+      "max_absolute_error_kcal_mol": 1.7772777292602235,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "acetal": {
+      "mae_kcal_mol": 0.35804678240298093,
+      "max_absolute_error_kcal_mol": 0.35804678240298093,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "aldehyde": {
+      "mae_kcal_mol": 0.5595708360677991,
+      "max_absolute_error_kcal_mol": 0.986588826508497,
+      "record_count": 3,
+      "success_count": 2
+    },
+    "alkene": {
+      "mae_kcal_mol": 0.7323342601923276,
+      "max_absolute_error_kcal_mol": 1.369147545621331,
+      "record_count": 8,
+      "success_count": 3
+    },
+    "alkyl aryl ether": {
+      "mae_kcal_mol": 2.8613965930644625,
+      "max_absolute_error_kcal_mol": 2.8613965930644625,
+      "record_count": 4,
+      "success_count": 1
+    },
+    "alkyl bromide": {
+      "mae_kcal_mol": 0.5062445066831647,
+      "max_absolute_error_kcal_mol": 0.5212209155209051,
+      "record_count": 2,
+      "success_count": 2
+    },
+    "alkyl chloride": {
+      "mae_kcal_mol": 0.6753446871629223,
+      "max_absolute_error_kcal_mol": 1.2183265844552513,
+      "record_count": 6,
+      "success_count": 5
+    },
+    "alkyl fluoride": {
+      "mae_kcal_mol": 0.6165946146950945,
+      "max_absolute_error_kcal_mol": 0.6165946146950945,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "alkyl iodide": {
+      "mae_kcal_mol": 0.08831123660930859,
+      "max_absolute_error_kcal_mol": 0.11152834728123456,
+      "record_count": 2,
+      "success_count": 2
+    },
+    "alkylthiol": {
+      "mae_kcal_mol": 0.717228115975769,
+      "max_absolute_error_kcal_mol": 0.9501169178806648,
+      "record_count": 3,
+      "success_count": 3
+    },
+    "alkyne": {
+      "mae_kcal_mol": 0.6766336557807894,
+      "max_absolute_error_kcal_mol": 1.0681033642850375,
+      "record_count": 2,
+      "success_count": 2
+    },
+    "aromatic": {
+      "mae_kcal_mol": 1.4940349158848458,
+      "max_absolute_error_kcal_mol": 3.9737772496012496,
+      "record_count": 46,
+      "success_count": 28
+    },
+    "aryl bromide": {
+      "mae_kcal_mol": 1.0445336637860974,
+      "max_absolute_error_kcal_mol": 1.0445336637860974,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "aryl chloride": {
+      "mae_kcal_mol": 2.171980678340832,
+      "max_absolute_error_kcal_mol": 3.49883255211877,
+      "record_count": 6,
+      "success_count": 6
+    },
+    "aryl iodide": {
+      "mae_kcal_mol": 3.9737772496012496,
+      "max_absolute_error_kcal_mol": 3.9737772496012496,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "carbamic acid ester (urethane)": {
+      "mae_kcal_mol": null,
+      "max_absolute_error_kcal_mol": null,
+      "record_count": 1,
+      "success_count": 0
+    },
+    "carbonitrile": {
+      "mae_kcal_mol": 1.873507708636274,
+      "max_absolute_error_kcal_mol": 2.6342170992024325,
+      "record_count": 3,
+      "success_count": 3
+    },
+    "carboxylic acid": {
+      "mae_kcal_mol": 2.8234271198140197,
+      "max_absolute_error_kcal_mol": 2.8234271198140197,
+      "record_count": 3,
+      "success_count": 1
+    },
+    "carboxylic acid ester": {
+      "mae_kcal_mol": 1.1620988133605157,
+      "max_absolute_error_kcal_mol": 1.9413089376168493,
+      "record_count": 11,
+      "success_count": 8
+    },
+    "cation": {
+      "mae_kcal_mol": 3.595588608951509,
+      "max_absolute_error_kcal_mol": 3.595588608951509,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "dialkyl ether": {
+      "mae_kcal_mol": 0.7848666687014973,
+      "max_absolute_error_kcal_mol": 1.2344706737458564,
+      "record_count": 8,
+      "success_count": 4
+    },
+    "diaryl ether": {
+      "mae_kcal_mol": 3.49883255211877,
+      "max_absolute_error_kcal_mol": 3.49883255211877,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "disulfide": {
+      "mae_kcal_mol": 1.8643815235597223,
+      "max_absolute_error_kcal_mol": 1.8643815235597223,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "halogen derivative": {
+      "mae_kcal_mol": 0.15819695046590332,
+      "max_absolute_error_kcal_mol": 0.2534838632172982,
+      "record_count": 4,
+      "success_count": 2
+    },
+    "heterocyclic": {
+      "mae_kcal_mol": 1.6758062736146462,
+      "max_absolute_error_kcal_mol": 3.595588608951509,
+      "record_count": 9,
+      "success_count": 8
+    },
+    "ketone": {
+      "mae_kcal_mol": 1.6482332429112456,
+      "max_absolute_error_kcal_mol": 2.894007240307065,
+      "record_count": 9,
+      "success_count": 5
+    },
+    "nitrate": {
+      "mae_kcal_mol": 1.2803344313277112,
+      "max_absolute_error_kcal_mol": 1.2803344313277112,
+      "record_count": 3,
+      "success_count": 1
+    },
+    "nitro": {
+      "mae_kcal_mol": 1.5464442934143185,
+      "max_absolute_error_kcal_mol": 2.3125528092570735,
+      "record_count": 8,
+      "success_count": 4
+    },
+    "orthocarboxylic acid derivative": {
+      "mae_kcal_mol": 1.047954882128903,
+      "max_absolute_error_kcal_mol": 1.154064331561649,
+      "record_count": 3,
+      "success_count": 2
+    },
+    "orthoester": {
+      "mae_kcal_mol": 0.941845432696157,
+      "max_absolute_error_kcal_mol": 0.941845432696157,
+      "record_count": 2,
+      "success_count": 1
+    },
+    "oxo(het)arene": {
+      "mae_kcal_mol": 1.0095907238018995,
+      "max_absolute_error_kcal_mol": 1.0095907238018995,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "phenol or hydroxyhetarene": {
+      "mae_kcal_mol": 2.3200562545035046,
+      "max_absolute_error_kcal_mol": 3.9737772496012496,
+      "record_count": 10,
+      "success_count": 8
+    },
+    "primary alcohol": {
+      "mae_kcal_mol": 1.1134970461950333,
+      "max_absolute_error_kcal_mol": 1.7772777292602235,
+      "record_count": 6,
+      "success_count": 2
+    },
+    "primary aliphatic amine (alkylamine)": {
+      "mae_kcal_mol": 1.2344706737458564,
+      "max_absolute_error_kcal_mol": 1.2344706737458564,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "primary amine": {
+      "mae_kcal_mol": 1.175793024462324,
+      "max_absolute_error_kcal_mol": 2.04619850252063,
+      "record_count": 5,
+      "success_count": 3
+    },
+    "primary aromatic amine": {
+      "mae_kcal_mol": 1.1464541998205577,
+      "max_absolute_error_kcal_mol": 2.04619850252063,
+      "record_count": 4,
+      "success_count": 2
+    },
+    "secondary alcohol": {
+      "mae_kcal_mol": 0.4785495949527696,
+      "max_absolute_error_kcal_mol": 1.7772777292602235,
+      "record_count": 6,
+      "success_count": 4
+    },
+    "secondary aliphatic amine (dialkylamine)": {
+      "mae_kcal_mol": null,
+      "max_absolute_error_kcal_mol": null,
+      "record_count": 2,
+      "success_count": 0
+    },
+    "secondary aliphatic/aromatic amine (alkylarylamine)": {
+      "mae_kcal_mol": 1.488562183025552,
+      "max_absolute_error_kcal_mol": 1.488562183025552,
+      "record_count": 2,
+      "success_count": 1
+    },
+    "secondary amine": {
+      "mae_kcal_mol": 1.488562183025552,
+      "max_absolute_error_kcal_mol": 1.488562183025552,
+      "record_count": 4,
+      "success_count": 1
+    },
+    "tertiary alcohol": {
+      "mae_kcal_mol": 0.19025205365136255,
+      "max_absolute_error_kcal_mol": 0.19025205365136255,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "tertiary aliphatic amine (trialkylamine)": {
+      "mae_kcal_mol": 0.5785753371923681,
+      "max_absolute_error_kcal_mol": 0.5785753371923681,
+      "record_count": 1,
+      "success_count": 1
+    },
+    "tertiary aliphatic/aromatic amine (alkylarylamine)": {
+      "mae_kcal_mol": null,
+      "max_absolute_error_kcal_mol": null,
+      "record_count": 2,
+      "success_count": 0
+    },
+    "tertiary amine": {
+      "mae_kcal_mol": 0.5785753371923681,
+      "max_absolute_error_kcal_mol": 0.5785753371923681,
+      "record_count": 3,
+      "success_count": 1
+    },
+    "tertiary carboxylic acid amide": {
+      "mae_kcal_mol": 2.8613965930644625,
+      "max_absolute_error_kcal_mol": 2.8613965930644625,
+      "record_count": 2,
+      "success_count": 1
+    },
+    "thiocarbamic acid ester": {
+      "mae_kcal_mol": 0.4513248845984412,
+      "max_absolute_error_kcal_mol": 0.4513248845984412,
+      "record_count": 2,
+      "success_count": 1
+    },
+    "thioether": {
+      "mae_kcal_mol": 1.488562183025552,
+      "max_absolute_error_kcal_mol": 1.488562183025552,
+      "record_count": 2,
+      "success_count": 1
+    },
+    "thiol (sulfanyl)": {
+      "mae_kcal_mol": 0.717228115975769,
+      "max_absolute_error_kcal_mol": 0.9501169178806648,
+      "record_count": 3,
+      "success_count": 3
+    },
+    "thiophosphoric acid ester": {
+      "mae_kcal_mol": null,
+      "max_absolute_error_kcal_mol": null,
+      "record_count": 1,
+      "success_count": 0
+    }
+  },
+  "by_heteroatom_bin": {
+    "multiple": {
+      "mae_kcal_mol": 1.5517006927809116,
+      "max_absolute_error_kcal_mol": 3.9737772496012496,
+      "record_count": 62,
+      "success_count": 41
+    },
+    "one": {
+      "mae_kcal_mol": 0.7714787470465895,
+      "max_absolute_error_kcal_mol": 2.894007240307065,
+      "record_count": 37,
+      "success_count": 25
+    },
+    "zero": {
+      "mae_kcal_mol": 1.1651038472157789,
+      "max_absolute_error_kcal_mol": 3.2542685514762337,
+      "record_count": 24,
+      "success_count": 11
+    }
+  },
+  "by_size_bin": {
+    "large": {
+      "mae_kcal_mol": 1.8813600246706688,
+      "max_absolute_error_kcal_mol": 3.49883255211877,
+      "record_count": 17,
+      "success_count": 6
+    },
+    "medium": {
+      "mae_kcal_mol": 1.4081867373550083,
+      "max_absolute_error_kcal_mol": 3.9737772496012496,
+      "record_count": 72,
+      "success_count": 46
+    },
+    "small": {
+      "mae_kcal_mol": 0.7863235733280508,
+      "max_absolute_error_kcal_mol": 2.8234271198140197,
+      "record_count": 34,
+      "success_count": 25
+    }
+  },
+  "claim_boundary": "The current profile is a legacy nonvariational fixed point with a known nonconjugate point-multipole source and exact-GTO receiver. These runs are energy-only diagnostics, not a Route-2 V0/2V result, variational SCRF, solution-phase PES, analytic-force claim, or an acceptance-panel pass. They cannot justify parameter changes, post-training, or test-set selection.",
+  "current_method": {
+    "cavity": "intrinsic-smd-probe0-noaddsph-v1",
+    "device": "cuda",
+    "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "git_head": "8e48975ad9ab555acb0e1cdc88b130e3ef067aef",
+    "mace_checkpoint": {
+      "identifier": "polar-1-m",
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "size_bytes": 68133235
+    },
+    "nonpolar_term": "native-water-smd-cds",
+    "pcmsolver_library": {
+      "path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/libpcm.so.1",
+      "sha256": "296b6f34a03789943ae8823b3790f36357c50c896497f21374ac16fe5a6c43a3"
+    },
+    "pcmsolver_parser": {
+      "path": "/home/axie/.local/opt/pcmsolver-bbd992d54ebeace528cf236dede1f0c56641defb/lib/python/pcmsolver/pcmparser.py",
+      "sha256": "f91b067a07d0198c3fb9cbc0426c8e6b21467aa74d8081c4a64875c07aff08b0"
+    },
+    "profile": "macepolar-mlpcm-smdcds-iefpcm-intrinsic-cavity-exact-gto-v1",
+    "prohibited_claims": [
+      "variational SCRF",
+      "common-energy stationary electronic state",
+      "solution-phase PES",
+      "analytic solution-phase forces",
+      "Route-2 V0 accuracy",
+      "acceptance-panel pass"
+    ],
+    "provider": "PCMSolver IEFPCM",
+    "public_capability": "experimental-energy-only",
+    "reaction_field_receiver": "exact-gto-v1",
+    "scientific_status": "legacy-nonvariational-fixedpoint-diagnostic",
+    "solute_source": "point-multipole-l1",
+    "source_receiver_contract": "known-nonconjugate-point-source-gto-receiver"
+  },
+  "execution_evidence": {
+    "model_load_seconds_last_resume": 3.1028210610093083,
+    "raw_results_path": ".omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/results.json",
+    "raw_results_sha256": "8cc2f519fedbf37a1b5688c9d241908cff90c047722a04b6c3d5b372f152693c",
+    "raw_runner_sha256": "65d756f1feecdf48476c967d592516f1c7e160bfaa1c90686b7abb0e2861b88f",
+    "raw_selection_sha256": "d2e4d771eb62163307fc42c6d83dcda1618b287346ed9d38756d596d6a84603e",
+    "success_wall_seconds_total": 433.1497080770496
+  },
+  "no_target_policy": {
+    "experimental_labels_used_to_rank_current_method": false,
+    "experimental_labels_used_to_select_panel": false,
+    "experimental_solvation_fit": false,
+    "fine_tuning": false,
+    "half_coupling_adjustment": false,
+    "label_use_boundary": "FreeSolv values were read only after the model/profile/cavity were fixed, to calculate reported errors. The historical12 set is frozen; the broad panel is every member of the already prepared deterministic confirmation partition.",
+    "map_or_uq_calibration": false,
+    "post_selection_parameter_change": false,
+    "post_training": false,
+    "radius_adjustment": false
+  },
+  "panel": {
+    "dataset": "FreeSolv 0.52",
+    "expected_record_count": 123,
+    "geometry_policy": "exact pinned FreeSolv GAFF MOL2 conformer; no optimization or conformer substitution",
+    "historical12_manifest": null,
+    "kind": "all-pre-existing-deterministic-confirmation-partition-members",
+    "selection_rule": "all pre-existing confirmation partition members, source sorted by compound_id",
+    "solvent": "water",
+    "source_prepared_manifest": {
+      "candidate_count": 642,
+      "partition_counts": {
+        "confirmation": 123,
+        "development": 519
+      },
+      "path": ".omx/benchmarks/route2-macepolar-smd/prepared.json",
+      "sha256": "f5a611f4ba1af2a9ac6f47df724d4d1cd713790bcc16be0777ae32dade688c01"
+    },
+    "standard_state": "original FreeSolv experimental record convention"
+  },
+  "provider_failure_summary": {
+    "count": 46,
+    "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refused to publish a numerically suspect result."
+  },
+  "records": [
+    {
+      "compound_id": "mobley_1139153",
+      "dataset_record_sha256": "fe7bc74048f732228728b5d3ea47f6da946a95dc54ea5b8dfa4c6b5e7b5ee4df",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.89,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "ad8730f25f994a9179eaf6395ff3712c9f007f5ae17a76c65eb25a737cfd2d75",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_1139153/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2,2,4-trimethylpentane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_1231151",
+      "dataset_record_sha256": "9f73f2c36c4e902dda52849dce09f0ba92a3202495ea160be8d728e7ad7cc693",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -0.25,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "d0e33975217d0e9375c88121ee4f9ee193c41f0574c295cfcd9159600e2de605",
+      "functional_groups": [
+        "alkyl chloride"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.33892144375827193,
+        "cavity_tesserae": 624,
+        "components_kcal_mol": {
+          "cds": 2.4299807990482534,
+          "delta_g_solv": 0.08892144375827196,
+          "electrostatic": -2.3410593552899814,
+          "pcm_polarization": -2.4372547819285395,
+          "solute_polarization": 0.09619542663855783,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.78495453848571e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.08892144375827196,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": 0.33892144375827193,
+        "wall_seconds": 1.9264293939922936
+      },
+      "name": "2-chloropropane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_1235151",
+      "dataset_record_sha256": "c4da9ec3503ab48202305b4e5f1f186b4d5f6fe61e4dcca2e29fec96edd2ebc6",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.82,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "cc4c80758dba57f1151dea8b5abecfa9dac6f20afd20c1481a3a036cec77e8fa",
+      "functional_groups": [
+        "nitro"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.3125528092570735,
+        "cavity_tesserae": 932,
+        "components_kcal_mol": {
+          "cds": 5.68371639269142,
+          "delta_g_solv": -5.132552809257073,
+          "electrostatic": -10.816269201948494,
+          "pcm_polarization": -10.88960554926534,
+          "solute_polarization": 0.07333634731684699,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.314787317301951e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -5.132552809257073,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -2.3125528092570735,
+        "wall_seconds": 3.0275756870105397
+      },
+      "name": "1-nitropentane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_1261349",
+      "dataset_record_sha256": "c2573f2ae2dae28d35fe0ad9efc6d9a5fbf8dc97f4faafb4b8121c273b48e5cd",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.51,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "926ccb228dd48e14f4edc8951378471b459d2f8c2fa5a89e90f88857b32d1f7a",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_1261349/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "neopentane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_1352110",
+      "dataset_record_sha256": "be96cadcedfdb87077cd5017137a7536365e4d31f049fe5347f2d5c7bb306247",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.64,
+      "experimental_uncertainty_kcal_mol": 1.93,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "d9ee81207363d253332efed39879b94075c4bcd03efb881756fa30d5da65166c",
+      "functional_groups": [
+        "thiocarbamic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_1352110/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "pebulate",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_1424265",
+      "dataset_record_sha256": "fffe24163d4754e073266cce85365da9196d107f40da77f0c308af39a77dc777",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -0.83,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "edeb3f2bd1eb421e1cb2d39e9fe1127bbc4de22a01e01132b519712ee8499c72",
+      "functional_groups": [
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.04254194033081926,
+        "cavity_tesserae": 857,
+        "components_kcal_mol": {
+          "cds": 3.624228720224745,
+          "delta_g_solv": -0.8725419403308192,
+          "electrostatic": -4.496770660555565,
+          "pcm_polarization": -4.561392691086478,
+          "solute_polarization": 0.06462203053091378,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.007187381927795e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.8725419403308192,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": -0.04254194033081926,
+        "wall_seconds": 2.773463088000426
+      },
+      "name": "m-xylene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_1469079",
+      "dataset_record_sha256": "faabec426032d89209a59cf695ea06c79d2ebf260accd9f1deb2245ee780cefd",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -3.56,
+      "experimental_uncertainty_kcal_mol": 1.0,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "137513f3abbbe69859b521003d557a47896eb6907df6af29030e08b3107af50f",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride",
+        "diaryl ether",
+        "heterocyclic"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 3.49883255211877,
+        "cavity_tesserae": 1404,
+        "components_kcal_mol": {
+          "cds": 5.137526122385043,
+          "delta_g_solv": -0.06116744788122989,
+          "electrostatic": -5.198693570266273,
+          "pcm_polarization": -5.295932477533979,
+          "solute_polarization": 0.09723890726770604,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.501547457151094e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.06116744788122989,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": 3.49883255211877,
+        "wall_seconds": 7.279351138000493
+      },
+      "name": "2,3-dichlorodibenzo-p-dioxin",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_1563176",
+      "dataset_record_sha256": "ba6f41c578eab28d9da4e071275f0ab9217f35b522ddd2e7f5755790d88de231",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -0.99,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "cca2f926abf8742543b9d88f51891ba997931f591adec410774eac054903ba64",
+      "functional_groups": [
+        "alkylthiol",
+        "thiol (sulfanyl)"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.46078312550745426,
+        "cavity_tesserae": 793,
+        "components_kcal_mol": {
+          "cds": 2.4701979273676735,
+          "delta_g_solv": -0.5292168744925457,
+          "electrostatic": -2.9994148018602194,
+          "pcm_polarization": -2.983209149486019,
+          "solute_polarization": -0.01620565237419995,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.454657480010895e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.5292168744925457,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": 0.46078312550745426,
+        "wall_seconds": 1.9529331649973756
+      },
+      "name": "butane-1-thiol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_1592519",
+      "dataset_record_sha256": "2565a89603c51b619a8ddb8ea13cd915ac2d32ab00e5083e089a95870d75a77f",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.23,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "b0ef083d2a64946caaade088f1bfb5ec2684ac22bc7afaedda04d71ba19931e7",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.667299737648738,
+        "cavity_tesserae": 1237,
+        "components_kcal_mol": {
+          "cds": 5.489776559433307,
+          "delta_g_solv": -3.897299737648738,
+          "electrostatic": -9.387076297082045,
+          "pcm_polarization": -9.306044039182279,
+          "solute_polarization": -0.0810322578997655,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.828949989698407e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.897299737648738,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -1.667299737648738,
+        "wall_seconds": 5.382091300998582
+      },
+      "name": "ethyl hexanoate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_1650157",
+      "dataset_record_sha256": "54c5fe64910ec4dba5334554c706b108565450b5d2c9b7262b9ec9c6a6fce688",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.47,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "860e14cf406c21aa57b294fa295ce10d4636d7a88fe13b57baed440baa8b1ed9",
+      "functional_groups": [
+        "tertiary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.19025205365136255,
+        "cavity_tesserae": 673,
+        "components_kcal_mol": {
+          "cds": 3.133270917832909,
+          "delta_g_solv": -4.660252053651362,
+          "electrostatic": -7.793522971484271,
+          "pcm_polarization": -7.736320143847342,
+          "solute_polarization": -0.05720282763692951,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.701007514152812e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.660252053651362,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -0.19025205365136255,
+        "wall_seconds": 1.761290551003185
+      },
+      "name": "2-methylpropan-2-ol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_1723043",
+      "dataset_record_sha256": "3e53d3a27dcf34038f5fa942d76c696e2dcadc0511dae47a58ae22c2ac4c9ec2",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": 3.43,
+      "experimental_uncertainty_kcal_mol": 0.03,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "fd50fd2a2841b61130f7d556942f9a4eb3ac4b212435e53809d5d7ff50f79653",
+      "functional_groups": [
+        "alkyl fluoride"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.6165946146950945,
+        "cavity_tesserae": 743,
+        "components_kcal_mol": {
+          "cds": 6.777987456844501,
+          "delta_g_solv": 2.8134053853049057,
+          "electrostatic": -3.9645820715395956,
+          "pcm_polarization": -3.5993725051494296,
+          "solute_polarization": -0.36520956639016633,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.724365436278079e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 2.8134053853049057,
+        "scf_iterations": 10,
+        "signed_error_kcal_mol": -0.6165946146950945,
+        "wall_seconds": 1.5415840339992428
+      },
+      "name": "octafluorocyclobutane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_1755375",
+      "dataset_record_sha256": "e5cca9b9a6abca106bf4601d91007269dbe83bbe95b2aa8a6068ed1e2f673674",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.26,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "96808027ff679a9bd637b2bd5e2738280005cbcb05f022ba198a8542d3c18840",
+      "functional_groups": [
+        "aromatic",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7221950926875147,
+        "cavity_tesserae": 899,
+        "components_kcal_mol": {
+          "cds": 3.9694544474293987,
+          "delta_g_solv": -4.537804907312485,
+          "electrostatic": -8.507259354741883,
+          "pcm_polarization": -8.552595664363189,
+          "solute_polarization": 0.04533630962130475,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.375016049144089e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.537804907312485,
+        "scf_iterations": 15,
+        "signed_error_kcal_mol": 0.7221950926875147,
+        "wall_seconds": 3.1503345420060214
+      },
+      "name": "2,6-dimethylphenol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_1800170",
+      "dataset_record_sha256": "43a8863303574302deb2238be341d7d6d160efa6ff4fb78e799ef3a94c361adb",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -1.14,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "be6100c5ba18727d0da6107323d63a2a232d77cd21fd407743b4f3372040129c",
+      "functional_groups": [
+        "alkylthiol",
+        "thiol (sulfanyl)"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7407843045391878,
+        "cavity_tesserae": 539,
+        "components_kcal_mol": {
+          "cds": 1.9547793610341153,
+          "delta_g_solv": -0.3992156954608121,
+          "electrostatic": -2.3539950564949272,
+          "pcm_polarization": -2.360683795343258,
+          "solute_polarization": 0.006688738848330583,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.753862622582707e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.3992156954608121,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": 0.7407843045391878,
+        "wall_seconds": 1.4633638249943033
+      },
+      "name": "ethanethiol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_1858644",
+      "dataset_record_sha256": "21f69fd1d46507061c1feac7b7794c92af5020e07094735d09064ac6733ed548",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.79,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "1997775d141cda16bcadac6425744d384964a6dc5b681c1dad09ee5c0aaa0d10",
+      "functional_groups": [
+        "aromatic",
+        "primary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.4497163631298431,
+        "cavity_tesserae": 937,
+        "components_kcal_mol": {
+          "cds": 3.62425433521519,
+          "delta_g_solv": -6.340283636870157,
+          "electrostatic": -9.964537972085346,
+          "pcm_polarization": -9.975595553822307,
+          "solute_polarization": 0.011057581736960042,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.892896956415054e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -6.340283636870157,
+        "scf_iterations": 15,
+        "signed_error_kcal_mol": 0.4497163631298431,
+        "wall_seconds": 3.4497794619965134
+      },
+      "name": "2-phenylethanol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_197466",
+      "dataset_record_sha256": "0fc355025ed8fd8b024adddc428e9e98750fca9265fd79cdef350144abc4fe01",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.61,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "28e4bb02b3329baa665f9d357409ea5fbf68ce2b993ffe506172aa8850cdab8b",
+      "functional_groups": [
+        "ketone"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.1037185136592456,
+        "cavity_tesserae": 692,
+        "components_kcal_mol": {
+          "cds": 3.444294375497336,
+          "delta_g_solv": -5.713718513659246,
+          "electrostatic": -9.158012889156582,
+          "pcm_polarization": -9.265422770394776,
+          "solute_polarization": 0.10740988123819444,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.506900770280154e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -5.713718513659246,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -1.1037185136592456,
+        "wall_seconds": 1.8182678099983605
+      },
+      "name": "1-cyclopropylethanone",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_2078467",
+      "dataset_record_sha256": "930fba2de4fc051dfa5d3a551a05585a4e3b399a2ad81deaec1f90e9db29d476",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -7.0,
+      "experimental_uncertainty_kcal_mol": 0.64,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "e10ef645190c3ddf644950438f93d64a4836eab29c98d41e3ce92bb18eb6ebd0",
+      "functional_groups": [
+        "aromatic",
+        "carboxylic acid"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_2078467/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "ibuprofen",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_2099370",
+      "dataset_record_sha256": "0c1eb61e62c5cd76b0bcf1e2d2ac18cd5d4c2e6708156741548fc14e9e81c889",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -10.78,
+      "experimental_uncertainty_kcal_mol": 0.18,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "68457a0e102563518ff36d790d6b244f631b590ebdd2a50634e53712257dcdb2",
+      "functional_groups": [
+        "aromatic",
+        "carboxylic acid",
+        "ketone"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_2099370/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "ketoprofen",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_2123854",
+      "dataset_record_sha256": "cf805224e8a599482b188e12a8279a61a76b4d87a403cbf2a2e7d273c1b14816",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -10.17,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "6dec3df1fe809d34c28f878ef370db86ad494bf69641e2ecc4edd1c62b2d435c",
+      "functional_groups": [
+        "aromatic",
+        "carbonitrile",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.6342170992024325,
+        "cavity_tesserae": 780,
+        "components_kcal_mol": {
+          "cds": 5.264267286089654,
+          "delta_g_solv": -7.535782900797567,
+          "electrostatic": -12.800050186887223,
+          "pcm_polarization": -12.842049875325579,
+          "solute_polarization": 0.041999688438358364,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.515853597707013e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -7.535782900797567,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 2.6342170992024325,
+        "wall_seconds": 2.471360605006339
+      },
+      "name": "4-hydroxybenzonitrile",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_2197088",
+      "dataset_record_sha256": "9a8733f6632b345d1258fee84ad8801836dadc3811a82bae6c866b91fcbcee05",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 3.16,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "3bb431594417968152b3a088822c2dac5f699990b1fb5029e5cc1884450a301a",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 3.2542685514762337,
+        "cavity_tesserae": 1447,
+        "components_kcal_mol": {
+          "cds": 4.441315704161748,
+          "delta_g_solv": -0.09426855147623352,
+          "electrostatic": -4.535584255637982,
+          "pcm_polarization": -4.406694686590036,
+          "solute_polarization": -0.12888956904794563,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.72667027013857e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.09426855147623352,
+        "scf_iterations": 9,
+        "signed_error_kcal_mol": -3.2542685514762337,
+        "wall_seconds": 6.305024981003953
+      },
+      "name": "decane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_2213823",
+      "dataset_record_sha256": "d1a57b955654965fb14a68f18fe0c4b05fb56e861790d63be3106262116458d4",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.51,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "8133a97af84c83a681cbcab71205926ac522349d382fbfb819d1bc9115390e49",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_2213823/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "3-methylpentane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_2310185",
+      "dataset_record_sha256": "8eb6a86d72ee321df1c4f51b2d4787b40a9df13f2d39ba26deb5139cc934afd6",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.0,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "53652387148ccccaa9a51650b6ac97be4610e13dfe604ddd8ccd6cecceaed28b",
+      "functional_groups": [
+        "primary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_2310185/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "ethanol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_2354112",
+      "dataset_record_sha256": "199dcc21b05d48a6b29240030ed76736ecc2373b9c4451dd1d7fc93085004721",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.25,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "1795ba0cb746b7a3522d44213096d56f6044e6cadf73c5cb2d94640cdabf1a2f",
+      "functional_groups": [
+        "aromatic",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.291476055796748,
+        "cavity_tesserae": 898,
+        "components_kcal_mol": {
+          "cds": 4.074656568440195,
+          "delta_g_solv": -4.958523944203252,
+          "electrostatic": -9.033180512643447,
+          "pcm_polarization": -8.992803780348266,
+          "solute_polarization": -0.040376732295181725,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.917139574893956e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.958523944203252,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 1.291476055796748,
+        "wall_seconds": 2.9222958520113025
+      },
+      "name": "3-ethylphenol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_242480",
+      "dataset_record_sha256": "e7f407e2e95aae1c978adda23e63da4aa4d2c79c5838c53ef5d5d23cffe57137",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -11.85,
+      "experimental_uncertainty_kcal_mol": 0.35,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "230059015bc8ce2487849f8f7f4a556f91d0527ce4dda4ca94d5d52dfaa8edb3",
+      "functional_groups": [
+        "aromatic",
+        "ketone",
+        "primary amine",
+        "primary aromatic amine"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.04619850252063,
+        "cavity_tesserae": 1376,
+        "components_kcal_mol": {
+          "cds": 5.2959295005175155,
+          "delta_g_solv": -9.80380149747937,
+          "electrostatic": -15.099730997996884,
+          "pcm_polarization": -15.12575144434279,
+          "solute_polarization": 0.026020446345905925,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.784580922852018e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -9.80380149747937,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 2.04619850252063,
+        "wall_seconds": 7.630028829997173
+      },
+      "name": "1,4-diamino-9,10-anthracenedione",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_2487143",
+      "dataset_record_sha256": "9ef0f171311735a03494a4cd01b132e5f08e18e80bc462e2d89d5f09eb986c5e",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.28,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "d0e995ba2e575cebc342e1c0eeb0a3c0c320a22129283205d47693039098bcdb",
+      "functional_groups": [
+        "ketone"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.165672952792495,
+        "cavity_tesserae": 902,
+        "components_kcal_mol": {
+          "cds": 4.240938364112541,
+          "delta_g_solv": -4.445672952792495,
+          "electrostatic": -8.686611316905037,
+          "pcm_polarization": -8.77012422388252,
+          "solute_polarization": 0.08351290697748567,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.481477133668534e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.445672952792495,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -1.165672952792495,
+        "wall_seconds": 2.7928148189967033
+      },
+      "name": "hexan-2-one",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_2607611",
+      "dataset_record_sha256": "4dfb768eb9024d1cb280a0527a065461da588b83d73194c7996fd322e645a1d8",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.26,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "8b7d7f0bdca4852e301f1c13f2fe8e7f10ec6368a870309e0290521fe2d8bf0b",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.7595816070870987,
+        "cavity_tesserae": 1232,
+        "components_kcal_mol": {
+          "cds": 5.551111842817085,
+          "delta_g_solv": -4.019581607087098,
+          "electrostatic": -9.570693449904184,
+          "pcm_polarization": -9.452823865719305,
+          "solute_polarization": -0.11786958418487967,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.076143992395089e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.019581607087098,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -1.7595816070870987,
+        "wall_seconds": 5.01906387800409
+      },
+      "name": "hexyl acetate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_2661134",
+      "dataset_record_sha256": "0fc6c67a1ec8c1e306171691e887ea6d7c244af8f327a8c8543e7e30cb6ff2f5",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -9.65,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "2b8229cc96e035e74e1580be005bd9c4b6dfbfb1ba1975d7fc458e55f305cfb7",
+      "functional_groups": [
+        "aromatic",
+        "carbonitrile",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.2048123721010224,
+        "cavity_tesserae": 796,
+        "components_kcal_mol": {
+          "cds": 5.252462495519613,
+          "delta_g_solv": -7.445187627898978,
+          "electrostatic": -12.697650123418592,
+          "pcm_polarization": -12.755690616844742,
+          "solute_polarization": 0.05804049342615133,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.366719816410573e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -7.445187627898978,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 2.2048123721010224,
+        "wall_seconds": 2.258741158002522
+      },
+      "name": "3-hydroxybenzonitrile",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_2784376",
+      "dataset_record_sha256": "300ab9a976aafad9450a3b5dfe74c501cdd60e8a3baee8514af6c85058357e48",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 0.75,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "c1aa9bfc408d9a0dc66bf6645923829354b404254f4958e5c5489680bb9e4b3b",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_2784376/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "cyclopropane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_2802855",
+      "dataset_record_sha256": "03c1f3c5d7a788bf411ba7013b52e7e2ed9d0cc0061ec6559a7ba857f1885bb9",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -0.4,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "781d46a0e3c5d4333852d43699d3e31533f9103728a99dc1ce0b27c48e67861d",
+      "functional_groups": [
+        "alkyl bromide"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.5212209155209051,
+        "cavity_tesserae": 782,
+        "components_kcal_mol": {
+          "cds": 1.7955581746929303,
+          "delta_g_solv": -0.9212209155209051,
+          "electrostatic": -2.7167790902138353,
+          "pcm_polarization": -2.7948519730363652,
+          "solute_polarization": 0.07807288282252978,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.674103874643178e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.9212209155209051,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -0.5212209155209051,
+        "wall_seconds": 2.0577942189993337
+      },
+      "name": "1-bromobutane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_2881590",
+      "dataset_record_sha256": "42b212bd036d5560a1b4a4714a6606a4f1491778ff85defe0858469b5926e5b5",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -1.88,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "1eaac1b8cfe95f1463aabf307a32caab03aaa121922be0df5b0b5e1c8207c98d",
+      "functional_groups": [
+        "nitrate"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_2881590/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "isobutyl nitrate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_2958326",
+      "dataset_record_sha256": "af961d99e70b4a4ef00a11623d2bd6f2b326b644cabb54c5738c0b50cec05aff",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.65,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "d196d369116967847c4523166d297356f8f828a04d883fb9cbe601c927d12ee7",
+      "functional_groups": [
+        "secondary aliphatic amine (dialkylamine)",
+        "secondary amine"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_2958326/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "N-propylpropan-1-amine",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3047364",
+      "dataset_record_sha256": "8e2acffd87a972a3a75633bde8cfd86a8fc0a94ac22f878c7a99c8682629de10",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -7.65,
+      "experimental_uncertainty_kcal_mol": 0.45,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "be2024fcd9674b83d21240480e7e23165ad6ed37b91808ab340773dbf32da603",
+      "functional_groups": [
+        "aromatic",
+        "heterocyclic",
+        "secondary aliphatic/aromatic amine (alkylarylamine)",
+        "secondary amine",
+        "thioether"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.488562183025552,
+        "cavity_tesserae": 1563,
+        "components_kcal_mol": {
+          "cds": 2.0133386964450994,
+          "delta_g_solv": -9.138562183025552,
+          "electrostatic": -11.15190087947065,
+          "pcm_polarization": -11.204329061528748,
+          "solute_polarization": 0.052428182058096545,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.567043631139358e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -9.138562183025552,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": -1.488562183025552,
+        "wall_seconds": 9.577975403008168
+      },
+      "name": "2-N-ethyl-6-(methylsulfanyl)-4-N-(propan-2-yl)-1,3,5-triazine-2,4-diamine",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_3144334",
+      "dataset_record_sha256": "3d32794b30702ee45136e0259477a883d492bfc807cd316dfba2c811045f6f0a",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.91,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "16fc363f9afd05bddf1c5099ee1240458f862d820203b839ba1faa7b0dbccc7e",
+      "functional_groups": [
+        "aromatic",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_3144334/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2,5-dimethylphenol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3210206",
+      "dataset_record_sha256": "d94866318bb67380e1df8f7ff66c19da4c335fe5a270ee693f7c221ffa6e388b",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.95,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "b4597db3a93fb6f9bd728e57d7efb8e88d14c863f70ca1863b39ca2a3504eff3",
+      "functional_groups": [
+        "nitrate"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_3210206/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "1,2-dinitroxypropane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3211679",
+      "dataset_record_sha256": "18fbef42d65650032ddbe9dfee5cceb55a1769812936d06c840d4b25f0154e8f",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 0.14,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "19a5193aadee5c07d721ba5a498182ae79bec458de2c63637be2180ddeb01210",
+      "functional_groups": [
+        "alkene"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7642053571335036,
+        "cavity_tesserae": 742,
+        "components_kcal_mol": {
+          "cds": 2.311789860019375,
+          "delta_g_solv": -0.6242053571335036,
+          "electrostatic": -2.9359952171528785,
+          "pcm_polarization": -2.92213135326201,
+          "solute_polarization": -0.013863863890868276,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.055768470223822e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.6242053571335036,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": -0.7642053571335036,
+        "wall_seconds": 1.7107894829969155
+      },
+      "name": "cyclohexene",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_3259411",
+      "dataset_record_sha256": "a3473b3b06c04674e4de9c13eeb39854b03ba756bfb1b1012357110d99c5d0b5",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -13.43,
+      "experimental_uncertainty_kcal_mol": 1.0,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "80f66c889066e5d78fd2a11b971dae18442f117d7652678ef200e99e6d08f2b6",
+      "functional_groups": [
+        "1,2-diol",
+        "primary alcohol",
+        "secondary alcohol"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.7772777292602235,
+        "cavity_tesserae": 704,
+        "components_kcal_mol": {
+          "cds": 2.9943296255582617,
+          "delta_g_solv": -15.207277729260223,
+          "electrostatic": -18.201607354818485,
+          "pcm_polarization": -18.127320842726505,
+          "solute_polarization": -0.07428651209198102,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.381637214308844e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -15.207277729260223,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -1.7772777292602235,
+        "wall_seconds": 1.8906137459998718
+      },
+      "name": "glycerol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_3323117",
+      "dataset_record_sha256": "872c69f87fd2cd3d75c072ea94da08319c999f0804d7846e65b25d32ddb6b594",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -8.61,
+      "experimental_uncertainty_kcal_mol": 0.31,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "5455832a91ccdf05de7d27e011936ff30be0796988e04ebdb8f8d1dd4b133b8e",
+      "functional_groups": [
+        "cation",
+        "heterocyclic"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 3.595588608951509,
+        "cavity_tesserae": 741,
+        "components_kcal_mol": {
+          "cds": 1.919683201046829,
+          "delta_g_solv": -12.205588608951508,
+          "electrostatic": -14.125271809998338,
+          "pcm_polarization": -14.460804687297493,
+          "solute_polarization": 0.33553287729915526,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.16312622359261e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -12.205588608951508,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -3.595588608951509,
+        "wall_seconds": 1.843770380000933
+      },
+      "name": "sulfolane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3359593",
+      "dataset_record_sha256": "6d314de9840dbec768864944f1df828b3c5716154200d6f683dac4e7539d6508",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.26,
+      "experimental_uncertainty_kcal_mol": 0.18,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "3e077f2d7fb2664485968da9066a80854482641a45c446d1086415b6f9218c51",
+      "functional_groups": [
+        "alkyl aryl ether",
+        "aromatic",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_3359593/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "4-propylguaiacol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3378420",
+      "dataset_record_sha256": "e894178d82bc92ed0c1d7dbf4dfb0d2299c32042c1fe7bc44da3d3afd886c99c",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.88,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "07f3033af0731abc1aae77360d683e666862572112a94def47ed198e2281bffa",
+      "functional_groups": [
+        "primary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_3378420/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "nonan-1-ol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_352111",
+      "dataset_record_sha256": "d50cd240e2dd625cbd78ca257a94f58410db0d1f3a151818c3539b7dd6419478",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.34,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.9413089376168493,
+        "cavity_tesserae": 1039,
+        "components_kcal_mol": {
+          "cds": 6.769831401829567,
+          "delta_g_solv": -8.28130893761685,
+          "electrostatic": -15.051140339446418,
+          "pcm_polarization": -14.930574188455807,
+          "solute_polarization": -0.12056615099060793,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.44935227353438e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -8.28130893761685,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -1.9413089376168493,
+        "wall_seconds": 4.017192358005559
+      },
+      "name": "2-acetoxyethyl acetate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3572203",
+      "dataset_record_sha256": "add79d2b9738f0cc8d30280d7358d28e1162cb904c718f65824860b91e01f06b",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.11,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "45aa6a6e578ceb0eb060b8d33ad463f17664ebade28f102f78de19d64bbac071",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.6844553864849097,
+        "cavity_tesserae": 1250,
+        "components_kcal_mol": {
+          "cds": 5.388169095617655,
+          "delta_g_solv": -3.7944553864849095,
+          "electrostatic": -9.182624482102565,
+          "pcm_polarization": -9.100769873119157,
+          "solute_polarization": -0.08185460898340807,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.193114468839745e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.7944553864849095,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -1.6844553864849097,
+        "wall_seconds": 5.268581397001981
+      },
+      "name": "pentyl propanoate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3663158",
+      "dataset_record_sha256": "6d2b85ca76ba4a9558e0824a3b57c91c9c10079769579fb6d3d259599510e1bf",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -8.11,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "e39490e5eb5f960c32d6ee617c10269d7591b0ac4b23f8a0bfc59fbe605fe9ae",
+      "functional_groups": [
+        "aromatic",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.0834811546736445,
+        "cavity_tesserae": 966,
+        "components_kcal_mol": {
+          "cds": 3.9464777575869836,
+          "delta_g_solv": -6.026518845326355,
+          "electrostatic": -9.972996602913337,
+          "pcm_polarization": -10.044295662565863,
+          "solute_polarization": 0.07129905965252568,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.066076021493202e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -6.026518845326355,
+        "scf_iterations": 15,
+        "signed_error_kcal_mol": 2.0834811546736445,
+        "wall_seconds": 3.609386695010471
+      },
+      "name": "naphthalen-2-ol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3686115",
+      "dataset_record_sha256": "f887fb3e3f69100435ceba68c7ea457ea7c9774aace41bcab2c5e9fe50f5b0e6",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.28,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "c42a896b9dda70e4df1b65151e22be609ae7ca06c2e4aaf5a4a4020f5c702a54",
+      "functional_groups": [
+        "acetal"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.35804678240298093,
+        "cavity_tesserae": 1017,
+        "components_kcal_mol": {
+          "cds": 4.378085900209056,
+          "delta_g_solv": -3.6380467824029807,
+          "electrostatic": -8.016132682612037,
+          "pcm_polarization": -8.200279568559987,
+          "solute_polarization": 0.18414688594794998,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.486351012456205e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.6380467824029807,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -0.35804678240298093,
+        "wall_seconds": 3.575712204008596
+      },
+      "name": "1,1-diethoxyethane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3746675",
+      "dataset_record_sha256": "2400def42d0a6bf6fd9776aca21270cdfd476519e2b30b8beb749c5a690624f0",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -1.24,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "62881d7cca505497f20974c07795a323ada5c91cbd4df56b804398815e1f6cb4",
+      "functional_groups": [
+        "alkene",
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.369147545621331,
+        "cavity_tesserae": 900,
+        "components_kcal_mol": {
+          "cds": 4.4432219615547055,
+          "delta_g_solv": 0.12914754562133088,
+          "electrostatic": -4.314074415933375,
+          "pcm_polarization": -4.374319308200148,
+          "solute_polarization": 0.060244892266773285,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.883095744816519e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.12914754562133088,
+        "scf_iterations": 15,
+        "signed_error_kcal_mol": 1.369147545621331,
+        "wall_seconds": 3.0692706720001297
+      },
+      "name": "isopropenylbenzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_397645",
+      "dataset_record_sha256": "4cf0243cc0f1913f8a0197cba3af4aac47b48487a453d5a3aaacb26a33f43ab4",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.64,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "cdad941fdf7dafa28a9ad90b08381768f332a9220507b7d70b7efd15a3ef724a",
+      "functional_groups": [
+        "aromatic",
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_397645/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "ethyl benzoate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_3980099",
+      "dataset_record_sha256": "acd0c0202959f700524a7ddbd8ebc1d560868928165216f2ee80dc7a94b3dd20",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -1.24,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "1b99b7dafbdbeb47911f7d4d8b0b75d917908662329f29c7572ac22f6ac3ca7a",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.6787663391794327,
+        "cavity_tesserae": 1016,
+        "components_kcal_mol": {
+          "cds": 2.9358509928674072,
+          "delta_g_solv": 0.4387663391794328,
+          "electrostatic": -2.4970846536879745,
+          "pcm_polarization": -2.5920899956437227,
+          "solute_polarization": 0.09500534195574795,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.533462455718622e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.4387663391794328,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": 1.6787663391794327,
+        "wall_seconds": 3.61181392299477
+      },
+      "name": "1,2,3-trichlorobenzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4177472",
+      "dataset_record_sha256": "bf9ac9f1f920e42940071182ae8040b80706dd65afa8c73b75d3a01ca15b4b65",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.56,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "24b75c59af6d78fec0a07d81eac9bbccae9962f2dfd0ca9d44a5384022149c7f",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_4177472/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2,3,4-trimethylpentane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4218209",
+      "dataset_record_sha256": "3e9b8a3bd0afcf719aceae00c5cd9ad4f3eca27433b21d2d93126443b5c42c61",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -7.48,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "5b01520a684fe7173947e0fb06021a5763de7309019b83531006e4971b53a3e1",
+      "functional_groups": [
+        "alkyl aryl ether",
+        "aromatic",
+        "primary amine",
+        "primary aromatic amine"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_4218209/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "4-methoxyaniline",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4252724",
+      "dataset_record_sha256": "00a903a30dbbbaa305066ac0e8eead7ae5d3e0559a3ac8f6baa9eaa9ba30905e",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 0.16,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "f129ce291835488c15e50a8abf68225744ee3e489ec85df67a74c9e668cdde3c",
+      "functional_groups": [
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_4252724/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "isobutylbenzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4338603",
+      "dataset_record_sha256": "f4c192b0a8ca7ce70f660869f82a2029be2f326d4ed21bc96e53a840366b88f6",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -15.83,
+      "experimental_uncertainty_kcal_mol": 1.22,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "9ec2c2d133b9a573dca23944128e2fbe7f526d8ec3f025579273d1b2c1e10a9e",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride",
+        "heterocyclic",
+        "oxo(het)arene"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.0095907238018995,
+        "cavity_tesserae": 822,
+        "components_kcal_mol": {
+          "cds": 4.988494788161098,
+          "delta_g_solv": -14.8204092761981,
+          "electrostatic": -19.8089040643592,
+          "pcm_polarization": -19.79530981745456,
+          "solute_polarization": -0.013594246904639808,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.12572145578272e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -14.8204092761981,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 1.0095907238018995,
+        "wall_seconds": 2.591392807007651
+      },
+      "name": "6-chlorouracil",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4395315",
+      "dataset_record_sha256": "864b0e1bb976ae89a10be443c76854bf13a9704b23e5025539e7f2a68e751279",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -6.79,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "97d99e36a4f7a8a518de739350e14d7defa24e829662aead7ddf228488685809",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.5379432757731566,
+        "cavity_tesserae": 926,
+        "components_kcal_mol": {
+          "cds": 3.8095861811812335,
+          "delta_g_solv": -4.252056724226843,
+          "electrostatic": -8.061642905408076,
+          "pcm_polarization": -8.061964938077617,
+          "solute_polarization": 0.00032203266953879684,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.66254289667756e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 2,
+        "predicted_kcal_mol": -4.252056724226843,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 2.5379432757731566,
+        "wall_seconds": 2.974961265004822
+      },
+      "name": "4-chloro-3-methyl-phenol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4463913",
+      "dataset_record_sha256": "d155602136becfb4a64953c52af1ed937bc3bded797f53e84ab424fff7ebbce5",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.97,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "a58432442fea2f84786394533698ffe00bc7f74984e2319a0e107c9767782128",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_4463913/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "1-acetoxyethyl acetate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4479135",
+      "dataset_record_sha256": "eaca7ef4a542e2e72a28071fac1fc21e23696325bff7a23eb99624893383a1f1",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -2.78,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "c97c470da13d2f1cc5386e7a6c91b4cac2940979a7e972f0799076da45ac965b",
+      "functional_groups": [
+        "alkene",
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_4479135/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "1,1-diphenylethene",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_4553008",
+      "dataset_record_sha256": "76ca99fb098fd54f40157b45dcd2923b8fce9e0f023a79e2cafd99a14a2c2d23",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -1.01,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "700e24d23a9611c05a90ad12abab728582d22ed2b41b81cb02b58a046220536f",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.1942034429794652,
+        "cavity_tesserae": 888,
+        "components_kcal_mol": {
+          "cds": 2.855768145357004,
+          "delta_g_solv": 0.1842034429794653,
+          "electrostatic": -2.671564702377539,
+          "pcm_polarization": -2.733999207582855,
+          "solute_polarization": 0.06243450520531614,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.633231368416426e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.1842034429794653,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": 1.1942034429794652,
+        "wall_seconds": 2.499234978997265
+      },
+      "name": "1,4-dichlorobenzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4561957",
+      "dataset_record_sha256": "2c4e88ec02dfabe5f051e9825b6aed543119db8882e4f932f3fb6904424664f9",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.34,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "0bcdbff419cbc94a9bc23aae4ac56ed6e3f63d9d966189e6e01dad37debcdbbc",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_4561957/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2,3-dimethylbutane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_4584540",
+      "dataset_record_sha256": "18bfd59bdb53ffb26a6bb690fdc85222887750c76adef36c10b32e97cab214d0",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.59,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "f54dff66a7cbdaf8fbba3dcdb09fb8a2318081316b35ddd205aa299a32dfb790",
+      "functional_groups": [
+        "aromatic",
+        "heterocyclic"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.287440751988489,
+        "cavity_tesserae": 810,
+        "components_kcal_mol": {
+          "cds": 2.156567609390569,
+          "delta_g_solv": -3.302559248011511,
+          "electrostatic": -5.4591268574020795,
+          "pcm_polarization": -5.574646995929112,
+          "solute_polarization": 0.11552013852703268,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.90165303282933e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.302559248011511,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 1.287440751988489,
+        "wall_seconds": 2.4996526909962995
+      },
+      "name": "2,6-dimethylpyridine",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4603202",
+      "dataset_record_sha256": "d3e379a30b88042d36c86227f404918985e3c009c2865a8896ac69cebe5f4df5",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -4.23,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "07ef623dd45658dcc5b5eed6b8f129444f58f62bfabed3de7d065c2ff42ea130",
+      "functional_groups": [
+        "alkyl chloride",
+        "dialkyl ether"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.6411270349367513,
+        "cavity_tesserae": 1005,
+        "components_kcal_mol": {
+          "cds": 2.964180599497139,
+          "delta_g_solv": -3.588872965063249,
+          "electrostatic": -6.553053564560388,
+          "pcm_polarization": -6.817852193381062,
+          "solute_polarization": 0.2647986288206734,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.275611700580109e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.588872965063249,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": 0.6411270349367513,
+        "wall_seconds": 3.1086728279915405
+      },
+      "name": "1-chloro-2-(2-chloroethoxy)ethane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4687447",
+      "dataset_record_sha256": "73dd1cf0f90fcb57f37af7b7e571f81cb143da6c8516c5bbb4e14b96a0c0e6b4",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.4,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "e72b20a8e58af1887d4eb487cee7aaf78f80b8dde1b2b484ba549a2b4fa09e38",
+      "functional_groups": [
+        "dialkyl ether",
+        "primary alcohol"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_4687447/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2-propoxyethanol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_468867",
+      "dataset_record_sha256": "e8767bdd52a91d7c08443880a9f75881bb30ad699dd1864a7753142644342ff8",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -2.55,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "e2872b6828468d3622c4159d4a95c023d3b7b3bd46b26437b85dc1fbe83128fc",
+      "functional_groups": [
+        "alkene",
+        "alkyl chloride"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_468867/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "heptachlor",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_4762983",
+      "dataset_record_sha256": "a5be02c8599c9f2e53d7f394f2ce64bea4bdedf5b1a5b45a377e1dd48511542b",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 1.66,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "9a7f7ec07898823671d22f0b9172d7f183a653bac567ce1b3f1bfbd40d5e16df",
+      "functional_groups": [
+        "alkene"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_4762983/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "hept-1-ene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_4934872",
+      "dataset_record_sha256": "aa07750a3f7b843cd3b926d23a974e702f0ca26ff83134df49ea0a650350a830",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.23,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "5452e8e6eacf0c85371b8215b6789c8e23d58563b61ffa55597583e379b77897",
+      "functional_groups": [
+        "aromatic",
+        "orthocarboxylic acid derivative",
+        "orthoester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.941845432696157,
+        "cavity_tesserae": 1409,
+        "components_kcal_mol": {
+          "cds": 5.840419318655889,
+          "delta_g_solv": -4.2881545673038435,
+          "electrostatic": -10.128573885959733,
+          "pcm_polarization": -10.405809811188185,
+          "solute_polarization": 0.27723592522845275,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.2689588857255405e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.2881545673038435,
+        "scf_iterations": 15,
+        "signed_error_kcal_mol": 0.941845432696157,
+        "wall_seconds": 8.129199352988508
+      },
+      "name": "diethoxymethoxybenzene",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_5110043",
+      "dataset_record_sha256": "6699985fdb27f0c5ab258361bd6b552c42ed994606e08567f4562a46424343f6",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -2.63,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "d1888c3d9ee3a675b26e9bd6eddc3004fd4fac725b30034c3fbdeb8417ddbf54",
+      "functional_groups": [
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.0401375770427468,
+        "cavity_tesserae": 1140,
+        "components_kcal_mol": {
+          "cds": 4.264190790702276,
+          "delta_g_solv": -1.589862422957253,
+          "electrostatic": -5.85405321365953,
+          "pcm_polarization": -6.045992836747632,
+          "solute_polarization": 0.1919396230881023,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.726164225916154e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 6,
+        "predicted_kcal_mol": -1.589862422957253,
+        "scf_iterations": 16,
+        "signed_error_kcal_mol": 1.0401375770427468,
+        "wall_seconds": 5.1425641120004
+      },
+      "name": "2,6-dimethylnaphthalene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_525934",
+      "dataset_record_sha256": "f9658c829e94b73d4ddbdc23767977460a8c224dc730296af4d92fde33cae8b5",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -1.2,
+      "experimental_uncertainty_kcal_mol": 0.2,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "14931a6a07d8d708cffdbd83ed63bb852e061b613a770fa054142740ef841ad4",
+      "functional_groups": [
+        "alkylthiol",
+        "thiol (sulfanyl)"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.9501169178806648,
+        "cavity_tesserae": 428,
+        "components_kcal_mol": {
+          "cds": 2.002126555970049,
+          "delta_g_solv": -0.24988308211933516,
+          "electrostatic": -2.2520096380893846,
+          "pcm_polarization": -2.28190688750657,
+          "solute_polarization": 0.02989724941718563,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.732780617302314e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.24988308211933516,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": 0.9501169178806648,
+        "wall_seconds": 1.137116647005314
+      },
+      "name": "methanethiol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_52782",
+      "dataset_record_sha256": "2bde1bb18b6f6a08a8f2cfd3e24bc5ce08057b57a879e4baa470e374876fd973",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.73,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "43066a54c360591e84f340a461624a0e0c2295ed0af4fa4eaae017767609072e",
+      "functional_groups": [
+        "nitrate"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.2803344313277112,
+        "cavity_tesserae": 836,
+        "components_kcal_mol": {
+          "cds": 9.834134089362047,
+          "delta_g_solv": -7.010334431327712,
+          "electrostatic": -16.84446852068976,
+          "pcm_polarization": -16.95632500277791,
+          "solute_polarization": 0.11185648208814966,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.059218486953455e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -7.010334431327712,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": -1.2803344313277112,
+        "wall_seconds": 2.5162478310085135
+      },
+      "name": "1,2-dinitroxyethane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_5346580",
+      "dataset_record_sha256": "9a60691ac71031ca2ff176d66b1e66a4d353d21eb42a5a34183e362397097ed8",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.11,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "1395a5ce10413a80f927359060a9577c25f4be7a27523151384fc9b49fe50598",
+      "functional_groups": [
+        "ketone"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.031569005276793,
+        "cavity_tesserae": 853,
+        "components_kcal_mol": {
+          "cds": 4.474632498438901,
+          "delta_g_solv": -4.141569005276793,
+          "electrostatic": -8.616201503715695,
+          "pcm_polarization": -8.672121325640926,
+          "solute_polarization": 0.05591982192523096,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.477701053971609e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.141569005276793,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -1.031569005276793,
+        "wall_seconds": 2.2833691849955358
+      },
+      "name": "3,3-dimethylbutan-2-one",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_5347550",
+      "dataset_record_sha256": "c64a4e36d4e8278ab7aaaa8924b374d28c6261e5f535d3c59e951912c9f2a869",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -1.12,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "89b71fce158ead0459a71ea52b37e7c9e55489835e6c93952344cfc02a457794",
+      "functional_groups": [
+        "alkyl chloride",
+        "orthocarboxylic acid derivative"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.154064331561649,
+        "cavity_tesserae": 858,
+        "components_kcal_mol": {
+          "cds": 3.994296896257783,
+          "delta_g_solv": 0.03406433156164897,
+          "electrostatic": -3.960232564696134,
+          "pcm_polarization": -3.9494410331382137,
+          "solute_polarization": -0.010791531557919955,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.087439775037673e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.03406433156164897,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": 1.154064331561649,
+        "wall_seconds": 2.1991377889935393
+      },
+      "name": "2,2-dichloro-1,1-difluoro-1-methoxy-ethane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_547634",
+      "dataset_record_sha256": "b4d2a91f56f145cde6d952a2d12c51aa1b70aef63ad175006afe243df6edb5e4",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -2.78,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "07bd6a990327e5e8092a4e6768e96dfe8653bef0250c5f15935334d04dc18fd6",
+      "functional_groups": [
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_547634/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2,3-dimethylnaphthalene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_5518547",
+      "dataset_record_sha256": "86107f80648b29d19eb4a052715834994473ca0962f08c91fa470363e4efca99",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.57,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "dd86e1702b084dcef7b531be2dbae00e95ba0467c6bdf0a21fc8571e46ae6d50",
+      "functional_groups": [
+        "aromatic",
+        "primary amine",
+        "primary aromatic amine"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_5518547/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "4-methylaniline",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_5571660",
+      "dataset_record_sha256": "a1ba033c303d7755cd745983b2d29b47abc1e4181260c21d49273ad43485ae35",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.21,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "631500e41724a8c0195aaeee91615442f079a60d17e7aaaa616cca73683ff9ef",
+      "functional_groups": [
+        "aromatic",
+        "primary amine",
+        "primary aromatic amine"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.24670989712048552,
+        "cavity_tesserae": 908,
+        "components_kcal_mol": {
+          "cds": 3.589874058757959,
+          "delta_g_solv": -4.963290102879514,
+          "electrostatic": -8.553164161637472,
+          "pcm_polarization": -8.699575322639882,
+          "solute_polarization": 0.1464111610024085,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.8276736298046306e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.963290102879514,
+        "scf_iterations": 15,
+        "signed_error_kcal_mol": 0.24670989712048552,
+        "wall_seconds": 3.230890292004915
+      },
+      "name": "2,6-dimethylaniline",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_5600967",
+      "dataset_record_sha256": "d9723beb2045102352b4dd09c0843e264fae29152bf7c634e43ea60f28eaebc2",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -11.01,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "b9ca53b3bc32fad135aee69e629750231c7e85f2123b71a4ce77d77bfbb9e6f9",
+      "functional_groups": [
+        "alkyl aryl ether",
+        "aromatic",
+        "tertiary carboxylic acid amide"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.8613965930644625,
+        "cavity_tesserae": 1231,
+        "components_kcal_mol": {
+          "cds": 6.2610996145789475,
+          "delta_g_solv": -8.148603406935537,
+          "electrostatic": -14.409703021514485,
+          "pcm_polarization": -14.544611129312003,
+          "solute_polarization": 0.1349081077975169,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.302771980014332e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -8.148603406935537,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 2.8613965930644625,
+        "wall_seconds": 5.843923799999175
+      },
+      "name": "4-methoxy-N,N-dimethyl-benzamide",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_5747188",
+      "dataset_record_sha256": "77e01a985aef64badcfa0e2fed6b09dadb8718b2d1a82944997733539d80bba0",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.58,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "f539bdb3aa0682b5cef81e03f783b60c3bc9d67abc56529cb2cde5daa61be62e",
+      "functional_groups": [
+        "aromatic",
+        "nitro"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7103194890563902,
+        "cavity_tesserae": 904,
+        "components_kcal_mol": {
+          "cds": 6.41661183660361,
+          "delta_g_solv": -4.29031948905639,
+          "electrostatic": -10.70693132566,
+          "pcm_polarization": -10.937341630440244,
+          "solute_polarization": 0.23041030478024369,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.5296478271303915e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.29031948905639,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": -0.7103194890563902,
+        "wall_seconds": 2.851475723000476
+      },
+      "name": "1-methyl-2-nitro-benzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_5747981",
+      "dataset_record_sha256": "62d6c55c798f6f933bb24234d0536206db73be78d5954e23e0fa67fac7e50c0d",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.73,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "530635030beb97319c044d2f19e3b2d01722d3c9a20a7c07a7834e1323d5fc30",
+      "functional_groups": [
+        "dialkyl ether",
+        "orthocarboxylic acid derivative",
+        "orthoester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_5747981/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "1,1,1,2-tetramethoxyethane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_5857",
+      "dataset_record_sha256": "4dfbeb6621967724b93721fc36cfd398e3159783db2f0edeaea1c37ac9b5ba5b",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.72,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "63fd23d3dec0313ab0ec7d6d52e673b10d98a370b03b582643c212064dba8cf6",
+      "functional_groups": [
+        "aromatic",
+        "heterocyclic"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.2625664029075674,
+        "cavity_tesserae": 866,
+        "components_kcal_mol": {
+          "cds": 1.7514296910951044,
+          "delta_g_solv": -4.457433597092432,
+          "electrostatic": -6.208863288187537,
+          "pcm_polarization": -6.26574251331345,
+          "solute_polarization": 0.05687922512591288,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.699139348059467e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.457433597092432,
+        "scf_iterations": 15,
+        "signed_error_kcal_mol": 1.2625664029075674,
+        "wall_seconds": 3.0573102880007355
+      },
+      "name": "quinoline",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_6006813",
+      "dataset_record_sha256": "99d93e4e45e00749f6d24be943164f1cae543f413cad5ae273583f11a3ea61e4",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.09,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "1dfad5275581b1792c8193b36f43a9779c4b0a6b60943dbaf308a4f53cf3c3ca",
+      "functional_groups": [
+        "nitro"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.9364190883758985,
+        "cavity_tesserae": 813,
+        "components_kcal_mol": {
+          "cds": 5.4165994718164265,
+          "delta_g_solv": -5.026419088375898,
+          "electrostatic": -10.443018560192325,
+          "pcm_polarization": -10.540732939219629,
+          "solute_polarization": 0.09771437902730254,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.94767275441388e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -5.026419088375898,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -1.9364190883758985,
+        "wall_seconds": 2.1707290280028246
+      },
+      "name": "1-nitrobutane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_6091882",
+      "dataset_record_sha256": "a91bd80a56ed08f0349fce96999b77c6e540ee8fcf4fbea980e7610847347e6c",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 1.28,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "9a0816e8cbe22348b8d23a7a32976ad9fa37c04a392ddbf308624e315f8463b0",
+      "functional_groups": [
+        "alkene"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.06364987782214837,
+        "cavity_tesserae": 320,
+        "components_kcal_mol": {
+          "cds": 3.2320709154539626,
+          "delta_g_solv": 1.2163501221778517,
+          "electrostatic": -2.015720793276111,
+          "pcm_polarization": -1.9669096950708431,
+          "solute_polarization": -0.04881109820526787,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.852068496183584e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 1.2163501221778517,
+        "scf_iterations": 10,
+        "signed_error_kcal_mol": -0.06364987782214837,
+        "wall_seconds": 0.9457480270066299
+      },
+      "name": "ethylene",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_6175884",
+      "dataset_record_sha256": "bd4bc4f78788ecc6f9d5f21c4c90162e312f41ce2222711f2c95bf17be68986a",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.27,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "01ba712d4a2b40412ee9f4303d4e3671001de7dcb5468183998c47336870d582",
+      "functional_groups": [
+        "aldehyde",
+        "aromatic"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.13255284562710123,
+        "cavity_tesserae": 893,
+        "components_kcal_mol": {
+          "cds": 4.6815543185583826,
+          "delta_g_solv": -4.137447154372898,
+          "electrostatic": -8.81900147293128,
+          "pcm_polarization": -8.750287241365024,
+          "solute_polarization": -0.06871423156625678,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.602317520521209e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.137447154372898,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 0.13255284562710123,
+        "wall_seconds": 2.7762004399992293
+      },
+      "name": "4-methylbenzaldehyde",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_6190089",
+      "dataset_record_sha256": "e57aaba3e9d913a47f8413bf5b1d796e51dd2f8a30d391addd20a1451548982c",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -2.37,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "680cc108800d2f37e28e84f87bce2022eeffd6118072d0a418569127da4ddbeb",
+      "functional_groups": [
+        "alkyl chloride"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.2183265844552513,
+        "cavity_tesserae": 862,
+        "components_kcal_mol": {
+          "cds": 1.7802568150769724,
+          "delta_g_solv": -1.1516734155447488,
+          "electrostatic": -2.931930230621721,
+          "pcm_polarization": -2.8345413625422293,
+          "solute_polarization": -0.09738886807949194,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.1982351592729246e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -1.1516734155447488,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": 1.2183265844552513,
+        "wall_seconds": 2.5389817690011114
+      },
+      "name": "1,1,2,2-tetrachloroethane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_627267",
+      "dataset_record_sha256": "9c0fd867d4ae0d283bd1ded0d745c9e888841d23333d05863d96cc949a269237",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -0.03,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "94a200be062373d03d20e560e38e22b9e80a140ced977a76865b6cb2b3fc445a",
+      "functional_groups": [
+        "alkyl bromide"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.49126809784542436,
+        "cavity_tesserae": 757,
+        "components_kcal_mol": {
+          "cds": 2.052004761907024,
+          "delta_g_solv": -0.5212680978454244,
+          "electrostatic": -2.573272859752448,
+          "pcm_polarization": -2.634637727169294,
+          "solute_polarization": 0.06136486741684561,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.574836000111661e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.5212680978454244,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -0.49126809784542436,
+        "wall_seconds": 1.9937386480014538
+      },
+      "name": "1-bromo-2-methyl-propane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_628086",
+      "dataset_record_sha256": "74b66c85c5b1ac9a517f7e24417f1019b7f615a82095618bbd1131bd791cb0ea",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -4.16,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "131daf6e13100f7df0ec52ea72d453772fad4908d2dd32880392f5e59cfe5a26",
+      "functional_groups": [
+        "halogen derivative",
+        "secondary alcohol"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.06291003771450843,
+        "cavity_tesserae": 635,
+        "components_kcal_mol": {
+          "cds": 4.229929869227622,
+          "delta_g_solv": -4.222910037714509,
+          "electrostatic": -8.452839906942131,
+          "pcm_polarization": -8.48654906788155,
+          "solute_polarization": 0.033709160939418524,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.432526212157841e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.222910037714509,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -0.06291003771450843,
+        "wall_seconds": 1.4622705210058484
+      },
+      "name": "1,1,1-trifluoropropan-2-ol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_632905",
+      "dataset_record_sha256": "fe86d02f4a0a61ca11bf03b57e2c8130a94312b3961a9f7919a243c7dd61d0ec",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.4,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "40d05a06e97a1c08d28d1b29cdaa610bc88fc02cb2e53759ef3c2d12dd376568",
+      "functional_groups": [
+        "alkyl aryl ether",
+        "aromatic",
+        "ketone"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_632905/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "1-(4-methoxyphenyl)ethanone",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_6338073",
+      "dataset_record_sha256": "514f99c2ee54c32f4422308b7b324bc3ca04fff0edc302305286a735a3773e57",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.68,
+      "experimental_uncertainty_kcal_mol": 0.42,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "c4d16f7c8adc14bc00f60c9a51c25ab153cf18d1d124d012e9c332fc5faad233",
+      "functional_groups": [
+        "aromatic",
+        "heterocyclic",
+        "secondary aliphatic/aromatic amine (alkylarylamine)",
+        "secondary amine",
+        "thioether"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_6338073/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "terbutryn",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_6854178",
+      "dataset_record_sha256": "ceb061676fbb55a4ca9215d28fb2ee91d218b6ab3bd36f589952b1a736e3a2c6",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.02,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "26ef228afdc1a0d7d6d63ed79fad3ff737d2971f2fc34b0c92f7437dbcda3b75",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.014871859142541854,
+        "cavity_tesserae": 712,
+        "components_kcal_mol": {
+          "cds": 5.0287624712045025,
+          "delta_g_solv": -2.034871859142542,
+          "electrostatic": -7.063634330347044,
+          "pcm_polarization": -6.974167576208198,
+          "solute_polarization": -0.08946675413884658,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.027881893995058e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -2.034871859142542,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -0.014871859142541854,
+        "wall_seconds": 1.8830125690001296
+      },
+      "name": "isopropyl formate",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_6917738",
+      "dataset_record_sha256": "002fad2ebd07cff16b47f851252a0a5730420156eae911a323fbbee5cd4c00d7",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.55,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "750fc7d3971170a704f3ac2b0b167adf0de0b17be34d7e2de2e2351878061828",
+      "functional_groups": [
+        "dialkyl ether",
+        "primary aliphatic amine (alkylamine)",
+        "primary amine"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.2344706737458564,
+        "cavity_tesserae": 661,
+        "components_kcal_mol": {
+          "cds": 2.598162197344811,
+          "delta_g_solv": -5.315529326254143,
+          "electrostatic": -7.9136915235989544,
+          "pcm_polarization": -7.8196256693192465,
+          "solute_polarization": -0.09406585427970685,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.577366825146313e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -5.315529326254143,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": 1.2344706737458564,
+        "wall_seconds": 1.6538505609933054
+      },
+      "name": "2-methoxyethanamine",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_6929123",
+      "dataset_record_sha256": "1168b3fd445637ced3cc7fd15b137ad3d68c1451b356036d1b07f90726da36d4",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -4.0,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "c44da083fc64258c3e406b9830d6e3854eb52c0b00c5894257834de438e9a031",
+      "functional_groups": [
+        "alkyl chloride",
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.024284041102687226,
+        "cavity_tesserae": 728,
+        "components_kcal_mol": {
+          "cds": 4.301764750450814,
+          "delta_g_solv": -4.024284041102687,
+          "electrostatic": -8.3260487915535,
+          "pcm_polarization": -8.40292766849771,
+          "solute_polarization": 0.07687887694421036,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.003625452569161e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.024284041102687,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -0.024284041102687226,
+        "wall_seconds": 2.033730241993908
+      },
+      "name": "methyl 2-chloroacetate",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_7106722",
+      "dataset_record_sha256": "087fa37e143cfde4324284fce079d32d15f54d9c6def7422a5639b83cedd47f2",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.51,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "80792948ec5930663d6f79f3576cf0f48f552fefcb89321f53dda37c46124908",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.8456133285638727,
+        "cavity_tesserae": 867,
+        "components_kcal_mol": {
+          "cds": 3.529185918497882,
+          "delta_g_solv": 0.6643866714361271,
+          "electrostatic": -2.864799247061755,
+          "pcm_polarization": -2.804316521871048,
+          "solute_polarization": -0.060482725190707305,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.570020080506113e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.6643866714361271,
+        "scf_iterations": 9,
+        "signed_error_kcal_mol": -1.8456133285638727,
+        "wall_seconds": 2.281933990001562
+      },
+      "name": "isohexane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_7150646",
+      "dataset_record_sha256": "f7fd7bf6de4fb81d65226d72f34b41a9bad271ea21f71fac2f33024f76fb05ad",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -2.3,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "e9a3259d93971542e760c45e318b87dd87d12702e9241d83d93bbb194e1b6d81",
+      "functional_groups": [
+        "aromatic",
+        "aryl bromide"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.0445336637860974,
+        "cavity_tesserae": 896,
+        "components_kcal_mol": {
+          "cds": 1.290312637726974,
+          "delta_g_solv": -1.2554663362139025,
+          "electrostatic": -2.5457789739408767,
+          "pcm_polarization": -2.627178871185142,
+          "solute_polarization": 0.08139989724426534,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.834614757227463e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -1.2554663362139025,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": 1.0445336637860974,
+        "wall_seconds": 2.5275779699877603
+      },
+      "name": "1,4-dibromobenzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_7176248",
+      "dataset_record_sha256": "425ac682607ec24d7498aa5cbfc1d04b6d358d588a47e3a4ecef99b7d03cfdeb",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -3.25,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "93b350315057163943f46c5d13e1c22621ca77f5ee029dbceb4ea6b49cfec2d2",
+      "functional_groups": [
+        "aromatic",
+        "halogen derivative",
+        "nitro",
+        "tertiary aliphatic/aromatic amine (alkylarylamine)",
+        "tertiary amine"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7176248/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "trifluralin",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_7227357",
+      "dataset_record_sha256": "708b569a989439fac7f711971efe729be120fbeaafb8890d4b16465bb06c1dc8",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.35,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "bf1b595d3d5db6021572e97ba112f25aaaab8c759ffd96506f2a7b448506d019",
+      "functional_groups": [
+        "secondary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7227357/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "pentan-3-ol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_7326982",
+      "dataset_record_sha256": "b866eaba57f4df48e7119e17884ba5a6464de95b3bdcde46f38616dad2e21b95",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.74,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "a137b3793c3a1195f42b5180b9858f2197e5d9a80c30213a84637c12de58cc11",
+      "functional_groups": [
+        "secondary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.06388904814641538,
+        "cavity_tesserae": 573,
+        "components_kcal_mol": {
+          "cds": 2.7136266667076385,
+          "delta_g_solv": -4.803889048146416,
+          "electrostatic": -7.517515714854054,
+          "pcm_polarization": -7.448254303336469,
+          "solute_polarization": -0.06926141151758379,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.78118441170156e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.803889048146416,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": -0.06388904814641538,
+        "wall_seconds": 1.282064518003608
+      },
+      "name": "propan-2-ol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_7364468",
+      "dataset_record_sha256": "76f18aba289d318cf32903bf07b918c0540afe62f418ec4e1f871d51c8d886be",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.18,
+      "experimental_uncertainty_kcal_mol": 1.37,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "cf164662be9119a874efb64db8df4ed0c872626f7036179f43f29480bbfda7bd",
+      "functional_groups": [
+        "alkene",
+        "ketone"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7364468/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "3,5,5-trimethylcyclohex-2-en-1-one",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_7415647",
+      "dataset_record_sha256": "fa8acebfef339bc48949fe8a03b3b9a1d179a708effa0a2872c8b194be7ca301",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -11.95,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "bec37094de0ad3773d511fdc0fd0cf075609dc41b3b3cf1bd9b2500cb52bcec4",
+      "functional_groups": [
+        "aromatic",
+        "nitro",
+        "tertiary carboxylic acid amide"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7415647/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "N,N-dimethyl-4-nitro-benzamide",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_7455579",
+      "dataset_record_sha256": "48608edf83aeedc35811a145f2dc01093bf1aa02f9c58be8135e8fc3f54924de",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.22,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "8dd284725359b7695ece536fb79d1bc28c5f3a79d4ec4259b37959fcacb9439f",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7455579/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "isobutyl formate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_7542832",
+      "dataset_record_sha256": "07d5ae08f16f67b67b03226d961345bbc4fb31289d14aea206f8acf5d2b2c775",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -1.16,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "50f66614ca1c8f5742373870b85fab9c0787a2724c2850abc4fed28546d6b5d6",
+      "functional_groups": [
+        "dialkyl ether"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7542832/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "1-propoxypropane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_7676709",
+      "dataset_record_sha256": "724701f489b42e53abb30b2609f51c333a8a30053cbd88929c5bf01aee27f4c5",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.51,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "ef60d5e6356937bd7643369811f4a51e523253b5c5b9743af0856e4d775fdd24",
+      "functional_groups": [
+        "alkene",
+        "ketone"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7676709/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "6-isopropyl-3-methyl-1-cyclohex-2-enone",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_7690440",
+      "dataset_record_sha256": "2024f0e781ccccf779c03a2165345d02f12b14653c1e9b8324de96758b33c76c",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -1.83,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "bca6f9d1b04d3d6016ed5f3f04240e52ee2fc9277ec7ae84f4d244436496d33f",
+      "functional_groups": [
+        "disulfide"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.8643815235597223,
+        "cavity_tesserae": 666,
+        "components_kcal_mol": {
+          "cds": 2.5705283193393256,
+          "delta_g_solv": 0.034381523559722314,
+          "electrostatic": -2.536146795779603,
+          "pcm_polarization": -2.7780663817876534,
+          "solute_polarization": 0.2419195860080502,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.968030526437573e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.034381523559722314,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": 1.8643815235597223,
+        "wall_seconds": 3.56976716099598
+      },
+      "name": "methyldisulfanylmethane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_7758918",
+      "dataset_record_sha256": "2152e197f83d0ea30c23f5d61ef2339bce58295d79168660fb88a124fa0d5e33",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.46,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "46166574edaab6f180cf464da6f258cac6334a7bf8c98c43f997ae2afc62cdf3",
+      "functional_groups": [
+        "carboxylic acid"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.8234271198140197,
+        "cavity_tesserae": 585,
+        "components_kcal_mol": {
+          "cds": 3.9237641238534655,
+          "delta_g_solv": -9.28342711981402,
+          "electrostatic": -13.207191243667486,
+          "pcm_polarization": -13.379352693984304,
+          "solute_polarization": 0.17216145031681868,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.499956268779528e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -9.28342711981402,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -2.8234271198140197,
+        "wall_seconds": 2.7685965200071223
+      },
+      "name": "propionic acid",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_7829570",
+      "dataset_record_sha256": "98f2a8d8946c87df2b9cd25fb4c8ed3714efaf07d971a21c4529819dca8a496f",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -3.51,
+      "experimental_uncertainty_kcal_mol": 1.93,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "c71bf7648d7e728ee51deb01831392446aea04ee5d2459cf72b5ed1a284756cb",
+      "functional_groups": [
+        "aromatic",
+        "halogen derivative",
+        "nitro",
+        "tertiary aliphatic/aromatic amine (alkylarylamine)",
+        "tertiary amine"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7829570/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "N-butyl-N-ethyl-2,6-dinitro-4-(trifluoromethyl)aniline",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_7859387",
+      "dataset_record_sha256": "35088371c7d9bea01614223c5e7b8f2394b27e43cf04f7f14e30d22dd61a4e3b",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.67,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "593778ff9316f132ed84f9c182bee6c32d2604c80f04e18dafc756aed7495e1d",
+      "functional_groups": [
+        "aldehyde"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.986588826508497,
+        "cavity_tesserae": 1037,
+        "components_kcal_mol": {
+          "cds": 4.665776525248114,
+          "delta_g_solv": -3.656588826508497,
+          "electrostatic": -8.322365351756611,
+          "pcm_polarization": -8.327897183816741,
+          "solute_polarization": 0.0055318320601321115,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.935620268648054e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.656588826508497,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -0.986588826508497,
+        "wall_seconds": 11.926244172005681
+      },
+      "name": "heptanal",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_7893124",
+      "dataset_record_sha256": "65c9f383af48108f52ca1f3b0229028b52194ebf96f88229d2d72408f58b20af",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -0.44,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "061329bc79e547cb8a8aa9cd43abd089f53fa947e25d901efe36af522e1e981b",
+      "functional_groups": [
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7893124/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "tert-butylbenzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_7977115",
+      "dataset_record_sha256": "453a782505baa62b8eb1a9cef75e0b6c2260432f223e5fc3ff510cef475f33ba",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.06,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "28bd1ad50069be1daa2ad7025abfe291138c5138687b4850db89504502f07f95",
+      "functional_groups": [
+        "secondary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_7977115/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "hexan-3-ol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8426916",
+      "dataset_record_sha256": "2160b7612060e8fe4121b5cd9dacdf8dc72c99068c488ba21ae1f3e6693af3a1",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.07,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "32e1ee9bb8fab10aabe1f4a9903dcffe21202134acc4ed26ea8db820eaf108a3",
+      "functional_groups": [
+        "secondary aliphatic amine (dialkylamine)",
+        "secondary amine"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_8426916/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "N-ethylethanamine",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_8436428",
+      "dataset_record_sha256": "2aafe055ac9a0ebdc9f12fb00b8c75bc4a2e9a8428997db76c57723907847a68",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.83,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "de76f28633251b5db59791f2cebad25458c5d69a32ccff7310b7e95bb193b0a8",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_8436428/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2,4-dimethylpentane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8514745",
+      "dataset_record_sha256": "404d524862dc059e01c7b483bf811b2f22bf1a4e56a1a0fd0f2039e767599344",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.51,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "1cab1d5051b58aace2c27757132786ff220a9ecd8b0a18965c4f79a0e1d490a9",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.4234952831959338,
+        "cavity_tesserae": 1111,
+        "components_kcal_mol": {
+          "cds": 5.295507547128316,
+          "delta_g_solv": -3.9334952831959336,
+          "electrostatic": -9.22900283032425,
+          "pcm_polarization": -9.122869153717367,
+          "solute_polarization": -0.10613367660688247,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.87096863819059e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -3.9334952831959336,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -1.4234952831959338,
+        "wall_seconds": 18.119846536006662
+      },
+      "name": "pentyl acetate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8522124",
+      "dataset_record_sha256": "9abe8cbdc1fec3c4e456ceb82dd84d0be876868fc481e65e028b5ed622910f3b",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 0.71,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "e7a1cced374f6a663ea2a1962ec116a791bfd88dedf5aa320741b4172bd5418a",
+      "functional_groups": [
+        "alkyne"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.2851639472765412,
+        "cavity_tesserae": 1036,
+        "components_kcal_mol": {
+          "cds": 5.116749592371064,
+          "delta_g_solv": 0.42483605272345876,
+          "electrostatic": -4.691913539647605,
+          "pcm_polarization": -4.583591252716804,
+          "solute_polarization": -0.10832228693080115,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.986986675533435e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.42483605272345876,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": -0.2851639472765412,
+        "wall_seconds": 13.244747221993748
+      },
+      "name": "oct-1-yne",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8525830",
+      "dataset_record_sha256": "31e0bbb2cda0085abfd3e6675a10ded2d9ea8eb0c62d4834e6699decab86ed0f",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -0.14,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "9e6cac94b54d73e1c832adfd0f703bf62b1a11d3a412d0ea45f5139d5b144e31",
+      "functional_groups": [
+        "alkyl iodide"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.11152834728123456,
+        "cavity_tesserae": 922,
+        "components_kcal_mol": {
+          "cds": 2.4615439904849183,
+          "delta_g_solv": -0.2515283472812346,
+          "electrostatic": -2.7130723377661528,
+          "pcm_polarization": -2.7932171100348806,
+          "solute_polarization": 0.0801447722687279,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.961456231914132e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.2515283472812346,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -0.11152834728123456,
+        "wall_seconds": 12.12820112600457
+      },
+      "name": "1-iodopentane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_8558116",
+      "dataset_record_sha256": "74dcc518f6254be5adff1d3daf394e95dc1cb4ef3901b599b3868458007195f6",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.32,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "7d4e4acecab4d96585ce45a28f5d999bf8301e4efcbf4bd06d9eec3dfdcc4c86",
+      "functional_groups": [
+        "dialkyl ether",
+        "heterocyclic",
+        "tertiary aliphatic amine (trialkylamine)",
+        "tertiary amine"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.5785753371923681,
+        "cavity_tesserae": 810,
+        "components_kcal_mol": {
+          "cds": -0.06377798842316197,
+          "delta_g_solv": -6.898575337192368,
+          "electrostatic": -6.834797348769206,
+          "pcm_polarization": -6.879613880603249,
+          "solute_polarization": 0.044816531834042474,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.462523987241231e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -6.898575337192368,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -0.5785753371923681,
+        "wall_seconds": 11.826637488993583
+      },
+      "name": "4-methylmorpholine",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8573194",
+      "dataset_record_sha256": "1c3af15b820c846e8187a0c16ab3e5389efe868661aaf65bda0cf0cba85f2e2e",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.18,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "b6370bc203cd62a9ee7374394d384129026f482a854aa58ce2f8a4a3ce7d7263",
+      "functional_groups": [
+        "aldehyde"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_8573194/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "butanal",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_8614858",
+      "dataset_record_sha256": "310198a9a1466592963b7d9cb7a963395f0fe9718e0f2b5f757a9b4d6c267d3f",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.67,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "befbdc5accef0218e3be838f9291c42763f054279593433f2d5d05314c7c188d",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.369329330288218,
+        "cavity_tesserae": 1043,
+        "components_kcal_mol": {
+          "cds": 3.60025144938557,
+          "delta_g_solv": 0.30067066971178197,
+          "electrostatic": -3.2995807796737884,
+          "pcm_polarization": -3.205868181274989,
+          "solute_polarization": -0.09371259839879957,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.6111451458721335e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.30067066971178197,
+        "scf_iterations": 9,
+        "signed_error_kcal_mol": -2.369329330288218,
+        "wall_seconds": 11.393944000010379
+      },
+      "name": "heptane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8668219",
+      "dataset_record_sha256": "d5cd9bccfd2bfd69fc385e72f9679eace0dbdabeb07b1d77e23f4cd883c67b6a",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": 2.52,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "1d2521be387e25560104f91a783f67e34d3f824f9e7266478cfca8e151163e0f",
+      "functional_groups": [
+        ""
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_8668219/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2,3-dimethylpentane",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8713762",
+      "dataset_record_sha256": "4e3476c85f006ba411b180dc8403ba9b2ffb5307c5a5002a99574244cb421beb",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -4.13,
+      "experimental_uncertainty_kcal_mol": 1.36,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "78438a5fcacac837393c2d69b64eeb3e556c6548504c20b567bf820ab5fae845",
+      "functional_groups": [
+        "thiocarbamic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.4513248845984412,
+        "cavity_tesserae": 1591,
+        "components_kcal_mol": {
+          "cds": 6.105409254266703,
+          "delta_g_solv": -4.581324884598441,
+          "electrostatic": -10.686734138865145,
+          "pcm_polarization": -10.80600681141022,
+          "solute_polarization": 0.11927267254507666,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.067909416709096e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.581324884598441,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -0.4513248845984412,
+        "wall_seconds": 32.54383956101083
+      },
+      "name": "N,N-dipropyl(propylsulfanyl)formamide",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_8772587",
+      "dataset_record_sha256": "86bcbf840a5a3e98b02805ad175ad01ec8b8f593b14e4faa0108b5dbc6d99c0a",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -0.25,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "19d3f464edebb075a829b0f9cca2cc8e8424fe1ce740652b7cb52d2d271dd4a5",
+      "functional_groups": [
+        "alkyl iodide"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.06509412593738262,
+        "cavity_tesserae": 790,
+        "components_kcal_mol": {
+          "cds": 2.1775198840994747,
+          "delta_g_solv": -0.18490587406261738,
+          "electrostatic": -2.362425758162092,
+          "pcm_polarization": -2.452124171732918,
+          "solute_polarization": 0.08969841357082595,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.325884770011728e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -0.18490587406261738,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": 0.06509412593738262,
+        "wall_seconds": 9.9485757349903
+      },
+      "name": "1-iodobutane",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_8789465",
+      "dataset_record_sha256": "d9c456d7b6e3fbebfbbd9d11523364b1783d4ae8e73ed7aa2a9476ab1932f124",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -6.2,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "cdecca5eedec61dd436816a70ba340acd278c67e5dd57630780f5bcf93856166",
+      "functional_groups": [
+        "aromatic",
+        "aryl iodide",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 3.9737772496012496,
+        "cavity_tesserae": 803,
+        "components_kcal_mol": {
+          "cds": 2.841159564374174,
+          "delta_g_solv": -2.2262227503987506,
+          "electrostatic": -5.0673823147729244,
+          "pcm_polarization": -5.06129722396462,
+          "solute_polarization": -0.006085090808304,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.253731213899793e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -2.2262227503987506,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 3.9737772496012496,
+        "wall_seconds": 9.690708218011423
+      },
+      "name": "2-iodophenol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8809190",
+      "dataset_record_sha256": "e72bf8fd2d472908717306a2d8cd52c0aee19baa2082f0a1bfefdd20ad3f0b9a",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -0.4,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "07f2eec8c94024305b007daa7336f451ce88819d409c3b16a89bd603dcd5964f",
+      "functional_groups": [
+        "aromatic"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7139814995331154,
+        "cavity_tesserae": 1124,
+        "components_kcal_mol": {
+          "cds": 4.0222931130356505,
+          "delta_g_solv": -1.1139814995331154,
+          "electrostatic": -5.136274612568766,
+          "pcm_polarization": -5.1378133088144935,
+          "solute_polarization": 0.0015386962457280384,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 7.563637776901097e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -1.1139814995331154,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": -0.7139814995331154,
+        "wall_seconds": 21.477215430000797
+      },
+      "name": "butylbenzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8809274",
+      "dataset_record_sha256": "410fa09d8a4892c57d78991a9284b266ecd94bafa5b34d216efa4cd0d4434d9e",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -0.25,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "5bcc1eafe70e7f6fd1720d1101d9d33956f15cb5488b71c2555b36ad8a2f5fc5",
+      "functional_groups": [
+        "aromatic",
+        "halogen derivative"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.2534838632172982,
+        "cavity_tesserae": 814,
+        "components_kcal_mol": {
+          "cds": 4.7059489934239,
+          "delta_g_solv": 0.003483863217298237,
+          "electrostatic": -4.702465130206602,
+          "pcm_polarization": -4.65021076520672,
+          "solute_polarization": -0.05225436499988181,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.17182947571607e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.003483863217298237,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": 0.2534838632172982,
+        "wall_seconds": 11.617448089004029
+      },
+      "name": "trifluoromethylbenzene",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_8882696",
+      "dataset_record_sha256": "a6a3a4bcf28da045889402aea7ef02334dc150019a43fa9a8bc602bb32883c60",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.47,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "58392072e1ee58139a687d4c2b7c6446d1e611df71d8478ead2565474b660a85",
+      "functional_groups": [
+        "dialkyl ether",
+        "heterocyclic"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.6852936289310136,
+        "cavity_tesserae": 622,
+        "components_kcal_mol": {
+          "cds": 2.1780344749444915,
+          "delta_g_solv": -2.7847063710689866,
+          "electrostatic": -4.962740846013478,
+          "pcm_polarization": -4.935380547107708,
+          "solute_polarization": -0.02736029890576973,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 9.450517957643179e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -2.7847063710689866,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": 0.6852936289310136,
+        "wall_seconds": 7.801106773986248
+      },
+      "name": "tetrahydrofuran",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_8899867",
+      "dataset_record_sha256": "7624df42f546a203ab06017e37e01040d9481f892c153c65fcea93651a000199",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -5.49,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "7a56ad955369ff5db5aa2c5e04e6a75672d434eb9f4a967c0f433a512295f324",
+      "functional_groups": [
+        "secondary alcohol"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.010121564689931084,
+        "cavity_tesserae": 727,
+        "components_kcal_mol": {
+          "cds": 2.3028385515601966,
+          "delta_g_solv": -5.500121564689931,
+          "electrostatic": -7.802960116250127,
+          "pcm_polarization": -7.745644638450686,
+          "solute_polarization": -0.05731547779944223,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.881008632871443e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -5.500121564689931,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -0.010121564689931084,
+        "wall_seconds": 9.837148809005157
+      },
+      "name": "cyclopentanol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_9007496",
+      "dataset_record_sha256": "48b1cae13f8eeb280ae52be61b6b92804922ec7275d13963638bf227034b07b3",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -9.45,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "6e675082b9c6d29201843d2259a107397b6f30096ab63c884db620155a4e9dde",
+      "functional_groups": [
+        "aromatic",
+        "carbamic acid ester (urethane)"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_9007496/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "naphthalen-1-yl N-methylcarbamate",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_9114381",
+      "dataset_record_sha256": "aa57cb0e44257d2f73d18ff435444bf1e7a5fdf16b34044f628691c5c4ca5f12",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.72,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "80083a236307688850feb593f1e39f36cf1b3818a356a43ee26436de4491d0d9",
+      "functional_groups": [
+        "carbonitrile",
+        "carboxylic acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 0.7814936546053666,
+        "cavity_tesserae": 688,
+        "components_kcal_mol": {
+          "cds": 6.259069842564092,
+          "delta_g_solv": -7.501493654605366,
+          "electrostatic": -13.760563497169459,
+          "pcm_polarization": -13.907851807417446,
+          "solute_polarization": 0.14728831024798736,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.73484787833334e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -7.501493654605366,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -0.7814936546053666,
+        "wall_seconds": 7.777064203997725
+      },
+      "name": "methyl 2-cyanoacetate",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_9121449",
+      "dataset_record_sha256": "ecdf6b486936613a46f50e266da44c8f39fed58fcb8fc89f4d934a1623d23732",
+      "element_class": "hydrocarbon",
+      "experimental_kcal_mol": -0.16,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "702e4a39b3b54f5e63ab6da2d5dc4250feb6a7e8f1422f8ff515ac121476f4de",
+      "functional_groups": [
+        "alkyne"
+      ],
+      "heteroatom_bin": "zero",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.0681033642850375,
+        "cavity_tesserae": 530,
+        "components_kcal_mol": {
+          "cds": 3.9906210911567936,
+          "delta_g_solv": 0.9081033642850376,
+          "electrostatic": -3.0825177268717563,
+          "pcm_polarization": -3.0445932191186196,
+          "solute_polarization": -0.037924507753136834,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 8.133826991912896e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": 0.9081033642850376,
+        "scf_iterations": 11,
+        "signed_error_kcal_mol": 1.0681033642850375,
+        "wall_seconds": 5.549744912001188
+      },
+      "name": "but-1-yne",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_9257453",
+      "dataset_record_sha256": "1a9b48f247b7b94f59de02b64d64a457a161f25f2ee792e1e5212d5db3e5a5d1",
+      "element_class": "halogen-containing",
+      "experimental_kcal_mol": -7.29,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "rigid",
+      "frozen_mol2_sha256": "cc124c951a6f84a55a64ca8e9c72d42872106ebc9e90e87ff19392734fd7c2f1",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride",
+        "phenol or hydroxyhetarene"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 3.11254773619227,
+        "cavity_tesserae": 946,
+        "components_kcal_mol": {
+          "cds": 3.468393446320363,
+          "delta_g_solv": -4.17745226380773,
+          "electrostatic": -7.645845710128093,
+          "pcm_polarization": -7.647936451808128,
+          "solute_polarization": 0.002090741680034784,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.425884823607619e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.17745226380773,
+        "scf_iterations": 14,
+        "signed_error_kcal_mol": 3.11254773619227,
+        "wall_seconds": 10.116823516989825
+      },
+      "name": "3,4-dichlorophenol",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_9281946",
+      "dataset_record_sha256": "78da8b44b8fc018b3f6392f7d7ca6148b46d71750efab803662ed7e6f48042c0",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.74,
+      "experimental_uncertainty_kcal_mol": 0.1,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "0c56f5fccc9edf6a89bd09f578e2652cad7f78fb5de63898e79ea1b49db50da6",
+      "functional_groups": [
+        "aromatic",
+        "nitro",
+        "thiophosphoric acid ester"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_9281946/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "diethoxy-(4-nitrophenoxy)-thioxo-$l^{5}-phosphane",
+      "size_bin": "large"
+    },
+    {
+      "compound_id": "mobley_9617923",
+      "dataset_record_sha256": "60e8087265937c223cb78c62318b62a1b71ccbdd95942f56deedb61d26d3974c",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -2.34,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "flexible",
+      "frozen_mol2_sha256": "6ee57ce14291b5a99fd82e17b765f92469057997b50fcc78656863d7dbaccb4a",
+      "functional_groups": [
+        "ketone"
+      ],
+      "heteroatom_bin": "one",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 2.894007240307065,
+        "cavity_tesserae": 1409,
+        "components_kcal_mol": {
+          "cds": 5.34665703820327,
+          "delta_g_solv": -5.234007240307065,
+          "electrostatic": -10.580664278510335,
+          "pcm_polarization": -10.586983846155599,
+          "solute_polarization": 0.006319567645264039,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 6.396237018480022e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -5.234007240307065,
+        "scf_iterations": 13,
+        "signed_error_kcal_mol": -2.894007240307065,
+        "wall_seconds": 33.5743081769906
+      },
+      "name": "decan-2-one",
+      "size_bin": "medium"
+    },
+    {
+      "compound_id": "mobley_9626434",
+      "dataset_record_sha256": "b7503fa7a20d9edce872147f1fd68038e4b42d3535c9e40c559c8cdef5271a7b",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -6.69,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "bbe45471a0f67fbab1a080caf58677204c419a83ee3ed804ec5a5305c8580b73",
+      "functional_groups": [
+        "dialkyl ether",
+        "primary alcohol"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "exception_class": "RuntimeError",
+        "reason": "PCMSolver emitted a warning for every cavity attempt under policy 'intrinsic-smd-probe0-noaddsph-v1'; Route 2 refuses to publish a numerically suspect result. See /home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-legacy-exact-gto-confirmation123-current-20260731/provider-audit/mobley_9626434/maple.out.implicit/pcmsolver-intrinsic-smd-stderr.log.",
+        "status": "provider-rejected-no-published-energy"
+      },
+      "name": "2-ethoxyethanol",
+      "size_bin": "small"
+    },
+    {
+      "compound_id": "mobley_967099",
+      "dataset_record_sha256": "637aefd862c6fe4fb4725bd864236753d33ea4de86d8e16733c6fb46fbb94094",
+      "element_class": "heteroatom",
+      "experimental_kcal_mol": -3.13,
+      "experimental_uncertainty_kcal_mol": 0.6,
+      "flexibility_bin": "limited",
+      "frozen_mol2_sha256": "b9dbc95338c13ef8e46be0ef8bc28221568f44570a727025c87124d1d972ef2f",
+      "functional_groups": [
+        "nitro"
+      ],
+      "heteroatom_bin": "multiple",
+      "legacy_exact_gto_diagnostic": {
+        "absolute_error_kcal_mol": 1.2264857869679124,
+        "cavity_tesserae": 663,
+        "components_kcal_mol": {
+          "cds": 5.249398543624497,
+          "delta_g_solv": -4.356485786967912,
+          "electrostatic": -9.605884330592408,
+          "pcm_polarization": -9.787140381301198,
+          "solute_polarization": 0.1812560507087881,
+          "standard_state": 0.0
+        },
+        "density_residual_inf_e": 5.810654366167345e-06,
+        "native_warning_count": 0,
+        "pedra_warning_count": 0,
+        "predicted_kcal_mol": -4.356485786967912,
+        "scf_iterations": 12,
+        "signed_error_kcal_mol": -1.2264857869679124,
+        "wall_seconds": 9.464057952005533
+      },
+      "name": "2-nitropropane",
+      "size_bin": "small"
+    }
+  ],
+  "schema_version": 1,
+  "status": "diagnostic-only-not-route2v-acceptance",
+  "summary": {
+    "all_records_strictly_below_1_5_kcal_mol": false,
+    "expected_record_count": 123,
+    "failure_count": 46,
+    "failure_rate": 0.37398373983739835,
+    "mae_kcal_mol": 1.2431537584357881,
+    "maximum_absolute_error_kcal_mol": 3.9737772496012496,
+    "mean_signed_error_kcal_mol": 0.03734077641948603,
+    "median_wall_seconds": 3.0573102880007355,
+    "records_at_or_above_1_5_kcal_mol": 24,
+    "records_strictly_below_1_0_kcal_mol": 34,
+    "records_strictly_below_1_5_kcal_mol": 53,
+    "rmse_kcal_mol": 1.5700939863262517,
+    "success_count": 77,
+    "total_wall_seconds": 433.1497080770496,
+    "worst_compound_id": "mobley_8789465",
+    "worst_name": "2-iodophenol"
+  },
+  "worst_successful_records": [
+    {
+      "absolute_error_kcal_mol": 3.9737772496012496,
+      "compound_id": "mobley_8789465",
+      "functional_groups": [
+        "aromatic",
+        "aryl iodide",
+        "phenol or hydroxyhetarene"
+      ],
+      "name": "2-iodophenol"
+    },
+    {
+      "absolute_error_kcal_mol": 3.595588608951509,
+      "compound_id": "mobley_3323117",
+      "functional_groups": [
+        "cation",
+        "heterocyclic"
+      ],
+      "name": "sulfolane"
+    },
+    {
+      "absolute_error_kcal_mol": 3.49883255211877,
+      "compound_id": "mobley_1469079",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride",
+        "diaryl ether",
+        "heterocyclic"
+      ],
+      "name": "2,3-dichlorodibenzo-p-dioxin"
+    },
+    {
+      "absolute_error_kcal_mol": 3.2542685514762337,
+      "compound_id": "mobley_2197088",
+      "functional_groups": [
+        ""
+      ],
+      "name": "decane"
+    },
+    {
+      "absolute_error_kcal_mol": 3.11254773619227,
+      "compound_id": "mobley_9257453",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride",
+        "phenol or hydroxyhetarene"
+      ],
+      "name": "3,4-dichlorophenol"
+    },
+    {
+      "absolute_error_kcal_mol": 2.894007240307065,
+      "compound_id": "mobley_9617923",
+      "functional_groups": [
+        "ketone"
+      ],
+      "name": "decan-2-one"
+    },
+    {
+      "absolute_error_kcal_mol": 2.8613965930644625,
+      "compound_id": "mobley_5600967",
+      "functional_groups": [
+        "alkyl aryl ether",
+        "aromatic",
+        "tertiary carboxylic acid amide"
+      ],
+      "name": "4-methoxy-N,N-dimethyl-benzamide"
+    },
+    {
+      "absolute_error_kcal_mol": 2.8234271198140197,
+      "compound_id": "mobley_7758918",
+      "functional_groups": [
+        "carboxylic acid"
+      ],
+      "name": "propionic acid"
+    },
+    {
+      "absolute_error_kcal_mol": 2.6342170992024325,
+      "compound_id": "mobley_2123854",
+      "functional_groups": [
+        "aromatic",
+        "carbonitrile",
+        "phenol or hydroxyhetarene"
+      ],
+      "name": "4-hydroxybenzonitrile"
+    },
+    {
+      "absolute_error_kcal_mol": 2.5379432757731566,
+      "compound_id": "mobley_4395315",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride",
+        "phenol or hydroxyhetarene"
+      ],
+      "name": "4-chloro-3-methyl-phenol"
+    },
+    {
+      "absolute_error_kcal_mol": 2.369329330288218,
+      "compound_id": "mobley_8614858",
+      "functional_groups": [
+        ""
+      ],
+      "name": "heptane"
+    },
+    {
+      "absolute_error_kcal_mol": 2.3125528092570735,
+      "compound_id": "mobley_1235151",
+      "functional_groups": [
+        "nitro"
+      ],
+      "name": "1-nitropentane"
+    },
+    {
+      "absolute_error_kcal_mol": 2.2048123721010224,
+      "compound_id": "mobley_2661134",
+      "functional_groups": [
+        "aromatic",
+        "carbonitrile",
+        "phenol or hydroxyhetarene"
+      ],
+      "name": "3-hydroxybenzonitrile"
+    },
+    {
+      "absolute_error_kcal_mol": 2.0834811546736445,
+      "compound_id": "mobley_3663158",
+      "functional_groups": [
+        "aromatic",
+        "phenol or hydroxyhetarene"
+      ],
+      "name": "naphthalen-2-ol"
+    },
+    {
+      "absolute_error_kcal_mol": 2.04619850252063,
+      "compound_id": "mobley_242480",
+      "functional_groups": [
+        "aromatic",
+        "ketone",
+        "primary amine",
+        "primary aromatic amine"
+      ],
+      "name": "1,4-diamino-9,10-anthracenedione"
+    },
+    {
+      "absolute_error_kcal_mol": 1.9413089376168493,
+      "compound_id": "mobley_352111",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "name": "2-acetoxyethyl acetate"
+    },
+    {
+      "absolute_error_kcal_mol": 1.9364190883758985,
+      "compound_id": "mobley_6006813",
+      "functional_groups": [
+        "nitro"
+      ],
+      "name": "1-nitrobutane"
+    },
+    {
+      "absolute_error_kcal_mol": 1.8643815235597223,
+      "compound_id": "mobley_7690440",
+      "functional_groups": [
+        "disulfide"
+      ],
+      "name": "methyldisulfanylmethane"
+    },
+    {
+      "absolute_error_kcal_mol": 1.8456133285638727,
+      "compound_id": "mobley_7106722",
+      "functional_groups": [
+        ""
+      ],
+      "name": "isohexane"
+    },
+    {
+      "absolute_error_kcal_mol": 1.7772777292602235,
+      "compound_id": "mobley_3259411",
+      "functional_groups": [
+        "1,2-diol",
+        "primary alcohol",
+        "secondary alcohol"
+      ],
+      "name": "glycerol"
+    },
+    {
+      "absolute_error_kcal_mol": 1.7595816070870987,
+      "compound_id": "mobley_2607611",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "name": "hexyl acetate"
+    },
+    {
+      "absolute_error_kcal_mol": 1.6844553864849097,
+      "compound_id": "mobley_3572203",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "name": "pentyl propanoate"
+    },
+    {
+      "absolute_error_kcal_mol": 1.6787663391794327,
+      "compound_id": "mobley_3980099",
+      "functional_groups": [
+        "aromatic",
+        "aryl chloride"
+      ],
+      "name": "1,2,3-trichlorobenzene"
+    },
+    {
+      "absolute_error_kcal_mol": 1.667299737648738,
+      "compound_id": "mobley_1592519",
+      "functional_groups": [
+        "carboxylic acid ester"
+      ],
+      "name": "ethyl hexanoate"
+    },
+    {
+      "absolute_error_kcal_mol": 1.488562183025552,
+      "compound_id": "mobley_3047364",
+      "functional_groups": [
+        "aromatic",
+        "heterocyclic",
+        "secondary aliphatic/aromatic amine (alkylarylamine)",
+        "secondary amine",
+        "thioether"
+      ],
+      "name": "2-N-ethyl-6-(methylsulfanyl)-4-N-(propan-2-yl)-1,3,5-triazine-2,4-diamine"
+    }
+  ]
+}

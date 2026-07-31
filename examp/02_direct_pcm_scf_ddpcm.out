@@ -1,0 +1,71 @@
+
+**********************************************************************
+*                                                                    *
+*                        M   A   P   L   E                           *
+*                                                                    *
+*      MAchine-learning Potential for Landscape Exploration          *
+*                                                                    *
+*                                                                    *
+*      © 2025 University of Pittsburgh. All rights reserved.         *
+*      Licensed under CC BY 4.0 for academic use.                    *
+*                                                                    *
+*      Principal Developer:  Xujian Wang                             *
+*                                                                    *
+**********************************************************************
+
+
+Parsing # commands...
+Global parameter: model = macepol-m
+Task set to 'sp'
+Global nested parameter: solv = {'implicit': 'water', 'method': 'smd', 'provider': 'pyddx', 'profile': 'smd-ddpcm-l15-n1202-pcm-half-coupling-v1', 'response': 'scf', 'standard_state': '1m', 'experimental': True}
+Parsed configuration:
+----------------------------------------
+Task: sp
+model          : macepol-m
+solv           : {'implicit': 'water', 'method': 'smd', 'provider': 'pyddx', 'profile': 'smd-ddpcm-l15-n1202-pcm-half-coupling-v1', 'response': 'scf', 'standard_state': '1m', 'experimental': True}
+
+                             Coordinates
+**********************************************************************
+
+Group 1 (MOL2: acetone.mol2)
+Charge: 0, Multiplicity: 1
+--------------------
+1    C             -0.703000            -0.411000             0.729000
+2    C             -0.057000            -0.447000             2.087000
+3    O              0.101000            -1.502000             2.699000
+4    C              0.385000             0.872000             2.662000
+5    H             -1.782000            -0.284000             0.840000
+6    H             -0.284000             0.412000             0.146000
+7    H             -0.509000            -1.351000             0.204000
+8    H             -0.430000             1.312000             3.244000
+9    H              0.648000             1.555000             1.851000
+10   H              1.245000             0.717000             3.318000
+
+Charge: 0, Multiplicity: 1
+Energy: -193.1527830704 Hartree
+Gas-phase MLIP energy: -193.1402252717 Hartree
+Solvation free-energy correction (Delta G_solv, 1M(gas)->1M(solution)): -0.0125577987 Hartree
+Combined E_MLIP(gas)+Delta G_solv: -193.1527830704 Hartree
+ASE free_energy is the combined electronic-plus-solvation value, not a thermochemical Gibbs free energy.
+
+
+
+Program started: 2026-07-31 16:35:11
+
+======================================================================
+                      TIMING SUMMARY
+======================================================================
+Input Reading.......................................   0.002 s  (   0.0 %)
+  Settings Parsing....................................   0.000 s  (  12.8 %)
+  Coordinate Section Parsing..........................   0.001 s  (  61.2 %)
+  Post-Processing Expansion...........................   0.000 s  (   0.2 %)
+MLP Initialization..................................   4.164 s  (  17.0 %)
+Job Dispatching.....................................  20.330 s  (  83.0 %)
+  Single Point Energy Calculation.....................  20.329 s  ( 100.0 %)
+======================================================================
+Total wall time: 24.496 s
+Total CPU time: 24.350 s
+======================================================================
+
+Program ended: 2026-07-31 16:35:36
+TOTAL RUN TIME: 0 days 0 hours 0 minutes 24 seconds 495 msec

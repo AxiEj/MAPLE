@@ -17,7 +17,12 @@ from pathlib import Path
 from typing import Any, Mapping
 
 import numpy as np
+from ase.units import Hartree
 
+from ....route2_energy_ledger import (
+    PCM_HALF_COUPLING_ONLY_V1,
+    route2_energy_composition_description,
+)
 from ....route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
     DDPCM_GAFF2_CARBONYL_O_PROFILE,
@@ -52,6 +57,9 @@ from .route2_engine import (
     SCF_REJECTED_GROWTH_ACTION,
     Route2SCFConvergenceError,
     Route2SCFHistoryRecord,
+)
+from .route2_force_admission import (
+    PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT,
 )
 from .route2_fixed_point import SAFEGUARDED_ANDERSON_SOLVER
 from .smd_cds import route2_coulomb_radii
@@ -385,20 +393,33 @@ class PyDDXSMDImplicitSolvation:
             "scientific_status": "single-point-energy-research",
             "solution_phase_pes": False,
             "forces_available": False,
-            "research_derivative_evidence_available": True,
+            "research_derivative_evidence_available": (
+                self.profile_spec.electrostatic_energy_ledger
+                != PCM_HALF_COUPLING_ONLY_V1
+            ),
             "research_derivative_evidence_scope": (
                 "single-point validation only; not an ASE force or "
                 "solution-phase PES capability"
+                if self.profile_spec.electrostatic_energy_ledger
+                != PCM_HALF_COUPLING_ONLY_V1
+                else "not available: the PCM-only ledger has no matching "
+                "stationary-force implementation"
             ),
             "accuracy_certified": False,
             "default_eligible": False,
-            "energy_composition": (
-                "delta_G_solv = (E_MACE_intrinsic[V_reac]-E_MACE_gas) "
-                f"+ E_{self.continuum_label} + G_CDS"
+            "electrostatic_energy_ledger": (
+                self.profile_spec.electrostatic_energy_ledger
+            ),
+            "energy_composition": route2_energy_composition_description(
+                self.profile_spec.electrostatic_energy_ledger,
+                continuum_symbol=self.continuum_label,
             ),
             "research_derivative_evidence_composition": (
                 "-d(delta_G_solv)/dR evaluated with the converged-density "
                 "response eliminated by one adjoint solve"
+                if self.profile_spec.electrostatic_energy_ledger
+                != PCM_HALF_COUPLING_ONLY_V1
+                else "not implemented for the PCM-only ledger"
             ),
             "numerics": numerics,
         }
@@ -665,6 +686,9 @@ class PyDDXSMDImplicitSolvation:
                         atoms,
                     )
                 ),
+                electrostatic_energy_ledger=(
+                    self.profile_spec.electrostatic_energy_ledger
+                ),
             )
         except Route2SCFConvergenceError as exc:
             self._write_scf_failure_audit(
@@ -836,6 +860,9 @@ class PyDDXSMDImplicitSolvation:
             calculator,
             gas_state,
             coupled,
+            force_admission_continuum=(
+                PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT
+            ),
         )
 
     def _write_result_audit(
@@ -869,7 +896,7 @@ class PyDDXSMDImplicitSolvation:
                 {
                     key: np.asarray(value, dtype=float)
                     for key, value in derivative.items()
-                    if key != "adjoint"
+                    if key not in {"adjoint", "force_admission"}
                 }
             )
         audit_stem = f"route2-{self.electrostatics_model}"
@@ -878,14 +905,24 @@ class PyDDXSMDImplicitSolvation:
         np.savez_compressed(state_path, **archive_arrays)
 
         payload = {
-            "schema_version": 2,
+            "schema_version": 3,
             "converged": True,
             "forces_evaluated": derivative is not None,
             "profile": self.profile,
             "solvent": self.solvent,
             "energies_hartree": components,
+            "electrostatic_energy_ledger": (
+                self.profile_spec.electrostatic_energy_ledger
+            ),
             "gas_mace_energy_ev": float(gas_state.energy_ev),
             "solvent_intrinsic_mace_energy_ev": float(coupled.solvent_state.energy_ev),
+            "field_conditioned_mace_energy_change_hartree": (
+                (
+                    float(coupled.solvent_state.energy_ev)
+                    - float(gas_state.energy_ev)
+                )
+                / Hartree
+            ),
             "polarization_energy_identity_error_ev": (coupled.energy_identity_error_ev),
             "scf": self._scf_audit_payload(
                 coupled.history,
@@ -896,6 +933,9 @@ class PyDDXSMDImplicitSolvation:
                 "cds": dict(coupled.cds_result.runtime_provenance),
             },
             "adjoint": (None if derivative is None else derivative["adjoint"]),
+            "force_admission": (
+                None if derivative is None else derivative["force_admission"]
+            ),
             "array_archive": str(state_path),
         }
         (self.audit_dir / f"{audit_stem}-result.json").write_text(
@@ -924,6 +964,16 @@ class PyDDXSMDImplicitSolvation:
         calculator=None,
     ) -> SinglePointDerivativeEvidence:
         """Return explicitly labelled derivative evidence outside ASE/PES APIs."""
+
+        if (
+            self.profile_spec.electrostatic_energy_ledger
+            == PCM_HALF_COUPLING_ONLY_V1
+        ):
+            raise NotImplementedError(
+                "The PCM-only Route-2 ledger is energy-only: its legacy "
+                "fixed-point adjoint differentiates a different scalar and "
+                "cannot be reused as a direct-PCM force."
+            )
 
         result = self._evaluate(
             atoms,
@@ -978,6 +1028,9 @@ class PyDDXSMDImplicitSolvation:
         components = self._engine.energy_components(
             gas_state,
             coupled,
+            electrostatic_energy_ledger=(
+                self.profile_spec.electrostatic_energy_ledger
+            ),
         )
         total_energy = components["delta_g_solv"]
 
@@ -1027,6 +1080,10 @@ class PyDDXSMDImplicitSolvation:
                 None if self.audit_dir is None else str(self.audit_dir)
             ),
         }
+        if derivative is not None:
+            runtime_provenance["force_admission"] = derivative[
+                "force_admission"
+            ]
         return SolvationResult(
             energy_hartree=total_energy,
             forces_hartree_per_angstrom=correction_forces,

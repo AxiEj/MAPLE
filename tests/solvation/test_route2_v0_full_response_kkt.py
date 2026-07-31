@@ -89,6 +89,21 @@ def _completion() -> response_kernel.Route2V0ResponseKernelCompletion:
     )
 
 
+def _molecular_moment_completion(
+) -> response_kernel.Route2V0MolecularMomentResponseKernelCompletion:
+    baseline = _baseline()
+    return response_kernel.complete_molecular_moment_response_kernel(
+        baseline_response_covariance_coefficient_dual=(
+            baseline.baseline_response_covariance_coefficient_dual
+        ),
+        atom_dipole_map_coefficient_to_ebohr=(
+            baseline.atom_dipole_map_coefficient_to_ebohr
+        ),
+        molecular_polarizability_bohr3=2.0 * np.eye(3),
+        charge_constraint_vector=None,
+    )
+
+
 def _geometry() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     positions = np.asarray([[0.0, 0.0, 0.0], [0.8, -0.3, 0.5]])
     numbers = np.asarray([1, 1])
@@ -202,6 +217,33 @@ def test_full_response_kkt_has_one_ledger_and_support_constrained_stationarity()
         + state.external_work_hartree,
         abs=1.0e-14,
     )
+    np.testing.assert_allclose(
+        state.external_response_coefficient_dual,
+        state.external_response_coefficient_dual.T,
+        rtol=0.0,
+        atol=1.0e-12,
+    )
+    assert np.max(np.linalg.eigvalsh(state.external_response_coefficient_dual)) <= 1.0e-12
+
+
+def test_full_response_kkt_accepts_the_molecular_moment_completion():
+    """The corrected no-fit response still shares the same scalar KKT solve."""
+
+    state = full_kkt.solve_route2_v0_full_response_kkt(
+        coupling=_coupling(),
+        completion=_molecular_moment_completion(),
+        continuum=_continuum(),
+        permanent_surface_potential_hartree_per_e=np.asarray(
+            [0.08, -0.04, 0.03, 0.01, -0.05, 0.02, 0.06]
+        ),
+        external_coefficient_dual_hartree=np.asarray(
+            [0.02, -0.01, 0.03, -0.02, 0.01, 0.04]
+        ),
+    )
+
+    assert state.kkt_residual_inf_hartree < 1.0e-12
+    assert state.support_constraint_residual_inf < 1.0e-12
+    assert state.support_minimum_curvature_hartree > state.support_stability_threshold_hartree
     np.testing.assert_allclose(
         state.external_response_coefficient_dual,
         state.external_response_coefficient_dual.T,

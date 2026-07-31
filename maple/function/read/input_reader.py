@@ -252,9 +252,11 @@ class InputReader():
                         "Route 2 SMD currently accepts exactly one molecule."
                     )
                 atoms = targets[0]
-                profile = route2_smd_profile_spec(
-                    implicit_options.get("profile", "smd-iefpcm")
-                )
+                if "profile" not in implicit_options:
+                    raise ValueError(
+                        "Route 2 SMD requires an explicit versioned profile."
+                    )
+                profile = route2_smd_profile_spec(implicit_options["profile"])
                 if profile.uses_gaff2_carbonyl_oxygen and "mol2" not in atoms.info:
                     raise ValueError(
                         f"Route 2 profile={profile.name} requires a MOL2 coordinate "

@@ -40,6 +40,10 @@ class ImplicitSolvationCorrection:
         method = str(self.solvation_options.get("method", "")).lower()
         if method != "smd":
             raise ValueError("The Route-2 branch supports method='smd' only.")
+        if "profile" not in self.solvation_options:
+            raise ValueError(
+                "Route 2 SMD requires an explicit versioned profile."
+            )
         provider_name = str(
             self.solvation_options.get("provider", "pcmsolver")
         ).lower()
@@ -96,6 +100,11 @@ class ImplicitSolvationCorrection:
         need_forces: bool = False,
         calculator=None,
     ) -> SolvationResult:
+        if need_forces:
+            raise NotImplementedError(
+                "Route 2 SMD does not expose forces before the "
+                "solution-phase PES validation gate passes."
+            )
         return self.provider.evaluate(
             atoms,
             need_forces=need_forces,

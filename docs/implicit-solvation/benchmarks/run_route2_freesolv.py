@@ -48,7 +48,8 @@ KCAL_PER_HARTREE = 627.5094740631
 PUBLIC_ROUTE2_SETTINGS = (
     "#model=macepol-m",
     "#sp",
-    "#solv(implicit=water,method=smd,response=scf,"
+    "#solv(implicit=water,method=smd,provider=pcmsolver,"
+    "profile=smd-iefpcm,response=scf,"
     "standard_state=1m,experimental=true)",
 )
 

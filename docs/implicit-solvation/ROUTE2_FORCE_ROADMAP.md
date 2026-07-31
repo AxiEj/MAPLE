@@ -13,8 +13,15 @@ MLIP--PCM/SMD coupling:
 The official MACE-POLAR-1-M checkpoint remains unchanged. FreeSolv is a
 secondary energy diagnostic, not the definition of the route. The default
 PCMSolver profile is a fixed-conformer energy proof-of-concept. The explicitly
-named pyddx/PySCF profile is a single-point force candidate. Neither may be
-described as a complete solution-phase PES.
+named pyddx/PySCF profile retains single-point derivative evidence, but the
+public provider is energy-only. Neither may be described as a complete
+solution-phase PES.
+
+**2026-07-31 public-boundary correction.** The historical force-path canaries
+below remain preserved derivative evidence. They no longer authorize normal
+parser/ASE forces: public `supported_properties` is energy-only and the
+derivative is reachable only through an explicit research-evidence API until
+the variational and solution-phase PES gates are passed.
 
 ## Current capability boundary and PES blockers
 

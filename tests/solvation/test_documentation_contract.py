@@ -39,7 +39,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
 
     assert "#model=macepol-m" in overview
     assert "#sp\n" in overview
-    assert "method=smd,response=scf,standard_state=1m,experimental=true" in overview
+    assert (
+        "method=smd,provider=pcmsolver,profile=smd-iefpcm,"
+        "response=scf,standard_state=1m,experimental=true"
+    ) in overview
     assert "backend=mock" not in overview
     assert "coarse-grained net charge density" in overview
     assert "not a thermochemical Gibbs free energy" in overview
@@ -47,7 +50,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "\\frac12" in formulas
     assert "Research/Innovation Route" in formulas
     assert "complete MAPLE solution-phase PES" in overview
-    assert "Force derivative: implemented candidate; PES validation remains" in formulas
+    assert "Research derivative evidence: retained; public force capability disabled" in formulas
     assert "#sp(verbose=1)" in overview
     assert "provider=pyddx" in overview
     assert "profile=smd-ddpcm-l15-n1202-v1" in overview
@@ -60,7 +63,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "not proof that it is equivalent" in overview
     assert "pyddx==0.8.0" in overview
     assert "pyscf==2.13.1" in overview
-    assert "single-point research force candidate" in overview
+    assert "single-point derivative evidence" in overview
     assert "not a universal grid" in formulas
     validation = (
         REPOSITORY_ROOT / "docs/implicit-solvation/VALIDATION_STATUS.md"
@@ -81,7 +84,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "`PEDRA.OUT` warning lines are" in overview
     assert "Complete same-energy coordinate VJP" in overview
     assert "PCMSolver--GePol | yes | no; fails closed" in overview
-    assert "pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | yes" in overview
+    assert (
+        "pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | "
+        "research evidence only | energy only"
+    ) in overview
     assert "profile=smd-ddpcm-l15-n1202-multisolv-v1" in overview
     assert "strict_original_smd_equivalence=false" in overview
     assert "SMD-CDS-augmented MACE-POLAR/ddPCM hybrid" in overview

@@ -5,7 +5,7 @@ from .ddpcm_smd import (
     DDPCMSMDImplicitSolvation,
     PyDDXSMDImplicitSolvation,
 )
-from .result import SolvationResult
+from .result import SinglePointDerivativeEvidence, SolvationResult
 from .smd import SMDImplicitSolvation
 from .smd_cds import smd_water_cds
 
@@ -14,6 +14,7 @@ __all__ = [
     "ImplicitSolvationCorrection",
     "PyDDXSMDImplicitSolvation",
     "SMDImplicitSolvation",
+    "SinglePointDerivativeEvidence",
     "SolvationResult",
     "smd_water_cds",
 ]

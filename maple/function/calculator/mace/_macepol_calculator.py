@@ -273,12 +273,14 @@ class MACEPolCalculator(CalcABC):
 
     @classmethod
     def build_implicit_solvent_kwargs(cls, solvation_options):
+        if "profile" not in solvation_options:
+            raise ValueError(
+                "Route 2 SMD requires an explicit versioned profile."
+            )
         provider = str(
             solvation_options.get("provider", "pcmsolver")
         ).strip().lower()
-        profile = str(
-            solvation_options.get("profile", "smd-iefpcm")
-        ).strip().lower()
+        profile = str(solvation_options["profile"]).strip().lower()
         spec = validate_route2_smd_profile(provider, profile)
         return {
             "long_range_evaluator_profile": (

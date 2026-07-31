@@ -3,8 +3,8 @@
 This branch contains only the MACE-POLAR + SMD continuum route. It does not
 contain the fixed-charge PB/GB implementation. The default
 PCMSolver--IEFPCM/GePol profile remains an energy proof-of-concept. Separate,
-explicit pyddx ddPCM profiles expose single-point research force candidates,
-including one versioned multi-solvent parameter profile. A separate
+explicit pyddx ddPCM profiles retain single-point derivative evidence behind a
+research-only API; their public Route-2 result remains energy-only. A separate
 PCMSolver profile changes only the ASC-to-MACE reaction-field projection from
 the historical local first-order jet to the checkpoint-native \(l\le1\) GTO
 integrals. A newer, still non-default profile combines that receiver with the
@@ -133,14 +133,15 @@ The public v1 input is:
 ```text
 #model=macepol-m
 #sp
-#solv(implicit=water,method=smd,response=scf,standard_state=1m,experimental=true)
+#solv(implicit=water,method=smd,provider=pcmsolver,profile=smd-iefpcm,response=scf,standard_state=1m,experimental=true)
 
 0 1
 MOL2 molecule.mol2
 ```
 
-The omitted locked defaults are `provider=pcmsolver` and
-`profile=smd-iefpcm`.  `response=scf` is the public default;
+The provider and versioned profile are explicit so that a result's continuum
+equation and cavity contract cannot be selected by a hidden default.
+`response=scf` is the public default;
 `response=frozen` is retained only as a diagnostic that solves PCM once from
 the gas-phase density. Canonical element-radius profiles also accept
 XYZ/inline geometry when the explicit `0 1` domain metadata is present;
@@ -209,11 +210,12 @@ energy-only experiment rather than a default replacement. The row-level
 experimental provenance and component ledger are frozen in
 [`route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1.json`](benchmarks/route2-pcmsolver-intrinsic-exact-gto-freesolv-ten-v1.json).
 
-The separately named single-point force candidate must be selected exactly:
+The separately named pyddx research profile must be selected exactly for its
+energy result:
 
 ```text
 #model=macepol-m
-#sp(verbose=1)
+#sp
 #solv(implicit=water,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-v1,response=scf,standard_state=1m,experimental=true)
 
 0 1
@@ -222,9 +224,12 @@ MOL2 molecule.mol2
 
 This profile fixes `lmax=15`, 1202 Lebedev points per sphere, `mixing=1.0`,
 the documented ddPCM and adjoint tolerances, and one same-energy derivative
-chain. It does not accept the PCMSolver-specific `cavity_policy`. The profile
-name records a bounded research candidate, not a universal grid or accuracy
-certification. The separately named
+evidence chain. It does not accept the PCMSolver-specific `cavity_policy`.
+Its public result does **not** expose `forces`; explicit
+`evaluate_single_point_derivative_evidence()` calls are retained solely for
+falsification and finite-difference validation, not ASE, optimization, MD, or
+a solution-phase PES. The profile name records a bounded research candidate,
+not a universal grid or accuracy certification. The separately named
 `smd-ddpcm-l15-n1202-gaff2-o-v1` profile applies the already documented
 GAFF/GAFF2 `o` carbonyl-oxygen radius change to the same numerical candidate;
 it is not the canonical default or a broad-accuracy claim.
@@ -325,7 +330,7 @@ authoritative and never falls back to another soname. The parser must resolve
 under the same installation prefix as that library; mixed installations fail
 before cavity construction.
 
-The explicit force candidate instead lazily requires exactly `pyddx==0.8.0`
+The pyddx derivative-evidence backend lazily requires exactly `pyddx==0.8.0`
 and `pyscf==2.13.1`. MAPLE does not declare either optional research runtime as
 a core dependency and fails closed when the exact versions or their compiled
 solvent libraries are unavailable. pyddx owns the ddPCM scalar energy,
@@ -380,13 +385,13 @@ metadata; MAPLE does not infer formal charges from Cartesian distances.
 
 The derivative capability boundary is likewise explicit:
 
-| Continuum path | Energy | Complete same-energy coordinate VJP | Public |
+| Continuum path | Energy | Complete same-energy coordinate VJP | Public capability |
 | --- | --- | --- | --- |
 | PCMSolver--GePol | yes | no; fails closed | energy only |
 | PCMSolver--GePol + exact receiver-GTO field projection | yes | no; feature-space adjoint/VJP absent | explicit non-default energy experiment |
-| pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | yes | explicit single-point research force candidate |
-| pyddx ddPCM multi-solvent parameters + PySCF SMD CDS | yes | yes | explicit capability candidate; accuracy not certified |
-| pyddx/GAFF2 + MACE reciprocal fixed-box40 | yes | yes | explicit non-default operator-variant candidate |
+| pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | research evidence only | energy only |
+| pyddx ddPCM multi-solvent parameters + PySCF SMD CDS | yes | research evidence only | energy only; accuracy not certified |
+| pyddx/GAFF2 + MACE reciprocal fixed-box40 | yes | research evidence only | energy only; non-default operator variant |
 | synthetic contract oracle | test only | yes | no |
 | external PySCF SWIG investigation | separate canary only | incomplete Route-2 integration | no |
 
@@ -394,13 +399,14 @@ The derivative capability boundary is likewise explicit:
 coordinate VJP only from the same reaction-field object used for its
 forward/adjoint maps. The current PCMSolver map does not implement that
 contract and remains energy-only. The explicitly named pyddx/PySCF profile
-implements the complete single-point correction derivative and exposes
-`forces`, but remains blocked from PES tasks by rotation, continuity, and
-energy-conservation gates.
+implements a complete single-point correction derivative for research
+evidence, but deliberately does not expose `forces`. It remains blocked from
+PES tasks by rotation, continuity, energy-conservation, and variational
+stationarity gates.
 
 Every PCMSolver evaluation retains `manifest.json`, the human and parsed
 PCMSolver inputs, PCMSolver/PEDRA cavity side files, `route2-state.npz`, and
-`route2-result.json` under `<output>.implicit/`. The pyddx force candidate
+`route2-result.json` under `<output>.implicit/`. The pyddx research provider
 retains `manifest.json`, `route2-ddpcm-state.npz`, and
 `route2-ddpcm-result.json` there. Legacy provider files remain contained rather
 than written into the launch directory. Both provenance records label the
@@ -408,8 +414,8 @@ model output correctly as a coarse-grained net charge density rather than a QM
 electron density.
 
 FreeSolv remains a secondary energy diagnostic; it does not define Route 2 and
-cannot certify a solution-phase PES. The first public single-point
-energy-consistent force candidate is now wired through MAPLE. A bounded
+cannot certify a solution-phase PES. The retained derivative evidence is not
+a public force capability. A bounded
 three-fixed-geometry QM/experiment comparison and four-geometry electronic
 conformer panel are frozen in
 [`route2-qm-fidelity-v1.json`](benchmarks/route2-qm-fidelity-v1.json);

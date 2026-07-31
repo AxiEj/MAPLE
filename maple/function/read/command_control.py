@@ -685,13 +685,9 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if (
-                    provider == "pyddx"
-                    and "profile" not in solv_params
-                ):
+                if "profile" not in solv_params:
                     msg = (
-                        "Route 2 provider=pyddx requires an explicit "
-                        "versioned profile."
+                        "Route 2 SMD requires an explicit versioned profile."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -761,12 +757,7 @@ class CommandControl:
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                profile = str(
-                    solv_params.get(
-                        "profile",
-                        "smd-iefpcm",
-                    )
-                ).lower()
+                profile = str(solv_params["profile"]).lower()
                 supported_profiles = route2_smd_profiles_for_provider(
                     provider
                 )

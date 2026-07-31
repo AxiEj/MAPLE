@@ -13,7 +13,10 @@ def test_input_reader_accepts_charge_mult_then_mol2(water_mol2, tmp_path):
             [
                 "#model=macepol-m",
                 "#sp",
-                "#solv(implicit=water,method=smd,response=scf,experimental=true)",
+                (
+                    "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                    "response=scf,experimental=true)"
+                ),
                 "",
                 "0 1",
                 f"MOL2 {water_mol2}",
@@ -36,7 +39,10 @@ def test_canonical_route2_profile_accepts_xyz_with_explicit_domain_metadata(tmp_
         "\n".join(
             [
                 "#model=macepol-m",
-                "#solv(implicit=water,method=smd,experimental=true)",
+                (
+                    "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                    "experimental=true)"
+                ),
                 "",
                 "0 1",
                 f"XYZ {xyz}",
@@ -103,7 +109,10 @@ def test_implicit_mol2_requires_explicit_neutral_closed_shell_line(water_mol2, t
         "\n".join(
             [
                 "#model=macepol-m",
-                "#solv(implicit=water,method=smd,experimental=true)",
+                (
+                    "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                    "experimental=true)"
+                ),
                 "",
                 f"MOL2 {water_mol2}",
             ]

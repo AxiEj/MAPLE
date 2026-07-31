@@ -3,10 +3,16 @@
 The public branch contains only official MACE-POLAR-1-M coupled to an explicit
 continuum provider. PCMSolver IEFPCM plus MAPLE's native aqueous SMD CDS remains
 the default energy-only proof-of-concept. Separately named pyddx ddPCM plus
-PySCF SMD CDS profiles are selectable as single-point research force
-candidates, including one explicit multi-solvent parameter profile. The
-independent PySCF SWIG/IEFPCM adapter remains private. Route 2 is still a
-Research/Innovation Route, not a complete solution-phase PES.
+PySCF SMD CDS profiles retain explicit single-point derivative evidence,
+including one multi-solvent parameter profile, but their public result is now
+also energy-only. The independent PySCF SWIG/IEFPCM adapter remains private.
+Route 2 is still a Research/Innovation Route, not a complete solution-phase
+PES.
+
+**2026-07-31 public-boundary correction.** Earlier sections preserve the
+historical normal-parser/ASE force-path canaries as derivative evidence. They
+do not describe the current API: `supported_properties` is energy-only and
+the derivative is available only through an explicit research-evidence call.
 
 ## Frozen no-training V0 disposition
 

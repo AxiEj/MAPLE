@@ -102,7 +102,10 @@ def test_route2_still_rejects_an_independent_charge_provider():
             "#model=macepol-m",
             "#sp",
             "#charge(source=mol2)",
-            "#solv(implicit=water,method=smd,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                "experimental=true)"
+            ),
         )
 
 

@@ -87,7 +87,7 @@ def _multisolvent_cosmo_options(solvent: str) -> dict[str, object]:
     }
 
 
-def test_public_parser_accepts_explicit_ddpcm_force_candidate():
+def test_public_parser_accepts_explicit_ddpcm_energy_research_profile():
     params = _parse(
         "#model=macepol-m",
         "#sp(verbose=1)",
@@ -561,7 +561,10 @@ def test_public_parser_keeps_pcmsolver_energy_only():
         _parse(
             "#model=macepol-m",
             "#sp(verbose=1)",
-            "#solv(implicit=water,method=smd,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,provider=pcmsolver,"
+                "profile=smd-iefpcm,experimental=true)"
+            ),
         )
 
 
@@ -599,7 +602,7 @@ def test_correction_dispatches_ddpcm_without_changing_pcmsolver_default(tmp_path
     )
 
     assert isinstance(ddpcm.provider, DDPCMSMDImplicitSolvation)
-    assert ddpcm.supported_properties == {"energy", "forces"}
+    assert ddpcm.supported_properties == {"energy"}
     assert type(pcmsolver.provider).__name__ == "SMDImplicitSolvation"
     assert pcmsolver.supported_properties == {"energy"}
 
@@ -1328,7 +1331,7 @@ def _coordinate_cds(atoms):
     )
 
 
-def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
+def test_ddpcm_provider_returns_research_derivative_evidence(
     monkeypatch,
     tmp_path,
 ):
@@ -1353,9 +1356,15 @@ def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
         audit_dir=tmp_path,
     )
 
-    result = provider.evaluate(
+    with pytest.raises(NotImplementedError, match="production result API"):
+        provider.evaluate(
+            atoms,
+            need_forces=True,
+            calculator=calculator,
+        )
+
+    evidence = provider.evaluate_single_point_derivative_evidence(
         atoms,
-        need_forces=True,
         calculator=calculator,
     )
 
@@ -1366,18 +1375,22 @@ def test_ddpcm_provider_returns_same_profile_energy_and_correction_force(
         expected_continuum_gradient
         + _fake_cds(atoms).position_gradient_hartree_per_angstrom
     )
-    assert result.energy_hartree == pytest.approx(0.2 / Hartree + 0.003)
+    assert evidence.energy_hartree == pytest.approx(0.2 / Hartree + 0.003)
     np.testing.assert_allclose(
-        result.forces_hartree_per_angstrom,
+        evidence.forces_hartree_per_angstrom,
         expected_correction_force,
     )
-    assert result.components_hartree["solute_polarization"] == pytest.approx(
+    assert evidence.components_hartree["solute_polarization"] == pytest.approx(
         0.2 / Hartree
     )
-    assert result.components_hartree["pcm_polarization"] == 0.0
-    assert result.provenance["provider"] == "pyddx"
-    assert result.provenance["forces_available"] is True
-    assert result.provenance["solution_phase_pes"] is False
+    assert evidence.components_hartree["pcm_polarization"] == 0.0
+    assert evidence.provenance["provider"] == "pyddx"
+    assert evidence.provenance["forces_available"] is False
+    assert evidence.provenance["research_derivative_evidence"] is True
+    assert evidence.provenance["solution_phase_pes"] is False
+    assert evidence.forces_hartree_per_angstrom.flags.writeable is False
+    with pytest.raises(TypeError):
+        evidence.components_hartree["cds"] = 0.0
     reaction_field = _ZeroReactionField.instances[0]
     assert reaction_field.n_proc == 1
     assert reaction_field.scf_apply_calls == 1
@@ -1417,14 +1430,17 @@ def test_ddpcm_provider_nonzero_response_force_matches_complete_correction_energ
             _options(),
             audit_dir=tmp_path / label,
         )
-        return (
-            provider.evaluate(
+        if need_forces:
+            result = provider.evaluate_single_point_derivative_evidence(
                 atoms,
-                need_forces=need_forces,
                 calculator=calculator,
-            ),
-            calculator,
-        )
+            )
+        else:
+            result = provider.evaluate(
+                atoms,
+                calculator=calculator,
+            )
+        return result, calculator
 
     coordinate = 0.23
     center, center_calculator = evaluate(
@@ -1466,7 +1482,8 @@ def test_ddpcm_provider_nonzero_response_force_matches_complete_correction_energ
     assert center_calculator.last_density_response.vjp_calls > 0
     center_reaction_field = _ScalarCoordinateReactionField.instances[0]
     assert abs(center_reaction_field.full_position_vjp_value) > 1.0e-8
-    assert center.provenance["forces_available"] is True
+    assert center.provenance["forces_available"] is False
+    assert center.provenance["research_derivative_evidence"] is True
 
 
 def test_ddpcm_provider_reuses_root_only_for_the_same_geometry(
@@ -1501,9 +1518,8 @@ def test_ddpcm_provider_reuses_root_only_for_the_same_geometry(
     )
 
     provider.evaluate(atoms, calculator=calculator)
-    provider.evaluate(
+    provider.evaluate_single_point_derivative_evidence(
         atoms,
-        need_forces=True,
         calculator=calculator,
     )
     moved = atoms.copy()
@@ -1553,9 +1569,8 @@ def test_ddpcm_provider_rejects_force_state_energy_drift(
     )
 
     with pytest.raises(RuntimeError, match="does not reproduce"):
-        provider.evaluate(
+        provider.evaluate_single_point_derivative_evidence(
             atoms,
-            need_forces=True,
             calculator=calculator,
         )
 
@@ -1590,7 +1605,7 @@ def test_ddpcm_provider_fails_closed_without_its_selected_runtime(
     assert not (tmp_path / "route2-ddpcm-state.npz").exists()
 
 
-def test_calcabc_adds_gas_force_and_ddpcm_correction_exactly_once(
+def test_calcabc_rejects_pyddx_force_requests_before_ase_evaluation(
     monkeypatch,
     tmp_path,
 ):
@@ -1615,22 +1630,12 @@ def test_calcabc_adds_gas_force_and_ddpcm_correction_exactly_once(
         output=tmp_path / "maple.out",
     )
 
-    calculator._finalize_results(
-        atoms,
-        energy=calculator.gas_state.energy_ev,
-        forces=calculator.gas_forces,
-        unit="eV",
-    )
-
-    expected_total_force = (
-        calculator.solvent_forces / Hartree
-        - _fake_cds(atoms).position_gradient_hartree_per_angstrom
-    )
-    np.testing.assert_allclose(
-        calculator.results["forces"],
-        expected_total_force,
-    )
-    assert calculator.results["energy"] == pytest.approx(
-        calculator.solvent_state.energy_ev / Hartree + 0.003
-    )
-    assert calculator.results["solvation"]["provenance"]["provider"] == "pyddx"
+    assert calculator.solvent_correction.supported_properties == {"energy"}
+    with pytest.raises(NotImplementedError, match="energy-consistent derivative"):
+        calculator.calculate(atoms, properties=["forces"])
+    with pytest.raises(NotImplementedError, match="does not expose forces"):
+        calculator.solvent_correction.evaluate(
+            atoms,
+            need_forces=True,
+            calculator=calculator,
+        )

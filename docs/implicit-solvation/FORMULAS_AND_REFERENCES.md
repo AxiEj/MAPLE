@@ -3,8 +3,9 @@
 ## Route 2: self-consistent polarizable MLIP--PCM/SMD coupling
 
 Route 2 is the **Research/Innovation Route**. Its default PCMSolver profile
-provides an energy proof-of-concept for one fixed conformer, while an explicit
-pyddx/PySCF profile provides a single-point research force candidate:
+provides an energy proof-of-concept for one fixed conformer. The explicit
+pyddx/PySCF profile retains a single-point derivative-evidence calculation,
+but its public result is energy-only:
 
 \[
 \Delta G_{\mathrm{solv}}
@@ -891,7 +892,13 @@ panel. It does not establish broad chemical-space accuracy, training-set
 exclusion, QM-force agreement, complete conformer thermochemistry, or a
 hardware-normalized performance advantage.
 
-### Force derivative: implemented candidate; PES validation remains
+### Research derivative evidence: retained; public force capability disabled
+
+The derivative construction below remains a falsification and
+finite-difference research artifact. As of 2026-07-31 it is returned only by
+the explicit `evaluate_single_point_derivative_evidence()` API, never by an
+ASE-facing `SolvationResult`; references below to a public force candidate are
+historical evidence, not the current public capability.
 
 For a converged density representation \(c^*(\mathbf R)\) and apparent surface
 charge \(\sigma^*(\mathbf R)\), the required solvent force is the total

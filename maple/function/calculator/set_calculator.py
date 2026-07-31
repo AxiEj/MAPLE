@@ -254,20 +254,11 @@ class SetCalculator:
                 raise ValueError(
                     "Route 2 provider must be pcmsolver or pyddx."
                 )
-            if (
-                provider == 'pyddx'
-                and 'profile' not in self.solvation_options
-            ):
+            if 'profile' not in self.solvation_options:
                 raise ValueError(
-                    "Route 2 provider=pyddx requires an explicit "
-                    "versioned profile."
+                    "Route 2 SMD requires an explicit versioned profile."
                 )
-            profile = str(
-                self.solvation_options.get(
-                    'profile',
-                    'smd-iefpcm',
-                )
-            ).lower()
+            profile = str(self.solvation_options['profile']).lower()
             supported_profiles = route2_smd_profiles_for_provider(provider)
             if profile not in supported_profiles:
                 raise ValueError(

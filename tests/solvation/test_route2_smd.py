@@ -79,22 +79,16 @@ def _co_atoms():
     return atoms
 
 
-def test_route2_public_contract_accepts_only_macepolar_m_and_defaults():
-    params = parse(
-        "#model=macepol-m",
-        "#sp",
-        "#solv(implicit=water,method=smd,response=scf,standard_state=1m,experimental=true)",
-    )
-
-    assert params["solv"] == {
-        "implicit": "water",
-        "method": "smd",
-        "response": "scf",
-        "standard_state": "1m",
-        "experimental": True,
-        "provider": "pcmsolver",
-        "profile": "smd-iefpcm",
-    }
+def test_route2_public_contract_requires_an_explicit_versioned_profile():
+    with pytest.raises(ValueError, match="explicit versioned profile"):
+        parse(
+            "#model=macepol-m",
+            "#sp",
+            (
+                "#solv(implicit=water,method=smd,response=scf,"
+                "standard_state=1m,experimental=true)"
+            ),
+        )
 
 
 def test_route2_public_contract_accepts_gaff2_carbonyl_oxygen_profile():
@@ -247,7 +241,8 @@ def test_route2_public_contract_accepts_fixed_stability_branch_cavity_policy():
         "#sp",
         (
             "#solv(implicit=water,method=smd,"
-            "cavity_policy=fixed-stability-branch,experimental=true)"
+            "profile=smd-iefpcm,cavity_policy=fixed-stability-branch,"
+            "experimental=true)"
         ),
     )
 
@@ -259,22 +254,34 @@ def test_route2_public_contract_accepts_fixed_stability_branch_cavity_policy():
     [
         (
             "#charge(source=mol2)",
-            "#solv(implicit=water,method=smd,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                "experimental=true)"
+            ),
             "remove #charge",
         ),
         (
             None,
-            "#solv(implicit=water,method=smd,provider=ddx,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,provider=ddx,"
+                "profile=smd-iefpcm,experimental=true)"
+            ),
             "provider=pcmsolver",
         ),
         (
             None,
-            "#solv(implicit=water,method=smd,standard_state=1atm,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                "standard_state=1atm,experimental=true)"
+            ),
             "standard_state must be 1m",
         ),
         (
             None,
-            "#solv(implicit=water,method=smd,backend=mock,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                "backend=mock,experimental=true)"
+            ),
             "Unknown solvation parameter",
         ),
     ],
@@ -295,7 +302,8 @@ def test_route2_rejects_unknown_cavity_policy():
             "#sp",
             (
                 "#solv(implicit=water,method=smd,"
-                "cavity_policy=geometry-dependent,experimental=true)"
+                "profile=smd-iefpcm,cavity_policy=geometry-dependent,"
+                "experimental=true)"
             ),
         )
 
@@ -306,7 +314,10 @@ def test_route2_rejects_any_model_except_official_macepolar_m(model):
         parse(
             f"#model={model}",
             "#sp",
-            "#solv(implicit=water,method=smd,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                "experimental=true)"
+            ),
         )
 
 
@@ -315,7 +326,10 @@ def test_route2_rejects_custom_checkpoint_or_plugin_options():
         parse(
             "#model=macepol-m(model_path=/tmp/custom.model)",
             "#sp",
-            "#solv(implicit=water,method=smd,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                "experimental=true)"
+            ),
         )
 
 
@@ -324,7 +338,10 @@ def test_route2_rejects_gradient_request():
         parse(
             "#model=macepol-m",
             "#sp(verbose=1)",
-            "#solv(implicit=water,method=smd,experimental=true)",
+            (
+                "#solv(implicit=water,method=smd,profile=smd-iefpcm,"
+                "experimental=true)"
+            ),
         )
 
 

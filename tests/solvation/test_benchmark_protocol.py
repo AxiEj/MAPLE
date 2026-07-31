@@ -195,7 +195,8 @@ def test_route2_benchmark_parses_the_exact_public_input_contract():
     assert route2_runner.PUBLIC_ROUTE2_SETTINGS == (
         "#model=macepol-m",
         "#sp",
-        "#solv(implicit=water,method=smd,response=scf,"
+        "#solv(implicit=water,method=smd,provider=pcmsolver,"
+        "profile=smd-iefpcm,response=scf,"
         "standard_state=1m,experimental=true)",
     )
     assert params == {

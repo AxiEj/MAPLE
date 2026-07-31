@@ -146,3 +146,17 @@ checkpoint-count literal (48 instead of the recorded 32) is a preserved,
 non-decisive bookkeeping defect; it does not excuse or alter the independent
 scientific rejection.  Do not rerun or tune V0-ARSP, and do not attach it to
 PCM/KKT, accuracy, or speed testing.
+
+**2026-07-31 — all-electron RHF/def2-TZVPD permanent-source proposal.**  A
+zero-training auxiliary-RHF source design was drafted from the same
+gas-to-continuum stationary-difference ledger: all-electron restricted HF,
+full nuclear-plus-AO electronic source, internal/external HF stability, and
+the existing all-point acetone static-MEP falsifier.  It was **not executed**:
+there is no helper artifact, no source gate value, no continuum result, and no
+accuracy or speed evidence.  The 2026-07-30 production audit correctly flags
+that adding another isolated V0 implementation before consolidating the
+source/receiver contract, evidence object, and public capability boundary
+would be horizontal expansion.  The proposal is therefore paused before
+execution rather than silently discarded.  Do not treat the earlier water
+RHF numerical discriminator as an RHF permanent-source admission or use it
+to choose a method by chemical error.

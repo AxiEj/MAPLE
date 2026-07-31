@@ -1,9 +1,9 @@
-"""Self-consistent MACE-POLAR/pyddx/SMD research force candidates.
+"""Self-consistent MACE-POLAR/pyddx/SMD research energy provider.
 
 This provider is deliberately separate from the public PCMSolver/GePol energy
 proof of concept.  One profile-selected pyddx ddPCM or scaled-ddCOSMO object
 owns the scalar polarization energy, reaction-field forward/adjoint maps, and
-complete coordinate derivative.  The official PySCF SMD CDS entrypoint
+research-only coordinate derivative evidence.  The official PySCF SMD CDS entrypoint
 supplies its scalar energy and matching analytic gradient.  Components from
 different continuum equations are never mixed.
 """
@@ -39,7 +39,7 @@ from .pyddx_pcm_response import (
     PyDDXPCMReactionFieldLinearMap,
 )
 from .pyscf_smd_cds import pyscf_smd_cds
-from .result import SolvationResult
+from .result import SinglePointDerivativeEvidence, SolvationResult
 from .route2_domain import validate_route2_domain
 from .route2_engine import (
     Route2ContinuumEngine,
@@ -89,6 +89,12 @@ ADJOINT_MAX_ITERATIONS = 100
 ENERGY_IDENTITY_TOLERANCE_EV = 2.0e-10
 FORCE_STATE_ENERGY_TOLERANCE_EV = 1.0e-9
 NEUTRAL_DENSITY_TOLERANCE = 1.0e-8
+
+PYDDX_DERIVATIVE_EVIDENCE_ONLY_ERROR = (
+    "Route 2 pyddx does not expose forces through its production result API; "
+    "use evaluate_single_point_derivative_evidence() only for explicit "
+    "research validation."
+)
 
 _MACE_POLAR_IDENTIFIER = "polar-1-m"
 _MACE_POLAR_RELEASE_URL = (
@@ -215,7 +221,7 @@ class PyDDXSMDImplicitSolvation:
     solvation_options: dict[str, Any]
     audit_dir: Path | None = None
 
-    supported_properties = frozenset({"energy", "forces"})
+    supported_properties = frozenset({"energy"})
 
     def __post_init__(self) -> None:
         self.solvation_options = dict(self.solvation_options)
@@ -376,18 +382,22 @@ class PyDDXSMDImplicitSolvation:
                 "mnsol_doi": self.solvent_spec.experimental_dataset_doi,
             },
             "route_role": "research-innovation",
-            "scientific_status": "single-point-force-candidate",
+            "scientific_status": "single-point-energy-research",
             "solution_phase_pes": False,
-            "forces_available": True,
+            "forces_available": False,
+            "research_derivative_evidence_available": True,
+            "research_derivative_evidence_scope": (
+                "single-point validation only; not an ASE force or "
+                "solution-phase PES capability"
+            ),
             "accuracy_certified": False,
             "default_eligible": False,
             "energy_composition": (
                 "delta_G_solv = (E_MACE_intrinsic[V_reac]-E_MACE_gas) "
                 f"+ E_{self.continuum_label} + G_CDS"
             ),
-            "force_composition": (
-                "F_solution = F_MACE_gas "
-                "- d(delta_G_solv)/dR, with the converged-density "
+            "research_derivative_evidence_composition": (
+                "-d(delta_G_solv)/dR evaluated with the converged-density "
                 "response eliminated by one adjoint solve"
             ),
             "numerics": numerics,
@@ -397,7 +407,7 @@ class PyDDXSMDImplicitSolvation:
     def _validate_options(self) -> None:
         if self.solvation_options.get("experimental") is not True:
             raise ValueError(
-                "The pyddx Route-2 force candidate requires "
+                "The pyddx Route-2 research provider requires "
                 "experimental=true explicitly."
             )
         if str(self.solvation_options.get("method", "")).lower() != "smd":
@@ -415,7 +425,9 @@ class PyDDXSMDImplicitSolvation:
                 f"solvent={self.solvent}."
             )
         if self.response != "scf":
-            raise ValueError("The pyddx Route-2 force candidate requires response=scf.")
+            raise ValueError(
+                "The pyddx Route-2 research provider requires response=scf."
+            )
         if self.standard_state != "1m":
             raise ValueError(
                 "Route 2 uses the 1 M gas -> 1 M solution convention only; "
@@ -897,6 +909,51 @@ class PyDDXSMDImplicitSolvation:
         need_forces: bool = False,
         calculator=None,
     ) -> SolvationResult:
+        if need_forces:
+            raise NotImplementedError(PYDDX_DERIVATIVE_EVIDENCE_ONLY_ERROR)
+        return self._evaluate(
+            atoms,
+            need_forces=False,
+            calculator=calculator,
+        )
+
+    def evaluate_single_point_derivative_evidence(
+        self,
+        atoms,
+        *,
+        calculator=None,
+    ) -> SinglePointDerivativeEvidence:
+        """Return explicitly labelled derivative evidence outside ASE/PES APIs."""
+
+        result = self._evaluate(
+            atoms,
+            need_forces=True,
+            calculator=calculator,
+        )
+        if result.forces_hartree_per_angstrom is None:
+            raise RuntimeError("pyddx derivative evidence did not produce forces.")
+        return SinglePointDerivativeEvidence(
+            energy_hartree=result.energy_hartree,
+            forces_hartree_per_angstrom=result.forces_hartree_per_angstrom,
+            components_hartree=result.components_hartree,
+            provenance={
+                **result.provenance,
+                "forces_available": False,
+                "research_derivative_evidence": True,
+                "research_derivative_evidence_scope": (
+                    "single-point validation only; not an ASE force or "
+                    "solution-phase PES capability"
+                ),
+            },
+        )
+
+    def _evaluate(
+        self,
+        atoms,
+        *,
+        need_forces: bool,
+        calculator=None,
+    ) -> SolvationResult:
         self._validate_atoms(atoms)
         self._validate_calculator(
             calculator,
@@ -998,6 +1055,7 @@ __all__ = [
     "DDPCM_SOLVER_TOLERANCE",
     "DDPCMSMDImplicitSolvation",
     "FORCE_STATE_ENERGY_TOLERANCE_EV",
+    "PYDDX_DERIVATIVE_EVIDENCE_ONLY_ERROR",
     "PyDDXSMDImplicitSolvation",
     "SCF_DENSITY_TOLERANCE",
     "SCF_ENERGY_TOLERANCE_EV",

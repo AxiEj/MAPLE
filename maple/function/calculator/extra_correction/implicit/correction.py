@@ -93,6 +93,31 @@ class ImplicitSolvationCorrection:
             encoding="utf-8",
         )
 
+    def _write_public_result_ledger(self, result: SolvationResult) -> None:
+        """Persist the checked leaf/derived energy split for one evaluation."""
+
+        if not result.leaf_components_hartree:
+            return
+        payload = {
+            "schema_version": 1,
+            "energy_hartree": float(result.energy_hartree),
+            "leaf_components_hartree": dict(result.leaf_components_hartree),
+            "derived_totals_hartree": dict(result.derived_totals_hartree),
+            "profile": result.provenance.get("profile"),
+            "provider": result.provenance.get("provider"),
+            "component_contract": (
+                "derived totals are checked from leaves; do not sum the "
+                "legacy flat components map"
+            ),
+        }
+        output_path = self.audit_dir / "route2-public-result-ledger.json"
+        temporary_path = output_path.with_suffix(".json.tmp")
+        temporary_path.write_text(
+            json.dumps(payload, indent=2, sort_keys=True, allow_nan=False),
+            encoding="utf-8",
+        )
+        temporary_path.replace(output_path)
+
     def evaluate(
         self,
         atoms,
@@ -105,8 +130,10 @@ class ImplicitSolvationCorrection:
                 "Route 2 SMD does not expose forces before the "
                 "solution-phase PES validation gate passes."
             )
-        return self.provider.evaluate(
+        result = self.provider.evaluate(
             atoms,
             need_forces=need_forces,
             calculator=calculator,
         )
+        self._write_public_result_ledger(result)
+        return result

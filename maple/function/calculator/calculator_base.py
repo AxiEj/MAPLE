@@ -397,6 +397,8 @@ class CalcABC(ase.calculators.calculator.Calculator):
                 'gas_energy_hartree': gas_energy_ha,
                 'combined_energy_hartree': float(energy_ha),
                 'components_hartree': dict(result.components_hartree),
+                'leaf_components_hartree': dict(result.leaf_components_hartree),
+                'derived_totals_hartree': dict(result.derived_totals_hartree),
                 'provenance': dict(result.provenance),
                 'ase_free_energy_is_thermochemical_gibbs': False,
             }

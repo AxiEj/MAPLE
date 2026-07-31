@@ -356,6 +356,12 @@ Solvation free-energy correction (Delta G_solv, 1M(gas)->1M(solution))
 Combined E_MLIP(gas)+Delta G_solv
 ```
 
+The public result ledger is split into immutable **leaf** components
+`solute_polarization`, `pcm_polarization`, `cds`, and `standard_state`, plus
+checked **derived** totals `electrostatic` and `delta_g_solv`. The legacy
+flat `components_hartree` view is read-only compatibility data; it must never
+be summed over because it contains both leaves and their derived totals.
+
 ASE's `free_energy` field is the same combined electronic-plus-solvation value,
 not a thermochemical Gibbs free energy with vibrational or thermal terms. The
 route uses a 1 M gas to 1 M solution convention, so it does **not** add the
@@ -411,7 +417,9 @@ retains `manifest.json`, `route2-ddpcm-state.npz`, and
 `route2-ddpcm-result.json` there. Legacy provider files remain contained rather
 than written into the launch directory. Both provenance records label the
 model output correctly as a coarse-grained net charge density rather than a QM
-electron density.
+electron density. The common wrapper also writes
+`route2-public-result-ledger.json` with immutable leaf terms and their checked
+derived totals.
 
 FreeSolv remains a secondary energy diagnostic; it does not define Route 2 and
 cannot certify a solution-phase PES. The retained derivative evidence is not

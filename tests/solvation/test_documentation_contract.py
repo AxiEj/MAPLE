@@ -46,6 +46,8 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "backend=mock" not in overview
     assert "coarse-grained net charge density" in overview
     assert "not a thermochemical Gibbs free energy" in overview
+    assert "immutable **leaf** components" in overview
+    assert "must never be summed over" in normalized_overview
     assert "E_{\\mathrm{MACE,intrinsic}}" in formulas
     assert "\\frac12" in formulas
     assert "Research/Innovation Route" in formulas
@@ -96,6 +98,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "not a multi-solvent accuracy estimate" in normalized_validation
     assert "route2-ddpcm-result.json" in overview
     assert "route2-ddpcm-state.npz" in overview
+    assert "route2-public-result-ledger.json" in overview
     assert "engineering stability hyperparameters" in formulas
     assert "not SMD/PCM constants" in formulas
     assert "0.9999" in formulas

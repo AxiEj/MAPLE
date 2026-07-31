@@ -105,6 +105,20 @@ No current V0 candidate has a valid total-solvation prediction set.  Therefore
 there is no current MAE, maximum error, or claim of progress toward chemical
 accuracy.
 
+**2026-07-31 — user-requested legacy exact-GTO high-error diagnostic.**  The
+five largest absolute errors in the retired QEq-GTO/GBn2 FreeSolv calculation
+(ethyl acetate, aniline, acetonitrile, chloroethane, and methoxymethane) were
+rerun without changing a model weight, radius, coefficient, or energy factor.
+The current legacy exact-GTO profile reduced their errors from
+`7.041/5.809/3.560/3.324/3.257` to
+`0.687/0.227/0.708/0.500/1.066 kcal/mol`, respectively.  The full frozen
+receipt is
+[`route2-legacy-exact-gto-historical-top5-diagnostic-v1.json`](benchmarks/route2-legacy-exact-gto-historical-top5-diagnostic-v1.json).
+This is deliberately a **diagnostic-only** result: the five records were
+selected by old errors, and the current profile remains the nonvariational,
+known-nonconjugate point-multipole-source/exact-GTO-receiver fixed point.  It
+does not establish V0 accuracy or weaken any all-record acceptance gate.
+
 The immutable future gates are preserved rather than weakened:
 
 1. [`route2-v0-historical-freesolv10-regression-v1.json`](benchmarks/route2-v0-historical-freesolv10-regression-v1.json) retains the historical ethyl-acetate record `mobley_6973347`, where the retired GTO/QEq/GBn2 calculation reached **7.041442082076966 kcal/mol** error.

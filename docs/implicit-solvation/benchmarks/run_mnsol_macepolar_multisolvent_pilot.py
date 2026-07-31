@@ -133,6 +133,21 @@ def artifact_name_for_energy_ledger(energy_ledger: str) -> str:
     raise AssertionError(f"Unhandled Route-2 energy ledger: {selected}.")
 
 
+def paired_energy_composition(energy_ledger: str) -> str:
+    """Describe the ledger shared by the ddPCM/ddCOSMO comparison.
+
+    A paired benchmark intentionally has one ledger and two continuum
+    equations.  Passing the joint label explicitly prevents a presentation
+    artifact from accidentally claiming that both equations use one named
+    continuum operator.
+    """
+
+    return route2_energy_composition_description(
+        energy_ledger,
+        continuum_symbol="ddPCM/ddCOSMO",
+    )
+
+
 def _execution_git_head() -> str:
     status = subprocess.run(
         ["git", "-C", str(REPO_ROOT), "status", "--porcelain"],
@@ -753,9 +768,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "reaction_field_projector": "local-jet",
             "continuum_equations": ["pyddx ddPCM", "pyddx ddCOSMO"],
             "nonpolar_model": "PySCF 2.13.1 SMD-CDS",
-            "energy_composition": route2_energy_composition_description(
-                energy_ledger
-            ),
+            "energy_composition": paired_energy_composition(energy_ledger),
             "electrostatic_energy_ledger": energy_ledger,
             "strict_original_smd_equivalence": False,
             "mutual_ml_continuum_polarization": True,

@@ -103,6 +103,12 @@ def test_energy_ledger_selects_a_locked_paired_equation_comparison():
     assert runner.artifact_name_for_energy_ledger(
         runner.PCM_HALF_COUPLING_ONLY_V1
     ) == runner.DIRECT_PCM_ARTIFACT_NAME
+    assert "E_ddPCM/ddCOSMO" in runner.paired_energy_composition(
+        runner.LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+    )
+    assert "0.5*<c_MACE-POLAR, f_reac_PCM>" in (
+        runner.paired_energy_composition(runner.PCM_HALF_COUPLING_ONLY_V1)
+    )
 
 
 def test_parser_keeps_legacy_control_default_and_accepts_direct_pcm():

@@ -143,6 +143,41 @@ MACE permanent reference nor explains the failed FreeSolv ledger.  The next
 valid discriminator remains a label-free nonuniform finite-field QM response
 oracle followed by a separately stationary permanent-source scalar.
 
+### Preregistered broad nonuniform-response oracle
+
+[`route2-v0-freesolv12-mace-localized-response-prereg-v1.json`](route2-v0-freesolv12-mace-localized-response-prereg-v1.json)
+freezes that next discriminator before execution.  For each of the same 12
+label-free geometries it selects four well-separated points from the existing
+geometry-only exterior shell by a deterministic maximin rule.  A unit charge
+at each point defines the scalar perturbation
+
+\[
+V_k(\mathbf r)=|\mathbf r-\mathbf s_k|^{-1},
+\]
+
+with zero fixed at infinity.  QM receives the matching one-electron operator
+`-q int1e_rinv(s_k)` at both `q=3e-4` and `1e-3`; MACE receives the exact
+atom-centred `[V, grad(V)]` jet and is differentiated by its existing autograd
+JVP.  The induced exterior MEP and induced molecular dipole are compared at
+the smaller step after both QM steps pass a `0.02` consistency gate.
+
+The scientific falsification limits (`0.20` aggregate MEP, `0.30` worst mode,
+and `0.20` induced dipole) are copied unchanged from the earlier acetone
+source falsifiers.  Every one of the 12 records must pass.  This oracle reads
+no experimental solvation value and invokes no continuum; even a pass cannot
+make the already nonreciprocal learned fixed point variational.
+
+```bash
+PY=/path/to/pinned-mace-and-pyscf-python
+PYTHONPATH=$PWD "$PY" \
+  docs/implicit-solvation/benchmarks/run_route2_v0_freesolv12_localized_response.py \
+  --mol2-root .omx/benchmarks/route2-macepolar-smd-smoke/dataset \
+  --static-source-work-dir \
+    .omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-edfae78e \
+  --work-dir .omx/benchmarks/route2-v0-freesolv12-localized-response-<git-sha> \
+  --qm-python "$PY"
+```
+
 The locked twelve-record water comparison is run only from a clean commit:
 
 ```bash

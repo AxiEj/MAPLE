@@ -229,6 +229,17 @@ recorded as a completed diagnostic rather than a pass or rejection.  It also
 does not test the learned field response used by the direct ledger, so the
 nonuniform-response and stationary-reference gates remain open.
 
+The nonuniform gate is now frozen, before execution, in
+[`route2-v0-freesolv12-mace-localized-response-prereg-v1.json`](benchmarks/route2-v0-freesolv12-mace-localized-response-prereg-v1.json).
+It uses four deterministic maximin exterior point-charge perturbations per
+geometry, two QM finite-difference amplitudes, and the current MACE local-jet
+autograd JVP.  It retains the earlier `0.20/0.30` source-response limits and
+requires every one of the twelve records to pass.  The perturbation is a
+single scalar Coulomb potential on both sides; it is therefore a direct test
+of spatial response rather than a comparison of unrelated field interfaces.
+It remains label-free and cannot admit the known nonvariational learned fixed
+point as a common-energy model.
+
 ## Ordered evidence, before any experimental score
 
 1. **Permanent-source provenance:** derive and freeze a molecular stationary

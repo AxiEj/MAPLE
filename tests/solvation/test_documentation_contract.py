@@ -207,6 +207,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
         "route2-v0-freesolv12-zero-field-mace-static-surface-mep-"
         "execution-edfae78e.json"
     ) in benchmark
+    assert "route2-v0-freesolv12-mace-localized-response-prereg-v1.json" in benchmark
     assert "The force adjoint is **not** an additional" in formulas
     assert "QM fidelity, component cancellation" in formulas
     assert f"{fixed_qm_mae:.4f} kcal/mol" in formulas

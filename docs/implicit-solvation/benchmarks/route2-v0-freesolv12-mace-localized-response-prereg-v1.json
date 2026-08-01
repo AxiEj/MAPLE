@@ -1,0 +1,237 @@
+{
+  "claim_boundary": "This label-free twelve-geometry gas-phase oracle compares the current MACE-POLAR zero-field local-jet density JVP with independent two-step omegaB97M-V/def2-TZVPD response to four geometry-selected exterior point charges per molecule. It evaluates induced MEP and dipole response only. It invokes no continuum, solvent, experimental solvation label, fitting, post-training, fine-tuning, force, PES, or public profile change. A pass cannot make the known nonvariational learned fixed point a common-energy electronic functional; a failure rejects its spatial response for this gate.",
+  "decision_rule": "All twelve records, including ten actual functional groups, must pass every numerical and scientific gate. If any record fails, reject the current learned local-jet response as a transferable spatial response under this protocol. Do not change modes, steps, thresholds, source representation, radii, model weights, response scale, or record subset after observing the result, and do not use an experimental solvation residual to repair it. A pass permits only comparison with separately scalar V0 response candidates.",
+  "execution_contract": {
+    "input_sha256": {
+      "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-execution-edfae78e.json": "e6521c56520cc3794f47a5f1724b8c99290ccd6903bfc28eef734f2d47e839f4",
+      "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-prereg-v1.json": "21e4e607b5c88d498be117f41c37b54b00d96eb953c78874eb1ea39b7a040f20"
+    },
+    "runtime": {
+      "max_memory_mb": 8000,
+      "pyscf_version": "2.13.1",
+      "threads": 8
+    },
+    "source_sha256": {
+      "docs/implicit-solvation/benchmarks/route2_qm_localized_point_charge_response.py": "75be973ef0940e976d69d56dd22941c1235ce80d1dfac552d152b05bad2b1fe6",
+      "docs/implicit-solvation/benchmarks/route2_qm_surface_mep.py": "3e21714d078b72edf691f5a4809485ea321d3c3cf9c9e04a498b678e7f73c276",
+      "docs/implicit-solvation/benchmarks/run_route2_v0_freesolv12_localized_response.py": "0f9b22356a61a690d3ff0781e607f0247a154b56d448fcb462359303a395354f",
+      "docs/implicit-solvation/benchmarks/run_route2_v0_freesolv12_zero_field_static_mep.py": "cadccb3ec8fac30d6891133569ef76d7c34c97981a126d94a9de915652428b5f",
+      "maple/function/calculator/extra_correction/implicit/gto_density.py": "962329c7c5e4c1e57331d8925437d842d293df0c154e4701c14caf638e1529c3",
+      "maple/function/calculator/extra_correction/implicit/route2_nonuniform_response.py": "29385c51ee4bde6b5334ccd9fb2ea5150248e96dfcd440c0b0a3dc0c00a6058b",
+      "maple/function/calculator/extra_correction/implicit/route2_static_surface_mep.py": "ed3df89c1a107586a6de1da9158b076f80c1a4448f282e815de6cd9b672dad7c",
+      "maple/function/calculator/extra_correction/implicit/smd_cds.py": "d34f5f71c6cf709fe9ed2eb099608a7f5a64db8cd70f3df52a0e1bebeec54dd1",
+      "maple/function/calculator/mace/_macepol_calculator.py": "7052235ef1bbc5a7674baddf97902689301a3ac6de5f2b33d8284b183de0b249",
+      "maple/function/route2_smd_profiles.py": "724ba404c749288c744f2e330a59421a47bc24f736f8f76c8bddaeb1191ec229"
+    }
+  },
+  "finite_field_protocol": {
+    "field_steps_e": [
+      0.0003,
+      0.001
+    ],
+    "selected_reporting_step_e": 0.0003,
+    "signs": [
+      -1,
+      1
+    ]
+  },
+  "hard_constraints": {
+    "continuum_or_pcm_invoked": false,
+    "experimental_solvation_labels_read": false,
+    "fine_tuning": false,
+    "legacy_public_route_changed": false,
+    "map_or_uq_calibration": false,
+    "mode_or_record_subset_selected_after_execution": false,
+    "post_training": false,
+    "response_rescaling_tempering_or_clipping": false,
+    "target_fit_or_calibration": false
+  },
+  "locked_record_identity_sha256": "dc985b92eadd0c583a6d18fa617723d5b5c6d5577627dc2b6b462eaeac57eed5",
+  "locked_records": [
+    {
+      "chemical_class": "alkane",
+      "compound_id": "mobley_9055303",
+      "functional_group": null,
+      "mol2_archive_member": "mol2files_gaff/mobley_9055303.mol2",
+      "mol2_sha256": "d3444794acbe124f7d423a564286d58a8ad7f98e559ccd08c002f1333516662b",
+      "name": "methane",
+      "natoms": 5,
+      "ordinal": 1,
+      "source_database_record_sha256": "2a96f1bc116d15b2962d24e65b600ae83eee44258acf2f04788917e2d07fcc2a"
+    },
+    {
+      "chemical_class": "aromatic hydrocarbon",
+      "compound_id": "mobley_3053621",
+      "functional_group": null,
+      "mol2_archive_member": "mol2files_gaff/mobley_3053621.mol2",
+      "mol2_sha256": "42a6f4acb8bc838070cb6c1be02543fdf29bd630eded5e891383d3b4cc56a41a",
+      "name": "benzene",
+      "natoms": 12,
+      "ordinal": 2,
+      "source_database_record_sha256": "0c700956292e308a517f586d59b70170fef2375b9a0af7286c9339a10970b6aa"
+    },
+    {
+      "chemical_class": "alcohol",
+      "compound_id": "mobley_1636752",
+      "functional_group": "primary-alcohol",
+      "mol2_archive_member": "mol2files_gaff/mobley_1636752.mol2",
+      "mol2_sha256": "9f03bd3c7452d7b362bfdd1a8a8dd7a954fbf1a3b3b80a7ef55f75c7a25468a2",
+      "name": "methanol",
+      "natoms": 6,
+      "ordinal": 3,
+      "source_database_record_sha256": "abeea14ef93c298abf1c5af0595a00400d16b439ceda69d47d6abc9b72d9924d"
+    },
+    {
+      "chemical_class": "ether",
+      "compound_id": "mobley_7015518",
+      "functional_group": "dialkyl-ether",
+      "mol2_archive_member": "mol2files_gaff/mobley_7015518.mol2",
+      "mol2_sha256": "43fc0e1859c4536b1e5c6ccddbb5b370af168cb759a17ec927aa4e77dd2aedbb",
+      "name": "methoxymethane",
+      "natoms": 9,
+      "ordinal": 4,
+      "source_database_record_sha256": "8c4fa6d463b3e4a74de82950261cf7ae95763b69e60e606873b65671f480c086"
+    },
+    {
+      "chemical_class": "ketone",
+      "compound_id": "mobley_3867265",
+      "functional_group": "ketone",
+      "mol2_archive_member": "mol2files_gaff/mobley_3867265.mol2",
+      "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+      "name": "acetone",
+      "natoms": 10,
+      "ordinal": 5,
+      "source_database_record_sha256": "36fca3b4c554f8f00281b911de45c3be74cc3e16091fa0ff101a6d35728f682f"
+    },
+    {
+      "chemical_class": "ester",
+      "compound_id": "mobley_6973347",
+      "functional_group": "carboxylic-acid-ester",
+      "mol2_archive_member": "mol2files_gaff/mobley_6973347.mol2",
+      "mol2_sha256": "4f7ff04fca2240112ead2c9cc8d94a91f79b27d44ae5b2ea3f76ddf8531f7af8",
+      "name": "ethyl acetate",
+      "natoms": 14,
+      "ordinal": 6,
+      "source_database_record_sha256": "5018c3e7e3e514edf6340d86f936af7aec32e407e1b19552e373952c52c5c3c9"
+    },
+    {
+      "chemical_class": "nitrile",
+      "compound_id": "mobley_7532833",
+      "functional_group": "carbonitrile",
+      "mol2_archive_member": "mol2files_gaff/mobley_7532833.mol2",
+      "mol2_sha256": "21e4c6f42cbc2791b6fdbdaaa7a044f352503ff5675efb879ba7351265666b60",
+      "name": "acetonitrile",
+      "natoms": 6,
+      "ordinal": 7,
+      "source_database_record_sha256": "e50365fbaeea41b1e6783a6820e0865c6a27e4de3c012f5fbb7a8907e6520b41"
+    },
+    {
+      "chemical_class": "aromatic amine",
+      "compound_id": "mobley_4883284",
+      "functional_group": "primary-aromatic-amine",
+      "mol2_archive_member": "mol2files_gaff/mobley_4883284.mol2",
+      "mol2_sha256": "f3a63d4ded1d59d7685c48fe84ae69a874a952ea41d2b5fac3673679c135b479",
+      "name": "aniline",
+      "natoms": 14,
+      "ordinal": 8,
+      "source_database_record_sha256": "da2e7ea5d9ef460c7996334cd30b4a8fa541d87fdf515313bec808169398e992"
+    },
+    {
+      "chemical_class": "haloalkane",
+      "compound_id": "mobley_2198613",
+      "functional_group": "alkyl-chloride",
+      "mol2_archive_member": "mol2files_gaff/mobley_2198613.mol2",
+      "mol2_sha256": "8324d857045111c381fce8b3b9cf6b5c5499eebd7adc2dd2fe2a2fd2b6165a30",
+      "name": "chloroethane",
+      "natoms": 8,
+      "ordinal": 9,
+      "source_database_record_sha256": "b925c3625defcc92bd0e690834fa93cd61ea3c5c2757f6f334cd698fb0e6b205"
+    },
+    {
+      "chemical_class": "sulfoxide",
+      "compound_id": "mobley_8578590",
+      "functional_group": "sulfoxide",
+      "mol2_archive_member": "mol2files_gaff/mobley_8578590.mol2",
+      "mol2_sha256": "eb17e4989468f9f100a4a299960279da0c8a011c8cc5798496c9b548214fec9d",
+      "name": "methylsulfinylmethane",
+      "natoms": 10,
+      "ordinal": 10,
+      "source_database_record_sha256": "ac7c34a25bcdd565b6953d969ac216eb8c31884b2c2922d6123d2fa5eb53eb1e"
+    },
+    {
+      "chemical_class": "amide",
+      "compound_id": "mobley_8048190",
+      "functional_group": "primary-carboxylic-acid-amide",
+      "mol2_archive_member": "mol2files_gaff/mobley_8048190.mol2",
+      "mol2_sha256": "04cfd88f681f2f77524301fe57bf450601c3c9e41c38a80e346e575e61d3f4f1",
+      "name": "acetamide",
+      "natoms": 9,
+      "ordinal": 11,
+      "source_database_record_sha256": "9731212c6aa5f80141b17b2ba8596edb68313c72e58d79c7ccf3cc2fef589166"
+    },
+    {
+      "chemical_class": "carboxylic acid",
+      "compound_id": "mobley_3034976",
+      "functional_group": "carboxylic-acid",
+      "mol2_archive_member": "mol2files_gaff/mobley_3034976.mol2",
+      "mol2_sha256": "42ce1b62bbe2fced6da5e7ac07b89a851dd9ea6b3d579907bffa0a2c50fbf697",
+      "name": "acetic acid",
+      "natoms": 8,
+      "ordinal": 12,
+      "source_database_record_sha256": "4b4c222f70ca25d1a053725f34097ce4b8e8af643340975691756c91df841944"
+    }
+  ],
+  "mode_protocol": {
+    "external_potential": "V_k(r)=1/|r-s_k| with zero at infinity; QM one-electron perturbation is -q V_k and MACE receives the exact atom-centred [V,grad V] jet",
+    "mode_count": 4,
+    "selection": "Deterministic maximin farthest-point selection from the already frozen geometry-only exterior shell, seeded by distance from the nuclear-geometry centroid with lowest-index tie breaking",
+    "surface": {
+      "clearance_angstrom": 1.0,
+      "exterior_rule": "Retain a geometry-only candidate only when it is outside every same-clearance atomic sphere; no MACE/QM/continuum/experimental value can alter membership.",
+      "kind": "fixed-26-direction-octahedral-cubic-exterior-shell-v1",
+      "not_a_continuum_claim": "The weights are only for fixed surface-MEP discrepancy metrics; they are not a PCM operator or reaction-energy norm.",
+      "radius_rule": "water SMD Coulomb radius plus fixed 1.0 angstrom clearance"
+    }
+  },
+  "numerical_gates": {
+    "mace_charge_response_absolute_max": 1e-08,
+    "mace_density_dipole_closure_relative_frobenius_max": 0.0001,
+    "mace_jvp_finite_difference_relative_frobenius_max": 0.0001,
+    "qm_dipole_step_consistency_relative_frobenius_max": 0.02,
+    "qm_mep_step_consistency_relative_frobenius_max": 0.02
+  },
+  "parent_static_source": {
+    "private_summary_sha256": "b93a5c4bb5f5115ccdb84183143d09e813c342e96866e777ccfe708ae85e26f5",
+    "public_execution_path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-execution-edfae78e.json",
+    "public_execution_sha256": "e6521c56520cc3794f47a5f1724b8c99290ccd6903bfc28eef734f2d47e839f4",
+    "reuse_rule": "Reuse only the exact hash-bound gas checkpoints and geometry-only surface points from the completed static-source oracle; regenerate no geometry and read no experimental label."
+  },
+  "protocol_id": "route2-v0-freesolv12-mace-localized-response-prereg-v1",
+  "qm_method": {
+    "basis": "def2-tzvpd",
+    "charge": 0,
+    "density_fitting": true,
+    "electronic_structure": "omegaB97M-V",
+    "maximum_scf_cycles": 100,
+    "nonlocal_grid_profile": "50x194-SG1",
+    "pyscf_xc_token": "wb97m-v",
+    "reference": "RKS",
+    "scf_energy_tolerance_hartree": 1e-10,
+    "scf_gradient_tolerance": 1e-07,
+    "semilocal_grid_level": 3,
+    "spin": 0
+  },
+  "schema_version": 1,
+  "scientific_falsification_gates": {
+    "induced_dipole_response_relative_frobenius_max": 0.2,
+    "interpretation": "The 0.20 aggregate and 0.30 worst-mode limits are copied unchanged from the pre-existing acetone induced-source falsifiers. They were not chosen from this run and cannot admit a nonvariational fixed point as an energy.",
+    "mep_response_relative_frobenius_max": 0.2,
+    "mep_response_relative_mode_max": 0.3
+  },
+  "source_candidate": {
+    "induced_source": "Exact autograd JVP of official unmodified MACE-POLAR-1-M l<=1 density coefficients at zero local field, evaluated as the current exterior point multipole source",
+    "known_boundary": "The learned response has already failed reciprocity and is tested here only for spatial fidelity; it is not a variational V0 candidate.",
+    "receiver": "current local atom-centred potential/gradient jet"
+  },
+  "status": "frozen-before-execution"
+}

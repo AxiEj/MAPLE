@@ -41,6 +41,8 @@ for _path in (REPO_ROOT, SCRIPT_DIR):
         sys.path.insert(0, _value)
 
 from benchmark_core import canonical_json_bytes, sha256_file, write_json_atomic  # noqa: E402
+from maple.function.calculator.set_calculator import SetCalculator  # noqa: E402
+from maple.function.read.command_control import CommandControl  # noqa: E402
 from maple.function.calculator.extra_correction.implicit.gto_density import (  # noqa: E402
     cartesian_multipoles,
     point_multipole_potential,
@@ -207,6 +209,47 @@ def _atoms(record: dict[str, object], mol2_root: Path) -> Atoms:
         raise RuntimeError(f"Locked atom count drifted for {record['compound_id']}.")
     atoms.info.update(charge=0, mult=1)
     return atoms
+
+
+def _load_route2_float64_source_calculator(first_atoms: Atoms, work_dir: Path):
+    """Load the registered float64 Route-2 MACE state without a solvent solve.
+
+    ``MACEPolCalculator`` reserves float64 for its Route-2 factory path so
+    that the ordinary float32 gas-only calculator remains unchanged.  This
+    source oracle reuses that existing factory only to load the same official
+    zero-field MACE state at Route-2 precision.  It calls ``polar_state``
+    directly below and never invokes the attached correction's evaluate/SCF
+    path or obtains a combined energy.
+    """
+
+    settings = CommandControl.from_settings(
+        [
+            "#model=macepol-m",
+            "#sp",
+            (
+                "#solv(implicit=water,method=smd,provider=pyddx,"
+                f"profile={DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE},"
+                "response=scf,standard_state=1m,experimental=true)"
+            ),
+        ]
+    ).as_dict()
+    calculator = SetCalculator(
+        "cpu",
+        settings["model"],
+        str(work_dir / "mace-zero-field-source-load.out"),
+        atoms=first_atoms,
+        d4=False,
+        implicit=settings["solv"]["method"],
+        solvent=settings["solv"]["implicit"],
+        model_options=settings.get("model_options"),
+        solvation_options=settings["solv"],
+        charge_options=settings.get("charge") or {},
+    ).set_calculator()
+    if str(getattr(calculator, "dtype", "")) != "torch.float64":
+        raise RuntimeError(
+            "Static-MEP source oracle requires Route-2 float64 MACE-POLAR."
+        )
+    return calculator
 
 
 def _source_hashes(manifest_path: Path) -> dict[str, str]:
@@ -477,11 +520,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     calculator = None
     if pending:
-        from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
-
-        calculator = MACEPolCalculator(device="cpu", model="macepolm", implicit="none")
-        if str(calculator.dtype) != "torch.float64":
-            raise RuntimeError("Static-MEP source oracle requires float64 MACE-POLAR.")
+        first_record = pending[0]
+        assert isinstance(first_record, dict)
+        calculator = _load_route2_float64_source_calculator(
+            _atoms(first_record, mol2_root), work_dir
+        )
 
     for ordinal, record in enumerate(records, start=1):
         assert isinstance(record, dict)
@@ -555,6 +598,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         "failures": failures,
         "aggregate_metrics": metrics,
         "records": completed,
+        "runtime": (
+            None
+            if calculator is None
+            else {
+                "mace_dtype": str(calculator.dtype),
+                "mace_polar_checkpoint": dict(
+                    calculator.mace_polar_checkpoint_provenance
+                ),
+                "solvent_correction_evaluate_called": False,
+            }
+        ),
         "disposition": {
             "experimental_solvation_labels_read": False,
             "continuum_or_solvation_energy_invoked": False,

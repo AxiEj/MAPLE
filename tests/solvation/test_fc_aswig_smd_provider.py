@@ -19,6 +19,14 @@ from maple.function.calculator.extra_correction.implicit.fc_aswig_smd import (
 from maple.function.calculator.extra_correction.implicit.route2_fixed_point import (
     SAFEGUARDED_ANDERSON_SOLVER,
 )
+from maple.function.calculator.extra_correction.implicit.route2_electronic_model import (
+    ATOMIC_L1_SOURCE_SPACE,
+    FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    Route2ElectronicModelCapabilities,
+    Route2ElectronicModelDescriptor,
+)
+from maple.function.calculator.calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
+from maple.function.route2_model_contracts import ROUTE2_MACE_POLAR_MODEL_FAMILY
 from maple.function.route2_smd_profiles import (
     FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE,
     FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
@@ -69,6 +77,22 @@ class _ZeroResponse:
 
 class _ZeroMACEPolarCalculator:
     """Minimal exact fixed point used only to exercise provider composition."""
+
+    route2_electronic_model_descriptor = Route2ElectronicModelDescriptor(
+        adapter_name="fake-mace-polar-fc-aswig-adapter-v1",
+        model_family=ROUTE2_MACE_POLAR_MODEL_FAMILY,
+        field_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        source_space=ATOMIC_L1_SOURCE_SPACE,
+        capabilities=Route2ElectronicModelCapabilities(
+            state_projectors=frozenset({"local-jet"}),
+            gas_forces=True,
+            response_projectors=frozenset({"local-jet"}),
+            position_vjp_projectors=frozenset({"local-jet"}),
+            fixed_field_force_projectors=frozenset({"local-jet"}),
+        ),
+        energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+        profile_binding=ROUTE2_SMD_CALCULATOR_PROFILE,
+    )
 
     def __init__(self, atoms: Atoms):
         self.atoms = atoms.copy()

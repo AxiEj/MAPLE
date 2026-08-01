@@ -1,4 +1,4 @@
-"""Route-2 composition boundary for MACE-POLAR plus SMD continuum."""
+"""Route-2 composition boundary for field-aware MLIPs and SMD continuum."""
 
 from __future__ import annotations
 
@@ -106,7 +106,8 @@ class ImplicitSolvationCorrection:
         self.solvation_options = dict(solvation_options)
         if self.charge_options:
             raise ValueError(
-                "Route 2 obtains its density from MACE-POLAR; remove #charge(...)."
+                "Route 2 obtains its electrostatic source from the selected "
+                "electronic-model adapter; remove #charge(...)."
             )
         if self.solvation_options.get("experimental") is not True:
             raise ValueError(

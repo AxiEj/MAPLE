@@ -16,10 +16,7 @@ from typing import Callable, Protocol, cast
 import numpy as np
 from ase.units import Hartree
 
-from .gto_density import (
-    density_to_external_field_order,
-    external_field_to_density_order,
-)
+from .electrostatic_pairing import ElectrostaticPairing, MACE_POLAR_L1_PAIRING
 from .route2_feature_response import ModelFeatureLinearMap
 from .route2_response import (
     DensityResponseLinearization,
@@ -205,19 +202,20 @@ def fixed_cavity_energy_density_gradient(
     *,
     reaction_field_values: np.ndarray,
     intrinsic_energy_field_gradient: np.ndarray,
+    pairing: ElectrostaticPairing = MACE_POLAR_L1_PAIRING,
 ) -> np.ndarray:
     """Return the physical fixed-cavity energy gradient in neutral density space.
 
     At fixed geometry/cavity let ``f=P c`` and
 
-    ``E(c) = E_MACE,intrinsic(f) + 0.5 c.T Q f``.
+    ``E(c) = E_model,conditioned(f) + 0.5 c.T Q f``.
 
     For the reciprocal ``MATRIXSYMM=TRUE`` response used by Route 2,
     differentiating the half-coupling gives the full ``Q f`` term, so
 
     ``dE/dc = P.T g_f + Q f``
 
-    with ``g_f=dE_MACE,intrinsic/df``.  The returned right-hand side is its
+    with ``g_f=dE_model,conditioned/df``.  The returned right-hand side is its
     orthogonal projection into the zero-total-monopole tangent space.  CDS and
     all coordinate/cavity derivatives are outside this fixed-cavity quantity.
     """
@@ -237,14 +235,14 @@ def fixed_cavity_energy_density_gradient(
         expected_shape=field.shape,
         name="intrinsic_energy_field_gradient",
     )
-    mace_chain = _validated_block(
+    model_energy_chain = _validated_block(
         reaction_field.adjoint(field_gradient),
         expected_shape=field.shape,
         name="reaction-field energy VJP",
     )
-    polarization_gradient = external_field_to_density_order(field)
+    polarization_gradient = pairing.field_to_density_order(field)
     return project_neutral_density_tangent(
-        mace_chain + polarization_gradient
+        model_energy_chain + polarization_gradient
     )
 
 
@@ -252,6 +250,7 @@ def pcm_half_coupling_energy_density_gradient(
     reaction_field: ReactionFieldLinearMap,
     *,
     reaction_field_values: np.ndarray,
+    pairing: ElectrostaticPairing = MACE_POLAR_L1_PAIRING,
 ) -> np.ndarray:
     """Return the direct-PCM ledger derivative in the neutral density space.
 
@@ -259,11 +258,12 @@ def pcm_half_coupling_energy_density_gradient(
 
     ``E_0(c, R) = 0.5 * <c, P_R c>``,
 
-    reciprocity gives ``dE_0/dc = P_R c``.  The MACE-POLAR fixed point still
-    supplies ``c`` and is differentiated through the outer adjoint later, but
-    the field-conditioned MACE energy and its field derivative do *not* enter
-    this right-hand side.  This separation prevents silently reusing the
-    legacy operational-energy adjoint for a different scalar ledger.
+    reciprocity gives ``dE_0/dc = P_R c``.  The adapter-provided fixed point
+    still supplies ``c`` and is differentiated through the outer adjoint
+    later, but the field-conditioned model energy and its field derivative do
+    *not* enter this right-hand side.  This separation prevents silently
+    reusing the legacy operational-energy adjoint for a different scalar
+    ledger.
     """
 
     if getattr(reaction_field, "reciprocal_energy_pairing", False) is not True:
@@ -280,7 +280,7 @@ def pcm_half_coupling_energy_density_gradient(
         raise ValueError(
             "Reaction-field atom count does not match the energy-dual field."
         )
-    return project_neutral_density_tangent(external_field_to_density_order(field))
+    return project_neutral_density_tangent(pairing.field_to_density_order(field))
 
 
 def fixed_cavity_model_feature_energy_density_gradient(
@@ -288,12 +288,13 @@ def fixed_cavity_model_feature_energy_density_gradient(
     *,
     reaction_field_values: np.ndarray,
     intrinsic_energy_feature_gradient: np.ndarray,
+    pairing: ElectrostaticPairing = MACE_POLAR_L1_PAIRING,
 ) -> np.ndarray:
     """Return ``J_z.T g_z + Q f`` in the neutral density tangent space.
 
     The energy-dual field ``f`` remains the point-l1 continuum reaction field
-    used by the half-coupling ledger.  The intrinsic MACE energy is driven by
-    a separate checkpoint-native feature tensor ``z(c)``.  This fixed-geometry
+    used by the half-coupling ledger.  The field-conditioned model energy is
+    driven by a separate native feature tensor ``z(c)``.  This fixed-geometry
     right-hand side composes only their exact discrete derivatives; CDS and
     every coordinate/cavity derivative remain outside it.
     """
@@ -329,14 +330,14 @@ def fixed_cavity_model_feature_energy_density_gradient(
             "intrinsic_energy_feature_gradient must be finite with shape "
             f"{expected_feature_shape}; received {feature_gradient.shape}."
         )
-    mace_chain = _validated_block(
+    model_energy_chain = _validated_block(
         reaction_field.model_feature_vjp(feature_gradient),
         expected_shape=field.shape,
         name="model-feature energy VJP",
     )
-    polarization_gradient = external_field_to_density_order(field)
+    polarization_gradient = pairing.field_to_density_order(field)
     return project_neutral_density_tangent(
-        mace_chain + polarization_gradient
+        model_energy_chain + polarization_gradient
     )
 
 
@@ -357,6 +358,7 @@ def _coupled_solvation_coordinate_gradient(
     adjoint_density_position_vjp: np.ndarray,
     solvent_fixed_field_forces_ev_per_angstrom: np.ndarray,
     gas_forces_ev_per_angstrom: np.ndarray,
+    pairing: ElectrostaticPairing,
     neutral_tolerance: float = 1.0e-10,
 ) -> np.ndarray:
     if neutral_tolerance <= 0.0:
@@ -396,10 +398,10 @@ def _coupled_solvation_coordinate_gradient(
     response_field_cotangent = _validated_block(
         density_response.vjp(adjoint),
         expected_shape=density.shape,
-        name="MACE density-response field VJP",
+        name="Electronic-source response field VJP",
     )
     half_coupling_field_cotangent = (
-        0.5 * density_to_external_field_order(density)
+        0.5 * pairing.density_to_field_order(density)
     )
     combined_field_cotangent = (
         field_gradient
@@ -453,6 +455,7 @@ def fixed_surface_solvation_coordinate_gradient(
     adjoint_density_position_vjp: np.ndarray,
     solvent_fixed_field_forces_ev_per_angstrom: np.ndarray,
     gas_forces_ev_per_angstrom: np.ndarray,
+    pairing: ElectrostaticPairing = MACE_POLAR_L1_PAIRING,
     neutral_tolerance: float = 1.0e-10,
 ) -> np.ndarray:
     """Compose the fixed-surface coupled solvation-energy coordinate gradient.
@@ -496,6 +499,7 @@ def fixed_surface_solvation_coordinate_gradient(
             solvent_fixed_field_forces_ev_per_angstrom
         ),
         gas_forces_ev_per_angstrom=gas_forces_ev_per_angstrom,
+        pairing=pairing,
         neutral_tolerance=neutral_tolerance,
     )
 
@@ -510,6 +514,7 @@ def continuum_coupled_solvation_coordinate_gradient(
     adjoint_density_position_vjp: np.ndarray,
     solvent_fixed_field_forces_ev_per_angstrom: np.ndarray,
     gas_forces_ev_per_angstrom: np.ndarray,
+    pairing: ElectrostaticPairing = MACE_POLAR_L1_PAIRING,
     neutral_tolerance: float = 1.0e-10,
 ) -> np.ndarray:
     """Compose the coupled gradient with the full continuum-map derivative.
@@ -571,6 +576,7 @@ def continuum_coupled_solvation_coordinate_gradient(
             solvent_fixed_field_forces_ev_per_angstrom
         ),
         gas_forces_ev_per_angstrom=gas_forces_ev_per_angstrom,
+        pairing=pairing,
         neutral_tolerance=neutral_tolerance,
     )
 
@@ -582,21 +588,22 @@ def pcm_half_coupling_continuum_coordinate_gradient(
     density_coefficients: np.ndarray,
     adjoint_solution: np.ndarray,
     adjoint_density_position_vjp: np.ndarray,
+    pairing: ElectrostaticPairing = MACE_POLAR_L1_PAIRING,
     neutral_tolerance: float = 1.0e-10,
 ) -> np.ndarray:
-    """Differentiate the direct-PCM leaf ledger through the MACE fixed point.
+    """Differentiate the direct-PCM leaf ledger through the model fixed point.
 
     This is the ledger-specific counterpart of
     :func:`continuum_coupled_solvation_coordinate_gradient`.  It evaluates
 
     ``d[0.5<c, P_R c>]/dR``
 
-    at a converged MACE fixed point using an outer adjoint.  Its combined field
-    cotangent is exactly
+    at a converged electronic-model fixed point using an outer adjoint.  Its
+    combined field cotangent is exactly
 
     ``0.5 * D.T c + J_M.T lambda``.
 
-    The legacy field-conditioned MACE energy, its field gradient, and its
+    The legacy field-conditioned model energy, its field gradient, and its
     fixed-field coordinate partial are intentionally absent.  ``CDS`` also
     remains a separately supplied same-profile scalar/gradient component.
     """
@@ -617,6 +624,7 @@ def pcm_half_coupling_continuum_coordinate_gradient(
         adjoint_density_position_vjp=adjoint_density_position_vjp,
         solvent_fixed_field_forces_ev_per_angstrom=zero_coordinates,
         gas_forces_ev_per_angstrom=zero_coordinates,
+        pairing=pairing,
         neutral_tolerance=neutral_tolerance,
     )
 

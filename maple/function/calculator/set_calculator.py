@@ -17,6 +17,10 @@ from ..route2_smd_profiles import (
     validate_route2_smd_profile,
 )
 from ..route2_solvents import normalize_route2_solvent_name
+from ..route2_model_contracts import (
+    route2_model_family_label,
+    validate_route2_input_model_family,
+)
 from .calculator_base import (
     _IMPLICIT_SOLVENT_FACTORY_TOKEN,
     atoms_has_pbc,
@@ -227,15 +231,6 @@ class SetCalculator:
             )
 
             validate_route2_domain(self.atoms)
-            if _compact_model_name(self.model) != 'macepolm':
-                raise ValueError(
-                    "Route 2 v1 is locked to the official MACE-POLAR-1-M checkpoint."
-                )
-            if self.model_options:
-                raise ValueError(
-                    "Route 2 uses the unmodified official MACE-POLAR-1-M checkpoint "
-                    "from MACE's upstream cache; custom model options are disabled."
-                )
             if self.d4:
                 raise ValueError("Route 2 v1 does not compose D4.")
             if self.model_options.get('hessian') is not None:
@@ -244,8 +239,9 @@ class SetCalculator:
                 )
             if self.charge_options:
                 raise ValueError(
-                    "Route 2 uses the MACE-POLAR density; remove #charge(...). "
-                    "MOL2 partial charges are ignored."
+                    "Route 2 obtains its electrostatic source from the selected "
+                    "electronic-model adapter; remove #charge(...). MOL2 partial "
+                    "charges are ignored."
                 )
             provider = str(
                 self.solvation_options.get('provider', 'pcmsolver')
@@ -271,6 +267,18 @@ class SetCalculator:
                 solvent=self.solvent,
             )
             profile_spec = route2_smd_profile_spec(profile)
+            validate_route2_input_model_family(
+                self.model,
+                expected_model_family=profile_spec.electronic_model_family,
+            )
+            if self.model_options:
+                model_label = route2_model_family_label(
+                    profile_spec.electronic_model_family
+                )
+                raise ValueError(
+                    f"Route 2 uses the frozen unmodified {model_label} profile; "
+                    "custom model options are disabled."
+                )
             if (
                 "mol2" not in self.atoms.info
                 and profile_spec.uses_gaff2_carbonyl_oxygen

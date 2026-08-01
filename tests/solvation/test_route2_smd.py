@@ -36,6 +36,12 @@ from maple.function.calculator.extra_correction.implicit.gto_field_projection im
 from maple.function.calculator.extra_correction.implicit.route2_pcm_response import (
     FixedCavityPCMReactionFieldLinearMap,
 )
+from maple.function.calculator.extra_correction.implicit.route2_electronic_model import (
+    ATOMIC_L1_SOURCE_SPACE,
+    FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    Route2ElectronicModelCapabilities,
+    Route2ElectronicModelDescriptor,
+)
 from maple.function.calculator.extra_correction.implicit.smd import (
     PCM_WARNING_MARKER,
     SMDImplicitSolvation,
@@ -50,11 +56,13 @@ from maple.function.calculator.extra_correction.implicit.smd_cds import (
 )
 from maple.function.read.command_control import CommandControl
 from maple.function.route2_smd_profiles import (
+    MACEPOL_MOLECULAR_REALSPACE_PROFILE,
     PCMSOLVER_CENTERED_LOCAL_JET_FIELD_PROFILE,
     PCMSOLVER_EXACT_GTO_FIELD_PROFILE,
     PCMSOLVER_INTRINSIC_CAVITY_PROFILE,
     PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE,
 )
+from maple.function.route2_model_contracts import ROUTE2_MACE_POLAR_MODEL_FAMILY
 
 
 def parse(*lines):
@@ -865,6 +873,18 @@ class _FakePCMSolverSession:
 
 
 class _FakePolarCalculator:
+    route2_electronic_model_descriptor = Route2ElectronicModelDescriptor(
+        adapter_name="fake-mace-polar-local-field-adapter-v1",
+        model_family=ROUTE2_MACE_POLAR_MODEL_FAMILY,
+        field_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        source_space=ATOMIC_L1_SOURCE_SPACE,
+        capabilities=Route2ElectronicModelCapabilities(
+            state_projectors=frozenset({"local-jet"}),
+        ),
+        energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+        profile_binding=ROUTE2_SMD_CALCULATOR_PROFILE,
+    )
+
     def __init__(self, gas_state, response_state):
         self._last_polar_state = gas_state
         self.response_state = response_state
@@ -877,6 +897,14 @@ class _FakePolarCalculator:
             "sha256": "a" * 64,
         }
         self.calls = 0
+
+    def cached_polar_state(self, _atoms, *, require_forces=False):
+        if (
+            require_forces
+            and self._last_polar_state.fixed_field_forces_ev_per_angstrom is None
+        ):
+            return None
+        return self._last_polar_state
 
     def polar_state(
         self,
@@ -892,6 +920,18 @@ class _FakePolarCalculator:
 
 
 class _FakeExactGTOCalculator(_FakePolarCalculator):
+    route2_electronic_model_descriptor = Route2ElectronicModelDescriptor(
+        adapter_name="fake-mace-polar-exact-gto-adapter-v1",
+        model_family=ROUTE2_MACE_POLAR_MODEL_FAMILY,
+        field_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        source_space=ATOMIC_L1_SOURCE_SPACE,
+        capabilities=Route2ElectronicModelCapabilities(
+            state_projectors=frozenset({"local-jet", "exact-gto-v1"}),
+        ),
+        energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+        profile_binding=ROUTE2_SMD_CALCULATOR_PROFILE,
+    )
+
     def __init__(self, gas_state, response_state):
         super().__init__(gas_state, response_state)
         self.model_field_features = []
@@ -1057,7 +1097,7 @@ def test_frozen_route2_composes_pcm_and_native_cds(monkeypatch, tmp_path):
         "cavity-exterior point monopoles and dipoles"
     )
     audit = (tmp_path / "route2-result.json").read_text(encoding="utf-8")
-    assert '"schema_version": 9' in audit
+    assert '"schema_version": 10' in audit
     assert '"pcm_mep_projection": "cavity-exterior-point-multipole-l<=1"' in audit
 
 
@@ -1727,7 +1767,7 @@ def test_route2_python_api_rejects_unmarked_polar_state_provider(tmp_path):
     )
     calculator = SimpleNamespace(polar_state=lambda *_args, **_kwargs: None)
 
-    with pytest.raises(TypeError, match="official MACE-POLAR-1-M float64"):
+    with pytest.raises(TypeError, match="validated descriptor"):
         provider.evaluate(atoms, calculator=calculator)
 
 

@@ -6,6 +6,8 @@ import numpy as np
 
 import ase.calculators.calculator
 
+from ..route2_model_contracts import ROUTE2_MACE_POLAR_PROFILE_BINDING
+
 if TYPE_CHECKING:
     import torch
 
@@ -63,9 +65,7 @@ IMPLICIT_SOLVENT_DERIVATIVE_PROPERTIES = {
     "virials",
     "hessian",
 }
-ROUTE2_SMD_CALCULATOR_PROFILE = (
-    "official-mace-polar-1-m/float64/local-gto-reaction-field/v1"
-)
+ROUTE2_SMD_CALCULATOR_PROFILE = ROUTE2_MACE_POLAR_PROFILE_BINDING
 _IMPLICIT_SOLVENT_FACTORY_TOKEN = object()
 
 

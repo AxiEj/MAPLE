@@ -30,7 +30,6 @@ from typing import Any
 import numpy as np
 from ase.units import Bohr, Hartree
 
-from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
 from ....route2_smd_profiles import (
     route2_smd_profile_spec,
 )
@@ -58,11 +57,15 @@ from .route2_engine import (
     Route2CoupledState,
     Route2EngineSettings,
 )
+from .route2_electronic_model import (
+    Route2ElectronicModel,
+    resolve_route2_electronic_model,
+    validate_route2_electronic_model_capabilities,
+)
 from .route2_pcm_response import (
     FixedCavityPCMSnapshot,
     FixedCavityPCMReactionFieldLinearMap,
 )
-from .gto_field_projection import ExactGTOFieldProjector
 from .route2_domain import (
     FORMALLY_CHARGED_TRIPOS_TYPES,
     MAX_MOLECULAR_MASS_DA,
@@ -734,10 +737,37 @@ class SMDImplicitSolvation:
         self._parsed_pcm_input_paths[key] = parsed_path
         return parsed_path
 
+    def _validate_electronic_model(
+        self,
+        calculator,
+    ) -> Route2ElectronicModel:
+        if calculator is None:
+            raise TypeError("Route 2 requires an electronic-model adapter.")
+        model = resolve_route2_electronic_model(calculator)
+        validate_route2_electronic_model_capabilities(
+            model,
+            expected_model_family=self.profile_spec.electronic_model_family,
+            expected_source_space=self.profile_spec.electronic_source_space,
+            expected_profile_binding=(
+                self.profile_spec.electronic_profile_binding
+            ),
+            expected_field_evaluator=self.profile_spec.model_field_evaluator,
+            expected_energy_semantics=(
+                self.profile_spec.electronic_energy_semantics
+            ),
+            reaction_field_projector=self.profile_spec.reaction_field_projector,
+            electrostatic_energy_ledger=(
+                self.profile_spec.electrostatic_energy_ledger
+            ),
+            need_forces=False,
+            response_mode=self.response,
+        )
+        return model
+
     @staticmethod
-    def _gas_state(calculator, atoms):
+    def _gas_state(electronic_model: Route2ElectronicModel, atoms):
         return Route2ContinuumEngine.gas_state(
-            calculator,
+            electronic_model,
             atoms,
             need_forces=False,
         )
@@ -756,6 +786,7 @@ class SMDImplicitSolvation:
     def _write_result_audit(
         self,
         *,
+        electronic_model: Route2ElectronicModel,
         gas_state,
         solvent_state,
         root_density_coefficients: np.ndarray,
@@ -825,7 +856,8 @@ class SMDImplicitSolvation:
             **archive_arrays,
         )
         payload = {
-            "schema_version": 9,
+            "schema_version": 10,
+            "electronic_model": electronic_model.descriptor.as_provenance(),
             "response": self.response,
             "pcm_mep_projection": "cavity-exterior-point-multipole-l<=1",
             "reaction_field_projector": reaction_field_projector,
@@ -940,21 +972,8 @@ class SMDImplicitSolvation:
         if need_forces:
             raise NotImplementedError("Route 2 SMD v1 is energy-only.")
         self._validate_fixed_geometry(atoms)
-        if calculator is None or not callable(getattr(calculator, "polar_state", None)):
-            raise TypeError(
-                "Route 2 requires the MACEPolCalculator polar_state() density/response API."
-            )
-        if (
-            getattr(calculator, "route2_smd_profile", None)
-            != ROUTE2_SMD_CALCULATOR_PROFILE
-        ):
-            raise TypeError(
-                "Route 2 requires the official MACE-POLAR-1-M float64 local-field "
-                "calculator profile; alternate or gas-only polar_state() providers "
-                "are not accepted."
-            )
-
-        gas_state = self._gas_state(calculator, atoms)
+        electronic_model = self._validate_electronic_model(calculator)
+        gas_state = self._gas_state(electronic_model, atoms)
         assert self.audit_dir is not None
         cds_result = smd_water_cds(
             atoms.get_chemical_symbols(),
@@ -1072,10 +1091,8 @@ class SMDImplicitSolvation:
                                     **(
                                         {
                                             "model_field_projector": (
-                                                ExactGTOFieldProjector(
-                                                    calculator
-                                                    .route2_gto_field_projection_spec()
-                                                )
+                                                electronic_model
+                                                .preprojected_field_projector()
                                             )
                                         }
                                         if self.profile_spec
@@ -1094,7 +1111,7 @@ class SMDImplicitSolvation:
                                 root_density = engine.validate_density(
                                     gas_state.density_coefficients,
                                     len(atoms),
-                                    name="Gas MACE-POLAR density",
+                                    name="Gas electronic source",
                                 )
                                 response_density = root_density
                                 reaction_field_values = (
@@ -1139,7 +1156,7 @@ class SMDImplicitSolvation:
                                 coupled: Route2CoupledState = (
                                     engine.solve_coupled_state(
                                         atoms,
-                                        calculator,
+                                        electronic_model,
                                         gas_state,
                                         provider_cache_signature=(
                                             self.profile,
@@ -1205,6 +1222,7 @@ class SMDImplicitSolvation:
                                 total = components["delta_g_solv"]
                                 self._parsed_pcm_input_path = parsed_input
                                 self._write_result_audit(
+                                    electronic_model=electronic_model,
                                     gas_state=gas_state,
                                     solvent_state=solvent_state,
                                     root_density_coefficients=(
@@ -1390,6 +1408,7 @@ class SMDImplicitSolvation:
             "calculator_profile": getattr(
                 calculator, "route2_smd_profile", None
             ),
+            "electronic_model": electronic_model.descriptor.as_provenance(),
             "mace_torch_version": getattr(
                 calculator, "mace_torch_version", None
             ),

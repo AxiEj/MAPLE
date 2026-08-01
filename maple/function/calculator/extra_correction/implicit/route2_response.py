@@ -30,7 +30,7 @@ class ReactionFieldLinearMap(Protocol):
 
 
 class DensityResponseLinearization(Protocol):
-    """MACE density response to the external node field at one fixed state."""
+    """Electronic-source response to the external field at one fixed state."""
 
     def jvp(self, field_direction: np.ndarray) -> np.ndarray:
         """Apply the field-to-density Jacobian."""
@@ -104,13 +104,14 @@ def _require_fixed_charge_tangent(
 class UnmixedDensityResidualLinearization:
     """Linearization of ``R(c)=Pi_Q[c-M(P(c))]`` at fixed geometry/cavity.
 
-    ``P`` is the PCM reaction-field map and ``M`` is the MACE-POLAR density
-    response.  Numerical SCF mixing is intentionally absent because it is a
-    root-finding choice, not part of the converged physical residual.
+    ``P`` is the PCM reaction-field map and ``M`` is the adapter-provided
+    electronic-source response. Numerical SCF mixing is intentionally absent
+    because it is a root-finding choice, not part of the converged physical
+    residual.
 
     Both operands live in the fixed-total-charge density tangent space.  Node
     fields use the external Cartesian order ``[V, dV/dx, dV/dy, dV/dz]``; the
-    MACE adapter owns any internal e3nn permutation and unit conversion.
+    electronic-model adapter owns native permutations and unit conversions.
     """
 
     atom_count: int
@@ -145,7 +146,7 @@ class UnmixedDensityResidualLinearization:
         response_direction = _validated_block(
             self.density_response.jvp(field_direction),
             atom_count=self.atom_count,
-            name="MACE density-response JVP",
+            name="Electronic-source response JVP",
         )
         return project_neutral_density_tangent(direction - response_direction)
 
@@ -165,7 +166,7 @@ class UnmixedDensityResidualLinearization:
         field_cotangent = _validated_block(
             self.density_response.vjp(cotangent),
             atom_count=self.atom_count,
-            name="MACE density-response VJP",
+            name="Electronic-source response VJP",
         )
         response_cotangent = _validated_block(
             self.reaction_field.adjoint(field_cotangent),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 from types import SimpleNamespace
 
@@ -29,6 +30,12 @@ from maple.function.calculator.extra_correction.implicit.route2_engine import (
     Route2SCFHistoryRecord,
     Route2SCFIterationState,
 )
+from maple.function.calculator.extra_correction.implicit.route2_electronic_model import (
+    ATOMIC_L1_SOURCE_SPACE,
+    FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    Route2ElectronicModelCapabilities,
+    Route2ElectronicModelDescriptor,
+)
 from maple.function.calculator.set_calculator import SetCalculator
 from maple.function.read.command_control import CommandControl
 from maple.function.route2_smd_profiles import (
@@ -44,6 +51,7 @@ from maple.function.route2_smd_profiles import (
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
+from maple.function.route2_model_contracts import ROUTE2_MACE_POLAR_MODEL_FAMILY
 from maple.function.route2_solvents import SUPPORTED_ROUTE2_SMD_SOLVENTS
 
 
@@ -936,6 +944,22 @@ class _ScalarCoordinateReactionField:
 class _FakeMACEPolarCalculator(CalcABC):
     MODEL_ENERGY_UNIT = "eV"
     SUPPORTS_PBC = False
+    route2_electronic_model_descriptor = Route2ElectronicModelDescriptor(
+        adapter_name="fake-mace-polar-atomic-l1-adapter-v1",
+        model_family=ROUTE2_MACE_POLAR_MODEL_FAMILY,
+        field_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        source_space=ATOMIC_L1_SOURCE_SPACE,
+        capabilities=Route2ElectronicModelCapabilities(
+            state_projectors=frozenset({"local-jet"}),
+            gas_forces=True,
+            response_projectors=frozenset({"local-jet"}),
+            position_vjp_projectors=frozenset({"local-jet"}),
+            fixed_field_force_projectors=frozenset({"local-jet"}),
+            energy_gradient_projectors=frozenset({"local-jet"}),
+        ),
+        energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+        profile_binding=ROUTE2_SMD_CALCULATOR_PROFILE,
+    )
 
     def __init__(self, atoms):
         super().__init__()
@@ -969,6 +993,22 @@ class _FakeMACEPolarCalculator(CalcABC):
         self.mace_torch_version = "0.3.16"
         self.dtype = "torch.float64"
         self.atoms = atoms.copy()
+
+    def cached_polar_state(self, atoms, *, require_forces=False):
+        if not np.array_equal(
+            np.asarray(atoms.numbers, dtype=int),
+            np.asarray(self.atoms.numbers, dtype=int),
+        ) or not np.array_equal(
+            np.asarray(atoms.positions, dtype=float),
+            np.asarray(self.atoms.positions, dtype=float),
+        ):
+            return None
+        if (
+            require_forces
+            and self.gas_state.fixed_field_forces_ev_per_angstrom is None
+        ):
+            return None
+        return self.gas_state
 
     def polar_state(
         self,
@@ -1201,6 +1241,10 @@ def test_reciprocal_profile_requires_matching_calculator_evaluator(tmp_path):
     calculator.long_range_evaluator_profile = (
         MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
     )
+    calculator.route2_electronic_model_descriptor = replace(
+        calculator.route2_electronic_model_descriptor,
+        field_evaluator=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
+    )
     calculator.long_range_evaluator_provenance = {
         "profile": MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
         "box_length_angstrom": 40.0,
@@ -1228,6 +1272,10 @@ def test_reciprocal_omp4_profile_passes_thread_count_to_pyddx(
     calculator = _FakeMACEPolarCalculator(atoms)
     calculator.long_range_evaluator_profile = (
         MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
+    )
+    calculator.route2_electronic_model_descriptor = replace(
+        calculator.route2_electronic_model_descriptor,
+        field_evaluator=MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     )
     _ZeroReactionField.instances.clear()
     monkeypatch.setattr(
@@ -1419,8 +1467,33 @@ def test_ddpcm_direct_pcm_profile_reports_only_pcm_half_coupling(
 ):
     import maple.function.calculator.extra_correction.implicit.ddpcm_smd as module
 
+    class _DirectPCMCalculator(_FakeMACEPolarCalculator):
+        route2_electronic_model_descriptor = replace(
+            _FakeMACEPolarCalculator.route2_electronic_model_descriptor,
+            capabilities=Route2ElectronicModelCapabilities(
+                state_projectors=frozenset({"local-jet"}),
+                gas_forces=True,
+                response_projectors=frozenset({"local-jet"}),
+                position_vjp_projectors=frozenset({"local-jet"}),
+            ),
+        )
+
+        def __init__(self, atoms):
+            super().__init__(atoms)
+            self.field_force_requests = 0
+
+        def polar_state(self, atoms, **kwargs):
+            if kwargs.get("compute_forces") and kwargs.get(
+                "node_potential_ev"
+            ) is not None:
+                self.field_force_requests += 1
+                raise AssertionError(
+                    "The direct-PCM ledger must not request fixed-field forces."
+                )
+            return super().polar_state(atoms, **kwargs)
+
     atoms = _atoms()
-    calculator = _FakeMACEPolarCalculator(atoms)
+    calculator = _DirectPCMCalculator(atoms)
     _ScalarCoordinateReactionField.instances.clear()
     monkeypatch.setattr(
         module,
@@ -1475,6 +1548,7 @@ def test_ddpcm_direct_pcm_profile_reports_only_pcm_half_coupling(
         "converged-density response eliminated by the direct-PCM "
         "ledger-specific adjoint"
     )
+    assert calculator.field_force_requests == 0
 
 
 def _coordinate_cds(atoms):

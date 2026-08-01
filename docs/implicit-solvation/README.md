@@ -97,6 +97,15 @@ extracts the existing ML--SCF/adjoint/energy-ledger orchestration behind an
 internal provider-neutral interface. It does not add a continuum provider,
 change a formula or numerical setting, or promote the current force candidate.
 
+The electronic side of that engine is now isolated behind the explicit
+[`ROUTE2_ELECTRONIC_MODEL_ADAPTER.md`](ROUTE2_ELECTRONIC_MODEL_ADAPTER.md)
+contract.  Current released profiles remain MACE-POLAR-bound, but a new
+field/charge-aware MLIP can be added through one adapter plus one new
+versioned profile without changing PCM, COSMO, CDS, SCF, or adjoint modules.
+The current common source space is still only atom-centred monopole plus
+dipole `(N,4)`; GTO, quadrupole, and other representations require distinct
+source-space implementations rather than shape-compatible shortcuts.
+
 ## Route-2 contract: self-consistent polarizable MLIP--PCM/SMD coupling
 
 Route 2 is separate from the fixed-charge PB/GB path. It couples the official

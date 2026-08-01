@@ -22,6 +22,13 @@ from maple.function.calculator.extra_correction.implicit.route2_engine import (
     Route2SCFHistoryRecord,
     Route2SCFIterationState,
 )
+from maple.function.calculator.extra_correction.implicit.route2_electronic_model import (
+    ATOMIC_L1_SOURCE_SPACE,
+    FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    AtomicL1CalculatorAdapter,
+    Route2ElectronicModelCapabilities,
+    Route2ElectronicModelDescriptor,
+)
 from maple.function.calculator.extra_correction.implicit.route2_fixed_point import (
     DAMPED_PICARD_SOLVER,
     SAFEGUARDED_ANDERSON_SOLVER,
@@ -42,6 +49,32 @@ class _State:
 @dataclass
 class _CDS:
     energy_hartree: float = 0.0
+
+
+class _Route2TestCalculatorMixin:
+    """Explicitly opt synthetic legacy-method calculators into Route 2."""
+
+    route2_electronic_model_descriptor = Route2ElectronicModelDescriptor(
+        adapter_name="synthetic-atomic-l1-test-adapter-v1",
+        model_family="synthetic-route2-test-model",
+        field_evaluator="synthetic-route2-test-field-v1",
+        source_space=ATOMIC_L1_SOURCE_SPACE,
+        capabilities=Route2ElectronicModelCapabilities(
+            state_projectors=frozenset({"local-jet", "exact-gto-v1"}),
+            gas_forces=True,
+            response_projectors=frozenset({"local-jet", "exact-gto-v1"}),
+            position_vjp_projectors=frozenset({"local-jet"}),
+            fixed_field_force_projectors=frozenset({"local-jet"}),
+            energy_gradient_projectors=frozenset({"local-jet"}),
+        ),
+        energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    )
+
+    def route2_electronic_model_adapter(self):
+        return AtomicL1CalculatorAdapter(
+            calculator=self,
+            descriptor=self.route2_electronic_model_descriptor,
+        )
 
 
 class _ExactFeatureReactionMap:
@@ -77,7 +110,7 @@ class _ExactFeatureReactionMap:
         )
 
 
-class _FeatureAwareCalculator:
+class _FeatureAwareCalculator(_Route2TestCalculatorMixin):
     def __init__(self, state):
         self.state = state
         self.calls = []
@@ -107,7 +140,7 @@ class _CenteredLocalReactionMap(_ExactFeatureReactionMap):
         return self.last_drive
 
 
-class _LocalFieldAwareCalculator:
+class _LocalFieldAwareCalculator(_Route2TestCalculatorMixin):
     def __init__(self, state, reaction_map):
         self.state = state
         self.reaction_map = reaction_map
@@ -152,7 +185,7 @@ class _IdentityReactionMap:
         )
 
 
-class _LinearContractiveCalculator:
+class _LinearContractiveCalculator(_Route2TestCalculatorMixin):
     def __init__(self, fixed_point: np.ndarray, contraction: float):
         self.fixed_point = np.asarray(fixed_point, dtype=float).copy()
         self.contraction = float(contraction)
@@ -169,7 +202,7 @@ class _LinearContractiveCalculator:
         return _State(energy_ev=energy_ev, density_coefficients=response), {}
 
 
-class _ChargeNoisyCalculator:
+class _ChargeNoisyCalculator(_Route2TestCalculatorMixin):
     def __init__(self, fixed_point: np.ndarray, per_atom_offset_e: float):
         self.fixed_point = np.asarray(fixed_point, dtype=float).copy()
         self.per_atom_offset_e = float(per_atom_offset_e)
@@ -180,7 +213,7 @@ class _ChargeNoisyCalculator:
         return _State(energy_ev=0.0, density_coefficients=response), {}
 
 
-class _FiniteResolutionCalculator:
+class _FiniteResolutionCalculator(_Route2TestCalculatorMixin):
     def __init__(
         self,
         residuals: list[np.ndarray],
@@ -217,7 +250,7 @@ class _FiniteResolutionCalculator:
         return _State(energy_ev=energy_ev, density_coefficients=response), {}
 
 
-class _ScheduledDensityCalculator:
+class _ScheduledDensityCalculator(_Route2TestCalculatorMixin):
     def __init__(
         self,
         responses: list[np.ndarray],

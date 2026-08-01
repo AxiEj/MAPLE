@@ -51,12 +51,20 @@ from ...route2_smd_profiles import (
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
     validate_route2_smd_profile,
 )
+from ...route2_model_contracts import ROUTE2_MACE_POLAR_MODEL_FAMILY
 from ..extra_correction.implicit.gto_field_projection import (
     EXACT_GTO_GRAPH_LONGRANGE_VERSION,
     MACEPolarGTOFieldProjectionSpec,
 )
 from ..extra_correction.implicit.electrostatic_pairing import (
     MACE_POLAR_MODEL_FEATURE_FIELD_INDICES,
+)
+from ..extra_correction.implicit.route2_electronic_model import (
+    ATOMIC_L1_SOURCE_SPACE,
+    FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    AtomicL1CalculatorAdapter,
+    Route2ElectronicModelCapabilities,
+    Route2ElectronicModelDescriptor,
 )
 from ..extra_correction.implicit.route2_jgp94_mace_frame import (
     JGP94_D2_CANONICAL_MACE_FRAME_POLICY,
@@ -291,7 +299,7 @@ class MACEPolCalculator(CalcABC):
         spec = validate_route2_smd_profile(provider, profile)
         return {
             "long_range_evaluator_profile": (
-                spec.mace_long_range_evaluator
+                spec.model_field_evaluator
             ),
             "route2_mace_geometry_frame_policy": (
                 spec.mace_geometry_frame_policy
@@ -461,6 +469,34 @@ class MACEPolCalculator(CalcABC):
         self.long_range_evaluator_provenance = (
             self._long_range_evaluator.provenance
         )
+        self.route2_electronic_model_descriptor = (
+            Route2ElectronicModelDescriptor(
+                adapter_name="mace-polar-atomic-l1-adapter-v1",
+                model_family=ROUTE2_MACE_POLAR_MODEL_FAMILY,
+                field_evaluator=self.long_range_evaluator_profile,
+                source_space=ATOMIC_L1_SOURCE_SPACE,
+                capabilities=Route2ElectronicModelCapabilities(
+                    state_projectors=frozenset(
+                        {"local-jet", "exact-gto-v1"}
+                    ),
+                    gas_forces=True,
+                    response_projectors=frozenset(
+                        {"local-jet", "exact-gto-v1"}
+                    ),
+                    position_vjp_projectors=frozenset({"local-jet"}),
+                    fixed_field_force_projectors=frozenset({"local-jet"}),
+                    energy_gradient_projectors=frozenset({"local-jet"}),
+                ),
+                energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+                profile_binding=self.route2_smd_profile,
+                provenance={
+                    "checkpoint": checkpoint_provenance,
+                    "mace_torch_version": self.mace_torch_version,
+                    "graph_longrange_version": self.graph_longrange_version,
+                    "long_range_evaluator": self.long_range_evaluator_provenance,
+                },
+            )
+        )
         self.route2_mace_geometry_frame_provenance = {
             "policy": self.route2_mace_geometry_frame_policy,
             "enabled": bool(self._route2_jgp94_d2_canonical_mace),
@@ -488,6 +524,14 @@ class MACEPolCalculator(CalcABC):
     @property
     def last_polar_state(self) -> PolarState | None:
         return self._last_polar_state
+
+    def route2_electronic_model_adapter(self) -> AtomicL1CalculatorAdapter:
+        """Return the model-neutral adapter consumed by Route-2 engines."""
+
+        return AtomicL1CalculatorAdapter(
+            calculator=self,
+            descriptor=self.route2_electronic_model_descriptor,
+        )
 
     @property
     def last_density_coefficients(self) -> np.ndarray | None:

@@ -37,6 +37,11 @@ from .route2_engine import (
     Route2CoupledState,
     Route2EngineSettings,
 )
+from .route2_electronic_model import (
+    Route2ElectronicModel,
+    resolve_route2_electronic_model,
+    validate_route2_electronic_model_capabilities,
+)
 from .route2_fc_aswig_smd_cds import FixedTopologyAqueousSMDCDSResult
 from .route2_force_admission import (
     FC_ASWIG_JGP94_D2_DIRECT_PCM_FORCE_PES_VALIDATION_CONTRACT,
@@ -311,6 +316,31 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
                 "MACE long-range evaluator."
             )
 
+    def _validate_electronic_model(
+        self,
+        calculator,
+        *,
+        need_forces: bool,
+    ) -> Route2ElectronicModel:
+        if calculator is None:
+            raise TypeError(
+                "The fixed-topology Route-2 provider requires an electronic model."
+            )
+        model = resolve_route2_electronic_model(calculator)
+        spec = route2_smd_profile_spec(self.profile)
+        validate_route2_electronic_model_capabilities(
+            model,
+            expected_model_family=spec.electronic_model_family,
+            expected_source_space=spec.electronic_source_space,
+            expected_profile_binding=spec.electronic_profile_binding,
+            expected_field_evaluator=spec.model_field_evaluator,
+            expected_energy_semantics=spec.electronic_energy_semantics,
+            reaction_field_projector=spec.reaction_field_projector,
+            electrostatic_energy_ledger=spec.electrostatic_energy_ledger,
+            need_forces=need_forces,
+        )
+        return model
+
     def _force_pes_validation_contract(self):
         if self._public_force_profile:
             return FC_ASWIG_JGP94_D2_DIRECT_PCM_FORCE_PES_VALIDATION_CONTRACT
@@ -370,7 +400,7 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
     def _solve_coupled_state(
         self,
         atoms,
-        calculator,
+        electronic_model: Route2ElectronicModel,
         gas_state,
         *,
         initial_density_coefficients: np.ndarray | None = None,
@@ -378,7 +408,7 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
     ) -> Route2CoupledState:
         return self._engine.solve_coupled_state(
             atoms,
-            calculator,
+            electronic_model,
             gas_state,
             provider_cache_signature=self._provider_cache_signature,
             initial_density_coefficients=initial_density_coefficients,
@@ -386,22 +416,27 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
             electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
         )
 
-    def _coupled_state(self, atoms, calculator, gas_state) -> Route2CoupledState:
+    def _coupled_state(
+        self,
+        atoms,
+        electronic_model: Route2ElectronicModel,
+        gas_state,
+    ) -> Route2CoupledState:
         cached = self._cached_state
         if cached is not None and cached.matches(
-            calculator,
+            electronic_model,
             atoms,
             provider_cache_signature=self._provider_cache_signature,
         ):
             return cached
-        state = self._solve_coupled_state(atoms, calculator, gas_state)
+        state = self._solve_coupled_state(atoms, electronic_model, gas_state)
         self._cached_state = state
         return state
 
     def _multi_start_root_agreement(
         self,
         atoms,
-        calculator,
+        electronic_model: Route2ElectronicModel,
         gas_state,
         primary: Route2CoupledState,
     ) -> Route2MultiStartRootAgreement:
@@ -427,7 +462,7 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
                 if existing is not None
                 else self._solve_coupled_state(
                     atoms,
-                    calculator,
+                    electronic_model,
                     gas_state,
                     initial_density_coefficients=seed,
                     initial_density_label=label,
@@ -454,21 +489,23 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
         calculator=None,
         need_forces: bool,
     ) -> SolvationResult:
-        if calculator is None:
-            raise ValueError("Route 2 requires the owning MACE-POLAR calculator.")
         self._validate_atoms(atoms)
+        electronic_model = self._validate_electronic_model(
+            calculator,
+            need_forces=need_forces,
+        )
         self._validate_public_force_calculator(calculator)
         gas_state = self._engine.gas_state(
-            calculator,
+            electronic_model,
             atoms,
             need_forces=need_forces,
         )
         self._engine.validate_density(
             gas_state.density_coefficients,
             len(atoms),
-            name="Gas MACE-POLAR density",
+            name="Gas electronic source",
         )
-        coupled = self._coupled_state(atoms, calculator, gas_state)
+        coupled = self._coupled_state(atoms, electronic_model, gas_state)
         components = self._engine.energy_components(
             gas_state,
             coupled,
@@ -480,13 +517,13 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
         if need_forces:
             root_agreement = self._multi_start_root_agreement(
                 atoms,
-                calculator,
+                electronic_model,
                 gas_state,
                 coupled,
             )
             forces, derivative = self._engine.solvent_correction_force(
                 atoms,
-                calculator,
+                electronic_model,
                 gas_state,
                 coupled,
                 force_admission_continuum=(
@@ -511,6 +548,7 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
                 self._geometry_bundle(atoms).cds.runtime_provenance
             ),
             "calculator_profile": getattr(calculator, "route2_smd_profile", None),
+            "electronic_model": electronic_model.descriptor.as_provenance(),
             "mace_geometry_frame": dict(
                 getattr(
                     calculator,

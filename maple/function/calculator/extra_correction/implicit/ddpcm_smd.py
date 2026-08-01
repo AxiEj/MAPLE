@@ -41,7 +41,6 @@ from ....route2_solvents import (
     normalize_route2_solvent_name,
     route2_solvent_spec,
 )
-from ...calculator_base import ROUTE2_SMD_CALCULATOR_PROFILE
 from .pyddx_pcm_response import (
     TESTED_PYDDX_VERSION,
     PyDDXCOSMOReactionFieldLinearMap,
@@ -61,6 +60,11 @@ from .route2_engine import (
     SCF_REJECTED_GROWTH_ACTION,
     Route2SCFConvergenceError,
     Route2SCFHistoryRecord,
+)
+from .route2_electronic_model import (
+    Route2ElectronicModel,
+    resolve_route2_electronic_model,
+    validate_route2_electronic_model_capabilities,
 )
 from .route2_force_admission import (
     PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT,
@@ -533,47 +537,31 @@ class PyDDXSMDImplicitSolvation:
                 "the cavity radii are initialized."
             )
 
-    def _validate_calculator(self, calculator, *, need_forces: bool) -> None:
-        if calculator is None or not callable(getattr(calculator, "polar_state", None)):
-            raise TypeError(
-                "The pyddx Route-2 provider requires the "
-                "MACEPolCalculator polar_state() API."
-            )
-        if (
-            getattr(calculator, "route2_smd_profile", None)
-            != ROUTE2_SMD_CALCULATOR_PROFILE
-        ):
-            raise TypeError(
-                "Route 2 requires the official MACE-POLAR-1-M float64 "
-                "local-field calculator profile."
-            )
-        expected_evaluator = self.profile_spec.mace_long_range_evaluator
-        actual_evaluator = getattr(
-            calculator,
-            "long_range_evaluator_profile",
-            None,
+    def _validate_calculator(
+        self,
+        calculator,
+        *,
+        need_forces: bool,
+    ) -> Route2ElectronicModel:
+        if calculator is None:
+            raise TypeError("The pyddx Route-2 provider requires an electronic model.")
+        model = resolve_route2_electronic_model(calculator)
+        validate_route2_electronic_model_capabilities(
+            model,
+            expected_model_family=self.profile_spec.electronic_model_family,
+            expected_source_space=self.profile_spec.electronic_source_space,
+            expected_profile_binding=self.profile_spec.electronic_profile_binding,
+            expected_field_evaluator=self.profile_spec.model_field_evaluator,
+            expected_energy_semantics=(
+                self.profile_spec.electronic_energy_semantics
+            ),
+            reaction_field_projector=self.profile_spec.reaction_field_projector,
+            electrostatic_energy_ledger=(
+                self.profile_spec.electrostatic_energy_ledger
+            ),
+            need_forces=need_forces,
         )
-        if actual_evaluator != expected_evaluator:
-            raise TypeError(
-                "The selected Route-2 profile requires MACE-POLAR "
-                f"long-range evaluator {expected_evaluator!r}; received "
-                f"{actual_evaluator!r}."
-            )
-        if not need_forces:
-            return
-        required = (
-            "intrinsic_energy_field_gradient",
-            "linearize_density_response",
-            "density_position_vjp",
-        )
-        missing = [
-            name for name in required if not callable(getattr(calculator, name, None))
-        ]
-        if missing:
-            raise TypeError(
-                "The pyddx Route-2 force candidate requires the complete "
-                "MACE response API; missing: " + ", ".join(missing) + "."
-            )
+        return model
 
     def _finite_resolution_runtime_identity(
         self,
@@ -677,9 +665,15 @@ class PyDDXSMDImplicitSolvation:
             name=name,
         )
 
-    def _gas_state(self, calculator, atoms, *, need_forces: bool) -> Any:
+    def _gas_state(
+        self,
+        electronic_model: Route2ElectronicModel,
+        atoms,
+        *,
+        need_forces: bool,
+    ) -> Any:
         return self._engine.gas_state(
-            calculator,
+            electronic_model,
             atoms,
             need_forces=need_forces,
         )
@@ -710,13 +704,15 @@ class PyDDXSMDImplicitSolvation:
     def _solve_coupled_state(
         self,
         atoms,
-        calculator,
+        electronic_model: Route2ElectronicModel,
         gas_state,
+        *,
+        runtime_calculator,
     ) -> Route2CoupledState:
         try:
             return self._engine.solve_coupled_state(
                 atoms,
-                calculator,
+                electronic_model,
                 gas_state,
                 provider_cache_signature=(
                     self.solvent,
@@ -725,7 +721,7 @@ class PyDDXSMDImplicitSolvation:
                 ),
                 finite_resolution_runtime_identity=(
                     self._finite_resolution_runtime_identity(
-                        calculator,
+                        runtime_calculator,
                         atoms,
                     )
                 ),
@@ -869,12 +865,14 @@ class PyDDXSMDImplicitSolvation:
     def _coupled_state(
         self,
         atoms,
-        calculator,
+        electronic_model: Route2ElectronicModel,
         gas_state,
+        *,
+        runtime_calculator,
     ) -> Route2CoupledState:
         cached = self._cached_state
         if cached is not None and cached.matches(
-            calculator,
+            electronic_model,
             atoms,
             provider_cache_signature=(
                 self.solvent,
@@ -885,8 +883,9 @@ class PyDDXSMDImplicitSolvation:
             return cached
         state = self._solve_coupled_state(
             atoms,
-            calculator,
+            electronic_model,
             gas_state,
+            runtime_calculator=runtime_calculator,
         )
         self._cached_state = state
         return state
@@ -894,13 +893,13 @@ class PyDDXSMDImplicitSolvation:
     def _solvent_correction_force(
         self,
         atoms,
-        calculator,
+        electronic_model: Route2ElectronicModel,
         gas_state,
         coupled: Route2CoupledState,
     ):
         return self._engine.solvent_correction_force(
             atoms,
-            calculator,
+            electronic_model,
             gas_state,
             coupled,
             force_admission_continuum=(
@@ -1041,24 +1040,25 @@ class PyDDXSMDImplicitSolvation:
         calculator=None,
     ) -> SolvationResult:
         self._validate_atoms(atoms)
-        self._validate_calculator(
+        electronic_model = self._validate_calculator(
             calculator,
             need_forces=need_forces,
         )
         gas_state = self._gas_state(
-            calculator,
+            electronic_model,
             atoms,
             need_forces=need_forces,
         )
         self._validate_density(
             gas_state.density_coefficients,
             len(atoms),
-            name="Gas MACE-POLAR density",
+            name="Gas electronic source",
         )
         coupled = self._coupled_state(
             atoms,
-            calculator,
+            electronic_model,
             gas_state,
+            runtime_calculator=calculator,
         )
 
         components = self._engine.energy_components(
@@ -1075,7 +1075,7 @@ class PyDDXSMDImplicitSolvation:
         if need_forces:
             correction_forces, derivative = self._solvent_correction_force(
                 atoms,
-                calculator,
+                electronic_model,
                 gas_state,
                 coupled,
             )
@@ -1099,6 +1099,7 @@ class PyDDXSMDImplicitSolvation:
                 "route2_smd_profile",
                 None,
             ),
+            "electronic_model": electronic_model.descriptor.as_provenance(),
             "mace_torch_version": getattr(
                 calculator,
                 "mace_torch_version",

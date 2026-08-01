@@ -6,6 +6,10 @@ from ..route2_smd_profiles import (
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
 )
+from ..route2_model_contracts import (
+    route2_model_family_label,
+    validate_route2_input_model_family,
+)
 from ..route2_solvents import normalize_route2_solvent_name
 
 
@@ -711,28 +715,13 @@ class CommandControl:
                     raise ValueError(msg)
                 if "charge" in params:
                     msg = (
-                        "Route 2 obtains its charge density from MACE-POLAR; "
-                        "remove #charge(...). MOL2 partial charges are ignored."
+                        "Route 2 obtains its electrostatic source from the "
+                        "selected electronic-model adapter; remove #charge(...). "
+                        "MOL2 partial charges are ignored."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 model_name = str(params.get("model") or "").lower()
-                compact_model = re.sub(r"[-_ ()]", "", model_name)
-                if compact_model != "macepolm":
-                    msg = (
-                        "Route 2 v1 is locked to the official MACE-POLAR-1-M "
-                        "checkpoint; use #model=macepol-m."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
-                if params.get("model_options"):
-                    msg = (
-                        "Route 2 uses the unmodified official MACE-POLAR-1-M "
-                        "checkpoint from MACE's upstream cache; remove all "
-                        "#model(...) options, including model_path and module."
-                    )
-                    cls._log_error(output_path, msg)
-                    raise ValueError(msg)
                 if params.get("d4") is True:
                     msg = "Route 2 v1 does not compose D4; remove #d4."
                     cls._log_error(output_path, msg)
@@ -781,6 +770,28 @@ class CommandControl:
                     msg = str(exc)
                     cls._log_error(output_path, msg)
                     raise ValueError(msg) from exc
+                try:
+                    validate_route2_input_model_family(
+                        model_name,
+                        expected_model_family=(
+                            profile_spec.electronic_model_family
+                        ),
+                    )
+                except ValueError as exc:
+                    msg = str(exc)
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg) from exc
+                if params.get("model_options"):
+                    model_label = route2_model_family_label(
+                        profile_spec.electronic_model_family
+                    )
+                    msg = (
+                        f"Route 2 uses the frozen unmodified {model_label} "
+                        "profile; remove "
+                        "all #model(...) options, including model_path and module."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
                 response = str(solv_params.get("response", "scf")).lower()
                 if provider == "pcmsolver" and response not in {
                     "frozen",

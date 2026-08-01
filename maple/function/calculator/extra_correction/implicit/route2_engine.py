@@ -22,7 +22,13 @@ from ....route2_energy_ledger import (
     PCM_HALF_COUPLING_ONLY_V1,
     validate_route2_electrostatic_energy_ledger,
 )
-from .electrostatic_pairing import MACE_POLAR_L1_PAIRING
+from .route2_electronic_model import (
+    ATOMIC_L1_SOURCE_SPACE,
+    FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    AtomicL1SourceSpace,
+    Route2ElectronicModel,
+    resolve_route2_electronic_model,
+)
 from .route2_derivative import (
     assemble_total_solvation_coordinate_gradient,
     continuum_coupled_solvation_coordinate_gradient,
@@ -62,6 +68,11 @@ SCF_REJECTED_GROWTH_ACTION = (
 )
 SCF_FINITE_RESOLUTION_HISTORY_SOURCE = "accepted-solver-states-only"
 SCF_ENERGY_RESIDUAL_SOURCE_MACE_FIELD = "field-conditioned-mace-energy-v1"
+# Compatibility value retained in audit schemas; internal code uses the
+# model-neutral name.
+SCF_ENERGY_RESIDUAL_SOURCE_FIELD_CONDITIONED_MODEL = (
+    SCF_ENERGY_RESIDUAL_SOURCE_MACE_FIELD
+)
 SCF_ENERGY_RESIDUAL_SOURCE_PCM_HALF_COUPLING = "pcm-half-coupling-v1"
 
 
@@ -319,7 +330,7 @@ class Route2EngineSettings:
 class Route2CoupledState:
     """One same-root geometry/provider state reusable by a public wrapper."""
 
-    calculator_identity: int
+    electronic_model_identity: int
     atomic_numbers: np.ndarray
     provider_cache_signature: Hashable
     positions_angstrom: np.ndarray
@@ -379,6 +390,12 @@ class Route2CoupledState:
         return self.density_coefficients
 
     @property
+    def calculator_identity(self) -> int:
+        """Compatibility alias for coupled states archived before adapter v1."""
+
+        return self.electronic_model_identity
+
+    @property
     def density_residual_coefficients(self) -> np.ndarray:
         """Unmixed physical residual ``M(P(c)) - c``."""
 
@@ -392,13 +409,13 @@ class Route2CoupledState:
 
     def matches(
         self,
-        calculator,
+        electronic_model,
         atoms,
         *,
         provider_cache_signature: Hashable,
     ) -> bool:
         return (
-            self.calculator_identity == id(calculator)
+            self.electronic_model_identity == electronic_model.cache_identity
             and np.array_equal(
                 self.atomic_numbers,
                 np.asarray(atoms.numbers, dtype=int),
@@ -418,6 +435,52 @@ class Route2ContinuumEngine:
     reaction_field_factory: Callable[[Any], Any]
     cds_evaluator: Callable[[Any], Any]
     settings: Route2EngineSettings
+    source_space: AtomicL1SourceSpace = ATOMIC_L1_SOURCE_SPACE
+
+    def _resolve_electronic_model(self, candidate) -> Route2ElectronicModel:
+        model = resolve_route2_electronic_model(candidate)
+        if model.descriptor.source_space != self.source_space:
+            raise TypeError(
+                "Route-2 engine/model source-space mismatch: engine expects "
+                f"{self.source_space.name!r}, received "
+                f"{model.descriptor.source_space.name!r}."
+            )
+        if (
+            model.descriptor.energy_semantics
+            != FIELD_CONDITIONED_OPERATIONAL_ENERGY
+        ):
+            raise TypeError(
+                "The fixed-point Route-2 engine accepts only explicitly "
+                "operational field-conditioned electronic models; a common "
+                "variational electronic functional requires the separate KKT "
+                "engine."
+            )
+        return model
+
+    def validate_source(
+        self,
+        values: np.ndarray,
+        atom_count: int,
+        *,
+        name: str,
+    ) -> np.ndarray:
+        try:
+            density = self.source_space.validate_source(
+                values,
+                atom_count=atom_count,
+                name=name,
+            )
+        except ValueError as exc:
+            raise RuntimeError(str(exc)) from exc
+        total_charge = self.source_space.total_charge(density)
+        charge_error = total_charge - self.settings.scf_total_charge_e
+        if abs(charge_error) > self.settings.neutral_density_tolerance:
+            raise RuntimeError(
+                f"{name} violates the fixed-total-charge constraint "
+                f"(actual={total_charge:.6e} e, expected="
+                f"{self.settings.scf_total_charge_e:.6e} e)."
+            )
+        return density
 
     def validate_density(
         self,
@@ -426,34 +489,25 @@ class Route2ContinuumEngine:
         *,
         name: str,
     ) -> np.ndarray:
-        density = np.asarray(values, dtype=float)
-        expected_shape = (atom_count, 4)
-        if density.shape != expected_shape or not np.all(np.isfinite(density)):
-            raise RuntimeError(
-                f"{name} must be finite with shape {expected_shape}; "
-                f"received {density.shape}."
-            )
-        monopole_sum = float(np.sum(density[:, 0]))
-        if abs(monopole_sum) > self.settings.neutral_density_tolerance:
-            raise RuntimeError(
-                f"{name} violates the neutral charge constraint "
-                f"(sum={monopole_sum:.6e} e)."
-            )
-        return density.copy()
+        """Compatibility alias for the original density-only engine API."""
+
+        return self.validate_source(values, atom_count, name=name)
 
     def _validate_field(
         self,
         values: np.ndarray,
         atom_count: int,
     ) -> np.ndarray:
-        field = np.asarray(values, dtype=float)
-        expected_shape = (atom_count, 4)
-        if field.shape != expected_shape or not np.all(np.isfinite(field)):
-            raise RuntimeError(
-                f"The {self.settings.continuum_label} reaction field must be "
-                f"finite with shape {expected_shape}; received {field.shape}."
+        try:
+            return self.source_space.validate_field(
+                values,
+                atom_count=atom_count,
+                name=(
+                    f"The {self.settings.continuum_label} reaction field"
+                ),
             )
-        return field.copy()
+        except ValueError as exc:
+            raise RuntimeError(str(exc)) from exc
 
     def _reaction_field_drive(
         self,
@@ -580,24 +634,13 @@ class Route2ContinuumEngine:
         )
 
     @staticmethod
-    def _polarize(calculator, atoms, drive: ReactionFieldDrive, **kwargs):
-        if drive.model_field_features is not None:
-            return calculator.polar_state(
-                atoms,
-                model_field_features=drive.model_field_features,
-                **kwargs,
-            )
-        field = (
-            drive.density_dual_field_ev
-            if drive.model_local_field_ev is None
-            else drive.model_local_field_ev
-        )
-        return calculator.polar_state(
-            atoms,
-            node_potential_ev=field[:, 0],
-            node_gradient_ev_per_angstrom=field[:, 1:],
-            **kwargs,
-        )
+    def _polarize(
+        electronic_model: Route2ElectronicModel,
+        atoms,
+        drive: ReactionFieldDrive,
+        **kwargs,
+    ):
+        return electronic_model.evaluate_state(atoms, drive, **kwargs)
 
     def _finite_resolution_candidate_window(
         self,
@@ -736,7 +779,7 @@ class Route2ContinuumEngine:
         self,
         *,
         atoms,
-        calculator,
+        electronic_model: Route2ElectronicModel,
         gas_state,
         policy: Route2FiniteResolutionPolicy,
         candidate_reaction_field,
@@ -767,9 +810,8 @@ class Route2ContinuumEngine:
             )
         )
         candidate_paired_energy_ev = 0.5 * float(
-            MACE_POLAR_L1_PAIRING.pair(
-                candidate_density,
-                candidate_field,
+            electronic_model.descriptor.source_space.pair(
+                candidate_density, candidate_field
             )
         )
         candidate_provider_energy_ev = candidate_pcm_polarization_hartree * Hartree
@@ -824,14 +866,14 @@ class Route2ContinuumEngine:
                 )
             replay_field = replay_drive.density_dual_field_ev
             replay_solvent_state, _ = self._polarize(
-                calculator,
+                electronic_model,
                 atoms,
                 replay_drive,
             )
-            replay_response_raw = self.validate_density(
+            replay_response_raw = self.validate_source(
                 replay_solvent_state.density_coefficients,
                 atom_count,
-                name="Map-replay MACE-POLAR density",
+                name="Map-replay electronic source",
             )
             replay_response = project_density_total_charge(
                 replay_response_raw,
@@ -848,9 +890,8 @@ class Route2ContinuumEngine:
                 )
             )
             paired_energy_ev = 0.5 * float(
-                MACE_POLAR_L1_PAIRING.pair(
-                    candidate_density,
-                    replay_field,
+                electronic_model.descriptor.source_space.pair(
+                    candidate_density, replay_field
                 )
             )
             provider_energy_ev = replay_pcm_polarization * Hartree
@@ -1114,12 +1155,9 @@ class Route2ContinuumEngine:
         }
 
     @staticmethod
-    def gas_state(calculator, atoms, *, need_forces: bool) -> Any:
-        cached = getattr(calculator, "cached_polar_state", None)
-        if callable(cached):
-            state = cached(atoms, require_forces=need_forces)
-        else:
-            state = getattr(calculator, "_last_polar_state", None)
+    def gas_state(electronic_model, atoms, *, need_forces: bool) -> Any:
+        model = resolve_route2_electronic_model(electronic_model)
+        state = model.cached_state(atoms, require_forces=need_forces)
         if state is None or (
             need_forces
             and getattr(
@@ -1129,16 +1167,15 @@ class Route2ContinuumEngine:
             )
             is None
         ):
-            state, _ = calculator.polar_state(
-                atoms,
-                compute_forces=need_forces,
+            state, _ = model.evaluate_state(
+                atoms, None, compute_forces=need_forces
             )
         return state
 
     def solve_coupled_state(
         self,
         atoms,
-        calculator,
+        electronic_model,
         gas_state,
         *,
         provider_cache_signature: Hashable,
@@ -1149,6 +1186,7 @@ class Route2ContinuumEngine:
             LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
         ),
     ) -> Route2CoupledState:
+        model = self._resolve_electronic_model(electronic_model)
         settings = self.settings
         selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
             electrostatic_energy_ledger
@@ -1156,23 +1194,23 @@ class Route2ContinuumEngine:
         energy_residual_source = (
             SCF_ENERGY_RESIDUAL_SOURCE_PCM_HALF_COUPLING
             if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1
-            else SCF_ENERGY_RESIDUAL_SOURCE_MACE_FIELD
+            else SCF_ENERGY_RESIDUAL_SOURCE_FIELD_CONDITIONED_MODEL
         )
         reaction_field = self.reaction_field_factory(atoms)
         if initial_density_coefficients is None:
-            initial_density = self.validate_density(
+            initial_density = self.validate_source(
                 gas_state.density_coefficients,
                 len(atoms),
-                name="Gas MACE-POLAR density",
+                name="Gas electronic source",
             )
-            initial_label = "gas-mace-polar-density"
+            initial_label = "gas-electronic-source"
             if initial_density_label is not None:
                 raise ValueError(
                     "initial_density_label requires an explicit "
                     "initial_density_coefficients array."
                 )
         else:
-            initial_density = self.validate_density(
+            initial_density = self.validate_source(
                 initial_density_coefficients,
                 len(atoms),
                 name="Route-2 supplied initial density",
@@ -1215,14 +1253,14 @@ class Route2ContinuumEngine:
             )
             field = drive.density_dual_field_ev
             solvent_state, _ = self._polarize(
-                calculator,
+                model,
                 atoms,
                 drive,
             )
-            raw_response_density = self.validate_density(
+            raw_response_density = self.validate_source(
                 solvent_state.density_coefficients,
                 len(atoms),
-                name="Field-polarized MACE-POLAR density",
+                name="Field-conditioned electronic source",
             )
             response_density = project_density_total_charge(
                 raw_response_density,
@@ -1234,7 +1272,7 @@ class Route2ContinuumEngine:
             dipole_residual_e_angstrom = float(np.max(np.abs(residual[:, 1:])))
             current_intrinsic_energy_ev = float(solvent_state.energy_ev)
             if not math.isfinite(current_intrinsic_energy_ev):
-                raise RuntimeError("Field-polarized MACE-POLAR energy is non-finite.")
+                raise RuntimeError("Field-conditioned model energy is non-finite.")
             if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1:
                 current_energy_ev = float(
                     reaction_field.scf_polarization_energy_hartree(density)
@@ -1493,7 +1531,7 @@ class Route2ContinuumEngine:
                     try:
                         replay = self._run_finite_resolution_map_replays(
                             atoms=atoms,
-                            calculator=calculator,
+                            electronic_model=model,
                             gas_state=gas_state,
                             policy=finite_resolution_policy,
                             candidate_reaction_field=reaction_field,
@@ -1617,7 +1655,7 @@ class Route2ContinuumEngine:
                     entry["density_residual_e"] for entry in history
                 )
             raise Route2SCFConvergenceError(
-                "MACE-POLAR/"
+                f"{model.descriptor.model_family}/"
                 f"{settings.continuum_label} reaction-field SCF did not "
                 f"converge in {settings.scf_max_iterations} iterations "
                 f"(monopole residual={last['monopole_residual_e']:.3e} e, "
@@ -1638,7 +1676,9 @@ class Route2ContinuumEngine:
                 f"{settings.continuum_label} polarization energy is "
                 "non-finite."
             )
-        paired_energy_ev = 0.5 * float(MACE_POLAR_L1_PAIRING.pair(density, field))
+        paired_energy_ev = 0.5 * float(
+            model.descriptor.source_space.pair(density, field)
+        )
         provider_energy_ev = polarization_energy_hartree * Hartree
         identity_error_ev = abs(paired_energy_ev - provider_energy_ev)
         if identity_error_ev > settings.energy_identity_tolerance_ev:
@@ -1650,7 +1690,7 @@ class Route2ContinuumEngine:
 
         cds_result = self.cds_evaluator(atoms)
         return Route2CoupledState(
-            calculator_identity=id(calculator),
+            electronic_model_identity=model.cache_identity,
             atomic_numbers=np.asarray(atoms.numbers, dtype=int).copy(),
             provider_cache_signature=provider_cache_signature,
             positions_angstrom=np.asarray(
@@ -1679,7 +1719,7 @@ class Route2ContinuumEngine:
     def solvent_correction_force(
         self,
         atoms,
-        calculator,
+        electronic_model,
         gas_state,
         coupled: Route2CoupledState,
         *,
@@ -1695,6 +1735,11 @@ class Route2ContinuumEngine:
             LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
         ),
     ) -> tuple[np.ndarray, dict[str, Any]]:
+        model = self._resolve_electronic_model(electronic_model)
+        if coupled.electronic_model_identity != model.cache_identity:
+            raise RuntimeError(
+                "Route-2 derivative model does not own the coupled state."
+            )
         selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
             electrostatic_energy_ledger
         )
@@ -1719,17 +1764,29 @@ class Route2ContinuumEngine:
             )
         field = coupled.reaction_field_values_ev
         density = coupled.density_coefficients
-        solvent_state, _ = calculator.polar_state(
+        drive = ReactionFieldDrive(
+            density_dual_field_ev=field,
+            model_local_field_ev=coupled.model_local_field_values_ev,
+            model_field_features=coupled.model_field_features,
+            projector=coupled.reaction_field_projector,
+            model_field_gauge=coupled.model_field_gauge,
+            model_field_gauge_reference_ev=(
+                coupled.model_field_gauge_reference_ev
+            ),
+        )
+        needs_fixed_field_forces = (
+            selected_energy_ledger == LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
+        )
+        solvent_state, _ = model.evaluate_state(
             atoms,
-            node_potential_ev=field[:, 0],
-            node_gradient_ev_per_angstrom=field[:, 1:],
-            compute_forces=True,
+            drive,
+            compute_forces=needs_fixed_field_forces,
         )
         response_density = project_density_total_charge(
-            self.validate_density(
+            self.validate_source(
                 solvent_state.density_coefficients,
                 len(atoms),
-                name="Force-evaluation MACE-POLAR density",
+                name="Force-evaluation electronic source",
             ),
             total_charge_e=settings.scf_total_charge_e,
         )
@@ -1739,7 +1796,7 @@ class Route2ContinuumEngine:
             1.0e-10,
         ):
             raise RuntimeError(
-                "The MACE-POLAR force state does not match the converged "
+                "The electronic-model force state does not match the converged "
                 f"density root (residual={force_state_residual:.3e} e)."
             )
         force_state_energy_error_ev = abs(
@@ -1750,31 +1807,27 @@ class Route2ContinuumEngine:
             or force_state_energy_error_ev > settings.force_state_energy_tolerance_ev
         ):
             raise RuntimeError(
-                "The MACE-POLAR force evaluation does not reproduce the "
+                "The electronic-model force evaluation does not reproduce the "
                 "converged intrinsic energy "
                 f"(absolute error={force_state_energy_error_ev:.3e} eV)."
             )
 
-        density_response = calculator.linearize_density_response(
-            atoms,
-            node_potential_ev=field[:, 0],
-            node_gradient_ev_per_angstrom=field[:, 1:],
-        )
+        density_response = model.linearize_source_response(atoms, drive)
         if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1:
             physical_rhs = pcm_half_coupling_energy_density_gradient(
                 coupled.reaction_field,
                 reaction_field_values=field,
+                pairing=model.descriptor.source_space.pairing,
             )
         else:
-            intrinsic_gradient = calculator.intrinsic_energy_field_gradient(
-                atoms,
-                node_potential_ev=field[:, 0],
-                node_gradient_ev_per_angstrom=field[:, 1:],
+            intrinsic_gradient = model.field_conditioned_energy_field_gradient(
+                atoms, drive
             )
             physical_rhs = fixed_cavity_energy_density_gradient(
                 coupled.reaction_field,
                 reaction_field_values=field,
                 intrinsic_energy_field_gradient=intrinsic_gradient,
+                pairing=model.descriptor.source_space.pairing,
             )
         residual = UnmixedDensityResidualLinearization(
             atom_count=len(atoms),
@@ -1788,11 +1841,10 @@ class Route2ContinuumEngine:
             absolute_tolerance=settings.adjoint_absolute_tolerance,
             max_iterations=settings.adjoint_max_iterations,
         )
-        density_position_vjp = calculator.density_position_vjp(
+        density_position_vjp = model.source_position_vjp(
             atoms,
-            node_potential_ev=field[:, 0],
-            node_gradient_ev_per_angstrom=field[:, 1:],
-            density_cotangent=adjoint.solution,
+            drive,
+            source_cotangent=adjoint.solution,
         )
         if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1:
             continuum_gradient = (
@@ -1802,6 +1854,7 @@ class Route2ContinuumEngine:
                     density_coefficients=density,
                     adjoint_solution=adjoint.solution,
                     adjoint_density_position_vjp=density_position_vjp,
+                    pairing=model.descriptor.source_space.pairing,
                 )
             )
         else:
@@ -1817,7 +1870,7 @@ class Route2ContinuumEngine:
             )
             if gas_forces is None or solvent_forces is None:
                 raise RuntimeError(
-                    "MACE-POLAR omitted the gas or fixed-field force partial."
+                    "Electronic model omitted the gas or fixed-field force partial."
                 )
             continuum_gradient = continuum_coupled_solvation_coordinate_gradient(
                 coupled.reaction_field,
@@ -1828,6 +1881,7 @@ class Route2ContinuumEngine:
                 adjoint_density_position_vjp=density_position_vjp,
                 solvent_fixed_field_forces_ev_per_angstrom=solvent_forces,
                 gas_forces_ev_per_angstrom=gas_forces,
+                pairing=model.descriptor.source_space.pairing,
             )
         total = assemble_total_solvation_coordinate_gradient(
             continuum_gradient,
@@ -1917,22 +1971,22 @@ class Route2ContinuumEngine:
     ) -> dict[str, float]:
         """Compose one versioned Route-2 scalar-energy ledger.
 
-        ``pcm-half-coupling-only-v1`` retains the MACE-POLAR fixed-point
-        density only as a source for the continuum and reports the PCM
+        ``pcm-half-coupling-only-v1`` retains the adapter-provided fixed-point
+        source only for the continuum and reports the PCM
         half-coupling plus frozen CDS.  It deliberately excludes the
-        field-conditioned MACE energy difference from the leaf ledger.
+        field-conditioned electronic-model energy difference from the ledger.
         """
 
         selected_energy_ledger = validate_route2_electrostatic_energy_ledger(
             electrostatic_energy_ledger
         )
-        field_conditioned_mace_energy_change = (
+        field_conditioned_model_energy_change = (
             float(solvent_energy_ev) - float(gas_energy_ev)
         ) / Hartree
         delta_e_solute = (
             0.0
             if selected_energy_ledger == PCM_HALF_COUPLING_ONLY_V1
-            else field_conditioned_mace_energy_change
+            else field_conditioned_model_energy_change
         )
         pcm_polarization = float(polarization_energy_hartree)
         electrostatic = delta_e_solute + pcm_polarization

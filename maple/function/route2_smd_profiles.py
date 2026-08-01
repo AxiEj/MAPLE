@@ -1,9 +1,10 @@
 """Versioned Route-2 SMD profile registry.
 
 This lightweight module is the shared contract between input validation,
-calculator dispatch, and continuum providers.  A public profile selects one
-complete, reproducible combination of continuum backend, cavity variant, and
-MACE-POLAR long-range evaluator; users cannot compose unvalidated mixtures.
+electronic-model dispatch, and continuum providers.  A public profile selects
+one complete, reproducible combination of electronic-model family, source
+space, field evaluator, continuum backend, cavity, energy ledger, and
+nonpolar functional; users cannot compose unvalidated mixtures.
 """
 
 from __future__ import annotations
@@ -18,6 +19,12 @@ from .route2_energy_ledger import (
     validate_route2_electrostatic_energy_ledger,
 )
 from .route2_solvents import SUPPORTED_ROUTE2_SMD_SOLVENTS
+from .route2_model_contracts import (
+    ROUTE2_ATOMIC_L1_SOURCE_SPACE,
+    ROUTE2_FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+    ROUTE2_MACE_POLAR_MODEL_FAMILY,
+    ROUTE2_MACE_POLAR_PROFILE_BINDING,
+)
 
 CANONICAL_SMD_PROFILE = "smd-iefpcm"
 GAFF2_CARBONYL_O_PROFILE = "smd-iefpcm-gaff2-o"
@@ -82,7 +89,7 @@ MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE = (
 
 @dataclass(frozen=True)
 class Route2SMDProfileSpec:
-    """One frozen v1 audited combination, not an open plug-in schema."""
+    """One frozen audited combination, not an open run-time plug-in schema."""
 
     name: str
     provider: Literal["pcmsolver", "pyddx", "fc-aswig"]
@@ -118,6 +125,12 @@ class Route2SMDProfileSpec:
         "pyscf-smd-2.13.1",
     ]
     supported_solvents: frozenset[str]
+    electronic_model_family: str = ROUTE2_MACE_POLAR_MODEL_FAMILY
+    electronic_source_space: str = ROUTE2_ATOMIC_L1_SOURCE_SPACE
+    electronic_profile_binding: str = ROUTE2_MACE_POLAR_PROFILE_BINDING
+    electronic_energy_semantics: str = (
+        ROUTE2_FIELD_CONDITIONED_OPERATIONAL_ENERGY
+    )
     mace_geometry_frame_policy: Literal[
         "laboratory-v1",
         "jgp94-d2-canonical-v1",
@@ -138,10 +151,26 @@ class Route2SMDProfileSpec:
     def uses_gaff2_carbonyl_oxygen(self) -> bool:
         return self.cavity == "gaff2-carbonyl-o"
 
+    @property
+    def model_field_evaluator(self) -> str:
+        """Model-neutral alias consumed by the electronic adapter boundary."""
+
+        return self.mace_long_range_evaluator
+
     def __post_init__(self) -> None:
         validate_route2_electrostatic_energy_ledger(
             self.electrostatic_energy_ledger
         )
+        if not str(self.electronic_model_family).strip():
+            raise ValueError("Route-2 electronic-model family must be non-empty.")
+        if not str(self.electronic_source_space).strip():
+            raise ValueError("Route-2 electronic source space must be non-empty.")
+        if not str(self.electronic_profile_binding).strip():
+            raise ValueError("Route-2 electronic profile binding must be non-empty.")
+        if not str(self.model_field_evaluator).strip():
+            raise ValueError("Route-2 model-field evaluator must be non-empty.")
+        if not str(self.electronic_energy_semantics).strip():
+            raise ValueError("Route-2 electronic energy semantics must be non-empty.")
         if self.mace_geometry_frame_policy not in {
             "laboratory-v1",
             "jgp94-d2-canonical-v1",
@@ -151,6 +180,9 @@ class Route2SMDProfileSpec:
             self.provider != "fc-aswig"
             or self.cavity != "fixed-topology-smd"
             or self.electrostatics_model != "cpcm"
+            or self.electronic_model_family != ROUTE2_MACE_POLAR_MODEL_FAMILY
+            or self.electronic_profile_binding
+            != ROUTE2_MACE_POLAR_PROFILE_BINDING
             or self.reaction_field_projector != "local-jet"
             or self.mace_geometry_frame_policy != "jgp94-d2-canonical-v1"
             or self.electrostatic_energy_ledger != PCM_HALF_COUPLING_ONLY_V1

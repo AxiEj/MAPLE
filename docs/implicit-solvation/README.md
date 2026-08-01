@@ -4,12 +4,17 @@ This branch contains only the MACE-POLAR + SMD continuum route. It does not
 contain the fixed-charge PB/GB implementation. The default
 PCMSolver--IEFPCM/GePol profile remains an energy proof-of-concept. Separate,
 explicit pyddx ddPCM profiles retain single-point derivative evidence behind a
-research-only API; their public Route-2 result remains energy-only. A separate
+research-only API; their public Route-2 result remains energy-only. The one
+exception is the explicitly versioned, water-only FC-aSWIG C-PCM `force-v3`
+profile: it exposes forces only after every geometry passes the bounded root,
+conditioning, and force-admission certificate. It is not a generic
+solution-phase PES or a common variational MACE--PCM electronic functional. A separate
 PCMSolver profile changes only the ASC-to-MACE reaction-field projection from
 the historical local first-order jet to the checkpoint-native \(l\le1\) GTO
 integrals. A newer, still non-default profile combines that receiver with the
 SMD intrinsic Coulomb-sphere electrostatic cavity (`probe=0`, no added
-spheres, explicit water dielectric). None is yet a complete MAPLE solution-phase PES.
+spheres, explicit water dielectric). No profile is a complete generic MAPLE
+solution-phase PES.
 All calculations therefore require `experimental=true`.
 
 The no-training Route-2 V0 scalar-response alternative is also frozen as a
@@ -296,6 +301,42 @@ printed in provenance as `electrostatics_model=ddpcm` or `ddcosmo`,
 `strict_original_smd_equivalence=false`.  Registration and successful
 execution are usability evidence, not multi-solvent accuracy certification.
 
+### Bounded public conservative-force profile
+
+The fixed-topology water profile has a separately versioned public-force
+identity; it is deliberately **not** an upgrade of the energy-only `v1` or
+`v2` profiles:
+
+```text
+#model=macepol-m
+#sp(verbose=1)
+#solv(implicit=water,method=smd,provider=fc-aswig,profile=smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-force-v3,response=scf,standard_state=1m,experimental=true)
+```
+
+It differentiates the direct operational scalar
+
+\[
+\Delta G_{\rm solv}=\frac12\langle c_{\rm MACE-POLAR},f_{\rm reac}\rangle
++G_{\rm fixed\mbox{-}topology\ aqueous\ SMD-CDS},
+\]
+
+using the un-mixed fixed-point adjoint and one fixed-cardinality amplitude
+C-PCM/SMD-CDS geometry. It does **not** add the unproven
+`E_MACE[V_reac]-E_MACE[gas]` term and does **not** claim a common stationary
+electronic free energy. The profile is fail-closed to neutral, closed-shell,
+connected 16--500 Da molecules in water, a nondegenerate JGP94 frame, the
+four-branch D2-canonical local-jet MACE operator, a dense fixed-charge
+conditioning screen, nominal SCF/adjoint residuals, and three-start local root
+agreement. If any gate fails at a new geometry, no force is returned.
+
+The release evidence was generated on a clean `e724cf5a` source tree: acetone
+passed component finite differences, translation, rotation, a Cartesian path,
+a closed coordinate loop, and three time-step short-NVE refinement; an
+independent 20-atom 2-acetoxyethyl-acetate torsion and two-coordinate closed
+loop also passed at a constant 1720 surface candidates. This is a bounded
+conservative operational-scalar force capability, not proof for all chemical
+classes, every conformation, long MD, or universal solvation accuracy.
+
 One additional profile isolates the rigid-rotation defect of MACE-POLAR's
 default molecular long-range evaluator:
 
@@ -431,6 +472,7 @@ The derivative capability boundary is likewise explicit:
 | pyddx ddPCM `l15/n1202` + PySCF SMD CDS | yes | research evidence only | energy only |
 | pyddx ddPCM multi-solvent parameters + PySCF SMD CDS | yes | research evidence only | energy only; accuracy not certified |
 | pyddx/GAFF2 + MACE reciprocal fixed-box40 | yes | research evidence only | energy only; non-default operator variant |
+| FC-aSWIG C-PCM + fixed-topology aqueous SMD-CDS `force-v3` | yes | yes; fixed-cardinality same scalar | bounded public forces; water-only, per-geometry fail closed |
 | synthetic contract oracle | test only | yes | no |
 | external PySCF SWIG investigation | separate canary only | incomplete Route-2 integration | no |
 

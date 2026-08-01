@@ -26,6 +26,7 @@ from ....route2_energy_ledger import PCM_HALF_COUPLING_ONLY_V1
 from ....route2_smd_profiles import (
     FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE,
     FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE,
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
     route2_smd_profile_spec,
 )
 from ....route2_solvents import normalize_route2_solvent_name
@@ -38,7 +39,9 @@ from .route2_engine import (
 )
 from .route2_fc_aswig_smd_cds import FixedTopologyAqueousSMDCDSResult
 from .route2_force_admission import (
+    FC_ASWIG_JGP94_D2_DIRECT_PCM_FORCE_PES_VALIDATION_CONTRACT,
     JGP94_FIXED_TOPOLOGY_ASWIG_CPCM_AQUEOUS_SMD_SMOOTHNESS_CONTRACT,
+    UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT,
 )
 from .route2_fixed_point import SAFEGUARDED_ANDERSON_SOLVER
 from .route2_jgp94_fc_aswig import (
@@ -81,6 +84,7 @@ _SUPPORTED_FC_ASWIG_AQUEOUS_DIRECT_PCM_PROFILES = frozenset(
     {
         FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE,
         FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE,
+        FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
     }
 )
 
@@ -160,6 +164,14 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
             self.solvation_options.get("standard_state", "1m")
         ).lower()
         self._validate_options()
+        self._public_force_profile = route2_smd_profile_spec(
+            self.profile
+        ).force_release_eligible
+        self.supported_properties = frozenset(
+            {"energy", "forces"}
+            if self._public_force_profile
+            else {"energy"}
+        )
         validate_route2_domain(self.atoms)
         self._reference_atomic_numbers = np.asarray(
             self.atoms.numbers,
@@ -217,13 +229,24 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
                 FC_ASWIG_SCF_DIPOLE_TOLERANCE_E_ANGSTROM
             ),
             "scf_energy_tolerance_ev": FC_ASWIG_SCF_ENERGY_TOLERANCE_EV,
-            "forces_available": False,
-            "research_derivative_evidence_available": True,
+            "forces_available": self._public_force_profile,
+            "research_derivative_evidence_available": (
+                not self._public_force_profile
+            ),
             "research_derivative_evidence_scope": (
                 "same-scalar single-point evidence only; no public force, "
                 "optimizer, scan, or MD capability before PES admission"
+                if not self._public_force_profile
+                else "superseded by the bounded force-v3 admission contract"
             ),
-            "solution_phase_pes": False,
+            "solution_phase_pes": self._public_force_profile,
+            "solution_phase_pes_scope": (
+                "neutral, closed-shell, non-periodic, 16--500 Da connected "
+                "molecules in water; local-jet only; nondegenerate JGP94 frame; "
+                "per-geometry root, conditioning, and force-admission gates"
+                if self._public_force_profile
+                else "not publicly available"
+            ),
             "accuracy_certified": False,
             "default_eligible": False,
         }
@@ -264,6 +287,34 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
                 "Fixed-topology Route 2 cannot change atomic identities after "
                 "provider construction."
             )
+
+    def _validate_public_force_calculator(self, calculator) -> None:
+        """Reject a public force request unless its MACE transform is exact."""
+
+        if not self._public_force_profile:
+            return
+        spec = route2_smd_profile_spec(self.profile)
+        actual_policy = str(
+            getattr(calculator, "route2_mace_geometry_frame_policy", "")
+        ).strip().lower()
+        actual_evaluator = str(
+            getattr(calculator, "long_range_evaluator_profile", "")
+        ).strip().lower()
+        if actual_policy != spec.mace_geometry_frame_policy:
+            raise TypeError(
+                "The Route-2 force-v3 profile requires the registered "
+                "JGP94-D2 MACE geometry transform."
+            )
+        if actual_evaluator != spec.mace_long_range_evaluator:
+            raise TypeError(
+                "The Route-2 force-v3 profile requires its registered "
+                "MACE long-range evaluator."
+            )
+
+    def _force_pes_validation_contract(self):
+        if self._public_force_profile:
+            return FC_ASWIG_JGP94_D2_DIRECT_PCM_FORCE_PES_VALIDATION_CONTRACT
+        return UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT
 
     def _geometry_bundle(self, atoms) -> _FCAqueousGeometryBundle:
         cached = self._bundle
@@ -406,6 +457,7 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
         if calculator is None:
             raise ValueError("Route 2 requires the owning MACE-POLAR calculator.")
         self._validate_atoms(atoms)
+        self._validate_public_force_calculator(calculator)
         gas_state = self._engine.gas_state(
             calculator,
             atoms,
@@ -441,6 +493,9 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
                     JGP94_FIXED_TOPOLOGY_ASWIG_CPCM_AQUEOUS_SMD_SMOOTHNESS_CONTRACT
                 ),
                 multi_start_root_agreement=root_agreement.agreed,
+                force_admission_pes_validation=(
+                    self._force_pes_validation_contract()
+                ),
                 electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
             )
         provenance = {
@@ -481,9 +536,21 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
         need_forces: bool = False,
         calculator=None,
     ) -> SolvationResult:
-        if need_forces:
+        if need_forces and not self._public_force_profile:
             raise NotImplementedError(FC_ASWIG_DERIVATIVE_EVIDENCE_ONLY_ERROR)
-        return self._evaluate(atoms, calculator=calculator, need_forces=False)
+        result = self._evaluate(
+            atoms,
+            calculator=calculator,
+            need_forces=need_forces,
+        )
+        if need_forces:
+            admission = result.provenance.get("force_admission", {})
+            if admission.get("release_admitted") is not True:
+                raise RuntimeError(
+                    "The Route-2 force-v3 per-geometry admission certificate "
+                    "did not pass; refusing to return a solvent force."
+                )
+        return result
 
     def evaluate_single_point_derivative_evidence(
         self,
@@ -517,6 +584,7 @@ __all__ = [
     "FC_ASWIG_ADJOINT_MAX_ITERATIONS",
     "FC_ASWIG_ADJOINT_RELATIVE_TOLERANCE",
     "FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE",
+    "FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE",
     "FC_ASWIG_DERIVATIVE_EVIDENCE_ONLY_ERROR",
     "FC_ASWIG_LEBEDEV_ORDER",
     "FC_ASWIG_STATIC_DIELECTRIC",

@@ -61,6 +61,9 @@ FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE = (
 FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE = (
     "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2"
 )
+FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE = (
+    "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-force-v3"
+)
 DDPCM_GAFF2_CARBONYL_O_PROFILE = "smd-ddpcm-l15-n1202-gaff2-o-v1"
 DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE = (
     "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1"
@@ -125,6 +128,7 @@ class Route2SMDProfileSpec:
     strict_original_smd_equivalence: bool = False
     ddpcm_n_proc: int = 1
     default_eligible: bool = False
+    force_release_eligible: bool = False
     pcmsolver_cavity_generation: Literal[
         "legacy-builtin-solvent-probe-v1",
         "intrinsic-probe0-noaddsph-v1",
@@ -143,6 +147,19 @@ class Route2SMDProfileSpec:
             "jgp94-d2-canonical-v1",
         }:
             raise ValueError("Unsupported Route-2 MACE geometry-frame policy.")
+        if self.force_release_eligible and (
+            self.provider != "fc-aswig"
+            or self.cavity != "fixed-topology-smd"
+            or self.electrostatics_model != "cpcm"
+            or self.reaction_field_projector != "local-jet"
+            or self.mace_geometry_frame_policy != "jgp94-d2-canonical-v1"
+            or self.electrostatic_energy_ledger != PCM_HALF_COUPLING_ONLY_V1
+            or self.supported_solvents != _WATER_ONLY
+        ):
+            raise ValueError(
+                "A Route-2 public force profile must be the bounded "
+                "water-only JGP94-D2 fixed-topology direct-CPCM profile."
+            )
 
     def supports_solvent(self, solvent: str) -> bool:
         return str(solvent).strip().lower() in self.supported_solvents
@@ -425,6 +442,26 @@ _PROFILE_SPECS = {
         mace_geometry_frame_policy="jgp94-d2-canonical-v1",
         electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
     ),
+    # v3 changes only the public capability boundary.  It reuses the frozen
+    # v2 scalar/operator and admits forces only through the per-geometry
+    # force certificate; v1/v2 remain energy-only identities.
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE: Route2SMDProfileSpec(
+        name=FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
+        provider="fc-aswig",
+        cavity="fixed-topology-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="cpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="fixed-topology-aqueous-smd-cds",
+        dielectric_policy="legacy-water-78.39",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
+        supported_solvents=_WATER_ONLY,
+        mace_geometry_frame_policy="jgp94-d2-canonical-v1",
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+        force_release_eligible=True,
+    ),
     DDPCM_GAFF2_CARBONYL_O_PROFILE: Route2SMDProfileSpec(
         name=DDPCM_GAFF2_CARBONYL_O_PROFILE,
         provider="pyddx",
@@ -550,6 +587,7 @@ __all__ = [
     "DDPCM_SMD_DIRECT_PCM_PROFILE",
     "DDPCM_SMD_PROFILE",
     "FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE",
+    "FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE",
     "FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE",
     "GAFF2_CARBONYL_O_PROFILE",
     "MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE",

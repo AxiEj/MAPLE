@@ -8,6 +8,9 @@ import numpy as np
 import pytest
 from ase import Atoms
 
+from maple.function.calculator.extra_correction.implicit.correction import (
+    ImplicitSolvationCorrection,
+)
 from maple.function.calculator.extra_correction.implicit.fc_aswig_smd import (
     FC_ASWIG_DERIVATIVE_EVIDENCE_ONLY_ERROR,
     FC_ASWIG_SCF_SOLVER,
@@ -18,7 +21,9 @@ from maple.function.calculator.extra_correction.implicit.route2_fixed_point impo
 )
 from maple.function.route2_smd_profiles import (
     FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE,
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
     FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE,
+    MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
 
 
@@ -67,6 +72,8 @@ class _ZeroMACEPolarCalculator:
 
     def __init__(self, atoms: Atoms):
         self.atoms = atoms.copy()
+        self.route2_mace_geometry_frame_policy = "jgp94-d2-canonical-v1"
+        self.long_range_evaluator_profile = MACEPOL_MOLECULAR_REALSPACE_PROFILE
         density = np.zeros((len(atoms), 4))
         # Deliberately distinct from the zero and negated-gas seeds used by
         # the root-study evidence.  The field response below is exactly zero,
@@ -175,3 +182,55 @@ def test_fixed_topology_provider_accepts_the_versioned_canonical_mace_operator()
         "jgp94-d2-canonical-v1"
     )
     assert provider.supported_properties == frozenset({"energy"})
+
+
+def test_force_v3_is_the_only_public_fixed_topology_force_profile():
+    pytest.importorskip("pyscf")
+    atoms = _atoms()
+    calculator = _ZeroMACEPolarCalculator(atoms)
+    provider = FixedTopologyASWIGAqueousSMDImplicitSolvation(
+        atoms,
+        _options(profile=FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE),
+    )
+
+    assert provider.supported_properties == frozenset({"energy", "forces"})
+    result = provider.evaluate(atoms, calculator=calculator, need_forces=True)
+
+    assert result.forces_hartree_per_angstrom is not None
+    assert result.provenance["forces_available"] is True
+    assert result.provenance["force_admission"]["release_admitted"] is True
+
+
+def test_force_v3_rejects_a_noncanonical_mace_transform():
+    pytest.importorskip("pyscf")
+    atoms = _atoms()
+    calculator = _ZeroMACEPolarCalculator(atoms)
+    calculator.route2_mace_geometry_frame_policy = "laboratory-v1"
+    provider = FixedTopologyASWIGAqueousSMDImplicitSolvation(
+        atoms,
+        _options(profile=FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE),
+    )
+
+    with pytest.raises(TypeError, match="JGP94-D2"):
+        provider.evaluate(atoms, calculator=calculator, need_forces=True)
+
+
+def test_force_v3_opens_the_common_route2_correction_boundary(tmp_path):
+    pytest.importorskip("pyscf")
+    atoms = _atoms()
+    calculator = _ZeroMACEPolarCalculator(atoms)
+    correction = ImplicitSolvationCorrection(
+        atoms,
+        {},
+        _options(
+            profile=FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
+            experimental=True,
+        ),
+        output=tmp_path / "route2-force.out",
+    )
+
+    assert correction.supported_properties == {"energy", "forces"}
+    result = correction.evaluate(atoms, calculator=calculator, need_forces=True)
+
+    assert result.forces_hartree_per_angstrom is not None
+    assert result.provenance["force_admission"]["release_admitted"] is True

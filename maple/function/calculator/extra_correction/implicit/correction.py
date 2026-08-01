@@ -255,7 +255,7 @@ class ImplicitSolvationCorrection:
         need_forces: bool = False,
         calculator=None,
     ) -> SolvationResult:
-        if need_forces:
+        if need_forces and "forces" not in self.supported_properties:
             raise NotImplementedError(
                 "Route 2 SMD does not expose forces before the "
                 "solution-phase PES validation gate passes."

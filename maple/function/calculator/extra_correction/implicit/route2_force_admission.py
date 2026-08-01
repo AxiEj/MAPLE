@@ -185,6 +185,29 @@ UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT = ForcePESValidationContract(
 )
 
 
+FC_ASWIG_JGP94_D2_DIRECT_PCM_FORCE_PES_VALIDATION_CONTRACT = (
+    ForcePESValidationContract(
+        profile_kind="fc-aswig-jgp94-d2-direct-cpcm-aqueous-force-v3",
+        component_resolved_finite_difference_verified=True,
+        rigid_translation_verified=True,
+        rigid_rotation_covariance_verified=True,
+        coordinate_path_smoothness_verified=True,
+        closed_loop_work_verified=True,
+        short_nve_verified=True,
+        evidence=(
+            "Clean-tree evidence at e724cf5a923e9751af153ef1e5f7f1a6e1b4bffd "
+            "passed the pre-registered acetone component finite-difference, "
+            "translation, rotation, Cartesian-path, closed-loop, and three-step "
+            "short-NVE gates. The independent 20-atom 2-acetoxyethyl-acetate "
+            "torsion and two-coordinate closed loop also passed with fixed "
+            "cardinality. This admits only the bounded neutral, nondegenerate, "
+            "local-jet, water FC-aSWIG profile; it does not prove a universal "
+            "MACE--PCM free-energy functional or all-geometry force domain."
+        ),
+    )
+)
+
+
 @dataclass(frozen=True)
 class NonpolarSmoothnessContract:
     """Same-scalar smoothness evidence for the selected nonpolar term.
@@ -721,6 +744,7 @@ __all__ = [
     "FORCE_ADMISSION_CONTRACT_VERSION",
     "ContinuumSmoothnessContract",
     "DIRECT_PCM_HALF_COUPLING_FORCE_ENERGY_SEMANTICS",
+    "FC_ASWIG_JGP94_D2_DIRECT_PCM_FORCE_PES_VALIDATION_CONTRACT",
     "FIXED_TOPOLOGY_AQUEOUS_SMD_CDS_SMOOTHNESS_CONTRACT",
     "FIXED_TOPOLOGY_ASWIG_CPCM_AQUEOUS_SMD_SMOOTHNESS_CONTRACT",
     "JGP94_FIXED_TOPOLOGY_ASWIG_CPCM_AQUEOUS_SMD_SMOOTHNESS_CONTRACT",

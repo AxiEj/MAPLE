@@ -1,11 +1,11 @@
 {
-  "base_manifest_sha256": "cb34f0b397a1ed4ec0d156192facfc11ae280957fdb1a6e92713bb96ab0cca9d",
+  "base_manifest_sha256": "b7113a866f490d7a4b19fcb2137edd2d2b98f4f4a7750a3bebb064c17ef66f57",
   "component_contract": "derived totals are checked from leaves; do not sum the legacy flat components map",
   "derived_totals_hartree": {
-    "delta_g_solv": -0.012557598154421326,
-    "electrostatic": -0.018238870249272142
+    "delta_g_solv": -0.006323528274641765,
+    "electrostatic": -0.012004800369492582
   },
-  "energy_hartree": -0.012557598154421326,
+  "energy_hartree": -0.006323528274641765,
   "evaluation_geometry": {
     "atomic_numbers": [
       6,
@@ -106,23 +106,23 @@
       ]
     ]
   },
-  "evaluation_manifest_path": "route2-public-results/4abd7b8622ef4feb9572228eab82dc4c.manifest.json",
-  "evaluation_manifest_sha256": "86b1c351e96a7741eb9a2f8fc36afdb8ee10678442d682a415365fb610f549c1",
+  "evaluation_manifest_path": "route2-public-results/8431e54cd95141039004cfdd14bf949c.manifest.json",
+  "evaluation_manifest_sha256": "49f8d4499ac3d82b69cd974b4c062a8022ac4d63a4ff71a972e164c365e5ce42",
   "force_admission": null,
   "forces_evaluated": false,
   "geometry_sha256": "2bbdc9b9fa3eafb2547afbb15287a8ad912990872ccfbaef91324b5568ebcc68",
   "leaf_components_hartree": {
     "cds": 0.005681272094850817,
-    "pcm_polarization": -0.018238870249272142,
+    "pcm_polarization": -0.012004800369492582,
     "solute_polarization": 0.0,
     "standard_state": 0.0
   },
   "profile": "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2",
   "provider": "pyddx",
-  "result_content_sha256": "39d6926a942989331908a9e80360366fbcdcde98bda12673183210404274c3ce",
-  "run_id": "4abd7b8622ef4feb9572228eab82dc4c",
+  "result_content_sha256": "4c4b367e9aa9b1d0e904a2f06bc3b225ebd6015c0ef192b7a649ca6aa35e652a",
+  "run_id": "8431e54cd95141039004cfdd14bf949c",
   "schema_version": 3,
-  "solvation_options_sha256": "aae5b766208908c85433e23a9d86dbbeac057edbe6036687d59b9de8bb3da437",
+  "solvation_options_sha256": "76280187262034cc1f749a70298daf24c2d705d4e9ba9149db90f5dc72e8f30e",
   "source_receiver_contract": {
     "common_stationary_electronic_functional_established": false,
     "continuum_pairing_established": true,

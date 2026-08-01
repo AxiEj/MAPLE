@@ -17,12 +17,12 @@
 Parsing # commands...
 Global parameter: model = macepol-m
 Task set to 'sp'
-Global nested parameter: solv = {'implicit': 'water', 'method': 'smd', 'provider': 'pyddx', 'profile': 'smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2', 'response': 'scf', 'standard_state': '1m', 'experimental': True}
+Global nested parameter: solv = {'implicit': 'water', 'method': 'smd', 'provider': 'pyddx', 'profile': 'smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2', 'response': 'frozen', 'standard_state': '1m', 'experimental': True}
 Parsed configuration:
 ----------------------------------------
 Task: sp
 model          : macepol-m
-solv           : {'implicit': 'water', 'method': 'smd', 'provider': 'pyddx', 'profile': 'smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2', 'response': 'scf', 'standard_state': '1m', 'experimental': True}
+solv           : {'implicit': 'water', 'method': 'smd', 'provider': 'pyddx', 'profile': 'smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2', 'response': 'frozen', 'standard_state': '1m', 'experimental': True}
 
                              Coordinates
 **********************************************************************
@@ -42,30 +42,30 @@ Charge: 0, Multiplicity: 1
 10   H              1.245000             0.717000             3.318000
 
 Charge: 0, Multiplicity: 1
-Energy: -193.1527828699 Hartree
+Energy: -193.1465488000 Hartree
 Gas-phase MLIP energy: -193.1402252717 Hartree
-Solvation free-energy correction (Delta G_solv, 1M(gas)->1M(solution)): -0.0125575982 Hartree
-Combined E_MLIP(gas)+Delta G_solv: -193.1527828699 Hartree
+Solvation free-energy correction (Delta G_solv, 1M(gas)->1M(solution)): -0.0063235283 Hartree
+Combined E_MLIP(gas)+Delta G_solv: -193.1465488000 Hartree
 ASE free_energy is the combined electronic-plus-solvation value, not a thermochemical Gibbs free energy.
 
 
 
-Program started: 2026-08-02 05:21:07
+Program started: 2026-08-02 05:20:57
 
 ======================================================================
                       TIMING SUMMARY
 ======================================================================
-Input Reading.......................................   0.002 s  (   0.0 %)
-  Settings Parsing....................................   0.000 s  (  14.8 %)
-  Coordinate Section Parsing..........................   0.001 s  (  55.1 %)
-  Post-Processing Expansion...........................   0.000 s  (   0.2 %)
-MLP Initialization..................................   2.808 s  (  13.6 %)
-Job Dispatching.....................................  17.772 s  (  86.3 %)
-  Single Point Energy Calculation.....................  17.771 s  ( 100.0 %)
+Input Reading.......................................   0.003 s  (   0.0 %)
+  Settings Parsing....................................   0.000 s  (   8.8 %)
+  Coordinate Section Parsing..........................   0.002 s  (  73.8 %)
+  Post-Processing Expansion...........................   0.000 s  (   0.1 %)
+MLP Initialization..................................   4.393 s  (  63.2 %)
+Job Dispatching.....................................   2.553 s  (  36.7 %)
+  Single Point Energy Calculation.....................   2.551 s  (  99.9 %)
 ======================================================================
-Total wall time: 20.582 s
-Total CPU time: 75.454 s
+Total wall time: 6.949 s
+Total CPU time: 13.902 s
 ======================================================================
 
-Program ended: 2026-08-02 05:21:27
-TOTAL RUN TIME: 0 days 0 hours 0 minutes 20 seconds 582 msec
+Program ended: 2026-08-02 05:21:04
+TOTAL RUN TIME: 0 days 0 hours 0 minutes 6 seconds 948 msec

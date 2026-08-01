@@ -151,6 +151,39 @@ record-level result, including all provider rejections, is
 This falsifies a broad-generalization claim for the legacy profile; it is not
 a one-shot V0 confirmation or a reason to tune its parameters.
 
+**2026-08-02 — zero-field frozen-source direct-PCM diagnostic.**  The direct
+half-coupling route now has an explicit `response=frozen` execution identity:
+MACE-POLAR is evaluated once at zero field, its coarse point-$l\leq1$ source is
+sent to ddPCM or scaled ddCOSMO, and the reported energy is only
+$\frac12\langle c_0,Pc_0\rangle+G_{\rm SMD-CDS}$.  No field-conditioned model
+state, fixed point, or artificial SCF residual is evaluated.
+
+On the preregistered ten-solvent MNSol pilot with ten post-selection
+descriptive chemistry classes, ddPCM gives MAE/RMSE/max
+`0.8635/0.9902/1.6454 kcal/mol` and ddCOSMO gives
+`0.9154/1.0208/1.6451 kcal/mol`; each equation has the lower paired absolute
+error on 5/10 records.  The aggregate-only receipt is
+[`route2-mnsol-macepolar-frozen-source-direct-pcm-multisolvent-pilot-v1-execution-ae427ea7.json`](benchmarks/route2-mnsol-macepolar-frozen-source-direct-pcm-multisolvent-pilot-v1-execution-ae427ea7.json).
+
+On the immutable historical-worst FreeSolv-12 panel (ten actual functional
+groups plus methane and benzene controls), ddPCM gives
+`1.0843/1.2547/1.9910 kcal/mol` with 4/12 threshold failures and ddCOSMO gives
+`1.0723/1.2362/1.9549 kcal/mol` with 3/12 failures.  Relative to the historical
+field-conditioned-SCF direct-ledger run, the maxima fall from
+`7.3303/7.4479` to `1.9910/1.9549 kcal/mol`, respectively.  The source-bound
+receipt is
+[`route2-frozen-source-direct-pcm-freesolv12-ddpcm-ddcosmo-v1-execution-ae427ea7.json`](benchmarks/route2-frozen-source-direct-pcm-freesolv12-ddpcm-ddcosmo-v1-execution-ae427ea7.json).
+
+This is a useful no-training baseline and directly identifies the current
+learned fixed-point response as a major source of the old catastrophic errors.
+It is **not** an admitted Route2V electronic functional: the frozen permanent
+source is not a stationary molecular density, no induced solute response is
+present, and these pyddx profiles expose no conservative force/PES.  Both
+panels fail the immutable all-record `<1.5 kcal/mol` requirement.  The mixed
+under- and overhydration pattern forbids a global scale, radius shift, or
+offset; the next valid work is independent static-MEP, nonuniform-response,
+and SMD-CDS component decomposition.
+
 The immutable future gates are preserved rather than weakened:
 
 1. [`route2-v0-historical-freesolv10-regression-v1.json`](benchmarks/route2-v0-historical-freesolv10-regression-v1.json) retains the historical ethyl-acetate record `mobley_6973347`, where the retired GTO/QEq/GBn2 calculation reached **7.041442082076966 kcal/mol** error.

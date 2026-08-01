@@ -1,6 +1,6 @@
 #model=macepol-m
 #sp
-#solv(implicit=water,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-pcm-half-coupling-v1,response=scf,standard_state=1m,experimental=true)
+#solv(implicit=water,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2,response=scf,standard_state=1m,experimental=true)
 
 0 1
 MOL2 acetone.mol2

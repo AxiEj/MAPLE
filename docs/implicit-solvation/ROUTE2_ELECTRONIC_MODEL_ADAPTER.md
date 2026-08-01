@@ -32,6 +32,29 @@ or adjoint code.
 
 The engine composes these layers; it does not infer them from class names.
 
+## Response strategy is an independent axis
+
+The adapter, continuum equation, and electronic response strategy are not the
+same abstraction:
+
+* `response=frozen` requests only `cached_state()` at zero external field,
+  sends that declared source to the continuum once, and never calls
+  `evaluate_state()` with a reaction-field drive;
+* `response=scf` additionally requires a compatible state projector and
+  repeatedly calls the adapter with the continuum reaction field until the
+  unmixed physical fixed-point residual converges;
+* a future variational/KKT adapter may expose a stationary electronic
+  functional through a separately versioned capability rather than
+  impersonating either mode.
+
+Response admission is centralized beside the immutable profile registry and
+is reused by input parsing, calculator construction, and providers.  A new
+MLIP adapter therefore does not require response-specific conditionals inside
+ddPCM, ddCOSMO, CDS, or the shared engine.  Conversely, merely implementing an
+adapter never authorizes a scientific profile: its source space, energy
+semantics, capabilities, and validation evidence must still be bound by a new
+versioned profile.
+
 ## Current canonical interoperability space
 
 The only currently implemented common source space is

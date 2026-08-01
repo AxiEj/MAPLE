@@ -67,25 +67,30 @@ smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2
 smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2
 ```
 
-They have the same MACE-POLAR checkpoint, point-`l<=1` source, local-jet
-receiver, PySCF-2.13.1 SMD Coulomb radii, PySCF-2.13.1 SMD-CDS term, solvent
-descriptor, and direct ledger
+They have the same MACE-POLAR checkpoint, point-`l<=1` source,
+PySCF-2.13.1 SMD Coulomb radii, PySCF-2.13.1 SMD-CDS term, solvent descriptor,
+and direct ledger
 
 \[
 \Delta G_\mathrm{elec}=\tfrac12\langle c,f_\mathrm{reac}\rangle.
 \]
 
 Only the pyddx continuum equation differs: `ddPCM` versus finite-dielectric
-`ddCOSMO`.  The latter is therefore a parallel continuum diagnostic, **not**
-a claim of strict original SMD equivalence or a COSMO-RS calculation.
+`ddCOSMO`.  The electronic response is an independent, explicit axis:
+`response=frozen` uses the zero-field source once and has no receiver or fixed
+point, while `response=scf` drives the local-jet receiver to a learned fixed
+point.  `ddCOSMO` is therefore a parallel continuum diagnostic,
+**not** a claim of strict original SMD equivalence or a COSMO-RS calculation.
 
-Both v2 profiles use the same energy-only finite-resolution acceptance rule:
-a seven-state accepted-Anderson plateau, component-wise residual/span bounds,
-the discrete half-coupling identity, and three independently constructed cold
-reaction-map replays must all pass under an exact profile/equation/runtime
-lock.  This permits neither force output nor an approximate-root PES; nominal
-SCF convergence remains mandatory for any future force candidate.  The v1
-profiles remain available unchanged as historical controls.
+For `response=scf`, both v2 profiles use the same energy-only
+finite-resolution acceptance rule: a seven-state accepted-Anderson plateau,
+component-wise residual/span bounds, the discrete half-coupling identity, and
+three independently constructed cold reaction-map replays must all pass under
+an exact profile/equation/runtime lock.  For `response=frozen`, no SCF
+residual, iteration count, or fixed-point claim exists; the provider checks
+source charge and the same discrete half-coupling identity.  Neither response
+mode exposes forces on these pyddx profiles.  The v1 profiles remain available
+unchanged as historical controls.
 
 #### Registered-solvent execution record
 
@@ -99,19 +104,20 @@ not multi-solvent chemical accuracy, a continuum preference, or a force/PES
 capability.  The artifact records the private raw-result digest and the
 source-equivalence audit to the publication commit.
 
-#### Ten-solvent experimental pilot: retained failure, not model selection
+#### Ten-solvent SCF-source pilot: retained failure, not model selection
 
 The clean `e1f8acb1` execution is retained as the aggregate-only
 [`route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2-execution-e1f8acb1.json`](route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2-execution-e1f8acb1.json).
-It runs the two frozen direct-ledger profiles on the same ten preselected
-neutral MNSol records, one record in each of ten solvents.  The records carry
+It runs the two direct-ledger profiles with the **field-conditioned SCF
+source** on the same ten preselected neutral MNSol records, one record in each
+of ten solvents.  The records carry
 ten distinct **post-selection descriptive** chemistry labels: halogenated
 hydrocarbon, ketone, aromatic hydrocarbon, nitro, amide, cyclic diether,
 phenol, thiophenol, alcohol, and carboxylic acid.  Those labels were not used
 to choose the records, so this is chemistry-diverse coverage rather than a
 claim of functional-group-stratified sampling.
 
-| frozen arm | MAE | RMSE | maximum absolute error | lower paired absolute error |
+| SCF-source direct-ledger arm | MAE | RMSE | maximum absolute error | lower paired absolute error |
 |---|---:|---:|---:|---:|
 | ddPCM + PySCF SMD-CDS | 1.5277 | 1.9921 | 4.0953 | 8/10 |
 | scaled ddCOSMO + the same SMD-CDS | 1.8619 | 2.2918 | 4.2954 | 2/10 |
@@ -120,9 +126,46 @@ All errors are kcal/mol.  Both arms fail the required all-record
 `<1.5 kcal/mol` rule; MAE cannot override either maximum.  The panel also has
 one chemistry label per solvent, so it cannot disentangle solvent and
 functional-group effects or establish population accuracy.  It therefore
-does not select ddPCM as a universal default, demote ddCOSMO, authorize any
-radius/scale/offset tuning, or supersede the broader failed FreeSolv-12 result
-below, whose maxima remain 7.3303 and 7.4479 kcal/mol.
+does not select ddPCM as a universal default, demote ddCOSMO, or authorize any
+radius/scale/offset tuning.  The historical SCF-source FreeSolv-12 result below
+has still larger maxima of 7.3303 and 7.4479 kcal/mol.
+
+#### Ten-solvent zero-field frozen-source pilot: improved but still fails
+
+The clean `ae427ea7` execution is retained as the aggregate-only
+[`route2-mnsol-macepolar-frozen-source-direct-pcm-multisolvent-pilot-v1-execution-ae427ea7.json`](route2-mnsol-macepolar-frozen-source-direct-pcm-multisolvent-pilot-v1-execution-ae427ea7.json).
+It uses the same ten records, geometries, solvents, continuum parameters,
+SMD-CDS term, and direct ledger as the SCF-source comparison, but replaces the
+learned field-conditioned fixed point by the zero-field MACE-POLAR
+point-`l<=1` source.  MACE is evaluated only at zero field; there is no mutual
+ML/continuum polarization, no receiver, and no SCF residual to report.
+
+```bash
+PYTHONPATH=$PWD /path/to/pinned-mace-and-pyddx-python \
+  docs/implicit-solvation/benchmarks/run_mnsol_macepolar_multisolvent_pilot.py \
+  --source .omx/datasets/mnsol-v2012/MNSolDatabase_v2012.zip \
+  --protocol docs/implicit-solvation/benchmarks/route2-mnsol-protocol-v1.json \
+  --selection docs/implicit-solvation/benchmarks/route2-mnsol-pilot-selection-v1.json \
+  --energy-ledger pcm-half-coupling-only-v1 \
+  --response frozen \
+  --private-output .omx/benchmarks/route2-frozen-mnsol/private.json \
+  --public-output .omx/benchmarks/route2-frozen-mnsol/public.json \
+  --work-dir .omx/benchmarks/route2-frozen-mnsol/work
+```
+
+| zero-field frozen-source arm | MAE | RMSE | maximum absolute error | lower paired absolute error |
+|---|---:|---:|---:|---:|
+| ddPCM + PySCF SMD-CDS | **0.8635** | **0.9902** | 1.6454 | 5/10 |
+| scaled ddCOSMO + the same SMD-CDS | 0.9154 | 1.0208 | **1.6451** | 5/10 |
+
+All errors are kcal/mol.  The average errors are smaller, but **both arms
+still fail** the immutable all-record `<1.5 kcal/mol` gate.  The paired result
+is exactly split 5/10, so it does not establish a preferred continuum
+equation.  It also does not show that response should be absent in the real
+physics: it only shows that the current nonvariational learned fixed-point
+response is a major error source in these frozen direct-ledger tests.  Public
+artifact SHA-256:
+`a40c60257644f90beadb6bdb4236772df8dc2bb1f5bc929443efdeb84985a366`.
 
 ### Preregistered label-free QM source oracle
 
@@ -203,12 +246,15 @@ PYTHONPATH=$PWD "$PY" \
   --qm-python "$PY"
 ```
 
-The locked twelve-record water comparison is run only from a clean commit:
+The locked twelve-record water comparison is run only from a clean commit.
+The response identity is explicit and produces a separate run lock and
+artifact; rows from the two modes cannot be resumed into one run:
 
 ```bash
 python docs/implicit-solvation/benchmarks/run_route2_direct_pcm_freesolv12_paired.py \
   --mol2-root .omx/benchmarks/route2-macepolar-smd/dataset \
-  --work-dir .omx/benchmarks/route2-direct-pcm-freesolv12-<git-sha>
+  --work-dir .omx/benchmarks/route2-frozen-source-freesolv12-<git-sha> \
+  --response frozen
 ```
 
 It always evaluates both equations on the same hash-locked geometries.  It
@@ -217,20 +263,53 @@ two historical controls, and returns success only when every row for both
 equations is strictly below `1.5 kcal/mol`; a lower MAE cannot override an
 outlier or a computational failure.
 
-#### Clean-commit v2 result: failed, retained diagnostic
+#### Clean-commit frozen-source v1 result: large outlier removed, gate still fails
+
+The clean `ae427ea7` execution is retained in
+[`route2-frozen-source-direct-pcm-freesolv12-ddpcm-ddcosmo-v1-execution-ae427ea7.json`](route2-frozen-source-direct-pcm-freesolv12-ddpcm-ddcosmo-v1-execution-ae427ea7.json).
+Every record uses one zero-field MACE-POLAR source, one continuum solve, and
+the direct `0.5*<c0,Pc0> + SMD-CDS` ledger.  No field-conditioned model state
+or learned fixed point is evaluated.
+
+| zero-field frozen-source arm | MAE | RMSE | maximum absolute error | records at or above 1.5 |
+|---|---:|---:|---:|---:|
+| ddPCM + same SMD-CDS | 1.0843 | 1.2547 | 1.9910 | 4/12 |
+| ddCOSMO + same SMD-CDS | **1.0723** | **1.2362** | **1.9549** | 3/12 |
+
+All numbers are kcal/mol.  This removes the historical approximately
+`7 kcal/mol` SCF-source failure: the maximum falls by `5.3392 kcal/mol` for
+ddPCM and `5.4930 kcal/mol` for ddCOSMO.  It nevertheless **fails** the user's
+strict criterion.  ddPCM's worst record is methylsulfinylmethane at `1.9910`;
+ddCOSMO's is acetic acid at `1.9549`.  Four versus three threshold failures and
+an 8/12 paired advantage for ddCOSMO on this panel do not establish a
+universal equation ranking.
+
+The remaining error is chemically mixed: several polar compounds are
+underhydrated, while acetic acid is overhydrated.  A global source scale,
+radius shift, or empirical offset would therefore be both scientifically
+unsupported and structurally incapable of resolving the pattern.  The next
+valid step is independent static surface-MEP and nonuniform-response
+decomposition, with SMD-CDS retained as its own frozen component.
+Public artifact SHA-256:
+`cf3359e803c74eafe4a6c523fa835c0be08f59d95f6575bb1ce8ffdab5b07ca9`.
+
+#### Historical field-conditioned SCF-source v2 result: retained negative control
 
 The clean `173d5fdf` execution is retained in
 [`route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf.json`](route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf.json).
 All 12 hash-locked rows converged for both equations, so the negative result
 is a chemistry/representation result rather than a provider-coverage failure:
 
-| frozen arm | MAE | RMSE | maximum absolute error | records at or above 1.5 |
+| SCF-source direct-ledger arm | MAE | RMSE | maximum absolute error | records at or above 1.5 |
 |---|---:|---:|---:|---:|
 | ddPCM + same SMD-CDS | 2.8864 | 3.5456 | 7.3303 | 7/12 |
 | ddCOSMO + same SMD-CDS | 2.9661 | 3.6279 | 7.4479 | 7/12 |
 
 All numbers are kcal/mol.  Both strict gates therefore fail; the worst record
 is acetic acid.  ddPCM has the lower absolute error on all 12 locked records.
+The historical artifact key `frozen_method` meant a frozen benchmark method
+identity, **not** `response=frozen`; the execution used the field-conditioned
+SCF source.
 That is an equation-axis observation **only**: it neither selects a default
 profile nor licenses a radius/scale adjustment, a constant shift, a
 per-molecule equation choice, or restoration of the excluded

@@ -59,6 +59,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "must never be summed over" in normalized_overview
     assert "E_{\\mathrm{MACE,intrinsic}}" in formulas
     assert "\\frac12" in formulas
+    assert "\\Delta G_{\\mathrm{solv}}^{\\mathrm{direct}}" in formulas
+    assert "no field-conditioned model call or fixed point exists" in (
+        normalized_formulas
+    )
     assert "Research/Innovation Route" in formulas
     assert "complete MAPLE solution-phase PES" in overview
     assert "Research derivative evidence: retained; public force capability disabled" in formulas
@@ -103,8 +107,12 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "strict_original_smd_equivalence=false" in overview
     assert "SMD-CDS-augmented MACE-POLAR/ddPCM hybrid" in overview
     assert "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2" in validation
-    assert "No immutable multi-solvent chemical-accuracy artifact" in validation
-    assert "not a multi-solvent accuracy estimate" in normalized_validation
+    assert (
+        "no immutable multi-solvent chemical-accuracy artifact had been frozen"
+        in normalized_validation
+    )
+    assert "zero-field frozen-source rerun" in normalized_validation
+    assert "both fail their all-record accuracy gate" in normalized_validation
     assert "route2-ddpcm-result.json" in overview
     assert "route2-ddpcm-state.npz" in overview
     assert "route2-public-result-ledger.json" in overview
@@ -201,11 +209,21 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "does not define Route 2" in benchmark
     assert "No full-population Route-2 FreeSolv accuracy artifact is frozen" in benchmark
     assert "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf.json" in benchmark
+    assert (
+        "route2-frozen-source-direct-pcm-freesolv12-ddpcm-ddcosmo-v1-"
+        "execution-ae427ea7.json"
+    ) in benchmark
     assert "route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280.json" in benchmark
     assert (
         "route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2-"
         "execution-e1f8acb1.json"
     ) in benchmark
+    assert (
+        "route2-mnsol-macepolar-frozen-source-direct-pcm-multisolvent-"
+        "pilot-v1-execution-ae427ea7.json"
+    ) in benchmark
+    assert "field-conditioned SCF source" in normalized_benchmark
+    assert "No field-conditioned model state" in normalized_benchmark
     assert (
         "route2-v0-freesolv12-zero-field-mace-static-surface-mep-"
         "execution-edfae78e.json"

@@ -1,57 +1,55 @@
 # Route 2 command-line examples
 
-These are deliberately small **single-point acetone** examples. Run them from
-this directory so `MOL2 acetone.mol2` resolves correctly:
+The top level contains exactly two **single-point acetone** examples.  They
+share the same MACE-POLAR checkpoint, ddPCM profile, SMD-CDS term, and direct
+PCM energy ledger; only the electronic response strategy changes.
+
+Run them from this directory so `MOL2 acetone.mol2` resolves correctly:
 
 ```bash
 cd /home/axie/MAPLE/MAPLE-implicitsolv-route2/examp
 export PYTHONPATH="$(cd .. && pwd):${PYTHONPATH:-}"
-maple 01_legacy_scf_ddpcm.inp 01_legacy_scf_ddpcm.out
+maple 01_direct_pcm_frozen_ddpcm.inp 01_direct_pcm_frozen_ddpcm.out
 maple 02_direct_pcm_scf_ddpcm.inp 02_direct_pcm_scf_ddpcm.out
 ```
 
-The normal user-facing command is always `maple INPUT.inp OUTPUT.out`.
-Activate the MAPLE environment that supplies `mace`, `pyddx==0.8.0`, and
-`pyscf`. Setting `PYTHONPATH` first ensures that the command imports this
-checkout rather than another installed MAPLE checkout.
+Activate an environment that supplies `mace`, `pyddx==0.8.0`, and `pyscf`.
+The normal user-facing command is `maple INPUT.inp OUTPUT.out`; setting
+`PYTHONPATH` above ensures that it imports this checkout rather than another
+installed MAPLE checkout.
 
-| File | What it calls | Meaning |
+| File | Electronic source | Meaning |
 | --- | --- | --- |
-| `01_legacy_scf_ddpcm.inp` | pyddx / ddPCM, `response=scf` | A current, directly runnable legacy Route 2 mutual-polarization calculation. The matching `.out` and structured audit files were regenerated on this checkout. |
-| `02_direct_pcm_scf_ddpcm.inp` | pyddx / ddPCM, `response=scf`, `pcm-half-coupling-v1` | The direct-PCM ledger: MACE-POLAR still supplies the self-consistent density source, but the reported electrostatic term is only `0.5*<c, f_reac>` from the same ddPCM operator. The field-conditioned MACE energy change is retained in the audit only and is not added to `Delta G_solv`. The matching output is a fresh acetone run on this checkout. |
+| `01_direct_pcm_frozen_ddpcm.inp` | `response=frozen` | Evaluates MACE-POLAR once at zero external field, sends its point-`l<=1` source directly to ddPCM, and reports `0.5*<c0,Pc0> + SMD-CDS`.  There is no field-conditioned MACE call and no fixed point.  This is the current no-training energy baseline. |
+| `02_direct_pcm_scf_ddpcm.inp` | `response=scf` | Feeds ddPCM's reaction field back through the MACE-POLAR local-jet interface until the unmixed learned fixed point converges, but reports the same direct PCM ledger.  This retains mutual polarization as a research diagnostic without adding the nonconjugate MACE field-energy change. |
 
-Both are **legacy fixed-point Route 2 diagnostics**, not the proposed
-V0-FrozenSource-KKT method and not a solution-phase force/PES interface. The
-current checkout has no public end-to-end `#solv(...)` CLI route for
-V0-FrozenSource-KKT yet, so neither example should be described as V0. The
-direct-PCM ledger removes the ambiguous direct addition of
-`E_MACE[V_reac]-E_MACE[gas]`; it **does not** make the MACE fixed point a
-stationary common electronic free energy. An SCF residual only proves
-convergence of that fixed-point equation; it does not establish reciprocal
-response, conservative forces, or chemical-accuracy certification.
+For the parallel Route-2B equation, replace `ddpcm` by `ddcosmo` in the
+versioned profile name and choose one of its registered solvents.  The two
+`v2` profiles are a paired comparison that changes only the continuum
+equation.  Route 2B is scaled finite-dielectric ddCOSMO plus the same frozen
+PySCF SMD-CDS comparison term; it is not COSMO-RS or Route-1 ALPB.
+
+Both profiles are **single-point energy-only**.  They do not expose Route-2
+forces, optimization, scans, or MD, and neither proves a common stationary
+electronic free energy.  In particular, convergence of `response=scf` proves
+only the learned fixed-point equation, not Maxwell reciprocity or a
+variational MACE--PCM functional.
 
 ## Where to read the output
 
-* `01_legacy_scf_ddpcm.out` — human-readable single-point output; it prints
-  `Energy`, gas MLIP energy, `Delta G_solv`, and their combined value.
-* `01_legacy_scf_ddpcm.out.implicit/route2-ddpcm-result.json` — actual SCF
-  history and backend provenance from this example run.
-* `01_legacy_scf_ddpcm.out.implicit/route2-public-result-ledger.json` —
-  component ledger (`pcm_polarization`, `solute_polarization`, `cds`, and
-  standard-state term). Derived totals must not be summed again.
-* `02_direct_pcm_scf_ddpcm.out.implicit/route2-ddpcm-result.json` — the
-  direct-PCM SCF history. Its `energy_residual_source` is
-  `pcm-half-coupling-v1`, and the excluded MACE field-energy difference is
-  written as `field_conditioned_mace_energy_change_hartree` for audit.
-* `02_direct_pcm_scf_ddpcm.out.implicit/route2-public-result-ledger.json` —
-  the public direct ledger. Its `solute_polarization` leaf is exactly zero;
-  the reported electrostatic total equals `pcm_polarization`.
+For either prefix `NN_direct_pcm_*_ddpcm`:
 
-Each new calculation writes a sibling `OUTPUT.out.implicit/` directory. The
-older exact-GTO/PCMSolver example materials are preserved under
-`_historical_exact_gto/`; they are not a third supported invocation example.
+* `PREFIX.out` is the human-readable single-point result.  `Energy` is the
+  gas MLIP energy plus the solvation correction exposed to MAPLE.
+* `PREFIX.out.implicit/route2-ddpcm-result.json` is the full scientific audit.
+  It records `response_mode`, whether a fixed point applies, the exact energy
+  ledger, provider identity, and the structured state archive.
+* `PREFIX.out.implicit/route2-public-result-ledger.json` contains the public
+  component ledger.  `solute_polarization` is exactly zero for the direct PCM
+  ledger, and `electrostatic` equals `pcm_polarization`; derived totals must
+  not be summed again.
 
-`Energy:` is the value exposed to the single-point driver. The printed
-`Solvation free-energy correction` and `Combined E_MLIP(gas)+Delta G_solv`
-lines are the quantities relevant to this energy-only interface; they are not
-a thermochemical Gibbs free energy or an experimental validation.
+The older field-conditioned-MACE-plus-PCM ledger is preserved under
+`_historical_legacy_ledger/`, and the earlier exact-GTO materials remain under
+`_historical_exact_gto/`.  They are provenance records, not additional
+recommended invocation examples.

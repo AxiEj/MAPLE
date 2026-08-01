@@ -17,6 +17,26 @@ E_{\mathrm{reported}}
 =E_{\mathrm{MACE,gas}}+\Delta G_{\mathrm{solv}}.
 \]
 
+That first expression is the historical field-conditioned operational
+ledger.  The separately versioned direct PCM ledger is
+
+\[
+\boxed{
+\Delta G_{\mathrm{solv}}^{\mathrm{direct}}
+=U_{\mathrm{pol}}+G_{\mathrm{CDS}}
+=\frac12\langle c,P_{\mathbf R}c\rangle+G_{\mathrm{CDS}}.
+}
+\]
+
+It excludes `E_MACE[V_reac]-E_MACE[gas]` because the current checkpoint fails
+the required energy--source conjugacy test,
+\(\partial E_{\mathrm{MACE}}/\partial f\ne c\).  For `response=frozen`,
+\(c=c_0\) is the zero-field MACE-POLAR source and no field-conditioned model
+call or fixed point exists.  For `response=scf`, \(c=c^*\) is the learned
+field-conditioned fixed point.  Selecting the direct ledger prevents a manual
+addition of two nonconjugate model-energy terms; it does **not** make either
+source a stationary common electronic free energy.
+
 It is not route 3: the official MACE-POLAR-1-M checkpoint was trained as a
 general polarizable MLIP, not fine-tuned against implicit-solvent free
 energies. MAPLE trains nothing and changes no checkpoint weight.
@@ -281,8 +301,10 @@ For `response=scf`, MAPLE iterates
 with 0.5 density mixing, a maximum of 50 iterations, density tolerance
 \(10^{-5}\,e\), and intrinsic-energy tolerance \(10^{-5}\,\mathrm{eV}\).
 Non-convergence fails closed. `response=frozen` performs only the first PCM
-solve and sets \(\Delta E_{\mathrm{solute}}=0\); it is a diagnostic, not the
-public default. Float64 is required because this response energy is a small
+solve and sets \(\Delta E_{\mathrm{solute}}=0\); it is an explicit
+zero-response energy baseline rather than a fixed point. `response=scf`
+remains the backward-compatible public default. Float64 is required because
+the field-conditioned response energy in ledgers that include it is a small
 difference between large absolute MLIP energies.
 
 The exact multi-solvent ddPCM profile

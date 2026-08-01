@@ -1091,9 +1091,11 @@ self-consistency, and is not a public calculator or accuracy-certified method.
     Registry immutability, aliases, provider/profile gating, dielectric/CDS
     routing, corrected water-profile radii, and exact descriptor/radius
     agreement with the tested PySCF runtime are covered by executable tests.
-    No immutable multi-solvent chemical-accuracy artifact is frozen yet.
-    Therefore this stage establishes a capability boundary only, not a
-    multi-solvent accuracy estimate, a fitted result, or a PES gate.
+    At the time this registry stage landed, no immutable multi-solvent
+    chemical-accuracy artifact had been frozen.  This stage itself therefore
+    establishes a capability boundary only.  Later response-bound diagnostics
+    are listed below; both fail their all-record accuracy gate and do not turn
+    this capability stage into a fitted result or PES gate.
 37. A real MACE-POLAR-1-M checkpoint canary first exposed a model-interface
     gauge defect: adding a constant `0.25 eV` potential to neutral acetone
     changed the intrinsic energy by `3.5444e-4 eV` and the largest density
@@ -1565,13 +1567,22 @@ self-consistency, and is not a public calculator or accuracy-certified method.
 ## Secondary diagnostics
 
 - A clean `e1f8acb1` direct-half-coupling MNSol pilot completed both ddPCM and
-  scaled-ddCOSMO arms on ten preselected records in ten solvents.  The ten
+  scaled-ddCOSMO arms with the field-conditioned SCF source on ten preselected
+  records in ten solvents.  The ten
   distinct functional-group labels are post-selection descriptions rather
   than selection inputs.  ddPCM gives MAE/max `1.5277/4.0953 kcal/mol` and
   ddCOSMO gives `1.8619/4.2954 kcal/mol`; both therefore fail the mandatory
   every-record `<1.5 kcal/mol` gate.  This result is retained rather than
-  hidden behind the smaller MAE, and the historical FreeSolv-12 maxima of
-  `7.3303/7.4479 kcal/mol` remain the broader water warning.
+  hidden behind the smaller MAE.
+- A clean `ae427ea7` zero-field frozen-source rerun uses no field-conditioned
+  MACE state and no fixed point.  On the same ten-solvent MNSol pilot, ddPCM
+  gives MAE/max `0.8635/1.6454 kcal/mol` and ddCOSMO gives
+  `0.9154/1.6451 kcal/mol`; both still fail.  On the immutable FreeSolv-12
+  panel, the corresponding values are `1.0843/1.9910` and
+  `1.0723/1.9549 kcal/mol`, with 4/12 and 3/12 records at or above `1.5`.
+  This sharply reduces the historical SCF-source direct-ledger maxima of
+  `7.3303/7.4479 kcal/mol` but does not pass the user's all-record gate,
+  establish a common electronic functional, or open forces.
 - FreeSolv fixed-conformer hydration errors remain useful for detecting gross
   energy-accounting or chemistry regressions, but expanding or tuning that
   benchmark is not the next Route-2 milestone.

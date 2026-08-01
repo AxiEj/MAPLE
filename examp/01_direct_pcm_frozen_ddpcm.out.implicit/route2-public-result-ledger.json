@@ -1,11 +1,11 @@
 {
-  "base_manifest_sha256": "943b494303012d4f235aa71751a7cd0071a32b932a112380619418cff46a2665",
+  "base_manifest_sha256": "b7113a866f490d7a4b19fcb2137edd2d2b98f4f4a7750a3bebb064c17ef66f57",
   "component_contract": "derived totals are checked from leaves; do not sum the legacy flat components map",
   "derived_totals_hartree": {
-    "delta_g_solv": -0.012557798674398421,
-    "electrostatic": -0.018239070769249237
+    "delta_g_solv": -0.006323528274641765,
+    "electrostatic": -0.012004800369492582
   },
-  "energy_hartree": -0.012557798674398421,
+  "energy_hartree": -0.006323528274641765,
   "evaluation_geometry": {
     "atomic_numbers": [
       6,
@@ -106,28 +106,30 @@
       ]
     ]
   },
-  "evaluation_manifest_path": "route2-public-results/f4e33243cdb04c3e9c1ae649bdb6bbc0.manifest.json",
-  "evaluation_manifest_sha256": "5f9e4d9e23e44a6a512e547472f185d2ccda7160171dad2bfa0c48f19b99b110",
+  "evaluation_manifest_path": "route2-public-results/8431e54cd95141039004cfdd14bf949c.manifest.json",
+  "evaluation_manifest_sha256": "49f8d4499ac3d82b69cd974b4c062a8022ac4d63a4ff71a972e164c365e5ce42",
+  "force_admission": null,
+  "forces_evaluated": false,
   "geometry_sha256": "2bbdc9b9fa3eafb2547afbb15287a8ad912990872ccfbaef91324b5568ebcc68",
   "leaf_components_hartree": {
     "cds": 0.005681272094850817,
-    "pcm_polarization": -0.018239070769249237,
+    "pcm_polarization": -0.012004800369492582,
     "solute_polarization": 0.0,
     "standard_state": 0.0
   },
-  "profile": "smd-ddpcm-l15-n1202-pcm-half-coupling-v1",
+  "profile": "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2",
   "provider": "pyddx",
-  "result_content_sha256": "b5da1e028052cc06b2991a03f697ed8fd389a01a856bc29430a1dfa6c0b11c83",
-  "run_id": "f4e33243cdb04c3e9c1ae649bdb6bbc0",
-  "schema_version": 2,
-  "solvation_options_sha256": "89351d59c6b8f0002774b8bb0e43d6bd750c19f83b142d7c5ddc96c5b7b6bed3",
+  "result_content_sha256": "4c4b367e9aa9b1d0e904a2f06bc3b225ebd6015c0ef192b7a649ca6aa35e652a",
+  "run_id": "8431e54cd95141039004cfdd14bf949c",
+  "schema_version": 3,
+  "solvation_options_sha256": "76280187262034cc1f749a70298daf24c2d705d4e9ba9149db90f5dc72e8f30e",
   "source_receiver_contract": {
     "common_stationary_electronic_functional_established": false,
     "continuum_pairing_established": true,
     "continuum_pairing_status": "point-multipole-local-jet-dual",
     "contract_version": "route2-source-receiver-contract-v1",
     "next_required_physical_gate": "common-electronic-scalar-energy-density-conjugacy-and-kkt",
-    "profile": "smd-ddpcm-l15-n1202-pcm-half-coupling-v1",
+    "profile": "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2",
     "prohibited_claims": [
       "variational SCRF",
       "common-energy stationary electronic state",

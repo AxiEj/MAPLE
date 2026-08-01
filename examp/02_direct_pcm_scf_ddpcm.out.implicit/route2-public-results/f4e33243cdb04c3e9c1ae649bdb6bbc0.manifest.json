@@ -1,9 +1,0 @@
-{
-  "base_manifest_sha256": "943b494303012d4f235aa71751a7cd0071a32b932a112380619418cff46a2665",
-  "evaluation_manifest_sha256": "5f9e4d9e23e44a6a512e547472f185d2ccda7160171dad2bfa0c48f19b99b110",
-  "geometry_sha256": "2bbdc9b9fa3eafb2547afbb15287a8ad912990872ccfbaef91324b5568ebcc68",
-  "result_content_sha256": "b5da1e028052cc06b2991a03f697ed8fd389a01a856bc29430a1dfa6c0b11c83",
-  "run_id": "f4e33243cdb04c3e9c1ae649bdb6bbc0",
-  "schema_version": 1,
-  "solvation_options_sha256": "89351d59c6b8f0002774b8bb0e43d6bd750c19f83b142d7c5ddc96c5b7b6bed3"
-}

@@ -106,7 +106,7 @@ The current common source space is still only atom-centred monopole plus
 dipole `(N,4)`; GTO, quadrupole, and other representations require distinct
 source-space implementations rather than shape-compatible shortcuts.
 
-## Route-2 contract: self-consistent polarizable MLIP--PCM/SMD coupling
+## Route-2 contract: explicit electronic response + MLIP--continuum coupling
 
 Route 2 is separate from the fixed-charge PB/GB path. It couples the official
 pretrained MACE-POLAR-1-M coarse-grained charge moments either to the default
@@ -145,11 +145,14 @@ physics path is the fixed-geometry same-basis GTO Galerkin operator followed
 by a common electronic scalar/KKT admission—not empirical correction of the
 legacy exact-GTO output.
 
-The research objective is mutual polarization: the MACE-POLAR representation
-generates the solute electrostatic potential, PCM returns a reaction field, and
-that reaction field is fed back through the unmodified MACE-POLAR field-response
-path until convergence. Fixed-charge PB/GB and post hoc one-way polarization
-are separate routes.
+The research objective remains mutual polarization: the MACE-POLAR
+representation generates the solute electrostatic potential, PCM returns a
+reaction field, and that reaction field is fed back through the unmodified
+MACE-POLAR field-response path until convergence.  The currently more robust
+no-training energy baseline is nevertheless an explicit Route-2 response mode:
+`response=frozen` evaluates the electronic model at zero field and solves the
+continuum once.  This is not PB/GB and not a fitted correction; it is the
+zero-response member of the same source/continuum/ledger architecture.
 
 The public v1 input is:
 
@@ -164,9 +167,11 @@ MOL2 molecule.mol2
 
 The provider and versioned profile are explicit so that a result's continuum
 equation and cavity contract cannot be selected by a hidden default.
-`response=scf` is the public default;
-`response=frozen` is retained only as a diagnostic that solves PCM once from
-the gas-phase density. Canonical element-radius profiles also accept
+`response=scf` remains the backward-compatible public default.
+`response=frozen` is an explicit, separately audited zero-field source mode:
+it performs no field-conditioned model evaluation, has no learned fixed point,
+and reports no synthetic SCF residual.  On pyddx it is admitted only for a
+direct PCM half-coupling profile. Canonical element-radius profiles also accept
 XYZ/inline geometry when the explicit `0 1` domain metadata is present;
 only a profile whose identity includes a GAFF/GAFF2 radius override requires
 MOL2 atom types. The omitted cavity default is
@@ -258,21 +263,26 @@ GAFF/GAFF2 `o` carbonyl-oxygen radius change to the same numerical candidate;
 it is not the canonical default or a broad-accuracy claim.
 
 The multi-solvent direct-PCM comparison has two **parallel, explicit**
-profiles.  They share the MACE-POLAR source, SCF policy, SMD-derived cavity
-radii, solvent dielectric, standard state, and PySCF SMD-CDS term; only the
-continuum equation changes.
+profiles.  They share the MACE-POLAR source, selected response mode,
+SMD-derived cavity radii, solvent dielectric, standard state, and PySCF
+SMD-CDS term; only the continuum equation changes.
 
 ```text
 # Route 2A: ddPCM + SMD-CDS
 #model=macepol-m
 #sp(verbose=1)
-#solv(implicit=acetonitrile,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2,response=scf,standard_state=1m,experimental=true)
+#solv(implicit=acetonitrile,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2,response=frozen,standard_state=1m,experimental=true)
 
 # Route 2B: scaled ddCOSMO + the same SMD-CDS comparison term
 #model=macepol-m
 #sp(verbose=1)
-#solv(implicit=acetonitrile,method=smd,provider=pyddx,profile=smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2,response=scf,standard_state=1m,experimental=true)
+#solv(implicit=acetonitrile,method=smd,provider=pyddx,profile=smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2,response=frozen,standard_state=1m,experimental=true)
 ```
+
+Changing only `response=frozen` to `response=scf` requests the learned
+field-conditioned fixed point while retaining the direct PCM energy ledger.
+The response mode is part of the cache, run-lock, and artifact identity, so
+the two states cannot be silently mixed.
 
 Both profiles register 11 solvents from the tested PySCF 2.13.1 SMD solvent
 database: water, methanol, ethanol, acetonitrile, dimethyl sulfoxide,
@@ -302,6 +312,11 @@ The direct ledger for both arms is
 +G_{\rm SMD-CDS}.
 \]
 
+Here $c_{\rm MACE-POLAR}=c_0$ for `response=frozen` and is the converged
+learned source $c^*$ for `response=scf`.  The former makes no response or
+stationarity claim; the latter is a fixed point, not a proved common
+electronic-energy stationary state.
+
 It deliberately excludes `E_MACE[V_reac]-E_MACE[gas]`: the present checkpoint
 does not establish `dE_MACE/df = c`.  The complete scientific identity is
 printed in provenance as `electrostatics_model=ddpcm` or `ddcosmo`,
@@ -315,6 +330,19 @@ one fixed acetone geometry completed all **11 x 2** rows, with at most 13 SCF
 iterations and a worst half-coupling identity error of
 `2.220446049250313e-16 eV`.  It deliberately contains no experimental labels
 or error statistics and does not open forces for either pyddx profile.
+
+The frozen-source experimental audits are separately source-bound:
+
+* the ten-solvent/ten-chemistry MNSol pilot gives MAE/max errors of
+  `0.8635/1.6454 kcal/mol` for ddPCM and `0.9154/1.6451 kcal/mol` for ddCOSMO;
+* the historical-worst FreeSolv-12 panel gives `1.0843/1.9910 kcal/mol` for
+  ddPCM and `1.0723/1.9549 kcal/mol` for ddCOSMO.
+
+Both panels therefore fail the immutable requirement that every record be
+strictly below `1.5 kcal/mol`.  The smaller averages do not certify accuracy,
+and the mixed paired outcomes do not select a universally preferred equation.
+See the source-bound artifacts in the benchmark README for the exact dataset,
+geometry, checkpoint, profile, and claim boundaries.
 
 For reproducibility only, the earlier field-conditioned ddPCM multi-solvent
 experiment remains selectable as

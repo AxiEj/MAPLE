@@ -1,0 +1,73 @@
+{
+  "adjoint": null,
+  "array_archive": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/examp/01_direct_pcm_frozen_ddpcm.out.implicit/route2-ddpcm-state.npz",
+  "converged": true,
+  "electrostatic_energy_ledger": "pcm-half-coupling-only-v1",
+  "energies_hartree": {
+    "cds": 0.005681272094850817,
+    "delta_g_solv": -0.006323528274641765,
+    "electrostatic": -0.012004800369492582,
+    "pcm_polarization": -0.012004800369492582,
+    "solute_polarization": 0.0,
+    "standard_state": 0.0
+  },
+  "field_conditioned_mace_energy_change_hartree": 0.0,
+  "field_conditioned_model_state_evaluated": false,
+  "force_admission": null,
+  "forces_evaluated": false,
+  "gas_mace_energy_ev": -5255.6132695061715,
+  "polarization_energy_identity_error_ev": 0.0,
+  "profile": "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2",
+  "providers": {
+    "cds": {
+      "provider": "pyscf-smd-libsolvent-cds",
+      "pyscf_smd_solvent": "water",
+      "pyscf_version": "2.13.1",
+      "solvent": "water",
+      "upstream_entrypoint": "pyscf.solvent.smd.get_cds_legacy"
+    },
+    "continuum": {
+      "backend": "pyddx",
+      "dielectric": 78.355,
+      "dielectric_scaling": 1.0,
+      "dielectric_scaling_source": "native-pyddx-pcm",
+      "enable_fmm": false,
+      "eta": 0.1,
+      "lmax": 15,
+      "method": "ddPCM",
+      "model": "pcm",
+      "n_lebedev": 1202,
+      "n_proc": 1,
+      "pyddx_version": "0.8.0",
+      "scf_adjoint_warm_starts": 0,
+      "scf_forward_warm_starts": 1,
+      "scf_state_creations": 1,
+      "scf_state_reuse": "pyddx.State.update_problem warm start",
+      "scf_state_updates": 1,
+      "shift": 0.0,
+      "solver_tolerance": 1e-14
+    }
+  },
+  "response_mode": "frozen",
+  "scf": {
+    "applies": false,
+    "coefficient_units": {
+      "dipole": "e angstrom",
+      "monopole": "e"
+    },
+    "convergence": {
+      "fixed_point_applicable": false,
+      "reason": "frozen-source-no-fixed-point-v1",
+      "source_label": "gas-electronic-source"
+    },
+    "history": [],
+    "iterations": 0,
+    "residual_definition": null,
+    "response_mode": "frozen",
+    "solver": null,
+    "total_charge_e": 0.0
+  },
+  "schema_version": 3,
+  "solvent": "water",
+  "solvent_intrinsic_mace_energy_ev": -5255.6132695061715
+}

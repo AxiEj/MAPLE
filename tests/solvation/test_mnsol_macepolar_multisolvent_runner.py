@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -11,7 +11,10 @@ BENCHMARK_DIR = ROOT / "docs/implicit-solvation/benchmarks"
 if str(BENCHMARK_DIR) not in sys.path:
     sys.path.insert(0, str(BENCHMARK_DIR))
 
-import run_mnsol_macepolar_multisolvent_pilot as runner  # noqa: E402
+import run_mnsol_macepolar_multisolvent_pilot as runner
+from mnsol_pilot import (
+    PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES,
+)
 
 
 def _record(
@@ -139,6 +142,25 @@ def test_parser_keeps_legacy_control_default_and_accepts_direct_pcm():
             runner.PCM_HALF_COUPLING_ONLY_V1,
         ]
     ).energy_ledger == runner.PCM_HALF_COUPLING_ONLY_V1
+
+
+def test_pilot_functional_group_metadata_has_one_shared_ten_class_source():
+    summary = runner.pilot_functional_group_summary(range(10))
+
+    assert len(PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES) == 10
+    assert len(set(PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES)) == 10
+    assert summary == {
+        "status": "post-selection-descriptive",
+        "used_for_selection": False,
+        "class_count": 10,
+        "classes": list(PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES),
+    }
+    assert runner.FUNCTIONAL_GROUP_COVERAGE is (
+        PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES
+    )
+
+    with pytest.raises(ValueError, match="outside the ten-record pilot"):
+        runner.pilot_functional_group_summary([10])
 
 
 def test_terminal_scf_monitors_keep_each_residual_in_its_native_unit():

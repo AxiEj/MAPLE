@@ -13,17 +13,18 @@ below ``.omx`` and it cannot support an accuracy or equation-ranking claim.
 from __future__ import annotations
 
 import argparse
-from collections import Counter
-from dataclasses import dataclass
-from importlib import import_module
 import json
 import math
-from pathlib import Path
 import platform
 import subprocess
 import sys
 import time
-from typing import Any, Callable, Mapping, Sequence
+from collections import Counter
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
+from importlib import import_module
+from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BENCHMARK_DIR = Path(__file__).resolve().parent
@@ -33,12 +34,12 @@ for search_path in (REPO_ROOT, BENCHMARK_DIR):
         sys.path.insert(0, value)
 
 import ase
-from ase import Atoms
 import numpy as np
-
+from ase import Atoms
 from benchmark_core import sha256_file, write_json_atomic
 from mnsol_dataset import load_mnsol_protocol, load_mnsol_v2012
 from mnsol_pilot import (
+    PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES,
     MNSolPilotSelection,
     validate_frozen_mnsol_pilot_selection,
 )
@@ -48,12 +49,13 @@ from mnsol_response_ablation import (
     paired_method_comparison,
     solve_fixed_multipole_continuum,
 )
+
 from maple.function.calculator.extra_correction.implicit.pyscf_smd_cds import (
     pyscf_smd_cds,
 )
 from maple.function.calculator.extra_correction.implicit.pyscf_swig_response import (
-    PySCFSWIGCPCMResponse,
     PySCFSWIGCOSMOResponse,
+    PySCFSWIGCPCMResponse,
     PySCFSWIGIEFPCMResponse,
     PySCFSWIGPCMResponse,
 )
@@ -78,18 +80,7 @@ PYSCF_LEBEDEV_ORDER = 17
 SOURCE_CHARGE_TOLERANCE_E = 1.0e-8
 ENERGY_IDENTITY_TOLERANCE_EV = 2.0e-10
 FROZEN_CDS_TOLERANCE_KCAL_MOL = 1.0e-10
-FUNCTIONAL_GROUP_COVERAGE = (
-    "halogenated-hydrocarbon",
-    "ketone",
-    "aromatic-hydrocarbon",
-    "nitro",
-    "amide",
-    "cyclic-diether",
-    "phenol",
-    "thiophenol",
-    "alcohol",
-    "carboxylic-acid",
-)
+FUNCTIONAL_GROUP_COVERAGE = PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES
 
 
 @dataclass(frozen=True)
@@ -1069,7 +1060,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     write_json_atomic(public_output, public)
     print(
-        f"Wrote {len(records)} record(s) to {private_output} and " f"{public_output}.",
+        f"Wrote {len(records)} record(s) to {private_output} and {public_output}.",
         flush=True,
     )
     return 0

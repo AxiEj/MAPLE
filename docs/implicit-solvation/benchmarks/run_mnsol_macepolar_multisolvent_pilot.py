@@ -16,18 +16,18 @@ claims.
 from __future__ import annotations
 
 import argparse
-from collections import Counter
-from importlib import import_module
-from importlib.metadata import version
 import json
 import math
-from pathlib import Path
 import platform
 import statistics
 import subprocess
 import sys
 import time
-from typing import Sequence
+from collections import Counter
+from collections.abc import Sequence
+from importlib import import_module
+from importlib.metadata import version
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BENCHMARK_DIR = Path(__file__).resolve().parent
@@ -37,10 +37,9 @@ for search_path in (REPO_ROOT, BENCHMARK_DIR):
         sys.path.insert(0, value)
 
 import ase
-from ase import Atoms
 import numpy as np
 import torch
-
+from ase import Atoms
 from benchmark_core import sha256_file, write_json_atomic
 from mnsol_dataset import load_mnsol_protocol, load_mnsol_v2012
 from mnsol_partition import (
@@ -48,7 +47,11 @@ from mnsol_partition import (
     indexed_partition_record,
     validate_frozen_mnsol_partition_selection,
 )
-from mnsol_pilot import validate_frozen_mnsol_pilot_selection
+from mnsol_pilot import (
+    PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES,
+    validate_frozen_mnsol_pilot_selection,
+)
+
 from maple.function.calculator.extra_correction.implicit.correction import (
     ImplicitSolvationCorrection,
 )
@@ -81,10 +84,10 @@ from maple.function.route2_energy_ledger import (
     validate_route2_electrostatic_energy_ledger,
 )
 from maple.function.route2_smd_profiles import (
-    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
-    DDPCM_MULTISOLVENT_SMD_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
+    DDPCM_MULTISOLVENT_SMD_PROFILE,
 )
 
 ARTIFACT_NAME = "route2-mnsol-macepolar-multisolvent-pilot-v1"
@@ -92,6 +95,7 @@ DIRECT_PCM_ARTIFACT_NAME = (
     "route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2"
 )
 FULL_PANEL_RECORD_COUNT = 10
+FUNCTIONAL_GROUP_COVERAGE = PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES
 # Backward-compatible legacy control used by the existing frozen artifacts.
 METHOD_PROFILES = (
     ("ddpcm", DDPCM_MULTISOLVENT_SMD_PROFILE),
@@ -101,6 +105,27 @@ DIRECT_PCM_METHOD_PROFILES = (
     ("ddpcm", DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE),
     ("ddcosmo", DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE),
 )
+
+
+def pilot_functional_group_summary(
+    selection_indices: Sequence[int],
+) -> dict[str, object]:
+    """Describe, but never select by, functional-group labels for the pilot."""
+
+    classes: list[str] = []
+    for raw_index in selection_indices:
+        index = int(raw_index)
+        if not 0 <= index < len(FUNCTIONAL_GROUP_COVERAGE):
+            raise ValueError(
+                f"Selection index {index} is outside the ten-record pilot."
+            )
+        classes.append(FUNCTIONAL_GROUP_COVERAGE[index])
+    return {
+        "status": "post-selection-descriptive",
+        "used_for_selection": False,
+        "class_count": len(set(classes)),
+        "classes": classes,
+    }
 
 
 def method_profiles_for_energy_ledger(
@@ -720,6 +745,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "formula": item.record.formula,
                 "atom_count": len(atoms),
                 "subset": item.record.subset,
+                "functional_group_class": (
+                    None
+                    if partition_shard
+                    else FUNCTIONAL_GROUP_COVERAGE[selection_index]
+                ),
                 "prior_pilot_geometry_overlap": prior_pilot_overlap,
                 "experimental_delta_g_kcal_mol": (item.record.delta_g_kcal_mol),
                 "methods": methods,
@@ -744,7 +774,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             "This experiment-blind ten-record MNSol pilot is an engineering "
             "and early chemical diagnostic for self-consistent MACE-POLAR "
             "coarse residual point-(l<=1) multipoles with ddPCM or scaled "
-            "ddCOSMO plus SMD-CDS. One record per solvent cannot certify "
+            "ddCOSMO plus SMD-CDS. Its ten distinct functional-group labels "
+            "are post-selection descriptions, not selection inputs or a "
+            "stratified sampling claim. One record per solvent cannot certify "
             "accuracy, solvent generalization, exact-GTO forces, Gaussian "
             "solute sources, original SMD equivalence, C-PCM, COSMO-RS, a "
             "smooth solution-phase PES, OPT, TS, scan, or MD."
@@ -803,6 +835,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     }
     pyddx_runtime = import_module("pyddx")
     pyscf_runtime = import_module("pyscf")
+    functional_group_coverage = (
+        {
+            "status": "not-defined-for-partition-shard",
+            "used_for_selection": False,
+            "class_count": 0,
+            "classes": [],
+        }
+        if partition_shard
+        else pilot_functional_group_summary(
+            record["selection_index"] for record in records
+        )
+    )
+    if complete_panel and functional_group_coverage["class_count"] != 10:
+        raise RuntimeError(
+            "The complete pilot must retain ten distinct descriptive "
+            "functional-group classes."
+        )
     public_artifact = {
         "artifact": artifact_name,
         "schema_version": 1,
@@ -856,6 +905,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "selection_partition_counts": dict(
             sorted(Counter(record["partition"] for record in records).items())
         ),
+        "selection_functional_group_coverage": functional_group_coverage,
         "checkpoint": {
             "identifier": checkpoint["identifier"],
             "release_url": checkpoint["release_url"],

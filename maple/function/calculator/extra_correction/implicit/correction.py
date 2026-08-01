@@ -5,10 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from pathlib import Path
 import threading
-from typing import Any
 import uuid
+from collections.abc import Mapping
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -87,6 +88,37 @@ def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
     temporary_path.replace(path)
 
 
+def _public_force_record(result: SolvationResult) -> dict[str, Any]:
+    """Return the auditable property scope for one public result record.
+
+    A force array is publishable only together with the per-geometry,
+    fail-closed Route-2 admission certificate that authorized it.  Energy-only
+    evaluations carry an explicit null certificate so consumers never infer a
+    force claim from profile-level metadata alone.
+    """
+
+    forces_evaluated = result.forces_hartree_per_angstrom is not None
+    force_admission = result.provenance.get("force_admission")
+    if not forces_evaluated:
+        return {
+            "forces_evaluated": False,
+            "force_admission": None,
+        }
+    if not isinstance(force_admission, Mapping):
+        raise ValueError(
+            "A public Route-2 force result requires a per-geometry "
+            "force_admission certificate."
+        )
+    if force_admission.get("release_admitted") is not True:
+        raise ValueError(
+            "A public Route-2 force result requires release_admitted=true."
+        )
+    return {
+        "forces_evaluated": True,
+        "force_admission": _json_ready(dict(force_admission)),
+    }
+
+
 class ImplicitSolvationCorrection:
     """Prepare and evaluate one explicitly selected Route-2 SMD provider."""
 
@@ -158,7 +190,7 @@ class ImplicitSolvationCorrection:
             provenance = provenance()
         geometry = _evaluation_geometry(self.atoms)
         manifest = {
-            "schema_version": 3,
+            "schema_version": 4,
             "charge": None,
             "solvation": provenance,
             "charge_options": {},
@@ -173,8 +205,9 @@ class ImplicitSolvationCorrection:
             "initial_geometry_sha256": _canonical_json_sha256(geometry),
             "public_evaluation_record_directory": "route2-public-results",
             "public_evaluation_record_contract": (
-                "each record carries current-geometry and immutable "
-                "content/manifest integrity digests"
+                "each record carries current geometry, evaluated-property "
+                "scope, an optional per-geometry force-admission certificate, "
+                "and immutable content/manifest integrity digests"
             ),
         }
         self._manifest_sha256 = _canonical_json_sha256(manifest)
@@ -195,7 +228,7 @@ class ImplicitSolvationCorrection:
         geometry = _evaluation_geometry(atoms)
         geometry_sha256 = _canonical_json_sha256(geometry)
         payload = {
-            "schema_version": 2,
+            "schema_version": 3,
             "run_id": run_id,
             "energy_hartree": float(result.energy_hartree),
             "leaf_components_hartree": dict(result.leaf_components_hartree),
@@ -213,6 +246,7 @@ class ImplicitSolvationCorrection:
                 "derived totals are checked from leaves; do not sum the "
                 "legacy flat components map"
             ),
+            **_public_force_record(result),
         }
         result_content_sha256 = _canonical_json_sha256(payload)
         evaluation_manifest = {

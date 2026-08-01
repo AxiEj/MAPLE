@@ -16,13 +16,14 @@ import argparse
 import json
 import math
 import os
-from pathlib import Path
 import platform
 import re
 import subprocess
 import sys
 import time
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BENCHMARK_DIR = Path(__file__).resolve().parent
@@ -32,13 +33,14 @@ for search_path in (REPO_ROOT, BENCHMARK_DIR):
         sys.path.insert(0, value)
 
 from ase.data import chemical_symbols
-
 from benchmark_core import sha256_file, write_json_atomic
 from mnsol_dataset import load_mnsol_protocol, load_mnsol_v2012
 from mnsol_pilot import (
+    PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES,
     MNSolPilotSelection,
     validate_frozen_mnsol_pilot_selection,
 )
+
 from maple.function.cosmo_rs import (
     OpenCOSMORS24aInputBundle,
     parse_orca_opencosmors_solvation_output,
@@ -68,18 +70,7 @@ ORCA_VERSION = "6.1.0-f.0"
 ORCA_SHA256 = "3de3506205ffff90e9eaa435f4e56cd43ae27ba724cfe07a3280525aed400d8e"
 OPEN_COSMORS_SHA256 = "0e4067d0de52c896cd95b7b699a506382b521036102c1f4a2fd4b59a21b569d2"
 BASELINE_SHA256 = "7ea80dbf4f9b7e75106b41f3f7f1d42f7b9d38bbded12da1e581c6cf5a696e5f"
-FUNCTIONAL_GROUP_COVERAGE = (
-    "halogenated-hydrocarbon",
-    "ketone",
-    "aromatic-hydrocarbon",
-    "nitro",
-    "amide",
-    "cyclic-diether",
-    "phenol",
-    "thiophenol",
-    "alcohol",
-    "carboxylic-acid",
-)
+FUNCTIONAL_GROUP_COVERAGE = PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES
 BASELINE_METHOD_IDS = (
     "aimnet2_fixed_l0__pyscf_swig_iefpcm",
     "aimnet2_fixed_l0__pyscf_swig_cpcm",

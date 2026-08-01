@@ -26,6 +26,7 @@ from maple.function.route2_energy_ledger import (
 )
 from maple.function.route2_smd_profiles import (
     DDPCM_SMD_DIRECT_PCM_PROFILE,
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
     PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE,
     route2_smd_profile_spec,
 )
@@ -248,7 +249,7 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
 
     audit_dir = tmp_path / "job.out.implicit"
     manifest = json.loads((audit_dir / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["schema_version"] == 3
+    assert manifest["schema_version"] == 4
     assert manifest["initial_geometry"]["positions_angstrom"] == [[0.0, 0.0, 0.0]]
     assert manifest["initial_geometry_sha256"] == _canonical_sha256(
         manifest["initial_geometry"]
@@ -281,7 +282,9 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
             encoding="utf-8"
         )
     )
-    assert payload["schema_version"] == 2
+    assert payload["schema_version"] == 3
+    assert payload["forces_evaluated"] is False
+    assert payload["force_admission"] is None
     assert payload["energy_hartree"] == pytest.approx(-0.45)
     assert payload["leaf_components_hartree"] == {
         "solute_polarization": -0.20,
@@ -334,6 +337,96 @@ def test_correction_writes_the_checked_public_result_ledger(monkeypatch, tmp_pat
     records = [json.loads(path.read_text(encoding="utf-8")) for path in result_records]
     assert len({record["run_id"] for record in records}) == 2
     assert len({record["geometry_sha256"] for record in records}) == 2
+
+
+def test_correction_publishes_per_geometry_force_admission(monkeypatch, tmp_path):
+    import maple.function.calculator.extra_correction.implicit.correction as module
+
+    force_admission = {
+        "contract_version": 3,
+        "release_admitted": True,
+        "scope": "synthetic-regression-certificate",
+    }
+
+    class _ForceProvider:
+        supported_properties = frozenset({"energy", "forces"})
+
+        def __init__(self, _atoms, options, *, audit_dir):
+            self.audit_dir = audit_dir
+            self.provenance = {
+                "provider": "fc-aswig",
+                "profile": options["profile"],
+            }
+
+        @staticmethod
+        def evaluate(_atoms, *, need_forces=False, calculator=None):
+            del calculator
+            return SolvationResult(
+                energy_hartree=-0.45,
+                components_hartree=_components(),
+                forces_hartree_per_angstrom=(
+                    np.array([[0.1, 0.2, 0.3]]) if need_forces else None
+                ),
+                provenance={
+                    "provider": "fc-aswig",
+                    "profile": FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
+                    **({"force_admission": force_admission} if need_forces else {}),
+                },
+            )
+
+    monkeypatch.setattr(
+        module,
+        "FixedTopologyASWIGAqueousSMDImplicitSolvation",
+        _ForceProvider,
+    )
+    atoms = Atoms("H", positions=[[0.0, 0.0, 0.0]])
+    correction = ImplicitSolvationCorrection(
+        atoms,
+        {},
+        {
+            "method": "smd",
+            "implicit": "water",
+            "provider": "fc-aswig",
+            "profile": FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
+            "experimental": True,
+        },
+        output=tmp_path / "force.out",
+    )
+
+    correction.evaluate(atoms, need_forces=True)
+
+    payload = json.loads(
+        (
+            tmp_path
+            / "force.out.implicit"
+            / "route2-public-result-ledger.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert payload["schema_version"] == 3
+    assert payload["forces_evaluated"] is True
+    assert payload["force_admission"] == force_admission
+    content = dict(payload)
+    for key in (
+        "result_content_sha256",
+        "evaluation_manifest_path",
+        "evaluation_manifest_sha256",
+    ):
+        content.pop(key)
+    assert payload["result_content_sha256"] == _canonical_sha256(content)
+
+
+def test_public_force_record_rejects_missing_admission_certificate():
+    import maple.function.calculator.extra_correction.implicit.correction as module
+
+    result = SolvationResult(
+        energy_hartree=-0.45,
+        components_hartree=_components(),
+        forces_hartree_per_angstrom=np.array([[0.1, 0.2, 0.3]]),
+        provenance={"provider": "synthetic"},
+    )
+
+    with pytest.raises(ValueError, match="force_admission certificate"):
+        module._public_force_record(result)
 
 
 def test_pcm_half_coupling_ledger_excludes_field_conditioned_mace_delta():

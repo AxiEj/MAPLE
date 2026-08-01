@@ -11,19 +11,20 @@ representation and ML response.
 from __future__ import annotations
 
 import argparse
-from collections import Counter
-from copy import deepcopy
-from dataclasses import dataclass
-from importlib import import_module
-from importlib.metadata import version
 import json
 import math
-from pathlib import Path
 import platform
 import subprocess
 import sys
 import time
-from typing import Any, Callable, Mapping, Sequence, cast
+from collections import Counter
+from collections.abc import Callable, Mapping, Sequence
+from copy import deepcopy
+from dataclasses import dataclass
+from importlib import import_module
+from importlib.metadata import version
+from pathlib import Path
+from typing import Any, cast
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BENCHMARK_DIR = Path(__file__).resolve().parent
@@ -34,16 +35,16 @@ for search_path in (REPO_ROOT, BENCHMARK_DIR):
 import ase
 import numpy as np
 import torch
-
 from benchmark_core import sha256_file, write_json_atomic
 from mnsol_dataset import load_mnsol_protocol, load_mnsol_v2012
 from mnsol_partition import (
-    MNSolPartitionSelection,
     PARTITION_ARTIFACT,
+    MNSolPartitionSelection,
     indexed_partition_record,
     validate_frozen_mnsol_partition_selection,
 )
 from mnsol_pilot import (
+    PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES,
     MNSolPilotSelection,
     validate_frozen_mnsol_pilot_selection,
 )
@@ -54,11 +55,11 @@ from mnsol_response_ablation import (
     paired_method_comparison,
     solve_fixed_multipole_continuum,
 )
+
 from maple.function.calculator.aimnet._aimnet2_calculator import (
     AIMNet2Calculator,
 )
 from maple.function.calculator.calculator_base import EV2HARTREE
-from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
 from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     DDPCM_ETA,
     DDPCM_LMAX,
@@ -74,11 +75,11 @@ from maple.function.calculator.extra_correction.implicit.ddpcm_smd import (
     SCF_DENSITY_TOLERANCE,
     SCF_DIPOLE_TOLERANCE_E_ANGSTROM,
     SCF_ENERGY_TOLERANCE_EV,
-    SCF_FINITE_RESOLUTION_MAP_REPLAY_COUNT,
     SCF_FINITE_RESOLUTION_DIPOLE_CEILING_E_ANGSTROM,
     SCF_FINITE_RESOLUTION_GRADIENT_SPAN_TOLERANCE_EV_PER_ANGSTROM,
     SCF_FINITE_RESOLUTION_HISTORY_LENGTH,
     SCF_FINITE_RESOLUTION_LEDGER_SPAN_TOLERANCE_EV,
+    SCF_FINITE_RESOLUTION_MAP_REPLAY_COUNT,
     SCF_FINITE_RESOLUTION_MONOPOLE_CEILING_E,
     SCF_FINITE_RESOLUTION_POLICY_VERSION,
     SCF_FINITE_RESOLUTION_POTENTIAL_SPAN_TOLERANCE_EV,
@@ -91,19 +92,20 @@ from maple.function.calculator.extra_correction.implicit.pyddx_pcm_response impo
     PyDDXPCMReactionFieldLinearMap,
     PyDDXReactionFieldLinearMap,
 )
+from maple.function.calculator.extra_correction.implicit.pyscf_smd_cds import (
+    pyscf_smd_cds,
+)
 from maple.function.calculator.extra_correction.implicit.route2_engine import (
     SCF_ACCEPTED_RESIDUAL_SOURCE,
     SCF_ACTUAL_RESIDUAL_OBJECTIVE_FORMULA,
     SCF_FINITE_RESOLUTION_HISTORY_SOURCE,
     SCF_REJECTED_GROWTH_ACTION,
 )
-from maple.function.calculator.extra_correction.implicit.pyscf_smd_cds import (
-    pyscf_smd_cds,
-)
 from maple.function.calculator.extra_correction.implicit.smd_cds import (
     HARTREE_TO_KCAL_MOL,
     route2_coulomb_radii,
 )
+from maple.function.calculator.mace._macepol_calculator import MACEPolCalculator
 from maple.function.route2_smd_profiles import (
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
     DDPCM_MULTISOLVENT_SMD_PROFILE,
@@ -147,18 +149,7 @@ SCF_SOLVER_CONTRACT = {
     "scf_anderson_residual_growth_limit": SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT,
 }
 EV_TO_KCAL_MOL = HARTREE_TO_KCAL_MOL * EV2HARTREE
-FUNCTIONAL_GROUP_COVERAGE = (
-    "halogenated-hydrocarbon",
-    "ketone",
-    "aromatic-hydrocarbon",
-    "nitro",
-    "amide",
-    "cyclic-diether",
-    "phenol",
-    "thiophenol",
-    "alcohol",
-    "carboxylic-acid",
-)
+FUNCTIONAL_GROUP_COVERAGE = PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES
 PAIRED_COMPARISONS = (
     ("aimnet2_fixed_l0", "mace_fixed_l0"),
     ("mace_fixed_l0", "mace_fixed_l1"),

@@ -529,9 +529,12 @@ electron density. The common wrapper also writes
 `route2-public-result-ledger.json` with immutable leaf terms and their checked
 derived totals. Each evaluation additionally receives a distinct immutable
 `route2-public-results/<run-id>.json` record containing the **current** ASE
-geometry, its SHA-256, the selected-profile digest, and linked manifest/content
-digests; `route2-public-result-ledger.json` is only the latest-record alias and
-must not be used to erase earlier evaluation evidence.
+geometry, its SHA-256, the selected-profile digest, evaluated-property scope,
+and linked manifest/content digests. A force-bearing record additionally embeds
+the per-geometry fail-closed `force_admission` certificate; an energy-only
+record carries `forces_evaluated=false` and a null certificate. The
+`route2-public-result-ledger.json` file is only the latest-record alias and must
+not be used to erase earlier evaluation evidence.
 
 FreeSolv remains a secondary energy diagnostic; it does not define Route 2 and
 cannot certify a solution-phase PES. The retained **pyddx** derivative evidence

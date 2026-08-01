@@ -10,10 +10,10 @@ distribution and are never emitted by this module.
 from __future__ import annotations
 
 import argparse
-from collections import Counter
-from dataclasses import dataclass
 import hashlib
-from typing import Mapping, Sequence
+from collections import Counter
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 
 from benchmark_core import canonical_json_bytes, write_json_atomic
 from mnsol_dataset import (
@@ -33,6 +33,21 @@ PILOT_PARTITION_PREFERENCE = ("confirmation", "development")
 PILOT_REQUIRE_DISTINCT_GEOMETRIES = True
 PILOT_SCORE_INPUT = (
     "selection_seed\\0canonical_solvent\\0geometry_handle\\0entry_number"
+)
+# These labels describe the already-frozen ten-record pilot.  They were not
+# inputs to record selection and must not be interpreted as a stratified or
+# balanced functional-group sampling policy.
+PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES = (
+    "halogenated-hydrocarbon",
+    "ketone",
+    "aromatic-hydrocarbon",
+    "nitro",
+    "amide",
+    "cyclic-diether",
+    "phenol",
+    "thiophenol",
+    "alcohol",
+    "carboxylic-acid",
 )
 _OPAQUE_RECORD_DOMAIN = b"maple-mnsol-pilot-record-v1\0"
 

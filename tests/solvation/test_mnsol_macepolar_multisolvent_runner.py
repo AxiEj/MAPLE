@@ -22,10 +22,12 @@ def _record(
     experimental: float = -4.0,
     ddpcm_total: float = -4.5,
     ddcosmo_total: float = -4.1,
+    response_mode: str = runner.SCF_RESPONSE_MODE,
 ) -> dict[str, object]:
-    def _method(total: float) -> dict[str, float | int]:
+    def _method(total: float) -> dict[str, object]:
         signed_error = total - experimental
         return {
+            "response_mode": response_mode,
             "total_solvation_kcal_mol": total,
             "signed_error_kcal_mol": signed_error,
             "absolute_error_kcal_mol": abs(signed_error),
@@ -115,6 +117,23 @@ def test_energy_ledger_selects_a_locked_paired_equation_comparison():
     )
 
 
+def test_artifact_identity_binds_the_electronic_response_mode():
+    assert runner.artifact_name_for_configuration(
+        runner.PCM_HALF_COUPLING_ONLY_V1,
+        runner.SCF_RESPONSE_MODE,
+    ) == runner.DIRECT_PCM_ARTIFACT_NAME
+    assert runner.artifact_name_for_configuration(
+        runner.PCM_HALF_COUPLING_ONLY_V1,
+        runner.FROZEN_RESPONSE_MODE,
+    ) == runner.FROZEN_SOURCE_DIRECT_PCM_ARTIFACT_NAME
+
+    with pytest.raises(ValueError, match="requires the direct PCM"):
+        runner.artifact_name_for_configuration(
+            runner.LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+            runner.FROZEN_RESPONSE_MODE,
+        )
+
+
 def test_parser_keeps_legacy_control_default_and_accepts_direct_pcm():
     common = [
         "--source",
@@ -135,6 +154,7 @@ def test_parser_keeps_legacy_control_default_and_accepts_direct_pcm():
     assert parser.parse_args(common).energy_ledger == (
         runner.LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
     )
+    assert parser.parse_args(common).response == runner.SCF_RESPONSE_MODE
     assert parser.parse_args(
         [
             *common,
@@ -142,6 +162,15 @@ def test_parser_keeps_legacy_control_default_and_accepts_direct_pcm():
             runner.PCM_HALF_COUPLING_ONLY_V1,
         ]
     ).energy_ledger == runner.PCM_HALF_COUPLING_ONLY_V1
+    assert parser.parse_args(
+        [
+            *common,
+            "--energy-ledger",
+            runner.PCM_HALF_COUPLING_ONLY_V1,
+            "--response",
+            runner.FROZEN_RESPONSE_MODE,
+        ]
+    ).response == runner.FROZEN_RESPONSE_MODE
 
 
 def test_pilot_functional_group_metadata_has_one_shared_ten_class_source():
@@ -191,6 +220,48 @@ def test_terminal_scf_monitors_keep_each_residual_in_its_native_unit():
         "root_total_charge_e": pytest.approx(0.0),
         "total_charge_error_e": pytest.approx(0.0),
     }
+
+
+def test_frozen_source_monitors_preserve_charge_without_fixed_point_claims():
+    audit = {
+        "scf": {
+            "applies": False,
+            "response_mode": runner.FROZEN_RESPONSE_MODE,
+            "total_charge_e": 0.0,
+            "history": [],
+        }
+    }
+    density = np.array(
+        [[-0.2, 0.0, 0.0, 0.0], [0.2, 0.0, 0.0, 0.0]]
+    )
+
+    monitors = runner._response_monitors(
+        audit,
+        density,
+        response_mode=runner.FROZEN_RESPONSE_MODE,
+    )
+
+    assert monitors == {
+        "unmixed_density_residual_inf_e": None,
+        "reaction_potential_residual_ev": None,
+        "reaction_gradient_residual_ev_per_angstrom": None,
+        "ledger_energy_residual_ev": None,
+        "root_total_charge_e": pytest.approx(0.0),
+        "total_charge_error_e": pytest.approx(0.0),
+    }
+
+
+def test_frozen_metrics_do_not_invent_scf_statistics():
+    metrics = runner._metrics(
+        [_record(response_mode=runner.FROZEN_RESPONSE_MODE)],
+        "ddpcm",
+    )
+
+    assert metrics["response_mode"] == runner.FROZEN_RESPONSE_MODE
+    assert metrics["fixed_point_applicable"] is False
+    assert metrics["mean_scf_iterations"] is None
+    assert metrics["maximum_scf_iterations"] is None
+    assert metrics["maximum_unmixed_density_residual_e"] is None
 
 
 def test_single_record_smoke_forces_both_outputs_below_omx():

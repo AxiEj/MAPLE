@@ -10,12 +10,13 @@ pyddx continuum equation:
 * ddPCM + PySCF SMD-CDS;
 * scaled ddCOSMO + the same PySCF SMD-CDS.
 
-Both use the unmodified MACE-POLAR-1-M checkpoint, the same local-jet
-receiver, the direct PCM half-coupling ledger, the same water profile, and the
-same locked MOL2 conformers.  The output is deliberately private below
-``.omx`` because it contains row-level experimental FreeSolv data.  A result
-passes only if *every* record is strictly below 1.5 kcal/mol for both
-equations; MAE never overrides an individual failure.
+Both use the unmodified MACE-POLAR-1-M checkpoint, the direct PCM
+half-coupling ledger, the same water profile, and the same locked MOL2
+conformers.  The response identity is explicit: either the learned local-jet
+SCF fixed point or the frozen zero-field source.  The output is deliberately
+private below ``.omx`` because it contains row-level experimental FreeSolv
+data.  A result passes only if *every* record is strictly below 1.5 kcal/mol
+for both equations; MAE never overrides an individual failure.
 """
 
 from __future__ import annotations
@@ -65,11 +66,28 @@ from maple.function.route2_energy_ledger import (  # noqa: E402
 # acceptance contract.  The old v1 work directory remains a valid record of
 # its stricter nominal-only ddCOSMO outcome and is never resumed as v2.
 ARTIFACT = "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2"
+FROZEN_SOURCE_ARTIFACT = (
+    "route2-frozen-source-direct-pcm-freesolv12-ddpcm-ddcosmo-v1"
+)
 SCHEMA_VERSION = 2
 WATER_SOLVENT = "water"
 METHOD_PROFILES = paired_benchmark.method_profiles_for_energy_ledger(
     PCM_HALF_COUPLING_ONLY_V1
 )
+SUPPORTED_RESPONSE_MODES = paired_benchmark.SUPPORTED_RESPONSE_MODES
+SCF_RESPONSE_MODE = paired_benchmark.SCF_RESPONSE_MODE
+FROZEN_RESPONSE_MODE = paired_benchmark.FROZEN_RESPONSE_MODE
+
+
+def artifact_name_for_response_mode(response_mode: str) -> str:
+    """Return a distinct immutable artifact identity for each response model."""
+
+    response = str(response_mode).strip().lower()
+    if response == SCF_RESPONSE_MODE:
+        return ARTIFACT
+    if response == FROZEN_RESPONSE_MODE:
+        return FROZEN_SOURCE_ARTIFACT
+    raise ValueError(f"Unsupported Route-2 response mode: {response!r}.")
 
 
 def _execution_git_head() -> str:
@@ -173,11 +191,13 @@ def _run_lock(
     manifest_path: Path,
     records: list[dict[str, Any]],
     execution_git_head: str,
+    response_mode: str = SCF_RESPONSE_MODE,
 ) -> dict[str, object]:
     """Return the immutable identity that makes resumable rows safe."""
 
+    artifact_name = artifact_name_for_response_mode(response_mode)
     return {
-        "artifact": ARTIFACT,
+        "artifact": artifact_name,
         "schema_version": SCHEMA_VERSION,
         "execution_git_head": execution_git_head,
         "panel_id": FUNCTIONAL_GROUP_PANEL_ID,
@@ -185,6 +205,8 @@ def _run_lock(
         "compound_ids": [str(record["compound_id"]) for record in records],
         "method_profiles": dict(METHOD_PROFILES),
         "energy_ledger": PCM_HALF_COUPLING_ONLY_V1,
+        "response_mode": response_mode,
+        "fixed_point_applicable": response_mode == SCF_RESPONSE_MODE,
         "solvent": WATER_SOLVENT,
         "energy_composition": paired_benchmark.paired_energy_composition(
             PCM_HALF_COUPLING_ONLY_V1
@@ -217,11 +239,16 @@ def _evaluate_method(
     record: dict[str, Any],
     method: str,
     profile: str,
+    response_mode: str,
     work_dir: Path,
 ) -> dict[str, object]:
     """Use MAPLE's public Route-2 energy path for exactly one equation."""
 
-    parameters = paired_benchmark._settings(WATER_SOLVENT, profile)
+    parameters = paired_benchmark._settings(
+        WATER_SOLVENT,
+        profile,
+        response_mode,
+    )
     compound_id = str(record["compound_id"])
     output = work_dir / "provider-audits" / compound_id / method / "maple.out"
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -250,6 +277,8 @@ def _evaluate_method(
         raise RuntimeError(f"{compound_id}: public route selected wrong profile.")
     if provenance.get("electrostatic_energy_ledger") != PCM_HALF_COUPLING_ONLY_V1:
         raise RuntimeError(f"{compound_id}: public route selected wrong ledger.")
+    if provenance.get("response") != response_mode:
+        raise RuntimeError(f"{compound_id}: public route selected wrong response mode.")
     if abs(combined_energy_hartree - float(result["combined_energy_hartree"])) > 1.0e-12:
         raise RuntimeError(f"{compound_id}: combined-energy finalizer drifted.")
     if abs(float(components["solute_polarization"])) > 1.0e-15:
@@ -262,11 +291,16 @@ def _evaluate_method(
     audit = json.loads(audit_path.read_text(encoding="utf-8"))
     with np.load(state_path) as state:
         root_density = np.asarray(state["density_coefficients"], dtype=float)
-    monitors = paired_benchmark._terminal_scf_monitors(audit, root_density)
+    monitors = paired_benchmark._response_monitors(
+        audit,
+        root_density,
+        response_mode=response_mode,
+    )
     experimental = float(record["experimental_kcal_mol"])
     predicted = float(result["delta_g_solv_hartree"]) * HARTREE_TO_KCAL_MOL
     return {
         "profile": profile,
+        "response_mode": response_mode,
         "gas_energy_hartree": float(result["gas_energy_hartree"]),
         "combined_energy_hartree": combined_energy_hartree,
         "predicted_kcal_mol": predicted,
@@ -297,6 +331,7 @@ def _evaluate_record(
     record: dict[str, Any],
     mol2_root: Path,
     work_dir: Path,
+    response_mode: str,
 ) -> dict[str, object]:
     """Evaluate both equations from one identical locked molecular geometry."""
 
@@ -308,6 +343,7 @@ def _evaluate_record(
             record=record,
             method=method,
             profile=profile,
+            response_mode=response_mode,
             work_dir=work_dir,
         )
         for method, profile in METHOD_PROFILES
@@ -407,6 +443,15 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument(
+        "--response",
+        choices=SUPPORTED_RESPONSE_MODES,
+        default=SCF_RESPONSE_MODE,
+        help=(
+            "Electronic response identity: learned local-jet SCF or frozen "
+            "zero-field source. Each choice has a separate immutable run lock."
+        ),
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         help="Private full report path; defaults to WORK_DIR/summary.json.",
@@ -441,6 +486,8 @@ def _record_needs_run(record_path: Path, *, retry_failures: bool) -> bool:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
+    response_mode = str(args.response)
+    artifact_name = artifact_name_for_response_mode(response_mode)
     work_dir = _require_private_path(args.work_dir, label="FreeSolv work directory")
     output_path = _require_private_path(
         args.output if args.output is not None else work_dir / "summary.json",
@@ -461,6 +508,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         manifest_path=manifest_path,
         records=records,
         execution_git_head=execution_git_head,
+        response_mode=response_mode,
     )
     _establish_or_validate_run_lock(work_dir, lock)
     records_dir = work_dir / "records"
@@ -483,6 +531,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             WATER_SOLVENT,
             work_dir,
             method_profiles=METHOD_PROFILES,
+            response_mode=response_mode,
         )
         model_load_seconds = time.perf_counter() - started
         if str(calculator.dtype) != "torch.float64":
@@ -503,6 +552,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 record=record,
                 mol2_root=mol2_root,
                 work_dir=work_dir,
+                response_mode=response_mode,
             )
             result["status"] = "success"
             print(
@@ -585,14 +635,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         runtime["mace_dtype"] = str(calculator.dtype)
     payload = {
-        "artifact": ARTIFACT,
+        "artifact": artifact_name,
         "schema_version": SCHEMA_VERSION,
         "status": status,
         "run_lock": lock,
         "scientific_identity": {
             "solute_model": "official-unmodified-MACE-POLAR-1-M",
             "solute_source": "MACE-POLAR coarse point l<=1 multipoles",
-            "receiver": "local-jet",
+            "polarization_response": response_mode,
+            "receiver": (
+                "local-jet" if response_mode == SCF_RESPONSE_MODE else None
+            ),
+            "mutual_ml_continuum_polarization": (
+                response_mode == SCF_RESPONSE_MODE
+            ),
+            "fixed_point_applicable": response_mode == SCF_RESPONSE_MODE,
             "solvent": WATER_SOLVENT,
             "continuum_equations": ["pyddx ddPCM", "pyddx ddCOSMO"],
             "nonpolar_term": "PySCF-2.13.1-SMD-CDS",
@@ -606,7 +663,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "claim_boundary": (
             "This is a locked twelve-record FreeSolv energy diagnostic with "
             "ten distinct functional groups and no result-driven parameter "
-            "selection. It reports direct PCM and ddCOSMO equation errors but "
+            "selection. Its electronic response identity is immutable in the "
+            "run lock. It reports direct PCM and ddCOSMO equation errors but "
             "does not establish common variational electronic-energy semantics, "
             "a smooth solution-phase PES, public forces, multi-solvent accuracy, "
             "or blind population generalization."

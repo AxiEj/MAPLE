@@ -132,6 +132,10 @@ def _direct_multisolvent_cosmo_v2_options(solvent: str) -> dict[str, object]:
     }
 
 
+def _frozen(options: dict[str, object]) -> dict[str, object]:
+    return {**options, "response": "frozen"}
+
+
 def test_public_parser_accepts_explicit_ddpcm_energy_research_profile():
     params = _parse(
         "#model=macepol-m",
@@ -212,6 +216,54 @@ def test_public_parser_accepts_direct_pcm_ddcosmo_profile_for_each_solvent(
     )
 
     assert params["solv"] == _direct_multisolvent_cosmo_options(solvent)
+
+
+@pytest.mark.parametrize("solvent", sorted(SUPPORTED_ROUTE2_SMD_SOLVENTS))
+@pytest.mark.parametrize(
+    ("profile", "expected_options"),
+    [
+        (
+            DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
+            _direct_multisolvent_v2_options,
+        ),
+        (
+            DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
+            _direct_multisolvent_cosmo_v2_options,
+        ),
+    ],
+)
+def test_public_parser_accepts_frozen_source_only_for_direct_energy_profiles(
+    solvent,
+    profile,
+    expected_options,
+):
+    params = _parse(
+        "#model=macepol-m",
+        "#sp(verbose=1)",
+        (
+            f"#solv(implicit={solvent},method=smd,provider=pyddx,"
+            f"profile={profile},response=frozen,"
+            "standard_state=1m,experimental=true)"
+        ),
+    )
+
+    assert params["solv"] == _frozen(expected_options(solvent))
+
+
+def test_public_parser_rejects_frozen_source_for_a_legacy_pyddx_ledger():
+    with pytest.raises(
+        ValueError,
+        match="response=frozen requires a direct PCM half-coupling profile",
+    ):
+        _parse(
+            "#model=macepol-m",
+            "#sp(verbose=1)",
+            (
+                "#solv(implicit=water,method=smd,provider=pyddx,"
+                f"profile={DDPCM_SMD_PROFILE},response=frozen,"
+                "standard_state=1m,experimental=true)"
+            ),
+        )
 
 
 def test_public_parser_canonicalizes_multisolvent_alias():
@@ -1447,6 +1499,18 @@ def test_multisolvent_water_dielectric_is_versioned_from_legacy_water(
     )
 
 
+def test_provider_rejects_frozen_source_for_a_legacy_pyddx_ledger(tmp_path):
+    with pytest.raises(
+        ValueError,
+        match="response=frozen requires a direct PCM half-coupling profile",
+    ):
+        PyDDXSMDImplicitSolvation(
+            _atoms(),
+            _frozen(_options()),
+            audit_dir=tmp_path,
+        )
+
+
 def _fake_cds(atoms):
     gradient = np.asarray(
         [[0.001, 0.0, 0.0], [-0.001, 0.0, 0.0]]
@@ -1459,6 +1523,104 @@ def _fake_cds(atoms):
             "pyscf_version": "2.13.1",
         },
     )
+
+
+@pytest.mark.parametrize(
+    ("options", "reaction_field_attribute", "audit_stem"),
+    [
+        (
+            _frozen(_direct_multisolvent_v2_options("acetonitrile")),
+            "PyDDXPCMReactionFieldLinearMap",
+            "route2-ddpcm",
+        ),
+        (
+            _frozen(_direct_multisolvent_cosmo_v2_options("acetonitrile")),
+            "PyDDXCOSMOReactionFieldLinearMap",
+            "route2-ddcosmo",
+        ),
+    ],
+)
+def test_frozen_source_direct_profiles_do_not_evaluate_a_field_conditioned_model(
+    monkeypatch,
+    tmp_path,
+    options,
+    reaction_field_attribute,
+    audit_stem,
+):
+    import maple.function.calculator.extra_correction.implicit.ddpcm_smd as module
+
+    class _FrozenSourceOnlyCalculator(_FakeMACEPolarCalculator):
+        route2_electronic_model_descriptor = replace(
+            _FakeMACEPolarCalculator.route2_electronic_model_descriptor,
+            capabilities=Route2ElectronicModelCapabilities(
+                state_projectors=frozenset({"exact-gto-v1"})
+            ),
+        )
+
+        def polar_state(self, atoms, **kwargs):
+            del atoms, kwargs
+            raise AssertionError(
+                "A frozen-source direct ledger must not evaluate a field state."
+            )
+
+    atoms = _atoms()
+    calculator = _FrozenSourceOnlyCalculator(atoms)
+    monkeypatch.setattr(
+        module,
+        reaction_field_attribute,
+        _ScalarCoordinateReactionField,
+    )
+    monkeypatch.setattr(
+        module,
+        "pyscf_smd_cds",
+        lambda symbols, positions, *, solvent: _fake_cds(atoms),
+    )
+    provider = PyDDXSMDImplicitSolvation(
+        atoms,
+        options,
+        audit_dir=tmp_path,
+    )
+
+    result = provider.evaluate(atoms, calculator=calculator)
+
+    expected_pcm = 0.5 * 0.12 * (0.1**2 + 0.1**2) / Hartree
+    assert result.energy_hartree == pytest.approx(expected_pcm + 0.003)
+    assert result.components_hartree == {
+        "solute_polarization": 0.0,
+        "pcm_polarization": pytest.approx(expected_pcm),
+        "electrostatic": pytest.approx(expected_pcm),
+        "cds": pytest.approx(0.003),
+        "standard_state": 0.0,
+        "delta_g_solv": pytest.approx(expected_pcm + 0.003),
+    }
+    assert result.provenance["response"] == "frozen"
+    assert result.provenance["fixed_point_applicable"] is False
+    assert result.provenance["iterations"] == 0
+    assert result.provenance["research_derivative_evidence_available"] is False
+    assert result.provenance["scf_convergence"] == {
+        "reason": "frozen-source-no-fixed-point-v1",
+        "fixed_point_applicable": False,
+        "source_label": "gas-electronic-source",
+    }
+    with pytest.raises(
+        NotImplementedError,
+        match="frozen-source.*energy-only",
+    ):
+        provider.evaluate_single_point_derivative_evidence(
+            atoms,
+            calculator=calculator,
+        )
+
+    audit = json.loads(
+        (tmp_path / f"{audit_stem}-result.json").read_text(encoding="utf-8")
+    )
+    assert audit["response_mode"] == "frozen"
+    assert audit["field_conditioned_model_state_evaluated"] is False
+    assert audit["field_conditioned_mace_energy_change_hartree"] == 0.0
+    assert audit["scf"]["applies"] is False
+    assert audit["scf"]["response_mode"] == "frozen"
+    assert audit["scf"]["residual_definition"] is None
+    assert audit["scf"]["history"] == []
 
 
 def test_ddpcm_direct_pcm_profile_reports_only_pcm_half_coupling(

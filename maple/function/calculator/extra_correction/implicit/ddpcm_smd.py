@@ -1,11 +1,12 @@
-"""Self-consistent MACE-POLAR/pyddx/SMD research energy provider.
+"""MACE-POLAR/pyddx/SMD research energy provider.
 
 This provider is deliberately separate from the public PCMSolver/GePol energy
 proof of concept.  One profile-selected pyddx ddPCM or scaled-ddCOSMO object
-owns the scalar polarization energy, reaction-field forward/adjoint maps, and
-research-only coordinate derivative evidence.  The official PySCF SMD CDS entrypoint
-supplies its scalar energy and matching analytic gradient.  Components from
-different continuum equations are never mixed.
+owns the scalar polarization energy and reaction-field maps.  Profiles may use
+either the learned SCF response or a frozen zero-field source; only SCF profiles
+expose research-only coordinate derivative evidence.  The official PySCF SMD
+CDS entrypoint supplies its scalar energy and matching analytic gradient.
+Components from different continuum equations are never mixed.
 """
 
 from __future__ import annotations
@@ -333,6 +334,8 @@ class PyDDXSMDImplicitSolvation:
             self.audit_dir.mkdir(parents=True, exist_ok=True)
 
         numerics = {
+            "response_mode": self.response,
+            "scf_applies": self.response == "scf",
             "dielectric": self.continuum_dielectric,
             "dielectric_policy": self.profile_spec.dielectric_policy,
             "coulomb_radii_policy": (self.profile_spec.coulomb_radii_policy),
@@ -402,7 +405,8 @@ class PyDDXSMDImplicitSolvation:
             ),
             "solvent": self.solvent,
             "pyscf_smd_solvent": self.solvent_spec.pyscf_smd_name,
-            "response": "scf",
+            "response": self.response,
+            "fixed_point_applicable": self.response == "scf",
             "standard_state": "1M(gas)->1M(solution)",
             "standard_state_correction_hartree": 0.0,
             "density_source": ("official MACE-POLAR-1-M l<=1 residual charge density"),
@@ -441,14 +445,12 @@ class PyDDXSMDImplicitSolvation:
             "scientific_status": "single-point-energy-research",
             "solution_phase_pes": False,
             "forces_available": False,
-            # Both frozen ledgers now have their own outer-adjoint derivative
-            # specification.  This advertises only an explicit single-point
-            # research check: pyddx's variable active surface topology still
-            # prevents a public PES/ASE force contract.
-            "research_derivative_evidence_available": True,
+            "research_derivative_evidence_available": self.response == "scf",
             "research_derivative_evidence_scope": (
                 "single-point validation only; not an ASE force or "
                 "solution-phase PES capability"
+                if self.response == "scf"
+                else "not available for frozen-source energy-only states"
             ),
             "accuracy_certified": False,
             "default_eligible": False,
@@ -460,13 +462,17 @@ class PyDDXSMDImplicitSolvation:
                 continuum_symbol=self.continuum_label,
             ),
             "research_derivative_evidence_composition": (
-                "-d[0.5*<c,P_R c> + G_CDS]/dR evaluated with the "
-                "converged-density response eliminated by the direct-PCM "
-                "ledger-specific adjoint"
-                if self.profile_spec.electrostatic_energy_ledger
-                == PCM_HALF_COUPLING_ONLY_V1
-                else "-d(delta_G_solv)/dR evaluated with the "
-                "converged-density response eliminated by one adjoint solve"
+                None
+                if self.response == "frozen"
+                else (
+                    "-d[0.5*<c,P_R c> + G_CDS]/dR evaluated with the "
+                    "converged-density response eliminated by the direct-PCM "
+                    "ledger-specific adjoint"
+                    if self.profile_spec.electrostatic_energy_ledger
+                    == PCM_HALF_COUPLING_ONLY_V1
+                    else "-d(delta_G_solv)/dR evaluated with the "
+                    "converged-density response eliminated by one adjoint solve"
+                )
             ),
             "numerics": numerics,
         }
@@ -492,9 +498,19 @@ class PyDDXSMDImplicitSolvation:
                 f"Route 2 profile={self.profile} does not support "
                 f"solvent={self.solvent}."
             )
-        if self.response != "scf":
+        if self.response not in {"frozen", "scf"}:
             raise ValueError(
-                "The pyddx Route-2 research provider requires response=scf."
+                "The pyddx Route-2 research provider requires response=frozen "
+                "or response=scf."
+            )
+        if (
+            self.response == "frozen"
+            and self.profile_spec.electrostatic_energy_ledger
+            != PCM_HALF_COUPLING_ONLY_V1
+        ):
+            raise ValueError(
+                "Route 2 provider=pyddx response=frozen requires a direct PCM "
+                "half-coupling profile."
             )
         if self.standard_state != "1m":
             raise ValueError(
@@ -559,6 +575,7 @@ class PyDDXSMDImplicitSolvation:
             electrostatic_energy_ledger=(
                 self.profile_spec.electrostatic_energy_ledger
             ),
+            response_mode=self.response,
             need_forces=need_forces,
         )
         return model
@@ -709,16 +726,23 @@ class PyDDXSMDImplicitSolvation:
         *,
         runtime_calculator,
     ) -> Route2CoupledState:
+        cache_signature = self._provider_cache_signature()
+        if self.response == "frozen":
+            return self._engine.solve_frozen_source_state(
+                atoms,
+                electronic_model,
+                gas_state,
+                provider_cache_signature=cache_signature,
+                electrostatic_energy_ledger=(
+                    self.profile_spec.electrostatic_energy_ledger
+                ),
+            )
         try:
             return self._engine.solve_coupled_state(
                 atoms,
                 electronic_model,
                 gas_state,
-                provider_cache_signature=(
-                    self.solvent,
-                    self.electrostatics_model,
-                    self._reference_mol2_atom_types,
-                ),
+                provider_cache_signature=cache_signature,
                 finite_resolution_runtime_identity=(
                     self._finite_resolution_runtime_identity(
                         runtime_calculator,
@@ -737,15 +761,46 @@ class PyDDXSMDImplicitSolvation:
             )
             raise
 
+    def _provider_cache_signature(self) -> tuple[object, ...]:
+        """Identity of every option that changes the stored continuum state."""
+
+        return (
+            self.profile,
+            self.response,
+            self.solvent,
+            self.electrostatics_model,
+            self._reference_mol2_atom_types,
+        )
+
     def _scf_audit_payload(
         self,
         history: tuple[Route2SCFHistoryRecord, ...],
         *,
         convergence: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
+        if self.response == "frozen":
+            settings = self._engine.settings
+            return {
+                "applies": False,
+                "response_mode": "frozen",
+                "solver": None,
+                "residual_definition": None,
+                "total_charge_e": settings.scf_total_charge_e,
+                "coefficient_units": {
+                    "monopole": "e",
+                    "dipole": "e angstrom",
+                },
+                "convergence": (
+                    None if convergence is None else dict(convergence)
+                ),
+                "iterations": 0,
+                "history": [],
+            }
         settings = self._engine.settings
         policy = settings.scf_finite_resolution_policy
         return {
+            "applies": True,
+            "response_mode": "scf",
             "solver": settings.scf_solver,
             "mixing": settings.scf_mixing,
             "density_tolerance_e": settings.scf_density_tolerance,
@@ -874,11 +929,7 @@ class PyDDXSMDImplicitSolvation:
         if cached is not None and cached.matches(
             electronic_model,
             atoms,
-            provider_cache_signature=(
-                self.solvent,
-                self.electrostatics_model,
-                self._reference_mol2_atom_types,
-            ),
+            provider_cache_signature=self._provider_cache_signature(),
         ):
             return cached
         state = self._solve_coupled_state(
@@ -897,6 +948,11 @@ class PyDDXSMDImplicitSolvation:
         gas_state,
         coupled: Route2CoupledState,
     ):
+        if self.response != "scf":
+            raise TypeError(
+                "Frozen-source Route-2 states are energy-only and do not "
+                "define the learned fixed-point force adjoint."
+            )
         return self._engine.solvent_correction_force(
             atoms,
             electronic_model,
@@ -955,6 +1011,10 @@ class PyDDXSMDImplicitSolvation:
             "forces_evaluated": derivative is not None,
             "profile": self.profile,
             "solvent": self.solvent,
+            "response_mode": coupled.response_mode,
+            "field_conditioned_model_state_evaluated": (
+                coupled.response_mode == "scf"
+            ),
             "energies_hartree": components,
             "electrostatic_energy_ledger": (
                 self.profile_spec.electrostatic_energy_ledger
@@ -1009,6 +1069,12 @@ class PyDDXSMDImplicitSolvation:
         calculator=None,
     ) -> SinglePointDerivativeEvidence:
         """Return explicitly labelled derivative evidence outside ASE/PES APIs."""
+
+        if self.response != "scf":
+            raise NotImplementedError(
+                "The frozen-source Route-2 profile is energy-only; it does not "
+                "expose learned fixed-point derivative evidence."
+            )
 
         result = self._evaluate(
             atoms,
@@ -1091,6 +1157,7 @@ class PyDDXSMDImplicitSolvation:
             **self.provenance,
             "converged": True,
             "iterations": len(coupled.history),
+            "fixed_point_applicable": coupled.fixed_point_applicable,
             "scf_convergence": dict(coupled.scf_convergence),
             "continuum_provider": dict(coupled.reaction_field.runtime_provenance),
             "cds_provider": dict(coupled.cds_result.runtime_provenance),

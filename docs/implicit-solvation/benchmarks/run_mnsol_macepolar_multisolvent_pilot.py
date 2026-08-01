@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Run the preregistered self-consistent MACE-POLAR multisolvent pilot.
+"""Run the preregistered MACE-POLAR multisolvent pilot.
 
 The private output contains row-level MNSol values and must remain under
 ``.omx``.  The tracked public summary contains aggregate metrics only.  Both
 ddPCM and scaled ddCOSMO are evaluated through MAPLE's public Route-2 path and
-the same shared fixed-point engine.  This is a bounded diagnostic, not a
-replacement for complete MNSol development/confirmation evaluation.
+the same shared response engine.  The response identity is explicit: either a
+learned SCF fixed point or a frozen zero-field source.  This is a bounded
+diagnostic, not a replacement for complete MNSol development/confirmation
+evaluation.
 
 The default path remains the frozen ten-record panel.  ``--record-index`` is a
 single-record engineering smoke only: both outputs must remain under ``.omx``,
@@ -94,6 +96,12 @@ ARTIFACT_NAME = "route2-mnsol-macepolar-multisolvent-pilot-v1"
 DIRECT_PCM_ARTIFACT_NAME = (
     "route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2"
 )
+FROZEN_SOURCE_DIRECT_PCM_ARTIFACT_NAME = (
+    "route2-mnsol-macepolar-frozen-source-direct-pcm-multisolvent-pilot-v1"
+)
+SCF_RESPONSE_MODE = "scf"
+FROZEN_RESPONSE_MODE = "frozen"
+SUPPORTED_RESPONSE_MODES = (FROZEN_RESPONSE_MODE, SCF_RESPONSE_MODE)
 FULL_PANEL_RECORD_COUNT = 10
 FUNCTIONAL_GROUP_COVERAGE = PILOT_POST_SELECTION_FUNCTIONAL_GROUP_CLASSES
 # Backward-compatible legacy control used by the existing frozen artifacts.
@@ -156,6 +164,26 @@ def artifact_name_for_energy_ledger(energy_ledger: str) -> str:
     if selected == PCM_HALF_COUPLING_ONLY_V1:
         return DIRECT_PCM_ARTIFACT_NAME
     raise AssertionError(f"Unhandled Route-2 energy ledger: {selected}.")
+
+
+def artifact_name_for_configuration(
+    energy_ledger: str,
+    response_mode: str,
+) -> str:
+    """Return an artifact identity bound to both ledger and response physics."""
+
+    selected = validate_route2_electrostatic_energy_ledger(energy_ledger)
+    response = str(response_mode).strip().lower()
+    if response not in SUPPORTED_RESPONSE_MODES:
+        raise ValueError(f"Unsupported Route-2 response mode: {response!r}.")
+    if response == FROZEN_RESPONSE_MODE:
+        if selected != PCM_HALF_COUPLING_ONLY_V1:
+            raise ValueError(
+                "Frozen-source benchmarking requires the direct PCM "
+                "half-coupling ledger."
+            )
+        return FROZEN_SOURCE_DIRECT_PCM_ARTIFACT_NAME
+    return artifact_name_for_energy_ledger(selected)
 
 
 def paired_energy_composition(energy_ledger: str) -> str:
@@ -253,7 +281,7 @@ def _timing_summary(values: list[float]) -> dict[str, float | int]:
 def _metrics(
     records: list[dict[str, object]],
     method: str,
-) -> dict[str, float | int]:
+) -> dict[str, object]:
     method_records = [record["methods"][method] for record in records]
     errors = np.asarray(
         [record["signed_error_kcal_mol"] for record in method_records],
@@ -274,6 +302,14 @@ def _metrics(
         or not np.all(np.isfinite(experimental))
     ):
         raise RuntimeError("MNSol pilot metrics require finite nonempty records.")
+    response_modes = {
+        str(record.get("response_mode", SCF_RESPONSE_MODE))
+        for record in method_records
+    }
+    if len(response_modes) != 1:
+        raise RuntimeError("MNSol metrics cannot mix electronic response modes.")
+    response_mode = response_modes.pop()
+    fixed_point_applicable = response_mode == SCF_RESPONSE_MODE
     return {
         "record_count": int(errors.size),
         "mean_signed_error_kcal_mol": float(np.mean(errors)),
@@ -298,14 +334,27 @@ def _metrics(
         "mean_smd_cds_energy_kcal_mol": float(
             np.mean([record["smd_cds_energy_kcal_mol"] for record in method_records])
         ),
-        "mean_scf_iterations": float(
-            np.mean([record["scf_iterations"] for record in method_records])
+        "response_mode": response_mode,
+        "fixed_point_applicable": fixed_point_applicable,
+        "mean_scf_iterations": (
+            float(np.mean([record["scf_iterations"] for record in method_records]))
+            if fixed_point_applicable
+            else None
         ),
-        "maximum_scf_iterations": int(
-            max(record["scf_iterations"] for record in method_records)
+        "maximum_scf_iterations": (
+            int(max(record["scf_iterations"] for record in method_records))
+            if fixed_point_applicable
+            else None
         ),
-        "maximum_unmixed_density_residual_e": float(
-            max(record["unmixed_density_residual_inf_e"] for record in method_records)
+        "maximum_unmixed_density_residual_e": (
+            float(
+                max(
+                    record["unmixed_density_residual_inf_e"]
+                    for record in method_records
+                )
+            )
+            if fixed_point_applicable
+            else None
         ),
         "maximum_half_coupling_identity_error_ev": float(
             max(record["half_coupling_identity_error_ev"] for record in method_records)
@@ -358,14 +407,18 @@ def _paired_method_comparison(
     }
 
 
-def _settings(solvent: str, profile: str) -> dict[str, object]:
+def _settings(
+    solvent: str,
+    profile: str,
+    response_mode: str = SCF_RESPONSE_MODE,
+) -> dict[str, object]:
     return CommandControl.from_settings(
         [
             "#model=macepol-m",
             "#sp",
             (
                 f"#solv(implicit={solvent},method=smd,provider=pyddx,"
-                f"profile={profile},response=scf,standard_state=1m,"
+                f"profile={profile},response={response_mode},standard_state=1m,"
                 "experimental=true)"
             ),
         ]
@@ -388,10 +441,12 @@ def _load_calculator(
     work_dir: Path,
     *,
     method_profiles: tuple[tuple[str, str], ...],
+    response_mode: str = SCF_RESPONSE_MODE,
 ):
     parameters = _settings(
         first_solvent,
         dict(method_profiles)["ddpcm"],
+        response_mode,
     )
     return SetCalculator(
         "cpu",
@@ -462,6 +517,40 @@ def _terminal_scf_monitors(
     return values
 
 
+def _response_monitors(
+    audit: dict[str, object],
+    root_density: np.ndarray,
+    *,
+    response_mode: str,
+) -> dict[str, float | None]:
+    """Return only monitors that are physically applicable to one response mode."""
+
+    response = str(response_mode).strip().lower()
+    if response == SCF_RESPONSE_MODE:
+        return _terminal_scf_monitors(audit, root_density)
+    if response != FROZEN_RESPONSE_MODE:
+        raise ValueError(f"Unsupported Route-2 response mode: {response!r}.")
+    scf = audit.get("scf")
+    if not isinstance(scf, dict) or scf.get("applies") is not False:
+        raise RuntimeError("Frozen-source audit did not disable fixed-point claims.")
+    density = np.asarray(root_density, dtype=float)
+    if density.ndim != 2 or density.shape[1] != 4 or not np.all(np.isfinite(density)):
+        raise RuntimeError("Route-2 persisted frozen source is invalid.")
+    target_charge = float(scf["total_charge_e"])
+    root_charge = float(np.sum(density[:, 0]))
+    charge_error = abs(root_charge - target_charge)
+    if not math.isfinite(root_charge) or not math.isfinite(charge_error):
+        raise RuntimeError("Route-2 frozen-source charge monitor is non-finite.")
+    return {
+        "unmixed_density_residual_inf_e": None,
+        "reaction_potential_residual_ev": None,
+        "reaction_gradient_residual_ev_per_angstrom": None,
+        "ledger_energy_residual_ev": None,
+        "root_total_charge_e": root_charge,
+        "total_charge_error_e": charge_error,
+    }
+
+
 def _evaluate_method(
     *,
     calculator,
@@ -470,9 +559,14 @@ def _evaluate_method(
     method: str,
     profile: str,
     energy_ledger: str,
+    response_mode: str,
     work_dir: Path,
 ) -> dict[str, object]:
-    parameters = _settings(selected.canonical_solvent, profile)
+    parameters = _settings(
+        selected.canonical_solvent,
+        profile,
+        response_mode,
+    )
     output = work_dir / selected.opaque_record_id / method / "maple.out"
     output.parent.mkdir(parents=True, exist_ok=True)
     calculator.solvent_correction = ImplicitSolvationCorrection(
@@ -499,6 +593,8 @@ def _evaluate_method(
         raise RuntimeError("Public MAPLE path selected the wrong profile.")
     if provenance.get("electrostatic_energy_ledger") != energy_ledger:
         raise RuntimeError("Public MAPLE path selected the wrong energy ledger.")
+    if provenance.get("response") != response_mode:
+        raise RuntimeError("Public MAPLE path selected the wrong response mode.")
     if abs(combined_energy_hartree - result["combined_energy_hartree"]) > 1.0e-12:
         raise RuntimeError("Common finalizer combined-energy ledger drifted.")
 
@@ -512,12 +608,17 @@ def _evaluate_method(
             state["density_coefficients"],
             dtype=float,
         )
-    terminal_scf = _terminal_scf_monitors(audit, root_density)
+    response_monitors = _response_monitors(
+        audit,
+        root_density,
+        response_mode=response_mode,
+    )
     delta_g_hartree = float(result["delta_g_solv_hartree"])
     delta_g_kcal_mol = delta_g_hartree * HARTREE_TO_KCAL_MOL
     experiment = selected.eligible_record.record.delta_g_kcal_mol
     return {
         "profile": profile,
+        "response_mode": response_mode,
         "gas_energy_hartree": float(result["gas_energy_hartree"]),
         "combined_energy_hartree": combined_energy_hartree,
         "delta_g_solv_hartree": delta_g_hartree,
@@ -535,7 +636,7 @@ def _evaluate_method(
         ),
         "smd_cds_energy_kcal_mol": (float(components["cds"]) * HARTREE_TO_KCAL_MOL),
         "scf_iterations": int(audit["scf"]["iterations"]),
-        **terminal_scf,
+        **response_monitors,
         "scf_convergence": dict(audit["scf"]["convergence"]),
         "half_coupling_identity_error_ev": float(
             audit["polarization_energy_identity_error_ev"]
@@ -556,6 +657,15 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "Frozen ten-record pilot manifest used only to validate prior-"
             "inspection overlap in a complete partition selection."
+        ),
+    )
+    parser.add_argument(
+        "--response",
+        choices=SUPPORTED_RESPONSE_MODES,
+        default=SCF_RESPONSE_MODE,
+        help=(
+            "Electronic response identity. Frozen uses only the zero-field "
+            "source and is valid only with the direct PCM ledger."
         ),
     )
     parser.add_argument("--private-output", type=Path, required=True)
@@ -626,8 +736,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     energy_ledger = validate_route2_electrostatic_energy_ledger(
         args.energy_ledger
     )
+    response_mode = str(args.response)
     method_profiles = method_profiles_for_energy_ledger(energy_ledger)
-    artifact_name = artifact_name_for_energy_ledger(energy_ledger)
+    artifact_name = artifact_name_for_configuration(
+        energy_ledger,
+        response_mode,
+    )
     execution_git_head = _execution_git_head()
 
     protocol = load_mnsol_protocol(args.protocol)
@@ -680,6 +794,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         indexed_selection[0][1].canonical_solvent,
         work_dir,
         method_profiles=method_profiles,
+        response_mode=response_mode,
     )
     model_load_seconds = time.perf_counter() - load_started
     if str(calculator.dtype) != "torch.float64":
@@ -716,6 +831,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 method=method,
                 profile=profile,
                 energy_ledger=energy_ledger,
+                response_mode=response_mode,
                 work_dir=work_dir,
             )
             for method, profile in method_profiles
@@ -772,7 +888,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if complete_panel:
         claim_boundary = (
             "This experiment-blind ten-record MNSol pilot is an engineering "
-            "and early chemical diagnostic for self-consistent MACE-POLAR "
+            "and early chemical diagnostic for MACE-POLAR "
             "coarse residual point-(l<=1) multipoles with ddPCM or scaled "
             "ddCOSMO plus SMD-CDS. Its ten distinct functional-group labels "
             "are post-selection descriptions, not selection inputs or a "
@@ -784,14 +900,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif partition_shard:
         claim_boundary = (
             "One-record bounded MNSol confirmation-partition shard for "
-            "provenance, convergence, energy-ledger, and timing inspection "
+            "provenance, response-identity, energy-ledger, and timing "
+            "inspection "
             "only. It cannot be aggregated until the complete frozen "
             "partition has been evaluated."
         )
     else:
         claim_boundary = (
             "One-record bounded MNSol pilot smoke for provenance, "
-            "convergence, energy-ledger, and timing inspection only."
+            "response-identity, energy-ledger, and timing inspection only."
         )
     if not complete_panel:
         claim_boundary += (
@@ -818,6 +935,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "checkpoint": checkpoint,
         "electrostatic_energy_ledger": energy_ledger,
+        "response_mode": response_mode,
         "aggregate_metrics": method_metrics,
         "paired_method_comparison": paired_comparison,
         "records": records,
@@ -867,14 +985,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         "scientific_identity": {
             "solute_energy_model": ("official unmodified MACE-POLAR-1-M checkpoint"),
             "solute_source": ("MACE-POLAR coarse residual point-multipole-l<=1"),
-            "polarization_response": "self-consistent",
+            "polarization_response": response_mode,
             "reaction_field_projector": "local-jet",
             "continuum_equations": ["pyddx ddPCM", "pyddx ddCOSMO"],
             "nonpolar_model": "PySCF 2.13.1 SMD-CDS",
             "energy_composition": paired_energy_composition(energy_ledger),
             "electrostatic_energy_ledger": energy_ledger,
             "strict_original_smd_equivalence": False,
-            "mutual_ml_continuum_polarization": True,
+            "mutual_ml_continuum_polarization": (
+                response_mode == SCF_RESPONSE_MODE
+            ),
             "cpcm_included": False,
             "cosmo_rs_included": False,
         },
@@ -924,22 +1044,40 @@ def main(argv: Sequence[str] | None = None) -> int:
             "eta": DDPCM_ETA,
             "full_profile_numerics": True,
         },
-        "scf_parameters": {
-            "solver": SCF_SOLVER,
-            "mixing": SCF_MIXING,
-            "density_tolerance_e": SCF_DENSITY_TOLERANCE,
-            "energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
-            "maximum_iterations": SCF_MAX_ITERATIONS,
-            "anderson_depth": SCF_ANDERSON_DEPTH,
-            "anderson_regularization": SCF_ANDERSON_REGULARIZATION,
-            "anderson_coefficient_l1_limit": (SCF_ANDERSON_COEFFICIENT_L1_LIMIT),
-            "anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
-            "anderson_residual_growth_limit": (SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT),
-            "total_charge_e": SCF_TOTAL_CHARGE_E,
-            "residual_definition": (
-                "unmixed neutral-tangent Pi0[M(P(c))-c]"
-            ),
-        },
+        "scf_parameters": (
+            {
+                "solver": SCF_SOLVER,
+                "mixing": SCF_MIXING,
+                "density_tolerance_e": SCF_DENSITY_TOLERANCE,
+                "energy_tolerance_ev": SCF_ENERGY_TOLERANCE_EV,
+                "maximum_iterations": SCF_MAX_ITERATIONS,
+                "anderson_depth": SCF_ANDERSON_DEPTH,
+                "anderson_regularization": SCF_ANDERSON_REGULARIZATION,
+                "anderson_coefficient_l1_limit": (
+                    SCF_ANDERSON_COEFFICIENT_L1_LIMIT
+                ),
+                "anderson_step_ratio_limit": (SCF_ANDERSON_STEP_RATIO_LIMIT),
+                "anderson_residual_growth_limit": (
+                    SCF_ANDERSON_RESIDUAL_GROWTH_LIMIT
+                ),
+                "total_charge_e": SCF_TOTAL_CHARGE_E,
+                "residual_definition": (
+                    "unmixed neutral-tangent Pi0[M(P(c))-c]"
+                ),
+            }
+            if response_mode == SCF_RESPONSE_MODE
+            else None
+        ),
+        "frozen_source_contract": (
+            {
+                "source": "zero-field MACE-POLAR point-l<=1 multipoles",
+                "field_conditioned_model_evaluated": False,
+                "fixed_point_applicable": False,
+                "energy": "0.5*<c0,P_R c0> + G_SMD-CDS",
+            }
+            if response_mode == FROZEN_RESPONSE_MODE
+            else None
+        ),
         "aggregate_metrics": method_metrics,
         "paired_method_comparison": paired_comparison,
         "timing_seconds": {

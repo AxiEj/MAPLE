@@ -136,6 +136,73 @@ def test_engine_accepts_an_explicit_non_mace_charge_field_adapter():
     assert adapter.drives[-1].projector == "local-jet"
 
 
+def test_engine_builds_a_frozen_source_state_without_evaluating_a_field_state():
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    source = np.asarray(
+        [[-0.2, 0.1, -0.3, 0.4], [0.2, -0.5, 0.6, -0.7]],
+        dtype=float,
+    )
+    adapter = _AlternativeChargeFieldMLIPAdapter(source)
+    adapter.descriptor = replace(
+        adapter.descriptor,
+        capabilities=Route2ElectronicModelCapabilities(
+            state_projectors=frozenset({"exact-gto-v1"})
+        ),
+    )
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: _ZeroReactionField(),
+        cds_evaluator=lambda _atoms: SimpleNamespace(energy_hartree=0.25),
+        settings=_settings(),
+    )
+
+    gas_state = engine.gas_state(adapter, atoms, need_forces=False)
+    coupled = engine.solve_frozen_source_state(
+        atoms,
+        adapter,
+        gas_state,
+        provider_cache_signature=("alternative-frozen-source",),
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+    )
+
+    np.testing.assert_allclose(coupled.density_coefficients, source)
+    np.testing.assert_allclose(coupled.response_density_coefficients, source)
+    np.testing.assert_allclose(coupled.reaction_field_values_ev, 0.0)
+    assert coupled.response_mode == "frozen"
+    assert coupled.fixed_point_applicable is False
+    assert coupled.history == ()
+    assert coupled.scf_convergence == {
+        "reason": "frozen-source-no-fixed-point-v1",
+        "fixed_point_applicable": False,
+        "source_label": "gas-electronic-source",
+    }
+    assert coupled.solvent_state is gas_state
+    assert coupled.cds_result.energy_hartree == pytest.approx(0.25)
+    assert adapter.drives == []
+
+
+def test_frozen_source_capability_gate_does_not_require_a_field_projector():
+    adapter = _AlternativeChargeFieldMLIPAdapter(np.zeros((2, 4)))
+    adapter.descriptor = replace(
+        adapter.descriptor,
+        capabilities=Route2ElectronicModelCapabilities(
+            state_projectors=frozenset({"exact-gto-v1"})
+        ),
+    )
+
+    validate_route2_electronic_model_capabilities(
+        adapter,
+        expected_model_family="alternative-charge-field-mlip",
+        expected_source_space=ATOMIC_L1_SOURCE_SPACE.name,
+        expected_profile_binding="alternative-route2-profile-v1",
+        expected_field_evaluator="alternative-local-field-v1",
+        expected_energy_semantics=FIELD_CONDITIONED_OPERATIONAL_ENERGY,
+        reaction_field_projector="local-jet",
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+        response_mode="frozen",
+        need_forces=False,
+    )
+
+
 def test_resolver_rejects_accidental_polar_state_duck_typing():
     accidental = SimpleNamespace(polar_state=lambda *_args, **_kwargs: None)
     with pytest.raises(TypeError, match="validated descriptor"):

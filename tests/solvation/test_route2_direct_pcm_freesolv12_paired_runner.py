@@ -42,12 +42,59 @@ def test_runner_is_locked_to_two_direct_pcm_equation_profiles():
         ("ddcosmo", "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2"),
     )
     assert runner.ARTIFACT == "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2"
+    assert runner.FROZEN_SOURCE_ARTIFACT == (
+        "route2-frozen-source-direct-pcm-freesolv12-ddpcm-ddcosmo-v1"
+    )
     assert runner.SCHEMA_VERSION == 2
     assert "0.5*<c_MACE-POLAR, f_reac_PCM>" in (
         runner.paired_benchmark.paired_energy_composition(
             runner.PCM_HALF_COUPLING_ONLY_V1
         )
     )
+
+
+def test_artifact_identity_and_parser_bind_response_physics():
+    assert runner.artifact_name_for_response_mode(
+        runner.SCF_RESPONSE_MODE
+    ) == runner.ARTIFACT
+    assert runner.artifact_name_for_response_mode(
+        runner.FROZEN_RESPONSE_MODE
+    ) == runner.FROZEN_SOURCE_ARTIFACT
+    with pytest.raises(ValueError, match="Unsupported Route-2 response"):
+        runner.artifact_name_for_response_mode("unknown")
+
+    common = ["--mol2-root", "mol2", "--work-dir", ".omx/work"]
+    assert runner._parse_args(common).response == runner.SCF_RESPONSE_MODE
+    assert runner._parse_args(
+        [*common, "--response", runner.FROZEN_RESPONSE_MODE]
+    ).response == runner.FROZEN_RESPONSE_MODE
+
+
+def test_run_lock_cannot_mix_frozen_and_scf_rows(tmp_path):
+    manifest = load_freesolv12_functional_group_manifest()
+    records = list(manifest["locked_records"])
+    manifest_path = runner.DEFAULT_MANIFEST_PATH
+    common = {
+        "manifest_path": manifest_path,
+        "records": records,
+        "execution_git_head": "a" * 40,
+    }
+
+    scf = runner._run_lock(**common, response_mode=runner.SCF_RESPONSE_MODE)
+    frozen = runner._run_lock(
+        **common,
+        response_mode=runner.FROZEN_RESPONSE_MODE,
+    )
+
+    assert scf["artifact"] == runner.ARTIFACT
+    assert scf["fixed_point_applicable"] is True
+    assert frozen["artifact"] == runner.FROZEN_SOURCE_ARTIFACT
+    assert frozen["fixed_point_applicable"] is False
+    work = tmp_path / "work"
+    work.mkdir()
+    runner._establish_or_validate_run_lock(work, frozen)
+    with pytest.raises(RuntimeError, match="refusing to resume"):
+        runner._establish_or_validate_run_lock(work, scf)
 
 
 def test_locked_panel_really_has_twelve_records_and_ten_functional_groups():

@@ -74,6 +74,8 @@ SCF_ENERGY_RESIDUAL_SOURCE_FIELD_CONDITIONED_MODEL = (
     SCF_ENERGY_RESIDUAL_SOURCE_MACE_FIELD
 )
 SCF_ENERGY_RESIDUAL_SOURCE_PCM_HALF_COUPLING = "pcm-half-coupling-v1"
+FROZEN_SOURCE_CONVERGENCE_REASON = "frozen-source-no-fixed-point-v1"
+Route2ResponseMode = Literal["frozen", "scf"]
 
 
 class Route2SCFHistoryRecord(TypedDict):
@@ -331,6 +333,7 @@ class Route2CoupledState:
     """One same-root geometry/provider state reusable by a public wrapper."""
 
     electronic_model_identity: int
+    response_mode: Route2ResponseMode
     atomic_numbers: np.ndarray
     provider_cache_signature: Hashable
     positions_angstrom: np.ndarray
@@ -353,6 +356,10 @@ class Route2CoupledState:
     scf_convergence: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if self.response_mode not in {"frozen", "scf"}:
+            raise ValueError(
+                f"Unsupported Route-2 response mode: {self.response_mode!r}."
+            )
         if not self.initial_density_label.strip():
             raise ValueError("Route-2 initial density label must be non-empty.")
         if len(self.initial_density_sha256) != 64:
@@ -388,6 +395,12 @@ class Route2CoupledState:
         """Density used to generate both the stored field and PCM energy."""
 
         return self.density_coefficients
+
+    @property
+    def fixed_point_applicable(self) -> bool:
+        """Whether this state is the root of the learned response map."""
+
+        return self.response_mode == "scf"
 
     @property
     def calculator_identity(self) -> int:
@@ -560,6 +573,70 @@ class Route2ContinuumEngine:
                 ),
             )
         return reaction_field_drive
+
+    def _initial_source(
+        self,
+        gas_state,
+        atom_count: int,
+        *,
+        initial_density_coefficients: np.ndarray | None,
+        initial_density_label: str | None,
+    ) -> tuple[np.ndarray, str, str]:
+        """Validate, constrain, label, and hash one Route-2 source."""
+
+        if initial_density_coefficients is None:
+            initial_density = self.validate_source(
+                gas_state.density_coefficients,
+                atom_count,
+                name="Gas electronic source",
+            )
+            label = "gas-electronic-source"
+            if initial_density_label is not None:
+                raise ValueError(
+                    "initial_density_label requires an explicit "
+                    "initial_density_coefficients array."
+                )
+        else:
+            initial_density = self.validate_source(
+                initial_density_coefficients,
+                atom_count,
+                name="Route-2 supplied initial density",
+            )
+            label = str(initial_density_label or "caller-supplied-density")
+            if not label.strip():
+                raise ValueError("initial_density_label must be non-empty.")
+        density = project_density_total_charge(
+            initial_density,
+            total_charge_e=self.settings.scf_total_charge_e,
+        )
+        return density, label, self._array_sha256(density)
+
+    def _checked_polarization_energy(
+        self,
+        reaction_field,
+        density: np.ndarray,
+        field: np.ndarray,
+    ) -> tuple[float, float]:
+        """Return provider PCM energy and prove the half-coupling identity."""
+
+        polarization_energy_hartree = float(
+            reaction_field.scf_polarization_energy_hartree(density)
+        )
+        if not math.isfinite(polarization_energy_hartree):
+            raise RuntimeError(
+                f"{self.settings.continuum_label} polarization energy is "
+                "non-finite."
+            )
+        paired_energy_ev = 0.5 * float(self.source_space.pair(density, field))
+        provider_energy_ev = polarization_energy_hartree * Hartree
+        identity_error_ev = abs(paired_energy_ev - provider_energy_ev)
+        if identity_error_ev > self.settings.energy_identity_tolerance_ev:
+            raise RuntimeError(
+                f"{self.settings.continuum_label} reaction field failed the "
+                "polarization-energy identity "
+                f"(absolute error={identity_error_ev:.3e} eV)."
+            )
+        return polarization_energy_hartree, identity_error_ev
 
     @staticmethod
     def _maximum_component_span(values: np.ndarray) -> float:
@@ -1197,32 +1274,12 @@ class Route2ContinuumEngine:
             else SCF_ENERGY_RESIDUAL_SOURCE_FIELD_CONDITIONED_MODEL
         )
         reaction_field = self.reaction_field_factory(atoms)
-        if initial_density_coefficients is None:
-            initial_density = self.validate_source(
-                gas_state.density_coefficients,
-                len(atoms),
-                name="Gas electronic source",
-            )
-            initial_label = "gas-electronic-source"
-            if initial_density_label is not None:
-                raise ValueError(
-                    "initial_density_label requires an explicit "
-                    "initial_density_coefficients array."
-                )
-        else:
-            initial_density = self.validate_source(
-                initial_density_coefficients,
-                len(atoms),
-                name="Route-2 supplied initial density",
-            )
-            initial_label = str(initial_density_label or "caller-supplied-density")
-            if not initial_label.strip():
-                raise ValueError("initial_density_label must be non-empty.")
-        density = project_density_total_charge(
-            initial_density,
-            total_charge_e=settings.scf_total_charge_e,
+        density, initial_label, initial_density_sha256 = self._initial_source(
+            gas_state,
+            len(atoms),
+            initial_density_coefficients=initial_density_coefficients,
+            initial_density_label=initial_density_label,
         )
-        initial_density_sha256 = self._array_sha256(density)
         scf_convergence: dict[str, Any] = {}
         previous_energy_ev: float | None = None
         previous_update_method: str | None = None
@@ -1668,29 +1725,18 @@ class Route2ContinuumEngine:
                 best_state=best_iteration_state,
             )
 
-        polarization_energy_hartree = float(
-            reaction_field.scf_polarization_energy_hartree(density)
-        )
-        if not math.isfinite(polarization_energy_hartree):
-            raise RuntimeError(
-                f"{settings.continuum_label} polarization energy is "
-                "non-finite."
+        polarization_energy_hartree, identity_error_ev = (
+            self._checked_polarization_energy(
+                reaction_field,
+                density,
+                field,
             )
-        paired_energy_ev = 0.5 * float(
-            model.descriptor.source_space.pair(density, field)
         )
-        provider_energy_ev = polarization_energy_hartree * Hartree
-        identity_error_ev = abs(paired_energy_ev - provider_energy_ev)
-        if identity_error_ev > settings.energy_identity_tolerance_ev:
-            raise RuntimeError(
-                f"{settings.continuum_label} reaction field failed the "
-                "polarization-energy identity "
-                f"(absolute error={identity_error_ev:.3e} eV)."
-            )
 
         cds_result = self.cds_evaluator(atoms)
         return Route2CoupledState(
             electronic_model_identity=model.cache_identity,
+            response_mode="scf",
             atomic_numbers=np.asarray(atoms.numbers, dtype=int).copy(),
             provider_cache_signature=provider_cache_signature,
             positions_angstrom=np.asarray(
@@ -1716,6 +1762,81 @@ class Route2ContinuumEngine:
             scf_convergence=scf_convergence,
         )
 
+    def solve_frozen_source_state(
+        self,
+        atoms,
+        electronic_model,
+        gas_state,
+        *,
+        provider_cache_signature: Hashable,
+        initial_density_coefficients: np.ndarray | None = None,
+        initial_density_label: str | None = None,
+        electrostatic_energy_ledger: str = PCM_HALF_COUPLING_ONLY_V1,
+    ) -> Route2CoupledState:
+        """Evaluate a frozen electronic source in one continuum state.
+
+        This path intentionally does not call the field-conditioned electronic
+        model.  There is no learned fixed point and no implied mutual
+        polarization.  The method validates the selected ledger identity, but
+        the provider/profile boundary owns whether frozen response is admitted;
+        the returned state itself is reusable by either versioned ledger.
+        """
+
+        model = self._resolve_electronic_model(electronic_model)
+        validate_route2_electrostatic_energy_ledger(electrostatic_energy_ledger)
+        reaction_field = self.reaction_field_factory(atoms)
+        density, source_label, source_sha256 = self._initial_source(
+            gas_state,
+            len(atoms),
+            initial_density_coefficients=initial_density_coefficients,
+            initial_density_label=initial_density_label,
+        )
+        drive = self._reaction_field_drive(
+            reaction_field,
+            density,
+            len(atoms),
+        )
+        field = drive.density_dual_field_ev
+        polarization_energy_hartree, identity_error_ev = (
+            self._checked_polarization_energy(
+                reaction_field,
+                density,
+                field,
+            )
+        )
+        cds_result = self.cds_evaluator(atoms)
+        return Route2CoupledState(
+            electronic_model_identity=model.cache_identity,
+            response_mode="frozen",
+            atomic_numbers=np.asarray(atoms.numbers, dtype=int).copy(),
+            provider_cache_signature=provider_cache_signature,
+            positions_angstrom=np.asarray(
+                atoms.get_positions(),
+                dtype=float,
+            ).copy(),
+            initial_density_label=source_label,
+            initial_density_sha256=source_sha256,
+            reaction_field=reaction_field,
+            density_coefficients=density,
+            response_density_coefficients=density,
+            reaction_field_values_ev=field,
+            model_local_field_values_ev=drive.model_local_field_ev,
+            model_field_features=drive.model_field_features,
+            reaction_field_projector=drive.projector,
+            model_field_gauge=drive.model_field_gauge,
+            model_field_gauge_reference_ev=(drive.model_field_gauge_reference_ev),
+            solvent_state=gas_state,
+            polarization_energy_hartree=polarization_energy_hartree,
+            energy_identity_error_ev=identity_error_ev,
+            cds_result=cds_result,
+            history=(),
+            scf_convergence={
+                "reason": FROZEN_SOURCE_CONVERGENCE_REASON,
+                "fixed_point_applicable": False,
+                "source_label": source_label,
+            },
+        )
+
     def solvent_correction_force(
         self,
         atoms,
@@ -1736,6 +1857,11 @@ class Route2ContinuumEngine:
         ),
     ) -> tuple[np.ndarray, dict[str, Any]]:
         model = self._resolve_electronic_model(electronic_model)
+        if not coupled.fixed_point_applicable:
+            raise TypeError(
+                "Frozen-source Route-2 states are energy-only; the current "
+                "force adjoint is defined only for learned SCF fixed points."
+            )
         if coupled.electronic_model_identity != model.cache_identity:
             raise RuntimeError(
                 "Route-2 derivative model does not own the coupled state."

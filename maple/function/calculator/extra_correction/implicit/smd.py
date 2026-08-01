@@ -1107,50 +1107,57 @@ class SMDImplicitSolvation:
                                 cds_result,
                             )
                             if self.response == "frozen":
-                                solvent_state = gas_state
-                                root_density = engine.validate_density(
-                                    gas_state.density_coefficients,
-                                    len(atoms),
-                                    name="Gas electronic source",
+                                coupled = engine.solve_frozen_source_state(
+                                    atoms,
+                                    electronic_model,
+                                    gas_state,
+                                    provider_cache_signature=(
+                                        self.profile,
+                                        self.response,
+                                        self.cavity_policy,
+                                        attempt_name,
+                                    ),
+                                    electrostatic_energy_ledger=(
+                                        self.profile_spec
+                                        .electrostatic_energy_ledger
+                                    ),
                                 )
-                                response_density = root_density
+                                solvent_state = coupled.solvent_state
+                                root_density = (
+                                    coupled.root_density_coefficients
+                                )
+                                response_density = (
+                                    coupled.response_density_coefficients
+                                )
                                 reaction_field_values = (
-                                    reaction_field.apply_scf(root_density)
+                                    coupled.reaction_field_values_ev
                                 )
-                                model_local_field_values = None
-                                model_field_features = None
+                                model_local_field_values = (
+                                    coupled.model_local_field_values_ev
+                                )
+                                model_field_features = (
+                                    coupled.model_field_features
+                                )
                                 reaction_field_projector = (
-                                    self.profile_spec
-                                    .reaction_field_projector
+                                    coupled.reaction_field_projector
                                 )
                                 model_field_gauge = (
-                                    self.profile_spec.model_field_gauge
+                                    coupled.model_field_gauge
                                 )
-                                model_field_gauge_reference_ev = 0.0
+                                model_field_gauge_reference_ev = (
+                                    coupled.model_field_gauge_reference_ev
+                                )
                                 pcm_state = reaction_field.scf_snapshot(
                                     root_density
                                 )
-                                history = ()
-                                components = (
-                                    engine.compose_energy_components(
-                                        gas_energy_ev=float(
-                                            gas_state.energy_ev
-                                        ),
-                                        solvent_energy_ev=float(
-                                            gas_state.energy_ev
-                                        ),
-                                        polarization_energy_hartree=(
-                                            pcm_state
-                                            .polarization_energy_hartree
-                                        ),
-                                        cds_energy_hartree=float(
-                                            cds_result.energy_hartree
-                                        ),
-                                        electrostatic_energy_ledger=(
-                                            self.profile_spec
-                                            .electrostatic_energy_ledger
-                                        ),
-                                    )
+                                history = coupled.history
+                                components = engine.energy_components(
+                                    gas_state,
+                                    coupled,
+                                    electrostatic_energy_ledger=(
+                                        self.profile_spec
+                                        .electrostatic_energy_ledger
+                                    ),
                                 )
                             else:
                                 coupled: Route2CoupledState = (

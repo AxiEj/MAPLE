@@ -6,6 +6,7 @@ from ..route2_smd_profiles import (
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
 )
+from ..route2_energy_ledger import PCM_HALF_COUPLING_ONLY_V1
 from ..route2_model_contracts import (
     route2_model_family_label,
     validate_route2_input_model_family,
@@ -800,7 +801,26 @@ class CommandControl:
                     msg = "SMD response must be frozen or scf."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if provider in {"pyddx", "fc-aswig"} and response != "scf":
+                if provider == "pyddx" and response not in {"frozen", "scf"}:
+                    msg = (
+                        "Route 2 provider=pyddx requires response=frozen or "
+                        "response=scf."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if (
+                    provider == "pyddx"
+                    and response == "frozen"
+                    and profile_spec.electrostatic_energy_ledger
+                    != PCM_HALF_COUPLING_ONLY_V1
+                ):
+                    msg = (
+                        "Route 2 provider=pyddx response=frozen requires a "
+                        "direct PCM half-coupling profile."
+                    )
+                    cls._log_error(output_path, msg)
+                    raise ValueError(msg)
+                if provider == "fc-aswig" and response != "scf":
                     msg = (
                         f"Route 2 provider={provider} requires response=scf."
                     )

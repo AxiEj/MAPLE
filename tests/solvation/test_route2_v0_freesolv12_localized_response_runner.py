@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import sys
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,9 +15,18 @@ if str(BENCHMARK_DIR) not in sys.path:
 
 import run_route2_v0_freesolv12_localized_response as runner  # noqa: E402
 
+COMPLETED_ARTIFACT = (
+    BENCHMARK_DIR
+    / "route2-v0-freesolv12-mace-localized-response-execution-62a8e413.json"
+)
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
 
 def test_localized_response_manifest_is_frozen_and_label_free():
-    manifest = runner._load_manifest(runner.MANIFEST_PATH)
+    manifest = json.loads(runner.MANIFEST_PATH.read_text(encoding="utf-8"))
     records = manifest["locked_records"]
 
     assert manifest["status"] == "frozen-before-execution"
@@ -33,6 +45,22 @@ def test_localized_response_manifest_is_frozen_and_label_free():
         "smiles",
     }
     assert not any(forbidden.intersection(row) for row in records)
+
+    completed = json.loads(COMPLETED_ARTIFACT.read_text(encoding="utf-8"))
+    assert completed["status"] == "complete-response-gate-reject"
+    assert completed["run_lock"]["manifest_sha256"] == _sha256(
+        runner.MANIFEST_PATH
+    )
+    assert (
+        completed["run_lock"]["source_files_sha256"]
+        == manifest["execution_contract"]["source_sha256"]
+    )
+
+    # The preregistration has already produced a completed immutable result.
+    # Current source evolution must be rejected by that old runner rather than
+    # accommodated by changing its frozen hashes.
+    with pytest.raises(RuntimeError, match="source changed after freeze"):
+        runner._load_manifest(runner.MANIFEST_PATH)
 
 
 def test_localized_response_runner_cannot_invoke_a_continuum_or_select_modes_from_results():

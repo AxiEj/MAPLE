@@ -9,6 +9,11 @@ PREREG = (
     ROOT / "docs/implicit-solvation/benchmarks/"
     "route2-gto-pcm-energy-projection-four-prereg-v1.json"
 )
+COMPLETED_ARTIFACT = (
+    ROOT
+    / "docs/implicit-solvation/benchmarks/"
+    "route2-gto-pcm-energy-projection-four-v1.json"
+)
 PREREG_SHA256 = "84eaee61470affcb113de964e4aea3fdec15bb22c9aa23bda100828e704e80ef"
 
 
@@ -93,8 +98,27 @@ def test_gto_pcm_energy_projection_four_record_prereg_is_locked():
         "maple/function/route2_smd_profiles.py",
     }
     assert all(len(value) == 64 for value in execution["source_sha256"].values())
-    for relative, expected_sha in execution["source_sha256"].items():
-        assert _sha256(ROOT / relative) == expected_sha
+    completed = json.loads(COMPLETED_ARTIFACT.read_text(encoding="utf-8"))
+    assert completed["scientific_status"] == "complete-negative-result"
+    assert completed["decision"] == "fail-preregistered-transfer-gate"
+    provenance = completed["provenance_validation"]
+    assert provenance["all_raw_source_hash_maps_match_preregistration"] is True
+    assert (
+        provenance["common_frozen_hashes"]["source_sha256"]
+        == execution["source_sha256"]
+    )
+    # The completed result, rather than today's checkout, owns the historical
+    # frozen source snapshot.  Later production refactors must make the old
+    # runner fail closed without invalidating or rewriting that result.
+    drifted_sources = {
+        relative
+        for relative, expected_sha in execution["source_sha256"].items()
+        if _sha256(ROOT / relative) != expected_sha
+    }
+    assert {
+        "maple/function/calculator/extra_correction/implicit/smd.py",
+        "maple/function/route2_smd_profiles.py",
+    } <= drifted_sources
     assert execution["gas_runner_effective_arguments"] == {
         "basis": "def2-tzvpd",
         "grid_level": 3,

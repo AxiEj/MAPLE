@@ -1564,6 +1564,14 @@ self-consistency, and is not a public calculator or accuracy-certified method.
 
 ## Secondary diagnostics
 
+- A clean `e1f8acb1` direct-half-coupling MNSol pilot completed both ddPCM and
+  scaled-ddCOSMO arms on ten preselected records in ten solvents.  The ten
+  distinct functional-group labels are post-selection descriptions rather
+  than selection inputs.  ddPCM gives MAE/max `1.5277/4.0953 kcal/mol` and
+  ddCOSMO gives `1.8619/4.2954 kcal/mol`; both therefore fail the mandatory
+  every-record `<1.5 kcal/mol` gate.  This result is retained rather than
+  hidden behind the smaller MAE, and the historical FreeSolv-12 maxima of
+  `7.3303/7.4479 kcal/mol` remain the broader water warning.
 - FreeSolv fixed-conformer hydration errors remain useful for detecting gross
   energy-accounting or chemistry regressions, but expanding or tuning that
   benchmark is not the next Route-2 milestone.

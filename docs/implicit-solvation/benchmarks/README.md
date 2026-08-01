@@ -99,6 +99,31 @@ not multi-solvent chemical accuracy, a continuum preference, or a force/PES
 capability.  The artifact records the private raw-result digest and the
 source-equivalence audit to the publication commit.
 
+#### Ten-solvent experimental pilot: retained failure, not model selection
+
+The clean `e1f8acb1` execution is retained as the aggregate-only
+[`route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2-execution-e1f8acb1.json`](route2-mnsol-macepolar-direct-pcm-multisolvent-pilot-v2-execution-e1f8acb1.json).
+It runs the two frozen direct-ledger profiles on the same ten preselected
+neutral MNSol records, one record in each of ten solvents.  The records carry
+ten distinct **post-selection descriptive** chemistry labels: halogenated
+hydrocarbon, ketone, aromatic hydrocarbon, nitro, amide, cyclic diether,
+phenol, thiophenol, alcohol, and carboxylic acid.  Those labels were not used
+to choose the records, so this is chemistry-diverse coverage rather than a
+claim of functional-group-stratified sampling.
+
+| frozen arm | MAE | RMSE | maximum absolute error | lower paired absolute error |
+|---|---:|---:|---:|---:|
+| ddPCM + PySCF SMD-CDS | 1.5277 | 1.9921 | 4.0953 | 8/10 |
+| scaled ddCOSMO + the same SMD-CDS | 1.8619 | 2.2918 | 4.2954 | 2/10 |
+
+All errors are kcal/mol.  Both arms fail the required all-record
+`<1.5 kcal/mol` rule; MAE cannot override either maximum.  The panel also has
+one chemistry label per solvent, so it cannot disentangle solvent and
+functional-group effects or establish population accuracy.  It therefore
+does not select ddPCM as a universal default, demote ddCOSMO, authorize any
+radius/scale/offset tuning, or supersede the broader failed FreeSolv-12 result
+below, whose maxima remain 7.3303 and 7.4479 kcal/mol.
+
 ### Preregistered label-free QM source oracle
 
 Before another experimental energy run, use the twelve-record static-source

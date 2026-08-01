@@ -124,6 +124,25 @@ It reports source-MEP diagnostics, not an acceptance threshold or solvation
 accuracy.  A result cannot license raw MACE density as a stationary V0
 reference, pick ddPCM versus ddCOSMO, or alter an SMD radius.
 
+#### Clean-commit source result: complete diagnostic, no admission verdict
+
+The clean `edfae78e` execution is retained in
+[`route2-v0-freesolv12-zero-field-mace-static-surface-mep-execution-edfae78e.json`](route2-v0-freesolv12-zero-field-mace-static-surface-mep-execution-edfae78e.json).
+All 12 independently regenerated QM references completed.  Across the ten
+functionalized records, the weighted relative-L2 static-MEP discrepancy is
+`0.0792087551`--`0.1611112244` (mean `0.1137717438`).  Methane and benzene are
+retained symmetry controls and have larger relative errors (`0.6241564966`
+and `0.2122294106`) while their absolute weighted RMSEs remain
+`0.0009288023` and `0.0013473789 Hartree/e`, respectively.
+
+Those values are observations, not a post-result pass rule: the protocol
+registered no acceptance threshold.  Moreover, this oracle probes the
+**zero-field** source, whereas the direct Route-2 ledger uses the learned
+field-responsive fixed point.  The result therefore neither admits a raw
+MACE permanent reference nor explains the failed FreeSolv ledger.  The next
+valid discriminator remains a label-free nonuniform finite-field QM response
+oracle followed by a separately stationary permanent-source scalar.
+
 The locked twelve-record water comparison is run only from a clean commit:
 
 ```bash

@@ -218,6 +218,17 @@ MACE multipoles as an adequate permanent source for that declared surface.
 It invokes neither continuum nor solvation energy and must not be converted
 into an experimental accuracy score.
 
+The clean `edfae78e` execution has now completed all twelve records; its
+compact public receipt is
+[`route2-v0-freesolv12-zero-field-mace-static-surface-mep-execution-edfae78e.json`](benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-execution-edfae78e.json).
+For the ten functionalized molecules, weighted relative-L2 static-MEP errors
+span (0.0792087551)--(0.1611112244), with mean (0.1137717438).  The two
+symmetry controls have larger relative errors but small absolute weighted
+RMSEs.  Since no acceptance threshold was registered, this is deliberately
+recorded as a completed diagnostic rather than a pass or rejection.  It also
+does not test the learned field response used by the direct ledger, so the
+nonuniform-response and stationary-reference gates remain open.
+
 ## Ordered evidence, before any experimental score
 
 1. **Permanent-source provenance:** derive and freeze a molecular stationary

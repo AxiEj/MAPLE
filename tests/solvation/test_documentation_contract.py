@@ -203,6 +203,10 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "No full-population Route-2 FreeSolv accuracy artifact is frozen" in benchmark
     assert "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf.json" in benchmark
     assert "route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280.json" in benchmark
+    assert (
+        "route2-v0-freesolv12-zero-field-mace-static-surface-mep-"
+        "execution-edfae78e.json"
+    ) in benchmark
     assert "The force adjoint is **not** an additional" in formulas
     assert "QM fidelity, component cancellation" in formulas
     assert f"{fixed_qm_mae:.4f} kcal/mol" in formulas

@@ -13,6 +13,11 @@ if str(BENCHMARK_DIR) not in sys.path:
 
 import run_route2_v0_freesolv12_zero_field_static_mep as runner  # noqa: E402
 
+EXECUTION_PATH = BENCHMARK_DIR / (
+    "route2-v0-freesolv12-zero-field-mace-static-surface-mep-"
+    "execution-edfae78e.json"
+)
+
 
 def test_label_free_static_source_manifest_is_all_twelve_geometries():
     manifest = runner.load_static_mep_manifest(runner.MANIFEST_PATH)
@@ -74,3 +79,27 @@ def test_qm_interpreter_path_preserves_a_virtual_environment_symlink(tmp_path):
 
     assert observed == venv_python.absolute()
     assert observed.is_symlink()
+
+
+def test_public_static_source_execution_preserves_the_no_label_boundary():
+    payload = json.loads(EXECUTION_PATH.read_text(encoding="utf-8"))
+    records = payload["records"]
+
+    assert payload["status"] == "complete-source-diagnostic-no-acceptance-threshold"
+    assert len(records) == 12
+    assert payload["execution"]["execution_git_head"].startswith("edfae78e")
+    assert payload["frozen_protocol"]["functionalized_record_count"] == 10
+    assert payload["disposition"]["experimental_solvation_labels_read"] is False
+    assert payload["disposition"]["v0_permanent_reference_admitted"] is False
+    assert not any(
+        key.startswith("experimental_")
+        for record in records
+        for key in record
+    )
+    assert payload["observed_metrics"]["functionalized_records"] == {
+        "maximum_weighted_relative_l2": pytest.approx(0.1611112244083607),
+        "mean_weighted_relative_l2": pytest.approx(0.11377174378458857),
+        "minimum_weighted_relative_l2": pytest.approx(0.07920875507302354),
+        "record_count": 10,
+        "worst_compound_id_by_weighted_relative_l2": "mobley_2198613",
+    }

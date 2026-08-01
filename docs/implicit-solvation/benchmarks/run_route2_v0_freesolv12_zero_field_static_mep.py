@@ -124,6 +124,23 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _executable_path_preserving_venv(path: Path) -> Path:
+    """Return an absolute executable path without dereferencing a venv link.
+
+    A virtual environment's ``bin/python`` is commonly a symlink to a base
+    interpreter.  ``Path.resolve()`` would lose the venv prefix and therefore
+    its site-packages when this path is used for a subprocess.  Absolute-path
+    normalization is sufficient for the lock; symlink identity is deliberate.
+    """
+
+    candidate = path.expanduser()
+    if not candidate.is_absolute():
+        candidate = (Path.cwd() / candidate).absolute()
+    if not candidate.is_file():
+        raise FileNotFoundError(f"QM interpreter does not exist: {candidate}")
+    return candidate
+
+
 def _require_private_path(path: Path, *, label: str) -> Path:
     resolved = path.resolve()
     private_root = (REPO_ROOT / ".omx").resolve()
@@ -488,9 +505,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     manifest_path = args.manifest.resolve()
     manifest = load_static_mep_manifest(manifest_path)
     work_dir = _require_private_path(args.work_dir, label="Source-oracle work directory")
-    qm_python = args.qm_python.resolve()
-    if not qm_python.is_file():
-        raise FileNotFoundError(f"QM interpreter does not exist: {qm_python}")
+    qm_python = _executable_path_preserving_venv(args.qm_python)
     mol2_root = args.mol2_root.resolve()
     records = manifest["locked_records"]
     assert isinstance(records, list)

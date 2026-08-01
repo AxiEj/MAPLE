@@ -61,3 +61,16 @@ def test_static_source_runner_uses_zero_field_source_and_not_a_continuum_ledger(
     assert "continuum_or_solvation_energy_invoked\": False" in source
     assert "v0_permanent_reference_admitted\": False" in source
     assert "experimental_solvation_labels_read\": False" in source
+
+
+def test_qm_interpreter_path_preserves_a_virtual_environment_symlink(tmp_path):
+    target = tmp_path / "base-python"
+    target.write_text("placeholder", encoding="utf-8")
+    venv_python = tmp_path / "venv" / "bin" / "python"
+    venv_python.parent.mkdir(parents=True)
+    venv_python.symlink_to(target)
+
+    observed = runner._executable_path_preserving_venv(venv_python)
+
+    assert observed == venv_python.absolute()
+    assert observed.is_symlink()

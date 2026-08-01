@@ -395,6 +395,20 @@ def test_correction_publishes_per_geometry_force_admission(monkeypatch, tmp_path
 
     correction.evaluate(atoms, need_forces=True)
 
+    manifest = json.loads(
+        (tmp_path / "force.out.implicit" / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    source_receiver = manifest["source_receiver_contract"]
+    assert source_receiver["public_capability"] == (
+        "bounded-experimental-energy-and-conservative-forces"
+    )
+    assert "solution-phase PES" not in source_receiver["prohibited_claims"]
+    assert "analytic solution-phase forces" not in (
+        source_receiver["prohibited_claims"]
+    )
+
     payload = json.loads(
         (
             tmp_path

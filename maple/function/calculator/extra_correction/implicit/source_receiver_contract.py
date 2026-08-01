@@ -4,7 +4,9 @@ This contract separates a continuum pairing fact from a claim about the
 learned electronic response.  In particular, a point-multipole/local-jet
 continuum pairing does not make the MACE-POLAR fixed point a stationary
 electronic free energy, while the public exact-GTO receiver is known not to be
-the transpose of its point-multipole source.
+the transpose of its point-multipole source.  Capability is profile-specific:
+most profiles remain energy-only, while the separately versioned fixed-topology
+profile may expose a bounded, per-geometry-certified operational-scalar force.
 """
 
 from __future__ import annotations
@@ -22,10 +24,15 @@ ContinuumPairingStatus = Literal[
     "known-nonconjugate-point-source-gto-receiver",
 ]
 
+Route2PublicCapability = Literal[
+    "experimental-energy-only",
+    "bounded-experimental-energy-and-conservative-forces",
+]
+
 
 @dataclass(frozen=True)
 class Route2SourceReceiverContract:
-    """The physical scope of one legacy public response profile."""
+    """The physical and public-capability scope of one Route-2 profile."""
 
     profile: str
     solute_source: str
@@ -33,7 +40,7 @@ class Route2SourceReceiverContract:
     continuum_pairing_status: ContinuumPairingStatus
     continuum_pairing_established: bool
     common_stationary_electronic_functional_established: bool
-    public_capability: str
+    public_capability: Route2PublicCapability
     next_required_physical_gate: str
     prohibited_claims: tuple[str, ...]
     contract_version: str = ROUTE2_SOURCE_RECEIVER_CONTRACT_VERSION
@@ -68,8 +75,11 @@ class Route2SourceReceiverContract:
                 "Legacy Route-2 profiles do not establish a common stationary "
                 "electronic functional."
             )
-        if self.public_capability != "experimental-energy-only":
-            raise ValueError("Legacy Route-2 public capability must be energy-only.")
+        if self.public_capability not in (
+            "experimental-energy-only",
+            "bounded-experimental-energy-and-conservative-forces",
+        ):
+            raise ValueError("Unsupported Route-2 public capability.")
         if not self.prohibited_claims or not all(
             isinstance(claim, str) and claim.strip()
             for claim in self.prohibited_claims
@@ -103,9 +113,11 @@ def route2_source_receiver_contract(
     """Return the fail-closed semantic contract selected by a profile."""
 
     spec = route2_smd_profile_spec(profile)
-    prohibited_claims = (
+    common_prohibited_claims = (
         "variational SCRF",
         "common-energy stationary electronic state",
+    )
+    energy_only_prohibited_claims = common_prohibited_claims + (
         "solution-phase PES",
         "analytic solution-phase forces",
     )
@@ -123,9 +135,29 @@ def route2_source_receiver_contract(
             next_required_physical_gate=(
                 "same-basis-gto-galerkin-source-receiver-and-common-scalar"
             ),
-            prohibited_claims=prohibited_claims,
+            prohibited_claims=energy_only_prohibited_claims,
         )
     if spec.reaction_field_projector == "local-jet":
+        if spec.force_release_eligible:
+            return Route2SourceReceiverContract(
+                profile=spec.name,
+                solute_source=spec.solute_source,
+                reaction_field_receiver=spec.reaction_field_projector,
+                continuum_pairing_status="point-multipole-local-jet-dual",
+                continuum_pairing_established=True,
+                common_stationary_electronic_functional_established=False,
+                public_capability=(
+                    "bounded-experimental-energy-and-conservative-forces"
+                ),
+                next_required_physical_gate=(
+                    "common-electronic-scalar-and-broader-force-domain-validation"
+                ),
+                prohibited_claims=common_prohibited_claims
+                + (
+                    "unbounded solution-phase PES",
+                    "universal analytic solution-phase forces",
+                ),
+            )
         return Route2SourceReceiverContract(
             profile=spec.name,
             solute_source=spec.solute_source,
@@ -137,7 +169,7 @@ def route2_source_receiver_contract(
             next_required_physical_gate=(
                 "common-electronic-scalar-energy-density-conjugacy-and-kkt"
             ),
-            prohibited_claims=prohibited_claims,
+            prohibited_claims=energy_only_prohibited_claims,
         )
     raise ValueError(
         "Route-2 profile uses an unrecognized reaction-field receiver: "
@@ -147,6 +179,7 @@ def route2_source_receiver_contract(
 
 __all__ = [
     "ROUTE2_SOURCE_RECEIVER_CONTRACT_VERSION",
+    "Route2PublicCapability",
     "Route2SourceReceiverContract",
     "route2_source_receiver_contract",
 ]

@@ -194,6 +194,30 @@ completed only through the existing MACE moment constraint.  Its hash-bound
 source pass has no physical-continuum or accuracy claim; it only removes the
 previously missing physical-\(C_0\) prerequisite for the next gate.
 
+### Preregistered zero-field MACE permanent-source diagnostic
+
+The current direct half-coupling ledger still uses the checkpoint's coarse
+point-\(l\le1\) source.  Before changing that representation or proposing a
+V0 permanent source, the new
+[`route2-v0-freesolv12-zero-field-mace-static-surface-mep-prereg-v1.json`](benchmarks/route2-v0-freesolv12-zero-field-mace-static-surface-mep-prereg-v1.json)
+freezes all twelve existing geometry identities while intentionally omitting
+SMILES and every experimental solvation field.  Its runner
+[`run_route2_v0_freesolv12_zero_field_static_mep.py`](benchmarks/run_route2_v0_freesolv12_zero_field_static_mep.py)
+compares zero-field MACE point-multipole MEPs with independently regenerated
+gas-phase \(\omega\)B97M-V/def2-TZVPD MEPs on a geometry-only exterior shell:
+26 fixed octahedral/cubic directions per atom at `water SMD Coulomb radius +
+1.0 angstrom`, retaining only candidates exterior to every same-clearance
+sphere.  The output reports weighted relative-L2/RMSE/infinity MEP errors,
+charge, and dipole discrepancies, but has **no pass threshold** and cannot
+select a cavity, radius, continuum equation, or V0 source.
+
+This diagnostic is deliberately upstream of the existing nonuniform-response
+oracle.  A good static MEP would not establish the missing stationary
+permanent electronic scalar; a bad one rules out treating the raw zero-field
+MACE multipoles as an adequate permanent source for that declared surface.
+It invokes neither continuum nor solvation energy and must not be converted
+into an experimental accuracy score.
+
 ## Ordered evidence, before any experimental score
 
 1. **Permanent-source provenance:** derive and freeze a molecular stationary

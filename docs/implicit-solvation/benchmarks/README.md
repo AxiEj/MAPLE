@@ -99,6 +99,31 @@ not multi-solvent chemical accuracy, a continuum preference, or a force/PES
 capability.  The artifact records the private raw-result digest and the
 source-equivalence audit to the publication commit.
 
+### Preregistered label-free QM source oracle
+
+Before another experimental energy run, use the twelve-record static-source
+oracle to ask whether the common zero-field MACE point-`l<=1` permanent source
+has an adequate external MEP at all.  Its manifest has the same pinned MOL2
+identities as the functional-group panel but deliberately carries **no**
+experimental solvation values or SMILES.  It compares each zero-field MACE
+source against a newly generated gas-phase
+`omegaB97M-V/def2-TZVPD` checkpoint MEP on a fixed geometry-only exterior
+shell; it invokes no continuum or solvation ledger:
+
+```bash
+PYTHONPATH=$PWD /path/to/pinned-mace-and-pyscf-python \
+  docs/implicit-solvation/benchmarks/run_route2_v0_freesolv12_zero_field_static_mep.py \
+  --mol2-root .omx/benchmarks/route2-macepolar-smd-smoke/dataset \
+  --work-dir .omx/benchmarks/route2-v0-freesolv12-zero-field-static-mep-<git-sha> \
+  --qm-python /path/to/pinned-mace-and-pyscf-python
+```
+
+The immutable pre-registration is
+[`route2-v0-freesolv12-zero-field-mace-static-surface-mep-prereg-v1.json`](route2-v0-freesolv12-zero-field-mace-static-surface-mep-prereg-v1.json).
+It reports source-MEP diagnostics, not an acceptance threshold or solvation
+accuracy.  A result cannot license raw MACE density as a stationary V0
+reference, pick ddPCM versus ddCOSMO, or alter an SMD radius.
+
 The locked twelve-record water comparison is run only from a clean commit:
 
 ```bash

@@ -1,0 +1,73 @@
+{
+  "artifact": "route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280",
+  "claim_boundary": "A single acetone geometry was evaluated through each registered solvent for both direct half-coupling Route-2 continuum equations. This is a runtime/dispatch and numerical-identity record only. It is not a multi-solvent experimental-accuracy panel, equation ranking, variational electronic-free-energy proof, force/PES certificate, OPT, scan, or MD result.",
+  "schema_version": 1,
+  "status": "complete-usability-only",
+  "execution": {
+    "execution_git_head": "1bbef280a1a6d142582e5832ee44a78ec8fce1cb",
+    "private_full_result_path": ".omx/benchmarks/route2-live-multisolv-all11-paired-1bbef280-venv-clean/summary.json",
+    "private_full_result_sha256": "63dd28f667e3370d6b749a9c65cc6689fd406733eb46bed09173cc3fedc7a358",
+    "source_equivalence_audit": {
+      "audited_current_head": "8aa439fc308c57f9d9a347c7fdc636990733a651",
+      "comparison": "git diff --name-only 1bbef280a1a6d142582e5832ee44a78ec8fce1cb..8aa439fc308c57f9d9a347c7fdc636990733a651 -- maple/function docs/implicit-solvation/benchmarks/run_mnsol_macepolar_multisolvent_pilot.py docs/implicit-solvation/benchmarks/run_route2_direct_pcm_freesolv12_paired.py",
+      "changed_paths": [],
+      "meaning": "The direct multi-solvent profile implementation and paired execution runners are unchanged between the run commit and this publication commit; documentation/packaging changes do not upgrade the evidence to an accuracy or PES claim."
+    }
+  },
+  "frozen_method": {
+    "solute_model": "official-unmodified-MACE-POLAR-1-M",
+    "solute_source": "MACE-POLAR coarse point l<=1 multipoles",
+    "receiver": "local-jet",
+    "energy_ledger": "pcm-half-coupling-only-v1",
+    "energy_composition": "delta_G_solv = 0.5*<c_MACE-POLAR, f_reac_ddX> + G_PySCF-SMD-CDS; the field-conditioned MACE energy difference is excluded",
+    "nonpolar_term": "PySCF-2.13.1-SMD-CDS",
+    "strict_original_smd_equivalence": false,
+    "profiles": {
+      "ddpcm": "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2",
+      "ddcosmo": "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2"
+    },
+    "same_axes_except_continuum_equation": true,
+    "forces_available": false
+  },
+  "panel": {
+    "molecule": "acetone",
+    "geometry_policy": "one fixed single-point geometry; this is intentionally not an experimental benchmark",
+    "solvent_count": 11,
+    "solvents": [
+      "acetonitrile",
+      "chloroform",
+      "dichloromethane",
+      "dimethylformamide",
+      "dimethylsulfoxide",
+      "ethanol",
+      "hexane",
+      "methanol",
+      "tetrahydrofuran",
+      "toluene",
+      "water"
+    ]
+  },
+  "results": {
+    "complete_panel": true,
+    "method_row_counts": {
+      "ddpcm": 11,
+      "ddcosmo": 11
+    },
+    "max_scf_iterations": 13,
+    "max_half_coupling_identity_error_ev": 2.220446049250313e-16,
+    "mean_delta_g_hartree": {
+      "ddpcm": -0.010396647464287357,
+      "ddcosmo": -0.010769925661091246
+    }
+  },
+  "disposition": {
+    "supported_inference": "All 11 registered solvent descriptors dispatch through both named equation profiles and meet their energy-only SCF/half-coupling checks on the fixed acetone case.",
+    "forbidden_inference": [
+      "multi-solvent chemical accuracy",
+      "a preference between ddPCM and ddCOSMO from these energies",
+      "conservative forces for either pyddx multi-solvent profile",
+      "a common stationary MACE-POLAR--continuum free energy"
+    ],
+    "next_accuracy_gate": "Use an immutable experimental multi-solvent panel with licensed geometries and an independently QM-anchored permanent-source/nonuniform-response oracle; do not choose an equation, radius, or scale from this usability record."
+  }
+}

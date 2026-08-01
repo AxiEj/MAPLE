@@ -300,6 +300,12 @@ printed in provenance as `electrostatics_model=ddpcm` or `ddcosmo`,
 `nonpolar_model=pyscf-smd-cds`, and
 `strict_original_smd_equivalence=false`.  Registration and successful
 execution are usability evidence, not multi-solvent accuracy certification.
+The corresponding all-solvent, two-equation runtime record is
+[`route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280.json`](benchmarks/route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280.json):
+one fixed acetone geometry completed all **11 x 2** rows, with at most 13 SCF
+iterations and a worst half-coupling identity error of
+`2.220446049250313e-16 eV`.  It deliberately contains no experimental labels
+or error statistics and does not open forces for either pyddx profile.
 
 For reproducibility only, the earlier field-conditioned ddPCM multi-solvent
 experiment remains selectable as

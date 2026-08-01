@@ -221,8 +221,11 @@ self-consistency, and is not a public calculator or accuracy-certified method.
   element-radius profiles accept XYZ/inline/MOL2 geometry; only GAFF/GAFF2
   radius profiles require MOL2 atom types. Experimental GBSA and gas-phase
   charge APIs remain available outside Route 2. PCMSolver water profiles remain
-  water-only; pyddx requires an explicit exact profile, and only `smd-ddpcm-l15-n1202-multisolv-v1` accepts
-  the 11 registered solvents.
+  water-only; pyddx requires an explicit exact profile, and the named
+  `smd-ddpcm-l15-n1202-multisolv-v1` historical profile plus the paired
+  direct-ledger `smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2` and
+  `smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2` profiles accept the
+  11 registered solvents.
 - The official MACE-POLAR-1-M checkpoint loads through the upstream cache with
   `mace-torch==0.3.16`; MAPLE changes no learned weight and requires float64.
 - The PCMSolver v1.1.12-style C binding, matching Python parser, custom SMD

@@ -103,7 +103,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "profile=smd-ddpcm-l15-n1202-multisolv-v1" in overview
     assert "strict_original_smd_equivalence=false" in overview
     assert "SMD-CDS-augmented MACE-POLAR/ddPCM hybrid" in overview
-    assert "only `smd-ddpcm-l15-n1202-multisolv-v1` accepts" in validation
+    assert "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2" in validation
     assert "No immutable multi-solvent chemical-accuracy artifact" in validation
     assert "not a multi-solvent accuracy estimate" in normalized_validation
     assert "route2-ddpcm-result.json" in overview
@@ -202,6 +202,7 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "does not define Route 2" in benchmark
     assert "No full-population Route-2 FreeSolv accuracy artifact is frozen" in benchmark
     assert "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf.json" in benchmark
+    assert "route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280.json" in benchmark
     assert "The force adjoint is **not** an additional" in formulas
     assert "QM fidelity, component cancellation" in formulas
     assert f"{fixed_qm_mae:.4f} kcal/mol" in formulas

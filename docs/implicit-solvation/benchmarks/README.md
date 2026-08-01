@@ -87,6 +87,18 @@ lock.  This permits neither force output nor an approximate-root PES; nominal
 SCF convergence remains mandatory for any future force candidate.  The v1
 profiles remain available unchanged as historical controls.
 
+#### Registered-solvent execution record
+
+[`route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280.json`](route2-live-multisolv-ddpcm-ddcosmo-v2-execution-1bbef280.json)
+records a clean execution on one fixed acetone geometry through every
+registered solvent and both equations: **11 ddPCM + 11 ddCOSMO rows**.  All
+rows completed, the maximum SCF count was 13, and the largest discrete
+half-coupling identity residual was `2.220446049250313e-16 eV`.  This proves
+the named multi-solvent dispatch and energy-only numerical acceptance path,
+not multi-solvent chemical accuracy, a continuum preference, or a force/PES
+capability.  The artifact records the private raw-result digest and the
+source-equivalence audit to the publication commit.
+
 The locked twelve-record water comparison is run only from a clean commit:
 
 ```bash

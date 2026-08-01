@@ -101,6 +101,28 @@ two historical controls, and returns success only when every row for both
 equations is strictly below `1.5 kcal/mol`; a lower MAE cannot override an
 outlier or a computational failure.
 
+#### Clean-commit v2 result: failed, retained diagnostic
+
+The clean `173d5fdf` execution is retained in
+[`route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf.json`](route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf.json).
+All 12 hash-locked rows converged for both equations, so the negative result
+is a chemistry/representation result rather than a provider-coverage failure:
+
+| frozen arm | MAE | RMSE | maximum absolute error | records at or above 1.5 |
+|---|---:|---:|---:|---:|
+| ddPCM + same SMD-CDS | 2.8864 | 3.5456 | 7.3303 | 7/12 |
+| ddCOSMO + same SMD-CDS | 2.9661 | 3.6279 | 7.4479 | 7/12 |
+
+All numbers are kcal/mol.  Both strict gates therefore fail; the worst record
+is acetic acid.  ddPCM has the lower absolute error on all 12 locked records.
+That is an equation-axis observation **only**: it neither selects a default
+profile nor licenses a radius/scale adjustment, a constant shift, a
+per-molecule equation choice, or restoration of the excluded
+field-conditioned MACE energy merely to improve experimental agreement.
+The next valid discriminator is an independent QM surface-MEP/nonuniform
+response oracle for the shared point-`l<=1` MACE source, not another
+continuum-parameter sweep.
+
 Canonical commands:
 
 ```bash
@@ -159,7 +181,7 @@ The protocol also records separate open Dip146 (`MAE <= 0.25 D`) and HR46
 FreeSolv, because hydration error alone cannot certify the learned
 density/polarizability mechanism.
 
-No Route-2 FreeSolv accuracy artifact is frozen yet. The tracked
+No full-population Route-2 FreeSolv accuracy artifact is frozen.  The tracked
 [`route2-pcmsolver-exact-gto-acetone-v1.json`](route2-pcmsolver-exact-gto-acetone-v1.json)
 is only a one-molecule development canary: it records the failed raw
 constant-potential gauge probe, the atomic-centre-mean repair, and a matched

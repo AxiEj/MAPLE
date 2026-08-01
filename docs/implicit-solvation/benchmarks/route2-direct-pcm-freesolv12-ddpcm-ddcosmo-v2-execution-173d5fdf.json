@@ -1,0 +1,242 @@
+{
+  "artifact": "route2-direct-pcm-freesolv12-ddpcm-ddcosmo-v2-execution-173d5fdf",
+  "claim_boundary": "This is a clean-commit, twelve-record FreeSolv energy diagnostic of the direct half-coupling MACE-POLAR/ddPCM+SMD-CDS and MACE-POLAR/ddCOSMO+SMD-CDS pair. It is a failed all-record accuracy gate, not a fitted correction, profile selection, common variational electronic free-energy proof, multi-solvent accuracy result, or force/PES certification.",
+  "disposition": {
+    "allowed_inference": "On this frozen direct-ledger water diagnostic, changing ddPCM to ddCOSMO alone did not repair the systematic over-hydration; it made every locked absolute error larger. This does not rank the equations outside the declared setup.",
+    "both_equations_rejected_for_accuracy_claim": true,
+    "ddpcm_has_lower_absolute_error_on_all_12_locked_records": true,
+    "prohibited_next_steps": [
+      "fit a constant shift",
+      "tune cavity radii or a continuum scale on these records",
+      "choose equations per record",
+      "restore the excluded field-conditioned MACE energy solely to improve this gate"
+    ],
+    "scientific_next_question": "The shared point-l<=1 MACE permanent source and absent common electronic energy functional must be tested against independent QM surface-MEP/nonuniform-response oracles before any V0 source or response replacement is proposed.",
+    "strict_gate_passed": false
+  },
+  "execution": {
+    "completed_at_utc": "2026-08-01T14:57:09.649554+00:00",
+    "execution_git_head": "173d5fdf3abde416555fc74ca06b720948857d39",
+    "mace_dtype": "torch.float64",
+    "mace_polar_checkpoint": {
+      "identifier": "polar-1-m",
+      "release_url": "https://github.com/ACEsuit/mace-foundations/releases/download/mace_polar_1/MACE-POLAR-1-M.model",
+      "resolved_path": "/home/axie/.cache/mace/MACEPOLAR1Mmodel",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a",
+      "size_bytes": 68133235
+    },
+    "panel_manifest_path": "docs/implicit-solvation/benchmarks/route2-v0-freesolv12-functional-groups-v1.json",
+    "panel_manifest_sha256": "ff8f7fa425020968de65026c84fa863d64b25b8b4729d25be1b4f83cffd5306f",
+    "private_full_result_path": ".omx/benchmarks/route2-direct-pcm-freesolv12-173d5fdf-v2/summary.json",
+    "private_full_result_sha256": "577bebaefdb3553e6b989ed4892603891b3af2adbf796e0d833f5ca5d882d924",
+    "pyddx_version": "0.8.0",
+    "pyscf_version": "2.13.1",
+    "runner_path": "docs/implicit-solvation/benchmarks/run_route2_direct_pcm_freesolv12_paired.py",
+    "runner_sha256": "c5eff82c65f4ea19f365bb39077dfe9d04f509fff52b30952f0d81c7da853cb6"
+  },
+  "frozen_method": {
+    "energy_composition": "delta_G_solv = 0.5*<c_MACE-POLAR, f_reac_PCM> (= E_ddPCM/ddCOSMO) + G_CDS; E_MACE_intrinsic[V_reac]-E_MACE_gas is recorded only as a diagnostic and is excluded from the reported ledger",
+    "energy_ledger": "pcm-half-coupling-only-v1",
+    "forces_available": false,
+    "method_profiles": {
+      "ddcosmo": "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2",
+      "ddpcm": "smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2"
+    },
+    "nonpolar_term": "PySCF-2.13.1-SMD-CDS",
+    "receiver": "local-jet",
+    "same_axes_except_continuum_equation": true,
+    "solute_model": "official-unmodified-MACE-POLAR-1-M",
+    "solute_source": "MACE-POLAR coarse point l<=1 multipoles",
+    "solvent": "water",
+    "strict_original_smd_equivalence": false
+  },
+  "frozen_panel": {
+    "acceptance": "every record for both equations must have absolute error strictly below 1.5 kcal/mol",
+    "dataset": "FreeSolv 0.52",
+    "distinct_actual_functional_groups": 10,
+    "experimental_labels_not_used_for_model_selection": true,
+    "geometry_policy": "hash-locked pinned FreeSolv GAFF MOL2 conformers; no substitution or optimization",
+    "historical_ethyl_acetate_regression_included": "mobley_6973347",
+    "record_count": 12,
+    "solvent": "water"
+  },
+  "records": [
+    {
+      "compound_id": "mobley_9055303",
+      "ddcosmo_absolute_error_kcal_mol": 0.7862977979924701,
+      "ddpcm_absolute_error_kcal_mol": 0.7718657201381329,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": null,
+      "is_nonfunctional_control": true,
+      "name": "methane"
+    },
+    {
+      "compound_id": "mobley_3053621",
+      "ddcosmo_absolute_error_kcal_mol": 2.7484120280299025,
+      "ddpcm_absolute_error_kcal_mol": 2.662887899039646,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": null,
+      "is_nonfunctional_control": true,
+      "name": "benzene"
+    },
+    {
+      "compound_id": "mobley_1636752",
+      "ddcosmo_absolute_error_kcal_mol": 0.6877613189309573,
+      "ddpcm_absolute_error_kcal_mol": 0.6248366943207193,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "primary-alcohol",
+      "is_nonfunctional_control": false,
+      "name": "methanol"
+    },
+    {
+      "compound_id": "mobley_7015518",
+      "ddcosmo_absolute_error_kcal_mol": 0.9200376575388278,
+      "ddpcm_absolute_error_kcal_mol": 0.8553659283425186,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "dialkyl-ether",
+      "is_nonfunctional_control": false,
+      "name": "methoxymethane"
+    },
+    {
+      "compound_id": "mobley_3867265",
+      "ddcosmo_absolute_error_kcal_mol": 4.151470374881221,
+      "ddpcm_absolute_error_kcal_mol": 4.080011813376682,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "ketone",
+      "is_nonfunctional_control": false,
+      "name": "acetone"
+    },
+    {
+      "compound_id": "mobley_6973347",
+      "ddcosmo_absolute_error_kcal_mol": 3.9398318421560767,
+      "ddpcm_absolute_error_kcal_mol": 3.8604404429565222,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "carboxylic-acid-ester",
+      "is_nonfunctional_control": false,
+      "name": "ethyl acetate"
+    },
+    {
+      "compound_id": "mobley_7532833",
+      "ddcosmo_absolute_error_kcal_mol": 1.4974646372235476,
+      "ddpcm_absolute_error_kcal_mol": 1.4527097600122145,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "carbonitrile",
+      "is_nonfunctional_control": false,
+      "name": "acetonitrile"
+    },
+    {
+      "compound_id": "mobley_4883284",
+      "ddcosmo_absolute_error_kcal_mol": 3.183603691720764,
+      "ddpcm_absolute_error_kcal_mol": 3.044061517058914,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "primary-aromatic-amine",
+      "is_nonfunctional_control": false,
+      "name": "aniline"
+    },
+    {
+      "compound_id": "mobley_2198613",
+      "ddcosmo_absolute_error_kcal_mol": 0.47147446204266574,
+      "ddpcm_absolute_error_kcal_mol": 0.4488131674331143,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "alkyl-chloride",
+      "is_nonfunctional_control": false,
+      "name": "chloroethane"
+    },
+    {
+      "compound_id": "mobley_8578590",
+      "ddcosmo_absolute_error_kcal_mol": 4.829858188830807,
+      "ddpcm_absolute_error_kcal_mol": 4.69368078905852,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "sulfoxide",
+      "is_nonfunctional_control": false,
+      "name": "methylsulfinylmethane"
+    },
+    {
+      "compound_id": "mobley_8048190",
+      "ddcosmo_absolute_error_kcal_mol": 4.928632239251042,
+      "ddpcm_absolute_error_kcal_mol": 4.811966804806147,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "primary-carboxylic-acid-amide",
+      "is_nonfunctional_control": false,
+      "name": "acetamide"
+    },
+    {
+      "compound_id": "mobley_3034976",
+      "ddcosmo_absolute_error_kcal_mol": 7.447874329470056,
+      "ddpcm_absolute_error_kcal_mol": 7.330262771684603,
+      "ddpcm_less_absolute_error": true,
+      "functional_group": "carboxylic-acid",
+      "is_nonfunctional_control": false,
+      "name": "acetic acid"
+    }
+  ],
+  "results_kcal_mol": {
+    "ddcosmo": {
+      "all_records_strictly_below_1_5_kcal_mol": false,
+      "mae_kcal_mol": 2.9660598806723613,
+      "maximum_absolute_error_kcal_mol": 7.447874329470056,
+      "mean_signed_error_kcal_mol": -2.9660598806723613,
+      "record_count": 12,
+      "records_at_or_above_1_5_kcal_mol": 7,
+      "rmse_kcal_mol": 3.6278815893903467,
+      "worst_compound_id": "mobley_3034976"
+    },
+    "ddpcm": {
+      "all_records_strictly_below_1_5_kcal_mol": false,
+      "mae_kcal_mol": 2.8864086090189773,
+      "maximum_absolute_error_kcal_mol": 7.330262771684603,
+      "mean_signed_error_kcal_mol": -2.8864086090189773,
+      "record_count": 12,
+      "records_at_or_above_1_5_kcal_mol": 7,
+      "rmse_kcal_mol": 3.5455940127318146,
+      "worst_compound_id": "mobley_3034976"
+    },
+    "paired_equation_comparison": {
+      "absolute_error_tie_count": 0,
+      "ddcosmo_lower_absolute_error_count": 0,
+      "ddpcm_lower_absolute_error_count": 12,
+      "maximum_ddcosmo_minus_ddpcm_kcal_mol": -0.0144320778543372,
+      "mean_ddcosmo_minus_ddpcm_kcal_mol": -0.07965127165338366,
+      "minimum_ddcosmo_minus_ddpcm_kcal_mol": -0.13954217466184993,
+      "record_count": 12,
+      "tie_tolerance_kcal_mol": 1e-12
+    },
+    "strict_freesolv12_acceptance": {
+      "both_equations_pass_strict_freesolv12_gate": false,
+      "ddcosmo": {
+        "acceptance": {
+          "comparison": "strictly_less_than",
+          "distinct_functional_group_count": 10,
+          "historical_freesolv10_regression_embedded": true,
+          "mae_or_rmse_alone_is_not_a_pass_condition": true,
+          "maximum_absolute_error_kcal_mol": 7.447874329470056,
+          "minimum_distinct_functional_groups": 10,
+          "nonfunctional_control_count": 2,
+          "record_count": 12,
+          "strict_all_records_under_threshold": false,
+          "threshold_kcal_mol": 1.5,
+          "worst_compound_id": "mobley_3034976"
+        },
+        "status": "fail"
+      },
+      "ddpcm": {
+        "acceptance": {
+          "comparison": "strictly_less_than",
+          "distinct_functional_group_count": 10,
+          "historical_freesolv10_regression_embedded": true,
+          "mae_or_rmse_alone_is_not_a_pass_condition": true,
+          "maximum_absolute_error_kcal_mol": 7.330262771684603,
+          "minimum_distinct_functional_groups": 10,
+          "nonfunctional_control_count": 2,
+          "record_count": 12,
+          "strict_all_records_under_threshold": false,
+          "threshold_kcal_mol": 1.5,
+          "worst_compound_id": "mobley_3034976"
+        },
+        "status": "fail"
+      }
+    }
+  },
+  "schema_version": 1,
+  "status": "complete-strict-freesolv12-fail"
+}

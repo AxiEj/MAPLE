@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 
 import numpy as np
 
@@ -11,6 +12,10 @@ BENCHMARKS = ROOT / "docs/implicit-solvation/benchmarks"
 PREREG = (
     BENCHMARKS
     / "route2-v0-atomic-independent-particle-source-acetone-prereg-v1.json"
+)
+COMPLETED_ARTIFACT = (
+    BENCHMARKS
+    / "route2-v0-atomic-independent-particle-source-acetone-v1.json"
 )
 RUNNER = BENCHMARKS / "run_route2_v0_atomic_independent_particle_source_acetone.py"
 ATOMIC_RESPONSE = (
@@ -41,6 +46,14 @@ def _sha256_array(values: np.ndarray) -> str:
     return hashlib.sha256(array.view(np.uint8)).hexdigest()
 
 
+def _git_blob_sha256(revision: str, relative_path: str) -> str:
+    payload = subprocess.check_output(
+        ["git", "show", f"{revision}:{relative_path}"],
+        cwd=ROOT,
+    )
+    return hashlib.sha256(payload).hexdigest()
+
+
 def test_atomic_independent_particle_source_preregistration_freezes_all_inputs():
     protocol = json.loads(PREREG.read_text(encoding="utf-8"))
 
@@ -48,7 +61,21 @@ def test_atomic_independent_particle_source_preregistration_freezes_all_inputs()
         "route2-v0-atomic-independent-particle-source-acetone-prereg-v1"
     )
     assert protocol["status"] == "frozen-before-execution"
-    assert protocol["execution_contract"]["source_sha256"] == {
+    completed = json.loads(COMPLETED_ARTIFACT.read_text(encoding="utf-8"))
+    frozen_sources = protocol["execution_contract"]["source_sha256"]
+    assert completed["status"] == "pass"
+    assert completed["source_files_sha256"] == frozen_sources
+    assert completed["preregistration"] == {
+        "path": str(PREREG.relative_to(ROOT)),
+        "protocol_id": protocol["protocol_id"],
+        "sha256": _sha256(PREREG),
+    }
+    for relative, digest in frozen_sources.items():
+        assert _git_blob_sha256(
+            completed["execution_git_head"], relative
+        ) == digest
+
+    current_sources = {
         "docs/implicit-solvation/benchmarks/"
         "run_route2_v0_atomic_independent_particle_source_acetone.py": _sha256(
             RUNNER
@@ -60,6 +87,7 @@ def test_atomic_independent_particle_source_preregistration_freezes_all_inputs()
         "maple/function/calculator/extra_correction/implicit/"
         "route2_v0_response_kernel.py": _sha256(RESPONSE_KERNEL),
     }
+    assert current_sources != frozen_sources
     for relative, expected_hash in protocol["execution_contract"][
         "input_sha256"
     ].items():

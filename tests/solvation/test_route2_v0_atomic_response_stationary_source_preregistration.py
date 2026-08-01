@@ -23,6 +23,10 @@ V1_PREFLIGHT_FAILURE_PATH = (
     ROOT / "docs/implicit-solvation/benchmarks/"
     "route2-v0-atomic-response-stationary-source-acetone-preflight-failure-v1.json"
 )
+V2_COMPLETED_ARTIFACT_PATH = (
+    ROOT / "docs/implicit-solvation/benchmarks/"
+    "route2-v0-atomic-response-stationary-source-acetone-v2.json"
+)
 THEORY_PATH = (
     ROOT / "docs/implicit-solvation/"
     "ROUTE2_V0_ATOMIC_RESPONSE_STATIONARY_PERMANENT_SOURCE_THEORY.md"
@@ -147,15 +151,22 @@ def test_atomic_response_stationary_source_v2_preregistration_freezes_the_candid
     }
 
     source_hashes = preregistration["execution_contract"]["source_sha256"]
-    assert source_hashes == {
+    completed = json.loads(V2_COMPLETED_ARTIFACT_PATH.read_text(encoding="utf-8"))
+    assert completed["status"] == "reject"
+    assert completed["source_files_sha256"] == source_hashes
+    assert completed["preregistration"] == {
+        "path": str(V2_PREREGISTRATION_PATH.relative_to(ROOT)),
+        "protocol_id": preregistration["protocol_id"],
+        "sha256": _sha256(V2_PREREGISTRATION_PATH),
+    }
+    for relative, digest in source_hashes.items():
+        assert _git_blob_sha256(completed["execution_git_head"], relative) == digest
+    assert source_hashes != {
         relative: _sha256(ROOT / relative)
         for relative in namespace["SOURCE_RELATIVE_PATHS"]
     }
     input_hashes = preregistration["execution_contract"]["input_sha256"]
-    assert input_hashes == {
-        relative: _sha256(ROOT / relative)
-        for relative in namespace["INPUT_RELATIVE_PATHS"]
-    }
+    assert completed["input_files_sha256"] == input_hashes
     assert namespace["SCIENTIFIC_GATE_HELPER_FIELDS"] == {
         "static_dipole_relative_frobenius": "dipole_relative_frobenius",
         "static_mep_relative_frobenius": "mep_relative_frobenius",

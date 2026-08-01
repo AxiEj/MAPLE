@@ -205,6 +205,9 @@ def _calculator_with_model(model, recorder: _FieldRecorder):
     calculator = object.__new__(MACEPolCalculator)
     calculator.device = torch.device("cpu")
     calculator.dtype = torch.float64
+    # This helper bypasses ``MACEPolCalculator.__init__`` and intentionally
+    # exercises the established laboratory-frame path.
+    calculator._route2_jgp94_d2_canonical_mace = False
     calculator._reaction_projector = recorder
     calculator._long_range_evaluator = (
         MACEPolarLongRangeEvaluator.from_profile(

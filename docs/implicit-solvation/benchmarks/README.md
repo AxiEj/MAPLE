@@ -57,6 +57,25 @@ with only `compound_id` and `predicted_kcal_mol`; the validator obtains
 experimental values only from the immutable manifest and returns nonzero on a
 failed strict gate.
 
+### Bounded fixed-topology force-v3 evidence
+
+[`route2-fc-aswig-force-v3-release-evidence-v1.json`](route2-fc-aswig-force-v3-release-evidence-v1.json)
+is the self-contained, source-bound release record for the only Route-2
+profile that currently advertises forces. It embeds the complete clean-tree
+payloads for acetone component finite differences, rigid kinematics, a
+Cartesian path, closed work, and three-step short NVE, plus an independent
+20-atom flexible torsion and closed loop. A second clean-tree replay binds the
+current public `CommandControl -> SetCalculator -> ASE get_forces()` path and
+its source/receiver capability metadata to the same profile identity.
+
+The artifact admits only the named water-only
+`smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-force-v3`
+operational-scalar force and only when its per-geometry certificate passes.
+It is not evidence for a common stationary electronic functional, universal
+force coverage, multi-solvent forces, long MD, speedup, or experimental
+accuracy. All PCMSolver, pyddx, PySCF-SWIG, and FC-aSWIG `v1`/`v2` profiles
+remain energy-only.
+
 ### Paired direct-PCM / ddCOSMO energy study, v2
 
 The callable multi-solvent direct-energy pair is explicitly versioned rather

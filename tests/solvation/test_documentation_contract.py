@@ -198,6 +198,11 @@ def test_route2_documentation_matches_the_public_fail_closed_contract():
     assert "forbidden provider-warning count was zero" in normalized_validation
     assert "not a PCMSolver cavity warning" in normalized_validation
     assert "short NVE conservation" in overview
+    assert "route2-fc-aswig-force-v3-release-evidence-v1.json" in overview
+    assert "route2-fc-aswig-force-v3-release-evidence-v1.json" in validation
+    assert "Every other profile remains" in normalized_validation
+    assert "energy-only" in normalized_validation
+    assert "route2-fc-aswig-force-v3-release-evidence-v1.json" in benchmark
     assert "route2-qm-fidelity-v1.json" in overview
     assert "polarization errors currently cancel" in normalized_overview
     assert "route2-protocol.json" in benchmark

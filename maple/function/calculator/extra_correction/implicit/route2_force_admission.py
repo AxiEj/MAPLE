@@ -144,12 +144,20 @@ class ForcePESValidationContract:
     closed_loop_work_verified: bool
     short_nve_verified: bool
     evidence: str
+    evidence_artifact_path: str | None = None
 
     def __post_init__(self) -> None:
         if not self.profile_kind.strip():
             raise ValueError("A force/PES validation profile kind is required.")
         if not self.evidence.strip():
             raise ValueError("Force/PES validation evidence is required.")
+        if self.evidence_artifact_path is not None and not (
+            isinstance(self.evidence_artifact_path, str)
+            and self.evidence_artifact_path.strip()
+        ):
+            raise ValueError(
+                "A supplied force/PES evidence-artifact path must be nonempty."
+            )
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -167,6 +175,7 @@ class ForcePESValidationContract:
             "closed_loop_work_verified": self.closed_loop_work_verified,
             "short_nve_verified": self.short_nve_verified,
             "evidence": self.evidence,
+            "evidence_artifact_path": self.evidence_artifact_path,
         }
 
 
@@ -203,6 +212,10 @@ FC_ASWIG_JGP94_D2_DIRECT_PCM_FORCE_PES_VALIDATION_CONTRACT = (
             "cardinality. This admits only the bounded neutral, nondegenerate, "
             "local-jet, water FC-aSWIG profile; it does not prove a universal "
             "MACE--PCM free-energy functional or all-geometry force domain."
+        ),
+        evidence_artifact_path=(
+            "docs/implicit-solvation/benchmarks/"
+            "route2-fc-aswig-force-v3-release-evidence-v1.json"
         ),
     )
 )

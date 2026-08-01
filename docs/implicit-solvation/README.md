@@ -385,6 +385,9 @@ independent 20-atom 2-acetoxyethyl-acetate torsion and two-coordinate closed
 loop also passed at a constant 1720 surface candidates. This is a bounded
 conservative operational-scalar force capability, not proof for all chemical
 classes, every conformation, long MD, or universal solvation accuracy.
+The complete payloads, source hashes, and a clean current-head public-call plus
+kinematic replay are frozen in
+[`benchmarks/route2-fc-aswig-force-v3-release-evidence-v1.json`](benchmarks/route2-fc-aswig-force-v3-release-evidence-v1.json).
 
 One additional profile isolates the rigid-rotation defect of MACE-POLAR's
 default molecular long-range evaluator:

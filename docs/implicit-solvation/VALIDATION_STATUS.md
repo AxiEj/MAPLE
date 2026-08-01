@@ -6,13 +6,49 @@ the default energy-only proof-of-concept. Separately named pyddx ddPCM plus
 PySCF SMD CDS profiles retain explicit single-point derivative evidence,
 including one multi-solvent parameter profile, but their public result is now
 also energy-only. The independent PySCF SWIG/IEFPCM adapter remains private.
-Route 2 is still a Research/Innovation Route, not a complete solution-phase
-PES.
+One separately versioned fixed-cardinality amplitude-CPCM profile exposes a
+bounded water-only conservative force after a per-geometry fail-closed
+certificate. Route 2 remains a Research/Innovation Route, not a universal
+solution-phase PES or a common stationary MACE--PCM electronic functional.
 
-**2026-07-31 public-boundary correction.** Earlier sections preserve the
+**2026-08-02 public-boundary correction.** Earlier sections preserve the
 historical normal-parser/ASE force-path canaries as derivative evidence. They
-do not describe the current API: `supported_properties` is energy-only and
-the derivative is available only through an explicit research-evidence call.
+do not describe the current API by themselves. PCMSolver, pyddx, PySCF-SWIG,
+and the FC-aSWIG `v1`/`v2` identities remain energy-only. Only
+`smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-force-v3` advertises
+`{"energy", "forces"}`, and it returns a force only when the local root,
+adjoint, continuum identity, fixed-topology, conditioning, multi-start, and
+profile-level PES gates all pass.
+
+## Bounded FC-aSWIG force-v3 release evidence
+
+The source-bound
+`benchmarks/route2-fc-aswig-force-v3-release-evidence-v1.json` closes the
+previously open narrow release gates without widening their scope:
+
+- three acetone Cartesian components have a worst central-difference error of
+  `5.420641025864159e-6 eV/angstrom`;
+- rigid rotation and translation force discrepancies are
+  `1.3689226743597745e-14` and `1.7371156695324036e-14 eV/angstrom` in the full
+  gate suite;
+- the acetone Cartesian path has a worst centered energy/force discrepancy of
+  `1.3103270510803168e-5 eV/angstrom` and closed-loop work of
+  `-5.480988634707378e-12 eV`, always with 860 surface candidates;
+- the three `0.1/0.05/0.025 fs` NVE refinements over the same `0.2 fs` physical
+  interval have maximum energy drifts of `8.9913e-7`, `2.2445e-7`, and
+  `5.5886e-8 eV`, with fine/coarse ratios `0.2496` and `0.2490`;
+- the independent 20-atom 2-acetoxyethyl-acetate torsion shows the registered
+  second-order trend and its two-coordinate loop closes to
+  `-2.8383503459790538e-12 eV`, with all 1720 candidates retained;
+- a clean current-head replay passes the public
+  `CommandControl -> SetCalculator -> ASE get_forces()` path and repeats the
+  acetone finite-difference/rotation/translation gate.
+
+This evidence admits a conservative derivative of the explicit direct-PCM
+operational scalar only. It does not prove variational SCRF, broad chemical or
+all-geometry force coverage, long-time MD, multi-solvent forces, portable
+speed, or experimental solvation accuracy. Every other profile remains
+energy-only.
 
 ## Frozen no-training V0 disposition
 

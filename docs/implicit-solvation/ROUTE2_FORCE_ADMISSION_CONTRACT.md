@@ -2,28 +2,37 @@
 
 ## Status
 
-**Implemented boundary, not a released force profile.**  Route 2 continues to
-expose only energy through its public provider API.  The pyddx path may return
-explicitly labelled single-point derivative evidence, but that evidence is
-now accompanied by a machine-readable force-admission record and remains
-fail-closed.
+**One bounded profile is released; all other Route-2 profiles remain
+energy-only.**  The separately versioned water profile
+
+```text
+smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-force-v3
+```
+
+exposes an analytic force only after a per-geometry
+`ForceAdmissionCertificate` passes.  The PCMSolver and pyddx profiles still
+publish energy only; their single-point derivatives remain labelled research
+evidence and cannot acquire force capability through a global switch.
 
 This document accepts the useful part of the force/PES proposal: keep the
 unmixed fixed-point residual, matrix-free JVP/VJP, GMRES adjoint, MACE
 fixed-field partials, density-position VJP, and same-provider continuum
 coordinate derivative.  It rejects two unsafe shortcuts:
 
-1. promoting the existing JGP94 + PySCF-SWIG experiments directly to a force
-   profile; and
+1. promoting the existing variable-cardinality PySCF-SWIG or pyddx
+   experiments directly to a force profile; and
 2. treating an iterative largest-feedback-gain estimate as a proof that the
    fixed-point residual is well conditioned.
 
-Neither shortcut creates a smooth, unique, common-energy PES.
+Neither shortcut creates a smooth, unique operational-scalar PES.  The
+released profile instead uses a distinct fixed-cardinality amplitude-CPCM and
+fixed-topology aqueous SMD-CDS scalar.  It does **not** establish a common
+stationary MACE--PCM electronic free-energy functional.
 
 ## What the code records
 
 `route2_force_admission.py` defines `ForceAdmissionCertificate`.  It records
-all of the following before a future profile can claim force admission:
+all of the following before a profile can claim force admission:
 
 - nominal, rather than finite-resolution, SCF root;
 - separate monopole and dipole fixed-point residuals;
@@ -44,11 +53,20 @@ diagnostics only: it **cannot pass** the gate because a Ritz estimate does not
 supply a certified upper bound on \(\lVert J_{\mathrm M}J_{\mathrm P}\rVert_2\)
 or a lower bound on \(\sigma_{\min}(A)\).
 
-The current pyddx profile is registered with
+Every pyddx profile is registered with
 `PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT`; it necessarily fails on node
-topology, geometry-path smoothness, multi-start agreement (not yet measured),
-and common-energy semantics.  Thus it cannot become an ASE force route by
-accident.
+topology and geometry-path smoothness. Thus it cannot become an ASE force
+route by accident. The released FC-aSWIG profile supplies a different
+fixed-topology smoothness contract and still fails closed when its local root,
+conditioning, or geometry-domain checks do not pass.
+
+The complete, source-bound admission record is
+[`benchmarks/route2-fc-aswig-force-v3-release-evidence-v1.json`](benchmarks/route2-fc-aswig-force-v3-release-evidence-v1.json).
+It retains the full numerical payloads for component finite differences,
+rigid translation/rotation, a Cartesian path, two closed loops, a flexible
+torsion, and a three-step short NVE refinement.  It also contains a clean-tree
+replay through `CommandControl -> SetCalculator -> ASE get_forces()` on the
+current force-capability metadata.
 
 ## SCF audit quantities
 
@@ -70,21 +88,22 @@ or for a continuum smoothness proof.
 
 The pure nondegenerate JGP94 transform and its reverse VJP live in
 `maple/function/calculator/extra_correction/implicit/route2_body_frame.py`.
-The old benchmark import remains a compatibility shim, so a future profile and
-its canary use identical math.
+The old benchmark import remains a compatibility shim, so the public profile
+and its canaries use identical math.
 
-This does **not** promote JGP94 to a production continuum frame.  Existing
-preflight evidence found pyddx active ownership changes under small coordinate
-moves.  Existing PySCF-SWIG/ISWIG evidence also has variable retained
-surface-point counts/parents across geometry or orientation.  A moving rigid
-frame can eliminate laboratory-frame rotation drift; it cannot make a
-variable-topology surface differentiable.  Accordingly,
-`PYSCF_SWIG_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT` is also fail-closed.
+JGP94 by itself remains insufficient: existing pyddx and PySCF-SWIG/ISWIG
+preflights change retained surface-point counts or ownership under geometry
+or orientation changes. A moving rigid frame can eliminate laboratory-frame
+rotation drift; it cannot make a variable-topology surface differentiable.
+Accordingly, `PYSCF_SWIG_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT` remains
+fail-closed. The admitted profile combines JGP94 with MAPLE's distinct
+fixed-cardinality amplitude-CPCM construction; every candidate remains
+allocated and its physical charge vanishes continuously with exposure.
 
-## Next implementation boundary
+## Implemented narrow boundary and remaining work
 
-A force-capable continuum must be a genuinely new profile with all of the
-following, demonstrated on the same scalar energy:
+The fixed-topology force profile implemented all of the following on the same
+declared operational scalar:
 
 1. fixed degrees of freedom and no geometry-dependent node deletion;
 2. continuous coordinate dependence through the surface/operator/CDS terms;
@@ -93,8 +112,13 @@ following, demonstrated on the same scalar energy:
 5. component-resolved finite differences, rigid rotation/translation, path
    continuity/closed work, and short NVE evidence.
 
-A smooth spherical-harmonic Galerkin ddPCM is a plausible **research target**
-for this profile, but is not claimed as implemented merely because the desired
-variational equations can be written down.  No experimental solvation-energy
-fit, response-scale adjustment, radius tuning, or MACE checkpoint change is
-part of this force-admission work.
+Its admitted scope remains neutral, closed-shell, connected, non-periodic
+16--500 Da molecules in water, local-jet response, a nondegenerate JGP94
+frame, and the dense fixed-charge conditioning dimension bound. Broader
+chemical classes, relaxed flexible paths, longer NVE trajectories, ions,
+other solvents, and degenerate molecular frames remain open gates.
+
+A frame-free smooth spherical-harmonic Galerkin continuum remains a plausible
+long-term generalization, not an implementation claim. No experimental
+solvation-energy fit, response-scale adjustment, radius tuning, or MACE
+checkpoint change is part of this force-admission work.

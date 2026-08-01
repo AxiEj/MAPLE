@@ -1,0 +1,4258 @@
+{
+  "admitted_scope": {
+    "charge": 0,
+    "connected": true,
+    "geometry_frame": "jgp94-d2-canonical-v1 with per-geometry eigengap fail-closed gate",
+    "mass_range_da": [
+      16.0,
+      500.0
+    ],
+    "multiplicity": 1,
+    "per_geometry_requirements": [
+      "nominal unmixed fixed-point root",
+      "three-start root agreement",
+      "dense fixed-charge tangent SVD within the admitted dimension bound",
+      "primal and adjoint residual gates",
+      "same-continuum half-coupling identity",
+      "fixed topology for continuum and CDS"
+    ],
+    "periodic": false,
+    "reaction_field_projector": "local-jet",
+    "solvent": "water"
+  },
+  "artifact": "route2-fc-aswig-force-v3-release-evidence-v1",
+  "claim_boundary": "The artifact admits only the explicitly named bounded water force-v3 profile and only when every per-geometry certificate passes. It preserves complete gate payloads for acetone and one independent flexible ester, plus a current clean-tree public-call and kinematic replay. It does not establish a common electronic free-energy functional, universal force coverage, long MD, or the strict all-record <1.5 kcal/mol accuracy gate.",
+  "created_at": "2026-08-01T22:06:45+00:00",
+  "declared_operational_scalar": "E_MACE-POLAR(gas)+0.5*<c_MACE-POLAR,f_reac_CPCM>+G_fixed-topology-aqueous-SMD-CDS",
+  "executions": {
+    "current_public_and_kinematics_replay": {
+      "execution_git_head": "41ebe92f2d0349aa79c5ff4d0edb253f92236683",
+      "git_worktree_status": [],
+      "kinematics_payload": {
+        "claim_boundary": "A pass establishes only local same-scalar kinematic force evidence for one frozen acetone conformer. It does not establish coordinate path smoothness, closed-loop work, short-NVE behavior, public ASE forces, a common stationary MACE--PCM electronic free-energy, or experimental solvation accuracy.",
+        "created_at": "2026-08-01T22:02:31+00:00",
+        "declared_scalar": "0.5*<c_MACE-POLAR,f_reac_CPCM>+fixed-topology-aqueous-SMD-CDS",
+        "energy_hartree": -0.013572293550905447,
+        "finite_difference": [
+          {
+            "analytic_force_hartree_per_angstrom": 0.004555585457018219,
+            "atom_index": 0,
+            "cartesian_index": 0,
+            "levels": [
+              {
+                "absolute_error_ev_per_angstrom": 3.970208895721294e-07,
+                "absolute_error_hartree_per_angstrom": 1.459024870018033e-08,
+                "finite_difference_force_hartree_per_angstrom": 0.0045556000472669195,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.001
+              },
+              {
+                "absolute_error_ev_per_angstrom": 2.2077034869179285e-07,
+                "absolute_error_hartree_per_angstrom": 8.113160736983316e-09,
+                "finite_difference_force_hartree_per_angstrom": 0.004555593570178956,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.0005
+              },
+              {
+                "absolute_error_ev_per_angstrom": 2.379323282435586e-08,
+                "absolute_error_hartree_per_angstrom": 8.743851857839768e-10,
+                "finite_difference_force_hartree_per_angstrom": 0.004555586331403405,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.00025
+              }
+            ]
+          },
+          {
+            "analytic_force_hartree_per_angstrom": 0.04032798715748236,
+            "atom_index": 1,
+            "cartesian_index": 1,
+            "levels": [
+              {
+                "absolute_error_ev_per_angstrom": 5.420641025864159e-06,
+                "absolute_error_hartree_per_angstrom": 1.9920488508046175e-07,
+                "finite_difference_force_hartree_per_angstrom": 0.040328186362367444,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.001
+              },
+              {
+                "absolute_error_ev_per_angstrom": 1.46575096114549e-06,
+                "absolute_error_hartree_per_angstrom": 5.386535473911325e-08,
+                "finite_difference_force_hartree_per_angstrom": 0.0403280410228371,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.0005
+              },
+              {
+                "absolute_error_ev_per_angstrom": 5.970437721950926e-07,
+                "absolute_error_hartree_per_angstrom": 2.1940954116062006e-08,
+                "finite_difference_force_hartree_per_angstrom": 0.04032800909843648,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.00025
+              }
+            ]
+          },
+          {
+            "analytic_force_hartree_per_angstrom": 0.01654732211542684,
+            "atom_index": 2,
+            "cartesian_index": 2,
+            "levels": [
+              {
+                "absolute_error_ev_per_angstrom": 3.5437145336697606e-07,
+                "absolute_error_hartree_per_angstrom": 1.302291081570206e-08,
+                "finite_difference_force_hartree_per_angstrom": 0.016547335138337657,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.001
+              },
+              {
+                "absolute_error_ev_per_angstrom": 7.25393775686356e-07,
+                "absolute_error_hartree_per_angstrom": 2.6657729784024253e-08,
+                "finite_difference_force_hartree_per_angstrom": 0.016547348773156625,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.0005
+              },
+              {
+                "absolute_error_ev_per_angstrom": 8.887952483656925e-08,
+                "absolute_error_hartree_per_angstrom": 3.266262319640001e-09,
+                "finite_difference_force_hartree_per_angstrom": 0.016547318849164522,
+                "minus_scf_reason": "nominal-density-and-energy-v1",
+                "plus_scf_reason": "nominal-density-and-energy-v1",
+                "step_angstrom": 0.00025
+              }
+            ]
+          }
+        ],
+        "force_admission_snapshot": {
+          "adjoint_relative_residual": 7.90545512856558e-11,
+          "condition": {
+            "dimension": 39,
+            "exact_small_system": true,
+            "feedback_largest_singular_value": 0.34504293809498043,
+            "gate_passed": true,
+            "method": "dense-neutral-space-svd-v1",
+            "reason": null,
+            "residual_condition_number_2": 1.5260239871572236,
+            "residual_is_numerically_singular": false,
+            "residual_smallest_singular_value": 0.6715931798638042
+          },
+          "continuum": {
+            "evidence": "The JGP94 nondegenerate principal-axis wrapper applies the same fixed-topology amplitude-CPCM scalar and complete body-to-lab coordinate VJP.  Unit tests cover rigid rotation, translation, and a rebuilt-coordinate finite difference; the paired aqueous CDS uses the same JGP94 frame.",
+            "fixed_node_topology": true,
+            "geometry_path_smoothness_verified": true,
+            "nonpolar": {
+              "evidence": "All atom/angular candidates remain allocated; the published aqueous SMD tension functions and base-area*g**2 term share one analytic coordinate derivative.  Unit crossing and finite-difference tests cover the discrete construction.",
+              "fixed_node_topology": true,
+              "geometry_path_smoothness_verified": true,
+              "profile_kind": "aqueous-smd-cds-fixed-topology-c3-area-v1-experimental",
+              "same_energy_coordinate_derivative": true
+            },
+            "profile_kind": "jgp94-cpcm-fc-aswig-aqueous-smd-cds-v1-experimental",
+            "same_energy_coordinate_derivative": true
+          },
+          "continuum_identity_error_ev": 0.0,
+          "contract_version": 3,
+          "energy_semantics": {
+            "common_variational_electronic_free_energy_proven": false,
+            "derivative_matches_declared_operational_scalar": true,
+            "electrostatic_energy_ledger": "pcm-half-coupling-only-v1",
+            "evidence": "The declared scalar is 0.5*<c_MACE-POLAR, f_reac_PCM> + G_CDS. The ledger-specific outer adjoint differentiates that scalar and does not insert E_MACE[V_reac]-E_MACE[gas].  The current MACE fixed point is nevertheless not proven stationary for a common electronic free-energy functional.",
+            "excludes_unproven_mace_field_energy_cross_term": true,
+            "operational_scalar_is_explicit": true
+          },
+          "failure_reasons": [
+            "component-resolved-force-finite-difference-unverified",
+            "rigid-translation-force-gate-unverified",
+            "rigid-rotation-force-gate-unverified",
+            "coordinate-path-smoothness-force-gate-unverified",
+            "closed-loop-work-force-gate-unverified",
+            "short-nve-force-gate-unverified"
+          ],
+          "multi_start_root_agreement": true,
+          "nominal_root": true,
+          "pes_validation": {
+            "closed_loop_work_verified": false,
+            "component_resolved_finite_difference_verified": false,
+            "coordinate_path_smoothness_verified": false,
+            "evidence": "No profile-level same-scalar finite-difference, symmetry, path, closed-work, and NVE evidence has been supplied.",
+            "profile_kind": "unspecified-route2-force-pes-v1",
+            "rigid_rotation_covariance_verified": false,
+            "rigid_translation_verified": false,
+            "short_nve_verified": false
+          },
+          "policy": {
+            "maximum_adjoint_relative_residual": 1e-10,
+            "maximum_continuum_identity_error_ev": 2e-10,
+            "maximum_dense_dimension": 128,
+            "maximum_feedback_singular_value": 0.95,
+            "maximum_primal_dipole_residual_e_angstrom": 2e-12,
+            "maximum_primal_monopole_residual_e": 2e-12,
+            "maximum_residual_condition_number_2": 100000.0,
+            "minimum_residual_singular_value": 1e-05
+          },
+          "primal_dipole_residual_e_angstrom": 1.2255890746715181e-12,
+          "primal_monopole_residual_e": 8.507413523650698e-13,
+          "release_admitted": false
+        },
+        "force_hartree_per_angstrom": [
+          [
+            0.004555585457018219,
+            -0.0015871981178775915,
+            0.005738611927847273
+          ],
+          [
+            -0.007642355174118368,
+            0.04032798715748236,
+            -0.02247851014796109
+          ],
+          [
+            0.003761057508172216,
+            -0.02836596406283989,
+            0.01654732211542684
+          ],
+          [
+            -3.928220862992049e-05,
+            -0.006937633843734697,
+            -0.002592525995205865
+          ],
+          [
+            -0.0008776795015100471,
+            -0.00039952997701682994,
+            0.0015649122217701508
+          ],
+          [
+            0.0010412156263604185,
+            0.00019391972242000327,
+            0.0023299719113356807
+          ],
+          [
+            5.737788426816434e-05,
+            -0.000905152682260307,
+            -0.001491364363103546
+          ],
+          [
+            -0.0013659045061752645,
+            -0.0009689823883707009,
+            0.0006206711677533205
+          ],
+          [
+            -0.0008318674776628008,
+            -0.002030533599843797,
+            -0.0011081341031726325
+          ],
+          [
+            0.0013418523922773826,
+            0.0006730877920414439,
+            0.0008690452653098719
+          ]
+        ],
+        "force_scope": "solvent-correction operational-scalar force only",
+        "force_sum_hartree_per_angstrom": [
+          -2.168404344971009e-19,
+          -6.071532165918825e-18,
+          2.8189256484623115e-18
+        ],
+        "git_head": "41ebe92f2d0349aa79c5ff4d0edb253f92236683",
+        "git_worktree_status": [],
+        "kinematic_gate": {
+          "checks": {
+            "finite_difference": true,
+            "net_force": true,
+            "rotation_energy": true,
+            "rotation_force": true,
+            "translation_energy": true,
+            "translation_force": true
+          },
+          "gates": {
+            "maximum_fd_error_ev_per_angstrom": 2e-05,
+            "maximum_net_force_hartree_per_angstrom": 1e-10,
+            "maximum_rotation_energy_error_ev": 1e-08,
+            "maximum_rotation_force_error_ev_per_angstrom": 1e-06,
+            "maximum_translation_energy_error_ev": 1e-08,
+            "maximum_translation_force_error_ev_per_angstrom": 1e-06
+          },
+          "open_force_admission_gates": [
+            "coordinate_path_smoothness",
+            "closed_loop_work",
+            "short_nve"
+          ],
+          "passed": true
+        },
+        "mace_geometry_frame": {
+          "branch_count": 4,
+          "enabled": true,
+          "minimum_relative_eigengap_guard": 0.05,
+          "operator_identity": "proper-D2-Reynolds-averaged-JGP94-canonical-MACE",
+          "policy": "jgp94-d2-canonical-v1"
+        },
+        "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2",
+        "protocol_id": "route2-fc-aswig-d2-mace-acetone-kinematic-force-v1",
+        "record": {
+          "atom_count": 10,
+          "compound_id": "mobley_3867265",
+          "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_3867265.mol2",
+          "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+          "name": "acetone"
+        },
+        "root": {
+          "multi_start_root_agreement": {
+            "agreed": true,
+            "failure_reasons": [],
+            "maximum_pairwise_density_difference": 1.3705148127485245e-12,
+            "maximum_pairwise_energy_difference_ev": 2.100042362229715e-12,
+            "members": [
+              {
+                "converged_nominally": true,
+                "declared_scalar_energy_ev": -0.36932091904971814,
+                "initial_density_label": "gas-electronic-source",
+                "initial_density_sha256": "d9d907bb2b8f101fec7a40dbeac11ceeefd4a5763831fb629023f11b2d833fe4",
+                "iterations": 11,
+                "start_key": "gas"
+              },
+              {
+                "converged_nominally": true,
+                "declared_scalar_energy_ev": -0.3693209190518182,
+                "initial_density_label": "zero-density",
+                "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                "iterations": 12,
+                "start_key": "zero"
+              },
+              {
+                "converged_nominally": true,
+                "declared_scalar_energy_ev": -0.36932091905171355,
+                "initial_density_label": "negated-gas-density",
+                "initial_density_sha256": "308f75aa9c55242bf05124447592c35f83c4c0332ad0e0170c3a76bc8a33c979",
+                "iterations": 13,
+                "start_key": "negated-gas"
+              }
+            ],
+            "policy": {
+              "maximum_pairwise_density_difference": 1e-09,
+              "maximum_pairwise_energy_difference_ev": 1e-10,
+              "required_start_count": 3
+            },
+            "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+          },
+          "scf_convergence": {
+            "final_dipole_residual_e_angstrom": 1.2255890746715181e-12,
+            "final_energy_residual_ev": 3.211880761355701e-11,
+            "final_monopole_residual_e": 8.507413523650698e-13,
+            "final_reaction_gradient_change_ev_per_angstrom": 7.523558165356548e-11,
+            "final_reaction_potential_change_ev": 1.223248169424096e-10,
+            "fresh_map_replay": null,
+            "history_window": null,
+            "online_candidate_iteration": 11,
+            "reason": "nominal-density-and-energy-v1",
+            "runtime_identity": null
+          }
+        },
+        "rotation": {
+          "energy_difference_ev": -1.1801057537584264e-15,
+          "matrix": [
+            [
+              0.0,
+              -1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "maximum_force_covariance_error_ev_per_angstrom": 1.3311592902395049e-14,
+          "rotated_force_sum_hartree_per_angstrom": [
+            -8.673617379884035e-19,
+            -1.0842021724855044e-18,
+            1.3010426069826053e-18
+          ]
+        },
+        "runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py",
+        "runner_sha256": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3",
+        "schema_version": 1,
+        "translation": {
+          "energy_difference_ev": -2.832253809020223e-16,
+          "maximum_force_difference_ev_per_angstrom": 1.6049438251114598e-14,
+          "translated_force_sum_hartree_per_angstrom": [
+            4.336808689942018e-19,
+            -7.48099499014998e-18,
+            -1.5178830414797062e-18
+          ],
+          "vector_angstrom": [
+            0.37,
+            -0.21,
+            0.18
+          ]
+        }
+      },
+      "kinematics_source_artifact_sha256": "b1090937a64ae761a5bd6852454101b93ad976207c900e7794e4083fef5aeb93",
+      "public_force_smoke": {
+        "energy_hartree": -0.013572293550905433,
+        "execution_git_head": "41ebe92f2d0349aa79c5ff4d0edb253f92236683",
+        "force_admission_contract_version": 3,
+        "force_release_admitted": true,
+        "forces_evaluated": true,
+        "ledger_file_sha256": "8c9403bed5ea49e704bea54bbca9bd13569984a7a5247089e8f6add4bbe2237f",
+        "manifest_file_sha256": "2b9b4206d3c72799514dc1e4c3b057a14b187da4d3612e9f31d25beba7cb8d2e",
+        "result_content_sha256": "d2a3daea7719b1c69ac5a86df93bcd65eb8456b1816f8ad30d4640b5c8c9af5b",
+        "source_receiver_contract": {
+          "common_stationary_electronic_functional_established": false,
+          "continuum_pairing_established": true,
+          "continuum_pairing_status": "point-multipole-local-jet-dual",
+          "contract_version": "route2-source-receiver-contract-v1",
+          "next_required_physical_gate": "common-electronic-scalar-and-broader-force-domain-validation",
+          "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-force-v3",
+          "prohibited_claims": [
+            "variational SCRF",
+            "common-energy stationary electronic state",
+            "unbounded solution-phase PES",
+            "universal analytic solution-phase forces"
+          ],
+          "public_capability": "bounded-experimental-energy-and-conservative-forces",
+          "reaction_field_receiver": "local-jet",
+          "solute_source": "point-multipole-l1"
+        },
+        "timing": [
+          "real 64.52",
+          "user 590.93",
+          "sys 6.64"
+        ]
+      },
+      "public_force_smoke_source_files_sha256": {
+        "input.inp": "648a5d1e1b65d5c30f6e840831fbad82b73a9a48a6953b16eeee224bacf2e32e",
+        "manifest.json": "2b9b4206d3c72799514dc1e4c3b057a14b187da4d3612e9f31d25beba7cb8d2e",
+        "route2-public-result-ledger.json": "8c9403bed5ea49e704bea54bbca9bd13569984a7a5247089e8f6add4bbe2237f"
+      },
+      "source_files_sha256": {
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_closed_loop.py": "c99ccbe8be056275d928d288a8ea16a45975efabb03296d32d98a74b37f5bd0c",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_flexible_closed_loop.py": "bd969bfb72cb4d40b46548f082375fdc722de817818ad07a3afa046a5a1afb8f",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_flexible_torsion.py": "5eb72f82fab622cef66c36b6c4011373746e1613a67faeeba528327918c0a735",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_nve.py": "4f19a453c9e416fb8e59c18ba36d4be4973183213dfde532b0614a31b082e778",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_path.py": "52cd1576bc55e10c5cd4995b526536b828981859945287765b46bfa2b3ea1479",
+        "maple/function/calculator/extra_correction/implicit/correction.py": "4f0b0a4de1bfd6e79d792fd23348101ec5d0ed5cf728a58721ad8f0696636d47",
+        "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "844a69037bfe86b1d7afec71986d5ca7f89d066d0987f6cb0c89f8cf5815a5b4",
+        "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "61639975193bfd97f849f3f48d0f92b46d93990e7910062e8aaa551b8cad1aca",
+        "maple/function/calculator/extra_correction/implicit/route2_engine.py": "69db5b0d085c830b0022aff21d081f08fc4de6c3641be9632bcd579530355e62",
+        "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+        "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "8b8a081513809f0e80e8e298a7038f443dd11a0a61df9f94d70b86ae525c6f79",
+        "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+        "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+        "maple/function/calculator/extra_correction/implicit/source_receiver_contract.py": "bb5e0c3598fc837bbba20bf60f019d198429b955a16854dfee5b4570122ea704",
+        "maple/function/calculator/mace/_macepol_calculator.py": "149d3821ecad92106beccb9c3b1fcb2ba3f0ffbfaed283fa2833b093e8b7d175",
+        "maple/function/calculator/set_calculator.py": "e23ba70c5e52d0d8c1adc432188365dc9d22bc509fc4d0a068fdb5242c4cb83a",
+        "maple/function/read/command_control.py": "95cfb8e0004519211634fae4c41c6f1b35ab1d1084a4f430e1ce4ae073982160",
+        "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+        "maple/function/route2_smd_profiles.py": "f873b61626e3bc7e9aa662ac0340e49032afe5b1323a14232e2f02ac807f69f1"
+      }
+    },
+    "full_pes_gate_suite": {
+      "execution_git_head": "e724cf5a923e9751af153ef1e5f7f1a6e1b4bffd",
+      "gate_payloads": {
+        "acetone_cartesian_path": {
+          "claim_boundary": "A pass establishes local coordinate-path smoothness of the declared Route-2 direct-PCM correction scalar for one acetone Cartesian path. It does not establish closed-loop work, NVE behavior, public ASE forces, a common stationary electronic free-energy, or experimental accuracy.",
+          "created_at": "2026-08-01T08:07:03+00:00",
+          "declared_scalar": "0.5*<c_MACE-POLAR,f_reac_CPCM>+fixed-topology-aqueous-SMD-CDS",
+          "git_head": "e724cf5a923e9751af153ef1e5f7f1a6e1b4bffd",
+          "git_worktree_status": [],
+          "interior_centered_energy_force": [
+            {
+              "absolute_error_ev_per_angstrom": 1.3103270510803168e-05,
+              "absolute_error_hartree_per_angstrom": 4.815363134780953e-07,
+              "analytic_force_hartree_per_angstrom": 0.004531555836814005,
+              "centered_fd_force_hartree_per_angstrom": 0.004532037373127483,
+              "offset_angstrom": -0.005
+            },
+            {
+              "absolute_error_ev_per_angstrom": 1.0829327472368662e-05,
+              "absolute_error_hartree_per_angstrom": 3.9797044746898297e-07,
+              "analytic_force_hartree_per_angstrom": 0.004555585457018218,
+              "centered_fd_force_hartree_per_angstrom": 0.004555983427465687,
+              "offset_angstrom": 0.0
+            },
+            {
+              "absolute_error_ev_per_angstrom": 7.360329196571328e-06,
+              "absolute_error_hartree_per_angstrom": 2.704871111666382e-07,
+              "analytic_force_hartree_per_angstrom": 0.004581993337060741,
+              "centered_fd_force_hartree_per_angstrom": 0.004582263824171907,
+              "offset_angstrom": 0.005
+            }
+          ],
+          "path": {
+            "atom_index": 0,
+            "cartesian_index": 0,
+            "offsets_angstrom": [
+              -0.01,
+              -0.005,
+              0.0,
+              0.005,
+              0.01
+            ],
+            "step_angstrom": 0.005
+          },
+          "path_gate": {
+            "checks": {
+              "centered_energy_force_agreement": true,
+              "fixed_surface_cardinality": true,
+              "local_multistart_agreement": true,
+              "nominal_roots": true
+            },
+            "gates": {
+              "maximum_centered_fd_error_ev_per_angstrom": 2e-05,
+              "require_fixed_surface_cardinality": true,
+              "require_local_multistart_agreement": true,
+              "require_nominal_roots": true
+            },
+            "maximum_centered_fd_error_ev_per_angstrom": 1.3103270510803168e-05,
+            "open_force_admission_gates": [
+              "closed_loop_work",
+              "short_nve"
+            ],
+            "passed": true,
+            "surface_cardinalities": [
+              860
+            ]
+          },
+          "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2",
+          "protocol_id": "route2-fc-aswig-d2-mace-acetone-path-force-v1",
+          "record": {
+            "atom_count": 10,
+            "compound_id": "mobley_3867265",
+            "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_3867265.mol2",
+            "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+            "name": "acetone"
+          },
+          "runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_path.py",
+          "runner_sha256": "52cd1576bc55e10c5cd4995b526536b828981859945287765b46bfa2b3ea1479",
+          "samples": [
+            {
+              "cds": {
+                "area_quadrature": "base-area-times-C3-amplitude-squared",
+                "atomic_tension_function": "published-aqueous-smd-geometry-functions",
+                "frame_relative_minimum_eigengap": 0.14708732617038633,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "profile": "jgp94-aqueous-smd-cds-fixed-topology-c3-area-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aqueous-smd-cds",
+                "pyscf_version": "2.13.1",
+                "same_scalar_coordinate_derivative": true,
+                "solvent": "water",
+                "strict_original_smd_equivalence": false,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860
+              },
+              "continuum": {
+                "continuum_model": "cpcm",
+                "dielectric_scaling": 0.9872432708253603,
+                "equation": "variational-amplitude-cpcm-v1",
+                "force_capability": "same-energy-full-continuum-vjp-experimental",
+                "frame_determinant_error": 0.0,
+                "frame_orthogonality_error": 2.2354613320114387e-16,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "minimum_relative_eigengap": 0.14708732617038633,
+                "minimum_relative_eigengap_guard": 0.05,
+                "profile": "jgp94-cpcm-fc-aswig-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aswig",
+                "public_force_status": "closed-pending-total-pes-admission",
+                "pyscf_version": "2.13.1",
+                "static_dielectric": 78.39,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860,
+                "switching_weight": "F=product(C3-amplitude-neighbor-switches)^2",
+                "upstream_equivalence": "new-discretization-not-pruned-swig-reparameterization"
+              },
+              "energy_hartree": -0.013526973177174176,
+              "force_component_hartree_per_angstrom": 0.004510387298031511,
+              "force_sum_hartree_per_angstrom": [
+                -1.3010426069826053e-18,
+                -2.6020852139652106e-18,
+                2.168404344971009e-19
+              ],
+              "offset_angstrom": -0.01,
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.7384149675336857e-12,
+                  "maximum_pairwise_energy_difference_ev": 2.071898208555467e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36808768886534793,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "fb8df55eb922df6763e4143eadae2042c0609835a01257728aa1503bde72fdb5",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3680876888674198,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 13,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3680876888668491,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "a27f74529babc87cd5953ebcc64264b5fcd5dd36edec777d2dc88ac326b948b0",
+                      "iterations": 14,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.4777207235638912e-12,
+                  "final_energy_residual_ev": 4.0038694582023027e-11,
+                  "final_monopole_residual_e": 7.727585932260084e-13,
+                  "final_reaction_gradient_change_ev_per_angstrom": 7.122613610022199e-11,
+                  "final_reaction_potential_change_ev": 8.078260282928795e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            {
+              "cds": {
+                "area_quadrature": "base-area-times-C3-amplitude-squared",
+                "atomic_tension_function": "published-aqueous-smd-geometry-functions",
+                "frame_relative_minimum_eigengap": 0.14672827236733457,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "profile": "jgp94-aqueous-smd-cds-fixed-topology-c3-area-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aqueous-smd-cds",
+                "pyscf_version": "2.13.1",
+                "same_scalar_coordinate_derivative": true,
+                "solvent": "water",
+                "strict_original_smd_equivalence": false,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860
+              },
+              "continuum": {
+                "continuum_model": "cpcm",
+                "dielectric_scaling": 0.9872432708253603,
+                "equation": "variational-amplitude-cpcm-v1",
+                "force_capability": "same-energy-full-continuum-vjp-experimental",
+                "frame_determinant_error": 0.0,
+                "frame_orthogonality_error": 4.440892098500626e-16,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "minimum_relative_eigengap": 0.14672827236733457,
+                "minimum_relative_eigengap_guard": 0.05,
+                "profile": "jgp94-cpcm-fc-aswig-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aswig",
+                "public_force_status": "closed-pending-total-pes-admission",
+                "pyscf_version": "2.13.1",
+                "static_dielectric": 78.39,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860,
+                "switching_weight": "F=product(C3-amplitude-neighbor-switches)^2",
+                "upstream_equivalence": "new-discretization-not-pruned-swig-reparameterization"
+              },
+              "energy_hartree": -0.013549576811152158,
+              "force_component_hartree_per_angstrom": 0.004531555836814005,
+              "force_sum_hartree_per_angstrom": [
+                -1.3010426069826053e-18,
+                4.9873299934333204e-18,
+                2.168404344971009e-18
+              ],
+              "offset_angstrom": -0.005,
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.6396051183420468e-12,
+                  "maximum_pairwise_energy_difference_ev": 5.158928839676946e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3687027650750763,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "e053d94ef690a8bc76796bd5f709e3655af164c5ad6580e429a18d773c89e2fb",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36870276508023525,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3687027650799356,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "4c6541d5373ac81c0af5e77be2d8605a153598acc9c390b5cace0e40534bbfe8",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.4025863803723837e-12,
+                  "final_energy_residual_ev": 1.624966827762364e-11,
+                  "final_monopole_residual_e": 1.1538200950234057e-12,
+                  "final_reaction_gradient_change_ev_per_angstrom": 4.8741372049576626e-11,
+                  "final_reaction_potential_change_ev": 5.880188003182241e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            {
+              "cds": {
+                "area_quadrature": "base-area-times-C3-amplitude-squared",
+                "atomic_tension_function": "published-aqueous-smd-geometry-functions",
+                "frame_relative_minimum_eigengap": 0.14637102536705363,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "profile": "jgp94-aqueous-smd-cds-fixed-topology-c3-area-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aqueous-smd-cds",
+                "pyscf_version": "2.13.1",
+                "same_scalar_coordinate_derivative": true,
+                "solvent": "water",
+                "strict_original_smd_equivalence": false,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860
+              },
+              "continuum": {
+                "continuum_model": "cpcm",
+                "dielectric_scaling": 0.9872432708253603,
+                "equation": "variational-amplitude-cpcm-v1",
+                "force_capability": "same-energy-full-continuum-vjp-experimental",
+                "frame_determinant_error": 1.2212453270876722e-15,
+                "frame_orthogonality_error": 1.4432899320127035e-15,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "minimum_relative_eigengap": 0.14637102536705363,
+                "minimum_relative_eigengap_guard": 0.05,
+                "profile": "jgp94-cpcm-fc-aswig-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aswig",
+                "public_force_status": "closed-pending-total-pes-admission",
+                "pyscf_version": "2.13.1",
+                "static_dielectric": 78.39,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860,
+                "switching_weight": "F=product(C3-amplitude-neighbor-switches)^2",
+                "upstream_equivalence": "new-discretization-not-pruned-swig-reparameterization"
+              },
+              "energy_hartree": -0.01357229355090545,
+              "force_component_hartree_per_angstrom": 0.004555585457018218,
+              "force_sum_hartree_per_angstrom": [
+                1.0842021724855044e-18,
+                8.673617379884035e-19,
+                -7.697835424647081e-18
+              ],
+              "offset_angstrom": 0.0,
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.3705425683241401e-12,
+                  "maximum_pairwise_energy_difference_ev": 2.095379425526289e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36932091904971825,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "7310692e2546ca642eed2297d34bc9648fdf4b3caf6be6444d55a6969898f646",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36932091905181363,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36932091905171377,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "e00e07522b4e21b5a960ce939fa98e1f39944885eb7ace872aba3a4f180790a6",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.2256168302471337e-12,
+                  "final_energy_residual_ev": 3.2118974147010704e-11,
+                  "final_monopole_residual_e": 8.507378829181178e-13,
+                  "final_reaction_gradient_change_ev_per_angstrom": 7.523613503035431e-11,
+                  "final_reaction_potential_change_ev": 1.2232470592010714e-10,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            {
+              "cds": {
+                "area_quadrature": "base-area-times-C3-amplitude-squared",
+                "atomic_tension_function": "published-aqueous-smd-geometry-functions",
+                "frame_relative_minimum_eigengap": 0.1460155831202696,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "profile": "jgp94-aqueous-smd-cds-fixed-topology-c3-area-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aqueous-smd-cds",
+                "pyscf_version": "2.13.1",
+                "same_scalar_coordinate_derivative": true,
+                "solvent": "water",
+                "strict_original_smd_equivalence": false,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860
+              },
+              "continuum": {
+                "continuum_model": "cpcm",
+                "dielectric_scaling": 0.9872432708253603,
+                "equation": "variational-amplitude-cpcm-v1",
+                "force_capability": "same-energy-full-continuum-vjp-experimental",
+                "frame_determinant_error": 4.440892098500626e-16,
+                "frame_orthogonality_error": 4.440892098500626e-16,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "minimum_relative_eigengap": 0.1460155831202696,
+                "minimum_relative_eigengap_guard": 0.05,
+                "profile": "jgp94-cpcm-fc-aswig-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aswig",
+                "public_force_status": "closed-pending-total-pes-admission",
+                "pyscf_version": "2.13.1",
+                "static_dielectric": 78.39,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860,
+                "switching_weight": "F=product(C3-amplitude-neighbor-switches)^2",
+                "upstream_equivalence": "new-discretization-not-pruned-swig-reparameterization"
+              },
+              "energy_hartree": -0.013595136645426815,
+              "force_component_hartree_per_angstrom": 0.004581993337060741,
+              "force_sum_hartree_per_angstrom": [
+                -2.168404344971009e-19,
+                9.540979117872439e-18,
+                -1.0842021724855044e-19
+              ],
+              "offset_angstrom": 0.005,
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.2122941539516319e-12,
+                  "maximum_pairwise_energy_difference_ev": 3.6648462042876417e-13,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3699425113127302,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "1119aa3c90a0edd833a3b75382698bf67d92747ee4d4214d17e6918b13e9ceba",
+                      "iterations": 12,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3699425113124401,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3699425113123637,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "c3ea73e70aaca4004bf672a068f23a11bbf023a1c82940b217da8c9238aa4140",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 2.2959412149248237e-13,
+                  "final_energy_residual_ev": 6.65606458838397e-12,
+                  "final_monopole_residual_e": 1.3174704383001057e-13,
+                  "final_reaction_gradient_change_ev_per_angstrom": 1.3080758698436057e-11,
+                  "final_reaction_potential_change_ev": 2.250322150842976e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 12,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            {
+              "cds": {
+                "area_quadrature": "base-area-times-C3-amplitude-squared",
+                "atomic_tension_function": "published-aqueous-smd-geometry-functions",
+                "frame_relative_minimum_eigengap": 0.14566194350593062,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "profile": "jgp94-aqueous-smd-cds-fixed-topology-c3-area-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aqueous-smd-cds",
+                "pyscf_version": "2.13.1",
+                "same_scalar_coordinate_derivative": true,
+                "solvent": "water",
+                "strict_original_smd_equivalence": false,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860
+              },
+              "continuum": {
+                "continuum_model": "cpcm",
+                "dielectric_scaling": 0.9872432708253603,
+                "equation": "variational-amplitude-cpcm-v1",
+                "force_capability": "same-energy-full-continuum-vjp-experimental",
+                "frame_determinant_error": 4.440892098500626e-16,
+                "frame_orthogonality_error": 7.771561172376096e-16,
+                "grid_points_per_atom": 86,
+                "laboratory_grid_rotation_remedy": "jgp94-nuclear-charge-principal-frame-v1",
+                "lebedev_order": 15,
+                "minimum_relative_eigengap": 0.14566194350593062,
+                "minimum_relative_eigengap_guard": 0.05,
+                "profile": "jgp94-cpcm-fc-aswig-v1-experimental",
+                "provider": "jgp94-body-frame-fixed-topology-aswig",
+                "public_force_status": "closed-pending-total-pes-admission",
+                "pyscf_version": "2.13.1",
+                "static_dielectric": 78.39,
+                "surface_cardinality_policy": "all-candidates-retained-v1",
+                "surface_size": 860,
+                "switching_weight": "F=product(C3-amplitude-neighbor-switches)^2",
+                "upstream_equivalence": "new-discretization-not-pruned-swig-reparameterization"
+              },
+              "energy_hartree": -0.01361811618914717,
+              "force_component_hartree_per_angstrom": 0.004610036945411224,
+              "force_sum_hartree_per_angstrom": [
+                1.0842021724855044e-18,
+                7.047314121155779e-18,
+                2.0599841277224584e-18
+              ],
+              "offset_angstrom": 0.01,
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.7814499875257184e-12,
+                  "maximum_pairwise_energy_difference_ev": 5.59424728763247e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3705678165475686,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "8d9d4c474f996ad90a6d9fbc4760e9063652da9f065743e8fe41d011ad8b7595",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3705678165485278,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.37056781655316284,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "7ccdfe6e026d481a14876e800ddd9c851c52c52fa6dcbeca0ab8625267d525be",
+                      "iterations": 12,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.0795669913576944e-12,
+                  "final_energy_residual_ev": 2.7983004802223377e-11,
+                  "final_monopole_residual_e": 1.065531343713566e-12,
+                  "final_reaction_gradient_change_ev_per_angstrom": 8.918588090267576e-11,
+                  "final_reaction_potential_change_ev": 6.451117418038166e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            }
+          ],
+          "schema_version": 1,
+          "shared_kinematics_runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py",
+          "shared_kinematics_runner_sha256": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3"
+        },
+        "acetone_closed_loop": {
+          "claim_boundary": "A pass establishes only local two-coordinate work conservation of the declared Route-2 direct-PCM correction scalar for one acetone conformer. It does not establish short-NVE behavior, public ASE forces, a common stationary electronic free-energy, or experimental accuracy.",
+          "closed_loop_gate": {
+            "allowed_absolute_closed_work_ev": 1e-06,
+            "checks": {
+              "closed_work": true,
+              "fixed_surface_cardinality": true,
+              "local_multistart_agreement": true,
+              "nominal_roots": true
+            },
+            "closed_work_ev": -5.480988634707378e-12,
+            "closed_work_hartree": -2.014226188184337e-13,
+            "edge_work_hartree": {
+              "A_to_B": 2.7376220818458022e-05,
+              "B_to_C": 0.00024193664700717906,
+              "C_to_D": -2.729136883140474e-05,
+              "D_to_A": -0.00024202149919565498
+            },
+            "energy_span_ev": 0.007328376717867465,
+            "gates": {
+              "absolute_closed_work_ev": 1e-06,
+              "relative_closed_work_path_scale": 1e-05,
+              "require_fixed_surface_cardinality": true,
+              "require_local_multistart_agreement": true,
+              "require_nominal_roots": true
+            },
+            "open_force_admission_gates": [
+              "short_nve"
+            ],
+            "passed": true,
+            "surface_cardinalities": [
+              860
+            ]
+          },
+          "coordinates": {
+            "first": {
+              "atom_index": 0,
+              "cartesian_index": 0
+            },
+            "half_widths_angstrom": [
+              0.003,
+              0.003
+            ],
+            "quadrature": "composite-simpson-four-edges",
+            "second": {
+              "atom_index": 1,
+              "cartesian_index": 1
+            }
+          },
+          "created_at": "2026-08-01T08:13:34+00:00",
+          "declared_scalar": "0.5*<c_MACE-POLAR,f_reac_CPCM>+fixed-topology-aqueous-SMD-CDS",
+          "git_head": "e724cf5a923e9751af153ef1e5f7f1a6e1b4bffd",
+          "git_worktree_status": [],
+          "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2",
+          "protocol_id": "route2-fc-aswig-d2-mace-acetone-closed-work-v1",
+          "record": {
+            "atom_count": 10,
+            "compound_id": "mobley_3867265",
+            "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_3867265.mol2",
+            "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+            "name": "acetone"
+          },
+          "runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_closed_loop.py",
+          "runner_sha256": "c99ccbe8be056275d928d288a8ea16a45975efabb03296d32d98a74b37f5bd0c",
+          "samples": {
+            "A": {
+              "energy_hartree": -0.013438291650447102,
+              "force_hartree_per_angstrom": [
+                [
+                  0.004547949788449242,
+                  -0.0015728057277665508,
+                  0.005717012566206929
+                ],
+                [
+                  -0.007616846213792461,
+                  0.039905062843551276,
+                  -0.0222856285818801
+                ],
+                [
+                  0.003728683559185946,
+                  -0.0280055092034497,
+                  0.016392410655407728
+                ],
+                [
+                  -4.074908276418567e-05,
+                  -0.006883300948213723,
+                  -0.0025743760292573025
+                ],
+                [
+                  -0.0008983955279418397,
+                  -0.00039910251904038985,
+                  0.0015632886590066211
+                ],
+                [
+                  0.0010513353440064158,
+                  0.0001942644364039299,
+                  0.002307961368576149
+                ],
+                [
+                  7.153521785218325e-05,
+                  -0.0009045835756226527,
+                  -0.0014892096792540155
+                ],
+                [
+                  -0.0013645378876853292,
+                  -0.000974887066626501,
+                  0.000624884694699995
+                ],
+                [
+                  -0.0008222006046466714,
+                  -0.002022752061519926,
+                  -0.0011200286242484543
+                ],
+                [
+                  0.0013432254073367015,
+                  0.0006636138222842368,
+                  0.0008636849707424558
+                ]
+              ],
+              "force_sum_hartree_per_angstrom": [
+                6.505213034913027e-19,
+                -1.3010426069826053e-18,
+                4.119968255444917e-18
+              ],
+              "offset_angstrom": [
+                -0.003,
+                -0.003
+              ],
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.0337564138040989e-12,
+                  "maximum_pairwise_energy_difference_ev": 9.812706203149446e-13,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3656745416083473,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "073535eebe4c6f9cbc0e4b60b57f66a23d9cf5b3bc9ae6015dc36ae8f9e62e2d",
+                      "iterations": 12,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36567454160907903,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36567454160932855,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "24d1360b5731caff1f6714fed3468692c72929b2b47b1886f39052202ea393ee",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 7.034234306146914e-13,
+                  "final_energy_residual_ev": 4.3152148521130584e-12,
+                  "final_monopole_residual_e": 4.4579791247389977e-13,
+                  "final_reaction_gradient_change_ev_per_angstrom": 4.1337433476229535e-11,
+                  "final_reaction_potential_change_ev": 3.8787667522299785e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 12,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            "AB_mid": {
+              "energy_hartree": -0.013451957184300863,
+              "force_hartree_per_angstrom": [
+                [
+                  0.004562559604820475,
+                  -0.001582633307049846,
+                  0.0057664814741306275
+                ],
+                [
+                  -0.0076251023077807505,
+                  0.039898108378114715,
+                  -0.0223554691423716
+                ],
+                [
+                  0.0037215374972778925,
+                  -0.028020057607661148,
+                  0.016403214321742392
+                ],
+                [
+                  -4.498054660131219e-05,
+                  -0.006859637930604202,
+                  -0.002566546278130833
+                ],
+                [
+                  -0.0008821555467385705,
+                  -0.00040554158217774485,
+                  0.0015638561363844632
+                ],
+                [
+                  0.0010457194531293896,
+                  0.00021146638944038331,
+                  0.0023007442308066563
+                ],
+                [
+                  6.300240949108694e-05,
+                  -0.0009050702014831916,
+                  -0.0014825777800028185
+                ],
+                [
+                  -0.0013603285567814578,
+                  -0.0009737569984033322,
+                  0.0006278930584805984
+                ],
+                [
+                  -0.0008232078291523186,
+                  -0.002024754839289035,
+                  -0.0011193166840261736
+                ],
+                [
+                  0.001342955822335568,
+                  0.0006618776991133998,
+                  0.0008617206629866868
+                ]
+              ],
+              "force_sum_hartree_per_angstrom": [
+                2.168404344971009e-18,
+                -5.421010862427522e-19,
+                -3.2526065174565133e-19
+              ],
+              "offset_angstrom": [
+                0.0,
+                -0.003
+              ],
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 9.049844207353885e-13,
+                  "maximum_pairwise_energy_difference_ev": 1.642130875723069e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36604639972527103,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "96fcf459a517964693ae7697967f035a1054a64ab0ffe8a1862604fbd57954b0",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3660463997268487,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36604639972691316,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "85a753c3c695c1f7585b025c1f6591027d0a2723b6e8288a683c5279fae6b905",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 9.09439190621697e-13,
+                  "final_energy_residual_ev": 3.6070701980861486e-11,
+                  "final_monopole_residual_e": 8.685760444215873e-13,
+                  "final_reaction_gradient_change_ev_per_angstrom": 4.748529347509134e-11,
+                  "final_reaction_potential_change_ev": 7.338785135146964e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            "B": {
+              "energy_hartree": -0.013465667876716714,
+              "force_hartree_per_angstrom": [
+                [
+                  0.0045780326107268815,
+                  -0.0015926475111484573,
+                  0.005817102322507385
+                ],
+                [
+                  -0.007633683121715637,
+                  0.039891291483641234,
+                  -0.02242621427699139
+                ],
+                [
+                  0.00371443129212732,
+                  -0.028035243072413746,
+                  0.016413536303964915
+                ],
+                [
+                  -4.9439333361589823e-05,
+                  -0.006835490977393482,
+                  -0.0025586098154591567
+                ],
+                [
+                  -0.0008661502895358078,
+                  -0.00041188995221288095,
+                  0.0015649053091001536
+                ],
+                [
+                  0.0010405306982715248,
+                  0.00022830839516724602,
+                  0.00229355591094268
+                ],
+                [
+                  5.4030051916202914e-05,
+                  -0.0009055089784040991,
+                  -0.0014762714166201437
+                ],
+                [
+                  -0.0013562070411998394,
+                  -0.0009724364840960028,
+                  0.000630823683087374
+                ],
+                [
+                  -0.0008241963916048797,
+                  -0.002026670899838346,
+                  -0.0011185572811063386
+                ],
+                [
+                  0.0013426515243758243,
+                  0.0006602879966985317,
+                  0.00085972926057452
+                ]
+              ],
+              "force_sum_hartree_per_angstrom": [
+                -4.336808689942018e-19,
+                -5.421010862427522e-18,
+                -4.87890977618477e-18
+              ],
+              "offset_angstrom": [
+                0.003,
+                -0.003
+              ],
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.5188961199896767e-12,
+                  "maximum_pairwise_energy_difference_ev": 5.190681218181226e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3664194866692601,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "3525b6e85f35a2895f849f194b3440fa7b4a638c1dd2d831f3de6652d1e0ef7d",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3664194866705013,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3664194866744508,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "24e2deaf75c4a0599064e3b95d313bf0eaadf96f8d64ea176f3d7ac52670b521",
+                      "iterations": 12,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.1552286904858988e-12,
+                  "final_energy_residual_ev": 1.9038548515482034e-11,
+                  "final_monopole_residual_e": 7.623519870936235e-13,
+                  "final_reaction_gradient_change_ev_per_angstrom": 4.629852057291828e-11,
+                  "final_reaction_potential_change_ev": 9.331702077730597e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            "BC_mid": {
+              "energy_hartree": -0.013585983494561244,
+              "force_hartree_per_angstrom": [
+                [
+                  0.004571191806390251,
+                  -0.001596974850744373,
+                  0.005789249607492896
+                ],
+                [
+                  -0.007651077847097517,
+                  0.04032098514060002,
+                  -0.022549590478903297
+                ],
+                [
+                  0.0037539985634002086,
+                  -0.028381187928856414,
+                  0.016557750494318575
+                ],
+                [
+                  -4.386615379471594e-05,
+                  -0.006913304422388539,
+                  -0.0025845022521928966
+                ],
+                [
+                  -0.0008616230230526604,
+                  -0.00040592428867559677,
+                  0.001566011481176402
+                ],
+                [
+                  0.001036011863773169,
+                  0.00021075360227025208,
+                  0.0023227837960359335
+                ],
+                [
+                  4.8386663829589856e-05,
+                  -0.0009056400125625303,
+                  -0.0014850302495496078
+                ],
+                [
+                  -0.001361719334731631,
+                  -0.0009676528997157528,
+                  0.0006236374716302042
+                ],
+                [
+                  -0.0008328510240466892,
+                  -0.0020324915517699596,
+                  -0.0011073523566201373
+                ],
+                [
+                  0.0013415484853299962,
+                  0.0006714372118428959,
+                  0.000867042486611927
+                ]
+              ],
+              "force_sum_hartree_per_angstrom": [
+                8.673617379884035e-19,
+                4.9873299934333204e-18,
+                -4.336808689942018e-19
+              ],
+              "offset_angstrom": [
+                0.003,
+                0.0
+              ],
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.2612411115497935e-12,
+                  "maximum_pairwise_energy_difference_ev": 2.9848346017047334e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36969344139118787,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "746e020c7508af280fb1f746eeeb6901c478e7e22772b0bf44f04a6d88fc26da",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3696934413941727,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3696934413940465,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "e3add69498beb625106ca8bd6d847db7ac0aa2665c7a9b1fe1fab3a0a06103a0",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.2954221029204405e-12,
+                  "final_energy_residual_ev": 1.9457269129219412e-11,
+                  "final_monopole_residual_e": 9.476482099035621e-13,
+                  "final_reaction_gradient_change_ev_per_angstrom": 7.791384204480778e-11,
+                  "final_reaction_potential_change_ev": 1.2248901892775166e-10,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            "C": {
+              "energy_hartree": -0.013707604529669978,
+              "force_hartree_per_angstrom": [
+                [
+                  0.004564150871447654,
+                  -0.0016012281001045372,
+                  0.005761519031396135
+                ],
+                [
+                  -0.007668469121683818,
+                  0.040761414961137714,
+                  -0.02267562518665155
+                ],
+                [
+                  0.003794441243549719,
+                  -0.028735318580885127,
+                  0.016705640865803298
+                ],
+                [
+                  -3.9108538007231585e-05,
+                  -0.006993371534239477,
+                  -0.002611827494341903
+                ],
+                [
+                  -0.0008569860416892171,
+                  -0.00040005910704336617,
+                  0.0015672111668527128
+                ],
+                [
+                  0.0010316652314859788,
+                  0.00019304478800949003,
+                  0.002352177829607084
+                ],
+                [
+                  4.275247857529689e-05,
+                  -0.0009056426991363394,
+                  -0.0014937717664815628
+                ],
+                [
+                  -0.0013672622260548985,
+                  -0.0009630122374892085,
+                  0.000616399827268557
+                ],
+                [
+                  -0.0008415654171085809,
+                  -0.002038420615596418,
+                  -0.0010961156920663196
+                ],
+                [
+                  0.0013403815194850963,
+                  0.0006825931253472796,
+                  0.0008743914186135453
+                ]
+              ],
+              "force_sum_hartree_per_angstrom": [
+                -1.3010426069826053e-18,
+                7.589415207398531e-18,
+                -2.710505431213761e-18
+              ],
+              "offset_angstrom": [
+                0.003,
+                0.003
+              ],
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.0944301020998637e-12,
+                  "maximum_pairwise_energy_difference_ev": 1.2594369991347776e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.37300291832621474,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "618299e984f349e174719d95aa92f84cb7b09d1a8433f42e95f66065b2d3fe5c",
+                      "iterations": 12,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3730029183274742,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.373002918326563,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "4af60396abe19b1eccc77f254bf6b6fbaa24f72bcd958e26ce795d58bb5b0a9f",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.3543333121646128e-13,
+                  "final_energy_residual_ev": 3.0654367932925197e-12,
+                  "final_monopole_residual_e": 9.721737304069222e-14,
+                  "final_reaction_gradient_change_ev_per_angstrom": 1.9818036101071357e-11,
+                  "final_reaction_potential_change_ev": 2.8621632841563382e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 12,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            "CD_mid": {
+              "energy_hartree": -0.013693935860159486,
+              "force_hartree_per_angstrom": [
+                [
+                  0.004548418308343363,
+                  -0.001591689537708423,
+                  0.005710869612899329
+                ],
+                [
+                  -0.0076596130853589664,
+                  0.0407686247170028,
+                  -0.022604224728972923
+                ],
+                [
+                  0.0038014568729586315,
+                  -0.0287200772705029,
+                  0.016695115811959923
+                ],
+                [
+                  -3.4400957680656426e-05,
+                  -0.007017885789662565,
+                  -0.00261993915513474
+                ],
+                [
+                  -0.0008730958914726329,
+                  -0.0003936180152016029,
+                  0.001566062445185347
+                ],
+                [
+                  0.0010368835349289574,
+                  0.00017621902207696073,
+                  0.0023593655480590725
+                ],
+                [
+                  5.1763234770750826e-05,
+                  -0.0009051077063630634,
+                  -0.0015001326316596679
+                ],
+                [
+                  -0.0013715103115472449,
+                  -0.000964349554577733,
+                  0.0006133979023123019
+                ],
+                [
+                  -0.0008405871001503599,
+                  -0.0020364208082470935,
+                  -0.0010969201392148423
+                ],
+                [
+                  0.0013406853952081575,
+                  0.0006843049431836246,
+                  0.0008764053345662001
+                ]
+              ],
+              "force_sum_hartree_per_angstrom": [
+                2.168404344971009e-19,
+                7.26415455565288e-18,
+                1.0842021724855044e-19
+              ],
+              "offset_angstrom": [
+                0.0,
+                0.003
+              ],
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 2.3441804053447868e-12,
+                  "maximum_pairwise_energy_difference_ev": 1.6217582832211974e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.37263097488372526,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "d4e9040eea8a42bf1cdc614b0d17f6fba5c689930853b8b86a9d6dc309fecfe3",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3726309748852922,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 13,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.372630974885347,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "c74ed80a3acc4abb50c687ab53f8f6a9ed10735136f006469cb064876d94a1ae",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.8342272145588367e-12,
+                  "final_energy_residual_ev": 2.7215063536090156e-11,
+                  "final_monopole_residual_e": 1.1084345247214245e-12,
+                  "final_reaction_gradient_change_ev_per_angstrom": 1.2378173486204957e-10,
+                  "final_reaction_potential_change_ev": 1.6742326969243493e-10,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            "D": {
+              "energy_hartree": -0.013680313156507603,
+              "force_hartree_per_angstrom": [
+                [
+                  0.004533544726583627,
+                  -0.0015823282228109763,
+                  0.005661380207140753
+                ],
+                [
+                  -0.007651087847471685,
+                  0.04077595808596904,
+                  -0.02253373354023737
+                ],
+                [
+                  0.003808508145290226,
+                  -0.028705472650335236,
+                  0.0166840990631934
+                ],
+                [
+                  -2.9920732534894083e-05,
+                  -0.007041907335180844,
+                  -0.0026279425318782123
+                ],
+                [
+                  -0.0008894228636916739,
+                  -0.0003870883393322768,
+                  0.001565394943760077
+                ],
+                [
+                  0.0010425267742324412,
+                  0.00015903009494709473,
+                  0.0023665850993181466
+                ],
+                [
+                  6.033199213814557e-05,
+                  -0.000904527847096359,
+                  -0.0015068171165784196
+                ],
+                [
+                  -0.0013758450968600674,
+                  -0.0009654948692074428,
+                  0.0006103195209717204
+                ],
+                [
+                  -0.000839589959860497,
+                  -0.002034333333908357,
+                  -0.0010976766620507134
+                ],
+                [
+                  0.0013409548621743793,
+                  0.0006861644169553508,
+                  0.000878391016360622
+                ]
+              ],
+              "force_sum_hartree_per_angstrom": [
+                1.734723475976807e-18,
+                -1.1275702593849246e-17,
+                4.0115480381963664e-18
+              ],
+              "offset_angstrom": [
+                -0.003,
+                0.003
+              ],
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.3689327449384336e-12,
+                  "maximum_pairwise_energy_difference_ev": 1.7849055566898642e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3722602822359583,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "7d456c447454265fff48fdb1c2f23f8cf27aca96cc5283bae81f689651780f9f",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3722602822377432,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.37226028223753976,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "b8ee51fae0b6ca1f8283e6313bee7dbd0a33530a77a0a70a41d63a9c367859e0",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.4320072905249503e-12,
+                  "final_energy_residual_ev": 3.849542906664283e-11,
+                  "final_monopole_residual_e": 7.890060133020071e-13,
+                  "final_reaction_gradient_change_ev_per_angstrom": 8.499584369658919e-11,
+                  "final_reaction_potential_change_ev": 9.771189413143588e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            },
+            "DA_mid": {
+              "energy_hartree": -0.013558649136417524,
+              "force_hartree_per_angstrom": [
+                [
+                  0.004540840325539361,
+                  -0.0015776033252396732,
+                  0.00568913030061771
+                ],
+                [
+                  -0.00763396023195604,
+                  0.04033511956653366,
+                  -0.02240833669986491
+                ],
+                [
+                  0.003768154149416508,
+                  -0.02835137698010235,
+                  0.016536406911522812
+                ],
+                [
+                  -3.492561624342109e-05,
+                  -0.00696147485652605,
+                  -0.0026004422594774713
+                ],
+                [
+                  -0.0008939620139694792,
+                  -0.00039304601220663347,
+                  0.0015642944528234841
+                ],
+                [
+                  0.0010468454396661848,
+                  0.00017672429529775433,
+                  0.002337190349681363
+                ],
+                [
+                  6.592833829166663e-05,
+                  -0.0009046190013979277,
+                  -0.0014980230339205938
+                ],
+                [
+                  -0.0013701769426047936,
+                  -0.0009701206460457554,
+                  0.000617627759144325
+                ],
+                [
+                  -0.0008308651852659926,
+                  -0.00202848845251218,
+                  -0.001108868148941725
+                ],
+                [
+                  0.0013421217371260058,
+                  0.0006748854121991494,
+                  0.0008710203684150021
+                ]
+              ],
+              "force_sum_hartree_per_angstrom": [
+                -2.168404344971009e-19,
+                -3.686287386450715e-18,
+                -1.8431436932253575e-18
+              ],
+              "offset_angstrom": [
+                -0.003,
+                0.0
+              ],
+              "root": {
+                "multi_start_root_agreement": {
+                  "agreed": true,
+                  "failure_reasons": [],
+                  "maximum_pairwise_density_difference": 1.741606858729483e-12,
+                  "maximum_pairwise_energy_difference_ev": 6.131928298458433e-12,
+                  "members": [
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3689496356200108,
+                      "initial_density_label": "gas-mace-polar-density",
+                      "initial_density_sha256": "77cf43fe64868f0e7d1eb8d1c795dd65dfeaf6962cc038d192ed1da4b91a203e",
+                      "iterations": 11,
+                      "start_key": "gas"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.36894963562614275,
+                      "initial_density_label": "zero-density",
+                      "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                      "iterations": 12,
+                      "start_key": "zero"
+                    },
+                    {
+                      "converged_nominally": true,
+                      "declared_scalar_energy_ev": -0.3689496356256719,
+                      "initial_density_label": "negated-gas-density",
+                      "initial_density_sha256": "bcdb82efd8a820c8bc2379b9f0818394c3874889902da2daceab2e1f6c8dfe9e",
+                      "iterations": 13,
+                      "start_key": "negated-gas"
+                    }
+                  ],
+                  "policy": {
+                    "maximum_pairwise_density_difference": 1e-09,
+                    "maximum_pairwise_energy_difference_ev": 1e-10,
+                    "required_start_count": 3
+                  },
+                  "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+                },
+                "scf_convergence": {
+                  "final_dipole_residual_e_angstrom": 1.3684331445773523e-12,
+                  "final_energy_residual_ev": 3.6177061346620576e-11,
+                  "final_monopole_residual_e": 1.487837630875788e-12,
+                  "final_reaction_gradient_change_ev_per_angstrom": 5.5993820691213614e-11,
+                  "final_reaction_potential_change_ev": 7.158343362512198e-11,
+                  "fresh_map_replay": null,
+                  "history_window": null,
+                  "online_candidate_iteration": 11,
+                  "reason": "nominal-density-and-energy-v1",
+                  "runtime_identity": null
+                }
+              },
+              "surface_size": 860
+            }
+          },
+          "schema_version": 1,
+          "shared_kinematics_runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py",
+          "shared_kinematics_runner_sha256": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3"
+        },
+        "acetone_kinematics": {
+          "claim_boundary": "A pass establishes only local same-scalar kinematic force evidence for one frozen acetone conformer. It does not establish coordinate path smoothness, closed-loop work, short-NVE behavior, public ASE forces, a common stationary MACE--PCM electronic free-energy, or experimental solvation accuracy.",
+          "created_at": "2026-08-01T08:01:59+00:00",
+          "declared_scalar": "0.5*<c_MACE-POLAR,f_reac_CPCM>+fixed-topology-aqueous-SMD-CDS",
+          "energy_hartree": -0.013572293550905461,
+          "finite_difference": [
+            {
+              "analytic_force_hartree_per_angstrom": 0.004555585457018221,
+              "atom_index": 0,
+              "cartesian_index": 0,
+              "levels": [
+                {
+                  "absolute_error_ev_per_angstrom": 3.9702051189108395e-07,
+                  "absolute_error_hartree_per_angstrom": 1.45902348206578e-08,
+                  "finite_difference_force_hartree_per_angstrom": 0.004555600047253042,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.001
+                },
+                {
+                  "absolute_error_ev_per_angstrom": 2.2077421939146095e-07,
+                  "absolute_error_hartree_per_angstrom": 8.113302982573622e-09,
+                  "finite_difference_force_hartree_per_angstrom": 0.004555593570321204,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.0005
+                },
+                {
+                  "absolute_error_ev_per_angstrom": 2.3793610410992836e-08,
+                  "absolute_error_hartree_per_angstrom": 8.743990618370612e-10,
+                  "finite_difference_force_hartree_per_angstrom": 0.004555586331417283,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.00025
+                }
+              ]
+            },
+            {
+              "analytic_force_hartree_per_angstrom": 0.04032798715748233,
+              "atom_index": 1,
+              "cartesian_index": 1,
+              "levels": [
+                {
+                  "absolute_error_ev_per_angstrom": 5.420640837991323e-06,
+                  "absolute_error_hartree_per_angstrom": 1.992048781762623e-07,
+                  "finite_difference_force_hartree_per_angstrom": 0.040328186362360505,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.001
+                },
+                {
+                  "absolute_error_ev_per_angstrom": 1.4657511509064953e-06,
+                  "absolute_error_hartree_per_angstrom": 5.386536171270162e-08,
+                  "finite_difference_force_hartree_per_angstrom": 0.04032804102284404,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.0005
+                },
+                {
+                  "absolute_error_ev_per_angstrom": 5.970432066884154e-07,
+                  "absolute_error_hartree_per_angstrom": 2.1940933334074764e-08,
+                  "finite_difference_force_hartree_per_angstrom": 0.04032800909841566,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.00025
+                }
+              ]
+            },
+            {
+              "analytic_force_hartree_per_angstrom": 0.016547322115426814,
+              "atom_index": 2,
+              "cartesian_index": 2,
+              "levels": [
+                {
+                  "absolute_error_ev_per_angstrom": 3.5437135971378346e-07,
+                  "absolute_error_hartree_per_angstrom": 1.3022907374010684e-08,
+                  "finite_difference_force_hartree_per_angstrom": 0.016547335138334188,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.001
+                },
+                {
+                  "absolute_error_ev_per_angstrom": 7.253272184771117e-07,
+                  "absolute_error_hartree_per_angstrom": 2.66552838516787e-08,
+                  "finite_difference_force_hartree_per_angstrom": 0.016547348770710665,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.0005
+                },
+                {
+                  "absolute_error_ev_per_angstrom": 8.887952408130158e-08,
+                  "absolute_error_hartree_per_angstrom": 3.2662622918844253e-09,
+                  "finite_difference_force_hartree_per_angstrom": 0.016547318849164522,
+                  "minus_scf_reason": "nominal-density-and-energy-v1",
+                  "plus_scf_reason": "nominal-density-and-energy-v1",
+                  "step_angstrom": 0.00025
+                }
+              ]
+            }
+          ],
+          "force_admission_snapshot": {
+            "adjoint_relative_residual": 7.905498349433009e-11,
+            "condition": {
+              "dimension": 39,
+              "exact_small_system": true,
+              "feedback_largest_singular_value": 0.3450429380949802,
+              "gate_passed": true,
+              "method": "dense-neutral-space-svd-v1",
+              "reason": null,
+              "residual_condition_number_2": 1.5260239871572243,
+              "residual_is_numerically_singular": false,
+              "residual_smallest_singular_value": 0.6715931798638044
+            },
+            "continuum": {
+              "evidence": "The JGP94 nondegenerate principal-axis wrapper applies the same fixed-topology amplitude-CPCM scalar and complete body-to-lab coordinate VJP.  Unit tests cover rigid rotation, translation, and a rebuilt-coordinate finite difference; the paired aqueous CDS uses the same JGP94 frame.",
+              "fixed_node_topology": true,
+              "geometry_path_smoothness_verified": true,
+              "nonpolar": {
+                "evidence": "All atom/angular candidates remain allocated; the published aqueous SMD tension functions and base-area*g**2 term share one analytic coordinate derivative.  Unit crossing and finite-difference tests cover the discrete construction.",
+                "fixed_node_topology": true,
+                "geometry_path_smoothness_verified": true,
+                "profile_kind": "aqueous-smd-cds-fixed-topology-c3-area-v1-experimental",
+                "same_energy_coordinate_derivative": true
+              },
+              "profile_kind": "jgp94-cpcm-fc-aswig-aqueous-smd-cds-v1-experimental",
+              "same_energy_coordinate_derivative": true
+            },
+            "continuum_identity_error_ev": 5.551115123125783e-17,
+            "contract_version": 3,
+            "energy_semantics": {
+              "common_variational_electronic_free_energy_proven": false,
+              "derivative_matches_declared_operational_scalar": true,
+              "electrostatic_energy_ledger": "pcm-half-coupling-only-v1",
+              "evidence": "The declared scalar is 0.5*<c_MACE-POLAR, f_reac_PCM> + G_CDS. The ledger-specific outer adjoint differentiates that scalar and does not insert E_MACE[V_reac]-E_MACE[gas].  The current MACE fixed point is nevertheless not proven stationary for a common electronic free-energy functional.",
+              "excludes_unproven_mace_field_energy_cross_term": true,
+              "operational_scalar_is_explicit": true
+            },
+            "failure_reasons": [
+              "component-resolved-force-finite-difference-unverified",
+              "rigid-translation-force-gate-unverified",
+              "rigid-rotation-force-gate-unverified",
+              "coordinate-path-smoothness-force-gate-unverified",
+              "closed-loop-work-force-gate-unverified",
+              "short-nve-force-gate-unverified"
+            ],
+            "multi_start_root_agreement": true,
+            "nominal_root": true,
+            "pes_validation": {
+              "closed_loop_work_verified": false,
+              "component_resolved_finite_difference_verified": false,
+              "coordinate_path_smoothness_verified": false,
+              "evidence": "No profile-level same-scalar finite-difference, symmetry, path, closed-work, and NVE evidence has been supplied.",
+              "profile_kind": "unspecified-route2-force-pes-v1",
+              "rigid_rotation_covariance_verified": false,
+              "rigid_translation_verified": false,
+              "short_nve_verified": false
+            },
+            "policy": {
+              "maximum_adjoint_relative_residual": 1e-10,
+              "maximum_continuum_identity_error_ev": 2e-10,
+              "maximum_dense_dimension": 128,
+              "maximum_feedback_singular_value": 0.95,
+              "maximum_primal_dipole_residual_e_angstrom": 2e-12,
+              "maximum_primal_monopole_residual_e": 2e-12,
+              "maximum_residual_condition_number_2": 100000.0,
+              "minimum_residual_singular_value": 1e-05
+            },
+            "primal_dipole_residual_e_angstrom": 1.2255751968837103e-12,
+            "primal_monopole_residual_e": 8.507326787476899e-13,
+            "release_admitted": false
+          },
+          "force_hartree_per_angstrom": [
+            [
+              0.004555585457018221,
+              -0.0015871981178776017,
+              0.0057386119278472906
+            ],
+            [
+              -0.0076423551741183786,
+              0.04032798715748233,
+              -0.022478510147961095
+            ],
+            [
+              0.003761057508172204,
+              -0.02836596406283987,
+              0.016547322115426814
+            ],
+            [
+              -3.9282208629920923e-05,
+              -0.00693763384373469,
+              -0.002592525995205862
+            ],
+            [
+              -0.000877679501510044,
+              -0.0003995299770168356,
+              0.0015649122217701586
+            ],
+            [
+              0.0010412156263604271,
+              0.00019391972242001844,
+              0.0023299719113356746
+            ],
+            [
+              5.737788426816561e-05,
+              -0.0009051526822603067,
+              -0.0014913643631035431
+            ],
+            [
+              -0.001365904506175264,
+              -0.0009689823883706959,
+              0.0006206711677533229
+            ],
+            [
+              -0.0008318674776628019,
+              -0.0020305335998437985,
+              -0.0011081341031726414
+            ],
+            [
+              0.001341852392277392,
+              0.000673087792041455,
+              0.0008690452653098823
+            ]
+          ],
+          "force_scope": "solvent-correction operational-scalar force only",
+          "force_sum_hartree_per_angstrom": [
+            2.168404344971009e-19,
+            4.662069341687669e-18,
+            0.0
+          ],
+          "git_head": "e724cf5a923e9751af153ef1e5f7f1a6e1b4bffd",
+          "git_worktree_status": [],
+          "kinematic_gate": {
+            "checks": {
+              "finite_difference": true,
+              "net_force": true,
+              "rotation_energy": true,
+              "rotation_force": true,
+              "translation_energy": true,
+              "translation_force": true
+            },
+            "gates": {
+              "maximum_fd_error_ev_per_angstrom": 2e-05,
+              "maximum_net_force_hartree_per_angstrom": 1e-10,
+              "maximum_rotation_energy_error_ev": 1e-08,
+              "maximum_rotation_force_error_ev_per_angstrom": 1e-06,
+              "maximum_translation_energy_error_ev": 1e-08,
+              "maximum_translation_force_error_ev_per_angstrom": 1e-06
+            },
+            "open_force_admission_gates": [
+              "coordinate_path_smoothness",
+              "closed_loop_work",
+              "short_nve"
+            ],
+            "passed": true
+          },
+          "mace_geometry_frame": {
+            "branch_count": 4,
+            "enabled": true,
+            "minimum_relative_eigengap_guard": 0.05,
+            "operator_identity": "proper-D2-Reynolds-averaged-JGP94-canonical-MACE",
+            "policy": "jgp94-d2-canonical-v1"
+          },
+          "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2",
+          "protocol_id": "route2-fc-aswig-d2-mace-acetone-kinematic-force-v1",
+          "record": {
+            "atom_count": 10,
+            "compound_id": "mobley_3867265",
+            "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_3867265.mol2",
+            "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+            "name": "acetone"
+          },
+          "root": {
+            "multi_start_root_agreement": {
+              "agreed": true,
+              "failure_reasons": [],
+              "maximum_pairwise_density_difference": 1.3704593015972932e-12,
+              "maximum_pairwise_energy_difference_ev": 2.0995427618686335e-12,
+              "members": [
+                {
+                  "converged_nominally": true,
+                  "declared_scalar_energy_ev": -0.36932091904971853,
+                  "initial_density_label": "gas-mace-polar-density",
+                  "initial_density_sha256": "bb1157eb99a4edc0b59d1577778f38f0cb447a4af76b19defd33dcc7119fa895",
+                  "iterations": 11,
+                  "start_key": "gas"
+                },
+                {
+                  "converged_nominally": true,
+                  "declared_scalar_energy_ev": -0.3693209190518181,
+                  "initial_density_label": "zero-density",
+                  "initial_density_sha256": "7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61",
+                  "iterations": 12,
+                  "start_key": "zero"
+                },
+                {
+                  "converged_nominally": true,
+                  "declared_scalar_energy_ev": -0.36932091905171394,
+                  "initial_density_label": "negated-gas-density",
+                  "initial_density_sha256": "737934bb946fd753afcbc511249585806f59d5f6ed32abcbf697e43632ee7aeb",
+                  "iterations": 13,
+                  "start_key": "negated-gas"
+                }
+              ],
+              "policy": {
+                "maximum_pairwise_density_difference": 1e-09,
+                "maximum_pairwise_energy_difference_ev": 1e-10,
+                "required_start_count": 3
+              },
+              "scope": "same-geometry local multi-start agreement; not a global fixed-point uniqueness proof"
+            },
+            "scf_convergence": {
+              "final_dipole_residual_e_angstrom": 1.2255751968837103e-12,
+              "final_energy_residual_ev": 3.211936272506932e-11,
+              "final_monopole_residual_e": 8.507326787476899e-13,
+              "final_reaction_gradient_change_ev_per_angstrom": 7.52359476802189e-11,
+              "final_reaction_potential_change_ev": 1.223248169424096e-10,
+              "fresh_map_replay": null,
+              "history_window": null,
+              "online_candidate_iteration": 11,
+              "reason": "nominal-density-and-energy-v1",
+              "runtime_identity": null
+            }
+          },
+          "rotation": {
+            "energy_difference_ev": -8.024719125557299e-16,
+            "matrix": [
+              [
+                0.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "maximum_force_covariance_error_ev_per_angstrom": 1.3689226743597745e-14,
+            "rotated_force_sum_hartree_per_angstrom": [
+              6.505213034913027e-19,
+              0.0,
+              -1.3010426069826053e-18
+            ]
+          },
+          "runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py",
+          "runner_sha256": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3",
+          "schema_version": 1,
+          "translation": {
+            "energy_difference_ev": 5.664507618040446e-16,
+            "maximum_force_difference_ev_per_angstrom": 1.7371156695324036e-14,
+            "translated_force_sum_hartree_per_angstrom": [
+              0.0,
+              2.710505431213761e-18,
+              -4.553649124439119e-18
+            ],
+            "vector_angstrom": [
+              0.37,
+              -0.21,
+              0.18
+            ]
+          }
+        },
+        "acetone_short_nve": {
+          "claim_boundary": "This uses a capability-gated research bridge around the same total direct-PCM scalar and force evidence. A pass does not open a public Route-2 force API, establish a common stationary MACE--PCM electronic free-energy, prove a broad chemical force domain, or validate experimental solvation accuracy.",
+          "common_physical_time_fs": 0.2,
+          "created_at": "2026-08-01T08:29:25+00:00",
+          "git_head": "e724cf5a923e9751af153ef1e5f7f1a6e1b4bffd",
+          "git_worktree_status": [],
+          "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2",
+          "protocol_id": "route2-fc-aswig-d2-mace-acetone-short-nve-v1",
+          "record": {
+            "atom_count": 10,
+            "compound_id": "mobley_3867265",
+            "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_3867265.mol2",
+            "mol2_sha256": "713d87b5cb8d1a2a14cb217a061102d8535643f86fe97068b270ea398c5970c1",
+            "name": "acetone"
+          },
+          "runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_nve.py",
+          "runner_sha256": "4f19a453c9e416fb8e59c18ba36d4be4973183213dfde532b0614a31b082e778",
+          "schema_version": 1,
+          "shared_kinematics_runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py",
+          "shared_kinematics_runner_sha256": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3",
+          "short_nve_gate": {
+            "checks": {
+              "absolute_energy_drift": true,
+              "common_physical_time": true,
+              "fixed_surface_cardinality": true,
+              "local_multistart_agreement": true,
+              "net_force": true,
+              "nominal_roots": true,
+              "second_order_drift_trend": true,
+              "velocity_reversal_energy": true,
+              "velocity_reversal_position": true,
+              "velocity_reversal_velocity": true
+            },
+            "drift_ratios_fine_over_maximum_coarse_or_noise_floor": [
+              0.24962862483237583,
+              0.24899469696186569
+            ],
+            "gates": {
+              "energy_drift_noise_floor_ev": 5e-08,
+              "maximum_fine_to_coarse_drift_ratio": 0.4,
+              "maximum_net_force_hartree_per_angstrom": 1e-10,
+              "maximum_reversal_energy_error_ev": 2e-05,
+              "maximum_reversal_position_error_angstrom": 1e-07,
+              "maximum_reversal_velocity_error_au": 1e-08,
+              "maximum_total_energy_drift_ev": 2e-05,
+              "require_fixed_surface_cardinality": true,
+              "require_local_multistart_agreement": true,
+              "require_nominal_roots": true
+            },
+            "passed": true,
+            "remaining_force_admission_scope": "this one-acetone short NVE does not by itself establish a broad public Route-2 force domain",
+            "second_order_trend_checks": [
+              true,
+              true
+            ],
+            "surface_cardinalities": [
+              860
+            ]
+          },
+          "temperature_kelvin": 300.0,
+          "total_declared_scalar": "E_MACE-POLAR(gas)+0.5*<c_MACE-POLAR,f_reac_CPCM>+fixed-topology-aqueous-SMD-CDS",
+          "trajectories": [
+            {
+              "all_local_multistart_agreement": true,
+              "all_nominal_roots": true,
+              "final_minus_initial_total_energy_ev": 8.991255601169612e-07,
+              "maximum_absolute_total_energy_drift_ev": 8.991255601169612e-07,
+              "maximum_net_force_hartree_per_angstrom": 1.2793585635328952e-17,
+              "physical_time_fs": 0.2,
+              "samples": [
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013572293550905454,
+                    "force_sum_hartree_per_angstrom": [
+                      0.0,
+                      -1.2793585635328952e-17,
+                      3.469446951953614e-18
+                    ],
+                    "gas_energy_hartree": -193.14022644762176,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15379874117266
+                  },
+                  "kinetic_energy_hartree": 0.011400521039999995,
+                  "potential_energy_hartree": -193.15379874117266,
+                  "step": 0,
+                  "time_fs": 0.0,
+                  "total_energy_hartree": -193.14239822013266
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013606252664263064,
+                    "force_sum_hartree_per_angstrom": [
+                      -3.469446951953614e-18,
+                      7.37257477290143e-18,
+                      3.469446951953614e-18
+                    ],
+                    "gas_energy_hartree": -193.14018651307495,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.1537927657392
+                  },
+                  "kinetic_energy_hartree": 0.011394554720055957,
+                  "potential_energy_hartree": -193.1537927657392,
+                  "step": 1,
+                  "time_fs": 0.1,
+                  "total_energy_hartree": -193.14239821101916
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013640059851144032,
+                    "force_sum_hartree_per_angstrom": [
+                      -1.734723475976807e-18,
+                      -3.903127820947816e-18,
+                      3.0357660829594124e-18
+                    ],
+                    "gas_energy_hartree": -193.14012319001446,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15376324986562
+                  },
+                  "kinetic_energy_hartree": 0.011365062775209493,
+                  "potential_energy_hartree": -193.15376324986562,
+                  "step": 2,
+                  "time_fs": 0.2,
+                  "total_energy_hartree": -193.1423981870904
+                }
+              ],
+              "steps": 2,
+              "surface_cardinalities": [
+                860
+              ],
+              "timestep_fs": 0.1
+            },
+            {
+              "all_local_multistart_agreement": true,
+              "all_nominal_roots": true,
+              "final_minus_initial_total_energy_ev": 2.244474771236367e-07,
+              "maximum_absolute_total_energy_drift_ev": 2.244474771236367e-07,
+              "maximum_net_force_hartree_per_angstrom": 9.974659986866641e-18,
+              "physical_time_fs": 0.2,
+              "samples": [
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013572293550905444,
+                    "force_sum_hartree_per_angstrom": [
+                      1.734723475976807e-18,
+                      1.3010426069826053e-18,
+                      9.974659986866641e-18
+                    ],
+                    "gas_energy_hartree": -193.14022644762176,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15379874117266
+                  },
+                  "kinetic_energy_hartree": 0.011400521039999995,
+                  "potential_energy_hartree": -193.15379874117266,
+                  "step": 0,
+                  "time_fs": 0.0,
+                  "total_energy_hartree": -193.14239822013266
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.01358928864964341,
+                    "force_sum_hartree_per_angstrom": [
+                      -5.204170427930421e-18,
+                      -6.5052130349130266e-18,
+                      -4.336808689942018e-18
+                    ],
+                    "gas_energy_hartree": -193.14020942353903,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.1537987121887
+                  },
+                  "kinetic_energy_hartree": 0.011400492715753078,
+                  "potential_energy_hartree": -193.1537987121887,
+                  "step": 1,
+                  "time_fs": 0.05,
+                  "total_energy_hartree": -193.14239821947294
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013606249165525205,
+                    "force_sum_hartree_per_angstrom": [
+                      0.0,
+                      8.239936510889834e-18,
+                      -3.469446951953614e-18
+                    ],
+                    "gas_energy_hartree": -193.1401865243764,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.1537927735419
+                  },
+                  "kinetic_energy_hartree": 0.011394555681492594,
+                  "potential_energy_hartree": -193.1537927735419,
+                  "step": 2,
+                  "time_fs": 0.1,
+                  "total_energy_hartree": -193.1423982178604
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013623171724937426,
+                    "force_sum_hartree_per_angstrom": [
+                      1.734723475976807e-18,
+                      -6.938893903907228e-18,
+                      -2.6020852139652106e-18
+                    ],
+                    "gas_energy_hartree": -193.14015777835334,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15378095007827
+                  },
+                  "kinetic_energy_hartree": 0.011382734743717222,
+                  "potential_energy_hartree": -193.15378095007827,
+                  "step": 3,
+                  "time_fs": 0.15000000000000002,
+                  "total_energy_hartree": -193.14239821533457
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013640052873089751,
+                    "force_sum_hartree_per_angstrom": [
+                      -1.734723475976807e-18,
+                      5.204170427930421e-18,
+                      -4.7704895589362195e-18
+                    ],
+                    "gas_energy_hartree": -193.14012322870718,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15376328158027
+                  },
+                  "kinetic_energy_hartree": 0.0113650696958848,
+                  "potential_energy_hartree": -193.15376328158027,
+                  "step": 4,
+                  "time_fs": 0.2,
+                  "total_energy_hartree": -193.14239821188437
+                }
+              ],
+              "steps": 4,
+              "surface_cardinalities": [
+                860
+              ],
+              "timestep_fs": 0.05,
+              "velocity_reversal": {
+                "additional_force_evaluations": 4,
+                "position_error_angstrom": 2.220446049250313e-16,
+                "total_energy_error_ev": 0.0,
+                "velocity_error_au": 1.7564075194265172e-17
+              }
+            },
+            {
+              "all_local_multistart_agreement": true,
+              "all_nominal_roots": true,
+              "final_minus_initial_total_energy_ev": 5.58862315502552e-08,
+              "maximum_absolute_total_energy_drift_ev": 5.58862315502552e-08,
+              "maximum_net_force_hartree_per_angstrom": 1.3877787807814457e-17,
+              "physical_time_fs": 0.2,
+              "samples": [
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013572293550905447,
+                    "force_sum_hartree_per_angstrom": [
+                      0.0,
+                      4.336808689942018e-19,
+                      2.3852447794681098e-18
+                    ],
+                    "gas_energy_hartree": -193.14022644762176,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15379874117266
+                  },
+                  "kinetic_energy_hartree": 0.011400521039999995,
+                  "potential_energy_hartree": -193.15379874117266,
+                  "step": 0,
+                  "time_fs": 0.0,
+                  "total_energy_hartree": -193.14239822013266
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.01358079497850782,
+                    "force_sum_hartree_per_angstrom": [
+                      -4.336808689942018e-18,
+                      -1.3877787807814457e-17,
+                      1.734723475976807e-18
+                    ],
+                    "gas_energy_hartree": -193.1402186714819,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.1537994664604
+                  },
+                  "kinetic_energy_hartree": 0.011401246372549644,
+                  "potential_energy_hartree": -193.1537994664604,
+                  "step": 1,
+                  "time_fs": 0.025,
+                  "total_energy_hartree": -193.14239822008787
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013589288208297735,
+                    "force_sum_hartree_per_angstrom": [
+                      1.734723475976807e-18,
+                      -5.637851296924623e-18,
+                      -6.938893903907228e-18
+                    ],
+                    "gas_energy_hartree": -193.1402094244507,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15379871265898
+                  },
+                  "kinetic_energy_hartree": 0.011400492678619862,
+                  "potential_energy_hartree": -193.15379871265898,
+                  "step": 2,
+                  "time_fs": 0.05,
+                  "total_energy_hartree": -193.14239821998035
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013597772769669968,
+                    "force_sum_hartree_per_angstrom": [
+                      -7.806255641895632e-18,
+                      -6.071532165918825e-18,
+                      1.1926223897340549e-17
+                    ],
+                    "gas_energy_hartree": -193.14019870866525,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.1537964814349
+                  },
+                  "kinetic_energy_hartree": 0.011398261650852882,
+                  "potential_energy_hartree": -193.1537964814349,
+                  "step": 3,
+                  "time_fs": 0.07500000000000001,
+                  "total_energy_hartree": -193.14239821978407
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013606248290181365,
+                    "force_sum_hartree_per_angstrom": [
+                      3.469446951953614e-18,
+                      -2.6020852139652106e-18,
+                      -4.336808689942018e-18
+                    ],
+                    "gas_energy_hartree": -193.14018652719724,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15379277548743
+                  },
+                  "kinetic_energy_hartree": 0.011394555921111205,
+                  "potential_energy_hartree": -193.15379277548743,
+                  "step": 4,
+                  "time_fs": 0.1,
+                  "total_energy_hartree": -193.14239821956633
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013614714329677837,
+                    "force_sum_hartree_per_angstrom": [
+                      0.0,
+                      -2.6020852139652106e-18,
+                      -6.938893903907228e-18
+                    ],
+                    "gas_energy_hartree": -193.14017288401658,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15378759834627
+                  },
+                  "kinetic_energy_hartree": 0.01138937905949505,
+                  "potential_energy_hartree": -193.15378759834627,
+                  "step": 5,
+                  "time_fs": 0.125,
+                  "total_energy_hartree": -193.14239821928678
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013623170410050109,
+                    "force_sum_hartree_per_angstrom": [
+                      -6.938893903907228e-18,
+                      -1.1709383462843448e-17,
+                      5.204170427930421e-18
+                    ],
+                    "gas_energy_hartree": -193.14015778410027,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15378095451032
+                  },
+                  "kinetic_energy_hartree": 0.011382735572846813,
+                  "potential_energy_hartree": -193.15378095451032,
+                  "step": 6,
+                  "time_fs": 0.15000000000000002,
+                  "total_energy_hartree": -193.14239821893747
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013631616166931537,
+                    "force_sum_hartree_per_angstrom": [
+                      -1.734723475976807e-18,
+                      -2.168404344971009e-18,
+                      1.3010426069826053e-18
+                    ],
+                    "gas_energy_hartree": -193.14014123328536,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.15377284945228
+                  },
+                  "kinetic_energy_hartree": 0.011374630902840126,
+                  "potential_energy_hartree": -193.15377284945228,
+                  "step": 7,
+                  "time_fs": 0.17500000000000002,
+                  "total_energy_hartree": -193.14239821854943
+                },
+                {
+                  "evaluation": {
+                    "correction_energy_hartree": -0.013640051144299904,
+                    "force_sum_hartree_per_angstrom": [
+                      3.469446951953614e-18,
+                      -6.071532165918825e-18,
+                      6.071532165918825e-18
+                    ],
+                    "gas_energy_hartree": -193.14012323835829,
+                    "local_multistart_agreed": true,
+                    "scf_reason": "nominal-density-and-energy-v1",
+                    "surface_size": 860,
+                    "total_energy_hartree": -193.1537632895026
+                  },
+                  "kinetic_energy_hartree": 0.011365071423700409,
+                  "potential_energy_hartree": -193.1537632895026,
+                  "step": 8,
+                  "time_fs": 0.2,
+                  "total_energy_hartree": -193.14239821807888
+                }
+              ],
+              "steps": 8,
+              "surface_cardinalities": [
+                860
+              ],
+              "timestep_fs": 0.025
+            }
+          ],
+          "velocity_initialization": {
+            "remove_angular": true,
+            "remove_com": true,
+            "rng_seed": 20260801,
+            "velocity_unit": "bohr/atomic-time"
+          }
+        },
+        "flexible_closed_loop": {
+          "claim_boundary": "This is a local flexible two-torsion work-conservation test of the declared total direct-PCM operational scalar. It is not evidence of a universal physical free-energy functional or broad public force support.",
+          "coordinates": {
+            "first": {
+              "axis_direction_index": 5,
+              "axis_origin_index": 4,
+              "fragment_indices": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                15,
+                16,
+                17,
+                18,
+                19
+              ],
+              "label": "central-C3-C4"
+            },
+            "half_width_degrees": [
+              0.3,
+              0.3
+            ],
+            "second": {
+              "axis_direction_index": 6,
+              "axis_origin_index": 5,
+              "fragment_indices": [
+                6,
+                7,
+                8,
+                9,
+                17,
+                18,
+                19
+              ],
+              "label": "terminal-C4-O3"
+            }
+          },
+          "created_at": "2026-08-01T08:44:59+00:00",
+          "edge_work_hartree": {
+            "A_to_B": -2.8411258567404097e-05,
+            "B_to_C": 6.05699118110593e-06,
+            "C_to_D": 2.814427414123988e-05,
+            "D_to_A": -5.790006859249165e-06
+          },
+          "flexible_closed_loop_gate": {
+            "allowed_absolute_closed_work_ev": 1e-06,
+            "checks": {
+              "closed_work": true,
+              "fixed_surface_cardinality": true,
+              "local_multistart_agreement": true,
+              "net_force": true,
+              "nominal_roots": true
+            },
+            "closed_work_ev": -2.8383503459790538e-12,
+            "closed_work_hartree": -1.0430745216128898e-13,
+            "energy_span_ev": 0.0009306635663792382,
+            "gates": {
+              "absolute_closed_work_ev": 1e-06,
+              "maximum_net_force_hartree_per_angstrom": 1e-10,
+              "relative_closed_work_path_scale": 1e-05,
+              "require_fixed_surface_cardinality": true,
+              "require_local_multistart_agreement": true,
+              "require_nominal_roots": true
+            },
+            "maximum_net_force_hartree_per_angstrom": 2.5587171270657905e-17,
+            "passed": true,
+            "remaining_force_admission_scope": "A clean-tree replay and explicit narrow-domain public API review remain required; this does not certify all molecular geometries.",
+            "surface_cardinalities": [
+              1720
+            ]
+          },
+          "git_head": "e724cf5a923e9751af153ef1e5f7f1a6e1b4bffd",
+          "git_worktree_status": [],
+          "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2",
+          "protocol_id": "route2-fc-aswig-d2-mace-flexible-two-torsion-closed-work-v1",
+          "record": {
+            "atom_count": 20,
+            "compound_id": "mobley_352111",
+            "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_352111.mol2",
+            "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+            "name": "2-acetoxyethyl acetate"
+          },
+          "runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_flexible_closed_loop.py",
+          "runner_sha256": "bd969bfb72cb4d40b46548f082375fdc722de817818ad07a3afa046a5a1afb8f",
+          "samples": {
+            "A": {
+              "force_sum_hartree_per_angstrom": [
+                -2.5587171270657905e-17,
+                -1.474514954580286e-17,
+                -1.3877787807814457e-17
+              ],
+              "generalized_forces_hartree_per_radian": [
+                -0.002532975252385241,
+                0.0005589515944611281
+              ],
+              "local_multistart_agreed": true,
+              "offset_degrees": [
+                -0.3,
+                -0.3
+              ],
+              "offset_radians": [
+                -0.005235987755982988,
+                -0.005235987755982988
+              ],
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6298026532185
+            },
+            "AB_mid": {
+              "force_sum_hartree_per_angstrom": [
+                1.1926223897340549e-17,
+                6.938893903907228e-18,
+                1.734723475976807e-18
+              ],
+              "generalized_forces_hartree_per_radian": [
+                -0.002712689633885962,
+                0.00057470222260767
+              ],
+              "local_multistart_agreed": true,
+              "offset_degrees": [
+                0.0,
+                -0.3
+              ],
+              "offset_radians": [
+                0.0,
+                -0.005235987755982988
+              ],
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6297889211032
+            },
+            "B": {
+              "force_sum_hartree_per_angstrom": [
+                -1.3010426069826053e-17,
+                -4.336808689942018e-18,
+                -8.673617379884035e-19
+              ],
+              "generalized_forces_hartree_per_radian": [
+                -0.002894718277742476,
+                0.0005891755225932282
+              ],
+              "local_multistart_agreed": true,
+              "offset_degrees": [
+                0.3,
+                -0.3
+              ],
+              "offset_radians": [
+                0.005235987755982988,
+                -0.005235987755982988
+              ],
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6297742419467
+            },
+            "BC_mid": {
+              "force_sum_hartree_per_angstrom": [
+                -1.1058862159352145e-17,
+                -1.734723475976807e-18,
+                0.0
+              ],
+              "generalized_forces_hartree_per_radian": [
+                -0.002882059208023379,
+                0.0005788774911378702
+              ],
+              "local_multistart_agreed": true,
+              "offset_degrees": [
+                0.3,
+                0.0
+              ],
+              "offset_radians": [
+                0.005235987755982988,
+                0.0
+              ],
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6297773011465
+            },
+            "C": {
+              "force_sum_hartree_per_angstrom": [
+                -8.239936510889834e-18,
+                4.336808689942018e-18,
+                -1.1275702593849246e-17
+              ],
+              "generalized_forces_hartree_per_radian": [
+                -0.002871777135828084,
+                0.0005657148251085858
+              ],
+              "local_multistart_agreed": true,
+              "offset_degrees": [
+                0.3,
+                0.3
+              ],
+              "offset_radians": [
+                0.005235987755982988,
+                0.005235987755982988
+              ],
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6297802989197
+            },
+            "CD_mid": {
+              "force_sum_hartree_per_angstrom": [
+                1.431146867680866e-17,
+                5.204170427930421e-18,
+                -2.6020852139652106e-18
+              ],
+              "generalized_forces_hartree_per_radian": [
+                -0.0026872029183434565,
+                0.0005559957719186541
+              ],
+              "local_multistart_agreed": true,
+              "offset_degrees": [
+                0.0,
+                0.3
+              ],
+              "offset_radians": [
+                0.0,
+                0.005235987755982988
+              ],
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6297948513397
+            },
+            "D": {
+              "force_sum_hartree_per_angstrom": [
+                -1.1058862159352145e-17,
+                -4.336808689942018e-18,
+                -1.3877787807814457e-17
+              ],
+              "generalized_forces_hartree_per_radian": [
+                -0.0025048924483203373,
+                0.0005449904748483052
+              ],
+              "local_multistart_agreed": true,
+              "offset_degrees": [
+                -0.3,
+                0.3
+              ],
+              "offset_radians": [
+                -0.005235987755982988,
+                0.005235987755982988
+              ],
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6298084432023
+            },
+            "DA_mid": {
+              "force_sum_hartree_per_angstrom": [
+                1.3227266504323154e-17,
+                -1.734723475976807e-18,
+                7.806255641895632e-18
+              ],
+              "generalized_forces_hartree_per_radian": [
+                -0.002517749861612465,
+                0.0005533718736395778
+              ],
+              "local_multistart_agreed": true,
+              "offset_degrees": [
+                -0.3,
+                0.0
+              ],
+              "offset_radians": [
+                -0.005235987755982988,
+                0.0
+              ],
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6298055664614
+            }
+          },
+          "schema_version": 1,
+          "shared_kinematics_runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py",
+          "shared_kinematics_runner_sha256": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3",
+          "torsion_runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_flexible_torsion.py",
+          "torsion_runner_sha256": "5eb72f82fab622cef66c36b6c4011373746e1613a67faeeba528327918c0a735",
+          "total_declared_scalar": "E_MACE-POLAR(gas)+0.5*<c_MACE-POLAR,f_reac_CPCM>+fixed-topology-aqueous-SMD-CDS"
+        },
+        "flexible_torsion": {
+          "central_energy_force": [
+            {
+              "absolute_error_ev_per_radian": 0.00011514491334854189,
+              "absolute_error_hartree_per_radian": 4.231497551996505e-06,
+              "analytic_generalized_force_hartree_per_radian": -0.0026987569298354136,
+              "centered_fd_generalized_force_hartree_per_radian": -0.00270298842738741,
+              "step_degrees": 1.0,
+              "step_radians": 0.017453292519943295
+            },
+            {
+              "absolute_error_ev_per_radian": 2.881336833013432e-05,
+              "absolute_error_hartree_per_radian": 1.0588717643538088e-06,
+              "analytic_generalized_force_hartree_per_radian": -0.0026987569298354136,
+              "centered_fd_generalized_force_hartree_per_radian": -0.0026998158015997674,
+              "step_degrees": 0.5,
+              "step_radians": 0.008726646259971648
+            },
+            {
+              "absolute_error_ev_per_radian": 7.2407625101582655e-06,
+              "absolute_error_hartree_per_radian": 2.6609311645038256e-07,
+              "analytic_generalized_force_hartree_per_radian": -0.0026987569298354136,
+              "centered_fd_generalized_force_hartree_per_radian": -0.002699023022951864,
+              "step_degrees": 0.25,
+              "step_radians": 0.004363323129985824
+            }
+          ],
+          "claim_boundary": "This is a frozen flexible torsion test of the declared direct-PCM total operational scalar. It neither establishes a common stationary MACE--PCM electronic free energy nor opens a universal public force API.",
+          "created_at": "2026-08-01T08:36:42+00:00",
+          "flexible_torsion_gate": {
+            "central_fd_errors_ev_per_radian": [
+              0.00011514491334854189,
+              2.881336833013432e-05,
+              7.2407625101582655e-06
+            ],
+            "checks": {
+              "centered_energy_force_agreement": true,
+              "fixed_surface_cardinality": true,
+              "local_multistart_agreement": true,
+              "net_force": true,
+              "nominal_roots": true,
+              "path_energy_force_agreement": true,
+              "second_order_finite_difference_trend": true
+            },
+            "fine_over_coarse_error_ratios": [
+              0.2502357029260745,
+              0.25129871756734357
+            ],
+            "gates": {
+              "energy_force_fd_noise_floor_ev_per_radian": 2e-06,
+              "maximum_centered_fd_error_ev_per_radian": 0.0002,
+              "maximum_fine_to_coarse_error_ratio": 0.4,
+              "maximum_net_force_hartree_per_angstrom": 1e-10,
+              "require_fixed_surface_cardinality": true,
+              "require_local_multistart_agreement": true,
+              "require_nominal_roots": true
+            },
+            "maximum_net_force_hartree_per_angstrom": 2.1033522146218786e-17,
+            "maximum_path_error_ev_per_radian": 2.881336833013432e-05,
+            "passed": true,
+            "remaining_force_admission_scope": "A second torsional closed-loop check and final clean-tree replay remain required before any narrow public force admission.",
+            "second_order_trend_checks": [
+              true,
+              true
+            ],
+            "surface_cardinalities": [
+              1720
+            ]
+          },
+          "git_head": "e724cf5a923e9751af153ef1e5f7f1a6e1b4bffd",
+          "git_worktree_status": [],
+          "path_energy_force": [
+            {
+              "absolute_error_ev_per_radian": 2.8481723132457425e-05,
+              "analytic_generalized_force_hartree_per_radian": -0.002398348427725589,
+              "angle_degrees": -0.5,
+              "centered_fd_generalized_force_hartree_per_radian": -0.0023993951117536262
+            },
+            {
+              "absolute_error_ev_per_radian": 2.881336833013432e-05,
+              "analytic_generalized_force_hartree_per_radian": -0.0026987569298354136,
+              "angle_degrees": 0.0,
+              "centered_fd_generalized_force_hartree_per_radian": -0.0026998158015997674
+            },
+            {
+              "absolute_error_ev_per_radian": 2.8561375476090042e-05,
+              "analytic_generalized_force_hartree_per_radian": -0.003005532131823495,
+              "angle_degrees": 0.5,
+              "centered_fd_generalized_force_hartree_per_radian": -0.003006581743021194
+            }
+          ],
+          "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2",
+          "protocol_id": "route2-fc-aswig-d2-mace-flexible-torsion-force-v1",
+          "record": {
+            "atom_count": 20,
+            "compound_id": "mobley_352111",
+            "mol2_path": "/home/axie/MAPLE/MAPLE-implicitsolv-route2/.omx/benchmarks/route2-macepolar-smd/dataset/mol2files_gaff/mobley_352111.mol2",
+            "mol2_sha256": "922384a840d71ce0c003b8b6521f6b255f21948489d10942b42f8dab423298df",
+            "name": "2-acetoxyethyl acetate"
+          },
+          "runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_flexible_torsion.py",
+          "runner_sha256": "5eb72f82fab622cef66c36b6c4011373746e1613a67faeeba528327918c0a735",
+          "samples": [
+            {
+              "analytic_generalized_force_hartree_per_radian": -0.002104220888835353,
+              "angle_degrees": -1.0,
+              "angle_radians": -0.017453292519943295,
+              "correction_energy_hartree": -0.022990956056914445,
+              "force_sum_hartree_per_angstrom": [
+                3.2526065174565133e-18,
+                -6.071532165918825e-18,
+                4.336808689942018e-18
+              ],
+              "gas_energy_hartree": -535.6068428319695,
+              "local_multistart_agreed": true,
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6298337880264,
+              "total_force_hartree_per_angstrom": [
+                [
+                  0.005789198473835352,
+                  -0.015922139645059168,
+                  -0.001918331669611941
+                ],
+                [
+                  0.005659311401971245,
+                  -0.0004473288470107986,
+                  0.008661509534305136
+                ],
+                [
+                  -0.03976062964663637,
+                  -0.027756701091628713,
+                  0.017630432466662044
+                ],
+                [
+                  0.03485800177836758,
+                  0.022042108703225337,
+                  -0.00469498634602835
+                ],
+                [
+                  -0.0021742122251081136,
+                  -0.006950132781173857,
+                  -0.014568910092977408
+                ],
+                [
+                  -0.008622015611574902,
+                  0.025684006798642127,
+                  0.005654948069714289
+                ],
+                [
+                  -0.03652131135037201,
+                  -0.028774265320852175,
+                  0.0032387820326225053
+                ],
+                [
+                  0.003815017826358638,
+                  -0.006777222792705519,
+                  0.0006448646656712544
+                ],
+                [
+                  0.04847955703899474,
+                  0.010806153986039208,
+                  0.0012297973966801535
+                ],
+                [
+                  -0.003360554246857683,
+                  -0.006822306206616557,
+                  -0.01465286170384529
+                ],
+                [
+                  0.0028559555155504165,
+                  0.0001776694039306915,
+                  -0.0028703282680288406
+                ],
+                [
+                  -0.007520572139397103,
+                  0.007957341758651057,
+                  0.0008527279878756762
+                ],
+                [
+                  0.00036027813745797324,
+                  0.0069282377069745426,
+                  0.0014999588924723038
+                ],
+                [
+                  -0.007898889922906084,
+                  -0.006559123212606512,
+                  -0.008115281919136021
+                ],
+                [
+                  -0.00374899313216778,
+                  0.0038863774544730893,
+                  -0.003981495795818929
+                ],
+                [
+                  0.006438810154341028,
+                  0.01024847086115476,
+                  0.0054857257114400305
+                ],
+                [
+                  -0.0007921829315129057,
+                  0.00271078379415718,
+                  -0.006195103456910589
+                ],
+                [
+                  0.002920135796032455,
+                  0.0033022479790921315,
+                  -0.0036079074659472726
+                ],
+                [
+                  -0.002212261394194362,
+                  0.00029562343157490956,
+                  0.009865142777401699
+                ],
+                [
+                  0.0014353564778178888,
+                  0.00597019801973826,
+                  0.005841317183459556
+                ]
+              ]
+            },
+            {
+              "analytic_generalized_force_hartree_per_radian": -0.002398348427725589,
+              "angle_degrees": -0.5,
+              "angle_radians": -0.008726646259971648,
+              "correction_energy_hartree": -0.023013014010831622,
+              "force_sum_hartree_per_angstrom": [
+                8.673617379884035e-19,
+                -8.673617379884035e-18,
+                0.0
+              ],
+              "gas_energy_hartree": -535.6068011323584,
+              "local_multistart_agreed": true,
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6298141463693,
+              "total_force_hartree_per_angstrom": [
+                [
+                  0.005766078610364276,
+                  -0.01593268837641106,
+                  -0.0019415130302636628
+                ],
+                [
+                  0.005639407791207748,
+                  -0.0004280086640899225,
+                  0.008652812888215445
+                ],
+                [
+                  -0.039745398265872145,
+                  -0.027745305120154114,
+                  0.01762048328036389
+                ],
+                [
+                  0.03480824756351279,
+                  0.022138392025318587,
+                  -0.004686613275388126
+                ],
+                [
+                  -0.0019828243020169408,
+                  -0.007047361643733545,
+                  -0.014617316939662341
+                ],
+                [
+                  -0.008758832738706045,
+                  0.025683412703717497,
+                  0.0056115658825950585
+                ],
+                [
+                  -0.036543865356751457,
+                  -0.02875584155139488,
+                  0.003183812309120236
+                ],
+                [
+                  0.003820669609354524,
+                  -0.006758231823315969,
+                  0.0007002099466226338
+                ],
+                [
+                  0.0484666347785463,
+                  0.010827030297566266,
+                  0.0013648025397914104
+                ],
+                [
+                  -0.0033019249446191016,
+                  -0.0069399831934387896,
+                  -0.014602179940065792
+                ],
+                [
+                  0.0028659194848735517,
+                  0.00017103824736680075,
+                  -0.0028534830257871493
+                ],
+                [
+                  -0.007523873863584737,
+                  0.007963675796876202,
+                  0.0008574904233690707
+                ],
+                [
+                  0.0003664931719203708,
+                  0.0069262720320795446,
+                  0.0015090090251413508
+                ],
+                [
+                  -0.00791558230066342,
+                  -0.006575423713109554,
+                  -0.008174681255251953
+                ],
+                [
+                  -0.0037025227446478353,
+                  0.0038544949973218405,
+                  -0.0039188948027744155
+                ],
+                [
+                  0.0064030797460731675,
+                  0.010356740841692094,
+                  0.005446583018042072
+                ],
+                [
+                  -0.0007501225888922492,
+                  0.002589351267862118,
+                  -0.006175600998061722
+                ],
+                [
+                  0.0029291549099193354,
+                  0.003279912214617607,
+                  -0.003612782410385462
+                ],
+                [
+                  -0.0022508915048887477,
+                  0.00037756809481841256,
+                  0.009855095811675924
+                ],
+                [
+                  0.0014101529448706175,
+                  0.006014955566410856,
+                  0.005781200552703534
+                ]
+              ]
+            },
+            {
+              "analytic_generalized_force_hartree_per_radian": -0.0025477585684889233,
+              "angle_degrees": -0.25,
+              "angle_radians": -0.004363323129985824,
+              "correction_energy_hartree": -0.023023994805985992,
+              "force_sum_hartree_per_angstrom": [
+                1.431146867680866e-17,
+                1.0408340855860843e-17,
+                8.673617379884035e-19
+              ],
+              "gas_energy_hartree": -535.6067793613923,
+              "local_multistart_agreed": true,
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6298033561983,
+              "total_force_hartree_per_angstrom": [
+                [
+                  0.005754338732503947,
+                  -0.015937760935924236,
+                  -0.0019520539327300265
+                ],
+                [
+                  0.005629644904003198,
+                  -0.0004194098837293665,
+                  0.008648831559488705
+                ],
+                [
+                  -0.03973759665264467,
+                  -0.027739134030211214,
+                  0.017615223756033548
+                ],
+                [
+                  0.03478426612485606,
+                  0.022187166552436643,
+                  -0.004682365203738844
+                ],
+                [
+                  -0.001885815355624973,
+                  -0.007094526491037847,
+                  -0.014641384257080297
+                ],
+                [
+                  -0.0088287606767243,
+                  0.025682234692117438,
+                  0.005588762206854022
+                ],
+                [
+                  -0.036555869588677035,
+                  -0.028747749014739546,
+                  0.0031561254788794136
+                ],
+                [
+                  0.003823617536585458,
+                  -0.0067478858137767096,
+                  0.0007286891245963595
+                ],
+                [
+                  0.048459916470860856,
+                  0.01083771159196737,
+                  0.0014323851285926222
+                ],
+                [
+                  -0.003273115182569134,
+                  -0.006998623545341505,
+                  -0.014576279182986743
+                ],
+                [
+                  0.0028704397271340394,
+                  0.00016845140413237775,
+                  -0.0028456491160456553
+                ],
+                [
+                  -0.0075255586719997275,
+                  0.007966932591395732,
+                  0.0008598479875742777
+                ],
+                [
+                  0.00036963028704644664,
+                  0.006925034910720003,
+                  0.001512986827698889
+                ],
+                [
+                  -0.007922969755942788,
+                  -0.006583431660958401,
+                  -0.008204074397790962
+                ],
+                [
+                  -0.003679414282027178,
+                  0.0038383987108880258,
+                  -0.003887207721618639
+                ],
+                [
+                  0.006384776676214189,
+                  0.010409935806182019,
+                  0.005426651360888918
+                ],
+                [
+                  -0.0007287366554984301,
+                  0.0025284954644548725,
+                  -0.006165213647295935
+                ],
+                [
+                  0.0029340894694169046,
+                  0.0032680216874544305,
+                  -0.0036152366097901203
+                ],
+                [
+                  -0.002270462443705093,
+                  0.00041886254543706887,
+                  0.009849198627908668
+                ],
+                [
+                  0.0013975793367922425,
+                  0.0060372754185328455,
+                  0.005750762010561798
+                ]
+              ]
+            },
+            {
+              "analytic_generalized_force_hartree_per_radian": -0.0026987569298354136,
+              "angle_degrees": 0.0,
+              "angle_radians": 0.0,
+              "correction_energy_hartree": -0.023034934455485448,
+              "force_sum_hartree_per_angstrom": [
+                2.1033522146218786e-17,
+                1.0408340855860843e-17,
+                0.0
+              ],
+              "gas_energy_hartree": -535.6067569762262,
+              "local_multistart_agreed": true,
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6297919106817,
+              "total_force_hartree_per_angstrom": [
+                [
+                  0.00574248473386116,
+                  -0.01594268176463118,
+                  -0.001961869950242851
+                ],
+                [
+                  0.005619998622840013,
+                  -0.0004115325124834576,
+                  0.008645097832716882
+                ],
+                [
+                  -0.0397296697705127,
+                  -0.02773267024193405,
+                  0.017609781741277943
+                ],
+                [
+                  0.03476088848359274,
+                  0.022236349403159612,
+                  -0.004678088484410185
+                ],
+                [
+                  -0.001787941544165542,
+                  -0.007140708818193809,
+                  -0.014665332049651005
+                ],
+                [
+                  -0.008899694555884912,
+                  0.025680448976323968,
+                  0.0055651985885841505
+                ],
+                [
+                  -0.036568355642107093,
+                  -0.02874039660495262,
+                  0.0031283267824980224
+                ],
+                [
+                  0.003826632644944976,
+                  -0.006736955609525355,
+                  0.0007576823711553634
+                ],
+                [
+                  0.04845300785867486,
+                  0.010848578380468559,
+                  0.0015000148735744745
+                ],
+                [
+                  -0.003244625734231392,
+                  -0.0070571296081620265,
+                  -0.014550017650654227
+                ],
+                [
+                  0.0028746583941330365,
+                  0.0001663647353788995,
+                  -0.0028382340231765044
+                ],
+                [
+                  -0.007527263833913362,
+                  0.007970245500165948,
+                  0.0008621842858989323
+                ],
+                [
+                  0.0003727838695985696,
+                  0.006923630516495964,
+                  0.0015166001211995115
+                ],
+                [
+                  -0.007929712325832262,
+                  -0.006591343325769319,
+                  -0.008233261323512939
+                ],
+                [
+                  -0.0036563941325034877,
+                  0.0038222071749517634,
+                  -0.00385526607279404
+                ],
+                [
+                  0.006366170803774249,
+                  0.010462498395353974,
+                  0.0054064904100737995
+                ],
+                [
+                  -0.0007071179198580267,
+                  0.0024675570157692154,
+                  -0.0061544049858204605
+                ],
+                [
+                  0.002939318705011241,
+                  0.003255635226579931,
+                  -0.0036177030958267245
+                ],
+                [
+                  -0.0022902040337603423,
+                  0.00046035955956871756,
+                  0.009842716598385027
+                ],
+                [
+                  0.001385035376338293,
+                  0.006059543601435275,
+                  0.005720084030724833
+                ]
+              ]
+            },
+            {
+              "analytic_generalized_force_hartree_per_radian": -0.002851349575315198,
+              "angle_degrees": 0.25,
+              "angle_radians": 0.004363323129985824,
+              "correction_energy_hartree": -0.023045826034018425,
+              "force_sum_hartree_per_angstrom": [
+                -4.119968255444917e-18,
+                -4.336808689942018e-18,
+                1.0408340855860843e-17
+              ],
+              "gas_energy_hartree": -535.6067339767451,
+              "local_multistart_agreed": true,
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6297798027791,
+              "total_force_hartree_per_angstrom": [
+                [
+                  0.005730521489112772,
+                  -0.01594743901090866,
+                  -0.001970943951204223
+                ],
+                [
+                  0.0056104607973749,
+                  -0.0004043819669045101,
+                  0.008641611878775615
+                ],
+                [
+                  -0.039721616760416134,
+                  -0.027725931416718745,
+                  0.017604162176551752
+                ],
+                [
+                  0.034738119627068645,
+                  0.022285929230059856,
+                  -0.004673792310137297
+                ],
+                [
+                  -0.0016892115129383584,
+                  -0.007185896126278739,
+                  -0.014689138449295104
+                ],
+                [
+                  -0.00897162946038498,
+                  0.025678039841640587,
+                  0.0055408621849340305
+                ],
+                [
+                  -0.03658132100289198,
+                  -0.028733778983375424,
+                  0.003100433904741005
+                ],
+                [
+                  0.0038297042758532324,
+                  -0.006725431024910869,
+                  0.0007871688323269916
+                ],
+                [
+                  0.04844589409093726,
+                  0.010859648704286747,
+                  0.0015676855988889897
+                ],
+                [
+                  -0.0032164440685153307,
+                  -0.007115499663007081,
+                  -0.014523403548321049
+                ],
+                [
+                  0.0028785817557469675,
+                  0.00016478524100385617,
+                  -0.0028312545262167126
+                ],
+                [
+                  -0.007528987616640966,
+                  0.007973611579913092,
+                  0.0008644952465819403
+                ],
+                [
+                  0.0003759513085083355,
+                  0.00692206111610663,
+                  0.0015198501696326928
+                ],
+                [
+                  -0.007935806449399318,
+                  -0.006599157995013315,
+                  -0.008262240692448596
+                ],
+                [
+                  -0.0036334647484497305,
+                  0.0038059276044006595,
+                  -0.003823072805551914
+                ],
+                [
+                  0.006347254490937473,
+                  0.010514424963611727,
+                  0.005386108508770318
+                ],
+                [
+                  -0.0006852707370208386,
+                  0.0024065436501646137,
+                  -0.006143177915933225
+                ],
+                [
+                  0.002944850577761326,
+                  0.003242744306356035,
+                  -0.003620181732633145
+                ],
+                [
+                  -0.0023101156998644543,
+                  0.0005020494167076028,
+                  0.009835649509140893
+                ],
+                [
+                  0.0013725296432211705,
+                  0.0060817505328659375,
+                  0.005689177921397047
+                ]
+              ]
+            },
+            {
+              "analytic_generalized_force_hartree_per_radian": -0.003005532131823495,
+              "angle_degrees": 0.5,
+              "angle_radians": 0.008726646259971648,
+              "correction_energy_hartree": -0.0230566624565964,
+              "force_sum_hartree_per_angstrom": [
+                -1.0408340855860843e-17,
+                0.0,
+                -4.336808689942018e-18
+              ],
+              "gas_energy_hartree": -535.6067103632378,
+              "local_multistart_agreed": true,
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.6297670256944,
+              "total_force_hartree_per_angstrom": [
+                [
+                  0.005718454396755145,
+                  -0.01595202225633806,
+                  -0.0019792604061262264
+                ],
+                [
+                  0.005601022454985671,
+                  -0.0003979590973020655,
+                  0.008638372393564055
+                ],
+                [
+                  -0.03971343698537458,
+                  -0.027718935715393148,
+                  0.01759836956570978
+                ],
+                [
+                  0.034715964506148195,
+                  0.022335894160712046,
+                  -0.004669485758242926
+                ],
+                [
+                  -0.0015896334596811994,
+                  -0.007230075889616408,
+                  -0.014712781482271876
+                ],
+                [
+                  -0.009044560645628752,
+                  0.025674991400386024,
+                  0.005515740890164232
+                ],
+                [
+                  -0.03659476284486401,
+                  -0.028727890391371528,
+                  0.003072465058430613
+                ],
+                [
+                  0.003832822169832925,
+                  -0.006713303922167712,
+                  0.0008171250462193688
+                ],
+                [
+                  0.04843855935120557,
+                  0.010870940849557021,
+                  0.0016353898779750855
+                ],
+                [
+                  -0.003188557384937176,
+                  -0.007173732012476376,
+                  -0.014496444101752744
+                ],
+                [
+                  0.0028822171482007965,
+                  0.00016371686390260392,
+                  -0.002824725074724788
+                ],
+                [
+                  -0.007530728280034093,
+                  0.007977027793345632,
+                  0.0008667768310266092
+                ],
+                [
+                  0.0003791299025216542,
+                  0.006920329369958393,
+                  0.0015227390349425393
+                ],
+                [
+                  -0.007941249338366152,
+                  -0.006606875208129774,
+                  -0.008291011050507197
+                ],
+                [
+                  -0.0036106282646260397,
+                  0.0037895681074281862,
+                  -0.0037906313870004846
+                ],
+                [
+                  0.006328020528428493,
+                  0.010565712388495942,
+                  0.005365514102895895
+                ],
+                [
+                  -0.0006632003453473602,
+                  0.0023454630255887983,
+                  -0.006131536107105802
+                ],
+                [
+                  0.0029506923899645363,
+                  0.003229342277161879,
+                  -0.003622671544487744
+                ],
+                [
+                  -0.0023301963468186936,
+                  0.0005439219214208318,
+                  0.009827998444278594
+                ],
+                [
+                  0.0013600710476350548,
+                  0.006103886334837726,
+                  0.005658055667013014
+                ]
+              ]
+            },
+            {
+              "analytic_generalized_force_hartree_per_radian": -0.003318597429210861,
+              "angle_degrees": 1.0,
+              "angle_radians": 0.017453292519943295,
+              "correction_energy_hartree": -0.02307814155754797,
+              "force_sum_hartree_per_angstrom": [
+                1.214306433183765e-17,
+                -2.0816681711721685e-17,
+                -3.469446951953614e-18
+              ],
+              "gas_energy_hartree": -535.6066612943735,
+              "local_multistart_agreed": true,
+              "scf_reason": "nominal-density-and-energy-v1",
+              "surface_size": 1720,
+              "total_energy_hartree": -535.629739435931,
+              "total_force_hartree_per_angstrom": [
+                [
+                  0.005694033291960471,
+                  -0.015960626469968504,
+                  -0.001993565552267474
+                ],
+                [
+                  0.005582405318713554,
+                  -0.0003872824789376561,
+                  0.008632616894670878
+                ],
+                [
+                  -0.039696695599191756,
+                  -0.02770425053677173,
+                  0.017586283251497088
+                ],
+                [
+                  0.03467351516123242,
+                  0.02243693072089503,
+                  -0.004660877009646694
+                ],
+                [
+                  -0.0013879660969106714,
+                  -0.007315363530639775,
+                  -0.014759487216860795
+                ],
+                [
+                  -0.009193395560252303,
+                  0.02566691268334903,
+                  0.005463098674451745
+                ],
+                [
+                  -0.03662306312967735,
+                  -0.02871827535530296,
+                  0.0030163755754067057
+                ],
+                [
+                  0.0038391574152815133,
+                  -0.006687223920000514,
+                  0.0008783376616987183
+                ],
+                [
+                  0.048423158182580306,
+                  0.010894265707438887,
+                  0.0017708613043055082
+                ],
+                [
+                  -0.0031336145693131013,
+                  -0.007289773718239579,
+                  -0.014441511000258946
+                ],
+                [
+                  0.002888659071088944,
+                  0.00016311331389678605,
+                  -0.0028130616762074043
+                ],
+                [
+                  -0.00753425278146664,
+                  0.007983997656459699,
+                  0.0008712356539220395
+                ],
+                [
+                  0.000385509724151895,
+                  0.006916391299737873,
+                  0.0015274443233239936
+                ],
+                [
+                  -0.00795017365987854,
+                  -0.006622016458716109,
+                  -0.00834791866349288
+                ],
+                [
+                  -0.003565240958689651,
+                  0.0037566462909486096,
+                  -0.0037250199053818415
+                ],
+                [
+                  0.006288572819781941,
+                  0.010666360090690314,
+                  0.005323722382478333
+                ],
+                [
+                  -0.0006184159852476137,
+                  0.0022231311065735453,
+                  -0.006107026087721745
+                ],
+                [
+                  0.002963331939636089,
+                  0.0032009881389725185,
+                  -0.003627677429398689
+                ],
+                [
+                  -0.002370857271460896,
+                  0.0006281716647170689,
+                  0.009810955151133473
+                ],
+                [
+                  0.001335332687661403,
+                  0.006147903794897457,
+                  0.005595213668347983
+                ]
+              ]
+            }
+          ],
+          "schema_version": 1,
+          "shared_kinematics_runner": "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py",
+          "shared_kinematics_runner_sha256": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3",
+          "torsion": {
+            "angle_convention": "positive-right-hand-rule-about-C3-C4",
+            "angles_degrees": [
+              -1.0,
+              -0.5,
+              -0.25,
+              0.0,
+              0.25,
+              0.5,
+              1.0
+            ],
+            "axis_direction_index_zero_based": 5,
+            "axis_origin_index_zero_based": 4,
+            "rotated_fragment_indices_zero_based": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              15,
+              16,
+              17,
+              18,
+              19
+            ]
+          },
+          "total_declared_scalar": "E_MACE-POLAR(gas)+0.5*<c_MACE-POLAR,f_reac_CPCM>+fixed-topology-aqueous-SMD-CDS"
+        }
+      },
+      "git_worktree_status": [],
+      "profile_relation": "force-v3 reuses the v2 scalar and operator and changes only the separately gated public capability boundary",
+      "profile_used": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2",
+      "source_artifact_sha256": {
+        "acetone_cartesian_path": "c721c3eaa175c15dcc3dd6db62c52bbe2a0bac1b188cf4d886a4479f0e1b965a",
+        "acetone_closed_loop": "10d38d03245a51f184af75b37889e92732294eb69c212a737b7cbc257ba27c22",
+        "acetone_kinematics": "4368a08409204e7fe5dfb186cd9175435dcb11439efe704e6a9ea94159c638eb",
+        "acetone_short_nve": "ddad44f86ef8addbe94747ad9a05d141ebb319a29adab6c6c12a9fb1edfd1036",
+        "flexible_closed_loop": "89aa3271569e456bb1f34434e78005daf3c0c0a643e9ae838ac5dc758bffaa9b",
+        "flexible_torsion": "a32ca3357e257383a6b6d9bae6a8755cc0aea08960e2c787bf8d5fef8cda1277"
+      },
+      "source_files_sha256": {
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_closed_loop.py": "c99ccbe8be056275d928d288a8ea16a45975efabb03296d32d98a74b37f5bd0c",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_flexible_closed_loop.py": "bd969bfb72cb4d40b46548f082375fdc722de817818ad07a3afa046a5a1afb8f",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_flexible_torsion.py": "5eb72f82fab622cef66c36b6c4011373746e1613a67faeeba528327918c0a735",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_kinematics.py": "8d4cb0a1fa99c023cba37c9b5d1883844e98514269c75ee3e2ead6ce704728c3",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_nve.py": "4f19a453c9e416fb8e59c18ba36d4be4973183213dfde532b0614a31b082e778",
+        "docs/implicit-solvation/benchmarks/run_route2_fc_aswig_d2_force_path.py": "52cd1576bc55e10c5cd4995b526536b828981859945287765b46bfa2b3ea1479",
+        "maple/function/calculator/extra_correction/implicit/fc_aswig_smd.py": "06bc0c909ecd1c842d2a7a0517616fc5f10d9f7c8cb4196f921cfda2de3e5c43",
+        "maple/function/calculator/extra_correction/implicit/route2_derivative.py": "c4f1a1f4495befdf86550333bd5360f86e60c5091bab1857869a36956d136f9d",
+        "maple/function/calculator/extra_correction/implicit/route2_engine.py": "51a0db0e98a39196fb0cbcb7506e5e784d913be1e4aca4736e3d192548128a38",
+        "maple/function/calculator/extra_correction/implicit/route2_fc_aswig_smd_cds.py": "9c3ca11fa162c73668936196f64c739e7e8de9e9a0035c401def0990a16e74d1",
+        "maple/function/calculator/extra_correction/implicit/route2_force_admission.py": "c442ec3aad37d5c54d37633454ccd2e1839c3c43b07ee4ab5af0c21466c87033",
+        "maple/function/calculator/extra_correction/implicit/route2_jgp94_fc_aswig.py": "13de26d2afef3b3911b5575c3c7df243415d4ef48feeebdda2774c8ede7b7dc2",
+        "maple/function/calculator/extra_correction/implicit/route2_jgp94_mace_frame.py": "15b577f86d16a7ace5d0eeb64385a314980f6807de22483d9cb24dda1809c8ea",
+        "maple/function/calculator/mace/_macepol_calculator.py": "7052235ef1bbc5a7674baddf97902689301a3ac6de5f2b33d8284b183de0b249",
+        "maple/function/route2_energy_ledger.py": "5242b38d6504c52c1dd80ab4c4a65a1ff8d95319b63b3edd0eb693cb77588885",
+        "maple/function/route2_smd_profiles.py": "0030f13b3535aa2a55ac5e9da30e400fe2621ebc8534f1b0a925034c9e3feb31"
+      }
+    }
+  },
+  "profile": "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-force-v3",
+  "prohibited_inferences": [
+    "variational SCRF or common stationary MACE--PCM electronic free energy",
+    "universal all-geometry solution-phase PES",
+    "all-solvent or ionic force support",
+    "broad chemical force validation",
+    "long-time MD stability",
+    "experimental solvation-accuracy certification",
+    "portable performance or speedup claim"
+  ],
+  "runtime": {
+    "checkpoint": {
+      "identifier": "polar-1-m",
+      "sha256": "fab8b8713c832f31a2a853aaa22fd638be8a369cbf5095e6b3e982a18d10e93a"
+    },
+    "device": "cuda",
+    "mace_torch": "0.3.16",
+    "numpy": "2.4.6",
+    "pyscf": "2.13.1",
+    "python": "3.11.14",
+    "torch": "2.12.0+cu130"
+  },
+  "schema_version": 1,
+  "scientific_identity": {
+    "common_stationary_electronic_functional_established": false,
+    "continuum": "fixed-cardinality amplitude-CPCM in a nondegenerate JGP94 frame",
+    "electronic_model": "official MACE-POLAR-1-M checkpoint; no weight change",
+    "energy_ledger": "pcm-half-coupling-only-v1",
+    "force_meaning": "analytic conservative derivative of the declared operational scalar",
+    "nonpolar": "fixed-topology aqueous SMD-CDS",
+    "response": "learned local-jet density fixed point with unmixed residual"
+  },
+  "status": "bounded-public-force-profile-admitted-with-open-domain-gates",
+  "summary": {
+    "2_acetoxyethyl_acetate": {
+      "central_torsion_fd_errors_ev_per_radian": [
+        0.00011514491334854189,
+        2.881336833013432e-05,
+        7.2407625101582655e-06
+      ],
+      "closed_loop_work_ev": -2.8383503459790538e-12,
+      "fine_over_coarse_error_ratios": [
+        0.2502357029260745,
+        0.25129871756734357
+      ],
+      "maximum_torsion_path_error_ev_per_radian": 2.881336833013432e-05,
+      "surface_cardinality": 1720
+    },
+    "acetone": {
+      "cartesian_path_maximum_centered_fd_error_ev_per_angstrom": 1.3103270510803168e-05,
+      "closed_loop_work_ev": -5.480988634707378e-12,
+      "maximum_component_fd_error_ev_per_angstrom": 5.420640837991323e-06,
+      "nve_common_physical_time_fs": 0.2,
+      "nve_fine_over_coarse_drift_ratios": [
+        0.24962862483237583,
+        0.24899469696186569
+      ],
+      "nve_maximum_absolute_energy_drifts_ev": [
+        8.991255601169612e-07,
+        2.244474771236367e-07,
+        5.58862315502552e-08
+      ],
+      "nve_timesteps_fs": [
+        0.1,
+        0.05,
+        0.025
+      ],
+      "rigid_rotation_energy_error_ev": 8.024719125557299e-16,
+      "rigid_rotation_force_covariance_error_ev_per_angstrom": 1.3689226743597745e-14,
+      "rigid_translation_energy_error_ev": 5.664507618040446e-16,
+      "rigid_translation_force_error_ev_per_angstrom": 1.7371156695324036e-14,
+      "surface_cardinality": 860
+    },
+    "all_registered_gates_passed": true,
+    "current_head_replay": {
+      "kinematics_passed": true,
+      "maximum_component_fd_error_ev_per_angstrom": 5.420641025864159e-06,
+      "public_capability": "bounded-experimental-energy-and-conservative-forces",
+      "public_force_release_admitted": true,
+      "public_forces_evaluated": true,
+      "rigid_rotation_energy_error_ev": 1.1801057537584264e-15,
+      "rigid_rotation_force_covariance_error_ev_per_angstrom": 1.3311592902395049e-14,
+      "rigid_translation_energy_error_ev": 2.832253809020223e-16,
+      "rigid_translation_force_error_ev_per_angstrom": 1.6049438251114598e-14
+    }
+  },
+  "upstream_theory_and_implementation": [
+    {
+      "role": "MACE-POLAR response model identity",
+      "url": "https://arxiv.org/abs/2602.19411"
+    },
+    {
+      "role": "SWIG smooth Gaussian surface construction",
+      "url": "https://doi.org/10.1063/1.3511297"
+    },
+    {
+      "role": "PySCF PCM switching, energy, and analytic-gradient implementation reference",
+      "url": "https://pyscf.org/_modules/pyscf/solvent/pcm.html"
+    },
+    {
+      "role": "PySCF PCM coordinate-gradient implementation reference",
+      "url": "https://pyscf.org/_modules/pyscf/solvent/grad/pcm.html"
+    }
+  ]
+}

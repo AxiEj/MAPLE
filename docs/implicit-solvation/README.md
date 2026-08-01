@@ -501,8 +501,8 @@ digests; `route2-public-result-ledger.json` is only the latest-record alias and
 must not be used to erase earlier evaluation evidence.
 
 FreeSolv remains a secondary energy diagnostic; it does not define Route 2 and
-cannot certify a solution-phase PES. The retained derivative evidence is not
-a public force capability. A bounded
+cannot certify a solution-phase PES. The retained **pyddx** derivative evidence
+is not a public force capability. A bounded
 three-fixed-geometry QM/experiment comparison and four-geometry electronic
 conformer panel are frozen in
 [`route2-qm-fidelity-v1.json`](benchmarks/route2-qm-fidelity-v1.json);
@@ -569,13 +569,14 @@ cavity-only response, because pyddx 0.8.0 exposes only their combined
 provider-consistent coordinate response.
 
 No finer step is being used to overwrite the failed asymptotic gate, and this
-diagnosis does not authorize a production change. The next bounded stage is an
-upstream-backed smooth cavity/operator research profile, not a local switching
-patch or a mixing/radius retune. The four-geometry flexible panel, closed-loop
-panel, and second-molecule force evidence remain historical. Broader
-flexible/relaxed-path continuity, additional chemical classes, complete
-conformer thermochemistry, and short NVE conservation remain open.
-Optimization, scans, transition states, and MD remain out of scope.
+diagnosis does not authorize a production change for the old pyddx profile.
+The four-geometry flexible panel, closed-loop panel, and second-molecule force
+evidence in this section remain historical. The newer FC-aSWIG force-v3
+evidence is described above; broader flexible/relaxed-path continuity,
+additional chemical classes, complete conformer thermochemistry, and long-NVE
+conservation remain open. Optimization or MD with all other Route-2 profiles
+remains out of scope, and force-v3 still fails closed outside its stated
+per-geometry domain.
 
 See [FORMULAS_AND_REFERENCES.md](FORMULAS_AND_REFERENCES.md) for equations and
 the literature ledger, and [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the

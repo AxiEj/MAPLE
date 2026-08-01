@@ -1566,8 +1566,16 @@ def test_ddpcm_provider_returns_research_derivative_evidence(
     assert set(admission["failure_reasons"]) == {
         "continuum-node-topology-is-not-fixed",
         "continuum-geometry-path-smoothness-unverified",
+        "nonpolar-node-topology-is-not-fixed",
+        "nonpolar-geometry-path-smoothness-unverified",
         "multi-start-root-uniqueness-unverified",
-        "common-energy-semantics-unresolved",
+        "unproven-mace-field-energy-cross-term-included",
+        "component-resolved-force-finite-difference-unverified",
+        "rigid-translation-force-gate-unverified",
+        "rigid-rotation-force-gate-unverified",
+        "coordinate-path-smoothness-force-gate-unverified",
+        "closed-loop-work-force-gate-unverified",
+        "short-nve-force-gate-unverified",
     }
     assert (tmp_path / "route2-ddpcm-result.json").is_file()
     assert (tmp_path / "route2-ddpcm-state.npz").is_file()

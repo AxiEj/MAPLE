@@ -206,8 +206,18 @@ def jgp94_frame_vjp(
     dipoles: np.ndarray,
     body_position_cotangent: np.ndarray,
     body_dipole_cotangent: np.ndarray,
+    *,
+    additional_orientation_cotangent: np.ndarray | None = None,
 ) -> JGP94FrameVJP:
-    """Contract the complete local reverse derivative of ``Y=C@O, p_b=p@O``."""
+    """Contract the reverse derivative of ``Y=C@O, p_b=p@O``.
+
+    ``additional_orientation_cotangent`` is the derivative of an otherwise
+    external scalar with respect to the proper orientation ``O``.  It is
+    needed by consumers that rotate a vector-valued *output* back to the lab
+    frame, rather than only rotating input dipoles into the body frame.  The
+    optional term makes that use explicit instead of encouraging wrappers to
+    reimplement the sensitive eigenvector VJP.
+    """
 
     atom_count = frame.centered_positions.shape[0]
     charges = _validated_nuclear_charges(
@@ -228,12 +238,28 @@ def jgp94_frame_vjp(
     if position_bar.shape[0] != atom_count or dipole_bar.shape[0] != atom_count:
         raise ValueError("Body cotangents must contain one row per atom.")
 
+    if additional_orientation_cotangent is None:
+        additional_orientation_bar = np.zeros((3, 3), dtype=float)
+    else:
+        additional_orientation_bar = np.asarray(
+            additional_orientation_cotangent,
+            dtype=float,
+        )
+        if (
+            additional_orientation_bar.shape != (3, 3)
+            or not np.all(np.isfinite(additional_orientation_bar))
+        ):
+            raise ValueError(
+                "additional_orientation_cotangent must be finite with shape (3, 3)."
+            )
+
     orientation = frame.orientation
     centered = frame.centered_positions
     direct_centered_bar = position_bar @ orientation.T
     orientation_bar = (
         centered.T @ position_bar
         + cartesian_dipoles.T @ dipole_bar
+        + additional_orientation_bar
     )
 
     eigenbasis_orientation_bar = orientation.T @ orientation_bar

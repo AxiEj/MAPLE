@@ -38,6 +38,7 @@ def _loss(
     body_dipole_cotangent: np.ndarray,
     *,
     reference_orientation: np.ndarray,
+    additional_orientation_cotangent: np.ndarray | None = None,
 ) -> float:
     frame = build_jgp94_frame(
         positions,
@@ -46,10 +47,15 @@ def _loss(
         reference_orientation=reference_orientation,
         minimum_reference_axis_overlap=0.999,
     )
-    return float(
+    value = float(
         np.vdot(body_position_cotangent, frame.body_positions)
         + np.vdot(body_dipole_cotangent, body_dipoles(dipoles, frame))
     )
+    if additional_orientation_cotangent is not None:
+        value += float(
+            np.vdot(additional_orientation_cotangent, frame.orientation)
+        )
+    return value
 
 
 def test_jgp94_frame_vjp_matches_all_coordinate_and_dipole_finite_differences():
@@ -129,6 +135,55 @@ def test_jgp94_frame_vjp_matches_all_coordinate_and_dipole_finite_differences():
         rtol=0.0,
     )
     assert np.linalg.norm(analytic.orientation_position_cotangent) > 1.0e-3
+
+
+def test_jgp94_frame_vjp_includes_an_external_orientation_cotangent():
+    frame = build_jgp94_frame(
+        POSITIONS,
+        NUCLEAR_CHARGES,
+        minimum_relative_eigengap=0.01,
+    )
+    random = np.random.default_rng(20260801)
+    position_bar = random.normal(size=POSITIONS.shape)
+    dipole_bar = random.normal(size=DIPOLES.shape)
+    orientation_bar = random.normal(size=(3, 3))
+    analytic = jgp94_frame_vjp(
+        frame,
+        NUCLEAR_CHARGES,
+        DIPOLES,
+        position_bar,
+        dipole_bar,
+        additional_orientation_cotangent=orientation_bar,
+    )
+
+    step = 1.0e-5
+    finite_difference = np.empty_like(POSITIONS)
+    for atom_index in range(POSITIONS.shape[0]):
+        for axis_index in range(3):
+            values = []
+            for sign in (-1.0, 1.0):
+                displaced = POSITIONS.copy()
+                displaced[atom_index, axis_index] += sign * step
+                values.append(
+                    _loss(
+                        displaced,
+                        DIPOLES,
+                        position_bar,
+                        dipole_bar,
+                        reference_orientation=frame.orientation,
+                        additional_orientation_cotangent=orientation_bar,
+                    )
+                )
+            finite_difference[atom_index, axis_index] = (
+                values[1] - values[0]
+            ) / (2.0 * step)
+
+    np.testing.assert_allclose(
+        analytic.position_cotangent,
+        finite_difference,
+        atol=3.0e-8,
+        rtol=3.0e-8,
+    )
 
 
 def test_jgp94_frame_uses_a_proper_local_signed_axis_gauge():

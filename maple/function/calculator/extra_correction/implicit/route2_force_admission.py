@@ -4,7 +4,8 @@ This module intentionally does *not* expose an ASE force.  It turns the
 separate numerical prerequisites for a conservative Route-2 fixed-point force
 into one machine-readable record: a local residual condition screen, primal
 and adjoint residuals, continuum smoothness evidence, root-repeat evidence,
-and the unresolved common-energy question.
+and an explicit distinction between an operational scalar force and an
+unproven common electronic free-energy functional.
 
 In particular, an iterative estimate of ``||J_M J_P||`` is not a proof of a
 lower singular-value bound.  Small systems use an explicit neutral-space SVD;
@@ -17,13 +18,243 @@ from __future__ import annotations
 from dataclasses import dataclass
 import math
 
+from ....route2_energy_ledger import (
+    LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+    PCM_HALF_COUPLING_ONLY_V1,
+    Route2ElectrostaticEnergyLedger,
+    validate_route2_electrostatic_energy_ledger,
+)
 from .route2_response import FixedChargeCoordinates
 from .route2_thermodynamic_diagnostics import (
     FixedPointFeedbackSpectrumDiagnostic,
     fixed_point_feedback_spectrum_diagnostic,
 )
 
-FORCE_ADMISSION_CONTRACT_VERSION = 1
+FORCE_ADMISSION_CONTRACT_VERSION = 3
+
+
+@dataclass(frozen=True)
+class ForceEnergySemanticsContract:
+    """State exactly which scalar a force differentiates.
+
+    A conservative force only requires one declared scalar energy, a smooth
+    unique root, and the derivative of *that same scalar*.  It does not imply
+    that the MACE-POLAR density fixed point is stationary for a common
+    MACE--PCM electronic free-energy functional.  Keeping these claims apart
+    prevents the direct PCM half-coupling ledger from being rejected for the
+    wrong mathematical reason, while also preventing an operational force
+    certificate from being misreported as a variational electronic theory.
+    """
+
+    electrostatic_energy_ledger: Route2ElectrostaticEnergyLedger
+    operational_scalar_is_explicit: bool
+    derivative_matches_declared_operational_scalar: bool
+    excludes_unproven_mace_field_energy_cross_term: bool
+    common_variational_electronic_free_energy_proven: bool
+    evidence: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "electrostatic_energy_ledger",
+            validate_route2_electrostatic_energy_ledger(
+                self.electrostatic_energy_ledger
+            ),
+        )
+        if not self.evidence.strip():
+            raise ValueError("Force energy-semantics evidence is required.")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "electrostatic_energy_ledger": self.electrostatic_energy_ledger,
+            "operational_scalar_is_explicit": self.operational_scalar_is_explicit,
+            "derivative_matches_declared_operational_scalar": (
+                self.derivative_matches_declared_operational_scalar
+            ),
+            "excludes_unproven_mace_field_energy_cross_term": (
+                self.excludes_unproven_mace_field_energy_cross_term
+            ),
+            "common_variational_electronic_free_energy_proven": (
+                self.common_variational_electronic_free_energy_proven
+            ),
+            "evidence": self.evidence,
+        }
+
+
+DIRECT_PCM_HALF_COUPLING_FORCE_ENERGY_SEMANTICS = ForceEnergySemanticsContract(
+    electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+    operational_scalar_is_explicit=True,
+    derivative_matches_declared_operational_scalar=True,
+    excludes_unproven_mace_field_energy_cross_term=True,
+    common_variational_electronic_free_energy_proven=False,
+    evidence=(
+        "The declared scalar is 0.5*<c_MACE-POLAR, f_reac_PCM> + G_CDS. "
+        "The ledger-specific outer adjoint differentiates that scalar and "
+        "does not insert E_MACE[V_reac]-E_MACE[gas].  The current MACE "
+        "fixed point is nevertheless not proven stationary for a common "
+        "electronic free-energy functional."
+    ),
+)
+
+
+LEGACY_MACE_FIELD_PLUS_PCM_FORCE_ENERGY_SEMANTICS = ForceEnergySemanticsContract(
+    electrostatic_energy_ledger=LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
+    operational_scalar_is_explicit=True,
+    derivative_matches_declared_operational_scalar=True,
+    excludes_unproven_mace_field_energy_cross_term=False,
+    common_variational_electronic_free_energy_proven=False,
+    evidence=(
+        "The legacy operational scalar includes the field-conditioned MACE "
+        "energy difference, whose relation to the returned MACE density is "
+        "not established.  It is retained as a diagnostic control, not a "
+        "release candidate for a direct PCM force profile."
+    ),
+)
+
+
+def force_energy_semantics_contract(
+    ledger: str,
+) -> ForceEnergySemanticsContract:
+    """Return the immutable force-semantics record for one registered ledger."""
+
+    selected = validate_route2_electrostatic_energy_ledger(ledger)
+    if selected == PCM_HALF_COUPLING_ONLY_V1:
+        return DIRECT_PCM_HALF_COUPLING_FORCE_ENERGY_SEMANTICS
+    if selected == LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1:
+        return LEGACY_MACE_FIELD_PLUS_PCM_FORCE_ENERGY_SEMANTICS
+    raise AssertionError(f"Unhandled Route-2 force ledger: {selected!r}.")
+
+
+@dataclass(frozen=True)
+class ForcePESValidationContract:
+    """Profile-level evidence beyond one local derivative calculation.
+
+    A same-scalar coordinate VJP is necessary but it does not demonstrate a
+    usable conservative PES.  This record holds the independent end-to-end
+    gates that a public force profile must satisfy.  They are deliberately
+    separate from the continuum algebra, so a unit-tested surface operator
+    cannot accidentally promote itself to an optimizer/MD interface.
+    """
+
+    profile_kind: str
+    component_resolved_finite_difference_verified: bool
+    rigid_translation_verified: bool
+    rigid_rotation_covariance_verified: bool
+    coordinate_path_smoothness_verified: bool
+    closed_loop_work_verified: bool
+    short_nve_verified: bool
+    evidence: str
+
+    def __post_init__(self) -> None:
+        if not self.profile_kind.strip():
+            raise ValueError("A force/PES validation profile kind is required.")
+        if not self.evidence.strip():
+            raise ValueError("Force/PES validation evidence is required.")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "profile_kind": self.profile_kind,
+            "component_resolved_finite_difference_verified": (
+                self.component_resolved_finite_difference_verified
+            ),
+            "rigid_translation_verified": self.rigid_translation_verified,
+            "rigid_rotation_covariance_verified": (
+                self.rigid_rotation_covariance_verified
+            ),
+            "coordinate_path_smoothness_verified": (
+                self.coordinate_path_smoothness_verified
+            ),
+            "closed_loop_work_verified": self.closed_loop_work_verified,
+            "short_nve_verified": self.short_nve_verified,
+            "evidence": self.evidence,
+        }
+
+
+UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT = ForcePESValidationContract(
+    profile_kind="unspecified-route2-force-pes-v1",
+    component_resolved_finite_difference_verified=False,
+    rigid_translation_verified=False,
+    rigid_rotation_covariance_verified=False,
+    coordinate_path_smoothness_verified=False,
+    closed_loop_work_verified=False,
+    short_nve_verified=False,
+    evidence=(
+        "No profile-level same-scalar finite-difference, symmetry, path, "
+        "closed-work, and NVE evidence has been supplied."
+    ),
+)
+
+
+@dataclass(frozen=True)
+class NonpolarSmoothnessContract:
+    """Same-scalar smoothness evidence for the selected nonpolar term.
+
+    A continuum surface may be fixed-topology while a separately evaluated
+    CDS/SASA term still removes nodes or counts exposed points discontinuously.
+    A Route-2 total force must therefore certify the two terms independently.
+    """
+
+    profile_kind: str
+    same_energy_coordinate_derivative: bool
+    fixed_node_topology: bool
+    geometry_path_smoothness_verified: bool
+    evidence: str
+
+    def __post_init__(self) -> None:
+        if not self.profile_kind.strip():
+            raise ValueError("A nonpolar smoothness profile kind is required.")
+        if not self.evidence.strip():
+            raise ValueError("Nonpolar smoothness evidence is required.")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "profile_kind": self.profile_kind,
+            "same_energy_coordinate_derivative": (
+                self.same_energy_coordinate_derivative
+            ),
+            "fixed_node_topology": self.fixed_node_topology,
+            "geometry_path_smoothness_verified": (
+                self.geometry_path_smoothness_verified
+            ),
+            "evidence": self.evidence,
+        }
+
+
+UNSPECIFIED_NONPOLAR_SMOOTHNESS_CONTRACT = NonpolarSmoothnessContract(
+    profile_kind="unspecified-route2-nonpolar-v1",
+    same_energy_coordinate_derivative=False,
+    fixed_node_topology=False,
+    geometry_path_smoothness_verified=False,
+    evidence=(
+        "No profile-specific same-energy, fixed-topology, or geometry-path "
+        "smoothness evidence was supplied for the nonpolar term."
+    ),
+)
+
+PYSCF_SMD_CDS_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT = NonpolarSmoothnessContract(
+    profile_kind="pyscf-smd-cds-variable-surface-v1",
+    same_energy_coordinate_derivative=True,
+    fixed_node_topology=False,
+    geometry_path_smoothness_verified=False,
+    evidence=(
+        "The upstream PySCF SMD-CDS energy/gradient pair is same-energy at a "
+        "single geometry, but it is not the fixed-topology surface paired "
+        "with a Route-2 continuum force profile."
+    ),
+)
+
+FIXED_TOPOLOGY_AQUEOUS_SMD_CDS_SMOOTHNESS_CONTRACT = NonpolarSmoothnessContract(
+    profile_kind="aqueous-smd-cds-fixed-topology-c3-area-v1-experimental",
+    same_energy_coordinate_derivative=True,
+    fixed_node_topology=True,
+    geometry_path_smoothness_verified=True,
+    evidence=(
+        "All atom/angular candidates remain allocated; the published aqueous "
+        "SMD tension functions and base-area*g**2 term share one analytic "
+        "coordinate derivative.  Unit crossing and finite-difference tests "
+        "cover the discrete construction."
+    ),
+)
 
 
 @dataclass(frozen=True)
@@ -41,6 +272,9 @@ class ContinuumSmoothnessContract:
     fixed_node_topology: bool
     geometry_path_smoothness_verified: bool
     evidence: str
+    nonpolar: NonpolarSmoothnessContract = (
+        UNSPECIFIED_NONPOLAR_SMOOTHNESS_CONTRACT
+    )
 
     def __post_init__(self) -> None:
         if not self.profile_kind.strip():
@@ -59,6 +293,7 @@ class ContinuumSmoothnessContract:
                 self.geometry_path_smoothness_verified
             ),
             "evidence": self.evidence,
+            "nonpolar": self.nonpolar.as_dict(),
         }
 
 
@@ -71,6 +306,7 @@ PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT = ContinuumSmoothnessContract(
         "The same-energy coordinate VJP exists at one fixed active set, but "
         "Lebedev/sphere ownership changes under admitted geometry scans."
     ),
+    nonpolar=PYSCF_SMD_CDS_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT,
 )
 
 PYSCF_SWIG_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT = ContinuumSmoothnessContract(
@@ -83,6 +319,40 @@ PYSCF_SWIG_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT = ContinuumSmoothnessContract(
         "surface construction changes retained grid-point counts/parents "
         "across geometry/orientation canaries."
     ),
+    nonpolar=PYSCF_SMD_CDS_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT,
+)
+
+FIXED_TOPOLOGY_ASWIG_CPCM_AQUEOUS_SMD_SMOOTHNESS_CONTRACT = (
+    ContinuumSmoothnessContract(
+        profile_kind="cpcm-fc-aswig-aqueous-smd-cds-v1-experimental",
+        same_energy_coordinate_derivative=True,
+        fixed_node_topology=True,
+        geometry_path_smoothness_verified=True,
+        evidence=(
+            "The amplitude-CPCM scalar, reaction map, and full continuum "
+            "coordinate VJP share all fixed candidates.  Unit crossing and "
+            "finite-difference tests cover exposure, Gaussian-kernel, "
+            "source, and receiver terms."
+        ),
+        nonpolar=FIXED_TOPOLOGY_AQUEOUS_SMD_CDS_SMOOTHNESS_CONTRACT,
+    )
+)
+
+JGP94_FIXED_TOPOLOGY_ASWIG_CPCM_AQUEOUS_SMD_SMOOTHNESS_CONTRACT = (
+    ContinuumSmoothnessContract(
+        profile_kind="jgp94-cpcm-fc-aswig-aqueous-smd-cds-v1-experimental",
+        same_energy_coordinate_derivative=True,
+        fixed_node_topology=True,
+        geometry_path_smoothness_verified=True,
+        evidence=(
+            "The JGP94 nondegenerate principal-axis wrapper applies the same "
+            "fixed-topology amplitude-CPCM scalar and complete body-to-lab "
+            "coordinate VJP.  Unit tests cover rigid rotation, translation, "
+            "and a rebuilt-coordinate finite difference; the paired aqueous "
+            "CDS uses the same JGP94 frame."
+        ),
+        nonpolar=FIXED_TOPOLOGY_AQUEOUS_SMD_CDS_SMOOTHNESS_CONTRACT,
+    )
 )
 
 UNSPECIFIED_CONTINUUM_SMOOTHNESS_CONTRACT = ContinuumSmoothnessContract(
@@ -291,7 +561,8 @@ class ForceAdmissionCertificate:
     condition: FixedPointConditionScreen
     continuum: ContinuumSmoothnessContract
     multi_start_root_agreement: bool | None
-    operational_energy_semantics_closed: bool
+    energy_semantics: ForceEnergySemanticsContract
+    pes_validation: ForcePESValidationContract
     release_admitted: bool
     failure_reasons: tuple[str, ...]
 
@@ -325,9 +596,8 @@ class ForceAdmissionCertificate:
             "condition": self.condition.as_dict(),
             "continuum": self.continuum.as_dict(),
             "multi_start_root_agreement": self.multi_start_root_agreement,
-            "operational_energy_semantics_closed": (
-                self.operational_energy_semantics_closed
-            ),
+            "energy_semantics": self.energy_semantics.as_dict(),
+            "pes_validation": self.pes_validation.as_dict(),
             "release_admitted": self.release_admitted,
             "failure_reasons": list(self.failure_reasons),
         }
@@ -343,7 +613,10 @@ def evaluate_force_admission(
     continuum_identity_error_ev: float,
     continuum: ContinuumSmoothnessContract,
     multi_start_root_agreement: bool | None,
-    operational_energy_semantics_closed: bool,
+    energy_semantics: ForceEnergySemanticsContract,
+    pes_validation: ForcePESValidationContract = (
+        UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT
+    ),
     policy: ForceAdmissionPolicy = ForceAdmissionPolicy(),
 ) -> ForceAdmissionCertificate:
     """Assess every prerequisite without changing the public force API."""
@@ -396,10 +669,33 @@ def evaluate_force_admission(
         failures.append("continuum-node-topology-is-not-fixed")
     if not continuum.geometry_path_smoothness_verified:
         failures.append("continuum-geometry-path-smoothness-unverified")
+    nonpolar = continuum.nonpolar
+    if not nonpolar.same_energy_coordinate_derivative:
+        failures.append("nonpolar-coordinate-derivative-does-not-match-energy")
+    if not nonpolar.fixed_node_topology:
+        failures.append("nonpolar-node-topology-is-not-fixed")
+    if not nonpolar.geometry_path_smoothness_verified:
+        failures.append("nonpolar-geometry-path-smoothness-unverified")
     if multi_start_root_agreement is not True:
         failures.append("multi-start-root-uniqueness-unverified")
-    if not operational_energy_semantics_closed:
-        failures.append("common-energy-semantics-unresolved")
+    if not energy_semantics.operational_scalar_is_explicit:
+        failures.append("force-ledger-operational-scalar-unresolved")
+    if not energy_semantics.derivative_matches_declared_operational_scalar:
+        failures.append("force-ledger-derivative-not-matched-to-scalar")
+    if not energy_semantics.excludes_unproven_mace_field_energy_cross_term:
+        failures.append("unproven-mace-field-energy-cross-term-included")
+    if not pes_validation.component_resolved_finite_difference_verified:
+        failures.append("component-resolved-force-finite-difference-unverified")
+    if not pes_validation.rigid_translation_verified:
+        failures.append("rigid-translation-force-gate-unverified")
+    if not pes_validation.rigid_rotation_covariance_verified:
+        failures.append("rigid-rotation-force-gate-unverified")
+    if not pes_validation.coordinate_path_smoothness_verified:
+        failures.append("coordinate-path-smoothness-force-gate-unverified")
+    if not pes_validation.closed_loop_work_verified:
+        failures.append("closed-loop-work-force-gate-unverified")
+    if not pes_validation.short_nve_verified:
+        failures.append("short-nve-force-gate-unverified")
 
     return ForceAdmissionCertificate(
         contract_version=FORCE_ADMISSION_CONTRACT_VERSION,
@@ -414,7 +710,8 @@ def evaluate_force_admission(
         condition=condition,
         continuum=continuum,
         multi_start_root_agreement=multi_start_root_agreement,
-        operational_energy_semantics_closed=bool(operational_energy_semantics_closed),
+        energy_semantics=energy_semantics,
+        pes_validation=pes_validation,
         release_admitted=not failures,
         failure_reasons=tuple(failures),
     )
@@ -423,12 +720,24 @@ def evaluate_force_admission(
 __all__ = [
     "FORCE_ADMISSION_CONTRACT_VERSION",
     "ContinuumSmoothnessContract",
+    "DIRECT_PCM_HALF_COUPLING_FORCE_ENERGY_SEMANTICS",
+    "FIXED_TOPOLOGY_AQUEOUS_SMD_CDS_SMOOTHNESS_CONTRACT",
+    "FIXED_TOPOLOGY_ASWIG_CPCM_AQUEOUS_SMD_SMOOTHNESS_CONTRACT",
+    "JGP94_FIXED_TOPOLOGY_ASWIG_CPCM_AQUEOUS_SMD_SMOOTHNESS_CONTRACT",
     "FixedPointConditionScreen",
+    "ForceEnergySemanticsContract",
     "ForceAdmissionCertificate",
     "ForceAdmissionPolicy",
+    "ForcePESValidationContract",
+    "LEGACY_MACE_FIELD_PLUS_PCM_FORCE_ENERGY_SEMANTICS",
+    "NonpolarSmoothnessContract",
     "PYDDX_HARD_ACTIVE_SET_SMOOTHNESS_CONTRACT",
+    "PYSCF_SMD_CDS_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT",
     "PYSCF_SWIG_VARIABLE_SURFACE_SMOOTHNESS_CONTRACT",
+    "UNSPECIFIED_NONPOLAR_SMOOTHNESS_CONTRACT",
     "UNSPECIFIED_CONTINUUM_SMOOTHNESS_CONTRACT",
+    "UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT",
     "evaluate_force_admission",
+    "force_energy_semantics_contract",
     "fixed_point_condition_screen",
 ]

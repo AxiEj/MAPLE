@@ -42,8 +42,11 @@ from .route2_fixed_point import (
 from .route2_force_admission import (
     ContinuumSmoothnessContract,
     ForceAdmissionPolicy,
+    ForcePESValidationContract,
+    UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT,
     UNSPECIFIED_CONTINUUM_SMOOTHNESS_CONTRACT,
     evaluate_force_admission,
+    force_energy_semantics_contract,
 )
 from .route2_response import (
     UnmixedDensityResidualLinearization,
@@ -320,6 +323,8 @@ class Route2CoupledState:
     atomic_numbers: np.ndarray
     provider_cache_signature: Hashable
     positions_angstrom: np.ndarray
+    initial_density_label: str
+    initial_density_sha256: str
     reaction_field: Any
     density_coefficients: np.ndarray
     response_density_coefficients: np.ndarray
@@ -337,6 +342,10 @@ class Route2CoupledState:
     scf_convergence: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if not self.initial_density_label.strip():
+            raise ValueError("Route-2 initial density label must be non-empty.")
+        if len(self.initial_density_sha256) != 64:
+            raise ValueError("Route-2 initial density SHA256 must be canonical.")
         for name in (
             "atomic_numbers",
             "positions_angstrom",
@@ -1134,6 +1143,8 @@ class Route2ContinuumEngine:
         *,
         provider_cache_signature: Hashable,
         finite_resolution_runtime_identity: dict[str, object] | None = None,
+        initial_density_coefficients: np.ndarray | None = None,
+        initial_density_label: str | None = None,
         electrostatic_energy_ledger: str = (
             LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
         ),
@@ -1148,14 +1159,32 @@ class Route2ContinuumEngine:
             else SCF_ENERGY_RESIDUAL_SOURCE_MACE_FIELD
         )
         reaction_field = self.reaction_field_factory(atoms)
-        density = project_density_total_charge(
-            self.validate_density(
+        if initial_density_coefficients is None:
+            initial_density = self.validate_density(
                 gas_state.density_coefficients,
                 len(atoms),
                 name="Gas MACE-POLAR density",
-            ),
+            )
+            initial_label = "gas-mace-polar-density"
+            if initial_density_label is not None:
+                raise ValueError(
+                    "initial_density_label requires an explicit "
+                    "initial_density_coefficients array."
+                )
+        else:
+            initial_density = self.validate_density(
+                initial_density_coefficients,
+                len(atoms),
+                name="Route-2 supplied initial density",
+            )
+            initial_label = str(initial_density_label or "caller-supplied-density")
+            if not initial_label.strip():
+                raise ValueError("initial_density_label must be non-empty.")
+        density = project_density_total_charge(
+            initial_density,
             total_charge_e=settings.scf_total_charge_e,
         )
+        initial_density_sha256 = self._array_sha256(density)
         scf_convergence: dict[str, Any] = {}
         previous_energy_ev: float | None = None
         previous_update_method: str | None = None
@@ -1628,6 +1657,8 @@ class Route2ContinuumEngine:
                 atoms.get_positions(),
                 dtype=float,
             ).copy(),
+            initial_density_label=initial_label,
+            initial_density_sha256=initial_density_sha256,
             reaction_field=reaction_field,
             density_coefficients=density,
             response_density_coefficients=response_density,
@@ -1657,7 +1688,9 @@ class Route2ContinuumEngine:
         ),
         force_admission_policy: ForceAdmissionPolicy | None = None,
         multi_start_root_agreement: bool | None = None,
-        operational_energy_semantics_closed: bool = False,
+        force_admission_pes_validation: ForcePESValidationContract = (
+            UNSPECIFIED_FORCE_PES_VALIDATION_CONTRACT
+        ),
         electrostatic_energy_ledger: str = (
             LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
         ),
@@ -1834,9 +1867,10 @@ class Route2ContinuumEngine:
             continuum_identity_error_ev=coupled.energy_identity_error_ev,
             continuum=force_admission_continuum,
             multi_start_root_agreement=multi_start_root_agreement,
-            operational_energy_semantics_closed=(
-                operational_energy_semantics_closed
+            energy_semantics=force_energy_semantics_contract(
+                selected_energy_ledger
             ),
+            pes_validation=force_admission_pes_validation,
             policy=effective_force_admission_policy,
         )
         derivative = {

@@ -250,9 +250,9 @@ class SetCalculator:
             provider = str(
                 self.solvation_options.get('provider', 'pcmsolver')
             ).lower()
-            if provider not in {'pcmsolver', 'pyddx'}:
+            if provider not in {'pcmsolver', 'pyddx', 'fc-aswig'}:
                 raise ValueError(
-                    "Route 2 provider must be pcmsolver or pyddx."
+                    "Route 2 provider must be pcmsolver, pyddx, or fc-aswig."
                 )
             if 'profile' not in self.solvation_options:
                 raise ValueError(
@@ -282,12 +282,12 @@ class SetCalculator:
             response = str(
                 self.solvation_options.get('response', 'scf')
             ).lower()
-            if provider == 'pyddx' and response != 'scf':
+            if provider in {'pyddx', 'fc-aswig'} and response != 'scf':
                 raise ValueError(
-                    "Route 2 provider=pyddx requires response=scf."
+                    f"Route 2 provider={provider} requires response=scf."
                 )
             if (
-                provider == 'pyddx'
+                provider in {'pyddx', 'fc-aswig'}
                 and 'cavity_policy' in self.solvation_options
             ):
                 raise ValueError(

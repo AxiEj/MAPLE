@@ -55,6 +55,12 @@ DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE = (
 DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE = (
     "smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2"
 )
+FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE = (
+    "smd-cpcm-fc-aswig-jgp94-aqueous-pcm-half-coupling-v1"
+)
+FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE = (
+    "smd-cpcm-fc-aswig-jgp94-d2-mace-aqueous-pcm-half-coupling-v2"
+)
 DDPCM_GAFF2_CARBONYL_O_PROFILE = "smd-ddpcm-l15-n1202-gaff2-o-v1"
 DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE = (
     "smd-ddpcm-l15-n1202-gaff2-o-mace-kspace40-v1"
@@ -76,10 +82,14 @@ class Route2SMDProfileSpec:
     """One frozen v1 audited combination, not an open plug-in schema."""
 
     name: str
-    provider: Literal["pcmsolver", "pyddx"]
-    cavity: Literal["canonical-smd", "gaff2-carbonyl-o"]
+    provider: Literal["pcmsolver", "pyddx", "fc-aswig"]
+    cavity: Literal[
+        "canonical-smd",
+        "gaff2-carbonyl-o",
+        "fixed-topology-smd",
+    ]
     mace_long_range_evaluator: str
-    electrostatics_model: Literal["iefpcm", "ddpcm", "ddcosmo"]
+    electrostatics_model: Literal["iefpcm", "ddpcm", "ddcosmo", "cpcm"]
     solute_source: Literal["point-multipole-l1"]
     reaction_field_projector: Literal[
         "local-jet",
@@ -92,6 +102,7 @@ class Route2SMDProfileSpec:
     nonpolar_model: Literal[
         "native-water-smd-cds",
         "pyscf-smd-cds",
+        "fixed-topology-aqueous-smd-cds",
     ]
     dielectric_policy: Literal[
         "pcmsolver-water-keyword",
@@ -104,6 +115,10 @@ class Route2SMDProfileSpec:
         "pyscf-smd-2.13.1",
     ]
     supported_solvents: frozenset[str]
+    mace_geometry_frame_policy: Literal[
+        "laboratory-v1",
+        "jgp94-d2-canonical-v1",
+    ] = "laboratory-v1"
     electrostatic_energy_ledger: Route2ElectrostaticEnergyLedger = (
         LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1
     )
@@ -123,6 +138,11 @@ class Route2SMDProfileSpec:
         validate_route2_electrostatic_energy_ledger(
             self.electrostatic_energy_ledger
         )
+        if self.mace_geometry_frame_policy not in {
+            "laboratory-v1",
+            "jgp94-d2-canonical-v1",
+        }:
+            raise ValueError("Unsupported Route-2 MACE geometry-frame policy.")
 
     def supports_solvent(self, solvent: str) -> bool:
         return str(solvent).strip().lower() in self.supported_solvents
@@ -368,6 +388,43 @@ _PROFILE_SPECS = {
         supported_solvents=SUPPORTED_ROUTE2_SMD_SOLVENTS,
         electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
     ),
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE: Route2SMDProfileSpec(
+        name=FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE,
+        provider="fc-aswig",
+        cavity="fixed-topology-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="cpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="fixed-topology-aqueous-smd-cds",
+        dielectric_policy="legacy-water-78.39",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
+        supported_solvents=_WATER_ONLY,
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+    ),
+    # v2 is deliberately a new evaluation operator rather than a silent
+    # mutation of v1.  It applies a four-branch proper-D2 Reynolds average in
+    # a nondegenerate JGP94 molecular frame *at the MACE boundary*, removing
+    # the fixed laboratory-axis finite-difference artefact of the official
+    # real-space MACE-POLAR evaluator.  Weights, continuum parameters, SMD
+    # descriptors, cavity, and the direct PCM ledger are unchanged.
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE: Route2SMDProfileSpec(
+        name=FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE,
+        provider="fc-aswig",
+        cavity="fixed-topology-smd",
+        mace_long_range_evaluator=MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        electrostatics_model="cpcm",
+        solute_source="point-multipole-l1",
+        reaction_field_projector="local-jet",
+        model_field_gauge="continuum-zero-at-infinity",
+        nonpolar_model="fixed-topology-aqueous-smd-cds",
+        dielectric_policy="legacy-water-78.39",
+        coulomb_radii_policy="smd-water-reference-smd18-v1",
+        supported_solvents=_WATER_ONLY,
+        mace_geometry_frame_policy="jgp94-d2-canonical-v1",
+        electrostatic_energy_ledger=PCM_HALF_COUPLING_ONLY_V1,
+    ),
     DDPCM_GAFF2_CARBONYL_O_PROFILE: Route2SMDProfileSpec(
         name=DDPCM_GAFF2_CARBONYL_O_PROFILE,
         provider="pyddx",
@@ -427,6 +484,11 @@ SUPPORTED_PYDDX_SMD_PROFILES = frozenset(
     for name, spec in _PROFILE_SPECS.items()
     if spec.provider == "pyddx"
 )
+SUPPORTED_FC_ASWIG_SMD_PROFILES = frozenset(
+    name
+    for name, spec in _PROFILE_SPECS.items()
+    if spec.provider == "fc-aswig"
+)
 SUPPORTED_DDPCM_SMD_PROFILES = frozenset(
     name
     for name, spec in _PROFILE_SPECS.items()
@@ -441,6 +503,8 @@ def route2_smd_profiles_for_provider(provider: str) -> frozenset[str]:
         return SUPPORTED_PCMSOLVER_SMD_PROFILES
     if normalized == "pyddx":
         return SUPPORTED_PYDDX_SMD_PROFILES
+    if normalized == "fc-aswig":
+        return SUPPORTED_FC_ASWIG_SMD_PROFILES
     raise ValueError(f"Unsupported Route 2 SMD provider: {provider}.")
 
 
@@ -485,6 +549,8 @@ __all__ = [
     "DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE",
     "DDPCM_SMD_DIRECT_PCM_PROFILE",
     "DDPCM_SMD_PROFILE",
+    "FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE",
+    "FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE",
     "GAFF2_CARBONYL_O_PROFILE",
     "MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE",
     "MACEPOL_MOLECULAR_REALSPACE_PROFILE",
@@ -494,6 +560,7 @@ __all__ = [
     "PCMSOLVER_INTRINSIC_EXACT_GTO_DIRECT_PCM_PROFILE",
     "PCMSOLVER_INTRINSIC_EXACT_GTO_PROFILE",
     "SUPPORTED_DDPCM_SMD_PROFILES",
+    "SUPPORTED_FC_ASWIG_SMD_PROFILES",
     "SUPPORTED_PCMSOLVER_SMD_PROFILES",
     "SUPPORTED_PYDDX_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_PROFILES",

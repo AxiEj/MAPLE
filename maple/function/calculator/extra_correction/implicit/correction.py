@@ -13,6 +13,7 @@ import uuid
 import numpy as np
 
 from .ddpcm_smd import PyDDXSMDImplicitSolvation
+from .fc_aswig_smd import FixedTopologyASWIGAqueousSMDImplicitSolvation
 from .result import SolvationResult
 from .smd import SMDImplicitSolvation
 from .source_receiver_contract import route2_source_receiver_contract
@@ -125,12 +126,13 @@ class ImplicitSolvationCorrection:
         providers = {
             "pcmsolver": SMDImplicitSolvation,
             "pyddx": PyDDXSMDImplicitSolvation,
+            "fc-aswig": FixedTopologyASWIGAqueousSMDImplicitSolvation,
         }
         try:
             provider_type = providers[provider_name]
         except KeyError as exc:
             raise ValueError(
-                "Route 2 provider must be pcmsolver or pyddx."
+                "Route 2 provider must be pcmsolver, pyddx, or fc-aswig."
             ) from exc
 
         self.method = "smd"

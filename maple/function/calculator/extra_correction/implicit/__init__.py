@@ -5,6 +5,7 @@ from .ddpcm_smd import (
     DDPCMSMDImplicitSolvation,
     PyDDXSMDImplicitSolvation,
 )
+from .fc_aswig_smd import FixedTopologyASWIGAqueousSMDImplicitSolvation
 from .result import (
     Route2EnergyLedger,
     SinglePointDerivativeEvidence,
@@ -15,6 +16,7 @@ from .smd_cds import smd_water_cds
 
 __all__ = [
     "DDPCMSMDImplicitSolvation",
+    "FixedTopologyASWIGAqueousSMDImplicitSolvation",
     "ImplicitSolvationCorrection",
     "PyDDXSMDImplicitSolvation",
     "Route2EnergyLedger",

@@ -678,10 +678,10 @@ class CommandControl:
                 provider = str(
                     solv_params.get("provider", "pcmsolver")
                 ).lower()
-                if provider not in {"pcmsolver", "pyddx"}:
+                if provider not in {"pcmsolver", "pyddx", "fc-aswig"}:
                     msg = (
-                        "Route 2 provider must be provider=pcmsolver "
-                        "or provider=pyddx."
+                    "Route 2 provider must be provider=pcmsolver "
+                    "or provider=pyddx or provider=fc-aswig."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
@@ -789,18 +789,18 @@ class CommandControl:
                     msg = "SMD response must be frozen or scf."
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
-                if provider == "pyddx" and response != "scf":
+                if provider in {"pyddx", "fc-aswig"} and response != "scf":
                     msg = (
-                        "Route 2 provider=pyddx requires response=scf."
+                        f"Route 2 provider={provider} requires response=scf."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)
                 cavity_policy = None
-                if provider == "pyddx" and "cavity_policy" in solv_params:
+                if provider in {"pyddx", "fc-aswig"} and "cavity_policy" in solv_params:
                     msg = (
                         "Route 2 cavity_policy is specific to the "
                         "PCMSolver/GePol provider and is not valid for "
-                        "provider=pyddx."
+                        f"provider={provider}."
                     )
                     cls._log_error(output_path, msg)
                     raise ValueError(msg)

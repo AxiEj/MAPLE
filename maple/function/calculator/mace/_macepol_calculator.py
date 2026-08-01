@@ -58,6 +58,13 @@ from ..extra_correction.implicit.gto_field_projection import (
 from ..extra_correction.implicit.electrostatic_pairing import (
     MACE_POLAR_MODEL_FEATURE_FIELD_INDICES,
 )
+from ..extra_correction.implicit.route2_jgp94_mace_frame import (
+    JGP94_D2_CANONICAL_MACE_FRAME_POLICY,
+    JGP94_D2_CANONICAL_MINIMUM_RELATIVE_EIGENGAP,
+    JGP94D2CanonicalDensityResponse,
+    JGP94D2CanonicalMACEContext,
+    average_finite_scalars,
+)
 from ._macepol_long_range import MACEPolarLongRangeEvaluator
 
 
@@ -286,6 +293,9 @@ class MACEPolCalculator(CalcABC):
             "long_range_evaluator_profile": (
                 spec.mace_long_range_evaluator
             ),
+            "route2_mace_geometry_frame_policy": (
+                spec.mace_geometry_frame_policy
+            ),
         }
 
     def __init__(
@@ -298,6 +308,7 @@ class MACEPolCalculator(CalcABC):
         long_range_evaluator_profile: str = (
             MACEPOL_MOLECULAR_REALSPACE_PROFILE
         ),
+        route2_mace_geometry_frame_policy: str = "laboratory-v1",
         _implicit_solvent_factory_token=None,
     ):
         super().__init__()
@@ -321,6 +332,29 @@ class MACEPolCalculator(CalcABC):
                 "The forced reciprocal MACE-POLAR evaluator is available "
                 "only through its explicit Route-2 SMD profile."
             )
+        self.route2_mace_geometry_frame_policy = str(
+            route2_mace_geometry_frame_policy
+        ).strip().lower()
+        if self.route2_mace_geometry_frame_policy not in {
+            "laboratory-v1",
+            JGP94_D2_CANONICAL_MACE_FRAME_POLICY,
+        }:
+            raise ValueError(
+                "Unsupported Route-2 MACE geometry-frame policy: "
+                f"{route2_mace_geometry_frame_policy!r}."
+            )
+        if (
+            not route2_smd
+            and self.route2_mace_geometry_frame_policy != "laboratory-v1"
+        ):
+            raise ValueError(
+                "JGP94 D2 MACE canonicalisation is available only through "
+                "an explicit Route-2 SMD profile."
+            )
+        self._route2_jgp94_d2_canonical_mace = (
+            self.route2_mace_geometry_frame_policy
+            == JGP94_D2_CANONICAL_MACE_FRAME_POLICY
+        )
 
         try:
             mace_version = version("mace-torch")
@@ -427,6 +461,23 @@ class MACEPolCalculator(CalcABC):
         self.long_range_evaluator_provenance = (
             self._long_range_evaluator.provenance
         )
+        self.route2_mace_geometry_frame_provenance = {
+            "policy": self.route2_mace_geometry_frame_policy,
+            "enabled": bool(self._route2_jgp94_d2_canonical_mace),
+            "branch_count": (
+                4 if self._route2_jgp94_d2_canonical_mace else 1
+            ),
+            "minimum_relative_eigengap_guard": (
+                JGP94_D2_CANONICAL_MINIMUM_RELATIVE_EIGENGAP
+                if self._route2_jgp94_d2_canonical_mace
+                else None
+            ),
+            "operator_identity": (
+                "proper-D2-Reynolds-averaged-JGP94-canonical-MACE"
+                if self._route2_jgp94_d2_canonical_mace
+                else "upstream-laboratory-coordinate-MACE"
+            ),
+        }
         self.hessian = "analytic"
         self._last_polar_state: PolarState | None = None
         self._last_polar_state_numbers: np.ndarray | None = None
@@ -712,7 +763,7 @@ class MACEPolCalculator(CalcABC):
                 compute_hessian=compute_hessian,
             )
 
-    def polar_state(
+    def _polar_state_native(
         self,
         atoms,
         *,
@@ -795,7 +846,173 @@ class MACEPolCalculator(CalcABC):
         )
         return self._polar_state_from_output(output), output
 
-    def intrinsic_energy_field_gradient(
+    def _jgp94_d2_mace_context(self, atoms) -> JGP94D2CanonicalMACEContext:
+        """Build one nondegenerate, four-sign canonical frame context.
+
+        This helper is intentionally called at every public MACE boundary.
+        The eigendecomposition cost is negligible compared with the four MACE
+        evaluations, while rebuilding avoids a stale frame when ASE mutates a
+        geometry in place between calls.
+        """
+
+        if not self._route2_jgp94_d2_canonical_mace:
+            raise RuntimeError("JGP94 D2 MACE context requested for a raw profile.")
+        return JGP94D2CanonicalMACEContext.from_atoms(
+            atoms,
+            minimum_relative_eigengap=(
+                JGP94_D2_CANONICAL_MINIMUM_RELATIVE_EIGENGAP
+            ),
+        )
+
+    def polar_state(
+        self,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray | None = None,
+        node_gradient_ev_per_angstrom: np.ndarray | None = None,
+        model_field_features: np.ndarray | None = None,
+        compute_forces: bool = False,
+        compute_hessian: bool = False,
+    ) -> tuple[PolarState, dict]:
+        """Evaluate a raw or D2-canonical MACE-POLAR local-jet state.
+
+        The canonical profile is deliberately restricted to the local-jet
+        receiver.  A preprojected exact-GTO feature tensor has a different
+        SO(3) representation and must receive its own equivariant projection
+        and derivative proof rather than being silently rotated as Cartesian
+        gradients.
+        """
+
+        if not self._route2_jgp94_d2_canonical_mace:
+            return self._polar_state_native(
+                atoms,
+                node_potential_ev=node_potential_ev,
+                node_gradient_ev_per_angstrom=node_gradient_ev_per_angstrom,
+                model_field_features=model_field_features,
+                compute_forces=compute_forces,
+                compute_hessian=compute_hessian,
+            )
+        if model_field_features is not None:
+            raise NotImplementedError(
+                "JGP94 D2 MACE canonicalisation supports only the local-jet "
+                "receiver; exact-GTO features remain energy-only."
+            )
+        if compute_hessian:
+            raise NotImplementedError(
+                "The JGP94 D2 canonical MACE profile has no Hessian proof."
+            )
+        has_local_field = (
+            node_potential_ev is not None
+            or node_gradient_ev_per_angstrom is not None
+        )
+        if has_local_field and (
+            node_potential_ev is None
+            or node_gradient_ev_per_angstrom is None
+        ):
+            raise ValueError("Both local reaction potential and gradient are required.")
+
+        context = self._jgp94_d2_mace_context(atoms)
+        if has_local_field:
+            potential_lab = np.asarray(node_potential_ev, dtype=float)
+            gradient_lab = np.asarray(node_gradient_ev_per_angstrom, dtype=float)
+            if potential_lab.shape != (len(atoms),) or gradient_lab.shape != (
+                len(atoms),
+                3,
+            ):
+                raise ValueError(
+                    "Local reaction potential/gradient shapes must be "
+                    "(n_atoms,) and (n_atoms, 3)."
+                )
+            if not np.all(np.isfinite(potential_lab)) or not np.all(
+                np.isfinite(gradient_lab)
+            ):
+                raise ValueError("Local reaction potential/gradient must be finite.")
+        else:
+            potential_lab = None
+            gradient_lab = np.zeros((len(atoms), 3), dtype=float)
+
+        branch_states: list[tuple[PolarState, object]] = []
+        density = np.zeros((len(atoms), 4), dtype=float)
+        dipole = np.zeros(3, dtype=float)
+        branch_energies: list[float] = []
+        forces = (
+            np.zeros((len(atoms), 3), dtype=float) if compute_forces else None
+        )
+        for branch in context.branches:
+            body_atoms = context.body_atoms(atoms, branch)
+            if has_local_field:
+                body_potential, body_gradient = context.field_to_body(
+                    potential_lab,
+                    gradient_lab,
+                    branch,
+                )
+            else:
+                body_potential = None
+                body_gradient = None
+            state, _ = self._polar_state_native(
+                body_atoms,
+                node_potential_ev=body_potential,
+                node_gradient_ev_per_angstrom=body_gradient,
+                compute_forces=compute_forces,
+                compute_hessian=False,
+            )
+            branch_states.append((state, body_atoms))
+            branch_energies.append(float(state.energy_ev))
+            density += context.branch_weight * context.density_from_body(
+                state.density_coefficients,
+                branch,
+            )
+            dipole += context.branch_weight * context.dipole_from_body(
+                state.dipole_e_angstrom,
+                branch,
+            )
+
+            if compute_forces:
+                body_forces = state.fixed_field_forces_ev_per_angstrom
+                if body_forces is None:
+                    raise RuntimeError("MACE-POLAR omitted requested fixed-field forces.")
+                if has_local_field:
+                    body_energy_field_gradient = (
+                        self._intrinsic_energy_field_gradient_native(
+                            body_atoms,
+                            node_potential_ev=body_potential,
+                            node_gradient_ev_per_angstrom=body_gradient,
+                        )
+                    )
+                    body_gradient_cotangent = body_energy_field_gradient[:, 1:]
+                else:
+                    # At zero input field the frame rotation does not alter
+                    # the local-field argument, so this chain-rule term is
+                    # exactly zero and requires no extra autograd call.
+                    body_gradient_cotangent = np.zeros((len(atoms), 3), dtype=float)
+                position_gradient = context.reduce_position_vjp(
+                    branch,
+                    body_position_cotangent=-np.asarray(body_forces, dtype=float),
+                    gradient_lab=gradient_lab,
+                    body_gradient_cotangent=body_gradient_cotangent,
+                )
+                assert forces is not None
+                forces -= context.branch_weight * position_gradient
+
+        if not np.all(np.isfinite(density)) or not np.all(np.isfinite(dipole)):
+            raise RuntimeError("JGP94 D2 canonical MACE state is non-finite.")
+        if forces is not None and not np.all(np.isfinite(forces)):
+            raise RuntimeError("JGP94 D2 canonical MACE forces are non-finite.")
+        state = PolarState(
+            energy_ev=average_finite_scalars(
+                branch_energies,
+                name="JGP94 D2 canonical MACE energy",
+            ),
+            density_coefficients=density,
+            dipole_e_angstrom=dipole,
+            fixed_field_forces_ev_per_angstrom=forces,
+        )
+        return state, {
+            "jgp94_d2_canonical_mace": context.provenance,
+            "branch_count": len(branch_states),
+        }
+
+    def _intrinsic_energy_field_gradient_native(
         self,
         atoms,
         *,
@@ -882,6 +1099,59 @@ class MACEPolCalculator(CalcABC):
             )
         return result
 
+    def intrinsic_energy_field_gradient(
+        self,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray,
+        node_gradient_ev_per_angstrom: np.ndarray,
+    ) -> np.ndarray:
+        """Return the raw or D2-canonical intrinsic-energy field derivative."""
+
+        if not self._route2_jgp94_d2_canonical_mace:
+            return self._intrinsic_energy_field_gradient_native(
+                atoms,
+                node_potential_ev=node_potential_ev,
+                node_gradient_ev_per_angstrom=node_gradient_ev_per_angstrom,
+            )
+        potential_lab = np.asarray(node_potential_ev, dtype=float)
+        gradient_lab = np.asarray(node_gradient_ev_per_angstrom, dtype=float)
+        if potential_lab.shape != (len(atoms),) or gradient_lab.shape != (
+            len(atoms),
+            3,
+        ):
+            raise ValueError(
+                "Local reaction potential/gradient shapes must be "
+                "(n_atoms,) and (n_atoms, 3)."
+            )
+        if not np.all(np.isfinite(potential_lab)) or not np.all(
+            np.isfinite(gradient_lab)
+        ):
+            raise ValueError("Local reaction potential/gradient must be finite.")
+        context = self._jgp94_d2_mace_context(atoms)
+        result = np.zeros((len(atoms), 4), dtype=float)
+        for branch in context.branches:
+            body_atoms = context.body_atoms(atoms, branch)
+            body_potential, body_gradient = context.field_to_body(
+                potential_lab,
+                gradient_lab,
+                branch,
+            )
+            body_result = self._intrinsic_energy_field_gradient_native(
+                body_atoms,
+                node_potential_ev=body_potential,
+                node_gradient_ev_per_angstrom=body_gradient,
+            )
+            result += context.branch_weight * context.field_block_from_body(
+                body_result,
+                branch,
+            )
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError(
+                "JGP94 D2 canonical intrinsic-energy field gradient is non-finite."
+            )
+        return result
+
     def intrinsic_energy_model_feature_gradient(
         self,
         atoms,
@@ -896,6 +1166,12 @@ class MACEPolCalculator(CalcABC):
         not include the continuum feature map or establish an electrostatic
         conjugacy relation with the returned ``(n_atoms, 4)`` density.
         """
+
+        if self._route2_jgp94_d2_canonical_mace:
+            raise NotImplementedError(
+                "JGP94 D2 MACE canonicalisation has no exact-GTO feature "
+                "representation proof."
+            )
 
         features = np.asarray(model_field_features, dtype=float)
         if (
@@ -954,7 +1230,7 @@ class MACEPolCalculator(CalcABC):
             )
         return result
 
-    def density_position_vjp(
+    def _density_position_vjp_native(
         self,
         atoms,
         *,
@@ -1085,7 +1361,102 @@ class MACEPolCalculator(CalcABC):
             if not positions_required_grad:
                 positions.requires_grad_(False)
 
-    def linearize_density_response(
+    def density_position_vjp(
+        self,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray,
+        node_gradient_ev_per_angstrom: np.ndarray,
+        density_cotangent: np.ndarray,
+    ) -> np.ndarray:
+        """Differentiate the raw or D2-canonical density pairing in lab axes.
+
+        For the canonical operator this includes all three necessary terms:
+        the native body-coordinate VJP, rotation of the atom-centred local
+        field into the moving body frame, and rotation of the returned
+        ``l=1`` density back to laboratory axes.  Omitting either orientation
+        term would reproduce the historical false force agreement at one
+        geometry while breaking rigid-rotation covariance.
+        """
+
+        if not self._route2_jgp94_d2_canonical_mace:
+            return self._density_position_vjp_native(
+                atoms,
+                node_potential_ev=node_potential_ev,
+                node_gradient_ev_per_angstrom=node_gradient_ev_per_angstrom,
+                density_cotangent=density_cotangent,
+            )
+        potential_lab = np.asarray(node_potential_ev, dtype=float)
+        gradient_lab = np.asarray(node_gradient_ev_per_angstrom, dtype=float)
+        cotangent_lab = np.asarray(density_cotangent, dtype=float)
+        if potential_lab.shape != (len(atoms),) or gradient_lab.shape != (
+            len(atoms),
+            3,
+        ):
+            raise ValueError(
+                "Local reaction potential/gradient shapes must be "
+                "(n_atoms,) and (n_atoms, 3)."
+            )
+        if cotangent_lab.shape != (len(atoms), 4):
+            raise ValueError(
+                "Density cotangent must have shape "
+                f"{(len(atoms), 4)}; received {cotangent_lab.shape}."
+            )
+        if not (
+            np.all(np.isfinite(potential_lab))
+            and np.all(np.isfinite(gradient_lab))
+            and np.all(np.isfinite(cotangent_lab))
+        ):
+            raise ValueError("Local reaction field and density cotangent must be finite.")
+
+        context = self._jgp94_d2_mace_context(atoms)
+        result = np.zeros((len(atoms), 3), dtype=float)
+        for branch in context.branches:
+            body_atoms = context.body_atoms(atoms, branch)
+            body_potential, body_gradient = context.field_to_body(
+                potential_lab,
+                gradient_lab,
+                branch,
+            )
+            body_cotangent = context.density_cotangent_to_body(
+                cotangent_lab,
+                branch,
+            )
+            body_position_cotangent = self._density_position_vjp_native(
+                body_atoms,
+                node_potential_ev=body_potential,
+                node_gradient_ev_per_angstrom=body_gradient,
+                density_cotangent=body_cotangent,
+            )
+            body_response = self._linearize_density_response_native(
+                body_atoms,
+                node_potential_ev=body_potential,
+                node_gradient_ev_per_angstrom=body_gradient,
+            )
+            body_field_cotangent = body_response.vjp(body_cotangent)
+            body_state, _ = self._polar_state_native(
+                body_atoms,
+                node_potential_ev=body_potential,
+                node_gradient_ev_per_angstrom=body_gradient,
+            )
+            output_orientation_cotangent = (
+                context.output_density_orientation_cotangent(
+                    cotangent_lab,
+                    body_state.density_coefficients,
+                )
+            )
+            result += context.branch_weight * context.reduce_position_vjp(
+                branch,
+                body_position_cotangent=body_position_cotangent,
+                gradient_lab=gradient_lab,
+                body_gradient_cotangent=body_field_cotangent[:, 1:],
+                additional_orientation_cotangent=output_orientation_cotangent,
+            )
+        if not np.all(np.isfinite(result)):
+            raise RuntimeError("JGP94 D2 canonical density position VJP is non-finite.")
+        return result
+
+    def _linearize_density_response_native(
         self,
         atoms,
         *,
@@ -1108,6 +1479,44 @@ class MACEPolCalculator(CalcABC):
             node_gradient_ev_per_angstrom=node_gradient_ev_per_angstrom,
         )
 
+    def linearize_density_response(
+        self,
+        atoms,
+        *,
+        node_potential_ev: np.ndarray,
+        node_gradient_ev_per_angstrom: np.ndarray,
+    ):
+        """Return the raw or D2-canonical local-jet density JVP/VJP."""
+
+        if not self._route2_jgp94_d2_canonical_mace:
+            return self._linearize_density_response_native(
+                atoms,
+                node_potential_ev=node_potential_ev,
+                node_gradient_ev_per_angstrom=node_gradient_ev_per_angstrom,
+            )
+        potential_lab = np.asarray(node_potential_ev, dtype=float)
+        gradient_lab = np.asarray(node_gradient_ev_per_angstrom, dtype=float)
+        context = self._jgp94_d2_mace_context(atoms)
+        branch_responses = []
+        for branch in context.branches:
+            body_atoms = context.body_atoms(atoms, branch)
+            body_potential, body_gradient = context.field_to_body(
+                potential_lab,
+                gradient_lab,
+                branch,
+            )
+            branch_responses.append(
+                self._linearize_density_response_native(
+                    body_atoms,
+                    node_potential_ev=body_potential,
+                    node_gradient_ev_per_angstrom=body_gradient,
+                )
+            )
+        return JGP94D2CanonicalDensityResponse(
+            context=context,
+            branch_responses=tuple(branch_responses),
+        )
+
     def linearize_density_response_features(
         self,
         atoms,
@@ -1123,6 +1532,12 @@ class MACEPolCalculator(CalcABC):
         Route-2 force implementation.
         """
 
+        if self._route2_jgp94_d2_canonical_mace:
+            raise NotImplementedError(
+                "JGP94 D2 MACE canonicalisation supports the local-jet "
+                "receiver only."
+            )
+
         return _MACEPolarFeatureDensityResponseLinearization(
             self,
             atoms,
@@ -1135,6 +1550,12 @@ class MACEPolCalculator(CalcABC):
 
         needs_forces = "forces" in properties
         needs_hessian = "hessian" in properties
+        if needs_hessian and self._route2_jgp94_d2_canonical_mace:
+            raise NotImplementedError(
+                "The JGP94 D2 canonical MACE profile does not expose a "
+                "Hessian before its full frame-chain-rule implementation is "
+                "verified."
+            )
         state, output = self.polar_state(
             atoms,
             compute_forces=needs_forces,
@@ -1193,6 +1614,10 @@ class MACEPolCalculator(CalcABC):
     def _analytic_hessian(self, atoms) -> np.ndarray:
         # Keep a fallback for upstream checkpoints that do not expose a Hessian
         # tensor from their standard forward.
+        if self._route2_jgp94_d2_canonical_mace:
+            raise NotImplementedError(
+                "The JGP94 D2 canonical MACE profile has no analytic Hessian proof."
+            )
         batch = self._batch_dict(atoms)
         positions = batch["positions"]
         positions.requires_grad_(True)

@@ -766,6 +766,52 @@ def test_direct_pcm_scf_tracks_pcm_half_coupling_not_mace_energy_drift():
     )
 
 
+def test_explicit_initial_density_is_used_and_audited_for_root_studies():
+    """Multi-start studies must not relabel a gas start as an independent root."""
+
+    atoms = Atoms("CO", positions=[[0.0, 0.0, 0.0], [1.2, 0.0, 0.0]])
+    fixed_point = np.asarray(
+        [[-0.2, 0.1, -0.3, 0.4], [0.2, -0.5, 0.6, -0.7]],
+        dtype=float,
+    )
+    gas_state = _State(
+        energy_ev=0.0,
+        density_coefficients=np.zeros_like(fixed_point),
+    )
+    reaction_map = _IdentityReactionMap()
+    calculator = _LinearContractiveCalculator(fixed_point, contraction=0.5)
+    engine = Route2ContinuumEngine(
+        reaction_field_factory=lambda _atoms: reaction_map,
+        cds_evaluator=lambda _atoms: _CDS(),
+        settings=_settings(),
+    )
+
+    coupled = engine.solve_coupled_state(
+        atoms,
+        calculator,
+        gas_state,
+        provider_cache_signature=("explicit-root-seed",),
+        initial_density_coefficients=fixed_point,
+        initial_density_label="synthetic-second-start",
+    )
+
+    assert coupled.initial_density_label == "synthetic-second-start"
+    assert coupled.initial_density_sha256 == Route2ContinuumEngine._array_sha256(
+        fixed_point
+    )
+    np.testing.assert_allclose(reaction_map.last_density, fixed_point)
+    np.testing.assert_allclose(coupled.density_coefficients, fixed_point)
+
+    with pytest.raises(ValueError, match="initial_density_label requires"):
+        engine.solve_coupled_state(
+            atoms,
+            calculator,
+            gas_state,
+            provider_cache_signature=("invalid-gas-label",),
+            initial_density_label="misleading-gas-label",
+        )
+
+
 def test_engine_resets_anderson_history_after_observed_residual_growth(
     monkeypatch,
 ):

@@ -21,7 +21,10 @@ from maple.function.route2_smd_profiles import (
     DDCOSMO_MULTISOLVENT_SMD_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE,
     DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_V2_PROFILE,
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE,
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE,
     SUPPORTED_DDPCM_SMD_PROFILES,
+    SUPPORTED_FC_ASWIG_SMD_PROFILES,
     SUPPORTED_PYDDX_SMD_PROFILES,
     route2_smd_profile_spec,
 )
@@ -209,10 +212,50 @@ def test_direct_pcm_v1_profiles_remain_available_as_historical_controls():
         route2_smd_profile_spec(DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE).name
         == DDPCM_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE
     )
+
+
+def test_fixed_topology_force_candidate_has_its_own_water_only_profile_identity():
+    profile = route2_smd_profile_spec(FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE)
+    assert profile.provider == "fc-aswig"
+    assert profile.electrostatics_model == "cpcm"
+    assert profile.cavity == "fixed-topology-smd"
+    assert profile.nonpolar_model == "fixed-topology-aqueous-smd-cds"
+    assert profile.electrostatic_energy_ledger == "pcm-half-coupling-only-v1"
+    assert profile.supported_solvents == frozenset({"water"})
+    assert FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE in (
+        SUPPORTED_FC_ASWIG_SMD_PROFILES
+    )
+    np.testing.assert_allclose(
+        route2_coulomb_radii(
+            ["H", "C", "O"],
+            solvent="water",
+            profile=FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE,
+        ),
+        [1.20, 1.85, 1.52],
+        rtol=0.0,
+        atol=1.0e-12,
+    )
     assert (
         route2_smd_profile_spec(DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE).name
         == DDCOSMO_MULTISOLVENT_SMD_DIRECT_PCM_PROFILE
     )
+
+
+def test_fixed_topology_canonical_mace_profile_versions_the_new_operator():
+    legacy = route2_smd_profile_spec(FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE)
+    canonical = route2_smd_profile_spec(
+        FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE
+    )
+    assert canonical.provider == legacy.provider == "fc-aswig"
+    assert canonical.electrostatics_model == legacy.electrostatics_model == "cpcm"
+    assert (
+        canonical.electrostatic_energy_ledger
+        == legacy.electrostatic_energy_ledger
+        == "pcm-half-coupling-only-v1"
+    )
+    assert legacy.mace_geometry_frame_policy == "laboratory-v1"
+    assert canonical.mace_geometry_frame_policy == "jgp94-d2-canonical-v1"
+    assert canonical.name in SUPPORTED_FC_ASWIG_SMD_PROFILES
 
 
 def test_water_profile_uses_atomic_number_indexed_smd_reference_radii():

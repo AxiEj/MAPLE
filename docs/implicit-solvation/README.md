@@ -244,34 +244,57 @@ not a universal grid or accuracy certification. The separately named
 GAFF/GAFF2 `o` carbonyl-oxygen radius change to the same numerical candidate;
 it is not the canonical default or a broad-accuracy claim.
 
-The multi-solvent parameter profile must be selected explicitly:
+The multi-solvent direct-PCM comparison has two **parallel, explicit**
+profiles.  They share the MACE-POLAR source, SCF policy, SMD-derived cavity
+radii, solvent dielectric, standard state, and PySCF SMD-CDS term; only the
+continuum equation changes.
 
 ```text
+# Route 2A: ddPCM + SMD-CDS
 #model=macepol-m
 #sp(verbose=1)
-#solv(implicit=acetonitrile,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-multisolv-v1,response=scf,standard_state=1m,experimental=true)
+#solv(implicit=acetonitrile,method=smd,provider=pyddx,profile=smd-ddpcm-l15-n1202-multisolv-pcm-half-coupling-v2,response=scf,standard_state=1m,experimental=true)
+
+# Route 2B: scaled ddCOSMO + the same SMD-CDS comparison term
+#model=macepol-m
+#sp(verbose=1)
+#solv(implicit=acetonitrile,method=smd,provider=pyddx,profile=smd-ddcosmo-l15-n1202-multisolv-pcm-half-coupling-v2,response=scf,standard_state=1m,experimental=true)
 ```
 
-It registers 11 solvents from the tested PySCF 2.13.1 SMD solvent database:
-water, methanol, ethanol, acetonitrile, dimethyl sulfoxide,
+Both profiles register 11 solvents from the tested PySCF 2.13.1 SMD solvent
+database: water, methanol, ethanol, acetonitrile, dimethyl sulfoxide,
 dimethylformamide, tetrahydrofuran, chloroform, dichloromethane, toluene, and
-hexane. The profile uses each solvent's tabulated dielectric, the
-solvent-acidity-dependent SMD oxygen radius, the tested PySCF element-radius
-mapping, and the matching PySCF SMD CDS energy/gradient. Water-only profiles
-retain their original `78.39` dielectric but now use the corrected
+hexane.  Each uses that solvent's tabulated dielectric,
+solvent-acidity-dependent SMD oxygen radius, tested PySCF element-radius
+mapping, and matching PySCF SMD CDS energy/gradient.  Water-only profiles
+retain their original `78.39` dielectric but use the corrected
 atomic-number-indexed SMD/SMD18 P/S/Cl radii (`2.12/2.49/2.38 angstrom`).
 Artifacts generated with the former shifted mapping remain bound to their old
 execution commits and are stale evidence for the corrected profile.
 
-The complete scientific identity is printed in provenance:
-`electrostatics_model=ddpcm`, `solute_source=point-multipole-l1`,
-`reaction_field_projector=local-jet`, and
-`nonpolar_model=pyscf-smd-cds`, with
-`strict_original_smd_equivalence=false`. Thus `method=smd` is a compatible
-input label for an **SMD-CDS-augmented MACE-POLAR/ddPCM hybrid**, not a claim
-that the coarse residual multipoles reproduce original electron-density SMD.
-Registration and successful execution are not multi-solvent accuracy
-validation.
+`ddCOSMO` here means the finite-dielectric, scaled ddX COSMO continuum
+equation.  It is **not** COSMO-RS and it is **not** Route 1 ALPB.  Its
+nonpolar arm is intentionally the same frozen PySCF SMD-CDS contribution as
+the ddPCM arm, so a paired result changes one mathematical object only: the
+electrostatic continuum operator.  This is a controlled
+``ddCOSMO + SMD-CDS`` experimental comparator, not a claim that the original
+QM-density SMD parametrization was re-fit for MACE residual multipoles or for
+COSMO.
+
+The direct ledger for both arms is
+
+\[
+\Delta G_{\rm solv}=\frac12\langle c_{\rm MACE-POLAR},f_{\rm reac}\rangle
++G_{\rm SMD-CDS}.
+\]
+
+It deliberately excludes `E_MACE[V_reac]-E_MACE[gas]`: the present checkpoint
+does not establish `dE_MACE/df = c`.  The complete scientific identity is
+printed in provenance as `electrostatics_model=ddpcm` or `ddcosmo`,
+`solute_source=point-multipole-l1`, `reaction_field_projector=local-jet`,
+`nonpolar_model=pyscf-smd-cds`, and
+`strict_original_smd_equivalence=false`.  Registration and successful
+execution are usability evidence, not multi-solvent accuracy certification.
 
 One additional profile isolates the rigid-rotation defect of MACE-POLAR's
 default molecular long-range evaluator:

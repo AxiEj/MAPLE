@@ -16,6 +16,7 @@ from maple.function.calculator.mace._macepol_long_range import (
 )
 from maple.function.route2_smd_profiles import (
     DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
+    FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE,
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     MACEPOL_MOLECULAR_REALSPACE_PROFILE,
 )
@@ -127,16 +128,28 @@ def test_route2_profile_dispatches_one_closed_evaluator_contract():
             "profile": DDPCM_GAFF2_CARBONYL_O_MACE_KSPACE40_PROFILE,
         }
     )
+    canonical_kwargs = MACEPolCalculator.build_implicit_solvent_kwargs(
+        {
+            "provider": "fc-aswig",
+            "profile": FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_CANONICAL_MACE_PROFILE,
+        }
+    )
 
     assert default_kwargs == {
         "long_range_evaluator_profile": (
             MACEPOL_MOLECULAR_REALSPACE_PROFILE
-        )
+        ),
+        "route2_mace_geometry_frame_policy": "laboratory-v1",
     }
     assert reciprocal_kwargs == {
         "long_range_evaluator_profile": (
             MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE
-        )
+        ),
+        "route2_mace_geometry_frame_policy": "laboratory-v1",
+    }
+    assert canonical_kwargs == {
+        "long_range_evaluator_profile": MACEPOL_MOLECULAR_REALSPACE_PROFILE,
+        "route2_mace_geometry_frame_policy": "jgp94-d2-canonical-v1",
     }
 
 

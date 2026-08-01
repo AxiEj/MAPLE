@@ -7,6 +7,16 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
+def test_route2_pyddx_optional_runtime_extra_is_exactly_pinned():
+    """Keep the user-installable optional runtime aligned with import guards."""
+
+    pyproject = (REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+    assert "route2-pyddx = [" in pyproject
+    assert '"pyddx==0.8.0"' in pyproject
+    assert '"pyscf==2.13.1"' in pyproject
+
+
 
 
 

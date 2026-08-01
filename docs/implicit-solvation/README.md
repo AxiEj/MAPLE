@@ -13,8 +13,7 @@ PCMSolver profile changes only the ASC-to-MACE reaction-field projection from
 the historical local first-order jet to the checkpoint-native \(l\le1\) GTO
 integrals. A newer, still non-default profile combines that receiver with the
 SMD intrinsic Coulomb-sphere electrostatic cavity (`probe=0`, no added
-spheres, explicit water dielectric). No profile is a complete generic MAPLE
-solution-phase PES.
+spheres, explicit water dielectric). No profile is a complete MAPLE solution-phase PES for generic molecules.
 All calculations therefore require `experimental=true`.
 
 The no-training Route-2 V0 scalar-response alternative is also frozen as a
@@ -282,7 +281,8 @@ equation.  It is **not** COSMO-RS and it is **not** Route 1 ALPB.  Its
 nonpolar arm is intentionally the same frozen PySCF SMD-CDS contribution as
 the ddPCM arm, so a paired result changes one mathematical object only: the
 electrostatic continuum operator.  This is a controlled
-``ddCOSMO + SMD-CDS`` experimental comparator, not a claim that the original
+``ddCOSMO + SMD-CDS`` experimental comparator.  The ddPCM member is therefore
+an SMD-CDS-augmented MACE-POLAR/ddPCM hybrid, not a claim that the original
 QM-density SMD parametrization was re-fit for MACE residual multipoles or for
 COSMO.
 
@@ -300,6 +300,11 @@ printed in provenance as `electrostatics_model=ddpcm` or `ddcosmo`,
 `nonpolar_model=pyscf-smd-cds`, and
 `strict_original_smd_equivalence=false`.  Registration and successful
 execution are usability evidence, not multi-solvent accuracy certification.
+
+For reproducibility only, the earlier field-conditioned ddPCM multi-solvent
+experiment remains selectable as
+`profile=smd-ddpcm-l15-n1202-multisolv-v1`.  It has a different ledger and is
+not interchangeable with either direct half-coupling `v2` arm above.
 
 ### Bounded public conservative-force profile
 
@@ -331,7 +336,8 @@ agreement. If any gate fails at a new geometry, no force is returned.
 
 The release evidence was generated on a clean `e724cf5a` source tree: acetone
 passed component finite differences, translation, rotation, a Cartesian path,
-a closed coordinate loop, and three time-step short-NVE refinement; an
+a closed coordinate loop, and short NVE conservation with three time-step
+refinement; an
 independent 20-atom 2-acetoxyethyl-acetate torsion and two-coordinate closed
 loop also passed at a constant 1720 surface candidates. This is a bounded
 conservative operational-scalar force capability, not proof for all chemical
@@ -383,12 +389,24 @@ physical model or a general performance claim.
 
 ### Route-2 runtime
 
-Install the exact MACE release used by the contract and let its official
-foundation-model loader populate the upstream cache:
+Create one Python environment for MAPLE, MACE, pyddx, and PySCF.  Do **not**
+put arbitrary complete `site-packages` directories in `PYTHONPATH`: that can
+silently replace NumPy/SciPy beneath compiled Torch or continuum extensions.
+The Route-2 extra supplies the exact version-locked continuum pair; MACE stays
+separate because the user must select a CPU/CUDA-compatible Torch runtime.
 
 ```bash
-pip install 'mace-torch==0.3.16'
+python -m venv .venv-maple-route2
+. .venv-maple-route2/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e '.[route2-pyddx]' 'mace-torch==0.3.16'
+python -c 'import pyddx, pyscf; print(pyddx.__version__, pyscf.__version__)'
 ```
+
+The final command must print `0.8.0 2.13.1`.  MAPLE's `polar-1-m` loader then
+populates the upstream MACE cache on its first use.  This installs an explicit
+research optional dependency; it does not make the pyddx profiles a default or
+production PES provider.
 
 Install PCMSolver separately.  MAPLE neither vendors nor builds PCMSolver and
 requires both the matching official Python input parser and the v1.1.12-style
@@ -405,9 +423,9 @@ under the same installation prefix as that library; mixed installations fail
 before cavity construction.
 
 The pyddx derivative-evidence backend lazily requires exactly `pyddx==0.8.0`
-and `pyscf==2.13.1`. MAPLE does not declare either optional research runtime as
-a core dependency and fails closed when the exact versions or their compiled
-solvent libraries are unavailable. pyddx owns the ddPCM scalar energy,
+and `pyscf==2.13.1`. They are an optional `route2-pyddx` extra rather than core
+MAPLE dependencies, and MAPLE fails closed when the exact versions or their
+compiled solvent libraries are unavailable. pyddx owns the ddPCM scalar energy,
 forward/adjoint maps, and complete coordinate VJP; PySCF owns both the SMD CDS
 scalar energy and analytic gradient. Energy from one continuum definition is
 never combined with a derivative from another.

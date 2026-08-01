@@ -10,7 +10,7 @@ nonpolar functional; users cannot compose unvalidated mixtures.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, cast
 
 from .route2_energy_ledger import (
     LEGACY_MACE_FIELD_ENERGY_PLUS_PCM_V1,
@@ -564,6 +564,8 @@ SUPPORTED_DDPCM_SMD_PROFILES = frozenset(
     if spec.provider == "pyddx" and spec.electrostatics_model == "ddpcm"
 )
 SUPPORTED_ROUTE2_SMD_PROFILES = frozenset(_PROFILE_SPECS)
+Route2SMDResponseMode = Literal["frozen", "scf"]
+SUPPORTED_ROUTE2_SMD_RESPONSE_MODES = frozenset({"frozen", "scf"})
 
 
 def route2_smd_profiles_for_provider(provider: str) -> frozenset[str]:
@@ -605,6 +607,51 @@ def validate_route2_smd_profile(
     return spec
 
 
+def validate_route2_smd_response_mode(
+    profile_spec: Route2SMDProfileSpec,
+    response: str,
+) -> Route2SMDResponseMode:
+    """Validate the response strategy bound to one scientific profile.
+
+    This is the single response-admission boundary shared by input parsing,
+    calculator construction, and continuum providers.  Keeping the rule next
+    to the profile registry prevents those layers from drifting apart.
+    """
+
+    if not isinstance(profile_spec, Route2SMDProfileSpec):
+        raise TypeError("Route-2 response validation requires a profile spec.")
+    normalized = str(response).strip().lower()
+    if normalized not in SUPPORTED_ROUTE2_SMD_RESPONSE_MODES:
+        raise ValueError("SMD response must be frozen or scf.")
+    if (
+        profile_spec.provider == "pyddx"
+        and normalized == "frozen"
+        and profile_spec.electrostatic_energy_ledger
+        != PCM_HALF_COUPLING_ONLY_V1
+    ):
+        raise ValueError(
+            "Route 2 provider=pyddx response=frozen requires a direct PCM "
+            "half-coupling profile."
+        )
+    if profile_spec.provider == "fc-aswig" and normalized != "scf":
+        raise ValueError("Fixed-topology Route 2 requires response='scf'.")
+    if (
+        profile_spec.provider == "pcmsolver"
+        and normalized != "scf"
+        and (
+            profile_spec.reaction_field_projector != "local-jet"
+            or profile_spec.model_field_gauge
+            != "continuum-zero-at-infinity"
+        )
+    ):
+        raise ValueError(
+            "A non-default reaction-field projector or model-field gauge "
+            "requires response=scf; a frozen response would configure but "
+            "never apply that model drive."
+        )
+    return cast(Route2SMDResponseMode, normalized)
+
+
 __all__ = [
     "CANONICAL_SMD_PROFILE",
     "DDCOSMO_MULTISOLVENT_SMD_PROFILE",
@@ -634,8 +681,11 @@ __all__ = [
     "SUPPORTED_PCMSOLVER_SMD_PROFILES",
     "SUPPORTED_PYDDX_SMD_PROFILES",
     "SUPPORTED_ROUTE2_SMD_PROFILES",
+    "SUPPORTED_ROUTE2_SMD_RESPONSE_MODES",
     "Route2SMDProfileSpec",
+    "Route2SMDResponseMode",
     "route2_smd_profile_spec",
     "route2_smd_profiles_for_provider",
     "validate_route2_smd_profile",
+    "validate_route2_smd_response_mode",
 ]

@@ -15,6 +15,7 @@ from ..route2_smd_profiles import (
     route2_smd_profile_spec,
     route2_smd_profiles_for_provider,
     validate_route2_smd_profile,
+    validate_route2_smd_response_mode,
 )
 from ..route2_solvents import normalize_route2_solvent_name
 from ..route2_model_contracts import (
@@ -290,10 +291,7 @@ class SetCalculator:
             response = str(
                 self.solvation_options.get('response', 'scf')
             ).lower()
-            if provider in {'pyddx', 'fc-aswig'} and response != 'scf':
-                raise ValueError(
-                    f"Route 2 provider={provider} requires response=scf."
-                )
+            validate_route2_smd_response_mode(profile_spec, response)
             if (
                 provider in {'pyddx', 'fc-aswig'}
                 and 'cavity_policy' in self.solvation_options

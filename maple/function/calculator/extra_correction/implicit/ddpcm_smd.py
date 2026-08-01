@@ -37,6 +37,7 @@ from ....route2_smd_profiles import (
     MACEPOL_FORCED_RECIPROCAL_FIXED_BOX40_PROFILE,
     SUPPORTED_PYDDX_SMD_PROFILES,
     route2_smd_profile_spec,
+    validate_route2_smd_response_mode,
 )
 from ....route2_solvents import (
     normalize_route2_solvent_name,
@@ -498,20 +499,10 @@ class PyDDXSMDImplicitSolvation:
                 f"Route 2 profile={self.profile} does not support "
                 f"solvent={self.solvent}."
             )
-        if self.response not in {"frozen", "scf"}:
-            raise ValueError(
-                "The pyddx Route-2 research provider requires response=frozen "
-                "or response=scf."
-            )
-        if (
-            self.response == "frozen"
-            and self.profile_spec.electrostatic_energy_ledger
-            != PCM_HALF_COUPLING_ONLY_V1
-        ):
-            raise ValueError(
-                "Route 2 provider=pyddx response=frozen requires a direct PCM "
-                "half-coupling profile."
-            )
+        validate_route2_smd_response_mode(
+            self.profile_spec,
+            self.response,
+        )
         if self.standard_state != "1m":
             raise ValueError(
                 "Route 2 uses the 1 M gas -> 1 M solution convention only; "

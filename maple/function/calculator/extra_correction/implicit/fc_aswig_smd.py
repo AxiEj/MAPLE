@@ -28,6 +28,7 @@ from ....route2_smd_profiles import (
     FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_PROFILE,
     FC_ASWIG_AQUEOUS_SMD_DIRECT_PCM_FORCE_PROFILE,
     route2_smd_profile_spec,
+    validate_route2_smd_response_mode,
 )
 from ....route2_solvents import normalize_route2_solvent_name
 from .result import SinglePointDerivativeEvidence, SolvationResult
@@ -279,8 +280,7 @@ class FixedTopologyASWIGAqueousSMDImplicitSolvation:
             raise RuntimeError("The fixed-topology Route-2 profile contract is invalid.")
         if self.solvent != "water":
             raise ValueError("The fixed-topology aqueous SMD-CDS profile supports water only.")
-        if self.response != "scf":
-            raise ValueError("Fixed-topology Route 2 requires response='scf'.")
+        validate_route2_smd_response_mode(spec, self.response)
         if self.standard_state != "1m":
             raise ValueError("Fixed-topology Route 2 requires standard_state='1m'.")
 

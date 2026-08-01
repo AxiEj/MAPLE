@@ -266,6 +266,22 @@ def test_public_parser_rejects_frozen_source_for_a_legacy_pyddx_ledger():
         )
 
 
+def test_calculator_factory_accepts_frozen_source_for_direct_pyddx_profiles():
+    builder = SetCalculator(
+        "cpu",
+        "macepol-m",
+        "maple.out",
+        atoms=_atoms(),
+        implicit="smd",
+        solvent="acetonitrile",
+        solvation_options=_frozen(
+            _direct_multisolvent_v2_options("acetonitrile")
+        ),
+    )
+
+    builder._validate_solvent_config()
+
+
 def test_public_parser_canonicalizes_multisolvent_alias():
     params = _parse(
         "#model=macepol-m",

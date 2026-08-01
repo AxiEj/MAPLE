@@ -32,6 +32,7 @@ from ase.units import Bohr, Hartree
 
 from ....route2_smd_profiles import (
     route2_smd_profile_spec,
+    validate_route2_smd_response_mode,
 )
 from ....route2_energy_ledger import route2_energy_composition_description
 from .continuum_response import (
@@ -500,21 +501,10 @@ class SMDImplicitSolvation:
                 "The intrinsic SMD cavity policy requires its versioned "
                 "PCMSolver profile."
             )
-        if self.response not in {"frozen", "scf"}:
-            raise ValueError("SMD response must be frozen or scf.")
-        if (
-            (
-                self.profile_spec.reaction_field_projector != "local-jet"
-                or self.profile_spec.model_field_gauge
-                != "continuum-zero-at-infinity"
-            )
-            and self.response != "scf"
-        ):
-            raise ValueError(
-                "A non-default reaction-field projector or model-field gauge "
-                "requires response=scf; a frozen response would configure but "
-                "never apply that model drive."
-            )
+        validate_route2_smd_response_mode(
+            self.profile_spec,
+            self.response,
+        )
         if self.standard_state != "1m":
             raise ValueError(
                 "Route 2 uses the 1 M gas -> 1 M solution convention only; "

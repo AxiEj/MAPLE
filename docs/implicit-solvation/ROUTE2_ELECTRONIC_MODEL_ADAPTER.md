@@ -1,5 +1,11 @@
 # Route-2 electronic-model adapter contract
 
+> **M0 successor:** the capability-layered contract in
+> [`ROUTE2_MLIP_PLUGIN_CONTRACT.md`](ROUTE2_MLIP_PLUGIN_CONTRACT.md) is the
+> active boundary for new MLIPs.  This document describes the retained legacy
+> all-method adapter used by already released profiles.  New plug-ins must not
+> copy its unsupported-method pattern.
+
 ## Status and scope
 
 The released Route-2 scientific profiles remain bound to the official

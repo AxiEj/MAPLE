@@ -54,6 +54,9 @@ from .route2_force_admission import (
     evaluate_force_admission,
     force_energy_semantics_contract,
 )
+from .route2_nonuniform_response import (
+    molecular_dipole_response_from_density_coefficients,
+)
 from .route2_response import (
     UnmixedDensityResidualLinearization,
     solve_adjoint,
@@ -84,7 +87,14 @@ class Route2SCFHistoryRecord(TypedDict):
     iteration: int
     density_residual_e: float
     monopole_residual_e: float
+    monopole_residual_rms_e: float
     dipole_residual_e_angstrom: float
+    dipole_residual_rms_e_angstrom: float
+    source_residual_rms_normalized: float
+    raw_response_charge_delta_e: float
+    projected_total_charge_residual_e: float
+    molecular_dipole_residual_vector_e_angstrom: list[float]
+    molecular_dipole_residual_l2_e_angstrom: float
     reaction_potential_change_ev: float | None
     reaction_gradient_change_ev_per_angstrom: float | None
     energy_residual_ev: float | None
@@ -259,6 +269,9 @@ class Route2EngineSettings:
     scf_anderson_step_ratio_limit: float = 100.0
     scf_anderson_residual_growth_limit: float = 2.0
     scf_total_charge_e: float = 0.0
+    scf_raw_response_charge_tolerance_e: float | None = None
+    scf_total_charge_residual_tolerance_e: float | None = None
+    scf_molecular_dipole_tolerance_e_angstrom: float | None = None
 
     def __post_init__(self) -> None:
         if not self.continuum_label:
@@ -318,6 +331,34 @@ class Route2EngineSettings:
             or scf_dipole_tolerance <= 0.0
         ):
             raise ValueError("scf_dipole_tolerance_e_angstrom must be positive.")
+        optional_positive = {
+            "scf_raw_response_charge_tolerance_e": (
+                self.scf_raw_response_charge_tolerance_e
+            ),
+            "scf_total_charge_residual_tolerance_e": (
+                self.scf_total_charge_residual_tolerance_e
+            ),
+            "scf_molecular_dipole_tolerance_e_angstrom": (
+                self.scf_molecular_dipole_tolerance_e_angstrom
+            ),
+        }
+        invalid_optional = [
+            name
+            for name, value in optional_positive.items()
+            if value is not None
+            and (
+                isinstance(value, bool)
+                or not isinstance(value, int | float)
+                or not math.isfinite(value)
+                or value <= 0.0
+            )
+        ]
+        if invalid_optional:
+            raise ValueError(
+                "Optional Route-2 aggregate SCF tolerances must be positive: "
+                + ", ".join(invalid_optional)
+                + "."
+            )
         if (
             self.scf_finite_resolution_policy is not None
             and not isinstance(
@@ -327,12 +368,44 @@ class Route2EngineSettings:
         ):
             raise ValueError("Route-2 finite-resolution policy is malformed.")
 
+    @property
+    def effective_raw_response_charge_tolerance_e(self) -> float | None:
+        """Configured pre-projection charge gate, if this profile admits one."""
+
+        return (
+            None
+            if self.scf_raw_response_charge_tolerance_e is None
+            else float(self.scf_raw_response_charge_tolerance_e)
+        )
+
+    @property
+    def effective_total_charge_residual_tolerance_e(self) -> float | None:
+        """Configured post-projection total-charge gate, if present."""
+
+        return (
+            None
+            if self.scf_total_charge_residual_tolerance_e is None
+            else float(self.scf_total_charge_residual_tolerance_e)
+        )
+
+    @property
+    def effective_molecular_dipole_tolerance_e_angstrom(self) -> float | None:
+        """Configured aggregate molecular-dipole gate, if present."""
+
+        return (
+            None
+            if self.scf_molecular_dipole_tolerance_e_angstrom is None
+            else float(self.scf_molecular_dipole_tolerance_e_angstrom)
+        )
+
 
 @dataclass(frozen=True)
 class Route2CoupledState:
     """One same-root geometry/provider state reusable by a public wrapper."""
 
     electronic_model_identity: int
+    electronic_model_family: str
+    electronic_energy_semantics: str
     response_mode: Route2ResponseMode
     atomic_numbers: np.ndarray
     provider_cache_signature: Hashable
@@ -350,6 +423,7 @@ class Route2CoupledState:
     model_field_gauge_reference_ev: float
     solvent_state: Any
     polarization_energy_hartree: float
+    source_field_pairing_ev: float
     energy_identity_error_ev: float
     cds_result: Any
     history: tuple[Route2SCFHistoryRecord, ...]
@@ -362,8 +436,23 @@ class Route2CoupledState:
             )
         if not self.initial_density_label.strip():
             raise ValueError("Route-2 initial density label must be non-empty.")
+        if not self.electronic_model_family.strip():
+            raise ValueError("Route-2 electronic model family must be non-empty.")
+        if not self.electronic_energy_semantics.strip():
+            raise ValueError("Route-2 electronic energy semantics must be non-empty.")
         if len(self.initial_density_sha256) != 64:
             raise ValueError("Route-2 initial density SHA256 must be canonical.")
+        for name in (
+            "polarization_energy_hartree",
+            "source_field_pairing_ev",
+            "energy_identity_error_ev",
+        ):
+            value = float(getattr(self, name))
+            if not math.isfinite(value):
+                raise ValueError(f"Route-2 coupled-state {name} must be finite.")
+            object.__setattr__(self, name, value)
+        if self.energy_identity_error_ev < 0.0:
+            raise ValueError("Route-2 energy identity error must be non-negative.")
         for name in (
             "atomic_numbers",
             "positions_angstrom",
@@ -616,8 +705,8 @@ class Route2ContinuumEngine:
         reaction_field,
         density: np.ndarray,
         field: np.ndarray,
-    ) -> tuple[float, float]:
-        """Return provider PCM energy and prove the half-coupling identity."""
+    ) -> tuple[float, float, float]:
+        """Return PCM energy, full pairing, and half-coupling identity error."""
 
         polarization_energy_hartree = float(
             reaction_field.scf_polarization_energy_hartree(density)
@@ -627,7 +716,8 @@ class Route2ContinuumEngine:
                 f"{self.settings.continuum_label} polarization energy is "
                 "non-finite."
             )
-        paired_energy_ev = 0.5 * float(self.source_space.pair(density, field))
+        source_field_pairing_ev = float(self.source_space.pair(density, field))
+        paired_energy_ev = 0.5 * source_field_pairing_ev
         provider_energy_ev = polarization_energy_hartree * Hartree
         identity_error_ev = abs(paired_energy_ev - provider_energy_ev)
         if identity_error_ev > self.settings.energy_identity_tolerance_ev:
@@ -636,7 +726,11 @@ class Route2ContinuumEngine:
                 "polarization-energy identity "
                 f"(absolute error={identity_error_ev:.3e} eV)."
             )
-        return polarization_energy_hartree, identity_error_ev
+        return (
+            polarization_energy_hartree,
+            source_field_pairing_ev,
+            identity_error_ev,
+        )
 
     @staticmethod
     def _maximum_component_span(values: np.ndarray) -> float:
@@ -1280,6 +1374,20 @@ class Route2ContinuumEngine:
             initial_density_coefficients=initial_density_coefficients,
             initial_density_label=initial_density_label,
         )
+        positions_angstrom = np.asarray(atoms.get_positions(), dtype=float)
+        raw_charge_tolerance_e = (
+            settings.effective_raw_response_charge_tolerance_e
+        )
+        total_charge_residual_tolerance_e = (
+            settings.effective_total_charge_residual_tolerance_e
+        )
+        molecular_dipole_tolerance_e_angstrom = (
+            settings.effective_molecular_dipole_tolerance_e_angstrom
+        )
+        dipole_component_tolerance_e_angstrom = cast(
+            float,
+            settings.scf_dipole_tolerance_e_angstrom,
+        )
         scf_convergence: dict[str, Any] = {}
         previous_energy_ev: float | None = None
         previous_update_method: str | None = None
@@ -1327,6 +1435,41 @@ class Route2ContinuumEngine:
             density_residual = float(np.max(np.abs(residual)))
             monopole_residual_e = float(np.max(np.abs(residual[:, 0])))
             dipole_residual_e_angstrom = float(np.max(np.abs(residual[:, 1:])))
+            monopole_residual_rms_e = float(
+                np.sqrt(np.mean(np.square(residual[:, 0])))
+            )
+            dipole_residual_rms_e_angstrom = float(
+                np.sqrt(np.mean(np.square(residual[:, 1:])))
+            )
+            scaled_source_residual = np.concatenate(
+                (
+                    residual[:, 0].reshape(-1) / settings.scf_density_tolerance,
+                    residual[:, 1:].reshape(-1)
+                    / dipole_component_tolerance_e_angstrom,
+                )
+            )
+            source_residual_rms_normalized = float(
+                np.sqrt(np.mean(np.square(scaled_source_residual)))
+            )
+            root_total_charge_e = float(np.sum(density[:, 0]))
+            raw_response_total_charge_e = float(
+                np.sum(raw_response_density[:, 0])
+            )
+            raw_response_charge_delta_e = (
+                raw_response_total_charge_e - root_total_charge_e
+            )
+            projected_total_charge_residual_e = abs(
+                float(np.sum(response_density[:, 0])) - root_total_charge_e
+            )
+            molecular_dipole_residual = (
+                molecular_dipole_response_from_density_coefficients(
+                    positions_angstrom,
+                    residual,
+                )
+            )
+            molecular_dipole_residual_l2_e_angstrom = float(
+                np.linalg.norm(molecular_dipole_residual)
+            )
             current_intrinsic_energy_ev = float(solvent_state.energy_ev)
             if not math.isfinite(current_intrinsic_energy_ev):
                 raise RuntimeError("Field-conditioned model energy is non-finite.")
@@ -1387,7 +1530,24 @@ class Route2ContinuumEngine:
                 "iteration": iteration,
                 "density_residual_e": density_residual,
                 "monopole_residual_e": monopole_residual_e,
+                "monopole_residual_rms_e": monopole_residual_rms_e,
                 "dipole_residual_e_angstrom": dipole_residual_e_angstrom,
+                "dipole_residual_rms_e_angstrom": (
+                    dipole_residual_rms_e_angstrom
+                ),
+                "source_residual_rms_normalized": (
+                    source_residual_rms_normalized
+                ),
+                "raw_response_charge_delta_e": raw_response_charge_delta_e,
+                "projected_total_charge_residual_e": (
+                    projected_total_charge_residual_e
+                ),
+                "molecular_dipole_residual_vector_e_angstrom": [
+                    float(value) for value in molecular_dipole_residual
+                ],
+                "molecular_dipole_residual_l2_e_angstrom": (
+                    molecular_dipole_residual_l2_e_angstrom
+                ),
                 "reaction_potential_change_ev": reaction_potential_change_ev,
                 "reaction_gradient_change_ev_per_angstrom": (
                     reaction_gradient_change_ev_per_angstrom
@@ -1396,10 +1556,8 @@ class Route2ContinuumEngine:
                 "intrinsic_energy_ev": current_intrinsic_energy_ev,
                 "ledger_energy_ev": current_energy_ev,
                 "energy_residual_source": energy_residual_source,
-                "root_total_charge_e": float(np.sum(density[:, 0])),
-                "raw_response_total_charge_e": float(
-                    np.sum(raw_response_density[:, 0])
-                ),
+                "root_total_charge_e": root_total_charge_e,
+                "raw_response_total_charge_e": raw_response_total_charge_e,
                 "response_charge_projection_max_e": float(
                     np.max(np.abs(response_density - raw_response_density))
                 ),
@@ -1539,7 +1697,23 @@ class Route2ContinuumEngine:
                 not scf_convergence
                 and monopole_residual_e <= settings.scf_density_tolerance
                 and dipole_residual_e_angstrom
-                <= cast(float, settings.scf_dipole_tolerance_e_angstrom)
+                <= dipole_component_tolerance_e_angstrom
+                and source_residual_rms_normalized <= 1.0
+                and (
+                    raw_charge_tolerance_e is None
+                    or abs(raw_response_charge_delta_e)
+                    <= raw_charge_tolerance_e
+                )
+                and (
+                    total_charge_residual_tolerance_e is None
+                    or projected_total_charge_residual_e
+                    <= total_charge_residual_tolerance_e
+                )
+                and (
+                    molecular_dipole_tolerance_e_angstrom is None
+                    or molecular_dipole_residual_l2_e_angstrom
+                    <= molecular_dipole_tolerance_e_angstrom
+                )
             ):
                 energy_converged = (
                     energy_residual is None
@@ -1554,9 +1728,48 @@ class Route2ContinuumEngine:
                         "reason": "nominal-density-and-energy-v1",
                         "online_candidate_iteration": iteration,
                         "final_monopole_residual_e": monopole_residual_e,
+                        "final_monopole_residual_rms_e": (
+                            monopole_residual_rms_e
+                        ),
                         "final_dipole_residual_e_angstrom": (
                             dipole_residual_e_angstrom
                         ),
+                        "final_dipole_residual_rms_e_angstrom": (
+                            dipole_residual_rms_e_angstrom
+                        ),
+                        "final_source_residual_rms_normalized": (
+                            source_residual_rms_normalized
+                        ),
+                        "final_raw_response_charge_delta_e": (
+                            raw_response_charge_delta_e
+                        ),
+                        "final_projected_total_charge_residual_e": (
+                            projected_total_charge_residual_e
+                        ),
+                        "final_molecular_dipole_residual_vector_e_angstrom": [
+                            float(value) for value in molecular_dipole_residual
+                        ],
+                        "final_molecular_dipole_residual_l2_e_angstrom": (
+                            molecular_dipole_residual_l2_e_angstrom
+                        ),
+                        "residual_tolerances": {
+                            "monopole_max_e": settings.scf_density_tolerance,
+                            "dipole_component_max_e_angstrom": (
+                                dipole_component_tolerance_e_angstrom
+                            ),
+                            "source_rms_normalized": 1.0,
+                            "raw_response_charge_delta_e": (
+                                raw_charge_tolerance_e
+                            ),
+                            "projected_total_charge_residual_e": (
+                                total_charge_residual_tolerance_e
+                            ),
+                            "molecular_dipole_l2_e_angstrom": (
+                                molecular_dipole_tolerance_e_angstrom
+                            ),
+                            "energy_delta_ev": settings.scf_energy_tolerance_ev,
+                        },
+                        "nominal_residual_gate_passed": True,
                         "final_reaction_potential_change_ev": (
                             reaction_potential_change_ev
                         ),
@@ -1617,9 +1830,48 @@ class Route2ContinuumEngine:
                         "reason": finite_resolution_policy.version,
                         "online_candidate_iteration": iteration,
                         "final_monopole_residual_e": monopole_residual_e,
+                        "final_monopole_residual_rms_e": (
+                            monopole_residual_rms_e
+                        ),
                         "final_dipole_residual_e_angstrom": (
                             dipole_residual_e_angstrom
                         ),
+                        "final_dipole_residual_rms_e_angstrom": (
+                            dipole_residual_rms_e_angstrom
+                        ),
+                        "final_source_residual_rms_normalized": (
+                            source_residual_rms_normalized
+                        ),
+                        "final_raw_response_charge_delta_e": (
+                            raw_response_charge_delta_e
+                        ),
+                        "final_projected_total_charge_residual_e": (
+                            projected_total_charge_residual_e
+                        ),
+                        "final_molecular_dipole_residual_vector_e_angstrom": [
+                            float(value) for value in molecular_dipole_residual
+                        ],
+                        "final_molecular_dipole_residual_l2_e_angstrom": (
+                            molecular_dipole_residual_l2_e_angstrom
+                        ),
+                        "residual_tolerances": {
+                            "monopole_max_e": settings.scf_density_tolerance,
+                            "dipole_component_max_e_angstrom": (
+                                dipole_component_tolerance_e_angstrom
+                            ),
+                            "source_rms_normalized": 1.0,
+                            "raw_response_charge_delta_e": (
+                                raw_charge_tolerance_e
+                            ),
+                            "projected_total_charge_residual_e": (
+                                total_charge_residual_tolerance_e
+                            ),
+                            "molecular_dipole_l2_e_angstrom": (
+                                molecular_dipole_tolerance_e_angstrom
+                            ),
+                            "energy_delta_ev": settings.scf_energy_tolerance_ev,
+                        },
+                        "nominal_residual_gate_passed": False,
                         "final_reaction_potential_change_ev": (
                             reaction_potential_change_ev
                         ),
@@ -1718,6 +1970,15 @@ class Route2ContinuumEngine:
                 f"(monopole residual={last['monopole_residual_e']:.3e} e, "
                 "dipole residual="
                 f"{last['dipole_residual_e_angstrom']:.3e} e angstrom, "
+                "normalized RMS source residual="
+                f"{last['source_residual_rms_normalized']:.3e}, "
+                "raw charge delta="
+                f"{last['raw_response_charge_delta_e']:.3e} e, "
+                "projected charge residual="
+                f"{last['projected_total_charge_residual_e']:.3e} e, "
+                "molecular dipole residual="
+                f"{last['molecular_dipole_residual_l2_e_angstrom']:.3e} "
+                "e angstrom, "
                 f"energy residual={last['energy_residual_ev']!r} eV, "
                 f"minimum density residual={minimum_density_residual:.3e} "
                 f"(energy ledger={last['energy_residual_source']})).",
@@ -1725,7 +1986,11 @@ class Route2ContinuumEngine:
                 best_state=best_iteration_state,
             )
 
-        polarization_energy_hartree, identity_error_ev = (
+        (
+            polarization_energy_hartree,
+            source_field_pairing_ev,
+            identity_error_ev,
+        ) = (
             self._checked_polarization_energy(
                 reaction_field,
                 density,
@@ -1736,6 +2001,8 @@ class Route2ContinuumEngine:
         cds_result = self.cds_evaluator(atoms)
         return Route2CoupledState(
             electronic_model_identity=model.cache_identity,
+            electronic_model_family=model.descriptor.model_family,
+            electronic_energy_semantics=model.descriptor.energy_semantics,
             response_mode="scf",
             atomic_numbers=np.asarray(atoms.numbers, dtype=int).copy(),
             provider_cache_signature=provider_cache_signature,
@@ -1756,6 +2023,7 @@ class Route2ContinuumEngine:
             model_field_gauge_reference_ev=(drive.model_field_gauge_reference_ev),
             solvent_state=solvent_state,
             polarization_energy_hartree=polarization_energy_hartree,
+            source_field_pairing_ev=source_field_pairing_ev,
             energy_identity_error_ev=identity_error_ev,
             cds_result=cds_result,
             history=tuple(history),
@@ -1797,7 +2065,11 @@ class Route2ContinuumEngine:
             len(atoms),
         )
         field = drive.density_dual_field_ev
-        polarization_energy_hartree, identity_error_ev = (
+        (
+            polarization_energy_hartree,
+            source_field_pairing_ev,
+            identity_error_ev,
+        ) = (
             self._checked_polarization_energy(
                 reaction_field,
                 density,
@@ -1807,6 +2079,8 @@ class Route2ContinuumEngine:
         cds_result = self.cds_evaluator(atoms)
         return Route2CoupledState(
             electronic_model_identity=model.cache_identity,
+            electronic_model_family=model.descriptor.model_family,
+            electronic_energy_semantics=model.descriptor.energy_semantics,
             response_mode="frozen",
             atomic_numbers=np.asarray(atoms.numbers, dtype=int).copy(),
             provider_cache_signature=provider_cache_signature,
@@ -1827,6 +2101,7 @@ class Route2ContinuumEngine:
             model_field_gauge_reference_ev=(drive.model_field_gauge_reference_ev),
             solvent_state=gas_state,
             polarization_energy_hartree=polarization_energy_hartree,
+            source_field_pairing_ev=source_field_pairing_ev,
             energy_identity_error_ev=identity_error_ev,
             cds_result=cds_result,
             history=(),

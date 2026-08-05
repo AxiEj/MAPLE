@@ -1625,11 +1625,43 @@ def test_engine_reports_nominal_channel_specific_convergence():
     assert coupled.history[-1]["dipole_residual_e_angstrom"] == pytest.approx(
         1.5e-12
     )
+    final = coupled.history[-1]
     assert coupled.scf_convergence == {
         "reason": "nominal-density-and-energy-v1",
         "online_candidate_iteration": 1,
         "final_monopole_residual_e": pytest.approx(5.0e-13),
+        "final_monopole_residual_rms_e": pytest.approx(
+            final["monopole_residual_rms_e"]
+        ),
         "final_dipole_residual_e_angstrom": pytest.approx(1.5e-12),
+        "final_dipole_residual_rms_e_angstrom": pytest.approx(
+            final["dipole_residual_rms_e_angstrom"]
+        ),
+        "final_source_residual_rms_normalized": pytest.approx(
+            final["source_residual_rms_normalized"]
+        ),
+        "final_raw_response_charge_delta_e": pytest.approx(
+            final["raw_response_charge_delta_e"]
+        ),
+        "final_projected_total_charge_residual_e": pytest.approx(
+            final["projected_total_charge_residual_e"]
+        ),
+        "final_molecular_dipole_residual_vector_e_angstrom": pytest.approx(
+            final["molecular_dipole_residual_vector_e_angstrom"]
+        ),
+        "final_molecular_dipole_residual_l2_e_angstrom": pytest.approx(
+            final["molecular_dipole_residual_l2_e_angstrom"]
+        ),
+        "residual_tolerances": {
+            "monopole_max_e": 1.0e-12,
+            "dipole_component_max_e_angstrom": 2.0e-12,
+            "source_rms_normalized": 1.0,
+            "raw_response_charge_delta_e": None,
+            "projected_total_charge_residual_e": None,
+            "molecular_dipole_l2_e_angstrom": None,
+            "energy_delta_ev": 1.0e-12,
+        },
+        "nominal_residual_gate_passed": True,
         "final_reaction_potential_change_ev": None,
         "final_reaction_gradient_change_ev_per_angstrom": None,
         "final_energy_residual_ev": None,

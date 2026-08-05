@@ -1,0 +1,29 @@
+{
+  "field_convention_status": "potential-gradient-response-only",
+  "policy": "Historical artifacts are immutable. This registry changes only their admissible interpretation under the P0 field-convention and common-energy audit.",
+  "records": [
+    {
+      "artifact_id": "route2-mace-p0-field-contract-v1",
+      "artifact_path": "docs/implicit-solvation/benchmarks/route2-mace-p0-field-contract-v1.json",
+      "artifact_sha256": "786b4701f30bd2881f2db5a0f53fbea74b7dde26072c32577c01afef2e432fd5",
+      "disposition": "accepted-current",
+      "rationale": "The hash-bound P0 audit uniquely maps the upstream homogeneous field to grad(phi), validates the existing JGP94-D2 coordinate policy, batch isolation, and the analytic Born sign, and therefore admits only the neutral H/O response interface. Its failed energy-dipole conjugacy, induced-response reciprocity/rank, and full source-response passivity/reciprocity diagnostics keep operational-force and variational routes blocked."
+    },
+    {
+      "artifact_id": "route2-mace-local-field-thermodynamic-canary-v1",
+      "artifact_path": "docs/implicit-solvation/benchmarks/route2-mace-local-field-thermodynamic-canary-v1.json",
+      "artifact_sha256": "518dc61f20df790ce8b110548e8fff40926e2d5a9d0f7ffcfefa898706fc65e6",
+      "disposition": "legacy-unresolved",
+      "rationale": "The artifact predates the P0 uniform-field equivalence and Born-sign canaries, declared no pass threshold, and its response reciprocity diagnostics do not establish a common energy functional. It remains diagnostic evidence only."
+    },
+    {
+      "artifact_id": "route2-mace-exact-gto-fixed-geometry-canary-v1",
+      "artifact_path": "docs/implicit-solvation/benchmarks/route2-mace-exact-gto-fixed-geometry-canary-v1.json",
+      "artifact_sha256": "350a1a583a1a2f88aebf1c119f58e0f629a71920ddbae364645498c841af9ba1",
+      "disposition": "legacy-unresolved",
+      "rationale": "The artifact validates bounded fixed-geometry derivative algebra but explicitly omits coordinate and gauge derivatives and does not establish physical-electric-field versus potential-gradient semantics. It remains diagnostic evidence only."
+    }
+  ],
+  "registry_id": "route2-mace-p0-artifact-dispositions-v1",
+  "schema_version": 1
+}
